@@ -1,0 +1,61 @@
+name: nostr_nav
+description: Roadstr - Navigatore satellitare open source
+version: 0.1.0+1
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.10.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_map: ^8.3.0
+  latlong2: ^0.9.0
+  geolocator: ^14.0.3
+  hive_flutter: ^1.1.0
+  hive: ^2.2.3
+  cupertino_icons: ^1.0.6
+  intl: ^0.20.2
+  permission_handler: ^12.0.3
+  provider: ^6.1.5+1
+  http: ^1.6.0
+  wakelock_plus: ^1.6.1
+  flutter_secure_storage: ^10.3.1
+  nostr_tools: ^1.0.9
+  url_launcher: ^6.3.1
+  app_links: ^6.4.0
+  amberflutter: ^0.0.1
+  webview_flutter: ^4.10.0
+  flutter_local_notifications: ^17.2.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  hive_test: ^1.0.1
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  # Source image — must be at least 1024×1024 px (RGBA PNG recommended).
+  # flutter_launcher_icons will down-scale it to every required resolution.
+  image_path: "assets/icons/app_icon.png"
+
+  android: true          # generates mipmap-* drawables
+  ios: false             # iOS not targeted yet — add later if needed
+  min_sdk_android: 21    # match app's minSdkVersion
+
+  # Adaptive icon config (Android 8.0+, API 26+).
+  # The foreground is the full image; a white background ensures the icon
+  # looks good on any launcher colour. Adjust padding to taste.
+  adaptive_icon_foreground: "assets/icons/app_icon.png"
+  adaptive_icon_background: "#FFFFFF"
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  assets:
+    - assets/icons/
