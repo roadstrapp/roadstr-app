@@ -1,0 +1,558 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Lithuanian (`lt`).
+class AppLocalizationsLt extends AppLocalizations {
+  AppLocalizationsLt([String locale = 'lt']) : super(locale);
+
+  @override
+  String get searchHint => 'Kur norite vykti?';
+
+  @override
+  String get calculatingRoute => 'Skaičiuojamas maršrutas…';
+
+  @override
+  String get routeNotFoundTitle => 'Maršrutas nerastas';
+
+  @override
+  String get noRouteFound => 'Maršrutas nerastas. Patikrinkite ryšį.';
+
+  @override
+  String get emptyServerResponse =>
+      'Tuščias serverio atsakymas. Patikrinkite ryšį.';
+
+  @override
+  String routeError(String error) {
+    return 'Maršruto skaičiavimo klaida: $error';
+  }
+
+  @override
+  String get gpsNotAvailable =>
+      'GPS nepasiekiamas — Nustatymai → Programa → Roadstr → Leidimai → Vieta';
+
+  @override
+  String get acquiringGps => 'Gaunamas GPS…';
+
+  @override
+  String get graphhopperServerNotConfigured =>
+      'GraphHopper serveris nesukonfigūruotas — naudojamas OSRM';
+
+  @override
+  String get graphhopperApiKeyNotConfigured =>
+      'GraphHopper API raktas nesukonfigūruotas — naudojamas OSRM';
+
+  @override
+  String get openrouteApiKeyNotConfigured =>
+      'OpenRouteService API raktas nesukonfigūruotas — naudojamas OSRM';
+
+  @override
+  String get chooseRoute => 'Pasirinkti maršrutą';
+
+  @override
+  String routeOptionsCount(int count) {
+    return '$count parinktys';
+  }
+
+  @override
+  String get cancel => 'Atšaukti';
+
+  @override
+  String get startNavigation => 'Pradėti navigaciją';
+
+  @override
+  String get fastestRoute => 'Greičiausias';
+
+  @override
+  String get now => 'Dabar';
+
+  @override
+  String get history => 'Istorija';
+
+  @override
+  String get clearHistory => 'Išvalyti';
+
+  @override
+  String get selectedPosition => 'Pasirinkta padėtis';
+
+  @override
+  String get bottomBarProfile => 'Profilis';
+
+  @override
+  String get bottomBarMenu => 'Meniu';
+
+  @override
+  String get settingsTitle => 'Nustatymai';
+
+  @override
+  String get sectionTheme => 'Tema';
+
+  @override
+  String get sectionMap => 'Žemėlapis';
+
+  @override
+  String get sectionPrivacy => 'Privatumas';
+
+  @override
+  String get sectionInfo => 'Informacija';
+
+  @override
+  String get sectionLanguage => 'Kalba';
+
+  @override
+  String get themeLightNostr => 'Šviesi · Nostr Violetinė';
+
+  @override
+  String get themeLightBitcoin => 'Šviesi · Bitcoin Oranžinė';
+
+  @override
+  String get langSystem => 'Sistemos numatytoji';
+
+  @override
+  String get langItalian => 'Italiano';
+
+  @override
+  String get langEnglish => 'English';
+
+  @override
+  String get keepScreenOn => 'Laikyti ekraną įjungtą';
+
+  @override
+  String get keepScreenOnDescription =>
+      'Neleidžia įjungti miego režimo navigacijos metu';
+
+  @override
+  String get rotateMap => 'Žemėlapis seka kryptį';
+
+  @override
+  String get rotateMapDescription => 'Žemėlapis sukasi pagal vairavimo kryptį';
+
+  @override
+  String get mapTileUrlLabel => 'Žemėlapio plytelių URL';
+
+  @override
+  String get routingProviderLabel => 'Maršrutizavimo tiekėjas';
+
+  @override
+  String get osrmProvider => 'OSRM (viešas, raktas nereikalingas)';
+
+  @override
+  String get graphhopperLocalProvider => 'GraphHopper (vietinis/privatus)';
+
+  @override
+  String get graphhopperCloudProvider => 'GraphHopper Cloud (API raktas)';
+
+  @override
+  String get openrouteProvider => 'OpenRouteService (API raktas)';
+
+  @override
+  String get graphhopperServerHint => 'http://localhost:8989/route';
+
+  @override
+  String get graphhopperApiKeyHint => 'GraphHopper API raktas (neprivalomas)';
+
+  @override
+  String get verify => 'Patikrinti';
+
+  @override
+  String get graphhopperServerUrlRequired =>
+      'Prieš tikrinant įveskite serverio URL.';
+
+  @override
+  String get successTitle => 'Sėkmė';
+
+  @override
+  String get graphhopperServerReachable => 'GraphHopper serveris pasiekiamas';
+
+  @override
+  String get errorTitle => 'Klaida';
+
+  @override
+  String get close => 'Uždaryti';
+
+  @override
+  String get privacyMode => 'Privatumo režimas';
+
+  @override
+  String get privacyModeDescription =>
+      'Nesiųsti anoniminių telemetrijos duomenų';
+
+  @override
+  String get infoVersion => 'Versija';
+
+  @override
+  String get infoProtocol => 'Protokolas';
+
+  @override
+  String get infoMaps => 'Žemėlapiai';
+
+  @override
+  String get infoRouting => 'Maršrutizavimas';
+
+  @override
+  String get infoSource => 'Šaltinis';
+
+  @override
+  String get providerOsrm => 'OSRM';
+
+  @override
+  String get providerGraphhopperSelfHosted =>
+      'GraphHopper (savarankiškai laikomas)';
+
+  @override
+  String get providerGraphhopperCloud => 'GraphHopper (debesija)';
+
+  @override
+  String get providerOpenroute => 'OpenRouteService';
+
+  @override
+  String get profileTitle => 'Profilis';
+
+  @override
+  String get notConnected => 'Neprisijungta';
+
+  @override
+  String get loginWithNostrTitle => 'PRISIJUNGTI SU NOSTR';
+
+  @override
+  String get amberNip55Title => 'Amber / NIP-55';
+
+  @override
+  String get amberLoginDescription =>
+      'Privatus raktas niekada nepalieka jūsų įrenginio · Rekomenduojama';
+
+  @override
+  String get nsecLoginOption => 'Įvesti nsec';
+
+  @override
+  String get nsecLoginDescription =>
+      'Privatus raktas saugomas vietoje · Mažiau saugi';
+
+  @override
+  String get connectedViaAmber => 'Prisijungta per Amber (NIP-55)';
+
+  @override
+  String get connectedViaNsec => 'Prisijungta per nsec';
+
+  @override
+  String get publicKeyLabel => 'VIEŠASIS RAKTAS';
+
+  @override
+  String get npubCopiedToClipboard => 'npub nukopijuotas į iškarpinę';
+
+  @override
+  String get logoutTitle => 'Atjungti';
+
+  @override
+  String get logoutConfirmation =>
+      'Pašalinti Nostr kredencialus iš šio įrenginio?';
+
+  @override
+  String get logoutButton => 'Atjungti';
+
+  @override
+  String get nostrIdentityInfo =>
+      'Turėdami Nostr tapatybę, galite skelbti eismo įspėjimus, ataskaitas ir lankytinas vietas decentralizuotai Nostr tinkle, be centrinių serverių.';
+
+  @override
+  String get warningTitle => 'Įspėjimas';
+
+  @override
+  String get nsecWarning =>
+      'Ketinate įvesti savo Nostr privatų raktą tiesiai į programą. Bet kas, turintis fizinę ar nuotolinę prieigą prie jūsų įrenginio, galėtų jį perskaityti ir visam laikui perimti jūsų Nostr tapatybės kontrolę.';
+
+  @override
+  String get amberSecureMethodHint =>
+      '✦  Saugus metodas yra Amber (NIP-55): nsec niekada nepalieka programos pasirašytojo saugyklos.';
+
+  @override
+  String get nsecRiskAcknowledgment =>
+      'Suprantu riziką ir vis tiek noriu tęsti';
+
+  @override
+  String get continueButton => 'Tęsti';
+
+  @override
+  String get amberDialogTitle => 'Amber / NIP-55';
+
+  @override
+  String get amberDescription =>
+      'Amber yra NIP-55 suderinama Android programų pasirašymo programa. Jūsų privatus raktas lieka izoliuotas Amber viduje ir niekada nėra dalinamas.';
+
+  @override
+  String get requestKeyFromAmber => 'Prašyti viešojo rakto iš Amber';
+
+  @override
+  String get amberNotFound =>
+      'Amber nerastas. Įdiekite jį iš Play Store arba rankiniu būdu įveskite savo npub.';
+
+  @override
+  String get waitingForAmberResponse => 'Laukiama Amber atsakymo…';
+
+  @override
+  String get pasteNpubManually => 'Įklijuokite savo npub rankiniu būdu:';
+
+  @override
+  String get confirmNpub => 'Patvirtinti npub';
+
+  @override
+  String get enterNsecTitle => 'Įvesti nsec';
+
+  @override
+  String get loginButton => 'Prisijungti';
+
+  @override
+  String get invalidNpubTitle => 'Neteisingas npub';
+
+  @override
+  String get invalidNsecTitle => 'Neteisingas nsec';
+
+  @override
+  String get invalidNpubMessage =>
+      'Įsitikinkite, kad įklijavote teisingą npub.';
+
+  @override
+  String get invalidNsecMessage =>
+      'Įsitikinkite, kad įklijavote teisingą nsec.';
+
+  @override
+  String get amberResponseError => 'Amber atsakymo klaida';
+
+  @override
+  String get ok => 'Gerai';
+
+  @override
+  String get or => 'arba';
+
+  @override
+  String get gpsNotActiveTitle => 'GPS neaktyvus';
+
+  @override
+  String get gpsDisabledMessage =>
+      'Įjunkite GPS įrenginio nustatymuose, kad gautumėte savo buvimo vietą ir naudotumėtės navigacija.';
+
+  @override
+  String get openSettings => 'Nustatymai';
+
+  @override
+  String get myLocation => 'Mano vieta';
+
+  @override
+  String get loginToReport =>
+      'Prisijunkite su Nostr (Profilio skyrius), kad praneštumėte apie įvykius';
+
+  @override
+  String get navigateHere => 'Naviguoti čia';
+
+  @override
+  String get reportEventHere => 'Pranešti apie įvykį čia';
+
+  @override
+  String get zapSendSats => 'Zap ⚡ (siųsti sats)';
+
+  @override
+  String get sendZap => 'Siųsti Zap';
+
+  @override
+  String get chooseAmountSats => 'Pasirinkite sumą satoshi (sats):';
+
+  @override
+  String get customAmount => 'Pasirinktinė suma…';
+
+  @override
+  String get zapSending => 'Siunčiama…';
+
+  @override
+  String zapSat(int sats) {
+    return '⚡$sats sat';
+  }
+
+  @override
+  String get fetchingLightningAddress => 'Gaunamas Lightning adresas…';
+
+  @override
+  String get noLightningAddress => 'Šis pranešėjas neturi Lightning adreso';
+
+  @override
+  String get requestingInvoice => 'Prašoma sąskaitos…';
+
+  @override
+  String get lnurlUnavailable => 'LNURL nepasiekiamas';
+
+  @override
+  String get invoiceFailed => 'Nepavyko sugeneruoti sąskaitos';
+
+  @override
+  String get openingWallet => 'Atidaroma piniginė…';
+
+  @override
+  String get payingViaNwc => 'Mokama per NWC…';
+
+  @override
+  String get noLightningWallet => 'Lightning piniginė nerasta';
+
+  @override
+  String zapSent(int sats) {
+    return '⚡ $sats sats išsiųsta!';
+  }
+
+  @override
+  String get stillThere => 'Vis dar yra';
+
+  @override
+  String get notThereAnymore => 'Jau nebėra';
+
+  @override
+  String get loginToConfirm =>
+      'Prisijunkite su Nostr, kad patvirtintumėte arba ginčytumėte';
+
+  @override
+  String get reportAnEvent => 'Pranešti apie įvykį';
+
+  @override
+  String get optionalComment => 'Neprivalomas komentaras…';
+
+  @override
+  String get publish => 'Skelbti';
+
+  @override
+  String get publishing => 'Skelbiama…';
+
+  @override
+  String get reportPublished => 'Ataskaita paskelbta ✓';
+
+  @override
+  String get myReports => 'MANO ATASKAITOS';
+
+  @override
+  String get noReportsYet => 'Nėra paskelbtų ataskaitų';
+
+  @override
+  String get zapBalance => 'Zap balansas';
+
+  @override
+  String get satoshiFromReports => 'Satoshi gauti iš jūsų ataskaitų';
+
+  @override
+  String get reputationHigh => 'Aukšta';
+
+  @override
+  String get reputationMedium => 'Vidutinė';
+
+  @override
+  String get reputationLow => 'Žema';
+
+  @override
+  String reputationLabel(String level) {
+    return 'Reputacija $level';
+  }
+
+  @override
+  String reliability(int pct) {
+    return 'Patikimumas: $pct%';
+  }
+
+  @override
+  String get confirmedLabel => 'Patvirtinta';
+
+  @override
+  String get removedLabel => 'Pašalinta';
+
+  @override
+  String get positionLabel => 'Pozicija';
+
+  @override
+  String get loadingLabel => 'Kraunama…';
+
+  @override
+  String get sectionWebSearch => 'Interneto paieška';
+
+  @override
+  String get sectionLightning => 'Lightning';
+
+  @override
+  String get nwcLabel => 'Nostr Wallet Connect (NWC)';
+
+  @override
+  String get nwcDesc =>
+      'Įklijuokite savo NWC URI (Alby Hub, Mutiny, Cashu…), kad mokėtumėte Zaps tiesiogiai iš programos.';
+
+  @override
+  String get searchEngineQwantDesc =>
+      'Europietiška, privatumas pirmiausia. Jokio sekimo, jokių reklaminių profilių. Rekomenduojama.';
+
+  @override
+  String get searchEngineBraveDesc =>
+      'Nepriklausomas indeksas, atvirojo kodo. Jokios priklausomybės nuo Google ar Bing. Nulis profiliavimo.';
+
+  @override
+  String get searchEngineDdgDesc =>
+      'Orientuota į privatumą ir populiari. Rezultatai iš dalies iš Bing — turėkite tai omenyje.';
+
+  @override
+  String get searchEngineStartpageDesc =>
+      'Google rezultatai neperduodant jūsų duomenų Google. Protingas kompromisas.';
+
+  @override
+  String get searchEngineGoogleDesc =>
+      'Labai efektyvi. Bet prisiminkite: Google pažįsta jus geriau nei jūsų mama ir parduoda viską reklamuotojams. Jūsų pasirinkimas. 🍪';
+
+  @override
+  String get categoryPolice => 'Policija';
+
+  @override
+  String get categorySpeedCamera => 'Greičio matuoklis';
+
+  @override
+  String get categoryTrafficJam => 'Spūstis';
+
+  @override
+  String get categoryAccident => 'Avarija';
+
+  @override
+  String get categoryRoadClosure => 'Kelio uždarymas';
+
+  @override
+  String get categoryConstruction => 'Kelių darbai';
+
+  @override
+  String get categoryHazard => 'Pavojus';
+
+  @override
+  String get categoryRoadCondition => 'Kelio būklė';
+
+  @override
+  String get categoryPothole => 'Duobė';
+
+  @override
+  String get categoryFog => 'Rūkas';
+
+  @override
+  String get categoryIce => 'Ledas';
+
+  @override
+  String get categoryAnimal => 'Gyvūnas';
+
+  @override
+  String get categoryOther => 'Kita';
+
+  @override
+  String get dateTimeLabel => 'Data / laikas';
+
+  @override
+  String minutesAgo(int count) {
+    return 'prieš $count min';
+  }
+
+  @override
+  String hoursAgo(int count) {
+    return 'prieš ${count}h';
+  }
+
+  @override
+  String daysAgo(int count) {
+    return 'prieš ${count}d';
+  }
+}

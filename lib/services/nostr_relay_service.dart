@@ -190,9 +190,9 @@ class NostrRelayService {
       ),
       privKeyHex,
     );
-    // Pubblica su tutti i relay configurati per massima ridondanza
+    // Publish to all configured relays for maximum redundancy.
     _sendToAll(['EVENT', signed.toJson()]);
-    // Restituisce l'evento locale con lo stesso ID che userà il relay
+    // Return the local event with the same ID the relay will assign.
     return RoadEvent(
       id:        signed.id,
       pubkey:    pubKeyHex,
@@ -569,7 +569,7 @@ class NostrRelayService {
       ws.sink.add(jsonEncode(['REQ', evSub, {
         'kinds': [1315],
         'authors': [pubHex],
-        'since': _nowS() - 30 * 86400, // ultimi 30 giorni
+        'since': _nowS() - 30 * 86400, // last 30 days
         'limit': limit,
       }]));
 
