@@ -45,7 +45,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         padding: const EdgeInsets.all(16),
         children: [
 
-          // ── TEMA ────────────────────────────────────────────────────────
+          // ── THEME ───────────────────────────────────────────────────────
           _SectionHeader(l.sectionTheme, c),
           Container(
             margin: const EdgeInsets.only(bottom: 8),
@@ -92,7 +92,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 24),
 
-          // ── LINGUA ──────────────────────────────────────────────────────
+          // ── LANGUAGE ────────────────────────────────────────────────────
           _SectionHeader(l.sectionLanguage, c),
           Container(
             margin: const EdgeInsets.only(bottom: 8),
@@ -109,22 +109,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 borderRadius: BorderRadius.circular(14),
                 icon: Icon(Icons.expand_more_rounded, color: c.textSecondary),
                 style: TextStyle(color: c.textPrimary, fontSize: 14),
+                // Language names are intentionally shown in their native script
+                // so users can recognise their own language regardless of the
+                // current app language.
                 items: [
+                  // ── System default ──────────────────────────────────────
                   DropdownMenuItem<String?>(
                     value: null,
-                    child: Text(l.langSystem, style: TextStyle(color: c.textPrimary)),
+                    child: Text(l.langSystem,
+                        style: TextStyle(color: c.textPrimary)),
                   ),
-                  DropdownMenuItem<String?>(
-                    value: 'it',
-                    child: Text(l.langItalian, style: TextStyle(color: c.textPrimary)),
-                  ),
-                  DropdownMenuItem<String?>(
-                    value: 'en',
-                    child: Text(l.langEnglish, style: TextStyle(color: c.textPrimary)),
-                  ),
+                  // ── EU official languages ───────────────────────────────
+                  ..._buildLangItems(c, const {
+                    'bg': 'Български',         // Bulgarian
+                    'cs': 'Čeština',           // Czech
+                    'da': 'Dansk',             // Danish
+                    'de': 'Deutsch',           // German
+                    'el': 'Ελληνικά',          // Greek
+                    'en': 'English',           // English
+                    'es': 'Español',           // Spanish
+                    'et': 'Eesti',             // Estonian
+                    'fi': 'Suomi',             // Finnish
+                    'fr': 'Français',          // French
+                    'ga': 'Gaeilge',           // Irish
+                    'hr': 'Hrvatski',          // Croatian
+                    'hu': 'Magyar',            // Hungarian
+                    'it': 'Italiano',          // Italian
+                    'lt': 'Lietuvių',          // Lithuanian
+                    'lv': 'Latviešu',          // Latvian
+                    'mt': 'Malti',             // Maltese
+                    'nl': 'Nederlands',        // Dutch
+                    'pl': 'Polski',            // Polish
+                    'pt': 'Português',         // Portuguese
+                    'ro': 'Română',            // Romanian
+                    'sk': 'Slovenčina',        // Slovak
+                    'sl': 'Slovenščina',       // Slovenian
+                    'sv': 'Svenska',           // Swedish
+                    // ── Additional world languages ──────────────────────
+                    'ja': '日本語',              // Japanese
+                    'ru': 'Русский',           // Russian
+                    'zh': '中文',               // Chinese (Simplified)
+                  }),
                 ],
                 onChanged: (code) {
-                  localeProvider.setLocale(code != null ? Locale(code) : null);
+                  localeProvider.setLocale(
+                      code != null ? Locale(code) : null);
                 },
               ),
             ),
@@ -132,7 +161,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 24),
 
-          // ── MAPPA ───────────────────────────────────────────────────────
+          // ── MAP ─────────────────────────────────────────────────────────
           _SectionHeader(l.sectionMap, c),
           _SwitchTile(
             title: l.keepScreenOn,
@@ -278,7 +307,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 24),
 
-          // ── MOTORE DI RICERCA ────────────────────────────────────────────
+          // ── WEB SEARCH ENGINE ───────────────────────────────────────────
           _SectionHeader(l.sectionWebSearch, c),
           _SearchEngineSelector(box: _box, colors: c),
 
@@ -334,7 +363,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // ── INFO ─────────────────────────────────────────────────────────
           _SectionHeader(l.sectionInfo, c),
-          _InfoTile(l.infoVersion, '0.1.0', c),
+          _InfoTile(l.infoVersion, '0.2.0', c),
           _InfoTile(l.infoProtocol, 'Nostr', c),
           _InfoTile(l.infoMaps,
               _box.get('mapTileUrl', defaultValue: c.mapTile) as String, c),
@@ -498,4 +527,21 @@ class _SearchEngineSelectorState extends State<_SearchEngineSelector> {
       ]),
     );
   }
+}
+
+// ── Language list helper ──────────────────────────────────────────────────────
+
+/// Builds a sorted list of [DropdownMenuItem]s for the language selector.
+///
+/// [langs] maps BCP-47 language codes to their native-script display name
+/// (e.g. `'de': 'Deutsch'`). Items are sorted alphabetically by native name
+/// so the list is easy to scan regardless of which language is currently active.
+List<DropdownMenuItem<String?>> _buildLangItems(
+    RoadstrColors c, Map<String, String> langs) {
+  final sorted = langs.entries.toList()
+    ..sort((a, b) => a.value.compareTo(b.value));
+  return sorted.map((e) => DropdownMenuItem<String?>(
+    value: e.key,
+    child: Text(e.value, style: TextStyle(color: c.textPrimary)),
+  )).toList();
 }

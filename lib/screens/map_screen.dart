@@ -10,7 +10,6 @@
 //     via either Amber (NIP-55) or local nsec signing.
 //   - Orchestrates NIP-57 zaps via ZapService (NWC first, deep-link fallback).
 //   - Shows a persistent navigation notification via NavigationNotificationService.
-//   - Provides an offline speech recognition entry point via a native MethodChannel.
 //
 // Camera animation uses a Ticker (via SingleTickerProviderStateMixin)
 // rather than AnimationController because we need direct, frame-by-frame
@@ -32,9 +31,8 @@ import '../services/routing_service.dart';
 import 'package:amberflutter/amberflutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:nostr_tools/nostr_tools.dart' show Nip19;
+import 'package:nostr_tools/nostr_tools.dart' show Nip19, Nip04, EventApi, Event;
 import '../l10n/app_localizations.dart';
 import '../models/road_event.dart';
 import '../services/navigation_notification_service.dart';
@@ -89,8 +87,10 @@ class _MapScreenState extends State<MapScreen>
   LatLng _fromCenter = const LatLng(42.5, 12.5);
   LatLng _toCenter = const LatLng(42.5, 12.5);
   int _animStartMs = 0;
-  /// Total animation duration in milliseconds.
+  /// Default animation duration for user-triggered camera transitions (ms).
   static const _animMs = 550;
+  /// Shorter duration used for GPS-tracking animation — keeps motion fluid.
+  static const _gpsAnimMs = 380;
 
   RouteResult? _route;
   LatLng? _destination;
@@ -98,17 +98,22 @@ class _MapScreenState extends State<MapScreen>
   bool _isNavigating = false;
   bool _isCalculating = false;
 
+  // ── Navigation live stats ──────────────────────────────────────────────────
+  /// Real-time distance from current GPS position to the next maneuver point.
+  double _distToNextManeuverM = 0;
+  /// Remaining route distance in metres (decreases as the user advances).
+  double _remainingDistM = 0;
+  /// Remaining route time in seconds (estimated from remaining distance).
+  double _remainingSecs = 0;
+  /// Previous GPS position used to compute movement-based heading when the
+  /// device magnetometer / GPS bearing is unavailable.
+  LatLng? _prevGpsPos;
+
   final _searchController = TextEditingController();
   List<NominatimResult> _searchResults = [];
   bool _isSearching = false;
   bool _showSearch = false;
   Timer? _searchDebounce;
-
-  /// MethodChannel for native offline speech recognition (Android).
-  /// The Kotlin side launches `ACTION_RECOGNIZE_SPEECH` and returns the
-  /// recognised text string. No internet required — uses the on-device model.
-  static const _speechCh = MethodChannel('roadstr/speech');
-  bool _listening = false;
 
   /// Alternative routes returned by OSRM. Shown in [_AlternativesPanel] when
   /// the route is > 5 km (shorter routes go directly to the preview panel).
@@ -116,8 +121,12 @@ class _MapScreenState extends State<MapScreen>
   int _selectedAlt = 0;
   bool _showAlternatives = false;
 
-  final _nostr   = NostrRelayService();
+  final _nostr    = NostrRelayService();
   final _navNotif = NavigationNotificationService();
+
+  bool _isRerouting = false;
+  /// IDs of Nostr traffic events already shown as an in-navigation alert.
+  final _alertedEventIds = <String>{};
   /// Live list of non-expired road events fed by [NostrRelayService.stream].
   List<RoadEvent> _roadEvents = [];
   StreamSubscription<List<RoadEvent>>? _roadSub;
@@ -174,6 +183,9 @@ class _MapScreenState extends State<MapScreen>
     _nostr.connect();
     _roadSub = _nostr.stream.listen((events) {
       if (mounted) setState(() => _roadEvents = events);
+      if (mounted && _isNavigating && _route != null) {
+        _checkNewTrafficOnRoute(events);
+      }
     });
   }
 
@@ -189,7 +201,7 @@ class _MapScreenState extends State<MapScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _mapController.move(_position, _initialZoom);
-      // Sottoscrive subito gli eventi nell'area, anche senza GPS attivo
+      // Subscribe to road events for the initial area even before GPS is active.
       _nostr.subscribeArea(_position);
     });
   }
@@ -199,7 +211,7 @@ class _MapScreenState extends State<MapScreen>
       if (_gpsReady) _recenter();
       return;
     }
-    // Controlla se il servizio GPS è attivo PRIMA di richiedere il permesso
+    // Check whether the GPS hardware service is enabled BEFORE requesting permission.
     final serviceEnabled = await _gps.isServiceEnabled();
     if (!mounted) return;
     if (!serviceEnabled) {
@@ -283,34 +295,67 @@ class _MapScreenState extends State<MapScreen>
     final lng = data.position.longitude;
     if (!lat.isFinite || !lng.isFinite ||
         lat < -90 || lat > 90 || lng < -180 || lng > 180) return;
+
+    // ── Heading resolution ───────────────────────────────────────────────────
+    // Prefer the GPS/compass bearing when available and the device is moving.
+    // When the device is slow or stationary the bearing field is often null or
+    // unreliable; fall back to the bearing computed from two consecutive GPS
+    // positions (dead-reckoning). This keeps the map rotated correctly even at
+    // low speeds (city intersections, red lights).
+    double effectiveHeading = _heading;
+    if (data.heading != null && data.heading!.isFinite && _speed > 2) {
+      effectiveHeading = data.heading!;
+    } else if (_prevGpsPos != null && _speed > 1) {
+      final movBearing = _bearingBetween(_prevGpsPos!, data.position);
+      if (movBearing.isFinite) effectiveHeading = movBearing;
+    }
+    _prevGpsPos = data.position;
+
+    // ── Speed-adaptive zoom ──────────────────────────────────────────────────
+    // Zoom in when slow (pedestrian, city) and out at high speed (motorway)
+    // so the driver always sees enough road ahead.
+    double targetZoom = _camZoom;
+    if (_isNavigating) {
+      final spd = data.speedKmh.isFinite ? data.speedKmh : 0;
+      targetZoom = spd < 10  ? 18.0
+                 : spd < 30  ? 17.5
+                 : spd < 60  ? 17.0
+                 : spd < 100 ? 16.5
+                 :              16.0;
+      // Ease toward the target zoom — abrupt jumps are disorienting.
+      targetZoom = _camZoom + (targetZoom - _camZoom) * 0.12;
+    }
+
     setState(() {
       _position = data.position;
-      _speed = data.speedKmh.isFinite ? data.speedKmh : 0;
-      if (data.heading != null && data.heading!.isFinite) {
-        _heading = data.heading!;
-      }
+      _speed    = data.speedKmh.isFinite ? data.speedKmh : 0;
+      _heading  = effectiveHeading;
     });
-    // Re-subscribe only when more than 2 km from the last subscription centre.
+
+    // ── Geohash re-subscription ──────────────────────────────────────────────
     final prev = _lastSubscribedPos;
     if (prev == null ||
         const Distance().as(LengthUnit.Kilometer, data.position, prev) > 2) {
       _lastSubscribedPos = data.position;
       _nostr.subscribeArea(data.position);
     }
+
+    // ── Navigation camera + step logic ───────────────────────────────────────
     if (_isNavigating && _gpsReady && !_navTransitioning) {
-      // Step updates always run regardless of _followUser so that turn
-      // instructions advance even when the user has scrolled the map.
-      if (_route != null) _updateNavigationStep();
+      if (_route != null) {
+        _updateNavigationStep();
+        _updateRemainingStats();
+        _checkArrival();
+      }
       WakelockPlus.enable();
 
-      // Camera only follows when _followUser is true.  The user can freely
-      // pan/zoom to look ahead on the route; tapping the GPS FAB re-enables
-      // follow mode (see _recenter).
-      if (_followUser && _camTicker == null) {
+      if (_followUser) {
         final rot = _headingMode ? -_heading : _camRotDeg;
-        _mapController.moveAndRotate(_position, _camZoom, rot);
-        _camCenter = _position;
-        _camRotDeg = rot;
+        // Use a short animated transition so the map glides rather than jumps
+        // between consecutive GPS fixes (500 ms GPS interval).
+        _animateCamera(
+            toCenter: _position, toZoom: targetZoom, toRot: rot,
+            durationMs: _gpsAnimMs);
       }
     } else if (_followUser && _camTicker == null) {
       final targetRot = _headingMode ? -_heading : _camRotDeg;
@@ -320,14 +365,317 @@ class _MapScreenState extends State<MapScreen>
     }
   }
 
+  /// Computes the initial bearing (degrees, 0–360 clockwise from north) from
+  /// [from] to [to] using the haversine formula.
+  static double _bearingBetween(LatLng from, LatLng to) {
+    final lat1 = from.latitude  * math.pi / 180;
+    final lat2 = to.latitude    * math.pi / 180;
+    final dLon = (to.longitude  - from.longitude) * math.pi / 180;
+    final y = math.sin(dLon) * math.cos(lat2);
+    final x = math.cos(lat1) * math.sin(lat2) -
+              math.sin(lat1) * math.cos(lat2) * math.cos(dLon);
+    return (math.atan2(y, x) * 180 / math.pi + 360) % 360;
+  }
+
+  /// Recalculates [_remainingDistM] and [_remainingSecs] from the current step
+  /// index.  Called on every GPS tick during navigation.
+  void _updateRemainingStats() {
+    if (_route == null) return;
+    double rem = 0;
+    for (int i = _currentStepIdx; i < _route!.steps.length; i++) {
+      rem += _route!.steps[i].distanceM;
+    }
+    // Subtract the portion of the current step already completed.
+    if (_currentStepIdx < _route!.steps.length) {
+      final stepDist = _route!.steps[_currentStepIdx].distanceM;
+      if (stepDist > 0 && _distToNextManeuverM < stepDist) {
+        rem -= (stepDist - _distToNextManeuverM);
+      }
+    }
+    final totalDist = _route!.totalDistanceM;
+    setState(() {
+      _remainingDistM = rem.clamp(0, totalDist);
+      // Estimate remaining time proportionally to remaining distance.
+      _remainingSecs = totalDist > 0
+          ? (_route!.totalDurationS * _remainingDistM / totalDist)
+          : 0;
+    });
+  }
+
+  /// Checks whether the user has reached the destination (within 15 m).
+  void _checkArrival() {
+    if (_destination == null || !_isNavigating) return;
+    final d = const Distance().as(LengthUnit.Meter, _position, _destination!);
+    if (d < 15) _onArrival();
+  }
+
+  void _onArrival() {
+    _stopNavigation();
+    _showArrivalDialog();
+  }
+
+  // App Nostr account for user feedback (DM via NIP-04 kind-4)
+  static const _appNpub =
+      'npub1cwft0dmtw5gtwhmu5r2f8fjpw0l5f006egs8fmltdc3jrxxcpe6q965mmc';
+  // App Lightning address for user tips
+  static const _appLightningAddress = 'directfreon861@walletofsatoshi.com';
+
+  void _showArrivalDialog() {
+    final c = RoadstrColors.of(context);
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: c.surface2,
+        title: const Text('🎉 Sei arrivato!',
+            style: TextStyle(fontSize: 22), textAlign: TextAlign.center),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text('Hai raggiunto la tua destinazione.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: c.textSecondary, fontSize: 14)),
+          const SizedBox(height: 16),
+          Text('Com\'è andata?',
+              style: TextStyle(color: c.textPrimary, fontSize: 15,
+                  fontWeight: FontWeight.bold)),
+        ]),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          // Bad experience → send DM feedback
+          OutlinedButton.icon(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _showFeedbackDialog();
+            },
+            style: OutlinedButton.styleFrom(
+                side: BorderSide(color: c.border),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12))),
+            icon: const Text('👎', style: TextStyle(fontSize: 16)),
+            label: Text('Male', style: TextStyle(color: c.textSecondary)),
+          ),
+          // Good experience → tip the app
+          FilledButton.icon(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _showTipDialog();
+            },
+            style: FilledButton.styleFrom(
+                backgroundColor: c.accent,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12))),
+            icon: const Text('👍', style: TextStyle(fontSize: 16)),
+            label: const Text('Bene!',
+                style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFeedbackDialog() {
+    final c = RoadstrColors.of(context);
+    final ctrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: c.surface2,
+        title: Text('Raccontaci cosa è andato storto',
+            style: TextStyle(color: c.textPrimary, fontSize: 15,
+                fontWeight: FontWeight.bold)),
+        content: TextField(
+          controller: ctrl,
+          maxLines: 4,
+          style: TextStyle(color: c.textPrimary, fontSize: 13),
+          decoration: InputDecoration(
+            hintText: 'Descrivi il problema…',
+            hintStyle: TextStyle(color: c.textSecondary),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10)),
+            focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: c.accent)),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx),
+              child: Text('Annulla',
+                  style: TextStyle(color: c.textSecondary))),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: c.accent),
+            onPressed: () async {
+              final msg = ctrl.text.trim();
+              Navigator.pop(ctx);
+              if (msg.isEmpty) return;
+              await _sendFeedbackDm(msg);
+              if (mounted) _snack('Feedback inviato — grazie! 🙏');
+            },
+            child: const Text('Invia', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showTipDialog() {
+    final c = RoadstrColors.of(context);
+    showDialog(
+      context: context,
+      builder: (ctx) => _ZapSheet(
+        // Fake event pointing to the app's lightning address
+        event: RoadEvent(
+          id:        'roadstr-app',
+          pubkey:    '',
+          category:  RoadCategory.other,
+          position:  const LatLng(0, 0),
+          comment:   '',
+          createdAt: 0,
+        ),
+        colors: c,
+        onZapSent: (_) {
+          if (mounted) _snack('Grazie per il tuo supporto! ⚡🧡');
+        },
+      ),
+    );
+  }
+
+  /// Sends a NIP-04 encrypted direct message (kind-4) to the app's Nostr
+  /// account with the user's feedback text.
+  Future<void> _sendFeedbackDm(String text) async {
+    final privKey = await _secStorage.read(key: 'nostr_priv_hex');
+    final pubKey  = await _secStorage.read(key: 'nostr_pub_hex');
+    if (privKey == null || pubKey == null) return;
+    try {
+      final appPubHex = Nip19().decode(_appNpub)['data'] as String;
+      final encrypted = Nip04().encrypt(privKey, appPubHex, text);
+      final event = EventApi().finishEvent(
+        Event(
+          pubkey:     pubKey,
+          created_at: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          kind:       4,
+          tags:       [['p', appPubHex]],
+          content:    encrypted,
+        ),
+        privKey,
+      );
+      _nostr.publishRawEvent(event.toJson());
+    } catch (_) {}
+  }
+
   void _updateNavigationStep() {
-    if (_route == null || _currentStepIdx >= _route!.steps.length - 1) return;
+    if (_route == null) return;
+    _checkOffRoute();
+    if (_currentStepIdx >= _route!.steps.length - 1) {
+      _distToNextManeuverM = 0;
+      return;
+    }
     final nextStep = _route!.steps[_currentStepIdx + 1];
     final dist = const Distance().as(LengthUnit.Meter, _position, nextStep.location);
+    // Store live distance so _NavInstruction can show it in real-time.
+    _distToNextManeuverM = dist;
     if (dist < 30) {
       setState(() => _currentStepIdx++);
       _updateNavNotification();
     }
+  }
+
+  // ── Auto-reroute ────────────────────────────────────────────────────────────
+
+  /// Checks whether the user has drifted more than 60 m from the active route
+  /// at a speed of at least 3 km/h (i.e. they're actually moving, not just
+  /// standing at an intersection). If so, recalculates silently.
+  void _checkOffRoute() {
+    if (_route == null || !_isNavigating || !_gpsReady || _isRerouting) return;
+    if (_speed < 3) return; // stationary — don't reroute
+    final dist = const Distance();
+    double minDist = double.infinity;
+    for (final p in _route!.polyline) {
+      final d = dist.as(LengthUnit.Meter, _position, p);
+      if (d < minDist) minDist = d;
+    }
+    if (minDist > 60) _rerouteAndNavigate();
+  }
+
+  /// Silently recalculates the best route from the current GPS position and
+  /// restarts navigation without showing the preview/alternatives panels.
+  Future<void> _rerouteAndNavigate() async {
+    if (_destination == null || _isRerouting) return;
+    setState(() => _isRerouting = true);
+    final (:provider, :apiKey, :ghServer) = _resolveProvider();
+    final lang = Localizations.localeOf(context).languageCode;
+    List<RouteResult> routes;
+    try {
+      routes = await RoutingService.getRoutes(_position, _destination!,
+          provider: provider, apiKey: apiKey, graphhopperServer: ghServer,
+          lang: lang, vehicle: _transportMode);
+    } catch (_) {
+      if (mounted) setState(() => _isRerouting = false);
+      return;
+    }
+    if (!mounted || routes.isEmpty) {
+      if (mounted) setState(() => _isRerouting = false);
+      return;
+    }
+    setState(() => _isRerouting = false);
+    _snack('Route recalculated');
+    _startNavigation(routes.first);
+  }
+
+  // ── In-navigation traffic alert ──────────────────────────────────────────
+
+  /// Called whenever the Nostr event stream delivers a new batch of events.
+  /// If any NEW trafficJam event appears on the active route, shows a dialog
+  /// offering the user to recalculate with an alternative route.
+  void _checkNewTrafficOnRoute(List<RoadEvent> events) {
+    if (_route == null) return;
+    final dist = const Distance();
+    final newJams = events.where((e) =>
+        e.category == RoadCategory.trafficJam &&
+        !e.isExpired &&
+        !_alertedEventIds.contains(e.id) &&
+        _route!.polyline.any(
+            (p) => dist.as(LengthUnit.Meter, p, e.position) < 400)).toList();
+    if (newJams.isEmpty) return;
+    for (final e in newJams) _alertedEventIds.add(e.id);
+    _showTrafficAlert(newJams.first);
+  }
+
+  void _showTrafficAlert(RoadEvent jam) {
+    final c = RoadstrColors.of(context);
+    final l = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: c.surface2,
+        title: Row(children: [
+          const Text('🔴', style: TextStyle(fontSize: 20)),
+          const SizedBox(width: 8),
+          Text('New traffic on route',
+              style: TextStyle(color: c.textPrimary, fontSize: 15,
+                  fontWeight: FontWeight.bold)),
+        ]),
+        content: Text(
+          '${jam.category.localizedLabel(l)} '
+          'reported ${jam.ageLabel(l)} '
+          'on your route.\n\nDo you want to find an alternative route?',
+          style: TextStyle(color: c.textSecondary, fontSize: 13, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Continue', style: TextStyle(color: c.textSecondary)),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: c.accent),
+            onPressed: () {
+              Navigator.pop(context);
+              _rerouteAndNavigate();
+            },
+            child: const Text('Recalculate route',
+                style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _updateNavNotification() {
@@ -416,10 +764,11 @@ class _MapScreenState extends State<MapScreen>
         );
       });
       // Release the transition lock after the zoom-in animation finishes.
+      // Guard against the user stopping navigation before the timer fires.
       Future.delayed(const Duration(milliseconds: 1600 + 620), () {
         if (!mounted) return;
         setState(() => _navTransitioning = false);
-        _updateNavNotification();
+        if (_isNavigating) _updateNavNotification();
       });
     } else {
       // No GPS: stay at the overview, release lock immediately.
@@ -430,7 +779,7 @@ class _MapScreenState extends State<MapScreen>
   Future<void> _requestAlternatives(LatLng destination,
       {String? label, LatLng? fromPosition}) async {
     _pendingLabel = label;
-    // Avvia reverse geocode in parallelo (solo per i tap sulla mappa)
+    // Start reverse geocode in parallel (only for map taps where no label is known yet).
     final geocodeFuture = label == null
         ? RoutingService.reverseGeocode(destination)
         : null;
@@ -463,7 +812,7 @@ class _MapScreenState extends State<MapScreen>
       return;
     }
 
-    // Aspetta il geocode (di solito è già finito mentre il routing calcolava)
+    // Await geocode result (usually already done while routing was running).
     if (geocodeFuture != null) {
       final geocoded = await geocodeFuture;
       if (geocoded != null) _pendingLabel = geocoded;
@@ -479,7 +828,7 @@ class _MapScreenState extends State<MapScreen>
     setState(() => _isCalculating = false);
 
     if (routes.length > 1 && routes.first.totalDistanceM > 5000) {
-      // Percorso lungo con alternative → pannello selezione
+      // Long route with alternatives → show selection panel.
       setState(() {
         _alternatives = routes;
         _selectedAlt  = 0;
@@ -487,7 +836,7 @@ class _MapScreenState extends State<MapScreen>
       });
       _fitRoutesOnMap(routes);
     } else {
-      // Qualunque distanza → preview prima di avviare
+      // Any distance → show preview before starting navigation.
       _showRoutePreview(routes.first);
     }
   }
@@ -497,7 +846,7 @@ class _MapScreenState extends State<MapScreen>
       _previewRoute     = route;
       _showPreview      = true;
       _showAlternatives = false;
-      _followUser       = false; // evita che il GPS tick sovrascriva il fit
+      _followUser       = false; // prevent GPS ticks from overriding the route fit
     });
     _fitRouteOnMap(route);
   }
@@ -522,6 +871,18 @@ class _MapScreenState extends State<MapScreen>
     final dist = const Distance();
     return _roadEvents.where((ev) => route.polyline.any(
         (p) => dist.as(LengthUnit.Meter, p, ev.position) < maxM)).toList();
+  }
+
+  /// Returns a traffic severity badge for [route] based on the number of active
+  /// Nostr trafficJam events within 400 m of the polyline.
+  ({String label, Color color}) _trafficStatus(RouteResult route) {
+    final jams = _roadEvents.where((e) =>
+        e.category == RoadCategory.trafficJam && !e.isExpired &&
+        route.polyline.any((p) =>
+            const Distance().as(LengthUnit.Meter, p, e.position) < 400)).length;
+    if (jams == 0) return (label: '🟢 Normal traffic',   color: const Color(0xFF22C55E));
+    if (jams <= 2) return (label: '🟡 Moderate traffic', color: const Color(0xFFF59E0B));
+    return               (label: '🔴 Heavy traffic',      color: const Color(0xFFEF4444));
   }
 
   /// Finds the index of the alternative route whose polyline is closest to [tap].
@@ -557,16 +918,16 @@ class _MapScreenState extends State<MapScreen>
       _showPlaceInfo = true;
     });
 
-    // Una sola chiamata Nominatim con addressdetails=1
+    // Single Nominatim call with addressdetails=1.
     final geo = await RoutingService.reverseGeocodeDetail(point);
     if (!mounted) return;
 
-    // Mostra indirizzo human-readable (prime 3 componenti)
+    // Display human-readable address (first 3 comma-separated components).
     final dispParts = (geo?.display ?? '').split(',')
         .map((s) => s.trim()).where((s) => s.isNotEmpty).take(3).join(', ');
     setState(() => _placeAddress = dispParts.isEmpty ? null : dispParts);
 
-    // Ricerca Wikipedia geo-aware: priorità alle coordinate, poi fallback sul nome
+    // Geo-aware Wikipedia search: coordinates first, then fallback to the place name.
     final wikiQ = geo?.wikiQuery;
     setState(() => _placeWikiQuery = wikiQ);
     final lang = Localizations.localeOf(context).languageCode;
@@ -651,7 +1012,7 @@ class _MapScreenState extends State<MapScreen>
     _showPlanner   = true;
     _planFrom      = null;
     _planTo        = null;
-    _planActiveField = 1; // parte dal campo "A"
+    _planActiveField = 1; // start with the "To" field active
     _planFromCtrl.text = AppLocalizations.of(context)!.myLocation;
     _planToCtrl.clear();
     _planResults   = [];
@@ -667,7 +1028,7 @@ class _MapScreenState extends State<MapScreen>
     _planDebounce?.cancel();
     setState(() { _planActiveField = field; });
     if (field == 0) {
-      // campo "Da": la mia posizione oppure ricerca
+      // "From" field: reset to "My Location" if the user clears or types a GPS-like term.
       if (query.isEmpty ||
           query.toLowerCase().contains('posizione') ||
           query.toLowerCase().contains('gps')) {
@@ -849,16 +1210,16 @@ class _MapScreenState extends State<MapScreen>
         title: Row(children: [
           Icon(Icons.navigation_rounded, color: c.accent, size: 20),
           const SizedBox(width: 8),
-          Text('Uscire dalla navigazione?',
+          Text('Exit navigation?',
               style: TextStyle(color: c.textPrimary, fontSize: 16,
                   fontWeight: FontWeight.bold)),
         ]),
         content: Text(
-          'Vuoi interrompere la navigazione e tornare alla mappa?',
+          'Do you want to stop navigation and return to the map?',
           style: TextStyle(color: c.textSecondary, fontSize: 13),
         ),
         actions: [
-          // "Continua" — non fa nulla, il dialog si chiude
+          // "Continue" — no-op; the dialog simply closes
           OutlinedButton(
             onPressed: () => Navigator.pop(context),
             style: OutlinedButton.styleFrom(
@@ -866,7 +1227,7 @@ class _MapScreenState extends State<MapScreen>
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
             ),
-            child: Text('Continua navigazione',
+            child: Text('Continue navigation',
                 style: TextStyle(color: c.accent)),
           ),
           FilledButton(
@@ -876,7 +1237,7 @@ class _MapScreenState extends State<MapScreen>
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
             ),
-            child: const Text('Sì, esci',
+            child: const Text('Yes, exit',
                 style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -889,12 +1250,15 @@ class _MapScreenState extends State<MapScreen>
       _route = null;
       _destination = null;
       _isNavigating = false;
+      _isRerouting = false;
       _currentStepIdx = 0;
       _headingMode = false;
       _showAlternatives = false;
       _alternatives     = [];
       _showPreview      = false;
       _previewRoute     = null;
+      // Clear alerted event IDs so fresh alerts can fire on the next journey.
+      _alertedEventIds.clear();
     });
     _animateCamera(toCenter: _position, toZoom: _camZoom, toRot: 0);
     WakelockPlus.disable();
@@ -916,18 +1280,69 @@ class _MapScreenState extends State<MapScreen>
   }
 
   void _selectSearchResult(NominatimResult result) {
-    _requestAlternatives(result.position, label: result.shortName);
+    if (_isPoi(result)) {
+      // POI (restaurant, museum, church…) → show place-info panel with
+      // Wikipedia lookup first. Navigation starts from within that panel.
+      _showPlaceInfoForResult(result);
+    } else {
+      // Plain address / road / city → go straight to route calculation.
+      _requestAlternatives(result.position, label: result.shortName);
+    }
+  }
+
+  /// Returns true when the Nominatim result is a point-of-interest rather than
+  /// a plain postal address, road or administrative boundary.
+  bool _isPoi(NominatimResult result) {
+    const nonPoi = {'highway', 'boundary', 'landuse', 'postcode'};
+    const placeAddressTypes = {
+      'city', 'town', 'village', 'hamlet', 'suburb',
+      'neighbourhood', 'quarter', 'municipality',
+    };
+    if (result.cls == null) return false;
+    if (nonPoi.contains(result.cls)) return false;
+    if (result.cls == 'place' && placeAddressTypes.contains(result.type)) return false;
+    // Everything else (amenity, tourism, shop, historic, leisure, office…) is a POI
+    return true;
+  }
+
+  /// Shows the place-info panel pre-populated with the Nominatim result,
+  /// skipping the redundant reverse-geocode step since we already have the name.
+  Future<void> _showPlaceInfoForResult(NominatimResult result) async {
+    _pendingLabel = result.shortName;
+    setState(() {
+      _placePoint     = result.position;
+      _placeAddress   = result.displayName.split(',').take(3).join(', ');
+      _placeWikiQuery = result.shortName;
+      _placeWiki      = null;
+      _placeLoading   = true;
+      _showPlaceInfo  = true;
+      _showSearch     = false;
+      _searchResults  = [];
+    });
+    _searchController.clear();
+    FocusScope.of(context).unfocus();
+
+    // Geo-aware Wikipedia lookup (small radius since we know the exact position)
+    final lang = Localizations.localeOf(context).languageCode;
+    final wiki = await WikiSearch.fetchWikiNearby(
+      result.position.latitude, result.position.longitude,
+      lang:          lang,
+      fallbackQuery: result.shortName,
+      radiusM:       200,
+    );
+    if (!mounted) return;
+    setState(() { _placeWiki = wiki; _placeLoading = false; });
   }
 
   void _recenter() {
     if (!_position.latitude.isFinite || !_position.longitude.isFinite) return;
-    // Cancella qualsiasi animazione in corso (ticker GPS potrebbe sovrascrivere)
+    // Cancel any in-progress animation (a GPS tick could otherwise fight it).
     _camTicker?.dispose();
     _camTicker = null;
     const zoom = 17.0;
     final rot  = _headingMode ? -_heading : 0.0;
     setState(() => _followUser = true);
-    // Chiamata diretta come fa _loadInitialPosition — garantisce lo zoom
+    // Direct moveAndRotate call like _loadInitialPosition — guarantees the zoom level.
     _mapController.moveAndRotate(_position, zoom, rot);
     _camCenter = _position;
     _camZoom   = zoom;
@@ -960,12 +1375,12 @@ class _MapScreenState extends State<MapScreen>
   /// spinning 350° clockwise when a 10° counter-clockwise rotation is intended.
   void _animateCamera({
     required LatLng toCenter, required double toZoom, required double toRot,
+    int? durationMs,
   }) {
-    // Guard: discard non-finite targets — LatLng constructor would assert/throw.
     if (!toCenter.latitude.isFinite || !toCenter.longitude.isFinite ||
         !toZoom.isFinite) return;
+    final dur = durationMs ?? _animMs;
     _camTicker?.dispose();
-    // Normalise rotation delta to shortest arc (avoids spinning > 180°).
     double delta = toRot - _camRotDeg;
     while (delta > 180) delta -= 360;
     while (delta < -180) delta += 360;
@@ -976,9 +1391,8 @@ class _MapScreenState extends State<MapScreen>
 
     _camTicker = createTicker((_) {
       if (!mounted) return;
-      // Normalised time [0, 1].
       final t = ((DateTime.now().millisecondsSinceEpoch - _animStartMs) /
-          _animMs).clamp(0.0, 1.0);
+          dur).clamp(0.0, 1.0);
       // Cubic ease-in-out applied to t.
       final e = t < 0.5 ? 4*t*t*t : 1 - math.pow(-2*t+2, 3)/2;
       final rot  = _fromRot  + (_toRot  - _fromRot)  * e;
@@ -1027,7 +1441,7 @@ class _MapScreenState extends State<MapScreen>
   }
 
   static const _secStorage = FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    aOptions: AndroidOptions(),
   );
 
   Future<void> _showRoadEventDetail(RoadEvent event) async {
@@ -1042,16 +1456,16 @@ class _MapScreenState extends State<MapScreen>
       builder: (_) => _RoadEventDetail(
         event: event,
         colors: c,
-        isLoggedIn: pubKey != null,  // loggato = ha pubkey, anche solo Amber
+        isLoggedIn: pubKey != null,  // logged in = has pubkey, even Amber-only
         onConfirm: pubKey != null
             ? (stillThere) async {
-                // Aggiorna immediatamente il counter locale
+                // Optimistically update local counters for immediate feedback.
                 if (stillThere) event.confirmations++;
                 else event.denials++;
                 if (mounted) setState(() {});
                 try {
                   if (flavor == 'amber') {
-                    // Firma tramite Amber
+                    // Sign via Amber (NIP-55)
                     final unsigned = NostrRelayService.buildKind1316Map(
                       eventId:    event.id,
                       stillThere: stillThere,
@@ -1078,9 +1492,9 @@ class _MapScreenState extends State<MapScreen>
                         : '✗ ${AppLocalizations.of(context)!.removedLabel}');
                   }
                 } catch (e) {
-                  // Rollback del counter in caso di errore
+                  // Roll back the optimistic counter update on failure.
                   if (stillThere) event.confirmations--;
-                  else event.denials++;
+                  else event.denials--;
                   if (mounted) { setState(() {}); _snack(e.toString()); }
                 }
               }
@@ -1112,7 +1526,7 @@ class _MapScreenState extends State<MapScreen>
           final expires = now + 14 * 86400;
           RoadEvent event;
           if (flavor == 'amber') {
-            // Firma tramite Amber (NIP-55)
+            // Sign via Amber (NIP-55) — private key never leaves the signer app.
             final unsigned = NostrRelayService.buildKind1315Map(
               position:  pos, category: category, comment: comment,
               pubKeyHex: pubKey, now: now, expires: expires,
@@ -1128,7 +1542,7 @@ class _MapScreenState extends State<MapScreen>
               position: pos, comment: comment, now: now, expires: expires,
             );
           } else {
-            // Firma locale con nsec
+            // Sign locally with the stored nsec private key.
             event = await _nostr.publishRoadEvent(
               position:   pos, category: category, comment: comment,
               privKeyHex: privKey!, pubKeyHex: pubKey,
@@ -1165,7 +1579,7 @@ class _MapScreenState extends State<MapScreen>
                 fontFamily: 'monospace'),
           ),
           const SizedBox(height: 16),
-          // Naviga qui
+          // Navigate here
           SizedBox(width: double.infinity,
             child: FilledButton.icon(
               onPressed: () {
@@ -1184,7 +1598,7 @@ class _MapScreenState extends State<MapScreen>
             ),
           ),
           const SizedBox(height: 10),
-          // Segnala evento
+          // Report event
           SizedBox(width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () {
@@ -1192,7 +1606,7 @@ class _MapScreenState extends State<MapScreen>
                 _showReportSheet(position: point);
               },
               style: OutlinedButton.styleFrom(
-                side: BorderSide(color: const Color(0xFFFFB800).withOpacity(0.6)),
+                side: BorderSide(color: const Color(0xFFFFB800).withValues(alpha: 0.6)),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(vertical: 13),
@@ -1206,28 +1620,6 @@ class _MapScreenState extends State<MapScreen>
         ]),
       ),
     );
-  }
-
-  /// Lancia ACTION_RECOGNIZE_SPEECH via MethodChannel — usa il riconoscitore
-  /// nativo del dispositivo (Google, Samsung, ecc.) senza binding al service.
-  Future<void> _startListening() async {
-    if (_listening) return;
-    setState(() { _listening = true; _showSearch = true; });
-    try {
-      final lang = Localizations.localeOf(context).languageCode == 'it'
-          ? 'it-IT' : 'en-US';
-      final text = await _speechCh.invokeMethod<String>('listen', {'lang': lang});
-      if (mounted && text != null && text.isNotEmpty) {
-        _searchController.text = text;
-        _onSearchChanged(text);
-      }
-    } on PlatformException catch (e) {
-      if (mounted) _snack('Voce non disponibile: ${e.message}');
-    } catch (e) {
-      if (mounted) _snack('Errore voce: $e');
-    } finally {
-      if (mounted) setState(() => _listening = false);
-    }
   }
 
   void _snack(String msg) {
@@ -1272,7 +1664,7 @@ class _MapScreenState extends State<MapScreen>
 
     return PopScope(
       canPop: !_showSearch && !_showPreview && !_showAlternatives && !_isNavigating,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         if (_showSearch) {
           FocusScope.of(context).unfocus();
@@ -1290,7 +1682,7 @@ class _MapScreenState extends State<MapScreen>
       resizeToAvoidBottomInset: false,
       body: Stack(children: [
 
-        // ── MAPPA ──────────────────────────────────────────────────────────
+        // ── MAP ─────────────────────────────────────────────────────────────
         Positioned.fill(
           child: FlutterMap(
             mapController: _mapController,
@@ -1330,7 +1722,7 @@ class _MapScreenState extends State<MapScreen>
 
                 if (_showPlaceInfo) { _closePlaceInfo(); return; }
 
-                // Primo tap → mostra info sul luogo tappato
+                // First tap → show place info for the tapped point.
                 _showPlaceInfoFor(point);
               },
               onLongPress: (_, point) {
@@ -1354,39 +1746,39 @@ class _MapScreenState extends State<MapScreen>
                       strokeWidth: i == _selectedAlt ? 7 : 5,
                       color: i == _selectedAlt
                           ? c.accent
-                          : Colors.grey.withOpacity(0.55),
+                          : Colors.grey.withValues(alpha: 0.55),
                       strokeCap: StrokeCap.round,
                     ),
                 ]),
               if (_route != null && !_showAlternatives) ...[
                 PolylineLayer(polylines: [
                   Polyline(points: _route!.polyline, strokeWidth: 8,
-                      color: c.accent.withOpacity(0.25)),
+                      color: c.accent.withValues(alpha: 0.25)),
                   Polyline(points: _route!.polyline, strokeWidth: 5,
                       color: c.accent, strokeCap: StrokeCap.round),
                 ]),
-                // Overlay traffico pesante in rosso durante la navigazione
+                // Heavy traffic overlay in red during navigation.
                 if (_roadEvents.isNotEmpty)
                   PolylineLayer(polylines: [
                     for (final seg in _trafficSegments(_route!.polyline))
                       Polyline(points: seg, strokeWidth: 8,
-                          color: const Color(0xFFEF4444).withOpacity(0.85),
+                          color: const Color(0xFFEF4444).withValues(alpha: 0.85),
                           strokeCap: StrokeCap.round),
                   ]),
               ],
               if (_previewRoute != null && _showPreview) ...[
                 PolylineLayer(polylines: [
                   Polyline(points: _previewRoute!.polyline, strokeWidth: 8,
-                      color: c.accent.withOpacity(0.20)),
+                      color: c.accent.withValues(alpha: 0.20)),
                   Polyline(points: _previewRoute!.polyline, strokeWidth: 5,
                       color: c.accent, strokeCap: StrokeCap.round),
                 ]),
-                // Traffico pesante segnalato (rosso) in anteprima
+                // Heavy traffic overlay in red during route preview.
                 if (_roadEvents.isNotEmpty)
                   PolylineLayer(polylines: [
                     for (final seg in _trafficSegments(_previewRoute!.polyline))
                       Polyline(points: seg, strokeWidth: 8,
-                          color: const Color(0xFFEF4444).withOpacity(0.85),
+                          color: const Color(0xFFEF4444).withValues(alpha: 0.85),
                           strokeCap: StrokeCap.round),
                   ]),
               ],
@@ -1395,8 +1787,8 @@ class _MapScreenState extends State<MapScreen>
                   Marker(point: _destination!, width: 40, height: 48,
                       child: _DestinationMarker(color: c.accent)),
                 ]),
-              // Marker eventi stradali: visibili solo a zoom ≥ 11
-              // e filtrati anche in tempo reale per TTL scaduto
+              // Road event markers: visible only at zoom ≥ 11
+              // and filtered in real-time for expired TTL.
               if (_roadEvents.isNotEmpty && _camZoom >= 11)
                 MarkerLayer(markers: [
                   for (final ev in _roadEvents.where((e) => !e.isExpired))
@@ -1435,12 +1827,13 @@ class _MapScreenState extends State<MapScreen>
           ),
         ),
 
-        // ── ISTRUZIONE / RICERCA IN ALTO ────────────────────────────────────
+        // ── NAV INSTRUCTION / SEARCH BAR ───────────────────────────────────
         Positioned(
           top: topInset + 12, left: 16, right: 16,
           child: _isNavigating && currentStep != null
               ? _NavInstruction(step: currentStep, route: _route!,
-                  stepIdx: _currentStepIdx, colors: c)
+                  stepIdx: _currentStepIdx, colors: c,
+                  distToNextM: _distToNextManeuverM)
               : _SearchBarWidget(
                   controller: _searchController, colors: c,
                   onFocus: () => setState(() => _showSearch = true),
@@ -1450,12 +1843,10 @@ class _MapScreenState extends State<MapScreen>
                     setState(() { _searchResults = []; _showSearch = false; });
                     FocusScope.of(context).unfocus();
                   },
-                  onVoiceTap: _listening ? null : _startListening,
-                  isListening: _listening,
                 ),
         ),
 
-        // ── RISULTATI RICERCA / CRONOLOGIA ───────────────────────────────────
+        // ── SEARCH RESULTS / HISTORY ─────────────────────────────────────────
         if (_showSearch)
           if (_searchController.text.isEmpty && _history.isNotEmpty)
             Positioned(
@@ -1476,7 +1867,7 @@ class _MapScreenState extends State<MapScreen>
               ),
             ),
 
-        // ── FAB SINISTRA: segnala evento + percorso A→B ──────────────────────
+        // ── LEFT FABs: report event + A→B planner ─────────────────────────────
         if (!_showSearch && !_showAlternatives && !_isNavigating &&
             !_showPreview && !_showPlanner)
           Positioned(
@@ -1536,7 +1927,7 @@ class _MapScreenState extends State<MapScreen>
             ),
           ),
 
-        // ── FAB DESTRA ───────────────────────────────────────────────────────
+        // ── RIGHT FABs ────────────────────────────────────────────────────────
         if (!_showSearch && !_showAlternatives && !_showPreview)
           Positioned(
             right: 12,
@@ -1578,12 +1969,16 @@ class _MapScreenState extends State<MapScreen>
             ]),
           ),
 
-        // ── PANNELLO NAV / BOTTOM BAR ────────────────────────────────────────
+        // ── NAV PANEL / BOTTOM BAR ───────────────────────────────────────────
         Positioned(
           bottom: 0, left: 0, right: 0,
           child: _isNavigating && _route != null
               ? _NavPanel(route: _route!, speed: _speed,
-                  bottomInset: bottomInset, colors: c, onStop: _stopNavigation)
+                  bottomInset: bottomInset, colors: c,
+                  onStop: _showExitNavigationDialog,
+                  onReport: () => _showReportSheet(),
+                  remainingDistM: _remainingDistM,
+                  remainingSecs: _remainingSecs)
               : _showPlaceInfo && _placePoint != null
                   ? _PlaceInfoPanel(
                       point:      _placePoint!,
@@ -1594,9 +1989,12 @@ class _MapScreenState extends State<MapScreen>
                       bottomInset: bottomInset,
                       colors:     c,
                       onNavigate: () {
+                        // Capture values BEFORE _closePlaceInfo() nulls them out.
+                        final dest  = _placePoint!;
+                        final label = _placeAddress?.split(',').first
+                                   ?? _pendingLabel;
                         _closePlaceInfo();
-                        _requestAlternatives(_placePoint!,
-                            label: _placeAddress?.split(',').first);
+                        _requestAlternatives(dest, label: label);
                       },
                       onClose: _closePlaceInfo,
                     )
@@ -1605,6 +2003,7 @@ class _MapScreenState extends State<MapScreen>
                       route: _previewRoute!,
                       label: _pendingLabel,
                       trafficEvents: _routeTrafficEvents(_previewRoute!),
+                      trafficStatus: _trafficStatus(_previewRoute!),
                       bottomInset: bottomInset,
                       colors: c,
                       transportMode: _transportMode,
@@ -1620,18 +2019,21 @@ class _MapScreenState extends State<MapScreen>
                       colors:        c,
                       transportMode: _transportMode,
                       onSelect:      (i) => setState(() => _selectedAlt = i),
-                      onConfirm:     _showRoutePreview,
+                      // Skip the preview panel — go straight to navigation.
+                      // The alternatives panel already shows duration, distance
+                      // and traffic info, so a second "preview" is redundant.
+                      onConfirm:     _startNavigation,
                       onCancel:      _cancelAlternatives,
                       onModeChanged: _recalculateForMode,
                     )
                   : _BottomBar(bottomInset: bottomInset, colors: c),
         ),
 
-        // ── OVERLAY CALCOLO ──────────────────────────────────────────────────
+        // ── ROUTE CALCULATION OVERLAY ────────────────────────────────────────
         if (_isCalculating)
           Positioned.fill(
             child: Container(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               child: Center(
                 child: Container(
                   padding: const EdgeInsets.all(24),
@@ -1648,7 +2050,7 @@ class _MapScreenState extends State<MapScreen>
             ),
           ),
 
-        // ── BADGE GPS ────────────────────────────────────────────────────────
+        // ── GPS ACQUIRING BADGE ──────────────────────────────────────────────
         if (_gpsRequested && !_gpsReady)
           Positioned(
             top: topInset + 76, left: 0, right: 0,
@@ -1657,7 +2059,7 @@ class _MapScreenState extends State<MapScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: c.surface2, borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFFFB800).withOpacity(0.6)),
+                  border: Border.all(color: const Color(0xFFFFB800).withValues(alpha: 0.6)),
                 ),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
                   const SizedBox(width: 12, height: 12,
@@ -1718,7 +2120,7 @@ class _ZapSheet extends StatefulWidget {
 class _ZapSheetState extends State<_ZapSheet> {
   static const _presets = [21, 100, 500, 1000, 5000, 21000];
   static const _st = FlutterSecureStorage(
-      aOptions: AndroidOptions(encryptedSharedPreferences: true));
+      aOptions: AndroidOptions());
 
   int? _selected;
   final _customCtrl = TextEditingController();
@@ -1814,7 +2216,7 @@ class _ZapSheetState extends State<_ZapSheet> {
         setState(() { _status = l.noLightningWallet; _sending = false; });
       }
     } catch (e) {
-      if (mounted) setState(() { _status = 'Errore: $e'; _sending = false; });
+      if (mounted) setState(() { _status = 'Error: $e'; _sending = false; });
     }
   }
 
@@ -1831,7 +2233,7 @@ class _ZapSheetState extends State<_ZapSheet> {
             fontWeight: FontWeight.bold)),
       ]),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
-        Text('Scegli l\'importo in satoshi (sats):',
+        Text('Choose amount in satoshi (sats):',
             style: TextStyle(color: c.textSecondary, fontSize: 13)),
         const SizedBox(height: 12),
         Wrap(spacing: 8, runSpacing: 8,
@@ -1846,7 +2248,7 @@ class _ZapSheetState extends State<_ZapSheet> {
                 duration: const Duration(milliseconds: 150),
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
-                  color: sel ? const Color(0xFFF7931A).withOpacity(0.15) : c.surface2,
+                  color: sel ? const Color(0xFFF7931A).withValues(alpha: 0.15) : c.surface2,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: sel ? const Color(0xFFF7931A) : c.border,
@@ -1890,7 +2292,7 @@ class _ZapSheetState extends State<_ZapSheet> {
       actions: [
         TextButton(
           onPressed: _sending ? null : () => Navigator.pop(context),
-          child: Text('Annulla', style: TextStyle(color: c.textSecondary)),
+          child: Text('Cancel', style: TextStyle(color: c.textSecondary)),
         ),
         FilledButton.icon(
           onPressed: (_sending || _amount <= 0) ? null : _send,
@@ -1990,7 +2392,7 @@ class _RoadEventDetailState extends State<_RoadEventDetail> {
           Container(
             width: 48, height: 48,
             decoration: BoxDecoration(
-              color: event.category.color.withOpacity(0.15),
+              color: event.category.color.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Center(child: Text(event.category.emoji,
@@ -2010,10 +2412,10 @@ class _RoadEventDetailState extends State<_RoadEventDetail> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFFF7931A).withOpacity(0.12),
+                color: const Color(0xFFF7931A).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                    color: const Color(0xFFF7931A).withOpacity(0.4)),
+                    color: const Color(0xFFF7931A).withValues(alpha: 0.4)),
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 const Text('⚡', style: TextStyle(fontSize: 12)),
@@ -2077,7 +2479,7 @@ class _RoadEventDetailState extends State<_RoadEventDetail> {
           Text(AppLocalizations.of(context)!.loginToConfirm,
               style: TextStyle(color: c.textSecondary, fontSize: 11)),
         ],
-        // ── Pulsante Zap ────────────────────────────────────────────────────
+        // ── Zap button ─────────────────────────────────────────────────────
         const SizedBox(height: 12),
         SizedBox(
           width: double.infinity,
@@ -2159,7 +2561,7 @@ class _ReportSheetState extends State<_ReportSheet> {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
                 decoration: BoxDecoration(
-                  color: sel ? cat.color.withOpacity(0.18) : c.surface3,
+                  color: sel ? cat.color.withValues(alpha: 0.18) : c.surface3,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                       color: sel ? cat.color : c.border,
@@ -2274,7 +2676,7 @@ class _PlaceInfoPanel extends StatelessWidget {
   });
 
   void _openMore(BuildContext ctx) {
-    // Apri Wikipedia (pagina mobile) se trovata, altrimenti motore scelto
+    // Open Wikipedia (mobile page) if found, otherwise the selected search engine.
     String? url;
     String? title;
     if (wiki?.pageUrl != null) {
@@ -2285,7 +2687,7 @@ class _PlaceInfoPanel extends StatelessWidget {
       title = wikiQuery;
     }
     if (url == null) return;
-    // WebView interno all'app — niente browser esterno
+    // In-app WebView — no external browser.
     Navigator.push(ctx, MaterialPageRoute(
       fullscreenDialog: true,
       builder: (_) => _WebViewScreen(url: url!, title: title),
@@ -2321,7 +2723,7 @@ class _PlaceInfoPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = colors;
     return GestureDetector(
-      // Swipe verso il basso → chiude
+      // Swipe down → close.
       onVerticalDragEnd: (d) {
         if ((d.primaryVelocity ?? 0) > 300) onClose();
       },
@@ -2330,18 +2732,18 @@ class _PlaceInfoPanel extends StatelessWidget {
           color: c.surface2,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           border: Border(top: BorderSide(color: c.border, width: 0.5)),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12),
               blurRadius: 16, offset: const Offset(0, -4))],
         ),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          // Handle di trascinamento
+          // Drag handle.
           const SizedBox(height: 10),
           Center(child: Container(width: 40, height: 4,
               decoration: BoxDecoration(color: c.border,
                   borderRadius: BorderRadius.circular(2)))),
           const SizedBox(height: 12),
 
-          // Titolo / indirizzo
+          // Title / address.
           Padding(padding: const EdgeInsets.symmetric(horizontal: 20),
             child: loading && address == null
               ? Row(children: [
@@ -2349,7 +2751,7 @@ class _PlaceInfoPanel extends StatelessWidget {
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: c.accent)),
                   const SizedBox(width: 10),
-                  Text('Ricerca informazioni…',
+                  Text('Loading information…',
                       style: TextStyle(color: c.textSecondary, fontSize: 13)),
                 ])
               : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -2371,7 +2773,7 @@ class _PlaceInfoPanel extends StatelessWidget {
                 ]),
           ),
 
-          // Immagine + estratto
+          // Wikipedia image + extract.
           if (wiki != null) ...[
             const SizedBox(height: 10),
             if (wiki!.imageUrl != null)
@@ -2394,7 +2796,7 @@ class _PlaceInfoPanel extends StatelessWidget {
             ),
           ],
 
-          // Pulsante "Scopri di più" / Qwant (se c'è qualcosa da aprire)
+          // "Learn more" / search engine button (shown only when there is something to open).
           if (!loading && (wiki?.pageUrl != null || wikiQuery != null)) ...[
             const SizedBox(height: 8),
             Padding(padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -2408,8 +2810,8 @@ class _PlaceInfoPanel extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     wiki?.pageUrl != null
-                        ? 'Leggi su Wikipedia'
-                        : 'Cerca su ${_engineName()}',
+                        ? 'Read on Wikipedia'
+                        : 'Search on ${_engineName()}',
                     style: TextStyle(color: c.accent, fontSize: 12,
                         decoration: TextDecoration.underline),
                   ),
@@ -2429,7 +2831,7 @@ class _PlaceInfoPanel extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(vertical: 11),
                 ),
-                child: Text('Chiudi',
+                child: Text('Close',
                     style: TextStyle(color: c.textSecondary)),
               ),
               const SizedBox(width: 12),
@@ -2443,7 +2845,7 @@ class _PlaceInfoPanel extends StatelessWidget {
                 ),
                 icon: const Icon(Icons.navigation_rounded,
                     color: Colors.white, size: 18),
-                label: const Text('Naviga qui',
+                label: const Text('Navigate here',
                     style: TextStyle(color: Colors.white)),
               )),
             ]),
@@ -2495,7 +2897,7 @@ class _WebViewScreenState extends State<_WebViewScreen> {
             maxLines: 1, overflow: TextOverflow.ellipsis,
             style: TextStyle(color: c.textPrimary, fontSize: 15)),
         actions: [
-          // Apri nel browser esterno (opzionale)
+          // Open in external browser (optional).
           IconButton(
             icon: Icon(Icons.open_in_browser_rounded, color: c.textSecondary),
             onPressed: () => launchUrl(Uri.parse(widget.url),
@@ -2557,7 +2959,7 @@ class _RoutePlannerBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: c.surface2, borderRadius: BorderRadius.circular(20),
         border: Border.all(color: c.border, width: 0.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.16),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.16),
             blurRadius: 12, offset: const Offset(0, 3))],
       ),
       padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
@@ -2573,8 +2975,7 @@ class _RoutePlannerBar extends StatelessWidget {
               controller: fromCtrl,
               onTap: () {
                 onFromTap();
-                // Se mostra "La mia posizione", seleziona tutto in blocco
-                // così il tasto backspace lo cancella in un colpo solo
+                // If showing "My location", select-all so a single backspace clears it.
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (fromCtrl.text.isNotEmpty) {
                     fromCtrl.selection = TextSelection(
@@ -2587,7 +2988,7 @@ class _RoutePlannerBar extends StatelessWidget {
               autofocus: false,
               style: TextStyle(color: c.textPrimary, fontSize: 14),
               decoration: InputDecoration(
-                hintText: 'Partenza…',
+                hintText: 'From…',
                 hintStyle: TextStyle(color: c.textSecondary, fontSize: 14),
                 border: InputBorder.none, isDense: true,
               ),
@@ -2616,7 +3017,7 @@ class _RoutePlannerBar extends StatelessWidget {
               autofocus: true,
               style: TextStyle(color: c.textPrimary, fontSize: 14),
               decoration: InputDecoration(
-                hintText: 'Destinazione…',
+                hintText: 'Destination…',
                 hintStyle: TextStyle(color: c.textSecondary, fontSize: 14),
                 border: InputBorder.none, isDense: true,
               ),
@@ -2652,7 +3053,7 @@ class _RoutePlannerBar extends StatelessWidget {
             onPressed: onClose,
             style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 12)),
-            child: Text('Annulla',
+            child: Text('Cancel',
                 style: TextStyle(color: c.textSecondary, fontSize: 13)),
           ),
           const Spacer(),
@@ -2670,7 +3071,7 @@ class _RoutePlannerBar extends StatelessWidget {
                   ? Icons.directions_walk_rounded
                   : Icons.navigation_rounded,
               color: Colors.white, size: 16),
-            label: const Text('Calcola percorso',
+            label: const Text('Calculate route',
                 style: TextStyle(color: Colors.white, fontSize: 13)),
           ),
         ]),
@@ -2757,7 +3158,7 @@ class _HistoryResults extends StatelessWidget {
         color: colors.surface2,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: colors.border, width: 0.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15),
             blurRadius: 12, offset: const Offset(0, 4))],
       ),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -2814,6 +3215,7 @@ class _PreviewPanel extends StatelessWidget {
   final RouteResult route;
   final String? label;
   final List<RoadEvent> trafficEvents;
+  final ({String label, Color color})? trafficStatus;
   final double bottomInset;
   final RoadstrColors colors;
   final String transportMode;
@@ -2822,8 +3224,8 @@ class _PreviewPanel extends StatelessWidget {
   final ValueChanged<String> onModeChanged;
   const _PreviewPanel({
     required this.route, required this.label,
-    required this.trafficEvents, required this.bottomInset,
-    required this.colors,
+    required this.trafficEvents, this.trafficStatus,
+    required this.bottomInset, required this.colors,
     required this.transportMode,
     required this.onStart, required this.onCancel,
     required this.onModeChanged,
@@ -2842,7 +3244,7 @@ class _PreviewPanel extends StatelessWidget {
         color: c.surface2,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         border: Border(top: BorderSide(color: c.border, width: 0.5)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12),
             blurRadius: 16, offset: const Offset(0, -4))],
       ),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -2854,7 +3256,7 @@ class _PreviewPanel extends StatelessWidget {
 
         Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child:
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            // Destinazione
+            // Destination label.
             if (label != null && label!.isNotEmpty) ...[
               Text(label!, style: TextStyle(color: c.textPrimary,
                   fontSize: 17, fontWeight: FontWeight.bold),
@@ -2862,7 +3264,7 @@ class _PreviewPanel extends StatelessWidget {
               const SizedBox(height: 10),
             ],
 
-            // Durata + distanza
+            // Duration + distance.
             Row(children: [
               Icon(Icons.access_time_rounded, color: c.accent, size: 20),
               const SizedBox(width: 6),
@@ -2875,21 +3277,39 @@ class _PreviewPanel extends StatelessWidget {
             ]),
             const SizedBox(height: 8),
 
-            // Partenza / Arrivo
+            // Departure / arrival times.
             Row(children: [
               Icon(Icons.schedule_rounded,
                   color: c.textSecondary, size: 16),
               const SizedBox(width: 4),
-              Text('Partenza $depStr  →  Arrivo stimato $arrStr',
+              Text('Depart $depStr  →  ETA $arrStr',
                   style: TextStyle(color: c.textSecondary, fontSize: 13)),
             ]),
 
-            // Segnalazioni sul percorso
+            // Traffic status badge (only for driving mode)
+            if (transportMode != 'walking' && trafficStatus != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: trafficStatus!.color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                      color: trafficStatus!.color.withValues(alpha: 0.4)),
+                ),
+                child: Text(trafficStatus!.label,
+                    style: TextStyle(
+                        color: trafficStatus!.color, fontSize: 12,
+                        fontWeight: FontWeight.w600)),
+              ),
+            ],
+
+            // Traffic events along the route.
             if (trafficEvents.isNotEmpty) ...[
               const SizedBox(height: 12),
               Divider(height: 0.5, color: c.border),
               const SizedBox(height: 10),
-              Text('Condizioni sul percorso',
+              Text('Conditions on route',
                   style: TextStyle(color: c.textSecondary, fontSize: 11,
                       fontWeight: FontWeight.bold, letterSpacing: 0.5)),
               const SizedBox(height: 6),
@@ -2958,7 +3378,7 @@ class _PreviewPanel extends StatelessWidget {
                       ? Icons.directions_walk_rounded
                       : Icons.navigation_rounded,
                   color: Colors.white, size: 18),
-                label: const Text('Avvia navigazione',
+                label: const Text('Start navigation',
                     style: TextStyle(color: Colors.white)),
               ),
             ),
@@ -3001,7 +3421,7 @@ class _AlternativesPanel extends StatelessWidget {
         color: colors.surface2,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         border: Border(top: BorderSide(color: colors.border, width: 0.5)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12),
             blurRadius: 16, offset: const Offset(0, -4))],
       ),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -3125,7 +3545,7 @@ class _RouteCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: colors.accent.withOpacity(0.15),
+                color: colors.accent.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(AppLocalizations.of(context)!.fastestRoute, style: TextStyle(
@@ -3169,12 +3589,9 @@ class _SearchBarWidget extends StatelessWidget {
   final VoidCallback onFocus;
   final ValueChanged<String> onChanged;
   final VoidCallback onClear;
-  final VoidCallback? onVoiceTap;
-  final bool isListening;
   const _SearchBarWidget({
     required this.controller, required this.colors,
     required this.onFocus, required this.onChanged, required this.onClear,
-    this.onVoiceTap, this.isListening = false,
   });
 
   @override
@@ -3184,7 +3601,7 @@ class _SearchBarWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surface2, borderRadius: BorderRadius.circular(28),
         border: Border.all(color: colors.border, width: 0.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.18),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18),
             blurRadius: 12, offset: const Offset(0, 3))],
       ),
       child: Row(children: [
@@ -3196,10 +3613,8 @@ class _SearchBarWidget extends StatelessWidget {
             controller: controller, onTap: onFocus, onChanged: onChanged,
             style: TextStyle(color: colors.textPrimary, fontSize: 16),
             decoration: InputDecoration(
-              hintText: isListening ? 'Parla…' : AppLocalizations.of(context)!.searchHint,
-              hintStyle: TextStyle(
-                color: isListening ? colors.accent : colors.textSecondary,
-                fontSize: 16),
+              hintText: AppLocalizations.of(context)!.searchHint,
+              hintStyle: TextStyle(color: colors.textSecondary, fontSize: 16),
               border: InputBorder.none, isDense: true,
             ),
           ),
@@ -3207,25 +3622,7 @@ class _SearchBarWidget extends StatelessWidget {
         if (controller.text.isNotEmpty)
           IconButton(
             icon: Icon(Icons.close, color: colors.textSecondary, size: 20),
-            onPressed: onClear)
-        else
-          GestureDetector(
-            onTap: onVoiceTap,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              margin: const EdgeInsets.only(right: 6),
-              width: 40, height: 40,
-              decoration: BoxDecoration(
-                color: isListening ? colors.accent : colors.accentSoft,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
-                color: isListening ? Colors.white : colors.accent,
-                size: 20,
-              ),
-            ),
-          ),
+            onPressed: onClear),
       ]),
     );
   }
@@ -3245,7 +3642,7 @@ class _SearchResults extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surface2, borderRadius: BorderRadius.circular(16),
         border: Border.all(color: colors.border, width: 0.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15),
             blurRadius: 12, offset: const Offset(0, 4))],
       ),
       child: isLoading
@@ -3304,8 +3701,12 @@ class _NavInstruction extends StatelessWidget {
   final RouteResult route;
   final int stepIdx;
   final RoadstrColors colors;
+  /// Live GPS distance to the next maneuver point. Updated every GPS tick so
+  /// the countdown reflects actual position, not the pre-calculated step length.
+  final double distToNextM;
   const _NavInstruction({required this.step, required this.route,
-      required this.stepIdx, required this.colors});
+      required this.stepIdx, required this.colors,
+      this.distToNextM = 0});
 
   @override
   Widget build(BuildContext context) {
@@ -3319,7 +3720,7 @@ class _NavInstruction extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: vPad),
       decoration: BoxDecoration(
         color: colors.surface2, borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.18),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18),
             blurRadius: 12, offset: const Offset(0, 3))],
       ),
       child: Row(children: [
@@ -3337,7 +3738,10 @@ class _NavInstruction extends StatelessWidget {
               fontSize: fsMain, fontWeight: FontWeight.w600),
               maxLines: land ? 1 : 2, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 2),
-          Text(_distLabel(step.distanceM, AppLocalizations.of(context)!.now),
+          // Show live distance to next maneuver when available (> 0);
+          // fall back to the step's pre-calculated length otherwise.
+          Text(_distLabel(distToNextM > 0 ? distToNextM : step.distanceM,
+                AppLocalizations.of(context)!.now),
               style: TextStyle(color: colors.textSecondary, fontSize: fsSub)),
         ])),
       ]),
@@ -3369,15 +3773,43 @@ class _NavPanel extends StatelessWidget {
   final double bottomInset;
   final RoadstrColors colors;
   final VoidCallback onStop;
+  final VoidCallback onReport;
+  /// Live remaining distance in metres (updated every GPS tick).
+  final double remainingDistM;
+  /// Live remaining seconds (estimated from remaining distance).
+  final double remainingSecs;
   const _NavPanel({required this.route, required this.speed,
-      required this.bottomInset, required this.colors, required this.onStop});
+      required this.bottomInset, required this.colors, required this.onStop,
+      required this.onReport,
+      this.remainingDistM = 0, this.remainingSecs = 0});
+
+  String get _distLabel {
+    final m = remainingDistM > 0 ? remainingDistM : route.totalDistanceM;
+    if (m < 1000) return '${m.round()} m';
+    return '${(m / 1000).toStringAsFixed(1)} km';
+  }
+
+  String get _timeLabel {
+    final secs = remainingSecs > 0 ? remainingSecs : route.totalDurationS;
+    final m = (secs / 60).round();
+    if (m < 60) return '$m min';
+    final h = m ~/ 60; final rem = m % 60;
+    return '${h}h ${rem}min';
+  }
+
+  String get _etaLabel {
+    final secs = remainingSecs > 0 ? remainingSecs : route.totalDurationS;
+    final arr = DateTime.now().add(Duration(seconds: secs.round()));
+    return '${arr.hour.toString().padLeft(2,'0')}:'
+           '${arr.minute.toString().padLeft(2,'0')}';
+  }
 
   @override
   Widget build(BuildContext context) {
     final land     = MediaQuery.of(context).orientation == Orientation.landscape;
     final speedoSz = land ? 70.0 : 110.0;
     final fsDist   = land ? 16.0 : 22.0;
-    final fsDur    = land ? 12.0 : 14.0;
+    final fsSub    = land ? 11.0 : 13.0;
     final vTop     = land ?  6.0 : 14.0;
     final vBot     = land
         ? (bottomInset > 0 ? bottomInset + 4 : 8.0)
@@ -3386,7 +3818,7 @@ class _NavPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surface2,
         border: Border(top: BorderSide(color: colors.border, width: 0.5)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12),
             blurRadius: 12, offset: const Offset(0, -2))],
       ),
       padding: EdgeInsets.only(left: 16, right: 16, top: vTop, bottom: vBot),
@@ -3395,18 +3827,45 @@ class _NavPanel extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min, children: [
-          Text(route.distanceLabel, style: TextStyle(color: colors.textPrimary,
+          // Remaining distance — updates every GPS tick
+          Text(_distLabel, style: TextStyle(color: colors.textPrimary,
               fontSize: fsDist, fontWeight: FontWeight.bold)),
-          Text(route.durationLabel,
-              style: TextStyle(color: colors.textSecondary, fontSize: fsDur)),
+          Row(children: [
+            // Remaining time
+            Text(_timeLabel,
+                style: TextStyle(color: colors.textSecondary, fontSize: fsSub)),
+            if (!land) ...[
+              Text('  ·  ', style: TextStyle(
+                  color: colors.textSecondary, fontSize: fsSub)),
+              // Estimated time of arrival
+              Text('Arr. $_etaLabel', style: TextStyle(
+                  color: colors.textSecondary, fontSize: fsSub)),
+            ],
+          ]),
         ])),
+        // Report FAB — stays accessible during navigation
+        GestureDetector(onTap: onReport,
+          child: Container(
+            width: 40, height: 40,
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFB800).withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+              border: Border.all(
+                  color: const Color(0xFFFFB800).withValues(alpha: 0.4)),
+            ),
+            child: const Icon(Icons.report_problem_outlined,
+                color: Color(0xFFFFB800), size: 20),
+          ),
+        ),
+        // Stop navigation
         GestureDetector(onTap: onStop,
           child: Container(width: 48, height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFFF4444).withOpacity(0.12),
+              color: const Color(0xFFFF4444).withValues(alpha: 0.12),
               shape: BoxShape.circle,
               border: Border.all(
-                  color: const Color(0xFFFF4444).withOpacity(0.4)),
+                  color: const Color(0xFFFF4444).withValues(alpha: 0.4)),
             ),
             child: const Icon(Icons.close_rounded,
                 color: Color(0xFFFF4444), size: 24)),
@@ -3424,7 +3883,7 @@ class _BottomBar extends StatelessWidget {
     decoration: BoxDecoration(
       color: colors.surface2,
       border: Border(top: BorderSide(color: colors.border, width: 0.5)),
-      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12),
+      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12),
           blurRadius: 12, offset: const Offset(0, -2))],
     ),
     padding: EdgeInsets.only(top: 10,
@@ -3468,7 +3927,7 @@ class _MapFab extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Material(
     color: colors.surface2, shape: const CircleBorder(), elevation: 3,
-    shadowColor: Colors.black.withOpacity(0.25),
+    shadowColor: Colors.black.withValues(alpha: 0.25),
     child: InkWell(onTap: onTap, customBorder: const CircleBorder(),
         child: SizedBox(width: 44, height: 44,
             child: Center(child: child))),
@@ -3493,7 +3952,7 @@ class _MarkerPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final c = Offset(size.width / 2, size.height / 2);
     final r = size.width / 2 - 4;
-    canvas.drawCircle(c, r, Paint()..color = accent.withOpacity(0.18));
+    canvas.drawCircle(c, r, Paint()..color = accent.withValues(alpha: 0.18));
     canvas.drawCircle(c, r, Paint()
       ..color = accent..style = PaintingStyle.stroke..strokeWidth = 2);
     final arrow = ui.Path()
@@ -3513,7 +3972,7 @@ class _DestinationMarker extends StatelessWidget {
     mainAxisSize: MainAxisSize.min, children: [
     Container(width: 32, height: 32,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle,
-          boxShadow: [BoxShadow(color: color.withOpacity(0.4),
+          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.4),
               blurRadius: 8, spreadRadius: 2)]),
       child: const Icon(Icons.flag_rounded, color: Colors.white, size: 18)),
     CustomPaint(size: const Size(2, 12),

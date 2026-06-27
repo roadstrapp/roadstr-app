@@ -24,10 +24,10 @@ class SpeedometerWidget extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: c.surface2.withOpacity(0.92),
+        color: c.surface2.withValues(alpha: 0.92),
         shape: BoxShape.circle,
         border: Border.all(color: c.border, width: 0.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 12)],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 12)],
       ),
       child: Stack(
         alignment: Alignment.center,

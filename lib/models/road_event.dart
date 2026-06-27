@@ -112,14 +112,14 @@ enum RoadCategory {
   /// hint and may be absent or set to 14 days regardless of event type.
   int get ttlSeconds => switch (this) {
     RoadCategory.police        => 4 * 3600,       // 4 h
-    RoadCategory.speedCamera   => 30 * 86400,     // 30 giorni
+    RoadCategory.speedCamera   => 30 * 86400,     // 30 d
     RoadCategory.trafficJam    => 1 * 3600,       // 1 h
     RoadCategory.accident      => 4 * 3600,       // 4 h
     RoadCategory.roadClosure   => 24 * 3600,      // 24 h
-    RoadCategory.construction  => 15 * 86400,     // 15 giorni
+    RoadCategory.construction  => 15 * 86400,     // 15 d
     RoadCategory.hazard        => 4 * 3600,       // 4 h
-    RoadCategory.roadCondition => 15 * 86400,     // 15 giorni
-    RoadCategory.pothole       => 7 * 86400,      // 7 giorni
+    RoadCategory.roadCondition => 15 * 86400,     // 15 d
+    RoadCategory.pothole       => 7 * 86400,      // 7 d
     RoadCategory.fog           => 4 * 3600,       // 4 h
     RoadCategory.ice           => 4 * 3600,       // 4 h
     RoadCategory.animal        => 1 * 3600,       // 1 h

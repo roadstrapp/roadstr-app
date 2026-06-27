@@ -41,7 +41,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Secure storage backed by the Android Keystore (EncryptedSharedPreferences).
   /// Used for all Nostr key material — never stored in plain SharedPreferences.
   static const _st = FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    aOptions: AndroidOptions(),
   );
   static const _kPriv    = 'nostr_priv_hex';
   static const _kPub     = 'nostr_pub_hex';
@@ -146,7 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return (pubHex: hex, npub: nip19.npubEncode(hex));
   }
 
-  /// Dopo il login, recupera nome e avatar dal relay (kind 0).
+  /// After login, fetches the user name and avatar from the relay (kind-0 metadata).
   Future<void> _fetchAndStoreProfile(String pubHex) async {
     final profile = await NostrRelayService.fetchProfile(pubHex);
     if (profile == null) return;
@@ -491,13 +491,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ),
     const SizedBox(height: 20),
 
-    // ── Reputazione + balance ────────────────────────────────────────────────
+    // ── Reputation + Lightning balance ────────────────────────────────────────
     if (_reputation >= 0) _ReputationBadge(score: _reputation, colors: c),
     if (_reputation >= 0) const SizedBox(height: 10),
     if (_balanceSat >= 0) _BalanceBadge(sats: _balanceSat, colors: c),
     if (_balanceSat >= 0) const SizedBox(height: 10),
 
-    // ── Le mie segnalazioni ─────────────────────────────────────────────────
+    // ── My reports ─────────────────────────────────────────────────────────────
     Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 8),
       child: Text(AppLocalizations.of(context)!.myReports, style: TextStyle(
@@ -561,7 +561,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: c.accentSoft, borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: c.accent.withOpacity(0.3)),
+          border: Border.all(color: c.accent.withValues(alpha: 0.3)),
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           SizedBox(width: 14, height: 14,
@@ -598,7 +598,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: c.accentSoft, borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: c.accent.withOpacity(0.3)),
+        border: Border.all(color: c.accent.withValues(alpha: 0.3)),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Icon(Icons.info_outline, color: c.accent, size: 18),
@@ -624,10 +624,10 @@ class _BalanceBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7931A).withOpacity(0.08),
+        color: const Color(0xFFF7931A).withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-            color: const Color(0xFFF7931A).withOpacity(0.35), width: 0.5),
+            color: const Color(0xFFF7931A).withValues(alpha: 0.35), width: 0.5),
       ),
       child: Row(children: [
         const Text('⚡', style: TextStyle(fontSize: 24)),
@@ -674,9 +674,9 @@ class _ReputationBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _color.withOpacity(0.08),
+        color: _color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _color.withOpacity(0.35), width: 0.5),
+        border: Border.all(color: _color.withValues(alpha: 0.35), width: 0.5),
       ),
       child: Row(children: [
         Icon(Icons.verified_rounded, color: _color, size: 28),
@@ -883,10 +883,10 @@ class _EventDetailDialogState extends State<_EventDetailDialog> {
           Expanded(child: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFF22C55E).withOpacity(0.1),
+              color: const Color(0xFF22C55E).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                  color: const Color(0xFF22C55E).withOpacity(0.3)),
+                  color: const Color(0xFF22C55E).withValues(alpha: 0.3)),
             ),
             child: Column(children: [
               const Icon(Icons.thumb_up_outlined,
@@ -903,10 +903,10 @@ class _EventDetailDialogState extends State<_EventDetailDialog> {
           Expanded(child: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFEF4444).withOpacity(0.1),
+              color: const Color(0xFFEF4444).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                  color: const Color(0xFFEF4444).withOpacity(0.3)),
+                  color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
             ),
             child: Column(children: [
               const Icon(Icons.thumb_down_outlined,
@@ -985,10 +985,10 @@ class _WarningDialogState extends State<_WarningDialog> {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFFFFB800).withOpacity(0.10),
+            color: const Color(0xFFFFB800).withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-                color: const Color(0xFFFFB800).withOpacity(0.40)),
+                color: const Color(0xFFFFB800).withValues(alpha: 0.40)),
           ),
           child: Text(l.amberSecureMethodHint,
               style: const TextStyle(color: Color(0xFFFFB800),
@@ -1048,7 +1048,7 @@ class _LoginTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final iconColor   = isWarning ? const Color(0xFFFFB800) : colors.accent;
     final borderColor = isWarning
-        ? const Color(0xFFFFB800).withOpacity(0.4) : colors.border;
+        ? const Color(0xFFFFB800).withValues(alpha: 0.4) : colors.border;
     return InkWell(
       onTap: onTap, borderRadius: BorderRadius.circular(14),
       child: Container(
@@ -1060,7 +1060,7 @@ class _LoginTile extends StatelessWidget {
         child: Row(children: [
           Container(width: 44, height: 44,
               decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.1), shape: BoxShape.circle),
+                  color: iconColor.withValues(alpha: 0.1), shape: BoxShape.circle),
               child: Icon(icon, color: iconColor, size: 22)),
           const SizedBox(width: 14),
           Expanded(child: Column(

@@ -1,6 +1,6 @@
 name: nostr_nav
 description: Roadstr - Navigatore satellitare open source
-version: 0.1.0+1
+version: 0.2.0+2
 publish_to: 'none'
 
 environment:
