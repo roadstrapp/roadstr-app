@@ -1,0 +1,556 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Romanian Moldavian Moldovan (`ro`).
+class AppLocalizationsRo extends AppLocalizations {
+  AppLocalizationsRo([String locale = 'ro']) : super(locale);
+
+  @override
+  String get searchHint => 'Unde vrei să mergi?';
+
+  @override
+  String get calculatingRoute => 'Se calculează ruta…';
+
+  @override
+  String get routeNotFoundTitle => 'Ruta nu a fost găsită';
+
+  @override
+  String get noRouteFound => 'Nicio rută găsită. Verificați conexiunea.';
+
+  @override
+  String get emptyServerResponse =>
+      'Răspuns gol de la server. Verificați conexiunea.';
+
+  @override
+  String routeError(String error) {
+    return 'Eroare la calculul rutei: $error';
+  }
+
+  @override
+  String get gpsNotAvailable =>
+      'GPS indisponibil — Setări → Aplicație → Roadstr → Permisiuni → Locație';
+
+  @override
+  String get acquiringGps => 'Se obține GPS…';
+
+  @override
+  String get graphhopperServerNotConfigured =>
+      'Serverul GraphHopper nu este configurat — se folosește OSRM';
+
+  @override
+  String get graphhopperApiKeyNotConfigured =>
+      'Cheia API GraphHopper nu este configurată — se folosește OSRM';
+
+  @override
+  String get openrouteApiKeyNotConfigured =>
+      'Cheia API OpenRouteService nu este configurată — se folosește OSRM';
+
+  @override
+  String get chooseRoute => 'Alegeți ruta';
+
+  @override
+  String routeOptionsCount(int count) {
+    return '$count opțiuni';
+  }
+
+  @override
+  String get cancel => 'Anulare';
+
+  @override
+  String get startNavigation => 'Pornire navigare';
+
+  @override
+  String get fastestRoute => 'Cea mai rapidă';
+
+  @override
+  String get now => 'Acum';
+
+  @override
+  String get history => 'Istoric';
+
+  @override
+  String get clearHistory => 'Șterge';
+
+  @override
+  String get selectedPosition => 'Poziție selectată';
+
+  @override
+  String get bottomBarProfile => 'Profil';
+
+  @override
+  String get bottomBarMenu => 'Meniu';
+
+  @override
+  String get settingsTitle => 'Setări';
+
+  @override
+  String get sectionTheme => 'Temă';
+
+  @override
+  String get sectionMap => 'Hartă';
+
+  @override
+  String get sectionPrivacy => 'Confidențialitate';
+
+  @override
+  String get sectionInfo => 'Info';
+
+  @override
+  String get sectionLanguage => 'Limbă';
+
+  @override
+  String get themeLightNostr => 'Deschis · Nostr Violet';
+
+  @override
+  String get themeLightBitcoin => 'Deschis · Bitcoin Portocaliu';
+
+  @override
+  String get langSystem => 'Implicit sistem';
+
+  @override
+  String get langItalian => 'Italiano';
+
+  @override
+  String get langEnglish => 'English';
+
+  @override
+  String get keepScreenOn => 'Mențineți ecranul activ';
+
+  @override
+  String get keepScreenOnDescription => 'Previne repausul în timpul navigării';
+
+  @override
+  String get rotateMap => 'Harta urmează direcția';
+
+  @override
+  String get rotateMapDescription =>
+      'Harta se rotește în funcție de direcția de mers';
+
+  @override
+  String get mapTileUrlLabel => 'URL plăci hartă';
+
+  @override
+  String get routingProviderLabel => 'Furnizor de rutare';
+
+  @override
+  String get osrmProvider => 'OSRM (public, fără cheie)';
+
+  @override
+  String get graphhopperLocalProvider => 'GraphHopper (local/privat)';
+
+  @override
+  String get graphhopperCloudProvider => 'GraphHopper Cloud (cheie API)';
+
+  @override
+  String get openrouteProvider => 'OpenRouteService (cheie API)';
+
+  @override
+  String get graphhopperServerHint => 'http://localhost:8989/route';
+
+  @override
+  String get graphhopperApiKeyHint => 'Cheie API GraphHopper (opțional)';
+
+  @override
+  String get verify => 'Verificați';
+
+  @override
+  String get graphhopperServerUrlRequired =>
+      'Introduceți URL-ul serverului înainte de verificare.';
+
+  @override
+  String get successTitle => 'Succes';
+
+  @override
+  String get graphhopperServerReachable =>
+      'Serverul GraphHopper este accesibil';
+
+  @override
+  String get errorTitle => 'Eroare';
+
+  @override
+  String get close => 'Închide';
+
+  @override
+  String get privacyMode => 'Mod confidențialitate';
+
+  @override
+  String get privacyModeDescription =>
+      'Nu trimiteți date de telemetrie anonime';
+
+  @override
+  String get infoVersion => 'Versiune';
+
+  @override
+  String get infoProtocol => 'Protocol';
+
+  @override
+  String get infoMaps => 'Hărți';
+
+  @override
+  String get infoRouting => 'Rutare';
+
+  @override
+  String get infoSource => 'Sursă';
+
+  @override
+  String get providerOsrm => 'OSRM';
+
+  @override
+  String get providerGraphhopperSelfHosted => 'GraphHopper (auto-găzduit)';
+
+  @override
+  String get providerGraphhopperCloud => 'GraphHopper (cloud)';
+
+  @override
+  String get providerOpenroute => 'OpenRouteService';
+
+  @override
+  String get profileTitle => 'Profil';
+
+  @override
+  String get notConnected => 'Neconectat';
+
+  @override
+  String get loginWithNostrTitle => 'CONECTARE CU NOSTR';
+
+  @override
+  String get amberNip55Title => 'Amber / NIP-55';
+
+  @override
+  String get amberLoginDescription =>
+      'Cheia privată nu părăsește niciodată dispozitivul · Recomandat';
+
+  @override
+  String get nsecLoginOption => 'Introduceți nsec';
+
+  @override
+  String get nsecLoginDescription =>
+      'Cheia privată stocată local · Mai puțin sigur';
+
+  @override
+  String get connectedViaAmber => 'Conectat prin Amber (NIP-55)';
+
+  @override
+  String get connectedViaNsec => 'Conectat prin nsec';
+
+  @override
+  String get publicKeyLabel => 'CHEIE PUBLICĂ';
+
+  @override
+  String get npubCopiedToClipboard => 'npub copiat în clipboard';
+
+  @override
+  String get logoutTitle => 'Deconectare';
+
+  @override
+  String get logoutConfirmation =>
+      'Eliminați credențialele Nostr de pe acest dispozitiv?';
+
+  @override
+  String get logoutButton => 'Deconectare';
+
+  @override
+  String get nostrIdentityInfo =>
+      'Cu o identitate Nostr puteți publica alerte de trafic, rapoarte și puncte de interes într-un mod descentralizat în rețeaua Nostr, fără servere centrale.';
+
+  @override
+  String get warningTitle => 'Avertisment';
+
+  @override
+  String get nsecWarning =>
+      'Urmează să introduceți cheia privată Nostr direct într-o aplicație. Oricine cu acces fizic sau de la distanță la dispozitivul dvs. ar putea-o citi și prelua permanent controlul asupra identității dvs. Nostr.';
+
+  @override
+  String get amberSecureMethodHint =>
+      '✦  Metoda sigură este Amber (NIP-55): nsec nu părăsește niciodată seiful semnatarului aplicației.';
+
+  @override
+  String get nsecRiskAcknowledgment =>
+      'Înțeleg riscul și vreau să continui oricum';
+
+  @override
+  String get continueButton => 'Continuare';
+
+  @override
+  String get amberDialogTitle => 'Amber / NIP-55';
+
+  @override
+  String get amberDescription =>
+      'Amber este un semnatar de aplicații Android conform NIP-55. Cheia dvs. privată rămâne izolată în Amber și nu este niciodată partajată.';
+
+  @override
+  String get requestKeyFromAmber => 'Solicitați cheia publică de la Amber';
+
+  @override
+  String get amberNotFound =>
+      'Amber nu a fost găsit. Instalați-l din Play Store sau introduceți manual npub-ul.';
+
+  @override
+  String get waitingForAmberResponse => 'Se așteaptă răspunsul Amber…';
+
+  @override
+  String get pasteNpubManually => 'Lipiți npub-ul manual:';
+
+  @override
+  String get confirmNpub => 'Confirmați npub';
+
+  @override
+  String get enterNsecTitle => 'Introduceți nsec';
+
+  @override
+  String get loginButton => 'Conectare';
+
+  @override
+  String get invalidNpubTitle => 'npub invalid';
+
+  @override
+  String get invalidNsecTitle => 'nsec invalid';
+
+  @override
+  String get invalidNpubMessage => 'Asigurați-vă că ați lipit npub-ul corect.';
+
+  @override
+  String get invalidNsecMessage => 'Asigurați-vă că ați lipit nsec-ul corect.';
+
+  @override
+  String get amberResponseError => 'Eroare răspuns Amber';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get or => 'sau';
+
+  @override
+  String get gpsNotActiveTitle => 'GPS inactiv';
+
+  @override
+  String get gpsDisabledMessage =>
+      'Activați GPS-ul din setările dispozitivului pentru a obține locația și a folosi navigarea.';
+
+  @override
+  String get openSettings => 'Setări';
+
+  @override
+  String get myLocation => 'Locația mea';
+
+  @override
+  String get loginToReport =>
+      'Conectați-vă cu Nostr (secțiunea Profil) pentru a raporta evenimente';
+
+  @override
+  String get navigateHere => 'Navigați aici';
+
+  @override
+  String get reportEventHere => 'Raportați eveniment aici';
+
+  @override
+  String get zapSendSats => 'Zap ⚡ (trimiteți sats)';
+
+  @override
+  String get sendZap => 'Trimiteți un Zap';
+
+  @override
+  String get chooseAmountSats => 'Alegeți suma în satoshi (sats):';
+
+  @override
+  String get customAmount => 'Sumă personalizată…';
+
+  @override
+  String get zapSending => 'Se trimite…';
+
+  @override
+  String zapSat(int sats) {
+    return '⚡$sats sat';
+  }
+
+  @override
+  String get fetchingLightningAddress => 'Se obține adresa Lightning…';
+
+  @override
+  String get noLightningAddress => 'Acest reporter nu are adresă Lightning';
+
+  @override
+  String get requestingInvoice => 'Se solicită factura…';
+
+  @override
+  String get lnurlUnavailable => 'LNURL indisponibil';
+
+  @override
+  String get invoiceFailed => 'Imposibil de generat factura';
+
+  @override
+  String get openingWallet => 'Se deschide portofelul…';
+
+  @override
+  String get payingViaNwc => 'Plată prin NWC…';
+
+  @override
+  String get noLightningWallet => 'Niciun portofel Lightning găsit';
+
+  @override
+  String zapSent(int sats) {
+    return '⚡ $sats sats trimiși!';
+  }
+
+  @override
+  String get stillThere => 'Încă acolo';
+
+  @override
+  String get notThereAnymore => 'Nu mai este acolo';
+
+  @override
+  String get loginToConfirm =>
+      'Conectați-vă cu Nostr pentru a confirma sau contesta';
+
+  @override
+  String get reportAnEvent => 'Raportați un eveniment';
+
+  @override
+  String get optionalComment => 'Comentariu opțional…';
+
+  @override
+  String get publish => 'Publicare';
+
+  @override
+  String get publishing => 'Se publică…';
+
+  @override
+  String get reportPublished => 'Raport publicat ✓';
+
+  @override
+  String get myReports => 'RAPOARTELE MELE';
+
+  @override
+  String get noReportsYet => 'Niciun raport publicat';
+
+  @override
+  String get zapBalance => 'Sold Zap';
+
+  @override
+  String get satoshiFromReports => 'Satoshi primiți din rapoartele dvs.';
+
+  @override
+  String get reputationHigh => 'Ridicată';
+
+  @override
+  String get reputationMedium => 'Medie';
+
+  @override
+  String get reputationLow => 'Scăzută';
+
+  @override
+  String reputationLabel(String level) {
+    return 'Reputație $level';
+  }
+
+  @override
+  String reliability(int pct) {
+    return 'Fiabilitate: $pct%';
+  }
+
+  @override
+  String get confirmedLabel => 'Confirmat';
+
+  @override
+  String get removedLabel => 'Eliminat';
+
+  @override
+  String get positionLabel => 'Poziție';
+
+  @override
+  String get loadingLabel => 'Se încarcă…';
+
+  @override
+  String get sectionWebSearch => 'Căutare web';
+
+  @override
+  String get sectionLightning => 'Lightning';
+
+  @override
+  String get nwcLabel => 'Nostr Wallet Connect (NWC)';
+
+  @override
+  String get nwcDesc =>
+      'Lipiți URI-ul NWC (Alby Hub, Mutiny, Cashu…) pentru a plăti Zap-uri direct din aplicație.';
+
+  @override
+  String get searchEngineQwantDesc =>
+      'European, confidențialitate pe primul loc. Fără urmărire, fără profiluri publicitare. Recomandat.';
+
+  @override
+  String get searchEngineBraveDesc =>
+      'Index independent, open-source. Fără dependență de Google sau Bing. Zero profilare.';
+
+  @override
+  String get searchEngineDdgDesc =>
+      'Axat pe confidențialitate și popular. Rezultate parțial din Bing — țineți cont de asta.';
+
+  @override
+  String get searchEngineStartpageDesc =>
+      'Rezultate Google fără a trimite datele dvs. la Google. Un compromis rezonabil.';
+
+  @override
+  String get searchEngineGoogleDesc =>
+      'Foarte eficient. Dar rețineți: Google vă cunoaște mai bine decât mama dvs. și vinde totul advertiserilor. Alegerea dvs. 🍪';
+
+  @override
+  String get categoryPolice => 'Poliție';
+
+  @override
+  String get categorySpeedCamera => 'Radar de viteză';
+
+  @override
+  String get categoryTrafficJam => 'Ambuteiaj';
+
+  @override
+  String get categoryAccident => 'Accident';
+
+  @override
+  String get categoryRoadClosure => 'Drum închis';
+
+  @override
+  String get categoryConstruction => 'Lucrări';
+
+  @override
+  String get categoryHazard => 'Pericol';
+
+  @override
+  String get categoryRoadCondition => 'Starea drumului';
+
+  @override
+  String get categoryPothole => 'Groapă';
+
+  @override
+  String get categoryFog => 'Ceață';
+
+  @override
+  String get categoryIce => 'Gheață';
+
+  @override
+  String get categoryAnimal => 'Animal';
+
+  @override
+  String get categoryOther => 'Altele';
+
+  @override
+  String get dateTimeLabel => 'Dată / oră';
+
+  @override
+  String minutesAgo(int count) {
+    return 'acum $count min';
+  }
+
+  @override
+  String hoursAgo(int count) {
+    return 'acum ${count}h';
+  }
+
+  @override
+  String daysAgo(int count) {
+    return 'acum ${count}z';
+  }
+}

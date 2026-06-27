@@ -1,0 +1,554 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Slovenian (`sl`).
+class AppLocalizationsSl extends AppLocalizations {
+  AppLocalizationsSl([String locale = 'sl']) : super(locale);
+
+  @override
+  String get searchHint => 'Kam želite iti?';
+
+  @override
+  String get calculatingRoute => 'Izračunavanje poti…';
+
+  @override
+  String get routeNotFoundTitle => 'Pot ni bila najdena';
+
+  @override
+  String get noRouteFound => 'Pot ni bila najdena. Preverite povezavo.';
+
+  @override
+  String get emptyServerResponse =>
+      'Prazen odgovor strežnika. Preverite povezavo.';
+
+  @override
+  String routeError(String error) {
+    return 'Napaka pri izračunu poti: $error';
+  }
+
+  @override
+  String get gpsNotAvailable =>
+      'GPS ni na voljo — Settings → App → Roadstr → Permissions → Location';
+
+  @override
+  String get acquiringGps => 'Pridobivanje GPS-a…';
+
+  @override
+  String get graphhopperServerNotConfigured =>
+      'Strežnik GraphHopper ni konfiguriran — uporabljam OSRM';
+
+  @override
+  String get graphhopperApiKeyNotConfigured =>
+      'API-ključ GraphHopper ni konfiguriran — uporabljam OSRM';
+
+  @override
+  String get openrouteApiKeyNotConfigured =>
+      'API-ključ OpenRouteService ni konfiguriran — uporabljam OSRM';
+
+  @override
+  String get chooseRoute => 'Izberite pot';
+
+  @override
+  String routeOptionsCount(int count) {
+    return '$count možnosti';
+  }
+
+  @override
+  String get cancel => 'Prekliči';
+
+  @override
+  String get startNavigation => 'Začni navigacijo';
+
+  @override
+  String get fastestRoute => 'Najhitrejša';
+
+  @override
+  String get now => 'Zdaj';
+
+  @override
+  String get history => 'Zgodovina';
+
+  @override
+  String get clearHistory => 'Počisti';
+
+  @override
+  String get selectedPosition => 'Izbrana lokacija';
+
+  @override
+  String get bottomBarProfile => 'Profil';
+
+  @override
+  String get bottomBarMenu => 'Meni';
+
+  @override
+  String get settingsTitle => 'Nastavitve';
+
+  @override
+  String get sectionTheme => 'Tema';
+
+  @override
+  String get sectionMap => 'Zemljevid';
+
+  @override
+  String get sectionPrivacy => 'Zasebnost';
+
+  @override
+  String get sectionInfo => 'Informacije';
+
+  @override
+  String get sectionLanguage => 'Jezik';
+
+  @override
+  String get themeLightNostr => 'Svetla · Nostr Vijolična';
+
+  @override
+  String get themeLightBitcoin => 'Svetla · Bitcoin Oranžna';
+
+  @override
+  String get langSystem => 'Sistemska privzeta';
+
+  @override
+  String get langItalian => 'Italiano';
+
+  @override
+  String get langEnglish => 'English';
+
+  @override
+  String get keepScreenOn => 'Ohrani zaslon prižgan';
+
+  @override
+  String get keepScreenOnDescription => 'Prepreči spanje med navigacijo';
+
+  @override
+  String get rotateMap => 'Zemljevid sledi smeri';
+
+  @override
+  String get rotateMapDescription => 'Zemljevid se zavrti glede na smer vožnje';
+
+  @override
+  String get mapTileUrlLabel => 'URL ploščice zemljevida';
+
+  @override
+  String get routingProviderLabel => 'Ponudnik usmerjanja';
+
+  @override
+  String get osrmProvider => 'OSRM (javni, ključ ni potreben)';
+
+  @override
+  String get graphhopperLocalProvider => 'GraphHopper (lokalni/zasebni)';
+
+  @override
+  String get graphhopperCloudProvider => 'GraphHopper Cloud (API-ključ)';
+
+  @override
+  String get openrouteProvider => 'OpenRouteService (API-ključ)';
+
+  @override
+  String get graphhopperServerHint => 'http://localhost:8989/route';
+
+  @override
+  String get graphhopperApiKeyHint => 'API-ključ GraphHopper (neobvezno)';
+
+  @override
+  String get verify => 'Preveri';
+
+  @override
+  String get graphhopperServerUrlRequired =>
+      'Vnesite URL strežnika pred preverjanjem.';
+
+  @override
+  String get successTitle => 'Uspešno';
+
+  @override
+  String get graphhopperServerReachable => 'Strežnik GraphHopper je dosegljiv';
+
+  @override
+  String get errorTitle => 'Napaka';
+
+  @override
+  String get close => 'Zapri';
+
+  @override
+  String get privacyMode => 'Način zasebnosti';
+
+  @override
+  String get privacyModeDescription =>
+      'Ne pošiljaj anonimnih telemetričnih podatkov';
+
+  @override
+  String get infoVersion => 'Različica';
+
+  @override
+  String get infoProtocol => 'Protokol';
+
+  @override
+  String get infoMaps => 'Zemljevidi';
+
+  @override
+  String get infoRouting => 'Usmerjanje';
+
+  @override
+  String get infoSource => 'Vir';
+
+  @override
+  String get providerOsrm => 'OSRM';
+
+  @override
+  String get providerGraphhopperSelfHosted => 'GraphHopper (samogostovan)';
+
+  @override
+  String get providerGraphhopperCloud => 'GraphHopper (oblak)';
+
+  @override
+  String get providerOpenroute => 'OpenRouteService';
+
+  @override
+  String get profileTitle => 'Profil';
+
+  @override
+  String get notConnected => 'Nepovezano';
+
+  @override
+  String get loginWithNostrTitle => 'PRIJAVA Z NOSTROM';
+
+  @override
+  String get amberNip55Title => 'Amber / NIP-55';
+
+  @override
+  String get amberLoginDescription =>
+      'Zasebni ključ nikoli ne zapusti vaše naprave · Priporočeno';
+
+  @override
+  String get nsecLoginOption => 'Vnesi nsec';
+
+  @override
+  String get nsecLoginDescription =>
+      'Zasebni ključ shranjen lokalno · Manj varno';
+
+  @override
+  String get connectedViaAmber => 'Povezano prek Amber (NIP-55)';
+
+  @override
+  String get connectedViaNsec => 'Povezano prek nsec';
+
+  @override
+  String get publicKeyLabel => 'JAVNI KLJUČ';
+
+  @override
+  String get npubCopiedToClipboard => 'npub kopiran v odložišče';
+
+  @override
+  String get logoutTitle => 'Prekini povezavo';
+
+  @override
+  String get logoutConfirmation => 'Odstraniti poverilnice Nostr s te naprave?';
+
+  @override
+  String get logoutButton => 'Prekini povezavo';
+
+  @override
+  String get nostrIdentityInfo =>
+      'Z identiteto Nostr lahko na decentraliziran način objavljate prometna opozorila, poročila in točke zanimanja v omrežju Nostr brez centralnih strežnikov.';
+
+  @override
+  String get warningTitle => 'Opozorilo';
+
+  @override
+  String get nsecWarning =>
+      'Tik pred tem ste, da kar tako vtisnete vaš zasebni ključ Nostr neposredno v aplikacijo. Kdorkoli z fizičnim ali oddaljenim dostopom do vaše naprave ga lahko prebere in za vedno prevzame nadzor nad vašo identiteto Nostr.';
+
+  @override
+  String get amberSecureMethodHint =>
+      '✦  Varna metoda je Amber (NIP-55): nsec nikoli ne zapusti trezorja za podpisovanje aplikacij.';
+
+  @override
+  String get nsecRiskAcknowledgment => 'Razumem tveganje in želim nadaljevati';
+
+  @override
+  String get continueButton => 'Nadaljuj';
+
+  @override
+  String get amberDialogTitle => 'Amber / NIP-55';
+
+  @override
+  String get amberDescription =>
+      'Amber je podpisnik aplikacij za Android, skladen z NIP-55. Vaš zasebni ključ ostane izoliran znotraj Amber in nikoli ni deljen.';
+
+  @override
+  String get requestKeyFromAmber => 'Zahtevaj javni ključ iz Amber';
+
+  @override
+  String get amberNotFound =>
+      'Amber ni najden. Namestite ga iz Play Store ali ročno vnesite npub.';
+
+  @override
+  String get waitingForAmberResponse => 'Čakanje na odgovor Amber…';
+
+  @override
+  String get pasteNpubManually => 'Prilepite npub ročno:';
+
+  @override
+  String get confirmNpub => 'Potrdi npub';
+
+  @override
+  String get enterNsecTitle => 'Vnesi nsec';
+
+  @override
+  String get loginButton => 'Prijava';
+
+  @override
+  String get invalidNpubTitle => 'Neveljaven npub';
+
+  @override
+  String get invalidNsecTitle => 'Neveljaven nsec';
+
+  @override
+  String get invalidNpubMessage =>
+      'Prepričajte se, da ste prilepili pravilen npub.';
+
+  @override
+  String get invalidNsecMessage =>
+      'Prepričajte se, da ste prilepili pravilen nsec.';
+
+  @override
+  String get amberResponseError => 'Napaka odgovora Amber';
+
+  @override
+  String get ok => 'V redu';
+
+  @override
+  String get or => 'ali';
+
+  @override
+  String get gpsNotActiveTitle => 'GPS ni aktiven';
+
+  @override
+  String get gpsDisabledMessage =>
+      'Aktivirajte GPS v nastavitvah naprave, da pridobite svojo lokacijo in uporabljate navigacijo.';
+
+  @override
+  String get openSettings => 'Nastavitve';
+
+  @override
+  String get myLocation => 'Moja lokacija';
+
+  @override
+  String get loginToReport =>
+      'Prijavite se z Nostrom (razdelek Profil) za poročanje o dogodkih';
+
+  @override
+  String get navigateHere => 'Navigiraj sem';
+
+  @override
+  String get reportEventHere => 'Poročaj o dogodku tukaj';
+
+  @override
+  String get zapSendSats => 'Zap ⚡ (pošlji sats)';
+
+  @override
+  String get sendZap => 'Pošlji Zap';
+
+  @override
+  String get chooseAmountSats => 'Izberite znesek v satoshijih (sats):';
+
+  @override
+  String get customAmount => 'Poljuben znesek…';
+
+  @override
+  String get zapSending => 'Pošiljanje…';
+
+  @override
+  String zapSat(int sats) {
+    return '⚡$sats sat';
+  }
+
+  @override
+  String get fetchingLightningAddress => 'Pridobivanje Lightning naslova…';
+
+  @override
+  String get noLightningAddress => 'Ta poročevalec nima Lightning naslova';
+
+  @override
+  String get requestingInvoice => 'Zahtevanje računa…';
+
+  @override
+  String get lnurlUnavailable => 'LNURL ni na voljo';
+
+  @override
+  String get invoiceFailed => 'Računa ni mogoče ustvariti';
+
+  @override
+  String get openingWallet => 'Odpiranje denarnice…';
+
+  @override
+  String get payingViaNwc => 'Plačevanje prek NWC…';
+
+  @override
+  String get noLightningWallet => 'Lightning denarnica ni najdena';
+
+  @override
+  String zapSent(int sats) {
+    return '⚡ $sats sats poslano!';
+  }
+
+  @override
+  String get stillThere => 'Še vedno tam';
+
+  @override
+  String get notThereAnymore => 'Ni več tam';
+
+  @override
+  String get loginToConfirm =>
+      'Prijavite se z Nostrom za potrditev ali izpodbijanje';
+
+  @override
+  String get reportAnEvent => 'Poročaj o dogodku';
+
+  @override
+  String get optionalComment => 'Neobvezni komentar…';
+
+  @override
+  String get publish => 'Objavi';
+
+  @override
+  String get publishing => 'Objavljanje…';
+
+  @override
+  String get reportPublished => 'Poročilo objavljeno ✓';
+
+  @override
+  String get myReports => 'MOJA POROČILA';
+
+  @override
+  String get noReportsYet => 'Ni objavljenih poročil';
+
+  @override
+  String get zapBalance => 'Zap stanje';
+
+  @override
+  String get satoshiFromReports => 'Satoshi, prejeti iz vaših poročil';
+
+  @override
+  String get reputationHigh => 'Visoka';
+
+  @override
+  String get reputationMedium => 'Srednja';
+
+  @override
+  String get reputationLow => 'Nizka';
+
+  @override
+  String reputationLabel(String level) {
+    return 'Ugled $level';
+  }
+
+  @override
+  String reliability(int pct) {
+    return 'Zanesljivost: $pct%';
+  }
+
+  @override
+  String get confirmedLabel => 'Potrjeno';
+
+  @override
+  String get removedLabel => 'Odstranjeno';
+
+  @override
+  String get positionLabel => 'Položaj';
+
+  @override
+  String get loadingLabel => 'Nalaganje…';
+
+  @override
+  String get sectionWebSearch => 'Spletno iskanje';
+
+  @override
+  String get sectionLightning => 'Lightning';
+
+  @override
+  String get nwcLabel => 'Nostr Wallet Connect (NWC)';
+
+  @override
+  String get nwcDesc =>
+      'Prilepite vaš NWC URI (Alby Hub, Mutiny, Cashu…) za plačevanje Zapsov neposredno iz aplikacije.';
+
+  @override
+  String get searchEngineQwantDesc =>
+      'Evropski, zasebnost na prvem mestu. Brez sledenja, brez oglaševalskih profilov. Priporočeno.';
+
+  @override
+  String get searchEngineBraveDesc =>
+      'Neodvisni indeks, odprtokoden. Brez odvisnosti od Googla ali Binga. Nič profiliranja.';
+
+  @override
+  String get searchEngineDdgDesc =>
+      'Osredotočen na zasebnost in priljubljen. Rezultati delno iz Binga — imejte to v mislih.';
+
+  @override
+  String get searchEngineStartpageDesc =>
+      'Googlov rezultati brez predaje vaših podatkov Googlu. Razumni kompromis.';
+
+  @override
+  String get searchEngineGoogleDesc =>
+      'Zelo učinkovito. A zapomnite si: Google vas pozna bolje kot vaša mama in vse prodaja oglaševalcem. Vaša odločitev. 🍪';
+
+  @override
+  String get categoryPolice => 'Policija';
+
+  @override
+  String get categorySpeedCamera => 'Radar za merjenje hitrosti';
+
+  @override
+  String get categoryTrafficJam => 'Prometni zamašek';
+
+  @override
+  String get categoryAccident => 'Prometna nesreča';
+
+  @override
+  String get categoryRoadClosure => 'Zapora ceste';
+
+  @override
+  String get categoryConstruction => 'Gradbena dela';
+
+  @override
+  String get categoryHazard => 'Nevarnost';
+
+  @override
+  String get categoryRoadCondition => 'Stanje ceste';
+
+  @override
+  String get categoryPothole => 'Udarna jama';
+
+  @override
+  String get categoryFog => 'Megla';
+
+  @override
+  String get categoryIce => 'Led';
+
+  @override
+  String get categoryAnimal => 'Žival';
+
+  @override
+  String get categoryOther => 'Drugo';
+
+  @override
+  String get dateTimeLabel => 'Datum / čas';
+
+  @override
+  String minutesAgo(int count) {
+    return 'pred $count min';
+  }
+
+  @override
+  String hoursAgo(int count) {
+    return 'pred ${count}h';
+  }
+
+  @override
+  String daysAgo(int count) {
+    return 'pred ${count}d';
+  }
+}

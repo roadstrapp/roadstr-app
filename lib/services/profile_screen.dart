@@ -78,7 +78,7 @@ class ProfileScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: c.accentSoft,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: c.accent.withOpacity(0.3)),
+              border: Border.all(color: c.accent.withValues(alpha: 0.3)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,7 +132,7 @@ class _LoginOption extends StatelessWidget {
   Widget build(BuildContext context) {
     final iconColor = isWarning ? const Color(0xFFFFB800) : colors.accent;
     final borderColor = isWarning
-        ? const Color(0xFFFFB800).withOpacity(0.4)
+        ? const Color(0xFFFFB800).withValues(alpha: 0.4)
         : colors.border;
 
     return Material(
@@ -152,7 +152,7 @@ class _LoginOption extends StatelessWidget {
               Container(
                 width: 44, height: 44,
                 decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.1),
+                  color: iconColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: iconColor, size: 22),

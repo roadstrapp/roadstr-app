@@ -72,10 +72,10 @@ class AppTheme {
             s.contains(WidgetState.selected) ? accent : const Color(0xFF9E9E9E)),
         trackColor: WidgetStateProperty.resolveWith((s) =>
             s.contains(WidgetState.selected)
-                ? accent.withOpacity(0.4) : const Color(0xFFE0E0E0)),
+                ? accent.withValues(alpha: 0.4) : const Color(0xFFE0E0E0)),
       ),
       extensions: [RoadstrColors(
-        accent: accent, accentSoft: accent.withOpacity(0.12),
+        accent: accent, accentSoft: accent.withValues(alpha: 0.12),
         surface1: const Color(0xFFF5F5F5), surface2: Colors.white,
         surface3: const Color(0xFFF0F0F0), border: const Color(0xFFE0E0E0),
         textPrimary: const Color(0xFF1A1A2E), textSecondary: const Color(0xFF757575),

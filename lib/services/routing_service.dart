@@ -67,8 +67,13 @@ enum RoutingProvider { osrm, openRoute, graphHopper }
 
 /// Stateless routing and geocoding helper. All methods are `static`.
 class RoutingService {
-  /// Base URL for OSRM — the profile ('driving' or 'foot') is appended at call time.
-  static const _osrmBase = 'https://router.project-osrm.org/route/v1';
+  /// OSRM driving endpoint (router.project-osrm.org only supports the car profile).
+  static const _osrmDriving = 'https://router.project-osrm.org/route/v1/driving';
+
+  /// OSRM walking endpoint — the official OSM routing instance that has the
+  /// foot profile enabled. routing.openstreetmap.de is maintained by the OSM
+  /// community and supports car, bike and foot profiles.
+  static const _osrmWalking = 'https://routing.openstreetmap.de/routed-foot/route/v1/foot';
   static const _nominatim = 'https://nominatim.openstreetmap.org/search';
   /// ORS base — the profile segment ('driving-car', 'foot-walking'…) is appended.
   static const _orsBase = 'https://api.openrouteservice.org/v2/directions/';
@@ -76,9 +81,11 @@ class RoutingService {
 
   // ── Vehicle / transport-mode helpers ──────────────────────────────────────
 
-  /// Translates the app-level vehicle string to the OSRM profile segment.
-  static String _osrmProfile(String vehicle) =>
-      vehicle == 'walking' ? 'foot' : 'driving';
+  /// Returns the correct OSRM base URL for the requested transport mode.
+  /// The two servers are separate because router.project-osrm.org only exposes
+  /// the car profile, while routing.openstreetmap.de has foot and bike too.
+  static String _osrmEndpoint(String vehicle) =>
+      vehicle == 'walking' ? _osrmWalking : _osrmDriving;
 
   /// Translates the vehicle string to the GraphHopper vehicle parameter.
   static String _ghVehicle(String vehicle) =>
@@ -153,11 +160,11 @@ class RoutingService {
       final display = data['display_name'] as String? ?? '';
       final addr    = data['address'] as Map<String, dynamic>? ?? {};
 
-      // Sceglie il termine wiki in ordine di priorità:
-      // 1. Nome del POI (es. "Colosseo")
-      // 2. Quartiere / via con nome significativo
-      // 3. Città
-      // MAI numeri civici o semplici numeri
+      // Choose the best Wikipedia search term in priority order:
+      // 1. POI name (e.g. "Colosseum")
+      // 2. Neighbourhood / street with a meaningful name
+      // 3. City name
+      // NEVER house numbers or plain numeric strings
       bool isNumber(String? s) =>
           s == null || RegExp(r'^\d+$').hasMatch(s.trim());
 
@@ -329,9 +336,8 @@ class RoutingService {
         );
       }
 
-      // Fallback / default: OSRM — select profile based on transport mode.
-      // OSRM public server supports 'driving' (cars) and 'foot' (pedestrians).
-      final url = '$_osrmBase/${_osrmProfile(vehicle)}/'
+      // Fallback / default: OSRM — choose the right public server for the mode.
+      final url = '${_osrmEndpoint(vehicle)}/'
           '${origin.longitude},${origin.latitude};'
           '${destination.longitude},${destination.latitude}'
           '?overview=full&geometries=geojson&steps=true';
@@ -379,7 +385,7 @@ class RoutingService {
       return single != null ? [single] : [];
     }
     try {
-      final url = '$_osrmBase/${_osrmProfile(vehicle)}/'
+      final url = '${_osrmEndpoint(vehicle)}/'
           '${origin.longitude},${origin.latitude};'
           '${destination.longitude},${destination.latitude}'
           '?overview=full&geometries=geojson&steps=true&alternatives=3';
@@ -760,53 +766,53 @@ class NominatimResult {
 
   static String? _categoryLabel(String? cls, String? type) {
     switch (cls) {
-      case 'highway':        return 'Via / Strada';
+      case 'highway':        return 'Road';
       case 'place':
         return switch (type) {
-          'city'    => 'Città',
-          'town'    => 'Comune',
-          'village' => 'Paese',
-          _         => 'Luogo',
+          'city'    => 'City',
+          'town'    => 'Town',
+          'village' => 'Village',
+          _         => 'Place',
         };
       case 'amenity':
         return switch (type) {
-          'restaurant'   => 'Ristorante',
+          'restaurant'   => 'Restaurant',
           'fast_food'    => 'Fast food',
-          'cafe'         => 'Caffè',
+          'cafe'         => 'Café',
           'bar' || 'pub' => 'Bar / Pub',
-          'hospital'     => 'Ospedale',
-          'pharmacy'     => 'Farmacia',
-          'school'       => 'Scuola',
-          'university'   => 'Università',
-          'bank'         => 'Banca',
-          'atm'          => 'Bancomat',
-          'fuel'         => 'Stazione di servizio',
-          'parking'      => 'Parcheggio',
-          'police'       => 'Polizia',
-          'post_office'  => 'Ufficio postale',
-          'library'      => 'Biblioteca',
-          'theatre'      => 'Teatro',
+          'hospital'     => 'Hospital',
+          'pharmacy'     => 'Pharmacy',
+          'school'       => 'School',
+          'university'   => 'University',
+          'bank'         => 'Bank',
+          'atm'          => 'ATM',
+          'fuel'         => 'Petrol station',
+          'parking'      => 'Parking',
+          'police'       => 'Police',
+          'post_office'  => 'Post office',
+          'library'      => 'Library',
+          'theatre'      => 'Theatre',
           'cinema'       => 'Cinema',
-          'place_of_worship' => 'Luogo di culto',
-          'townhall'     => 'Municipio',
-          _              => 'Servizio',
+          'place_of_worship' => 'Place of worship',
+          'townhall'     => 'Town hall',
+          _              => 'Service',
         };
       case 'tourism':
         return switch (type) {
-          'museum'     => 'Museo',
-          'hotel' || 'hostel' || 'motel' => 'Albergo',
-          'attraction' || 'monument' => 'Monumento / Attrazione',
+          'museum'     => 'Museum',
+          'hotel' || 'hostel' || 'motel' => 'Hotel',
+          'attraction' || 'monument' => 'Attraction / Monument',
           'artwork'    => 'Opera d\'arte',
-          'gallery'    => 'Galleria',
-          _            => 'Turismo',
+          'gallery'    => 'Gallery',
+          _            => 'Tourism',
         };
-      case 'shop':          return 'Negozio';
-      case 'office':        return 'Ufficio';
-      case 'historic':      return 'Sito storico';
-      case 'leisure':       return 'Tempo libero';
-      case 'natural':       return 'Area naturale';
-      case 'railway':       return 'Ferrovia / Stazione';
-      case 'aeroway':       return 'Aeroporto';
+      case 'shop':          return 'Shop';
+      case 'office':        return 'Office';
+      case 'historic':      return 'Historic site';
+      case 'leisure':       return 'Leisure';
+      case 'natural':       return 'Natural area';
+      case 'railway':       return 'Railway / Station';
+      case 'aeroway':       return 'Airport';
       default:              return null;
     }
   }
