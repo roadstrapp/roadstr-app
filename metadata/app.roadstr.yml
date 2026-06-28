@@ -1,0 +1,64 @@
+# F-Droid metadata file for Roadstr
+# Submit this file via merge request to:
+#   https://gitlab.com/fdroid/fdroiddata  →  metadata/app.roadstr.yml
+#
+# Before submitting:
+#   1. Replace <COMMIT_HASH> with the git commit hash of your release tag
+#   2. Add screenshots to fastlane/metadata/android/en-US/images/phoneScreenshots/
+#   3. Run: fdroid lint metadata/app.roadstr.yml
+
+Categories:
+  - Navigation
+License: AGPL-3.0-only
+AuthorName: Roadstr Team
+AuthorEmail: ''
+SourceCode: https://github.com/roadstrapp/roadstr-app
+IssueTracker: https://github.com/roadstrapp/roadstr-app/issues
+Changelog: https://github.com/roadstrapp/roadstr-app/releases
+
+AutoName: Roadstr
+Name: Roadstr
+Summary: Decentralised navigation with Nostr road events and Lightning zaps
+Description: |-
+    Roadstr is a free, open-source navigation app built on decentralised
+    technologies.
+
+    '''Turn-by-turn navigation''' powered by OpenStreetMap and OSRM with
+    voice guidance in 27 languages, speed-limit signs, and automatic rerouting.
+
+    '''Nostr road events''' — report and receive real-time traffic jams, police,
+    accidents, speed cameras, and road hazards published to the Nostr network
+    (kind 1315/1316).
+
+    '''Lightning zaps''' — tip developers and appreciate good reports with
+    Bitcoin Lightning via NIP-57 and NWC wallet connect.
+
+    '''Privacy first''' — no account required, no tracking, no analytics.
+    GPS data never leaves your device.
+
+    No Google Play Services required — falls back to Android LocationManager
+    on degoogled devices.
+
+RepoType: git
+Repo: https://github.com/roadstrapp/roadstr-app
+
+Builds:
+  - versionName: 0.2.1
+    versionCode: 3
+    commit: v0.2.1
+    subdir: .
+    sudo:
+      - apt-get update
+      - apt-get install -y openjdk-17-jdk-headless
+    init:
+      - flutter pub get
+    build:
+      - flutter build apk --release --split-per-abi
+    output: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+    gradle:
+      - yes
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: 0.2.1
+CurrentVersionCode: 3
