@@ -1,0 +1,1 @@
+Decentralised navigation with Nostr road event reporting and Lightning zaps

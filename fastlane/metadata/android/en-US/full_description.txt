@@ -1,0 +1,35 @@
+Roadstr is a free, open-source navigation app for Android built on decentralised technologies.
+
+🗺️ TURN-BY-TURN NAVIGATION
+Offline-capable routing powered by OpenStreetMap and OSRM. Voice guidance in 27 languages. Speed-limit signs, automatic rerouting, and arrival detection.
+
+📡 NOSTR ROAD EVENTS
+Report traffic jams, police, accidents, speed cameras, road closures, and road hazards. Events are published to the Nostr network so every driver in the area can see them in real time. Confirm or deny reports from other users.
+
+⚡ LIGHTNING ZAPS
+Tip the app developers and appreciate good road reports directly with Bitcoin Lightning payments via NIP-57 zaps and NWC wallet connect.
+
+🔒 PRIVACY FIRST
+No account required. No tracking. No analytics. GPS data never leaves your device. Road events are published pseudonymously via your Nostr identity. You can use the app completely anonymously.
+
+🔑 NOSTR IDENTITY
+Log in with your existing Nostr private key (nsec) or via Amber (NIP-55 external signer). Your keypair is stored encrypted on-device.
+
+🌍 OPEN SOURCE
+Roadstr is fully open source (AGPL-3.0). Source code: https://github.com/roadstrapp/roadstr-app
+
+FEATURES
+• Turn-by-turn voice navigation (27 languages)
+• OpenStreetMap tiles with custom tile URL support
+• Speed-adaptive zoom during navigation
+• Automatic rerouting when off-route
+• Real-time road event markers with category TTLs
+• Favourite places for quick navigation
+• Search history
+• GraphHopper, OSRM, and OpenRouteService backends
+• Walking and driving modes
+• Place info with Wikipedia integration
+• NIP-40 event expiration
+• ZTL / restricted zone awareness via OSM data
+• Compass with magnetometer and gyroscope
+• No Google Play Services required (falls back to Android LocationManager)
