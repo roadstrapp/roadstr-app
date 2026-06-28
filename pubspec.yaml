@@ -1,6 +1,6 @@
-name: nostr_nav
-description: Roadstr - Navigatore satellitare open source
-version: 0.2.0+2
+name: roadstr
+description: Roadstr — Decentralised navigation with Nostr road events and Lightning zaps
+version: 0.2.1+3
 publish_to: 'none'
 
 environment:

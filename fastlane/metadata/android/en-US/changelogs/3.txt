@@ -1,0 +1,9 @@
+Initial public release (0.2.beta).
+
+• Turn-by-turn navigation with voice guidance in 27 languages
+• Nostr road event reporting (kind 1315/1316)
+• Lightning zaps via NIP-57 and NWC
+• Amber NIP-55 signer support
+• Compass with magnetometer
+• Favourite places
+• Speed limit signs during navigation
