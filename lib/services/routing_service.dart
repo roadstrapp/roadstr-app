@@ -17,8 +17,12 @@ import 'package:latlong2/latlong.dart';
 class RouteStep {
   /// Human-readable instruction in the requested language (e.g. "Turn right on Via Roma").
   final String instruction;
-  /// Provider-specific direction token (e.g. "turn-right", "straight", "arrive").
+  /// Maneuver type from the routing provider (e.g. 'turn', 'roundabout', 'arrive').
   final String direction;
+  /// Turn modifier — sub-type of a 'turn' maneuver: 'left', 'right', 'slight left',
+  /// 'slight right', 'sharp left', 'sharp right', 'straight', 'uturn'.
+  /// Empty string when not applicable (depart, arrive, etc.).
+  final String modifier;
   /// Horizontal distance from this step's maneuver point to the next, in metres.
   final double distanceM;
   /// The geographic point where this maneuver begins.
@@ -27,6 +31,7 @@ class RouteStep {
   const RouteStep({
     required this.instruction,
     required this.direction,
+    this.modifier = '',
     required this.distanceM,
     required this.location,
   });
@@ -496,6 +501,7 @@ class RoutingService {
       steps.add(RouteStep(
         instruction: _buildInstruction(step, lang),
         direction: maneuver['type'] as String? ?? 'straight',
+        modifier: maneuver['modifier'] as String? ?? '',
         distanceM: (step['distance'] as num).toDouble(),
         location: LatLng(
             (loc[1] as num).toDouble(), (loc[0] as num).toDouble()),
