@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
@@ -379,13 +380,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: _getBool('keepScreenOn', true),
             onChanged: (v) => _setBool('keepScreenOn', v), colors: c,
           ),
-          _SwitchTile(
-            title: l.rotateMap,
-            subtitle: l.rotateMapDescription,
-            value: _getBool('rotateMap', false),
-            onChanged: (v) => _setBool('rotateMap', v), colors: c,
-          ),
-
           Container(
             margin: const EdgeInsets.only(top: 8, bottom: 8),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -628,6 +622,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 16),
 
+          // ── NAVIGATION VOICE ────────────────────────────────────────────
+          _SectionHeader('Navigation voice', c),
+          _SwitchTile(
+            title: 'Voice guidance',
+            subtitle: 'Read turn-by-turn instructions aloud during navigation',
+            value: _getBool('voiceEnabled', true),
+            onChanged: (v) => _setBool('voiceEnabled', v), colors: c,
+          ),
+
+          const SizedBox(height: 16),
+
           // ── PRIVACY ─────────────────────────────────────────────────────
           _SectionHeader(l.sectionPrivacy, c),
           _SwitchTile(
@@ -641,10 +646,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // ── INFO ─────────────────────────────────────────────────────────
           _SectionHeader(l.sectionInfo, c),
-          _InfoTile(l.infoVersion, '0.2.0', c),
+          _InfoTile(l.infoVersion, '0.2.beta', c),
           _InfoTile(l.infoProtocol, 'Nostr', c),
-          _InfoTile(l.infoMaps,
-              _box.get('mapTileUrl', defaultValue: c.mapTile) as String, c),
+          _InfoTile(l.infoMaps, 'openstreetmap.org', c,
+              url: 'https://www.openstreetmap.org'),
           _InfoTile(l.infoRouting, () {
             final p = _box.get('routingProvider', defaultValue: 'osrm') as String;
             switch (p) {
@@ -654,7 +659,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               default:                   return l.providerOsrm;
             }
           }(), c),
-          _InfoTile(l.infoSource, 'github.com/tuonome/roadstr', c),
+          _InfoTile(l.infoSource, 'github.com/roadstrapp/roadstr-app', c,
+              url: 'https://github.com/roadstrapp/roadstr-app'),
 
           const SizedBox(height: 32),
         ],
@@ -698,25 +704,48 @@ class _SwitchTile extends StatelessWidget {
 }
 
 class _InfoTile extends StatelessWidget {
-  final String label, value; final RoadstrColors c;
-  const _InfoTile(this.label, this.value, this.c);
+  final String label, value;
+  final String? url;
+  final RoadstrColors c;
+  const _InfoTile(this.label, this.value, this.c, {this.url});
+
   @override
-  Widget build(BuildContext context) => Container(
-    margin: const EdgeInsets.only(bottom: 8),
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-    decoration: BoxDecoration(
-      color: c.surface2, borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: c.border, width: 0.5),
-    ),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: TextStyle(color: c.textSecondary, fontSize: 13)),
-        Flexible(child: Text(value, maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: c.textPrimary, fontSize: 13))),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) {
+    final isLink = url != null;
+    final tile = Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+      decoration: BoxDecoration(
+        color: c.surface2, borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: c.border, width: 0.5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(color: c.textSecondary, fontSize: 13)),
+          Flexible(child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Flexible(child: Text(value, maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    color: isLink ? c.accent : c.textPrimary,
+                    fontSize: 13,
+                    decoration: isLink ? TextDecoration.underline : null,
+                    decorationColor: c.accent))),
+            if (isLink) ...[
+              const SizedBox(width: 4),
+              Icon(Icons.open_in_new_rounded, size: 13, color: c.accent),
+            ],
+          ])),
+        ],
+      ),
+    );
+
+    if (!isLink) return tile;
+    return GestureDetector(
+      onTap: () => launchUrl(Uri.parse(url!),
+          mode: LaunchMode.externalApplication),
+      child: tile,
+    );
+  }
 }
 
 // ── Search engine selector ────────────────────────────────────────────────────

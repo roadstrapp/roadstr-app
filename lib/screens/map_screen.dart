@@ -139,6 +139,7 @@ class _MapScreenState extends State<MapScreen>
   final _nostr    = NostrRelayService();
   final _navNotif = NavigationNotificationService();
   final _tts      = TtsService();
+  bool _voiceMuted = false;
 
   // ── Voice guidance state ────────────────────────────────────────────────────
   /// Index of the last step for which a 200m announcement was made.
@@ -152,6 +153,7 @@ class _MapScreenState extends State<MapScreen>
   /// Live list of non-expired road events fed by [NostrRelayService.stream].
   List<RoadEvent> _roadEvents = [];
   StreamSubscription<List<RoadEvent>>? _roadSub;
+  Timer? _eventCleanupTimer;
 
   /// Route displayed in the preview panel before the user confirms navigation.
   RouteResult? _previewRoute;
@@ -176,6 +178,9 @@ class _MapScreenState extends State<MapScreen>
 
   // ── Search pin (dropped on Enter in search bar) ─────────────────────────
   NominatimResult? _pinResult;
+
+  // ── North animation (Timer-based, independent of the ticker system) ─────
+  Timer? _northTimer;
 
   // ── Place info (map tap) ─────────────────────────────────────────────────
   bool _showPlaceInfo   = false;
@@ -204,17 +209,29 @@ class _MapScreenState extends State<MapScreen>
   @override
   void initState() {
     super.initState();
+    _voiceMuted = !(Hive.box('settings')
+        .get('voiceEnabled', defaultValue: true) as bool);
     _loadInitialPosition();
     _loadHistory();
     _loadFavorites();
     _nostr.connect();
     _roadSub = _nostr.stream.listen((events) {
-      if (mounted) setState(() => _roadEvents = events);
+      if (mounted) setState(() =>
+          _roadEvents = events.where((e) => !e.isExpired).toList());
       if (mounted && _isNavigating && _route != null) {
         _checkNewTrafficOnRoute(events);
       }
     });
     _startCompass();
+    // Periodically prune expired road events so they disappear from the map
+    // even when no GPS ticks or Nostr stream updates are happening.
+    _eventCleanupTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (!mounted) return;
+      final pruned = _roadEvents.where((e) => !e.isExpired).toList();
+      if (pruned.length != _roadEvents.length) {
+        setState(() => _roadEvents = pruned);
+      }
+    });
   }
 
   /// Subscribes to the device magnetometer and accelerometer to compute a
@@ -449,7 +466,9 @@ class _MapScreenState extends State<MapScreen>
     setState(() {
       _position = data.position;
       _speed    = data.speedKmh.isFinite ? data.speedKmh : 0;
-      _heading  = effectiveHeading;
+      // During navigation show direction of travel; outside navigation show the
+      // compass bearing updated by the magnetometer stream (_compassHeading).
+      if (_isNavigating) _heading = effectiveHeading;
     });
 
     // ── Geohash re-subscription ──────────────────────────────────────────────
@@ -470,14 +489,15 @@ class _MapScreenState extends State<MapScreen>
       WakelockPlus.enable();
 
       if (_followUser) {
-        // In heading mode, use compass bearing (from magnetometer) so the map
-        // rotates with the device's physical orientation, not GPS movement direction.
-        final rot = _headingMode ? -_compassHeading : _camRotDeg;
+        // During navigation use the GPS movement bearing (effectiveHeading) so
+        // the map rotates to face the direction of travel, not where the phone
+        // physically points (which is _compassHeading from the magnetometer).
+        final rot = _headingMode ? -effectiveHeading : _camRotDeg;
         _animateCamera(
             toCenter: _position, toZoom: targetZoom, toRot: rot,
             durationMs: _gpsAnimMs);
       }
-    } else if (_followUser && _camTicker == null) {
+    } else if (_followUser && _camTicker == null && _northTimer == null) {
       // Outside navigation: follow GPS position, keep whatever rotation the user
       // set (north button, manual gesture). Never override rotation with compass.
       _mapController.moveAndRotate(_position, _camZoom, _camRotDeg);
@@ -533,7 +553,7 @@ class _MapScreenState extends State<MapScreen>
   }
 
   void _onArrival() {
-    _tts.announceArrival();
+    if (!_voiceMuted) _tts.announceArrival();
     _stopNavigation();
     _showArrivalDialog();
   }
@@ -702,10 +722,10 @@ class _MapScreenState extends State<MapScreen>
     // then again when the step is actually entered.
     if (dist < 220 && dist >= 50 && _ttsAnnounced200 != nextIdx) {
       _ttsAnnounced200 = nextIdx;
-      _tts.announceManeuver(nextStep.instruction, 200);
+      if (!_voiceMuted) _tts.announceManeuver(nextStep.instruction, 200);
     } else if (dist < 50 && _ttsAnnounced50 != nextIdx) {
       _ttsAnnounced50 = nextIdx;
-      _tts.announceManeuver(nextStep.instruction, 0); // imminent — no distance prefix
+      if (!_voiceMuted) _tts.announceManeuver(nextStep.instruction, 0); // imminent — no distance prefix
     }
 
     if (dist < 50) {
@@ -932,7 +952,7 @@ class _MapScreenState extends State<MapScreen>
       _updateNavNotification();
       // Announce the first step of the new route immediately.
       if (route.steps.isNotEmpty) {
-        _tts.announceManeuver(route.steps.first.instruction, 0);
+        if (!_voiceMuted) _tts.announceManeuver(route.steps.first.instruction, 0);
       }
       return;
     }
@@ -1480,7 +1500,7 @@ class _MapScreenState extends State<MapScreen>
       if (!mounted || results.isEmpty) return;
       result = results.first;
     }
-    _searchController.clear();
+    // Keep the search text so the user can refine if needed.
     setState(() {
       _showSearch    = false;
       _searchResults = [];
@@ -1511,12 +1531,11 @@ class _MapScreenState extends State<MapScreen>
   }
 
   void _selectSearchResult(NominatimResult result) {
+    // Save to history on every explicit selection, not just on navigation start.
+    _saveToHistory(result.shortName, result.position);
     if (_isPoi(result)) {
-      // POI (restaurant, museum, church…) → show place-info panel with
-      // Wikipedia lookup first. Navigation starts from within that panel.
       _showPlaceInfoForResult(result);
     } else {
-      // Plain address / road / city → go straight to route calculation.
       _requestAlternatives(result.position, label: result.shortName);
     }
   }
@@ -1550,7 +1569,7 @@ class _MapScreenState extends State<MapScreen>
       _showSearch     = false;
       _searchResults  = [];
     });
-    _searchController.clear();
+    // Keep the search text so the user can refine without retyping.
     FocusScope.of(context).unfocus();
 
     // Geo-aware Wikipedia lookup (small radius since we know the exact position)
@@ -1577,12 +1596,51 @@ class _MapScreenState extends State<MapScreen>
   /// Using _position (GPS) not _camCenter (current map pan) as target ensures
   /// the animation always has a visible delta even when _camRotDeg is already 0
   /// (e.g. second tap after GPS was following: center moves to latest GPS fix).
+  /// Rotates the map to north (0°), recenters on GPS, and zooms to level 17.
+  /// Uses a Timer instead of the custom ticker so it works independently of
+  /// any stale animation state from previous _animateCamera calls.
   void _toggleHeadingMode() {
     setState(() { _headingMode = false; _followUser = true; });
-    // Always animate to GPS position at zoom 17 so every tap produces a visible
-    // effect: if already at north the zoom/recenter still moves the camera.
-    final target = _gpsReady ? _position : _mapController.camera.center;
-    _animateCamera(toCenter: target, toZoom: 17.0, toRot: 0.0);
+
+    _northTimer?.cancel();
+    _camTicker?.dispose();
+    _camTicker = null;
+
+    final startRot    = _mapController.camera.rotation;
+    final startZoom   = _mapController.camera.zoom;
+    final startCenter = _mapController.camera.center;
+    final endCenter   = _gpsReady ? _position : startCenter;
+    const dur = 550;
+    final startMs = DateTime.now().millisecondsSinceEpoch;
+
+    _northTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+      if (!mounted) { timer.cancel(); _northTimer = null; return; }
+
+      final elapsed = DateTime.now().millisecondsSinceEpoch - startMs;
+      final p = (elapsed / dur).clamp(0.0, 1.0);
+      // Cubic ease-in-out
+      final e = p < 0.5 ? 4 * p * p * p : 1 - math.pow(-2 * p + 2, 3) / 2;
+
+      // Shortest-arc rotation to 0°
+      double rotDelta = 0.0 - startRot;
+      while (rotDelta > 180) rotDelta -= 360;
+      while (rotDelta < -180) rotDelta += 360;
+      final rot  = startRot  + rotDelta * e;
+      final zoom = startZoom + (17.0 - startZoom) * e;
+      final lat  = startCenter.latitude  + (endCenter.latitude  - startCenter.latitude)  * e;
+      final lng  = startCenter.longitude + (endCenter.longitude - startCenter.longitude) * e;
+
+      _mapController.moveAndRotate(LatLng(lat, lng), zoom, rot);
+      _camRotDeg = rot; _camZoom = zoom; _camCenter = LatLng(lat, lng);
+
+      if (p >= 1.0) {
+        timer.cancel();
+        _northTimer = null;
+        _camRotDeg = 0.0; _camZoom = 17.0; _camCenter = endCenter;
+        _mapController.moveAndRotate(endCenter, 17.0, 0.0);
+        if (mounted) setState(() {});
+      }
+    });
   }
 
   /// Smoothly animates the map camera to [toCenter] / [toZoom] / [toRot].
@@ -1635,10 +1693,12 @@ class _MapScreenState extends State<MapScreen>
       // Cubic ease-in-out applied to t.
       final e = t < 0.5 ? 4*t*t*t : 1 - math.pow(-2*t+2, 3)/2;
       final rot  = _fromRot  + (_toRot  - _fromRot)  * e;
-      final zoom = _fromZoom + (_toZoom - _fromZoom) * e;
+      final zoom = (_fromZoom + (_toZoom - _fromZoom) * e).clamp(1.0, 22.0);
       final lat  = _fromCenter.latitude  + (_toCenter.latitude  - _fromCenter.latitude)  * e;
       final lng  = _fromCenter.longitude + (_toCenter.longitude - _fromCenter.longitude) * e;
-      if (!lat.isFinite || !lng.isFinite || !zoom.isFinite) return;
+      if (!lat.isFinite || lat < -90 || lat > 90 ||
+          !lng.isFinite || lng < -180 || lng > 180 ||
+          !zoom.isFinite || !rot.isFinite) return;
       _mapController.moveAndRotate(LatLng(lat, lng), zoom, rot);
       _camRotDeg = rot; _camZoom = zoom; _camCenter = LatLng(lat, lng);
       if (t >= 1.0) {
@@ -1686,7 +1746,7 @@ class _MapScreenState extends State<MapScreen>
           (h.position.latitude - pos.latitude).abs() > 0.0001 ||
           (h.position.longitude - pos.longitude).abs() > 0.0001),
     ];
-    if (updated.length > 12) updated.removeRange(12, updated.length);
+    if (updated.length > 5) updated.removeRange(5, updated.length);
     setState(() => _history = updated);
     Hive.box('settings').put('searchHistory',
         updated.map((h) => jsonEncode(h.toJson())).toList());
@@ -1956,8 +2016,14 @@ class _MapScreenState extends State<MapScreen>
                   if (_followUser) setState(() => _followUser = false);
                 }
                 if (e is MapEventMove) {
-                  _camZoom   = e.camera.zoom;
-                  _camCenter = e.camera.center;
+                  // Clamp zoom to valid flutter_map range to prevent LatLng
+                  // exceptions when the user pinches rapidly beyond bounds.
+                  final z = e.camera.zoom;
+                  _camZoom   = z.isFinite ? z.clamp(1.0, 22.0) : _camZoom;
+                  final ctr  = e.camera.center;
+                  if (ctr.latitude.isFinite && ctr.longitude.isFinite) {
+                    _camCenter = ctr;
+                  }
                   // Only read rotation back from user gestures.
                   // Controller-driven moves (GPS tick, animations) already set
                   // _camRotDeg directly; letting MapEventMove overwrite it causes
@@ -2123,16 +2189,15 @@ class _MapScreenState extends State<MapScreen>
 
         // ── SEARCH RESULTS / HISTORY ─────────────────────────────────────────
         if (_showSearch)
-          if (_searchController.text.isEmpty &&
-              (_history.isNotEmpty || _favorites.isNotEmpty))
+          // Empty query → show history only (favourites appear ONLY on typed queries)
+          if (_searchController.text.isEmpty && _history.isNotEmpty)
             Positioned(
               top: topInset + 76, left: 16, right: 16,
               child: _HistoryResults(
-                history: _history, favorites: _favorites, colors: c,
+                history: _history, favorites: const [], colors: c,
                 onSelect: (item) =>
                     _requestAlternatives(item.position, label: item.label),
-                onSelectFavorite: (fav) =>
-                    _requestAlternatives(fav.position, label: fav.label),
+                onSelectFavorite: (_) {},
                 onClear: _clearHistory,
               ),
             )
@@ -2259,20 +2324,22 @@ class _MapScreenState extends State<MapScreen>
                             ? (_followUser ? c.accent : c.textPrimary)
                             : c.textSecondary, size: 22),
               ),
-              const SizedBox(height: 8),
-              _MapFab(onTap: () {
-                setState(() => _followUser = false);
-                _mapController.move(_camCenter, _camZoom + 1);
-                _camZoom += 1;
-              }, colors: c,
-                child: Icon(Icons.add, color: c.textPrimary, size: 22)),
-              const SizedBox(height: 8),
-              _MapFab(onTap: () {
-                setState(() => _followUser = false);
-                _mapController.move(_camCenter, _camZoom - 1);
-                _camZoom -= 1;
-              }, colors: c,
-                child: Icon(Icons.remove, color: c.textPrimary, size: 22)),
+              if (_isNavigating) ...[
+                const SizedBox(height: 8),
+                _MapFab(onTap: () {
+                  setState(() => _voiceMuted = !_voiceMuted);
+                  Hive.box('settings').put('voiceEnabled', !_voiceMuted);
+                  if (_voiceMuted) _tts.stop();
+                }, colors: c,
+                  child: Icon(
+                    _voiceMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                    color: _voiceMuted ? c.textSecondary : c.accent,
+                    size: 22)),
+                const SizedBox(height: 8),
+                _MapFab(onTap: _showReportSheet, colors: c,
+                  child: Icon(Icons.report_problem_outlined,
+                      color: const Color(0xFFFFB800), size: 22)),
+              ],
             ]),
           ),
 
@@ -2291,7 +2358,6 @@ class _MapScreenState extends State<MapScreen>
               ? _NavPanel(route: _route!, speed: _speed,
                   bottomInset: bottomInset, colors: c,
                   onStop: _showExitNavigationDialog,
-                  onReport: () => _showReportSheet(),
                   remainingDistM: _remainingDistM,
                   remainingSecs: _remainingSecs)
               : _showPlaceInfo && _placePoint != null
@@ -2397,6 +2463,8 @@ class _MapScreenState extends State<MapScreen>
     _camTicker?.dispose();
     _gpsSub?.cancel();
     _roadSub?.cancel();
+    _northTimer?.cancel();
+    _eventCleanupTimer?.cancel();
     _magnetSub?.cancel();
     _accelSub?.cancel();
     _tts.dispose();
@@ -2977,7 +3045,7 @@ class _ReportSheetState extends State<_ReportSheet> {
 
 // ── Place info panel ──────────────────────────────────────────────────────────
 
-class _PlaceInfoPanel extends StatelessWidget {
+class _PlaceInfoPanel extends StatefulWidget {
   final LatLng point;
   final String? address;
   final WikiSummary? wiki;
@@ -2993,24 +3061,81 @@ class _PlaceInfoPanel extends StatelessWidget {
     required this.onNavigate, required this.onClose,
   });
 
+  @override
+  State<_PlaceInfoPanel> createState() => _PlaceInfoPanelState();
+}
+
+class _PlaceInfoPanelState extends State<_PlaceInfoPanel>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<Offset> _slide;
+  double _dragDy = 0; // real-time drag offset (positive = downward)
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 340));
+    _slide = Tween<Offset>(
+            begin: const Offset(0, 1), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+    _ctrl.forward(); // slide in when panel first appears
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _closeAnimated() async {
+    await _ctrl.animateTo(0,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeInCubic);
+    widget.onClose();
+  }
+
+  /// Animated spring-back: smoothly returns the panel to its resting position
+  /// so users can abort a downward drag without committing to close.
+  void _springBack() {
+    if (_dragDy <= 0) { setState(() => _dragDy = 0); return; }
+    final start = _dragDy;
+    final startMs = DateTime.now().millisecondsSinceEpoch;
+    Timer.periodic(const Duration(milliseconds: 8), (t) {
+      if (!mounted) { t.cancel(); return; }
+      final p = ((DateTime.now().millisecondsSinceEpoch - startMs) / 220.0)
+          .clamp(0.0, 1.0);
+      final e = 1 - math.pow(1 - p, 3);
+      setState(() => _dragDy = start * (1 - e));
+      if (p >= 1.0) { t.cancel(); setState(() => _dragDy = 0); }
+    });
+  }
+
+  /// Opens the web page using a Hero transition so the panel visually expands
+  /// to fill the browser screen — no manual timer animation needed.
   void _openMore(BuildContext ctx) {
-    // Open Wikipedia (mobile page) if found, otherwise the selected search engine.
     String? url;
     String? title;
-    if (wiki?.pageUrl != null) {
-      url   = wiki!.pageUrl!;
-      title = wiki!.title;
-    } else if (wikiQuery != null) {
-      url   = _searchUrl(wikiQuery!);
-      title = wikiQuery;
+    if (widget.wiki?.pageUrl != null) {
+      url   = widget.wiki!.pageUrl!;
+      title = widget.wiki!.title;
+    } else if (widget.wikiQuery != null) {
+      url   = _searchUrl(widget.wikiQuery!);
+      title = widget.wikiQuery;
     }
     if (url == null) return;
-    // In-app WebView — no external browser.
-    Navigator.push(ctx, MaterialPageRoute(
+    Navigator.push(ctx, PageRouteBuilder(
       fullscreenDialog: true,
-      builder: (_) => _WebViewScreen(url: url!, title: title),
+      transitionDuration: const Duration(milliseconds: 400),
+      reverseTransitionDuration: const Duration(milliseconds: 350),
+      pageBuilder: (_, __, ___) =>
+          _WebViewScreen(url: url!, title: title, heroTag: _heroTag),
+      transitionsBuilder: (_, anim, __, child) =>
+          FadeTransition(opacity: anim, child: child),
     ));
   }
+
+  static const _heroTag = 'roadstr_place_info_panel';
 
   static String _engineName() {
     final e = Hive.box('settings')
@@ -3039,14 +3164,39 @@ class _PlaceInfoPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = colors;
-    return GestureDetector(
-      onVerticalDragEnd: (d) {
-        final v = d.primaryVelocity ?? 0;
-        if (v > 300)  onClose();            // swipe down → close
-        if (v < -300) _openMore(context);   // swipe up  → open in browser
-      },
-      child: Container(
+    final c = widget.colors;
+    return SlideTransition(
+      position: _slide,
+      child: Transform.translate(
+        offset: Offset(0, _dragDy.clamp(0.0, 400.0)),
+        child: GestureDetector(
+          // Only track downward drag — the panel must not physically move
+          // upward during gesture; upward swipe is detected by velocity only.
+          onVerticalDragUpdate: (d) {
+            if (d.delta.dy > 0) setState(() => _dragDy += d.delta.dy);
+          },
+          onVerticalDragEnd: (d) {
+            final v = d.primaryVelocity ?? 0;
+            if (v > 400 || _dragDy > 120) {
+              _closeAnimated();
+            } else if (v < -500 && _dragDy < 10) {
+              // Fast upward flick → Hero-expand into browser
+              _openMore(context);
+            } else {
+              _springBack();
+            }
+          },
+      // Hero tag: the panel background morphs into the WebView screen via
+      // Flutter's Hero transition — this is the "expand to browser" effect.
+      child: Hero(
+        tag: _heroTag,
+        flightShuttleBuilder: (_, anim, __, ___, ____) => Material(
+          color: c.surface2,
+          borderRadius: BorderRadius.lerp(
+              const BorderRadius.vertical(top: Radius.circular(20)),
+              BorderRadius.zero, anim.value),
+        ),
+        child: Container(
         decoration: BoxDecoration(
           color: c.surface2,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -3064,7 +3214,7 @@ class _PlaceInfoPanel extends StatelessWidget {
 
           // Title / address.
           Padding(padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: loading && address == null
+            child: widget.loading && widget.address == null
               ? Row(children: [
                   SizedBox(width: 14, height: 14,
                       child: CircularProgressIndicator(
@@ -3074,33 +3224,33 @@ class _PlaceInfoPanel extends StatelessWidget {
                       style: TextStyle(color: c.textSecondary, fontSize: 13)),
                 ])
               : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  if (wiki != null) ...[
-                    Text(wiki!.title, style: TextStyle(
+                  if (widget.wiki != null) ...[
+                    Text(widget.wiki!.title, style: TextStyle(
                         color: c.textPrimary, fontSize: 17,
                         fontWeight: FontWeight.bold)),
                     const SizedBox(height: 2),
-                    if (address != null)
-                      Text(address!, maxLines: 1,
+                    if (widget.address != null)
+                      Text(widget.address!, maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(color: c.textSecondary, fontSize: 12)),
                   ] else
-                    Text(address ??
-                        '${point.latitude.toStringAsFixed(5)}, '
-                        '${point.longitude.toStringAsFixed(5)}',
+                    Text(widget.address ??
+                        '${widget.point.latitude.toStringAsFixed(5)}, '
+                        '${widget.point.longitude.toStringAsFixed(5)}',
                         style: TextStyle(color: c.textPrimary, fontSize: 15,
                             fontWeight: FontWeight.w600)),
                 ]),
           ),
 
           // Wikipedia image + extract.
-          if (wiki != null) ...[
+          if (widget.wiki != null) ...[
             const SizedBox(height: 10),
-            if (wiki!.imageUrl != null)
+            if (widget.wiki!.imageUrl != null)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: Image.network(wiki!.imageUrl!,
+                  child: Image.network(widget.wiki!.imageUrl!,
                       height: 110, width: double.infinity,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => const SizedBox.shrink()),
@@ -3108,7 +3258,7 @@ class _PlaceInfoPanel extends StatelessWidget {
               ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-              child: Text(wiki!.extract,
+              child: Text(widget.wiki!.extract,
                   maxLines: 3, overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: c.textSecondary, fontSize: 13,
                       height: 1.4)),
@@ -3116,19 +3266,19 @@ class _PlaceInfoPanel extends StatelessWidget {
           ],
 
           // "Learn more" / search engine button (shown only when there is something to open).
-          if (!loading && (wiki?.pageUrl != null || wikiQuery != null)) ...[
+          if (!widget.loading && (widget.wiki?.pageUrl != null || widget.wikiQuery != null)) ...[
             const SizedBox(height: 8),
             Padding(padding: const EdgeInsets.symmetric(horizontal: 20),
               child: GestureDetector(
                 onTap: () => _openMore(context),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(wiki?.pageUrl != null
+                  Icon(widget.wiki?.pageUrl != null
                       ? Icons.open_in_browser_rounded
                       : Icons.search_rounded,
                       color: c.accent, size: 14),
                   const SizedBox(width: 4),
                   Text(
-                    wiki?.pageUrl != null
+                    widget.wiki?.pageUrl != null
                         ? 'Read on Wikipedia'
                         : 'Search on ${_engineName()}',
                     style: TextStyle(color: c.accent, fontSize: 12,
@@ -3143,7 +3293,7 @@ class _PlaceInfoPanel extends StatelessWidget {
           Padding(padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(children: [
               OutlinedButton(
-                onPressed: onClose,
+                onPressed: _closeAnimated,
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(color: c.border),
                   shape: RoundedRectangleBorder(
@@ -3155,7 +3305,7 @@ class _PlaceInfoPanel extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Expanded(child: FilledButton.icon(
-                onPressed: onNavigate,
+                onPressed: widget.onNavigate,
                 style: FilledButton.styleFrom(
                   backgroundColor: c.accent,
                   shape: RoundedRectangleBorder(
@@ -3169,10 +3319,13 @@ class _PlaceInfoPanel extends StatelessWidget {
               )),
             ]),
           ),
-          SizedBox(height: bottomInset > 0 ? bottomInset : 14),
+          SizedBox(height: widget.bottomInset > 0 ? widget.bottomInset : 14),
         ]),
-      ),
-    );
+        ), // Container
+      ), // Hero
+        ), // GestureDetector
+      ), // Transform.translate
+    ); // SlideTransition
   }
 }
 
@@ -3181,7 +3334,8 @@ class _PlaceInfoPanel extends StatelessWidget {
 class _WebViewScreen extends StatefulWidget {
   final String url;
   final String? title;
-  const _WebViewScreen({required this.url, this.title});
+  final String? heroTag;
+  const _WebViewScreen({required this.url, this.title, this.heroTag});
   @override
   State<_WebViewScreen> createState() => _WebViewScreenState();
 }
@@ -3232,7 +3386,9 @@ class _WebViewScreenState extends State<_WebViewScreen> {
                 preferredSize: const Size.fromHeight(0.5),
                 child: Divider(height: 0.5, color: c.border)),
       ),
-      body: WebViewWidget(controller: _ctrl),
+      body: widget.heroTag != null
+          ? Hero(tag: widget.heroTag!, child: WebViewWidget(controller: _ctrl))
+          : WebViewWidget(controller: _ctrl),
     );
   }
 }
@@ -4269,7 +4425,7 @@ class _NavInstruction extends StatelessWidget {
           width: boxSz, height: boxSz,
           decoration: BoxDecoration(color: colors.accentSoft,
               borderRadius: BorderRadius.circular(10)),
-          child: Icon(_directionIcon(step.direction),
+          child: Icon(_directionIcon(step.direction, step.modifier),
               color: colors.accent, size: iconSz),
         ),
         const SizedBox(width: 10),
@@ -4295,15 +4451,37 @@ class _NavInstruction extends StatelessWidget {
     return '${(m / 1000).toStringAsFixed(1)} km';
   }
 
-  IconData _directionIcon(String direction) {
+  IconData _directionIcon(String direction, String modifier) {
+    // Map direction+modifier to a meaningful icon.
     switch (direction) {
-      case 'arrive': return Icons.flag_rounded;
-      case 'depart': return Icons.play_arrow_rounded;
+      case 'arrive':          return Icons.flag_rounded;
+      case 'depart':          return Icons.play_arrow_rounded;
       case 'roundabout':
-      case 'rotary': return Icons.roundabout_right;
-      case 'merge':  return Icons.merge;
-      case 'fork':   return Icons.call_split;
-      default:       return Icons.straight;
+      case 'rotary':          return Icons.roundabout_right;
+      case 'merge':           return Icons.merge;
+      case 'fork':
+        return modifier.contains('left')
+            ? Icons.fork_left
+            : Icons.fork_right;
+      case 'on ramp':
+      case 'off ramp':
+        return modifier.contains('left')
+            ? Icons.ramp_left
+            : Icons.ramp_right;
+      case 'end of road':
+      case 'turn':
+      case 'new name':
+        return switch (modifier) {
+          'left'         => Icons.turn_left,
+          'right'        => Icons.turn_right,
+          'slight left'  => Icons.turn_slight_left,
+          'slight right' => Icons.turn_slight_right,
+          'sharp left'   => Icons.turn_sharp_left,
+          'sharp right'  => Icons.turn_sharp_right,
+          'uturn'        => Icons.u_turn_left,
+          _              => Icons.straight,
+        };
+      default: return Icons.straight;
     }
   }
 }
@@ -4314,14 +4492,12 @@ class _NavPanel extends StatelessWidget {
   final double bottomInset;
   final RoadstrColors colors;
   final VoidCallback onStop;
-  final VoidCallback onReport;
   /// Live remaining distance in metres (updated every GPS tick).
   final double remainingDistM;
   /// Live remaining seconds (estimated from remaining distance).
   final double remainingSecs;
   const _NavPanel({required this.route, required this.speed,
       required this.bottomInset, required this.colors, required this.onStop,
-      required this.onReport,
       this.remainingDistM = 0, this.remainingSecs = 0});
 
   String get _distLabel {
@@ -4384,21 +4560,6 @@ class _NavPanel extends StatelessWidget {
             ],
           ]),
         ])),
-        // Report FAB — stays accessible during navigation
-        GestureDetector(onTap: onReport,
-          child: Container(
-            width: 40, height: 40,
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFB800).withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-              border: Border.all(
-                  color: const Color(0xFFFFB800).withValues(alpha: 0.4)),
-            ),
-            child: const Icon(Icons.report_problem_outlined,
-                color: Color(0xFFFFB800), size: 20),
-          ),
-        ),
         // Stop navigation
         GestureDetector(onTap: onStop,
           child: Container(width: 48, height: 48,
