@@ -553,4 +553,20 @@ class AppLocalizationsPl extends AppLocalizations {
   String daysAgo(int count) {
     return '${count}d temu';
   }
+
+  @override
+  String get sectionFavorites => 'Zapisane miejsca';
+
+  @override
+  String get addFavorite => 'Dodaj miejsce';
+
+  @override
+  String get favoriteLabelHint => 'Nazwa (np. Dom, Biuro)';
+
+  @override
+  String get favoriteAddressHint => 'Adres';
+
+  @override
+  String get favoriteGeocodingError =>
+      'Nie znaleziono adresu. Spróbuj bardziej szczegółowego.';
 }

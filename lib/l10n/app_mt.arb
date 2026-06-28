@@ -210,5 +210,11 @@
   "hoursAgo": "{count}s ilu",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "{count}j ilu",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Postijiet miftuħin",
+  "addFavorite": "Żid post",
+  "favoriteLabelHint": "Isem (eż. Dar, Uffiċċju)",
+  "favoriteAddressHint": "Indirizz",
+  "favoriteGeocodingError": "Indirizz ma nstabx. Ipprova indirizz aktar speċifiku."
 }

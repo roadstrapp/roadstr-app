@@ -210,5 +210,11 @@
   "hoursAgo": "{count} órája",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "{count} napja",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Mentett helyek",
+  "addFavorite": "Hely hozzáadása",
+  "favoriteLabelHint": "Név (pl. Otthon, Iroda)",
+  "favoriteAddressHint": "Cím",
+  "favoriteGeocodingError": "A cím nem található. Próbálj pontosabb címet."
 }

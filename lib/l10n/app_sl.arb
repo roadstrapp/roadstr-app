@@ -210,5 +210,11 @@
   "hoursAgo": "pred {count}h",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "pred {count}d",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Shranjene lokacije",
+  "addFavorite": "Dodaj lokacijo",
+  "favoriteLabelHint": "Ime (npr. Dom, Pisarna)",
+  "favoriteAddressHint": "Naslov",
+  "favoriteGeocodingError": "Naslov ni bil najden. Poskusi z natančnejšim naslovom."
 }

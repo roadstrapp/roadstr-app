@@ -34,9 +34,12 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:nostr_tools/nostr_tools.dart' show Nip19, Nip04, EventApi, Event;
 import '../l10n/app_localizations.dart';
+import '../models/favorite_place.dart';
 import '../models/road_event.dart';
 import '../services/navigation_notification_service.dart';
+import '../services/tts_service.dart';
 import '../services/nostr_relay_service.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 import '../services/zap_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/speedometer_widget.dart';
@@ -61,6 +64,17 @@ class _MapScreenState extends State<MapScreen>
   double _initialZoom = 6.0;
   double _speed = 0;
   double _heading = 0;
+
+  // ── Compass (magnetometer + accelerometer) ──────────────────────────────────
+  /// Tilt-compensated compass bearing in degrees [0, 360), derived from the
+  /// device magnetometer and accelerometer via the cross-product method.
+  /// Computed entirely on-device; no data leaves the device.
+  double _compassHeading = 0;
+  AccelerometerEvent? _lastAccel;
+  StreamSubscription<MagnetometerEvent>? _magnetSub;
+  StreamSubscription<AccelerometerEvent>? _accelSub;
+  int _lastCompassUiMs = 0;
+
   /// True once GPS permissions are granted AND the first valid position received.
   bool _gpsReady = false;
   /// True once the user has tapped the GPS button (permission flow in progress).
@@ -86,7 +100,6 @@ class _MapScreenState extends State<MapScreen>
   double _fromZoom = 6, _toZoom = 6;
   LatLng _fromCenter = const LatLng(42.5, 12.5);
   LatLng _toCenter = const LatLng(42.5, 12.5);
-  int _animStartMs = 0;
   /// Default animation duration for user-triggered camera transitions (ms).
   static const _animMs = 550;
   /// Shorter duration used for GPS-tracking animation — keeps motion fluid.
@@ -105,6 +118,8 @@ class _MapScreenState extends State<MapScreen>
   double _remainingDistM = 0;
   /// Remaining route time in seconds (estimated from remaining distance).
   double _remainingSecs = 0;
+  /// Posted speed limit at the current route position (null = unknown / no data).
+  int? _currentSpeedLimit;
   /// Previous GPS position used to compute movement-based heading when the
   /// device magnetometer / GPS bearing is unavailable.
   LatLng? _prevGpsPos;
@@ -123,6 +138,13 @@ class _MapScreenState extends State<MapScreen>
 
   final _nostr    = NostrRelayService();
   final _navNotif = NavigationNotificationService();
+  final _tts      = TtsService();
+
+  // ── Voice guidance state ────────────────────────────────────────────────────
+  /// Index of the last step for which a 200m announcement was made.
+  int _ttsAnnounced200 = -1;
+  /// Index of the last step for which a 50m announcement was made.
+  int _ttsAnnounced50  = -1;
 
   bool _isRerouting = false;
   /// IDs of Nostr traffic events already shown as an in-navigation alert.
@@ -136,6 +158,7 @@ class _MapScreenState extends State<MapScreen>
   bool _showPreview = false;
 
   List<_HistoryItem> _history = [];
+  List<FavoritePlace> _favorites = [];
   /// Destination label derived from reverse geocode or the search result name.
   /// Stored here so it survives async gaps between geocoding and navigation start.
   String? _pendingLabel;
@@ -150,6 +173,9 @@ class _MapScreenState extends State<MapScreen>
   /// GPS camera updates are suppressed during this window so they don't fight
   /// the choreographed transition.
   bool _navTransitioning = false;
+
+  // ── Search pin (dropped on Enter in search bar) ─────────────────────────
+  NominatimResult? _pinResult;
 
   // ── Place info (map tap) ─────────────────────────────────────────────────
   bool _showPlaceInfo   = false;
@@ -180,6 +206,7 @@ class _MapScreenState extends State<MapScreen>
     super.initState();
     _loadInitialPosition();
     _loadHistory();
+    _loadFavorites();
     _nostr.connect();
     _roadSub = _nostr.stream.listen((events) {
       if (mounted) setState(() => _roadEvents = events);
@@ -187,6 +214,88 @@ class _MapScreenState extends State<MapScreen>
         _checkNewTrafficOnRoute(events);
       }
     });
+    _startCompass();
+  }
+
+  /// Subscribes to the device magnetometer and accelerometer to compute a
+  /// tilt-compensated compass bearing. All processing is on-device; no data
+  /// is transmitted to any external server.
+  void _startCompass() {
+    _accelSub = accelerometerEventStream().listen((e) => _lastAccel = e);
+    _magnetSub = magnetometerEventStream().listen((mag) {
+      final acc = _lastAccel;
+      if (acc == null) return;
+      final az = _compassAzimuth(acc, mag);
+      if (!az.isFinite) return;
+
+      // Exponential low-pass filter with wrap-around.
+      // α=0.15: slow enough to suppress sensor noise, fast enough to feel responsive.
+      double diff = az - _compassHeading;
+      while (diff > 180) diff -= 360;
+      while (diff < -180) diff += 360;
+      _compassHeading += diff * 0.15;
+      _compassHeading = _compassHeading % 360;
+      if (_compassHeading < 0) _compassHeading += 360;
+
+      // Throttle all map + UI updates to ~10 Hz.
+      // Calling _mapController.rotate() at the raw 50 Hz magnetometer rate
+      // overwhelms flutter_map: frames pile up, causing East↔West oscillation.
+      // At 10 Hz we smooth-animate each update with a 200 ms ease-in-out so
+      // consecutive animations chain seamlessly — fluid compass following.
+      final now = DateTime.now().millisecondsSinceEpoch;
+      if (now - _lastCompassUiMs >= 100) {
+        _lastCompassUiMs = now;
+        if (mounted) setState(() => _heading = _compassHeading);
+        // Only apply rotation outside navigation; during navigation the GPS tick
+        // handles both position + rotation via _animateCamera at its own rate.
+        // Compass data is used ONLY for the cursor marker direction (_heading)
+        // and for navigation heading. It never rotates the map on its own.
+      }
+    });
+  }
+
+  /// Tilt-compensated compass azimuth (degrees, 0 = North, clockwise).
+  ///
+  /// Uses the device's magnetometer + accelerometer to compute the azimuth of
+  /// the phone's −Z axis (the "back of the phone" = the direction of travel
+  /// when holding the phone in portrait and looking at the screen).
+  ///
+  /// Formula derivation (verified for N/E/S/W in portrait):
+  ///   East  = normalize(gravity × magnetic)   — perpendicular to both
+  ///   nz    = (East × gravity) · ẑ            — z-component of horizontal North
+  ///   az    = atan2(−ez, −nz)                 — project −Z (back of phone) onto East/North
+  ///
+  /// atan2(−mag.x, mag.y) was the previous formula; it works only for a flat
+  /// phone (Y horizontal). In portrait (Y vertical), the mag.y component picks
+  /// up the large downward inclination field (B_v ≈ 0.94·B in Europe), making
+  /// mag.y negative when pointing North → formula returned 180° (South). Fixed.
+  ///
+  /// All computation is on-device; no sensor data is transmitted externally.
+  double _compassAzimuth(AccelerometerEvent acc, MagnetometerEvent mag) {
+    // Gravity vector: sensors_plus gives reaction force, negate to get gravity.
+    double gx = -acc.x, gy = -acc.y, gz = -acc.z;
+    final gN = math.sqrt(gx*gx + gy*gy + gz*gz);
+    if (gN < 0.1) return _compassHeading; // free-fall / near-zero reading
+    gx /= gN; gy /= gN; gz /= gN;
+
+    // East = gravity × magnetic (cross product, then normalise).
+    double ex = gy*mag.z - gz*mag.y;
+    double ey = gz*mag.x - gx*mag.z;
+    double ez = gx*mag.y - gy*mag.x;
+    final eN = math.sqrt(ex*ex + ey*ey + ez*ez);
+    if (eN < 0.1) return _compassHeading; // mag ≈ parallel to gravity (pole)
+    ex /= eN; ey /= eN; ez /= eN;
+
+    // North (horizontal) = East × gravity — only the z-component is needed.
+    final nz = ex*gy - ey*gx;
+
+    // Azimuth of the phone's −Z axis (back of the phone = direction of travel).
+    // The user holds the phone with the screen toward them; the back faces forward.
+    // East·(−ẑ) = −ez,  North·(−ẑ) = −nz
+    // Verified for portrait: N→0°, E→90°, S→180°, W→270°.
+    var az = math.atan2(-ez, -nz) * 180 / math.pi;
+    if (az < 0) az += 360;
+    return az;
   }
 
   Future<void> _loadInitialPosition() async {
@@ -226,9 +335,19 @@ class _MapScreenState extends State<MapScreen>
       _showGpsDisabledDialog();
       return;
     }
-    setState(() => _gpsReady = true);
+    setState(() {
+      _gpsReady   = true;
+      _followUser = true;   // next GPS tick will move camera to the real position
+      // _headingMode intentionally left as-is (false by default).
+      // Navigation sets it to true explicitly; the heading button toggles it.
+      // Auto-enabling it here would make the first heading-button tap a no-op
+      // whenever the device is stationary (heading = 0 → delta = 0 → no animation).
+      _camZoom    = 17.0;
+    });
     _gpsSub = _gps.stream.listen(_onGps);
-    _recenter();
+    // Do NOT call _recenter() here: _position is still the Italy fallback and
+    // jumping there would be jarring. The first valid GPS sample in _onGps
+    // will move the map to the actual location via the _followUser flag.
     _nostr.subscribeArea(_position);
   }
 
@@ -297,13 +416,14 @@ class _MapScreenState extends State<MapScreen>
         lat < -90 || lat > 90 || lng < -180 || lng > 180) return;
 
     // ── Heading resolution ───────────────────────────────────────────────────
-    // Prefer the GPS/compass bearing when available and the device is moving.
-    // When the device is slow or stationary the bearing field is often null or
-    // unreliable; fall back to the bearing computed from two consecutive GPS
-    // positions (dead-reckoning). This keeps the map rotated correctly even at
-    // low speeds (city intersections, red lights).
+    // On Android, Position.heading comes from the device magnetometer — it gives
+    // compass orientation regardless of movement speed, processed entirely on-device
+    // with no data sent to external servers. Use it whenever available so the cursor
+    // shows the correct compass direction even when stationary.
+    // Fall back to dead-reckoning (two-position bearing) only when the compass
+    // field is absent or non-finite (some devices don't expose it).
     double effectiveHeading = _heading;
-    if (data.heading != null && data.heading!.isFinite && _speed > 2) {
+    if (data.heading != null && data.heading!.isFinite) {
       effectiveHeading = data.heading!;
     } else if (_prevGpsPos != null && _speed > 1) {
       final movBearing = _bearingBetween(_prevGpsPos!, data.position);
@@ -350,18 +470,18 @@ class _MapScreenState extends State<MapScreen>
       WakelockPlus.enable();
 
       if (_followUser) {
-        final rot = _headingMode ? -_heading : _camRotDeg;
-        // Use a short animated transition so the map glides rather than jumps
-        // between consecutive GPS fixes (500 ms GPS interval).
+        // In heading mode, use compass bearing (from magnetometer) so the map
+        // rotates with the device's physical orientation, not GPS movement direction.
+        final rot = _headingMode ? -_compassHeading : _camRotDeg;
         _animateCamera(
             toCenter: _position, toZoom: targetZoom, toRot: rot,
             durationMs: _gpsAnimMs);
       }
     } else if (_followUser && _camTicker == null) {
-      final targetRot = _headingMode ? -_heading : _camRotDeg;
-      _mapController.moveAndRotate(_position, _camZoom, targetRot);
+      // Outside navigation: follow GPS position, keep whatever rotation the user
+      // set (north button, manual gesture). Never override rotation with compass.
+      _mapController.moveAndRotate(_position, _camZoom, _camRotDeg);
       _camCenter = _position;
-      _camRotDeg = targetRot;
     }
   }
 
@@ -393,23 +513,27 @@ class _MapScreenState extends State<MapScreen>
       }
     }
     final totalDist = _route!.totalDistanceM;
+    final elapsedM  = (totalDist - rem).clamp(0.0, totalDist);
     setState(() {
-      _remainingDistM = rem.clamp(0, totalDist);
-      // Estimate remaining time proportionally to remaining distance.
-      _remainingSecs = totalDist > 0
+      _remainingDistM    = rem.clamp(0, totalDist);
+      _remainingSecs     = totalDist > 0
           ? (_route!.totalDurationS * _remainingDistM / totalDist)
           : 0;
+      _currentSpeedLimit = _route!.speedLimitAt(elapsedM);
     });
   }
 
-  /// Checks whether the user has reached the destination (within 15 m).
+  /// Checks whether the user has reached the destination.
+  /// Triggers when GPS is within 40 m of the destination point, OR when the
+  /// remaining route distance drops below 50 m (handles GPS drift near arrival).
   void _checkArrival() {
     if (_destination == null || !_isNavigating) return;
     final d = const Distance().as(LengthUnit.Meter, _position, _destination!);
-    if (d < 15) _onArrival();
+    if (d < 40 || _remainingDistM < 50) _onArrival();
   }
 
   void _onArrival() {
+    _tts.announceArrival();
     _stopNavigation();
     _showArrivalDialog();
   }
@@ -568,11 +692,23 @@ class _MapScreenState extends State<MapScreen>
       _distToNextManeuverM = 0;
       return;
     }
-    final nextStep = _route!.steps[_currentStepIdx + 1];
+    final nextIdx  = _currentStepIdx + 1;
+    final nextStep = _route!.steps[nextIdx];
     final dist = const Distance().as(LengthUnit.Meter, _position, nextStep.location);
-    // Store live distance so _NavInstruction can show it in real-time.
     _distToNextManeuverM = dist;
-    if (dist < 30) {
+
+    // ── Voice guidance announcements ─────────────────────────────────────────
+    // Announce at ~200 m (prep) and ~50 m (immediate) before each maneuver,
+    // then again when the step is actually entered.
+    if (dist < 220 && dist >= 50 && _ttsAnnounced200 != nextIdx) {
+      _ttsAnnounced200 = nextIdx;
+      _tts.announceManeuver(nextStep.instruction, 200);
+    } else if (dist < 50 && _ttsAnnounced50 != nextIdx) {
+      _ttsAnnounced50 = nextIdx;
+      _tts.announceManeuver(nextStep.instruction, 0); // imminent — no distance prefix
+    }
+
+    if (dist < 50) {
       setState(() => _currentStepIdx++);
       _updateNavNotification();
     }
@@ -580,19 +716,55 @@ class _MapScreenState extends State<MapScreen>
 
   // ── Auto-reroute ────────────────────────────────────────────────────────────
 
-  /// Checks whether the user has drifted more than 60 m from the active route
-  /// at a speed of at least 3 km/h (i.e. they're actually moving, not just
-  /// standing at an intersection). If so, recalculates silently.
+  /// Checks whether the user has drifted off the active route.
+  ///
+  /// Uses segment-distance (nearest point on each polyline segment) rather than
+  /// point-distance so sparse polylines don't miss deviations between waypoints.
+  /// Triggers reroute when the user is >60 m from the route and moving.
   void _checkOffRoute() {
     if (_route == null || !_isNavigating || !_gpsReady || _isRerouting) return;
-    if (_speed < 3) return; // stationary — don't reroute
-    final dist = const Distance();
+    if (_speed < 1) return; // truly stationary (red light etc.) — skip
+    final poly = _route!.polyline;
+    if (poly.length < 2) return;
+
     double minDist = double.infinity;
-    for (final p in _route!.polyline) {
-      final d = dist.as(LengthUnit.Meter, _position, p);
+    final lat = _position.latitude;
+    final lon = _position.longitude;
+
+    for (int i = 0; i < poly.length - 1; i++) {
+      final d = _distToSegment(
+          lat, lon,
+          poly[i].latitude,  poly[i].longitude,
+          poly[i+1].latitude, poly[i+1].longitude);
       if (d < minDist) minDist = d;
+      if (minDist < 40) return; // early exit: clearly on route
     }
     if (minDist > 60) _rerouteAndNavigate();
+  }
+
+  /// Minimum distance (metres) from point (px,py) to the line segment (ax,ay)→(bx,by).
+  /// Uses an equirectangular approximation — accurate enough within 100 m.
+  static double _distToSegment(
+      double px, double py, double ax, double ay, double bx, double by) {
+    // Convert degrees to approximate metres (equirectangular)
+    const degM = 111320.0;
+    final cosLat = math.cos(px * math.pi / 180);
+    final dx = (bx - ax) * degM * cosLat;
+    final dy = (by - ay) * degM;
+    final len2 = dx*dx + dy*dy;
+    if (len2 == 0) {
+      // Degenerate segment (A == B): just distance to point A
+      final ex = (px - ax) * degM * cosLat;
+      final ey = (py - ay) * degM;
+      return math.sqrt(ex*ex + ey*ey);
+    }
+    // Parameter t: projection of P onto the segment, clamped to [0, 1]
+    final ex = (px - ax) * degM * cosLat;
+    final ey = (py - ay) * degM;
+    final t = ((ex*dx + ey*dy) / len2).clamp(0.0, 1.0);
+    final cx = ex - t * dx;
+    final cy = ey - t * dy;
+    return math.sqrt(cx*cx + cy*cy);
   }
 
   /// Silently recalculates the best route from the current GPS position and
@@ -616,8 +788,8 @@ class _MapScreenState extends State<MapScreen>
       return;
     }
     setState(() => _isRerouting = false);
-    _snack('Route recalculated');
-    _startNavigation(routes.first);
+    // Silent restart: no cinematic overview, camera stays on driver position.
+    _startNavigation(routes.first, silent: true);
   }
 
   // ── In-navigation traffic alert ──────────────────────────────────────────
@@ -725,12 +897,22 @@ class _MapScreenState extends State<MapScreen>
     return (provider: provider, apiKey: apiKey, ghServer: ghServer);
   }
 
-  void _startNavigation(RouteResult route) {
-    if (_destination != null) {
+  /// Starts navigation on [route].
+  ///
+  /// [silent] = true is used for automatic reroutes during an active journey.
+  /// In silent mode the cinematic overview is skipped so the camera stays on
+  /// the user's current position and GPS updates are never blocked.
+  void _startNavigation(RouteResult route, {bool silent = false}) {
+    // Only save to history on explicit user-initiated navigation, not reroutes.
+    if (!silent && _destination != null) {
       final label = _pendingLabel ??
           AppLocalizations.of(context)!.selectedPosition;
       _saveToHistory(label, _destination!);
     }
+    _ttsAnnounced200 = -1;
+    _ttsAnnounced50  = -1;
+    final lang = Localizations.localeOf(context).languageCode;
+    _tts.init(lang);
     setState(() {
       _route = route;
       _currentStepIdx = 0;
@@ -740,38 +922,37 @@ class _MapScreenState extends State<MapScreen>
       _followUser = _gpsReady;
       _headingMode = _gpsReady;
     });
-    // ── Cinematic transition ──────────────────────────────────────────────
-    // Phase 1 (immediate): show the entire route in a bird's-eye overview so
-    //   the user can see where they're going before zooming in.
-    // Phase 2 (after 1.6 s): smooth animated zoom-in to street level on the
-    //   user's GPS position, rotated to face the direction of travel.
-    //
-    // _navTransitioning blocks GPS camera updates during the transition so the
-    // two-phase animation isn't interrupted by the location stream.
-    setState(() => _navTransitioning = true);
     WakelockPlus.enable();
-    _fitRouteOnMap(route); // Phase 1 — overview
+
+    if (silent) {
+      // Reroute during active navigation: no overview zoom, no transition lock.
+      // Just animate the camera to the current GPS position at nav zoom level.
+      _animateCamera(
+          toCenter: _position, toZoom: 17.0, toRot: -_compassHeading);
+      _updateNavNotification();
+      // Announce the first step of the new route immediately.
+      if (route.steps.isNotEmpty) {
+        _tts.announceManeuver(route.steps.first.instruction, 0);
+      }
+      return;
+    }
+
+    // ── Cinematic transition (first-start only) ───────────────────────────
+    setState(() => _navTransitioning = true);
+    _fitRouteOnMap(route); // Phase 1 — full-route overview
 
     if (_gpsReady) {
-      // Phase 2: after the overview anim (~550 ms) plus a 1 s reading pause,
-      // animate down to the street-level navigation view.
       Future.delayed(const Duration(milliseconds: 1600), () {
         if (!mounted || !_isNavigating) return;
         _animateCamera(
-          toCenter: _position,
-          toZoom:   17.0,
-          toRot:    -_heading,
-        );
+            toCenter: _position, toZoom: 17.0, toRot: -_compassHeading);
       });
-      // Release the transition lock after the zoom-in animation finishes.
-      // Guard against the user stopping navigation before the timer fires.
       Future.delayed(const Duration(milliseconds: 1600 + 620), () {
         if (!mounted) return;
         setState(() => _navTransitioning = false);
         if (_isNavigating) _updateNavNotification();
       });
     } else {
-      // No GPS: stay at the overview, release lock immediately.
       setState(() => _navTransitioning = false);
     }
   }
@@ -1260,15 +1441,65 @@ class _MapScreenState extends State<MapScreen>
       // Clear alerted event IDs so fresh alerts can fire on the next journey.
       _alertedEventIds.clear();
     });
+    _currentSpeedLimit = null;
     _animateCamera(toCenter: _position, toZoom: _camZoom, toRot: 0);
     WakelockPlus.disable();
     _navNotif.cancel();
+    _tts.stop();
+  }
+
+  /// Favorites whose label or address contains [query] (case-insensitive).
+  List<FavoritePlace> _matchingFavorites(String query) {
+    if (query.isEmpty) return _favorites;
+    final q = query.toLowerCase();
+    return _favorites.where((f) =>
+        f.label.toLowerCase().contains(q) ||
+        f.address.toLowerCase().contains(q)).toList();
+  }
+
+  Future<void> _onSearchSubmit(String query) async {
+    query = query.trim();
+    if (query.isEmpty) return;
+    _searchDebounce?.cancel();
+    FocusScope.of(context).unfocus();
+    // Use cached results if available; otherwise geocode the raw query.
+    NominatimResult? result;
+    final favMatch = _matchingFavorites(query);
+    if (favMatch.isNotEmpty) {
+      _searchController.clear();
+      setState(() { _showSearch = false; _searchResults = []; _pinResult = null; });
+      _requestAlternatives(favMatch.first.position, label: favMatch.first.label);
+      return;
+    }
+    if (_searchResults.isNotEmpty) {
+      result = _searchResults.first;
+    } else {
+      setState(() => _isSearching = true);
+      final results = await RoutingService.search(query);
+      setState(() => _isSearching = false);
+      if (!mounted || results.isEmpty) return;
+      result = results.first;
+    }
+    _searchController.clear();
+    setState(() {
+      _showSearch    = false;
+      _searchResults = [];
+      _pinResult     = result;
+      _followUser    = false;
+    });
+    // Wait for the keyboard-close layout pass before animating: unfocus() causes
+    // Android to resize the window, which fires MapEventMoveStart (source ≠
+    // controller) and cancels any ticker started too early.
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    if (!mounted) return;
+    _animateCamera(
+        toCenter: result!.position, toZoom: 15.0, toRot: _camRotDeg);
   }
 
   void _onSearchChanged(String query) {
     _searchDebounce?.cancel();
     if (query.length < 3) {
-      setState(() => _searchResults = []);
+      setState(() { _searchResults = []; _isSearching = false; });
       return;
     }
     _searchDebounce = Timer(const Duration(milliseconds: 500), () async {
@@ -1336,25 +1567,22 @@ class _MapScreenState extends State<MapScreen>
 
   void _recenter() {
     if (!_position.latitude.isFinite || !_position.longitude.isFinite) return;
-    // Cancel any in-progress animation (a GPS tick could otherwise fight it).
-    _camTicker?.dispose();
-    _camTicker = null;
-    const zoom = 17.0;
-    final rot  = _headingMode ? -_heading : 0.0;
     setState(() => _followUser = true);
-    // Direct moveAndRotate call like _loadInitialPosition — guarantees the zoom level.
-    _mapController.moveAndRotate(_position, zoom, rot);
-    _camCenter = _position;
-    _camZoom   = zoom;
-    _camRotDeg = rot;
+    // Animate only the centre — zoom and rotation stay as they are so the user
+    // doesn't lose their current view level or orientation just by recentering.
+    _animateCamera(toCenter: _position, toZoom: _camZoom, toRot: _camRotDeg);
   }
 
+  /// Rotates the map to north-up (0°) and recenters on the GPS position.
+  /// Using _position (GPS) not _camCenter (current map pan) as target ensures
+  /// the animation always has a visible delta even when _camRotDeg is already 0
+  /// (e.g. second tap after GPS was following: center moves to latest GPS fix).
   void _toggleHeadingMode() {
-    setState(() { _headingMode = !_headingMode; _followUser = true; });
-    _animateCamera(
-      toCenter: _position, toZoom: _camZoom,
-      toRot: _headingMode ? -_heading : 0.0,
-    );
+    setState(() { _headingMode = false; _followUser = true; });
+    // Always animate to GPS position at zoom 17 so every tap produces a visible
+    // effect: if already at north the zoom/recenter still moves the camera.
+    final target = _gpsReady ? _position : _mapController.camera.center;
+    _animateCamera(toCenter: target, toZoom: 17.0, toRot: 0.0);
   }
 
   /// Smoothly animates the map camera to [toCenter] / [toZoom] / [toRot].
@@ -1378,21 +1606,32 @@ class _MapScreenState extends State<MapScreen>
     int? durationMs,
   }) {
     if (!toCenter.latitude.isFinite || !toCenter.longitude.isFinite ||
-        !toZoom.isFinite) return;
+        !toZoom.isFinite || !toRot.isFinite) return;
     final dur = durationMs ?? _animMs;
     _camTicker?.dispose();
-    double delta = toRot - _camRotDeg;
+
+    // Always read starting values from the actual flutter_map camera state.
+    // _camRotDeg/_camCenter/_camZoom can be stale if MapEventMove arrived
+    // out of order or a GPS tick updated flutter_map without updating our
+    // internal copies — causing delta=0 and an invisible animation.
+    final cam = _mapController.camera;
+    final startRot    = cam.rotation;
+    final startZoom   = cam.zoom;
+    final startCenter = cam.center;
+
+    double delta = toRot - startRot;
     while (delta > 180) delta -= 360;
     while (delta < -180) delta += 360;
-    _fromRot = _camRotDeg; _toRot = _camRotDeg + delta;
-    _fromZoom = _camZoom; _toZoom = toZoom;
-    _fromCenter = _camCenter; _toCenter = toCenter;
-    _animStartMs = DateTime.now().millisecondsSinceEpoch;
-
-    _camTicker = createTicker((_) {
+    _fromRot = startRot;   _toRot    = startRot + delta;
+    _fromZoom = startZoom; _toZoom   = toZoom;
+    _fromCenter = startCenter; _toCenter = toCenter;
+    _camTicker = createTicker((elapsed) {
       if (!mounted) return;
-      final t = ((DateTime.now().millisecondsSinceEpoch - _animStartMs) /
-          dur).clamp(0.0, 1.0);
+      // Use the ticker's own elapsed Duration instead of wall-clock delta.
+      // DateTime.now() can jump (device load, scheduler delays), causing t to
+      // leap to 1.0 on the very first tick and making the animation appear
+      // as an instant flash rather than a smooth transition.
+      final t = (elapsed.inMilliseconds / dur).clamp(0.0, 1.0);
       // Cubic ease-in-out applied to t.
       final e = t < 0.5 ? 4*t*t*t : 1 - math.pow(-2*t+2, 3)/2;
       final rot  = _fromRot  + (_toRot  - _fromRot)  * e;
@@ -1405,8 +1644,17 @@ class _MapScreenState extends State<MapScreen>
       if (t >= 1.0) {
         // Snap to exact target values to eliminate floating-point drift.
         _camRotDeg = _toRot; _camZoom = _toZoom; _camCenter = _toCenter;
-        setState(() {});
-        _camTicker?.dispose(); _camTicker = null;
+        // Defer ticker disposal to the next frame.
+        // Self-disposing a ticker from within its own callback can leave the
+        // TickerProviderStateMixin in an inconsistent state, causing subsequent
+        // createTicker() calls to return tickers that fire only once.
+        final done = _camTicker;
+        _camTicker = null;
+        SchedulerBinding.instance.addPostFrameCallback((_) => done?.dispose());
+        // Skip setState during active navigation: GPS ticks already trigger
+        // frequent rebuilds via _updateRemainingStats, and the extra setState
+        // here caused a rebuild-flash every 380 ms (one animation cycle).
+        if (!_isNavigating) setState(() {});
       }
     });
     _camTicker!.start();
@@ -1419,6 +1667,15 @@ class _MapScreenState extends State<MapScreen>
       try { return _HistoryItem.fromJsonSafe(jsonDecode(s) as Map<String, dynamic>); }
       catch (_) { return null; }
     }).whereType<_HistoryItem>().toList();
+  }
+
+  void _loadFavorites() {
+    final raw = Hive.box('settings')
+        .get('favorites', defaultValue: <dynamic>[]) as List<dynamic>;
+    _favorites = raw.whereType<String>().map((s) {
+      try { return FavoritePlace.fromMapSafe(jsonDecode(s) as Map); }
+      catch (_) { return null; }
+    }).whereType<FavoritePlace>().toList();
   }
 
   void _saveToHistory(String label, LatLng pos) {
@@ -1699,9 +1956,16 @@ class _MapScreenState extends State<MapScreen>
                   if (_followUser) setState(() => _followUser = false);
                 }
                 if (e is MapEventMove) {
-                  _camZoom = e.camera.zoom;
+                  _camZoom   = e.camera.zoom;
                   _camCenter = e.camera.center;
-                  _camRotDeg = e.camera.rotation;
+                  // Only read rotation back from user gestures.
+                  // Controller-driven moves (GPS tick, animations) already set
+                  // _camRotDeg directly; letting MapEventMove overwrite it causes
+                  // float drift that makes the heading-toggle delta appear < 0.5°
+                  // and the animation guard prevents the button from responding.
+                  if (e.source != MapEventSource.mapController) {
+                    _camRotDeg = e.camera.rotation;
+                  }
                 }
               },
               onTap: (_, point) {
@@ -1823,6 +2087,16 @@ class _MapScreenState extends State<MapScreen>
                           heading: _headingMode ? 0 : _heading,
                           accent: c.accent)),
                 ]),
+              // Purple dropped pin from search-bar Enter
+              if (_pinResult != null)
+                MarkerLayer(markers: [
+                  Marker(
+                    point: _pinResult!.position,
+                    width: 36, height: 52,
+                    alignment: Alignment.bottomCenter,
+                    child: const _PinMarker(),
+                  ),
+                ]),
             ],
           ),
         ),
@@ -1836,11 +2110,12 @@ class _MapScreenState extends State<MapScreen>
                   distToNextM: _distToNextManeuverM)
               : _SearchBarWidget(
                   controller: _searchController, colors: c,
-                  onFocus: () => setState(() => _showSearch = true),
+                  onFocus: () { _loadFavorites(); setState(() => _showSearch = true); },
                   onChanged: _onSearchChanged,
+                  onSubmitted: _onSearchSubmit,
                   onClear: () {
                     _searchController.clear();
-                    setState(() { _searchResults = []; _showSearch = false; });
+                    setState(() { _searchResults = []; _showSearch = false; _pinResult = null; });
                     FocusScope.of(context).unfocus();
                   },
                 ),
@@ -1848,24 +2123,53 @@ class _MapScreenState extends State<MapScreen>
 
         // ── SEARCH RESULTS / HISTORY ─────────────────────────────────────────
         if (_showSearch)
-          if (_searchController.text.isEmpty && _history.isNotEmpty)
+          if (_searchController.text.isEmpty &&
+              (_history.isNotEmpty || _favorites.isNotEmpty))
             Positioned(
               top: topInset + 76, left: 16, right: 16,
               child: _HistoryResults(
-                history: _history, colors: c,
+                history: _history, favorites: _favorites, colors: c,
                 onSelect: (item) =>
                     _requestAlternatives(item.position, label: item.label),
+                onSelectFavorite: (fav) =>
+                    _requestAlternatives(fav.position, label: fav.label),
                 onClear: _clearHistory,
               ),
             )
-          else if (_searchResults.isNotEmpty || _isSearching)
+          else if (_searchResults.isNotEmpty || _isSearching ||
+                   _matchingFavorites(_searchController.text).isNotEmpty)
             Positioned(
               top: topInset + 76, left: 16, right: 16,
               child: _SearchResults(
                 results: _searchResults, isLoading: _isSearching,
-                colors: c, onSelect: _selectSearchResult,
+                favorites: _matchingFavorites(_searchController.text),
+                colors: c,
+                onSelect: _selectSearchResult,
+                onSelectFavorite: (fav) {
+                  _searchController.clear();
+                  setState(() { _showSearch = false; _searchResults = []; });
+                  FocusScope.of(context).unfocus();
+                  _requestAlternatives(fav.position, label: fav.label);
+                },
               ),
             ),
+
+        // ── PIN PANEL (dropped via Enter on search bar) ──────────────────────
+        if (_pinResult != null && !_isNavigating && !_showAlternatives &&
+            !_showPreview)
+          Positioned(
+            bottom: bottomInset + 12, left: 16, right: 16,
+            child: _PinPanel(
+              result: _pinResult!,
+              colors: c,
+              onNavigate: () {
+                final r = _pinResult!;
+                setState(() => _pinResult = null);
+                _requestAlternatives(r.position, label: r.shortName);
+              },
+              onClose: () => setState(() => _pinResult = null),
+            ),
+          ),
 
         // ── LEFT FABs: report event + A→B planner ─────────────────────────────
         if (!_showSearch && !_showAlternatives && !_isNavigating &&
@@ -1924,6 +2228,7 @@ class _MapScreenState extends State<MapScreen>
               isLoading: _planSearching,
               colors:    c,
               onSelect:  _selectPlanResult,
+              onSelectFavorite: (_) {},
             ),
           ),
 
@@ -1933,12 +2238,14 @@ class _MapScreenState extends State<MapScreen>
             right: 12,
             bottom: (_isNavigating ? 160 : 88) + bottomInset + 12,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              _MapFab(onTap: _toggleHeadingMode, colors: c,
-                child: Transform.rotate(
-                  angle: -_camRotDeg * math.pi / 180,
-                  child: Icon(Icons.navigation_rounded,
-                    color: _headingMode ? c.accent : c.textSecondary, size: 22),
-                ),
+              _CompassFab(
+                rotDeg: _camRotDeg,
+                // Active (purple) when map is at north-up (within 5°).
+                // During navigation, active when heading mode is on.
+                active: _isNavigating
+                    ? _headingMode
+                    : _camRotDeg.abs() < 5.0 || (_camRotDeg % 360).abs() < 5.0,
+                onTap: _toggleHeadingMode,
               ),
               const SizedBox(height: 8),
               _MapFab(onTap: _requestGps, colors: c,
@@ -1967,6 +2274,14 @@ class _MapScreenState extends State<MapScreen>
               }, colors: c,
                 child: Icon(Icons.remove, color: c.textPrimary, size: 22)),
             ]),
+          ),
+
+        // ── SPEED LIMIT SIGN (navigation only) ───────────────────────────────
+        if (_isNavigating && _currentSpeedLimit != null)
+          Positioned(
+            bottom: 120 + bottomInset,
+            left: 16,
+            child: _SpeedLimitSign(_currentSpeedLimit!),
           ),
 
         // ── NAV PANEL / BOTTOM BAR ───────────────────────────────────────────
@@ -2082,6 +2397,9 @@ class _MapScreenState extends State<MapScreen>
     _camTicker?.dispose();
     _gpsSub?.cancel();
     _roadSub?.cancel();
+    _magnetSub?.cancel();
+    _accelSub?.cancel();
+    _tts.dispose();
     _nostr.dispose();
     _gps.dispose();
     _searchController.dispose();
@@ -2723,9 +3041,10 @@ class _PlaceInfoPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = colors;
     return GestureDetector(
-      // Swipe down → close.
       onVerticalDragEnd: (d) {
-        if ((d.primaryVelocity ?? 0) > 300) onClose();
+        final v = d.primaryVelocity ?? 0;
+        if (v > 300)  onClose();            // swipe down → close
+        if (v < -300) _openMore(context);   // swipe up  → open in browser
       },
       child: Container(
         decoration: BoxDecoration(
@@ -3145,14 +3464,18 @@ class _HistoryItem {
 
 class _HistoryResults extends StatelessWidget {
   final List<_HistoryItem> history;
+  final List<FavoritePlace> favorites;
   final RoadstrColors colors;
   final ValueChanged<_HistoryItem> onSelect;
+  final ValueChanged<FavoritePlace> onSelectFavorite;
   final VoidCallback onClear;
   const _HistoryResults({required this.history, required this.colors,
-      required this.onSelect, required this.onClear});
+      required this.onSelect, required this.onSelectFavorite,
+      required this.onClear, this.favorites = const []});
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         color: colors.surface2,
@@ -3162,47 +3485,100 @@ class _HistoryResults extends StatelessWidget {
             blurRadius: 12, offset: const Offset(0, 4))],
       ),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
-          child: Row(children: [
-            Icon(Icons.history_rounded, color: colors.textSecondary, size: 16),
-            const SizedBox(width: 6),
-            Text(AppLocalizations.of(context)!.history, style: TextStyle(
-                color: colors.textSecondary, fontSize: 12,
-                fontWeight: FontWeight.w600)),
-            const Spacer(),
-            TextButton(
-              onPressed: onClear,
-              style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8)),
-              child: Text(AppLocalizations.of(context)!.clearHistory, style: TextStyle(
-                  color: colors.accent, fontSize: 12)),
+
+        // ── Saved places section ─────────────────────────────────────────
+        if (favorites.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: Row(children: [
+              Icon(Icons.favorite_rounded, color: colors.accent, size: 14),
+              const SizedBox(width: 6),
+              Text(l.sectionFavorites, style: TextStyle(
+                  color: colors.textSecondary, fontSize: 12,
+                  fontWeight: FontWeight.w600)),
+            ]),
+          ),
+          Material(
+            color: Colors.transparent,
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.zero,
+              itemCount: favorites.length,
+              separatorBuilder: (_, __) => Divider(height: 0.5, color: colors.border),
+              itemBuilder: (_, i) {
+                final fav = favorites[i];
+                return ListTile(
+                  tileColor: Colors.transparent,
+                  dense: true,
+                  leading: Container(
+                    width: 30, height: 30,
+                    decoration: BoxDecoration(
+                        color: colors.accentSoft,
+                        borderRadius: BorderRadius.circular(8)),
+                    child: Icon(Icons.favorite_rounded, color: colors.accent, size: 14),
+                  ),
+                  title: Text(fav.label, maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: colors.textPrimary,
+                          fontSize: 14, fontWeight: FontWeight.w500)),
+                  subtitle: Text(fav.address, maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: colors.textSecondary, fontSize: 12)),
+                  onTap: () => onSelectFavorite(fav),
+                );
+              },
             ),
-          ]),
-        ),
-        Material(
-          color: Colors.transparent,
-          child: ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.zero,
-          itemCount: history.length,
-          separatorBuilder: (_, __) => Divider(height: 0.5, color: colors.border),
-          itemBuilder: (_, i) {
-            final h = history[i];
-            return ListTile(
-              tileColor: Colors.transparent,
-              dense: true,
-              leading: Icon(Icons.location_on_outlined,
-                  color: colors.accent, size: 20),
-              title: Text(h.label, maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: colors.textPrimary, fontSize: 14)),
-              onTap: () => onSelect(h),
-            );
-          },
-          ),  // ListView.separated
-        ), // Material
+          ),
+        ],
+
+        // ── History section ──────────────────────────────────────────────
+        if (history.isNotEmpty) ...[
+          if (favorites.isNotEmpty)
+            Divider(height: 0.5, color: colors.border),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+            child: Row(children: [
+              Icon(Icons.history_rounded, color: colors.textSecondary, size: 16),
+              const SizedBox(width: 6),
+              Text(l.history, style: TextStyle(
+                  color: colors.textSecondary, fontSize: 12,
+                  fontWeight: FontWeight.w600)),
+              const Spacer(),
+              TextButton(
+                onPressed: onClear,
+                style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8)),
+                child: Text(l.clearHistory, style: TextStyle(
+                    color: colors.accent, fontSize: 12)),
+              ),
+            ]),
+          ),
+          Material(
+            color: Colors.transparent,
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.zero,
+              itemCount: history.length,
+              separatorBuilder: (_, __) => Divider(height: 0.5, color: colors.border),
+              itemBuilder: (_, i) {
+                final h = history[i];
+                return ListTile(
+                  tileColor: Colors.transparent,
+                  dense: true,
+                  leading: Icon(Icons.location_on_outlined,
+                      color: colors.accent, size: 20),
+                  title: Text(h.label, maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: colors.textPrimary, fontSize: 14)),
+                  onTap: () => onSelect(h),
+                );
+              },
+            ),
+          ),
+        ],
+
         const SizedBox(height: 6),
       ]),
     );
@@ -3588,10 +3964,12 @@ class _SearchBarWidget extends StatelessWidget {
   final RoadstrColors colors;
   final VoidCallback onFocus;
   final ValueChanged<String> onChanged;
+  final ValueChanged<String> onSubmitted;
   final VoidCallback onClear;
   const _SearchBarWidget({
     required this.controller, required this.colors,
-    required this.onFocus, required this.onChanged, required this.onClear,
+    required this.onFocus, required this.onChanged,
+    required this.onSubmitted, required this.onClear,
   });
 
   @override
@@ -3611,6 +3989,8 @@ class _SearchBarWidget extends StatelessWidget {
         Expanded(
           child: TextField(
             controller: controller, onTap: onFocus, onChanged: onChanged,
+            onSubmitted: onSubmitted,
+            textInputAction: TextInputAction.search,
             style: TextStyle(color: colors.textPrimary, fontSize: 16),
             decoration: InputDecoration(
               hintText: AppLocalizations.of(context)!.searchHint,
@@ -3628,13 +4008,132 @@ class _SearchBarWidget extends StatelessWidget {
   }
 }
 
+// ── Purple dropped-pin marker ─────────────────────────────────────────────────
+
+class _PinMarker extends StatelessWidget {
+  const _PinMarker();
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 32, height: 32,
+          decoration: BoxDecoration(
+            color: const Color(0xFF7C3AED),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2.5),
+            boxShadow: [BoxShadow(
+                color: const Color(0xFF7C3AED).withValues(alpha: 0.45),
+                blurRadius: 8, offset: const Offset(0, 3))],
+          ),
+          child: const Icon(Icons.place_rounded, color: Colors.white, size: 18),
+        ),
+        CustomPaint(
+          size: const Size(12, 10),
+          painter: _PinStemPainter(),
+        ),
+      ],
+    );
+  }
+}
+
+class _PinStemPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = ui.Paint()
+      ..color = const Color(0xFF7C3AED)
+      ..style = ui.PaintingStyle.fill;
+    final path = ui.Path()
+      ..moveTo(size.width / 2 - 4, 0)
+      ..lineTo(size.width / 2 + 4, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+  @override
+  bool shouldRepaint(_PinStemPainter _) => false;
+}
+
+// ── Pin destination panel ─────────────────────────────────────────────────────
+
+class _PinPanel extends StatelessWidget {
+  final NominatimResult result;
+  final RoadstrColors colors;
+  final VoidCallback onNavigate;
+  final VoidCallback onClose;
+  const _PinPanel({required this.result, required this.colors,
+      required this.onNavigate, required this.onClose});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.surface2,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colors.border, width: 0.5),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 16, offset: const Offset(0, 4))],
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      child: Row(children: [
+        Container(
+          width: 40, height: 40,
+          decoration: BoxDecoration(
+              color: const Color(0xFF7C3AED).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12)),
+          child: const Icon(Icons.place_rounded,
+              color: Color(0xFF7C3AED), size: 22),
+        ),
+        const SizedBox(width: 12),
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(result.shortName, maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: colors.textPrimary,
+                    fontSize: 14, fontWeight: FontWeight.w600)),
+            if (result.categoryLabel.isNotEmpty)
+              Text(result.categoryLabel, maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      color: colors.textSecondary, fontSize: 12)),
+          ],
+        )),
+        const SizedBox(width: 8),
+        FilledButton.icon(
+          style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF7C3AED),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10)),
+          onPressed: onNavigate,
+          icon: const Icon(Icons.navigation_rounded, size: 16),
+          label: Text(l.startNavigation,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+        ),
+        const SizedBox(width: 4),
+        IconButton(
+          icon: Icon(Icons.close_rounded, color: colors.textSecondary, size: 20),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          onPressed: onClose,
+        ),
+      ]),
+    );
+  }
+}
+
 class _SearchResults extends StatelessWidget {
   final List<NominatimResult> results;
+  final List<FavoritePlace> favorites;
   final bool isLoading;
   final RoadstrColors colors;
   final ValueChanged<NominatimResult> onSelect;
+  final ValueChanged<FavoritePlace> onSelectFavorite;
   const _SearchResults({required this.results, required this.isLoading,
-      required this.colors, required this.onSelect});
+      required this.colors, required this.onSelect,
+      required this.onSelectFavorite, this.favorites = const []});
 
   @override
   Widget build(BuildContext context) {
@@ -3645,52 +4144,94 @@ class _SearchResults extends StatelessWidget {
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15),
             blurRadius: 12, offset: const Offset(0, 4))],
       ),
-      child: isLoading
+      child: isLoading && favorites.isEmpty
           ? Padding(padding: const EdgeInsets.all(16),
               child: Center(child: SizedBox(width: 20, height: 20,
                   child: CircularProgressIndicator(
                       strokeWidth: 2, color: colors.accent))))
           : Material(
               color: Colors.transparent,
-              child: ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.zero,
-              itemCount: results.length,
-              separatorBuilder: (_, __) =>
-                  Divider(height: 0.5, color: colors.border),
-              itemBuilder: (_, i) {
-                final r = results[i];
-                // categoryLabel: human-readable type (e.g. "Ristorante", "Museo")
-                // Falls back to a trimmed address fragment when type is unmapped.
-                final catLabel = r.categoryLabel;
-                return ListTile(
-                  tileColor: Colors.transparent,
-                  // Emoji replaces the generic pin icon to convey feature type
-                  leading: Container(
-                    width: 36, height: 36,
-                    decoration: BoxDecoration(
-                      color: colors.accentSoft,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: Text(r.emoji,
-                          style: const TextStyle(fontSize: 18, height: 1)),
-                    ),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+
+                // ── Saved places matching the query ──────────────────────
+                if (favorites.isNotEmpty)
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: EdgeInsets.zero,
+                    itemCount: favorites.length,
+                    separatorBuilder: (_, __) =>
+                        Divider(height: 0.5, color: colors.border),
+                    itemBuilder: (_, i) {
+                      final fav = favorites[i];
+                      return ListTile(
+                        tileColor: Colors.transparent,
+                        leading: Container(
+                          width: 36, height: 36,
+                          decoration: BoxDecoration(
+                              color: colors.accentSoft,
+                              borderRadius: BorderRadius.circular(10)),
+                          child: Icon(Icons.favorite_rounded,
+                              color: colors.accent, size: 18),
+                        ),
+                        title: Text(fav.label, style: TextStyle(
+                            color: colors.textPrimary, fontSize: 14,
+                            fontWeight: FontWeight.w600)),
+                        subtitle: Text(fav.address, maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: colors.textSecondary, fontSize: 12)),
+                        onTap: () => onSelectFavorite(fav),
+                      );
+                    },
                   ),
-                  title: Text(r.shortName, style: TextStyle(
-                      color: colors.textPrimary, fontSize: 14,
-                      fontWeight: FontWeight.w500)),
-                  subtitle: Text(
-                    catLabel.isNotEmpty ? catLabel : r.displayName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        color: colors.textSecondary, fontSize: 12)),
-                  onTap: () => onSelect(r),
-                );
-              },
-              ), // ListView
+
+                // ── Nominatim results ────────────────────────────────────
+                if (isLoading)
+                  Padding(padding: const EdgeInsets.all(16),
+                      child: Center(child: SizedBox(width: 20, height: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: colors.accent))))
+                else if (results.isNotEmpty) ...[
+                  if (favorites.isNotEmpty)
+                    Divider(height: 0.5, color: colors.border),
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: EdgeInsets.zero,
+                    itemCount: results.length,
+                    separatorBuilder: (_, __) =>
+                        Divider(height: 0.5, color: colors.border),
+                    itemBuilder: (_, i) {
+                      final r = results[i];
+                      final catLabel = r.categoryLabel;
+                      return ListTile(
+                        tileColor: Colors.transparent,
+                        leading: Container(
+                          width: 36, height: 36,
+                          decoration: BoxDecoration(
+                            color: colors.accentSoft,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Center(
+                            child: Text(r.emoji,
+                                style: const TextStyle(fontSize: 18, height: 1)),
+                          ),
+                        ),
+                        title: Text(r.shortName, style: TextStyle(
+                            color: colors.textPrimary, fontSize: 14,
+                            fontWeight: FontWeight.w500)),
+                        subtitle: Text(
+                          catLabel.isNotEmpty ? catLabel : r.displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              color: colors.textSecondary, fontSize: 12)),
+                        onTap: () => onSelect(r),
+                      );
+                    },
+                  ),
+                ],
+              ]),
             ), // Material
     );
   }
@@ -3932,6 +4473,103 @@ class _MapFab extends StatelessWidget {
         child: SizedBox(width: 44, height: 44,
             child: Center(child: child))),
   );
+}
+
+/// Compass / heading-mode FAB.
+/// Shows a purple navigation cursor on a white circle; the cursor rotates to
+/// reflect the current map orientation. A red "N" sits at the arrow tip so
+/// the user can always see which way is north. When heading mode is active the
+/// border glows purple.
+// ── Speed limit sign ─────────────────────────────────────────────────────────
+
+/// Circular road sign: red border, white fill, black number — exactly like a
+/// real posted speed limit sign. Only rendered when a numeric limit is known.
+class _SpeedLimitSign extends StatelessWidget {
+  final int speedKmh;
+  const _SpeedLimitSign(this.speedKmh);
+
+  @override
+  Widget build(BuildContext context) {
+    final fontSize = speedKmh >= 100 ? 13.0 : 16.0;
+    return Container(
+      width: 46, height: 46,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.red, width: 4),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.25),
+              blurRadius: 6, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          '$speedKmh',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: fontSize,
+            fontWeight: FontWeight.w900,
+            height: 1,
+            letterSpacing: -0.5,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CompassFab extends StatelessWidget {
+  final double rotDeg;
+  final bool active;
+  final VoidCallback onTap;
+  const _CompassFab({required this.rotDeg, required this.active,
+      required this.onTap});
+
+  static const _purple = Color(0xFF7C3AED);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 44, height: 44,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          border: active
+              ? Border.all(color: _purple, width: 2)
+              : null,
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.22),
+                blurRadius: 8, offset: const Offset(0, 2)),
+            if (active)
+              BoxShadow(
+                  color: _purple.withValues(alpha: 0.3),
+                  blurRadius: 10, spreadRadius: 1),
+          ],
+        ),
+        child: Transform.rotate(
+          angle: -rotDeg * math.pi / 180,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Icon(Icons.navigation_rounded,
+                  color: active ? _purple : const Color(0xFF9CA3AF), size: 26),
+              // Red "N" at the arrow tip (top of the icon)
+              Positioned(
+                top: 5,
+                child: Text('N',
+                    style: const TextStyle(
+                        color: Colors.red, fontSize: 8,
+                        fontWeight: FontWeight.w900, height: 1.0)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _UserMarker extends StatelessWidget {

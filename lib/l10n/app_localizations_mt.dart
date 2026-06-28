@@ -554,4 +554,20 @@ class AppLocalizationsMt extends AppLocalizations {
   String daysAgo(int count) {
     return '${count}j ilu';
   }
+
+  @override
+  String get sectionFavorites => 'Postijiet miftuħin';
+
+  @override
+  String get addFavorite => 'Żid post';
+
+  @override
+  String get favoriteLabelHint => 'Isem (eż. Dar, Uffiċċju)';
+
+  @override
+  String get favoriteAddressHint => 'Indirizz';
+
+  @override
+  String get favoriteGeocodingError =>
+      'Indirizz ma nstabx. Ipprova indirizz aktar speċifiku.';
 }

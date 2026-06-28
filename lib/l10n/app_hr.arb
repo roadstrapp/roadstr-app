@@ -210,5 +210,11 @@
   "hoursAgo": "prije {count}h",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "prije {count}d",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Spremljene lokacije",
+  "addFavorite": "Dodaj lokaciju",
+  "favoriteLabelHint": "Naziv (npr. Dom, Ured)",
+  "favoriteAddressHint": "Adresa",
+  "favoriteGeocodingError": "Adresa nije pronađena. Pokušaj s preciznijom adresom."
 }

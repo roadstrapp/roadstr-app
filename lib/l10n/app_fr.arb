@@ -210,5 +210,11 @@
   "hoursAgo": "Il y a {count}h",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "Il y a {count}j",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Lieux enregistrés",
+  "addFavorite": "Ajouter un lieu",
+  "favoriteLabelHint": "Nom (ex. Maison, Bureau)",
+  "favoriteAddressHint": "Adresse",
+  "favoriteGeocodingError": "Adresse introuvable. Essaie une adresse plus précise."
 }

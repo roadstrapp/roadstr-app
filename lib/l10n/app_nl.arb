@@ -210,5 +210,11 @@
   "hoursAgo": "{count}u geleden",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "{count}d geleden",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Opgeslagen plaatsen",
+  "addFavorite": "Plaats toevoegen",
+  "favoriteLabelHint": "Naam (bijv. Thuis, Kantoor)",
+  "favoriteAddressHint": "Adres",
+  "favoriteGeocodingError": "Adres niet gevonden. Probeer een specifieker adres."
 }

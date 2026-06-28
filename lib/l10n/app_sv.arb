@@ -210,5 +210,11 @@
   "hoursAgo": "för {count}h sedan",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "för {count}d sedan",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Sparade platser",
+  "addFavorite": "Lägg till plats",
+  "favoriteLabelHint": "Namn (t.ex. Hem, Kontor)",
+  "favoriteAddressHint": "Adress",
+  "favoriteGeocodingError": "Adressen hittades inte. Försök med en mer specifik adress."
 }

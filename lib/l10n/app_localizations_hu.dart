@@ -555,4 +555,20 @@ class AppLocalizationsHu extends AppLocalizations {
   String daysAgo(int count) {
     return '$count napja';
   }
+
+  @override
+  String get sectionFavorites => 'Mentett helyek';
+
+  @override
+  String get addFavorite => 'Hely hozzáadása';
+
+  @override
+  String get favoriteLabelHint => 'Név (pl. Otthon, Iroda)';
+
+  @override
+  String get favoriteAddressHint => 'Cím';
+
+  @override
+  String get favoriteGeocodingError =>
+      'A cím nem található. Próbálj pontosabb címet.';
 }

@@ -210,5 +210,11 @@
   "hoursAgo": "pirms {count}h",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "pirms {count}d",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Saglabātās vietas",
+  "addFavorite": "Pievienot vietu",
+  "favoriteLabelHint": "Nosaukums (piem. Mājas, Birojs)",
+  "favoriteAddressHint": "Adrese",
+  "favoriteGeocodingError": "Adrese nav atrasta. Mēģini precīzāku adresi."
 }
