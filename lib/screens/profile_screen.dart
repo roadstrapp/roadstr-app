@@ -86,6 +86,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _name    = name;
       _loading = false;
     });
+    // Re-fetch Nostr profile whenever name or picture is missing in storage.
+    // This covers the case where:
+    //   a) the user logged in with nsec before the profile-fetch feature existed,
+    //   b) the initial fetch timed out or failed,
+    //   c) the user updated their Nostr profile since last opening the app.
+    if (pub != null && (name == null || picture == null)) {
+      _fetchAndStoreProfile(pub);
+    }
   }
 
   /// Loads the user's road events and Lightning balance in parallel.
@@ -266,8 +274,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: c.surface2,
         title: Text(l.enterNsecTitle,
             style: TextStyle(color: c.textPrimary, fontSize: 17)),
-        content: TextField(
+        // AutofillGroup is required for Android's Autofill Framework (and
+        // Bitwarden / 1Password accessibility overlays) to recognise this
+        // as a password field and offer to fill it.
+        content: AutofillGroup(
+         child: TextField(
           controller: ctrl,
+          autofillHints: const [AutofillHints.password],
           obscureText: true, autocorrect: false, enableSuggestions: false,
           keyboardType: TextInputType.visiblePassword,
           style: TextStyle(color: c.textPrimary, fontSize: 13,
@@ -281,7 +294,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               borderSide: BorderSide(color: c.accent),
             ),
           ),
-        ),
+         ), // TextField
+        ), // AutofillGroup
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -407,7 +421,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: _loading
           ? Center(child: CircularProgressIndicator(color: c.accent))
           : ListView(
-              padding: const EdgeInsets.all(20),
+              // Bottom padding via SafeArea so the Disconnect button is never
+              // hidden by the Android navigation bar in edge-to-edge mode.
+              padding: EdgeInsets.fromLTRB(
+                  20, 20, 20,
+                  20 + MediaQuery.of(context).viewPadding.bottom),
               children: _loggedIn
                   ? _buildLoggedIn(c, l)
                   : _buildLoggedOut(c, l),

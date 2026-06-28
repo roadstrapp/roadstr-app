@@ -551,4 +551,20 @@ class AppLocalizationsDa extends AppLocalizations {
   String daysAgo(int count) {
     return 'for ${count}d siden';
   }
+
+  @override
+  String get sectionFavorites => 'Gemte steder';
+
+  @override
+  String get addFavorite => 'Tilføj sted';
+
+  @override
+  String get favoriteLabelHint => 'Navn (f.eks. Hjem, Kontor)';
+
+  @override
+  String get favoriteAddressHint => 'Adresse';
+
+  @override
+  String get favoriteGeocodingError =>
+      'Adressen blev ikke fundet. Prøv en mere præcis adresse.';
 }

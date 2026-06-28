@@ -210,5 +210,11 @@
   "hoursAgo": "πριν {count}ω",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "πριν {count}η",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Αποθηκευμένα μέρη",
+  "addFavorite": "Προσθήκη μέρους",
+  "favoriteLabelHint": "Όνομα (π.χ. Σπίτι, Γραφείο)",
+  "favoriteAddressHint": "Διεύθυνση",
+  "favoriteGeocodingError": "Η διεύθυνση δεν βρέθηκε. Δοκίμασε πιο συγκεκριμένη."
 }

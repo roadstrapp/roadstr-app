@@ -539,4 +539,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String daysAgo(int count) {
     return '$count日前';
   }
+
+  @override
+  String get sectionFavorites => '保存した場所';
+
+  @override
+  String get addFavorite => '場所を追加';
+
+  @override
+  String get favoriteLabelHint => '名前（例：自宅、職場）';
+
+  @override
+  String get favoriteAddressHint => '住所';
+
+  @override
+  String get favoriteGeocodingError => '住所が見つかりません。より具体的な住所をお試しください。';
 }

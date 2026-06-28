@@ -1149,6 +1149,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count}d ago'**
   String daysAgo(int count);
+
+  /// No description provided for @sectionFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved Places'**
+  String get sectionFavorites;
+
+  /// No description provided for @addFavorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Add place'**
+  String get addFavorite;
+
+  /// No description provided for @favoriteLabelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (e.g. Home, Office)'**
+  String get favoriteLabelHint;
+
+  /// No description provided for @favoriteAddressHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get favoriteAddressHint;
+
+  /// No description provided for @favoriteGeocodingError.
+  ///
+  /// In en, this message translates to:
+  /// **'Address not found. Try a more specific address.'**
+  String get favoriteGeocodingError;
 }
 
 class _AppLocalizationsDelegate

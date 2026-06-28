@@ -555,4 +555,20 @@ class AppLocalizationsLt extends AppLocalizations {
   String daysAgo(int count) {
     return 'prieš ${count}d';
   }
+
+  @override
+  String get sectionFavorites => 'Išsaugotos vietos';
+
+  @override
+  String get addFavorite => 'Pridėti vietą';
+
+  @override
+  String get favoriteLabelHint => 'Pavadinimas (pvz. Namai, Biuras)';
+
+  @override
+  String get favoriteAddressHint => 'Adresas';
+
+  @override
+  String get favoriteGeocodingError =>
+      'Adresas nerastas. Bandyk tikslesnį adresą.';
 }

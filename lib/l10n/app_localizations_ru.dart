@@ -552,4 +552,20 @@ class AppLocalizationsRu extends AppLocalizations {
   String daysAgo(int count) {
     return '$countд назад';
   }
+
+  @override
+  String get sectionFavorites => 'Сохранённые места';
+
+  @override
+  String get addFavorite => 'Добавить место';
+
+  @override
+  String get favoriteLabelHint => 'Название (напр. Дом, Работа)';
+
+  @override
+  String get favoriteAddressHint => 'Адрес';
+
+  @override
+  String get favoriteGeocodingError =>
+      'Адрес не найден. Попробуйте указать точнее.';
 }

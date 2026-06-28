@@ -210,5 +210,11 @@
   "hoursAgo": "há {count}h",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "há {count}d",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Locais salvos",
+  "addFavorite": "Adicionar local",
+  "favoriteLabelHint": "Nome (ex. Casa, Escritório)",
+  "favoriteAddressHint": "Endereço",
+  "favoriteGeocodingError": "Endereço não encontrado. Tenta um endereço mais específico."
 }

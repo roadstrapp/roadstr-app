@@ -551,4 +551,20 @@ class AppLocalizationsSk extends AppLocalizations {
   String daysAgo(int count) {
     return 'pred ${count}d';
   }
+
+  @override
+  String get sectionFavorites => 'Uložené miesta';
+
+  @override
+  String get addFavorite => 'Pridať miesto';
+
+  @override
+  String get favoriteLabelHint => 'Názov (napr. Domov, Kancelária)';
+
+  @override
+  String get favoriteAddressHint => 'Adresa';
+
+  @override
+  String get favoriteGeocodingError =>
+      'Adresa sa nenašla. Skús presnejšiu adresu.';
 }

@@ -556,4 +556,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String daysAgo(int count) {
     return 'Vor $count Tagen';
   }
+
+  @override
+  String get sectionFavorites => 'Gespeicherte Orte';
+
+  @override
+  String get addFavorite => 'Ort hinzufügen';
+
+  @override
+  String get favoriteLabelHint => 'Name (z. B. Zuhause, Büro)';
+
+  @override
+  String get favoriteAddressHint => 'Adresse';
+
+  @override
+  String get favoriteGeocodingError =>
+      'Adresse nicht gefunden. Versuche eine genauere Adresse.';
 }

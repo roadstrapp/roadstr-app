@@ -552,4 +552,20 @@ class AppLocalizationsFi extends AppLocalizations {
   String daysAgo(int count) {
     return '${count}pv sitten';
   }
+
+  @override
+  String get sectionFavorites => 'Tallennetut paikat';
+
+  @override
+  String get addFavorite => 'Lisää paikka';
+
+  @override
+  String get favoriteLabelHint => 'Nimi (esim. Koti, Toimisto)';
+
+  @override
+  String get favoriteAddressHint => 'Osoite';
+
+  @override
+  String get favoriteGeocodingError =>
+      'Osoitetta ei löydy. Kokeile tarkempaa osoitetta.';
 }

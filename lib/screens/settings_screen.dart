@@ -1,7 +1,11 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
+import '../models/favorite_place.dart';
 import '../providers/locale_provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
@@ -15,11 +19,217 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late final Box _box;
+  List<FavoritePlace> _favorites = [];
 
   @override
   void initState() {
     super.initState();
     _box = Hive.box('settings');
+    _loadFavorites();
+  }
+
+  void _loadFavorites() {
+    final raw = _box.get('favorites', defaultValue: <dynamic>[]) as List<dynamic>;
+    _favorites = raw.whereType<String>().map((s) {
+      try { return FavoritePlace.fromMapSafe(jsonDecode(s) as Map); }
+      catch (_) { return null; }
+    }).whereType<FavoritePlace>().toList();
+  }
+
+  void _saveFavorites() {
+    _box.put('favorites', _favorites.map((f) => jsonEncode(f.toMap())).toList());
+  }
+
+  void _deleteFavorite(int idx) {
+    setState(() => _favorites.removeAt(idx));
+    _saveFavorites();
+  }
+
+  Future<void> _editFavoriteDialog(AppLocalizations l, RoadstrColors c,
+      {FavoritePlace? existing, int? existingIdx}) async {
+    final labelCtrl   = TextEditingController(text: existing?.label ?? '');
+    final addressCtrl = TextEditingController(text: existing?.address ?? '');
+    final isEdit = existing != null;
+
+    // Dialog-local state (suggestions, picked position, error, loading)
+    List<NominatimResult> suggestions = [];
+    LatLng? pickedPosition = existing?.position;
+    String? error;
+    bool searching = false;
+    Timer? debounce;
+
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDlg) {
+
+          void onAddressChanged(String v) {
+            debounce?.cancel();
+            pickedPosition = null; // reset picked position on manual edit
+            if (v.trim().length < 3) {
+              setDlg(() => suggestions = []);
+              return;
+            }
+            debounce = Timer(const Duration(milliseconds: 450), () async {
+              setDlg(() => searching = true);
+              final res = await RoutingService.search(v.trim());
+              if (ctx.mounted) setDlg(() { suggestions = res; searching = false; });
+            });
+          }
+
+          return AlertDialog(
+            backgroundColor: c.surface2,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            title: Text(isEdit ? existing!.label : l.addFavorite,
+                style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.w700)),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: SingleChildScrollView(
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+
+                  // Label field
+                  TextField(
+                    controller: labelCtrl,
+                    style: TextStyle(color: c.textPrimary, fontSize: 14),
+                    textCapitalization: TextCapitalization.words,
+                    decoration: InputDecoration(
+                      hintText: l.favoriteLabelHint,
+                      hintStyle: TextStyle(color: c.textSecondary),
+                      filled: true, fillColor: c.surface1,
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 12),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Address field
+                  TextField(
+                    controller: addressCtrl,
+                    style: TextStyle(color: c.textPrimary, fontSize: 14),
+                    onChanged: onAddressChanged,
+                    decoration: InputDecoration(
+                      hintText: l.favoriteAddressHint,
+                      hintStyle: TextStyle(color: c.textSecondary),
+                      filled: true, fillColor: c.surface1,
+                      suffixIcon: searching
+                          ? Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: SizedBox(width: 16, height: 16,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: c.accent)))
+                          : null,
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 12),
+                    ),
+                  ),
+
+                  // Nominatim suggestions
+                  if (suggestions.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Container(
+                      constraints: const BoxConstraints(maxHeight: 200),
+                      decoration: BoxDecoration(
+                        color: c.surface1,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: c.border, width: 0.5),
+                      ),
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        padding: EdgeInsets.zero,
+                        itemCount: suggestions.length,
+                        separatorBuilder: (_, __) =>
+                            Divider(height: 0.5, color: c.border),
+                        itemBuilder: (_, i) {
+                          final s = suggestions[i];
+                          return ListTile(
+                            dense: true,
+                            leading: Text(s.emoji,
+                                style: const TextStyle(fontSize: 16)),
+                            title: Text(s.shortName, maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    color: c.textPrimary, fontSize: 13)),
+                            subtitle: Text(
+                                s.displayName.split(',').take(3).join(', '),
+                                maxLines: 1, overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    color: c.textSecondary, fontSize: 11)),
+                            onTap: () {
+                              addressCtrl.text =
+                                  s.displayName.split(',').take(3).join(', ');
+                              pickedPosition = s.position;
+                              setDlg(() => suggestions = []);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+
+                  if (error != null) ...[
+                    const SizedBox(height: 8),
+                    Text(error!,
+                        style: const TextStyle(
+                            color: Colors.redAccent, fontSize: 12)),
+                  ],
+                ]),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () { debounce?.cancel(); Navigator.pop(ctx); },
+                child: Text(l.cancel, style: TextStyle(color: c.textSecondary)),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: c.accent),
+                onPressed: () async {
+                  final label   = labelCtrl.text.trim();
+                  final address = addressCtrl.text.trim();
+                  if (label.isEmpty || address.isEmpty) return;
+                  debounce?.cancel();
+                  setDlg(() { error = null; suggestions = []; });
+
+                  LatLng? pos = pickedPosition;
+                  if (pos == null) {
+                    // User typed manually — geocode now
+                    setDlg(() => searching = true);
+                    final res = await RoutingService.search(address);
+                    if (!ctx.mounted) return;
+                    setDlg(() => searching = false);
+                    if (res.isEmpty) {
+                      setDlg(() => error = l.favoriteGeocodingError);
+                      return;
+                    }
+                    pos = res.first.position;
+                  }
+
+                  final place = FavoritePlace(
+                      label: label, address: address, position: pos);
+                  setState(() {
+                    if (isEdit && existingIdx != null) {
+                      _favorites[existingIdx] = place;
+                    } else {
+                      _favorites.add(place);
+                    }
+                  });
+                  _saveFavorites();
+                  if (ctx.mounted) Navigator.pop(ctx);
+                },
+                child: Text(l.addFavorite),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    debounce?.cancel();
   }
 
   bool _getBool(String key, bool def) =>
@@ -330,24 +540,92 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     style: TextStyle(color: c.textSecondary, fontSize: 12)),
               ]),
               const SizedBox(height: 6),
-              TextFormField(
-                initialValue: _box.get('nwcUri', defaultValue: '') as String,
-                obscureText: true,
-                autocorrect: false,
-                enableSuggestions: false,
-                style: TextStyle(color: c.textPrimary, fontSize: 12,
-                    fontFamily: 'monospace'),
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'nostr+walletconnect://...',
-                  hintStyle: TextStyle(color: c.textSecondary, fontSize: 11),
+              // AutofillGroup lets Bitwarden / 1Password recognise this
+              // connection-string field and offer to autofill it.
+              AutofillGroup(
+                child: TextFormField(
+                  initialValue: _box.get('nwcUri', defaultValue: '') as String,
+                  obscureText: true,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  autofillHints: const [AutofillHints.password],
+                  style: TextStyle(color: c.textPrimary, fontSize: 12,
+                      fontFamily: 'monospace'),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'nostr+walletconnect://...',
+                    hintStyle: TextStyle(color: c.textSecondary, fontSize: 11),
+                  ),
+                  onFieldSubmitted: (v) { _box.put('nwcUri', v.trim()); setState(() {}); },
                 ),
-                onFieldSubmitted: (v) { _box.put('nwcUri', v.trim()); setState(() {}); },
               ),
               Text(l.nwcDesc,
                 style: TextStyle(color: c.textSecondary, fontSize: 10, height: 1.4)),
             ]),
           ),
+          const SizedBox(height: 16),
+
+          // ── SAVED PLACES ─────────────────────────────────────────────────
+          _SectionHeader(l.sectionFavorites, c),
+          Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              color: c.surface2, borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: c.border, width: 0.5),
+            ),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              if (_favorites.isNotEmpty)
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  itemCount: _favorites.length,
+                  separatorBuilder: (_, __) =>
+                      Divider(height: 0.5, color: c.border),
+                  itemBuilder: (_, i) {
+                    final fav = _favorites[i];
+                    return ListTile(
+                      dense: true,
+                      onTap: () => _editFavoriteDialog(l, c,
+                          existing: fav, existingIdx: i),
+                      leading: Container(
+                        width: 32, height: 32,
+                        decoration: BoxDecoration(
+                            color: c.accentSoft,
+                            borderRadius: BorderRadius.circular(8)),
+                        child: Icon(Icons.favorite_rounded,
+                            color: c.accent, size: 16),
+                      ),
+                      title: Text(fav.label, style: TextStyle(
+                          color: c.textPrimary, fontSize: 14,
+                          fontWeight: FontWeight.w600)),
+                      subtitle: Text(fav.address, maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: c.textSecondary, fontSize: 12)),
+                      trailing: IconButton(
+                        icon: Icon(Icons.delete_outline_rounded,
+                            color: c.textSecondary, size: 20),
+                        onPressed: () => _deleteFavorite(i),
+                      ),
+                    );
+                  },
+                ),
+              ListTile(
+                dense: true,
+                leading: Container(
+                  width: 32, height: 32,
+                  decoration: BoxDecoration(
+                      color: c.accentSoft,
+                      borderRadius: BorderRadius.circular(8)),
+                  child: Icon(Icons.add_rounded, color: c.accent, size: 18),
+                ),
+                title: Text(l.addFavorite, style: TextStyle(
+                    color: c.accent, fontSize: 14, fontWeight: FontWeight.w500)),
+                onTap: () => _editFavoriteDialog(l, c),
+              ),
+            ]),
+          ),
+
           const SizedBox(height: 16),
 
           // ── PRIVACY ─────────────────────────────────────────────────────

@@ -210,5 +210,11 @@
   "hoursAgo": "{count}小时前",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "{count}天前",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "已保存的地点",
+  "addFavorite": "添加地点",
+  "favoriteLabelHint": "名称（例如：家、公司）",
+  "favoriteAddressHint": "地址",
+  "favoriteGeocodingError": "未找到该地址，请尝试更精确的地址。"
 }

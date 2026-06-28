@@ -210,5 +210,11 @@
   "hoursAgo": "{count}ч назад",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "{count}д назад",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Сохранённые места",
+  "addFavorite": "Добавить место",
+  "favoriteLabelHint": "Название (напр. Дом, Работа)",
+  "favoriteAddressHint": "Адрес",
+  "favoriteGeocodingError": "Адрес не найден. Попробуйте указать точнее."
 }

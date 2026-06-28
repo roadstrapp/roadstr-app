@@ -553,4 +553,20 @@ class AppLocalizationsRo extends AppLocalizations {
   String daysAgo(int count) {
     return 'acum ${count}z';
   }
+
+  @override
+  String get sectionFavorites => 'Locuri salvate';
+
+  @override
+  String get addFavorite => 'Adaugă loc';
+
+  @override
+  String get favoriteLabelHint => 'Nume (ex. Acasă, Birou)';
+
+  @override
+  String get favoriteAddressHint => 'Adresă';
+
+  @override
+  String get favoriteGeocodingError =>
+      'Adresa nu a fost găsită. Încearcă o adresă mai specifică.';
 }

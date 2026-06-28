@@ -558,4 +558,20 @@ class AppLocalizationsEl extends AppLocalizations {
   String daysAgo(int count) {
     return 'πριν $countη';
   }
+
+  @override
+  String get sectionFavorites => 'Αποθηκευμένα μέρη';
+
+  @override
+  String get addFavorite => 'Προσθήκη μέρους';
+
+  @override
+  String get favoriteLabelHint => 'Όνομα (π.χ. Σπίτι, Γραφείο)';
+
+  @override
+  String get favoriteAddressHint => 'Διεύθυνση';
+
+  @override
+  String get favoriteGeocodingError =>
+      'Η διεύθυνση δεν βρέθηκε. Δοκίμασε πιο συγκεκριμένη.';
 }

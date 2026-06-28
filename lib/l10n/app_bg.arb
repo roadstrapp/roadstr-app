@@ -210,5 +210,11 @@
   "hoursAgo": "преди {count}ч",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "преди {count}д",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Запазени места",
+  "addFavorite": "Добави място",
+  "favoriteLabelHint": "Име (напр. Вкъщи, Офис)",
+  "favoriteAddressHint": "Адрес",
+  "favoriteGeocodingError": "Адресът не е намерен. Опитай по-точен адрес."
 }

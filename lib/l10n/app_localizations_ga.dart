@@ -554,4 +554,20 @@ class AppLocalizationsGa extends AppLocalizations {
   String daysAgo(int count) {
     return '${count}l ó shin';
   }
+
+  @override
+  String get sectionFavorites => 'Áiteanna sábháilte';
+
+  @override
+  String get addFavorite => 'Cuir áit leis';
+
+  @override
+  String get favoriteLabelHint => 'Ainm (m.sh. Baile, Oifig)';
+
+  @override
+  String get favoriteAddressHint => 'Seoladh';
+
+  @override
+  String get favoriteGeocodingError =>
+      'Seoladh gan aimsiú. Bain triail as seoladh níos sonraí.';
 }

@@ -188,5 +188,11 @@
   "dateTimeLabel": "Data / ora",
   "minutesAgo": "{count} min fa",
   "hoursAgo": "{count}h fa",
-  "daysAgo": "{count}gg fa"
+  "daysAgo": "{count}gg fa",
+
+  "sectionFavorites": "Luoghi preferiti",
+  "addFavorite": "Aggiungi luogo",
+  "favoriteLabelHint": "Nome (es. Casa, Ufficio)",
+  "favoriteAddressHint": "Indirizzo",
+  "favoriteGeocodingError": "Indirizzo non trovato. Prova con un indirizzo più preciso."
 }

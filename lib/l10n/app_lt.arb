@@ -210,5 +210,11 @@
   "hoursAgo": "prieš {count}h",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "prieš {count}d",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Išsaugotos vietos",
+  "addFavorite": "Pridėti vietą",
+  "favoriteLabelHint": "Pavadinimas (pvz. Namai, Biuras)",
+  "favoriteAddressHint": "Adresas",
+  "favoriteGeocodingError": "Adresas nerastas. Bandyk tikslesnį adresą."
 }

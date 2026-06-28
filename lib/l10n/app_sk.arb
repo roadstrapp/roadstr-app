@@ -210,5 +210,11 @@
   "hoursAgo": "pred {count}h",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "pred {count}d",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Uložené miesta",
+  "addFavorite": "Pridať miesto",
+  "favoriteLabelHint": "Názov (napr. Domov, Kancelária)",
+  "favoriteAddressHint": "Adresa",
+  "favoriteGeocodingError": "Adresa sa nenašla. Skús presnejšiu adresu."
 }

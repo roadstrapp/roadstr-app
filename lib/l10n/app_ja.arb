@@ -210,5 +210,11 @@
   "hoursAgo": "{count}時間前",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "{count}日前",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "保存した場所",
+  "addFavorite": "場所を追加",
+  "favoriteLabelHint": "名前（例：自宅、職場）",
+  "favoriteAddressHint": "住所",
+  "favoriteGeocodingError": "住所が見つかりません。より具体的な住所をお試しください。"
 }

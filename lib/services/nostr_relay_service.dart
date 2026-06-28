@@ -587,10 +587,33 @@ class NostrRelayService {
   /// Fetches the NIP-01 kind-0 metadata event for [pubHex] from a public relay
   /// and returns a [NostrProfile] with name, displayName, and picture URL.
   /// Returns `null` if the relay has no profile or the request times out (6 s).
+  /// Relays tried in order when fetching a Nostr kind-0 profile.
+  /// Having multiple fallbacks increases the chance of finding the profile
+  /// even when one relay is offline or doesn't have the user's metadata.
+  static const _profileRelays = [
+    'wss://relay.damus.io',
+    'wss://nos.lol',
+    'wss://relay.nostr.band',
+  ];
+
+  /// Fetches a Nostr kind-0 (profile metadata) event for [pubHex].
+  ///
+  /// Tries [_profileRelays] in sequence and returns the first non-null result.
+  /// This makes profile loading resilient to relay outages, which is the most
+  /// common reason for the picture/name not loading after nsec login.
   static Future<NostrProfile?> fetchProfile(String pubHex) async {
+    for (final relayUrl in _profileRelays) {
+      final result = await _fetchProfileFromRelay(pubHex, relayUrl);
+      if (result != null) return result;
+    }
+    return null;
+  }
+
+  static Future<NostrProfile?> _fetchProfileFromRelay(
+      String pubHex, String relayUrl) async {
     WebSocketChannel? ws;
     try {
-      ws = WebSocketChannel.connect(Uri.parse('wss://relay.damus.io'));
+      ws = WebSocketChannel.connect(Uri.parse(relayUrl));
       final completer = Completer<NostrProfile?>();
       final subId = 'prof-${_nowS()}';
 
@@ -623,7 +646,7 @@ class NostrRelayService {
       }]));
 
       return await completer.future.timeout(
-        const Duration(seconds: 6),
+        const Duration(seconds: 5),
         onTimeout: () => null,
       );
     } catch (_) {

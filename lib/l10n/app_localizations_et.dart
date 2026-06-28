@@ -551,4 +551,20 @@ class AppLocalizationsEt extends AppLocalizations {
   String daysAgo(int count) {
     return '${count}p tagasi';
   }
+
+  @override
+  String get sectionFavorites => 'Salvestatud kohad';
+
+  @override
+  String get addFavorite => 'Lisa koht';
+
+  @override
+  String get favoriteLabelHint => 'Nimi (nt Kodu, Kontor)';
+
+  @override
+  String get favoriteAddressHint => 'Aadress';
+
+  @override
+  String get favoriteGeocodingError =>
+      'Aadressi ei leitud. Proovi täpsemat aadressi.';
 }

@@ -210,5 +210,11 @@
   "hoursAgo": "for {count}t siden",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "for {count}d siden",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Gemte steder",
+  "addFavorite": "Tilføj sted",
+  "favoriteLabelHint": "Navn (f.eks. Hjem, Kontor)",
+  "favoriteAddressHint": "Adresse",
+  "favoriteGeocodingError": "Adressen blev ikke fundet. Prøv en mere præcis adresse."
 }
