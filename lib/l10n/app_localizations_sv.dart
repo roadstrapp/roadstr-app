@@ -551,4 +551,20 @@ class AppLocalizationsSv extends AppLocalizations {
   String daysAgo(int count) {
     return 'för ${count}d sedan';
   }
+
+  @override
+  String get sectionFavorites => 'Sparade platser';
+
+  @override
+  String get addFavorite => 'Lägg till plats';
+
+  @override
+  String get favoriteLabelHint => 'Namn (t.ex. Hem, Kontor)';
+
+  @override
+  String get favoriteAddressHint => 'Adress';
+
+  @override
+  String get favoriteGeocodingError =>
+      'Adressen hittades inte. Försök med en mer specifik adress.';
 }

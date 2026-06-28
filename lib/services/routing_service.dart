@@ -33,6 +33,10 @@ class RouteStep {
 }
 
 /// The complete result of a route calculation: polyline + turn-by-turn steps.
+/// One speed-limit zone along the route: starts at [distFromStartM] metres
+/// from the route origin and applies until the next entry.
+typedef SpeedLimitEntry = ({double distFromStartM, int? speedKmh});
+
 class RouteResult {
   /// Ordered list of coordinates forming the route polyline to draw on the map.
   final List<LatLng> polyline;
@@ -40,13 +44,30 @@ class RouteResult {
   final List<RouteStep> steps;
   final double totalDistanceM;
   final double totalDurationS;
+  /// Speed-limit zones sorted by distance from route start.
+  /// Populated for OSRM (annotations=maxspeed) and GraphHopper (details=max_speed).
+  /// Empty for providers that do not expose speed-limit data.
+  final List<SpeedLimitEntry> speedLimits;
 
   const RouteResult({
     required this.polyline,
     required this.steps,
     required this.totalDistanceM,
     required this.totalDurationS,
+    this.speedLimits = const [],
   });
+
+  /// Returns the posted speed limit at [elapsedM] metres from the route start,
+  /// or null when the limit is unknown or no data is available.
+  int? speedLimitAt(double elapsedM) {
+    if (speedLimits.isEmpty) return null;
+    int? result;
+    for (final e in speedLimits) {
+      if (e.distFromStartM > elapsedM) break;
+      result = e.speedKmh;
+    }
+    return result;
+  }
 
   String get distanceLabel {
     if (totalDistanceM < 1000) return '${totalDistanceM.round()} m';
@@ -221,7 +242,7 @@ class RoutingService {
             [origin.longitude, origin.latitude],
             [destination.longitude, destination.latitude]
           ],
-          'language': 'it',
+          'language': lang,
           'instructions': true
         });
         final res = await http
@@ -293,6 +314,7 @@ class RoutingService {
           'locale=${lang == 'it' ? 'it' : 'en'}',
           'instructions=true',
           'points_encoded=false',
+          'details=max_speed',
         ];
         if (apiKey != null && server == _graphhopperPublic) {
           parts.add('key=${Uri.encodeQueryComponent(apiKey)}');
@@ -328,31 +350,70 @@ class RoutingService {
           steps.add(RouteStep(instruction: text, direction: sign, distanceM: dist, location: loc));
         }
 
+        // GraphHopper details=max_speed: [[fromIdx, toIdx, valueKmh], ...]
+        // where indices are into the coords array.
+        final ghSpeedLimits = <SpeedLimitEntry>[];
+        try {
+          final details = path['details'] as Map<String, dynamic>?;
+          final msIntervals = details?['max_speed'] as List?;
+          if (msIntervals != null && coords.isNotEmpty) {
+            // Build cumulative distance array for coord → distance lookup.
+            const distCalc = Distance();
+            final cumDist = <double>[0.0];
+            for (int i = 1; i < coords.length; i++) {
+              cumDist.add(cumDist.last +
+                  distCalc.as(LengthUnit.Meter, coords[i-1], coords[i]));
+            }
+            for (final iv in msIntervals) {
+              final interval = iv as List;
+              final fromIdx = (interval[0] as num).toInt().clamp(0, coords.length - 1);
+              final val = interval[2];
+              final int? speedKmh = val is num && val > 0 ? val.toInt() : null;
+              ghSpeedLimits.add((distFromStartM: cumDist[fromIdx], speedKmh: speedKmh));
+            }
+          }
+        } catch (_) {}
+
         return RouteResult(
           polyline: coords,
           steps: steps,
           totalDistanceM: (path['distance'] as num?)?.toDouble() ?? 0.0,
           totalDurationS: (path['time'] as num?)?.toDouble() != null ? ((path['time'] as num).toDouble() / 1000.0) : 0.0,
+          speedLimits: ghSpeedLimits,
         );
       }
 
       // Fallback / default: OSRM — choose the right public server for the mode.
-      final url = '${_osrmEndpoint(vehicle)}/'
+      final baseCoords = '${_osrmEndpoint(vehicle)}/'
           '${origin.longitude},${origin.latitude};'
           '${destination.longitude},${destination.latitude}'
           '?overview=full&geometries=geojson&steps=true';
-      final res = await http.get(Uri.parse(url),
-          headers: {'User-Agent': 'Roadstr/1.0'})
-          .timeout(const Duration(seconds: 10));
-      if (res.statusCode != 200) {
-        throw RoutingException(statusCode: res.statusCode, body: res.body, message: 'OSRM HTTP error');
-      }
 
-      final data = jsonDecode(res.body) as Map<String, dynamic>;
-      if (data['code'] != 'Ok') {
-        throw RoutingException(message: 'OSRM returned error code: ${data['code']}', body: res.body);
+      // Request speed-limit annotations; fall back silently if the server
+      // does not support maxspeed (e.g. public OSRM demo server returns 400).
+      Map<String, dynamic>? data;
+      for (final suffix in ['&annotations=maxspeed,distance', '']) {
+        final res = await http
+            .get(Uri.parse('$baseCoords$suffix'),
+                headers: {'User-Agent': 'Roadstr/1.0'})
+            .timeout(const Duration(seconds: 10));
+        if (res.statusCode == 200) {
+          data = jsonDecode(res.body) as Map<String, dynamic>;
+          break;
+        }
+        if (suffix.isEmpty) {
+          // Both attempts failed — raise the last error.
+          throw RoutingException(
+              statusCode: res.statusCode,
+              body: res.body,
+              message: 'OSRM HTTP error');
+        }
+        // 400 with annotations → retry without them.
       }
-
+      if (data == null || data['code'] != 'Ok') {
+        throw RoutingException(
+            message: 'OSRM returned error code: ${data?['code']}');
+      }
       return _parseOsrmRoute(
           (data['routes'] as List).first as Map<String, dynamic>, lang);
     } on RoutingException {
@@ -385,24 +446,31 @@ class RoutingService {
       return single != null ? [single] : [];
     }
     try {
-      final url = '${_osrmEndpoint(vehicle)}/'
+      final baseCoords = '${_osrmEndpoint(vehicle)}/'
           '${origin.longitude},${origin.latitude};'
           '${destination.longitude},${destination.latitude}'
           '?overview=full&geometries=geojson&steps=true&alternatives=3';
-      final res = await http
-          .get(Uri.parse(url), headers: {'User-Agent': 'Roadstr/1.0'})
-          .timeout(const Duration(seconds: 10));
-      if (res.statusCode != 200) {
-        throw RoutingException(
-            statusCode: res.statusCode,
-            body: res.body,
-            message: 'OSRM HTTP error');
+
+      Map<String, dynamic>? data;
+      for (final suffix in ['&annotations=maxspeed,distance', '']) {
+        final res = await http
+            .get(Uri.parse('$baseCoords$suffix'),
+                headers: {'User-Agent': 'Roadstr/1.0'})
+            .timeout(const Duration(seconds: 10));
+        if (res.statusCode == 200) {
+          data = jsonDecode(res.body) as Map<String, dynamic>;
+          break;
+        }
+        if (suffix.isEmpty) {
+          throw RoutingException(
+              statusCode: res.statusCode,
+              body: res.body,
+              message: 'OSRM HTTP error');
+        }
       }
-      final data = jsonDecode(res.body) as Map<String, dynamic>;
-      if (data['code'] != 'Ok') {
+      if (data == null || data['code'] != 'Ok') {
         throw RoutingException(
-            message: 'OSRM returned error code: ${data['code']}',
-            body: res.body);
+            message: 'OSRM returned error code: ${data?['code']}');
       }
       return (data['routes'] as List)
           .map((r) => _parseOsrmRoute(r as Map<String, dynamic>, lang))
@@ -419,6 +487,7 @@ class RoutingService {
     final coords = (route['geometry']['coordinates'] as List)
         .map((c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()))
         .toList();
+
     final steps = <RouteStep>[];
     for (final s in leg['steps'] as List) {
       final step = s as Map<String, dynamic>;
@@ -432,11 +501,40 @@ class RoutingService {
             (loc[1] as num).toDouble(), (loc[0] as num).toDouble()),
       ));
     }
+
+    // ── Speed-limit annotations ─────────────────────────────────────────────
+    // OSRM returns per-OSM-segment maxspeed + segment distance when
+    // annotations=maxspeed,distance is requested. Build a cumulative list so
+    // the navigator can look up the posted limit at any elapsed distance.
+    final speedLimits = <SpeedLimitEntry>[];
+    try {
+      final ann = leg['annotation'] as Map<String, dynamic>?;
+      if (ann != null) {
+        final msRaw  = ann['maxspeed'] as List?;
+        final dstRaw = ann['distance'] as List?;
+        if (msRaw != null && dstRaw != null) {
+          double cumM = 0;
+          for (int i = 0; i < msRaw.length && i < dstRaw.length; i++) {
+            final ms = msRaw[i];
+            int? speedKmh;
+            if (ms is Map) {
+              final spd = ms['speed'];
+              if (spd is num) speedKmh = spd.toInt();
+              // "none" / "unlimited" → leave null (no posted limit)
+            }
+            speedLimits.add((distFromStartM: cumM, speedKmh: speedKmh));
+            cumM += (dstRaw[i] as num).toDouble();
+          }
+        }
+      }
+    } catch (_) {} // annotation parsing is best-effort
+
     return RouteResult(
       polyline: coords,
       steps: steps,
       totalDistanceM: (route['distance'] as num).toDouble(),
       totalDurationS: (route['duration'] as num).toDouble(),
+      speedLimits: speedLimits,
     );
   }
 
@@ -662,6 +760,15 @@ class NominatimResult {
   /// A short human-readable category label shown below the result name.
   /// Falls back to the second address component if the type is not mapped.
   String get categoryLabel {
+    if (cls == 'highway') {
+      // shortName already contains "Road HouseNo, City"; show broader context
+      // (district / region) from the remaining displayName components.
+      final parts = displayName.split(',').map((p) => p.trim()).toList();
+      // Skip house-number (parts[0]) and road (parts[1]); take up to 2 more
+      // for "Quartiere, Città" style context without repeating shortName.
+      final ctx = parts.skip(2).where((p) => p.isNotEmpty).take(2).join(', ');
+      return ctx;
+    }
     final mapped = _categoryLabel(cls, type);
     if (mapped != null) return mapped;
     final parts = displayName.split(',');
@@ -825,12 +932,38 @@ class NominatimResult {
       throw const FormatException('Nominatim: invalid coordinates');
     }
     final display = j['display_name'] as String;
-    final short   = display.split(',').first.trim();
+    final clsVal  = j['class'] as String?;
+
+    // addressdetails=1 gives structured address components. Use them to build
+    // a meaningful shortName instead of the raw first comma-token (often just
+    // a house number like "1" for street addresses).
+    final addr    = (j['address'] as Map<String, dynamic>?) ?? {};
+    final road    = addr['road'] as String?;
+    final houseNo = addr['house_number'] as String?;
+    final city    = (addr['city']     ?? addr['town']  ??
+                     addr['village']  ?? addr['hamlet'] ??
+                     addr['municipality']) as String?;
+
+    String short;
+    if (road != null && houseNo != null) {
+      // Address with house number (buildings, residences — any class):
+      // European order puts road first: "Via Roma 1, Milano".
+      short = '$road $houseNo';
+      if (city != null) short += ', $city';
+    } else if (road != null && clsVal == 'highway') {
+      // Road segment without a specific building number.
+      short = road;
+      if (city != null) short += ', $city';
+    } else {
+      // POI / place / city: first displayName component is already the name.
+      short = display.split(',').first.trim();
+    }
+
     return NominatimResult(
       displayName: display,
       shortName:   short,
       position:    LatLng(lat, lon),
-      cls:         j['class']  as String?,
+      cls:         clsVal,
       type:        j['type']   as String?,
     );
   }

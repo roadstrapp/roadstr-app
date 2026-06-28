@@ -553,4 +553,20 @@ class AppLocalizationsNl extends AppLocalizations {
   String daysAgo(int count) {
     return '${count}d geleden';
   }
+
+  @override
+  String get sectionFavorites => 'Opgeslagen plaatsen';
+
+  @override
+  String get addFavorite => 'Plaats toevoegen';
+
+  @override
+  String get favoriteLabelHint => 'Naam (bijv. Thuis, Kantoor)';
+
+  @override
+  String get favoriteAddressHint => 'Adres';
+
+  @override
+  String get favoriteGeocodingError =>
+      'Adres niet gevonden. Probeer een specifieker adres.';
 }

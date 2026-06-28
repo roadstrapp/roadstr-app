@@ -210,5 +210,11 @@
   "hoursAgo": "hace {count}h",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "hace {count}d",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Lugares guardados",
+  "addFavorite": "Añadir lugar",
+  "favoriteLabelHint": "Nombre (p. ej. Casa, Oficina)",
+  "favoriteAddressHint": "Dirección",
+  "favoriteGeocodingError": "Dirección no encontrada. Intenta con una más específica."
 }

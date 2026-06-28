@@ -171,7 +171,11 @@ class RoadEvent {
   /// the client-side category TTL has elapsed — whichever comes first.
   bool get isExpired {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    if (expiresAt != null && now > expiresAt!) return true;
+    // Use only the category-specific TTL for local display filtering.
+    // The NIP-40 `expiration` tag (expiresAt) is intentionally ignored here:
+    // it is set to 14 days on every event so the relay auto-deletes stale
+    // entries, but category TTLs are much shorter (1 h – 15 d) and govern
+    // how long each event type remains visible on the map.
     return now > createdAt + category.ttlSeconds;
   }
 

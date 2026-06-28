@@ -210,5 +210,11 @@
   "hoursAgo": "acum {count}h",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "acum {count}z",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Locuri salvate",
+  "addFavorite": "Adaugă loc",
+  "favoriteLabelHint": "Nume (ex. Acasă, Birou)",
+  "favoriteAddressHint": "Adresă",
+  "favoriteGeocodingError": "Adresa nu a fost găsită. Încearcă o adresă mai specifică."
 }

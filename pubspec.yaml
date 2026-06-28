@@ -26,10 +26,11 @@ dependencies:
   flutter_secure_storage: ^10.3.1
   nostr_tools: ^1.0.9
   url_launcher: ^6.3.1
-  app_links: ^6.4.0
   amberflutter: ^0.0.1
   webview_flutter: ^4.10.0
   flutter_local_notifications: ^17.2.4
+  sensors_plus: ^6.1.1
+  flutter_tts: ^4.2.2
 
 dev_dependencies:
   flutter_test:

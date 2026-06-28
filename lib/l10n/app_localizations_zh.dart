@@ -533,4 +533,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String daysAgo(int count) {
     return '$count天前';
   }
+
+  @override
+  String get sectionFavorites => '已保存的地点';
+
+  @override
+  String get addFavorite => '添加地点';
+
+  @override
+  String get favoriteLabelHint => '名称（例如：家、公司）';
+
+  @override
+  String get favoriteAddressHint => '地址';
+
+  @override
+  String get favoriteGeocodingError => '未找到该地址，请尝试更精确的地址。';
 }

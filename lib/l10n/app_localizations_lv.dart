@@ -552,4 +552,20 @@ class AppLocalizationsLv extends AppLocalizations {
   String daysAgo(int count) {
     return 'pirms ${count}d';
   }
+
+  @override
+  String get sectionFavorites => 'Saglabātās vietas';
+
+  @override
+  String get addFavorite => 'Pievienot vietu';
+
+  @override
+  String get favoriteLabelHint => 'Nosaukums (piem. Mājas, Birojs)';
+
+  @override
+  String get favoriteAddressHint => 'Adrese';
+
+  @override
+  String get favoriteGeocodingError =>
+      'Adrese nav atrasta. Mēģini precīzāku adresi.';
 }

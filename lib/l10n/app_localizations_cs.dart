@@ -551,4 +551,20 @@ class AppLocalizationsCs extends AppLocalizations {
   String daysAgo(int count) {
     return 'před ${count}d';
   }
+
+  @override
+  String get sectionFavorites => 'Uložená místa';
+
+  @override
+  String get addFavorite => 'Přidat místo';
+
+  @override
+  String get favoriteLabelHint => 'Název (např. Domov, Kancelář)';
+
+  @override
+  String get favoriteAddressHint => 'Adresa';
+
+  @override
+  String get favoriteGeocodingError =>
+      'Adresa nenalezena. Zkus přesnější adresu.';
 }

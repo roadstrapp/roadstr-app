@@ -210,5 +210,11 @@
   "hoursAgo": "{count}h tagasi",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "{count}p tagasi",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Salvestatud kohad",
+  "addFavorite": "Lisa koht",
+  "favoriteLabelHint": "Nimi (nt Kodu, Kontor)",
+  "favoriteAddressHint": "Aadress",
+  "favoriteGeocodingError": "Aadressi ei leitud. Proovi täpsemat aadressi."
 }

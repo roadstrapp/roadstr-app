@@ -556,4 +556,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String daysAgo(int count) {
     return 'Il y a ${count}j';
   }
+
+  @override
+  String get sectionFavorites => 'Lieux enregistrés';
+
+  @override
+  String get addFavorite => 'Ajouter un lieu';
+
+  @override
+  String get favoriteLabelHint => 'Nom (ex. Maison, Bureau)';
+
+  @override
+  String get favoriteAddressHint => 'Adresse';
+
+  @override
+  String get favoriteGeocodingError =>
+      'Adresse introuvable. Essaie une adresse plus précise.';
 }

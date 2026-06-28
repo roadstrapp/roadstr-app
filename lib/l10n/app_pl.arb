@@ -210,5 +210,11 @@
   "hoursAgo": "{count}g temu",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "{count}d temu",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Zapisane miejsca",
+  "addFavorite": "Dodaj miejsce",
+  "favoriteLabelHint": "Nazwa (np. Dom, Biuro)",
+  "favoriteAddressHint": "Adres",
+  "favoriteGeocodingError": "Nie znaleziono adresu. Spróbuj bardziej szczegółowego."
 }

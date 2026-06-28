@@ -210,5 +210,11 @@
   "hoursAgo": "{count}h ago",
   "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
   "daysAgo": "{count}d ago",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } }
+  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
+
+  "sectionFavorites": "Saved Places",
+  "addFavorite": "Add place",
+  "favoriteLabelHint": "Name (e.g. Home, Office)",
+  "favoriteAddressHint": "Address",
+  "favoriteGeocodingError": "Address not found. Try a more specific address."
 }

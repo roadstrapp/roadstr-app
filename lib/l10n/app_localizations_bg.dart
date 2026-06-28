@@ -555,4 +555,20 @@ class AppLocalizationsBg extends AppLocalizations {
   String daysAgo(int count) {
     return 'преди $countд';
   }
+
+  @override
+  String get sectionFavorites => 'Запазени места';
+
+  @override
+  String get addFavorite => 'Добави място';
+
+  @override
+  String get favoriteLabelHint => 'Име (напр. Вкъщи, Офис)';
+
+  @override
+  String get favoriteAddressHint => 'Адрес';
+
+  @override
+  String get favoriteGeocodingError =>
+      'Адресът не е намерен. Опитай по-точен адрес.';
 }
