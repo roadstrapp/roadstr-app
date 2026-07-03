@@ -1,6 +1,5 @@
 {
   "@@locale": "bg",
-
   "searchHint": "Къде искате да отидете?",
   "calculatingRoute": "Изчисляване на маршрут…",
   "routeNotFoundTitle": "Маршрутът не е намерен",
@@ -8,45 +7,47 @@
   "emptyServerResponse": "Празен отговор от сървъра. Проверете връзката си.",
   "routeError": "Грешка при изчисляване на маршрута: {error}",
   "@routeError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "gpsNotAvailable": "GPS не е наличен — Настройки → Приложение → Roadstr → Разрешения → Местоположение",
   "acquiringGps": "Получаване на GPS…",
-
   "graphhopperServerNotConfigured": "Сървърът GraphHopper не е конфигуриран — използва се OSRM",
   "graphhopperApiKeyNotConfigured": "API ключът на GraphHopper не е конфигуриран — използва се OSRM",
   "openrouteApiKeyNotConfigured": "API ключът на OpenRouteService не е конфигуриран — използва се OSRM",
-
   "chooseRoute": "Избор на маршрут",
   "routeOptionsCount": "{count} опции",
   "@routeOptionsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "cancel": "Отказ",
   "startNavigation": "Стартиране на навигацията",
   "fastestRoute": "Най-бърз",
   "now": "Сега",
-
   "history": "История",
   "clearHistory": "Изчисти",
   "selectedPosition": "Избрана позиция",
-
   "bottomBarProfile": "Профил",
   "bottomBarMenu": "Меню",
-
   "settingsTitle": "Настройки",
   "sectionTheme": "Тема",
   "sectionMap": "Карта",
-  "sectionPrivacy": "Поверителност",
   "sectionInfo": "Инфо",
   "sectionLanguage": "Език",
   "themeLightNostr": "Светла · Nostr Виолетово",
   "themeLightBitcoin": "Светла · Bitcoin Оранжево",
+  "themeDarkNostr": "Тъмна · Nostr Виолетово",
+  "themeDarkBitcoin": "Тъмна · Bitcoin Оранжево",
   "langSystem": "Системно по подразбиране",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "Дръж екрана включен",
   "keepScreenOnDescription": "Предотвратява преминаването в режим на сън по време на навигация",
   "rotateMap": "Картата следва посоката",
@@ -65,10 +66,6 @@
   "graphhopperServerReachable": "Сървърът GraphHopper е достъпен",
   "errorTitle": "Грешка",
   "close": "Затвори",
-
-  "privacyMode": "Режим на поверителност",
-  "privacyModeDescription": "Не изпращайте анонимни телеметрични данни",
-
   "infoVersion": "Версия",
   "infoProtocol": "Протокол",
   "infoMaps": "Карти",
@@ -78,7 +75,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper (самостоятелно хостван)",
   "providerGraphhopperCloud": "GraphHopper (облак)",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "Профил",
   "notConnected": "Не е свързан",
   "loginWithNostrTitle": "ВЛЕЗТЕ С NOSTR",
@@ -94,13 +90,11 @@
   "logoutConfirmation": "Да се премахнат ли идентификационните данни на Nostr от това устройство?",
   "logoutButton": "Изключване",
   "nostrIdentityInfo": "С Nostr самоличност можете да публикувате предупреждения за трафик, доклади и забележителности по децентрализиран начин в мрежата Nostr, без централни сървъри.",
-
   "warningTitle": "Предупреждение",
   "nsecWarning": "Предстои да въведете личния си ключ на Nostr директно в приложение. Всеки с физически или отдалечен достъп до устройството ви може да го прочете и трайно да поеме контрол над вашата Nostr самоличност.",
   "amberSecureMethodHint": "✦  Безопасният метод е Amber (NIP-55): nsec никога не напуска трезора на подписвача на приложението.",
   "nsecRiskAcknowledgment": "Разбирам риска и искам да продължа въпреки това",
   "continueButton": "Продължи",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber е подписвач на приложения за Android, съвместим с NIP-55. Вашият личен ключ остава изолиран в Amber и никога не се споделя.",
   "requestKeyFromAmber": "Поискайте публичен ключ от Amber",
@@ -117,18 +111,15 @@
   "amberResponseError": "Грешка в отговора на Amber",
   "ok": "OK",
   "or": "или",
-
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS не е активен",
   "gpsDisabledMessage": "Активирайте GPS в настройките на устройството, за да получите местоположението си и да използвате навигацията.",
   "openSettings": "Настройки",
-
   "@_CONTEXT_MENU": {},
   "myLocation": "Моето местоположение",
   "loginToReport": "Влезте с Nostr (секция Профил), за да докладвате събития",
   "navigateHere": "Навигирайте тук",
   "reportEventHere": "Докладвайте събитие тук",
-
   "@_ZAP": {},
   "zapSendSats": "Zap ⚡ (изпратете sats)",
   "sendZap": "Изпратете Zap",
@@ -136,7 +127,13 @@
   "customAmount": "Персонализирана сума…",
   "zapSending": "Изпращане…",
   "zapSat": "⚡{sats} sat",
-  "@zapSat": { "placeholders": { "sats": { "type": "int" } } },
+  "@zapSat": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "fetchingLightningAddress": "Извличане на Lightning адрес…",
   "noLightningAddress": "Този репортер няма Lightning адрес",
   "requestingInvoice": "Заявка за фактура…",
@@ -146,20 +143,23 @@
   "payingViaNwc": "Плащане чрез NWC…",
   "noLightningWallet": "Не е намерен Lightning портфейл",
   "zapSent": "⚡ {sats} sats изпратени!",
-  "@zapSent": { "placeholders": { "sats": { "type": "int" } } },
-
+  "@zapSent": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "@_ROAD_EVENT_DETAIL": {},
   "stillThere": "Все още там",
   "notThereAnymore": "Вече го няма",
   "loginToConfirm": "Влезте с Nostr, за да потвърдите или оспорите",
-
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Докладване на събитие",
   "optionalComment": "Незадължителен коментар…",
   "publish": "Публикуване",
   "publishing": "Публикуване…",
   "reportPublished": "Докладът е публикуван ✓",
-
   "@_PROFILE_ZAP": {},
   "myReports": "МОИТЕ ДОКЛАДИ",
   "noReportsYet": "Няма публикувани доклади",
@@ -169,14 +169,25 @@
   "reputationMedium": "Средна",
   "reputationLow": "Ниска",
   "reputationLabel": "Репутация {level}",
-  "@reputationLabel": { "placeholders": { "level": { "type": "String" } } },
+  "@reputationLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "reliability": "Надеждност: {pct}%",
-  "@reliability": { "placeholders": { "pct": { "type": "int" } } },
+  "@reliability": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "confirmedLabel": "Потвърдено",
   "removedLabel": "Премахнато",
   "positionLabel": "Позиция",
   "loadingLabel": "Зареждане…",
-
   "@_SETTINGS_EXTRA": {},
   "sectionWebSearch": "Уеб търсене",
   "sectionLightning": "Lightning",
@@ -187,7 +198,6 @@
   "searchEngineDdgDesc": "Фокусирана върху поверителността и популярна. Резултатите частично от Bing — имайте предвид.",
   "searchEngineStartpageDesc": "Резултати от Google, без да предавате данните си на Google. Разумен компромис.",
   "searchEngineGoogleDesc": "Много ефективна. Но помнете: Google ви познава по-добре от майка ви и продава всичко на рекламодатели. Вашият избор. 🍪",
-
   "@_CATEGORIES": {},
   "categoryPolice": "Полиция",
   "categorySpeedCamera": "Камера за скорост",
@@ -202,19 +212,67 @@
   "categoryIce": "Лед",
   "categoryAnimal": "Животно",
   "categoryOther": "Друго",
-
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Дата / час",
   "minutesAgo": "преди {count} мин",
-  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "преди {count}ч",
-  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "daysAgo": "преди {count}д",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
-
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sectionFavorites": "Запазени места",
   "addFavorite": "Добави място",
   "favoriteLabelHint": "Име (напр. Вкъщи, Офис)",
   "favoriteAddressHint": "Адрес",
-  "favoriteGeocodingError": "Адресът не е намерен. Опитай по-точен адрес."
+  "favoriteGeocodingError": "Адресът не е намерен. Опитай по-точен адрес.",
+  "trafficAlertTitle": "Нов трафик по маршрута",
+  "trafficAlertBody": "{category} съобщено {age} по вашия маршрут.\n\nИскате ли да намерите алтернативен маршрут?",
+  "trafficContinue": "Продължи",
+  "trafficRecalculate": "Преизчисли маршрута",
+  "navExitTitle": "Излезте от навигацията?",
+  "navExitBody": "Искате ли да спрете навигацията и да се върнете към картата?",
+  "navContinue": "Продължи навигацията",
+  "navExit": "Да, излез",
+  "loadingInfo": "Зареждане на информация…",
+  "conditionsOnRoute": "Условия по маршрута",
+  "calculateRoute": "Изчисли маршрута",
+  "sectionNavigationVoice": "Глас за навигация",
+  "voiceGuidance": "Гласово упътване",
+  "voiceGuidanceDesc": "Прочитане на инструкциите за завой на глас по време на навигация",
+  "testVoiceEngine": "Тествай гласовия двигател",
+  "testVoiceEngineDesc": "Докоснете, за да проверите TTS двигателя и да получите инструкции за настройка",
+  "ttsDialogTitle": "Липсва гласов двигател",
+  "ttsDialogBody": "Не е намерен работещ Text-to-Speech двигател.\n\nRoadstr разчита единствено на софтуер с отворен код — инсталирайте един от тези безплатни двигатели от F-Droid:",
+  "ttsRhvoiceDesc": "Естествено звучащ глас, ограничен списък с езици",
+  "ttsEspeakDesc": "Покрива над 100 езика, роботизиран глас",
+  "ttsInstallNote": "⚠️ След инсталиране:\n1. Настройки на Android → Достъпност → Синтезатор на реч\n2. Изберете току-що инсталирания двигател\n3. Изтеглете гласовите данни за вашия език\n4. Рестартирайте Roadstr напълно",
+  "ttsTestNow": "Тествай сега",
+  "voiceUnsupportedTitle": "Гласовото упътване не е налично",
+  "voiceUnsupportedBody": "Вашият език все още не се поддържа за гласови насоки за завой. Инструкциите за навигация ще продължат да се показват като текст на екрана.",
+  "kokoroModelTitle": "Гласов модел (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "Не е изтеглено · ~82 МБ",
+  "kokoroModelStatusDownloading": "Изтегляне...",
+  "kokoroModelStatusReady": "Гласовият модел е готов",
+  "kokoroModelDownloadBtn": "Изтегли",
+  "kokoroModelSupportedLangs": "Поддържа: италиански, английски, испански, френски, японски, китайски, португалски",
+  "autoDarkMode": "Авто тъмна тема",
+  "autoDarkModeDesc": "Активира тъмната тема при залез слънце"
 }

@@ -1,0 +1,21 @@
+# Copy this file to android/key.properties and fill in your keystore details.
+# NEVER commit key.properties to version control — it contains your private key.
+#
+# How to generate a keystore (run once):
+#
+#   keytool -genkey -v \
+#     -keystore roadstr-release.jks \
+#     -alias roadstr \
+#     -keyalg RSA -keysize 4096 \
+#     -validity 10000 \
+#     -storepass YOUR_STORE_PASSWORD \
+#     -keypass YOUR_KEY_PASSWORD \
+#     -dname "CN=Roadstr, OU=Development, O=Roadstr, L=Italy, C=IT"
+#
+# Move the generated .jks file somewhere safe (NOT inside the project directory).
+# Then fill in the paths and passwords below.
+
+storeFile=/path/to/roadstr-release.jks
+storePassword=YOUR_STORE_PASSWORD
+keyAlias=roadstr
+keyPassword=YOUR_KEY_PASSWORD

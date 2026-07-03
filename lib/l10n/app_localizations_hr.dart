@@ -93,9 +93,6 @@ class AppLocalizationsHr extends AppLocalizations {
   String get sectionMap => 'Karta';
 
   @override
-  String get sectionPrivacy => 'Privatnost';
-
-  @override
   String get sectionInfo => 'Info';
 
   @override
@@ -106,6 +103,12 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => 'Svjetla · Bitcoin Narančasta';
+
+  @override
+  String get themeDarkNostr => 'Tamna · Nostr Ljubičasta';
+
+  @override
+  String get themeDarkBitcoin => 'Tamna · Bitcoin Narančasta';
 
   @override
   String get langSystem => 'Zadano sustava';
@@ -172,13 +175,6 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get close => 'Zatvori';
-
-  @override
-  String get privacyMode => 'Način privatnosti';
-
-  @override
-  String get privacyModeDescription =>
-      'Ne šalji anonimne telemetrijske podatke';
 
   @override
   String get infoVersion => 'Verzija';
@@ -571,4 +567,109 @@ class AppLocalizationsHr extends AppLocalizations {
   @override
   String get favoriteGeocodingError =>
       'Adresa nije pronađena. Pokušaj s preciznijom adresom.';
+
+  @override
+  String get trafficAlertTitle => 'Novi promet na ruti';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$category prijavljeno $age na vašoj ruti.\n\nŽelite li pronaći alternativnu rutu?';
+  }
+
+  @override
+  String get trafficContinue => 'Nastavi';
+
+  @override
+  String get trafficRecalculate => 'Preračunaj rutu';
+
+  @override
+  String get navExitTitle => 'Izaći iz navigacije?';
+
+  @override
+  String get navExitBody =>
+      'Želite li zaustaviti navigaciju i vratiti se na kartu?';
+
+  @override
+  String get navContinue => 'Nastavi navigaciju';
+
+  @override
+  String get navExit => 'Da, izađi';
+
+  @override
+  String get loadingInfo => 'Učitavanje informacija…';
+
+  @override
+  String get conditionsOnRoute => 'Uvjeti na ruti';
+
+  @override
+  String get calculateRoute => 'Izračunaj rutu';
+
+  @override
+  String get sectionNavigationVoice => 'Glas navigacije';
+
+  @override
+  String get voiceGuidance => 'Glasovno vođenje';
+
+  @override
+  String get voiceGuidanceDesc =>
+      'Naglas čitaj upute za skretanje tijekom navigacije';
+
+  @override
+  String get testVoiceEngine => 'Testiraj glasovni mehanizam';
+
+  @override
+  String get testVoiceEngineDesc =>
+      'Dodirnite za provjeru TTS mehanizma i upute za postavljanje';
+
+  @override
+  String get ttsDialogTitle => 'Nedostaje glasovni mehanizam';
+
+  @override
+  String get ttsDialogBody =>
+      'Nije pronađen funkcionalan Text-to-Speech mehanizam.\n\nRoadstr se oslanja isključivo na softver otvorenog koda — instalirajte jedan od ovih besplatnih mehanizama s F-Droida:';
+
+  @override
+  String get ttsRhvoiceDesc => 'Prirodno zvučeći glas, ograničen popis jezika';
+
+  @override
+  String get ttsEspeakDesc => 'Pokriva preko 100 jezika, robotski glas';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ Nakon instalacije:\n1. Android postavke → Pristupačnost → Pretvaranje teksta u govor\n2. Odaberite upravo instalirani mehanizam\n3. Preuzmite glasovne podatke za vaš jezik\n4. Potpuno ponovno pokrenite Roadstr';
+
+  @override
+  String get ttsTestNow => 'Testiraj sada';
+
+  @override
+  String get voiceUnsupportedTitle => 'Glasovno vođenje nije dostupno';
+
+  @override
+  String get voiceUnsupportedBody =>
+      'Vaš jezik još nije podržan za glasovne upute za skretanje. Upute za navigaciju i dalje će se prikazivati kao tekst na zaslonu.';
+
+  @override
+  String get kokoroModelTitle => 'Glasovni model (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => 'Nije preuzeto · ~82 MB';
+
+  @override
+  String get kokoroModelStatusDownloading => 'Preuzimanje...';
+
+  @override
+  String get kokoroModelStatusReady => 'Glasovni model spreman';
+
+  @override
+  String get kokoroModelDownloadBtn => 'Preuzmi';
+
+  @override
+  String get kokoroModelSupportedLangs =>
+      'Podržava: talijanski, engleski, španjolski, francuski, japanski, kineski, portugalski';
+
+  @override
+  String get autoDarkMode => 'Automatska tamna tema';
+
+  @override
+  String get autoDarkModeDesc => 'Aktivira tamnu temu pri zalasku sunca';
 }

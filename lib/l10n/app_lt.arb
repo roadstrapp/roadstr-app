@@ -1,6 +1,5 @@
 {
   "@@locale": "lt",
-
   "searchHint": "Kur norite vykti?",
   "calculatingRoute": "Skaičiuojamas maršrutas…",
   "routeNotFoundTitle": "Maršrutas nerastas",
@@ -8,45 +7,47 @@
   "emptyServerResponse": "Tuščias serverio atsakymas. Patikrinkite ryšį.",
   "routeError": "Maršruto skaičiavimo klaida: {error}",
   "@routeError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "gpsNotAvailable": "GPS nepasiekiamas — Nustatymai → Programa → Roadstr → Leidimai → Vieta",
   "acquiringGps": "Gaunamas GPS…",
-
   "graphhopperServerNotConfigured": "GraphHopper serveris nesukonfigūruotas — naudojamas OSRM",
   "graphhopperApiKeyNotConfigured": "GraphHopper API raktas nesukonfigūruotas — naudojamas OSRM",
   "openrouteApiKeyNotConfigured": "OpenRouteService API raktas nesukonfigūruotas — naudojamas OSRM",
-
   "chooseRoute": "Pasirinkti maršrutą",
   "routeOptionsCount": "{count} parinktys",
   "@routeOptionsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "cancel": "Atšaukti",
   "startNavigation": "Pradėti navigaciją",
   "fastestRoute": "Greičiausias",
   "now": "Dabar",
-
   "history": "Istorija",
   "clearHistory": "Išvalyti",
   "selectedPosition": "Pasirinkta padėtis",
-
   "bottomBarProfile": "Profilis",
   "bottomBarMenu": "Meniu",
-
   "settingsTitle": "Nustatymai",
   "sectionTheme": "Tema",
   "sectionMap": "Žemėlapis",
-  "sectionPrivacy": "Privatumas",
   "sectionInfo": "Informacija",
   "sectionLanguage": "Kalba",
   "themeLightNostr": "Šviesi · Nostr Violetinė",
   "themeLightBitcoin": "Šviesi · Bitcoin Oranžinė",
+  "themeDarkNostr": "Tamsi · Nostr Violetinė",
+  "themeDarkBitcoin": "Tamsi · Bitcoin Oranžinė",
   "langSystem": "Sistemos numatytoji",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "Laikyti ekraną įjungtą",
   "keepScreenOnDescription": "Neleidžia įjungti miego režimo navigacijos metu",
   "rotateMap": "Žemėlapis seka kryptį",
@@ -65,10 +66,6 @@
   "graphhopperServerReachable": "GraphHopper serveris pasiekiamas",
   "errorTitle": "Klaida",
   "close": "Uždaryti",
-
-  "privacyMode": "Privatumo režimas",
-  "privacyModeDescription": "Nesiųsti anoniminių telemetrijos duomenų",
-
   "infoVersion": "Versija",
   "infoProtocol": "Protokolas",
   "infoMaps": "Žemėlapiai",
@@ -78,7 +75,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper (savarankiškai laikomas)",
   "providerGraphhopperCloud": "GraphHopper (debesija)",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "Profilis",
   "notConnected": "Neprisijungta",
   "loginWithNostrTitle": "PRISIJUNGTI SU NOSTR",
@@ -94,13 +90,11 @@
   "logoutConfirmation": "Pašalinti Nostr kredencialus iš šio įrenginio?",
   "logoutButton": "Atjungti",
   "nostrIdentityInfo": "Turėdami Nostr tapatybę, galite skelbti eismo įspėjimus, ataskaitas ir lankytinas vietas decentralizuotai Nostr tinkle, be centrinių serverių.",
-
   "warningTitle": "Įspėjimas",
   "nsecWarning": "Ketinate įvesti savo Nostr privatų raktą tiesiai į programą. Bet kas, turintis fizinę ar nuotolinę prieigą prie jūsų įrenginio, galėtų jį perskaityti ir visam laikui perimti jūsų Nostr tapatybės kontrolę.",
   "amberSecureMethodHint": "✦  Saugus metodas yra Amber (NIP-55): nsec niekada nepalieka programos pasirašytojo saugyklos.",
   "nsecRiskAcknowledgment": "Suprantu riziką ir vis tiek noriu tęsti",
   "continueButton": "Tęsti",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber yra NIP-55 suderinama Android programų pasirašymo programa. Jūsų privatus raktas lieka izoliuotas Amber viduje ir niekada nėra dalinamas.",
   "requestKeyFromAmber": "Prašyti viešojo rakto iš Amber",
@@ -117,18 +111,15 @@
   "amberResponseError": "Amber atsakymo klaida",
   "ok": "Gerai",
   "or": "arba",
-
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS neaktyvus",
   "gpsDisabledMessage": "Įjunkite GPS įrenginio nustatymuose, kad gautumėte savo buvimo vietą ir naudotumėtės navigacija.",
   "openSettings": "Nustatymai",
-
   "@_CONTEXT_MENU": {},
   "myLocation": "Mano vieta",
   "loginToReport": "Prisijunkite su Nostr (Profilio skyrius), kad praneštumėte apie įvykius",
   "navigateHere": "Naviguoti čia",
   "reportEventHere": "Pranešti apie įvykį čia",
-
   "@_ZAP": {},
   "zapSendSats": "Zap ⚡ (siųsti sats)",
   "sendZap": "Siųsti Zap",
@@ -136,7 +127,13 @@
   "customAmount": "Pasirinktinė suma…",
   "zapSending": "Siunčiama…",
   "zapSat": "⚡{sats} sat",
-  "@zapSat": { "placeholders": { "sats": { "type": "int" } } },
+  "@zapSat": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "fetchingLightningAddress": "Gaunamas Lightning adresas…",
   "noLightningAddress": "Šis pranešėjas neturi Lightning adreso",
   "requestingInvoice": "Prašoma sąskaitos…",
@@ -146,20 +143,23 @@
   "payingViaNwc": "Mokama per NWC…",
   "noLightningWallet": "Lightning piniginė nerasta",
   "zapSent": "⚡ {sats} sats išsiųsta!",
-  "@zapSent": { "placeholders": { "sats": { "type": "int" } } },
-
+  "@zapSent": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "@_ROAD_EVENT_DETAIL": {},
   "stillThere": "Vis dar yra",
   "notThereAnymore": "Jau nebėra",
   "loginToConfirm": "Prisijunkite su Nostr, kad patvirtintumėte arba ginčytumėte",
-
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Pranešti apie įvykį",
   "optionalComment": "Neprivalomas komentaras…",
   "publish": "Skelbti",
   "publishing": "Skelbiama…",
   "reportPublished": "Ataskaita paskelbta ✓",
-
   "@_PROFILE_ZAP": {},
   "myReports": "MANO ATASKAITOS",
   "noReportsYet": "Nėra paskelbtų ataskaitų",
@@ -169,14 +169,25 @@
   "reputationMedium": "Vidutinė",
   "reputationLow": "Žema",
   "reputationLabel": "Reputacija {level}",
-  "@reputationLabel": { "placeholders": { "level": { "type": "String" } } },
+  "@reputationLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "reliability": "Patikimumas: {pct}%",
-  "@reliability": { "placeholders": { "pct": { "type": "int" } } },
+  "@reliability": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "confirmedLabel": "Patvirtinta",
   "removedLabel": "Pašalinta",
   "positionLabel": "Pozicija",
   "loadingLabel": "Kraunama…",
-
   "@_SETTINGS_EXTRA": {},
   "sectionWebSearch": "Interneto paieška",
   "sectionLightning": "Lightning",
@@ -187,7 +198,6 @@
   "searchEngineDdgDesc": "Orientuota į privatumą ir populiari. Rezultatai iš dalies iš Bing — turėkite tai omenyje.",
   "searchEngineStartpageDesc": "Google rezultatai neperduodant jūsų duomenų Google. Protingas kompromisas.",
   "searchEngineGoogleDesc": "Labai efektyvi. Bet prisiminkite: Google pažįsta jus geriau nei jūsų mama ir parduoda viską reklamuotojams. Jūsų pasirinkimas. 🍪",
-
   "@_CATEGORIES": {},
   "categoryPolice": "Policija",
   "categorySpeedCamera": "Greičio matuoklis",
@@ -202,19 +212,67 @@
   "categoryIce": "Ledas",
   "categoryAnimal": "Gyvūnas",
   "categoryOther": "Kita",
-
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Data / laikas",
   "minutesAgo": "prieš {count} min",
-  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "prieš {count}h",
-  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "daysAgo": "prieš {count}d",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
-
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sectionFavorites": "Išsaugotos vietos",
   "addFavorite": "Pridėti vietą",
   "favoriteLabelHint": "Pavadinimas (pvz. Namai, Biuras)",
   "favoriteAddressHint": "Adresas",
-  "favoriteGeocodingError": "Adresas nerastas. Bandyk tikslesnį adresą."
+  "favoriteGeocodingError": "Adresas nerastas. Bandyk tikslesnį adresą.",
+  "trafficAlertTitle": "Naujas eismas maršrute",
+  "trafficAlertBody": "{category} pranešta {age} jūsų maršrute.\n\nAr norite rasti alternatyvų maršrutą?",
+  "trafficContinue": "Tęsti",
+  "trafficRecalculate": "Perskaičiuoti maršrutą",
+  "navExitTitle": "Išeiti iš navigacijos?",
+  "navExitBody": "Ar norite sustabdyti navigaciją ir grįžti į žemėlapį?",
+  "navContinue": "Tęsti navigaciją",
+  "navExit": "Taip, išeiti",
+  "loadingInfo": "Įkeliama informacija…",
+  "conditionsOnRoute": "Sąlygos maršrute",
+  "calculateRoute": "Apskaičiuoti maršrutą",
+  "sectionNavigationVoice": "Navigacijos balsas",
+  "voiceGuidance": "Balso nukreipimas",
+  "voiceGuidanceDesc": "Skaityti posūkio nurodymus garsiai navigacijos metu",
+  "testVoiceEngine": "Išbandyti balso variklį",
+  "testVoiceEngineDesc": "Palieskite, kad patikrintumėte TTS variklį ir gautumėte nustatymo instrukcijas",
+  "ttsDialogTitle": "Trūksta balso variklio",
+  "ttsDialogBody": "Nerasta veikiančio Text-to-Speech variklio.\n\n„Roadstr“ remiasi tik atvirojo kodo programine įranga — įdiekite vieną iš šių nemokamų variklių iš F-Droid:",
+  "ttsRhvoiceDesc": "Natūraliai skambantis balsas, ribotas kalbų sąrašas",
+  "ttsEspeakDesc": "Apima daugiau nei 100 kalbų, robotiškas balsas",
+  "ttsInstallNote": "⚠️ Įdiegus:\n1. Android nustatymai → Pritaikymas neįgaliesiems → Teksto į kalbą keitiklis\n2. Pasirinkite ką tik įdiegtą variklį\n3. Atsisiųskite savo kalbos balso duomenis\n4. Visiškai paleiskite „Roadstr“ iš naujo",
+  "ttsTestNow": "Išbandyti dabar",
+  "voiceUnsupportedTitle": "Balso nukreipimas nepasiekiamas",
+  "voiceUnsupportedBody": "Jūsų kalba dar nepalaikoma balsu skelbiamiems posūkio nurodymams. Navigacijos nurodymai ir toliau bus rodomi kaip tekstas ekrane.",
+  "kokoroModelTitle": "Balso modelis (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "Neparsisiųsta · ~82 MB",
+  "kokoroModelStatusDownloading": "Atsisiunčiama...",
+  "kokoroModelStatusReady": "Balso modelis paruoštas",
+  "kokoroModelDownloadBtn": "Atsisiųsti",
+  "kokoroModelSupportedLangs": "Palaiko: italų, anglų, ispanų, prancūzų, japonų, kinų, portugalų",
+  "autoDarkMode": "Automatinė tamsi tema",
+  "autoDarkModeDesc": "Aktyvuoja tamsią temą saulėlydžio metu"
 }

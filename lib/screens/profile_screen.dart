@@ -202,6 +202,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (!mounted) return;
       setState(() { _npub = npub; _flavor = 'amber'; _waitingAmber = false; });
       _fetchAndStoreProfile(pubHex); // fire-and-forget; updates name/avatar async
+      _loadMyEvents();
     } catch (e) {
       if (!mounted) return;
       setState(() => _waitingAmber = false);
@@ -331,6 +332,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (!mounted) return;
       setState(() { _npub = npub; _flavor = 'nsec'; });
       _fetchAndStoreProfile(pubHex); // fire-and-forget
+      _loadMyEvents();
     } catch (_) {
       if (mounted) _showError(l.invalidNsecTitle, l.invalidNsecMessage);
     }
@@ -366,7 +368,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
     if (ok == true) {
       await _st.deleteAll();
-      if (mounted) setState(() { _npub = null; _flavor = null; _picture = null; _name = null; });
+      if (mounted) setState(() {
+        _npub = null; _flavor = null; _picture = null; _name = null;
+        _myEvents = null; _reputation = -1; _balanceSat = -1;
+      });
     }
   }
 

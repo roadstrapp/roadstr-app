@@ -368,7 +368,7 @@ class NostrRelayService {
 
   void _handleRoadEvent(Map<String, dynamic> json) {
     final event = RoadEvent.fromNostr(json);
-    if (event == null || event.isExpired) return;
+    if (event == null) return;
     _events[event.id] = event;
     _pendingIds.add(event.id);
     _controller.add(currentEvents);

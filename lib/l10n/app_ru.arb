@@ -1,6 +1,5 @@
 {
   "@@locale": "ru",
-
   "searchHint": "Куда вы хотите поехать?",
   "calculatingRoute": "Вычисление маршрута…",
   "routeNotFoundTitle": "Маршрут не найден",
@@ -8,45 +7,47 @@
   "emptyServerResponse": "Пустой ответ сервера. Проверьте соединение.",
   "routeError": "Ошибка расчёта маршрута: {error}",
   "@routeError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "gpsNotAvailable": "GPS недоступен — Settings → App → Roadstr → Permissions → Location",
   "acquiringGps": "Получение GPS…",
-
   "graphhopperServerNotConfigured": "Сервер GraphHopper не настроен — используется OSRM",
   "graphhopperApiKeyNotConfigured": "API-ключ GraphHopper не настроен — используется OSRM",
   "openrouteApiKeyNotConfigured": "API-ключ OpenRouteService не настроен — используется OSRM",
-
   "chooseRoute": "Выбрать маршрут",
   "routeOptionsCount": "{count} вариантов",
   "@routeOptionsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "cancel": "Отмена",
   "startNavigation": "Начать навигацию",
   "fastestRoute": "Быстрейший",
   "now": "Сейчас",
-
   "history": "История",
   "clearHistory": "Очистить",
   "selectedPosition": "Выбранная позиция",
-
   "bottomBarProfile": "Профиль",
   "bottomBarMenu": "Меню",
-
   "settingsTitle": "Настройки",
   "sectionTheme": "Тема",
   "sectionMap": "Карта",
-  "sectionPrivacy": "Конфиденциальность",
   "sectionInfo": "Информация",
   "sectionLanguage": "Язык",
   "themeLightNostr": "Светлая · Nostr Фиолетовый",
   "themeLightBitcoin": "Светлая · Bitcoin Оранжевый",
+  "themeDarkNostr": "Тёмная · Nostr Фиолетовый",
+  "themeDarkBitcoin": "Тёмная · Bitcoin Оранжевый",
   "langSystem": "Системный язык",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "Не выключать экран",
   "keepScreenOnDescription": "Предотвращает сон во время навигации",
   "rotateMap": "Карта следует направлению",
@@ -65,10 +66,6 @@
   "graphhopperServerReachable": "Сервер GraphHopper доступен",
   "errorTitle": "Ошибка",
   "close": "Закрыть",
-
-  "privacyMode": "Режим конфиденциальности",
-  "privacyModeDescription": "Не отправлять анонимные телеметрические данные",
-
   "infoVersion": "Версия",
   "infoProtocol": "Протокол",
   "infoMaps": "Карты",
@@ -78,7 +75,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper (на своём сервере)",
   "providerGraphhopperCloud": "GraphHopper (облако)",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "Профиль",
   "notConnected": "Не подключён",
   "loginWithNostrTitle": "ВОЙТИ ЧЕРЕЗ NOSTR",
@@ -94,13 +90,11 @@
   "logoutConfirmation": "Удалить учётные данные Nostr с этого устройства?",
   "logoutButton": "Отключиться",
   "nostrIdentityInfo": "С идентификатором Nostr вы можете публиковать дорожные предупреждения, сообщения и точки интереса децентрализованным способом в сети Nostr без центральных серверов.",
-
   "warningTitle": "Предупреждение",
   "nsecWarning": "Вы собираетесь напрямую вбить ваш приватный ключ Nostr прямо в приложение. Любой, кто имеет физический или удалённый доступ к вашему устройству, сможет прочитать его и навсегда захватить контроль над вашей идентификацией Nostr.",
   "amberSecureMethodHint": "✦  Безопасный метод — Amber (NIP-55): nsec никогда не покидает хранилище подписчика.",
   "nsecRiskAcknowledgment": "Я понимаю риск и хочу продолжить",
   "continueButton": "Продолжить",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber — это совместимый с NIP-55 подписчик приложений для Android. Ваш приватный ключ остаётся изолированным внутри Amber и никогда не передаётся.",
   "requestKeyFromAmber": "Запросить публичный ключ из Amber",
@@ -117,18 +111,15 @@
   "amberResponseError": "Ошибка ответа Amber",
   "ok": "ОК",
   "or": "или",
-
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS не активен",
   "gpsDisabledMessage": "Активируйте GPS в настройках устройства, чтобы определить своё местоположение и использовать навигацию.",
   "openSettings": "Настройки",
-
   "@_CONTEXT_MENU": {},
   "myLocation": "Моё местоположение",
   "loginToReport": "Войдите через Nostr (раздел Профиль), чтобы сообщать о событиях",
   "navigateHere": "Маршрут сюда",
   "reportEventHere": "Сообщить о событии здесь",
-
   "@_ZAP": {},
   "zapSendSats": "Zap ⚡ (отправить sats)",
   "sendZap": "Отправить Zap",
@@ -136,7 +127,13 @@
   "customAmount": "Произвольная сумма…",
   "zapSending": "Отправка…",
   "zapSat": "⚡{sats} sat",
-  "@zapSat": { "placeholders": { "sats": { "type": "int" } } },
+  "@zapSat": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "fetchingLightningAddress": "Получение адреса Lightning…",
   "noLightningAddress": "У этого репортёра нет адреса Lightning",
   "requestingInvoice": "Запрос счёта…",
@@ -146,20 +143,23 @@
   "payingViaNwc": "Оплата через NWC…",
   "noLightningWallet": "Lightning-кошелёк не найден",
   "zapSent": "⚡ {sats} sats отправлено!",
-  "@zapSent": { "placeholders": { "sats": { "type": "int" } } },
-
+  "@zapSent": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "@_ROAD_EVENT_DETAIL": {},
   "stillThere": "Всё ещё там",
   "notThereAnymore": "Больше нет",
   "loginToConfirm": "Войдите через Nostr, чтобы подтвердить или опровергнуть",
-
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Сообщить о событии",
   "optionalComment": "Необязательный комментарий…",
   "publish": "Опубликовать",
   "publishing": "Публикация…",
   "reportPublished": "Отчёт опубликован ✓",
-
   "@_PROFILE_ZAP": {},
   "myReports": "МОИ ОТЧЁТЫ",
   "noReportsYet": "Нет опубликованных отчётов",
@@ -169,14 +169,25 @@
   "reputationMedium": "Средняя",
   "reputationLow": "Низкая",
   "reputationLabel": "Репутация {level}",
-  "@reputationLabel": { "placeholders": { "level": { "type": "String" } } },
+  "@reputationLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "reliability": "Надёжность: {pct}%",
-  "@reliability": { "placeholders": { "pct": { "type": "int" } } },
+  "@reliability": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "confirmedLabel": "Подтверждено",
   "removedLabel": "Удалено",
   "positionLabel": "Позиция",
   "loadingLabel": "Загрузка…",
-
   "@_SETTINGS_EXTRA": {},
   "sectionWebSearch": "Веб-поиск",
   "sectionLightning": "Lightning",
@@ -187,7 +198,6 @@
   "searchEngineDdgDesc": "Ориентирован на конфиденциальность и популярен. Результаты частично от Bing — имейте это в виду.",
   "searchEngineStartpageDesc": "Результаты Google без передачи ваших данных Google. Разумный компромисс.",
   "searchEngineGoogleDesc": "Очень эффективно. Но помните: Google знает вас лучше вашей мамы и продаёт всё рекламодателям. Ваш выбор. 🍪",
-
   "@_CATEGORIES": {},
   "categoryPolice": "Полиция",
   "categorySpeedCamera": "Камера контроля скорости",
@@ -202,19 +212,67 @@
   "categoryIce": "Лёд",
   "categoryAnimal": "Животное",
   "categoryOther": "Другое",
-
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Дата / время",
   "minutesAgo": "{count} мин назад",
-  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "{count}ч назад",
-  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "daysAgo": "{count}д назад",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
-
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sectionFavorites": "Сохранённые места",
   "addFavorite": "Добавить место",
   "favoriteLabelHint": "Название (напр. Дом, Работа)",
   "favoriteAddressHint": "Адрес",
-  "favoriteGeocodingError": "Адрес не найден. Попробуйте указать точнее."
+  "favoriteGeocodingError": "Адрес не найден. Попробуйте указать точнее.",
+  "trafficAlertTitle": "Новый трафик на маршруте",
+  "trafficAlertBody": "{category} сообщено {age} на вашем маршруте.\n\nХотите найти альтернативный маршрут?",
+  "trafficContinue": "Продолжить",
+  "trafficRecalculate": "Пересчитать маршрут",
+  "navExitTitle": "Выйти из навигации?",
+  "navExitBody": "Хотите остановить навигацию и вернуться на карту?",
+  "navContinue": "Продолжить навигацию",
+  "navExit": "Да, выйти",
+  "loadingInfo": "Загрузка информации…",
+  "conditionsOnRoute": "Условия на маршруте",
+  "calculateRoute": "Рассчитать маршрут",
+  "sectionNavigationVoice": "Голос навигации",
+  "voiceGuidance": "Голосовое сопровождение",
+  "voiceGuidanceDesc": "Озвучивать инструкции поворотов во время навигации",
+  "testVoiceEngine": "Проверить голосовой движок",
+  "testVoiceEngineDesc": "Нажмите, чтобы проверить TTS-движок и получить инструкции по настройке",
+  "ttsDialogTitle": "Голосовой движок отсутствует",
+  "ttsDialogBody": "Не найден работающий движок Text-to-Speech.\n\nRoadstr использует только программное обеспечение с открытым исходным кодом — установите один из этих бесплатных движков из F-Droid:",
+  "ttsRhvoiceDesc": "Естественное звучание голоса, ограниченный список языков",
+  "ttsEspeakDesc": "Поддерживает более 100 языков, роботизированный голос",
+  "ttsInstallNote": "⚠️ После установки:\n1. Настройки Android → Специальные возможности → Синтез речи\n2. Выберите только что установленный движок\n3. Загрузите голосовые данные для вашего языка\n4. Полностью перезапустите Roadstr",
+  "ttsTestNow": "Проверить сейчас",
+  "voiceUnsupportedTitle": "Голосовое сопровождение недоступно",
+  "voiceUnsupportedBody": "Ваш язык пока не поддерживается для голосовых инструкций. Инструкции навигации по-прежнему будут отображаться в виде текста на экране.",
+  "kokoroModelTitle": "Голосовая модель (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "Не загружено · ~82 МБ",
+  "kokoroModelStatusDownloading": "Загрузка...",
+  "kokoroModelStatusReady": "Голосовая модель готова",
+  "kokoroModelDownloadBtn": "Загрузить",
+  "kokoroModelSupportedLangs": "Поддерживает: итальянский, английский, испанский, французский, японский, китайский, португальский",
+  "autoDarkMode": "Автоматическая тёмная тема",
+  "autoDarkModeDesc": "Активирует тёмную тему на закате"
 }

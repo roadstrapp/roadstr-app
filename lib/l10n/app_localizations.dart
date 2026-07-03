@@ -298,12 +298,6 @@ abstract class AppLocalizations {
   /// **'Map'**
   String get sectionMap;
 
-  /// No description provided for @sectionPrivacy.
-  ///
-  /// In en, this message translates to:
-  /// **'Privacy'**
-  String get sectionPrivacy;
-
   /// No description provided for @sectionInfo.
   ///
   /// In en, this message translates to:
@@ -327,6 +321,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Light · Bitcoin Orange'**
   String get themeLightBitcoin;
+
+  /// No description provided for @themeDarkNostr.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark · Nostr Violet'**
+  String get themeDarkNostr;
+
+  /// No description provided for @themeDarkBitcoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark · Bitcoin Orange'**
+  String get themeDarkBitcoin;
 
   /// No description provided for @langSystem.
   ///
@@ -453,18 +459,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close'**
   String get close;
-
-  /// No description provided for @privacyMode.
-  ///
-  /// In en, this message translates to:
-  /// **'Privacy mode'**
-  String get privacyMode;
-
-  /// No description provided for @privacyModeDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Do not send anonymous telemetry data'**
-  String get privacyModeDescription;
 
   /// No description provided for @infoVersion.
   ///
@@ -1179,6 +1173,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Address not found. Try a more specific address.'**
   String get favoriteGeocodingError;
+
+  /// No description provided for @trafficAlertTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New traffic on route'**
+  String get trafficAlertTitle;
+
+  /// No description provided for @trafficAlertBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{category} reported {age} on your route.\n\nDo you want to find an alternative route?'**
+  String trafficAlertBody(Object age, Object category);
+
+  /// No description provided for @trafficContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get trafficContinue;
+
+  /// No description provided for @trafficRecalculate.
+  ///
+  /// In en, this message translates to:
+  /// **'Recalculate route'**
+  String get trafficRecalculate;
+
+  /// No description provided for @navExitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit navigation?'**
+  String get navExitTitle;
+
+  /// No description provided for @navExitBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to stop navigation and return to the map?'**
+  String get navExitBody;
+
+  /// No description provided for @navContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue navigation'**
+  String get navContinue;
+
+  /// No description provided for @navExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, exit'**
+  String get navExit;
+
+  /// No description provided for @loadingInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading information…'**
+  String get loadingInfo;
+
+  /// No description provided for @conditionsOnRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Conditions on route'**
+  String get conditionsOnRoute;
+
+  /// No description provided for @calculateRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate route'**
+  String get calculateRoute;
+
+  /// No description provided for @sectionNavigationVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation voice'**
+  String get sectionNavigationVoice;
+
+  /// No description provided for @voiceGuidance.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice guidance'**
+  String get voiceGuidance;
+
+  /// No description provided for @voiceGuidanceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Read turn-by-turn instructions aloud during navigation'**
+  String get voiceGuidanceDesc;
+
+  /// No description provided for @testVoiceEngine.
+  ///
+  /// In en, this message translates to:
+  /// **'Test voice engine'**
+  String get testVoiceEngine;
+
+  /// No description provided for @testVoiceEngineDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to check the TTS engine and get setup instructions'**
+  String get testVoiceEngineDesc;
+
+  /// No description provided for @ttsDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing voice engine'**
+  String get ttsDialogTitle;
+
+  /// No description provided for @ttsDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No working Text-to-Speech engine was found.\n\nRoadstr only relies on open source software — install one of these free engines from F-Droid:'**
+  String get ttsDialogBody;
+
+  /// No description provided for @ttsRhvoiceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Natural-sounding voice, limited language list'**
+  String get ttsRhvoiceDesc;
+
+  /// No description provided for @ttsEspeakDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Covers 100+ languages, robotic-sounding voice'**
+  String get ttsEspeakDesc;
+
+  /// No description provided for @ttsInstallNote.
+  ///
+  /// In en, this message translates to:
+  /// **'⚠️ After installing:\n1. Android Settings → Accessibility → Text-to-speech output\n2. Select the engine you just installed\n3. Download your language\'s voice data\n4. Restart Roadstr completely'**
+  String get ttsInstallNote;
+
+  /// No description provided for @ttsTestNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Test now'**
+  String get ttsTestNow;
+
+  /// No description provided for @voiceUnsupportedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice guidance unavailable'**
+  String get voiceUnsupportedTitle;
+
+  /// No description provided for @voiceUnsupportedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your language isn\'t yet supported for spoken turn-by-turn directions. Navigation instructions will still appear as text on screen.'**
+  String get voiceUnsupportedBody;
+
+  /// No description provided for @kokoroModelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice model (Kokoro AI)'**
+  String get kokoroModelTitle;
+
+  /// No description provided for @kokoroModelStatusNotDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not downloaded · ~82 MB'**
+  String get kokoroModelStatusNotDownloaded;
+
+  /// No description provided for @kokoroModelStatusDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading...'**
+  String get kokoroModelStatusDownloading;
+
+  /// No description provided for @kokoroModelStatusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice model ready'**
+  String get kokoroModelStatusReady;
+
+  /// No description provided for @kokoroModelDownloadBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get kokoroModelDownloadBtn;
+
+  /// No description provided for @kokoroModelSupportedLangs.
+  ///
+  /// In en, this message translates to:
+  /// **'Supports: Italian, English, Spanish, French, Japanese, Chinese, Portuguese'**
+  String get kokoroModelSupportedLangs;
+
+  /// No description provided for @autoDarkMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto dark theme'**
+  String get autoDarkMode;
+
+  /// No description provided for @autoDarkModeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Activates the dark theme at sunset and sunrise'**
+  String get autoDarkModeDesc;
 }
 
 class _AppLocalizationsDelegate

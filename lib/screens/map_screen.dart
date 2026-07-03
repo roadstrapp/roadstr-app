@@ -11,16 +11,14 @@
 //   - Orchestrates NIP-57 zaps via ZapService (NWC first, deep-link fallback).
 //   - Shows a persistent navigation notification via NavigationNotificationService.
 //
-// Camera animation uses a Ticker (via SingleTickerProviderStateMixin)
-// rather than AnimationController because we need direct, frame-by-frame
-// control over rotation, zoom, and centre simultaneously without building a
-// full animation tree. The easing curve is a cubic ease-in-out applied manually.
+// Camera animation uses Timer.periodic (same as _northTimer) — frame-by-frame
+// control over rotation, zoom, and centre with cubic ease-in-out easing.
+// Timer is cancelled and recreated on each call; no ticker lifecycle issues.
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -37,11 +35,13 @@ import '../l10n/app_localizations.dart';
 import '../models/favorite_place.dart';
 import '../models/road_event.dart';
 import '../services/navigation_notification_service.dart';
-import '../services/tts_service.dart';
+import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/nostr_relay_service.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import '../services/zap_service.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
+import '../theme/theme_provider.dart';
 import '../widgets/speedometer_widget.dart';
 import 'settings_screen.dart';
 import 'profile_screen.dart';
@@ -52,10 +52,10 @@ class MapScreen extends StatefulWidget {
   State<MapScreen> createState() => _MapScreenState();
 }
 
-/// State for [MapScreen]. Uses [SingleTickerProviderStateMixin] to supply a
+/// State for [MapScreen]. Uses [WidgetsBindingObserver] to react to app
 /// [Ticker] to [_animateCamera] for smooth camera transitions.
 class _MapScreenState extends State<MapScreen>
-    with SingleTickerProviderStateMixin {
+    with WidgetsBindingObserver {
   final _gps = GpsService();
   final _mapController = MapController();
 
@@ -92,14 +92,9 @@ class _MapScreenState extends State<MapScreen>
   double _camZoom = 6.0;
   LatLng _camCenter = const LatLng(42.5, 12.5);
 
-  /// The active camera animation ticker. Non-null during an animation; disposed
-  /// and set to null when the animation completes or is interrupted by a user
-  /// gesture ([MapEventMoveStart] with a non-controller source).
-  Ticker? _camTicker;
-  double _fromRot = 0, _toRot = 0;
-  double _fromZoom = 6, _toZoom = 6;
-  LatLng _fromCenter = const LatLng(42.5, 12.5);
-  LatLng _toCenter = const LatLng(42.5, 12.5);
+  /// Active camera animation timer. Non-null while animating; cancelled when
+  /// the animation finishes or a user gesture interrupts it.
+  Timer? _camTicker;
   /// Default animation duration for user-triggered camera transitions (ms).
   static const _animMs = 550;
   /// Shorter duration used for GPS-tracking animation — keeps motion fluid.
@@ -138,7 +133,7 @@ class _MapScreenState extends State<MapScreen>
 
   final _nostr    = NostrRelayService();
   final _navNotif = NavigationNotificationService();
-  final _tts      = TtsService();
+  final _tts      = KokoroTtsService();
   bool _voiceMuted = false;
 
   // ── Voice guidance state ────────────────────────────────────────────────────
@@ -209,8 +204,12 @@ class _MapScreenState extends State<MapScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _voiceMuted = !(Hive.box('settings')
         .get('voiceEnabled', defaultValue: true) as bool);
+    // Warm up the TTS engine at app start so it is ready when navigation begins.
+    final startLang = Hive.box('settings').get('language', defaultValue: '') as String;
+    _tts.init(startLang.isNotEmpty ? startLang : 'it');
     _loadInitialPosition();
     _loadHistory();
     _loadFavorites();
@@ -262,11 +261,10 @@ class _MapScreenState extends State<MapScreen>
       final now = DateTime.now().millisecondsSinceEpoch;
       if (now - _lastCompassUiMs >= 100) {
         _lastCompassUiMs = now;
-        if (mounted) setState(() => _heading = _compassHeading);
-        // Only apply rotation outside navigation; during navigation the GPS tick
-        // handles both position + rotation via _animateCamera at its own rate.
-        // Compass data is used ONLY for the cursor marker direction (_heading)
-        // and for navigation heading. It never rotates the map on its own.
+        // During navigation the GPS movement bearing drives _heading and the
+        // camera — the compass must NOT overwrite it or the cursor will point
+        // in the phone's physical orientation rather than the direction of travel.
+        if (mounted && !_isNavigating) setState(() => _heading = _compassHeading);
       }
     });
   }
@@ -432,19 +430,20 @@ class _MapScreenState extends State<MapScreen>
     if (!lat.isFinite || !lng.isFinite ||
         lat < -90 || lat > 90 || lng < -180 || lng > 180) return;
 
+    context.read<ThemeProvider>().onPositionUpdate(lat, lng);
+
     // ── Heading resolution ───────────────────────────────────────────────────
-    // On Android, Position.heading comes from the device magnetometer — it gives
-    // compass orientation regardless of movement speed, processed entirely on-device
-    // with no data sent to external servers. Use it whenever available so the cursor
-    // shows the correct compass direction even when stationary.
-    // Fall back to dead-reckoning (two-position bearing) only when the compass
-    // field is absent or non-finite (some devices don't expose it).
+    // Prefer the GPS movement bearing (two-position dead reckoning) when moving
+    // — it always reflects the actual direction of travel, regardless of how
+    // the phone is mounted or oriented.
+    // Fall back to the GPS-provider heading (pos.heading) only when too slow
+    // for a reliable bearing, and only if it carries a valid non-zero value.
     double effectiveHeading = _heading;
-    if (data.heading != null && data.heading!.isFinite) {
-      effectiveHeading = data.heading!;
-    } else if (_prevGpsPos != null && _speed > 1) {
+    if (_prevGpsPos != null && _speed > 3) {
       final movBearing = _bearingBetween(_prevGpsPos!, data.position);
       if (movBearing.isFinite) effectiveHeading = movBearing;
+    } else if (data.heading != null && data.heading!.isFinite && data.heading! > 0) {
+      effectiveHeading = data.heading!;
     }
     _prevGpsPos = data.position;
 
@@ -486,7 +485,9 @@ class _MapScreenState extends State<MapScreen>
         _updateRemainingStats();
         _checkArrival();
       }
-      WakelockPlus.enable();
+      if (Hive.box('settings').get('keepScreenOn', defaultValue: true) as bool) {
+        WakelockPlus.enable();
+      }
 
       if (_followUser) {
         // During navigation use the GPS movement bearing (effectiveHeading) so
@@ -561,8 +562,6 @@ class _MapScreenState extends State<MapScreen>
   // App Nostr account for user feedback (DM via NIP-04 kind-4)
   static const _appNpub =
       'npub1cwft0dmtw5gtwhmu5r2f8fjpw0l5f006egs8fmltdc3jrxxcpe6q965mmc';
-  // App Lightning address for user tips
-  static const _appLightningAddress = 'directfreon861@walletofsatoshi.com';
 
   void _showArrivalDialog() {
     final c = RoadstrColors.of(context);
@@ -597,12 +596,8 @@ class _MapScreenState extends State<MapScreen>
             icon: const Text('👎', style: TextStyle(fontSize: 16)),
             label: Text('Male', style: TextStyle(color: c.textSecondary)),
           ),
-          // Good experience → tip the app
           FilledButton.icon(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _showTipDialog();
-            },
+            onPressed: () => Navigator.pop(ctx),
             style: FilledButton.styleFrom(
                 backgroundColor: c.accent,
                 shape: RoundedRectangleBorder(
@@ -660,27 +655,6 @@ class _MapScreenState extends State<MapScreen>
     );
   }
 
-  void _showTipDialog() {
-    final c = RoadstrColors.of(context);
-    showDialog(
-      context: context,
-      builder: (ctx) => _ZapSheet(
-        // Fake event pointing to the app's lightning address
-        event: RoadEvent(
-          id:        'roadstr-app',
-          pubkey:    '',
-          category:  RoadCategory.other,
-          position:  const LatLng(0, 0),
-          comment:   '',
-          createdAt: 0,
-        ),
-        colors: c,
-        onZapSent: (_) {
-          if (mounted) _snack('Grazie per il tuo supporto! ⚡🧡');
-        },
-      ),
-    );
-  }
 
   /// Sends a NIP-04 encrypted direct message (kind-4) to the app's Nostr
   /// account with the user's feedback text.
@@ -728,7 +702,7 @@ class _MapScreenState extends State<MapScreen>
       if (!_voiceMuted) _tts.announceManeuver(nextStep.instruction, 0); // imminent — no distance prefix
     }
 
-    if (dist < 50) {
+    if (dist < 80) {
       setState(() => _currentStepIdx++);
       _updateNavNotification();
     }
@@ -797,8 +771,9 @@ class _MapScreenState extends State<MapScreen>
     List<RouteResult> routes;
     try {
       routes = await RoutingService.getRoutes(_position, _destination!,
-          provider: provider, apiKey: apiKey, graphhopperServer: ghServer,
-          lang: lang, vehicle: _transportMode);
+              provider: provider, apiKey: apiKey, graphhopperServer: ghServer,
+              lang: lang, vehicle: _transportMode)
+          .timeout(const Duration(seconds: 15));
     } catch (_) {
       if (mounted) setState(() => _isRerouting = false);
       return;
@@ -841,20 +816,20 @@ class _MapScreenState extends State<MapScreen>
         title: Row(children: [
           const Text('🔴', style: TextStyle(fontSize: 20)),
           const SizedBox(width: 8),
-          Text('New traffic on route',
+          Text(l.trafficAlertTitle,
               style: TextStyle(color: c.textPrimary, fontSize: 15,
                   fontWeight: FontWeight.bold)),
         ]),
         content: Text(
           '${jam.category.localizedLabel(l)} '
-          'reported ${jam.ageLabel(l)} '
+          '${jam.ageLabel(l)} '
           'on your route.\n\nDo you want to find an alternative route?',
           style: TextStyle(color: c.textSecondary, fontSize: 13, height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Continue', style: TextStyle(color: c.textSecondary)),
+            child: Text(l.trafficContinue, style: TextStyle(color: c.textSecondary)),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: c.accent),
@@ -862,8 +837,8 @@ class _MapScreenState extends State<MapScreen>
               Navigator.pop(context);
               _rerouteAndNavigate();
             },
-            child: const Text('Recalculate route',
-                style: TextStyle(color: Colors.white)),
+            child: Text(l.trafficRecalculate,
+                style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -872,7 +847,10 @@ class _MapScreenState extends State<MapScreen>
 
   void _updateNavNotification() {
     if (_route == null || !_isNavigating) return;
-    final step = _route!.steps[_currentStepIdx];
+    // Show the next upcoming maneuver, consistent with the in-app nav card.
+    final nextIdx = (_currentStepIdx + 1 < _route!.steps.length)
+        ? _currentStepIdx + 1 : _currentStepIdx;
+    final step = _route!.steps[nextIdx];
     final distM = step.distanceM;
     final distLabel = distM < 50
         ? 'Ora'
@@ -932,7 +910,12 @@ class _MapScreenState extends State<MapScreen>
     _ttsAnnounced200 = -1;
     _ttsAnnounced50  = -1;
     final lang = Localizations.localeOf(context).languageCode;
-    _tts.init(lang);
+    // Set language immediately so bundled assets resolve correctly even before
+    // the model finishes loading.  Then init the model in the background for
+    // maneuver synthesis.
+    _tts.setLanguage(lang);
+    unawaited(_tts.init(lang));
+    if (!silent && !_voiceMuted) unawaited(_tts.announceStart());
     setState(() {
       _route = route;
       _currentStepIdx = 0;
@@ -942,13 +925,15 @@ class _MapScreenState extends State<MapScreen>
       _followUser = _gpsReady;
       _headingMode = _gpsReady;
     });
-    WakelockPlus.enable();
+    if (Hive.box('settings').get('keepScreenOn', defaultValue: true) as bool) {
+      WakelockPlus.enable();
+    }
 
     if (silent) {
       // Reroute during active navigation: no overview zoom, no transition lock.
       // Just animate the camera to the current GPS position at nav zoom level.
       _animateCamera(
-          toCenter: _position, toZoom: 17.0, toRot: -_compassHeading);
+          toCenter: _position, toZoom: 17.0, toRot: -_heading);
       _updateNavNotification();
       // Announce the first step of the new route immediately.
       if (route.steps.isNotEmpty) {
@@ -979,6 +964,15 @@ class _MapScreenState extends State<MapScreen>
 
   Future<void> _requestAlternatives(LatLng destination,
       {String? label, LatLng? fromPosition}) async {
+    // Block navigation when GPS hasn't acquired a real fix yet.
+    // Using the Italy fallback (42.5, 12.5) as origin would produce a useless
+    // route from the middle of the country to the destination.
+    if (!_gpsReady && fromPosition == null) {
+      _snack(AppLocalizations.of(context)!.acquiringGps);
+      _requestGps();   // prompt the user to enable GPS
+      return;
+    }
+
     _pendingLabel = label;
     // Start reverse geocode in parallel (only for map taps where no label is known yet).
     final geocodeFuture = label == null
@@ -997,7 +991,7 @@ class _MapScreenState extends State<MapScreen>
     _searchController.clear();
     FocusScope.of(context).unfocus();
 
-    final origin = fromPosition ?? (_gpsReady ? _position : _camCenter);
+    final origin = fromPosition ?? _position; // _gpsReady guaranteed above
     final (:provider, :apiKey, :ghServer) = _resolveProvider();
 
     final lang = Localizations.localeOf(context).languageCode;
@@ -1070,7 +1064,7 @@ class _MapScreenState extends State<MapScreen>
   List<RoadEvent> _routeTrafficEvents(RouteResult route) {
     const maxM = 400.0;
     final dist = const Distance();
-    return _roadEvents.where((ev) => route.polyline.any(
+    return _roadEvents.where((ev) => !ev.isExpired && route.polyline.any(
         (p) => dist.as(LengthUnit.Meter, p, ev.position) < maxM)).toList();
   }
 
@@ -1160,7 +1154,8 @@ class _MapScreenState extends State<MapScreen>
     if (_destination == null) return;
     setState(() { _transportMode = vehicle; _isCalculating = true; });
 
-    final origin = _gpsReady ? _position : _camCenter;
+    if (!_gpsReady) { setState(() => _isCalculating = false); return; }
+    final origin = _position;
     final (:provider, :apiKey, :ghServer) = _resolveProvider();
     final lang = Localizations.localeOf(context).languageCode;
 
@@ -1404,6 +1399,7 @@ class _MapScreenState extends State<MapScreen>
 
   void _showExitNavigationDialog() {
     final c = RoadstrColors.of(context);
+    final l = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -1411,16 +1407,14 @@ class _MapScreenState extends State<MapScreen>
         title: Row(children: [
           Icon(Icons.navigation_rounded, color: c.accent, size: 20),
           const SizedBox(width: 8),
-          Text('Exit navigation?',
+          Text(l.navExitTitle,
               style: TextStyle(color: c.textPrimary, fontSize: 16,
                   fontWeight: FontWeight.bold)),
         ]),
-        content: Text(
-          'Do you want to stop navigation and return to the map?',
+        content: Text(l.navExitBody,
           style: TextStyle(color: c.textSecondary, fontSize: 13),
         ),
         actions: [
-          // "Continue" — no-op; the dialog simply closes
           OutlinedButton(
             onPressed: () => Navigator.pop(context),
             style: OutlinedButton.styleFrom(
@@ -1428,7 +1422,7 @@ class _MapScreenState extends State<MapScreen>
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
             ),
-            child: Text('Continue navigation',
+            child: Text(l.navContinue,
                 style: TextStyle(color: c.accent)),
           ),
           FilledButton(
@@ -1438,8 +1432,8 @@ class _MapScreenState extends State<MapScreen>
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
             ),
-            child: const Text('Yes, exit',
-                style: TextStyle(color: Colors.white)),
+            child: Text(l.navExit,
+                style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -1559,10 +1553,16 @@ class _MapScreenState extends State<MapScreen>
   /// skipping the redundant reverse-geocode step since we already have the name.
   Future<void> _showPlaceInfoForResult(NominatimResult result) async {
     _pendingLabel = result.shortName;
+    // Build a geo-disambiguated query: "Teodorico Ravenna" beats plain "Teodorico"
+    // for both the Wikipedia fallback and the web-search button.
+    final wikiQ = (result.city != null && result.city != result.shortName)
+        ? '${result.shortName} ${result.city}'
+        : result.shortName;
+
     setState(() {
       _placePoint     = result.position;
       _placeAddress   = result.displayName.split(',').take(3).join(', ');
-      _placeWikiQuery = result.shortName;
+      _placeWikiQuery = wikiQ;
       _placeWiki      = null;
       _placeLoading   = true;
       _showPlaceInfo  = true;
@@ -1572,12 +1572,11 @@ class _MapScreenState extends State<MapScreen>
     // Keep the search text so the user can refine without retyping.
     FocusScope.of(context).unfocus();
 
-    // Geo-aware Wikipedia lookup (small radius since we know the exact position)
     final lang = Localizations.localeOf(context).languageCode;
     final wiki = await WikiSearch.fetchWikiNearby(
       result.position.latitude, result.position.longitude,
       lang:          lang,
-      fallbackQuery: result.shortName,
+      fallbackQuery: wikiQ,
       radiusM:       200,
     );
     if (!mounted) return;
@@ -1603,7 +1602,7 @@ class _MapScreenState extends State<MapScreen>
     setState(() { _headingMode = false; _followUser = true; });
 
     _northTimer?.cancel();
-    _camTicker?.dispose();
+    _camTicker?.cancel();
     _camTicker = null;
 
     final startRot    = _mapController.camera.rotation;
@@ -1666,58 +1665,48 @@ class _MapScreenState extends State<MapScreen>
     if (!toCenter.latitude.isFinite || !toCenter.longitude.isFinite ||
         !toZoom.isFinite || !toRot.isFinite) return;
     final dur = durationMs ?? _animMs;
-    _camTicker?.dispose();
+    _camTicker?.cancel();
+    _camTicker = null;
 
     // Always read starting values from the actual flutter_map camera state.
     // _camRotDeg/_camCenter/_camZoom can be stale if MapEventMove arrived
     // out of order or a GPS tick updated flutter_map without updating our
     // internal copies — causing delta=0 and an invisible animation.
     final cam = _mapController.camera;
-    final startRot    = cam.rotation;
-    final startZoom   = cam.zoom;
-    final startCenter = cam.center;
+    final fromRot    = cam.rotation;
+    final fromZoom   = cam.zoom;
+    final fromCenter = cam.center;
 
-    double delta = toRot - startRot;
+    double delta = toRot - fromRot;
     while (delta > 180) delta -= 360;
     while (delta < -180) delta += 360;
-    _fromRot = startRot;   _toRot    = startRot + delta;
-    _fromZoom = startZoom; _toZoom   = toZoom;
-    _fromCenter = startCenter; _toCenter = toCenter;
-    _camTicker = createTicker((elapsed) {
-      if (!mounted) return;
-      // Use the ticker's own elapsed Duration instead of wall-clock delta.
-      // DateTime.now() can jump (device load, scheduler delays), causing t to
-      // leap to 1.0 on the very first tick and making the animation appear
-      // as an instant flash rather than a smooth transition.
-      final t = (elapsed.inMilliseconds / dur).clamp(0.0, 1.0);
-      // Cubic ease-in-out applied to t.
+    final endRot = fromRot + delta;
+
+    final startMs = DateTime.now().millisecondsSinceEpoch;
+    _camTicker = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+      if (!mounted) { timer.cancel(); _camTicker = null; return; }
+      final t = ((DateTime.now().millisecondsSinceEpoch - startMs) / dur)
+          .clamp(0.0, 1.0);
+      // Cubic ease-in-out.
       final e = t < 0.5 ? 4*t*t*t : 1 - math.pow(-2*t+2, 3)/2;
-      final rot  = _fromRot  + (_toRot  - _fromRot)  * e;
-      final zoom = (_fromZoom + (_toZoom - _fromZoom) * e).clamp(1.0, 22.0);
-      final lat  = _fromCenter.latitude  + (_toCenter.latitude  - _fromCenter.latitude)  * e;
-      final lng  = _fromCenter.longitude + (_toCenter.longitude - _fromCenter.longitude) * e;
+      final rot  = fromRot  + (endRot  - fromRot)  * e;
+      final zoom = (fromZoom + (toZoom  - fromZoom) * e).clamp(1.0, 22.0);
+      final lat  = fromCenter.latitude  + (toCenter.latitude  - fromCenter.latitude)  * e;
+      final lng  = fromCenter.longitude + (toCenter.longitude - fromCenter.longitude) * e;
       if (!lat.isFinite || lat < -90 || lat > 90 ||
           !lng.isFinite || lng < -180 || lng > 180 ||
           !zoom.isFinite || !rot.isFinite) return;
       _mapController.moveAndRotate(LatLng(lat, lng), zoom, rot);
       _camRotDeg = rot; _camZoom = zoom; _camCenter = LatLng(lat, lng);
       if (t >= 1.0) {
-        // Snap to exact target values to eliminate floating-point drift.
-        _camRotDeg = _toRot; _camZoom = _toZoom; _camCenter = _toCenter;
-        // Defer ticker disposal to the next frame.
-        // Self-disposing a ticker from within its own callback can leave the
-        // TickerProviderStateMixin in an inconsistent state, causing subsequent
-        // createTicker() calls to return tickers that fire only once.
-        final done = _camTicker;
+        _camRotDeg = endRot; _camZoom = toZoom; _camCenter = toCenter;
+        timer.cancel();
         _camTicker = null;
-        SchedulerBinding.instance.addPostFrameCallback((_) => done?.dispose());
         // Skip setState during active navigation: GPS ticks already trigger
-        // frequent rebuilds via _updateRemainingStats, and the extra setState
-        // here caused a rebuild-flash every 380 ms (one animation cycle).
+        // frequent rebuilds via _updateRemainingStats.
         if (!_isNavigating) setState(() {});
       }
     });
-    _camTicker!.start();
   }
 
   void _loadHistory() {
@@ -1976,8 +1965,13 @@ class _MapScreenState extends State<MapScreen>
     final c = RoadstrColors.of(context);
     final topInset = MediaQuery.of(context).viewPadding.top;
     final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+    // Show the NEXT upcoming maneuver (what to do next), not the current step
+    // that was just executed.  The distance countdown (_distToNextManeuverM) is
+    // already the distance to that next step, so instruction and distance match.
+    final _nextStepIdx = (_route != null && _currentStepIdx + 1 < _route!.steps.length)
+        ? _currentStepIdx + 1 : _currentStepIdx;
     final currentStep = (_route != null && _route!.steps.isNotEmpty)
-        ? _route!.steps[_currentStepIdx] : null;
+        ? _route!.steps[_nextStepIdx] : null;
 
     return PopScope(
       canPop: !_showSearch && !_showPreview && !_showAlternatives && !_isNavigating,
@@ -2006,10 +2000,14 @@ class _MapScreenState extends State<MapScreen>
             options: MapOptions(
               initialCenter: _position,
               initialZoom: _initialZoom,
+              // Clamp zoom to the tile layer's native range so the map never
+              // shows blank grey tiles when the user over-zooms.
+              minZoom: 2.0,
+              maxZoom: 19.0,
               onMapEvent: (e) {
                 if (e is MapEventMoveStart &&
                     e.source != MapEventSource.mapController) {
-                  _camTicker?.dispose(); _camTicker = null;
+                  _camTicker?.cancel(); _camTicker = null;
                   // Any user pan or pinch-zoom disables follow mode so they
                   // can look ahead freely on the route. Follow resumes when
                   // the user taps the GPS FAB (_recenter) or the heading toggle.
@@ -2064,9 +2062,25 @@ class _MapScreenState extends State<MapScreen>
             ),
             children: [
               TileLayer(
-                urlTemplate: c.mapTile,
+                urlTemplate: Hive.box('settings').get('mapTileUrl', defaultValue: c.mapTile) as String,
+                subdomains: c.mapTileSubs?.split('') ?? const [],
                 userAgentPackageName: 'com.example.roadstr',
                 maxZoom: 19,
+                // In dark mode: boost contrast without hue shift so roads stand
+                // out against the dark CartoDB background.
+                // 2.0× multiplier, −20 offset: background (13)→6, roads (42)→64.
+                // Contrast ratio major roads vs background: ~10×.
+                tileBuilder: c.isDark
+                    ? (_, tile, __) => ColorFiltered(
+                          colorFilter: const ColorFilter.matrix([
+                            2.0, 0,   0,   0, -20,
+                            0,   2.0, 0,   0, -20,
+                            0,   0,   2.0, 0, -20,
+                            0,   0,   0,   1, 0,
+                          ]),
+                          child: tile,
+                        )
+                    : null,
               ),
               if (_showAlternatives)
                 PolylineLayer(polylines: [
@@ -2147,12 +2161,22 @@ class _MapScreenState extends State<MapScreen>
                       ),
                 ]),
               if (_gpsReady)
-                MarkerLayer(markers: [
-                  Marker(point: _position, width: 48, height: 48,
-                      child: _UserMarker(
-                          heading: _headingMode ? 0 : _heading,
-                          accent: c.accent)),
-                ]),
+                MarkerLayer(
+                  // rotate: true keeps the marker upright in screen space so
+                  // its heading angle is always relative to the screen, not the
+                  // map. Without this, flutter_map rotates the marker widget
+                  // together with the map, making the arrow appear perpendicular
+                  // to the direction of travel when the map is tilted.
+                  rotate: true,
+                  markers: [
+                    Marker(point: _position, width: 48, height: 48,
+                        child: _UserMarker(
+                            // In heading mode the map top = travel direction,
+                            // so heading 0 (arrow up) is correct.
+                            // Outside navigation the compass bearing is used.
+                            heading: _headingMode ? 0 : _heading,
+                            accent: c.accent)),
+                  ]),
               // Purple dropped pin from search-bar Enter
               if (_pinResult != null)
                 MarkerLayer(markers: [
@@ -2459,8 +2483,44 @@ class _MapScreenState extends State<MapScreen>
   }
 
   @override
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.paused:
+        // Screen off / app backgrounded. Stop sensors to save battery.
+        // GPS keeps running if navigation is active (foreground service handles it).
+        _magnetSub?.cancel(); _magnetSub = null;
+        _accelSub?.cancel();  _accelSub  = null;
+        if (!_isNavigating) {
+          _gps.stop();
+          WakelockPlus.disable();
+        }
+      case AppLifecycleState.resumed:
+        // Re-start sensors and clean up stale events.
+        if (_magnetSub == null) _startCompass();
+        if (!_gpsReady) _gps.start().then((_) {
+          _gpsSub ??= _gps.stream.listen(_onGps);
+        });
+        if (mounted) {
+          final pruned = _roadEvents.where((e) => !e.isExpired).toList();
+          if (pruned.length != _roadEvents.length) {
+            setState(() => _roadEvents = pruned);
+          }
+        }
+      case AppLifecycleState.detached:
+        // App fully closed — stop GPS immediately so the foreground
+        // service (and its CPU wakelock) are released before the process exits.
+        _gps.stop();
+        WakelockPlus.disable();
+      default:
+        break;
+    }
+  }
+
+  @override
   void dispose() {
-    _camTicker?.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    _camTicker?.cancel();
     _gpsSub?.cancel();
     _roadSub?.cancel();
     _northTimer?.cancel();
@@ -2934,11 +2994,14 @@ class _ReportSheetState extends State<_ReportSheet> {
           style: TextStyle(color: c.textSecondary, fontSize: 11),
         ),
         const SizedBox(height: 12),
-        GridView.count(
+        // Use MaxCrossAxisExtent so each cell is ≥ 64dp on any screen width.
+        // crossAxisCount: 5 was breaking on phones narrower than ~360dp.
+        GridView(
           shrinkWrap: true,
-          crossAxisCount: 5,
-          mainAxisSpacing: 8, crossAxisSpacing: 8,
-          childAspectRatio: 0.85,
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 80,
+              mainAxisSpacing: 8, crossAxisSpacing: 8,
+              childAspectRatio: 0.85),
           physics: const NeverScrollableScrollPhysics(),
           children: RoadCategory.values.map((cat) {
             final sel = _selected == cat;
@@ -3165,10 +3228,13 @@ class _PlaceInfoPanelState extends State<_PlaceInfoPanel>
   @override
   Widget build(BuildContext context) {
     final c = widget.colors;
+    // Drag limit: 55% of available height so the panel stays partly visible
+    // on short screens (480dp) while allowing full dismiss on tall ones.
+    final maxDrag = MediaQuery.of(context).size.height * 0.55;
     return SlideTransition(
       position: _slide,
       child: Transform.translate(
-        offset: Offset(0, _dragDy.clamp(0.0, 400.0)),
+        offset: Offset(0, _dragDy.clamp(0.0, maxDrag)),
         child: GestureDetector(
           // Only track downward drag — the panel must not physically move
           // upward during gesture; upward swipe is detected by velocity only.
@@ -3220,7 +3286,7 @@ class _PlaceInfoPanelState extends State<_PlaceInfoPanel>
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: c.accent)),
                   const SizedBox(width: 10),
-                  Text('Loading information…',
+                  Text(AppLocalizations.of(context)!.loadingInfo,
                       style: TextStyle(color: c.textSecondary, fontSize: 13)),
                 ])
               : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -3300,7 +3366,7 @@ class _PlaceInfoPanelState extends State<_PlaceInfoPanel>
                       borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(vertical: 11),
                 ),
-                child: Text('Close',
+                child: Text(AppLocalizations.of(context)!.cancel,
                     style: TextStyle(color: c.textSecondary)),
               ),
               const SizedBox(width: 12),
@@ -3314,8 +3380,8 @@ class _PlaceInfoPanelState extends State<_PlaceInfoPanel>
                 ),
                 icon: const Icon(Icons.navigation_rounded,
                     color: Colors.white, size: 18),
-                label: const Text('Navigate here',
-                    style: TextStyle(color: Colors.white)),
+                label: Text(AppLocalizations.of(context)!.startNavigation,
+                    style: const TextStyle(color: Colors.white)),
               )),
             ]),
           ),
@@ -3546,8 +3612,8 @@ class _RoutePlannerBar extends StatelessWidget {
                   ? Icons.directions_walk_rounded
                   : Icons.navigation_rounded,
               color: Colors.white, size: 16),
-            label: const Text('Calculate route',
-                style: TextStyle(color: Colors.white, fontSize: 13)),
+            label: Text(AppLocalizations.of(context)!.calculateRoute,
+                style: const TextStyle(color: Colors.white, fontSize: 13)),
           ),
         ]),
       ]),
@@ -3841,7 +3907,7 @@ class _PreviewPanel extends StatelessWidget {
               const SizedBox(height: 12),
               Divider(height: 0.5, color: c.border),
               const SizedBox(height: 10),
-              Text('Conditions on route',
+              Text(AppLocalizations.of(context)!.conditionsOnRoute,
                   style: TextStyle(color: c.textSecondary, fontSize: 11,
                       fontWeight: FontWeight.bold, letterSpacing: 0.5)),
               const SizedBox(height: 6),
@@ -3910,8 +3976,8 @@ class _PreviewPanel extends StatelessWidget {
                       ? Icons.directions_walk_rounded
                       : Icons.navigation_rounded,
                   color: Colors.white, size: 18),
-                label: const Text('Start navigation',
-                    style: TextStyle(color: Colors.white)),
+                label: Text(AppLocalizations.of(context)!.startNavigation,
+                    style: const TextStyle(color: Colors.white)),
               ),
             ),
           ]),
@@ -4408,11 +4474,11 @@ class _NavInstruction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final land = MediaQuery.of(context).orientation == Orientation.landscape;
-    final iconSz = land ? 20.0 : 26.0;
-    final boxSz  = land ? 32.0 : 44.0;
-    final fsMain = land ? 12.0 : 14.0;
-    final fsSub  = land ? 11.0 : 12.0;
-    final vPad   = land ?  6.0 : 12.0;
+    final iconSz = land ? 32.0 : 48.0;
+    final boxSz  = land ? 56.0 : 88.0;
+    final fsMain = land ? 16.0 : 22.0;
+    final fsSub  = land ? 13.0 : 17.0;
+    final vPad   = land ? 10.0 : 20.0;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: vPad),
       decoration: BoxDecoration(

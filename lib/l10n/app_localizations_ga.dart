@@ -93,9 +93,6 @@ class AppLocalizationsGa extends AppLocalizations {
   String get sectionMap => 'Léarscáil';
 
   @override
-  String get sectionPrivacy => 'Príobháideacht';
-
-  @override
   String get sectionInfo => 'Eolas';
 
   @override
@@ -106,6 +103,12 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => 'Geal · Bitcoin Oráiste';
+
+  @override
+  String get themeDarkNostr => 'Dorcha · Nostr Corcairghorm';
+
+  @override
+  String get themeDarkBitcoin => 'Dorcha · Bitcoin Oráiste';
 
   @override
   String get langSystem => 'Réamhshocrú córais';
@@ -173,13 +176,6 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get close => 'Dún';
-
-  @override
-  String get privacyMode => 'Mód príobháideachta';
-
-  @override
-  String get privacyModeDescription =>
-      'Ná seol sonraí teileamheictrice anaithnid';
 
   @override
   String get infoVersion => 'Leagan';
@@ -570,4 +566,109 @@ class AppLocalizationsGa extends AppLocalizations {
   @override
   String get favoriteGeocodingError =>
       'Seoladh gan aimsiú. Bain triail as seoladh níos sonraí.';
+
+  @override
+  String get trafficAlertTitle => 'Trácht nua ar an mbealach';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$category tuairiscithe $age ar do bhealach.\n\nAn dteastaíonn uait bealach malartach a aimsiú?';
+  }
+
+  @override
+  String get trafficContinue => 'Lean ar aghaidh';
+
+  @override
+  String get trafficRecalculate => 'Athríomh an bealach';
+
+  @override
+  String get navExitTitle => 'Fág an nascleanúint?';
+
+  @override
+  String get navExitBody =>
+      'An dteastaíonn uait an nascleanúint a stopadh agus filleadh ar an léarscáil?';
+
+  @override
+  String get navContinue => 'Lean ar aghaidh le nascleanúint';
+
+  @override
+  String get navExit => 'Sea, fág';
+
+  @override
+  String get loadingInfo => 'Ag lódáil faisnéise…';
+
+  @override
+  String get conditionsOnRoute => 'Coinníollacha ar an mbealach';
+
+  @override
+  String get calculateRoute => 'Ríomh an bealach';
+
+  @override
+  String get sectionNavigationVoice => 'Guth nascleanúna';
+
+  @override
+  String get voiceGuidance => 'Treoir ghutha';
+
+  @override
+  String get voiceGuidanceDesc =>
+      'Léigh treoracha casta os ard le linn nascleanúna';
+
+  @override
+  String get testVoiceEngine => 'Tástáil inneall gutha';
+
+  @override
+  String get testVoiceEngineDesc =>
+      'Tapáil chun an t-inneall TTS a sheiceáil agus treoracha socraithe a fháil';
+
+  @override
+  String get ttsDialogTitle => 'Inneall gutha ar iarraidh';
+
+  @override
+  String get ttsDialogBody =>
+      'Níor aimsíodh aon inneall Text-to-Speech atá ag feidhmiú.\n\nNíl Roadstr ag brath ach ar bhogearraí foinse oscailte — suiteáil ceann de na hinnill shaora seo ó F-Droid:';
+
+  @override
+  String get ttsRhvoiceDesc => 'Guth nádúrtha, liosta teangacha teoranta';
+
+  @override
+  String get ttsEspeakDesc => 'Clúdaíonn os cionn 100 teanga, guth róbatach';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ Tar éis na suiteála:\n1. Socruithe Android → Inrochtaineacht → Téacs go Guth\n2. Roghnaigh an t-inneall a shuiteáil tú anois beag\n3. Íoslódáil sonraí gutha do theanga\n4. Atosaigh Roadstr go hiomlán';
+
+  @override
+  String get ttsTestNow => 'Tástáil anois';
+
+  @override
+  String get voiceUnsupportedTitle => 'Treoir ghutha níl ar fáil';
+
+  @override
+  String get voiceUnsupportedBody =>
+      'Níl do theanga tacaithe go fóill le haghaidh treoracha cas labhartha. Beidh treoracha nascleanúna le feiceáil fós mar théacs ar an scáileán.';
+
+  @override
+  String get kokoroModelTitle => 'Samhail ghutha (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => 'Gan íoslódáil · ~82 MB';
+
+  @override
+  String get kokoroModelStatusDownloading => 'Ag íoslódáil...';
+
+  @override
+  String get kokoroModelStatusReady => 'Samhail ghutha réidh';
+
+  @override
+  String get kokoroModelDownloadBtn => 'Íoslódáil';
+
+  @override
+  String get kokoroModelSupportedLangs =>
+      'Tacaíonn: Iodáilis, Béarla, Spáinnis, Fraincis, Seapáinis, Sínis, Portaingéilis';
+
+  @override
+  String get autoDarkMode => 'Téama dorcha uathoibríoch';
+
+  @override
+  String get autoDarkModeDesc => 'Gníomhaíonn an téama dorcha ag luí na gréine';
 }

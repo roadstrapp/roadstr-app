@@ -93,9 +93,6 @@ class AppLocalizationsBg extends AppLocalizations {
   String get sectionMap => 'Карта';
 
   @override
-  String get sectionPrivacy => 'Поверителност';
-
-  @override
   String get sectionInfo => 'Инфо';
 
   @override
@@ -106,6 +103,12 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => 'Светла · Bitcoin Оранжево';
+
+  @override
+  String get themeDarkNostr => 'Тъмна · Nostr Виолетово';
+
+  @override
+  String get themeDarkBitcoin => 'Тъмна · Bitcoin Оранжево';
 
   @override
   String get langSystem => 'Системно по подразбиране';
@@ -172,13 +175,6 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get close => 'Затвори';
-
-  @override
-  String get privacyMode => 'Режим на поверителност';
-
-  @override
-  String get privacyModeDescription =>
-      'Не изпращайте анонимни телеметрични данни';
 
   @override
   String get infoVersion => 'Версия';
@@ -571,4 +567,110 @@ class AppLocalizationsBg extends AppLocalizations {
   @override
   String get favoriteGeocodingError =>
       'Адресът не е намерен. Опитай по-точен адрес.';
+
+  @override
+  String get trafficAlertTitle => 'Нов трафик по маршрута';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$category съобщено $age по вашия маршрут.\n\nИскате ли да намерите алтернативен маршрут?';
+  }
+
+  @override
+  String get trafficContinue => 'Продължи';
+
+  @override
+  String get trafficRecalculate => 'Преизчисли маршрута';
+
+  @override
+  String get navExitTitle => 'Излезте от навигацията?';
+
+  @override
+  String get navExitBody =>
+      'Искате ли да спрете навигацията и да се върнете към картата?';
+
+  @override
+  String get navContinue => 'Продължи навигацията';
+
+  @override
+  String get navExit => 'Да, излез';
+
+  @override
+  String get loadingInfo => 'Зареждане на информация…';
+
+  @override
+  String get conditionsOnRoute => 'Условия по маршрута';
+
+  @override
+  String get calculateRoute => 'Изчисли маршрута';
+
+  @override
+  String get sectionNavigationVoice => 'Глас за навигация';
+
+  @override
+  String get voiceGuidance => 'Гласово упътване';
+
+  @override
+  String get voiceGuidanceDesc =>
+      'Прочитане на инструкциите за завой на глас по време на навигация';
+
+  @override
+  String get testVoiceEngine => 'Тествай гласовия двигател';
+
+  @override
+  String get testVoiceEngineDesc =>
+      'Докоснете, за да проверите TTS двигателя и да получите инструкции за настройка';
+
+  @override
+  String get ttsDialogTitle => 'Липсва гласов двигател';
+
+  @override
+  String get ttsDialogBody =>
+      'Не е намерен работещ Text-to-Speech двигател.\n\nRoadstr разчита единствено на софтуер с отворен код — инсталирайте един от тези безплатни двигатели от F-Droid:';
+
+  @override
+  String get ttsRhvoiceDesc =>
+      'Естествено звучащ глас, ограничен списък с езици';
+
+  @override
+  String get ttsEspeakDesc => 'Покрива над 100 езика, роботизиран глас';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ След инсталиране:\n1. Настройки на Android → Достъпност → Синтезатор на реч\n2. Изберете току-що инсталирания двигател\n3. Изтеглете гласовите данни за вашия език\n4. Рестартирайте Roadstr напълно';
+
+  @override
+  String get ttsTestNow => 'Тествай сега';
+
+  @override
+  String get voiceUnsupportedTitle => 'Гласовото упътване не е налично';
+
+  @override
+  String get voiceUnsupportedBody =>
+      'Вашият език все още не се поддържа за гласови насоки за завой. Инструкциите за навигация ще продължат да се показват като текст на екрана.';
+
+  @override
+  String get kokoroModelTitle => 'Гласов модел (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => 'Не е изтеглено · ~82 МБ';
+
+  @override
+  String get kokoroModelStatusDownloading => 'Изтегляне...';
+
+  @override
+  String get kokoroModelStatusReady => 'Гласовият модел е готов';
+
+  @override
+  String get kokoroModelDownloadBtn => 'Изтегли';
+
+  @override
+  String get kokoroModelSupportedLangs =>
+      'Поддържа: италиански, английски, испански, френски, японски, китайски, португалски';
+
+  @override
+  String get autoDarkMode => 'Авто тъмна тема';
+
+  @override
+  String get autoDarkModeDesc => 'Активира тъмната тема при залез слънце';
 }

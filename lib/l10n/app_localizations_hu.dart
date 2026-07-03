@@ -94,9 +94,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get sectionMap => 'Térkép';
 
   @override
-  String get sectionPrivacy => 'Adatvédelem';
-
-  @override
   String get sectionInfo => 'Info';
 
   @override
@@ -107,6 +104,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => 'Világos · Bitcoin Narancs';
+
+  @override
+  String get themeDarkNostr => 'Sötét · Nostr Lila';
+
+  @override
+  String get themeDarkBitcoin => 'Sötét · Bitcoin Narancs';
 
   @override
   String get langSystem => 'Rendszer alapértelmezett';
@@ -172,13 +175,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get close => 'Bezárás';
-
-  @override
-  String get privacyMode => 'Adatvédelmi mód';
-
-  @override
-  String get privacyModeDescription =>
-      'Ne küldjön névtelen telemetriai adatokat';
 
   @override
   String get infoVersion => 'Verzió';
@@ -571,4 +567,110 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get favoriteGeocodingError =>
       'A cím nem található. Próbálj pontosabb címet.';
+
+  @override
+  String get trafficAlertTitle => 'Új forgalom az útvonalon';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$category jelezve $age az útvonalon.\n\nSzeretne alternatív útvonalat találni?';
+  }
+
+  @override
+  String get trafficContinue => 'Folytatás';
+
+  @override
+  String get trafficRecalculate => 'Útvonal újraszámítása';
+
+  @override
+  String get navExitTitle => 'Kilépés a navigációból?';
+
+  @override
+  String get navExitBody =>
+      'Meg szeretné állítani a navigációt és visszatérni a térképre?';
+
+  @override
+  String get navContinue => 'Navigáció folytatása';
+
+  @override
+  String get navExit => 'Igen, kilépés';
+
+  @override
+  String get loadingInfo => 'Információk betöltése…';
+
+  @override
+  String get conditionsOnRoute => 'Feltételek az útvonalon';
+
+  @override
+  String get calculateRoute => 'Útvonal kiszámítása';
+
+  @override
+  String get sectionNavigationVoice => 'Navigációs hang';
+
+  @override
+  String get voiceGuidance => 'Hangos útmutatás';
+
+  @override
+  String get voiceGuidanceDesc =>
+      'Kanyarodási utasítások felolvasása navigáció közben';
+
+  @override
+  String get testVoiceEngine => 'Hangmotor tesztelése';
+
+  @override
+  String get testVoiceEngineDesc =>
+      'Koppintson a TTS motor ellenőrzéséhez és a beállítási útmutatóhoz';
+
+  @override
+  String get ttsDialogTitle => 'Hiányzó hangmotor';
+
+  @override
+  String get ttsDialogBody =>
+      'Nem található működő Text-to-Speech motor.\n\nA Roadstr kizárólag nyílt forráskódú szoftverekre támaszkodik — telepítse az alábbi ingyenes motorok egyikét az F-Droidról:';
+
+  @override
+  String get ttsRhvoiceDesc =>
+      'Természetesen hangzó hang, korlátozott nyelvlista';
+
+  @override
+  String get ttsEspeakDesc => 'Több mint 100 nyelvet fed le, robotikus hang';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ A telepítés után:\n1. Android beállítások → Kisegítő lehetőségek → Szövegfelolvasás\n2. Válassza ki az imént telepített motort\n3. Töltse le a nyelvéhez tartozó hangadatokat\n4. Indítsa újra teljesen a Roadstr-t';
+
+  @override
+  String get ttsTestNow => 'Tesztelés most';
+
+  @override
+  String get voiceUnsupportedTitle => 'Hangos útmutatás nem érhető el';
+
+  @override
+  String get voiceUnsupportedBody =>
+      'Az Ön nyelve még nem támogatott a beszélt kanyarodási utasításokhoz. A navigációs utasítások továbbra is szövegként jelennek meg a képernyőn.';
+
+  @override
+  String get kokoroModelTitle => 'Hangmodell (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => 'Nem letöltve · ~82 MB';
+
+  @override
+  String get kokoroModelStatusDownloading => 'Letöltés...';
+
+  @override
+  String get kokoroModelStatusReady => 'Hangmodell készen áll';
+
+  @override
+  String get kokoroModelDownloadBtn => 'Letöltés';
+
+  @override
+  String get kokoroModelSupportedLangs =>
+      'Támogatja: olasz, angol, spanyol, francia, japán, kínai, portugál';
+
+  @override
+  String get autoDarkMode => 'Automatikus sötét téma';
+
+  @override
+  String get autoDarkModeDesc => 'Napnyugtakor aktiválja a sötét témát';
 }

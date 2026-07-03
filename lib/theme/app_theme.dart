@@ -22,23 +22,27 @@ const kNostrPurple = Color(0xFF8B5CF6);
 /// Bitcoin / Lightning Network brand colour — used as the accent for the Bitcoin theme.
 const kBitcoinOrange = Color(0xFFF7931A);
 
-/// Available theme identifiers. Only light themes exist for now.
-enum AppThemeId { lightNostr, lightBitcoin }
+/// Available theme identifiers.
+enum AppThemeId { lightNostr, lightBitcoin, darkNostr, darkBitcoin }
 
 extension AppThemeIdExt on AppThemeId {
   String localizedLabel(AppLocalizations l) {
     switch (this) {
       case AppThemeId.lightNostr:   return l.themeLightNostr;
       case AppThemeId.lightBitcoin: return l.themeLightBitcoin;
+      case AppThemeId.darkNostr:    return l.themeDarkNostr;
+      case AppThemeId.darkBitcoin:  return l.themeDarkBitcoin;
     }
   }
   Color get accent {
     switch (this) {
-      case AppThemeId.lightNostr:   return kNostrPurple;
-      case AppThemeId.lightBitcoin: return kBitcoinOrange;
+      case AppThemeId.lightNostr:
+      case AppThemeId.darkNostr:   return kNostrPurple;
+      case AppThemeId.lightBitcoin:
+      case AppThemeId.darkBitcoin: return kBitcoinOrange;
     }
   }
-  bool get isDark => false;
+  bool get isDark => this == AppThemeId.darkNostr || this == AppThemeId.darkBitcoin;
   int get index2 => AppThemeId.values.indexOf(this);
   static AppThemeId fromIndex(int i) =>
       AppThemeId.values[i.clamp(0, AppThemeId.values.length - 1)];
@@ -53,6 +57,41 @@ extension AppThemeIdExt on AppThemeId {
 class AppTheme {
   static ThemeData build(AppThemeId id) {
     final accent = id.accent;
+    final dark = id.isDark;
+    if (dark) {
+      return ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        colorScheme: ColorScheme.dark(
+          primary: accent, secondary: accent,
+          surface: const Color(0xFF1A1A2E), onSurface: const Color(0xFFEEEEF8),
+        ),
+        scaffoldBackgroundColor: const Color(0xFF0D0D1A),
+        cardColor: const Color(0xFF1A1A2E),
+        dividerColor: const Color(0xFF2A2A40),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF1A1A2E),
+          foregroundColor: Color(0xFFEEEEF8), elevation: 0,
+        ),
+        switchTheme: SwitchThemeData(
+          thumbColor: WidgetStateProperty.resolveWith((s) =>
+              s.contains(WidgetState.selected) ? accent : const Color(0xFF555570)),
+          trackColor: WidgetStateProperty.resolveWith((s) =>
+              s.contains(WidgetState.selected)
+                  ? accent.withValues(alpha: 0.4) : const Color(0xFF2A2A40)),
+        ),
+        extensions: [RoadstrColors(
+          accent: accent, accentSoft: accent.withValues(alpha: 0.18),
+          surface1: const Color(0xFF0D0D1A), surface2: const Color(0xFF1A1A2E),
+          surface3: const Color(0xFF22223A), border: const Color(0xFF2A2A40),
+          textPrimary: const Color(0xFFEEEEF8), textSecondary: const Color(0xFF8888A8),
+          isDark: true,
+          mapTile: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+          mapTileSubs: 'abcd',
+          mapTileAttrib: '© OpenStreetMap contributors © CARTO',
+        )],
+      );
+    }
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,

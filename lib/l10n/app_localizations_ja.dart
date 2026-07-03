@@ -92,9 +92,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get sectionMap => 'マップ';
 
   @override
-  String get sectionPrivacy => 'プライバシー';
-
-  @override
   String get sectionInfo => '情報';
 
   @override
@@ -105,6 +102,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => 'ライト · ビットコインオレンジ';
+
+  @override
+  String get themeDarkNostr => 'ダーク · Nostrバイオレット';
+
+  @override
+  String get themeDarkBitcoin => 'ダーク · ビットコインオレンジ';
 
   @override
   String get langSystem => 'システムデフォルト';
@@ -168,12 +171,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get close => '閉じる';
-
-  @override
-  String get privacyMode => 'プライバシーモード';
-
-  @override
-  String get privacyModeDescription => '匿名テレメトリデータを送信しない';
 
   @override
   String get infoVersion => 'バージョン';
@@ -554,4 +551,106 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get favoriteGeocodingError => '住所が見つかりません。より具体的な住所をお試しください。';
+
+  @override
+  String get trafficAlertTitle => 'ルート上の新しい交通情報';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$categoryが$ageにルート上で報告されました。\n\n代替ルートを探しますか？';
+  }
+
+  @override
+  String get trafficContinue => '続ける';
+
+  @override
+  String get trafficRecalculate => 'ルートを再計算';
+
+  @override
+  String get navExitTitle => 'ナビゲーションを終了しますか？';
+
+  @override
+  String get navExitBody => 'ナビゲーションを停止してマップに戻りますか？';
+
+  @override
+  String get navContinue => 'ナビゲーションを続ける';
+
+  @override
+  String get navExit => 'はい、終了';
+
+  @override
+  String get loadingInfo => '情報を読み込んでいます…';
+
+  @override
+  String get conditionsOnRoute => 'ルートの状況';
+
+  @override
+  String get calculateRoute => 'ルートを計算';
+
+  @override
+  String get sectionNavigationVoice => 'ナビゲーション音声';
+
+  @override
+  String get voiceGuidance => '音声案内';
+
+  @override
+  String get voiceGuidanceDesc => 'ナビゲーション中に曲がる指示を音声で読み上げます';
+
+  @override
+  String get testVoiceEngine => '音声エンジンをテスト';
+
+  @override
+  String get testVoiceEngineDesc => 'タップしてTTSエンジンを確認し、設定手順を取得';
+
+  @override
+  String get ttsDialogTitle => '音声エンジンがありません';
+
+  @override
+  String get ttsDialogBody =>
+      '動作するText-to-Speechエンジンが見つかりませんでした。\n\nRoadstrはオープンソースソフトウェアのみに依存しています — F-Droidからこれらの無料エンジンのいずれかをインストールしてください：';
+
+  @override
+  String get ttsRhvoiceDesc => '自然な音声、対応言語は限定的';
+
+  @override
+  String get ttsEspeakDesc => '100以上の言語に対応、機械的な音声';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ インストール後：\n1. Android設定 → ユーザー補助 → テキスト読み上げの出力\n2. インストールしたばかりのエンジンを選択\n3. お使いの言語の音声データをダウンロード\n4. Roadstrを完全に再起動';
+
+  @override
+  String get ttsTestNow => '今すぐテスト';
+
+  @override
+  String get voiceUnsupportedTitle => '音声案内は利用できません';
+
+  @override
+  String get voiceUnsupportedBody =>
+      'お使いの言語は音声によるナビゲーション案内にまだ対応していません。ナビゲーションの指示は引き続き画面にテキストで表示されます。';
+
+  @override
+  String get kokoroModelTitle => '音声モデル (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => '未ダウンロード · 約82 MB';
+
+  @override
+  String get kokoroModelStatusDownloading => 'ダウンロード中...';
+
+  @override
+  String get kokoroModelStatusReady => '音声モデル準備完了';
+
+  @override
+  String get kokoroModelDownloadBtn => 'ダウンロード';
+
+  @override
+  String get kokoroModelSupportedLangs =>
+      '対応言語：イタリア語、英語、スペイン語、フランス語、日本語、中国語、ポルトガル語';
+
+  @override
+  String get autoDarkMode => '自動ダークテーマ';
+
+  @override
+  String get autoDarkModeDesc => '日没時にダークテーマを有効にします';
 }

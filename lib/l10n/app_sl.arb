@@ -1,6 +1,5 @@
 {
   "@@locale": "sl",
-
   "searchHint": "Kam želite iti?",
   "calculatingRoute": "Izračunavanje poti…",
   "routeNotFoundTitle": "Pot ni bila najdena",
@@ -8,45 +7,47 @@
   "emptyServerResponse": "Prazen odgovor strežnika. Preverite povezavo.",
   "routeError": "Napaka pri izračunu poti: {error}",
   "@routeError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "gpsNotAvailable": "GPS ni na voljo — Settings → App → Roadstr → Permissions → Location",
   "acquiringGps": "Pridobivanje GPS-a…",
-
   "graphhopperServerNotConfigured": "Strežnik GraphHopper ni konfiguriran — uporabljam OSRM",
   "graphhopperApiKeyNotConfigured": "API-ključ GraphHopper ni konfiguriran — uporabljam OSRM",
   "openrouteApiKeyNotConfigured": "API-ključ OpenRouteService ni konfiguriran — uporabljam OSRM",
-
   "chooseRoute": "Izberite pot",
   "routeOptionsCount": "{count} možnosti",
   "@routeOptionsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "cancel": "Prekliči",
   "startNavigation": "Začni navigacijo",
   "fastestRoute": "Najhitrejša",
   "now": "Zdaj",
-
   "history": "Zgodovina",
   "clearHistory": "Počisti",
   "selectedPosition": "Izbrana lokacija",
-
   "bottomBarProfile": "Profil",
   "bottomBarMenu": "Meni",
-
   "settingsTitle": "Nastavitve",
   "sectionTheme": "Tema",
   "sectionMap": "Zemljevid",
-  "sectionPrivacy": "Zasebnost",
   "sectionInfo": "Informacije",
   "sectionLanguage": "Jezik",
   "themeLightNostr": "Svetla · Nostr Vijolična",
   "themeLightBitcoin": "Svetla · Bitcoin Oranžna",
+  "themeDarkNostr": "Temna · Nostr Vijolična",
+  "themeDarkBitcoin": "Temna · Bitcoin Oranžna",
   "langSystem": "Sistemska privzeta",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "Ohrani zaslon prižgan",
   "keepScreenOnDescription": "Prepreči spanje med navigacijo",
   "rotateMap": "Zemljevid sledi smeri",
@@ -65,10 +66,6 @@
   "graphhopperServerReachable": "Strežnik GraphHopper je dosegljiv",
   "errorTitle": "Napaka",
   "close": "Zapri",
-
-  "privacyMode": "Način zasebnosti",
-  "privacyModeDescription": "Ne pošiljaj anonimnih telemetričnih podatkov",
-
   "infoVersion": "Različica",
   "infoProtocol": "Protokol",
   "infoMaps": "Zemljevidi",
@@ -78,7 +75,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper (samogostovan)",
   "providerGraphhopperCloud": "GraphHopper (oblak)",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "Profil",
   "notConnected": "Nepovezano",
   "loginWithNostrTitle": "PRIJAVA Z NOSTROM",
@@ -94,13 +90,11 @@
   "logoutConfirmation": "Odstraniti poverilnice Nostr s te naprave?",
   "logoutButton": "Prekini povezavo",
   "nostrIdentityInfo": "Z identiteto Nostr lahko na decentraliziran način objavljate prometna opozorila, poročila in točke zanimanja v omrežju Nostr brez centralnih strežnikov.",
-
   "warningTitle": "Opozorilo",
   "nsecWarning": "Tik pred tem ste, da kar tako vtisnete vaš zasebni ključ Nostr neposredno v aplikacijo. Kdorkoli z fizičnim ali oddaljenim dostopom do vaše naprave ga lahko prebere in za vedno prevzame nadzor nad vašo identiteto Nostr.",
   "amberSecureMethodHint": "✦  Varna metoda je Amber (NIP-55): nsec nikoli ne zapusti trezorja za podpisovanje aplikacij.",
   "nsecRiskAcknowledgment": "Razumem tveganje in želim nadaljevati",
   "continueButton": "Nadaljuj",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber je podpisnik aplikacij za Android, skladen z NIP-55. Vaš zasebni ključ ostane izoliran znotraj Amber in nikoli ni deljen.",
   "requestKeyFromAmber": "Zahtevaj javni ključ iz Amber",
@@ -117,18 +111,15 @@
   "amberResponseError": "Napaka odgovora Amber",
   "ok": "V redu",
   "or": "ali",
-
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS ni aktiven",
   "gpsDisabledMessage": "Aktivirajte GPS v nastavitvah naprave, da pridobite svojo lokacijo in uporabljate navigacijo.",
   "openSettings": "Nastavitve",
-
   "@_CONTEXT_MENU": {},
   "myLocation": "Moja lokacija",
   "loginToReport": "Prijavite se z Nostrom (razdelek Profil) za poročanje o dogodkih",
   "navigateHere": "Navigiraj sem",
   "reportEventHere": "Poročaj o dogodku tukaj",
-
   "@_ZAP": {},
   "zapSendSats": "Zap ⚡ (pošlji sats)",
   "sendZap": "Pošlji Zap",
@@ -136,7 +127,13 @@
   "customAmount": "Poljuben znesek…",
   "zapSending": "Pošiljanje…",
   "zapSat": "⚡{sats} sat",
-  "@zapSat": { "placeholders": { "sats": { "type": "int" } } },
+  "@zapSat": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "fetchingLightningAddress": "Pridobivanje Lightning naslova…",
   "noLightningAddress": "Ta poročevalec nima Lightning naslova",
   "requestingInvoice": "Zahtevanje računa…",
@@ -146,20 +143,23 @@
   "payingViaNwc": "Plačevanje prek NWC…",
   "noLightningWallet": "Lightning denarnica ni najdena",
   "zapSent": "⚡ {sats} sats poslano!",
-  "@zapSent": { "placeholders": { "sats": { "type": "int" } } },
-
+  "@zapSent": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "@_ROAD_EVENT_DETAIL": {},
   "stillThere": "Še vedno tam",
   "notThereAnymore": "Ni več tam",
   "loginToConfirm": "Prijavite se z Nostrom za potrditev ali izpodbijanje",
-
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Poročaj o dogodku",
   "optionalComment": "Neobvezni komentar…",
   "publish": "Objavi",
   "publishing": "Objavljanje…",
   "reportPublished": "Poročilo objavljeno ✓",
-
   "@_PROFILE_ZAP": {},
   "myReports": "MOJA POROČILA",
   "noReportsYet": "Ni objavljenih poročil",
@@ -169,14 +169,25 @@
   "reputationMedium": "Srednja",
   "reputationLow": "Nizka",
   "reputationLabel": "Ugled {level}",
-  "@reputationLabel": { "placeholders": { "level": { "type": "String" } } },
+  "@reputationLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "reliability": "Zanesljivost: {pct}%",
-  "@reliability": { "placeholders": { "pct": { "type": "int" } } },
+  "@reliability": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "confirmedLabel": "Potrjeno",
   "removedLabel": "Odstranjeno",
   "positionLabel": "Položaj",
   "loadingLabel": "Nalaganje…",
-
   "@_SETTINGS_EXTRA": {},
   "sectionWebSearch": "Spletno iskanje",
   "sectionLightning": "Lightning",
@@ -187,7 +198,6 @@
   "searchEngineDdgDesc": "Osredotočen na zasebnost in priljubljen. Rezultati delno iz Binga — imejte to v mislih.",
   "searchEngineStartpageDesc": "Googlov rezultati brez predaje vaših podatkov Googlu. Razumni kompromis.",
   "searchEngineGoogleDesc": "Zelo učinkovito. A zapomnite si: Google vas pozna bolje kot vaša mama in vse prodaja oglaševalcem. Vaša odločitev. 🍪",
-
   "@_CATEGORIES": {},
   "categoryPolice": "Policija",
   "categorySpeedCamera": "Radar za merjenje hitrosti",
@@ -202,19 +212,67 @@
   "categoryIce": "Led",
   "categoryAnimal": "Žival",
   "categoryOther": "Drugo",
-
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Datum / čas",
   "minutesAgo": "pred {count} min",
-  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "pred {count}h",
-  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "daysAgo": "pred {count}d",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
-
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sectionFavorites": "Shranjene lokacije",
   "addFavorite": "Dodaj lokacijo",
   "favoriteLabelHint": "Ime (npr. Dom, Pisarna)",
   "favoriteAddressHint": "Naslov",
-  "favoriteGeocodingError": "Naslov ni bil najden. Poskusi z natančnejšim naslovom."
+  "favoriteGeocodingError": "Naslov ni bil najden. Poskusi z natančnejšim naslovom.",
+  "trafficAlertTitle": "Nov promet na poti",
+  "trafficAlertBody": "{category} prijavljeno {age} na vaši poti.\n\nAli želite poiskati alternativno pot?",
+  "trafficContinue": "Nadaljuj",
+  "trafficRecalculate": "Preračunaj pot",
+  "navExitTitle": "Izhod iz navigacije?",
+  "navExitBody": "Ali želite ustaviti navigacijo in se vrniti na zemljevid?",
+  "navContinue": "Nadaljuj navigacijo",
+  "navExit": "Da, izhod",
+  "loadingInfo": "Nalaganje informacij…",
+  "conditionsOnRoute": "Pogoji na poti",
+  "calculateRoute": "Izračunaj pot",
+  "sectionNavigationVoice": "Glas navigacije",
+  "voiceGuidance": "Glasovno vodenje",
+  "voiceGuidanceDesc": "Med navigacijo na glas preberi navodila za zavijanje",
+  "testVoiceEngine": "Preizkusi glasovni mehanizem",
+  "testVoiceEngineDesc": "Dotaknite se za preverjanje mehanizma TTS in navodila za namestitev",
+  "ttsDialogTitle": "Manjka glasovni mehanizem",
+  "ttsDialogBody": "Ni bilo mogoče najti delujočega mehanizma Text-to-Speech.\n\nRoadstr se zanaša izključno na odprtokodno programsko opremo — namestite enega od teh brezplačnih mehanizmov iz F-Droid:",
+  "ttsRhvoiceDesc": "Naravno zveneč glas, omejen seznam jezikov",
+  "ttsEspeakDesc": "Pokriva več kot 100 jezikov, robotski glas",
+  "ttsInstallNote": "⚠️ Po namestitvi:\n1. Android nastavitve → Dostopnost → Pretvorba besedila v govor\n2. Izberite pravkar nameščeni mehanizem\n3. Prenesite glasovne podatke za svoj jezik\n4. Popolnoma znova zaženite Roadstr",
+  "ttsTestNow": "Preizkusi zdaj",
+  "voiceUnsupportedTitle": "Glasovno vodenje ni na voljo",
+  "voiceUnsupportedBody": "Vaš jezik še ni podprt za govorjena navodila za zavijanje. Navigacijska navodila se bodo še naprej prikazovala kot besedilo na zaslonu.",
+  "kokoroModelTitle": "Glasovni model (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "Ni preneseno · ~82 MB",
+  "kokoroModelStatusDownloading": "Prenos...",
+  "kokoroModelStatusReady": "Glasovni model je pripravljen",
+  "kokoroModelDownloadBtn": "Prenesi",
+  "kokoroModelSupportedLangs": "Podpira: italijanščina, angleščina, španščina, francoščina, japonščina, kitajščina, portugalščina",
+  "autoDarkMode": "Samodejno temno ozadje",
+  "autoDarkModeDesc": "Aktivira temno temo ob sončnem zahodu"
 }
