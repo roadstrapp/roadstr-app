@@ -93,9 +93,6 @@ class AppLocalizationsLt extends AppLocalizations {
   String get sectionMap => 'Žemėlapis';
 
   @override
-  String get sectionPrivacy => 'Privatumas';
-
-  @override
   String get sectionInfo => 'Informacija';
 
   @override
@@ -106,6 +103,12 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => 'Šviesi · Bitcoin Oranžinė';
+
+  @override
+  String get themeDarkNostr => 'Tamsi · Nostr Violetinė';
+
+  @override
+  String get themeDarkBitcoin => 'Tamsi · Bitcoin Oranžinė';
 
   @override
   String get langSystem => 'Sistemos numatytoji';
@@ -171,13 +174,6 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get close => 'Uždaryti';
-
-  @override
-  String get privacyMode => 'Privatumo režimas';
-
-  @override
-  String get privacyModeDescription =>
-      'Nesiųsti anoniminių telemetrijos duomenų';
 
   @override
   String get infoVersion => 'Versija';
@@ -571,4 +567,110 @@ class AppLocalizationsLt extends AppLocalizations {
   @override
   String get favoriteGeocodingError =>
       'Adresas nerastas. Bandyk tikslesnį adresą.';
+
+  @override
+  String get trafficAlertTitle => 'Naujas eismas maršrute';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$category pranešta $age jūsų maršrute.\n\nAr norite rasti alternatyvų maršrutą?';
+  }
+
+  @override
+  String get trafficContinue => 'Tęsti';
+
+  @override
+  String get trafficRecalculate => 'Perskaičiuoti maršrutą';
+
+  @override
+  String get navExitTitle => 'Išeiti iš navigacijos?';
+
+  @override
+  String get navExitBody =>
+      'Ar norite sustabdyti navigaciją ir grįžti į žemėlapį?';
+
+  @override
+  String get navContinue => 'Tęsti navigaciją';
+
+  @override
+  String get navExit => 'Taip, išeiti';
+
+  @override
+  String get loadingInfo => 'Įkeliama informacija…';
+
+  @override
+  String get conditionsOnRoute => 'Sąlygos maršrute';
+
+  @override
+  String get calculateRoute => 'Apskaičiuoti maršrutą';
+
+  @override
+  String get sectionNavigationVoice => 'Navigacijos balsas';
+
+  @override
+  String get voiceGuidance => 'Balso nukreipimas';
+
+  @override
+  String get voiceGuidanceDesc =>
+      'Skaityti posūkio nurodymus garsiai navigacijos metu';
+
+  @override
+  String get testVoiceEngine => 'Išbandyti balso variklį';
+
+  @override
+  String get testVoiceEngineDesc =>
+      'Palieskite, kad patikrintumėte TTS variklį ir gautumėte nustatymo instrukcijas';
+
+  @override
+  String get ttsDialogTitle => 'Trūksta balso variklio';
+
+  @override
+  String get ttsDialogBody =>
+      'Nerasta veikiančio Text-to-Speech variklio.\n\n„Roadstr“ remiasi tik atvirojo kodo programine įranga — įdiekite vieną iš šių nemokamų variklių iš F-Droid:';
+
+  @override
+  String get ttsRhvoiceDesc =>
+      'Natūraliai skambantis balsas, ribotas kalbų sąrašas';
+
+  @override
+  String get ttsEspeakDesc => 'Apima daugiau nei 100 kalbų, robotiškas balsas';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ Įdiegus:\n1. Android nustatymai → Pritaikymas neįgaliesiems → Teksto į kalbą keitiklis\n2. Pasirinkite ką tik įdiegtą variklį\n3. Atsisiųskite savo kalbos balso duomenis\n4. Visiškai paleiskite „Roadstr“ iš naujo';
+
+  @override
+  String get ttsTestNow => 'Išbandyti dabar';
+
+  @override
+  String get voiceUnsupportedTitle => 'Balso nukreipimas nepasiekiamas';
+
+  @override
+  String get voiceUnsupportedBody =>
+      'Jūsų kalba dar nepalaikoma balsu skelbiamiems posūkio nurodymams. Navigacijos nurodymai ir toliau bus rodomi kaip tekstas ekrane.';
+
+  @override
+  String get kokoroModelTitle => 'Balso modelis (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => 'Neparsisiųsta · ~82 MB';
+
+  @override
+  String get kokoroModelStatusDownloading => 'Atsisiunčiama...';
+
+  @override
+  String get kokoroModelStatusReady => 'Balso modelis paruoštas';
+
+  @override
+  String get kokoroModelDownloadBtn => 'Atsisiųsti';
+
+  @override
+  String get kokoroModelSupportedLangs =>
+      'Palaiko: italų, anglų, ispanų, prancūzų, japonų, kinų, portugalų';
+
+  @override
+  String get autoDarkMode => 'Automatinė tamsi tema';
+
+  @override
+  String get autoDarkModeDesc => 'Aktyvuoja tamsią temą saulėlydžio metu';
 }

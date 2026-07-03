@@ -221,7 +221,7 @@ class RoadEvent {
       if (!lat.isFinite || lat < -90 || lat > 90) return null;
       if (!lon.isFinite || lon < -180 || lon > 180) return null;
 
-      return RoadEvent(
+      final event = RoadEvent(
         id:        json['id'] as String,
         pubkey:    json['pubkey'] as String,
         category:  RoadCategory.fromKey(tKey),
@@ -230,6 +230,10 @@ class RoadEvent {
         createdAt: json['created_at'] as int,
         expiresAt: exp,
       );
+      // Discard events that have already passed their client-side TTL so that
+      // historic relay events fetched on re-subscription never appear on the map.
+      if (event.isExpired) return null;
+      return event;
     } catch (_) {
       return null;
     }

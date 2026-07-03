@@ -93,9 +93,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get sectionMap => 'Χάρτης';
 
   @override
-  String get sectionPrivacy => 'Απόρρητο';
-
-  @override
   String get sectionInfo => 'Πληροφορίες';
 
   @override
@@ -106,6 +103,12 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => 'Φωτεινό · Bitcoin Πορτοκαλί';
+
+  @override
+  String get themeDarkNostr => 'Σκούρο · Nostr Βιολετί';
+
+  @override
+  String get themeDarkBitcoin => 'Σκούρο · Bitcoin Πορτοκαλί';
 
   @override
   String get langSystem => 'Προεπιλογή συστήματος';
@@ -173,13 +176,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get close => 'Κλείσιμο';
-
-  @override
-  String get privacyMode => 'Λειτουργία απορρήτου';
-
-  @override
-  String get privacyModeDescription =>
-      'Να μην αποστέλλονται ανώνυμα τηλεμετρικά δεδομένα';
 
   @override
   String get infoVersion => 'Έκδοση';
@@ -574,4 +570,111 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get favoriteGeocodingError =>
       'Η διεύθυνση δεν βρέθηκε. Δοκίμασε πιο συγκεκριμένη.';
+
+  @override
+  String get trafficAlertTitle => 'Νέα κίνηση στη διαδρομή';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$category αναφέρθηκε $age στη διαδρομή σας.\n\nΘέλετε να βρείτε εναλλακτική διαδρομή;';
+  }
+
+  @override
+  String get trafficContinue => 'Συνέχεια';
+
+  @override
+  String get trafficRecalculate => 'Επανυπολογισμός διαδρομής';
+
+  @override
+  String get navExitTitle => 'Έξοδος από πλοήγηση;';
+
+  @override
+  String get navExitBody =>
+      'Θέλετε να σταματήσετε την πλοήγηση και να επιστρέψετε στον χάρτη;';
+
+  @override
+  String get navContinue => 'Συνέχεια πλοήγησης';
+
+  @override
+  String get navExit => 'Ναι, έξοδος';
+
+  @override
+  String get loadingInfo => 'Φόρτωση πληροφοριών…';
+
+  @override
+  String get conditionsOnRoute => 'Συνθήκες στη διαδρομή';
+
+  @override
+  String get calculateRoute => 'Υπολογισμός διαδρομής';
+
+  @override
+  String get sectionNavigationVoice => 'Φωνή πλοήγησης';
+
+  @override
+  String get voiceGuidance => 'Φωνητική καθοδήγηση';
+
+  @override
+  String get voiceGuidanceDesc =>
+      'Ανάγνωση οδηγιών στροφής δυνατά κατά την πλοήγηση';
+
+  @override
+  String get testVoiceEngine => 'Δοκιμή μηχανής φωνής';
+
+  @override
+  String get testVoiceEngineDesc =>
+      'Πατήστε για έλεγχο της μηχανής TTS και οδηγίες ρύθμισης';
+
+  @override
+  String get ttsDialogTitle => 'Λείπει μηχανή φωνής';
+
+  @override
+  String get ttsDialogBody =>
+      'Δεν βρέθηκε λειτουργική μηχανή Text-to-Speech.\n\nΤο Roadstr βασίζεται αποκλειστικά σε λογισμικό ανοιχτού κώδικα — εγκαταστήστε μία από αυτές τις δωρεάν μηχανές από το F-Droid:';
+
+  @override
+  String get ttsRhvoiceDesc =>
+      'Φυσικά ηχητική φωνή, περιορισμένη λίστα γλωσσών';
+
+  @override
+  String get ttsEspeakDesc => 'Καλύπτει πάνω από 100 γλώσσες, ρομποτική φωνή';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ Μετά την εγκατάσταση:\n1. Ρυθμίσεις Android → Προσβασιμότητα → Σύνθεση φωνής\n2. Επιλέξτε τη μηχανή που μόλις εγκαταστήσατε\n3. Κατεβάστε τα φωνητικά δεδομένα της γλώσσας σας\n4. Επανεκκινήστε πλήρως το Roadstr';
+
+  @override
+  String get ttsTestNow => 'Δοκιμή τώρα';
+
+  @override
+  String get voiceUnsupportedTitle =>
+      'Η φωνητική καθοδήγηση δεν είναι διαθέσιμη';
+
+  @override
+  String get voiceUnsupportedBody =>
+      'Η γλώσσα σας δεν υποστηρίζεται ακόμα για φωνητικές οδηγίες στροφής. Οι οδηγίες πλοήγησης θα συνεχίσουν να εμφανίζονται ως κείμενο στην οθόνη.';
+
+  @override
+  String get kokoroModelTitle => 'Φωνητικό μοντέλο (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => 'Δεν έχει ληφθεί · ~82 MB';
+
+  @override
+  String get kokoroModelStatusDownloading => 'Λήψη...';
+
+  @override
+  String get kokoroModelStatusReady => 'Το φωνητικό μοντέλο είναι έτοιμο';
+
+  @override
+  String get kokoroModelDownloadBtn => 'Λήψη';
+
+  @override
+  String get kokoroModelSupportedLangs =>
+      'Υποστηρίζει: ιταλικά, αγγλικά, ισπανικά, γαλλικά, ιαπωνικά, κινεζικά, πορτογαλικά';
+
+  @override
+  String get autoDarkMode => 'Αυτόματο σκούρο θέμα';
+
+  @override
+  String get autoDarkModeDesc => 'Ενεργοποιεί το σκούρο θέμα στο ηλιοβασίλεμα';
 }

@@ -1,46 +1,39 @@
 {
   "@@locale": "it",
-
   "searchHint": "Dove vuoi andare?",
   "calculatingRoute": "Calcolo percorso…",
   "routeNotFoundTitle": "Percorso non trovato",
   "noRouteFound": "Nessun percorso trovato. Controlla la connessione.",
   "emptyServerResponse": "Risposta vuota dal server. Controlla la connessione.",
   "routeError": "Errore calcolo percorso: {error}",
-
   "gpsNotAvailable": "GPS non disponibile — Impostazioni → App → Roadstr → Permessi → Posizione",
   "acquiringGps": "Acquisizione GPS…",
-
   "graphhopperServerNotConfigured": "Server GraphHopper non configurato — uso OSRM",
   "graphhopperApiKeyNotConfigured": "API key GraphHopper non configurata — uso OSRM",
   "openrouteApiKeyNotConfigured": "API key OpenRouteService non configurata — uso OSRM",
-
   "chooseRoute": "Scegli percorso",
   "routeOptionsCount": "{count} opzioni",
   "cancel": "Annulla",
   "startNavigation": "Avvia navigazione",
   "fastestRoute": "Più rapido",
   "now": "Ora",
-
   "history": "Cronologia",
   "clearHistory": "Cancella",
   "selectedPosition": "Posizione selezionata",
-
   "bottomBarProfile": "Profilo",
   "bottomBarMenu": "Menu",
-
   "settingsTitle": "Impostazioni",
   "sectionTheme": "Tema",
   "sectionMap": "Mappa",
-  "sectionPrivacy": "Privacy",
   "sectionInfo": "Info",
   "sectionLanguage": "Lingua",
   "themeLightNostr": "Chiaro · Viola Nostr",
   "themeLightBitcoin": "Chiaro · Arancione Bitcoin",
+  "themeDarkNostr": "Scuro · Viola Nostr",
+  "themeDarkBitcoin": "Scuro · Arancione Bitcoin",
   "langSystem": "Predefinito di sistema",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "Mantieni schermo acceso",
   "keepScreenOnDescription": "Impedisce lo spegnimento durante la navigazione",
   "rotateMap": "Mappa segue direzione",
@@ -59,10 +52,6 @@
   "graphhopperServerReachable": "Server GraphHopper raggiungibile",
   "errorTitle": "Errore",
   "close": "Chiudi",
-
-  "privacyMode": "Modalità privacy",
-  "privacyModeDescription": "Non inviare dati anonimi di telemetria",
-
   "infoVersion": "Versione",
   "infoProtocol": "Protocollo",
   "infoMaps": "Mappe",
@@ -72,7 +61,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper (self-hosted)",
   "providerGraphhopperCloud": "GraphHopper (cloud)",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "Profilo",
   "notConnected": "Non connesso",
   "loginWithNostrTitle": "ACCEDI CON NOSTR",
@@ -88,13 +76,11 @@
   "logoutConfirmation": "Vuoi rimuovere le credenziali Nostr da questo dispositivo?",
   "logoutButton": "Disconnetti",
   "nostrIdentityInfo": "Con un'identità Nostr potrai pubblicare alert di traffico, segnalazioni e punti di interesse in modo decentralizzato sulla rete Nostr, senza server centrali.",
-
   "warningTitle": "Attenzione",
   "nsecWarning": "Stai per rawdoggare la tua chiave privata Nostr direttamente in un'app. Chiunque abbia accesso fisico o remoto al tuo dispositivo potrebbe leggerla e prendere il controllo permanente della tua identità Nostr.",
   "amberSecureMethodHint": "✦  Il metodo sicuro è Amber (NIP-55): la nsec non lascia mai il vault dell'app signer.",
   "nsecRiskAcknowledgment": "Ho capito il rischio e voglio continuare comunque",
   "continueButton": "Continua",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber è un app signer Android conforme a NIP-55. La tua chiave privata rimane isolata dentro Amber e non viene mai condivisa.",
   "requestKeyFromAmber": "Richiedi chiave ad Amber",
@@ -111,16 +97,13 @@
   "amberResponseError": "Errore risposta Amber",
   "ok": "OK",
   "or": "oppure",
-
   "gpsNotActiveTitle": "GPS non attivo",
   "gpsDisabledMessage": "Attiva il GPS nelle impostazioni del dispositivo per ottenere la tua posizione e usare la navigazione.",
   "openSettings": "Impostazioni",
-
   "myLocation": "La mia posizione",
   "loginToReport": "Accedi con Nostr (sezione Profilo) per segnalare eventi",
   "navigateHere": "Naviga qui",
   "reportEventHere": "Segnala evento qui",
-
   "zapSendSats": "Zap ⚡ (manda sats)",
   "sendZap": "Manda un Zap",
   "chooseAmountSats": "Scegli l'importo in satoshi (sats):",
@@ -136,17 +119,14 @@
   "payingViaNwc": "Pagamento via NWC…",
   "noLightningWallet": "Nessun wallet Lightning trovato",
   "zapSent": "⚡ {sats} sat inviati!",
-
   "stillThere": "C'è ancora",
   "notThereAnymore": "Non c'è più",
   "loginToConfirm": "Accedi con Nostr per confermare o smentire",
-
   "reportAnEvent": "Segnala un evento",
   "optionalComment": "Commento opzionale…",
   "publish": "Pubblica",
   "publishing": "Pubblicazione…",
   "reportPublished": "Segnalazione pubblicata ✓",
-
   "myReports": "LE MIE SEGNALAZIONI",
   "noReportsYet": "Nessuna segnalazione pubblicata",
   "zapBalance": "Balance Zap",
@@ -160,7 +140,6 @@
   "removedLabel": "Rimosso",
   "positionLabel": "Posizione",
   "loadingLabel": "Caricamento…",
-
   "sectionWebSearch": "Ricerca web",
   "sectionLightning": "Lightning",
   "nwcLabel": "Nostr Wallet Connect (NWC)",
@@ -170,7 +149,6 @@
   "searchEngineDdgDesc": "Privacy-focused e popolare. I risultati arrivano in parte da Bing — tienilo a mente.",
   "searchEngineStartpageDesc": "Risultati Google senza cedere a Google i tuoi dati. Un compromesso ragionevole.",
   "searchEngineGoogleDesc": "Efficacissimo. Ricorda però che Google ti conosce meglio di tua madre e rivende tutto agli inserzionisti. Ma vabbè, scelta tua. 🍪",
-
   "categoryPolice": "Polizia",
   "categorySpeedCamera": "Autovelox",
   "categoryTrafficJam": "Traffico",
@@ -184,15 +162,45 @@
   "categoryIce": "Ghiaccio",
   "categoryAnimal": "Animale",
   "categoryOther": "Altro",
-
   "dateTimeLabel": "Data / ora",
   "minutesAgo": "{count} min fa",
   "hoursAgo": "{count}h fa",
   "daysAgo": "{count}gg fa",
-
   "sectionFavorites": "Luoghi preferiti",
   "addFavorite": "Aggiungi luogo",
   "favoriteLabelHint": "Nome (es. Casa, Ufficio)",
   "favoriteAddressHint": "Indirizzo",
-  "favoriteGeocodingError": "Indirizzo non trovato. Prova con un indirizzo più preciso."
+  "favoriteGeocodingError": "Indirizzo non trovato. Prova con un indirizzo più preciso.",
+  "trafficAlertTitle": "Nuovo traffico sul percorso",
+  "trafficAlertBody": "{category} segnalato {age} sul tuo percorso.\n\nVuoi trovare un percorso alternativo?",
+  "trafficContinue": "Continua",
+  "trafficRecalculate": "Ricalcola percorso",
+  "navExitTitle": "Uscire dalla navigazione?",
+  "navExitBody": "Vuoi interrompere la navigazione e tornare alla mappa?",
+  "navContinue": "Continua la navigazione",
+  "navExit": "Sì, esci",
+  "loadingInfo": "Caricamento informazioni…",
+  "conditionsOnRoute": "Condizioni sul percorso",
+  "calculateRoute": "Calcola percorso",
+  "sectionNavigationVoice": "Voce di navigazione",
+  "voiceGuidance": "Guida vocale",
+  "voiceGuidanceDesc": "Leggi le istruzioni di svolta ad alta voce durante la navigazione",
+  "testVoiceEngine": "Testa motore vocale",
+  "testVoiceEngineDesc": "Tocca per verificare il motore TTS e ottenere le istruzioni di configurazione",
+  "ttsDialogTitle": "Motore voce mancante",
+  "ttsDialogBody": "Nessun motore Text-to-Speech funzionante trovato.\n\nRoadstr si appoggia solo a software open source — installa uno di questi motori gratuiti da F-Droid:",
+  "ttsRhvoiceDesc": "Voce naturale, elenco lingue limitato",
+  "ttsEspeakDesc": "Copre oltre 100 lingue, voce robotica",
+  "ttsInstallNote": "⚠️ Dopo l'installazione:\n1. Impostazioni Android → Accessibilità → Sintesi vocale\n2. Seleziona il motore appena installato\n3. Scarica i dati vocali della tua lingua\n4. Riavvia Roadstr completamente",
+  "ttsTestNow": "Testa ora",
+  "voiceUnsupportedTitle": "Guida vocale non disponibile",
+  "voiceUnsupportedBody": "La tua lingua non è ancora supportata per le indicazioni vocali. Le istruzioni di navigazione continueranno comunque a comparire come testo a schermo.",
+  "kokoroModelTitle": "Modello vocale (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "Non scaricato · ~82 MB",
+  "kokoroModelStatusDownloading": "Scaricamento...",
+  "kokoroModelStatusReady": "Modello vocale pronto",
+  "kokoroModelDownloadBtn": "Scarica",
+  "kokoroModelSupportedLangs": "Supporta: italiano, inglese, spagnolo, francese, giapponese, cinese, portoghese",
+  "autoDarkMode": "Tema scuro automatico",
+  "autoDarkModeDesc": "Attiva il tema scuro al tramonto e all'alba"
 }

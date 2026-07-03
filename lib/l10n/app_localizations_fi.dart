@@ -93,9 +93,6 @@ class AppLocalizationsFi extends AppLocalizations {
   String get sectionMap => 'Kartta';
 
   @override
-  String get sectionPrivacy => 'Yksityisyys';
-
-  @override
   String get sectionInfo => 'Tiedot';
 
   @override
@@ -106,6 +103,12 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => 'Vaalea · Bitcoin Oranssi';
+
+  @override
+  String get themeDarkNostr => 'Tumma · Nostr Violetti';
+
+  @override
+  String get themeDarkBitcoin => 'Tumma · Bitcoin Oranssi';
 
   @override
   String get langSystem => 'Järjestelmän oletus';
@@ -172,12 +175,6 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get close => 'Sulje';
-
-  @override
-  String get privacyMode => 'Yksityisyystila';
-
-  @override
-  String get privacyModeDescription => 'Älä lähetä anonyymiä telemetriadataa';
 
   @override
   String get infoVersion => 'Versio';
@@ -568,4 +565,109 @@ class AppLocalizationsFi extends AppLocalizations {
   @override
   String get favoriteGeocodingError =>
       'Osoitetta ei löydy. Kokeile tarkempaa osoitetta.';
+
+  @override
+  String get trafficAlertTitle => 'Uutta liikennettä reitillä';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$category ilmoitettu $age reitilläsi.\n\nHaluatko löytää vaihtoehtoisen reitin?';
+  }
+
+  @override
+  String get trafficContinue => 'Jatka';
+
+  @override
+  String get trafficRecalculate => 'Laske reitti uudelleen';
+
+  @override
+  String get navExitTitle => 'Lopeta navigointi?';
+
+  @override
+  String get navExitBody => 'Haluatko lopettaa navigoinnin ja palata karttaan?';
+
+  @override
+  String get navContinue => 'Jatka navigointia';
+
+  @override
+  String get navExit => 'Kyllä, lopeta';
+
+  @override
+  String get loadingInfo => 'Ladataan tietoja…';
+
+  @override
+  String get conditionsOnRoute => 'Olosuhteet reitillä';
+
+  @override
+  String get calculateRoute => 'Laske reitti';
+
+  @override
+  String get sectionNavigationVoice => 'Navigoinnin ääni';
+
+  @override
+  String get voiceGuidance => 'Ääniopastus';
+
+  @override
+  String get voiceGuidanceDesc => 'Lue käännösohjeet ääneen navigoinnin aikana';
+
+  @override
+  String get testVoiceEngine => 'Testaa äänimoottori';
+
+  @override
+  String get testVoiceEngineDesc =>
+      'Napauta tarkistaaksesi TTS-moottorin ja saadaksesi asennusohjeet';
+
+  @override
+  String get ttsDialogTitle => 'Äänimoottori puuttuu';
+
+  @override
+  String get ttsDialogBody =>
+      'Toimivaa Text-to-Speech-moottoria ei löytynyt.\n\nRoadstr tukeutuu vain avoimen lähdekoodin ohjelmistoihin — asenna jokin näistä ilmaisista moottoreista F-Droidista:';
+
+  @override
+  String get ttsRhvoiceDesc =>
+      'Luonnollisen kuuloinen ääni, rajoitettu kielilista';
+
+  @override
+  String get ttsEspeakDesc => 'Tukee yli 100 kieltä, robottimainen ääni';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ Asennuksen jälkeen:\n1. Android-asetukset → Esteettömyys → Tekstistä puheeksi\n2. Valitse juuri asentamasi moottori\n3. Lataa kielesi äänidata\n4. Käynnistä Roadstr kokonaan uudelleen';
+
+  @override
+  String get ttsTestNow => 'Testaa nyt';
+
+  @override
+  String get voiceUnsupportedTitle => 'Ääniopastus ei ole käytettävissä';
+
+  @override
+  String get voiceUnsupportedBody =>
+      'Kieltäsi ei vielä tueta puhutuissa käännösohjeissa. Navigointiohjeet näkyvät edelleen tekstinä näytöllä.';
+
+  @override
+  String get kokoroModelTitle => 'Ääntömalli (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => 'Ei ladattu · ~82 MB';
+
+  @override
+  String get kokoroModelStatusDownloading => 'Ladataan...';
+
+  @override
+  String get kokoroModelStatusReady => 'Ääntömalli valmis';
+
+  @override
+  String get kokoroModelDownloadBtn => 'Lataa';
+
+  @override
+  String get kokoroModelSupportedLangs =>
+      'Tukee: italia, englanti, espanja, ranska, japani, kiina, portugali';
+
+  @override
+  String get autoDarkMode => 'Automaattinen tumma teema';
+
+  @override
+  String get autoDarkModeDesc =>
+      'Ottaa tumman teeman käyttöön auringonlaskun aikaan';
 }

@@ -1,6 +1,5 @@
 {
   "@@locale": "ro",
-
   "searchHint": "Unde vrei să mergi?",
   "calculatingRoute": "Se calculează ruta…",
   "routeNotFoundTitle": "Ruta nu a fost găsită",
@@ -8,45 +7,47 @@
   "emptyServerResponse": "Răspuns gol de la server. Verificați conexiunea.",
   "routeError": "Eroare la calculul rutei: {error}",
   "@routeError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "gpsNotAvailable": "GPS indisponibil — Setări → Aplicație → Roadstr → Permisiuni → Locație",
   "acquiringGps": "Se obține GPS…",
-
   "graphhopperServerNotConfigured": "Serverul GraphHopper nu este configurat — se folosește OSRM",
   "graphhopperApiKeyNotConfigured": "Cheia API GraphHopper nu este configurată — se folosește OSRM",
   "openrouteApiKeyNotConfigured": "Cheia API OpenRouteService nu este configurată — se folosește OSRM",
-
   "chooseRoute": "Alegeți ruta",
   "routeOptionsCount": "{count} opțiuni",
   "@routeOptionsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "cancel": "Anulare",
   "startNavigation": "Pornire navigare",
   "fastestRoute": "Cea mai rapidă",
   "now": "Acum",
-
   "history": "Istoric",
   "clearHistory": "Șterge",
   "selectedPosition": "Poziție selectată",
-
   "bottomBarProfile": "Profil",
   "bottomBarMenu": "Meniu",
-
   "settingsTitle": "Setări",
   "sectionTheme": "Temă",
   "sectionMap": "Hartă",
-  "sectionPrivacy": "Confidențialitate",
   "sectionInfo": "Info",
   "sectionLanguage": "Limbă",
   "themeLightNostr": "Deschis · Nostr Violet",
   "themeLightBitcoin": "Deschis · Bitcoin Portocaliu",
+  "themeDarkNostr": "Întunecat · Nostr Violet",
+  "themeDarkBitcoin": "Întunecat · Bitcoin Portocaliu",
   "langSystem": "Implicit sistem",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "Mențineți ecranul activ",
   "keepScreenOnDescription": "Previne repausul în timpul navigării",
   "rotateMap": "Harta urmează direcția",
@@ -65,10 +66,6 @@
   "graphhopperServerReachable": "Serverul GraphHopper este accesibil",
   "errorTitle": "Eroare",
   "close": "Închide",
-
-  "privacyMode": "Mod confidențialitate",
-  "privacyModeDescription": "Nu trimiteți date de telemetrie anonime",
-
   "infoVersion": "Versiune",
   "infoProtocol": "Protocol",
   "infoMaps": "Hărți",
@@ -78,7 +75,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper (auto-găzduit)",
   "providerGraphhopperCloud": "GraphHopper (cloud)",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "Profil",
   "notConnected": "Neconectat",
   "loginWithNostrTitle": "CONECTARE CU NOSTR",
@@ -94,13 +90,11 @@
   "logoutConfirmation": "Eliminați credențialele Nostr de pe acest dispozitiv?",
   "logoutButton": "Deconectare",
   "nostrIdentityInfo": "Cu o identitate Nostr puteți publica alerte de trafic, rapoarte și puncte de interes într-un mod descentralizat în rețeaua Nostr, fără servere centrale.",
-
   "warningTitle": "Avertisment",
   "nsecWarning": "Urmează să introduceți cheia privată Nostr direct într-o aplicație. Oricine cu acces fizic sau de la distanță la dispozitivul dvs. ar putea-o citi și prelua permanent controlul asupra identității dvs. Nostr.",
   "amberSecureMethodHint": "✦  Metoda sigură este Amber (NIP-55): nsec nu părăsește niciodată seiful semnatarului aplicației.",
   "nsecRiskAcknowledgment": "Înțeleg riscul și vreau să continui oricum",
   "continueButton": "Continuare",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber este un semnatar de aplicații Android conform NIP-55. Cheia dvs. privată rămâne izolată în Amber și nu este niciodată partajată.",
   "requestKeyFromAmber": "Solicitați cheia publică de la Amber",
@@ -117,18 +111,15 @@
   "amberResponseError": "Eroare răspuns Amber",
   "ok": "OK",
   "or": "sau",
-
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS inactiv",
   "gpsDisabledMessage": "Activați GPS-ul din setările dispozitivului pentru a obține locația și a folosi navigarea.",
   "openSettings": "Setări",
-
   "@_CONTEXT_MENU": {},
   "myLocation": "Locația mea",
   "loginToReport": "Conectați-vă cu Nostr (secțiunea Profil) pentru a raporta evenimente",
   "navigateHere": "Navigați aici",
   "reportEventHere": "Raportați eveniment aici",
-
   "@_ZAP": {},
   "zapSendSats": "Zap ⚡ (trimiteți sats)",
   "sendZap": "Trimiteți un Zap",
@@ -136,7 +127,13 @@
   "customAmount": "Sumă personalizată…",
   "zapSending": "Se trimite…",
   "zapSat": "⚡{sats} sat",
-  "@zapSat": { "placeholders": { "sats": { "type": "int" } } },
+  "@zapSat": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "fetchingLightningAddress": "Se obține adresa Lightning…",
   "noLightningAddress": "Acest reporter nu are adresă Lightning",
   "requestingInvoice": "Se solicită factura…",
@@ -146,20 +143,23 @@
   "payingViaNwc": "Plată prin NWC…",
   "noLightningWallet": "Niciun portofel Lightning găsit",
   "zapSent": "⚡ {sats} sats trimiși!",
-  "@zapSent": { "placeholders": { "sats": { "type": "int" } } },
-
+  "@zapSent": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "@_ROAD_EVENT_DETAIL": {},
   "stillThere": "Încă acolo",
   "notThereAnymore": "Nu mai este acolo",
   "loginToConfirm": "Conectați-vă cu Nostr pentru a confirma sau contesta",
-
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Raportați un eveniment",
   "optionalComment": "Comentariu opțional…",
   "publish": "Publicare",
   "publishing": "Se publică…",
   "reportPublished": "Raport publicat ✓",
-
   "@_PROFILE_ZAP": {},
   "myReports": "RAPOARTELE MELE",
   "noReportsYet": "Niciun raport publicat",
@@ -169,14 +169,25 @@
   "reputationMedium": "Medie",
   "reputationLow": "Scăzută",
   "reputationLabel": "Reputație {level}",
-  "@reputationLabel": { "placeholders": { "level": { "type": "String" } } },
+  "@reputationLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "reliability": "Fiabilitate: {pct}%",
-  "@reliability": { "placeholders": { "pct": { "type": "int" } } },
+  "@reliability": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "confirmedLabel": "Confirmat",
   "removedLabel": "Eliminat",
   "positionLabel": "Poziție",
   "loadingLabel": "Se încarcă…",
-
   "@_SETTINGS_EXTRA": {},
   "sectionWebSearch": "Căutare web",
   "sectionLightning": "Lightning",
@@ -187,7 +198,6 @@
   "searchEngineDdgDesc": "Axat pe confidențialitate și popular. Rezultate parțial din Bing — țineți cont de asta.",
   "searchEngineStartpageDesc": "Rezultate Google fără a trimite datele dvs. la Google. Un compromis rezonabil.",
   "searchEngineGoogleDesc": "Foarte eficient. Dar rețineți: Google vă cunoaște mai bine decât mama dvs. și vinde totul advertiserilor. Alegerea dvs. 🍪",
-
   "@_CATEGORIES": {},
   "categoryPolice": "Poliție",
   "categorySpeedCamera": "Radar de viteză",
@@ -202,19 +212,67 @@
   "categoryIce": "Gheață",
   "categoryAnimal": "Animal",
   "categoryOther": "Altele",
-
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Dată / oră",
   "minutesAgo": "acum {count} min",
-  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "acum {count}h",
-  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "daysAgo": "acum {count}z",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
-
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sectionFavorites": "Locuri salvate",
   "addFavorite": "Adaugă loc",
   "favoriteLabelHint": "Nume (ex. Acasă, Birou)",
   "favoriteAddressHint": "Adresă",
-  "favoriteGeocodingError": "Adresa nu a fost găsită. Încearcă o adresă mai specifică."
+  "favoriteGeocodingError": "Adresa nu a fost găsită. Încearcă o adresă mai specifică.",
+  "trafficAlertTitle": "Trafic nou pe rută",
+  "trafficAlertBody": "{category} raportat {age} pe ruta dvs.\n\nDoriți să găsiți o rută alternativă?",
+  "trafficContinue": "Continuați",
+  "trafficRecalculate": "Recalculați ruta",
+  "navExitTitle": "Ieșiți din navigare?",
+  "navExitBody": "Doriți să opriți navigarea și să reveniți la hartă?",
+  "navContinue": "Continuați navigarea",
+  "navExit": "Da, ieșiți",
+  "loadingInfo": "Se încarcă informațiile…",
+  "conditionsOnRoute": "Condiții pe rută",
+  "calculateRoute": "Calculați ruta",
+  "sectionNavigationVoice": "Voce de navigare",
+  "voiceGuidance": "Ghidare vocală",
+  "voiceGuidanceDesc": "Citește cu voce tare instrucțiunile de virare în timpul navigării",
+  "testVoiceEngine": "Testează motorul vocal",
+  "testVoiceEngineDesc": "Atinge pentru a verifica motorul TTS și a obține instrucțiuni de configurare",
+  "ttsDialogTitle": "Lipsește motorul vocal",
+  "ttsDialogBody": "Nu a fost găsit niciun motor Text-to-Speech funcțional.\n\nRoadstr se bazează exclusiv pe software open source — instalează unul dintre aceste motoare gratuite de pe F-Droid:",
+  "ttsRhvoiceDesc": "Voce cu sunet natural, listă limitată de limbi",
+  "ttsEspeakDesc": "Acoperă peste 100 de limbi, voce robotică",
+  "ttsInstallNote": "⚠️ După instalare:\n1. Setări Android → Accesibilitate → Conversie text în vorbire\n2. Selectează motorul instalat recent\n3. Descarcă datele vocale pentru limba ta\n4. Repornește Roadstr complet",
+  "ttsTestNow": "Testează acum",
+  "voiceUnsupportedTitle": "Ghidarea vocală nu este disponibilă",
+  "voiceUnsupportedBody": "Limba ta nu este încă acceptată pentru indicații de virare vorbite. Instrucțiunile de navigare vor continua să apară ca text pe ecran.",
+  "kokoroModelTitle": "Model vocal (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "Nedescarcat · ~82 MB",
+  "kokoroModelStatusDownloading": "Se descarcă...",
+  "kokoroModelStatusReady": "Modelul vocal este pregătit",
+  "kokoroModelDownloadBtn": "Descarcă",
+  "kokoroModelSupportedLangs": "Suportă: italiană, engleză, spaniolă, franceză, japoneză, chineză, portugheză",
+  "autoDarkMode": "Temă întunecată automată",
+  "autoDarkModeDesc": "Activează tema întunecată la apus"
 }

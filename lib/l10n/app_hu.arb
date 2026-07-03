@@ -1,6 +1,5 @@
 {
   "@@locale": "hu",
-
   "searchHint": "Hová szeretne menni?",
   "calculatingRoute": "Útvonal számítása…",
   "routeNotFoundTitle": "Útvonal nem található",
@@ -8,45 +7,47 @@
   "emptyServerResponse": "Üres szerverhválasz. Ellenőrizze a kapcsolatot.",
   "routeError": "Útvonalszámítási hiba: {error}",
   "@routeError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "gpsNotAvailable": "GPS nem érhető el — Beállítások → Alkalmazás → Roadstr → Engedélyek → Hely",
   "acquiringGps": "GPS lekérése…",
-
   "graphhopperServerNotConfigured": "A GraphHopper szerver nincs beállítva — OSRM használata",
   "graphhopperApiKeyNotConfigured": "A GraphHopper API kulcs nincs beállítva — OSRM használata",
   "openrouteApiKeyNotConfigured": "Az OpenRouteService API kulcs nincs beállítva — OSRM használata",
-
   "chooseRoute": "Útvonal választása",
   "routeOptionsCount": "{count} lehetőség",
   "@routeOptionsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "cancel": "Mégse",
   "startNavigation": "Navigáció indítása",
   "fastestRoute": "Leggyorsabb",
   "now": "Most",
-
   "history": "Előzmények",
   "clearHistory": "Törlés",
   "selectedPosition": "Kiválasztott pozíció",
-
   "bottomBarProfile": "Profil",
   "bottomBarMenu": "Menü",
-
   "settingsTitle": "Beállítások",
   "sectionTheme": "Téma",
   "sectionMap": "Térkép",
-  "sectionPrivacy": "Adatvédelem",
   "sectionInfo": "Info",
   "sectionLanguage": "Nyelv",
   "themeLightNostr": "Világos · Nostr Lila",
   "themeLightBitcoin": "Világos · Bitcoin Narancs",
+  "themeDarkNostr": "Sötét · Nostr Lila",
+  "themeDarkBitcoin": "Sötét · Bitcoin Narancs",
   "langSystem": "Rendszer alapértelmezett",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "Képernyő bekapcsolt állapotban tartása",
   "keepScreenOnDescription": "Megakadályozza az alvó módot navigáció közben",
   "rotateMap": "A térkép követi az irányt",
@@ -65,10 +66,6 @@
   "graphhopperServerReachable": "A GraphHopper szerver elérhető",
   "errorTitle": "Hiba",
   "close": "Bezárás",
-
-  "privacyMode": "Adatvédelmi mód",
-  "privacyModeDescription": "Ne küldjön névtelen telemetriai adatokat",
-
   "infoVersion": "Verzió",
   "infoProtocol": "Protokoll",
   "infoMaps": "Térképek",
@@ -78,7 +75,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper (önhosztolt)",
   "providerGraphhopperCloud": "GraphHopper (felhő)",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "Profil",
   "notConnected": "Nem csatlakoztatva",
   "loginWithNostrTitle": "BEJELENTKEZÉS NOSTR-RAL",
@@ -94,13 +90,11 @@
   "logoutConfirmation": "Eltávolítja a Nostr hitelesítő adatokat erről az eszközről?",
   "logoutButton": "Lecsatlakozás",
   "nostrIdentityInfo": "Nostr identitással decentralizált módon tehet közzé forgalmi riasztásokat, jelentéseket és érdekességeket a Nostr hálózaton, központi szerverek nélkül.",
-
   "warningTitle": "Figyelmeztetés",
   "nsecWarning": "Az Ön Nostr privát kulcsát közvetlenül egy alkalmazásba készül beírni. Bárki, aki fizikailag vagy távolról hozzáfér az eszközéhez, elolvashatja, és véglegesen átveheti az irányítást Nostr identitása felett.",
   "amberSecureMethodHint": "✦  A biztonságos módszer az Amber (NIP-55): az nsec soha nem hagyja el az alkalmazás aláírói széfet.",
   "nsecRiskAcknowledgment": "Megértem a kockázatot és mégis folytatni szeretnék",
   "continueButton": "Folytatás",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Az Amber egy NIP-55 kompatibilis Android alkalmazás-aláíró. Privát kulcsa az Amberen belül marad és soha nem kerül megosztásra.",
   "requestKeyFromAmber": "Nyilvános kulcs kérése az Ambertől",
@@ -117,18 +111,15 @@
   "amberResponseError": "Amber válasz hiba",
   "ok": "OK",
   "or": "vagy",
-
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS nem aktív",
   "gpsDisabledMessage": "Engedélyezze a GPS-t az eszközbeállításokban, hogy megkapja tartózkodási helyét és használja a navigációt.",
   "openSettings": "Beállítások",
-
   "@_CONTEXT_MENU": {},
   "myLocation": "Saját helyzetm",
   "loginToReport": "Jelentkezzen be Nostr-ral (Profil szekció) az események bejelentéséhez",
   "navigateHere": "Ide navigálás",
   "reportEventHere": "Esemény bejelentése itt",
-
   "@_ZAP": {},
   "zapSendSats": "Zap ⚡ (sats küldése)",
   "sendZap": "Zap küldése",
@@ -136,7 +127,13 @@
   "customAmount": "Egyéni összeg…",
   "zapSending": "Küldés…",
   "zapSat": "⚡{sats} sat",
-  "@zapSat": { "placeholders": { "sats": { "type": "int" } } },
+  "@zapSat": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "fetchingLightningAddress": "Lightning cím lekérése…",
   "noLightningAddress": "Ennek a bejelentőnek nincs Lightning címe",
   "requestingInvoice": "Számla kérése…",
@@ -146,20 +143,23 @@
   "payingViaNwc": "Fizetés NWC-n keresztül…",
   "noLightningWallet": "Nem található Lightning pénztárca",
   "zapSent": "⚡ {sats} sats elküldve!",
-  "@zapSent": { "placeholders": { "sats": { "type": "int" } } },
-
+  "@zapSent": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "@_ROAD_EVENT_DETAIL": {},
   "stillThere": "Még ott van",
   "notThereAnymore": "Már nincs ott",
   "loginToConfirm": "Jelentkezzen be Nostr-ral a megerősítéshez vagy vitatáshoz",
-
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Esemény bejelentése",
   "optionalComment": "Opcionális megjegyzés…",
   "publish": "Közzététel",
   "publishing": "Közzététel…",
   "reportPublished": "Jelentés közzétéve ✓",
-
   "@_PROFILE_ZAP": {},
   "myReports": "SAJÁT JELENTÉSEIM",
   "noReportsYet": "Nem tett közzé jelentéseket",
@@ -169,14 +169,25 @@
   "reputationMedium": "Közepes",
   "reputationLow": "Alacsony",
   "reputationLabel": "Hírnév {level}",
-  "@reputationLabel": { "placeholders": { "level": { "type": "String" } } },
+  "@reputationLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "reliability": "Megbízhatóság: {pct}%",
-  "@reliability": { "placeholders": { "pct": { "type": "int" } } },
+  "@reliability": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "confirmedLabel": "Megerősítve",
   "removedLabel": "Eltávolítva",
   "positionLabel": "Pozíció",
   "loadingLabel": "Betöltés…",
-
   "@_SETTINGS_EXTRA": {},
   "sectionWebSearch": "Webkeresés",
   "sectionLightning": "Lightning",
@@ -187,7 +198,6 @@
   "searchEngineDdgDesc": "Adatvédelmi fókuszú és népszerű. Az eredmények részben Bing-ből származnak — ezt érdemes szem előtt tartani.",
   "searchEngineStartpageDesc": "Google eredmények anélkül, hogy adatait átadná a Google-nak. Ésszerű kompromisszum.",
   "searchEngineGoogleDesc": "Nagyon hatékony. De ne feledje: a Google jobban ismeri önt, mint az anyja, és mindent elad a hirdetőknek. Az ön döntése. 🍪",
-
   "@_CATEGORIES": {},
   "categoryPolice": "Rendőrség",
   "categorySpeedCamera": "Sebességmérő kamera",
@@ -202,19 +212,67 @@
   "categoryIce": "Jég",
   "categoryAnimal": "Állat",
   "categoryOther": "Egyéb",
-
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Dátum / idő",
   "minutesAgo": "{count} perce",
-  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "{count} órája",
-  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "daysAgo": "{count} napja",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
-
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sectionFavorites": "Mentett helyek",
   "addFavorite": "Hely hozzáadása",
   "favoriteLabelHint": "Név (pl. Otthon, Iroda)",
   "favoriteAddressHint": "Cím",
-  "favoriteGeocodingError": "A cím nem található. Próbálj pontosabb címet."
+  "favoriteGeocodingError": "A cím nem található. Próbálj pontosabb címet.",
+  "trafficAlertTitle": "Új forgalom az útvonalon",
+  "trafficAlertBody": "{category} jelezve {age} az útvonalon.\n\nSzeretne alternatív útvonalat találni?",
+  "trafficContinue": "Folytatás",
+  "trafficRecalculate": "Útvonal újraszámítása",
+  "navExitTitle": "Kilépés a navigációból?",
+  "navExitBody": "Meg szeretné állítani a navigációt és visszatérni a térképre?",
+  "navContinue": "Navigáció folytatása",
+  "navExit": "Igen, kilépés",
+  "loadingInfo": "Információk betöltése…",
+  "conditionsOnRoute": "Feltételek az útvonalon",
+  "calculateRoute": "Útvonal kiszámítása",
+  "sectionNavigationVoice": "Navigációs hang",
+  "voiceGuidance": "Hangos útmutatás",
+  "voiceGuidanceDesc": "Kanyarodási utasítások felolvasása navigáció közben",
+  "testVoiceEngine": "Hangmotor tesztelése",
+  "testVoiceEngineDesc": "Koppintson a TTS motor ellenőrzéséhez és a beállítási útmutatóhoz",
+  "ttsDialogTitle": "Hiányzó hangmotor",
+  "ttsDialogBody": "Nem található működő Text-to-Speech motor.\n\nA Roadstr kizárólag nyílt forráskódú szoftverekre támaszkodik — telepítse az alábbi ingyenes motorok egyikét az F-Droidról:",
+  "ttsRhvoiceDesc": "Természetesen hangzó hang, korlátozott nyelvlista",
+  "ttsEspeakDesc": "Több mint 100 nyelvet fed le, robotikus hang",
+  "ttsInstallNote": "⚠️ A telepítés után:\n1. Android beállítások → Kisegítő lehetőségek → Szövegfelolvasás\n2. Válassza ki az imént telepített motort\n3. Töltse le a nyelvéhez tartozó hangadatokat\n4. Indítsa újra teljesen a Roadstr-t",
+  "ttsTestNow": "Tesztelés most",
+  "voiceUnsupportedTitle": "Hangos útmutatás nem érhető el",
+  "voiceUnsupportedBody": "Az Ön nyelve még nem támogatott a beszélt kanyarodási utasításokhoz. A navigációs utasítások továbbra is szövegként jelennek meg a képernyőn.",
+  "kokoroModelTitle": "Hangmodell (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "Nem letöltve · ~82 MB",
+  "kokoroModelStatusDownloading": "Letöltés...",
+  "kokoroModelStatusReady": "Hangmodell készen áll",
+  "kokoroModelDownloadBtn": "Letöltés",
+  "kokoroModelSupportedLangs": "Támogatja: olasz, angol, spanyol, francia, japán, kínai, portugál",
+  "autoDarkMode": "Automatikus sötét téma",
+  "autoDarkModeDesc": "Napnyugtakor aktiválja a sötét témát"
 }

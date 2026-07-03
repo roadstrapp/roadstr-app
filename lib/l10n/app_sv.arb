@@ -1,6 +1,5 @@
 {
   "@@locale": "sv",
-
   "searchHint": "Vart vill du åka?",
   "calculatingRoute": "Beräknar rutt…",
   "routeNotFoundTitle": "Rutt hittades inte",
@@ -8,45 +7,47 @@
   "emptyServerResponse": "Tomt serversvar. Kontrollera din anslutning.",
   "routeError": "Fel vid ruttberäkning: {error}",
   "@routeError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "gpsNotAvailable": "GPS ej tillgänglig — Inställningar → App → Roadstr → Behörigheter → Plats",
   "acquiringGps": "Hämtar GPS…",
-
   "graphhopperServerNotConfigured": "GraphHopper-server ej konfigurerad — använder OSRM",
   "graphhopperApiKeyNotConfigured": "GraphHopper API-nyckel ej konfigurerad — använder OSRM",
   "openrouteApiKeyNotConfigured": "OpenRouteService API-nyckel ej konfigurerad — använder OSRM",
-
   "chooseRoute": "Välj rutt",
   "routeOptionsCount": "{count} alternativ",
   "@routeOptionsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "cancel": "Avbryt",
   "startNavigation": "Starta navigering",
   "fastestRoute": "Snabbaste",
   "now": "Nu",
-
   "history": "Historik",
   "clearHistory": "Rensa",
   "selectedPosition": "Vald position",
-
   "bottomBarProfile": "Profil",
   "bottomBarMenu": "Meny",
-
   "settingsTitle": "Inställningar",
   "sectionTheme": "Tema",
   "sectionMap": "Karta",
-  "sectionPrivacy": "Sekretess",
   "sectionInfo": "Info",
   "sectionLanguage": "Språk",
   "themeLightNostr": "Ljust · Nostr Violett",
   "themeLightBitcoin": "Ljust · Bitcoin Orange",
+  "themeDarkNostr": "Mörkt · Nostr Violett",
+  "themeDarkBitcoin": "Mörkt · Bitcoin Orange",
   "langSystem": "Systemstandard",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "Håll skärmen på",
   "keepScreenOnDescription": "Förhindrar viloläge under navigering",
   "rotateMap": "Kartan följer riktningen",
@@ -65,10 +66,6 @@
   "graphhopperServerReachable": "GraphHopper-server nåbar",
   "errorTitle": "Fel",
   "close": "Stäng",
-
-  "privacyMode": "Sekretessläge",
-  "privacyModeDescription": "Skicka inte anonym telemetridata",
-
   "infoVersion": "Version",
   "infoProtocol": "Protokoll",
   "infoMaps": "Kartor",
@@ -78,7 +75,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper (självhostad)",
   "providerGraphhopperCloud": "GraphHopper (moln)",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "Profil",
   "notConnected": "Ej ansluten",
   "loginWithNostrTitle": "LOGGA IN MED NOSTR",
@@ -94,13 +90,11 @@
   "logoutConfirmation": "Ta bort Nostr-uppgifter från den här enheten?",
   "logoutButton": "Koppla från",
   "nostrIdentityInfo": "Med en Nostr-identitet kan du publicera trafikvarningar, rapporter och intressepunkter på ett decentraliserat sätt i Nostr-nätverket, utan centrala servrar.",
-
   "warningTitle": "Varning",
   "nsecWarning": "Du håller på att skriva in din Nostr-privata nyckel direkt i en app. Alla med fysisk eller fjärråtkomst till din enhet kan läsa den och permanent ta kontroll över din Nostr-identitet.",
   "amberSecureMethodHint": "✦  Den säkra metoden är Amber (NIP-55): nsec lämnar aldrig app-signerarvalvet.",
   "nsecRiskAcknowledgment": "Jag förstår risken och vill ändå fortsätta",
   "continueButton": "Fortsätt",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber är en NIP-55-kompatibel Android-appsignerare. Din privata nyckel förblir isolerad i Amber och delas aldrig.",
   "requestKeyFromAmber": "Begär offentlig nyckel från Amber",
@@ -117,18 +111,15 @@
   "amberResponseError": "Amber-svarsfel",
   "ok": "OK",
   "or": "eller",
-
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS ej aktiv",
   "gpsDisabledMessage": "Aktivera GPS i enhetsinställningarna för att få din plats och använda navigering.",
   "openSettings": "Inställningar",
-
   "@_CONTEXT_MENU": {},
   "myLocation": "Min plats",
   "loginToReport": "Logga in med Nostr (Profil-sektion) för att rapportera händelser",
   "navigateHere": "Navigera hit",
   "reportEventHere": "Rapportera händelse här",
-
   "@_ZAP": {},
   "zapSendSats": "Zap ⚡ (skicka sats)",
   "sendZap": "Skicka en Zap",
@@ -136,7 +127,13 @@
   "customAmount": "Anpassat belopp…",
   "zapSending": "Skickar…",
   "zapSat": "⚡{sats} sat",
-  "@zapSat": { "placeholders": { "sats": { "type": "int" } } },
+  "@zapSat": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "fetchingLightningAddress": "Hämtar Lightning-adress…",
   "noLightningAddress": "Den här rapportören har ingen Lightning-adress",
   "requestingInvoice": "Begär faktura…",
@@ -146,20 +143,23 @@
   "payingViaNwc": "Betalar via NWC…",
   "noLightningWallet": "Ingen Lightning-plånbok hittades",
   "zapSent": "⚡ {sats} sats skickade!",
-  "@zapSent": { "placeholders": { "sats": { "type": "int" } } },
-
+  "@zapSent": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "@_ROAD_EVENT_DETAIL": {},
   "stillThere": "Finns fortfarande",
   "notThereAnymore": "Finns inte längre",
   "loginToConfirm": "Logga in med Nostr för att bekräfta eller bestrida",
-
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Rapportera en händelse",
   "optionalComment": "Valfri kommentar…",
   "publish": "Publicera",
   "publishing": "Publicerar…",
   "reportPublished": "Rapport publicerad ✓",
-
   "@_PROFILE_ZAP": {},
   "myReports": "MINA RAPPORTER",
   "noReportsYet": "Inga rapporter publicerade",
@@ -169,14 +169,25 @@
   "reputationMedium": "Medel",
   "reputationLow": "Låg",
   "reputationLabel": "Rykte {level}",
-  "@reputationLabel": { "placeholders": { "level": { "type": "String" } } },
+  "@reputationLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "reliability": "Tillförlitlighet: {pct}%",
-  "@reliability": { "placeholders": { "pct": { "type": "int" } } },
+  "@reliability": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "confirmedLabel": "Bekräftad",
   "removedLabel": "Borttagen",
   "positionLabel": "Position",
   "loadingLabel": "Laddar…",
-
   "@_SETTINGS_EXTRA": {},
   "sectionWebSearch": "Webbsökning",
   "sectionLightning": "Lightning",
@@ -187,7 +198,6 @@
   "searchEngineDdgDesc": "Integritetsfokuserad och populär. Resultat delvis från Bing — ha det i åtanke.",
   "searchEngineStartpageDesc": "Google-resultat utan att lämna dina data till Google. En rimlig kompromiss.",
   "searchEngineGoogleDesc": "Mycket effektivt. Men kom ihåg: Google känner dig bättre än din mamma och säljer allt till annonsörer. Ditt val. 🍪",
-
   "@_CATEGORIES": {},
   "categoryPolice": "Polis",
   "categorySpeedCamera": "Fartkamera",
@@ -202,19 +212,67 @@
   "categoryIce": "Is",
   "categoryAnimal": "Djur",
   "categoryOther": "Övrigt",
-
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Datum / tid",
   "minutesAgo": "för {count} min sedan",
-  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "för {count}h sedan",
-  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "daysAgo": "för {count}d sedan",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
-
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sectionFavorites": "Sparade platser",
   "addFavorite": "Lägg till plats",
   "favoriteLabelHint": "Namn (t.ex. Hem, Kontor)",
   "favoriteAddressHint": "Adress",
-  "favoriteGeocodingError": "Adressen hittades inte. Försök med en mer specifik adress."
+  "favoriteGeocodingError": "Adressen hittades inte. Försök med en mer specifik adress.",
+  "trafficAlertTitle": "Ny trafik på rutten",
+  "trafficAlertBody": "{category} rapporterat {age} på din rutt.\n\nVill du hitta en alternativ rutt?",
+  "trafficContinue": "Fortsätt",
+  "trafficRecalculate": "Beräkna om rutten",
+  "navExitTitle": "Avsluta navigeringen?",
+  "navExitBody": "Vill du stoppa navigeringen och återgå till kartan?",
+  "navContinue": "Fortsätt navigeringen",
+  "navExit": "Ja, avsluta",
+  "loadingInfo": "Läser in information…",
+  "conditionsOnRoute": "Förhållanden på rutten",
+  "calculateRoute": "Beräkna rutt",
+  "sectionNavigationVoice": "Navigeringsröst",
+  "voiceGuidance": "Röstvägledning",
+  "voiceGuidanceDesc": "Läs upp svängningsinstruktioner högt under navigering",
+  "testVoiceEngine": "Testa röstmotor",
+  "testVoiceEngineDesc": "Tryck för att kontrollera TTS-motorn och få installationsinstruktioner",
+  "ttsDialogTitle": "Röstmotor saknas",
+  "ttsDialogBody": "Ingen fungerande Text-to-Speech-motor hittades.\n\nRoadstr förlitar sig enbart på programvara med öppen källkod — installera en av dessa gratis motorer från F-Droid:",
+  "ttsRhvoiceDesc": "Naturligt klingande röst, begränsad språklista",
+  "ttsEspeakDesc": "Täcker över 100 språk, robotliknande röst",
+  "ttsInstallNote": "⚠️ Efter installation:\n1. Android-inställningar → Tillgänglighet → Text-till-tal\n2. Välj motorn du just installerade\n3. Ladda ner röstdata för ditt språk\n4. Starta om Roadstr helt",
+  "ttsTestNow": "Testa nu",
+  "voiceUnsupportedTitle": "Röstvägledning är inte tillgänglig",
+  "voiceUnsupportedBody": "Ditt språk stöds ännu inte för talade sväng­anvisningar. Navigeringsinstruktioner kommer fortfarande att visas som text på skärmen.",
+  "kokoroModelTitle": "Röstmodell (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "Inte nedladdat · ~82 MB",
+  "kokoroModelStatusDownloading": "Laddar ner...",
+  "kokoroModelStatusReady": "Röstmodell är redo",
+  "kokoroModelDownloadBtn": "Ladda ner",
+  "kokoroModelSupportedLangs": "Stödjer: italienska, engelska, spanska, franska, japanska, kinesiska, portugisiska",
+  "autoDarkMode": "Automatiskt mörkt tema",
+  "autoDarkModeDesc": "Aktiverar det mörka temat vid solnedgången"
 }

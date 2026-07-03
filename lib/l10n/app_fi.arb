@@ -1,6 +1,5 @@
 {
   "@@locale": "fi",
-
   "searchHint": "Minne haluatte mennä?",
   "calculatingRoute": "Lasketaan reittiä…",
   "routeNotFoundTitle": "Reittiä ei löydy",
@@ -8,45 +7,47 @@
   "emptyServerResponse": "Tyhjä vastaus palvelimelta. Tarkista yhteys.",
   "routeError": "Reittilaskentavirhe: {error}",
   "@routeError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "gpsNotAvailable": "GPS ei saatavilla — Asetukset → Sovellus → Roadstr → Käyttöoikeudet → Sijainti",
   "acquiringGps": "Haetaan GPS…",
-
   "graphhopperServerNotConfigured": "GraphHopper-palvelinta ei ole määritetty — käytetään OSRM:ää",
   "graphhopperApiKeyNotConfigured": "GraphHopper API-avainta ei ole määritetty — käytetään OSRM:ää",
   "openrouteApiKeyNotConfigured": "OpenRouteService API-avainta ei ole määritetty — käytetään OSRM:ää",
-
   "chooseRoute": "Valitse reitti",
   "routeOptionsCount": "{count} vaihtoehtoa",
   "@routeOptionsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "cancel": "Peruuta",
   "startNavigation": "Aloita navigointi",
   "fastestRoute": "Nopein",
   "now": "Nyt",
-
   "history": "Historia",
   "clearHistory": "Tyhjennä",
   "selectedPosition": "Valittu sijainti",
-
   "bottomBarProfile": "Profiili",
   "bottomBarMenu": "Valikko",
-
   "settingsTitle": "Asetukset",
   "sectionTheme": "Teema",
   "sectionMap": "Kartta",
-  "sectionPrivacy": "Yksityisyys",
   "sectionInfo": "Tiedot",
   "sectionLanguage": "Kieli",
   "themeLightNostr": "Vaalea · Nostr Violetti",
   "themeLightBitcoin": "Vaalea · Bitcoin Oranssi",
+  "themeDarkNostr": "Tumma · Nostr Violetti",
+  "themeDarkBitcoin": "Tumma · Bitcoin Oranssi",
   "langSystem": "Järjestelmän oletus",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "Pidä näyttö päällä",
   "keepScreenOnDescription": "Estää laitteen siirtymisen lepotilaan navigoinnin aikana",
   "rotateMap": "Kartta seuraa suuntaa",
@@ -65,10 +66,6 @@
   "graphhopperServerReachable": "GraphHopper-palvelin tavoitettavissa",
   "errorTitle": "Virhe",
   "close": "Sulje",
-
-  "privacyMode": "Yksityisyystila",
-  "privacyModeDescription": "Älä lähetä anonyymiä telemetriadataa",
-
   "infoVersion": "Versio",
   "infoProtocol": "Protokolla",
   "infoMaps": "Kartat",
@@ -78,7 +75,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper (itse isännöity)",
   "providerGraphhopperCloud": "GraphHopper (pilvi)",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "Profiili",
   "notConnected": "Ei yhdistetty",
   "loginWithNostrTitle": "KIRJAUDU NOSTR-TILILLÄ",
@@ -94,13 +90,11 @@
   "logoutConfirmation": "Poistetaanko Nostr-tunnistetiedot tältä laitteelta?",
   "logoutButton": "Katkaise yhteys",
   "nostrIdentityInfo": "Nostr-identiteetillä voit julkaista liikennevaroituksia, raportteja ja mielenkiintoisia kohteita hajautetusti Nostr-verkossa ilman keskitettyjä palvelimia.",
-
   "warningTitle": "Varoitus",
   "nsecWarning": "Olet aikeissa syöttää Nostr-yksityisen avaimesi suoraan sovellukseen. Kuka tahansa, jolla on fyysinen tai etäkäyttö laitteeseesi, voi lukea sen ja ottaa pysyvän hallinnan Nostr-identiteetistäsi.",
   "amberSecureMethodHint": "✦  Turvallinen menetelmä on Amber (NIP-55): nsec ei koskaan poistu sovelluksen allekirjoittajan holvista.",
   "nsecRiskAcknowledgment": "Ymmärrän riskin ja haluan jatkaa silti",
   "continueButton": "Jatka",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber on NIP-55-yhteensopiva Android-sovelluksen allekirjoittaja. Yksityinen avaimesi pysyy eristettynä Amberissa eikä sitä koskaan jaeta.",
   "requestKeyFromAmber": "Pyydä julkinen avain Amberilta",
@@ -117,18 +111,15 @@
   "amberResponseError": "Amber-vastausvirhe",
   "ok": "OK",
   "or": "tai",
-
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS ei ole aktiivinen",
   "gpsDisabledMessage": "Ota GPS käyttöön laitteen asetuksissa sijaintisi selvittämiseksi ja navigoinnin käyttämiseksi.",
   "openSettings": "Asetukset",
-
   "@_CONTEXT_MENU": {},
   "myLocation": "Sijaintini",
   "loginToReport": "Kirjaudu Nostrilla (Profiili-osio) raportoidaksesi tapahtumia",
   "navigateHere": "Navigoi tänne",
   "reportEventHere": "Ilmoita tapahtuma tässä",
-
   "@_ZAP": {},
   "zapSendSats": "Zap ⚡ (lähetä sateja)",
   "sendZap": "Lähetä Zap",
@@ -136,7 +127,13 @@
   "customAmount": "Mukautettu summa…",
   "zapSending": "Lähetetään…",
   "zapSat": "⚡{sats} sat",
-  "@zapSat": { "placeholders": { "sats": { "type": "int" } } },
+  "@zapSat": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "fetchingLightningAddress": "Haetaan Lightning-osoitetta…",
   "noLightningAddress": "Tällä raportoijalla ei ole Lightning-osoitetta",
   "requestingInvoice": "Pyydetään laskua…",
@@ -146,20 +143,23 @@
   "payingViaNwc": "Maksetaan NWC:n kautta…",
   "noLightningWallet": "Lightning-lompakkoa ei löydy",
   "zapSent": "⚡ {sats} satsia lähetetty!",
-  "@zapSent": { "placeholders": { "sats": { "type": "int" } } },
-
+  "@zapSent": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "@_ROAD_EVENT_DETAIL": {},
   "stillThere": "Yhä siellä",
   "notThereAnymore": "Ei enää siellä",
   "loginToConfirm": "Kirjaudu Nostrilla vahvistaaksesi tai kiistääksesi",
-
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Ilmoita tapahtuma",
   "optionalComment": "Valinnainen kommentti…",
   "publish": "Julkaise",
   "publishing": "Julkaistaan…",
   "reportPublished": "Raportti julkaistu ✓",
-
   "@_PROFILE_ZAP": {},
   "myReports": "OMAT RAPORTTINI",
   "noReportsYet": "Ei julkaistuja raportteja",
@@ -169,14 +169,25 @@
   "reputationMedium": "Keskitaso",
   "reputationLow": "Matala",
   "reputationLabel": "Maine {level}",
-  "@reputationLabel": { "placeholders": { "level": { "type": "String" } } },
+  "@reputationLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "reliability": "Luotettavuus: {pct}%",
-  "@reliability": { "placeholders": { "pct": { "type": "int" } } },
+  "@reliability": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "confirmedLabel": "Vahvistettu",
   "removedLabel": "Poistettu",
   "positionLabel": "Sijainti",
   "loadingLabel": "Ladataan…",
-
   "@_SETTINGS_EXTRA": {},
   "sectionWebSearch": "Verkkohaku",
   "sectionLightning": "Lightning",
@@ -187,7 +198,6 @@
   "searchEngineDdgDesc": "Yksityisyyspainotteinen ja suosittu. Tulokset osittain Bingiltä — pidä se mielessä.",
   "searchEngineStartpageDesc": "Google-tulokset ilman tietojesi luovuttamista Googlelle. Kohtuullinen kompromissi.",
   "searchEngineGoogleDesc": "Erittäin tehokas. Mutta muista: Google tuntee sinut paremmin kuin äitisi ja myy kaiken mainostajille. Sinun valintasi. 🍪",
-
   "@_CATEGORIES": {},
   "categoryPolice": "Poliisi",
   "categorySpeedCamera": "Nopeusvalvontakamera",
@@ -202,19 +212,67 @@
   "categoryIce": "Jää",
   "categoryAnimal": "Eläin",
   "categoryOther": "Muu",
-
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Päivämäärä / aika",
   "minutesAgo": "{count} min sitten",
-  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "{count}t sitten",
-  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "daysAgo": "{count}pv sitten",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
-
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sectionFavorites": "Tallennetut paikat",
   "addFavorite": "Lisää paikka",
   "favoriteLabelHint": "Nimi (esim. Koti, Toimisto)",
   "favoriteAddressHint": "Osoite",
-  "favoriteGeocodingError": "Osoitetta ei löydy. Kokeile tarkempaa osoitetta."
+  "favoriteGeocodingError": "Osoitetta ei löydy. Kokeile tarkempaa osoitetta.",
+  "trafficAlertTitle": "Uutta liikennettä reitillä",
+  "trafficAlertBody": "{category} ilmoitettu {age} reitilläsi.\n\nHaluatko löytää vaihtoehtoisen reitin?",
+  "trafficContinue": "Jatka",
+  "trafficRecalculate": "Laske reitti uudelleen",
+  "navExitTitle": "Lopeta navigointi?",
+  "navExitBody": "Haluatko lopettaa navigoinnin ja palata karttaan?",
+  "navContinue": "Jatka navigointia",
+  "navExit": "Kyllä, lopeta",
+  "loadingInfo": "Ladataan tietoja…",
+  "conditionsOnRoute": "Olosuhteet reitillä",
+  "calculateRoute": "Laske reitti",
+  "sectionNavigationVoice": "Navigoinnin ääni",
+  "voiceGuidance": "Ääniopastus",
+  "voiceGuidanceDesc": "Lue käännösohjeet ääneen navigoinnin aikana",
+  "testVoiceEngine": "Testaa äänimoottori",
+  "testVoiceEngineDesc": "Napauta tarkistaaksesi TTS-moottorin ja saadaksesi asennusohjeet",
+  "ttsDialogTitle": "Äänimoottori puuttuu",
+  "ttsDialogBody": "Toimivaa Text-to-Speech-moottoria ei löytynyt.\n\nRoadstr tukeutuu vain avoimen lähdekoodin ohjelmistoihin — asenna jokin näistä ilmaisista moottoreista F-Droidista:",
+  "ttsRhvoiceDesc": "Luonnollisen kuuloinen ääni, rajoitettu kielilista",
+  "ttsEspeakDesc": "Tukee yli 100 kieltä, robottimainen ääni",
+  "ttsInstallNote": "⚠️ Asennuksen jälkeen:\n1. Android-asetukset → Esteettömyys → Tekstistä puheeksi\n2. Valitse juuri asentamasi moottori\n3. Lataa kielesi äänidata\n4. Käynnistä Roadstr kokonaan uudelleen",
+  "ttsTestNow": "Testaa nyt",
+  "voiceUnsupportedTitle": "Ääniopastus ei ole käytettävissä",
+  "voiceUnsupportedBody": "Kieltäsi ei vielä tueta puhutuissa käännösohjeissa. Navigointiohjeet näkyvät edelleen tekstinä näytöllä.",
+  "kokoroModelTitle": "Ääntömalli (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "Ei ladattu · ~82 MB",
+  "kokoroModelStatusDownloading": "Ladataan...",
+  "kokoroModelStatusReady": "Ääntömalli valmis",
+  "kokoroModelDownloadBtn": "Lataa",
+  "kokoroModelSupportedLangs": "Tukee: italia, englanti, espanja, ranska, japani, kiina, portugali",
+  "autoDarkMode": "Automaattinen tumma teema",
+  "autoDarkModeDesc": "Ottaa tumman teeman käyttöön auringonlaskun aikaan"
 }

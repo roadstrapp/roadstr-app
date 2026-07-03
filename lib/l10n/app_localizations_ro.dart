@@ -93,9 +93,6 @@ class AppLocalizationsRo extends AppLocalizations {
   String get sectionMap => 'Hartă';
 
   @override
-  String get sectionPrivacy => 'Confidențialitate';
-
-  @override
   String get sectionInfo => 'Info';
 
   @override
@@ -106,6 +103,12 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => 'Deschis · Bitcoin Portocaliu';
+
+  @override
+  String get themeDarkNostr => 'Întunecat · Nostr Violet';
+
+  @override
+  String get themeDarkBitcoin => 'Întunecat · Bitcoin Portocaliu';
 
   @override
   String get langSystem => 'Implicit sistem';
@@ -172,13 +175,6 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get close => 'Închide';
-
-  @override
-  String get privacyMode => 'Mod confidențialitate';
-
-  @override
-  String get privacyModeDescription =>
-      'Nu trimiteți date de telemetrie anonime';
 
   @override
   String get infoVersion => 'Versiune';
@@ -569,4 +565,109 @@ class AppLocalizationsRo extends AppLocalizations {
   @override
   String get favoriteGeocodingError =>
       'Adresa nu a fost găsită. Încearcă o adresă mai specifică.';
+
+  @override
+  String get trafficAlertTitle => 'Trafic nou pe rută';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$category raportat $age pe ruta dvs.\n\nDoriți să găsiți o rută alternativă?';
+  }
+
+  @override
+  String get trafficContinue => 'Continuați';
+
+  @override
+  String get trafficRecalculate => 'Recalculați ruta';
+
+  @override
+  String get navExitTitle => 'Ieșiți din navigare?';
+
+  @override
+  String get navExitBody =>
+      'Doriți să opriți navigarea și să reveniți la hartă?';
+
+  @override
+  String get navContinue => 'Continuați navigarea';
+
+  @override
+  String get navExit => 'Da, ieșiți';
+
+  @override
+  String get loadingInfo => 'Se încarcă informațiile…';
+
+  @override
+  String get conditionsOnRoute => 'Condiții pe rută';
+
+  @override
+  String get calculateRoute => 'Calculați ruta';
+
+  @override
+  String get sectionNavigationVoice => 'Voce de navigare';
+
+  @override
+  String get voiceGuidance => 'Ghidare vocală';
+
+  @override
+  String get voiceGuidanceDesc =>
+      'Citește cu voce tare instrucțiunile de virare în timpul navigării';
+
+  @override
+  String get testVoiceEngine => 'Testează motorul vocal';
+
+  @override
+  String get testVoiceEngineDesc =>
+      'Atinge pentru a verifica motorul TTS și a obține instrucțiuni de configurare';
+
+  @override
+  String get ttsDialogTitle => 'Lipsește motorul vocal';
+
+  @override
+  String get ttsDialogBody =>
+      'Nu a fost găsit niciun motor Text-to-Speech funcțional.\n\nRoadstr se bazează exclusiv pe software open source — instalează unul dintre aceste motoare gratuite de pe F-Droid:';
+
+  @override
+  String get ttsRhvoiceDesc => 'Voce cu sunet natural, listă limitată de limbi';
+
+  @override
+  String get ttsEspeakDesc => 'Acoperă peste 100 de limbi, voce robotică';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ După instalare:\n1. Setări Android → Accesibilitate → Conversie text în vorbire\n2. Selectează motorul instalat recent\n3. Descarcă datele vocale pentru limba ta\n4. Repornește Roadstr complet';
+
+  @override
+  String get ttsTestNow => 'Testează acum';
+
+  @override
+  String get voiceUnsupportedTitle => 'Ghidarea vocală nu este disponibilă';
+
+  @override
+  String get voiceUnsupportedBody =>
+      'Limba ta nu este încă acceptată pentru indicații de virare vorbite. Instrucțiunile de navigare vor continua să apară ca text pe ecran.';
+
+  @override
+  String get kokoroModelTitle => 'Model vocal (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => 'Nedescarcat · ~82 MB';
+
+  @override
+  String get kokoroModelStatusDownloading => 'Se descarcă...';
+
+  @override
+  String get kokoroModelStatusReady => 'Modelul vocal este pregătit';
+
+  @override
+  String get kokoroModelDownloadBtn => 'Descarcă';
+
+  @override
+  String get kokoroModelSupportedLangs =>
+      'Suportă: italiană, engleză, spaniolă, franceză, japoneză, chineză, portugheză';
+
+  @override
+  String get autoDarkMode => 'Temă întunecată automată';
+
+  @override
+  String get autoDarkModeDesc => 'Activează tema întunecată la apus';
 }

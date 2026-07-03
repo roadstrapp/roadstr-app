@@ -1,4 +1,4 @@
-package com.example.nostr_nav
+package app.roadstr
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

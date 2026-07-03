@@ -1,6 +1,5 @@
 {
   "@@locale": "lv",
-
   "searchHint": "Kurp vēlaties doties?",
   "calculatingRoute": "Aprēķina maršrutu…",
   "routeNotFoundTitle": "Maršruts nav atrasts",
@@ -8,45 +7,47 @@
   "emptyServerResponse": "Tukša servera atbilde. Pārbaudiet savienojumu.",
   "routeError": "Maršruta aprēķināšanas kļūda: {error}",
   "@routeError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "gpsNotAvailable": "GPS nav pieejams — Iestatījumi → Lietotne → Roadstr → Atļaujas → Atrašanās vieta",
   "acquiringGps": "Iegūst GPS…",
-
   "graphhopperServerNotConfigured": "GraphHopper serveris nav konfigurēts — izmanto OSRM",
   "graphhopperApiKeyNotConfigured": "GraphHopper API atslēga nav konfigurēta — izmanto OSRM",
   "openrouteApiKeyNotConfigured": "OpenRouteService API atslēga nav konfigurēta — izmanto OSRM",
-
   "chooseRoute": "Izvēlēties maršrutu",
   "routeOptionsCount": "{count} iespējas",
   "@routeOptionsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "cancel": "Atcelt",
   "startNavigation": "Sākt navigāciju",
   "fastestRoute": "Ātrākais",
   "now": "Tagad",
-
   "history": "Vēsture",
   "clearHistory": "Notīrīt",
   "selectedPosition": "Atlasītā pozīcija",
-
   "bottomBarProfile": "Profils",
   "bottomBarMenu": "Izvēlne",
-
   "settingsTitle": "Iestatījumi",
   "sectionTheme": "Motīvs",
   "sectionMap": "Karte",
-  "sectionPrivacy": "Privātums",
   "sectionInfo": "Info",
   "sectionLanguage": "Valoda",
   "themeLightNostr": "Gaišs · Nostr Violets",
   "themeLightBitcoin": "Gaišs · Bitcoin Oranžs",
+  "themeDarkNostr": "Tumšs · Nostr Violets",
+  "themeDarkBitcoin": "Tumšs · Bitcoin Oranžs",
   "langSystem": "Sistēmas noklusējums",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "Paturēt ekrānu ieslēgtu",
   "keepScreenOnDescription": "Novērš miega režīmu navigācijas laikā",
   "rotateMap": "Karte seko virzienam",
@@ -65,10 +66,6 @@
   "graphhopperServerReachable": "GraphHopper serveris ir pieejams",
   "errorTitle": "Kļūda",
   "close": "Aizvērt",
-
-  "privacyMode": "Privātuma režīms",
-  "privacyModeDescription": "Nesūtīt anonīmus telemetrijas datus",
-
   "infoVersion": "Versija",
   "infoProtocol": "Protokols",
   "infoMaps": "Kartes",
@@ -78,7 +75,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper (pašmitināts)",
   "providerGraphhopperCloud": "GraphHopper (mākonis)",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "Profils",
   "notConnected": "Nav savienots",
   "loginWithNostrTitle": "PIETEIKTIES AR NOSTR",
@@ -94,13 +90,11 @@
   "logoutConfirmation": "Noņemt Nostr akreditācijas datus no šīs ierīces?",
   "logoutButton": "Atvienot",
   "nostrIdentityInfo": "Ar Nostr identitāti varat publicēt satiksmes brīdinājumus, pārskatus un interesantas vietas decentralizētā veidā Nostr tīklā bez centrāliem serveriem.",
-
   "warningTitle": "Brīdinājums",
   "nsecWarning": "Jūs gatavojaties ievadīt savu Nostr privāto atslēgu tieši lietotnē. Ikviens, kam ir fiziska vai attālināta piekļuve jūsu ierīcei, var to nolasīt un pastāvīgi pārņemt kontroli pār jūsu Nostr identitāti.",
   "amberSecureMethodHint": "✦  Drošā metode ir Amber (NIP-55): nsec nekad neatstāj lietotnes parakstītāja glabātuvi.",
   "nsecRiskAcknowledgment": "Saprotu risku un tāpat vēlos turpināt",
   "continueButton": "Turpināt",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber ir NIP-55 saderīga Android lietotņu parakstītāja lietotne. Jūsu privātā atslēga paliek izolēta Amber iekšienē un netiek kopīgota.",
   "requestKeyFromAmber": "Pieprasīt publisko atslēgu no Amber",
@@ -117,18 +111,15 @@
   "amberResponseError": "Amber atbildes kļūda",
   "ok": "Labi",
   "or": "vai",
-
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS nav aktīvs",
   "gpsDisabledMessage": "Ieslēdziet GPS ierīces iestatījumos, lai noteiktu savu atrašanās vietu un izmantotu navigāciju.",
   "openSettings": "Iestatījumi",
-
   "@_CONTEXT_MENU": {},
   "myLocation": "Mana atrašanās vieta",
   "loginToReport": "Piesakieties ar Nostr (Profila sadaļa), lai ziņotu par notikumiem",
   "navigateHere": "Navigēt uz šejieni",
   "reportEventHere": "Ziņot par notikumu šeit",
-
   "@_ZAP": {},
   "zapSendSats": "Zap ⚡ (nosūtīt sats)",
   "sendZap": "Nosūtīt Zap",
@@ -136,7 +127,13 @@
   "customAmount": "Pielāgota summa…",
   "zapSending": "Sūta…",
   "zapSat": "⚡{sats} sat",
-  "@zapSat": { "placeholders": { "sats": { "type": "int" } } },
+  "@zapSat": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "fetchingLightningAddress": "Iegūst Lightning adresi…",
   "noLightningAddress": "Šim ziņotājam nav Lightning adreses",
   "requestingInvoice": "Pieprasa rēķinu…",
@@ -146,20 +143,23 @@
   "payingViaNwc": "Maksā, izmantojot NWC…",
   "noLightningWallet": "Lightning maks nav atrasts",
   "zapSent": "⚡ {sats} sats nosūtīti!",
-  "@zapSent": { "placeholders": { "sats": { "type": "int" } } },
-
+  "@zapSent": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "@_ROAD_EVENT_DETAIL": {},
   "stillThere": "Joprojām tur",
   "notThereAnymore": "Vairs tur nav",
   "loginToConfirm": "Piesakieties ar Nostr, lai apstiprinātu vai apstrīdētu",
-
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Ziņot par notikumu",
   "optionalComment": "Neobligāts komentārs…",
   "publish": "Publicēt",
   "publishing": "Publicē…",
   "reportPublished": "Ziņojums publicēts ✓",
-
   "@_PROFILE_ZAP": {},
   "myReports": "MANI ZIŅOJUMI",
   "noReportsYet": "Nav publicētu ziņojumu",
@@ -169,14 +169,25 @@
   "reputationMedium": "Vidēja",
   "reputationLow": "Zema",
   "reputationLabel": "Reputācija {level}",
-  "@reputationLabel": { "placeholders": { "level": { "type": "String" } } },
+  "@reputationLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "reliability": "Uzticamība: {pct}%",
-  "@reliability": { "placeholders": { "pct": { "type": "int" } } },
+  "@reliability": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "confirmedLabel": "Apstiprināts",
   "removedLabel": "Noņemts",
   "positionLabel": "Pozīcija",
   "loadingLabel": "Ielādē…",
-
   "@_SETTINGS_EXTRA": {},
   "sectionWebSearch": "Tīmekļa meklēšana",
   "sectionLightning": "Lightning",
@@ -187,7 +198,6 @@
   "searchEngineDdgDesc": "Vērsts uz privātumu un populārs. Rezultāti daļēji no Bing — paturiet to prātā.",
   "searchEngineStartpageDesc": "Google rezultāti, nenododot jūsu datus Google. Saprātīgs kompromiss.",
   "searchEngineGoogleDesc": "Ļoti efektīvs. Bet atcerieties: Google pazīst jūs labāk nekā jūsu māte un pārdod visu reklāmdevējiem. Jūsu izvēle. 🍪",
-
   "@_CATEGORIES": {},
   "categoryPolice": "Policija",
   "categorySpeedCamera": "Ātruma kamera",
@@ -202,19 +212,67 @@
   "categoryIce": "Ledus",
   "categoryAnimal": "Dzīvnieks",
   "categoryOther": "Cits",
-
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Datums / laiks",
   "minutesAgo": "pirms {count} min",
-  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "pirms {count}h",
-  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "daysAgo": "pirms {count}d",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
-
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sectionFavorites": "Saglabātās vietas",
   "addFavorite": "Pievienot vietu",
   "favoriteLabelHint": "Nosaukums (piem. Mājas, Birojs)",
   "favoriteAddressHint": "Adrese",
-  "favoriteGeocodingError": "Adrese nav atrasta. Mēģini precīzāku adresi."
+  "favoriteGeocodingError": "Adrese nav atrasta. Mēģini precīzāku adresi.",
+  "trafficAlertTitle": "Jauna satiksme maršrutā",
+  "trafficAlertBody": "{category} ziņots {age} jūsu maršrutā.\n\nVai vēlaties atrast alternatīvu maršrutu?",
+  "trafficContinue": "Turpināt",
+  "trafficRecalculate": "Pārrēķināt maršrutu",
+  "navExitTitle": "Iziet no navigācijas?",
+  "navExitBody": "Vai vēlaties apturēt navigāciju un atgriezties kartē?",
+  "navContinue": "Turpināt navigāciju",
+  "navExit": "Jā, iziet",
+  "loadingInfo": "Ielādē informāciju…",
+  "conditionsOnRoute": "Apstākļi maršrutā",
+  "calculateRoute": "Aprēķināt maršrutu",
+  "sectionNavigationVoice": "Navigācijas balss",
+  "voiceGuidance": "Balss vadība",
+  "voiceGuidanceDesc": "Skaļi nolasīt pagrieziena norādes navigācijas laikā",
+  "testVoiceEngine": "Testēt balss dzinēju",
+  "testVoiceEngineDesc": "Pieskarieties, lai pārbaudītu TTS dzinēju un saņemtu iestatīšanas norādījumus",
+  "ttsDialogTitle": "Trūkst balss dzinēja",
+  "ttsDialogBody": "Netika atrasts neviens darbojošies Text-to-Speech dzinējs.\n\n“Roadstr” paļaujas tikai uz atvērtā koda programmatūru — instalējiet kādu no šiem bezmaksas dzinējiem no F-Droid:",
+  "ttsRhvoiceDesc": "Dabiski skanoša balss, ierobežots valodu saraksts",
+  "ttsEspeakDesc": "Aptver vairāk nekā 100 valodas, robotiska balss",
+  "ttsInstallNote": "⚠️ Pēc instalēšanas:\n1. Android iestatījumi → Pieejamība → Teksta pārvēršana runā\n2. Izvēlieties tikko instalēto dzinēju\n3. Lejupielādējiet savas valodas balss datus\n4. Pilnībā restartējiet “Roadstr”",
+  "ttsTestNow": "Testēt tagad",
+  "voiceUnsupportedTitle": "Balss vadība nav pieejama",
+  "voiceUnsupportedBody": "Jūsu valoda vēl netiek atbalstīta balss pagrieziena norādēm. Navigācijas norādes joprojām tiks rādītas kā teksts ekrānā.",
+  "kokoroModelTitle": "Balss modelis (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "Nav lejupielādēts · ~82 MB",
+  "kokoroModelStatusDownloading": "Lejupielāde...",
+  "kokoroModelStatusReady": "Balss modelis ir gatavs",
+  "kokoroModelDownloadBtn": "Lejupielādēt",
+  "kokoroModelSupportedLangs": "Atbalsta: itāliešu, angļu, spāņu, franču, japāņu, ķīniešu, portugāļu",
+  "autoDarkMode": "Automātiskā tumšā tēma",
+  "autoDarkModeDesc": "Aktivizē tumšo tēmu saulrieta laikā"
 }

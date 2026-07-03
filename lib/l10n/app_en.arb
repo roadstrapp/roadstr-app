@@ -1,6 +1,5 @@
 {
   "@@locale": "en",
-
   "searchHint": "Where do you want to go?",
   "calculatingRoute": "Calculating route…",
   "routeNotFoundTitle": "Route not found",
@@ -8,45 +7,47 @@
   "emptyServerResponse": "Empty server response. Check your connection.",
   "routeError": "Route calculation error: {error}",
   "@routeError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "gpsNotAvailable": "GPS unavailable — Settings → App → Roadstr → Permissions → Location",
   "acquiringGps": "Acquiring GPS…",
-
   "graphhopperServerNotConfigured": "GraphHopper server not configured — using OSRM",
   "graphhopperApiKeyNotConfigured": "GraphHopper API key not configured — using OSRM",
   "openrouteApiKeyNotConfigured": "OpenRouteService API key not configured — using OSRM",
-
   "chooseRoute": "Choose route",
   "routeOptionsCount": "{count} options",
   "@routeOptionsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "cancel": "Cancel",
   "startNavigation": "Start navigation",
   "fastestRoute": "Fastest",
   "now": "Now",
-
   "history": "History",
   "clearHistory": "Clear",
   "selectedPosition": "Selected position",
-
   "bottomBarProfile": "Profile",
   "bottomBarMenu": "Menu",
-
   "settingsTitle": "Settings",
   "sectionTheme": "Theme",
   "sectionMap": "Map",
-  "sectionPrivacy": "Privacy",
   "sectionInfo": "Info",
   "sectionLanguage": "Language",
   "themeLightNostr": "Light · Nostr Violet",
   "themeLightBitcoin": "Light · Bitcoin Orange",
+  "themeDarkNostr": "Dark · Nostr Violet",
+  "themeDarkBitcoin": "Dark · Bitcoin Orange",
   "langSystem": "System default",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "Keep screen on",
   "keepScreenOnDescription": "Prevents sleep during navigation",
   "rotateMap": "Map follows direction",
@@ -65,10 +66,6 @@
   "graphhopperServerReachable": "GraphHopper server reachable",
   "errorTitle": "Error",
   "close": "Close",
-
-  "privacyMode": "Privacy mode",
-  "privacyModeDescription": "Do not send anonymous telemetry data",
-
   "infoVersion": "Version",
   "infoProtocol": "Protocol",
   "infoMaps": "Maps",
@@ -78,7 +75,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper (self-hosted)",
   "providerGraphhopperCloud": "GraphHopper (cloud)",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "Profile",
   "notConnected": "Not connected",
   "loginWithNostrTitle": "LOGIN WITH NOSTR",
@@ -94,13 +90,11 @@
   "logoutConfirmation": "Remove Nostr credentials from this device?",
   "logoutButton": "Disconnect",
   "nostrIdentityInfo": "With a Nostr identity you can publish traffic alerts, reports and points of interest in a decentralized way on the Nostr network, without central servers.",
-
   "warningTitle": "Warning",
   "nsecWarning": "You are about to rawdog your Nostr private key directly into an app. Anyone with physical or remote access to your device could read it and permanently take control of your Nostr identity.",
   "amberSecureMethodHint": "✦  The safe method is Amber (NIP-55): the nsec never leaves the app signer vault.",
   "nsecRiskAcknowledgment": "I understand the risk and want to continue anyway",
   "continueButton": "Continue",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber is an Android NIP-55 compliant app signer. Your private key stays isolated inside Amber and is never shared.",
   "requestKeyFromAmber": "Request public key from Amber",
@@ -117,18 +111,15 @@
   "amberResponseError": "Amber response error",
   "ok": "OK",
   "or": "or",
-
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS not active",
   "gpsDisabledMessage": "Activate GPS in your device settings to get your location and use navigation.",
   "openSettings": "Settings",
-
   "@_CONTEXT_MENU": {},
   "myLocation": "My location",
   "loginToReport": "Login with Nostr (Profile section) to report events",
   "navigateHere": "Navigate here",
   "reportEventHere": "Report event here",
-
   "@_ZAP": {},
   "zapSendSats": "Zap ⚡ (send sats)",
   "sendZap": "Send a Zap",
@@ -136,7 +127,13 @@
   "customAmount": "Custom amount…",
   "zapSending": "Sending…",
   "zapSat": "⚡{sats} sat",
-  "@zapSat": { "placeholders": { "sats": { "type": "int" } } },
+  "@zapSat": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "fetchingLightningAddress": "Fetching Lightning address…",
   "noLightningAddress": "This reporter has no Lightning address",
   "requestingInvoice": "Requesting invoice…",
@@ -146,20 +143,23 @@
   "payingViaNwc": "Paying via NWC…",
   "noLightningWallet": "No Lightning wallet found",
   "zapSent": "⚡ {sats} sats sent!",
-  "@zapSent": { "placeholders": { "sats": { "type": "int" } } },
-
+  "@zapSent": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "@_ROAD_EVENT_DETAIL": {},
   "stillThere": "Still there",
   "notThereAnymore": "Not there anymore",
   "loginToConfirm": "Login with Nostr to confirm or dispute",
-
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Report an event",
   "optionalComment": "Optional comment…",
   "publish": "Publish",
   "publishing": "Publishing…",
   "reportPublished": "Report published ✓",
-
   "@_PROFILE_ZAP": {},
   "myReports": "MY REPORTS",
   "noReportsYet": "No reports published",
@@ -169,14 +169,25 @@
   "reputationMedium": "Medium",
   "reputationLow": "Low",
   "reputationLabel": "Reputation {level}",
-  "@reputationLabel": { "placeholders": { "level": { "type": "String" } } },
+  "@reputationLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "reliability": "Reliability: {pct}%",
-  "@reliability": { "placeholders": { "pct": { "type": "int" } } },
+  "@reliability": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "confirmedLabel": "Confirmed",
   "removedLabel": "Removed",
   "positionLabel": "Position",
   "loadingLabel": "Loading…",
-
   "@_SETTINGS_EXTRA": {},
   "sectionWebSearch": "Web Search",
   "sectionLightning": "Lightning",
@@ -187,7 +198,6 @@
   "searchEngineDdgDesc": "Privacy-focused and popular. Results partially from Bing — keep that in mind.",
   "searchEngineStartpageDesc": "Google results without handing your data to Google. A reasonable compromise.",
   "searchEngineGoogleDesc": "Very effective. But remember: Google knows you better than your mother and sells everything to advertisers. Your call though. 🍪",
-
   "@_CATEGORIES": {},
   "categoryPolice": "Police",
   "categorySpeedCamera": "Speed Camera",
@@ -202,19 +212,67 @@
   "categoryIce": "Ice",
   "categoryAnimal": "Animal",
   "categoryOther": "Other",
-
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Date / time",
   "minutesAgo": "{count} min ago",
-  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "{count}h ago",
-  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "daysAgo": "{count}d ago",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
-
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sectionFavorites": "Saved Places",
   "addFavorite": "Add place",
   "favoriteLabelHint": "Name (e.g. Home, Office)",
   "favoriteAddressHint": "Address",
-  "favoriteGeocodingError": "Address not found. Try a more specific address."
+  "favoriteGeocodingError": "Address not found. Try a more specific address.",
+  "trafficAlertTitle": "New traffic on route",
+  "trafficAlertBody": "{category} reported {age} on your route.\n\nDo you want to find an alternative route?",
+  "trafficContinue": "Continue",
+  "trafficRecalculate": "Recalculate route",
+  "navExitTitle": "Exit navigation?",
+  "navExitBody": "Do you want to stop navigation and return to the map?",
+  "navContinue": "Continue navigation",
+  "navExit": "Yes, exit",
+  "loadingInfo": "Loading information…",
+  "conditionsOnRoute": "Conditions on route",
+  "calculateRoute": "Calculate route",
+  "sectionNavigationVoice": "Navigation voice",
+  "voiceGuidance": "Voice guidance",
+  "voiceGuidanceDesc": "Read turn-by-turn instructions aloud during navigation",
+  "testVoiceEngine": "Test voice engine",
+  "testVoiceEngineDesc": "Tap to check the TTS engine and get setup instructions",
+  "ttsDialogTitle": "Missing voice engine",
+  "ttsDialogBody": "No working Text-to-Speech engine was found.\n\nRoadstr only relies on open source software — install one of these free engines from F-Droid:",
+  "ttsRhvoiceDesc": "Natural-sounding voice, limited language list",
+  "ttsEspeakDesc": "Covers 100+ languages, robotic-sounding voice",
+  "ttsInstallNote": "⚠️ After installing:\n1. Android Settings → Accessibility → Text-to-speech output\n2. Select the engine you just installed\n3. Download your language's voice data\n4. Restart Roadstr completely",
+  "ttsTestNow": "Test now",
+  "voiceUnsupportedTitle": "Voice guidance unavailable",
+  "voiceUnsupportedBody": "Your language isn't yet supported for spoken turn-by-turn directions. Navigation instructions will still appear as text on screen.",
+  "kokoroModelTitle": "Voice model (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "Not downloaded · ~82 MB",
+  "kokoroModelStatusDownloading": "Downloading...",
+  "kokoroModelStatusReady": "Voice model ready",
+  "kokoroModelDownloadBtn": "Download",
+  "kokoroModelSupportedLangs": "Supports: Italian, English, Spanish, French, Japanese, Chinese, Portuguese",
+  "autoDarkMode": "Auto dark theme",
+  "autoDarkModeDesc": "Activates the dark theme at sunset and sunrise"
 }

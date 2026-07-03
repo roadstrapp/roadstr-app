@@ -1,6 +1,5 @@
 {
   "@@locale": "de",
-
   "searchHint": "Wohin möchten Sie fahren?",
   "calculatingRoute": "Route wird berechnet…",
   "routeNotFoundTitle": "Route nicht gefunden",
@@ -8,45 +7,47 @@
   "emptyServerResponse": "Leere Serverantwort. Überprüfen Sie Ihre Verbindung.",
   "routeError": "Fehler bei der Routenberechnung: {error}",
   "@routeError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "gpsNotAvailable": "GPS nicht verfügbar — Einstellungen → App → Roadstr → Berechtigungen → Standort",
   "acquiringGps": "GPS wird ermittelt…",
-
   "graphhopperServerNotConfigured": "GraphHopper-Server nicht konfiguriert — OSRM wird verwendet",
   "graphhopperApiKeyNotConfigured": "GraphHopper-API-Schlüssel nicht konfiguriert — OSRM wird verwendet",
   "openrouteApiKeyNotConfigured": "OpenRouteService-API-Schlüssel nicht konfiguriert — OSRM wird verwendet",
-
   "chooseRoute": "Route wählen",
   "routeOptionsCount": "{count} Optionen",
   "@routeOptionsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "cancel": "Abbrechen",
   "startNavigation": "Navigation starten",
   "fastestRoute": "Schnellste",
   "now": "Jetzt",
-
   "history": "Verlauf",
   "clearHistory": "Löschen",
   "selectedPosition": "Ausgewählte Position",
-
   "bottomBarProfile": "Profil",
   "bottomBarMenu": "Menü",
-
   "settingsTitle": "Einstellungen",
   "sectionTheme": "Design",
   "sectionMap": "Karte",
-  "sectionPrivacy": "Datenschutz",
   "sectionInfo": "Info",
   "sectionLanguage": "Sprache",
   "themeLightNostr": "Hell · Nostr Violett",
   "themeLightBitcoin": "Hell · Bitcoin Orange",
+  "themeDarkNostr": "Dunkel · Nostr Violett",
+  "themeDarkBitcoin": "Dunkel · Bitcoin Orange",
   "langSystem": "Systemstandard",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "Bildschirm eingeschaltet lassen",
   "keepScreenOnDescription": "Verhindert den Ruhezustand während der Navigation",
   "rotateMap": "Karte folgt Richtung",
@@ -65,10 +66,6 @@
   "graphhopperServerReachable": "GraphHopper-Server erreichbar",
   "errorTitle": "Fehler",
   "close": "Schließen",
-
-  "privacyMode": "Datenschutzmodus",
-  "privacyModeDescription": "Keine anonymen Telemetriedaten senden",
-
   "infoVersion": "Version",
   "infoProtocol": "Protokoll",
   "infoMaps": "Karten",
@@ -78,7 +75,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper (selbst gehostet)",
   "providerGraphhopperCloud": "GraphHopper (Cloud)",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "Profil",
   "notConnected": "Nicht verbunden",
   "loginWithNostrTitle": "MIT NOSTR ANMELDEN",
@@ -94,13 +90,11 @@
   "logoutConfirmation": "Nostr-Anmeldedaten von diesem Gerät entfernen?",
   "logoutButton": "Trennen",
   "nostrIdentityInfo": "Mit einer Nostr-Identität können Sie Verkehrsmeldungen, Berichte und Sehenswürdigkeiten dezentral im Nostr-Netzwerk veröffentlichen, ohne zentrale Server.",
-
   "warningTitle": "Warnung",
   "nsecWarning": "Sie sind dabei, Ihren privaten Nostr-Schlüssel direkt in eine App einzugeben. Jeder mit physischem oder Remote-Zugriff auf Ihr Gerät könnte ihn lesen und dauerhaft die Kontrolle über Ihre Nostr-Identität übernehmen.",
   "amberSecureMethodHint": "✦  Die sichere Methode ist Amber (NIP-55): der nsec verlässt nie den App-Signer-Tresor.",
   "nsecRiskAcknowledgment": "Ich verstehe das Risiko und möchte trotzdem fortfahren",
   "continueButton": "Weiter",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber ist eine NIP-55-konforme Android-App zum Signieren. Ihr privater Schlüssel bleibt in Amber isoliert und wird niemals weitergegeben.",
   "requestKeyFromAmber": "Öffentlichen Schlüssel von Amber anfordern",
@@ -117,18 +111,15 @@
   "amberResponseError": "Amber-Antwortfehler",
   "ok": "OK",
   "or": "oder",
-
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS nicht aktiv",
   "gpsDisabledMessage": "Aktivieren Sie GPS in Ihren Geräteeinstellungen, um Ihren Standort zu ermitteln und die Navigation zu nutzen.",
   "openSettings": "Einstellungen",
-
   "@_CONTEXT_MENU": {},
   "myLocation": "Mein Standort",
   "loginToReport": "Mit Nostr anmelden (Profilbereich), um Ereignisse zu melden",
   "navigateHere": "Hierher navigieren",
   "reportEventHere": "Ereignis hier melden",
-
   "@_ZAP": {},
   "zapSendSats": "Zap ⚡ (Sats senden)",
   "sendZap": "Einen Zap senden",
@@ -136,7 +127,13 @@
   "customAmount": "Benutzerdefinierter Betrag…",
   "zapSending": "Wird gesendet…",
   "zapSat": "⚡{sats} sat",
-  "@zapSat": { "placeholders": { "sats": { "type": "int" } } },
+  "@zapSat": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "fetchingLightningAddress": "Lightning-Adresse wird abgerufen…",
   "noLightningAddress": "Dieser Melder hat keine Lightning-Adresse",
   "requestingInvoice": "Rechnung wird angefordert…",
@@ -146,20 +143,23 @@
   "payingViaNwc": "Zahlung über NWC…",
   "noLightningWallet": "Keine Lightning-Wallet gefunden",
   "zapSent": "⚡ {sats} Sats gesendet!",
-  "@zapSent": { "placeholders": { "sats": { "type": "int" } } },
-
+  "@zapSent": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "@_ROAD_EVENT_DETAIL": {},
   "stillThere": "Noch vorhanden",
   "notThereAnymore": "Nicht mehr vorhanden",
   "loginToConfirm": "Mit Nostr anmelden, um zu bestätigen oder anzufechten",
-
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Ereignis melden",
   "optionalComment": "Optionaler Kommentar…",
   "publish": "Veröffentlichen",
   "publishing": "Wird veröffentlicht…",
   "reportPublished": "Bericht veröffentlicht ✓",
-
   "@_PROFILE_ZAP": {},
   "myReports": "MEINE BERICHTE",
   "noReportsYet": "Keine Berichte veröffentlicht",
@@ -169,14 +169,25 @@
   "reputationMedium": "Mittel",
   "reputationLow": "Niedrig",
   "reputationLabel": "Reputation {level}",
-  "@reputationLabel": { "placeholders": { "level": { "type": "String" } } },
+  "@reputationLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "reliability": "Zuverlässigkeit: {pct}%",
-  "@reliability": { "placeholders": { "pct": { "type": "int" } } },
+  "@reliability": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "confirmedLabel": "Bestätigt",
   "removedLabel": "Entfernt",
   "positionLabel": "Position",
   "loadingLabel": "Lädt…",
-
   "@_SETTINGS_EXTRA": {},
   "sectionWebSearch": "Websuche",
   "sectionLightning": "Lightning",
@@ -187,7 +198,6 @@
   "searchEngineDdgDesc": "Datenschutzorientiert und beliebt. Ergebnisse teilweise von Bing — das sollte man im Hinterkopf behalten.",
   "searchEngineStartpageDesc": "Google-Ergebnisse ohne Ihre Daten an Google weiterzugeben. Ein vernünftiger Kompromiss.",
   "searchEngineGoogleDesc": "Sehr effektiv. Aber denken Sie daran: Google kennt Sie besser als Ihre Mutter und verkauft alles an Werbetreibende. Ihre Entscheidung. 🍪",
-
   "@_CATEGORIES": {},
   "categoryPolice": "Polizei",
   "categorySpeedCamera": "Blitzer",
@@ -202,19 +212,67 @@
   "categoryIce": "Eis",
   "categoryAnimal": "Tier",
   "categoryOther": "Sonstiges",
-
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Datum / Uhrzeit",
   "minutesAgo": "Vor {count} Min.",
-  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "Vor {count} Std.",
-  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "daysAgo": "Vor {count} Tagen",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
-
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sectionFavorites": "Gespeicherte Orte",
   "addFavorite": "Ort hinzufügen",
   "favoriteLabelHint": "Name (z. B. Zuhause, Büro)",
   "favoriteAddressHint": "Adresse",
-  "favoriteGeocodingError": "Adresse nicht gefunden. Versuche eine genauere Adresse."
+  "favoriteGeocodingError": "Adresse nicht gefunden. Versuche eine genauere Adresse.",
+  "trafficAlertTitle": "Neuer Verkehr auf der Route",
+  "trafficAlertBody": "{category} gemeldet {age} auf Ihrer Route.\n\nMöchten Sie eine alternative Route finden?",
+  "trafficContinue": "Weiter",
+  "trafficRecalculate": "Route neu berechnen",
+  "navExitTitle": "Navigation beenden?",
+  "navExitBody": "Möchten Sie die Navigation beenden und zur Karte zurückkehren?",
+  "navContinue": "Navigation fortsetzen",
+  "navExit": "Ja, beenden",
+  "loadingInfo": "Informationen laden…",
+  "conditionsOnRoute": "Bedingungen auf der Route",
+  "calculateRoute": "Route berechnen",
+  "sectionNavigationVoice": "Navigationsstimme",
+  "voiceGuidance": "Sprachführung",
+  "voiceGuidanceDesc": "Abbiegehinweise während der Navigation laut vorlesen",
+  "testVoiceEngine": "Sprach-Engine testen",
+  "testVoiceEngineDesc": "Tippen, um die TTS-Engine zu prüfen und Einrichtungshinweise zu erhalten",
+  "ttsDialogTitle": "Sprach-Engine fehlt",
+  "ttsDialogBody": "Es wurde keine funktionierende Text-to-Speech-Engine gefunden.\n\nRoadstr setzt ausschließlich auf Open-Source-Software — installiere eine dieser kostenlosen Engines von F-Droid:",
+  "ttsRhvoiceDesc": "Natürlich klingende Stimme, eingeschränkte Sprachauswahl",
+  "ttsEspeakDesc": "Deckt über 100 Sprachen ab, roboterhafte Stimme",
+  "ttsInstallNote": "⚠️ Nach der Installation:\n1. Android-Einstellungen → Bedienungshilfen → Text-in-Sprache-Ausgabe\n2. Die gerade installierte Engine auswählen\n3. Sprachdaten für deine Sprache herunterladen\n4. Roadstr vollständig neu starten",
+  "ttsTestNow": "Jetzt testen",
+  "voiceUnsupportedTitle": "Sprachführung nicht verfügbar",
+  "voiceUnsupportedBody": "Deine Sprache wird für gesprochene Abbiegehinweise noch nicht unterstützt. Die Navigationsanweisungen werden weiterhin als Text auf dem Bildschirm angezeigt.",
+  "kokoroModelTitle": "Sprachmodell (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "Nicht heruntergeladen · ~82 MB",
+  "kokoroModelStatusDownloading": "Herunterladen...",
+  "kokoroModelStatusReady": "Sprachmodell bereit",
+  "kokoroModelDownloadBtn": "Herunterladen",
+  "kokoroModelSupportedLangs": "Unterstützt: Italienisch, Englisch, Spanisch, Französisch, Japanisch, Chinesisch, Portugiesisch",
+  "autoDarkMode": "Automatischer Dunkelmodus",
+  "autoDarkModeDesc": "Aktiviert das dunkle Design bei Sonnenuntergang"
 }

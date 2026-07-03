@@ -1,6 +1,5 @@
 {
   "@@locale": "nl",
-
   "searchHint": "Waar wilt u naartoe?",
   "calculatingRoute": "Route berekenen…",
   "routeNotFoundTitle": "Route niet gevonden",
@@ -8,45 +7,47 @@
   "emptyServerResponse": "Leeg serverantwoord. Controleer uw verbinding.",
   "routeError": "Fout bij routeberekening: {error}",
   "@routeError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "gpsNotAvailable": "GPS niet beschikbaar — Instellingen → App → Roadstr → Machtigingen → Locatie",
   "acquiringGps": "GPS verkrijgen…",
-
   "graphhopperServerNotConfigured": "GraphHopper-server niet geconfigureerd — OSRM wordt gebruikt",
   "graphhopperApiKeyNotConfigured": "GraphHopper API-sleutel niet geconfigureerd — OSRM wordt gebruikt",
   "openrouteApiKeyNotConfigured": "OpenRouteService API-sleutel niet geconfigureerd — OSRM wordt gebruikt",
-
   "chooseRoute": "Route kiezen",
   "routeOptionsCount": "{count} opties",
   "@routeOptionsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "cancel": "Annuleren",
   "startNavigation": "Navigatie starten",
   "fastestRoute": "Snelste",
   "now": "Nu",
-
   "history": "Geschiedenis",
   "clearHistory": "Wissen",
   "selectedPosition": "Geselecteerde positie",
-
   "bottomBarProfile": "Profiel",
   "bottomBarMenu": "Menu",
-
   "settingsTitle": "Instellingen",
   "sectionTheme": "Thema",
   "sectionMap": "Kaart",
-  "sectionPrivacy": "Privacy",
   "sectionInfo": "Info",
   "sectionLanguage": "Taal",
   "themeLightNostr": "Licht · Nostr Violet",
   "themeLightBitcoin": "Licht · Bitcoin Oranje",
+  "themeDarkNostr": "Donker · Nostr Violet",
+  "themeDarkBitcoin": "Donker · Bitcoin Oranje",
   "langSystem": "Systeemstandaard",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "Scherm ingeschakeld houden",
   "keepScreenOnDescription": "Voorkomt slaapstand tijdens navigatie",
   "rotateMap": "Kaart volgt richting",
@@ -65,10 +66,6 @@
   "graphhopperServerReachable": "GraphHopper-server bereikbaar",
   "errorTitle": "Fout",
   "close": "Sluiten",
-
-  "privacyMode": "Privacymodus",
-  "privacyModeDescription": "Geen anonieme telemetriegegevens verzenden",
-
   "infoVersion": "Versie",
   "infoProtocol": "Protocol",
   "infoMaps": "Kaarten",
@@ -78,7 +75,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper (zelf gehost)",
   "providerGraphhopperCloud": "GraphHopper (cloud)",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "Profiel",
   "notConnected": "Niet verbonden",
   "loginWithNostrTitle": "INLOGGEN MET NOSTR",
@@ -94,13 +90,11 @@
   "logoutConfirmation": "Nostr-inloggegevens van dit apparaat verwijderen?",
   "logoutButton": "Verbinding verbreken",
   "nostrIdentityInfo": "Met een Nostr-identiteit kunt u verkeersmeldingen, rapporten en bezienswaardigheden gedecentraliseerd publiceren op het Nostr-netwerk, zonder centrale servers.",
-
   "warningTitle": "Waarschuwing",
   "nsecWarning": "U staat op het punt uw Nostr-privésleutel rechtstreeks in een app in te voeren. Iedereen met fysieke of externe toegang tot uw apparaat kan deze lezen en permanent de controle over uw Nostr-identiteit overnemen.",
   "amberSecureMethodHint": "✦  De veilige methode is Amber (NIP-55): de nsec verlaat nooit de app-ondertekenaarkluis.",
   "nsecRiskAcknowledgment": "Ik begrijp het risico en wil toch doorgaan",
   "continueButton": "Doorgaan",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber is een NIP-55-compatibele Android app-ondertekenaar. Uw privésleutel blijft geïsoleerd in Amber en wordt nooit gedeeld.",
   "requestKeyFromAmber": "Publieke sleutel aanvragen bij Amber",
@@ -117,18 +111,15 @@
   "amberResponseError": "Amber-antwoordfout",
   "ok": "OK",
   "or": "of",
-
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS niet actief",
   "gpsDisabledMessage": "Schakel GPS in via uw apparaatinstellingen om uw locatie te bepalen en navigatie te gebruiken.",
   "openSettings": "Instellingen",
-
   "@_CONTEXT_MENU": {},
   "myLocation": "Mijn locatie",
   "loginToReport": "Log in met Nostr (sectie Profiel) om gebeurtenissen te melden",
   "navigateHere": "Hier naartoe navigeren",
   "reportEventHere": "Gebeurtenis hier melden",
-
   "@_ZAP": {},
   "zapSendSats": "Zap ⚡ (sats sturen)",
   "sendZap": "Een Zap sturen",
@@ -136,7 +127,13 @@
   "customAmount": "Aangepast bedrag…",
   "zapSending": "Versturen…",
   "zapSat": "⚡{sats} sat",
-  "@zapSat": { "placeholders": { "sats": { "type": "int" } } },
+  "@zapSat": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "fetchingLightningAddress": "Lightning-adres ophalen…",
   "noLightningAddress": "Deze melder heeft geen Lightning-adres",
   "requestingInvoice": "Factuur aanvragen…",
@@ -146,20 +143,23 @@
   "payingViaNwc": "Betalen via NWC…",
   "noLightningWallet": "Geen Lightning-portemonnee gevonden",
   "zapSent": "⚡ {sats} sats verzonden!",
-  "@zapSent": { "placeholders": { "sats": { "type": "int" } } },
-
+  "@zapSent": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "@_ROAD_EVENT_DETAIL": {},
   "stillThere": "Nog aanwezig",
   "notThereAnymore": "Niet meer aanwezig",
   "loginToConfirm": "Log in met Nostr om te bevestigen of te betwisten",
-
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Een gebeurtenis melden",
   "optionalComment": "Optionele opmerking…",
   "publish": "Publiceren",
   "publishing": "Publiceren…",
   "reportPublished": "Rapport gepubliceerd ✓",
-
   "@_PROFILE_ZAP": {},
   "myReports": "MIJN RAPPORTEN",
   "noReportsYet": "Geen rapporten gepubliceerd",
@@ -169,14 +169,25 @@
   "reputationMedium": "Gemiddeld",
   "reputationLow": "Laag",
   "reputationLabel": "Reputatie {level}",
-  "@reputationLabel": { "placeholders": { "level": { "type": "String" } } },
+  "@reputationLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "reliability": "Betrouwbaarheid: {pct}%",
-  "@reliability": { "placeholders": { "pct": { "type": "int" } } },
+  "@reliability": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "confirmedLabel": "Bevestigd",
   "removedLabel": "Verwijderd",
   "positionLabel": "Positie",
   "loadingLabel": "Laden…",
-
   "@_SETTINGS_EXTRA": {},
   "sectionWebSearch": "Webzoeken",
   "sectionLightning": "Lightning",
@@ -187,7 +198,6 @@
   "searchEngineDdgDesc": "Privacygericht en populair. Resultaten gedeeltelijk van Bing — houd dat in gedachten.",
   "searchEngineStartpageDesc": "Google-resultaten zonder uw gegevens aan Google te geven. Een redelijk compromis.",
   "searchEngineGoogleDesc": "Zeer effectief. Maar onthoud: Google kent u beter dan uw moeder en verkoopt alles aan adverteerders. Uw keuze. 🍪",
-
   "@_CATEGORIES": {},
   "categoryPolice": "Politie",
   "categorySpeedCamera": "Flitser",
@@ -202,19 +212,67 @@
   "categoryIce": "IJzel",
   "categoryAnimal": "Dier",
   "categoryOther": "Overig",
-
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Datum / tijd",
   "minutesAgo": "{count} min geleden",
-  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "{count}u geleden",
-  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "daysAgo": "{count}d geleden",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
-
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sectionFavorites": "Opgeslagen plaatsen",
   "addFavorite": "Plaats toevoegen",
   "favoriteLabelHint": "Naam (bijv. Thuis, Kantoor)",
   "favoriteAddressHint": "Adres",
-  "favoriteGeocodingError": "Adres niet gevonden. Probeer een specifieker adres."
+  "favoriteGeocodingError": "Adres niet gevonden. Probeer een specifieker adres.",
+  "trafficAlertTitle": "Nieuw verkeer op route",
+  "trafficAlertBody": "{category} gemeld {age} op uw route.\n\nWilt u een alternatieve route vinden?",
+  "trafficContinue": "Doorgaan",
+  "trafficRecalculate": "Route herberekenen",
+  "navExitTitle": "Navigatie beëindigen?",
+  "navExitBody": "Wilt u de navigatie stoppen en terugkeren naar de kaart?",
+  "navContinue": "Navigatie voortzetten",
+  "navExit": "Ja, stoppen",
+  "loadingInfo": "Informatie laden…",
+  "conditionsOnRoute": "Omstandigheden op route",
+  "calculateRoute": "Route berekenen",
+  "sectionNavigationVoice": "Navigatiestem",
+  "voiceGuidance": "Spraakbegeleiding",
+  "voiceGuidanceDesc": "Afslaginstructies hardop voorlezen tijdens navigatie",
+  "testVoiceEngine": "Spraakengine testen",
+  "testVoiceEngineDesc": "Tik om de TTS-engine te controleren en installatie-instructies te krijgen",
+  "ttsDialogTitle": "Spraakengine ontbreekt",
+  "ttsDialogBody": "Er is geen werkende Text-to-Speech-engine gevonden.\n\nRoadstr vertrouwt uitsluitend op opensourcesoftware — installeer een van deze gratis engines via F-Droid:",
+  "ttsRhvoiceDesc": "Natuurlijk klinkende stem, beperkte talenlijst",
+  "ttsEspeakDesc": "Ondersteunt meer dan 100 talen, robotachtige stem",
+  "ttsInstallNote": "⚠️ Na installatie:\n1. Android-instellingen → Toegankelijkheid → Tekst-naar-spraak\n2. Selecteer de zojuist geïnstalleerde engine\n3. Download de spraakgegevens voor jouw taal\n4. Start Roadstr volledig opnieuw op",
+  "ttsTestNow": "Nu testen",
+  "voiceUnsupportedTitle": "Spraakbegeleiding niet beschikbaar",
+  "voiceUnsupportedBody": "Je taal wordt nog niet ondersteund voor gesproken aanwijzingen. Navigatie-instructies blijven wel als tekst op het scherm verschijnen.",
+  "kokoroModelTitle": "Stemmodel (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "Niet gedownload · ~82 MB",
+  "kokoroModelStatusDownloading": "Downloaden...",
+  "kokoroModelStatusReady": "Stemmodel klaar",
+  "kokoroModelDownloadBtn": "Downloaden",
+  "kokoroModelSupportedLangs": "Ondersteunt: Italiaans, Engels, Spaans, Frans, Japans, Chinees, Portugees",
+  "autoDarkMode": "Automatisch donker thema",
+  "autoDarkModeDesc": "Activeert het donkere thema bij zonsondergang"
 }

@@ -23,7 +23,9 @@ import 'package:provider/provider.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/locale_provider.dart';
 import 'theme/theme_provider.dart';
+import 'theme/app_theme.dart';
 import 'screens/map_screen.dart';
+import 'services/kokoro/kokoro_voices.dart';
 
 Future<void> main() async {
   // Step 1: Required before any async platform-channel calls.
@@ -78,10 +80,20 @@ class RoadstrApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider  = context.watch<ThemeProvider>();
     final localeProvider = context.watch<LocaleProvider>();
+    final isDark = themeProvider.effective.isDark;
     return MaterialApp(
       title: 'Roadstr',
       debugShowCheckedModeBanner: false,
-      theme: themeProvider.themeData,
+      theme: themeProvider.effectiveThemeData,
+      builder: (ctx, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        ),
+        child: child!,
+      ),
       // null locale means "use the device locale"; set when the user overrides.
       locale: localeProvider.locale,
       // Replace the stock GlobalMaterialLocalizations.delegate with our
@@ -163,7 +175,56 @@ class _DisclaimerGateState extends State<_DisclaimerGate> {
 
   @override
   Widget build(BuildContext context) =>
-      _accepted ? const MapScreen() : _DisclaimerScreen(onAccept: _accept);
+      _accepted ? const _VoiceLanguageNoticeGate() : _DisclaimerScreen(onAccept: _accept);
+}
+
+// ── First-launch voice-language notice ───────────────────────────────────────
+
+/// Shows a one-time dialog if the device's system language has no voice
+/// guidance support, then always renders [MapScreen]. The flag is stored in
+/// Hive so the dialog never appears again after being dismissed once.
+class _VoiceLanguageNoticeGate extends StatefulWidget {
+  const _VoiceLanguageNoticeGate();
+  @override
+  State<_VoiceLanguageNoticeGate> createState() => _VoiceLanguageNoticeGateState();
+}
+
+class _VoiceLanguageNoticeGateState extends State<_VoiceLanguageNoticeGate> {
+  @override
+  void initState() {
+    super.initState();
+    final shown = Hive.box('settings')
+        .get('voice_unsupported_notice_shown', defaultValue: false) as bool;
+    if (shown) return;
+    final systemLang = WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+    if (kokoroSupportedLanguages.contains(systemLang)) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showNotice());
+  }
+
+  void _showNotice() {
+    if (!mounted) return;
+    Hive.box('settings').put('voice_unsupported_notice_shown', true);
+    final l = AppLocalizations.of(context)!;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l.voiceUnsupportedTitle,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+        content: Text(l.voiceUnsupportedBody,
+            style: const TextStyle(fontSize: 13, height: 1.5)),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l.ok),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => const MapScreen();
 }
 
 class _DisclaimerScreen extends StatelessWidget {

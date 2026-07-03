@@ -93,9 +93,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sectionMap => 'Map';
 
   @override
-  String get sectionPrivacy => 'Privacy';
-
-  @override
   String get sectionInfo => 'Info';
 
   @override
@@ -106,6 +103,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => 'Light · Bitcoin Orange';
+
+  @override
+  String get themeDarkNostr => 'Dark · Nostr Violet';
+
+  @override
+  String get themeDarkBitcoin => 'Dark · Bitcoin Orange';
 
   @override
   String get langSystem => 'System default';
@@ -170,12 +173,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get close => 'Close';
-
-  @override
-  String get privacyMode => 'Privacy mode';
-
-  @override
-  String get privacyModeDescription => 'Do not send anonymous telemetry data';
 
   @override
   String get infoVersion => 'Version';
@@ -563,4 +560,110 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get favoriteGeocodingError =>
       'Address not found. Try a more specific address.';
+
+  @override
+  String get trafficAlertTitle => 'New traffic on route';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$category reported $age on your route.\n\nDo you want to find an alternative route?';
+  }
+
+  @override
+  String get trafficContinue => 'Continue';
+
+  @override
+  String get trafficRecalculate => 'Recalculate route';
+
+  @override
+  String get navExitTitle => 'Exit navigation?';
+
+  @override
+  String get navExitBody =>
+      'Do you want to stop navigation and return to the map?';
+
+  @override
+  String get navContinue => 'Continue navigation';
+
+  @override
+  String get navExit => 'Yes, exit';
+
+  @override
+  String get loadingInfo => 'Loading information…';
+
+  @override
+  String get conditionsOnRoute => 'Conditions on route';
+
+  @override
+  String get calculateRoute => 'Calculate route';
+
+  @override
+  String get sectionNavigationVoice => 'Navigation voice';
+
+  @override
+  String get voiceGuidance => 'Voice guidance';
+
+  @override
+  String get voiceGuidanceDesc =>
+      'Read turn-by-turn instructions aloud during navigation';
+
+  @override
+  String get testVoiceEngine => 'Test voice engine';
+
+  @override
+  String get testVoiceEngineDesc =>
+      'Tap to check the TTS engine and get setup instructions';
+
+  @override
+  String get ttsDialogTitle => 'Missing voice engine';
+
+  @override
+  String get ttsDialogBody =>
+      'No working Text-to-Speech engine was found.\n\nRoadstr only relies on open source software — install one of these free engines from F-Droid:';
+
+  @override
+  String get ttsRhvoiceDesc => 'Natural-sounding voice, limited language list';
+
+  @override
+  String get ttsEspeakDesc => 'Covers 100+ languages, robotic-sounding voice';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ After installing:\n1. Android Settings → Accessibility → Text-to-speech output\n2. Select the engine you just installed\n3. Download your language\'s voice data\n4. Restart Roadstr completely';
+
+  @override
+  String get ttsTestNow => 'Test now';
+
+  @override
+  String get voiceUnsupportedTitle => 'Voice guidance unavailable';
+
+  @override
+  String get voiceUnsupportedBody =>
+      'Your language isn\'t yet supported for spoken turn-by-turn directions. Navigation instructions will still appear as text on screen.';
+
+  @override
+  String get kokoroModelTitle => 'Voice model (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => 'Not downloaded · ~82 MB';
+
+  @override
+  String get kokoroModelStatusDownloading => 'Downloading...';
+
+  @override
+  String get kokoroModelStatusReady => 'Voice model ready';
+
+  @override
+  String get kokoroModelDownloadBtn => 'Download';
+
+  @override
+  String get kokoroModelSupportedLangs =>
+      'Supports: Italian, English, Spanish, French, Japanese, Chinese, Portuguese';
+
+  @override
+  String get autoDarkMode => 'Auto dark theme';
+
+  @override
+  String get autoDarkModeDesc =>
+      'Activates the dark theme at sunset and sunrise';
 }

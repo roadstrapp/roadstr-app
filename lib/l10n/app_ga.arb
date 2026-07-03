@@ -1,6 +1,5 @@
 {
   "@@locale": "ga",
-
   "searchHint": "Cá háit ar mhaith leat dul?",
   "calculatingRoute": "Ag ríomh bealaigh…",
   "routeNotFoundTitle": "Ní bhfuarthas bealach",
@@ -8,45 +7,47 @@
   "emptyServerResponse": "Freagra folamh ón bhfreastalaí. Seiceáil do nasc.",
   "routeError": "Earráid ríomha bealaigh: {error}",
   "@routeError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "gpsNotAvailable": "GPS nach bhfuil ar fáil — Settings → App → Roadstr → Permissions → Location",
   "acquiringGps": "Ag fáil GPS…",
-
   "graphhopperServerNotConfigured": "Freastalaí GraphHopper gan chumrú — ag úsáid OSRM",
   "graphhopperApiKeyNotConfigured": "Eochair API GraphHopper gan chumrú — ag úsáid OSRM",
   "openrouteApiKeyNotConfigured": "Eochair API OpenRouteService gan chumrú — ag úsáid OSRM",
-
   "chooseRoute": "Roghnaigh bealach",
   "routeOptionsCount": "{count} rogha",
   "@routeOptionsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "cancel": "Cealaigh",
   "startNavigation": "Tosaigh nascleanúint",
   "fastestRoute": "Is tapúla",
   "now": "Anois",
-
   "history": "Stair",
   "clearHistory": "Glan",
   "selectedPosition": "Suíomh roghnaithe",
-
   "bottomBarProfile": "Próifíl",
   "bottomBarMenu": "Roghchlár",
-
   "settingsTitle": "Socruithe",
   "sectionTheme": "Téama",
   "sectionMap": "Léarscáil",
-  "sectionPrivacy": "Príobháideacht",
   "sectionInfo": "Eolas",
   "sectionLanguage": "Teanga",
   "themeLightNostr": "Geal · Nostr Corcairghorm",
   "themeLightBitcoin": "Geal · Bitcoin Oráiste",
+  "themeDarkNostr": "Dorcha · Nostr Corcairghorm",
+  "themeDarkBitcoin": "Dorcha · Bitcoin Oráiste",
   "langSystem": "Réamhshocrú córais",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "Coinnigh an scáileán ar siúl",
   "keepScreenOnDescription": "Cuireann cosc ar chodladh le linn nascleanúna",
   "rotateMap": "Leanann léarscáil an treo",
@@ -65,10 +66,6 @@
   "graphhopperServerReachable": "Tá freastalaí GraphHopper inrochtana",
   "errorTitle": "Earráid",
   "close": "Dún",
-
-  "privacyMode": "Mód príobháideachta",
-  "privacyModeDescription": "Ná seol sonraí teileamheictrice anaithnid",
-
   "infoVersion": "Leagan",
   "infoProtocol": "Prótacal",
   "infoMaps": "Léarscáileanna",
@@ -78,7 +75,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper (féin-óstáilte)",
   "providerGraphhopperCloud": "GraphHopper (scamall)",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "Próifíl",
   "notConnected": "Gan nasc",
   "loginWithNostrTitle": "LOGÁIL ISTEACH LE NOSTR",
@@ -94,13 +90,11 @@
   "logoutConfirmation": "Baineadh dintiúir Nostr den ghléas seo?",
   "logoutButton": "Dícheangail",
   "nostrIdentityInfo": "Le céannacht Nostr is féidir leat foláirimh tráchta, tuarascálacha agus pointí spéise a fhoilsiú ar bhealach díláraithe ar líonra Nostr, gan freastalaithe lárnachta.",
-
   "warningTitle": "Rabhadh",
   "nsecWarning": "Tá tú ar tí do eochair phríobháideach Nostr a chaitheamh go díreach isteach in aip gan cosaint ar bith. D'fhéadfadh duine ar bith a bhfuil rochtain fhisiciúil nó iargúlta aige ar do ghléas é a léamh agus smacht buan a ghlacadh ar d'aitheantas Nostr.",
   "amberSecureMethodHint": "✦  Is é an modh sábháilte Amber (NIP-55): ní fhágann an nsec bosca taisceáin an sínitheora riamh.",
   "nsecRiskAcknowledgment": "Tuigim an riosca agus ba mhaith liom leanúint ar aghaidh",
   "continueButton": "Lean ar aghaidh",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Is sínitheoir aipe Android é Amber atá comhlíontach le NIP-55. Fanann d'eochair phríobháideach scoite laistigh de Amber agus ní roinntear riamh í.",
   "requestKeyFromAmber": "Iarr eochair phoiblí ó Amber",
@@ -117,18 +111,15 @@
   "amberResponseError": "Earráid fhreagra Amber",
   "ok": "OK",
   "or": "nó",
-
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS nach bhfuil gníomhach",
   "gpsDisabledMessage": "Gníomhachtaigh GPS i socruithe do ghléis chun do shuíomh a fháil agus nascleanúint a úsáid.",
   "openSettings": "Socruithe",
-
   "@_CONTEXT_MENU": {},
   "myLocation": "Mo shuíomh",
   "loginToReport": "Logáil isteach le Nostr (alt Próifíle) chun imeachtaí a thuairisciú",
   "navigateHere": "Nasclean anseo",
   "reportEventHere": "Tuairiscigh imeacht anseo",
-
   "@_ZAP": {},
   "zapSendSats": "Zap ⚡ (seol sats)",
   "sendZap": "Seol Zap",
@@ -136,7 +127,13 @@
   "customAmount": "Méid saincheaptha…",
   "zapSending": "Ag seolhadh…",
   "zapSat": "⚡{sats} sat",
-  "@zapSat": { "placeholders": { "sats": { "type": "int" } } },
+  "@zapSat": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "fetchingLightningAddress": "Ag fáil seoladh Lightning…",
   "noLightningAddress": "Níl seoladh Lightning ag an tuairisceoir seo",
   "requestingInvoice": "Ag iarraidh sonrasc…",
@@ -146,20 +143,23 @@
   "payingViaNwc": "Ag íoc trí NWC…",
   "noLightningWallet": "Ní bhfuarthas sparán Lightning",
   "zapSent": "⚡ {sats} sats seolta!",
-  "@zapSent": { "placeholders": { "sats": { "type": "int" } } },
-
+  "@zapSent": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "@_ROAD_EVENT_DETAIL": {},
   "stillThere": "Fós ann",
   "notThereAnymore": "Níl sé ann níos mó",
   "loginToConfirm": "Logáil isteach le Nostr chun deimhniú nó díospóid",
-
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Tuairiscigh imeacht",
   "optionalComment": "Trácht roghnach…",
   "publish": "Foilsigh",
   "publishing": "Ag foilsiú…",
   "reportPublished": "Tuarascáil foilsithe ✓",
-
   "@_PROFILE_ZAP": {},
   "myReports": "MO THUARASCÁLACHA",
   "noReportsYet": "Gan tuarascálacha foilsithe",
@@ -169,14 +169,25 @@
   "reputationMedium": "Meánach",
   "reputationLow": "Íseal",
   "reputationLabel": "Clú {level}",
-  "@reputationLabel": { "placeholders": { "level": { "type": "String" } } },
+  "@reputationLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "reliability": "Iontaofacht: {pct}%",
-  "@reliability": { "placeholders": { "pct": { "type": "int" } } },
+  "@reliability": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "confirmedLabel": "Deimhnithe",
   "removedLabel": "Bainte",
   "positionLabel": "Suíomh",
   "loadingLabel": "Ag luchtú…",
-
   "@_SETTINGS_EXTRA": {},
   "sectionWebSearch": "Cuardach gréasáin",
   "sectionLightning": "Lightning",
@@ -187,7 +198,6 @@
   "searchEngineDdgDesc": "Dírithe ar phríobháideacht agus coitianta. Torthaí go páirteach ó Bing — coinnigh sin i gcuimhne.",
   "searchEngineStartpageDesc": "Torthaí Google gan do chuid sonraí a thabhairt do Google. Comhréiteach réasúnach.",
   "searchEngineGoogleDesc": "An-éifeachtach. Ach cuimhnigh: tá aithne ag Google ort níos fearr ná do mháthair agus díolann sé gach rud le fógróirí. Do rogha, ar ndóigh. 🍪",
-
   "@_CATEGORIES": {},
   "categoryPolice": "Póilíní",
   "categorySpeedCamera": "Ceamara luais",
@@ -202,19 +212,67 @@
   "categoryIce": "Oighear",
   "categoryAnimal": "Ainmhí",
   "categoryOther": "Eile",
-
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Dáta / am",
   "minutesAgo": "{count} nóim ó shin",
-  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "{count}u ó shin",
-  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "daysAgo": "{count}l ó shin",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
-
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sectionFavorites": "Áiteanna sábháilte",
   "addFavorite": "Cuir áit leis",
   "favoriteLabelHint": "Ainm (m.sh. Baile, Oifig)",
   "favoriteAddressHint": "Seoladh",
-  "favoriteGeocodingError": "Seoladh gan aimsiú. Bain triail as seoladh níos sonraí."
+  "favoriteGeocodingError": "Seoladh gan aimsiú. Bain triail as seoladh níos sonraí.",
+  "trafficAlertTitle": "Trácht nua ar an mbealach",
+  "trafficAlertBody": "{category} tuairiscithe {age} ar do bhealach.\n\nAn dteastaíonn uait bealach malartach a aimsiú?",
+  "trafficContinue": "Lean ar aghaidh",
+  "trafficRecalculate": "Athríomh an bealach",
+  "navExitTitle": "Fág an nascleanúint?",
+  "navExitBody": "An dteastaíonn uait an nascleanúint a stopadh agus filleadh ar an léarscáil?",
+  "navContinue": "Lean ar aghaidh le nascleanúint",
+  "navExit": "Sea, fág",
+  "loadingInfo": "Ag lódáil faisnéise…",
+  "conditionsOnRoute": "Coinníollacha ar an mbealach",
+  "calculateRoute": "Ríomh an bealach",
+  "sectionNavigationVoice": "Guth nascleanúna",
+  "voiceGuidance": "Treoir ghutha",
+  "voiceGuidanceDesc": "Léigh treoracha casta os ard le linn nascleanúna",
+  "testVoiceEngine": "Tástáil inneall gutha",
+  "testVoiceEngineDesc": "Tapáil chun an t-inneall TTS a sheiceáil agus treoracha socraithe a fháil",
+  "ttsDialogTitle": "Inneall gutha ar iarraidh",
+  "ttsDialogBody": "Níor aimsíodh aon inneall Text-to-Speech atá ag feidhmiú.\n\nNíl Roadstr ag brath ach ar bhogearraí foinse oscailte — suiteáil ceann de na hinnill shaora seo ó F-Droid:",
+  "ttsRhvoiceDesc": "Guth nádúrtha, liosta teangacha teoranta",
+  "ttsEspeakDesc": "Clúdaíonn os cionn 100 teanga, guth róbatach",
+  "ttsInstallNote": "⚠️ Tar éis na suiteála:\n1. Socruithe Android → Inrochtaineacht → Téacs go Guth\n2. Roghnaigh an t-inneall a shuiteáil tú anois beag\n3. Íoslódáil sonraí gutha do theanga\n4. Atosaigh Roadstr go hiomlán",
+  "ttsTestNow": "Tástáil anois",
+  "voiceUnsupportedTitle": "Treoir ghutha níl ar fáil",
+  "voiceUnsupportedBody": "Níl do theanga tacaithe go fóill le haghaidh treoracha cas labhartha. Beidh treoracha nascleanúna le feiceáil fós mar théacs ar an scáileán.",
+  "kokoroModelTitle": "Samhail ghutha (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "Gan íoslódáil · ~82 MB",
+  "kokoroModelStatusDownloading": "Ag íoslódáil...",
+  "kokoroModelStatusReady": "Samhail ghutha réidh",
+  "kokoroModelDownloadBtn": "Íoslódáil",
+  "kokoroModelSupportedLangs": "Tacaíonn: Iodáilis, Béarla, Spáinnis, Fraincis, Seapáinis, Sínis, Portaingéilis",
+  "autoDarkMode": "Téama dorcha uathoibríoch",
+  "autoDarkModeDesc": "Gníomhaíonn an téama dorcha ag luí na gréine"
 }

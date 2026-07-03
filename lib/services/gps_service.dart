@@ -56,9 +56,9 @@ class GpsService {
     distanceFilter: 0,
     intervalDuration: const Duration(milliseconds: 500),
     foregroundNotificationConfig: const ForegroundNotificationConfig(
-      notificationText: 'NostrNav is using GPS',
-      notificationTitle: 'Navigation active',
-      enableWakeLock: true,
+      notificationText: 'GPS active',
+      notificationTitle: 'Roadstr',
+      enableWakeLock: false,
     ),
   );
 
@@ -103,7 +103,7 @@ class GpsService {
       position: LatLng(pos.latitude, pos.longitude),
       speedKmh: speedKmh,
       accuracy: pos.accuracy,
-      heading: pos.heading >= 0 ? pos.heading : null,
+      heading: pos.heading > 0 ? pos.heading : null,
       altitude: pos.altitude,
       timestamp: pos.timestamp,
     );

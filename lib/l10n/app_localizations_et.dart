@@ -93,9 +93,6 @@ class AppLocalizationsEt extends AppLocalizations {
   String get sectionMap => 'Kaart';
 
   @override
-  String get sectionPrivacy => 'Privaatsus';
-
-  @override
   String get sectionInfo => 'Teave';
 
   @override
@@ -106,6 +103,12 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => 'Hele · Bitcoin Oranž';
+
+  @override
+  String get themeDarkNostr => 'Tume · Nostr Violetne';
+
+  @override
+  String get themeDarkBitcoin => 'Tume · Bitcoin Oranž';
 
   @override
   String get langSystem => 'Süsteemi vaikeväärtus';
@@ -171,13 +174,6 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get close => 'Sulge';
-
-  @override
-  String get privacyMode => 'Privaatsusrežiim';
-
-  @override
-  String get privacyModeDescription =>
-      'Ärge saatke anonüümseid telemeetria andmeid';
 
   @override
   String get infoVersion => 'Versioon';
@@ -567,4 +563,109 @@ class AppLocalizationsEt extends AppLocalizations {
   @override
   String get favoriteGeocodingError =>
       'Aadressi ei leitud. Proovi täpsemat aadressi.';
+
+  @override
+  String get trafficAlertTitle => 'Uus liiklus marsruudil';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$category teatati $age teie marsruudil.\n\nKas soovite leida alternatiivset marsruuti?';
+  }
+
+  @override
+  String get trafficContinue => 'Jätka';
+
+  @override
+  String get trafficRecalculate => 'Arvuta marsruut uuesti';
+
+  @override
+  String get navExitTitle => 'Lõpeta navigeerimine?';
+
+  @override
+  String get navExitBody =>
+      'Kas soovite peatada navigeerimise ja naasta kaardile?';
+
+  @override
+  String get navContinue => 'Jätka navigeerimist';
+
+  @override
+  String get navExit => 'Jah, välju';
+
+  @override
+  String get loadingInfo => 'Laadin teavet…';
+
+  @override
+  String get conditionsOnRoute => 'Tingimused marsruudil';
+
+  @override
+  String get calculateRoute => 'Arvuta marsruut';
+
+  @override
+  String get sectionNavigationVoice => 'Navigeerimishääl';
+
+  @override
+  String get voiceGuidance => 'Häälejuhendamine';
+
+  @override
+  String get voiceGuidanceDesc =>
+      'Loe pööramisjuhiseid navigeerimise ajal valjult ette';
+
+  @override
+  String get testVoiceEngine => 'Testi häälemootorit';
+
+  @override
+  String get testVoiceEngineDesc =>
+      'Puuduta, et kontrollida TTS-mootorit ja saada seadistusjuhised';
+
+  @override
+  String get ttsDialogTitle => 'Häälemootor puudub';
+
+  @override
+  String get ttsDialogBody =>
+      'Töötavat Text-to-Speech mootorit ei leitud.\n\nRoadstr tugineb ainult avatud lähtekoodiga tarkvarale — installi üks neist tasuta mootoritest F-Droidist:';
+
+  @override
+  String get ttsRhvoiceDesc => 'Loomulik hääl, piiratud keelte loend';
+
+  @override
+  String get ttsEspeakDesc => 'Katab üle 100 keele, robotlik hääl';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ Pärast installimist:\n1. Androidi seaded → Hõlbustus → Tekst kõneks\n2. Vali äsja installitud mootor\n3. Laadi alla oma keele häälandmed\n4. Taaskäivita Roadstr täielikult';
+
+  @override
+  String get ttsTestNow => 'Testi kohe';
+
+  @override
+  String get voiceUnsupportedTitle => 'Häälejuhendamine pole saadaval';
+
+  @override
+  String get voiceUnsupportedBody =>
+      'Sinu keel ei ole veel toetatud häälega pööramisjuhiste jaoks. Navigeerimisjuhised kuvatakse jätkuvalt tekstina ekraanil.';
+
+  @override
+  String get kokoroModelTitle => 'Häälemudel (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => 'Laadimata · ~82 MB';
+
+  @override
+  String get kokoroModelStatusDownloading => 'Allalaadimine...';
+
+  @override
+  String get kokoroModelStatusReady => 'Häälemudel on valmis';
+
+  @override
+  String get kokoroModelDownloadBtn => 'Laadi alla';
+
+  @override
+  String get kokoroModelSupportedLangs =>
+      'Toetab: itaalia, inglise, hispaania, prantsuse, jaapani, hiina, portugali';
+
+  @override
+  String get autoDarkMode => 'Automaatne tume teema';
+
+  @override
+  String get autoDarkModeDesc => 'Aktiveerib tumeda teema päikeseloojangul';
 }

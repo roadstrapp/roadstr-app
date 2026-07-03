@@ -194,25 +194,38 @@ class RoutingService {
       bool isNumber(String? s) =>
           s == null || RegExp(r'^\d+$').hasMatch(s.trim());
 
-      final candidates = [
+      // Best POI-level name (high priority, excluding place hierarchy)
+      final poiName = [
         data['name'] as String?,
-        addr['tourism']    as String?,
-        addr['amenity']    as String?,
-        addr['historic']   as String?,
-        addr['leisure']    as String?,
-        addr['suburb']     as String?,
-        addr['quarter']    as String?,
+        addr['tourism']       as String?,
+        addr['amenity']       as String?,
+        addr['historic']      as String?,
+        addr['leisure']       as String?,
+        addr['suburb']        as String?,
+        addr['quarter']       as String?,
         addr['neighbourhood'] as String?,
-        addr['city']       as String?,
-        addr['town']       as String?,
-        addr['village']    as String?,
-        addr['municipality'] as String?,
-        addr['county']     as String?,
-      ];
+      ].where((s) => s != null && s.isNotEmpty && !isNumber(s)).firstOrNull;
 
-      final wikiQuery = candidates
-          .where((s) => s != null && s.isNotEmpty && !isNumber(s))
-          .firstOrNull;
+      // City / municipality for geographic disambiguation
+      final city = [
+        addr['city']         as String?,
+        addr['town']         as String?,
+        addr['village']      as String?,
+        addr['municipality'] as String?,
+        addr['county']       as String?,
+      ].where((s) => s != null && s.isNotEmpty && !isNumber(s)).firstOrNull;
+
+      // Combine POI name with city so that generic names like "Teodorico"
+      // become "Teodorico Ravenna" — making the Wikipedia / web-search
+      // fallback much more accurate without affecting the geo-based lookup.
+      String? wikiQuery;
+      if (poiName != null) {
+        wikiQuery = (city != null && city != poiName)
+            ? '$poiName $city'
+            : poiName;
+      } else {
+        wikiQuery = city;
+      }
 
       return (display: display, wikiQuery: wikiQuery);
     } catch (_) {
@@ -751,12 +764,17 @@ class NominatimResult {
   /// 'museum', 'residential'). Used together with [cls] for fine-grained emoji.
   final String? type;
 
+  /// City / town / village from the structured address — used to build a
+  /// geo-disambiguated Wikipedia query (e.g. "Teodorico Ravenna").
+  final String? city;
+
   const NominatimResult({
     required this.displayName,
     required this.shortName,
     required this.position,
     this.cls,
     this.type,
+    this.city,
   });
 
   /// Returns an emoji that visually represents the feature category so users
@@ -965,12 +983,17 @@ class NominatimResult {
       short = display.split(',').first.trim();
     }
 
+    final cityVal = (addr['city']      ?? addr['town']   ??
+                     addr['village']   ?? addr['hamlet'] ??
+                     addr['municipality']) as String?;
+
     return NominatimResult(
       displayName: display,
       shortName:   short,
       position:    LatLng(lat, lon),
       cls:         clsVal,
       type:        j['type']   as String?,
+      city:        cityVal,
     );
   }
 }

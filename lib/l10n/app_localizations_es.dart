@@ -94,9 +94,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sectionMap => 'Mapa';
 
   @override
-  String get sectionPrivacy => 'Privacidad';
-
-  @override
   String get sectionInfo => 'Info';
 
   @override
@@ -107,6 +104,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => 'Claro · Bitcoin Naranja';
+
+  @override
+  String get themeDarkNostr => 'Oscuro · Nostr Violeta';
+
+  @override
+  String get themeDarkBitcoin => 'Oscuro · Bitcoin Naranja';
 
   @override
   String get langSystem => 'Predeterminado del sistema';
@@ -173,12 +176,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get close => 'Cerrar';
-
-  @override
-  String get privacyMode => 'Modo privacidad';
-
-  @override
-  String get privacyModeDescription => 'No enviar datos de telemetría anónimos';
 
   @override
   String get infoVersion => 'Versión';
@@ -572,4 +569,108 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get favoriteGeocodingError =>
       'Dirección no encontrada. Intenta con una más específica.';
+
+  @override
+  String get trafficAlertTitle => 'Nuevo tráfico en la ruta';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$category reportado $age en tu ruta.\n\n¿Quieres encontrar una ruta alternativa?';
+  }
+
+  @override
+  String get trafficContinue => 'Continuar';
+
+  @override
+  String get trafficRecalculate => 'Recalcular ruta';
+
+  @override
+  String get navExitTitle => '¿Salir de la navegación?';
+
+  @override
+  String get navExitBody => '¿Quieres detener la navegación y volver al mapa?';
+
+  @override
+  String get navContinue => 'Continuar navegación';
+
+  @override
+  String get navExit => 'Sí, salir';
+
+  @override
+  String get loadingInfo => 'Cargando información…';
+
+  @override
+  String get conditionsOnRoute => 'Condiciones en la ruta';
+
+  @override
+  String get calculateRoute => 'Calcular ruta';
+
+  @override
+  String get sectionNavigationVoice => 'Voz de navegación';
+
+  @override
+  String get voiceGuidance => 'Guía por voz';
+
+  @override
+  String get voiceGuidanceDesc =>
+      'Leer las instrucciones de giro en voz alta durante la navegación';
+
+  @override
+  String get testVoiceEngine => 'Probar motor de voz';
+
+  @override
+  String get testVoiceEngineDesc =>
+      'Toca para comprobar el motor TTS y obtener instrucciones de configuración';
+
+  @override
+  String get ttsDialogTitle => 'Falta el motor de voz';
+
+  @override
+  String get ttsDialogBody =>
+      'No se encontró ningún motor Text-to-Speech funcional.\n\nRoadstr solo depende de software de código abierto — instala uno de estos motores gratuitos desde F-Droid:';
+
+  @override
+  String get ttsRhvoiceDesc => 'Voz natural, lista de idiomas limitada';
+
+  @override
+  String get ttsEspeakDesc => 'Cubre más de 100 idiomas, voz robótica';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ Después de instalar:\n1. Ajustes de Android → Accesibilidad → Síntesis de voz\n2. Selecciona el motor que acabas de instalar\n3. Descarga los datos de voz de tu idioma\n4. Reinicia Roadstr por completo';
+
+  @override
+  String get ttsTestNow => 'Probar ahora';
+
+  @override
+  String get voiceUnsupportedTitle => 'Guía por voz no disponible';
+
+  @override
+  String get voiceUnsupportedBody =>
+      'Tu idioma aún no es compatible con las indicaciones de voz. Las instrucciones de navegación seguirán apareciendo como texto en pantalla.';
+
+  @override
+  String get kokoroModelTitle => 'Modelo de voz (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => 'No descargado · ~82 MB';
+
+  @override
+  String get kokoroModelStatusDownloading => 'Descargando...';
+
+  @override
+  String get kokoroModelStatusReady => 'Modelo de voz listo';
+
+  @override
+  String get kokoroModelDownloadBtn => 'Descargar';
+
+  @override
+  String get kokoroModelSupportedLangs =>
+      'Admite: italiano, inglés, español, francés, japonés, chino, portugués';
+
+  @override
+  String get autoDarkMode => 'Tema oscuro automático';
+
+  @override
+  String get autoDarkModeDesc => 'Activa el tema oscuro al atardecer';
 }

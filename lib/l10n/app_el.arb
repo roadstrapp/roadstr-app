@@ -1,6 +1,5 @@
 {
   "@@locale": "el",
-
   "searchHint": "Πού θέλετε να πάτε;",
   "calculatingRoute": "Υπολογισμός διαδρομής…",
   "routeNotFoundTitle": "Η διαδρομή δεν βρέθηκε",
@@ -8,45 +7,47 @@
   "emptyServerResponse": "Κενή απόκριση διακομιστή. Ελέγξτε τη σύνδεσή σας.",
   "routeError": "Σφάλμα υπολογισμού διαδρομής: {error}",
   "@routeError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "gpsNotAvailable": "GPS μη διαθέσιμο — Ρυθμίσεις → Εφαρμογή → Roadstr → Άδειες → Τοποθεσία",
   "acquiringGps": "Λήψη GPS…",
-
   "graphhopperServerNotConfigured": "Ο διακομιστής GraphHopper δεν έχει ρυθμιστεί — χρησιμοποιείται OSRM",
   "graphhopperApiKeyNotConfigured": "Το κλειδί API GraphHopper δεν έχει ρυθμιστεί — χρησιμοποιείται OSRM",
   "openrouteApiKeyNotConfigured": "Το κλειδί API OpenRouteService δεν έχει ρυθμιστεί — χρησιμοποιείται OSRM",
-
   "chooseRoute": "Επιλογή διαδρομής",
   "routeOptionsCount": "{count} επιλογές",
   "@routeOptionsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "cancel": "Ακύρωση",
   "startNavigation": "Εκκίνηση πλοήγησης",
   "fastestRoute": "Ταχύτερη",
   "now": "Τώρα",
-
   "history": "Ιστορικό",
   "clearHistory": "Εκκαθάριση",
   "selectedPosition": "Επιλεγμένη θέση",
-
   "bottomBarProfile": "Προφίλ",
   "bottomBarMenu": "Μενού",
-
   "settingsTitle": "Ρυθμίσεις",
   "sectionTheme": "Θέμα",
   "sectionMap": "Χάρτης",
-  "sectionPrivacy": "Απόρρητο",
   "sectionInfo": "Πληροφορίες",
   "sectionLanguage": "Γλώσσα",
   "themeLightNostr": "Φωτεινό · Nostr Βιολετί",
   "themeLightBitcoin": "Φωτεινό · Bitcoin Πορτοκαλί",
+  "themeDarkNostr": "Σκούρο · Nostr Βιολετί",
+  "themeDarkBitcoin": "Σκούρο · Bitcoin Πορτοκαλί",
   "langSystem": "Προεπιλογή συστήματος",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "Διατήρηση οθόνης ενεργής",
   "keepScreenOnDescription": "Αποτρέπει την αδράνεια κατά την πλοήγηση",
   "rotateMap": "Ο χάρτης ακολουθεί την κατεύθυνση",
@@ -65,10 +66,6 @@
   "graphhopperServerReachable": "Ο διακομιστής GraphHopper είναι προσβάσιμος",
   "errorTitle": "Σφάλμα",
   "close": "Κλείσιμο",
-
-  "privacyMode": "Λειτουργία απορρήτου",
-  "privacyModeDescription": "Να μην αποστέλλονται ανώνυμα τηλεμετρικά δεδομένα",
-
   "infoVersion": "Έκδοση",
   "infoProtocol": "Πρωτόκολλο",
   "infoMaps": "Χάρτες",
@@ -78,7 +75,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper (αυτο-φιλοξενούμενο)",
   "providerGraphhopperCloud": "GraphHopper (cloud)",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "Προφίλ",
   "notConnected": "Μη συνδεδεμένο",
   "loginWithNostrTitle": "ΣΥΝΔΕΣΗ ΜΕ NOSTR",
@@ -94,13 +90,11 @@
   "logoutConfirmation": "Κατάργηση διαπιστευτηρίων Nostr από αυτή τη συσκευή;",
   "logoutButton": "Αποσύνδεση",
   "nostrIdentityInfo": "Με μια ταυτότητα Nostr μπορείτε να δημοσιεύετε κυκλοφοριακές ειδοποιήσεις, αναφορές και σημεία ενδιαφέροντος με αποκεντρωμένο τρόπο στο δίκτυο Nostr, χωρίς κεντρικούς διακομιστές.",
-
   "warningTitle": "Προειδοποίηση",
   "nsecWarning": "Πρόκειται να εισαγάγετε το ιδιωτικό κλειδί Nostr απευθείας σε μια εφαρμογή. Οποιοσδήποτε με φυσική ή απομακρυσμένη πρόσβαση στη συσκευή σας θα μπορούσε να το διαβάσει και να αναλάβει μόνιμα τον έλεγχο της Nostr ταυτότητάς σας.",
   "amberSecureMethodHint": "✦  Η ασφαλής μέθοδος είναι το Amber (NIP-55): το nsec δεν φεύγει ποτέ από το θησαυροφυλάκιο του υπογράφοντος της εφαρμογής.",
   "nsecRiskAcknowledgment": "Κατανοώ τον κίνδυνο και θέλω να συνεχίσω ούτως ή άλλως",
   "continueButton": "Συνέχεια",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Το Amber είναι ένας υπογράφων εφαρμογών Android συμβατός με NIP-55. Το ιδιωτικό κλειδί σας παραμένει απομονωμένο στο Amber και δεν κοινοποιείται ποτέ.",
   "requestKeyFromAmber": "Αίτηση δημόσιου κλειδιού από το Amber",
@@ -117,18 +111,15 @@
   "amberResponseError": "Σφάλμα απόκρισης Amber",
   "ok": "OK",
   "or": "ή",
-
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "Το GPS δεν είναι ενεργό",
   "gpsDisabledMessage": "Ενεργοποιήστε το GPS στις ρυθμίσεις της συσκευής σας για να λάβετε την τοποθεσία σας και να χρησιμοποιήσετε την πλοήγηση.",
   "openSettings": "Ρυθμίσεις",
-
   "@_CONTEXT_MENU": {},
   "myLocation": "Η τοποθεσία μου",
   "loginToReport": "Συνδεθείτε με Nostr (ενότητα Προφίλ) για αναφορά συμβάντων",
   "navigateHere": "Πλοήγηση εδώ",
   "reportEventHere": "Αναφορά συμβάντος εδώ",
-
   "@_ZAP": {},
   "zapSendSats": "Zap ⚡ (αποστολή sats)",
   "sendZap": "Αποστολή Zap",
@@ -136,7 +127,13 @@
   "customAmount": "Προσαρμοσμένο ποσό…",
   "zapSending": "Αποστολή…",
   "zapSat": "⚡{sats} sat",
-  "@zapSat": { "placeholders": { "sats": { "type": "int" } } },
+  "@zapSat": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "fetchingLightningAddress": "Λήψη διεύθυνσης Lightning…",
   "noLightningAddress": "Αυτός ο αναφέρων δεν έχει διεύθυνση Lightning",
   "requestingInvoice": "Αίτηση τιμολογίου…",
@@ -146,20 +143,23 @@
   "payingViaNwc": "Πληρωμή μέσω NWC…",
   "noLightningWallet": "Δεν βρέθηκε πορτοφόλι Lightning",
   "zapSent": "⚡ {sats} sats στάλθηκαν!",
-  "@zapSent": { "placeholders": { "sats": { "type": "int" } } },
-
+  "@zapSent": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "@_ROAD_EVENT_DETAIL": {},
   "stillThere": "Υπάρχει ακόμα",
   "notThereAnymore": "Δεν υπάρχει πλέον",
   "loginToConfirm": "Συνδεθείτε με Nostr για επιβεβαίωση ή αμφισβήτηση",
-
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Αναφορά συμβάντος",
   "optionalComment": "Προαιρετικό σχόλιο…",
   "publish": "Δημοσίευση",
   "publishing": "Δημοσίευση…",
   "reportPublished": "Αναφορά δημοσιεύτηκε ✓",
-
   "@_PROFILE_ZAP": {},
   "myReports": "ΟΙ ΑΝΑΦΟΡΕΣ ΜΟΥ",
   "noReportsYet": "Δεν έχουν δημοσιευτεί αναφορές",
@@ -169,14 +169,25 @@
   "reputationMedium": "Μέτρια",
   "reputationLow": "Χαμηλή",
   "reputationLabel": "Φήμη {level}",
-  "@reputationLabel": { "placeholders": { "level": { "type": "String" } } },
+  "@reputationLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "reliability": "Αξιοπιστία: {pct}%",
-  "@reliability": { "placeholders": { "pct": { "type": "int" } } },
+  "@reliability": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "confirmedLabel": "Επιβεβαιωμένο",
   "removedLabel": "Αφαιρέθηκε",
   "positionLabel": "Θέση",
   "loadingLabel": "Φόρτωση…",
-
   "@_SETTINGS_EXTRA": {},
   "sectionWebSearch": "Αναζήτηση ιστού",
   "sectionLightning": "Lightning",
@@ -187,7 +198,6 @@
   "searchEngineDdgDesc": "Εστιασμένη στο απόρρητο και δημοφιλής. Αποτελέσματα εν μέρει από Bing — λάβετε αυτό υπόψη.",
   "searchEngineStartpageDesc": "Αποτελέσματα Google χωρίς να παραδίδετε τα δεδομένα σας στην Google. Μια λογική συμβιβαστική λύση.",
   "searchEngineGoogleDesc": "Πολύ αποτελεσματική. Αλλά θυμηθείτε: η Google σας ξέρει καλύτερα από τη μαμά σας και πουλάει τα πάντα σε διαφημιστές. Η επιλογή σας. 🍪",
-
   "@_CATEGORIES": {},
   "categoryPolice": "Αστυνομία",
   "categorySpeedCamera": "Κάμερα ταχύτητας",
@@ -202,19 +212,67 @@
   "categoryIce": "Πάγος",
   "categoryAnimal": "Ζώο",
   "categoryOther": "Άλλο",
-
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Ημερομηνία / ώρα",
   "minutesAgo": "πριν {count} λεπτά",
-  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "πριν {count}ω",
-  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "daysAgo": "πριν {count}η",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
-
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sectionFavorites": "Αποθηκευμένα μέρη",
   "addFavorite": "Προσθήκη μέρους",
   "favoriteLabelHint": "Όνομα (π.χ. Σπίτι, Γραφείο)",
   "favoriteAddressHint": "Διεύθυνση",
-  "favoriteGeocodingError": "Η διεύθυνση δεν βρέθηκε. Δοκίμασε πιο συγκεκριμένη."
+  "favoriteGeocodingError": "Η διεύθυνση δεν βρέθηκε. Δοκίμασε πιο συγκεκριμένη.",
+  "trafficAlertTitle": "Νέα κίνηση στη διαδρομή",
+  "trafficAlertBody": "{category} αναφέρθηκε {age} στη διαδρομή σας.\n\nΘέλετε να βρείτε εναλλακτική διαδρομή;",
+  "trafficContinue": "Συνέχεια",
+  "trafficRecalculate": "Επανυπολογισμός διαδρομής",
+  "navExitTitle": "Έξοδος από πλοήγηση;",
+  "navExitBody": "Θέλετε να σταματήσετε την πλοήγηση και να επιστρέψετε στον χάρτη;",
+  "navContinue": "Συνέχεια πλοήγησης",
+  "navExit": "Ναι, έξοδος",
+  "loadingInfo": "Φόρτωση πληροφοριών…",
+  "conditionsOnRoute": "Συνθήκες στη διαδρομή",
+  "calculateRoute": "Υπολογισμός διαδρομής",
+  "sectionNavigationVoice": "Φωνή πλοήγησης",
+  "voiceGuidance": "Φωνητική καθοδήγηση",
+  "voiceGuidanceDesc": "Ανάγνωση οδηγιών στροφής δυνατά κατά την πλοήγηση",
+  "testVoiceEngine": "Δοκιμή μηχανής φωνής",
+  "testVoiceEngineDesc": "Πατήστε για έλεγχο της μηχανής TTS και οδηγίες ρύθμισης",
+  "ttsDialogTitle": "Λείπει μηχανή φωνής",
+  "ttsDialogBody": "Δεν βρέθηκε λειτουργική μηχανή Text-to-Speech.\n\nΤο Roadstr βασίζεται αποκλειστικά σε λογισμικό ανοιχτού κώδικα — εγκαταστήστε μία από αυτές τις δωρεάν μηχανές από το F-Droid:",
+  "ttsRhvoiceDesc": "Φυσικά ηχητική φωνή, περιορισμένη λίστα γλωσσών",
+  "ttsEspeakDesc": "Καλύπτει πάνω από 100 γλώσσες, ρομποτική φωνή",
+  "ttsInstallNote": "⚠️ Μετά την εγκατάσταση:\n1. Ρυθμίσεις Android → Προσβασιμότητα → Σύνθεση φωνής\n2. Επιλέξτε τη μηχανή που μόλις εγκαταστήσατε\n3. Κατεβάστε τα φωνητικά δεδομένα της γλώσσας σας\n4. Επανεκκινήστε πλήρως το Roadstr",
+  "ttsTestNow": "Δοκιμή τώρα",
+  "voiceUnsupportedTitle": "Η φωνητική καθοδήγηση δεν είναι διαθέσιμη",
+  "voiceUnsupportedBody": "Η γλώσσα σας δεν υποστηρίζεται ακόμα για φωνητικές οδηγίες στροφής. Οι οδηγίες πλοήγησης θα συνεχίσουν να εμφανίζονται ως κείμενο στην οθόνη.",
+  "kokoroModelTitle": "Φωνητικό μοντέλο (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "Δεν έχει ληφθεί · ~82 MB",
+  "kokoroModelStatusDownloading": "Λήψη...",
+  "kokoroModelStatusReady": "Το φωνητικό μοντέλο είναι έτοιμο",
+  "kokoroModelDownloadBtn": "Λήψη",
+  "kokoroModelSupportedLangs": "Υποστηρίζει: ιταλικά, αγγλικά, ισπανικά, γαλλικά, ιαπωνικά, κινεζικά, πορτογαλικά",
+  "autoDarkMode": "Αυτόματο σκούρο θέμα",
+  "autoDarkModeDesc": "Ενεργοποιεί το σκούρο θέμα στο ηλιοβασίλεμα"
 }

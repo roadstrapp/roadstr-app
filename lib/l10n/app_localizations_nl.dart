@@ -93,9 +93,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get sectionMap => 'Kaart';
 
   @override
-  String get sectionPrivacy => 'Privacy';
-
-  @override
   String get sectionInfo => 'Info';
 
   @override
@@ -106,6 +103,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => 'Licht · Bitcoin Oranje';
+
+  @override
+  String get themeDarkNostr => 'Donker · Nostr Violet';
+
+  @override
+  String get themeDarkBitcoin => 'Donker · Bitcoin Oranje';
 
   @override
   String get langSystem => 'Systeemstandaard';
@@ -170,13 +173,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get close => 'Sluiten';
-
-  @override
-  String get privacyMode => 'Privacymodus';
-
-  @override
-  String get privacyModeDescription =>
-      'Geen anonieme telemetriegegevens verzenden';
 
   @override
   String get infoVersion => 'Versie';
@@ -569,4 +565,111 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get favoriteGeocodingError =>
       'Adres niet gevonden. Probeer een specifieker adres.';
+
+  @override
+  String get trafficAlertTitle => 'Nieuw verkeer op route';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$category gemeld $age op uw route.\n\nWilt u een alternatieve route vinden?';
+  }
+
+  @override
+  String get trafficContinue => 'Doorgaan';
+
+  @override
+  String get trafficRecalculate => 'Route herberekenen';
+
+  @override
+  String get navExitTitle => 'Navigatie beëindigen?';
+
+  @override
+  String get navExitBody =>
+      'Wilt u de navigatie stoppen en terugkeren naar de kaart?';
+
+  @override
+  String get navContinue => 'Navigatie voortzetten';
+
+  @override
+  String get navExit => 'Ja, stoppen';
+
+  @override
+  String get loadingInfo => 'Informatie laden…';
+
+  @override
+  String get conditionsOnRoute => 'Omstandigheden op route';
+
+  @override
+  String get calculateRoute => 'Route berekenen';
+
+  @override
+  String get sectionNavigationVoice => 'Navigatiestem';
+
+  @override
+  String get voiceGuidance => 'Spraakbegeleiding';
+
+  @override
+  String get voiceGuidanceDesc =>
+      'Afslaginstructies hardop voorlezen tijdens navigatie';
+
+  @override
+  String get testVoiceEngine => 'Spraakengine testen';
+
+  @override
+  String get testVoiceEngineDesc =>
+      'Tik om de TTS-engine te controleren en installatie-instructies te krijgen';
+
+  @override
+  String get ttsDialogTitle => 'Spraakengine ontbreekt';
+
+  @override
+  String get ttsDialogBody =>
+      'Er is geen werkende Text-to-Speech-engine gevonden.\n\nRoadstr vertrouwt uitsluitend op opensourcesoftware — installeer een van deze gratis engines via F-Droid:';
+
+  @override
+  String get ttsRhvoiceDesc => 'Natuurlijk klinkende stem, beperkte talenlijst';
+
+  @override
+  String get ttsEspeakDesc =>
+      'Ondersteunt meer dan 100 talen, robotachtige stem';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ Na installatie:\n1. Android-instellingen → Toegankelijkheid → Tekst-naar-spraak\n2. Selecteer de zojuist geïnstalleerde engine\n3. Download de spraakgegevens voor jouw taal\n4. Start Roadstr volledig opnieuw op';
+
+  @override
+  String get ttsTestNow => 'Nu testen';
+
+  @override
+  String get voiceUnsupportedTitle => 'Spraakbegeleiding niet beschikbaar';
+
+  @override
+  String get voiceUnsupportedBody =>
+      'Je taal wordt nog niet ondersteund voor gesproken aanwijzingen. Navigatie-instructies blijven wel als tekst op het scherm verschijnen.';
+
+  @override
+  String get kokoroModelTitle => 'Stemmodel (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => 'Niet gedownload · ~82 MB';
+
+  @override
+  String get kokoroModelStatusDownloading => 'Downloaden...';
+
+  @override
+  String get kokoroModelStatusReady => 'Stemmodel klaar';
+
+  @override
+  String get kokoroModelDownloadBtn => 'Downloaden';
+
+  @override
+  String get kokoroModelSupportedLangs =>
+      'Ondersteunt: Italiaans, Engels, Spaans, Frans, Japans, Chinees, Portugees';
+
+  @override
+  String get autoDarkMode => 'Automatisch donker thema';
+
+  @override
+  String get autoDarkModeDesc =>
+      'Activeert het donkere thema bij zonsondergang';
 }

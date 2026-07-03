@@ -1,6 +1,5 @@
 {
   "@@locale": "ja",
-
   "searchHint": "どこに行きますか？",
   "calculatingRoute": "ルートを計算中…",
   "routeNotFoundTitle": "ルートが見つかりません",
@@ -8,45 +7,47 @@
   "emptyServerResponse": "サーバーの応答が空です。接続を確認してください。",
   "routeError": "ルート計算エラー：{error}",
   "@routeError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "gpsNotAvailable": "GPS利用不可 — Settings → App → Roadstr → Permissions → Location",
   "acquiringGps": "GPS取得中…",
-
   "graphhopperServerNotConfigured": "GraphHopperサーバーが設定されていません — OSRMを使用",
   "graphhopperApiKeyNotConfigured": "GraphHopper APIキーが設定されていません — OSRMを使用",
   "openrouteApiKeyNotConfigured": "OpenRouteService APIキーが設定されていません — OSRMを使用",
-
   "chooseRoute": "ルートを選択",
   "routeOptionsCount": "{count}つの選択肢",
   "@routeOptionsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "cancel": "キャンセル",
   "startNavigation": "ナビゲーション開始",
   "fastestRoute": "最速",
   "now": "今",
-
   "history": "履歴",
   "clearHistory": "クリア",
   "selectedPosition": "選択した位置",
-
   "bottomBarProfile": "プロフィール",
   "bottomBarMenu": "メニュー",
-
   "settingsTitle": "設定",
   "sectionTheme": "テーマ",
   "sectionMap": "マップ",
-  "sectionPrivacy": "プライバシー",
   "sectionInfo": "情報",
   "sectionLanguage": "言語",
   "themeLightNostr": "ライト · Nostrバイオレット",
   "themeLightBitcoin": "ライト · ビットコインオレンジ",
+  "themeDarkNostr": "ダーク · Nostrバイオレット",
+  "themeDarkBitcoin": "ダーク · ビットコインオレンジ",
   "langSystem": "システムデフォルト",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "画面をオンに保つ",
   "keepScreenOnDescription": "ナビゲーション中にスリープを防止",
   "rotateMap": "マップが方向に追従",
@@ -65,10 +66,6 @@
   "graphhopperServerReachable": "GraphHopperサーバーに到達可能",
   "errorTitle": "エラー",
   "close": "閉じる",
-
-  "privacyMode": "プライバシーモード",
-  "privacyModeDescription": "匿名テレメトリデータを送信しない",
-
   "infoVersion": "バージョン",
   "infoProtocol": "プロトコル",
   "infoMaps": "マップ",
@@ -78,7 +75,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper（セルフホスト）",
   "providerGraphhopperCloud": "GraphHopper（クラウド）",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "プロフィール",
   "notConnected": "未接続",
   "loginWithNostrTitle": "NOSTRでログイン",
@@ -94,13 +90,11 @@
   "logoutConfirmation": "このデバイスからNostr認証情報を削除しますか？",
   "logoutButton": "切断",
   "nostrIdentityInfo": "Nostrアイデンティティを持つことで、中央サーバーなしにNostrネットワーク上で分散型の方法で交通警告、レポート、興味のある場所を公開できます。",
-
   "warningTitle": "警告",
   "nsecWarning": "あなたはNostrの秘密鍵をアプリに直接ぶち込もうとしています。デバイスへの物理的またはリモートアクセスができる人は誰でもそれを読み取り、あなたのNostrアイデンティティを永久に乗っ取ることができます。",
   "amberSecureMethodHint": "✦  安全な方法はAmber（NIP-55）です：nsecはアプリの署名ボールトから出ることはありません。",
   "nsecRiskAcknowledgment": "リスクを理解した上で続行します",
   "continueButton": "続行",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "AmberはNIP-55準拠のAndroidアプリ署名者です。秘密鍵はAmber内に隔離され、共有されることはありません。",
   "requestKeyFromAmber": "Amberから公開鍵をリクエスト",
@@ -117,18 +111,15 @@
   "amberResponseError": "Amber応答エラー",
   "ok": "OK",
   "or": "または",
-
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPSがアクティブではありません",
   "gpsDisabledMessage": "現在地を取得してナビゲーションを使用するには、デバイスの設定でGPSを有効にしてください。",
   "openSettings": "設定",
-
   "@_CONTEXT_MENU": {},
   "myLocation": "現在地",
   "loginToReport": "イベントを報告するにはNostrでログイン（プロフィールセクション）",
   "navigateHere": "ここへナビゲート",
   "reportEventHere": "ここでイベントを報告",
-
   "@_ZAP": {},
   "zapSendSats": "Zap ⚡（satsを送る）",
   "sendZap": "Zapを送る",
@@ -136,7 +127,13 @@
   "customAmount": "カスタム金額…",
   "zapSending": "送信中…",
   "zapSat": "⚡{sats} sat",
-  "@zapSat": { "placeholders": { "sats": { "type": "int" } } },
+  "@zapSat": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "fetchingLightningAddress": "Lightningアドレスを取得中…",
   "noLightningAddress": "このレポーターにはLightningアドレスがありません",
   "requestingInvoice": "インボイスをリクエスト中…",
@@ -146,20 +143,23 @@
   "payingViaNwc": "NWC経由で支払い中…",
   "noLightningWallet": "Lightningウォレットが見つかりません",
   "zapSent": "⚡ {sats} sats送信しました！",
-  "@zapSent": { "placeholders": { "sats": { "type": "int" } } },
-
+  "@zapSent": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "@_ROAD_EVENT_DETAIL": {},
   "stillThere": "まだあります",
   "notThereAnymore": "もうありません",
   "loginToConfirm": "確認または反論するにはNostrでログイン",
-
   "@_REPORT_SHEET": {},
   "reportAnEvent": "イベントを報告",
   "optionalComment": "任意のコメント…",
   "publish": "公開",
   "publishing": "公開中…",
   "reportPublished": "レポートが公開されました ✓",
-
   "@_PROFILE_ZAP": {},
   "myReports": "マイレポート",
   "noReportsYet": "公開されたレポートはありません",
@@ -169,14 +169,25 @@
   "reputationMedium": "中",
   "reputationLow": "低",
   "reputationLabel": "評判 {level}",
-  "@reputationLabel": { "placeholders": { "level": { "type": "String" } } },
+  "@reputationLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "reliability": "信頼性：{pct}%",
-  "@reliability": { "placeholders": { "pct": { "type": "int" } } },
+  "@reliability": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "confirmedLabel": "確認済み",
   "removedLabel": "削除済み",
   "positionLabel": "位置",
   "loadingLabel": "読み込み中…",
-
   "@_SETTINGS_EXTRA": {},
   "sectionWebSearch": "ウェブ検索",
   "sectionLightning": "Lightning",
@@ -187,7 +198,6 @@
   "searchEngineDdgDesc": "プライバシー重視で人気。結果は部分的にBingから — 覚えておいてください。",
   "searchEngineStartpageDesc": "Googleの結果を、Googleにデータを渡さずに。合理的な妥協。",
   "searchEngineGoogleDesc": "非常に効果的。でも覚えておいて：Googleはあなたのお母さんよりあなたのことを知っていて、すべてを広告主に売っています。まあ、あなたの選択です。🍪",
-
   "@_CATEGORIES": {},
   "categoryPolice": "警察",
   "categorySpeedCamera": "速度測定カメラ",
@@ -202,19 +212,67 @@
   "categoryIce": "氷",
   "categoryAnimal": "動物",
   "categoryOther": "その他",
-
   "@_AGE_LABELS": {},
   "dateTimeLabel": "日付 / 時刻",
   "minutesAgo": "{count}分前",
-  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "{count}時間前",
-  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "daysAgo": "{count}日前",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
-
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sectionFavorites": "保存した場所",
   "addFavorite": "場所を追加",
   "favoriteLabelHint": "名前（例：自宅、職場）",
   "favoriteAddressHint": "住所",
-  "favoriteGeocodingError": "住所が見つかりません。より具体的な住所をお試しください。"
+  "favoriteGeocodingError": "住所が見つかりません。より具体的な住所をお試しください。",
+  "trafficAlertTitle": "ルート上の新しい交通情報",
+  "trafficAlertBody": "{category}が{age}にルート上で報告されました。\n\n代替ルートを探しますか？",
+  "trafficContinue": "続ける",
+  "trafficRecalculate": "ルートを再計算",
+  "navExitTitle": "ナビゲーションを終了しますか？",
+  "navExitBody": "ナビゲーションを停止してマップに戻りますか？",
+  "navContinue": "ナビゲーションを続ける",
+  "navExit": "はい、終了",
+  "loadingInfo": "情報を読み込んでいます…",
+  "conditionsOnRoute": "ルートの状況",
+  "calculateRoute": "ルートを計算",
+  "sectionNavigationVoice": "ナビゲーション音声",
+  "voiceGuidance": "音声案内",
+  "voiceGuidanceDesc": "ナビゲーション中に曲がる指示を音声で読み上げます",
+  "testVoiceEngine": "音声エンジンをテスト",
+  "testVoiceEngineDesc": "タップしてTTSエンジンを確認し、設定手順を取得",
+  "ttsDialogTitle": "音声エンジンがありません",
+  "ttsDialogBody": "動作するText-to-Speechエンジンが見つかりませんでした。\n\nRoadstrはオープンソースソフトウェアのみに依存しています — F-Droidからこれらの無料エンジンのいずれかをインストールしてください：",
+  "ttsRhvoiceDesc": "自然な音声、対応言語は限定的",
+  "ttsEspeakDesc": "100以上の言語に対応、機械的な音声",
+  "ttsInstallNote": "⚠️ インストール後：\n1. Android設定 → ユーザー補助 → テキスト読み上げの出力\n2. インストールしたばかりのエンジンを選択\n3. お使いの言語の音声データをダウンロード\n4. Roadstrを完全に再起動",
+  "ttsTestNow": "今すぐテスト",
+  "voiceUnsupportedTitle": "音声案内は利用できません",
+  "voiceUnsupportedBody": "お使いの言語は音声によるナビゲーション案内にまだ対応していません。ナビゲーションの指示は引き続き画面にテキストで表示されます。",
+  "kokoroModelTitle": "音声モデル (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "未ダウンロード · 約82 MB",
+  "kokoroModelStatusDownloading": "ダウンロード中...",
+  "kokoroModelStatusReady": "音声モデル準備完了",
+  "kokoroModelDownloadBtn": "ダウンロード",
+  "kokoroModelSupportedLangs": "対応言語：イタリア語、英語、スペイン語、フランス語、日本語、中国語、ポルトガル語",
+  "autoDarkMode": "自動ダークテーマ",
+  "autoDarkModeDesc": "日没時にダークテーマを有効にします"
 }

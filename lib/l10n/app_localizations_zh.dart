@@ -90,9 +90,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sectionMap => '地图';
 
   @override
-  String get sectionPrivacy => '隐私';
-
-  @override
   String get sectionInfo => '信息';
 
   @override
@@ -103,6 +100,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => '浅色 · 比特币橙';
+
+  @override
+  String get themeDarkNostr => '深色 · Nostr紫';
+
+  @override
+  String get themeDarkBitcoin => '深色 · 比特币橙';
 
   @override
   String get langSystem => '系统默认';
@@ -166,12 +169,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get close => '关闭';
-
-  @override
-  String get privacyMode => '隐私模式';
-
-  @override
-  String get privacyModeDescription => '不发送匿名遥测数据';
 
   @override
   String get infoVersion => '版本';
@@ -548,4 +545,104 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get favoriteGeocodingError => '未找到该地址，请尝试更精确的地址。';
+
+  @override
+  String get trafficAlertTitle => '路线上有新交通状况';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$category于$age在您的路线上报告。\n\n是否要寻找替代路线？';
+  }
+
+  @override
+  String get trafficContinue => '继续';
+
+  @override
+  String get trafficRecalculate => '重新计算路线';
+
+  @override
+  String get navExitTitle => '退出导航？';
+
+  @override
+  String get navExitBody => '是否要停止导航并返回地图？';
+
+  @override
+  String get navContinue => '继续导航';
+
+  @override
+  String get navExit => '是，退出';
+
+  @override
+  String get loadingInfo => '正在加载信息…';
+
+  @override
+  String get conditionsOnRoute => '路线状况';
+
+  @override
+  String get calculateRoute => '计算路线';
+
+  @override
+  String get sectionNavigationVoice => '导航语音';
+
+  @override
+  String get voiceGuidance => '语音引导';
+
+  @override
+  String get voiceGuidanceDesc => '导航时朗读转弯指示';
+
+  @override
+  String get testVoiceEngine => '测试语音引擎';
+
+  @override
+  String get testVoiceEngineDesc => '点击以检查 TTS 引擎并获取设置说明';
+
+  @override
+  String get ttsDialogTitle => '缺少语音引擎';
+
+  @override
+  String get ttsDialogBody =>
+      '未找到可用的文本转语音引擎。\n\nRoadstr 仅依赖开源软件——请从 F-Droid 安装以下免费引擎之一：';
+
+  @override
+  String get ttsRhvoiceDesc => '声音自然，支持语言有限';
+
+  @override
+  String get ttsEspeakDesc => '支持 100 多种语言，声音机械化';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ 安装后：\n1. Android 设置 → 无障碍 → 文字转语音输出\n2. 选择刚安装的引擎\n3. 下载您所用语言的语音数据\n4. 完全重启 Roadstr';
+
+  @override
+  String get ttsTestNow => '立即测试';
+
+  @override
+  String get voiceUnsupportedTitle => '语音导航不可用';
+
+  @override
+  String get voiceUnsupportedBody => '您的语言目前尚不支持语音转弯指示。导航说明仍会以文字形式显示在屏幕上。';
+
+  @override
+  String get kokoroModelTitle => '语音模型 (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => '未下载 · 约82 MB';
+
+  @override
+  String get kokoroModelStatusDownloading => '下载中...';
+
+  @override
+  String get kokoroModelStatusReady => '语音模型就绪';
+
+  @override
+  String get kokoroModelDownloadBtn => '下载';
+
+  @override
+  String get kokoroModelSupportedLangs => '支持：意大利语、英语、西班牙语、法语、日语、中文、葡萄牙语';
+
+  @override
+  String get autoDarkMode => '自动深色主题';
+
+  @override
+  String get autoDarkModeDesc => '日落时自动启用深色主题';
 }

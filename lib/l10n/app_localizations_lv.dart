@@ -93,9 +93,6 @@ class AppLocalizationsLv extends AppLocalizations {
   String get sectionMap => 'Karte';
 
   @override
-  String get sectionPrivacy => 'Privātums';
-
-  @override
   String get sectionInfo => 'Info';
 
   @override
@@ -106,6 +103,12 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => 'Gaišs · Bitcoin Oranžs';
+
+  @override
+  String get themeDarkNostr => 'Tumšs · Nostr Violets';
+
+  @override
+  String get themeDarkBitcoin => 'Tumšs · Bitcoin Oranžs';
 
   @override
   String get langSystem => 'Sistēmas noklusējums';
@@ -171,12 +174,6 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get close => 'Aizvērt';
-
-  @override
-  String get privacyMode => 'Privātuma režīms';
-
-  @override
-  String get privacyModeDescription => 'Nesūtīt anonīmus telemetrijas datus';
 
   @override
   String get infoVersion => 'Versija';
@@ -568,4 +565,110 @@ class AppLocalizationsLv extends AppLocalizations {
   @override
   String get favoriteGeocodingError =>
       'Adrese nav atrasta. Mēģini precīzāku adresi.';
+
+  @override
+  String get trafficAlertTitle => 'Jauna satiksme maršrutā';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$category ziņots $age jūsu maršrutā.\n\nVai vēlaties atrast alternatīvu maršrutu?';
+  }
+
+  @override
+  String get trafficContinue => 'Turpināt';
+
+  @override
+  String get trafficRecalculate => 'Pārrēķināt maršrutu';
+
+  @override
+  String get navExitTitle => 'Iziet no navigācijas?';
+
+  @override
+  String get navExitBody =>
+      'Vai vēlaties apturēt navigāciju un atgriezties kartē?';
+
+  @override
+  String get navContinue => 'Turpināt navigāciju';
+
+  @override
+  String get navExit => 'Jā, iziet';
+
+  @override
+  String get loadingInfo => 'Ielādē informāciju…';
+
+  @override
+  String get conditionsOnRoute => 'Apstākļi maršrutā';
+
+  @override
+  String get calculateRoute => 'Aprēķināt maršrutu';
+
+  @override
+  String get sectionNavigationVoice => 'Navigācijas balss';
+
+  @override
+  String get voiceGuidance => 'Balss vadība';
+
+  @override
+  String get voiceGuidanceDesc =>
+      'Skaļi nolasīt pagrieziena norādes navigācijas laikā';
+
+  @override
+  String get testVoiceEngine => 'Testēt balss dzinēju';
+
+  @override
+  String get testVoiceEngineDesc =>
+      'Pieskarieties, lai pārbaudītu TTS dzinēju un saņemtu iestatīšanas norādījumus';
+
+  @override
+  String get ttsDialogTitle => 'Trūkst balss dzinēja';
+
+  @override
+  String get ttsDialogBody =>
+      'Netika atrasts neviens darbojošies Text-to-Speech dzinējs.\n\n“Roadstr” paļaujas tikai uz atvērtā koda programmatūru — instalējiet kādu no šiem bezmaksas dzinējiem no F-Droid:';
+
+  @override
+  String get ttsRhvoiceDesc =>
+      'Dabiski skanoša balss, ierobežots valodu saraksts';
+
+  @override
+  String get ttsEspeakDesc => 'Aptver vairāk nekā 100 valodas, robotiska balss';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ Pēc instalēšanas:\n1. Android iestatījumi → Pieejamība → Teksta pārvēršana runā\n2. Izvēlieties tikko instalēto dzinēju\n3. Lejupielādējiet savas valodas balss datus\n4. Pilnībā restartējiet “Roadstr”';
+
+  @override
+  String get ttsTestNow => 'Testēt tagad';
+
+  @override
+  String get voiceUnsupportedTitle => 'Balss vadība nav pieejama';
+
+  @override
+  String get voiceUnsupportedBody =>
+      'Jūsu valoda vēl netiek atbalstīta balss pagrieziena norādēm. Navigācijas norādes joprojām tiks rādītas kā teksts ekrānā.';
+
+  @override
+  String get kokoroModelTitle => 'Balss modelis (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => 'Nav lejupielādēts · ~82 MB';
+
+  @override
+  String get kokoroModelStatusDownloading => 'Lejupielāde...';
+
+  @override
+  String get kokoroModelStatusReady => 'Balss modelis ir gatavs';
+
+  @override
+  String get kokoroModelDownloadBtn => 'Lejupielādēt';
+
+  @override
+  String get kokoroModelSupportedLangs =>
+      'Atbalsta: itāliešu, angļu, spāņu, franču, japāņu, ķīniešu, portugāļu';
+
+  @override
+  String get autoDarkMode => 'Automātiskā tumšā tēma';
+
+  @override
+  String get autoDarkModeDesc => 'Aktivizē tumšo tēmu saulrieta laikā';
 }

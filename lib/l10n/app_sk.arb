@@ -1,6 +1,5 @@
 {
   "@@locale": "sk",
-
   "searchHint": "Kam chcete ísť?",
   "calculatingRoute": "Počítam trasu…",
   "routeNotFoundTitle": "Trasa sa nenašla",
@@ -8,45 +7,47 @@
   "emptyServerResponse": "Prázdna odpoveď servera. Skontrolujte pripojenie.",
   "routeError": "Chyba výpočtu trasy: {error}",
   "@routeError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "gpsNotAvailable": "GPS nie je dostupné — Nastavenia → Aplikácia → Roadstr → Oprávnenia → Poloha",
   "acquiringGps": "Získavam GPS…",
-
   "graphhopperServerNotConfigured": "Server GraphHopper nie je nakonfigurovaný — používam OSRM",
   "graphhopperApiKeyNotConfigured": "API kľúč GraphHopper nie je nastavený — používam OSRM",
   "openrouteApiKeyNotConfigured": "API kľúč OpenRouteService nie je nastavený — používam OSRM",
-
   "chooseRoute": "Vybrať trasu",
   "routeOptionsCount": "{count} možností",
   "@routeOptionsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "cancel": "Zrušiť",
   "startNavigation": "Spustiť navigáciu",
   "fastestRoute": "Najrýchlejšia",
   "now": "Teraz",
-
   "history": "História",
   "clearHistory": "Vymazať",
   "selectedPosition": "Vybraná poloha",
-
   "bottomBarProfile": "Profil",
   "bottomBarMenu": "Ponuka",
-
   "settingsTitle": "Nastavenia",
   "sectionTheme": "Motív",
   "sectionMap": "Mapa",
-  "sectionPrivacy": "Súkromie",
   "sectionInfo": "Info",
   "sectionLanguage": "Jazyk",
   "themeLightNostr": "Svetlý · Nostr Fialová",
   "themeLightBitcoin": "Svetlý · Bitcoin Oranžová",
+  "themeDarkNostr": "Tmavý · Nostr Fialová",
+  "themeDarkBitcoin": "Tmavý · Bitcoin Oranžová",
   "langSystem": "Predvolený systémový",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "Nechať obrazovku zapnutú",
   "keepScreenOnDescription": "Zabraňuje prechodu do spánku počas navigácie",
   "rotateMap": "Mapa sleduje smer",
@@ -65,10 +66,6 @@
   "graphhopperServerReachable": "Server GraphHopper je dostupný",
   "errorTitle": "Chyba",
   "close": "Zavrieť",
-
-  "privacyMode": "Režim súkromia",
-  "privacyModeDescription": "Neodosielať anonymné telemetrické dáta",
-
   "infoVersion": "Verzia",
   "infoProtocol": "Protokol",
   "infoMaps": "Mapy",
@@ -78,7 +75,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper (vlastný hosting)",
   "providerGraphhopperCloud": "GraphHopper (cloud)",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "Profil",
   "notConnected": "Nepripojený",
   "loginWithNostrTitle": "PRIHLÁSIŤ SA S NOSTR",
@@ -94,13 +90,11 @@
   "logoutConfirmation": "Odstrániť prihlasovacie údaje Nostr z tohto zariadenia?",
   "logoutButton": "Odpojiť",
   "nostrIdentityInfo": "S identitou Nostr môžete zverejňovať dopravné upozornenia, správy a zaujímavé miesta decentralizovane v sieti Nostr, bez centrálnych serverov.",
-
   "warningTitle": "Varovanie",
   "nsecWarning": "Chystáte sa zadať svoj súkromný kľúč Nostr priamo do aplikácie. Ktokoľvek s fyzickým alebo vzdialeným prístupom k vášmu zariadeniu ho môže prečítať a trvalo prevziať kontrolu nad vašou identitou Nostr.",
   "amberSecureMethodHint": "✦  Bezpečnou metódou je Amber (NIP-55): nsec nikdy neopustí trezor podpisujúceho aplikácie.",
   "nsecRiskAcknowledgment": "Rozumiem riziku a napriek tomu chcem pokračovať",
   "continueButton": "Pokračovať",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber je podpisujúca aplikácia pre Android kompatibilná s NIP-55. Váš súkromný kľúč zostane izolovaný v Amberi a nikdy nebude zdieľaný.",
   "requestKeyFromAmber": "Požiadať Amber o verejný kľúč",
@@ -117,18 +111,15 @@
   "amberResponseError": "Chyba odpovede Amberu",
   "ok": "OK",
   "or": "alebo",
-
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS nie je aktívne",
   "gpsDisabledMessage": "Zapnite GPS v nastaveniach zariadenia, aby ste zistili polohu a mohli používať navigáciu.",
   "openSettings": "Nastavenia",
-
   "@_CONTEXT_MENU": {},
   "myLocation": "Moja poloha",
   "loginToReport": "Prihláste sa s Nostr (sekcia Profil) na hlásenie udalostí",
   "navigateHere": "Navigovať sem",
   "reportEventHere": "Nahlásiť udalosť tu",
-
   "@_ZAP": {},
   "zapSendSats": "Zap ⚡ (odoslať saty)",
   "sendZap": "Odoslať Zap",
@@ -136,7 +127,13 @@
   "customAmount": "Vlastná suma…",
   "zapSending": "Odosielam…",
   "zapSat": "⚡{sats} sat",
-  "@zapSat": { "placeholders": { "sats": { "type": "int" } } },
+  "@zapSat": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "fetchingLightningAddress": "Načítavam Lightning adresu…",
   "noLightningAddress": "Tento reportér nemá Lightning adresu",
   "requestingInvoice": "Žiadam o faktúru…",
@@ -146,20 +143,23 @@
   "payingViaNwc": "Platím cez NWC…",
   "noLightningWallet": "Nenašla sa žiadna Lightning peňaženka",
   "zapSent": "⚡ {sats} satov odoslaných!",
-  "@zapSent": { "placeholders": { "sats": { "type": "int" } } },
-
+  "@zapSent": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "@_ROAD_EVENT_DETAIL": {},
   "stillThere": "Stále tam",
   "notThereAnymore": "Už tam nie je",
   "loginToConfirm": "Prihláste sa s Nostr na potvrdenie alebo spochybnenie",
-
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Nahlásiť udalosť",
   "optionalComment": "Voliteľný komentár…",
   "publish": "Zverejniť",
   "publishing": "Zverejňujem…",
   "reportPublished": "Správa zverejnená ✓",
-
   "@_PROFILE_ZAP": {},
   "myReports": "MOJE SPRÁVY",
   "noReportsYet": "Žiadne správy neboli zverejnené",
@@ -169,14 +169,25 @@
   "reputationMedium": "Stredná",
   "reputationLow": "Nízka",
   "reputationLabel": "Reputácia {level}",
-  "@reputationLabel": { "placeholders": { "level": { "type": "String" } } },
+  "@reputationLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "reliability": "Spoľahlivosť: {pct}%",
-  "@reliability": { "placeholders": { "pct": { "type": "int" } } },
+  "@reliability": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "confirmedLabel": "Potvrdené",
   "removedLabel": "Odstránené",
   "positionLabel": "Poloha",
   "loadingLabel": "Načítavam…",
-
   "@_SETTINGS_EXTRA": {},
   "sectionWebSearch": "Webové vyhľadávanie",
   "sectionLightning": "Lightning",
@@ -187,7 +198,6 @@
   "searchEngineDdgDesc": "Zameraný na súkromie a populárny. Výsledky čiastočne z Bing — majte to na pamäti.",
   "searchEngineStartpageDesc": "Výsledky Google bez odovzdávania vašich dát Googlu. Rozumný kompromis.",
   "searchEngineGoogleDesc": "Veľmi efektívny. Ale pamätajte: Google vás pozná lepšie ako vaša mama a predáva všetko inzerentom. Vaša voľba. 🍪",
-
   "@_CATEGORIES": {},
   "categoryPolice": "Polícia",
   "categorySpeedCamera": "Rýchlostný radar",
@@ -202,19 +212,67 @@
   "categoryIce": "Ľad",
   "categoryAnimal": "Zviera",
   "categoryOther": "Ostatné",
-
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Dátum / čas",
   "minutesAgo": "pred {count} min",
-  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "pred {count}h",
-  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "daysAgo": "pred {count}d",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
-
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sectionFavorites": "Uložené miesta",
   "addFavorite": "Pridať miesto",
   "favoriteLabelHint": "Názov (napr. Domov, Kancelária)",
   "favoriteAddressHint": "Adresa",
-  "favoriteGeocodingError": "Adresa sa nenašla. Skús presnejšiu adresu."
+  "favoriteGeocodingError": "Adresa sa nenašla. Skús presnejšiu adresu.",
+  "trafficAlertTitle": "Nová premávka na trase",
+  "trafficAlertBody": "{category} nahlásené {age} na vašej trase.\n\nChcete nájsť alternatívnu trasu?",
+  "trafficContinue": "Pokračovať",
+  "trafficRecalculate": "Prepočítať trasu",
+  "navExitTitle": "Ukončiť navigáciu?",
+  "navExitBody": "Chcete zastaviť navigáciu a vrátiť sa na mapu?",
+  "navContinue": "Pokračovať v navigácii",
+  "navExit": "Áno, ukončiť",
+  "loadingInfo": "Načítavanie informácií…",
+  "conditionsOnRoute": "Podmienky na trase",
+  "calculateRoute": "Vypočítať trasu",
+  "sectionNavigationVoice": "Hlas navigácie",
+  "voiceGuidance": "Hlasové navádzanie",
+  "voiceGuidanceDesc": "Čítať pokyny na odbočenie nahlas počas navigácie",
+  "testVoiceEngine": "Otestovať hlasový engine",
+  "testVoiceEngineDesc": "Klepnutím skontrolujte TTS engine a získajte pokyny na nastavenie",
+  "ttsDialogTitle": "Chýba hlasový engine",
+  "ttsDialogBody": "Nebol nájdený žiadny funkčný engine Text-to-Speech.\n\nRoadstr sa spolieha výlučne na open source softvér — nainštalujte si jeden z týchto bezplatných enginov z F-Droid:",
+  "ttsRhvoiceDesc": "Prirodzene znejúci hlas, obmedzený zoznam jazykov",
+  "ttsEspeakDesc": "Pokrýva viac ako 100 jazykov, robotický hlas",
+  "ttsInstallNote": "⚠️ Po inštalácii:\n1. Nastavenia Androidu → Dostupnosť → Prevod textu na reč\n2. Vyberte práve nainštalovaný engine\n3. Stiahnite hlasové dáta pre váš jazyk\n4. Reštartujte Roadstr úplne",
+  "ttsTestNow": "Otestovať teraz",
+  "voiceUnsupportedTitle": "Hlasové navádzanie nie je k dispozícii",
+  "voiceUnsupportedBody": "Váš jazyk zatiaľ nie je podporovaný pre hlasové pokyny na odbočenie. Pokyny na navigáciu sa budú naďalej zobrazovať ako text na obrazovke.",
+  "kokoroModelTitle": "Hlasový model (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "Nestiahnuté · ~82 MB",
+  "kokoroModelStatusDownloading": "Stiahnutie...",
+  "kokoroModelStatusReady": "Hlasový model je pripravený",
+  "kokoroModelDownloadBtn": "Stiahnuť",
+  "kokoroModelSupportedLangs": "Podporuje: taliančinu, angličtinu, španielčinu, francúzštinu, japončinu, čínštinu, portugalčinu",
+  "autoDarkMode": "Automatická tmavá téma",
+  "autoDarkModeDesc": "Aktivuje tmavú tému pri západe slnka"
 }
