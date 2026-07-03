@@ -94,9 +94,6 @@ class AppLocalizationsMt extends AppLocalizations {
   String get sectionMap => 'Mappa';
 
   @override
-  String get sectionPrivacy => 'Privatezza';
-
-  @override
   String get sectionInfo => 'Informazzjoni';
 
   @override
@@ -107,6 +104,12 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => 'Ċar · Bitcoin Oranġjo';
+
+  @override
+  String get themeDarkNostr => 'Skur · Nostr Vjola';
+
+  @override
+  String get themeDarkBitcoin => 'Skur · Bitcoin Oranġjo';
 
   @override
   String get langSystem => 'Default tas-sistema';
@@ -174,12 +177,6 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get close => 'Agħlaq';
-
-  @override
-  String get privacyMode => 'Modalità tal-privatezza';
-
-  @override
-  String get privacyModeDescription => 'Tibgħatx data telemetrija anonima';
 
   @override
   String get infoVersion => 'Verżjoni';
@@ -570,4 +567,109 @@ class AppLocalizationsMt extends AppLocalizations {
   @override
   String get favoriteGeocodingError =>
       'Indirizz ma nstabx. Ipprova indirizz aktar speċifiku.';
+
+  @override
+  String get trafficAlertTitle => 'Traffiku ġdid fuq ir-rotta';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$category irrappurtat $age fuq ir-rotta tiegħek.\n\nTrid issib rotta alternattiva?';
+  }
+
+  @override
+  String get trafficContinue => 'Kompli';
+
+  @override
+  String get trafficRecalculate => 'Erġa\' kalkola r-rotta';
+
+  @override
+  String get navExitTitle => 'Oħroġ min-navigazzjoni?';
+
+  @override
+  String get navExitBody =>
+      'Trid twaqqaf in-navigazzjoni u tirritorna fil-mappa?';
+
+  @override
+  String get navContinue => 'Kompli n-navigazzjoni';
+
+  @override
+  String get navExit => 'Iva, oħroġ';
+
+  @override
+  String get loadingInfo => 'Qiegħed itella\' l-informazzjoni…';
+
+  @override
+  String get conditionsOnRoute => 'Kundizzjonijiet fuq ir-rotta';
+
+  @override
+  String get calculateRoute => 'Ikkalkola r-rotta';
+
+  @override
+  String get sectionNavigationVoice => 'Vuċi tan-navigazzjoni';
+
+  @override
+  String get voiceGuidance => 'Gwida bil-vuċi';
+
+  @override
+  String get voiceGuidanceDesc =>
+      'Aqra l-istruzzjonijiet tad-dawra b\'leħen għoli waqt in-navigazzjoni';
+
+  @override
+  String get testVoiceEngine => 'Ittestja l-magna tal-vuċi';
+
+  @override
+  String get testVoiceEngineDesc =>
+      'Mess biex tivverifika l-magna TTS u tikseb istruzzjonijiet ta\' konfigurazzjoni';
+
+  @override
+  String get ttsDialogTitle => 'Nieqsa l-magna tal-vuċi';
+
+  @override
+  String get ttsDialogBody =>
+      'Ma nstabet l-ebda magna Text-to-Speech li taħdem.\n\nRoadstr jiddependi biss fuq software open source — installa waħda minn dawn il-magni b\'xejn minn F-Droid:';
+
+  @override
+  String get ttsRhvoiceDesc => 'Vuċi naturali, lista limitata ta\' lingwi';
+
+  @override
+  String get ttsEspeakDesc => 'Tkopri aktar minn 100 lingwa, vuċi robotika';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ Wara l-installazzjoni:\n1. Settings tal-Android → Aċċessibbiltà → Test-to-Speech\n2. Agħżel il-magna li għadek kif installajt\n3. Niżżel id-dejta tal-vuċi tal-lingwa tiegħek\n4. Erġa\' ibda Roadstr għal kollox';
+
+  @override
+  String get ttsTestNow => 'Ittestja issa';
+
+  @override
+  String get voiceUnsupportedTitle => 'Gwida bil-vuċi mhix disponibbli';
+
+  @override
+  String get voiceUnsupportedBody =>
+      'Il-lingwa tiegħek għadha mhix appoġġjata għal struzzjonijiet ta\' dawra mitkellma. L-istruzzjonijiet tan-navigazzjoni se jibqgħu jidhru bħala test fuq l-iskrin.';
+
+  @override
+  String get kokoroModelTitle => 'Mudell tal-vuċi (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => 'Mhux imsejjaħ · ~82 MB';
+
+  @override
+  String get kokoroModelStatusDownloading => 'Qed titniżżel...';
+
+  @override
+  String get kokoroModelStatusReady => 'Mudell tal-vuċi lest';
+
+  @override
+  String get kokoroModelDownloadBtn => 'Niżżel';
+
+  @override
+  String get kokoroModelSupportedLangs =>
+      'Jappoġġja: Taljan, Ingliż, Spanjol, Franċiż, Ġappuniż, Ċiniż, Portugiż';
+
+  @override
+  String get autoDarkMode => 'Tema skura awtomatika';
+
+  @override
+  String get autoDarkModeDesc => 'Tattiva t-tema skura fil-punent tax-xemx';
 }

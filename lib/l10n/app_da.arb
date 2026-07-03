@@ -1,6 +1,5 @@
 {
   "@@locale": "da",
-
   "searchHint": "Hvor vil du hen?",
   "calculatingRoute": "Beregner rute…",
   "routeNotFoundTitle": "Rute ikke fundet",
@@ -8,45 +7,47 @@
   "emptyServerResponse": "Tomt serversvar. Tjek din forbindelse.",
   "routeError": "Fejl ved ruteberegning: {error}",
   "@routeError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "gpsNotAvailable": "GPS utilgængeligt — Indstillinger → App → Roadstr → Tilladelser → Placering",
   "acquiringGps": "Henter GPS…",
-
   "graphhopperServerNotConfigured": "GraphHopper-server ikke konfigureret — bruger OSRM",
   "graphhopperApiKeyNotConfigured": "GraphHopper API-nøgle ikke konfigureret — bruger OSRM",
   "openrouteApiKeyNotConfigured": "OpenRouteService API-nøgle ikke konfigureret — bruger OSRM",
-
   "chooseRoute": "Vælg rute",
   "routeOptionsCount": "{count} muligheder",
   "@routeOptionsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "cancel": "Annuller",
   "startNavigation": "Start navigation",
   "fastestRoute": "Hurtigste",
   "now": "Nu",
-
   "history": "Historik",
   "clearHistory": "Ryd",
   "selectedPosition": "Valgt position",
-
   "bottomBarProfile": "Profil",
   "bottomBarMenu": "Menu",
-
   "settingsTitle": "Indstillinger",
   "sectionTheme": "Tema",
   "sectionMap": "Kort",
-  "sectionPrivacy": "Privatliv",
   "sectionInfo": "Info",
   "sectionLanguage": "Sprog",
   "themeLightNostr": "Lyst · Nostr Violet",
   "themeLightBitcoin": "Lyst · Bitcoin Orange",
+  "themeDarkNostr": "Mørkt · Nostr Violet",
+  "themeDarkBitcoin": "Mørkt · Bitcoin Orange",
   "langSystem": "Systemstandard",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "Hold skærmen tændt",
   "keepScreenOnDescription": "Forhindrer dvale under navigation",
   "rotateMap": "Kortet følger retningen",
@@ -65,10 +66,6 @@
   "graphhopperServerReachable": "GraphHopper-server tilgængelig",
   "errorTitle": "Fejl",
   "close": "Luk",
-
-  "privacyMode": "Privatlivstilstand",
-  "privacyModeDescription": "Send ikke anonyme telemetridata",
-
   "infoVersion": "Version",
   "infoProtocol": "Protokol",
   "infoMaps": "Kort",
@@ -78,7 +75,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper (selvhostet)",
   "providerGraphhopperCloud": "GraphHopper (sky)",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "Profil",
   "notConnected": "Ikke forbundet",
   "loginWithNostrTitle": "LOG IND MED NOSTR",
@@ -94,13 +90,11 @@
   "logoutConfirmation": "Fjern Nostr-legitimationsoplysninger fra denne enhed?",
   "logoutButton": "Afbryd forbindelsen",
   "nostrIdentityInfo": "Med en Nostr-identitet kan du publicere trafikadvarsler, rapporter og interessepunkter på en decentraliseret måde på Nostr-netværket, uden centrale servere.",
-
   "warningTitle": "Advarsel",
   "nsecWarning": "Du er ved at skrive din Nostr-private nøgle direkte ind i en app. Enhver med fysisk eller fjern adgang til din enhed kan læse den og permanent overtage kontrollen over din Nostr-identitet.",
   "amberSecureMethodHint": "✦  Den sikre metode er Amber (NIP-55): nsec forlader aldrig app-underskriverens boks.",
   "nsecRiskAcknowledgment": "Jeg forstår risikoen og vil alligevel fortsætte",
   "continueButton": "Fortsæt",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber er en NIP-55-kompatibel Android app-underskriver. Din private nøgle forbliver isoleret i Amber og deles aldrig.",
   "requestKeyFromAmber": "Anmod om offentlig nøgle fra Amber",
@@ -117,18 +111,15 @@
   "amberResponseError": "Amber-svarfejl",
   "ok": "OK",
   "or": "eller",
-
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS ikke aktiv",
   "gpsDisabledMessage": "Aktiver GPS i dine enhedsindstillinger for at få din placering og bruge navigation.",
   "openSettings": "Indstillinger",
-
   "@_CONTEXT_MENU": {},
   "myLocation": "Min placering",
   "loginToReport": "Log ind med Nostr (Profil-sektion) for at rapportere hændelser",
   "navigateHere": "Naviger hertil",
   "reportEventHere": "Rapporter hændelse her",
-
   "@_ZAP": {},
   "zapSendSats": "Zap ⚡ (send sats)",
   "sendZap": "Send en Zap",
@@ -136,7 +127,13 @@
   "customAmount": "Brugerdefineret beløb…",
   "zapSending": "Sender…",
   "zapSat": "⚡{sats} sat",
-  "@zapSat": { "placeholders": { "sats": { "type": "int" } } },
+  "@zapSat": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "fetchingLightningAddress": "Henter Lightning-adresse…",
   "noLightningAddress": "Denne reporter har ingen Lightning-adresse",
   "requestingInvoice": "Anmoder om faktura…",
@@ -146,20 +143,23 @@
   "payingViaNwc": "Betaler via NWC…",
   "noLightningWallet": "Ingen Lightning-pung fundet",
   "zapSent": "⚡ {sats} sats sendt!",
-  "@zapSent": { "placeholders": { "sats": { "type": "int" } } },
-
+  "@zapSent": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "@_ROAD_EVENT_DETAIL": {},
   "stillThere": "Stadig der",
   "notThereAnymore": "Ikke der længere",
   "loginToConfirm": "Log ind med Nostr for at bekræfte eller bestride",
-
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Rapporter en hændelse",
   "optionalComment": "Valgfri kommentar…",
   "publish": "Publicer",
   "publishing": "Publicerer…",
   "reportPublished": "Rapport publiceret ✓",
-
   "@_PROFILE_ZAP": {},
   "myReports": "MINE RAPPORTER",
   "noReportsYet": "Ingen rapporter publiceret",
@@ -169,14 +169,25 @@
   "reputationMedium": "Middel",
   "reputationLow": "Lav",
   "reputationLabel": "Omdømme {level}",
-  "@reputationLabel": { "placeholders": { "level": { "type": "String" } } },
+  "@reputationLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "reliability": "Pålidelighed: {pct}%",
-  "@reliability": { "placeholders": { "pct": { "type": "int" } } },
+  "@reliability": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "confirmedLabel": "Bekræftet",
   "removedLabel": "Fjernet",
   "positionLabel": "Position",
   "loadingLabel": "Indlæser…",
-
   "@_SETTINGS_EXTRA": {},
   "sectionWebSearch": "Websøgning",
   "sectionLightning": "Lightning",
@@ -187,7 +198,6 @@
   "searchEngineDdgDesc": "Privatlivsfokuseret og populær. Resultater delvist fra Bing — husk det.",
   "searchEngineStartpageDesc": "Google-resultater uden at aflevere dine data til Google. Et fornuftigt kompromis.",
   "searchEngineGoogleDesc": "Meget effektiv. Men husk: Google kender dig bedre end din mor og sælger alt til annoncører. Dit valg. 🍪",
-
   "@_CATEGORIES": {},
   "categoryPolice": "Politi",
   "categorySpeedCamera": "Fartkamera",
@@ -202,19 +212,67 @@
   "categoryIce": "Is",
   "categoryAnimal": "Dyr",
   "categoryOther": "Andet",
-
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Dato / tid",
   "minutesAgo": "for {count} min siden",
-  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "for {count}t siden",
-  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "daysAgo": "for {count}d siden",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
-
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sectionFavorites": "Gemte steder",
   "addFavorite": "Tilføj sted",
   "favoriteLabelHint": "Navn (f.eks. Hjem, Kontor)",
   "favoriteAddressHint": "Adresse",
-  "favoriteGeocodingError": "Adressen blev ikke fundet. Prøv en mere præcis adresse."
+  "favoriteGeocodingError": "Adressen blev ikke fundet. Prøv en mere præcis adresse.",
+  "trafficAlertTitle": "Ny trafik på ruten",
+  "trafficAlertBody": "{category} rapporteret {age} på din rute.\n\nVil du finde en alternativ rute?",
+  "trafficContinue": "Fortsæt",
+  "trafficRecalculate": "Genberegn rute",
+  "navExitTitle": "Afslut navigation?",
+  "navExitBody": "Vil du stoppe navigationen og vende tilbage til kortet?",
+  "navContinue": "Fortsæt navigation",
+  "navExit": "Ja, afslut",
+  "loadingInfo": "Indlæser oplysninger…",
+  "conditionsOnRoute": "Betingelser på ruten",
+  "calculateRoute": "Beregn rute",
+  "sectionNavigationVoice": "Navigationsstemme",
+  "voiceGuidance": "Stemmevejledning",
+  "voiceGuidanceDesc": "Læs sving-instruktioner højt under navigation",
+  "testVoiceEngine": "Test stemmemotor",
+  "testVoiceEngineDesc": "Tryk for at tjekke TTS-motoren og få opsætningsinstruktioner",
+  "ttsDialogTitle": "Manglende stemmemotor",
+  "ttsDialogBody": "Der blev ikke fundet nogen fungerende Text-to-Speech-motor.\n\nRoadstr bygger udelukkende på open source-software — installer en af disse gratis motorer fra F-Droid:",
+  "ttsRhvoiceDesc": "Naturligt klingende stemme, begrænset sprogliste",
+  "ttsEspeakDesc": "Dækker over 100 sprog, robotagtig stemme",
+  "ttsInstallNote": "⚠️ Efter installation:\n1. Android-indstillinger → Hjælpefunktioner → Tekst-til-tale\n2. Vælg den motor, du lige har installeret\n3. Download stemmedata til dit sprog\n4. Genstart Roadstr helt",
+  "ttsTestNow": "Test nu",
+  "voiceUnsupportedTitle": "Stemmevejledning ikke tilgængelig",
+  "voiceUnsupportedBody": "Dit sprog understøttes endnu ikke til talte sving-anvisninger. Navigationsinstruktioner vil stadig blive vist som tekst på skærmen.",
+  "kokoroModelTitle": "Stemmemodel (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "Ikke downloadet · ~82 MB",
+  "kokoroModelStatusDownloading": "Downloader...",
+  "kokoroModelStatusReady": "Stemmemodel er klar",
+  "kokoroModelDownloadBtn": "Download",
+  "kokoroModelSupportedLangs": "Understøtter: italiensk, engelsk, spansk, fransk, japansk, kinesisk, portugisisk",
+  "autoDarkMode": "Auto mørkt tema",
+  "autoDarkModeDesc": "Aktiverer det mørke tema ved solnedgang"
 }

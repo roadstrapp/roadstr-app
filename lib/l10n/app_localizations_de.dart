@@ -94,9 +94,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sectionMap => 'Karte';
 
   @override
-  String get sectionPrivacy => 'Datenschutz';
-
-  @override
   String get sectionInfo => 'Info';
 
   @override
@@ -107,6 +104,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => 'Hell · Bitcoin Orange';
+
+  @override
+  String get themeDarkNostr => 'Dunkel · Nostr Violett';
+
+  @override
+  String get themeDarkBitcoin => 'Dunkel · Bitcoin Orange';
 
   @override
   String get langSystem => 'Systemstandard';
@@ -173,12 +176,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get close => 'Schließen';
-
-  @override
-  String get privacyMode => 'Datenschutzmodus';
-
-  @override
-  String get privacyModeDescription => 'Keine anonymen Telemetriedaten senden';
 
   @override
   String get infoVersion => 'Version';
@@ -572,4 +569,111 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get favoriteGeocodingError =>
       'Adresse nicht gefunden. Versuche eine genauere Adresse.';
+
+  @override
+  String get trafficAlertTitle => 'Neuer Verkehr auf der Route';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$category gemeldet $age auf Ihrer Route.\n\nMöchten Sie eine alternative Route finden?';
+  }
+
+  @override
+  String get trafficContinue => 'Weiter';
+
+  @override
+  String get trafficRecalculate => 'Route neu berechnen';
+
+  @override
+  String get navExitTitle => 'Navigation beenden?';
+
+  @override
+  String get navExitBody =>
+      'Möchten Sie die Navigation beenden und zur Karte zurückkehren?';
+
+  @override
+  String get navContinue => 'Navigation fortsetzen';
+
+  @override
+  String get navExit => 'Ja, beenden';
+
+  @override
+  String get loadingInfo => 'Informationen laden…';
+
+  @override
+  String get conditionsOnRoute => 'Bedingungen auf der Route';
+
+  @override
+  String get calculateRoute => 'Route berechnen';
+
+  @override
+  String get sectionNavigationVoice => 'Navigationsstimme';
+
+  @override
+  String get voiceGuidance => 'Sprachführung';
+
+  @override
+  String get voiceGuidanceDesc =>
+      'Abbiegehinweise während der Navigation laut vorlesen';
+
+  @override
+  String get testVoiceEngine => 'Sprach-Engine testen';
+
+  @override
+  String get testVoiceEngineDesc =>
+      'Tippen, um die TTS-Engine zu prüfen und Einrichtungshinweise zu erhalten';
+
+  @override
+  String get ttsDialogTitle => 'Sprach-Engine fehlt';
+
+  @override
+  String get ttsDialogBody =>
+      'Es wurde keine funktionierende Text-to-Speech-Engine gefunden.\n\nRoadstr setzt ausschließlich auf Open-Source-Software — installiere eine dieser kostenlosen Engines von F-Droid:';
+
+  @override
+  String get ttsRhvoiceDesc =>
+      'Natürlich klingende Stimme, eingeschränkte Sprachauswahl';
+
+  @override
+  String get ttsEspeakDesc => 'Deckt über 100 Sprachen ab, roboterhafte Stimme';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ Nach der Installation:\n1. Android-Einstellungen → Bedienungshilfen → Text-in-Sprache-Ausgabe\n2. Die gerade installierte Engine auswählen\n3. Sprachdaten für deine Sprache herunterladen\n4. Roadstr vollständig neu starten';
+
+  @override
+  String get ttsTestNow => 'Jetzt testen';
+
+  @override
+  String get voiceUnsupportedTitle => 'Sprachführung nicht verfügbar';
+
+  @override
+  String get voiceUnsupportedBody =>
+      'Deine Sprache wird für gesprochene Abbiegehinweise noch nicht unterstützt. Die Navigationsanweisungen werden weiterhin als Text auf dem Bildschirm angezeigt.';
+
+  @override
+  String get kokoroModelTitle => 'Sprachmodell (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => 'Nicht heruntergeladen · ~82 MB';
+
+  @override
+  String get kokoroModelStatusDownloading => 'Herunterladen...';
+
+  @override
+  String get kokoroModelStatusReady => 'Sprachmodell bereit';
+
+  @override
+  String get kokoroModelDownloadBtn => 'Herunterladen';
+
+  @override
+  String get kokoroModelSupportedLangs =>
+      'Unterstützt: Italienisch, Englisch, Spanisch, Französisch, Japanisch, Chinesisch, Portugiesisch';
+
+  @override
+  String get autoDarkMode => 'Automatischer Dunkelmodus';
+
+  @override
+  String get autoDarkModeDesc =>
+      'Aktiviert das dunkle Design bei Sonnenuntergang';
 }

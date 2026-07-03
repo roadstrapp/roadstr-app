@@ -93,9 +93,6 @@ class AppLocalizationsPl extends AppLocalizations {
   String get sectionMap => 'Mapa';
 
   @override
-  String get sectionPrivacy => 'Prywatność';
-
-  @override
   String get sectionInfo => 'Info';
 
   @override
@@ -106,6 +103,12 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => 'Jasny · Bitcoin Pomarańcz';
+
+  @override
+  String get themeDarkNostr => 'Ciemny · Nostr Fiolet';
+
+  @override
+  String get themeDarkBitcoin => 'Ciemny · Bitcoin Pomarańcz';
 
   @override
   String get langSystem => 'Domyślny systemowy';
@@ -171,13 +174,6 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get close => 'Zamknij';
-
-  @override
-  String get privacyMode => 'Tryb prywatności';
-
-  @override
-  String get privacyModeDescription =>
-      'Nie wysyłaj anonimowych danych telemetrycznych';
 
   @override
   String get infoVersion => 'Wersja';
@@ -569,4 +565,109 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get favoriteGeocodingError =>
       'Nie znaleziono adresu. Spróbuj bardziej szczegółowego.';
+
+  @override
+  String get trafficAlertTitle => 'Nowy ruch na trasie';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$category zgłoszony $age na Twojej trasie.\n\nCzy chcesz znaleźć alternatywną trasę?';
+  }
+
+  @override
+  String get trafficContinue => 'Kontynuuj';
+
+  @override
+  String get trafficRecalculate => 'Przelicz trasę';
+
+  @override
+  String get navExitTitle => 'Zakończyć nawigację?';
+
+  @override
+  String get navExitBody => 'Czy chcesz zatrzymać nawigację i wrócić do mapy?';
+
+  @override
+  String get navContinue => 'Kontynuuj nawigację';
+
+  @override
+  String get navExit => 'Tak, wyjdź';
+
+  @override
+  String get loadingInfo => 'Ładowanie informacji…';
+
+  @override
+  String get conditionsOnRoute => 'Warunki na trasie';
+
+  @override
+  String get calculateRoute => 'Oblicz trasę';
+
+  @override
+  String get sectionNavigationVoice => 'Głos nawigacji';
+
+  @override
+  String get voiceGuidance => 'Prowadzenie głosowe';
+
+  @override
+  String get voiceGuidanceDesc =>
+      'Czytaj instrukcje skrętu na głos podczas nawigacji';
+
+  @override
+  String get testVoiceEngine => 'Testuj silnik głosowy';
+
+  @override
+  String get testVoiceEngineDesc =>
+      'Stuknij, aby sprawdzić silnik TTS i uzyskać instrukcje konfiguracji';
+
+  @override
+  String get ttsDialogTitle => 'Brak silnika głosowego';
+
+  @override
+  String get ttsDialogBody =>
+      'Nie znaleziono działającego silnika Text-to-Speech.\n\nRoadstr opiera się wyłącznie na oprogramowaniu open source — zainstaluj jeden z tych darmowych silników z F-Droid:';
+
+  @override
+  String get ttsRhvoiceDesc =>
+      'Naturalnie brzmiący głos, ograniczona lista języków';
+
+  @override
+  String get ttsEspeakDesc => 'Obsługuje ponad 100 języków, robotyczny głos';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ Po instalacji:\n1. Ustawienia Androida → Ułatwienia dostępu → Synteza mowy\n2. Wybierz właśnie zainstalowany silnik\n3. Pobierz dane głosowe dla swojego języka\n4. Uruchom ponownie całkowicie aplikację Roadstr';
+
+  @override
+  String get ttsTestNow => 'Testuj teraz';
+
+  @override
+  String get voiceUnsupportedTitle => 'Prowadzenie głosowe niedostępne';
+
+  @override
+  String get voiceUnsupportedBody =>
+      'Twój język nie jest jeszcze obsługiwany w przypadku głosowych wskazówek nawigacyjnych. Instrukcje nawigacji nadal będą wyświetlane jako tekst na ekranie.';
+
+  @override
+  String get kokoroModelTitle => 'Model głosowy (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => 'Nie pobrano · ~82 MB';
+
+  @override
+  String get kokoroModelStatusDownloading => 'Pobieranie...';
+
+  @override
+  String get kokoroModelStatusReady => 'Model głosowy gotowy';
+
+  @override
+  String get kokoroModelDownloadBtn => 'Pobierz';
+
+  @override
+  String get kokoroModelSupportedLangs =>
+      'Obsługuje: włoski, angielski, hiszpański, francuski, japoński, chiński, portugalski';
+
+  @override
+  String get autoDarkMode => 'Automatyczny ciemny motyw';
+
+  @override
+  String get autoDarkModeDesc => 'Włącza ciemny motyw o zachodzie słońca';
 }

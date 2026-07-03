@@ -1,6 +1,5 @@
 {
   "@@locale": "et",
-
   "searchHint": "Kuhu soovite minna?",
   "calculatingRoute": "Marsruudi arvutamine…",
   "routeNotFoundTitle": "Marsruuti ei leitud",
@@ -8,45 +7,47 @@
   "emptyServerResponse": "Tühi serveri vastus. Kontrollige ühendust.",
   "routeError": "Marsruudi arvutusviga: {error}",
   "@routeError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "gpsNotAvailable": "GPS pole saadaval — Settings → App → Roadstr → Permissions → Location",
   "acquiringGps": "GPS-i hankimine…",
-
   "graphhopperServerNotConfigured": "GraphHopperi server pole seadistatud — kasutatakse OSRM-i",
   "graphhopperApiKeyNotConfigured": "GraphHopperi API-võti pole seadistatud — kasutatakse OSRM-i",
   "openrouteApiKeyNotConfigured": "OpenRouteService'i API-võti pole seadistatud — kasutatakse OSRM-i",
-
   "chooseRoute": "Vali marsruut",
   "routeOptionsCount": "{count} valikut",
   "@routeOptionsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "cancel": "Tühista",
   "startNavigation": "Alusta navigeerimist",
   "fastestRoute": "Kiirem",
   "now": "Praegu",
-
   "history": "Ajalugu",
   "clearHistory": "Tühjenda",
   "selectedPosition": "Valitud asukoht",
-
   "bottomBarProfile": "Profiil",
   "bottomBarMenu": "Menüü",
-
   "settingsTitle": "Seaded",
   "sectionTheme": "Teema",
   "sectionMap": "Kaart",
-  "sectionPrivacy": "Privaatsus",
   "sectionInfo": "Teave",
   "sectionLanguage": "Keel",
   "themeLightNostr": "Hele · Nostr Violetne",
   "themeLightBitcoin": "Hele · Bitcoin Oranž",
+  "themeDarkNostr": "Tume · Nostr Violetne",
+  "themeDarkBitcoin": "Tume · Bitcoin Oranž",
   "langSystem": "Süsteemi vaikeväärtus",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "Hoia ekraan üleval",
   "keepScreenOnDescription": "Takistab une-olekut navigeerimise ajal",
   "rotateMap": "Kaart järgib suunda",
@@ -65,10 +66,6 @@
   "graphhopperServerReachable": "GraphHopperi server on kättesaadav",
   "errorTitle": "Viga",
   "close": "Sulge",
-
-  "privacyMode": "Privaatsusrežiim",
-  "privacyModeDescription": "Ärge saatke anonüümseid telemeetria andmeid",
-
   "infoVersion": "Versioon",
   "infoProtocol": "Protokoll",
   "infoMaps": "Kaardid",
@@ -78,7 +75,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper (ise majutatud)",
   "providerGraphhopperCloud": "GraphHopper (pilv)",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "Profiil",
   "notConnected": "Pole ühendatud",
   "loginWithNostrTitle": "LOGI SISSE NOSTRIGA",
@@ -94,13 +90,11 @@
   "logoutConfirmation": "Eemaldada Nostri mandaadid sellest seadmest?",
   "logoutButton": "Katkesta ühendus",
   "nostrIdentityInfo": "Nostri identiteediga saate avaldada liiklushoiatusi, aruandeid ja huvipunkte detsentraliseeritud viisil Nostri võrgus ilma kesksete serveriteta.",
-
   "warningTitle": "Hoiatus",
   "nsecWarning": "Olete sellest lahkumas, et visata oma Nostri privaatvõti otse rakendusse. Igaüks, kellel on füüsiline või kaugjuurdepääs teie seadmele, saab selle lugeda ja teie Nostri identiteedi üle kontrolli jäädavalt üle võtta.",
   "amberSecureMethodHint": "✦  Turvaline meetod on Amber (NIP-55): nsec ei lahku kunagi rakenduse allkirjastamishoidlast.",
   "nsecRiskAcknowledgment": "Mõistan riski ja soovin siiski jätkata",
   "continueButton": "Jätka",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber on NIP-55 nõuetele vastav Androidi rakenduse allkirjastaja. Teie privaatvõti jääb Amberi sisse isoleerituks ega ole kunagi jagatud.",
   "requestKeyFromAmber": "Taotle avalikku võtit Amberilt",
@@ -117,18 +111,15 @@
   "amberResponseError": "Amberi vastuse viga",
   "ok": "OK",
   "or": "või",
-
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS pole aktiivne",
   "gpsDisabledMessage": "Aktiveerige GPS seadme seadetes, et saada oma asukoht ja kasutada navigeerimist.",
   "openSettings": "Seaded",
-
   "@_CONTEXT_MENU": {},
   "myLocation": "Minu asukoht",
   "loginToReport": "Sündmustest teatamiseks logige sisse Nostriga (Profiili jaotis)",
   "navigateHere": "Navigeeri siia",
   "reportEventHere": "Teata sündmusest siin",
-
   "@_ZAP": {},
   "zapSendSats": "Zap ⚡ (saada sats-e)",
   "sendZap": "Saada Zap",
@@ -136,7 +127,13 @@
   "customAmount": "Kohandatud summa…",
   "zapSending": "Saatmine…",
   "zapSat": "⚡{sats} sat",
-  "@zapSat": { "placeholders": { "sats": { "type": "int" } } },
+  "@zapSat": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "fetchingLightningAddress": "Lightningi aadressi hankimine…",
   "noLightningAddress": "Sellel reporteril pole Lightningi aadressi",
   "requestingInvoice": "Arve taotlemine…",
@@ -146,20 +143,23 @@
   "payingViaNwc": "Maksmine NWC kaudu…",
   "noLightningWallet": "Lightningi rahakotti ei leitud",
   "zapSent": "⚡ {sats} sats saadetud!",
-  "@zapSent": { "placeholders": { "sats": { "type": "int" } } },
-
+  "@zapSent": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "@_ROAD_EVENT_DETAIL": {},
   "stillThere": "Endiselt seal",
   "notThereAnymore": "Enam pole seal",
   "loginToConfirm": "Kinnitamiseks või vaidlustamiseks logige sisse Nostriga",
-
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Teata sündmusest",
   "optionalComment": "Valikuline kommentaar…",
   "publish": "Avalda",
   "publishing": "Avaldamine…",
   "reportPublished": "Aruanne avaldatud ✓",
-
   "@_PROFILE_ZAP": {},
   "myReports": "MINU ARUANDED",
   "noReportsYet": "Avaldatud aruandeid pole",
@@ -169,14 +169,25 @@
   "reputationMedium": "Keskmine",
   "reputationLow": "Madal",
   "reputationLabel": "Maine {level}",
-  "@reputationLabel": { "placeholders": { "level": { "type": "String" } } },
+  "@reputationLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "reliability": "Usaldusväärsus: {pct}%",
-  "@reliability": { "placeholders": { "pct": { "type": "int" } } },
+  "@reliability": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "confirmedLabel": "Kinnitatud",
   "removedLabel": "Eemaldatud",
   "positionLabel": "Asukoht",
   "loadingLabel": "Laadimine…",
-
   "@_SETTINGS_EXTRA": {},
   "sectionWebSearch": "Veebiotsing",
   "sectionLightning": "Lightning",
@@ -187,7 +198,6 @@
   "searchEngineDdgDesc": "Privaatsusele orienteeritud ja populaarne. Tulemused osaliselt Bingist — pidage seda meeles.",
   "searchEngineStartpageDesc": "Google'i tulemused ilma oma andmeid Google'ile andmata. Mõistlik kompromiss.",
   "searchEngineGoogleDesc": "Väga tõhus. Aga pidage meeles: Google teab teid paremini kui teie ema ja müüb kõike reklaamijatele. Teie otsus muidugi. 🍪",
-
   "@_CATEGORIES": {},
   "categoryPolice": "Politsei",
   "categorySpeedCamera": "Kiiruskaamerna",
@@ -202,19 +212,67 @@
   "categoryIce": "Jää",
   "categoryAnimal": "Loom",
   "categoryOther": "Muu",
-
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Kuupäev / kellaaeg",
   "minutesAgo": "{count} min tagasi",
-  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "{count}h tagasi",
-  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "daysAgo": "{count}p tagasi",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
-
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sectionFavorites": "Salvestatud kohad",
   "addFavorite": "Lisa koht",
   "favoriteLabelHint": "Nimi (nt Kodu, Kontor)",
   "favoriteAddressHint": "Aadress",
-  "favoriteGeocodingError": "Aadressi ei leitud. Proovi täpsemat aadressi."
+  "favoriteGeocodingError": "Aadressi ei leitud. Proovi täpsemat aadressi.",
+  "trafficAlertTitle": "Uus liiklus marsruudil",
+  "trafficAlertBody": "{category} teatati {age} teie marsruudil.\n\nKas soovite leida alternatiivset marsruuti?",
+  "trafficContinue": "Jätka",
+  "trafficRecalculate": "Arvuta marsruut uuesti",
+  "navExitTitle": "Lõpeta navigeerimine?",
+  "navExitBody": "Kas soovite peatada navigeerimise ja naasta kaardile?",
+  "navContinue": "Jätka navigeerimist",
+  "navExit": "Jah, välju",
+  "loadingInfo": "Laadin teavet…",
+  "conditionsOnRoute": "Tingimused marsruudil",
+  "calculateRoute": "Arvuta marsruut",
+  "sectionNavigationVoice": "Navigeerimishääl",
+  "voiceGuidance": "Häälejuhendamine",
+  "voiceGuidanceDesc": "Loe pööramisjuhiseid navigeerimise ajal valjult ette",
+  "testVoiceEngine": "Testi häälemootorit",
+  "testVoiceEngineDesc": "Puuduta, et kontrollida TTS-mootorit ja saada seadistusjuhised",
+  "ttsDialogTitle": "Häälemootor puudub",
+  "ttsDialogBody": "Töötavat Text-to-Speech mootorit ei leitud.\n\nRoadstr tugineb ainult avatud lähtekoodiga tarkvarale — installi üks neist tasuta mootoritest F-Droidist:",
+  "ttsRhvoiceDesc": "Loomulik hääl, piiratud keelte loend",
+  "ttsEspeakDesc": "Katab üle 100 keele, robotlik hääl",
+  "ttsInstallNote": "⚠️ Pärast installimist:\n1. Androidi seaded → Hõlbustus → Tekst kõneks\n2. Vali äsja installitud mootor\n3. Laadi alla oma keele häälandmed\n4. Taaskäivita Roadstr täielikult",
+  "ttsTestNow": "Testi kohe",
+  "voiceUnsupportedTitle": "Häälejuhendamine pole saadaval",
+  "voiceUnsupportedBody": "Sinu keel ei ole veel toetatud häälega pööramisjuhiste jaoks. Navigeerimisjuhised kuvatakse jätkuvalt tekstina ekraanil.",
+  "kokoroModelTitle": "Häälemudel (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "Laadimata · ~82 MB",
+  "kokoroModelStatusDownloading": "Allalaadimine...",
+  "kokoroModelStatusReady": "Häälemudel on valmis",
+  "kokoroModelDownloadBtn": "Laadi alla",
+  "kokoroModelSupportedLangs": "Toetab: itaalia, inglise, hispaania, prantsuse, jaapani, hiina, portugali",
+  "autoDarkMode": "Automaatne tume teema",
+  "autoDarkModeDesc": "Aktiveerib tumeda teema päikeseloojangul"
 }

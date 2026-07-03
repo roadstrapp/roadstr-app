@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:latlong2/latlong.dart';
@@ -11,6 +12,9 @@ import '../providers/locale_provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
 import '../services/routing_service.dart';
+import '../services/kokoro/kokoro_model_manager.dart';
+import '../services/kokoro/kokoro_tts_service.dart';
+import '../services/kokoro/kokoro_voices.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -18,15 +22,78 @@ class SettingsScreen extends StatefulWidget {
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
+enum _KokoroStatus { unknown, notDownloaded, downloading, ready }
+
 class _SettingsScreenState extends State<SettingsScreen> {
   late final Box _box;
   List<FavoritePlace> _favorites = [];
+
+  _KokoroStatus _kokoroStatus = _KokoroStatus.unknown;
+  double _downloadProgress = 0;
+
+  StreamSubscription<double>? _progressSub;
+  StreamSubscription<String>? _errorSub;
 
   @override
   void initState() {
     super.initState();
     _box = Hive.box('settings');
     _loadFavorites();
+
+    final mgr = KokoroModelManager.instance;
+    if (mgr.isDownloading) {
+      // Download già in corso — mostra la progress bar, non controllare isReady()
+      // perché restituirebbe notDownloaded e sovrascriverebbe questo stato.
+      _kokoroStatus = _KokoroStatus.downloading;
+      _downloadProgress = mgr.lastProgress;
+    } else {
+      _checkKokoroStatus();
+    }
+
+    _progressSub = mgr.progressStream.listen((p) {
+      if (!mounted) return;
+      setState(() {
+        _downloadProgress = p;
+        if (p >= 1.0) _kokoroStatus = _KokoroStatus.ready;
+      });
+      if (p >= 1.0) {
+        final lang = _box.get('language', defaultValue: '') as String;
+        unawaited(KokoroTtsService.warmUpLanguage(lang.isNotEmpty ? lang : 'it'));
+      }
+    });
+
+    _errorSub = mgr.errorStream.listen((err) {
+      if (!mounted) return;
+      setState(() => _kokoroStatus = _KokoroStatus.notDownloaded);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Download failed: $err')),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _progressSub?.cancel();
+    _errorSub?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _checkKokoroStatus() async {
+    final ready = await KokoroModelManager.instance
+        .isReady(kKokoroVoiceByLanguage.keys);
+    if (mounted) {
+      setState(() => _kokoroStatus =
+          ready ? _KokoroStatus.ready : _KokoroStatus.notDownloaded);
+    }
+  }
+
+  void _downloadKokoroModel() {
+    setState(() {
+      _kokoroStatus = _KokoroStatus.downloading;
+      _downloadProgress = 0;
+    });
+    // startDownload is fire-and-forget; progress arrives via progressStream.
+    KokoroModelManager.instance.startDownload(kKokoroVoiceByLanguage.keys);
   }
 
   void _loadFavorites() {
@@ -135,7 +202,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   if (suggestions.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Container(
-                      constraints: const BoxConstraints(maxHeight: 200),
+                      constraints: BoxConstraints(
+                          maxHeight: (MediaQuery.of(ctx).size.height * 0.35)
+                              .clamp(120.0, 220.0)),
                       decoration: BoxDecoration(
                         color: c.surface1,
                         borderRadius: BorderRadius.circular(12),
@@ -237,6 +306,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _box.get(key, defaultValue: def) as bool;
   void _setBool(String key, bool v) { _box.put(key, v); setState(() {}); }
 
+
   @override
   Widget build(BuildContext context) {
     final c             = RoadstrColors.of(context);
@@ -299,6 +369,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onChanged: (id) { if (id != null) themeProvider.setTheme(id); },
               ),
             ),
+          ),
+
+          _SwitchTile(
+            title: l.autoDarkMode,
+            subtitle: l.autoDarkModeDesc,
+            value: themeProvider.autoDarkEnabled,
+            onChanged: themeProvider.setAutoDarkEnabled,
+            colors: c,
           ),
 
           const SizedBox(height: 24),
@@ -623,23 +701,80 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 16),
 
           // ── NAVIGATION VOICE ────────────────────────────────────────────
-          _SectionHeader('Navigation voice', c),
+          _SectionHeader(l.sectionNavigationVoice, c),
           _SwitchTile(
-            title: 'Voice guidance',
-            subtitle: 'Read turn-by-turn instructions aloud during navigation',
+            title: l.voiceGuidance,
+            subtitle: l.voiceGuidanceDesc,
             value: _getBool('voiceEnabled', true),
             onChanged: (v) => _setBool('voiceEnabled', v), colors: c,
           ),
-
-          const SizedBox(height: 16),
-
-          // ── PRIVACY ─────────────────────────────────────────────────────
-          _SectionHeader(l.sectionPrivacy, c),
-          _SwitchTile(
-            title: l.privacyMode,
-            subtitle: l.privacyModeDescription,
-            value: _getBool('privacyMode', true),
-            onChanged: (v) => _setBool('privacyMode', v), colors: c,
+          // ── Kokoro voice model download ──────────────────────────────────
+          Container(
+            margin: const EdgeInsets.only(top: 8, bottom: 8),
+            decoration: BoxDecoration(
+              color: c.surface2, borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: c.border, width: 0.5),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [
+                    Container(
+                      width: 32, height: 32,
+                      decoration: BoxDecoration(
+                          color: c.accentSoft, borderRadius: BorderRadius.circular(8)),
+                      child: Icon(Icons.record_voice_over_rounded, color: c.accent, size: 18),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(l.kokoroModelTitle,
+                        style: TextStyle(color: c.textPrimary,
+                            fontSize: 14, fontWeight: FontWeight.w600))),
+                    if (_kokoroStatus == _KokoroStatus.ready)
+                      Icon(Icons.check_circle_rounded,
+                          color: Colors.green.shade400, size: 20),
+                  ]),
+                  const SizedBox(height: 8),
+                  Text(
+                    switch (_kokoroStatus) {
+                      _KokoroStatus.ready => l.kokoroModelStatusReady,
+                      _KokoroStatus.downloading => l.kokoroModelStatusDownloading,
+                      _ => l.kokoroModelStatusNotDownloaded,
+                    },
+                    style: TextStyle(color: c.textSecondary, fontSize: 12),
+                  ),
+                  if (_kokoroStatus == _KokoroStatus.downloading) ...[
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: _downloadProgress,
+                        backgroundColor: c.border,
+                        color: c.accent,
+                        minHeight: 5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text('${(_downloadProgress * 100).round()}%',
+                        style: TextStyle(color: c.textSecondary, fontSize: 11)),
+                  ],
+                  const SizedBox(height: 6),
+                  Text(l.kokoroModelSupportedLangs,
+                      style: TextStyle(color: c.textSecondary,
+                          fontSize: 11, fontStyle: FontStyle.italic)),
+                  if (_kokoroStatus == _KokoroStatus.notDownloaded) ...[
+                    const SizedBox(height: 12),
+                    FilledButton.icon(
+                      onPressed: _downloadKokoroModel,
+                      style: FilledButton.styleFrom(backgroundColor: c.accent),
+                      icon: const Icon(Icons.download_rounded, size: 16),
+                      label: Text(l.kokoroModelDownloadBtn),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ),
 
           const SizedBox(height: 24),
@@ -662,8 +797,66 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _InfoTile(l.infoSource, 'github.com/roadstrapp/roadstr-app', c,
               url: 'https://github.com/roadstrapp/roadstr-app'),
 
+          const SizedBox(height: 16),
+          _DonationTile(c),
+
           const SizedBox(height: 32),
         ],
+      ),
+    );
+  }
+}
+
+class _DonationTile extends StatelessWidget {
+  static const _lnAddress = 'lwb89@blink.sv';
+  final RoadstrColors c;
+  const _DonationTile(this.c);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        // Try to open the Lightning wallet directly; fall back to clipboard.
+        final uri = Uri.parse('lightning:$_lnAddress');
+        final launched = await launchUrl(uri, mode: LaunchMode.externalApplication)
+            .catchError((_) => false);
+        if (!launched) {
+          await Clipboard.setData(const ClipboardData(text: _lnAddress));
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('⚡ $_lnAddress copiato negli appunti'),
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+        decoration: BoxDecoration(
+          color: c.surface2,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: c.accent.withValues(alpha: 0.4), width: 0.8),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.bolt_rounded, color: c.accent, size: 18),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Supporta Roadstr',
+                    style: TextStyle(color: c.textPrimary, fontSize: 13,
+                        fontWeight: FontWeight.w600)),
+                const SizedBox(height: 2),
+                Text(_lnAddress,
+                    style: TextStyle(color: c.textSecondary, fontSize: 12)),
+              ]),
+            ),
+            Icon(Icons.open_in_new_rounded, size: 14, color: c.accent),
+          ],
+        ),
       ),
     );
   }
@@ -852,3 +1045,4 @@ List<DropdownMenuItem<String?>> _buildLangItems(
     child: Text(e.value, style: TextStyle(color: c.textPrimary)),
   )).toList();
 }
+

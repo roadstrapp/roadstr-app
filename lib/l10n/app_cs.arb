@@ -1,6 +1,5 @@
 {
   "@@locale": "cs",
-
   "searchHint": "Kam chcete jet?",
   "calculatingRoute": "Počítám trasu…",
   "routeNotFoundTitle": "Trasa nenalezena",
@@ -8,45 +7,47 @@
   "emptyServerResponse": "Prázdná odpověď serveru. Zkontrolujte připojení.",
   "routeError": "Chyba výpočtu trasy: {error}",
   "@routeError": {
-    "placeholders": { "error": { "type": "String" } }
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   },
-
   "gpsNotAvailable": "GPS nedostupné — Nastavení → Aplikace → Roadstr → Oprávnění → Poloha",
   "acquiringGps": "Získávám GPS…",
-
   "graphhopperServerNotConfigured": "Server GraphHopper není nakonfigurován — používám OSRM",
   "graphhopperApiKeyNotConfigured": "API klíč GraphHopper není nastaven — používám OSRM",
   "openrouteApiKeyNotConfigured": "API klíč OpenRouteService není nastaven — používám OSRM",
-
   "chooseRoute": "Vybrat trasu",
   "routeOptionsCount": "{count} možností",
   "@routeOptionsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "cancel": "Zrušit",
   "startNavigation": "Spustit navigaci",
   "fastestRoute": "Nejrychlejší",
   "now": "Teď",
-
   "history": "Historie",
   "clearHistory": "Smazat",
   "selectedPosition": "Vybraná poloha",
-
   "bottomBarProfile": "Profil",
   "bottomBarMenu": "Nabídka",
-
   "settingsTitle": "Nastavení",
   "sectionTheme": "Motiv",
   "sectionMap": "Mapa",
-  "sectionPrivacy": "Soukromí",
   "sectionInfo": "Info",
   "sectionLanguage": "Jazyk",
   "themeLightNostr": "Světlý · Nostr Fialová",
   "themeLightBitcoin": "Světlý · Bitcoin Oranžová",
+  "themeDarkNostr": "Tmavý · Nostr Fialová",
+  "themeDarkBitcoin": "Tmavý · Bitcoin Oranžová",
   "langSystem": "Výchozí systémový",
   "langItalian": "Italiano",
   "langEnglish": "English",
-
   "keepScreenOn": "Ponechat obrazovku zapnutou",
   "keepScreenOnDescription": "Zabrání přechodu do spánku při navigaci",
   "rotateMap": "Mapa sleduje směr",
@@ -65,10 +66,6 @@
   "graphhopperServerReachable": "Server GraphHopper je dostupný",
   "errorTitle": "Chyba",
   "close": "Zavřít",
-
-  "privacyMode": "Režim soukromí",
-  "privacyModeDescription": "Neodesílat anonymní telemetrická data",
-
   "infoVersion": "Verze",
   "infoProtocol": "Protokol",
   "infoMaps": "Mapy",
@@ -78,7 +75,6 @@
   "providerGraphhopperSelfHosted": "GraphHopper (vlastní hosting)",
   "providerGraphhopperCloud": "GraphHopper (cloud)",
   "providerOpenroute": "OpenRouteService",
-
   "profileTitle": "Profil",
   "notConnected": "Nepřipojen",
   "loginWithNostrTitle": "PŘIHLÁSIT S NOSTR",
@@ -94,13 +90,11 @@
   "logoutConfirmation": "Odebrat přihlašovací údaje Nostr z tohoto zařízení?",
   "logoutButton": "Odpojit",
   "nostrIdentityInfo": "S identitou Nostr můžete zveřejňovat dopravní upozornění, zprávy a zajímavá místa decentralizovaně v síti Nostr, bez centrálních serverů.",
-
   "warningTitle": "Varování",
   "nsecWarning": "Chystáte se zadat svůj soukromý klíč Nostr přímo do aplikace. Kdokoli s fyzickým nebo vzdáleným přístupem k vašemu zařízení by ho mohl přečíst a trvale převzít kontrolu nad vaší identitou Nostr.",
   "amberSecureMethodHint": "✦  Bezpečnou metodou je Amber (NIP-55): nsec nikdy neopustí trezor podpisujícího aplikace.",
   "nsecRiskAcknowledgment": "Rozumím riziku a přesto chci pokračovat",
   "continueButton": "Pokračovat",
-
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber je podpisující aplikace pro Android kompatibilní s NIP-55. Váš soukromý klíč zůstane izolován uvnitř Amberu a nikdy nebude sdílen.",
   "requestKeyFromAmber": "Požádat Amber o veřejný klíč",
@@ -117,18 +111,15 @@
   "amberResponseError": "Chyba odpovědi Amberu",
   "ok": "OK",
   "or": "nebo",
-
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS není aktivní",
   "gpsDisabledMessage": "Zapněte GPS v nastavení zařízení, abyste zjistili polohu a používali navigaci.",
   "openSettings": "Nastavení",
-
   "@_CONTEXT_MENU": {},
   "myLocation": "Moje poloha",
   "loginToReport": "Přihlaste se s Nostr (sekce Profil) pro hlášení událostí",
   "navigateHere": "Navigovat sem",
   "reportEventHere": "Nahlásit událost zde",
-
   "@_ZAP": {},
   "zapSendSats": "Zap ⚡ (odeslat saty)",
   "sendZap": "Odeslat Zap",
@@ -136,7 +127,13 @@
   "customAmount": "Vlastní částka…",
   "zapSending": "Odesílám…",
   "zapSat": "⚡{sats} sat",
-  "@zapSat": { "placeholders": { "sats": { "type": "int" } } },
+  "@zapSat": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "fetchingLightningAddress": "Načítám Lightning adresu…",
   "noLightningAddress": "Tento reportér nemá Lightning adresu",
   "requestingInvoice": "Žádám o fakturu…",
@@ -146,20 +143,23 @@
   "payingViaNwc": "Platím přes NWC…",
   "noLightningWallet": "Nenalezena žádná Lightning peněženka",
   "zapSent": "⚡ {sats} satů odesláno!",
-  "@zapSent": { "placeholders": { "sats": { "type": "int" } } },
-
+  "@zapSent": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
   "@_ROAD_EVENT_DETAIL": {},
   "stillThere": "Stále tam",
   "notThereAnymore": "Už tam není",
   "loginToConfirm": "Přihlaste se s Nostr pro potvrzení nebo zpochybnění",
-
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Nahlásit událost",
   "optionalComment": "Volitelný komentář…",
   "publish": "Zveřejnit",
   "publishing": "Zveřejňuji…",
   "reportPublished": "Zpráva zveřejněna ✓",
-
   "@_PROFILE_ZAP": {},
   "myReports": "MOJE ZPRÁVY",
   "noReportsYet": "Žádné zprávy nebyly zveřejněny",
@@ -169,14 +169,25 @@
   "reputationMedium": "Střední",
   "reputationLow": "Nízká",
   "reputationLabel": "Reputace {level}",
-  "@reputationLabel": { "placeholders": { "level": { "type": "String" } } },
+  "@reputationLabel": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "reliability": "Spolehlivost: {pct}%",
-  "@reliability": { "placeholders": { "pct": { "type": "int" } } },
+  "@reliability": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "confirmedLabel": "Potvrzeno",
   "removedLabel": "Odstraněno",
   "positionLabel": "Poloha",
   "loadingLabel": "Načítám…",
-
   "@_SETTINGS_EXTRA": {},
   "sectionWebSearch": "Webové vyhledávání",
   "sectionLightning": "Lightning",
@@ -187,7 +198,6 @@
   "searchEngineDdgDesc": "Zaměřený na soukromí a populární. Výsledky částečně z Bing — mějte to na paměti.",
   "searchEngineStartpageDesc": "Výsledky Google bez předávání vašich dat Googlu. Rozumný kompromis.",
   "searchEngineGoogleDesc": "Velmi efektivní. Ale pamatujte: Google vás zná lépe než vaše máma a prodává vše inzerentům. Váš výběr. 🍪",
-
   "@_CATEGORIES": {},
   "categoryPolice": "Policie",
   "categorySpeedCamera": "Rychlostní radar",
@@ -202,19 +212,67 @@
   "categoryIce": "Led",
   "categoryAnimal": "Zvíře",
   "categoryOther": "Ostatní",
-
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Datum / čas",
   "minutesAgo": "před {count} min",
-  "@minutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "před {count}h",
-  "@hoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "daysAgo": "před {count}d",
-  "@daysAgo": { "placeholders": { "count": { "type": "int" } } },
-
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sectionFavorites": "Uložená místa",
   "addFavorite": "Přidat místo",
   "favoriteLabelHint": "Název (např. Domov, Kancelář)",
   "favoriteAddressHint": "Adresa",
-  "favoriteGeocodingError": "Adresa nenalezena. Zkus přesnější adresu."
+  "favoriteGeocodingError": "Adresa nenalezena. Zkus přesnější adresu.",
+  "trafficAlertTitle": "Nový provoz na trase",
+  "trafficAlertBody": "{category} hlášeno {age} na vaší trase.\n\nChcete najít alternativní trasu?",
+  "trafficContinue": "Pokračovat",
+  "trafficRecalculate": "Přepočítat trasu",
+  "navExitTitle": "Ukončit navigaci?",
+  "navExitBody": "Chcete zastavit navigaci a vrátit se na mapu?",
+  "navContinue": "Pokračovat v navigaci",
+  "navExit": "Ano, ukončit",
+  "loadingInfo": "Načítání informací…",
+  "conditionsOnRoute": "Podmínky na trase",
+  "calculateRoute": "Vypočítat trasu",
+  "sectionNavigationVoice": "Hlas navigace",
+  "voiceGuidance": "Hlasové navádění",
+  "voiceGuidanceDesc": "Číst pokyny k odbočení nahlas během navigace",
+  "testVoiceEngine": "Otestovat hlasový engine",
+  "testVoiceEngineDesc": "Klepnutím zkontrolujte TTS engine a získejte pokyny k nastavení",
+  "ttsDialogTitle": "Chybí hlasový engine",
+  "ttsDialogBody": "Nebyl nalezen žádný funkční engine Text-to-Speech.\n\nRoadstr se spoléhá pouze na open source software — nainstalujte si jeden z těchto bezplatných enginů z F-Droid:",
+  "ttsRhvoiceDesc": "Přirozeně znějící hlas, omezený seznam jazyků",
+  "ttsEspeakDesc": "Pokrývá více než 100 jazyků, robotický hlas",
+  "ttsInstallNote": "⚠️ Po instalaci:\n1. Nastavení Androidu → Přístupnost → Převod textu na řeč\n2. Vyberte právě nainstalovaný engine\n3. Stáhněte hlasová data pro váš jazyk\n4. Roadstr úplně restartujte",
+  "ttsTestNow": "Otestovat nyní",
+  "voiceUnsupportedTitle": "Hlasové navádění není k dispozici",
+  "voiceUnsupportedBody": "Váš jazyk zatím není podporován pro hlasové pokyny k odbočení. Pokyny k navigaci se budou nadále zobrazovat jako text na obrazovce.",
+  "kokoroModelTitle": "Hlasový model (Kokoro AI)",
+  "kokoroModelStatusNotDownloaded": "Nestaženo · ~82 MB",
+  "kokoroModelStatusDownloading": "Stahování...",
+  "kokoroModelStatusReady": "Hlasový model je připraven",
+  "kokoroModelDownloadBtn": "Stáhnout",
+  "kokoroModelSupportedLangs": "Podporuje: italštinu, angličtinu, španělštinu, francouzštinu, japonštinu, čínštinu, portugalštinu",
+  "autoDarkMode": "Automatický tmavý režim",
+  "autoDarkModeDesc": "Aktivuje tmavý motiv při západu slunce"
 }

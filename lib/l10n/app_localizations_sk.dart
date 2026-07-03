@@ -93,9 +93,6 @@ class AppLocalizationsSk extends AppLocalizations {
   String get sectionMap => 'Mapa';
 
   @override
-  String get sectionPrivacy => 'Súkromie';
-
-  @override
   String get sectionInfo => 'Info';
 
   @override
@@ -106,6 +103,12 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => 'Svetlý · Bitcoin Oranžová';
+
+  @override
+  String get themeDarkNostr => 'Tmavý · Nostr Fialová';
+
+  @override
+  String get themeDarkBitcoin => 'Tmavý · Bitcoin Oranžová';
 
   @override
   String get langSystem => 'Predvolený systémový';
@@ -171,12 +174,6 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get close => 'Zavrieť';
-
-  @override
-  String get privacyMode => 'Režim súkromia';
-
-  @override
-  String get privacyModeDescription => 'Neodosielať anonymné telemetrické dáta';
 
   @override
   String get infoVersion => 'Verzia';
@@ -567,4 +564,109 @@ class AppLocalizationsSk extends AppLocalizations {
   @override
   String get favoriteGeocodingError =>
       'Adresa sa nenašla. Skús presnejšiu adresu.';
+
+  @override
+  String get trafficAlertTitle => 'Nová premávka na trase';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$category nahlásené $age na vašej trase.\n\nChcete nájsť alternatívnu trasu?';
+  }
+
+  @override
+  String get trafficContinue => 'Pokračovať';
+
+  @override
+  String get trafficRecalculate => 'Prepočítať trasu';
+
+  @override
+  String get navExitTitle => 'Ukončiť navigáciu?';
+
+  @override
+  String get navExitBody => 'Chcete zastaviť navigáciu a vrátiť sa na mapu?';
+
+  @override
+  String get navContinue => 'Pokračovať v navigácii';
+
+  @override
+  String get navExit => 'Áno, ukončiť';
+
+  @override
+  String get loadingInfo => 'Načítavanie informácií…';
+
+  @override
+  String get conditionsOnRoute => 'Podmienky na trase';
+
+  @override
+  String get calculateRoute => 'Vypočítať trasu';
+
+  @override
+  String get sectionNavigationVoice => 'Hlas navigácie';
+
+  @override
+  String get voiceGuidance => 'Hlasové navádzanie';
+
+  @override
+  String get voiceGuidanceDesc =>
+      'Čítať pokyny na odbočenie nahlas počas navigácie';
+
+  @override
+  String get testVoiceEngine => 'Otestovať hlasový engine';
+
+  @override
+  String get testVoiceEngineDesc =>
+      'Klepnutím skontrolujte TTS engine a získajte pokyny na nastavenie';
+
+  @override
+  String get ttsDialogTitle => 'Chýba hlasový engine';
+
+  @override
+  String get ttsDialogBody =>
+      'Nebol nájdený žiadny funkčný engine Text-to-Speech.\n\nRoadstr sa spolieha výlučne na open source softvér — nainštalujte si jeden z týchto bezplatných enginov z F-Droid:';
+
+  @override
+  String get ttsRhvoiceDesc =>
+      'Prirodzene znejúci hlas, obmedzený zoznam jazykov';
+
+  @override
+  String get ttsEspeakDesc => 'Pokrýva viac ako 100 jazykov, robotický hlas';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ Po inštalácii:\n1. Nastavenia Androidu → Dostupnosť → Prevod textu na reč\n2. Vyberte práve nainštalovaný engine\n3. Stiahnite hlasové dáta pre váš jazyk\n4. Reštartujte Roadstr úplne';
+
+  @override
+  String get ttsTestNow => 'Otestovať teraz';
+
+  @override
+  String get voiceUnsupportedTitle => 'Hlasové navádzanie nie je k dispozícii';
+
+  @override
+  String get voiceUnsupportedBody =>
+      'Váš jazyk zatiaľ nie je podporovaný pre hlasové pokyny na odbočenie. Pokyny na navigáciu sa budú naďalej zobrazovať ako text na obrazovke.';
+
+  @override
+  String get kokoroModelTitle => 'Hlasový model (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => 'Nestiahnuté · ~82 MB';
+
+  @override
+  String get kokoroModelStatusDownloading => 'Stiahnutie...';
+
+  @override
+  String get kokoroModelStatusReady => 'Hlasový model je pripravený';
+
+  @override
+  String get kokoroModelDownloadBtn => 'Stiahnuť';
+
+  @override
+  String get kokoroModelSupportedLangs =>
+      'Podporuje: taliančinu, angličtinu, španielčinu, francúzštinu, japončinu, čínštinu, portugalčinu';
+
+  @override
+  String get autoDarkMode => 'Automatická tmavá téma';
+
+  @override
+  String get autoDarkModeDesc => 'Aktivuje tmavú tému pri západe slnka';
 }

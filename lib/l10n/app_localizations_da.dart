@@ -92,9 +92,6 @@ class AppLocalizationsDa extends AppLocalizations {
   String get sectionMap => 'Kort';
 
   @override
-  String get sectionPrivacy => 'Privatliv';
-
-  @override
   String get sectionInfo => 'Info';
 
   @override
@@ -105,6 +102,12 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get themeLightBitcoin => 'Lyst · Bitcoin Orange';
+
+  @override
+  String get themeDarkNostr => 'Mørkt · Nostr Violet';
+
+  @override
+  String get themeDarkBitcoin => 'Mørkt · Bitcoin Orange';
 
   @override
   String get langSystem => 'Systemstandard';
@@ -169,12 +172,6 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get close => 'Luk';
-
-  @override
-  String get privacyMode => 'Privatlivstilstand';
-
-  @override
-  String get privacyModeDescription => 'Send ikke anonyme telemetridata';
 
   @override
   String get infoVersion => 'Version';
@@ -567,4 +564,110 @@ class AppLocalizationsDa extends AppLocalizations {
   @override
   String get favoriteGeocodingError =>
       'Adressen blev ikke fundet. Prøv en mere præcis adresse.';
+
+  @override
+  String get trafficAlertTitle => 'Ny trafik på ruten';
+
+  @override
+  String trafficAlertBody(Object age, Object category) {
+    return '$category rapporteret $age på din rute.\n\nVil du finde en alternativ rute?';
+  }
+
+  @override
+  String get trafficContinue => 'Fortsæt';
+
+  @override
+  String get trafficRecalculate => 'Genberegn rute';
+
+  @override
+  String get navExitTitle => 'Afslut navigation?';
+
+  @override
+  String get navExitBody =>
+      'Vil du stoppe navigationen og vende tilbage til kortet?';
+
+  @override
+  String get navContinue => 'Fortsæt navigation';
+
+  @override
+  String get navExit => 'Ja, afslut';
+
+  @override
+  String get loadingInfo => 'Indlæser oplysninger…';
+
+  @override
+  String get conditionsOnRoute => 'Betingelser på ruten';
+
+  @override
+  String get calculateRoute => 'Beregn rute';
+
+  @override
+  String get sectionNavigationVoice => 'Navigationsstemme';
+
+  @override
+  String get voiceGuidance => 'Stemmevejledning';
+
+  @override
+  String get voiceGuidanceDesc =>
+      'Læs sving-instruktioner højt under navigation';
+
+  @override
+  String get testVoiceEngine => 'Test stemmemotor';
+
+  @override
+  String get testVoiceEngineDesc =>
+      'Tryk for at tjekke TTS-motoren og få opsætningsinstruktioner';
+
+  @override
+  String get ttsDialogTitle => 'Manglende stemmemotor';
+
+  @override
+  String get ttsDialogBody =>
+      'Der blev ikke fundet nogen fungerende Text-to-Speech-motor.\n\nRoadstr bygger udelukkende på open source-software — installer en af disse gratis motorer fra F-Droid:';
+
+  @override
+  String get ttsRhvoiceDesc =>
+      'Naturligt klingende stemme, begrænset sprogliste';
+
+  @override
+  String get ttsEspeakDesc => 'Dækker over 100 sprog, robotagtig stemme';
+
+  @override
+  String get ttsInstallNote =>
+      '⚠️ Efter installation:\n1. Android-indstillinger → Hjælpefunktioner → Tekst-til-tale\n2. Vælg den motor, du lige har installeret\n3. Download stemmedata til dit sprog\n4. Genstart Roadstr helt';
+
+  @override
+  String get ttsTestNow => 'Test nu';
+
+  @override
+  String get voiceUnsupportedTitle => 'Stemmevejledning ikke tilgængelig';
+
+  @override
+  String get voiceUnsupportedBody =>
+      'Dit sprog understøttes endnu ikke til talte sving-anvisninger. Navigationsinstruktioner vil stadig blive vist som tekst på skærmen.';
+
+  @override
+  String get kokoroModelTitle => 'Stemmemodel (Kokoro AI)';
+
+  @override
+  String get kokoroModelStatusNotDownloaded => 'Ikke downloadet · ~82 MB';
+
+  @override
+  String get kokoroModelStatusDownloading => 'Downloader...';
+
+  @override
+  String get kokoroModelStatusReady => 'Stemmemodel er klar';
+
+  @override
+  String get kokoroModelDownloadBtn => 'Download';
+
+  @override
+  String get kokoroModelSupportedLangs =>
+      'Understøtter: italiensk, engelsk, spansk, fransk, japansk, kinesisk, portugisisk';
+
+  @override
+  String get autoDarkMode => 'Auto mørkt tema';
+
+  @override
+  String get autoDarkModeDesc => 'Aktiverer det mørke tema ved solnedgang';
 }
