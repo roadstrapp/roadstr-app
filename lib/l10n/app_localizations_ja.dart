@@ -653,4 +653,79 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get autoDarkModeDesc => '日没時にダークテーマを有効にします';
+
+  @override
+  String get arrivedTitle => '🎉 到着しました！';
+
+  @override
+  String get arrivedBody => '目的地に到着しました。';
+
+  @override
+  String get arrivedFeedbackPrompt => 'いかがでしたか？';
+
+  @override
+  String get feedbackBad => '悪い';
+
+  @override
+  String get feedbackGood => '良い！';
+
+  @override
+  String get feedbackDialogTitle => '何が問題だったか教えてください';
+
+  @override
+  String get feedbackHint => '問題を説明してください…';
+
+  @override
+  String get feedbackSent => 'フィードバックを送信しました — ありがとう！ 🙏';
+
+  @override
+  String get feedbackSubmit => '送信';
+
+  @override
+  String get transportModeCar => '車';
+
+  @override
+  String get transportModeWalk => '徒歩';
+
+  @override
+  String etaArrivalLabel(String time) {
+    return '着 $time';
+  }
+
+  @override
+  String get supportRoadstr => 'Roadstrをサポート';
+
+  @override
+  String lightningAddressCopied(String address) {
+    return '⚡ $address をクリップボードにコピーしました';
+  }
+
+  @override
+  String get disclaimerTitle => '重要なお知らせ';
+
+  @override
+  String get disclaimerAccept => '読んで同意します';
+
+  @override
+  String get disclaimerBody =>
+      'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.';
+
+  @override
+  String get readOnWikipedia => 'Wikipediaで読む';
+
+  @override
+  String searchOnEngine(String engine) {
+    return '$engineで検索';
+  }
+
+  @override
+  String get plannerFromHint => '出発地…';
+
+  @override
+  String get plannerToHint => '目的地…';
+
+  @override
+  String departEta(String dep, String arr) {
+    return '出発 $dep  →  到着 $arr';
+  }
 }

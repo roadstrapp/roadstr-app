@@ -58,3 +58,4 @@ app.*.map.json
 tools/.venv/
 kokoro_models/
 .claude/
+zapstore.yaml

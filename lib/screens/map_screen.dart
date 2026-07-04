@@ -222,6 +222,8 @@ class _MapScreenState extends State<MapScreen>
       }
     });
     _startCompass();
+    // Option C: start GPS silently at launch so it's ready when the user navigates.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _requestGps(silent: true));
     // Periodically prune expired road events so they disappear from the map
     // even when no GPS ticks or Nostr stream updates are happening.
     _eventCleanupTimer = Timer.periodic(const Duration(minutes: 1), (_) {
@@ -330,24 +332,34 @@ class _MapScreenState extends State<MapScreen>
     });
   }
 
-  Future<void> _requestGps() async {
+  /// Starts GPS acquisition, with [silent] = true suppressing error dialogs.
+  ///
+  /// [silent] is used for the automatic launch-time acquisition (Option C) so
+  /// no dialog is shown if the service is disabled or permission is denied;
+  /// the user can always tap the GPS button to see the error later.
+  ///
+  /// [_gpsRequested] is set synchronously **before** the first await to prevent
+  /// a race where a concurrent user tap passes the guard while the auto-start
+  /// call is suspended, leading to two stream listeners on the same GPS stream.
+  Future<void> _requestGps({bool silent = false}) async {
     if (_gpsRequested) {
-      if (_gpsReady) _recenter();
+      if (!silent && _gpsReady) _recenter();
       return;
     }
-    // Check whether the GPS hardware service is enabled BEFORE requesting permission.
+    // Lock before the first await — prevents concurrent auto-start + user-tap races.
+    setState(() => _gpsRequested = true);
     final serviceEnabled = await _gps.isServiceEnabled();
     if (!mounted) return;
     if (!serviceEnabled) {
-      _showGpsDisabledDialog();
+      setState(() => _gpsRequested = false);
+      if (!silent) _showGpsDisabledDialog();
       return;
     }
-    setState(() => _gpsRequested = true);
     final ok = await _gps.start();
     if (!mounted) return;
     if (!ok) {
       setState(() => _gpsRequested = false);
-      _showGpsDisabledDialog();
+      if (!silent) _showGpsDisabledDialog();
       return;
     }
     setState(() {
@@ -363,7 +375,11 @@ class _MapScreenState extends State<MapScreen>
     // Do NOT call _recenter() here: _position is still the Italy fallback and
     // jumping there would be jarring. The first valid GPS sample in _onGps
     // will move the map to the actual location via the _followUser flag.
-    _nostr.subscribeArea(_position);
+    // For the silent path, _nostr.subscribeArea is skipped intentionally:
+    // _loadInitialPosition already subscribed to the area, and _onGps
+    // re-subscribes with the real position on the first fix. Subscribing here
+    // would send a REQ for the Italy fallback for every user outside Italy.
+    if (!silent) _nostr.subscribeArea(_position);
   }
 
   void _showGpsDisabledDialog() {
@@ -565,19 +581,20 @@ class _MapScreenState extends State<MapScreen>
 
   void _showArrivalDialog() {
     final c = RoadstrColors.of(context);
+    final l = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         backgroundColor: c.surface2,
-        title: const Text('🎉 Sei arrivato!',
-            style: TextStyle(fontSize: 22), textAlign: TextAlign.center),
+        title: Text(l.arrivedTitle,
+            style: const TextStyle(fontSize: 22), textAlign: TextAlign.center),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text('Hai raggiunto la tua destinazione.',
+          Text(l.arrivedBody,
               textAlign: TextAlign.center,
               style: TextStyle(color: c.textSecondary, fontSize: 14)),
           const SizedBox(height: 16),
-          Text('Com\'è andata?',
+          Text(l.arrivedFeedbackPrompt,
               style: TextStyle(color: c.textPrimary, fontSize: 15,
                   fontWeight: FontWeight.bold)),
         ]),
@@ -594,7 +611,7 @@ class _MapScreenState extends State<MapScreen>
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12))),
             icon: const Text('👎', style: TextStyle(fontSize: 16)),
-            label: Text('Male', style: TextStyle(color: c.textSecondary)),
+            label: Text(l.feedbackBad, style: TextStyle(color: c.textSecondary)),
           ),
           FilledButton.icon(
             onPressed: () => Navigator.pop(ctx),
@@ -603,8 +620,8 @@ class _MapScreenState extends State<MapScreen>
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12))),
             icon: const Text('👍', style: TextStyle(fontSize: 16)),
-            label: const Text('Bene!',
-                style: TextStyle(color: Colors.white)),
+            label: Text(l.feedbackGood,
+                style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -613,12 +630,13 @@ class _MapScreenState extends State<MapScreen>
 
   void _showFeedbackDialog() {
     final c = RoadstrColors.of(context);
+    final l = AppLocalizations.of(context)!;
     final ctrl = TextEditingController();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: c.surface2,
-        title: Text('Raccontaci cosa è andato storto',
+        title: Text(l.feedbackDialogTitle,
             style: TextStyle(color: c.textPrimary, fontSize: 15,
                 fontWeight: FontWeight.bold)),
         content: TextField(
@@ -626,7 +644,7 @@ class _MapScreenState extends State<MapScreen>
           maxLines: 4,
           style: TextStyle(color: c.textPrimary, fontSize: 13),
           decoration: InputDecoration(
-            hintText: 'Descrivi il problema…',
+            hintText: l.feedbackHint,
             hintStyle: TextStyle(color: c.textSecondary),
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10)),
@@ -637,7 +655,7 @@ class _MapScreenState extends State<MapScreen>
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx),
-              child: Text('Annulla',
+              child: Text(l.cancel,
                   style: TextStyle(color: c.textSecondary))),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: c.accent),
@@ -646,9 +664,9 @@ class _MapScreenState extends State<MapScreen>
               Navigator.pop(ctx);
               if (msg.isEmpty) return;
               await _sendFeedbackDm(msg);
-              if (mounted) _snack('Feedback inviato — grazie! 🙏');
+              if (mounted) _snack(l.feedbackSent);
             },
-            child: const Text('Invia', style: TextStyle(color: Colors.white)),
+            child: Text(l.feedbackSubmit, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -821,9 +839,7 @@ class _MapScreenState extends State<MapScreen>
                   fontWeight: FontWeight.bold)),
         ]),
         content: Text(
-          '${jam.category.localizedLabel(l)} '
-          '${jam.ageLabel(l)} '
-          'on your route.\n\nDo you want to find an alternative route?',
+          l.trafficAlertBody(jam.category.localizedLabel(l), jam.ageLabel(l)),
           style: TextStyle(color: c.textSecondary, fontSize: 13, height: 1.5),
         ),
         actions: [
@@ -852,8 +868,9 @@ class _MapScreenState extends State<MapScreen>
         ? _currentStepIdx + 1 : _currentStepIdx;
     final step = _route!.steps[nextIdx];
     final distM = step.distanceM;
+    if (!mounted) return;
     final distLabel = distM < 50
-        ? 'Ora'
+        ? AppLocalizations.of(context)!.now
         : distM < 1000
             ? '${distM.round()} m'
             : '${(distM / 1000).toStringAsFixed(1)} km';
@@ -901,6 +918,12 @@ class _MapScreenState extends State<MapScreen>
   /// In silent mode the cinematic overview is skipped so the camera stays on
   /// the user's current position and GPS updates are never blocked.
   void _startNavigation(RouteResult route, {bool silent = false}) {
+    // Option A safety net: block user-initiated navigation until GPS is ready.
+    if (!silent && !_gpsReady) {
+      _snack(AppLocalizations.of(context)!.acquiringGps);
+      if (!_gpsRequested) _requestGps();
+      return;
+    }
     // Only save to history on explicit user-initiated navigation, not reroutes.
     if (!silent && _destination != null) {
       final label = _pendingLabel ??
@@ -1224,10 +1247,8 @@ class _MapScreenState extends State<MapScreen>
     _planDebounce?.cancel();
     setState(() { _planActiveField = field; });
     if (field == 0) {
-      // "From" field: reset to "My Location" if the user clears or types a GPS-like term.
-      if (query.isEmpty ||
-          query.toLowerCase().contains('posizione') ||
-          query.toLowerCase().contains('gps')) {
+      final myLoc = AppLocalizations.of(context)!.myLocation;
+      if (query.isEmpty || query == myLoc) {
         setState(() { _planFrom = null; _planResults = []; });
         return;
       }
@@ -2431,7 +2452,9 @@ class _MapScreenState extends State<MapScreen>
                       onCancel:      _cancelAlternatives,
                       onModeChanged: _recalculateForMode,
                     )
-                  : _BottomBar(bottomInset: bottomInset, colors: c),
+                  : _pinResult != null
+                      ? const SizedBox.shrink()
+                      : _BottomBar(bottomInset: bottomInset, colors: c),
         ),
 
         // ── ROUTE CALCULATION OVERLAY ────────────────────────────────────────
@@ -3345,8 +3368,8 @@ class _PlaceInfoPanelState extends State<_PlaceInfoPanel>
                   const SizedBox(width: 4),
                   Text(
                     widget.wiki?.pageUrl != null
-                        ? 'Read on Wikipedia'
-                        : 'Search on ${_engineName()}',
+                        ? AppLocalizations.of(context)!.readOnWikipedia
+                        : AppLocalizations.of(context)!.searchOnEngine(_engineName()),
                     style: TextStyle(color: c.accent, fontSize: 12,
                         decoration: TextDecoration.underline),
                   ),
@@ -3529,7 +3552,7 @@ class _RoutePlannerBar extends StatelessWidget {
               autofocus: false,
               style: TextStyle(color: c.textPrimary, fontSize: 14),
               decoration: InputDecoration(
-                hintText: 'From…',
+                hintText: AppLocalizations.of(context)!.plannerFromHint,
                 hintStyle: TextStyle(color: c.textSecondary, fontSize: 14),
                 border: InputBorder.none, isDense: true,
               ),
@@ -3558,7 +3581,7 @@ class _RoutePlannerBar extends StatelessWidget {
               autofocus: true,
               style: TextStyle(color: c.textPrimary, fontSize: 14),
               decoration: InputDecoration(
-                hintText: 'Destination…',
+                hintText: AppLocalizations.of(context)!.plannerToHint,
                 hintStyle: TextStyle(color: c.textSecondary, fontSize: 14),
                 border: InputBorder.none, isDense: true,
               ),
@@ -3574,7 +3597,7 @@ class _RoutePlannerBar extends StatelessWidget {
         Row(children: [
           _ModeChip(
             icon: Icons.directions_car_rounded,
-            label: 'Auto',
+            label: AppLocalizations.of(context)!.transportModeCar,
             selected: transportMode == 'driving',
             colors: c,
             onTap: () => onModeChanged('driving'),
@@ -3582,7 +3605,7 @@ class _RoutePlannerBar extends StatelessWidget {
           const SizedBox(width: 8),
           _ModeChip(
             icon: Icons.directions_walk_rounded,
-            label: 'A piedi',
+            label: AppLocalizations.of(context)!.transportModeWalk,
             selected: transportMode == 'walking',
             colors: c,
             onTap: () => onModeChanged('walking'),
@@ -3594,7 +3617,7 @@ class _RoutePlannerBar extends StatelessWidget {
             onPressed: onClose,
             style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 12)),
-            child: Text('Cancel',
+            child: Text(AppLocalizations.of(context)!.cancel,
                 style: TextStyle(color: c.textSecondary, fontSize: 13)),
           ),
           const Spacer(),
@@ -3880,7 +3903,7 @@ class _PreviewPanel extends StatelessWidget {
               Icon(Icons.schedule_rounded,
                   color: c.textSecondary, size: 16),
               const SizedBox(width: 4),
-              Text('Depart $depStr  →  ETA $arrStr',
+              Text(AppLocalizations.of(context)!.departEta(depStr, arrStr),
                   style: TextStyle(color: c.textSecondary, fontSize: 13)),
             ]),
 
@@ -3957,7 +3980,7 @@ class _PreviewPanel extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(vertical: 13),
                 ),
-                child: Text('Annulla',
+                child: Text(AppLocalizations.of(context)!.cancel,
                     style: TextStyle(color: c.textSecondary)),
               ),
             ),
@@ -4621,8 +4644,8 @@ class _NavPanel extends StatelessWidget {
               Text('  ·  ', style: TextStyle(
                   color: colors.textSecondary, fontSize: fsSub)),
               // Estimated time of arrival
-              Text('Arr. $_etaLabel', style: TextStyle(
-                  color: colors.textSecondary, fontSize: fsSub)),
+              Text(AppLocalizations.of(context)!.etaArrivalLabel(_etaLabel),
+                  style: TextStyle(color: colors.textSecondary, fontSize: fsSub)),
             ],
           ]),
         ])),

@@ -673,4 +673,79 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get autoDarkModeDesc => 'Attiva il tema scuro al tramonto e all\'alba';
+
+  @override
+  String get arrivedTitle => '🎉 Sei arrivato!';
+
+  @override
+  String get arrivedBody => 'Hai raggiunto la tua destinazione.';
+
+  @override
+  String get arrivedFeedbackPrompt => 'Com\'è andata?';
+
+  @override
+  String get feedbackBad => 'Male';
+
+  @override
+  String get feedbackGood => 'Bene!';
+
+  @override
+  String get feedbackDialogTitle => 'Raccontaci cosa è andato storto';
+
+  @override
+  String get feedbackHint => 'Descrivi il problema…';
+
+  @override
+  String get feedbackSent => 'Feedback inviato — grazie! 🙏';
+
+  @override
+  String get feedbackSubmit => 'Invia';
+
+  @override
+  String get transportModeCar => 'Auto';
+
+  @override
+  String get transportModeWalk => 'A piedi';
+
+  @override
+  String etaArrivalLabel(String time) {
+    return 'Arr. $time';
+  }
+
+  @override
+  String get supportRoadstr => 'Supporta Roadstr';
+
+  @override
+  String lightningAddressCopied(String address) {
+    return '⚡ $address copiato negli appunti';
+  }
+
+  @override
+  String get disclaimerTitle => 'Avviso importante';
+
+  @override
+  String get disclaimerAccept => 'Ho letto e accetto';
+
+  @override
+  String get disclaimerBody =>
+      'Roadstr è un\'applicazione di navigazione sperimentale basata su dati OpenStreetMap e sul protocollo Nostr. Utilizzando questa app l\'utente accetta integralmente le seguenti condizioni:\n\n🚗  SICUREZZA STRADALE\nIl guidatore è tenuto a mantenere sempre gli occhi sulla strada. Non guardare il telefono durante la guida. Assicurare il dispositivo in un supporto approvato e visibile senza distogliere l\'attenzione dalla strada.\n\n⚠️  LIMITAZIONE DI RESPONSABILITÀ\nRoadstr viene fornita \"così com\'è\", senza garanzie di accuratezza, completezza o idoneità a scopi specifici. Gli sviluppatori declinano qualsiasi responsabilità per danni derivanti dall\'uso dell\'applicazione, inclusi ma non limitati a: incidenti stradali, sanzioni amministrative, danni a cose o persone.\n\n🚫  ZONE A TRAFFICO LIMITATO (ZTL)\nLa navigazione si basa sui dati OpenStreetMap che potrebbero non essere aggiornati riguardo a ZTL, corsie preferenziali e restrizioni locali. L\'utente è responsabile di verificare autonomamente l\'accessibilità del percorso suggerito nelle zone a traffico limitato prima di percorrerlo. Gli sviluppatori non rispondono di eventuali sanzioni ricevute.\n\n📍  ACCURATEZZA\nIl tracciamento GPS può risultare impreciso. Le indicazioni stradali sono a titolo orientativo. Rispettare sempre la segnaletica stradale verticale e orizzontale, che ha sempre la precedenza sulle indicazioni dell\'app.\n\n🔒  PRIVACY\nNessun dato di posizione viene trasmesso a server esterni. Il calcolo del percorso avviene tramite servizi terzi (OSRM, GraphHopper, OpenRouteService) ai quali vengono inviate esclusivamente le coordinate di partenza e arrivo.\n\nUtilizzando Roadstr l\'utente si assume la piena e totale responsabilità dell\'utilizzo dell\'applicazione e di qualsiasi conseguenza derivante dall\'uso della stessa.';
+
+  @override
+  String get readOnWikipedia => 'Leggi su Wikipedia';
+
+  @override
+  String searchOnEngine(String engine) {
+    return 'Cerca su $engine';
+  }
+
+  @override
+  String get plannerFromHint => 'Da…';
+
+  @override
+  String get plannerToHint => 'Destinazione…';
+
+  @override
+  String departEta(String dep, String arr) {
+    return 'Partenza $dep  →  Arrivo $arr';
+  }
 }
