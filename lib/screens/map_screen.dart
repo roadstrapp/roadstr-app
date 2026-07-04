@@ -26,6 +26,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../services/gps_service.dart';
 import '../services/location_service.dart';
 import '../services/routing_service.dart';
+import '../services/weather_service.dart';
 import 'package:amberflutter/amberflutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -98,7 +99,7 @@ class _MapScreenState extends State<MapScreen>
   /// Default animation duration for user-triggered camera transitions (ms).
   static const _animMs = 550;
   /// Shorter duration used for GPS-tracking animation — keeps motion fluid.
-  static const _gpsAnimMs = 380;
+  static const _gpsAnimMs = 600;
 
   RouteResult? _route;
   LatLng? _destination;
@@ -161,9 +162,11 @@ class _MapScreenState extends State<MapScreen>
   String? _pendingLabel;
 
   // ── Transport mode ──────────────────────────────────────────────────────
-  /// Active transport mode. 'driving' = car; 'walking' = pedestrian.
-  /// Determines which OSRM profile (driving/foot) is used for route calculation.
+  /// Active transport mode: 'driving', 'walking', or 'cycling'.
   String _transportMode = 'driving';
+  /// Active route preferences (avoid highways/tolls, prefer shorter).
+  /// Reset to defaults when the transport mode changes.
+  RoutePreferences _routePrefs = const RoutePreferences();
 
   // ── Navigation cinematic transition ─────────────────────────────────────
   /// True while the zoom-in animation plays at navigation start.
@@ -751,7 +754,20 @@ class _MapScreenState extends State<MapScreen>
       if (d < minDist) minDist = d;
       if (minDist < 40) return; // early exit: clearly on route
     }
-    if (minDist > 60) _rerouteAndNavigate();
+    if (minDist > 60) { _rerouteAndNavigate(); return; }
+
+    // Direction check: on bidirectional roads the user may be on the correct
+    // polyline but heading the wrong way. Detect this by comparing the current
+    // GPS bearing to the bearing toward the next route waypoint. If they differ
+    // by more than 150° and speed is meaningful, reroute.
+    final steps = _route!.steps;
+    if (_speed > 10 && _currentStepIdx + 1 < steps.length) {
+      final nextWaypoint = steps[_currentStepIdx + 1].location;
+      final bearingToNext = _bearingBetween(_position, nextWaypoint);
+      double diff = (_heading - bearingToNext).abs();
+      if (diff > 180) diff = 360 - diff;
+      if (diff > 150) _rerouteAndNavigate();
+    }
   }
 
   /// Minimum distance (metres) from point (px,py) to the line segment (ax,ay)→(bx,by).
@@ -790,7 +806,7 @@ class _MapScreenState extends State<MapScreen>
     try {
       routes = await RoutingService.getRoutes(_position, _destination!,
               provider: provider, apiKey: apiKey, graphhopperServer: ghServer,
-              lang: lang, vehicle: _transportMode)
+              lang: lang, vehicle: _transportMode, prefs: _routePrefs)
           .timeout(const Duration(seconds: 15));
     } catch (_) {
       if (mounted) setState(() => _isRerouting = false);
@@ -1022,7 +1038,7 @@ class _MapScreenState extends State<MapScreen>
     try {
       routes = await RoutingService.getRoutes(origin, destination,
           provider: provider, apiKey: apiKey, graphhopperServer: ghServer,
-          lang: lang, vehicle: _transportMode);
+          lang: lang, vehicle: _transportMode, prefs: _routePrefs);
     } catch (e) {
       if (!mounted) return;
       setState(() => _isCalculating = false);
@@ -1173,20 +1189,20 @@ class _MapScreenState extends State<MapScreen>
   /// whichever panel is currently open (alternatives or preview).
   /// The [_isCalculating] overlay appears briefly during the network request
   /// while the panel remains visible underneath, avoiding a jarring full reset.
-  Future<void> _recalculateForMode(String vehicle) async {
+  /// Shared recalculation logic. Uses the current [_transportMode] and
+  /// [_routePrefs] — callers set those before invoking this.
+  Future<void> _recalcRoutes() async {
     if (_destination == null) return;
-    setState(() { _transportMode = vehicle; _isCalculating = true; });
-
+    setState(() => _isCalculating = true);
     if (!_gpsReady) { setState(() => _isCalculating = false); return; }
     final origin = _position;
     final (:provider, :apiKey, :ghServer) = _resolveProvider();
     final lang = Localizations.localeOf(context).languageCode;
-
     List<RouteResult> routes;
     try {
       routes = await RoutingService.getRoutes(origin, _destination!,
           provider: provider, apiKey: apiKey, graphhopperServer: ghServer,
-          lang: lang, vehicle: vehicle);
+          lang: lang, vehicle: _transportMode, prefs: _routePrefs);
     } catch (e) {
       if (!mounted) return;
       setState(() => _isCalculating = false);
@@ -1194,35 +1210,36 @@ class _MapScreenState extends State<MapScreen>
       return;
     }
     if (!mounted) return;
-    if (routes.isEmpty) {
-      setState(() => _isCalculating = false);
-      return;
-    }
-
-    final multiRoute = routes.length > 1 &&
-        routes.first.totalDistanceM > 5000;
-
+    if (routes.isEmpty) { setState(() => _isCalculating = false); return; }
+    final multiRoute = routes.length > 1 && routes.first.totalDistanceM > 5000;
     setState(() {
       _isCalculating = false;
       if (multiRoute) {
-        _alternatives    = routes;
-        _selectedAlt     = 0;
-        _showAlternatives = true;
-        _showPreview     = false;
-        _previewRoute    = null;
+        _alternatives    = routes; _selectedAlt = 0;
+        _showAlternatives = true;  _showPreview = false; _previewRoute = null;
       } else {
-        _previewRoute    = routes.first;
-        _showPreview     = true;
-        _showAlternatives = false;
-        _alternatives    = [];
+        _previewRoute = routes.first; _showPreview = true;
+        _showAlternatives = false;    _alternatives = [];
       }
     });
+    if (multiRoute) { _fitRoutesOnMap(routes); } else { _fitRouteOnMap(routes.first); }
+  }
 
-    if (multiRoute) {
-      _fitRoutesOnMap(routes);
-    } else {
-      _fitRouteOnMap(routes.first);
-    }
+  /// Switches transport mode, resets route preferences, and recalculates.
+  Future<void> _recalculateForMode(String vehicle) async {
+    if (_destination == null) return;
+    setState(() {
+      _transportMode = vehicle;
+      _routePrefs    = const RoutePreferences(); // reset chips on mode switch
+    });
+    await _recalcRoutes();
+  }
+
+  /// Updates route preferences and recalculates without changing the mode.
+  Future<void> _recalcWithPrefs(RoutePreferences prefs) async {
+    if (_destination == null) return;
+    setState(() => _routePrefs = prefs);
+    await _recalcRoutes();
   }
 
   // ── Route planner logic ────────────────────────────────────────────────────
@@ -1606,10 +1623,17 @@ class _MapScreenState extends State<MapScreen>
 
   void _recenter() {
     if (!_position.latitude.isFinite || !_position.longitude.isFinite) return;
-    setState(() => _followUser = true);
-    // Animate only the centre — zoom and rotation stay as they are so the user
-    // doesn't lose their current view level or orientation just by recentering.
-    _animateCamera(toCenter: _position, toZoom: _camZoom, toRot: _camRotDeg);
+    setState(() {
+      _followUser = true;
+      // During navigation, re-enable heading mode so the map resumes rotating
+      // to face the direction of travel (it may have been turned off by an
+      // accidental tap on the compass FAB).
+      if (_isNavigating) _headingMode = true;
+    });
+    // During navigation animate to the current GPS bearing; outside navigation
+    // keep whatever rotation the user set so they don't lose their view.
+    final rot = _isNavigating ? -_heading : _camRotDeg;
+    _animateCamera(toCenter: _position, toZoom: _camZoom, toRot: rot);
   }
 
   /// Rotates the map to north-up (0°) and recenters on the GPS position.
@@ -1620,6 +1644,13 @@ class _MapScreenState extends State<MapScreen>
   /// Uses a Timer instead of the custom ticker so it works independently of
   /// any stale animation state from previous _animateCamera calls.
   void _toggleHeadingMode() {
+    // During navigation: act as a real toggle.
+    // If heading mode is OFF, re-enable it — the next GPS tick will rotate the
+    // map to face the direction of travel and the cursor will point forward.
+    if (_isNavigating && !_headingMode) {
+      setState(() { _headingMode = true; _followUser = true; });
+      return;
+    }
     setState(() { _headingMode = false; _followUser = true; });
 
     _northTimer?.cancel();
@@ -2439,18 +2470,19 @@ class _MapScreenState extends State<MapScreen>
                     )
               : _showAlternatives
                   ? _AlternativesPanel(
-                      alternatives:  _alternatives,
-                      selected:      _selectedAlt,
-                      bottomInset:   bottomInset,
-                      colors:        c,
-                      transportMode: _transportMode,
-                      onSelect:      (i) => setState(() => _selectedAlt = i),
-                      // Skip the preview panel — go straight to navigation.
-                      // The alternatives panel already shows duration, distance
-                      // and traffic info, so a second "preview" is redundant.
-                      onConfirm:     _startNavigation,
-                      onCancel:      _cancelAlternatives,
-                      onModeChanged: _recalculateForMode,
+                      alternatives:    _alternatives,
+                      selected:        _selectedAlt,
+                      bottomInset:     bottomInset,
+                      colors:          c,
+                      transportMode:   _transportMode,
+                      prefs:           _routePrefs,
+                      destination:     _destination!,
+                      prefsSupported:  _resolveProvider().provider != RoutingProvider.osrm,
+                      onSelect:        (i) => setState(() => _selectedAlt = i),
+                      onConfirm:       _startNavigation,
+                      onCancel:        _cancelAlternatives,
+                      onModeChanged:   _recalculateForMode,
+                      onPrefsChanged:  _recalcWithPrefs,
                     )
                   : _pinResult != null
                       ? const SizedBox.shrink()
@@ -3963,6 +3995,10 @@ class _PreviewPanel extends StatelessWidget {
                 selected: transportMode == 'driving', colors: c,
                 onTap: () => onModeChanged('driving')),
             const SizedBox(width: 8),
+            _ModeChip(icon: Icons.directions_bike_rounded, label: 'Bici',
+                selected: transportMode == 'cycling', colors: c,
+                onTap: () => onModeChanged('cycling')),
+            const SizedBox(width: 8),
             _ModeChip(icon: Icons.directions_walk_rounded, label: 'A piedi',
                 selected: transportMode == 'walking', colors: c,
                 onTap: () => onModeChanged('walking')),
@@ -4017,110 +4053,249 @@ class _PreviewPanel extends StatelessWidget {
 
 // ── Alternatives panel ────────────────────────────────────────────────────────
 
-class _AlternativesPanel extends StatelessWidget {
+class _AlternativesPanel extends StatefulWidget {
   final List<RouteResult> alternatives;
   final int selected;
   final double bottomInset;
   final RoadstrColors colors;
   final String transportMode;
+  final RoutePreferences prefs;
+  final LatLng destination;
+  final bool prefsSupported;
   final ValueChanged<int> onSelect;
   final ValueChanged<RouteResult> onConfirm;
   final VoidCallback onCancel;
   final ValueChanged<String> onModeChanged;
+  final ValueChanged<RoutePreferences> onPrefsChanged;
   const _AlternativesPanel({
     required this.alternatives, required this.selected,
     required this.bottomInset, required this.colors,
-    required this.transportMode,
+    required this.transportMode, required this.prefs,
+    required this.destination, required this.prefsSupported,
     required this.onSelect, required this.onConfirm, required this.onCancel,
-    required this.onModeChanged,
+    required this.onModeChanged, required this.onPrefsChanged,
   });
 
   @override
+  State<_AlternativesPanel> createState() => _AlternativesPanelState();
+}
+
+class _AlternativesPanelState extends State<_AlternativesPanel>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<Offset> _slide;
+  double _dragDy = 0;
+  WeatherData? _weather;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 340));
+    _slide = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+    _ctrl.forward();
+    _loadWeather();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadWeather() async {
+    final w = await WeatherService.fetch(widget.destination);
+    if (mounted) setState(() => _weather = w);
+  }
+
+  Future<void> _closeAnimated() async {
+    await _ctrl.animateTo(0,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeInCubic);
+    widget.onCancel();
+  }
+
+  void _springBack() {
+    if (_dragDy <= 0) { setState(() => _dragDy = 0); return; }
+    final start = _dragDy;
+    final startMs = DateTime.now().millisecondsSinceEpoch;
+    Timer.periodic(const Duration(milliseconds: 8), (t) {
+      if (!mounted) { t.cancel(); return; }
+      final p = ((DateTime.now().millisecondsSinceEpoch - startMs) / 220.0)
+          .clamp(0.0, 1.0);
+      final e = 1 - math.pow(1 - p, 3);
+      setState(() => _dragDy = start * (1 - e));
+      if (p >= 1.0) { t.cancel(); setState(() => _dragDy = 0); }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surface2,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        border: Border(top: BorderSide(color: colors.border, width: 0.5)),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 16, offset: const Offset(0, -4))],
-      ),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const SizedBox(height: 10),
-        Center(child: Container(width: 40, height: 4,
-            decoration: BoxDecoration(color: colors.border,
-                borderRadius: BorderRadius.circular(2)))),
-        const SizedBox(height: 14),
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(children: [
-            Text(AppLocalizations.of(context)!.chooseRoute, style: TextStyle(
-                color: colors.textPrimary, fontSize: 16,
-                fontWeight: FontWeight.bold)),
-            const Spacer(),
-            // Transport mode toggle — switching recalculates in-place
-            _ModeChip(
-              icon: Icons.directions_car_rounded, label: 'Auto',
-              selected: transportMode == 'driving', colors: colors,
-              onTap: () => onModeChanged('driving')),
-            const SizedBox(width: 6),
-            _ModeChip(
-              icon: Icons.directions_walk_rounded, label: 'A piedi',
-              selected: transportMode == 'walking', colors: colors,
-              onTap: () => onModeChanged('walking')),
-          ]),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 122,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: alternatives.length,
-            itemBuilder: (_, i) => _RouteCard(
-              route: alternatives[i], isSelected: i == selected, isBest: i == 0,
-              colors: colors, onTap: () => onSelect(i),
+    final c = widget.colors;
+    return SlideTransition(
+      position: _slide,
+      child: Transform.translate(
+        offset: Offset(0, _dragDy.clamp(0.0, double.infinity)),
+        child: GestureDetector(
+          onVerticalDragUpdate: (d) {
+            if (d.delta.dy > 0) setState(() => _dragDy += d.delta.dy);
+          },
+          onVerticalDragEnd: (d) {
+            final v = d.primaryVelocity ?? 0;
+            if (v > 400 || _dragDy > 120) {
+              _closeAnimated();
+            } else {
+              _springBack();
+            }
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: c.surface2,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              border: Border(top: BorderSide(color: c.border, width: 0.5)),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 16, offset: const Offset(0, -4))],
             ),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const SizedBox(height: 10),
+              Center(child: Container(width: 40, height: 4,
+                  decoration: BoxDecoration(color: c.border,
+                      borderRadius: BorderRadius.circular(2)))),
+              const SizedBox(height: 10),
+              Padding(padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(AppLocalizations.of(context)!.chooseRoute,
+                    style: TextStyle(color: c.textPrimary, fontSize: 16,
+                        fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(height: 10),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  _ModeChip(
+                    icon: Icons.directions_car_rounded, label: 'Auto',
+                    selected: widget.transportMode == 'driving', colors: c,
+                    onTap: () => widget.onModeChanged('driving')),
+                  const SizedBox(width: 6),
+                  _ModeChip(
+                    icon: Icons.directions_bike_rounded, label: 'Bici',
+                    selected: widget.transportMode == 'cycling', colors: c,
+                    onTap: () => widget.onModeChanged('cycling')),
+                  const SizedBox(width: 6),
+                  _ModeChip(
+                    icon: Icons.directions_walk_rounded, label: 'A piedi',
+                    selected: widget.transportMode == 'walking', colors: c,
+                    onTap: () => widget.onModeChanged('walking')),
+                ]),
+              ),
+              if (widget.transportMode == 'driving' && widget.prefsSupported) ...[
+                const SizedBox(height: 6),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    _ModeChip(
+                      icon: Icons.alt_route_rounded,
+                      label: 'Evita autostrade',
+                      selected: widget.prefs.avoidHighways, colors: c,
+                      onTap: () => widget.onPrefsChanged(RoutePreferences(
+                        avoidHighways: !widget.prefs.avoidHighways,
+                        avoidTolls: widget.prefs.avoidTolls,
+                        preferShorter: widget.prefs.preferShorter))),
+                    const SizedBox(width: 6),
+                    _ModeChip(
+                      icon: Icons.money_off_rounded,
+                      label: 'Evita pedaggi',
+                      selected: widget.prefs.avoidTolls, colors: c,
+                      onTap: () => widget.onPrefsChanged(RoutePreferences(
+                        avoidHighways: widget.prefs.avoidHighways,
+                        avoidTolls: !widget.prefs.avoidTolls,
+                        preferShorter: widget.prefs.preferShorter))),
+                    const SizedBox(width: 6),
+                    _ModeChip(
+                      icon: Icons.straighten_rounded,
+                      label: 'Percorso breve',
+                      selected: widget.prefs.preferShorter, colors: c,
+                      onTap: () => widget.onPrefsChanged(RoutePreferences(
+                        avoidHighways: widget.prefs.avoidHighways,
+                        avoidTolls: widget.prefs.avoidTolls,
+                        preferShorter: !widget.prefs.preferShorter))),
+                  ]),
+                ),
+              ],
+              if (_weather != null) ...[
+                const SizedBox(height: 6),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(children: [
+                    Text(_weather!.emoji, style: const TextStyle(fontSize: 16)),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${_weather!.tempC.toStringAsFixed(0)}°C · ${_weather!.description} · vento ${_weather!.windKmh.toStringAsFixed(0)} km/h',
+                      style: TextStyle(color: c.textSecondary, fontSize: 12),
+                    ),
+                  ]),
+                ),
+              ],
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 122,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: widget.alternatives.length,
+                  itemBuilder: (_, i) => _RouteCard(
+                    route: widget.alternatives[i],
+                    isSelected: i == widget.selected,
+                    isBest: i == 0,
+                    colors: c,
+                    onTap: () => widget.onSelect(i),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Padding(padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _closeAnimated,
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: c.border),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                      ),
+                      child: Text(AppLocalizations.of(context)!.cancel,
+                          style: TextStyle(color: c.textSecondary)),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(flex: 2,
+                    child: FilledButton.icon(
+                      onPressed: () => widget.onConfirm(widget.alternatives[widget.selected]),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: c.accent,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                      ),
+                      icon: Icon(
+                        widget.transportMode == 'walking'
+                            ? Icons.directions_walk_rounded
+                            : Icons.navigation_rounded,
+                        color: Colors.white, size: 18),
+                      label: Text(AppLocalizations.of(context)!.startNavigation,
+                          style: const TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                ]),
+              ),
+              SizedBox(height: widget.bottomInset > 0 ? widget.bottomInset : 16),
+            ]),
           ),
         ),
-        const SizedBox(height: 14),
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: onCancel,
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: colors.border),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(vertical: 13),
-                ),
-                child: Text(AppLocalizations.of(context)!.cancel,
-                    style: TextStyle(color: colors.textSecondary)),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(flex: 2,
-              child: FilledButton.icon(
-                onPressed: () => onConfirm(alternatives[selected]),
-                style: FilledButton.styleFrom(
-                  backgroundColor: colors.accent,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(vertical: 13),
-                ),
-                icon: Icon(
-                  transportMode == 'walking'
-                      ? Icons.directions_walk_rounded
-                      : Icons.navigation_rounded,
-                  color: Colors.white, size: 18),
-                label: Text(AppLocalizations.of(context)!.startNavigation,
-                    style: const TextStyle(color: Colors.white)),
-              ),
-            ),
-          ]),
-        ),
-        SizedBox(height: bottomInset > 0 ? bottomInset : 16),
-      ]),
+      ),
     );
   }
 }
@@ -4302,7 +4477,7 @@ class _PinStemPainter extends CustomPainter {
 
 // ── Pin destination panel ─────────────────────────────────────────────────────
 
-class _PinPanel extends StatelessWidget {
+class _PinPanel extends StatefulWidget {
   final NominatimResult result;
   final RoadstrColors colors;
   final VoidCallback onNavigate;
@@ -4311,59 +4486,91 @@ class _PinPanel extends StatelessWidget {
       required this.onNavigate, required this.onClose});
 
   @override
+  State<_PinPanel> createState() => _PinPanelState();
+}
+
+class _PinPanelState extends State<_PinPanel> {
+  WeatherData? _weather;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWeather();
+  }
+
+  Future<void> _loadWeather() async {
+    final w = await WeatherService.fetch(widget.result.position);
+    if (mounted) setState(() => _weather = w);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final c = widget.colors;
     return Container(
       decoration: BoxDecoration(
-        color: colors.surface2,
+        color: c.surface2,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colors.border, width: 0.5),
+        border: Border.all(color: c.border, width: 0.5),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18),
             blurRadius: 16, offset: const Offset(0, 4))],
       ),
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-      child: Row(children: [
-        Container(
-          width: 40, height: 40,
-          decoration: BoxDecoration(
-              color: const Color(0xFF7C3AED).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12)),
-          child: const Icon(Icons.place_rounded,
-              color: Color(0xFF7C3AED), size: 22),
-        ),
-        const SizedBox(width: 12),
-        Expanded(child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(result.shortName, maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: colors.textPrimary,
-                    fontSize: 14, fontWeight: FontWeight.w600)),
-            if (result.categoryLabel.isNotEmpty)
-              Text(result.categoryLabel, maxLines: 1,
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Row(children: [
+          Container(
+            width: 40, height: 40,
+            decoration: BoxDecoration(
+                color: const Color(0xFF7C3AED).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12)),
+            child: const Icon(Icons.place_rounded,
+                color: Color(0xFF7C3AED), size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(widget.result.shortName, maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                      color: colors.textSecondary, fontSize: 12)),
-          ],
-        )),
-        const SizedBox(width: 8),
-        FilledButton.icon(
-          style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF7C3AED),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10)),
-          onPressed: onNavigate,
-          icon: const Icon(Icons.navigation_rounded, size: 16),
-          label: Text(l.startNavigation,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-        ),
-        const SizedBox(width: 4),
-        IconButton(
-          icon: Icon(Icons.close_rounded, color: colors.textSecondary, size: 20),
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          onPressed: onClose,
-        ),
+                  style: TextStyle(color: c.textPrimary,
+                      fontSize: 14, fontWeight: FontWeight.w600)),
+              if (widget.result.categoryLabel.isNotEmpty)
+                Text(widget.result.categoryLabel, maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: c.textSecondary, fontSize: 12)),
+            ],
+          )),
+          const SizedBox(width: 8),
+          FilledButton.icon(
+            style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF7C3AED),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10)),
+            onPressed: widget.onNavigate,
+            icon: const Icon(Icons.navigation_rounded, size: 16),
+            label: Text(l.startNavigation,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          ),
+          const SizedBox(width: 4),
+          IconButton(
+            icon: Icon(Icons.close_rounded, color: c.textSecondary, size: 20),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            onPressed: widget.onClose,
+          ),
+        ]),
+        if (_weather != null) ...[
+          const SizedBox(height: 8),
+          Row(children: [
+            const SizedBox(width: 52),
+            Text(_weather!.emoji, style: const TextStyle(fontSize: 15)),
+            const SizedBox(width: 6),
+            Text(
+              '${_weather!.tempC.toStringAsFixed(0)}°C · ${_weather!.description} · vento ${_weather!.windKmh.toStringAsFixed(0)} km/h',
+              style: TextStyle(color: c.textSecondary, fontSize: 12),
+            ),
+          ]),
+        ],
       ]),
     );
   }

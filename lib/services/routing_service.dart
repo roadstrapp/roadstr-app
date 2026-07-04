@@ -88,6 +88,22 @@ class RouteResult {
   }
 }
 
+/// Route preferences — avoidance and weighting options forwarded to the
+/// routing provider. Provider support varies:
+///   [avoidHighways]: OSRM (best-effort via `exclude`), ORS, GH self-hosted
+///   [avoidTolls]:    ORS, GH self-hosted
+///   [preferShorter]: GraphHopper (`weighting=shortest`), ORS (`preference=shortest`)
+class RoutePreferences {
+  final bool avoidHighways;
+  final bool avoidTolls;
+  final bool preferShorter;
+  const RoutePreferences({
+    this.avoidHighways = false,
+    this.avoidTolls    = false,
+    this.preferShorter = false,
+  });
+}
+
 /// Selects which routing back-end to use. Stored as a string in Hive settings.
 enum RoutingProvider { osrm, openRoute, graphHopper }
 
@@ -99,7 +115,8 @@ class RoutingService {
   /// OSRM walking endpoint — the official OSM routing instance that has the
   /// foot profile enabled. routing.openstreetmap.de is maintained by the OSM
   /// community and supports car, bike and foot profiles.
-  static const _osrmWalking = 'https://routing.openstreetmap.de/routed-foot/route/v1/foot';
+  static const _osrmWalking  = 'https://routing.openstreetmap.de/routed-foot/route/v1/foot';
+  static const _osrmBike     = 'https://routing.openstreetmap.de/routed-bike/route/v1/bike';
   static const _nominatim = 'https://nominatim.openstreetmap.org/search';
   /// ORS base — the profile segment ('driving-car', 'foot-walking'…) is appended.
   static const _orsBase = 'https://api.openrouteservice.org/v2/directions/';
@@ -110,16 +127,25 @@ class RoutingService {
   /// Returns the correct OSRM base URL for the requested transport mode.
   /// The two servers are separate because router.project-osrm.org only exposes
   /// the car profile, while routing.openstreetmap.de has foot and bike too.
-  static String _osrmEndpoint(String vehicle) =>
-      vehicle == 'walking' ? _osrmWalking : _osrmDriving;
+  static String _osrmEndpoint(String vehicle) {
+    if (vehicle == 'walking') return _osrmWalking;
+    if (vehicle == 'cycling') return _osrmBike;
+    return _osrmDriving;
+  }
 
   /// Translates the vehicle string to the GraphHopper vehicle parameter.
-  static String _ghVehicle(String vehicle) =>
-      vehicle == 'walking' ? 'foot' : 'car';
+  static String _ghVehicle(String vehicle) {
+    if (vehicle == 'walking') return 'foot';
+    if (vehicle == 'cycling') return 'bike';
+    return 'car';
+  }
 
   /// Translates the vehicle string to the OpenRouteService profile segment.
-  static String _orsProfile(String vehicle) =>
-      vehicle == 'walking' ? 'foot-walking' : 'driving-car';
+  static String _orsProfile(String vehicle) {
+    if (vehicle == 'walking') return 'foot-walking';
+    if (vehicle == 'cycling') return 'cycling-regular';
+    return 'driving-car';
+  }
 
   /// Searches for addresses and POIs via the Nominatim geocoding API.
   ///
@@ -249,19 +275,25 @@ class RoutingService {
       String? apiKey,
       String? graphhopperServer,
       String lang = 'en',
-      /// 'driving' (default) or 'walking'. Passed to the routing backend.
-      String vehicle = 'driving'}) async {
+      String vehicle = 'driving',
+      RoutePreferences prefs = const RoutePreferences()}) async {
     try {
       if (provider == RoutingProvider.openRoute && apiKey != null) {
         // OpenRouteService (POST JSON)
         final uri = Uri.parse('$_orsBase${_orsProfile(vehicle)}');
+        final avoidList = <String>[
+          if (prefs.avoidHighways) 'highways',
+          if (prefs.avoidTolls)    'tollways',
+        ];
         final body = jsonEncode({
           'coordinates': [
             [origin.longitude, origin.latitude],
             [destination.longitude, destination.latitude]
           ],
           'language': lang,
-          'instructions': true
+          'instructions': true,
+          if (prefs.preferShorter)   'preference': 'shortest',
+          if (avoidList.isNotEmpty)  'options': {'avoid_features': avoidList},
         });
         final res = await http
             .post(uri,
@@ -334,6 +366,9 @@ class RoutingService {
           'points_encoded=false',
           'details=max_speed',
         ];
+        if (prefs.preferShorter)  parts.add('weighting=shortest');
+        if (prefs.avoidHighways)  parts.add('avoid%5B%5D=motorway');
+        if (prefs.avoidTolls)     parts.add('avoid%5B%5D=toll');
         if (apiKey != null && server == _graphhopperPublic) {
           parts.add('key=${Uri.encodeQueryComponent(apiKey)}');
         }
@@ -402,10 +437,11 @@ class RoutingService {
       }
 
       // Fallback / default: OSRM — choose the right public server for the mode.
+      final osrmExclude = prefs.avoidHighways ? '&exclude=motorway' : '';
       final baseCoords = '${_osrmEndpoint(vehicle)}/'
           '${origin.longitude},${origin.latitude};'
           '${destination.longitude},${destination.latitude}'
-          '?overview=full&geometries=geojson&steps=true';
+          '?overview=full&geometries=geojson&steps=true$osrmExclude';
 
       // Request speed-limit annotations; fall back silently if the server
       // does not support maxspeed (e.g. public OSRM demo server returns 400).
@@ -453,21 +489,24 @@ class RoutingService {
       String? apiKey,
       String? graphhopperServer,
       String lang = 'en',
-      String vehicle = 'driving'}) async {
+      String vehicle = 'driving',
+      RoutePreferences prefs = const RoutePreferences()}) async {
     if (provider != RoutingProvider.osrm) {
       final single = await getRoute(origin, destination,
           provider: provider,
           apiKey: apiKey,
           graphhopperServer: graphhopperServer,
           lang: lang,
-          vehicle: vehicle);
+          vehicle: vehicle,
+          prefs: prefs);
       return single != null ? [single] : [];
     }
     try {
+      final osrmExclude = prefs.avoidHighways ? '&exclude=motorway' : '';
       final baseCoords = '${_osrmEndpoint(vehicle)}/'
           '${origin.longitude},${origin.latitude};'
           '${destination.longitude},${destination.latitude}'
-          '?overview=full&geometries=geojson&steps=true&alternatives=3';
+          '?overview=full&geometries=geojson&steps=true&alternatives=3$osrmExclude';
 
       Map<String, dynamic>? data;
       for (final suffix in ['&annotations=maxspeed,distance', '']) {
