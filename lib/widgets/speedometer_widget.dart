@@ -6,12 +6,14 @@ class SpeedometerWidget extends StatelessWidget {
   final double speedKmh;
   final double maxSpeed;
   final double size;
+  final int? speedLimit;
 
   const SpeedometerWidget({
     super.key,
     required this.speedKmh,
     this.maxSpeed = 200,
     this.size = 140,
+    this.speedLimit,
   });
 
   @override
@@ -19,6 +21,8 @@ class SpeedometerWidget extends StatelessWidget {
     final c = RoadstrColors.of(context);
     final double speed = speedKmh.clamp(0.0, maxSpeed);
     final fontSize = size * 0.27;
+    final bool over = speedLimit != null && speedKmh > speedLimit!;
+    final arcColor = over ? Colors.red.shade400 : c.accent;
 
     return Container(
       width: size,
@@ -26,7 +30,7 @@ class SpeedometerWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: c.surface2.withValues(alpha: 0.92),
         shape: BoxShape.circle,
-        border: Border.all(color: c.border, width: 0.5),
+        border: Border.all(color: over ? Colors.red.shade400 : c.border, width: over ? 1.5 : 0.5),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 12)],
       ),
       child: Stack(
@@ -36,7 +40,7 @@ class SpeedometerWidget extends StatelessWidget {
             size: Size(size, size),
             painter: _SpeedPainter(
               progress: speed / maxSpeed,
-              accent: c.accent,
+              accent: arcColor,
               bg: c.surface3,
             ),
           ),
@@ -46,7 +50,7 @@ class SpeedometerWidget extends StatelessWidget {
               Text(
                 speed.toStringAsFixed(0),
                 style: TextStyle(
-                  color: c.accent,
+                  color: arcColor,
                   fontSize: fontSize,
                   fontWeight: FontWeight.bold,
                   height: 1,
