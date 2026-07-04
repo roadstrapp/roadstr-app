@@ -16,7 +16,9 @@
 // Timer is cancelled and recreated on each call; no ticker lifecycle issues.
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -40,6 +42,8 @@ import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/nostr_relay_service.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import '../services/zap_service.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
@@ -138,14 +142,16 @@ class _MapScreenState extends State<MapScreen>
   bool _voiceMuted = false;
 
   // ── Voice guidance state ────────────────────────────────────────────────────
-  /// Index of the last step for which a 200m announcement was made.
-  int _ttsAnnounced200 = -1;
-  /// Index of the last step for which a 50m announcement was made.
-  int _ttsAnnounced50  = -1;
+  int _ttsAnnouncedFar  = -1; // first/far warning (distance varies by step type)
+  int _ttsAnnouncedMid  = -1; // second/mid warning
+  int _ttsAnnouncedNear = -1; // near warning (50 m non-highway, 250 m highway ramp)
 
   bool _isRerouting = false;
   /// IDs of Nostr traffic events already shown as an in-navigation alert.
   final _alertedEventIds = <String>{};
+  /// IDs of speed-camera events that have already triggered the proximity beep.
+  final _alertedCameraIds = <String>{};
+  final _alertPlayer = AudioPlayer();
   /// Live list of non-expired road events fed by [NostrRelayService.stream].
   List<RoadEvent> _roadEvents = [];
   StreamSubscription<List<RoadEvent>>? _roadSub;
@@ -504,6 +510,7 @@ class _MapScreenState extends State<MapScreen>
         _updateRemainingStats();
         _checkArrival();
       }
+      unawaited(_checkSpeedCameraProximity());
       if (Hive.box('settings').get('keepScreenOn', defaultValue: true) as bool) {
         WakelockPlus.enable();
       }
@@ -713,14 +720,25 @@ class _MapScreenState extends State<MapScreen>
     _distToNextManeuverM = dist;
 
     // ── Voice guidance announcements ─────────────────────────────────────────
-    // Announce at ~200 m (prep) and ~50 m (immediate) before each maneuver,
-    // then again when the step is actually entered.
-    if (dist < 220 && dist >= 50 && _ttsAnnounced200 != nextIdx) {
-      _ttsAnnounced200 = nextIdx;
-      if (!_voiceMuted) _tts.announceManeuver(nextStep.instruction, 200);
-    } else if (dist < 50 && _ttsAnnounced50 != nextIdx) {
-      _ttsAnnounced50 = nextIdx;
-      if (!_voiceMuted) _tts.announceManeuver(nextStep.instruction, 0); // imminent — no distance prefix
+    final t = _announcementThresholds(nextStep, _speed);
+    // Far announcement
+    final midOrNear = t.mid > 0 ? t.mid : t.near;
+    if (dist < t.far + 20 && dist >= midOrNear + 20 && _ttsAnnouncedFar != nextIdx) {
+      _ttsAnnouncedFar = nextIdx;
+      if (!_voiceMuted) _tts.announceManeuver(nextStep.instruction, t.far);
+    }
+    // Mid announcement (skipped when t.mid == 0)
+    else if (t.mid > 0 && dist < t.mid + 20 && dist >= t.near + 20
+        && _ttsAnnouncedMid != nextIdx) {
+      _ttsAnnouncedMid = nextIdx;
+      if (!_voiceMuted) _tts.announceManeuver(nextStep.instruction, t.mid);
+    }
+    // Near/final announcement
+    else if (dist < t.near + 15 && _ttsAnnouncedNear != nextIdx) {
+      _ttsAnnouncedNear = nextIdx;
+      // Highway ramp near = 250 m → speak with distance; others = 50 m → imminent
+      final speakDist = t.near >= 200 ? t.near : 0;
+      if (!_voiceMuted) _tts.announceManeuver(nextStep.instruction, speakDist);
     }
 
     if (dist < 80) {
@@ -793,6 +811,77 @@ class _MapScreenState extends State<MapScreen>
     final cx = ex - t * dx;
     final cy = ey - t * dy;
     return math.sqrt(cx*cx + cy*cy);
+  }
+
+  /// Returns the (far, mid, near) announcement distance thresholds for [step].
+  /// All values are in metres. [mid] == 0 means the mid announcement is skipped.
+  static ({int far, int mid, int near}) _announcementThresholds(
+      RouteStep step, double speed) {
+    final isRamp = step.direction == 'off ramp' || step.direction == 'on ramp';
+    if (isRamp) return (far: 3000, mid: 500, near: 250);
+    final isRoundabout =
+        step.direction == 'roundabout' || step.direction == 'rotary';
+    if (isRoundabout) return (far: 400, mid: 100, near: 50);
+    if (speed > 80) return (far: 800, mid: 300, near: 50);
+    if (speed > 40) return (far: 400, mid: 0, near: 50);
+    return (far: 220, mid: 0, near: 50);
+  }
+
+  /// Plays a two-tone proximity beep when the user passes within 250 m of a
+  /// speed camera event. Each camera fires only once per navigation session.
+  Future<void> _checkSpeedCameraProximity() async {
+    if (!_isNavigating) return;
+    const dist = Distance();
+    for (final ev in _roadEvents) {
+      if (ev.category != RoadCategory.speedCamera) continue;
+      if (_alertedCameraIds.contains(ev.id)) continue;
+      final d = dist.as(LengthUnit.Meter, _position, ev.position);
+      if (d > 250) continue;
+      _alertedCameraIds.add(ev.id);
+      unawaited(_playSpeedCameraBeep());
+    }
+  }
+
+  Future<void> _playSpeedCameraBeep() async {
+    try {
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/roadstr_camera_beep.wav');
+      if (!await file.exists()) {
+        await file.writeAsBytes(_makeToneWav([(350, 220), (440, 220)]));
+      }
+      await _alertPlayer.setFilePath(file.path);
+      await _alertPlayer.seek(Duration.zero);
+      await _alertPlayer.play();
+    } catch (_) {}
+  }
+
+  /// Generates a PCM WAV from a list of (frequency Hz, duration ms) pairs.
+  static Uint8List _makeToneWav(List<(double, int)> tones) {
+    const sr = 24000;
+    final samples = <int>[];
+    for (final (freq, ms) in tones) {
+      final n = sr * ms ~/ 1000;
+      for (var i = 0; i < n; i++) {
+        final env = i < 120 ? i / 120.0 : i > n - 120 ? (n - i) / 120.0 : 1.0;
+        final s = math.sin(2 * math.pi * freq * i / sr) * 0.6 * env;
+        samples.add((s * 32767).clamp(-32768, 32767).round());
+      }
+    }
+    final dataLen = samples.length * 2;
+    final buf = ByteData(44 + dataLen);
+    void ascii(int p, String s) {
+      for (var i = 0; i < s.length; i++) buf.setUint8(p + i, s.codeUnitAt(i));
+    }
+    ascii(0, 'RIFF'); buf.setUint32(4, 36 + dataLen, Endian.little);
+    ascii(8, 'WAVEfmt '); buf.setUint32(16, 16, Endian.little);
+    buf.setUint16(20, 1, Endian.little); buf.setUint16(22, 1, Endian.little);
+    buf.setUint32(24, sr, Endian.little); buf.setUint32(28, sr * 2, Endian.little);
+    buf.setUint16(32, 2, Endian.little); buf.setUint16(34, 16, Endian.little);
+    ascii(36, 'data'); buf.setUint32(40, dataLen, Endian.little);
+    for (var i = 0; i < samples.length; i++) {
+      buf.setInt16(44 + i * 2, samples[i], Endian.little);
+    }
+    return buf.buffer.asUint8List();
   }
 
   /// Silently recalculates the best route from the current GPS position and
@@ -946,8 +1035,9 @@ class _MapScreenState extends State<MapScreen>
           AppLocalizations.of(context)!.selectedPosition;
       _saveToHistory(label, _destination!);
     }
-    _ttsAnnounced200 = -1;
-    _ttsAnnounced50  = -1;
+    _ttsAnnouncedFar  = -1;
+    _ttsAnnouncedMid  = -1;
+    _ttsAnnouncedNear = -1;
     final lang = Localizations.localeOf(context).languageCode;
     // Set language immediately so bundled assets resolve correctly even before
     // the model finishes loading.  Then init the model in the background for
@@ -1490,8 +1580,9 @@ class _MapScreenState extends State<MapScreen>
       _alternatives     = [];
       _showPreview      = false;
       _previewRoute     = null;
-      // Clear alerted event IDs so fresh alerts can fire on the next journey.
+      // Clear alerted IDs so fresh alerts can fire on the next journey.
       _alertedEventIds.clear();
+      _alertedCameraIds.clear();
     });
     _currentSpeedLimit = null;
     _animateCamera(toCenter: _position, toZoom: _camZoom, toRot: 0);
@@ -2243,25 +2334,37 @@ class _MapScreenState extends State<MapScreen>
           ),
         ),
 
-        // ── NAV INSTRUCTION / SEARCH BAR ───────────────────────────────────
-        Positioned(
-          top: topInset + 12, left: 16, right: 16,
-          child: _isNavigating && currentStep != null
-              ? _NavInstruction(step: currentStep, route: _route!,
-                  stepIdx: _currentStepIdx, colors: c,
-                  distToNextM: _distToNextManeuverM)
-              : _SearchBarWidget(
-                  controller: _searchController, colors: c,
-                  onFocus: () { _loadFavorites(); setState(() => _showSearch = true); },
-                  onChanged: _onSearchChanged,
-                  onSubmitted: _onSearchSubmit,
-                  onClear: () {
-                    _searchController.clear();
-                    setState(() { _searchResults = []; _showSearch = false; _pinResult = null; });
-                    FocusScope.of(context).unfocus();
-                  },
-                ),
-        ),
+        // ── NAV INSTRUCTION (full-width, top edge-to-edge) ─────────────────
+        if (_isNavigating && currentStep != null)
+          Positioned(
+            top: 0, left: 0, right: 0,
+            child: _NavInstruction(
+                step: currentStep,
+                nextStep: (_route != null && _nextStepIdx + 1 < _route!.steps.length)
+                    ? _route!.steps[_nextStepIdx + 1] : null,
+                distToNextStepM: currentStep.distanceM,
+                route: _route!,
+                stepIdx: _currentStepIdx,
+                colors: c,
+                topInset: topInset,
+                distToNextM: _distToNextManeuverM),
+          ),
+
+        // ── SEARCH BAR (floating with margin — only when not navigating) ────
+        if (!_isNavigating)
+          Positioned(
+            top: topInset + 12, left: 16, right: 16,
+            child: _SearchBarWidget(
+                controller: _searchController, colors: c,
+                onFocus: () { _loadFavorites(); setState(() => _showSearch = true); },
+                onChanged: _onSearchChanged,
+                onSubmitted: _onSearchSubmit,
+                onClear: () {
+                  _searchController.clear();
+                  setState(() { _searchResults = []; _showSearch = false; _pinResult = null; });
+                  FocusScope.of(context).unfocus();
+                }),
+          ),
 
         // ── SEARCH RESULTS / HISTORY ─────────────────────────────────────────
         if (_showSearch)
@@ -2435,7 +2538,8 @@ class _MapScreenState extends State<MapScreen>
                   bottomInset: bottomInset, colors: c,
                   onStop: _showExitNavigationDialog,
                   remainingDistM: _remainingDistM,
-                  remainingSecs: _remainingSecs)
+                  remainingSecs: _remainingSecs,
+                  speedLimit: _currentSpeedLimit)
               : _showPlaceInfo && _placePoint != null
                   ? _PlaceInfoPanel(
                       point:      _placePoint!,
@@ -2583,6 +2687,7 @@ class _MapScreenState extends State<MapScreen>
     _magnetSub?.cancel();
     _accelSub?.cancel();
     _tts.dispose();
+    _alertPlayer.dispose();
     _nostr.dispose();
     _gps.dispose();
     _searchController.dispose();
@@ -4691,52 +4796,65 @@ class _SearchResults extends StatelessWidget {
 
 class _NavInstruction extends StatelessWidget {
   final RouteStep step;
+  /// The maneuver that follows the current one — shown as a small preview row.
+  final RouteStep? nextStep;
+  /// Distance of the current segment (= how far after THIS maneuver until the next).
+  final double distToNextStepM;
   final RouteResult route;
   final int stepIdx;
   final RoadstrColors colors;
-  /// Live GPS distance to the next maneuver point. Updated every GPS tick so
-  /// the countdown reflects actual position, not the pre-calculated step length.
+  final double topInset;
+  /// Live GPS distance to the next maneuver point.
   final double distToNextM;
-  const _NavInstruction({required this.step, required this.route,
-      required this.stepIdx, required this.colors,
-      this.distToNextM = 0});
+  const _NavInstruction({
+    required this.step, required this.route, required this.stepIdx,
+    required this.colors,
+    this.nextStep, this.distToNextStepM = 0,
+    this.topInset = 0, this.distToNextM = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
     final land = MediaQuery.of(context).orientation == Orientation.landscape;
-    final iconSz = land ? 32.0 : 48.0;
-    final boxSz  = land ? 56.0 : 88.0;
-    final fsMain = land ? 16.0 : 22.0;
-    final fsSub  = land ? 13.0 : 17.0;
+    final iconSz = land ? 36.0 : 56.0;
+    final boxSz  = land ? 60.0 : 96.0;
+    final fsMain = land ? 18.0 : 26.0;
+    final fsSub  = land ? 14.0 : 19.0;
     final vPad   = land ? 10.0 : 20.0;
+    final showNext = nextStep != null && nextStep!.direction != 'arrive';
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: vPad),
+      padding: EdgeInsets.fromLTRB(16, topInset + vPad, 16, vPad),
       decoration: BoxDecoration(
-        color: colors.surface2, borderRadius: BorderRadius.circular(16),
+        color: colors.surface2,
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.18),
             blurRadius: 12, offset: const Offset(0, 3))],
       ),
-      child: Row(children: [
-        Container(
-          width: boxSz, height: boxSz,
-          decoration: BoxDecoration(color: colors.accentSoft,
-              borderRadius: BorderRadius.circular(10)),
-          child: Icon(_directionIcon(step.direction, step.modifier),
-              color: colors.accent, size: iconSz),
-        ),
-        const SizedBox(width: 10),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min, children: [
-          Text(step.instruction, style: TextStyle(color: colors.textPrimary,
-              fontSize: fsMain, fontWeight: FontWeight.w600),
-              maxLines: land ? 1 : 2, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 2),
-          // Show live distance to next maneuver when available (> 0);
-          // fall back to the step's pre-calculated length otherwise.
-          Text(_distLabel(distToNextM > 0 ? distToNextM : step.distanceM,
-                AppLocalizations.of(context)!.now),
-              style: TextStyle(color: colors.textSecondary, fontSize: fsSub)),
-        ])),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Row(children: [
+          _stepIcon(step, boxSz, iconSz, colors),
+          const SizedBox(width: 12),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min, children: [
+            Text(step.instruction, style: TextStyle(color: colors.textPrimary,
+                fontSize: fsMain, fontWeight: FontWeight.w600),
+                maxLines: land ? 1 : 3, overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 2),
+            Text(_distLabel(distToNextM > 0 ? distToNextM : step.distanceM,
+                  AppLocalizations.of(context)!.now),
+                style: TextStyle(color: colors.textSecondary, fontSize: fsSub)),
+          ])),
+        ]),
+        if (showNext) ...[
+          Divider(height: 12, thickness: 0.5, color: colors.border),
+          Row(children: [
+            Icon(_directionIcon(nextStep!.direction, nextStep!.modifier),
+                color: colors.textSecondary, size: 18),
+            const SizedBox(width: 8),
+            Text(_distLabel(distToNextStepM, ''),
+                style: TextStyle(color: colors.textSecondary,
+                    fontSize: fsSub - 1, fontWeight: FontWeight.w500)),
+          ]),
+        ],
       ]),
     );
   }
@@ -4745,6 +4863,32 @@ class _NavInstruction extends StatelessWidget {
     if (m < 50) return nowLabel;
     if (m < 1000) return '${m.round()} m';
     return '${(m / 1000).toStringAsFixed(1)} km';
+  }
+
+  /// Returns either a roundabout custom icon (when exit data is available) or
+  /// the standard direction icon box.
+  Widget _stepIcon(RouteStep s, double boxSz, double iconSz, RoadstrColors c) {
+    final isRound = s.direction == 'roundabout' || s.direction == 'rotary';
+    if (isRound && s.exitNumber != null && s.exitNumber! >= 1) {
+      return SizedBox(
+        width: boxSz, height: boxSz,
+        child: CustomPaint(
+          painter: _RoundaboutPainter(
+            exitNumber: s.exitNumber!.clamp(1, 6),
+            accent: c.accent,
+            ring: c.border,
+            island: c.surface3,
+          ),
+        ),
+      );
+    }
+    return Container(
+      width: boxSz, height: boxSz,
+      decoration: BoxDecoration(color: c.accentSoft,
+          borderRadius: BorderRadius.circular(12)),
+      child: Icon(_directionIcon(s.direction, s.modifier),
+          color: c.accent, size: iconSz),
+    );
   }
 
   IconData _directionIcon(String direction, String modifier) {
@@ -4792,9 +4936,10 @@ class _NavPanel extends StatelessWidget {
   final double remainingDistM;
   /// Live remaining seconds (estimated from remaining distance).
   final double remainingSecs;
+  final int? speedLimit;
   const _NavPanel({required this.route, required this.speed,
       required this.bottomInset, required this.colors, required this.onStop,
-      this.remainingDistM = 0, this.remainingSecs = 0});
+      this.remainingDistM = 0, this.remainingSecs = 0, this.speedLimit});
 
   String get _distLabel {
     final m = remainingDistM > 0 ? remainingDistM : route.totalDistanceM;
@@ -4836,7 +4981,7 @@ class _NavPanel extends StatelessWidget {
       ),
       padding: EdgeInsets.only(left: 16, right: 16, top: vTop, bottom: vBot),
       child: Row(children: [
-        SpeedometerWidget(speedKmh: speed, size: speedoSz),
+        SpeedometerWidget(speedKmh: speed, size: speedoSz, speedLimit: speedLimit),
         const SizedBox(width: 12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min, children: [
@@ -5084,4 +5229,101 @@ class _PinLinePainter extends CustomPainter {
         Paint()..color = color..strokeWidth = 2);
   }
   @override bool shouldRepaint(_) => false;
+}
+
+/// Draws a roundabout diagram with the highlighted exit arc for exit N (1-6).
+///
+/// Canvas geometry (y-down, angles CW-positive):
+///   entry  = bottom = π/2
+///   traffic flows CCW (right-hand traffic) → negative sweep
+///   exit N = π/2 - N × 75°  (canvas angle, counting CCW from entry)
+///   highlighted arc sweeps CCW (negative) from entry to exit N
+class _RoundaboutPainter extends CustomPainter {
+  final int exitNumber; // 1-6
+  final Color accent;
+  final Color ring;
+  final Color island;
+
+  const _RoundaboutPainter({
+    required this.exitNumber,
+    required this.accent,
+    required this.ring,
+    required this.island,
+  });
+
+  // 75° per exit in radians; CCW in canvas = subtract from entry angle
+  static const _kStep = 75.0 * math.pi / 180.0;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final outerR = size.width * 0.42;
+    final innerR = outerR * 0.50;
+    final arrowLen = size.width * 0.14;
+    final arrowTip = size.width * 0.06;
+    final strokeW = size.width * 0.09;
+    final arrowW = size.width * 0.06;
+
+    // ── Background ring ───────────────────────────────────────────────────────
+    canvas.drawCircle(Offset(cx, cy), (outerR + innerR) / 2,
+        Paint()
+          ..color = ring.withValues(alpha: 0.5)
+          ..strokeWidth = strokeW
+          ..style = PaintingStyle.stroke);
+
+    // ── Island fill ───────────────────────────────────────────────────────────
+    canvas.drawCircle(Offset(cx, cy), innerR - strokeW * 0.5,
+        Paint()..color = island.withValues(alpha: 0.4));
+
+    // ── Angles ────────────────────────────────────────────────────────────────
+    // entry at bottom (canvas π/2); exits go CCW = subtract
+    const entryC = math.pi / 2.0;
+    final n = exitNumber.clamp(1, 6);
+    final exitC = entryC - n * _kStep; // canvas angle of the exit
+    // Sweep is CCW (negative). Clamp so exit 5-6 don't wrap past full circle.
+    final sweep = (-n * _kStep).clamp(-5.8, -0.25);
+
+    // ── Highlighted arc (accent, CCW from entry to exit) ─────────────────────
+    canvas.drawArc(
+      Rect.fromCircle(center: Offset(cx, cy), radius: (outerR + innerR) / 2),
+      entryC, sweep, false,
+      Paint()
+        ..color = accent
+        ..strokeWidth = strokeW
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.butt,
+    );
+
+    // ── Entry arrow: from outside inward at bottom ────────────────────────────
+    final entryRing = Offset(cx + outerR * math.cos(entryC),
+                              cy + outerR * math.sin(entryC));
+    final entryOut  = Offset(cx + (outerR + arrowLen) * math.cos(entryC),
+                              cy + (outerR + arrowLen) * math.sin(entryC));
+    canvas.drawLine(entryOut, entryRing,
+        Paint()..color = ring..strokeWidth = arrowW..strokeCap = StrokeCap.round);
+
+    // ── Exit arrow: from ring outward at exit angle (accent) ──────────────────
+    final exitRing = Offset(cx + outerR * math.cos(exitC),
+                             cy + outerR * math.sin(exitC));
+    final exitOut  = Offset(cx + (outerR + arrowLen) * math.cos(exitC),
+                             cy + (outerR + arrowLen) * math.sin(exitC));
+    final exitPaint = Paint()
+      ..color = accent..strokeWidth = arrowW..strokeCap = StrokeCap.round;
+    canvas.drawLine(exitRing, exitOut, exitPaint);
+
+    // Arrowhead chevron at tip
+    final back = exitC + math.pi;
+    const hw = 0.4;
+    canvas.drawLine(exitOut,
+        Offset(exitOut.dx + arrowTip * math.cos(back + hw),
+               exitOut.dy + arrowTip * math.sin(back + hw)), exitPaint);
+    canvas.drawLine(exitOut,
+        Offset(exitOut.dx + arrowTip * math.cos(back - hw),
+               exitOut.dy + arrowTip * math.sin(back - hw)), exitPaint);
+  }
+
+  @override
+  bool shouldRepaint(_RoundaboutPainter old) =>
+      old.exitNumber != exitNumber || old.accent != accent;
 }

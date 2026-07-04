@@ -252,8 +252,28 @@ class KokoroTtsService {
   Future<void> announceStart() => speak(_letsGo(_lang));
   Future<void> announceArrival() => speak(_arrived(_lang));
 
-  Future<void> announceManeuver(String instruction, int distMeters) =>
-      speak(distMeters > 0 ? '${_inMeters(distMeters, _lang)}$instruction' : instruction);
+  Future<void> announceManeuver(String instruction, int distMeters) {
+    final clean = _normalizeOrdinals(instruction, _lang);
+    return speak(distMeters > 0 ? '${_inMeters(distMeters, _lang)}$clean' : clean);
+  }
+
+  /// Replaces ordinal symbols (e.g. "1°", "2°") with spoken words so the TTS
+  /// engine does not misread "°" as a temperature unit.
+  static String _normalizeOrdinals(String text, String lang) =>
+      text.replaceAllMapped(RegExp(r'(\d+)°'), (m) =>
+          _ordinalWord(int.tryParse(m[1]!) ?? 1, lang));
+
+  static String _ordinalWord(int n, String lang) {
+    const it = {1:'prima',2:'seconda',3:'terza',4:'quarta',5:'quinta',6:'sesta'};
+    const es = {1:'primera',2:'segunda',3:'tercera',4:'cuarta',5:'quinta',6:'sexta'};
+    const fr = {1:'première',2:'deuxième',3:'troisième',4:'quatrième',5:'cinquième',6:'sixième'};
+    const pt = {1:'primeira',2:'segunda',3:'terceira',4:'quarta',5:'quinta',6:'sexta'};
+    const en = {1:'first',2:'second',3:'third',4:'fourth',5:'fifth',6:'sixth'};
+    final map = switch (lang) {
+      'it' => it, 'es' => es, 'fr' => fr, 'pt' => pt, _ => en,
+    };
+    return map[n] ?? '$n';
+  }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 

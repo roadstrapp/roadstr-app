@@ -27,6 +27,8 @@ class RouteStep {
   final double distanceM;
   /// The geographic point where this maneuver begins.
   final LatLng location;
+  /// Exit number for roundabout/rotary maneuvers (1-based). Null for other types.
+  final int? exitNumber;
 
   const RouteStep({
     required this.instruction,
@@ -34,6 +36,7 @@ class RouteStep {
     this.modifier = '',
     required this.distanceM,
     required this.location,
+    this.exitNumber,
   });
 }
 
@@ -335,11 +338,13 @@ class RoutingService {
             } else {
               loc = coords.isNotEmpty ? coords.first : LatLng(origin.latitude, origin.longitude);
             }
+            final orsIsRoundabout = type == 'roundabout';
             steps.add(RouteStep(
               instruction: instr,
               direction: type,
               distanceM: dist,
               location: loc,
+              exitNumber: orsIsRoundabout ? _parseExitNumber(instr) : null,
             ));
           }
         }
@@ -400,7 +405,9 @@ class RoutingService {
           final sign = m['sign']?.toString() ?? '';
           final idx = (m['interval'] as List?)?.first as int? ?? 0;
           final loc = idx >= 0 && idx < coords.length ? coords[idx] : (coords.isNotEmpty ? coords.first : LatLng(origin.latitude, origin.longitude));
-          steps.add(RouteStep(instruction: text, direction: sign, distanceM: dist, location: loc));
+          final isRoundabout = sign == '6' || sign == 'roundabout' || sign == 'rotary';
+          steps.add(RouteStep(instruction: text, direction: sign, distanceM: dist, location: loc,
+              exitNumber: isRoundabout ? _parseExitNumber(text) : null));
         }
 
         // GraphHopper details=max_speed: [[fromIdx, toIdx, valueKmh], ...]
@@ -557,6 +564,7 @@ class RoutingService {
         distanceM: (step['distance'] as num).toDouble(),
         location: LatLng(
             (loc[1] as num).toDouble(), (loc[0] as num).toDouble()),
+        exitNumber: maneuver['exit'] as int?,
       ));
     }
 
@@ -673,6 +681,29 @@ class RoutingService {
       }
       default: return it ? 'Continua dritto$road' : 'Continue straight$road';
     }
+  }
+
+  /// Extracts the roundabout exit number from an instruction string.
+  /// Handles ordinal digits (1°, 2ª, 1st, 2nd) and spelled-out forms in
+  /// the supported navigation languages.
+  static int? _parseExitNumber(String instruction) {
+    // Numeric ordinal: "1°", "2ª", "3rd", "4th" etc.
+    final numMatch = RegExp(r'\b([1-9])[°ªaero]').firstMatch(instruction);
+    if (numMatch != null) return int.tryParse(numMatch.group(1)!);
+    // Spelled-out ordinals (covers it/es/fr/pt/en)
+    const ordinals = {
+      'first': 1, 'prima': 1, 'première': 1, 'primera': 1, 'primeira': 1,
+      'second': 2, 'seconda': 2, 'deuxième': 2, 'segunda': 2,
+      'third': 3, 'terza': 3, 'troisième': 3, 'tercera': 3, 'terceira': 3,
+      'fourth': 4, 'quarta': 4, 'quatrième': 4, 'cuarta': 4,
+      'fifth': 5, 'quinta': 5, 'cinquième': 5,
+      'sixth': 6, 'sesta': 6, 'sixième': 6, 'sexta': 6,
+    };
+    final lower = instruction.toLowerCase();
+    for (final e in ordinals.entries) {
+      if (lower.contains(e.key)) return e.value;
+    }
+    return null;
   }
 }
 
