@@ -673,4 +673,79 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get autoDarkModeDesc => 'Aktyvuoja tamsią temą saulėlydžio metu';
+
+  @override
+  String get arrivedTitle => '🎉 Atvykote!';
+
+  @override
+  String get arrivedBody => 'Pasiekėte savo kelionės tikslą.';
+
+  @override
+  String get arrivedFeedbackPrompt => 'Kaip sekėsi?';
+
+  @override
+  String get feedbackBad => 'Blogai';
+
+  @override
+  String get feedbackGood => 'Gerai!';
+
+  @override
+  String get feedbackDialogTitle => 'Pasakykite mums, kas nutiko ne taip';
+
+  @override
+  String get feedbackHint => 'Aprašykite problemą…';
+
+  @override
+  String get feedbackSent => 'Atsiliepimas išsiųstas — ačiū! 🙏';
+
+  @override
+  String get feedbackSubmit => 'Siųsti';
+
+  @override
+  String get transportModeCar => 'Automobilis';
+
+  @override
+  String get transportModeWalk => 'Pėsčiomis';
+
+  @override
+  String etaArrivalLabel(String time) {
+    return 'Atvyk. $time';
+  }
+
+  @override
+  String get supportRoadstr => 'Paremkite Roadstr';
+
+  @override
+  String lightningAddressCopied(String address) {
+    return '⚡ $address nukopijuota į iškarpinę';
+  }
+
+  @override
+  String get disclaimerTitle => 'Svarbus pranešimas';
+
+  @override
+  String get disclaimerAccept => 'Perskaičiau ir sutinku';
+
+  @override
+  String get disclaimerBody =>
+      'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.';
+
+  @override
+  String get readOnWikipedia => 'Skaityti Vikipedijoje';
+
+  @override
+  String searchOnEngine(String engine) {
+    return 'Ieškoti $engine';
+  }
+
+  @override
+  String get plannerFromHint => 'Iš kur…';
+
+  @override
+  String get plannerToHint => 'Kelionės tikslas…';
+
+  @override
+  String departEta(String dep, String arr) {
+    return 'Išvykimas $dep  →  Atvykimas $arr';
+  }
 }

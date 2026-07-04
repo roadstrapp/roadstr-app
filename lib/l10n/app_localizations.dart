@@ -1365,6 +1365,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Activates the dark theme at sunset and sunrise'**
   String get autoDarkModeDesc;
+
+  /// No description provided for @arrivedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'🎉 You arrived!'**
+  String get arrivedTitle;
+
+  /// No description provided for @arrivedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You have reached your destination.'**
+  String get arrivedBody;
+
+  /// No description provided for @arrivedFeedbackPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'How did it go?'**
+  String get arrivedFeedbackPrompt;
+
+  /// No description provided for @feedbackBad.
+  ///
+  /// In en, this message translates to:
+  /// **'Bad'**
+  String get feedbackBad;
+
+  /// No description provided for @feedbackGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good!'**
+  String get feedbackGood;
+
+  /// No description provided for @feedbackDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what went wrong'**
+  String get feedbackDialogTitle;
+
+  /// No description provided for @feedbackHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the problem…'**
+  String get feedbackHint;
+
+  /// No description provided for @feedbackSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback sent — thank you! 🙏'**
+  String get feedbackSent;
+
+  /// No description provided for @feedbackSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get feedbackSubmit;
+
+  /// No description provided for @transportModeCar.
+  ///
+  /// In en, this message translates to:
+  /// **'Car'**
+  String get transportModeCar;
+
+  /// No description provided for @transportModeWalk.
+  ///
+  /// In en, this message translates to:
+  /// **'On foot'**
+  String get transportModeWalk;
+
+  /// No description provided for @etaArrivalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Arr. {time}'**
+  String etaArrivalLabel(String time);
+
+  /// No description provided for @supportRoadstr.
+  ///
+  /// In en, this message translates to:
+  /// **'Support Roadstr'**
+  String get supportRoadstr;
+
+  /// No description provided for @lightningAddressCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'⚡ {address} copied to clipboard'**
+  String lightningAddressCopied(String address);
+
+  /// No description provided for @disclaimerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Important notice'**
+  String get disclaimerTitle;
+
+  /// No description provided for @disclaimerAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'I have read and accept'**
+  String get disclaimerAccept;
+
+  /// No description provided for @disclaimerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.'**
+  String get disclaimerBody;
+
+  /// No description provided for @readOnWikipedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Read on Wikipedia'**
+  String get readOnWikipedia;
+
+  /// No description provided for @searchOnEngine.
+  ///
+  /// In en, this message translates to:
+  /// **'Search on {engine}'**
+  String searchOnEngine(String engine);
+
+  /// No description provided for @plannerFromHint.
+  ///
+  /// In en, this message translates to:
+  /// **'From…'**
+  String get plannerFromHint;
+
+  /// No description provided for @plannerToHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination…'**
+  String get plannerToHint;
+
+  /// No description provided for @departEta.
+  ///
+  /// In en, this message translates to:
+  /// **'Depart {dep}  →  ETA {arr}'**
+  String departEta(String dep, String arr);
 }
 
 class _AppLocalizationsDelegate
