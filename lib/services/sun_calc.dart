@@ -44,5 +44,5 @@ class SunCalc {
   }
 
   static int _dayOfYear(DateTime d) =>
-      d.difference(DateTime(d.year, 1, 1)).inDays + 1;
+      d.difference(DateTime.utc(d.year, 1, 1)).inDays + 1;
 }

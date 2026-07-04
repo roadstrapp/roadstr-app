@@ -234,6 +234,7 @@ class _DisclaimerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context)!;
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -252,14 +253,14 @@ class _DisclaimerScreen extends StatelessWidget {
                         color: const Color(0xFF7C3AED))),
               ]),
               const SizedBox(height: 32),
-              Text('Avviso importante',
+              Text(l.disclaimerTitle,
                   style: theme.textTheme.titleLarge
                       ?.copyWith(fontWeight: FontWeight.w700)),
               const SizedBox(height: 16),
               Expanded(
                 child: SingleChildScrollView(
                   child: Text(
-                    _disclaimerText,
+                    l.disclaimerBody,
                     style: theme.textTheme.bodyMedium
                         ?.copyWith(height: 1.6, fontSize: 14),
                   ),
@@ -275,8 +276,8 @@ class _DisclaimerScreen extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14))),
                   onPressed: onAccept,
-                  child: const Text('Ho letto e accetto',
-                      style: TextStyle(
+                  child: Text(l.disclaimerAccept,
+                      style: const TextStyle(
                           fontSize: 16, fontWeight: FontWeight.w700)),
                 ),
               ),
@@ -286,25 +287,4 @@ class _DisclaimerScreen extends StatelessWidget {
       ),
     );
   }
-
-  static const _disclaimerText = '''
-Roadstr è un'applicazione di navigazione sperimentale basata su dati OpenStreetMap e sul protocollo Nostr. Utilizzando questa app l'utente accetta integralmente le seguenti condizioni:
-
-🚗  SICUREZZA STRADALE
-Il guidatore è tenuto a mantenere sempre gli occhi sulla strada. Non guardare il telefono durante la guida. Assicurare il dispositivo in un supporto approvato e visibile senza distogliere l'attenzione dalla strada.
-
-⚠️  LIMITAZIONE DI RESPONSABILITÀ
-Roadstr viene fornita "così com'è", senza garanzie di accuratezza, completezza o idoneità a scopi specifici. Gli sviluppatori declinano qualsiasi responsabilità per danni derivanti dall'uso dell'applicazione, inclusi ma non limitati a: incidenti stradali, sanzioni amministrative, danni a cose o persone.
-
-🚫  ZONE A TRAFFICO LIMITATO (ZTL)
-La navigazione si basa sui dati OpenStreetMap che potrebbero non essere aggiornati riguardo a ZTL, corsie preferenziali e restrizioni locali. L'utente è responsabile di verificare autonomamente l'accessibilità del percorso suggerito nelle zone a traffico limitato prima di percorrerlo. Gli sviluppatori non rispondono di eventuali sanzioni ricevute.
-
-📍  ACCURATEZZA
-Il tracciamento GPS può risultare impreciso. Le indicazioni stradali sono a titolo orientativo. Rispettare sempre la segnaletica stradale verticale e orizzontale, che ha sempre la precedenza sulle indicazioni dell'app.
-
-🔒  PRIVACY
-Nessun dato di posizione viene trasmesso a server esterni. Il calcolo del percorso avviene tramite servizi terzi (OSRM, GraphHopper, OpenRouteService) ai quali vengono inviate esclusivamente le coordinate di partenza e arrivo.
-
-Utilizzando Roadstr l'utente si assume la piena e totale responsabilità dell'utilizzo dell'applicazione e di qualsiasi conseguenza derivante dall'uso della stessa.
-  ''';
 }

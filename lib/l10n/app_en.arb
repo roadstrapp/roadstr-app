@@ -274,5 +274,58 @@
   "kokoroModelDownloadBtn": "Download",
   "kokoroModelSupportedLangs": "Supports: Italian, English, Spanish, French, Japanese, Chinese, Portuguese",
   "autoDarkMode": "Auto dark theme",
-  "autoDarkModeDesc": "Activates the dark theme at sunset and sunrise"
+  "autoDarkModeDesc": "Activates the dark theme at sunset and sunrise",
+  "arrivedTitle": "🎉 You arrived!",
+  "arrivedBody": "You have reached your destination.",
+  "arrivedFeedbackPrompt": "How did it go?",
+  "feedbackBad": "Bad",
+  "feedbackGood": "Good!",
+  "feedbackDialogTitle": "Tell us what went wrong",
+  "feedbackHint": "Describe the problem…",
+  "feedbackSent": "Feedback sent — thank you! 🙏",
+  "feedbackSubmit": "Send",
+  "transportModeCar": "Car",
+  "transportModeWalk": "On foot",
+  "etaArrivalLabel": "Arr. {time}",
+  "supportRoadstr": "Support Roadstr",
+  "lightningAddressCopied": "⚡ {address} copied to clipboard",
+  "disclaimerTitle": "Important notice",
+  "disclaimerAccept": "I have read and accept",
+  "disclaimerBody": "Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app's instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.",
+  "readOnWikipedia": "Read on Wikipedia",
+  "searchOnEngine": "Search on {engine}",
+  "plannerFromHint": "From…",
+  "plannerToHint": "Destination…",
+  "departEta": "Depart {dep}  →  ETA {arr}",
+  "@etaArrivalLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@lightningAddressCopied": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "@searchOnEngine": {
+    "placeholders": {
+      "engine": {
+        "type": "String"
+      }
+    }
+  },
+  "@departEta": {
+    "placeholders": {
+      "dep": {
+        "type": "String"
+      },
+      "arr": {
+        "type": "String"
+      }
+    }
+  }
 }

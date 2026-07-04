@@ -69,8 +69,12 @@ class ThemeProvider extends ChangeNotifier {
       notifyListeners();
     } else if (_lastLat != null && _lastLng != null) {
       // Re-enabled with known position: recalculate immediately.
-      // Also reset debounce so _recalcAutoDark runs (not skipped by distance check).
       _recalcAutoDark(_lastLat!, _lastLng!);
+      // Always notify after re-enabling: _recalcAutoDark only calls
+      // notifyListeners when _autoDarkActive changes, but autoDarkEnabled
+      // itself changed too (e.g., re-enabling during daytime when active was
+      // already false — the settings toggle must reflect the new true value).
+      notifyListeners();
     } else {
       notifyListeners();
     }
@@ -98,12 +102,15 @@ class ThemeProvider extends ChangeNotifier {
     final times = SunCalc.sunTimes(lat, lng, now);
 
     bool active;
-    DateTime? nextTransition;
+    late DateTime nextTransition;
 
     if (times.rise == null || times.set == null) {
-      // Polar day/night — estimate by declination direction
+      // Polar day/night — estimate by declination direction.
       final doy = now.difference(DateTime.utc(now.year, 1, 1)).inDays;
       active = lat > 0 ? doy > 355 || doy < 80 : doy > 80 && doy < 355;
+      // Retry in 24 h: the polar window shifts ~1° per day, so we must
+      // re-evaluate daily rather than waiting for a >10 km GPS move.
+      nextTransition = now.add(const Duration(hours: 24));
     } else {
       active = now.isBefore(times.rise!) || now.isAfter(times.set!);
 
@@ -112,10 +119,13 @@ class ThemeProvider extends ChangeNotifier {
         if (now.isBefore(times.rise!)) {
           nextTransition = times.rise!;
         } else {
-          // After sunset — next is tomorrow's sunrise
+          // After sunset — next is tomorrow's sunrise.
           final tomorrow = now.add(const Duration(days: 1));
           final t2 = SunCalc.sunTimes(lat, lng, tomorrow);
-          nextTransition = t2.rise;
+          // t2.rise is null when approaching polar night. Fall back to a 24-hour
+          // retry so dark mode eventually lifts when the sun returns; without this
+          // the timer is never scheduled and dark mode stays on indefinitely.
+          nextTransition = t2.rise ?? now.add(const Duration(hours: 24));
         }
       } else {
         // Light now — next transition is today's sunset
@@ -128,11 +138,9 @@ class ThemeProvider extends ChangeNotifier {
     if (changed) notifyListeners();
 
     // Schedule a timer to flip exactly at the next sunrise/sunset.
-    if (nextTransition != null) {
-      final delay = nextTransition.difference(now);
-      if (delay.inSeconds > 0) {
-        _autoDarkTimer = Timer(delay, () => _recalcAutoDark(lat, lng));
-      }
+    final delay = nextTransition.difference(now);
+    if (delay.inSeconds > 0) {
+      _autoDarkTimer = Timer(delay, () => _recalcAutoDark(lat, lng));
     }
   }
 

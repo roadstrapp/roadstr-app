@@ -781,7 +781,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // ── INFO ─────────────────────────────────────────────────────────
           _SectionHeader(l.sectionInfo, c),
-          _InfoTile(l.infoVersion, '0.2.beta', c),
+          _InfoTile(l.infoVersion, '0.3.2', c),
           _InfoTile(l.infoProtocol, 'Nostr', c),
           _InfoTile(l.infoMaps, 'openstreetmap.org', c,
               url: 'https://www.openstreetmap.org'),
@@ -823,9 +823,10 @@ class _DonationTile extends StatelessWidget {
         if (!launched) {
           await Clipboard.setData(const ClipboardData(text: _lnAddress));
           if (context.mounted) {
+            final l = AppLocalizations.of(context)!;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('⚡ $_lnAddress copiato negli appunti'),
+                content: Text(l.lightningAddressCopied(_lnAddress)),
                 duration: const Duration(seconds: 3),
               ),
             );
@@ -846,7 +847,7 @@ class _DonationTile extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('Supporta Roadstr',
+                Text(AppLocalizations.of(context)!.supportRoadstr,
                     style: TextStyle(color: c.textPrimary, fontSize: 13,
                         fontWeight: FontWeight.w600)),
                 const SizedBox(height: 2),

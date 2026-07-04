@@ -645,4 +645,79 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get autoDarkModeDesc => '日落时自动启用深色主题';
+
+  @override
+  String get arrivedTitle => '🎉 您已到达！';
+
+  @override
+  String get arrivedBody => '您已到达目的地。';
+
+  @override
+  String get arrivedFeedbackPrompt => '旅途如何？';
+
+  @override
+  String get feedbackBad => '不好';
+
+  @override
+  String get feedbackGood => '很好！';
+
+  @override
+  String get feedbackDialogTitle => '告诉我们哪里出了问题';
+
+  @override
+  String get feedbackHint => '描述问题…';
+
+  @override
+  String get feedbackSent => '反馈已发送 — 谢谢！ 🙏';
+
+  @override
+  String get feedbackSubmit => '发送';
+
+  @override
+  String get transportModeCar => '驾车';
+
+  @override
+  String get transportModeWalk => '步行';
+
+  @override
+  String etaArrivalLabel(String time) {
+    return '到达 $time';
+  }
+
+  @override
+  String get supportRoadstr => '支持 Roadstr';
+
+  @override
+  String lightningAddressCopied(String address) {
+    return '⚡ $address 已复制到剪贴板';
+  }
+
+  @override
+  String get disclaimerTitle => '重要提示';
+
+  @override
+  String get disclaimerAccept => '我已阅读并接受';
+
+  @override
+  String get disclaimerBody =>
+      'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.';
+
+  @override
+  String get readOnWikipedia => '在维基百科上阅读';
+
+  @override
+  String searchOnEngine(String engine) {
+    return '在$engine上搜索';
+  }
+
+  @override
+  String get plannerFromHint => '从…';
+
+  @override
+  String get plannerToHint => '目的地…';
+
+  @override
+  String departEta(String dep, String arr) {
+    return '出发 $dep  →  预计到达 $arr';
+  }
 }

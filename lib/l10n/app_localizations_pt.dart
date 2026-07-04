@@ -671,4 +671,79 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get autoDarkModeDesc => 'Ativa o tema escuro ao pôr do sol';
+
+  @override
+  String get arrivedTitle => '🎉 Chegou!';
+
+  @override
+  String get arrivedBody => 'Você chegou ao seu destino.';
+
+  @override
+  String get arrivedFeedbackPrompt => 'Como foi?';
+
+  @override
+  String get feedbackBad => 'Mal';
+
+  @override
+  String get feedbackGood => 'Bem!';
+
+  @override
+  String get feedbackDialogTitle => 'Diga-nos o que correu mal';
+
+  @override
+  String get feedbackHint => 'Descreva o problema…';
+
+  @override
+  String get feedbackSent => 'Comentário enviado — obrigado! 🙏';
+
+  @override
+  String get feedbackSubmit => 'Enviar';
+
+  @override
+  String get transportModeCar => 'Carro';
+
+  @override
+  String get transportModeWalk => 'A pé';
+
+  @override
+  String etaArrivalLabel(String time) {
+    return 'Cheg. $time';
+  }
+
+  @override
+  String get supportRoadstr => 'Apoie o Roadstr';
+
+  @override
+  String lightningAddressCopied(String address) {
+    return '⚡ $address copiado para a área de transferência';
+  }
+
+  @override
+  String get disclaimerTitle => 'Aviso importante';
+
+  @override
+  String get disclaimerAccept => 'Li e aceito';
+
+  @override
+  String get disclaimerBody =>
+      'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.';
+
+  @override
+  String get readOnWikipedia => 'Ler na Wikipédia';
+
+  @override
+  String searchOnEngine(String engine) {
+    return 'Pesquisar no $engine';
+  }
+
+  @override
+  String get plannerFromHint => 'De…';
+
+  @override
+  String get plannerToHint => 'Destino…';
+
+  @override
+  String departEta(String dep, String arr) {
+    return 'Partida $dep  →  Chegada $arr';
+  }
 }
