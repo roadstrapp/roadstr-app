@@ -327,5 +327,86 @@
         "type": "String"
       }
     }
-  }
+  },
+  "modeCar": "Car",
+  "modeBike": "Bike",
+  "modeWalk": "On foot",
+  "windSpeed": "wind {speed} km/h",
+  "@windSpeed": {
+    "placeholders": {
+      "speed": {
+        "type": "String"
+      }
+    }
+  },
+  "durationMin": "{m} min",
+  "@durationMin": {
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHourMin": "{h}h {m}min",
+  "@durationHourMin": {
+    "placeholders": {
+      "h": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "weatherClear": "Clear",
+  "weatherPartlyCloudy": "Partly cloudy",
+  "weatherCloudy": "Cloudy",
+  "weatherFog": "Fog",
+  "weatherLightRain": "Light rain",
+  "weatherRain": "Rain",
+  "weatherSnow": "Snow",
+  "weatherShowers": "Showers",
+  "weatherThunderstorm": "Thunderstorm",
+  "ztlAheadWarning": "ZTL zone ahead — route leads into restricted area",
+  "ztlInsideWarning": "Restricted traffic zone",
+  "onboardingAppSubtitle": "Open-source Nostr navigation",
+  "onboardingWelcomeTitle": "Welcome",
+  "onboardingWelcomeBody": "Everything your navigation app needs — without giving up your privacy.",
+  "onboardingFeatureNav": "Turn-by-turn GPS navigation",
+  "onboardingFeatureNostr": "Nostr road events (speed cameras, hazards, traffic)",
+  "onboardingFeatureLightning": "Lightning Network tips for event reporters",
+  "onboardingFeatureVoice": "On-device AI voice guidance (Kokoro-82M)",
+  "onboardingFeaturePrivacy": "No account required — no tracking, ever",
+  "onboardingGetStarted": "Get started",
+  "onboardingNostrTitle": "Nostr Identity",
+  "onboardingNostrSubtitle": "Optional — connect to report road events, confirm alerts and earn Lightning tips.",
+  "onboardingNostrConnected": "Connected",
+  "onboardingAmberTitle": "Amber — NIP-55 (recommended)",
+  "onboardingAmberSubtitle": "Connect with the Amber signer app. Your private key never leaves Amber.",
+  "onboardingNsecTitle": "nsec key",
+  "onboardingNsecSubtitle": "Paste your private key. Stored in the Android Keystore.",
+  "onboardingNsecError": "Invalid nsec key — please check and try again.",
+  "onboardingSkip": "Skip for now",
+  "onboardingContinue": "Continue",
+  "onboardingEnterNsec": "Enter nsec key",
+  "onboardingSetupTitle": "Set up Roadstr",
+  "onboardingSetupSubtitle": "Configure location access and optional voice guidance.",
+  "onboardingLocationTitle": "Location",
+  "onboardingLocationGranted": "Location access granted",
+  "onboardingLocationRequired": "Required for GPS navigation",
+  "onboardingGrantButton": "Grant",
+  "onboardingGrapheneTitle": "GrapheneOS users",
+  "onboardingGrapheneBody": "Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.",
+  "onboardingVoiceTitle": "AI voice guidance (optional)",
+  "onboardingVoiceReady": "Kokoro voice model ready",
+  "onboardingVoiceDownloading": "Downloading voice model…",
+  "onboardingVoiceNotDownloaded": "Download the 82 MB Kokoro AI model for on-device voice",
+  "onboardingVoiceChecking": "Checking model status…",
+  "onboardingDownloadButton": "Download",
+  "onboardingVoiceLaterHint": "You can also download the voice model later from\nSettings → Navigation voice.",
+  "onboardingReadyTitle": "You're ready to navigate!",
+  "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
+  "onboardingLetsGo": "Let's go!",
+  "onboardingProfileLoading": "Loading profile…",
+  "onboardingNsecHint": "nsec1…"
 }

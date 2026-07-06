@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="motoGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3A4557"></stop>
+      <stop offset="1" stop-color="#1D2430"></stop>
+    </linearGradient>
+  </defs>
+  <ellipse cx="24" cy="39" rx="6" ry="2.6" fill="#000000" opacity="0.25"></ellipse>
+
+  
+  <ellipse cx="24" cy="10.5" rx="2.4" ry="3.6" fill="#111"></ellipse>
+  <ellipse cx="24" cy="37" rx="2.6" ry="3.9" fill="#111"></ellipse>
+
+  
+  <path d="M24,7.2&#xA;           C27.2,7.2 28.8,10.3 28.2,14.2&#xA;           C27.7,17.4 26,19.4 26,23.5&#xA;           L26,29&#xA;           C26,32.7 25.1,35.6 24,38&#xA;           C22.9,35.6 22,32.7 22,29&#xA;           L22,23.5&#xA;           C22,19.4 20.3,17.4 19.8,14.2&#xA;           C19.2,10.3 20.8,7.2 24,7.2 Z" fill="url(#motoGrad)" stroke="#0D1117" stroke-width="1.5" stroke-linejoin="round"></path>
+
+  
+  <path d="M21.6,9 C22.6,7.6 25.4,7.6 26.4,9 C26.1,10.5 21.9,10.5 21.6,9 Z" fill="#8FA8CC" opacity="0.85"></path>
+
+  
+  <ellipse cx="24" cy="16.5" rx="3" ry="3.2" fill="#D5323A" stroke="#0D1117" stroke-width="1"></ellipse>
+  <path d="M20,21 C21.4,19.6 26.6,19.6 28,21 L27,25.5 L21,25.5 Z" fill="#D5323A" stroke="#0D1117" stroke-width="1" stroke-linejoin="round"></path>
+
+  
+  <line x1="19" y1="13.3" x2="29" y2="13.3" stroke="#0D1117" stroke-width="1.5" stroke-linecap="round"></line>
+</svg>

@@ -720,4 +720,194 @@ class AppLocalizationsZh extends AppLocalizations {
   String departEta(String dep, String arr) {
     return '出发 $dep  →  预计到达 $arr';
   }
+
+  @override
+  String get modeCar => '轿车';
+
+  @override
+  String get modeBike => '自行车';
+
+  @override
+  String get modeWalk => '步行';
+
+  @override
+  String windSpeed(String speed) {
+    return '风速 $speed km/h';
+  }
+
+  @override
+  String durationMin(int m) {
+    return '$m分钟';
+  }
+
+  @override
+  String durationHourMin(int h, int m) {
+    return '$h小时$m分';
+  }
+
+  @override
+  String get weatherClear => '晴天';
+
+  @override
+  String get weatherPartlyCloudy => '多云';
+
+  @override
+  String get weatherCloudy => '阴天';
+
+  @override
+  String get weatherFog => '雾';
+
+  @override
+  String get weatherLightRain => '小雨';
+
+  @override
+  String get weatherRain => '雨';
+
+  @override
+  String get weatherSnow => '雪';
+
+  @override
+  String get weatherShowers => '阵雨';
+
+  @override
+  String get weatherThunderstorm => '雷雨';
+
+  @override
+  String get ztlAheadWarning => 'ZTL限行区 — 路线进入限制区域';
+
+  @override
+  String get ztlInsideWarning => '限行区';
+
+  @override
+  String get onboardingAppSubtitle => '开源 Nostr 导航';
+
+  @override
+  String get onboardingWelcomeTitle => '欢迎';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'Everything your navigation app needs — without giving up your privacy.';
+
+  @override
+  String get onboardingFeatureNav => 'Turn-by-turn GPS navigation';
+
+  @override
+  String get onboardingFeatureNostr =>
+      'Nostr road events (speed cameras, hazards, traffic)';
+
+  @override
+  String get onboardingFeatureLightning =>
+      'Lightning Network tips for event reporters';
+
+  @override
+  String get onboardingFeatureVoice =>
+      'On-device AI voice guidance (Kokoro-82M)';
+
+  @override
+  String get onboardingFeaturePrivacy =>
+      'No account required — no tracking, ever';
+
+  @override
+  String get onboardingGetStarted => '开始';
+
+  @override
+  String get onboardingNostrTitle => 'Nostr 身份';
+
+  @override
+  String get onboardingNostrSubtitle =>
+      'Optional — connect to report road events, confirm alerts and earn Lightning tips.';
+
+  @override
+  String get onboardingNostrConnected => '已连接';
+
+  @override
+  String get onboardingAmberTitle => 'Amber — NIP-55（推荐）';
+
+  @override
+  String get onboardingAmberSubtitle =>
+      'Connect with the Amber signer app. Your private key never leaves Amber.';
+
+  @override
+  String get onboardingNsecTitle => 'nsec 密钥';
+
+  @override
+  String get onboardingNsecSubtitle =>
+      'Paste your private key. Stored in the Android Keystore.';
+
+  @override
+  String get onboardingNsecError => 'nsec 密钥无效 — 请检查后重试。';
+
+  @override
+  String get onboardingSkip => '暂时跳过';
+
+  @override
+  String get onboardingContinue => '继续';
+
+  @override
+  String get onboardingEnterNsec => '输入 nsec 密钥';
+
+  @override
+  String get onboardingSetupTitle => '设置 Roadstr';
+
+  @override
+  String get onboardingSetupSubtitle =>
+      'Configure location access and optional voice guidance.';
+
+  @override
+  String get onboardingLocationTitle => '位置';
+
+  @override
+  String get onboardingLocationGranted => '已授予位置权限';
+
+  @override
+  String get onboardingLocationRequired => 'GPS 导航所必需';
+
+  @override
+  String get onboardingGrantButton => '授予';
+
+  @override
+  String get onboardingGrapheneTitle => 'GrapheneOS 用户';
+
+  @override
+  String get onboardingGrapheneBody =>
+      'Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.';
+
+  @override
+  String get onboardingVoiceTitle => 'AI 语音导航（可选）';
+
+  @override
+  String get onboardingVoiceReady => 'Kokoro 语音模型已就绪';
+
+  @override
+  String get onboardingVoiceDownloading => '正在下载语音模型…';
+
+  @override
+  String get onboardingVoiceNotDownloaded =>
+      'Download the 82 MB Kokoro AI model for on-device voice';
+
+  @override
+  String get onboardingVoiceChecking => 'Checking model status…';
+
+  @override
+  String get onboardingDownloadButton => '下载';
+
+  @override
+  String get onboardingVoiceLaterHint =>
+      'You can also download the voice model later from\nSettings → Navigation voice.';
+
+  @override
+  String get onboardingReadyTitle => '您已准备好导航！';
+
+  @override
+  String get onboardingReadyBody =>
+      'Roadstr will now open the map.\nYou can configure everything else in Settings.';
+
+  @override
+  String get onboardingLetsGo => '出发！';
+
+  @override
+  String get onboardingProfileLoading => '正在加载个人资料…';
+
+  @override
+  String get onboardingNsecHint => 'nsec1…';
 }

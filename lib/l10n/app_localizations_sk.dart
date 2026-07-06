@@ -744,4 +744,196 @@ class AppLocalizationsSk extends AppLocalizations {
   String departEta(String dep, String arr) {
     return 'Odchod $dep  →  Príchod $arr';
   }
+
+  @override
+  String get modeCar => 'Auto';
+
+  @override
+  String get modeBike => 'Bicykel';
+
+  @override
+  String get modeWalk => 'Pešo';
+
+  @override
+  String windSpeed(String speed) {
+    return 'vietor $speed km/h';
+  }
+
+  @override
+  String durationMin(int m) {
+    return '$m min';
+  }
+
+  @override
+  String durationHourMin(int h, int m) {
+    return '${h}h ${m}min';
+  }
+
+  @override
+  String get weatherClear => 'Jasno';
+
+  @override
+  String get weatherPartlyCloudy => 'Polojasno';
+
+  @override
+  String get weatherCloudy => 'Oblačno';
+
+  @override
+  String get weatherFog => 'Hmla';
+
+  @override
+  String get weatherLightRain => 'Slabý dážď';
+
+  @override
+  String get weatherRain => 'Dážď';
+
+  @override
+  String get weatherSnow => 'Sneh';
+
+  @override
+  String get weatherShowers => 'Prehánky';
+
+  @override
+  String get weatherThunderstorm => 'Búrka';
+
+  @override
+  String get ztlAheadWarning =>
+      'Zóna ZTL vpredu — trasa vstupuje do obmedzenej zóny';
+
+  @override
+  String get ztlInsideWarning => 'Obmedzená dopravná zóna';
+
+  @override
+  String get onboardingAppSubtitle => 'Open-source Nostr navigácia';
+
+  @override
+  String get onboardingWelcomeTitle => 'Vitajte';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'Everything your navigation app needs — without giving up your privacy.';
+
+  @override
+  String get onboardingFeatureNav => 'Turn-by-turn GPS navigation';
+
+  @override
+  String get onboardingFeatureNostr =>
+      'Nostr road events (speed cameras, hazards, traffic)';
+
+  @override
+  String get onboardingFeatureLightning =>
+      'Lightning Network tips for event reporters';
+
+  @override
+  String get onboardingFeatureVoice =>
+      'On-device AI voice guidance (Kokoro-82M)';
+
+  @override
+  String get onboardingFeaturePrivacy =>
+      'No account required — no tracking, ever';
+
+  @override
+  String get onboardingGetStarted => 'Začať';
+
+  @override
+  String get onboardingNostrTitle => 'Nostr identita';
+
+  @override
+  String get onboardingNostrSubtitle =>
+      'Optional — connect to report road events, confirm alerts and earn Lightning tips.';
+
+  @override
+  String get onboardingNostrConnected => 'Pripojené';
+
+  @override
+  String get onboardingAmberTitle => 'Amber — NIP-55 (odporúčané)';
+
+  @override
+  String get onboardingAmberSubtitle =>
+      'Connect with the Amber signer app. Your private key never leaves Amber.';
+
+  @override
+  String get onboardingNsecTitle => 'Kľúč nsec';
+
+  @override
+  String get onboardingNsecSubtitle =>
+      'Paste your private key. Stored in the Android Keystore.';
+
+  @override
+  String get onboardingNsecError =>
+      'Neplatný kľúč nsec — skontrolujte a skúste znova.';
+
+  @override
+  String get onboardingSkip => 'Preskočiť teraz';
+
+  @override
+  String get onboardingContinue => 'Pokračovať';
+
+  @override
+  String get onboardingEnterNsec => 'Zadajte kľúč nsec';
+
+  @override
+  String get onboardingSetupTitle => 'Nastaviť Roadstr';
+
+  @override
+  String get onboardingSetupSubtitle =>
+      'Configure location access and optional voice guidance.';
+
+  @override
+  String get onboardingLocationTitle => 'Poloha';
+
+  @override
+  String get onboardingLocationGranted => 'Prístup k polohe udelený';
+
+  @override
+  String get onboardingLocationRequired => 'Potrebné pre GPS navigáciu';
+
+  @override
+  String get onboardingGrantButton => 'Povoliť';
+
+  @override
+  String get onboardingGrapheneTitle => 'Používatelia GrapheneOS';
+
+  @override
+  String get onboardingGrapheneBody =>
+      'Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.';
+
+  @override
+  String get onboardingVoiceTitle => 'Hlasové navádzanie AI (voliteľné)';
+
+  @override
+  String get onboardingVoiceReady => 'Hlasový model Kokoro je pripravený';
+
+  @override
+  String get onboardingVoiceDownloading => 'Sťahovanie hlasového modelu…';
+
+  @override
+  String get onboardingVoiceNotDownloaded =>
+      'Download the 82 MB Kokoro AI model for on-device voice';
+
+  @override
+  String get onboardingVoiceChecking => 'Checking model status…';
+
+  @override
+  String get onboardingDownloadButton => 'Stiahnuť';
+
+  @override
+  String get onboardingVoiceLaterHint =>
+      'You can also download the voice model later from\nSettings → Navigation voice.';
+
+  @override
+  String get onboardingReadyTitle => 'Ste pripravení navigovať!';
+
+  @override
+  String get onboardingReadyBody =>
+      'Roadstr will now open the map.\nYou can configure everything else in Settings.';
+
+  @override
+  String get onboardingLetsGo => 'Poďme!';
+
+  @override
+  String get onboardingProfileLoading => 'Načítava sa profil…';
+
+  @override
+  String get onboardingNsecHint => 'nsec1…';
 }
