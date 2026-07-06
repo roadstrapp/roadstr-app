@@ -745,4 +745,196 @@ class AppLocalizationsFi extends AppLocalizations {
   String departEta(String dep, String arr) {
     return 'Lähtö $dep  →  Saapuminen $arr';
   }
+
+  @override
+  String get modeCar => 'Auto';
+
+  @override
+  String get modeBike => 'Pyörä';
+
+  @override
+  String get modeWalk => 'Kävellen';
+
+  @override
+  String windSpeed(String speed) {
+    return 'tuuli $speed km/h';
+  }
+
+  @override
+  String durationMin(int m) {
+    return '$m min';
+  }
+
+  @override
+  String durationHourMin(int h, int m) {
+    return '${h}h ${m}min';
+  }
+
+  @override
+  String get weatherClear => 'Selkeä';
+
+  @override
+  String get weatherPartlyCloudy => 'Puolipilvinen';
+
+  @override
+  String get weatherCloudy => 'Pilvinen';
+
+  @override
+  String get weatherFog => 'Sumu';
+
+  @override
+  String get weatherLightRain => 'Kevyt sade';
+
+  @override
+  String get weatherRain => 'Sade';
+
+  @override
+  String get weatherSnow => 'Lumi';
+
+  @override
+  String get weatherShowers => 'Sadekuurot';
+
+  @override
+  String get weatherThunderstorm => 'Ukkosmyrsky';
+
+  @override
+  String get ztlAheadWarning =>
+      'ZTL-alue edessä — reitti menee rajoitettuun alueeseen';
+
+  @override
+  String get ztlInsideWarning => 'Rajoitettu liikennealue';
+
+  @override
+  String get onboardingAppSubtitle => 'Avoimen lähdekoodin Nostr-navigointi';
+
+  @override
+  String get onboardingWelcomeTitle => 'Tervetuloa';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'Everything your navigation app needs — without giving up your privacy.';
+
+  @override
+  String get onboardingFeatureNav => 'Turn-by-turn GPS navigation';
+
+  @override
+  String get onboardingFeatureNostr =>
+      'Nostr road events (speed cameras, hazards, traffic)';
+
+  @override
+  String get onboardingFeatureLightning =>
+      'Lightning Network tips for event reporters';
+
+  @override
+  String get onboardingFeatureVoice =>
+      'On-device AI voice guidance (Kokoro-82M)';
+
+  @override
+  String get onboardingFeaturePrivacy =>
+      'No account required — no tracking, ever';
+
+  @override
+  String get onboardingGetStarted => 'Aloita';
+
+  @override
+  String get onboardingNostrTitle => 'Nostr-identiteetti';
+
+  @override
+  String get onboardingNostrSubtitle =>
+      'Optional — connect to report road events, confirm alerts and earn Lightning tips.';
+
+  @override
+  String get onboardingNostrConnected => 'Yhdistetty';
+
+  @override
+  String get onboardingAmberTitle => 'Amber — NIP-55 (suositeltu)';
+
+  @override
+  String get onboardingAmberSubtitle =>
+      'Connect with the Amber signer app. Your private key never leaves Amber.';
+
+  @override
+  String get onboardingNsecTitle => 'nsec-avain';
+
+  @override
+  String get onboardingNsecSubtitle =>
+      'Paste your private key. Stored in the Android Keystore.';
+
+  @override
+  String get onboardingNsecError =>
+      'Virheellinen nsec-avain — tarkista ja yritä uudelleen.';
+
+  @override
+  String get onboardingSkip => 'Ohita nyt';
+
+  @override
+  String get onboardingContinue => 'Jatka';
+
+  @override
+  String get onboardingEnterNsec => 'Syötä nsec-avain';
+
+  @override
+  String get onboardingSetupTitle => 'Määritä Roadstr';
+
+  @override
+  String get onboardingSetupSubtitle =>
+      'Configure location access and optional voice guidance.';
+
+  @override
+  String get onboardingLocationTitle => 'Sijainti';
+
+  @override
+  String get onboardingLocationGranted => 'Sijaintioikeus myönnetty';
+
+  @override
+  String get onboardingLocationRequired => 'Tarvitaan GPS-navigointiin';
+
+  @override
+  String get onboardingGrantButton => 'Myönnä';
+
+  @override
+  String get onboardingGrapheneTitle => 'GrapheneOS-käyttäjät';
+
+  @override
+  String get onboardingGrapheneBody =>
+      'Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.';
+
+  @override
+  String get onboardingVoiceTitle => 'AI-ääniohjelma (valinnainen)';
+
+  @override
+  String get onboardingVoiceReady => 'Kokoro äänimalli valmis';
+
+  @override
+  String get onboardingVoiceDownloading => 'Ladataan äänimaalia…';
+
+  @override
+  String get onboardingVoiceNotDownloaded =>
+      'Download the 82 MB Kokoro AI model for on-device voice';
+
+  @override
+  String get onboardingVoiceChecking => 'Checking model status…';
+
+  @override
+  String get onboardingDownloadButton => 'Lataa';
+
+  @override
+  String get onboardingVoiceLaterHint =>
+      'You can also download the voice model later from\nSettings → Navigation voice.';
+
+  @override
+  String get onboardingReadyTitle => 'Olet valmis navigoimaan!';
+
+  @override
+  String get onboardingReadyBody =>
+      'Roadstr will now open the map.\nYou can configure everything else in Settings.';
+
+  @override
+  String get onboardingLetsGo => 'Mennään!';
+
+  @override
+  String get onboardingProfileLoading => 'Ladataan profiilia…';
+
+  @override
+  String get onboardingNsecHint => 'nsec1…';
 }

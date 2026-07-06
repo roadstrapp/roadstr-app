@@ -728,4 +728,194 @@ class AppLocalizationsJa extends AppLocalizations {
   String departEta(String dep, String arr) {
     return '出発 $dep  →  到着 $arr';
   }
+
+  @override
+  String get modeCar => '車';
+
+  @override
+  String get modeBike => '自転車';
+
+  @override
+  String get modeWalk => '徒歩';
+
+  @override
+  String windSpeed(String speed) {
+    return '風速 $speed km/h';
+  }
+
+  @override
+  String durationMin(int m) {
+    return '$m分';
+  }
+
+  @override
+  String durationHourMin(int h, int m) {
+    return '$h時間$m分';
+  }
+
+  @override
+  String get weatherClear => '晴れ';
+
+  @override
+  String get weatherPartlyCloudy => 'くもりがち';
+
+  @override
+  String get weatherCloudy => '曇り';
+
+  @override
+  String get weatherFog => '霧';
+
+  @override
+  String get weatherLightRain => '小雨';
+
+  @override
+  String get weatherRain => '雨';
+
+  @override
+  String get weatherSnow => '雪';
+
+  @override
+  String get weatherShowers => 'にわか雨';
+
+  @override
+  String get weatherThunderstorm => '雷雨';
+
+  @override
+  String get ztlAheadWarning => 'ZTL区域あり — ルートが制限区域に入ります';
+
+  @override
+  String get ztlInsideWarning => '交通制限区域';
+
+  @override
+  String get onboardingAppSubtitle => 'オープンソース Nostr ナビゲーション';
+
+  @override
+  String get onboardingWelcomeTitle => 'ようこそ';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'Everything your navigation app needs — without giving up your privacy.';
+
+  @override
+  String get onboardingFeatureNav => 'Turn-by-turn GPS navigation';
+
+  @override
+  String get onboardingFeatureNostr =>
+      'Nostr road events (speed cameras, hazards, traffic)';
+
+  @override
+  String get onboardingFeatureLightning =>
+      'Lightning Network tips for event reporters';
+
+  @override
+  String get onboardingFeatureVoice =>
+      'On-device AI voice guidance (Kokoro-82M)';
+
+  @override
+  String get onboardingFeaturePrivacy =>
+      'No account required — no tracking, ever';
+
+  @override
+  String get onboardingGetStarted => 'はじめる';
+
+  @override
+  String get onboardingNostrTitle => 'Nostr ID';
+
+  @override
+  String get onboardingNostrSubtitle =>
+      'Optional — connect to report road events, confirm alerts and earn Lightning tips.';
+
+  @override
+  String get onboardingNostrConnected => '接続済み';
+
+  @override
+  String get onboardingAmberTitle => 'Amber — NIP-55（推奨）';
+
+  @override
+  String get onboardingAmberSubtitle =>
+      'Connect with the Amber signer app. Your private key never leaves Amber.';
+
+  @override
+  String get onboardingNsecTitle => 'nsec キー';
+
+  @override
+  String get onboardingNsecSubtitle =>
+      'Paste your private key. Stored in the Android Keystore.';
+
+  @override
+  String get onboardingNsecError => 'nsec キーが無効です — 確認して再試行してください。';
+
+  @override
+  String get onboardingSkip => '後で設定する';
+
+  @override
+  String get onboardingContinue => '続ける';
+
+  @override
+  String get onboardingEnterNsec => 'nsec キーを入力';
+
+  @override
+  String get onboardingSetupTitle => 'Roadstr を設定';
+
+  @override
+  String get onboardingSetupSubtitle =>
+      'Configure location access and optional voice guidance.';
+
+  @override
+  String get onboardingLocationTitle => '位置情報';
+
+  @override
+  String get onboardingLocationGranted => '位置情報へのアクセスが許可されました';
+
+  @override
+  String get onboardingLocationRequired => 'GPS ナビゲーションに必要';
+
+  @override
+  String get onboardingGrantButton => '許可';
+
+  @override
+  String get onboardingGrapheneTitle => 'GrapheneOS ユーザー';
+
+  @override
+  String get onboardingGrapheneBody =>
+      'Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.';
+
+  @override
+  String get onboardingVoiceTitle => 'AI 音声ガイダンス（オプション）';
+
+  @override
+  String get onboardingVoiceReady => 'Kokoro 音声モデルが準備完了';
+
+  @override
+  String get onboardingVoiceDownloading => '音声モデルをダウンロード中…';
+
+  @override
+  String get onboardingVoiceNotDownloaded =>
+      'Download the 82 MB Kokoro AI model for on-device voice';
+
+  @override
+  String get onboardingVoiceChecking => 'Checking model status…';
+
+  @override
+  String get onboardingDownloadButton => 'ダウンロード';
+
+  @override
+  String get onboardingVoiceLaterHint =>
+      'You can also download the voice model later from\nSettings → Navigation voice.';
+
+  @override
+  String get onboardingReadyTitle => 'ナビゲーションの準備ができました！';
+
+  @override
+  String get onboardingReadyBody =>
+      'Roadstr will now open the map.\nYou can configure everything else in Settings.';
+
+  @override
+  String get onboardingLetsGo => 'さあ出発！';
+
+  @override
+  String get onboardingProfileLoading => 'プロフィールを読み込み中…';
+
+  @override
+  String get onboardingNsecHint => 'nsec1…';
 }

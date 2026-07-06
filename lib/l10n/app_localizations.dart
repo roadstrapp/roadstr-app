@@ -1497,6 +1497,348 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Depart {dep}  →  ETA {arr}'**
   String departEta(String dep, String arr);
+
+  /// No description provided for @modeCar.
+  ///
+  /// In en, this message translates to:
+  /// **'Car'**
+  String get modeCar;
+
+  /// No description provided for @modeBike.
+  ///
+  /// In en, this message translates to:
+  /// **'Bike'**
+  String get modeBike;
+
+  /// No description provided for @modeWalk.
+  ///
+  /// In en, this message translates to:
+  /// **'On foot'**
+  String get modeWalk;
+
+  /// No description provided for @windSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'wind {speed} km/h'**
+  String windSpeed(String speed);
+
+  /// No description provided for @durationMin.
+  ///
+  /// In en, this message translates to:
+  /// **'{m} min'**
+  String durationMin(int m);
+
+  /// No description provided for @durationHourMin.
+  ///
+  /// In en, this message translates to:
+  /// **'{h}h {m}min'**
+  String durationHourMin(int h, int m);
+
+  /// No description provided for @weatherClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get weatherClear;
+
+  /// No description provided for @weatherPartlyCloudy.
+  ///
+  /// In en, this message translates to:
+  /// **'Partly cloudy'**
+  String get weatherPartlyCloudy;
+
+  /// No description provided for @weatherCloudy.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloudy'**
+  String get weatherCloudy;
+
+  /// No description provided for @weatherFog.
+  ///
+  /// In en, this message translates to:
+  /// **'Fog'**
+  String get weatherFog;
+
+  /// No description provided for @weatherLightRain.
+  ///
+  /// In en, this message translates to:
+  /// **'Light rain'**
+  String get weatherLightRain;
+
+  /// No description provided for @weatherRain.
+  ///
+  /// In en, this message translates to:
+  /// **'Rain'**
+  String get weatherRain;
+
+  /// No description provided for @weatherSnow.
+  ///
+  /// In en, this message translates to:
+  /// **'Snow'**
+  String get weatherSnow;
+
+  /// No description provided for @weatherShowers.
+  ///
+  /// In en, this message translates to:
+  /// **'Showers'**
+  String get weatherShowers;
+
+  /// No description provided for @weatherThunderstorm.
+  ///
+  /// In en, this message translates to:
+  /// **'Thunderstorm'**
+  String get weatherThunderstorm;
+
+  /// No description provided for @ztlAheadWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'ZTL zone ahead — route leads into restricted area'**
+  String get ztlAheadWarning;
+
+  /// No description provided for @ztlInsideWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Restricted traffic zone'**
+  String get ztlInsideWarning;
+
+  /// No description provided for @onboardingAppSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open-source Nostr navigation'**
+  String get onboardingAppSubtitle;
+
+  /// No description provided for @onboardingWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get onboardingWelcomeTitle;
+
+  /// No description provided for @onboardingWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything your navigation app needs — without giving up your privacy.'**
+  String get onboardingWelcomeBody;
+
+  /// No description provided for @onboardingFeatureNav.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn-by-turn GPS navigation'**
+  String get onboardingFeatureNav;
+
+  /// No description provided for @onboardingFeatureNostr.
+  ///
+  /// In en, this message translates to:
+  /// **'Nostr road events (speed cameras, hazards, traffic)'**
+  String get onboardingFeatureNostr;
+
+  /// No description provided for @onboardingFeatureLightning.
+  ///
+  /// In en, this message translates to:
+  /// **'Lightning Network tips for event reporters'**
+  String get onboardingFeatureLightning;
+
+  /// No description provided for @onboardingFeatureVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'On-device AI voice guidance (Kokoro-82M)'**
+  String get onboardingFeatureVoice;
+
+  /// No description provided for @onboardingFeaturePrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'No account required — no tracking, ever'**
+  String get onboardingFeaturePrivacy;
+
+  /// No description provided for @onboardingGetStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get onboardingGetStarted;
+
+  /// No description provided for @onboardingNostrTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nostr Identity'**
+  String get onboardingNostrTitle;
+
+  /// No description provided for @onboardingNostrSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional — connect to report road events, confirm alerts and earn Lightning tips.'**
+  String get onboardingNostrSubtitle;
+
+  /// No description provided for @onboardingNostrConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get onboardingNostrConnected;
+
+  /// No description provided for @onboardingAmberTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Amber — NIP-55 (recommended)'**
+  String get onboardingAmberTitle;
+
+  /// No description provided for @onboardingAmberSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect with the Amber signer app. Your private key never leaves Amber.'**
+  String get onboardingAmberSubtitle;
+
+  /// No description provided for @onboardingNsecTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'nsec key'**
+  String get onboardingNsecTitle;
+
+  /// No description provided for @onboardingNsecSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste your private key. Stored in the Android Keystore.'**
+  String get onboardingNsecSubtitle;
+
+  /// No description provided for @onboardingNsecError.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid nsec key — please check and try again.'**
+  String get onboardingNsecError;
+
+  /// No description provided for @onboardingSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip for now'**
+  String get onboardingSkip;
+
+  /// No description provided for @onboardingContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get onboardingContinue;
+
+  /// No description provided for @onboardingEnterNsec.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter nsec key'**
+  String get onboardingEnterNsec;
+
+  /// No description provided for @onboardingSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up Roadstr'**
+  String get onboardingSetupTitle;
+
+  /// No description provided for @onboardingSetupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure location access and optional voice guidance.'**
+  String get onboardingSetupSubtitle;
+
+  /// No description provided for @onboardingLocationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get onboardingLocationTitle;
+
+  /// No description provided for @onboardingLocationGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'Location access granted'**
+  String get onboardingLocationGranted;
+
+  /// No description provided for @onboardingLocationRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required for GPS navigation'**
+  String get onboardingLocationRequired;
+
+  /// No description provided for @onboardingGrantButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Grant'**
+  String get onboardingGrantButton;
+
+  /// No description provided for @onboardingGrapheneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'GrapheneOS users'**
+  String get onboardingGrapheneTitle;
+
+  /// No description provided for @onboardingGrapheneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.'**
+  String get onboardingGrapheneBody;
+
+  /// No description provided for @onboardingVoiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI voice guidance (optional)'**
+  String get onboardingVoiceTitle;
+
+  /// No description provided for @onboardingVoiceReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Kokoro voice model ready'**
+  String get onboardingVoiceReady;
+
+  /// No description provided for @onboardingVoiceDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading voice model…'**
+  String get onboardingVoiceDownloading;
+
+  /// No description provided for @onboardingVoiceNotDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Download the 82 MB Kokoro AI model for on-device voice'**
+  String get onboardingVoiceNotDownloaded;
+
+  /// No description provided for @onboardingVoiceChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking model status…'**
+  String get onboardingVoiceChecking;
+
+  /// No description provided for @onboardingDownloadButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get onboardingDownloadButton;
+
+  /// No description provided for @onboardingVoiceLaterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You can also download the voice model later from\nSettings → Navigation voice.'**
+  String get onboardingVoiceLaterHint;
+
+  /// No description provided for @onboardingReadyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re ready to navigate!'**
+  String get onboardingReadyTitle;
+
+  /// No description provided for @onboardingReadyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Roadstr will now open the map.\nYou can configure everything else in Settings.'**
+  String get onboardingReadyBody;
+
+  /// No description provided for @onboardingLetsGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s go!'**
+  String get onboardingLetsGo;
+
+  /// No description provided for @onboardingProfileLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading profile…'**
+  String get onboardingProfileLoading;
+
+  /// No description provided for @onboardingNsecHint.
+  ///
+  /// In en, this message translates to:
+  /// **'nsec1…'**
+  String get onboardingNsecHint;
 }
 
 class _AppLocalizationsDelegate

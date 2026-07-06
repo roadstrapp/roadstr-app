@@ -10,6 +10,7 @@
 // Geocoding uses the Nominatim OpenStreetMap API (addressdetails=1) for both
 // forward search and reverse geocoding.
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 
@@ -434,6 +435,8 @@ class RoutingService {
           }
         } catch (_) {}
 
+        debugPrint('[Routing] GH speedLimits: ${ghSpeedLimits.length} entries'
+            ' (non-null: ${ghSpeedLimits.where((e) => e.speedKmh != null).length})');
         return RouteResult(
           polyline: coords,
           steps: steps,
@@ -595,6 +598,8 @@ class RoutingService {
       }
     } catch (_) {} // annotation parsing is best-effort
 
+    debugPrint('[Routing] OSRM speedLimits: ${speedLimits.length} entries'
+        ' (non-null: ${speedLimits.where((e) => e.speedKmh != null).length})');
     return RouteResult(
       polyline: coords,
       steps: steps,

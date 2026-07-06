@@ -25,6 +25,7 @@ import 'providers/locale_provider.dart';
 import 'theme/theme_provider.dart';
 import 'theme/app_theme.dart';
 import 'screens/map_screen.dart';
+import 'screens/onboarding_screen.dart';
 import 'services/kokoro/kokoro_voices.dart';
 
 Future<void> main() async {
@@ -150,8 +151,16 @@ class _FallbackMaterialDelegate
 
 // ── First-launch disclaimer gate ─────────────────────────────────────────────
 
-/// Shows [_DisclaimerScreen] on the very first app launch; once the user
-/// accepts, the flag is stored in Hive so the screen never appears again.
+/// Routes new users through [OnboardingScreen]; users who already completed the
+/// old disclaimer flow skip onboarding and go directly to the map.
+///
+/// Key logic:
+///   • `disclaimer_accepted == true` (old users) → skip onboarding, show map
+///   • `onboarding_v1 == true` (users who finished new onboarding) → show map
+///   • Otherwise → show [OnboardingScreen]
+///
+/// On completion the gate sets both `disclaimer_accepted` and `onboarding_v1`
+/// so the user never sees either screen again.
 class _DisclaimerGate extends StatefulWidget {
   const _DisclaimerGate();
   @override
@@ -159,23 +168,30 @@ class _DisclaimerGate extends StatefulWidget {
 }
 
 class _DisclaimerGateState extends State<_DisclaimerGate> {
-  late bool _accepted;
+  late bool _done;
 
   @override
   void initState() {
     super.initState();
-    _accepted = Hive.box('settings')
-        .get('disclaimer_accepted', defaultValue: false) as bool;
+    final box = Hive.box('settings');
+    final disclaimerAccepted =
+        box.get('disclaimer_accepted', defaultValue: false) as bool;
+    final onboardingDone =
+        box.get('onboarding_v1', defaultValue: false) as bool;
+    _done = disclaimerAccepted || onboardingDone;
   }
 
-  void _accept() {
-    Hive.box('settings').put('disclaimer_accepted', true);
-    setState(() => _accepted = true);
+  void _completeOnboarding() {
+    final box = Hive.box('settings');
+    box.put('disclaimer_accepted', true);
+    box.put('onboarding_v1', true);
+    setState(() => _done = true);
   }
 
   @override
-  Widget build(BuildContext context) =>
-      _accepted ? const _VoiceLanguageNoticeGate() : _DisclaimerScreen(onAccept: _accept);
+  Widget build(BuildContext context) => _done
+      ? const _VoiceLanguageNoticeGate()
+      : OnboardingScreen(onComplete: _completeOnboarding);
 }
 
 // ── First-launch voice-language notice ───────────────────────────────────────

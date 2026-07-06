@@ -748,4 +748,196 @@ class AppLocalizationsHu extends AppLocalizations {
   String departEta(String dep, String arr) {
     return 'Indulás $dep  →  Megérkezés $arr';
   }
+
+  @override
+  String get modeCar => 'Autó';
+
+  @override
+  String get modeBike => 'Bicikli';
+
+  @override
+  String get modeWalk => 'Gyalog';
+
+  @override
+  String windSpeed(String speed) {
+    return 'szél $speed km/h';
+  }
+
+  @override
+  String durationMin(int m) {
+    return '$m p';
+  }
+
+  @override
+  String durationHourMin(int h, int m) {
+    return '$hó ${m}p';
+  }
+
+  @override
+  String get weatherClear => 'Derült';
+
+  @override
+  String get weatherPartlyCloudy => 'Változékony';
+
+  @override
+  String get weatherCloudy => 'Borult';
+
+  @override
+  String get weatherFog => 'Köd';
+
+  @override
+  String get weatherLightRain => 'Szitálás';
+
+  @override
+  String get weatherRain => 'Eső';
+
+  @override
+  String get weatherSnow => 'Hó';
+
+  @override
+  String get weatherShowers => 'Záporok';
+
+  @override
+  String get weatherThunderstorm => 'Zivatar';
+
+  @override
+  String get ztlAheadWarning =>
+      'ZTL zóna előre — az útvonal korlátozott övezetbe vezet';
+
+  @override
+  String get ztlInsideWarning => 'Korlátozott forgalmú zóna';
+
+  @override
+  String get onboardingAppSubtitle => 'Nyílt forráskódú Nostr navigáció';
+
+  @override
+  String get onboardingWelcomeTitle => 'Üdvözöljük';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'Everything your navigation app needs — without giving up your privacy.';
+
+  @override
+  String get onboardingFeatureNav => 'Turn-by-turn GPS navigation';
+
+  @override
+  String get onboardingFeatureNostr =>
+      'Nostr road events (speed cameras, hazards, traffic)';
+
+  @override
+  String get onboardingFeatureLightning =>
+      'Lightning Network tips for event reporters';
+
+  @override
+  String get onboardingFeatureVoice =>
+      'On-device AI voice guidance (Kokoro-82M)';
+
+  @override
+  String get onboardingFeaturePrivacy =>
+      'No account required — no tracking, ever';
+
+  @override
+  String get onboardingGetStarted => 'Kezdés';
+
+  @override
+  String get onboardingNostrTitle => 'Nostr azonosság';
+
+  @override
+  String get onboardingNostrSubtitle =>
+      'Optional — connect to report road events, confirm alerts and earn Lightning tips.';
+
+  @override
+  String get onboardingNostrConnected => 'Csatlakozva';
+
+  @override
+  String get onboardingAmberTitle => 'Amber — NIP-55 (ajánlott)';
+
+  @override
+  String get onboardingAmberSubtitle =>
+      'Connect with the Amber signer app. Your private key never leaves Amber.';
+
+  @override
+  String get onboardingNsecTitle => 'nsec kulcs';
+
+  @override
+  String get onboardingNsecSubtitle =>
+      'Paste your private key. Stored in the Android Keystore.';
+
+  @override
+  String get onboardingNsecError =>
+      'Érvénytelen nsec kulcs — ellenőrizze és próbálja újra.';
+
+  @override
+  String get onboardingSkip => 'Kihagyás most';
+
+  @override
+  String get onboardingContinue => 'Folytatás';
+
+  @override
+  String get onboardingEnterNsec => 'Adja meg az nsec kulcsot';
+
+  @override
+  String get onboardingSetupTitle => 'Roadstr beállítása';
+
+  @override
+  String get onboardingSetupSubtitle =>
+      'Configure location access and optional voice guidance.';
+
+  @override
+  String get onboardingLocationTitle => 'Helyszín';
+
+  @override
+  String get onboardingLocationGranted => 'Helyszín-hozzáférés engedélyezve';
+
+  @override
+  String get onboardingLocationRequired => 'GPS navigációhoz szükséges';
+
+  @override
+  String get onboardingGrantButton => 'Engedélyezés';
+
+  @override
+  String get onboardingGrapheneTitle => 'GrapheneOS felhasználók';
+
+  @override
+  String get onboardingGrapheneBody =>
+      'Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.';
+
+  @override
+  String get onboardingVoiceTitle => 'AI hangvezetés (opcionális)';
+
+  @override
+  String get onboardingVoiceReady => 'Kokoro hangmodell készen áll';
+
+  @override
+  String get onboardingVoiceDownloading => 'Hangmodell letöltése…';
+
+  @override
+  String get onboardingVoiceNotDownloaded =>
+      'Download the 82 MB Kokoro AI model for on-device voice';
+
+  @override
+  String get onboardingVoiceChecking => 'Checking model status…';
+
+  @override
+  String get onboardingDownloadButton => 'Letöltés';
+
+  @override
+  String get onboardingVoiceLaterHint =>
+      'You can also download the voice model later from\nSettings → Navigation voice.';
+
+  @override
+  String get onboardingReadyTitle => 'Készen áll a navigálásra!';
+
+  @override
+  String get onboardingReadyBody =>
+      'Roadstr will now open the map.\nYou can configure everything else in Settings.';
+
+  @override
+  String get onboardingLetsGo => 'Induljunk!';
+
+  @override
+  String get onboardingProfileLoading => 'Profil betöltése…';
+
+  @override
+  String get onboardingNsecHint => 'nsec1…';
 }

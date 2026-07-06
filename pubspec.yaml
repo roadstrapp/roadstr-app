@@ -1,6 +1,6 @@
 name: roadstr
 description: Roadstr — Decentralised navigation with Nostr road events and Lightning zaps
-version: 0.3.4+7
+version: 0.4.0+9
 publish_to: 'none'
 
 environment:
@@ -33,6 +33,7 @@ dependencies:
   path_provider: ^2.1.6
   ffi: ^2.1.0
   archive: ^4.0.0
+  flutter_svg: ^2.3.0
 
 dev_dependencies:
   flutter_test:
@@ -62,5 +63,6 @@ flutter:
 
   assets:
     - assets/icons/
+    - assets/cursors/
     - assets/espeak-ng-data.tar.gz
     - assets/kokoro_phrases/
