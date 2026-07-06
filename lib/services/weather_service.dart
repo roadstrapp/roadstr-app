@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import '../l10n/app_localizations.dart';
 
 class WeatherData {
   final double tempC;
@@ -35,6 +36,18 @@ class WeatherData {
     if (code <= 77) return 'Neve';
     if (code <= 82) return 'Rovesci';
     return 'Temporale';
+  }
+
+  String localizedDescription(AppLocalizations l) {
+    if (code == 0) return l.weatherClear;
+    if (code <= 2) return l.weatherPartlyCloudy;
+    if (code == 3) return l.weatherCloudy;
+    if (code <= 48) return l.weatherFog;
+    if (code <= 55) return l.weatherLightRain;
+    if (code <= 65) return l.weatherRain;
+    if (code <= 77) return l.weatherSnow;
+    if (code <= 82) return l.weatherShowers;
+    return l.weatherThunderstorm;
   }
 }
 

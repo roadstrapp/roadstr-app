@@ -747,4 +747,196 @@ class AppLocalizationsNl extends AppLocalizations {
   String departEta(String dep, String arr) {
     return 'Vertrek $dep  →  Aankomst $arr';
   }
+
+  @override
+  String get modeCar => 'Auto';
+
+  @override
+  String get modeBike => 'Fiets';
+
+  @override
+  String get modeWalk => 'Te voet';
+
+  @override
+  String windSpeed(String speed) {
+    return 'wind $speed km/u';
+  }
+
+  @override
+  String durationMin(int m) {
+    return '$m min';
+  }
+
+  @override
+  String durationHourMin(int h, int m) {
+    return '${h}h ${m}min';
+  }
+
+  @override
+  String get weatherClear => 'Helder';
+
+  @override
+  String get weatherPartlyCloudy => 'Gedeeltelijk bewolkt';
+
+  @override
+  String get weatherCloudy => 'Bewolkt';
+
+  @override
+  String get weatherFog => 'Mist';
+
+  @override
+  String get weatherLightRain => 'Lichte regen';
+
+  @override
+  String get weatherRain => 'Regen';
+
+  @override
+  String get weatherSnow => 'Sneeuw';
+
+  @override
+  String get weatherShowers => 'Buien';
+
+  @override
+  String get weatherThunderstorm => 'Onweer';
+
+  @override
+  String get ztlAheadWarning =>
+      'ZTL-zone nadert — route voert door beperkt gebied';
+
+  @override
+  String get ztlInsideWarning => 'Verkeersbeperkte zone';
+
+  @override
+  String get onboardingAppSubtitle => 'Open-source Nostr-navigatie';
+
+  @override
+  String get onboardingWelcomeTitle => 'Welkom';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'Alles wat een navigatie-app nodig heeft — zonder uw privacy op te geven.';
+
+  @override
+  String get onboardingFeatureNav => 'Bochtsgewijze GPS-navigatie';
+
+  @override
+  String get onboardingFeatureNostr =>
+      'Nostr weggebeurtenissen (flitsers, gevaren, verkeer)';
+
+  @override
+  String get onboardingFeatureLightning =>
+      'Lightning Network fooien voor eventverslaggevers';
+
+  @override
+  String get onboardingFeatureVoice =>
+      'AI-stemgeleiding op het apparaat (Kokoro-82M)';
+
+  @override
+  String get onboardingFeaturePrivacy =>
+      'Geen account vereist — geen tracking, nooit';
+
+  @override
+  String get onboardingGetStarted => 'Aan de slag';
+
+  @override
+  String get onboardingNostrTitle => 'Nostr-identiteit';
+
+  @override
+  String get onboardingNostrSubtitle =>
+      'Optioneel — verbinding maken om weggebeurtenissen te melden, waarschuwingen te bevestigen en Lightning fooien te verdienen.';
+
+  @override
+  String get onboardingNostrConnected => 'Verbonden';
+
+  @override
+  String get onboardingAmberTitle => 'Amber — NIP-55 (aanbevolen)';
+
+  @override
+  String get onboardingAmberSubtitle =>
+      'Verbinding met de Amber signer-app. Uw privésleutel verlaat Amber nooit.';
+
+  @override
+  String get onboardingNsecTitle => 'nsec-sleutel';
+
+  @override
+  String get onboardingNsecSubtitle =>
+      'Plak uw privésleutel. Opgeslagen in de Android Keystore.';
+
+  @override
+  String get onboardingNsecError =>
+      'Ongeldige nsec-sleutel — controleer en probeer opnieuw.';
+
+  @override
+  String get onboardingSkip => 'Nu overslaan';
+
+  @override
+  String get onboardingContinue => 'Doorgaan';
+
+  @override
+  String get onboardingEnterNsec => 'Voer nsec-sleutel in';
+
+  @override
+  String get onboardingSetupTitle => 'Roadstr instellen';
+
+  @override
+  String get onboardingSetupSubtitle =>
+      'Configureer locatietoegang en optionele stemgeleiding.';
+
+  @override
+  String get onboardingLocationTitle => 'Locatie';
+
+  @override
+  String get onboardingLocationGranted => 'Locatietoegang verleend';
+
+  @override
+  String get onboardingLocationRequired => 'Vereist voor GPS-navigatie';
+
+  @override
+  String get onboardingGrantButton => 'Toestaan';
+
+  @override
+  String get onboardingGrapheneTitle => 'GrapheneOS-gebruikers';
+
+  @override
+  String get onboardingGrapheneBody =>
+      'Verleen Exacte locatie (niet Geschatte) en sta toegang Altijd toe (niet alleen tijdens gebruik) in:\nInstellingen → Apps → Roadstr → Machtigingen → Locatie\n\nMet alleen geschatte locatie of \'alleen tijdens gebruik\' verliest GPS-navigatie de positie op de achtergrond.';
+
+  @override
+  String get onboardingVoiceTitle => 'AI-stemgeleiding (optioneel)';
+
+  @override
+  String get onboardingVoiceReady => 'Kokoro spraakmodel klaar';
+
+  @override
+  String get onboardingVoiceDownloading => 'Spraakmodel downloaden…';
+
+  @override
+  String get onboardingVoiceNotDownloaded =>
+      'Download het 82 MB Kokoro AI-model voor stem op het apparaat';
+
+  @override
+  String get onboardingVoiceChecking => 'Modelstatus controleren…';
+
+  @override
+  String get onboardingDownloadButton => 'Downloaden';
+
+  @override
+  String get onboardingVoiceLaterHint =>
+      'U kunt het spraakmodel ook later downloaden via\nInstellingen → Navigatiestem.';
+
+  @override
+  String get onboardingReadyTitle => 'U bent klaar om te navigeren!';
+
+  @override
+  String get onboardingReadyBody =>
+      'Roadstr opent nu de kaart.\nU kunt alles overige configureren in Instellingen.';
+
+  @override
+  String get onboardingLetsGo => 'Laten we gaan!';
+
+  @override
+  String get onboardingProfileLoading => 'Profiel laden…';
+
+  @override
+  String get onboardingNsecHint => 'nsec1…';
 }

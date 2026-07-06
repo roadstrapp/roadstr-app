@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="vespaGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3FC1BE"></stop>
+      <stop offset="1" stop-color="#1F8D8A"></stop>
+    </linearGradient>
+  </defs>
+  <ellipse cx="24" cy="39" rx="8" ry="2.8" fill="#000000" opacity="0.25"></ellipse>
+
+  
+  <ellipse cx="24" cy="11.5" rx="2.8" ry="3.8" fill="#20202A"></ellipse>
+  <ellipse cx="24" cy="36.5" rx="3" ry="4" fill="#20202A"></ellipse>
+
+  
+  <path d="M20,10 C22,8.7 26,8.7 28,10 C28.3,11.6 27.7,13 24,13 C20.3,13 19.7,11.6 20,10 Z" fill="#186F6D"></path>
+
+  
+  <path d="M24,9 C30,9 32.5,14.5 32,21 C31.6,26.5 32,31 30,35.5 C28.3,39 19.7,39 18,35.5 C16,31 16.4,26.5 16,21 C15.5,14.5 18,9 24,9 Z" fill="url(#vespaGrad)" stroke="#0F4C4A" stroke-width="1.5" stroke-linejoin="round"></path>
+
+  
+  <rect x="18.5" y="19.5" width="11" height="7.5" rx="3.2" fill="#F5E9D9" stroke="#0F4C4A" stroke-width="1"></rect>
+
+  
+  <path d="M15.5,13 C18,12 30,12 32.5,13" stroke="#0F4C4A" stroke-width="1.7" stroke-linecap="round" fill="none"></path>
+
+  
+  <circle cx="24" cy="10.3" r="1.1" fill="#F5E9D9"></circle>
+</svg>

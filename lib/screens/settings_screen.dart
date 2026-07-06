@@ -15,6 +15,7 @@ import '../services/routing_service.dart';
 import '../services/kokoro/kokoro_model_manager.dart';
 import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
+import '../widgets/cursor_painter.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -589,6 +590,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 24),
 
+          // ── MAP CURSOR ──────────────────────────────────────────────────
+          _SectionHeader('Map cursor', c),
+          _CursorSelector(box: _box, colors: c),
+
+          const SizedBox(height: 24),
+
           // ── WEB SEARCH ENGINE ───────────────────────────────────────────
           _SectionHeader(l.sectionWebSearch, c),
           _SearchEngineSelector(box: _box, colors: c),
@@ -781,7 +788,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // ── INFO ─────────────────────────────────────────────────────────
           _SectionHeader(l.sectionInfo, c),
-          _InfoTile(l.infoVersion, '0.3.4', c),
+          _InfoTile(l.infoVersion, '0.4.0', c),
           _InfoTile(l.infoProtocol, 'Nostr', c),
           _InfoTile(l.infoMaps, 'openstreetmap.org', c,
               url: 'https://www.openstreetmap.org'),
@@ -1026,6 +1033,79 @@ class _SearchEngineSelectorState extends State<_SearchEngineSelector> {
                   height: 1.4)),
         ),
       ]),
+    );
+  }
+}
+
+// ── Cursor selector ───────────────────────────────────────────────────────────
+
+class _CursorSelector extends StatefulWidget {
+  final Box box;
+  final RoadstrColors colors;
+  const _CursorSelector({required this.box, required this.colors});
+
+  @override
+  State<_CursorSelector> createState() => _CursorSelectorState();
+}
+
+class _CursorSelectorState extends State<_CursorSelector> {
+  late CursorStyle _current;
+
+  @override
+  void initState() {
+    super.initState();
+    final saved = widget.box.get('cursorStyle', defaultValue: 'arrow') as String;
+    _current = CursorStyle.selectable.firstWhere(
+      (s) => s.name == saved,
+      orElse: () => CursorStyle.arrow,
+    );
+  }
+
+  void _select(CursorStyle style) {
+    widget.box.put('cursorStyle', style.name);
+    setState(() => _current = style);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = widget.colors;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      decoration: BoxDecoration(
+        color: c.surface2,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: c.border, width: 0.5),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<CursorStyle>(
+          value: _current,
+          isExpanded: true,
+          dropdownColor: c.surface2,
+          borderRadius: BorderRadius.circular(14),
+          icon: Icon(Icons.expand_more_rounded, color: c.textSecondary),
+          onChanged: (s) { if (s != null) _select(s); },
+          selectedItemBuilder: (_) => CursorStyle.selectable.map((style) {
+            return Row(children: [
+              CursorWidget(style: style, size: 32),
+              const SizedBox(width: 12),
+              Text(style.label,
+                  style: TextStyle(color: c.textPrimary,
+                      fontSize: 14, fontWeight: FontWeight.w600)),
+            ]);
+          }).toList(),
+          items: CursorStyle.selectable.map((style) {
+            return DropdownMenuItem<CursorStyle>(
+              value: style,
+              child: Row(children: [
+                CursorWidget(style: style, size: 36),
+                const SizedBox(width: 14),
+                Text(style.label,
+                    style: TextStyle(color: c.textPrimary, fontSize: 14)),
+              ]),
+            );
+          }).toList(),
+        ),
+      ),
     );
   }
 }

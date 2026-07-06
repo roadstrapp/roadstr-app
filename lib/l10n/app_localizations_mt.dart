@@ -747,4 +747,196 @@ class AppLocalizationsMt extends AppLocalizations {
   String departEta(String dep, String arr) {
     return 'Tluq $dep  →  Wasla $arr';
   }
+
+  @override
+  String get modeCar => 'Karozza';
+
+  @override
+  String get modeBike => 'Rota';
+
+  @override
+  String get modeWalk => 'Bil-mixi';
+
+  @override
+  String windSpeed(String speed) {
+    return 'riħ $speed km/h';
+  }
+
+  @override
+  String durationMin(int m) {
+    return '$m min';
+  }
+
+  @override
+  String durationHourMin(int h, int m) {
+    return '${h}h ${m}min';
+  }
+
+  @override
+  String get weatherClear => 'Ċar';
+
+  @override
+  String get weatherPartlyCloudy => 'Parzjalment imkḫajjar';
+
+  @override
+  String get weatherCloudy => 'Imkḫajjar';
+
+  @override
+  String get weatherFog => 'Ċpar';
+
+  @override
+  String get weatherLightRain => 'Xita ħafifa';
+
+  @override
+  String get weatherRain => 'Xita';
+
+  @override
+  String get weatherSnow => 'Borra';
+
+  @override
+  String get weatherShowers => 'Xita qawwija';
+
+  @override
+  String get weatherThunderstorm => 'Maltempata';
+
+  @override
+  String get ztlAheadWarning =>
+      'Żona ZTL quddiem — ir-rotta tidħol f\'żona ristretta';
+
+  @override
+  String get ztlInsideWarning => 'Żona ta\' traffiku ristrett';
+
+  @override
+  String get onboardingAppSubtitle => 'Navigazzjoni Nostr open-source';
+
+  @override
+  String get onboardingWelcomeTitle => 'Merħba';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'Everything your navigation app needs — without giving up your privacy.';
+
+  @override
+  String get onboardingFeatureNav => 'Turn-by-turn GPS navigation';
+
+  @override
+  String get onboardingFeatureNostr =>
+      'Nostr road events (speed cameras, hazards, traffic)';
+
+  @override
+  String get onboardingFeatureLightning =>
+      'Lightning Network tips for event reporters';
+
+  @override
+  String get onboardingFeatureVoice =>
+      'On-device AI voice guidance (Kokoro-82M)';
+
+  @override
+  String get onboardingFeaturePrivacy =>
+      'No account required — no tracking, ever';
+
+  @override
+  String get onboardingGetStarted => 'Ibda';
+
+  @override
+  String get onboardingNostrTitle => 'Identità Nostr';
+
+  @override
+  String get onboardingNostrSubtitle =>
+      'Optional — connect to report road events, confirm alerts and earn Lightning tips.';
+
+  @override
+  String get onboardingNostrConnected => 'Konness';
+
+  @override
+  String get onboardingAmberTitle => 'Amber — NIP-55 (rakkomandat)';
+
+  @override
+  String get onboardingAmberSubtitle =>
+      'Connect with the Amber signer app. Your private key never leaves Amber.';
+
+  @override
+  String get onboardingNsecTitle => 'Ċavetta nsec';
+
+  @override
+  String get onboardingNsecSubtitle =>
+      'Paste your private key. Stored in the Android Keystore.';
+
+  @override
+  String get onboardingNsecError =>
+      'Ċavetta nsec mhux valida — iċċekkja u erġa\' pprova.';
+
+  @override
+  String get onboardingSkip => 'Aqbeż issa';
+
+  @override
+  String get onboardingContinue => 'Kompli';
+
+  @override
+  String get onboardingEnterNsec => 'Daħħal iċ-ċavetta nsec';
+
+  @override
+  String get onboardingSetupTitle => 'Issettja Roadstr';
+
+  @override
+  String get onboardingSetupSubtitle =>
+      'Configure location access and optional voice guidance.';
+
+  @override
+  String get onboardingLocationTitle => 'Post';
+
+  @override
+  String get onboardingLocationGranted => 'Ingħata aċċess għall-post';
+
+  @override
+  String get onboardingLocationRequired => 'Meħtieġ għan-navigazzjoni GPS';
+
+  @override
+  String get onboardingGrantButton => 'Agħti';
+
+  @override
+  String get onboardingGrapheneTitle => 'Utenti GrapheneOS';
+
+  @override
+  String get onboardingGrapheneBody =>
+      'Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.';
+
+  @override
+  String get onboardingVoiceTitle => 'Gwida bil-vuċi AI (mhux obbligatorja)';
+
+  @override
+  String get onboardingVoiceReady => 'Mudell tal-vuċi Kokoro lest';
+
+  @override
+  String get onboardingVoiceDownloading => 'Qed jitniżżel il-mudell tal-vuċi…';
+
+  @override
+  String get onboardingVoiceNotDownloaded =>
+      'Download the 82 MB Kokoro AI model for on-device voice';
+
+  @override
+  String get onboardingVoiceChecking => 'Checking model status…';
+
+  @override
+  String get onboardingDownloadButton => 'Niżżel';
+
+  @override
+  String get onboardingVoiceLaterHint =>
+      'You can also download the voice model later from\nSettings → Navigation voice.';
+
+  @override
+  String get onboardingReadyTitle => 'Int lest biex tinnawiga!';
+
+  @override
+  String get onboardingReadyBody =>
+      'Roadstr will now open the map.\nYou can configure everything else in Settings.';
+
+  @override
+  String get onboardingLetsGo => 'Ejja mmorru!';
+
+  @override
+  String get onboardingProfileLoading => 'Qed jitgħabba l-profil…';
+
+  @override
+  String get onboardingNsecHint => 'nsec1…';
 }

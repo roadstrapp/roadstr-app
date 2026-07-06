@@ -752,4 +752,196 @@ class AppLocalizationsEl extends AppLocalizations {
   String departEta(String dep, String arr) {
     return 'Αναχώρηση $dep  →  Άφιξη $arr';
   }
+
+  @override
+  String get modeCar => 'Αυτοκίνητο';
+
+  @override
+  String get modeBike => 'Ποδήλατο';
+
+  @override
+  String get modeWalk => 'Πεζός';
+
+  @override
+  String windSpeed(String speed) {
+    return 'άνεμος $speed km/h';
+  }
+
+  @override
+  String durationMin(int m) {
+    return '$m λεπτ';
+  }
+
+  @override
+  String durationHourMin(int h, int m) {
+    return '$hω $mλεπτ';
+  }
+
+  @override
+  String get weatherClear => 'Αίθριος';
+
+  @override
+  String get weatherPartlyCloudy => 'Αραιές νεφώσεις';
+
+  @override
+  String get weatherCloudy => 'Συννεφιά';
+
+  @override
+  String get weatherFog => 'Ομίχλη';
+
+  @override
+  String get weatherLightRain => 'Ψιχάλα';
+
+  @override
+  String get weatherRain => 'Βροχή';
+
+  @override
+  String get weatherSnow => 'Χιόνι';
+
+  @override
+  String get weatherShowers => 'Καταιγίδα';
+
+  @override
+  String get weatherThunderstorm => 'Καταιγίδα';
+
+  @override
+  String get ztlAheadWarning =>
+      'Ζώνη ZTL μπροστά — η διαδρομή εισέρχεται σε περιορισμένη ζώνη';
+
+  @override
+  String get ztlInsideWarning => 'Περιορισμένη κυκλοφοριακή ζώνη';
+
+  @override
+  String get onboardingAppSubtitle => 'Πλοήγηση Nostr ανοιχτού κώδικα';
+
+  @override
+  String get onboardingWelcomeTitle => 'Καλώς ορίσατε';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'Everything your navigation app needs — without giving up your privacy.';
+
+  @override
+  String get onboardingFeatureNav => 'Turn-by-turn GPS navigation';
+
+  @override
+  String get onboardingFeatureNostr =>
+      'Nostr road events (speed cameras, hazards, traffic)';
+
+  @override
+  String get onboardingFeatureLightning =>
+      'Lightning Network tips for event reporters';
+
+  @override
+  String get onboardingFeatureVoice =>
+      'On-device AI voice guidance (Kokoro-82M)';
+
+  @override
+  String get onboardingFeaturePrivacy =>
+      'No account required — no tracking, ever';
+
+  @override
+  String get onboardingGetStarted => 'Ξεκινήστε';
+
+  @override
+  String get onboardingNostrTitle => 'Ταυτότητα Nostr';
+
+  @override
+  String get onboardingNostrSubtitle =>
+      'Optional — connect to report road events, confirm alerts and earn Lightning tips.';
+
+  @override
+  String get onboardingNostrConnected => 'Συνδεδεμένο';
+
+  @override
+  String get onboardingAmberTitle => 'Amber — NIP-55 (συνιστάται)';
+
+  @override
+  String get onboardingAmberSubtitle =>
+      'Connect with the Amber signer app. Your private key never leaves Amber.';
+
+  @override
+  String get onboardingNsecTitle => 'Κλειδί nsec';
+
+  @override
+  String get onboardingNsecSubtitle =>
+      'Paste your private key. Stored in the Android Keystore.';
+
+  @override
+  String get onboardingNsecError =>
+      'Μη έγκυρο κλειδί nsec — ελέγξτε και δοκιμάστε ξανά.';
+
+  @override
+  String get onboardingSkip => 'Παράλειψη προς το παρόν';
+
+  @override
+  String get onboardingContinue => 'Συνέχεια';
+
+  @override
+  String get onboardingEnterNsec => 'Εισαγάγετε το κλειδί nsec';
+
+  @override
+  String get onboardingSetupTitle => 'Ρύθμιση Roadstr';
+
+  @override
+  String get onboardingSetupSubtitle =>
+      'Configure location access and optional voice guidance.';
+
+  @override
+  String get onboardingLocationTitle => 'Τοποθεσία';
+
+  @override
+  String get onboardingLocationGranted => 'Χορηγήθηκε πρόσβαση τοποθεσίας';
+
+  @override
+  String get onboardingLocationRequired => 'Απαιτείται για πλοήγηση GPS';
+
+  @override
+  String get onboardingGrantButton => 'Χορήγηση';
+
+  @override
+  String get onboardingGrapheneTitle => 'Χρήστες GrapheneOS';
+
+  @override
+  String get onboardingGrapheneBody =>
+      'Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.';
+
+  @override
+  String get onboardingVoiceTitle => 'Φωνητική καθοδήγηση ΤΝ (προαιρετικό)';
+
+  @override
+  String get onboardingVoiceReady => 'Το μοντέλο φωνής Kokoro είναι έτοιμο';
+
+  @override
+  String get onboardingVoiceDownloading => 'Λήψη μοντέλου φωνής…';
+
+  @override
+  String get onboardingVoiceNotDownloaded =>
+      'Download the 82 MB Kokoro AI model for on-device voice';
+
+  @override
+  String get onboardingVoiceChecking => 'Checking model status…';
+
+  @override
+  String get onboardingDownloadButton => 'Λήψη';
+
+  @override
+  String get onboardingVoiceLaterHint =>
+      'You can also download the voice model later from\nSettings → Navigation voice.';
+
+  @override
+  String get onboardingReadyTitle => 'Είστε έτοιμοι να πλοηγηθείτε!';
+
+  @override
+  String get onboardingReadyBody =>
+      'Roadstr will now open the map.\nYou can configure everything else in Settings.';
+
+  @override
+  String get onboardingLetsGo => 'Πάμε!';
+
+  @override
+  String get onboardingProfileLoading => 'Φόρτωση προφίλ…';
+
+  @override
+  String get onboardingNsecHint => 'nsec1…';
 }

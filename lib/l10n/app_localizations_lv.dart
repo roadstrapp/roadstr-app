@@ -746,4 +746,196 @@ class AppLocalizationsLv extends AppLocalizations {
   String departEta(String dep, String arr) {
     return 'Izbraukšana $dep  →  Ierašanās $arr';
   }
+
+  @override
+  String get modeCar => 'Auto';
+
+  @override
+  String get modeBike => 'Velosipēds';
+
+  @override
+  String get modeWalk => 'Kājām';
+
+  @override
+  String windSpeed(String speed) {
+    return 'vējš $speed km/h';
+  }
+
+  @override
+  String durationMin(int m) {
+    return '$m min';
+  }
+
+  @override
+  String durationHourMin(int h, int m) {
+    return '${h}h ${m}min';
+  }
+
+  @override
+  String get weatherClear => 'Skaidrs';
+
+  @override
+  String get weatherPartlyCloudy => 'Mainīgs';
+
+  @override
+  String get weatherCloudy => 'Mākoņains';
+
+  @override
+  String get weatherFog => 'Migla';
+
+  @override
+  String get weatherLightRain => 'Viegls lietus';
+
+  @override
+  String get weatherRain => 'Lietus';
+
+  @override
+  String get weatherSnow => 'Sniegs';
+
+  @override
+  String get weatherShowers => 'Lietusgāzes';
+
+  @override
+  String get weatherThunderstorm => 'Pērkona vētra';
+
+  @override
+  String get ztlAheadWarning =>
+      'ZTL zona priekšā — maršruts iet ierobežotajā zonā';
+
+  @override
+  String get ztlInsideWarning => 'Ierobežotas satiksmes zona';
+
+  @override
+  String get onboardingAppSubtitle => 'Atvērtā koda Nostr navigācija';
+
+  @override
+  String get onboardingWelcomeTitle => 'Laipni lūdzam';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'Everything your navigation app needs — without giving up your privacy.';
+
+  @override
+  String get onboardingFeatureNav => 'Turn-by-turn GPS navigation';
+
+  @override
+  String get onboardingFeatureNostr =>
+      'Nostr road events (speed cameras, hazards, traffic)';
+
+  @override
+  String get onboardingFeatureLightning =>
+      'Lightning Network tips for event reporters';
+
+  @override
+  String get onboardingFeatureVoice =>
+      'On-device AI voice guidance (Kokoro-82M)';
+
+  @override
+  String get onboardingFeaturePrivacy =>
+      'No account required — no tracking, ever';
+
+  @override
+  String get onboardingGetStarted => 'Sākt';
+
+  @override
+  String get onboardingNostrTitle => 'Nostr identitāte';
+
+  @override
+  String get onboardingNostrSubtitle =>
+      'Optional — connect to report road events, confirm alerts and earn Lightning tips.';
+
+  @override
+  String get onboardingNostrConnected => 'Savienots';
+
+  @override
+  String get onboardingAmberTitle => 'Amber — NIP-55 (ieteicams)';
+
+  @override
+  String get onboardingAmberSubtitle =>
+      'Connect with the Amber signer app. Your private key never leaves Amber.';
+
+  @override
+  String get onboardingNsecTitle => 'nsec atslēga';
+
+  @override
+  String get onboardingNsecSubtitle =>
+      'Paste your private key. Stored in the Android Keystore.';
+
+  @override
+  String get onboardingNsecError =>
+      'Nederīga nsec atslēga — pārbaudiet un mēģiniet vēlreiz.';
+
+  @override
+  String get onboardingSkip => 'Izlaist pagaidām';
+
+  @override
+  String get onboardingContinue => 'Turpināt';
+
+  @override
+  String get onboardingEnterNsec => 'Ievadiet nsec atslēgu';
+
+  @override
+  String get onboardingSetupTitle => 'Iestatīt Roadstr';
+
+  @override
+  String get onboardingSetupSubtitle =>
+      'Configure location access and optional voice guidance.';
+
+  @override
+  String get onboardingLocationTitle => 'Atrašanās vieta';
+
+  @override
+  String get onboardingLocationGranted => 'Atrašanās vietas piekļuve piešķirta';
+
+  @override
+  String get onboardingLocationRequired => 'Nepieciešams GPS navigācijai';
+
+  @override
+  String get onboardingGrantButton => 'Piešķirt';
+
+  @override
+  String get onboardingGrapheneTitle => 'GrapheneOS lietotāji';
+
+  @override
+  String get onboardingGrapheneBody =>
+      'Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.';
+
+  @override
+  String get onboardingVoiceTitle => 'AI balss vadīšana (neobligāta)';
+
+  @override
+  String get onboardingVoiceReady => 'Kokoro balss modelis ir gatavs';
+
+  @override
+  String get onboardingVoiceDownloading => 'Lejupielādē balss modeli…';
+
+  @override
+  String get onboardingVoiceNotDownloaded =>
+      'Download the 82 MB Kokoro AI model for on-device voice';
+
+  @override
+  String get onboardingVoiceChecking => 'Checking model status…';
+
+  @override
+  String get onboardingDownloadButton => 'Lejupielādēt';
+
+  @override
+  String get onboardingVoiceLaterHint =>
+      'You can also download the voice model later from\nSettings → Navigation voice.';
+
+  @override
+  String get onboardingReadyTitle => 'Esat gatavs navigācijai!';
+
+  @override
+  String get onboardingReadyBody =>
+      'Roadstr will now open the map.\nYou can configure everything else in Settings.';
+
+  @override
+  String get onboardingLetsGo => 'Braucam!';
+
+  @override
+  String get onboardingProfileLoading => 'Ielādē profilu…';
+
+  @override
+  String get onboardingNsecHint => 'nsec1…';
 }

@@ -745,4 +745,196 @@ class AppLocalizationsPl extends AppLocalizations {
   String departEta(String dep, String arr) {
     return 'Odjazd $dep  →  Przybycie $arr';
   }
+
+  @override
+  String get modeCar => 'Auto';
+
+  @override
+  String get modeBike => 'Rower';
+
+  @override
+  String get modeWalk => 'Pieszo';
+
+  @override
+  String windSpeed(String speed) {
+    return 'wiatr $speed km/h';
+  }
+
+  @override
+  String durationMin(int m) {
+    return '$m min';
+  }
+
+  @override
+  String durationHourMin(int h, int m) {
+    return '${h}h ${m}min';
+  }
+
+  @override
+  String get weatherClear => 'Pogodnie';
+
+  @override
+  String get weatherPartlyCloudy => 'Częściowe zachmurz.';
+
+  @override
+  String get weatherCloudy => 'Pochmurno';
+
+  @override
+  String get weatherFog => 'Mgła';
+
+  @override
+  String get weatherLightRain => 'Lekki deszcz';
+
+  @override
+  String get weatherRain => 'Deszcz';
+
+  @override
+  String get weatherSnow => 'Śnieg';
+
+  @override
+  String get weatherShowers => 'Przelotny deszcz';
+
+  @override
+  String get weatherThunderstorm => 'Burza';
+
+  @override
+  String get ztlAheadWarning =>
+      'Strefa ZTL — trasa prowadzi przez strefę ograniczoną';
+
+  @override
+  String get ztlInsideWarning => 'Strefa ograniczonego ruchu';
+
+  @override
+  String get onboardingAppSubtitle => 'Nawigacja Nostr open source';
+
+  @override
+  String get onboardingWelcomeTitle => 'Witaj';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'Wszystko, czego potrzebuje aplikacja nawigacyjna — bez rezygnacji z prywatności.';
+
+  @override
+  String get onboardingFeatureNav => 'Nawigacja GPS krok po kroku';
+
+  @override
+  String get onboardingFeatureNostr =>
+      'Zdarzenia drogowe Nostr (radary, zagrożenia, ruch)';
+
+  @override
+  String get onboardingFeatureLightning =>
+      'Napiwki Lightning Network dla zgłaszających zdarzenia';
+
+  @override
+  String get onboardingFeatureVoice =>
+      'Lokalne AI prowadzenie głosowe (Kokoro-82M)';
+
+  @override
+  String get onboardingFeaturePrivacy =>
+      'Nie wymaga konta — bez śledzenia, nigdy';
+
+  @override
+  String get onboardingGetStarted => 'Rozpocznij';
+
+  @override
+  String get onboardingNostrTitle => 'Tożsamość Nostr';
+
+  @override
+  String get onboardingNostrSubtitle =>
+      'Opcjonalne — połącz się, aby zgłaszać zdarzenia drogowe, potwierdzać alerty i zarabiać napiwki Lightning.';
+
+  @override
+  String get onboardingNostrConnected => 'Połączono';
+
+  @override
+  String get onboardingAmberTitle => 'Amber — NIP-55 (zalecane)';
+
+  @override
+  String get onboardingAmberSubtitle =>
+      'Połącz się z aplikacją podpisującą Amber. Twój klucz prywatny nigdy nie opuszcza Amber.';
+
+  @override
+  String get onboardingNsecTitle => 'Klucz nsec';
+
+  @override
+  String get onboardingNsecSubtitle =>
+      'Wklej swój klucz prywatny. Przechowywany w Android Keystore.';
+
+  @override
+  String get onboardingNsecError =>
+      'Nieprawidłowy klucz nsec — sprawdź i spróbuj ponownie.';
+
+  @override
+  String get onboardingSkip => 'Pomiń na razie';
+
+  @override
+  String get onboardingContinue => 'Kontynuuj';
+
+  @override
+  String get onboardingEnterNsec => 'Wprowadź klucz nsec';
+
+  @override
+  String get onboardingSetupTitle => 'Skonfiguruj Roadstr';
+
+  @override
+  String get onboardingSetupSubtitle =>
+      'Skonfiguruj dostęp do lokalizacji i opcjonalne prowadzenie głosowe.';
+
+  @override
+  String get onboardingLocationTitle => 'Lokalizacja';
+
+  @override
+  String get onboardingLocationGranted => 'Dostęp do lokalizacji przyznany';
+
+  @override
+  String get onboardingLocationRequired => 'Wymagane do nawigacji GPS';
+
+  @override
+  String get onboardingGrantButton => 'Zezwól';
+
+  @override
+  String get onboardingGrapheneTitle => 'Użytkownicy GrapheneOS';
+
+  @override
+  String get onboardingGrapheneBody =>
+      'Przyznaj Dokładną lokalizację (nie Przybliżoną) i zezwól na dostęp Zawsze (nie tylko podczas użytkowania) w:\nUstawienia → Aplikacje → Roadstr → Uprawnienia → Lokalizacja\n\nZ tylko przybliżoną lub \'tylko podczas użytkowania\' lokalizacją nawigacja GPS straci pozycję w tle.';
+
+  @override
+  String get onboardingVoiceTitle => 'Prowadzenie głosowe AI (opcjonalne)';
+
+  @override
+  String get onboardingVoiceReady => 'Model głosowy Kokoro gotowy';
+
+  @override
+  String get onboardingVoiceDownloading => 'Pobieranie modelu głosowego…';
+
+  @override
+  String get onboardingVoiceNotDownloaded =>
+      'Pobierz 82 MB model AI Kokoro dla lokalnej syntezy mowy';
+
+  @override
+  String get onboardingVoiceChecking => 'Sprawdzanie stanu modelu…';
+
+  @override
+  String get onboardingDownloadButton => 'Pobierz';
+
+  @override
+  String get onboardingVoiceLaterHint =>
+      'Możesz też pobrać model głosowy później w\nUstawienia → Głos nawigacji.';
+
+  @override
+  String get onboardingReadyTitle => 'Jesteś gotowy do nawigacji!';
+
+  @override
+  String get onboardingReadyBody =>
+      'Roadstr otworzy teraz mapę.\nWszystko inne możesz skonfigurować w Ustawieniach.';
+
+  @override
+  String get onboardingLetsGo => 'Ruszamy!';
+
+  @override
+  String get onboardingProfileLoading => 'Ładowanie profilu…';
+
+  @override
+  String get onboardingNsecHint => 'nsec1…';
 }
