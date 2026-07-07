@@ -109,6 +109,9 @@ class _MapScreenState extends State<MapScreen>
 
   RouteResult? _route;
   LatLng? _destination;
+  LatLng? _arrivedAt;
+  bool _showArrivalBanner = false;
+  Timer? _arrivalBannerTimer;
   int _currentStepIdx = 0;
   bool _isNavigating = false;
   bool _isCalculating = false;
@@ -643,135 +646,24 @@ class _MapScreenState extends State<MapScreen>
   void _checkArrival() {
     if (_destination == null || !_isNavigating) return;
     final d = const Distance().as(LengthUnit.Meter, _position, _destination!);
-    if (d < 40 || _remainingDistM < 50) _onArrival();
+    final arrivalRadius = _transportMode == 'walking' ? 15 : 40;
+    if (d < arrivalRadius || _remainingDistM < 50) _onArrival();
   }
 
   void _onArrival() {
     if (!_voiceMuted) _tts.announceArrival();
+    final dest = _destination;
     _stopNavigation();
-    _showArrivalDialog();
-  }
-
-  // App Nostr account for user feedback (DM via NIP-04 kind-4)
-  static const _appNpub =
-      'npub1cwft0dmtw5gtwhmu5r2f8fjpw0l5f006egs8fmltdc3jrxxcpe6q965mmc';
-
-  void _showArrivalDialog() {
-    final c = RoadstrColors.of(context);
-    final l = AppLocalizations.of(context)!;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: c.surface2,
-        title: Text(l.arrivedTitle,
-            style: const TextStyle(fontSize: 22), textAlign: TextAlign.center),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(l.arrivedBody,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: c.textSecondary, fontSize: 14)),
-          const SizedBox(height: 16),
-          Text(l.arrivedFeedbackPrompt,
-              style: TextStyle(color: c.textPrimary, fontSize: 15,
-                  fontWeight: FontWeight.bold)),
-        ]),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          // Bad experience → send DM feedback
-          OutlinedButton.icon(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _showFeedbackDialog();
-            },
-            style: OutlinedButton.styleFrom(
-                side: BorderSide(color: c.border),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12))),
-            icon: const Text('👎', style: TextStyle(fontSize: 16)),
-            label: Text(l.feedbackBad, style: TextStyle(color: c.textSecondary)),
-          ),
-          FilledButton.icon(
-            onPressed: () => Navigator.pop(ctx),
-            style: FilledButton.styleFrom(
-                backgroundColor: c.accent,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12))),
-            icon: const Text('👍', style: TextStyle(fontSize: 16)),
-            label: Text(l.feedbackGood,
-                style: const TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showFeedbackDialog() {
-    final c = RoadstrColors.of(context);
-    final l = AppLocalizations.of(context)!;
-    final ctrl = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: c.surface2,
-        title: Text(l.feedbackDialogTitle,
-            style: TextStyle(color: c.textPrimary, fontSize: 15,
-                fontWeight: FontWeight.bold)),
-        content: TextField(
-          controller: ctrl,
-          maxLines: 4,
-          style: TextStyle(color: c.textPrimary, fontSize: 13),
-          decoration: InputDecoration(
-            hintText: l.feedbackHint,
-            hintStyle: TextStyle(color: c.textSecondary),
-            border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10)),
-            focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: c.accent)),
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx),
-              child: Text(l.cancel,
-                  style: TextStyle(color: c.textSecondary))),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: c.accent),
-            onPressed: () async {
-              final msg = ctrl.text.trim();
-              Navigator.pop(ctx);
-              if (msg.isEmpty) return;
-              await _sendFeedbackDm(msg);
-              if (mounted) _snack(l.feedbackSent);
-            },
-            child: Text(l.feedbackSubmit, style: const TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-
-  /// Sends a NIP-04 encrypted direct message (kind-4) to the app's Nostr
-  /// account with the user's feedback text.
-  Future<void> _sendFeedbackDm(String text) async {
-    final privKey = await _secStorage.read(key: 'nostr_priv_hex');
-    final pubKey  = await _secStorage.read(key: 'nostr_pub_hex');
-    if (privKey == null || pubKey == null) return;
-    try {
-      final appPubHex = Nip19().decode(_appNpub)['data'] as String;
-      final encrypted = Nip04().encrypt(privKey, appPubHex, text);
-      final event = EventApi().finishEvent(
-        Event(
-          pubkey:     pubKey,
-          created_at: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          kind:       4,
-          tags:       [['p', appPubHex]],
-          content:    encrypted,
-        ),
-        privKey,
-      );
-      _nostr.publishRawEvent(event.toJson());
-    } catch (_) {}
+    if (dest != null) {
+      _arrivalBannerTimer?.cancel();
+      setState(() {
+        _arrivedAt = dest;
+        _showArrivalBanner = true;
+      });
+      _arrivalBannerTimer = Timer(const Duration(seconds: 6), () {
+        if (mounted) setState(() => _showArrivalBanner = false);
+      });
+    }
   }
 
   void _updateNavigationStep() {
@@ -787,7 +679,7 @@ class _MapScreenState extends State<MapScreen>
     _distToNextManeuverM = dist;
 
     // ── Voice guidance announcements ─────────────────────────────────────────
-    final t = _announcementThresholds(nextStep, _speed);
+    final t = _announcementThresholds(nextStep, _speed, _transportMode);
     // Far announcement
     final midOrNear = t.mid > 0 ? t.mid : t.near;
     if (dist < t.far + 20 && dist >= midOrNear + 20 && _ttsAnnouncedFar != nextIdx) {
@@ -824,22 +716,24 @@ class _MapScreenState extends State<MapScreen>
       final newNextIdx = _currentStepIdx + 1;
       if (newNextIdx < (_route?.steps.length ?? 0)) {
         final nextSt = _route!.steps[newNextIdx];
-        final t = _announcementThresholds(nextSt, _speed);
+        final t = _announcementThresholds(nextSt, _speed, _transportMode);
         // Urban steps only: announce new next instruction immediately after maneuver.
         // Highway/ramp steps (t.mid > 0) keep the full 3-tier system untouched.
+        final distToNext = const Distance()
+            .as(LengthUnit.Meter, _position, nextSt.location);
         if (t.mid == 0 && !_voiceMuted) {
-          final distToNext = const Distance()
-              .as(LengthUnit.Meter, _position, nextSt.location);
           // Round to nearest 50 m for natural speech; drop distance for imminent turns.
           final spokenDist = distToNext > 80
               ? ((distToNext / 50).round() * 50).toInt()
               : 0;
           _tts.announceManeuver(nextSt.instruction, spokenDist);
         }
-        // Suppress far/mid (already spoken above); allow near (50 m) to fire.
+        // Suppress far/mid (already spoken above).
         _ttsAnnouncedFar  = newNextIdx;
         _ttsAnnouncedMid  = newNextIdx;
-        _ttsAnnouncedNear = -1;
+        // If the immediate announcement fired and the next step is already close,
+        // suppress near too — avoids two back-to-back announcements within seconds.
+        _ttsAnnouncedNear = (t.mid == 0 && distToNext < 120) ? newNextIdx : -1;
 
         // Missed-turn guard: if the user isn't approaching the new waypoint
         // within 2.5 s, reroute silently.
@@ -956,7 +850,9 @@ class _MapScreenState extends State<MapScreen>
   /// Returns the (far, mid, near) announcement distance thresholds for [step].
   /// All values are in metres. [mid] == 0 means the mid announcement is skipped.
   static ({int far, int mid, int near}) _announcementThresholds(
-      RouteStep step, double speed) {
+      RouteStep step, double speed, String transportMode) {
+    if (transportMode == 'walking')  return (far: 60,  mid: 0, near: 15);
+    if (transportMode == 'cycling')  return (far: 150, mid: 0, near: 30);
     final isRamp = step.direction == 'off ramp' || step.direction == 'on ramp';
     if (isRamp) return (far: 3000, mid: 500, near: 250);
     final isRoundabout =
@@ -1040,7 +936,7 @@ class _MapScreenState extends State<MapScreen>
     });
     final wantAlternatives = _consecutiveReroutes >= 3;
 
-    final (:provider, :apiKey, :ghServer) = _resolveProvider();
+    final (:provider, :apiKey, :ghServer) = await _resolveProvider();
     final lang = Localizations.localeOf(context).languageCode;
     List<RouteResult> routes;
     try {
@@ -1147,10 +1043,20 @@ class _MapScreenState extends State<MapScreen>
     _navNotif.show(step.instruction, distLabel);
   }
 
-  ({RoutingProvider provider, String? apiKey, String? ghServer}) _resolveProvider() {
+  Future<({RoutingProvider provider, String? apiKey, String? ghServer})> _resolveProvider() async {
     final box = Hive.box('settings');
     final providerKey = box.get('routingProvider', defaultValue: 'osrm') as String;
-    final String? apiKey = (box.get('graphhopperApiKey', defaultValue: '') as String).trim().nullIfEmpty;
+    var rawKey = await _secStorage.read(key: 'routing_api_key') ?? '';
+    // One-time migration: move legacy Hive value to SecureStorage.
+    if (rawKey.isEmpty) {
+      final legacy = (box.get('graphhopperApiKey', defaultValue: '') as String).trim();
+      if (legacy.isNotEmpty) {
+        await _secStorage.write(key: 'routing_api_key', value: legacy);
+        await box.delete('graphhopperApiKey');
+        rawKey = legacy;
+      }
+    }
+    final String? apiKey = rawKey.trim().nullIfEmpty;
     final String? ghServer = (box.get('graphhopperServer', defaultValue: '') as String).trim().nullIfEmpty;
 
     RoutingProvider provider;
@@ -1231,6 +1137,8 @@ class _MapScreenState extends State<MapScreen>
       _alternatives = [];
       _followUser = _gpsReady;
       _headingMode = _gpsReady;
+      _arrivedAt = null;
+      _showArrivalBanner = false;
     });
 
     // Start watchdog: if we're moving but heading hasn't updated for several
@@ -1322,7 +1230,7 @@ class _MapScreenState extends State<MapScreen>
     FocusScope.of(context).unfocus();
 
     final origin = fromPosition ?? _position; // _gpsReady guaranteed above
-    final (:provider, :apiKey, :ghServer) = _resolveProvider();
+    final (:provider, :apiKey, :ghServer) = await _resolveProvider();
 
     final lang = Localizations.localeOf(context).languageCode;
     List<RouteResult> routes;
@@ -1487,7 +1395,7 @@ class _MapScreenState extends State<MapScreen>
     setState(() => _isCalculating = true);
     if (!_gpsReady) { setState(() => _isCalculating = false); return; }
     final origin = _position;
-    final (:provider, :apiKey, :ghServer) = _resolveProvider();
+    final (:provider, :apiKey, :ghServer) = await _resolveProvider();
     final lang = Localizations.localeOf(context).languageCode;
     List<RouteResult> routes;
     try {
@@ -2102,7 +2010,7 @@ class _MapScreenState extends State<MapScreen>
   }
 
   static const _secStorage = FlutterSecureStorage(
-    aOptions: AndroidOptions(),
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
 
   Future<void> _showRoadEventDetail(RoadEvent event) async {
@@ -2481,10 +2389,18 @@ class _MapScreenState extends State<MapScreen>
                           strokeCap: StrokeCap.round),
                   ]),
               ],
-              if (_destination != null)
+              if (_destination != null || _arrivedAt != null)
                 MarkerLayer(markers: [
-                  Marker(point: _destination!, width: 40, height: 48,
-                      child: _DestinationMarker(color: c.accent)),
+                  Marker(
+                    point: _destination ?? _arrivedAt!,
+                    width: 40, height: 48,
+                    child: _DestinationMarker(
+                      color: _arrivedAt != null && _destination == null
+                          ? const Color(0xFF22C55E)
+                          : c.accent,
+                      arrived: _arrivedAt != null && _destination == null,
+                    ),
+                  ),
                 ]),
               // Road event markers: visible only at zoom ≥ 11
               // and filtered in real-time for expired TTL.
@@ -2760,6 +2676,35 @@ class _MapScreenState extends State<MapScreen>
             ]),
           ),
 
+        // ── ARRIVAL BANNER ───────────────────────────────────────────────────
+        if (_showArrivalBanner)
+          Positioned(
+            bottom: 88 + bottomInset + 16,
+            left: 24, right: 24,
+            child: Material(
+              elevation: 8,
+              borderRadius: BorderRadius.circular(20),
+              color: const Color(0xFF22C55E),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.check_circle_rounded,
+                        color: Colors.white, size: 26),
+                    const SizedBox(width: 10),
+                    Text(
+                      AppLocalizations.of(context)!.arrivedTitle,
+                      style: const TextStyle(
+                          color: Colors.white, fontSize: 18,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
         // ── SPEED LIMIT SIGN (navigation only) ───────────────────────────────
         if (_isNavigating && _currentSpeedLimit != null)
           Positioned(
@@ -2819,7 +2764,7 @@ class _MapScreenState extends State<MapScreen>
                       transportMode:   _transportMode,
                       prefs:           _routePrefs,
                       destination:     _destination!,
-                      prefsSupported:  _resolveProvider().provider != RoutingProvider.osrm,
+                      prefsSupported:  Hive.box('settings').get('routingProvider', defaultValue: 'osrm') != 'osrm',
                       onSelect:        (i) => setState(() => _selectedAlt = i),
                       onConfirm:       _startNavigation,
                       onCancel:        _cancelAlternatives,
@@ -2930,6 +2875,7 @@ class _MapScreenState extends State<MapScreen>
     _gps.dispose();
     _searchController.dispose();
     _searchDebounce?.cancel();
+    _arrivalBannerTimer?.cancel();
     _planFromCtrl.dispose();
     _planToCtrl.dispose();
     _planDebounce?.cancel();
@@ -2964,7 +2910,7 @@ class _ZapSheet extends StatefulWidget {
 class _ZapSheetState extends State<_ZapSheet> {
   static const _presets = [21, 100, 500, 1000, 5000, 21000];
   static const _st = FlutterSecureStorage(
-      aOptions: AndroidOptions());
+      aOptions: AndroidOptions(encryptedSharedPreferences: true));
 
   int? _selected;
   final _customCtrl = TextEditingController();
@@ -3033,8 +2979,16 @@ class _ZapSheetState extends State<_ZapSheet> {
       // Step 5: Pay the invoice. NWC (NIP-47) is tried first because it stays
       // in-app and gives us the preimage proof of payment. Deep link is the
       // fallback for users without NWC configured.
-      final nwcUri = Hive.box('settings')
-          .get('nwcUri', defaultValue: '') as String;
+      var nwcUri = await _st.read(key: 'nwc_uri') ?? '';
+      // One-time migration: move legacy Hive value to SecureStorage.
+      if (nwcUri.isEmpty) {
+        final legacy = (Hive.box('settings').get('nwcUri', defaultValue: '') as String).trim();
+        if (legacy.isNotEmpty) {
+          await _st.write(key: 'nwc_uri', value: legacy);
+          await Hive.box('settings').delete('nwcUri');
+          nwcUri = legacy;
+        }
+      }
 
       bool paid = false;
       if (nwcUri.trim().isNotEmpty) {
@@ -3817,6 +3771,13 @@ class _WebViewScreenState extends State<_WebViewScreen> {
       ..setNavigationDelegate(NavigationDelegate(
         onPageStarted:  (_) { if (mounted) setState(() => _loading = true);  },
         onPageFinished: (_) { if (mounted) setState(() => _loading = false); },
+        onNavigationRequest: (req) {
+          final uri = Uri.tryParse(req.url);
+          if (uri == null || uri.scheme != 'https') {
+            return NavigationDecision.prevent;
+          }
+          return NavigationDecision.navigate;
+        },
       ))
       ..loadRequest(Uri.parse(widget.url));
   }
@@ -5573,7 +5534,8 @@ class _UserMarker extends StatelessWidget {
 
 class _DestinationMarker extends StatelessWidget {
   final Color color;
-  const _DestinationMarker({required this.color});
+  final bool arrived;
+  const _DestinationMarker({required this.color, this.arrived = false});
   @override
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min, children: [
@@ -5581,7 +5543,9 @@ class _DestinationMarker extends StatelessWidget {
       decoration: BoxDecoration(color: color, shape: BoxShape.circle,
           boxShadow: [BoxShadow(color: color.withValues(alpha: 0.4),
               blurRadius: 8, spreadRadius: 2)]),
-      child: const Icon(Icons.flag_rounded, color: Colors.white, size: 18)),
+      child: Icon(
+        arrived ? Icons.check_rounded : Icons.flag_rounded,
+        color: Colors.white, size: 18)),
     CustomPaint(size: const Size(2, 12),
         painter: _PinLinePainter(color: color)),
   ]);
