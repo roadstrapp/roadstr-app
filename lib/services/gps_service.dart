@@ -5,6 +5,7 @@
 // is active so that the OS does not kill the location listener when the app is
 // in the background during active navigation.
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -112,8 +113,7 @@ class GpsService {
   }
 
   void _onError(Object error) {
-    // ignore: avoid_print
-    print('GPS error: $error');
+    debugPrint('[GPS] error: $error');
   }
 
   Future<void> stop() async {

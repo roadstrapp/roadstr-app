@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:latlong2/latlong.dart';
@@ -35,11 +36,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   StreamSubscription<double>? _progressSub;
   StreamSubscription<String>? _errorSub;
 
+  static const _st = FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true));
+  final _apiKeyCtrl = TextEditingController();
+  final _nwcCtrl    = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     _box = Hive.box('settings');
     _loadFavorites();
+    _loadSecrets();
 
     final mgr = KokoroModelManager.instance;
     if (mgr.isDownloading) {
@@ -72,10 +79,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
+  Future<void> _loadSecrets() async {
+    // Read from SecureStorage; migrate from Hive if this is the first run after
+    // the security upgrade (Hive values are deleted after migration).
+    var apiKey = await _st.read(key: 'routing_api_key');
+    if (apiKey == null) {
+      final legacy = _box.get('graphhopperApiKey', defaultValue: '') as String;
+      if (legacy.isNotEmpty) {
+        await _st.write(key: 'routing_api_key', value: legacy);
+        await _box.delete('graphhopperApiKey');
+        apiKey = legacy;
+      }
+    }
+
+    var nwcUri = await _st.read(key: 'nwc_uri');
+    if (nwcUri == null) {
+      final legacy = _box.get('nwcUri', defaultValue: '') as String;
+      if (legacy.isNotEmpty) {
+        await _st.write(key: 'nwc_uri', value: legacy);
+        await _box.delete('nwcUri');
+        nwcUri = legacy;
+      }
+    }
+
+    if (!mounted) return;
+    _apiKeyCtrl.text = apiKey ?? '';
+    _nwcCtrl.text    = nwcUri  ?? '';
+  }
+
   @override
   void dispose() {
     _progressSub?.cancel();
     _errorSub?.cancel();
+    _apiKeyCtrl.dispose();
+    _nwcCtrl.dispose();
     super.dispose();
   }
 
@@ -543,7 +580,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             content: SizedBox(height: 60,
                                 child: Center(child: CircularProgressIndicator()))));
                     try {
-                      final key = _box.get('graphhopperApiKey', defaultValue: '') as String;
+                      final key = _apiKeyCtrl.text.trim();
                       await RoutingService.testGraphHopperServer(server,
                           apiKey: key.isNotEmpty ? key : null);
                       if (!mounted) return;
@@ -577,12 +614,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ]),
               const SizedBox(height: 8),
               TextFormField(
-                initialValue: _box.get('graphhopperApiKey', defaultValue: '') as String,
+                controller: _apiKeyCtrl,
                 decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: l.graphhopperApiKeyHint),
-                onFieldSubmitted: (v) {
-                  _box.put('graphhopperApiKey', v.trim()); setState(() {});
+                onFieldSubmitted: (v) async {
+                  await _st.write(key: 'routing_api_key', value: v.trim());
+                  if (mounted) setState(() {});
                 },
               ),
             ]),
@@ -623,7 +661,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // connection-string field and offer to autofill it.
               AutofillGroup(
                 child: TextFormField(
-                  initialValue: _box.get('nwcUri', defaultValue: '') as String,
+                  controller: _nwcCtrl,
                   obscureText: true,
                   autocorrect: false,
                   enableSuggestions: false,
@@ -635,7 +673,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     hintText: 'nostr+walletconnect://...',
                     hintStyle: TextStyle(color: c.textSecondary, fontSize: 11),
                   ),
-                  onFieldSubmitted: (v) { _box.put('nwcUri', v.trim()); setState(() {}); },
+                  onFieldSubmitted: (v) async {
+                    await _st.write(key: 'nwc_uri', value: v.trim());
+                    if (mounted) setState(() {});
+                  },
                 ),
               ),
               Text(l.nwcDesc,
@@ -788,7 +829,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // ── INFO ─────────────────────────────────────────────────────────
           _SectionHeader(l.sectionInfo, c),
-          _InfoTile(l.infoVersion, '0.4.0', c),
+          _InfoTile(l.infoVersion, '0.4.1', c),
           _InfoTile(l.infoProtocol, 'Nostr', c),
           _InfoTile(l.infoMaps, 'openstreetmap.org', c,
               url: 'https://www.openstreetmap.org'),

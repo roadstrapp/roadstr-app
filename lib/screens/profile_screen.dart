@@ -41,7 +41,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Secure storage backed by the Android Keystore (EncryptedSharedPreferences).
   /// Used for all Nostr key material — never stored in plain SharedPreferences.
   static const _st = FlutterSecureStorage(
-    aOptions: AndroidOptions(),
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
   static const _kPriv    = 'nostr_priv_hex';
   static const _kPub     = 'nostr_pub_hex';
