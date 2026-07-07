@@ -36,7 +36,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _page = 0;
 
   // ── Nostr identity state ────────────────────────────────────────────────────
-  static const _st = FlutterSecureStorage(aOptions: AndroidOptions());
+  static const _st = FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true));
   static const _kPriv    = 'nostr_priv_hex';
   static const _kPub     = 'nostr_pub_hex';
   static const _kFlavor  = 'nostr_flavor';
