@@ -671,6 +671,13 @@ class AppLocalizationsSv extends AppLocalizations {
   String get autoDarkModeDesc => 'Aktiverar det mörka temat vid solnedgången';
 
   @override
+  String get settingsImperialUnits => 'Imperiala enheter';
+
+  @override
+  String get settingsImperialUnitsDesc =>
+      'Miles och fot istället för kilometer och meter';
+
+  @override
   String get arrivedTitle => '🎉 Du är framme!';
 
   @override
@@ -936,4 +943,12 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get onboardingNsecHint => 'nsec1…';
+
+  @override
+  String get onboardingVpnNotice =>
+      'För maximal integritet — rapporter sprids via Nostr-nätverket — rekommenderas användning av VPN. Mullvad, som kan betalas med Bitcoin, är det rekommenderade valet.';
+
+  @override
+  String get onboardingGrapheneAlwaysAllow =>
+      'För tillförlitlig drift, ställ in appens platsbehörighet på \"Tillåt alltid\", inte bara när appen används.';
 }

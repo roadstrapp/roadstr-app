@@ -275,6 +275,8 @@
   "kokoroModelSupportedLangs": "Jappoġġja: Taljan, Ingliż, Spanjol, Franċiż, Ġappuniż, Ċiniż, Portugiż",
   "autoDarkMode": "Tema skura awtomatika",
   "autoDarkModeDesc": "Tattiva t-tema skura fil-punent tax-xemx",
+  "settingsImperialUnits": "Unitajiet imperjali",
+  "settingsImperialUnitsDesc": "Mili u piedi minflok kilometri u metri",
   "arrivedTitle": "🎉 Wasalt!",
   "arrivedBody": "Laħaqt id-destinazzjoni tiegħek.",
   "arrivedFeedbackPrompt": "Kif marret?",
@@ -353,5 +355,7 @@
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Ejja mmorru!",
   "onboardingProfileLoading": "Qed jitgħabba l-profil…",
-  "onboardingNsecHint": "nsec1…"
+  "onboardingNsecHint": "nsec1…",
+  "onboardingVpnNotice": "Għal privatezza massima — ir-rapporti jixterdu fin-netwerk Nostr — huwa rrakkomandat l-użu ta' VPN. Mullvad, li tista' tħallas bil-Bitcoin, hija l-għażla rrakkomandata.",
+  "onboardingGrapheneAlwaysAllow": "Għal tħaddim affidabbli, issettja l-permess tal-post tal-app għal \"Ħalli dejjem\", mhux biss waqt li l-app tkun qed tintuża."
 }

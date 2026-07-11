@@ -1,17 +1,16 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/units.dart';
 
 class SpeedometerWidget extends StatelessWidget {
   final double speedKmh;
-  final double maxSpeed;
   final double size;
   final int? speedLimit;
 
   const SpeedometerWidget({
     super.key,
     required this.speedKmh,
-    this.maxSpeed = 200,
     this.size = 140,
     this.speedLimit,
   });
@@ -19,7 +18,10 @@ class SpeedometerWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = RoadstrColors.of(context);
-    final double speed = speedKmh.clamp(0.0, maxSpeed);
+    final imperial = Units.imperial;
+    final displaySpeed = Units.toDisplaySpeed(speedKmh);
+    final maxDisplay = imperial ? 130.0 : 200.0; // mph vs km/h ceiling
+    final double speed = displaySpeed.clamp(0.0, maxDisplay);
     final fontSize = size * 0.27;
     final bool over = speedLimit != null && speedKmh > speedLimit!;
     final arcColor = over ? Colors.red.shade400 : c.accent;
@@ -39,7 +41,7 @@ class SpeedometerWidget extends StatelessWidget {
           CustomPaint(
             size: Size(size, size),
             painter: _SpeedPainter(
-              progress: speed / maxSpeed,
+              progress: speed / maxDisplay,
               accent: arcColor,
               bg: c.surface3,
             ),
@@ -56,7 +58,7 @@ class SpeedometerWidget extends StatelessWidget {
                   height: 1,
                 ),
               ),
-              Text('km/h',
+              Text(Units.speedUnit,
                   style: TextStyle(color: c.textSecondary,
                       fontSize: fontSize * 0.29)),
             ],

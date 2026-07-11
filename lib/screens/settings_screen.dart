@@ -496,6 +496,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: _getBool('keepScreenOn', true),
             onChanged: (v) => _setBool('keepScreenOn', v), colors: c,
           ),
+          _SwitchTile(
+            title: l.settingsImperialUnits,
+            subtitle: l.settingsImperialUnitsDesc,
+            value: _getBool('imperialUnits', false),
+            onChanged: (v) => _setBool('imperialUnits', v), colors: c,
+          ),
           Container(
             margin: const EdgeInsets.only(top: 8, bottom: 8),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -829,7 +835,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // ── INFO ─────────────────────────────────────────────────────────
           _SectionHeader(l.sectionInfo, c),
-          _InfoTile(l.infoVersion, '0.4.1', c),
+          _InfoTile(l.infoVersion, '0.4.3', c),
           _InfoTile(l.infoProtocol, 'Nostr', c),
           _InfoTile(l.infoMaps, 'openstreetmap.org', c,
               url: 'https://www.openstreetmap.org'),

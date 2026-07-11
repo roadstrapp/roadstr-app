@@ -39,8 +39,7 @@ class ZtlService {
       final zones = await _fetchZtl(pos);
       _zones = zones;
       _lastQueryPos = pos;
-      debugPrint('[ZTL] loaded ${zones.length} zones near '
-          '${pos.latitude.toStringAsFixed(4)},${pos.longitude.toStringAsFixed(4)}');
+      debugPrint('[ZTL] loaded ${zones.length} zones');
     } catch (e) {
       debugPrint('[ZTL] fetch failed: $e');
     } finally {

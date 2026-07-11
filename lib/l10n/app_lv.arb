@@ -275,6 +275,8 @@
   "kokoroModelSupportedLangs": "Atbalsta: itāliešu, angļu, spāņu, franču, japāņu, ķīniešu, portugāļu",
   "autoDarkMode": "Automātiskā tumšā tēma",
   "autoDarkModeDesc": "Aktivizē tumšo tēmu saulrieta laikā",
+  "settingsImperialUnits": "Imperiālās mērvienības",
+  "settingsImperialUnitsDesc": "Jūdzes un pēdas, nevis kilometri un metri",
   "arrivedTitle": "🎉 Esat ieradušies!",
   "arrivedBody": "Esat sasniedzis savu galamērķi.",
   "arrivedFeedbackPrompt": "Kā gāja?",
@@ -353,5 +355,7 @@
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Braucam!",
   "onboardingProfileLoading": "Ielādē profilu…",
-  "onboardingNsecHint": "nsec1…"
+  "onboardingNsecHint": "nsec1…",
+  "onboardingVpnNotice": "Maksimālai privātumam — ziņojumi tiek izplatīti Nostr tīklā — ieteicams izmantot VPN. Ieteicamā izvēle ir Mullvad, par kuru var maksāt ar Bitcoin.",
+  "onboardingGrapheneAlwaysAllow": "Lai lietotne darbotos uzticami, iestatiet atrašanās vietas atļauju uz “Atļaut vienmēr”, nevis tikai lietotnes lietošanas laikā."
 }

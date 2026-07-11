@@ -275,6 +275,8 @@
   "kokoroModelSupportedLangs": "Podporuje: italštinu, angličtinu, španělštinu, francouzštinu, japonštinu, čínštinu, portugalštinu",
   "autoDarkMode": "Automatický tmavý režim",
   "autoDarkModeDesc": "Aktivuje tmavý motiv při západu slunce",
+  "settingsImperialUnits": "Imperiální jednotky",
+  "settingsImperialUnitsDesc": "Míle a stopy místo kilometrů a metrů",
   "arrivedTitle": "🎉 Dorazili jste!",
   "arrivedBody": "Dosáhli jste svého cíle.",
   "arrivedFeedbackPrompt": "Jak to šlo?",
@@ -353,5 +355,7 @@
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Jedeme!",
   "onboardingProfileLoading": "Načítání profilu…",
-  "onboardingNsecHint": "nsec1…"
+  "onboardingNsecHint": "nsec1…",
+  "onboardingVpnNotice": "Pro maximální soukromí — hlášení se šíří sítí Nostr — doporučujeme používat VPN. Doporučenou volbou je Mullvad s platbou v bitcoinech.",
+  "onboardingGrapheneAlwaysAllow": "Pro spolehlivý provoz nastavte oprávnění k poloze na „Povolit vždy“, nikoli pouze při používání aplikace."
 }

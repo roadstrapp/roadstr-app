@@ -275,6 +275,8 @@
   "kokoroModelSupportedLangs": "支持：意大利语、英语、西班牙语、法语、日语、中文、葡萄牙语",
   "autoDarkMode": "自动深色主题",
   "autoDarkModeDesc": "日落时自动启用深色主题",
+  "settingsImperialUnits": "英制单位",
+  "settingsImperialUnitsDesc": "使用英里和英尺代替公里和米",
   "arrivedTitle": "🎉 您已到达！",
   "arrivedBody": "您已到达目的地。",
   "arrivedFeedbackPrompt": "旅途如何？",
@@ -353,5 +355,7 @@
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "出发！",
   "onboardingProfileLoading": "正在加载个人资料…",
-  "onboardingNsecHint": "nsec1…"
+  "onboardingNsecHint": "nsec1…",
+  "onboardingVpnNotice": "为了最大程度保护隐私——路况报告会在 Nostr 网络中传播——建议使用 VPN。推荐使用可用比特币付款的 Mullvad。",
+  "onboardingGrapheneAlwaysAllow": "为确保应用正常运行，请将位置权限设置为“始终允许”，而不仅是使用应用时允许。"
 }

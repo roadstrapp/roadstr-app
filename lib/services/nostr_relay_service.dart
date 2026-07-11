@@ -96,6 +96,11 @@ class NostrRelayService {
   /// follow-up kind-1316 confirmation REQ after EOSE.
   final _pendingIds = <String>{};
 
+  /// "eventId:pubkey" pairs whose confirmation/denial has been counted.
+  /// Enforces one vote per identity per event and makes re-fetched
+  /// confirmations idempotent. Pruned together with expired events.
+  final _countedVotes = <String>{};
+
   // ── public API ─────────────────────────────────────────────────────────────
 
   Stream<List<RoadEvent>> get stream => _controller.stream;
@@ -246,7 +251,12 @@ class NostrRelayService {
   void _removeExpired() {
     final before = _events.length;
     _events.removeWhere((_, ev) => ev.isExpired);
-    if (_events.length != before) _controller.add(currentEvents);
+    if (_events.length != before) {
+      // Drop vote records for events that no longer exist.
+      _countedVotes.removeWhere(
+          (v) => !_events.containsKey(v.substring(0, v.indexOf(':'))));
+      _controller.add(currentEvents);
+    }
   }
 
   // ── internals ─────────────────────────────────────────────────────────────
@@ -347,6 +357,11 @@ class NostrRelayService {
           debugPrint('[Nostr] NOTICE from relay: ${msg.length > 1 ? msg[1] : ""}');
         case 'EVENT':
           final json = msg[2] as Map<String, dynamic>;
+          // Relays are untrusted: drop events whose id doesn't match the
+          // canonical hash or whose Schnorr signature is invalid. Without
+          // this check a malicious relay could fabricate road events or
+          // confirmations attributed to any pubkey.
+          if (!_verifyEvent(json)) return;
           switch (json['kind'] as int) {
             case 1315: _handleRoadEvent(json);
             case 1316: _handleConfirmation(json);
@@ -364,6 +379,29 @@ class NostrRelayService {
           }
       }
     } catch (_) {}
+  }
+
+  /// Recomputes the event id from the canonical serialization and verifies
+  /// the BIP-340 signature against the claimed pubkey. Any event that fails
+  /// is discarded — relay data must never be taken at face value.
+  bool _verifyEvent(Map<String, dynamic> json) {
+    try {
+      final ev = Event(
+        kind:       json['kind'] as int,
+        tags:       (json['tags'] as List)
+            .map((t) => List<String>.from(t as List))
+            .toList(),
+        content:    json['content'] as String? ?? '',
+        created_at: json['created_at'] as int,
+        id:         json['id'] as String,
+        sig:        json['sig'] as String,
+        pubkey:     json['pubkey'] as String,
+      );
+      if (_eventApi.getEventHash(ev) != ev.id) return false;
+      return _eventApi.verifySignature(ev);
+    } catch (_) {
+      return false;
+    }
   }
 
   void _handleRoadEvent(Map<String, dynamic> json) {
@@ -387,6 +425,11 @@ class NostrRelayService {
     if (targetId == null || status == null) return;
     final ev = _events[targetId];
     if (ev == null) return;
+    // One vote per pubkey per event: prevents a single identity from
+    // inflating counts, and prevents double-counting when confirmations are
+    // re-fetched after every re-subscription.
+    final voter = '$targetId:${json['pubkey']}';
+    if (!_countedVotes.add(voter)) return;
     if (status == 'still_there')      ev.confirmations++;
     else if (status == 'no_longer_there') ev.denials++;
     _controller.add(currentEvents);

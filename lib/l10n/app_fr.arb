@@ -275,6 +275,8 @@
   "kokoroModelSupportedLangs": "Prend en charge : italien, anglais, espagnol, français, japonais, chinois, portugais",
   "autoDarkMode": "Thème sombre automatique",
   "autoDarkModeDesc": "Active le thème sombre au coucher du soleil",
+  "settingsImperialUnits": "Unités impériales",
+  "settingsImperialUnitsDesc": "Miles et pieds au lieu de kilomètres et mètres",
   "arrivedTitle": "🎉 Vous êtes arrivé !",
   "arrivedBody": "Vous avez atteint votre destination.",
   "arrivedFeedbackPrompt": "Comment s'est passé le trajet ?",
@@ -353,5 +355,7 @@
   "onboardingReadyBody": "Roadstr va maintenant ouvrir la carte.\nVous pouvez tout configurer dans Paramètres.",
   "onboardingLetsGo": "C'est parti !",
   "onboardingProfileLoading": "Chargement du profil…",
-  "onboardingNsecHint": "nsec1…"
+  "onboardingNsecHint": "nsec1…",
+  "onboardingVpnNotice": "Pour une confidentialité maximale — les signalements sont propagés sur le réseau Nostr — l'utilisation d'un VPN est recommandée. Mullvad, payable en Bitcoin, est le choix recommandé.",
+  "onboardingGrapheneAlwaysAllow": "Pour un fonctionnement fiable, réglez l'autorisation de localisation de l'application sur « Toujours autoriser », pas seulement pendant l'utilisation."
 }

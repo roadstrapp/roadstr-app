@@ -275,6 +275,8 @@
   "kokoroModelSupportedLangs": "対応言語：イタリア語、英語、スペイン語、フランス語、日本語、中国語、ポルトガル語",
   "autoDarkMode": "自動ダークテーマ",
   "autoDarkModeDesc": "日没時にダークテーマを有効にします",
+  "settingsImperialUnits": "ヤード・ポンド法",
+  "settingsImperialUnitsDesc": "キロメートル・メートルの代わりにマイル・フィートを使用",
   "arrivedTitle": "🎉 到着しました！",
   "arrivedBody": "目的地に到着しました。",
   "arrivedFeedbackPrompt": "いかがでしたか？",
@@ -353,5 +355,7 @@
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "さあ出発！",
   "onboardingProfileLoading": "プロフィールを読み込み中…",
-  "onboardingNsecHint": "nsec1…"
+  "onboardingNsecHint": "nsec1…",
+  "onboardingVpnNotice": "最大限のプライバシーのために — 報告はNostrネットワークに伝播されます — VPNの使用を推奨します。ビットコインで支払えるMullvadがおすすめです。",
+  "onboardingGrapheneAlwaysAllow": "確実に動作させるには、位置情報の権限を「アプリの使用中のみ」ではなく「常に許可」に設定してください。"
 }

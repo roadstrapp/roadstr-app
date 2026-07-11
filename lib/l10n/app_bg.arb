@@ -275,6 +275,8 @@
   "kokoroModelSupportedLangs": "Поддържа: италиански, английски, испански, френски, японски, китайски, португалски",
   "autoDarkMode": "Авто тъмна тема",
   "autoDarkModeDesc": "Активира тъмната тема при залез слънце",
+  "settingsImperialUnits": "Имперски единици",
+  "settingsImperialUnitsDesc": "Мили и фийта вместо километри и метри",
   "arrivedTitle": "🎉 Пристигнахте!",
   "arrivedBody": "Достигнахте дестинацията си.",
   "arrivedFeedbackPrompt": "Как мина?",
@@ -353,5 +355,7 @@
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Да тръгваме!",
   "onboardingProfileLoading": "Зареждане на профил…",
-  "onboardingNsecHint": "nsec1…"
+  "onboardingNsecHint": "nsec1…",
+  "onboardingVpnNotice": "За максимална поверителност — сигналите се разпространяват в мрежата Nostr — се препоръчва използването на VPN. Mullvad, с плащане в биткойн, е препоръчителният избор.",
+  "onboardingGrapheneAlwaysAllow": "За надеждна работа задайте разрешението за местоположение на „Разрешавай винаги“, а не само докато приложението се използва."
 }

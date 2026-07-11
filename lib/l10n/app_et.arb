@@ -275,6 +275,8 @@
   "kokoroModelSupportedLangs": "Toetab: itaalia, inglise, hispaania, prantsuse, jaapani, hiina, portugali",
   "autoDarkMode": "Automaatne tume teema",
   "autoDarkModeDesc": "Aktiveerib tumeda teema päikeseloojangul",
+  "settingsImperialUnits": "Angloameerika ühikud",
+  "settingsImperialUnitsDesc": "Miilid ja jalad kilomeetrite ja meetrite asemel",
   "arrivedTitle": "🎉 Olete kohal!",
   "arrivedBody": "Jõudsite oma sihtkohta.",
   "arrivedFeedbackPrompt": "Kuidas läks?",
@@ -353,5 +355,7 @@
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Lähme!",
   "onboardingProfileLoading": "Profiili laadimine…",
-  "onboardingNsecHint": "nsec1…"
+  "onboardingNsecHint": "nsec1…",
+  "onboardingVpnNotice": "Maksimaalse privaatsuse tagamiseks — teated levivad Nostr-võrgus — on soovitatav kasutada VPN-i. Soovitatud valik on Mullvad, mille eest saab maksta Bitcoiniga.",
+  "onboardingGrapheneAlwaysAllow": "Töökindluse tagamiseks määra rakenduse asukohaluba valikule „Luba alati“, mitte ainult rakenduse kasutamise ajal."
 }

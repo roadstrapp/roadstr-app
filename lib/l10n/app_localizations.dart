@@ -1366,6 +1366,18 @@ abstract class AppLocalizations {
   /// **'Activates the dark theme at sunset and sunrise'**
   String get autoDarkModeDesc;
 
+  /// No description provided for @settingsImperialUnits.
+  ///
+  /// In en, this message translates to:
+  /// **'Imperial units'**
+  String get settingsImperialUnits;
+
+  /// No description provided for @settingsImperialUnitsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Miles and feet instead of kilometres and metres'**
+  String get settingsImperialUnitsDesc;
+
   /// No description provided for @arrivedTitle.
   ///
   /// In en, this message translates to:
@@ -1839,6 +1851,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'nsec1…'**
   String get onboardingNsecHint;
+
+  /// No description provided for @onboardingVpnNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'For maximum privacy — road reports are propagated through the Nostr network — using a VPN is recommended. Mullvad, payable in Bitcoin, is the recommended choice.'**
+  String get onboardingVpnNotice;
+
+  /// No description provided for @onboardingGrapheneAlwaysAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'For reliable operation, set the app\'s location permission to \"Allow all the time\", not only while the app is in use.'**
+  String get onboardingGrapheneAlwaysAllow;
 }
 
 class _AppLocalizationsDelegate

@@ -675,6 +675,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get autoDarkModeDesc => 'Napnyugtakor aktiválja a sötét témát';
 
   @override
+  String get settingsImperialUnits => 'Angolszász mértékegységek';
+
+  @override
+  String get settingsImperialUnitsDesc =>
+      'Mérföld és láb kilométer és méter helyett';
+
+  @override
   String get arrivedTitle => '🎉 Megérkezett!';
 
   @override
@@ -940,4 +947,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get onboardingNsecHint => 'nsec1…';
+
+  @override
+  String get onboardingVpnNotice =>
+      'A maximális adatvédelem érdekében — a bejelentések a Nostr hálózaton terjednek — VPN használata ajánlott. Az ajánlott választás a Mullvad, amely Bitcoinnal fizethető.';
+
+  @override
+  String get onboardingGrapheneAlwaysAllow =>
+      'A megbízható működéshez állítsd az alkalmazás helymeghatározási engedélyét „Mindig engedélyezés”-re, ne csak használat közben.';
 }

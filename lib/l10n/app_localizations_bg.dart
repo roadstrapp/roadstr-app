@@ -675,6 +675,13 @@ class AppLocalizationsBg extends AppLocalizations {
   String get autoDarkModeDesc => 'Активира тъмната тема при залез слънце';
 
   @override
+  String get settingsImperialUnits => 'Имперски единици';
+
+  @override
+  String get settingsImperialUnitsDesc =>
+      'Мили и фийта вместо километри и метри';
+
+  @override
   String get arrivedTitle => '🎉 Пристигнахте!';
 
   @override
@@ -941,4 +948,12 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get onboardingNsecHint => 'nsec1…';
+
+  @override
+  String get onboardingVpnNotice =>
+      'За максимална поверителност — сигналите се разпространяват в мрежата Nostr — се препоръчва използването на VPN. Mullvad, с плащане в биткойн, е препоръчителният избор.';
+
+  @override
+  String get onboardingGrapheneAlwaysAllow =>
+      'За надеждна работа задайте разрешението за местоположение на „Разрешавай винаги“, а не само докато приложението се използва.';
 }

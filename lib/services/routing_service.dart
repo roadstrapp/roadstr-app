@@ -13,6 +13,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import '../utils/units.dart';
 
 /// A single turn-by-turn navigation step produced by a routing provider.
 class RouteStep {
@@ -78,10 +79,7 @@ class RouteResult {
     return result;
   }
 
-  String get distanceLabel {
-    if (totalDistanceM < 1000) return '${totalDistanceM.round()} m';
-    return '${(totalDistanceM / 1000).toStringAsFixed(1)} km';
-  }
+  String get distanceLabel => Units.fmtDist(totalDistanceM);
 
   String get durationLabel {
     final m = (totalDurationS / 60).round();
@@ -94,8 +92,8 @@ class RouteResult {
 
 /// Route preferences — avoidance and weighting options forwarded to the
 /// routing provider. Provider support varies:
-///   [avoidHighways]: OSRM (best-effort via `exclude`), ORS, GH self-hosted
-///   [avoidTolls]:    ORS, GH self-hosted
+///   [avoidHighways]: OSRM (via `exclude=motorway`), ORS, GH self-hosted
+///   [avoidTolls]:    OSRM (via `exclude=toll`; may return no-route on toll-only networks), ORS, GH self-hosted
 ///   [preferShorter]: GraphHopper (`weighting=shortest`), ORS (`preference=shortest`)
 class RoutePreferences {
   final bool avoidHighways;
@@ -113,12 +111,12 @@ enum RoutingProvider { osrm, openRoute, graphHopper }
 
 /// Stateless routing and geocoding helper. All methods are `static`.
 class RoutingService {
-  /// OSRM driving endpoint (router.project-osrm.org only supports the car profile).
-  static const _osrmDriving = 'https://router.project-osrm.org/route/v1/driving';
+  /// OSRM driving endpoint — the FOSSGIS community server supports car, foot
+  /// and bike profiles AND returns maxspeed annotations; unlike the lightweight
+  /// demo at router.project-osrm.org which rejects annotations=maxspeed.
+  static const _osrmDriving = 'https://routing.openstreetmap.de/routed-car/route/v1/driving';
 
-  /// OSRM walking endpoint — the official OSM routing instance that has the
-  /// foot profile enabled. routing.openstreetmap.de is maintained by the OSM
-  /// community and supports car, bike and foot profiles.
+  /// OSRM walking/cycling endpoints — same community server, different profiles.
   static const _osrmWalking  = 'https://routing.openstreetmap.de/routed-foot/route/v1/foot';
   static const _osrmBike     = 'https://routing.openstreetmap.de/routed-bike/route/v1/bike';
   static const _nominatim = 'https://nominatim.openstreetmap.org/search';
@@ -447,36 +445,35 @@ class RoutingService {
       }
 
       // Fallback / default: OSRM — choose the right public server for the mode.
-      final osrmExclude = prefs.avoidHighways ? '&exclude=motorway' : '';
+      final osrmExcludeParts = <String>[
+        if (prefs.avoidHighways) 'motorway',
+        if (prefs.avoidTolls)    'toll',
+      ];
+      final osrmExclude = osrmExcludeParts.isNotEmpty
+          ? '&exclude=${osrmExcludeParts.join(',')}'
+          : '';
       final baseCoords = '${_osrmEndpoint(vehicle)}/'
           '${origin.longitude},${origin.latitude};'
           '${destination.longitude},${destination.latitude}'
           '?overview=full&geometries=geojson&steps=true$osrmExclude';
 
-      // Request speed-limit annotations; fall back silently if the server
-      // does not support maxspeed (e.g. public OSRM demo server returns 400).
-      Map<String, dynamic>? data;
-      for (final suffix in ['&annotations=maxspeed,distance', '']) {
-        final res = await http
-            .get(Uri.parse('$baseCoords$suffix'),
-                headers: {'User-Agent': 'Roadstr/1.0'})
-            .timeout(const Duration(seconds: 10));
-        if (res.statusCode == 200) {
-          data = jsonDecode(res.body) as Map<String, dynamic>;
-          break;
-        }
-        if (suffix.isEmpty) {
-          // Both attempts failed — raise the last error.
-          throw RoutingException(
-              statusCode: res.statusCode,
-              body: res.body,
-              message: 'OSRM HTTP error');
-        }
-        // 400 with annotations → retry without them.
-      }
-      if (data == null || data['code'] != 'Ok') {
+      // NOTE: no annotations=maxspeed — that is a Mapbox Directions extension,
+      // vanilla OSRM (including FOSSGIS) rejects it with 400. Speed limits
+      // come from SpeedLimitService (Overpass) instead.
+      final res = await http
+          .get(Uri.parse(baseCoords),
+              headers: {'User-Agent': 'Roadstr/1.0'})
+          .timeout(const Duration(seconds: 10));
+      if (res.statusCode != 200) {
         throw RoutingException(
-            message: 'OSRM returned error code: ${data?['code']}');
+            statusCode: res.statusCode,
+            body: res.body,
+            message: 'OSRM HTTP error');
+      }
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      if (data['code'] != 'Ok') {
+        throw RoutingException(
+            message: 'OSRM returned error code: ${data['code']}');
       }
       return _parseOsrmRoute(
           (data['routes'] as List).first as Map<String, dynamic>, lang);
@@ -512,32 +509,32 @@ class RoutingService {
       return single != null ? [single] : [];
     }
     try {
-      final osrmExclude = prefs.avoidHighways ? '&exclude=motorway' : '';
+      final osrmExcludePartsAlt = <String>[
+        if (prefs.avoidHighways) 'motorway',
+        if (prefs.avoidTolls)    'toll',
+      ];
+      final osrmExclude = osrmExcludePartsAlt.isNotEmpty
+          ? '&exclude=${osrmExcludePartsAlt.join(',')}'
+          : '';
       final baseCoords = '${_osrmEndpoint(vehicle)}/'
           '${origin.longitude},${origin.latitude};'
           '${destination.longitude},${destination.latitude}'
           '?overview=full&geometries=geojson&steps=true&alternatives=3$osrmExclude';
 
-      Map<String, dynamic>? data;
-      for (final suffix in ['&annotations=maxspeed,distance', '']) {
-        final res = await http
-            .get(Uri.parse('$baseCoords$suffix'),
-                headers: {'User-Agent': 'Roadstr/1.0'})
-            .timeout(const Duration(seconds: 10));
-        if (res.statusCode == 200) {
-          data = jsonDecode(res.body) as Map<String, dynamic>;
-          break;
-        }
-        if (suffix.isEmpty) {
-          throw RoutingException(
-              statusCode: res.statusCode,
-              body: res.body,
-              message: 'OSRM HTTP error');
-        }
-      }
-      if (data == null || data['code'] != 'Ok') {
+      final res = await http
+          .get(Uri.parse(baseCoords),
+              headers: {'User-Agent': 'Roadstr/1.0'})
+          .timeout(const Duration(seconds: 10));
+      if (res.statusCode != 200) {
         throw RoutingException(
-            message: 'OSRM returned error code: ${data?['code']}');
+            statusCode: res.statusCode,
+            body: res.body,
+            message: 'OSRM HTTP error');
+      }
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      if (data['code'] != 'Ok') {
+        throw RoutingException(
+            message: 'OSRM returned error code: ${data['code']}');
       }
       return (data['routes'] as List)
           .map((r) => _parseOsrmRoute(r as Map<String, dynamic>, lang))
@@ -663,9 +660,21 @@ class RoutingService {
           default:             return it ? 'Continua dritto$road'          : 'Continue straight$road';
         }
       case 'new name': return it ? 'Continua$road'         : 'Continue$road';
-      case 'merge':    return it ? 'Immettiti$road'        : 'Merge$road';
+      case 'merge':    return it ? 'Immettiti$road'        : 'Merge onto$road';
       case 'on ramp':  return it ? 'Prendi la rampa$road'  : 'Take the ramp$road';
-      case 'off ramp': return it ? 'Esci dalla rampa$road' : 'Exit the ramp$road';
+      case 'off ramp': {
+        // OSRM puts highway exit numbers in step['exits'] (a string like "12" or "12A"),
+        // not maneuver['exit'] which is only populated for roundabouts.
+        final exits = (step['exits'] as String?)?.trim();
+        final ref   = (step['ref'] as String?)?.split(';').first.trim();
+        final label = (exits != null && exits.isNotEmpty) ? exits
+                    : (ref   != null && ref.isNotEmpty)   ? ref
+                    : null;
+        if (label != null) {
+          return it ? 'Esci all\'uscita $label$road' : 'Take exit $label$road';
+        }
+        return it ? 'Esci dalla rampa$road' : 'Take the exit$road';
+      }
       case 'fork':
         return modifier.contains('left')
             ? (it ? 'Al bivio tieni la sinistra$road' : 'At the fork keep left$road')

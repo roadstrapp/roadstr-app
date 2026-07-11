@@ -275,6 +275,8 @@
   "kokoroModelSupportedLangs": "Támogatja: olasz, angol, spanyol, francia, japán, kínai, portugál",
   "autoDarkMode": "Automatikus sötét téma",
   "autoDarkModeDesc": "Napnyugtakor aktiválja a sötét témát",
+  "settingsImperialUnits": "Angolszász mértékegységek",
+  "settingsImperialUnitsDesc": "Mérföld és láb kilométer és méter helyett",
   "arrivedTitle": "🎉 Megérkezett!",
   "arrivedBody": "Elérte úticélját.",
   "arrivedFeedbackPrompt": "Hogy ment?",
@@ -353,5 +355,7 @@
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Induljunk!",
   "onboardingProfileLoading": "Profil betöltése…",
-  "onboardingNsecHint": "nsec1…"
+  "onboardingNsecHint": "nsec1…",
+  "onboardingVpnNotice": "A maximális adatvédelem érdekében — a bejelentések a Nostr hálózaton terjednek — VPN használata ajánlott. Az ajánlott választás a Mullvad, amely Bitcoinnal fizethető.",
+  "onboardingGrapheneAlwaysAllow": "A megbízható működéshez állítsd az alkalmazás helymeghatározási engedélyét „Mindig engedélyezés”-re, ne csak használat közben."
 }

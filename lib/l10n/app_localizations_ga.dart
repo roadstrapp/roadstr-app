@@ -673,6 +673,13 @@ class AppLocalizationsGa extends AppLocalizations {
   String get autoDarkModeDesc => 'Gníomhaíonn an téama dorcha ag luí na gréine';
 
   @override
+  String get settingsImperialUnits => 'Aonaid impiriúla';
+
+  @override
+  String get settingsImperialUnitsDesc =>
+      'Míle agus troithe in ionad ciliméadair agus méadair';
+
+  @override
   String get arrivedTitle => '🎉 Tháinig tú!';
 
   @override
@@ -938,4 +945,12 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get onboardingNsecHint => 'nsec1…';
+
+  @override
+  String get onboardingVpnNotice =>
+      'Ar mhaithe le príobháideachas uasta — scaiptear tuairiscí ar líonra Nostr — moltar VPN a úsáid. Is é Mullvad, is féidir a íoc le Bitcoin, an rogha mholta.';
+
+  @override
+  String get onboardingGrapheneAlwaysAllow =>
+      'Le haghaidh oibriú iontaofa, socraigh cead suímh na haipe go \"Ceadaigh i gcónaí\", ní hamháin agus an aip in úsáid.';
 }

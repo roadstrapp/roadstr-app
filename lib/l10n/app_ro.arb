@@ -275,6 +275,8 @@
   "kokoroModelSupportedLangs": "Suportă: italiană, engleză, spaniolă, franceză, japoneză, chineză, portugheză",
   "autoDarkMode": "Temă întunecată automată",
   "autoDarkModeDesc": "Activează tema întunecată la apus",
+  "settingsImperialUnits": "Unități imperiale",
+  "settingsImperialUnitsDesc": "Mile și picioare în loc de kilometri și metri",
   "arrivedTitle": "🎉 Ați ajuns!",
   "arrivedBody": "Ați ajuns la destinație.",
   "arrivedFeedbackPrompt": "Cum a mers?",
@@ -353,5 +355,7 @@
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Haideți!",
   "onboardingProfileLoading": "Se încarcă profilul…",
-  "onboardingNsecHint": "nsec1…"
+  "onboardingNsecHint": "nsec1…",
+  "onboardingVpnNotice": "Pentru confidențialitate maximă — rapoartele se propagă în rețeaua Nostr — se recomandă utilizarea unui VPN. Mullvad, plătibil în Bitcoin, este alegerea recomandată.",
+  "onboardingGrapheneAlwaysAllow": "Pentru o funcționare fiabilă, setați permisiunea de localizare a aplicației pe „Permite întotdeauna”, nu doar în timpul utilizării."
 }

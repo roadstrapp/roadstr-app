@@ -275,6 +275,8 @@
   "kokoroModelSupportedLangs": "Ondersteunt: Italiaans, Engels, Spaans, Frans, Japans, Chinees, Portugees",
   "autoDarkMode": "Automatisch donker thema",
   "autoDarkModeDesc": "Activeert het donkere thema bij zonsondergang",
+  "settingsImperialUnits": "Imperiale eenheden",
+  "settingsImperialUnitsDesc": "Mijlen en voet in plaats van kilometers en meters",
   "arrivedTitle": "🎉 Je bent er!",
   "arrivedBody": "Je hebt je bestemming bereikt.",
   "arrivedFeedbackPrompt": "Hoe is het gegaan?",
@@ -353,5 +355,7 @@
   "onboardingReadyBody": "Roadstr opent nu de kaart.\nU kunt alles overige configureren in Instellingen.",
   "onboardingLetsGo": "Laten we gaan!",
   "onboardingProfileLoading": "Profiel laden…",
-  "onboardingNsecHint": "nsec1…"
+  "onboardingNsecHint": "nsec1…",
+  "onboardingVpnNotice": "Voor maximale privacy — meldingen worden via het Nostr-netwerk verspreid — wordt het gebruik van een VPN aanbevolen. Mullvad, te betalen met Bitcoin, is de aanbevolen keuze.",
+  "onboardingGrapheneAlwaysAllow": "Stel voor een betrouwbare werking de locatietoestemming van de app in op \"Altijd toestaan\", niet alleen tijdens gebruik."
 }
