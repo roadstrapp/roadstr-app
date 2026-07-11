@@ -275,6 +275,8 @@
   "kokoroModelSupportedLangs": "Palaiko: italų, anglų, ispanų, prancūzų, japonų, kinų, portugalų",
   "autoDarkMode": "Automatinė tamsi tema",
   "autoDarkModeDesc": "Aktyvuoja tamsią temą saulėlydžio metu",
+  "settingsImperialUnits": "Imperiniai vienetai",
+  "settingsImperialUnitsDesc": "Mylios ir pėdos vietoj kilometrų ir metrų",
   "arrivedTitle": "🎉 Atvykote!",
   "arrivedBody": "Pasiekėte savo kelionės tikslą.",
   "arrivedFeedbackPrompt": "Kaip sekėsi?",
@@ -353,5 +355,7 @@
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Važiuojame!",
   "onboardingProfileLoading": "Profilis įkeliamas…",
-  "onboardingNsecHint": "nsec1…"
+  "onboardingNsecHint": "nsec1…",
+  "onboardingVpnNotice": "Maksimaliam privatumui — pranešimai platinami Nostr tinkle — rekomenduojama naudoti VPN. Rekomenduojamas pasirinkimas — Mullvad, už kurį galima mokėti bitkoinais.",
+  "onboardingGrapheneAlwaysAllow": "Kad programa veiktų patikimai, nustatykite vietos leidimą į „Leisti visada“, o ne tik naudojant programą."
 }

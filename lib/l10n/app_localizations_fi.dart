@@ -672,6 +672,13 @@ class AppLocalizationsFi extends AppLocalizations {
       'Ottaa tumman teeman käyttöön auringonlaskun aikaan';
 
   @override
+  String get settingsImperialUnits => 'Imperiaaliset yksiköt';
+
+  @override
+  String get settingsImperialUnitsDesc =>
+      'Mailit ja jalat kilometrien ja metrien sijaan';
+
+  @override
   String get arrivedTitle => '🎉 Olet perillä!';
 
   @override
@@ -937,4 +944,12 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get onboardingNsecHint => 'nsec1…';
+
+  @override
+  String get onboardingVpnNotice =>
+      'Maksimaalisen yksityisyyden vuoksi — ilmoitukset leviävät Nostr-verkossa — VPN:n käyttö on suositeltavaa. Mullvad, jonka voi maksaa Bitcoinilla, on suositeltu valinta.';
+
+  @override
+  String get onboardingGrapheneAlwaysAllow =>
+      'Luotettavan toiminnan varmistamiseksi aseta sovelluksen sijaintilupa tilaan ”Salli aina”, ei vain sovellusta käytettäessä.';
 }

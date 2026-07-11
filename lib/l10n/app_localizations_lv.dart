@@ -673,6 +673,13 @@ class AppLocalizationsLv extends AppLocalizations {
   String get autoDarkModeDesc => 'Aktivizē tumšo tēmu saulrieta laikā';
 
   @override
+  String get settingsImperialUnits => 'Imperiālās mērvienības';
+
+  @override
+  String get settingsImperialUnitsDesc =>
+      'Jūdzes un pēdas, nevis kilometri un metri';
+
+  @override
   String get arrivedTitle => '🎉 Esat ieradušies!';
 
   @override
@@ -938,4 +945,12 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get onboardingNsecHint => 'nsec1…';
+
+  @override
+  String get onboardingVpnNotice =>
+      'Maksimālai privātumam — ziņojumi tiek izplatīti Nostr tīklā — ieteicams izmantot VPN. Ieteicamā izvēle ir Mullvad, par kuru var maksāt ar Bitcoin.';
+
+  @override
+  String get onboardingGrapheneAlwaysAllow =>
+      'Lai lietotne darbotos uzticami, iestatiet atrašanās vietas atļauju uz “Atļaut vienmēr”, nevis tikai lietotnes lietošanas laikā.';
 }

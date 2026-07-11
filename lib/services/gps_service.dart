@@ -76,6 +76,7 @@ class GpsService {
   /// Returns `true` on success, `false` if the service is disabled or permission
   /// was denied/revoked.
   Future<bool> start() async {
+    if (_subscription != null) return true; // already active
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) return false;
     LocationPermission permission = await Geolocator.checkPermission();
@@ -104,7 +105,7 @@ class GpsService {
       position: LatLng(pos.latitude, pos.longitude),
       speedKmh: speedKmh,
       accuracy: pos.accuracy,
-      heading: pos.heading > 0 ? pos.heading : null,
+      heading: pos.heading >= 0 ? pos.heading : null,
       altitude: pos.altitude,
       timestamp: pos.timestamp,
     );
@@ -114,6 +115,24 @@ class GpsService {
 
   void _onError(Object error) {
     debugPrint('[GPS] error: $error');
+  }
+
+  /// Solicits a fresh one-shot fix from the GPS hardware and emits it on
+  /// [stream], bypassing the periodic stream cadence. Used by the recenter
+  /// button so the cursor snaps to the *current* position, not the last
+  /// stream sample. Fails silently — the periodic stream keeps running.
+  Future<void> refresh() async {
+    try {
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.bestForNavigation,
+          timeLimit: Duration(seconds: 5),
+        ),
+      );
+      _onPosition(pos);
+    } catch (e) {
+      debugPrint('[GPS] refresh failed: $e');
+    }
   }
 
   Future<void> stop() async {

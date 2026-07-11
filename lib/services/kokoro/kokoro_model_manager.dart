@@ -132,22 +132,27 @@ class KokoroModelManager {
     var downloadedBytes = 0;
 
     for (final task in pending) {
-      final request = http.Request('GET', Uri.parse(task.url));
-      final response = await http.Client().send(request);
-      if (response.statusCode != 200) {
-        throw Exception('Kokoro download failed (${response.statusCode}): ${task.url}');
-      }
-      final sink = task.file.openWrite();
-      var taskBytes = 0;
-      await response.stream.forEach((chunk) {
-        sink.add(chunk);
-        taskBytes += chunk.length;
-        if (totalBytes > 0) {
-          onProgress?.call(((downloadedBytes + taskBytes) / totalBytes).clamp(0.0, 1.0));
+      final client = http.Client();
+      try {
+        final request = http.Request('GET', Uri.parse(task.url));
+        final response = await client.send(request);
+        if (response.statusCode != 200) {
+          throw Exception('Kokoro download failed (${response.statusCode}): ${task.url}');
         }
-      });
-      await sink.close();
-      downloadedBytes += taskBytes;
+        final sink = task.file.openWrite();
+        var taskBytes = 0;
+        await response.stream.forEach((chunk) {
+          sink.add(chunk);
+          taskBytes += chunk.length;
+          if (totalBytes > 0) {
+            onProgress?.call(((downloadedBytes + taskBytes) / totalBytes).clamp(0.0, 1.0));
+          }
+        });
+        await sink.close();
+        downloadedBytes += taskBytes;
+      } finally {
+        client.close();
+      }
     }
     onProgress?.call(1.0);
   }

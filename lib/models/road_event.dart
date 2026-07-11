@@ -221,12 +221,17 @@ class RoadEvent {
       if (!lat.isFinite || lat < -90 || lat > 90) return null;
       if (!lon.isFinite || lon < -180 || lon > 180) return null;
 
+      // Cap comment length: relays are untrusted and a multi-megabyte
+      // content string would bloat memory and break marker popups.
+      var comment = json['content'] as String? ?? '';
+      if (comment.length > 500) comment = '${comment.substring(0, 500)}…';
+
       final event = RoadEvent(
         id:        json['id'] as String,
         pubkey:    json['pubkey'] as String,
         category:  RoadCategory.fromKey(tKey),
         position:  LatLng(lat, lon),
-        comment:   json['content'] as String? ?? '',
+        comment:   comment,
         createdAt: json['created_at'] as int,
         expiresAt: exp,
       );

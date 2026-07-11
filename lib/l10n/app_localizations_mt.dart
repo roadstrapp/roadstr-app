@@ -674,6 +674,13 @@ class AppLocalizationsMt extends AppLocalizations {
   String get autoDarkModeDesc => 'Tattiva t-tema skura fil-punent tax-xemx';
 
   @override
+  String get settingsImperialUnits => 'Unitajiet imperjali';
+
+  @override
+  String get settingsImperialUnitsDesc =>
+      'Mili u piedi minflok kilometri u metri';
+
+  @override
   String get arrivedTitle => '🎉 Wasalt!';
 
   @override
@@ -939,4 +946,12 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get onboardingNsecHint => 'nsec1…';
+
+  @override
+  String get onboardingVpnNotice =>
+      'Għal privatezza massima — ir-rapporti jixterdu fin-netwerk Nostr — huwa rrakkomandat l-użu ta\' VPN. Mullvad, li tista\' tħallas bil-Bitcoin, hija l-għażla rrakkomandata.';
+
+  @override
+  String get onboardingGrapheneAlwaysAllow =>
+      'Għal tħaddim affidabbli, issettja l-permess tal-post tal-app għal \"Ħalli dejjem\", mhux biss waqt li l-app tkun qed tintuża.';
 }

@@ -647,6 +647,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get autoDarkModeDesc => '日落时自动启用深色主题';
 
   @override
+  String get settingsImperialUnits => '英制单位';
+
+  @override
+  String get settingsImperialUnitsDesc => '使用英里和英尺代替公里和米';
+
+  @override
   String get arrivedTitle => '🎉 您已到达！';
 
   @override
@@ -910,4 +916,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get onboardingNsecHint => 'nsec1…';
+
+  @override
+  String get onboardingVpnNotice =>
+      '为了最大程度保护隐私——路况报告会在 Nostr 网络中传播——建议使用 VPN。推荐使用可用比特币付款的 Mullvad。';
+
+  @override
+  String get onboardingGrapheneAlwaysAllow =>
+      '为确保应用正常运行，请将位置权限设置为“始终允许”，而不仅是使用应用时允许。';
 }

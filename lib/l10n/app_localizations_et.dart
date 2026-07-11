@@ -670,6 +670,13 @@ class AppLocalizationsEt extends AppLocalizations {
   String get autoDarkModeDesc => 'Aktiveerib tumeda teema päikeseloojangul';
 
   @override
+  String get settingsImperialUnits => 'Angloameerika ühikud';
+
+  @override
+  String get settingsImperialUnitsDesc =>
+      'Miilid ja jalad kilomeetrite ja meetrite asemel';
+
+  @override
   String get arrivedTitle => '🎉 Olete kohal!';
 
   @override
@@ -935,4 +942,12 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get onboardingNsecHint => 'nsec1…';
+
+  @override
+  String get onboardingVpnNotice =>
+      'Maksimaalse privaatsuse tagamiseks — teated levivad Nostr-võrgus — on soovitatav kasutada VPN-i. Soovitatud valik on Mullvad, mille eest saab maksta Bitcoiniga.';
+
+  @override
+  String get onboardingGrapheneAlwaysAllow =>
+      'Töökindluse tagamiseks määra rakenduse asukohaluba valikule „Luba alati“, mitte ainult rakenduse kasutamise ajal.';
 }

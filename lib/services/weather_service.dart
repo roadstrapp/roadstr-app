@@ -26,18 +26,6 @@ class WeatherData {
     return '⛈️';
   }
 
-  String get description {
-    if (code == 0) return 'Sereno';
-    if (code <= 2) return 'Parz. nuvoloso';
-    if (code == 3) return 'Nuvoloso';
-    if (code <= 48) return 'Nebbia';
-    if (code <= 55) return 'Pioggia leggera';
-    if (code <= 65) return 'Pioggia';
-    if (code <= 77) return 'Neve';
-    if (code <= 82) return 'Rovesci';
-    return 'Temporale';
-  }
-
   String localizedDescription(AppLocalizations l) {
     if (code == 0) return l.weatherClear;
     if (code <= 2) return l.weatherPartlyCloudy;

@@ -671,6 +671,13 @@ class AppLocalizationsSk extends AppLocalizations {
   String get autoDarkModeDesc => 'Aktivuje tmavú tému pri západe slnka';
 
   @override
+  String get settingsImperialUnits => 'Imperiálne jednotky';
+
+  @override
+  String get settingsImperialUnitsDesc =>
+      'Míle a stopy namiesto kilometrov a metrov';
+
+  @override
   String get arrivedTitle => '🎉 Dorazili ste!';
 
   @override
@@ -936,4 +943,12 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get onboardingNsecHint => 'nsec1…';
+
+  @override
+  String get onboardingVpnNotice =>
+      'Pre maximálne súkromie — hlásenia sa šíria sieťou Nostr — odporúčame používať VPN. Odporúčanou voľbou je Mullvad s platbou v bitcoinoch.';
+
+  @override
+  String get onboardingGrapheneAlwaysAllow =>
+      'Pre spoľahlivú prevádzku nastavte povolenie polohy na „Povoliť vždy“, nie iba počas používania aplikácie.';
 }

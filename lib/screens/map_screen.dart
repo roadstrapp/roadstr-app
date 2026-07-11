@@ -29,6 +29,7 @@ import '../services/gps_service.dart';
 import '../services/location_service.dart';
 import '../services/routing_service.dart';
 import '../services/weather_service.dart';
+import '../services/speed_limit_service.dart';
 import '../services/ztl_service.dart';
 import 'package:amberflutter/amberflutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -49,6 +50,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
+import '../utils/units.dart';
 import '../widgets/speedometer_widget.dart';
 import 'settings_screen.dart';
 import 'profile_screen.dart';
@@ -139,7 +141,8 @@ class _MapScreenState extends State<MapScreen>
   /// Step indices for which the ZTL-on-route warning has already been spoken,
   /// to avoid repeating it on every GPS tick.
   final _ztlWarnedSteps = <int>{};
-  final _ztl = ZtlService.instance;
+  final _ztl          = ZtlService.instance;
+  final _speedLimitSvc = SpeedLimitService();
 
   final _searchController = TextEditingController();
   List<NominatimResult> _searchResults = [];
@@ -312,7 +315,17 @@ class _MapScreenState extends State<MapScreen>
         // During navigation the GPS movement bearing drives _heading and the
         // camera — the compass must NOT overwrite it or the cursor will point
         // in the phone's physical orientation rather than the direction of travel.
-        if (mounted && !_isNavigating) setState(() => _heading = _compassHeading);
+        if (mounted && !_isNavigating) {
+          setState(() => _heading = _compassHeading);
+          // Free-roam heading-up mode: rotate the map with the magnetometer
+          // (cursor stays pointing up). Skip while a camera animation runs.
+          if (_headingMode && _followUser &&
+              _camTicker == null && _northTimer == null) {
+            _mapController.moveAndRotate(_position, _camZoom, -_compassHeading);
+            _camRotDeg = -_compassHeading;
+            _camCenter = _position;
+          }
+        }
       }
     });
   }
@@ -518,8 +531,9 @@ class _MapScreenState extends State<MapScreen>
       targetZoom = spd < 10  ? 18.0
                  : spd < 30  ? 17.5
                  : spd < 60  ? 17.0
-                 : spd < 100 ? 16.5
-                 :              16.0;
+                 : spd < 90  ? 16.5
+                 : spd < 120 ? 16.0
+                 :              15.0; // motorway: show more road ahead
       // Ease toward the target zoom — abrupt jumps are disorienting.
       targetZoom = _camZoom + (targetZoom - _camZoom) * 0.12;
     }
@@ -531,6 +545,20 @@ class _MapScreenState extends State<MapScreen>
       // compass bearing updated by the magnetometer stream (_compassHeading).
       if (_isNavigating) _heading = effectiveHeading;
     });
+
+    // ── Free-drive speed limit ───────────────────────────────────────────────
+    // During navigation the limit comes from route annotations (with Overpass
+    // fallback) inside _updateRemainingStats. In free drive query Overpass
+    // directly — but only when actually moving, to spare the public API.
+    if (!_isNavigating) {
+      if (_speed > 10) {
+        unawaited(_speedLimitSvc.updateIfNeeded(data.position));
+      }
+      final cached = _speedLimitSvc.cachedLimit;
+      if (cached != _currentSpeedLimit) {
+        setState(() => _currentSpeedLimit = cached);
+      }
+    }
 
     // ── ZTL proximity check ───────────────────────────────────────────────────
     unawaited(_ztl.updateIfNeeded(data.position));
@@ -558,6 +586,7 @@ class _MapScreenState extends State<MapScreen>
         _checkArrival();
       }
       unawaited(_checkSpeedCameraProximity());
+      unawaited(_checkHazardProximity());
       if (Hive.box('settings').get('keepScreenOn', defaultValue: true) as bool) {
         WakelockPlus.enable();
       }
@@ -629,15 +658,22 @@ class _MapScreenState extends State<MapScreen>
         rem -= (stepDist - _distToNextManeuverM);
       }
     }
-    final totalDist = _route!.totalDistanceM;
-    final elapsedM  = (totalDist - rem).clamp(0.0, totalDist);
+    final totalDist  = _route!.totalDistanceM;
+    final elapsedM   = (totalDist - rem).clamp(0.0, totalDist);
+    // Prefer route-embedded limit (OSRM/GH annotation); fall back to the
+    // Overpass cache which is updated asynchronously in the background.
+    final routeLimit = _route!.speedLimitAt(elapsedM);
     setState(() {
       _remainingDistM    = rem.clamp(0, totalDist);
       _remainingSecs     = totalDist > 0
           ? (_route!.totalDurationS * _remainingDistM / totalDist)
           : 0;
-      _currentSpeedLimit = _route!.speedLimitAt(elapsedM);
+      _currentSpeedLimit = routeLimit ?? _speedLimitSvc.cachedLimit;
     });
+    // Trigger background Overpass refresh when route data has no limit.
+    if (routeLimit == null) {
+      unawaited(_speedLimitSvc.updateIfNeeded(_position));
+    }
   }
 
   /// Checks whether the user has reached the destination.
@@ -647,7 +683,13 @@ class _MapScreenState extends State<MapScreen>
     if (_destination == null || !_isNavigating) return;
     final d = const Distance().as(LengthUnit.Meter, _position, _destination!);
     final arrivalRadius = _transportMode == 'walking' ? 15 : 40;
-    if (d < arrivalRadius || _remainingDistM < 50) _onArrival();
+    // On the last route step (arrive step has distanceM = 0, placed at the last
+    // intersection) use a wider GPS radius — OSRM puts the arrive point at the
+    // last turn, not at the door, so the remaining distance reads 0 while the
+    // user may still be 500+ m away.  Never trigger on _remainingDistM alone.
+    final onLastStep = _currentStepIdx >= (_route?.steps.length ?? 0) - 1;
+    final effectiveRadius = onLastStep ? 60 : arrivalRadius;
+    if (d < effectiveRadius) _onArrival();
   }
 
   void _onArrival() {
@@ -679,28 +721,31 @@ class _MapScreenState extends State<MapScreen>
     _distToNextManeuverM = dist;
 
     // ── Voice guidance announcements ─────────────────────────────────────────
+    // Skip departure steps — "Head north on Via X" while already moving is wrong.
+    final bool isDepartStep = nextStep.direction == 'depart';
     final t = _announcementThresholds(nextStep, _speed, _transportMode);
+    bool spokenThisCall = false; // prevents far+immediate from clashing in one tick
     // Far announcement
     final midOrNear = t.mid > 0 ? t.mid : t.near;
-    if (dist < t.far + 20 && dist >= midOrNear + 20 && _ttsAnnouncedFar != nextIdx) {
+    if (!isDepartStep && dist < t.far + 20 && dist >= midOrNear + 20 && _ttsAnnouncedFar != nextIdx) {
       _ttsAnnouncedFar = nextIdx;
       _checkZtlOnRoute(nextIdx, nextStep, dist);
-      if (!_voiceMuted) _tts.announceManeuver(nextStep.instruction, t.far);
+      if (!_voiceMuted) { _tts.announceManeuver(nextStep.instruction, t.far); spokenThisCall = true; }
     }
     // Mid announcement (skipped when t.mid == 0)
-    else if (t.mid > 0 && dist < t.mid + 20 && dist >= t.near + 20
+    else if (!isDepartStep && t.mid > 0 && dist < t.mid + 20 && dist >= t.near + 20
         && _ttsAnnouncedMid != nextIdx) {
       _ttsAnnouncedMid = nextIdx;
       _checkZtlOnRoute(nextIdx, nextStep, dist);
-      if (!_voiceMuted) _tts.announceManeuver(nextStep.instruction, t.mid);
+      if (!_voiceMuted) { _tts.announceManeuver(nextStep.instruction, t.mid); spokenThisCall = true; }
     }
     // Near/final announcement
-    else if (dist < t.near + 15 && _ttsAnnouncedNear != nextIdx) {
+    else if (!isDepartStep && dist < t.near + 30 && _ttsAnnouncedNear != nextIdx) {
       _ttsAnnouncedNear = nextIdx;
       _checkZtlOnRoute(nextIdx, nextStep, dist);
       // Highway ramp near = 250 m → speak with distance; others = 50 m → imminent
       final speakDist = t.near >= 200 ? t.near : 0;
-      if (!_voiceMuted) _tts.announceManeuver(nextStep.instruction, speakDist);
+      if (!_voiceMuted) { _tts.announceManeuver(nextStep.instruction, speakDist); spokenThisCall = true; }
     }
 
     if (dist < 80) {
@@ -719,9 +764,16 @@ class _MapScreenState extends State<MapScreen>
         final t = _announcementThresholds(nextSt, _speed, _transportMode);
         // Urban steps only: announce new next instruction immediately after maneuver.
         // Highway/ramp steps (t.mid > 0) keep the full 3-tier system untouched.
+        // Guard spokenThisCall: if far/near fired in this same GPS tick (e.g. walking
+        // where far = 60 m and advance threshold = 80 m coincide), skip the immediate
+        // to avoid the second speak() from interrupting the first.
         final distToNext = const Distance()
             .as(LengthUnit.Meter, _position, nextSt.location);
-        if (t.mid == 0 && !_voiceMuted) {
+        // Only fire the immediate post-maneuver announcement when the next turn
+        // is within 250 m — further away the far announcement (which fires later
+        // at the right distance) is the correct cue, not an immediate one.
+        if (t.mid == 0 && !_voiceMuted && !spokenThisCall
+            && nextSt.direction != 'depart' && distToNext < 250) {
           // Round to nearest 50 m for natural speech; drop distance for imminent turns.
           final spokenDist = distToNext > 80
               ? ((distToNext / 50).round() * 50).toInt()
@@ -741,14 +793,14 @@ class _MapScreenState extends State<MapScreen>
         final capturedStepIdx  = _currentStepIdx;
         final distAtAdvance = const Distance()
             .as(LengthUnit.Meter, _position, nextSt.location);
-        _missedTurnTimer = Timer(const Duration(milliseconds: 2500), () {
+        _missedTurnTimer = Timer(const Duration(milliseconds: 5000), () {
           if (!mounted || !_isNavigating || _isRerouting) return;
           if (_currentStepIdx != capturedStepIdx) return; // naturally advanced
           if (_route == null || newNextIdx >= _route!.steps.length) return;
           final currentDist = const Distance()
               .as(LengthUnit.Meter, _position, _route!.steps[newNextIdx].location);
-          // Reroute if not meaningfully closer (< 20 m improvement) and moving.
-          if (currentDist > distAtAdvance - 20 && _speed > 3) {
+          // Reroute if not meaningfully closer (< 50 m improvement) and moving.
+          if (currentDist > distAtAdvance - 50 && _speed > 3) {
             _rerouteAndNavigate();
           }
         });
@@ -779,21 +831,21 @@ class _MapScreenState extends State<MapScreen>
           poly[i].latitude,  poly[i].longitude,
           poly[i+1].latitude, poly[i+1].longitude);
       if (d < minDist) minDist = d;
-      if (minDist < 40) return; // early exit: clearly on route
+      if (minDist < 25) return; // early exit: clearly on route
     }
-    if (minDist > 60) { _rerouteAndNavigate(); return; }
+    if (minDist > 40) { _rerouteAndNavigate(); return; }
 
     // Direction check: on bidirectional roads the user may be on the correct
-    // polyline but heading the wrong way. Detect this by comparing the current
-    // GPS bearing to the bearing toward the next route waypoint. If they differ
-    // by more than 150° and speed is meaningful, reroute.
+    // polyline but heading the wrong way. Only apply at meaningful speed and
+    // with a strict angle threshold to avoid false triggers on curves or when
+    // the next waypoint is around a bend (bearing vs heading legitimately differ).
     final steps = _route!.steps;
-    if (_speed > 10 && _currentStepIdx + 1 < steps.length) {
+    if (_speed > 20 && _currentStepIdx + 1 < steps.length) {
       final nextWaypoint = steps[_currentStepIdx + 1].location;
       final bearingToNext = _bearingBetween(_position, nextWaypoint);
       double diff = (_heading - bearingToNext).abs();
       if (diff > 180) diff = 360 - diff;
-      if (diff > 150) _rerouteAndNavigate();
+      if (diff > 135) _rerouteAndNavigate();
     }
   }
 
@@ -854,7 +906,7 @@ class _MapScreenState extends State<MapScreen>
     if (transportMode == 'walking')  return (far: 60,  mid: 0, near: 15);
     if (transportMode == 'cycling')  return (far: 150, mid: 0, near: 30);
     final isRamp = step.direction == 'off ramp' || step.direction == 'on ramp';
-    if (isRamp) return (far: 3000, mid: 500, near: 250);
+    if (isRamp) return (far: 1500, mid: 500, near: 250);
     final isRoundabout =
         step.direction == 'roundabout' || step.direction == 'rotary';
     if (isRoundabout) return (far: 400, mid: 100, near: 50);
@@ -875,6 +927,47 @@ class _MapScreenState extends State<MapScreen>
       if (d > 250) continue;
       _alertedCameraIds.add(ev.id);
       unawaited(_playSpeedCameraBeep());
+    }
+  }
+
+  /// Speaks a voice alert when the user enters the proximity of a police or
+  /// hazard event that hasn't been announced this session.
+  /// Fires for both the outbound and return trips because _alertedEventIds is
+  /// cleared on each navigation start via _stopNavigation().
+  Future<void> _checkHazardProximity() async {
+    if (!_isNavigating || _voiceMuted || !mounted) return;
+    const dist = Distance();
+    final alertCategories = {
+      RoadCategory.police,
+      RoadCategory.accident,
+      RoadCategory.hazard,
+      RoadCategory.construction,
+      RoadCategory.fog,
+      RoadCategory.ice,
+    };
+    // Snapshot context-dependent values before any await.
+    final lang = Localizations.localeOf(context).languageCode;
+    final l10n = AppLocalizations.of(context)!;
+    for (final ev in _roadEvents) {
+      if (!alertCategories.contains(ev.category)) continue;
+      if (_alertedEventIds.contains(ev.id)) continue;
+      final d = dist.as(LengthUnit.Meter, _position, ev.position);
+      if (d > 400) continue;
+      _alertedEventIds.add(ev.id);
+      final label = ev.category.localizedLabel(l10n);
+      final msg = <String, String>{
+        'it': 'Attenzione! $label nelle vicinanze.',
+        'en': 'Warning! $label ahead.',
+        'de': 'Achtung! $label in der Nähe.',
+        'fr': 'Attention! $label à proximité.',
+        'es': '¡Atención! $label cerca.',
+        'pt': 'Atenção! $label próximo.',
+        'nl': 'Let op! $label in de buurt.',
+        'pl': 'Uwaga! $label w pobliżu.',
+        'ru': 'Внимание! $label рядом.',
+      };
+      unawaited(_tts.speak(msg[lang] ?? msg['en']!));
+      break; // one alert per GPS tick to avoid stacking
     }
   }
 
@@ -1035,11 +1128,8 @@ class _MapScreenState extends State<MapScreen>
     final step = _route!.steps[nextIdx];
     final distM = step.distanceM;
     if (!mounted) return;
-    final distLabel = distM < 50
-        ? AppLocalizations.of(context)!.now
-        : distM < 1000
-            ? '${distM.round()} m'
-            : '${(distM / 1000).toStringAsFixed(1)} km';
+    final distLabel = Units.fmtDist(distM,
+        nowLabel: AppLocalizations.of(context)!.now);
     _navNotif.show(step.instruction, distLabel);
   }
 
@@ -1106,9 +1196,13 @@ class _MapScreenState extends State<MapScreen>
           AppLocalizations.of(context)!.selectedPosition;
       _saveToHistory(label, _destination!);
     }
-    _ttsAnnouncedFar  = -1;
-    _ttsAnnouncedMid  = -1;
+    // Suppress far/mid for step 1 (the first real action after depart) on fresh
+    // start so the user only hears "Let's go!" and not an immediate "Head north on…"
+    // which is redundant when the route is already visible on screen.
+    _ttsAnnouncedFar  = silent ? -1 : 1;
+    _ttsAnnouncedMid  = silent ? -1 : 1;
     _ttsAnnouncedNear = -1;
+    _speedLimitSvc.reset();
     final lang = Localizations.localeOf(context).languageCode;
     // Set language immediately so bundled assets resolve correctly even before
     // the model finishes loading.  Then init the model in the background for
@@ -1173,9 +1267,21 @@ class _MapScreenState extends State<MapScreen>
       _animateCamera(
           toCenter: _position, toZoom: 17.0, toRot: -_heading);
       _updateNavNotification();
-      // Announce the first step of the new route immediately.
-      if (route.steps.isNotEmpty) {
-        if (!_voiceMuted) _tts.announceManeuver(route.steps.first.instruction, 0);
+      // Announce the first non-departure step immediately.
+      // Then suppress far+mid for that same step so the GPS-tick loop doesn't
+      // re-fire the same instruction a second later.
+      if (route.steps.isNotEmpty && !_voiceMuted) {
+        final firstAction = route.steps.firstWhere(
+          (s) => s.direction != 'depart',
+          orElse: () => route.steps.first,
+        );
+        _tts.announceManeuver(firstAction.instruction, 0);
+        // Step index of firstAction in the new route.
+        final firstIdx = route.steps.indexOf(firstAction);
+        if (firstIdx >= 0) {
+          _ttsAnnouncedFar = firstIdx;
+          _ttsAnnouncedMid = firstIdx;
+        }
       }
       return;
     }
@@ -1231,6 +1337,7 @@ class _MapScreenState extends State<MapScreen>
 
     final origin = fromPosition ?? _position; // _gpsReady guaranteed above
     final (:provider, :apiKey, :ghServer) = await _resolveProvider();
+    if (!mounted) return;
 
     final lang = Localizations.localeOf(context).languageCode;
     List<RouteResult> routes;
@@ -1396,6 +1503,7 @@ class _MapScreenState extends State<MapScreen>
     if (!_gpsReady) { setState(() => _isCalculating = false); return; }
     final origin = _position;
     final (:provider, :apiKey, :ghServer) = await _resolveProvider();
+    if (!mounted) return;
     final lang = Localizations.localeOf(context).languageCode;
     List<RouteResult> routes;
     try {
@@ -1702,6 +1810,7 @@ class _MapScreenState extends State<MapScreen>
     _ztlWarnedSteps.clear();
     _ztlOnRoute = false;
     _ztlOnRouteName = null;
+    _speedLimitSvc.reset();
     _animateCamera(toCenter: _position, toZoom: _camZoom, toRot: 0);
     WakelockPlus.disable();
     _navNotif.cancel();
@@ -1831,6 +1940,10 @@ class _MapScreenState extends State<MapScreen>
 
   void _recenter() {
     if (!_position.latitude.isFinite || !_position.longitude.isFinite) return;
+    // Solicit a fresh one-shot GPS fix: the cursor must snap to where the
+    // user actually is, not the last (possibly stale) stream sample. The fix
+    // arrives via _onGps and, with _followUser on, re-centers the camera.
+    if (_gpsReady) unawaited(_gps.refresh());
     setState(() {
       _followUser = true;
       // During navigation, re-enable heading mode so the map resumes rotating
@@ -1855,13 +1968,27 @@ class _MapScreenState extends State<MapScreen>
   /// Uses a Timer instead of the custom ticker so it works independently of
   /// any stale animation state from previous _animateCamera calls.
   void _toggleHeadingMode() {
-    // During navigation: act as a real toggle.
-    // If heading mode is OFF, re-enable it — the next GPS tick will rotate the
-    // map to face the direction of travel and the cursor will point forward.
+    // Real toggle in both contexts.
+    // OFF → ON during navigation: the next GPS tick rotates the map to face
+    // the direction of travel and the cursor points forward.
     if (_isNavigating && !_headingMode) {
       setState(() { _headingMode = true; _followUser = true; });
       return;
     }
+    // OFF → ON in free roam: the map starts rotating with the magnetometer
+    // (see _startCompass); the cursor stays pointing up.
+    if (!_isNavigating && !_headingMode) {
+      setState(() { _headingMode = true; _followUser = true; });
+      _northTimer?.cancel();
+      _northTimer = null;
+      _camTicker?.cancel();
+      _camTicker = null;
+      _animateCamera(
+          toCenter: _gpsReady ? _position : _camCenter,
+          toZoom: _camZoom, toRot: -_compassHeading);
+      return;
+    }
+    // ON → OFF (either context): back to north-up.
     setState(() { _headingMode = false; _followUser = true; });
 
     _northTimer?.cancel();
@@ -2638,11 +2765,9 @@ class _MapScreenState extends State<MapScreen>
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               _CompassFab(
                 rotDeg: _camRotDeg,
-                // Active (purple) when map is at north-up (within 5°).
-                // During navigation, active when heading mode is on.
-                active: _isNavigating
-                    ? _headingMode
-                    : _camRotDeg.abs() < 5.0 || (_camRotDeg % 360).abs() < 5.0,
+                // Active (accent) when heading-up mode is on — map rotating
+                // with the direction of travel (nav) or the compass (free roam).
+                active: _headingMode,
                 onTap: _toggleHeadingMode,
               ),
               const SizedBox(height: 8),
@@ -2705,8 +2830,8 @@ class _MapScreenState extends State<MapScreen>
             ),
           ),
 
-        // ── SPEED LIMIT SIGN (navigation only) ───────────────────────────────
-        if (_isNavigating && _currentSpeedLimit != null)
+        // ── SPEED LIMIT SIGN (navigation + free drive) ───────────────────────
+        if (_currentSpeedLimit != null)
           Positioned(
             bottom: 120 + bottomInset,
             left: 16,
@@ -2834,15 +2959,27 @@ class _MapScreenState extends State<MapScreen>
         _magnetSub?.cancel(); _magnetSub = null;
         _accelSub?.cancel();  _accelSub  = null;
         if (!_isNavigating) {
+          // Cancel the stream subscription BEFORE stopping the GPS service so
+          // no late events fire into a partially-torn-down widget. Reset
+          // _gpsReady so that the resumed handler knows to restart.
+          _gpsSub?.cancel(); _gpsSub = null;
           _gps.stop();
+          if (mounted) setState(() => _gpsReady = false);
           WakelockPlus.disable();
         }
       case AppLifecycleState.resumed:
         // Re-start sensors and clean up stale events.
         if (_magnetSub == null) _startCompass();
-        if (!_gpsReady) _gps.start().then((_) {
-          _gpsSub ??= _gps.stream.listen(_onGps);
-        });
+        // _gpsReady was cleared in paused when not navigating. Restart GPS now.
+        if (!_gpsReady && _gpsRequested) {
+          unawaited(_gps.start().then((ok) {
+            if (!mounted) return;
+            if (ok) {
+              _gpsSub = _gps.stream.listen(_onGps);
+              setState(() => _gpsReady = true);
+            }
+          }));
+        }
         if (mounted) {
           final pruned = _roadEvents.where((e) => !e.isExpired).toList();
           if (pruned.length != _roadEvents.length) {
@@ -2869,6 +3006,8 @@ class _MapScreenState extends State<MapScreen>
     _eventCleanupTimer?.cancel();
     _magnetSub?.cancel();
     _accelSub?.cancel();
+    _headingWatchdog?.cancel();
+    _missedTurnTimer?.cancel();
     _tts.dispose();
     _alertPlayer.dispose();
     _nostr.dispose();
@@ -3321,9 +3460,12 @@ class _ReportSheetState extends State<_ReportSheet> {
   Widget build(BuildContext context) {
     final c = widget.colors;
     final l = AppLocalizations.of(context)!;
-    final bottomPad = MediaQuery.of(context).viewInsets.bottom
-        + MediaQuery.of(context).viewPadding.bottom + 24;
-    return Container(
+    // viewInsetsOf lifts the sheet above the keyboard when the TextField is focused.
+    // viewPadding.bottom handles the home-indicator safe area below the sheet.
+    final bottomPad = MediaQuery.of(context).viewPadding.bottom + 24;
+    return Padding(
+      padding: MediaQuery.viewInsetsOf(context),
+      child: Container(
       margin: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: c.surface2, borderRadius: BorderRadius.circular(20),
@@ -3455,7 +3597,8 @@ class _ReportSheetState extends State<_ReportSheet> {
         ),
       ]),
       ), // SingleChildScrollView
-    );
+      ), // Container
+    ); // Padding
   }
 }
 
@@ -4599,7 +4742,16 @@ class _AlternativesPanelState extends State<_AlternativesPanel>
                     Text(_weather!.emoji, style: const TextStyle(fontSize: 16)),
                     const SizedBox(width: 6),
                     Text(
-                      '${_weather!.tempC.toStringAsFixed(0)}°C · ${_weather!.localizedDescription(l)} · ${l.windSpeed(_weather!.windKmh.toStringAsFixed(0))}',
+                      () {
+                        final imp = Units.imperial;
+                        final temp = imp
+                            ? '${(_weather!.tempC * 9 / 5 + 32).toStringAsFixed(0)}°F'
+                            : '${_weather!.tempC.toStringAsFixed(0)}°C';
+                        final wind = imp
+                            ? l.windSpeed(Units.toDisplaySpeed(_weather!.windKmh).toStringAsFixed(0))
+                            : l.windSpeed(_weather!.windKmh.toStringAsFixed(0));
+                        return '$temp · ${_weather!.localizedDescription(l)} · $wind';
+                      }(),
                       style: TextStyle(color: c.textSecondary, fontSize: 12),
                     ),
                   ]),
@@ -5129,42 +5281,51 @@ class _NavInstruction extends StatelessWidget {
           ])),
         ]),
       ),
-      // ── Compact next-step preview (left-anchored, own background) ──────────
-      // background is surface3 only — transparent gap to the right shows the map.
+      // ── Next-step preview tile (left-anchored, own background) ─────────────
       if (showNext)
         Align(
           alignment: Alignment.centerLeft,
           child: Container(
             padding: EdgeInsets.symmetric(
-                horizontal: 14, vertical: land ? 5 : 7),
+                horizontal: land ? 16 : 24, vertical: land ? 16 : 28),
             decoration: BoxDecoration(
               color: colors.surface3,
               borderRadius: const BorderRadius.only(
-                  bottomRight: Radius.circular(14)),
+                  bottomRight: Radius.circular(20)),
               boxShadow: [BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.12),
-                  blurRadius: 6, offset: const Offset(2, 3))],
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 8, offset: const Offset(2, 4))],
             ),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               Icon(_directionIcon(nextStep!.direction, nextStep!.modifier),
-                  color: colors.textSecondary, size: 16),
-              const SizedBox(width: 6),
-              // Distance of the NEXT step's segment = how far after the
-              // upcoming turn until the following manoeuvre.
-              Text(_distLabel(nextStep!.distanceM, ''),
-                  style: TextStyle(color: colors.textSecondary,
-                      fontSize: fsSub - 2, fontWeight: FontWeight.w500)),
+                  color: colors.accent, size: land ? 30 : 48),
+              const SizedBox(width: 12),
+              // Flexible so long instructions ellipsize instead of overflowing.
+              Flexible(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(nextStep!.instruction,
+                      style: TextStyle(color: colors.textPrimary,
+                          fontSize: land ? 16 : 26,
+                          fontWeight: FontWeight.w600),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 4),
+                  Text(_distLabel(nextStep!.distanceM, ''),
+                      style: TextStyle(color: colors.textSecondary,
+                          fontSize: land ? 14 : 22,
+                          fontWeight: FontWeight.w500)),
+                ],
+              )),
             ]),
           ),
         ),
     ]);
   }
 
-  String _distLabel(double m, String nowLabel) {
-    if (m < 50) return nowLabel;
-    if (m < 1000) return '${m.round()} m';
-    return '${(m / 1000).toStringAsFixed(1)} km';
-  }
+  String _distLabel(double m, String nowLabel) =>
+      Units.fmtDist(m, nowLabel: nowLabel);
 
   /// Returns either a roundabout custom icon (when exit data is available) or
   /// the standard direction icon box.
@@ -5244,8 +5405,7 @@ class _NavPanel extends StatelessWidget {
 
   String get _distLabel {
     final m = remainingDistM > 0 ? remainingDistM : route.totalDistanceM;
-    if (m < 1000) return '${m.round()} m';
-    return '${(m / 1000).toStringAsFixed(1)} km';
+    return Units.fmtDist(m);
   }
 
   String _timeLabel(AppLocalizations l) {

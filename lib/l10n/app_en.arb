@@ -275,6 +275,8 @@
   "kokoroModelSupportedLangs": "Supports: Italian, English, Spanish, French, Japanese, Chinese, Portuguese",
   "autoDarkMode": "Auto dark theme",
   "autoDarkModeDesc": "Activates the dark theme at sunset and sunrise",
+  "settingsImperialUnits": "Imperial units",
+  "settingsImperialUnitsDesc": "Miles and feet instead of kilometres and metres",
   "arrivedTitle": "🎉 You arrived!",
   "arrivedBody": "You have reached your destination.",
   "arrivedFeedbackPrompt": "How did it go?",
@@ -408,5 +410,7 @@
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Let's go!",
   "onboardingProfileLoading": "Loading profile…",
-  "onboardingNsecHint": "nsec1…"
+  "onboardingNsecHint": "nsec1…",
+  "onboardingVpnNotice": "For maximum privacy — road reports are propagated through the Nostr network — using a VPN is recommended. Mullvad, payable in Bitcoin, is the recommended choice.",
+  "onboardingGrapheneAlwaysAllow": "For reliable operation, set the app's location permission to \"Allow all the time\", not only while the app is in use."
 }
