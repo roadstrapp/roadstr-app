@@ -835,7 +835,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // ── INFO ─────────────────────────────────────────────────────────
           _SectionHeader(l.sectionInfo, c),
-          _InfoTile(l.infoVersion, '0.4.3', c),
+          _InfoTile(l.infoVersion, '0.4.4', c),
           _InfoTile(l.infoProtocol, 'Nostr', c),
           _InfoTile(l.infoMaps, 'openstreetmap.org', c,
               url: 'https://www.openstreetmap.org'),

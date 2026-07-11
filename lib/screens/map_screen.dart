@@ -2831,9 +2831,13 @@ class _MapScreenState extends State<MapScreen>
           ),
 
         // ── SPEED LIMIT SIGN (navigation + free drive) ───────────────────────
+        // Bottom offset must clear the NavPanel's top edge (vTop 14 + speedometer
+        // 110 + vBot ≈ 124 + max(bottomInset, 16)). 150 + bottomInset keeps a
+        // ≥10px gap above the panel for every bottomInset value, so the sign
+        // is never covered.
         if (_currentSpeedLimit != null)
           Positioned(
-            bottom: 120 + bottomInset,
+            bottom: 150 + bottomInset,
             left: 16,
             child: _SpeedLimitSign(_currentSpeedLimit!),
           ),
@@ -5282,10 +5286,15 @@ class _NavInstruction extends StatelessWidget {
         ]),
       ),
       // ── Next-step preview tile (left-anchored, own background) ─────────────
+      // Fixed width = exactly half the panel above (which is edge-to-edge,
+      // i.e. half the screen width) so the tile never grows with long text —
+      // it stays half as wide as the main instruction bar while keeping the
+      // same tall height/icon/font sizing.
       if (showNext)
         Align(
           alignment: Alignment.centerLeft,
           child: Container(
+            width: MediaQuery.of(context).size.width * 0.5,
             padding: EdgeInsets.symmetric(
                 horizontal: land ? 16 : 24, vertical: land ? 16 : 28),
             decoration: BoxDecoration(
@@ -5296,12 +5305,13 @@ class _NavInstruction extends StatelessWidget {
                   color: Colors.black.withValues(alpha: 0.15),
                   blurRadius: 8, offset: const Offset(2, 4))],
             ),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
+            child: Row(children: [
               Icon(_directionIcon(nextStep!.direction, nextStep!.modifier),
                   color: colors.accent, size: land ? 30 : 48),
               const SizedBox(width: 12),
-              // Flexible so long instructions ellipsize instead of overflowing.
-              Flexible(child: Column(
+              // Expanded (not Flexible) so text truncates at the fixed tile
+              // width instead of letting the Row grow to fit long instructions.
+              Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
