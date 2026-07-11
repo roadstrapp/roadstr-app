@@ -1,6 +1,6 @@
 name: roadstr
 description: Roadstr — Decentralised navigation with Nostr road events and Lightning zaps
-version: 0.4.1+10
+version: 0.4.3+12
 publish_to: 'none'
 
 environment:
@@ -30,6 +30,7 @@ dependencies:
   sensors_plus: ^6.1.1
   flutter_onnxruntime: ^1.8.0
   just_audio: ^0.10.6
+  audio_session: ^0.1.21
   path_provider: ^2.1.6
   ffi: ^2.1.0
   archive: ^4.0.0

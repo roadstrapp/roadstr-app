@@ -275,6 +275,8 @@
   "kokoroModelSupportedLangs": "Podpira: italijanščina, angleščina, španščina, francoščina, japonščina, kitajščina, portugalščina",
   "autoDarkMode": "Samodejno temno ozadje",
   "autoDarkModeDesc": "Aktivira temno temo ob sončnem zahodu",
+  "settingsImperialUnits": "Imperialne enote",
+  "settingsImperialUnitsDesc": "Milje in čevlji namesto kilometrov in metrov",
   "arrivedTitle": "🎉 Ste prispeli!",
   "arrivedBody": "Dosegli ste cilj.",
   "arrivedFeedbackPrompt": "Kako je šlo?",
@@ -353,5 +355,7 @@
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Gremo!",
   "onboardingProfileLoading": "Nalaganje profila…",
-  "onboardingNsecHint": "nsec1…"
+  "onboardingNsecHint": "nsec1…",
+  "onboardingVpnNotice": "Za največjo zasebnost — prijave se širijo po omrežju Nostr — je priporočljiva uporaba VPN-ja. Priporočena izbira je Mullvad, ki ga je mogoče plačati z Bitcoinom.",
+  "onboardingGrapheneAlwaysAllow": "Za zanesljivo delovanje nastavite dovoljenje za lokacijo na »Vedno dovoli«, ne le med uporabo aplikacije."
 }

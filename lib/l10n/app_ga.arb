@@ -275,6 +275,8 @@
   "kokoroModelSupportedLangs": "Tacaíonn: Iodáilis, Béarla, Spáinnis, Fraincis, Seapáinis, Sínis, Portaingéilis",
   "autoDarkMode": "Téama dorcha uathoibríoch",
   "autoDarkModeDesc": "Gníomhaíonn an téama dorcha ag luí na gréine",
+  "settingsImperialUnits": "Aonaid impiriúla",
+  "settingsImperialUnitsDesc": "Míle agus troithe in ionad ciliméadair agus méadair",
   "arrivedTitle": "🎉 Tháinig tú!",
   "arrivedBody": "Shroich tú do cheann scríbe.",
   "arrivedFeedbackPrompt": "Conas a chuaigh sé?",
@@ -353,5 +355,7 @@
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Ar aghaidh linn!",
   "onboardingProfileLoading": "Próifíl á luchtú…",
-  "onboardingNsecHint": "nsec1…"
+  "onboardingNsecHint": "nsec1…",
+  "onboardingVpnNotice": "Ar mhaithe le príobháideachas uasta — scaiptear tuairiscí ar líonra Nostr — moltar VPN a úsáid. Is é Mullvad, is féidir a íoc le Bitcoin, an rogha mholta.",
+  "onboardingGrapheneAlwaysAllow": "Le haghaidh oibriú iontaofa, socraigh cead suímh na haipe go \"Ceadaigh i gcónaí\", ní hamháin agus an aip in úsáid."
 }

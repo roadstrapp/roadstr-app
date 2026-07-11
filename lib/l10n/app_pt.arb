@@ -275,6 +275,8 @@
   "kokoroModelSupportedLangs": "Suporta: italiano, inglês, espanhol, francês, japonês, chinês, português",
   "autoDarkMode": "Tema escuro automático",
   "autoDarkModeDesc": "Ativa o tema escuro ao pôr do sol",
+  "settingsImperialUnits": "Unidades imperiais",
+  "settingsImperialUnitsDesc": "Milhas e pés em vez de quilómetros e metros",
   "arrivedTitle": "🎉 Chegou!",
   "arrivedBody": "Você chegou ao seu destino.",
   "arrivedFeedbackPrompt": "Como foi?",
@@ -353,5 +355,7 @@
   "onboardingReadyBody": "Roadstr abrirá o mapa agora.\nVocê pode configurar tudo mais em Configurações.",
   "onboardingLetsGo": "Vamos!",
   "onboardingProfileLoading": "Carregando perfil…",
-  "onboardingNsecHint": "nsec1…"
+  "onboardingNsecHint": "nsec1…",
+  "onboardingVpnNotice": "Para máxima privacidade — os alertas são propagados pela rede Nostr — recomenda-se o uso de uma VPN. Mullvad, pagável em Bitcoin, é a escolha recomendada.",
+  "onboardingGrapheneAlwaysAllow": "Para um funcionamento fiável, defina a permissão de localização da app como \"Permitir sempre\", não apenas durante a utilização."
 }

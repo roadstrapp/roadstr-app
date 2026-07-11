@@ -675,6 +675,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get autoDarkModeDesc => 'Activa el tema oscuro al atardecer';
 
   @override
+  String get settingsImperialUnits => 'Unidades imperiales';
+
+  @override
+  String get settingsImperialUnitsDesc =>
+      'Millas y pies en lugar de kilómetros y metros';
+
+  @override
   String get arrivedTitle => '🎉 ¡Has llegado!';
 
   @override
@@ -940,4 +947,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get onboardingNsecHint => 'nsec1…';
+
+  @override
+  String get onboardingVpnNotice =>
+      'Para máxima privacidad — los avisos se propagan por la red Nostr — se recomienda usar una VPN. Mullvad, pagable con Bitcoin, es la opción recomendada.';
+
+  @override
+  String get onboardingGrapheneAlwaysAllow =>
+      'Para un funcionamiento fiable, configura el permiso de ubicación de la app en «Permitir siempre», no solo mientras la app está en uso.';
 }

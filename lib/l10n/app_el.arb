@@ -275,6 +275,8 @@
   "kokoroModelSupportedLangs": "Υποστηρίζει: ιταλικά, αγγλικά, ισπανικά, γαλλικά, ιαπωνικά, κινεζικά, πορτογαλικά",
   "autoDarkMode": "Αυτόματο σκούρο θέμα",
   "autoDarkModeDesc": "Ενεργοποιεί το σκούρο θέμα στο ηλιοβασίλεμα",
+  "settingsImperialUnits": "Αγγλοσαξονικές μονάδες",
+  "settingsImperialUnitsDesc": "Μίλια και πόδια αντί για χιλιόμετρα και μέτρα",
   "arrivedTitle": "🎉 Φτάσατε!",
   "arrivedBody": "Φτάσατε στον προορισμό σας.",
   "arrivedFeedbackPrompt": "Πώς πήγε;",
@@ -353,5 +355,7 @@
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Πάμε!",
   "onboardingProfileLoading": "Φόρτωση προφίλ…",
-  "onboardingNsecHint": "nsec1…"
+  "onboardingNsecHint": "nsec1…",
+  "onboardingVpnNotice": "Για μέγιστη ιδιωτικότητα — οι αναφορές διαδίδονται στο δίκτυο Nostr — συνιστάται η χρήση VPN. Το Mullvad, με πληρωμή σε Bitcoin, είναι η προτεινόμενη επιλογή.",
+  "onboardingGrapheneAlwaysAllow": "Για αξιόπιστη λειτουργία, ορίστε την άδεια τοποθεσίας της εφαρμογής σε «Να επιτρέπεται πάντα», όχι μόνο κατά τη χρήση."
 }

@@ -655,6 +655,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get autoDarkModeDesc => '日没時にダークテーマを有効にします';
 
   @override
+  String get settingsImperialUnits => 'ヤード・ポンド法';
+
+  @override
+  String get settingsImperialUnitsDesc => 'キロメートル・メートルの代わりにマイル・フィートを使用';
+
+  @override
   String get arrivedTitle => '🎉 到着しました！';
 
   @override
@@ -918,4 +924,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get onboardingNsecHint => 'nsec1…';
+
+  @override
+  String get onboardingVpnNotice =>
+      '最大限のプライバシーのために — 報告はNostrネットワークに伝播されます — VPNの使用を推奨します。ビットコインで支払えるMullvadがおすすめです。';
+
+  @override
+  String get onboardingGrapheneAlwaysAllow =>
+      '確実に動作させるには、位置情報の権限を「アプリの使用中のみ」ではなく「常に許可」に設定してください。';
 }

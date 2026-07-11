@@ -275,6 +275,8 @@
   "kokoroModelSupportedLangs": "Stödjer: italienska, engelska, spanska, franska, japanska, kinesiska, portugisiska",
   "autoDarkMode": "Automatiskt mörkt tema",
   "autoDarkModeDesc": "Aktiverar det mörka temat vid solnedgången",
+  "settingsImperialUnits": "Imperiala enheter",
+  "settingsImperialUnitsDesc": "Miles och fot istället för kilometer och meter",
   "arrivedTitle": "🎉 Du är framme!",
   "arrivedBody": "Du har nått din destination.",
   "arrivedFeedbackPrompt": "Hur gick det?",
@@ -353,5 +355,7 @@
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Kör!",
   "onboardingProfileLoading": "Laddar profil…",
-  "onboardingNsecHint": "nsec1…"
+  "onboardingNsecHint": "nsec1…",
+  "onboardingVpnNotice": "För maximal integritet — rapporter sprids via Nostr-nätverket — rekommenderas användning av VPN. Mullvad, som kan betalas med Bitcoin, är det rekommenderade valet.",
+  "onboardingGrapheneAlwaysAllow": "För tillförlitlig drift, ställ in appens platsbehörighet på \"Tillåt alltid\", inte bara när appen används."
 }

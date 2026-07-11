@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
+import '../../utils/units.dart';
 import 'espeak_phonemizer.dart';
 import 'kokoro_engine.dart';
 import 'kokoro_model_manager.dart';
@@ -28,6 +30,12 @@ class KokoroTtsService {
   Float32List? _voiceData;
   bool _ready = false;
   int _utteranceId = 0; // bumped on every speak() call to cancel in-flight synth
+  bool _audioSessionConfigured = false;
+  bool _audioFocusActive = false;
+  bool _isSpeaking = false;
+  /// At most one queued low-priority utterance (the newest wins — a stale
+  /// hazard alert is worthless once a newer one arrives).
+  String? _pendingText;
 
   // Synthesis cache: "$lang:$text" → float32 waveform.
   // Keyed by language so entries survive language changes without collision.
@@ -77,6 +85,7 @@ class KokoroTtsService {
       debugPrint('[KokoroTTS]   voice: ${ms()}ms');
       _ready = true;
       debugPrint('[KokoroTTS] init OK: ${ms()}ms total  voiceData=${_voiceData!.length} floats');
+      unawaited(_configureAudioSession());
       unawaited(_prewarmCache());
     } catch (e) {
       debugPrint('[KokoroTTS] init failed: $e');
@@ -94,9 +103,12 @@ class KokoroTtsService {
 
   Future<void> stop() async {
     _utteranceId++;
+    _isSpeaking = false;
+    _pendingText = null;
     try {
       await _player.stop();
     } catch (_) {}
+    unawaited(_releaseFocus());
   }
 
   Future<void> dispose() async {
@@ -104,22 +116,115 @@ class KokoroTtsService {
     await _player.dispose();
   }
 
+  // ── Audio focus / ducking ────────────────────────────────────────────────────
+
+  /// Configures the audio session once for navigation guidance.
+  /// On Android: requests AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK so other apps
+  /// (music, podcasts) lower their volume while the voice plays, then fade
+  /// back to full volume within ~1 second when focus is released.
+  /// On iOS: AVAudioSessionCategoryOptions.duckOthers achieves the same.
+  Future<void> _configureAudioSession() async {
+    if (_audioSessionConfigured) return;
+    _audioSessionConfigured = true;
+    try {
+      final session = await AudioSession.instance;
+      await session.configure(const AudioSessionConfiguration(
+        avAudioSessionCategory: AVAudioSessionCategory.playback,
+        avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.duckOthers,
+        avAudioSessionMode: AVAudioSessionMode.voicePrompt,
+        androidAudioAttributes: AndroidAudioAttributes(
+          contentType: AndroidAudioContentType.speech,
+          usage: AndroidAudioUsage.assistanceNavigationGuidance,
+        ),
+        androidAudioFocusGainType: AndroidAudioFocusGainType.gainTransientMayDuck,
+        androidWillPauseWhenDucked: false,
+      ));
+      debugPrint('[KokoroTTS] audio session configured');
+    } catch (e) {
+      debugPrint('[KokoroTTS] audio session config failed: $e');
+    }
+  }
+
+  Future<void> _acquireFocus() async {
+    if (_audioFocusActive) return;
+    try {
+      final session = await AudioSession.instance;
+      final granted = await session.setActive(true);
+      _audioFocusActive = granted;
+    } catch (_) {}
+  }
+
+  Future<void> _releaseFocus() async {
+    if (!_audioFocusActive) return;
+    _audioFocusActive = false;
+    try {
+      final session = await AudioSession.instance;
+      await session.setActive(false);
+    } catch (_) {}
+  }
+
   // ── Public speak API ─────────────────────────────────────────────────────────
 
-  Future<void> speak(String text) async {
+  /// Speaks [text]. Utterances never talk over each other:
+  /// - [priority] utterances (turn instructions — time-critical) cut whatever
+  ///   is playing and start immediately.
+  /// - non-priority utterances (hazard/ZTL/ambient alerts) wait for the
+  ///   current one to finish; only the newest pending alert is kept.
+  Future<void> speak(String text, {bool priority = false}) async {
+    if (_isSpeaking && !priority) {
+      _pendingText = text;
+      debugPrint('[KokoroTTS] queued: "$text"');
+      return;
+    }
+    await _speakNow(text);
+  }
+
+  Future<void> _speakNow(String text) async {
+    final id = ++_utteranceId;
+    _isSpeaking = true;
+    final started = await _startPlayback(text, id);
+    if (!started) {
+      _finishUtterance(id);
+      return;
+    }
+    // Mark done + release focus + drain the queue when playback completes.
+    unawaited(_player.playerStateStream
+        .firstWhere((s) =>
+            s.processingState == ProcessingState.completed ||
+            s.processingState == ProcessingState.idle)
+        .then((_) => _finishUtterance(id))
+        .catchError((_) => _finishUtterance(id)));
+  }
+
+  /// Runs when utterance [id] finishes, fails, or is cut. The id guard makes
+  /// stale completion listeners inert: when a priority utterance cuts this
+  /// one, the old listener fires on the stop() transition but must NOT
+  /// release the focus the new utterance is using, nor clear its state.
+  void _finishUtterance(int id) {
+    if (id != _utteranceId) return;
+    _isSpeaking = false;
+    unawaited(_releaseFocus());
+    final next = _pendingText;
+    _pendingText = null;
+    if (next != null) unawaited(_speakNow(next));
+  }
+
+  /// Loads and starts playback of [text] (bundled WAV or on-device synthesis).
+  /// Returns true if `play()` was reached, false when skipped or superseded.
+  Future<bool> _startPlayback(String text, int id) async {
     // ── Bundled asset fast-path ──────────────────────────────────────────────
     // Pre-generated WAVs for fixed phrases play immediately — no model needed.
     // This runs even when !_ready so "Partiamo!" plays while the model loads.
     final assetPath = _bundledAsset(_lang, text);
     if (assetPath != null) {
       try {
-        ++_utteranceId;
+        await _acquireFocus();
         await _player.stop();
         await _player.setAudioSource(AudioSource.asset(assetPath));
         await _player.seek(Duration.zero);
         await _player.play();
         debugPrint('[KokoroTTS] bundled: "$text"');
-        return;
+        return true;
       } catch (e) {
         debugPrint('[KokoroTTS] bundled not found, synthesising: $e');
       }
@@ -128,10 +233,9 @@ class KokoroTtsService {
     // ── Synthesis path — requires model ──────────────────────────────────────
     if (!_ready) {
       debugPrint('[KokoroTTS] speak("$text") skipped — not ready');
-      return;
+      return false;
     }
 
-    final id = ++_utteranceId;
     final t0 = DateTime.now();
     int ms() => DateTime.now().difference(t0).inMilliseconds;
     try {
@@ -159,7 +263,7 @@ class KokoroTtsService {
           debugPrint('[KokoroTTS] speak: "$text"  lang=$_lang');
           final ipa = await _phonemizer.phonemize(text, _lang);
           debugPrint('[KokoroTTS] IPA: "$ipa"  (${DateTime.now().difference(t0).inMilliseconds}ms)');
-          if (id != _utteranceId) return;
+          if (id != _utteranceId) return false;
 
           final completer = Completer<void>();
           _synthCompleter = completer;
@@ -170,7 +274,7 @@ class KokoroTtsService {
             completer.complete();
           }
           debugPrint('[KokoroTTS] synth done: ${audio.length} samples  (${DateTime.now().difference(t0).inMilliseconds}ms total)');
-          if (id != _utteranceId) return;
+          if (id != _utteranceId) return false;
           _synthCache[cacheKey] = audio;
         }
 
@@ -180,15 +284,18 @@ class KokoroTtsService {
         debugPrint('[KokoroTTS]   disk hit: ${ms()}ms');
       }
 
-      if (id != _utteranceId) return;
+      if (id != _utteranceId) return false;
+      await _acquireFocus();
       debugPrint('[KokoroTTS]   setAudioSource start: ${ms()}ms');
       await _player.setAudioSource(AudioSource.uri(Uri.file(wavFile.path)));
       debugPrint('[KokoroTTS]   setAudioSource done: ${ms()}ms');
       await _player.seek(Duration.zero);
       await _player.play();
       debugPrint('[KokoroTTS]   play() called: ${ms()}ms');
+      return true;
     } catch (e) {
       debugPrint('[KokoroTTS] speak error: $e');
+      return false;
     }
   }
 
@@ -249,12 +356,16 @@ class KokoroTtsService {
     }
   }
 
-  Future<void> announceStart() => speak(_letsGo(_lang));
-  Future<void> announceArrival() => speak(_arrived(_lang));
+  Future<void> announceStart() => speak(_letsGo(_lang), priority: true);
+  Future<void> announceArrival() => speak(_arrived(_lang), priority: true);
 
+  /// Turn instructions are time-critical: they cut whatever is playing.
+  /// Ambient alerts (hazards, ZTL…) go through [speak] without priority and
+  /// wait their turn instead.
   Future<void> announceManeuver(String instruction, int distMeters) {
     final clean = _normalizeOrdinals(instruction, _lang);
-    return speak(distMeters > 0 ? '${_inMeters(distMeters, _lang)}$clean' : clean);
+    final prefix = Units.ttsDistPrefix(distMeters, _lang);
+    return speak(prefix.isNotEmpty ? '$prefix$clean' : clean, priority: true);
   }
 
   /// Replaces ordinal symbols (e.g. "1°", "2°") with spoken words so the TTS
@@ -378,14 +489,5 @@ class KokoroTtsService {
         _ => 'You have arrived at your destination.',
       };
 
-  static String _inMeters(int m, String lang) => switch (lang) {
-        'it' => 'Tra $m metri, ',
-        'es' => 'En $m metros, ',
-        'fr' => 'Dans $m mètres, ',
-        'ja' => '$mメートル先で、',
-        'zh' => '在$m米后，',
-        'pt' => 'Em $m metros, ',
-        _ => 'In $m meters, ',
-      };
 }
 

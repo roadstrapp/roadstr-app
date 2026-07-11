@@ -15,9 +15,13 @@
 //   4. ThemeProvider and LocaleProvider are pre-initialised so the first
 //      build uses the correct theme/locale without a flicker.
 //   5. runApp is called with a MultiProvider tree wrapping RoadstrApp.
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'l10n/app_localizations.dart';
@@ -32,9 +36,19 @@ Future<void> main() async {
   // Step 1: Required before any async platform-channel calls.
   WidgetsFlutterBinding.ensureInitialized();
 
+  // In release builds, silence debugPrint entirely: routing logs, TTS phrases
+  // and speed-limit lookups contain street names and coordinates that must
+  // not end up in logcat.
+  if (kReleaseMode) {
+    debugPrint = (String? message, {int? wrapWidth}) {};
+  }
+
   // Step 2: Hive must be ready before providers try to read persisted settings.
+  // The settings box is AES-encrypted (favorites and search history contain
+  // saved place coordinates); the key lives in the Android Keystore via
+  // FlutterSecureStorage. Existing plaintext boxes are migrated once.
   await Hive.initFlutter();
-  await Hive.openBox('settings');
+  await _openEncryptedSettingsBox();
 
   // Step 3a: Allow portrait and landscape (left/right); disallow upside-down.
   await SystemChrome.setPreferredOrientations([
@@ -68,6 +82,56 @@ Future<void> main() async {
     ],
     child: const RoadstrApp(),
   ));
+}
+
+/// Opens the Hive 'settings' box encrypted with an AES-256 key held in the
+/// platform secure storage (Android Keystore-backed). On first run after the
+/// update, an existing plaintext box is migrated in place: its content is
+/// copied into the encrypted box and the plaintext file is deleted.
+///
+/// Failure policy: if secure storage is unavailable (rare vendor bugs) the
+/// box opens unencrypted rather than crashing the app at startup — the data
+/// is app-private either way; encryption is defence in depth.
+Future<void> _openEncryptedSettingsBox() async {
+  const st = FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true));
+  List<int>? key;
+  try {
+    final stored = await st.read(key: 'hive_settings_key');
+    if (stored != null) {
+      key = base64Decode(stored);
+    } else {
+      key = Hive.generateSecureKey();
+      await st.write(key: 'hive_settings_key', value: base64Encode(key));
+    }
+  } catch (e) {
+    debugPrint('[Hive] secure storage unavailable, opening plaintext: $e');
+    await Hive.openBox('settings');
+    return;
+  }
+
+  final cipher = HiveAesCipher(key);
+  try {
+    await Hive.openBox('settings', encryptionCipher: cipher);
+  } catch (_) {
+    // The box exists from a previous version in plaintext (or is corrupted).
+    // Re-open it without a cipher, copy everything into the encrypted box,
+    // and delete the plaintext file.
+    try {
+      if (Hive.isBoxOpen('settings')) await Hive.box('settings').close();
+      final plain = await Hive.openBox('settings');
+      final data  = Map<dynamic, dynamic>.of(plain.toMap());
+      await plain.deleteFromDisk();
+      final enc = await Hive.openBox('settings', encryptionCipher: cipher);
+      await enc.putAll(data);
+      debugPrint('[Hive] settings box migrated to encrypted storage');
+    } catch (e) {
+      // Last resort: start with a fresh encrypted box so the app still boots.
+      debugPrint('[Hive] settings migration failed, starting fresh: $e');
+      await Hive.deleteBoxFromDisk('settings');
+      await Hive.openBox('settings', encryptionCipher: cipher);
+    }
+  }
 }
 
 /// Root widget. Rebuilds whenever the theme or locale changes.
@@ -243,64 +307,3 @@ class _VoiceLanguageNoticeGateState extends State<_VoiceLanguageNoticeGate> {
   Widget build(BuildContext context) => const MapScreen();
 }
 
-class _DisclaimerScreen extends StatelessWidget {
-  final VoidCallback onAccept;
-  const _DisclaimerScreen({required this.onAccept});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l = AppLocalizations.of(context)!;
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Logo / app name
-              Row(children: [
-                const Icon(Icons.navigation_rounded,
-                    color: Color(0xFF7C3AED), size: 32),
-                const SizedBox(width: 12),
-                Text('Roadstr',
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF7C3AED))),
-              ]),
-              const SizedBox(height: 32),
-              Text(l.disclaimerTitle,
-                  style: theme.textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w700)),
-              const SizedBox(height: 16),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Text(
-                    l.disclaimerBody,
-                    style: theme.textTheme.bodyMedium
-                        ?.copyWith(height: 1.6, fontSize: 14),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF7C3AED),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14))),
-                  onPressed: onAccept,
-                  child: Text(l.disclaimerAccept,
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w700)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

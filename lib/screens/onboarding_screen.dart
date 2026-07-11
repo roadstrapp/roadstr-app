@@ -17,6 +17,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:nostr_tools/nostr_tools.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../l10n/app_localizations.dart';
 import '../services/kokoro/kokoro_model_manager.dart';
 import '../services/kokoro/kokoro_voices.dart';
@@ -162,26 +163,53 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: c.surface2,
-        title: Text(l.onboardingEnterNsec,
-            style: TextStyle(color: c.textPrimary, fontSize: 17)),
-        content: AutofillGroup(
-          child: TextField(
-            controller: ctrl,
-            autofillHints: const [AutofillHints.password],
-            obscureText: true, autocorrect: false, enableSuggestions: false,
-            keyboardType: TextInputType.visiblePassword,
-            style: TextStyle(color: c.textPrimary, fontSize: 13),
-            decoration: InputDecoration(
-              hintText: l.onboardingNsecHint,
-              hintStyle: TextStyle(color: c.textSecondary),
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: c.accent),
+        title: Row(children: [
+          const Icon(Icons.warning_amber_rounded,
+              color: Color(0xFFFFB800), size: 22),
+          const SizedBox(width: 8),
+          Expanded(child: Text(l.onboardingEnterNsec,
+              style: TextStyle(color: c.textPrimary, fontSize: 17))),
+        ]),
+        content: SingleChildScrollView(
+          child: Column(mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start, children: [
+            // Same disclaimer shown in the profile screen's nsec dialog.
+            Text(l.nsecWarning, style: TextStyle(
+                color: c.textSecondary, fontSize: 13, height: 1.5)),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFB800).withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                    color: const Color(0xFFFFB800).withValues(alpha: 0.40)),
+              ),
+              child: Text(l.amberSecureMethodHint,
+                  style: const TextStyle(color: Color(0xFFFFB800),
+                      fontSize: 12, height: 1.4)),
+            ),
+            const SizedBox(height: 14),
+            AutofillGroup(
+              child: TextField(
+                controller: ctrl,
+                autofillHints: const [AutofillHints.password],
+                obscureText: true, autocorrect: false, enableSuggestions: false,
+                keyboardType: TextInputType.visiblePassword,
+                style: TextStyle(color: c.textPrimary, fontSize: 13),
+                decoration: InputDecoration(
+                  hintText: l.onboardingNsecHint,
+                  hintStyle: TextStyle(color: c.textSecondary),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: c.accent),
+                  ),
+                ),
               ),
             ),
-          ),
+          ]),
         ),
         actions: [
           TextButton(
@@ -233,12 +261,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final mgr = KokoroModelManager.instance;
     _progressSub?.cancel();
     _errorSub?.cancel();
-    _progressSub = mgr.progressStream.listen((p) {
-      if (mounted) setState(() => _kokoroProgress = p);
-    }, onDone: () async {
+    // NOTE: progressStream is a broadcast stream on a singleton that never
+    // closes, so an onDone callback would never fire. Completion is signalled
+    // by the final progress value of 1.0 (emitted after all files are on disk).
+    _progressSub = mgr.progressStream.listen((p) async {
       if (!mounted) return;
-      final ok = await mgr.isReady(kokoroSupportedLanguages);
-      if (mounted) setState(() => _kokoroStatus = ok ? _KokoroStatus.ready : _KokoroStatus.notDownloaded);
+      setState(() => _kokoroProgress = p);
+      if (p >= 1.0) {
+        final ok = await mgr.isReady(kokoroSupportedLanguages);
+        if (mounted && ok) setState(() => _kokoroStatus = _KokoroStatus.ready);
+      }
     });
     _errorSub = mgr.errorStream.listen((_) {
       if (mounted) setState(() => _kokoroStatus = _KokoroStatus.notDownloaded);
@@ -352,13 +384,20 @@ class _WelcomePage extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(28, 16, 28, 24),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Container(
-            width: 52, height: 52,
-            decoration: BoxDecoration(
-              color: c.accent.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(Icons.navigation_rounded, color: c.accent, size: 28),
+          // App logo (same asset as the launcher icon).
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.asset('assets/icons/app_icon.png',
+                width: 56, height: 56, fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  width: 56, height: 56,
+                  decoration: BoxDecoration(
+                    color: c.accent.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(Icons.navigation_rounded,
+                      color: c.accent, size: 28),
+                )),
           ),
           const SizedBox(width: 14),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -369,7 +408,7 @@ class _WelcomePage extends StatelessWidget {
           ]),
         ]),
 
-        const SizedBox(height: 28),
+        const SizedBox(height: 24),
         Text(l.onboardingWelcomeTitle,
             style: TextStyle(color: c.textPrimary, fontSize: 22,
                 fontWeight: FontWeight.w700)),
@@ -377,25 +416,61 @@ class _WelcomePage extends StatelessWidget {
         Text(l.onboardingWelcomeBody,
             style: TextStyle(color: c.textSecondary, fontSize: 14, height: 1.5)),
 
-        const SizedBox(height: 24),
-        ...features.map((f) => Padding(
-          padding: const EdgeInsets.only(bottom: 14),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const SizedBox(height: 20),
+        // Features + VPN notice scroll together so small screens never overflow.
+        Expanded(child: SingleChildScrollView(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            ...features.map((f) => Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Container(
+                  width: 36, height: 36,
+                  decoration: BoxDecoration(
+                    color: c.accent.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(f.$1, color: c.accent, size: 18),
+                ),
+                const SizedBox(width: 12),
+                Expanded(child: Text(f.$2,
+                    style: TextStyle(color: c.textPrimary, fontSize: 14, height: 1.4))),
+              ]),
+            )),
+
+            const SizedBox(height: 6),
+            // ── VPN privacy notice ─────────────────────────────────────────
             Container(
-              width: 36, height: 36,
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: c.accent.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(10),
+                color: c.surface2,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: c.border, width: 0.5),
               ),
-              child: Icon(f.$1, color: c.accent, size: 18),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Icon(Icons.vpn_lock_rounded, color: c.accent, size: 18),
+                const SizedBox(width: 10),
+                Expanded(child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(l.onboardingVpnNotice,
+                      style: TextStyle(color: c.textSecondary,
+                          fontSize: 12, height: 1.5)),
+                  const SizedBox(height: 6),
+                  GestureDetector(
+                    onTap: () => launchUrl(Uri.parse('https://mullvad.net'),
+                        mode: LaunchMode.externalApplication),
+                    child: Text('mullvad.net',
+                        style: TextStyle(color: c.accent, fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            decoration: TextDecoration.underline,
+                            decorationColor: c.accent)),
+                  ),
+                ])),
+              ]),
             ),
-            const SizedBox(width: 12),
-            Expanded(child: Text(f.$2,
-                style: TextStyle(color: c.textPrimary, fontSize: 14, height: 1.4))),
           ]),
         )),
 
-        const Spacer(),
+        const SizedBox(height: 12),
         _NextButton(label: l.onboardingGetStarted, onTap: onNext, c: c),
       ]),
     );
@@ -730,6 +805,11 @@ class _PermissionsPage extends StatelessWidget {
               Text(l.onboardingGrapheneBody,
                   style: TextStyle(color: c.textSecondary,
                       fontSize: 12, height: 1.5)),
+              const SizedBox(height: 6),
+              Text(l.onboardingGrapheneAlwaysAllow,
+                  style: TextStyle(color: c.textSecondary,
+                      fontSize: 12, height: 1.5,
+                      fontWeight: FontWeight.w600)),
             ])),
           ]),
         ),
@@ -749,8 +829,14 @@ class _PermissionsPage extends StatelessWidget {
           },
           granted: kokoroStatus == _KokoroStatus.ready,
           trailing: switch (kokoroStatus) {
-            _KokoroStatus.ready => Icon(Icons.check_circle_rounded,
-                color: Colors.green.shade600, size: 22),
+            // White checkmark on a solid green circle — unambiguous "done".
+            _KokoroStatus.ready => Container(
+              width: 28, height: 28,
+              decoration: BoxDecoration(
+                  color: Colors.green.shade600, shape: BoxShape.circle),
+              child: const Icon(Icons.check_rounded,
+                  color: Colors.white, size: 20),
+            ),
             _KokoroStatus.downloading => SizedBox(
               width: 120,
               child: Column(mainAxisSize: MainAxisSize.min, children: [
