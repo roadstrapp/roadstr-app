@@ -13,7 +13,6 @@
 import 'dart:async';
 import 'package:amberflutter/amberflutter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:nostr_tools/nostr_tools.dart';
@@ -158,7 +157,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _showNsecDialog() {
     final ctrl = TextEditingController();
     final c    = RoadstrColors.of(context);
-    final l    = AppLocalizations.of(context)!;
+    final l    = AppLocalizations.of(context);
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -299,7 +298,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final c = RoadstrColors.of(context);
-    final l = AppLocalizations.of(context)!;
+    final l = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: c.surface1,
       body: SafeArea(
@@ -523,6 +522,9 @@ class _NostrPage extends StatelessWidget {
 
         const SizedBox(height: 28),
 
+        // Scrollable so the sync notice below never overflows small screens.
+        Expanded(child: SingleChildScrollView(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         if (loggedIn) ...[
           // Profile card
           Container(
@@ -589,7 +591,28 @@ class _NostrPage extends StatelessWidget {
           ],
         ],
 
-        const Spacer(),
+        const SizedBox(height: 16),
+        // Encrypted, anonymous favorites-sync notice — shown whether or not
+        // the user has signed in yet, since it explains a feature tied to
+        // Nostr identity that becomes available once they do.
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: c.surface2,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: c.border, width: 0.5),
+          ),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Icon(Icons.enhanced_encryption_outlined, color: c.accent, size: 18),
+            const SizedBox(width: 10),
+            Expanded(child: Text(l.onboardingFavoritesSyncNotice,
+                style: TextStyle(color: c.textSecondary, fontSize: 12, height: 1.5))),
+          ]),
+        ),
+          ]),
+        )),
+
+        const SizedBox(height: 16),
         _NextButton(
           label: loggedIn ? l.onboardingContinue : l.onboardingSkip,
           onTap: onNext, c: c,

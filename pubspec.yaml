@@ -1,6 +1,6 @@
 name: roadstr
 description: Roadstr — Decentralised navigation with Nostr road events and Lightning zaps
-version: 0.4.4+13
+version: 0.4.5+14
 publish_to: 'none'
 
 environment:
@@ -24,7 +24,7 @@ dependencies:
   flutter_secure_storage: ^10.3.1
   nostr_tools: ^1.0.9
   url_launcher: ^6.3.1
-  amberflutter: ^0.0.1
+  amberflutter: ^0.0.9
   webview_flutter: ^4.10.0
   flutter_local_notifications: ^17.2.4
   sensors_plus: ^6.1.1
@@ -35,6 +35,23 @@ dependencies:
   ffi: ^2.1.0
   archive: ^4.0.0
   flutter_svg: ^2.3.0
+  pointycastle: ^3.9.1
+  crypto: ^3.0.2
+  kepler: ^1.0.3
+  # Pinned to the 12.x beta line specifically because it's the first release
+  # whose own pubspec declares win32 ^6.3.0 — matching what wakelock_plus
+  # requires. Earlier (stable) file_picker versions declare win32 ^5.9.0:
+  # that mismatch doesn't just fail dependency resolution, it breaks the
+  # Android build outright, because Dart's kernel compiler type-checks
+  # file_picker's Windows-platform source file as part of the whole package
+  # graph even when building for Android — so forcing win32 to 6.x via a
+  # dependency_override (tried first) left that file compiled against an API
+  # it wasn't written for, and the build failed with missing win32 members.
+  # Using a file_picker version that targets win32 6.x natively avoids the
+  # mismatch entirely. Fine to ship: Roadstr is Android-only, so file_picker's
+  # Windows code path never actually runs regardless of its version.
+  file_picker: ^12.0.0-beta.7
+  web_socket_channel: ^2.4.0
 
 dev_dependencies:
   flutter_test:

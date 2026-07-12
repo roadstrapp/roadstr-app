@@ -206,12 +206,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _waitingAmber = false);
-      _showError(AppLocalizations.of(context)!.invalidNpubTitle, e.toString());
+      _showError(AppLocalizations.of(context).invalidNpubTitle, e.toString());
     }
   }
 
   void _startAmberFlow() {
-    final l = AppLocalizations.of(context)!;
+    final l = AppLocalizations.of(context);
     final c = RoadstrColors.of(context);
     showDialog(
       context: context,
@@ -259,14 +259,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (_) => _WarningDialog(
         colors: RoadstrColors.of(context),
-        l: AppLocalizations.of(context)!,
+        l: AppLocalizations.of(context),
         onConfirm: _showNsecInputDialog,
       ),
     );
   }
 
   void _showNsecInputDialog() {
-    final l    = AppLocalizations.of(context)!;
+    final l    = AppLocalizations.of(context);
     final c    = RoadstrColors.of(context);
     final ctrl = TextEditingController();
     showDialog(
@@ -318,7 +318,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loginWithNsec(String nsec) async {
-    final l = AppLocalizations.of(context)!;
+    final l = AppLocalizations.of(context);
     try {
       final nip19   = Nip19();
       final decoded = nip19.decode(nsec);
@@ -341,7 +341,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // ── logout ────────────────────────────────────────────────────────────────
 
   Future<void> _logout() async {
-    final l = AppLocalizations.of(context)!;
+    final l = AppLocalizations.of(context);
     final c = RoadstrColors.of(context);
     final ok = await showDialog<bool>(
       context: context,
@@ -401,7 +401,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: c.accent),
             onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context)!.ok,
+            child: Text(AppLocalizations.of(context).ok,
                 style: const TextStyle(color: Colors.white)),
           ),
         ],
@@ -414,7 +414,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final c = RoadstrColors.of(context);
-    final l = AppLocalizations.of(context)!;
+    final l = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(l.profileTitle), centerTitle: true,
@@ -523,7 +523,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // ── My reports ─────────────────────────────────────────────────────────────
     Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 8),
-      child: Text(AppLocalizations.of(context)!.myReports, style: TextStyle(
+      child: Text(AppLocalizations.of(context).myReports, style: TextStyle(
           color: c.textSecondary, fontSize: 11,
           fontWeight: FontWeight.bold, letterSpacing: 1)),
     ),
@@ -538,7 +538,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         decoration: BoxDecoration(color: c.surface2,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: c.border, width: 0.5)),
-        child: Center(child: Text(AppLocalizations.of(context)!.noReportsYet,
+        child: Center(child: Text(AppLocalizations.of(context).noReportsYet,
             style: TextStyle(color: c.textSecondary, fontSize: 13))),
       )
     else
@@ -657,10 +657,10 @@ class _BalanceBadge extends StatelessWidget {
         const SizedBox(width: 14),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-          Text(AppLocalizations.of(context)!.zapBalance, style: TextStyle(
+          Text(AppLocalizations.of(context).zapBalance, style: TextStyle(
               color: c.textPrimary, fontSize: 15,
               fontWeight: FontWeight.bold)),
-          Text(AppLocalizations.of(context)!.satoshiFromReports,
+          Text(AppLocalizations.of(context).satoshiFromReports,
               style: TextStyle(color: c.textSecondary, fontSize: 11)),
         ])),
         Text(sats > 0 ? '$sats sat' : '0 sat',
@@ -706,7 +706,7 @@ class _ReputationBadge extends StatelessWidget {
         const SizedBox(width: 14),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-          Text(AppLocalizations.of(context)!.reputationLabel(_label(AppLocalizations.of(context)!)),
+          Text(AppLocalizations.of(context).reputationLabel(_label(AppLocalizations.of(context))),
               style: TextStyle(
               color: colors.textPrimary, fontSize: 15,
               fontWeight: FontWeight.bold)),
@@ -773,7 +773,7 @@ class _EventTileState extends State<_EventTile> {
           const SizedBox(width: 12),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-            Text(event.category.localizedLabel(AppLocalizations.of(context)!), style: TextStyle(
+            Text(event.category.localizedLabel(AppLocalizations.of(context)), style: TextStyle(
                 color: c.textPrimary, fontSize: 14,
                 fontWeight: FontWeight.w600)),
             const SizedBox(height: 2),
@@ -787,11 +787,11 @@ class _EventTileState extends State<_EventTile> {
                         child: CircularProgressIndicator(
                             strokeWidth: 1.5, color: c.accent)),
                     const SizedBox(width: 6),
-                    Text(AppLocalizations.of(context)!.loadingLabel,
+                    Text(AppLocalizations.of(context).loadingLabel,
                         style: TextStyle(color: c.textSecondary, fontSize: 10)),
                   ]),
             const SizedBox(height: 2),
-            Text(event.ageLabel(AppLocalizations.of(context)!),
+            Text(event.ageLabel(AppLocalizations.of(context)),
                 style: TextStyle(color: c.textSecondary, fontSize: 10)),
             if (event.comment.isNotEmpty)
               Text(event.comment, maxLines: 1,
@@ -861,7 +861,7 @@ class _EventDetailDialogState extends State<_EventDetailDialog> {
     final c   = widget.colors;
     final ev  = widget.event;
     final dt  = DateTime.fromMillisecondsSinceEpoch(ev.createdAt * 1000);
-    final pad = (int n) => n.toString().padLeft(2, '0');
+    String pad(int n) => n.toString().padLeft(2, '0');
     final dateStr =
         '${pad(dt.day)}/${pad(dt.month)}/${dt.year}  ${pad(dt.hour)}:${pad(dt.minute)}';
     final total = ev.confirmations + ev.denials;
@@ -872,7 +872,7 @@ class _EventDetailDialogState extends State<_EventDetailDialog> {
       title: Row(children: [
         Text(ev.category.emoji, style: const TextStyle(fontSize: 26)),
         const SizedBox(width: 10),
-        Expanded(child: Text(ev.category.localizedLabel(AppLocalizations.of(context)!), style: TextStyle(
+        Expanded(child: Text(ev.category.localizedLabel(AppLocalizations.of(context)), style: TextStyle(
             color: c.textPrimary, fontSize: 16, fontWeight: FontWeight.bold))),
       ]),
       content: Column(mainAxisSize: MainAxisSize.min,
@@ -884,21 +884,21 @@ class _EventDetailDialogState extends State<_EventDetailDialog> {
           Divider(height: 0.5, color: c.border),
           const SizedBox(height: 12),
         ],
-        _Row(AppLocalizations.of(context)!.dateTimeLabel, dateStr, c),
+        _infoRow(AppLocalizations.of(context).dateTimeLabel, dateStr, c),
 
         // Indirizzo (caricamento asincrono)
         if (_loadingAddr)
           Row(children: [
-            Text(AppLocalizations.of(context)!.positionLabel, style: TextStyle(color: c.textSecondary, fontSize: 12)),
+            Text(AppLocalizations.of(context).positionLabel, style: TextStyle(color: c.textSecondary, fontSize: 12)),
             const Spacer(),
             SizedBox(width: 12, height: 12,
                 child: CircularProgressIndicator(strokeWidth: 1.5, color: c.accent)),
           ])
         else if (_address != null)
-          _Row(AppLocalizations.of(context)!.positionLabel, _address!, c)
+          _infoRow(AppLocalizations.of(context).positionLabel, _address!, c)
         else ...[
-          _Row('Lat', ev.position.latitude.toStringAsFixed(6),  c),
-          _Row('Lon', ev.position.longitude.toStringAsFixed(6), c),
+          _infoRow('Lat', ev.position.latitude.toStringAsFixed(6),  c),
+          _infoRow('Lon', ev.position.longitude.toStringAsFixed(6), c),
         ],
 
         const SizedBox(height: 10),
@@ -918,7 +918,7 @@ class _EventDetailDialogState extends State<_EventDetailDialog> {
               Text('${ev.confirmations}', style: const TextStyle(
                   color: Color(0xFF22C55E), fontSize: 18,
                   fontWeight: FontWeight.bold)),
-              Text(AppLocalizations.of(context)!.confirmedLabel,
+              Text(AppLocalizations.of(context).confirmedLabel,
                   style: TextStyle(color: c.textSecondary, fontSize: 10)),
             ]),
           )),
@@ -938,7 +938,7 @@ class _EventDetailDialogState extends State<_EventDetailDialog> {
               Text('${ev.denials}', style: const TextStyle(
                   color: Color(0xFFEF4444), fontSize: 18,
                   fontWeight: FontWeight.bold)),
-              Text(AppLocalizations.of(context)!.removedLabel,
+              Text(AppLocalizations.of(context).removedLabel,
                   style: TextStyle(color: c.textSecondary, fontSize: 10)),
             ]),
           )),
@@ -946,7 +946,7 @@ class _EventDetailDialogState extends State<_EventDetailDialog> {
         if (total > 0) ...[
           const SizedBox(height: 10),
           Center(child: Text(
-            AppLocalizations.of(context)!.reliability(
+            AppLocalizations.of(context).reliability(
                 ((ev.confirmations / total) * 100).round()),
             style: TextStyle(color: c.textSecondary, fontSize: 12),
           )),
@@ -955,13 +955,13 @@ class _EventDetailDialogState extends State<_EventDetailDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(AppLocalizations.of(context)!.close, style: TextStyle(color: c.accent)),
+          child: Text(AppLocalizations.of(context).close, style: TextStyle(color: c.accent)),
         ),
       ],
     );
   }
 
-  Widget _Row(String label, String value, RoadstrColors c) => Padding(
+  Widget _infoRow(String label, String value, RoadstrColors c) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Text(label, style: TextStyle(color: c.textSecondary, fontSize: 12)),

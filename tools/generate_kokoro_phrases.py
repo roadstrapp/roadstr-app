@@ -58,13 +58,13 @@ MODEL_SIZE = 86033585
 VOICE_SIZE = 522240
 
 VOICES = {
-    "en": "af_heart",
-    "it": "if_sara",
-    "es": "ef_dora",
-    "fr": "ff_siwis",
-    "ja": "jf_alpha",
-    "zh": "zf_xiaobei",
-    "pt": "pf_dora",
+    "en": {"f": "af_heart",   "m": "am_michael"},
+    "it": {"f": "if_sara",    "m": "im_nicola"},
+    "es": {"f": "ef_dora",    "m": "em_alex"},
+    "fr": {"f": "ff_siwis"},  # no male voice shipped for French in this model
+    "ja": {"f": "jf_alpha",   "m": "jm_kumo"},
+    "zh": {"f": "zf_xiaobei", "m": "zm_yunxi"},
+    "pt": {"f": "pf_dora",    "m": "pm_alex"},
 }
 
 # Voice names for espeak-ng (mirrors EspeakPhonemizer._voiceForLang)
@@ -89,7 +89,7 @@ ESPEAK_DATA_ASSET = Path("assets/espeak-ng-data.tar.gz")
 PHRASES = {
     "letsgo": {
         "en": "Let's go!",
-        "it": "Partiamo!",
+        "it": "Partenza",
         "es": "¡Vamos!",
         "fr": "C'est parti !",
         "ja": "シュッパツします！",       # 出発します！ in kana
@@ -242,12 +242,13 @@ def main() -> None:
     tok_path = models_dir / "tokenizer.json"
     ensure_file(model_path, f"{REPO_BASE}/{MODEL_FILE_REL}", MODEL_SIZE)
     ensure_file(tok_path, f"{REPO_BASE}/{TOKENIZER_FILE_REL}")
-    for lang, voice in VOICES.items():
-        ensure_file(
-            models_dir / f"{voice}.bin",
-            f"{REPO_BASE}/voices/{voice}.bin",
-            VOICE_SIZE,
-        )
+    for genders in VOICES.values():
+        for voice in genders.values():
+            ensure_file(
+                models_dir / f"{voice}.bin",
+                f"{REPO_BASE}/voices/{voice}.bin",
+                VOICE_SIZE,
+            )
 
     # ── 2. Load tokenizer + ONNX session ──────────────────────────────────────
     print("\n── Loading model ──")
@@ -268,63 +269,65 @@ def main() -> None:
     print("\n── Generating phrases ──")
     errors: list[str] = []
 
+    expected_count = sum(len(VOICES[lang]) for lang in PHRASES["letsgo"]) * len(PHRASES)
+
     for phrase_id, texts in PHRASES.items():
         for lang, text in texts.items():
-            out_path = out_dir / f"{lang}_{phrase_id}.wav"
-            label = f"{lang}_{phrase_id}"
+            for gender, voice_name in VOICES[lang].items():
+                out_path = out_dir / f"{lang}_{gender}_{phrase_id}.wav"
+                label = f"{lang}_{gender}_{phrase_id}"
 
-            if out_path.exists():
-                print(f"  ✓  {label}  (already exists)")
-                continue
+                if out_path.exists():
+                    print(f"  ✓  {label}  (already exists)")
+                    continue
 
-            print(f"  {label}  \"{text}\"")
+                print(f"  {label}  \"{text}\"")
 
-            # Phonemize
-            try:
-                ipa = phonemize(text, lang, espeak_data)
-            except Exception as e:
-                msg = f"    SKIP {label}: {e}"
-                print(msg)
-                errors.append(msg)
-                continue
-            print(f"    IPA: {ipa}")
+                # Phonemize
+                try:
+                    ipa = phonemize(text, lang, espeak_data)
+                except Exception as e:
+                    msg = f"    SKIP {label}: {e}"
+                    print(msg)
+                    errors.append(msg)
+                    continue
+                print(f"    IPA: {ipa}")
 
-            # Tokenize
-            token_ids = tokenize(ipa, vocab)
-            n_inner = len(token_ids) - 2  # without BOS/EOS
-            print(f"    tokens: {n_inner} (+ BOS/EOS = {len(token_ids)})")
+                # Tokenize
+                token_ids = tokenize(ipa, vocab)
+                n_inner = len(token_ids) - 2  # without BOS/EOS
+                print(f"    tokens: {n_inner} (+ BOS/EOS = {len(token_ids)})")
 
-            # Voice embedding — row at min(n_inner, 509) of the 510×256 matrix
-            voice_name = VOICES[lang]
-            voice_data = np.frombuffer(
-                (models_dir / f"{voice_name}.bin").read_bytes(),
-                dtype=np.float32,
-            )
-            style_idx = min(n_inner, 509)
-            style = voice_data[style_idx * 256 : style_idx * 256 + 256].reshape(1, 256)
+                # Voice embedding — row at min(n_inner, 509) of the 510×256 matrix
+                voice_data = np.frombuffer(
+                    (models_dir / f"{voice_name}.bin").read_bytes(),
+                    dtype=np.float32,
+                )
+                style_idx = min(n_inner, 509)
+                style = voice_data[style_idx * 256 : style_idx * 256 + 256].reshape(1, 256)
 
-            # ONNX inference
-            outputs = session.run(
-                None,
-                {
-                    "input_ids": np.array([token_ids], dtype=np.int64),
-                    "style": style.astype(np.float32),
-                    "speed": np.array([1.0], dtype=np.float32),
-                },
-            )
-            audio = outputs[0].flatten().astype(np.float32)
-            duration = len(audio) / SAMPLE_RATE
-            print(f"    audio: {len(audio)} samples ({duration:.2f}s)")
+                # ONNX inference
+                outputs = session.run(
+                    None,
+                    {
+                        "input_ids": np.array([token_ids], dtype=np.int64),
+                        "style": style.astype(np.float32),
+                        "speed": np.array([1.0], dtype=np.float32),
+                    },
+                )
+                audio = outputs[0].flatten().astype(np.float32)
+                duration = len(audio) / SAMPLE_RATE
+                print(f"    audio: {len(audio)} samples ({duration:.2f}s)")
 
-            # Write WAV
-            wav_bytes = float32_to_wav(audio, SAMPLE_RATE)
-            out_path.write_bytes(wav_bytes)
-            print(f"    saved: {out_path}  ({len(wav_bytes) / 1024:.1f} KB)")
+                # Write WAV
+                wav_bytes = float32_to_wav(audio, SAMPLE_RATE)
+                out_path.write_bytes(wav_bytes)
+                print(f"    saved: {out_path}  ({len(wav_bytes) / 1024:.1f} KB)")
 
     # ── Summary ───────────────────────────────────────────────────────────────
     wav_files = sorted(out_dir.glob("*.wav"))
     total_kb = sum(f.stat().st_size for f in wav_files) / 1024
-    print(f"\n── Done: {len(wav_files)}/14 WAV files, {total_kb:.0f} KB total ──")
+    print(f"\n── Done: {len(wav_files)}/{expected_count} WAV files, {total_kb:.0f} KB total ──")
 
     if errors:
         print("\nErrors (re-run after fixing):")
@@ -332,7 +335,7 @@ def main() -> None:
             print(e)
         sys.exit(1)
 
-    if len(wav_files) == 14:
+    if len(wav_files) == expected_count:
         print("\nBuild the APK — the WAVs are now bundled in assets/kokoro_phrases/")
         print("Run:  flutter build apk --release")
 

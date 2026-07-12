@@ -284,7 +284,7 @@ class _VoiceLanguageNoticeGateState extends State<_VoiceLanguageNoticeGate> {
   void _showNotice() {
     if (!mounted) return;
     Hive.box('settings').put('voice_unsupported_notice_shown', true);
-    final l = AppLocalizations.of(context)!;
+    final l = AppLocalizations.of(context);
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(

@@ -181,7 +181,7 @@ class RoadEvent {
 
   /// Returns a human-readable relative age string using [AppLocalizations] for i18n.
   ///
-  /// [l] must be obtained from `AppLocalizations.of(context)!` inside a widget.
+  /// [l] must be obtained from `AppLocalizations.of(context)` inside a widget.
   /// This method is intentionally not a getter — the [AppLocalizations] dependency
   /// makes it unsuitable for use outside of widget build methods.
   String ageLabel(AppLocalizations l) {
