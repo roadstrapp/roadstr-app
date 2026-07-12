@@ -30,17 +30,20 @@ import '../services/location_service.dart';
 import '../services/routing_service.dart';
 import '../services/weather_service.dart';
 import '../services/speed_limit_service.dart';
+import '../services/poi_search_service.dart';
+import '../services/speed_camera_service.dart';
 import '../services/ztl_service.dart';
 import 'package:amberflutter/amberflutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:nostr_tools/nostr_tools.dart' show Nip19, Nip04, EventApi, Event;
+import 'package:nostr_tools/nostr_tools.dart' show Nip19;
 import '../l10n/app_localizations.dart';
 import '../models/favorite_place.dart';
 import '../models/road_event.dart';
 import '../services/navigation_notification_service.dart';
 import '../services/kokoro/kokoro_tts_service.dart';
+import '../services/kokoro/kokoro_voices.dart';
 import '../services/nostr_relay_service.dart';
 import '../widgets/cursor_painter.dart';
 import 'package:sensors_plus/sensors_plus.dart';
@@ -72,6 +75,10 @@ class _MapScreenState extends State<MapScreen>
   LatLng _position = const LatLng(42.5, 12.5);
   double _initialZoom = 6.0;
   double _speed = 0;
+  /// Horizontal accuracy (metres) of the most recent GPS fix. Drives the
+  /// dynamic arrival radius in [_checkArrival] — starts at a conservative
+  /// value so arrival detection isn't overly tight before the first fix.
+  double _lastGpsAccuracy = 20;
   double _heading = 0;
 
   // ── Compass (magnetometer + accelerometer) ──────────────────────────────────
@@ -106,8 +113,27 @@ class _MapScreenState extends State<MapScreen>
   Timer? _camTicker;
   /// Default animation duration for user-triggered camera transitions (ms).
   static const _animMs = 550;
-  /// Shorter duration used for GPS-tracking animation — keeps motion fluid.
-  static const _gpsAnimMs = 600;
+
+  /// Continuous GPS-follow smoothing ticker (navigation only). Replaces the
+  /// old approach of restarting a fixed-duration tween on every GPS sample:
+  /// since fixes arrive every ~500 ms but each tween took 600 ms, the camera
+  /// was always mid-tween when the next fix landed, restarting from
+  /// effectively zero velocity every time — perceptible as a faint
+  /// stutter/lag, worse in curves. This ticker instead runs continuously at
+  /// 60fps and eases a constant *fraction* of the remaining distance toward
+  /// [_followTargetCenter]/[_followTargetZoom]/[_followTargetRot] every frame
+  /// (frame-rate-independent exponential smoothing). The GPS callback only
+  /// updates the target — cheap, no restart, no velocity discontinuity.
+  /// Mutually exclusive with [_camTicker]/[_northTimer] (only one may drive
+  /// the map controller at a time); each cancels the others on start.
+  Timer? _followTicker;
+  LatLng? _followTargetCenter;
+  double _followTargetZoom = 17.0;
+  double _followTargetRot = 0.0;
+  /// Smoothing time constant (ms): lower = snappier/more responsive to each
+  /// new fix, higher = smoother but laggier. 350 ms tracks real motion
+  /// closely while still ironing out GPS jitter at low speed.
+  static const _followTauMs = 350.0;
 
   RouteResult? _route;
   LatLng? _destination;
@@ -143,6 +169,12 @@ class _MapScreenState extends State<MapScreen>
   final _ztlWarnedSteps = <int>{};
   final _ztl          = ZtlService.instance;
   final _speedLimitSvc = SpeedLimitService();
+  final _poiSvc        = PoiSearchService();
+  final _speedCameraSvc = SpeedCameraService();
+  /// OSM-sourced camera ids already alerted this session — separate from
+  /// [_alertedCameraIds] (Nostr event ids, String) since OSM node ids are int
+  /// and the two sources must never collide or double-suppress each other.
+  final _alertedOsmCameraIds = <int>{};
 
   final _searchController = TextEditingController();
   List<NominatimResult> _searchResults = [];
@@ -203,6 +235,8 @@ class _MapScreenState extends State<MapScreen>
 
   List<_HistoryItem> _history = [];
   List<FavoritePlace> _favorites = [];
+  /// Saved parking spot — local-only, persists until the user removes it.
+  LatLng? _parkingPosition;
   /// Destination label derived from reverse geocode or the search result name.
   /// Stored here so it survives async gaps between geocoding and navigation start.
   String? _pendingLabel;
@@ -258,10 +292,15 @@ class _MapScreenState extends State<MapScreen>
         .get('voiceEnabled', defaultValue: true) as bool);
     // Warm up the TTS engine at app start so it is ready when navigation begins.
     final startLang = Hive.box('settings').get('language', defaultValue: '') as String;
+    _tts.setGender(Hive.box('settings')
+        .get('kokoroVoiceGender', defaultValue: kKokoroDefaultGender) as String);
+    _tts.setSpeed(kKokoroSpeedStages[Hive.box('settings')
+        .get('kokoroSpeedStage', defaultValue: kKokoroDefaultSpeedStage) as int]);
     _tts.init(startLang.isNotEmpty ? startLang : 'it');
     _loadInitialPosition();
     _loadHistory();
     _loadFavorites();
+    _loadParkingPosition();
     _nostr.connect();
     _roadSub = _nostr.stream.listen((events) {
       if (mounted) setState(() =>
@@ -450,17 +489,17 @@ class _MapScreenState extends State<MapScreen>
         title: Row(children: [
           Icon(Icons.gps_off_rounded, color: c.accent, size: 22),
           const SizedBox(width: 8),
-          Text(AppLocalizations.of(context)!.gpsNotActiveTitle,
+          Text(AppLocalizations.of(context).gpsNotActiveTitle,
               style: TextStyle(color: c.textPrimary, fontSize: 16,
               fontWeight: FontWeight.bold)),
         ]),
-        content: Text(AppLocalizations.of(context)!.gpsDisabledMessage,
+        content: Text(AppLocalizations.of(context).gpsDisabledMessage,
             style: TextStyle(color: c.textSecondary, fontSize: 13,
                 height: 1.5)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context)!.ok,
+            child: Text(AppLocalizations.of(context).ok,
                 style: TextStyle(color: c.textSecondary)),
           ),
           FilledButton(
@@ -469,7 +508,7 @@ class _MapScreenState extends State<MapScreen>
               Navigator.pop(context);
               await _gps.openSettings();
             },
-            child: Text(AppLocalizations.of(context)!.openSettings,
+            child: Text(AppLocalizations.of(context).openSettings,
                 style: const TextStyle(color: Colors.white)),
           ),
         ],
@@ -541,6 +580,9 @@ class _MapScreenState extends State<MapScreen>
     setState(() {
       _position = data.position;
       _speed    = data.speedKmh.isFinite ? data.speedKmh : 0;
+      if (data.accuracy.isFinite && data.accuracy > 0) {
+        _lastGpsAccuracy = data.accuracy;
+      }
       // During navigation show direction of travel; outside navigation show the
       // compass bearing updated by the magnetometer stream (_compassHeading).
       if (_isNavigating) _heading = effectiveHeading;
@@ -601,9 +643,10 @@ class _MapScreenState extends State<MapScreen>
         final center = (_headingMode && _isNavigating)
             ? _navCameraCenter(_position, effectiveHeading, targetZoom)
             : _position;
-        _animateCamera(
-            toCenter: center, toZoom: targetZoom, toRot: rot,
-            durationMs: _gpsAnimMs);
+        _followTargetCenter = center;
+        _followTargetZoom   = targetZoom;
+        _followTargetRot    = rot;
+        _startFollowTicker();
       }
     } else if (_followUser && _camTicker == null && _northTimer == null) {
       // Outside navigation: follow GPS position, keep whatever rotation the user
@@ -676,19 +719,26 @@ class _MapScreenState extends State<MapScreen>
     }
   }
 
-  /// Checks whether the user has reached the destination.
-  /// Triggers when GPS is within 40 m of the destination point, OR when the
-  /// remaining route distance drops below 50 m (handles GPS drift near arrival).
+  /// Checks whether the user has reached the destination. Never triggers on
+  /// route-progress alone (only on true GPS distance to [_destination]) — an
+  /// earlier version also fired when the remaining route distance dropped
+  /// below 50 m, which caused arrival 500-750 m early because OSRM's arrive
+  /// step sits at the last intersection, not the door.
   void _checkArrival() {
     if (_destination == null || !_isNavigating) return;
     final d = const Distance().as(LengthUnit.Meter, _position, _destination!);
     final arrivalRadius = _transportMode == 'walking' ? 15 : 40;
-    // On the last route step (arrive step has distanceM = 0, placed at the last
-    // intersection) use a wider GPS radius — OSRM puts the arrive point at the
-    // last turn, not at the door, so the remaining distance reads 0 while the
-    // user may still be 500+ m away.  Never trigger on _remainingDistM alone.
     final onLastStep = _currentStepIdx >= (_route?.steps.length ?? 0) - 1;
-    final effectiveRadius = onLastStep ? 60 : arrivalRadius;
+    // On the last step, widen the radius to compensate for the arrive-point
+    // not being at the exact door — but scale that slack with the current
+    // GPS accuracy instead of a flat value: a good fix (accuracy ~5-15 m)
+    // still arrives tight and precise (down to 10 m), while a poor fix
+    // (urban canyon, garage — accuracy 30-50 m) still gets enough margin to
+    // ever trigger at all. Physically, "as close as possible" is bounded by
+    // how accurate the GPS fix actually is, not an arbitrary constant.
+    final effectiveRadius = onLastStep
+        ? (_lastGpsAccuracy * 1.5).clamp(10.0, 40.0)
+        : arrivalRadius;
     if (d < effectiveRadius) _onArrival();
   }
 
@@ -916,7 +966,8 @@ class _MapScreenState extends State<MapScreen>
   }
 
   /// Plays a two-tone proximity beep when the user passes within 250 m of a
-  /// speed camera event. Each camera fires only once per navigation session.
+  /// speed camera — either community-reported (Nostr) or OSM-sourced. Each
+  /// camera fires only once per navigation session.
   Future<void> _checkSpeedCameraProximity() async {
     if (!_isNavigating) return;
     const dist = Distance();
@@ -926,6 +977,14 @@ class _MapScreenState extends State<MapScreen>
       final d = dist.as(LengthUnit.Meter, _position, ev.position);
       if (d > 250) continue;
       _alertedCameraIds.add(ev.id);
+      unawaited(_playSpeedCameraBeep());
+    }
+    unawaited(_speedCameraSvc.updateIfNeeded(_position));
+    for (final cam in _speedCameraSvc.cachedCameras) {
+      if (_alertedOsmCameraIds.contains(cam.id)) continue;
+      final d = dist.as(LengthUnit.Meter, _position, cam.position);
+      if (d > 250) continue;
+      _alertedOsmCameraIds.add(cam.id);
       unawaited(_playSpeedCameraBeep());
     }
   }
@@ -947,7 +1006,7 @@ class _MapScreenState extends State<MapScreen>
     };
     // Snapshot context-dependent values before any await.
     final lang = Localizations.localeOf(context).languageCode;
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     for (final ev in _roadEvents) {
       if (!alertCategories.contains(ev.category)) continue;
       if (_alertedEventIds.contains(ev.id)) continue;
@@ -1085,7 +1144,7 @@ class _MapScreenState extends State<MapScreen>
 
   void _showTrafficAlert(RoadEvent jam) {
     final c = RoadstrColors.of(context);
-    final l = AppLocalizations.of(context)!;
+    final l = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -1129,7 +1188,7 @@ class _MapScreenState extends State<MapScreen>
     final distM = step.distanceM;
     if (!mounted) return;
     final distLabel = Units.fmtDist(distM,
-        nowLabel: AppLocalizations.of(context)!.now);
+        nowLabel: AppLocalizations.of(context).now);
     _navNotif.show(step.instruction, distLabel);
   }
 
@@ -1149,6 +1208,9 @@ class _MapScreenState extends State<MapScreen>
     final String? apiKey = rawKey.trim().nullIfEmpty;
     final String? ghServer = (box.get('graphhopperServer', defaultValue: '') as String).trim().nullIfEmpty;
 
+    // The widget may have been disposed during the awaited SecureStorage reads;
+    // guard every context use below so a stale context never reaches _snack.
+    final l10n = mounted ? AppLocalizations.of(context) : null;
     RoutingProvider provider;
     switch (providerKey) {
       case 'graphhopper':
@@ -1156,21 +1218,21 @@ class _MapScreenState extends State<MapScreen>
           provider = RoutingProvider.graphHopper;
         } else {
           provider = RoutingProvider.osrm;
-          _snack(AppLocalizations.of(context)!.graphhopperServerNotConfigured);
+          if (l10n != null) _snack(l10n.graphhopperServerNotConfigured);
         }
       case 'graphhopper_public':
         if (apiKey != null) {
           provider = RoutingProvider.graphHopper;
         } else {
           provider = RoutingProvider.osrm;
-          _snack(AppLocalizations.of(context)!.graphhopperApiKeyNotConfigured);
+          if (l10n != null) _snack(l10n.graphhopperApiKeyNotConfigured);
         }
       case 'openroute':
         if (apiKey != null) {
           provider = RoutingProvider.openRoute;
         } else {
           provider = RoutingProvider.osrm;
-          _snack(AppLocalizations.of(context)!.openrouteApiKeyNotConfigured);
+          if (l10n != null) _snack(l10n.openrouteApiKeyNotConfigured);
         }
       default:
         provider = RoutingProvider.osrm;
@@ -1186,14 +1248,14 @@ class _MapScreenState extends State<MapScreen>
   void _startNavigation(RouteResult route, {bool silent = false}) {
     // Option A safety net: block user-initiated navigation until GPS is ready.
     if (!silent && !_gpsReady) {
-      _snack(AppLocalizations.of(context)!.acquiringGps);
+      _snack(AppLocalizations.of(context).acquiringGps);
       if (!_gpsRequested) _requestGps();
       return;
     }
     // Only save to history on explicit user-initiated navigation, not reroutes.
     if (!silent && _destination != null) {
       final label = _pendingLabel ??
-          AppLocalizations.of(context)!.selectedPosition;
+          AppLocalizations.of(context).selectedPosition;
       _saveToHistory(label, _destination!);
     }
     // Suppress far/mid for step 1 (the first real action after depart) on fresh
@@ -1204,6 +1266,12 @@ class _MapScreenState extends State<MapScreen>
     _ttsAnnouncedNear = -1;
     _speedLimitSvc.reset();
     final lang = Localizations.localeOf(context).languageCode;
+    // Re-read voice gender/speed on every navigation start — the user may
+    // have changed them in Settings since this _tts instance was created.
+    _tts.setGender(Hive.box('settings')
+        .get('kokoroVoiceGender', defaultValue: kKokoroDefaultGender) as String);
+    _tts.setSpeed(kKokoroSpeedStages[Hive.box('settings')
+        .get('kokoroSpeedStage', defaultValue: kKokoroDefaultSpeedStage) as int]);
     // Set language immediately so bundled assets resolve correctly even before
     // the model finishes loading.  Then init the model in the background for
     // maneuver synthesis.
@@ -1312,7 +1380,7 @@ class _MapScreenState extends State<MapScreen>
     // Using the Italy fallback (42.5, 12.5) as origin would produce a useless
     // route from the middle of the country to the destination.
     if (!_gpsReady && fromPosition == null) {
-      _snack(AppLocalizations.of(context)!.acquiringGps);
+      _snack(AppLocalizations.of(context).acquiringGps);
       _requestGps();   // prompt the user to enable GPS
       return;
     }
@@ -1361,7 +1429,7 @@ class _MapScreenState extends State<MapScreen>
     if (!mounted) return;
     if (routes.isEmpty) {
       setState(() => _isCalculating = false);
-      _routingError(AppLocalizations.of(context)!.noRouteFound);
+      _routingError(AppLocalizations.of(context).noRouteFound);
       return;
     }
 
@@ -1556,7 +1624,7 @@ class _MapScreenState extends State<MapScreen>
     _planFrom      = null;
     _planTo        = null;
     _planActiveField = 1; // start with the "To" field active
-    _planFromCtrl.text = AppLocalizations.of(context)!.myLocation;
+    _planFromCtrl.text = AppLocalizations.of(context).myLocation;
     _planToCtrl.clear();
     _planResults   = [];
   });
@@ -1571,7 +1639,7 @@ class _MapScreenState extends State<MapScreen>
     _planDebounce?.cancel();
     setState(() { _planActiveField = field; });
     if (field == 0) {
-      final myLoc = AppLocalizations.of(context)!.myLocation;
+      final myLoc = AppLocalizations.of(context).myLocation;
       if (query.isEmpty || query == myLoc) {
         setState(() { _planFrom = null; _planResults = []; });
         return;
@@ -1580,7 +1648,7 @@ class _MapScreenState extends State<MapScreen>
     if (query.length < 3) { setState(() => _planResults = []); return; }
     _planDebounce = Timer(const Duration(milliseconds: 500), () async {
       setState(() => _planSearching = true);
-      final r = await RoutingService.search(query);
+      final r = await _searchMerged(query);
       if (!mounted) return;
       setState(() { _planResults = r; _planSearching = false; });
     });
@@ -1744,7 +1812,7 @@ class _MapScreenState extends State<MapScreen>
 
   void _showExitNavigationDialog() {
     final c = RoadstrColors.of(context);
-    final l = AppLocalizations.of(context)!;
+    final l = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -1800,9 +1868,11 @@ class _MapScreenState extends State<MapScreen>
       // Clear alerted IDs so fresh alerts can fire on the next journey.
       _alertedEventIds.clear();
       _alertedCameraIds.clear();
+      _alertedOsmCameraIds.clear();
       _consecutiveReroutes = 0;
     });
     _currentSpeedLimit = null;
+    _speedCameraSvc.reset();
     _missedTurnTimer?.cancel();
     _missedTurnTimer = null;
     _headingWatchdog?.cancel();
@@ -1844,7 +1914,7 @@ class _MapScreenState extends State<MapScreen>
       result = _searchResults.first;
     } else {
       setState(() => _isSearching = true);
-      final results = await RoutingService.search(query);
+      final results = await _searchMerged(query);
       setState(() => _isSearching = false);
       if (!mounted || results.isEmpty) return;
       result = results.first;
@@ -1862,7 +1932,7 @@ class _MapScreenState extends State<MapScreen>
     await Future<void>.delayed(const Duration(milliseconds: 200));
     if (!mounted) return;
     _animateCamera(
-        toCenter: result!.position, toZoom: 15.0, toRot: _camRotDeg);
+        toCenter: result.position, toZoom: 15.0, toRot: _camRotDeg);
   }
 
   void _onSearchChanged(String query) {
@@ -1873,10 +1943,37 @@ class _MapScreenState extends State<MapScreen>
     }
     _searchDebounce = Timer(const Duration(milliseconds: 500), () async {
       setState(() => _isSearching = true);
-      final results = await RoutingService.search(query);
+      final results = await _searchMerged(query);
       if (!mounted) return;
       setState(() { _searchResults = results; _isSearching = false; });
     });
+  }
+
+  /// Merges category/brand POI results (Overpass, distance-sorted, reliable
+  /// for "near me" intent) with Nominatim's general geocoding, biased toward
+  /// [_position] when GPS is available. Category matches are shown first —
+  /// they are the fix for generic terms like "cinema" ranking a same-named
+  /// business on the other side of the world above the one down the street.
+  Future<List<NominatimResult>> _searchMerged(String query) async {
+    final near = _gpsReady ? _position : null;
+    final nominatimFuture = RoutingService.search(query, near: near);
+    final poiFuture = near != null
+        ? _poiSvc.search(query, near)
+        : Future.value(<NominatimResult>[]);
+    final results = await Future.wait([poiFuture, nominatimFuture]);
+    final poiResults = results[0];
+    final nominatimResults = results[1];
+    if (poiResults.isEmpty) return nominatimResults;
+    // Dedupe: skip Nominatim hits that are essentially the same place as a
+    // POI result already included (within 30 m).
+    const dist = Distance();
+    final merged = [...poiResults];
+    for (final n in nominatimResults) {
+      final isDup = poiResults.any(
+          (p) => dist.as(LengthUnit.Meter, p.position, n.position) < 30);
+      if (!isDup) merged.add(n);
+    }
+    return merged;
   }
 
   void _selectSearchResult(NominatimResult result) {
@@ -1994,6 +2091,8 @@ class _MapScreenState extends State<MapScreen>
     _northTimer?.cancel();
     _camTicker?.cancel();
     _camTicker = null;
+    _followTicker?.cancel();
+    _followTicker = null;
 
     final startRot    = _mapController.camera.rotation;
     final startZoom   = _mapController.camera.zoom;
@@ -2032,7 +2131,57 @@ class _MapScreenState extends State<MapScreen>
     });
   }
 
+  /// Starts (if not already running) the continuous GPS-follow smoothing
+  /// ticker. Idempotent — safe to call on every GPS tick. See the
+  /// [_followTicker] field doc for why this replaced the old fixed-duration
+  /// tween-per-fix approach.
+  void _startFollowTicker() {
+    if (_followTicker != null) return;
+    // Mutual exclusion: only one timer may drive _mapController at a time.
+    _camTicker?.cancel(); _camTicker = null;
+    _northTimer?.cancel(); _northTimer = null;
+
+    var lastFrameMs = DateTime.now().millisecondsSinceEpoch;
+    _followTicker = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+      if (!mounted || !_followUser || !_isNavigating) {
+        timer.cancel();
+        _followTicker = null;
+        return;
+      }
+      final target = _followTargetCenter;
+      if (target == null) return;
+
+      final nowMs = DateTime.now().millisecondsSinceEpoch;
+      // Clamp elapsed time: a backgrounded/stalled app can produce a huge gap
+      // between frames, which would otherwise snap the camera in one jump.
+      final dtMs = (nowMs - lastFrameMs).clamp(1, 100);
+      lastFrameMs = nowMs;
+      final t = 1 - math.exp(-dtMs / _followTauMs);
+
+      final cam = _mapController.camera;
+      final fromRot    = cam.rotation;
+      final fromZoom   = cam.zoom;
+      final fromCenter = cam.center;
+
+      double rotDelta = _followTargetRot - fromRot;
+      while (rotDelta > 180) rotDelta -= 360;
+      while (rotDelta < -180) rotDelta += 360;
+      final rot  = fromRot + rotDelta * t;
+      final zoom = (fromZoom + (_followTargetZoom - fromZoom) * t).clamp(1.0, 22.0);
+      final lat  = fromCenter.latitude  + (target.latitude  - fromCenter.latitude)  * t;
+      final lng  = fromCenter.longitude + (target.longitude - fromCenter.longitude) * t;
+      if (!lat.isFinite || lat < -90 || lat > 90 ||
+          !lng.isFinite || lng < -180 || lng > 180 ||
+          !zoom.isFinite || !rot.isFinite) return;
+      _mapController.moveAndRotate(LatLng(lat, lng), zoom, rot);
+      _camRotDeg = rot; _camZoom = zoom; _camCenter = LatLng(lat, lng);
+    });
+  }
+
   /// Smoothly animates the map camera to [toCenter] / [toZoom] / [toRot].
+  /// Used for discrete, one-shot transitions (recenter, search-result fly-to,
+  /// north toggle…) — NOT for the continuous GPS-follow camera during
+  /// navigation, which uses [_startFollowTicker] instead.
   ///
   /// **Why Ticker instead of AnimationController:**
   /// [AnimationController] animates a single `double` value. Here we need to
@@ -2057,6 +2206,10 @@ class _MapScreenState extends State<MapScreen>
     final dur = durationMs ?? _animMs;
     _camTicker?.cancel();
     _camTicker = null;
+    // Mutual exclusion: a discrete animation (recenter, fly-to…) always wins
+    // over the continuous GPS-follow ticker.
+    _followTicker?.cancel();
+    _followTicker = null;
 
     // Always read starting values from the actual flutter_map camera state.
     // _camRotDeg/_camCenter/_camZoom can be stale if MapEventMove arrived
@@ -2115,6 +2268,125 @@ class _MapScreenState extends State<MapScreen>
       try { return FavoritePlace.fromMapSafe(jsonDecode(s) as Map); }
       catch (_) { return null; }
     }).whereType<FavoritePlace>().toList();
+  }
+
+  // ── Parking ──────────────────────────────────────────────────────────────
+  // Local-only: never leaves the device, never touches Nostr. Persists until
+  // the user explicitly removes it via _clearParkingPosition.
+
+  void _loadParkingPosition() {
+    final raw = Hive.box('settings').get('parking_position') as String?;
+    if (raw == null) return;
+    try {
+      final j = jsonDecode(raw) as Map<String, dynamic>;
+      final lat = (j['lat'] as num).toDouble();
+      final lon = (j['lon'] as num).toDouble();
+      if (lat.isFinite && lon.isFinite &&
+          lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+        _parkingPosition = LatLng(lat, lon);
+      }
+    } catch (_) {}
+  }
+
+  void _saveParkingPosition(LatLng pos) {
+    Hive.box('settings').put('parking_position', jsonEncode({
+      'lat': pos.latitude,
+      'lon': pos.longitude,
+      'ts': DateTime.now().millisecondsSinceEpoch,
+    }));
+    setState(() => _parkingPosition = pos);
+    _snack(AppLocalizations.of(context).parkingSavedSnack);
+  }
+
+  void _clearParkingPosition() {
+    Hive.box('settings').delete('parking_position');
+    setState(() => _parkingPosition = null);
+    _snack(AppLocalizations.of(context).parkingRemovedSnack);
+  }
+
+  void _showParkingSheet() {
+    final c = RoadstrColors.of(context);
+    final l = AppLocalizations.of(context);
+    final navBar = MediaQuery.of(context).viewPadding.bottom;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        margin: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: c.surface2, borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: c.border, width: 0.5),
+        ),
+        padding: EdgeInsets.fromLTRB(20, 16, 20, 24 + navBar),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Center(child: Container(width: 40, height: 4,
+              decoration: BoxDecoration(color: c.border,
+                  borderRadius: BorderRadius.circular(2)))),
+          const SizedBox(height: 14),
+          Row(children: [
+            Container(
+              width: 40, height: 40,
+              decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12)),
+              child: Icon(Icons.local_parking_rounded,
+                  color: Colors.blue.shade400, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text(
+                _parkingPosition != null ? l.parkingMarkerTitle : l.parkingSaveHere,
+                style: TextStyle(color: c.textPrimary, fontSize: 15,
+                    fontWeight: FontWeight.w600))),
+          ]),
+          const SizedBox(height: 16),
+          if (_parkingPosition != null) ...[
+            SizedBox(width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _requestAlternatives(_parkingPosition!, label: l.parkingMarkerTitle);
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: c.accent,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                ),
+                icon: const Icon(Icons.directions, color: Colors.white, size: 18),
+                label: Text(l.parkingNavigateHere,
+                    style: const TextStyle(color: Colors.white)),
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () { Navigator.pop(context); _clearParkingPosition(); },
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: Colors.red.withValues(alpha: 0.6)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                ),
+                icon: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 18),
+                label: Text(l.parkingRemove, style: const TextStyle(color: Colors.red)),
+              ),
+            ),
+          ] else
+            SizedBox(width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: _gpsReady
+                    ? () { Navigator.pop(context); _saveParkingPosition(_position); }
+                    : null,
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.blue.shade400,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                ),
+                icon: const Icon(Icons.local_parking_rounded, color: Colors.white, size: 18),
+                label: Text(l.parkingSaveHere, style: const TextStyle(color: Colors.white)),
+              ),
+            ),
+        ]),
+      ),
+    );
   }
 
   void _saveToHistory(String label, LatLng pos) {
@@ -2184,8 +2456,8 @@ class _MapScreenState extends State<MapScreen>
                   }
                   if (mounted) {
                     _snack(stillThere
-                        ? '✓ ${AppLocalizations.of(context)!.confirmedLabel}'
-                        : '✗ ${AppLocalizations.of(context)!.removedLabel}');
+                        ? '✓ ${AppLocalizations.of(context).confirmedLabel}'
+                        : '✗ ${AppLocalizations.of(context).removedLabel}');
                   }
                 } catch (e) {
                   // Roll back the optimistic counter update on failure.
@@ -2205,7 +2477,7 @@ class _MapScreenState extends State<MapScreen>
     final flavor  = await _secStorage.read(key: 'nostr_flavor');
     if (!mounted) return;
     if (pubKey == null) {
-      _snack(AppLocalizations.of(context)!.loginToReport);
+      _snack(AppLocalizations.of(context).loginToReport);
       return;
     }
     final c   = RoadstrColors.of(context);
@@ -2289,7 +2561,7 @@ class _MapScreenState extends State<MapScreen>
                 padding: const EdgeInsets.symmetric(vertical: 13),
               ),
               icon: const Icon(Icons.directions, color: Colors.white, size: 18),
-              label: Text(AppLocalizations.of(context)!.navigateHere,
+              label: Text(AppLocalizations.of(context).navigateHere,
                   style: const TextStyle(color: Colors.white)),
             ),
           ),
@@ -2309,8 +2581,30 @@ class _MapScreenState extends State<MapScreen>
               ),
               icon: const Icon(Icons.report_problem_outlined,
                   color: Color(0xFFFFB800), size: 18),
-              label: Text(AppLocalizations.of(context)!.reportEventHere,
+              label: Text(AppLocalizations.of(context).reportEventHere,
                   style: const TextStyle(color: Color(0xFFFFB800))),
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Set parking at this tapped point — for when the user only
+          // remembers roughly where they parked after already walking off,
+          // rather than at the exact moment of parking (that's the FAB).
+          SizedBox(width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                _saveParkingPosition(point);
+              },
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: Colors.blue.shade400.withValues(alpha: 0.6)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 13),
+              ),
+              icon: Icon(Icons.local_parking_rounded,
+                  color: Colors.blue.shade400, size: 18),
+              label: Text(AppLocalizations.of(context).parkingSaveHere,
+                  style: TextStyle(color: Colors.blue.shade400)),
             ),
           ),
         ]),
@@ -2334,7 +2628,7 @@ class _MapScreenState extends State<MapScreen>
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: c.surface2,
-        title: Text(AppLocalizations.of(context)!.routeNotFoundTitle,
+        title: Text(AppLocalizations.of(context).routeNotFoundTitle,
             style: TextStyle(color: c.textPrimary, fontSize: 16,
                 fontWeight: FontWeight.bold)),
         content: Text(msg,
@@ -2342,7 +2636,7 @@ class _MapScreenState extends State<MapScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.ok, style: TextStyle(color: c.accent)),
+            child: Text(AppLocalizations.of(context).ok, style: TextStyle(color: c.accent)),
           ),
         ],
       ),
@@ -2398,6 +2692,7 @@ class _MapScreenState extends State<MapScreen>
                 if (e is MapEventMoveStart &&
                     e.source != MapEventSource.mapController) {
                   _camTicker?.cancel(); _camTicker = null;
+                  _followTicker?.cancel(); _followTicker = null;
                   // Any user pan or pinch-zoom disables follow mode so they
                   // can look ahead freely on the route. Follow resumes when
                   // the user taps the GPS FAB (_recenter) or the heading toggle.
@@ -2543,6 +2838,42 @@ class _MapScreenState extends State<MapScreen>
                       ),
                     ),
                 ]),
+              // OSM-sourced speed cameras: baseline data alongside (not instead
+              // of) Nostr community reports above. Visually muted — dashed ring
+              // — to read as "unverified static data" vs. a live community pin.
+              if (_speedCameraSvc.cachedCameras.isNotEmpty && _camZoom >= 11)
+                MarkerLayer(markers: [
+                  for (final cam in _speedCameraSvc.cachedCameras)
+                    Marker(
+                      point: cam.position,
+                      width: 30, height: 30,
+                      child: const _OsmCameraPin(),
+                    ),
+                ]),
+              // Saved parking spot — local-only, persists until removed.
+              if (_parkingPosition != null)
+                MarkerLayer(markers: [
+                  Marker(
+                    point: _parkingPosition!,
+                    width: 38, height: 38,
+                    child: GestureDetector(
+                      onTap: _showParkingSheet,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade600,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                          boxShadow: const [BoxShadow(
+                              color: Colors.black38, blurRadius: 5)],
+                        ),
+                        child: const Center(
+                          child: Text('P', style: TextStyle(color: Colors.white,
+                              fontSize: 18, fontWeight: FontWeight.w800)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ]),
               if (_showAlternatives)
                 MarkerLayer(markers: [
                   for (int i = 0; i < _alternatives.length; i++)
@@ -2574,12 +2905,13 @@ class _MapScreenState extends State<MapScreen>
                             // Outside navigation the compass bearing is used.
                             heading: _headingMode ? 0 : _heading,
                             accent: c.accent,
-                            cursorStyle: _transportMode == 'walking'
+                            // Ostrich only while an actual walking route is
+                            // active — reverts to the arrow the instant
+                            // navigation ends, not just when the transport
+                            // mode selector happens to still say "walking".
+                            cursorStyle: (_isNavigating && _transportMode == 'walking')
                                 ? CursorStyle.ostrich
-                                : CursorStyle.selectable.firstWhere(
-                                    (s) => s.name == (Hive.box('settings').get('cursorStyle', defaultValue: 'arrow') as String),
-                                    orElse: () => CursorStyle.arrow,
-                                  ))),
+                                : CursorStyle.arrow)),
                   ]),
               // Purple dropped pin from search-bar Enter
               if (_pinResult != null)
@@ -2696,7 +3028,7 @@ class _MapScreenState extends State<MapScreen>
             child: _ZtlBanner(name: _ztlName, colors: c),
           ),
 
-        // ── LEFT FABs: report event + A→B planner ─────────────────────────────
+        // ── LEFT FABs: report event + A→B planner + parking ───────────────────
         if (!_showSearch && !_showAlternatives && !_isNavigating &&
             !_showPreview && !_showPlanner)
           Positioned(
@@ -2711,6 +3043,14 @@ class _MapScreenState extends State<MapScreen>
               _MapFab(onTap: _openPlanner, colors: c,
                 child: Icon(Icons.alt_route_rounded,
                     color: c.accent, size: 28)),
+              if (_gpsReady || _parkingPosition != null) ...[
+                const SizedBox(height: 8),
+                _MapFab(onTap: _showParkingSheet, colors: c,
+                  child: Icon(Icons.local_parking_rounded,
+                      color: _parkingPosition != null
+                          ? Colors.blue.shade400 : c.textPrimary,
+                      size: 24)),
+              ],
             ]),
           ),
 
@@ -2735,7 +3075,7 @@ class _MapScreenState extends State<MapScreen>
               onMyLocation: () {
                 setState(() {
                   _planFrom = null;
-                  _planFromCtrl.text = AppLocalizations.of(context)!.myLocation;
+                  _planFromCtrl.text = AppLocalizations.of(context).myLocation;
                   _planResults = [];
                   _planActiveField = 1;
                 });
@@ -2819,7 +3159,7 @@ class _MapScreenState extends State<MapScreen>
                         color: Colors.white, size: 26),
                     const SizedBox(width: 10),
                     Text(
-                      AppLocalizations.of(context)!.arrivedTitle,
+                      AppLocalizations.of(context).arrivedTitle,
                       style: const TextStyle(
                           color: Colors.white, fontSize: 18,
                           fontWeight: FontWeight.bold),
@@ -2918,7 +3258,7 @@ class _MapScreenState extends State<MapScreen>
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
                     CircularProgressIndicator(color: c.accent),
                     const SizedBox(height: 16),
-                    Text(AppLocalizations.of(context)!.calculatingRoute,
+                    Text(AppLocalizations.of(context).calculatingRoute,
                         style: TextStyle(color: c.textPrimary, fontSize: 15)),
                   ]),
                 ),
@@ -2942,7 +3282,7 @@ class _MapScreenState extends State<MapScreen>
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: Color(0xFFFFB800))),
                   const SizedBox(width: 8),
-                  Text(AppLocalizations.of(context)!.acquiringGps,
+                  Text(AppLocalizations.of(context).acquiringGps,
                       style: const TextStyle(color: Color(0xFFFFB800), fontSize: 13)),
                 ]),
               ),
@@ -3004,6 +3344,7 @@ class _MapScreenState extends State<MapScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _camTicker?.cancel();
+    _followTicker?.cancel();
     _gpsSub?.cancel();
     _roadSub?.cancel();
     _northTimer?.cancel();
@@ -3071,7 +3412,7 @@ class _ZapSheetState extends State<_ZapSheet> {
   /// Status messages are updated after each step so the UI reflects progress.
   Future<void> _send() async {
     if (_amount <= 0) return;
-    final l = AppLocalizations.of(context)!;
+    final l = AppLocalizations.of(context);
     setState(() { _sending = true; _status = l.fetchingLightningAddress; });
 
     try {
@@ -3169,7 +3510,7 @@ class _ZapSheetState extends State<_ZapSheet> {
       title: Row(children: [
         const Text('⚡', style: TextStyle(fontSize: 22)),
         const SizedBox(width: 8),
-        Text(AppLocalizations.of(context)!.sendZap, style: TextStyle(
+        Text(AppLocalizations.of(context).sendZap, style: TextStyle(
             color: c.textPrimary, fontSize: 16,
             fontWeight: FontWeight.bold)),
       ]),
@@ -3211,7 +3552,7 @@ class _ZapSheetState extends State<_ZapSheet> {
           onChanged: (_) => setState(() => _selected = null),
           style: TextStyle(color: c.textPrimary, fontSize: 13),
           decoration: InputDecoration(
-            hintText: AppLocalizations.of(context)!.customAmount,
+            hintText: AppLocalizations.of(context).customAmount,
             hintStyle: TextStyle(color: c.textSecondary),
             suffixText: 'sat',
             suffixStyle: TextStyle(color: c.textSecondary, fontSize: 12),
@@ -3246,7 +3587,7 @@ class _ZapSheetState extends State<_ZapSheet> {
                       strokeWidth: 2, color: Colors.white))
               : const Text('⚡', style: TextStyle(fontSize: 14)),
           label: Text(_sending
-              ? AppLocalizations.of(context)!.zapSending
+              ? AppLocalizations.of(context).zapSending
               : 'Zap $_amount sat',
               style: const TextStyle(color: Colors.white, fontSize: 13)),
         ),
@@ -3271,6 +3612,26 @@ class _RoadEventPin extends StatelessWidget {
     child: Center(
       child: Text(event.category.emoji,
           style: const TextStyle(fontSize: 16, height: 1)),
+    ),
+  );
+}
+
+/// Marker for a speed camera sourced from OSM/Overpass rather than a Nostr
+/// community report — same purple family as [_RoadEventPin]'s speed-camera
+/// color, but muted fill + white ring instead of a solid pin, so drivers can
+/// tell "known static camera" apart from a live community-confirmed one.
+class _OsmCameraPin extends StatelessWidget {
+  const _OsmCameraPin();
+  @override
+  Widget build(BuildContext context) => Container(
+    decoration: BoxDecoration(
+      color: RoadCategory.speedCamera.color.withValues(alpha: 0.55),
+      shape: BoxShape.circle,
+      border: Border.all(color: Colors.white, width: 1.2),
+      boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 3)],
+    ),
+    child: const Center(
+      child: Text('📷', style: TextStyle(fontSize: 13, height: 1)),
     ),
   );
 }
@@ -3342,10 +3703,10 @@ class _RoadEventDetailState extends State<_RoadEventDetail> {
           const SizedBox(width: 14),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-            Text(event.category.localizedLabel(AppLocalizations.of(context)!),
+            Text(event.category.localizedLabel(AppLocalizations.of(context)),
                 style: TextStyle(color: c.textPrimary, fontSize: 16,
                 fontWeight: FontWeight.bold)),
-            Text(event.ageLabel(AppLocalizations.of(context)!),
+            Text(event.ageLabel(AppLocalizations.of(context)),
                 style: TextStyle(color: c.textSecondary, fontSize: 12)),
           ])),
           // Zap total badge
@@ -3398,7 +3759,7 @@ class _RoadEventDetailState extends State<_RoadEventDetail> {
               ),
               icon: const Icon(Icons.check_rounded,
                   color: Color(0xFF22C55E), size: 16),
-              label: Text(AppLocalizations.of(context)!.stillThere,
+              label: Text(AppLocalizations.of(context).stillThere,
                   style: const TextStyle(color: Color(0xFF22C55E), fontSize: 13)),
             )),
             const SizedBox(width: 10),
@@ -3411,13 +3772,13 @@ class _RoadEventDetailState extends State<_RoadEventDetail> {
               ),
               icon: const Icon(Icons.close_rounded,
                   color: Color(0xFFEF4444), size: 16),
-              label: Text(AppLocalizations.of(context)!.notThereAnymore,
+              label: Text(AppLocalizations.of(context).notThereAnymore,
                   style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13)),
             )),
           ]),
         ] else if (!widget.isLoggedIn) ...[
           const SizedBox(height: 10),
-          Text(AppLocalizations.of(context)!.loginToConfirm,
+          Text(AppLocalizations.of(context).loginToConfirm,
               style: TextStyle(color: c.textSecondary, fontSize: 11)),
         ],
         // ── Zap button ─────────────────────────────────────────────────────
@@ -3433,7 +3794,7 @@ class _RoadEventDetailState extends State<_RoadEventDetail> {
               padding: const EdgeInsets.symmetric(vertical: 10),
             ),
             icon: const Text('⚡', style: TextStyle(fontSize: 16)),
-            label: Text(AppLocalizations.of(context)!.zapSendSats,
+            label: Text(AppLocalizations.of(context).zapSendSats,
                 style: const TextStyle(color: Color(0xFFF7931A), fontSize: 13)),
           ),
         ),
@@ -3463,7 +3824,7 @@ class _ReportSheetState extends State<_ReportSheet> {
   @override
   Widget build(BuildContext context) {
     final c = widget.colors;
-    final l = AppLocalizations.of(context)!;
+    final l = AppLocalizations.of(context);
     // viewInsetsOf lifts the sheet above the keyboard when the TextField is focused.
     // viewPadding.bottom handles the home-indicator safe area below the sheet.
     final bottomPad = MediaQuery.of(context).viewPadding.bottom + 24;
@@ -3536,7 +3897,7 @@ class _ReportSheetState extends State<_ReportSheet> {
           maxLines: 2, maxLength: 200,
           style: TextStyle(color: c.textPrimary, fontSize: 13),
           decoration: InputDecoration(
-            hintText: AppLocalizations.of(context)!.optionalComment,
+            hintText: AppLocalizations.of(context).optionalComment,
             hintStyle: TextStyle(color: c.textSecondary),
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12)),
@@ -3562,7 +3923,7 @@ class _ReportSheetState extends State<_ReportSheet> {
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(AppLocalizations.of(context)!.reportPublished,
+                            content: Text(AppLocalizations.of(context).reportPublished,
                                 style: const TextStyle(color: Colors.white)),
                             backgroundColor: const Color(0xFF1A1A2E),
                             behavior: SnackBarBehavior.floating,
@@ -3594,8 +3955,8 @@ class _ReportSheetState extends State<_ReportSheet> {
                 : const Icon(Icons.send_rounded,
                     color: Colors.white, size: 18),
             label: Text(_sending
-                ? AppLocalizations.of(context)!.publishing
-                : AppLocalizations.of(context)!.publish,
+                ? AppLocalizations.of(context).publishing
+                : AppLocalizations.of(context).publish,
                 style: const TextStyle(color: Colors.white)),
           ),
         ),
@@ -3786,7 +4147,7 @@ class _PlaceInfoPanelState extends State<_PlaceInfoPanel>
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: c.accent)),
                   const SizedBox(width: 10),
-                  Text(AppLocalizations.of(context)!.loadingInfo,
+                  Text(AppLocalizations.of(context).loadingInfo,
                       style: TextStyle(color: c.textSecondary, fontSize: 13)),
                 ])
               : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -3845,8 +4206,8 @@ class _PlaceInfoPanelState extends State<_PlaceInfoPanel>
                   const SizedBox(width: 4),
                   Text(
                     widget.wiki?.pageUrl != null
-                        ? AppLocalizations.of(context)!.readOnWikipedia
-                        : AppLocalizations.of(context)!.searchOnEngine(_engineName()),
+                        ? AppLocalizations.of(context).readOnWikipedia
+                        : AppLocalizations.of(context).searchOnEngine(_engineName()),
                     style: TextStyle(color: c.accent, fontSize: 12,
                         decoration: TextDecoration.underline),
                   ),
@@ -3866,7 +4227,7 @@ class _PlaceInfoPanelState extends State<_PlaceInfoPanel>
                       borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(vertical: 11),
                 ),
-                child: Text(AppLocalizations.of(context)!.cancel,
+                child: Text(AppLocalizations.of(context).cancel,
                     style: TextStyle(color: c.textSecondary)),
               ),
               const SizedBox(width: 12),
@@ -3880,7 +4241,7 @@ class _PlaceInfoPanelState extends State<_PlaceInfoPanel>
                 ),
                 icon: const Icon(Icons.navigation_rounded,
                     color: Colors.white, size: 18),
-                label: Text(AppLocalizations.of(context)!.startNavigation,
+                label: Text(AppLocalizations.of(context).startNavigation,
                     style: const TextStyle(color: Colors.white)),
               )),
             ]),
@@ -4036,7 +4397,7 @@ class _RoutePlannerBar extends StatelessWidget {
               autofocus: false,
               style: TextStyle(color: c.textPrimary, fontSize: 14),
               decoration: InputDecoration(
-                hintText: AppLocalizations.of(context)!.plannerFromHint,
+                hintText: AppLocalizations.of(context).plannerFromHint,
                 hintStyle: TextStyle(color: c.textSecondary, fontSize: 14),
                 border: InputBorder.none, isDense: true,
               ),
@@ -4065,7 +4426,7 @@ class _RoutePlannerBar extends StatelessWidget {
               autofocus: true,
               style: TextStyle(color: c.textPrimary, fontSize: 14),
               decoration: InputDecoration(
-                hintText: AppLocalizations.of(context)!.plannerToHint,
+                hintText: AppLocalizations.of(context).plannerToHint,
                 hintStyle: TextStyle(color: c.textSecondary, fontSize: 14),
                 border: InputBorder.none, isDense: true,
               ),
@@ -4081,7 +4442,7 @@ class _RoutePlannerBar extends StatelessWidget {
         Row(children: [
           _ModeChip(
             icon: Icons.directions_car_rounded,
-            label: AppLocalizations.of(context)!.transportModeCar,
+            label: AppLocalizations.of(context).transportModeCar,
             selected: transportMode == 'driving',
             colors: c,
             onTap: () => onModeChanged('driving'),
@@ -4089,7 +4450,7 @@ class _RoutePlannerBar extends StatelessWidget {
           const SizedBox(width: 8),
           _ModeChip(
             icon: Icons.directions_walk_rounded,
-            label: AppLocalizations.of(context)!.transportModeWalk,
+            label: AppLocalizations.of(context).transportModeWalk,
             selected: transportMode == 'walking',
             colors: c,
             onTap: () => onModeChanged('walking'),
@@ -4101,7 +4462,7 @@ class _RoutePlannerBar extends StatelessWidget {
             onPressed: onClose,
             style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 12)),
-            child: Text(AppLocalizations.of(context)!.cancel,
+            child: Text(AppLocalizations.of(context).cancel,
                 style: TextStyle(color: c.textSecondary, fontSize: 13)),
           ),
           const Spacer(),
@@ -4119,7 +4480,7 @@ class _RoutePlannerBar extends StatelessWidget {
                   ? Icons.directions_walk_rounded
                   : Icons.navigation_rounded,
               color: Colors.white, size: 16),
-            label: Text(AppLocalizations.of(context)!.calculateRoute,
+            label: Text(AppLocalizations.of(context).calculateRoute,
                 style: const TextStyle(color: Colors.white, fontSize: 13)),
           ),
         ]),
@@ -4204,7 +4565,7 @@ class _HistoryResults extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context)!;
+    final l = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
         color: colors.surface2,
@@ -4390,7 +4751,7 @@ class _PreviewPanelState extends State<_PreviewPanel>
   @override
   Widget build(BuildContext context) {
     final c = widget.colors;
-    final l = AppLocalizations.of(context)!;
+    final l = AppLocalizations.of(context);
     final now     = DateTime.now();
     final arrival = now.add(Duration(seconds: widget.route.totalDurationS.round()));
     final depStr  = _PreviewPanel._fmtTime(now);
@@ -4646,7 +5007,7 @@ class _AlternativesPanelState extends State<_AlternativesPanel>
   @override
   Widget build(BuildContext context) {
     final c = widget.colors;
-    final l = AppLocalizations.of(context)!;
+    final l = AppLocalizations.of(context);
     return SlideTransition(
       position: _slide,
       child: Transform.translate(
@@ -4789,7 +5150,7 @@ class _AlternativesPanelState extends State<_AlternativesPanel>
                             borderRadius: BorderRadius.circular(12)),
                         padding: const EdgeInsets.symmetric(vertical: 13),
                       ),
-                      child: Text(AppLocalizations.of(context)!.cancel,
+                      child: Text(AppLocalizations.of(context).cancel,
                           style: TextStyle(color: c.textSecondary)),
                     ),
                   ),
@@ -4808,7 +5169,7 @@ class _AlternativesPanelState extends State<_AlternativesPanel>
                             ? Icons.directions_walk_rounded
                             : Icons.navigation_rounded,
                         color: Colors.white, size: 18),
-                      label: Text(AppLocalizations.of(context)!.startNavigation,
+                      label: Text(AppLocalizations.of(context).startNavigation,
                           style: const TextStyle(color: Colors.white)),
                     ),
                   ),
@@ -4867,7 +5228,7 @@ class _RouteCard extends StatelessWidget {
                 color: colors.accent.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: Text(AppLocalizations.of(context)!.fastestRoute, style: TextStyle(
+              child: Text(AppLocalizations.of(context).fastestRoute, style: TextStyle(
                   color: colors.accent, fontSize: 10,
                   fontWeight: FontWeight.w600)),
             ),
@@ -4936,7 +5297,7 @@ class _SearchBarWidget extends StatelessWidget {
             textInputAction: TextInputAction.search,
             style: TextStyle(color: colors.textPrimary, fontSize: 16),
             decoration: InputDecoration(
-              hintText: AppLocalizations.of(context)!.searchHint,
+              hintText: AppLocalizations.of(context).searchHint,
               hintStyle: TextStyle(color: colors.textSecondary, fontSize: 16),
               border: InputBorder.none, isDense: true,
             ),
@@ -5028,7 +5389,7 @@ class _PinPanelState extends State<_PinPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context)!;
+    final l = AppLocalizations.of(context);
     final c = widget.colors;
     return Container(
       decoration: BoxDecoration(
@@ -5275,12 +5636,12 @@ class _NavInstruction extends StatelessWidget {
               Row(children: [
                 Icon(Icons.straight_rounded, color: colors.accent, size: fsSub),
                 const SizedBox(width: 4),
-                Text(_distLabel(liveDist, AppLocalizations.of(context)!.now),
+                Text(_distLabel(liveDist, AppLocalizations.of(context).now),
                     style: TextStyle(color: colors.accent,
                         fontSize: fsSub, fontWeight: FontWeight.w700)),
               ])
             else
-              Text(_distLabel(liveDist, AppLocalizations.of(context)!.now),
+              Text(_distLabel(liveDist, AppLocalizations.of(context).now),
                   style: TextStyle(color: colors.textSecondary, fontSize: fsSub)),
           ])),
         ]),
@@ -5435,7 +5796,7 @@ class _NavPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l       = AppLocalizations.of(context)!;
+    final l       = AppLocalizations.of(context);
     final land     = MediaQuery.of(context).orientation == Orientation.landscape;
     final speedoSz = land ? 70.0 : 110.0;
     final fsDist   = land ? 16.0 : 22.0;
@@ -5504,11 +5865,11 @@ class _BottomBar extends StatelessWidget {
     padding: EdgeInsets.only(top: 10,
         bottom: bottomInset > 0 ? bottomInset : 14),
     child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-      _BottomBarItem(icon: Icons.account_circle_outlined, label: AppLocalizations.of(context)!.bottomBarProfile,
+      _BottomBarItem(icon: Icons.account_circle_outlined, label: AppLocalizations.of(context).bottomBarProfile,
           colors: colors, onTap: () => Navigator.push(context,
               MaterialPageRoute(builder: (_) => const ProfileScreen()))),
       const SizedBox(width: 48),
-      _BottomBarItem(icon: Icons.menu, label: AppLocalizations.of(context)!.bottomBarMenu, colors: colors,
+      _BottomBarItem(icon: Icons.menu, label: AppLocalizations.of(context).bottomBarMenu, colors: colors,
           onTap: () => Navigator.push(context,
               MaterialPageRoute(builder: (_) => const SettingsScreen()))),
     ]),
@@ -5569,7 +5930,7 @@ class _ZtlBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l     = AppLocalizations.of(context)!;
+    final l     = AppLocalizations.of(context);
     final label = (name != null && name!.isNotEmpty) ? name! : 'ZTL';
     final bg    = onRoute ? Colors.orange.shade800 : Colors.red.shade700;
     final icon  = onRoute ? Icons.warning_amber_rounded : Icons.no_crash_rounded;
@@ -5698,7 +6059,7 @@ class _UserMarker extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Transform.rotate(
     angle: heading * math.pi / 180,
-    child: CursorWidget(style: cursorStyle, size: 48),
+    child: AnimatedCursorWidget(style: cursorStyle, size: 48),
   );
 }
 

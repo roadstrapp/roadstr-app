@@ -21,8 +21,8 @@ class SpeedLimitService {
   /// "too busy"; the mirrors keep the feature alive when it rejects us.
   static const _endpoints = [
     'https://overpass-api.de/api/interpreter',
-    'https://overpass.private.coffee/api/interpreter',
-    'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+    'https://overpass.openstreetmap.fr/api/interpreter',
+    'https://overpass.osm.ch/api/interpreter',
   ];
   static const _radiusM  = 40;      // OSM way search radius (metres)
   static const _minMoveM = 100.0;   // min travel distance before re-querying

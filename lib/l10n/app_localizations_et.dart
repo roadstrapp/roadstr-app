@@ -944,6 +944,132 @@ class AppLocalizationsEt extends AppLocalizations {
   String get onboardingNsecHint => 'nsec1…';
 
   @override
+  String get kokoroVoiceGenderTitle => 'Voice';
+
+  @override
+  String get kokoroVoiceFemale => 'Female';
+
+  @override
+  String get kokoroVoiceMale => 'Male';
+
+  @override
+  String get kokoroVoiceGenderUnavailable =>
+      'Male voice not available for this language';
+
+  @override
+  String get kokoroSpeedTitle => 'Speech speed';
+
+  @override
+  String get onboardingFavoritesSyncNotice =>
+      'Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.';
+
+  @override
+  String get parkingSaveHere => 'Save parking here';
+
+  @override
+  String get parkingMarkerTitle => 'Parking spot';
+
+  @override
+  String get parkingNavigateHere => 'Navigate to parking';
+
+  @override
+  String get parkingRemove => 'Remove parking';
+
+  @override
+  String get parkingSavedSnack => 'Parking spot saved';
+
+  @override
+  String get parkingRemovedSnack => 'Parking spot removed';
+
+  @override
+  String get exportFavoritesTitle => 'Export favorites';
+
+  @override
+  String get exportFavoritesDesc =>
+      'Save your favorite places to a JSON file you can back up or move to another device.';
+
+  @override
+  String get exportEncryptToggle => 'Encrypt with a password';
+
+  @override
+  String get exportPasswordHint => 'Password';
+
+  @override
+  String get exportButton => 'Export';
+
+  @override
+  String get exportSuccessSnack => 'Favorites exported';
+
+  @override
+  String get exportFailedSnack => 'Export failed';
+
+  @override
+  String get importFavoritesTitle => 'Import favorites';
+
+  @override
+  String get importButton => 'Import';
+
+  @override
+  String get importPasswordPrompt =>
+      'This file is encrypted — enter the password';
+
+  @override
+  String importSuccessSnack(int n) {
+    return '$n favorites imported';
+  }
+
+  @override
+  String get importFailedSnack => 'Import failed — check the file and password';
+
+  @override
+  String get syncFavoritesTitle => 'Sync favorites';
+
+  @override
+  String get syncFavoritesDesc =>
+      'Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.';
+
+  @override
+  String get syncFavoritesEnable => 'Enable sync';
+
+  @override
+  String get syncNowButton => 'Push to Nostr';
+
+  @override
+  String get syncPullButton => 'Pull from Nostr';
+
+  @override
+  String get syncPushingStatus => 'Publishing…';
+
+  @override
+  String get syncPullingStatus => 'Fetching…';
+
+  @override
+  String get syncSuccessSnack => 'Favorites synced';
+
+  @override
+  String get syncFailedSnack => 'Sync failed';
+
+  @override
+  String get syncNotAvailableAmber =>
+      'Encrypted sync isn\'t available with Amber sign-in yet';
+
+  @override
+  String syncLastSyncLabel(String when) {
+    return 'Last synced: $when';
+  }
+
+  @override
+  String get syncNoIdentity =>
+      'Sign in with Nostr (Settings → Profile) to enable sync';
+
+  @override
+  String get syncPullConfirmTitle => 'Replace local favorites?';
+
+  @override
+  String get syncPullConfirmBody =>
+      'This will merge favorites fetched from Nostr with the ones already on this device.';
+
+  @override
   String get onboardingVpnNotice =>
       'Maksimaalse privaatsuse tagamiseks — teated levivad Nostr-võrgus — on soovitatav kasutada VPN-i. Soovitatud valik on Mullvad, mille eest saab maksta Bitcoiniga.';
 

@@ -3,7 +3,7 @@
 **Roadstr** is an open-source, decentralised navigation app for Android, built on the [Nostr protocol](https://nostr.com/).  
 It combines real-time GPS turn-by-turn navigation with community-sourced traffic alerts published as Nostr events, on-device AI voice guidance, Lightning Network tips for contributors, and privacy-first map data powered by OpenStreetMap.
 
-> **Version 0.4.4** — Android only.
+> **Version 0.4.5** — Android only.
 
 ---
 
@@ -86,9 +86,11 @@ lib/
 | NIP-01 | Base relay protocol (REQ / EVENT / EOSE / CLOSE) |
 | NIP-04 | Symmetric encryption for NWC pay requests |
 | NIP-19 | Bech32 key encoding (npub / nsec) |
+| NIP-44 | Versioned encryption (v2) — encrypted favourites sync |
 | NIP-47 | Nostr Wallet Connect — pay Lightning invoices from any compatible wallet |
 | NIP-55 | Android Signer Application — Amber integration |
 | NIP-57 | Zap receipts — Lightning tips attached to kind-1315 road events |
+| NIP-78 | Arbitrary app data (kind 30078) — encrypted favourites snapshot |
 | kind-1315 | Road event report (police, speed camera, traffic jam, accident, hazard…) |
 | kind-1316 | Road event confirmation / dismissal |
 
@@ -248,7 +250,11 @@ Code style:
 
 ## Licence
 
-[MIT](LICENSE) — free to use, modify and distribute. Attribution appreciated.
+[GNU GPL v3.0](LICENSE) — copyleft: free to use, study, modify and redistribute,
+verbatim or modified, provided that any distributed version (including forks
+and modified copies) remains licensed under the GPL and its complete
+corresponding source code is made available to recipients. Attribution
+appreciated.
 
 ---
 

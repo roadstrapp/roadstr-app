@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -13,10 +14,11 @@ import '../providers/locale_provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
 import '../services/routing_service.dart';
+import '../services/favorites_crypto.dart';
+import '../services/favorites_sync_service.dart';
 import '../services/kokoro/kokoro_model_manager.dart';
 import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
-import '../widgets/cursor_painter.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -30,8 +32,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late final Box _box;
   List<FavoritePlace> _favorites = [];
 
+  // ── Nostr identity (for sync) ─────────────────────────────────────────────
+  String? _nostrPub;
+  String? _nostrPriv;   // null when signing via Amber
+  bool _syncBusy = false;
+  final _syncSvc = FavoritesSyncService();
+
   _KokoroStatus _kokoroStatus = _KokoroStatus.unknown;
   double _downloadProgress = 0;
+  String _kokoroGender = kKokoroDefaultGender;
+  int _kokoroSpeedStage = kKokoroDefaultSpeedStage;
+  bool _previewingVoice = false;
+  final _previewTts = KokoroTtsService();
 
   StreamSubscription<double>? _progressSub;
   StreamSubscription<String>? _errorSub;
@@ -47,6 +59,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _box = Hive.box('settings');
     _loadFavorites();
     _loadSecrets();
+    _loadNostrIdentity();
+    _kokoroGender = _box.get('kokoroVoiceGender', defaultValue: kKokoroDefaultGender) as String;
+    _kokoroSpeedStage = _box.get('kokoroSpeedStage', defaultValue: kKokoroDefaultSpeedStage) as int;
 
     final mgr = KokoroModelManager.instance;
     if (mgr.isDownloading) {
@@ -66,7 +81,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       });
       if (p >= 1.0) {
         final lang = _box.get('language', defaultValue: '') as String;
-        unawaited(KokoroTtsService.warmUpLanguage(lang.isNotEmpty ? lang : 'it'));
+        unawaited(KokoroTtsService.warmUpLanguage(
+            lang.isNotEmpty ? lang : 'it', gender: _kokoroGender));
       }
     });
 
@@ -113,12 +129,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _errorSub?.cancel();
     _apiKeyCtrl.dispose();
     _nwcCtrl.dispose();
+    unawaited(_previewTts.dispose());
     super.dispose();
+  }
+
+  // ── Kokoro voice gender / speed ──────────────────────────────────────────
+
+  void _setGender(String gender) {
+    setState(() => _kokoroGender = gender);
+    _box.put('kokoroVoiceGender', gender);
+    unawaited(_playPreview());
+  }
+
+  void _setSpeedStage(int stage) {
+    setState(() => _kokoroSpeedStage = stage);
+    _box.put('kokoroSpeedStage', stage);
+    unawaited(_playPreview());
+  }
+
+  /// Speaks a fixed sample instruction with the currently selected
+  /// gender/speed so the user can judge the choice immediately. Falls back
+  /// to English when the app's current language has no Kokoro voice, so the
+  /// preview always works regardless of the active UI language.
+  Future<void> _playPreview() async {
+    if (_kokoroStatus != _KokoroStatus.ready || _previewingVoice || !mounted) return;
+    final uiLang = Localizations.localeOf(context).languageCode;
+    final lang = kokoroSupportedLanguages.contains(uiLang) ? uiLang : 'en';
+    setState(() => _previewingVoice = true);
+    try {
+      _previewTts.setLanguage(lang);
+      _previewTts.setGender(_kokoroGender);
+      _previewTts.setSpeed(kKokoroSpeedStages[_kokoroSpeedStage]);
+      await _previewTts.init(lang);
+      await _previewTts.previewVoice();
+    } finally {
+      if (mounted) setState(() => _previewingVoice = false);
+    }
   }
 
   Future<void> _checkKokoroStatus() async {
     final ready = await KokoroModelManager.instance
-        .isReady(kKokoroVoiceByLanguage.keys);
+        .isReady(kokoroSupportedLanguages);
     if (mounted) {
       setState(() => _kokoroStatus =
           ready ? _KokoroStatus.ready : _KokoroStatus.notDownloaded);
@@ -131,7 +182,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _downloadProgress = 0;
     });
     // startDownload is fire-and-forget; progress arrives via progressStream.
-    KokoroModelManager.instance.startDownload(kKokoroVoiceByLanguage.keys);
+    KokoroModelManager.instance.startDownload(kokoroSupportedLanguages);
   }
 
   void _loadFavorites() {
@@ -149,6 +200,222 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _deleteFavorite(int idx) {
     setState(() => _favorites.removeAt(idx));
     _saveFavorites();
+  }
+
+  // ── Nostr identity ───────────────────────────────────────────────────────
+
+  Future<void> _loadNostrIdentity() async {
+    final pub = await _st.read(key: 'nostr_pub_hex');
+    final priv = await _st.read(key: 'nostr_priv_hex');
+    if (mounted) setState(() { _nostrPub = pub; _nostrPriv = priv; });
+  }
+
+  // ── Export / Import (local JSON file, optional password) ────────────────
+
+  Future<void> _exportFavorites() async {
+    final l = AppLocalizations.of(context);
+    final c = RoadstrColors.of(context);
+    if (_favorites.isEmpty) return;
+    final ctrl = TextEditingController();
+    var encryptIt = false;
+    final go = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setDlg) => AlertDialog(
+        backgroundColor: c.surface2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l.exportFavoritesTitle,
+            style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.w700)),
+        content: Column(mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(l.exportFavoritesDesc,
+              style: TextStyle(color: c.textSecondary, fontSize: 13, height: 1.4)),
+          const SizedBox(height: 14),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+            value: encryptIt,
+            onChanged: (v) => setDlg(() => encryptIt = v),
+            title: Text(l.exportEncryptToggle,
+                style: TextStyle(color: c.textPrimary, fontSize: 13)),
+            activeThumbColor: c.accent,
+          ),
+          if (encryptIt) ...[
+            const SizedBox(height: 4),
+            TextField(
+              controller: ctrl,
+              obscureText: true,
+              autocorrect: false,
+              style: TextStyle(color: c.textPrimary, fontSize: 14),
+              decoration: InputDecoration(
+                hintText: l.exportPasswordHint,
+                hintStyle: TextStyle(color: c.textSecondary),
+                filled: true, fillColor: c.surface1,
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 12),
+              ),
+            ),
+          ],
+        ]),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l.cancel, style: TextStyle(color: c.textSecondary))),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: c.accent),
+            onPressed: (!encryptIt || ctrl.text.isNotEmpty)
+                ? () => Navigator.pop(ctx, true) : null,
+            child: Text(l.exportButton, style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      )),
+    );
+    if (go != true || !mounted) return;
+
+    final plaintext = jsonEncode(_favorites.map((f) => f.toMap()).toList());
+    final Map<String, dynamic> envelope;
+    if (encryptIt && ctrl.text.isNotEmpty) {
+      envelope = {'v': 1, 'encrypted': true, ...FavoritesCrypto.encrypt(plaintext, ctrl.text)};
+    } else {
+      envelope = {'v': 1, 'encrypted': false, 'data': plaintext};
+    }
+    try {
+      final bytes = Uint8List.fromList(utf8.encode(jsonEncode(envelope)));
+      final path = await FilePicker.saveFile(
+        fileName: 'roadstr_favorites.json',
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+        bytes: bytes,
+      );
+      if (!mounted) return;
+      if (path != null) _snackSettings(l.exportSuccessSnack);
+    } catch (_) {
+      if (mounted) _snackSettings(l.exportFailedSnack);
+    }
+  }
+
+  Future<void> _importFavorites() async {
+    final l = AppLocalizations.of(context);
+    try {
+      final file = await FilePicker.pickFile(
+        type: FileType.custom, allowedExtensions: ['json']);
+      if (file == null) return;
+      final bytes = await file.readAsBytes();
+      final envelope = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
+      String plaintext;
+      if (envelope['encrypted'] == true) {
+        if (!mounted) return;
+        final password = await _promptPassword(l.importPasswordPrompt);
+        if (password == null || password.isEmpty) return;
+        plaintext = FavoritesCrypto.decrypt(envelope, password);
+      } else {
+        plaintext = envelope['data'] as String;
+      }
+      final list = jsonDecode(plaintext) as List;
+      final imported = list
+          .whereType<Map>()
+          .map((m) => FavoritePlace.fromMapSafe(m))
+          .whereType<FavoritePlace>()
+          .toList();
+      if (!mounted) return;
+      setState(() {
+        for (final f in imported) {
+          final dup = _favorites.indexWhere((e) => e.label == f.label);
+          if (dup >= 0) { _favorites[dup] = f; } else { _favorites.add(f); }
+        }
+      });
+      _saveFavorites();
+      _snackSettings(l.importSuccessSnack(imported.length));
+    } catch (_) {
+      if (mounted) _snackSettings(l.importFailedSnack);
+    }
+  }
+
+  Future<String?> _promptPassword(String title) {
+    final ctrl = TextEditingController();
+    final c = RoadstrColors.of(context);
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: c.surface2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(title, style: TextStyle(color: c.textPrimary, fontSize: 15)),
+        content: TextField(
+          controller: ctrl,
+          obscureText: true,
+          autocorrect: false,
+          autofocus: true,
+          style: TextStyle(color: c.textPrimary, fontSize: 14),
+          decoration: InputDecoration(
+            filled: true, fillColor: c.surface1,
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          ),
+          onSubmitted: (v) => Navigator.pop(ctx, v),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, null),
+              child: Text(AppLocalizations.of(ctx).cancel,
+                  style: TextStyle(color: c.textSecondary))),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: c.accent),
+            onPressed: () => Navigator.pop(ctx, ctrl.text),
+            child: Text(AppLocalizations.of(ctx).ok,
+                style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Nostr sync (NIP-44, kind 30078) ──────────────────────────────────────
+
+  Future<void> _pushSync() async {
+    final l = AppLocalizations.of(context);
+    if (_nostrPub == null || _favorites.isEmpty || _syncBusy) return;
+    setState(() => _syncBusy = true);
+    final ok = await _syncSvc.push(
+        favorites: _favorites, pubKeyHex: _nostrPub!, privKeyHex: _nostrPriv);
+    if (!mounted) return;
+    setState(() => _syncBusy = false);
+    if (ok) {
+      _box.put('favoritesSyncLastAt', DateTime.now().millisecondsSinceEpoch);
+      setState(() {});
+    }
+    _snackSettings(ok ? l.syncSuccessSnack : l.syncFailedSnack);
+  }
+
+  Future<void> _pullSync() async {
+    final l = AppLocalizations.of(context);
+    if (_nostrPub == null || _syncBusy) return;
+    setState(() => _syncBusy = true);
+    final fetched = await _syncSvc.pull(pubKeyHex: _nostrPub!, privKeyHex: _nostrPriv);
+    if (!mounted) return;
+    setState(() => _syncBusy = false);
+    if (fetched == null) {
+      _snackSettings(l.syncFailedSnack);
+      return;
+    }
+    setState(() {
+      for (final f in fetched) {
+        final dup = _favorites.indexWhere((e) => e.label == f.label);
+        if (dup >= 0) { _favorites[dup] = f; } else { _favorites.add(f); }
+      }
+    });
+    _saveFavorites();
+    _box.put('favoritesSyncLastAt', DateTime.now().millisecondsSinceEpoch);
+    _snackSettings(l.syncSuccessSnack);
+  }
+
+  void _snackSettings(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg, style: const TextStyle(color: Colors.white)),
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: const Color(0xFF1A1A2E),
+    ));
   }
 
   Future<void> _editFavoriteDialog(AppLocalizations l, RoadstrColors c,
@@ -350,7 +617,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final c             = RoadstrColors.of(context);
     final themeProvider  = context.watch<ThemeProvider>();
     final localeProvider = context.watch<LocaleProvider>();
-    final l = AppLocalizations.of(context)!;
+    final l = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -634,12 +901,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 24),
 
-          // ── MAP CURSOR ──────────────────────────────────────────────────
-          _SectionHeader('Map cursor', c),
-          _CursorSelector(box: _box, colors: c),
-
-          const SizedBox(height: 24),
-
           // ── WEB SEARCH ENGINE ───────────────────────────────────────────
           _SectionHeader(l.sectionWebSearch, c),
           _SearchEngineSelector(box: _box, colors: c),
@@ -749,6 +1010,97 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: c.accent, fontSize: 14, fontWeight: FontWeight.w500)),
                 onTap: () => _editFavoriteDialog(l, c),
               ),
+              if (_favorites.isNotEmpty) ...[
+                Divider(height: 0.5, color: c.border),
+                ListTile(
+                  dense: true,
+                  leading: Container(
+                    width: 32, height: 32,
+                    decoration: BoxDecoration(
+                        color: c.surface3, borderRadius: BorderRadius.circular(8)),
+                    child: Icon(Icons.file_download_outlined,
+                        color: c.textSecondary, size: 16),
+                  ),
+                  title: Text(l.exportFavoritesTitle, style: TextStyle(
+                      color: c.textPrimary, fontSize: 14, fontWeight: FontWeight.w500)),
+                  onTap: _exportFavorites,
+                ),
+              ],
+              Divider(height: 0.5, color: c.border),
+              ListTile(
+                dense: true,
+                leading: Container(
+                  width: 32, height: 32,
+                  decoration: BoxDecoration(
+                      color: c.surface3, borderRadius: BorderRadius.circular(8)),
+                  child: Icon(Icons.file_upload_outlined,
+                      color: c.textSecondary, size: 16),
+                ),
+                title: Text(l.importFavoritesTitle, style: TextStyle(
+                    color: c.textPrimary, fontSize: 14, fontWeight: FontWeight.w500)),
+                onTap: _importFavorites,
+              ),
+            ]),
+          ),
+
+          const SizedBox(height: 16),
+
+          // ── FAVORITES SYNC (Nostr, NIP-44 encrypted) ────────────────────
+          _SectionHeader(l.syncFavoritesTitle, c),
+          Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: c.surface2, borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: c.border, width: 0.5),
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(l.syncFavoritesDesc,
+                  style: TextStyle(color: c.textSecondary, fontSize: 12, height: 1.5)),
+              const SizedBox(height: 12),
+              if (_nostrPub == null)
+                Text(l.syncNoIdentity,
+                    style: TextStyle(color: c.textSecondary, fontSize: 12,
+                        fontStyle: FontStyle.italic))
+              else ...[
+                Row(children: [
+                  Expanded(child: OutlinedButton.icon(
+                    onPressed: (_syncBusy || _favorites.isEmpty) ? null : _pushSync,
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: c.border),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                    icon: Icon(Icons.cloud_upload_outlined, color: c.accent, size: 16),
+                    label: Text(l.syncNowButton,
+                        style: TextStyle(color: c.textPrimary, fontSize: 12)),
+                  )),
+                  const SizedBox(width: 8),
+                  Expanded(child: OutlinedButton.icon(
+                    onPressed: _syncBusy ? null : _pullSync,
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: c.border),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                    icon: Icon(Icons.cloud_download_outlined, color: c.accent, size: 16),
+                    label: Text(l.syncPullButton,
+                        style: TextStyle(color: c.textPrimary, fontSize: 12)),
+                  )),
+                ]),
+                if (_syncBusy) ...[
+                  const SizedBox(height: 10),
+                  Center(child: SizedBox(width: 16, height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: c.accent))),
+                ],
+                if (!_syncBusy && (_box.get('favoritesSyncLastAt') as int?) != null) ...[
+                  const SizedBox(height: 10),
+                  Text(l.syncLastSyncLabel(DateTime.fromMillisecondsSinceEpoch(
+                          _box.get('favoritesSyncLastAt') as int)
+                      .toLocal().toString().substring(0, 16)),
+                      style: TextStyle(color: c.textSecondary, fontSize: 11)),
+                ],
+              ],
             ]),
           ),
 
@@ -826,6 +1178,70 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       label: Text(l.kokoroModelDownloadBtn),
                     ),
                   ],
+                  if (_kokoroStatus == _KokoroStatus.ready) ...[
+                    const SizedBox(height: 14),
+                    Divider(height: 0.5, color: c.border),
+                    const SizedBox(height: 14),
+                    // ── Voice gender ──────────────────────────────────────────
+                    Row(children: [
+                      Expanded(child: Text(l.kokoroVoiceGenderTitle,
+                          style: TextStyle(color: c.textPrimary, fontSize: 13,
+                              fontWeight: FontWeight.w600))),
+                      if (_previewingVoice)
+                        SizedBox(width: 14, height: 14,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: c.accent)),
+                    ]),
+                    const SizedBox(height: 8),
+                    Row(children: [
+                      Expanded(child: _VoiceOptionChip(
+                        label: l.kokoroVoiceFemale,
+                        selected: _kokoroGender == 'f',
+                        onTap: () => _setGender('f'),
+                        colors: c,
+                      )),
+                      const SizedBox(width: 8),
+                      Expanded(child: _VoiceOptionChip(
+                        label: l.kokoroVoiceMale,
+                        selected: _kokoroGender == 'm',
+                        onTap: () => _setGender('m'),
+                        colors: c,
+                      )),
+                    ]),
+                    if (!kokoroHasGenderChoice(Localizations.localeOf(context).languageCode)) ...[
+                      const SizedBox(height: 6),
+                      Text(l.kokoroVoiceGenderUnavailable,
+                          style: TextStyle(color: c.textSecondary,
+                              fontSize: 11, fontStyle: FontStyle.italic)),
+                    ],
+                    const SizedBox(height: 16),
+                    // ── Speech speed ──────────────────────────────────────────
+                    Row(children: [
+                      Expanded(child: Text(l.kokoroSpeedTitle,
+                          style: TextStyle(color: c.textPrimary, fontSize: 13,
+                              fontWeight: FontWeight.w600))),
+                      Text('${kKokoroSpeedStages[_kokoroSpeedStage].toStringAsFixed(2)}×',
+                          style: TextStyle(color: c.accent, fontSize: 13,
+                              fontWeight: FontWeight.w600)),
+                    ]),
+                    SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        activeTrackColor: c.accent,
+                        inactiveTrackColor: c.border,
+                        thumbColor: c.accent,
+                        overlayColor: c.accent.withValues(alpha: 0.15),
+                        trackHeight: 3,
+                      ),
+                      child: Slider(
+                        value: _kokoroSpeedStage.toDouble(),
+                        min: 0,
+                        max: (kKokoroSpeedStages.length - 1).toDouble(),
+                        divisions: kKokoroSpeedStages.length - 1,
+                        onChanged: (v) => setState(() => _kokoroSpeedStage = v.round()),
+                        onChangeEnd: (v) => _setSpeedStage(v.round()),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -835,7 +1251,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // ── INFO ─────────────────────────────────────────────────────────
           _SectionHeader(l.sectionInfo, c),
-          _InfoTile(l.infoVersion, '0.4.4', c),
+          _InfoTile(l.infoVersion, '0.4.5', c),
           _InfoTile(l.infoProtocol, 'Nostr', c),
           _InfoTile(l.infoMaps, 'openstreetmap.org', c,
               url: 'https://www.openstreetmap.org'),
@@ -877,7 +1293,7 @@ class _DonationTile extends StatelessWidget {
         if (!launched) {
           await Clipboard.setData(const ClipboardData(text: _lnAddress));
           if (context.mounted) {
-            final l = AppLocalizations.of(context)!;
+            final l = AppLocalizations.of(context);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(l.lightningAddressCopied(_lnAddress)),
@@ -901,7 +1317,7 @@ class _DonationTile extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(AppLocalizations.of(context)!.supportRoadstr,
+                Text(AppLocalizations.of(context).supportRoadstr,
                     style: TextStyle(color: c.textPrimary, fontSize: 13,
                         fontWeight: FontWeight.w600)),
                 const SizedBox(height: 2),
@@ -947,6 +1363,34 @@ class _SwitchTile extends StatelessWidget {
       title: Text(title, style: TextStyle(color: colors.textPrimary, fontSize: 14)),
       subtitle: Text(subtitle, style: TextStyle(color: colors.textSecondary, fontSize: 12)),
       value: value, onChanged: onChanged, dense: true,
+    ),
+  );
+}
+
+class _VoiceOptionChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final RoadstrColors colors;
+  const _VoiceOptionChip({required this.label, required this.selected,
+      required this.onTap, required this.colors});
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        color: selected ? colors.accent.withValues(alpha: 0.15) : colors.surface3,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+            color: selected ? colors.accent : colors.border,
+            width: selected ? 1.2 : 0.5),
+      ),
+      child: Center(child: Text(label,
+          style: TextStyle(
+              color: selected ? colors.accent : colors.textSecondary,
+              fontSize: 13,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500))),
     ),
   );
 }
@@ -1029,7 +1473,7 @@ class _SearchEngineSelectorState extends State<_SearchEngineSelector> {
   @override
   Widget build(BuildContext context) {
     final c   = widget.colors;
-    final l   = AppLocalizations.of(context)!;
+    final l   = AppLocalizations.of(context);
     final cur = _current;
     final eng = _engines.firstWhere((e) => e.id == cur,
         orElse: () => _engines.first);
@@ -1080,79 +1524,6 @@ class _SearchEngineSelectorState extends State<_SearchEngineSelector> {
                   height: 1.4)),
         ),
       ]),
-    );
-  }
-}
-
-// ── Cursor selector ───────────────────────────────────────────────────────────
-
-class _CursorSelector extends StatefulWidget {
-  final Box box;
-  final RoadstrColors colors;
-  const _CursorSelector({required this.box, required this.colors});
-
-  @override
-  State<_CursorSelector> createState() => _CursorSelectorState();
-}
-
-class _CursorSelectorState extends State<_CursorSelector> {
-  late CursorStyle _current;
-
-  @override
-  void initState() {
-    super.initState();
-    final saved = widget.box.get('cursorStyle', defaultValue: 'arrow') as String;
-    _current = CursorStyle.selectable.firstWhere(
-      (s) => s.name == saved,
-      orElse: () => CursorStyle.arrow,
-    );
-  }
-
-  void _select(CursorStyle style) {
-    widget.box.put('cursorStyle', style.name);
-    setState(() => _current = style);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final c = widget.colors;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-      decoration: BoxDecoration(
-        color: c.surface2,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: c.border, width: 0.5),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<CursorStyle>(
-          value: _current,
-          isExpanded: true,
-          dropdownColor: c.surface2,
-          borderRadius: BorderRadius.circular(14),
-          icon: Icon(Icons.expand_more_rounded, color: c.textSecondary),
-          onChanged: (s) { if (s != null) _select(s); },
-          selectedItemBuilder: (_) => CursorStyle.selectable.map((style) {
-            return Row(children: [
-              CursorWidget(style: style, size: 32),
-              const SizedBox(width: 12),
-              Text(style.label,
-                  style: TextStyle(color: c.textPrimary,
-                      fontSize: 14, fontWeight: FontWeight.w600)),
-            ]);
-          }).toList(),
-          items: CursorStyle.selectable.map((style) {
-            return DropdownMenuItem<CursorStyle>(
-              value: style,
-              child: Row(children: [
-                CursorWidget(style: style, size: 36),
-                const SizedBox(width: 14),
-                Text(style.label,
-                    style: TextStyle(color: c.textPrimary, fontSize: 14)),
-              ]),
-            );
-          }).toList(),
-        ),
-      ),
     );
   }
 }

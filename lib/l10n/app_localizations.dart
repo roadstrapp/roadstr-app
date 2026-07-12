@@ -1852,6 +1852,234 @@ abstract class AppLocalizations {
   /// **'nsec1…'**
   String get onboardingNsecHint;
 
+  /// No description provided for @kokoroVoiceGenderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice'**
+  String get kokoroVoiceGenderTitle;
+
+  /// No description provided for @kokoroVoiceFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get kokoroVoiceFemale;
+
+  /// No description provided for @kokoroVoiceMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get kokoroVoiceMale;
+
+  /// No description provided for @kokoroVoiceGenderUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Male voice not available for this language'**
+  String get kokoroVoiceGenderUnavailable;
+
+  /// No description provided for @kokoroSpeedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech speed'**
+  String get kokoroSpeedTitle;
+
+  /// No description provided for @onboardingFavoritesSyncNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.'**
+  String get onboardingFavoritesSyncNotice;
+
+  /// No description provided for @parkingSaveHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Save parking here'**
+  String get parkingSaveHere;
+
+  /// No description provided for @parkingMarkerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Parking spot'**
+  String get parkingMarkerTitle;
+
+  /// No description provided for @parkingNavigateHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate to parking'**
+  String get parkingNavigateHere;
+
+  /// No description provided for @parkingRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove parking'**
+  String get parkingRemove;
+
+  /// No description provided for @parkingSavedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Parking spot saved'**
+  String get parkingSavedSnack;
+
+  /// No description provided for @parkingRemovedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Parking spot removed'**
+  String get parkingRemovedSnack;
+
+  /// No description provided for @exportFavoritesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export favorites'**
+  String get exportFavoritesTitle;
+
+  /// No description provided for @exportFavoritesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Save your favorite places to a JSON file you can back up or move to another device.'**
+  String get exportFavoritesDesc;
+
+  /// No description provided for @exportEncryptToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypt with a password'**
+  String get exportEncryptToggle;
+
+  /// No description provided for @exportPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get exportPasswordHint;
+
+  /// No description provided for @exportButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get exportButton;
+
+  /// No description provided for @exportSuccessSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites exported'**
+  String get exportSuccessSnack;
+
+  /// No description provided for @exportFailedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed'**
+  String get exportFailedSnack;
+
+  /// No description provided for @importFavoritesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import favorites'**
+  String get importFavoritesTitle;
+
+  /// No description provided for @importButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get importButton;
+
+  /// No description provided for @importPasswordPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is encrypted — enter the password'**
+  String get importPasswordPrompt;
+
+  /// No description provided for @importSuccessSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} favorites imported'**
+  String importSuccessSnack(int n);
+
+  /// No description provided for @importFailedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Import failed — check the file and password'**
+  String get importFailedSnack;
+
+  /// No description provided for @syncFavoritesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync favorites'**
+  String get syncFavoritesTitle;
+
+  /// No description provided for @syncFavoritesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.'**
+  String get syncFavoritesDesc;
+
+  /// No description provided for @syncFavoritesEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable sync'**
+  String get syncFavoritesEnable;
+
+  /// No description provided for @syncNowButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Push to Nostr'**
+  String get syncNowButton;
+
+  /// No description provided for @syncPullButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull from Nostr'**
+  String get syncPullButton;
+
+  /// No description provided for @syncPushingStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Publishing…'**
+  String get syncPushingStatus;
+
+  /// No description provided for @syncPullingStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching…'**
+  String get syncPullingStatus;
+
+  /// No description provided for @syncSuccessSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites synced'**
+  String get syncSuccessSnack;
+
+  /// No description provided for @syncFailedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed'**
+  String get syncFailedSnack;
+
+  /// No description provided for @syncNotAvailableAmber.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted sync isn\'t available with Amber sign-in yet'**
+  String get syncNotAvailableAmber;
+
+  /// No description provided for @syncLastSyncLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last synced: {when}'**
+  String syncLastSyncLabel(String when);
+
+  /// No description provided for @syncNoIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Nostr (Settings → Profile) to enable sync'**
+  String get syncNoIdentity;
+
+  /// No description provided for @syncPullConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace local favorites?'**
+  String get syncPullConfirmTitle;
+
+  /// No description provided for @syncPullConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This will merge favorites fetched from Nostr with the ones already on this device.'**
+  String get syncPullConfirmBody;
+
   /// No description provided for @onboardingVpnNotice.
   ///
   /// In en, this message translates to:
