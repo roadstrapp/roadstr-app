@@ -153,8 +153,16 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.2"
-  crypto:
+  cross_file:
     dependency: transitive
+    description:
+      name: cross_file
+      sha256: "92c9c43c383bfa1c32079d3bc492d55d6d4318044b7b47edaff8971cbb555c51"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.5+4"
+  crypto:
+    dependency: "direct main"
     description:
       name: crypto
       sha256: c8ea0233063ba03258fbcf2ca4d6dadfefe14f02fab57702265467a19f27fadf
@@ -209,6 +217,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.2"
+  file_picker:
+    dependency: "direct main"
+    description:
+      name: file_picker
+      sha256: fdc6a37f715d19f35b131decf1ce39242eeed5ddae18c0818c3eccb731ab76be
+      url: "https://pub.dev"
+    source: hosted
+    version: "12.0.0-beta.7"
   fixnum:
     dependency: transitive
     description:
@@ -283,6 +299,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.8.0"
+  flutter_plugin_android_lifecycle:
+    dependency: transitive
+    description:
+      name: flutter_plugin_android_lifecycle
+      sha256: "3854fe5e3bff0b113c658f260b90c95dea17c92db0f2addeac2e343dd9969785"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.35"
   flutter_secure_storage:
     dependency: "direct main"
     description:
@@ -550,7 +574,7 @@ packages:
     source: hosted
     version: "0.4.16"
   kepler:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: kepler
       sha256: "8cf9f7df525bd4e5b192d91e52f1c75832b1fefb27fb4f4a09b1412b0f4f23d0"
@@ -782,7 +806,7 @@ packages:
     source: hosted
     version: "2.1.8"
   pointycastle:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: pointycastle
       sha256: "4be0097fcf3fd3e8449e53730c631200ebc7b88016acecab2b0da2f0149222fe"
@@ -1075,7 +1099,7 @@ packages:
     source: hosted
     version: "1.1.1"
   web_socket_channel:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: web_socket_channel
       sha256: d88238e5eac9a42bb43ca4e721edba3c08c6354d4a53063afaa568516217621b

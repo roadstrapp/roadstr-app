@@ -949,6 +949,133 @@ class AppLocalizationsIt extends AppLocalizations {
   String get onboardingNsecHint => 'nsec1…';
 
   @override
+  String get kokoroVoiceGenderTitle => 'Voce';
+
+  @override
+  String get kokoroVoiceFemale => 'Femminile';
+
+  @override
+  String get kokoroVoiceMale => 'Maschile';
+
+  @override
+  String get kokoroVoiceGenderUnavailable =>
+      'Voce maschile non disponibile per questa lingua';
+
+  @override
+  String get kokoroSpeedTitle => 'Velocità del parlato';
+
+  @override
+  String get onboardingFavoritesSyncNotice =>
+      'Opzionale: i tuoi luoghi preferiti possono essere sincronizzati tra i tuoi dispositivi tramite i relay Nostr, cifrati end-to-end (NIP-44) con la tua chiave — i relay vedono solo dati cifrati, nessuno tranne te può leggerne il contenuto. Puoi attivarla in qualsiasi momento dalle Impostazioni.';
+
+  @override
+  String get parkingSaveHere => 'Salva parcheggio qui';
+
+  @override
+  String get parkingMarkerTitle => 'Posto auto';
+
+  @override
+  String get parkingNavigateHere => 'Naviga al parcheggio';
+
+  @override
+  String get parkingRemove => 'Rimuovi parcheggio';
+
+  @override
+  String get parkingSavedSnack => 'Posto auto salvato';
+
+  @override
+  String get parkingRemovedSnack => 'Posto auto rimosso';
+
+  @override
+  String get exportFavoritesTitle => 'Esporta preferiti';
+
+  @override
+  String get exportFavoritesDesc =>
+      'Salva i tuoi luoghi preferiti in un file JSON che puoi conservare o spostare su un altro dispositivo.';
+
+  @override
+  String get exportEncryptToggle => 'Cifra con una password';
+
+  @override
+  String get exportPasswordHint => 'Password';
+
+  @override
+  String get exportButton => 'Esporta';
+
+  @override
+  String get exportSuccessSnack => 'Preferiti esportati';
+
+  @override
+  String get exportFailedSnack => 'Esportazione fallita';
+
+  @override
+  String get importFavoritesTitle => 'Importa preferiti';
+
+  @override
+  String get importButton => 'Importa';
+
+  @override
+  String get importPasswordPrompt =>
+      'Questo file è cifrato — inserisci la password';
+
+  @override
+  String importSuccessSnack(int n) {
+    return '$n preferiti importati';
+  }
+
+  @override
+  String get importFailedSnack =>
+      'Importazione fallita — controlla il file e la password';
+
+  @override
+  String get syncFavoritesTitle => 'Sincronizza preferiti';
+
+  @override
+  String get syncFavoritesDesc =>
+      'Pubblica i tuoi preferiti, cifrati end-to-end, sui tuoi relay Nostr così ti seguono su altri dispositivi. I relay vedono solo dati cifrati — nessuno tranne te può leggerne il contenuto.';
+
+  @override
+  String get syncFavoritesEnable => 'Abilita sincronizzazione';
+
+  @override
+  String get syncNowButton => 'Pubblica su Nostr';
+
+  @override
+  String get syncPullButton => 'Recupera da Nostr';
+
+  @override
+  String get syncPushingStatus => 'Pubblicazione…';
+
+  @override
+  String get syncPullingStatus => 'Recupero…';
+
+  @override
+  String get syncSuccessSnack => 'Preferiti sincronizzati';
+
+  @override
+  String get syncFailedSnack => 'Sincronizzazione fallita';
+
+  @override
+  String get syncNotAvailableAmber =>
+      'La sincronizzazione cifrata non è ancora disponibile con l\'accesso Amber';
+
+  @override
+  String syncLastSyncLabel(String when) {
+    return 'Ultima sincronizzazione: $when';
+  }
+
+  @override
+  String get syncNoIdentity =>
+      'Accedi con Nostr (Impostazioni → Profilo) per abilitare la sincronizzazione';
+
+  @override
+  String get syncPullConfirmTitle => 'Unire ai preferiti locali?';
+
+  @override
+  String get syncPullConfirmBody =>
+      'I preferiti recuperati da Nostr verranno uniti a quelli già presenti su questo dispositivo.';
+
+  @override
   String get onboardingVpnNotice =>
       'Per la massima privacy — le segnalazioni vengono propagate nella rete Nostr — è consigliato l\'uso di una VPN. Mullvad, pagabile in Bitcoin, è quella consigliata.';
 

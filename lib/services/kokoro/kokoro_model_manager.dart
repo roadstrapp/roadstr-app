@@ -44,21 +44,37 @@ class KokoroModelManager {
 
   Future<File> get modelFile async => File('${(await _modelDir()).path}/model_q8f16.onnx');
   Future<File> get tokenizerFile async => File('${(await _modelDir()).path}/tokenizer.json');
-  Future<File> voiceFile(String languageCode) async =>
-      File('${(await _modelDir()).path}/${kKokoroVoiceByLanguage[languageCode]}.bin');
+
+  /// Local path for a voice embedding by its raw voice name (e.g. "if_sara").
+  Future<File> voiceFileForName(String voiceName) async =>
+      File('${(await _modelDir()).path}/$voiceName.bin');
+
+  /// Local path for [languageCode]'s [gender] voice, falling back to the
+  /// language's female voice if that gender isn't available.
+  Future<File> voiceFile(String languageCode, [String gender = kKokoroDefaultGender]) async {
+    final name = kokoroVoiceName(languageCode, gender);
+    if (name == null) {
+      throw ArgumentError('No Kokoro voice for language "$languageCode"');
+    }
+    return voiceFileForName(name);
+  }
 
   // ── Status check ─────────────────────────────────────────────────────────────
 
-  /// True once the model, tokenizer and all voices for [languages] are
-  /// present on disk with the expected size.
+  /// True once the model, tokenizer and every voice (both genders where
+  /// available) for [languages] are present on disk with the expected size —
+  /// downloading the whole catalogue upfront means switching gender in
+  /// Settings never needs a fresh download.
   Future<bool> isReady(Iterable<String> languages) async {
     final model = await modelFile;
     final tok = await tokenizerFile;
     if (!await model.exists() || await model.length() != kKokoroModelSizeBytes) return false;
     if (!await tok.exists() || await tok.length() == 0) return false;
     for (final lang in languages) {
-      final v = await voiceFile(lang);
-      if (!await v.exists() || await v.length() != kKokoroVoiceSizeBytes) return false;
+      for (final voiceName in kKokoroVoicesByLanguage[lang]?.values ?? const <String>[]) {
+        final v = await voiceFileForName(voiceName);
+        if (!await v.exists() || await v.length() != kKokoroVoiceSizeBytes) return false;
+      }
     }
     return true;
   }
@@ -107,10 +123,12 @@ class KokoroModelManager {
         file: await tokenizerFile,
         expectedSize: null,
       ),
-      for (final lang in languages)
+      for (final voiceName in languages
+          .expand((lang) => kKokoroVoicesByLanguage[lang]?.values ?? const <String>[])
+          .toSet())
         _DownloadTask(
-          url: '$kKokoroRepoBaseUrl/${kokoroVoiceFile(lang)}',
-          file: await voiceFile(lang),
+          url: '$kKokoroRepoBaseUrl/${kokoroVoiceFileForName(voiceName)}',
+          file: await voiceFileForName(voiceName),
           expectedSize: kKokoroVoiceSizeBytes,
         ),
     ];

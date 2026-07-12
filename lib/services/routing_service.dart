@@ -151,22 +151,40 @@ class RoutingService {
 
   /// Searches for addresses and POIs via the Nominatim geocoding API.
   ///
-  /// Returns at most 5 results. The `addressdetails=1` parameter is included so
+  /// Returns at most 8 results. The `addressdetails=1` parameter is included so
   /// that [NominatimResult.fromJson] can parse the structured address components.
-  static Future<List<NominatimResult>> search(String query) async {
+  ///
+  /// When [near] is given, results are biased toward that location: a
+  /// `viewbox` around it is sent to Nominatim (soft bias — `bounded=0` never
+  /// excludes valid matches elsewhere), and the returned list is re-sorted by
+  /// distance from [near]. Without this, a generic term like "cinema" can
+  /// rank a same-named business on the other side of the world above the one
+  /// 500 m away, since Nominatim's own ranking is a global "importance"
+  /// score, not a proximity score.
+  static Future<List<NominatimResult>> search(String query, {LatLng? near}) async {
     if (query.trim().isEmpty) return [];
     try {
+      final viewbox = near != null
+          ? '&viewbox=${near.longitude - 0.5},${near.latitude + 0.5},'
+              '${near.longitude + 0.5},${near.latitude - 0.5}&bounded=0'
+          : '';
       final uri = Uri.parse('$_nominatim'
           '?q=${Uri.encodeComponent(query)}'
           // limit=8 gives a richer POI list without excessive bandwidth.
           // polygon_geojson=0 skips shape data we don't need, keeping responses lean.
-          '&format=json&limit=8&addressdetails=1&polygon_geojson=0');
+          '&format=json&limit=8&addressdetails=1&polygon_geojson=0$viewbox');
       final res = await http.get(uri,
           headers: {'User-Agent': 'Roadstr/1.0'})
           .timeout(const Duration(seconds: 5));
       if (res.statusCode != 200) return [];
       final list = jsonDecode(res.body) as List;
-      return list.map((e) => NominatimResult.fromJson(e)).toList();
+      final results = list.map((e) => NominatimResult.fromJson(e)).toList();
+      if (near != null) {
+        results.sort((a, b) =>
+            const Distance().as(LengthUnit.Meter, near, a.position)
+                .compareTo(const Distance().as(LengthUnit.Meter, near, b.position)));
+      }
+      return results;
     } catch (_) {
       return [];
     }
