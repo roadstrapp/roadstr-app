@@ -1003,6 +1003,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get syncPullButton => '从Nostr拉取';
 
   @override
+  String get syncPassphraseTitle => '同步密码短语(可选)';
+
+  @override
+  String get syncPassphraseDesc =>
+      '同步收藏的第二层加密:即使您的 Nostr 密钥泄露,没有此密码短语,中继上的快照也无法解密。每台新设备只需输入一次。留空即可停用。';
+
+  @override
   String get syncSuccessSnack => '收藏已同步';
 
   @override

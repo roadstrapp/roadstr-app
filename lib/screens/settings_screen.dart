@@ -373,12 +373,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // ── Nostr sync (NIP-44, kind 30078) ──────────────────────────────────────
 
+  String? get _syncPassphrase => _box.get('fav_sync_pass') as String?;
+
   Future<void> _pushSync() async {
     final l = AppLocalizations.of(context);
     if (_nostrPub == null || _favorites.isEmpty || _syncBusy) return;
     setState(() => _syncBusy = true);
     final ok = await _syncSvc.push(
-        favorites: _favorites, pubKeyHex: _nostrPub!, privKeyHex: _nostrPriv);
+        favorites: _favorites,
+        pubKeyHex: _nostrPub!,
+        privKeyHex: _nostrPriv,
+        passphrase: _syncPassphrase);
     if (!mounted) return;
     setState(() => _syncBusy = false);
     if (ok) {
@@ -392,9 +397,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final l = AppLocalizations.of(context);
     if (_nostrPub == null || _syncBusy) return;
     setState(() => _syncBusy = true);
-    final fetched = await _syncSvc.pull(pubKeyHex: _nostrPub!, privKeyHex: _nostrPriv);
+    var result = await _syncSvc.pull(
+        pubKeyHex: _nostrPub!,
+        privKeyHex: _nostrPriv,
+        passphrase: _syncPassphrase);
     if (!mounted) return;
+    if (result.needsPassphrase) {
+      // Snapshot sealed with a sync passphrase this device doesn't have
+      // (new device, or the passphrase changed elsewhere): prompt and retry.
+      final entered = await _promptPassword(l.importPasswordPrompt);
+      if (!mounted) return;
+      if (entered != null && entered.isNotEmpty) {
+        result = await _syncSvc.pull(
+            pubKeyHex: _nostrPub!, privKeyHex: _nostrPriv, passphrase: entered);
+        if (!mounted) return;
+        // Remember the passphrase that worked so future syncs are seamless.
+        if (result.favorites != null) _box.put('fav_sync_pass', entered);
+      }
+    }
     setState(() => _syncBusy = false);
+    final fetched = result.favorites;
     if (fetched == null) {
       _snackSettings(l.syncFailedSnack);
       return;
@@ -408,6 +430,62 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _saveFavorites();
     _box.put('favoritesSyncLastAt', DateTime.now().millisecondsSinceEpoch);
     _snackSettings(l.syncSuccessSnack);
+  }
+
+  Future<void> _editSyncPassphrase() async {
+    final l = AppLocalizations.of(context);
+    final c = RoadstrColors.of(context);
+    final ctrl = TextEditingController();
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: c.surface2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l.syncPassphraseTitle,
+            style: TextStyle(color: c.textPrimary, fontSize: 15,
+                fontWeight: FontWeight.w700)),
+        content: Column(mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(l.syncPassphraseDesc,
+              style: TextStyle(color: c.textSecondary, fontSize: 12.5, height: 1.5)),
+          const SizedBox(height: 12),
+          TextField(
+            controller: ctrl,
+            obscureText: true,
+            autocorrect: false,
+            autofocus: true,
+            style: TextStyle(color: c.textPrimary, fontSize: 14),
+            decoration: InputDecoration(
+              hintText: l.exportPasswordHint,
+              hintStyle: TextStyle(color: c.textSecondary),
+              filled: true, fillColor: c.surface1,
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            ),
+          ),
+        ]),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l.cancel, style: TextStyle(color: c.textSecondary))),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: c.accent),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l.ok, style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    if (saved != true || !mounted) return;
+    // Empty input = disable the extra layer; next push publishes unwrapped.
+    if (ctrl.text.isEmpty) {
+      _box.delete('fav_sync_pass');
+    } else {
+      _box.put('fav_sync_pass', ctrl.text);
+    }
+    setState(() {});
   }
 
   void _snackSettings(String msg) {
@@ -1090,6 +1168,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         style: TextStyle(color: c.textPrimary, fontSize: 12)),
                   )),
                 ]),
+                const SizedBox(height: 8),
+                ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(
+                    _syncPassphrase != null
+                        ? Icons.lock_rounded : Icons.lock_open_rounded,
+                    color: _syncPassphrase != null ? c.accent : c.textSecondary,
+                    size: 18,
+                  ),
+                  title: Text(l.syncPassphraseTitle, style: TextStyle(
+                      color: c.textPrimary, fontSize: 13,
+                      fontWeight: FontWeight.w500)),
+                  onTap: _editSyncPassphrase,
+                ),
                 if (_syncBusy) ...[
                   const SizedBox(height: 10),
                   Center(child: SizedBox(width: 16, height: 16,
@@ -1253,7 +1346,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // ── INFO ─────────────────────────────────────────────────────────
           _SectionHeader(l.sectionInfo, c),
-          _InfoTile(l.infoVersion, '0.4.6', c),
+          _InfoTile(l.infoVersion, '0.4.7', c),
           _InfoTile(l.infoProtocol, 'Nostr', c),
           _InfoTile(l.infoMaps, 'openstreetmap.org', c,
               url: 'https://www.openstreetmap.org'),

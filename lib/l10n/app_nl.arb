@@ -393,6 +393,8 @@
   "syncNoIdentity": "Log in met Nostr (Instellingen → Profiel) om synchronisatie in te schakelen",
   "syncNowButton": "Naar Nostr sturen",
   "syncPullButton": "Van Nostr ophalen",
+  "syncPassphraseTitle": "Synchronisatie-wachtwoordzin (optioneel)",
+  "syncPassphraseDesc": "Tweede versleutelingslaag voor gesynchroniseerde favorieten: zelfs als je Nostr-sleutel ooit gecompromitteerd raakt, blijft de momentopname op de relays onleesbaar zonder deze wachtwoordzin. Je voert hem één keer in op elk nieuw apparaat. Laat leeg om uit te schakelen.",
   "syncSuccessSnack": "Favorieten gesynchroniseerd",
   "syncFailedSnack": "Synchronisatie mislukt",
   "syncLastSyncLabel": "Laatst gesynchroniseerd: {when}",

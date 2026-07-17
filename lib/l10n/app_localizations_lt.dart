@@ -1038,6 +1038,13 @@ class AppLocalizationsLt extends AppLocalizations {
   String get syncPullButton => 'Gauti iš Nostr';
 
   @override
+  String get syncPassphraseTitle => 'Sinchronizavimo slaptafrazė (neprivaloma)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Antras sinchronizuojamų mėgstamiausių šifravimo sluoksnis: net jei jūsų Nostr raktas būtų pavogtas, momentinė kopija relėse be šios slaptafrazės lieka neperskaitoma. Ją įvesite po kartą kiekviename naujame įrenginyje. Palikite tuščią, kad išjungtumėte.';
+
+  @override
   String get syncSuccessSnack => 'Mėgstamiausi sinchronizuoti';
 
   @override

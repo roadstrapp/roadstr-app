@@ -1034,6 +1034,13 @@ class AppLocalizationsSv extends AppLocalizations {
   String get syncPullButton => 'Hämta från Nostr';
 
   @override
+  String get syncPassphraseTitle => 'Synkroniseringslösenfras (valfri)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Andra krypteringslagret för synkroniserade favoriter: även om din Nostr-nyckel skulle komprometteras förblir ögonblicksbilden på reläerna oläslig utan denna lösenfras. Du anger den en gång på varje ny enhet. Lämna tomt för att inaktivera.';
+
+  @override
   String get syncSuccessSnack => 'Favoriter synkroniserade';
 
   @override

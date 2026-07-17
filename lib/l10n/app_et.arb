@@ -393,6 +393,8 @@
   "syncNoIdentity": "Sünkroonimise lubamiseks logi sisse Nostriga (Seaded → Profiil)",
   "syncNowButton": "Saada Nostrisse",
   "syncPullButton": "Too Nostrist",
+  "syncPassphraseTitle": "Sünkroonimise paroolifraas (valikuline)",
+  "syncPassphraseDesc": "Sünkroonitud lemmikute teine krüpteerimiskiht: isegi kui teie Nostr-võti satuks ohtu, jääb hetktõmmis releedel ilma selle fraasita loetamatuks. Sisestate selle üks kord igas uues seadmes. Keelamiseks jätke tühjaks.",
   "syncSuccessSnack": "Lemmikud sünkroonitud",
   "syncFailedSnack": "Sünkroonimine ebaõnnestus",
   "syncLastSyncLabel": "Viimati sünkroonitud: {when}",

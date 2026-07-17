@@ -2014,6 +2014,18 @@ abstract class AppLocalizations {
   /// **'Pull from Nostr'**
   String get syncPullButton;
 
+  /// No description provided for @syncPassphraseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync passphrase (optional)'**
+  String get syncPassphraseTitle;
+
+  /// No description provided for @syncPassphraseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Second encryption layer for synced favorites: even if your Nostr key were ever compromised, the snapshot on the relays stays unreadable without this passphrase. You\'ll enter it once on each new device. Leave empty to disable.'**
+  String get syncPassphraseDesc;
+
   /// No description provided for @syncSuccessSnack.
   ///
   /// In en, this message translates to:

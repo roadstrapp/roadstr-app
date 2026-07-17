@@ -1037,6 +1037,14 @@ class AppLocalizationsHr extends AppLocalizations {
   String get syncPullButton => 'Dohvati s Nostra';
 
   @override
+  String get syncPassphraseTitle =>
+      'Sigurnosna fraza sinkronizacije (neobavezno)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Drugi sloj šifriranja za sinkronizirane favorite: čak i ako bi vaš Nostr ključ bio ugrožen, snimka na relejima ostaje nečitljiva bez ove fraze. Unosite je jednom na svakom novom uređaju. Ostavite prazno za isključivanje.';
+
+  @override
   String get syncSuccessSnack => 'Favoriti sinkronizirani';
 
   @override

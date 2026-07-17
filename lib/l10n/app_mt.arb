@@ -393,6 +393,8 @@
   "syncNoIdentity": "Idħol b’Nostr (Settings → Profil) biex tattiva s-sinkronizzazzjoni",
   "syncNowButton": "Ibgħat lil Nostr",
   "syncPullButton": "Ġib minn Nostr",
+  "syncPassphraseTitle": "Frażi sigrieta tas-sinkronizzazzjoni (mhux obbligatorja)",
+  "syncPassphraseDesc": "It-tieni saff ta' kriptaġġ għall-favoriti sinkronizzati: anke jekk iċ-ċavetta Nostr tiegħek tiġi kompromessa, l-istampa fuq ir-relays tibqa' ma tinqarax mingħajr din il-frażi. Iddaħħalha darba fuq kull apparat ġdid. Ħalli vojt biex titfi.",
   "syncSuccessSnack": "Il-favoriti ġew sinkronizzati",
   "syncFailedSnack": "Is-sinkronizzazzjoni falliet",
   "syncLastSyncLabel": "L-aħħar sinkronizzazzjoni: {when}",

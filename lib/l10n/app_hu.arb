@@ -393,6 +393,8 @@
   "syncNoIdentity": "Jelentkezz be Nostrral (Beállítások → Profil) a szinkronizálás engedélyezéséhez",
   "syncNowButton": "Küldés a Nostrra",
   "syncPullButton": "Letöltés a Nostrról",
+  "syncPassphraseTitle": "Szinkronizálási jelmondat (opcionális)",
+  "syncPassphraseDesc": "Második titkosítási réteg a szinkronizált kedvencekhez: még ha a Nostr-kulcsa kompromittálódna is, a relék pillanatképe e jelmondat nélkül olvashatatlan marad. Minden új eszközön egyszer kell megadnia. Hagyja üresen a kikapcsoláshoz.",
   "syncSuccessSnack": "Kedvencek szinkronizálva",
   "syncFailedSnack": "A szinkronizálás sikertelen",
   "syncLastSyncLabel": "Utolsó szinkronizálás: {when}",

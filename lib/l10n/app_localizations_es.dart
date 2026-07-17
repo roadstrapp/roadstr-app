@@ -1038,6 +1038,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get syncPullButton => 'Recuperar de Nostr';
 
   @override
+  String get syncPassphraseTitle =>
+      'Frase de contraseña de sincronización (opcional)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Segunda capa de cifrado para los favoritos sincronizados: aunque tu clave Nostr se viera comprometida, la copia en los relays sigue siendo ilegible sin esta frase. La introducirás una vez en cada dispositivo nuevo. Déjala vacía para desactivarla.';
+
+  @override
   String get syncSuccessSnack => 'Favoritos sincronizados';
 
   @override

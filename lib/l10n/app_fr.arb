@@ -393,6 +393,8 @@
   "syncNoIdentity": "Connectez-vous avec Nostr (Réglages → Profil) pour activer la synchronisation",
   "syncNowButton": "Envoyer vers Nostr",
   "syncPullButton": "Récupérer depuis Nostr",
+  "syncPassphraseTitle": "Phrase secrète de synchronisation (facultative)",
+  "syncPassphraseDesc": "Deuxième couche de chiffrement pour les favoris synchronisés : même si votre clé Nostr était compromise, l'instantané sur les relais reste illisible sans cette phrase secrète. Vous la saisirez une fois sur chaque nouvel appareil. Laissez vide pour désactiver.",
   "syncSuccessSnack": "Favoris synchronisés",
   "syncFailedSnack": "Échec de la synchronisation",
   "syncLastSyncLabel": "Dernière synchronisation : {when}",

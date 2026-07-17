@@ -393,6 +393,8 @@
   "syncNoIdentity": "Log ind med Nostr (Indstillinger → Profil) for at aktivere synkronisering",
   "syncNowButton": "Send til Nostr",
   "syncPullButton": "Hent fra Nostr",
+  "syncPassphraseTitle": "Synkroniserings-adgangssætning (valgfri)",
+  "syncPassphraseDesc": "Andet krypteringslag for synkroniserede favoritter: selv hvis din Nostr-nøgle blev kompromitteret, forbliver øjebliksbilledet på relæerne ulæseligt uden denne adgangssætning. Du indtaster den én gang på hver ny enhed. Lad feltet stå tomt for at deaktivere.",
   "syncSuccessSnack": "Favoritter synkroniseret",
   "syncFailedSnack": "Synkronisering mislykkedes",
   "syncLastSyncLabel": "Sidst synkroniseret: {when}",

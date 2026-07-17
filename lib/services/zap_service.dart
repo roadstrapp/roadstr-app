@@ -63,7 +63,7 @@ class ZapService {
     try {
       ws = WebSocketChannel.connect(Uri.parse(_relay));
       final completer = Completer<String?>();
-      final subId = 'lud-${DateTime.now().millisecondsSinceEpoch}';
+      final subId = randomSubId();
 
       ws.stream.listen(
         (raw) {
@@ -252,7 +252,7 @@ class ZapService {
       ws = WebSocketChannel.connect(Uri.parse(relay));
       final completer = Completer<String?>();
       final reqId = DateTime.now().millisecondsSinceEpoch.toString();
-      final subId = 'nwc-$reqId';
+      final subId = randomSubId();
 
       ws.stream.listen(
         (raw) {
@@ -328,7 +328,7 @@ class ZapService {
       ws = WebSocketChannel.connect(Uri.parse(_relay));
       var totalMsat = 0;
       final completer = Completer<int>();
-      final subId = 'zt-$eventId';
+      final subId = randomSubId();
 
       ws.stream.listen(
         (raw) {
@@ -373,7 +373,7 @@ class ZapService {
       ws = WebSocketChannel.connect(Uri.parse(_relay));
       var totalMsat = 0;
       final completer = Completer<int>();
-      final subId = 'bal-$pubHex';
+      final subId = randomSubId();
 
       ws.stream.listen(
         (raw) {

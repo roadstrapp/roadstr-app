@@ -1037,6 +1037,14 @@ class AppLocalizationsMt extends AppLocalizations {
   String get syncPullButton => 'Ġib minn Nostr';
 
   @override
+  String get syncPassphraseTitle =>
+      'Frażi sigrieta tas-sinkronizzazzjoni (mhux obbligatorja)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'It-tieni saff ta\' kriptaġġ għall-favoriti sinkronizzati: anke jekk iċ-ċavetta Nostr tiegħek tiġi kompromessa, l-istampa fuq ir-relays tibqa\' ma tinqarax mingħajr din il-frażi. Iddaħħalha darba fuq kull apparat ġdid. Ħalli vojt biex titfi.';
+
+  @override
   String get syncSuccessSnack => 'Il-favoriti ġew sinkronizzati';
 
   @override

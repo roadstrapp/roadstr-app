@@ -1032,6 +1032,14 @@ class AppLocalizationsSk extends AppLocalizations {
   String get syncPullButton => 'Stiahnuť z Nostr';
 
   @override
+  String get syncPassphraseTitle =>
+      'Prístupová fráza synchronizácie (voliteľná)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Druhá vrstva šifrovania synchronizovaných obľúbených: aj keby bol váš kľúč Nostr kompromitovaný, snímka na relayoch zostane bez tejto frázy nečitateľná. Zadáte ju raz na každom novom zariadení. Ponechajte prázdne na vypnutie.';
+
+  @override
   String get syncSuccessSnack => 'Obľúbené synchronizované';
 
   @override

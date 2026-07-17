@@ -393,6 +393,8 @@
   "syncNoIdentity": "Pierakstieties ar Nostr (Iestatījumi → Profils), lai iespējotu sinhronizāciju",
   "syncNowButton": "Nosūtīt uz Nostr",
   "syncPullButton": "Iegūt no Nostr",
+  "syncPassphraseTitle": "Sinhronizācijas paroles frāze (neobligāta)",
+  "syncPassphraseDesc": "Otrs šifrēšanas slānis sinhronizētajām izlasēm: pat ja jūsu Nostr atslēga tiktu kompromitēta, momentuzņēmums relejos bez šīs frāzes paliek nelasāms. Ievadīsiet to vienreiz katrā jaunā ierīcē. Atstājiet tukšu, lai atspējotu.",
   "syncSuccessSnack": "Izlase sinhronizēta",
   "syncFailedSnack": "Sinhronizācija neizdevās",
   "syncLastSyncLabel": "Pēdējā sinhronizācija: {when}",

@@ -1038,6 +1038,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get syncPullButton => 'Letöltés a Nostrról';
 
   @override
+  String get syncPassphraseTitle => 'Szinkronizálási jelmondat (opcionális)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Második titkosítási réteg a szinkronizált kedvencekhez: még ha a Nostr-kulcsa kompromittálódna is, a relék pillanatképe e jelmondat nélkül olvashatatlan marad. Minden új eszközön egyszer kell megadnia. Hagyja üresen a kikapcsoláshoz.';
+
+  @override
   String get syncSuccessSnack => 'Kedvencek szinkronizálva';
 
   @override

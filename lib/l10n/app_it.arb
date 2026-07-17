@@ -318,6 +318,8 @@
   "syncFavoritesDesc": "Pubblica i tuoi preferiti, cifrati end-to-end, sui tuoi relay Nostr così ti seguono su altri dispositivi. I relay vedono solo dati cifrati — nessuno tranne te può leggerne il contenuto.",
   "syncNowButton": "Pubblica su Nostr",
   "syncPullButton": "Recupera da Nostr",
+  "syncPassphraseTitle": "Passphrase di sincronizzazione (opzionale)",
+  "syncPassphraseDesc": "Secondo livello di cifratura per i preferiti sincronizzati: anche se la tua chiave Nostr venisse compromessa, lo snapshot sui relay resta illeggibile senza questa passphrase. La inserirai una volta su ogni nuovo dispositivo. Lascia vuoto per disattivare.",
   "syncSuccessSnack": "Preferiti sincronizzati",
   "syncFailedSnack": "Sincronizzazione fallita",
   "syncLastSyncLabel": "Ultima sincronizzazione: {when}",

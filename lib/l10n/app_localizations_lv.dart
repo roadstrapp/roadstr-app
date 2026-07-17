@@ -1035,6 +1035,14 @@ class AppLocalizationsLv extends AppLocalizations {
   String get syncPullButton => 'Iegūt no Nostr';
 
   @override
+  String get syncPassphraseTitle =>
+      'Sinhronizācijas paroles frāze (neobligāta)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Otrs šifrēšanas slānis sinhronizētajām izlasēm: pat ja jūsu Nostr atslēga tiktu kompromitēta, momentuzņēmums relejos bez šīs frāzes paliek nelasāms. Ievadīsiet to vienreiz katrā jaunā ierīcē. Atstājiet tukšu, lai atspējotu.';
+
+  @override
   String get syncSuccessSnack => 'Izlase sinhronizēta';
 
   @override

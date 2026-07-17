@@ -49,11 +49,14 @@ class NostrProfile {
 class NostrRelayService {
   final _eventApi = EventApi();
 
-  /// Primary relays used for subscriptions (tried in round-robin order on failure).
+  /// Primary relays used for subscriptions (tried in round-robin order on
+  /// failure). NB: relay.nostr.band was deliberately REMOVED — this is the
+  /// persistent socket that carries the user's geohash area subscriptions
+  /// (a coarse live-location beacon), and nostr.band feeds a public search
+  /// indexer: the one place that trail must never land.
   static const _relays = [
     'wss://relay.damus.io',
     'wss://nos.lol',
-    'wss://relay.nostr.band',
   ];
 
   /// Additional relays used only for publishing (fire-and-forget) to maximise
@@ -89,7 +92,7 @@ class NostrRelayService {
   String _eventsSubId  = '';
   String _confSubId    = '';
 
-  /// The two geohash strings (precision 4 and 5) of the last subscribed area.
+  /// The geohash (precision 4) of the last subscribed area.
   /// Compared on each [subscribeArea] call to avoid redundant REQ messages.
   List<String> _lastGeohashes = [];
 
@@ -142,10 +145,15 @@ class NostrRelayService {
   /// Subscribes to road events (kind 1315) within the geohash cell that contains
   /// [center].
   ///
-  /// **Why geohash levels 4 and 5?**
-  /// Level 4 covers roughly 40 × 20 km — wide enough to show events ahead on a
-  /// highway. Level 5 halves that to ~5 × 5 km for urban precision. Using both
-  /// ensures the relay filter matches events tagged at either granularity.
+  /// **Why ONLY geohash level 4 (~40 × 20 km)?**
+  /// Every published event is tagged with its own g4, g5 AND g6 (see
+  /// publishRoadEvent), and a same-g5 event necessarily shares our g4 (a
+  /// geohash is a prefix code) — so filtering on g4 alone already matches
+  /// every event the old [g4, g5] filter matched. Including g5 added ZERO
+  /// recall while telling the relay where the user is to ~5 × 5 km on every
+  /// cell crossing. This REQ is effectively a live location beacon; g4-only
+  /// makes it 8× coarser (city-level) and re-fires ~8× less often. Do not
+  /// "improve" precision here without re-reading this.
   ///
   /// **Why _events is NOT cleared here:**
   /// Clearing the map would cause all map markers to disappear briefly while the
@@ -153,12 +161,9 @@ class NostrRelayService {
   /// cleanup timer removes expired ones.
   void subscribeArea(LatLng center) {
     final g4 = _gh(center.latitude, center.longitude, 4);
-    final g5 = _gh(center.latitude, center.longitude, 5);
     // Skip if the user is still inside the same geohash cell as before.
-    if (_lastGeohashes.length == 2 &&
-        _lastGeohashes[0] == g4 &&
-        _lastGeohashes[1] == g5) return;
-    _lastGeohashes = [g4, g5];
+    if (_lastGeohashes.length == 1 && _lastGeohashes[0] == g4) return;
+    _lastGeohashes = [g4];
     _pendingIds.clear();
     // Keep _events intact — valid markers remain visible during relay round-trip.
     if (_connected) _sendEventsReq(_lastGeohashes);
@@ -311,7 +316,7 @@ class NostrRelayService {
   /// Closes any previous events subscription first to avoid duplicate messages.
   void _sendEventsReq(List<String> geohashes) {
     if (_eventsSubId.isNotEmpty) _send(['CLOSE', _eventsSubId]);
-    _eventsSubId = 'rs-${_nowS()}';
+    _eventsSubId = randomSubId();
     _send(['REQ', _eventsSubId, {
       'kinds': [1315],
       '#g':    geohashes,
@@ -326,7 +331,7 @@ class NostrRelayService {
   void _sendConfReq(List<String> ids) {
     if (ids.isEmpty) return;
     if (_confSubId.isNotEmpty) _send(['CLOSE', _confSubId]);
-    _confSubId = 'rc-${_nowS()}';
+    _confSubId = randomSubId();
     _send(['REQ', _confSubId, {
       'kinds': [1316],
       '#e':    ids,
@@ -553,8 +558,8 @@ class NostrRelayService {
       // same anti-inflation rules the live stream enforces via _countedVotes.
       final countedVotes = <String>{};
       final completer = Completer<List<RoadEvent>>();
-      final evSub  = 'ue-${_nowS()}';
-      final confSub = 'uc-${_nowS() + 1}';
+      final evSub  = randomSubId();
+      final confSub = randomSubId();
 
       ws.stream.listen(
         (raw) {
@@ -628,10 +633,12 @@ class NostrRelayService {
   /// Relays tried in order when fetching a Nostr kind-0 profile.
   /// Having multiple fallbacks increases the chance of finding the profile
   /// even when one relay is offline or doesn't have the user's metadata.
+  /// nostr.band removed here too: a profile REQ carries authors=[npub], and
+  /// handing "this npub is active right now at this IP" to a search-engine
+  /// operator is not worth a third fallback for cosmetic data.
   static const _profileRelays = [
     'wss://relay.damus.io',
     'wss://nos.lol',
-    'wss://relay.nostr.band',
   ];
 
   /// Fetches a Nostr kind-0 (profile metadata) event for [pubHex].
@@ -653,7 +660,7 @@ class NostrRelayService {
     try {
       ws = WebSocketChannel.connect(Uri.parse(relayUrl));
       final completer = Completer<NostrProfile?>();
-      final subId = 'prof-${_nowS()}';
+      final subId = randomSubId();
 
       ws.stream.listen(
         (raw) {
