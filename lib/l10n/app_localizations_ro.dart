@@ -732,7 +732,7 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.';
+      'Roadstr este o aplicație de navigație experimentală, cu sursă deschisă, întreținută de comunitate, bazată pe datele OpenStreetMap și pe protocolul Nostr, disponibilă pentru utilizare în orice țară. Prin descărcarea, instalarea sau utilizarea acestei aplicații, utilizatorul acceptă necondiționat toți termenii de mai jos, fără limitare teritorială.\n\n🚗 SIGURANȚA RUTIERĂ MAI PRESUS DE TOATE\nConducătorul auto trebuie să țină întotdeauna ochii pe drum și să respecte toate legile rutiere aplicabile și semnalizarea existentă, care au întotdeauna prioritate față de orice indicație a aplicației. Nu operați niciodată dispozitivul în timp ce conduceți; fixați-l într-un suport aprobat și vizibil înainte de a porni la drum și nu vă abateți niciodată atenția de la drum pentru a interacționa cu acesta cât timp vehiculul este în mișcare.\n\n⚠️ ASUMAREA RISCULUI — LA NIVEL MONDIAL\nPrin utilizarea Roadstr, în orice țară și sub orice sistem juridic, utilizatorul își asumă cu bună știință și în mod voluntar TOATE riscurile legate de utilizarea acesteia, incluzând, dar fără a se limita la: accidente rutiere, vătămări corporale, deces, daune materiale, daune aduse vehiculului, amenzi, sancțiuni administrative, ridicarea vehiculului, confiscarea acestuia, răspundere penală sau orice altă consecință care decurge direct sau indirect din încrederea acordată aplicației. Utilizatorul poartă singur întreaga responsabilitate pentru fiecare decizie de conducere și navigație.\n\n🚫 FĂRĂ GARANȚIE\nRoadstr este furnizată strict „CA ATARE” și „ÎN LIMITA DISPONIBILITĂȚII”, fără nicio garanție de orice fel, fie ea expresă, implicită sau legală — inclusiv, fără limitare, garanții privind acuratețea, exhaustivitatea, fiabilitatea, disponibilitatea, vandabilitatea, adecvarea pentru un anumit scop și neîncălcarea drepturilor terților. Datele cartografice, planificarea rutelor, limitele de viteză, radarele de viteză și informațiile privind zonele cu trafic restricționat (ZTL/ZAC/LTZ) provin din surse deschise, întreținute de comunitate (OpenStreetMap, Overpass API), care pot fi incomplete, depășite sau inexacte pentru orice țară, regiune sau localitate, în orice moment și fără notificare prealabilă. Utilizatorul este singurul responsabil de a verifica în mod independent, înainte și în timpul călătoriei, legalitatea și accesibilitatea oricărei rute sugerate, prin raportare la semnalizarea și reglementările locale oficiale.\n\n📍 PRECIZIE ȘI GPS\nPoziționarea GPS poate fi imprecisă sau indisponibilă. Toate indicațiile, distanțele și alertele sunt furnizate exclusiv cu titlu orientativ și nu trebuie niciodată considerate ca unic temei al unei decizii de conducere.\n\n🛡️ LIMITAREA RĂSPUNDERII\nÎn limita maximă permisă de legislația aplicabilă în orice jurisdicție, dezvoltatorii, colaboratorii și orice parte implicată în crearea sau distribuirea Roadstr nu vor răspunde pentru niciun fel de daune directe, indirecte, incidentale, subsecvente, speciale, exemplare sau punitive — inclusiv vătămări corporale, deces sau pierderi financiare — rezultate din sau legate de utilizarea sau imposibilitatea de a utiliza aplicația, chiar dacă au fost avertizați cu privire la posibilitatea unor astfel de daune. În cazul în care o jurisdicție nu permite, integral sau parțial, această limitare, răspunderea este limitată la măsura minimă permisă de legea din acea jurisdicție.\n\n🤝 DESPĂGUBIRE\nUtilizatorul este de acord să despăgubească și să exonereze de răspundere dezvoltatorii și colaboratorii pentru orice pretenție, daună, pierdere sau cheltuială (inclusiv onorarii de avocat) rezultate din utilizarea aplicației de către utilizator sau din încălcarea acestor termeni.\n\n🔒 CONFIDENȚIALITATE\nNiciun fel de date de localizare nu sunt transmise către serverele proprii ale Roadstr. Calcularea rutelor se realizează prin intermediul unor servicii terțe (OSRM, GraphHopper, OpenRouteService), cărora le sunt transmise doar coordonatele punctului de plecare și ale destinației.\n\n⚖️ DIVIZIBILITATE\nÎn cazul în care o prevedere a acestor termeni este considerată inaplicabilă într-o anumită jurisdicție, prevederea respectivă va fi limitată sau eliminată în măsura minimă necesară, iar toate celelalte prevederi vor rămâne pe deplin în vigoare.\n\nPrin utilizarea Roadstr, oriunde în lume, utilizatorul confirmă că a citit, a înțeles și a acceptat necondiționat fiecare dintre termenii de mai sus și își asumă întreaga și deplina responsabilitate — precum și întregul risc — pentru utilizarea aplicației și orice consecință rezultată din aceasta.';
 
   @override
   String get readOnWikipedia => 'Citește pe Wikipedia';
@@ -806,7 +806,7 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get ztlAheadWarning =>
-      'Zonă ZTL înainte — ruta intră în zonă restricționată';
+      'Zonă cu trafic restricționat înainte — ruta trece prin ea';
 
   @override
   String get ztlInsideWarning => 'Zonă cu trafic restricționat';
@@ -946,130 +946,108 @@ class AppLocalizationsRo extends AppLocalizations {
   String get onboardingNsecHint => 'nsec1…';
 
   @override
-  String get kokoroVoiceGenderTitle => 'Voice';
+  String get kokoroVoiceGenderTitle => 'Voce';
 
   @override
-  String get kokoroVoiceFemale => 'Female';
+  String get kokoroVoiceFemale => 'Feminină';
 
   @override
-  String get kokoroVoiceMale => 'Male';
+  String get kokoroVoiceMale => 'Masculină';
 
   @override
   String get kokoroVoiceGenderUnavailable =>
-      'Male voice not available for this language';
+      'Vocea masculină nu este disponibilă pentru această limbă';
 
   @override
-  String get kokoroSpeedTitle => 'Speech speed';
+  String get kokoroSpeedTitle => 'Viteza vorbirii';
 
   @override
   String get onboardingFavoritesSyncNotice =>
-      'Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.';
+      'Opțional: favoritele salvate se pot sincroniza între dispozitivele tale prin releele Nostr, criptate end-to-end (NIP-44) cu propria ta cheie — releele văd doar text cifrat și nimeni în afară de tine nu poate citi conținutul. Activează oricând din Setări.';
 
   @override
-  String get parkingSaveHere => 'Save parking here';
+  String get parkingSaveHere => 'Salvează parcarea aici';
 
   @override
-  String get parkingMarkerTitle => 'Parking spot';
+  String get parkingMarkerTitle => 'Loc de parcare';
 
   @override
-  String get parkingNavigateHere => 'Navigate to parking';
+  String get parkingNavigateHere => 'Navighează la parcare';
 
   @override
-  String get parkingRemove => 'Remove parking';
+  String get parkingRemove => 'Elimină parcarea';
 
   @override
-  String get parkingSavedSnack => 'Parking spot saved';
+  String get parkingSavedSnack => 'Locul de parcare a fost salvat';
 
   @override
-  String get parkingRemovedSnack => 'Parking spot removed';
+  String get parkingRemovedSnack => 'Locul de parcare a fost eliminat';
 
   @override
-  String get exportFavoritesTitle => 'Export favorites';
+  String get exportFavoritesTitle => 'Exportă favoritele';
 
   @override
   String get exportFavoritesDesc =>
-      'Save your favorite places to a JSON file you can back up or move to another device.';
+      'Salvează locurile tale preferate într-un fișier JSON pe care îl poți păstra ca backup sau muta pe alt dispozitiv.';
 
   @override
-  String get exportEncryptToggle => 'Encrypt with a password';
+  String get exportEncryptToggle => 'Criptează cu parolă';
 
   @override
-  String get exportPasswordHint => 'Password';
+  String get exportPasswordHint => 'Parolă';
 
   @override
-  String get exportButton => 'Export';
+  String get exportButton => 'Exportă';
 
   @override
-  String get exportSuccessSnack => 'Favorites exported';
+  String get exportSuccessSnack => 'Favoritele au fost exportate';
 
   @override
-  String get exportFailedSnack => 'Export failed';
+  String get exportFailedSnack => 'Exportul a eșuat';
 
   @override
-  String get importFavoritesTitle => 'Import favorites';
-
-  @override
-  String get importButton => 'Import';
+  String get importFavoritesTitle => 'Importă favoritele';
 
   @override
   String get importPasswordPrompt =>
-      'This file is encrypted — enter the password';
+      'Acest fișier este criptat — introdu parola';
 
   @override
   String importSuccessSnack(int n) {
-    return '$n favorites imported';
+    return '$n favorite importate';
   }
 
   @override
-  String get importFailedSnack => 'Import failed — check the file and password';
+  String get importFailedSnack =>
+      'Importul a eșuat — verifică fișierul și parola';
 
   @override
-  String get syncFavoritesTitle => 'Sync favorites';
+  String get syncFavoritesTitle => 'Sincronizează favoritele';
 
   @override
   String get syncFavoritesDesc =>
-      'Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.';
+      'Publică favoritele tale, criptate end-to-end, pe releele tale Nostr pentru a te urma pe toate dispozitivele. Releele văd doar text cifrat — nimeni în afară de tine nu poate citi conținutul.';
 
   @override
-  String get syncFavoritesEnable => 'Enable sync';
+  String get syncNowButton => 'Trimite pe Nostr';
 
   @override
-  String get syncNowButton => 'Push to Nostr';
+  String get syncPullButton => 'Preia de pe Nostr';
 
   @override
-  String get syncPullButton => 'Pull from Nostr';
+  String get syncSuccessSnack => 'Favoritele au fost sincronizate';
 
   @override
-  String get syncPushingStatus => 'Publishing…';
-
-  @override
-  String get syncPullingStatus => 'Fetching…';
-
-  @override
-  String get syncSuccessSnack => 'Favorites synced';
-
-  @override
-  String get syncFailedSnack => 'Sync failed';
-
-  @override
-  String get syncNotAvailableAmber =>
-      'Encrypted sync isn\'t available with Amber sign-in yet';
+  String get syncFailedSnack => 'Sincronizarea a eșuat';
 
   @override
   String syncLastSyncLabel(String when) {
-    return 'Last synced: $when';
+    return 'Ultima sincronizare: $when';
   }
 
   @override
   String get syncNoIdentity =>
-      'Sign in with Nostr (Settings → Profile) to enable sync';
-
-  @override
-  String get syncPullConfirmTitle => 'Replace local favorites?';
-
-  @override
-  String get syncPullConfirmBody =>
-      'This will merge favorites fetched from Nostr with the ones already on this device.';
+      'Autentifică-te cu Nostr (Setări → Profil) pentru a activa sincronizarea';
 
   @override
   String get onboardingVpnNotice =>
@@ -1078,4 +1056,30 @@ class AppLocalizationsRo extends AppLocalizations {
   @override
   String get onboardingGrapheneAlwaysAllow =>
       'Pentru o funcționare fiabilă, setați permisiunea de localizare a aplicației pe „Permite întotdeauna”, nu doar în timpul utilizării.';
+
+  @override
+  String get trafficNormal => 'Trafic normal';
+
+  @override
+  String get trafficModerate => 'Trafic moderat';
+
+  @override
+  String get trafficHeavy => 'Trafic intens';
+
+  @override
+  String get avoidHighwaysChip => 'Evită autostrăzile';
+
+  @override
+  String get avoidTollsChip => 'Evită taxele de drum';
+
+  @override
+  String get preferShorterChip => 'Cea mai scurtă rută';
+
+  @override
+  String zapAmountButton(int sats) {
+    return 'Zap $sats sat';
+  }
+
+  @override
+  String get showRoutePreview => 'Afișează previzualizarea rutei';
 }

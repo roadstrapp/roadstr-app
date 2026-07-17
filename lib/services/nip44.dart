@@ -138,7 +138,10 @@ class Nip44 {
       throw const Nip44DecryptException('padded payload too short');
     }
     final n = (padded[0] << 8) | padded[1];
-    if (n <= 0 || 2 + n > padded.length) {
+    // Reference implementation also requires the padded length to be EXACTLY
+    // what _paddedLen(n) prescribes — a spec-conformance check that rejects
+    // payloads other NIP-44 implementations would refuse too.
+    if (n <= 0 || n > 65535 || padded.length != 2 + _paddedLen(n)) {
       throw const Nip44DecryptException('invalid length prefix');
     }
     return utf8.decode(padded.sublist(2, 2 + n));

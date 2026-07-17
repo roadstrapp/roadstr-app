@@ -293,7 +293,7 @@
   "lightningAddressCopied": "⚡ {address} skopírované do schránky",
   "disclaimerTitle": "Dôležité upozornenie",
   "disclaimerAccept": "Prečítal/a som a súhlasím",
-  "disclaimerBody": "Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app's instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.",
+  "disclaimerBody": "Roadstr je experimentálna, open-source, komunitou spravovaná navigačná aplikácia založená na dátach OpenStreetMap a protokole Nostr, sprístupnená na použitie v ktorejkoľvek krajine. Stiahnutím, inštaláciou alebo používaním tejto aplikácie používateľ bezpodmienečne prijíma všetky nasledujúce podmienky, bez územného obmedzenia.\n\n🚗 BEZPEČNOSŤ CESTNEJ PREMÁVKY NA PRVOM MIESTE\nVodič musí vždy sledovať cestu a dodržiavať všetky platné dopravné predpisy a umiestnené dopravné značenie, ktoré má vždy prednosť pred akýmkoľvek pokynom aplikácie. Nikdy neobsluhujte zariadenie počas jazdy; pred vyrazením na cestu ho upevnite v schválenom, viditeľnom držiaku a počas jazdy vozidla nikdy neodkláňajte pozornosť od cesty kvôli interakcii s ním.\n\n⚠️ PREVZATIE RIZIKA — CELOSVETOVO\nPoužívaním aplikácie Roadstr, v ktorejkoľvek krajine a podľa akéhokoľvek právneho systému, používateľ vedome a dobrovoľne preberá VŠETKY riziká spojené s jej používaním, vrátane, ale nie výlučne: dopravných nehôd, ublíženia na zdraví, úmrtia, škody na majetku, poškodenia vozidla, pokút, správnych sankcií, odtiahnutia vozidla, jeho zaistenia, trestnoprávnej zodpovednosti alebo akýchkoľvek iných následkov vyplývajúcich priamo či nepriamo zo spoliehania sa na aplikáciu. Používateľ sám nesie plnú zodpovednosť za každé rozhodnutie súvisiace s vedením vozidla a navigáciou.\n\n🚫 ŽIADNA ZÁRUKA\nRoadstr sa poskytuje výlučne „TAK, AKO JE“ a „PODĽA DOSTUPNOSTI“, bez akejkoľvek záruky, či už výslovnej, implicitnej alebo zákonnej — vrátane, bez obmedzenia, záruk presnosti, úplnosti, spoľahlivosti, dostupnosti, predajnosti, vhodnosti na konkrétny účel a neporušovania práv. Mapové dáta, plánovanie trasy, rýchlostné limity, informácie o rýchlostných kamerách a zónach s obmedzenou dopravou (ZTL/ZAC/LTZ) pochádzajú z otvorených, komunitou spravovaných zdrojov (OpenStreetMap, Overpass API), ktoré môžu byť neúplné, zastarané alebo nepresné pre ktorúkoľvek krajinu, región alebo obec, kedykoľvek a bez upozornenia. Používateľ je výlučne zodpovedný za to, aby si pred cestou a počas nej samostatne overil zákonnosť a priechodnosť akejkoľvek navrhovanej trasy porovnaním s oficiálnym miestnym dopravným značením a predpismi.\n\n📍 PRESNOSŤ A GPS\nUrčovanie polohy prostredníctvom GPS môže byť nepresné alebo nedostupné. Všetky pokyny, vzdialenosti a upozornenia sú poskytované len na orientačné účely a nikdy by sa nemali považovať za jediný podklad pre rozhodnutie o vedení vozidla.\n\n🛡️ OBMEDZENIE ZODPOVEDNOSTI\nV najväčšom rozsahu povolenom platným právom v ktorejkoľvek jurisdikcii, vývojári, prispievatelia a akákoľvek strana zúčastnená na tvorbe alebo distribúcii aplikácie Roadstr nenesú zodpovednosť za žiadne priame, nepriame, náhodné, následné, osobitné, exemplárne alebo represívne škody akéhokoľvek druhu — vrátane ublíženia na zdraví, úmrtia alebo finančnej straty — vyplývajúce z používania alebo nemožnosti používať aplikáciu alebo s tým súvisiace, a to aj v prípade, že boli upozornení na možnosť vzniku takýchto škôd. Ak niektorá jurisdikcia neumožňuje čiastočne alebo úplne uplatniť toto obmedzenie, zodpovednosť sa obmedzuje na najmenší rozsah povolený právom danej jurisdikcie.\n\n🤝 NÁHRADA ŠKODY\nPoužívateľ súhlasí s tým, že odškodní a ochráni vývojárov a prispievateľov pred akýmikoľvek nárokmi, škodami, stratami alebo výdavkami (vrátane trov právneho zastúpenia) vyplývajúcimi z používania aplikácie používateľom alebo z porušenia týchto podmienok.\n\n🔒 OCHRANA SÚKROMIA\nŽiadne údaje o polohe sa neprenášajú na vlastné servery Roadstr. Výpočet trasy sa vykonáva prostredníctvom služieb tretích strán (OSRM, GraphHopper, OpenRouteService), ktorým sa odosielajú iba súradnice východiskového bodu a cieľa.\n\n⚖️ ODDELITEĽNOSŤ\nAk sa niektoré ustanovenie týchto podmienok v danej jurisdikcii ukáže ako nevymáhateľné, toto ustanovenie sa obmedzí alebo vypustí v minimálnom nevyhnutnom rozsahu a všetky ostatné ustanovenia zostávajú v plnej platnosti a účinnosti.\n\nPoužívaním aplikácie Roadstr, kdekoľvek na svete, používateľ potvrdzuje, že si prečítal, porozumel a bezpodmienečne prijal všetky vyššie uvedené podmienky, a preberá úplnú a výhradnú zodpovednosť — ako aj všetky riziká — za používanie aplikácie a akékoľvek z toho vyplývajúce následky.",
   "readOnWikipedia": "Čítať na Wikipédii",
   "searchOnEngine": "Hľadať na {engine}",
   "plannerFromHint": "Odkiaľ…",
@@ -314,7 +314,7 @@
   "weatherSnow": "Sneh",
   "weatherShowers": "Prehánky",
   "weatherThunderstorm": "Búrka",
-  "ztlAheadWarning": "Zóna ZTL vpredu — trasa vstupuje do obmedzenej zóny",
+  "ztlAheadWarning": "Vpredu je zóna s obmedzenou dopravou — trasa ňou prechádza",
   "ztlInsideWarning": "Obmedzená dopravná zóna",
   "onboardingAppSubtitle": "Open-source Nostr navigácia",
   "onboardingWelcomeTitle": "Vitajte",
@@ -357,5 +357,65 @@
   "onboardingProfileLoading": "Načítava sa profil…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "Pre maximálne súkromie — hlásenia sa šíria sieťou Nostr — odporúčame používať VPN. Odporúčanou voľbou je Mullvad s platbou v bitcoinoch.",
-  "onboardingGrapheneAlwaysAllow": "Pre spoľahlivú prevádzku nastavte povolenie polohy na „Povoliť vždy“, nie iba počas používania aplikácie."
+  "onboardingGrapheneAlwaysAllow": "Pre spoľahlivú prevádzku nastavte povolenie polohy na „Povoliť vždy“, nie iba počas používania aplikácie.",
+  "exportFavoritesTitle": "Exportovať obľúbené",
+  "exportFavoritesDesc": "Uložte si svoje obľúbené miesta do súboru JSON, ktorý môžete zálohovať alebo preniesť na iné zariadenie.",
+  "exportEncryptToggle": "Šifrovať heslom",
+  "exportPasswordHint": "Heslo",
+  "exportButton": "Exportovať",
+  "exportSuccessSnack": "Obľúbené boli exportované",
+  "exportFailedSnack": "Export zlyhal",
+  "importFavoritesTitle": "Importovať obľúbené",
+  "importPasswordPrompt": "Tento súbor je šifrovaný — zadajte heslo",
+  "importSuccessSnack": "Importovaných {n} obľúbených",
+  "@importSuccessSnack": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "importFailedSnack": "Import zlyhal — skontrolujte súbor a heslo",
+  "kokoroVoiceGenderTitle": "Hlas",
+  "kokoroVoiceFemale": "Ženský",
+  "kokoroVoiceMale": "Mužský",
+  "kokoroVoiceGenderUnavailable": "Mužský hlas nie je pre tento jazyk dostupný",
+  "kokoroSpeedTitle": "Rýchlosť reči",
+  "onboardingFavoritesSyncNotice": "Voliteľné: uložené obľúbené sa môžu synchronizovať medzi vašimi zariadeniami cez Nostr relé, šifrované end-to-end (NIP-44) vaším vlastným kľúčom — relé vidia iba šifrovaný text a nikto okrem vás nemôže obsah čítať. Aktivujte kedykoľvek v Nastaveniach.",
+  "parkingMarkerTitle": "Parkovacie miesto",
+  "parkingSaveHere": "Uložiť parkovanie tu",
+  "parkingSavedSnack": "Parkovacie miesto uložené",
+  "parkingNavigateHere": "Navigovať k parkovaniu",
+  "parkingRemove": "Odstrániť parkovanie",
+  "parkingRemovedSnack": "Parkovacie miesto odstránené",
+  "syncFavoritesTitle": "Synchronizovať obľúbené",
+  "syncFavoritesDesc": "Publikujte svoje obľúbené, šifrované end-to-end, na svoje Nostr relé, aby vás nasledovali na všetkých zariadeniach. Relé vidia iba šifrovaný text — nikto okrem vás nemôže obsah čítať.",
+  "syncNoIdentity": "Prihláste sa cez Nostr (Nastavenia → Profil) na aktiváciu synchronizácie",
+  "syncNowButton": "Odoslať na Nostr",
+  "syncPullButton": "Stiahnuť z Nostr",
+  "syncSuccessSnack": "Obľúbené synchronizované",
+  "syncFailedSnack": "Synchronizácia zlyhala",
+  "syncLastSyncLabel": "Naposledy synchronizované: {when}",
+  "@syncLastSyncLabel": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trafficNormal": "Bežná premávka",
+  "trafficModerate": "Mierna premávka",
+  "trafficHeavy": "Hustá premávka",
+  "avoidHighwaysChip": "Vyhnúť sa diaľniciam",
+  "avoidTollsChip": "Vyhnúť sa mýtu",
+  "preferShorterChip": "Najkratšia trasa",
+  "zapAmountButton": "Zap {sats} sat",
+  "@zapAmountButton": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
+  "showRoutePreview": "Zobraziť náhľad trasy"
 }

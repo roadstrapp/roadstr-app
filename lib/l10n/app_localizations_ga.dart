@@ -733,7 +733,7 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.';
+      'Is aip loingseoireachta thurgnamhach, foinse oscailte, arna cothabháil ag an bpobal í Roadstr atá bunaithe ar shonraí OpenStreetMap agus ar phrótacal Nostr, agus atá ar fáil lena húsáid in aon tír. Trí an aip seo a íoslódáil, a shuiteáil nó a úsáid, glacann an t-úsáideoir go neamhchoinníollach le gach ceann de na téarmaí seo a leanas, gan aon teorannú críche.\n\n🚗 SÁBHÁILTEACHT AR BHÓTHAR AR DTÚS\nNí mór don tiománaí a shúile a choinneáil ar an mbóthar i gcónaí agus cloí le gach dlí tráchta is infheidhme agus le comharthaíocht atá curtha suas, a mbeidh tosaíocht acu i gcónaí ar aon treoir ón aip. Ná hoibrigh an gléas riamh agus tú ag tiomáint; daingnigh é i mbuanáit fhormheasta atá le feiceáil sula gcuirfidh tú chun bóthair, agus ná díraigh d\'aird ón mbóthar riamh chun idirghníomhú leis fad is atá an fheithicil ag gluaiseacht.\n\n⚠️ GLACADH LEIS AN mBAOL — AR FUD AN DOMHAIN\nTrí Roadstr a úsáid, in aon tír agus faoi aon chóras dlí, glacann an t-úsáideoir go feasach agus go deonach le GACH baol a bhaineann lena húsáid, lena n-áirítear, gan a bheith teoranta dóibh: taismí tráchta, díobháil phearsanta, bás, damáiste maoine, damáiste feithicle, fíneálacha, pionóis riaracháin, tarraingt, coigistiú feithicle, dliteanas coiriúil, nó aon iarmhairt eile a eascraíonn go díreach nó go hindíreach as brath ar an aip. Is ar an úsáideoir amháin atá an fhreagracht iomlán as gach cinneadh tiomána agus loingseoireachta.\n\n🚫 GAN BHARÁNTA\nCuirtear Roadstr ar fáil go docht mar atá sé (\"AS IS\") agus mar atá sé ar fáil (\"AS AVAILABLE\"), gan aon bharánta d\'aon chineál, cibé acu sainráite, intuigthe nó reachtúil — lena n-áirítear, gan teorannú, barántaí cruinnis, iomláine, iontaofachta, infhaighteachta, indíolachta, oiriúnachta chun críche ar leith, agus neamhshárú. Tagann sonraí léarscáile, bealacharú, teorainneacha luais, ceamaraí luais, agus faisnéis maidir le criosanna trácht theoranta (ZTL/ZAC/LTZ) ó fhoinsí oscailte arna gcothabháil ag an bpobal (OpenStreetMap, Overpass API), a d\'fhéadfadh a bheith neamhiomlán, as dáta, nó mícheart d\'aon tír, réigiún nó bardas, ag am ar bith agus gan fógra. Is ar an úsáideoir amháin atá an fhreagracht as a fhíorú go neamhspleách, roimh an turas agus lena linn, an bhfuil aon bhealach a mholtar dleathach agus inrochtana de réir na comharthaíochta agus na rialachán áitiúla oifigiúla.\n\n📍 CRUINNEAS AGUS GPS\nD\'fhéadfadh suíomh GPS a bheith mícheart nó gan a bheith ar fáil. Ní sholáthraítear na treoracha, na faid agus na foláirimh go léir ach mar threoir amháin agus níor cheart brath orthu riamh mar an t-aon bhunús le cinneadh tiomána.\n\n🛡️ TEORANNÚ DLITEANAIS\nA mhéid is mó a cheadaítear faoin dlí is infheidhme in aon dlínse, ní bheidh na forbróirí, na rannpháirtithe, ná aon pháirtí a bhí bainteach le Roadstr a chruthú nó a dháileadh faoi dhliteanas as aon damáistí díreacha, indíreacha, teagmhasacha, iarmhartacha, speisialta, samplacha nó pionósacha d\'aon chineál — lena n-áirítear díobháil phearsanta, bás, nó caillteanas airgeadais — a eascraíonn as úsáid nó éagumas úsáide na haipe nó a bhaineann léi, fiú má cuireadh in iúl dóibh go bhféadfadh damáistí den sórt sin tarlú. I gcás nach gceadaíonn dlínse ar leith cuid nó iomlán an teorannaithe seo, teorannófar an dliteanas a mhéid is lú a cheadaítear faoi dhlí na dlínse sin.\n\n🤝 SLÁNAÍOCHT\nAontaíonn an t-úsáideoir na forbróirí agus na rannpháirtithe a shlánú agus a choinneáil saor ó dhíobháil in aghaidh aon éilimh, damáiste, caillteanais nó costais (lena n-áirítear táillí dlí) a eascraíonn as úsáid na haipe ag an úsáideoir nó as sárú na dtéarmaí seo.\n\n🔒 PRÍOBHÁIDEACHAS\nNí tharchuirtear aon sonraí suímh chuig freastalaithe féin Roadstr. Déantar an bealach a ríomh trí sheirbhísí tríú páirtí (OSRM, GraphHopper, OpenRouteService) nach seoltar chucu ach comhordanáidí an phointe tosaigh agus an cheann scríbe.\n\n⚖️ INSCARTHACHT\nMá mheastar go bhfuil aon fhoráil de na téarmaí seo dofhorghníomhaithe i ndlínse ar leith, teorannófar nó scarfar an fhoráil sin a mhéid is gá amháin, agus fanfaidh na forálacha eile go léir i lánfheidhm.\n\nTrí Roadstr a úsáid, in áit ar bith ar domhan, dearbhaíonn an t-úsáideoir gur léigh, gur thuig, agus gur ghlac sé/sí go neamhchoinníollach le gach téarma thuas, agus glacann sé/sí leis an bhfreagracht iomlán agus chríochnúil — agus an baol go léir — as úsáid na haipe agus as aon iarmhairt a eascraíonn aisti.';
 
   @override
   String get readOnWikipedia => 'Léigh ar Vicipéid';
@@ -807,7 +807,7 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get ztlAheadWarning =>
-      'Crios ZTL chun tosaigh — téann an bealach isteach i gcrios srianta';
+      'Tá crios tráchta srianta chun tosaigh — téann an bealach tríd';
 
   @override
   String get ztlInsideWarning => 'Crios tráchta srianta';
@@ -947,130 +947,108 @@ class AppLocalizationsGa extends AppLocalizations {
   String get onboardingNsecHint => 'nsec1…';
 
   @override
-  String get kokoroVoiceGenderTitle => 'Voice';
+  String get kokoroVoiceGenderTitle => 'Guth';
 
   @override
-  String get kokoroVoiceFemale => 'Female';
+  String get kokoroVoiceFemale => 'Baineann';
 
   @override
-  String get kokoroVoiceMale => 'Male';
+  String get kokoroVoiceMale => 'Fireann';
 
   @override
   String get kokoroVoiceGenderUnavailable =>
-      'Male voice not available for this language';
+      'Níl guth fireann ar fáil don teanga seo';
 
   @override
-  String get kokoroSpeedTitle => 'Speech speed';
+  String get kokoroSpeedTitle => 'Luas cainte';
 
   @override
   String get onboardingFavoritesSyncNotice =>
-      'Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.';
+      'Roghnach: is féidir do cheanáin shábháilte a shioncronú idir do ghléasanna trí na hathsheachadáin Nostr, criptithe ó cheann go ceann (NIP-44) le d’eochair féin — ní fheiceann na hathsheachadáin ach téacs criptithe, agus ní féidir le duine ar bith seachas tú féin an t-ábhar a léamh. Cumasaigh am ar bith ó na Socruithe.';
 
   @override
-  String get parkingSaveHere => 'Save parking here';
+  String get parkingSaveHere => 'Sábháil páirceáil anseo';
 
   @override
-  String get parkingMarkerTitle => 'Parking spot';
+  String get parkingMarkerTitle => 'Spás páirceála';
 
   @override
-  String get parkingNavigateHere => 'Navigate to parking';
+  String get parkingNavigateHere => 'Nascleanúint chuig an bpáirceáil';
 
   @override
-  String get parkingRemove => 'Remove parking';
+  String get parkingRemove => 'Bain an pháirceáil';
 
   @override
-  String get parkingSavedSnack => 'Parking spot saved';
+  String get parkingSavedSnack => 'Spás páirceála sábháilte';
 
   @override
-  String get parkingRemovedSnack => 'Parking spot removed';
+  String get parkingRemovedSnack => 'Spás páirceála bainte';
 
   @override
-  String get exportFavoritesTitle => 'Export favorites';
+  String get exportFavoritesTitle => 'Easpórtáil ceanáin';
 
   @override
   String get exportFavoritesDesc =>
-      'Save your favorite places to a JSON file you can back up or move to another device.';
+      'Sábháil do láithreacha is fearr leat i gcomhad JSON is féidir leat a chúltacú nó a aistriú go gléas eile.';
 
   @override
-  String get exportEncryptToggle => 'Encrypt with a password';
+  String get exportEncryptToggle => 'Criptigh le pasfhocal';
 
   @override
-  String get exportPasswordHint => 'Password';
+  String get exportPasswordHint => 'Pasfhocal';
 
   @override
-  String get exportButton => 'Export';
+  String get exportButton => 'Easpórtáil';
 
   @override
-  String get exportSuccessSnack => 'Favorites exported';
+  String get exportSuccessSnack => 'Ceanáin easpórtáilte';
 
   @override
-  String get exportFailedSnack => 'Export failed';
+  String get exportFailedSnack => 'Theip ar an easpórtáil';
 
   @override
-  String get importFavoritesTitle => 'Import favorites';
-
-  @override
-  String get importButton => 'Import';
+  String get importFavoritesTitle => 'Iompórtáil ceanáin';
 
   @override
   String get importPasswordPrompt =>
-      'This file is encrypted — enter the password';
+      'Tá an comhad seo criptithe — cuir isteach an pasfhocal';
 
   @override
   String importSuccessSnack(int n) {
-    return '$n favorites imported';
+    return '$n gceanán iompórtáilte';
   }
 
   @override
-  String get importFailedSnack => 'Import failed — check the file and password';
+  String get importFailedSnack =>
+      'Theip ar an iompórtáil — seiceáil an comhad agus an pasfhocal';
 
   @override
-  String get syncFavoritesTitle => 'Sync favorites';
+  String get syncFavoritesTitle => 'Sioncronaigh ceanáin';
 
   @override
   String get syncFavoritesDesc =>
-      'Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.';
+      'Foilsigh do cheanáin, criptithe ó cheann go ceann, chuig d’athsheachadáin Nostr ionas go leanfaidh siad thú ar fud do ghléasanna. Ní fheiceann na hathsheachadáin ach téacs criptithe — ní féidir le duine ar bith seachas tú féin an t-ábhar a léamh.';
 
   @override
-  String get syncFavoritesEnable => 'Enable sync';
+  String get syncNowButton => 'Seol chuig Nostr';
 
   @override
-  String get syncNowButton => 'Push to Nostr';
+  String get syncPullButton => 'Faigh ó Nostr';
 
   @override
-  String get syncPullButton => 'Pull from Nostr';
+  String get syncSuccessSnack => 'Ceanáin sioncronaithe';
 
   @override
-  String get syncPushingStatus => 'Publishing…';
-
-  @override
-  String get syncPullingStatus => 'Fetching…';
-
-  @override
-  String get syncSuccessSnack => 'Favorites synced';
-
-  @override
-  String get syncFailedSnack => 'Sync failed';
-
-  @override
-  String get syncNotAvailableAmber =>
-      'Encrypted sync isn\'t available with Amber sign-in yet';
+  String get syncFailedSnack => 'Theip ar an sioncronú';
 
   @override
   String syncLastSyncLabel(String when) {
-    return 'Last synced: $when';
+    return 'Sioncronaithe go deireanach: $when';
   }
 
   @override
   String get syncNoIdentity =>
-      'Sign in with Nostr (Settings → Profile) to enable sync';
-
-  @override
-  String get syncPullConfirmTitle => 'Replace local favorites?';
-
-  @override
-  String get syncPullConfirmBody =>
-      'This will merge favorites fetched from Nostr with the ones already on this device.';
+      'Logáil isteach le Nostr (Socruithe → Próifíl) chun sioncronú a chumasú';
 
   @override
   String get onboardingVpnNotice =>
@@ -1079,4 +1057,30 @@ class AppLocalizationsGa extends AppLocalizations {
   @override
   String get onboardingGrapheneAlwaysAllow =>
       'Le haghaidh oibriú iontaofa, socraigh cead suímh na haipe go \"Ceadaigh i gcónaí\", ní hamháin agus an aip in úsáid.';
+
+  @override
+  String get trafficNormal => 'Gnáth-thrácht';
+
+  @override
+  String get trafficModerate => 'Trácht measartha';
+
+  @override
+  String get trafficHeavy => 'Trácht trom';
+
+  @override
+  String get avoidHighwaysChip => 'Seachain mótarbhealaí';
+
+  @override
+  String get avoidTollsChip => 'Seachain dolaí';
+
+  @override
+  String get preferShorterChip => 'An bealach is giorra';
+
+  @override
+  String zapAmountButton(int sats) {
+    return 'Zap $sats sat';
+  }
+
+  @override
+  String get showRoutePreview => 'Taispeáin réamhamharc an bhealaigh';
 }

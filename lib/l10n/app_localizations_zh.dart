@@ -706,7 +706,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.';
+      'Roadstr是一款基于OpenStreetMap数据和Nostr协议的实验性开源社区维护导航应用程序，可供任何国家的用户使用。下载、安装或使用本应用程序即表示用户无条件接受以下全部条款，不受地域限制。\n\n🚗 道路安全第一\n驾驶员必须始终注视道路，并遵守所有适用的交通法规及现场交通标志，二者始终优先于本应用程序发出的任何指示。切勿在驾驶过程中操作本设备；应在出发前将设备固定于经认可且清晰可见的支架上，且在车辆行驶过程中，切勿因操作设备而分散对道路的注意力。\n\n⚠️ 风险自担——全球适用\n用户在任何国家、任何法律体系下使用Roadstr，即表示已明知并自愿承担与使用本应用程序相关的一切风险，包括但不限于：交通事故、人身伤害、死亡、财产损失、车辆损坏、罚款、行政处罚、拖车、车辆扣押、刑事责任，或因依赖本应用程序而直接或间接产生的任何其他后果。用户对每一项驾驶及导航决策承担全部且唯一的责任。\n\n🚫 不提供任何担保\nRoadstr严格按照\"现状\"及\"可用性现状\"提供，不附带任何明示、默示或法定的担保，包括但不限于关于准确性、完整性、可靠性、可用性、适销性、特定用途适用性及不侵权的担保。地图数据、路线计算、限速信息、测速摄像头以及限行区域（ZTL/ZAC/LTZ）信息均来自开放的社区维护数据源（OpenStreetMap、Overpass API），这些数据在任何国家、地区或市镇、任何时间均可能不完整、过时或不准确，且恕不另行通知。用户应自行负责，在出行前及出行过程中，依据当地官方标志和法规独立核实所建议路线的合法性及可通行性。\n\n📍 精度与GPS\nGPS定位可能不准确或不可用。所有方向指引、距离及提醒信息仅供参考，绝不可作为驾驶决策的唯一依据。\n\n🛡️ 责任限制\n在任何司法管辖区适用法律允许的最大范围内，开发者、贡献者以及参与创建或分发Roadstr的任何一方，均不对因使用或无法使用本应用程序而引起或与之相关的任何直接、间接、附带、后果性、特殊、惩戒性或惩罚性损害（包括人身伤害、死亡或经济损失）承担责任，即使已被告知可能发生此类损害亦然。若某一司法管辖区不允许全部或部分上述责任限制，则责任应在该司法管辖区法律所允许的最小范围内予以限制。\n\n🤝 赔偿\n用户同意就因其使用本应用程序或违反本条款而产生的任何索赔、损害、损失或费用（包括律师费），对开发者及贡献者进行赔偿并使其免受损害。\n\n🔒 隐私\n本应用程序不会将位置数据传输至Roadstr自身的服务器。路线计算通过第三方服务（OSRM、GraphHopper、OpenRouteService）完成，仅向其发送起点和终点坐标。\n\n⚖️ 可分割性\n若本条款中的任何条文在特定司法管辖区被认定为不可执行，该条文应在必要的最小范围内予以限制或删除，其余条文的完整效力及有效性不受影响。\n\n无论在世界任何地方使用Roadstr，用户均确认已阅读、理解并无条件接受上述全部条款，并对本应用程序的使用及由此产生的任何后果承担全部且完整的责任——及全部风险。';
 
   @override
   String get readOnWikipedia => '在维基百科上阅读';
@@ -779,7 +779,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get weatherThunderstorm => '雷雨';
 
   @override
-  String get ztlAheadWarning => 'ZTL限行区 — 路线进入限制区域';
+  String get ztlAheadWarning => '前方为限行区,路线将进入该区域';
 
   @override
   String get ztlInsideWarning => '限行区';
@@ -918,130 +918,103 @@ class AppLocalizationsZh extends AppLocalizations {
   String get onboardingNsecHint => 'nsec1…';
 
   @override
-  String get kokoroVoiceGenderTitle => 'Voice';
+  String get kokoroVoiceGenderTitle => '语音';
 
   @override
-  String get kokoroVoiceFemale => 'Female';
+  String get kokoroVoiceFemale => '女声';
 
   @override
-  String get kokoroVoiceMale => 'Male';
+  String get kokoroVoiceMale => '男声';
 
   @override
-  String get kokoroVoiceGenderUnavailable =>
-      'Male voice not available for this language';
+  String get kokoroVoiceGenderUnavailable => '该语言暂无男声';
 
   @override
-  String get kokoroSpeedTitle => 'Speech speed';
+  String get kokoroSpeedTitle => '语速';
 
   @override
   String get onboardingFavoritesSyncNotice =>
-      'Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.';
+      '可选：您保存的收藏可以通过Nostr中继在您的设备之间同步，使用您自己的密钥进行端到端加密（NIP-44）— 中继只能看到密文，除您之外没有人能读取内容。可随时在设置中启用。';
 
   @override
-  String get parkingSaveHere => 'Save parking here';
+  String get parkingSaveHere => '在此保存停车位置';
 
   @override
-  String get parkingMarkerTitle => 'Parking spot';
+  String get parkingMarkerTitle => '停车位置';
 
   @override
-  String get parkingNavigateHere => 'Navigate to parking';
+  String get parkingNavigateHere => '导航到停车位置';
 
   @override
-  String get parkingRemove => 'Remove parking';
+  String get parkingRemove => '删除停车位置';
 
   @override
-  String get parkingSavedSnack => 'Parking spot saved';
+  String get parkingSavedSnack => '停车位置已保存';
 
   @override
-  String get parkingRemovedSnack => 'Parking spot removed';
+  String get parkingRemovedSnack => '停车位置已删除';
 
   @override
-  String get exportFavoritesTitle => 'Export favorites';
+  String get exportFavoritesTitle => '导出收藏';
 
   @override
-  String get exportFavoritesDesc =>
-      'Save your favorite places to a JSON file you can back up or move to another device.';
+  String get exportFavoritesDesc => '将您收藏的地点保存为JSON文件，可用于备份或转移到其他设备。';
 
   @override
-  String get exportEncryptToggle => 'Encrypt with a password';
+  String get exportEncryptToggle => '使用密码加密';
 
   @override
-  String get exportPasswordHint => 'Password';
+  String get exportPasswordHint => '密码';
 
   @override
-  String get exportButton => 'Export';
+  String get exportButton => '导出';
 
   @override
-  String get exportSuccessSnack => 'Favorites exported';
+  String get exportSuccessSnack => '收藏已导出';
 
   @override
-  String get exportFailedSnack => 'Export failed';
+  String get exportFailedSnack => '导出失败';
 
   @override
-  String get importFavoritesTitle => 'Import favorites';
+  String get importFavoritesTitle => '导入收藏';
 
   @override
-  String get importButton => 'Import';
-
-  @override
-  String get importPasswordPrompt =>
-      'This file is encrypted — enter the password';
+  String get importPasswordPrompt => '此文件已加密 — 请输入密码';
 
   @override
   String importSuccessSnack(int n) {
-    return '$n favorites imported';
+    return '已导入$n个收藏';
   }
 
   @override
-  String get importFailedSnack => 'Import failed — check the file and password';
+  String get importFailedSnack => '导入失败 — 请检查文件和密码';
 
   @override
-  String get syncFavoritesTitle => 'Sync favorites';
+  String get syncFavoritesTitle => '同步收藏';
 
   @override
   String get syncFavoritesDesc =>
-      'Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.';
+      '将您的收藏以端到端加密方式发布到您的Nostr中继，让它们在所有设备上跟随您。中继只能看到密文 — 除您之外没有人能读取内容。';
 
   @override
-  String get syncFavoritesEnable => 'Enable sync';
+  String get syncNowButton => '推送到Nostr';
 
   @override
-  String get syncNowButton => 'Push to Nostr';
+  String get syncPullButton => '从Nostr拉取';
 
   @override
-  String get syncPullButton => 'Pull from Nostr';
+  String get syncSuccessSnack => '收藏已同步';
 
   @override
-  String get syncPushingStatus => 'Publishing…';
-
-  @override
-  String get syncPullingStatus => 'Fetching…';
-
-  @override
-  String get syncSuccessSnack => 'Favorites synced';
-
-  @override
-  String get syncFailedSnack => 'Sync failed';
-
-  @override
-  String get syncNotAvailableAmber =>
-      'Encrypted sync isn\'t available with Amber sign-in yet';
+  String get syncFailedSnack => '同步失败';
 
   @override
   String syncLastSyncLabel(String when) {
-    return 'Last synced: $when';
+    return '上次同步：$when';
   }
 
   @override
-  String get syncNoIdentity =>
-      'Sign in with Nostr (Settings → Profile) to enable sync';
-
-  @override
-  String get syncPullConfirmTitle => 'Replace local favorites?';
-
-  @override
-  String get syncPullConfirmBody =>
-      'This will merge favorites fetched from Nostr with the ones already on this device.';
+  String get syncNoIdentity => '使用Nostr登录（设置 → 个人资料）以启用同步';
 
   @override
   String get onboardingVpnNotice =>
@@ -1050,4 +1023,30 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get onboardingGrapheneAlwaysAllow =>
       '为确保应用正常运行，请将位置权限设置为“始终允许”，而不仅是使用应用时允许。';
+
+  @override
+  String get trafficNormal => '交通正常';
+
+  @override
+  String get trafficModerate => '交通缓行';
+
+  @override
+  String get trafficHeavy => '交通拥堵';
+
+  @override
+  String get avoidHighwaysChip => '避开高速公路';
+
+  @override
+  String get avoidTollsChip => '避开收费道路';
+
+  @override
+  String get preferShorterChip => '最短路线';
+
+  @override
+  String zapAmountButton(int sats) {
+    return 'Zap $sats sat';
+  }
+
+  @override
+  String get showRoutePreview => '显示路线预览';
 }

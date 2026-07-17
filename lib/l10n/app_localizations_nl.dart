@@ -734,7 +734,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.';
+      'Roadstr is een experimentele, open-source, door de gemeenschap onderhouden navigatie-app op basis van OpenStreetMap-gegevens en het Nostr-protocol, beschikbaar gesteld voor gebruik in elk land. Door deze app te downloaden, te installeren of te gebruiken, aanvaardt de gebruiker onvoorwaardelijk alle onderstaande voorwaarden, zonder territoriale beperking.\n\n🚗 VERKEERSVEILIGHEID STAAT VOOROP\nDe bestuurder moet te allen tijde zijn ogen op de weg gericht houden en alle toepasselijke verkeerswetten en aanwezige verkeersborden naleven, die altijd voorrang hebben boven elke instructie van de app. Het toestel mag nooit worden bediend tijdens het rijden; bevestig het vóór vertrek in een goedgekeurde, zichtbare houder, en richt de aandacht tijdens het rijden nooit van de weg af om ermee te interageren.\n\n⚠️ AANVAARDING VAN RISICO — WERELDWIJD\nDoor Roadstr te gebruiken, in elk land en onder elk rechtsstelsel, aanvaardt de gebruiker bewust en vrijwillig ALLE risico\'s die verband houden met het gebruik ervan, met inbegrip van, maar niet beperkt tot: verkeersongevallen, lichamelijk letsel, overlijden, materiële schade, voertuigschade, boetes, administratieve sancties, wegslepen, inbeslagname, strafrechtelijke aansprakelijkheid, of enig ander gevolg dat direct of indirect voortvloeit uit het vertrouwen op de app. De gebruiker draagt als enige de volledige verantwoordelijkheid voor elke rij- en navigatiebeslissing.\n\n🚫 GEEN GARANTIE\nRoadstr wordt strikt \"ZOALS HET IS\" en \"ZOALS BESCHIKBAAR\" aangeboden, zonder enige garantie van welke aard dan ook, uitdrukkelijk, impliciet of wettelijk — met inbegrip van, maar niet beperkt tot, garanties van nauwkeurigheid, volledigheid, betrouwbaarheid, beschikbaarheid, verkoopbaarheid, geschiktheid voor een bepaald doel en niet-inbreuk. Kaartgegevens, routeberekening, snelheidslimieten, flitspalen en informatie over zones met verkeersbeperkingen (ZTL/ZAC/LTZ) zijn afkomstig van open, door de gemeenschap onderhouden bronnen (OpenStreetMap, Overpass API) die voor elk land, elke regio of gemeente op elk moment en zonder voorafgaande kennisgeving onvolledig, verouderd of onnauwkeurig kunnen zijn. De gebruiker is als enige verantwoordelijk voor het vóór en tijdens de reis zelfstandig verifiëren van de rechtmatigheid en begaanbaarheid van elke voorgestelde route aan de hand van de officiële plaatselijke bebording en voorschriften.\n\n📍 NAUWKEURIGHEID & GPS\nGPS-positionering kan onnauwkeurig of niet beschikbaar zijn. Alle routebeschrijvingen, afstanden en meldingen worden uitsluitend ter oriëntatie verstrekt en mogen nooit worden gebruikt als enige basis voor een rijbeslissing.\n\n🛡️ BEPERKING VAN AANSPRAKELIJKHEID\nVoor zover maximaal toegestaan door het toepasselijke recht in elk rechtsgebied, zijn de ontwikkelaars, medewerkers en elke partij die betrokken is bij het creëren of verspreiden van Roadstr niet aansprakelijk voor directe, indirecte, incidentele, gevolg-, bijzondere, voorbeeld- of punitieve schade van welke aard dan ook — met inbegrip van lichamelijk letsel, overlijden of financieel verlies — die voortvloeit uit of verband houdt met het gebruik of het onvermogen om de app te gebruiken, zelfs indien gewezen op de mogelijkheid van dergelijke schade. Indien een rechtsgebied deze beperking geheel of gedeeltelijk niet toestaat, is de aansprakelijkheid beperkt tot de kleinst mogelijke omvang die door de wet van dat rechtsgebied wordt toegestaan.\n\n🤝 VRIJWARING\nDe gebruiker stemt ermee in de ontwikkelaars en medewerkers te vrijwaren en schadeloos te stellen voor elke claim, schade, verlies of kosten (met inbegrip van juridische kosten) die voortvloeien uit het gebruik van de app door de gebruiker of uit schending van deze voorwaarden.\n\n🔒 PRIVACY\nEr worden geen locatiegegevens verzonden naar de eigen servers van Roadstr. De routeberekening wordt uitgevoerd via diensten van derden (OSRM, GraphHopper, OpenRouteService), waaraan uitsluitend de start- en bestemmingscoördinaten worden verzonden.\n\n⚖️ SCHEIDBAARHEID\nIndien een bepaling van deze voorwaarden in een bepaald rechtsgebied onafdwingbaar wordt bevonden, wordt die bepaling in de minimaal noodzakelijke mate beperkt of geschrapt, en blijven alle overige bepalingen onverminderd van kracht.\n\nDoor Roadstr te gebruiken, waar ook ter wereld, bevestigt de gebruiker alle bovenstaande voorwaarden te hebben gelezen, begrepen en onvoorwaardelijk aanvaard, en aanvaardt hij de volledige verantwoordelijkheid — en alle risico\'s — voor het gebruik van de applicatie en elk gevolg daarvan.';
 
   @override
   String get readOnWikipedia => 'Lees op Wikipedia';
@@ -808,7 +808,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get ztlAheadWarning =>
-      'ZTL-zone nadert — route voert door beperkt gebied';
+      'Verkeersbeperkte zone vooruit — de route gaat erdoorheen';
 
   @override
   String get ztlInsideWarning => 'Verkeersbeperkte zone';
@@ -948,130 +948,108 @@ class AppLocalizationsNl extends AppLocalizations {
   String get onboardingNsecHint => 'nsec1…';
 
   @override
-  String get kokoroVoiceGenderTitle => 'Voice';
+  String get kokoroVoiceGenderTitle => 'Stem';
 
   @override
-  String get kokoroVoiceFemale => 'Female';
+  String get kokoroVoiceFemale => 'Vrouwelijk';
 
   @override
-  String get kokoroVoiceMale => 'Male';
+  String get kokoroVoiceMale => 'Mannelijk';
 
   @override
   String get kokoroVoiceGenderUnavailable =>
-      'Male voice not available for this language';
+      'Mannelijke stem niet beschikbaar voor deze taal';
 
   @override
-  String get kokoroSpeedTitle => 'Speech speed';
+  String get kokoroSpeedTitle => 'Spreeksnelheid';
 
   @override
   String get onboardingFavoritesSyncNotice =>
-      'Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.';
+      'Optioneel: je opgeslagen favorieten kunnen synchroniseren tussen je apparaten via de Nostr-relays, end-to-end versleuteld (NIP-44) met je eigen sleutel — relays zien alleen versleutelde tekst en niemand behalve jij kan de inhoud lezen. Schakel het op elk moment in via Instellingen.';
 
   @override
-  String get parkingSaveHere => 'Save parking here';
+  String get parkingSaveHere => 'Parkeerplek hier opslaan';
 
   @override
-  String get parkingMarkerTitle => 'Parking spot';
+  String get parkingMarkerTitle => 'Parkeerplek';
 
   @override
-  String get parkingNavigateHere => 'Navigate to parking';
+  String get parkingNavigateHere => 'Navigeer naar parkeerplek';
 
   @override
-  String get parkingRemove => 'Remove parking';
+  String get parkingRemove => 'Parkeerplek verwijderen';
 
   @override
-  String get parkingSavedSnack => 'Parking spot saved';
+  String get parkingSavedSnack => 'Parkeerplek opgeslagen';
 
   @override
-  String get parkingRemovedSnack => 'Parking spot removed';
+  String get parkingRemovedSnack => 'Parkeerplek verwijderd';
 
   @override
-  String get exportFavoritesTitle => 'Export favorites';
+  String get exportFavoritesTitle => 'Favorieten exporteren';
 
   @override
   String get exportFavoritesDesc =>
-      'Save your favorite places to a JSON file you can back up or move to another device.';
+      'Sla je favoriete plaatsen op in een JSON-bestand dat je kunt back-uppen of naar een ander apparaat kunt overzetten.';
 
   @override
-  String get exportEncryptToggle => 'Encrypt with a password';
+  String get exportEncryptToggle => 'Versleutelen met een wachtwoord';
 
   @override
-  String get exportPasswordHint => 'Password';
+  String get exportPasswordHint => 'Wachtwoord';
 
   @override
-  String get exportButton => 'Export';
+  String get exportButton => 'Exporteren';
 
   @override
-  String get exportSuccessSnack => 'Favorites exported';
+  String get exportSuccessSnack => 'Favorieten geëxporteerd';
 
   @override
-  String get exportFailedSnack => 'Export failed';
+  String get exportFailedSnack => 'Exporteren mislukt';
 
   @override
-  String get importFavoritesTitle => 'Import favorites';
-
-  @override
-  String get importButton => 'Import';
+  String get importFavoritesTitle => 'Favorieten importeren';
 
   @override
   String get importPasswordPrompt =>
-      'This file is encrypted — enter the password';
+      'Dit bestand is versleuteld — voer het wachtwoord in';
 
   @override
   String importSuccessSnack(int n) {
-    return '$n favorites imported';
+    return '$n favorieten geïmporteerd';
   }
 
   @override
-  String get importFailedSnack => 'Import failed — check the file and password';
+  String get importFailedSnack =>
+      'Importeren mislukt — controleer het bestand en het wachtwoord';
 
   @override
-  String get syncFavoritesTitle => 'Sync favorites';
+  String get syncFavoritesTitle => 'Favorieten synchroniseren';
 
   @override
   String get syncFavoritesDesc =>
-      'Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.';
+      'Publiceer je favorieten, end-to-end versleuteld, naar je Nostr-relays zodat ze je volgen op al je apparaten. Relays zien alleen versleutelde tekst — niemand behalve jij kan de inhoud lezen.';
 
   @override
-  String get syncFavoritesEnable => 'Enable sync';
+  String get syncNowButton => 'Naar Nostr sturen';
 
   @override
-  String get syncNowButton => 'Push to Nostr';
+  String get syncPullButton => 'Van Nostr ophalen';
 
   @override
-  String get syncPullButton => 'Pull from Nostr';
+  String get syncSuccessSnack => 'Favorieten gesynchroniseerd';
 
   @override
-  String get syncPushingStatus => 'Publishing…';
-
-  @override
-  String get syncPullingStatus => 'Fetching…';
-
-  @override
-  String get syncSuccessSnack => 'Favorites synced';
-
-  @override
-  String get syncFailedSnack => 'Sync failed';
-
-  @override
-  String get syncNotAvailableAmber =>
-      'Encrypted sync isn\'t available with Amber sign-in yet';
+  String get syncFailedSnack => 'Synchronisatie mislukt';
 
   @override
   String syncLastSyncLabel(String when) {
-    return 'Last synced: $when';
+    return 'Laatst gesynchroniseerd: $when';
   }
 
   @override
   String get syncNoIdentity =>
-      'Sign in with Nostr (Settings → Profile) to enable sync';
-
-  @override
-  String get syncPullConfirmTitle => 'Replace local favorites?';
-
-  @override
-  String get syncPullConfirmBody =>
-      'This will merge favorites fetched from Nostr with the ones already on this device.';
+      'Log in met Nostr (Instellingen → Profiel) om synchronisatie in te schakelen';
 
   @override
   String get onboardingVpnNotice =>
@@ -1080,4 +1058,30 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get onboardingGrapheneAlwaysAllow =>
       'Stel voor een betrouwbare werking de locatietoestemming van de app in op \"Altijd toestaan\", niet alleen tijdens gebruik.';
+
+  @override
+  String get trafficNormal => 'Normaal verkeer';
+
+  @override
+  String get trafficModerate => 'Matig verkeer';
+
+  @override
+  String get trafficHeavy => 'Druk verkeer';
+
+  @override
+  String get avoidHighwaysChip => 'Snelwegen vermijden';
+
+  @override
+  String get avoidTollsChip => 'Tolwegen vermijden';
+
+  @override
+  String get preferShorterChip => 'Kortste route';
+
+  @override
+  String zapAmountButton(int sats) {
+    return 'Zap $sats sat';
+  }
+
+  @override
+  String get showRoutePreview => 'Routevoorbeeld tonen';
 }

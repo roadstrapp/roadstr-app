@@ -293,7 +293,7 @@
   "lightningAddressCopied": "⚡ {address} nokopēts starpliktuvē",
   "disclaimerTitle": "Svarīgs paziņojums",
   "disclaimerAccept": "Esmu izlasījis(-usi) un piekrītu",
-  "disclaimerBody": "Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app's instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.",
+  "disclaimerBody": "Roadstr ir eksperimentāla, atvērtā koda, kopienas uzturēta navigācijas lietotne, kas balstīta uz OpenStreetMap datiem un Nostr protokolu un ir pieejama lietošanai jebkurā valstī. Lejupielādējot, instalējot vai lietojot šo lietotni, lietotājs beznosacījumu kārtā piekrīt visiem tālāk minētajiem noteikumiem bez teritoriāliem ierobežojumiem.\n\n🚗 SATIKSMES DROŠĪBA VISPIRMS\nVadītājam vienmēr jāskatās uz ceļu un jāievēro visi piemērojamie ceļu satiksmes noteikumi un uzstādītās ceļa zīmes, kurām vienmēr ir prioritāte pār jebkuru lietotnes norādi. Nekad nedarbojieties ar ierīci, vadot transportlīdzekli; pirms brauciena sākuma nostipriniet to apstiprinātā, labi redzamā turētājā, un, transportlīdzeklim kustoties, nekad nenovērsiet uzmanību no ceļa, lai mijiedarbotos ar ierīci.\n\n⚠️ RISKA UZŅEMŠANĀS — VISĀ PASAULĒ\nIzmantojot Roadstr jebkurā valstī un saskaņā ar jebkuru tiesisko sistēmu, lietotājs apzināti un labprātīgi uzņemas VISUS riskus, kas saistīti ar tās lietošanu, tostarp, bet neaprobežojoties ar: ceļu satiksmes negadījumiem, miesas bojājumiem, nāvi, mantas bojājumiem, transportlīdzekļa bojājumiem, naudas sodiem, administratīvajiem sodiem, evakuāciju, aizturēšanu, kriminālatbildību vai jebkurām citām sekām, kas tieši vai netieši izriet no paļaušanās uz lietotni. Lietotājs vienpersoniski uzņemas pilnu atbildību par katru vadīšanas un navigācijas lēmumu.\n\n🚫 GARANTIJAS NEESAMĪBA\nRoadstr tiek nodrošināta stingri „TĀDA, KĀDA TĀ IR” un „KĀ PIEEJAMA” bāzē, bez jebkādas garantijas — ne tiešas, ne netiešas, ne likumā noteiktas —, tostarp, bez ierobežojumiem, garantijām par precizitāti, pilnīgumu, uzticamību, pieejamību, piemērotību pārdošanai, piemērotību konkrētam mērķim un tiesību nepārkāpšanu. Kartes dati, maršrutēšana, ātruma ierobežojumi, ātruma kontroles kameras un satiksmes ierobežojuma zonu (ZTL/ZAC/LTZ) informācija tiek iegūta no atvērtiem, kopienas uzturētiem avotiem (OpenStreetMap, Overpass API), kas var būt nepilnīgi, novecojuši vai neprecīzi jebkurai valstij, reģionam vai pašvaldībai, jebkurā laikā un bez brīdinājuma. Lietotājs ir vienīgais atbildīgais par to, lai pirms brauciena un tā laikā patstāvīgi pārbaudītu jebkura ieteiktā maršruta likumību un caurbraucamību, salīdzinot to ar oficiālajām vietējām ceļa zīmēm un noteikumiem.\n\n📍 PRECIZITĀTE UN GPS\nGPS pozicionēšana var būt neprecīza vai nepieejama. Visi norādījumi, attālumi un brīdinājumi tiek sniegti tikai orientējošiem nolūkiem, un tie nekad nedrīkst būt vienīgais pamats vadīšanas lēmumam.\n\n🛡️ ATBILDĪBAS IEROBEŽOJUMS\nCiktāl to pieļauj piemērojamie tiesību akti jebkurā jurisdikcijā, izstrādātāji, līdzstrādnieki un jebkura persona, kas iesaistīta Roadstr izveidē vai izplatīšanā, nav atbildīga par jebkādiem tiešiem, netiešiem, nejaušiem, izrietošiem, īpašiem, priekšzīmīgiem vai sodošiem zaudējumiem, tostarp miesas bojājumiem, nāvi vai finansiāliem zaudējumiem, kas rodas no lietotnes lietošanas vai nespējas to lietot vai ir ar to saistīti, pat ja tie ir brīdināti par šādu zaudējumu iespējamību. Ja kādā jurisdikcijā šis ierobežojums daļēji vai pilnībā nav pieļaujams, atbildība tiek ierobežota līdz mazākajam likumā šajā jurisdikcijā pieļautajam apmēram.\n\n🤝 ZAUDĒJUMU ATLĪDZINĀŠANA\nLietotājs piekrīt atlīdzināt zaudējumus un pasargāt izstrādātājus un līdzstrādniekus no jebkādām prasībām, zaudējumiem, izmaksām vai izdevumiem (tostarp juridiskajām izmaksām), kas rodas no lietotāja veiktās lietotnes lietošanas vai šo noteikumu pārkāpuma.\n\n🔒 PRIVĀTUMS\nNeviena atrašanās vietas informācija netiek pārsūtīta uz Roadstr pašas serveriem. Maršruta aprēķins tiek veikts, izmantojot trešo pušu pakalpojumus (OSRM, GraphHopper, OpenRouteService), kuriem tiek nosūtītas vienīgi sākuma un galamērķa koordinātas.\n\n⚖️ ATDALĀMĪBA\nJa kāds no šo noteikumu nosacījumiem konkrētā jurisdikcijā tiek atzīts par neizpildāmu, šis nosacījums tiek ierobežots vai atdalīts minimāli nepieciešamajā apmērā, un visi pārējie nosacījumi paliek pilnībā spēkā.\n\nIzmantojot Roadstr jebkurā pasaules vietā, lietotājs apliecina, ka ir izlasījis, sapratis un beznosacījumu kārtā pieņēmis visus iepriekš minētos noteikumus, un uzņemas pilnu un pilnīgu atbildību — un visus riskus — par lietotnes lietošanu un jebkurām no tās izrietošām sekām.",
   "readOnWikipedia": "Lasīt Vikipēdijā",
   "searchOnEngine": "Meklēt {engine}",
   "plannerFromHint": "No…",
@@ -314,7 +314,7 @@
   "weatherSnow": "Sniegs",
   "weatherShowers": "Lietusgāzes",
   "weatherThunderstorm": "Pērkona vētra",
-  "ztlAheadWarning": "ZTL zona priekšā — maršruts iet ierobežotajā zonā",
+  "ztlAheadWarning": "Priekšā ierobežotas satiksmes zona — maršruts iet cauri tai",
   "ztlInsideWarning": "Ierobežotas satiksmes zona",
   "onboardingAppSubtitle": "Atvērtā koda Nostr navigācija",
   "onboardingWelcomeTitle": "Laipni lūdzam",
@@ -357,5 +357,65 @@
   "onboardingProfileLoading": "Ielādē profilu…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "Maksimālai privātumam — ziņojumi tiek izplatīti Nostr tīklā — ieteicams izmantot VPN. Ieteicamā izvēle ir Mullvad, par kuru var maksāt ar Bitcoin.",
-  "onboardingGrapheneAlwaysAllow": "Lai lietotne darbotos uzticami, iestatiet atrašanās vietas atļauju uz “Atļaut vienmēr”, nevis tikai lietotnes lietošanas laikā."
+  "onboardingGrapheneAlwaysAllow": "Lai lietotne darbotos uzticami, iestatiet atrašanās vietas atļauju uz “Atļaut vienmēr”, nevis tikai lietotnes lietošanas laikā.",
+  "exportFavoritesTitle": "Eksportēt izlasi",
+  "exportFavoritesDesc": "Saglabājiet savas iecienītās vietas JSON failā, kuru varat dublēt vai pārnest uz citu ierīci.",
+  "exportEncryptToggle": "Šifrēt ar paroli",
+  "exportPasswordHint": "Parole",
+  "exportButton": "Eksportēt",
+  "exportSuccessSnack": "Izlase eksportēta",
+  "exportFailedSnack": "Eksportēšana neizdevās",
+  "importFavoritesTitle": "Importēt izlasi",
+  "importPasswordPrompt": "Šis fails ir šifrēts — ievadiet paroli",
+  "importSuccessSnack": "Importēti {n} izlases ieraksti",
+  "@importSuccessSnack": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "importFailedSnack": "Importēšana neizdevās — pārbaudiet failu un paroli",
+  "kokoroVoiceGenderTitle": "Balss",
+  "kokoroVoiceFemale": "Sievietes",
+  "kokoroVoiceMale": "Vīrieša",
+  "kokoroVoiceGenderUnavailable": "Vīrieša balss šai valodai nav pieejama",
+  "kokoroSpeedTitle": "Runas ātrums",
+  "onboardingFavoritesSyncNotice": "Pēc izvēles: saglabātā izlase var sinhronizēties starp jūsu ierīcēm caur Nostr relejiem, pilnībā šifrēta (NIP-44) ar jūsu paša atslēgu — releji redz tikai šifrētu tekstu, un neviens cits kā jūs nevar lasīt saturu. Iespējojiet jebkurā laikā Iestatījumos.",
+  "parkingMarkerTitle": "Stāvvieta",
+  "parkingSaveHere": "Saglabāt stāvvietu šeit",
+  "parkingSavedSnack": "Stāvvieta saglabāta",
+  "parkingNavigateHere": "Navigēt uz stāvvietu",
+  "parkingRemove": "Noņemt stāvvietu",
+  "parkingRemovedSnack": "Stāvvieta noņemta",
+  "syncFavoritesTitle": "Sinhronizēt izlasi",
+  "syncFavoritesDesc": "Publicējiet savu izlasi, pilnībā šifrētu, savos Nostr relejos, lai tā sekotu jums visās ierīcēs. Releji redz tikai šifrētu tekstu — neviens cits kā jūs nevar lasīt saturu.",
+  "syncNoIdentity": "Pierakstieties ar Nostr (Iestatījumi → Profils), lai iespējotu sinhronizāciju",
+  "syncNowButton": "Nosūtīt uz Nostr",
+  "syncPullButton": "Iegūt no Nostr",
+  "syncSuccessSnack": "Izlase sinhronizēta",
+  "syncFailedSnack": "Sinhronizācija neizdevās",
+  "syncLastSyncLabel": "Pēdējā sinhronizācija: {when}",
+  "@syncLastSyncLabel": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trafficNormal": "Parasta satiksme",
+  "trafficModerate": "Mērena satiksme",
+  "trafficHeavy": "Intensīva satiksme",
+  "avoidHighwaysChip": "Izvairīties no automaģistrālēm",
+  "avoidTollsChip": "Izvairīties no maksas ceļiem",
+  "preferShorterChip": "Īsākais maršruts",
+  "zapAmountButton": "Zap {sats} sat",
+  "@zapAmountButton": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
+  "showRoutePreview": "Rādīt maršruta priekšskatījumu"
 }
