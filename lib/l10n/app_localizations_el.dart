@@ -739,7 +739,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.';
+      'Το Roadstr είναι μια πειραματική, ανοικτού κώδικα εφαρμογή πλοήγησης που συντηρείται από την κοινότητα, βασισμένη σε δεδομένα του OpenStreetMap και στο πρωτόκολλο Nostr, και διατίθεται προς χρήση σε οποιαδήποτε χώρα. Με τη λήψη, την εγκατάσταση ή τη χρήση αυτής της εφαρμογής, ο χρήστης αποδέχεται ανεπιφύλακτα όλους τους παρακάτω όρους, χωρίς εδαφικό περιορισμό.\n\n🚗 Η ΟΔΙΚΗ ΑΣΦΑΛΕΙΑ ΠΡΩΤΑ\nΟ οδηγός πρέπει πάντα να κρατά το βλέμμα του στον δρόμο και να συμμορφώνεται με όλους τους ισχύοντες κανόνες οδικής κυκλοφορίας και την τοποθετημένη σήμανση, τα οποία υπερισχύουν πάντοτε οποιασδήποτε οδηγίας της εφαρμογής. Μη χειρίζεστε ποτέ τη συσκευή κατά την οδήγηση· στερεώστε την σε εγκεκριμένη, ορατή βάση στήριξης πριν ξεκινήσετε, και μην αποσπάτε ποτέ την προσοχή σας από τον δρόμο για να αλληλεπιδράσετε με αυτήν ενώ το όχημα κινείται.\n\n⚠️ ΑΝΑΛΗΨΗ ΚΙΝΔΥΝΟΥ — ΠΑΓΚΟΣΜΙΩΣ\nΜε τη χρήση του Roadstr, σε οποιαδήποτε χώρα και υπό οποιοδήποτε νομικό σύστημα, ο χρήστης αναλαμβάνει εν γνώσει του και οικειοθελώς ΟΛΟΥΣ τους κινδύνους που συνδέονται με τη χρήση του, συμπεριλαμβανομένων, ενδεικτικά και όχι περιοριστικά: τροχαίων ατυχημάτων, σωματικής βλάβης, θανάτου, υλικών ζημιών, ζημιών στο όχημα, προστίμων, διοικητικών κυρώσεων, ρυμούλκησης, κατάσχεσης οχήματος, ποινικής ευθύνης ή οποιασδήποτε άλλης συνέπειας που προκύπτει άμεσα ή έμμεσα από την εξάρτηση από την εφαρμογή. Ο χρήστης φέρει αποκλειστικά την πλήρη ευθύνη για κάθε απόφαση οδήγησης και πλοήγησης.\n\n🚫 ΚΑΜΙΑ ΕΓΓΥΗΣΗ\nΤο Roadstr παρέχεται αυστηρά «ΩΣ ΕΧΕΙ» και «ΩΣ ΔΙΑΘΕΣΙΜΟ», χωρίς καμία εγγύηση οποιουδήποτε είδους, ρητή, σιωπηρή ή εκ του νόμου — συμπεριλαμβανομένων, ενδεικτικά, εγγυήσεων ακρίβειας, πληρότητας, αξιοπιστίας, διαθεσιμότητας, εμπορευσιμότητας, καταλληλότητας για συγκεκριμένο σκοπό και μη παραβίασης δικαιωμάτων τρίτων. Τα δεδομένα χαρτών, η δρομολόγηση, τα όρια ταχύτητας, οι κάμερες ταχύτητας και οι πληροφορίες για ζώνες περιορισμένης κυκλοφορίας (ZTL/ZAC/LTZ) προέρχονται από ανοικτές πηγές που συντηρούνται από την κοινότητα (OpenStreetMap, Overpass API), οι οποίες ενδέχεται να είναι ελλιπείς, ξεπερασμένες ή ανακριβείς για οποιαδήποτε χώρα, περιοχή ή δήμο, ανά πάσα στιγμή και χωρίς προειδοποίηση. Ο χρήστης είναι αποκλειστικά υπεύθυνος να επαληθεύει ανεξάρτητα, πριν και κατά τη διάρκεια του ταξιδιού, τη νομιμότητα και τη δυνατότητα πρόσβασης οποιασδήποτε προτεινόμενης διαδρομής βάσει της επίσημης τοπικής σήμανσης και νομοθεσίας.\n\n📍 ΑΚΡΙΒΕΙΑ & GPS\nΟ εντοπισμός θέσης μέσω GPS ενδέχεται να είναι ανακριβής ή μη διαθέσιμος. Όλες οι οδηγίες, οι αποστάσεις και οι ειδοποιήσεις παρέχονται αποκλειστικά ενδεικτικά και δεν πρέπει ποτέ να αποτελούν τη μοναδική βάση για μια απόφαση οδήγησης.\n\n🛡️ ΠΕΡΙΟΡΙΣΜΟΣ ΕΥΘΥΝΗΣ\nΣτον μέγιστο βαθμό που επιτρέπεται από την ισχύουσα νομοθεσία σε οποιαδήποτε δικαιοδοσία, οι προγραμματιστές, οι συντελεστές και κάθε μέρος που εμπλέκεται στη δημιουργία ή τη διανομή του Roadstr δεν φέρουν ευθύνη για οποιεσδήποτε άμεσες, έμμεσες, παρεπόμενες, επακόλουθες, ειδικές, παραδειγματικές ή τιμωρητικές ζημίες οποιουδήποτε είδους — συμπεριλαμβανομένων σωματικής βλάβης, θανάτου ή οικονομικής ζημίας — που προκύπτουν από ή σχετίζονται με τη χρήση ή την αδυναμία χρήσης της εφαρμογής, ακόμη και αν έχουν ενημερωθεί για την πιθανότητα τέτοιων ζημιών. Όπου μια δικαιοδοσία δεν επιτρέπει μέρος ή το σύνολο αυτού του περιορισμού, η ευθύνη περιορίζεται στον ελάχιστο βαθμό που επιτρέπεται από τον νόμο στην εν λόγω δικαιοδοσία.\n\n🤝 ΑΠΟΖΗΜΙΩΣΗ\nΟ χρήστης συμφωνεί να αποζημιώνει και να απαλλάσσει από κάθε ευθύνη τους προγραμματιστές και τους συντελεστές για κάθε αξίωση, ζημία, απώλεια ή δαπάνη (συμπεριλαμβανομένων δικηγορικών αμοιβών) που προκύπτει από τη χρήση της εφαρμογής από τον χρήστη ή από παραβίαση των παρόντων όρων.\n\n🔒 ΙΔΙΩΤΙΚΟΤΗΤΑ\nΚανένα δεδομένο θέσης δεν διαβιβάζεται στους δικούς του διακομιστές του Roadstr. Ο υπολογισμός της διαδρομής πραγματοποιείται μέσω υπηρεσιών τρίτων (OSRM, GraphHopper, OpenRouteService), στις οποίες αποστέλλονται μόνο οι συντεταγμένες αφετηρίας και προορισμού.\n\n⚖️ ΔΙΑΙΡΕΤΟΤΗΤΑ\nΕάν κάποια διάταξη των παρόντων όρων κριθεί ανεφάρμοστη σε μια δεδομένη δικαιοδοσία, η εν λόγω διάταξη θα περιορίζεται ή θα διαχωρίζεται στον ελάχιστο αναγκαίο βαθμό, και όλες οι υπόλοιπες διατάξεις θα παραμένουν σε πλήρη ισχύ.\n\nΧρησιμοποιώντας το Roadstr, οπουδήποτε στον κόσμο, ο χρήστης επιβεβαιώνει ότι έχει διαβάσει, κατανοήσει και αποδεχθεί ανεπιφύλακτα κάθε έναν από τους παραπάνω όρους, και αναλαμβάνει την πλήρη και ολοκληρωτική ευθύνη — και όλον τον κίνδυνο — για τη χρήση της εφαρμογής και κάθε συνέπεια που απορρέει από αυτήν.';
 
   @override
   String get readOnWikipedia => 'Διαβάστε στη Wikipedia';
@@ -813,7 +813,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get ztlAheadWarning =>
-      'Ζώνη ZTL μπροστά — η διαδρομή εισέρχεται σε περιορισμένη ζώνη';
+      'Μπροστά υπάρχει περιορισμένη κυκλοφοριακή ζώνη — η διαδρομή περνά μέσα από αυτήν';
 
   @override
   String get ztlInsideWarning => 'Περιορισμένη κυκλοφοριακή ζώνη';
@@ -953,130 +953,108 @@ class AppLocalizationsEl extends AppLocalizations {
   String get onboardingNsecHint => 'nsec1…';
 
   @override
-  String get kokoroVoiceGenderTitle => 'Voice';
+  String get kokoroVoiceGenderTitle => 'Φωνή';
 
   @override
-  String get kokoroVoiceFemale => 'Female';
+  String get kokoroVoiceFemale => 'Γυναικεία';
 
   @override
-  String get kokoroVoiceMale => 'Male';
+  String get kokoroVoiceMale => 'Ανδρική';
 
   @override
   String get kokoroVoiceGenderUnavailable =>
-      'Male voice not available for this language';
+      'Η ανδρική φωνή δεν είναι διαθέσιμη για αυτήν τη γλώσσα';
 
   @override
-  String get kokoroSpeedTitle => 'Speech speed';
+  String get kokoroSpeedTitle => 'Ταχύτητα ομιλίας';
 
   @override
   String get onboardingFavoritesSyncNotice =>
-      'Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.';
+      'Προαιρετικό: τα αποθηκευμένα αγαπημένα σας μπορούν να συγχρονίζονται μεταξύ των συσκευών σας μέσω των Nostr relays, με κρυπτογράφηση από άκρο σε άκρο (NIP-44) με το δικό σας κλειδί — τα relays βλέπουν μόνο κρυπτογραφημένο κείμενο και κανείς εκτός από εσάς δεν μπορεί να διαβάσει το περιεχόμενο. Ενεργοποιήστε το οποτεδήποτε από τις Ρυθμίσεις.';
 
   @override
-  String get parkingSaveHere => 'Save parking here';
+  String get parkingSaveHere => 'Αποθήκευση στάθμευσης εδώ';
 
   @override
-  String get parkingMarkerTitle => 'Parking spot';
+  String get parkingMarkerTitle => 'Θέση στάθμευσης';
 
   @override
-  String get parkingNavigateHere => 'Navigate to parking';
+  String get parkingNavigateHere => 'Πλοήγηση στη στάθμευση';
 
   @override
-  String get parkingRemove => 'Remove parking';
+  String get parkingRemove => 'Αφαίρεση στάθμευσης';
 
   @override
-  String get parkingSavedSnack => 'Parking spot saved';
+  String get parkingSavedSnack => 'Η θέση στάθμευσης αποθηκεύτηκε';
 
   @override
-  String get parkingRemovedSnack => 'Parking spot removed';
+  String get parkingRemovedSnack => 'Η θέση στάθμευσης αφαιρέθηκε';
 
   @override
-  String get exportFavoritesTitle => 'Export favorites';
+  String get exportFavoritesTitle => 'Εξαγωγή αγαπημένων';
 
   @override
   String get exportFavoritesDesc =>
-      'Save your favorite places to a JSON file you can back up or move to another device.';
+      'Αποθηκεύστε τα αγαπημένα σας μέρη σε ένα αρχείο JSON που μπορείτε να κρατήσετε ως αντίγραφο ασφαλείας ή να μεταφέρετε σε άλλη συσκευή.';
 
   @override
-  String get exportEncryptToggle => 'Encrypt with a password';
+  String get exportEncryptToggle => 'Κρυπτογράφηση με κωδικό';
 
   @override
-  String get exportPasswordHint => 'Password';
+  String get exportPasswordHint => 'Κωδικός πρόσβασης';
 
   @override
-  String get exportButton => 'Export';
+  String get exportButton => 'Εξαγωγή';
 
   @override
-  String get exportSuccessSnack => 'Favorites exported';
+  String get exportSuccessSnack => 'Τα αγαπημένα εξήχθησαν';
 
   @override
-  String get exportFailedSnack => 'Export failed';
+  String get exportFailedSnack => 'Η εξαγωγή απέτυχε';
 
   @override
-  String get importFavoritesTitle => 'Import favorites';
-
-  @override
-  String get importButton => 'Import';
+  String get importFavoritesTitle => 'Εισαγωγή αγαπημένων';
 
   @override
   String get importPasswordPrompt =>
-      'This file is encrypted — enter the password';
+      'Αυτό το αρχείο είναι κρυπτογραφημένο — εισαγάγετε τον κωδικό';
 
   @override
   String importSuccessSnack(int n) {
-    return '$n favorites imported';
+    return 'Εισήχθησαν $n αγαπημένα';
   }
 
   @override
-  String get importFailedSnack => 'Import failed — check the file and password';
+  String get importFailedSnack =>
+      'Η εισαγωγή απέτυχε — ελέγξτε το αρχείο και τον κωδικό';
 
   @override
-  String get syncFavoritesTitle => 'Sync favorites';
+  String get syncFavoritesTitle => 'Συγχρονισμός αγαπημένων';
 
   @override
   String get syncFavoritesDesc =>
-      'Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.';
+      'Δημοσιεύστε τα αγαπημένα σας, κρυπτογραφημένα από άκρο σε άκρο, στα Nostr relays σας ώστε να σας ακολουθούν σε όλες τις συσκευές. Τα relays βλέπουν μόνο κρυπτογραφημένο κείμενο — κανείς εκτός από εσάς δεν μπορεί να διαβάσει το περιεχόμενο.';
 
   @override
-  String get syncFavoritesEnable => 'Enable sync';
+  String get syncNowButton => 'Αποστολή στο Nostr';
 
   @override
-  String get syncNowButton => 'Push to Nostr';
+  String get syncPullButton => 'Λήψη από το Nostr';
 
   @override
-  String get syncPullButton => 'Pull from Nostr';
+  String get syncSuccessSnack => 'Τα αγαπημένα συγχρονίστηκαν';
 
   @override
-  String get syncPushingStatus => 'Publishing…';
-
-  @override
-  String get syncPullingStatus => 'Fetching…';
-
-  @override
-  String get syncSuccessSnack => 'Favorites synced';
-
-  @override
-  String get syncFailedSnack => 'Sync failed';
-
-  @override
-  String get syncNotAvailableAmber =>
-      'Encrypted sync isn\'t available with Amber sign-in yet';
+  String get syncFailedSnack => 'Ο συγχρονισμός απέτυχε';
 
   @override
   String syncLastSyncLabel(String when) {
-    return 'Last synced: $when';
+    return 'Τελευταίος συγχρονισμός: $when';
   }
 
   @override
   String get syncNoIdentity =>
-      'Sign in with Nostr (Settings → Profile) to enable sync';
-
-  @override
-  String get syncPullConfirmTitle => 'Replace local favorites?';
-
-  @override
-  String get syncPullConfirmBody =>
-      'This will merge favorites fetched from Nostr with the ones already on this device.';
+      'Συνδεθείτε με Nostr (Ρυθμίσεις → Προφίλ) για να ενεργοποιήσετε τον συγχρονισμό';
 
   @override
   String get onboardingVpnNotice =>
@@ -1085,4 +1063,30 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get onboardingGrapheneAlwaysAllow =>
       'Για αξιόπιστη λειτουργία, ορίστε την άδεια τοποθεσίας της εφαρμογής σε «Να επιτρέπεται πάντα», όχι μόνο κατά τη χρήση.';
+
+  @override
+  String get trafficNormal => 'Κανονική κίνηση';
+
+  @override
+  String get trafficModerate => 'Μέτρια κίνηση';
+
+  @override
+  String get trafficHeavy => 'Έντονη κίνηση';
+
+  @override
+  String get avoidHighwaysChip => 'Αποφυγή αυτοκινητοδρόμων';
+
+  @override
+  String get avoidTollsChip => 'Αποφυγή διοδίων';
+
+  @override
+  String get preferShorterChip => 'Συντομότερη διαδρομή';
+
+  @override
+  String zapAmountButton(int sats) {
+    return 'Zap $sats sat';
+  }
+
+  @override
+  String get showRoutePreview => 'Προεπισκόπηση διαδρομής';
 }

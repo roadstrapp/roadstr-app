@@ -126,6 +126,9 @@ class KokoroTtsService {
     _utteranceId++;
     _isSpeaking = false;
     _pendingText = null;
+    // Reset maneuver dedup so a navigation started right after this stop
+    // never has its first instruction swallowed by the previous session.
+    _lastManeuverText = null;
     try {
       await _player.stop();
     } catch (_) {}
@@ -392,11 +395,29 @@ class KokoroTtsService {
   /// the bundled-asset fast path) so it accurately reflects the live setting.
   Future<void> previewVoice() => speak(_previewPhrase(_lang), priority: true);
 
+  /// Last maneuver instruction spoken (distance prefix excluded) and when.
+  /// Guards against rapid-fire repetition of the same instruction: the
+  /// far/mid/near announcement tiers can fire seconds apart when closing on
+  /// a maneuver at speed, and silent reroutes reset the per-step announcement
+  /// flags upstream — both would otherwise speak the same sentence 3-4 times
+  /// right before the turn. Deduping here, at the single choke point every
+  /// announcement passes through, catches every such path at once.
+  String? _lastManeuverText;
+  int _lastManeuverAtMs = 0;
+  static const _maneuverDedupMs = 12000;
+
   /// Turn instructions are time-critical: they cut whatever is playing.
   /// Ambient alerts (hazards, ZTL…) go through [speak] without priority and
   /// wait their turn instead.
   Future<void> announceManeuver(String instruction, int distMeters) {
     final clean = _normalizeOrdinals(instruction, _lang);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (clean == _lastManeuverText &&
+        now - _lastManeuverAtMs < _maneuverDedupMs) {
+      return Future.value();
+    }
+    _lastManeuverText = clean;
+    _lastManeuverAtMs = now;
     final prefix = Units.ttsDistPrefix(distMeters, _lang);
     return speak(prefix.isNotEmpty ? '$prefix$clean' : clean, priority: true);
   }

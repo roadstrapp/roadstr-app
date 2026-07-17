@@ -728,7 +728,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.';
+      'Roadstr is an experimental, open-source, community-maintained navigation app based on OpenStreetMap data and the Nostr protocol, made available for use in any country. By downloading, installing or using this app, the user unconditionally accepts all of the following terms, without limitation of territory:\n\n🚗  ROAD SAFETY FIRST\nThe driver must always keep their eyes on the road and comply with all applicable traffic laws and posted signage, which always take precedence over any instruction from the app. Never operate the device while driving; secure it in an approved, visible mount before setting off, and never divert attention from the road to interact with it while the vehicle is moving.\n\n⚠️  ASSUMPTION OF RISK — WORLDWIDE\nBy using Roadstr, in any country and under any legal system, the user knowingly and voluntarily assumes ALL risks connected with its use, including but not limited to: traffic accidents, personal injury, death, property damage, vehicle damage, fines, administrative penalties, towing, impoundment, criminal liability, or any other consequence arising directly or indirectly from reliance on the app. The user alone bears full responsibility for every driving and navigation decision.\n\n🚫  NO WARRANTY\nRoadstr is provided strictly \"AS IS\" and \"AS AVAILABLE\", without any warranty of any kind, whether express, implied, or statutory — including, without limitation, warranties of accuracy, completeness, reliability, availability, merchantability, fitness for a particular purpose, and non-infringement. Map data, routing, speed limits, speed cameras, and restricted-traffic-zone (ZTL/ZAC/LTZ) information come from open, community-maintained sources (OpenStreetMap, Overpass API) that may be incomplete, outdated, or inaccurate for any country, region, or municipality, at any time and without notice. The user is solely responsible for independently verifying, before and during travel, the legality and accessibility of any suggested route against official local signage and regulations.\n\n📍  ACCURACY & GPS\nGPS positioning may be inaccurate or unavailable. All directions, distances, and alerts are provided for guidance only and must never be relied upon as the sole basis for a driving decision.\n\n🛡️  LIMITATION OF LIABILITY\nTo the maximum extent permitted by applicable law in any jurisdiction, the developers, contributors, and any party involved in creating or distributing Roadstr shall not be liable for any direct, indirect, incidental, consequential, special, exemplary, or punitive damages of any kind — including personal injury, death, or financial loss — arising out of or related to the use or inability to use the app, even if advised of the possibility of such damages. Where a jurisdiction does not allow some or all of this limitation, liability is limited to the smallest extent permitted by law in that jurisdiction.\n\n🤝  INDEMNIFICATION\nThe user agrees to indemnify and hold harmless the developers and contributors from any claim, damage, loss, or expense (including legal fees) arising from the user\'s use of the app or violation of these terms.\n\n🔒  PRIVACY\nNo location data is transmitted to Roadstr\'s own servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\n⚖️  SEVERABILITY\nIf any provision of these terms is found unenforceable in a given jurisdiction, that provision shall be limited or severed to the minimum extent necessary, and all remaining provisions shall remain in full force and effect.\n\nBy using Roadstr, anywhere in the world, the user confirms they have read, understood, and unconditionally accepted every term above, and assumes full and complete responsibility — and all risk — for the use of the application and any consequence arising from it.';
 
   @override
   String get readOnWikipedia => 'Read on Wikipedia';
@@ -802,7 +802,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ztlAheadWarning =>
-      'ZTL zone ahead — route leads into restricted area';
+      'Restricted traffic zone ahead — the route enters it';
 
   @override
   String get ztlInsideWarning => 'Restricted traffic zone';
@@ -1005,9 +1005,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importFavoritesTitle => 'Import favorites';
 
   @override
-  String get importButton => 'Import';
-
-  @override
   String get importPasswordPrompt =>
       'This file is encrypted — enter the password';
 
@@ -1027,29 +1024,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.';
 
   @override
-  String get syncFavoritesEnable => 'Enable sync';
-
-  @override
   String get syncNowButton => 'Push to Nostr';
 
   @override
   String get syncPullButton => 'Pull from Nostr';
 
   @override
-  String get syncPushingStatus => 'Publishing…';
-
-  @override
-  String get syncPullingStatus => 'Fetching…';
-
-  @override
   String get syncSuccessSnack => 'Favorites synced';
 
   @override
   String get syncFailedSnack => 'Sync failed';
-
-  @override
-  String get syncNotAvailableAmber =>
-      'Encrypted sync isn\'t available with Amber sign-in yet';
 
   @override
   String syncLastSyncLabel(String when) {
@@ -1061,17 +1045,36 @@ class AppLocalizationsEn extends AppLocalizations {
       'Sign in with Nostr (Settings → Profile) to enable sync';
 
   @override
-  String get syncPullConfirmTitle => 'Replace local favorites?';
-
-  @override
-  String get syncPullConfirmBody =>
-      'This will merge favorites fetched from Nostr with the ones already on this device.';
-
-  @override
   String get onboardingVpnNotice =>
       'For maximum privacy — road reports are propagated through the Nostr network — using a VPN is recommended. Mullvad, payable in Bitcoin, is the recommended choice.';
 
   @override
   String get onboardingGrapheneAlwaysAllow =>
       'For reliable operation, set the app\'s location permission to \"Allow all the time\", not only while the app is in use.';
+
+  @override
+  String get trafficNormal => 'Normal traffic';
+
+  @override
+  String get trafficModerate => 'Moderate traffic';
+
+  @override
+  String get trafficHeavy => 'Heavy traffic';
+
+  @override
+  String get avoidHighwaysChip => 'Avoid highways';
+
+  @override
+  String get avoidTollsChip => 'Avoid tolls';
+
+  @override
+  String get preferShorterChip => 'Shortest route';
+
+  @override
+  String zapAmountButton(int sats) {
+    return 'Zap $sats sat';
+  }
+
+  @override
+  String get showRoutePreview => 'Show route preview';
 }

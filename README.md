@@ -3,7 +3,7 @@
 **Roadstr** is an open-source, decentralised navigation app for Android, built on the [Nostr protocol](https://nostr.com/).  
 It combines real-time GPS turn-by-turn navigation with community-sourced traffic alerts published as Nostr events, on-device AI voice guidance, Lightning Network tips for contributors, and privacy-first map data powered by OpenStreetMap.
 
-> **Version 0.4.5** — Android only.
+> **Version 0.4.6** — Android only.
 
 ---
 
@@ -20,15 +20,23 @@ It combines real-time GPS turn-by-turn navigation with community-sourced traffic
 | Route planner (A → B with freeform waypoints) | ✅ |
 | Speed-adaptive zoom | ✅ |
 | Tilt-compensated compass heading | ✅ |
-| On-device AI voice guidance (Kokoro-82M) | ✅ |
+| Live speed-limit display (Overpass, road-class inference for untagged ways) | ✅ |
+| Speed-camera alerts — OSM baseline data + community reports | ✅ |
+| ZTL (limited-traffic zone) proximity warnings | ✅ |
+| On-device AI voice guidance (Kokoro-82M) — male/female voice, adjustable speed | ✅ |
 | Nostr road events — kind 1315 (reports) / 1316 (confirmations) | ✅ |
 | Traffic alerts on-route with rerouting prompt | ✅ |
 | Nostr identity login (Amber NIP-55 / nsec) | ✅ |
 | Lightning Network zaps for road-event contributors | ✅ |
 | Nostr Wallet Connect (NIP-47) | ✅ |
-| Address & POI search (Nominatim) | ✅ |
+| Address & POI search (Nominatim, position-biased) | ✅ |
+| Category / brand POI search near current position (Overpass) | ✅ |
 | Place info with Wikipedia geo-aware lookup | ✅ |
+| Weather conditions along the route (Open-Meteo) | ✅ |
 | Saved favourite places | ✅ |
+| Saved parking spot (local-only) | ✅ |
+| Encrypted favourites export (JSON, optional password) | ✅ |
+| Encrypted cross-device favourites sync (Nostr, NIP-44) | ✅ |
 | Search history | ✅ |
 | Speedometer HUD | ✅ |
 | Light + Dark themes — Nostr Violet & Bitcoin Orange | ✅ |
@@ -53,16 +61,25 @@ lib/
 │   └── locale_provider.dart          # Language override (Hive-backed)
 ├── screens/
 │   ├── map_screen.dart               # Main map, navigation, route planner, Nostr events
+│   ├── onboarding_screen.dart        # First-launch flow — identity, permissions, voice model
 │   ├── profile_screen.dart           # Nostr identity, reports history, zap balance
 │   └── settings_screen.dart          # Theme, routing, voice, language, NWC, favourites
 ├── services/
+│   ├── favorites_crypto.dart         # PBKDF2 + AES-256-GCM for favourites export
+│   ├── favorites_sync_service.dart   # Encrypted cross-device favourites sync (kind 30078)
 │   ├── gps_service.dart              # Android foreground GPS stream
 │   ├── location_service.dart         # Nominatim geocoding + Wikipedia lookup
 │   ├── navigation_notification_service.dart  # Android turn-by-turn notification
+│   ├── nip44.dart                    # NIP-44 v2 encryption (ECDH + ChaCha20 + HMAC)
 │   ├── nostr_relay_service.dart      # WebSocket relay, geohash area subscriptions
+│   ├── poi_search_service.dart       # Category / brand POI search near position (Overpass)
 │   ├── routing_service.dart          # OSRM / GraphHopper / ORS routing
+│   ├── speed_camera_service.dart     # OSM-sourced speed-camera locations (Overpass)
+│   ├── speed_limit_service.dart      # Posted speed limit lookup (Overpass)
 │   ├── sun_calc.dart                 # NOAA solar position — sunrise/sunset times
+│   ├── weather_service.dart          # Open-Meteo current conditions
 │   ├── zap_service.dart              # LNURL-pay + NIP-57 zaps + NWC (NIP-47)
+│   ├── ztl_service.dart              # ZTL (limited-traffic zone) polygon lookup
 │   └── kokoro/
 │       ├── kokoro_engine.dart        # ONNX Runtime inference wrapper
 │       ├── kokoro_model_manager.dart # Model download + file management
@@ -72,7 +89,10 @@ lib/
 ├── theme/
 │   ├── app_theme.dart                # Material 3 themes + RoadstrColors extension
 │   └── theme_provider.dart           # Theme state, auto dark mode, Hive persistence
+├── utils/
+│   └── units.dart                    # Metric/imperial formatting helpers
 └── widgets/
+    ├── cursor_painter.dart           # Map cursor (arrow / Nostr ostrich easter egg)
     ├── hud_info_widget.dart          # Navigation HUD (distance, ETA, speed limit)
     └── speedometer_widget.dart       # Circular analogue speedometer
 ```
@@ -158,6 +178,7 @@ Roadstr ships with an optional on-device AI text-to-speech engine based on [Koko
 - **Fully on-device** — the 82 MB ONNX model runs entirely on the device via [flutter_onnxruntime](https://pub.dev/packages/flutter_onnxruntime). No cloud API, no audio leaves the phone.
 - **Phonemisation** via eSpeak NG through a Dart FFI bridge compiled as an Android native library.
 - **Supported languages**: Italian, English, Spanish, French, Japanese, Chinese, Portuguese.
+- **Male or female voice**, selectable per install, plus a 6-stage speech-speed control — both previewable in Settings before committing. French has no male voice in the upstream Kokoro-82M model, so it always uses the female voice.
 - The model is downloaded on demand from **Settings → Navigation voice → Voice model** (~82 MB).
 
 For unsupported languages Roadstr falls back to the Android system TTS engine. If no TTS engine is installed, navigation instructions are shown as text on screen.
@@ -194,10 +215,11 @@ To connect a wallet, paste a `nostr+walletconnect://…` URI from a compatible w
 
 ## Privacy
 
-- **No accounts, no central servers** — the app communicates directly with public Nostr relays and OpenStreetMap tile servers.
-- **GPS data never leaves the device** — position fixes are used locally for navigation and are not sent to any telemetry endpoint.
-- **Road events are pseudonymous** — published under the user's Nostr public key with no additional personal metadata.
-- **Routing requests** send only the origin and destination coordinates to the chosen routing provider. No account or identifier is attached.
+- **No accounts, no central servers, no telemetry/analytics SDKs** — the app talks directly to public Nostr relays, OSM tile/Overpass servers, and the chosen routing provider. Nothing is collected or sent to Roadstr itself.
+- **GPS coordinates are read locally but are sent to third-party services as part of normal operation**: the routing provider (origin/destination), Overpass (periodic position pings during navigation, for live speed limits, speed cameras and POI search), and Open-Meteo (for the weather row). None of these requests carry an account or persistent identifier — but if your threat model requires hiding your IP-linked location from those services, use a VPN (the onboarding flow suggests one). Saved favourites and the parking spot never leave the device unless you explicitly export or sync them.
+- **Road events are pseudonymous** — published under the user's Nostr public key with no additional personal metadata, and every event received from a relay is signature-verified before being trusted (relays cannot forge reports under someone else's identity).
+- **Favourites sync is end-to-end encrypted** (NIP-44) to the user's own key — relays storing the synced snapshot see only ciphertext.
+- **Nostr private keys (nsec) never leave Android's encrypted secure storage** — not copyable, not exportable, not logged.
 
 ---
 
@@ -263,6 +285,8 @@ appreciated.
 - [OpenStreetMap](https://www.openstreetmap.org/) contributors for map data
 - [OSRM](https://project-osrm.org/) for the open-source routing engine
 - [Nominatim](https://nominatim.org/) for geocoding
+- [Overpass API](https://overpass-api.de/) and its public mirrors for speed limits, speed cameras and POI queries
+- [Open-Meteo](https://open-meteo.com/) for weather data, free and API-key-free
 - [CartoDB](https://carto.com/) for the dark map tile style
 - [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) for the on-device TTS model
 - [eSpeak NG](https://github.com/espeak-ng/espeak-ng) for phonemisation

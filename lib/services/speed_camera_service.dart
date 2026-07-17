@@ -20,10 +20,11 @@ class OsmSpeedCamera {
 ///
 /// Same throttle/cache/mirror-rotation pattern as [SpeedLimitService].
 class SpeedCameraService {
+  // NB: overpass.osm.ch removed — Switzerland-only extract, returns empty
+  // success for Italy (see SpeedLimitService._endpoints for the full story).
   static const _endpoints = [
     'https://overpass-api.de/api/interpreter',
     'https://overpass.openstreetmap.fr/api/interpreter',
-    'https://overpass.osm.ch/api/interpreter',
   ];
   static const _radiusM  = 3000;    // fetch cameras within 3 km of position
   static const _minMoveM = 800.0;   // min travel distance before re-querying

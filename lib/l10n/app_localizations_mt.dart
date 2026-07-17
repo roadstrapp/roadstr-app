@@ -734,7 +734,7 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.';
+      'Roadstr hija applikazzjoni ta\' navigazzjoni sperimentali, b\'sors miftuħ, immantnuta mill-komunità, ibbażata fuq data tal-OpenStreetMap u l-protokoll Nostr, disponibbli għall-użu fi kwalunkwe pajjiż. Billi tniżżel, tinstalla jew tuża din l-applikazzjoni, l-utent jaċċetta bla kundizzjoni t-termini kollha li ġejjin, mingħajr limitazzjoni ta\' territorju.\n\n🚗 IS-SIGURTÀ TAT-TRIQ L-EWWEL\nIs-sewwieq għandu dejjem iżomm għajnejh fit-triq u jikkonforma mal-liġijiet kollha applikabbli tat-traffiku u s-sinjaletika murija, li dejjem għandhom preċedenza fuq kwalunkwe struzzjoni mill-applikazzjoni. Qatt m\'għandek topera l-apparat waqt is-sewqan; waħħlu f\'sapport approvat u viżibbli qabel titlaq, u qatt m\'għandek titbiegħed b\'attenzjonek mit-triq biex tinteraġixxi miegħu waqt li l-vettura tkun miexja.\n\n⚠️ ASSUNZJONI TAR-RISKJU — MADWAR ID-DINJA\nBl-użu ta\' Roadstr, fi kwalunkwe pajjiż u taħt kwalunkwe sistema legali, l-utent, b\'għarfien u volontarjament, jassumi r-riskji KOLLHA marbuta mal-użu tagħha, inklużi iżda mhux limitati għal: inċidenti tat-traffiku, korriment personali, mewt, ħsara fil-proprjetà, ħsara fil-vettura, multi, pieni amministrattivi, ġbid tal-vettura, sekwestru, responsabbiltà kriminali, jew kwalunkwe konsegwenza oħra li tirriżulta direttament jew indirettament mill-fatt li wieħed jistrieħ fuq l-applikazzjoni. L-utent waħdu jġorr ir-responsabbiltà sħiħa għal kull deċiżjoni ta\' sewqan u navigazzjoni.\n\n🚫 EBDA GARANZIJA\nRoadstr hija pprovduta strettament \"KIF INHI\" u \"SKONT ID-DISPONIBBILTÀ\", mingħajr ebda garanzija ta\' kwalunkwe tip, kemm jekk espressa, implikata jew statutorja — inklużi, mingħajr limitazzjoni, garanziji ta\' preċiżjoni, kompletezza, affidabbiltà, disponibbiltà, kummerċjabbiltà, adegwatezza għal skop partikolari, u nuqqas ta\' ksur. Id-data tal-mapep, l-ippjanar tar-rotot, il-limiti tal-veloċità, il-kameras tal-veloċità, u l-informazzjoni dwar iż-żoni ta\' traffiku ristrett (ZTL/ZAC/LTZ) ġejjin minn sorsi miftuħa, immantnuti mill-komunità (OpenStreetMap, Overpass API) li jistgħu jkunu mhux kompluti, skaduti jew mhux preċiżi għal kwalunkwe pajjiż, reġjun jew muniċipalità, fi kwalunkwe ħin u mingħajr avviż. L-utent hu unikament responsabbli li jivverifika b\'mod indipendenti, qabel u matul l-ivvjaġġar, il-legalità u l-aċċessibbiltà ta\' kwalunkwe rotta suġġerita mas-sinjaletika u r-regolamenti lokali uffiċjali.\n\n📍 PREĊIŻJONI U GPS\nIl-pożizzjonament GPS jista\' jkun mhux preċiż jew mhux disponibbli. Id-direzzjonijiet, id-distanzi, u l-allerti kollha huma pprovduti biss bħala gwida u qatt m\'għandhom jitqiesu bħala l-uniku bażi għal deċiżjoni ta\' sewqan.\n\n🛡️ LIMITAZZJONI TAR-RESPONSABBILTÀ\nSal-punt massimu permess mil-liġi applikabbli fi kwalunkwe ġurisdizzjoni, l-iżviluppaturi, il-kontributuri, u kwalunkwe parti involuta fil-ħolqien jew id-distribuzzjoni ta\' Roadstr m\'għandhomx ikunu responsabbli għal kwalunkwe dannu dirett, indirett, inċidentali, konsegwenzjali, speċjali, eżemplari jew punittiv ta\' kwalunkwe tip — inkluż korriment personali, mewt, jew telf finanzjarju — li jirriżulta minn jew relatat mal-użu jew l-inkapaċità li tuża l-applikazzjoni, anke jekk avżati bil-possibbiltà ta\' tali danni. Fejn ġurisdizzjoni ma tippermettix parti minn din il-limitazzjoni jew kollha kemm hi, ir-responsabbiltà hija limitata sal-iżgħar punt permess mil-liġi f\'dik il-ġurisdizzjoni.\n\n🤝 INDENNIZZ\nL-utent jaqbel li jindennizza u jżomm bla ħsara lill-iżviluppaturi u l-kontributuri minn kwalunkwe pretensjoni, dannu, telf, jew spiża (inklużi l-ispejjeż legali) li jirriżultaw mill-użu tal-applikazzjoni mill-utent jew minn ksur ta\' dawn it-termini.\n\n🔒 PRIVATEZZA\nL-ebda data dwar il-lokazzjoni ma tintbagħat lis-servers stess ta\' Roadstr. Il-kalkolu tar-rotta jsir permezz ta\' servizzi ta\' partijiet terzi (OSRM, GraphHopper, OpenRouteService) li lilhom jintbagħtu biss il-koordinati tal-punt tat-tluq u tad-destinazzjoni.\n\n⚖️ SEPARABBILTÀ\nJekk xi dispożizzjoni ta\' dawn it-termini tinstab li mhix infurzabbli f\'ġurisdizzjoni partikolari, dik id-dispożizzjoni għandha tiġi limitata jew separata sal-punt minimu meħtieġ, u d-dispożizzjonijiet li jifdal jibqgħu fis-seħħ sħiħ.\n\nBl-użu ta\' Roadstr, kullimkien fid-dinja, l-utent jikkonferma li qara, fehem, u aċċetta bla kundizzjoni kull terminu msemmi hawn fuq, u jassumi responsabbiltà sħiħa u kompluta — u r-riskju kollu — għall-użu tal-applikazzjoni u kwalunkwe konsegwenza li tirriżulta minnha.';
 
   @override
   String get readOnWikipedia => 'Aqra fuq Wikipedija';
@@ -808,7 +808,7 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get ztlAheadWarning =>
-      'Żona ZTL quddiem — ir-rotta tidħol f\'żona ristretta';
+      'Żona ta\' traffiku ristrett \'il quddiem — ir-rotta tgħaddi minnha';
 
   @override
   String get ztlInsideWarning => 'Żona ta\' traffiku ristrett';
@@ -948,130 +948,108 @@ class AppLocalizationsMt extends AppLocalizations {
   String get onboardingNsecHint => 'nsec1…';
 
   @override
-  String get kokoroVoiceGenderTitle => 'Voice';
+  String get kokoroVoiceGenderTitle => 'Vuċi';
 
   @override
-  String get kokoroVoiceFemale => 'Female';
+  String get kokoroVoiceFemale => 'Femminili';
 
   @override
-  String get kokoroVoiceMale => 'Male';
+  String get kokoroVoiceMale => 'Maskili';
 
   @override
   String get kokoroVoiceGenderUnavailable =>
-      'Male voice not available for this language';
+      'Vuċi maskili mhix disponibbli għal din il-lingwa';
 
   @override
-  String get kokoroSpeedTitle => 'Speech speed';
+  String get kokoroSpeedTitle => 'Veloċità tad-diskors';
 
   @override
   String get onboardingFavoritesSyncNotice =>
-      'Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.';
+      'Fakultattiv: il-favoriti salvati jistgħu jiġu sinkronizzati bejn l-apparati tiegħek permezz tar-relays Nostr, kriptati end-to-end (NIP-44) biċ-ċavetta tiegħek stess — ir-relays jaraw biss test kriptat, u ħadd ħliefek ma jista’ jaqra l-kontenut. Attivah meta trid mis-Settings.';
 
   @override
-  String get parkingSaveHere => 'Save parking here';
+  String get parkingSaveHere => 'Issejvja l-parkeġġ hawn';
 
   @override
-  String get parkingMarkerTitle => 'Parking spot';
+  String get parkingMarkerTitle => 'Post tal-parkeġġ';
 
   @override
-  String get parkingNavigateHere => 'Navigate to parking';
+  String get parkingNavigateHere => 'Innaviga lejn il-parkeġġ';
 
   @override
-  String get parkingRemove => 'Remove parking';
+  String get parkingRemove => 'Neħħi l-parkeġġ';
 
   @override
-  String get parkingSavedSnack => 'Parking spot saved';
+  String get parkingSavedSnack => 'Il-post tal-parkeġġ ġie salvat';
 
   @override
-  String get parkingRemovedSnack => 'Parking spot removed';
+  String get parkingRemovedSnack => 'Il-post tal-parkeġġ tneħħa';
 
   @override
-  String get exportFavoritesTitle => 'Export favorites';
+  String get exportFavoritesTitle => 'Esporta l-favoriti';
 
   @override
   String get exportFavoritesDesc =>
-      'Save your favorite places to a JSON file you can back up or move to another device.';
+      'Issejvja l-postijiet favoriti tiegħek f’fajl JSON li tista’ tagħmillu backup jew tittrasferih għal apparat ieħor.';
 
   @override
-  String get exportEncryptToggle => 'Encrypt with a password';
+  String get exportEncryptToggle => 'Ikkripta b’password';
 
   @override
   String get exportPasswordHint => 'Password';
 
   @override
-  String get exportButton => 'Export';
+  String get exportButton => 'Esporta';
 
   @override
-  String get exportSuccessSnack => 'Favorites exported';
+  String get exportSuccessSnack => 'Il-favoriti ġew esportati';
 
   @override
-  String get exportFailedSnack => 'Export failed';
+  String get exportFailedSnack => 'L-esportazzjoni falliet';
 
   @override
-  String get importFavoritesTitle => 'Import favorites';
-
-  @override
-  String get importButton => 'Import';
+  String get importFavoritesTitle => 'Importa l-favoriti';
 
   @override
   String get importPasswordPrompt =>
-      'This file is encrypted — enter the password';
+      'Dan il-fajl huwa kriptat — daħħal il-password';
 
   @override
   String importSuccessSnack(int n) {
-    return '$n favorites imported';
+    return '$n favoriti importati';
   }
 
   @override
-  String get importFailedSnack => 'Import failed — check the file and password';
+  String get importFailedSnack =>
+      'L-importazzjoni falliet — iċċekkja l-fajl u l-password';
 
   @override
-  String get syncFavoritesTitle => 'Sync favorites';
+  String get syncFavoritesTitle => 'Sinkronizza l-favoriti';
 
   @override
   String get syncFavoritesDesc =>
-      'Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.';
+      'Ippubblika l-favoriti tiegħek, kriptati end-to-end, fuq ir-relays Nostr tiegħek biex isegwuk fuq l-apparati kollha. Ir-relays jaraw biss test kriptat — ħadd ħliefek ma jista’ jaqra l-kontenut.';
 
   @override
-  String get syncFavoritesEnable => 'Enable sync';
+  String get syncNowButton => 'Ibgħat lil Nostr';
 
   @override
-  String get syncNowButton => 'Push to Nostr';
+  String get syncPullButton => 'Ġib minn Nostr';
 
   @override
-  String get syncPullButton => 'Pull from Nostr';
+  String get syncSuccessSnack => 'Il-favoriti ġew sinkronizzati';
 
   @override
-  String get syncPushingStatus => 'Publishing…';
-
-  @override
-  String get syncPullingStatus => 'Fetching…';
-
-  @override
-  String get syncSuccessSnack => 'Favorites synced';
-
-  @override
-  String get syncFailedSnack => 'Sync failed';
-
-  @override
-  String get syncNotAvailableAmber =>
-      'Encrypted sync isn\'t available with Amber sign-in yet';
+  String get syncFailedSnack => 'Is-sinkronizzazzjoni falliet';
 
   @override
   String syncLastSyncLabel(String when) {
-    return 'Last synced: $when';
+    return 'L-aħħar sinkronizzazzjoni: $when';
   }
 
   @override
   String get syncNoIdentity =>
-      'Sign in with Nostr (Settings → Profile) to enable sync';
-
-  @override
-  String get syncPullConfirmTitle => 'Replace local favorites?';
-
-  @override
-  String get syncPullConfirmBody =>
-      'This will merge favorites fetched from Nostr with the ones already on this device.';
+      'Idħol b’Nostr (Settings → Profil) biex tattiva s-sinkronizzazzjoni';
 
   @override
   String get onboardingVpnNotice =>
@@ -1080,4 +1058,30 @@ class AppLocalizationsMt extends AppLocalizations {
   @override
   String get onboardingGrapheneAlwaysAllow =>
       'Għal tħaddim affidabbli, issettja l-permess tal-post tal-app għal \"Ħalli dejjem\", mhux biss waqt li l-app tkun qed tintuża.';
+
+  @override
+  String get trafficNormal => 'Traffiku normali';
+
+  @override
+  String get trafficModerate => 'Traffiku moderat';
+
+  @override
+  String get trafficHeavy => 'Traffiku qawwi';
+
+  @override
+  String get avoidHighwaysChip => 'Evita l-awtostradi';
+
+  @override
+  String get avoidTollsChip => 'Evita l-pedaġġi';
+
+  @override
+  String get preferShorterChip => 'L-iqsar rotta';
+
+  @override
+  String zapAmountButton(int sats) {
+    return 'Zap $sats sat';
+  }
+
+  @override
+  String get showRoutePreview => 'Uri l-previżjoni tar-rotta';
 }

@@ -17,6 +17,7 @@ import 'package:nostr_tools/nostr_tools.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../models/road_event.dart';
+import 'nostr_event_verify.dart';
 
 // ── Nostr profile (kind 0) ────────────────────────────────────────────────────
 
@@ -384,25 +385,7 @@ class NostrRelayService {
   /// Recomputes the event id from the canonical serialization and verifies
   /// the BIP-340 signature against the claimed pubkey. Any event that fails
   /// is discarded — relay data must never be taken at face value.
-  bool _verifyEvent(Map<String, dynamic> json) {
-    try {
-      final ev = Event(
-        kind:       json['kind'] as int,
-        tags:       (json['tags'] as List)
-            .map((t) => List<String>.from(t as List))
-            .toList(),
-        content:    json['content'] as String? ?? '',
-        created_at: json['created_at'] as int,
-        id:         json['id'] as String,
-        sig:        json['sig'] as String,
-        pubkey:     json['pubkey'] as String,
-      );
-      if (_eventApi.getEventHash(ev) != ev.id) return false;
-      return _eventApi.verifySignature(ev);
-    } catch (_) {
-      return false;
-    }
-  }
+  bool _verifyEvent(Map<String, dynamic> json) => verifyEventJson(json);
 
   void _handleRoadEvent(Map<String, dynamic> json) {
     final event = RoadEvent.fromNostr(json);
@@ -418,7 +401,7 @@ class NostrRelayService {
         .toList();
     String? targetId, status;
     for (final t in tags) {
-      if (t.isEmpty) continue;
+      if (t.length < 2) continue;
       if (t[0] == 'e')      targetId = t[1];
       if (t[0] == 'status') status   = t[1];
     }
@@ -533,7 +516,9 @@ class NostrRelayService {
     required int expires,
   }) async {
     _requireConnected();
-    _send(['EVENT', eventJson]);
+    // Same redundancy as the nsec path (publishRoadEvent): all publish relays,
+    // not just the primary — Amber users' reports must propagate equally well.
+    _sendToAll(['EVENT', eventJson]);
     return RoadEvent(
       id:        eventJson['id'] as String,
       pubkey:    eventJson['pubkey'] as String,
@@ -564,6 +549,9 @@ class NostrRelayService {
       ws = WebSocketChannel.connect(Uri.parse('wss://relay.damus.io'));
       final events    = <RoadEvent>[];
       final eventIds  = <String>[];
+      // One vote per pubkey per event, and dedupe re-delivered events —
+      // same anti-inflation rules the live stream enforces via _countedVotes.
+      final countedVotes = <String>{};
       final completer = Completer<List<RoadEvent>>();
       final evSub  = 'ue-${_nowS()}';
       final confSub = 'uc-${_nowS() + 1}';
@@ -574,22 +562,29 @@ class NostrRelayService {
           try {
             final msg = jsonDecode(raw as String) as List;
             if (msg[0] == 'EVENT') {
-              final json = msg[2] as Map<String, dynamic>;
+              final json = (msg[2] as Map).cast<String, dynamic>();
+              // Same trust rule as the live subscription: verify id + signature
+              // before using anything a relay sends.
+              if (!verifyEventJson(json)) return;
               if (msg[1] == evSub && json['kind'] == 1315) {
                 final ev = RoadEvent.fromNostr(json);
-                if (ev != null) { events.add(ev); eventIds.add(ev.id); }
+                if (ev != null && !eventIds.contains(ev.id)) {
+                  events.add(ev);
+                  eventIds.add(ev.id);
+                }
               } else if (msg[1] == confSub && json['kind'] == 1316) {
                 final tags = (json['tags'] as List)
                     .map((t) => List<String>.from(t as List)).toList();
                 String? targetId, status;
                 for (final t in tags) {
-                  if (t.isEmpty) continue;
+                  if (t.length < 2) continue;
                   if (t[0] == 'e') targetId = t[1];
                   if (t[0] == 'status') status = t[1];
                 }
                 if (targetId == null || status == null) return;
                 final idx = events.indexWhere((e) => e.id == targetId);
                 if (idx < 0) return;
+                if (!countedVotes.add('$targetId:${json['pubkey']}')) return;
                 if (status == 'still_there') events[idx].confirmations++;
                 else if (status == 'no_longer_there') events[idx].denials++;
               }
@@ -666,7 +661,11 @@ class NostrRelayService {
           try {
             final msg = jsonDecode(raw as String) as List;
             if (msg[0] == 'EVENT' && msg[1] == subId) {
-              final meta = jsonDecode((msg[2] as Map)['content'] as String)
+              final json = (msg[2] as Map).cast<String, dynamic>();
+              // Verify author + id + signature: a forged kind-0 would let a
+              // malicious relay plant an arbitrary display name/avatar.
+              if (json['pubkey'] != pubHex || !verifyEventJson(json)) return;
+              final meta = jsonDecode(json['content'] as String)
                   as Map<String, dynamic>;
               completer.complete(NostrProfile(
                 name:        meta['name']         as String?,

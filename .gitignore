@@ -17,7 +17,6 @@ android/key.properties
 .svn/
 .swiftpm/
 migrate_working_dir/
-.gitignore
 
 # IntelliJ related
 *.iml

@@ -293,7 +293,7 @@
   "lightningAddressCopied": "⚡ {address} копирано в клипборда",
   "disclaimerTitle": "Важно известие",
   "disclaimerAccept": "Прочетох и приемам",
-  "disclaimerBody": "Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app's instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.",
+  "disclaimerBody": "Roadstr е експериментално, приложение с отворен код за навигация, поддържано от общността, базирано на данни от OpenStreetMap и протокола Nostr, предоставено за използване във всяка държава. Чрез изтеглянето, инсталирането или използването на това приложение потребителят безусловно приема всички следващи условия, без ограничение на територията.\n\n🚗 БЕЗОПАСНОСТТА НА ПЪТЯ НА ПЪРВО МЯСТО\nВодачът трябва винаги да държи очите си на пътя и да спазва всички приложими закони за движение по пътищата и поставената сигнализация, които винаги имат предимство пред всяка инструкция от приложението. Никога не работете с устройството по време на шофиране; закрепете го на одобрена, видима стойка преди да потеглите, и никога не отклонявайте вниманието си от пътя, за да взаимодействате с него, докато превозното средство се движи.\n\n⚠️ ПОЕМАНЕ НА РИСКА — В ЦЕЛИЯ СВЯТ\nЧрез използването на Roadstr, във всяка държава и при всяка правна система, потребителят съзнателно и доброволно поема ВСИЧКИ рискове, свързани с неговото използване, включително, но не само: пътнотранспортни произшествия, телесни повреди, смърт, имуществени щети, повреди на превозното средство, глоби, административни наказания, репатриране, задържане на автомобил, наказателна отговорност или всякакви други последици, произтичащи пряко или косвено от разчитането на приложението. Единствено потребителят носи пълна отговорност за всяко решение, свързано с шофирането и навигацията.\n\n🚫 БЕЗ ГАРАНЦИЯ\nRoadstr се предоставя стриктно „КАКТО Е“ и „КАКТО Е НАЛИЧНО“, без каквато и да е гаранция от какъвто и да е вид, изрична, подразбираща се или установена по закон — включително, без ограничение, гаранции за точност, пълнота, надеждност, наличност, търговска годност, годност за определена цел и ненарушаване на права. Данните за картата, маршрутизирането, ограниченията на скоростта, камерите за скорост и информацията за зони с ограничено движение (ZTL/ZAC/LTZ) произхождат от отворени, поддържани от общността източници (OpenStreetMap, Overpass API), които могат да бъдат непълни, остарели или неточни за всяка държава, регион или община, по всяко време и без предизвестие. Потребителят носи пълна отговорност самостоятелно да провери, преди и по време на пътуването, законността и достъпността на всеки предложен маршрут спрямо официалната местна сигнализация и разпоредби.\n\n📍 ТОЧНОСТ И GPS\nGPS позиционирането може да бъде неточно или недостъпно. Всички указания, разстояния и предупреждения се предоставят единствено с ориентировъчна цел и никога не трябва да се приемат като единствена основа за решение при шофиране.\n\n🛡️ ОГРАНИЧАВАНЕ НА ОТГОВОРНОСТТА\nДо максималната степен, разрешена от приложимото право във всяка юрисдикция, разработчиците, сътрудниците и всяка страна, участваща в създаването или разпространението на Roadstr, не носят отговорност за каквито и да е преки, косвени, случайни, последващи, специални, примерни или наказателни вреди от какъвто и да е вид — включително телесна повреда, смърт или финансова загуба — произтичащи от или свързани с използването или невъзможността за използване на приложението, дори ако са били уведомени за възможността от такива вреди. Когато дадена юрисдикция не позволява част или цялото от това ограничение, отговорността се ограничава до минималната степен, разрешена от закона в тази юрисдикция.\n\n🤝 ОБЕЗЩЕТЕНИЕ\nПотребителят се съгласява да обезщети и да предпази от вреди разработчиците и сътрудниците от всякакви претенции, вреди, загуби или разходи (включително адвокатски хонорари), произтичащи от използването на приложението от потребителя или от нарушаване на настоящите условия.\n\n🔒 ПОВЕРИТЕЛНОСТ\nНикакви данни за местоположение не се предават на собствените сървъри на Roadstr. Изчисляването на маршрута се извършва чрез услуги на трети страни (OSRM, GraphHopper, OpenRouteService), на които се изпращат единствено координатите на началната точка и местоназначението.\n\n⚖️ РАЗДЕЛИМОСТ\nАко някоя разпоредба от настоящите условия бъде счетена за неприложима в дадена юрисдикция, тази разпоредба ще бъде ограничена или отделена до минималната необходима степен, а всички останали разпоредби ще останат в пълна сила и действие.\n\nЧрез използването на Roadstr, където и да е по света, потребителят потвърждава, че е прочел, разбрал и безусловно приел всяко от горните условия, и поема пълна и цялостна отговорност — и целия риск — за използването на приложението и всяка последица, произтичаща от него.",
   "readOnWikipedia": "Прочети в Wikipedia",
   "searchOnEngine": "Търси в {engine}",
   "plannerFromHint": "От…",
@@ -314,7 +314,7 @@
   "weatherSnow": "Сняг",
   "weatherShowers": "Валежи",
   "weatherThunderstorm": "Гръмотевична буря",
-  "ztlAheadWarning": "ZTL зона напред — маршрутът влиза в ограничена зона",
+  "ztlAheadWarning": "Напред има зона с ограничено движение — маршрутът минава през нея",
   "ztlInsideWarning": "Зона с ограничено движение",
   "onboardingAppSubtitle": "Open-source Nostr навигация",
   "onboardingWelcomeTitle": "Добре дошли",
@@ -357,5 +357,65 @@
   "onboardingProfileLoading": "Зареждане на профил…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "За максимална поверителност — сигналите се разпространяват в мрежата Nostr — се препоръчва използването на VPN. Mullvad, с плащане в биткойн, е препоръчителният избор.",
-  "onboardingGrapheneAlwaysAllow": "За надеждна работа задайте разрешението за местоположение на „Разрешавай винаги“, а не само докато приложението се използва."
+  "onboardingGrapheneAlwaysAllow": "За надеждна работа задайте разрешението за местоположение на „Разрешавай винаги“, а не само докато приложението се използва.",
+  "exportFavoritesTitle": "Експортиране на любими",
+  "exportFavoritesDesc": "Запазете любимите си места в JSON файл, който можете да архивирате или прехвърлите на друго устройство.",
+  "exportEncryptToggle": "Шифроване с парола",
+  "exportPasswordHint": "Парола",
+  "exportButton": "Експортиране",
+  "exportSuccessSnack": "Любимите са експортирани",
+  "exportFailedSnack": "Експортирането неуспешно",
+  "importFavoritesTitle": "Импортиране на любими",
+  "importPasswordPrompt": "Този файл е шифрован — въведете паролата",
+  "importSuccessSnack": "{n} любими са импортирани",
+  "@importSuccessSnack": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "importFailedSnack": "Импортирането неуспешно — проверете файла и паролата",
+  "kokoroVoiceGenderTitle": "Глас",
+  "kokoroVoiceFemale": "Женски",
+  "kokoroVoiceMale": "Мъжки",
+  "kokoroVoiceGenderUnavailable": "Мъжки глас не е наличен за този език",
+  "kokoroSpeedTitle": "Скорост на говора",
+  "onboardingFavoritesSyncNotice": "По избор: запазените любими могат да се синхронизират между устройствата ви чрез Nostr релетата, шифровани от край до край (NIP-44) с вашия собствен ключ — релетата виждат само шифрован текст и никой освен вас не може да чете съдържанието. Активирайте по всяко време от Настройки.",
+  "parkingMarkerTitle": "Място за паркиране",
+  "parkingSaveHere": "Запази паркинга тук",
+  "parkingSavedSnack": "Мястото за паркиране е запазено",
+  "parkingNavigateHere": "Навигирай до паркинга",
+  "parkingRemove": "Премахни паркинга",
+  "parkingRemovedSnack": "Мястото за паркиране е премахнато",
+  "syncFavoritesTitle": "Синхронизиране на любими",
+  "syncFavoritesDesc": "Публикувайте любимите си, шифровани от край до край, към вашите Nostr релета, за да ви следват на всички устройства. Релетата виждат само шифрован текст — никой освен вас не може да чете съдържанието.",
+  "syncNoIdentity": "Влезте с Nostr (Настройки → Профил), за да активирате синхронизацията",
+  "syncNowButton": "Изпрати към Nostr",
+  "syncPullButton": "Изтегли от Nostr",
+  "syncSuccessSnack": "Любимите са синхронизирани",
+  "syncFailedSnack": "Синхронизацията неуспешна",
+  "syncLastSyncLabel": "Последна синхронизация: {when}",
+  "@syncLastSyncLabel": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trafficNormal": "Нормален трафик",
+  "trafficModerate": "Умерен трафик",
+  "trafficHeavy": "Натоварен трафик",
+  "avoidHighwaysChip": "Без магистрали",
+  "avoidTollsChip": "Без тол такси",
+  "preferShorterChip": "Най-кратък маршрут",
+  "zapAmountButton": "Zap {sats} sat",
+  "@zapAmountButton": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
+  "showRoutePreview": "Преглед на маршрута"
 }

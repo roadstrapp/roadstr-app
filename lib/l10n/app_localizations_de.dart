@@ -738,7 +738,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.';
+      'Roadstr ist eine experimentelle, quelloffene und von der Community betriebene Navigations-App, die auf OpenStreetMap-Daten und dem Nostr-Protokoll basiert und zur Nutzung in jedem Land bereitgestellt wird. Durch das Herunterladen, die Installation oder die Nutzung dieser App akzeptiert der Nutzer bedingungslos sämtliche der folgenden Bedingungen, ohne räumliche Beschränkung.\n\n🚗 VERKEHRSSICHERHEIT GEHT VOR\nDer Fahrer muss stets den Blick auf die Straße gerichtet halten und alle geltenden Verkehrsgesetze sowie die vorhandene Beschilderung beachten, die stets Vorrang vor jeder Anweisung der App haben. Das Gerät darf während der Fahrt niemals bedient werden; es ist vor Fahrtantritt in einer zugelassenen, gut sichtbaren Halterung zu befestigen, und die Aufmerksamkeit darf während der Fahrt niemals von der Straße abgewendet werden, um mit dem Gerät zu interagieren.\n\n⚠️ ÜBERNAHME DES RISIKOS — WELTWEIT\nDurch die Nutzung von Roadstr, in jedem Land und unter jedem Rechtssystem, übernimmt der Nutzer wissentlich und freiwillig SÄMTLICHE mit der Nutzung verbundenen Risiken, einschließlich, aber nicht beschränkt auf: Verkehrsunfälle, Personenschäden, Tod, Sachschäden, Fahrzeugschäden, Bußgelder, Verwaltungsstrafen, Abschleppen, Beschlagnahmung, strafrechtliche Haftung oder jede andere Folge, die sich direkt oder indirekt aus dem Vertrauen auf die App ergibt. Der Nutzer allein trägt die volle Verantwortung für jede Fahr- und Navigationsentscheidung.\n\n🚫 KEINE GEWÄHRLEISTUNG\nRoadstr wird ausschließlich „WIE BESEHEN\" und „WIE VERFÜGBAR\" bereitgestellt, ohne jegliche Gewährleistung, weder ausdrücklich noch stillschweigend noch gesetzlich vorgeschrieben — einschließlich, aber nicht beschränkt auf Gewährleistungen der Genauigkeit, Vollständigkeit, Zuverlässigkeit, Verfügbarkeit, Marktgängigkeit, Eignung für einen bestimmten Zweck und Nichtverletzung von Rechten Dritter. Kartendaten, Routenberechnung, Geschwindigkeitsbegrenzungen, Blitzer und Informationen zu verkehrsbeschränkten Zonen (ZTL/ZAC/LTZ) stammen aus offenen, von der Community gepflegten Quellen (OpenStreetMap, Overpass API), die für jedes Land, jede Region oder Gemeinde jederzeit und ohne vorherige Ankündigung unvollständig, veraltet oder ungenau sein können. Der Nutzer ist allein dafür verantwortlich, vor und während der Fahrt die Rechtmäßigkeit und Befahrbarkeit jeder vorgeschlagenen Route eigenständig anhand der offiziellen örtlichen Beschilderung und Vorschriften zu überprüfen.\n\n📍 GENAUIGKEIT & GPS\nDie GPS-Positionsbestimmung kann ungenau oder nicht verfügbar sein. Sämtliche Wegbeschreibungen, Entfernungsangaben und Hinweise dienen ausschließlich zur Orientierung und dürfen niemals als alleinige Grundlage für eine Fahrentscheidung herangezogen werden.\n\n🛡️ HAFTUNGSBESCHRÄNKUNG\nSoweit nach geltendem Recht in der jeweiligen Rechtsordnung maximal zulässig, haften die Entwickler, Mitwirkenden und alle an der Erstellung oder Verbreitung von Roadstr beteiligten Parteien nicht für direkte, indirekte, beiläufig entstandene, Folge-, besondere, exemplarische oder Strafschäden jeglicher Art — einschließlich Personenschäden, Tod oder finanzieller Verluste —, die sich aus der Nutzung oder der Unmöglichkeit der Nutzung der App ergeben, selbst wenn auf die Möglichkeit solcher Schäden hingewiesen wurde. Soweit eine Rechtsordnung diese Haftungsbeschränkung ganz oder teilweise nicht zulässt, ist die Haftung auf das nach dem Recht dieser Rechtsordnung geringstmögliche zulässige Maß beschränkt.\n\n🤝 FREISTELLUNG\nDer Nutzer verpflichtet sich, die Entwickler und Mitwirkenden von jeglichen Ansprüchen, Schäden, Verlusten oder Aufwendungen (einschließlich Anwaltskosten) freizustellen und schadlos zu halten, die sich aus der Nutzung der App durch den Nutzer oder aus einem Verstoß gegen diese Bedingungen ergeben.\n\n🔒 DATENSCHUTZ\nEs werden keine Standortdaten an eigene Server von Roadstr übermittelt. Die Routenberechnung erfolgt über Dienste Dritter (OSRM, GraphHopper, OpenRouteService), an die ausschließlich die Start- und Zielkoordinaten übermittelt werden.\n\n⚖️ SALVATORISCHE KLAUSEL\nSollte sich eine Bestimmung dieser Bedingungen in einer bestimmten Rechtsordnung als nicht durchsetzbar erweisen, wird diese Bestimmung im geringstmöglichen erforderlichen Umfang eingeschränkt oder abgetrennt, während alle übrigen Bestimmungen in vollem Umfang wirksam bleiben.\n\nDurch die Nutzung von Roadstr, gleich an welchem Ort der Welt, bestätigt der Nutzer, sämtliche vorstehenden Bedingungen gelesen, verstanden und bedingungslos akzeptiert zu haben, und übernimmt die volle und vollständige Verantwortung — sowie das gesamte Risiko — für die Nutzung der Anwendung und jede sich daraus ergebende Folge.';
 
   @override
   String get readOnWikipedia => 'Auf Wikipedia lesen';
@@ -812,7 +812,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get ztlAheadWarning =>
-      'ZTL-Zone voraus — Route führt in eingeschränkte Zone';
+      'Eingeschränkte Verkehrszone voraus — die Route führt hinein';
 
   @override
   String get ztlInsideWarning => 'Eingeschränkte Verkehrszone';
@@ -952,130 +952,108 @@ class AppLocalizationsDe extends AppLocalizations {
   String get onboardingNsecHint => 'nsec1…';
 
   @override
-  String get kokoroVoiceGenderTitle => 'Voice';
+  String get kokoroVoiceGenderTitle => 'Stimme';
 
   @override
-  String get kokoroVoiceFemale => 'Female';
+  String get kokoroVoiceFemale => 'Weiblich';
 
   @override
-  String get kokoroVoiceMale => 'Male';
+  String get kokoroVoiceMale => 'Männlich';
 
   @override
   String get kokoroVoiceGenderUnavailable =>
-      'Male voice not available for this language';
+      'Männliche Stimme für diese Sprache nicht verfügbar';
 
   @override
-  String get kokoroSpeedTitle => 'Speech speed';
+  String get kokoroSpeedTitle => 'Sprechgeschwindigkeit';
 
   @override
   String get onboardingFavoritesSyncNotice =>
-      'Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.';
+      'Optional: Deine gespeicherten Favoriten können über die Nostr-Relays zwischen deinen Geräten synchronisiert werden, Ende-zu-Ende-verschlüsselt (NIP-44) mit deinem eigenen Schlüssel — Relays sehen nur Chiffretext, und niemand außer dir kann die Inhalte lesen. Jederzeit in den Einstellungen aktivierbar.';
 
   @override
-  String get parkingSaveHere => 'Save parking here';
+  String get parkingSaveHere => 'Parkposition hier speichern';
 
   @override
-  String get parkingMarkerTitle => 'Parking spot';
+  String get parkingMarkerTitle => 'Parkplatz';
 
   @override
-  String get parkingNavigateHere => 'Navigate to parking';
+  String get parkingNavigateHere => 'Zum Parkplatz navigieren';
 
   @override
-  String get parkingRemove => 'Remove parking';
+  String get parkingRemove => 'Parkposition entfernen';
 
   @override
-  String get parkingSavedSnack => 'Parking spot saved';
+  String get parkingSavedSnack => 'Parkposition gespeichert';
 
   @override
-  String get parkingRemovedSnack => 'Parking spot removed';
+  String get parkingRemovedSnack => 'Parkposition entfernt';
 
   @override
-  String get exportFavoritesTitle => 'Export favorites';
+  String get exportFavoritesTitle => 'Favoriten exportieren';
 
   @override
   String get exportFavoritesDesc =>
-      'Save your favorite places to a JSON file you can back up or move to another device.';
+      'Speichere deine Lieblingsorte in einer JSON-Datei, die du sichern oder auf ein anderes Gerät übertragen kannst.';
 
   @override
-  String get exportEncryptToggle => 'Encrypt with a password';
+  String get exportEncryptToggle => 'Mit Passwort verschlüsseln';
 
   @override
-  String get exportPasswordHint => 'Password';
+  String get exportPasswordHint => 'Passwort';
 
   @override
-  String get exportButton => 'Export';
+  String get exportButton => 'Exportieren';
 
   @override
-  String get exportSuccessSnack => 'Favorites exported';
+  String get exportSuccessSnack => 'Favoriten exportiert';
 
   @override
-  String get exportFailedSnack => 'Export failed';
+  String get exportFailedSnack => 'Export fehlgeschlagen';
 
   @override
-  String get importFavoritesTitle => 'Import favorites';
-
-  @override
-  String get importButton => 'Import';
+  String get importFavoritesTitle => 'Favoriten importieren';
 
   @override
   String get importPasswordPrompt =>
-      'This file is encrypted — enter the password';
+      'Diese Datei ist verschlüsselt — Passwort eingeben';
 
   @override
   String importSuccessSnack(int n) {
-    return '$n favorites imported';
+    return '$n Favoriten importiert';
   }
 
   @override
-  String get importFailedSnack => 'Import failed — check the file and password';
+  String get importFailedSnack =>
+      'Import fehlgeschlagen — Datei und Passwort prüfen';
 
   @override
-  String get syncFavoritesTitle => 'Sync favorites';
+  String get syncFavoritesTitle => 'Favoriten synchronisieren';
 
   @override
   String get syncFavoritesDesc =>
-      'Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.';
+      'Veröffentliche deine Favoriten Ende-zu-Ende-verschlüsselt auf deinen Nostr-Relays, damit sie dir auf allen Geräten folgen. Relays sehen nur Chiffretext — niemand außer dir kann die Inhalte lesen.';
 
   @override
-  String get syncFavoritesEnable => 'Enable sync';
+  String get syncNowButton => 'An Nostr senden';
 
   @override
-  String get syncNowButton => 'Push to Nostr';
+  String get syncPullButton => 'Von Nostr abrufen';
 
   @override
-  String get syncPullButton => 'Pull from Nostr';
+  String get syncSuccessSnack => 'Favoriten synchronisiert';
 
   @override
-  String get syncPushingStatus => 'Publishing…';
-
-  @override
-  String get syncPullingStatus => 'Fetching…';
-
-  @override
-  String get syncSuccessSnack => 'Favorites synced';
-
-  @override
-  String get syncFailedSnack => 'Sync failed';
-
-  @override
-  String get syncNotAvailableAmber =>
-      'Encrypted sync isn\'t available with Amber sign-in yet';
+  String get syncFailedSnack => 'Synchronisierung fehlgeschlagen';
 
   @override
   String syncLastSyncLabel(String when) {
-    return 'Last synced: $when';
+    return 'Zuletzt synchronisiert: $when';
   }
 
   @override
   String get syncNoIdentity =>
-      'Sign in with Nostr (Settings → Profile) to enable sync';
-
-  @override
-  String get syncPullConfirmTitle => 'Replace local favorites?';
-
-  @override
-  String get syncPullConfirmBody =>
-      'This will merge favorites fetched from Nostr with the ones already on this device.';
+      'Melde dich mit Nostr an (Einstellungen → Profil), um die Synchronisierung zu aktivieren';
 
   @override
   String get onboardingVpnNotice =>
@@ -1084,4 +1062,30 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get onboardingGrapheneAlwaysAllow =>
       'Für einen zuverlässigen Betrieb stelle die Standortberechtigung der App auf „Immer zulassen“, nicht nur während der Nutzung.';
+
+  @override
+  String get trafficNormal => 'Normaler Verkehr';
+
+  @override
+  String get trafficModerate => 'Mäßiger Verkehr';
+
+  @override
+  String get trafficHeavy => 'Dichter Verkehr';
+
+  @override
+  String get avoidHighwaysChip => 'Autobahnen meiden';
+
+  @override
+  String get avoidTollsChip => 'Maut vermeiden';
+
+  @override
+  String get preferShorterChip => 'Kürzeste Route';
+
+  @override
+  String zapAmountButton(int sats) {
+    return 'Zap $sats sat';
+  }
+
+  @override
+  String get showRoutePreview => 'Routenvorschau anzeigen';
 }

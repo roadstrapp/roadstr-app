@@ -735,7 +735,7 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.';
+      'Roadstr е експериментално, приложение с отворен код за навигация, поддържано от общността, базирано на данни от OpenStreetMap и протокола Nostr, предоставено за използване във всяка държава. Чрез изтеглянето, инсталирането или използването на това приложение потребителят безусловно приема всички следващи условия, без ограничение на територията.\n\n🚗 БЕЗОПАСНОСТТА НА ПЪТЯ НА ПЪРВО МЯСТО\nВодачът трябва винаги да държи очите си на пътя и да спазва всички приложими закони за движение по пътищата и поставената сигнализация, които винаги имат предимство пред всяка инструкция от приложението. Никога не работете с устройството по време на шофиране; закрепете го на одобрена, видима стойка преди да потеглите, и никога не отклонявайте вниманието си от пътя, за да взаимодействате с него, докато превозното средство се движи.\n\n⚠️ ПОЕМАНЕ НА РИСКА — В ЦЕЛИЯ СВЯТ\nЧрез използването на Roadstr, във всяка държава и при всяка правна система, потребителят съзнателно и доброволно поема ВСИЧКИ рискове, свързани с неговото използване, включително, но не само: пътнотранспортни произшествия, телесни повреди, смърт, имуществени щети, повреди на превозното средство, глоби, административни наказания, репатриране, задържане на автомобил, наказателна отговорност или всякакви други последици, произтичащи пряко или косвено от разчитането на приложението. Единствено потребителят носи пълна отговорност за всяко решение, свързано с шофирането и навигацията.\n\n🚫 БЕЗ ГАРАНЦИЯ\nRoadstr се предоставя стриктно „КАКТО Е“ и „КАКТО Е НАЛИЧНО“, без каквато и да е гаранция от какъвто и да е вид, изрична, подразбираща се или установена по закон — включително, без ограничение, гаранции за точност, пълнота, надеждност, наличност, търговска годност, годност за определена цел и ненарушаване на права. Данните за картата, маршрутизирането, ограниченията на скоростта, камерите за скорост и информацията за зони с ограничено движение (ZTL/ZAC/LTZ) произхождат от отворени, поддържани от общността източници (OpenStreetMap, Overpass API), които могат да бъдат непълни, остарели или неточни за всяка държава, регион или община, по всяко време и без предизвестие. Потребителят носи пълна отговорност самостоятелно да провери, преди и по време на пътуването, законността и достъпността на всеки предложен маршрут спрямо официалната местна сигнализация и разпоредби.\n\n📍 ТОЧНОСТ И GPS\nGPS позиционирането може да бъде неточно или недостъпно. Всички указания, разстояния и предупреждения се предоставят единствено с ориентировъчна цел и никога не трябва да се приемат като единствена основа за решение при шофиране.\n\n🛡️ ОГРАНИЧАВАНЕ НА ОТГОВОРНОСТТА\nДо максималната степен, разрешена от приложимото право във всяка юрисдикция, разработчиците, сътрудниците и всяка страна, участваща в създаването или разпространението на Roadstr, не носят отговорност за каквито и да е преки, косвени, случайни, последващи, специални, примерни или наказателни вреди от какъвто и да е вид — включително телесна повреда, смърт или финансова загуба — произтичащи от или свързани с използването или невъзможността за използване на приложението, дори ако са били уведомени за възможността от такива вреди. Когато дадена юрисдикция не позволява част или цялото от това ограничение, отговорността се ограничава до минималната степен, разрешена от закона в тази юрисдикция.\n\n🤝 ОБЕЗЩЕТЕНИЕ\nПотребителят се съгласява да обезщети и да предпази от вреди разработчиците и сътрудниците от всякакви претенции, вреди, загуби или разходи (включително адвокатски хонорари), произтичащи от използването на приложението от потребителя или от нарушаване на настоящите условия.\n\n🔒 ПОВЕРИТЕЛНОСТ\nНикакви данни за местоположение не се предават на собствените сървъри на Roadstr. Изчисляването на маршрута се извършва чрез услуги на трети страни (OSRM, GraphHopper, OpenRouteService), на които се изпращат единствено координатите на началната точка и местоназначението.\n\n⚖️ РАЗДЕЛИМОСТ\nАко някоя разпоредба от настоящите условия бъде счетена за неприложима в дадена юрисдикция, тази разпоредба ще бъде ограничена или отделена до минималната необходима степен, а всички останали разпоредби ще останат в пълна сила и действие.\n\nЧрез използването на Roadstr, където и да е по света, потребителят потвърждава, че е прочел, разбрал и безусловно приел всяко от горните условия, и поема пълна и цялостна отговорност — и целия риск — за използването на приложението и всяка последица, произтичаща от него.';
 
   @override
   String get readOnWikipedia => 'Прочети в Wikipedia';
@@ -809,7 +809,7 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get ztlAheadWarning =>
-      'ZTL зона напред — маршрутът влиза в ограничена зона';
+      'Напред има зона с ограничено движение — маршрутът минава през нея';
 
   @override
   String get ztlInsideWarning => 'Зона с ограничено движение';
@@ -950,130 +950,107 @@ class AppLocalizationsBg extends AppLocalizations {
   String get onboardingNsecHint => 'nsec1…';
 
   @override
-  String get kokoroVoiceGenderTitle => 'Voice';
+  String get kokoroVoiceGenderTitle => 'Глас';
 
   @override
-  String get kokoroVoiceFemale => 'Female';
+  String get kokoroVoiceFemale => 'Женски';
 
   @override
-  String get kokoroVoiceMale => 'Male';
+  String get kokoroVoiceMale => 'Мъжки';
 
   @override
   String get kokoroVoiceGenderUnavailable =>
-      'Male voice not available for this language';
+      'Мъжки глас не е наличен за този език';
 
   @override
-  String get kokoroSpeedTitle => 'Speech speed';
+  String get kokoroSpeedTitle => 'Скорост на говора';
 
   @override
   String get onboardingFavoritesSyncNotice =>
-      'Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.';
+      'По избор: запазените любими могат да се синхронизират между устройствата ви чрез Nostr релетата, шифровани от край до край (NIP-44) с вашия собствен ключ — релетата виждат само шифрован текст и никой освен вас не може да чете съдържанието. Активирайте по всяко време от Настройки.';
 
   @override
-  String get parkingSaveHere => 'Save parking here';
+  String get parkingSaveHere => 'Запази паркинга тук';
 
   @override
-  String get parkingMarkerTitle => 'Parking spot';
+  String get parkingMarkerTitle => 'Място за паркиране';
 
   @override
-  String get parkingNavigateHere => 'Navigate to parking';
+  String get parkingNavigateHere => 'Навигирай до паркинга';
 
   @override
-  String get parkingRemove => 'Remove parking';
+  String get parkingRemove => 'Премахни паркинга';
 
   @override
-  String get parkingSavedSnack => 'Parking spot saved';
+  String get parkingSavedSnack => 'Мястото за паркиране е запазено';
 
   @override
-  String get parkingRemovedSnack => 'Parking spot removed';
+  String get parkingRemovedSnack => 'Мястото за паркиране е премахнато';
 
   @override
-  String get exportFavoritesTitle => 'Export favorites';
+  String get exportFavoritesTitle => 'Експортиране на любими';
 
   @override
   String get exportFavoritesDesc =>
-      'Save your favorite places to a JSON file you can back up or move to another device.';
+      'Запазете любимите си места в JSON файл, който можете да архивирате или прехвърлите на друго устройство.';
 
   @override
-  String get exportEncryptToggle => 'Encrypt with a password';
+  String get exportEncryptToggle => 'Шифроване с парола';
 
   @override
-  String get exportPasswordHint => 'Password';
+  String get exportPasswordHint => 'Парола';
 
   @override
-  String get exportButton => 'Export';
+  String get exportButton => 'Експортиране';
 
   @override
-  String get exportSuccessSnack => 'Favorites exported';
+  String get exportSuccessSnack => 'Любимите са експортирани';
 
   @override
-  String get exportFailedSnack => 'Export failed';
+  String get exportFailedSnack => 'Експортирането неуспешно';
 
   @override
-  String get importFavoritesTitle => 'Import favorites';
+  String get importFavoritesTitle => 'Импортиране на любими';
 
   @override
-  String get importButton => 'Import';
-
-  @override
-  String get importPasswordPrompt =>
-      'This file is encrypted — enter the password';
+  String get importPasswordPrompt => 'Този файл е шифрован — въведете паролата';
 
   @override
   String importSuccessSnack(int n) {
-    return '$n favorites imported';
+    return '$n любими са импортирани';
   }
 
   @override
-  String get importFailedSnack => 'Import failed — check the file and password';
+  String get importFailedSnack =>
+      'Импортирането неуспешно — проверете файла и паролата';
 
   @override
-  String get syncFavoritesTitle => 'Sync favorites';
+  String get syncFavoritesTitle => 'Синхронизиране на любими';
 
   @override
   String get syncFavoritesDesc =>
-      'Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.';
+      'Публикувайте любимите си, шифровани от край до край, към вашите Nostr релета, за да ви следват на всички устройства. Релетата виждат само шифрован текст — никой освен вас не може да чете съдържанието.';
 
   @override
-  String get syncFavoritesEnable => 'Enable sync';
+  String get syncNowButton => 'Изпрати към Nostr';
 
   @override
-  String get syncNowButton => 'Push to Nostr';
+  String get syncPullButton => 'Изтегли от Nostr';
 
   @override
-  String get syncPullButton => 'Pull from Nostr';
+  String get syncSuccessSnack => 'Любимите са синхронизирани';
 
   @override
-  String get syncPushingStatus => 'Publishing…';
-
-  @override
-  String get syncPullingStatus => 'Fetching…';
-
-  @override
-  String get syncSuccessSnack => 'Favorites synced';
-
-  @override
-  String get syncFailedSnack => 'Sync failed';
-
-  @override
-  String get syncNotAvailableAmber =>
-      'Encrypted sync isn\'t available with Amber sign-in yet';
+  String get syncFailedSnack => 'Синхронизацията неуспешна';
 
   @override
   String syncLastSyncLabel(String when) {
-    return 'Last synced: $when';
+    return 'Последна синхронизация: $when';
   }
 
   @override
   String get syncNoIdentity =>
-      'Sign in with Nostr (Settings → Profile) to enable sync';
-
-  @override
-  String get syncPullConfirmTitle => 'Replace local favorites?';
-
-  @override
-  String get syncPullConfirmBody =>
-      'This will merge favorites fetched from Nostr with the ones already on this device.';
+      'Влезте с Nostr (Настройки → Профил), за да активирате синхронизацията';
 
   @override
   String get onboardingVpnNotice =>
@@ -1082,4 +1059,30 @@ class AppLocalizationsBg extends AppLocalizations {
   @override
   String get onboardingGrapheneAlwaysAllow =>
       'За надеждна работа задайте разрешението за местоположение на „Разрешавай винаги“, а не само докато приложението се използва.';
+
+  @override
+  String get trafficNormal => 'Нормален трафик';
+
+  @override
+  String get trafficModerate => 'Умерен трафик';
+
+  @override
+  String get trafficHeavy => 'Натоварен трафик';
+
+  @override
+  String get avoidHighwaysChip => 'Без магистрали';
+
+  @override
+  String get avoidTollsChip => 'Без тол такси';
+
+  @override
+  String get preferShorterChip => 'Най-кратък маршрут';
+
+  @override
+  String zapAmountButton(int sats) {
+    return 'Zap $sats sat';
+  }
+
+  @override
+  String get showRoutePreview => 'Преглед на маршрута';
 }

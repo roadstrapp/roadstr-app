@@ -293,7 +293,7 @@
   "lightningAddressCopied": "⚡ {address} kopioitu leikepöydälle",
   "disclaimerTitle": "Tärkeä ilmoitus",
   "disclaimerAccept": "Olen lukenut ja hyväksyn",
-  "disclaimerBody": "Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app's instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.",
+  "disclaimerBody": "Roadstr on kokeellinen, avoimen lähdekoodin ja yhteisön ylläpitämä navigointisovellus, joka perustuu OpenStreetMap-tietoihin ja Nostr-protokollaan, ja se on käytettävissä missä tahansa maassa. Lataamalla, asentamalla tai käyttämällä tätä sovellusta käyttäjä hyväksyy ehdoitta kaikki seuraavat ehdot ilman alueellista rajoitusta.\n\n🚗 LIIKENNETURVALLISUUS ENNEN KAIKKEA\nKuljettajan on aina pidettävä katse tiellä ja noudatettava kaikkia sovellettavia liikennesääntöjä ja asetettuja liikennemerkkejä, joilla on aina etusija sovelluksen antamiin ohjeisiin nähden. Älä koskaan käytä laitetta ajon aikana; kiinnitä se hyväksyttyyn, näkyvään telineeseen ennen liikkeelle lähtöä, äläkä koskaan käännä huomiotasi pois tieltä laitteen käyttämiseksi ajoneuvon liikkuessa.\n\n⚠️ RISKIN HYVÄKSYMINEN — MAAILMANLAAJUISESTI\nKäyttämällä Roadstr-sovellusta missä tahansa maassa ja minkä tahansa oikeusjärjestelmän alaisuudessa käyttäjä ottaa tietoisesti ja vapaaehtoisesti kantaakseen KAIKKI sen käyttöön liittyvät riskit, mukaan lukien muun muassa: liikenneonnettomuudet, henkilövahingot, kuolema, omaisuusvahingot, ajoneuvovauriot, sakot, hallinnolliset seuraamukset, hinaus, ajoneuvon takavarikointi, rikosoikeudellinen vastuu tai mikä tahansa muu seuraus, joka aiheutuu suoraan tai välillisesti sovellukseen luottamisesta. Käyttäjä yksin kantaa täyden vastuun jokaisesta ajamiseen ja navigointiin liittyvästä päätöksestä.\n\n🚫 EI TAKUUTA\nRoadstr tarjotaan tiukasti sellaisena kuin se on (”AS IS”) ja sellaisena kuin se on saatavilla (”AS AVAILABLE”), ilman minkäänlaista takuuta, olipa se nimenomainen, hiljainen tai lakisääteinen — mukaan lukien, rajoituksetta, takuut tarkkuudesta, täydellisyydestä, luotettavuudesta, saatavuudesta, kaupattavuudesta, tiettyyn tarkoitukseen soveltuvuudesta ja oikeuksien loukkaamattomuudesta. Karttatiedot, reititys, nopeusrajoitukset, nopeusvalvontakamerat ja ajoneuvoliikenteen rajoitusalueita (ZTL/ZAC/LTZ) koskevat tiedot ovat peräisin avoimista, yhteisön ylläpitämistä lähteistä (OpenStreetMap, Overpass API), jotka voivat minkä tahansa maan, alueen tai kunnan osalta olla milloin tahansa ja ilman ennakkoilmoitusta puutteellisia, vanhentuneita tai virheellisiä. Käyttäjä on yksin vastuussa siitä, että hän varmistaa itsenäisesti ennen matkaa ja sen aikana ehdotetun reitin laillisuuden ja käytettävyyden virallisten paikallisten liikennemerkkien ja määräysten perusteella.\n\n📍 TARKKUUS JA GPS\nGPS-paikannus voi olla epätarkka tai käyttökelvoton. Kaikki ohjeet, etäisyydet ja hälytykset annetaan vain suuntaa-antavina, eikä niihin saa koskaan luottaa ajopäätöksen ainoana perusteena.\n\n🛡️ VASTUUN RAJOITTAMINEN\nSovellettavan lain sallimissa laajimmissa rajoissa missä tahansa lainkäyttöalueella kehittäjät, avustajat ja kaikki Roadstr-sovelluksen luomiseen tai jakeluun osallistuneet tahot eivät ole vastuussa mistään välittömistä, välillisistä, satunnaisista, seuraamuksellisista, erityisistä, esimerkinomaisista tai rankaisevista vahingoista, olivatpa ne minkälaisia tahansa — mukaan lukien henkilövahinko, kuolema tai taloudellinen menetys —, jotka aiheutuvat sovelluksen käytöstä tai kyvyttömyydestä käyttää sitä tai liittyvät siihen, vaikka tällaisten vahinkojen mahdollisuudesta olisi ilmoitettu. Jos jokin lainkäyttöalue ei salli tätä rajoitusta osittain tai kokonaan, vastuu rajoitetaan pienimpään kyseisen lainkäyttöalueen lain sallimaan laajuuteen.\n\n🤝 VAHINGONKORVAUSVELVOLLISUUS\nKäyttäjä sitoutuu korvaamaan ja pitämään vahingoittumattomina kehittäjät ja avustajat kaikista vaatimuksista, vahingoista, menetyksistä tai kuluista (mukaan lukien oikeudenkäyntikulut), jotka aiheutuvat käyttäjän sovelluksen käytöstä tai näiden ehtojen rikkomisesta.\n\n🔒 YKSITYISYYS\nSijaintitietoja ei siirretä Roadstrin omille palvelimille. Reitin laskenta suoritetaan kolmansien osapuolten palveluiden (OSRM, GraphHopper, OpenRouteService) kautta, joille lähetetään ainoastaan lähtö- ja määränpääkoordinaatit.\n\n⚖️ EROTETTAVUUS\nJos jokin näiden ehtojen määräys todetaan täytäntöönpanokelvottomaksi tietyllä lainkäyttöalueella, kyseistä määräystä rajoitetaan tai se erotetaan mahdollisimman vähäisessä tarpeellisessa määrin, ja kaikki muut määräykset pysyvät täysin voimassa.\n\nKäyttämällä Roadstr-sovellusta missä tahansa maailmassa käyttäjä vahvistaa lukeneensa, ymmärtäneensä ja hyväksyneensä ehdoitta jokaisen yllä mainitun ehdon sekä ottavansa täyden ja kokonaisen vastuun — ja kaiken riskin — sovelluksen käytöstä ja siitä aiheutuvista seurauksista.",
   "readOnWikipedia": "Lue Wikipediasta",
   "searchOnEngine": "Hae {engine}",
   "plannerFromHint": "Lähtöpiste…",
@@ -314,7 +314,7 @@
   "weatherSnow": "Lumi",
   "weatherShowers": "Sadekuurot",
   "weatherThunderstorm": "Ukkosmyrsky",
-  "ztlAheadWarning": "ZTL-alue edessä — reitti menee rajoitettuun alueeseen",
+  "ztlAheadWarning": "Edessä on rajoitettu liikennealue — reitti kulkee sen läpi",
   "ztlInsideWarning": "Rajoitettu liikennealue",
   "onboardingAppSubtitle": "Avoimen lähdekoodin Nostr-navigointi",
   "onboardingWelcomeTitle": "Tervetuloa",
@@ -357,5 +357,65 @@
   "onboardingProfileLoading": "Ladataan profiilia…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "Maksimaalisen yksityisyyden vuoksi — ilmoitukset leviävät Nostr-verkossa — VPN:n käyttö on suositeltavaa. Mullvad, jonka voi maksaa Bitcoinilla, on suositeltu valinta.",
-  "onboardingGrapheneAlwaysAllow": "Luotettavan toiminnan varmistamiseksi aseta sovelluksen sijaintilupa tilaan ”Salli aina”, ei vain sovellusta käytettäessä."
+  "onboardingGrapheneAlwaysAllow": "Luotettavan toiminnan varmistamiseksi aseta sovelluksen sijaintilupa tilaan ”Salli aina”, ei vain sovellusta käytettäessä.",
+  "exportFavoritesTitle": "Vie suosikit",
+  "exportFavoritesDesc": "Tallenna suosikkipaikkasi JSON-tiedostoon, jonka voit varmuuskopioida tai siirtää toiselle laitteelle.",
+  "exportEncryptToggle": "Salaa salasanalla",
+  "exportPasswordHint": "Salasana",
+  "exportButton": "Vie",
+  "exportSuccessSnack": "Suosikit viety",
+  "exportFailedSnack": "Vienti epäonnistui",
+  "importFavoritesTitle": "Tuo suosikit",
+  "importPasswordPrompt": "Tämä tiedosto on salattu — anna salasana",
+  "importSuccessSnack": "{n} suosikkia tuotu",
+  "@importSuccessSnack": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "importFailedSnack": "Tuonti epäonnistui — tarkista tiedosto ja salasana",
+  "kokoroVoiceGenderTitle": "Ääni",
+  "kokoroVoiceFemale": "Naisääni",
+  "kokoroVoiceMale": "Miesääni",
+  "kokoroVoiceGenderUnavailable": "Miesääni ei ole saatavilla tälle kielelle",
+  "kokoroSpeedTitle": "Puhenopeus",
+  "onboardingFavoritesSyncNotice": "Valinnainen: tallennetut suosikkisi voivat synkronoitua laitteidesi välillä Nostr-releiden kautta, päästä päähän salattuna (NIP-44) omalla avaimellasi — releet näkevät vain salattua tekstiä, eikä kukaan muu kuin sinä voi lukea sisältöä. Ota käyttöön milloin tahansa Asetuksista.",
+  "parkingMarkerTitle": "Pysäköintipaikka",
+  "parkingSaveHere": "Tallenna pysäköinti tähän",
+  "parkingSavedSnack": "Pysäköintipaikka tallennettu",
+  "parkingNavigateHere": "Navigoi pysäköintiin",
+  "parkingRemove": "Poista pysäköinti",
+  "parkingRemovedSnack": "Pysäköintipaikka poistettu",
+  "syncFavoritesTitle": "Synkronoi suosikit",
+  "syncFavoritesDesc": "Julkaise suosikkisi päästä päähän salattuna Nostr-releillesi, jotta ne seuraavat sinua kaikilla laitteillasi. Releet näkevät vain salattua tekstiä — kukaan muu kuin sinä ei voi lukea sisältöä.",
+  "syncNoIdentity": "Kirjaudu Nostrilla (Asetukset → Profiili) ottaaksesi synkronoinnin käyttöön",
+  "syncNowButton": "Lähetä Nostriin",
+  "syncPullButton": "Nouda Nostrista",
+  "syncSuccessSnack": "Suosikit synkronoitu",
+  "syncFailedSnack": "Synkronointi epäonnistui",
+  "syncLastSyncLabel": "Viimeksi synkronoitu: {when}",
+  "@syncLastSyncLabel": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trafficNormal": "Normaali liikenne",
+  "trafficModerate": "Kohtalainen liikenne",
+  "trafficHeavy": "Vilkas liikenne",
+  "avoidHighwaysChip": "Vältä moottoriteitä",
+  "avoidTollsChip": "Vältä tietulleja",
+  "preferShorterChip": "Lyhin reitti",
+  "zapAmountButton": "Zap {sats} sat",
+  "@zapAmountButton": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
+  "showRoutePreview": "Näytä reitin esikatselu"
 }

@@ -714,7 +714,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.';
+      'Roadstrは、OpenStreetMapのデータおよびNostrプロトコルに基づく、実験的でオープンソースのコミュニティ運営によるナビゲーションアプリケーションであり、あらゆる国での利用を目的として提供されています。本アプリケーションをダウンロード、インストール、または使用することにより、利用者は地域的な制限なく、以下のすべての条件を無条件に承諾したものとみなされます。\n\n🚗 交通安全を最優先に\n運転者は常に前方の道路に注意を払い、適用されるすべての交通法規および設置された標識を遵守しなければなりません。これらは常に本アプリケーションのいかなる指示にも優先します。運転中に本デバイスを操作することは決して行わないでください。走行を開始する前に、承認された視認性の高いマウントに固定し、車両が走行中は道路から注意をそらして本デバイスを操作することのないようにしてください。\n\n⚠️ 危険の引受け — 世界共通\n利用者は、いかなる国、いかなる法制度のもとであっても、Roadstrを使用することにより、その使用に関連するあらゆるリスク——交通事故、人身傷害、死亡、財産的損害、車両損害、罰金、行政処分、レッカー移動、車両の押収、刑事責任、または本アプリケーションへの依拠に直接的または間接的に起因するその他のあらゆる結果を含むがこれらに限定されない——を、認識した上で自らの意思により引き受けるものとします。運転および経路選択に関するすべての判断について、利用者のみが全責任を負うものとします。\n\n🚫 保証の否認\nRoadstrは、明示、黙示または法定を問わず、正確性、完全性、信頼性、可用性、商品性、特定目的への適合性、権利の非侵害を含むがこれらに限定されないいかなる保証もなく、厳密に「現状有姿」および「提供可能な限りにおいて」提供されます。地図データ、経路案内、制限速度、速度取締装置(オービス)、および交通制限区域(ZTL/ZAC/LTZ)に関する情報は、OpenStreetMapやOverpass APIなど、コミュニティによって運営されるオープンなデータソースに由来するものであり、国、地域または自治体を問わず、予告なくいつでも不完全、古い情報、または不正確である可能性があります。利用者は、提案された経路の適法性および通行可能性について、出発前および走行中に、現地の公式な標識および規則に照らして自ら独自に確認する責任を単独で負うものとします。\n\n📍 精度およびGPSについて\nGPSによる位置測定は、不正確または利用できない場合があります。すべての経路案内、距離表示およびアラートは目安としてのみ提供されるものであり、運転上の判断の唯一の根拠として依拠してはなりません。\n\n🛡️ 責任の制限\n適用法によって認められる最大限の範囲において、開発者、貢献者、およびRoadstrの作成または配布に関与したその他の当事者は、人身傷害、死亡または金銭的損失を含む、本アプリケーションの使用または使用不能に起因もしくは関連して生じた直接的、間接的、付随的、結果的、特別、懲罰的またはその他いかなる種類の損害についても、たとえそのような損害が生じる可能性を事前に知らされていた場合であっても、一切の責任を負わないものとします。当該制限の全部または一部を認めない法域においては、責任はその法域の法律で認められる最小限の範囲に制限されるものとします。\n\n🤝 補償\n利用者は、本アプリケーションの利用または本条件への違反に起因して生じた一切の請求、損害、損失または費用(弁護士費用を含む)について、開発者および貢献者を補償し、免責するものとします。\n\n🔒 プライバシー\n位置情報がRoadstr自身のサーバーに送信されることはありません。経路計算は第三者サービス(OSRM、GraphHopper、OpenRouteService)を通じて行われ、これらのサービスには出発地および目的地の座標のみが送信されます。\n\n⚖️ 分離可能性\n本条件のいずれかの条項が、特定の法域において執行不能と判断された場合、当該条項は必要最小限の範囲で制限または分離されるものとし、残りの条項はすべて完全な効力を保持するものとします。\n\n世界のどこであれ、Roadstrを使用することにより、利用者は上記のすべての条件を読み、理解し、無条件に承諾したことを確認し、本アプリケーションの使用およびそれに起因するあらゆる結果について、完全かつ全面的な責任——およびあらゆるリスク——を負うものとします。';
 
   @override
   String get readOnWikipedia => 'Wikipediaで読む';
@@ -787,7 +787,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get weatherThunderstorm => '雷雨';
 
   @override
-  String get ztlAheadWarning => 'ZTL区域あり — ルートが制限区域に入ります';
+  String get ztlAheadWarning => 'この先に交通制限区域があります。ルートはその中を通ります';
 
   @override
   String get ztlInsideWarning => '交通制限区域';
@@ -926,130 +926,104 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingNsecHint => 'nsec1…';
 
   @override
-  String get kokoroVoiceGenderTitle => 'Voice';
+  String get kokoroVoiceGenderTitle => '音声';
 
   @override
-  String get kokoroVoiceFemale => 'Female';
+  String get kokoroVoiceFemale => '女性';
 
   @override
-  String get kokoroVoiceMale => 'Male';
+  String get kokoroVoiceMale => '男性';
 
   @override
-  String get kokoroVoiceGenderUnavailable =>
-      'Male voice not available for this language';
+  String get kokoroVoiceGenderUnavailable => 'この言語では男性の音声は利用できません';
 
   @override
-  String get kokoroSpeedTitle => 'Speech speed';
+  String get kokoroSpeedTitle => '読み上げ速度';
 
   @override
   String get onboardingFavoritesSyncNotice =>
-      'Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.';
+      '任意: 保存したお気に入りは、Nostrリレーを通じて端末間で同期できます。自分の鍵でエンドツーエンド暗号化（NIP-44）されるため、リレーには暗号文しか見えず、あなた以外は内容を読めません。設定からいつでも有効にできます。';
 
   @override
-  String get parkingSaveHere => 'Save parking here';
+  String get parkingSaveHere => 'ここに駐車位置を保存';
 
   @override
-  String get parkingMarkerTitle => 'Parking spot';
+  String get parkingMarkerTitle => '駐車位置';
 
   @override
-  String get parkingNavigateHere => 'Navigate to parking';
+  String get parkingNavigateHere => '駐車位置へナビ';
 
   @override
-  String get parkingRemove => 'Remove parking';
+  String get parkingRemove => '駐車位置を削除';
 
   @override
-  String get parkingSavedSnack => 'Parking spot saved';
+  String get parkingSavedSnack => '駐車位置を保存しました';
 
   @override
-  String get parkingRemovedSnack => 'Parking spot removed';
+  String get parkingRemovedSnack => '駐車位置を削除しました';
 
   @override
-  String get exportFavoritesTitle => 'Export favorites';
+  String get exportFavoritesTitle => 'お気に入りをエクスポート';
 
   @override
   String get exportFavoritesDesc =>
-      'Save your favorite places to a JSON file you can back up or move to another device.';
+      'お気に入りの場所をJSONファイルに保存して、バックアップや別の端末への移行に使えます。';
 
   @override
-  String get exportEncryptToggle => 'Encrypt with a password';
+  String get exportEncryptToggle => 'パスワードで暗号化';
 
   @override
-  String get exportPasswordHint => 'Password';
+  String get exportPasswordHint => 'パスワード';
 
   @override
-  String get exportButton => 'Export';
+  String get exportButton => 'エクスポート';
 
   @override
-  String get exportSuccessSnack => 'Favorites exported';
+  String get exportSuccessSnack => 'お気に入りをエクスポートしました';
 
   @override
-  String get exportFailedSnack => 'Export failed';
+  String get exportFailedSnack => 'エクスポートに失敗しました';
 
   @override
-  String get importFavoritesTitle => 'Import favorites';
+  String get importFavoritesTitle => 'お気に入りをインポート';
 
   @override
-  String get importButton => 'Import';
-
-  @override
-  String get importPasswordPrompt =>
-      'This file is encrypted — enter the password';
+  String get importPasswordPrompt => 'このファイルは暗号化されています — パスワードを入力してください';
 
   @override
   String importSuccessSnack(int n) {
-    return '$n favorites imported';
+    return '$n件のお気に入りをインポートしました';
   }
 
   @override
-  String get importFailedSnack => 'Import failed — check the file and password';
+  String get importFailedSnack => 'インポートに失敗しました — ファイルとパスワードを確認してください';
 
   @override
-  String get syncFavoritesTitle => 'Sync favorites';
+  String get syncFavoritesTitle => 'お気に入りを同期';
 
   @override
   String get syncFavoritesDesc =>
-      'Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.';
+      'お気に入りをエンドツーエンド暗号化してNostrリレーに公開し、すべての端末で利用できます。リレーには暗号文しか見えません — あなた以外は内容を読めません。';
 
   @override
-  String get syncFavoritesEnable => 'Enable sync';
+  String get syncNowButton => 'Nostrへ送信';
 
   @override
-  String get syncNowButton => 'Push to Nostr';
+  String get syncPullButton => 'Nostrから取得';
 
   @override
-  String get syncPullButton => 'Pull from Nostr';
+  String get syncSuccessSnack => 'お気に入りを同期しました';
 
   @override
-  String get syncPushingStatus => 'Publishing…';
-
-  @override
-  String get syncPullingStatus => 'Fetching…';
-
-  @override
-  String get syncSuccessSnack => 'Favorites synced';
-
-  @override
-  String get syncFailedSnack => 'Sync failed';
-
-  @override
-  String get syncNotAvailableAmber =>
-      'Encrypted sync isn\'t available with Amber sign-in yet';
+  String get syncFailedSnack => '同期に失敗しました';
 
   @override
   String syncLastSyncLabel(String when) {
-    return 'Last synced: $when';
+    return '最終同期: $when';
   }
 
   @override
-  String get syncNoIdentity =>
-      'Sign in with Nostr (Settings → Profile) to enable sync';
-
-  @override
-  String get syncPullConfirmTitle => 'Replace local favorites?';
-
-  @override
-  String get syncPullConfirmBody =>
-      'This will merge favorites fetched from Nostr with the ones already on this device.';
+  String get syncNoIdentity => '同期を有効にするにはNostrでログインしてください（設定 → プロフィール）';
 
   @override
   String get onboardingVpnNotice =>
@@ -1058,4 +1032,30 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get onboardingGrapheneAlwaysAllow =>
       '確実に動作させるには、位置情報の権限を「アプリの使用中のみ」ではなく「常に許可」に設定してください。';
+
+  @override
+  String get trafficNormal => '通常の交通量';
+
+  @override
+  String get trafficModerate => 'やや混雑';
+
+  @override
+  String get trafficHeavy => '渋滞';
+
+  @override
+  String get avoidHighwaysChip => '高速道路を回避';
+
+  @override
+  String get avoidTollsChip => '有料道路を回避';
+
+  @override
+  String get preferShorterChip => '最短ルート';
+
+  @override
+  String zapAmountButton(int sats) {
+    return 'Zap $sats sat';
+  }
+
+  @override
+  String get showRoutePreview => 'ルートプレビューを表示';
 }

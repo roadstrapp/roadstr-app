@@ -730,7 +730,7 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.';
+      'Roadstr je eksperimentalna, odprtokodna, s strani skupnosti vzdrževana navigacijska aplikacija, ki temelji na podatkih OpenStreetMap in protokolu Nostr ter je na voljo za uporabo v kateri koli državi. S prenosom, namestitvijo ali uporabo te aplikacije uporabnik brezpogojno sprejme vse spodaj navedene pogoje, brez ozemeljske omejitve.\n\n🚗 VARNOST V CESTNEM PROMETU NA PRVEM MESTU\nVoznik mora vedno gledati na cesto ter upoštevati vse veljavne prometne predpise in postavljeno prometno signalizacijo, ki imata vedno prednost pred kakršnim koli navodilom aplikacije. Naprave nikoli ne upravljajte med vožnjo; pred odhodom jo pritrdite v odobreno, dobro vidno držalo in nikoli ne odvračajte pozornosti s ceste, da bi z njo upravljali, medtem ko je vozilo v gibanju.\n\n⚠️ PREVZEM TVEGANJA — PO VSEM SVETU\nZ uporabo aplikacije Roadstr, v kateri koli državi in po kateremkoli pravnem sistemu, uporabnik zavestno in prostovoljno prevzame VSA tveganja, povezana z njeno uporabo, vključno z, vendar ne omejeno na: prometne nesreče, telesne poškodbe, smrt, škodo na premoženju, škodo na vozilu, globe, upravne sankcije, odvoz vozila, zaseg vozila, kazensko odgovornost ali katero koli drugo posledico, ki neposredno ali posredno izhaja iz zanašanja na aplikacijo. Uporabnik sam v celoti odgovarja za vsako odločitev v zvezi z vožnjo in navigacijo.\n\n🚫 BREZ GARANCIJE\nRoadstr je na voljo izključno v stanju, „KAKRŠNO JE“, in „KOT JE NA VOLJO“, brez kakršnega koli jamstva, izrecnega, implicitnega ali zakonsko določenega — vključno z, brez omejitev, jamstvi glede točnosti, popolnosti, zanesljivosti, razpoložljivosti, primernosti za trg, primernosti za določen namen in nekršenja pravic. Podatki o zemljevidih, izračun poti, omejitve hitrosti, radarji za nadzor hitrosti in podatki o conah z omejenim prometom (ZTL/ZAC/LTZ) izvirajo iz odprtih, s strani skupnosti vzdrževanih virov (OpenStreetMap, Overpass API), ki so lahko za katero koli državo, regijo ali občino kadar koli in brez obvestila nepopolni, zastareli ali netočni. Uporabnik je izključno odgovoren, da pred potovanjem in med njim samostojno preveri zakonitost in prevoznost katere koli predlagane poti glede na uradno lokalno signalizacijo in predpise.\n\n📍 NATANČNOST IN GPS\nDoločanje položaja GPS je lahko netočno ali nedosegljivo. Vsa navodila, razdalje in opozorila so na voljo zgolj kot smernice in se nikoli ne smejo obravnavati kot edina podlaga za odločitev pri vožnji.\n\n🛡️ OMEJITEV ODGOVORNOSTI\nV največji meri, ki jo dopušča veljavna zakonodaja v kateri koli jurisdikciji, razvijalci, sodelavci in katera koli stran, vključena v ustvarjanje ali distribucijo aplikacije Roadstr, ne odgovarjajo za nikakršno neposredno, posredno, naključno, posledično, posebno, vzorčno ali kazensko škodo katere koli vrste — vključno s telesnimi poškodbami, smrtjo ali finančno izgubo — ki izhaja iz uporabe ali nezmožnosti uporabe aplikacije ali je z njo povezana, tudi če so bili obveščeni o možnosti nastanka take škode. Kadar določena jurisdikcija delno ali v celoti ne dovoljuje te omejitve, se odgovornost omeji na najmanjši obseg, ki ga zakon v tej jurisdikciji dovoljuje.\n\n🤝 ODŠKODNINA\nUporabnik soglaša, da bo razvijalce in sodelavce razbremenil in jih varoval pred vsakršnim zahtevkom, škodo, izgubo ali stroškom (vključno s pravnimi stroški), ki izhaja iz uporabnikove uporabe aplikacije ali kršitve teh pogojev.\n\n🔒 ZASEBNOST\nNobeni podatki o lokaciji se ne prenašajo na lastne strežnike aplikacije Roadstr. Izračun poti se izvaja prek storitev tretjih oseb (OSRM, GraphHopper, OpenRouteService), ki jim se pošljejo samo koordinate izhodišča in cilja.\n\n⚖️ DELITEV DOLOČB\nČe se katera koli določba teh pogojev v določeni jurisdikciji izkaže za neizvršljivo, se ta določba omeji ali izloči v najmanjšem potrebnem obsegu, vse preostale določbe pa ostanejo v celoti veljavne in učinkovite.\n\nZ uporabo aplikacije Roadstr kjer koli na svetu uporabnik potrjuje, da je prebral, razumel in brezpogojno sprejel vse zgoraj navedene pogoje ter prevzema polno in celotno odgovornost — in vsa tveganja — za uporabo aplikacije in vse posledice, ki iz nje izhajajo.';
 
   @override
   String get readOnWikipedia => 'Beri na Wikipediji';
@@ -803,7 +803,8 @@ class AppLocalizationsSl extends AppLocalizations {
   String get weatherThunderstorm => 'Nevihta';
 
   @override
-  String get ztlAheadWarning => 'ZTL cona naprej — pot vstopa v omejeno cono';
+  String get ztlAheadWarning =>
+      'Spredaj je območje omejenega prometa — pot poteka skozenj';
 
   @override
   String get ztlInsideWarning => 'Omejena prometna cona';
@@ -943,130 +944,106 @@ class AppLocalizationsSl extends AppLocalizations {
   String get onboardingNsecHint => 'nsec1…';
 
   @override
-  String get kokoroVoiceGenderTitle => 'Voice';
+  String get kokoroVoiceGenderTitle => 'Glas';
 
   @override
-  String get kokoroVoiceFemale => 'Female';
+  String get kokoroVoiceFemale => 'Ženski';
 
   @override
-  String get kokoroVoiceMale => 'Male';
+  String get kokoroVoiceMale => 'Moški';
 
   @override
   String get kokoroVoiceGenderUnavailable =>
-      'Male voice not available for this language';
+      'Moški glas za ta jezik ni na voljo';
 
   @override
-  String get kokoroSpeedTitle => 'Speech speed';
+  String get kokoroSpeedTitle => 'Hitrost govora';
 
   @override
   String get onboardingFavoritesSyncNotice =>
-      'Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.';
+      'Neobvezno: shranjene priljubljene se lahko sinhronizirajo med vašimi napravami prek relejev Nostr, šifrirane od konca do konca (NIP-44) z vašim lastnim ključem — releji vidijo le šifrirano besedilo in nihče razen vas ne more brati vsebine. Omogočite kadar koli v Nastavitvah.';
 
   @override
-  String get parkingSaveHere => 'Save parking here';
+  String get parkingSaveHere => 'Shrani parkiranje tukaj';
 
   @override
-  String get parkingMarkerTitle => 'Parking spot';
+  String get parkingMarkerTitle => 'Parkirno mesto';
 
   @override
-  String get parkingNavigateHere => 'Navigate to parking';
+  String get parkingNavigateHere => 'Navigiraj do parkiranja';
 
   @override
-  String get parkingRemove => 'Remove parking';
+  String get parkingRemove => 'Odstrani parkiranje';
 
   @override
-  String get parkingSavedSnack => 'Parking spot saved';
+  String get parkingSavedSnack => 'Parkirno mesto shranjeno';
 
   @override
-  String get parkingRemovedSnack => 'Parking spot removed';
+  String get parkingRemovedSnack => 'Parkirno mesto odstranjeno';
 
   @override
-  String get exportFavoritesTitle => 'Export favorites';
+  String get exportFavoritesTitle => 'Izvozi priljubljene';
 
   @override
   String get exportFavoritesDesc =>
-      'Save your favorite places to a JSON file you can back up or move to another device.';
+      'Shranite svoja priljubljena mesta v datoteko JSON, ki jo lahko varnostno kopirate ali prenesete na drugo napravo.';
 
   @override
-  String get exportEncryptToggle => 'Encrypt with a password';
+  String get exportEncryptToggle => 'Šifriraj z geslom';
 
   @override
-  String get exportPasswordHint => 'Password';
+  String get exportPasswordHint => 'Geslo';
 
   @override
-  String get exportButton => 'Export';
+  String get exportButton => 'Izvozi';
 
   @override
-  String get exportSuccessSnack => 'Favorites exported';
+  String get exportSuccessSnack => 'Priljubljene izvožene';
 
   @override
-  String get exportFailedSnack => 'Export failed';
+  String get exportFailedSnack => 'Izvoz ni uspel';
 
   @override
-  String get importFavoritesTitle => 'Import favorites';
+  String get importFavoritesTitle => 'Uvozi priljubljene';
 
   @override
-  String get importButton => 'Import';
-
-  @override
-  String get importPasswordPrompt =>
-      'This file is encrypted — enter the password';
+  String get importPasswordPrompt => 'Ta datoteka je šifrirana — vnesite geslo';
 
   @override
   String importSuccessSnack(int n) {
-    return '$n favorites imported';
+    return 'Uvoženih $n priljubljenih';
   }
 
   @override
-  String get importFailedSnack => 'Import failed — check the file and password';
+  String get importFailedSnack => 'Uvoz ni uspel — preverite datoteko in geslo';
 
   @override
-  String get syncFavoritesTitle => 'Sync favorites';
+  String get syncFavoritesTitle => 'Sinhroniziraj priljubljene';
 
   @override
   String get syncFavoritesDesc =>
-      'Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.';
+      'Objavite svoje priljubljene, šifrirane od konca do konca, na svojih relejih Nostr, da vam sledijo na vseh napravah. Releji vidijo le šifrirano besedilo — nihče razen vas ne more brati vsebine.';
 
   @override
-  String get syncFavoritesEnable => 'Enable sync';
+  String get syncNowButton => 'Pošlji na Nostr';
 
   @override
-  String get syncNowButton => 'Push to Nostr';
+  String get syncPullButton => 'Prenesi z Nostra';
 
   @override
-  String get syncPullButton => 'Pull from Nostr';
+  String get syncSuccessSnack => 'Priljubljene sinhronizirane';
 
   @override
-  String get syncPushingStatus => 'Publishing…';
-
-  @override
-  String get syncPullingStatus => 'Fetching…';
-
-  @override
-  String get syncSuccessSnack => 'Favorites synced';
-
-  @override
-  String get syncFailedSnack => 'Sync failed';
-
-  @override
-  String get syncNotAvailableAmber =>
-      'Encrypted sync isn\'t available with Amber sign-in yet';
+  String get syncFailedSnack => 'Sinhronizacija ni uspela';
 
   @override
   String syncLastSyncLabel(String when) {
-    return 'Last synced: $when';
+    return 'Zadnja sinhronizacija: $when';
   }
 
   @override
   String get syncNoIdentity =>
-      'Sign in with Nostr (Settings → Profile) to enable sync';
-
-  @override
-  String get syncPullConfirmTitle => 'Replace local favorites?';
-
-  @override
-  String get syncPullConfirmBody =>
-      'This will merge favorites fetched from Nostr with the ones already on this device.';
+      'Prijavite se z Nostrom (Nastavitve → Profil), da omogočite sinhronizacijo';
 
   @override
   String get onboardingVpnNotice =>
@@ -1075,4 +1052,30 @@ class AppLocalizationsSl extends AppLocalizations {
   @override
   String get onboardingGrapheneAlwaysAllow =>
       'Za zanesljivo delovanje nastavite dovoljenje za lokacijo na »Vedno dovoli«, ne le med uporabo aplikacije.';
+
+  @override
+  String get trafficNormal => 'Običajen promet';
+
+  @override
+  String get trafficModerate => 'Zmeren promet';
+
+  @override
+  String get trafficHeavy => 'Gost promet';
+
+  @override
+  String get avoidHighwaysChip => 'Izogni se avtocestam';
+
+  @override
+  String get avoidTollsChip => 'Izogni se cestninam';
+
+  @override
+  String get preferShorterChip => 'Najkrajša pot';
+
+  @override
+  String zapAmountButton(int sats) {
+    return 'Zap $sats sat';
+  }
+
+  @override
+  String get showRoutePreview => 'Prikaži predogled poti';
 }

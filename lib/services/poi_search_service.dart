@@ -13,10 +13,11 @@ import 'routing_service.dart' show NominatimResult;
 /// within a radius of the user and is inherently local — the category path
 /// below is the fix for that specific bug class.
 class PoiSearchService {
+  // NB: overpass.osm.ch removed — Switzerland-only extract, returns empty
+  // success for Italy (see SpeedLimitService._endpoints for the full story).
   static const _endpoints = [
     'https://overpass-api.de/api/interpreter',
     'https://overpass.openstreetmap.fr/api/interpreter',
-    'https://overpass.osm.ch/api/interpreter',
   ];
   static const _radiusM = 8000;
 

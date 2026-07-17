@@ -1477,7 +1477,7 @@ abstract class AppLocalizations {
   /// No description provided for @disclaimerBody.
   ///
   /// In en, this message translates to:
-  /// **'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.'**
+  /// **'Roadstr is an experimental, open-source, community-maintained navigation app based on OpenStreetMap data and the Nostr protocol, made available for use in any country. By downloading, installing or using this app, the user unconditionally accepts all of the following terms, without limitation of territory:\n\n🚗  ROAD SAFETY FIRST\nThe driver must always keep their eyes on the road and comply with all applicable traffic laws and posted signage, which always take precedence over any instruction from the app. Never operate the device while driving; secure it in an approved, visible mount before setting off, and never divert attention from the road to interact with it while the vehicle is moving.\n\n⚠️  ASSUMPTION OF RISK — WORLDWIDE\nBy using Roadstr, in any country and under any legal system, the user knowingly and voluntarily assumes ALL risks connected with its use, including but not limited to: traffic accidents, personal injury, death, property damage, vehicle damage, fines, administrative penalties, towing, impoundment, criminal liability, or any other consequence arising directly or indirectly from reliance on the app. The user alone bears full responsibility for every driving and navigation decision.\n\n🚫  NO WARRANTY\nRoadstr is provided strictly \"AS IS\" and \"AS AVAILABLE\", without any warranty of any kind, whether express, implied, or statutory — including, without limitation, warranties of accuracy, completeness, reliability, availability, merchantability, fitness for a particular purpose, and non-infringement. Map data, routing, speed limits, speed cameras, and restricted-traffic-zone (ZTL/ZAC/LTZ) information come from open, community-maintained sources (OpenStreetMap, Overpass API) that may be incomplete, outdated, or inaccurate for any country, region, or municipality, at any time and without notice. The user is solely responsible for independently verifying, before and during travel, the legality and accessibility of any suggested route against official local signage and regulations.\n\n📍  ACCURACY & GPS\nGPS positioning may be inaccurate or unavailable. All directions, distances, and alerts are provided for guidance only and must never be relied upon as the sole basis for a driving decision.\n\n🛡️  LIMITATION OF LIABILITY\nTo the maximum extent permitted by applicable law in any jurisdiction, the developers, contributors, and any party involved in creating or distributing Roadstr shall not be liable for any direct, indirect, incidental, consequential, special, exemplary, or punitive damages of any kind — including personal injury, death, or financial loss — arising out of or related to the use or inability to use the app, even if advised of the possibility of such damages. Where a jurisdiction does not allow some or all of this limitation, liability is limited to the smallest extent permitted by law in that jurisdiction.\n\n🤝  INDEMNIFICATION\nThe user agrees to indemnify and hold harmless the developers and contributors from any claim, damage, loss, or expense (including legal fees) arising from the user\'s use of the app or violation of these terms.\n\n🔒  PRIVACY\nNo location data is transmitted to Roadstr\'s own servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\n⚖️  SEVERABILITY\nIf any provision of these terms is found unenforceable in a given jurisdiction, that provision shall be limited or severed to the minimum extent necessary, and all remaining provisions shall remain in full force and effect.\n\nBy using Roadstr, anywhere in the world, the user confirms they have read, understood, and unconditionally accepted every term above, and assumes full and complete responsibility — and all risk — for the use of the application and any consequence arising from it.'**
   String get disclaimerBody;
 
   /// No description provided for @readOnWikipedia.
@@ -1603,7 +1603,7 @@ abstract class AppLocalizations {
   /// No description provided for @ztlAheadWarning.
   ///
   /// In en, this message translates to:
-  /// **'ZTL zone ahead — route leads into restricted area'**
+  /// **'Restricted traffic zone ahead — the route enters it'**
   String get ztlAheadWarning;
 
   /// No description provided for @ztlInsideWarning.
@@ -1972,12 +1972,6 @@ abstract class AppLocalizations {
   /// **'Import favorites'**
   String get importFavoritesTitle;
 
-  /// No description provided for @importButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Import'**
-  String get importButton;
-
   /// No description provided for @importPasswordPrompt.
   ///
   /// In en, this message translates to:
@@ -2008,12 +2002,6 @@ abstract class AppLocalizations {
   /// **'Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.'**
   String get syncFavoritesDesc;
 
-  /// No description provided for @syncFavoritesEnable.
-  ///
-  /// In en, this message translates to:
-  /// **'Enable sync'**
-  String get syncFavoritesEnable;
-
   /// No description provided for @syncNowButton.
   ///
   /// In en, this message translates to:
@@ -2025,18 +2013,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pull from Nostr'**
   String get syncPullButton;
-
-  /// No description provided for @syncPushingStatus.
-  ///
-  /// In en, this message translates to:
-  /// **'Publishing…'**
-  String get syncPushingStatus;
-
-  /// No description provided for @syncPullingStatus.
-  ///
-  /// In en, this message translates to:
-  /// **'Fetching…'**
-  String get syncPullingStatus;
 
   /// No description provided for @syncSuccessSnack.
   ///
@@ -2050,12 +2026,6 @@ abstract class AppLocalizations {
   /// **'Sync failed'**
   String get syncFailedSnack;
 
-  /// No description provided for @syncNotAvailableAmber.
-  ///
-  /// In en, this message translates to:
-  /// **'Encrypted sync isn\'t available with Amber sign-in yet'**
-  String get syncNotAvailableAmber;
-
   /// No description provided for @syncLastSyncLabel.
   ///
   /// In en, this message translates to:
@@ -2068,18 +2038,6 @@ abstract class AppLocalizations {
   /// **'Sign in with Nostr (Settings → Profile) to enable sync'**
   String get syncNoIdentity;
 
-  /// No description provided for @syncPullConfirmTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Replace local favorites?'**
-  String get syncPullConfirmTitle;
-
-  /// No description provided for @syncPullConfirmBody.
-  ///
-  /// In en, this message translates to:
-  /// **'This will merge favorites fetched from Nostr with the ones already on this device.'**
-  String get syncPullConfirmBody;
-
   /// No description provided for @onboardingVpnNotice.
   ///
   /// In en, this message translates to:
@@ -2091,6 +2049,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'For reliable operation, set the app\'s location permission to \"Allow all the time\", not only while the app is in use.'**
   String get onboardingGrapheneAlwaysAllow;
+
+  /// No description provided for @trafficNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal traffic'**
+  String get trafficNormal;
+
+  /// No description provided for @trafficModerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate traffic'**
+  String get trafficModerate;
+
+  /// No description provided for @trafficHeavy.
+  ///
+  /// In en, this message translates to:
+  /// **'Heavy traffic'**
+  String get trafficHeavy;
+
+  /// No description provided for @avoidHighwaysChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Avoid highways'**
+  String get avoidHighwaysChip;
+
+  /// No description provided for @avoidTollsChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Avoid tolls'**
+  String get avoidTollsChip;
+
+  /// No description provided for @preferShorterChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortest route'**
+  String get preferShorterChip;
+
+  /// No description provided for @zapAmountButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Zap {sats} sat'**
+  String zapAmountButton(int sats);
+
+  /// No description provided for @showRoutePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Show route preview'**
+  String get showRoutePreview;
 }
 
 class _AppLocalizationsDelegate

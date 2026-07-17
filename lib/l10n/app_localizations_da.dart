@@ -732,7 +732,7 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.';
+      'Roadstr er en eksperimentel, open source-navigationsapp vedligeholdt af fællesskabet, baseret på data fra OpenStreetMap og Nostr-protokollen, og stillet til rådighed til brug i ethvert land. Ved at downloade, installere eller bruge denne app accepterer brugeren betingelsesløst alle nedenstående vilkår, uden territorial begrænsning.\n\n🚗 TRAFIKSIKKERHED FØRST\nFøreren skal altid holde øjnene på vejen og overholde alle gældende færdselsregler og opsatte skilte, som altid har forrang frem for enhver instruktion fra appen. Betjen aldrig enheden under kørsel; fastgør den i en godkendt, synlig holder, inden du kører af sted, og lad dig aldrig distrahere fra vejen for at interagere med den, mens køretøjet er i bevægelse.\n\n⚠️ PÅTAGELSE AF RISIKO — VERDENSOMSPÆNDENDE\nVed at bruge Roadstr, i ethvert land og under ethvert retssystem, påtager brugeren sig bevidst og frivilligt ALLE risici forbundet med brugen heraf, herunder, men ikke begrænset til: trafikulykker, personskade, dødsfald, tingsskade, køretøjsskade, bøder, administrative sanktioner, bugsering, beslaglæggelse, strafferetligt ansvar eller enhver anden konsekvens, der direkte eller indirekte opstår som følge af tillid til appen. Brugeren bærer alene det fulde ansvar for enhver kørsels- og navigationsbeslutning.\n\n🚫 INGEN GARANTI\nRoadstr leveres udelukkende „SOM DEN ER“ og „SOM TILGÆNGELIG“, uden nogen form for garanti, hverken udtrykkelig, underforstået eller lovbestemt — herunder, uden begrænsning, garantier for nøjagtighed, fuldstændighed, pålidelighed, tilgængelighed, salgbarhed, egnethed til et bestemt formål og ikke-krænkelse. Kortdata, ruteplanlægning, hastighedsgrænser, fartkameraer og oplysninger om zoner med kørselsbegrænsning (ZTL/ZAC/LTZ) kommer fra åbne, fællesskabsvedligeholdte kilder (OpenStreetMap, Overpass API), som til enhver tid og uden varsel kan være ufuldstændige, forældede eller unøjagtige for ethvert land, enhver region eller kommune. Brugeren er alene ansvarlig for selvstændigt at kontrollere, før og under rejsen, lovligheden og fremkommeligheden af enhver foreslået rute i forhold til officiel lokal skiltning og lovgivning.\n\n📍 NØJAGTIGHED OG GPS\nGPS-positionering kan være unøjagtig eller utilgængelig. Alle anvisninger, afstande og advarsler gives udelukkende som vejledning og må aldrig anvendes som eneste grundlag for en køremæssig beslutning.\n\n🛡️ ANSVARSBEGRÆNSNING\nI det videst mulige omfang tilladt efter gældende lov i enhver jurisdiktion er udviklerne, bidragyderne og enhver part involveret i at skabe eller distribuere Roadstr ikke ansvarlige for direkte, indirekte, hændelige, følgeskader, særlige, eksemplariske eller pønalt begrundede skader af nogen art — herunder personskade, dødsfald eller økonomisk tab — der opstår som følge af eller i forbindelse med brugen eller manglende evne til at bruge appen, selv hvis der er givet meddelelse om muligheden for sådanne skader. Hvis en given jurisdiktion ikke tillader nogen eller alle af disse begrænsninger, begrænses ansvaret i det mindste omfang, der er tilladt efter loven i den pågældende jurisdiktion.\n\n🤝 SKADESLØSHOLDELSE\nBrugeren accepterer at skadesløsholde og friholde udviklerne og bidragyderne fra ethvert krav, enhver skade, ethvert tab eller enhver udgift (herunder advokatsalærer), der opstår som følge af brugerens brug af appen eller overtrædelse af disse vilkår.\n\n🔒 PRIVATLIV\nDer overføres ingen lokationsdata til Roadstrs egne servere. Ruteberegning udføres via tredjepartstjenester (OSRM, GraphHopper, OpenRouteService), som kun modtager start- og destinationskoordinater.\n\n⚖️ DELVIS UGYLDIGHED\nHvis en bestemmelse i disse vilkår findes uden retskraft i en given jurisdiktion, skal denne bestemmelse begrænses eller udskilles i det mindste nødvendige omfang, og alle øvrige bestemmelser skal forblive i fuld kraft og virkning.\n\nVed at bruge Roadstr, uanset hvor i verden, bekræfter brugeren at have læst, forstået og betingelsesløst accepteret hvert af ovenstående vilkår og påtager sig det fulde og hele ansvar — og al risiko — for brugen af appen og enhver konsekvens, der opstår heraf.';
 
   @override
   String get readOnWikipedia => 'Læs på Wikipedia';
@@ -806,7 +806,7 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get ztlAheadWarning =>
-      'ZTL-zone forude — ruten fører ind i begrænset zone';
+      'Begrænset trafikzone forude — ruten fører igennem';
 
   @override
   String get ztlInsideWarning => 'Begrænset trafikzone';
@@ -946,130 +946,108 @@ class AppLocalizationsDa extends AppLocalizations {
   String get onboardingNsecHint => 'nsec1…';
 
   @override
-  String get kokoroVoiceGenderTitle => 'Voice';
+  String get kokoroVoiceGenderTitle => 'Stemme';
 
   @override
-  String get kokoroVoiceFemale => 'Female';
+  String get kokoroVoiceFemale => 'Kvindelig';
 
   @override
-  String get kokoroVoiceMale => 'Male';
+  String get kokoroVoiceMale => 'Mandlig';
 
   @override
   String get kokoroVoiceGenderUnavailable =>
-      'Male voice not available for this language';
+      'Mandlig stemme er ikke tilgængelig for dette sprog';
 
   @override
-  String get kokoroSpeedTitle => 'Speech speed';
+  String get kokoroSpeedTitle => 'Talehastighed';
 
   @override
   String get onboardingFavoritesSyncNotice =>
-      'Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.';
+      'Valgfrit: dine gemte favoritter kan synkroniseres mellem dine enheder via Nostr-relæerne, end-to-end-krypteret (NIP-44) med din egen nøgle — relæerne ser kun krypteret tekst, og ingen andre end dig kan læse indholdet. Aktivér når som helst i Indstillinger.';
 
   @override
-  String get parkingSaveHere => 'Save parking here';
+  String get parkingSaveHere => 'Gem parkering her';
 
   @override
-  String get parkingMarkerTitle => 'Parking spot';
+  String get parkingMarkerTitle => 'Parkeringsplads';
 
   @override
-  String get parkingNavigateHere => 'Navigate to parking';
+  String get parkingNavigateHere => 'Navigér til parkering';
 
   @override
-  String get parkingRemove => 'Remove parking';
+  String get parkingRemove => 'Fjern parkering';
 
   @override
-  String get parkingSavedSnack => 'Parking spot saved';
+  String get parkingSavedSnack => 'Parkeringsplads gemt';
 
   @override
-  String get parkingRemovedSnack => 'Parking spot removed';
+  String get parkingRemovedSnack => 'Parkeringsplads fjernet';
 
   @override
-  String get exportFavoritesTitle => 'Export favorites';
+  String get exportFavoritesTitle => 'Eksportér favoritter';
 
   @override
   String get exportFavoritesDesc =>
-      'Save your favorite places to a JSON file you can back up or move to another device.';
+      'Gem dine favoritsteder i en JSON-fil, som du kan sikkerhedskopiere eller flytte til en anden enhed.';
 
   @override
-  String get exportEncryptToggle => 'Encrypt with a password';
+  String get exportEncryptToggle => 'Kryptér med adgangskode';
 
   @override
-  String get exportPasswordHint => 'Password';
+  String get exportPasswordHint => 'Adgangskode';
 
   @override
-  String get exportButton => 'Export';
+  String get exportButton => 'Eksportér';
 
   @override
-  String get exportSuccessSnack => 'Favorites exported';
+  String get exportSuccessSnack => 'Favoritter eksporteret';
 
   @override
-  String get exportFailedSnack => 'Export failed';
+  String get exportFailedSnack => 'Eksport mislykkedes';
 
   @override
-  String get importFavoritesTitle => 'Import favorites';
-
-  @override
-  String get importButton => 'Import';
+  String get importFavoritesTitle => 'Importér favoritter';
 
   @override
   String get importPasswordPrompt =>
-      'This file is encrypted — enter the password';
+      'Denne fil er krypteret — indtast adgangskoden';
 
   @override
   String importSuccessSnack(int n) {
-    return '$n favorites imported';
+    return '$n favoritter importeret';
   }
 
   @override
-  String get importFailedSnack => 'Import failed — check the file and password';
+  String get importFailedSnack =>
+      'Import mislykkedes — tjek filen og adgangskoden';
 
   @override
-  String get syncFavoritesTitle => 'Sync favorites';
+  String get syncFavoritesTitle => 'Synkronisér favoritter';
 
   @override
   String get syncFavoritesDesc =>
-      'Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.';
+      'Udgiv dine favoritter, end-to-end-krypteret, til dine Nostr-relæer, så de følger dig på tværs af enheder. Relæerne ser kun krypteret tekst — ingen andre end dig kan læse indholdet.';
 
   @override
-  String get syncFavoritesEnable => 'Enable sync';
+  String get syncNowButton => 'Send til Nostr';
 
   @override
-  String get syncNowButton => 'Push to Nostr';
+  String get syncPullButton => 'Hent fra Nostr';
 
   @override
-  String get syncPullButton => 'Pull from Nostr';
+  String get syncSuccessSnack => 'Favoritter synkroniseret';
 
   @override
-  String get syncPushingStatus => 'Publishing…';
-
-  @override
-  String get syncPullingStatus => 'Fetching…';
-
-  @override
-  String get syncSuccessSnack => 'Favorites synced';
-
-  @override
-  String get syncFailedSnack => 'Sync failed';
-
-  @override
-  String get syncNotAvailableAmber =>
-      'Encrypted sync isn\'t available with Amber sign-in yet';
+  String get syncFailedSnack => 'Synkronisering mislykkedes';
 
   @override
   String syncLastSyncLabel(String when) {
-    return 'Last synced: $when';
+    return 'Sidst synkroniseret: $when';
   }
 
   @override
   String get syncNoIdentity =>
-      'Sign in with Nostr (Settings → Profile) to enable sync';
-
-  @override
-  String get syncPullConfirmTitle => 'Replace local favorites?';
-
-  @override
-  String get syncPullConfirmBody =>
-      'This will merge favorites fetched from Nostr with the ones already on this device.';
+      'Log ind med Nostr (Indstillinger → Profil) for at aktivere synkronisering';
 
   @override
   String get onboardingVpnNotice =>
@@ -1078,4 +1056,30 @@ class AppLocalizationsDa extends AppLocalizations {
   @override
   String get onboardingGrapheneAlwaysAllow =>
       'For pålidelig drift skal appens placeringstilladelse indstilles til \"Tillad altid\", ikke kun mens appen er i brug.';
+
+  @override
+  String get trafficNormal => 'Normal trafik';
+
+  @override
+  String get trafficModerate => 'Moderat trafik';
+
+  @override
+  String get trafficHeavy => 'Tæt trafik';
+
+  @override
+  String get avoidHighwaysChip => 'Undgå motorveje';
+
+  @override
+  String get avoidTollsChip => 'Undgå betalingsveje';
+
+  @override
+  String get preferShorterChip => 'Korteste rute';
+
+  @override
+  String zapAmountButton(int sats) {
+    return 'Zap $sats sat';
+  }
+
+  @override
+  String get showRoutePreview => 'Vis ruteforhåndsvisning';
 }

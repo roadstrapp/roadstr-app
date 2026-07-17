@@ -90,7 +90,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!mounted) return;
       setState(() => _kokoroStatus = _KokoroStatus.notDownloaded);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Download failed: $err')),
+        SnackBar(content:
+            Text('${AppLocalizations.of(context).errorTitle}: $err')),
       );
     });
   }
@@ -454,7 +455,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             backgroundColor: c.surface2,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            title: Text(isEdit ? existing!.label : l.addFavorite,
+            title: Text(isEdit ? existing.label : l.addFavorite,
                 style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.w700)),
             content: SizedBox(
               width: double.maxFinite,
@@ -597,7 +598,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _saveFavorites();
                   if (ctx.mounted) Navigator.pop(ctx);
                 },
-                child: Text(l.addFavorite),
+                // "Add favorite" would be wrong when editing an existing one.
+                child: Text(isEdit ? l.ok : l.addFavorite),
               ),
             ],
           );
@@ -1251,7 +1253,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // ── INFO ─────────────────────────────────────────────────────────
           _SectionHeader(l.sectionInfo, c),
-          _InfoTile(l.infoVersion, '0.4.5', c),
+          _InfoTile(l.infoVersion, '0.4.6', c),
           _InfoTile(l.infoProtocol, 'Nostr', c),
           _InfoTile(l.infoMaps, 'openstreetmap.org', c,
               url: 'https://www.openstreetmap.org'),

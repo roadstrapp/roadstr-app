@@ -732,7 +732,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.';
+      'Roadstr on kokeellinen, avoimen lähdekoodin ja yhteisön ylläpitämä navigointisovellus, joka perustuu OpenStreetMap-tietoihin ja Nostr-protokollaan, ja se on käytettävissä missä tahansa maassa. Lataamalla, asentamalla tai käyttämällä tätä sovellusta käyttäjä hyväksyy ehdoitta kaikki seuraavat ehdot ilman alueellista rajoitusta.\n\n🚗 LIIKENNETURVALLISUUS ENNEN KAIKKEA\nKuljettajan on aina pidettävä katse tiellä ja noudatettava kaikkia sovellettavia liikennesääntöjä ja asetettuja liikennemerkkejä, joilla on aina etusija sovelluksen antamiin ohjeisiin nähden. Älä koskaan käytä laitetta ajon aikana; kiinnitä se hyväksyttyyn, näkyvään telineeseen ennen liikkeelle lähtöä, äläkä koskaan käännä huomiotasi pois tieltä laitteen käyttämiseksi ajoneuvon liikkuessa.\n\n⚠️ RISKIN HYVÄKSYMINEN — MAAILMANLAAJUISESTI\nKäyttämällä Roadstr-sovellusta missä tahansa maassa ja minkä tahansa oikeusjärjestelmän alaisuudessa käyttäjä ottaa tietoisesti ja vapaaehtoisesti kantaakseen KAIKKI sen käyttöön liittyvät riskit, mukaan lukien muun muassa: liikenneonnettomuudet, henkilövahingot, kuolema, omaisuusvahingot, ajoneuvovauriot, sakot, hallinnolliset seuraamukset, hinaus, ajoneuvon takavarikointi, rikosoikeudellinen vastuu tai mikä tahansa muu seuraus, joka aiheutuu suoraan tai välillisesti sovellukseen luottamisesta. Käyttäjä yksin kantaa täyden vastuun jokaisesta ajamiseen ja navigointiin liittyvästä päätöksestä.\n\n🚫 EI TAKUUTA\nRoadstr tarjotaan tiukasti sellaisena kuin se on (”AS IS”) ja sellaisena kuin se on saatavilla (”AS AVAILABLE”), ilman minkäänlaista takuuta, olipa se nimenomainen, hiljainen tai lakisääteinen — mukaan lukien, rajoituksetta, takuut tarkkuudesta, täydellisyydestä, luotettavuudesta, saatavuudesta, kaupattavuudesta, tiettyyn tarkoitukseen soveltuvuudesta ja oikeuksien loukkaamattomuudesta. Karttatiedot, reititys, nopeusrajoitukset, nopeusvalvontakamerat ja ajoneuvoliikenteen rajoitusalueita (ZTL/ZAC/LTZ) koskevat tiedot ovat peräisin avoimista, yhteisön ylläpitämistä lähteistä (OpenStreetMap, Overpass API), jotka voivat minkä tahansa maan, alueen tai kunnan osalta olla milloin tahansa ja ilman ennakkoilmoitusta puutteellisia, vanhentuneita tai virheellisiä. Käyttäjä on yksin vastuussa siitä, että hän varmistaa itsenäisesti ennen matkaa ja sen aikana ehdotetun reitin laillisuuden ja käytettävyyden virallisten paikallisten liikennemerkkien ja määräysten perusteella.\n\n📍 TARKKUUS JA GPS\nGPS-paikannus voi olla epätarkka tai käyttökelvoton. Kaikki ohjeet, etäisyydet ja hälytykset annetaan vain suuntaa-antavina, eikä niihin saa koskaan luottaa ajopäätöksen ainoana perusteena.\n\n🛡️ VASTUUN RAJOITTAMINEN\nSovellettavan lain sallimissa laajimmissa rajoissa missä tahansa lainkäyttöalueella kehittäjät, avustajat ja kaikki Roadstr-sovelluksen luomiseen tai jakeluun osallistuneet tahot eivät ole vastuussa mistään välittömistä, välillisistä, satunnaisista, seuraamuksellisista, erityisistä, esimerkinomaisista tai rankaisevista vahingoista, olivatpa ne minkälaisia tahansa — mukaan lukien henkilövahinko, kuolema tai taloudellinen menetys —, jotka aiheutuvat sovelluksen käytöstä tai kyvyttömyydestä käyttää sitä tai liittyvät siihen, vaikka tällaisten vahinkojen mahdollisuudesta olisi ilmoitettu. Jos jokin lainkäyttöalue ei salli tätä rajoitusta osittain tai kokonaan, vastuu rajoitetaan pienimpään kyseisen lainkäyttöalueen lain sallimaan laajuuteen.\n\n🤝 VAHINGONKORVAUSVELVOLLISUUS\nKäyttäjä sitoutuu korvaamaan ja pitämään vahingoittumattomina kehittäjät ja avustajat kaikista vaatimuksista, vahingoista, menetyksistä tai kuluista (mukaan lukien oikeudenkäyntikulut), jotka aiheutuvat käyttäjän sovelluksen käytöstä tai näiden ehtojen rikkomisesta.\n\n🔒 YKSITYISYYS\nSijaintitietoja ei siirretä Roadstrin omille palvelimille. Reitin laskenta suoritetaan kolmansien osapuolten palveluiden (OSRM, GraphHopper, OpenRouteService) kautta, joille lähetetään ainoastaan lähtö- ja määränpääkoordinaatit.\n\n⚖️ EROTETTAVUUS\nJos jokin näiden ehtojen määräys todetaan täytäntöönpanokelvottomaksi tietyllä lainkäyttöalueella, kyseistä määräystä rajoitetaan tai se erotetaan mahdollisimman vähäisessä tarpeellisessa määrin, ja kaikki muut määräykset pysyvät täysin voimassa.\n\nKäyttämällä Roadstr-sovellusta missä tahansa maailmassa käyttäjä vahvistaa lukeneensa, ymmärtäneensä ja hyväksyneensä ehdoitta jokaisen yllä mainitun ehdon sekä ottavansa täyden ja kokonaisen vastuun — ja kaiken riskin — sovelluksen käytöstä ja siitä aiheutuvista seurauksista.';
 
   @override
   String get readOnWikipedia => 'Lue Wikipediasta';
@@ -806,7 +806,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get ztlAheadWarning =>
-      'ZTL-alue edessä — reitti menee rajoitettuun alueeseen';
+      'Edessä on rajoitettu liikennealue — reitti kulkee sen läpi';
 
   @override
   String get ztlInsideWarning => 'Rajoitettu liikennealue';
@@ -946,130 +946,107 @@ class AppLocalizationsFi extends AppLocalizations {
   String get onboardingNsecHint => 'nsec1…';
 
   @override
-  String get kokoroVoiceGenderTitle => 'Voice';
+  String get kokoroVoiceGenderTitle => 'Ääni';
 
   @override
-  String get kokoroVoiceFemale => 'Female';
+  String get kokoroVoiceFemale => 'Naisääni';
 
   @override
-  String get kokoroVoiceMale => 'Male';
+  String get kokoroVoiceMale => 'Miesääni';
 
   @override
   String get kokoroVoiceGenderUnavailable =>
-      'Male voice not available for this language';
+      'Miesääni ei ole saatavilla tälle kielelle';
 
   @override
-  String get kokoroSpeedTitle => 'Speech speed';
+  String get kokoroSpeedTitle => 'Puhenopeus';
 
   @override
   String get onboardingFavoritesSyncNotice =>
-      'Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.';
+      'Valinnainen: tallennetut suosikkisi voivat synkronoitua laitteidesi välillä Nostr-releiden kautta, päästä päähän salattuna (NIP-44) omalla avaimellasi — releet näkevät vain salattua tekstiä, eikä kukaan muu kuin sinä voi lukea sisältöä. Ota käyttöön milloin tahansa Asetuksista.';
 
   @override
-  String get parkingSaveHere => 'Save parking here';
+  String get parkingSaveHere => 'Tallenna pysäköinti tähän';
 
   @override
-  String get parkingMarkerTitle => 'Parking spot';
+  String get parkingMarkerTitle => 'Pysäköintipaikka';
 
   @override
-  String get parkingNavigateHere => 'Navigate to parking';
+  String get parkingNavigateHere => 'Navigoi pysäköintiin';
 
   @override
-  String get parkingRemove => 'Remove parking';
+  String get parkingRemove => 'Poista pysäköinti';
 
   @override
-  String get parkingSavedSnack => 'Parking spot saved';
+  String get parkingSavedSnack => 'Pysäköintipaikka tallennettu';
 
   @override
-  String get parkingRemovedSnack => 'Parking spot removed';
+  String get parkingRemovedSnack => 'Pysäköintipaikka poistettu';
 
   @override
-  String get exportFavoritesTitle => 'Export favorites';
+  String get exportFavoritesTitle => 'Vie suosikit';
 
   @override
   String get exportFavoritesDesc =>
-      'Save your favorite places to a JSON file you can back up or move to another device.';
+      'Tallenna suosikkipaikkasi JSON-tiedostoon, jonka voit varmuuskopioida tai siirtää toiselle laitteelle.';
 
   @override
-  String get exportEncryptToggle => 'Encrypt with a password';
+  String get exportEncryptToggle => 'Salaa salasanalla';
 
   @override
-  String get exportPasswordHint => 'Password';
+  String get exportPasswordHint => 'Salasana';
 
   @override
-  String get exportButton => 'Export';
+  String get exportButton => 'Vie';
 
   @override
-  String get exportSuccessSnack => 'Favorites exported';
+  String get exportSuccessSnack => 'Suosikit viety';
 
   @override
-  String get exportFailedSnack => 'Export failed';
+  String get exportFailedSnack => 'Vienti epäonnistui';
 
   @override
-  String get importFavoritesTitle => 'Import favorites';
+  String get importFavoritesTitle => 'Tuo suosikit';
 
   @override
-  String get importButton => 'Import';
-
-  @override
-  String get importPasswordPrompt =>
-      'This file is encrypted — enter the password';
+  String get importPasswordPrompt => 'Tämä tiedosto on salattu — anna salasana';
 
   @override
   String importSuccessSnack(int n) {
-    return '$n favorites imported';
+    return '$n suosikkia tuotu';
   }
 
   @override
-  String get importFailedSnack => 'Import failed — check the file and password';
+  String get importFailedSnack =>
+      'Tuonti epäonnistui — tarkista tiedosto ja salasana';
 
   @override
-  String get syncFavoritesTitle => 'Sync favorites';
+  String get syncFavoritesTitle => 'Synkronoi suosikit';
 
   @override
   String get syncFavoritesDesc =>
-      'Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.';
+      'Julkaise suosikkisi päästä päähän salattuna Nostr-releillesi, jotta ne seuraavat sinua kaikilla laitteillasi. Releet näkevät vain salattua tekstiä — kukaan muu kuin sinä ei voi lukea sisältöä.';
 
   @override
-  String get syncFavoritesEnable => 'Enable sync';
+  String get syncNowButton => 'Lähetä Nostriin';
 
   @override
-  String get syncNowButton => 'Push to Nostr';
+  String get syncPullButton => 'Nouda Nostrista';
 
   @override
-  String get syncPullButton => 'Pull from Nostr';
+  String get syncSuccessSnack => 'Suosikit synkronoitu';
 
   @override
-  String get syncPushingStatus => 'Publishing…';
-
-  @override
-  String get syncPullingStatus => 'Fetching…';
-
-  @override
-  String get syncSuccessSnack => 'Favorites synced';
-
-  @override
-  String get syncFailedSnack => 'Sync failed';
-
-  @override
-  String get syncNotAvailableAmber =>
-      'Encrypted sync isn\'t available with Amber sign-in yet';
+  String get syncFailedSnack => 'Synkronointi epäonnistui';
 
   @override
   String syncLastSyncLabel(String when) {
-    return 'Last synced: $when';
+    return 'Viimeksi synkronoitu: $when';
   }
 
   @override
   String get syncNoIdentity =>
-      'Sign in with Nostr (Settings → Profile) to enable sync';
-
-  @override
-  String get syncPullConfirmTitle => 'Replace local favorites?';
-
-  @override
-  String get syncPullConfirmBody =>
-      'This will merge favorites fetched from Nostr with the ones already on this device.';
+      'Kirjaudu Nostrilla (Asetukset → Profiili) ottaaksesi synkronoinnin käyttöön';
 
   @override
   String get onboardingVpnNotice =>
@@ -1078,4 +1055,30 @@ class AppLocalizationsFi extends AppLocalizations {
   @override
   String get onboardingGrapheneAlwaysAllow =>
       'Luotettavan toiminnan varmistamiseksi aseta sovelluksen sijaintilupa tilaan ”Salli aina”, ei vain sovellusta käytettäessä.';
+
+  @override
+  String get trafficNormal => 'Normaali liikenne';
+
+  @override
+  String get trafficModerate => 'Kohtalainen liikenne';
+
+  @override
+  String get trafficHeavy => 'Vilkas liikenne';
+
+  @override
+  String get avoidHighwaysChip => 'Vältä moottoriteitä';
+
+  @override
+  String get avoidTollsChip => 'Vältä tietulleja';
+
+  @override
+  String get preferShorterChip => 'Lyhin reitti';
+
+  @override
+  String zapAmountButton(int sats) {
+    return 'Zap $sats sat';
+  }
+
+  @override
+  String get showRoutePreview => 'Näytä reitin esikatselu';
 }

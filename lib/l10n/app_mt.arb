@@ -293,7 +293,7 @@
   "lightningAddressCopied": "⚡ {address} ikkupjat fil-clipboard",
   "disclaimerTitle": "Avviż importanti",
   "disclaimerAccept": "Qrajt u naċċetta",
-  "disclaimerBody": "Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app's instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.",
+  "disclaimerBody": "Roadstr hija applikazzjoni ta' navigazzjoni sperimentali, b'sors miftuħ, immantnuta mill-komunità, ibbażata fuq data tal-OpenStreetMap u l-protokoll Nostr, disponibbli għall-użu fi kwalunkwe pajjiż. Billi tniżżel, tinstalla jew tuża din l-applikazzjoni, l-utent jaċċetta bla kundizzjoni t-termini kollha li ġejjin, mingħajr limitazzjoni ta' territorju.\n\n🚗 IS-SIGURTÀ TAT-TRIQ L-EWWEL\nIs-sewwieq għandu dejjem iżomm għajnejh fit-triq u jikkonforma mal-liġijiet kollha applikabbli tat-traffiku u s-sinjaletika murija, li dejjem għandhom preċedenza fuq kwalunkwe struzzjoni mill-applikazzjoni. Qatt m'għandek topera l-apparat waqt is-sewqan; waħħlu f'sapport approvat u viżibbli qabel titlaq, u qatt m'għandek titbiegħed b'attenzjonek mit-triq biex tinteraġixxi miegħu waqt li l-vettura tkun miexja.\n\n⚠️ ASSUNZJONI TAR-RISKJU — MADWAR ID-DINJA\nBl-użu ta' Roadstr, fi kwalunkwe pajjiż u taħt kwalunkwe sistema legali, l-utent, b'għarfien u volontarjament, jassumi r-riskji KOLLHA marbuta mal-użu tagħha, inklużi iżda mhux limitati għal: inċidenti tat-traffiku, korriment personali, mewt, ħsara fil-proprjetà, ħsara fil-vettura, multi, pieni amministrattivi, ġbid tal-vettura, sekwestru, responsabbiltà kriminali, jew kwalunkwe konsegwenza oħra li tirriżulta direttament jew indirettament mill-fatt li wieħed jistrieħ fuq l-applikazzjoni. L-utent waħdu jġorr ir-responsabbiltà sħiħa għal kull deċiżjoni ta' sewqan u navigazzjoni.\n\n🚫 EBDA GARANZIJA\nRoadstr hija pprovduta strettament \"KIF INHI\" u \"SKONT ID-DISPONIBBILTÀ\", mingħajr ebda garanzija ta' kwalunkwe tip, kemm jekk espressa, implikata jew statutorja — inklużi, mingħajr limitazzjoni, garanziji ta' preċiżjoni, kompletezza, affidabbiltà, disponibbiltà, kummerċjabbiltà, adegwatezza għal skop partikolari, u nuqqas ta' ksur. Id-data tal-mapep, l-ippjanar tar-rotot, il-limiti tal-veloċità, il-kameras tal-veloċità, u l-informazzjoni dwar iż-żoni ta' traffiku ristrett (ZTL/ZAC/LTZ) ġejjin minn sorsi miftuħa, immantnuti mill-komunità (OpenStreetMap, Overpass API) li jistgħu jkunu mhux kompluti, skaduti jew mhux preċiżi għal kwalunkwe pajjiż, reġjun jew muniċipalità, fi kwalunkwe ħin u mingħajr avviż. L-utent hu unikament responsabbli li jivverifika b'mod indipendenti, qabel u matul l-ivvjaġġar, il-legalità u l-aċċessibbiltà ta' kwalunkwe rotta suġġerita mas-sinjaletika u r-regolamenti lokali uffiċjali.\n\n📍 PREĊIŻJONI U GPS\nIl-pożizzjonament GPS jista' jkun mhux preċiż jew mhux disponibbli. Id-direzzjonijiet, id-distanzi, u l-allerti kollha huma pprovduti biss bħala gwida u qatt m'għandhom jitqiesu bħala l-uniku bażi għal deċiżjoni ta' sewqan.\n\n🛡️ LIMITAZZJONI TAR-RESPONSABBILTÀ\nSal-punt massimu permess mil-liġi applikabbli fi kwalunkwe ġurisdizzjoni, l-iżviluppaturi, il-kontributuri, u kwalunkwe parti involuta fil-ħolqien jew id-distribuzzjoni ta' Roadstr m'għandhomx ikunu responsabbli għal kwalunkwe dannu dirett, indirett, inċidentali, konsegwenzjali, speċjali, eżemplari jew punittiv ta' kwalunkwe tip — inkluż korriment personali, mewt, jew telf finanzjarju — li jirriżulta minn jew relatat mal-użu jew l-inkapaċità li tuża l-applikazzjoni, anke jekk avżati bil-possibbiltà ta' tali danni. Fejn ġurisdizzjoni ma tippermettix parti minn din il-limitazzjoni jew kollha kemm hi, ir-responsabbiltà hija limitata sal-iżgħar punt permess mil-liġi f'dik il-ġurisdizzjoni.\n\n🤝 INDENNIZZ\nL-utent jaqbel li jindennizza u jżomm bla ħsara lill-iżviluppaturi u l-kontributuri minn kwalunkwe pretensjoni, dannu, telf, jew spiża (inklużi l-ispejjeż legali) li jirriżultaw mill-użu tal-applikazzjoni mill-utent jew minn ksur ta' dawn it-termini.\n\n🔒 PRIVATEZZA\nL-ebda data dwar il-lokazzjoni ma tintbagħat lis-servers stess ta' Roadstr. Il-kalkolu tar-rotta jsir permezz ta' servizzi ta' partijiet terzi (OSRM, GraphHopper, OpenRouteService) li lilhom jintbagħtu biss il-koordinati tal-punt tat-tluq u tad-destinazzjoni.\n\n⚖️ SEPARABBILTÀ\nJekk xi dispożizzjoni ta' dawn it-termini tinstab li mhix infurzabbli f'ġurisdizzjoni partikolari, dik id-dispożizzjoni għandha tiġi limitata jew separata sal-punt minimu meħtieġ, u d-dispożizzjonijiet li jifdal jibqgħu fis-seħħ sħiħ.\n\nBl-użu ta' Roadstr, kullimkien fid-dinja, l-utent jikkonferma li qara, fehem, u aċċetta bla kundizzjoni kull terminu msemmi hawn fuq, u jassumi responsabbiltà sħiħa u kompluta — u r-riskju kollu — għall-użu tal-applikazzjoni u kwalunkwe konsegwenza li tirriżulta minnha.",
   "readOnWikipedia": "Aqra fuq Wikipedija",
   "searchOnEngine": "Fittex fuq {engine}",
   "plannerFromHint": "Minn…",
@@ -314,7 +314,7 @@
   "weatherSnow": "Borra",
   "weatherShowers": "Xita qawwija",
   "weatherThunderstorm": "Maltempata",
-  "ztlAheadWarning": "Żona ZTL quddiem — ir-rotta tidħol f'żona ristretta",
+  "ztlAheadWarning": "Żona ta' traffiku ristrett 'il quddiem — ir-rotta tgħaddi minnha",
   "ztlInsideWarning": "Żona ta' traffiku ristrett",
   "onboardingAppSubtitle": "Navigazzjoni Nostr open-source",
   "onboardingWelcomeTitle": "Merħba",
@@ -357,5 +357,65 @@
   "onboardingProfileLoading": "Qed jitgħabba l-profil…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "Għal privatezza massima — ir-rapporti jixterdu fin-netwerk Nostr — huwa rrakkomandat l-użu ta' VPN. Mullvad, li tista' tħallas bil-Bitcoin, hija l-għażla rrakkomandata.",
-  "onboardingGrapheneAlwaysAllow": "Għal tħaddim affidabbli, issettja l-permess tal-post tal-app għal \"Ħalli dejjem\", mhux biss waqt li l-app tkun qed tintuża."
+  "onboardingGrapheneAlwaysAllow": "Għal tħaddim affidabbli, issettja l-permess tal-post tal-app għal \"Ħalli dejjem\", mhux biss waqt li l-app tkun qed tintuża.",
+  "exportFavoritesTitle": "Esporta l-favoriti",
+  "exportFavoritesDesc": "Issejvja l-postijiet favoriti tiegħek f’fajl JSON li tista’ tagħmillu backup jew tittrasferih għal apparat ieħor.",
+  "exportEncryptToggle": "Ikkripta b’password",
+  "exportPasswordHint": "Password",
+  "exportButton": "Esporta",
+  "exportSuccessSnack": "Il-favoriti ġew esportati",
+  "exportFailedSnack": "L-esportazzjoni falliet",
+  "importFavoritesTitle": "Importa l-favoriti",
+  "importPasswordPrompt": "Dan il-fajl huwa kriptat — daħħal il-password",
+  "importSuccessSnack": "{n} favoriti importati",
+  "@importSuccessSnack": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "importFailedSnack": "L-importazzjoni falliet — iċċekkja l-fajl u l-password",
+  "kokoroVoiceGenderTitle": "Vuċi",
+  "kokoroVoiceFemale": "Femminili",
+  "kokoroVoiceMale": "Maskili",
+  "kokoroVoiceGenderUnavailable": "Vuċi maskili mhix disponibbli għal din il-lingwa",
+  "kokoroSpeedTitle": "Veloċità tad-diskors",
+  "onboardingFavoritesSyncNotice": "Fakultattiv: il-favoriti salvati jistgħu jiġu sinkronizzati bejn l-apparati tiegħek permezz tar-relays Nostr, kriptati end-to-end (NIP-44) biċ-ċavetta tiegħek stess — ir-relays jaraw biss test kriptat, u ħadd ħliefek ma jista’ jaqra l-kontenut. Attivah meta trid mis-Settings.",
+  "parkingMarkerTitle": "Post tal-parkeġġ",
+  "parkingSaveHere": "Issejvja l-parkeġġ hawn",
+  "parkingSavedSnack": "Il-post tal-parkeġġ ġie salvat",
+  "parkingNavigateHere": "Innaviga lejn il-parkeġġ",
+  "parkingRemove": "Neħħi l-parkeġġ",
+  "parkingRemovedSnack": "Il-post tal-parkeġġ tneħħa",
+  "syncFavoritesTitle": "Sinkronizza l-favoriti",
+  "syncFavoritesDesc": "Ippubblika l-favoriti tiegħek, kriptati end-to-end, fuq ir-relays Nostr tiegħek biex isegwuk fuq l-apparati kollha. Ir-relays jaraw biss test kriptat — ħadd ħliefek ma jista’ jaqra l-kontenut.",
+  "syncNoIdentity": "Idħol b’Nostr (Settings → Profil) biex tattiva s-sinkronizzazzjoni",
+  "syncNowButton": "Ibgħat lil Nostr",
+  "syncPullButton": "Ġib minn Nostr",
+  "syncSuccessSnack": "Il-favoriti ġew sinkronizzati",
+  "syncFailedSnack": "Is-sinkronizzazzjoni falliet",
+  "syncLastSyncLabel": "L-aħħar sinkronizzazzjoni: {when}",
+  "@syncLastSyncLabel": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trafficNormal": "Traffiku normali",
+  "trafficModerate": "Traffiku moderat",
+  "trafficHeavy": "Traffiku qawwi",
+  "avoidHighwaysChip": "Evita l-awtostradi",
+  "avoidTollsChip": "Evita l-pedaġġi",
+  "preferShorterChip": "L-iqsar rotta",
+  "zapAmountButton": "Zap {sats} sat",
+  "@zapAmountButton": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
+  "showRoutePreview": "Uri l-previżjoni tar-rotta"
 }

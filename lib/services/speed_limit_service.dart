@@ -18,16 +18,27 @@ import 'package:latlong2/latlong.dart';
 /// hasn't changed enough. Read [cachedLimit] synchronously.
 class SpeedLimitService {
   /// Public Overpass endpoints, tried in order. The main instance is often
-  /// "too busy"; the mirrors keep the feature alive when it rejects us.
+  /// "too busy"; the mirror keeps the feature alive when it rejects us.
+  /// NB: overpass.osm.ch was REMOVED — it is a Switzerland-only extract that
+  /// returns HTTP 200 with zero elements for any Italian location, which was
+  /// cached as a legitimate "no limit here" and blanked the sign. Only
+  /// worldwide mirrors (verified: IPv4 + global coverage) belong here.
   static const _endpoints = [
     'https://overpass-api.de/api/interpreter',
     'https://overpass.openstreetmap.fr/api/interpreter',
-    'https://overpass.osm.ch/api/interpreter',
   ];
-  static const _radiusM  = 40;      // OSM way search radius (metres)
+  static const _radiusM  = 60;      // OSM way search radius (metres)
   static const _minMoveM = 100.0;   // min travel distance before re-querying
   static const _maxAgeMs = 60000;   // re-query after 60 s even without movement
   static const _retryMs  = 15000;   // back-off delay after a failed attempt
+  // Consecutive empty results tolerated before clearing the cached limit.
+  // At a turn or roundabout the GPS fix can transiently sit outside every
+  // tagged way's search radius (junction geometry, drifted fix mid-turn) —
+  // treating one empty query as "this road has no limit" flashes the sign
+  // off and back on every time that happens. Requiring a couple of misses
+  // in a row before clearing distinguishes a genuine no-data road from a
+  // momentary miss near a junction.
+  static const _maxConsecutiveMisses = 2;
 
   int?      _cachedLimit;
   LatLng?   _lastQueryPos;
@@ -35,6 +46,7 @@ class SpeedLimitService {
   DateTime? _lastSuccessAt;
   DateTime? _nextRetryAt;
   int       _endpointIdx = 0;
+  int       _missCount = 0;
 
   /// The most recently fetched speed limit (km/h), or null if unknown.
   int? get cachedLimit => _cachedLimit;
@@ -47,6 +59,7 @@ class SpeedLimitService {
     _lastSuccessAt  = null;
     _nextRetryAt    = null;
     _fetching       = false;
+    _missCount      = 0;
   }
 
   /// Triggers an async Overpass query if position has changed enough.
@@ -56,11 +69,18 @@ class SpeedLimitService {
     if (!_needsQuery(pos)) return;
     _fetching = true;
     try {
-      _cachedLimit    = await _fetchLimit(pos);
+      final result = await _fetchLimit(pos);
+      if (result != null) {
+        _cachedLimit = result;
+        _missCount   = 0;
+      } else if (++_missCount >= _maxConsecutiveMisses) {
+        // Only clear after repeated misses — see _maxConsecutiveMisses.
+        _cachedLimit = null;
+      }
       _lastQueryPos   = pos;
       _lastSuccessAt  = DateTime.now();
       _nextRetryAt    = null;
-      debugPrint('[SpeedLimit] Overpass → ${_cachedLimit ?? "no limit"} km/h');
+      debugPrint('[SpeedLimit] Overpass → ${result ?? "no limit (miss $_missCount)"} km/h');
     } catch (e) {
       debugPrint('[SpeedLimit] Overpass error: $e');
       // Rotate to the next mirror before backing off.

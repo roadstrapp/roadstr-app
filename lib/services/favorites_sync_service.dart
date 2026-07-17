@@ -18,6 +18,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../models/favorite_place.dart';
 import 'nip44.dart';
+import 'nostr_event_verify.dart';
 
 class FavoritesSyncService {
   static const _relays = [
@@ -200,23 +201,5 @@ class FavoritesSyncService {
     }
   }
 
-  bool _verifyEvent(Map<String, dynamic> json) {
-    try {
-      final ev = Event(
-        kind: json['kind'] as int,
-        tags: (json['tags'] as List)
-            .map((t) => List<String>.from(t as List))
-            .toList(),
-        content: json['content'] as String? ?? '',
-        created_at: json['created_at'] as int,
-        id: json['id'] as String,
-        sig: json['sig'] as String,
-        pubkey: json['pubkey'] as String,
-      );
-      if (_eventApi.getEventHash(ev) != ev.id) return false;
-      return _eventApi.verifySignature(ev);
-    } catch (_) {
-      return false;
-    }
-  }
+  bool _verifyEvent(Map<String, dynamic> json) => verifyEventJson(json);
 }

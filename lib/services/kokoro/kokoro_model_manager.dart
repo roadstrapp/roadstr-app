@@ -159,14 +159,19 @@ class KokoroModelManager {
         }
         final sink = task.file.openWrite();
         var taskBytes = 0;
-        await response.stream.forEach((chunk) {
-          sink.add(chunk);
-          taskBytes += chunk.length;
-          if (totalBytes > 0) {
-            onProgress?.call(((downloadedBytes + taskBytes) / totalBytes).clamp(0.0, 1.0));
-          }
-        });
-        await sink.close();
+        try {
+          await response.stream.forEach((chunk) {
+            sink.add(chunk);
+            taskBytes += chunk.length;
+            if (totalBytes > 0) {
+              onProgress?.call(((downloadedBytes + taskBytes) / totalBytes).clamp(0.0, 1.0));
+            }
+          });
+        } finally {
+          // Close even on mid-download failure or the file handle leaks; the
+          // truncated file itself is harmless — the size check re-downloads it.
+          await sink.close();
+        }
         downloadedBytes += taskBytes;
       } finally {
         client.close();

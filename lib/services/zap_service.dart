@@ -19,6 +19,8 @@ import 'package:nostr_tools/nostr_tools.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import 'nostr_event_verify.dart';
+
 // ── Models ────────────────────────────────────────────────────────────────────
 
 /// Holds the metadata returned by a LNURL-pay endpoint (`/.well-known/lnurlp`).
@@ -52,6 +54,10 @@ class ZapService {
   /// Checks `lud16` (Lightning address format, e.g. `user@domain.com`) first,
   /// then falls back to `lud06` (raw LNURL bech32). Returns `null` if the
   /// profile has no Lightning address or the relay does not respond within 6 s.
+  ///
+  /// The kind-0 event is verified (author, id hash, Schnorr signature) before
+  /// its content is trusted: a malicious relay that could substitute the
+  /// Lightning address would redirect every zap to an attacker's wallet.
   static Future<String?> fetchLightningAddress(String pubHex) async {
     WebSocketChannel? ws;
     try {
@@ -65,7 +71,9 @@ class ZapService {
           try {
             final msg = jsonDecode(raw as String) as List;
             if (msg[0] == 'EVENT' && msg[1] == subId) {
-              final content = jsonDecode((msg[2] as Map)['content'] as String)
+              final json = (msg[2] as Map).cast<String, dynamic>();
+              if (json['pubkey'] != pubHex || !verifyEventJson(json)) return;
+              final content = jsonDecode(json['content'] as String)
                   as Map<String, dynamic>;
               final lud = (content['lud16'] ?? content['lud06']) as String?;
               completer.complete(lud);

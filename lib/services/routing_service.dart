@@ -55,8 +55,9 @@ class RouteResult {
   final double totalDistanceM;
   final double totalDurationS;
   /// Speed-limit zones sorted by distance from route start.
-  /// Populated for OSRM (annotations=maxspeed) and GraphHopper (details=max_speed).
-  /// Empty for providers that do not expose speed-limit data.
+  /// Populated only for GraphHopper (details=max_speed); OSRM has no maxspeed
+  /// annotation (that is a Mapbox extension) and other providers expose none —
+  /// their limits come from SpeedLimitService (Overpass) instead.
   final List<SpeedLimitEntry> speedLimits;
 
   const RouteResult({
@@ -178,7 +179,15 @@ class RoutingService {
           .timeout(const Duration(seconds: 5));
       if (res.statusCode != 200) return [];
       final list = jsonDecode(res.body) as List;
-      final results = list.map((e) => NominatimResult.fromJson(e)).toList();
+      // Parse each entry defensively: one malformed result (bad coordinates,
+      // missing field) must skip only itself — mapping the whole list in one
+      // go would throw into the outer catch and discard EVERY result.
+      final results = <NominatimResult>[];
+      for (final e in list) {
+        try {
+          results.add(NominatimResult.fromJson(e as Map<String, dynamic>));
+        } catch (_) {}
+      }
       if (near != null) {
         results.sort((a, b) =>
             const Distance().as(LengthUnit.Meter, near, a.position)
@@ -586,45 +595,25 @@ class RoutingService {
       ));
     }
 
-    // ── Speed-limit annotations ─────────────────────────────────────────────
-    // OSRM returns per-OSM-segment maxspeed + segment distance when
-    // annotations=maxspeed,distance is requested. Build a cumulative list so
-    // the navigator can look up the posted limit at any elapsed distance.
-    final speedLimits = <SpeedLimitEntry>[];
-    try {
-      final ann = leg['annotation'] as Map<String, dynamic>?;
-      if (ann != null) {
-        final msRaw  = ann['maxspeed'] as List?;
-        final dstRaw = ann['distance'] as List?;
-        if (msRaw != null && dstRaw != null) {
-          double cumM = 0;
-          for (int i = 0; i < msRaw.length && i < dstRaw.length; i++) {
-            final ms = msRaw[i];
-            int? speedKmh;
-            if (ms is Map) {
-              final spd = ms['speed'];
-              if (spd is num) speedKmh = spd.toInt();
-              // "none" / "unlimited" → leave null (no posted limit)
-            }
-            speedLimits.add((distFromStartM: cumM, speedKmh: speedKmh));
-            cumM += (dstRaw[i] as num).toDouble();
-          }
-        }
-      }
-    } catch (_) {} // annotation parsing is best-effort
-
-    debugPrint('[Routing] OSRM speedLimits: ${speedLimits.length} entries'
-        ' (non-null: ${speedLimits.where((e) => e.speedKmh != null).length})');
+    // No speed limits from OSRM: annotations=maxspeed is a Mapbox extension
+    // that vanilla OSRM rejects, so it is never requested (see the request
+    // NOTE above) and the response never carries usable annotation data.
+    // Limits during OSRM navigation come from SpeedLimitService (Overpass).
     return RouteResult(
       polyline: coords,
       steps: steps,
       totalDistanceM: (route['distance'] as num).toDouble(),
       totalDurationS: (route['duration'] as num).toDouble(),
-      speedLimits: speedLimits,
     );
   }
 
-  /// Test a GraphHopper server URL for connectivity and basic response
+  /// Test a GraphHopper server URL for connectivity and basic response.
+  ///
+  /// The probe route uses Null Island (0,0 → 0.1,0.1), which no real map
+  /// covers — so a healthy server answers HTTP 400 "Cannot find point".
+  /// That error PROVES the server is a reachable, routing-capable
+  /// GraphHopper instance and is treated as success; only unreachable hosts,
+  /// auth failures, or non-GraphHopper responses fail the test.
   static Future<void> testGraphHopperServer(String server, {String? apiKey}) async {
     final parts = <String>[
       'point=0.0,0.0',
@@ -640,6 +629,12 @@ class RoutingService {
     final uri = Uri.parse(server).replace(query: parts.join('&'));
     try {
       final res = await http.get(uri, headers: {'User-Agent': 'Roadstr/1.0'}).timeout(const Duration(seconds: 8));
+      if (res.statusCode == 400 &&
+          (res.body.contains('Cannot find point') ||
+           res.body.contains('PointNotFoundException') ||
+           res.body.contains('PointOutOfBoundsException'))) {
+        return; // reachable GraphHopper that simply doesn't cover Null Island
+      }
       if (res.statusCode != 200) {
         throw RoutingException(statusCode: res.statusCode, body: res.body, message: 'Ping failed');
       }
@@ -1035,7 +1030,7 @@ class NominatimResult {
           'museum'     => 'Museum',
           'hotel' || 'hostel' || 'motel' => 'Hotel',
           'attraction' || 'monument' => 'Attraction / Monument',
-          'artwork'    => 'Opera d\'arte',
+          'artwork'    => 'Artwork',
           'gallery'    => 'Gallery',
           _            => 'Tourism',
         };

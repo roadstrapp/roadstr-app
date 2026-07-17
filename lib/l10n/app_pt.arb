@@ -293,7 +293,7 @@
   "lightningAddressCopied": "⚡ {address} copiado para a área de transferência",
   "disclaimerTitle": "Aviso importante",
   "disclaimerAccept": "Li e aceito",
-  "disclaimerBody": "Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app's instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.",
+  "disclaimerBody": "Roadstr é uma aplicação de navegação experimental, de código aberto e mantida pela comunidade, baseada em dados do OpenStreetMap e no protocolo Nostr, disponibilizada para utilização em qualquer país. Ao transferir, instalar ou utilizar esta aplicação, o utilizador aceita incondicionalmente a totalidade dos termos seguintes, sem limitação territorial.\n\n🚗 A SEGURANÇA RODOVIÁRIA EM PRIMEIRO LUGAR\nO condutor deve manter sempre os olhos na estrada e cumprir todas as leis de trânsito aplicáveis e a sinalização existente, que prevalecem sempre sobre qualquer indicação da aplicação. O dispositivo nunca deve ser manuseado durante a condução; deve ser fixado num suporte homologado e visível antes de iniciar a marcha, e a atenção nunca deve ser desviada da estrada para interagir com o dispositivo enquanto o veículo estiver em movimento.\n\n⚠️ ASSUNÇÃO DE RISCO — A NÍVEL MUNDIAL\nAo utilizar o Roadstr, em qualquer país e ao abrigo de qualquer sistema jurídico, o utilizador assume consciente e voluntariamente TODOS os riscos associados à sua utilização, incluindo, sem limitação: acidentes de trânsito, lesões pessoais, morte, danos materiais, danos no veículo, multas, sanções administrativas, reboque, apreensão do veículo, responsabilidade criminal, ou qualquer outra consequência decorrente, direta ou indiretamente, da confiança depositada na aplicação. O utilizador é o único responsável por cada decisão de condução e de navegação.\n\n🚫 SEM GARANTIA\nO Roadstr é disponibilizado estritamente \"TAL COMO SE ENCONTRA\" e \"CONFORME DISPONÍVEL\", sem qualquer garantia de qualquer tipo, expressa, implícita ou legal, incluindo, sem limitação, garantias de exatidão, integralidade, fiabilidade, disponibilidade, comerciabilidade, adequação a um fim específico e não violação de direitos de terceiros. Os dados cartográficos, o cálculo de rotas, os limites de velocidade, os radares e as informações sobre zonas de tráfego condicionado (ZTL/ZAC/LTZ) provêm de fontes abertas mantidas pela comunidade (OpenStreetMap, Overpass API), que podem estar incompletas, desatualizadas ou incorretas para qualquer país, região ou município, em qualquer momento e sem aviso prévio. Cabe exclusivamente ao utilizador verificar de forma independente, antes e durante a viagem, a legalidade e a acessibilidade de qualquer rota sugerida, confrontando-a com a sinalização e a regulamentação local oficial.\n\n📍 PRECISÃO E GPS\nO posicionamento por GPS pode ser impreciso ou estar indisponível. Todas as indicações, distâncias e alertas são fornecidos apenas a título indicativo e nunca devem ser utilizados como único fundamento para uma decisão de condução.\n\n🛡️ LIMITAÇÃO DE RESPONSABILIDADE\nNa máxima medida permitida pela legislação aplicável em cada jurisdição, os programadores, os colaboradores e qualquer parte envolvida na criação ou distribuição do Roadstr não serão responsáveis por quaisquer danos diretos, indiretos, incidentais, consequenciais, especiais, exemplares ou punitivos de qualquer natureza — incluindo lesões pessoais, morte ou perdas financeiras — decorrentes do uso ou da impossibilidade de uso da aplicação, mesmo que tenham sido alertados sobre a possibilidade de tais danos. Nas jurisdições que não permitam, total ou parcialmente, esta limitação, a responsabilidade fica limitada à extensão mínima permitida pela lei dessa jurisdição.\n\n🤝 INDEMNIZAÇÃO\nO utilizador compromete-se a indemnizar e a isentar de responsabilidade os programadores e colaboradores relativamente a qualquer reclamação, dano, perda ou despesa (incluindo honorários legais) decorrentes da utilização da aplicação pelo utilizador ou da violação destes termos.\n\n🔒 PRIVACIDADE\nNenhum dado de localização é transmitido aos servidores próprios do Roadstr. O cálculo de rotas é efetuado através de serviços de terceiros (OSRM, GraphHopper, OpenRouteService), aos quais são enviadas apenas as coordenadas de partida e de destino.\n\n⚖️ DIVISIBILIDADE\nCaso alguma disposição destes termos seja considerada inexequível numa determinada jurisdição, essa disposição será limitada ou separada na medida mínima necessária, permanecendo todas as restantes disposições em pleno vigor e efeito.\n\nAo utilizar o Roadstr, em qualquer parte do mundo, o utilizador confirma ter lido, compreendido e aceite incondicionalmente todos os termos acima, assumindo total e integralmente a responsabilidade — e todo o risco — pela utilização da aplicação e por qualquer consequência daí resultante.",
   "readOnWikipedia": "Ler na Wikipédia",
   "searchOnEngine": "Pesquisar no {engine}",
   "plannerFromHint": "De…",
@@ -314,7 +314,7 @@
   "weatherSnow": "Neve",
   "weatherShowers": "Aguaceiros",
   "weatherThunderstorm": "Tempestade",
-  "ztlAheadWarning": "Zona ZTL à frente — rota entra em área restrita",
+  "ztlAheadWarning": "Zona de tráfego limitado à frente — a rota entra nela",
   "ztlInsideWarning": "Zona de tráfego limitado",
   "onboardingAppSubtitle": "Navegação Nostr de código aberto",
   "onboardingWelcomeTitle": "Bem-vindo",
@@ -357,5 +357,65 @@
   "onboardingProfileLoading": "Carregando perfil…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "Para máxima privacidade — os alertas são propagados pela rede Nostr — recomenda-se o uso de uma VPN. Mullvad, pagável em Bitcoin, é a escolha recomendada.",
-  "onboardingGrapheneAlwaysAllow": "Para um funcionamento fiável, defina a permissão de localização da app como \"Permitir sempre\", não apenas durante a utilização."
+  "onboardingGrapheneAlwaysAllow": "Para um funcionamento fiável, defina a permissão de localização da app como \"Permitir sempre\", não apenas durante a utilização.",
+  "exportFavoritesTitle": "Exportar favoritos",
+  "exportFavoritesDesc": "Guarde os seus locais favoritos num ficheiro JSON que pode fazer backup ou transferir para outro dispositivo.",
+  "exportEncryptToggle": "Encriptar com palavra-passe",
+  "exportPasswordHint": "Palavra-passe",
+  "exportButton": "Exportar",
+  "exportSuccessSnack": "Favoritos exportados",
+  "exportFailedSnack": "A exportação falhou",
+  "importFavoritesTitle": "Importar favoritos",
+  "importPasswordPrompt": "Este ficheiro está encriptado — introduza a palavra-passe",
+  "importSuccessSnack": "{n} favoritos importados",
+  "@importSuccessSnack": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "importFailedSnack": "A importação falhou — verifique o ficheiro e a palavra-passe",
+  "kokoroVoiceGenderTitle": "Voz",
+  "kokoroVoiceFemale": "Feminina",
+  "kokoroVoiceMale": "Masculina",
+  "kokoroVoiceGenderUnavailable": "Voz masculina não disponível para este idioma",
+  "kokoroSpeedTitle": "Velocidade da fala",
+  "onboardingFavoritesSyncNotice": "Opcional: os seus favoritos guardados podem sincronizar-se entre os seus dispositivos através dos relays Nostr, encriptados ponta a ponta (NIP-44) com a sua própria chave — os relays só veem texto cifrado e ninguém além de si pode ler o conteúdo. Ative quando quiser nas Definições.",
+  "parkingMarkerTitle": "Lugar de estacionamento",
+  "parkingSaveHere": "Guardar estacionamento aqui",
+  "parkingSavedSnack": "Estacionamento guardado",
+  "parkingNavigateHere": "Navegar até ao estacionamento",
+  "parkingRemove": "Remover estacionamento",
+  "parkingRemovedSnack": "Estacionamento removido",
+  "syncFavoritesTitle": "Sincronizar favoritos",
+  "syncFavoritesDesc": "Publique os seus favoritos, encriptados ponta a ponta, nos seus relays Nostr para que o sigam em todos os dispositivos. Os relays só veem texto cifrado — ninguém além de si pode ler o conteúdo.",
+  "syncNoIdentity": "Inicie sessão com Nostr (Definições → Perfil) para ativar a sincronização",
+  "syncNowButton": "Enviar para o Nostr",
+  "syncPullButton": "Obter do Nostr",
+  "syncSuccessSnack": "Favoritos sincronizados",
+  "syncFailedSnack": "A sincronização falhou",
+  "syncLastSyncLabel": "Última sincronização: {when}",
+  "@syncLastSyncLabel": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trafficNormal": "Trânsito normal",
+  "trafficModerate": "Trânsito moderado",
+  "trafficHeavy": "Trânsito intenso",
+  "avoidHighwaysChip": "Evitar autoestradas",
+  "avoidTollsChip": "Evitar portagens",
+  "preferShorterChip": "Rota mais curta",
+  "zapAmountButton": "Zap {sats} sat",
+  "@zapAmountButton": {
+    "placeholders": {
+      "sats": {
+        "type": "int"
+      }
+    }
+  },
+  "showRoutePreview": "Mostrar pré-visualização da rota"
 }

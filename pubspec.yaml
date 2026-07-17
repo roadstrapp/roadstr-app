@@ -1,6 +1,6 @@
 name: roadstr
 description: Roadstr — Decentralised navigation with Nostr road events and Lightning zaps
-version: 0.4.5+14
+version: 0.4.6+15
 publish_to: 'none'
 
 environment:
