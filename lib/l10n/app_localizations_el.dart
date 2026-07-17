@@ -1042,6 +1042,14 @@ class AppLocalizationsEl extends AppLocalizations {
   String get syncPullButton => 'Λήψη από το Nostr';
 
   @override
+  String get syncPassphraseTitle =>
+      'Φράση πρόσβασης συγχρονισμού (προαιρετική)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Δεύτερο επίπεδο κρυπτογράφησης για τα συγχρονισμένα αγαπημένα: ακόμη κι αν το κλειδί Nostr σας παραβιαστεί, το στιγμιότυπο στους αναμεταδότες παραμένει μη αναγνώσιμο χωρίς αυτή τη φράση. Την εισάγετε μία φορά σε κάθε νέα συσκευή. Αφήστε το κενό για απενεργοποίηση.';
+
+  @override
   String get syncSuccessSnack => 'Τα αγαπημένα συγχρονίστηκαν';
 
   @override

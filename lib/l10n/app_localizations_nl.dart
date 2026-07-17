@@ -1037,6 +1037,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get syncPullButton => 'Van Nostr ophalen';
 
   @override
+  String get syncPassphraseTitle => 'Synchronisatie-wachtwoordzin (optioneel)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Tweede versleutelingslaag voor gesynchroniseerde favorieten: zelfs als je Nostr-sleutel ooit gecompromitteerd raakt, blijft de momentopname op de relays onleesbaar zonder deze wachtwoordzin. Je voert hem één keer in op elk nieuw apparaat. Laat leeg om uit te schakelen.';
+
+  @override
   String get syncSuccessSnack => 'Favorieten gesynchroniseerd';
 
   @override

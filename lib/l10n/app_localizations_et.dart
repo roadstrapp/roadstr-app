@@ -1033,6 +1033,13 @@ class AppLocalizationsEt extends AppLocalizations {
   String get syncPullButton => 'Too Nostrist';
 
   @override
+  String get syncPassphraseTitle => 'Sünkroonimise paroolifraas (valikuline)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Sünkroonitud lemmikute teine krüpteerimiskiht: isegi kui teie Nostr-võti satuks ohtu, jääb hetktõmmis releedel ilma selle fraasita loetamatuks. Sisestate selle üks kord igas uues seadmes. Keelamiseks jätke tühjaks.';
+
+  @override
   String get syncSuccessSnack => 'Lemmikud sünkroonitud';
 
   @override

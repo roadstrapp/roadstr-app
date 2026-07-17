@@ -1030,6 +1030,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syncPullButton => 'Pull from Nostr';
 
   @override
+  String get syncPassphraseTitle => 'Sync passphrase (optional)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Second encryption layer for synced favorites: even if your Nostr key were ever compromised, the snapshot on the relays stays unreadable without this passphrase. You\'ll enter it once on each new device. Leave empty to disable.';
+
+  @override
   String get syncSuccessSnack => 'Favorites synced';
 
   @override

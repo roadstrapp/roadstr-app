@@ -1035,6 +1035,13 @@ class AppLocalizationsDa extends AppLocalizations {
   String get syncPullButton => 'Hent fra Nostr';
 
   @override
+  String get syncPassphraseTitle => 'Synkroniserings-adgangssætning (valgfri)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Andet krypteringslag for synkroniserede favoritter: selv hvis din Nostr-nøgle blev kompromitteret, forbliver øjebliksbilledet på relæerne ulæseligt uden denne adgangssætning. Du indtaster den én gang på hver ny enhed. Lad feltet stå tomt for at deaktivere.';
+
+  @override
   String get syncSuccessSnack => 'Favoritter synkroniseret';
 
   @override

@@ -1012,6 +1012,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get syncPullButton => 'Nostrから取得';
 
   @override
+  String get syncPassphraseTitle => '同期パスフレーズ(任意)';
+
+  @override
+  String get syncPassphraseDesc =>
+      '同期されたお気に入りの第二の暗号化層です。Nostr鍵が万一漏洩しても、このパスフレーズがなければリレー上のスナップショットは解読できません。新しい端末ごとに一度入力します。無効にするには空欄のままにしてください。';
+
+  @override
   String get syncSuccessSnack => 'お気に入りを同期しました';
 
   @override

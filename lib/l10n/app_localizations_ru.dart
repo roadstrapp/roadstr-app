@@ -1034,6 +1034,14 @@ class AppLocalizationsRu extends AppLocalizations {
   String get syncPullButton => 'Получить из Nostr';
 
   @override
+  String get syncPassphraseTitle =>
+      'Парольная фраза синхронизации (необязательно)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Второй уровень шифрования синхронизируемого избранного: даже если ваш ключ Nostr будет скомпрометирован, снимок на релеях останется нечитаемым без этой фразы. Вы вводите её один раз на каждом новом устройстве. Оставьте пустым, чтобы отключить.';
+
+  @override
   String get syncSuccessSnack => 'Избранное синхронизировано';
 
   @override

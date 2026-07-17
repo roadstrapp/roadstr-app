@@ -393,6 +393,8 @@
   "syncNoIdentity": "使用Nostr登录（设置 → 个人资料）以启用同步",
   "syncNowButton": "推送到Nostr",
   "syncPullButton": "从Nostr拉取",
+  "syncPassphraseTitle": "同步密码短语(可选)",
+  "syncPassphraseDesc": "同步收藏的第二层加密:即使您的 Nostr 密钥泄露,没有此密码短语,中继上的快照也无法解密。每台新设备只需输入一次。留空即可停用。",
   "syncSuccessSnack": "收藏已同步",
   "syncFailedSnack": "同步失败",
   "syncLastSyncLabel": "上次同步：{when}",

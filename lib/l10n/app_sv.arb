@@ -393,6 +393,8 @@
   "syncNoIdentity": "Logga in med Nostr (Inställningar → Profil) för att aktivera synkronisering",
   "syncNowButton": "Skicka till Nostr",
   "syncPullButton": "Hämta från Nostr",
+  "syncPassphraseTitle": "Synkroniseringslösenfras (valfri)",
+  "syncPassphraseDesc": "Andra krypteringslagret för synkroniserade favoriter: även om din Nostr-nyckel skulle komprometteras förblir ögonblicksbilden på reläerna oläslig utan denna lösenfras. Du anger den en gång på varje ny enhet. Lämna tomt för att inaktivera.",
   "syncSuccessSnack": "Favoriter synkroniserade",
   "syncFailedSnack": "Synkroniseringen misslyckades",
   "syncLastSyncLabel": "Senast synkroniserad: {when}",

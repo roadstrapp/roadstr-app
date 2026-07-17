@@ -42,10 +42,14 @@ class WeatherData {
 class WeatherService {
   static Future<WeatherData?> fetch(LatLng pos) async {
     try {
+      // Privacy: the destination is often the user's home. Weather is a
+      // regional quantity — Open-Meteo's own grid is ~1–11 km — so 2 decimals
+      // (~1.1 km) gives identical results while denying Open-Meteo (and any
+      // network observer) a street-level fix on where the user is heading.
       final uri = Uri.parse(
         'https://api.open-meteo.com/v1/forecast'
-        '?latitude=${pos.latitude.toStringAsFixed(4)}'
-        '&longitude=${pos.longitude.toStringAsFixed(4)}'
+        '?latitude=${pos.latitude.toStringAsFixed(2)}'
+        '&longitude=${pos.longitude.toStringAsFixed(2)}'
         '&current=temperature_2m,weather_code,wind_speed_10m'
         '&wind_speed_unit=kmh',
       );

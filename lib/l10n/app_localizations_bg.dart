@@ -1038,6 +1038,13 @@ class AppLocalizationsBg extends AppLocalizations {
   String get syncPullButton => 'Изтегли от Nostr';
 
   @override
+  String get syncPassphraseTitle => 'Парола за синхронизация (по избор)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Втори слой на шифроване за синхронизираните любими места: дори ключът ви за Nostr да бъде компрометиран, снимката на релетата остава нечетима без тази парола. Въвеждате я веднъж на всяко ново устройство. Оставете празно, за да изключите.';
+
+  @override
   String get syncSuccessSnack => 'Любимите са синхронизирани';
 
   @override

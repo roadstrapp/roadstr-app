@@ -393,6 +393,8 @@
   "syncNoIdentity": "Přihlaste se přes Nostr (Nastavení → Profil) pro aktivaci synchronizace",
   "syncNowButton": "Odeslat na Nostr",
   "syncPullButton": "Stáhnout z Nostr",
+  "syncPassphraseTitle": "Přístupová fráze synchronizace (volitelná)",
+  "syncPassphraseDesc": "Druhá vrstva šifrování synchronizovaných oblíbených: i kdyby byl váš klíč Nostr kompromitován, snímek na relayích zůstane bez této fráze nečitelný. Zadáte ji jednou na každém novém zařízení. Ponechte prázdné pro vypnutí.",
   "syncSuccessSnack": "Oblíbené synchronizovány",
   "syncFailedSnack": "Synchronizace se nezdařila",
   "syncLastSyncLabel": "Poslední synchronizace: {when}",

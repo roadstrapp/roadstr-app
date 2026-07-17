@@ -1036,6 +1036,13 @@ class AppLocalizationsGa extends AppLocalizations {
   String get syncPullButton => 'Faigh ó Nostr';
 
   @override
+  String get syncPassphraseTitle => 'Pasfhrása sioncronaithe (roghnach)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Dara sraith criptithe do na ceanáin shioncronaithe: fiú dá gcuirfí d\'eochair Nostr i mbaol, fanann an roinneog ar na hathsheachadáin doléite gan an pasfhrása seo. Cuirfidh tú isteach é uair amháin ar gach gléas nua. Fág folamh chun é a dhíchumasú.';
+
+  @override
   String get syncSuccessSnack => 'Ceanáin sioncronaithe';
 
   @override

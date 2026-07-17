@@ -393,6 +393,8 @@
   "syncNoIdentity": "Prisijunkite su Nostr (Nustatymai → Profilis), kad įjungtumėte sinchronizavimą",
   "syncNowButton": "Siųsti į Nostr",
   "syncPullButton": "Gauti iš Nostr",
+  "syncPassphraseTitle": "Sinchronizavimo slaptafrazė (neprivaloma)",
+  "syncPassphraseDesc": "Antras sinchronizuojamų mėgstamiausių šifravimo sluoksnis: net jei jūsų Nostr raktas būtų pavogtas, momentinė kopija relėse be šios slaptafrazės lieka neperskaitoma. Ją įvesite po kartą kiekviename naujame įrenginyje. Palikite tuščią, kad išjungtumėte.",
   "syncSuccessSnack": "Mėgstamiausi sinchronizuoti",
   "syncFailedSnack": "Sinchronizuoti nepavyko",
   "syncLastSyncLabel": "Paskutinį kartą sinchronizuota: {when}",

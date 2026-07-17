@@ -393,6 +393,8 @@
   "syncNoIdentity": "Autentifică-te cu Nostr (Setări → Profil) pentru a activa sincronizarea",
   "syncNowButton": "Trimite pe Nostr",
   "syncPullButton": "Preia de pe Nostr",
+  "syncPassphraseTitle": "Frază de acces pentru sincronizare (opțională)",
+  "syncPassphraseDesc": "Al doilea strat de criptare pentru favoritele sincronizate: chiar dacă cheia dvs. Nostr ar fi compromisă, instantaneul de pe relee rămâne ilizibil fără această frază. O introduceți o singură dată pe fiecare dispozitiv nou. Lăsați gol pentru dezactivare.",
   "syncSuccessSnack": "Favoritele au fost sincronizate",
   "syncFailedSnack": "Sincronizarea a eșuat",
   "syncLastSyncLabel": "Ultima sincronizare: {when}",
