@@ -393,6 +393,8 @@
   "syncNoIdentity": "Logáil isteach le Nostr (Socruithe → Próifíl) chun sioncronú a chumasú",
   "syncNowButton": "Seol chuig Nostr",
   "syncPullButton": "Faigh ó Nostr",
+  "syncPassphraseTitle": "Pasfhrása sioncronaithe (roghnach)",
+  "syncPassphraseDesc": "Dara sraith criptithe do na ceanáin shioncronaithe: fiú dá gcuirfí d'eochair Nostr i mbaol, fanann an roinneog ar na hathsheachadáin doléite gan an pasfhrása seo. Cuirfidh tú isteach é uair amháin ar gach gléas nua. Fág folamh chun é a dhíchumasú.",
   "syncSuccessSnack": "Ceanáin sioncronaithe",
   "syncFailedSnack": "Theip ar an sioncronú",
   "syncLastSyncLabel": "Sioncronaithe go deireanach: {when}",

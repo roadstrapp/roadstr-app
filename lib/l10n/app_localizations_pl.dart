@@ -1035,6 +1035,13 @@ class AppLocalizationsPl extends AppLocalizations {
   String get syncPullButton => 'Pobierz z Nostr';
 
   @override
+  String get syncPassphraseTitle => 'Hasło synchronizacji (opcjonalne)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Druga warstwa szyfrowania synchronizowanych ulubionych: nawet gdyby Twój klucz Nostr został przejęty, migawka na przekaźnikach pozostaje nieczytelna bez tego hasła. Wpiszesz je raz na każdym nowym urządzeniu. Pozostaw puste, aby wyłączyć.';
+
+  @override
   String get syncSuccessSnack => 'Ulubione zsynchronizowane';
 
   @override

@@ -393,6 +393,8 @@
   "syncNoIdentity": "Zaloguj się przez Nostr (Ustawienia → Profil), aby włączyć synchronizację",
   "syncNowButton": "Wyślij do Nostr",
   "syncPullButton": "Pobierz z Nostr",
+  "syncPassphraseTitle": "Hasło synchronizacji (opcjonalne)",
+  "syncPassphraseDesc": "Druga warstwa szyfrowania synchronizowanych ulubionych: nawet gdyby Twój klucz Nostr został przejęty, migawka na przekaźnikach pozostaje nieczytelna bez tego hasła. Wpiszesz je raz na każdym nowym urządzeniu. Pozostaw puste, aby wyłączyć.",
   "syncSuccessSnack": "Ulubione zsynchronizowane",
   "syncFailedSnack": "Synchronizacja nie powiodła się",
   "syncLastSyncLabel": "Ostatnia synchronizacja: {when}",

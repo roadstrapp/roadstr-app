@@ -1034,6 +1034,13 @@ class AppLocalizationsFi extends AppLocalizations {
   String get syncPullButton => 'Nouda Nostrista';
 
   @override
+  String get syncPassphraseTitle => 'Synkronoinnin salalause (valinnainen)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Toinen salauskerros synkronoiduille suosikeille: vaikka Nostr-avaimesi vaarantuisi, releillä oleva tilannekuva pysyy lukukelvottomana ilman tätä salalausetta. Syötät sen kerran jokaisella uudella laitteella. Jätä tyhjäksi poistaaksesi käytöstä.';
+
+  @override
   String get syncSuccessSnack => 'Suosikit synkronoitu';
 
   @override

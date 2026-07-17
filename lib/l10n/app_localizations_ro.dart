@@ -1035,6 +1035,14 @@ class AppLocalizationsRo extends AppLocalizations {
   String get syncPullButton => 'Preia de pe Nostr';
 
   @override
+  String get syncPassphraseTitle =>
+      'Frază de acces pentru sincronizare (opțională)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Al doilea strat de criptare pentru favoritele sincronizate: chiar dacă cheia dvs. Nostr ar fi compromisă, instantaneul de pe relee rămâne ilizibil fără această frază. O introduceți o singură dată pe fiecare dispozitiv nou. Lăsați gol pentru dezactivare.';
+
+  @override
   String get syncSuccessSnack => 'Favoritele au fost sincronizate';
 
   @override

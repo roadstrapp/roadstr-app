@@ -393,6 +393,8 @@
   "syncNoIdentity": "Prijavite se s Nostrom (Postavke → Profil) za omogućavanje sinkronizacije",
   "syncNowButton": "Pošalji na Nostr",
   "syncPullButton": "Dohvati s Nostra",
+  "syncPassphraseTitle": "Sigurnosna fraza sinkronizacije (neobavezno)",
+  "syncPassphraseDesc": "Drugi sloj šifriranja za sinkronizirane favorite: čak i ako bi vaš Nostr ključ bio ugrožen, snimka na relejima ostaje nečitljiva bez ove fraze. Unosite je jednom na svakom novom uređaju. Ostavite prazno za isključivanje.",
   "syncSuccessSnack": "Favoriti sinkronizirani",
   "syncFailedSnack": "Sinkronizacija nije uspjela",
   "syncLastSyncLabel": "Zadnja sinkronizacija: {when}",

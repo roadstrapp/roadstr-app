@@ -445,6 +445,8 @@
   "syncFavoritesDesc": "Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.",
   "syncNowButton": "Push to Nostr",
   "syncPullButton": "Pull from Nostr",
+  "syncPassphraseTitle": "Sync passphrase (optional)",
+  "syncPassphraseDesc": "Second encryption layer for synced favorites: even if your Nostr key were ever compromised, the snapshot on the relays stays unreadable without this passphrase. You'll enter it once on each new device. Leave empty to disable.",
   "syncSuccessSnack": "Favorites synced",
   "syncFailedSnack": "Sync failed",
   "syncLastSyncLabel": "Last synced: {when}",

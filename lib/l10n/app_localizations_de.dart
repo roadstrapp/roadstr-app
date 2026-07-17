@@ -1041,6 +1041,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get syncPullButton => 'Von Nostr abrufen';
 
   @override
+  String get syncPassphraseTitle => 'Sync-Passphrase (optional)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Zweite Verschlüsselungsebene für synchronisierte Favoriten: Selbst wenn Ihr Nostr-Schlüssel kompromittiert würde, bleibt der Snapshot auf den Relays ohne diese Passphrase unlesbar. Sie geben sie einmal pro neuem Gerät ein. Leer lassen zum Deaktivieren.';
+
+  @override
   String get syncSuccessSnack => 'Favoriten synchronisiert';
 
   @override

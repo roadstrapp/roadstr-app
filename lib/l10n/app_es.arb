@@ -393,6 +393,8 @@
   "syncNoIdentity": "Inicia sesión con Nostr (Ajustes → Perfil) para activar la sincronización",
   "syncNowButton": "Enviar a Nostr",
   "syncPullButton": "Recuperar de Nostr",
+  "syncPassphraseTitle": "Frase de contraseña de sincronización (opcional)",
+  "syncPassphraseDesc": "Segunda capa de cifrado para los favoritos sincronizados: aunque tu clave Nostr se viera comprometida, la copia en los relays sigue siendo ilegible sin esta frase. La introducirás una vez en cada dispositivo nuevo. Déjala vacía para desactivarla.",
   "syncSuccessSnack": "Favoritos sincronizados",
   "syncFailedSnack": "La sincronización falló",
   "syncLastSyncLabel": "Última sincronización: {when}",

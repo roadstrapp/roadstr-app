@@ -1038,6 +1038,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get syncPullButton => 'Récupérer depuis Nostr';
 
   @override
+  String get syncPassphraseTitle =>
+      'Phrase secrète de synchronisation (facultative)';
+
+  @override
+  String get syncPassphraseDesc =>
+      'Deuxième couche de chiffrement pour les favoris synchronisés : même si votre clé Nostr était compromise, l\'instantané sur les relais reste illisible sans cette phrase secrète. Vous la saisirez une fois sur chaque nouvel appareil. Laissez vide pour désactiver.';
+
+  @override
   String get syncSuccessSnack => 'Favoris synchronisés';
 
   @override

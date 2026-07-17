@@ -393,6 +393,8 @@
   "syncNoIdentity": "Melde dich mit Nostr an (Einstellungen → Profil), um die Synchronisierung zu aktivieren",
   "syncNowButton": "An Nostr senden",
   "syncPullButton": "Von Nostr abrufen",
+  "syncPassphraseTitle": "Sync-Passphrase (optional)",
+  "syncPassphraseDesc": "Zweite Verschlüsselungsebene für synchronisierte Favoriten: Selbst wenn Ihr Nostr-Schlüssel kompromittiert würde, bleibt der Snapshot auf den Relays ohne diese Passphrase unlesbar. Sie geben sie einmal pro neuem Gerät ein. Leer lassen zum Deaktivieren.",
   "syncSuccessSnack": "Favoriten synchronisiert",
   "syncFailedSnack": "Synchronisierung fehlgeschlagen",
   "syncLastSyncLabel": "Zuletzt synchronisiert: {when}",
