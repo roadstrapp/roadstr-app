@@ -135,12 +135,18 @@ class EspeakPhonemizer {
     final archive = TarDecoder().decodeBytes(tarBytes);
 
     for (final entry in archive.files) {
+      // Tar-slip guard: reject entries whose name escapes the extraction root
+      // ("../", absolute paths). The archive is a bundled asset, so this is
+      // defence in depth, but archive contents must never dictate write paths
+      // outside their target directory.
+      final target = File('${docs.path}/${entry.name}');
+      final normalized = target.uri.normalizePath().toFilePath();
+      if (!normalized.startsWith('${docs.path}/')) continue;
       if (entry.isFile) {
-        final f = File('${docs.path}/${entry.name}');
-        await f.create(recursive: true);
-        await f.writeAsBytes(entry.content);
+        await target.create(recursive: true);
+        await target.writeAsBytes(entry.content);
       } else {
-        await Directory('${docs.path}/${entry.name}').create(recursive: true);
+        await Directory(normalized).create(recursive: true);
       }
     }
 

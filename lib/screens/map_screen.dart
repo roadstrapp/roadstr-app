@@ -80,6 +80,13 @@ class _MapScreenState extends State<MapScreen>
   /// value so arrival detection isn't overly tight before the first fix.
   double _lastGpsAccuracy = 20;
   double _heading = 0;
+  /// Smallest GPS-to-destination distance (metres) observed so far during the
+  /// current navigation. Reset on every navigation start. Drives the
+  /// closest-approach fallback in [_checkArrival]: once the user has gotten
+  /// reasonably close and is now moving away again, that closest point WAS
+  /// the arrival — no need to wait for a tighter radius that a poor GPS fix
+  /// may never satisfy.
+  double _minDistToDestM = double.infinity;
 
   // ── Compass (magnetometer + accelerometer) ──────────────────────────────────
   /// Tilt-compensated compass bearing in degrees [0, 360), derived from the
@@ -156,6 +163,13 @@ class _MapScreenState extends State<MapScreen>
   /// Previous GPS position used to compute movement-based heading when the
   /// device magnetometer / GPS bearing is unavailable.
   LatLng? _prevGpsPos;
+  /// Movement bearing awaiting confirmation because it implied a near-reversal
+  /// (>100° from the current heading). A single GPS fix that jumps BEHIND the
+  /// true position (urban multipath) produces a large displacement whose
+  /// bearing points backwards — one sample must never flip the map. A real
+  /// U-turn produces the same reversed bearing on consecutive fixes, so the
+  /// flip is accepted only when the next sample agrees with this one.
+  double? _pendingFlipBearing;
 
   /// True when the current GPS position is inside a known ZTL polygon.
   bool _inZtl = false;
@@ -554,8 +568,48 @@ class _MapScreenState extends State<MapScreen>
     // for a reliable bearing, and only if it carries a valid non-zero value.
     double effectiveHeading = _heading;
     if (_prevGpsPos != null && _speed > 3) {
-      final movBearing = _bearingBetween(_prevGpsPos!, data.position);
-      if (movBearing.isFinite) effectiveHeading = movBearing;
+      // A two-fix bearing is only meaningful when the fixes are farther apart
+      // than the GPS noise floor. Below that, consecutive jittery fixes (e.g.
+      // resync during a turn or roundabout) can land a few metres "behind"
+      // the true position, computing a bearing ~180° off the real direction
+      // of travel — the map spins around, then snaps back once a fix with
+      // real displacement arrives. Gating on distance (not just _speed, which
+      // itself can lag/jitter) filters that out.
+      final movedM = const Distance().as(LengthUnit.Meter, _prevGpsPos!, data.position);
+      final reliabilityFloorM = math.max(8.0, _lastGpsAccuracy * 0.8);
+      if (movedM > reliabilityFloorM) {
+        final movBearing = _bearingBetween(_prevGpsPos!, data.position);
+        if (movBearing.isFinite) {
+          // Distance gating alone can't stop LARGE backward jumps (multipath
+          // can teleport a fix 20+ m behind — well past the noise floor) whose
+          // bearing is ~180° reversed. During navigation, a near-reversal is
+          // accepted only when confirmed by two consecutive agreeing samples:
+          // physics allows no instantaneous U-turn, while a genuine turnaround
+          // keeps producing the reversed bearing on the very next fix.
+          double diffFromCurrent = (movBearing - _heading).abs() % 360;
+          if (diffFromCurrent > 180) diffFromCurrent = 360 - diffFromCurrent;
+          if (!_isNavigating || diffFromCurrent <= 100) {
+            effectiveHeading = movBearing;
+            _pendingFlipBearing = null;
+          } else {
+            final pending = _pendingFlipBearing;
+            double agree = pending == null
+                ? 999
+                : (movBearing - pending).abs() % 360;
+            if (agree > 180) agree = 360 - agree;
+            if (agree <= 45) {
+              // Second consecutive sample agrees — real U-turn, accept it.
+              effectiveHeading = movBearing;
+              _pendingFlipBearing = null;
+            } else {
+              // First (or non-agreeing) reversal sample — hold heading, wait.
+              _pendingFlipBearing = movBearing;
+            }
+          }
+        }
+      } else if (data.heading != null && data.heading!.isFinite && data.heading! > 0) {
+        effectiveHeading = data.heading!;
+      }
     } else if (data.heading != null && data.heading!.isFinite && data.heading! > 0) {
       effectiveHeading = data.heading!;
     }
@@ -657,14 +711,16 @@ class _MapScreenState extends State<MapScreen>
   }
 
   /// Shifts the camera center [heading]° ahead of [gps] by an amount that
-  /// places the GPS marker at 2/5 from the bottom of the screen (more road
+  /// places the GPS marker at ~1/3 from the bottom of the screen (more road
   /// ahead, less behind). Only applied in heading-up navigation mode.
   static LatLng _navCameraCenter(LatLng gps, double heading, double zoom) {
     // At zoom Z: meters per pixel = 40075016 / (256 × 2^Z)
     const earthM = 40075016.0;
     final mpp = earthM / (256.0 * math.pow(2, zoom));
-    // Shift camera 10% of a ~800-px-tall screen ahead of GPS position.
-    final shiftM = 0.10 * 800.0 * mpp;
+    // Shift camera 18% of a ~800-px-tall screen ahead of GPS position:
+    // the cursor sits at 50%−18% ≈ 32% from the bottom (was 40% at 10%),
+    // showing noticeably more road ahead as requested.
+    final shiftM = 0.18 * 800.0 * mpp;
     const degPerM = 1.0 / 111320.0;
     final rad = heading * math.pi / 180.0;
     final dlat = math.cos(rad) * shiftM * degPerM;
@@ -727,6 +783,7 @@ class _MapScreenState extends State<MapScreen>
   void _checkArrival() {
     if (_destination == null || !_isNavigating) return;
     final d = const Distance().as(LengthUnit.Meter, _position, _destination!);
+    if (d < _minDistToDestM) _minDistToDestM = d;
     final arrivalRadius = _transportMode == 'walking' ? 15 : 40;
     final onLastStep = _currentStepIdx >= (_route?.steps.length ?? 0) - 1;
     // On the last step, widen the radius to compensate for the arrive-point
@@ -739,7 +796,26 @@ class _MapScreenState extends State<MapScreen>
     final effectiveRadius = onLastStep
         ? (_lastGpsAccuracy * 1.5).clamp(10.0, 40.0)
         : arrivalRadius;
-    if (d < effectiveRadius) _onArrival();
+    if (d < effectiveRadius) {
+      _onArrival();
+      return;
+    }
+    // Closest-approach fallback: a single fixed radius can be defeated by a
+    // GPS fix that's simply never accurate enough to dip under it (e.g.
+    // ~45 m error next to a destination clamped to a 40 m max radius) even
+    // though on the map the two points are essentially on top of each
+    // other. Rather than widening that radius further, track the closest
+    // distance-to-destination seen this leg: once the user got reasonably
+    // close at some point and is now measurably moving away again, that
+    // closest point WAS the arrival — waiting for a tighter radius that may
+    // never come just leaves the arrival message stuck.
+    const closeEnoughM = 60.0;
+    const movingAwayMarginM = 20.0;
+    if (onLastStep &&
+        _minDistToDestM <= closeEnoughM &&
+        d > _minDistToDestM + movingAwayMarginM) {
+      _onArrival();
+    }
   }
 
   void _onArrival() {
@@ -908,19 +984,11 @@ class _MapScreenState extends State<MapScreen>
     final name = _ztl.ztlNameAt(nextStep.location);
     setState(() { _ztlOnRoute = true; _ztlOnRouteName = name; });
     if (!_voiceMuted) {
-      final lang = Localizations.localeOf(context).languageCode;
-      const _ztlMsg = <String, String>{
-        'it': 'Attenzione! Zona a traffico limitato.',
-        'en': 'Warning! ZTL zone ahead.',
-        'de': 'Achtung! Eingeschränkte Verkehrszone.',
-        'fr': 'Attention! Zone à trafic limité.',
-        'es': '¡Atención! Zona de tráfico limitado.',
-        'pt': 'Atenção! Zona de tráfego limitado.',
-        'nl': 'Let op! Verkeersbeperkte zone.',
-        'pl': 'Uwaga! Strefa ograniczonego ruchu.',
-        'ru': 'Внимание! Зона ограниченного движения.',
-      };
-      unawaited(_tts.speak(_ztlMsg[lang] ?? _ztlMsg['en']!));
+      // Uses the same generic phrase as the banner (l10n, all 27 languages)
+      // instead of a hand-rolled map that only covered 9 and hardcoded the
+      // Italian "ZTL" acronym for every unlisted language.
+      final l = AppLocalizations.of(context);
+      unawaited(_tts.speak(l.ztlAheadWarning));
     }
   }
 
@@ -1278,6 +1346,7 @@ class _MapScreenState extends State<MapScreen>
     _tts.setLanguage(lang);
     unawaited(_tts.init(lang));
     if (!silent && !_voiceMuted) unawaited(_tts.announceStart());
+    _minDistToDestM = double.infinity;
     // ── Seed heading from best available source ──────────────────────────────
     // When navigation starts while the device is already moving, _heading may
     // hold a stale compass value. Prefer the GPS movement bearing so the map
@@ -1484,13 +1553,14 @@ class _MapScreenState extends State<MapScreen>
   /// Returns a traffic severity badge for [route] based on the number of active
   /// Nostr trafficJam events within 400 m of the polyline.
   ({String label, Color color}) _trafficStatus(RouteResult route) {
+    final l = AppLocalizations.of(context);
     final jams = _roadEvents.where((e) =>
         e.category == RoadCategory.trafficJam && !e.isExpired &&
         route.polyline.any((p) =>
             const Distance().as(LengthUnit.Meter, p, e.position) < 400)).length;
-    if (jams == 0) return (label: '🟢 Normal traffic',   color: const Color(0xFF22C55E));
-    if (jams <= 2) return (label: '🟡 Moderate traffic', color: const Color(0xFFF59E0B));
-    return               (label: '🔴 Heavy traffic',      color: const Color(0xFFEF4444));
+    if (jams == 0) return (label: '🟢 ${l.trafficNormal}',   color: const Color(0xFF22C55E));
+    if (jams <= 2) return (label: '🟡 ${l.trafficModerate}', color: const Color(0xFFF59E0B));
+    return               (label: '🔴 ${l.trafficHeavy}',      color: const Color(0xFFEF4444));
   }
 
   /// Finds the index of the alternative route whose polyline is closest to [tap].
@@ -2749,7 +2819,7 @@ class _MapScreenState extends State<MapScreen>
               TileLayer(
                 urlTemplate: Hive.box('settings').get('mapTileUrl', defaultValue: c.mapTile) as String,
                 subdomains: c.mapTileSubs?.split('') ?? const [],
-                userAgentPackageName: 'com.example.roadstr',
+                userAgentPackageName: 'app.roadstr',
                 maxZoom: 19,
                 // In dark mode: boost contrast without hue shift so roads stand
                 // out against the dark CartoDB background.
@@ -3016,6 +3086,7 @@ class _MapScreenState extends State<MapScreen>
             left: 16, right: 16,
             child: _ZtlBanner(
               name: _ztlOnRouteName,
+              pos: _position,
               colors: c,
               onRoute: true,
             ),
@@ -3025,7 +3096,7 @@ class _MapScreenState extends State<MapScreen>
           Positioned(
             top: (_isNavigating ? topInset + 140 : topInset + 76),
             left: 16, right: 16,
-            child: _ZtlBanner(name: _ztlName, colors: c),
+            child: _ZtlBanner(name: _ztlName, pos: _position, colors: c),
           ),
 
         // ── LEFT FABs: report event + A→B planner + parking ───────────────────
@@ -3294,7 +3365,6 @@ class _MapScreenState extends State<MapScreen>
   }
 
   @override
-  @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.paused:
@@ -3515,7 +3585,7 @@ class _ZapSheetState extends State<_ZapSheet> {
             fontWeight: FontWeight.bold)),
       ]),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
-        Text('Choose amount in satoshi (sats):',
+        Text(AppLocalizations.of(context).chooseAmountSats,
             style: TextStyle(color: c.textSecondary, fontSize: 13)),
         const SizedBox(height: 12),
         Wrap(spacing: 8, runSpacing: 8,
@@ -3574,7 +3644,8 @@ class _ZapSheetState extends State<_ZapSheet> {
       actions: [
         TextButton(
           onPressed: _sending ? null : () => Navigator.pop(context),
-          child: Text('Cancel', style: TextStyle(color: c.textSecondary)),
+          child: Text(AppLocalizations.of(context).cancel,
+              style: TextStyle(color: c.textSecondary)),
         ),
         FilledButton.icon(
           onPressed: (_sending || _amount <= 0) ? null : _send,
@@ -3588,7 +3659,7 @@ class _ZapSheetState extends State<_ZapSheet> {
               : const Text('⚡', style: TextStyle(fontSize: 14)),
           label: Text(_sending
               ? AppLocalizations.of(context).zapSending
-              : 'Zap $_amount sat',
+              : AppLocalizations.of(context).zapAmountButton(_amount),
               style: const TextStyle(color: Colors.white, fontSize: 13)),
         ),
       ],
@@ -4241,7 +4312,9 @@ class _PlaceInfoPanelState extends State<_PlaceInfoPanel>
                 ),
                 icon: const Icon(Icons.navigation_rounded,
                     color: Colors.white, size: 18),
-                label: Text(AppLocalizations.of(context).startNavigation,
+                // This button does NOT start navigation — it opens the route
+                // preview panel (via _requestAlternatives), so it must say so.
+                label: Text(AppLocalizations.of(context).showRoutePreview,
                     style: const TextStyle(color: Colors.white)),
               )),
             ]),
@@ -5072,7 +5145,7 @@ class _AlternativesPanelState extends State<_AlternativesPanel>
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     _ModeChip(
                       icon: Icons.alt_route_rounded,
-                      label: 'Evita autostrade',
+                      label: l.avoidHighwaysChip,
                       selected: widget.prefs.avoidHighways, colors: c,
                       onTap: () => widget.onPrefsChanged(RoutePreferences(
                         avoidHighways: !widget.prefs.avoidHighways,
@@ -5081,7 +5154,7 @@ class _AlternativesPanelState extends State<_AlternativesPanel>
                     const SizedBox(width: 6),
                     _ModeChip(
                       icon: Icons.money_off_rounded,
-                      label: 'Evita pedaggi',
+                      label: l.avoidTollsChip,
                       selected: widget.prefs.avoidTolls, colors: c,
                       onTap: () => widget.onPrefsChanged(RoutePreferences(
                         avoidHighways: widget.prefs.avoidHighways,
@@ -5090,7 +5163,7 @@ class _AlternativesPanelState extends State<_AlternativesPanel>
                     const SizedBox(width: 6),
                     _ModeChip(
                       icon: Icons.straighten_rounded,
-                      label: 'Percorso breve',
+                      label: l.preferShorterChip,
                       selected: widget.prefs.preferShorter, colors: c,
                       onTap: () => widget.onPrefsChanged(RoutePreferences(
                         avoidHighways: widget.prefs.avoidHighways,
@@ -5432,7 +5505,8 @@ class _PinPanelState extends State<_PinPanel> {
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10)),
             onPressed: widget.onNavigate,
             icon: const Icon(Icons.navigation_rounded, size: 16),
-            label: Text(l.startNavigation,
+            // Opens the route preview, not navigation itself — label honestly.
+            label: Text(l.showRoutePreview,
                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
           ),
           const SizedBox(width: 4),
@@ -5922,16 +5996,23 @@ class _MapFab extends StatelessWidget {
 /// Warning banner shown when the GPS position is inside a ZTL polygon.
 class _ZtlBanner extends StatelessWidget {
   final String? name;
+  final LatLng pos;
   final RoadstrColors colors;
   /// True = warning shown BEFORE entering ZTL (route leads into one).
   /// False = user is already inside ZTL.
   final bool onRoute;
-  const _ZtlBanner({this.name, required this.colors, this.onRoute = false});
+  const _ZtlBanner(
+      {this.name, required this.pos, required this.colors, this.onRoute = false});
 
   @override
   Widget build(BuildContext context) {
-    final l     = AppLocalizations.of(context);
-    final label = (name != null && name!.isNotEmpty) ? name! : 'ZTL';
+    final l = AppLocalizations.of(context);
+    // Unnamed OSM element: use the country's OFFICIAL term when known
+    // (ZTL in Italy/France, ZAC in Portugal — see ZtlService.officialAcronymFor),
+    // otherwise a generic translated label instead of a hardcoded "ZTL".
+    final label = (name != null && name!.isNotEmpty)
+        ? name!
+        : (ZtlService.officialAcronymFor(pos) ?? l.ztlInsideWarning);
     final bg    = onRoute ? Colors.orange.shade800 : Colors.red.shade700;
     final icon  = onRoute ? Icons.warning_amber_rounded : Icons.no_crash_rounded;
     final msg   = onRoute

@@ -50,6 +50,13 @@ class FavoritesCrypto {
       final iv = base64.decode(envelope['iv'] as String);
       final ciphertext = base64.decode(envelope['ciphertext'] as String);
       final iterations = envelope['iterations'] as int? ?? _iterations;
+      // The iteration count comes from an untrusted file. A crafted envelope
+      // with a huge value (e.g. 2^31) would freeze the app in PBKDF2 for
+      // hours — a denial of service via import. Legit files only ever carry
+      // [_iterations]; anything outside a sane window is rejected as corrupt.
+      if (iterations < 1000 || iterations > 5000000) {
+        throw const FavoritesDecryptException('wrong password or corrupted file');
+      }
       final key = _deriveKey(password, Uint8List.fromList(salt), iterations);
       final cipher = GCMBlockCipher(AESEngine())
         ..init(false, AEADParameters(KeyParameter(key), _macBits,

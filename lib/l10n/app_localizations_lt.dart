@@ -735,7 +735,7 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.';
+      'Roadstr yra eksperimentinė, atvirojo kodo, bendruomenės prižiūrima navigacijos programėlė, pagrįsta OpenStreetMap duomenimis ir Nostr protokolu, prieinama naudoti bet kurioje šalyje. Atsisiųsdamas, įdiegdamas ar naudodamas šią programėlę, naudotojas besąlygiškai sutinka su visomis toliau nurodytomis sąlygomis, be jokių teritorinių apribojimų.\n\n🚗 KELIŲ EISMO SAUGUMAS PIRMIAUSIA\nVairuotojas visada privalo žiūrėti į kelią ir laikytis visų taikomų kelių eismo taisyklių bei kelio ženklų, kurie visada turi viršenybę prieš bet kokią programėlės nuorodą. Niekada nevaldykite įrenginio vairuodami; prieš pradėdami važiuoti pritvirtinkite jį patvirtintame, gerai matomame laikiklyje ir niekada nenukreipkite dėmesio nuo kelio, kad sąveikautumėte su juo transporto priemonei judant.\n\n⚠️ RIZIKOS PRISIĖMIMAS — VISAME PASAULYJE\nNaudodamasis „Roadstr“ bet kurioje šalyje ir pagal bet kokią teisinę sistemą, naudotojas sąmoningai ir savanoriškai prisiima VISĄ riziką, susijusią su jos naudojimu, įskaitant, bet neapsiribojant: eismo įvykius, kūno sužalojimus, mirtį, turtinę žalą, transporto priemonės apgadinimą, baudas, administracines nuobaudas, evakavimą, transporto priemonės areštą, baudžiamąją atsakomybę arba bet kokias kitas pasekmes, tiesiogiai ar netiesiogiai kylančias iš pasitikėjimo programėle. Naudotojas vienas prisiima visą atsakomybę už kiekvieną vairavimo ir navigacijos sprendimą.\n\n🚫 GARANTIJŲ NETEIKIMAS\n„Roadstr“ teikiama griežtai tokia, „KOKIA YRA“ ir „KOKIA PRIEINAMA“, be jokios rūšies garantijų, nei tiesioginių, nei numanomų, nei įstatymų numatytų — įskaitant, be apribojimų, tikslumo, išsamumo, patikimumo, prieinamumo, tinkamumo parduoti, tinkamumo konkrečiam tikslui ir teisių nepažeidimo garantijas. Žemėlapių duomenys, maršrutų sudarymas, greičio apribojimai, greičio matuokliai ir eismo ribojimo zonų (ZTL/ZAC/LTZ) informacija gaunami iš atvirų, bendruomenės prižiūrimų šaltinių (OpenStreetMap, Overpass API), kurie gali būti neišsamūs, pasenę ar netikslūs bet kurioje šalyje, regione ar savivaldybėje, bet kuriuo metu ir be išankstinio įspėjimo. Naudotojas vienintelis atsako už tai, kad prieš kelionę ir jos metu savarankiškai patikrintų bet kokio siūlomo maršruto teisėtumą ir pravažiuojamumą, palygindamas juos su oficialiais vietos kelio ženklais ir teisės aktais.\n\n📍 TIKSLUMAS IR GPS\nGPS padėties nustatymas gali būti netikslus arba nepasiekiamas. Visos kryptys, atstumai ir įspėjimai pateikiami tik orientaciniais tikslais ir niekada neturėtų būti laikomi vienintele vairavimo sprendimo pagrindu.\n\n🛡️ ATSAKOMYBĖS APRIBOJIMAS\nMaksimalia taikytinos teisės leidžiama apimtimi bet kurioje jurisdikcijoje, kūrėjai, prisidėjusieji asmenys ir bet kuri šalis, dalyvavusi kuriant ar platinant „Roadstr“, neatsako už jokią tiesioginę, netiesioginę, atsitiktinę, pasekminę, specialią, pavyzdinę ar baudinę žalą, įskaitant kūno sužalojimą, mirtį ar finansinius nuostolius, kylančią iš programėlės naudojimo ar negalėjimo ja naudotis arba su tuo susijusią, net jei buvo įspėti apie tokios žalos galimybę. Jei tam tikroje jurisdikcijoje šis apribojimas iš dalies ar visiškai neleidžiamas, atsakomybė apribojama iki mažiausios toje jurisdikcijoje teisės aktais leidžiamos apimties.\n\n🤝 ŽALOS ATLYGINIMAS\nNaudotojas sutinka atlyginti žalą ir apsaugoti kūrėjus bei prisidėjusius asmenis nuo bet kokių pretenzijų, žalos, nuostolių ar išlaidų (įskaitant teisines išlaidas), kylančių dėl naudotojo naudojimosi programėle ar šių sąlygų pažeidimo.\n\n🔒 PRIVATUMAS\nJokie vietos duomenys nėra perduodami į „Roadstr“ pačios serverius. Maršruto skaičiavimas atliekamas per trečiųjų šalių paslaugas (OSRM, GraphHopper, OpenRouteService), kurioms siunčiamos tik pradžios ir paskirties vietos koordinatės.\n\n⚖️ ATSKIRIAMUMAS\nJei kuri nors šių sąlygų nuostata tam tikroje jurisdikcijoje pripažįstama neįgyvendinama, ta nuostata apribojama arba pašalinama minimaliai būtina apimtimi, o visos likusios nuostatos išlieka galioti visa apimtimi.\n\nNaudodamasis „Roadstr“ bet kurioje pasaulio vietoje, naudotojas patvirtina, kad perskaitė, suprato ir besąlygiškai priėmė visas pirmiau nurodytas sąlygas, ir prisiima visą ir besąlygišką atsakomybę — bei visą riziką — už programėlės naudojimą ir bet kokias iš to kylančias pasekmes.';
 
   @override
   String get readOnWikipedia => 'Skaityti Vikipedijoje';
@@ -809,7 +809,7 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get ztlAheadWarning =>
-      'ZTL zona priekyje — maršrutas patenka į ribotą zoną';
+      'Priekyje riboto eismo zona — maršrutas eina per ją';
 
   @override
   String get ztlInsideWarning => 'Riboto eismo zona';
@@ -949,130 +949,108 @@ class AppLocalizationsLt extends AppLocalizations {
   String get onboardingNsecHint => 'nsec1…';
 
   @override
-  String get kokoroVoiceGenderTitle => 'Voice';
+  String get kokoroVoiceGenderTitle => 'Balsas';
 
   @override
-  String get kokoroVoiceFemale => 'Female';
+  String get kokoroVoiceFemale => 'Moteriškas';
 
   @override
-  String get kokoroVoiceMale => 'Male';
+  String get kokoroVoiceMale => 'Vyriškas';
 
   @override
   String get kokoroVoiceGenderUnavailable =>
-      'Male voice not available for this language';
+      'Vyriškas balsas šiai kalbai nepasiekiamas';
 
   @override
-  String get kokoroSpeedTitle => 'Speech speed';
+  String get kokoroSpeedTitle => 'Kalbos greitis';
 
   @override
   String get onboardingFavoritesSyncNotice =>
-      'Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.';
+      'Neprivaloma: išsaugoti mėgstamiausi gali būti sinchronizuojami tarp jūsų įrenginių per Nostr reles, šifruojant nuo galo iki galo (NIP-44) jūsų pačių raktu — relės mato tik šifruotą tekstą ir niekas, išskyrus jus, negali skaityti turinio. Įjunkite bet kada Nustatymuose.';
 
   @override
-  String get parkingSaveHere => 'Save parking here';
+  String get parkingSaveHere => 'Išsaugoti stovėjimą čia';
 
   @override
-  String get parkingMarkerTitle => 'Parking spot';
+  String get parkingMarkerTitle => 'Stovėjimo vieta';
 
   @override
-  String get parkingNavigateHere => 'Navigate to parking';
+  String get parkingNavigateHere => 'Naviguoti į stovėjimo vietą';
 
   @override
-  String get parkingRemove => 'Remove parking';
+  String get parkingRemove => 'Pašalinti stovėjimą';
 
   @override
-  String get parkingSavedSnack => 'Parking spot saved';
+  String get parkingSavedSnack => 'Stovėjimo vieta išsaugota';
 
   @override
-  String get parkingRemovedSnack => 'Parking spot removed';
+  String get parkingRemovedSnack => 'Stovėjimo vieta pašalinta';
 
   @override
-  String get exportFavoritesTitle => 'Export favorites';
+  String get exportFavoritesTitle => 'Eksportuoti mėgstamiausius';
 
   @override
   String get exportFavoritesDesc =>
-      'Save your favorite places to a JSON file you can back up or move to another device.';
+      'Išsaugokite mėgstamiausias vietas JSON faile, kurį galite pasidaryti atsarginę kopiją arba perkelti į kitą įrenginį.';
 
   @override
-  String get exportEncryptToggle => 'Encrypt with a password';
+  String get exportEncryptToggle => 'Šifruoti slaptažodžiu';
 
   @override
-  String get exportPasswordHint => 'Password';
+  String get exportPasswordHint => 'Slaptažodis';
 
   @override
-  String get exportButton => 'Export';
+  String get exportButton => 'Eksportuoti';
 
   @override
-  String get exportSuccessSnack => 'Favorites exported';
+  String get exportSuccessSnack => 'Mėgstamiausi eksportuoti';
 
   @override
-  String get exportFailedSnack => 'Export failed';
+  String get exportFailedSnack => 'Eksportuoti nepavyko';
 
   @override
-  String get importFavoritesTitle => 'Import favorites';
-
-  @override
-  String get importButton => 'Import';
+  String get importFavoritesTitle => 'Importuoti mėgstamiausius';
 
   @override
   String get importPasswordPrompt =>
-      'This file is encrypted — enter the password';
+      'Šis failas užšifruotas — įveskite slaptažodį';
 
   @override
   String importSuccessSnack(int n) {
-    return '$n favorites imported';
+    return 'Importuota mėgstamiausių: $n';
   }
 
   @override
-  String get importFailedSnack => 'Import failed — check the file and password';
+  String get importFailedSnack =>
+      'Importuoti nepavyko — patikrinkite failą ir slaptažodį';
 
   @override
-  String get syncFavoritesTitle => 'Sync favorites';
+  String get syncFavoritesTitle => 'Sinchronizuoti mėgstamiausius';
 
   @override
   String get syncFavoritesDesc =>
-      'Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.';
+      'Publikuokite savo mėgstamiausius, šifruotus nuo galo iki galo, savo Nostr relėse, kad jie sektų jus visuose įrenginiuose. Relės mato tik šifruotą tekstą — niekas, išskyrus jus, negali skaityti turinio.';
 
   @override
-  String get syncFavoritesEnable => 'Enable sync';
+  String get syncNowButton => 'Siųsti į Nostr';
 
   @override
-  String get syncNowButton => 'Push to Nostr';
+  String get syncPullButton => 'Gauti iš Nostr';
 
   @override
-  String get syncPullButton => 'Pull from Nostr';
+  String get syncSuccessSnack => 'Mėgstamiausi sinchronizuoti';
 
   @override
-  String get syncPushingStatus => 'Publishing…';
-
-  @override
-  String get syncPullingStatus => 'Fetching…';
-
-  @override
-  String get syncSuccessSnack => 'Favorites synced';
-
-  @override
-  String get syncFailedSnack => 'Sync failed';
-
-  @override
-  String get syncNotAvailableAmber =>
-      'Encrypted sync isn\'t available with Amber sign-in yet';
+  String get syncFailedSnack => 'Sinchronizuoti nepavyko';
 
   @override
   String syncLastSyncLabel(String when) {
-    return 'Last synced: $when';
+    return 'Paskutinį kartą sinchronizuota: $when';
   }
 
   @override
   String get syncNoIdentity =>
-      'Sign in with Nostr (Settings → Profile) to enable sync';
-
-  @override
-  String get syncPullConfirmTitle => 'Replace local favorites?';
-
-  @override
-  String get syncPullConfirmBody =>
-      'This will merge favorites fetched from Nostr with the ones already on this device.';
+      'Prisijunkite su Nostr (Nustatymai → Profilis), kad įjungtumėte sinchronizavimą';
 
   @override
   String get onboardingVpnNotice =>
@@ -1081,4 +1059,30 @@ class AppLocalizationsLt extends AppLocalizations {
   @override
   String get onboardingGrapheneAlwaysAllow =>
       'Kad programa veiktų patikimai, nustatykite vietos leidimą į „Leisti visada“, o ne tik naudojant programą.';
+
+  @override
+  String get trafficNormal => 'Įprastas eismas';
+
+  @override
+  String get trafficModerate => 'Vidutinis eismas';
+
+  @override
+  String get trafficHeavy => 'Intensyvus eismas';
+
+  @override
+  String get avoidHighwaysChip => 'Vengti greitkelių';
+
+  @override
+  String get avoidTollsChip => 'Vengti mokamų kelių';
+
+  @override
+  String get preferShorterChip => 'Trumpiausias maršrutas';
+
+  @override
+  String zapAmountButton(int sats) {
+    return 'Zap $sats sat';
+  }
+
+  @override
+  String get showRoutePreview => 'Rodyti maršruto peržiūrą';
 }

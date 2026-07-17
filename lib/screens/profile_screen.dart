@@ -367,7 +367,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
     if (ok == true) {
-      await _st.deleteAll();
+      // Delete ONLY the Nostr identity keys. deleteAll() would also wipe
+      // 'hive_settings_key' (the AES key of the encrypted settings box):
+      // on the next launch the box could no longer be decrypted and the
+      // recovery path would delete it from disk — logging out of Nostr
+      // must never destroy the user's favorites, history and settings.
+      // 'routing_api_key' and 'nwc_uri' are equally unrelated to identity.
+      for (final k in const [_kPriv, _kPub, _kFlavor, _kPicture, _kName]) {
+        await _st.delete(key: k);
+      }
       if (mounted) setState(() {
         _npub = null; _flavor = null; _picture = null; _name = null;
         _myEvents = null; _reputation = -1; _balanceSat = -1;

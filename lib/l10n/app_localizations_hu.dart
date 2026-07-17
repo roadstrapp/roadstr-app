@@ -735,7 +735,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr is an experimental navigation app based on OpenStreetMap data and the Nostr protocol. By using this app the user fully accepts the following conditions:\n\n🚗  ROAD SAFETY\nThe driver must always keep their eyes on the road. Do not look at the phone while driving. Secure the device in an approved, visible mount without diverting attention from the road.\n\n⚠️  LIMITATION OF LIABILITY\nRoadstr is provided \"as is\", without warranties of accuracy, completeness or fitness for any specific purpose. The developers disclaim any liability for damages arising from the use of the application, including but not limited to: traffic accidents, administrative penalties, and damage to property or persons.\n\n🚫  RESTRICTED TRAFFIC ZONES\nNavigation is based on OpenStreetMap data which may not be up to date regarding restricted zones, bus lanes and local restrictions. The user is responsible for independently verifying the accessibility of the suggested route before travelling it. The developers are not liable for any penalties received.\n\n📍  ACCURACY\nGPS tracking may be inaccurate. Road directions are for guidance only. Always observe road signs and markings, which always take precedence over the app\'s instructions.\n\n🔒  PRIVACY\nNo location data is transmitted to external servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\nBy using Roadstr the user assumes full and complete responsibility for the use of the application and any consequences arising from its use.';
+      'A Roadstr egy kísérleti, nyílt forráskódú, közösség által karbantartott navigációs alkalmazás, amely az OpenStreetMap adatain és a Nostr protokollon alapul, és bármely országban használható. Az alkalmazás letöltésével, telepítésével vagy használatával a felhasználó feltétel nélkül elfogadja az alábbi valamennyi feltételt, területi korlátozás nélkül.\n\n🚗 KÖZÚTI BIZTONSÁG MINDENEKELŐTT\nA vezetőnek mindig az útra kell figyelnie, és be kell tartania minden alkalmazandó közlekedési szabályt és kihelyezett jelzést, amelyek mindig elsőbbséget élveznek az alkalmazás bármely utasításával szemben. Soha ne kezelje a készüléket vezetés közben; elindulás előtt rögzítse azt egy jóváhagyott, jól látható tartóban, és amíg a jármű mozgásban van, soha ne terelje el a figyelmét az útról a készülékkel való interakció céljából.\n\n⚠️ KOCKÁZATVÁLLALÁS — VILÁGSZERTE\nA Roadstr használatával, bármely országban és bármely jogrendszer alapján, a felhasználó tudatosan és önkéntesen vállalja az annak használatával összefüggő ÖSSZES kockázatot, ideértve, de nem kizárólagosan: közlekedési baleseteket, személyi sérülést, halált, vagyoni kárt, járműkárt, bírságokat, közigazgatási szankciókat, elszállítást, lefoglalást, büntetőjogi felelősséget, vagy bármely más, az alkalmazásra való hagyatkozásból közvetlenül vagy közvetve eredő következményt. Kizárólag a felhasználó viseli a teljes felelősséget minden vezetési és navigációs döntésért.\n\n🚫 SZAVATOSSÁG KIZÁRÁSA\nA Roadstr szigorúan „ADOTT ÁLLAPOTBAN” („AS IS”) és „AMENNYIBEN ELÉRHETŐ” („AS AVAILABLE”) alapon kerül rendelkezésre bocsátásra, mindennemű szavatosság nélkül, legyen az kifejezett, hallgatólagos vagy jogszabályon alapuló — ideértve, korlátozás nélkül, a pontosságra, teljességre, megbízhatóságra, elérhetőségre, forgalomképességre, adott célra való alkalmasságra és jogtisztaságra vonatkozó szavatosságot. A térképadatok, útvonaltervezés, sebességhatárok, sebességmérő kamerák és korlátozott forgalmú övezetekre (ZTL/ZAC/LTZ) vonatkozó információk nyílt, közösség által karbantartott forrásokból (OpenStreetMap, Overpass API) származnak, amelyek bármely ország, régió vagy önkormányzat tekintetében, bármikor és előzetes értesítés nélkül hiányosak, elavultak vagy pontatlanok lehetnek. Kizárólag a felhasználó felelőssége, hogy az utazás előtt és alatt önállóan ellenőrizze bármely javasolt útvonal jogszerűségét és járhatóságát a hivatalos helyi jelzésekkel és szabályozásokkal összevetve.\n\n📍 PONTOSSÁG ÉS GPS\nA GPS-helymeghatározás pontatlan vagy elérhetetlen lehet. Minden útirányítás, távolságadat és figyelmeztetés kizárólag tájékoztató jellegű, és soha nem tekinthető egy vezetési döntés kizárólagos alapjának.\n\n🛡️ FELELŐSSÉG KORLÁTOZÁSA\nAz alkalmazandó jog által megengedett legteljesebb mértékben, bármely joghatóságban, a fejlesztők, a közreműködők és a Roadstr létrehozásában vagy terjesztésében részt vevő bármely fél nem tehető felelőssé semmilyen közvetlen, közvetett, véletlenszerű, következményes, különleges, példaértékű vagy büntető jellegű kárért — ideértve a személyi sérülést, halált vagy anyagi veszteséget is —, amely az alkalmazás használatából vagy használatának ellehetetlenüléséből ered vagy azzal összefüggésbe hozható, még akkor is, ha tájékoztatták őket az ilyen károk bekövetkezésének lehetőségéről. Amennyiben egy joghatóság e korlátozás egy részét vagy egészét nem teszi lehetővé, a felelősség az adott joghatóságban jogszabály által megengedett legkisebb mértékre korlátozódik.\n\n🤝 KÁRTALANÍTÁS\nA felhasználó vállalja, hogy kártalanítja és mentesíti a fejlesztőket és a közreműködőket minden olyan igény, kár, veszteség vagy költség (ideértve az ügyvédi díjakat is) alól, amely a felhasználó általi alkalmazáshasználatból vagy a jelen feltételek megsértéséből ered.\n\n🔒 ADATVÉDELEM\nA Roadstr saját szerverei felé semmilyen helyadat nem kerül továbbításra. Az útvonalszámítás harmadik fél szolgáltatásain (OSRM, GraphHopper, OpenRouteService) keresztül történik, amelyeknek kizárólag az indulási és célállomás koordinátái kerülnek elküldésre.\n\n⚖️ ELVÁLASZTHATÓSÁG\nAmennyiben a jelen feltételek bármely rendelkezése egy adott joghatóságban végrehajthatatlannak minősül, az adott rendelkezés a szükséges legkisebb mértékben korlátozandó vagy elhagyandó, és a fennmaradó rendelkezések továbbra is teljes hatállyal érvényben maradnak.\n\nA Roadstr világ bármely pontján történő használatával a felhasználó megerősíti, hogy elolvasta, megértette és feltétel nélkül elfogadta a fenti valamennyi feltételt, és teljes és korlátlan felelősséget — valamint minden kockázatot — vállal az alkalmazás használatáért és az abból eredő bármely következményért.';
 
   @override
   String get readOnWikipedia => 'Olvasd el a Wikipédián';
@@ -809,7 +809,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get ztlAheadWarning =>
-      'ZTL zóna előre — az útvonal korlátozott övezetbe vezet';
+      'Korlátozott forgalmú zóna következik — az útvonal áthalad rajta';
 
   @override
   String get ztlInsideWarning => 'Korlátozott forgalmú zóna';
@@ -949,130 +949,108 @@ class AppLocalizationsHu extends AppLocalizations {
   String get onboardingNsecHint => 'nsec1…';
 
   @override
-  String get kokoroVoiceGenderTitle => 'Voice';
+  String get kokoroVoiceGenderTitle => 'Hang';
 
   @override
-  String get kokoroVoiceFemale => 'Female';
+  String get kokoroVoiceFemale => 'Női';
 
   @override
-  String get kokoroVoiceMale => 'Male';
+  String get kokoroVoiceMale => 'Férfi';
 
   @override
   String get kokoroVoiceGenderUnavailable =>
-      'Male voice not available for this language';
+      'Férfi hang nem érhető el ehhez a nyelvhez';
 
   @override
-  String get kokoroSpeedTitle => 'Speech speed';
+  String get kokoroSpeedTitle => 'Beszédsebesség';
 
   @override
   String get onboardingFavoritesSyncNotice =>
-      'Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.';
+      'Nem kötelező: a mentett kedvenceid szinkronizálódhatnak az eszközeid között a Nostr relék segítségével, végponttól végpontig titkosítva (NIP-44) a saját kulcsoddal — a relék csak titkosított szöveget látnak, és rajtad kívül senki sem olvashatja a tartalmat. Bármikor bekapcsolhatod a Beállításokban.';
 
   @override
-  String get parkingSaveHere => 'Save parking here';
+  String get parkingSaveHere => 'Parkolás mentése ide';
 
   @override
-  String get parkingMarkerTitle => 'Parking spot';
+  String get parkingMarkerTitle => 'Parkolóhely';
 
   @override
-  String get parkingNavigateHere => 'Navigate to parking';
+  String get parkingNavigateHere => 'Navigálás a parkoláshoz';
 
   @override
-  String get parkingRemove => 'Remove parking';
+  String get parkingRemove => 'Parkolás eltávolítása';
 
   @override
-  String get parkingSavedSnack => 'Parking spot saved';
+  String get parkingSavedSnack => 'Parkolóhely mentve';
 
   @override
-  String get parkingRemovedSnack => 'Parking spot removed';
+  String get parkingRemovedSnack => 'Parkolóhely eltávolítva';
 
   @override
-  String get exportFavoritesTitle => 'Export favorites';
+  String get exportFavoritesTitle => 'Kedvencek exportálása';
 
   @override
   String get exportFavoritesDesc =>
-      'Save your favorite places to a JSON file you can back up or move to another device.';
+      'Mentsd el kedvenc helyeidet egy JSON-fájlba, amelyet biztonsági mentésként megőrizhetsz vagy másik eszközre vihetsz.';
 
   @override
-  String get exportEncryptToggle => 'Encrypt with a password';
+  String get exportEncryptToggle => 'Titkosítás jelszóval';
 
   @override
-  String get exportPasswordHint => 'Password';
+  String get exportPasswordHint => 'Jelszó';
 
   @override
-  String get exportButton => 'Export';
+  String get exportButton => 'Exportálás';
 
   @override
-  String get exportSuccessSnack => 'Favorites exported';
+  String get exportSuccessSnack => 'Kedvencek exportálva';
 
   @override
-  String get exportFailedSnack => 'Export failed';
+  String get exportFailedSnack => 'Az exportálás sikertelen';
 
   @override
-  String get importFavoritesTitle => 'Import favorites';
-
-  @override
-  String get importButton => 'Import';
+  String get importFavoritesTitle => 'Kedvencek importálása';
 
   @override
   String get importPasswordPrompt =>
-      'This file is encrypted — enter the password';
+      'Ez a fájl titkosított — add meg a jelszót';
 
   @override
   String importSuccessSnack(int n) {
-    return '$n favorites imported';
+    return '$n kedvenc importálva';
   }
 
   @override
-  String get importFailedSnack => 'Import failed — check the file and password';
+  String get importFailedSnack =>
+      'Az importálás sikertelen — ellenőrizd a fájlt és a jelszót';
 
   @override
-  String get syncFavoritesTitle => 'Sync favorites';
+  String get syncFavoritesTitle => 'Kedvencek szinkronizálása';
 
   @override
   String get syncFavoritesDesc =>
-      'Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.';
+      'Tedd közzé kedvenceidet végponttól végpontig titkosítva a Nostr reléiden, hogy minden eszközödön kövessenek. A relék csak titkosított szöveget látnak — rajtad kívül senki sem olvashatja a tartalmat.';
 
   @override
-  String get syncFavoritesEnable => 'Enable sync';
+  String get syncNowButton => 'Küldés a Nostrra';
 
   @override
-  String get syncNowButton => 'Push to Nostr';
+  String get syncPullButton => 'Letöltés a Nostrról';
 
   @override
-  String get syncPullButton => 'Pull from Nostr';
+  String get syncSuccessSnack => 'Kedvencek szinkronizálva';
 
   @override
-  String get syncPushingStatus => 'Publishing…';
-
-  @override
-  String get syncPullingStatus => 'Fetching…';
-
-  @override
-  String get syncSuccessSnack => 'Favorites synced';
-
-  @override
-  String get syncFailedSnack => 'Sync failed';
-
-  @override
-  String get syncNotAvailableAmber =>
-      'Encrypted sync isn\'t available with Amber sign-in yet';
+  String get syncFailedSnack => 'A szinkronizálás sikertelen';
 
   @override
   String syncLastSyncLabel(String when) {
-    return 'Last synced: $when';
+    return 'Utolsó szinkronizálás: $when';
   }
 
   @override
   String get syncNoIdentity =>
-      'Sign in with Nostr (Settings → Profile) to enable sync';
-
-  @override
-  String get syncPullConfirmTitle => 'Replace local favorites?';
-
-  @override
-  String get syncPullConfirmBody =>
-      'This will merge favorites fetched from Nostr with the ones already on this device.';
+      'Jelentkezz be Nostrral (Beállítások → Profil) a szinkronizálás engedélyezéséhez';
 
   @override
   String get onboardingVpnNotice =>
@@ -1081,4 +1059,30 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get onboardingGrapheneAlwaysAllow =>
       'A megbízható működéshez állítsd az alkalmazás helymeghatározási engedélyét „Mindig engedélyezés”-re, ne csak használat közben.';
+
+  @override
+  String get trafficNormal => 'Normál forgalom';
+
+  @override
+  String get trafficModerate => 'Mérsékelt forgalom';
+
+  @override
+  String get trafficHeavy => 'Erős forgalom';
+
+  @override
+  String get avoidHighwaysChip => 'Autópályák elkerülése';
+
+  @override
+  String get avoidTollsChip => 'Fizetős utak elkerülése';
+
+  @override
+  String get preferShorterChip => 'Legrövidebb útvonal';
+
+  @override
+  String zapAmountButton(int sats) {
+    return 'Zap $sats sat';
+  }
+
+  @override
+  String get showRoutePreview => 'Útvonal előnézete';
 }

@@ -41,9 +41,9 @@ const String kKokoroDefaultGender = 'f';
 const List<double> kKokoroSpeedStages = [0.7, 0.85, 1.0, 1.15, 1.3, 1.5];
 const int kKokoroDefaultSpeedStage = 2;
 
-/// Languages with on-device neural voice guidance. Kept in sync with
-/// [kKokoroVoicesByLanguage]'s keys and with `kVoiceSupportedLanguages` in
-/// main.dart (which gates the first-launch "voice unavailable" notice).
+/// Languages with on-device neural voice guidance — derived directly from
+/// [kKokoroVoicesByLanguage]. main.dart uses this to gate the first-launch
+/// "voice unavailable" notice.
 Set<String> get kokoroSupportedLanguages => kKokoroVoicesByLanguage.keys.toSet();
 
 /// True if [lang] has a male voice available (used to show/hide the gender

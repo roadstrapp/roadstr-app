@@ -6,9 +6,8 @@
 //   - Bitcoin orange (#F7931A): the official Bitcoin brand colour,
 //     reinforcing the Lightning Network payment integration.
 //
-// Currently only light themes are implemented. Dark mode is intentionally
-// deferred — the map tile layer (OpenStreetMap) does not yet have a first-class
-// dark variant that matches the app's design language.
+// Light and dark variants exist for both accents; the dark themes swap the
+// map tiles to CARTO dark_all (see the RoadstrColors.mapTile fields below).
 //
 // The RoadstrColors ThemeExtension pattern is used instead of raw Theme
 // because it provides strongly-typed semantic colours (e.g. surface1,
