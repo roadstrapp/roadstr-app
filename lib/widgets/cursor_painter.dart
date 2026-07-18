@@ -9,7 +9,7 @@ enum CursorStyle {
   ostrich;
 
   String get assetPath => switch (this) {
-        CursorStyle.arrow   => 'assets/cursors/arrow.svg',
+        CursorStyle.arrow => 'assets/cursors/arrow.svg',
         CursorStyle.ostrich => 'assets/cursors/ostrich.png',
       };
 
@@ -111,7 +111,9 @@ class _AnimatedCursorWidgetState extends State<AnimatedCursorWidget>
         final t = _ctrl.value;
         if (t == 0) {
           return CursorWidget(
-              style: _displayed, size: widget.size, colorFilter: widget.colorFilter);
+              style: _displayed,
+              size: widget.size,
+              colorFilter: widget.colorFilter);
         }
         // First half: shrink the old icon away. Second half: grow the new
         // one back in. The swap itself happens at t=0.5, hidden under the
@@ -138,7 +140,9 @@ class _AnimatedCursorWidgetState extends State<AnimatedCursorWidget>
               child: Opacity(
                 opacity: iconT.clamp(0.0, 1.0),
                 child: CursorWidget(
-                    style: iconStyle, size: widget.size, colorFilter: widget.colorFilter),
+                    style: iconStyle,
+                    size: widget.size,
+                    colorFilter: widget.colorFilter),
               ),
             ),
           ]),
@@ -185,5 +189,6 @@ class _PuffCloudPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _PuffCloudPainter old) => old.progress != progress;
+  bool shouldRepaint(covariant _PuffCloudPainter old) =>
+      old.progress != progress;
 }

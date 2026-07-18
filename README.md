@@ -20,7 +20,7 @@ It combines real-time GPS turn-by-turn navigation with community-sourced traffic
 | Route planner (A → B with freeform waypoints) | ✅ |
 | Speed-adaptive zoom | ✅ |
 | Tilt-compensated compass heading | ✅ |
-| Live speed-limit display (Overpass, road-class inference for untagged ways) | ✅ |
+| Live speed-limit display (explicit OSM `maxspeed` data; unknown stays unknown) | ✅ |
 | Speed-camera alerts — OSM baseline data + community reports | ✅ |
 | ZTL (limited-traffic zone) proximity warnings | ✅ |
 | On-device AI voice guidance (Kokoro-82M) — male/female voice, adjustable speed | ✅ |
@@ -31,7 +31,7 @@ It combines real-time GPS turn-by-turn navigation with community-sourced traffic
 | Nostr Wallet Connect (NIP-47) | ✅ |
 | Address & POI search (Nominatim, position-biased) | ✅ |
 | Category / brand POI search near current position (Overpass) | ✅ |
-| Place info with Wikipedia geo-aware lookup | ✅ |
+| Place info with native OSM details + restricted in-app Wikipedia reader | ✅ |
 | Weather conditions along the route (Open-Meteo) | ✅ |
 | Saved favourite places | ✅ |
 | Saved parking spot (local-only) | ✅ |
@@ -63,12 +63,13 @@ lib/
 │   ├── map_screen.dart               # Main map, navigation, route planner, Nostr events
 │   ├── onboarding_screen.dart        # First-launch flow — identity, permissions, voice model
 │   ├── profile_screen.dart           # Nostr identity, reports history, zap balance
-│   └── settings_screen.dart          # Theme, routing, voice, language, NWC, favourites
+│   ├── settings_screen.dart          # Theme, routing, voice, language, NWC, favourites
+│   └── wikipedia_webview_screen.dart # Restricted in-app Wikipedia article reader
 ├── services/
 │   ├── favorites_crypto.dart         # PBKDF2 + AES-256-GCM for favourites export
 │   ├── favorites_sync_service.dart   # Encrypted cross-device favourites sync (kind 30078)
 │   ├── gps_service.dart              # Android foreground GPS stream
-│   ├── location_service.dart         # Nominatim geocoding + Wikipedia lookup
+│   ├── bounded_http.dart             # Streaming HTTP limits and redirect blocking
 │   ├── navigation_notification_service.dart  # Android turn-by-turn notification
 │   ├── nip44.dart                    # NIP-44 v2 encryption (ECDH + ChaCha20 + HMAC)
 │   ├── nostr_relay_service.dart      # WebSocket relay, geohash area subscriptions
@@ -93,7 +94,6 @@ lib/
 │   └── units.dart                    # Metric/imperial formatting helpers
 └── widgets/
     ├── cursor_painter.dart           # Map cursor (arrow / Nostr ostrich easter egg)
-    ├── hud_info_widget.dart          # Navigation HUD (distance, ETA, speed limit)
     └── speedometer_widget.dart       # Circular analogue speedometer
 ```
 
@@ -121,7 +121,7 @@ lib/
 1. **Flutter SDK** — install from <https://docs.flutter.dev/get-started/install>.  
    Select *Android* as the target platform. Android Studio is required for the toolchain.
 
-2. **Android device** running Android 8.0+ (API 26+).  
+2. **Android device** supported by the current Flutter Android toolchain.
    The emulator works for UI development; GPS behaviour is unreliable on emulators.
 
 3. **VS Code** with the Flutter and Dart extensions (recommended), or Android Studio.
@@ -181,7 +181,17 @@ Roadstr ships with an optional on-device AI text-to-speech engine based on [Koko
 - **Male or female voice**, selectable per install, plus a 6-stage speech-speed control — both previewable in Settings before committing. French has no male voice in the upstream Kokoro-82M model, so it always uses the female voice.
 - The model is downloaded on demand from **Settings → Navigation voice → Voice model** (~82 MB).
 
-For unsupported languages Roadstr falls back to the Android system TTS engine. If no TTS engine is installed, navigation instructions are shown as text on screen.
+For unsupported languages, navigation instructions remain available as text on screen; no voice engine is started.
+
+The committed eSpeak libraries are reproducible from pinned upstream commits:
+
+```bash
+tools/build_espeak_android.sh
+```
+
+The script requires Android NDK `27.1.12297006`, removes host paths and debug
+symbols, and rebuilds all three supported ABIs plus the compact language-data
+archive. Every Android build verifies their SHA-256 digests before `preBuild`.
 
 ---
 
@@ -220,6 +230,7 @@ To connect a wallet, paste a `nostr+walletconnect://…` URI from a compatible w
 - **Road events are pseudonymous** — published under the user's Nostr public key with no additional personal metadata, and every event received from a relay is signature-verified before being trusted (relays cannot forge reports under someone else's identity).
 - **Favourites sync is end-to-end encrypted** (NIP-44) to the user's own key — relays storing the synced snapshot see only ciphertext.
 - **Nostr private keys (nsec) never leave Android's encrypted secure storage** — not copyable, not exportable, not logged.
+- **Road reports are public and linkable** — publishing a report sends its exact coordinates, timestamp, content and Nostr public key to public relays. This is pseudonymous, not anonymous, and relay retention cannot be guaranteed.
 
 ---
 
@@ -255,7 +266,7 @@ Check your internet connection. Tiles are fetched at runtime from OpenStreetMap 
 Ensure your version of Amber supports NIP-55. Roadstr uses the `get_public_key` and `sign_event` methods via `startActivityForResult`.
 
 **Voice guidance not working**  
-Download the Kokoro model from *Settings → Navigation voice → Voice model* (~82 MB). If your language is not supported, enable a system TTS engine (e.g. RHVoice or eSpeak NG from F-Droid) and set it as default in *Android Settings → Accessibility → Text-to-speech output*.
+Download the Kokoro model from *Settings → Navigation voice → Voice model* (~82 MB). Voice is currently available for Italian, English, Spanish, French, Japanese, Chinese, and Portuguese; other languages keep text instructions on screen.
 
 ---
 

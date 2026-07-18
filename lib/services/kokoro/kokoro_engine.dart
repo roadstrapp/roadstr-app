@@ -24,6 +24,7 @@ class KokoroEngine {
   Map<String, int>? _vocab;
   // Prevents concurrent createSession() calls (e.g. from line-216 and line-939 init).
   Future<void>? _initFuture;
+  Completer<void>? _inferenceLock;
 
   bool get isReady => _session != null && _vocab != null;
 
@@ -40,9 +41,12 @@ class KokoroEngine {
     final tokFile = await _manager.tokenizerFile;
     if (!await tokFile.exists()) throw StateError('tokenizer.json not found');
     final modelFile = await _manager.modelFile;
-    if (!await modelFile.exists()) throw StateError('model_q8f16.onnx not found');
+    if (!await modelFile.exists()) {
+      throw StateError('model_q8f16.onnx not found');
+    }
 
-    final tokJson = jsonDecode(await tokFile.readAsString()) as Map<String, dynamic>;
+    final tokJson =
+        jsonDecode(await tokFile.readAsString()) as Map<String, dynamic>;
     _vocab = _extractVocab(tokJson);
 
     // XNNPACK is a well-supported CPU-side accelerator (2-4× faster than plain
@@ -84,8 +88,34 @@ class KokoroEngine {
     double speed = 1.0,
   }) async {
     if (!isReady) await init();
+    while (_inferenceLock != null) {
+      await _inferenceLock!.future;
+    }
+    final lock = Completer<void>();
+    _inferenceLock = lock;
+    try {
+      return await _synthesizeLocked(ipa, voiceData, speed);
+    } finally {
+      if (identical(_inferenceLock, lock)) _inferenceLock = null;
+      lock.complete();
+    }
+  }
 
+  Future<Float32List> _synthesizeLocked(
+      String ipa, Float32List voiceData, double speed) async {
     final tokens = tokenize(ipa);
+    if (tokens.isEmpty) {
+      throw const FormatException('No supported phonemes to synthesize');
+    }
+    if (tokens.length > 510) {
+      throw const FormatException('Phoneme sequence exceeds the model limit');
+    }
+    if (voiceData.length != 510 * 256) {
+      throw const FormatException('Voice data has an invalid shape');
+    }
+    if (!speed.isFinite || speed < 0.5 || speed > 2.0) {
+      throw ArgumentError.value(speed, 'speed', 'must be between 0.5 and 2.0');
+    }
     debugPrint('[KokoroEngine] IPA: "$ipa"  tokens(${tokens.length}): $tokens');
 
     // Wrap with BOS/EOS token (ID 0) as expected by the Kokoro model.
@@ -99,15 +129,18 @@ class KokoroEngine {
     // Style vector: row at index min(N, 509) of the 510×256 voice matrix,
     // then reshaped to [1, 1, 256] as the model expects.
     final styleIdx = tokens.length.clamp(0, 509);
-    final styleSlice = Float32List.sublistView(voiceData, styleIdx * 256, styleIdx * 256 + 256);
+    final styleSlice = Float32List.sublistView(
+        voiceData, styleIdx * 256, styleIdx * 256 + 256);
 
     // Create input OrtValues.
     final tokTensor = await OrtValue.fromList(seqTokens, [1, seqTokens.length]);
     final styleTensor = await OrtValue.fromList(styleSlice, [1, 256]);
-    final speedTensor = await OrtValue.fromList(Float32List.fromList([speed]), [1]);
+    final speedTensor =
+        await OrtValue.fromList(Float32List.fromList([speed]), [1]);
 
+    Map<String, OrtValue>? outputs;
     try {
-      final outputs = await _session!.run({
+      outputs = await _session!.run({
         'input_ids': tokTensor,
         'style': styleTensor,
         'speed': speedTensor,
@@ -116,17 +149,18 @@ class KokoroEngine {
       // First output is the audio waveform.
       final audioValue = outputs.values.first;
       final audioFlat = await audioValue.asFlattenedList();
-      debugPrint('[KokoroEngine] audio samples: ${audioFlat.length}  (${audioFlat.length / 24000.0}s @ 24kHz)');
-
-      // Release native output tensors before returning.
-      for (final v in outputs.values) {
-        await v.dispose();
-      }
+      debugPrint(
+          '[KokoroEngine] audio samples: ${audioFlat.length}  (${audioFlat.length / 24000.0}s @ 24kHz)');
 
       return Float32List.fromList(
         audioFlat.map((e) => (e as num).toDouble()).toList(),
       );
     } finally {
+      if (outputs != null) {
+        for (final value in outputs.values) {
+          await value.dispose();
+        }
+      }
       await tokTensor.dispose();
       await styleTensor.dispose();
       await speedTensor.dispose();
@@ -152,7 +186,8 @@ class KokoroEngine {
       final vocab = model['vocab'];
       if (vocab is Map) {
         return {
-          for (final e in vocab.entries) e.key.toString(): (e.value as num).toInt(),
+          for (final e in vocab.entries)
+            e.key.toString(): (e.value as num).toInt(),
         };
       }
     }

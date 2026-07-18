@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import 'bounded_http.dart';
 
 /// A speed camera position sourced from OpenStreetMap (not user-reported).
 class OsmSpeedCamera {
@@ -26,37 +26,37 @@ class SpeedCameraService {
     'https://overpass-api.de/api/interpreter',
     'https://overpass.openstreetmap.fr/api/interpreter',
   ];
-  static const _radiusM  = 3000;    // fetch cameras within 3 km of position
-  static const _minMoveM = 800.0;   // min travel distance before re-querying
-  static const _maxAgeMs = 120000;  // re-query after 2 min even without movement
-  static const _retryMs  = 15000;   // back-off delay after a failed attempt
+  static const _radiusM = 3000; // fetch cameras within 3 km of position
+  static const _minMoveM = 800.0; // min travel distance before re-querying
+  static const _maxAgeMs = 120000; // re-query after 2 min even without movement
+  static const _retryMs = 15000; // back-off delay after a failed attempt
 
   List<OsmSpeedCamera> _cached = [];
-  LatLng?   _lastQueryPos;
-  bool      _fetching = false;
+  LatLng? _lastQueryPos;
+  bool _fetching = false;
   DateTime? _lastSuccessAt;
   DateTime? _nextRetryAt;
-  int       _endpointIdx = 0;
+  int _endpointIdx = 0;
 
   /// The most recently fetched cameras near the last queried position.
   List<OsmSpeedCamera> get cachedCameras => _cached;
 
   void reset() {
-    _cached         = [];
-    _lastQueryPos   = null;
-    _lastSuccessAt  = null;
-    _nextRetryAt    = null;
-    _fetching       = false;
+    _cached = [];
+    _lastQueryPos = null;
+    _lastSuccessAt = null;
+    _nextRetryAt = null;
+    _fetching = false;
   }
 
   Future<void> updateIfNeeded(LatLng pos) async {
     if (!_needsQuery(pos)) return;
     _fetching = true;
     try {
-      _cached         = await _fetch(pos);
-      _lastQueryPos   = pos;
-      _lastSuccessAt  = DateTime.now();
-      _nextRetryAt    = null;
+      _cached = await _fetch(pos);
+      _lastQueryPos = pos;
+      _lastSuccessAt = DateTime.now();
+      _nextRetryAt = null;
       debugPrint('[SpeedCamera] Overpass → ${_cached.length} cameras nearby');
     } catch (e) {
       debugPrint('[SpeedCamera] Overpass error: $e');
@@ -85,21 +85,24 @@ class SpeedCameraService {
         '(node["highway"="speed_camera"](around:$_radiusM,${pos.latitude},${pos.longitude});'
         'node["enforcement"="maxspeed"](around:$_radiusM,${pos.latitude},${pos.longitude}););'
         'out;';
-    final res = await http.post(
+    final res = await BoundedHttp.post(
       Uri.parse(_endpoints[_endpointIdx]),
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         'User-Agent': 'Roadstr/1.0 (navigation app)',
       },
       body: 'data=${Uri.encodeQueryComponent(query)}',
-    ).timeout(const Duration(seconds: 8));
+      maxBytes: 5 * 1024 * 1024,
+      timeout: const Duration(seconds: 8),
+    );
 
     if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
     final data = jsonDecode(res.body) as Map<String, dynamic>;
-    final elements = (data['elements'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final elements =
+        (data['elements'] as List?)?.cast<Map<String, dynamic>>() ?? [];
     final out = <OsmSpeedCamera>[];
     for (final el in elements) {
-      final id  = el['id'] as int?;
+      final id = el['id'] as int?;
       final lat = (el['lat'] as num?)?.toDouble();
       final lon = (el['lon'] as num?)?.toDouble();
       if (id == null || lat == null || lon == null) continue;

@@ -128,6 +128,14 @@ class AppLocalizationsMt extends AppLocalizations {
       'Jimpedixxi l-irqad waqt in-navigazzjoni';
 
   @override
+  String get autoCenterOnLaunch =>
+      'Iċċentra fuq il-pożizzjoni tiegħi mat-tħaddim';
+
+  @override
+  String get autoCenterOnLaunchDesc =>
+      'Juża l-GPS awtomatikament biss jekk il-permess tal-post ikun diġà ngħata';
+
+  @override
   String get rotateMap => 'Il-mappa ssegwi d-direzzjoni';
 
   @override
@@ -734,10 +742,72 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr hija applikazzjoni ta\' navigazzjoni sperimentali, b\'sors miftuħ, immantnuta mill-komunità, ibbażata fuq data tal-OpenStreetMap u l-protokoll Nostr, disponibbli għall-użu fi kwalunkwe pajjiż. Billi tniżżel, tinstalla jew tuża din l-applikazzjoni, l-utent jaċċetta bla kundizzjoni t-termini kollha li ġejjin, mingħajr limitazzjoni ta\' territorju.\n\n🚗 IS-SIGURTÀ TAT-TRIQ L-EWWEL\nIs-sewwieq għandu dejjem iżomm għajnejh fit-triq u jikkonforma mal-liġijiet kollha applikabbli tat-traffiku u s-sinjaletika murija, li dejjem għandhom preċedenza fuq kwalunkwe struzzjoni mill-applikazzjoni. Qatt m\'għandek topera l-apparat waqt is-sewqan; waħħlu f\'sapport approvat u viżibbli qabel titlaq, u qatt m\'għandek titbiegħed b\'attenzjonek mit-triq biex tinteraġixxi miegħu waqt li l-vettura tkun miexja.\n\n⚠️ ASSUNZJONI TAR-RISKJU — MADWAR ID-DINJA\nBl-użu ta\' Roadstr, fi kwalunkwe pajjiż u taħt kwalunkwe sistema legali, l-utent, b\'għarfien u volontarjament, jassumi r-riskji KOLLHA marbuta mal-użu tagħha, inklużi iżda mhux limitati għal: inċidenti tat-traffiku, korriment personali, mewt, ħsara fil-proprjetà, ħsara fil-vettura, multi, pieni amministrattivi, ġbid tal-vettura, sekwestru, responsabbiltà kriminali, jew kwalunkwe konsegwenza oħra li tirriżulta direttament jew indirettament mill-fatt li wieħed jistrieħ fuq l-applikazzjoni. L-utent waħdu jġorr ir-responsabbiltà sħiħa għal kull deċiżjoni ta\' sewqan u navigazzjoni.\n\n🚫 EBDA GARANZIJA\nRoadstr hija pprovduta strettament \"KIF INHI\" u \"SKONT ID-DISPONIBBILTÀ\", mingħajr ebda garanzija ta\' kwalunkwe tip, kemm jekk espressa, implikata jew statutorja — inklużi, mingħajr limitazzjoni, garanziji ta\' preċiżjoni, kompletezza, affidabbiltà, disponibbiltà, kummerċjabbiltà, adegwatezza għal skop partikolari, u nuqqas ta\' ksur. Id-data tal-mapep, l-ippjanar tar-rotot, il-limiti tal-veloċità, il-kameras tal-veloċità, u l-informazzjoni dwar iż-żoni ta\' traffiku ristrett (ZTL/ZAC/LTZ) ġejjin minn sorsi miftuħa, immantnuti mill-komunità (OpenStreetMap, Overpass API) li jistgħu jkunu mhux kompluti, skaduti jew mhux preċiżi għal kwalunkwe pajjiż, reġjun jew muniċipalità, fi kwalunkwe ħin u mingħajr avviż. L-utent hu unikament responsabbli li jivverifika b\'mod indipendenti, qabel u matul l-ivvjaġġar, il-legalità u l-aċċessibbiltà ta\' kwalunkwe rotta suġġerita mas-sinjaletika u r-regolamenti lokali uffiċjali.\n\n📍 PREĊIŻJONI U GPS\nIl-pożizzjonament GPS jista\' jkun mhux preċiż jew mhux disponibbli. Id-direzzjonijiet, id-distanzi, u l-allerti kollha huma pprovduti biss bħala gwida u qatt m\'għandhom jitqiesu bħala l-uniku bażi għal deċiżjoni ta\' sewqan.\n\n🛡️ LIMITAZZJONI TAR-RESPONSABBILTÀ\nSal-punt massimu permess mil-liġi applikabbli fi kwalunkwe ġurisdizzjoni, l-iżviluppaturi, il-kontributuri, u kwalunkwe parti involuta fil-ħolqien jew id-distribuzzjoni ta\' Roadstr m\'għandhomx ikunu responsabbli għal kwalunkwe dannu dirett, indirett, inċidentali, konsegwenzjali, speċjali, eżemplari jew punittiv ta\' kwalunkwe tip — inkluż korriment personali, mewt, jew telf finanzjarju — li jirriżulta minn jew relatat mal-użu jew l-inkapaċità li tuża l-applikazzjoni, anke jekk avżati bil-possibbiltà ta\' tali danni. Fejn ġurisdizzjoni ma tippermettix parti minn din il-limitazzjoni jew kollha kemm hi, ir-responsabbiltà hija limitata sal-iżgħar punt permess mil-liġi f\'dik il-ġurisdizzjoni.\n\n🤝 INDENNIZZ\nL-utent jaqbel li jindennizza u jżomm bla ħsara lill-iżviluppaturi u l-kontributuri minn kwalunkwe pretensjoni, dannu, telf, jew spiża (inklużi l-ispejjeż legali) li jirriżultaw mill-użu tal-applikazzjoni mill-utent jew minn ksur ta\' dawn it-termini.\n\n🔒 PRIVATEZZA\nL-ebda data dwar il-lokazzjoni ma tintbagħat lis-servers stess ta\' Roadstr. Il-kalkolu tar-rotta jsir permezz ta\' servizzi ta\' partijiet terzi (OSRM, GraphHopper, OpenRouteService) li lilhom jintbagħtu biss il-koordinati tal-punt tat-tluq u tad-destinazzjoni.\n\n⚖️ SEPARABBILTÀ\nJekk xi dispożizzjoni ta\' dawn it-termini tinstab li mhix infurzabbli f\'ġurisdizzjoni partikolari, dik id-dispożizzjoni għandha tiġi limitata jew separata sal-punt minimu meħtieġ, u d-dispożizzjonijiet li jifdal jibqgħu fis-seħħ sħiħ.\n\nBl-użu ta\' Roadstr, kullimkien fid-dinja, l-utent jikkonferma li qara, fehem, u aċċetta bla kundizzjoni kull terminu msemmi hawn fuq, u jassumi responsabbiltà sħiħa u kompluta — u r-riskju kollu — għall-użu tal-applikazzjoni u kwalunkwe konsegwenza li tirriżulta minnha.';
+      'Roadstr hija applikazzjoni ta\' navigazzjoni sperimentali, b\'sors miftuħ, immantnuta mill-komunità, ibbażata fuq data tal-OpenStreetMap u l-protokoll Nostr, disponibbli għall-użu fi kwalunkwe pajjiż. Billi tniżżel, tinstalla jew tuża din l-applikazzjoni, l-utent jaċċetta bla kundizzjoni t-termini kollha li ġejjin, mingħajr limitazzjoni ta\' territorju.\n\n🚗 IS-SIGURTÀ TAT-TRIQ L-EWWEL\nIs-sewwieq għandu dejjem iżomm għajnejh fit-triq u jikkonforma mal-liġijiet kollha applikabbli tat-traffiku u s-sinjaletika murija, li dejjem għandhom preċedenza fuq kwalunkwe struzzjoni mill-applikazzjoni. Qatt m\'għandek topera l-apparat waqt is-sewqan; waħħlu f\'sapport approvat u viżibbli qabel titlaq, u qatt m\'għandek titbiegħed b\'attenzjonek mit-triq biex tinteraġixxi miegħu waqt li l-vettura tkun miexja.\n\n⚠️ ASSUNZJONI TAR-RISKJU — MADWAR ID-DINJA\nBl-użu ta\' Roadstr, fi kwalunkwe pajjiż u taħt kwalunkwe sistema legali, l-utent, b\'għarfien u volontarjament, jassumi r-riskji KOLLHA marbuta mal-użu tagħha, inklużi iżda mhux limitati għal: inċidenti tat-traffiku, korriment personali, mewt, ħsara fil-proprjetà, ħsara fil-vettura, multi, pieni amministrattivi, ġbid tal-vettura, sekwestru, responsabbiltà kriminali, jew kwalunkwe konsegwenza oħra li tirriżulta direttament jew indirettament mill-fatt li wieħed jistrieħ fuq l-applikazzjoni. L-utent waħdu jġorr ir-responsabbiltà sħiħa għal kull deċiżjoni ta\' sewqan u navigazzjoni.\n\n🚫 EBDA GARANZIJA\nRoadstr hija pprovduta strettament \"KIF INHI\" u \"SKONT ID-DISPONIBBILTÀ\", mingħajr ebda garanzija ta\' kwalunkwe tip, kemm jekk espressa, implikata jew statutorja — inklużi, mingħajr limitazzjoni, garanziji ta\' preċiżjoni, kompletezza, affidabbiltà, disponibbiltà, kummerċjabbiltà, adegwatezza għal skop partikolari, u nuqqas ta\' ksur. Id-data tal-mapep, l-ippjanar tar-rotot, il-limiti tal-veloċità, il-kameras tal-veloċità, u l-informazzjoni dwar iż-żoni ta\' traffiku ristrett (ZTL/ZAC/LTZ) ġejjin minn sorsi miftuħa, immantnuti mill-komunità (OpenStreetMap, Overpass API) li jistgħu jkunu mhux kompluti, skaduti jew mhux preċiżi għal kwalunkwe pajjiż, reġjun jew muniċipalità, fi kwalunkwe ħin u mingħajr avviż. L-utent hu unikament responsabbli li jivverifika b\'mod indipendenti, qabel u matul l-ivvjaġġar, il-legalità u l-aċċessibbiltà ta\' kwalunkwe rotta suġġerita mas-sinjaletika u r-regolamenti lokali uffiċjali.\n\n📍 PREĊIŻJONI U GPS\nIl-pożizzjonament GPS jista\' jkun mhux preċiż jew mhux disponibbli. Id-direzzjonijiet, id-distanzi, u l-allerti kollha huma pprovduti biss bħala gwida u qatt m\'għandhom jitqiesu bħala l-uniku bażi għal deċiżjoni ta\' sewqan.\n\n🛡️ LIMITAZZJONI TAR-RESPONSABBILTÀ\nSal-punt massimu permess mil-liġi applikabbli fi kwalunkwe ġurisdizzjoni, l-iżviluppaturi, il-kontributuri, u kwalunkwe parti involuta fil-ħolqien jew id-distribuzzjoni ta\' Roadstr m\'għandhomx ikunu responsabbli għal kwalunkwe dannu dirett, indirett, inċidentali, konsegwenzjali, speċjali, eżemplari jew punittiv ta\' kwalunkwe tip — inkluż korriment personali, mewt, jew telf finanzjarju — li jirriżulta minn jew relatat mal-użu jew l-inkapaċità li tuża l-applikazzjoni, anke jekk avżati bil-possibbiltà ta\' tali danni. Fejn ġurisdizzjoni ma tippermettix parti minn din il-limitazzjoni jew kollha kemm hi, ir-responsabbiltà hija limitata sal-iżgħar punt permess mil-liġi f\'dik il-ġurisdizzjoni.\n\n🤝 INDENNIZZ\nL-utent jaqbel li jindennizza u jżomm bla ħsara lill-iżviluppaturi u l-kontributuri minn kwalunkwe pretensjoni, dannu, telf, jew spiża (inklużi l-ispejjeż legali) li jirriżultaw mill-użu tal-applikazzjoni mill-utent jew minn ksur ta\' dawn it-termini.\n\n🔒 PRIVACY AND NETWORK SERVICES\nRoadstr runs no first-party servers or analytics, but it is not an offline app. When relevant features are used, coordinates or coarse areas and the IP address are sent directly to third parties: routing providers (origin, destination and waypoints), OpenStreetMap/Nominatim/Overpass (search, reverse geocoding, POIs, restricted zones, limits and cameras), Open-Meteo (rounded coordinates), map-tile servers and Nostr relays (city-level geohash). A road report publishes its exact position, time, content and public key to Nostr and is pseudonymous, not anonymous. Favorites and parking remain local unless explicitly exported or synced.\n\n⚖️ SEPARABBILTÀ\nJekk xi dispożizzjoni ta\' dawn it-termini tinstab li mhix infurzabbli f\'ġurisdizzjoni partikolari, dik id-dispożizzjoni għandha tiġi limitata jew separata sal-punt minimu meħtieġ, u d-dispożizzjonijiet li jifdal jibqgħu fis-seħħ sħiħ.\n\nBl-użu ta\' Roadstr, kullimkien fid-dinja, l-utent jikkonferma li qara, fehem, u aċċetta bla kundizzjoni kull terminu msemmi hawn fuq, u jassumi responsabbiltà sħiħa u kompluta — u r-riskju kollu — għall-użu tal-applikazzjoni u kwalunkwe konsegwenza li tirriżulta minnha.';
 
   @override
   String get readOnWikipedia => 'Aqra fuq Wikipedija';
+
+  @override
+  String get openInBrowser => 'Iftaħ fil-brawżer';
+
+  @override
+  String get wikipediaLoadFailed =>
+      'Il-Wikipedia ma setgħetx titgħabba b’mod sigur.';
+
+  @override
+  String get retry => 'Erġa’ pprova';
+
+  @override
+  String get poiDetailsFromOsm => 'Informazzjoni minn OpenStreetMap';
+
+  @override
+  String get poiCategory => 'Kategorija';
+
+  @override
+  String get poiOperator => 'Operatur';
+
+  @override
+  String get poiCuisine => 'Kċina';
+
+  @override
+  String get poiAccessibility => 'Aċċessibbiltà';
+
+  @override
+  String get poiWheelchairYes => 'Aċċessibbli bis-siġġu tar-roti';
+
+  @override
+  String get poiWheelchairLimited => 'Aċċess limitat bis-siġġu tar-roti';
+
+  @override
+  String get poiWheelchairNo => 'Mhux aċċessibbli bis-siġġu tar-roti';
+
+  @override
+  String get poiContact => 'Kuntatt';
+
+  @override
+  String get poiAddress => 'Indirizz';
+
+  @override
+  String get poiWebsite => 'Websajt';
+
+  @override
+  String get gpsSignalLost => 'Is-sinjal GPS intilef';
+
+  @override
+  String get poiOpenNow => 'Miftuħ issa';
+
+  @override
+  String get poiClosedNow => 'Magħluq';
+
+  @override
+  String poiOpensAt(String when) {
+    return 'Jiftaħ: $when';
+  }
+
+  @override
+  String poiClosesAt(String when) {
+    return 'Jagħlaq: $when';
+  }
 
   @override
   String searchOnEngine(String engine) {
@@ -906,7 +976,7 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.';
+      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
 
   @override
   String get onboardingVoiceTitle => 'Gwida bil-vuċi AI (mhux obbligatorja)';
@@ -1062,10 +1132,6 @@ class AppLocalizationsMt extends AppLocalizations {
   @override
   String get onboardingVpnNotice =>
       'Għal privatezza massima — ir-rapporti jixterdu fin-netwerk Nostr — huwa rrakkomandat l-użu ta\' VPN. Mullvad, li tista\' tħallas bil-Bitcoin, hija l-għażla rrakkomandata.';
-
-  @override
-  String get onboardingGrapheneAlwaysAllow =>
-      'Għal tħaddim affidabbli, issettja l-permess tal-post tal-app għal \"Ħalli dejjem\", mhux biss waqt li l-app tkun qed tintuża.';
 
   @override
   String get trafficNormal => 'Traffiku normali';

@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import '../l10n/app_localizations.dart';
+import 'bounded_http.dart';
 
 class WeatherData {
   final double tempC;
@@ -53,9 +53,12 @@ class WeatherService {
         '&current=temperature_2m,weather_code,wind_speed_10m'
         '&wind_speed_unit=kmh',
       );
-      final res = await http
-          .get(uri, headers: {'User-Agent': 'Roadstr/1.0'})
-          .timeout(const Duration(seconds: 6));
+      final res = await BoundedHttp.get(
+        uri,
+        headers: {'User-Agent': 'Roadstr/1.0'},
+        maxBytes: 1024 * 1024,
+        timeout: const Duration(seconds: 6),
+      );
       if (res.statusCode != 200) return null;
       final j = jsonDecode(res.body) as Map<String, dynamic>;
       final cur = j['current'] as Map<String, dynamic>;

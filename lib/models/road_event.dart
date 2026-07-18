@@ -23,108 +23,119 @@ import '../l10n/app_localizations.dart';
 /// - Fixed infrastructure (speed camera): 30 days — cameras rarely move;
 ///   users benefit from long-lived alerts.
 ///
-/// The relay's `expiration` tag (14-day maximum for kind-1315 events) provides
-/// an upper bound; the client TTL provides category-aware tighter limits.
+/// The relay `expiration` and client TTL are both enforced; whichever expires
+/// first hides the event.
 enum RoadCategory {
-  police, speedCamera, trafficJam, accident, roadClosure,
-  construction, hazard, roadCondition, pothole, fog, ice, animal, other;
+  police,
+  speedCamera,
+  trafficJam,
+  accident,
+  roadClosure,
+  construction,
+  hazard,
+  roadCondition,
+  pothole,
+  fog,
+  ice,
+  animal,
+  other;
 
   static RoadCategory fromKey(String key) =>
       values.firstWhere((c) => c.nostrKey == key, orElse: () => other);
 
   String get nostrKey => switch (this) {
-    RoadCategory.speedCamera   => 'speed_camera',
-    RoadCategory.trafficJam    => 'traffic_jam',
-    RoadCategory.roadClosure   => 'road_closure',
-    RoadCategory.roadCondition => 'road_condition',
-    _ => name,
-  };
+        RoadCategory.speedCamera => 'speed_camera',
+        RoadCategory.trafficJam => 'traffic_jam',
+        RoadCategory.roadClosure => 'road_closure',
+        RoadCategory.roadCondition => 'road_condition',
+        _ => name,
+      };
 
   String get emoji => switch (this) {
-    RoadCategory.police        => '👮',
-    RoadCategory.speedCamera   => '📷',
-    RoadCategory.trafficJam    => '🚗',
-    RoadCategory.accident      => '💥',
-    RoadCategory.roadClosure   => '🚫',
-    RoadCategory.construction  => '🚧',
-    RoadCategory.hazard        => '⚠️',
-    RoadCategory.roadCondition => '🛣️',
-    RoadCategory.pothole       => '🕳️',
-    RoadCategory.fog           => '🌫️',
-    RoadCategory.ice           => '🧊',
-    RoadCategory.animal        => '🦌',
-    RoadCategory.other         => 'ℹ️',
-  };
+        RoadCategory.police => '👮',
+        RoadCategory.speedCamera => '📷',
+        RoadCategory.trafficJam => '🚗',
+        RoadCategory.accident => '💥',
+        RoadCategory.roadClosure => '🚫',
+        RoadCategory.construction => '🚧',
+        RoadCategory.hazard => '⚠️',
+        RoadCategory.roadCondition => '🛣️',
+        RoadCategory.pothole => '🕳️',
+        RoadCategory.fog => '🌫️',
+        RoadCategory.ice => '🧊',
+        RoadCategory.animal => '🦌',
+        RoadCategory.other => 'ℹ️',
+      };
 
   String localizedLabel(AppLocalizations l) => switch (this) {
-    RoadCategory.police        => l.categoryPolice,
-    RoadCategory.speedCamera   => l.categorySpeedCamera,
-    RoadCategory.trafficJam    => l.categoryTrafficJam,
-    RoadCategory.accident      => l.categoryAccident,
-    RoadCategory.roadClosure   => l.categoryRoadClosure,
-    RoadCategory.construction  => l.categoryConstruction,
-    RoadCategory.hazard        => l.categoryHazard,
-    RoadCategory.roadCondition => l.categoryRoadCondition,
-    RoadCategory.pothole       => l.categoryPothole,
-    RoadCategory.fog           => l.categoryFog,
-    RoadCategory.ice           => l.categoryIce,
-    RoadCategory.animal        => l.categoryAnimal,
-    RoadCategory.other         => l.categoryOther,
-  };
+        RoadCategory.police => l.categoryPolice,
+        RoadCategory.speedCamera => l.categorySpeedCamera,
+        RoadCategory.trafficJam => l.categoryTrafficJam,
+        RoadCategory.accident => l.categoryAccident,
+        RoadCategory.roadClosure => l.categoryRoadClosure,
+        RoadCategory.construction => l.categoryConstruction,
+        RoadCategory.hazard => l.categoryHazard,
+        RoadCategory.roadCondition => l.categoryRoadCondition,
+        RoadCategory.pothole => l.categoryPothole,
+        RoadCategory.fog => l.categoryFog,
+        RoadCategory.ice => l.categoryIce,
+        RoadCategory.animal => l.categoryAnimal,
+        RoadCategory.other => l.categoryOther,
+      };
 
   /// Non-localised English fallback label for contexts where no [BuildContext] is
   /// available (e.g. background services, Nostr relay callbacks). Prefer
   /// [localizedLabel] in widget code to respect the user's language setting.
   String get label => switch (this) {
-    RoadCategory.police        => 'Police',
-    RoadCategory.speedCamera   => 'Speed Camera',
-    RoadCategory.trafficJam    => 'Traffic Jam',
-    RoadCategory.accident      => 'Accident',
-    RoadCategory.roadClosure   => 'Road Closure',
-    RoadCategory.construction  => 'Construction',
-    RoadCategory.hazard        => 'Hazard',
-    RoadCategory.roadCondition => 'Road Condition',
-    RoadCategory.pothole       => 'Pothole',
-    RoadCategory.fog           => 'Fog',
-    RoadCategory.ice           => 'Ice',
-    RoadCategory.animal        => 'Animal',
-    RoadCategory.other         => 'Other',
-  };
+        RoadCategory.police => 'Police',
+        RoadCategory.speedCamera => 'Speed Camera',
+        RoadCategory.trafficJam => 'Traffic Jam',
+        RoadCategory.accident => 'Accident',
+        RoadCategory.roadClosure => 'Road Closure',
+        RoadCategory.construction => 'Construction',
+        RoadCategory.hazard => 'Hazard',
+        RoadCategory.roadCondition => 'Road Condition',
+        RoadCategory.pothole => 'Pothole',
+        RoadCategory.fog => 'Fog',
+        RoadCategory.ice => 'Ice',
+        RoadCategory.animal => 'Animal',
+        RoadCategory.other => 'Other',
+      };
 
   Color get color => switch (this) {
-    RoadCategory.police        => const Color(0xFF2563EB),
-    RoadCategory.speedCamera   => const Color(0xFF7C3AED),
-    RoadCategory.trafficJam    => const Color(0xFFD97706),
-    RoadCategory.accident      => const Color(0xFFDC2626),
-    RoadCategory.roadClosure   => const Color(0xFF991B1B),
-    RoadCategory.construction  => const Color(0xFFF59E0B),
-    RoadCategory.hazard        => const Color(0xFFF59E0B),
-    RoadCategory.roadCondition => const Color(0xFF92400E),
-    RoadCategory.pothole       => const Color(0xFF6B7280),
-    RoadCategory.fog           => const Color(0xFF9CA3AF),
-    RoadCategory.ice           => const Color(0xFF60A5FA),
-    RoadCategory.animal        => const Color(0xFF16A34A),
-    RoadCategory.other         => const Color(0xFF6B7280),
-  };
+        RoadCategory.police => const Color(0xFF2563EB),
+        RoadCategory.speedCamera => const Color(0xFF7C3AED),
+        RoadCategory.trafficJam => const Color(0xFFD97706),
+        RoadCategory.accident => const Color(0xFFDC2626),
+        RoadCategory.roadClosure => const Color(0xFF991B1B),
+        RoadCategory.construction => const Color(0xFFF59E0B),
+        RoadCategory.hazard => const Color(0xFFF59E0B),
+        RoadCategory.roadCondition => const Color(0xFF92400E),
+        RoadCategory.pothole => const Color(0xFF6B7280),
+        RoadCategory.fog => const Color(0xFF9CA3AF),
+        RoadCategory.ice => const Color(0xFF60A5FA),
+        RoadCategory.animal => const Color(0xFF16A34A),
+        RoadCategory.other => const Color(0xFF6B7280),
+      };
 
   /// Client-side TTL (seconds) controlling maximum map visibility per category.
   /// This supplements the Nostr event `expiration` tag, which is a relay-level
-  /// hint and may be absent or set to 14 days regardless of event type.
+  /// hint and may be absent.
   int get ttlSeconds => switch (this) {
-    RoadCategory.police        => 4 * 3600,       // 4 h
-    RoadCategory.speedCamera   => 30 * 86400,     // 30 d
-    RoadCategory.trafficJam    => 1 * 3600,       // 1 h
-    RoadCategory.accident      => 4 * 3600,       // 4 h
-    RoadCategory.roadClosure   => 24 * 3600,      // 24 h
-    RoadCategory.construction  => 15 * 86400,     // 15 d
-    RoadCategory.hazard        => 4 * 3600,       // 4 h
-    RoadCategory.roadCondition => 15 * 86400,     // 15 d
-    RoadCategory.pothole       => 7 * 86400,      // 7 d
-    RoadCategory.fog           => 4 * 3600,       // 4 h
-    RoadCategory.ice           => 4 * 3600,       // 4 h
-    RoadCategory.animal        => 1 * 3600,       // 1 h
-    RoadCategory.other         => 4 * 3600,       // 4 h
-  };
+        RoadCategory.police => 4 * 3600, // 4 h
+        RoadCategory.speedCamera => 30 * 86400, // 30 d
+        RoadCategory.trafficJam => 1 * 3600, // 1 h
+        RoadCategory.accident => 4 * 3600, // 4 h
+        RoadCategory.roadClosure => 24 * 3600, // 24 h
+        RoadCategory.construction => 15 * 86400, // 15 d
+        RoadCategory.hazard => 4 * 3600, // 4 h
+        RoadCategory.roadCondition => 15 * 86400, // 15 d
+        RoadCategory.pothole => 7 * 86400, // 7 d
+        RoadCategory.fog => 4 * 3600, // 4 h
+        RoadCategory.ice => 4 * 3600, // 4 h
+        RoadCategory.animal => 1 * 3600, // 1 h
+        RoadCategory.other => 4 * 3600, // 4 h
+      };
 }
 
 /// A single road event decoded from a Nostr kind-1315 event.
@@ -141,13 +152,16 @@ enum RoadCategory {
 /// map rebuild on every confirmation.
 class RoadEvent {
   final String id;
+
   /// The author's Nostr public key (hex-encoded).
   final String pubkey;
   final RoadCategory category;
   final LatLng position;
   final String comment;
+
   /// Unix timestamp (seconds) when the event was created.
   final int createdAt;
+
   /// Optional relay-level expiration timestamp from the Nostr `expiration` tag.
   final int? expiresAt;
   int confirmations;
@@ -171,12 +185,8 @@ class RoadEvent {
   /// the client-side category TTL has elapsed — whichever comes first.
   bool get isExpired {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    // Use only the category-specific TTL for local display filtering.
-    // The NIP-40 `expiration` tag (expiresAt) is intentionally ignored here:
-    // it is set to 14 days on every event so the relay auto-deletes stale
-    // entries, but category TTLs are much shorter (1 h – 15 d) and govern
-    // how long each event type remains visible on the map.
-    return now > createdAt + category.ttlSeconds;
+    return now >= createdAt + category.ttlSeconds ||
+        (expiresAt != null && now >= expiresAt!);
   }
 
   /// Returns a human-readable relative age string using [AppLocalizations] for i18n.
@@ -185,8 +195,10 @@ class RoadEvent {
   /// This method is intentionally not a getter — the [AppLocalizations] dependency
   /// makes it unsuitable for use outside of widget build methods.
   String ageLabel(AppLocalizations l) {
-    final mins = (DateTime.now().millisecondsSinceEpoch ~/ 1000 - createdAt) ~/ 60;
-    if (mins < 60)   return l.minutesAgo(mins);
+    final rawMinutes =
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000 - createdAt) ~/ 60;
+    final mins = rawMinutes < 0 ? 0 : rawMinutes;
+    if (mins < 60) return l.minutesAgo(mins);
     if (mins < 1440) return l.hoursAgo(mins ~/ 60);
     return l.daysAgo(mins ~/ 1440);
   }
@@ -203,18 +215,44 @@ class RoadEvent {
           .map((t) => List<String>.from(t as List))
           .toList();
 
-      String? latStr, lonStr, tKey;
-      int? exp;
+      if (json['kind'] != 1315 ||
+          json['id'] is! String ||
+          json['pubkey'] is! String ||
+          !RegExp(r'^[0-9a-f]{64}$').hasMatch(json['id'] as String) ||
+          !RegExp(r'^[0-9a-f]{64}$').hasMatch(json['pubkey'] as String) ||
+          json['created_at'] is! int) {
+        return null;
+      }
+      final latValues = <String>[];
+      final lonValues = <String>[];
+      final categoryValues = <String>[];
+      final expirationValues = <String>[];
       for (final t in tags) {
-        if (t.isEmpty) continue;
+        if (t.length < 2) continue;
         switch (t[0]) {
-          case 'lat': latStr = t[1];
-          case 'lon': lonStr = t[1];
-          case 't':   tKey   = t[1];
-          case 'expiration': exp = int.tryParse(t[1]);
+          case 'lat':
+            latValues.add(t[1]);
+          case 'lon':
+            lonValues.add(t[1]);
+          case 't':
+            categoryValues.add(t[1]);
+          case 'expiration':
+            expirationValues.add(t[1]);
         }
       }
-      if (latStr == null || lonStr == null || tKey == null) return null;
+      if (latValues.length != 1 ||
+          lonValues.length != 1 ||
+          categoryValues.length != 1 ||
+          expirationValues.length > 1) {
+        return null;
+      }
+      final latStr = latValues.single;
+      final lonStr = lonValues.single;
+      final tKey = categoryValues.single;
+      final exp = expirationValues.isEmpty
+          ? null
+          : int.tryParse(expirationValues.single);
+      if (expirationValues.isNotEmpty && exp == null) return null;
 
       final lat = double.tryParse(latStr) ?? double.nan;
       final lon = double.tryParse(lonStr) ?? double.nan;
@@ -227,14 +265,18 @@ class RoadEvent {
       if (comment.length > 500) comment = '${comment.substring(0, 500)}…';
 
       final event = RoadEvent(
-        id:        json['id'] as String,
-        pubkey:    json['pubkey'] as String,
-        category:  RoadCategory.fromKey(tKey),
-        position:  LatLng(lat, lon),
-        comment:   comment,
+        id: json['id'] as String,
+        pubkey: json['pubkey'] as String,
+        category: RoadCategory.fromKey(tKey),
+        position: LatLng(lat, lon),
+        comment: comment,
         createdAt: json['created_at'] as int,
         expiresAt: exp,
       );
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      // Small future skew is normal; large future timestamps keep attacker-
+      // signed events alive far beyond their intended TTL.
+      if (event.createdAt > now + 300) return null;
       // Discard events that have already passed their client-side TTL so that
       // historic relay events fetched on re-subscription never appear on the map.
       if (event.isExpired) return null;

@@ -12,10 +12,13 @@ import 'package:latlong2/latlong.dart';
 /// A snapshot of the device's GPS state at a given instant.
 class GpsData {
   final LatLng position;
+
   /// Speed in km/h (converted from the native m/s value; clamped to 0 if negative).
   final double speedKmh;
+
   /// Horizontal accuracy radius in metres; see [isReliable].
   final double accuracy;
+
   /// Compass bearing in degrees (0–360, clockwise from north). `null` if the
   /// device could not determine heading (e.g. stationary without magnetometer).
   final double? heading;
@@ -41,6 +44,7 @@ class GpsService {
   final _controller = StreamController<GpsData>.broadcast();
   Stream<GpsData> get stream => _controller.stream;
   StreamSubscription<Position>? _subscription;
+  bool _disposed = false;
   GpsData? _lastData;
   GpsData? get lastData => _lastData;
 
@@ -67,6 +71,14 @@ class GpsService {
   /// Call this before [start] to decide whether to prompt the user.
   Future<bool> isServiceEnabled() => Geolocator.isLocationServiceEnabled();
 
+  /// Checks an existing permission without triggering an Android prompt.
+  /// Used by the opt-in startup centering setting.
+  Future<bool> hasGrantedPermission() async {
+    final permission = await Geolocator.checkPermission();
+    return permission == LocationPermission.whileInUse ||
+        permission == LocationPermission.always;
+  }
+
   /// Opens the Android system location settings screen so the user can enable GPS.
   Future<void> openSettings() => Geolocator.openLocationSettings();
 
@@ -76,6 +88,7 @@ class GpsService {
   /// Returns `true` on success, `false` if the service is disabled or permission
   /// was denied/revoked.
   Future<bool> start() async {
+    if (_disposed) return false;
     if (_subscription != null) return true; // already active
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) return false;
@@ -92,13 +105,19 @@ class GpsService {
   }
 
   void _onPosition(Position pos) {
+    if (_disposed || _controller.isClosed) return;
     // Guard against NaN/Infinity coordinates that some Android devices emit
     // during the initial GPS fix acquisition phase. Passing a NaN value into
     // LatLng would cause an assertion failure (debug) or silent map corruption
     // (release). We discard those readings and wait for a valid fix.
-    if (!pos.latitude.isFinite  || !pos.longitude.isFinite  ||
-        pos.latitude  < -90 || pos.latitude  > 90 ||
-        pos.longitude < -180 || pos.longitude > 180) return;
+    if (!pos.latitude.isFinite ||
+        !pos.longitude.isFinite ||
+        pos.latitude < -90 ||
+        pos.latitude > 90 ||
+        pos.longitude < -180 ||
+        pos.longitude > 180) {
+      return;
+    }
 
     final double speedKmh = (pos.speed < 0 ? 0.0 : pos.speed * 3.6).toDouble();
     final data = GpsData(
@@ -122,6 +141,7 @@ class GpsService {
   /// button so the cursor snaps to the *current* position, not the last
   /// stream sample. Fails silently — the periodic stream keeps running.
   Future<void> refresh() async {
+    if (_disposed) return;
     try {
       final pos = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
@@ -140,8 +160,10 @@ class GpsService {
     _subscription = null;
   }
 
-  void dispose() {
-    stop();
-    _controller.close();
+  Future<void> dispose() async {
+    if (_disposed) return;
+    _disposed = true;
+    await stop();
+    await _controller.close();
   }
 }

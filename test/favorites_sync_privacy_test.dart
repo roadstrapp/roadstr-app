@@ -20,18 +20,21 @@ void main() {
       ]) {
         final padded = FavoritesSyncService.padToBucket(s);
         final byteLen = utf8.encode(padded).length;
-        expect(byteLen % 4096, 0, reason: 'off-bucket for input len ${s.length}');
+        expect(byteLen % 4096, 0,
+            reason: 'off-bucket for input len ${s.length}');
         expect(byteLen >= utf8.encode(s).length, true);
       }
     });
 
     test('snapshots with different favorite counts pad to identical size', () {
-      String snapshot(int n) => jsonEncode(List.generate(n, (i) => {
-            'label': 'Place $i',
-            'address': 'Some Street $i, Some City',
-            'lat': 44.0 + i,
-            'lon': 12.0 + i,
-          }));
+      String snapshot(int n) => jsonEncode(List.generate(
+          n,
+          (i) => {
+                'label': 'Place $i',
+                'address': 'Some Street $i, Some City',
+                'lat': 44.0 + i,
+                'lon': 12.0 + i,
+              }));
       final a = FavoritesSyncService.padToBucket(snapshot(1));
       final b = FavoritesSyncService.padToBucket(snapshot(20));
       expect(utf8.encode(a).length, utf8.encode(b).length,

@@ -17,56 +17,34 @@ error()   { echo -e "${RED}✗${NC}  $*"; exit 1; }
 # ── Prerequisites ─────────────────────────────────────────────────────────────
 info "Checking prerequisites..."
 command -v flutter >/dev/null 2>&1 || error "flutter not found in PATH"
-command -v keytool >/dev/null 2>&1 || error "keytool not found — install a JDK"
+command -v apksigner >/dev/null 2>&1 || error "apksigner not found — install Android SDK Build Tools"
 
 # ── Keystore setup ────────────────────────────────────────────────────────────
 KEY_PROPS="android/key.properties"
-SIGNED=false
-
 if [ -f "$KEY_PROPS" ]; then
     STORE_FILE=$(grep "^storeFile=" "$KEY_PROPS" | cut -d= -f2- | tr -d '[:space:]')
     if [ -f "$STORE_FILE" ]; then
         info "Keystore found at $STORE_FILE — will sign with release key."
-        SIGNED=true
     else
-        warning "key.properties exists but keystore not found at: $STORE_FILE"
-        echo ""
-        echo "  Would you like to generate a new keystore at that path? [y/N]"
-        read -r REPLY
-        if [[ "$REPLY" =~ ^[Yy]$ ]]; then
-            STORE_PASS=$(grep "^storePassword=" "$KEY_PROPS" | cut -d= -f2- | tr -d '[:space:]')
-            KEY_ALIAS=$(grep "^keyAlias="     "$KEY_PROPS" | cut -d= -f2- | tr -d '[:space:]')
-            KEY_PASS=$(grep  "^keyPassword="  "$KEY_PROPS" | cut -d= -f2- | tr -d '[:space:]')
-            mkdir -p "$(dirname "$STORE_FILE")"
-            keytool -genkey -v \
-                -keystore "$STORE_FILE" \
-                -alias "$KEY_ALIAS" \
-                -keyalg RSA -keysize 4096 -validity 10000 \
-                -storepass "$STORE_PASS" \
-                -keypass  "$KEY_PASS" \
-                -dname "CN=Roadstr, OU=Dev, O=Roadstr, L=Italy, C=IT"
-            info "Keystore created at $STORE_FILE"
-            SIGNED=true
-        else
-            warning "Proceeding with DEBUG signing (APK not suitable for public distribution)."
-        fi
+        error "key.properties points to a missing keystore: $STORE_FILE"
     fi
 else
     warning "android/key.properties not found."
-    warning "Building with DEBUG signing — not suitable for public distribution."
+    warning "A public release must use the official release key."
     echo ""
     echo "  To set up release signing:"
     echo "  1. Copy android/key.properties.template → android/key.properties"
     echo "  2. Fill in your keystore path and passwords"
     echo "  3. Re-run this script"
     echo ""
+    error "Release keystore unavailable; refusing to continue."
 fi
 
 # ── Version ───────────────────────────────────────────────────────────────────
 VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}')
 VERSION_NAME="${VERSION%+*}"
 echo ""
-info "Building Roadstr v${VERSION_NAME}  [signed=$SIGNED]"
+info "Building signed Roadstr v${VERSION_NAME}"
 echo ""
 
 # ── Clean ─────────────────────────────────────────────────────────────────────
@@ -83,6 +61,13 @@ flutter build apk --release \
     --split-per-abi \
     --obfuscate \
     --split-debug-info="build/debug-symbols"
+
+# A successful Gradle build does not guarantee that an APK was signed. Refuse
+# to publish unless every split passes Android's cryptographic verifier.
+for apk in build/app/outputs/flutter-apk/app-*-release.apk; do
+    [ -f "$apk" ] || error "No release APK was produced"
+    apksigner verify "$apk" || error "Unsigned or invalid APK: $apk"
+done
 
 echo ""
 echo "─────────────────────────────────────────────────────────────────────────"

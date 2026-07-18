@@ -125,6 +125,13 @@ class AppLocalizationsDa extends AppLocalizations {
   String get keepScreenOnDescription => 'Forhindrer dvale under navigation';
 
   @override
+  String get autoCenterOnLaunch => 'Centrer på min position ved opstart';
+
+  @override
+  String get autoCenterOnLaunchDesc =>
+      'Bruger kun GPS automatisk, hvis placeringstilladelsen allerede er givet';
+
+  @override
   String get rotateMap => 'Kortet følger retningen';
 
   @override
@@ -732,10 +739,71 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr er en eksperimentel, open source-navigationsapp vedligeholdt af fællesskabet, baseret på data fra OpenStreetMap og Nostr-protokollen, og stillet til rådighed til brug i ethvert land. Ved at downloade, installere eller bruge denne app accepterer brugeren betingelsesløst alle nedenstående vilkår, uden territorial begrænsning.\n\n🚗 TRAFIKSIKKERHED FØRST\nFøreren skal altid holde øjnene på vejen og overholde alle gældende færdselsregler og opsatte skilte, som altid har forrang frem for enhver instruktion fra appen. Betjen aldrig enheden under kørsel; fastgør den i en godkendt, synlig holder, inden du kører af sted, og lad dig aldrig distrahere fra vejen for at interagere med den, mens køretøjet er i bevægelse.\n\n⚠️ PÅTAGELSE AF RISIKO — VERDENSOMSPÆNDENDE\nVed at bruge Roadstr, i ethvert land og under ethvert retssystem, påtager brugeren sig bevidst og frivilligt ALLE risici forbundet med brugen heraf, herunder, men ikke begrænset til: trafikulykker, personskade, dødsfald, tingsskade, køretøjsskade, bøder, administrative sanktioner, bugsering, beslaglæggelse, strafferetligt ansvar eller enhver anden konsekvens, der direkte eller indirekte opstår som følge af tillid til appen. Brugeren bærer alene det fulde ansvar for enhver kørsels- og navigationsbeslutning.\n\n🚫 INGEN GARANTI\nRoadstr leveres udelukkende „SOM DEN ER“ og „SOM TILGÆNGELIG“, uden nogen form for garanti, hverken udtrykkelig, underforstået eller lovbestemt — herunder, uden begrænsning, garantier for nøjagtighed, fuldstændighed, pålidelighed, tilgængelighed, salgbarhed, egnethed til et bestemt formål og ikke-krænkelse. Kortdata, ruteplanlægning, hastighedsgrænser, fartkameraer og oplysninger om zoner med kørselsbegrænsning (ZTL/ZAC/LTZ) kommer fra åbne, fællesskabsvedligeholdte kilder (OpenStreetMap, Overpass API), som til enhver tid og uden varsel kan være ufuldstændige, forældede eller unøjagtige for ethvert land, enhver region eller kommune. Brugeren er alene ansvarlig for selvstændigt at kontrollere, før og under rejsen, lovligheden og fremkommeligheden af enhver foreslået rute i forhold til officiel lokal skiltning og lovgivning.\n\n📍 NØJAGTIGHED OG GPS\nGPS-positionering kan være unøjagtig eller utilgængelig. Alle anvisninger, afstande og advarsler gives udelukkende som vejledning og må aldrig anvendes som eneste grundlag for en køremæssig beslutning.\n\n🛡️ ANSVARSBEGRÆNSNING\nI det videst mulige omfang tilladt efter gældende lov i enhver jurisdiktion er udviklerne, bidragyderne og enhver part involveret i at skabe eller distribuere Roadstr ikke ansvarlige for direkte, indirekte, hændelige, følgeskader, særlige, eksemplariske eller pønalt begrundede skader af nogen art — herunder personskade, dødsfald eller økonomisk tab — der opstår som følge af eller i forbindelse med brugen eller manglende evne til at bruge appen, selv hvis der er givet meddelelse om muligheden for sådanne skader. Hvis en given jurisdiktion ikke tillader nogen eller alle af disse begrænsninger, begrænses ansvaret i det mindste omfang, der er tilladt efter loven i den pågældende jurisdiktion.\n\n🤝 SKADESLØSHOLDELSE\nBrugeren accepterer at skadesløsholde og friholde udviklerne og bidragyderne fra ethvert krav, enhver skade, ethvert tab eller enhver udgift (herunder advokatsalærer), der opstår som følge af brugerens brug af appen eller overtrædelse af disse vilkår.\n\n🔒 PRIVATLIV\nDer overføres ingen lokationsdata til Roadstrs egne servere. Ruteberegning udføres via tredjepartstjenester (OSRM, GraphHopper, OpenRouteService), som kun modtager start- og destinationskoordinater.\n\n⚖️ DELVIS UGYLDIGHED\nHvis en bestemmelse i disse vilkår findes uden retskraft i en given jurisdiktion, skal denne bestemmelse begrænses eller udskilles i det mindste nødvendige omfang, og alle øvrige bestemmelser skal forblive i fuld kraft og virkning.\n\nVed at bruge Roadstr, uanset hvor i verden, bekræfter brugeren at have læst, forstået og betingelsesløst accepteret hvert af ovenstående vilkår og påtager sig det fulde og hele ansvar — og al risiko — for brugen af appen og enhver konsekvens, der opstår heraf.';
+      'Roadstr er en eksperimentel, open source-navigationsapp vedligeholdt af fællesskabet, baseret på data fra OpenStreetMap og Nostr-protokollen, og stillet til rådighed til brug i ethvert land. Ved at downloade, installere eller bruge denne app accepterer brugeren betingelsesløst alle nedenstående vilkår, uden territorial begrænsning.\n\n🚗 TRAFIKSIKKERHED FØRST\nFøreren skal altid holde øjnene på vejen og overholde alle gældende færdselsregler og opsatte skilte, som altid har forrang frem for enhver instruktion fra appen. Betjen aldrig enheden under kørsel; fastgør den i en godkendt, synlig holder, inden du kører af sted, og lad dig aldrig distrahere fra vejen for at interagere med den, mens køretøjet er i bevægelse.\n\n⚠️ PÅTAGELSE AF RISIKO — VERDENSOMSPÆNDENDE\nVed at bruge Roadstr, i ethvert land og under ethvert retssystem, påtager brugeren sig bevidst og frivilligt ALLE risici forbundet med brugen heraf, herunder, men ikke begrænset til: trafikulykker, personskade, dødsfald, tingsskade, køretøjsskade, bøder, administrative sanktioner, bugsering, beslaglæggelse, strafferetligt ansvar eller enhver anden konsekvens, der direkte eller indirekte opstår som følge af tillid til appen. Brugeren bærer alene det fulde ansvar for enhver kørsels- og navigationsbeslutning.\n\n🚫 INGEN GARANTI\nRoadstr leveres udelukkende „SOM DEN ER“ og „SOM TILGÆNGELIG“, uden nogen form for garanti, hverken udtrykkelig, underforstået eller lovbestemt — herunder, uden begrænsning, garantier for nøjagtighed, fuldstændighed, pålidelighed, tilgængelighed, salgbarhed, egnethed til et bestemt formål og ikke-krænkelse. Kortdata, ruteplanlægning, hastighedsgrænser, fartkameraer og oplysninger om zoner med kørselsbegrænsning (ZTL/ZAC/LTZ) kommer fra åbne, fællesskabsvedligeholdte kilder (OpenStreetMap, Overpass API), som til enhver tid og uden varsel kan være ufuldstændige, forældede eller unøjagtige for ethvert land, enhver region eller kommune. Brugeren er alene ansvarlig for selvstændigt at kontrollere, før og under rejsen, lovligheden og fremkommeligheden af enhver foreslået rute i forhold til officiel lokal skiltning og lovgivning.\n\n📍 NØJAGTIGHED OG GPS\nGPS-positionering kan være unøjagtig eller utilgængelig. Alle anvisninger, afstande og advarsler gives udelukkende som vejledning og må aldrig anvendes som eneste grundlag for en køremæssig beslutning.\n\n🛡️ ANSVARSBEGRÆNSNING\nI det videst mulige omfang tilladt efter gældende lov i enhver jurisdiktion er udviklerne, bidragyderne og enhver part involveret i at skabe eller distribuere Roadstr ikke ansvarlige for direkte, indirekte, hændelige, følgeskader, særlige, eksemplariske eller pønalt begrundede skader af nogen art — herunder personskade, dødsfald eller økonomisk tab — der opstår som følge af eller i forbindelse med brugen eller manglende evne til at bruge appen, selv hvis der er givet meddelelse om muligheden for sådanne skader. Hvis en given jurisdiktion ikke tillader nogen eller alle af disse begrænsninger, begrænses ansvaret i det mindste omfang, der er tilladt efter loven i den pågældende jurisdiktion.\n\n🤝 SKADESLØSHOLDELSE\nBrugeren accepterer at skadesløsholde og friholde udviklerne og bidragyderne fra ethvert krav, enhver skade, ethvert tab eller enhver udgift (herunder advokatsalærer), der opstår som følge af brugerens brug af appen eller overtrædelse af disse vilkår.\n\n🔒 PRIVACY AND NETWORK SERVICES\nRoadstr runs no first-party servers or analytics, but it is not an offline app. When relevant features are used, coordinates or coarse areas and the IP address are sent directly to third parties: routing providers (origin, destination and waypoints), OpenStreetMap/Nominatim/Overpass (search, reverse geocoding, POIs, restricted zones, limits and cameras), Open-Meteo (rounded coordinates), map-tile servers and Nostr relays (city-level geohash). A road report publishes its exact position, time, content and public key to Nostr and is pseudonymous, not anonymous. Favorites and parking remain local unless explicitly exported or synced.\n\n⚖️ DELVIS UGYLDIGHED\nHvis en bestemmelse i disse vilkår findes uden retskraft i en given jurisdiktion, skal denne bestemmelse begrænses eller udskilles i det mindste nødvendige omfang, og alle øvrige bestemmelser skal forblive i fuld kraft og virkning.\n\nVed at bruge Roadstr, uanset hvor i verden, bekræfter brugeren at have læst, forstået og betingelsesløst accepteret hvert af ovenstående vilkår og påtager sig det fulde og hele ansvar — og al risiko — for brugen af appen og enhver konsekvens, der opstår heraf.';
 
   @override
   String get readOnWikipedia => 'Læs på Wikipedia';
+
+  @override
+  String get openInBrowser => 'Åbn i browser';
+
+  @override
+  String get wikipediaLoadFailed => 'Wikipedia kunne ikke indlæses sikkert.';
+
+  @override
+  String get retry => 'Prøv igen';
+
+  @override
+  String get poiDetailsFromOsm => 'Oplysninger fra OpenStreetMap';
+
+  @override
+  String get poiCategory => 'Kategori';
+
+  @override
+  String get poiOperator => 'Operatør';
+
+  @override
+  String get poiCuisine => 'Køkken';
+
+  @override
+  String get poiAccessibility => 'Tilgængelighed';
+
+  @override
+  String get poiWheelchairYes => 'Kørestolstilgængelig';
+
+  @override
+  String get poiWheelchairLimited => 'Begrænset adgang for kørestole';
+
+  @override
+  String get poiWheelchairNo => 'Ikke tilgængelig for kørestole';
+
+  @override
+  String get poiContact => 'Kontakt';
+
+  @override
+  String get poiAddress => 'Adresse';
+
+  @override
+  String get poiWebsite => 'Websted';
+
+  @override
+  String get gpsSignalLost => 'GPS-signal mistet';
+
+  @override
+  String get poiOpenNow => 'Åbent nu';
+
+  @override
+  String get poiClosedNow => 'Lukket';
+
+  @override
+  String poiOpensAt(String when) {
+    return 'Åbner: $when';
+  }
+
+  @override
+  String poiClosesAt(String when) {
+    return 'Lukker: $when';
+  }
 
   @override
   String searchOnEngine(String engine) {
@@ -904,7 +972,7 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.';
+      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
 
   @override
   String get onboardingVoiceTitle => 'AI-stemme guidance (valgfrit)';
@@ -1059,10 +1127,6 @@ class AppLocalizationsDa extends AppLocalizations {
   @override
   String get onboardingVpnNotice =>
       'For maksimal privatliv — rapporter spredes via Nostr-netværket — anbefales det at bruge en VPN. Mullvad, som kan betales med Bitcoin, er det anbefalede valg.';
-
-  @override
-  String get onboardingGrapheneAlwaysAllow =>
-      'For pålidelig drift skal appens placeringstilladelse indstilles til \"Tillad altid\", ikke kun mens appen er i brug.';
 
   @override
   String get trafficNormal => 'Normal trafik';
