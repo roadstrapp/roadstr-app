@@ -31,10 +31,12 @@ class KokoroTtsService {
   double _speed = 1.0;
   Float32List? _voiceData;
   bool _ready = false;
-  int _utteranceId = 0; // bumped on every speak() call to cancel in-flight synth
+  int _utteranceId =
+      0; // bumped on every speak() call to cancel in-flight synth
   bool _audioSessionConfigured = false;
   bool _audioFocusActive = false;
   bool _isSpeaking = false;
+
   /// At most one queued low-priority utterance (the newest wins — a stale
   /// hazard alert is worthless once a newer one arrives).
   String? _pendingText;
@@ -44,13 +46,15 @@ class KokoroTtsService {
   // Pre-warmed phrases ("Partiamo!", arrival text) are stored here at init time
   // so repeated announcements and the very first navigation start are near-instant.
   final Map<String, Float32List> _synthCache = {};
+  static const _maxMemoryCacheEntries = 24;
+  static const _maxDiskCacheFiles = 64;
+  static const _maxDiskCacheBytes = 100 * 1024 * 1024;
 
   // Serialises ONNX inference between prewarm and speak().
   // Non-null while a synthesis call is in progress; complete()d when done.
   // speak() awaits this so that if prewarm is already synthesising "Partiamo!"
   // it can reuse the disk file prewarm just wrote, instead of a redundant 2nd call.
   Completer<void>? _synthCompleter;
-
 
   bool get isReady => _ready;
   bool get _langSupported => kKokoroVoicesByLanguage.containsKey(_lang);
@@ -88,7 +92,8 @@ class KokoroTtsService {
       _voiceData = await _loadVoiceEmbedding(languageCode, _gender);
       debugPrint('[KokoroTTS]   voice: ${ms()}ms');
       _ready = true;
-      debugPrint('[KokoroTTS] init OK: ${ms()}ms total  voiceData=${_voiceData!.length} floats');
+      debugPrint(
+          '[KokoroTTS] init OK: ${ms()}ms total  voiceData=${_voiceData!.length} floats');
       unawaited(_configureAudioSession());
       unawaited(_prewarmCache());
     } catch (e) {
@@ -160,7 +165,8 @@ class KokoroTtsService {
           contentType: AndroidAudioContentType.speech,
           usage: AndroidAudioUsage.assistanceNavigationGuidance,
         ),
-        androidAudioFocusGainType: AndroidAudioFocusGainType.gainTransientMayDuck,
+        androidAudioFocusGainType:
+            AndroidAudioFocusGainType.gainTransientMayDuck,
         androidWillPauseWhenDucked: false,
       ));
       debugPrint('[KokoroTTS] audio session configured');
@@ -241,7 +247,8 @@ class KokoroTtsService {
     // This runs even when !_ready so "Partenza" plays while the model loads.
     // Only at normal speed: bundled assets are pre-rendered at 1.0×, so a
     // non-default speed must fall through to on-device synthesis instead.
-    final assetPath = _speed == 1.0 ? _bundledAsset(_lang, _gender, text) : null;
+    final assetPath =
+        _speed == 1.0 ? _bundledAsset(_lang, _gender, text) : null;
     if (assetPath != null) {
       try {
         await _acquireFocus();
@@ -286,9 +293,11 @@ class KokoroTtsService {
           audio = _synthCache[cacheKey]!;
           debugPrint('[KokoroTTS] mem cache: "$text"');
         } else {
-          debugPrint('[KokoroTTS] speak: "$text"  lang=$_lang/$_gender speed=$_speed');
+          debugPrint(
+              '[KokoroTTS] speak: "$text"  lang=$_lang/$_gender speed=$_speed');
           final ipa = await _phonemizer.phonemize(text, _lang);
-          debugPrint('[KokoroTTS] IPA: "$ipa"  (${DateTime.now().difference(t0).inMilliseconds}ms)');
+          debugPrint(
+              '[KokoroTTS] IPA: "$ipa"  (${DateTime.now().difference(t0).inMilliseconds}ms)');
           if (id != _utteranceId) return false;
 
           final completer = Completer<void>();
@@ -299,9 +308,10 @@ class KokoroTtsService {
             _synthCompleter = null;
             completer.complete();
           }
-          debugPrint('[KokoroTTS] synth done: ${audio.length} samples  (${DateTime.now().difference(t0).inMilliseconds}ms total)');
+          debugPrint(
+              '[KokoroTTS] synth done: ${audio.length} samples  (${DateTime.now().difference(t0).inMilliseconds}ms total)');
           if (id != _utteranceId) return false;
-          _synthCache[cacheKey] = audio;
+          _cacheAudio(cacheKey, audio);
         }
 
         // Persist to disk so future speak() calls (even after restart) are instant.
@@ -332,7 +342,9 @@ class KokoroTtsService {
   Future<void> _prewarmCache() async {
     for (final phrase in [_letsGo(_lang), _arrived(_lang)]) {
       final wavFile = await _diskCacheFile(_lang, _gender, 1.0, phrase);
-      if (await wavFile.exists()) continue; // already on disk from a previous session
+      if (await wavFile.exists()) {
+        continue; // already on disk from a previous session
+      }
       if (_synthCompleter != null) {
         // speak() is synthesising — wait for it before proceeding
         await _synthCompleter!.future;
@@ -340,7 +352,9 @@ class KokoroTtsService {
       }
       try {
         final ipa = await _phonemizer.phonemize(phrase, _lang);
-        if (_synthCompleter != null) continue; // speak() started after phonemize
+        if (_synthCompleter != null) {
+          continue; // speak() started after phonemize
+        }
         final completer = Completer<void>();
         _synthCompleter = completer;
         final Float32List audio;
@@ -350,7 +364,7 @@ class KokoroTtsService {
           _synthCompleter = null;
           completer.complete();
         }
-        _synthCache['$_lang:$_gender:1.00:$phrase'] = audio;
+        _cacheAudio('$_lang:$_gender:1.00:$phrase', audio);
         await _writeWav(wavFile, audio);
         debugPrint('[KokoroTTS] prewarm saved: "$phrase"');
       } catch (e) {
@@ -371,7 +385,8 @@ class KokoroTtsService {
       final engine = KokoroEngine.instance;
       await phonemizer.init();
       await engine.init();
-      final voiceFile = await KokoroModelManager.instance.voiceFile(languageCode, gender);
+      final voiceFile =
+          await KokoroModelManager.instance.voiceFile(languageCode, gender);
       final voiceData = (await voiceFile.readAsBytes()).buffer.asFloat32List();
       for (final phrase in [_letsGo(languageCode), _arrived(languageCode)]) {
         final wavFile = await _diskCacheFile(languageCode, gender, 1.0, phrase);
@@ -379,7 +394,8 @@ class KokoroTtsService {
         final ipa = await phonemizer.phonemize(phrase, languageCode);
         final audio = await engine.synthesize(ipa, voiceData);
         await _writeWav(wavFile, audio);
-        debugPrint('[KokoroTTS] warmUpLanguage: saved "$phrase" ($languageCode/$gender)');
+        debugPrint(
+            '[KokoroTTS] warmUpLanguage: saved "$phrase" ($languageCode/$gender)');
       }
     } catch (e) {
       debugPrint('[KokoroTTS] warmUpLanguage failed: $e');
@@ -425,17 +441,56 @@ class KokoroTtsService {
   /// Replaces ordinal symbols (e.g. "1°", "2°") with spoken words so the TTS
   /// engine does not misread "°" as a temperature unit.
   static String _normalizeOrdinals(String text, String lang) =>
-      text.replaceAllMapped(RegExp(r'(\d+)°'), (m) =>
-          _ordinalWord(int.tryParse(m[1]!) ?? 1, lang));
+      text.replaceAllMapped(RegExp(r'(\d+)°'),
+          (m) => _ordinalWord(int.tryParse(m[1]!) ?? 1, lang));
 
   static String _ordinalWord(int n, String lang) {
-    const it = {1:'prima',2:'seconda',3:'terza',4:'quarta',5:'quinta',6:'sesta'};
-    const es = {1:'primera',2:'segunda',3:'tercera',4:'cuarta',5:'quinta',6:'sexta'};
-    const fr = {1:'première',2:'deuxième',3:'troisième',4:'quatrième',5:'cinquième',6:'sixième'};
-    const pt = {1:'primeira',2:'segunda',3:'terceira',4:'quarta',5:'quinta',6:'sexta'};
-    const en = {1:'first',2:'second',3:'third',4:'fourth',5:'fifth',6:'sixth'};
+    const it = {
+      1: 'prima',
+      2: 'seconda',
+      3: 'terza',
+      4: 'quarta',
+      5: 'quinta',
+      6: 'sesta'
+    };
+    const es = {
+      1: 'primera',
+      2: 'segunda',
+      3: 'tercera',
+      4: 'cuarta',
+      5: 'quinta',
+      6: 'sexta'
+    };
+    const fr = {
+      1: 'première',
+      2: 'deuxième',
+      3: 'troisième',
+      4: 'quatrième',
+      5: 'cinquième',
+      6: 'sixième'
+    };
+    const pt = {
+      1: 'primeira',
+      2: 'segunda',
+      3: 'terceira',
+      4: 'quarta',
+      5: 'quinta',
+      6: 'sexta'
+    };
+    const en = {
+      1: 'first',
+      2: 'second',
+      3: 'third',
+      4: 'fourth',
+      5: 'fifth',
+      6: 'sixth'
+    };
     final map = switch (lang) {
-      'it' => it, 'es' => es, 'fr' => fr, 'pt' => pt, _ => en,
+      'it' => it,
+      'es' => es,
+      'fr' => fr,
+      'pt' => pt,
+      _ => en,
     };
     return map[n] ?? '$n';
   }
@@ -450,8 +505,12 @@ class KokoroTtsService {
   /// this stays defensive in case a caller passes 'm' directly).
   static String? _bundledAsset(String lang, String gender, String text) {
     final g = kokoroHasGenderChoice(lang) ? gender : kKokoroDefaultGender;
-    if (text == _letsGo(lang)) return 'assets/kokoro_phrases/${lang}_${g}_letsgo.wav';
-    if (text == _arrived(lang)) return 'assets/kokoro_phrases/${lang}_${g}_arrived.wav';
+    if (text == _letsGo(lang)) {
+      return 'assets/kokoro_phrases/${lang}_${g}_letsgo.wav';
+    }
+    if (text == _arrived(lang)) {
+      return 'assets/kokoro_phrases/${lang}_${g}_arrived.wav';
+    }
     return null;
   }
 
@@ -464,7 +523,8 @@ class KokoroTtsService {
     final docs = await getApplicationDocumentsDirectory();
     final hash = text.hashCode.abs().toRadixString(16);
     final speedTag = speed.toStringAsFixed(2);
-    return File('${docs.path}/kokoro_wav_cache/${lang}_${gender}_${speedTag}_$hash.wav');
+    return File(
+        '${docs.path}/kokoro_wav_cache/${lang}_${gender}_${speedTag}_$hash.wav');
   }
 
   Future<Float32List> _loadVoiceEmbedding(String lang, String gender) async {
@@ -477,6 +537,34 @@ class KokoroTtsService {
     final wav = _float32ToWav(audio, 24000);
     await file.create(recursive: true);
     await file.writeAsBytes(wav);
+    await _trimDiskCache(file.parent);
+  }
+
+  void _cacheAudio(String key, Float32List audio) {
+    _synthCache.remove(key);
+    _synthCache[key] = audio;
+    while (_synthCache.length > _maxMemoryCacheEntries) {
+      _synthCache.remove(_synthCache.keys.first);
+    }
+  }
+
+  static Future<void> _trimDiskCache(Directory directory) async {
+    if (!await directory.exists()) return;
+    final entries = <({File file, int bytes, DateTime modified})>[];
+    await for (final entity in directory.list(followLinks: false)) {
+      if (entity is! File || !entity.path.endsWith('.wav')) continue;
+      final stat = await entity.stat();
+      entries.add((file: entity, bytes: stat.size, modified: stat.modified));
+    }
+    entries.sort((a, b) => b.modified.compareTo(a.modified));
+    var retainedBytes = 0;
+    for (var i = 0; i < entries.length; i++) {
+      retainedBytes += entries[i].bytes;
+      if (i >= _maxDiskCacheFiles || retainedBytes > _maxDiskCacheBytes) {
+        retainedBytes -= entries[i].bytes;
+        await entries[i].file.delete();
+      }
+    }
   }
 
   /// Encode a float32 PCM waveform as a standard WAV (16-bit mono).
@@ -510,8 +598,8 @@ class KokoroTtsService {
     u32(36 + dataSize);
     ascii('WAVE');
     ascii('fmt ');
-    u32(16);           // subchunk1 size
-    u16(1);            // PCM
+    u32(16); // subchunk1 size
+    u16(1); // PCM
     u16(numChannels);
     u32(sampleRate);
     u32(byteRate);
@@ -563,6 +651,4 @@ class KokoroTtsService {
         'pt' => 'Em 200 metros, vire à direita',
         _ => 'In 200 meters, turn right',
       };
-
 }
-

@@ -5,7 +5,7 @@ import 'app_theme.dart';
 import '../services/sun_calc.dart';
 
 class ThemeProvider extends ChangeNotifier {
-  static const _key        = 'themeId';
+  static const _key = 'themeId';
   static const _autoDarkKey = 'autoDark';
 
   Box? _box;
@@ -13,6 +13,7 @@ class ThemeProvider extends ChangeNotifier {
 
   /// Whether automatic dark mode (sunset/sunrise) is enabled.
   bool _autoDarkEnabled = true;
+
   /// True when the current time/position is between sunset and sunrise.
   bool _autoDarkActive = false;
 
@@ -27,18 +28,20 @@ class ThemeProvider extends ChangeNotifier {
   AppThemeId get effective {
     if (_autoDarkEnabled && _autoDarkActive) {
       switch (_current) {
-        case AppThemeId.lightNostr:   return AppThemeId.darkNostr;
-        case AppThemeId.lightBitcoin: return AppThemeId.darkBitcoin;
+        case AppThemeId.lightNostr:
+          return AppThemeId.darkNostr;
+        case AppThemeId.lightBitcoin:
+          return AppThemeId.darkBitcoin;
         case AppThemeId.darkNostr:
-        case AppThemeId.darkBitcoin:  return _current;
+        case AppThemeId.darkBitcoin:
+          return _current;
       }
     }
     return _current;
   }
 
-  ThemeData get themeData         => AppTheme.build(_current);
   ThemeData get effectiveThemeData => AppTheme.build(effective);
-  bool      get autoDarkEnabled   => _autoDarkEnabled;
+  bool get autoDarkEnabled => _autoDarkEnabled;
 
   Future<void> init() async {
     try {
@@ -56,13 +59,17 @@ class ThemeProvider extends ChangeNotifier {
 
   void setTheme(AppThemeId id) {
     _current = id;
-    try { _box?.put(_key, id.index2); } catch (_) {}
+    try {
+      _box?.put(_key, id.index2);
+    } catch (_) {}
     notifyListeners();
   }
 
   void setAutoDarkEnabled(bool v) {
     _autoDarkEnabled = v;
-    try { _box?.put(_autoDarkKey, v); } catch (_) {}
+    try {
+      _box?.put(_autoDarkKey, v);
+    } catch (_) {}
     if (!v) {
       _autoDarkTimer?.cancel();
       _autoDarkActive = false;

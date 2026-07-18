@@ -29,15 +29,15 @@ String randomSubId() =>
 bool verifyEventJson(Map<String, dynamic> json) {
   try {
     final ev = Event(
-      kind:       json['kind'] as int,
-      tags:       (json['tags'] as List)
+      kind: json['kind'] as int,
+      tags: (json['tags'] as List)
           .map((t) => List<String>.from(t as List))
           .toList(),
-      content:    json['content'] as String? ?? '',
+      content: json['content'] as String? ?? '',
       created_at: json['created_at'] as int,
-      id:         json['id'] as String,
-      sig:        json['sig'] as String,
-      pubkey:     json['pubkey'] as String,
+      id: json['id'] as String,
+      sig: json['sig'] as String,
+      pubkey: json['pubkey'] as String,
     );
     if (_eventApi.getEventHash(ev) != ev.id) return false;
     return _eventApi.verifySignature(ev);

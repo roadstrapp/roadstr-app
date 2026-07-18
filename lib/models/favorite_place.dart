@@ -14,11 +14,11 @@ class FavoritePlace {
   });
 
   Map<String, dynamic> toMap() => {
-    'label':   label,
-    'address': address,
-    'lat':     position.latitude,
-    'lon':     position.longitude,
-  };
+        'label': label,
+        'address': address,
+        'lat': position.latitude,
+        'lon': position.longitude,
+      };
 
   static FavoritePlace? fromMapSafe(Map<dynamic, dynamic> m) {
     try {
@@ -26,12 +26,12 @@ class FavoritePlace {
       final lon = (m['lon'] as num?)?.toDouble() ?? double.nan;
       if (!lat.isFinite || lat < -90 || lat > 90) return null;
       if (!lon.isFinite || lon < -180 || lon > 180) return null;
-      final label   = m['label']   as String?;
+      final label = m['label'] as String?;
       final address = m['address'] as String?;
       if (label == null || label.isEmpty) return null;
       return FavoritePlace(
-        label:    label,
-        address:  address ?? '',
+        label: label,
+        address: address ?? '',
         position: LatLng(lat, lon),
       );
     } catch (_) {

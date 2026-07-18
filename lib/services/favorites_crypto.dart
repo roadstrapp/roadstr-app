@@ -18,8 +18,8 @@ class FavoritesDecryptException implements Exception {
 class FavoritesCrypto {
   static const _iterations = 600000;
   static const _saltLen = 16;
-  static const _ivLen = 12;   // GCM standard nonce size
-  static const _keyLen = 32;  // AES-256
+  static const _ivLen = 12; // GCM standard nonce size
+  static const _keyLen = 32; // AES-256
   static const _macBits = 128;
 
   /// Encrypts [plaintext] with [password]. Returns a JSON-serialisable
@@ -29,8 +29,10 @@ class FavoritesCrypto {
     final iv = _randomBytes(_ivLen);
     final key = _deriveKey(password, salt, _iterations);
     final cipher = GCMBlockCipher(AESEngine())
-      ..init(true, AEADParameters(KeyParameter(key), _macBits, iv, Uint8List(0)));
-    final ciphertext = cipher.process(Uint8List.fromList(utf8.encode(plaintext)));
+      ..init(
+          true, AEADParameters(KeyParameter(key), _macBits, iv, Uint8List(0)));
+    final ciphertext =
+        cipher.process(Uint8List.fromList(utf8.encode(plaintext)));
     return {
       'v': 1,
       'iterations': _iterations,
@@ -54,13 +56,16 @@ class FavoritesCrypto {
       // with a huge value (e.g. 2^31) would freeze the app in PBKDF2 for
       // hours — a denial of service via import. Legit files only ever carry
       // [_iterations]; anything outside a sane window is rejected as corrupt.
-      if (iterations < 1000 || iterations > 5000000) {
-        throw const FavoritesDecryptException('wrong password or corrupted file');
+      if (iterations < 1000 || iterations > 1000000) {
+        throw const FavoritesDecryptException(
+            'wrong password or corrupted file');
       }
       final key = _deriveKey(password, Uint8List.fromList(salt), iterations);
       final cipher = GCMBlockCipher(AESEngine())
-        ..init(false, AEADParameters(KeyParameter(key), _macBits,
-            Uint8List.fromList(iv), Uint8List(0)));
+        ..init(
+            false,
+            AEADParameters(KeyParameter(key), _macBits, Uint8List.fromList(iv),
+                Uint8List(0)));
       final plainBytes = cipher.process(Uint8List.fromList(ciphertext));
       return utf8.decode(plainBytes);
     } on FavoritesDecryptException {

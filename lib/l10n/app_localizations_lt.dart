@@ -127,6 +127,13 @@ class AppLocalizationsLt extends AppLocalizations {
       'Neleidžia įjungti miego režimo navigacijos metu';
 
   @override
+  String get autoCenterOnLaunch => 'Paleidžiant centruoti ties mano vieta';
+
+  @override
+  String get autoCenterOnLaunchDesc =>
+      'GPS automatiškai naudojamas tik jei vietos leidimas jau suteiktas';
+
+  @override
   String get rotateMap => 'Žemėlapis seka kryptį';
 
   @override
@@ -735,10 +742,72 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr yra eksperimentinė, atvirojo kodo, bendruomenės prižiūrima navigacijos programėlė, pagrįsta OpenStreetMap duomenimis ir Nostr protokolu, prieinama naudoti bet kurioje šalyje. Atsisiųsdamas, įdiegdamas ar naudodamas šią programėlę, naudotojas besąlygiškai sutinka su visomis toliau nurodytomis sąlygomis, be jokių teritorinių apribojimų.\n\n🚗 KELIŲ EISMO SAUGUMAS PIRMIAUSIA\nVairuotojas visada privalo žiūrėti į kelią ir laikytis visų taikomų kelių eismo taisyklių bei kelio ženklų, kurie visada turi viršenybę prieš bet kokią programėlės nuorodą. Niekada nevaldykite įrenginio vairuodami; prieš pradėdami važiuoti pritvirtinkite jį patvirtintame, gerai matomame laikiklyje ir niekada nenukreipkite dėmesio nuo kelio, kad sąveikautumėte su juo transporto priemonei judant.\n\n⚠️ RIZIKOS PRISIĖMIMAS — VISAME PASAULYJE\nNaudodamasis „Roadstr“ bet kurioje šalyje ir pagal bet kokią teisinę sistemą, naudotojas sąmoningai ir savanoriškai prisiima VISĄ riziką, susijusią su jos naudojimu, įskaitant, bet neapsiribojant: eismo įvykius, kūno sužalojimus, mirtį, turtinę žalą, transporto priemonės apgadinimą, baudas, administracines nuobaudas, evakavimą, transporto priemonės areštą, baudžiamąją atsakomybę arba bet kokias kitas pasekmes, tiesiogiai ar netiesiogiai kylančias iš pasitikėjimo programėle. Naudotojas vienas prisiima visą atsakomybę už kiekvieną vairavimo ir navigacijos sprendimą.\n\n🚫 GARANTIJŲ NETEIKIMAS\n„Roadstr“ teikiama griežtai tokia, „KOKIA YRA“ ir „KOKIA PRIEINAMA“, be jokios rūšies garantijų, nei tiesioginių, nei numanomų, nei įstatymų numatytų — įskaitant, be apribojimų, tikslumo, išsamumo, patikimumo, prieinamumo, tinkamumo parduoti, tinkamumo konkrečiam tikslui ir teisių nepažeidimo garantijas. Žemėlapių duomenys, maršrutų sudarymas, greičio apribojimai, greičio matuokliai ir eismo ribojimo zonų (ZTL/ZAC/LTZ) informacija gaunami iš atvirų, bendruomenės prižiūrimų šaltinių (OpenStreetMap, Overpass API), kurie gali būti neišsamūs, pasenę ar netikslūs bet kurioje šalyje, regione ar savivaldybėje, bet kuriuo metu ir be išankstinio įspėjimo. Naudotojas vienintelis atsako už tai, kad prieš kelionę ir jos metu savarankiškai patikrintų bet kokio siūlomo maršruto teisėtumą ir pravažiuojamumą, palygindamas juos su oficialiais vietos kelio ženklais ir teisės aktais.\n\n📍 TIKSLUMAS IR GPS\nGPS padėties nustatymas gali būti netikslus arba nepasiekiamas. Visos kryptys, atstumai ir įspėjimai pateikiami tik orientaciniais tikslais ir niekada neturėtų būti laikomi vienintele vairavimo sprendimo pagrindu.\n\n🛡️ ATSAKOMYBĖS APRIBOJIMAS\nMaksimalia taikytinos teisės leidžiama apimtimi bet kurioje jurisdikcijoje, kūrėjai, prisidėjusieji asmenys ir bet kuri šalis, dalyvavusi kuriant ar platinant „Roadstr“, neatsako už jokią tiesioginę, netiesioginę, atsitiktinę, pasekminę, specialią, pavyzdinę ar baudinę žalą, įskaitant kūno sužalojimą, mirtį ar finansinius nuostolius, kylančią iš programėlės naudojimo ar negalėjimo ja naudotis arba su tuo susijusią, net jei buvo įspėti apie tokios žalos galimybę. Jei tam tikroje jurisdikcijoje šis apribojimas iš dalies ar visiškai neleidžiamas, atsakomybė apribojama iki mažiausios toje jurisdikcijoje teisės aktais leidžiamos apimties.\n\n🤝 ŽALOS ATLYGINIMAS\nNaudotojas sutinka atlyginti žalą ir apsaugoti kūrėjus bei prisidėjusius asmenis nuo bet kokių pretenzijų, žalos, nuostolių ar išlaidų (įskaitant teisines išlaidas), kylančių dėl naudotojo naudojimosi programėle ar šių sąlygų pažeidimo.\n\n🔒 PRIVATUMAS\nJokie vietos duomenys nėra perduodami į „Roadstr“ pačios serverius. Maršruto skaičiavimas atliekamas per trečiųjų šalių paslaugas (OSRM, GraphHopper, OpenRouteService), kurioms siunčiamos tik pradžios ir paskirties vietos koordinatės.\n\n⚖️ ATSKIRIAMUMAS\nJei kuri nors šių sąlygų nuostata tam tikroje jurisdikcijoje pripažįstama neįgyvendinama, ta nuostata apribojama arba pašalinama minimaliai būtina apimtimi, o visos likusios nuostatos išlieka galioti visa apimtimi.\n\nNaudodamasis „Roadstr“ bet kurioje pasaulio vietoje, naudotojas patvirtina, kad perskaitė, suprato ir besąlygiškai priėmė visas pirmiau nurodytas sąlygas, ir prisiima visą ir besąlygišką atsakomybę — bei visą riziką — už programėlės naudojimą ir bet kokias iš to kylančias pasekmes.';
+      'Roadstr yra eksperimentinė, atvirojo kodo, bendruomenės prižiūrima navigacijos programėlė, pagrįsta OpenStreetMap duomenimis ir Nostr protokolu, prieinama naudoti bet kurioje šalyje. Atsisiųsdamas, įdiegdamas ar naudodamas šią programėlę, naudotojas besąlygiškai sutinka su visomis toliau nurodytomis sąlygomis, be jokių teritorinių apribojimų.\n\n🚗 KELIŲ EISMO SAUGUMAS PIRMIAUSIA\nVairuotojas visada privalo žiūrėti į kelią ir laikytis visų taikomų kelių eismo taisyklių bei kelio ženklų, kurie visada turi viršenybę prieš bet kokią programėlės nuorodą. Niekada nevaldykite įrenginio vairuodami; prieš pradėdami važiuoti pritvirtinkite jį patvirtintame, gerai matomame laikiklyje ir niekada nenukreipkite dėmesio nuo kelio, kad sąveikautumėte su juo transporto priemonei judant.\n\n⚠️ RIZIKOS PRISIĖMIMAS — VISAME PASAULYJE\nNaudodamasis „Roadstr“ bet kurioje šalyje ir pagal bet kokią teisinę sistemą, naudotojas sąmoningai ir savanoriškai prisiima VISĄ riziką, susijusią su jos naudojimu, įskaitant, bet neapsiribojant: eismo įvykius, kūno sužalojimus, mirtį, turtinę žalą, transporto priemonės apgadinimą, baudas, administracines nuobaudas, evakavimą, transporto priemonės areštą, baudžiamąją atsakomybę arba bet kokias kitas pasekmes, tiesiogiai ar netiesiogiai kylančias iš pasitikėjimo programėle. Naudotojas vienas prisiima visą atsakomybę už kiekvieną vairavimo ir navigacijos sprendimą.\n\n🚫 GARANTIJŲ NETEIKIMAS\n„Roadstr“ teikiama griežtai tokia, „KOKIA YRA“ ir „KOKIA PRIEINAMA“, be jokios rūšies garantijų, nei tiesioginių, nei numanomų, nei įstatymų numatytų — įskaitant, be apribojimų, tikslumo, išsamumo, patikimumo, prieinamumo, tinkamumo parduoti, tinkamumo konkrečiam tikslui ir teisių nepažeidimo garantijas. Žemėlapių duomenys, maršrutų sudarymas, greičio apribojimai, greičio matuokliai ir eismo ribojimo zonų (ZTL/ZAC/LTZ) informacija gaunami iš atvirų, bendruomenės prižiūrimų šaltinių (OpenStreetMap, Overpass API), kurie gali būti neišsamūs, pasenę ar netikslūs bet kurioje šalyje, regione ar savivaldybėje, bet kuriuo metu ir be išankstinio įspėjimo. Naudotojas vienintelis atsako už tai, kad prieš kelionę ir jos metu savarankiškai patikrintų bet kokio siūlomo maršruto teisėtumą ir pravažiuojamumą, palygindamas juos su oficialiais vietos kelio ženklais ir teisės aktais.\n\n📍 TIKSLUMAS IR GPS\nGPS padėties nustatymas gali būti netikslus arba nepasiekiamas. Visos kryptys, atstumai ir įspėjimai pateikiami tik orientaciniais tikslais ir niekada neturėtų būti laikomi vienintele vairavimo sprendimo pagrindu.\n\n🛡️ ATSAKOMYBĖS APRIBOJIMAS\nMaksimalia taikytinos teisės leidžiama apimtimi bet kurioje jurisdikcijoje, kūrėjai, prisidėjusieji asmenys ir bet kuri šalis, dalyvavusi kuriant ar platinant „Roadstr“, neatsako už jokią tiesioginę, netiesioginę, atsitiktinę, pasekminę, specialią, pavyzdinę ar baudinę žalą, įskaitant kūno sužalojimą, mirtį ar finansinius nuostolius, kylančią iš programėlės naudojimo ar negalėjimo ja naudotis arba su tuo susijusią, net jei buvo įspėti apie tokios žalos galimybę. Jei tam tikroje jurisdikcijoje šis apribojimas iš dalies ar visiškai neleidžiamas, atsakomybė apribojama iki mažiausios toje jurisdikcijoje teisės aktais leidžiamos apimties.\n\n🤝 ŽALOS ATLYGINIMAS\nNaudotojas sutinka atlyginti žalą ir apsaugoti kūrėjus bei prisidėjusius asmenis nuo bet kokių pretenzijų, žalos, nuostolių ar išlaidų (įskaitant teisines išlaidas), kylančių dėl naudotojo naudojimosi programėle ar šių sąlygų pažeidimo.\n\n🔒 PRIVACY AND NETWORK SERVICES\nRoadstr runs no first-party servers or analytics, but it is not an offline app. When relevant features are used, coordinates or coarse areas and the IP address are sent directly to third parties: routing providers (origin, destination and waypoints), OpenStreetMap/Nominatim/Overpass (search, reverse geocoding, POIs, restricted zones, limits and cameras), Open-Meteo (rounded coordinates), map-tile servers and Nostr relays (city-level geohash). A road report publishes its exact position, time, content and public key to Nostr and is pseudonymous, not anonymous. Favorites and parking remain local unless explicitly exported or synced.\n\n⚖️ ATSKIRIAMUMAS\nJei kuri nors šių sąlygų nuostata tam tikroje jurisdikcijoje pripažįstama neįgyvendinama, ta nuostata apribojama arba pašalinama minimaliai būtina apimtimi, o visos likusios nuostatos išlieka galioti visa apimtimi.\n\nNaudodamasis „Roadstr“ bet kurioje pasaulio vietoje, naudotojas patvirtina, kad perskaitė, suprato ir besąlygiškai priėmė visas pirmiau nurodytas sąlygas, ir prisiima visą ir besąlygišką atsakomybę — bei visą riziką — už programėlės naudojimą ir bet kokias iš to kylančias pasekmes.';
 
   @override
   String get readOnWikipedia => 'Skaityti Vikipedijoje';
+
+  @override
+  String get openInBrowser => 'Atidaryti naršyklėje';
+
+  @override
+  String get wikipediaLoadFailed => 'Nepavyko saugiai įkelti Vikipedijos.';
+
+  @override
+  String get retry => 'Bandyti dar kartą';
+
+  @override
+  String get poiDetailsFromOsm => 'Informacija iš OpenStreetMap';
+
+  @override
+  String get poiCategory => 'Kategorija';
+
+  @override
+  String get poiOperator => 'Operatorius';
+
+  @override
+  String get poiCuisine => 'Virtuvė';
+
+  @override
+  String get poiAccessibility => 'Prieinamumas';
+
+  @override
+  String get poiWheelchairYes => 'Prieinama neįgaliojo vežimėliu';
+
+  @override
+  String get poiWheelchairLimited =>
+      'Ribotas pritaikymas neįgaliojo vežimėliui';
+
+  @override
+  String get poiWheelchairNo => 'Neprieinama neįgaliojo vežimėliu';
+
+  @override
+  String get poiContact => 'Kontaktai';
+
+  @override
+  String get poiAddress => 'Adresas';
+
+  @override
+  String get poiWebsite => 'Svetainė';
+
+  @override
+  String get gpsSignalLost => 'Prarastas GPS signalas';
+
+  @override
+  String get poiOpenNow => 'Dabar atidaryta';
+
+  @override
+  String get poiClosedNow => 'Uždaryta';
+
+  @override
+  String poiOpensAt(String when) {
+    return 'Atsidaro: $when';
+  }
+
+  @override
+  String poiClosesAt(String when) {
+    return 'Užsidaro: $when';
+  }
 
   @override
   String searchOnEngine(String engine) {
@@ -907,7 +976,7 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.';
+      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
 
   @override
   String get onboardingVoiceTitle => 'AI balso gidavimas (neprivaloma)';
@@ -1062,10 +1131,6 @@ class AppLocalizationsLt extends AppLocalizations {
   @override
   String get onboardingVpnNotice =>
       'Maksimaliam privatumui — pranešimai platinami Nostr tinkle — rekomenduojama naudoti VPN. Rekomenduojamas pasirinkimas — Mullvad, už kurį galima mokėti bitkoinais.';
-
-  @override
-  String get onboardingGrapheneAlwaysAllow =>
-      'Kad programa veiktų patikimai, nustatykite vietos leidimą į „Leisti visada“, o ne tik naudojant programą.';
 
   @override
   String get trafficNormal => 'Įprastas eismas';

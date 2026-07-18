@@ -48,6 +48,8 @@ class NostrProfile {
 ///   - Client sends `["EVENT", eventJson]` to publish; relay responds `["OK", ...]`.
 class NostrRelayService {
   final _eventApi = EventApi();
+  static const _maxInboundMessageChars = 256 * 1024;
+  static const _maxCachedEvents = 1000;
 
   /// Primary relays used for subscriptions (tried in round-robin order on
   /// failure). NB: relay.nostr.band was deliberately REMOVED — this is the
@@ -72,7 +74,7 @@ class NostrRelayService {
   /// Intentionally NOT cleared on re-subscribe: valid events remain visible on
   /// the map during the brief gap between sending CLOSE and receiving new EVENTs.
   /// Expired events are purged by the [_cleanupTimer] every 2 minutes.
-  final _events     = <String, RoadEvent>{};
+  final _events = <String, RoadEvent>{};
   final _controller = StreamController<List<RoadEvent>>.broadcast();
 
   WebSocketChannel? _ws;
@@ -85,12 +87,13 @@ class NostrRelayService {
   Timer? _cleanupTimer;
 
   /// Index into [_relays] for round-robin failover.
-  int    _relayIdx  = 0;
-  bool   _connected = false;
+  int _relayIdx = 0;
+  bool _connected = false;
+  bool _disposed = false;
 
   /// NIP-01 subscription IDs so we can send CLOSE before a new REQ.
-  String _eventsSubId  = '';
-  String _confSubId    = '';
+  String _eventsSubId = '';
+  String _confSubId = '';
 
   /// The geohash (precision 4) of the last subscribed area.
   /// Compared on each [subscribeArea] call to avoid redundant REQ messages.
@@ -104,6 +107,7 @@ class NostrRelayService {
   /// Enforces one vote per identity per event and makes re-fetched
   /// confirmations idempotent. Pruned together with expired events.
   final _countedVotes = <String>{};
+  final _publishAcks = <String, Completer<bool>>{};
 
   // ── public API ─────────────────────────────────────────────────────────────
 
@@ -118,20 +122,23 @@ class NostrRelayService {
   /// If a previous subscription existed, it is replayed on the new connection
   /// so the caller does not need to call [subscribeArea] again after reconnect.
   Future<void> connect() async {
-    _wsSub?.cancel();
+    if (_disposed) return;
+    await _wsSub?.cancel();
     _ws?.sink.close().catchError((_) {});
     _connected = false;
     // Remove stale events every 2 minutes without waiting for a new GPS position.
     _cleanupTimer?.cancel();
-    _cleanupTimer = Timer.periodic(const Duration(minutes: 2), (_) => _removeExpired());
+    _cleanupTimer =
+        Timer.periodic(const Duration(minutes: 2), (_) => _removeExpired());
 
     final url = _relays[_relayIdx % _relays.length];
     try {
+      if (_disposed) return;
       _ws = WebSocketChannel.connect(Uri.parse(url));
       _wsSub = _ws!.stream.listen(
         _onMessage,
         onError: (_) => _scheduleReconnect(),
-        onDone:  _scheduleReconnect,
+        onDone: _scheduleReconnect,
         cancelOnError: false,
       );
       _connected = true;
@@ -160,12 +167,18 @@ class NostrRelayService {
   /// relay sends new EVENTs. Instead, valid events accumulate; the 2-minute
   /// cleanup timer removes expired ones.
   void subscribeArea(LatLng center) {
+    if (_disposed) return;
     final g4 = _gh(center.latitude, center.longitude, 4);
     // Skip if the user is still inside the same geohash cell as before.
     if (_lastGeohashes.length == 1 && _lastGeohashes[0] == g4) return;
     _lastGeohashes = [g4];
     _pendingIds.clear();
-    // Keep _events intact — valid markers remain visible during relay round-trip.
+    // Keep nearby markers during the relay round-trip, but discard areas from
+    // earlier legs of a long journey so the map/cache cannot grow for 30 days.
+    const distance = Distance();
+    _events.removeWhere((_, event) =>
+        distance.as(LengthUnit.Kilometer, center, event.position) > 100);
+    _pruneVotes();
     if (_connected) _sendEventsReq(_lastGeohashes);
   }
 
@@ -181,13 +194,14 @@ class NostrRelayService {
     required String pubKeyHex,
   }) async {
     _requireConnected();
-    final now     = _nowS();
-    final expires = now + 14 * 86400;
-    final signed  = _eventApi.finishEvent(
+    _validatePublishInput(position, comment, pubKeyHex);
+    final now = _nowS();
+    final expires = now + category.ttlSeconds;
+    final signed = _eventApi.finishEvent(
       Event(
-        pubkey:     pubKeyHex,
+        pubkey: pubKeyHex,
         created_at: now,
-        kind:       1315,
+        kind: 1315,
         tags: [
           ['lat', position.latitude.toStringAsFixed(7)],
           ['lon', position.longitude.toStringAsFixed(7)],
@@ -201,15 +215,17 @@ class NostrRelayService {
       ),
       privKeyHex,
     );
-    // Publish to all configured relays for maximum redundancy.
-    _sendToAll(['EVENT', signed.toJson()]);
+    if (!verifyEventJson(signed.toJson())) {
+      throw const FormatException('The local Nostr key pair does not match');
+    }
+    await _publishEvent(signed.toJson());
     // Return the local event with the same ID the relay will assign.
     return RoadEvent(
-      id:        signed.id,
-      pubkey:    pubKeyHex,
-      category:  category,
-      position:  position,
-      comment:   comment,
+      id: signed.id,
+      pubkey: pubKeyHex,
+      category: category,
+      position: position,
+      comment: comment,
       createdAt: now,
       expiresAt: expires,
     );
@@ -228,11 +244,14 @@ class NostrRelayService {
     required String pubKeyHex,
   }) async {
     _requireConnected();
+    if (!_isHex32(eventId) || !_isHex32(pubKeyHex)) {
+      throw const FormatException('Invalid Nostr confirmation fields');
+    }
     final signed = _eventApi.finishEvent(
       Event(
-        pubkey:     pubKeyHex,
+        pubkey: pubKeyHex,
         created_at: _nowS(),
-        kind:       1316,
+        kind: 1316,
         tags: [
           ['e', eventId],
           ['status', stillThere ? 'still_there' : 'no_longer_there'],
@@ -241,27 +260,37 @@ class NostrRelayService {
       ),
       privKeyHex,
     );
-    _send(['EVENT', signed.toJson()]);
+    if (!verifyEventJson(signed.toJson())) {
+      throw const FormatException('The local Nostr key pair does not match');
+    }
+    await _publishEvent(signed.toJson());
   }
 
   void dispose() {
+    if (_disposed) return;
+    _disposed = true;
+    _connected = false;
     _reconnectTimer?.cancel();
     _confTimer?.cancel();
     _cleanupTimer?.cancel();
     _wsSub?.cancel();
     _ws?.sink.close().catchError((_) {});
+    for (final ack in _publishAcks.values) {
+      if (!ack.isCompleted) ack.complete(false);
+    }
+    _publishAcks.clear();
     _controller.close();
   }
 
   /// Removes expired events from the cache and pushes an updated list downstream.
   void _removeExpired() {
+    if (_disposed) return;
     final before = _events.length;
     _events.removeWhere((_, ev) => ev.isExpired);
     if (_events.length != before) {
       // Drop vote records for events that no longer exist.
-      _countedVotes.removeWhere(
-          (v) => !_events.containsKey(v.substring(0, v.indexOf(':'))));
-      _controller.add(currentEvents);
+      _pruneVotes();
+      if (!_controller.isClosed) _controller.add(currentEvents);
     }
   }
 
@@ -275,6 +304,7 @@ class NostrRelayService {
 
   /// Increments [_relayIdx] so the next [connect] call uses a different relay.
   void _scheduleReconnect() {
+    if (_disposed) return;
     _connected = false;
     _reconnectTimer?.cancel();
     _relayIdx++;
@@ -282,32 +312,81 @@ class NostrRelayService {
   }
 
   void _send(dynamic msg) {
-    try { _ws?.sink.add(jsonEncode(msg)); } catch (_) {}
+    if (_disposed) return;
+    try {
+      _ws?.sink.add(jsonEncode(msg));
+    } catch (_) {}
   }
 
-  /// Sends [msg] to the active relay AND to every relay in [_publishRelays] via
-  /// short-lived WebSocket connections (fire-and-forget). This ensures events
-  /// reach as many relays as possible even if the user's primary relay is slow.
-  void _sendToAll(dynamic msg) {
-    _send(msg); // Primary relay (persistent WebSocket)
-    // Secondary relays: open a one-shot connection just to publish.
+  /// Publishes to the persistent relay and all secondary relays concurrently.
+  /// Success means at least one relay returned a positive NIP-01 `OK`; merely
+  /// writing bytes to a socket is not reported to the UI as a publication.
+  Future<void> _publishEvent(Map<String, dynamic> eventJson) async {
+    final id = eventJson['id'] as String;
+    final primaryAck = Completer<bool>();
+    _publishAcks[id] = primaryAck;
+    _send(['EVENT', eventJson]);
+
+    final attempts = <Future<bool>>[
+      primaryAck.future.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => false,
+      ),
+    ];
     for (final url in _publishRelays) {
-      if (url == _relays[_relayIdx % _relays.length]) continue; // already sent above
-      _publishToRelay(url, msg);
+      if (url == _relays[_relayIdx % _relays.length]) {
+        continue;
+      }
+      attempts.add(_publishToRelay(url, eventJson));
+    }
+    try {
+      final accepted = (await Future.wait(attempts)).any((ok) => ok);
+      if (!accepted) throw Exception('All Nostr relays rejected or timed out');
+    } finally {
+      _publishAcks.remove(id);
     }
   }
 
-  /// Opens a temporary WebSocket to [url], publishes [msg], waits 3 s for the
-  /// relay OK, then closes. Errors are silently swallowed — this is best-effort.
-  Future<void> _publishToRelay(String url, dynamic msg) async {
+  Future<bool> _publishToRelay(
+      String url, Map<String, dynamic> eventJson) async {
     WebSocketChannel? ws;
+    StreamSubscription<dynamic>? subscription;
     try {
       ws = WebSocketChannel.connect(Uri.parse(url));
-      ws.sink.add(jsonEncode(msg));
-      // Give the relay time to process before closing.
-      await Future.delayed(const Duration(seconds: 3));
+      final ack = Completer<bool>();
+      subscription = ws.stream.listen(
+        (raw) {
+          if (ack.isCompleted ||
+              raw is! String ||
+              raw.length > _maxInboundMessageChars) {
+            return;
+          }
+          try {
+            final msg = jsonDecode(raw) as List;
+            if (msg.length >= 3 &&
+                msg[0] == 'OK' &&
+                msg[1] == eventJson['id']) {
+              ack.complete(msg[2] == true);
+            }
+          } catch (_) {}
+        },
+        onError: (_) {
+          if (!ack.isCompleted) ack.complete(false);
+        },
+        onDone: () {
+          if (!ack.isCompleted) ack.complete(false);
+        },
+      );
+      await ws.ready.timeout(const Duration(seconds: 5));
+      ws.sink.add(jsonEncode(['EVENT', eventJson]));
+      return await ack.future.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => false,
+      );
     } catch (_) {
+      return false;
     } finally {
+      await subscription?.cancel();
       ws?.sink.close().catchError((_) {});
     }
   }
@@ -317,13 +396,17 @@ class NostrRelayService {
   void _sendEventsReq(List<String> geohashes) {
     if (_eventsSubId.isNotEmpty) _send(['CLOSE', _eventsSubId]);
     _eventsSubId = randomSubId();
-    _send(['REQ', _eventsSubId, {
-      'kinds': [1315],
-      '#g':    geohashes,
-      // Fetch up to 14 days of history to match the maximum event expiration TTL.
-      'since': _nowS() - 14 * 86400,
-      'limit': 500,
-    }]);
+    _send([
+      'REQ',
+      _eventsSubId,
+      {
+        'kinds': [1315],
+        '#g': geohashes,
+        // Speed-camera reports have the longest category TTL (30 days).
+        'since': _nowS() - 30 * 86400,
+        'limit': 500,
+      }
+    ]);
   }
 
   /// Sends a NIP-01 REQ for kind-1316 confirmation/denial events that reference
@@ -332,12 +415,16 @@ class NostrRelayService {
     if (ids.isEmpty) return;
     if (_confSubId.isNotEmpty) _send(['CLOSE', _confSubId]);
     _confSubId = randomSubId();
-    _send(['REQ', _confSubId, {
-      'kinds': [1316],
-      '#e':    ids,
-      'since': _nowS() - 14 * 86400,
-      'limit': 1000,
-    }]);
+    _send([
+      'REQ',
+      _confSubId,
+      {
+        'kinds': [1316],
+        '#e': ids,
+        'since': _nowS() - 30 * 86400,
+        'limit': 1000,
+      }
+    ]);
   }
 
   /// Dispatches incoming NIP-01 relay messages to the appropriate handler.
@@ -352,25 +439,40 @@ class NostrRelayService {
   ///             back-to-back EOSE signals don't trigger multiple conf REQs.
   void _onMessage(dynamic raw) {
     try {
-      final msg = jsonDecode(raw as String) as List;
+      if (_disposed || raw is! String || raw.length > _maxInboundMessageChars) {
+        return;
+      }
+      final msg = jsonDecode(raw) as List;
+      if (msg.isEmpty) return;
       switch (msg[0] as String) {
         case 'OK':
           // Format: ['OK', event_id, accepted, reason]
+          if (msg.length >= 3 && msg[1] is String) {
+            final ack = _publishAcks[msg[1]];
+            if (ack != null && !ack.isCompleted) ack.complete(msg[2] == true);
+          }
           if (msg.length >= 3 && msg[2] == false) {
-            debugPrint('[Nostr] Relay rejected event ${msg[1]}: ${msg.length > 3 ? msg[3] : ""}');
+            debugPrint(
+                '[Nostr] Relay rejected event ${msg[1]}: ${msg.length > 3 ? msg[3] : ""}');
           }
         case 'NOTICE':
-          debugPrint('[Nostr] NOTICE from relay: ${msg.length > 1 ? msg[1] : ""}');
+          debugPrint(
+              '[Nostr] NOTICE from relay: ${msg.length > 1 ? msg[1] : ""}');
         case 'EVENT':
-          final json = msg[2] as Map<String, dynamic>;
+          if (msg.length < 3) return;
+          final json = (msg[2] as Map).cast<String, dynamic>();
           // Relays are untrusted: drop events whose id doesn't match the
           // canonical hash or whose Schnorr signature is invalid. Without
           // this check a malicious relay could fabricate road events or
           // confirmations attributed to any pubkey.
           if (!_verifyEvent(json)) return;
           switch (json['kind'] as int) {
-            case 1315: _handleRoadEvent(json);
-            case 1316: _handleConfirmation(json);
+            case 1315:
+              if (msg[1] != _eventsSubId) return;
+              _handleRoadEvent(json);
+            case 1316:
+              if (msg[1] != _confSubId) return;
+              _handleConfirmation(json);
           }
         case 'EOSE':
           if (msg[1] == _eventsSubId) {
@@ -395,22 +497,45 @@ class NostrRelayService {
   void _handleRoadEvent(Map<String, dynamic> json) {
     final event = RoadEvent.fromNostr(json);
     if (event == null) return;
+    final geohashes = (json['tags'] as List)
+        .whereType<List>()
+        .where((tag) => tag.length >= 2 && tag[0] == 'g')
+        .map((tag) => tag[1].toString())
+        .toSet();
+    if (!geohashes.contains(
+            _gh(event.position.latitude, event.position.longitude, 4)) ||
+        !geohashes.contains(
+            _gh(event.position.latitude, event.position.longitude, 5)) ||
+        !geohashes.contains(
+            _gh(event.position.latitude, event.position.longitude, 6))) {
+      return;
+    }
     _events[event.id] = event;
+    if (_events.length > _maxCachedEvents) {
+      final oldest =
+          _events.values.reduce((a, b) => a.createdAt <= b.createdAt ? a : b);
+      _events.remove(oldest.id);
+      _pruneVotes();
+    }
     _pendingIds.add(event.id);
-    _controller.add(currentEvents);
+    if (!_controller.isClosed) _controller.add(currentEvents);
   }
 
   void _handleConfirmation(Map<String, dynamic> json) {
     final tags = (json['tags'] as List)
         .map((t) => List<String>.from(t as List))
         .toList();
-    String? targetId, status;
+    final targetIds = <String>[];
+    final statuses = <String>[];
     for (final t in tags) {
       if (t.length < 2) continue;
-      if (t[0] == 'e')      targetId = t[1];
-      if (t[0] == 'status') status   = t[1];
+      if (t[0] == 'e') targetIds.add(t[1]);
+      if (t[0] == 'status') statuses.add(t[1]);
     }
-    if (targetId == null || status == null) return;
+    if (targetIds.length != 1 || statuses.length != 1) return;
+    final targetId = targetIds.single;
+    final status = statuses.single;
+    if (status != 'still_there' && status != 'no_longer_there') return;
     final ev = _events[targetId];
     if (ev == null) return;
     // One vote per pubkey per event: prevents a single identity from
@@ -418,9 +543,20 @@ class NostrRelayService {
     // re-fetched after every re-subscription.
     final voter = '$targetId:${json['pubkey']}';
     if (!_countedVotes.add(voter)) return;
-    if (status == 'still_there')      ev.confirmations++;
-    else if (status == 'no_longer_there') ev.denials++;
-    _controller.add(currentEvents);
+    if (status == 'still_there') {
+      ev.confirmations++;
+    } else if (status == 'no_longer_there') {
+      ev.denials++;
+    }
+    if (!_controller.isClosed) _controller.add(currentEvents);
+  }
+
+  void _pruneVotes() {
+    _countedVotes.removeWhere((vote) {
+      final separator = vote.indexOf(':');
+      return separator <= 0 ||
+          !_events.containsKey(vote.substring(0, separator));
+    });
   }
 
   // ── Geohash encoder (pure Dart, no external dependencies) ───────────────
@@ -443,16 +579,30 @@ class NostrRelayService {
     while (buf.length < precision) {
       if (isLon) {
         final mid = (minLon + maxLon) / 2;
-        if (lon >= mid) { bits = (bits << 1) | 1; minLon = mid; }
-        else            { bits = bits << 1;         maxLon = mid; }
+        if (lon >= mid) {
+          bits = (bits << 1) | 1;
+          minLon = mid;
+        } else {
+          bits = bits << 1;
+          maxLon = mid;
+        }
       } else {
         final mid = (minLat + maxLat) / 2;
-        if (lat >= mid) { bits = (bits << 1) | 1; minLat = mid; }
-        else            { bits = bits << 1;         maxLat = mid; }
+        if (lat >= mid) {
+          bits = (bits << 1) | 1;
+          minLat = mid;
+        } else {
+          bits = bits << 1;
+          maxLat = mid;
+        }
       }
       isLon = !isLon;
       // Every 5 bits form one base-32 character.
-      if (++count == 5) { buf.write(_gh32[bits]); bits = 0; count = 0; }
+      if (++count == 5) {
+        buf.write(_gh32[bits]);
+        bits = 0;
+        count = 0;
+      }
     }
     return buf.toString();
   }
@@ -471,9 +621,9 @@ class NostrRelayService {
     required int expires,
   }) {
     final event = Event(
-      pubkey:     pubKeyHex,
+      pubkey: pubKeyHex,
       created_at: now,
-      kind:       1315,
+      kind: 1315,
       tags: [
         ['lat', position.latitude.toStringAsFixed(7)],
         ['lon', position.longitude.toStringAsFixed(7)],
@@ -497,9 +647,9 @@ class NostrRelayService {
     required String pubKeyHex,
   }) {
     final event = Event(
-      pubkey:     pubKeyHex,
+      pubkey: pubKeyHex,
       created_at: _nowS(),
-      kind:       1316,
+      kind: 1316,
       tags: [
         ['e', eventId],
         ['status', stillThere ? 'still_there' : 'no_longer_there'],
@@ -519,26 +669,72 @@ class NostrRelayService {
     required String comment,
     required int now,
     required int expires,
+    required String expectedPubKeyHex,
   }) async {
     _requireConnected();
+    if (!verifyEventJson(eventJson) || eventJson['kind'] != 1315) {
+      throw const FormatException('Signer returned an invalid road event');
+    }
+    final parsed = RoadEvent.fromNostr(eventJson);
+    if (parsed == null ||
+        parsed.category != category ||
+        const Distance().as(LengthUnit.Meter, parsed.position, position) > 1 ||
+        parsed.comment != comment ||
+        parsed.pubkey != expectedPubKeyHex ||
+        parsed.createdAt != now ||
+        parsed.expiresAt != expires) {
+      throw const FormatException('Signer changed the road report payload');
+    }
     // Same redundancy as the nsec path (publishRoadEvent): all publish relays,
     // not just the primary — Amber users' reports must propagate equally well.
-    _sendToAll(['EVENT', eventJson]);
+    await _publishEvent(eventJson);
     return RoadEvent(
-      id:        eventJson['id'] as String,
-      pubkey:    eventJson['pubkey'] as String,
-      category:  category,
-      position:  position,
-      comment:   comment,
+      id: eventJson['id'] as String,
+      pubkey: eventJson['pubkey'] as String,
+      category: category,
+      position: position,
+      comment: comment,
       createdAt: now,
       expiresAt: expires,
     );
   }
 
-  /// Publishes a pre-signed event of any kind (typically kind 1316) without
-  /// returning a value. Used when the caller handles local state updates itself.
-  void publishRawEvent(Map<String, dynamic> eventJson) {
-    if (_connected) _sendToAll(['EVENT', eventJson]);
+  /// Publishes an externally-signed event only if the signer preserved every
+  /// canonical field of the event that Roadstr asked it to sign.
+  Future<void> publishRawEvent(
+    Map<String, dynamic> eventJson, {
+    required Map<String, dynamic> expectedUnsigned,
+  }) async {
+    _requireConnected();
+    if (!verifyEventJson(eventJson)) {
+      throw const FormatException('Signer returned an invalid Nostr event');
+    }
+    for (final field in const ['pubkey', 'created_at', 'kind', 'content']) {
+      if (eventJson[field] != expectedUnsigned[field]) {
+        throw const FormatException('Signer changed the Nostr event payload');
+      }
+    }
+    if (jsonEncode(eventJson['tags']) != jsonEncode(expectedUnsigned['tags'])) {
+      throw const FormatException('Signer changed the Nostr event tags');
+    }
+    await _publishEvent(eventJson);
+  }
+
+  static bool _isHex32(String value) =>
+      RegExp(r'^[0-9a-fA-F]{64}$').hasMatch(value);
+
+  static void _validatePublishInput(
+      LatLng position, String comment, String pubKeyHex) {
+    if (!position.latitude.isFinite ||
+        !position.longitude.isFinite ||
+        position.latitude < -90 ||
+        position.latitude > 90 ||
+        position.longitude < -180 ||
+        position.longitude > 180 ||
+        comment.length > 200 ||
+        !_isHex32(pubKeyHex)) {
+      throw const FormatException('Invalid road report fields');
+    }
   }
 
   /// Fetches all kind-1315 road events published by [pubHex] from a public relay,
@@ -549,23 +745,27 @@ class NostrRelayService {
   ///   2. Fetch confirmations (`confSub`) filtered by the collected event IDs.
   static Future<List<RoadEvent>> fetchUserEvents(String pubHex,
       {int limit = 100}) async {
+    if (!_isHex32(pubHex)) return [];
+    final safeLimit = limit.clamp(1, 500);
     WebSocketChannel? ws;
     try {
       ws = WebSocketChannel.connect(Uri.parse('wss://relay.damus.io'));
-      final events    = <RoadEvent>[];
-      final eventIds  = <String>[];
+      final events = <RoadEvent>[];
+      final eventIds = <String>{};
       // One vote per pubkey per event, and dedupe re-delivered events —
       // same anti-inflation rules the live stream enforces via _countedVotes.
       final countedVotes = <String>{};
       final completer = Completer<List<RoadEvent>>();
-      final evSub  = randomSubId();
+      final evSub = randomSubId();
       final confSub = randomSubId();
+      var confirmationRequested = false;
 
       ws.stream.listen(
         (raw) {
           if (completer.isCompleted) return;
           try {
-            final msg = jsonDecode(raw as String) as List;
+            if (raw is! String || raw.length > _maxInboundMessageChars) return;
+            final msg = jsonDecode(raw) as List;
             if (msg[0] == 'EVENT') {
               final json = (msg[2] as Map).cast<String, dynamic>();
               // Same trust rule as the live subscription: verify id + signature
@@ -573,48 +773,76 @@ class NostrRelayService {
               if (!verifyEventJson(json)) return;
               if (msg[1] == evSub && json['kind'] == 1315) {
                 final ev = RoadEvent.fromNostr(json);
-                if (ev != null && !eventIds.contains(ev.id)) {
+                if (ev != null && eventIds.add(ev.id)) {
                   events.add(ev);
-                  eventIds.add(ev.id);
                 }
               } else if (msg[1] == confSub && json['kind'] == 1316) {
                 final tags = (json['tags'] as List)
-                    .map((t) => List<String>.from(t as List)).toList();
-                String? targetId, status;
+                    .map((t) => List<String>.from(t as List))
+                    .toList();
+                final targetIds = <String>[];
+                final statuses = <String>[];
                 for (final t in tags) {
                   if (t.length < 2) continue;
-                  if (t[0] == 'e') targetId = t[1];
-                  if (t[0] == 'status') status = t[1];
+                  if (t[0] == 'e') targetIds.add(t[1]);
+                  if (t[0] == 'status') statuses.add(t[1]);
                 }
-                if (targetId == null || status == null) return;
+                if (targetIds.length != 1 || statuses.length != 1) return;
+                final targetId = targetIds.single;
+                final status = statuses.single;
+                if (status != 'still_there' && status != 'no_longer_there') {
+                  return;
+                }
                 final idx = events.indexWhere((e) => e.id == targetId);
                 if (idx < 0) return;
                 if (!countedVotes.add('$targetId:${json['pubkey']}')) return;
-                if (status == 'still_there') events[idx].confirmations++;
-                else if (status == 'no_longer_there') events[idx].denials++;
+                if (status == 'still_there') {
+                  events[idx].confirmations++;
+                } else if (status == 'no_longer_there') {
+                  events[idx].denials++;
+                }
               }
             } else if (msg[0] == 'EOSE') {
               if (msg[1] == evSub) {
-                if (eventIds.isEmpty) { completer.complete(events); return; }
-                ws?.sink.add(jsonEncode(['REQ', confSub, {
-                  'kinds': [1316], '#e': eventIds, 'limit': 500,
-                }]));
+                if (confirmationRequested) return;
+                confirmationRequested = true;
+                if (eventIds.isEmpty) {
+                  completer.complete(events);
+                  return;
+                }
+                ws?.sink.add(jsonEncode([
+                  'REQ',
+                  confSub,
+                  {
+                    'kinds': [1316],
+                    '#e': eventIds.toList(),
+                    'limit': 500,
+                  }
+                ]));
               } else if (msg[1] == confSub) {
                 if (!completer.isCompleted) completer.complete(events);
               }
             }
           } catch (_) {}
         },
-        onError: (_) { if (!completer.isCompleted) completer.complete(events); },
-        onDone:  () { if (!completer.isCompleted) completer.complete(events); },
+        onError: (_) {
+          if (!completer.isCompleted) completer.complete(events);
+        },
+        onDone: () {
+          if (!completer.isCompleted) completer.complete(events);
+        },
       );
 
-      ws.sink.add(jsonEncode(['REQ', evSub, {
-        'kinds': [1315],
-        'authors': [pubHex],
-        'since': _nowS() - 30 * 86400, // last 30 days
-        'limit': limit,
-      }]));
+      ws.sink.add(jsonEncode([
+        'REQ',
+        evSub,
+        {
+          'kinds': [1315],
+          'authors': [pubHex],
+          'since': _nowS() - 30 * 86400, // last 30 days
+          'limit': safeLimit,
+        }
+      ]));
 
       return await completer.future.timeout(
         const Duration(seconds: 12),
@@ -647,6 +875,7 @@ class NostrRelayService {
   /// This makes profile loading resilient to relay outages, which is the most
   /// common reason for the picture/name not loading after nsec login.
   static Future<NostrProfile?> fetchProfile(String pubHex) async {
+    if (!_isHex32(pubHex)) return null;
     for (final relayUrl in _profileRelays) {
       final result = await _fetchProfileFromRelay(pubHex, relayUrl);
       if (result != null) return result;
@@ -661,38 +890,53 @@ class NostrRelayService {
       ws = WebSocketChannel.connect(Uri.parse(relayUrl));
       final completer = Completer<NostrProfile?>();
       final subId = randomSubId();
+      NostrProfile? latest;
+      var latestCreatedAt = -1;
 
       ws.stream.listen(
         (raw) {
           if (completer.isCompleted) return;
           try {
-            final msg = jsonDecode(raw as String) as List;
+            if (raw is! String || raw.length > _maxInboundMessageChars) return;
+            final msg = jsonDecode(raw) as List;
             if (msg[0] == 'EVENT' && msg[1] == subId) {
               final json = (msg[2] as Map).cast<String, dynamic>();
               // Verify author + id + signature: a forged kind-0 would let a
               // malicious relay plant an arbitrary display name/avatar.
               if (json['pubkey'] != pubHex || !verifyEventJson(json)) return;
-              final meta = jsonDecode(json['content'] as String)
-                  as Map<String, dynamic>;
-              completer.complete(NostrProfile(
-                name:        meta['name']         as String?,
-                displayName: meta['display_name'] as String?,
-                picture:     meta['picture']      as String?,
-              ));
-            } else if (msg[0] == 'EOSE') {
-              if (!completer.isCompleted) completer.complete(null);
+              final meta =
+                  jsonDecode(json['content'] as String) as Map<String, dynamic>;
+              final createdAt = json['created_at'] as int? ?? -1;
+              if (createdAt > latestCreatedAt) {
+                latestCreatedAt = createdAt;
+                latest = NostrProfile(
+                  name: _boundedText(meta['name'], 100),
+                  displayName: _boundedText(meta['display_name'], 100),
+                  picture: _safePictureUrl(meta['picture']),
+                );
+              }
+            } else if (msg[0] == 'EOSE' && msg[1] == subId) {
+              if (!completer.isCompleted) completer.complete(latest);
             }
-          } catch (_) {
-            if (!completer.isCompleted) completer.complete(null);
-          }
+          } catch (_) {}
         },
-        onError: (_) { if (!completer.isCompleted) completer.complete(null); },
-        onDone:  () { if (!completer.isCompleted) completer.complete(null); },
+        onError: (_) {
+          if (!completer.isCompleted) completer.complete(null);
+        },
+        onDone: () {
+          if (!completer.isCompleted) completer.complete(null);
+        },
       );
 
-      ws.sink.add(jsonEncode(['REQ', subId, {
-        'kinds': [0], 'authors': [pubHex], 'limit': 1,
-      }]));
+      ws.sink.add(jsonEncode([
+        'REQ',
+        subId,
+        {
+          'kinds': [0],
+          'authors': [pubHex],
+          'limit': 1,
+        }
+      ]));
 
       return await completer.future.timeout(
         const Duration(seconds: 5),
@@ -703,5 +947,39 @@ class NostrRelayService {
     } finally {
       ws?.sink.close().catchError((_) {});
     }
+  }
+
+  static String? _boundedText(dynamic value, int maxLength) {
+    if (value is! String) return null;
+    final clean = value.trim();
+    if (clean.isEmpty) return null;
+    return clean.length <= maxLength ? clean : clean.substring(0, maxLength);
+  }
+
+  static String? _safePictureUrl(dynamic value) {
+    if (value is! String || value.length > 2048) return null;
+    final uri = Uri.tryParse(value);
+    if (uri == null ||
+        uri.scheme != 'https' ||
+        uri.host.isEmpty ||
+        uri.userInfo.isNotEmpty) {
+      return null;
+    }
+    final host = uri.host.toLowerCase();
+    if (host == 'localhost' || host.endsWith('.localhost')) return null;
+    final ipv4 = RegExp(r'^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$')
+        .firstMatch(host);
+    if (ipv4 != null) {
+      final bytes = [for (var i = 1; i <= 4; i++) int.parse(ipv4.group(i)!)];
+      if (bytes.any((v) => v > 255) ||
+          bytes[0] == 10 ||
+          bytes[0] == 127 ||
+          (bytes[0] == 169 && bytes[1] == 254) ||
+          (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31) ||
+          (bytes[0] == 192 && bytes[1] == 168)) {
+        return null;
+      }
+    }
+    return uri.toString();
   }
 }

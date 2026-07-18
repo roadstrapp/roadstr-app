@@ -126,6 +126,13 @@ class AppLocalizationsSl extends AppLocalizations {
   String get keepScreenOnDescription => 'Prepreči spanje med navigacijo';
 
   @override
+  String get autoCenterOnLaunch => 'Ob zagonu usredišči na mojo lokacijo';
+
+  @override
+  String get autoCenterOnLaunchDesc =>
+      'GPS samodejno uporabi le, če je dovoljenje za lokacijo že odobreno';
+
+  @override
   String get rotateMap => 'Zemljevid sledi smeri';
 
   @override
@@ -730,10 +737,71 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr je eksperimentalna, odprtokodna, s strani skupnosti vzdrževana navigacijska aplikacija, ki temelji na podatkih OpenStreetMap in protokolu Nostr ter je na voljo za uporabo v kateri koli državi. S prenosom, namestitvijo ali uporabo te aplikacije uporabnik brezpogojno sprejme vse spodaj navedene pogoje, brez ozemeljske omejitve.\n\n🚗 VARNOST V CESTNEM PROMETU NA PRVEM MESTU\nVoznik mora vedno gledati na cesto ter upoštevati vse veljavne prometne predpise in postavljeno prometno signalizacijo, ki imata vedno prednost pred kakršnim koli navodilom aplikacije. Naprave nikoli ne upravljajte med vožnjo; pred odhodom jo pritrdite v odobreno, dobro vidno držalo in nikoli ne odvračajte pozornosti s ceste, da bi z njo upravljali, medtem ko je vozilo v gibanju.\n\n⚠️ PREVZEM TVEGANJA — PO VSEM SVETU\nZ uporabo aplikacije Roadstr, v kateri koli državi in po kateremkoli pravnem sistemu, uporabnik zavestno in prostovoljno prevzame VSA tveganja, povezana z njeno uporabo, vključno z, vendar ne omejeno na: prometne nesreče, telesne poškodbe, smrt, škodo na premoženju, škodo na vozilu, globe, upravne sankcije, odvoz vozila, zaseg vozila, kazensko odgovornost ali katero koli drugo posledico, ki neposredno ali posredno izhaja iz zanašanja na aplikacijo. Uporabnik sam v celoti odgovarja za vsako odločitev v zvezi z vožnjo in navigacijo.\n\n🚫 BREZ GARANCIJE\nRoadstr je na voljo izključno v stanju, „KAKRŠNO JE“, in „KOT JE NA VOLJO“, brez kakršnega koli jamstva, izrecnega, implicitnega ali zakonsko določenega — vključno z, brez omejitev, jamstvi glede točnosti, popolnosti, zanesljivosti, razpoložljivosti, primernosti za trg, primernosti za določen namen in nekršenja pravic. Podatki o zemljevidih, izračun poti, omejitve hitrosti, radarji za nadzor hitrosti in podatki o conah z omejenim prometom (ZTL/ZAC/LTZ) izvirajo iz odprtih, s strani skupnosti vzdrževanih virov (OpenStreetMap, Overpass API), ki so lahko za katero koli državo, regijo ali občino kadar koli in brez obvestila nepopolni, zastareli ali netočni. Uporabnik je izključno odgovoren, da pred potovanjem in med njim samostojno preveri zakonitost in prevoznost katere koli predlagane poti glede na uradno lokalno signalizacijo in predpise.\n\n📍 NATANČNOST IN GPS\nDoločanje položaja GPS je lahko netočno ali nedosegljivo. Vsa navodila, razdalje in opozorila so na voljo zgolj kot smernice in se nikoli ne smejo obravnavati kot edina podlaga za odločitev pri vožnji.\n\n🛡️ OMEJITEV ODGOVORNOSTI\nV največji meri, ki jo dopušča veljavna zakonodaja v kateri koli jurisdikciji, razvijalci, sodelavci in katera koli stran, vključena v ustvarjanje ali distribucijo aplikacije Roadstr, ne odgovarjajo za nikakršno neposredno, posredno, naključno, posledično, posebno, vzorčno ali kazensko škodo katere koli vrste — vključno s telesnimi poškodbami, smrtjo ali finančno izgubo — ki izhaja iz uporabe ali nezmožnosti uporabe aplikacije ali je z njo povezana, tudi če so bili obveščeni o možnosti nastanka take škode. Kadar določena jurisdikcija delno ali v celoti ne dovoljuje te omejitve, se odgovornost omeji na najmanjši obseg, ki ga zakon v tej jurisdikciji dovoljuje.\n\n🤝 ODŠKODNINA\nUporabnik soglaša, da bo razvijalce in sodelavce razbremenil in jih varoval pred vsakršnim zahtevkom, škodo, izgubo ali stroškom (vključno s pravnimi stroški), ki izhaja iz uporabnikove uporabe aplikacije ali kršitve teh pogojev.\n\n🔒 ZASEBNOST\nNobeni podatki o lokaciji se ne prenašajo na lastne strežnike aplikacije Roadstr. Izračun poti se izvaja prek storitev tretjih oseb (OSRM, GraphHopper, OpenRouteService), ki jim se pošljejo samo koordinate izhodišča in cilja.\n\n⚖️ DELITEV DOLOČB\nČe se katera koli določba teh pogojev v določeni jurisdikciji izkaže za neizvršljivo, se ta določba omeji ali izloči v najmanjšem potrebnem obsegu, vse preostale določbe pa ostanejo v celoti veljavne in učinkovite.\n\nZ uporabo aplikacije Roadstr kjer koli na svetu uporabnik potrjuje, da je prebral, razumel in brezpogojno sprejel vse zgoraj navedene pogoje ter prevzema polno in celotno odgovornost — in vsa tveganja — za uporabo aplikacije in vse posledice, ki iz nje izhajajo.';
+      'Roadstr je eksperimentalna, odprtokodna, s strani skupnosti vzdrževana navigacijska aplikacija, ki temelji na podatkih OpenStreetMap in protokolu Nostr ter je na voljo za uporabo v kateri koli državi. S prenosom, namestitvijo ali uporabo te aplikacije uporabnik brezpogojno sprejme vse spodaj navedene pogoje, brez ozemeljske omejitve.\n\n🚗 VARNOST V CESTNEM PROMETU NA PRVEM MESTU\nVoznik mora vedno gledati na cesto ter upoštevati vse veljavne prometne predpise in postavljeno prometno signalizacijo, ki imata vedno prednost pred kakršnim koli navodilom aplikacije. Naprave nikoli ne upravljajte med vožnjo; pred odhodom jo pritrdite v odobreno, dobro vidno držalo in nikoli ne odvračajte pozornosti s ceste, da bi z njo upravljali, medtem ko je vozilo v gibanju.\n\n⚠️ PREVZEM TVEGANJA — PO VSEM SVETU\nZ uporabo aplikacije Roadstr, v kateri koli državi in po kateremkoli pravnem sistemu, uporabnik zavestno in prostovoljno prevzame VSA tveganja, povezana z njeno uporabo, vključno z, vendar ne omejeno na: prometne nesreče, telesne poškodbe, smrt, škodo na premoženju, škodo na vozilu, globe, upravne sankcije, odvoz vozila, zaseg vozila, kazensko odgovornost ali katero koli drugo posledico, ki neposredno ali posredno izhaja iz zanašanja na aplikacijo. Uporabnik sam v celoti odgovarja za vsako odločitev v zvezi z vožnjo in navigacijo.\n\n🚫 BREZ GARANCIJE\nRoadstr je na voljo izključno v stanju, „KAKRŠNO JE“, in „KOT JE NA VOLJO“, brez kakršnega koli jamstva, izrecnega, implicitnega ali zakonsko določenega — vključno z, brez omejitev, jamstvi glede točnosti, popolnosti, zanesljivosti, razpoložljivosti, primernosti za trg, primernosti za določen namen in nekršenja pravic. Podatki o zemljevidih, izračun poti, omejitve hitrosti, radarji za nadzor hitrosti in podatki o conah z omejenim prometom (ZTL/ZAC/LTZ) izvirajo iz odprtih, s strani skupnosti vzdrževanih virov (OpenStreetMap, Overpass API), ki so lahko za katero koli državo, regijo ali občino kadar koli in brez obvestila nepopolni, zastareli ali netočni. Uporabnik je izključno odgovoren, da pred potovanjem in med njim samostojno preveri zakonitost in prevoznost katere koli predlagane poti glede na uradno lokalno signalizacijo in predpise.\n\n📍 NATANČNOST IN GPS\nDoločanje položaja GPS je lahko netočno ali nedosegljivo. Vsa navodila, razdalje in opozorila so na voljo zgolj kot smernice in se nikoli ne smejo obravnavati kot edina podlaga za odločitev pri vožnji.\n\n🛡️ OMEJITEV ODGOVORNOSTI\nV največji meri, ki jo dopušča veljavna zakonodaja v kateri koli jurisdikciji, razvijalci, sodelavci in katera koli stran, vključena v ustvarjanje ali distribucijo aplikacije Roadstr, ne odgovarjajo za nikakršno neposredno, posredno, naključno, posledično, posebno, vzorčno ali kazensko škodo katere koli vrste — vključno s telesnimi poškodbami, smrtjo ali finančno izgubo — ki izhaja iz uporabe ali nezmožnosti uporabe aplikacije ali je z njo povezana, tudi če so bili obveščeni o možnosti nastanka take škode. Kadar določena jurisdikcija delno ali v celoti ne dovoljuje te omejitve, se odgovornost omeji na najmanjši obseg, ki ga zakon v tej jurisdikciji dovoljuje.\n\n🤝 ODŠKODNINA\nUporabnik soglaša, da bo razvijalce in sodelavce razbremenil in jih varoval pred vsakršnim zahtevkom, škodo, izgubo ali stroškom (vključno s pravnimi stroški), ki izhaja iz uporabnikove uporabe aplikacije ali kršitve teh pogojev.\n\n🔒 PRIVACY AND NETWORK SERVICES\nRoadstr runs no first-party servers or analytics, but it is not an offline app. When relevant features are used, coordinates or coarse areas and the IP address are sent directly to third parties: routing providers (origin, destination and waypoints), OpenStreetMap/Nominatim/Overpass (search, reverse geocoding, POIs, restricted zones, limits and cameras), Open-Meteo (rounded coordinates), map-tile servers and Nostr relays (city-level geohash). A road report publishes its exact position, time, content and public key to Nostr and is pseudonymous, not anonymous. Favorites and parking remain local unless explicitly exported or synced.\n\n⚖️ DELITEV DOLOČB\nČe se katera koli določba teh pogojev v določeni jurisdikciji izkaže za neizvršljivo, se ta določba omeji ali izloči v najmanjšem potrebnem obsegu, vse preostale določbe pa ostanejo v celoti veljavne in učinkovite.\n\nZ uporabo aplikacije Roadstr kjer koli na svetu uporabnik potrjuje, da je prebral, razumel in brezpogojno sprejel vse zgoraj navedene pogoje ter prevzema polno in celotno odgovornost — in vsa tveganja — za uporabo aplikacije in vse posledice, ki iz nje izhajajo.';
 
   @override
   String get readOnWikipedia => 'Beri na Wikipediji';
+
+  @override
+  String get openInBrowser => 'Odpri v brskalniku';
+
+  @override
+  String get wikipediaLoadFailed => 'Wikipedije ni bilo mogoče varno naložiti.';
+
+  @override
+  String get retry => 'Poskusi znova';
+
+  @override
+  String get poiDetailsFromOsm => 'Informacije iz OpenStreetMap';
+
+  @override
+  String get poiCategory => 'Kategorija';
+
+  @override
+  String get poiOperator => 'Upravljavec';
+
+  @override
+  String get poiCuisine => 'Kuhinja';
+
+  @override
+  String get poiAccessibility => 'Dostopnost';
+
+  @override
+  String get poiWheelchairYes => 'Dostopno z invalidskim vozičkom';
+
+  @override
+  String get poiWheelchairLimited => 'Omejen dostop z invalidskim vozičkom';
+
+  @override
+  String get poiWheelchairNo => 'Ni dostopno z invalidskim vozičkom';
+
+  @override
+  String get poiContact => 'Stik';
+
+  @override
+  String get poiAddress => 'Naslov';
+
+  @override
+  String get poiWebsite => 'Spletno mesto';
+
+  @override
+  String get gpsSignalLost => 'Izgubljen signal GPS';
+
+  @override
+  String get poiOpenNow => 'Zdaj odprto';
+
+  @override
+  String get poiClosedNow => 'Zaprto';
+
+  @override
+  String poiOpensAt(String when) {
+    return 'Odpre: $when';
+  }
+
+  @override
+  String poiClosesAt(String when) {
+    return 'Zapre: $when';
+  }
 
   @override
   String searchOnEngine(String engine) {
@@ -902,7 +970,7 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.';
+      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
 
   @override
   String get onboardingVoiceTitle => 'AI glasovno vodenje (neobvezno)';
@@ -1056,10 +1124,6 @@ class AppLocalizationsSl extends AppLocalizations {
   @override
   String get onboardingVpnNotice =>
       'Za največjo zasebnost — prijave se širijo po omrežju Nostr — je priporočljiva uporaba VPN-ja. Priporočena izbira je Mullvad, ki ga je mogoče plačati z Bitcoinom.';
-
-  @override
-  String get onboardingGrapheneAlwaysAllow =>
-      'Za zanesljivo delovanje nastavite dovoljenje za lokacijo na »Vedno dovoli«, ne le med uporabo aplikacije.';
 
   @override
   String get trafficNormal => 'Običajen promet';

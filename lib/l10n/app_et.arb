@@ -293,8 +293,19 @@
   "lightningAddressCopied": "⚡ {address} kopeeritud lõikelauale",
   "disclaimerTitle": "Oluline teade",
   "disclaimerAccept": "Olen lugenud ja nõustun",
-  "disclaimerBody": "Roadstr on eksperimentaalne, avatud lähtekoodiga ja kogukonna hallatav navigatsioonirakendus, mis põhineb OpenStreetMap andmetel ja Nostr protokollil ning on kasutamiseks kättesaadav igas riigis. Selle rakenduse allalaadimisega, installimisega või kasutamisega nõustub kasutaja tingimusteta kõigi järgnevate tingimustega, ilma territoriaalse piiranguta.\n\n🚗 LIIKLUSOHUTUS ESIKOHAL\nJuht peab alati hoidma pilku teel ja järgima kõiki kohaldatavaid liikluseeskirju ja paigaldatud liiklusmärke, millel on alati eesõigus rakenduse mis tahes juhise ees. Ärge kunagi kasutage seadet sõidu ajal; kinnitage see enne teele asumist heakskiidetud, nähtavasse hoidikusse ja ärge kunagi pöörake tähelepanu teelt kõrvale, et sellega suhelda, kui sõiduk liigub.\n\n⚠️ RISKI ENDALE VÕTMINE — KOGU MAAILMAS\nKasutades Roadstr rakendust, mis tahes riigis ja mis tahes õigussüsteemi alusel, võtab kasutaja teadlikult ja vabatahtlikult enda kanda KÕIK selle kasutamisega seotud riskid, sealhulgas, kuid mitte ainult: liiklusõnnetused, kehavigastused, surm, varakahju, sõiduki kahjustumine, trahvid, haldussanktsioonid, teisaldamine, sõiduki konfiskeerimine, kriminaalvastutus või mis tahes muu tagajärg, mis tuleneb otseselt või kaudselt rakendusele tuginemisest. Kasutaja kannab ainuisikuliselt täieliku vastutuse iga sõidu- ja navigatsiooniotsuse eest.\n\n🚫 GARANTII PUUDUMINE\nRoadstr rakendus antakse kasutusse rangelt põhimõttel „NAGU ON” ja „VASTAVALT KÄTTESAADAVUSELE”, ilma igasuguse garantiita, olgu see selgesõnaline, kaudne või seadusest tulenev — sealhulgas, kuid mitte ainult, täpsuse, täielikkuse, usaldusväärsuse, kättesaadavuse, kaubastatavuse, konkreetseks otstarbeks sobivuse ja õiguste rikkumatuse garantiid. Kaardiandmed, marsruudi koostamine, kiirusepiirangud, kiiruskaamerad ja piiratud liiklusega tsoonide (ZTL/ZAC/LTZ) teave pärinevad avatud, kogukonna poolt hallatavatest allikatest (OpenStreetMap, Overpass API), mis võivad mis tahes riigi, piirkonna või omavalitsuse puhul olla igal ajal ja ette teatamata puudulikud, aegunud või ebatäpsed. Kasutaja vastutab ainuisikuliselt selle eest, et enne reisi ja reisi ajal iseseisvalt kontrollida mis tahes soovitatud marsruudi seaduslikkust ja läbitavust ametliku kohaliku liiklusmärgistuse ja eeskirjade alusel.\n\n📍 TÄPSUS JA GPS\nGPS-positsioneerimine võib olla ebatäpne või kättesaamatu. Kõik juhised, vahemaad ja hoiatused on esitatud üksnes suunavaks abiks ja neile ei tohi kunagi tugineda kui ainsale alusele sõiduotsuse tegemisel.\n\n🛡️ VASTUTUSE PIIRAMINE\nKohaldatava õigusega lubatud maksimaalses ulatuses mis tahes jurisdiktsioonis ei vastuta arendajad, kaastöölised ega ükski Roadstr rakenduse loomises või levitamises osalenud pool otseste, kaudsete, juhuslike, tulenevate, eriliste, näitlike ega karistuslike kahjude eest mis tahes liiki — sealhulgas kehavigastuste, surma või rahalise kahju eest —, mis tulenevad rakenduse kasutamisest või kasutamise võimatusest või on sellega seotud, isegi kui neid on teavitatud selliste kahjude tekkimise võimalusest. Kui mõni jurisdiktsioon ei luba osa või kogu käesolevat piirangut, piirdub vastutus väikseima ulatusega, mida selle jurisdiktsiooni õigus lubab.\n\n🤝 KAHJU HÜVITAMINE\nKasutaja nõustub hüvitama arendajatele ja kaastöölistele ning vabastama nad vastutusest mis tahes nõude, kahju, kaotuse või kulu eest (sealhulgas õigusabikulud), mis tuleneb kasutaja poolt rakenduse kasutamisest või käesolevate tingimuste rikkumisest.\n\n🔒 PRIVAATSUS\nÜhtegi asukohaandmet ei edastata Roadstr enda serveritesse. Marsruudi arvutamine toimub kolmandate osapoolte teenuste kaudu (OSRM, GraphHopper, OpenRouteService), kellele saadetakse ainult lähte- ja sihtkoha koordinaadid.\n\n⚖️ SÄTETE LAHUTATAVUS\nKui mõni käesolevate tingimuste säte osutub mingis jurisdiktsioonis kehtetuks, piiratakse või eraldatakse see säte minimaalselt vajalikus ulatuses ning kõik ülejäänud sätted jäävad täies ulatuses kehtima.\n\nKasutades Roadstr rakendust kus tahes maailmas, kinnitab kasutaja, et on lugenud, mõistnud ja tingimusteta nõustunud iga eespool nimetatud tingimusega, ning võtab enda kanda täieliku ja tervikliku vastutuse — ning kogu riski — rakenduse kasutamise ja sellest tuleneva mis tahes tagajärje eest.",
+  "disclaimerBody": "Roadstr on eksperimentaalne, avatud lähtekoodiga ja kogukonna hallatav navigatsioonirakendus, mis põhineb OpenStreetMap andmetel ja Nostr protokollil ning on kasutamiseks kättesaadav igas riigis. Selle rakenduse allalaadimisega, installimisega või kasutamisega nõustub kasutaja tingimusteta kõigi järgnevate tingimustega, ilma territoriaalse piiranguta.\n\n🚗 LIIKLUSOHUTUS ESIKOHAL\nJuht peab alati hoidma pilku teel ja järgima kõiki kohaldatavaid liikluseeskirju ja paigaldatud liiklusmärke, millel on alati eesõigus rakenduse mis tahes juhise ees. Ärge kunagi kasutage seadet sõidu ajal; kinnitage see enne teele asumist heakskiidetud, nähtavasse hoidikusse ja ärge kunagi pöörake tähelepanu teelt kõrvale, et sellega suhelda, kui sõiduk liigub.\n\n⚠️ RISKI ENDALE VÕTMINE — KOGU MAAILMAS\nKasutades Roadstr rakendust, mis tahes riigis ja mis tahes õigussüsteemi alusel, võtab kasutaja teadlikult ja vabatahtlikult enda kanda KÕIK selle kasutamisega seotud riskid, sealhulgas, kuid mitte ainult: liiklusõnnetused, kehavigastused, surm, varakahju, sõiduki kahjustumine, trahvid, haldussanktsioonid, teisaldamine, sõiduki konfiskeerimine, kriminaalvastutus või mis tahes muu tagajärg, mis tuleneb otseselt või kaudselt rakendusele tuginemisest. Kasutaja kannab ainuisikuliselt täieliku vastutuse iga sõidu- ja navigatsiooniotsuse eest.\n\n🚫 GARANTII PUUDUMINE\nRoadstr rakendus antakse kasutusse rangelt põhimõttel „NAGU ON” ja „VASTAVALT KÄTTESAADAVUSELE”, ilma igasuguse garantiita, olgu see selgesõnaline, kaudne või seadusest tulenev — sealhulgas, kuid mitte ainult, täpsuse, täielikkuse, usaldusväärsuse, kättesaadavuse, kaubastatavuse, konkreetseks otstarbeks sobivuse ja õiguste rikkumatuse garantiid. Kaardiandmed, marsruudi koostamine, kiirusepiirangud, kiiruskaamerad ja piiratud liiklusega tsoonide (ZTL/ZAC/LTZ) teave pärinevad avatud, kogukonna poolt hallatavatest allikatest (OpenStreetMap, Overpass API), mis võivad mis tahes riigi, piirkonna või omavalitsuse puhul olla igal ajal ja ette teatamata puudulikud, aegunud või ebatäpsed. Kasutaja vastutab ainuisikuliselt selle eest, et enne reisi ja reisi ajal iseseisvalt kontrollida mis tahes soovitatud marsruudi seaduslikkust ja läbitavust ametliku kohaliku liiklusmärgistuse ja eeskirjade alusel.\n\n📍 TÄPSUS JA GPS\nGPS-positsioneerimine võib olla ebatäpne või kättesaamatu. Kõik juhised, vahemaad ja hoiatused on esitatud üksnes suunavaks abiks ja neile ei tohi kunagi tugineda kui ainsale alusele sõiduotsuse tegemisel.\n\n🛡️ VASTUTUSE PIIRAMINE\nKohaldatava õigusega lubatud maksimaalses ulatuses mis tahes jurisdiktsioonis ei vastuta arendajad, kaastöölised ega ükski Roadstr rakenduse loomises või levitamises osalenud pool otseste, kaudsete, juhuslike, tulenevate, eriliste, näitlike ega karistuslike kahjude eest mis tahes liiki — sealhulgas kehavigastuste, surma või rahalise kahju eest —, mis tulenevad rakenduse kasutamisest või kasutamise võimatusest või on sellega seotud, isegi kui neid on teavitatud selliste kahjude tekkimise võimalusest. Kui mõni jurisdiktsioon ei luba osa või kogu käesolevat piirangut, piirdub vastutus väikseima ulatusega, mida selle jurisdiktsiooni õigus lubab.\n\n🤝 KAHJU HÜVITAMINE\nKasutaja nõustub hüvitama arendajatele ja kaastöölistele ning vabastama nad vastutusest mis tahes nõude, kahju, kaotuse või kulu eest (sealhulgas õigusabikulud), mis tuleneb kasutaja poolt rakenduse kasutamisest või käesolevate tingimuste rikkumisest.\n\n🔒 PRIVACY AND NETWORK SERVICES\nRoadstr runs no first-party servers or analytics, but it is not an offline app. When relevant features are used, coordinates or coarse areas and the IP address are sent directly to third parties: routing providers (origin, destination and waypoints), OpenStreetMap/Nominatim/Overpass (search, reverse geocoding, POIs, restricted zones, limits and cameras), Open-Meteo (rounded coordinates), map-tile servers and Nostr relays (city-level geohash). A road report publishes its exact position, time, content and public key to Nostr and is pseudonymous, not anonymous. Favorites and parking remain local unless explicitly exported or synced.\n\n⚖️ SÄTETE LAHUTATAVUS\nKui mõni käesolevate tingimuste säte osutub mingis jurisdiktsioonis kehtetuks, piiratakse või eraldatakse see säte minimaalselt vajalikus ulatuses ning kõik ülejäänud sätted jäävad täies ulatuses kehtima.\n\nKasutades Roadstr rakendust kus tahes maailmas, kinnitab kasutaja, et on lugenud, mõistnud ja tingimusteta nõustunud iga eespool nimetatud tingimusega, ning võtab enda kanda täieliku ja tervikliku vastutuse — ning kogu riski — rakenduse kasutamise ja sellest tuleneva mis tahes tagajärje eest.",
   "readOnWikipedia": "Loe Vikipeediast",
+  "gpsSignalLost": "GPS-signaal kadus",
+  "poiOpenNow": "Praegu avatud",
+  "poiClosedNow": "Suletud",
+  "poiOpensAt": "Avaneb: {when}",
+  "@poiOpensAt": {
+    "placeholders": { "when": { "type": "String" } }
+  },
+  "poiClosesAt": "Sulgub: {when}",
+  "@poiClosesAt": {
+    "placeholders": { "when": { "type": "String" } }
+  },
   "searchOnEngine": "Otsi {engine}",
   "plannerFromHint": "Kust…",
   "plannerToHint": "Sihtkoht…",
@@ -343,7 +354,7 @@
   "onboardingLocationRequired": "Nõutav GPS navigatsiooniks",
   "onboardingGrantButton": "Anna luba",
   "onboardingGrapheneTitle": "GrapheneOS kasutajad",
-  "onboardingGrapheneBody": "Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.",
+  "onboardingGrapheneBody": "Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.",
   "onboardingVoiceTitle": "AI hääljuhtimine (valikuline)",
   "onboardingVoiceReady": "Kokoro häälemudel on valmis",
   "onboardingVoiceDownloading": "Häälemudeli allalaadimine…",
@@ -357,7 +368,6 @@
   "onboardingProfileLoading": "Profiili laadimine…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "Maksimaalse privaatsuse tagamiseks — teated levivad Nostr-võrgus — on soovitatav kasutada VPN-i. Soovitatud valik on Mullvad, mille eest saab maksta Bitcoiniga.",
-  "onboardingGrapheneAlwaysAllow": "Töökindluse tagamiseks määra rakenduse asukohaluba valikule „Luba alati“, mitte ainult rakenduse kasutamise ajal.",
   "exportFavoritesTitle": "Ekspordi lemmikud",
   "exportFavoritesDesc": "Salvesta oma lemmikkohad JSON-faili, mida saad varundada või teise seadmesse üle kanda.",
   "exportEncryptToggle": "Krüpteeri parooliga",
@@ -419,5 +429,21 @@
       }
     }
   },
-  "showRoutePreview": "Kuva marsruudi eelvaade"
+  "showRoutePreview": "Kuva marsruudi eelvaade",
+  "autoCenterOnLaunch": "Käivitusel minu asukohale keskendamine",
+  "autoCenterOnLaunchDesc": "Kasutab GPS-i automaatselt ainult siis, kui asukohaluba on juba antud",
+  "openInBrowser": "Ava brauseris",
+  "wikipediaLoadFailed": "Wikipediat ei saanud turvaliselt laadida.",
+  "retry": "Proovi uuesti",
+  "poiDetailsFromOsm": "Teave OpenStreetMapist",
+  "poiCategory": "Kategooria",
+  "poiOperator": "Operaator",
+  "poiCuisine": "Köök",
+  "poiAccessibility": "Ligipääsetavus",
+  "poiWheelchairYes": "Ratastooliga ligipääsetav",
+  "poiWheelchairLimited": "Piiratud ligipääs ratastooliga",
+  "poiWheelchairNo": "Ratastooliga ligipääs puudub",
+  "poiContact": "Kontakt",
+  "poiAddress": "Aadress",
+  "poiWebsite": "Veebisait"
 }

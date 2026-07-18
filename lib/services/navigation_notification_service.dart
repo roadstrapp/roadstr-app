@@ -18,12 +18,12 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 /// Manages the persistent navigation notification shown in the Android
 /// notification shade during active turn-by-turn navigation.
 class NavigationNotificationService {
-  static const _channelId   = 'roadstr_navigation';
+  static const _channelId = 'roadstr_navigation';
   static const _channelName = 'Navigation';
 
   /// Fixed notification ID — reusing the same ID causes [show] to update the
   /// existing notification in place rather than posting a new one each step.
-  static const _notifId     = 42;
+  static const _notifId = 42;
 
   final _plugin = FlutterLocalNotificationsPlugin();
   bool _initialized = false;
@@ -32,7 +32,9 @@ class NavigationNotificationService {
   Future<void> _ensureInit() async {
     if (_initialized) return;
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
-    await _plugin.initialize(const InitializationSettings(android: android));
+    await _plugin.initialize(
+      settings: const InitializationSettings(android: android),
+    );
     _initialized = true;
   }
 
@@ -43,20 +45,22 @@ class NavigationNotificationService {
   Future<void> show(String instruction, String distance) async {
     await _ensureInit();
     await _plugin.show(
-      _notifId,
-      instruction,
-      distance,
-      NotificationDetails(
+      id: _notifId,
+      title: instruction,
+      body: distance,
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _channelId, _channelName,
           // Low importance = silent update; no sound/vibration on each step.
-          importance:   Importance.low,
-          priority:     Priority.low,
+          importance: Importance.low,
+          priority: Priority.low,
           // ongoing = non-dismissible; remains in the shade until navigation stops.
-          ongoing:      true,
+          ongoing: true,
           onlyAlertOnce: true,
-          autoCancel:   false,
-          icon:         '@mipmap/ic_launcher',
+          autoCancel: false,
+          // Hide street names and maneuver text on a locked device.
+          visibility: NotificationVisibility.private,
+          icon: '@mipmap/ic_launcher',
         ),
       ),
     );
@@ -65,6 +69,6 @@ class NavigationNotificationService {
   /// Dismisses the navigation notification. Called when the user stops navigation.
   Future<void> cancel() async {
     if (!_initialized) return;
-    await _plugin.cancel(_notifId);
+    await _plugin.cancel(id: _notifId);
   }
 }

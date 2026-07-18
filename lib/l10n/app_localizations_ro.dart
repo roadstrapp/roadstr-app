@@ -126,6 +126,13 @@ class AppLocalizationsRo extends AppLocalizations {
   String get keepScreenOnDescription => 'Previne repausul în timpul navigării';
 
   @override
+  String get autoCenterOnLaunch => 'Centrează pe poziția mea la pornire';
+
+  @override
+  String get autoCenterOnLaunchDesc =>
+      'Folosește automat GPS-ul numai dacă permisiunea pentru locație a fost deja acordată';
+
+  @override
   String get rotateMap => 'Harta urmează direcția';
 
   @override
@@ -732,10 +739,72 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr este o aplicație de navigație experimentală, cu sursă deschisă, întreținută de comunitate, bazată pe datele OpenStreetMap și pe protocolul Nostr, disponibilă pentru utilizare în orice țară. Prin descărcarea, instalarea sau utilizarea acestei aplicații, utilizatorul acceptă necondiționat toți termenii de mai jos, fără limitare teritorială.\n\n🚗 SIGURANȚA RUTIERĂ MAI PRESUS DE TOATE\nConducătorul auto trebuie să țină întotdeauna ochii pe drum și să respecte toate legile rutiere aplicabile și semnalizarea existentă, care au întotdeauna prioritate față de orice indicație a aplicației. Nu operați niciodată dispozitivul în timp ce conduceți; fixați-l într-un suport aprobat și vizibil înainte de a porni la drum și nu vă abateți niciodată atenția de la drum pentru a interacționa cu acesta cât timp vehiculul este în mișcare.\n\n⚠️ ASUMAREA RISCULUI — LA NIVEL MONDIAL\nPrin utilizarea Roadstr, în orice țară și sub orice sistem juridic, utilizatorul își asumă cu bună știință și în mod voluntar TOATE riscurile legate de utilizarea acesteia, incluzând, dar fără a se limita la: accidente rutiere, vătămări corporale, deces, daune materiale, daune aduse vehiculului, amenzi, sancțiuni administrative, ridicarea vehiculului, confiscarea acestuia, răspundere penală sau orice altă consecință care decurge direct sau indirect din încrederea acordată aplicației. Utilizatorul poartă singur întreaga responsabilitate pentru fiecare decizie de conducere și navigație.\n\n🚫 FĂRĂ GARANȚIE\nRoadstr este furnizată strict „CA ATARE” și „ÎN LIMITA DISPONIBILITĂȚII”, fără nicio garanție de orice fel, fie ea expresă, implicită sau legală — inclusiv, fără limitare, garanții privind acuratețea, exhaustivitatea, fiabilitatea, disponibilitatea, vandabilitatea, adecvarea pentru un anumit scop și neîncălcarea drepturilor terților. Datele cartografice, planificarea rutelor, limitele de viteză, radarele de viteză și informațiile privind zonele cu trafic restricționat (ZTL/ZAC/LTZ) provin din surse deschise, întreținute de comunitate (OpenStreetMap, Overpass API), care pot fi incomplete, depășite sau inexacte pentru orice țară, regiune sau localitate, în orice moment și fără notificare prealabilă. Utilizatorul este singurul responsabil de a verifica în mod independent, înainte și în timpul călătoriei, legalitatea și accesibilitatea oricărei rute sugerate, prin raportare la semnalizarea și reglementările locale oficiale.\n\n📍 PRECIZIE ȘI GPS\nPoziționarea GPS poate fi imprecisă sau indisponibilă. Toate indicațiile, distanțele și alertele sunt furnizate exclusiv cu titlu orientativ și nu trebuie niciodată considerate ca unic temei al unei decizii de conducere.\n\n🛡️ LIMITAREA RĂSPUNDERII\nÎn limita maximă permisă de legislația aplicabilă în orice jurisdicție, dezvoltatorii, colaboratorii și orice parte implicată în crearea sau distribuirea Roadstr nu vor răspunde pentru niciun fel de daune directe, indirecte, incidentale, subsecvente, speciale, exemplare sau punitive — inclusiv vătămări corporale, deces sau pierderi financiare — rezultate din sau legate de utilizarea sau imposibilitatea de a utiliza aplicația, chiar dacă au fost avertizați cu privire la posibilitatea unor astfel de daune. În cazul în care o jurisdicție nu permite, integral sau parțial, această limitare, răspunderea este limitată la măsura minimă permisă de legea din acea jurisdicție.\n\n🤝 DESPĂGUBIRE\nUtilizatorul este de acord să despăgubească și să exonereze de răspundere dezvoltatorii și colaboratorii pentru orice pretenție, daună, pierdere sau cheltuială (inclusiv onorarii de avocat) rezultate din utilizarea aplicației de către utilizator sau din încălcarea acestor termeni.\n\n🔒 CONFIDENȚIALITATE\nNiciun fel de date de localizare nu sunt transmise către serverele proprii ale Roadstr. Calcularea rutelor se realizează prin intermediul unor servicii terțe (OSRM, GraphHopper, OpenRouteService), cărora le sunt transmise doar coordonatele punctului de plecare și ale destinației.\n\n⚖️ DIVIZIBILITATE\nÎn cazul în care o prevedere a acestor termeni este considerată inaplicabilă într-o anumită jurisdicție, prevederea respectivă va fi limitată sau eliminată în măsura minimă necesară, iar toate celelalte prevederi vor rămâne pe deplin în vigoare.\n\nPrin utilizarea Roadstr, oriunde în lume, utilizatorul confirmă că a citit, a înțeles și a acceptat necondiționat fiecare dintre termenii de mai sus și își asumă întreaga și deplina responsabilitate — precum și întregul risc — pentru utilizarea aplicației și orice consecință rezultată din aceasta.';
+      'Roadstr este o aplicație de navigație experimentală, cu sursă deschisă, întreținută de comunitate, bazată pe datele OpenStreetMap și pe protocolul Nostr, disponibilă pentru utilizare în orice țară. Prin descărcarea, instalarea sau utilizarea acestei aplicații, utilizatorul acceptă necondiționat toți termenii de mai jos, fără limitare teritorială.\n\n🚗 SIGURANȚA RUTIERĂ MAI PRESUS DE TOATE\nConducătorul auto trebuie să țină întotdeauna ochii pe drum și să respecte toate legile rutiere aplicabile și semnalizarea existentă, care au întotdeauna prioritate față de orice indicație a aplicației. Nu operați niciodată dispozitivul în timp ce conduceți; fixați-l într-un suport aprobat și vizibil înainte de a porni la drum și nu vă abateți niciodată atenția de la drum pentru a interacționa cu acesta cât timp vehiculul este în mișcare.\n\n⚠️ ASUMAREA RISCULUI — LA NIVEL MONDIAL\nPrin utilizarea Roadstr, în orice țară și sub orice sistem juridic, utilizatorul își asumă cu bună știință și în mod voluntar TOATE riscurile legate de utilizarea acesteia, incluzând, dar fără a se limita la: accidente rutiere, vătămări corporale, deces, daune materiale, daune aduse vehiculului, amenzi, sancțiuni administrative, ridicarea vehiculului, confiscarea acestuia, răspundere penală sau orice altă consecință care decurge direct sau indirect din încrederea acordată aplicației. Utilizatorul poartă singur întreaga responsabilitate pentru fiecare decizie de conducere și navigație.\n\n🚫 FĂRĂ GARANȚIE\nRoadstr este furnizată strict „CA ATARE” și „ÎN LIMITA DISPONIBILITĂȚII”, fără nicio garanție de orice fel, fie ea expresă, implicită sau legală — inclusiv, fără limitare, garanții privind acuratețea, exhaustivitatea, fiabilitatea, disponibilitatea, vandabilitatea, adecvarea pentru un anumit scop și neîncălcarea drepturilor terților. Datele cartografice, planificarea rutelor, limitele de viteză, radarele de viteză și informațiile privind zonele cu trafic restricționat (ZTL/ZAC/LTZ) provin din surse deschise, întreținute de comunitate (OpenStreetMap, Overpass API), care pot fi incomplete, depășite sau inexacte pentru orice țară, regiune sau localitate, în orice moment și fără notificare prealabilă. Utilizatorul este singurul responsabil de a verifica în mod independent, înainte și în timpul călătoriei, legalitatea și accesibilitatea oricărei rute sugerate, prin raportare la semnalizarea și reglementările locale oficiale.\n\n📍 PRECIZIE ȘI GPS\nPoziționarea GPS poate fi imprecisă sau indisponibilă. Toate indicațiile, distanțele și alertele sunt furnizate exclusiv cu titlu orientativ și nu trebuie niciodată considerate ca unic temei al unei decizii de conducere.\n\n🛡️ LIMITAREA RĂSPUNDERII\nÎn limita maximă permisă de legislația aplicabilă în orice jurisdicție, dezvoltatorii, colaboratorii și orice parte implicată în crearea sau distribuirea Roadstr nu vor răspunde pentru niciun fel de daune directe, indirecte, incidentale, subsecvente, speciale, exemplare sau punitive — inclusiv vătămări corporale, deces sau pierderi financiare — rezultate din sau legate de utilizarea sau imposibilitatea de a utiliza aplicația, chiar dacă au fost avertizați cu privire la posibilitatea unor astfel de daune. În cazul în care o jurisdicție nu permite, integral sau parțial, această limitare, răspunderea este limitată la măsura minimă permisă de legea din acea jurisdicție.\n\n🤝 DESPĂGUBIRE\nUtilizatorul este de acord să despăgubească și să exonereze de răspundere dezvoltatorii și colaboratorii pentru orice pretenție, daună, pierdere sau cheltuială (inclusiv onorarii de avocat) rezultate din utilizarea aplicației de către utilizator sau din încălcarea acestor termeni.\n\n🔒 PRIVACY AND NETWORK SERVICES\nRoadstr runs no first-party servers or analytics, but it is not an offline app. When relevant features are used, coordinates or coarse areas and the IP address are sent directly to third parties: routing providers (origin, destination and waypoints), OpenStreetMap/Nominatim/Overpass (search, reverse geocoding, POIs, restricted zones, limits and cameras), Open-Meteo (rounded coordinates), map-tile servers and Nostr relays (city-level geohash). A road report publishes its exact position, time, content and public key to Nostr and is pseudonymous, not anonymous. Favorites and parking remain local unless explicitly exported or synced.\n\n⚖️ DIVIZIBILITATE\nÎn cazul în care o prevedere a acestor termeni este considerată inaplicabilă într-o anumită jurisdicție, prevederea respectivă va fi limitată sau eliminată în măsura minimă necesară, iar toate celelalte prevederi vor rămâne pe deplin în vigoare.\n\nPrin utilizarea Roadstr, oriunde în lume, utilizatorul confirmă că a citit, a înțeles și a acceptat necondiționat fiecare dintre termenii de mai sus și își asumă întreaga și deplina responsabilitate — precum și întregul risc — pentru utilizarea aplicației și orice consecință rezultată din aceasta.';
 
   @override
   String get readOnWikipedia => 'Citește pe Wikipedia';
+
+  @override
+  String get openInBrowser => 'Deschide în browser';
+
+  @override
+  String get wikipediaLoadFailed =>
+      'Wikipedia nu a putut fi încărcată în siguranță.';
+
+  @override
+  String get retry => 'Reîncearcă';
+
+  @override
+  String get poiDetailsFromOsm => 'Informații din OpenStreetMap';
+
+  @override
+  String get poiCategory => 'Categorie';
+
+  @override
+  String get poiOperator => 'Operator';
+
+  @override
+  String get poiCuisine => 'Bucătărie';
+
+  @override
+  String get poiAccessibility => 'Accesibilitate';
+
+  @override
+  String get poiWheelchairYes => 'Accesibil pentru scaune rulante';
+
+  @override
+  String get poiWheelchairLimited => 'Acces limitat pentru scaune rulante';
+
+  @override
+  String get poiWheelchairNo => 'Inaccesibil pentru scaune rulante';
+
+  @override
+  String get poiContact => 'Contact';
+
+  @override
+  String get poiAddress => 'Adresă';
+
+  @override
+  String get poiWebsite => 'Site web';
+
+  @override
+  String get gpsSignalLost => 'Semnal GPS pierdut';
+
+  @override
+  String get poiOpenNow => 'Deschis acum';
+
+  @override
+  String get poiClosedNow => 'Închis';
+
+  @override
+  String poiOpensAt(String when) {
+    return 'Se deschide: $when';
+  }
+
+  @override
+  String poiClosesAt(String when) {
+    return 'Se închide: $when';
+  }
 
   @override
   String searchOnEngine(String engine) {
@@ -904,7 +973,7 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.';
+      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
 
   @override
   String get onboardingVoiceTitle => 'Ghidare vocală AI (opțional)';
@@ -1060,10 +1129,6 @@ class AppLocalizationsRo extends AppLocalizations {
   @override
   String get onboardingVpnNotice =>
       'Pentru confidențialitate maximă — rapoartele se propagă în rețeaua Nostr — se recomandă utilizarea unui VPN. Mullvad, plătibil în Bitcoin, este alegerea recomandată.';
-
-  @override
-  String get onboardingGrapheneAlwaysAllow =>
-      'Pentru o funcționare fiabilă, setați permisiunea de localizare a aplicației pe „Permite întotdeauna”, nu doar în timpul utilizării.';
 
   @override
   String get trafficNormal => 'Trafic normal';

@@ -128,6 +128,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impedisce lo spegnimento durante la navigazione';
 
   @override
+  String get autoCenterOnLaunch => 'Centra sulla mia posizione all\'avvio';
+
+  @override
+  String get autoCenterOnLaunchDesc =>
+      'Usa automaticamente il GPS solo se il permesso di posizione è già stato concesso';
+
+  @override
   String get rotateMap => 'Mappa segue direzione';
 
   @override
@@ -735,10 +742,73 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr è un\'app di navigazione sperimentale, open-source e mantenuta dalla comunità, basata sui dati di OpenStreetMap e sul protocollo Nostr, resa disponibile per l\'uso in qualsiasi paese del mondo. Scaricando, installando o utilizzando questa app, l\'utente accetta incondizionatamente tutti i termini seguenti, senza alcun limite territoriale:\n\n🚗  SICUREZZA STRADALE PRIMA DI TUTTO\nIl conducente deve tenere sempre gli occhi sulla strada e rispettare tutte le leggi sul traffico e la segnaletica in vigore, che prevalgono sempre su qualsiasi indicazione dell\'app. Non utilizzare mai il dispositivo mentre si guida; fissarlo in un supporto omologato e visibile prima di partire, senza mai distogliere l\'attenzione dalla strada per interagire con esso a veicolo in movimento.\n\n⚠️  ASSUNZIONE DEL RISCHIO — VALIDA IN TUTTO IL MONDO\nUtilizzando Roadstr, in qualsiasi paese e sotto qualsiasi ordinamento giuridico, l\'utente si assume consapevolmente e volontariamente TUTTI i rischi connessi al suo utilizzo, inclusi a titolo esemplificativo e non esaustivo: incidenti stradali, lesioni personali, morte, danni a cose, danni al veicolo, multe, sanzioni amministrative, rimozione forzata, sequestro del veicolo, responsabilità penale o qualsiasi altra conseguenza derivante direttamente o indirettamente dall\'affidamento alle indicazioni dell\'app. La responsabilità di ogni decisione di guida e navigazione ricade interamente ed esclusivamente sull\'utente.\n\n🚫  NESSUNA GARANZIA\nRoadstr viene fornita rigorosamente \"COSÌ COM\'È\" e \"NELLA MISURA IN CUI DISPONIBILE\", senza alcuna garanzia di alcun tipo, esplicita, implicita o di legge — incluse, a titolo esemplificativo, le garanzie di accuratezza, completezza, affidabilità, disponibilità, commerciabilità, idoneità a uno scopo particolare e non violazione di diritti di terzi. I dati di mappa, instradamento, limiti di velocità, autovelox e zone a traffico limitato (ZTL/ZAC/LTZ) provengono da fonti aperte mantenute dalla comunità (OpenStreetMap, Overpass API) che possono risultare incomplete, obsolete o inesatte per qualsiasi paese, regione o comune, in qualsiasi momento e senza preavviso. È esclusiva responsabilità dell\'utente verificare autonomamente, prima e durante lo spostamento, la legalità e la percorribilità di qualsiasi percorso suggerito confrontandola con la segnaletica e la normativa locale ufficiale.\n\n📍  ACCURATEZZA E GPS\nIl posizionamento GPS può essere impreciso o non disponibile. Tutte le indicazioni, le distanze e gli avvisi sono forniti a puro titolo indicativo e non devono mai essere l\'unico elemento su cui basare una decisione di guida.\n\n🛡️  LIMITAZIONE DI RESPONSABILITÀ\nNella misura massima consentita dalla legge applicabile in qualsiasi giurisdizione, gli sviluppatori, i contributori e qualsiasi soggetto coinvolto nella creazione o distribuzione di Roadstr non potranno essere ritenuti responsabili per alcun danno diretto, indiretto, incidentale, consequenziale, speciale, esemplare o punitivo di qualsiasi natura — comprese lesioni personali, morte o perdite economiche — derivante dall\'uso o dall\'impossibilità di utilizzare l\'app, anche qualora fossero stati informati della possibilità di tali danni. Laddove una giurisdizione non consenta, in tutto o in parte, tale limitazione, la responsabilità sarà limitata nella misura minima consentita dalla legge di quella giurisdizione.\n\n🤝  MANLEVA\nL\'utente si impegna a manlevare e tenere indenni gli sviluppatori e i contributori da qualsiasi pretesa, danno, perdita o spesa (incluse le spese legali) derivante dall\'uso dell\'app da parte dell\'utente o dalla violazione dei presenti termini.\n\n🔒  PRIVACY\nNessun dato di posizione viene trasmesso ai server di Roadstr. Il calcolo del percorso viene eseguito tramite servizi di terze parti (OSRM, GraphHopper, OpenRouteService) ai quali vengono inviate esclusivamente le coordinate di partenza e destinazione.\n\n⚖️  CLAUSOLA DI SALVATORIETÀ\nQualora una disposizione dei presenti termini risultasse inapplicabile in una determinata giurisdizione, tale disposizione sarà limitata o eliminata nella misura minima necessaria, mentre tutte le restanti disposizioni resteranno pienamente valide ed efficaci.\n\nUtilizzando Roadstr, ovunque nel mondo, l\'utente conferma di aver letto, compreso e accettato incondizionatamente ciascuno dei termini sopra indicati, assumendosi la responsabilità piena e completa — e ogni rischio — per l\'uso dell\'applicazione e per qualsiasi conseguenza da esso derivante.';
+      'Roadstr è un\'app di navigazione sperimentale, open-source e mantenuta dalla comunità, basata sui dati di OpenStreetMap e sul protocollo Nostr, resa disponibile per l\'uso in qualsiasi paese del mondo. Scaricando, installando o utilizzando questa app, l\'utente accetta incondizionatamente tutti i termini seguenti, senza alcun limite territoriale:\n\n🚗  SICUREZZA STRADALE PRIMA DI TUTTO\nIl conducente deve tenere sempre gli occhi sulla strada e rispettare tutte le leggi sul traffico e la segnaletica in vigore, che prevalgono sempre su qualsiasi indicazione dell\'app. Non utilizzare mai il dispositivo mentre si guida; fissarlo in un supporto omologato e visibile prima di partire, senza mai distogliere l\'attenzione dalla strada per interagire con esso a veicolo in movimento.\n\n⚠️  ASSUNZIONE DEL RISCHIO — VALIDA IN TUTTO IL MONDO\nUtilizzando Roadstr, in qualsiasi paese e sotto qualsiasi ordinamento giuridico, l\'utente si assume consapevolmente e volontariamente TUTTI i rischi connessi al suo utilizzo, inclusi a titolo esemplificativo e non esaustivo: incidenti stradali, lesioni personali, morte, danni a cose, danni al veicolo, multe, sanzioni amministrative, rimozione forzata, sequestro del veicolo, responsabilità penale o qualsiasi altra conseguenza derivante direttamente o indirettamente dall\'affidamento alle indicazioni dell\'app. La responsabilità di ogni decisione di guida e navigazione ricade interamente ed esclusivamente sull\'utente.\n\n🚫  NESSUNA GARANZIA\nRoadstr viene fornita rigorosamente \"COSÌ COM\'È\" e \"NELLA MISURA IN CUI DISPONIBILE\", senza alcuna garanzia di alcun tipo, esplicita, implicita o di legge — incluse, a titolo esemplificativo, le garanzie di accuratezza, completezza, affidabilità, disponibilità, commerciabilità, idoneità a uno scopo particolare e non violazione di diritti di terzi. I dati di mappa, instradamento, limiti di velocità, autovelox e zone a traffico limitato (ZTL/ZAC/LTZ) provengono da fonti aperte mantenute dalla comunità (OpenStreetMap, Overpass API) che possono risultare incomplete, obsolete o inesatte per qualsiasi paese, regione o comune, in qualsiasi momento e senza preavviso. È esclusiva responsabilità dell\'utente verificare autonomamente, prima e durante lo spostamento, la legalità e la percorribilità di qualsiasi percorso suggerito confrontandola con la segnaletica e la normativa locale ufficiale.\n\n📍  ACCURATEZZA E GPS\nIl posizionamento GPS può essere impreciso o non disponibile. Tutte le indicazioni, le distanze e gli avvisi sono forniti a puro titolo indicativo e non devono mai essere l\'unico elemento su cui basare una decisione di guida.\n\n🛡️  LIMITAZIONE DI RESPONSABILITÀ\nNella misura massima consentita dalla legge applicabile in qualsiasi giurisdizione, gli sviluppatori, i contributori e qualsiasi soggetto coinvolto nella creazione o distribuzione di Roadstr non potranno essere ritenuti responsabili per alcun danno diretto, indiretto, incidentale, consequenziale, speciale, esemplare o punitivo di qualsiasi natura — comprese lesioni personali, morte o perdite economiche — derivante dall\'uso o dall\'impossibilità di utilizzare l\'app, anche qualora fossero stati informati della possibilità di tali danni. Laddove una giurisdizione non consenta, in tutto o in parte, tale limitazione, la responsabilità sarà limitata nella misura minima consentita dalla legge di quella giurisdizione.\n\n🤝  MANLEVA\nL\'utente si impegna a manlevare e tenere indenni gli sviluppatori e i contributori da qualsiasi pretesa, danno, perdita o spesa (incluse le spese legali) derivante dall\'uso dell\'app da parte dell\'utente o dalla violazione dei presenti termini.\n\n🔒 PRIVACY E SERVIZI DI RETE\nRoadstr non gestisce server propri né analytics, ma non è un’app offline. Quando usi le relative funzioni, coordinate o aree approssimate e l’indirizzo IP vengono comunicati direttamente a provider esterni: servizi di routing (partenza, destinazione e tappe), OpenStreetMap/Nominatim/Overpass (ricerca, reverse geocoding, POI, ZTL, limiti e autovelox), Open-Meteo (coordinate arrotondate), tile server e relay Nostr (geohash cittadino). Un report stradale pubblica su Nostr posizione esatta, orario, contenuto e chiave pubblica ed è pseudonimo, non anonimo. Preferiti e parcheggio restano locali salvo export o sync esplicito.\n\n⚖️  CLAUSOLA DI SALVATORIETÀ\nQualora una disposizione dei presenti termini risultasse inapplicabile in una determinata giurisdizione, tale disposizione sarà limitata o eliminata nella misura minima necessaria, mentre tutte le restanti disposizioni resteranno pienamente valide ed efficaci.\n\nUtilizzando Roadstr, ovunque nel mondo, l\'utente conferma di aver letto, compreso e accettato incondizionatamente ciascuno dei termini sopra indicati, assumendosi la responsabilità piena e completa — e ogni rischio — per l\'uso dell\'applicazione e per qualsiasi conseguenza da esso derivante.';
 
   @override
   String get readOnWikipedia => 'Leggi su Wikipedia';
+
+  @override
+  String get openInBrowser => 'Apri nel browser';
+
+  @override
+  String get wikipediaLoadFailed =>
+      'Impossibile caricare Wikipedia in modo sicuro.';
+
+  @override
+  String get retry => 'Riprova';
+
+  @override
+  String get poiDetailsFromOsm => 'Informazioni da OpenStreetMap';
+
+  @override
+  String get poiCategory => 'Categoria';
+
+  @override
+  String get poiOperator => 'Gestore';
+
+  @override
+  String get poiCuisine => 'Cucina';
+
+  @override
+  String get poiAccessibility => 'Accessibilità';
+
+  @override
+  String get poiWheelchairYes => 'Accessibile in sedia a rotelle';
+
+  @override
+  String get poiWheelchairLimited =>
+      'Accessibilità limitata in sedia a rotelle';
+
+  @override
+  String get poiWheelchairNo => 'Non accessibile in sedia a rotelle';
+
+  @override
+  String get poiContact => 'Contatti';
+
+  @override
+  String get poiAddress => 'Indirizzo';
+
+  @override
+  String get poiWebsite => 'Sito web';
+
+  @override
+  String get gpsSignalLost => 'Segnale GPS perso';
+
+  @override
+  String get poiOpenNow => 'Aperto ora';
+
+  @override
+  String get poiClosedNow => 'Chiuso';
+
+  @override
+  String poiOpensAt(String when) {
+    return 'Apre: $when';
+  }
+
+  @override
+  String poiClosesAt(String when) {
+    return 'Chiude: $when';
+  }
 
   @override
   String searchOnEngine(String engine) {
@@ -906,7 +976,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Concedi la posizione Precisa (non Approssimata) e consenti l\'accesso Sempre (non solo durante l\'utilizzo) in:\nImpostazioni → App → Roadstr → Autorizzazioni → Posizione\n\nCon solo la posizione approssimata o \'solo durante l\'utilizzo\', la navigazione GPS perderà la posizione in background.';
+      'Concedi la posizione Precisa (non Approssimata) durante l’uso di Roadstr in:\nImpostazioni → App → Roadstr → Autorizzazioni → Posizione\n\nRoadstr usa un servizio di navigazione in primo piano e non richiede l’accesso permanente alla posizione in background.';
 
   @override
   String get onboardingVoiceTitle => 'Guida vocale AI (opzionale)';
@@ -1063,10 +1133,6 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get onboardingVpnNotice =>
       'Per la massima privacy — le segnalazioni vengono propagate nella rete Nostr — è consigliato l\'uso di una VPN. Mullvad, pagabile in Bitcoin, è quella consigliata.';
-
-  @override
-  String get onboardingGrapheneAlwaysAllow =>
-      'Per un funzionamento affidabile, imposta il permesso di localizzazione dell\'app su \"Consenti sempre\", non solo mentre l\'app è in uso.';
 
   @override
   String get trafficNormal => 'Traffico regolare';

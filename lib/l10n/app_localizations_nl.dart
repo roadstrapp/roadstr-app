@@ -126,6 +126,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get keepScreenOnDescription => 'Voorkomt slaapstand tijdens navigatie';
 
   @override
+  String get autoCenterOnLaunch => 'Centreer bij opstarten op mijn locatie';
+
+  @override
+  String get autoCenterOnLaunchDesc =>
+      'Gebruikt GPS alleen automatisch als locatietoestemming al is verleend';
+
+  @override
   String get rotateMap => 'Kaart volgt richting';
 
   @override
@@ -734,10 +741,71 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr is een experimentele, open-source, door de gemeenschap onderhouden navigatie-app op basis van OpenStreetMap-gegevens en het Nostr-protocol, beschikbaar gesteld voor gebruik in elk land. Door deze app te downloaden, te installeren of te gebruiken, aanvaardt de gebruiker onvoorwaardelijk alle onderstaande voorwaarden, zonder territoriale beperking.\n\n🚗 VERKEERSVEILIGHEID STAAT VOOROP\nDe bestuurder moet te allen tijde zijn ogen op de weg gericht houden en alle toepasselijke verkeerswetten en aanwezige verkeersborden naleven, die altijd voorrang hebben boven elke instructie van de app. Het toestel mag nooit worden bediend tijdens het rijden; bevestig het vóór vertrek in een goedgekeurde, zichtbare houder, en richt de aandacht tijdens het rijden nooit van de weg af om ermee te interageren.\n\n⚠️ AANVAARDING VAN RISICO — WERELDWIJD\nDoor Roadstr te gebruiken, in elk land en onder elk rechtsstelsel, aanvaardt de gebruiker bewust en vrijwillig ALLE risico\'s die verband houden met het gebruik ervan, met inbegrip van, maar niet beperkt tot: verkeersongevallen, lichamelijk letsel, overlijden, materiële schade, voertuigschade, boetes, administratieve sancties, wegslepen, inbeslagname, strafrechtelijke aansprakelijkheid, of enig ander gevolg dat direct of indirect voortvloeit uit het vertrouwen op de app. De gebruiker draagt als enige de volledige verantwoordelijkheid voor elke rij- en navigatiebeslissing.\n\n🚫 GEEN GARANTIE\nRoadstr wordt strikt \"ZOALS HET IS\" en \"ZOALS BESCHIKBAAR\" aangeboden, zonder enige garantie van welke aard dan ook, uitdrukkelijk, impliciet of wettelijk — met inbegrip van, maar niet beperkt tot, garanties van nauwkeurigheid, volledigheid, betrouwbaarheid, beschikbaarheid, verkoopbaarheid, geschiktheid voor een bepaald doel en niet-inbreuk. Kaartgegevens, routeberekening, snelheidslimieten, flitspalen en informatie over zones met verkeersbeperkingen (ZTL/ZAC/LTZ) zijn afkomstig van open, door de gemeenschap onderhouden bronnen (OpenStreetMap, Overpass API) die voor elk land, elke regio of gemeente op elk moment en zonder voorafgaande kennisgeving onvolledig, verouderd of onnauwkeurig kunnen zijn. De gebruiker is als enige verantwoordelijk voor het vóór en tijdens de reis zelfstandig verifiëren van de rechtmatigheid en begaanbaarheid van elke voorgestelde route aan de hand van de officiële plaatselijke bebording en voorschriften.\n\n📍 NAUWKEURIGHEID & GPS\nGPS-positionering kan onnauwkeurig of niet beschikbaar zijn. Alle routebeschrijvingen, afstanden en meldingen worden uitsluitend ter oriëntatie verstrekt en mogen nooit worden gebruikt als enige basis voor een rijbeslissing.\n\n🛡️ BEPERKING VAN AANSPRAKELIJKHEID\nVoor zover maximaal toegestaan door het toepasselijke recht in elk rechtsgebied, zijn de ontwikkelaars, medewerkers en elke partij die betrokken is bij het creëren of verspreiden van Roadstr niet aansprakelijk voor directe, indirecte, incidentele, gevolg-, bijzondere, voorbeeld- of punitieve schade van welke aard dan ook — met inbegrip van lichamelijk letsel, overlijden of financieel verlies — die voortvloeit uit of verband houdt met het gebruik of het onvermogen om de app te gebruiken, zelfs indien gewezen op de mogelijkheid van dergelijke schade. Indien een rechtsgebied deze beperking geheel of gedeeltelijk niet toestaat, is de aansprakelijkheid beperkt tot de kleinst mogelijke omvang die door de wet van dat rechtsgebied wordt toegestaan.\n\n🤝 VRIJWARING\nDe gebruiker stemt ermee in de ontwikkelaars en medewerkers te vrijwaren en schadeloos te stellen voor elke claim, schade, verlies of kosten (met inbegrip van juridische kosten) die voortvloeien uit het gebruik van de app door de gebruiker of uit schending van deze voorwaarden.\n\n🔒 PRIVACY\nEr worden geen locatiegegevens verzonden naar de eigen servers van Roadstr. De routeberekening wordt uitgevoerd via diensten van derden (OSRM, GraphHopper, OpenRouteService), waaraan uitsluitend de start- en bestemmingscoördinaten worden verzonden.\n\n⚖️ SCHEIDBAARHEID\nIndien een bepaling van deze voorwaarden in een bepaald rechtsgebied onafdwingbaar wordt bevonden, wordt die bepaling in de minimaal noodzakelijke mate beperkt of geschrapt, en blijven alle overige bepalingen onverminderd van kracht.\n\nDoor Roadstr te gebruiken, waar ook ter wereld, bevestigt de gebruiker alle bovenstaande voorwaarden te hebben gelezen, begrepen en onvoorwaardelijk aanvaard, en aanvaardt hij de volledige verantwoordelijkheid — en alle risico\'s — voor het gebruik van de applicatie en elk gevolg daarvan.';
+      'Roadstr is een experimentele, open-source, door de gemeenschap onderhouden navigatie-app op basis van OpenStreetMap-gegevens en het Nostr-protocol, beschikbaar gesteld voor gebruik in elk land. Door deze app te downloaden, te installeren of te gebruiken, aanvaardt de gebruiker onvoorwaardelijk alle onderstaande voorwaarden, zonder territoriale beperking.\n\n🚗 VERKEERSVEILIGHEID STAAT VOOROP\nDe bestuurder moet te allen tijde zijn ogen op de weg gericht houden en alle toepasselijke verkeerswetten en aanwezige verkeersborden naleven, die altijd voorrang hebben boven elke instructie van de app. Het toestel mag nooit worden bediend tijdens het rijden; bevestig het vóór vertrek in een goedgekeurde, zichtbare houder, en richt de aandacht tijdens het rijden nooit van de weg af om ermee te interageren.\n\n⚠️ AANVAARDING VAN RISICO — WERELDWIJD\nDoor Roadstr te gebruiken, in elk land en onder elk rechtsstelsel, aanvaardt de gebruiker bewust en vrijwillig ALLE risico\'s die verband houden met het gebruik ervan, met inbegrip van, maar niet beperkt tot: verkeersongevallen, lichamelijk letsel, overlijden, materiële schade, voertuigschade, boetes, administratieve sancties, wegslepen, inbeslagname, strafrechtelijke aansprakelijkheid, of enig ander gevolg dat direct of indirect voortvloeit uit het vertrouwen op de app. De gebruiker draagt als enige de volledige verantwoordelijkheid voor elke rij- en navigatiebeslissing.\n\n🚫 GEEN GARANTIE\nRoadstr wordt strikt \"ZOALS HET IS\" en \"ZOALS BESCHIKBAAR\" aangeboden, zonder enige garantie van welke aard dan ook, uitdrukkelijk, impliciet of wettelijk — met inbegrip van, maar niet beperkt tot, garanties van nauwkeurigheid, volledigheid, betrouwbaarheid, beschikbaarheid, verkoopbaarheid, geschiktheid voor een bepaald doel en niet-inbreuk. Kaartgegevens, routeberekening, snelheidslimieten, flitspalen en informatie over zones met verkeersbeperkingen (ZTL/ZAC/LTZ) zijn afkomstig van open, door de gemeenschap onderhouden bronnen (OpenStreetMap, Overpass API) die voor elk land, elke regio of gemeente op elk moment en zonder voorafgaande kennisgeving onvolledig, verouderd of onnauwkeurig kunnen zijn. De gebruiker is als enige verantwoordelijk voor het vóór en tijdens de reis zelfstandig verifiëren van de rechtmatigheid en begaanbaarheid van elke voorgestelde route aan de hand van de officiële plaatselijke bebording en voorschriften.\n\n📍 NAUWKEURIGHEID & GPS\nGPS-positionering kan onnauwkeurig of niet beschikbaar zijn. Alle routebeschrijvingen, afstanden en meldingen worden uitsluitend ter oriëntatie verstrekt en mogen nooit worden gebruikt als enige basis voor een rijbeslissing.\n\n🛡️ BEPERKING VAN AANSPRAKELIJKHEID\nVoor zover maximaal toegestaan door het toepasselijke recht in elk rechtsgebied, zijn de ontwikkelaars, medewerkers en elke partij die betrokken is bij het creëren of verspreiden van Roadstr niet aansprakelijk voor directe, indirecte, incidentele, gevolg-, bijzondere, voorbeeld- of punitieve schade van welke aard dan ook — met inbegrip van lichamelijk letsel, overlijden of financieel verlies — die voortvloeit uit of verband houdt met het gebruik of het onvermogen om de app te gebruiken, zelfs indien gewezen op de mogelijkheid van dergelijke schade. Indien een rechtsgebied deze beperking geheel of gedeeltelijk niet toestaat, is de aansprakelijkheid beperkt tot de kleinst mogelijke omvang die door de wet van dat rechtsgebied wordt toegestaan.\n\n🤝 VRIJWARING\nDe gebruiker stemt ermee in de ontwikkelaars en medewerkers te vrijwaren en schadeloos te stellen voor elke claim, schade, verlies of kosten (met inbegrip van juridische kosten) die voortvloeien uit het gebruik van de app door de gebruiker of uit schending van deze voorwaarden.\n\n🔒 PRIVACY AND NETWORK SERVICES\nRoadstr runs no first-party servers or analytics, but it is not an offline app. When relevant features are used, coordinates or coarse areas and the IP address are sent directly to third parties: routing providers (origin, destination and waypoints), OpenStreetMap/Nominatim/Overpass (search, reverse geocoding, POIs, restricted zones, limits and cameras), Open-Meteo (rounded coordinates), map-tile servers and Nostr relays (city-level geohash). A road report publishes its exact position, time, content and public key to Nostr and is pseudonymous, not anonymous. Favorites and parking remain local unless explicitly exported or synced.\n\n⚖️ SCHEIDBAARHEID\nIndien een bepaling van deze voorwaarden in een bepaald rechtsgebied onafdwingbaar wordt bevonden, wordt die bepaling in de minimaal noodzakelijke mate beperkt of geschrapt, en blijven alle overige bepalingen onverminderd van kracht.\n\nDoor Roadstr te gebruiken, waar ook ter wereld, bevestigt de gebruiker alle bovenstaande voorwaarden te hebben gelezen, begrepen en onvoorwaardelijk aanvaard, en aanvaardt hij de volledige verantwoordelijkheid — en alle risico\'s — voor het gebruik van de applicatie en elk gevolg daarvan.';
 
   @override
   String get readOnWikipedia => 'Lees op Wikipedia';
+
+  @override
+  String get openInBrowser => 'Openen in browser';
+
+  @override
+  String get wikipediaLoadFailed => 'Wikipedia kon niet veilig worden geladen.';
+
+  @override
+  String get retry => 'Opnieuw proberen';
+
+  @override
+  String get poiDetailsFromOsm => 'Informatie van OpenStreetMap';
+
+  @override
+  String get poiCategory => 'Categorie';
+
+  @override
+  String get poiOperator => 'Beheerder';
+
+  @override
+  String get poiCuisine => 'Keuken';
+
+  @override
+  String get poiAccessibility => 'Toegankelijkheid';
+
+  @override
+  String get poiWheelchairYes => 'Rolstoeltoegankelijk';
+
+  @override
+  String get poiWheelchairLimited => 'Beperkt rolstoeltoegankelijk';
+
+  @override
+  String get poiWheelchairNo => 'Niet rolstoeltoegankelijk';
+
+  @override
+  String get poiContact => 'Contact';
+
+  @override
+  String get poiAddress => 'Adres';
+
+  @override
+  String get poiWebsite => 'Website';
+
+  @override
+  String get gpsSignalLost => 'Gps-signaal verloren';
+
+  @override
+  String get poiOpenNow => 'Nu open';
+
+  @override
+  String get poiClosedNow => 'Gesloten';
+
+  @override
+  String poiOpensAt(String when) {
+    return 'Opent: $when';
+  }
+
+  @override
+  String poiClosesAt(String when) {
+    return 'Sluit: $when';
+  }
 
   @override
   String searchOnEngine(String engine) {
@@ -906,7 +974,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Verleen Exacte locatie (niet Geschatte) en sta toegang Altijd toe (niet alleen tijdens gebruik) in:\nInstellingen → Apps → Roadstr → Machtigingen → Locatie\n\nMet alleen geschatte locatie of \'alleen tijdens gebruik\' verliest GPS-navigatie de positie op de achtergrond.';
+      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
 
   @override
   String get onboardingVoiceTitle => 'AI-stemgeleiding (optioneel)';
@@ -1061,10 +1129,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get onboardingVpnNotice =>
       'Voor maximale privacy — meldingen worden via het Nostr-netwerk verspreid — wordt het gebruik van een VPN aanbevolen. Mullvad, te betalen met Bitcoin, is de aanbevolen keuze.';
-
-  @override
-  String get onboardingGrapheneAlwaysAllow =>
-      'Stel voor een betrouwbare werking de locatietoestemming van de app in op \"Altijd toestaan\", niet alleen tijdens gebruik.';
 
   @override
   String get trafficNormal => 'Normaal verkeer';

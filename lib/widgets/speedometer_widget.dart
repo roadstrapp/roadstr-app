@@ -32,8 +32,12 @@ class SpeedometerWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: c.surface2.withValues(alpha: 0.92),
         shape: BoxShape.circle,
-        border: Border.all(color: over ? Colors.red.shade400 : c.border, width: over ? 1.5 : 0.5),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 12)],
+        border: Border.all(
+            color: over ? Colors.red.shade400 : c.border,
+            width: over ? 1.5 : 0.5),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 12)
+        ],
       ),
       child: Stack(
         alignment: Alignment.center,
@@ -59,8 +63,8 @@ class SpeedometerWidget extends StatelessWidget {
                 ),
               ),
               Text(Units.speedUnit,
-                  style: TextStyle(color: c.textSecondary,
-                      fontSize: fontSize * 0.29)),
+                  style: TextStyle(
+                      color: c.textSecondary, fontSize: fontSize * 0.29)),
             ],
           ),
         ],
@@ -73,7 +77,8 @@ class _SpeedPainter extends CustomPainter {
   final double progress;
   final Color accent;
   final Color bg;
-  const _SpeedPainter({required this.progress, required this.accent, required this.bg});
+  const _SpeedPainter(
+      {required this.progress, required this.accent, required this.bg});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -82,14 +87,28 @@ class _SpeedPainter extends CustomPainter {
     const startAngle = math.pi * 0.75;
     const sweep = math.pi * 1.5;
 
-    canvas.drawArc(Rect.fromCircle(center: center, radius: radius),
-        startAngle, sweep, false,
-        Paint()..color = bg..strokeWidth = 8..strokeCap = StrokeCap.round..style = PaintingStyle.stroke);
+    canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startAngle,
+        sweep,
+        false,
+        Paint()
+          ..color = bg
+          ..strokeWidth = 8
+          ..strokeCap = StrokeCap.round
+          ..style = PaintingStyle.stroke);
 
     if (progress > 0) {
-      canvas.drawArc(Rect.fromCircle(center: center, radius: radius),
-          startAngle, sweep * progress, false,
-          Paint()..color = accent..strokeWidth = 8..strokeCap = StrokeCap.round..style = PaintingStyle.stroke);
+      canvas.drawArc(
+          Rect.fromCircle(center: center, radius: radius),
+          startAngle,
+          sweep * progress,
+          false,
+          Paint()
+            ..color = accent
+            ..strokeWidth = 8
+            ..strokeCap = StrokeCap.round
+            ..style = PaintingStyle.stroke);
     }
   }
 

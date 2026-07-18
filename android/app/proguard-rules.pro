@@ -19,9 +19,6 @@
 -keep class com.dexterous.flutterlocalnotifications.** { *; }
 -keep class com.it_nomads.fluttersecurestorage.** { *; }
 
-# WebView bridge (webview_flutter)
--keep class io.flutter.plugins.webviewflutter.** { *; }
-
 # ── ONNX Runtime (flutter_onnxruntime) ───────────────────────────────────────
 # R8 full-mode strips JNI-bound classes by default.  The plugin's Kotlin wrapper
 # (com.masicai.flutteronnxruntime) calls into the ONNX Runtime Java API

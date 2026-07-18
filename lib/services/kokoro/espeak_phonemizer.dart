@@ -1,5 +1,6 @@
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:async';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
@@ -21,8 +22,8 @@ typedef _EspeakTextToPhonemesDart = Pointer<Utf8> Function(
 // ── eSpeak NG constants (speak_lib.h) ────────────────────────────────────────
 
 const int _kAudioOutputSynchronous = 2; // AUDIO_OUTPUT_SYNCHRONOUS
-const int _kCharsUtf8 = 1;             // espeakCHARS_UTF8
-const int _kPhonemesIpa = 2;           // espeakPHONEMES_IPA
+const int _kCharsUtf8 = 1; // espeakCHARS_UTF8
+const int _kPhonemesIpa = 2; // espeakPHONEMES_IPA
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
@@ -38,24 +39,30 @@ class EspeakPhonemizer {
   static final EspeakPhonemizer instance = EspeakPhonemizer._();
 
   bool _ready = false;
+  Future<void>? _initializing;
+  Completer<void>? _operationLock;
   late _EspeakSetVoiceDart _setVoice;
   late _EspeakTextToPhonemesDart _textToPhonemes;
   String? _currentVoice;
 
-  Future<void> init() async {
-    if (_ready) return;
+  Future<void> init() {
+    if (_ready) return Future.value();
+    return _initializing ??= _initialize().whenComplete(() {
+      _initializing = null;
+    });
+  }
 
+  Future<void> _initialize() async {
+    if (_ready) return;
     final dataParent = await _ensureDataExtracted();
     final lib = DynamicLibrary.open('libespeak-ng.so');
 
-    final espeakInit =
-        lib.lookupFunction<_EspeakInitNative, _EspeakInitDart>('espeak_Initialize');
-    _setVoice =
-        lib.lookupFunction<_EspeakSetVoiceNative, _EspeakSetVoiceDart>(
-            'espeak_SetVoiceByName');
-    _textToPhonemes =
-        lib.lookupFunction<_EspeakTextToPhonemesNative, _EspeakTextToPhonemesDart>(
-            'espeak_TextToPhonemes');
+    final espeakInit = lib.lookupFunction<_EspeakInitNative, _EspeakInitDart>(
+        'espeak_Initialize');
+    _setVoice = lib.lookupFunction<_EspeakSetVoiceNative, _EspeakSetVoiceDart>(
+        'espeak_SetVoiceByName');
+    _textToPhonemes = lib.lookupFunction<_EspeakTextToPhonemesNative,
+        _EspeakTextToPhonemesDart>('espeak_TextToPhonemes');
 
     // espeak_Initialize looks for <path>/espeak-ng-data/ automatically.
     final pathPtr = dataParent.toNativeUtf8();
@@ -73,13 +80,33 @@ class EspeakPhonemizer {
 
   /// Returns IPA phoneme string for [text] spoken in [languageCode].
   Future<String> phonemize(String text, String languageCode) async {
+    if (text.isEmpty) return '';
+    if (text.length > 1000) {
+      throw const FormatException('Text is too long to phonemize');
+    }
     if (!_ready) await init();
+    while (_operationLock != null) {
+      await _operationLock!.future;
+    }
+    final lock = Completer<void>();
+    _operationLock = lock;
+    try {
+      return _phonemizeLocked(text, languageCode);
+    } finally {
+      if (identical(_operationLock, lock)) _operationLock = null;
+      lock.complete();
+    }
+  }
 
+  String _phonemizeLocked(String text, String languageCode) {
     final voice = _voiceForLang(languageCode);
     if (voice != _currentVoice) {
       final voicePtr = voice.toNativeUtf8();
       try {
-        _setVoice(voicePtr);
+        final result = _setVoice(voicePtr);
+        if (result < 0) {
+          throw StateError('eSpeak voice is unavailable: $voice');
+        }
       } finally {
         malloc.free(voicePtr);
       }
@@ -92,10 +119,21 @@ class EspeakPhonemizer {
     try {
       ptrHolder.value = textNative.cast<Void>();
       final sb = StringBuffer();
+      var iterations = 0;
       while (ptrHolder.value != nullptr) {
+        if (++iterations > 2048) {
+          throw StateError('eSpeak did not finish phonemization');
+        }
+        final before = ptrHolder.value.address;
         final phonPtr = _textToPhonemes(ptrHolder, _kCharsUtf8, _kPhonemesIpa);
         if (phonPtr != nullptr) {
           sb.write(phonPtr.toDartString());
+        }
+        if (ptrHolder.value != nullptr && ptrHolder.value.address == before) {
+          throw StateError('eSpeak did not advance the input pointer');
+        }
+        if (sb.length > 16000) {
+          throw const FormatException('Phoneme output is unexpectedly large');
         }
       }
       return sb.toString().trim();
@@ -129,8 +167,9 @@ class EspeakPhonemizer {
     final sentinel = File('${docs.path}/espeak-ng-data/.roadstr_extracted');
     if (await sentinel.exists()) return docs.path;
 
-    final assetBytes =
-        (await rootBundle.load('assets/espeak-ng-data.tar.gz')).buffer.asUint8List();
+    final assetBytes = (await rootBundle.load('assets/espeak-ng-data.tar.gz'))
+        .buffer
+        .asUint8List();
     final tarBytes = GZipDecoder().decodeBytes(assetBytes);
     final archive = TarDecoder().decodeBytes(tarBytes);
 

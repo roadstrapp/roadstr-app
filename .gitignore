@@ -1,4 +1,7 @@
 # ── Signing secrets (NEVER commit these) ──────────────────────────────────────
+.env
+.env.*
+!.env.example
 android/key.properties
 *.jks
 *.keystore
@@ -49,13 +52,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-# Non carichiamo le mie cazzo di chiavi
-**/android/key.properties
-**/android/*.jks
-**/android/*.keystore
+/android/build/reports/
 
 # Tools virtual environment and downloaded model files (large, generated locally)
 tools/.venv/
 kokoro_models/
 .claude/
-zapstore.yaml

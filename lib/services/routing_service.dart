@@ -11,24 +11,29 @@
 // forward search and reverse geocoding.
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import '../utils/units.dart';
+import 'bounded_http.dart';
 
 /// A single turn-by-turn navigation step produced by a routing provider.
 class RouteStep {
   /// Human-readable instruction in the requested language (e.g. "Turn right on Via Roma").
   final String instruction;
+
   /// Maneuver type from the routing provider (e.g. 'turn', 'roundabout', 'arrive').
   final String direction;
+
   /// Turn modifier — sub-type of a 'turn' maneuver: 'left', 'right', 'slight left',
   /// 'slight right', 'sharp left', 'sharp right', 'straight', 'uturn'.
   /// Empty string when not applicable (depart, arrive, etc.).
   final String modifier;
+
   /// Horizontal distance from this step's maneuver point to the next, in metres.
   final double distanceM;
+
   /// The geographic point where this maneuver begins.
   final LatLng location;
+
   /// Exit number for roundabout/rotary maneuvers (1-based). Null for other types.
   final int? exitNumber;
 
@@ -50,10 +55,12 @@ typedef SpeedLimitEntry = ({double distFromStartM, int? speedKmh});
 class RouteResult {
   /// Ordered list of coordinates forming the route polyline to draw on the map.
   final List<LatLng> polyline;
+
   /// Turn-by-turn navigation instructions.
   final List<RouteStep> steps;
   final double totalDistanceM;
   final double totalDurationS;
+
   /// Speed-limit zones sorted by distance from route start.
   /// Populated only for GraphHopper (details=max_speed); OSRM has no maxspeed
   /// annotation (that is a Mapbox extension) and other providers expose none —
@@ -102,7 +109,7 @@ class RoutePreferences {
   final bool preferShorter;
   const RoutePreferences({
     this.avoidHighways = false,
-    this.avoidTolls    = false,
+    this.avoidTolls = false,
     this.preferShorter = false,
   });
 }
@@ -112,15 +119,23 @@ enum RoutingProvider { osrm, openRoute, graphHopper }
 
 /// Stateless routing and geocoding helper. All methods are `static`.
 class RoutingService {
+  static const _maxRouteResponseBytes = 20 * 1024 * 1024;
+  static const _maxRoutePoints = 50000;
+  static const _maxRouteSteps = 10000;
+
   /// OSRM driving endpoint — the FOSSGIS community server supports car, foot
   /// and bike profiles AND returns maxspeed annotations; unlike the lightweight
   /// demo at router.project-osrm.org which rejects annotations=maxspeed.
-  static const _osrmDriving = 'https://routing.openstreetmap.de/routed-car/route/v1/driving';
+  static const _osrmDriving =
+      'https://routing.openstreetmap.de/routed-car/route/v1/driving';
 
   /// OSRM walking/cycling endpoints — same community server, different profiles.
-  static const _osrmWalking  = 'https://routing.openstreetmap.de/routed-foot/route/v1/foot';
-  static const _osrmBike     = 'https://routing.openstreetmap.de/routed-bike/route/v1/bike';
+  static const _osrmWalking =
+      'https://routing.openstreetmap.de/routed-foot/route/v1/foot';
+  static const _osrmBike =
+      'https://routing.openstreetmap.de/routed-bike/route/v1/bike';
   static const _nominatim = 'https://nominatim.openstreetmap.org/search';
+
   /// ORS base — the profile segment ('driving-car', 'foot-walking'…) is appended.
   static const _orsBase = 'https://api.openrouteservice.org/v2/directions/';
   static const _graphhopperPublic = 'https://graphhopper.com/api/1/route';
@@ -162,7 +177,8 @@ class RoutingService {
   /// rank a same-named business on the other side of the world above the one
   /// 500 m away, since Nominatim's own ranking is a global "importance"
   /// score, not a proximity score.
-  static Future<List<NominatimResult>> search(String query, {LatLng? near}) async {
+  static Future<List<NominatimResult>> search(String query,
+      {LatLng? near}) async {
     if (query.trim().isEmpty) return [];
     try {
       final viewbox = near != null
@@ -174,9 +190,12 @@ class RoutingService {
           // limit=8 gives a richer POI list without excessive bandwidth.
           // polygon_geojson=0 skips shape data we don't need, keeping responses lean.
           '&format=json&limit=8&addressdetails=1&polygon_geojson=0$viewbox');
-      final res = await http.get(uri,
-          headers: {'User-Agent': 'Roadstr/1.0'})
-          .timeout(const Duration(seconds: 5));
+      final res = await BoundedHttp.get(
+        uri,
+        headers: {'User-Agent': 'Roadstr/1.0'},
+        maxBytes: 2 * 1024 * 1024,
+        timeout: const Duration(seconds: 5),
+      );
       if (res.statusCode != 200) return [];
       final list = jsonDecode(res.body) as List;
       // Parse each entry defensively: one malformed result (bad coordinates,
@@ -189,9 +208,10 @@ class RoutingService {
         } catch (_) {}
       }
       if (near != null) {
-        results.sort((a, b) =>
-            const Distance().as(LengthUnit.Meter, near, a.position)
-                .compareTo(const Distance().as(LengthUnit.Meter, near, b.position)));
+        results.sort((a, b) => const Distance()
+            .as(LengthUnit.Meter, near, a.position)
+            .compareTo(
+                const Distance().as(LengthUnit.Meter, near, b.position)));
       }
       return results;
     } catch (_) {
@@ -208,9 +228,12 @@ class RoutingService {
     try {
       final detail = await reverseGeocodeDetail(point);
       if (detail == null) return null;
-      return detail.display.split(',')
-          .map((s) => s.trim()).where((s) => s.isNotEmpty)
-          .take(parts).join(', ');
+      return detail.display
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .take(parts)
+          .join(', ');
     } catch (_) {
       return null;
     }
@@ -226,20 +249,28 @@ class RoutingService {
   ///     quarter → neighbourhood → city → town → village → municipality → county.
   ///     Numeric-only strings (house numbers) are excluded to avoid Wikipedia
   ///     results like "Via 5" instead of "Rome".
-  static Future<({String display, String? wikiQuery})?>
+  static Future<({String display, String? wikiQuery, String? openingHours})?>
       reverseGeocodeDetail(LatLng point) async {
     try {
-      final uri = Uri.parse(
-          'https://nominatim.openstreetmap.org/reverse'
+      // extratags=1 adds the raw OSM tags of the matched element, including
+      // `opening_hours` (parsed client-side for the open/closed badge). No
+      // extra location is disclosed — the coordinate is already sent for the
+      // reverse lookup itself.
+      final uri = Uri.parse('https://nominatim.openstreetmap.org/reverse'
           '?lat=${point.latitude}&lon=${point.longitude}'
-          '&format=json&addressdetails=1');
-      final res = await http
-          .get(uri, headers: {'User-Agent': 'Roadstr/1.0'})
-          .timeout(const Duration(seconds: 5));
+          '&format=json&addressdetails=1&extratags=1');
+      final res = await BoundedHttp.get(
+        uri,
+        headers: {'User-Agent': 'Roadstr/1.0'},
+        maxBytes: 2 * 1024 * 1024,
+        timeout: const Duration(seconds: 5),
+      );
       if (res.statusCode != 200) return null;
-      final data    = jsonDecode(res.body) as Map<String, dynamic>;
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
       final display = data['display_name'] as String? ?? '';
-      final addr    = data['address'] as Map<String, dynamic>? ?? {};
+      final addr = data['address'] as Map<String, dynamic>? ?? {};
+      final extra = data['extratags'] as Map<String, dynamic>? ?? {};
+      final openingHours = (extra['opening_hours'] as String?)?.trim();
 
       // Choose the best Wikipedia search term in priority order:
       // 1. POI name (e.g. "Colosseum")
@@ -252,22 +283,22 @@ class RoutingService {
       // Best POI-level name (high priority, excluding place hierarchy)
       final poiName = [
         data['name'] as String?,
-        addr['tourism']       as String?,
-        addr['amenity']       as String?,
-        addr['historic']      as String?,
-        addr['leisure']       as String?,
-        addr['suburb']        as String?,
-        addr['quarter']       as String?,
+        addr['tourism'] as String?,
+        addr['amenity'] as String?,
+        addr['historic'] as String?,
+        addr['leisure'] as String?,
+        addr['suburb'] as String?,
+        addr['quarter'] as String?,
         addr['neighbourhood'] as String?,
       ].where((s) => s != null && s.isNotEmpty && !isNumber(s)).firstOrNull;
 
       // City / municipality for geographic disambiguation
       final city = [
-        addr['city']         as String?,
-        addr['town']         as String?,
-        addr['village']      as String?,
+        addr['city'] as String?,
+        addr['town'] as String?,
+        addr['village'] as String?,
         addr['municipality'] as String?,
-        addr['county']       as String?,
+        addr['county'] as String?,
       ].where((s) => s != null && s.isNotEmpty && !isNumber(s)).firstOrNull;
 
       // Combine POI name with city so that generic names like "Teodorico"
@@ -275,14 +306,19 @@ class RoutingService {
       // fallback much more accurate without affecting the geo-based lookup.
       String? wikiQuery;
       if (poiName != null) {
-        wikiQuery = (city != null && city != poiName)
-            ? '$poiName $city'
-            : poiName;
+        wikiQuery =
+            (city != null && city != poiName) ? '$poiName $city' : poiName;
       } else {
         wikiQuery = city;
       }
 
-      return (display: display, wikiQuery: wikiQuery);
+      return (
+        display: display,
+        wikiQuery: wikiQuery,
+        openingHours: (openingHours != null && openingHours.isNotEmpty)
+            ? openingHours
+            : null,
+      );
     } catch (_) {
       return null;
     }
@@ -298,8 +334,7 @@ class RoutingService {
   ///
   /// All providers support the `lang` parameter for localised instruction text.
   /// Throws [RoutingException] on HTTP errors or malformed responses.
-  static Future<RouteResult?> getRoute(
-      LatLng origin, LatLng destination,
+  static Future<RouteResult?> getRoute(LatLng origin, LatLng destination,
       {RoutingProvider provider = RoutingProvider.osrm,
       String? apiKey,
       String? graphhopperServer,
@@ -312,7 +347,7 @@ class RoutingService {
         final uri = Uri.parse('$_orsBase${_orsProfile(vehicle)}');
         final avoidList = <String>[
           if (prefs.avoidHighways) 'highways',
-          if (prefs.avoidTolls)    'tollways',
+          if (prefs.avoidTolls) 'tollways',
         ];
         final body = jsonEncode({
           'coordinates': [
@@ -321,30 +356,43 @@ class RoutingService {
           ],
           'language': lang,
           'instructions': true,
-          if (prefs.preferShorter)   'preference': 'shortest',
-          if (avoidList.isNotEmpty)  'options': {'avoid_features': avoidList},
+          if (prefs.preferShorter) 'preference': 'shortest',
+          if (avoidList.isNotEmpty) 'options': {'avoid_features': avoidList},
         });
-        final res = await http
-            .post(uri,
-                headers: {
-                  'Authorization': apiKey,
-                  'Content-Type': 'application/json',
-                  'User-Agent': 'Roadstr/1.0'
-                },
-                body: body)
-            .timeout(const Duration(seconds: 10));
+        final res = await BoundedHttp.post(
+          uri,
+          headers: {
+            'Authorization': apiKey,
+            'Content-Type': 'application/json',
+            'User-Agent': 'Roadstr/1.0'
+          },
+          body: body,
+          maxBytes: _maxRouteResponseBytes,
+          timeout: const Duration(seconds: 10),
+        );
         if (res.statusCode != 200) {
-          throw RoutingException(statusCode: res.statusCode, body: res.body, message: 'OpenRouteService HTTP error');
+          throw RoutingException(
+              statusCode: res.statusCode,
+              body: res.body,
+              message: 'OpenRouteService HTTP error');
         }
 
+        if (res.bodyBytes.length > _maxRouteResponseBytes) {
+          throw RoutingException(message: 'Routing response too large');
+        }
         final data = jsonDecode(res.body) as Map<String, dynamic>;
         final feat = (data['features'] as List).first as Map<String, dynamic>;
         final props = feat['properties'] as Map<String, dynamic>;
         final summary = props['summary'] as Map<String, dynamic>?;
         final segments = props['segments'] as List?;
 
-        final coords = (feat['geometry']['coordinates'] as List)
-            .map((c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()))
+        final rawCoords = feat['geometry']['coordinates'] as List;
+        if (rawCoords.length > _maxRoutePoints) {
+          throw RoutingException(message: 'Route contains too many points');
+        }
+        final coords = rawCoords
+            .map((c) =>
+                LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()))
             .toList();
 
         final steps = <RouteStep>[];
@@ -362,7 +410,9 @@ class RoutingService {
               final idx = (way.first as int).clamp(0, coords.length - 1);
               loc = coords[idx];
             } else {
-              loc = coords.isNotEmpty ? coords.first : LatLng(origin.latitude, origin.longitude);
+              loc = coords.isNotEmpty
+                  ? coords.first
+                  : LatLng(origin.latitude, origin.longitude);
             }
             final orsIsRoundabout = type == 'roundabout';
             steps.add(RouteStep(
@@ -375,12 +425,12 @@ class RoutingService {
           }
         }
 
-        return RouteResult(
+        return _validatedRoute(RouteResult(
           polyline: coords,
           steps: steps,
           totalDistanceM: (summary?['distance'] as num?)?.toDouble() ?? 0.0,
           totalDurationS: (summary?['duration'] as num?)?.toDouble() ?? 0.0,
-        );
+        ));
       }
 
       if (provider == RoutingProvider.graphHopper) {
@@ -397,29 +447,45 @@ class RoutingService {
           'points_encoded=false',
           'details=max_speed',
         ];
-        if (prefs.preferShorter)  parts.add('weighting=shortest');
-        if (prefs.avoidHighways)  parts.add('avoid%5B%5D=motorway');
-        if (prefs.avoidTolls)     parts.add('avoid%5B%5D=toll');
+        if (prefs.preferShorter) parts.add('weighting=shortest');
+        if (prefs.avoidHighways) parts.add('avoid%5B%5D=motorway');
+        if (prefs.avoidTolls) parts.add('avoid%5B%5D=toll');
         if (apiKey != null && server == _graphhopperPublic) {
           parts.add('key=${Uri.encodeQueryComponent(apiKey)}');
         }
         final uri = Uri.parse(server).replace(query: parts.join('&'));
 
-        final res = await http.get(uri, headers: {'User-Agent': 'Roadstr/1.0'})
-            .timeout(const Duration(seconds: 12));
+        final res = await BoundedHttp.get(
+          uri,
+          headers: {'User-Agent': 'Roadstr/1.0'},
+          maxBytes: _maxRouteResponseBytes,
+          timeout: const Duration(seconds: 12),
+        );
         if (res.statusCode != 200) {
-          throw RoutingException(statusCode: res.statusCode, body: res.body, message: 'GraphHopper HTTP error');
+          throw RoutingException(
+              statusCode: res.statusCode,
+              body: res.body,
+              message: 'GraphHopper HTTP error');
+        }
+        if (res.bodyBytes.length > _maxRouteResponseBytes) {
+          throw RoutingException(message: 'Routing response too large');
         }
         final data = jsonDecode(res.body) as Map<String, dynamic>;
         if (data['paths'] == null || (data['paths'] as List).isEmpty) {
-          throw RoutingException(message: 'GraphHopper response missing paths', body: res.body);
+          throw RoutingException(
+              message: 'GraphHopper response missing paths', body: res.body);
         }
         final path = (data['paths'] as List).first as Map<String, dynamic>;
         final points = path['points'] as Map<String, dynamic>?;
         final coords = <LatLng>[];
         if (points != null && points['coordinates'] != null) {
-          for (final c in points['coordinates'] as List) {
-            coords.add(LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()));
+          final rawCoords = points['coordinates'] as List;
+          if (rawCoords.length > _maxRoutePoints) {
+            throw RoutingException(message: 'Route contains too many points');
+          }
+          for (final c in rawCoords) {
+            coords.add(
+                LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()));
           }
         }
         final instructions = path['instructions'] as List? ?? [];
@@ -430,9 +496,18 @@ class RoutingService {
           final dist = (m['distance'] as num?)?.toDouble() ?? 0.0;
           final sign = m['sign']?.toString() ?? '';
           final idx = (m['interval'] as List?)?.first as int? ?? 0;
-          final loc = idx >= 0 && idx < coords.length ? coords[idx] : (coords.isNotEmpty ? coords.first : LatLng(origin.latitude, origin.longitude));
-          final isRoundabout = sign == '6' || sign == 'roundabout' || sign == 'rotary';
-          steps.add(RouteStep(instruction: text, direction: sign, distanceM: dist, location: loc,
+          final loc = idx >= 0 && idx < coords.length
+              ? coords[idx]
+              : (coords.isNotEmpty
+                  ? coords.first
+                  : LatLng(origin.latitude, origin.longitude));
+          final isRoundabout =
+              sign == '6' || sign == 'roundabout' || sign == 'rotary';
+          steps.add(RouteStep(
+              instruction: text,
+              direction: sign,
+              distanceM: dist,
+              location: loc,
               exitNumber: isRoundabout ? _parseExitNumber(text) : null));
         }
 
@@ -448,33 +523,37 @@ class RoutingService {
             final cumDist = <double>[0.0];
             for (int i = 1; i < coords.length; i++) {
               cumDist.add(cumDist.last +
-                  distCalc.as(LengthUnit.Meter, coords[i-1], coords[i]));
+                  distCalc.as(LengthUnit.Meter, coords[i - 1], coords[i]));
             }
             for (final iv in msIntervals) {
               final interval = iv as List;
-              final fromIdx = (interval[0] as num).toInt().clamp(0, coords.length - 1);
+              final fromIdx =
+                  (interval[0] as num).toInt().clamp(0, coords.length - 1);
               final val = interval[2];
               final int? speedKmh = val is num && val > 0 ? val.toInt() : null;
-              ghSpeedLimits.add((distFromStartM: cumDist[fromIdx], speedKmh: speedKmh));
+              ghSpeedLimits
+                  .add((distFromStartM: cumDist[fromIdx], speedKmh: speedKmh));
             }
           }
         } catch (_) {}
 
         debugPrint('[Routing] GH speedLimits: ${ghSpeedLimits.length} entries'
             ' (non-null: ${ghSpeedLimits.where((e) => e.speedKmh != null).length})');
-        return RouteResult(
+        return _validatedRoute(RouteResult(
           polyline: coords,
           steps: steps,
           totalDistanceM: (path['distance'] as num?)?.toDouble() ?? 0.0,
-          totalDurationS: (path['time'] as num?)?.toDouble() != null ? ((path['time'] as num).toDouble() / 1000.0) : 0.0,
+          totalDurationS: (path['time'] as num?)?.toDouble() != null
+              ? ((path['time'] as num).toDouble() / 1000.0)
+              : 0.0,
           speedLimits: ghSpeedLimits,
-        );
+        ));
       }
 
       // Fallback / default: OSRM — choose the right public server for the mode.
       final osrmExcludeParts = <String>[
         if (prefs.avoidHighways) 'motorway',
-        if (prefs.avoidTolls)    'toll',
+        if (prefs.avoidTolls) 'toll',
       ];
       final osrmExclude = osrmExcludeParts.isNotEmpty
           ? '&exclude=${osrmExcludeParts.join(',')}'
@@ -487,15 +566,20 @@ class RoutingService {
       // NOTE: no annotations=maxspeed — that is a Mapbox Directions extension,
       // vanilla OSRM (including FOSSGIS) rejects it with 400. Speed limits
       // come from SpeedLimitService (Overpass) instead.
-      final res = await http
-          .get(Uri.parse(baseCoords),
-              headers: {'User-Agent': 'Roadstr/1.0'})
-          .timeout(const Duration(seconds: 10));
+      final res = await BoundedHttp.get(
+        Uri.parse(baseCoords),
+        headers: {'User-Agent': 'Roadstr/1.0'},
+        maxBytes: _maxRouteResponseBytes,
+        timeout: const Duration(seconds: 10),
+      );
       if (res.statusCode != 200) {
         throw RoutingException(
             statusCode: res.statusCode,
             body: res.body,
             message: 'OSRM HTTP error');
+      }
+      if (res.bodyBytes.length > _maxRouteResponseBytes) {
+        throw RoutingException(message: 'Routing response too large');
       }
       final data = jsonDecode(res.body) as Map<String, dynamic>;
       if (data['code'] != 'Ok') {
@@ -517,8 +601,7 @@ class RoutingService {
   /// For GraphHopper and OpenRouteService this wraps [getRoute] and returns a
   /// single-element list. The map screen uses the list to show an alternative
   /// selection panel when the route is longer than 5 km.
-  static Future<List<RouteResult>> getRoutes(
-      LatLng origin, LatLng destination,
+  static Future<List<RouteResult>> getRoutes(LatLng origin, LatLng destination,
       {RoutingProvider provider = RoutingProvider.osrm,
       String? apiKey,
       String? graphhopperServer,
@@ -538,7 +621,7 @@ class RoutingService {
     try {
       final osrmExcludePartsAlt = <String>[
         if (prefs.avoidHighways) 'motorway',
-        if (prefs.avoidTolls)    'toll',
+        if (prefs.avoidTolls) 'toll',
       ];
       final osrmExclude = osrmExcludePartsAlt.isNotEmpty
           ? '&exclude=${osrmExcludePartsAlt.join(',')}'
@@ -548,15 +631,20 @@ class RoutingService {
           '${destination.longitude},${destination.latitude}'
           '?overview=full&geometries=geojson&steps=true&alternatives=3$osrmExclude';
 
-      final res = await http
-          .get(Uri.parse(baseCoords),
-              headers: {'User-Agent': 'Roadstr/1.0'})
-          .timeout(const Duration(seconds: 10));
+      final res = await BoundedHttp.get(
+        Uri.parse(baseCoords),
+        headers: {'User-Agent': 'Roadstr/1.0'},
+        maxBytes: _maxRouteResponseBytes,
+        timeout: const Duration(seconds: 10),
+      );
       if (res.statusCode != 200) {
         throw RoutingException(
             statusCode: res.statusCode,
             body: res.body,
             message: 'OSRM HTTP error');
+      }
+      if (res.bodyBytes.length > _maxRouteResponseBytes) {
+        throw RoutingException(message: 'Routing response too large');
       }
       final data = jsonDecode(res.body) as Map<String, dynamic>;
       if (data['code'] != 'Ok') {
@@ -573,9 +661,14 @@ class RoutingService {
     }
   }
 
-  static RouteResult _parseOsrmRoute(Map<String, dynamic> route, [String lang = 'en']) {
+  static RouteResult _parseOsrmRoute(Map<String, dynamic> route,
+      [String lang = 'en']) {
     final leg = (route['legs'] as List).first as Map<String, dynamic>;
-    final coords = (route['geometry']['coordinates'] as List)
+    final rawCoords = route['geometry']['coordinates'] as List;
+    if (rawCoords.length > _maxRoutePoints) {
+      throw RoutingException(message: 'Route contains too many points');
+    }
+    final coords = rawCoords
         .map((c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()))
         .toList();
 
@@ -589,8 +682,8 @@ class RoutingService {
         direction: maneuver['type'] as String? ?? 'straight',
         modifier: maneuver['modifier'] as String? ?? '',
         distanceM: (step['distance'] as num).toDouble(),
-        location: LatLng(
-            (loc[1] as num).toDouble(), (loc[0] as num).toDouble()),
+        location:
+            LatLng((loc[1] as num).toDouble(), (loc[0] as num).toDouble()),
         exitNumber: maneuver['exit'] as int?,
       ));
     }
@@ -599,12 +692,63 @@ class RoutingService {
     // that vanilla OSRM rejects, so it is never requested (see the request
     // NOTE above) and the response never carries usable annotation data.
     // Limits during OSRM navigation come from SpeedLimitService (Overpass).
-    return RouteResult(
+    return _validatedRoute(RouteResult(
       polyline: coords,
       steps: steps,
       totalDistanceM: (route['distance'] as num).toDouble(),
       totalDurationS: (route['duration'] as num).toDouble(),
-    );
+    ));
+  }
+
+  static RouteResult _validatedRoute(RouteResult route) {
+    if (route.polyline.length < 2 ||
+        route.steps.isEmpty ||
+        route.steps.length > _maxRouteSteps ||
+        !route.totalDistanceM.isFinite ||
+        route.totalDistanceM <= 0 ||
+        route.totalDistanceM > 50000000 ||
+        !route.totalDurationS.isFinite ||
+        route.totalDurationS < 0 ||
+        route.totalDurationS > 366 * 86400) {
+      throw RoutingException(message: 'Malformed or incomplete route');
+    }
+    for (final point in route.polyline) {
+      if (!point.latitude.isFinite ||
+          !point.longitude.isFinite ||
+          point.latitude < -90 ||
+          point.latitude > 90 ||
+          point.longitude < -180 ||
+          point.longitude > 180) {
+        throw RoutingException(message: 'Route contains invalid coordinates');
+      }
+    }
+    for (final step in route.steps) {
+      if (!step.distanceM.isFinite ||
+          step.distanceM < 0 ||
+          step.instruction.length > 1000 ||
+          step.direction.length > 100 ||
+          step.modifier.length > 100 ||
+          !step.location.latitude.isFinite ||
+          !step.location.longitude.isFinite ||
+          step.location.latitude < -90 ||
+          step.location.latitude > 90 ||
+          step.location.longitude < -180 ||
+          step.location.longitude > 180) {
+        throw RoutingException(message: 'Route contains an invalid maneuver');
+      }
+    }
+    var previousDistance = -1.0;
+    for (final entry in route.speedLimits) {
+      if (!entry.distFromStartM.isFinite ||
+          entry.distFromStartM < previousDistance ||
+          entry.distFromStartM > route.totalDistanceM ||
+          (entry.speedKmh != null &&
+              (entry.speedKmh! <= 0 || entry.speedKmh! > 500))) {
+        throw RoutingException(message: 'Route contains invalid speed limits');
+      }
+      previousDistance = entry.distFromStartM;
+    }
+    return route;
   }
 
   /// Test a GraphHopper server URL for connectivity and basic response.
@@ -614,7 +758,8 @@ class RoutingService {
   /// That error PROVES the server is a reachable, routing-capable
   /// GraphHopper instance and is treated as success; only unreachable hosts,
   /// auth failures, or non-GraphHopper responses fail the test.
-  static Future<void> testGraphHopperServer(String server, {String? apiKey}) async {
+  static Future<void> testGraphHopperServer(String server,
+      {String? apiKey}) async {
     final parts = <String>[
       'point=0.0,0.0',
       'point=0.1,0.1',
@@ -628,18 +773,26 @@ class RoutingService {
     }
     final uri = Uri.parse(server).replace(query: parts.join('&'));
     try {
-      final res = await http.get(uri, headers: {'User-Agent': 'Roadstr/1.0'}).timeout(const Duration(seconds: 8));
+      final res = await BoundedHttp.get(
+        uri,
+        headers: {'User-Agent': 'Roadstr/1.0'},
+        maxBytes: 2 * 1024 * 1024,
+        timeout: const Duration(seconds: 8),
+      );
       if (res.statusCode == 400 &&
           (res.body.contains('Cannot find point') ||
-           res.body.contains('PointNotFoundException') ||
-           res.body.contains('PointOutOfBoundsException'))) {
+              res.body.contains('PointNotFoundException') ||
+              res.body.contains('PointOutOfBoundsException'))) {
         return; // reachable GraphHopper that simply doesn't cover Null Island
       }
       if (res.statusCode != 200) {
-        throw RoutingException(statusCode: res.statusCode, body: res.body, message: 'Ping failed');
+        throw RoutingException(
+            statusCode: res.statusCode, body: res.body, message: 'Ping failed');
       }
       final data = jsonDecode(res.body) as Map<String, dynamic>;
-      if (data['paths'] == null) throw RoutingException(message: 'No paths in response', body: res.body);
+      if (data['paths'] == null) {
+        throw RoutingException(message: 'No paths in response', body: res.body);
+      }
       return;
     } catch (e) {
       if (e is RoutingException) rethrow;
@@ -647,66 +800,98 @@ class RoutingService {
     }
   }
 
-  static String _buildInstruction(Map<String, dynamic> step, [String lang = 'en']) {
+  static String _buildInstruction(Map<String, dynamic> step,
+      [String lang = 'en']) {
     final maneuver = step['maneuver'] as Map<String, dynamic>;
-    final type     = maneuver['type'] as String? ?? '';
+    final type = maneuver['type'] as String? ?? '';
     final modifier = maneuver['modifier'] as String? ?? '';
-    final name     = (step['name'] as String?) ?? '';
-    final prep     = lang == 'it' ? ' su ' : ' on ';
-    final road     = name.isNotEmpty ? '$prep$name' : '';
-    final it       = lang == 'it';
+    final name = (step['name'] as String?) ?? '';
+    final prep = lang == 'it' ? ' su ' : ' on ';
+    final road = name.isNotEmpty ? '$prep$name' : '';
+    final it = lang == 'it';
 
     switch (type) {
       case 'depart':
         return it ? 'Parti$road' : 'Start$road';
       case 'arrive':
-        return it ? 'Sei arrivato a destinazione' : 'You have arrived at your destination';
+        return it
+            ? 'Sei arrivato a destinazione'
+            : 'You have arrived at your destination';
       case 'turn':
         switch (modifier) {
-          case 'left':         return it ? 'Svolta a sinistra$road'       : 'Turn left$road';
-          case 'right':        return it ? 'Svolta a destra$road'         : 'Turn right$road';
-          case 'slight left':  return it ? 'Tieni la sinistra$road'       : 'Keep left$road';
-          case 'slight right': return it ? 'Tieni la destra$road'         : 'Keep right$road';
-          case 'sharp left':   return it ? 'Svolta netta a sinistra$road' : 'Sharp left$road';
-          case 'sharp right':  return it ? 'Svolta netta a destra$road'   : 'Sharp right$road';
-          case 'uturn':        return it ? 'Fai inversione di marcia$road': 'Make a U-turn$road';
-          default:             return it ? 'Continua dritto$road'          : 'Continue straight$road';
+          case 'left':
+            return it ? 'Svolta a sinistra$road' : 'Turn left$road';
+          case 'right':
+            return it ? 'Svolta a destra$road' : 'Turn right$road';
+          case 'slight left':
+            return it ? 'Tieni la sinistra$road' : 'Keep left$road';
+          case 'slight right':
+            return it ? 'Tieni la destra$road' : 'Keep right$road';
+          case 'sharp left':
+            return it ? 'Svolta netta a sinistra$road' : 'Sharp left$road';
+          case 'sharp right':
+            return it ? 'Svolta netta a destra$road' : 'Sharp right$road';
+          case 'uturn':
+            return it ? 'Fai inversione di marcia$road' : 'Make a U-turn$road';
+          default:
+            return it ? 'Continua dritto$road' : 'Continue straight$road';
         }
-      case 'new name': return it ? 'Continua$road'         : 'Continue$road';
-      case 'merge':    return it ? 'Immettiti$road'        : 'Merge onto$road';
-      case 'on ramp':  return it ? 'Prendi la rampa$road'  : 'Take the ramp$road';
-      case 'off ramp': {
-        // OSRM puts highway exit numbers in step['exits'] (a string like "12" or "12A"),
-        // not maneuver['exit'] which is only populated for roundabouts.
-        final exits = (step['exits'] as String?)?.trim();
-        final ref   = (step['ref'] as String?)?.split(';').first.trim();
-        final label = (exits != null && exits.isNotEmpty) ? exits
-                    : (ref   != null && ref.isNotEmpty)   ? ref
-                    : null;
-        if (label != null) {
-          return it ? 'Esci all\'uscita $label$road' : 'Take exit $label$road';
+      case 'new name':
+        return it ? 'Continua$road' : 'Continue$road';
+      case 'merge':
+        return it ? 'Immettiti$road' : 'Merge onto$road';
+      case 'on ramp':
+        return it ? 'Prendi la rampa$road' : 'Take the ramp$road';
+      case 'off ramp':
+        {
+          // OSRM puts highway exit numbers in step['exits'] (a string like "12" or "12A"),
+          // not maneuver['exit'] which is only populated for roundabouts.
+          final exits = (step['exits'] as String?)?.trim();
+          final ref = (step['ref'] as String?)?.split(';').first.trim();
+          final label = (exits != null && exits.isNotEmpty)
+              ? exits
+              : (ref != null && ref.isNotEmpty)
+                  ? ref
+                  : null;
+          if (label != null) {
+            return it
+                ? 'Esci all\'uscita $label$road'
+                : 'Take exit $label$road';
+          }
+          return it ? 'Esci dalla rampa$road' : 'Take the exit$road';
         }
-        return it ? 'Esci dalla rampa$road' : 'Take the exit$road';
-      }
       case 'fork':
         return modifier.contains('left')
-            ? (it ? 'Al bivio tieni la sinistra$road' : 'At the fork keep left$road')
-            : (it ? 'Al bivio tieni la destra$road'   : 'At the fork keep right$road');
+            ? (it
+                ? 'Al bivio tieni la sinistra$road'
+                : 'At the fork keep left$road')
+            : (it
+                ? 'Al bivio tieni la destra$road'
+                : 'At the fork keep right$road');
       case 'end of road':
         return modifier.contains('left')
-            ? (it ? 'Alla fine della strada svolta a sinistra$road' : 'At the end of the road turn left$road')
-            : (it ? 'Alla fine della strada svolta a destra$road'   : 'At the end of the road turn right$road');
-      case 'roundabout': {
-        final exit = maneuver['exit'] as int? ?? 1;
-        return it ? 'Alla rotonda prendi la $exit° uscita$road'
-                  : 'At the roundabout take exit $exit$road';
-      }
-      case 'rotary': {
-        final exit = maneuver['exit'] as int? ?? 1;
-        return it ? 'Alla rotatoria prendi la $exit° uscita$road'
-                  : 'At the rotary take exit $exit$road';
-      }
-      default: return it ? 'Continua dritto$road' : 'Continue straight$road';
+            ? (it
+                ? 'Alla fine della strada svolta a sinistra$road'
+                : 'At the end of the road turn left$road')
+            : (it
+                ? 'Alla fine della strada svolta a destra$road'
+                : 'At the end of the road turn right$road');
+      case 'roundabout':
+        {
+          final exit = maneuver['exit'] as int? ?? 1;
+          return it
+              ? 'Alla rotonda prendi la $exit° uscita$road'
+              : 'At the roundabout take exit $exit$road';
+        }
+      case 'rotary':
+        {
+          final exit = maneuver['exit'] as int? ?? 1;
+          return it
+              ? 'Alla rotatoria prendi la $exit° uscita$road'
+              : 'At the rotary take exit $exit$road';
+        }
+      default:
+        return it ? 'Continua dritto$road' : 'Continue straight$road';
     }
   }
 
@@ -719,12 +904,31 @@ class RoutingService {
     if (numMatch != null) return int.tryParse(numMatch.group(1)!);
     // Spelled-out ordinals (covers it/es/fr/pt/en)
     const ordinals = {
-      'first': 1, 'prima': 1, 'première': 1, 'primera': 1, 'primeira': 1,
-      'second': 2, 'seconda': 2, 'deuxième': 2, 'segunda': 2,
-      'third': 3, 'terza': 3, 'troisième': 3, 'tercera': 3, 'terceira': 3,
-      'fourth': 4, 'quarta': 4, 'quatrième': 4, 'cuarta': 4,
-      'fifth': 5, 'quinta': 5, 'cinquième': 5,
-      'sixth': 6, 'sesta': 6, 'sixième': 6, 'sexta': 6,
+      'first': 1,
+      'prima': 1,
+      'première': 1,
+      'primera': 1,
+      'primeira': 1,
+      'second': 2,
+      'seconda': 2,
+      'deuxième': 2,
+      'segunda': 2,
+      'third': 3,
+      'terza': 3,
+      'troisième': 3,
+      'tercera': 3,
+      'terceira': 3,
+      'fourth': 4,
+      'quarta': 4,
+      'quatrième': 4,
+      'cuarta': 4,
+      'fifth': 5,
+      'quinta': 5,
+      'cinquième': 5,
+      'sixth': 6,
+      'sesta': 6,
+      'sixième': 6,
+      'sexta': 6,
     };
     final lower = instruction.toLowerCase();
     for (final e in ordinals.entries) {
@@ -743,8 +947,10 @@ class WikiSummary {
   final String? imageUrl;
   final String? pageUrl;
   const WikiSummary({
-    required this.title, required this.extract,
-    this.imageUrl, this.pageUrl,
+    required this.title,
+    required this.extract,
+    this.imageUrl,
+    this.pageUrl,
   });
 }
 
@@ -757,7 +963,8 @@ class RoutingException implements Exception {
   RoutingException({this.statusCode, required this.message, this.body});
 
   @override
-  String toString() => 'RoutingException(statusCode: $statusCode, message: $message)';
+  String toString() =>
+      'RoutingException(statusCode: $statusCode, message: $message)';
 }
 
 /// Extension on [RoutingService] that adds geo-aware Wikipedia lookups.
@@ -776,27 +983,52 @@ extension WikiSearch on RoutingService {
   /// If no article is found within [radiusM], falls back to a title-search using
   /// [fallbackQuery] (typically the best term from Nominatim's address breakdown).
   static Future<WikiSummary?> fetchWikiNearby(
-      double lat, double lon, {
-      String lang = 'it',
-      String? fallbackQuery,
-      int radiusM = 500,
+    double lat,
+    double lon, {
+    String lang = 'it',
+    String? fallbackQuery,
+    int radiusM = 500,
   }) async {
     try {
       // Step 1: geo-search Wikipedia → articles near the tapped coordinates.
-      final geoUri = Uri.parse(
-          'https://$lang.wikipedia.org/w/api.php'
+      final geoUri = Uri.parse('https://$lang.wikipedia.org/w/api.php'
           '?action=query&list=geosearch'
           '&gscoord=${lat.toStringAsFixed(6)}|${lon.toStringAsFixed(6)}'
           '&gsradius=$radiusM&gslimit=3&format=json&origin=*');
-      final geoRes = await http
-          .get(geoUri, headers: {'User-Agent': 'Roadstr/1.0'})
-          .timeout(const Duration(seconds: 5));
+      final geoRes = await BoundedHttp.get(
+        geoUri,
+        headers: {'User-Agent': 'Roadstr/1.0'},
+        maxBytes: 2 * 1024 * 1024,
+        timeout: const Duration(seconds: 5),
+      );
       if (geoRes.statusCode == 200) {
         final geoData = jsonDecode(geoRes.body) as Map<String, dynamic>;
         final hits = (geoData['query']?['geosearch'] as List?) ?? [];
-        if (hits.isNotEmpty) {
-          final title = Uri.encodeComponent(
-              (hits.first as Map<String, dynamic>)['title'] as String);
+        Map<String, dynamic>? selected;
+        for (final rawHit in hits.whereType<Map<String, dynamic>>()) {
+          final title = rawHit['title'] as String?;
+          final distanceM = (rawHit['dist'] as num?)?.toDouble();
+          if (title == null || distanceM == null || !distanceM.isFinite) {
+            continue;
+          }
+          // A nearby article is not necessarily an article ABOUT this POI.
+          // Accept exact-coordinate landmarks, or require a meaningful token
+          // shared with the Nominatim-derived place name. This prevents a small
+          // shop from inheriting the article of a monument 150 m away.
+          final normalizedTitle = title.toLowerCase();
+          final normalizedQuery = fallbackQuery?.toLowerCase();
+          final queryTokens = normalizedQuery
+                  ?.split(RegExp(r'[\s,;:()\-\u2013\u2014/]+'))
+                  .where((token) => token.length >= 4) ??
+              const Iterable<String>.empty();
+          final nameMatches = queryTokens.any(normalizedTitle.contains);
+          if (distanceM <= 35 || nameMatches) {
+            selected = rawHit;
+            break;
+          }
+        }
+        if (selected != null) {
+          final title = Uri.encodeComponent(selected['title'] as String);
           final summary = await fetchWikiSummary(title, lang: lang);
           if (summary != null) return summary;
         }
@@ -821,20 +1053,23 @@ extension WikiSearch on RoutingService {
       for (final l in [lang, lang == 'it' ? 'en' : 'it']) {
         final uri = Uri.parse(
             'https://$l.wikipedia.org/api/rest_v1/page/summary/$encoded');
-        final res = await http
-            .get(uri, headers: {'User-Agent': 'Roadstr/1.0'})
-            .timeout(const Duration(seconds: 5));
+        final res = await BoundedHttp.get(
+          uri,
+          headers: {'User-Agent': 'Roadstr/1.0'},
+          maxBytes: 2 * 1024 * 1024,
+          timeout: const Duration(seconds: 5),
+        );
         if (res.statusCode != 200) continue;
         final data = jsonDecode(res.body) as Map<String, dynamic>;
         final extract = (data['extract'] as String?) ?? '';
         if (extract.isEmpty || data['type'] == 'disambiguation') continue;
         return WikiSummary(
-          title:    data['title'] as String? ?? query,
-          extract:  extract,
+          title: data['title'] as String? ?? query,
+          extract: extract,
           imageUrl: (data['thumbnail'] as Map<String, dynamic>?)?['source']
               as String?,
-          pageUrl:  ((data['content_urls'] as Map?)
-              ?['mobile'] as Map?)?['page'] as String?,
+          pageUrl: ((data['content_urls'] as Map?)?['mobile'] as Map?)?['page']
+              as String?,
         );
       }
       return null;
@@ -848,6 +1083,7 @@ extension WikiSearch on RoutingService {
 class NominatimResult {
   /// Full formatted address as returned by Nominatim (may be very long).
   final String displayName;
+
   /// Shortened display name — the first comma-separated component of [displayName].
   /// Used in search suggestion lists and navigation history labels.
   final String shortName;
@@ -865,6 +1101,10 @@ class NominatimResult {
   /// geo-disambiguated Wikipedia query (e.g. "Teodorico Ravenna").
   final String? city;
 
+  /// Raw OSM `opening_hours` string when the source carries it (Overpass POI
+  /// results). Parsed client-side into an open/closed badge; null when absent.
+  final String? openingHours;
+
   const NominatimResult({
     required this.displayName,
     required this.shortName,
@@ -872,6 +1112,7 @@ class NominatimResult {
     this.cls,
     this.type,
     this.city,
+    this.openingHours,
   });
 
   /// Returns an emoji that visually represents the feature category so users
@@ -902,80 +1143,80 @@ class NominatimResult {
         return '🛣️';
       case 'place':
         return switch (type) {
-          'city' || 'town'         => '🏙️',
-          'village' || 'hamlet'    => '🏘️',
+          'city' || 'town' => '🏙️',
+          'village' || 'hamlet' => '🏘️',
           'suburb' || 'neighbourhood' => '🏡',
-          _                        => '📍',
+          _ => '📍',
         };
       case 'amenity':
         return switch (type) {
           'restaurant' || 'fast_food' || 'food_court' => '🍽️',
-          'cafe' || 'coffee_shop'  => '☕',
+          'cafe' || 'coffee_shop' => '☕',
           'bar' || 'pub' || 'nightclub' => '🍺',
           'hospital' || 'clinic' || 'doctors' => '🏥',
-          'pharmacy'               => '💊',
+          'pharmacy' => '💊',
           'school' || 'kindergarten' => '🏫',
-          'university' || 'college'  => '🎓',
-          'bank' || 'atm'          => '🏦',
+          'university' || 'college' => '🎓',
+          'bank' || 'atm' => '🏦',
           'fuel' || 'charging_station' => '⛽',
-          'parking'                => '🅿️',
-          'police'                 => '👮',
-          'post_office'            => '📮',
-          'library'                => '📚',
-          'theatre' || 'cinema'    => '🎭',
-          'place_of_worship'       => '⛪',
-          'marketplace'            => '🛒',
-          'townhall'               => '🏛️',
-          _                        => '📍',
+          'parking' => '🅿️',
+          'police' => '👮',
+          'post_office' => '📮',
+          'library' => '📚',
+          'theatre' || 'cinema' => '🎭',
+          'place_of_worship' => '⛪',
+          'marketplace' => '🛒',
+          'townhall' => '🏛️',
+          _ => '📍',
         };
       case 'tourism':
         return switch (type) {
-          'museum'                 => '🏛️',
+          'museum' => '🏛️',
           'hotel' || 'hostel' || 'motel' || 'guest_house' => '🏨',
           'attraction' || 'monument' || 'viewpoint' => '🗺️',
-          'artwork' || 'gallery'   => '🎨',
-          'camp_site'              => '⛺',
-          'theme_park' || 'zoo'   => '🎡',
-          _                        => '🗺️',
+          'artwork' || 'gallery' => '🎨',
+          'camp_site' => '⛺',
+          'theme_park' || 'zoo' => '🎡',
+          _ => '🗺️',
         };
       case 'shop':
         return switch (type) {
           'supermarket' || 'convenience' => '🛒',
-          'bakery'                 => '🥖',
-          'clothes' || 'fashion'   => '👗',
-          'electronics'            => '📱',
-          'books'                  => '📚',
-          'florist'                => '💐',
-          _                        => '🛍️',
+          'bakery' => '🥖',
+          'clothes' || 'fashion' => '👗',
+          'electronics' => '📱',
+          'books' => '📚',
+          'florist' => '💐',
+          _ => '🛍️',
         };
       case 'office':
         return switch (type) {
           'government' || 'administrative' => '🏛️',
           'company' || 'commercial' => '🏢',
-          'ngo' || 'association'   => '🏢',
-          _                        => '🏢',
+          'ngo' || 'association' => '🏢',
+          _ => '🏢',
         };
       case 'building':
         return switch (type) {
           'public' || 'government' => '🏛️',
-          'hospital'               => '🏥',
+          'hospital' => '🏥',
           'school' || 'university' => '🎓',
-          _                        => '🏗️',
+          _ => '🏗️',
         };
       case 'natural':
         return switch (type) {
-          'beach'                  => '🏖️',
-          'water' || 'lake'        => '💧',
-          'peak' || 'hill'         => '⛰️',
-          'wood' || 'forest'       => '🌲',
-          _                        => '🌿',
+          'beach' => '🏖️',
+          'water' || 'lake' => '💧',
+          'peak' || 'hill' => '⛰️',
+          'wood' || 'forest' => '🌲',
+          _ => '🌿',
         };
       case 'leisure':
         return switch (type) {
-          'park' || 'garden'       => '🌳',
+          'park' || 'garden' => '🌳',
           'sports_centre' || 'stadium' => '🏟️',
-          'swimming_pool'          => '🏊',
-          _                        => '🎭',
+          'swimming_pool' => '🏊',
+          _ => '🎭',
         };
       case 'historic':
         return '🏛️';
@@ -994,76 +1235,91 @@ class NominatimResult {
 
   static String? _categoryLabel(String? cls, String? type) {
     switch (cls) {
-      case 'highway':        return 'Road';
+      case 'highway':
+        return 'Road';
       case 'place':
         return switch (type) {
-          'city'    => 'City',
-          'town'    => 'Town',
+          'city' => 'City',
+          'town' => 'Town',
           'village' => 'Village',
-          _         => 'Place',
+          _ => 'Place',
         };
       case 'amenity':
         return switch (type) {
-          'restaurant'   => 'Restaurant',
-          'fast_food'    => 'Fast food',
-          'cafe'         => 'Café',
+          'restaurant' => 'Restaurant',
+          'fast_food' => 'Fast food',
+          'cafe' => 'Café',
           'bar' || 'pub' => 'Bar / Pub',
-          'hospital'     => 'Hospital',
-          'pharmacy'     => 'Pharmacy',
-          'school'       => 'School',
-          'university'   => 'University',
-          'bank'         => 'Bank',
-          'atm'          => 'ATM',
-          'fuel'         => 'Petrol station',
-          'parking'      => 'Parking',
-          'police'       => 'Police',
-          'post_office'  => 'Post office',
-          'library'      => 'Library',
-          'theatre'      => 'Theatre',
-          'cinema'       => 'Cinema',
+          'hospital' => 'Hospital',
+          'pharmacy' => 'Pharmacy',
+          'school' => 'School',
+          'university' => 'University',
+          'bank' => 'Bank',
+          'atm' => 'ATM',
+          'fuel' => 'Petrol station',
+          'parking' => 'Parking',
+          'police' => 'Police',
+          'post_office' => 'Post office',
+          'library' => 'Library',
+          'theatre' => 'Theatre',
+          'cinema' => 'Cinema',
           'place_of_worship' => 'Place of worship',
-          'townhall'     => 'Town hall',
-          _              => 'Service',
+          'townhall' => 'Town hall',
+          _ => 'Service',
         };
       case 'tourism':
         return switch (type) {
-          'museum'     => 'Museum',
+          'museum' => 'Museum',
           'hotel' || 'hostel' || 'motel' => 'Hotel',
           'attraction' || 'monument' => 'Attraction / Monument',
-          'artwork'    => 'Artwork',
-          'gallery'    => 'Gallery',
-          _            => 'Tourism',
+          'artwork' => 'Artwork',
+          'gallery' => 'Gallery',
+          _ => 'Tourism',
         };
-      case 'shop':          return 'Shop';
-      case 'office':        return 'Office';
-      case 'historic':      return 'Historic site';
-      case 'leisure':       return 'Leisure';
-      case 'natural':       return 'Natural area';
-      case 'railway':       return 'Railway / Station';
-      case 'aeroway':       return 'Airport';
-      default:              return null;
+      case 'shop':
+        return 'Shop';
+      case 'office':
+        return 'Office';
+      case 'historic':
+        return 'Historic site';
+      case 'leisure':
+        return 'Leisure';
+      case 'natural':
+        return 'Natural area';
+      case 'railway':
+        return 'Railway / Station';
+      case 'aeroway':
+        return 'Airport';
+      default:
+        return null;
     }
   }
 
   factory NominatimResult.fromJson(Map<String, dynamic> j) {
     final lat = double.tryParse(j['lat'] as String) ?? double.nan;
     final lon = double.tryParse(j['lon'] as String) ?? double.nan;
-    if (!lat.isFinite || !lon.isFinite ||
-        lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+    if (!lat.isFinite ||
+        !lon.isFinite ||
+        lat < -90 ||
+        lat > 90 ||
+        lon < -180 ||
+        lon > 180) {
       throw const FormatException('Nominatim: invalid coordinates');
     }
     final display = j['display_name'] as String;
-    final clsVal  = j['class'] as String?;
+    final clsVal = j['class'] as String?;
 
     // addressdetails=1 gives structured address components. Use them to build
     // a meaningful shortName instead of the raw first comma-token (often just
     // a house number like "1" for street addresses).
-    final addr    = (j['address'] as Map<String, dynamic>?) ?? {};
-    final road    = addr['road'] as String?;
+    final addr = (j['address'] as Map<String, dynamic>?) ?? {};
+    final road = addr['road'] as String?;
     final houseNo = addr['house_number'] as String?;
-    final city    = (addr['city']     ?? addr['town']  ??
-                     addr['village']  ?? addr['hamlet'] ??
-                     addr['municipality']) as String?;
+    final city = (addr['city'] ??
+        addr['town'] ??
+        addr['village'] ??
+        addr['hamlet'] ??
+        addr['municipality']) as String?;
 
     String short;
     if (road != null && houseNo != null) {
@@ -1080,17 +1336,19 @@ class NominatimResult {
       short = display.split(',').first.trim();
     }
 
-    final cityVal = (addr['city']      ?? addr['town']   ??
-                     addr['village']   ?? addr['hamlet'] ??
-                     addr['municipality']) as String?;
+    final cityVal = (addr['city'] ??
+        addr['town'] ??
+        addr['village'] ??
+        addr['hamlet'] ??
+        addr['municipality']) as String?;
 
     return NominatimResult(
       displayName: display,
-      shortName:   short,
-      position:    LatLng(lat, lon),
-      cls:         clsVal,
-      type:        j['type']   as String?,
-      city:        cityVal,
+      shortName: short,
+      position: LatLng(lat, lon),
+      cls: clsVal,
+      type: j['type'] as String?,
+      city: cityVal,
     );
   }
 }

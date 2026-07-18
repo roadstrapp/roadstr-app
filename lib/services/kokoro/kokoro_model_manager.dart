@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'kokoro_voices.dart';
@@ -42,8 +43,10 @@ class KokoroModelManager {
     return dir;
   }
 
-  Future<File> get modelFile async => File('${(await _modelDir()).path}/model_q8f16.onnx');
-  Future<File> get tokenizerFile async => File('${(await _modelDir()).path}/tokenizer.json');
+  Future<File> get modelFile async =>
+      File('${(await _modelDir()).path}/model_q8f16.onnx');
+  Future<File> get tokenizerFile async =>
+      File('${(await _modelDir()).path}/tokenizer.json');
 
   /// Local path for a voice embedding by its raw voice name (e.g. "if_sara").
   Future<File> voiceFileForName(String voiceName) async =>
@@ -51,7 +54,8 @@ class KokoroModelManager {
 
   /// Local path for [languageCode]'s [gender] voice, falling back to the
   /// language's female voice if that gender isn't available.
-  Future<File> voiceFile(String languageCode, [String gender = kKokoroDefaultGender]) async {
+  Future<File> voiceFile(String languageCode,
+      [String gender = kKokoroDefaultGender]) async {
     final name = kokoroVoiceName(languageCode, gender);
     if (name == null) {
       throw ArgumentError('No Kokoro voice for language "$languageCode"');
@@ -68,12 +72,21 @@ class KokoroModelManager {
   Future<bool> isReady(Iterable<String> languages) async {
     final model = await modelFile;
     final tok = await tokenizerFile;
-    if (!await model.exists() || await model.length() != kKokoroModelSizeBytes) return false;
-    if (!await tok.exists() || await tok.length() == 0) return false;
+    if (!await _matches(model, kKokoroModelSizeBytes, kKokoroModelSha256)) {
+      return false;
+    }
+    if (!await _matches(
+        tok, kKokoroTokenizerSizeBytes, kKokoroTokenizerSha256)) {
+      return false;
+    }
     for (final lang in languages) {
-      for (final voiceName in kKokoroVoicesByLanguage[lang]?.values ?? const <String>[]) {
+      for (final voiceName
+          in kKokoroVoicesByLanguage[lang]?.values ?? const <String>[]) {
         final v = await voiceFileForName(voiceName);
-        if (!await v.exists() || await v.length() != kKokoroVoiceSizeBytes) return false;
+        final hash = kKokoroVoiceSha256[voiceName];
+        if (hash == null || !await _matches(v, kKokoroVoiceSizeBytes, hash)) {
+          return false;
+        }
       }
     }
     return true;
@@ -117,26 +130,29 @@ class KokoroModelManager {
         url: '$kKokoroRepoBaseUrl/$kKokoroModelFile',
         file: await modelFile,
         expectedSize: kKokoroModelSizeBytes,
+        sha256: kKokoroModelSha256,
       ),
       _DownloadTask(
         url: '$kKokoroRepoBaseUrl/$kKokoroTokenizerFile',
         file: await tokenizerFile,
-        expectedSize: null,
+        expectedSize: kKokoroTokenizerSizeBytes,
+        sha256: kKokoroTokenizerSha256,
       ),
       for (final voiceName in languages
-          .expand((lang) => kKokoroVoicesByLanguage[lang]?.values ?? const <String>[])
+          .expand((lang) =>
+              kKokoroVoicesByLanguage[lang]?.values ?? const <String>[])
           .toSet())
         _DownloadTask(
           url: '$kKokoroRepoBaseUrl/${kokoroVoiceFileForName(voiceName)}',
           file: await voiceFileForName(voiceName),
           expectedSize: kKokoroVoiceSizeBytes,
+          sha256: kKokoroVoiceSha256[voiceName]!,
         ),
     ];
 
     final pending = <_DownloadTask>[];
     for (final t in tasks) {
-      if (await t.file.exists() &&
-          (t.expectedSize == null || await t.file.length() == t.expectedSize)) {
+      if (await _matches(t.file, t.expectedSize, t.sha256)) {
         continue;
       }
       pending.add(t);
@@ -146,25 +162,39 @@ class KokoroModelManager {
       return;
     }
 
-    final totalBytes = pending.fold<int>(0, (s, t) => s + (t.expectedSize ?? 1024 * 1024));
+    final totalBytes = pending.fold<int>(0, (s, t) => s + t.expectedSize);
     var downloadedBytes = 0;
 
     for (final task in pending) {
       final client = http.Client();
       try {
         final request = http.Request('GET', Uri.parse(task.url));
-        final response = await client.send(request);
+        final response =
+            await client.send(request).timeout(const Duration(seconds: 20));
         if (response.statusCode != 200) {
-          throw Exception('Kokoro download failed (${response.statusCode}): ${task.url}');
+          throw Exception(
+              'Kokoro download failed (${response.statusCode}): ${task.url}');
         }
-        final sink = task.file.openWrite();
+        if (response.contentLength != null &&
+            response.contentLength != task.expectedSize) {
+          throw Exception('Kokoro asset has an unexpected size: ${task.url}');
+        }
+        final partial = File('${task.file.path}.part');
+        if (await partial.exists()) await partial.delete();
+        final sink = partial.openWrite();
         var taskBytes = 0;
         try {
-          await response.stream.forEach((chunk) {
+          await response.stream
+              .timeout(const Duration(seconds: 30))
+              .forEach((chunk) {
+            if (taskBytes + chunk.length > task.expectedSize) {
+              throw Exception('Kokoro asset exceeded its declared size');
+            }
             sink.add(chunk);
             taskBytes += chunk.length;
             if (totalBytes > 0) {
-              onProgress?.call(((downloadedBytes + taskBytes) / totalBytes).clamp(0.0, 1.0));
+              onProgress?.call(
+                  ((downloadedBytes + taskBytes) / totalBytes).clamp(0.0, 1.0));
             }
           });
         } finally {
@@ -172,6 +202,13 @@ class KokoroModelManager {
           // truncated file itself is harmless — the size check re-downloads it.
           await sink.close();
         }
+        if (taskBytes != task.expectedSize ||
+            !await _matches(partial, task.expectedSize, task.sha256)) {
+          await partial.delete();
+          throw Exception('Kokoro asset integrity verification failed');
+        }
+        if (await task.file.exists()) await task.file.delete();
+        await partial.rename(task.file.path);
         downloadedBytes += taskBytes;
       } finally {
         client.close();
@@ -179,11 +216,23 @@ class KokoroModelManager {
     }
     onProgress?.call(1.0);
   }
+
+  static Future<bool> _matches(File file, int size, String expectedHash) async {
+    if (!await file.exists() || await file.length() != size) return false;
+    final digest = await sha256.bind(file.openRead()).first;
+    return digest.toString() == expectedHash;
+  }
 }
 
 class _DownloadTask {
   final String url;
   final File file;
-  final int? expectedSize;
-  const _DownloadTask({required this.url, required this.file, required this.expectedSize});
+  final int expectedSize;
+  final String sha256;
+  const _DownloadTask({
+    required this.url,
+    required this.file,
+    required this.expectedSize,
+    required this.sha256,
+  });
 }
