@@ -1582,6 +1582,210 @@ abstract class AppLocalizations {
   /// **'Website'**
   String get poiWebsite;
 
+  /// No description provided for @poiAccessPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Private access'**
+  String get poiAccessPrivate;
+
+  /// No description provided for @poiAccessCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers only'**
+  String get poiAccessCustomers;
+
+  /// No description provided for @poiAccessPermit.
+  ///
+  /// In en, this message translates to:
+  /// **'Permit required'**
+  String get poiAccessPermit;
+
+  /// No description provided for @poiAccessNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No public access'**
+  String get poiAccessNo;
+
+  /// No description provided for @poiAccessDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination access only'**
+  String get poiAccessDestination;
+
+  /// No description provided for @poiLightningAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Lightning accepted'**
+  String get poiLightningAccepted;
+
+  /// No description provided for @poiBitcoinAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Bitcoin accepted'**
+  String get poiBitcoinAccepted;
+
+  /// No description provided for @poiParkingDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Parking'**
+  String get poiParkingDetails;
+
+  /// No description provided for @poiParkingSurface.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface'**
+  String get poiParkingSurface;
+
+  /// No description provided for @poiParkingUnderground.
+  ///
+  /// In en, this message translates to:
+  /// **'Underground'**
+  String get poiParkingUnderground;
+
+  /// No description provided for @poiParkingMultiStorey.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-storey'**
+  String get poiParkingMultiStorey;
+
+  /// No description provided for @poiParkingStreetSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Street-side'**
+  String get poiParkingStreetSide;
+
+  /// No description provided for @poiParkingLane.
+  ///
+  /// In en, this message translates to:
+  /// **'On-street'**
+  String get poiParkingLane;
+
+  /// No description provided for @poiParkingRooftop.
+  ///
+  /// In en, this message translates to:
+  /// **'Rooftop'**
+  String get poiParkingRooftop;
+
+  /// No description provided for @poiFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Fee'**
+  String get poiFee;
+
+  /// No description provided for @poiFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get poiFree;
+
+  /// No description provided for @poiPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get poiPaid;
+
+  /// No description provided for @poiCapacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Capacity'**
+  String get poiCapacity;
+
+  /// No description provided for @poiMaxStay.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum stay'**
+  String get poiMaxStay;
+
+  /// No description provided for @poiPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price'**
+  String get poiPrice;
+
+  /// No description provided for @poiChargingDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Charging'**
+  String get poiChargingDetails;
+
+  /// No description provided for @poiConnectorType2.
+  ///
+  /// In en, this message translates to:
+  /// **'Type 2'**
+  String get poiConnectorType2;
+
+  /// No description provided for @poiConnectorChademo.
+  ///
+  /// In en, this message translates to:
+  /// **'CHAdeMO'**
+  String get poiConnectorChademo;
+
+  /// No description provided for @poiConnectorCcs.
+  ///
+  /// In en, this message translates to:
+  /// **'CCS'**
+  String get poiConnectorCcs;
+
+  /// No description provided for @poiFuelAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel available'**
+  String get poiFuelAvailable;
+
+  /// No description provided for @poiDiesel.
+  ///
+  /// In en, this message translates to:
+  /// **'Diesel'**
+  String get poiDiesel;
+
+  /// No description provided for @poiPetrol95.
+  ///
+  /// In en, this message translates to:
+  /// **'Petrol 95'**
+  String get poiPetrol95;
+
+  /// No description provided for @poiSmokingAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoking allowed'**
+  String get poiSmokingAllowed;
+
+  /// No description provided for @poiSmokingOutside.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoking outside'**
+  String get poiSmokingOutside;
+
+  /// No description provided for @poiSmokingAreas.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoking areas'**
+  String get poiSmokingAreas;
+
+  /// No description provided for @poiSmokeFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoke-free'**
+  String get poiSmokeFree;
+
+  /// No description provided for @poiOutdoorSeating.
+  ///
+  /// In en, this message translates to:
+  /// **'Outdoor seating'**
+  String get poiOutdoorSeating;
+
+  /// No description provided for @poiTakeaway.
+  ///
+  /// In en, this message translates to:
+  /// **'Takeaway'**
+  String get poiTakeaway;
+
+  /// No description provided for @poiTakeawayOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Takeaway only'**
+  String get poiTakeawayOnly;
+
   /// No description provided for @gpsSignalLost.
   ///
   /// In en, this message translates to:
