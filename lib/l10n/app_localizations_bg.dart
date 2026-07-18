@@ -792,70 +792,70 @@ class AppLocalizationsBg extends AppLocalizations {
   String get poiWebsite => 'Уебсайт';
 
   @override
-  String get poiAccessPrivate => 'Private access';
+  String get poiAccessPrivate => 'Частен достъп';
 
   @override
-  String get poiAccessCustomers => 'Customers only';
+  String get poiAccessCustomers => 'Само за клиенти';
 
   @override
-  String get poiAccessPermit => 'Permit required';
+  String get poiAccessPermit => 'Изисква се разрешително';
 
   @override
-  String get poiAccessNo => 'No public access';
+  String get poiAccessNo => 'Няма обществен достъп';
 
   @override
-  String get poiAccessDestination => 'Destination access only';
+  String get poiAccessDestination => 'Достъп само до дестинацията';
 
   @override
-  String get poiLightningAccepted => 'Lightning accepted';
+  String get poiLightningAccepted => 'Приема Lightning';
 
   @override
-  String get poiBitcoinAccepted => 'Bitcoin accepted';
+  String get poiBitcoinAccepted => 'Приема Bitcoin';
 
   @override
-  String get poiParkingDetails => 'Parking';
+  String get poiParkingDetails => 'Паркинг';
 
   @override
-  String get poiParkingSurface => 'Surface';
+  String get poiParkingSurface => 'Наземен';
 
   @override
-  String get poiParkingUnderground => 'Underground';
+  String get poiParkingUnderground => 'Подземен';
 
   @override
-  String get poiParkingMultiStorey => 'Multi-storey';
+  String get poiParkingMultiStorey => 'Многоетажен';
 
   @override
-  String get poiParkingStreetSide => 'Street-side';
+  String get poiParkingStreetSide => 'Край улицата';
 
   @override
-  String get poiParkingLane => 'On-street';
+  String get poiParkingLane => 'На улицата';
 
   @override
-  String get poiParkingRooftop => 'Rooftop';
+  String get poiParkingRooftop => 'На покрива';
 
   @override
-  String get poiFee => 'Fee';
+  String get poiFee => 'Такса';
 
   @override
-  String get poiFree => 'Free';
+  String get poiFree => 'Безплатно';
 
   @override
-  String get poiPaid => 'Paid';
+  String get poiPaid => 'Платено';
 
   @override
-  String get poiCapacity => 'Capacity';
+  String get poiCapacity => 'Капацитет';
 
   @override
-  String get poiMaxStay => 'Maximum stay';
+  String get poiMaxStay => 'Максимален престой';
 
   @override
-  String get poiPrice => 'Price';
+  String get poiPrice => 'Цена';
 
   @override
-  String get poiChargingDetails => 'Charging';
+  String get poiChargingDetails => 'Зареждане';
 
   @override
-  String get poiConnectorType2 => 'Type 2';
+  String get poiConnectorType2 => 'Тип 2';
 
   @override
   String get poiConnectorChademo => 'CHAdeMO';
@@ -864,34 +864,31 @@ class AppLocalizationsBg extends AppLocalizations {
   String get poiConnectorCcs => 'CCS';
 
   @override
-  String get poiFuelAvailable => 'Fuel available';
+  String get poiDiesel => 'Дизел';
 
   @override
-  String get poiDiesel => 'Diesel';
+  String get poiPetrol95 => 'Бензин 95';
 
   @override
-  String get poiPetrol95 => 'Petrol 95';
+  String get poiSmokingAllowed => 'Пушенето е разрешено';
 
   @override
-  String get poiSmokingAllowed => 'Smoking allowed';
+  String get poiSmokingOutside => 'Пушене навън';
 
   @override
-  String get poiSmokingOutside => 'Smoking outside';
+  String get poiSmokingAreas => 'Зони за пушачи';
 
   @override
-  String get poiSmokingAreas => 'Smoking areas';
+  String get poiSmokeFree => 'Без тютюнев дим';
 
   @override
-  String get poiSmokeFree => 'Smoke-free';
+  String get poiOutdoorSeating => 'Места на открито';
 
   @override
-  String get poiOutdoorSeating => 'Outdoor seating';
+  String get poiTakeaway => 'За вкъщи';
 
   @override
-  String get poiTakeaway => 'Takeaway';
-
-  @override
-  String get poiTakeawayOnly => 'Takeaway only';
+  String get poiTakeawayOnly => 'Само за вкъщи';
 
   @override
   String get gpsSignalLost => 'Изгубен GPS сигнал';
@@ -1260,4 +1257,15 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get showRoutePreview => 'Преглед на маршрута';
+
+  @override
+  String get avoidHighwaysAndTolls => 'Избягвай магистрали и платени пътища';
+
+  @override
+  String get avoidRouteUnavailable =>
+      'Не е намерен маршрут, който избягва магистрали и платени пътища.';
+
+  @override
+  String get avoidanceUnavoidableSection =>
+      'Намалява магистрали/такси · неизбежен участък';
 }

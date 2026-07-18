@@ -188,13 +188,14 @@ class OsmPoiDetails {
       'pub' ||
       'fast_food' =>
         OsmPoiKind.foodAndDrink,
-      _ when const {
-          'hotel',
-          'motel',
-          'hostel',
-          'guest_house',
-          'apartment',
-        }.contains(tourism) =>
+      _
+          when const {
+            'hotel',
+            'motel',
+            'hostel',
+            'guest_house',
+            'apartment',
+          }.contains(tourism) =>
         OsmPoiKind.lodging,
       _ => OsmPoiKind.other,
     };
@@ -204,8 +205,10 @@ class OsmPoiDetails {
       for (final type in const ['type2', 'chademo', 'type2_combo']) {
         final raw = text('socket:$type', 20)?.toLowerCase();
         if (raw == null || raw == 'no' || raw == '0') continue;
-        final count = RegExp(r'^\d{1,3}$').hasMatch(raw)
-            ? int.tryParse(raw)
+        final parsedCount =
+            RegExp(r'^\d{1,3}$').hasMatch(raw) ? int.tryParse(raw) : null;
+        final count = parsedCount != null && parsedCount > 0
+            ? parsedCount
             : null;
         if (count == null && raw != 'yes') continue;
         connectors.add(OsmEvConnector(
@@ -223,10 +226,10 @@ class OsmPoiDetails {
     }
 
     final starsRaw = kind == OsmPoiKind.lodging ? text('stars', 10) : null;
-    final stars = starsRaw != null &&
-            RegExp(r'^[1-7](?:[sS+])?$').hasMatch(starsRaw)
-        ? starsRaw.toUpperCase()
-        : null;
+    final stars =
+        starsRaw != null && RegExp(r'^[1-7](?:[sS+])?$').hasMatch(starsRaw)
+            ? starsRaw.toUpperCase()
+            : null;
 
     final cuisineRaw = text('cuisine', 120);
     return OsmPoiDetails(
@@ -256,18 +259,16 @@ class OsmPoiDetails {
         'no',
         'destination',
       }),
-      fee: (kind == OsmPoiKind.parking ||
-              kind == OsmPoiKind.chargingStation)
+      fee: (kind == OsmPoiKind.parking || kind == OsmPoiKind.chargingStation)
           ? text('fee', 80)
           : null,
-      charge: (kind == OsmPoiKind.parking ||
-              kind == OsmPoiKind.chargingStation)
+      charge: (kind == OsmPoiKind.parking || kind == OsmPoiKind.chargingStation)
           ? text('charge', 120)
           : null,
-      capacity: (kind == OsmPoiKind.parking ||
-              kind == OsmPoiKind.chargingStation)
-          ? positiveInt('capacity')
-          : null,
+      capacity:
+          (kind == OsmPoiKind.parking || kind == OsmPoiKind.chargingStation)
+              ? positiveInt('capacity')
+              : null,
       maxStay: kind == OsmPoiKind.parking ? text('maxstay', 80) : null,
       parkingType: kind == OsmPoiKind.parking
           ? knownValue('parking', const {

@@ -52,6 +52,13 @@ class RouteStep {
 /// from the route origin and applies until the next entry.
 typedef SpeedLimitEntry = ({double distFromStartM, int? speedKmh});
 
+/// How strongly a route satisfies the optional highway/toll avoidance policy.
+enum RouteAvoidance {
+  none,
+  highwayAndTollFree,
+  minimizedHighwaysAndTolls,
+}
+
 class RouteResult {
   /// Ordered list of coordinates forming the route polyline to draw on the map.
   final List<LatLng> polyline;
@@ -67,13 +74,23 @@ class RouteResult {
   /// their limits come from SpeedLimitService (Overpass) instead.
   final List<SpeedLimitEntry> speedLimits;
 
+  /// Avoidance outcome reported by the routing graph. Keeping it on the route
+  /// prevents the UI from claiming a strict exclusion after a soft fallback.
+  final RouteAvoidance avoidance;
+
   const RouteResult({
     required this.polyline,
     required this.steps,
     required this.totalDistanceM,
     required this.totalDurationS,
     this.speedLimits = const [],
+    this.avoidance = RouteAvoidance.none,
   });
+
+  bool get isHighwayAndTollAvoidance => avoidance != RouteAvoidance.none;
+
+  bool get avoidsHighwaysAndTolls =>
+      avoidance == RouteAvoidance.highwayAndTollFree;
 
   /// Returns the posted speed limit at [elapsedM] metres from the route start,
   /// or null when the limit is unknown or no data is available.
@@ -96,22 +113,6 @@ class RouteResult {
     final rem = m % 60;
     return '${h}h ${rem}min';
   }
-}
-
-/// Route preferences — avoidance and weighting options forwarded to the
-/// routing provider. Provider support varies:
-///   [avoidHighways]: OSRM (via `exclude=motorway`), ORS, GH self-hosted
-///   [avoidTolls]:    OSRM (via `exclude=toll`; may return no-route on toll-only networks), ORS, GH self-hosted
-///   [preferShorter]: GraphHopper (`weighting=shortest`), ORS (`preference=shortest`)
-class RoutePreferences {
-  final bool avoidHighways;
-  final bool avoidTolls;
-  final bool preferShorter;
-  const RoutePreferences({
-    this.avoidHighways = false,
-    this.avoidTolls = false,
-    this.preferShorter = false,
-  });
 }
 
 /// Selects which routing back-end to use. Stored as a string in Hive settings.
@@ -139,6 +140,11 @@ class RoutingService {
   /// ORS base — the profile segment ('driving-car', 'foot-walking'…) is appended.
   static const _orsBase = 'https://api.openrouteservice.org/v2/directions/';
   static const _graphhopperPublic = 'https://graphhopper.com/api/1/route';
+
+  /// Public, keyless Valhalla service operated by the German OpenStreetMap
+  /// community.  Unlike the default OSRM profiles, Valhalla supports hard
+  /// exclusions for both motorways and toll roads worldwide.
+  static const _valhallaRoute = 'https://valhalla.openstreetmap.de/route';
 
   // ── Vehicle / transport-mode helpers ──────────────────────────────────────
 
@@ -339,16 +345,11 @@ class RoutingService {
       String? apiKey,
       String? graphhopperServer,
       String lang = 'en',
-      String vehicle = 'driving',
-      RoutePreferences prefs = const RoutePreferences()}) async {
+      String vehicle = 'driving'}) async {
     try {
       if (provider == RoutingProvider.openRoute && apiKey != null) {
         // OpenRouteService (POST JSON)
         final uri = Uri.parse('$_orsBase${_orsProfile(vehicle)}');
-        final avoidList = <String>[
-          if (prefs.avoidHighways) 'highways',
-          if (prefs.avoidTolls) 'tollways',
-        ];
         final body = jsonEncode({
           'coordinates': [
             [origin.longitude, origin.latitude],
@@ -356,8 +357,6 @@ class RoutingService {
           ],
           'language': lang,
           'instructions': true,
-          if (prefs.preferShorter) 'preference': 'shortest',
-          if (avoidList.isNotEmpty) 'options': {'avoid_features': avoidList},
         });
         final res = await BoundedHttp.post(
           uri,
@@ -447,9 +446,6 @@ class RoutingService {
           'points_encoded=false',
           'details=max_speed',
         ];
-        if (prefs.preferShorter) parts.add('weighting=shortest');
-        if (prefs.avoidHighways) parts.add('avoid%5B%5D=motorway');
-        if (prefs.avoidTolls) parts.add('avoid%5B%5D=toll');
         if (apiKey != null && server == _graphhopperPublic) {
           parts.add('key=${Uri.encodeQueryComponent(apiKey)}');
         }
@@ -551,17 +547,10 @@ class RoutingService {
       }
 
       // Fallback / default: OSRM — choose the right public server for the mode.
-      final osrmExcludeParts = <String>[
-        if (prefs.avoidHighways) 'motorway',
-        if (prefs.avoidTolls) 'toll',
-      ];
-      final osrmExclude = osrmExcludeParts.isNotEmpty
-          ? '&exclude=${osrmExcludeParts.join(',')}'
-          : '';
       final baseCoords = '${_osrmEndpoint(vehicle)}/'
           '${origin.longitude},${origin.latitude};'
           '${destination.longitude},${destination.latitude}'
-          '?overview=full&geometries=geojson&steps=true$osrmExclude';
+          '?overview=full&geometries=geojson&steps=true';
 
       // NOTE: no annotations=maxspeed — that is a Mapbox Directions extension,
       // vanilla OSRM (including FOSSGIS) rejects it with 400. Speed limits
@@ -606,30 +595,21 @@ class RoutingService {
       String? apiKey,
       String? graphhopperServer,
       String lang = 'en',
-      String vehicle = 'driving',
-      RoutePreferences prefs = const RoutePreferences()}) async {
+      String vehicle = 'driving'}) async {
     if (provider != RoutingProvider.osrm) {
       final single = await getRoute(origin, destination,
           provider: provider,
           apiKey: apiKey,
           graphhopperServer: graphhopperServer,
           lang: lang,
-          vehicle: vehicle,
-          prefs: prefs);
+          vehicle: vehicle);
       return single != null ? [single] : [];
     }
     try {
-      final osrmExcludePartsAlt = <String>[
-        if (prefs.avoidHighways) 'motorway',
-        if (prefs.avoidTolls) 'toll',
-      ];
-      final osrmExclude = osrmExcludePartsAlt.isNotEmpty
-          ? '&exclude=${osrmExcludePartsAlt.join(',')}'
-          : '';
       final baseCoords = '${_osrmEndpoint(vehicle)}/'
           '${origin.longitude},${origin.latitude};'
           '${destination.longitude},${destination.latitude}'
-          '?overview=full&geometries=geojson&steps=true&alternatives=3$osrmExclude';
+          '?overview=full&geometries=geojson&steps=true&alternatives=3';
 
       final res = await BoundedHttp.get(
         Uri.parse(baseCoords),
@@ -659,6 +639,237 @@ class RoutingService {
     } catch (e) {
       throw RoutingException(message: e.toString());
     }
+  }
+
+  /// Calculates the extra driving route shown by the combined avoidance
+  /// switch. A hard exclusion is attempted first. If the graph cannot connect
+  /// the endpoints without those road classes, a documented OsmAnd-style soft
+  /// preference is used so the user still receives the best feasible route.
+  ///
+  /// This intentionally does not send OSRM's optional `exclude` parameter:
+  /// the public OSRM profiles used by Roadstr do not configure the necessary
+  /// excludable sets and return HTTP 400. Valhalla applies OSM access/toll/road
+  /// classification rules per region and reports whether the result still
+  /// contains a highway or toll segment. That result drives the UI wording.
+  static Future<RouteResult> getHighwayAndTollAvoidanceRoute(
+      LatLng origin, LatLng destination,
+      {String lang = 'en', @visibleForTesting Uri? endpoint}) async {
+    try {
+      return await _getValhallaAvoidanceRoute(
+        origin,
+        destination,
+        lang: lang,
+        endpoint: endpoint,
+        hardExclusion: true,
+      );
+    } on RoutingException {
+      return _getValhallaAvoidanceRoute(
+        origin,
+        destination,
+        lang: lang,
+        endpoint: endpoint,
+        hardExclusion: false,
+      );
+    }
+  }
+
+  static Future<RouteResult> _getValhallaAvoidanceRoute(
+      LatLng origin, LatLng destination,
+      {required String lang,
+      required Uri? endpoint,
+      required bool hardExclusion}) async {
+    try {
+      final request = jsonEncode({
+        'locations': [
+          {'lat': origin.latitude, 'lon': origin.longitude},
+          {'lat': destination.latitude, 'lon': destination.longitude},
+        ],
+        'costing': 'auto',
+        'costing_options': {
+          'auto': hardExclusion
+              ? {
+                  'exclude_highways': true,
+                  'exclude_tolls': true,
+                }
+              : {
+                  'use_highways': 0,
+                  'use_tolls': 0,
+                  // A routing-only penalty: strongly discourages even a very
+                  // short tolled segment without inflating the displayed ETA.
+                  'toll_booth_penalty': 900,
+                },
+        },
+        'units': 'kilometers',
+        'language': _valhallaLanguage(lang),
+      });
+      final uri = (endpoint ?? Uri.parse(_valhallaRoute)).replace(
+        queryParameters: {'json': request},
+      );
+      final res = await BoundedHttp.get(
+        uri,
+        headers: {'User-Agent': 'Roadstr/1.0'},
+        maxBytes: _maxRouteResponseBytes,
+        timeout: const Duration(seconds: 25),
+      );
+      if (res.statusCode != 200) {
+        throw RoutingException(
+          statusCode: res.statusCode,
+          body: res.body,
+          message: 'Valhalla HTTP error',
+        );
+      }
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      final trip = data['trip'] as Map<String, dynamic>?;
+      if (trip == null || trip['status'] != 0) {
+        throw RoutingException(
+          message: 'Valhalla returned no route',
+          body: res.body,
+        );
+      }
+      final summary = trip['summary'] as Map<String, dynamic>?;
+      final hasHighway = summary?['has_highway'] == true;
+      final hasToll = summary?['has_toll'] == true;
+      if (hardExclusion && (hasHighway || hasToll)) {
+        throw RoutingException(
+          message: 'Hard avoidance route still contains an excluded road',
+        );
+      }
+
+      final legs = trip['legs'] as List? ?? const [];
+      if (legs.isEmpty) {
+        throw RoutingException(message: 'Valhalla response missing legs');
+      }
+      final coords = <LatLng>[];
+      final steps = <RouteStep>[];
+      for (final rawLeg in legs) {
+        final leg = rawLeg as Map<String, dynamic>;
+        final legCoords =
+            _decodeValhallaPolyline(leg['shape'] as String? ?? '');
+        if (legCoords.isEmpty) {
+          throw RoutingException(message: 'Valhalla response missing shape');
+        }
+        final sharesEndpoint =
+            coords.isNotEmpty && coords.last == legCoords.first;
+        final coordOffset = sharesEndpoint ? coords.length - 1 : coords.length;
+        if (sharesEndpoint) {
+          coords.addAll(legCoords.skip(1));
+        } else {
+          coords.addAll(legCoords);
+        }
+        if (coords.length > _maxRoutePoints) {
+          throw RoutingException(message: 'Route contains too many points');
+        }
+        for (final rawManeuver in (leg['maneuvers'] as List? ?? const [])) {
+          final maneuver = rawManeuver as Map<String, dynamic>;
+          final localIndex =
+              (maneuver['begin_shape_index'] as num?)?.toInt() ?? 0;
+          final pointIndex =
+              (coordOffset + localIndex).clamp(0, coords.length - 1);
+          final type = (maneuver['type'] as num?)?.toInt() ?? 0;
+          final (:direction, :modifier) = _valhallaManeuver(type);
+          steps.add(RouteStep(
+            instruction: (maneuver['instruction'] as String?)?.trim() ?? '',
+            direction: direction,
+            modifier: modifier,
+            distanceM: ((maneuver['length'] as num?)?.toDouble() ?? 0.0) * 1000,
+            location: coords[pointIndex],
+            exitNumber: (maneuver['roundabout_exit_count'] as num?)?.toInt(),
+          ));
+        }
+      }
+      return _validatedRoute(RouteResult(
+        polyline: coords,
+        steps: steps,
+        totalDistanceM:
+            ((summary?['length'] as num?)?.toDouble() ?? 0.0) * 1000,
+        totalDurationS: (summary?['time'] as num?)?.toDouble() ?? 0.0,
+        avoidance: hasHighway || hasToll
+            ? RouteAvoidance.minimizedHighwaysAndTolls
+            : RouteAvoidance.highwayAndTollFree,
+      ));
+    } on RoutingException {
+      rethrow;
+    } catch (e) {
+      throw RoutingException(message: e.toString());
+    }
+  }
+
+  static String _valhallaLanguage(String languageCode) {
+    const locales = <String, String>{
+      'bg': 'bg-BG',
+      'cs': 'cs-CZ',
+      'da': 'da-DK',
+      'de': 'de-DE',
+      'el': 'el-GR',
+      'en': 'en-US',
+      'es': 'es-ES',
+      'et': 'et-EE',
+      'fi': 'fi-FI',
+      'fr': 'fr-FR',
+      'hu': 'hu-HU',
+      'it': 'it-IT',
+      'ja': 'ja-JP',
+      'nl': 'nl-NL',
+      'pl': 'pl-PL',
+      'pt': 'pt-BR',
+      'ro': 'ro-RO',
+      'ru': 'ru-RU',
+      'sk': 'sk-SK',
+      'sl': 'sl-SI',
+      'sv': 'sv-SE',
+      'zh': 'zh-CN',
+    };
+    return locales[languageCode.toLowerCase()] ?? 'en-US';
+  }
+
+  /// Decodes Valhalla's signed polyline6 format.
+  static List<LatLng> _decodeValhallaPolyline(String encoded) {
+    final points = <LatLng>[];
+    var index = 0;
+    var lat = 0;
+    var lon = 0;
+    int readDelta() {
+      var result = 0;
+      var shift = 0;
+      int byte;
+      do {
+        if (index >= encoded.length || shift > 30) {
+          throw RoutingException(message: 'Malformed Valhalla shape');
+        }
+        byte = encoded.codeUnitAt(index++) - 63;
+        if (byte < 0 || byte > 63) {
+          throw RoutingException(message: 'Malformed Valhalla shape');
+        }
+        result |= (byte & 0x1f) << shift;
+        shift += 5;
+      } while (byte >= 0x20);
+      return (result & 1) != 0 ? ~(result >> 1) : result >> 1;
+    }
+
+    while (index < encoded.length) {
+      lat += readDelta();
+      lon += readDelta();
+      points.add(LatLng(lat / 1e6, lon / 1e6));
+      if (points.length > _maxRoutePoints) {
+        throw RoutingException(message: 'Route contains too many points');
+      }
+    }
+    return points;
+  }
+
+  static ({String direction, String modifier}) _valhallaManeuver(int type) {
+    if (type == 1 || type == 2) return (direction: 'depart', modifier: '');
+    if (type == 4 || type == 5) return (direction: 'arrive', modifier: '');
+    if (type == 26 || type == 27) {
+      return (direction: 'roundabout', modifier: '');
+    }
+    const right = {9, 10, 11, 12, 13, 14};
+    const left = {15, 16, 17, 18, 19, 20};
+    const uturn = {6, 7};
+    if (right.contains(type)) return (direction: 'turn', modifier: 'right');
+    if (left.contains(type)) return (direction: 'turn', modifier: 'left');
+    if (uturn.contains(type)) return (direction: 'turn', modifier: 'uturn');
+    return (direction: 'continue', modifier: 'straight');
   }
 
   static RouteResult _parseOsrmRoute(Map<String, dynamic> route,

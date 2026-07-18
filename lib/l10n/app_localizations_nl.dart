@@ -789,67 +789,67 @@ class AppLocalizationsNl extends AppLocalizations {
   String get poiWebsite => 'Website';
 
   @override
-  String get poiAccessPrivate => 'Private access';
+  String get poiAccessPrivate => 'Privéterrein';
 
   @override
-  String get poiAccessCustomers => 'Customers only';
+  String get poiAccessCustomers => 'Alleen voor klanten';
 
   @override
-  String get poiAccessPermit => 'Permit required';
+  String get poiAccessPermit => 'Vergunning vereist';
 
   @override
-  String get poiAccessNo => 'No public access';
+  String get poiAccessNo => 'Geen openbare toegang';
 
   @override
-  String get poiAccessDestination => 'Destination access only';
+  String get poiAccessDestination => 'Alleen bestemmingsverkeer';
 
   @override
-  String get poiLightningAccepted => 'Lightning accepted';
+  String get poiLightningAccepted => 'Lightning geaccepteerd';
 
   @override
-  String get poiBitcoinAccepted => 'Bitcoin accepted';
+  String get poiBitcoinAccepted => 'Bitcoin geaccepteerd';
 
   @override
-  String get poiParkingDetails => 'Parking';
+  String get poiParkingDetails => 'Parkeren';
 
   @override
-  String get poiParkingSurface => 'Surface';
+  String get poiParkingSurface => 'Bovengronds';
 
   @override
-  String get poiParkingUnderground => 'Underground';
+  String get poiParkingUnderground => 'Ondergronds';
 
   @override
-  String get poiParkingMultiStorey => 'Multi-storey';
+  String get poiParkingMultiStorey => 'Parkeergarage';
 
   @override
-  String get poiParkingStreetSide => 'Street-side';
+  String get poiParkingStreetSide => 'Langs de straat';
 
   @override
-  String get poiParkingLane => 'On-street';
+  String get poiParkingLane => 'Op straat';
 
   @override
-  String get poiParkingRooftop => 'Rooftop';
+  String get poiParkingRooftop => 'Op het dak';
 
   @override
-  String get poiFee => 'Fee';
+  String get poiFee => 'Tarief';
 
   @override
-  String get poiFree => 'Free';
+  String get poiFree => 'Gratis';
 
   @override
-  String get poiPaid => 'Paid';
+  String get poiPaid => 'Betaald';
 
   @override
-  String get poiCapacity => 'Capacity';
+  String get poiCapacity => 'Capaciteit';
 
   @override
-  String get poiMaxStay => 'Maximum stay';
+  String get poiMaxStay => 'Maximale parkeerduur';
 
   @override
-  String get poiPrice => 'Price';
+  String get poiPrice => 'Prijs';
 
   @override
-  String get poiChargingDetails => 'Charging';
+  String get poiChargingDetails => 'Opladen';
 
   @override
   String get poiConnectorType2 => 'Type 2';
@@ -861,34 +861,31 @@ class AppLocalizationsNl extends AppLocalizations {
   String get poiConnectorCcs => 'CCS';
 
   @override
-  String get poiFuelAvailable => 'Fuel available';
-
-  @override
   String get poiDiesel => 'Diesel';
 
   @override
-  String get poiPetrol95 => 'Petrol 95';
+  String get poiPetrol95 => 'Benzine 95';
 
   @override
-  String get poiSmokingAllowed => 'Smoking allowed';
+  String get poiSmokingAllowed => 'Roken toegestaan';
 
   @override
-  String get poiSmokingOutside => 'Smoking outside';
+  String get poiSmokingOutside => 'Roken buiten';
 
   @override
-  String get poiSmokingAreas => 'Smoking areas';
+  String get poiSmokingAreas => 'Rookzones';
 
   @override
-  String get poiSmokeFree => 'Smoke-free';
+  String get poiSmokeFree => 'Rookvrij';
 
   @override
-  String get poiOutdoorSeating => 'Outdoor seating';
+  String get poiOutdoorSeating => 'Zitplaatsen buiten';
 
   @override
-  String get poiTakeaway => 'Takeaway';
+  String get poiTakeaway => 'Afhalen';
 
   @override
-  String get poiTakeawayOnly => 'Takeaway only';
+  String get poiTakeawayOnly => 'Alleen afhalen';
 
   @override
   String get gpsSignalLost => 'Gps-signaal verloren';
@@ -1257,4 +1254,15 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get showRoutePreview => 'Routevoorbeeld tonen';
+
+  @override
+  String get avoidHighwaysAndTolls => 'Vermijd snelwegen en tolwegen';
+
+  @override
+  String get avoidRouteUnavailable =>
+      'Er is geen route gevonden die zowel snelwegen als tolwegen vermijdt.';
+
+  @override
+  String get avoidanceUnavoidableSection =>
+      'Beperkt snelwegen/tolwegen · onvermijdelijk deel';
 }

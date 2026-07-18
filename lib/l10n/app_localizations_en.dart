@@ -855,9 +855,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get poiConnectorCcs => 'CCS';
 
   @override
-  String get poiFuelAvailable => 'Fuel available';
-
-  @override
   String get poiDiesel => 'Diesel';
 
   @override
@@ -1250,4 +1247,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get showRoutePreview => 'Show route preview';
+
+  @override
+  String get avoidHighwaysAndTolls => 'Avoid highways and toll roads';
+
+  @override
+  String get avoidRouteUnavailable =>
+      'No route avoiding both highways and toll roads was found.';
+
+  @override
+  String get avoidanceUnavoidableSection =>
+      'Minimizes highways/tolls · unavoidable section';
 }

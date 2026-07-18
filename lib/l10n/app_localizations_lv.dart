@@ -788,70 +788,70 @@ class AppLocalizationsLv extends AppLocalizations {
   String get poiWebsite => 'Tīmekļa vietne';
 
   @override
-  String get poiAccessPrivate => 'Private access';
+  String get poiAccessPrivate => 'Privāta piekļuve';
 
   @override
-  String get poiAccessCustomers => 'Customers only';
+  String get poiAccessCustomers => 'Tikai klientiem';
 
   @override
-  String get poiAccessPermit => 'Permit required';
+  String get poiAccessPermit => 'Nepieciešama atļauja';
 
   @override
-  String get poiAccessNo => 'No public access';
+  String get poiAccessNo => 'Nav publiskas piekļuves';
 
   @override
-  String get poiAccessDestination => 'Destination access only';
+  String get poiAccessDestination => 'Piekļuve tikai galamērķim';
 
   @override
-  String get poiLightningAccepted => 'Lightning accepted';
+  String get poiLightningAccepted => 'Pieņem Lightning';
 
   @override
-  String get poiBitcoinAccepted => 'Bitcoin accepted';
+  String get poiBitcoinAccepted => 'Pieņem Bitcoin';
 
   @override
-  String get poiParkingDetails => 'Parking';
+  String get poiParkingDetails => 'Autostāvvieta';
 
   @override
-  String get poiParkingSurface => 'Surface';
+  String get poiParkingSurface => 'Virszemes';
 
   @override
-  String get poiParkingUnderground => 'Underground';
+  String get poiParkingUnderground => 'Pazemes';
 
   @override
-  String get poiParkingMultiStorey => 'Multi-storey';
+  String get poiParkingMultiStorey => 'Daudzstāvu';
 
   @override
-  String get poiParkingStreetSide => 'Street-side';
+  String get poiParkingStreetSide => 'Ielas malā';
 
   @override
-  String get poiParkingLane => 'On-street';
+  String get poiParkingLane => 'Uz ielas';
 
   @override
-  String get poiParkingRooftop => 'Rooftop';
+  String get poiParkingRooftop => 'Uz jumta';
 
   @override
-  String get poiFee => 'Fee';
+  String get poiFee => 'Maksa';
 
   @override
-  String get poiFree => 'Free';
+  String get poiFree => 'Bezmaksas';
 
   @override
-  String get poiPaid => 'Paid';
+  String get poiPaid => 'Maksas';
 
   @override
-  String get poiCapacity => 'Capacity';
+  String get poiCapacity => 'Ietilpība';
 
   @override
-  String get poiMaxStay => 'Maximum stay';
+  String get poiMaxStay => 'Maksimālais stāvēšanas laiks';
 
   @override
-  String get poiPrice => 'Price';
+  String get poiPrice => 'Cena';
 
   @override
-  String get poiChargingDetails => 'Charging';
+  String get poiChargingDetails => 'Uzlāde';
 
   @override
-  String get poiConnectorType2 => 'Type 2';
+  String get poiConnectorType2 => '2. tips';
 
   @override
   String get poiConnectorChademo => 'CHAdeMO';
@@ -860,34 +860,31 @@ class AppLocalizationsLv extends AppLocalizations {
   String get poiConnectorCcs => 'CCS';
 
   @override
-  String get poiFuelAvailable => 'Fuel available';
+  String get poiDiesel => 'Dīzelis';
 
   @override
-  String get poiDiesel => 'Diesel';
+  String get poiPetrol95 => 'Benzīns 95';
 
   @override
-  String get poiPetrol95 => 'Petrol 95';
+  String get poiSmokingAllowed => 'Smēķēšana atļauta';
 
   @override
-  String get poiSmokingAllowed => 'Smoking allowed';
+  String get poiSmokingOutside => 'Smēķēšana ārā';
 
   @override
-  String get poiSmokingOutside => 'Smoking outside';
+  String get poiSmokingAreas => 'Smēķēšanas zonas';
 
   @override
-  String get poiSmokingAreas => 'Smoking areas';
+  String get poiSmokeFree => 'Bez dūmiem';
 
   @override
-  String get poiSmokeFree => 'Smoke-free';
+  String get poiOutdoorSeating => 'Āra sēdvietas';
 
   @override
-  String get poiOutdoorSeating => 'Outdoor seating';
+  String get poiTakeaway => 'Līdzņemšanai';
 
   @override
-  String get poiTakeaway => 'Takeaway';
-
-  @override
-  String get poiTakeawayOnly => 'Takeaway only';
+  String get poiTakeawayOnly => 'Tikai līdzņemšanai';
 
   @override
   String get gpsSignalLost => 'Zaudēts GPS signāls';
@@ -1256,4 +1253,16 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get showRoutePreview => 'Rādīt maršruta priekšskatījumu';
+
+  @override
+  String get avoidHighwaysAndTolls =>
+      'Izvairīties no automaģistrālēm un maksas ceļiem';
+
+  @override
+  String get avoidRouteUnavailable =>
+      'Maršruts, kas izvairās gan no automaģistrālēm, gan maksas ceļiem, netika atrasts.';
+
+  @override
+  String get avoidanceUnavoidableSection =>
+      'Samazina automaģistrāles/maksas ceļus · neizbēgams posms';
 }

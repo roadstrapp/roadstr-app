@@ -789,70 +789,70 @@ class AppLocalizationsRu extends AppLocalizations {
   String get poiWebsite => 'Веб-сайт';
 
   @override
-  String get poiAccessPrivate => 'Private access';
+  String get poiAccessPrivate => 'Частный доступ';
 
   @override
-  String get poiAccessCustomers => 'Customers only';
+  String get poiAccessCustomers => 'Только для клиентов';
 
   @override
-  String get poiAccessPermit => 'Permit required';
+  String get poiAccessPermit => 'Требуется разрешение';
 
   @override
-  String get poiAccessNo => 'No public access';
+  String get poiAccessNo => 'Нет общего доступа';
 
   @override
-  String get poiAccessDestination => 'Destination access only';
+  String get poiAccessDestination => 'Доступ только к месту назначения';
 
   @override
-  String get poiLightningAccepted => 'Lightning accepted';
+  String get poiLightningAccepted => 'Принимает Lightning';
 
   @override
-  String get poiBitcoinAccepted => 'Bitcoin accepted';
+  String get poiBitcoinAccepted => 'Принимает Bitcoin';
 
   @override
-  String get poiParkingDetails => 'Parking';
+  String get poiParkingDetails => 'Парковка';
 
   @override
-  String get poiParkingSurface => 'Surface';
+  String get poiParkingSurface => 'Наземная';
 
   @override
-  String get poiParkingUnderground => 'Underground';
+  String get poiParkingUnderground => 'Подземная';
 
   @override
-  String get poiParkingMultiStorey => 'Multi-storey';
+  String get poiParkingMultiStorey => 'Многоуровневая';
 
   @override
-  String get poiParkingStreetSide => 'Street-side';
+  String get poiParkingStreetSide => 'У обочины';
 
   @override
-  String get poiParkingLane => 'On-street';
+  String get poiParkingLane => 'На улице';
 
   @override
-  String get poiParkingRooftop => 'Rooftop';
+  String get poiParkingRooftop => 'На крыше';
 
   @override
-  String get poiFee => 'Fee';
+  String get poiFee => 'Плата';
 
   @override
-  String get poiFree => 'Free';
+  String get poiFree => 'Бесплатно';
 
   @override
-  String get poiPaid => 'Paid';
+  String get poiPaid => 'Платно';
 
   @override
-  String get poiCapacity => 'Capacity';
+  String get poiCapacity => 'Вместимость';
 
   @override
-  String get poiMaxStay => 'Maximum stay';
+  String get poiMaxStay => 'Максимальное время стоянки';
 
   @override
-  String get poiPrice => 'Price';
+  String get poiPrice => 'Цена';
 
   @override
-  String get poiChargingDetails => 'Charging';
+  String get poiChargingDetails => 'Зарядка';
 
   @override
-  String get poiConnectorType2 => 'Type 2';
+  String get poiConnectorType2 => 'Тип 2';
 
   @override
   String get poiConnectorChademo => 'CHAdeMO';
@@ -861,34 +861,31 @@ class AppLocalizationsRu extends AppLocalizations {
   String get poiConnectorCcs => 'CCS';
 
   @override
-  String get poiFuelAvailable => 'Fuel available';
+  String get poiDiesel => 'Дизель';
 
   @override
-  String get poiDiesel => 'Diesel';
+  String get poiPetrol95 => 'Бензин 95';
 
   @override
-  String get poiPetrol95 => 'Petrol 95';
+  String get poiSmokingAllowed => 'Курение разрешено';
 
   @override
-  String get poiSmokingAllowed => 'Smoking allowed';
+  String get poiSmokingOutside => 'Курение на улице';
 
   @override
-  String get poiSmokingOutside => 'Smoking outside';
+  String get poiSmokingAreas => 'Места для курения';
 
   @override
-  String get poiSmokingAreas => 'Smoking areas';
+  String get poiSmokeFree => 'Без курения';
 
   @override
-  String get poiSmokeFree => 'Smoke-free';
+  String get poiOutdoorSeating => 'Места на открытом воздухе';
 
   @override
-  String get poiOutdoorSeating => 'Outdoor seating';
+  String get poiTakeaway => 'На вынос';
 
   @override
-  String get poiTakeaway => 'Takeaway';
-
-  @override
-  String get poiTakeawayOnly => 'Takeaway only';
+  String get poiTakeawayOnly => 'Только на вынос';
 
   @override
   String get gpsSignalLost => 'Сигнал GPS потерян';
@@ -1257,4 +1254,16 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get showRoutePreview => 'Показать предпросмотр маршрута';
+
+  @override
+  String get avoidHighwaysAndTolls =>
+      'Избегать автомагистралей и платных дорог';
+
+  @override
+  String get avoidRouteUnavailable =>
+      'Маршрут без автомагистралей и платных дорог не найден.';
+
+  @override
+  String get avoidanceUnavoidableSection =>
+      'Минимизирует автомагистрали/платные дороги · неизбежный участок';
 }

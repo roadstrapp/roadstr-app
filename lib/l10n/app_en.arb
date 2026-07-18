@@ -335,7 +335,6 @@
   "poiConnectorType2": "Type 2",
   "poiConnectorChademo": "CHAdeMO",
   "poiConnectorCcs": "CCS",
-  "poiFuelAvailable": "Fuel available",
   "poiDiesel": "Diesel",
   "poiPetrol95": "Petrol 95",
   "poiSmokingAllowed": "Smoking allowed",
@@ -534,5 +533,8 @@
       }
     }
   },
-  "showRoutePreview": "Show route preview"
+  "showRoutePreview": "Show route preview",
+  "avoidHighwaysAndTolls": "Avoid highways and toll roads",
+  "avoidRouteUnavailable": "No route avoiding both highways and toll roads was found.",
+  "avoidanceUnavoidableSection": "Minimizes highways/tolls · unavoidable section"
 }

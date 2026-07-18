@@ -1726,12 +1726,6 @@ abstract class AppLocalizations {
   /// **'CCS'**
   String get poiConnectorCcs;
 
-  /// No description provided for @poiFuelAvailable.
-  ///
-  /// In en, this message translates to:
-  /// **'Fuel available'**
-  String get poiFuelAvailable;
-
   /// No description provided for @poiDiesel.
   ///
   /// In en, this message translates to:
@@ -2433,6 +2427,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show route preview'**
   String get showRoutePreview;
+
+  /// No description provided for @avoidHighwaysAndTolls.
+  ///
+  /// In en, this message translates to:
+  /// **'Avoid highways and toll roads'**
+  String get avoidHighwaysAndTolls;
+
+  /// No description provided for @avoidRouteUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No route avoiding both highways and toll roads was found.'**
+  String get avoidRouteUnavailable;
+
+  /// No description provided for @avoidanceUnavoidableSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimizes highways/tolls · unavoidable section'**
+  String get avoidanceUnavoidableSection;
 }
 
 class _AppLocalizationsDelegate

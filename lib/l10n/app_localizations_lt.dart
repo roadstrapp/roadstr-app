@@ -791,70 +791,70 @@ class AppLocalizationsLt extends AppLocalizations {
   String get poiWebsite => 'Svetainė';
 
   @override
-  String get poiAccessPrivate => 'Private access';
+  String get poiAccessPrivate => 'Privati prieiga';
 
   @override
-  String get poiAccessCustomers => 'Customers only';
+  String get poiAccessCustomers => 'Tik klientams';
 
   @override
-  String get poiAccessPermit => 'Permit required';
+  String get poiAccessPermit => 'Reikalingas leidimas';
 
   @override
-  String get poiAccessNo => 'No public access';
+  String get poiAccessNo => 'Viešos prieigos nėra';
 
   @override
-  String get poiAccessDestination => 'Destination access only';
+  String get poiAccessDestination => 'Prieiga tik į paskirties vietą';
 
   @override
-  String get poiLightningAccepted => 'Lightning accepted';
+  String get poiLightningAccepted => 'Priima Lightning';
 
   @override
-  String get poiBitcoinAccepted => 'Bitcoin accepted';
+  String get poiBitcoinAccepted => 'Priima Bitcoin';
 
   @override
-  String get poiParkingDetails => 'Parking';
+  String get poiParkingDetails => 'Stovėjimo aikštelė';
 
   @override
-  String get poiParkingSurface => 'Surface';
+  String get poiParkingSurface => 'Antžeminė';
 
   @override
-  String get poiParkingUnderground => 'Underground';
+  String get poiParkingUnderground => 'Požeminė';
 
   @override
-  String get poiParkingMultiStorey => 'Multi-storey';
+  String get poiParkingMultiStorey => 'Daugiaaukštė';
 
   @override
-  String get poiParkingStreetSide => 'Street-side';
+  String get poiParkingStreetSide => 'Šalia gatvės';
 
   @override
-  String get poiParkingLane => 'On-street';
+  String get poiParkingLane => 'Gatvėje';
 
   @override
-  String get poiParkingRooftop => 'Rooftop';
+  String get poiParkingRooftop => 'Ant stogo';
 
   @override
-  String get poiFee => 'Fee';
+  String get poiFee => 'Mokestis';
 
   @override
-  String get poiFree => 'Free';
+  String get poiFree => 'Nemokama';
 
   @override
-  String get poiPaid => 'Paid';
+  String get poiPaid => 'Mokama';
 
   @override
-  String get poiCapacity => 'Capacity';
+  String get poiCapacity => 'Talpa';
 
   @override
-  String get poiMaxStay => 'Maximum stay';
+  String get poiMaxStay => 'Ilgiausia stovėjimo trukmė';
 
   @override
-  String get poiPrice => 'Price';
+  String get poiPrice => 'Kaina';
 
   @override
-  String get poiChargingDetails => 'Charging';
+  String get poiChargingDetails => 'Įkrovimas';
 
   @override
-  String get poiConnectorType2 => 'Type 2';
+  String get poiConnectorType2 => '2 tipas';
 
   @override
   String get poiConnectorChademo => 'CHAdeMO';
@@ -863,34 +863,31 @@ class AppLocalizationsLt extends AppLocalizations {
   String get poiConnectorCcs => 'CCS';
 
   @override
-  String get poiFuelAvailable => 'Fuel available';
+  String get poiDiesel => 'Dyzelinas';
 
   @override
-  String get poiDiesel => 'Diesel';
+  String get poiPetrol95 => 'Benzinas 95';
 
   @override
-  String get poiPetrol95 => 'Petrol 95';
+  String get poiSmokingAllowed => 'Rūkyti leidžiama';
 
   @override
-  String get poiSmokingAllowed => 'Smoking allowed';
+  String get poiSmokingOutside => 'Rūkymas lauke';
 
   @override
-  String get poiSmokingOutside => 'Smoking outside';
+  String get poiSmokingAreas => 'Rūkymo zonos';
 
   @override
-  String get poiSmokingAreas => 'Smoking areas';
+  String get poiSmokeFree => 'Nerūkoma';
 
   @override
-  String get poiSmokeFree => 'Smoke-free';
+  String get poiOutdoorSeating => 'Lauko sėdimos vietos';
 
   @override
-  String get poiOutdoorSeating => 'Outdoor seating';
+  String get poiTakeaway => 'Išsinešti';
 
   @override
-  String get poiTakeaway => 'Takeaway';
-
-  @override
-  String get poiTakeawayOnly => 'Takeaway only';
+  String get poiTakeawayOnly => 'Tik išsinešti';
 
   @override
   String get gpsSignalLost => 'Prarastas GPS signalas';
@@ -1259,4 +1256,15 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get showRoutePreview => 'Rodyti maršruto peržiūrą';
+
+  @override
+  String get avoidHighwaysAndTolls => 'Vengti greitkelių ir mokamų kelių';
+
+  @override
+  String get avoidRouteUnavailable =>
+      'Maršruto, vengiančio ir greitkelių, ir mokamų kelių, rasti nepavyko.';
+
+  @override
+  String get avoidanceUnavoidableSection =>
+      'Mažina greitkelius/mokamus kelius · neišvengiama atkarpa';
 }

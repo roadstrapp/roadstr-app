@@ -792,70 +792,70 @@ class AppLocalizationsHu extends AppLocalizations {
   String get poiWebsite => 'Webhely';
 
   @override
-  String get poiAccessPrivate => 'Private access';
+  String get poiAccessPrivate => 'Privát hozzáférés';
 
   @override
-  String get poiAccessCustomers => 'Customers only';
+  String get poiAccessCustomers => 'Csak vásárlóknak';
 
   @override
-  String get poiAccessPermit => 'Permit required';
+  String get poiAccessPermit => 'Engedély szükséges';
 
   @override
-  String get poiAccessNo => 'No public access';
+  String get poiAccessNo => 'Nincs nyilvános hozzáférés';
 
   @override
-  String get poiAccessDestination => 'Destination access only';
+  String get poiAccessDestination => 'Csak célforgalom';
 
   @override
-  String get poiLightningAccepted => 'Lightning accepted';
+  String get poiLightningAccepted => 'Lightning elfogadva';
 
   @override
-  String get poiBitcoinAccepted => 'Bitcoin accepted';
+  String get poiBitcoinAccepted => 'Bitcoin elfogadva';
 
   @override
-  String get poiParkingDetails => 'Parking';
+  String get poiParkingDetails => 'Parkolás';
 
   @override
-  String get poiParkingSurface => 'Surface';
+  String get poiParkingSurface => 'Felszíni';
 
   @override
-  String get poiParkingUnderground => 'Underground';
+  String get poiParkingUnderground => 'Föld alatti';
 
   @override
-  String get poiParkingMultiStorey => 'Multi-storey';
+  String get poiParkingMultiStorey => 'Többszintes';
 
   @override
-  String get poiParkingStreetSide => 'Street-side';
+  String get poiParkingStreetSide => 'Út menti';
 
   @override
-  String get poiParkingLane => 'On-street';
+  String get poiParkingLane => 'Utcai';
 
   @override
-  String get poiParkingRooftop => 'Rooftop';
+  String get poiParkingRooftop => 'Tetőn';
 
   @override
-  String get poiFee => 'Fee';
+  String get poiFee => 'Díj';
 
   @override
-  String get poiFree => 'Free';
+  String get poiFree => 'Ingyenes';
 
   @override
-  String get poiPaid => 'Paid';
+  String get poiPaid => 'Fizetős';
 
   @override
-  String get poiCapacity => 'Capacity';
+  String get poiCapacity => 'Kapacitás';
 
   @override
-  String get poiMaxStay => 'Maximum stay';
+  String get poiMaxStay => 'Maximális várakozási idő';
 
   @override
-  String get poiPrice => 'Price';
+  String get poiPrice => 'Ár';
 
   @override
-  String get poiChargingDetails => 'Charging';
+  String get poiChargingDetails => 'Töltés';
 
   @override
-  String get poiConnectorType2 => 'Type 2';
+  String get poiConnectorType2 => '2-es típus';
 
   @override
   String get poiConnectorChademo => 'CHAdeMO';
@@ -864,34 +864,31 @@ class AppLocalizationsHu extends AppLocalizations {
   String get poiConnectorCcs => 'CCS';
 
   @override
-  String get poiFuelAvailable => 'Fuel available';
+  String get poiDiesel => 'Dízel';
 
   @override
-  String get poiDiesel => 'Diesel';
+  String get poiPetrol95 => '95-ös benzin';
 
   @override
-  String get poiPetrol95 => 'Petrol 95';
+  String get poiSmokingAllowed => 'Dohányzás engedélyezett';
 
   @override
-  String get poiSmokingAllowed => 'Smoking allowed';
+  String get poiSmokingOutside => 'Dohányzás kint';
 
   @override
-  String get poiSmokingOutside => 'Smoking outside';
+  String get poiSmokingAreas => 'Dohányzóhelyek';
 
   @override
-  String get poiSmokingAreas => 'Smoking areas';
+  String get poiSmokeFree => 'Dohányfüstmentes';
 
   @override
-  String get poiSmokeFree => 'Smoke-free';
+  String get poiOutdoorSeating => 'Kültéri ülőhelyek';
 
   @override
-  String get poiOutdoorSeating => 'Outdoor seating';
+  String get poiTakeaway => 'Elvitel';
 
   @override
-  String get poiTakeaway => 'Takeaway';
-
-  @override
-  String get poiTakeawayOnly => 'Takeaway only';
+  String get poiTakeawayOnly => 'Csak elvitel';
 
   @override
   String get gpsSignalLost => 'A GPS-jel megszakadt';
@@ -1260,4 +1257,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get showRoutePreview => 'Útvonal előnézete';
+
+  @override
+  String get avoidHighwaysAndTolls => 'Autópályák és fizetős utak kerülése';
+
+  @override
+  String get avoidRouteUnavailable =>
+      'Nem található olyan útvonal, amely az autópályákat és a fizetős utakat is elkerüli.';
+
+  @override
+  String get avoidanceUnavoidableSection =>
+      'Minimalizálja az autópályát/fizetős utat · elkerülhetetlen szakasz';
 }

@@ -864,9 +864,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get poiConnectorCcs => 'CCS';
 
   @override
-  String get poiFuelAvailable => 'Carburanti disponibili';
-
-  @override
   String get poiDiesel => 'Diesel';
 
   @override
@@ -1261,4 +1258,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get showRoutePreview => 'Mostra anteprima percorso';
+
+  @override
+  String get avoidHighwaysAndTolls => 'Evita autostrade e pedaggi';
+
+  @override
+  String get avoidRouteUnavailable =>
+      'Non è stato trovato un percorso che eviti sia autostrade sia strade a pedaggio.';
+
+  @override
+  String get avoidanceUnavoidableSection =>
+      'Riduce autostrade/pedaggi · tratto inevitabile';
 }
