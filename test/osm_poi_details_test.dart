@@ -159,7 +159,7 @@ void main() {
       'capacity': '-4',
       'socket:type2': 'many',
       'socket:chademo': '0',
-      'socket:type2_combo': '9999',
+      'socket:type2_combo': '000',
     });
 
     expect(details!.access, isNull);

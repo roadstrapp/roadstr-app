@@ -760,67 +760,67 @@ class AppLocalizationsZh extends AppLocalizations {
   String get poiWebsite => '网站';
 
   @override
-  String get poiAccessPrivate => 'Private access';
+  String get poiAccessPrivate => '私人通行';
 
   @override
-  String get poiAccessCustomers => 'Customers only';
+  String get poiAccessCustomers => '仅限顾客';
 
   @override
-  String get poiAccessPermit => 'Permit required';
+  String get poiAccessPermit => '需要许可证';
 
   @override
-  String get poiAccessNo => 'No public access';
+  String get poiAccessNo => '不对公众开放';
 
   @override
-  String get poiAccessDestination => 'Destination access only';
+  String get poiAccessDestination => '仅限前往目的地';
 
   @override
-  String get poiLightningAccepted => 'Lightning accepted';
+  String get poiLightningAccepted => '支持Lightning';
 
   @override
-  String get poiBitcoinAccepted => 'Bitcoin accepted';
+  String get poiBitcoinAccepted => '支持Bitcoin';
 
   @override
-  String get poiParkingDetails => 'Parking';
+  String get poiParkingDetails => '停车场';
 
   @override
-  String get poiParkingSurface => 'Surface';
+  String get poiParkingSurface => '地面';
 
   @override
-  String get poiParkingUnderground => 'Underground';
+  String get poiParkingUnderground => '地下';
 
   @override
-  String get poiParkingMultiStorey => 'Multi-storey';
+  String get poiParkingMultiStorey => '多层';
 
   @override
-  String get poiParkingStreetSide => 'Street-side';
+  String get poiParkingStreetSide => '路边';
 
   @override
-  String get poiParkingLane => 'On-street';
+  String get poiParkingLane => '路上';
 
   @override
-  String get poiParkingRooftop => 'Rooftop';
+  String get poiParkingRooftop => '屋顶';
 
   @override
-  String get poiFee => 'Fee';
+  String get poiFee => '费用';
 
   @override
-  String get poiFree => 'Free';
+  String get poiFree => '免费';
 
   @override
-  String get poiPaid => 'Paid';
+  String get poiPaid => '收费';
 
   @override
-  String get poiCapacity => 'Capacity';
+  String get poiCapacity => '容量';
 
   @override
-  String get poiMaxStay => 'Maximum stay';
+  String get poiMaxStay => '最长停留时间';
 
   @override
-  String get poiPrice => 'Price';
+  String get poiPrice => '价格';
 
   @override
-  String get poiChargingDetails => 'Charging';
+  String get poiChargingDetails => '充电';
 
   @override
   String get poiConnectorType2 => 'Type 2';
@@ -832,34 +832,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get poiConnectorCcs => 'CCS';
 
   @override
-  String get poiFuelAvailable => 'Fuel available';
+  String get poiDiesel => '柴油';
 
   @override
-  String get poiDiesel => 'Diesel';
+  String get poiPetrol95 => '95号汽油';
 
   @override
-  String get poiPetrol95 => 'Petrol 95';
+  String get poiSmokingAllowed => '允许吸烟';
 
   @override
-  String get poiSmokingAllowed => 'Smoking allowed';
+  String get poiSmokingOutside => '室外吸烟';
 
   @override
-  String get poiSmokingOutside => 'Smoking outside';
+  String get poiSmokingAreas => '吸烟区';
 
   @override
-  String get poiSmokingAreas => 'Smoking areas';
+  String get poiSmokeFree => '无烟';
 
   @override
-  String get poiSmokeFree => 'Smoke-free';
+  String get poiOutdoorSeating => '户外座位';
 
   @override
-  String get poiOutdoorSeating => 'Outdoor seating';
+  String get poiTakeaway => '外带';
 
   @override
-  String get poiTakeaway => 'Takeaway';
-
-  @override
-  String get poiTakeawayOnly => 'Takeaway only';
+  String get poiTakeawayOnly => '仅限外带';
 
   @override
   String get gpsSignalLost => 'GPS信号丢失';
@@ -1221,4 +1218,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get showRoutePreview => '显示路线预览';
+
+  @override
+  String get avoidHighwaysAndTolls => '避开高速公路和收费道路';
+
+  @override
+  String get avoidRouteUnavailable => '未找到同时避开高速公路和收费道路的路线。';
+
+  @override
+  String get avoidanceUnavoidableSection => '尽量减少高速/收费道路 · 含无法避开的路段';
 }

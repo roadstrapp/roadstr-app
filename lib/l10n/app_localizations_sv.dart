@@ -786,70 +786,70 @@ class AppLocalizationsSv extends AppLocalizations {
   String get poiWebsite => 'Webbplats';
 
   @override
-  String get poiAccessPrivate => 'Private access';
+  String get poiAccessPrivate => 'Privat tillträde';
 
   @override
-  String get poiAccessCustomers => 'Customers only';
+  String get poiAccessCustomers => 'Endast kunder';
 
   @override
-  String get poiAccessPermit => 'Permit required';
+  String get poiAccessPermit => 'Tillstånd krävs';
 
   @override
-  String get poiAccessNo => 'No public access';
+  String get poiAccessNo => 'Ingen allmän åtkomst';
 
   @override
-  String get poiAccessDestination => 'Destination access only';
+  String get poiAccessDestination => 'Endast destinationstrafik';
 
   @override
-  String get poiLightningAccepted => 'Lightning accepted';
+  String get poiLightningAccepted => 'Lightning accepteras';
 
   @override
-  String get poiBitcoinAccepted => 'Bitcoin accepted';
+  String get poiBitcoinAccepted => 'Bitcoin accepteras';
 
   @override
-  String get poiParkingDetails => 'Parking';
+  String get poiParkingDetails => 'Parkering';
 
   @override
-  String get poiParkingSurface => 'Surface';
+  String get poiParkingSurface => 'Markparkering';
 
   @override
-  String get poiParkingUnderground => 'Underground';
+  String get poiParkingUnderground => 'Underjordisk';
 
   @override
-  String get poiParkingMultiStorey => 'Multi-storey';
+  String get poiParkingMultiStorey => 'Parkeringshus';
 
   @override
-  String get poiParkingStreetSide => 'Street-side';
+  String get poiParkingStreetSide => 'Längs gatan';
 
   @override
-  String get poiParkingLane => 'On-street';
+  String get poiParkingLane => 'På gatan';
 
   @override
-  String get poiParkingRooftop => 'Rooftop';
+  String get poiParkingRooftop => 'På taket';
 
   @override
-  String get poiFee => 'Fee';
+  String get poiFee => 'Avgift';
 
   @override
-  String get poiFree => 'Free';
+  String get poiFree => 'Gratis';
 
   @override
-  String get poiPaid => 'Paid';
+  String get poiPaid => 'Avgiftsbelagd';
 
   @override
-  String get poiCapacity => 'Capacity';
+  String get poiCapacity => 'Kapacitet';
 
   @override
-  String get poiMaxStay => 'Maximum stay';
+  String get poiMaxStay => 'Längsta parkeringstid';
 
   @override
-  String get poiPrice => 'Price';
+  String get poiPrice => 'Pris';
 
   @override
-  String get poiChargingDetails => 'Charging';
+  String get poiChargingDetails => 'Laddning';
 
   @override
-  String get poiConnectorType2 => 'Type 2';
+  String get poiConnectorType2 => 'Typ 2';
 
   @override
   String get poiConnectorChademo => 'CHAdeMO';
@@ -858,34 +858,31 @@ class AppLocalizationsSv extends AppLocalizations {
   String get poiConnectorCcs => 'CCS';
 
   @override
-  String get poiFuelAvailable => 'Fuel available';
-
-  @override
   String get poiDiesel => 'Diesel';
 
   @override
-  String get poiPetrol95 => 'Petrol 95';
+  String get poiPetrol95 => 'Bensin 95';
 
   @override
-  String get poiSmokingAllowed => 'Smoking allowed';
+  String get poiSmokingAllowed => 'Rökning tillåten';
 
   @override
-  String get poiSmokingOutside => 'Smoking outside';
+  String get poiSmokingOutside => 'Rökning utomhus';
 
   @override
-  String get poiSmokingAreas => 'Smoking areas';
+  String get poiSmokingAreas => 'Rökområden';
 
   @override
-  String get poiSmokeFree => 'Smoke-free';
+  String get poiSmokeFree => 'Rökfritt';
 
   @override
-  String get poiOutdoorSeating => 'Outdoor seating';
+  String get poiOutdoorSeating => 'Uteservering';
 
   @override
-  String get poiTakeaway => 'Takeaway';
+  String get poiTakeaway => 'Hämtmat';
 
   @override
-  String get poiTakeawayOnly => 'Takeaway only';
+  String get poiTakeawayOnly => 'Endast hämtmat';
 
   @override
   String get gpsSignalLost => 'GPS-signalen förlorad';
@@ -1254,4 +1251,15 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get showRoutePreview => 'Visa förhandsvisning av rutt';
+
+  @override
+  String get avoidHighwaysAndTolls => 'Undvik motorvägar och vägtullar';
+
+  @override
+  String get avoidRouteUnavailable =>
+      'Ingen rutt som undviker både motorvägar och avgiftsbelagda vägar hittades.';
+
+  @override
+  String get avoidanceUnavoidableSection =>
+      'Minimerar motorvägar/vägtullar · oundviklig sträcka';
 }

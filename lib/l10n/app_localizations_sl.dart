@@ -785,70 +785,70 @@ class AppLocalizationsSl extends AppLocalizations {
   String get poiWebsite => 'Spletno mesto';
 
   @override
-  String get poiAccessPrivate => 'Private access';
+  String get poiAccessPrivate => 'Zaseben dostop';
 
   @override
-  String get poiAccessCustomers => 'Customers only';
+  String get poiAccessCustomers => 'Samo za stranke';
 
   @override
-  String get poiAccessPermit => 'Permit required';
+  String get poiAccessPermit => 'Potrebno dovoljenje';
 
   @override
-  String get poiAccessNo => 'No public access';
+  String get poiAccessNo => 'Brez javnega dostopa';
 
   @override
-  String get poiAccessDestination => 'Destination access only';
+  String get poiAccessDestination => 'Dostop samo do cilja';
 
   @override
-  String get poiLightningAccepted => 'Lightning accepted';
+  String get poiLightningAccepted => 'Sprejema Lightning';
 
   @override
-  String get poiBitcoinAccepted => 'Bitcoin accepted';
+  String get poiBitcoinAccepted => 'Sprejema Bitcoin';
 
   @override
-  String get poiParkingDetails => 'Parking';
+  String get poiParkingDetails => 'Parkiranje';
 
   @override
-  String get poiParkingSurface => 'Surface';
+  String get poiParkingSurface => 'Na površini';
 
   @override
-  String get poiParkingUnderground => 'Underground';
+  String get poiParkingUnderground => 'Podzemno';
 
   @override
-  String get poiParkingMultiStorey => 'Multi-storey';
+  String get poiParkingMultiStorey => 'Večnadstropno';
 
   @override
-  String get poiParkingStreetSide => 'Street-side';
+  String get poiParkingStreetSide => 'Ob ulici';
 
   @override
-  String get poiParkingLane => 'On-street';
+  String get poiParkingLane => 'Na ulici';
 
   @override
-  String get poiParkingRooftop => 'Rooftop';
+  String get poiParkingRooftop => 'Na strehi';
 
   @override
-  String get poiFee => 'Fee';
+  String get poiFee => 'Pristojbina';
 
   @override
-  String get poiFree => 'Free';
+  String get poiFree => 'Brezplačno';
 
   @override
-  String get poiPaid => 'Paid';
+  String get poiPaid => 'Plačljivo';
 
   @override
-  String get poiCapacity => 'Capacity';
+  String get poiCapacity => 'Zmogljivost';
 
   @override
-  String get poiMaxStay => 'Maximum stay';
+  String get poiMaxStay => 'Najdaljši čas parkiranja';
 
   @override
-  String get poiPrice => 'Price';
+  String get poiPrice => 'Cena';
 
   @override
-  String get poiChargingDetails => 'Charging';
+  String get poiChargingDetails => 'Polnjenje';
 
   @override
-  String get poiConnectorType2 => 'Type 2';
+  String get poiConnectorType2 => 'Tip 2';
 
   @override
   String get poiConnectorChademo => 'CHAdeMO';
@@ -857,34 +857,31 @@ class AppLocalizationsSl extends AppLocalizations {
   String get poiConnectorCcs => 'CCS';
 
   @override
-  String get poiFuelAvailable => 'Fuel available';
+  String get poiDiesel => 'Dizel';
 
   @override
-  String get poiDiesel => 'Diesel';
+  String get poiPetrol95 => 'Bencin 95';
 
   @override
-  String get poiPetrol95 => 'Petrol 95';
+  String get poiSmokingAllowed => 'Kajenje dovoljeno';
 
   @override
-  String get poiSmokingAllowed => 'Smoking allowed';
+  String get poiSmokingOutside => 'Kajenje zunaj';
 
   @override
-  String get poiSmokingOutside => 'Smoking outside';
+  String get poiSmokingAreas => 'Prostori za kadilce';
 
   @override
-  String get poiSmokingAreas => 'Smoking areas';
+  String get poiSmokeFree => 'Brez kajenja';
 
   @override
-  String get poiSmokeFree => 'Smoke-free';
+  String get poiOutdoorSeating => 'Zunanje sedenje';
 
   @override
-  String get poiOutdoorSeating => 'Outdoor seating';
+  String get poiTakeaway => 'Za s seboj';
 
   @override
-  String get poiTakeaway => 'Takeaway';
-
-  @override
-  String get poiTakeawayOnly => 'Takeaway only';
+  String get poiTakeawayOnly => 'Samo za s seboj';
 
   @override
   String get gpsSignalLost => 'Izgubljen signal GPS';
@@ -1252,4 +1249,15 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get showRoutePreview => 'Prikaži predogled poti';
+
+  @override
+  String get avoidHighwaysAndTolls => 'Izogni se avtocestam in cestninam';
+
+  @override
+  String get avoidRouteUnavailable =>
+      'Pot, ki bi se izognila avtocestam in cestninam, ni bila najdena.';
+
+  @override
+  String get avoidanceUnavoidableSection =>
+      'Zmanjša avtoceste/cestnine · neizogiben odsek';
 }

@@ -787,70 +787,70 @@ class AppLocalizationsFi extends AppLocalizations {
   String get poiWebsite => 'Verkkosivusto';
 
   @override
-  String get poiAccessPrivate => 'Private access';
+  String get poiAccessPrivate => 'Yksityinen pääsy';
 
   @override
-  String get poiAccessCustomers => 'Customers only';
+  String get poiAccessCustomers => 'Vain asiakkaille';
 
   @override
-  String get poiAccessPermit => 'Permit required';
+  String get poiAccessPermit => 'Lupa vaaditaan';
 
   @override
-  String get poiAccessNo => 'No public access';
+  String get poiAccessNo => 'Ei julkista pääsyä';
 
   @override
-  String get poiAccessDestination => 'Destination access only';
+  String get poiAccessDestination => 'Pääsy vain kohteeseen';
 
   @override
-  String get poiLightningAccepted => 'Lightning accepted';
+  String get poiLightningAccepted => 'Lightning käy maksuvälineenä';
 
   @override
-  String get poiBitcoinAccepted => 'Bitcoin accepted';
+  String get poiBitcoinAccepted => 'Bitcoin käy maksuvälineenä';
 
   @override
-  String get poiParkingDetails => 'Parking';
+  String get poiParkingDetails => 'Pysäköinti';
 
   @override
-  String get poiParkingSurface => 'Surface';
+  String get poiParkingSurface => 'Maan tasalla';
 
   @override
-  String get poiParkingUnderground => 'Underground';
+  String get poiParkingUnderground => 'Maanalainen';
 
   @override
-  String get poiParkingMultiStorey => 'Multi-storey';
+  String get poiParkingMultiStorey => 'Pysäköintitalo';
 
   @override
-  String get poiParkingStreetSide => 'Street-side';
+  String get poiParkingStreetSide => 'Kadun varressa';
 
   @override
-  String get poiParkingLane => 'On-street';
+  String get poiParkingLane => 'Kadulla';
 
   @override
-  String get poiParkingRooftop => 'Rooftop';
+  String get poiParkingRooftop => 'Katolla';
 
   @override
-  String get poiFee => 'Fee';
+  String get poiFee => 'Maksu';
 
   @override
-  String get poiFree => 'Free';
+  String get poiFree => 'Maksuton';
 
   @override
-  String get poiPaid => 'Paid';
+  String get poiPaid => 'Maksullinen';
 
   @override
-  String get poiCapacity => 'Capacity';
+  String get poiCapacity => 'Kapasiteetti';
 
   @override
-  String get poiMaxStay => 'Maximum stay';
+  String get poiMaxStay => 'Enimmäispysäköintiaika';
 
   @override
-  String get poiPrice => 'Price';
+  String get poiPrice => 'Hinta';
 
   @override
-  String get poiChargingDetails => 'Charging';
+  String get poiChargingDetails => 'Lataus';
 
   @override
-  String get poiConnectorType2 => 'Type 2';
+  String get poiConnectorType2 => 'Tyyppi 2';
 
   @override
   String get poiConnectorChademo => 'CHAdeMO';
@@ -859,34 +859,31 @@ class AppLocalizationsFi extends AppLocalizations {
   String get poiConnectorCcs => 'CCS';
 
   @override
-  String get poiFuelAvailable => 'Fuel available';
-
-  @override
   String get poiDiesel => 'Diesel';
 
   @override
-  String get poiPetrol95 => 'Petrol 95';
+  String get poiPetrol95 => 'Bensiini 95';
 
   @override
-  String get poiSmokingAllowed => 'Smoking allowed';
+  String get poiSmokingAllowed => 'Tupakointi sallittu';
 
   @override
-  String get poiSmokingOutside => 'Smoking outside';
+  String get poiSmokingOutside => 'Tupakointi ulkona';
 
   @override
-  String get poiSmokingAreas => 'Smoking areas';
+  String get poiSmokingAreas => 'Tupakointialueet';
 
   @override
-  String get poiSmokeFree => 'Smoke-free';
+  String get poiSmokeFree => 'Savuton';
 
   @override
-  String get poiOutdoorSeating => 'Outdoor seating';
+  String get poiOutdoorSeating => 'Ulkopaikat';
 
   @override
-  String get poiTakeaway => 'Takeaway';
+  String get poiTakeaway => 'Noutoruoka';
 
   @override
-  String get poiTakeawayOnly => 'Takeaway only';
+  String get poiTakeawayOnly => 'Vain noutoruoka';
 
   @override
   String get gpsSignalLost => 'GPS-signaali kadonnut';
@@ -1254,4 +1251,15 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get showRoutePreview => 'Näytä reitin esikatselu';
+
+  @override
+  String get avoidHighwaysAndTolls => 'Vältä moottoriteitä ja tietulleja';
+
+  @override
+  String get avoidRouteUnavailable =>
+      'Reittiä, joka välttää sekä moottoritiet että maksulliset tiet, ei löytynyt.';
+
+  @override
+  String get avoidanceUnavoidableSection =>
+      'Minimoi moottoritiet/tietullit · väistämätön osuus';
 }

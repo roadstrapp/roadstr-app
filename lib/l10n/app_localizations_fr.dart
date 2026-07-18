@@ -791,67 +791,67 @@ class AppLocalizationsFr extends AppLocalizations {
   String get poiWebsite => 'Site web';
 
   @override
-  String get poiAccessPrivate => 'Private access';
+  String get poiAccessPrivate => 'Accès privé';
 
   @override
-  String get poiAccessCustomers => 'Customers only';
+  String get poiAccessCustomers => 'Réservé aux clients';
 
   @override
-  String get poiAccessPermit => 'Permit required';
+  String get poiAccessPermit => 'Permis requis';
 
   @override
-  String get poiAccessNo => 'No public access';
+  String get poiAccessNo => 'Aucun accès public';
 
   @override
-  String get poiAccessDestination => 'Destination access only';
+  String get poiAccessDestination => 'Accès réservé à la destination';
 
   @override
-  String get poiLightningAccepted => 'Lightning accepted';
+  String get poiLightningAccepted => 'Lightning accepté';
 
   @override
-  String get poiBitcoinAccepted => 'Bitcoin accepted';
+  String get poiBitcoinAccepted => 'Bitcoin accepté';
 
   @override
-  String get poiParkingDetails => 'Parking';
+  String get poiParkingDetails => 'Stationnement';
 
   @override
-  String get poiParkingSurface => 'Surface';
+  String get poiParkingSurface => 'En surface';
 
   @override
-  String get poiParkingUnderground => 'Underground';
+  String get poiParkingUnderground => 'Souterrain';
 
   @override
-  String get poiParkingMultiStorey => 'Multi-storey';
+  String get poiParkingMultiStorey => 'À étages';
 
   @override
-  String get poiParkingStreetSide => 'Street-side';
+  String get poiParkingStreetSide => 'En bord de rue';
 
   @override
-  String get poiParkingLane => 'On-street';
+  String get poiParkingLane => 'Sur voirie';
 
   @override
-  String get poiParkingRooftop => 'Rooftop';
+  String get poiParkingRooftop => 'Sur le toit';
 
   @override
-  String get poiFee => 'Fee';
+  String get poiFee => 'Tarif';
 
   @override
-  String get poiFree => 'Free';
+  String get poiFree => 'Gratuit';
 
   @override
-  String get poiPaid => 'Paid';
+  String get poiPaid => 'Payant';
 
   @override
-  String get poiCapacity => 'Capacity';
+  String get poiCapacity => 'Capacité';
 
   @override
-  String get poiMaxStay => 'Maximum stay';
+  String get poiMaxStay => 'Durée maximale';
 
   @override
-  String get poiPrice => 'Price';
+  String get poiPrice => 'Prix';
 
   @override
-  String get poiChargingDetails => 'Charging';
+  String get poiChargingDetails => 'Recharge';
 
   @override
   String get poiConnectorType2 => 'Type 2';
@@ -863,34 +863,31 @@ class AppLocalizationsFr extends AppLocalizations {
   String get poiConnectorCcs => 'CCS';
 
   @override
-  String get poiFuelAvailable => 'Fuel available';
-
-  @override
   String get poiDiesel => 'Diesel';
 
   @override
-  String get poiPetrol95 => 'Petrol 95';
+  String get poiPetrol95 => 'Essence 95';
 
   @override
-  String get poiSmokingAllowed => 'Smoking allowed';
+  String get poiSmokingAllowed => 'Fumeurs acceptés';
 
   @override
-  String get poiSmokingOutside => 'Smoking outside';
+  String get poiSmokingOutside => 'Fumeurs en extérieur';
 
   @override
-  String get poiSmokingAreas => 'Smoking areas';
+  String get poiSmokingAreas => 'Espaces fumeurs';
 
   @override
-  String get poiSmokeFree => 'Smoke-free';
+  String get poiSmokeFree => 'Non-fumeur';
 
   @override
-  String get poiOutdoorSeating => 'Outdoor seating';
+  String get poiOutdoorSeating => 'Places en extérieur';
 
   @override
-  String get poiTakeaway => 'Takeaway';
+  String get poiTakeaway => 'À emporter';
 
   @override
-  String get poiTakeawayOnly => 'Takeaway only';
+  String get poiTakeawayOnly => 'Uniquement à emporter';
 
   @override
   String get gpsSignalLost => 'Signal GPS perdu';
@@ -1260,4 +1257,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get showRoutePreview => 'Afficher l\'aperçu de l\'itinéraire';
+
+  @override
+  String get avoidHighwaysAndTolls => 'Éviter autoroutes et péages';
+
+  @override
+  String get avoidRouteUnavailable =>
+      'Aucun itinéraire évitant à la fois les autoroutes et les routes à péage n’a été trouvé.';
+
+  @override
+  String get avoidanceUnavoidableSection =>
+      'Réduit autoroutes/péages · tronçon inévitable';
 }
