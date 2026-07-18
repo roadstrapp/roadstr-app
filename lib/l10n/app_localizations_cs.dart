@@ -785,70 +785,70 @@ class AppLocalizationsCs extends AppLocalizations {
   String get poiWebsite => 'Webová stránka';
 
   @override
-  String get poiAccessPrivate => 'Private access';
+  String get poiAccessPrivate => 'Soukromý přístup';
 
   @override
-  String get poiAccessCustomers => 'Customers only';
+  String get poiAccessCustomers => 'Pouze pro zákazníky';
 
   @override
-  String get poiAccessPermit => 'Permit required';
+  String get poiAccessPermit => 'Je vyžadováno povolení';
 
   @override
-  String get poiAccessNo => 'No public access';
+  String get poiAccessNo => 'Bez veřejného přístupu';
 
   @override
-  String get poiAccessDestination => 'Destination access only';
+  String get poiAccessDestination => 'Přístup pouze k cíli';
 
   @override
-  String get poiLightningAccepted => 'Lightning accepted';
+  String get poiLightningAccepted => 'Přijímá Lightning';
 
   @override
-  String get poiBitcoinAccepted => 'Bitcoin accepted';
+  String get poiBitcoinAccepted => 'Přijímá Bitcoin';
 
   @override
-  String get poiParkingDetails => 'Parking';
+  String get poiParkingDetails => 'Parkování';
 
   @override
-  String get poiParkingSurface => 'Surface';
+  String get poiParkingSurface => 'Povrchové';
 
   @override
-  String get poiParkingUnderground => 'Underground';
+  String get poiParkingUnderground => 'Podzemní';
 
   @override
-  String get poiParkingMultiStorey => 'Multi-storey';
+  String get poiParkingMultiStorey => 'Vícepodlažní';
 
   @override
-  String get poiParkingStreetSide => 'Street-side';
+  String get poiParkingStreetSide => 'Podél ulice';
 
   @override
-  String get poiParkingLane => 'On-street';
+  String get poiParkingLane => 'Na ulici';
 
   @override
-  String get poiParkingRooftop => 'Rooftop';
+  String get poiParkingRooftop => 'Na střeše';
 
   @override
-  String get poiFee => 'Fee';
+  String get poiFee => 'Poplatek';
 
   @override
-  String get poiFree => 'Free';
+  String get poiFree => 'Zdarma';
 
   @override
-  String get poiPaid => 'Paid';
+  String get poiPaid => 'Placené';
 
   @override
-  String get poiCapacity => 'Capacity';
+  String get poiCapacity => 'Kapacita';
 
   @override
-  String get poiMaxStay => 'Maximum stay';
+  String get poiMaxStay => 'Maximální doba stání';
 
   @override
-  String get poiPrice => 'Price';
+  String get poiPrice => 'Cena';
 
   @override
-  String get poiChargingDetails => 'Charging';
+  String get poiChargingDetails => 'Nabíjení';
 
   @override
-  String get poiConnectorType2 => 'Type 2';
+  String get poiConnectorType2 => 'Typ 2';
 
   @override
   String get poiConnectorChademo => 'CHAdeMO';
@@ -857,34 +857,31 @@ class AppLocalizationsCs extends AppLocalizations {
   String get poiConnectorCcs => 'CCS';
 
   @override
-  String get poiFuelAvailable => 'Fuel available';
+  String get poiDiesel => 'Nafta';
 
   @override
-  String get poiDiesel => 'Diesel';
+  String get poiPetrol95 => 'Benzín 95';
 
   @override
-  String get poiPetrol95 => 'Petrol 95';
+  String get poiSmokingAllowed => 'Kouření povoleno';
 
   @override
-  String get poiSmokingAllowed => 'Smoking allowed';
+  String get poiSmokingOutside => 'Kouření venku';
 
   @override
-  String get poiSmokingOutside => 'Smoking outside';
+  String get poiSmokingAreas => 'Kuřácké prostory';
 
   @override
-  String get poiSmokingAreas => 'Smoking areas';
+  String get poiSmokeFree => 'Nekuřácké';
 
   @override
-  String get poiSmokeFree => 'Smoke-free';
+  String get poiOutdoorSeating => 'Venkovní posezení';
 
   @override
-  String get poiOutdoorSeating => 'Outdoor seating';
+  String get poiTakeaway => 'S sebou';
 
   @override
-  String get poiTakeaway => 'Takeaway';
-
-  @override
-  String get poiTakeawayOnly => 'Takeaway only';
+  String get poiTakeawayOnly => 'Pouze s sebou';
 
   @override
   String get gpsSignalLost => 'Ztráta signálu GPS';
@@ -1254,4 +1251,15 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get showRoutePreview => 'Zobrazit náhled trasy';
+
+  @override
+  String get avoidHighwaysAndTolls => 'Vyhnout se dálnicím a mýtnému';
+
+  @override
+  String get avoidRouteUnavailable =>
+      'Nebyla nalezena trasa, která se vyhýbá dálnicím i placeným silnicím.';
+
+  @override
+  String get avoidanceUnavoidableSection =>
+      'Omezuje dálnice/mýtné · nevyhnutelný úsek';
 }

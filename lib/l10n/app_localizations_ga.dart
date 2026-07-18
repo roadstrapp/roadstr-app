@@ -789,70 +789,70 @@ class AppLocalizationsGa extends AppLocalizations {
   String get poiWebsite => 'Suíomh gréasáin';
 
   @override
-  String get poiAccessPrivate => 'Private access';
+  String get poiAccessPrivate => 'Rochtain phríobháideach';
 
   @override
-  String get poiAccessCustomers => 'Customers only';
+  String get poiAccessCustomers => 'Custaiméirí amháin';
 
   @override
-  String get poiAccessPermit => 'Permit required';
+  String get poiAccessPermit => 'Cead ag teastáil';
 
   @override
-  String get poiAccessNo => 'No public access';
+  String get poiAccessNo => 'Gan rochtain phoiblí';
 
   @override
-  String get poiAccessDestination => 'Destination access only';
+  String get poiAccessDestination => 'Rochtain chuig an gceann scríbe amháin';
 
   @override
-  String get poiLightningAccepted => 'Lightning accepted';
+  String get poiLightningAccepted => 'Glactar le Lightning';
 
   @override
-  String get poiBitcoinAccepted => 'Bitcoin accepted';
+  String get poiBitcoinAccepted => 'Glactar le Bitcoin';
 
   @override
-  String get poiParkingDetails => 'Parking';
+  String get poiParkingDetails => 'Páirceáil';
 
   @override
-  String get poiParkingSurface => 'Surface';
+  String get poiParkingSurface => 'Ar an dromchla';
 
   @override
-  String get poiParkingUnderground => 'Underground';
+  String get poiParkingUnderground => 'Faoi thalamh';
 
   @override
-  String get poiParkingMultiStorey => 'Multi-storey';
+  String get poiParkingMultiStorey => 'Ilstórach';
 
   @override
-  String get poiParkingStreetSide => 'Street-side';
+  String get poiParkingStreetSide => 'Cois sráide';
 
   @override
-  String get poiParkingLane => 'On-street';
+  String get poiParkingLane => 'Ar an tsráid';
 
   @override
-  String get poiParkingRooftop => 'Rooftop';
+  String get poiParkingRooftop => 'Ar an díon';
 
   @override
-  String get poiFee => 'Fee';
+  String get poiFee => 'Táille';
 
   @override
-  String get poiFree => 'Free';
+  String get poiFree => 'Saor in aisce';
 
   @override
-  String get poiPaid => 'Paid';
+  String get poiPaid => 'Íoctha';
 
   @override
-  String get poiCapacity => 'Capacity';
+  String get poiCapacity => 'Toilleadh';
 
   @override
-  String get poiMaxStay => 'Maximum stay';
+  String get poiMaxStay => 'Uastréimhse fanachta';
 
   @override
-  String get poiPrice => 'Price';
+  String get poiPrice => 'Praghas';
 
   @override
-  String get poiChargingDetails => 'Charging';
+  String get poiChargingDetails => 'Luchtú';
 
   @override
-  String get poiConnectorType2 => 'Type 2';
+  String get poiConnectorType2 => 'Cineál 2';
 
   @override
   String get poiConnectorChademo => 'CHAdeMO';
@@ -861,34 +861,31 @@ class AppLocalizationsGa extends AppLocalizations {
   String get poiConnectorCcs => 'CCS';
 
   @override
-  String get poiFuelAvailable => 'Fuel available';
+  String get poiDiesel => 'Díosal';
 
   @override
-  String get poiDiesel => 'Diesel';
+  String get poiPetrol95 => 'Peitreal 95';
 
   @override
-  String get poiPetrol95 => 'Petrol 95';
+  String get poiSmokingAllowed => 'Caitheamh tobac ceadaithe';
 
   @override
-  String get poiSmokingAllowed => 'Smoking allowed';
+  String get poiSmokingOutside => 'Caitheamh tobac lasmuigh';
 
   @override
-  String get poiSmokingOutside => 'Smoking outside';
+  String get poiSmokingAreas => 'Limistéir chaite tobac';
 
   @override
-  String get poiSmokingAreas => 'Smoking areas';
+  String get poiSmokeFree => 'Saor ó thobac';
 
   @override
-  String get poiSmokeFree => 'Smoke-free';
+  String get poiOutdoorSeating => 'Suíocháin lasmuigh';
 
   @override
-  String get poiOutdoorSeating => 'Outdoor seating';
+  String get poiTakeaway => 'Beir leat';
 
   @override
-  String get poiTakeaway => 'Takeaway';
-
-  @override
-  String get poiTakeawayOnly => 'Takeaway only';
+  String get poiTakeawayOnly => 'Beir leat amháin';
 
   @override
   String get gpsSignalLost => 'Cailleadh comhartha GPS';
@@ -1257,4 +1254,15 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get showRoutePreview => 'Taispeáin réamhamharc an bhealaigh';
+
+  @override
+  String get avoidHighwaysAndTolls => 'Seachain mótarbhealaí agus dolaí';
+
+  @override
+  String get avoidRouteUnavailable =>
+      'Níor aimsíodh bealach a sheachnaíonn mótarbhealaí agus dolaí araon.';
+
+  @override
+  String get avoidanceUnavoidableSection =>
+      'Laghdaíonn mótarbhealaí/dolaí · cuid dosheachanta';
 }

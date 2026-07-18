@@ -179,6 +179,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   // Monotonic generations make async UI work last-write-wins. Requests that
   // cannot be cancelled are ignored if a newer user action supersedes them.
   int _routeRequestGeneration = 0;
+  int _avoidanceRequestGeneration = 0;
   int _searchRequestGeneration = 0;
   int _planRequestGeneration = 0;
   int _placeRequestGeneration = 0;
@@ -242,11 +243,13 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   bool _showSearch = false;
   Timer? _searchDebounce;
 
-  /// Alternative routes returned by OSRM. Shown in [_AlternativesPanel] when
-  /// the route is > 5 km (shorter routes go directly to the preview panel).
+  /// Standard routes plus the optional motorway/toll-free route.
   List<RouteResult> _alternatives = [];
   int _selectedAlt = 0;
   bool _showAlternatives = false;
+  LatLng? _routeOrigin;
+  bool _avoidanceEnabled = false;
+  bool _avoidanceLoading = false;
 
   /// Counts consecutive off-route triggers during active navigation.
   /// Resets to 0 each time the user successfully completes a step.
@@ -314,10 +317,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// Active transport mode: 'driving', 'walking', or 'cycling'.
   String _transportMode = 'driving';
 
-  /// Active route preferences (avoid highways/tolls, prefer shorter).
-  /// Reset to defaults when the transport mode changes.
-  RoutePreferences _routePrefs = const RoutePreferences();
-
   // ── Navigation cinematic transition ─────────────────────────────────────
   /// True while the zoom-in animation plays at navigation start.
   /// GPS camera updates are suppressed during this window so they don't fight
@@ -325,7 +324,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   bool _navTransitioning = false;
 
   // ── Search pin (dropped on Enter in search bar) ─────────────────────────
-  NominatimResult? _pinResult;
 
   // ── North animation (Timer-based, independent of the ticker system) ─────
   Timer? _northTimer;
@@ -1408,14 +1406,23 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     final lang = Localizations.localeOf(context).languageCode;
     List<RouteResult> routes;
     try {
-      routes = await RoutingService.getRoutes(_position, _destination!,
-              provider: provider,
-              apiKey: apiKey,
-              graphhopperServer: ghServer,
-              lang: lang,
-              vehicle: _transportMode,
-              prefs: _routePrefs)
-          .timeout(const Duration(seconds: 15));
+      if (_route?.isHighwayAndTollAvoidance == true) {
+        routes = [
+          await RoutingService.getHighwayAndTollAvoidanceRoute(
+            _position,
+            _destination!,
+            lang: lang,
+          ).timeout(const Duration(seconds: 30)),
+        ];
+      } else {
+        routes = await RoutingService.getRoutes(_position, _destination!,
+                provider: provider,
+                apiKey: apiKey,
+                graphhopperServer: ghServer,
+                lang: lang,
+                vehicle: _transportMode)
+            .timeout(const Duration(seconds: 15));
+      }
     } catch (_) {
       if (mounted) setState(() => _isRerouting = false);
       return;
@@ -1765,21 +1772,23 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     setState(() {
       _isCalculating = true;
       _destination = destination;
+      _routeOrigin = fromPosition ?? _position;
       _showSearch = false;
       _searchResults = [];
       _showAlternatives = false;
       _alternatives = [];
+      _avoidanceEnabled = false;
+      _avoidanceLoading = false;
     });
     _searchController.clear();
     FocusScope.of(context).unfocus();
 
-    final origin = fromPosition ?? _position; // _gpsReady guaranteed above
+    final origin = _routeOrigin!; // GPS or explicit planner origin
     final (:provider, :apiKey, :ghServer) = await _resolveProvider();
     if (!mounted || requestGeneration != _routeRequestGeneration) return;
 
     final lang = Localizations.localeOf(context).languageCode;
     final vehicle = _transportMode;
-    final prefs = _routePrefs;
     List<RouteResult> routes;
     try {
       routes = await RoutingService.getRoutes(origin, destination,
@@ -1787,8 +1796,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           apiKey: apiKey,
           graphhopperServer: ghServer,
           lang: lang,
-          vehicle: vehicle,
-          prefs: prefs);
+          vehicle: vehicle);
     } catch (e) {
       if (!mounted || requestGeneration != _routeRequestGeneration) return;
       setState(() => _isCalculating = false);
@@ -1810,30 +1818,17 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       return;
     }
 
-    setState(() => _isCalculating = false);
-
-    if (routes.length > 1 && routes.first.totalDistanceM > 5000) {
-      // Long route with alternatives → show selection panel.
-      setState(() {
-        _alternatives = routes;
-        _selectedAlt = 0;
-        _showAlternatives = true;
-      });
-      _fitRoutesOnMap(routes);
-    } else {
-      // Any distance → show preview before starting navigation.
-      _showRoutePreview(routes.first);
-    }
-  }
-
-  void _showRoutePreview(RouteResult route) {
+    // Always use the route-choice panel. Even a single/short standard route
+    // needs access to transport modes and to the additional avoidance option.
     setState(() {
-      _previewRoute = route;
-      _showPreview = true;
-      _showAlternatives = false;
-      _followUser = false; // prevent GPS ticks from overriding the route fit
+      _isCalculating = false;
+      _alternatives = routes;
+      _selectedAlt = 0;
+      _showAlternatives = true;
+      _showPreview = false;
+      _previewRoute = null;
     });
-    _fitRouteOnMap(route);
+    _fitRoutesOnMap(routes);
   }
 
   void _cancelPreview() {
@@ -1913,11 +1908,14 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
   // ── Place info ─────────────────────────────────────────────────────────────
 
-  Future<void> _showPlaceInfoFor(LatLng point) async {
+  Future<void> _showPlaceInfoFor(LatLng point,
+      {String? preferredLabel, String? address}) async {
     final requestGeneration = ++_placeRequestGeneration;
     setState(() {
       _placePoint = point;
-      _placeAddress = null;
+      _placeAddress = (address?.trim().isNotEmpty ?? false)
+          ? address!.trim()
+          : preferredLabel;
       _placeWiki = null;
       _placeDetails = null;
       _placeOpeningHours = null;
@@ -1937,12 +1935,13 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         .take(3)
         .join(', ');
     setState(() {
-      _placeAddress = dispParts.isEmpty ? null : dispParts;
+      _placeAddress =
+          dispParts.isEmpty ? (_placeAddress ?? preferredLabel) : dispParts;
       _placeOpeningHours = geo?.openingHours;
     });
 
     // Geo-aware Wikipedia search: coordinates first, then fallback to the place name.
-    final wikiQ = geo?.wikiQuery;
+    final wikiQ = preferredLabel ?? geo?.wikiQuery;
     setState(() => _placeWikiQuery = wikiQ);
     final lang = Localizations.localeOf(context).languageCode;
     final results = await Future.wait<Object?>([
@@ -1985,24 +1984,20 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
   // ── In-place mode recalculation ────────────────────────────────────────────
 
-  /// Switches the transport mode and recalculates routes **without closing**
-  /// whichever panel is currently open (alternatives or preview).
+  /// Switches the transport mode and recalculates routes without closing the
+  /// route-choice panel.
   /// The [_isCalculating] overlay appears briefly during the network request
   /// while the panel remains visible underneath, avoiding a jarring full reset.
-  /// Shared recalculation logic. Uses the current [_transportMode] and
-  /// [_routePrefs] — callers set those before invoking this.
+  /// Shared recalculation logic using the current transport mode.
   Future<void> _recalcRoutes() async {
     if (_destination == null) return;
     final requestGeneration = ++_routeRequestGeneration;
     final destination = _destination!;
     final vehicle = _transportMode;
-    final prefs = _routePrefs;
     setState(() => _isCalculating = true);
-    if (!_gpsReady) {
-      setState(() => _isCalculating = false);
-      return;
-    }
-    final origin = _position;
+    // [_routeOrigin] is captured by the initial request. It may be an explicit
+    // A→B planner origin, so recalculation must not require a live GPS fix.
+    final origin = _routeOrigin ?? _position;
     final (:provider, :apiKey, :ghServer) = await _resolveProvider();
     if (!mounted || requestGeneration != _routeRequestGeneration) return;
     final lang = Localizations.localeOf(context).languageCode;
@@ -2013,8 +2008,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           apiKey: apiKey,
           graphhopperServer: ghServer,
           lang: lang,
-          vehicle: vehicle,
-          prefs: prefs);
+          vehicle: vehicle);
     } catch (e) {
       if (!mounted || requestGeneration != _routeRequestGeneration) return;
       setState(() => _isCalculating = false);
@@ -2026,27 +2020,15 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       setState(() => _isCalculating = false);
       return;
     }
-    final multiRoute = routes.length > 1 && routes.first.totalDistanceM > 5000;
     setState(() {
       _isCalculating = false;
-      if (multiRoute) {
-        _alternatives = routes;
-        _selectedAlt = 0;
-        _showAlternatives = true;
-        _showPreview = false;
-        _previewRoute = null;
-      } else {
-        _previewRoute = routes.first;
-        _showPreview = true;
-        _showAlternatives = false;
-        _alternatives = [];
-      }
+      _alternatives = routes;
+      _selectedAlt = 0;
+      _showAlternatives = true;
+      _showPreview = false;
+      _previewRoute = null;
     });
-    if (multiRoute) {
-      _fitRoutesOnMap(routes);
-    } else {
-      _fitRouteOnMap(routes.first);
-    }
+    _fitRoutesOnMap(routes);
   }
 
   /// Switches transport mode, resets route preferences, and recalculates.
@@ -2054,16 +2036,68 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     if (_destination == null) return;
     setState(() {
       _transportMode = vehicle;
-      _routePrefs = const RoutePreferences(); // reset chips on mode switch
+      _avoidanceRequestGeneration++;
+      _avoidanceEnabled = false;
+      _avoidanceLoading = false;
     });
     await _recalcRoutes();
   }
 
-  /// Updates route preferences and recalculates without changing the mode.
-  Future<void> _recalcWithPrefs(RoutePreferences prefs) async {
-    if (_destination == null) return;
-    setState(() => _routePrefs = prefs);
-    await _recalcRoutes();
+  /// Adds/removes a separately calculated avoidance route. The service tries
+  /// hard exclusions first and falls back to a verified soft preference.
+  Future<void> _toggleAvoidanceRoute(bool enabled) async {
+    final destination = _destination;
+    if (destination == null || _transportMode != 'driving') return;
+    final requestGeneration = ++_avoidanceRequestGeneration;
+    if (!enabled) {
+      final standard = _alternatives
+          .where((route) => !route.isHighwayAndTollAvoidance)
+          .toList();
+      setState(() {
+        _avoidanceEnabled = false;
+        _avoidanceLoading = false;
+        _alternatives = standard;
+        _selectedAlt =
+            standard.isEmpty ? 0 : _selectedAlt.clamp(0, standard.length - 1);
+      });
+      _fitRoutesOnMap(standard);
+      return;
+    }
+
+    setState(() {
+      _avoidanceEnabled = true;
+      _avoidanceLoading = true;
+    });
+    try {
+      final route = await RoutingService.getHighwayAndTollAvoidanceRoute(
+        _routeOrigin ?? _position,
+        destination,
+        lang: Localizations.localeOf(context).languageCode,
+      );
+      if (!mounted ||
+          requestGeneration != _avoidanceRequestGeneration ||
+          _destination != destination ||
+          _transportMode != 'driving') {
+        return;
+      }
+      final routes = [
+        ..._alternatives.where((r) => !r.isHighwayAndTollAvoidance),
+        route,
+      ];
+      setState(() {
+        _avoidanceLoading = false;
+        _alternatives = routes;
+        _selectedAlt = routes.length - 1;
+      });
+      _fitRoutesOnMap(routes);
+    } catch (_) {
+      if (!mounted || requestGeneration != _avoidanceRequestGeneration) return;
+      setState(() {
+        _avoidanceEnabled = false;
+        _avoidanceLoading = false;
+      });
+      _snack(AppLocalizations.of(context).avoidRouteUnavailable);
+    }
   }
 
   // ── Route planner logic ────────────────────────────────────────────────────
@@ -2151,10 +2185,14 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   }
 
   void _cancelAlternatives() {
+    _avoidanceRequestGeneration++;
     setState(() {
       _showAlternatives = false;
       _alternatives = [];
       _destination = null;
+      _routeOrigin = null;
+      _avoidanceEnabled = false;
+      _avoidanceLoading = false;
     });
   }
 
@@ -2398,10 +2436,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       setState(() {
         _showSearch = false;
         _searchResults = [];
-        _pinResult = null;
       });
-      _requestAlternatives(favMatch.first.position,
-          label: favMatch.first.label);
+      _showSearchPlace(favMatch.first.position, favMatch.first.label,
+          favMatch.first.address);
       return;
     }
     if (_searchResults.isNotEmpty) {
@@ -2414,19 +2451,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       if (results.isEmpty) return;
       result = results.first;
     }
-    // Keep the search text so the user can refine if needed.
-    setState(() {
-      _showSearch = false;
-      _searchResults = [];
-      _pinResult = result;
-      _followUser = false;
-    });
-    // Wait for the keyboard-close layout pass before animating: unfocus() causes
-    // Android to resize the window, which fires MapEventMoveStart (source ≠
-    // controller) and cancels any ticker started too early.
-    await Future<void>.delayed(const Duration(milliseconds: 200));
-    if (!mounted) return;
-    _animateCamera(toCenter: result.position, toZoom: 15.0, toRot: _camRotDeg);
+    _selectSearchResult(result);
   }
 
   void _onSearchChanged(String query) {
@@ -2480,11 +2505,34 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   void _selectSearchResult(NominatimResult result) {
     // Save to history on every explicit selection, not just on navigation start.
     _saveToHistory(result.shortName, result.position);
-    if (_isPoi(result)) {
-      _showPlaceInfoForResult(result);
-    } else {
-      _requestAlternatives(result.position, label: result.shortName);
-    }
+    unawaited(_showPlaceInfoForResult(result));
+    _focusSearchPlace(result.position);
+  }
+
+  /// Shows history/favourite entries through the same information-first flow
+  /// as geocoder results. Reverse geocoding and OSM detail lookup enrich entries
+  /// that do not carry a full [NominatimResult].
+  void _showSearchPlace(LatLng point, String label, [String? address]) {
+    _saveToHistory(label, point);
+    _pendingLabel = label;
+    unawaited(
+        _showPlaceInfoFor(point, preferredLabel: label, address: address));
+    _focusSearchPlace(point);
+  }
+
+  void _focusSearchPlace(LatLng point) {
+    setState(() {
+      _followUser = false;
+      _showSearch = false;
+      _searchResults = [];
+    });
+    FocusScope.of(context).unfocus();
+    // Keyboard dismissal resizes the map on Android; animate after that layout
+    // pass so the selected place remains centred above the bottom sheet.
+    Future<void>.delayed(const Duration(milliseconds: 200), () {
+      if (!mounted || _placePoint != point) return;
+      _animateCamera(toCenter: point, toZoom: 16.0, toRot: _camRotDeg);
+    });
   }
 
   /// Returns true when the Nominatim result is a point-of-interest rather than
@@ -2545,11 +2593,15 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         fallbackQuery: wikiQ,
         radiusM: 200,
       ),
-      _poiSvc.nearestDetails(
-        result.position,
-        preferredName: result.shortName,
-        languageCode: lang,
-      ),
+      // For a POI, enrich the exact result. For an address or administrative
+      // result, do not attach whichever unrelated business happens to be nearby.
+      _isPoi(result)
+          ? _poiSvc.nearestDetails(
+              result.position,
+              preferredName: result.shortName,
+              languageCode: lang,
+            )
+          : Future<OsmPoiDetails?>.value(null),
     ]);
     if (!mounted || requestGeneration != _placeRequestGeneration) return;
     final wiki = results[0] as WikiSummary?;
@@ -3517,8 +3569,17 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                         points: _alternatives[i].polyline,
                         strokeWidth: i == _selectedAlt ? 7 : 5,
                         color: i == _selectedAlt
-                            ? c.accent
-                            : Colors.grey.withValues(alpha: 0.55),
+                            ? (_alternatives[i].isHighwayAndTollAvoidance
+                                ? (_alternatives[i].avoidsHighwaysAndTolls
+                                    ? const Color(0xFF14A67A)
+                                    : const Color(0xFFF59E0B))
+                                : c.accent)
+                            : (_alternatives[i].isHighwayAndTollAvoidance
+                                ? (_alternatives[i].avoidsHighwaysAndTolls
+                                        ? const Color(0xFF14A67A)
+                                        : const Color(0xFFF59E0B))
+                                    .withValues(alpha: 0.58)
+                                : Colors.grey.withValues(alpha: 0.55)),
                         strokeCap: StrokeCap.round,
                       ),
                   ]),
@@ -3583,6 +3644,16 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                             : c.accent,
                         arrived: _arrivedAt != null && _destination == null,
                       ),
+                    ),
+                  ]),
+                if (_showPlaceInfo && _placePoint != null)
+                  MarkerLayer(markers: [
+                    Marker(
+                      point: _placePoint!,
+                      width: 36,
+                      height: 52,
+                      alignment: Alignment.bottomCenter,
+                      child: const _PinMarker(),
                     ),
                   ]),
                 // Road event markers: visible only at zoom ≥ 11
@@ -3654,7 +3725,11 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                           child: _TimeBubble(
                             label: _alternatives[i].durationLabel,
                             isSelected: i == _selectedAlt,
-                            accent: c.accent,
+                            accent: _alternatives[i].isHighwayAndTollAvoidance
+                                ? (_alternatives[i].avoidsHighwaysAndTolls
+                                    ? const Color(0xFF14A67A)
+                                    : const Color(0xFFF59E0B))
+                                : c.accent,
                           ),
                         ),
                   ]),
@@ -3686,17 +3761,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                                     ? CursorStyle.ostrich
                                     : CursorStyle.arrow)),
                       ]),
-                // Purple dropped pin from search-bar Enter
-                if (_pinResult != null)
-                  MarkerLayer(markers: [
-                    Marker(
-                      point: _pinResult!.position,
-                      width: 36,
-                      height: 52,
-                      alignment: Alignment.bottomCenter,
-                      child: const _PinMarker(),
-                    ),
-                  ]),
               ],
             ),
           ),
@@ -3741,7 +3805,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                     setState(() {
                       _searchResults = [];
                       _showSearch = false;
-                      _pinResult = null;
                     });
                     FocusScope.of(context).unfocus();
                   }),
@@ -3760,7 +3823,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                   favorites: const [],
                   colors: c,
                   onSelect: (item) =>
-                      _requestAlternatives(item.position, label: item.label),
+                      _showSearchPlace(item.position, item.label),
                   onSelectFavorite: (_) {},
                   onClear: _clearHistory,
                 ),
@@ -3785,31 +3848,10 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                       _searchResults = [];
                     });
                     FocusScope.of(context).unfocus();
-                    _requestAlternatives(fav.position, label: fav.label);
+                    _showSearchPlace(fav.position, fav.label, fav.address);
                   },
                 ),
               ),
-
-          // ── PIN PANEL (dropped via Enter on search bar) ──────────────────────
-          if (_pinResult != null &&
-              !_isNavigating &&
-              !_showAlternatives &&
-              !_showPreview)
-            Positioned(
-              bottom: bottomInset + 12,
-              left: 16,
-              right: 16,
-              child: _PinPanel(
-                result: _pinResult!,
-                colors: c,
-                onNavigate: () {
-                  final r = _pinResult!;
-                  setState(() => _pinResult = null);
-                  _requestAlternatives(r.position, label: r.shortName);
-                },
-                onClose: () => setState(() => _pinResult = null),
-              ),
-            ),
 
           // ── ZTL WARNING BANNER ───────────────────────────────────────────────
           // "On-route" banner: next step leads INTO a ZTL (shown above "inside" banner).
@@ -4109,23 +4151,17 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                                 bottomInset: bottomInset,
                                 colors: c,
                                 transportMode: _transportMode,
-                                prefs: _routePrefs,
                                 destination: _destination!,
-                                prefsSupported: Hive.box('settings').get(
-                                        'routingProvider',
-                                        defaultValue: 'osrm') !=
-                                    'osrm',
+                                avoidanceEnabled: _avoidanceEnabled,
+                                avoidanceLoading: _avoidanceLoading,
                                 onSelect: (i) =>
                                     setState(() => _selectedAlt = i),
                                 onConfirm: _startNavigation,
                                 onCancel: _cancelAlternatives,
                                 onModeChanged: _recalculateForMode,
-                                onPrefsChanged: _recalcWithPrefs,
+                                onAvoidanceChanged: _toggleAvoidanceRoute,
                               )
-                            : _pinResult != null
-                                ? const SizedBox.shrink()
-                                : _BottomBar(
-                                    bottomInset: bottomInset, colors: c),
+                            : _BottomBar(bottomInset: bottomInset, colors: c),
           ),
 
           // ── ROUTE CALCULATION OVERLAY ────────────────────────────────────────
@@ -5057,6 +5093,19 @@ class _PlaceInfoPanelState extends State<_PlaceInfoPanel>
     });
   }
 
+  void _finishPanelDrag(DragEndDetails details) {
+    final velocity = details.primaryVelocity ?? 0;
+    if (velocity > 400 || _dragDy > 120) {
+      unawaited(_closeAnimated());
+    } else if (velocity < -500 &&
+        _dragDy < 10 &&
+        widget.wiki?.pageUrl != null) {
+      _openMore();
+    } else {
+      _springBack();
+    }
+  }
+
   /// Wikipedia articles stay in Roadstr's restricted reader. Generic search
   /// results remain external because they can navigate to arbitrary origins.
   void _openMore() {
@@ -5124,221 +5173,230 @@ class _PlaceInfoPanelState extends State<_PlaceInfoPanel>
       position: _slide,
       child: Transform.translate(
         offset: Offset(0, _dragDy.clamp(0.0, maxDrag)),
-        child: GestureDetector(
-          // Only track downward drag — the panel must not physically move
-          // upward during gesture; upward swipe is detected by velocity only.
-          onVerticalDragUpdate: (d) {
-            if (d.delta.dy > 0) setState(() => _dragDy += d.delta.dy);
-          },
-          onVerticalDragEnd: (d) {
-            final v = d.primaryVelocity ?? 0;
-            if (v > 400 || _dragDy > 120) {
-              _closeAnimated();
-            } else if (v < -500 &&
-                _dragDy < 10 &&
-                widget.wiki?.pageUrl != null) {
-              // Fast upward flick opens only the restricted Wikipedia reader.
-              // A generic web search remains an explicit tap, so a gesture
-              // cannot unexpectedly move the user out of Roadstr.
-              _openMore();
-            } else {
-              _springBack();
-            }
-          },
-          // Keep a stable Hero tag for any future in-app panel transition.
-          child: Hero(
-            tag: _heroTag,
-            flightShuttleBuilder: (_, anim, __, ___, ____) => Material(
-              color: c.surface2,
-              borderRadius: BorderRadius.lerp(
-                  const BorderRadius.vertical(top: Radius.circular(20)),
-                  BorderRadius.zero,
-                  anim.value),
+        // Keep a stable Hero tag for any future in-app panel transition.
+        child: Hero(
+          tag: _heroTag,
+          flightShuttleBuilder: (_, anim, __, ___, ____) => Material(
+            color: c.surface2,
+            borderRadius: BorderRadius.lerp(
+                const BorderRadius.vertical(top: Radius.circular(20)),
+                BorderRadius.zero,
+                anim.value),
+          ),
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.80,
             ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: c.surface2,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(20)),
-                border: Border(top: BorderSide(color: c.border, width: 0.5)),
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.12),
-                      blurRadius: 16,
-                      offset: const Offset(0, -4))
-                ],
-              ),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                // Drag handle.
-                const SizedBox(height: 10),
-                Center(
+            decoration: BoxDecoration(
+              color: c.surface2,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+              border: Border(top: BorderSide(color: c.border, width: 0.5)),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 16,
+                    offset: const Offset(0, -4))
+              ],
+            ),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              // Drag gestures live only on the handle, so they never steal
+              // vertical scrolling from a richly-tagged POI card.
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onVerticalDragUpdate: (details) {
+                  if (details.delta.dy > 0) {
+                    setState(() => _dragDy += details.delta.dy);
+                  }
+                },
+                onVerticalDragEnd: _finishPanelDrag,
+                child: SizedBox(
+                  height: 26,
+                  child: Center(
                     child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                            color: c.border,
-                            borderRadius: BorderRadius.circular(2)))),
-                const SizedBox(height: 12),
-
-                // Title / address.
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: widget.loading && widget.address == null
-                      ? Row(children: [
-                          SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: c.accent)),
-                          const SizedBox(width: 10),
-                          Text(AppLocalizations.of(context).loadingInfo,
-                              style: TextStyle(
-                                  color: c.textSecondary, fontSize: 13)),
-                        ])
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                              Text(
-                                  widget.wiki?.title ??
-                                      widget.details?.name ??
-                                      widget.address ??
-                                      '${widget.point.latitude.toStringAsFixed(5)}, '
-                                          '${widget.point.longitude.toStringAsFixed(5)}',
-                                  style: TextStyle(
-                                      color: c.textPrimary,
-                                      fontSize: widget.wiki != null ? 17 : 15,
-                                      fontWeight: FontWeight.w600)),
-                              if (widget.address != null &&
-                                  widget.address != widget.details?.name) ...[
-                                const SizedBox(height: 2),
-                                Text(widget.address!,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                        color: c.textSecondary, fontSize: 12)),
-                              ],
-                              if (widget.openingHours != null) ...[
-                                const SizedBox(height: 6),
-                                _OpeningHoursBadge(
-                                    raw: widget.openingHours!, colors: c),
-                              ],
-                            ]),
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: c.border,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
                 ),
+              ),
 
-                // Wikipedia image + extract.
-                if (widget.wiki != null) ...[
-                  const SizedBox(height: 10),
-                  if (widget.wiki!.imageUrl != null)
+              // Long, richly-tagged POIs remain usable on short screens.
+              // The drag handle and route actions stay fixed while only the
+              // informational content scrolls.
+              Flexible(
+                child: SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    // Title / address.
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.network(widget.wiki!.imageUrl!,
-                            height: 110,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                                const SizedBox.shrink()),
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: widget.loading && widget.address == null
+                          ? Row(children: [
+                              SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: c.accent)),
+                              const SizedBox(width: 10),
+                              Text(AppLocalizations.of(context).loadingInfo,
+                                  style: TextStyle(
+                                      color: c.textSecondary, fontSize: 13)),
+                            ])
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                  Text(
+                                      widget.wiki?.title ??
+                                          widget.details?.name ??
+                                          widget.address ??
+                                          '${widget.point.latitude.toStringAsFixed(5)}, '
+                                              '${widget.point.longitude.toStringAsFixed(5)}',
+                                      style: TextStyle(
+                                          color: c.textPrimary,
+                                          fontSize:
+                                              widget.wiki != null ? 17 : 15,
+                                          fontWeight: FontWeight.w600)),
+                                  if (widget.address != null &&
+                                      widget.address !=
+                                          widget.details?.name) ...[
+                                    const SizedBox(height: 2),
+                                    Text(widget.address!,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            color: c.textSecondary,
+                                            fontSize: 12)),
+                                  ],
+                                  if (widget.openingHours != null) ...[
+                                    const SizedBox(height: 6),
+                                    _OpeningHoursBadge(
+                                        raw: widget.openingHours!, colors: c),
+                                  ],
+                                ]),
                     ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                    child: Text(widget.wiki!.extract,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                            color: c.textSecondary, fontSize: 13, height: 1.4)),
-                  ),
-                ],
 
-                // Small/local POIs often have no Wikipedia article. Their
-                // useful OSM tags form a native, non-scriptable information
-                // card so the user still gets context without leaving Roadstr.
-                if (widget.details != null && widget.wiki == null) ...[
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _OsmPoiDetailsCard(
-                      details: widget.details!,
-                      colors: c,
-                      onOpenWebsite:
-                          widget.details!.website == null ? null : _openWebsite,
-                    ),
-                  ),
-                ],
-
-                // "Learn more" / search engine button (shown only when there is something to open).
-                if (!widget.loading &&
-                    (widget.wiki?.pageUrl != null ||
-                        widget.wikiQuery != null)) ...[
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: GestureDetector(
-                      onTap: _openMore,
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Icon(
-                            widget.wiki?.pageUrl != null
-                                ? Icons.article_outlined
-                                : Icons.search_rounded,
-                            color: c.accent,
-                            size: 14),
-                        const SizedBox(width: 4),
-                        Text(
-                          widget.wiki?.pageUrl != null
-                              ? AppLocalizations.of(context).readOnWikipedia
-                              : AppLocalizations.of(context)
-                                  .searchOnEngine(_engineName()),
-                          style: TextStyle(
-                              color: c.accent,
-                              fontSize: 12,
-                              decoration: TextDecoration.underline),
+                    // Wikipedia image + extract.
+                    if (widget.wiki != null) ...[
+                      const SizedBox(height: 10),
+                      if (widget.wiki!.imageUrl != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.network(widget.wiki!.imageUrl!,
+                                height: 110,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) =>
+                                    const SizedBox.shrink()),
+                          ),
                         ),
-                      ]),
-                    ),
-                  ),
-                ],
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                        child: Text(widget.wiki!.extract,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                color: c.textSecondary,
+                                fontSize: 13,
+                                height: 1.4)),
+                      ),
+                    ],
 
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(children: [
-                    OutlinedButton(
-                      onPressed: _closeAnimated,
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: c.border),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 11),
+                    // OSM operational details complement Wikipedia when it
+                    // exists and become the primary source for smaller POIs.
+                    if (widget.details != null) ...[
+                      const SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: _OsmPoiDetailsCard(
+                          details: widget.details!,
+                          colors: c,
+                          showDescription: widget.wiki == null,
+                          onOpenWebsite: widget.details!.website == null
+                              ? null
+                              : _openWebsite,
+                        ),
                       ),
-                      child: Text(AppLocalizations.of(context).cancel,
-                          style: TextStyle(color: c.textSecondary)),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                        child: FilledButton.icon(
-                      onPressed: widget.onNavigate,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: c.accent,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 11),
+                    ],
+
+                    // "Learn more" / search engine button (shown only when there is something to open).
+                    if (!widget.loading &&
+                        (widget.wiki?.pageUrl != null ||
+                            widget.wikiQuery != null)) ...[
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: GestureDetector(
+                          onTap: _openMore,
+                          child: Row(mainAxisSize: MainAxisSize.min, children: [
+                            Icon(
+                                widget.wiki?.pageUrl != null
+                                    ? Icons.article_outlined
+                                    : Icons.search_rounded,
+                                color: c.accent,
+                                size: 14),
+                            const SizedBox(width: 4),
+                            Text(
+                              widget.wiki?.pageUrl != null
+                                  ? AppLocalizations.of(context).readOnWikipedia
+                                  : AppLocalizations.of(context)
+                                      .searchOnEngine(_engineName()),
+                              style: TextStyle(
+                                  color: c.accent,
+                                  fontSize: 12,
+                                  decoration: TextDecoration.underline),
+                            ),
+                          ]),
+                        ),
                       ),
-                      icon: const Icon(Icons.navigation_rounded,
-                          color: Colors.white, size: 18),
-                      // This button does NOT start navigation — it opens the route
-                      // preview panel (via _requestAlternatives), so it must say so.
-                      label: Text(AppLocalizations.of(context).showRoutePreview,
-                          style: const TextStyle(color: Colors.white)),
-                    )),
+                    ],
                   ]),
                 ),
-                SizedBox(
-                    height: widget.bottomInset > 0 ? widget.bottomInset : 14),
-              ]),
-            ), // Container
-          ), // Hero
-        ), // GestureDetector
+              ),
+
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(children: [
+                  OutlinedButton(
+                    onPressed: _closeAnimated,
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: c.border),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 11),
+                    ),
+                    child: Text(AppLocalizations.of(context).cancel,
+                        style: TextStyle(color: c.textSecondary)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                      child: FilledButton.icon(
+                    onPressed: widget.onNavigate,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: c.accent,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 11),
+                    ),
+                    icon: const Icon(Icons.navigation_rounded,
+                        color: Colors.white, size: 18),
+                    label: Text(AppLocalizations.of(context).navigateHere,
+                        style: const TextStyle(color: Colors.white)),
+                  )),
+                ]),
+              ),
+              SizedBox(
+                  height: widget.bottomInset > 0 ? widget.bottomInset : 14),
+            ]),
+          ), // Container
+        ), // Hero
       ), // Transform.translate
     ); // SlideTransition
   }
@@ -5349,11 +5407,13 @@ class _PlaceInfoPanelState extends State<_PlaceInfoPanel>
 class _OsmPoiDetailsCard extends StatelessWidget {
   final OsmPoiDetails details;
   final RoadstrColors colors;
+  final bool showDescription;
   final VoidCallback? onOpenWebsite;
 
   const _OsmPoiDetailsCard({
     required this.details,
     required this.colors,
+    this.showDescription = true,
     this.onOpenWebsite,
   });
 
@@ -5366,56 +5426,316 @@ class _OsmPoiDetailsCard extends StatelessWidget {
       'no' => l.poiWheelchairNo,
       _ => null,
     };
+    final wheelchairColor = switch (details.wheelchair) {
+      'yes' || 'designated' => const Color(0xFF2E9D67),
+      'limited' => const Color(0xFFE09A2D),
+      'no' => const Color(0xFFD55245),
+      _ => colors.textSecondary,
+    };
+    final accessLabel = switch (details.access) {
+      'private' => l.poiAccessPrivate,
+      'customers' => l.poiAccessCustomers,
+      'permit' => l.poiAccessPermit,
+      'no' => l.poiAccessNo,
+      'destination' => l.poiAccessDestination,
+      _ => null,
+    };
+    final restrictedAccess = details.access == 'private' ||
+        details.access == 'no' ||
+        details.access == 'permit';
+    final parkingTypeLabel = switch (details.parkingType) {
+      'surface' => l.poiParkingSurface,
+      'underground' => l.poiParkingUnderground,
+      'multi-storey' => l.poiParkingMultiStorey,
+      'street_side' => l.poiParkingStreetSide,
+      'lane' => l.poiParkingLane,
+      'rooftop' => l.poiParkingRooftop,
+      _ => null,
+    };
+    final feeLabel = switch (details.fee?.trim().toLowerCase()) {
+      'no' => l.poiFree,
+      'yes' => l.poiPaid,
+      final value? => value,
+      _ => null,
+    };
+    final smokingLabel = switch (details.smoking) {
+      'yes' => l.poiSmokingAllowed,
+      'outside' => l.poiSmokingOutside,
+      'separated' || 'isolated' || 'dedicated' => l.poiSmokingAreas,
+      'no' => l.poiSmokeFree,
+      _ => null,
+    };
     final contact = [details.phone, details.email]
         .whereType<String>()
         .where((value) => value.isNotEmpty)
         .join(' · ');
 
+    String connectorLabel(OsmEvConnector connector) {
+      final type = switch (connector.type) {
+        'type2' => l.poiConnectorType2,
+        'chademo' => l.poiConnectorChademo,
+        'type2_combo' => l.poiConnectorCcs,
+        _ => connector.type,
+      };
+      return [
+        type,
+        if (connector.count != null) '× ${connector.count}',
+        if (connector.output != null) connector.output!,
+      ].join(' · ');
+    }
+
+    final featureChips = <Widget>[
+      if (details.acceptsLightning)
+        _PoiFeatureChip(
+          icon: Icons.bolt_rounded,
+          label: l.poiLightningAccepted,
+          color: const Color(0xFFF7931A),
+        ),
+      if (details.acceptsBitcoin)
+        _PoiFeatureChip(
+          icon: Icons.currency_bitcoin_rounded,
+          label: l.poiBitcoinAccepted,
+          color: const Color(0xFFF7931A),
+        ),
+      if (details.stars != null)
+        _PoiFeatureChip(
+          icon: Icons.star_rounded,
+          label: '${details.stars} ★',
+          color: const Color(0xFFE4A11B),
+        ),
+      if (wheelchairLabel != null)
+        _PoiFeatureChip(
+          icon: Icons.accessible_rounded,
+          label: wheelchairLabel,
+          color: wheelchairColor,
+        ),
+      if (details.fuels.contains('diesel'))
+        _PoiFeatureChip(
+          icon: Icons.local_gas_station_rounded,
+          label: l.poiDiesel,
+          color: colors.accent,
+        ),
+      if (details.fuels.contains('octane_95'))
+        _PoiFeatureChip(
+          icon: Icons.local_gas_station_outlined,
+          label: l.poiPetrol95,
+          color: colors.accent,
+        ),
+      if (smokingLabel != null)
+        _PoiFeatureChip(
+          icon: details.smoking == 'no'
+              ? Icons.smoke_free_rounded
+              : Icons.smoking_rooms_rounded,
+          label: smokingLabel,
+          color: colors.textSecondary,
+        ),
+      if (details.outdoorSeating == 'yes')
+        _PoiFeatureChip(
+          icon: Icons.deck_outlined,
+          label: l.poiOutdoorSeating,
+          color: const Color(0xFF3A8D6D),
+        ),
+      if (details.takeaway == 'yes' || details.takeaway == 'only')
+        _PoiFeatureChip(
+          icon: Icons.takeout_dining_rounded,
+          label: details.takeaway == 'only' ? l.poiTakeawayOnly : l.poiTakeaway,
+          color: colors.accent,
+        ),
+    ];
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(13, 12, 13, 13),
       decoration: BoxDecoration(
         color: colors.surface1,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: colors.border, width: 0.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            Icon(Icons.map_outlined, size: 14, color: colors.accent),
-            const SizedBox(width: 6),
+            Container(
+              width: 27,
+              height: 27,
+              decoration: BoxDecoration(
+                color: colors.accent.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(Icons.map_outlined, size: 15, color: colors.accent),
+            ),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 l.poiDetailsFromOsm,
                 style: TextStyle(
-                  color: colors.textSecondary,
-                  fontSize: 11,
+                  color: colors.textPrimary,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: colors.surface2,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  details.category,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: colors.textSecondary,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
           ]),
-          if (details.description != null) ...[
-            const SizedBox(height: 8),
+          if (accessLabel != null) ...[
+            const SizedBox(height: 10),
+            _PoiAccessBanner(
+              label: accessLabel,
+              restricted: restrictedAccess,
+            ),
+          ],
+          if (showDescription && details.description != null) ...[
+            const SizedBox(height: 10),
             Text(
               details.description!,
               maxLines: 4,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: colors.textPrimary,
-                fontSize: 12,
-                height: 1.35,
+                fontSize: 12.5,
+                height: 1.4,
               ),
             ),
           ],
-          const SizedBox(height: 7),
-          _PoiDetailLine(
-            icon: Icons.category_outlined,
-            label: l.poiCategory,
-            value: details.category,
-            colors: colors,
-          ),
+          if (featureChips.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Wrap(spacing: 6, runSpacing: 6, children: featureChips),
+          ],
+          if (details.kind == OsmPoiKind.parking &&
+              (parkingTypeLabel != null ||
+                  feeLabel != null ||
+                  details.charge != null ||
+                  details.capacity != null ||
+                  details.maxStay != null)) ...[
+            const SizedBox(height: 12),
+            _PoiDetailSection(
+              icon: Icons.local_parking_rounded,
+              title: l.poiParkingDetails,
+              colors: colors,
+              children: [
+                if (parkingTypeLabel != null)
+                  _PoiDetailLine(
+                    icon: Icons.layers_outlined,
+                    label: l.poiCategory,
+                    value: parkingTypeLabel,
+                    colors: colors,
+                  ),
+                if (feeLabel != null)
+                  _PoiDetailLine(
+                    icon: Icons.payments_outlined,
+                    label: l.poiFee,
+                    value: feeLabel,
+                    colors: colors,
+                  ),
+                if (details.charge != null)
+                  _PoiDetailLine(
+                    icon: Icons.sell_outlined,
+                    label: l.poiPrice,
+                    value: details.charge!,
+                    colors: colors,
+                  ),
+                if (details.capacity != null)
+                  _PoiDetailLine(
+                    icon: Icons.directions_car_outlined,
+                    label: l.poiCapacity,
+                    value: details.capacity.toString(),
+                    colors: colors,
+                  ),
+                if (details.maxStay != null)
+                  _PoiDetailLine(
+                    icon: Icons.timer_outlined,
+                    label: l.poiMaxStay,
+                    value: details.maxStay!,
+                    colors: colors,
+                  ),
+              ],
+            ),
+          ],
+          if (details.kind == OsmPoiKind.chargingStation &&
+              (details.evConnectors.isNotEmpty ||
+                  feeLabel != null ||
+                  details.charge != null ||
+                  details.capacity != null)) ...[
+            const SizedBox(height: 12),
+            _PoiDetailSection(
+              icon: Icons.ev_station_rounded,
+              title: l.poiChargingDetails,
+              colors: colors,
+              children: [
+                if (details.evConnectors.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 5),
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: details.evConnectors
+                          .map((connector) => _PoiFeatureChip(
+                                icon: Icons.electrical_services_rounded,
+                                label: connectorLabel(connector),
+                                color: const Color(0xFF2E9D67),
+                              ))
+                          .toList(),
+                    ),
+                  ),
+                if (feeLabel != null)
+                  _PoiDetailLine(
+                    icon: Icons.payments_outlined,
+                    label: l.poiFee,
+                    value: feeLabel,
+                    colors: colors,
+                  ),
+                if (details.charge != null)
+                  _PoiDetailLine(
+                    icon: Icons.sell_outlined,
+                    label: l.poiPrice,
+                    value: details.charge!,
+                    colors: colors,
+                  ),
+                if (details.capacity != null)
+                  _PoiDetailLine(
+                    icon: Icons.ev_station_outlined,
+                    label: l.poiCapacity,
+                    value: details.capacity.toString(),
+                    colors: colors,
+                  ),
+              ],
+            ),
+          ],
+          if (details.operatorName != null ||
+              (details.cuisine != null && details.cuisine!.isNotEmpty) ||
+              contact.isNotEmpty ||
+              details.address != null ||
+              details.website != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Divider(height: 1, color: colors.border),
+            ),
           if (details.operatorName != null)
             _PoiDetailLine(
               icon: Icons.business_outlined,
@@ -5428,13 +5748,6 @@ class _OsmPoiDetailsCard extends StatelessWidget {
               icon: Icons.restaurant_menu_rounded,
               label: l.poiCuisine,
               value: details.cuisine!,
-              colors: colors,
-            ),
-          if (wheelchairLabel != null)
-            _PoiDetailLine(
-              icon: Icons.accessible_rounded,
-              label: l.poiAccessibility,
-              value: wheelchairLabel,
               colors: colors,
             ),
           if (contact.isNotEmpty)
@@ -5478,6 +5791,130 @@ class _OsmPoiDetailsCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _PoiAccessBanner extends StatelessWidget {
+  final String label;
+  final bool restricted;
+
+  const _PoiAccessBanner({required this.label, required this.restricted});
+
+  @override
+  Widget build(BuildContext context) {
+    final color =
+        restricted ? const Color(0xFFD55245) : const Color(0xFFE09A2D);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.11),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.28), width: 0.7),
+      ),
+      child: Row(children: [
+        Icon(
+          restricted ? Icons.lock_outline_rounded : Icons.badge_outlined,
+          size: 15,
+          color: color,
+        ),
+        const SizedBox(width: 7),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+class _PoiFeatureChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  const _PoiFeatureChip({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) => Container(
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.sizeOf(context).width - 72,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withValues(alpha: 0.22), width: 0.6),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 5),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: color,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ]),
+      );
+}
+
+class _PoiDetailSection extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final RoadstrColors colors;
+  final List<Widget> children;
+
+  const _PoiDetailSection({
+    required this.icon,
+    required this.title,
+    required this.colors,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
+        decoration: BoxDecoration(
+          color: colors.surface2,
+          borderRadius: BorderRadius.circular(11),
+          border: Border.all(color: colors.border, width: 0.5),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Icon(icon, size: 15, color: colors.accent),
+              const SizedBox(width: 6),
+              Text(
+                title,
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ]),
+            ...children,
+          ],
+        ),
+      );
 }
 
 class _PoiDetailLine extends StatelessWidget {
@@ -6333,28 +6770,28 @@ class _AlternativesPanel extends StatefulWidget {
   final double bottomInset;
   final RoadstrColors colors;
   final String transportMode;
-  final RoutePreferences prefs;
   final LatLng destination;
-  final bool prefsSupported;
+  final bool avoidanceEnabled;
+  final bool avoidanceLoading;
   final ValueChanged<int> onSelect;
   final ValueChanged<RouteResult> onConfirm;
   final VoidCallback onCancel;
   final ValueChanged<String> onModeChanged;
-  final ValueChanged<RoutePreferences> onPrefsChanged;
+  final ValueChanged<bool> onAvoidanceChanged;
   const _AlternativesPanel({
     required this.alternatives,
     required this.selected,
     required this.bottomInset,
     required this.colors,
     required this.transportMode,
-    required this.prefs,
     required this.destination,
-    required this.prefsSupported,
+    required this.avoidanceEnabled,
+    required this.avoidanceLoading,
     required this.onSelect,
     required this.onConfirm,
     required this.onCancel,
     required this.onModeChanged,
-    required this.onPrefsChanged,
+    required this.onAvoidanceChanged,
   });
 
   @override
@@ -6423,6 +6860,12 @@ class _AlternativesPanelState extends State<_AlternativesPanel>
   Widget build(BuildContext context) {
     final c = widget.colors;
     final l = AppLocalizations.of(context);
+    final avoidanceRoute = widget.alternatives
+        .where((route) => route.isHighwayAndTollAvoidance)
+        .firstOrNull;
+    final avoidanceComplete = avoidanceRoute?.avoidsHighwaysAndTolls ?? true;
+    final avoidanceColor =
+        avoidanceComplete ? const Color(0xFF14A67A) : const Color(0xFFF59E0B);
     return SlideTransition(
       position: _slide,
       child: Transform.translate(
@@ -6497,43 +6940,79 @@ class _AlternativesPanelState extends State<_AlternativesPanel>
                       onTap: () => widget.onModeChanged('walking')),
                 ]),
               ),
-              if (widget.transportMode == 'driving' &&
-                  widget.prefsSupported) ...[
-                const SizedBox(height: 6),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    _ModeChip(
-                        icon: Icons.alt_route_rounded,
-                        label: l.avoidHighwaysChip,
-                        selected: widget.prefs.avoidHighways,
-                        colors: c,
-                        onTap: () => widget.onPrefsChanged(RoutePreferences(
-                            avoidHighways: !widget.prefs.avoidHighways,
-                            avoidTolls: widget.prefs.avoidTolls,
-                            preferShorter: widget.prefs.preferShorter))),
-                    const SizedBox(width: 6),
-                    _ModeChip(
-                        icon: Icons.money_off_rounded,
-                        label: l.avoidTollsChip,
-                        selected: widget.prefs.avoidTolls,
-                        colors: c,
-                        onTap: () => widget.onPrefsChanged(RoutePreferences(
-                            avoidHighways: widget.prefs.avoidHighways,
-                            avoidTolls: !widget.prefs.avoidTolls,
-                            preferShorter: widget.prefs.preferShorter))),
-                    const SizedBox(width: 6),
-                    _ModeChip(
-                        icon: Icons.straighten_rounded,
-                        label: l.preferShorterChip,
-                        selected: widget.prefs.preferShorter,
-                        colors: c,
-                        onTap: () => widget.onPrefsChanged(RoutePreferences(
-                            avoidHighways: widget.prefs.avoidHighways,
-                            avoidTolls: widget.prefs.avoidTolls,
-                            preferShorter: !widget.prefs.preferShorter))),
-                  ]),
+              if (widget.transportMode == 'driving') ...[
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Material(
+                    color: widget.avoidanceEnabled
+                        ? avoidanceColor.withValues(alpha: 0.12)
+                        : c.surface3,
+                    borderRadius: BorderRadius.circular(14),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: widget.avoidanceLoading
+                          ? null
+                          : () => widget
+                              .onAvoidanceChanged(!widget.avoidanceEnabled),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 7, 8, 7),
+                        child: Row(children: [
+                          Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              color: avoidanceColor.withValues(alpha: 0.16),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: widget.avoidanceLoading
+                                ? const Padding(
+                                    padding: EdgeInsets.all(9),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Color(0xFF14A67A),
+                                    ),
+                                  )
+                                : Icon(Icons.money_off_csred_rounded,
+                                    size: 19, color: avoidanceColor),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(l.avoidHighwaysAndTolls,
+                                    style: TextStyle(
+                                      color: c.textPrimary,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                    )),
+                                if (avoidanceRoute?.avoidance ==
+                                    RouteAvoidance
+                                        .minimizedHighwaysAndTolls) ...[
+                                  const SizedBox(height: 2),
+                                  Text(l.avoidanceUnavoidableSection,
+                                      style: TextStyle(
+                                        color: avoidanceColor,
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w500,
+                                      )),
+                                ],
+                              ],
+                            ),
+                          ),
+                          Switch.adaptive(
+                            value: widget.avoidanceEnabled,
+                            activeTrackColor: avoidanceColor,
+                            onChanged: widget.avoidanceLoading
+                                ? null
+                                : widget.onAvoidanceChanged,
+                          ),
+                        ]),
+                      ),
+                    ),
+                  ),
                 ),
               ],
               if (_weather != null) ...[
@@ -6563,7 +7042,7 @@ class _AlternativesPanelState extends State<_AlternativesPanel>
               ],
               const SizedBox(height: 12),
               SizedBox(
-                height: 122,
+                height: 132,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -6643,18 +7122,26 @@ class _RouteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isAvoidance = route.isHighwayAndTollAvoidance;
+    final avoidanceComplete = route.avoidsHighwaysAndTolls;
+    final highlight = isAvoidance
+        ? (avoidanceComplete
+            ? const Color(0xFF14A67A)
+            : const Color(0xFFF59E0B))
+        : colors.accent;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        width: 128,
+        width: isAvoidance ? 174 : 128,
         margin: const EdgeInsets.only(right: 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isSelected ? colors.accentSoft : colors.surface2,
+          color:
+              isSelected ? highlight.withValues(alpha: 0.12) : colors.surface2,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? colors.accent : colors.border,
+            color: isSelected ? highlight : colors.border,
             width: isSelected ? 2 : 0.5,
           ),
         ),
@@ -6674,18 +7161,27 @@ class _RouteCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: colors.textSecondary, fontSize: 12)),
-              if (isBest) ...[
+              if (isAvoidance || isBest) ...[
                 const SizedBox(height: 8),
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: colors.accent.withValues(alpha: 0.15),
+                    color: highlight.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Text(AppLocalizations.of(context).fastestRoute,
+                  child: Text(
+                      isAvoidance
+                          ? (avoidanceComplete
+                              ? AppLocalizations.of(context)
+                                  .avoidHighwaysAndTolls
+                              : AppLocalizations.of(context)
+                                  .avoidanceUnavoidableSection)
+                          : AppLocalizations.of(context).fastestRoute,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                          color: colors.accent,
+                          color: highlight,
                           fontSize: 10,
                           fontWeight: FontWeight.w600)),
                 ),
@@ -6834,121 +7330,6 @@ class _PinStemPainter extends CustomPainter {
 }
 
 // ── Pin destination panel ─────────────────────────────────────────────────────
-
-class _PinPanel extends StatefulWidget {
-  final NominatimResult result;
-  final RoadstrColors colors;
-  final VoidCallback onNavigate;
-  final VoidCallback onClose;
-  const _PinPanel(
-      {required this.result,
-      required this.colors,
-      required this.onNavigate,
-      required this.onClose});
-
-  @override
-  State<_PinPanel> createState() => _PinPanelState();
-}
-
-class _PinPanelState extends State<_PinPanel> {
-  WeatherData? _weather;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadWeather();
-  }
-
-  Future<void> _loadWeather() async {
-    final w = await WeatherService.fetch(widget.result.position);
-    if (mounted) setState(() => _weather = w);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final c = widget.colors;
-    return Container(
-      decoration: BoxDecoration(
-        color: c.surface2,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: c.border, width: 0.5),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.18),
-              blurRadius: 16,
-              offset: const Offset(0, 4))
-        ],
-      ),
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Row(children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-                color: const Color(0xFF7C3AED).withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12)),
-            child: const Icon(Icons.place_rounded,
-                color: Color(0xFF7C3AED), size: 22),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-              child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(widget.result.shortName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                      color: c.textPrimary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600)),
-              if (widget.result.categoryLabel.isNotEmpty)
-                Text(widget.result.categoryLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: c.textSecondary, fontSize: 12)),
-            ],
-          )),
-          const SizedBox(width: 8),
-          FilledButton.icon(
-            style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF7C3AED),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10)),
-            onPressed: widget.onNavigate,
-            icon: const Icon(Icons.navigation_rounded, size: 16),
-            // Opens the route preview, not navigation itself — label honestly.
-            label: Text(l.showRoutePreview,
-                style:
-                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-          ),
-          const SizedBox(width: 4),
-          IconButton(
-            icon: Icon(Icons.close_rounded, color: c.textSecondary, size: 20),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            onPressed: widget.onClose,
-          ),
-        ]),
-        if (_weather != null) ...[
-          const SizedBox(height: 8),
-          Row(children: [
-            const SizedBox(width: 52),
-            Text(_weather!.emoji, style: const TextStyle(fontSize: 15)),
-            const SizedBox(width: 6),
-            Text(
-              '${_weather!.tempC.toStringAsFixed(0)}°C · ${_weather!.localizedDescription(l)} · ${l.windSpeed(_weather!.windKmh.toStringAsFixed(0))}',
-              style: TextStyle(color: c.textSecondary, fontSize: 12),
-            ),
-          ]),
-        ],
-      ]),
-    );
-  }
-}
 
 class _SearchResults extends StatelessWidget {
   final List<NominatimResult> results;

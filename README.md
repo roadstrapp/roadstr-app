@@ -32,6 +32,7 @@ It combines real-time GPS turn-by-turn navigation with community-sourced traffic
 | Address & POI search (Nominatim, position-biased) | ✅ |
 | Category / brand POI search near current position (Overpass) | ✅ |
 | Place info with native OSM details + restricted in-app Wikipedia reader | ✅ |
+| Contextual POI details — Lightning/Bitcoin, parking, EV connectors, access and amenities | ✅ |
 | Weather conditions along the route (Open-Meteo) | ✅ |
 | Saved favourite places | ✅ |
 | Saved parking spot (local-only) | ✅ |

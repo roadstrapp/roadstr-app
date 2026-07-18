@@ -787,67 +787,67 @@ class AppLocalizationsDa extends AppLocalizations {
   String get poiWebsite => 'Websted';
 
   @override
-  String get poiAccessPrivate => 'Private access';
+  String get poiAccessPrivate => 'Privat adgang';
 
   @override
-  String get poiAccessCustomers => 'Customers only';
+  String get poiAccessCustomers => 'Kun kunder';
 
   @override
-  String get poiAccessPermit => 'Permit required';
+  String get poiAccessPermit => 'Tilladelse påkrævet';
 
   @override
-  String get poiAccessNo => 'No public access';
+  String get poiAccessNo => 'Ingen offentlig adgang';
 
   @override
-  String get poiAccessDestination => 'Destination access only';
+  String get poiAccessDestination => 'Kun adgang til destinationen';
 
   @override
-  String get poiLightningAccepted => 'Lightning accepted';
+  String get poiLightningAccepted => 'Lightning accepteres';
 
   @override
-  String get poiBitcoinAccepted => 'Bitcoin accepted';
+  String get poiBitcoinAccepted => 'Bitcoin accepteres';
 
   @override
-  String get poiParkingDetails => 'Parking';
+  String get poiParkingDetails => 'Parkering';
 
   @override
-  String get poiParkingSurface => 'Surface';
+  String get poiParkingSurface => 'På terræn';
 
   @override
-  String get poiParkingUnderground => 'Underground';
+  String get poiParkingUnderground => 'Underjordisk';
 
   @override
-  String get poiParkingMultiStorey => 'Multi-storey';
+  String get poiParkingMultiStorey => 'Parkeringshus';
 
   @override
-  String get poiParkingStreetSide => 'Street-side';
+  String get poiParkingStreetSide => 'Langs vejen';
 
   @override
-  String get poiParkingLane => 'On-street';
+  String get poiParkingLane => 'På vejen';
 
   @override
-  String get poiParkingRooftop => 'Rooftop';
+  String get poiParkingRooftop => 'På taget';
 
   @override
-  String get poiFee => 'Fee';
+  String get poiFee => 'Gebyr';
 
   @override
-  String get poiFree => 'Free';
+  String get poiFree => 'Gratis';
 
   @override
-  String get poiPaid => 'Paid';
+  String get poiPaid => 'Betalt';
 
   @override
-  String get poiCapacity => 'Capacity';
+  String get poiCapacity => 'Kapacitet';
 
   @override
-  String get poiMaxStay => 'Maximum stay';
+  String get poiMaxStay => 'Maksimal parkeringstid';
 
   @override
-  String get poiPrice => 'Price';
+  String get poiPrice => 'Pris';
 
   @override
-  String get poiChargingDetails => 'Charging';
+  String get poiChargingDetails => 'Opladning';
 
   @override
   String get poiConnectorType2 => 'Type 2';
@@ -859,34 +859,31 @@ class AppLocalizationsDa extends AppLocalizations {
   String get poiConnectorCcs => 'CCS';
 
   @override
-  String get poiFuelAvailable => 'Fuel available';
-
-  @override
   String get poiDiesel => 'Diesel';
 
   @override
-  String get poiPetrol95 => 'Petrol 95';
+  String get poiPetrol95 => 'Benzin 95';
 
   @override
-  String get poiSmokingAllowed => 'Smoking allowed';
+  String get poiSmokingAllowed => 'Rygning tilladt';
 
   @override
-  String get poiSmokingOutside => 'Smoking outside';
+  String get poiSmokingOutside => 'Rygning udendørs';
 
   @override
-  String get poiSmokingAreas => 'Smoking areas';
+  String get poiSmokingAreas => 'Rygeområder';
 
   @override
-  String get poiSmokeFree => 'Smoke-free';
+  String get poiSmokeFree => 'Røgfrit';
 
   @override
-  String get poiOutdoorSeating => 'Outdoor seating';
+  String get poiOutdoorSeating => 'Udendørs siddepladser';
 
   @override
   String get poiTakeaway => 'Takeaway';
 
   @override
-  String get poiTakeawayOnly => 'Takeaway only';
+  String get poiTakeawayOnly => 'Kun takeaway';
 
   @override
   String get gpsSignalLost => 'GPS-signal mistet';
@@ -1255,4 +1252,15 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get showRoutePreview => 'Vis ruteforhåndsvisning';
+
+  @override
+  String get avoidHighwaysAndTolls => 'Undgå motorveje og betalingsveje';
+
+  @override
+  String get avoidRouteUnavailable =>
+      'Der blev ikke fundet en rute, der undgår både motorveje og betalingsveje.';
+
+  @override
+  String get avoidanceUnavoidableSection =>
+      'Minimerer motorveje/betaling · uundgåelig strækning';
 }

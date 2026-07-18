@@ -788,70 +788,70 @@ class AppLocalizationsRo extends AppLocalizations {
   String get poiWebsite => 'Site web';
 
   @override
-  String get poiAccessPrivate => 'Private access';
+  String get poiAccessPrivate => 'Acces privat';
 
   @override
-  String get poiAccessCustomers => 'Customers only';
+  String get poiAccessCustomers => 'Doar pentru clienți';
 
   @override
-  String get poiAccessPermit => 'Permit required';
+  String get poiAccessPermit => 'Este necesar un permis';
 
   @override
-  String get poiAccessNo => 'No public access';
+  String get poiAccessNo => 'Fără acces public';
 
   @override
-  String get poiAccessDestination => 'Destination access only';
+  String get poiAccessDestination => 'Acces doar la destinație';
 
   @override
-  String get poiLightningAccepted => 'Lightning accepted';
+  String get poiLightningAccepted => 'Acceptă Lightning';
 
   @override
-  String get poiBitcoinAccepted => 'Bitcoin accepted';
+  String get poiBitcoinAccepted => 'Acceptă Bitcoin';
 
   @override
-  String get poiParkingDetails => 'Parking';
+  String get poiParkingDetails => 'Parcare';
 
   @override
-  String get poiParkingSurface => 'Surface';
+  String get poiParkingSurface => 'La suprafață';
 
   @override
-  String get poiParkingUnderground => 'Underground';
+  String get poiParkingUnderground => 'Subterană';
 
   @override
-  String get poiParkingMultiStorey => 'Multi-storey';
+  String get poiParkingMultiStorey => 'Supraetajată';
 
   @override
-  String get poiParkingStreetSide => 'Street-side';
+  String get poiParkingStreetSide => 'Lângă stradă';
 
   @override
-  String get poiParkingLane => 'On-street';
+  String get poiParkingLane => 'Pe stradă';
 
   @override
-  String get poiParkingRooftop => 'Rooftop';
+  String get poiParkingRooftop => 'Pe acoperiș';
 
   @override
-  String get poiFee => 'Fee';
+  String get poiFee => 'Taxă';
 
   @override
-  String get poiFree => 'Free';
+  String get poiFree => 'Gratuit';
 
   @override
-  String get poiPaid => 'Paid';
+  String get poiPaid => 'Cu plată';
 
   @override
-  String get poiCapacity => 'Capacity';
+  String get poiCapacity => 'Capacitate';
 
   @override
-  String get poiMaxStay => 'Maximum stay';
+  String get poiMaxStay => 'Durată maximă';
 
   @override
-  String get poiPrice => 'Price';
+  String get poiPrice => 'Preț';
 
   @override
-  String get poiChargingDetails => 'Charging';
+  String get poiChargingDetails => 'Încărcare';
 
   @override
-  String get poiConnectorType2 => 'Type 2';
+  String get poiConnectorType2 => 'Tip 2';
 
   @override
   String get poiConnectorChademo => 'CHAdeMO';
@@ -860,34 +860,31 @@ class AppLocalizationsRo extends AppLocalizations {
   String get poiConnectorCcs => 'CCS';
 
   @override
-  String get poiFuelAvailable => 'Fuel available';
+  String get poiDiesel => 'Motorină';
 
   @override
-  String get poiDiesel => 'Diesel';
+  String get poiPetrol95 => 'Benzină 95';
 
   @override
-  String get poiPetrol95 => 'Petrol 95';
+  String get poiSmokingAllowed => 'Fumatul permis';
 
   @override
-  String get poiSmokingAllowed => 'Smoking allowed';
+  String get poiSmokingOutside => 'Fumat în exterior';
 
   @override
-  String get poiSmokingOutside => 'Smoking outside';
+  String get poiSmokingAreas => 'Zone pentru fumători';
 
   @override
-  String get poiSmokingAreas => 'Smoking areas';
+  String get poiSmokeFree => 'Fără fum';
 
   @override
-  String get poiSmokeFree => 'Smoke-free';
+  String get poiOutdoorSeating => 'Locuri în aer liber';
 
   @override
-  String get poiOutdoorSeating => 'Outdoor seating';
+  String get poiTakeaway => 'La pachet';
 
   @override
-  String get poiTakeaway => 'Takeaway';
-
-  @override
-  String get poiTakeawayOnly => 'Takeaway only';
+  String get poiTakeawayOnly => 'Doar la pachet';
 
   @override
   String get gpsSignalLost => 'Semnal GPS pierdut';
@@ -1257,4 +1254,15 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get showRoutePreview => 'Afișează previzualizarea rutei';
+
+  @override
+  String get avoidHighwaysAndTolls => 'Evită autostrăzile și taxele de drum';
+
+  @override
+  String get avoidRouteUnavailable =>
+      'Nu a fost găsit un traseu care să evite atât autostrăzile, cât și drumurile cu taxă.';
+
+  @override
+  String get avoidanceUnavoidableSection =>
+      'Reduce autostrăzile/taxele · segment inevitabil';
 }

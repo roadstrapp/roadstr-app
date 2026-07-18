@@ -791,70 +791,70 @@ class AppLocalizationsMt extends AppLocalizations {
   String get poiWebsite => 'Websajt';
 
   @override
-  String get poiAccessPrivate => 'Private access';
+  String get poiAccessPrivate => 'Aċċess privat';
 
   @override
-  String get poiAccessCustomers => 'Customers only';
+  String get poiAccessCustomers => 'Għall-klijenti biss';
 
   @override
-  String get poiAccessPermit => 'Permit required';
+  String get poiAccessPermit => 'Meħtieġ permess';
 
   @override
-  String get poiAccessNo => 'No public access';
+  String get poiAccessNo => 'Ebda aċċess pubbliku';
 
   @override
-  String get poiAccessDestination => 'Destination access only';
+  String get poiAccessDestination => 'Aċċess għad-destinazzjoni biss';
 
   @override
-  String get poiLightningAccepted => 'Lightning accepted';
+  String get poiLightningAccepted => 'Jaċċetta Lightning';
 
   @override
-  String get poiBitcoinAccepted => 'Bitcoin accepted';
+  String get poiBitcoinAccepted => 'Jaċċetta Bitcoin';
 
   @override
-  String get poiParkingDetails => 'Parking';
+  String get poiParkingDetails => 'Parkeġġ';
 
   @override
-  String get poiParkingSurface => 'Surface';
+  String get poiParkingSurface => 'Fil-wiċċ';
 
   @override
-  String get poiParkingUnderground => 'Underground';
+  String get poiParkingUnderground => 'Taħt l-art';
 
   @override
-  String get poiParkingMultiStorey => 'Multi-storey';
+  String get poiParkingMultiStorey => 'B\'ħafna sulari';
 
   @override
-  String get poiParkingStreetSide => 'Street-side';
+  String get poiParkingStreetSide => 'Maġenb it-triq';
 
   @override
-  String get poiParkingLane => 'On-street';
+  String get poiParkingLane => 'Fit-triq';
 
   @override
-  String get poiParkingRooftop => 'Rooftop';
+  String get poiParkingRooftop => 'Fuq il-bejt';
 
   @override
-  String get poiFee => 'Fee';
+  String get poiFee => 'Tariffa';
 
   @override
-  String get poiFree => 'Free';
+  String get poiFree => 'B\'xejn';
 
   @override
-  String get poiPaid => 'Paid';
+  String get poiPaid => 'Bi ħlas';
 
   @override
-  String get poiCapacity => 'Capacity';
+  String get poiCapacity => 'Kapaċità';
 
   @override
-  String get poiMaxStay => 'Maximum stay';
+  String get poiMaxStay => 'Żjara massima';
 
   @override
-  String get poiPrice => 'Price';
+  String get poiPrice => 'Prezz';
 
   @override
-  String get poiChargingDetails => 'Charging';
+  String get poiChargingDetails => 'Iċċarġjar';
 
   @override
-  String get poiConnectorType2 => 'Type 2';
+  String get poiConnectorType2 => 'Tip 2';
 
   @override
   String get poiConnectorChademo => 'CHAdeMO';
@@ -863,34 +863,31 @@ class AppLocalizationsMt extends AppLocalizations {
   String get poiConnectorCcs => 'CCS';
 
   @override
-  String get poiFuelAvailable => 'Fuel available';
-
-  @override
-  String get poiDiesel => 'Diesel';
+  String get poiDiesel => 'Diżil';
 
   @override
   String get poiPetrol95 => 'Petrol 95';
 
   @override
-  String get poiSmokingAllowed => 'Smoking allowed';
+  String get poiSmokingAllowed => 'It-tipjip permess';
 
   @override
-  String get poiSmokingOutside => 'Smoking outside';
+  String get poiSmokingOutside => 'Tipjip barra';
 
   @override
-  String get poiSmokingAreas => 'Smoking areas';
+  String get poiSmokingAreas => 'Żoni għat-tipjip';
 
   @override
-  String get poiSmokeFree => 'Smoke-free';
+  String get poiSmokeFree => 'Mingħajr tipjip';
 
   @override
-  String get poiOutdoorSeating => 'Outdoor seating';
+  String get poiOutdoorSeating => 'Postijiet bilqiegħda barra';
 
   @override
   String get poiTakeaway => 'Takeaway';
 
   @override
-  String get poiTakeawayOnly => 'Takeaway only';
+  String get poiTakeawayOnly => 'Takeaway biss';
 
   @override
   String get gpsSignalLost => 'Is-sinjal GPS intilef';
@@ -1260,4 +1257,15 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get showRoutePreview => 'Uri l-previżjoni tar-rotta';
+
+  @override
+  String get avoidHighwaysAndTolls => 'Evita awtostradi u toroq bi ħlas';
+
+  @override
+  String get avoidRouteUnavailable =>
+      'Ma nstabitx rotta li tevita kemm l-awtostradi kif ukoll it-toroq bi ħlas.';
+
+  @override
+  String get avoidanceUnavoidableSection =>
+      'Inaqqas awtostradi/toroq bi ħlas · parti inevitabbli';
 }

@@ -796,70 +796,70 @@ class AppLocalizationsEl extends AppLocalizations {
   String get poiWebsite => 'Ιστότοπος';
 
   @override
-  String get poiAccessPrivate => 'Private access';
+  String get poiAccessPrivate => 'Ιδιωτική πρόσβαση';
 
   @override
-  String get poiAccessCustomers => 'Customers only';
+  String get poiAccessCustomers => 'Μόνο για πελάτες';
 
   @override
-  String get poiAccessPermit => 'Permit required';
+  String get poiAccessPermit => 'Απαιτείται άδεια';
 
   @override
-  String get poiAccessNo => 'No public access';
+  String get poiAccessNo => 'Δεν υπάρχει δημόσια πρόσβαση';
 
   @override
-  String get poiAccessDestination => 'Destination access only';
+  String get poiAccessDestination => 'Πρόσβαση μόνο στον προορισμό';
 
   @override
-  String get poiLightningAccepted => 'Lightning accepted';
+  String get poiLightningAccepted => 'Δέχεται Lightning';
 
   @override
-  String get poiBitcoinAccepted => 'Bitcoin accepted';
+  String get poiBitcoinAccepted => 'Δέχεται Bitcoin';
 
   @override
-  String get poiParkingDetails => 'Parking';
+  String get poiParkingDetails => 'Στάθμευση';
 
   @override
-  String get poiParkingSurface => 'Surface';
+  String get poiParkingSurface => 'Επιφανειακό';
 
   @override
-  String get poiParkingUnderground => 'Underground';
+  String get poiParkingUnderground => 'Υπόγειο';
 
   @override
-  String get poiParkingMultiStorey => 'Multi-storey';
+  String get poiParkingMultiStorey => 'Πολυώροφο';
 
   @override
-  String get poiParkingStreetSide => 'Street-side';
+  String get poiParkingStreetSide => 'Στην άκρη του δρόμου';
 
   @override
-  String get poiParkingLane => 'On-street';
+  String get poiParkingLane => 'Στον δρόμο';
 
   @override
-  String get poiParkingRooftop => 'Rooftop';
+  String get poiParkingRooftop => 'Στην οροφή';
 
   @override
-  String get poiFee => 'Fee';
+  String get poiFee => 'Χρέωση';
 
   @override
-  String get poiFree => 'Free';
+  String get poiFree => 'Δωρεάν';
 
   @override
-  String get poiPaid => 'Paid';
+  String get poiPaid => 'Με χρέωση';
 
   @override
-  String get poiCapacity => 'Capacity';
+  String get poiCapacity => 'Χωρητικότητα';
 
   @override
-  String get poiMaxStay => 'Maximum stay';
+  String get poiMaxStay => 'Μέγιστη παραμονή';
 
   @override
-  String get poiPrice => 'Price';
+  String get poiPrice => 'Τιμή';
 
   @override
-  String get poiChargingDetails => 'Charging';
+  String get poiChargingDetails => 'Φόρτιση';
 
   @override
-  String get poiConnectorType2 => 'Type 2';
+  String get poiConnectorType2 => 'Τύπος 2';
 
   @override
   String get poiConnectorChademo => 'CHAdeMO';
@@ -868,34 +868,31 @@ class AppLocalizationsEl extends AppLocalizations {
   String get poiConnectorCcs => 'CCS';
 
   @override
-  String get poiFuelAvailable => 'Fuel available';
+  String get poiDiesel => 'Ντίζελ';
 
   @override
-  String get poiDiesel => 'Diesel';
+  String get poiPetrol95 => 'Βενζίνη 95';
 
   @override
-  String get poiPetrol95 => 'Petrol 95';
+  String get poiSmokingAllowed => 'Το κάπνισμα επιτρέπεται';
 
   @override
-  String get poiSmokingAllowed => 'Smoking allowed';
+  String get poiSmokingOutside => 'Κάπνισμα έξω';
 
   @override
-  String get poiSmokingOutside => 'Smoking outside';
+  String get poiSmokingAreas => 'Χώροι καπνιστών';
 
   @override
-  String get poiSmokingAreas => 'Smoking areas';
+  String get poiSmokeFree => 'Χωρίς κάπνισμα';
 
   @override
-  String get poiSmokeFree => 'Smoke-free';
+  String get poiOutdoorSeating => 'Καθίσματα εξωτερικού χώρου';
 
   @override
-  String get poiOutdoorSeating => 'Outdoor seating';
+  String get poiTakeaway => 'Σε πακέτο';
 
   @override
-  String get poiTakeaway => 'Takeaway';
-
-  @override
-  String get poiTakeawayOnly => 'Takeaway only';
+  String get poiTakeawayOnly => 'Μόνο σε πακέτο';
 
   @override
   String get gpsSignalLost => 'Χάθηκε το σήμα GPS';
@@ -1265,4 +1262,15 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get showRoutePreview => 'Προεπισκόπηση διαδρομής';
+
+  @override
+  String get avoidHighwaysAndTolls => 'Αποφυγή αυτοκινητοδρόμων και διοδίων';
+
+  @override
+  String get avoidRouteUnavailable =>
+      'Δεν βρέθηκε διαδρομή που να αποφεύγει και τους αυτοκινητόδρομους και τα διόδια.';
+
+  @override
+  String get avoidanceUnavoidableSection =>
+      'Ελαχιστοποιεί αυτοκινητόδρομους/διόδια · αναπόφευκτο τμήμα';
 }
