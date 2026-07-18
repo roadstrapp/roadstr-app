@@ -792,6 +792,108 @@ class AppLocalizationsIt extends AppLocalizations {
   String get poiWebsite => 'Sito web';
 
   @override
+  String get poiAccessPrivate => 'Accesso privato';
+
+  @override
+  String get poiAccessCustomers => 'Solo clienti';
+
+  @override
+  String get poiAccessPermit => 'Permesso richiesto';
+
+  @override
+  String get poiAccessNo => 'Nessun accesso pubblico';
+
+  @override
+  String get poiAccessDestination => 'Accesso consentito solo a destinazione';
+
+  @override
+  String get poiLightningAccepted => 'Accetta Lightning';
+
+  @override
+  String get poiBitcoinAccepted => 'Accetta Bitcoin';
+
+  @override
+  String get poiParkingDetails => 'Parcheggio';
+
+  @override
+  String get poiParkingSurface => 'In superficie';
+
+  @override
+  String get poiParkingUnderground => 'Sotterraneo';
+
+  @override
+  String get poiParkingMultiStorey => 'Multipiano';
+
+  @override
+  String get poiParkingStreetSide => 'A bordo strada';
+
+  @override
+  String get poiParkingLane => 'Su strada';
+
+  @override
+  String get poiParkingRooftop => 'Sul tetto';
+
+  @override
+  String get poiFee => 'Tariffa';
+
+  @override
+  String get poiFree => 'Gratuito';
+
+  @override
+  String get poiPaid => 'A pagamento';
+
+  @override
+  String get poiCapacity => 'Posti disponibili';
+
+  @override
+  String get poiMaxStay => 'Sosta massima';
+
+  @override
+  String get poiPrice => 'Prezzo';
+
+  @override
+  String get poiChargingDetails => 'Ricarica';
+
+  @override
+  String get poiConnectorType2 => 'Tipo 2';
+
+  @override
+  String get poiConnectorChademo => 'CHAdeMO';
+
+  @override
+  String get poiConnectorCcs => 'CCS';
+
+  @override
+  String get poiFuelAvailable => 'Carburanti disponibili';
+
+  @override
+  String get poiDiesel => 'Diesel';
+
+  @override
+  String get poiPetrol95 => 'Benzina 95';
+
+  @override
+  String get poiSmokingAllowed => 'Fumatori ammessi';
+
+  @override
+  String get poiSmokingOutside => 'Fumatori all\'esterno';
+
+  @override
+  String get poiSmokingAreas => 'Aree fumatori';
+
+  @override
+  String get poiSmokeFree => 'Non fumatori';
+
+  @override
+  String get poiOutdoorSeating => 'Posti all\'aperto';
+
+  @override
+  String get poiTakeaway => 'Asporto';
+
+  @override
+  String get poiTakeawayOnly => 'Solo asporto';
+
+  @override
   String get gpsSignalLost => 'Segnale GPS perso';
 
   @override

@@ -791,6 +791,108 @@ class AppLocalizationsFr extends AppLocalizations {
   String get poiWebsite => 'Site web';
 
   @override
+  String get poiAccessPrivate => 'Private access';
+
+  @override
+  String get poiAccessCustomers => 'Customers only';
+
+  @override
+  String get poiAccessPermit => 'Permit required';
+
+  @override
+  String get poiAccessNo => 'No public access';
+
+  @override
+  String get poiAccessDestination => 'Destination access only';
+
+  @override
+  String get poiLightningAccepted => 'Lightning accepted';
+
+  @override
+  String get poiBitcoinAccepted => 'Bitcoin accepted';
+
+  @override
+  String get poiParkingDetails => 'Parking';
+
+  @override
+  String get poiParkingSurface => 'Surface';
+
+  @override
+  String get poiParkingUnderground => 'Underground';
+
+  @override
+  String get poiParkingMultiStorey => 'Multi-storey';
+
+  @override
+  String get poiParkingStreetSide => 'Street-side';
+
+  @override
+  String get poiParkingLane => 'On-street';
+
+  @override
+  String get poiParkingRooftop => 'Rooftop';
+
+  @override
+  String get poiFee => 'Fee';
+
+  @override
+  String get poiFree => 'Free';
+
+  @override
+  String get poiPaid => 'Paid';
+
+  @override
+  String get poiCapacity => 'Capacity';
+
+  @override
+  String get poiMaxStay => 'Maximum stay';
+
+  @override
+  String get poiPrice => 'Price';
+
+  @override
+  String get poiChargingDetails => 'Charging';
+
+  @override
+  String get poiConnectorType2 => 'Type 2';
+
+  @override
+  String get poiConnectorChademo => 'CHAdeMO';
+
+  @override
+  String get poiConnectorCcs => 'CCS';
+
+  @override
+  String get poiFuelAvailable => 'Fuel available';
+
+  @override
+  String get poiDiesel => 'Diesel';
+
+  @override
+  String get poiPetrol95 => 'Petrol 95';
+
+  @override
+  String get poiSmokingAllowed => 'Smoking allowed';
+
+  @override
+  String get poiSmokingOutside => 'Smoking outside';
+
+  @override
+  String get poiSmokingAreas => 'Smoking areas';
+
+  @override
+  String get poiSmokeFree => 'Smoke-free';
+
+  @override
+  String get poiOutdoorSeating => 'Outdoor seating';
+
+  @override
+  String get poiTakeaway => 'Takeaway';
+
+  @override
+  String get poiTakeawayOnly => 'Takeaway only';
+
+  @override
   String get gpsSignalLost => 'Signal GPS perdu';
 
   @override
