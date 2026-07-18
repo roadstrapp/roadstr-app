@@ -4,6 +4,24 @@ import 'package:latlong2/latlong.dart';
 import 'bounded_http.dart';
 import 'routing_service.dart' show NominatimResult;
 
+enum OsmPoiKind {
+  parking,
+  chargingStation,
+  fuelStation,
+  lodging,
+  foodAndDrink,
+  other,
+}
+
+/// One EV connector advertised by an OSM charging station.
+class OsmEvConnector {
+  final String type;
+  final int? count;
+  final String? output;
+
+  const OsmEvConnector({required this.type, this.count, this.output});
+}
+
 /// Structured, bounded information extracted from the tags of one OSM POI.
 ///
 /// OSM and Overpass responses are untrusted network input. Every text field is
@@ -12,6 +30,7 @@ import 'routing_service.dart' show NominatimResult;
 class OsmPoiDetails {
   final String? name;
   final String category;
+  final OsmPoiKind kind;
   final String? description;
   final String? address;
   final String? openingHours;
@@ -21,10 +40,25 @@ class OsmPoiDetails {
   final String? phone;
   final String? email;
   final Uri? website;
+  final bool acceptsBitcoin;
+  final bool acceptsLightning;
+  final String? access;
+  final String? fee;
+  final String? charge;
+  final int? capacity;
+  final String? maxStay;
+  final String? parkingType;
+  final List<OsmEvConnector> evConnectors;
+  final Set<String> fuels;
+  final String? stars;
+  final String? smoking;
+  final String? outdoorSeating;
+  final String? takeaway;
 
   const OsmPoiDetails({
     required this.name,
     required this.category,
+    this.kind = OsmPoiKind.other,
     this.description,
     this.address,
     this.openingHours,
@@ -34,6 +68,20 @@ class OsmPoiDetails {
     this.phone,
     this.email,
     this.website,
+    this.acceptsBitcoin = false,
+    this.acceptsLightning = false,
+    this.access,
+    this.fee,
+    this.charge,
+    this.capacity,
+    this.maxStay,
+    this.parkingType,
+    this.evConnectors = const [],
+    this.fuels = const {},
+    this.stars,
+    this.smoking,
+    this.outdoorSeating,
+    this.takeaway,
   });
 
   static const _categoryKeys = [
@@ -111,10 +159,80 @@ class OsmPoiDetails {
           : '${spaced[0].toUpperCase()}${spaced.substring(1)}';
     }
 
+    String? knownValue(String key, Set<String> allowed) {
+      final value = text(key, 80)?.toLowerCase();
+      return value != null && allowed.contains(value) ? value : null;
+    }
+
+    bool isYes(String key) {
+      final value = text(key, 20)?.toLowerCase();
+      return value == 'yes' || value == 'only' || value == 'accepted';
+    }
+
+    int? positiveInt(String key, {int max = 100000}) {
+      final value = text(key, 20);
+      if (value == null || !RegExp(r'^\d{1,6}$').hasMatch(value)) return null;
+      final parsed = int.tryParse(value);
+      return parsed != null && parsed > 0 && parsed <= max ? parsed : null;
+    }
+
+    final amenity = text('amenity', 80)?.toLowerCase();
+    final tourism = text('tourism', 80)?.toLowerCase();
+    final kind = switch (amenity) {
+      'parking' || 'parking_entrance' => OsmPoiKind.parking,
+      'charging_station' => OsmPoiKind.chargingStation,
+      'fuel' => OsmPoiKind.fuelStation,
+      'restaurant' ||
+      'cafe' ||
+      'bar' ||
+      'pub' ||
+      'fast_food' =>
+        OsmPoiKind.foodAndDrink,
+      _ when const {
+          'hotel',
+          'motel',
+          'hostel',
+          'guest_house',
+          'apartment',
+        }.contains(tourism) =>
+        OsmPoiKind.lodging,
+      _ => OsmPoiKind.other,
+    };
+
+    final connectors = <OsmEvConnector>[];
+    if (kind == OsmPoiKind.chargingStation) {
+      for (final type in const ['type2', 'chademo', 'type2_combo']) {
+        final raw = text('socket:$type', 20)?.toLowerCase();
+        if (raw == null || raw == 'no' || raw == '0') continue;
+        final count = RegExp(r'^\d{1,3}$').hasMatch(raw)
+            ? int.tryParse(raw)
+            : null;
+        if (count == null && raw != 'yes') continue;
+        connectors.add(OsmEvConnector(
+          type: type,
+          count: count,
+          output: text('socket:$type:output', 60),
+        ));
+      }
+    }
+
+    final fuels = <String>{};
+    if (kind == OsmPoiKind.fuelStation) {
+      if (isYes('fuel:diesel')) fuels.add('diesel');
+      if (isYes('fuel:octane_95')) fuels.add('octane_95');
+    }
+
+    final starsRaw = kind == OsmPoiKind.lodging ? text('stars', 10) : null;
+    final stars = starsRaw != null &&
+            RegExp(r'^[1-7](?:[sS+])?$').hasMatch(starsRaw)
+        ? starsRaw.toUpperCase()
+        : null;
+
     final cuisineRaw = text('cuisine', 120);
     return OsmPoiDetails(
       name: text('name:$languageCode', 160) ?? text('name', 160),
       category: humanize(categoryValue),
+      kind: kind,
       description:
           text('description:$languageCode', 500) ?? text('description', 500),
       address: addressParts.isEmpty ? null : addressParts.join(', '),
@@ -129,6 +247,57 @@ class OsmPoiDetails {
       phone: text('contact:phone', 80) ?? text('phone', 80),
       email: email,
       website: safeWebsite,
+      acceptsBitcoin: isYes('payment:bitcoin'),
+      acceptsLightning: isYes('payment:lightning'),
+      access: knownValue('access', const {
+        'private',
+        'customers',
+        'permit',
+        'no',
+        'destination',
+      }),
+      fee: (kind == OsmPoiKind.parking ||
+              kind == OsmPoiKind.chargingStation)
+          ? text('fee', 80)
+          : null,
+      charge: (kind == OsmPoiKind.parking ||
+              kind == OsmPoiKind.chargingStation)
+          ? text('charge', 120)
+          : null,
+      capacity: (kind == OsmPoiKind.parking ||
+              kind == OsmPoiKind.chargingStation)
+          ? positiveInt('capacity')
+          : null,
+      maxStay: kind == OsmPoiKind.parking ? text('maxstay', 80) : null,
+      parkingType: kind == OsmPoiKind.parking
+          ? knownValue('parking', const {
+              'surface',
+              'underground',
+              'multi-storey',
+              'street_side',
+              'lane',
+              'rooftop',
+            })
+          : null,
+      evConnectors: List.unmodifiable(connectors),
+      fuels: Set.unmodifiable(fuels),
+      stars: stars,
+      smoking: kind == OsmPoiKind.foodAndDrink
+          ? knownValue('smoking', const {
+              'yes',
+              'no',
+              'outside',
+              'separated',
+              'isolated',
+              'dedicated',
+            })
+          : null,
+      outdoorSeating: kind == OsmPoiKind.foodAndDrink
+          ? knownValue('outdoor_seating', const {'yes', 'no'})
+          : null,
+      takeaway: kind == OsmPoiKind.foodAndDrink
+          ? knownValue('takeaway', const {'yes', 'no', 'only'})
+          : null,
     );
   }
 }
