@@ -58,8 +58,8 @@ class Nip44 {
     if (raw.length < 1 + 32 + 32 + 32) {
       throw const Nip44DecryptException('payload too short');
     }
-    final nonce      = raw.sublist(1, 33);
-    final mac        = raw.sublist(raw.length - 32);
+    final nonce = raw.sublist(1, 33);
+    final mac = raw.sublist(raw.length - 32);
     final ciphertext = raw.sublist(33, raw.length - 32);
 
     final convKey = _conversationKey(privKeyHex, pubKeyHex);
@@ -79,8 +79,8 @@ class Nip44 {
     // NIP-44, like NIP-04, only uses the unhashed 32-byte X coordinate of the
     // ECDH shared point. '02' prefix = assume the even-Y point for the
     // x-only Nostr pubkey, matching secp256k1 compressed-point convention.
-    final sharedX = Uint8List.fromList(
-        Kepler.byteSecret(privKeyHex, '02$pubKeyHex')[0]);
+    final sharedX =
+        Uint8List.fromList(Kepler.byteSecret(privKeyHex, '02$pubKeyHex')[0]);
     // HKDF-extract(salt="nip44-v2", ikm=sharedX) == HMAC-SHA256(key=salt, msg=ikm).
     return Uint8List.fromList(_hmacSha256(_saltBytes, sharedX));
   }
@@ -88,9 +88,9 @@ class Nip44 {
   static _MessageKeys _messageKeys(Uint8List convKey, Uint8List nonce) {
     final expanded = _hkdfExpand(convKey, nonce, 76);
     return _MessageKeys(
-      chachaKey:   Uint8List.fromList(expanded.sublist(0, 32)),
+      chachaKey: Uint8List.fromList(expanded.sublist(0, 32)),
       chachaNonce: Uint8List.fromList(expanded.sublist(32, 44)),
-      hmacKey:     Uint8List.fromList(expanded.sublist(44, 76)),
+      hmacKey: Uint8List.fromList(expanded.sublist(44, 76)),
     );
   }
 
@@ -177,5 +177,7 @@ class Nip44 {
 class _MessageKeys {
   final Uint8List chachaKey, chachaNonce, hmacKey;
   const _MessageKeys(
-      {required this.chachaKey, required this.chachaNonce, required this.hmacKey});
+      {required this.chachaKey,
+      required this.chachaNonce,
+      required this.hmacKey});
 }

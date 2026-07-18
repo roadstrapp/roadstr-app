@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import 'bounded_http.dart';
 
 /// A single ZTL zone: name (null when OSM has no `name` tag on the element)
 /// + closed polygon of LatLng vertices.
@@ -84,7 +84,8 @@ class ZtlService {
       _restrictedWays = ways;
       _lastQueryPos = pos;
       _nextRetryAt = null;
-      debugPrint('[ZTL] loaded ${zones.length} zones, ${ways.length} restricted ways');
+      debugPrint(
+          '[ZTL] loaded ${zones.length} zones, ${ways.length} restricted ways');
     } catch (e) {
       debugPrint('[ZTL] fetch failed: $e');
       _endpointIdx = (_endpointIdx + 1) % _endpoints.length;
@@ -178,14 +179,16 @@ class ZtlService {
 out geom;
 ''';
 
-    final res = await http
-        .post(Uri.parse(endpoint),
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-              'User-Agent': 'Roadstr/1.0 (navigation app)',
-            },
-            body: 'data=${Uri.encodeComponent(query)}')
-        .timeout(const Duration(seconds: 25));
+    final res = await BoundedHttp.post(
+      Uri.parse(endpoint),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'Roadstr/1.0 (navigation app)',
+      },
+      body: 'data=${Uri.encodeComponent(query)}',
+      maxBytes: 20 * 1024 * 1024,
+      timeout: const Duration(seconds: 25),
+    );
 
     // Non-200 must THROW (not return empty) so updateIfNeeded rotates mirror
     // and backs off; returning empty would be recorded as a "successful"
@@ -227,7 +230,8 @@ out geom;
           if (geom == null) continue;
           final pts = _geomToLatLng(geom);
           // Append, avoiding duplicate junction points.
-          if (outer.isNotEmpty && pts.isNotEmpty &&
+          if (outer.isNotEmpty &&
+              pts.isNotEmpty &&
               _samePoint(outer.last, pts.first)) {
             outer.addAll(pts.skip(1));
           } else {
@@ -241,8 +245,8 @@ out geom;
   }
 
   static List<LatLng> _geomToLatLng(List geom) => geom
-      .map((g) => LatLng(
-          (g['lat'] as num).toDouble(), (g['lon'] as num).toDouble()))
+      .map((g) =>
+          LatLng((g['lat'] as num).toDouble(), (g['lon'] as num).toDouble()))
       .toList();
 
   static bool _samePoint(LatLng a, LatLng b) =>

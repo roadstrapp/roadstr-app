@@ -29,8 +29,7 @@ class Units {
   }
 
   /// Convert km/h → mph (display only; internal comparisons stay in km/h).
-  static double toDisplaySpeed(double kmh) =>
-      imperial ? kmh / 1.60934 : kmh;
+  static double toDisplaySpeed(double kmh) => imperial ? kmh / 1.60934 : kmh;
 
   static String get speedUnit => imperial ? 'mph' : 'km/h';
 

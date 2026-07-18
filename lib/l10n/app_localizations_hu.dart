@@ -128,6 +128,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Megakadályozza az alvó módot navigáció közben';
 
   @override
+  String get autoCenterOnLaunch => 'Indításkor középre igazítás a helyzetemre';
+
+  @override
+  String get autoCenterOnLaunchDesc =>
+      'Csak akkor használja automatikusan a GPS-t, ha a helyengedélyt már megadták';
+
+  @override
   String get rotateMap => 'A térkép követi az irányt';
 
   @override
@@ -735,10 +742,73 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'A Roadstr egy kísérleti, nyílt forráskódú, közösség által karbantartott navigációs alkalmazás, amely az OpenStreetMap adatain és a Nostr protokollon alapul, és bármely országban használható. Az alkalmazás letöltésével, telepítésével vagy használatával a felhasználó feltétel nélkül elfogadja az alábbi valamennyi feltételt, területi korlátozás nélkül.\n\n🚗 KÖZÚTI BIZTONSÁG MINDENEKELŐTT\nA vezetőnek mindig az útra kell figyelnie, és be kell tartania minden alkalmazandó közlekedési szabályt és kihelyezett jelzést, amelyek mindig elsőbbséget élveznek az alkalmazás bármely utasításával szemben. Soha ne kezelje a készüléket vezetés közben; elindulás előtt rögzítse azt egy jóváhagyott, jól látható tartóban, és amíg a jármű mozgásban van, soha ne terelje el a figyelmét az útról a készülékkel való interakció céljából.\n\n⚠️ KOCKÁZATVÁLLALÁS — VILÁGSZERTE\nA Roadstr használatával, bármely országban és bármely jogrendszer alapján, a felhasználó tudatosan és önkéntesen vállalja az annak használatával összefüggő ÖSSZES kockázatot, ideértve, de nem kizárólagosan: közlekedési baleseteket, személyi sérülést, halált, vagyoni kárt, járműkárt, bírságokat, közigazgatási szankciókat, elszállítást, lefoglalást, büntetőjogi felelősséget, vagy bármely más, az alkalmazásra való hagyatkozásból közvetlenül vagy közvetve eredő következményt. Kizárólag a felhasználó viseli a teljes felelősséget minden vezetési és navigációs döntésért.\n\n🚫 SZAVATOSSÁG KIZÁRÁSA\nA Roadstr szigorúan „ADOTT ÁLLAPOTBAN” („AS IS”) és „AMENNYIBEN ELÉRHETŐ” („AS AVAILABLE”) alapon kerül rendelkezésre bocsátásra, mindennemű szavatosság nélkül, legyen az kifejezett, hallgatólagos vagy jogszabályon alapuló — ideértve, korlátozás nélkül, a pontosságra, teljességre, megbízhatóságra, elérhetőségre, forgalomképességre, adott célra való alkalmasságra és jogtisztaságra vonatkozó szavatosságot. A térképadatok, útvonaltervezés, sebességhatárok, sebességmérő kamerák és korlátozott forgalmú övezetekre (ZTL/ZAC/LTZ) vonatkozó információk nyílt, közösség által karbantartott forrásokból (OpenStreetMap, Overpass API) származnak, amelyek bármely ország, régió vagy önkormányzat tekintetében, bármikor és előzetes értesítés nélkül hiányosak, elavultak vagy pontatlanok lehetnek. Kizárólag a felhasználó felelőssége, hogy az utazás előtt és alatt önállóan ellenőrizze bármely javasolt útvonal jogszerűségét és járhatóságát a hivatalos helyi jelzésekkel és szabályozásokkal összevetve.\n\n📍 PONTOSSÁG ÉS GPS\nA GPS-helymeghatározás pontatlan vagy elérhetetlen lehet. Minden útirányítás, távolságadat és figyelmeztetés kizárólag tájékoztató jellegű, és soha nem tekinthető egy vezetési döntés kizárólagos alapjának.\n\n🛡️ FELELŐSSÉG KORLÁTOZÁSA\nAz alkalmazandó jog által megengedett legteljesebb mértékben, bármely joghatóságban, a fejlesztők, a közreműködők és a Roadstr létrehozásában vagy terjesztésében részt vevő bármely fél nem tehető felelőssé semmilyen közvetlen, közvetett, véletlenszerű, következményes, különleges, példaértékű vagy büntető jellegű kárért — ideértve a személyi sérülést, halált vagy anyagi veszteséget is —, amely az alkalmazás használatából vagy használatának ellehetetlenüléséből ered vagy azzal összefüggésbe hozható, még akkor is, ha tájékoztatták őket az ilyen károk bekövetkezésének lehetőségéről. Amennyiben egy joghatóság e korlátozás egy részét vagy egészét nem teszi lehetővé, a felelősség az adott joghatóságban jogszabály által megengedett legkisebb mértékre korlátozódik.\n\n🤝 KÁRTALANÍTÁS\nA felhasználó vállalja, hogy kártalanítja és mentesíti a fejlesztőket és a közreműködőket minden olyan igény, kár, veszteség vagy költség (ideértve az ügyvédi díjakat is) alól, amely a felhasználó általi alkalmazáshasználatból vagy a jelen feltételek megsértéséből ered.\n\n🔒 ADATVÉDELEM\nA Roadstr saját szerverei felé semmilyen helyadat nem kerül továbbításra. Az útvonalszámítás harmadik fél szolgáltatásain (OSRM, GraphHopper, OpenRouteService) keresztül történik, amelyeknek kizárólag az indulási és célállomás koordinátái kerülnek elküldésre.\n\n⚖️ ELVÁLASZTHATÓSÁG\nAmennyiben a jelen feltételek bármely rendelkezése egy adott joghatóságban végrehajthatatlannak minősül, az adott rendelkezés a szükséges legkisebb mértékben korlátozandó vagy elhagyandó, és a fennmaradó rendelkezések továbbra is teljes hatállyal érvényben maradnak.\n\nA Roadstr világ bármely pontján történő használatával a felhasználó megerősíti, hogy elolvasta, megértette és feltétel nélkül elfogadta a fenti valamennyi feltételt, és teljes és korlátlan felelősséget — valamint minden kockázatot — vállal az alkalmazás használatáért és az abból eredő bármely következményért.';
+      'A Roadstr egy kísérleti, nyílt forráskódú, közösség által karbantartott navigációs alkalmazás, amely az OpenStreetMap adatain és a Nostr protokollon alapul, és bármely országban használható. Az alkalmazás letöltésével, telepítésével vagy használatával a felhasználó feltétel nélkül elfogadja az alábbi valamennyi feltételt, területi korlátozás nélkül.\n\n🚗 KÖZÚTI BIZTONSÁG MINDENEKELŐTT\nA vezetőnek mindig az útra kell figyelnie, és be kell tartania minden alkalmazandó közlekedési szabályt és kihelyezett jelzést, amelyek mindig elsőbbséget élveznek az alkalmazás bármely utasításával szemben. Soha ne kezelje a készüléket vezetés közben; elindulás előtt rögzítse azt egy jóváhagyott, jól látható tartóban, és amíg a jármű mozgásban van, soha ne terelje el a figyelmét az útról a készülékkel való interakció céljából.\n\n⚠️ KOCKÁZATVÁLLALÁS — VILÁGSZERTE\nA Roadstr használatával, bármely országban és bármely jogrendszer alapján, a felhasználó tudatosan és önkéntesen vállalja az annak használatával összefüggő ÖSSZES kockázatot, ideértve, de nem kizárólagosan: közlekedési baleseteket, személyi sérülést, halált, vagyoni kárt, járműkárt, bírságokat, közigazgatási szankciókat, elszállítást, lefoglalást, büntetőjogi felelősséget, vagy bármely más, az alkalmazásra való hagyatkozásból közvetlenül vagy közvetve eredő következményt. Kizárólag a felhasználó viseli a teljes felelősséget minden vezetési és navigációs döntésért.\n\n🚫 SZAVATOSSÁG KIZÁRÁSA\nA Roadstr szigorúan „ADOTT ÁLLAPOTBAN” („AS IS”) és „AMENNYIBEN ELÉRHETŐ” („AS AVAILABLE”) alapon kerül rendelkezésre bocsátásra, mindennemű szavatosság nélkül, legyen az kifejezett, hallgatólagos vagy jogszabályon alapuló — ideértve, korlátozás nélkül, a pontosságra, teljességre, megbízhatóságra, elérhetőségre, forgalomképességre, adott célra való alkalmasságra és jogtisztaságra vonatkozó szavatosságot. A térképadatok, útvonaltervezés, sebességhatárok, sebességmérő kamerák és korlátozott forgalmú övezetekre (ZTL/ZAC/LTZ) vonatkozó információk nyílt, közösség által karbantartott forrásokból (OpenStreetMap, Overpass API) származnak, amelyek bármely ország, régió vagy önkormányzat tekintetében, bármikor és előzetes értesítés nélkül hiányosak, elavultak vagy pontatlanok lehetnek. Kizárólag a felhasználó felelőssége, hogy az utazás előtt és alatt önállóan ellenőrizze bármely javasolt útvonal jogszerűségét és járhatóságát a hivatalos helyi jelzésekkel és szabályozásokkal összevetve.\n\n📍 PONTOSSÁG ÉS GPS\nA GPS-helymeghatározás pontatlan vagy elérhetetlen lehet. Minden útirányítás, távolságadat és figyelmeztetés kizárólag tájékoztató jellegű, és soha nem tekinthető egy vezetési döntés kizárólagos alapjának.\n\n🛡️ FELELŐSSÉG KORLÁTOZÁSA\nAz alkalmazandó jog által megengedett legteljesebb mértékben, bármely joghatóságban, a fejlesztők, a közreműködők és a Roadstr létrehozásában vagy terjesztésében részt vevő bármely fél nem tehető felelőssé semmilyen közvetlen, közvetett, véletlenszerű, következményes, különleges, példaértékű vagy büntető jellegű kárért — ideértve a személyi sérülést, halált vagy anyagi veszteséget is —, amely az alkalmazás használatából vagy használatának ellehetetlenüléséből ered vagy azzal összefüggésbe hozható, még akkor is, ha tájékoztatták őket az ilyen károk bekövetkezésének lehetőségéről. Amennyiben egy joghatóság e korlátozás egy részét vagy egészét nem teszi lehetővé, a felelősség az adott joghatóságban jogszabály által megengedett legkisebb mértékre korlátozódik.\n\n🤝 KÁRTALANÍTÁS\nA felhasználó vállalja, hogy kártalanítja és mentesíti a fejlesztőket és a közreműködőket minden olyan igény, kár, veszteség vagy költség (ideértve az ügyvédi díjakat is) alól, amely a felhasználó általi alkalmazáshasználatból vagy a jelen feltételek megsértéséből ered.\n\n🔒 PRIVACY AND NETWORK SERVICES\nRoadstr runs no first-party servers or analytics, but it is not an offline app. When relevant features are used, coordinates or coarse areas and the IP address are sent directly to third parties: routing providers (origin, destination and waypoints), OpenStreetMap/Nominatim/Overpass (search, reverse geocoding, POIs, restricted zones, limits and cameras), Open-Meteo (rounded coordinates), map-tile servers and Nostr relays (city-level geohash). A road report publishes its exact position, time, content and public key to Nostr and is pseudonymous, not anonymous. Favorites and parking remain local unless explicitly exported or synced.\n\n⚖️ ELVÁLASZTHATÓSÁG\nAmennyiben a jelen feltételek bármely rendelkezése egy adott joghatóságban végrehajthatatlannak minősül, az adott rendelkezés a szükséges legkisebb mértékben korlátozandó vagy elhagyandó, és a fennmaradó rendelkezések továbbra is teljes hatállyal érvényben maradnak.\n\nA Roadstr világ bármely pontján történő használatával a felhasználó megerősíti, hogy elolvasta, megértette és feltétel nélkül elfogadta a fenti valamennyi feltételt, és teljes és korlátlan felelősséget — valamint minden kockázatot — vállal az alkalmazás használatáért és az abból eredő bármely következményért.';
 
   @override
   String get readOnWikipedia => 'Olvasd el a Wikipédián';
+
+  @override
+  String get openInBrowser => 'Megnyitás böngészőben';
+
+  @override
+  String get wikipediaLoadFailed =>
+      'A Wikipédia nem tölthető be biztonságosan.';
+
+  @override
+  String get retry => 'Újra';
+
+  @override
+  String get poiDetailsFromOsm => 'Információk az OpenStreetMapről';
+
+  @override
+  String get poiCategory => 'Kategória';
+
+  @override
+  String get poiOperator => 'Üzemeltető';
+
+  @override
+  String get poiCuisine => 'Konyha';
+
+  @override
+  String get poiAccessibility => 'Akadálymentesség';
+
+  @override
+  String get poiWheelchairYes => 'Kerekesszékkel megközelíthető';
+
+  @override
+  String get poiWheelchairLimited =>
+      'Korlátozottan megközelíthető kerekesszékkel';
+
+  @override
+  String get poiWheelchairNo => 'Kerekesszékkel nem megközelíthető';
+
+  @override
+  String get poiContact => 'Kapcsolat';
+
+  @override
+  String get poiAddress => 'Cím';
+
+  @override
+  String get poiWebsite => 'Webhely';
+
+  @override
+  String get gpsSignalLost => 'A GPS-jel megszakadt';
+
+  @override
+  String get poiOpenNow => 'Most nyitva';
+
+  @override
+  String get poiClosedNow => 'Zárva';
+
+  @override
+  String poiOpensAt(String when) {
+    return 'Nyit: $when';
+  }
+
+  @override
+  String poiClosesAt(String when) {
+    return 'Zár: $when';
+  }
 
   @override
   String searchOnEngine(String engine) {
@@ -907,7 +977,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.';
+      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
 
   @override
   String get onboardingVoiceTitle => 'AI hangvezetés (opcionális)';
@@ -1062,10 +1132,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get onboardingVpnNotice =>
       'A maximális adatvédelem érdekében — a bejelentések a Nostr hálózaton terjednek — VPN használata ajánlott. Az ajánlott választás a Mullvad, amely Bitcoinnal fizethető.';
-
-  @override
-  String get onboardingGrapheneAlwaysAllow =>
-      'A megbízható működéshez állítsd az alkalmazás helymeghatározási engedélyét „Mindig engedélyezés”-re, ne csak használat közben.';
 
   @override
   String get trafficNormal => 'Normál forgalom';

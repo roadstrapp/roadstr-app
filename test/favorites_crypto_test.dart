@@ -4,7 +4,8 @@ import 'package:roadstr/services/favorites_crypto.dart';
 void main() {
   test('round-trips with the correct password', () {
     const plaintext = '{"favorites":[{"label":"Casa","lat":45.46,"lon":9.19}]}';
-    final env = FavoritesCrypto.encrypt(plaintext, 'correct horse battery staple');
+    final env =
+        FavoritesCrypto.encrypt(plaintext, 'correct horse battery staple');
     final out = FavoritesCrypto.decrypt(env, 'correct horse battery staple');
     expect(out, plaintext);
   });
@@ -19,8 +20,8 @@ void main() {
     final env = FavoritesCrypto.encrypt('secret data', 'pw');
     final tampered = Map<String, dynamic>.from(env);
     final bytes = (tampered['ciphertext'] as String).codeUnits;
-    tampered['ciphertext'] =
-        String.fromCharCodes([...bytes.sublist(0, bytes.length - 4), 65, 65, 65, 65]);
+    tampered['ciphertext'] = String.fromCharCodes(
+        [...bytes.sublist(0, bytes.length - 4), 65, 65, 65, 65]);
     expect(() => FavoritesCrypto.decrypt(tampered, 'pw'),
         throwsA(isA<FavoritesDecryptException>()));
   });

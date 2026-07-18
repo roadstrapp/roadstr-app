@@ -293,8 +293,19 @@
   "lightningAddressCopied": "⚡ {address} skopírované do schránky",
   "disclaimerTitle": "Dôležité upozornenie",
   "disclaimerAccept": "Prečítal/a som a súhlasím",
-  "disclaimerBody": "Roadstr je experimentálna, open-source, komunitou spravovaná navigačná aplikácia založená na dátach OpenStreetMap a protokole Nostr, sprístupnená na použitie v ktorejkoľvek krajine. Stiahnutím, inštaláciou alebo používaním tejto aplikácie používateľ bezpodmienečne prijíma všetky nasledujúce podmienky, bez územného obmedzenia.\n\n🚗 BEZPEČNOSŤ CESTNEJ PREMÁVKY NA PRVOM MIESTE\nVodič musí vždy sledovať cestu a dodržiavať všetky platné dopravné predpisy a umiestnené dopravné značenie, ktoré má vždy prednosť pred akýmkoľvek pokynom aplikácie. Nikdy neobsluhujte zariadenie počas jazdy; pred vyrazením na cestu ho upevnite v schválenom, viditeľnom držiaku a počas jazdy vozidla nikdy neodkláňajte pozornosť od cesty kvôli interakcii s ním.\n\n⚠️ PREVZATIE RIZIKA — CELOSVETOVO\nPoužívaním aplikácie Roadstr, v ktorejkoľvek krajine a podľa akéhokoľvek právneho systému, používateľ vedome a dobrovoľne preberá VŠETKY riziká spojené s jej používaním, vrátane, ale nie výlučne: dopravných nehôd, ublíženia na zdraví, úmrtia, škody na majetku, poškodenia vozidla, pokút, správnych sankcií, odtiahnutia vozidla, jeho zaistenia, trestnoprávnej zodpovednosti alebo akýchkoľvek iných následkov vyplývajúcich priamo či nepriamo zo spoliehania sa na aplikáciu. Používateľ sám nesie plnú zodpovednosť za každé rozhodnutie súvisiace s vedením vozidla a navigáciou.\n\n🚫 ŽIADNA ZÁRUKA\nRoadstr sa poskytuje výlučne „TAK, AKO JE“ a „PODĽA DOSTUPNOSTI“, bez akejkoľvek záruky, či už výslovnej, implicitnej alebo zákonnej — vrátane, bez obmedzenia, záruk presnosti, úplnosti, spoľahlivosti, dostupnosti, predajnosti, vhodnosti na konkrétny účel a neporušovania práv. Mapové dáta, plánovanie trasy, rýchlostné limity, informácie o rýchlostných kamerách a zónach s obmedzenou dopravou (ZTL/ZAC/LTZ) pochádzajú z otvorených, komunitou spravovaných zdrojov (OpenStreetMap, Overpass API), ktoré môžu byť neúplné, zastarané alebo nepresné pre ktorúkoľvek krajinu, región alebo obec, kedykoľvek a bez upozornenia. Používateľ je výlučne zodpovedný za to, aby si pred cestou a počas nej samostatne overil zákonnosť a priechodnosť akejkoľvek navrhovanej trasy porovnaním s oficiálnym miestnym dopravným značením a predpismi.\n\n📍 PRESNOSŤ A GPS\nUrčovanie polohy prostredníctvom GPS môže byť nepresné alebo nedostupné. Všetky pokyny, vzdialenosti a upozornenia sú poskytované len na orientačné účely a nikdy by sa nemali považovať za jediný podklad pre rozhodnutie o vedení vozidla.\n\n🛡️ OBMEDZENIE ZODPOVEDNOSTI\nV najväčšom rozsahu povolenom platným právom v ktorejkoľvek jurisdikcii, vývojári, prispievatelia a akákoľvek strana zúčastnená na tvorbe alebo distribúcii aplikácie Roadstr nenesú zodpovednosť za žiadne priame, nepriame, náhodné, následné, osobitné, exemplárne alebo represívne škody akéhokoľvek druhu — vrátane ublíženia na zdraví, úmrtia alebo finančnej straty — vyplývajúce z používania alebo nemožnosti používať aplikáciu alebo s tým súvisiace, a to aj v prípade, že boli upozornení na možnosť vzniku takýchto škôd. Ak niektorá jurisdikcia neumožňuje čiastočne alebo úplne uplatniť toto obmedzenie, zodpovednosť sa obmedzuje na najmenší rozsah povolený právom danej jurisdikcie.\n\n🤝 NÁHRADA ŠKODY\nPoužívateľ súhlasí s tým, že odškodní a ochráni vývojárov a prispievateľov pred akýmikoľvek nárokmi, škodami, stratami alebo výdavkami (vrátane trov právneho zastúpenia) vyplývajúcimi z používania aplikácie používateľom alebo z porušenia týchto podmienok.\n\n🔒 OCHRANA SÚKROMIA\nŽiadne údaje o polohe sa neprenášajú na vlastné servery Roadstr. Výpočet trasy sa vykonáva prostredníctvom služieb tretích strán (OSRM, GraphHopper, OpenRouteService), ktorým sa odosielajú iba súradnice východiskového bodu a cieľa.\n\n⚖️ ODDELITEĽNOSŤ\nAk sa niektoré ustanovenie týchto podmienok v danej jurisdikcii ukáže ako nevymáhateľné, toto ustanovenie sa obmedzí alebo vypustí v minimálnom nevyhnutnom rozsahu a všetky ostatné ustanovenia zostávajú v plnej platnosti a účinnosti.\n\nPoužívaním aplikácie Roadstr, kdekoľvek na svete, používateľ potvrdzuje, že si prečítal, porozumel a bezpodmienečne prijal všetky vyššie uvedené podmienky, a preberá úplnú a výhradnú zodpovednosť — ako aj všetky riziká — za používanie aplikácie a akékoľvek z toho vyplývajúce následky.",
+  "disclaimerBody": "Roadstr je experimentálna, open-source, komunitou spravovaná navigačná aplikácia založená na dátach OpenStreetMap a protokole Nostr, sprístupnená na použitie v ktorejkoľvek krajine. Stiahnutím, inštaláciou alebo používaním tejto aplikácie používateľ bezpodmienečne prijíma všetky nasledujúce podmienky, bez územného obmedzenia.\n\n🚗 BEZPEČNOSŤ CESTNEJ PREMÁVKY NA PRVOM MIESTE\nVodič musí vždy sledovať cestu a dodržiavať všetky platné dopravné predpisy a umiestnené dopravné značenie, ktoré má vždy prednosť pred akýmkoľvek pokynom aplikácie. Nikdy neobsluhujte zariadenie počas jazdy; pred vyrazením na cestu ho upevnite v schválenom, viditeľnom držiaku a počas jazdy vozidla nikdy neodkláňajte pozornosť od cesty kvôli interakcii s ním.\n\n⚠️ PREVZATIE RIZIKA — CELOSVETOVO\nPoužívaním aplikácie Roadstr, v ktorejkoľvek krajine a podľa akéhokoľvek právneho systému, používateľ vedome a dobrovoľne preberá VŠETKY riziká spojené s jej používaním, vrátane, ale nie výlučne: dopravných nehôd, ublíženia na zdraví, úmrtia, škody na majetku, poškodenia vozidla, pokút, správnych sankcií, odtiahnutia vozidla, jeho zaistenia, trestnoprávnej zodpovednosti alebo akýchkoľvek iných následkov vyplývajúcich priamo či nepriamo zo spoliehania sa na aplikáciu. Používateľ sám nesie plnú zodpovednosť za každé rozhodnutie súvisiace s vedením vozidla a navigáciou.\n\n🚫 ŽIADNA ZÁRUKA\nRoadstr sa poskytuje výlučne „TAK, AKO JE“ a „PODĽA DOSTUPNOSTI“, bez akejkoľvek záruky, či už výslovnej, implicitnej alebo zákonnej — vrátane, bez obmedzenia, záruk presnosti, úplnosti, spoľahlivosti, dostupnosti, predajnosti, vhodnosti na konkrétny účel a neporušovania práv. Mapové dáta, plánovanie trasy, rýchlostné limity, informácie o rýchlostných kamerách a zónach s obmedzenou dopravou (ZTL/ZAC/LTZ) pochádzajú z otvorených, komunitou spravovaných zdrojov (OpenStreetMap, Overpass API), ktoré môžu byť neúplné, zastarané alebo nepresné pre ktorúkoľvek krajinu, región alebo obec, kedykoľvek a bez upozornenia. Používateľ je výlučne zodpovedný za to, aby si pred cestou a počas nej samostatne overil zákonnosť a priechodnosť akejkoľvek navrhovanej trasy porovnaním s oficiálnym miestnym dopravným značením a predpismi.\n\n📍 PRESNOSŤ A GPS\nUrčovanie polohy prostredníctvom GPS môže byť nepresné alebo nedostupné. Všetky pokyny, vzdialenosti a upozornenia sú poskytované len na orientačné účely a nikdy by sa nemali považovať za jediný podklad pre rozhodnutie o vedení vozidla.\n\n🛡️ OBMEDZENIE ZODPOVEDNOSTI\nV najväčšom rozsahu povolenom platným právom v ktorejkoľvek jurisdikcii, vývojári, prispievatelia a akákoľvek strana zúčastnená na tvorbe alebo distribúcii aplikácie Roadstr nenesú zodpovednosť za žiadne priame, nepriame, náhodné, následné, osobitné, exemplárne alebo represívne škody akéhokoľvek druhu — vrátane ublíženia na zdraví, úmrtia alebo finančnej straty — vyplývajúce z používania alebo nemožnosti používať aplikáciu alebo s tým súvisiace, a to aj v prípade, že boli upozornení na možnosť vzniku takýchto škôd. Ak niektorá jurisdikcia neumožňuje čiastočne alebo úplne uplatniť toto obmedzenie, zodpovednosť sa obmedzuje na najmenší rozsah povolený právom danej jurisdikcie.\n\n🤝 NÁHRADA ŠKODY\nPoužívateľ súhlasí s tým, že odškodní a ochráni vývojárov a prispievateľov pred akýmikoľvek nárokmi, škodami, stratami alebo výdavkami (vrátane trov právneho zastúpenia) vyplývajúcimi z používania aplikácie používateľom alebo z porušenia týchto podmienok.\n\n🔒 PRIVACY AND NETWORK SERVICES\nRoadstr runs no first-party servers or analytics, but it is not an offline app. When relevant features are used, coordinates or coarse areas and the IP address are sent directly to third parties: routing providers (origin, destination and waypoints), OpenStreetMap/Nominatim/Overpass (search, reverse geocoding, POIs, restricted zones, limits and cameras), Open-Meteo (rounded coordinates), map-tile servers and Nostr relays (city-level geohash). A road report publishes its exact position, time, content and public key to Nostr and is pseudonymous, not anonymous. Favorites and parking remain local unless explicitly exported or synced.\n\n⚖️ ODDELITEĽNOSŤ\nAk sa niektoré ustanovenie týchto podmienok v danej jurisdikcii ukáže ako nevymáhateľné, toto ustanovenie sa obmedzí alebo vypustí v minimálnom nevyhnutnom rozsahu a všetky ostatné ustanovenia zostávajú v plnej platnosti a účinnosti.\n\nPoužívaním aplikácie Roadstr, kdekoľvek na svete, používateľ potvrdzuje, že si prečítal, porozumel a bezpodmienečne prijal všetky vyššie uvedené podmienky, a preberá úplnú a výhradnú zodpovednosť — ako aj všetky riziká — za používanie aplikácie a akékoľvek z toho vyplývajúce následky.",
   "readOnWikipedia": "Čítať na Wikipédii",
+  "gpsSignalLost": "Strata signálu GPS",
+  "poiOpenNow": "Teraz otvorené",
+  "poiClosedNow": "Zatvorené",
+  "poiOpensAt": "Otvára: {when}",
+  "@poiOpensAt": {
+    "placeholders": { "when": { "type": "String" } }
+  },
+  "poiClosesAt": "Zatvára: {when}",
+  "@poiClosesAt": {
+    "placeholders": { "when": { "type": "String" } }
+  },
   "searchOnEngine": "Hľadať na {engine}",
   "plannerFromHint": "Odkiaľ…",
   "plannerToHint": "Cieľ…",
@@ -343,7 +354,7 @@
   "onboardingLocationRequired": "Potrebné pre GPS navigáciu",
   "onboardingGrantButton": "Povoliť",
   "onboardingGrapheneTitle": "Používatelia GrapheneOS",
-  "onboardingGrapheneBody": "Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.",
+  "onboardingGrapheneBody": "Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.",
   "onboardingVoiceTitle": "Hlasové navádzanie AI (voliteľné)",
   "onboardingVoiceReady": "Hlasový model Kokoro je pripravený",
   "onboardingVoiceDownloading": "Sťahovanie hlasového modelu…",
@@ -357,7 +368,6 @@
   "onboardingProfileLoading": "Načítava sa profil…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "Pre maximálne súkromie — hlásenia sa šíria sieťou Nostr — odporúčame používať VPN. Odporúčanou voľbou je Mullvad s platbou v bitcoinoch.",
-  "onboardingGrapheneAlwaysAllow": "Pre spoľahlivú prevádzku nastavte povolenie polohy na „Povoliť vždy“, nie iba počas používania aplikácie.",
   "exportFavoritesTitle": "Exportovať obľúbené",
   "exportFavoritesDesc": "Uložte si svoje obľúbené miesta do súboru JSON, ktorý môžete zálohovať alebo preniesť na iné zariadenie.",
   "exportEncryptToggle": "Šifrovať heslom",
@@ -419,5 +429,21 @@
       }
     }
   },
-  "showRoutePreview": "Zobraziť náhľad trasy"
+  "showRoutePreview": "Zobraziť náhľad trasy",
+  "autoCenterOnLaunch": "Pri spustení vycentrovať na moju polohu",
+  "autoCenterOnLaunchDesc": "Automaticky použije GPS iba vtedy, ak už bolo udelené povolenie k polohe",
+  "openInBrowser": "Otvoriť v prehliadači",
+  "wikipediaLoadFailed": "Wikipédiu sa nepodarilo bezpečne načítať.",
+  "retry": "Skúsiť znova",
+  "poiDetailsFromOsm": "Informácie z OpenStreetMap",
+  "poiCategory": "Kategória",
+  "poiOperator": "Prevádzkovateľ",
+  "poiCuisine": "Kuchyňa",
+  "poiAccessibility": "Prístupnosť",
+  "poiWheelchairYes": "Bezbariérový prístup",
+  "poiWheelchairLimited": "Obmedzený bezbariérový prístup",
+  "poiWheelchairNo": "Bez bezbariérového prístupu",
+  "poiContact": "Kontakt",
+  "poiAddress": "Adresa",
+  "poiWebsite": "Webová stránka"
 }

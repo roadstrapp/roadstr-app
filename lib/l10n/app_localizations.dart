@@ -364,6 +364,18 @@ abstract class AppLocalizations {
   /// **'Prevents sleep during navigation'**
   String get keepScreenOnDescription;
 
+  /// No description provided for @autoCenterOnLaunch.
+  ///
+  /// In en, this message translates to:
+  /// **'Center on my position at startup'**
+  String get autoCenterOnLaunch;
+
+  /// No description provided for @autoCenterOnLaunchDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses GPS automatically only after location permission has already been granted'**
+  String get autoCenterOnLaunchDesc;
+
   /// No description provided for @rotateMap.
   ///
   /// In en, this message translates to:
@@ -1477,7 +1489,7 @@ abstract class AppLocalizations {
   /// No description provided for @disclaimerBody.
   ///
   /// In en, this message translates to:
-  /// **'Roadstr is an experimental, open-source, community-maintained navigation app based on OpenStreetMap data and the Nostr protocol, made available for use in any country. By downloading, installing or using this app, the user unconditionally accepts all of the following terms, without limitation of territory:\n\n🚗  ROAD SAFETY FIRST\nThe driver must always keep their eyes on the road and comply with all applicable traffic laws and posted signage, which always take precedence over any instruction from the app. Never operate the device while driving; secure it in an approved, visible mount before setting off, and never divert attention from the road to interact with it while the vehicle is moving.\n\n⚠️  ASSUMPTION OF RISK — WORLDWIDE\nBy using Roadstr, in any country and under any legal system, the user knowingly and voluntarily assumes ALL risks connected with its use, including but not limited to: traffic accidents, personal injury, death, property damage, vehicle damage, fines, administrative penalties, towing, impoundment, criminal liability, or any other consequence arising directly or indirectly from reliance on the app. The user alone bears full responsibility for every driving and navigation decision.\n\n🚫  NO WARRANTY\nRoadstr is provided strictly \"AS IS\" and \"AS AVAILABLE\", without any warranty of any kind, whether express, implied, or statutory — including, without limitation, warranties of accuracy, completeness, reliability, availability, merchantability, fitness for a particular purpose, and non-infringement. Map data, routing, speed limits, speed cameras, and restricted-traffic-zone (ZTL/ZAC/LTZ) information come from open, community-maintained sources (OpenStreetMap, Overpass API) that may be incomplete, outdated, or inaccurate for any country, region, or municipality, at any time and without notice. The user is solely responsible for independently verifying, before and during travel, the legality and accessibility of any suggested route against official local signage and regulations.\n\n📍  ACCURACY & GPS\nGPS positioning may be inaccurate or unavailable. All directions, distances, and alerts are provided for guidance only and must never be relied upon as the sole basis for a driving decision.\n\n🛡️  LIMITATION OF LIABILITY\nTo the maximum extent permitted by applicable law in any jurisdiction, the developers, contributors, and any party involved in creating or distributing Roadstr shall not be liable for any direct, indirect, incidental, consequential, special, exemplary, or punitive damages of any kind — including personal injury, death, or financial loss — arising out of or related to the use or inability to use the app, even if advised of the possibility of such damages. Where a jurisdiction does not allow some or all of this limitation, liability is limited to the smallest extent permitted by law in that jurisdiction.\n\n🤝  INDEMNIFICATION\nThe user agrees to indemnify and hold harmless the developers and contributors from any claim, damage, loss, or expense (including legal fees) arising from the user\'s use of the app or violation of these terms.\n\n🔒  PRIVACY\nNo location data is transmitted to Roadstr\'s own servers. Route calculation is performed via third-party services (OSRM, GraphHopper, OpenRouteService) to which only the start and destination coordinates are sent.\n\n⚖️  SEVERABILITY\nIf any provision of these terms is found unenforceable in a given jurisdiction, that provision shall be limited or severed to the minimum extent necessary, and all remaining provisions shall remain in full force and effect.\n\nBy using Roadstr, anywhere in the world, the user confirms they have read, understood, and unconditionally accepted every term above, and assumes full and complete responsibility — and all risk — for the use of the application and any consequence arising from it.'**
+  /// **'Roadstr is an experimental, open-source, community-maintained navigation app based on OpenStreetMap data and the Nostr protocol, made available for use in any country. By downloading, installing or using this app, the user unconditionally accepts all of the following terms, without limitation of territory:\n\n🚗  ROAD SAFETY FIRST\nThe driver must always keep their eyes on the road and comply with all applicable traffic laws and posted signage, which always take precedence over any instruction from the app. Never operate the device while driving; secure it in an approved, visible mount before setting off, and never divert attention from the road to interact with it while the vehicle is moving.\n\n⚠️  ASSUMPTION OF RISK — WORLDWIDE\nBy using Roadstr, in any country and under any legal system, the user knowingly and voluntarily assumes ALL risks connected with its use, including but not limited to: traffic accidents, personal injury, death, property damage, vehicle damage, fines, administrative penalties, towing, impoundment, criminal liability, or any other consequence arising directly or indirectly from reliance on the app. The user alone bears full responsibility for every driving and navigation decision.\n\n🚫  NO WARRANTY\nRoadstr is provided strictly \"AS IS\" and \"AS AVAILABLE\", without any warranty of any kind, whether express, implied, or statutory — including, without limitation, warranties of accuracy, completeness, reliability, availability, merchantability, fitness for a particular purpose, and non-infringement. Map data, routing, speed limits, speed cameras, and restricted-traffic-zone (ZTL/ZAC/LTZ) information come from open, community-maintained sources (OpenStreetMap, Overpass API) that may be incomplete, outdated, or inaccurate for any country, region, or municipality, at any time and without notice. The user is solely responsible for independently verifying, before and during travel, the legality and accessibility of any suggested route against official local signage and regulations.\n\n📍  ACCURACY & GPS\nGPS positioning may be inaccurate or unavailable. All directions, distances, and alerts are provided for guidance only and must never be relied upon as the sole basis for a driving decision.\n\n🛡️  LIMITATION OF LIABILITY\nTo the maximum extent permitted by applicable law in any jurisdiction, the developers, contributors, and any party involved in creating or distributing Roadstr shall not be liable for any direct, indirect, incidental, consequential, special, exemplary, or punitive damages of any kind — including personal injury, death, or financial loss — arising out of or related to the use or inability to use the app, even if advised of the possibility of such damages. Where a jurisdiction does not allow some or all of this limitation, liability is limited to the smallest extent permitted by law in that jurisdiction.\n\n🤝  INDEMNIFICATION\nThe user agrees to indemnify and hold harmless the developers and contributors from any claim, damage, loss, or expense (including legal fees) arising from the user\'s use of the app or violation of these terms.\n\n🔒 PRIVACY AND NETWORK SERVICES\nRoadstr runs no first-party servers or analytics, but it is not an offline app. When relevant features are used, coordinates or coarse areas and the IP address are sent directly to third parties: routing providers (origin, destination and waypoints), OpenStreetMap/Nominatim/Overpass (search, reverse geocoding, POIs, restricted zones, limits and cameras), Open-Meteo (rounded coordinates), map-tile servers and Nostr relays (city-level geohash). A road report publishes its exact position, time, content and public key to Nostr and is pseudonymous, not anonymous. Favorites and parking remain local unless explicitly exported or synced.\n\n⚖️  SEVERABILITY\nIf any provision of these terms is found unenforceable in a given jurisdiction, that provision shall be limited or severed to the minimum extent necessary, and all remaining provisions shall remain in full force and effect.\n\nBy using Roadstr, anywhere in the world, the user confirms they have read, understood, and unconditionally accepted every term above, and assumes full and complete responsibility — and all risk — for the use of the application and any consequence arising from it.'**
   String get disclaimerBody;
 
   /// No description provided for @readOnWikipedia.
@@ -1485,6 +1497,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Read on Wikipedia'**
   String get readOnWikipedia;
+
+  /// No description provided for @openInBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get openInBrowser;
+
+  /// No description provided for @wikipediaLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Wikipedia could not be loaded securely.'**
+  String get wikipediaLoadFailed;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @poiDetailsFromOsm.
+  ///
+  /// In en, this message translates to:
+  /// **'Information from OpenStreetMap'**
+  String get poiDetailsFromOsm;
+
+  /// No description provided for @poiCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get poiCategory;
+
+  /// No description provided for @poiOperator.
+  ///
+  /// In en, this message translates to:
+  /// **'Operator'**
+  String get poiOperator;
+
+  /// No description provided for @poiCuisine.
+  ///
+  /// In en, this message translates to:
+  /// **'Cuisine'**
+  String get poiCuisine;
+
+  /// No description provided for @poiAccessibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Accessibility'**
+  String get poiAccessibility;
+
+  /// No description provided for @poiWheelchairYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Wheelchair accessible'**
+  String get poiWheelchairYes;
+
+  /// No description provided for @poiWheelchairLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Limited wheelchair access'**
+  String get poiWheelchairLimited;
+
+  /// No description provided for @poiWheelchairNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Not wheelchair accessible'**
+  String get poiWheelchairNo;
+
+  /// No description provided for @poiContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get poiContact;
+
+  /// No description provided for @poiAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get poiAddress;
+
+  /// No description provided for @poiWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get poiWebsite;
+
+  /// No description provided for @gpsSignalLost.
+  ///
+  /// In en, this message translates to:
+  /// **'GPS signal lost'**
+  String get gpsSignalLost;
+
+  /// No description provided for @poiOpenNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Open now'**
+  String get poiOpenNow;
+
+  /// No description provided for @poiClosedNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get poiClosedNow;
+
+  /// No description provided for @poiOpensAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens: {when}'**
+  String poiOpensAt(String when);
+
+  /// No description provided for @poiClosesAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Closes: {when}'**
+  String poiClosesAt(String when);
 
   /// No description provided for @searchOnEngine.
   ///
@@ -1777,7 +1903,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingGrapheneBody.
   ///
   /// In en, this message translates to:
-  /// **'Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.'**
+  /// **'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.'**
   String get onboardingGrapheneBody;
 
   /// No description provided for @onboardingVoiceTitle.
@@ -2055,12 +2181,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'For maximum privacy — road reports are propagated through the Nostr network — using a VPN is recommended. Mullvad, payable in Bitcoin, is the recommended choice.'**
   String get onboardingVpnNotice;
-
-  /// No description provided for @onboardingGrapheneAlwaysAllow.
-  ///
-  /// In en, this message translates to:
-  /// **'For reliable operation, set the app\'s location permission to \"Allow all the time\", not only while the app is in use.'**
-  String get onboardingGrapheneAlwaysAllow;
 
   /// No description provided for @trafficNormal.
   ///

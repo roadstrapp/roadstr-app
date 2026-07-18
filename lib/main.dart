@@ -16,6 +16,7 @@
 //      build uses the correct theme/locale without a flicker.
 //   5. runApp is called with a MultiProvider tree wrapping RoadstrApp.
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/locale_provider.dart';
@@ -48,7 +50,13 @@ Future<void> main() async {
   // saved place coordinates); the key lives in the Android Keystore via
   // FlutterSecureStorage. Existing plaintext boxes are migrated once.
   await Hive.initFlutter();
-  await _openEncryptedSettingsBox();
+  try {
+    await _openEncryptedSettingsBox();
+  } catch (error) {
+    debugPrint('[Storage] Protected settings unavailable: $error');
+    runApp(const _StorageUnavailableApp());
+    return;
+  }
 
   // Step 3a: Allow portrait and landscape (left/right); disallow upside-down.
   await SystemChrome.setPreferredOrientations([
@@ -89,12 +97,11 @@ Future<void> main() async {
 /// update, an existing plaintext box is migrated in place: its content is
 /// copied into the encrypted box and the plaintext file is deleted.
 ///
-/// Failure policy: if secure storage is unavailable (rare vendor bugs) the
-/// box opens unencrypted rather than crashing the app at startup — the data
-/// is app-private either way; encryption is defence in depth.
+/// Failure policy: fail closed while preserving the original file. Favorites,
+/// history, parking position and the optional sync passphrase must never be
+/// silently opened in plaintext or erased after a transient Keystore error.
 Future<void> _openEncryptedSettingsBox() async {
-  const st = FlutterSecureStorage(
-      aOptions: AndroidOptions(encryptedSharedPreferences: true));
+  const st = FlutterSecureStorage();
   List<int>? key;
   try {
     final stored = await st.read(key: 'hive_settings_key');
@@ -104,34 +111,103 @@ Future<void> _openEncryptedSettingsBox() async {
       key = Hive.generateSecureKey();
       await st.write(key: 'hive_settings_key', value: base64Encode(key));
     }
-  } catch (e) {
-    debugPrint('[Hive] secure storage unavailable, opening plaintext: $e');
-    await Hive.openBox('settings');
-    return;
+  } catch (_) {
+    throw StateError(
+        'Secure storage is unavailable; settings were not opened.');
+  }
+
+  if (key.length != 32) {
+    throw StateError('The settings encryption key is invalid.');
   }
 
   final cipher = HiveAesCipher(key);
+  final documents = await getApplicationDocumentsDirectory();
+  final settingsFile = File('${documents.path}/settings.hive');
+  final migrationBackup = File('${settingsFile.path}.migration-backup');
   try {
     await Hive.openBox('settings', encryptionCipher: cipher);
-  } catch (_) {
+    // A backup can remain only if the process was killed after committing the
+    // encrypted box but before cleanup. A successful encrypted open proves it
+    // is now obsolete.
+    if (await migrationBackup.exists()) await migrationBackup.delete();
+  } catch (encryptedError) {
     // The box exists from a previous version in plaintext (or is corrupted).
     // Re-open it without a cipher, copy everything into the encrypted box,
     // and delete the plaintext file.
     try {
       if (Hive.isBoxOpen('settings')) await Hive.box('settings').close();
+      // Recover a migration interrupted after the original plaintext file was
+      // moved aside. Preserve any partial replacement for diagnostics instead
+      // of overwriting it.
+      if (await migrationBackup.exists()) {
+        if (await settingsFile.exists()) {
+          final failed = File(
+              '${settingsFile.path}.failed-${DateTime.now().millisecondsSinceEpoch}');
+          await settingsFile.rename(failed.path);
+        }
+        await migrationBackup.copy(settingsFile.path);
+      }
       final plain = await Hive.openBox('settings');
-      final data  = Map<dynamic, dynamic>.of(plain.toMap());
+      final data = Map<dynamic, dynamic>.of(plain.toMap());
+      final sourcePath = plain.path;
+      if (sourcePath == null) {
+        await plain.close();
+        throw StateError('Cannot locate the legacy settings database.');
+      }
+      final source = File(sourcePath);
+      final backup = File('$sourcePath.migration-backup');
+      await source.copy(backup.path);
       await plain.deleteFromDisk();
-      final enc = await Hive.openBox('settings', encryptionCipher: cipher);
-      await enc.putAll(data);
-      debugPrint('[Hive] settings box migrated to encrypted storage');
-    } catch (e) {
-      // Last resort: start with a fresh encrypted box so the app still boots.
-      debugPrint('[Hive] settings migration failed, starting fresh: $e');
-      await Hive.deleteBoxFromDisk('settings');
-      await Hive.openBox('settings', encryptionCipher: cipher);
+      try {
+        final enc = await Hive.openBox('settings', encryptionCipher: cipher);
+        await enc.putAll(data);
+        await enc.flush();
+        await backup.delete();
+        debugPrint('[Hive] settings box migrated to encrypted storage');
+      } catch (_) {
+        if (Hive.isBoxOpen('settings')) await Hive.box('settings').close();
+        await Hive.deleteBoxFromDisk('settings');
+        await backup.copy(sourcePath);
+        rethrow;
+      }
+    } catch (_) {
+      throw StateError(
+          'Settings could not be decrypted or migrated: $encryptedError');
     }
   }
+}
+
+class _StorageUnavailableApp extends StatelessWidget {
+  const _StorageUnavailableApp();
+
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.lock_outline, size: 52),
+                  const SizedBox(height: 20),
+                  const Text('Protected data unavailable',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Roadstr did not open or erase your saved locations. '
+                    'Restart the device and try again. If the problem persists, '
+                    'export the app data before reinstalling.',
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
 }
 
 /// Root widget. Rebuilds whenever the theme or locale changes.
@@ -143,7 +219,7 @@ class RoadstrApp extends StatelessWidget {
   const RoadstrApp({super.key});
   @override
   Widget build(BuildContext context) {
-    final themeProvider  = context.watch<ThemeProvider>();
+    final themeProvider = context.watch<ThemeProvider>();
     final localeProvider = context.watch<LocaleProvider>();
     final isDark = themeProvider.effective.isDark;
     return MaterialApp(
@@ -155,7 +231,8 @@ class RoadstrApp extends StatelessWidget {
           statusBarColor: Colors.transparent,
           statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
           systemNavigationBarColor: Colors.transparent,
-          systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+          systemNavigationBarIconBrightness:
+              isDark ? Brightness.light : Brightness.dark,
         ),
         child: child!,
       ),
@@ -215,16 +292,17 @@ class _FallbackMaterialDelegate
 
 // ── First-launch disclaimer gate ─────────────────────────────────────────────
 
-/// Routes new users through [OnboardingScreen]; users who already completed the
-/// old disclaimer flow skip onboarding and go directly to the map.
+/// Routes users through [OnboardingScreen] until they have accepted the current
+/// privacy disclosure. The versioned flag deliberately supersedes legacy
+/// disclaimer flags because the old text understated third-party location
+/// sharing and cannot count as informed acceptance of the corrected wording.
 ///
 /// Key logic:
-///   • `disclaimer_accepted == true` (old users) → skip onboarding, show map
-///   • `onboarding_v1 == true` (users who finished new onboarding) → show map
+///   • `privacy_disclosure_v2 == true` → show map
 ///   • Otherwise → show [OnboardingScreen]
 ///
-/// On completion the gate sets both `disclaimer_accepted` and `onboarding_v1`
-/// so the user never sees either screen again.
+/// The legacy flags are retained for downgrade compatibility but never bypass
+/// the corrected disclosure.
 class _DisclaimerGate extends StatefulWidget {
   const _DisclaimerGate();
   @override
@@ -238,18 +316,17 @@ class _DisclaimerGateState extends State<_DisclaimerGate> {
   void initState() {
     super.initState();
     final box = Hive.box('settings');
-    final disclaimerAccepted =
-        box.get('disclaimer_accepted', defaultValue: false) as bool;
-    final onboardingDone =
-        box.get('onboarding_v1', defaultValue: false) as bool;
-    _done = disclaimerAccepted || onboardingDone;
+    _done = box.get('privacy_disclosure_v2', defaultValue: false) as bool;
   }
 
-  void _completeOnboarding() {
+  void _completeOnboarding() async {
     final box = Hive.box('settings');
-    box.put('disclaimer_accepted', true);
-    box.put('onboarding_v1', true);
-    setState(() => _done = true);
+    await box.putAll({
+      'disclaimer_accepted': true,
+      'onboarding_v1': true,
+      'privacy_disclosure_v2': true,
+    });
+    if (mounted) setState(() => _done = true);
   }
 
   @override
@@ -266,7 +343,8 @@ class _DisclaimerGateState extends State<_DisclaimerGate> {
 class _VoiceLanguageNoticeGate extends StatefulWidget {
   const _VoiceLanguageNoticeGate();
   @override
-  State<_VoiceLanguageNoticeGate> createState() => _VoiceLanguageNoticeGateState();
+  State<_VoiceLanguageNoticeGate> createState() =>
+      _VoiceLanguageNoticeGateState();
 }
 
 class _VoiceLanguageNoticeGateState extends State<_VoiceLanguageNoticeGate> {
@@ -276,7 +354,8 @@ class _VoiceLanguageNoticeGateState extends State<_VoiceLanguageNoticeGate> {
     final shown = Hive.box('settings')
         .get('voice_unsupported_notice_shown', defaultValue: false) as bool;
     if (shown) return;
-    final systemLang = WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+    final systemLang =
+        WidgetsBinding.instance.platformDispatcher.locale.languageCode;
     if (kokoroSupportedLanguages.contains(systemLang)) return;
     WidgetsBinding.instance.addPostFrameCallback((_) => _showNotice());
   }
@@ -306,4 +385,3 @@ class _VoiceLanguageNoticeGateState extends State<_VoiceLanguageNoticeGate> {
   @override
   Widget build(BuildContext context) => const MapScreen();
 }
-

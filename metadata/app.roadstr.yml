@@ -9,7 +9,7 @@
 
 Categories:
   - Navigation
-License: AGPL-3.0-only
+License: GPL-3.0-only
 AuthorName: Roadstr Team
 AuthorEmail: ''
 SourceCode: https://github.com/roadstrapp/roadstr-app
@@ -34,7 +34,8 @@ Description: |-
     Bitcoin Lightning via NIP-57 and NWC wallet connect.
 
     '''Privacy first''' — no account required, no tracking, no analytics.
-    GPS data never leaves your device.
+    Location is sent directly to selected routing/OpenStreetMap services and,
+    for road-event subscriptions, as a coarse city-level geohash to Nostr relays.
 
     No Google Play Services required — falls back to Android LocationManager
     on degoogled devices.
@@ -43,9 +44,9 @@ RepoType: git
 Repo: https://github.com/roadstrapp/roadstr-app
 
 Builds:
-  - versionName: 0.2.1
-    versionCode: 3
-    commit: v0.2.1
+  - versionName: 0.4.7
+    versionCode: 16
+    commit: v0.4.7
     subdir: .
     sudo:
       - apt-get update
@@ -60,5 +61,5 @@ Builds:
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 0.2.1
-CurrentVersionCode: 3
+CurrentVersion: 0.4.7
+CurrentVersionCode: 16

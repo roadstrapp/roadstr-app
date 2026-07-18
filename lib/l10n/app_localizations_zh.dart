@@ -123,6 +123,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get keepScreenOnDescription => '导航期间防止屏幕休眠';
 
   @override
+  String get autoCenterOnLaunch => '启动时以我的位置为中心';
+
+  @override
+  String get autoCenterOnLaunchDesc => '仅在已授予位置权限时自动使用GPS';
+
+  @override
   String get rotateMap => '地图跟随方向';
 
   @override
@@ -706,10 +712,71 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Roadstr是一款基于OpenStreetMap数据和Nostr协议的实验性开源社区维护导航应用程序，可供任何国家的用户使用。下载、安装或使用本应用程序即表示用户无条件接受以下全部条款，不受地域限制。\n\n🚗 道路安全第一\n驾驶员必须始终注视道路，并遵守所有适用的交通法规及现场交通标志，二者始终优先于本应用程序发出的任何指示。切勿在驾驶过程中操作本设备；应在出发前将设备固定于经认可且清晰可见的支架上，且在车辆行驶过程中，切勿因操作设备而分散对道路的注意力。\n\n⚠️ 风险自担——全球适用\n用户在任何国家、任何法律体系下使用Roadstr，即表示已明知并自愿承担与使用本应用程序相关的一切风险，包括但不限于：交通事故、人身伤害、死亡、财产损失、车辆损坏、罚款、行政处罚、拖车、车辆扣押、刑事责任，或因依赖本应用程序而直接或间接产生的任何其他后果。用户对每一项驾驶及导航决策承担全部且唯一的责任。\n\n🚫 不提供任何担保\nRoadstr严格按照\"现状\"及\"可用性现状\"提供，不附带任何明示、默示或法定的担保，包括但不限于关于准确性、完整性、可靠性、可用性、适销性、特定用途适用性及不侵权的担保。地图数据、路线计算、限速信息、测速摄像头以及限行区域（ZTL/ZAC/LTZ）信息均来自开放的社区维护数据源（OpenStreetMap、Overpass API），这些数据在任何国家、地区或市镇、任何时间均可能不完整、过时或不准确，且恕不另行通知。用户应自行负责，在出行前及出行过程中，依据当地官方标志和法规独立核实所建议路线的合法性及可通行性。\n\n📍 精度与GPS\nGPS定位可能不准确或不可用。所有方向指引、距离及提醒信息仅供参考，绝不可作为驾驶决策的唯一依据。\n\n🛡️ 责任限制\n在任何司法管辖区适用法律允许的最大范围内，开发者、贡献者以及参与创建或分发Roadstr的任何一方，均不对因使用或无法使用本应用程序而引起或与之相关的任何直接、间接、附带、后果性、特殊、惩戒性或惩罚性损害（包括人身伤害、死亡或经济损失）承担责任，即使已被告知可能发生此类损害亦然。若某一司法管辖区不允许全部或部分上述责任限制，则责任应在该司法管辖区法律所允许的最小范围内予以限制。\n\n🤝 赔偿\n用户同意就因其使用本应用程序或违反本条款而产生的任何索赔、损害、损失或费用（包括律师费），对开发者及贡献者进行赔偿并使其免受损害。\n\n🔒 隐私\n本应用程序不会将位置数据传输至Roadstr自身的服务器。路线计算通过第三方服务（OSRM、GraphHopper、OpenRouteService）完成，仅向其发送起点和终点坐标。\n\n⚖️ 可分割性\n若本条款中的任何条文在特定司法管辖区被认定为不可执行，该条文应在必要的最小范围内予以限制或删除，其余条文的完整效力及有效性不受影响。\n\n无论在世界任何地方使用Roadstr，用户均确认已阅读、理解并无条件接受上述全部条款，并对本应用程序的使用及由此产生的任何后果承担全部且完整的责任——及全部风险。';
+      'Roadstr是一款基于OpenStreetMap数据和Nostr协议的实验性开源社区维护导航应用程序，可供任何国家的用户使用。下载、安装或使用本应用程序即表示用户无条件接受以下全部条款，不受地域限制。\n\n🚗 道路安全第一\n驾驶员必须始终注视道路，并遵守所有适用的交通法规及现场交通标志，二者始终优先于本应用程序发出的任何指示。切勿在驾驶过程中操作本设备；应在出发前将设备固定于经认可且清晰可见的支架上，且在车辆行驶过程中，切勿因操作设备而分散对道路的注意力。\n\n⚠️ 风险自担——全球适用\n用户在任何国家、任何法律体系下使用Roadstr，即表示已明知并自愿承担与使用本应用程序相关的一切风险，包括但不限于：交通事故、人身伤害、死亡、财产损失、车辆损坏、罚款、行政处罚、拖车、车辆扣押、刑事责任，或因依赖本应用程序而直接或间接产生的任何其他后果。用户对每一项驾驶及导航决策承担全部且唯一的责任。\n\n🚫 不提供任何担保\nRoadstr严格按照\"现状\"及\"可用性现状\"提供，不附带任何明示、默示或法定的担保，包括但不限于关于准确性、完整性、可靠性、可用性、适销性、特定用途适用性及不侵权的担保。地图数据、路线计算、限速信息、测速摄像头以及限行区域（ZTL/ZAC/LTZ）信息均来自开放的社区维护数据源（OpenStreetMap、Overpass API），这些数据在任何国家、地区或市镇、任何时间均可能不完整、过时或不准确，且恕不另行通知。用户应自行负责，在出行前及出行过程中，依据当地官方标志和法规独立核实所建议路线的合法性及可通行性。\n\n📍 精度与GPS\nGPS定位可能不准确或不可用。所有方向指引、距离及提醒信息仅供参考，绝不可作为驾驶决策的唯一依据。\n\n🛡️ 责任限制\n在任何司法管辖区适用法律允许的最大范围内，开发者、贡献者以及参与创建或分发Roadstr的任何一方，均不对因使用或无法使用本应用程序而引起或与之相关的任何直接、间接、附带、后果性、特殊、惩戒性或惩罚性损害（包括人身伤害、死亡或经济损失）承担责任，即使已被告知可能发生此类损害亦然。若某一司法管辖区不允许全部或部分上述责任限制，则责任应在该司法管辖区法律所允许的最小范围内予以限制。\n\n🤝 赔偿\n用户同意就因其使用本应用程序或违反本条款而产生的任何索赔、损害、损失或费用（包括律师费），对开发者及贡献者进行赔偿并使其免受损害。\n\n🔒 PRIVACY AND NETWORK SERVICES\nRoadstr runs no first-party servers or analytics, but it is not an offline app. When relevant features are used, coordinates or coarse areas and the IP address are sent directly to third parties: routing providers (origin, destination and waypoints), OpenStreetMap/Nominatim/Overpass (search, reverse geocoding, POIs, restricted zones, limits and cameras), Open-Meteo (rounded coordinates), map-tile servers and Nostr relays (city-level geohash). A road report publishes its exact position, time, content and public key to Nostr and is pseudonymous, not anonymous. Favorites and parking remain local unless explicitly exported or synced.\n\n⚖️ 可分割性\n若本条款中的任何条文在特定司法管辖区被认定为不可执行，该条文应在必要的最小范围内予以限制或删除，其余条文的完整效力及有效性不受影响。\n\n无论在世界任何地方使用Roadstr，用户均确认已阅读、理解并无条件接受上述全部条款，并对本应用程序的使用及由此产生的任何后果承担全部且完整的责任——及全部风险。';
 
   @override
   String get readOnWikipedia => '在维基百科上阅读';
+
+  @override
+  String get openInBrowser => '在浏览器中打开';
+
+  @override
+  String get wikipediaLoadFailed => '无法安全加载维基百科。';
+
+  @override
+  String get retry => '重试';
+
+  @override
+  String get poiDetailsFromOsm => '来自OpenStreetMap的信息';
+
+  @override
+  String get poiCategory => '类别';
+
+  @override
+  String get poiOperator => '运营方';
+
+  @override
+  String get poiCuisine => '菜系';
+
+  @override
+  String get poiAccessibility => '无障碍';
+
+  @override
+  String get poiWheelchairYes => '轮椅可通行';
+
+  @override
+  String get poiWheelchairLimited => '轮椅通行受限';
+
+  @override
+  String get poiWheelchairNo => '轮椅不可通行';
+
+  @override
+  String get poiContact => '联系方式';
+
+  @override
+  String get poiAddress => '地址';
+
+  @override
+  String get poiWebsite => '网站';
+
+  @override
+  String get gpsSignalLost => 'GPS信号丢失';
+
+  @override
+  String get poiOpenNow => '营业中';
+
+  @override
+  String get poiClosedNow => '已关闭';
+
+  @override
+  String poiOpensAt(String when) {
+    return '开门: $when';
+  }
+
+  @override
+  String poiClosesAt(String when) {
+    return '关门: $when';
+  }
 
   @override
   String searchOnEngine(String engine) {
@@ -876,7 +943,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.';
+      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
 
   @override
   String get onboardingVoiceTitle => 'AI 语音导航（可选）';
@@ -1026,10 +1093,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get onboardingVpnNotice =>
       '为了最大程度保护隐私——路况报告会在 Nostr 网络中传播——建议使用 VPN。推荐使用可用比特币付款的 Mullvad。';
-
-  @override
-  String get onboardingGrapheneAlwaysAllow =>
-      '为确保应用正常运行，请将位置权限设置为“始终允许”，而不仅是使用应用时允许。';
 
   @override
   String get trafficNormal => '交通正常';

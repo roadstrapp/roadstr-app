@@ -13,7 +13,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_map: ^8.3.0
-  latlong2: ^0.9.0
+  latlong2: ^0.10.1
   geolocator: ^14.0.3
   hive_flutter: ^1.1.0
   hive: ^2.2.3
@@ -24,19 +24,23 @@ dependencies:
   flutter_secure_storage: ^10.3.1
   nostr_tools: ^1.0.9
   url_launcher: ^6.3.1
+  webview_flutter: ^4.14.1
+  webview_flutter_android: ^4.13.0
   amberflutter: ^0.0.9
-  webview_flutter: ^4.10.0
-  flutter_local_notifications: ^17.2.4
-  sensors_plus: ^6.1.1
+  flutter_local_notifications: ^22.0.1
+  sensors_plus: ^7.1.0
   flutter_onnxruntime: ^1.8.0
   just_audio: ^0.10.6
-  audio_session: ^0.1.21
+  audio_session: ^0.2.4
   path_provider: ^2.1.6
+  package_info_plus: ^10.2.1
   ffi: ^2.1.0
   archive: ^4.0.0
   flutter_svg: ^2.3.0
+  # kepler 1.0.3 (NIP-44 secp256k1) still constrains PointyCastle to 3.x.
   pointycastle: ^3.9.1
   crypto: ^3.0.2
+  bech32: ^0.2.2
   kepler: ^1.0.3
   # Pinned to the 12.x beta line specifically because it's the first release
   # whose own pubspec declares win32 ^6.3.0 — matching what wakelock_plus
@@ -51,6 +55,7 @@ dependencies:
   # mismatch entirely. Fine to ship: Roadstr is Android-only, so file_picker's
   # Windows code path never actually runs regardless of its version.
   file_picker: ^12.0.0-beta.7
+  # nostr_tools 1.0.9 still constrains web_socket_channel to the 2.x API.
   web_socket_channel: ^2.4.0
 
 dev_dependencies:

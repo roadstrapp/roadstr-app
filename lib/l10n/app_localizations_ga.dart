@@ -127,6 +127,13 @@ class AppLocalizationsGa extends AppLocalizations {
       'Cuireann cosc ar chodladh le linn nascleanúna';
 
   @override
+  String get autoCenterOnLaunch => 'Láraigh ar mo shuíomh ag an tosú';
+
+  @override
+  String get autoCenterOnLaunchDesc =>
+      'Ní úsáideann sé GPS go huathoibríoch ach amháin má deonaíodh cead suímh cheana';
+
+  @override
   String get rotateMap => 'Leanann léarscáil an treo';
 
   @override
@@ -733,10 +740,72 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get disclaimerBody =>
-      'Is aip loingseoireachta thurgnamhach, foinse oscailte, arna cothabháil ag an bpobal í Roadstr atá bunaithe ar shonraí OpenStreetMap agus ar phrótacal Nostr, agus atá ar fáil lena húsáid in aon tír. Trí an aip seo a íoslódáil, a shuiteáil nó a úsáid, glacann an t-úsáideoir go neamhchoinníollach le gach ceann de na téarmaí seo a leanas, gan aon teorannú críche.\n\n🚗 SÁBHÁILTEACHT AR BHÓTHAR AR DTÚS\nNí mór don tiománaí a shúile a choinneáil ar an mbóthar i gcónaí agus cloí le gach dlí tráchta is infheidhme agus le comharthaíocht atá curtha suas, a mbeidh tosaíocht acu i gcónaí ar aon treoir ón aip. Ná hoibrigh an gléas riamh agus tú ag tiomáint; daingnigh é i mbuanáit fhormheasta atá le feiceáil sula gcuirfidh tú chun bóthair, agus ná díraigh d\'aird ón mbóthar riamh chun idirghníomhú leis fad is atá an fheithicil ag gluaiseacht.\n\n⚠️ GLACADH LEIS AN mBAOL — AR FUD AN DOMHAIN\nTrí Roadstr a úsáid, in aon tír agus faoi aon chóras dlí, glacann an t-úsáideoir go feasach agus go deonach le GACH baol a bhaineann lena húsáid, lena n-áirítear, gan a bheith teoranta dóibh: taismí tráchta, díobháil phearsanta, bás, damáiste maoine, damáiste feithicle, fíneálacha, pionóis riaracháin, tarraingt, coigistiú feithicle, dliteanas coiriúil, nó aon iarmhairt eile a eascraíonn go díreach nó go hindíreach as brath ar an aip. Is ar an úsáideoir amháin atá an fhreagracht iomlán as gach cinneadh tiomána agus loingseoireachta.\n\n🚫 GAN BHARÁNTA\nCuirtear Roadstr ar fáil go docht mar atá sé (\"AS IS\") agus mar atá sé ar fáil (\"AS AVAILABLE\"), gan aon bharánta d\'aon chineál, cibé acu sainráite, intuigthe nó reachtúil — lena n-áirítear, gan teorannú, barántaí cruinnis, iomláine, iontaofachta, infhaighteachta, indíolachta, oiriúnachta chun críche ar leith, agus neamhshárú. Tagann sonraí léarscáile, bealacharú, teorainneacha luais, ceamaraí luais, agus faisnéis maidir le criosanna trácht theoranta (ZTL/ZAC/LTZ) ó fhoinsí oscailte arna gcothabháil ag an bpobal (OpenStreetMap, Overpass API), a d\'fhéadfadh a bheith neamhiomlán, as dáta, nó mícheart d\'aon tír, réigiún nó bardas, ag am ar bith agus gan fógra. Is ar an úsáideoir amháin atá an fhreagracht as a fhíorú go neamhspleách, roimh an turas agus lena linn, an bhfuil aon bhealach a mholtar dleathach agus inrochtana de réir na comharthaíochta agus na rialachán áitiúla oifigiúla.\n\n📍 CRUINNEAS AGUS GPS\nD\'fhéadfadh suíomh GPS a bheith mícheart nó gan a bheith ar fáil. Ní sholáthraítear na treoracha, na faid agus na foláirimh go léir ach mar threoir amháin agus níor cheart brath orthu riamh mar an t-aon bhunús le cinneadh tiomána.\n\n🛡️ TEORANNÚ DLITEANAIS\nA mhéid is mó a cheadaítear faoin dlí is infheidhme in aon dlínse, ní bheidh na forbróirí, na rannpháirtithe, ná aon pháirtí a bhí bainteach le Roadstr a chruthú nó a dháileadh faoi dhliteanas as aon damáistí díreacha, indíreacha, teagmhasacha, iarmhartacha, speisialta, samplacha nó pionósacha d\'aon chineál — lena n-áirítear díobháil phearsanta, bás, nó caillteanas airgeadais — a eascraíonn as úsáid nó éagumas úsáide na haipe nó a bhaineann léi, fiú má cuireadh in iúl dóibh go bhféadfadh damáistí den sórt sin tarlú. I gcás nach gceadaíonn dlínse ar leith cuid nó iomlán an teorannaithe seo, teorannófar an dliteanas a mhéid is lú a cheadaítear faoi dhlí na dlínse sin.\n\n🤝 SLÁNAÍOCHT\nAontaíonn an t-úsáideoir na forbróirí agus na rannpháirtithe a shlánú agus a choinneáil saor ó dhíobháil in aghaidh aon éilimh, damáiste, caillteanais nó costais (lena n-áirítear táillí dlí) a eascraíonn as úsáid na haipe ag an úsáideoir nó as sárú na dtéarmaí seo.\n\n🔒 PRÍOBHÁIDEACHAS\nNí tharchuirtear aon sonraí suímh chuig freastalaithe féin Roadstr. Déantar an bealach a ríomh trí sheirbhísí tríú páirtí (OSRM, GraphHopper, OpenRouteService) nach seoltar chucu ach comhordanáidí an phointe tosaigh agus an cheann scríbe.\n\n⚖️ INSCARTHACHT\nMá mheastar go bhfuil aon fhoráil de na téarmaí seo dofhorghníomhaithe i ndlínse ar leith, teorannófar nó scarfar an fhoráil sin a mhéid is gá amháin, agus fanfaidh na forálacha eile go léir i lánfheidhm.\n\nTrí Roadstr a úsáid, in áit ar bith ar domhan, dearbhaíonn an t-úsáideoir gur léigh, gur thuig, agus gur ghlac sé/sí go neamhchoinníollach le gach téarma thuas, agus glacann sé/sí leis an bhfreagracht iomlán agus chríochnúil — agus an baol go léir — as úsáid na haipe agus as aon iarmhairt a eascraíonn aisti.';
+      'Is aip loingseoireachta thurgnamhach, foinse oscailte, arna cothabháil ag an bpobal í Roadstr atá bunaithe ar shonraí OpenStreetMap agus ar phrótacal Nostr, agus atá ar fáil lena húsáid in aon tír. Trí an aip seo a íoslódáil, a shuiteáil nó a úsáid, glacann an t-úsáideoir go neamhchoinníollach le gach ceann de na téarmaí seo a leanas, gan aon teorannú críche.\n\n🚗 SÁBHÁILTEACHT AR BHÓTHAR AR DTÚS\nNí mór don tiománaí a shúile a choinneáil ar an mbóthar i gcónaí agus cloí le gach dlí tráchta is infheidhme agus le comharthaíocht atá curtha suas, a mbeidh tosaíocht acu i gcónaí ar aon treoir ón aip. Ná hoibrigh an gléas riamh agus tú ag tiomáint; daingnigh é i mbuanáit fhormheasta atá le feiceáil sula gcuirfidh tú chun bóthair, agus ná díraigh d\'aird ón mbóthar riamh chun idirghníomhú leis fad is atá an fheithicil ag gluaiseacht.\n\n⚠️ GLACADH LEIS AN mBAOL — AR FUD AN DOMHAIN\nTrí Roadstr a úsáid, in aon tír agus faoi aon chóras dlí, glacann an t-úsáideoir go feasach agus go deonach le GACH baol a bhaineann lena húsáid, lena n-áirítear, gan a bheith teoranta dóibh: taismí tráchta, díobháil phearsanta, bás, damáiste maoine, damáiste feithicle, fíneálacha, pionóis riaracháin, tarraingt, coigistiú feithicle, dliteanas coiriúil, nó aon iarmhairt eile a eascraíonn go díreach nó go hindíreach as brath ar an aip. Is ar an úsáideoir amháin atá an fhreagracht iomlán as gach cinneadh tiomána agus loingseoireachta.\n\n🚫 GAN BHARÁNTA\nCuirtear Roadstr ar fáil go docht mar atá sé (\"AS IS\") agus mar atá sé ar fáil (\"AS AVAILABLE\"), gan aon bharánta d\'aon chineál, cibé acu sainráite, intuigthe nó reachtúil — lena n-áirítear, gan teorannú, barántaí cruinnis, iomláine, iontaofachta, infhaighteachta, indíolachta, oiriúnachta chun críche ar leith, agus neamhshárú. Tagann sonraí léarscáile, bealacharú, teorainneacha luais, ceamaraí luais, agus faisnéis maidir le criosanna trácht theoranta (ZTL/ZAC/LTZ) ó fhoinsí oscailte arna gcothabháil ag an bpobal (OpenStreetMap, Overpass API), a d\'fhéadfadh a bheith neamhiomlán, as dáta, nó mícheart d\'aon tír, réigiún nó bardas, ag am ar bith agus gan fógra. Is ar an úsáideoir amháin atá an fhreagracht as a fhíorú go neamhspleách, roimh an turas agus lena linn, an bhfuil aon bhealach a mholtar dleathach agus inrochtana de réir na comharthaíochta agus na rialachán áitiúla oifigiúla.\n\n📍 CRUINNEAS AGUS GPS\nD\'fhéadfadh suíomh GPS a bheith mícheart nó gan a bheith ar fáil. Ní sholáthraítear na treoracha, na faid agus na foláirimh go léir ach mar threoir amháin agus níor cheart brath orthu riamh mar an t-aon bhunús le cinneadh tiomána.\n\n🛡️ TEORANNÚ DLITEANAIS\nA mhéid is mó a cheadaítear faoin dlí is infheidhme in aon dlínse, ní bheidh na forbróirí, na rannpháirtithe, ná aon pháirtí a bhí bainteach le Roadstr a chruthú nó a dháileadh faoi dhliteanas as aon damáistí díreacha, indíreacha, teagmhasacha, iarmhartacha, speisialta, samplacha nó pionósacha d\'aon chineál — lena n-áirítear díobháil phearsanta, bás, nó caillteanas airgeadais — a eascraíonn as úsáid nó éagumas úsáide na haipe nó a bhaineann léi, fiú má cuireadh in iúl dóibh go bhféadfadh damáistí den sórt sin tarlú. I gcás nach gceadaíonn dlínse ar leith cuid nó iomlán an teorannaithe seo, teorannófar an dliteanas a mhéid is lú a cheadaítear faoi dhlí na dlínse sin.\n\n🤝 SLÁNAÍOCHT\nAontaíonn an t-úsáideoir na forbróirí agus na rannpháirtithe a shlánú agus a choinneáil saor ó dhíobháil in aghaidh aon éilimh, damáiste, caillteanais nó costais (lena n-áirítear táillí dlí) a eascraíonn as úsáid na haipe ag an úsáideoir nó as sárú na dtéarmaí seo.\n\n🔒 PRIVACY AND NETWORK SERVICES\nRoadstr runs no first-party servers or analytics, but it is not an offline app. When relevant features are used, coordinates or coarse areas and the IP address are sent directly to third parties: routing providers (origin, destination and waypoints), OpenStreetMap/Nominatim/Overpass (search, reverse geocoding, POIs, restricted zones, limits and cameras), Open-Meteo (rounded coordinates), map-tile servers and Nostr relays (city-level geohash). A road report publishes its exact position, time, content and public key to Nostr and is pseudonymous, not anonymous. Favorites and parking remain local unless explicitly exported or synced.\n\n⚖️ INSCARTHACHT\nMá mheastar go bhfuil aon fhoráil de na téarmaí seo dofhorghníomhaithe i ndlínse ar leith, teorannófar nó scarfar an fhoráil sin a mhéid is gá amháin, agus fanfaidh na forálacha eile go léir i lánfheidhm.\n\nTrí Roadstr a úsáid, in áit ar bith ar domhan, dearbhaíonn an t-úsáideoir gur léigh, gur thuig, agus gur ghlac sé/sí go neamhchoinníollach le gach téarma thuas, agus glacann sé/sí leis an bhfreagracht iomlán agus chríochnúil — agus an baol go léir — as úsáid na haipe agus as aon iarmhairt a eascraíonn aisti.';
 
   @override
   String get readOnWikipedia => 'Léigh ar Vicipéid';
+
+  @override
+  String get openInBrowser => 'Oscail sa bhrabhsálaí';
+
+  @override
+  String get wikipediaLoadFailed => 'Níorbh fhéidir Vicipéid a luchtú go slán.';
+
+  @override
+  String get retry => 'Bain triail eile as';
+
+  @override
+  String get poiDetailsFromOsm => 'Faisnéis ó OpenStreetMap';
+
+  @override
+  String get poiCategory => 'Catagóir';
+
+  @override
+  String get poiOperator => 'Oibreoir';
+
+  @override
+  String get poiCuisine => 'Ealaín';
+
+  @override
+  String get poiAccessibility => 'Inrochtaineacht';
+
+  @override
+  String get poiWheelchairYes => 'Inrochtana do chathaoireacha rothaí';
+
+  @override
+  String get poiWheelchairLimited =>
+      'Rochtain theoranta do chathaoireacha rothaí';
+
+  @override
+  String get poiWheelchairNo => 'Gan rochtain do chathaoireacha rothaí';
+
+  @override
+  String get poiContact => 'Teagmháil';
+
+  @override
+  String get poiAddress => 'Seoladh';
+
+  @override
+  String get poiWebsite => 'Suíomh gréasáin';
+
+  @override
+  String get gpsSignalLost => 'Cailleadh comhartha GPS';
+
+  @override
+  String get poiOpenNow => 'Ar oscailt anois';
+
+  @override
+  String get poiClosedNow => 'Dúnta';
+
+  @override
+  String poiOpensAt(String when) {
+    return 'Osclaíonn: $when';
+  }
+
+  @override
+  String poiClosesAt(String when) {
+    return 'Dúnann: $when';
+  }
 
   @override
   String searchOnEngine(String engine) {
@@ -905,7 +974,7 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) AND allow access Always (not only while in use) in:\nSettings → Apps → Roadstr → Permissions → Location\n\nWith only approximate or \"while in use\" location, GPS navigation will lose position in the background.';
+      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
 
   @override
   String get onboardingVoiceTitle => 'Treoir gutha AI (roghnach)';
@@ -1060,10 +1129,6 @@ class AppLocalizationsGa extends AppLocalizations {
   @override
   String get onboardingVpnNotice =>
       'Ar mhaithe le príobháideachas uasta — scaiptear tuairiscí ar líonra Nostr — moltar VPN a úsáid. Is é Mullvad, is féidir a íoc le Bitcoin, an rogha mholta.';
-
-  @override
-  String get onboardingGrapheneAlwaysAllow =>
-      'Le haghaidh oibriú iontaofa, socraigh cead suímh na haipe go \"Ceadaigh i gcónaí\", ní hamháin agus an aip in úsáid.';
 
   @override
   String get trafficNormal => 'Gnáth-thrácht';

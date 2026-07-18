@@ -66,8 +66,12 @@ class FavSyncPull {
 
   const FavSyncPull.ok(List<FavoritePlace> this.favorites)
       : needsPassphrase = false;
-  const FavSyncPull.none() : favorites = null, needsPassphrase = false;
-  const FavSyncPull.locked() : favorites = null, needsPassphrase = true;
+  const FavSyncPull.none()
+      : favorites = null,
+        needsPassphrase = false;
+  const FavSyncPull.locked()
+      : favorites = null,
+        needsPassphrase = true;
 }
 
 class FavoritesSyncService {
@@ -116,6 +120,7 @@ class FavoritesSyncService {
         ...FavoritesCrypto.encrypt(plaintext, passphrase),
       });
     }
+    if (utf8.encode(plaintext).length > 65535) return false;
     final encrypted =
         await _encrypt(padToBucket(plaintext), pubKeyHex, privKeyHex);
     if (encrypted == null) return false;
@@ -214,7 +219,11 @@ class FavoritesSyncService {
   @visibleForTesting
   static String padToBucket(String s) {
     final len = utf8.encode(s).length;
-    if (len >= 65535) return s;
+    if (len > 65535) {
+      throw ArgumentError.value(
+          len, 's', 'NIP-44 plaintext exceeds 65535 bytes');
+    }
+    if (len == 65535) return s;
     var target = ((len + _padBucket - 1) ~/ _padBucket) * _padBucket;
     target = math.min(target, 65535);
     return s + ' ' * (target - len);
@@ -296,11 +305,14 @@ class FavoritesSyncService {
 
   // ── encryption (nsec: local NIP-44; Amber: NIP-55 nip44_encrypt/decrypt) ──
 
-  Future<String?> _encrypt(String plaintext, String pubKeyHex, String? privKeyHex) async {
-    if (privKeyHex != null) return Nip44.encrypt(privKeyHex, pubKeyHex, plaintext);
+  Future<String?> _encrypt(
+      String plaintext, String pubKeyHex, String? privKeyHex) async {
+    if (privKeyHex != null) {
+      return Nip44.encrypt(privKeyHex, pubKeyHex, plaintext);
+    }
     try {
       final result = await Amberflutter().nip44Encrypt(
-        plaintext: plaintext, currentUser: pubKeyHex, pubKey: pubKeyHex);
+          plaintext: plaintext, currentUser: pubKeyHex, pubKey: pubKeyHex);
       final out = result['signature'] as String?;
       return (out != null && out.isNotEmpty) ? out : null;
     } catch (_) {
@@ -308,7 +320,8 @@ class FavoritesSyncService {
     }
   }
 
-  Future<String?> _decrypt(String ciphertext, String pubKeyHex, String? privKeyHex) async {
+  Future<String?> _decrypt(
+      String ciphertext, String pubKeyHex, String? privKeyHex) async {
     if (privKeyHex != null) {
       try {
         return Nip44.decrypt(privKeyHex, pubKeyHex, ciphertext);
@@ -318,7 +331,7 @@ class FavoritesSyncService {
     }
     try {
       final result = await Amberflutter().nip44Decrypt(
-        ciphertext: ciphertext, currentUser: pubKeyHex, pubKey: pubKeyHex);
+          ciphertext: ciphertext, currentUser: pubKeyHex, pubKey: pubKeyHex);
       final out = result['signature'] as String?;
       return (out != null && out.isNotEmpty) ? out : null;
     } catch (_) {
@@ -357,9 +370,11 @@ class FavoritesSyncService {
           final msg = jsonDecode(raw as String) as List;
           if (msg[0] == 'OK') completer.complete(msg[2] == true);
         } catch (_) {}
-      },
-          onError: (_) { if (!completer.isCompleted) completer.complete(false); },
-          onDone:  () { if (!completer.isCompleted) completer.complete(false); });
+      }, onError: (_) {
+        if (!completer.isCompleted) completer.complete(false);
+      }, onDone: () {
+        if (!completer.isCompleted) completer.complete(false);
+      });
       ws.sink.add(jsonEncode(['EVENT', eventJson]));
       return await completer.future
           .timeout(const Duration(seconds: 6), onTimeout: () => false);
@@ -408,12 +423,21 @@ class FavoritesSyncService {
         } catch (_) {
           if (!completer.isCompleted) completer.complete(null);
         }
-      },
-          onError: (_) { if (!completer.isCompleted) completer.complete(null); },
-          onDone:  () { if (!completer.isCompleted) completer.complete(null); });
-      ws.sink.add(jsonEncode(['REQ', subId, {
-        'kinds': [kind], 'authors': [pubKeyHex], '#d': [dTag], 'limit': 1,
-      }]));
+      }, onError: (_) {
+        if (!completer.isCompleted) completer.complete(null);
+      }, onDone: () {
+        if (!completer.isCompleted) completer.complete(null);
+      });
+      ws.sink.add(jsonEncode([
+        'REQ',
+        subId,
+        {
+          'kinds': [kind],
+          'authors': [pubKeyHex],
+          '#d': [dTag],
+          'limit': 1,
+        }
+      ]));
       return await completer.future
           .timeout(const Duration(seconds: 6), onTimeout: () => null);
     } catch (_) {
