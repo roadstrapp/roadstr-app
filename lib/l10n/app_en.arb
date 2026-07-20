@@ -393,7 +393,7 @@
   "modeCar": "Car",
   "modeBike": "Bike",
   "modeWalk": "On foot",
-  "windSpeed": "wind {speed} km/h",
+  "windSpeed": "wind {speed}",
   "@windSpeed": {
     "placeholders": {
       "speed": {
@@ -476,6 +476,7 @@
   "kokoroVoiceMale": "Male",
   "kokoroVoiceGenderUnavailable": "Male voice not available for this language",
   "kokoroSpeedTitle": "Speech speed",
+  "kokoroVolumeTitle": "Voice volume",
   "onboardingFavoritesSyncNotice": "Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.",
   "parkingSaveHere": "Save parking here",
   "parkingMarkerTitle": "Parking spot",

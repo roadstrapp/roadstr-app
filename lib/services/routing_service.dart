@@ -120,9 +120,20 @@ enum RoutingProvider { osrm, openRoute, graphHopper }
 
 /// Stateless routing and geocoding helper. All methods are `static`.
 class RoutingService {
-  static const _maxRouteResponseBytes = 20 * 1024 * 1024;
-  static const _maxRoutePoints = 50000;
-  static const _maxRouteSteps = 10000;
+  // Bounds on a route response. These are DoS guards (mainly against a
+  // malicious self-hosted GraphHopper URL), NOT product limits — they must be
+  // generous enough to never reject a legitimate journey. The byte limit,
+  // enforced while streaming in BoundedHttp, is the real memory guard; the
+  // point/step counts are secondary sanity checks.
+  //
+  // Sizing reference (measured live): a Boston→Miami *walking* route is
+  // 2642 km → 79 930 polyline points, 3769 steps, 6.9 MB. Transcontinental
+  // foot/bike routing is a real use case, so the limits sit well above that:
+  // 250 000 points covers ~8000 km of fine-grained footpaths, and 32 MB /
+  // 60 000 steps leave matching headroom.
+  static const _maxRouteResponseBytes = 32 * 1024 * 1024;
+  static const _maxRoutePoints = 250000;
+  static const _maxRouteSteps = 60000;
 
   /// OSRM driving endpoint — the FOSSGIS community server supports car, foot
   /// and bike profiles AND returns maxspeed annotations; unlike the lightweight
@@ -144,7 +155,14 @@ class RoutingService {
   /// Public, keyless Valhalla service operated by the German OpenStreetMap
   /// community.  Unlike the default OSRM profiles, Valhalla supports hard
   /// exclusions for both motorways and toll roads worldwide.
-  static const _valhallaRoute = 'https://valhalla.openstreetmap.de/route';
+  ///
+  /// NB: the API lives on `valhalla1.openstreetmap.de`. The bare
+  /// `valhalla.openstreetmap.de/route` host serves the HTML demo web app, so
+  /// every request there returned a web page instead of JSON — which silently
+  /// broke the entire toll/highway avoidance feature. Verified live: this host
+  /// returns a proper trip with `summary.has_toll` / `has_highway` flags and
+  /// honours `exclude_tolls` / `exclude_highways`.
+  static const _valhallaRoute = 'https://valhalla1.openstreetmap.de/route';
 
   // ── Vehicle / transport-mode helpers ──────────────────────────────────────
 
