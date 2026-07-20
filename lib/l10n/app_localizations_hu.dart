@@ -936,7 +936,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String windSpeed(String speed) {
-    return 'szél $speed km/h';
+    return 'szél $speed';
   }
 
   @override
@@ -1132,6 +1132,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get kokoroSpeedTitle => 'Beszédsebesség';
+
+  @override
+  String get kokoroVolumeTitle => 'Hangerő';
 
   @override
   String get onboardingFavoritesSyncNotice =>

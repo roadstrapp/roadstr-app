@@ -29,6 +29,7 @@ class KokoroTtsService {
   String _lang = 'en';
   String _gender = kKokoroDefaultGender;
   double _speed = 1.0;
+  double _volume = 1.0;
   Float32List? _voiceData;
   bool _ready = false;
   int _utteranceId =
@@ -125,6 +126,15 @@ class KokoroTtsService {
   /// the next synthesis call — no model reload needed, unlike gender/language.
   void setSpeed(double speed) {
     _speed = speed;
+  }
+
+  /// Sets the voice-guidance playback volume (0.0 = muted … 1.0 = full).
+  /// Independent of the device media volume, so the guidance can stay audible
+  /// over a loud podcast or be turned down when it is too loud on its own.
+  /// Applied to the player immediately and persists across audio sources.
+  void setVolume(double volume) {
+    _volume = volume.clamp(0.0, 1.0);
+    unawaited(_player.setVolume(_volume));
   }
 
   Future<void> stop() async {

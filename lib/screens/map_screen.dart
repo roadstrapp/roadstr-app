@@ -120,6 +120,11 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// True once GPS permissions are granted AND the first valid position received.
   bool _gpsReady = false;
 
+  /// True once a real fix from the position stream has arrived. Guards the
+  /// last-known-position seed (used to move the map instantly on GPS start) so
+  /// a stale cached fix can never override a fresh one that raced ahead of it.
+  bool _hasRealFix = false;
+
   /// True once the user has tapped the GPS button (permission flow in progress).
   bool _gpsRequested = false;
 
@@ -290,6 +295,13 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// IDs of Nostr traffic events already shown as an in-navigation alert.
   final _alertedEventIds = <String>{};
 
+  /// The user's own Nostr public key (hex), loaded once at startup and after a
+  /// login change. Used to suppress voice/dialog alerts for the user's OWN road
+  /// reports — you don't need to be warned about a hazard you just reported
+  /// yourself (which otherwise fired repeatedly: the optimistic local event and
+  /// the relay-echoed signed event have different ids and both sit at ~0 m).
+  String? _myPubkey;
+
   /// IDs of speed-camera events that have already triggered the proximity beep.
   final _alertedCameraIds = <String>{};
   final _alertPlayer = AudioPlayer();
@@ -373,10 +385,16 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _tts.setSpeed(kKokoroSpeedStages[Hive.box('settings')
             .get('kokoroSpeedStage', defaultValue: kKokoroDefaultSpeedStage)
         as int]);
+    _tts.setVolume(
+        (Hive.box('settings').get('kokoroVolume', defaultValue: 1.0) as num)
+            .toDouble());
     _tts.init(startLang.isNotEmpty ? startLang : 'it');
     _loadHistory();
     _loadFavorites();
     _loadParkingPosition();
+    unawaited(_secStorage.read(key: 'nostr_pub_hex').then((pub) {
+      if (mounted) _myPubkey = pub;
+    }));
     _nostr.connect();
     _roadSub = _nostr.stream.listen((events) {
       if (mounted) {
@@ -561,6 +579,20 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _camZoom = 17.0;
     });
     _gpsSub = _gps.stream.listen(_onGps);
+    // Seed from the OS's last cached fix so the map jumps to roughly the right
+    // place immediately, instead of waiting several seconds for a cold
+    // bestForNavigation lock (the "location lookup is slow" regression from
+    // deferring GPS start to this point). Only moves the camera — the real
+    // stream sample in _onGps takes over the instant it arrives, and if it
+    // already has, the stale seed is skipped.
+    final seed = await _gps.lastKnown();
+    if (mounted && seed != null && !_hasRealFix) {
+      setState(() {
+        _position = seed.position;
+        _followUser = true;
+      });
+      _animateCamera(toCenter: seed.position, toZoom: 17.0, toRot: 0);
+    }
     // Do NOT call _recenter() here: _position is still the Italy fallback and
     // jumping there would be jarring. The first valid GPS sample in _onGps
     // will move the map to the actual location via the _followUser flag.
@@ -640,6 +672,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       return;
     }
 
+    // A real stream fix has now arrived — the last-known seed must not override.
+    _hasRealFix = true;
     // GPS-loss bookkeeping: any valid fix clears the "signal lost" state.
     _lastFixEpochMs = DateTime.now().millisecondsSinceEpoch;
     if (_gpsSignalLost) setState(() => _gpsSignalLost = false);
@@ -1311,6 +1345,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     for (final ev in _roadEvents) {
       if (!alertCategories.contains(ev.category)) continue;
       if (_alertedEventIds.contains(ev.id)) continue;
+      // Never announce the user's own report back to them.
+      if (_myPubkey != null && ev.pubkey == _myPubkey) continue;
       final d = dist.as(LengthUnit.Meter, _position, ev.position);
       if (d > 400) continue;
       _alertedEventIds.add(ev.id);
@@ -1463,6 +1499,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             e.category == RoadCategory.trafficJam &&
             !e.isExpired &&
             !_alertedEventIds.contains(e.id) &&
+            !(_myPubkey != null && e.pubkey == _myPubkey) &&
             _route!.polyline
                 .any((p) => dist.as(LengthUnit.Meter, p, e.position) < 400))
         .toList();
@@ -1608,13 +1645,16 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _ttsAnnouncedNear = -1;
     _speedLimitSvc.reset();
     final lang = Localizations.localeOf(context).languageCode;
-    // Re-read voice gender/speed on every navigation start — the user may
-    // have changed them in Settings since this _tts instance was created.
+    // Re-read voice gender/speed/volume on every navigation start — the user
+    // may have changed them in Settings since this _tts instance was created.
     _tts.setGender(Hive.box('settings').get('kokoroVoiceGender',
         defaultValue: kKokoroDefaultGender) as String);
     _tts.setSpeed(kKokoroSpeedStages[Hive.box('settings')
             .get('kokoroSpeedStage', defaultValue: kKokoroDefaultSpeedStage)
         as int]);
+    _tts.setVolume(
+        (Hive.box('settings').get('kokoroVolume', defaultValue: 1.0) as num)
+            .toDouble());
     // Set language immediately so bundled assets resolve correctly even before
     // the model finishes loading.  Then init the model in the background for
     // maneuver synthesis.
@@ -3266,6 +3306,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
               pubKeyHex: pubKey,
             );
           }
+          _myPubkey = pubKey; // keep own-report suppression current
           if (mounted) setState(() => _roadEvents = [..._roadEvents, event]);
         },
       ),
@@ -7028,11 +7069,9 @@ class _AlternativesPanelState extends State<_AlternativesPanel>
                         final temp = imp
                             ? '${(_weather!.tempC * 9 / 5 + 32).toStringAsFixed(0)}°F'
                             : '${_weather!.tempC.toStringAsFixed(0)}°C';
-                        final wind = imp
-                            ? l.windSpeed(
-                                Units.toDisplaySpeed(_weather!.windKmh)
-                                    .toStringAsFixed(0))
-                            : l.windSpeed(_weather!.windKmh.toStringAsFixed(0));
+                        final wind = l.windSpeed(
+                            '${Units.toDisplaySpeed(_weather!.windKmh).toStringAsFixed(0)}'
+                            ' ${Units.speedUnit}');
                         return '$temp · ${_weather!.localizedDescription(l)} · $wind';
                       }(),
                       style: TextStyle(color: c.textSecondary, fontSize: 12),
@@ -7959,7 +7998,12 @@ class _SpeedLimitSign extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fontSize = speedKmh >= 100 ? 13.0 : 16.0;
+    // Show the limit in the user's unit. Imperial-unit users are in mph
+    // countries, where the posted sign reads mph, not the km/h OSM value.
+    final display = Units.imperial
+        ? Units.toDisplaySpeed(speedKmh.toDouble()).round()
+        : speedKmh;
+    final fontSize = display >= 100 ? 13.0 : 16.0;
     return Container(
       width: 46,
       height: 46,
@@ -7976,7 +8020,7 @@ class _SpeedLimitSign extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          '$speedKmh',
+          '$display',
           style: TextStyle(
             color: Colors.black,
             fontSize: fontSize,

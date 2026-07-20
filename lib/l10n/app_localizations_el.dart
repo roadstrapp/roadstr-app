@@ -940,7 +940,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String windSpeed(String speed) {
-    return 'άνεμος $speed km/h';
+    return 'άνεμος $speed';
   }
 
   @override
@@ -1136,6 +1136,9 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get kokoroSpeedTitle => 'Ταχύτητα ομιλίας';
+
+  @override
+  String get kokoroVolumeTitle => 'Ένταση φωνής';
 
   @override
   String get onboardingFavoritesSyncNotice =>
