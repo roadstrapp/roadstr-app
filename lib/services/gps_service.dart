@@ -104,6 +104,36 @@ class GpsService {
     return true;
   }
 
+  /// Returns the last cached fix from the OS, instantly and without waiting for
+  /// a fresh satellite lock. Used to move the map to roughly the right place the
+  /// moment the user asks for their location, while the accurate
+  /// [LocationAccuracy.bestForNavigation] stream warms up (a cold first fix can
+  /// take several seconds). Returns null when the OS has no cached position.
+  Future<GpsData?> lastKnown() async {
+    try {
+      final pos = await Geolocator.getLastKnownPosition();
+      if (pos == null ||
+          !pos.latitude.isFinite ||
+          !pos.longitude.isFinite ||
+          pos.latitude < -90 ||
+          pos.latitude > 90 ||
+          pos.longitude < -180 ||
+          pos.longitude > 180) {
+        return null;
+      }
+      return GpsData(
+        position: LatLng(pos.latitude, pos.longitude),
+        speedKmh: 0,
+        accuracy: pos.accuracy,
+        heading: pos.heading >= 0 ? pos.heading : null,
+        altitude: pos.altitude,
+        timestamp: pos.timestamp,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
   void _onPosition(Position pos) {
     if (_disposed || _controller.isClosed) return;
     // Guard against NaN/Infinity coordinates that some Android devices emit

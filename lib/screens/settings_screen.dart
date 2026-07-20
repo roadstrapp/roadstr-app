@@ -47,6 +47,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   double _downloadProgress = 0;
   String _kokoroGender = kKokoroDefaultGender;
   int _kokoroSpeedStage = kKokoroDefaultSpeedStage;
+  double _kokoroVolume = 1.0;
   bool _previewingVoice = false;
   final _previewTts = KokoroTtsService();
 
@@ -69,6 +70,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         defaultValue: kKokoroDefaultGender) as String;
     _kokoroSpeedStage = _box.get('kokoroSpeedStage',
         defaultValue: kKokoroDefaultSpeedStage) as int;
+    _kokoroVolume =
+        (_box.get('kokoroVolume', defaultValue: 1.0) as num).toDouble();
 
     final mgr = KokoroModelManager.instance;
     if (mgr.isDownloading) {
@@ -170,6 +173,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     unawaited(_playPreview());
   }
 
+  void _setVolume(double volume) {
+    _box.put('kokoroVolume', volume);
+    unawaited(_playPreview());
+  }
+
   /// Speaks a fixed sample instruction with the currently selected
   /// gender/speed so the user can judge the choice immediately. Falls back
   /// to English when the app's current language has no Kokoro voice, so the
@@ -185,6 +193,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _previewTts.setLanguage(lang);
       _previewTts.setGender(_kokoroGender);
       _previewTts.setSpeed(kKokoroSpeedStages[_kokoroSpeedStage]);
+      _previewTts.setVolume(_kokoroVolume);
       await _previewTts.init(lang);
       await _previewTts.previewVoice();
     } finally {
@@ -1563,6 +1572,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         onChanged: (v) =>
                             setState(() => _kokoroSpeedStage = v.round()),
                         onChangeEnd: (v) => _setSpeedStage(v.round()),
+                      ),
+                    ),
+
+                    // ── Voice volume ──────────────────────────────────────────
+                    Row(children: [
+                      Expanded(
+                          child: Text(l.kokoroVolumeTitle,
+                              style: TextStyle(
+                                  color: c.textPrimary,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600))),
+                      Text('${(_kokoroVolume * 100).round()}%',
+                          style: TextStyle(
+                              color: c.accent,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600)),
+                    ]),
+                    SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        activeTrackColor: c.accent,
+                        inactiveTrackColor: c.border,
+                        thumbColor: c.accent,
+                        overlayColor: c.accent.withValues(alpha: 0.15),
+                        trackHeight: 3,
+                      ),
+                      child: Slider(
+                        value: _kokoroVolume,
+                        // Floor at 0.2: a 0% guidance volume would silently
+                        // disable spoken directions while the toggle still
+                        // says voice is on — use the voice switch to mute.
+                        min: 0.2,
+                        max: 1.0,
+                        divisions: 8,
+                        onChanged: (v) => setState(() => _kokoroVolume = v),
+                        onChangeEnd: _setVolume,
                       ),
                     ),
                   ],

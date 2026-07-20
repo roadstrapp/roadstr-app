@@ -929,7 +929,7 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String windSpeed(String speed) {
-    return 'vítr $speed km/h';
+    return 'vítr $speed';
   }
 
   @override
@@ -1125,6 +1125,9 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get kokoroSpeedTitle => 'Rychlost řeči';
+
+  @override
+  String get kokoroVolumeTitle => 'Hlasitost hlasu';
 
   @override
   String get onboardingFavoritesSyncNotice =>

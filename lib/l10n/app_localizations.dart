@@ -1855,7 +1855,7 @@ abstract class AppLocalizations {
   /// No description provided for @windSpeed.
   ///
   /// In en, this message translates to:
-  /// **'wind {speed} km/h'**
+  /// **'wind {speed}'**
   String windSpeed(String speed);
 
   /// No description provided for @durationMin.
@@ -2205,6 +2205,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Speech speed'**
   String get kokoroSpeedTitle;
+
+  /// No description provided for @kokoroVolumeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice volume'**
+  String get kokoroVolumeTitle;
 
   /// No description provided for @onboardingFavoritesSyncNotice.
   ///

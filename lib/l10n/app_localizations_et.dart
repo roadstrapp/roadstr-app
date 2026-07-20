@@ -929,7 +929,7 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String windSpeed(String speed) {
-    return 'tuul $speed km/h';
+    return 'tuul $speed';
   }
 
   @override
@@ -1125,6 +1125,9 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get kokoroSpeedTitle => 'Kõne kiirus';
+
+  @override
+  String get kokoroVolumeTitle => 'Hääle helitugevus';
 
   @override
   String get onboardingFavoritesSyncNotice =>
