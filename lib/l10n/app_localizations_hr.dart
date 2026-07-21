@@ -78,10 +78,30 @@ class AppLocalizationsHr extends AppLocalizations {
   String get selectedPosition => 'Odabrana pozicija';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Profil';
 
   @override
   String get bottomBarMenu => 'Izbornik';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Postavke';
@@ -413,6 +433,46 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Prijavi događaj';
+
+  @override
+  String get notifZapTitle => 'Primljen zap';
+
+  @override
+  String notifZapBody(int sat) {
+    return 'Primili ste zap od $sat sats!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Prijava potvrđena';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'Vašu prijavu $category potvrdio je drugi vozač';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Prijava osporena';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Netko je prijavio da vašeg $category više nema';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, zatim $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Ograničenje brzine (neobavezno)';
+
+  @override
+  String get reportedSpeedLimit => 'Prijavljeno ograničenje brzine';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Prijavljena kamera, ograničenje $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Neobavezan komentar…';

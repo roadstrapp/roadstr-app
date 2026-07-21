@@ -77,10 +77,30 @@ class AppLocalizationsJa extends AppLocalizations {
   String get selectedPosition => '選択した位置';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'プロフィール';
 
   @override
   String get bottomBarMenu => 'メニュー';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => '設定';
@@ -400,6 +420,46 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'イベントを報告';
+
+  @override
+  String get notifZapTitle => 'Zapを受信';
+
+  @override
+  String notifZapBody(int sat) {
+    return '$sat satのZapを受け取りました!';
+  }
+
+  @override
+  String get notifConfirmedTitle => '報告が確認されました';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'あなたの$categoryの報告が他のドライバーによって確認されました';
+  }
+
+  @override
+  String get notifDeniedTitle => '報告に異議あり';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'あなたの$categoryはもうないと報告されました';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first、その後 $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => '制限速度(任意)';
+
+  @override
+  String get reportedSpeedLimit => '報告された制限速度';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return '速度カメラあり、制限速度 $limit $unit';
+  }
 
   @override
   String get optionalComment => '任意のコメント…';

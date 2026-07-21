@@ -156,6 +156,31 @@
   "loginToConfirm": "Kirjaudu Nostrilla vahvistaaksesi tai kiistääksesi",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Ilmoita tapahtuma",
+  "notifZapTitle": "Zap vastaanotettu",
+  "notifZapBody": "Sait {sat} satin zapin!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Ilmoitus vahvistettu",
+  "notifConfirmedBody": "Toinen kuljettaja vahvisti {category}-ilmoituksesi",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Ilmoitus kiistetty",
+  "notifDeniedBody": "Joku ilmoitti, ettei {category} ole enää siellä",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, sitten {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Nopeusrajoitus (valinnainen)",
+  "reportedSpeedLimit": "Ilmoitettu nopeusrajoitus",
+  "speedCameraVoiceAlert": "Nopeuskamera ilmoitettu, rajoitus {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Valinnainen kommentti…",
   "publish": "Julkaise",
   "publishing": "Julkaistaan…",

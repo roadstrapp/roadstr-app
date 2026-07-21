@@ -156,6 +156,31 @@
   "loginToConfirm": "Logga in med Nostr för att bekräfta eller bestrida",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Rapportera en händelse",
+  "notifZapTitle": "Zap mottagen",
+  "notifZapBody": "Du fick en zap på {sat} sats!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Rapport bekräftad",
+  "notifConfirmedBody": "Din {category}-rapport bekräftades av en annan förare",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Rapport ifrågasatt",
+  "notifDeniedBody": "Någon rapporterade att din {category} inte längre finns kvar",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, sedan {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Hastighetsgräns (valfritt)",
+  "reportedSpeedLimit": "Rapporterad hastighetsgräns",
+  "speedCameraVoiceAlert": "Fartkamera rapporterad, hastighetsgräns {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Valfri kommentar…",
   "publish": "Publicera",
   "publishing": "Publicerar…",

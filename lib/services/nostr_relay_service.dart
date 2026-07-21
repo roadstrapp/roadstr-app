@@ -12,12 +12,15 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:hive/hive.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nostr_tools/nostr_tools.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import '../models/activity_notification.dart';
 import '../models/road_event.dart';
 import 'nostr_event_verify.dart';
+import 'zap_service.dart';
 
 // ── Nostr profile (kind 0) ────────────────────────────────────────────────────
 
@@ -109,9 +112,39 @@ class NostrRelayService {
   final _countedVotes = <String>{};
   final _publishAcks = <String, Completer<bool>>{};
 
+  // ── activity notifications (zaps + confirmations/denials of MY reports) ────
+  // Separate from the geohash road-event stream above: this is about the
+  // logged-in user's OWN activity, not nearby traffic, so it uses its own
+  // subscriptions and its own dedupe/cursor bookkeeping.
+  final _activityController =
+      StreamController<ActivityNotification>.broadcast();
+  String _zapSubId = '';
+  String _myConfSubId = '';
+  String? _myPubKeyForNotif;
+  String? _myZapSigner;
+  Set<String> _myEventIds = {};
+  Map<String, RoadEvent> _myEventsById = {};
+  int _lastZapNotifiedAt = 0;
+  int _lastConfNotifiedAt = 0;
+  // Session-only dedupe: a reconnect re-requests with `since` = the last
+  // persisted cursor, which can redeliver the boundary event. Never persisted
+  // — an occasional duplicate notification across app restarts is harmless,
+  // unlike the unbounded memory growth of persisting every id forever.
+  final _notifiedEventIds = <String>{};
+
+  Box get _box => Hive.box('settings');
+
+  String _activityCursorKey(String kind, String pubkey) =>
+      'activity_${kind}_cursor_$pubkey';
+
   // ── public API ─────────────────────────────────────────────────────────────
 
   Stream<List<RoadEvent>> get stream => _controller.stream;
+
+  /// Notifications about the logged-in user's own activity: zaps received,
+  /// and confirmations/denials of their own road reports. Empty stream until
+  /// [enableActivityNotifications] is called.
+  Stream<ActivityNotification> get activityStream => _activityController.stream;
 
   /// Returns all non-expired events currently in the in-memory cache.
   List<RoadEvent> get currentEvents =>
@@ -144,8 +177,90 @@ class NostrRelayService {
       _connected = true;
       // Replay the last area subscription if the app already had one active.
       if (_lastGeohashes.isNotEmpty) _sendEventsReq(_lastGeohashes);
+      if (_myPubKeyForNotif != null) _sendMyNotificationReqs();
     } catch (_) {
       _scheduleReconnect();
+    }
+  }
+
+  /// Enables live notifications for [pubKeyHex]'s own activity: zaps received
+  /// and confirmations/denials of their road reports. Call once after login
+  /// (Amber or nsec) — never for a logged-out/anonymous user. Best-effort:
+  /// any resolution failure here just means notifications don't fire, never
+  /// a crash or a blocked UI.
+  Future<void> enableActivityNotifications(String pubKeyHex) async {
+    if (_disposed || !_isHex32(pubKeyHex)) return;
+    if (_myPubKeyForNotif != null && _myPubKeyForNotif != pubKeyHex) {
+      disableActivityNotifications();
+      _notifiedEventIds.clear();
+    }
+    _myPubKeyForNotif = pubKeyHex;
+    // First-ever activation: seed cursors at "now" so years of past zaps and
+    // confirmations don't all fire as notifications at once. Later launches
+    // resume from the last event actually shown.
+    final zapCursorKey = _activityCursorKey('zap', pubKeyHex);
+    final storedZap = _box.get(zapCursorKey) as int?;
+    _lastZapNotifiedAt = storedZap ?? _nowS();
+    if (storedZap == null) _box.put(zapCursorKey, _lastZapNotifiedAt);
+    final confCursorKey = _activityCursorKey('confirmation', pubKeyHex);
+    final storedConf = _box.get(confCursorKey) as int?;
+    _lastConfNotifiedAt = storedConf ?? _nowS();
+    if (storedConf == null) _box.put(confCursorKey, _lastConfNotifiedAt);
+
+    // Zap receipts are only trusted when signed by the exact LNURL provider
+    // key this user's Lightning address advertises — same rule fetchBalance
+    // uses. Resolved once per session; a transient failure here just means
+    // zap notifications silently don't fire (confirmations still can).
+    _myZapSigner = await ZapService.resolveZapSigner(pubKeyHex);
+
+    // Seed "my own report" ids via a NIP-01 authors filter (kind-1315,
+    // 30 days — the longest report TTL) so kind-1316 confirmations can be
+    // matched without requiring a `p` tag on the confirming event (older
+    // clients/versions of Roadstr never added one).
+    final myEvents = await fetchUserEvents(pubKeyHex, limit: 200);
+    _myEventsById = {for (final e in myEvents) e.id: e};
+    _myEventIds = _myEventsById.keys.toSet();
+
+    if (_connected) _sendMyNotificationReqs();
+  }
+
+  /// Disables activity notifications (e.g. on logout). Best-effort CLOSE of
+  /// the live subscriptions; safe to call even if never enabled.
+  void disableActivityNotifications() {
+    if (_zapSubId.isNotEmpty) _send(['CLOSE', _zapSubId]);
+    if (_myConfSubId.isNotEmpty) _send(['CLOSE', _myConfSubId]);
+    _zapSubId = '';
+    _myConfSubId = '';
+    _myPubKeyForNotif = null;
+    _myZapSigner = null;
+    _myEventIds = {};
+    _myEventsById = {};
+  }
+
+  void _sendMyNotificationReqs() {
+    final pub = _myPubKeyForNotif;
+    if (pub == null) return;
+    _zapSubId = randomSubId();
+    _send([
+      'REQ',
+      _zapSubId,
+      {
+        'kinds': [9735],
+        '#p': [pub],
+        'since': _lastZapNotifiedAt,
+      }
+    ]);
+    if (_myEventIds.isNotEmpty) {
+      _myConfSubId = randomSubId();
+      _send([
+        'REQ',
+        _myConfSubId,
+        {
+          'kinds': [1316],
+          '#e': _myEventIds.toList(),
+          'since': _lastConfNotifiedAt,
+        }
+      ]);
     }
   }
 
@@ -192,6 +307,7 @@ class NostrRelayService {
     required String comment,
     required String privKeyHex,
     required String pubKeyHex,
+    int? speedLimit,
   }) async {
     _requireConnected();
     _validatePublishInput(position, comment, pubKeyHex);
@@ -210,6 +326,7 @@ class NostrRelayService {
           ['g', _gh(position.latitude, position.longitude, 6)],
           ['t', category.nostrKey],
           ['expiration', '$expires'],
+          if (speedLimit != null) ['maxspeed', '$speedLimit'],
         ],
         content: comment,
       ),
@@ -228,6 +345,7 @@ class NostrRelayService {
       comment: comment,
       createdAt: now,
       expiresAt: expires,
+      speedLimit: speedLimit,
     );
   }
 
@@ -280,6 +398,7 @@ class NostrRelayService {
     }
     _publishAcks.clear();
     _controller.close();
+    _activityController.close();
   }
 
   /// Removes expired events from the cache and pushes an updated list downstream.
@@ -471,8 +590,14 @@ class NostrRelayService {
               if (msg[1] != _eventsSubId) return;
               _handleRoadEvent(json);
             case 1316:
-              if (msg[1] != _confSubId) return;
-              _handleConfirmation(json);
+              if (msg[1] == _confSubId) {
+                _handleConfirmation(json);
+              } else if (msg[1] == _myConfSubId) {
+                _handleMyConfirmation(json);
+              }
+            case 9735:
+              if (msg[1] != _zapSubId) return;
+              _handleZapReceipt(json);
           }
         case 'EOSE':
           if (msg[1] == _eventsSubId) {
@@ -551,6 +676,70 @@ class NostrRelayService {
     if (!_controller.isClosed) _controller.add(currentEvents);
   }
 
+  /// Handles a kind-1316 confirmation/denial of one of the LOGGED-IN USER'S
+  /// OWN reports (matched against [_myEventIds], independent of the nearby-
+  /// events cache used by [_handleConfirmation]). Emits an [ActivityNotification]
+  /// at most once per event id per session.
+  void _handleMyConfirmation(Map<String, dynamic> json) {
+    final tags = (json['tags'] as List)
+        .map((t) => List<String>.from(t as List))
+        .toList();
+    String? targetId, status;
+    for (final t in tags) {
+      if (t.length < 2) continue;
+      if (t[0] == 'e') targetId = t[1];
+      if (t[0] == 'status') status = t[1];
+    }
+    if (targetId == null || status == null) return;
+    if (status != 'still_there' && status != 'no_longer_there') return;
+    final myEvent = _myEventsById[targetId];
+    if (myEvent == null) return;
+    // A self-confirmation of your own report (however it happened) is not
+    // "someone confirmed you" and must never self-notify.
+    if (json['pubkey'] == myEvent.pubkey) return;
+    final id = json['id'] as String?;
+    if (id == null || !_notifiedEventIds.add(id)) return;
+    final createdAt = json['created_at'] as int? ?? 0;
+    if (createdAt > _lastConfNotifiedAt) {
+      _lastConfNotifiedAt = createdAt;
+      final pub = _myPubKeyForNotif;
+      if (pub != null) {
+        _box.put(_activityCursorKey('confirmation', pub), createdAt);
+      }
+    }
+    if (_activityController.isClosed) return;
+    _activityController.add(status == 'still_there'
+        ? ActivityNotification.confirmed(
+            id: id, createdAt: createdAt, category: myEvent.category)
+        : ActivityNotification.denied(
+            id: id, createdAt: createdAt, category: myEvent.category));
+  }
+
+  /// Handles a kind-9735 NIP-57 zap receipt addressed to the logged-in user
+  /// (`#p` filter). Trusts only receipts signed by the exact LNURL provider
+  /// key resolved for this user — see [ZapService.verifiedReceiptAmount].
+  void _handleZapReceipt(Map<String, dynamic> json) {
+    final signer = _myZapSigner;
+    final pub = _myPubKeyForNotif;
+    if (signer == null || pub == null) return;
+    final amountMsat = ZapService.verifiedReceiptAmount(
+      json,
+      recipientPub: pub,
+      receiptSigner: signer,
+    );
+    if (amountMsat == null) return;
+    final id = json['id'] as String?;
+    if (id == null || !_notifiedEventIds.add(id)) return;
+    final createdAt = json['created_at'] as int? ?? 0;
+    if (createdAt > _lastZapNotifiedAt) {
+      _lastZapNotifiedAt = createdAt;
+      _box.put(_activityCursorKey('zap', pub), createdAt);
+    }
+    if (_activityController.isClosed) return;
+    _activityController.add(ActivityNotification.zap(
+        id: id, createdAt: createdAt, amountSat: amountMsat ~/ 1000));
+  }
+
   void _pruneVotes() {
     _countedVotes.removeWhere((vote) {
       final separator = vote.indexOf(':');
@@ -619,6 +808,7 @@ class NostrRelayService {
     required String pubKeyHex,
     required int now,
     required int expires,
+    int? speedLimit,
   }) {
     final event = Event(
       pubkey: pubKeyHex,
@@ -632,6 +822,7 @@ class NostrRelayService {
         ['g', _gh(position.latitude, position.longitude, 6)],
         ['t', category.nostrKey],
         ['expiration', '$expires'],
+        if (speedLimit != null) ['maxspeed', '$speedLimit'],
       ],
       content: comment,
     );
@@ -696,6 +887,7 @@ class NostrRelayService {
       comment: comment,
       createdAt: now,
       expiresAt: expires,
+      speedLimit: parsed.speedLimit,
     );
   }
 

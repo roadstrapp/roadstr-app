@@ -268,6 +268,12 @@ abstract class AppLocalizations {
   /// **'Selected position'**
   String get selectedPosition;
 
+  /// No description provided for @bottomBarNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get bottomBarNotifications;
+
   /// No description provided for @bottomBarProfile.
   ///
   /// In en, this message translates to:
@@ -279,6 +285,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Menu'**
   String get bottomBarMenu;
+
+  /// No description provided for @notificationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationsTitle;
+
+  /// No description provided for @notificationsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications yet'**
+  String get notificationsEmpty;
+
+  /// No description provided for @notificationsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Zaps and reactions to your road reports will appear here.'**
+  String get notificationsEmptyBody;
+
+  /// No description provided for @notificationsLoginRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect your Nostr profile'**
+  String get notificationsLoginRequired;
+
+  /// No description provided for @notificationsLoginRequiredBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Amber or nsec to receive notifications from other users.'**
+  String get notificationsLoginRequiredBody;
 
   /// No description provided for @settingsTitle.
   ///
@@ -897,6 +933,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Report an event'**
   String get reportAnEvent;
+
+  /// No description provided for @notifZapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Zap received'**
+  String get notifZapTitle;
+
+  /// No description provided for @notifZapBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You received a zap of {sat} sats!'**
+  String notifZapBody(int sat);
+
+  /// No description provided for @notifConfirmedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report confirmed'**
+  String get notifConfirmedTitle;
+
+  /// No description provided for @notifConfirmedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {category} report was confirmed by another driver'**
+  String notifConfirmedBody(String category);
+
+  /// No description provided for @notifDeniedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report disputed'**
+  String get notifDeniedTitle;
+
+  /// No description provided for @notifDeniedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone said your {category} report is no longer there'**
+  String notifDeniedBody(String category);
+
+  /// No description provided for @chainedManeuver.
+  ///
+  /// In en, this message translates to:
+  /// **'{first}, then {second}'**
+  String chainedManeuver(String first, String second);
+
+  /// No description provided for @reportSpeedLimitHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed limit (optional)'**
+  String get reportSpeedLimitHint;
+
+  /// No description provided for @reportedSpeedLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported speed limit'**
+  String get reportedSpeedLimit;
+
+  /// No description provided for @speedCameraVoiceAlert.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed camera reported, speed limit {limit} {unit}'**
+  String speedCameraVoiceAlert(int limit, String unit);
 
   /// No description provided for @optionalComment.
   ///

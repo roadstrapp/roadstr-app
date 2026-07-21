@@ -156,6 +156,31 @@
   "loginToConfirm": "Přihlaste se s Nostr pro potvrzení nebo zpochybnění",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Nahlásit událost",
+  "notifZapTitle": "Přijat zap",
+  "notifZapBody": "Obdrželi jste zap ve výši {sat} satů!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Hlášení potvrzeno",
+  "notifConfirmedBody": "Vaše hlášení {category} potvrdil jiný řidič",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Hlášení zpochybněno",
+  "notifDeniedBody": "Někdo nahlásil, že vaše {category} už tam není",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, poté {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Rychlostní limit (volitelné)",
+  "reportedSpeedLimit": "Nahlášený rychlostní limit",
+  "speedCameraVoiceAlert": "Radar nahlášen, limit {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Volitelný komentář…",
   "publish": "Zveřejnit",
   "publishing": "Zveřejňuji…",

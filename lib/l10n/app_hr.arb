@@ -156,6 +156,31 @@
   "loginToConfirm": "Prijavite se s Nostr za potvrdu ili osporu",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Prijavi događaj",
+  "notifZapTitle": "Primljen zap",
+  "notifZapBody": "Primili ste zap od {sat} sats!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Prijava potvrđena",
+  "notifConfirmedBody": "Vašu prijavu {category} potvrdio je drugi vozač",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Prijava osporena",
+  "notifDeniedBody": "Netko je prijavio da vašeg {category} više nema",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, zatim {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Ograničenje brzine (neobavezno)",
+  "reportedSpeedLimit": "Prijavljeno ograničenje brzine",
+  "speedCameraVoiceAlert": "Prijavljena kamera, ograničenje {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Neobavezan komentar…",
   "publish": "Objavi",
   "publishing": "Objavljivanje…",

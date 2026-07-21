@@ -34,8 +34,14 @@
   "history": "History",
   "clearHistory": "Clear",
   "selectedPosition": "Selected position",
+  "bottomBarNotifications": "Notifications",
   "bottomBarProfile": "Profile",
   "bottomBarMenu": "Menu",
+  "notificationsTitle": "Notifications",
+  "notificationsEmpty": "No notifications yet",
+  "notificationsEmptyBody": "Zaps and reactions to your road reports will appear here.",
+  "notificationsLoginRequired": "Connect your Nostr profile",
+  "notificationsLoginRequiredBody": "Sign in with Amber or nsec to receive notifications from other users.",
   "settingsTitle": "Settings",
   "sectionTheme": "Theme",
   "sectionMap": "Map",
@@ -158,6 +164,31 @@
   "loginToConfirm": "Login with Nostr to confirm or dispute",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Report an event",
+  "notifZapTitle": "Zap received",
+  "notifZapBody": "You received a zap of {sat} sats!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Report confirmed",
+  "notifConfirmedBody": "Your {category} report was confirmed by another driver",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Report disputed",
+  "notifDeniedBody": "Someone said your {category} report is no longer there",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, then {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Speed limit (optional)",
+  "reportedSpeedLimit": "Reported speed limit",
+  "speedCameraVoiceAlert": "Speed camera reported, speed limit {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Optional comment…",
   "publish": "Publish",
   "publishing": "Publishing…",

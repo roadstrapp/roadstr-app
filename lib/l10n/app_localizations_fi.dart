@@ -78,10 +78,30 @@ class AppLocalizationsFi extends AppLocalizations {
   String get selectedPosition => 'Valittu sijainti';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Profiili';
 
   @override
   String get bottomBarMenu => 'Valikko';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Asetukset';
@@ -411,6 +431,46 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Ilmoita tapahtuma';
+
+  @override
+  String get notifZapTitle => 'Zap vastaanotettu';
+
+  @override
+  String notifZapBody(int sat) {
+    return 'Sait $sat satin zapin!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Ilmoitus vahvistettu';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'Toinen kuljettaja vahvisti $category-ilmoituksesi';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Ilmoitus kiistetty';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Joku ilmoitti, ettei $category ole enää siellä';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, sitten $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Nopeusrajoitus (valinnainen)';
+
+  @override
+  String get reportedSpeedLimit => 'Ilmoitettu nopeusrajoitus';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Nopeuskamera ilmoitettu, rajoitus $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Valinnainen kommentti…';

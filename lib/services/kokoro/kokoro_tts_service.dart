@@ -186,7 +186,14 @@ class KokoroTtsService {
   }
 
   Future<void> _acquireFocus() async {
-    if (_audioFocusActive) return;
+    // ALWAYS re-activate — never short-circuit on a cached "active" flag.
+    // The OS silently revokes the audio session on any external interruption
+    // (incoming call, notification sound, another media app, Bluetooth
+    // connect/disconnect, Assistant). Our flag stays stale-true through that,
+    // so the old `if (_audioFocusActive) return;` meant we never re-requested
+    // focus afterwards — the player kept running against a dead session and
+    // ALL guidance went silent "after a while", never recovering.
+    // setActive(true) on an already-active session is a harmless no-op.
     try {
       final session = await AudioSession.instance;
       final granted = await session.setActive(true);
@@ -265,7 +272,13 @@ class KokoroTtsService {
         await _player.stop();
         await _player.setAudioSource(AudioSource.asset(assetPath));
         await _player.seek(Duration.zero);
-        await _player.play();
+        // Fire-and-forget: play() returns only when playback COMPLETES, so
+        // awaiting it here would finish the clip before _speakNow attaches its
+        // completion listener — the listener would then never fire and
+        // _isSpeaking would stick, silently blocking every later non-priority
+        // alert. Starting playback and returning lets the listener catch the
+        // completion while audio is still playing.
+        unawaited(_player.play());
         debugPrint('[KokoroTTS] bundled: "$text"');
         return true;
       } catch (e) {
@@ -336,7 +349,9 @@ class KokoroTtsService {
       await _player.setAudioSource(AudioSource.uri(Uri.file(wavFile.path)));
       debugPrint('[KokoroTTS]   setAudioSource done: ${ms()}ms');
       await _player.seek(Duration.zero);
-      await _player.play();
+      // Fire-and-forget — see the bundled path above for why play() must not
+      // be awaited here (it resolves on completion, breaking the listener).
+      unawaited(_player.play());
       debugPrint('[KokoroTTS]   play() called: ${ms()}ms');
       return true;
     } catch (e) {

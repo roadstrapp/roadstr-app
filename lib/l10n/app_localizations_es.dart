@@ -79,10 +79,30 @@ class AppLocalizationsEs extends AppLocalizations {
   String get selectedPosition => 'Posición seleccionada';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Perfil';
 
   @override
   String get bottomBarMenu => 'Menú';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Ajustes';
@@ -415,6 +435,46 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Reportar un evento';
+
+  @override
+  String get notifZapTitle => 'Zap recibido';
+
+  @override
+  String notifZapBody(int sat) {
+    return '¡Has recibido un zap de $sat sats!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Reporte confirmado';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'Tu reporte de $category fue confirmado por otro conductor';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Reporte cuestionado';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Alguien indicó que tu reporte de $category ya no está';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, luego $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Límite de velocidad (opcional)';
+
+  @override
+  String get reportedSpeedLimit => 'Límite de velocidad informado';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Radar informado, límite de velocidad $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Comentario opcional…';

@@ -78,10 +78,30 @@ class AppLocalizationsPl extends AppLocalizations {
   String get selectedPosition => 'Wybrana pozycja';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Profil';
 
   @override
   String get bottomBarMenu => 'Menu';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Ustawienia';
@@ -412,6 +432,46 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Zgłoś zdarzenie';
+
+  @override
+  String get notifZapTitle => 'Otrzymano zap';
+
+  @override
+  String notifZapBody(int sat) {
+    return 'Otrzymałeś zap w wysokości $sat sat!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Zgłoszenie potwierdzone';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'Twoje zgłoszenie $category zostało potwierdzone przez innego kierowcę';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Zgłoszenie zakwestionowane';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Ktoś zgłosił, że Twoje $category już tam nie jest';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, następnie $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Ograniczenie prędkości (opcjonalnie)';
+
+  @override
+  String get reportedSpeedLimit => 'Zgłoszone ograniczenie prędkości';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Zgłoszono fotoradar, ograniczenie prędkości $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Opcjonalny komentarz…';

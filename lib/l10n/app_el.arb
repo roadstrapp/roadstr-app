@@ -156,6 +156,31 @@
   "loginToConfirm": "Συνδεθείτε με Nostr για επιβεβαίωση ή αμφισβήτηση",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Αναφορά συμβάντος",
+  "notifZapTitle": "Ελήφθη zap",
+  "notifZapBody": "Λάβατε zap {sat} sats!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Η αναφορά επιβεβαιώθηκε",
+  "notifConfirmedBody": "Η αναφορά σας για {category} επιβεβαιώθηκε από άλλον οδηγό",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Η αναφορά αμφισβητήθηκε",
+  "notifDeniedBody": "Κάποιος ανέφερε ότι το {category} σας δεν υπάρχει πια",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, στη συνέχεια {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Όριο ταχύτητας (προαιρετικό)",
+  "reportedSpeedLimit": "Αναφερόμενο όριο ταχύτητας",
+  "speedCameraVoiceAlert": "Κάμερα ταχύτητας, όριο {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Προαιρετικό σχόλιο…",
   "publish": "Δημοσίευση",
   "publishing": "Δημοσίευση…",

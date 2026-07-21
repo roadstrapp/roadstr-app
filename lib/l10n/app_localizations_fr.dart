@@ -79,10 +79,30 @@ class AppLocalizationsFr extends AppLocalizations {
   String get selectedPosition => 'Position sélectionnée';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Profil';
 
   @override
   String get bottomBarMenu => 'Menu';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Paramètres';
@@ -414,6 +434,46 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Signaler un événement';
+
+  @override
+  String get notifZapTitle => 'Zap reçu';
+
+  @override
+  String notifZapBody(int sat) {
+    return 'Vous avez reçu un zap de $sat sats !';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Signalement confirmé';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'Votre signalement $category a été confirmé par un autre conducteur';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Signalement contesté';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Quelqu\'un a signalé que votre $category n\'est plus là';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, puis $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Limite de vitesse (facultatif)';
+
+  @override
+  String get reportedSpeedLimit => 'Limite de vitesse signalée';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Radar signalé, limite de vitesse $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Commentaire facultatif…';

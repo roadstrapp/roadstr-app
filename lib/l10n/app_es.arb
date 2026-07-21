@@ -156,6 +156,31 @@
   "loginToConfirm": "Inicia sesión con Nostr para confirmar o disputar",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Reportar un evento",
+  "notifZapTitle": "Zap recibido",
+  "notifZapBody": "¡Has recibido un zap de {sat} sats!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Reporte confirmado",
+  "notifConfirmedBody": "Tu reporte de {category} fue confirmado por otro conductor",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Reporte cuestionado",
+  "notifDeniedBody": "Alguien indicó que tu reporte de {category} ya no está",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, luego {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Límite de velocidad (opcional)",
+  "reportedSpeedLimit": "Límite de velocidad informado",
+  "speedCameraVoiceAlert": "Radar informado, límite de velocidad {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Comentario opcional…",
   "publish": "Publicar",
   "publishing": "Publicando…",

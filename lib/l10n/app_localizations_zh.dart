@@ -75,10 +75,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get selectedPosition => '所选位置';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => '个人资料';
 
   @override
   String get bottomBarMenu => '菜单';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => '设置';
@@ -396,6 +416,46 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get reportAnEvent => '报告事件';
+
+  @override
+  String get notifZapTitle => '收到闪电赞';
+
+  @override
+  String notifZapBody(int sat) {
+    return '你收到了 $sat sats 的闪电赞!';
+  }
+
+  @override
+  String get notifConfirmedTitle => '举报已确认';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return '你举报的$category已被其他司机确认';
+  }
+
+  @override
+  String get notifDeniedTitle => '举报被质疑';
+
+  @override
+  String notifDeniedBody(String category) {
+    return '有人反馈你举报的$category已经不在了';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first,然后$second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => '限速(可选)';
+
+  @override
+  String get reportedSpeedLimit => '报告的限速';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return '测速摄像头,限速 $limit $unit';
+  }
 
   @override
   String get optionalComment => '可选评论…';

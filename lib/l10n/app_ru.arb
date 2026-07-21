@@ -156,6 +156,31 @@
   "loginToConfirm": "Войдите через Nostr, чтобы подтвердить или опровергнуть",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Сообщить о событии",
+  "notifZapTitle": "Получен zap",
+  "notifZapBody": "Вы получили zap на {sat} сат!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Отчёт подтверждён",
+  "notifConfirmedBody": "Ваш отчёт «{category}» подтвердил другой водитель",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Отчёт оспорен",
+  "notifDeniedBody": "Кто-то сообщил, что вашего {category} там больше нет",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, затем {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Ограничение скорости (необязательно)",
+  "reportedSpeedLimit": "Заявленное ограничение скорости",
+  "speedCameraVoiceAlert": "Камера, ограничение скорости {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Необязательный комментарий…",
   "publish": "Опубликовать",
   "publishing": "Публикация…",

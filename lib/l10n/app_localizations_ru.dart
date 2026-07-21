@@ -78,10 +78,30 @@ class AppLocalizationsRu extends AppLocalizations {
   String get selectedPosition => 'Выбранная позиция';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Профиль';
 
   @override
   String get bottomBarMenu => 'Меню';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Настройки';
@@ -411,6 +431,46 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Сообщить о событии';
+
+  @override
+  String get notifZapTitle => 'Получен zap';
+
+  @override
+  String notifZapBody(int sat) {
+    return 'Вы получили zap на $sat сат!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Отчёт подтверждён';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'Ваш отчёт «$category» подтвердил другой водитель';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Отчёт оспорен';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Кто-то сообщил, что вашего $category там больше нет';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, затем $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Ограничение скорости (необязательно)';
+
+  @override
+  String get reportedSpeedLimit => 'Заявленное ограничение скорости';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Камера, ограничение скорости $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Необязательный комментарий…';

@@ -156,6 +156,31 @@
   "loginToConfirm": "Conectați-vă cu Nostr pentru a confirma sau contesta",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Raportați un eveniment",
+  "notifZapTitle": "Zap primit",
+  "notifZapBody": "Ai primit un zap de {sat} sats!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Raport confirmat",
+  "notifConfirmedBody": "Raportul tău despre {category} a fost confirmat de alt șofer",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Raport contestat",
+  "notifDeniedBody": "Cineva a semnalat că {category} tău nu mai e acolo",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, apoi {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Limită de viteză (opțional)",
+  "reportedSpeedLimit": "Limită de viteză raportată",
+  "speedCameraVoiceAlert": "Radar raportat, limită de viteză {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Comentariu opțional…",
   "publish": "Publicare",
   "publishing": "Se publică…",

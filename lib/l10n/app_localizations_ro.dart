@@ -78,10 +78,30 @@ class AppLocalizationsRo extends AppLocalizations {
   String get selectedPosition => 'Poziție selectată';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Profil';
 
   @override
   String get bottomBarMenu => 'Meniu';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Setări';
@@ -411,6 +431,46 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Raportați un eveniment';
+
+  @override
+  String get notifZapTitle => 'Zap primit';
+
+  @override
+  String notifZapBody(int sat) {
+    return 'Ai primit un zap de $sat sats!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Raport confirmat';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'Raportul tău despre $category a fost confirmat de alt șofer';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Raport contestat';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Cineva a semnalat că $category tău nu mai e acolo';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, apoi $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Limită de viteză (opțional)';
+
+  @override
+  String get reportedSpeedLimit => 'Limită de viteză raportată';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Radar raportat, limită de viteză $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Comentariu opțional…';

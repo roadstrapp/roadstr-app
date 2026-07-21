@@ -156,6 +156,31 @@
   "loginToConfirm": "Влезте с Nostr, за да потвърдите или оспорите",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Докладване на събитие",
+  "notifZapTitle": "Получен zap",
+  "notifZapBody": "Получихте zap от {sat} сата!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Сигналът е потвърден",
+  "notifConfirmedBody": "Вашият сигнал за {category} беше потвърден от друг шофьор",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Сигналът е оспорен",
+  "notifDeniedBody": "Някой съобщи, че вашето {category} вече го няма",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, след това {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Ограничение на скоростта (по избор)",
+  "reportedSpeedLimit": "Съобщено ограничение на скоростта",
+  "speedCameraVoiceAlert": "Камера, ограничение {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Незадължителен коментар…",
   "publish": "Публикуване",
   "publishing": "Публикуване…",

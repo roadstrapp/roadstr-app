@@ -156,6 +156,31 @@
   "loginToConfirm": "Prisijunkite su Nostr, kad patvirtintumėte arba ginčytumėte",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Pranešti apie įvykį",
+  "notifZapTitle": "Gautas zap",
+  "notifZapBody": "Gavote {sat} sat vertės zap!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Pranešimas patvirtintas",
+  "notifConfirmedBody": "Jūsų {category} pranešimą patvirtino kitas vairuotojas",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Pranešimas ginčijamas",
+  "notifDeniedBody": "Kažkas pranešė, kad jūsų {category} jau nebėra",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, tada {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Greičio apribojimas (nebūtina)",
+  "reportedSpeedLimit": "Praneštas greičio apribojimas",
+  "speedCameraVoiceAlert": "Greičio kamera, apribojimas {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Neprivalomas komentaras…",
   "publish": "Skelbti",
   "publishing": "Skelbiama…",

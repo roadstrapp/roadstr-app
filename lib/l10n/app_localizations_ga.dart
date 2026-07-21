@@ -78,10 +78,30 @@ class AppLocalizationsGa extends AppLocalizations {
   String get selectedPosition => 'Suíomh roghnaithe';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Próifíl';
 
   @override
   String get bottomBarMenu => 'Roghchlár';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Socruithe';
@@ -412,6 +432,46 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Tuairiscigh imeacht';
+
+  @override
+  String get notifZapTitle => 'Zap faighte';
+
+  @override
+  String notifZapBody(int sat) {
+    return 'Fuair tú zap $sat sats!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Tuairisc dearbhaithe';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'Dhearbhaigh tiománaí eile do thuairisc $category';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Tuairisc á conspóid';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Dúirt duine éigin nach bhfuil do $category ann a thuilleadh';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, ansin $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Teorainn luais (roghnach)';
+
+  @override
+  String get reportedSpeedLimit => 'Teorainn luais tuairiscithe';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Ceamara luais tuairiscithe, teorainn $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Trácht roghnach…';

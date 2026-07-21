@@ -78,10 +78,30 @@ class AppLocalizationsBg extends AppLocalizations {
   String get selectedPosition => 'Избрана позиция';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Профил';
 
   @override
   String get bottomBarMenu => 'Меню';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Настройки';
@@ -414,6 +434,46 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Докладване на събитие';
+
+  @override
+  String get notifZapTitle => 'Получен zap';
+
+  @override
+  String notifZapBody(int sat) {
+    return 'Получихте zap от $sat сата!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Сигналът е потвърден';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'Вашият сигнал за $category беше потвърден от друг шофьор';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Сигналът е оспорен';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Някой съобщи, че вашето $category вече го няма';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, след това $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Ограничение на скоростта (по избор)';
+
+  @override
+  String get reportedSpeedLimit => 'Съобщено ограничение на скоростта';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Камера, ограничение $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Незадължителен коментар…';

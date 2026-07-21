@@ -78,10 +78,30 @@ class AppLocalizationsSk extends AppLocalizations {
   String get selectedPosition => 'Vybraná poloha';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Profil';
 
   @override
   String get bottomBarMenu => 'Ponuka';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Nastavenia';
@@ -410,6 +430,46 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Nahlásiť udalosť';
+
+  @override
+  String get notifZapTitle => 'Prijatý zap';
+
+  @override
+  String notifZapBody(int sat) {
+    return 'Dostali ste zap vo výške $sat satov!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Hlásenie potvrdené';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'Vaše hlásenie $category potvrdil iný vodič';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Hlásenie spochybnené';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Niekto nahlásil, že vaše $category tam už nie je';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, potom $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Rýchlostný limit (voliteľné)';
+
+  @override
+  String get reportedSpeedLimit => 'Nahlásený rýchlostný limit';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Radar nahlásený, limit $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Voliteľný komentár…';
