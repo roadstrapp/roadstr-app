@@ -238,6 +238,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _saveFavorites() {
     _box.put(
         'favorites', _favorites.map((f) => jsonEncode(f.toMap())).toList());
+    _autoPushFavorites();
+  }
+
+  /// Best-effort background push of favorites to Nostr after any local change,
+  /// so a reinstall + login restores them automatically (see the auto-pull on
+  /// map startup). Silent — no spinner, no snackbar; failures are ignored and
+  /// the user can still push/pull manually. Only runs when logged in.
+  void _autoPushFavorites() {
+    if (_nostrPub == null || _favorites.isEmpty) return;
+    final favs = List<FavoritePlace>.of(_favorites);
+    unawaited(_syncSvc
+        .push(
+          favorites: favs,
+          pubKeyHex: _nostrPub!,
+          privKeyHex: _nostrPriv,
+          passphrase: _syncPassphrase,
+        )
+        .then((ok) {
+      if (ok) {
+        _box.put('favoritesSyncLastAt', DateTime.now().millisecondsSinceEpoch);
+      }
+    }).catchError((_) {}));
   }
 
   void _deleteFavorite(int idx) {
@@ -968,7 +990,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _SwitchTile(
             title: l.autoCenterOnLaunch,
             subtitle: l.autoCenterOnLaunchDesc,
-            value: _getBool('autoCenterOnLaunch', false),
+            value: _getBool('autoCenterOnLaunch', true),
             onChanged: (v) => _setBool('autoCenterOnLaunch', v),
             colors: c,
           ),

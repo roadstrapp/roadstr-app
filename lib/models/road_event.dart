@@ -164,6 +164,11 @@ class RoadEvent {
 
   /// Optional relay-level expiration timestamp from the Nostr `expiration` tag.
   final int? expiresAt;
+
+  /// Reporter-declared speed limit in km/h (from the `maxspeed` tag), for
+  /// speed-camera reports. Null when not provided. Always stored in km/h;
+  /// the UI converts to mph for imperial users.
+  final int? speedLimit;
   int confirmations;
   int denials;
 
@@ -175,6 +180,7 @@ class RoadEvent {
     required this.comment,
     required this.createdAt,
     this.expiresAt,
+    this.speedLimit,
     this.confirmations = 0,
     this.denials = 0,
   });
@@ -227,6 +233,7 @@ class RoadEvent {
       final lonValues = <String>[];
       final categoryValues = <String>[];
       final expirationValues = <String>[];
+      final maxspeedValues = <String>[];
       for (final t in tags) {
         if (t.length < 2) continue;
         switch (t[0]) {
@@ -238,13 +245,23 @@ class RoadEvent {
             categoryValues.add(t[1]);
           case 'expiration':
             expirationValues.add(t[1]);
+          case 'maxspeed':
+            maxspeedValues.add(t[1]);
         }
       }
       if (latValues.length != 1 ||
           lonValues.length != 1 ||
           categoryValues.length != 1 ||
-          expirationValues.length > 1) {
+          expirationValues.length > 1 ||
+          maxspeedValues.length > 1) {
         return null;
+      }
+      // Reporter-declared speed limit (km/h). Only trusted within a sane road
+      // range; anything else is ignored rather than shown as a bogus sign.
+      int? speedLimit;
+      if (maxspeedValues.isNotEmpty) {
+        final v = int.tryParse(maxspeedValues.single);
+        if (v != null && v > 0 && v <= 300) speedLimit = v;
       }
       final latStr = latValues.single;
       final lonStr = lonValues.single;
@@ -272,6 +289,7 @@ class RoadEvent {
         comment: comment,
         createdAt: json['created_at'] as int,
         expiresAt: exp,
+        speedLimit: speedLimit,
       );
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       // Small future skew is normal; large future timestamps keep attacker-

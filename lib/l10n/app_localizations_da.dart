@@ -77,10 +77,30 @@ class AppLocalizationsDa extends AppLocalizations {
   String get selectedPosition => 'Valgt position';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Profil';
 
   @override
   String get bottomBarMenu => 'Menu';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Indstillinger';
@@ -410,6 +430,46 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Rapporter en hændelse';
+
+  @override
+  String get notifZapTitle => 'Zap modtaget';
+
+  @override
+  String notifZapBody(int sat) {
+    return 'Du modtog et zap på $sat sats!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Rapport bekræftet';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'Din $category-rapport blev bekræftet af en anden bilist';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Rapport bestridt';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Nogen har rapporteret, at dit $category ikke længere er der';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, derefter $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Hastighedsgrænse (valgfri)';
+
+  @override
+  String get reportedSpeedLimit => 'Rapporteret hastighedsgrænse';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Fotovogn rapporteret, hastighedsgrænse $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Valgfri kommentar…';

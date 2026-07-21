@@ -156,6 +156,31 @@
   "loginToConfirm": "Mit Nostr anmelden, um zu bestätigen oder anzufechten",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Ereignis melden",
+  "notifZapTitle": "Zap erhalten",
+  "notifZapBody": "Du hast einen Zap über {sat} Sats erhalten!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Meldung bestätigt",
+  "notifConfirmedBody": "Deine {category}-Meldung wurde von einem anderen Fahrer bestätigt",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Meldung angezweifelt",
+  "notifDeniedBody": "Jemand hat gemeldet, dass dein {category} nicht mehr da ist",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, dann {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Tempolimit (optional)",
+  "reportedSpeedLimit": "Gemeldetes Tempolimit",
+  "speedCameraVoiceAlert": "Blitzer gemeldet, Tempolimit {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Optionaler Kommentar…",
   "publish": "Veröffentlichen",
   "publishing": "Wird veröffentlicht…",

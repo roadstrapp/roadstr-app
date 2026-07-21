@@ -156,6 +156,31 @@
   "loginToConfirm": "確認または反論するにはNostrでログイン",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "イベントを報告",
+  "notifZapTitle": "Zapを受信",
+  "notifZapBody": "{sat} satのZapを受け取りました!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "報告が確認されました",
+  "notifConfirmedBody": "あなたの{category}の報告が他のドライバーによって確認されました",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "報告に異議あり",
+  "notifDeniedBody": "あなたの{category}はもうないと報告されました",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}、その後 {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "制限速度(任意)",
+  "reportedSpeedLimit": "報告された制限速度",
+  "speedCameraVoiceAlert": "速度カメラあり、制限速度 {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "任意のコメント…",
   "publish": "公開",
   "publishing": "公開中…",

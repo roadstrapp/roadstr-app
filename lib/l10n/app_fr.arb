@@ -156,6 +156,31 @@
   "loginToConfirm": "Connectez-vous avec Nostr pour confirmer ou contester",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Signaler un événement",
+  "notifZapTitle": "Zap reçu",
+  "notifZapBody": "Vous avez reçu un zap de {sat} sats !",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Signalement confirmé",
+  "notifConfirmedBody": "Votre signalement {category} a été confirmé par un autre conducteur",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Signalement contesté",
+  "notifDeniedBody": "Quelqu'un a signalé que votre {category} n'est plus là",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, puis {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Limite de vitesse (facultatif)",
+  "reportedSpeedLimit": "Limite de vitesse signalée",
+  "speedCameraVoiceAlert": "Radar signalé, limite de vitesse {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Commentaire facultatif…",
   "publish": "Publier",
   "publishing": "Publication…",

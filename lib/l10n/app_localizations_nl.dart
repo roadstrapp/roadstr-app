@@ -78,10 +78,30 @@ class AppLocalizationsNl extends AppLocalizations {
   String get selectedPosition => 'Geselecteerde positie';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Profiel';
 
   @override
   String get bottomBarMenu => 'Menu';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Instellingen';
@@ -411,6 +431,46 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Een gebeurtenis melden';
+
+  @override
+  String get notifZapTitle => 'Zap ontvangen';
+
+  @override
+  String notifZapBody(int sat) {
+    return 'Je hebt een zap van $sat sats ontvangen!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Melding bevestigd';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'Je melding van $category is bevestigd door een andere bestuurder';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Melding betwist';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Iemand meldde dat je $category er niet meer is';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, daarna $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Snelheidslimiet (optioneel)';
+
+  @override
+  String get reportedSpeedLimit => 'Gemelde snelheidslimiet';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Flitser gemeld, snelheidslimiet $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Optionele opmerking…';

@@ -60,6 +60,20 @@ class GpsService {
     accuracy: LocationAccuracy.bestForNavigation,
     distanceFilter: 0,
     intervalDuration: const Duration(milliseconds: 500),
+    // CRITICAL for de-Googled devices (GrapheneOS, /e/OS, LineageOS without
+    // gapps). Without this flag geolocator binds to the Google Play Services
+    // "fused" location provider; on a device that has no Play Services that
+    // provider never emits a fix, so the map stays stuck on the fallback
+    // position forever — no lock even after minutes of searching or repeated
+    // recenter taps (exactly the reported GrapheneOS symptom). forcing the
+    // raw AOSP android.location.LocationManager reads the GNSS hardware
+    // directly and works on EVERY Android device. It is also a privacy win —
+    // no location request ever touches Google Play Services — which fits this
+    // app's audience. Trade-off vs fused: marginally higher battery and no
+    // sensor-fusion smoothing, both negligible for active outdoor driving
+    // navigation (and the app already filters/smooths fixes itself).
+    // DO NOT remove this without a de-Googled-device regression test.
+    forceLocationManager: true,
     foregroundNotificationConfig: const ForegroundNotificationConfig(
       notificationText: 'GPS active',
       notificationTitle: 'Roadstr',
@@ -111,7 +125,11 @@ class GpsService {
   /// take several seconds). Returns null when the OS has no cached position.
   Future<GpsData?> lastKnown() async {
     try {
-      final pos = await Geolocator.getLastKnownPosition();
+      // forceAndroidLocationManager: same de-Googled-device reason as the
+      // stream — the cached fix must come from the AOSP LocationManager, not
+      // the absent Play Services provider.
+      final pos = await Geolocator.getLastKnownPosition(
+          forceAndroidLocationManager: true);
       if (pos == null ||
           !pos.latitude.isFinite ||
           !pos.longitude.isFinite ||
@@ -174,9 +192,14 @@ class GpsService {
     if (_disposed) return;
     try {
       final pos = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
+        // AndroidSettings with forceLocationManager (NOT the base
+        // LocationSettings) so this one-shot fix also bypasses Play Services —
+        // on a de-Googled device the plain fused path would never return.
+        // No timeLimit: raw-GNSS cold start can take longer than a few
+        // seconds, and a timeout here just leaves the recenter feeling dead.
+        locationSettings: AndroidSettings(
           accuracy: LocationAccuracy.bestForNavigation,
-          timeLimit: Duration(seconds: 5),
+          forceLocationManager: true,
         ),
       );
       _onPosition(pos);

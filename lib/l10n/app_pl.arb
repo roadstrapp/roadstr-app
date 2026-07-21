@@ -156,6 +156,31 @@
   "loginToConfirm": "Zaloguj się z Nostr, aby potwierdzić lub zakwestionować",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Zgłoś zdarzenie",
+  "notifZapTitle": "Otrzymano zap",
+  "notifZapBody": "Otrzymałeś zap w wysokości {sat} sat!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Zgłoszenie potwierdzone",
+  "notifConfirmedBody": "Twoje zgłoszenie {category} zostało potwierdzone przez innego kierowcę",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Zgłoszenie zakwestionowane",
+  "notifDeniedBody": "Ktoś zgłosił, że Twoje {category} już tam nie jest",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, następnie {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Ograniczenie prędkości (opcjonalnie)",
+  "reportedSpeedLimit": "Zgłoszone ograniczenie prędkości",
+  "speedCameraVoiceAlert": "Zgłoszono fotoradar, ograniczenie prędkości {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Opcjonalny komentarz…",
   "publish": "Opublikuj",
   "publishing": "Publikowanie…",

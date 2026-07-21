@@ -469,7 +469,7 @@ class ZapService {
   /// Note: amounts in kind-9735 receipts are in **millisatoshi**; this method
   static Future<int> fetchZapTotal(
       String eventId, String recipientPubHex) async {
-    final signer = await _resolveZapSigner(recipientPubHex);
+    final signer = await resolveZapSigner(recipientPubHex);
     if (signer == null) return 0;
     WebSocketChannel? ws;
     try {
@@ -489,7 +489,7 @@ class ZapService {
               final event = (msg[2] as Map).cast<String, dynamic>();
               final id = event['id'] as String?;
               if (id != null && seen.add(id)) {
-                totalMsat += _verifiedReceiptAmount(
+                totalMsat += verifiedReceiptAmount(
                       event,
                       eventId: eventId,
                       recipientPub: recipientPubHex,
@@ -532,7 +532,7 @@ class ZapService {
   /// (`#p` filter). Used to display the user's lifetime zap earnings on the
   /// profile screen.
   static Future<int> fetchBalance(String pubHex) async {
-    final signer = await _resolveZapSigner(pubHex);
+    final signer = await resolveZapSigner(pubHex);
     if (signer == null) return 0;
     WebSocketChannel? ws;
     try {
@@ -552,7 +552,7 @@ class ZapService {
               final event = (msg[2] as Map).cast<String, dynamic>();
               final id = event['id'] as String?;
               if (id != null && seen.add(id)) {
-                totalMsat += _verifiedReceiptAmount(
+                totalMsat += verifiedReceiptAmount(
                       event,
                       recipientPub: pubHex,
                       receiptSigner: signer,
@@ -594,7 +594,7 @@ class ZapService {
   /// provider advertised in LNURL metadata and all invoice/request bindings
   /// agree. A preimage is checked when present, but the spec makes it optional
   /// and it cannot make a rogue provider's receipt independently trustworthy.
-  static int? _verifiedReceiptAmount(
+  static int? verifiedReceiptAmount(
     Map<String, dynamic> receipt, {
     String? eventId,
     String? recipientPub,
@@ -676,7 +676,7 @@ class ZapService {
   static bool _isHex32(String value) =>
       RegExp(r'^[0-9a-fA-F]{64}$').hasMatch(value);
 
-  static Future<String?> _resolveZapSigner(String recipientPubHex) async {
+  static Future<String?> resolveZapSigner(String recipientPubHex) async {
     final address = await fetchLightningAddress(recipientPubHex);
     if (address == null) return null;
     final info = await fetchLnurlPayInfo(address);

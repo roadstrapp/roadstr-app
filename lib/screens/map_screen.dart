@@ -39,11 +39,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:nostr_tools/nostr_tools.dart' show Nip19;
 import '../l10n/app_localizations.dart';
 import '../models/favorite_place.dart';
+import '../models/activity_notification.dart';
 import '../models/road_event.dart';
+import '../services/activity_notification_service.dart';
 import '../services/navigation_notification_service.dart';
 import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
 import '../services/nostr_relay_service.dart';
+import '../services/favorites_sync_service.dart';
 import '../widgets/cursor_painter.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import '../services/zap_service.dart';
@@ -57,6 +60,7 @@ import '../utils/units.dart';
 import '../widgets/speedometer_widget.dart';
 import 'settings_screen.dart';
 import 'profile_screen.dart';
+import 'notifications_screen.dart';
 import 'wikipedia_webview_screen.dart';
 
 class MapScreen extends StatefulWidget {
@@ -235,6 +239,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   final _ztl = ZtlService.instance;
   final _speedLimitSvc = SpeedLimitService();
   final _poiSvc = PoiSearchService();
+  final _favSyncSvc = FavoritesSyncService();
   final _speedCameraSvc = SpeedCameraService();
 
   /// OSM-sourced camera ids already alerted this session — separate from
@@ -268,6 +273,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
   final _nostr = NostrRelayService();
   final _navNotif = NavigationNotificationService();
+  final _activityNotif = ActivityNotificationService();
+  StreamSubscription<ActivityNotification>? _activitySub;
   final _tts = KokoroTtsService();
   bool _voiceMuted = false;
 
@@ -276,6 +283,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   int _ttsAnnouncedMid = -1; // second/mid warning
   int _ttsAnnouncedNear =
       -1; // near warning (50 m non-highway, 250 m highway ramp)
+  /// Step index whose instruction was already voiced as the "…then…" tail of a
+  /// chained announcement, so it is not repeated on its own after advancing.
+  int _chainSpokenIdx = -1;
 
   bool _isRerouting = false;
 
@@ -301,6 +311,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// yourself (which otherwise fired repeatedly: the optimistic local event and
   /// the relay-echoed signed event have different ids and both sit at ~0 m).
   String? _myPubkey;
+  String? _profilePicture;
+  String? _nostrFlavor;
 
   /// IDs of speed-camera events that have already triggered the proximity beep.
   final _alertedCameraIds = <String>{};
@@ -392,9 +404,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _loadHistory();
     _loadFavorites();
     _loadParkingPosition();
-    unawaited(_secStorage.read(key: 'nostr_pub_hex').then((pub) {
-      if (mounted) _myPubkey = pub;
-    }));
+    unawaited(_refreshHomeIdentity());
+    unawaited(_autoRestoreFavorites());
+    _activitySub = _nostr.activityStream.listen(_recordActivityNotification);
     _nostr.connect();
     _roadSub = _nostr.stream.listen((events) {
       if (mounted) {
@@ -422,12 +434,73 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     });
   }
 
+  /// Re-checks the stored Nostr identity after returning from a screen where
+  /// login/logout can happen (Profile), and enables/disables activity
+  /// notifications accordingly — without this, a login or logout mid-session
+  /// would only take effect after an app restart, since [_myPubkey] and the
+  /// notification subscriptions are otherwise only set up once in [initState].
+  Future<void> _refreshHomeIdentity() async {
+    if (!mounted) return;
+    final values = await Future.wait([
+      _secStorage.read(key: 'nostr_pub_hex'),
+      _secStorage.read(key: 'nostr_flavor'),
+      _secStorage.read(key: 'nostr_picture'),
+    ]);
+    var pub = values[0];
+    final flavor = values[1];
+    var picture = values[2];
+    final loggedIn = pub != null && (flavor == 'amber' || flavor == 'nsec');
+    if (!loggedIn) {
+      pub = null;
+      picture = null;
+    }
+    if (!mounted) return;
+    final identityChanged = pub != _myPubkey;
+    setState(() {
+      _myPubkey = pub;
+      _nostrFlavor = loggedIn ? flavor : null;
+      _profilePicture = picture;
+    });
+    if (pub != null && identityChanged) {
+      unawaited(_nostr.enableActivityNotifications(pub));
+    } else if (pub == null && identityChanged) {
+      _nostr.disableActivityNotifications();
+    }
+    if (pub != null && (picture == null || picture.isEmpty)) {
+      // Show the authenticated state immediately, then fill the avatar from
+      // verified kind-0 metadata without delaying Nostr subscriptions.
+      final requestedPub = pub;
+      final profile = await NostrRelayService.fetchProfile(requestedPub);
+      final fetchedPicture = profile?.picture;
+      if (fetchedPicture == null || fetchedPicture.isEmpty) return;
+      final currentPub = await _secStorage.read(key: 'nostr_pub_hex');
+      if (currentPub != requestedPub) return;
+      await _secStorage.write(key: 'nostr_picture', value: fetchedPicture);
+      if (mounted && _myPubkey == requestedPub) {
+        setState(() => _profilePicture = fetchedPicture);
+      }
+    }
+  }
+
+  /// Records social activity silently. In particular, this method never shows
+  /// UI or posts an Android notification while navigation is active.
+  void _recordActivityNotification(ActivityNotification notification) {
+    final pubkey = _myPubkey;
+    if (pubkey == null) return;
+    unawaited(_activityNotif.record(pubkey, notification));
+  }
+
   /// Honors the explicit startup-centering preference without ever opening a
   /// permission dialog. Revoked or never-granted permission simply leaves the
   /// map at its neutral overview until the user taps the GPS control.
   Future<void> _maybeAutoCenterAtStartup() async {
+    // Default ON: a navigation app should warm up GPS at launch (when
+    // permission is already granted — this never opens a dialog). Deferring
+    // the stream until the user taps recenter left de-Googled devices, whose
+    // raw-GNSS cold start is slow, with no time to acquire a fix. Users who
+    // want the map to stay put can turn this off in Settings.
     final enabled =
-        Hive.box('settings').get('autoCenterOnLaunch', defaultValue: false) ==
+        Hive.box('settings').get('autoCenterOnLaunch', defaultValue: true) ==
             true;
     if (!enabled) return;
     try {
@@ -1057,7 +1130,29 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       // Highway ramp near = 250 m → speak with distance; others = 50 m → imminent
       final speakDist = t.near >= 200 ? t.near : 0;
       if (!_voiceMuted) {
-        _tts.announceManeuver(nextStep.instruction, speakDist);
+        // Chain the following maneuver when it comes almost immediately after
+        // this one (e.g. roundabout exit → continue on Via Roma), so the two
+        // instructions sound connected — "…take the second exit, then continue
+        // on Via Roma" — instead of two disconnected phrases.
+        final followIdx = nextIdx + 1;
+        var instruction = nextStep.instruction;
+        if (followIdx < _route!.steps.length) {
+          final follow = _route!.steps[followIdx];
+          final chainThresholdM = _transportMode == 'walking' ? 30.0 : 55.0;
+          if (nextStep.distanceM > 0 &&
+              nextStep.distanceM < chainThresholdM &&
+              follow.direction != 'depart' &&
+              follow.direction != 'arrive' &&
+              follow.instruction.isNotEmpty) {
+            instruction = AppLocalizations.of(context)
+                .chainedManeuver(nextStep.instruction, follow.instruction);
+            // The tail is now spoken; suppress its own near + post-advance
+            // immediate announcement.
+            _chainSpokenIdx = followIdx;
+            _ttsAnnouncedNear = followIdx;
+          }
+        }
+        _tts.announceManeuver(instruction, speakDist);
         spokenThisCall = true;
       }
     }
@@ -1096,7 +1191,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             !_voiceMuted &&
             !spokenThisCall &&
             nextSt.direction != 'depart' &&
-            distToNext < 250) {
+            distToNext < 250 &&
+            newNextIdx != _chainSpokenIdx) {
           // Round to nearest 50 m for natural speech; drop distance for imminent turns.
           final spokenDist =
               distToNext > 80 ? ((distToNext / 50).round() * 50).toInt() : 0;
@@ -1313,6 +1409,15 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       if (d > 250) continue;
       _alertedCameraIds.add(ev.id);
       unawaited(_playSpeedCameraBeep());
+      // Speak the reporter-declared limit when present: "Speed camera
+      // reported, speed limit X km/h" (value shown in the user's unit).
+      if (!_voiceMuted && ev.speedLimit != null && mounted) {
+        final display = Units.imperial
+            ? Units.toDisplaySpeed(ev.speedLimit!.toDouble()).round()
+            : ev.speedLimit!;
+        unawaited(_tts.speak(AppLocalizations.of(context)
+            .speedCameraVoiceAlert(display, Units.speedUnit)));
+      }
     }
     unawaited(_speedCameraSvc.updateIfNeeded(_position));
     for (final cam in _speedCameraSvc.cachedCameras) {
@@ -1643,6 +1748,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _ttsAnnouncedFar = silent ? -1 : 1;
     _ttsAnnouncedMid = silent ? -1 : 1;
     _ttsAnnouncedNear = -1;
+    _chainSpokenIdx = -1;
     _speedLimitSvc.reset();
     final lang = Localizations.localeOf(context).languageCode;
     // Re-read voice gender/speed/volume on every navigation start — the user
@@ -2957,6 +3063,41 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         .toList();
   }
 
+  /// On startup, pull the encrypted favorites snapshot from Nostr and merge it
+  /// in, so a reinstall + Nostr login finds the user's saved places already
+  /// there (the sync is otherwise only manual). Best-effort and silent:
+  /// no network keys → skip; nothing synced → skip; a passphrase-locked
+  /// snapshot (passphrase wiped by the reinstall) → skip (manual pull can
+  /// prompt for it). Never removes a local favorite — only adds/updates.
+  Future<void> _autoRestoreFavorites() async {
+    try {
+      final pub = await _secStorage.read(key: 'nostr_pub_hex');
+      if (pub == null) return;
+      final priv = await _secStorage.read(key: 'nostr_priv_hex');
+      final pass = Hive.box('settings').get('fav_sync_pass') as String?;
+      final result = await _favSyncSvc.pull(
+          pubKeyHex: pub, privKeyHex: priv, passphrase: pass);
+      final fetched = result.favorites;
+      if (fetched == null || fetched.isEmpty || !mounted) return;
+      var changed = false;
+      for (final f in fetched) {
+        final i = _favorites.indexWhere((e) => e.label == f.label);
+        if (i >= 0) {
+          _favorites[i] = f;
+        } else {
+          _favorites.add(f);
+        }
+        changed = true;
+      }
+      if (!changed) return;
+      Hive.box('settings').put(
+          'favorites', _favorites.map((f) => jsonEncode(f.toMap())).toList());
+      if (mounted) setState(() {});
+    } catch (_) {
+      // Auto-restore is best-effort; manual pull remains available.
+    }
+  }
+
   void _loadFavorites() {
     final raw = Hive.box('settings').get('favorites', defaultValue: <dynamic>[])
         as List<dynamic>;
@@ -3267,7 +3408,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       builder: (_) => _ReportSheet(
         colors: c,
         position: pos,
-        onSubmit: (category, comment) async {
+        onSubmit: (category, comment, speedLimit) async {
           final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
           final expires = now + category.ttlSeconds;
           RoadEvent event;
@@ -3280,6 +3421,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
               pubKeyHex: pubKey,
               now: now,
               expires: expires,
+              speedLimit: speedLimit,
             );
             final result = await Amberflutter().signEvent(
               currentUser: Nip19().npubEncode(pubKey),
@@ -3304,6 +3446,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
               comment: comment,
               privKeyHex: privKey!,
               pubKeyHex: pubKey,
+              speedLimit: speedLimit,
             );
           }
           _myPubkey = pubKey; // keep own-report suppression current
@@ -4202,7 +4345,15 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                                 onModeChanged: _recalculateForMode,
                                 onAvoidanceChanged: _toggleAvoidanceRoute,
                               )
-                            : _BottomBar(bottomInset: bottomInset, colors: c),
+                            : _BottomBar(
+                                bottomInset: bottomInset,
+                                colors: c,
+                                pubkey: _myPubkey,
+                                profilePicture: _profilePicture,
+                                hasNostrLogin: _nostrFlavor == 'amber' ||
+                                    _nostrFlavor == 'nsec',
+                                onProfileReturn: () =>
+                                    unawaited(_refreshHomeIdentity())),
           ),
 
           // ── ROUTE CALCULATION OVERLAY ────────────────────────────────────────
@@ -4318,6 +4469,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _followTicker?.cancel();
     _gpsSub?.cancel();
     _roadSub?.cancel();
+    _activitySub?.cancel();
     _northTimer?.cancel();
     _eventCleanupTimer?.cancel();
     _magnetSub?.cancel();
@@ -4772,6 +4924,15 @@ class _RoadEventDetailState extends State<_RoadEventDetail> {
                   ]),
                 ),
             ]),
+            if (event.speedLimit != null) ...[
+              const SizedBox(height: 12),
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                _SpeedLimitSign(event.speedLimit!),
+                const SizedBox(width: 8),
+                Text(AppLocalizations.of(context).reportedSpeedLimit,
+                    style: TextStyle(color: c.textSecondary, fontSize: 12)),
+              ]),
+            ],
             if (event.comment.isNotEmpty) ...[
               const SizedBox(height: 12),
               Text(event.comment,
@@ -4861,7 +5022,7 @@ class _RoadEventDetailState extends State<_RoadEventDetail> {
 class _ReportSheet extends StatefulWidget {
   final RoadstrColors colors;
   final LatLng position;
-  final Future<void> Function(RoadCategory, String) onSubmit;
+  final Future<void> Function(RoadCategory, String, int?) onSubmit;
   const _ReportSheet(
       {required this.colors, required this.position, required this.onSubmit});
   @override
@@ -4871,12 +5032,23 @@ class _ReportSheet extends StatefulWidget {
 class _ReportSheetState extends State<_ReportSheet> {
   RoadCategory? _selected;
   final _ctrl = TextEditingController();
+  final _speedCtrl = TextEditingController();
   bool _sending = false;
 
   @override
   void dispose() {
     _ctrl.dispose();
+    _speedCtrl.dispose();
     super.dispose();
+  }
+
+  /// Parsed speed-limit value (km/h internally). For imperial users the field
+  /// takes mph and we convert to km/h before publishing, so a nearby driver on
+  /// metric units still sees a sensible number.
+  int? get _speedLimitKmh {
+    final raw = int.tryParse(_speedCtrl.text.trim());
+    if (raw == null || raw <= 0 || raw > 300) return null;
+    return Units.imperial ? (raw * 1.60934).round() : raw;
   }
 
   @override
@@ -4964,6 +5136,36 @@ class _ReportSheetState extends State<_ReportSheet> {
                     );
                   }).toList(),
                 ),
+                // Speed-limit field — only for speed-camera reports. Nearby
+                // drivers see this number on the camera and hear it announced.
+                if (_selected == RoadCategory.speedCamera) ...[
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _speedCtrl,
+                    keyboardType: TextInputType.number,
+                    maxLength: 3,
+                    style: TextStyle(color: c.textPrimary, fontSize: 13),
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.speed_rounded,
+                          color: c.textSecondary, size: 18),
+                      suffixText: Units.speedUnit,
+                      suffixStyle:
+                          TextStyle(color: c.textSecondary, fontSize: 12),
+                      hintText: l.reportSpeedLimitHint,
+                      hintStyle: TextStyle(color: c.textSecondary),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: c.accent),
+                      ),
+                      counterText: '',
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 14),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 TextField(
                   controller: _ctrl,
@@ -4996,7 +5198,11 @@ class _ReportSheetState extends State<_ReportSheet> {
                             setState(() => _sending = true);
                             try {
                               await widget.onSubmit(
-                                  _selected!, _ctrl.text.trim());
+                                  _selected!,
+                                  _ctrl.text.trim(),
+                                  _selected == RoadCategory.speedCamera
+                                      ? _speedLimitKmh
+                                      : null);
                               if (mounted) {
                                 Navigator.pop(this.context);
                                 messenger.showSnackBar(
@@ -7776,8 +7982,11 @@ class _NavPanel extends StatelessWidget {
     final l = AppLocalizations.of(context);
     final land = MediaQuery.of(context).orientation == Orientation.landscape;
     final speedoSz = land ? 70.0 : 110.0;
-    final fsDist = land ? 16.0 : 22.0;
-    final fsSub = land ? 11.0 : 13.0;
+    // Bumped for at-a-glance legibility while driving. The row height is
+    // governed by the speedometer (70/110 px), so larger type does not grow
+    // the bar — the text column still fits well within that height.
+    final fsDist = land ? 19.0 : 28.0;
+    final fsSub = land ? 13.0 : 16.5;
     final vTop = land ? 6.0 : 14.0;
     final vBot = land
         ? (bottomInset > 0 ? bottomInset + 4 : 8.0)
@@ -7848,7 +8057,17 @@ class _NavPanel extends StatelessWidget {
 class _BottomBar extends StatelessWidget {
   final double bottomInset;
   final RoadstrColors colors;
-  const _BottomBar({required this.bottomInset, required this.colors});
+  final String? pubkey;
+  final String? profilePicture;
+  final bool hasNostrLogin;
+  final VoidCallback onProfileReturn;
+  const _BottomBar(
+      {required this.bottomInset,
+      required this.colors,
+      required this.pubkey,
+      required this.profilePicture,
+      required this.hasNostrLogin,
+      required this.onProfileReturn});
   @override
   Widget build(BuildContext context) => Container(
         decoration: BoxDecoration(
@@ -7863,26 +8082,106 @@ class _BottomBar extends StatelessWidget {
         ),
         padding: EdgeInsets.only(
             top: 10, bottom: bottomInset > 0 ? bottomInset : 14),
-        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          _BottomBarItem(
-              icon: Icons.account_circle_outlined,
+        child: Row(children: [
+          Expanded(
+            child: ValueListenableBuilder<Box>(
+              valueListenable: Hive.box('settings').listenable(
+                keys: pubkey == null
+                    ? const []
+                    : [ActivityNotificationService.storageKey(pubkey!)],
+              ),
+              builder: (_, __, ___) {
+                final unread = pubkey == null
+                    ? 0
+                    : ActivityNotificationService().unreadCount(pubkey!);
+                return _BottomBarItem(
+                  icon: Stack(clipBehavior: Clip.none, children: [
+                    Icon(Icons.notifications_none_rounded,
+                        color: colors.textSecondary, size: 26),
+                    if (unread > 0)
+                      Positioned(
+                        right: -7,
+                        top: -5,
+                        child: Container(
+                          constraints:
+                              const BoxConstraints(minWidth: 16, minHeight: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444),
+                            borderRadius: BorderRadius.circular(9),
+                            border: Border.all(color: colors.surface2),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(unread > 99 ? '99+' : '$unread',
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                  ]),
+                  label: AppLocalizations.of(context).bottomBarNotifications,
+                  colors: colors,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => NotificationsScreen(pubkey: pubkey)),
+                  ),
+                );
+              },
+            ),
+          ),
+          Expanded(
+            child: _BottomBarItem(
+              icon: hasNostrLogin &&
+                      profilePicture != null &&
+                      profilePicture!.isNotEmpty
+                  ? Container(
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: colors.accent, width: 1.5),
+                      ),
+                      child: ClipOval(
+                        child: Image.network(
+                          profilePicture!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Icon(
+                              Icons.account_circle_outlined,
+                              color: colors.textSecondary,
+                              size: 25),
+                        ),
+                      ),
+                    )
+                  : Icon(Icons.account_circle_outlined,
+                      color: colors.textSecondary, size: 26),
               label: AppLocalizations.of(context).bottomBarProfile,
               colors: colors,
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const ProfileScreen()))),
-          const SizedBox(width: 48),
-          _BottomBarItem(
-              icon: Icons.menu,
+              onTap: () async {
+                await Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const ProfileScreen()));
+                // Login/logout happens on this screen — re-sync activity
+                // notifications rather than requiring an app restart.
+                onProfileReturn();
+              },
+            ),
+          ),
+          Expanded(
+            child: _BottomBarItem(
+              icon: Icon(Icons.menu, color: colors.textSecondary, size: 26),
               label: AppLocalizations.of(context).bottomBarMenu,
               colors: colors,
               onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const SettingsScreen()))),
+                  MaterialPageRoute(builder: (_) => const SettingsScreen())),
+            ),
+          ),
         ]),
       );
 }
 
 class _BottomBarItem extends StatelessWidget {
-  final IconData icon;
+  final Widget icon;
   final String label;
   final RoadstrColors colors;
   final VoidCallback onTap;
@@ -7896,11 +8195,14 @@ class _BottomBarItem extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(icon, color: colors.textSecondary, size: 26),
+            SizedBox(width: 30, height: 26, child: Center(child: icon)),
             const SizedBox(height: 2),
             Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
                 style: TextStyle(color: colors.textSecondary, fontSize: 11)),
           ]),
         ),

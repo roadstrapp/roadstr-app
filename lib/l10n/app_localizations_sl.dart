@@ -78,10 +78,30 @@ class AppLocalizationsSl extends AppLocalizations {
   String get selectedPosition => 'Izbrana lokacija';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Profil';
 
   @override
   String get bottomBarMenu => 'Meni';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Nastavitve';
@@ -409,6 +429,46 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Poročaj o dogodku';
+
+  @override
+  String get notifZapTitle => 'Prejet zap';
+
+  @override
+  String notifZapBody(int sat) {
+    return 'Prejeli ste zap v vrednosti $sat satov!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Prijava potrjena';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'Vašo prijavo $category je potrdil drug voznik';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Prijava izpodbijana';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Nekdo je sporočil, da vašega $category ni več tam';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, nato $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Omejitev hitrosti (neobvezno)';
+
+  @override
+  String get reportedSpeedLimit => 'Prijavljena omejitev hitrosti';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Prijavljen radar, omejitev $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Neobvezni komentar…';

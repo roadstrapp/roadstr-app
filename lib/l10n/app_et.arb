@@ -156,6 +156,31 @@
   "loginToConfirm": "Kinnitamiseks või vaidlustamiseks logige sisse Nostriga",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Teata sündmusest",
+  "notifZapTitle": "Zap saadud",
+  "notifZapBody": "Said {sat} sati suuruse zapi!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Teade kinnitatud",
+  "notifConfirmedBody": "Teise juhi poolt kinnitati sinu {category} teade",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Teade vaidlustatud",
+  "notifDeniedBody": "Keegi teatas, et sinu {category} ei ole enam seal",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, seejärel {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Kiiruspiirang (valikuline)",
+  "reportedSpeedLimit": "Teatatud kiiruspiirang",
+  "speedCameraVoiceAlert": "Kiiruskaamera, piirang {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Valikuline kommentaar…",
   "publish": "Avalda",
   "publishing": "Avaldamine…",

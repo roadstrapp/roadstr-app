@@ -156,6 +156,31 @@
   "loginToConfirm": "使用Nostr登录以确认或反驳",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "报告事件",
+  "notifZapTitle": "收到闪电赞",
+  "notifZapBody": "你收到了 {sat} sats 的闪电赞!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "举报已确认",
+  "notifConfirmedBody": "你举报的{category}已被其他司机确认",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "举报被质疑",
+  "notifDeniedBody": "有人反馈你举报的{category}已经不在了",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first},然后{second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "限速(可选)",
+  "reportedSpeedLimit": "报告的限速",
+  "speedCameraVoiceAlert": "测速摄像头,限速 {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "可选评论…",
   "publish": "发布",
   "publishing": "发布中…",
