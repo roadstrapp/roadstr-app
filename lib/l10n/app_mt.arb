@@ -156,6 +156,31 @@
   "loginToConfirm": "Idħol bl-Nostr biex tikkonferma jew tikkontesta",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Irrapporta avveniment",
+  "notifZapTitle": "Zap riċevut",
+  "notifZapBody": "Irċevejt zap ta' {sat} sats!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Rapport ikkonfermat",
+  "notifConfirmedBody": "Ir-rapport tiegħek dwar {category} ġie kkonfermat minn sewwieq ieħor",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Rapport ikkontestat",
+  "notifDeniedBody": "Xi ħadd irrapporta li {category} tiegħek m'għadux hemm",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, imbagħad {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Limitu tal-veloċità (mhux obbligatorju)",
+  "reportedSpeedLimit": "Limitu tal-veloċità rrappurtat",
+  "speedCameraVoiceAlert": "Kamera tal-veloċità, limitu {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Kumment fakultattiv…",
   "publish": "Ippubblika",
   "publishing": "Qed jippubblika…",

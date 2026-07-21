@@ -156,6 +156,31 @@
   "loginToConfirm": "Piesakieties ar Nostr, lai apstiprinātu vai apstrīdētu",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Ziņot par notikumu",
+  "notifZapTitle": "Saņemts zap",
+  "notifZapBody": "Jūs saņēmāt {sat} sat vērtu zap!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Ziņojums apstiprināts",
+  "notifConfirmedBody": "Jūsu {category} ziņojumu apstiprināja cits vadītājs",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Ziņojums apstrīdēts",
+  "notifDeniedBody": "Kāds ziņoja, ka jūsu {category} vairs tur nav",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, pēc tam {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Ātruma ierobežojums (neobligāts)",
+  "reportedSpeedLimit": "Ziņotais ātruma ierobežojums",
+  "speedCameraVoiceAlert": "Ātruma kamera, ierobežojums {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Neobligāts komentārs…",
   "publish": "Publicēt",
   "publishing": "Publicē…",

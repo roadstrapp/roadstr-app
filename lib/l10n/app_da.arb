@@ -156,6 +156,31 @@
   "loginToConfirm": "Log ind med Nostr for at bekræfte eller bestride",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Rapporter en hændelse",
+  "notifZapTitle": "Zap modtaget",
+  "notifZapBody": "Du modtog et zap på {sat} sats!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Rapport bekræftet",
+  "notifConfirmedBody": "Din {category}-rapport blev bekræftet af en anden bilist",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Rapport bestridt",
+  "notifDeniedBody": "Nogen har rapporteret, at dit {category} ikke længere er der",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, derefter {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Hastighedsgrænse (valgfri)",
+  "reportedSpeedLimit": "Rapporteret hastighedsgrænse",
+  "speedCameraVoiceAlert": "Fotovogn rapporteret, hastighedsgrænse {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Valgfri kommentar…",
   "publish": "Publicer",
   "publishing": "Publicerer…",

@@ -78,10 +78,30 @@ class AppLocalizationsLv extends AppLocalizations {
   String get selectedPosition => 'Atlasītā pozīcija';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Profils';
 
   @override
   String get bottomBarMenu => 'Izvēlne';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Iestatījumi';
@@ -411,6 +431,46 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Ziņot par notikumu';
+
+  @override
+  String get notifZapTitle => 'Saņemts zap';
+
+  @override
+  String notifZapBody(int sat) {
+    return 'Jūs saņēmāt $sat sat vērtu zap!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Ziņojums apstiprināts';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'Jūsu $category ziņojumu apstiprināja cits vadītājs';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Ziņojums apstrīdēts';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Kāds ziņoja, ka jūsu $category vairs tur nav';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, pēc tam $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Ātruma ierobežojums (neobligāts)';
+
+  @override
+  String get reportedSpeedLimit => 'Ziņotais ātruma ierobežojums';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Ātruma kamera, ierobežojums $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Neobligāts komentārs…';

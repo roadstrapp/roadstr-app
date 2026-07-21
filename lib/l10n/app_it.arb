@@ -20,8 +20,14 @@
   "history": "Cronologia",
   "clearHistory": "Cancella",
   "selectedPosition": "Posizione selezionata",
+  "bottomBarNotifications": "Notifiche",
   "bottomBarProfile": "Profilo",
   "bottomBarMenu": "Menu",
+  "notificationsTitle": "Notifiche",
+  "notificationsEmpty": "Ancora nessuna notifica",
+  "notificationsEmptyBody": "Qui compariranno gli zap e le reazioni alle tue segnalazioni stradali.",
+  "notificationsLoginRequired": "Collega il tuo profilo Nostr",
+  "notificationsLoginRequiredBody": "Accedi con Amber o nsec per ricevere le notifiche dagli altri utenti.",
   "settingsTitle": "Impostazioni",
   "sectionTheme": "Tema",
   "sectionMap": "Mappa",
@@ -125,6 +131,31 @@
   "notThereAnymore": "Non c'è più",
   "loginToConfirm": "Accedi con Nostr per confermare o smentire",
   "reportAnEvent": "Segnala un evento",
+  "notifZapTitle": "Zap ricevuto",
+  "notifZapBody": "Hai ricevuto uno zap di {sat} sat!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Segnalazione confermata",
+  "notifConfirmedBody": "La tua segnalazione di {category} è stata confermata da un altro utente",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Segnalazione contestata",
+  "notifDeniedBody": "Qualcuno ha detto che la tua segnalazione di {category} non c'è più",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, poi {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Limite di velocità (opzionale)",
+  "reportedSpeedLimit": "Limite di velocità segnalato",
+  "speedCameraVoiceAlert": "Autovelox segnalato, limite di velocità {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Commento opzionale…",
   "publish": "Pubblica",
   "publishing": "Pubblicazione…",

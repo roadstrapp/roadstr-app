@@ -78,10 +78,30 @@ class AppLocalizationsLt extends AppLocalizations {
   String get selectedPosition => 'Pasirinkta padėtis';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Profilis';
 
   @override
   String get bottomBarMenu => 'Meniu';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Nustatymai';
@@ -413,6 +433,46 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Pranešti apie įvykį';
+
+  @override
+  String get notifZapTitle => 'Gautas zap';
+
+  @override
+  String notifZapBody(int sat) {
+    return 'Gavote $sat sat vertės zap!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Pranešimas patvirtintas';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'Jūsų $category pranešimą patvirtino kitas vairuotojas';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Pranešimas ginčijamas';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Kažkas pranešė, kad jūsų $category jau nebėra';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, tada $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Greičio apribojimas (nebūtina)';
+
+  @override
+  String get reportedSpeedLimit => 'Praneštas greičio apribojimas';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Greičio kamera, apribojimas $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Neprivalomas komentaras…';

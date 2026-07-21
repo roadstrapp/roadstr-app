@@ -156,6 +156,31 @@
   "loginToConfirm": "Log in met Nostr om te bevestigen of te betwisten",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Een gebeurtenis melden",
+  "notifZapTitle": "Zap ontvangen",
+  "notifZapBody": "Je hebt een zap van {sat} sats ontvangen!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Melding bevestigd",
+  "notifConfirmedBody": "Je melding van {category} is bevestigd door een andere bestuurder",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Melding betwist",
+  "notifDeniedBody": "Iemand meldde dat je {category} er niet meer is",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, daarna {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Snelheidslimiet (optioneel)",
+  "reportedSpeedLimit": "Gemelde snelheidslimiet",
+  "speedCameraVoiceAlert": "Flitser gemeld, snelheidslimiet {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Optionele opmerking…",
   "publish": "Publiceren",
   "publishing": "Publiceren…",

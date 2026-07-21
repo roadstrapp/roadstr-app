@@ -156,6 +156,31 @@
   "loginToConfirm": "Logáil isteach le Nostr chun deimhniú nó díospóid",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Tuairiscigh imeacht",
+  "notifZapTitle": "Zap faighte",
+  "notifZapBody": "Fuair tú zap {sat} sats!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Tuairisc dearbhaithe",
+  "notifConfirmedBody": "Dhearbhaigh tiománaí eile do thuairisc {category}",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Tuairisc á conspóid",
+  "notifDeniedBody": "Dúirt duine éigin nach bhfuil do {category} ann a thuilleadh",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, ansin {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Teorainn luais (roghnach)",
+  "reportedSpeedLimit": "Teorainn luais tuairiscithe",
+  "speedCameraVoiceAlert": "Ceamara luais tuairiscithe, teorainn {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Trácht roghnach…",
   "publish": "Foilsigh",
   "publishing": "Ag foilsiú…",

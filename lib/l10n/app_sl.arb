@@ -156,6 +156,31 @@
   "loginToConfirm": "Prijavite se z Nostrom za potrditev ali izpodbijanje",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Poročaj o dogodku",
+  "notifZapTitle": "Prejet zap",
+  "notifZapBody": "Prejeli ste zap v vrednosti {sat} satov!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Prijava potrjena",
+  "notifConfirmedBody": "Vašo prijavo {category} je potrdil drug voznik",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Prijava izpodbijana",
+  "notifDeniedBody": "Nekdo je sporočil, da vašega {category} ni več tam",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, nato {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Omejitev hitrosti (neobvezno)",
+  "reportedSpeedLimit": "Prijavljena omejitev hitrosti",
+  "speedCameraVoiceAlert": "Prijavljen radar, omejitev {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Neobvezni komentar…",
   "publish": "Objavi",
   "publishing": "Objavljanje…",

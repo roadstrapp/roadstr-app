@@ -79,10 +79,30 @@ class AppLocalizationsIt extends AppLocalizations {
   String get selectedPosition => 'Posizione selezionata';
 
   @override
+  String get bottomBarNotifications => 'Notifiche';
+
+  @override
   String get bottomBarProfile => 'Profilo';
 
   @override
   String get bottomBarMenu => 'Menu';
+
+  @override
+  String get notificationsTitle => 'Notifiche';
+
+  @override
+  String get notificationsEmpty => 'Ancora nessuna notifica';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Qui compariranno gli zap e le reazioni alle tue segnalazioni stradali.';
+
+  @override
+  String get notificationsLoginRequired => 'Collega il tuo profilo Nostr';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Accedi con Amber o nsec per ricevere le notifiche dagli altri utenti.';
 
   @override
   String get settingsTitle => 'Impostazioni';
@@ -414,6 +434,46 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Segnala un evento';
+
+  @override
+  String get notifZapTitle => 'Zap ricevuto';
+
+  @override
+  String notifZapBody(int sat) {
+    return 'Hai ricevuto uno zap di $sat sat!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Segnalazione confermata';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'La tua segnalazione di $category è stata confermata da un altro utente';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Segnalazione contestata';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Qualcuno ha detto che la tua segnalazione di $category non c\'è più';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, poi $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Limite di velocità (opzionale)';
+
+  @override
+  String get reportedSpeedLimit => 'Limite di velocità segnalato';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Autovelox segnalato, limite di velocità $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Commento opzionale…';

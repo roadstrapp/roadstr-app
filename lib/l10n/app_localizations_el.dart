@@ -78,10 +78,30 @@ class AppLocalizationsEl extends AppLocalizations {
   String get selectedPosition => 'Επιλεγμένη θέση';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Προφίλ';
 
   @override
   String get bottomBarMenu => 'Μενού';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Ρυθμίσεις';
@@ -416,6 +436,46 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Αναφορά συμβάντος';
+
+  @override
+  String get notifZapTitle => 'Ελήφθη zap';
+
+  @override
+  String notifZapBody(int sat) {
+    return 'Λάβατε zap $sat sats!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Η αναφορά επιβεβαιώθηκε';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'Η αναφορά σας για $category επιβεβαιώθηκε από άλλον οδηγό';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Η αναφορά αμφισβητήθηκε';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Κάποιος ανέφερε ότι το $category σας δεν υπάρχει πια';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, στη συνέχεια $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Όριο ταχύτητας (προαιρετικό)';
+
+  @override
+  String get reportedSpeedLimit => 'Αναφερόμενο όριο ταχύτητας';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Κάμερα ταχύτητας, όριο $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Προαιρετικό σχόλιο…';

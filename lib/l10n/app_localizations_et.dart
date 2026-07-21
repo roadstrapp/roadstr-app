@@ -78,10 +78,30 @@ class AppLocalizationsEt extends AppLocalizations {
   String get selectedPosition => 'Valitud asukoht';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Profiil';
 
   @override
   String get bottomBarMenu => 'Menüü';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Seaded';
@@ -409,6 +429,46 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Teata sündmusest';
+
+  @override
+  String get notifZapTitle => 'Zap saadud';
+
+  @override
+  String notifZapBody(int sat) {
+    return 'Said $sat sati suuruse zapi!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Teade kinnitatud';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'Teise juhi poolt kinnitati sinu $category teade';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Teade vaidlustatud';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Keegi teatas, et sinu $category ei ole enam seal';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, seejärel $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Kiiruspiirang (valikuline)';
+
+  @override
+  String get reportedSpeedLimit => 'Teatatud kiiruspiirang';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Kiiruskaamera, piirang $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Valikuline kommentaar…';

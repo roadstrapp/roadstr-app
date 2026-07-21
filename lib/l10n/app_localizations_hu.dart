@@ -79,10 +79,30 @@ class AppLocalizationsHu extends AppLocalizations {
   String get selectedPosition => 'Kiválasztott pozíció';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Profil';
 
   @override
   String get bottomBarMenu => 'Menü';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Beállítások';
@@ -413,6 +433,46 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Esemény bejelentése';
+
+  @override
+  String get notifZapTitle => 'Zap érkezett';
+
+  @override
+  String notifZapBody(int sat) {
+    return '$sat sat értékű zapet kaptál!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Bejelentés megerősítve';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'A $category bejelentésedet egy másik sofőr megerősítette';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Bejelentés vitatva';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Valaki jelezte, hogy a $category már nincs ott';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, majd $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Sebességkorlát (opcionális)';
+
+  @override
+  String get reportedSpeedLimit => 'Jelentett sebességkorlát';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Traffipax jelentve, sebességkorlát $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Opcionális megjegyzés…';

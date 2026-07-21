@@ -78,10 +78,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectedPosition => 'Selected position';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Profile';
 
   @override
   String get bottomBarMenu => 'Menu';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Settings';
@@ -406,6 +426,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Report an event';
+
+  @override
+  String get notifZapTitle => 'Zap received';
+
+  @override
+  String notifZapBody(int sat) {
+    return 'You received a zap of $sat sats!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Report confirmed';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'Your $category report was confirmed by another driver';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Report disputed';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Someone said your $category report is no longer there';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, then $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Speed limit (optional)';
+
+  @override
+  String get reportedSpeedLimit => 'Reported speed limit';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Speed camera reported, speed limit $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Optional comment…';

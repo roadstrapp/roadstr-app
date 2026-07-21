@@ -79,10 +79,30 @@ class AppLocalizationsMt extends AppLocalizations {
   String get selectedPosition => 'Pożizzjoni magħżula';
 
   @override
+  String get bottomBarNotifications => 'Notifications';
+
+  @override
   String get bottomBarProfile => 'Profil';
 
   @override
   String get bottomBarMenu => 'Menu';
+
+  @override
+  String get notificationsTitle => 'Notifications';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet';
+
+  @override
+  String get notificationsEmptyBody =>
+      'Zaps and reactions to your road reports will appear here.';
+
+  @override
+  String get notificationsLoginRequired => 'Connect your Nostr profile';
+
+  @override
+  String get notificationsLoginRequiredBody =>
+      'Sign in with Amber or nsec to receive notifications from other users.';
 
   @override
   String get settingsTitle => 'Settings';
@@ -414,6 +434,46 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get reportAnEvent => 'Irrapporta avveniment';
+
+  @override
+  String get notifZapTitle => 'Zap riċevut';
+
+  @override
+  String notifZapBody(int sat) {
+    return 'Irċevejt zap ta\' $sat sats!';
+  }
+
+  @override
+  String get notifConfirmedTitle => 'Rapport ikkonfermat';
+
+  @override
+  String notifConfirmedBody(String category) {
+    return 'Ir-rapport tiegħek dwar $category ġie kkonfermat minn sewwieq ieħor';
+  }
+
+  @override
+  String get notifDeniedTitle => 'Rapport ikkontestat';
+
+  @override
+  String notifDeniedBody(String category) {
+    return 'Xi ħadd irrapporta li $category tiegħek m\'għadux hemm';
+  }
+
+  @override
+  String chainedManeuver(String first, String second) {
+    return '$first, imbagħad $second';
+  }
+
+  @override
+  String get reportSpeedLimitHint => 'Limitu tal-veloċità (mhux obbligatorju)';
+
+  @override
+  String get reportedSpeedLimit => 'Limitu tal-veloċità rrappurtat';
+
+  @override
+  String speedCameraVoiceAlert(int limit, String unit) {
+    return 'Kamera tal-veloċità, limitu $limit $unit';
+  }
 
   @override
   String get optionalComment => 'Kumment fakultattiv…';

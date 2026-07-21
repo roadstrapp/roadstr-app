@@ -156,6 +156,31 @@
   "loginToConfirm": "Jelentkezzen be Nostr-ral a megerősítéshez vagy vitatáshoz",
   "@_REPORT_SHEET": {},
   "reportAnEvent": "Esemény bejelentése",
+  "notifZapTitle": "Zap érkezett",
+  "notifZapBody": "{sat} sat értékű zapet kaptál!",
+  "@notifZapBody": {
+    "placeholders": { "sat": { "type": "int" } }
+  },
+  "notifConfirmedTitle": "Bejelentés megerősítve",
+  "notifConfirmedBody": "A {category} bejelentésedet egy másik sofőr megerősítette",
+  "@notifConfirmedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notifDeniedTitle": "Bejelentés vitatva",
+  "notifDeniedBody": "Valaki jelezte, hogy a {category} már nincs ott",
+  "@notifDeniedBody": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "chainedManeuver": "{first}, majd {second}",
+  "@chainedManeuver": {
+    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+  },
+  "reportSpeedLimitHint": "Sebességkorlát (opcionális)",
+  "reportedSpeedLimit": "Jelentett sebességkorlát",
+  "speedCameraVoiceAlert": "Traffipax jelentve, sebességkorlát {limit} {unit}",
+  "@speedCameraVoiceAlert": {
+    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+  },
   "optionalComment": "Opcionális megjegyzés…",
   "publish": "Közzététel",
   "publishing": "Közzététel…",
