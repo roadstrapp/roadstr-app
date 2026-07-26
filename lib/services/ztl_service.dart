@@ -17,7 +17,7 @@ class ZtlZone {
 /// This is how Italian ZTLs are ACTUALLY mapped in OSM: not as named
 /// polygons, but as per-way access restrictions (`motor_vehicle=permit`,
 /// `access=destination|no`, `highway=pedestrian`) on each street inside the
-/// zone. Verified live on Ravenna's centro storico (2026-07): 120+ restricted
+/// zone. Verified live on an Italian historic centre (2026-07): 120+ restricted
 /// ways, zero ZTL-named polygons.
 class ZtlWay {
   final String? name;

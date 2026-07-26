@@ -174,8 +174,8 @@ class PlaceSearchService {
   /// nothing, or null when there is nothing sensible to drop.
   ///
   /// European street names are usually "type + given name(s) + surname"
-  /// ("via Attilio Monti") while OSM frequently stores only "type + surname"
-  /// ("via Monti"). Keeping the first and last words reproduces exactly that
+  /// ("via Roberto Ricci") while OSM frequently stores only "type + surname"
+  /// ("via Ricci"). Keeping the first and last words reproduces exactly that
   /// shape, which recovers the single most common miss.
   static String? relaxQuery(String query) {
     final words = query.trim().split(RegExp(r'\s+'))

@@ -25,7 +25,7 @@ void main() {
       id: 'a' * 64,
       pubkey: 'b' * 64,
       category: RoadCategory.speedCamera,
-      position: const LatLng(44.4, 12.2),
+      position: const LatLng(45.07, 7.69),
       createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
       expiresAt: null,
       comment: '',

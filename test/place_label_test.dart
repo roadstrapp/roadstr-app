@@ -8,15 +8,15 @@ import 'package:roadstr/services/routing_service.dart';
 void main() {
   test('street address keeps the street name, not the house number', () {
     final label = RoutingService.shortLabelFrom(
-      '12, Via Attilio Monti, Ravenna, Emilia-Romagna, 48122, Italia',
+      '12, Via Roberto Ricci, Torino, Piemonte, 10121, Italia',
       {
         'house_number': '12',
-        'road': 'Via Attilio Monti',
-        'city': 'Ravenna',
+        'road': 'Via Roberto Ricci',
+        'city': 'Torino',
         'country': 'Italia',
       },
     );
-    expect(label, 'Via Attilio Monti 12, Ravenna');
+    expect(label, 'Via Roberto Ricci 12, Torino');
   });
 
   test('street without a house number', () {
@@ -29,28 +29,28 @@ void main() {
 
   test('a named POI wins over its street', () {
     final label = RoutingService.shortLabelFrom(
-      'Ospedale Santa Maria delle Croci, Viale Randi, Ravenna, Italia',
-      {'road': 'Viale Randi', 'city': 'Ravenna'},
+      'Ospedale Santa Maria delle Croci, Viale Randi, Torino, Italia',
+      {'road': 'Viale Randi', 'city': 'Torino'},
       name: 'Ospedale Santa Maria delle Croci',
     );
-    expect(label, 'Ospedale Santa Maria delle Croci, Ravenna');
+    expect(label, 'Ospedale Santa Maria delle Croci, Torino');
   });
 
   test('POI whose name equals the town is not repeated', () {
     final label = RoutingService.shortLabelFrom(
-      'Ravenna, Emilia-Romagna, Italia',
-      {'city': 'Ravenna'},
-      name: 'Ravenna',
+      'Torino, Piemonte, Italia',
+      {'city': 'Torino'},
+      name: 'Torino',
     );
-    expect(label, 'Ravenna');
+    expect(label, 'Torino');
   });
 
   test('no street and no name: first non-numeric component', () {
     final label = RoutingService.shortLabelFrom(
-      '5, Piazza del Popolo, Ravenna, Italia',
-      {'city': 'Ravenna'},
+      '5, Piazza del Popolo, Torino, Italia',
+      {'city': 'Torino'},
     );
-    expect(label, 'Piazza del Popolo, Ravenna');
+    expect(label, 'Piazza del Popolo, Torino');
   });
 
   test('empty address block never throws', () {
@@ -63,10 +63,10 @@ void main() {
     final long = 'A' * 500;
     final label = RoutingService.shortLabelFrom(
       'x',
-      {'road': long, 'city': 'Ravenna'},
+      {'road': long, 'city': 'Torino'},
     );
     expect(label.length, lessThan(120));
-    expect(label, endsWith(', Ravenna'));
+    expect(label, endsWith(', Torino'));
 
     final controls = RoutingService.shortLabelFrom(
       'x',

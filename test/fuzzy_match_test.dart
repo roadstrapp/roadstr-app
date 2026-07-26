@@ -14,11 +14,11 @@ void main() {
 
   group('wordScore', () {
     test('exact match scores 1', () {
-      expect(FuzzyMatch.wordScore('monti', 'monti'), 1);
+      expect(FuzzyMatch.wordScore('ricci', 'ricci'), 1);
     });
 
     test('typos still match', () {
-      expect(FuzzyMatch.wordScore('attillio', 'attilio'), greaterThan(0.8));
+      expect(FuzzyMatch.wordScore('robberto', 'roberto'), greaterThan(0.8));
       expect(FuzzyMatch.wordScore('farmacie', 'farmacia'), greaterThan(0.8));
     });
 
@@ -27,40 +27,40 @@ void main() {
     });
 
     test('unrelated words do not match', () {
-      expect(FuzzyMatch.wordScore('monti', 'roma'), 0);
+      expect(FuzzyMatch.wordScore('ricci', 'roma'), 0);
       expect(FuzzyMatch.wordScore('banca', 'bar'), 0);
     });
   });
 
   group('score', () {
     test('an omitted given name still finds the street', () {
-      // The real-world miss: OSM stores "Via Monti", the user types the full
+      // The real-world miss: OSM stores "Via Ricci", the user types the full
       // name from the street sign. It must not only match, it must outrank a
       // different street that happens to share the given name.
-      final wanted = FuzzyMatch.score('via attilio monti', 'Via Monti');
+      final wanted = FuzzyMatch.score('via roberto ricci', 'Via Ricci');
       expect(wanted, greaterThan(0.5));
       expect(wanted,
-          greaterThan(FuzzyMatch.score('via attilio monti', 'Via Attilio Rivalta')));
+          greaterThan(FuzzyMatch.score('via roberto ricci', 'Via Roberto Baldini')));
       expect(wanted,
-          greaterThan(FuzzyMatch.score('via attilio monti', 'Via Orioli Attilio')));
+          greaterThan(FuzzyMatch.score('via roberto ricci', 'Via Fabbri Roberto')));
     });
 
     test('the exact street outranks a same-surname neighbour', () {
       final exact =
-          FuzzyMatch.score('via attilio monti', 'Via Attilio Monti, Ravenna');
+          FuzzyMatch.score('via roberto ricci', 'Via Roberto Ricci, Torino');
       final other =
-          FuzzyMatch.score('via attilio monti', 'Via Attilio Rivalta, Ravenna');
+          FuzzyMatch.score('via roberto ricci', 'Via Roberto Baldini, Torino');
       expect(exact, greaterThan(other));
       // An untyped town in the label costs some score — callers also compare
       // against the street name alone, which matches perfectly.
-      expect(FuzzyMatch.score('via attilio monti', 'Via Attilio Monti'), 1);
+      expect(FuzzyMatch.score('via roberto ricci', 'Via Roberto Ricci'), 1);
     });
 
     test('a misspelled query still ranks the right street first', () {
       final right =
-          FuzzyMatch.score('via attillio mnti', 'Via Attilio Monti, Ravenna');
+          FuzzyMatch.score('via robberto ricc', 'Via Roberto Ricci, Torino');
       final wrong =
-          FuzzyMatch.score('via attillio mnti', 'Via Orioli Attilio, Ravenna');
+          FuzzyMatch.score('via robberto ricc', 'Via Fabbri Roberto, Torino');
       expect(right, greaterThan(wrong));
     });
 
@@ -70,8 +70,8 @@ void main() {
     });
 
     test('tighter names beat longer ones', () {
-      expect(FuzzyMatch.score('via monti', 'Via Monti'),
-          greaterThan(FuzzyMatch.score('via monti', 'Via Monti Berici Nord')));
+      expect(FuzzyMatch.score('via ricci', 'Via Ricci'),
+          greaterThan(FuzzyMatch.score('via ricci', 'Via Ricci Berici Nord')));
     });
 
     test('empty inputs are safe', () {

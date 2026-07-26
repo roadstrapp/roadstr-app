@@ -355,8 +355,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   LatLng? _placePoint;
   String? _placeAddress;
 
-  /// Short, recognisable name of the shown place ("Via Attilio Monti 12,
-  /// Ravenna") — used for history entries and the route destination label.
+  /// Short, recognisable name of the shown place ("Via Roberto Ricci 12,
+  /// Torino") — used for history entries and the route destination label.
   /// Distinct from [_placeAddress], which is the longer displayed address.
   String? _placeLabel;
 
@@ -2816,7 +2816,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   Future<void> _showPlaceInfoForResult(NominatimResult result) async {
     final requestGeneration = ++_placeRequestGeneration;
     _pendingLabel = result.shortName;
-    // Build a geo-disambiguated query: "Teodorico Ravenna" beats plain "Teodorico"
+    // Build a geo-disambiguated query: "Teodorico Torino" beats plain "Teodorico"
     // for both the Wikipedia fallback and the web-search button.
     final wikiQ = (result.city != null && result.city != result.shortName)
         ? '${result.shortName} ${result.city}'

@@ -90,7 +90,7 @@ void main() {
         NominatimResult(
           displayName: 'Q8',
           shortName: 'Q8',
-          position: LatLng(44.4, 12.2),
+          position: LatLng(45.07, 7.69),
           cls: 'amenity',
           type: 'fuel',
           distanceM: 1240,
