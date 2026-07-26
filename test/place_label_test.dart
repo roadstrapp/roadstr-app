@@ -56,4 +56,29 @@ void main() {
   test('empty address block never throws', () {
     expect(RoutingService.shortLabelFrom('', const {}), '');
   });
+
+  test('bounds and sanitises untrusted geocoder text', () {
+    // The address block is third-party data that gets persisted in the history
+    // box and rendered in one-line tiles.
+    final long = 'A' * 500;
+    final label = RoutingService.shortLabelFrom(
+      'x',
+      {'road': long, 'city': 'Ravenna'},
+    );
+    expect(label.length, lessThan(120));
+    expect(label, endsWith(', Ravenna'));
+
+    final controls = RoutingService.shortLabelFrom(
+      'x',
+      {'road': 'Via\u0000Roma\u001f', 'city': 'Milano'},
+    );
+    expect(controls, 'Via Roma, Milano');
+  });
+
+  test('non-string address components are ignored, not crashed on', () {
+    expect(
+      RoutingService.shortLabelFrom('Somewhere', {'road': 42, 'city': null}),
+      'Somewhere',
+    );
+  });
 }

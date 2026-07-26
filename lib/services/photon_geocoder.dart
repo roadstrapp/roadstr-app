@@ -30,6 +30,11 @@ class PhotonGeocoder {
   /// (verified live), so this list must not be widened optimistically.
   static const _supportedLangs = {'en', 'de', 'fr'};
 
+  /// Longest query worth sending. A place name never approaches this; the cap
+  /// exists so a pasted wall of text cannot be turned into a giant URL or into
+  /// a quadratic amount of client-side fuzzy scoring on every keystroke.
+  static const maxQueryLength = 200;
+
   /// Searches for [query], biased toward [near] when a GPS fix is available.
   ///
   /// Returns an empty list on any failure: this is one of several parallel
@@ -41,12 +46,17 @@ class PhotonGeocoder {
     int limit = 8,
   }) async {
     final q = query.trim();
-    if (q.isEmpty) return [];
+    if (q.isEmpty || q.length > maxQueryLength) return [];
     try {
+      // Two decimals ≈ 1 km. The bias only needs to say which town the user is
+      // in — `zoom=12` is a town-sized hint anyway — so there is no reason to
+      // hand a third party the metre-accurate position of the driver. This
+      // deliberately discloses less than the ±0.25° viewbox already sent to
+      // Nominatim, which is coarser still.
       final bias = near == null
           ? ''
-          : '&lat=${near.latitude.toStringAsFixed(5)}'
-              '&lon=${near.longitude.toStringAsFixed(5)}'
+          : '&lat=${near.latitude.toStringAsFixed(2)}'
+              '&lon=${near.longitude.toStringAsFixed(2)}'
               // Pulls nearby hits up without hard-filtering distant ones —
               // "Via Roma" in the next town over must stay reachable.
               '&location_bias_scale=0.3&zoom=12';
