@@ -3770,6 +3770,24 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     );
   }
 
+  /// Dark-mode tile filter: boosts contrast without shifting hue, so roads
+  /// stand out against the dark CARTO background. 2.0× multiplier, −20 offset:
+  /// background (13)→6, roads (42)→64, i.e. ~10× contrast for major roads.
+  ///
+  /// A top-level function, not an inline closure: `build` runs on every GPS
+  /// tick during navigation, and a fresh closure each time gave every tile a
+  /// new builder identity several times a second for no benefit.
+  static Widget _darkTileBuilder(BuildContext _, Widget tile, TileImage __) =>
+      ColorFiltered(
+        colorFilter: const ColorFilter.matrix([
+          2.0, 0, 0, 0, -20, //
+          0, 2.0, 0, 0, -20, //
+          0, 0, 2.0, 0, -20, //
+          0, 0, 0, 1, 0, //
+        ]),
+        child: tile,
+      );
+
   void _snack(String msg) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -3928,37 +3946,17 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                   subdomains: c.mapTileSubs?.split('') ?? const [],
                   userAgentPackageName: 'app.roadstr',
                   maxZoom: 19,
-                  // In dark mode: boost contrast without hue shift so roads stand
-                  // out against the dark CartoDB background.
-                  // 2.0× multiplier, −20 offset: background (13)→6, roads (42)→64.
-                  // Contrast ratio major roads vs background: ~10×.
-                  tileBuilder: c.isDark
-                      ? (_, tile, __) => ColorFiltered(
-                            colorFilter: const ColorFilter.matrix([
-                              2.0,
-                              0,
-                              0,
-                              0,
-                              -20,
-                              0,
-                              2.0,
-                              0,
-                              0,
-                              -20,
-                              0,
-                              0,
-                              2.0,
-                              0,
-                              -20,
-                              0,
-                              0,
-                              0,
-                              1,
-                              0,
-                            ]),
-                            child: tile,
-                          )
-                      : null,
+                  // Day/night flips the tile source (OSM standard ↔ CARTO
+                  // dark), which makes flutter_map reload every visible tile.
+                  // With the default reloadStartOpacity of 0 each tile snaps
+                  // to fully transparent the instant its replacement arrives
+                  // and fades back in — and since replies trickle in from a
+                  // different host over several seconds, the map flickers tile
+                  // by tile. Starting the reload at full opacity keeps the old
+                  // tile painted until the new one is ready to take its place.
+                  tileDisplay:
+                      const TileDisplay.fadeIn(reloadStartOpacity: 1),
+                  tileBuilder: c.isDark ? _darkTileBuilder : null,
                 ),
                 if (_showAlternatives)
                   PolylineLayer(polylines: [

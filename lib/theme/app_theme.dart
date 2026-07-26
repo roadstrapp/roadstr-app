@@ -230,8 +230,38 @@ class RoadstrColors extends ThemeExtension<RoadstrColors> {
         mapTileAttrib: mapTileAttrib ?? this.mapTileAttrib,
       );
 
+  /// Blends towards [other] over a theme change.
+  ///
+  /// MaterialApp cross-fades between themes over ~200 ms. Returning `this`
+  /// (as this used to) froze every Roadstr-coloured surface on the OLD theme
+  /// for the whole animation while Material's own colours faded, then snapped
+  /// the rest at the end — a visible two-stage flash at every sunset/sunrise
+  /// switch.
+  ///
+  /// The discrete fields cannot be blended: half a tile URL is not a URL. They
+  /// switch at the midpoint, which is the same convention `ThemeData.lerp`
+  /// uses for `brightness`, so the tile source changes when the colours are
+  /// already halfway across rather than after everything else has settled.
   @override
-  RoadstrColors lerp(RoadstrColors? other, double t) => this;
+  RoadstrColors lerp(RoadstrColors? other, double t) {
+    if (other == null || identical(other, this)) return this;
+    final target = t < 0.5 ? this : other;
+    return RoadstrColors(
+      accent: Color.lerp(accent, other.accent, t)!,
+      accentSoft: Color.lerp(accentSoft, other.accentSoft, t)!,
+      surface1: Color.lerp(surface1, other.surface1, t)!,
+      surface2: Color.lerp(surface2, other.surface2, t)!,
+      surface3: Color.lerp(surface3, other.surface3, t)!,
+      border: Color.lerp(border, other.border, t)!,
+      textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
+      textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
+      isDark: target.isDark,
+      mapTile: target.mapTile,
+      mapTileSubs: target.mapTileSubs,
+      mapTileAttrib: target.mapTileAttrib,
+    );
+  }
+
   static RoadstrColors of(BuildContext context) =>
       Theme.of(context).extension<RoadstrColors>()!;
 }
