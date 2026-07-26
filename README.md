@@ -3,6 +3,9 @@
 **Roadstr** is an open-source, decentralised navigation app for Android, built on the [Nostr protocol](https://nostr.com/).  
 It combines real-time GPS turn-by-turn navigation with community-sourced traffic alerts published as Nostr events, on-device AI voice guidance, Lightning Network tips for contributors, and privacy-first map data powered by OpenStreetMap.
 
+If you're searching for the decentralized road event reporting system — "Waze without the centralized tracking" head to Jooray's Github page https://github.com/jooray/roadstr
+
+
 > **Version 0.4.12** — Android only.
 
 ---
