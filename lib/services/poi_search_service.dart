@@ -1,8 +1,7 @@
-import 'dart:convert';
 import 'package:latlong2/latlong.dart';
 import '../utils/fuzzy_match.dart';
 import '../utils/geo.dart';
-import 'bounded_http.dart';
+import 'overpass_client.dart';
 import 'routing_service.dart' show NominatimResult;
 
 enum OsmPoiKind {
@@ -314,12 +313,8 @@ class OsmPoiDetails {
 /// within a radius of the user and is inherently local — the category path
 /// below is the fix for that specific bug class.
 class PoiSearchService {
-  // NB: overpass.osm.ch removed — Switzerland-only extract, returns empty
-  // success for Italy (see SpeedLimitService._endpoints for the full story).
-  static const _endpoints = [
-    'https://overpass-api.de/api/interpreter',
-    'https://overpass.openstreetmap.fr/api/interpreter',
-  ];
+  final _overpass = OverpassClient();
+
   // A local category search does not need an 8 km Overpass extract.  Named
   // streets and businesses are handled by Nominatim; this query is only the
   // nearby-category supplement, so keeping it to 4 km makes responses much
@@ -371,8 +366,6 @@ class PoiSearchService {
     'church': ['amenity=place_of_worship'],
     'supermercati': ['shop=supermarket'],
   };
-
-  int _endpointIdx = 0;
 
   /// Searches for POIs matching [query] near [center]. Returns an empty list
   /// if [query] matches no known category and no brand/name hits are found —
@@ -434,70 +427,52 @@ class PoiSearchService {
         'nwr(around:$radiusM,$lat,$lon)'
         '[~"^(amenity|shop|tourism|historic|leisure|office|craft|healthcare|railway|aeroway|natural)\$"~"."];'
         'out center 25;';
-    for (var attempt = 0; attempt < _endpoints.length; attempt++) {
-      try {
-        final res = await BoundedHttp.post(
-          Uri.parse(_endpoints[_endpointIdx]),
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'Roadstr/1.0 (navigation app)',
-          },
-          body: 'data=${Uri.encodeQueryComponent(query)}',
-          maxBytes: 10 * 1024 * 1024,
-          timeout: const Duration(seconds: 8),
-        );
-        if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
-        final data = jsonDecode(res.body) as Map<String, dynamic>;
-        final elements =
-            (data['elements'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-        OsmPoiDetails? best;
-        double bestScore = double.infinity;
-        final wanted = preferredName == null ? null : _normalize(preferredName);
-        for (final el in elements) {
-          final tags = (el['tags'] as Map?)?.cast<String, dynamic>();
-          if (tags == null) continue;
-          final details = OsmPoiDetails.fromOsmTags(
-            tags,
-            languageCode: languageCode,
-          );
-          if (details == null) continue;
-          double? elat = (el['lat'] as num?)?.toDouble();
-          double? elon = (el['lon'] as num?)?.toDouble();
-          if (elat == null || elon == null) {
-            final ctr = el['center'] as Map?;
-            elat = (ctr?['lat'] as num?)?.toDouble();
-            elon = (ctr?['lon'] as num?)?.toDouble();
-          }
-          if (elat == null ||
-              elon == null ||
-              !elat.isFinite ||
-              !elon.isFinite) {
-            continue;
-          }
-          final d = _distM(center, LatLng(elat, elon));
-          if (d > radiusM) continue;
-          var score = d;
-          final candidateName =
-              details.name == null ? null : _normalize(details.name!);
-          if (wanted != null && candidateName != null) {
-            if (candidateName == wanted) {
-              score -= radiusM * 2;
-            } else if (candidateName.contains(wanted) ||
-                wanted.contains(candidateName)) {
-              score -= radiusM;
-            }
-          }
-          if (score < bestScore) {
-            bestScore = score;
-            best = details;
-          }
+    final elements = await _overpass.fetchElementsAnyMirror(query,
+        maxBytes: 10 * 1024 * 1024, timeout: const Duration(seconds: 8));
+    if (elements == null) return null;
+    OsmPoiDetails? best;
+    double bestScore = double.infinity;
+    final wanted = preferredName == null ? null : _normalize(preferredName);
+    for (final el in elements) {
+      final tags = (el['tags'] as Map?)?.cast<String, dynamic>();
+      if (tags == null) continue;
+      final details = OsmPoiDetails.fromOsmTags(
+        tags,
+        languageCode: languageCode,
+      );
+      if (details == null) continue;
+      double? elat = (el['lat'] as num?)?.toDouble();
+      double? elon = (el['lon'] as num?)?.toDouble();
+      if (elat == null || elon == null) {
+        final ctr = el['center'] as Map?;
+        elat = (ctr?['lat'] as num?)?.toDouble();
+        elon = (ctr?['lon'] as num?)?.toDouble();
+      }
+      if (elat == null ||
+          elon == null ||
+          !elat.isFinite ||
+          !elon.isFinite) {
+        continue;
+      }
+      final d = _distM(center, LatLng(elat, elon));
+      if (d > radiusM) continue;
+      var score = d;
+      final candidateName =
+          details.name == null ? null : _normalize(details.name!);
+      if (wanted != null && candidateName != null) {
+        if (candidateName == wanted) {
+          score -= radiusM * 2;
+        } else if (candidateName.contains(wanted) ||
+            wanted.contains(candidateName)) {
+          score -= radiusM;
         }
-        return best;
-      } catch (_) {
-        _endpointIdx = (_endpointIdx + 1) % _endpoints.length;
+      }
+      if (score < bestScore) {
+        bestScore = score;
+        best = details;
       }
     }
-    return null;
+    return best;
   }
 
   /// Returns the OSM `building` polygon that contains [point] (or whose
@@ -521,46 +496,28 @@ class PoiSearchService {
     final query = '[out:json][timeout:8];'
         '(way["building"](around:60,$lat,$lon);'
         'relation["building"](around:60,$lat,$lon););out geom 8;';
-    for (var attempt = 0; attempt < _endpoints.length; attempt++) {
-      try {
-        final res = await BoundedHttp.post(
-          Uri.parse(_endpoints[_endpointIdx]),
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'Roadstr/1.0 (navigation app)',
-          },
-          body: 'data=${Uri.encodeQueryComponent(query)}',
-          maxBytes: 10 * 1024 * 1024,
-          timeout: const Duration(seconds: 8),
-        );
-        if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
-        final data = jsonDecode(res.body) as Map<String, dynamic>;
-        final elements =
-            (data['elements'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-        List<LatLng>? containing;
-        List<LatLng>? nearest;
-        double nearestD = 15.0; // max perimeter distance to accept
-        for (final el in elements) {
-          final poly = _elementRing(el);
-          if (poly == null) continue;
-          if (Geo.pointInPolygon(point, poly)) {
-            containing = poly;
-            break;
-          }
-          for (int i = 0; i < poly.length - 1; i++) {
-            final d = Geo.distanceToSegmentM(point, poly[i], poly[i + 1]);
-            if (d < nearestD) {
-              nearestD = d;
-              nearest = poly;
-            }
-          }
+    final elements = await _overpass.fetchElementsAnyMirror(query,
+        maxBytes: 10 * 1024 * 1024, timeout: const Duration(seconds: 8));
+    if (elements == null) return null;
+    List<LatLng>? containing;
+    List<LatLng>? nearest;
+    double nearestD = 15.0; // max perimeter distance to accept
+    for (final el in elements) {
+      final poly = _elementRing(el);
+      if (poly == null) continue;
+      if (Geo.pointInPolygon(point, poly)) {
+        containing = poly;
+        break;
+      }
+      for (int i = 0; i < poly.length - 1; i++) {
+        final d = Geo.distanceToSegmentM(point, poly[i], poly[i + 1]);
+        if (d < nearestD) {
+          nearestD = d;
+          nearest = poly;
         }
-        return containing ?? nearest;
-      } catch (_) {
-        _endpointIdx = (_endpointIdx + 1) % _endpoints.length;
       }
     }
-    return null;
+    return containing ?? nearest;
   }
 
   /// Outer ring of a building element: a way's own geometry, or a relation's
@@ -619,34 +576,16 @@ class PoiSearchService {
   }
 
   Future<List<NominatimResult>> _run(String query, LatLng center) async {
-    for (var attempt = 0; attempt < _endpoints.length; attempt++) {
-      try {
-        final res = await BoundedHttp.post(
-          Uri.parse(_endpoints[_endpointIdx]),
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'Roadstr/1.0 (navigation app)',
-          },
-          body: 'data=${Uri.encodeQueryComponent(query)}',
-          maxBytes: 6 * 1024 * 1024,
-          timeout: const Duration(seconds: 5),
-        );
-        if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
-        final data = jsonDecode(res.body) as Map<String, dynamic>;
-        final elements =
-            (data['elements'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-        final results = elements
-            .map((e) => _toResult(e, center))
-            .whereType<NominatimResult>()
-            .toList();
-        results.sort((a, b) =>
-            _distM(center, a.position).compareTo(_distM(center, b.position)));
-        return results;
-      } catch (_) {
-        _endpointIdx = (_endpointIdx + 1) % _endpoints.length;
-      }
-    }
-    return [];
+    final elements = await _overpass.fetchElementsAnyMirror(query,
+        maxBytes: 6 * 1024 * 1024, timeout: const Duration(seconds: 5));
+    if (elements == null) return [];
+    final results = elements
+        .map((e) => _toResult(e, center))
+        .whereType<NominatimResult>()
+        .toList();
+    results.sort((a, b) =>
+        _distM(center, a.position).compareTo(_distM(center, b.position)));
+    return results;
   }
 
   static NominatimResult? _toResult(Map<String, dynamic> el, LatLng center) {

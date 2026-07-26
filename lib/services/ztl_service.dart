@@ -1,8 +1,7 @@
-import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
-import 'bounded_http.dart';
+import 'overpass_client.dart';
 import '../utils/geo.dart';
 
 /// A single ZTL zone: name (null when OSM has no `name` tag on the element)
@@ -35,14 +34,6 @@ class ZtlService {
   static ZtlService get instance => _instance;
   ZtlService._();
 
-  /// Overpass mirrors, rotated on failure. NB: overpass.osm.ch was REMOVED —
-  /// it is a Switzerland-only extract that returns empty (HTTP 200, zero
-  /// elements) for every Italian location, silently blanking the feature
-  /// whenever the rotation landed on it. Only worldwide mirrors belong here.
-  static const _endpoints = [
-    'https://overpass-api.de/api/interpreter',
-    'https://overpass.openstreetmap.fr/api/interpreter',
-  ];
   static const _retryMs = 15000;
 
   /// A GPS position within this distance of a restricted way counts as
@@ -56,7 +47,7 @@ class ZtlService {
   LatLng? _lastQueryPos;
   bool _fetching = false;
   DateTime? _nextRetryAt;
-  int _endpointIdx = 0;
+  final _overpass = OverpassClient();
 
   /// Returns the list of ZTL zones currently loaded (may be empty).
   List<ZtlZone> get zones => _zones;
@@ -80,7 +71,7 @@ class ZtlService {
     }
     _fetching = true;
     try {
-      final (:zones, :ways) = await _fetchZtl(pos, _endpoints[_endpointIdx]);
+      final (:zones, :ways) = await _fetchZtl(pos);
       _zones = zones;
       _restrictedWays = ways;
       _lastQueryPos = pos;
@@ -89,7 +80,7 @@ class ZtlService {
           '[ZTL] loaded ${zones.length} zones, ${ways.length} restricted ways');
     } catch (e) {
       debugPrint('[ZTL] fetch failed: $e');
-      _endpointIdx = (_endpointIdx + 1) % _endpoints.length;
+      _overpass.rotate();
       _nextRetryAt = DateTime.now().add(const Duration(milliseconds: _retryMs));
     } finally {
       _fetching = false;
@@ -147,8 +138,8 @@ class ZtlService {
 
   // ── Overpass fetch ────────────────────────────────────────────────────────
 
-  static Future<({List<ZtlZone> zones, List<ZtlWay> ways})> _fetchZtl(
-      LatLng pos, String endpoint) async {
+  Future<({List<ZtlZone> zones, List<ZtlWay> ways})> _fetchZtl(
+      LatLng pos) async {
     final lat = pos.latitude;
     final lng = pos.longitude;
     // Two data sources in one query:
@@ -180,23 +171,12 @@ class ZtlService {
 out geom;
 ''';
 
-    final res = await BoundedHttp.post(
-      Uri.parse(endpoint),
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': 'Roadstr/1.0 (navigation app)',
-      },
-      body: 'data=${Uri.encodeComponent(query)}',
-      maxBytes: 20 * 1024 * 1024,
-      timeout: const Duration(seconds: 25),
-    );
-
-    // Non-200 must THROW (not return empty) so updateIfNeeded rotates mirror
-    // and backs off; returning empty would be recorded as a "successful"
-    // query with zero zones and suppress retries for the next 2 km.
-    if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
-    final json = jsonDecode(res.body) as Map<String, dynamic>;
-    final elements = json['elements'] as List? ?? [];
+    // A failed request must THROW (not return empty) so updateIfNeeded rotates
+    // the mirror and backs off; returning empty would be recorded as a
+    // "successful" query with zero zones and suppress retries for the next
+    // 2 km. OverpassClient.fetchElements throws — do not swallow it here.
+    final elements = await _overpass.fetchElements(query,
+        maxBytes: 20 * 1024 * 1024, timeout: const Duration(seconds: 25));
     return _parseElements(elements);
   }
 
