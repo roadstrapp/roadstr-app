@@ -401,9 +401,16 @@ class RoutingService {
   /// (set for POIs). [display] is only the last-resort fallback.
   static String shortLabelFrom(String display, Map<String, dynamic> addr,
       {String? name}) {
+    // Every component comes from a third-party geocoder and ends up persisted
+    // in the history box and rendered in one-line list tiles. Bound each part
+    // and strip control characters at the door, the same way OsmPoiDetails
+    // treats raw OSM tags.
+    const maxPart = 80;
     String? str(Object? v) {
-      final s = v is String ? v.trim() : null;
-      return (s == null || s.isEmpty) ? null : s;
+      if (v is! String) return null;
+      final s = v.replaceAll(RegExp(r'[\u0000-\u001f]'), ' ').trim();
+      if (s.isEmpty) return null;
+      return s.length <= maxPart ? s : '${s.substring(0, maxPart)}…';
     }
 
     final city = str(addr['city']) ??
@@ -434,8 +441,9 @@ class RoutingService {
     // first display component that is not a bare house number.
     final parts = display
         .split(',')
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty && !RegExp(r'^\d+$').hasMatch(s))
+        .map((p) => str(p))
+        .whereType<String>()
+        .where((p) => !RegExp(r'^\d+$').hasMatch(p))
         .toList();
     if (parts.isEmpty) return city ?? display.split(',').first.trim();
     return parts.length > 1 && city != null && parts.first != city

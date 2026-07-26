@@ -28,19 +28,33 @@ class FuzzyMatch {
   /// reduced to spaces. Folding is table-based (no `intl` dependency) and
   /// covers the Latin-1/Latin-A letters used across the app's 27 locales.
   static String normalize(String s) {
+    const zero = 0x30, nine = 0x39, a = 0x61, z = 0x7a, space = 0x20;
     final buf = StringBuffer();
+    var pendingSpace = false;
     for (final rune in s.toLowerCase().runes) {
-      final ch = String.fromCharCode(rune);
-      final folded = _accents[ch];
+      // Character class by code point, not by RegExp: this runs over every
+      // candidate on every keystroke, and building a RegExp per character
+      // dominated the cost of the whole search ranking.
+      final isAlnum =
+          (rune >= a && rune <= z) || (rune >= zero && rune <= nine);
+      final folded = isAlnum ? null : _accents[String.fromCharCode(rune)];
+      if (!isAlnum && folded == null) {
+        // Collapse any run of separators into a single space, and never emit
+        // a leading one — cheaper than a trailing trim + collapse pass.
+        pendingSpace = buf.isNotEmpty;
+        continue;
+      }
+      if (pendingSpace) {
+        buf.writeCharCode(space);
+        pendingSpace = false;
+      }
       if (folded != null) {
         buf.write(folded);
-      } else if (RegExp(r'[a-z0-9]').hasMatch(ch)) {
-        buf.write(ch);
       } else {
-        buf.write(' ');
+        buf.writeCharCode(rune);
       }
     }
-    return buf.toString().trim().replaceAll(RegExp(r'\s+'), ' ');
+    return buf.toString();
   }
 
   static const _accents = {
