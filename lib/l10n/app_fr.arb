@@ -175,6 +175,7 @@
   "@chainedManeuver": {
     "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
   },
+  "thenManeuver": "puis {instruction}",
   "reportSpeedLimitHint": "Limite de vitesse (facultatif)",
   "reportedSpeedLimit": "Limite de vitesse signalée",
   "speedCameraVoiceAlert": "Radar signalé, limite de vitesse {limit} {unit}",

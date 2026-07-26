@@ -15,7 +15,12 @@ val keyProperties = Properties()
 if (keyPropertiesFile.exists()) {
     keyProperties.load(FileInputStream(keyPropertiesFile))
 }
-val configuredStorePath = keyProperties["storeFile"] as String? ?: ""
+fun signingProperty(name: String): String =
+    (keyProperties[name] as String?)?.takeIf(String::isNotBlank)
+        ?: throw GradleException("Missing signing property '$name' in ${keyPropertiesFile.path}")
+
+val hasReleaseSigningConfig = keyPropertiesFile.exists()
+val configuredStorePath = if (hasReleaseSigningConfig) signingProperty("storeFile") else ""
 val releaseStoreFile = configuredStorePath.takeIf(String::isNotBlank)?.let { path ->
     // build_release.sh interprets storeFile from the repository root. Keep
     // compatibility with older app-relative configurations, but prefer the
@@ -23,6 +28,9 @@ val releaseStoreFile = configuredStorePath.takeIf(String::isNotBlank)?.let { pat
     val repositoryRelative = rootProject.projectDir.parentFile.resolve(path)
     val appRelative = file(path)
     if (repositoryRelative.isFile) repositoryRelative else appRelative
+}
+if (hasReleaseSigningConfig && releaseStoreFile?.isFile != true) {
+    throw GradleException("Release keystore not found: $configuredStorePath")
 }
 
 android {
@@ -47,11 +55,11 @@ android {
     // ── Signing ───────────────────────────────────────────────────────────────
     signingConfigs {
         create("release") {
-            if (keyPropertiesFile.exists()) {
-                keyAlias      = keyProperties["keyAlias"]     as String
-                keyPassword   = keyProperties["keyPassword"]  as String
+            if (hasReleaseSigningConfig) {
+                keyAlias      = signingProperty("keyAlias")
+                keyPassword   = signingProperty("keyPassword")
                 storeFile     = releaseStoreFile
-                storePassword = keyProperties["storePassword"] as String
+                storePassword = signingProperty("storePassword")
             }
         }
     }
@@ -60,11 +68,10 @@ android {
         release {
             // Use release signing only when BOTH key.properties exists AND the
             // referenced keystore file actually exists on disk.
-            val storeFileExists = releaseStoreFile?.isFile == true
             // Never disguise a debug-signed artifact as a release. Without a
             // project keystore Gradle emits an unsigned release, which stores
             // such as F-Droid can sign with their own controlled key.
-            signingConfig = if (keyPropertiesFile.exists() && storeFileExists)
+            signingConfig = if (hasReleaseSigningConfig)
                 signingConfigs.getByName("release")
             else
                 null

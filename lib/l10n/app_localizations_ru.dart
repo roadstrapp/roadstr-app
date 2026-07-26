@@ -233,6 +233,50 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileTitle => 'Профиль';
 
   @override
+  String get profileVisibilityTitle => 'Profile visibility';
+
+  @override
+  String get profileVisibilityDesc =>
+      'Choose whether other Roadstr users see your Nostr name, npub and picture.';
+
+  @override
+  String get profileVisibilityClear => 'Show profile publicly';
+
+  @override
+  String get profileVisibilityPseudonymous => 'Pseudonymous mode (recommended)';
+
+  @override
+  String get profileVisibilityPublishError =>
+      'The local choice was saved, but could not be published to Nostr yet.';
+
+  @override
+  String get nostrichLabel => 'nostrich';
+
+  @override
+  String get profileHiddenNotice => 'This user is using pseudonymous mode.';
+
+  @override
+  String get editSpeedLimit => 'Add or update speed limit';
+
+  @override
+  String get requestSpeedLimit => 'Suggest a speed limit';
+
+  @override
+  String get acceptEditRequest => 'Accept suggestion';
+
+  @override
+  String get pendingEditRequests => 'Pending edit suggestions';
+
+  @override
+  String get speedLimitHint => 'Speed limit';
+
+  @override
+  String get speedLimitSaved => 'Speed limit published';
+
+  @override
+  String get editRequestSent => 'Suggestion sent to the report owner';
+
+  @override
   String get notConnected => 'Не подключён';
 
   @override
@@ -459,6 +503,11 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String chainedManeuver(String first, String second) {
     return '$first, затем $second';
+  }
+
+  @override
+  String thenManeuver(String instruction) {
+    return 'затем $instruction';
   }
 
   @override
@@ -1197,6 +1246,10 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get onboardingFavoritesSyncNotice =>
       'Необязательно: сохранённое избранное может синхронизироваться между вашими устройствами через реле Nostr со сквозным шифрованием (NIP-44) вашим собственным ключом — реле видят только шифртекст, и никто, кроме вас, не может прочитать содержимое. Включите в любой момент в Настройках.';
+
+  @override
+  String get profileVisibilityOnboarding =>
+      'Roadstr always publishes the Nostr public key needed to verify a report. In pseudonymous mode, other Roadstr users see only a generic avatar and “nostrich”; in public mode, they also see your Nostr name, npub and profile picture. Your reports, locations, reputation and received zaps remain public on Nostr.';
 
   @override
   String get parkingSaveHere => 'Сохранить парковку здесь';

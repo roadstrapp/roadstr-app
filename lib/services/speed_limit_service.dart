@@ -157,17 +157,21 @@ class SpeedLimitService {
     final nearestDistance = candidates.first.distanceM;
     final limits = candidates
         .where((c) => c.distanceM <= nearestDistance + 4)
-        .map((c) => _limitFromTags(c.tags))
+        .map((c) => _limitFromTags(c.tags, pos))
         .whereType<int>()
         .toSet();
     return limits.length == 1 ? limits.single : null;
   }
 
   /// Resolves a way's speed limit without country-wide guesses.
-  static int? _limitFromTags(Map<String, dynamic> tags) {
+  static int? _limitFromTags(Map<String, dynamic> tags, LatLng pos) {
+    final type = (tags['maxspeed:type'] as String?)?.toLowerCase() ?? '';
+    final numericIsMph = type.startsWith('us:') ||
+        type.startsWith('gb:') ||
+        _usesMphByDefault(pos);
     final explicit = tags['maxspeed'] as String?;
     if (explicit != null) {
-      final kmh = _parseMaxspeed(explicit);
+      final kmh = _parseMaxspeed(explicit, numericIsMph: numericIsMph);
       if (kmh != null) return kmh;
       // "none"/"signals" etc. — deliberately no limit, stop here for this way.
       return null;
@@ -179,7 +183,7 @@ class SpeedLimitService {
     ]) {
       final zone = (tags[key] as String?)?.toLowerCase();
       if (zone == null) continue;
-      final kmh = _zoneDefault(zone);
+      final kmh = _zoneDefault(zone, numericIsMph: numericIsMph);
       if (kmh != null) return kmh;
     }
     return null;
@@ -188,16 +192,17 @@ class SpeedLimitService {
   /// Accepts only zone values that contain the numeric limit explicitly.
   /// Semantic values such as `IT:urban` or `DE:rural` require a maintained
   /// jurisdiction/date-aware legal table and therefore remain unknown.
-  static int? _zoneDefault(String zone) {
+  static int? _zoneDefault(String zone, {bool numericIsMph = false}) {
     final match =
         RegExp(r'(?:^|:)(?:zone)?(\d{1,3})(?:$|[^0-9])').firstMatch(zone);
     final value = int.tryParse(match?.group(1) ?? '');
-    return value != null && value >= 5 && value <= 300 ? value : null;
+    if (value == null || value < 5 || value > 300) return null;
+    return numericIsMph ? (value * 1.60934).round() : value;
   }
 
   /// Parses an OSM maxspeed tag value to km/h.
   /// Returns null for special values (none / unlimited / walk / variable).
-  static int? _parseMaxspeed(String raw) {
+  static int? _parseMaxspeed(String raw, {bool numericIsMph = false}) {
     final s = raw.trim().toLowerCase();
     if (s == 'none' ||
         s == 'unlimited' ||
@@ -208,7 +213,7 @@ class SpeedLimitService {
       return null;
     }
     // Zone shorthand used directly in maxspeed (e.g. "IT:urban").
-    final zoned = _zoneDefault(s);
+    final zoned = _zoneDefault(s, numericIsMph: numericIsMph);
     if (zoned != null) return zoned;
     // "30 mph" → km/h
     final mphM = RegExp(r'^(\d+)\s*mph$').firstMatch(s);
@@ -220,9 +225,22 @@ class SpeedLimitService {
     final numM = RegExp(r'^(\d{1,3})(?:\s*(?:km/h|kph))?$').firstMatch(s);
     if (numM != null) {
       final value = int.parse(numM.group(1)!);
-      return value >= 5 && value <= 300 ? value : null;
+      if (value < 5 || value > 300) return null;
+      return numericIsMph ? (value * 1.60934).round() : value;
     }
     return null;
+  }
+
+  /// Numeric maxspeed tags use the local road unit.  Most countries using
+  /// mph are identifiable without a network lookup; explicit `mph` tags and
+  /// `maxspeed:type=US:*`/`GB:*` remain authoritative above this fallback.
+  static bool _usesMphByDefault(LatLng pos) {
+    final lat = pos.latitude, lon = pos.longitude;
+    final usa = lat >= 24.3 && lat <= 49.5 && lon >= -125.0 && lon <= -66.0;
+    final uk = lat >= 49.8 && lat <= 59.0 && lon >= -8.5 && lon <= 2.0;
+    final liberia = lat >= 4.0 && lat <= 9.0 && lon >= -12.0 && lon <= -7.0;
+    final myanmar = lat >= 9.5 && lat <= 28.5 && lon >= 92.0 && lon <= 101.5;
+    return usa || uk || liberia || myanmar;
   }
 
   static double _segmentDistanceM(LatLng p, LatLng a, LatLng b) {

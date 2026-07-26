@@ -175,6 +175,7 @@
   "@chainedManeuver": {
     "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
   },
+  "thenManeuver": "majd {instruction}",
   "reportSpeedLimitHint": "Sebességkorlát (opcionális)",
   "reportedSpeedLimit": "Jelentett sebességkorlát",
   "speedCameraVoiceAlert": "Traffipax jelentve, sebességkorlát {limit} {unit}",

@@ -150,6 +150,7 @@
   "@chainedManeuver": {
     "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
   },
+  "thenManeuver": "poi {instruction}",
   "reportSpeedLimitHint": "Limite di velocità (opzionale)",
   "reportedSpeedLimit": "Limite di velocità segnalato",
   "speedCameraVoiceAlert": "Autovelox segnalato, limite di velocità {limit} {unit}",
