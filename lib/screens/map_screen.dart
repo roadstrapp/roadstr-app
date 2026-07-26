@@ -19,7 +19,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -49,6 +48,7 @@ import '../services/kokoro/kokoro_voices.dart';
 import '../services/nostr_relay_service.dart';
 import '../services/favorites_sync_service.dart';
 import '../widgets/cursor_painter.dart';
+import '../widgets/map/map_markers.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import '../services/zap_service.dart';
 import 'package:just_audio/just_audio.dart';
@@ -4125,7 +4125,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                       point: _destination ?? _arrivedAt!,
                       width: 40,
                       height: 48,
-                      child: _DestinationMarker(
+                      child: DestinationMarker(
                         color: _arrivedAt != null && _destination == null
                             ? const Color(0xFF22C55E)
                             : c.accent,
@@ -4140,7 +4140,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                       width: 36,
                       height: 52,
                       alignment: Alignment.bottomCenter,
-                      child: const _PinMarker(),
+                      child: const PinMarker(),
                     ),
                   ]),
                 // Road event markers: visible only at zoom ≥ 11
@@ -4154,7 +4154,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                         height: 36,
                         child: GestureDetector(
                           onTap: () => _showRoadEventDetail(ev),
-                          child: _RoadEventPin(event: ev),
+                          child: RoadEventPin(event: ev),
                         ),
                       ),
                   ]),
@@ -4168,7 +4168,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                         point: cam.position,
                         width: 30,
                         height: 30,
-                        child: const _OsmCameraPin(),
+                        child: const OsmCameraPin(),
                       ),
                   ]),
                 // Saved parking spot — local-only, persists until removed.
@@ -4233,7 +4233,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                             point: _position,
                             width: 48,
                             height: 48,
-                            child: _UserMarker(
+                            child: UserMarker(
                                 // In heading mode the map top = travel direction,
                                 // so heading 0 (arrow up) is correct.
                                 // Outside navigation the compass bearing is used.
@@ -5061,44 +5061,6 @@ class _ZapSheetState extends State<_ZapSheet> {
 }
 
 // ── Road event widgets ────────────────────────────────────────────────────────
-
-class _RoadEventPin extends StatelessWidget {
-  final RoadEvent event;
-  const _RoadEventPin({required this.event});
-  @override
-  Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(
-          color: event.category.color,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 1.5),
-          boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 4)],
-        ),
-        child: Center(
-          child: Text(event.category.emoji,
-              style: const TextStyle(fontSize: 16, height: 1)),
-        ),
-      );
-}
-
-/// Marker for a speed camera sourced from OSM/Overpass rather than a Nostr
-/// community report — same purple family as [_RoadEventPin]'s speed-camera
-/// color, but muted fill + white ring instead of a solid pin, so drivers can
-/// tell "known static camera" apart from a live community-confirmed one.
-class _OsmCameraPin extends StatelessWidget {
-  const _OsmCameraPin();
-  @override
-  Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(
-          color: RoadCategory.speedCamera.color.withValues(alpha: 0.55),
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 1.2),
-          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 3)],
-        ),
-        child: const Center(
-          child: Text('📷', style: TextStyle(fontSize: 13, height: 1)),
-        ),
-      );
-}
 
 class _RoadEventDetail extends StatefulWidget {
   final RoadEvent event;
@@ -8014,58 +7976,6 @@ class _SearchBarWidget extends StatelessWidget {
 
 // ── Purple dropped-pin marker ─────────────────────────────────────────────────
 
-class _PinMarker extends StatelessWidget {
-  const _PinMarker();
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: const Color(0xFF7C3AED),
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 2.5),
-            boxShadow: [
-              BoxShadow(
-                  color: const Color(0xFF7C3AED).withValues(alpha: 0.45),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3))
-            ],
-          ),
-          child: const Icon(Icons.place_rounded, color: Colors.white, size: 18),
-        ),
-        CustomPaint(
-          size: const Size(12, 10),
-          painter: _PinStemPainter(),
-        ),
-      ],
-    );
-  }
-}
-
-class _PinStemPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = ui.Paint()
-      ..color = const Color(0xFF7C3AED)
-      ..style = ui.PaintingStyle.fill;
-    final path = ui.Path()
-      ..moveTo(size.width / 2 - 4, 0)
-      ..lineTo(size.width / 2 + 4, 0)
-      ..lineTo(size.width / 2, size.height)
-      ..close();
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(_PinStemPainter _) => false;
-}
-
-// ── Pin destination panel ─────────────────────────────────────────────────────
-
 class _SearchResults extends StatelessWidget {
   final List<NominatimResult> results;
   final List<FavoritePlace> favorites;
@@ -8844,65 +8754,6 @@ class _CompassFab extends StatelessWidget {
       ),
     );
   }
-}
-
-class _UserMarker extends StatelessWidget {
-  final double heading;
-  final Color accent;
-  final CursorStyle cursorStyle;
-  const _UserMarker({
-    required this.heading,
-    required this.accent,
-    this.cursorStyle = CursorStyle.arrow,
-  });
-  @override
-  Widget build(BuildContext context) => Transform.rotate(
-        angle: heading * math.pi / 180,
-        child: AnimatedCursorWidget(style: cursorStyle, size: 48),
-      );
-}
-
-class _DestinationMarker extends StatelessWidget {
-  final Color color;
-  final bool arrived;
-  const _DestinationMarker({required this.color, this.arrived = false});
-  @override
-  Widget build(BuildContext context) =>
-      Column(mainAxisSize: MainAxisSize.min, children: [
-        Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                      color: color.withValues(alpha: 0.4),
-                      blurRadius: 8,
-                      spreadRadius: 2)
-                ]),
-            child: Icon(arrived ? Icons.check_rounded : Icons.flag_rounded,
-                color: Colors.white, size: 18)),
-        CustomPaint(
-            size: const Size(2, 12), painter: _PinLinePainter(color: color)),
-      ]);
-}
-
-class _PinLinePainter extends CustomPainter {
-  final Color color;
-  const _PinLinePainter({required this.color});
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.drawLine(
-        Offset(size.width / 2, 0),
-        Offset(size.width / 2, size.height),
-        Paint()
-          ..color = color
-          ..strokeWidth = 2);
-  }
-
-  @override
-  bool shouldRepaint(_) => false;
 }
 
 /// Draws a roundabout diagram with the highlighted exit arc for exit N (1-6).

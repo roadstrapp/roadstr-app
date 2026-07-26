@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 // SVG/PNG cursors live in assets/cursors/ (pointing UP = direction of
-// travel). _UserMarker applies a heading rotation on top.
+// travel). UserMarker applies a heading rotation on top.
 
 enum CursorStyle {
   arrow,
