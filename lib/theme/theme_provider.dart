@@ -145,10 +145,20 @@ class ThemeProvider extends ChangeNotifier {
     if (changed) notifyListeners();
 
     // Schedule a timer to flip exactly at the next sunrise/sunset.
+    //
+    // The floor matters: `delay.inSeconds > 0` used to gate this, and
+    // `inSeconds` truncates. Landing anywhere in the last second before the
+    // transition — which is exactly where the previous timer aims — left NO
+    // timer scheduled at all, so the theme stayed put until the driver moved
+    // 10 km or restarted the app. Re-evaluating a second later always
+    // terminates: the "light now" branch only runs while sunset is still
+    // ahead, so the delay can be small but never negative.
+    const minDelay = Duration(seconds: 1);
     final delay = nextTransition.difference(now);
-    if (delay.inSeconds > 0) {
-      _autoDarkTimer = Timer(delay, () => _recalcAutoDark(lat, lng));
-    }
+    _autoDarkTimer = Timer(
+      delay < minDelay ? minDelay : delay,
+      () => _recalcAutoDark(lat, lng),
+    );
   }
 
   @override
