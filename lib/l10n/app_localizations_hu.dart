@@ -22,19 +22,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem található útvonal. Ellenőrizze a kapcsolatot.';
 
   @override
-  String get emptyServerResponse =>
-      'Üres szerverhválasz. Ellenőrizze a kapcsolatot.';
-
-  @override
-  String routeError(String error) {
-    return 'Útvonalszámítási hiba: $error';
-  }
-
-  @override
-  String get gpsNotAvailable =>
-      'GPS nem érhető el — Beállítások → Alkalmazás → Roadstr → Engedélyek → Hely';
-
-  @override
   String get acquiringGps => 'GPS lekérése…';
 
   @override
@@ -51,11 +38,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get chooseRoute => 'Útvonal választása';
-
-  @override
-  String routeOptionsCount(int count) {
-    return '$count lehetőség';
-  }
 
   @override
   String get cancel => 'Mégse';
@@ -79,7 +61,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get selectedPosition => 'Kiválasztott pozíció';
 
   @override
-  String get bottomBarNotifications => 'Notifications';
+  String get bottomBarNotifications => 'Értesítések';
 
   @override
   String get bottomBarProfile => 'Profil';
@@ -88,21 +70,21 @@ class AppLocalizationsHu extends AppLocalizations {
   String get bottomBarMenu => 'Menü';
 
   @override
-  String get notificationsTitle => 'Notifications';
+  String get notificationsTitle => 'Értesítések';
 
   @override
-  String get notificationsEmpty => 'No notifications yet';
+  String get notificationsEmpty => 'Még nincsenek értesítések';
 
   @override
   String get notificationsEmptyBody =>
-      'Zaps and reactions to your road reports will appear here.';
+      'A zapek és a bejelentéseidre érkező reakciók itt jelennek meg.';
 
   @override
-  String get notificationsLoginRequired => 'Connect your Nostr profile';
+  String get notificationsLoginRequired => 'Csatlakoztasd a Nostr-profilodat';
 
   @override
   String get notificationsLoginRequiredBody =>
-      'Sign in with Amber or nsec to receive notifications from other users.';
+      'Jelentkezz be Amberrel vagy nsec-kel, hogy értesítéseket kapj más felhasználóktól.';
 
   @override
   String get settingsTitle => 'Beállítások';
@@ -135,12 +117,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get langSystem => 'Rendszer alapértelmezett';
 
   @override
-  String get langItalian => 'Italiano';
-
-  @override
-  String get langEnglish => 'English';
-
-  @override
   String get keepScreenOn => 'Képernyő bekapcsolt állapotban tartása';
 
   @override
@@ -153,12 +129,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get autoCenterOnLaunchDesc =>
       'Csak akkor használja automatikusan a GPS-t, ha a helyengedélyt már megadták';
-
-  @override
-  String get rotateMap => 'A térkép követi az irányt';
-
-  @override
-  String get rotateMapDescription => 'A térkép a haladási irány alapján forog';
 
   @override
   String get mapTileUrlLabel => 'Térképcsempe URL';
@@ -234,48 +204,48 @@ class AppLocalizationsHu extends AppLocalizations {
   String get profileTitle => 'Profil';
 
   @override
-  String get profileVisibilityTitle => 'Profile visibility';
+  String get profileVisibilityTitle => 'Profil láthatósága';
 
   @override
   String get profileVisibilityDesc =>
-      'Choose whether other Roadstr users see your Nostr name, npub and picture.';
+      'Válaszd ki, hogy a többi Roadstr-felhasználó látja-e a Nostr-neved, az npub-od és a képed.';
 
   @override
-  String get profileVisibilityClear => 'Show profile publicly';
+  String get profileVisibilityClear => 'Profil nyilvános megjelenítése';
 
   @override
-  String get profileVisibilityPseudonymous => 'Pseudonymous mode (recommended)';
+  String get profileVisibilityPseudonymous => 'Álnév mód (ajánlott)';
 
   @override
   String get profileVisibilityPublishError =>
-      'The local choice was saved, but could not be published to Nostr yet.';
+      'A választás helyben elmentve, de a Nostrra még nem sikerült közzétenni.';
 
   @override
   String get nostrichLabel => 'nostrich';
 
   @override
-  String get profileHiddenNotice => 'This user is using pseudonymous mode.';
+  String get profileHiddenNotice => 'Ez a felhasználó álnév módot használ.';
 
   @override
-  String get editSpeedLimit => 'Add or update speed limit';
+  String get editSpeedLimit => 'Sebességkorlát hozzáadása vagy frissítése';
 
   @override
-  String get requestSpeedLimit => 'Suggest a speed limit';
+  String get requestSpeedLimit => 'Sebességkorlát javaslása';
 
   @override
-  String get acceptEditRequest => 'Accept suggestion';
+  String get acceptEditRequest => 'Javaslat elfogadása';
 
   @override
-  String get pendingEditRequests => 'Pending edit suggestions';
+  String get pendingEditRequests => 'Függőben lévő módosítási javaslatok';
 
   @override
-  String get speedLimitHint => 'Speed limit';
+  String get speedLimitHint => 'Sebességkorlát';
 
   @override
-  String get speedLimitSaved => 'Speed limit published';
+  String get speedLimitSaved => 'Sebességkorlát közzétéve';
 
   @override
-  String get editRequestSent => 'Suggestion sent to the report owner';
+  String get editRequestSent => 'Javaslat elküldve a bejelentés szerzőjének';
 
   @override
   String get notConnected => 'Nem csatlakoztatva';
@@ -352,17 +322,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get requestKeyFromAmber => 'Nyilvános kulcs kérése az Ambertől';
 
   @override
-  String get amberNotFound =>
-      'Az Amber nem található. Telepítse a Play Áruházból, vagy adja meg manuálisan az npub-ját.';
-
-  @override
   String get waitingForAmberResponse => 'Várakozás az Amber válaszára…';
-
-  @override
-  String get pasteNpubManually => 'Illessze be manuálisan az npub-ját:';
-
-  @override
-  String get confirmNpub => 'npub megerősítése';
 
   @override
   String get enterNsecTitle => 'nsec beillesztése';
@@ -377,21 +337,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get invalidNsecTitle => 'Érvénytelen nsec';
 
   @override
-  String get invalidNpubMessage =>
-      'Győződjön meg arról, hogy a megfelelő npub-ot illesztette be.';
-
-  @override
   String get invalidNsecMessage =>
       'Győződjön meg arról, hogy a megfelelő nsec-et illesztette be.';
 
   @override
-  String get amberResponseError => 'Amber válasz hiba';
-
-  @override
   String get ok => 'OK';
-
-  @override
-  String get or => 'vagy';
 
   @override
   String get gpsNotActiveTitle => 'GPS nem aktív';
@@ -430,11 +380,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get zapSending => 'Küldés…';
-
-  @override
-  String zapSat(int sats) {
-    return '⚡$sats sat';
-  }
 
   @override
   String get fetchingLightningAddress => 'Lightning cím lekérése…';
@@ -731,34 +676,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Kanyarodási utasítások felolvasása navigáció közben';
 
   @override
-  String get testVoiceEngine => 'Hangmotor tesztelése';
-
-  @override
-  String get testVoiceEngineDesc =>
-      'Koppintson a TTS motor ellenőrzéséhez és a beállítási útmutatóhoz';
-
-  @override
-  String get ttsDialogTitle => 'Hiányzó hangmotor';
-
-  @override
-  String get ttsDialogBody =>
-      'Nem található működő Text-to-Speech motor.\n\nA Roadstr kizárólag nyílt forráskódú szoftverekre támaszkodik — telepítse az alábbi ingyenes motorok egyikét az F-Droidról:';
-
-  @override
-  String get ttsRhvoiceDesc =>
-      'Természetesen hangzó hang, korlátozott nyelvlista';
-
-  @override
-  String get ttsEspeakDesc => 'Több mint 100 nyelvet fed le, robotikus hang';
-
-  @override
-  String get ttsInstallNote =>
-      '⚠️ A telepítés után:\n1. Android beállítások → Kisegítő lehetőségek → Szövegfelolvasás\n2. Válassza ki az imént telepített motort\n3. Töltse le a nyelvéhez tartozó hangadatokat\n4. Indítsa újra teljesen a Roadstr-t';
-
-  @override
-  String get ttsTestNow => 'Tesztelés most';
-
-  @override
   String get voiceUnsupportedTitle => 'Hangos útmutatás nem érhető el';
 
   @override
@@ -799,30 +716,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get arrivedTitle => '🎉 Megérkezett!';
-
-  @override
-  String get arrivedBody => 'Elérte úticélját.';
-
-  @override
-  String get arrivedFeedbackPrompt => 'Hogy ment?';
-
-  @override
-  String get feedbackBad => 'Rossz';
-
-  @override
-  String get feedbackGood => 'Jól!';
-
-  @override
-  String get feedbackDialogTitle => 'Mondja el, mi ment rosszul';
-
-  @override
-  String get feedbackHint => 'Írja le a problémát…';
-
-  @override
-  String get feedbackSent => 'Visszajelzés elküldve — köszönjük! 🙏';
-
-  @override
-  String get feedbackSubmit => 'Küldés';
 
   @override
   String get transportModeCar => 'Autó';
@@ -877,9 +770,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get poiCuisine => 'Konyha';
-
-  @override
-  String get poiAccessibility => 'Akadálymentesség';
 
   @override
   String get poiWheelchairYes => 'Kerekesszékkel megközelíthető';
@@ -1086,10 +976,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get weatherThunderstorm => 'Zivatar';
 
   @override
-  String get ztlAheadWarning =>
-      'Korlátozott forgalmú zóna következik — az útvonal áthalad rajta';
-
-  @override
   String get ztlInsideWarning => 'Korlátozott forgalmú zóna';
 
   @override
@@ -1221,9 +1107,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get onboardingLetsGo => 'Induljunk!';
 
   @override
-  String get onboardingProfileLoading => 'Profil betöltése…';
-
-  @override
   String get onboardingNsecHint => 'nsec1…';
 
   @override
@@ -1251,7 +1134,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get profileVisibilityOnboarding =>
-      'Roadstr always publishes the Nostr public key needed to verify a report. In pseudonymous mode, other Roadstr users see only a generic avatar and “nostrich”; in public mode, they also see your Nostr name, npub and profile picture. Your reports, locations, reputation and received zaps remain public on Nostr.';
+      'A Roadstr mindig közzéteszi a bejelentés ellenőrzéséhez szükséges Nostr nyilvános kulcsot. Álnév módban a többi Roadstr-felhasználó csak egy általános avatart és a „nostrich” nevet látja; nyilvános módban a Nostr-nevedet, az npub-odat és a profilképedet is. A bejelentéseid, helyzeteid, a hírneved és a kapott zapek nyilvánosak maradnak a Nostron.';
 
   @override
   String get parkingSaveHere => 'Parkolás mentése ide';
@@ -1358,21 +1241,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trafficHeavy => 'Erős forgalom';
 
   @override
-  String get avoidHighwaysChip => 'Autópályák elkerülése';
-
-  @override
-  String get avoidTollsChip => 'Fizetős utak elkerülése';
-
-  @override
-  String get preferShorterChip => 'Legrövidebb útvonal';
-
-  @override
   String zapAmountButton(int sats) {
     return 'Zap $sats sat';
   }
-
-  @override
-  String get showRoutePreview => 'Útvonal előnézete';
 
   @override
   String get avoidHighwaysAndTolls => 'Autópályák és fizetős utak kerülése';
@@ -1384,4 +1255,40 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get avoidanceUnavoidableSection =>
       'Minimalizálja az autópályát/fizetős utat · elkerülhetetlen szakasz';
+
+  @override
+  String get nearbyTitle => 'A közelben';
+
+  @override
+  String get nearbyNeedsGps => 'Várakozás GPS-re';
+
+  @override
+  String get nearbyNothingFound => '5 km-en belül nincs találat';
+
+  @override
+  String get nearbyFuel => 'Üzemanyag';
+
+  @override
+  String get nearbySupermarket => 'Szupermarket';
+
+  @override
+  String get nearbyAtm => 'Bankautomata';
+
+  @override
+  String get nearbyPharmacy => 'Gyógyszertár';
+
+  @override
+  String get nearbyHospital => 'Kórház';
+
+  @override
+  String get nearbyPolice => 'Rendőrség';
+
+  @override
+  String get nearbyPostOffice => 'Posta';
+
+  @override
+  String get nearbyParking => 'Parkoló';
+
+  @override
+  String get nearbyCharging => 'Töltő';
 }

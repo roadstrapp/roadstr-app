@@ -4,29 +4,11 @@
   "calculatingRoute": "Skaičiuojamas maršrutas…",
   "routeNotFoundTitle": "Maršrutas nerastas",
   "noRouteFound": "Maršrutas nerastas. Patikrinkite ryšį.",
-  "emptyServerResponse": "Tuščias serverio atsakymas. Patikrinkite ryšį.",
-  "routeError": "Maršruto skaičiavimo klaida: {error}",
-  "@routeError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "gpsNotAvailable": "GPS nepasiekiamas — Nustatymai → Programa → Roadstr → Leidimai → Vieta",
   "acquiringGps": "Gaunamas GPS…",
   "graphhopperServerNotConfigured": "GraphHopper serveris nesukonfigūruotas — naudojamas OSRM",
   "graphhopperApiKeyNotConfigured": "GraphHopper API raktas nesukonfigūruotas — naudojamas OSRM",
   "openrouteApiKeyNotConfigured": "OpenRouteService API raktas nesukonfigūruotas — naudojamas OSRM",
   "chooseRoute": "Pasirinkti maršrutą",
-  "routeOptionsCount": "{count} parinktys",
-  "@routeOptionsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cancel": "Atšaukti",
   "startNavigation": "Pradėti navigaciją",
   "fastestRoute": "Greičiausias",
@@ -46,12 +28,8 @@
   "themeDarkNostr": "Tamsi · Nostr Violetinė",
   "themeDarkBitcoin": "Tamsi · Bitcoin Oranžinė",
   "langSystem": "Sistemos numatytoji",
-  "langItalian": "Italiano",
-  "langEnglish": "English",
   "keepScreenOn": "Laikyti ekraną įjungtą",
   "keepScreenOnDescription": "Neleidžia įjungti miego režimo navigacijos metu",
-  "rotateMap": "Žemėlapis seka kryptį",
-  "rotateMapDescription": "Žemėlapis sukasi pagal vairavimo kryptį",
   "mapTileUrlLabel": "Žemėlapio plytelių URL",
   "routingProviderLabel": "Maršrutizavimo tiekėjas",
   "osrmProvider": "OSRM (viešas, raktas nereikalingas)",
@@ -98,19 +76,13 @@
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber yra NIP-55 suderinama Android programų pasirašymo programa. Jūsų privatus raktas lieka izoliuotas Amber viduje ir niekada nėra dalinamas.",
   "requestKeyFromAmber": "Prašyti viešojo rakto iš Amber",
-  "amberNotFound": "Amber nerastas. Įdiekite jį iš Play Store arba rankiniu būdu įveskite savo npub.",
   "waitingForAmberResponse": "Laukiama Amber atsakymo…",
-  "pasteNpubManually": "Įklijuokite savo npub rankiniu būdu:",
-  "confirmNpub": "Patvirtinti npub",
   "enterNsecTitle": "Įvesti nsec",
   "loginButton": "Prisijungti",
   "invalidNpubTitle": "Neteisingas npub",
   "invalidNsecTitle": "Neteisingas nsec",
-  "invalidNpubMessage": "Įsitikinkite, kad įklijavote teisingą npub.",
   "invalidNsecMessage": "Įsitikinkite, kad įklijavote teisingą nsec.",
-  "amberResponseError": "Amber atsakymo klaida",
   "ok": "Gerai",
-  "or": "arba",
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS neaktyvus",
   "gpsDisabledMessage": "Įjunkite GPS įrenginio nustatymuose, kad gautumėte savo buvimo vietą ir naudotumėtės navigacija.",
@@ -126,14 +98,6 @@
   "chooseAmountSats": "Pasirinkite sumą satoshi (sats):",
   "customAmount": "Pasirinktinė suma…",
   "zapSending": "Siunčiama…",
-  "zapSat": "⚡{sats} sat",
-  "@zapSat": {
-    "placeholders": {
-      "sats": {
-        "type": "int"
-      }
-    }
-  },
   "fetchingLightningAddress": "Gaunamas Lightning adresas…",
   "noLightningAddress": "Šis pranešėjas neturi Lightning adreso",
   "requestingInvoice": "Prašoma sąskaitos…",
@@ -159,28 +123,54 @@
   "notifZapTitle": "Gautas zap",
   "notifZapBody": "Gavote {sat} sat vertės zap!",
   "@notifZapBody": {
-    "placeholders": { "sat": { "type": "int" } }
+    "placeholders": {
+      "sat": {
+        "type": "int"
+      }
+    }
   },
   "notifConfirmedTitle": "Pranešimas patvirtintas",
   "notifConfirmedBody": "Jūsų {category} pranešimą patvirtino kitas vairuotojas",
   "@notifConfirmedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "notifDeniedTitle": "Pranešimas ginčijamas",
   "notifDeniedBody": "Kažkas pranešė, kad jūsų {category} jau nebėra",
   "@notifDeniedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "chainedManeuver": "{first}, tada {second}",
   "@chainedManeuver": {
-    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   },
   "thenManeuver": "tada {instruction}",
   "reportSpeedLimitHint": "Greičio apribojimas (nebūtina)",
   "reportedSpeedLimit": "Praneštas greičio apribojimas",
   "speedCameraVoiceAlert": "Greičio kamera, apribojimas {limit} {unit}",
   "@speedCameraVoiceAlert": {
-    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   },
   "optionalComment": "Neprivalomas komentaras…",
   "publish": "Skelbti",
@@ -283,14 +273,6 @@
   "sectionNavigationVoice": "Navigacijos balsas",
   "voiceGuidance": "Balso nukreipimas",
   "voiceGuidanceDesc": "Skaityti posūkio nurodymus garsiai navigacijos metu",
-  "testVoiceEngine": "Išbandyti balso variklį",
-  "testVoiceEngineDesc": "Palieskite, kad patikrintumėte TTS variklį ir gautumėte nustatymo instrukcijas",
-  "ttsDialogTitle": "Trūksta balso variklio",
-  "ttsDialogBody": "Nerasta veikiančio Text-to-Speech variklio.\n\n„Roadstr“ remiasi tik atvirojo kodo programine įranga — įdiekite vieną iš šių nemokamų variklių iš F-Droid:",
-  "ttsRhvoiceDesc": "Natūraliai skambantis balsas, ribotas kalbų sąrašas",
-  "ttsEspeakDesc": "Apima daugiau nei 100 kalbų, robotiškas balsas",
-  "ttsInstallNote": "⚠️ Įdiegus:\n1. Android nustatymai → Pritaikymas neįgaliesiems → Teksto į kalbą keitiklis\n2. Pasirinkite ką tik įdiegtą variklį\n3. Atsisiųskite savo kalbos balso duomenis\n4. Visiškai paleiskite „Roadstr“ iš naujo",
-  "ttsTestNow": "Išbandyti dabar",
   "voiceUnsupportedTitle": "Balso nukreipimas nepasiekiamas",
   "voiceUnsupportedBody": "Jūsų kalba dar nepalaikoma balsu skelbiamiems posūkio nurodymams. Navigacijos nurodymai ir toliau bus rodomi kaip tekstas ekrane.",
   "kokoroModelTitle": "Balso modelis (Kokoro AI)",
@@ -304,14 +286,6 @@
   "settingsImperialUnits": "Imperiniai vienetai",
   "settingsImperialUnitsDesc": "Mylios ir pėdos vietoj kilometrų ir metrų",
   "arrivedTitle": "🎉 Atvykote!",
-  "arrivedBody": "Pasiekėte savo kelionės tikslą.",
-  "arrivedFeedbackPrompt": "Kaip sekėsi?",
-  "feedbackBad": "Blogai",
-  "feedbackGood": "Gerai!",
-  "feedbackDialogTitle": "Pasakykite mums, kas nutiko ne taip",
-  "feedbackHint": "Aprašykite problemą…",
-  "feedbackSent": "Atsiliepimas išsiųstas — ačiū! 🙏",
-  "feedbackSubmit": "Siųsti",
   "transportModeCar": "Automobilis",
   "transportModeWalk": "Pėsčiomis",
   "etaArrivalLabel": "Atvyk. {time}",
@@ -326,11 +300,19 @@
   "poiClosedNow": "Uždaryta",
   "poiOpensAt": "Atsidaro: {when}",
   "@poiOpensAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "poiClosesAt": "Užsidaro: {when}",
   "@poiClosesAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "searchOnEngine": "Ieškoti {engine}",
   "plannerFromHint": "Iš kur…",
@@ -351,7 +333,6 @@
   "weatherSnow": "Sniegas",
   "weatherShowers": "Liūtys",
   "weatherThunderstorm": "Perkūnija",
-  "ztlAheadWarning": "Priekyje riboto eismo zona — maršrutas eina per ją",
   "ztlInsideWarning": "Riboto eismo zona",
   "onboardingAppSubtitle": "Atvirojo kodo Nostr navigacija",
   "onboardingWelcomeTitle": "Sveiki",
@@ -391,7 +372,6 @@
   "onboardingReadyTitle": "Esate pasiruošę naviguoti!",
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Važiuojame!",
-  "onboardingProfileLoading": "Profilis įkeliamas…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "Maksimaliam privatumui — pranešimai platinami Nostr tinkle — rekomenduojama naudoti VPN. Rekomenduojamas pasirinkimas — Mullvad, už kurį galima mokėti bitkoinais.",
   "exportFavoritesTitle": "Eksportuoti mėgstamiausius",
@@ -445,9 +425,6 @@
   "trafficNormal": "Įprastas eismas",
   "trafficModerate": "Vidutinis eismas",
   "trafficHeavy": "Intensyvus eismas",
-  "avoidHighwaysChip": "Vengti greitkelių",
-  "avoidTollsChip": "Vengti mokamų kelių",
-  "preferShorterChip": "Trumpiausias maršrutas",
   "zapAmountButton": "Zap {sats} sat",
   "@zapAmountButton": {
     "placeholders": {
@@ -456,7 +433,6 @@
       }
     }
   },
-  "showRoutePreview": "Rodyti maršruto peržiūrą",
   "autoCenterOnLaunch": "Paleidžiant centruoti ties mano vieta",
   "autoCenterOnLaunchDesc": "GPS automatiškai naudojamas tik jei vietos leidimas jau suteiktas",
   "openInBrowser": "Atidaryti naršyklėje",
@@ -466,7 +442,6 @@
   "poiCategory": "Kategorija",
   "poiOperator": "Operatorius",
   "poiCuisine": "Virtuvė",
-  "poiAccessibility": "Prieinamumas",
   "poiWheelchairYes": "Prieinama neįgaliojo vežimėliu",
   "poiWheelchairLimited": "Ribotas pritaikymas neįgaliojo vežimėliui",
   "poiWheelchairNo": "Neprieinama neįgaliojo vežimėliu",
@@ -508,5 +483,38 @@
   "poiTakeawayOnly": "Tik išsinešti",
   "avoidHighwaysAndTolls": "Vengti greitkelių ir mokamų kelių",
   "avoidRouteUnavailable": "Maršruto, vengiančio ir greitkelių, ir mokamų kelių, rasti nepavyko.",
-  "avoidanceUnavoidableSection": "Mažina greitkelius/mokamus kelius · neišvengiama atkarpa"
+  "avoidanceUnavoidableSection": "Mažina greitkelius/mokamus kelius · neišvengiama atkarpa",
+  "bottomBarNotifications": "Pranešimai",
+  "notificationsTitle": "Pranešimai",
+  "notificationsEmpty": "Pranešimų kol kas nėra",
+  "notificationsEmptyBody": "Zapai ir reakcijos į jūsų eismo pranešimus bus rodomi čia.",
+  "notificationsLoginRequired": "Prijunkite savo Nostr profilį",
+  "notificationsLoginRequiredBody": "Prisijunkite su Amber arba nsec, kad gautumėte pranešimus iš kitų naudotojų.",
+  "profileVisibilityTitle": "Profilio matomumas",
+  "profileVisibilityDesc": "Pasirinkite, ar kiti Roadstr naudotojai mato jūsų Nostr vardą, npub ir nuotrauką.",
+  "profileVisibilityClear": "Rodyti profilį viešai",
+  "profileVisibilityPseudonymous": "Pseudonimo režimas (rekomenduojama)",
+  "profileVisibilityPublishError": "Pasirinkimas išsaugotas įrenginyje, bet dar nepavyko jo paskelbti Nostr tinkle.",
+  "nostrichLabel": "nostrich",
+  "profileHiddenNotice": "Šis naudotojas naudoja pseudonimo režimą.",
+  "editSpeedLimit": "Pridėti arba atnaujinti greičio apribojimą",
+  "requestSpeedLimit": "Pasiūlyti greičio apribojimą",
+  "acceptEditRequest": "Priimti pasiūlymą",
+  "pendingEditRequests": "Laukiantys pakeitimų pasiūlymai",
+  "speedLimitHint": "Greičio apribojimas",
+  "speedLimitSaved": "Greičio apribojimas paskelbtas",
+  "editRequestSent": "Pasiūlymas išsiųstas pranešimo autoriui",
+  "profileVisibilityOnboarding": "Roadstr visada paskelbia Nostr viešąjį raktą, reikalingą pranešimui patikrinti. Pseudonimo režimu kiti Roadstr naudotojai mato tik bendrinį avatarą ir „nostrich“; viešuoju režimu jie taip pat mato jūsų Nostr vardą, npub ir profilio nuotrauką. Jūsų pranešimai, vietos, reputacija ir gauti zapai lieka vieši Nostr tinkle.",
+  "nearbyTitle": "Netoliese",
+  "nearbyNeedsGps": "Laukiama GPS",
+  "nearbyNothingFound": "5 km spinduliu nieko nerasta",
+  "nearbyFuel": "Degalinė",
+  "nearbySupermarket": "Prekybos centras",
+  "nearbyAtm": "Bankomatas",
+  "nearbyPharmacy": "Vaistinė",
+  "nearbyHospital": "Ligoninė",
+  "nearbyPolice": "Policija",
+  "nearbyPostOffice": "Paštas",
+  "nearbyParking": "Stovėjimo aikštelė",
+  "nearbyCharging": "Įkrovimas"
 }

@@ -4,29 +4,11 @@
   "calculatingRoute": "Počítám trasu…",
   "routeNotFoundTitle": "Trasa nenalezena",
   "noRouteFound": "Trasa nenalezena. Zkontrolujte připojení.",
-  "emptyServerResponse": "Prázdná odpověď serveru. Zkontrolujte připojení.",
-  "routeError": "Chyba výpočtu trasy: {error}",
-  "@routeError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "gpsNotAvailable": "GPS nedostupné — Nastavení → Aplikace → Roadstr → Oprávnění → Poloha",
   "acquiringGps": "Získávám GPS…",
   "graphhopperServerNotConfigured": "Server GraphHopper není nakonfigurován — používám OSRM",
   "graphhopperApiKeyNotConfigured": "API klíč GraphHopper není nastaven — používám OSRM",
   "openrouteApiKeyNotConfigured": "API klíč OpenRouteService není nastaven — používám OSRM",
   "chooseRoute": "Vybrat trasu",
-  "routeOptionsCount": "{count} možností",
-  "@routeOptionsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cancel": "Zrušit",
   "startNavigation": "Spustit navigaci",
   "fastestRoute": "Nejrychlejší",
@@ -46,12 +28,8 @@
   "themeDarkNostr": "Tmavý · Nostr Fialová",
   "themeDarkBitcoin": "Tmavý · Bitcoin Oranžová",
   "langSystem": "Výchozí systémový",
-  "langItalian": "Italiano",
-  "langEnglish": "English",
   "keepScreenOn": "Ponechat obrazovku zapnutou",
   "keepScreenOnDescription": "Zabrání přechodu do spánku při navigaci",
-  "rotateMap": "Mapa sleduje směr",
-  "rotateMapDescription": "Mapa se otáčí podle směru jízdy",
   "mapTileUrlLabel": "URL dlaždic mapy",
   "routingProviderLabel": "Poskytovatel směrování",
   "osrmProvider": "OSRM (veřejný, bez klíče)",
@@ -98,19 +76,13 @@
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber je podpisující aplikace pro Android kompatibilní s NIP-55. Váš soukromý klíč zůstane izolován uvnitř Amberu a nikdy nebude sdílen.",
   "requestKeyFromAmber": "Požádat Amber o veřejný klíč",
-  "amberNotFound": "Amber nebyl nalezen. Nainstalujte ho z Play Store nebo zadejte svůj npub ručně.",
   "waitingForAmberResponse": "Čekám na odpověď Amberu…",
-  "pasteNpubManually": "Vložte svůj npub ručně:",
-  "confirmNpub": "Potvrdit npub",
   "enterNsecTitle": "Vložit nsec",
   "loginButton": "Přihlásit",
   "invalidNpubTitle": "Neplatný npub",
   "invalidNsecTitle": "Neplatný nsec",
-  "invalidNpubMessage": "Ujistěte se, že jste vložili správný npub.",
   "invalidNsecMessage": "Ujistěte se, že jste vložili správný nsec.",
-  "amberResponseError": "Chyba odpovědi Amberu",
   "ok": "OK",
-  "or": "nebo",
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS není aktivní",
   "gpsDisabledMessage": "Zapněte GPS v nastavení zařízení, abyste zjistili polohu a používali navigaci.",
@@ -126,14 +98,6 @@
   "chooseAmountSats": "Zvolte částku v satoshi (sats):",
   "customAmount": "Vlastní částka…",
   "zapSending": "Odesílám…",
-  "zapSat": "⚡{sats} sat",
-  "@zapSat": {
-    "placeholders": {
-      "sats": {
-        "type": "int"
-      }
-    }
-  },
   "fetchingLightningAddress": "Načítám Lightning adresu…",
   "noLightningAddress": "Tento reportér nemá Lightning adresu",
   "requestingInvoice": "Žádám o fakturu…",
@@ -159,28 +123,54 @@
   "notifZapTitle": "Přijat zap",
   "notifZapBody": "Obdrželi jste zap ve výši {sat} satů!",
   "@notifZapBody": {
-    "placeholders": { "sat": { "type": "int" } }
+    "placeholders": {
+      "sat": {
+        "type": "int"
+      }
+    }
   },
   "notifConfirmedTitle": "Hlášení potvrzeno",
   "notifConfirmedBody": "Vaše hlášení {category} potvrdil jiný řidič",
   "@notifConfirmedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "notifDeniedTitle": "Hlášení zpochybněno",
   "notifDeniedBody": "Někdo nahlásil, že vaše {category} už tam není",
   "@notifDeniedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "chainedManeuver": "{first}, poté {second}",
   "@chainedManeuver": {
-    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   },
   "thenManeuver": "poté {instruction}",
   "reportSpeedLimitHint": "Rychlostní limit (volitelné)",
   "reportedSpeedLimit": "Nahlášený rychlostní limit",
   "speedCameraVoiceAlert": "Radar nahlášen, limit {limit} {unit}",
   "@speedCameraVoiceAlert": {
-    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   },
   "optionalComment": "Volitelný komentář…",
   "publish": "Zveřejnit",
@@ -283,14 +273,6 @@
   "sectionNavigationVoice": "Hlas navigace",
   "voiceGuidance": "Hlasové navádění",
   "voiceGuidanceDesc": "Číst pokyny k odbočení nahlas během navigace",
-  "testVoiceEngine": "Otestovat hlasový engine",
-  "testVoiceEngineDesc": "Klepnutím zkontrolujte TTS engine a získejte pokyny k nastavení",
-  "ttsDialogTitle": "Chybí hlasový engine",
-  "ttsDialogBody": "Nebyl nalezen žádný funkční engine Text-to-Speech.\n\nRoadstr se spoléhá pouze na open source software — nainstalujte si jeden z těchto bezplatných enginů z F-Droid:",
-  "ttsRhvoiceDesc": "Přirozeně znějící hlas, omezený seznam jazyků",
-  "ttsEspeakDesc": "Pokrývá více než 100 jazyků, robotický hlas",
-  "ttsInstallNote": "⚠️ Po instalaci:\n1. Nastavení Androidu → Přístupnost → Převod textu na řeč\n2. Vyberte právě nainstalovaný engine\n3. Stáhněte hlasová data pro váš jazyk\n4. Roadstr úplně restartujte",
-  "ttsTestNow": "Otestovat nyní",
   "voiceUnsupportedTitle": "Hlasové navádění není k dispozici",
   "voiceUnsupportedBody": "Váš jazyk zatím není podporován pro hlasové pokyny k odbočení. Pokyny k navigaci se budou nadále zobrazovat jako text na obrazovce.",
   "kokoroModelTitle": "Hlasový model (Kokoro AI)",
@@ -304,14 +286,6 @@
   "settingsImperialUnits": "Imperiální jednotky",
   "settingsImperialUnitsDesc": "Míle a stopy místo kilometrů a metrů",
   "arrivedTitle": "🎉 Dorazili jste!",
-  "arrivedBody": "Dosáhli jste svého cíle.",
-  "arrivedFeedbackPrompt": "Jak to šlo?",
-  "feedbackBad": "Špatně",
-  "feedbackGood": "Dobře!",
-  "feedbackDialogTitle": "Řekněte nám, co se pokazilo",
-  "feedbackHint": "Popište problém…",
-  "feedbackSent": "Zpětná vazba odeslána — děkujeme! 🙏",
-  "feedbackSubmit": "Odeslat",
   "transportModeCar": "Auto",
   "transportModeWalk": "Pěšky",
   "etaArrivalLabel": "Příj. {time}",
@@ -326,11 +300,19 @@
   "poiClosedNow": "Zavřeno",
   "poiOpensAt": "Otevírá: {when}",
   "@poiOpensAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "poiClosesAt": "Zavírá: {when}",
   "@poiClosesAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "searchOnEngine": "Hledat na {engine}",
   "plannerFromHint": "Odkud…",
@@ -351,7 +333,6 @@
   "weatherSnow": "Sníh",
   "weatherShowers": "Přeháňky",
   "weatherThunderstorm": "Bouřka",
-  "ztlAheadWarning": "Vpředu je omezená dopravní zóna — trasa jí prochází",
   "ztlInsideWarning": "Omezená dopravní zóna",
   "onboardingAppSubtitle": "Open-source Nostr navigace",
   "onboardingWelcomeTitle": "Vítejte",
@@ -391,7 +372,6 @@
   "onboardingReadyTitle": "Jste připraveni navigovat!",
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Jedeme!",
-  "onboardingProfileLoading": "Načítání profilu…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "Pro maximální soukromí — hlášení se šíří sítí Nostr — doporučujeme používat VPN. Doporučenou volbou je Mullvad s platbou v bitcoinech.",
   "exportFavoritesTitle": "Exportovat oblíbené",
@@ -445,9 +425,6 @@
   "trafficNormal": "Běžný provoz",
   "trafficModerate": "Mírný provoz",
   "trafficHeavy": "Hustý provoz",
-  "avoidHighwaysChip": "Vyhnout se dálnicím",
-  "avoidTollsChip": "Vyhnout se mýtu",
-  "preferShorterChip": "Nejkratší trasa",
   "zapAmountButton": "Zap {sats} sat",
   "@zapAmountButton": {
     "placeholders": {
@@ -456,7 +433,6 @@
       }
     }
   },
-  "showRoutePreview": "Zobrazit náhled trasy",
   "autoCenterOnLaunch": "Při spuštění vycentrovat na mou polohu",
   "autoCenterOnLaunchDesc": "Automaticky použije GPS, pouze pokud již bylo uděleno oprávnění k poloze",
   "openInBrowser": "Otevřít v prohlížeči",
@@ -466,7 +442,6 @@
   "poiCategory": "Kategorie",
   "poiOperator": "Provozovatel",
   "poiCuisine": "Kuchyně",
-  "poiAccessibility": "Přístupnost",
   "poiWheelchairYes": "Bezbariérový přístup",
   "poiWheelchairLimited": "Omezený bezbariérový přístup",
   "poiWheelchairNo": "Bez bezbariérového přístupu",
@@ -508,5 +483,38 @@
   "poiTakeawayOnly": "Pouze s sebou",
   "avoidHighwaysAndTolls": "Vyhnout se dálnicím a mýtnému",
   "avoidRouteUnavailable": "Nebyla nalezena trasa, která se vyhýbá dálnicím i placeným silnicím.",
-  "avoidanceUnavoidableSection": "Omezuje dálnice/mýtné · nevyhnutelný úsek"
+  "avoidanceUnavoidableSection": "Omezuje dálnice/mýtné · nevyhnutelný úsek",
+  "bottomBarNotifications": "Oznámení",
+  "notificationsTitle": "Oznámení",
+  "notificationsEmpty": "Zatím žádná oznámení",
+  "notificationsEmptyBody": "Zapy a reakce na vaše dopravní hlášení se objeví zde.",
+  "notificationsLoginRequired": "Připojte svůj profil Nostr",
+  "notificationsLoginRequiredBody": "Přihlaste se přes Amber nebo nsec, abyste dostávali oznámení od ostatních uživatelů.",
+  "profileVisibilityTitle": "Viditelnost profilu",
+  "profileVisibilityDesc": "Zvolte, zda ostatní uživatelé Roadstr uvidí vaše jméno na Nostr, npub a obrázek.",
+  "profileVisibilityClear": "Zobrazovat profil veřejně",
+  "profileVisibilityPseudonymous": "Pseudonymní režim (doporučeno)",
+  "profileVisibilityPublishError": "Volba byla uložena lokálně, ale zatím ji nebylo možné publikovat na Nostr.",
+  "nostrichLabel": "nostrich",
+  "profileHiddenNotice": "Tento uživatel používá pseudonymní režim.",
+  "editSpeedLimit": "Přidat nebo upravit rychlostní limit",
+  "requestSpeedLimit": "Navrhnout rychlostní limit",
+  "acceptEditRequest": "Přijmout návrh",
+  "pendingEditRequests": "Čekající návrhy úprav",
+  "speedLimitHint": "Rychlostní limit",
+  "speedLimitSaved": "Rychlostní limit publikován",
+  "editRequestSent": "Návrh odeslán autorovi hlášení",
+  "profileVisibilityOnboarding": "Roadstr vždy publikuje veřejný klíč Nostr potřebný k ověření hlášení. V pseudonymním režimu ostatní uživatelé Roadstr vidí jen obecný avatar a „nostrich“; ve veřejném režimu vidí také vaše jméno na Nostr, npub a profilový obrázek. Vaše hlášení, polohy, reputace a přijaté zapy zůstávají na Nostr veřejné.",
+  "nearbyTitle": "V okolí",
+  "nearbyNeedsGps": "Čekání na GPS",
+  "nearbyNothingFound": "V okruhu 5 km nic nenalezeno",
+  "nearbyFuel": "Čerpací stanice",
+  "nearbySupermarket": "Supermarket",
+  "nearbyAtm": "Bankomat",
+  "nearbyPharmacy": "Lékárna",
+  "nearbyHospital": "Nemocnice",
+  "nearbyPolice": "Policie",
+  "nearbyPostOffice": "Pošta",
+  "nearbyParking": "Parkoviště",
+  "nearbyCharging": "Nabíjení"
 }

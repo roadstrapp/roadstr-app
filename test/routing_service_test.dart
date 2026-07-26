@@ -176,6 +176,226 @@ void main() {
       throwsA(isA<RoutingException>()),
     );
   });
+
+  group('re-timing through OSRM', () {
+    // A straight 1.113 km line: at one waypoint per 5 km it is sampled into
+    // the minimum of 4 waypoints, i.e. 3 legs of ~371 m each.
+    final shape = [
+      for (var i = 0; i <= 100; i++) LatLng(45.0 + i * 0.0001, 9.0),
+    ];
+    const valhallaSeconds = 3000.0; // 50 minutes for 1.1 km — the sort of
+    // figure that made the avoidance card unusable.
+
+    String valhallaBody() => jsonEncode({
+          'trip': {
+            'status': 0,
+            'summary': {
+              'has_highway': false,
+              'has_toll': false,
+              'length': 1.113,
+              'time': valhallaSeconds,
+            },
+            'legs': [
+              {
+                'shape': _encodePolyline6(shape),
+                'maneuvers': [
+                  {
+                    'type': 1,
+                    'instruction': 'Parti.',
+                    'length': 1.113,
+                    'begin_shape_index': 0,
+                  },
+                  {
+                    'type': 4,
+                    'instruction': 'Sei arrivato.',
+                    'length': 0.0,
+                    'begin_shape_index': 100,
+                  },
+                ],
+              },
+            ],
+          },
+        });
+
+    /// Serves Valhalla on /route and a stubbed OSRM on /osrm, the latter
+    /// answering with the given per-leg distances (m) and durations (s).
+    void serve(List<double> legDistances, List<double> legDurations) {
+      server.listen((request) async {
+        request.response.headers.contentType = ContentType.json;
+        if (request.uri.path.startsWith('/osrm')) {
+          request.response.write(jsonEncode({
+            'code': 'Ok',
+            'routes': [
+              {
+                'distance': legDistances.reduce((a, b) => a + b),
+                'duration': legDurations.reduce((a, b) => a + b),
+                'legs': [
+                  for (var i = 0; i < legDistances.length; i++)
+                    {'distance': legDistances[i], 'duration': legDurations[i]},
+                ],
+              },
+            ],
+          }));
+        } else {
+          request.response.write(valhallaBody());
+        }
+        await request.response.close();
+      });
+    }
+
+    Future<RouteResult> avoidanceRoute() =>
+        RoutingService.getHighwayAndTollAvoidanceRoute(
+          shape.first,
+          shape.last,
+          endpoint: endpoint(),
+          retimeEndpoint:
+              Uri.parse('http://${server.address.host}:${server.port}/osrm'),
+        );
+
+    test('adopts OSRM timing when every leg followed the same road', () async {
+      serve([370, 378, 370], [400, 400, 400]);
+      final route = await avoidanceRoute();
+      expect(route.totalDurationS, 1200); // not Valhalla's 3000
+      expect(route.totalDistanceM, 1113); // geometry stays Valhalla's
+      expect(route.polyline, hasLength(shape.length));
+      expect(route.avoidsHighwaysAndTolls, isTrue);
+      expect(route.fromAvoidanceRouter, isTrue);
+    });
+
+    test('keeps Valhalla time for the one leg OSRM would not follow', () async {
+      // The middle leg is 5 km long where the route only covers 378 m: OSRM
+      // left the road there, so that slice keeps Valhalla's share (~1020 s)
+      // while the other two contribute OSRM's 400 s each.
+      serve([370, 5000, 370], [400, 999, 400]);
+      final route = await avoidanceRoute();
+      expect(route.totalDurationS, closeTo(1820, 10));
+    });
+
+    test('keeps Valhalla timing when too little could be verified', () async {
+      serve([5000, 5000, 5000], [100, 100, 100]);
+      final route = await avoidanceRoute();
+      expect(route.totalDurationS, valhallaSeconds);
+    });
+
+    test('keeps Valhalla timing when the re-timing request fails', () async {
+      server.listen((request) async {
+        request.response.headers.contentType = ContentType.json;
+        if (request.uri.path.startsWith('/osrm')) {
+          request.response.statusCode = 503;
+        } else {
+          request.response.write(valhallaBody());
+        }
+        await request.response.close();
+      });
+      final route = await avoidanceRoute();
+      expect(route.totalDurationS, valhallaSeconds);
+    });
+
+    test('keeps Valhalla time across a sea crossing', () async {
+      // A ferry: OSM draws it as a way with almost no nodes, so it arrives as
+      // one huge straight jump (Naples→Palermo is a single 305 km line). Only
+      // Valhalla knows the boat's scheduled duration, so that slice keeps its
+      // time no matter what OSRM says about driving round the coast.
+      final withFerry = [
+        for (var i = 0; i <= 50; i++) LatLng(45.0 + i * 0.0001, 9.0),
+        for (var i = 0; i <= 50; i++) LatLng(47.0 + i * 0.0001, 9.0),
+      ];
+      server.listen((request) async {
+        request.response.headers.contentType = ContentType.json;
+        if (request.uri.path.startsWith('/osrm')) {
+          // Four waypoints, three legs; OSRM drives the long way round for the
+          // middle one and claims it took ten minutes.
+          request.response.write(jsonEncode({
+            'code': 'Ok',
+            'routes': [
+              {
+                'distance': 3000.0,
+                'duration': 1800.0,
+                'legs': [
+                  {'distance': 550.0, 'duration': 300.0},
+                  {'distance': 900.0, 'duration': 600.0},
+                  {'distance': 550.0, 'duration': 300.0},
+                ],
+              },
+            ],
+          }));
+        } else {
+          request.response.write(jsonEncode({
+            'trip': {
+              'status': 0,
+              'summary': {
+                'has_highway': false,
+                'has_toll': false,
+                'length': 223.5,
+                'time': 9000.0,
+              },
+              'legs': [
+                {
+                  'shape': _encodePolyline6(withFerry),
+                  'maneuvers': [
+                    {
+                      'type': 1,
+                      'instruction': 'Parti.',
+                      'length': 223.5,
+                      'begin_shape_index': 0,
+                    },
+                  ],
+                },
+              ],
+            },
+          }));
+        }
+        await request.response.close();
+      });
+      final route = await avoidanceRoute();
+      // The crossing dominates: its Valhalla share is kept, so the total stays
+      // far above the half-hour OSRM claimed for the whole thing.
+      expect(route.totalDurationS, greaterThan(8000));
+      expect(route.polyline, hasLength(withFerry.length));
+    });
+  });
+
+  group('followSameRoads', () {
+    RouteResult routeOf(List<LatLng> points, double lengthM) => RouteResult(
+          polyline: points,
+          steps: const [],
+          totalDistanceM: lengthM,
+          totalDurationS: 600,
+        );
+
+    // A straight 1 km north-south line, sampled every ~11 m.
+    List<LatLng> line({double lonOffsetDeg = 0}) => [
+          for (var i = 0; i <= 100; i++)
+            LatLng(45.0 + i * 0.0001, 9.0 + lonOffsetDeg),
+        ];
+
+    test('recognises the very same road returned by both engines', () {
+      // Same geometry, different ETA: exactly the Valhalla-vs-OSRM case.
+      final a = routeOf(line(), 1113);
+      final b = routeOf(line(), 1120);
+      expect(RoutingService.followSameRoads(a, b), isTrue);
+    });
+
+    test('a parallel road 100 m away is not the same road', () {
+      // 0.00127° of longitude ≈ 100 m at 45° latitude.
+      final a = routeOf(line(), 1113);
+      final b = routeOf(line(lonOffsetDeg: 0.00127), 1113);
+      expect(RoutingService.followSameRoads(a, b), isFalse);
+    });
+
+    test('a detour that changes the length is not the same road', () {
+      final a = routeOf(line(), 1113);
+      final b = routeOf(line(), 1400);
+      expect(RoutingService.followSameRoads(a, b), isFalse);
+    });
+
+    test('a route without geometry never matches', () {
+      expect(
+          RoutingService.followSameRoads(
+              routeOf(const [], 1113), routeOf(line(), 1113)),
+          isFalse);
+    });
+  });
 }
 
 String _encodePolyline6(List<LatLng> points) {

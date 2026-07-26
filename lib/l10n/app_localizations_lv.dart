@@ -21,19 +21,6 @@ class AppLocalizationsLv extends AppLocalizations {
   String get noRouteFound => 'Maršruts nav atrasts. Pārbaudiet savienojumu.';
 
   @override
-  String get emptyServerResponse =>
-      'Tukša servera atbilde. Pārbaudiet savienojumu.';
-
-  @override
-  String routeError(String error) {
-    return 'Maršruta aprēķināšanas kļūda: $error';
-  }
-
-  @override
-  String get gpsNotAvailable =>
-      'GPS nav pieejams — Iestatījumi → Lietotne → Roadstr → Atļaujas → Atrašanās vieta';
-
-  @override
   String get acquiringGps => 'Iegūst GPS…';
 
   @override
@@ -50,11 +37,6 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get chooseRoute => 'Izvēlēties maršrutu';
-
-  @override
-  String routeOptionsCount(int count) {
-    return '$count iespējas';
-  }
 
   @override
   String get cancel => 'Atcelt';
@@ -78,7 +60,7 @@ class AppLocalizationsLv extends AppLocalizations {
   String get selectedPosition => 'Atlasītā pozīcija';
 
   @override
-  String get bottomBarNotifications => 'Notifications';
+  String get bottomBarNotifications => 'Paziņojumi';
 
   @override
   String get bottomBarProfile => 'Profils';
@@ -87,21 +69,21 @@ class AppLocalizationsLv extends AppLocalizations {
   String get bottomBarMenu => 'Izvēlne';
 
   @override
-  String get notificationsTitle => 'Notifications';
+  String get notificationsTitle => 'Paziņojumi';
 
   @override
-  String get notificationsEmpty => 'No notifications yet';
+  String get notificationsEmpty => 'Paziņojumu vēl nav';
 
   @override
   String get notificationsEmptyBody =>
-      'Zaps and reactions to your road reports will appear here.';
+      'Zapi un reakcijas uz jūsu ceļu ziņojumiem parādīsies šeit.';
 
   @override
-  String get notificationsLoginRequired => 'Connect your Nostr profile';
+  String get notificationsLoginRequired => 'Savienojiet savu Nostr profilu';
 
   @override
   String get notificationsLoginRequiredBody =>
-      'Sign in with Amber or nsec to receive notifications from other users.';
+      'Pierakstieties ar Amber vai nsec, lai saņemtu paziņojumus no citiem lietotājiem.';
 
   @override
   String get settingsTitle => 'Iestatījumi';
@@ -134,12 +116,6 @@ class AppLocalizationsLv extends AppLocalizations {
   String get langSystem => 'Sistēmas noklusējums';
 
   @override
-  String get langItalian => 'Italiano';
-
-  @override
-  String get langEnglish => 'English';
-
-  @override
   String get keepScreenOn => 'Paturēt ekrānu ieslēgtu';
 
   @override
@@ -151,13 +127,6 @@ class AppLocalizationsLv extends AppLocalizations {
   @override
   String get autoCenterOnLaunchDesc =>
       'Automātiski izmanto GPS tikai tad, ja atrašanās vietas atļauja jau ir piešķirta';
-
-  @override
-  String get rotateMap => 'Karte seko virzienam';
-
-  @override
-  String get rotateMapDescription =>
-      'Karte griežas atbilstoši braukšanas virzienam';
 
   @override
   String get mapTileUrlLabel => 'Kartes flīžu URL';
@@ -233,48 +202,48 @@ class AppLocalizationsLv extends AppLocalizations {
   String get profileTitle => 'Profils';
 
   @override
-  String get profileVisibilityTitle => 'Profile visibility';
+  String get profileVisibilityTitle => 'Profila redzamība';
 
   @override
   String get profileVisibilityDesc =>
-      'Choose whether other Roadstr users see your Nostr name, npub and picture.';
+      'Izvēlieties, vai citi Roadstr lietotāji redz jūsu Nostr vārdu, npub un attēlu.';
 
   @override
-  String get profileVisibilityClear => 'Show profile publicly';
+  String get profileVisibilityClear => 'Rādīt profilu publiski';
 
   @override
-  String get profileVisibilityPseudonymous => 'Pseudonymous mode (recommended)';
+  String get profileVisibilityPseudonymous => 'Pseidonīma režīms (ieteicams)';
 
   @override
   String get profileVisibilityPublishError =>
-      'The local choice was saved, but could not be published to Nostr yet.';
+      'Izvēle tika saglabāta ierīcē, bet to vēl neizdevās publicēt Nostr tīklā.';
 
   @override
   String get nostrichLabel => 'nostrich';
 
   @override
-  String get profileHiddenNotice => 'This user is using pseudonymous mode.';
+  String get profileHiddenNotice => 'Šis lietotājs izmanto pseidonīma režīmu.';
 
   @override
-  String get editSpeedLimit => 'Add or update speed limit';
+  String get editSpeedLimit => 'Pievienot vai atjaunināt ātruma ierobežojumu';
 
   @override
-  String get requestSpeedLimit => 'Suggest a speed limit';
+  String get requestSpeedLimit => 'Ieteikt ātruma ierobežojumu';
 
   @override
-  String get acceptEditRequest => 'Accept suggestion';
+  String get acceptEditRequest => 'Pieņemt ieteikumu';
 
   @override
-  String get pendingEditRequests => 'Pending edit suggestions';
+  String get pendingEditRequests => 'Neizskatītie labojumu ieteikumi';
 
   @override
-  String get speedLimitHint => 'Speed limit';
+  String get speedLimitHint => 'Ātruma ierobežojums';
 
   @override
-  String get speedLimitSaved => 'Speed limit published';
+  String get speedLimitSaved => 'Ātruma ierobežojums publicēts';
 
   @override
-  String get editRequestSent => 'Suggestion sent to the report owner';
+  String get editRequestSent => 'Ieteikums nosūtīts ziņojuma autoram';
 
   @override
   String get notConnected => 'Nav savienots';
@@ -350,17 +319,7 @@ class AppLocalizationsLv extends AppLocalizations {
   String get requestKeyFromAmber => 'Pieprasīt publisko atslēgu no Amber';
 
   @override
-  String get amberNotFound =>
-      'Amber nav atrasts. Instalējiet to no Play Store vai manuāli ievadiet savu npub.';
-
-  @override
   String get waitingForAmberResponse => 'Gaida Amber atbildi…';
-
-  @override
-  String get pasteNpubManually => 'Ielīmējiet savu npub manuāli:';
-
-  @override
-  String get confirmNpub => 'Apstiprināt npub';
 
   @override
   String get enterNsecTitle => 'Ievietot nsec';
@@ -375,21 +334,11 @@ class AppLocalizationsLv extends AppLocalizations {
   String get invalidNsecTitle => 'Nederīgs nsec';
 
   @override
-  String get invalidNpubMessage =>
-      'Pārliecinieties, ka esat ielīmējis pareizo npub.';
-
-  @override
   String get invalidNsecMessage =>
       'Pārliecinieties, ka esat ielīmējis pareizo nsec.';
 
   @override
-  String get amberResponseError => 'Amber atbildes kļūda';
-
-  @override
   String get ok => 'Labi';
-
-  @override
-  String get or => 'vai';
 
   @override
   String get gpsNotActiveTitle => 'GPS nav aktīvs';
@@ -428,11 +377,6 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get zapSending => 'Sūta…';
-
-  @override
-  String zapSat(int sats) {
-    return '⚡$sats sat';
-  }
 
   @override
   String get fetchingLightningAddress => 'Iegūst Lightning adresi…';
@@ -729,34 +673,6 @@ class AppLocalizationsLv extends AppLocalizations {
       'Skaļi nolasīt pagrieziena norādes navigācijas laikā';
 
   @override
-  String get testVoiceEngine => 'Testēt balss dzinēju';
-
-  @override
-  String get testVoiceEngineDesc =>
-      'Pieskarieties, lai pārbaudītu TTS dzinēju un saņemtu iestatīšanas norādījumus';
-
-  @override
-  String get ttsDialogTitle => 'Trūkst balss dzinēja';
-
-  @override
-  String get ttsDialogBody =>
-      'Netika atrasts neviens darbojošies Text-to-Speech dzinējs.\n\n“Roadstr” paļaujas tikai uz atvērtā koda programmatūru — instalējiet kādu no šiem bezmaksas dzinējiem no F-Droid:';
-
-  @override
-  String get ttsRhvoiceDesc =>
-      'Dabiski skanoša balss, ierobežots valodu saraksts';
-
-  @override
-  String get ttsEspeakDesc => 'Aptver vairāk nekā 100 valodas, robotiska balss';
-
-  @override
-  String get ttsInstallNote =>
-      '⚠️ Pēc instalēšanas:\n1. Android iestatījumi → Pieejamība → Teksta pārvēršana runā\n2. Izvēlieties tikko instalēto dzinēju\n3. Lejupielādējiet savas valodas balss datus\n4. Pilnībā restartējiet “Roadstr”';
-
-  @override
-  String get ttsTestNow => 'Testēt tagad';
-
-  @override
   String get voiceUnsupportedTitle => 'Balss vadība nav pieejama';
 
   @override
@@ -797,30 +713,6 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get arrivedTitle => '🎉 Esat ieradušies!';
-
-  @override
-  String get arrivedBody => 'Esat sasniedzis savu galamērķi.';
-
-  @override
-  String get arrivedFeedbackPrompt => 'Kā gāja?';
-
-  @override
-  String get feedbackBad => 'Slikti';
-
-  @override
-  String get feedbackGood => 'Labi!';
-
-  @override
-  String get feedbackDialogTitle => 'Pastāstiet mums, kas nogāja greizi';
-
-  @override
-  String get feedbackHint => 'Aprakstiet problēmu…';
-
-  @override
-  String get feedbackSent => 'Atsauksme nosūtīta — paldies! 🙏';
-
-  @override
-  String get feedbackSubmit => 'Sūtīt';
 
   @override
   String get transportModeCar => 'Automašīna';
@@ -874,9 +766,6 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get poiCuisine => 'Virtuve';
-
-  @override
-  String get poiAccessibility => 'Pieejamība';
 
   @override
   String get poiWheelchairYes => 'Pieejams ratiņkrēslā';
@@ -1082,10 +971,6 @@ class AppLocalizationsLv extends AppLocalizations {
   String get weatherThunderstorm => 'Pērkona vētra';
 
   @override
-  String get ztlAheadWarning =>
-      'Priekšā ierobežotas satiksmes zona — maršruts iet cauri tai';
-
-  @override
   String get ztlInsideWarning => 'Ierobežotas satiksmes zona';
 
   @override
@@ -1217,9 +1102,6 @@ class AppLocalizationsLv extends AppLocalizations {
   String get onboardingLetsGo => 'Braucam!';
 
   @override
-  String get onboardingProfileLoading => 'Ielādē profilu…';
-
-  @override
   String get onboardingNsecHint => 'nsec1…';
 
   @override
@@ -1247,7 +1129,7 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get profileVisibilityOnboarding =>
-      'Roadstr always publishes the Nostr public key needed to verify a report. In pseudonymous mode, other Roadstr users see only a generic avatar and “nostrich”; in public mode, they also see your Nostr name, npub and profile picture. Your reports, locations, reputation and received zaps remain public on Nostr.';
+      'Roadstr vienmēr publicē Nostr publisko atslēgu, kas nepieciešama ziņojuma pārbaudei. Pseidonīma režīmā citi Roadstr lietotāji redz tikai vispārīgu avataru un „nostrich”; publiskajā režīmā viņi redz arī jūsu Nostr vārdu, npub un profila attēlu. Jūsu ziņojumi, atrašanās vietas, reputācija un saņemtie zapi paliek publiski Nostr tīklā.';
 
   @override
   String get parkingSaveHere => 'Saglabāt stāvvietu šeit';
@@ -1354,21 +1236,9 @@ class AppLocalizationsLv extends AppLocalizations {
   String get trafficHeavy => 'Intensīva satiksme';
 
   @override
-  String get avoidHighwaysChip => 'Izvairīties no automaģistrālēm';
-
-  @override
-  String get avoidTollsChip => 'Izvairīties no maksas ceļiem';
-
-  @override
-  String get preferShorterChip => 'Īsākais maršruts';
-
-  @override
   String zapAmountButton(int sats) {
     return 'Zap $sats sat';
   }
-
-  @override
-  String get showRoutePreview => 'Rādīt maršruta priekšskatījumu';
 
   @override
   String get avoidHighwaysAndTolls =>
@@ -1381,4 +1251,40 @@ class AppLocalizationsLv extends AppLocalizations {
   @override
   String get avoidanceUnavoidableSection =>
       'Samazina automaģistrāles/maksas ceļus · neizbēgams posms';
+
+  @override
+  String get nearbyTitle => 'Tuvumā';
+
+  @override
+  String get nearbyNeedsGps => 'Gaida GPS';
+
+  @override
+  String get nearbyNothingFound => '5 km rādiusā nekas nav atrasts';
+
+  @override
+  String get nearbyFuel => 'Degviela';
+
+  @override
+  String get nearbySupermarket => 'Lielveikals';
+
+  @override
+  String get nearbyAtm => 'Bankomāts';
+
+  @override
+  String get nearbyPharmacy => 'Aptieka';
+
+  @override
+  String get nearbyHospital => 'Slimnīca';
+
+  @override
+  String get nearbyPolice => 'Policija';
+
+  @override
+  String get nearbyPostOffice => 'Pasts';
+
+  @override
+  String get nearbyParking => 'Autostāvvieta';
+
+  @override
+  String get nearbyCharging => 'Uzlāde';
 }

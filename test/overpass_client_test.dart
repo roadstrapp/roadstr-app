@@ -101,6 +101,10 @@ class _TestClient extends OverpassClient {
   _TestClient(this.url);
   final String url;
 
+  /// As many entries as the real list, so mirror-rotation behaviour is
+  /// exercised faithfully, but all of them served locally — the hedged fetch
+  /// reads this list too and must never reach the public instances.
   @override
-  String get currentMirror => url;
+  List<String> get availableMirrors =>
+      List.filled(OverpassClient.mirrors.length, url);
 }

@@ -4,29 +4,11 @@
   "calculatingRoute": "Beräknar rutt…",
   "routeNotFoundTitle": "Rutt hittades inte",
   "noRouteFound": "Ingen rutt hittades. Kontrollera din anslutning.",
-  "emptyServerResponse": "Tomt serversvar. Kontrollera din anslutning.",
-  "routeError": "Fel vid ruttberäkning: {error}",
-  "@routeError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "gpsNotAvailable": "GPS ej tillgänglig — Inställningar → App → Roadstr → Behörigheter → Plats",
   "acquiringGps": "Hämtar GPS…",
   "graphhopperServerNotConfigured": "GraphHopper-server ej konfigurerad — använder OSRM",
   "graphhopperApiKeyNotConfigured": "GraphHopper API-nyckel ej konfigurerad — använder OSRM",
   "openrouteApiKeyNotConfigured": "OpenRouteService API-nyckel ej konfigurerad — använder OSRM",
   "chooseRoute": "Välj rutt",
-  "routeOptionsCount": "{count} alternativ",
-  "@routeOptionsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cancel": "Avbryt",
   "startNavigation": "Starta navigering",
   "fastestRoute": "Snabbaste",
@@ -46,12 +28,8 @@
   "themeDarkNostr": "Mörkt · Nostr Violett",
   "themeDarkBitcoin": "Mörkt · Bitcoin Orange",
   "langSystem": "Systemstandard",
-  "langItalian": "Italiano",
-  "langEnglish": "English",
   "keepScreenOn": "Håll skärmen på",
   "keepScreenOnDescription": "Förhindrar viloläge under navigering",
-  "rotateMap": "Kartan följer riktningen",
-  "rotateMapDescription": "Kartan roterar baserat på körriktning",
   "mapTileUrlLabel": "URL för kartbrickor",
   "routingProviderLabel": "Ruttleverantör",
   "osrmProvider": "OSRM (offentlig, ingen nyckel krävs)",
@@ -98,19 +76,13 @@
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber är en NIP-55-kompatibel Android-appsignerare. Din privata nyckel förblir isolerad i Amber och delas aldrig.",
   "requestKeyFromAmber": "Begär offentlig nyckel från Amber",
-  "amberNotFound": "Amber hittades inte. Installera det från Play Store eller ange din npub manuellt.",
   "waitingForAmberResponse": "Väntar på Amber-svar…",
-  "pasteNpubManually": "Klistra in din npub manuellt:",
-  "confirmNpub": "Bekräfta npub",
   "enterNsecTitle": "Infoga nsec",
   "loginButton": "Logga in",
   "invalidNpubTitle": "Ogiltig npub",
   "invalidNsecTitle": "Ogiltig nsec",
-  "invalidNpubMessage": "Kontrollera att du klistrade in rätt npub.",
   "invalidNsecMessage": "Kontrollera att du klistrade in rätt nsec.",
-  "amberResponseError": "Amber-svarsfel",
   "ok": "OK",
-  "or": "eller",
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS ej aktiv",
   "gpsDisabledMessage": "Aktivera GPS i enhetsinställningarna för att få din plats och använda navigering.",
@@ -126,14 +98,6 @@
   "chooseAmountSats": "Välj belopp i satoshi (sats):",
   "customAmount": "Anpassat belopp…",
   "zapSending": "Skickar…",
-  "zapSat": "⚡{sats} sat",
-  "@zapSat": {
-    "placeholders": {
-      "sats": {
-        "type": "int"
-      }
-    }
-  },
   "fetchingLightningAddress": "Hämtar Lightning-adress…",
   "noLightningAddress": "Den här rapportören har ingen Lightning-adress",
   "requestingInvoice": "Begär faktura…",
@@ -159,28 +123,54 @@
   "notifZapTitle": "Zap mottagen",
   "notifZapBody": "Du fick en zap på {sat} sats!",
   "@notifZapBody": {
-    "placeholders": { "sat": { "type": "int" } }
+    "placeholders": {
+      "sat": {
+        "type": "int"
+      }
+    }
   },
   "notifConfirmedTitle": "Rapport bekräftad",
   "notifConfirmedBody": "Din {category}-rapport bekräftades av en annan förare",
   "@notifConfirmedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "notifDeniedTitle": "Rapport ifrågasatt",
   "notifDeniedBody": "Någon rapporterade att din {category} inte längre finns kvar",
   "@notifDeniedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "chainedManeuver": "{first}, sedan {second}",
   "@chainedManeuver": {
-    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   },
   "thenManeuver": "sedan {instruction}",
   "reportSpeedLimitHint": "Hastighetsgräns (valfritt)",
   "reportedSpeedLimit": "Rapporterad hastighetsgräns",
   "speedCameraVoiceAlert": "Fartkamera rapporterad, hastighetsgräns {limit} {unit}",
   "@speedCameraVoiceAlert": {
-    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   },
   "optionalComment": "Valfri kommentar…",
   "publish": "Publicera",
@@ -283,14 +273,6 @@
   "sectionNavigationVoice": "Navigeringsröst",
   "voiceGuidance": "Röstvägledning",
   "voiceGuidanceDesc": "Läs upp svängningsinstruktioner högt under navigering",
-  "testVoiceEngine": "Testa röstmotor",
-  "testVoiceEngineDesc": "Tryck för att kontrollera TTS-motorn och få installationsinstruktioner",
-  "ttsDialogTitle": "Röstmotor saknas",
-  "ttsDialogBody": "Ingen fungerande Text-to-Speech-motor hittades.\n\nRoadstr förlitar sig enbart på programvara med öppen källkod — installera en av dessa gratis motorer från F-Droid:",
-  "ttsRhvoiceDesc": "Naturligt klingande röst, begränsad språklista",
-  "ttsEspeakDesc": "Täcker över 100 språk, robotliknande röst",
-  "ttsInstallNote": "⚠️ Efter installation:\n1. Android-inställningar → Tillgänglighet → Text-till-tal\n2. Välj motorn du just installerade\n3. Ladda ner röstdata för ditt språk\n4. Starta om Roadstr helt",
-  "ttsTestNow": "Testa nu",
   "voiceUnsupportedTitle": "Röstvägledning är inte tillgänglig",
   "voiceUnsupportedBody": "Ditt språk stöds ännu inte för talade sväng­anvisningar. Navigeringsinstruktioner kommer fortfarande att visas som text på skärmen.",
   "kokoroModelTitle": "Röstmodell (Kokoro AI)",
@@ -304,14 +286,6 @@
   "settingsImperialUnits": "Imperiala enheter",
   "settingsImperialUnitsDesc": "Miles och fot istället för kilometer och meter",
   "arrivedTitle": "🎉 Du är framme!",
-  "arrivedBody": "Du har nått din destination.",
-  "arrivedFeedbackPrompt": "Hur gick det?",
-  "feedbackBad": "Dåligt",
-  "feedbackGood": "Bra!",
-  "feedbackDialogTitle": "Berätta för oss vad som gick fel",
-  "feedbackHint": "Beskriv problemet…",
-  "feedbackSent": "Feedback skickat — tack! 🙏",
-  "feedbackSubmit": "Skicka",
   "transportModeCar": "Bil",
   "transportModeWalk": "Till fots",
   "etaArrivalLabel": "Ank. {time}",
@@ -326,11 +300,19 @@
   "poiClosedNow": "Stängt",
   "poiOpensAt": "Öppnar: {when}",
   "@poiOpensAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "poiClosesAt": "Stänger: {when}",
   "@poiClosesAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "searchOnEngine": "Sök på {engine}",
   "plannerFromHint": "Från…",
@@ -351,7 +333,6 @@
   "weatherSnow": "Snö",
   "weatherShowers": "Skurar",
   "weatherThunderstorm": "Åska",
-  "ztlAheadWarning": "Begränsat trafikområde framåt — rutten går igenom det",
   "ztlInsideWarning": "Begränsat trafikområde",
   "onboardingAppSubtitle": "Öppen källkod Nostr-navigation",
   "onboardingWelcomeTitle": "Välkommen",
@@ -391,7 +372,6 @@
   "onboardingReadyTitle": "Du är redo att navigera!",
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Kör!",
-  "onboardingProfileLoading": "Laddar profil…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "För maximal integritet — rapporter sprids via Nostr-nätverket — rekommenderas användning av VPN. Mullvad, som kan betalas med Bitcoin, är det rekommenderade valet.",
   "exportFavoritesTitle": "Exportera favoriter",
@@ -445,9 +425,6 @@
   "trafficNormal": "Normal trafik",
   "trafficModerate": "Måttlig trafik",
   "trafficHeavy": "Tät trafik",
-  "avoidHighwaysChip": "Undvik motorvägar",
-  "avoidTollsChip": "Undvik vägtullar",
-  "preferShorterChip": "Kortaste rutten",
   "zapAmountButton": "Zap {sats} sat",
   "@zapAmountButton": {
     "placeholders": {
@@ -456,7 +433,6 @@
       }
     }
   },
-  "showRoutePreview": "Visa förhandsvisning av rutt",
   "autoCenterOnLaunch": "Centrera på min position vid start",
   "autoCenterOnLaunchDesc": "Använder GPS automatiskt endast om platsbehörighet redan har beviljats",
   "openInBrowser": "Öppna i webbläsaren",
@@ -466,7 +442,6 @@
   "poiCategory": "Kategori",
   "poiOperator": "Operatör",
   "poiCuisine": "Kök",
-  "poiAccessibility": "Tillgänglighet",
   "poiWheelchairYes": "Rullstolsanpassat",
   "poiWheelchairLimited": "Begränsad rullstolstillgänglighet",
   "poiWheelchairNo": "Inte rullstolsanpassat",
@@ -508,5 +483,38 @@
   "poiTakeawayOnly": "Endast hämtmat",
   "avoidHighwaysAndTolls": "Undvik motorvägar och vägtullar",
   "avoidRouteUnavailable": "Ingen rutt som undviker både motorvägar och avgiftsbelagda vägar hittades.",
-  "avoidanceUnavoidableSection": "Minimerar motorvägar/vägtullar · oundviklig sträcka"
+  "avoidanceUnavoidableSection": "Minimerar motorvägar/vägtullar · oundviklig sträcka",
+  "bottomBarNotifications": "Aviseringar",
+  "notificationsTitle": "Aviseringar",
+  "notificationsEmpty": "Inga aviseringar ännu",
+  "notificationsEmptyBody": "Zaps och reaktioner på dina trafikrapporter visas här.",
+  "notificationsLoginRequired": "Anslut din Nostr-profil",
+  "notificationsLoginRequiredBody": "Logga in med Amber eller nsec för att få aviseringar från andra användare.",
+  "profileVisibilityTitle": "Profilens synlighet",
+  "profileVisibilityDesc": "Välj om andra Roadstr-användare ser ditt Nostr-namn, din npub och din bild.",
+  "profileVisibilityClear": "Visa profilen offentligt",
+  "profileVisibilityPseudonymous": "Pseudonymt läge (rekommenderas)",
+  "profileVisibilityPublishError": "Valet sparades lokalt, men kunde ännu inte publiceras på Nostr.",
+  "nostrichLabel": "nostrich",
+  "profileHiddenNotice": "Den här användaren använder pseudonymt läge.",
+  "editSpeedLimit": "Lägg till eller uppdatera hastighetsgräns",
+  "requestSpeedLimit": "Föreslå en hastighetsgräns",
+  "acceptEditRequest": "Acceptera förslaget",
+  "pendingEditRequests": "Väntande ändringsförslag",
+  "speedLimitHint": "Hastighetsgräns",
+  "speedLimitSaved": "Hastighetsgränsen publicerad",
+  "editRequestSent": "Förslaget skickat till rapportens författare",
+  "profileVisibilityOnboarding": "Roadstr publicerar alltid den publika Nostr-nyckel som behövs för att verifiera en rapport. I pseudonymt läge ser andra Roadstr-användare bara en allmän avatar och ”nostrich”; i offentligt läge ser de även ditt Nostr-namn, din npub och din profilbild. Dina rapporter, positioner, ditt rykte och mottagna zaps förblir offentliga på Nostr.",
+  "nearbyTitle": "I närheten",
+  "nearbyNeedsGps": "Väntar på GPS",
+  "nearbyNothingFound": "Inget hittades inom 5 km",
+  "nearbyFuel": "Drivmedel",
+  "nearbySupermarket": "Livsmedelsbutik",
+  "nearbyAtm": "Uttagsautomat",
+  "nearbyPharmacy": "Apotek",
+  "nearbyHospital": "Sjukhus",
+  "nearbyPolice": "Polis",
+  "nearbyPostOffice": "Post",
+  "nearbyParking": "Parkering",
+  "nearbyCharging": "Laddning"
 }

@@ -21,19 +21,6 @@ class AppLocalizationsRo extends AppLocalizations {
   String get noRouteFound => 'Nicio rută găsită. Verificați conexiunea.';
 
   @override
-  String get emptyServerResponse =>
-      'Răspuns gol de la server. Verificați conexiunea.';
-
-  @override
-  String routeError(String error) {
-    return 'Eroare la calculul rutei: $error';
-  }
-
-  @override
-  String get gpsNotAvailable =>
-      'GPS indisponibil — Setări → Aplicație → Roadstr → Permisiuni → Locație';
-
-  @override
   String get acquiringGps => 'Se obține GPS…';
 
   @override
@@ -50,11 +37,6 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get chooseRoute => 'Alegeți ruta';
-
-  @override
-  String routeOptionsCount(int count) {
-    return '$count opțiuni';
-  }
 
   @override
   String get cancel => 'Anulare';
@@ -78,7 +60,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get selectedPosition => 'Poziție selectată';
 
   @override
-  String get bottomBarNotifications => 'Notifications';
+  String get bottomBarNotifications => 'Notificări';
 
   @override
   String get bottomBarProfile => 'Profil';
@@ -87,21 +69,21 @@ class AppLocalizationsRo extends AppLocalizations {
   String get bottomBarMenu => 'Meniu';
 
   @override
-  String get notificationsTitle => 'Notifications';
+  String get notificationsTitle => 'Notificări';
 
   @override
-  String get notificationsEmpty => 'No notifications yet';
+  String get notificationsEmpty => 'Încă nu există notificări';
 
   @override
   String get notificationsEmptyBody =>
-      'Zaps and reactions to your road reports will appear here.';
+      'Zap-urile și reacțiile la raportările tale vor apărea aici.';
 
   @override
-  String get notificationsLoginRequired => 'Connect your Nostr profile';
+  String get notificationsLoginRequired => 'Conectează-ți profilul Nostr';
 
   @override
   String get notificationsLoginRequiredBody =>
-      'Sign in with Amber or nsec to receive notifications from other users.';
+      'Autentifică-te cu Amber sau nsec pentru a primi notificări de la alți utilizatori.';
 
   @override
   String get settingsTitle => 'Setări';
@@ -134,12 +116,6 @@ class AppLocalizationsRo extends AppLocalizations {
   String get langSystem => 'Implicit sistem';
 
   @override
-  String get langItalian => 'Italiano';
-
-  @override
-  String get langEnglish => 'English';
-
-  @override
   String get keepScreenOn => 'Mențineți ecranul activ';
 
   @override
@@ -151,13 +127,6 @@ class AppLocalizationsRo extends AppLocalizations {
   @override
   String get autoCenterOnLaunchDesc =>
       'Folosește automat GPS-ul numai dacă permisiunea pentru locație a fost deja acordată';
-
-  @override
-  String get rotateMap => 'Harta urmează direcția';
-
-  @override
-  String get rotateMapDescription =>
-      'Harta se rotește în funcție de direcția de mers';
 
   @override
   String get mapTileUrlLabel => 'URL plăci hartă';
@@ -234,48 +203,49 @@ class AppLocalizationsRo extends AppLocalizations {
   String get profileTitle => 'Profil';
 
   @override
-  String get profileVisibilityTitle => 'Profile visibility';
+  String get profileVisibilityTitle => 'Vizibilitatea profilului';
 
   @override
   String get profileVisibilityDesc =>
-      'Choose whether other Roadstr users see your Nostr name, npub and picture.';
+      'Alege dacă ceilalți utilizatori Roadstr îți văd numele de pe Nostr, npub-ul și imaginea.';
 
   @override
-  String get profileVisibilityClear => 'Show profile publicly';
+  String get profileVisibilityClear => 'Arată profilul public';
 
   @override
-  String get profileVisibilityPseudonymous => 'Pseudonymous mode (recommended)';
+  String get profileVisibilityPseudonymous => 'Mod pseudonim (recomandat)';
 
   @override
   String get profileVisibilityPublishError =>
-      'The local choice was saved, but could not be published to Nostr yet.';
+      'Alegerea a fost salvată local, dar nu a putut fi încă publicată pe Nostr.';
 
   @override
   String get nostrichLabel => 'nostrich';
 
   @override
-  String get profileHiddenNotice => 'This user is using pseudonymous mode.';
+  String get profileHiddenNotice =>
+      'Acest utilizator folosește modul pseudonim.';
 
   @override
-  String get editSpeedLimit => 'Add or update speed limit';
+  String get editSpeedLimit => 'Adaugă sau actualizează limita de viteză';
 
   @override
-  String get requestSpeedLimit => 'Suggest a speed limit';
+  String get requestSpeedLimit => 'Sugerează o limită de viteză';
 
   @override
-  String get acceptEditRequest => 'Accept suggestion';
+  String get acceptEditRequest => 'Acceptă sugestia';
 
   @override
-  String get pendingEditRequests => 'Pending edit suggestions';
+  String get pendingEditRequests => 'Sugestii de editare în așteptare';
 
   @override
-  String get speedLimitHint => 'Speed limit';
+  String get speedLimitHint => 'Limită de viteză';
 
   @override
-  String get speedLimitSaved => 'Speed limit published';
+  String get speedLimitSaved => 'Limită de viteză publicată';
 
   @override
-  String get editRequestSent => 'Suggestion sent to the report owner';
+  String get editRequestSent => 'Sugestie trimisă autorului raportării';
 
   @override
   String get notConnected => 'Neconectat';
@@ -352,17 +322,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get requestKeyFromAmber => 'Solicitați cheia publică de la Amber';
 
   @override
-  String get amberNotFound =>
-      'Amber nu a fost găsit. Instalați-l din Play Store sau introduceți manual npub-ul.';
-
-  @override
   String get waitingForAmberResponse => 'Se așteaptă răspunsul Amber…';
-
-  @override
-  String get pasteNpubManually => 'Lipiți npub-ul manual:';
-
-  @override
-  String get confirmNpub => 'Confirmați npub';
 
   @override
   String get enterNsecTitle => 'Introduceți nsec';
@@ -377,19 +337,10 @@ class AppLocalizationsRo extends AppLocalizations {
   String get invalidNsecTitle => 'nsec invalid';
 
   @override
-  String get invalidNpubMessage => 'Asigurați-vă că ați lipit npub-ul corect.';
-
-  @override
   String get invalidNsecMessage => 'Asigurați-vă că ați lipit nsec-ul corect.';
 
   @override
-  String get amberResponseError => 'Eroare răspuns Amber';
-
-  @override
   String get ok => 'OK';
-
-  @override
-  String get or => 'sau';
 
   @override
   String get gpsNotActiveTitle => 'GPS inactiv';
@@ -428,11 +379,6 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get zapSending => 'Se trimite…';
-
-  @override
-  String zapSat(int sats) {
-    return '⚡$sats sat';
-  }
 
   @override
   String get fetchingLightningAddress => 'Se obține adresa Lightning…';
@@ -729,33 +675,6 @@ class AppLocalizationsRo extends AppLocalizations {
       'Citește cu voce tare instrucțiunile de virare în timpul navigării';
 
   @override
-  String get testVoiceEngine => 'Testează motorul vocal';
-
-  @override
-  String get testVoiceEngineDesc =>
-      'Atinge pentru a verifica motorul TTS și a obține instrucțiuni de configurare';
-
-  @override
-  String get ttsDialogTitle => 'Lipsește motorul vocal';
-
-  @override
-  String get ttsDialogBody =>
-      'Nu a fost găsit niciun motor Text-to-Speech funcțional.\n\nRoadstr se bazează exclusiv pe software open source — instalează unul dintre aceste motoare gratuite de pe F-Droid:';
-
-  @override
-  String get ttsRhvoiceDesc => 'Voce cu sunet natural, listă limitată de limbi';
-
-  @override
-  String get ttsEspeakDesc => 'Acoperă peste 100 de limbi, voce robotică';
-
-  @override
-  String get ttsInstallNote =>
-      '⚠️ După instalare:\n1. Setări Android → Accesibilitate → Conversie text în vorbire\n2. Selectează motorul instalat recent\n3. Descarcă datele vocale pentru limba ta\n4. Repornește Roadstr complet';
-
-  @override
-  String get ttsTestNow => 'Testează acum';
-
-  @override
   String get voiceUnsupportedTitle => 'Ghidarea vocală nu este disponibilă';
 
   @override
@@ -796,30 +715,6 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get arrivedTitle => '🎉 Ați ajuns!';
-
-  @override
-  String get arrivedBody => 'Ați ajuns la destinație.';
-
-  @override
-  String get arrivedFeedbackPrompt => 'Cum a mers?';
-
-  @override
-  String get feedbackBad => 'Rău';
-
-  @override
-  String get feedbackGood => 'Bine!';
-
-  @override
-  String get feedbackDialogTitle => 'Spuneți-ne ce a mers prost';
-
-  @override
-  String get feedbackHint => 'Descrieți problema…';
-
-  @override
-  String get feedbackSent => 'Feedback trimis — mulțumim! 🙏';
-
-  @override
-  String get feedbackSubmit => 'Trimite';
 
   @override
   String get transportModeCar => 'Mașină';
@@ -874,9 +769,6 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get poiCuisine => 'Bucătărie';
-
-  @override
-  String get poiAccessibility => 'Accesibilitate';
 
   @override
   String get poiWheelchairYes => 'Accesibil pentru scaune rulante';
@@ -1082,10 +974,6 @@ class AppLocalizationsRo extends AppLocalizations {
   String get weatherThunderstorm => 'Furtună';
 
   @override
-  String get ztlAheadWarning =>
-      'Zonă cu trafic restricționat înainte — ruta trece prin ea';
-
-  @override
   String get ztlInsideWarning => 'Zonă cu trafic restricționat';
 
   @override
@@ -1217,9 +1105,6 @@ class AppLocalizationsRo extends AppLocalizations {
   String get onboardingLetsGo => 'Haideți!';
 
   @override
-  String get onboardingProfileLoading => 'Se încarcă profilul…';
-
-  @override
   String get onboardingNsecHint => 'nsec1…';
 
   @override
@@ -1247,7 +1132,7 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get profileVisibilityOnboarding =>
-      'Roadstr always publishes the Nostr public key needed to verify a report. In pseudonymous mode, other Roadstr users see only a generic avatar and “nostrich”; in public mode, they also see your Nostr name, npub and profile picture. Your reports, locations, reputation and received zaps remain public on Nostr.';
+      'Roadstr publică întotdeauna cheia publică Nostr necesară pentru verificarea unei raportări. În modul pseudonim, ceilalți utilizatori Roadstr văd doar un avatar generic și „nostrich”; în modul public, îți văd și numele de pe Nostr, npub-ul și poza de profil. Raportările, locațiile, reputația și zap-urile primite rămân publice pe Nostr.';
 
   @override
   String get parkingSaveHere => 'Salvează parcarea aici';
@@ -1355,21 +1240,9 @@ class AppLocalizationsRo extends AppLocalizations {
   String get trafficHeavy => 'Trafic intens';
 
   @override
-  String get avoidHighwaysChip => 'Evită autostrăzile';
-
-  @override
-  String get avoidTollsChip => 'Evită taxele de drum';
-
-  @override
-  String get preferShorterChip => 'Cea mai scurtă rută';
-
-  @override
   String zapAmountButton(int sats) {
     return 'Zap $sats sat';
   }
-
-  @override
-  String get showRoutePreview => 'Afișează previzualizarea rutei';
 
   @override
   String get avoidHighwaysAndTolls => 'Evită autostrăzile și taxele de drum';
@@ -1381,4 +1254,40 @@ class AppLocalizationsRo extends AppLocalizations {
   @override
   String get avoidanceUnavoidableSection =>
       'Reduce autostrăzile/taxele · segment inevitabil';
+
+  @override
+  String get nearbyTitle => 'În apropiere';
+
+  @override
+  String get nearbyNeedsGps => 'Se așteaptă GPS-ul';
+
+  @override
+  String get nearbyNothingFound => 'Nimic găsit pe o rază de 5 km';
+
+  @override
+  String get nearbyFuel => 'Carburant';
+
+  @override
+  String get nearbySupermarket => 'Supermarket';
+
+  @override
+  String get nearbyAtm => 'Bancomat';
+
+  @override
+  String get nearbyPharmacy => 'Farmacie';
+
+  @override
+  String get nearbyHospital => 'Spital';
+
+  @override
+  String get nearbyPolice => 'Poliție';
+
+  @override
+  String get nearbyPostOffice => 'Poștă';
+
+  @override
+  String get nearbyParking => 'Parcare';
+
+  @override
+  String get nearbyCharging => 'Încărcare';
 }

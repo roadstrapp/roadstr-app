@@ -21,19 +21,6 @@ class AppLocalizationsBg extends AppLocalizations {
   String get noRouteFound => 'Не е намерен маршрут. Проверете връзката си.';
 
   @override
-  String get emptyServerResponse =>
-      'Празен отговор от сървъра. Проверете връзката си.';
-
-  @override
-  String routeError(String error) {
-    return 'Грешка при изчисляване на маршрута: $error';
-  }
-
-  @override
-  String get gpsNotAvailable =>
-      'GPS не е наличен — Настройки → Приложение → Roadstr → Разрешения → Местоположение';
-
-  @override
   String get acquiringGps => 'Получаване на GPS…';
 
   @override
@@ -50,11 +37,6 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get chooseRoute => 'Избор на маршрут';
-
-  @override
-  String routeOptionsCount(int count) {
-    return '$count опции';
-  }
 
   @override
   String get cancel => 'Отказ';
@@ -78,7 +60,7 @@ class AppLocalizationsBg extends AppLocalizations {
   String get selectedPosition => 'Избрана позиция';
 
   @override
-  String get bottomBarNotifications => 'Notifications';
+  String get bottomBarNotifications => 'Известия';
 
   @override
   String get bottomBarProfile => 'Профил';
@@ -87,21 +69,21 @@ class AppLocalizationsBg extends AppLocalizations {
   String get bottomBarMenu => 'Меню';
 
   @override
-  String get notificationsTitle => 'Notifications';
+  String get notificationsTitle => 'Известия';
 
   @override
-  String get notificationsEmpty => 'No notifications yet';
+  String get notificationsEmpty => 'Все още няма известия';
 
   @override
   String get notificationsEmptyBody =>
-      'Zaps and reactions to your road reports will appear here.';
+      'Тук ще се появяват запове и реакции на вашите пътни сигнали.';
 
   @override
-  String get notificationsLoginRequired => 'Connect your Nostr profile';
+  String get notificationsLoginRequired => 'Свържете своя профил в Nostr';
 
   @override
   String get notificationsLoginRequiredBody =>
-      'Sign in with Amber or nsec to receive notifications from other users.';
+      'Влезте с Amber или nsec, за да получавате известия от други потребители.';
 
   @override
   String get settingsTitle => 'Настройки';
@@ -134,12 +116,6 @@ class AppLocalizationsBg extends AppLocalizations {
   String get langSystem => 'Системно по подразбиране';
 
   @override
-  String get langItalian => 'Italiano';
-
-  @override
-  String get langEnglish => 'English';
-
-  @override
   String get keepScreenOn => 'Дръж екрана включен';
 
   @override
@@ -153,13 +129,6 @@ class AppLocalizationsBg extends AppLocalizations {
   @override
   String get autoCenterOnLaunchDesc =>
       'Използва GPS автоматично само ако разрешението за местоположение вече е дадено';
-
-  @override
-  String get rotateMap => 'Картата следва посоката';
-
-  @override
-  String get rotateMapDescription =>
-      'Картата се завърта според посоката на движение';
 
   @override
   String get mapTileUrlLabel => 'URL на картографски плочки';
@@ -236,48 +205,52 @@ class AppLocalizationsBg extends AppLocalizations {
   String get profileTitle => 'Профил';
 
   @override
-  String get profileVisibilityTitle => 'Profile visibility';
+  String get profileVisibilityTitle => 'Видимост на профила';
 
   @override
   String get profileVisibilityDesc =>
-      'Choose whether other Roadstr users see your Nostr name, npub and picture.';
+      'Изберете дали другите потребители на Roadstr виждат вашето име в Nostr, npub и снимка.';
 
   @override
-  String get profileVisibilityClear => 'Show profile publicly';
+  String get profileVisibilityClear => 'Показвай профила публично';
 
   @override
-  String get profileVisibilityPseudonymous => 'Pseudonymous mode (recommended)';
+  String get profileVisibilityPseudonymous =>
+      'Псевдонимен режим (препоръчително)';
 
   @override
   String get profileVisibilityPublishError =>
-      'The local choice was saved, but could not be published to Nostr yet.';
+      'Изборът е запазен локално, но все още не можа да бъде публикуван в Nostr.';
 
   @override
   String get nostrichLabel => 'nostrich';
 
   @override
-  String get profileHiddenNotice => 'This user is using pseudonymous mode.';
+  String get profileHiddenNotice =>
+      'Този потребител използва псевдонимен режим.';
 
   @override
-  String get editSpeedLimit => 'Add or update speed limit';
+  String get editSpeedLimit =>
+      'Добавяне или обновяване на ограничението на скоростта';
 
   @override
-  String get requestSpeedLimit => 'Suggest a speed limit';
+  String get requestSpeedLimit => 'Предложи ограничение на скоростта';
 
   @override
-  String get acceptEditRequest => 'Accept suggestion';
+  String get acceptEditRequest => 'Приеми предложението';
 
   @override
-  String get pendingEditRequests => 'Pending edit suggestions';
+  String get pendingEditRequests => 'Чакащи предложения за редакция';
 
   @override
-  String get speedLimitHint => 'Speed limit';
+  String get speedLimitHint => 'Ограничение на скоростта';
 
   @override
-  String get speedLimitSaved => 'Speed limit published';
+  String get speedLimitSaved => 'Ограничението на скоростта е публикувано';
 
   @override
-  String get editRequestSent => 'Suggestion sent to the report owner';
+  String get editRequestSent =>
+      'Предложението е изпратено на автора на сигнала';
 
   @override
   String get notConnected => 'Не е свързан';
@@ -354,17 +327,7 @@ class AppLocalizationsBg extends AppLocalizations {
   String get requestKeyFromAmber => 'Поискайте публичен ключ от Amber';
 
   @override
-  String get amberNotFound =>
-      'Amber не е намерен. Инсталирайте го от Play Store или въведете ръчно вашия npub.';
-
-  @override
   String get waitingForAmberResponse => 'Изчакване на отговор от Amber…';
-
-  @override
-  String get pasteNpubManually => 'Поставете вашия npub ръчно:';
-
-  @override
-  String get confirmNpub => 'Потвърдете npub';
 
   @override
   String get enterNsecTitle => 'Вмъкнете nsec';
@@ -379,21 +342,11 @@ class AppLocalizationsBg extends AppLocalizations {
   String get invalidNsecTitle => 'Невалиден nsec';
 
   @override
-  String get invalidNpubMessage =>
-      'Уверете се, че сте поставили правилния npub.';
-
-  @override
   String get invalidNsecMessage =>
       'Уверете се, че сте поставили правилния nsec.';
 
   @override
-  String get amberResponseError => 'Грешка в отговора на Amber';
-
-  @override
   String get ok => 'OK';
-
-  @override
-  String get or => 'или';
 
   @override
   String get gpsNotActiveTitle => 'GPS не е активен';
@@ -432,11 +385,6 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get zapSending => 'Изпращане…';
-
-  @override
-  String zapSat(int sats) {
-    return '⚡$sats sat';
-  }
 
   @override
   String get fetchingLightningAddress => 'Извличане на Lightning адрес…';
@@ -732,34 +680,6 @@ class AppLocalizationsBg extends AppLocalizations {
       'Прочитане на инструкциите за завой на глас по време на навигация';
 
   @override
-  String get testVoiceEngine => 'Тествай гласовия двигател';
-
-  @override
-  String get testVoiceEngineDesc =>
-      'Докоснете, за да проверите TTS двигателя и да получите инструкции за настройка';
-
-  @override
-  String get ttsDialogTitle => 'Липсва гласов двигател';
-
-  @override
-  String get ttsDialogBody =>
-      'Не е намерен работещ Text-to-Speech двигател.\n\nRoadstr разчита единствено на софтуер с отворен код — инсталирайте един от тези безплатни двигатели от F-Droid:';
-
-  @override
-  String get ttsRhvoiceDesc =>
-      'Естествено звучащ глас, ограничен списък с езици';
-
-  @override
-  String get ttsEspeakDesc => 'Покрива над 100 езика, роботизиран глас';
-
-  @override
-  String get ttsInstallNote =>
-      '⚠️ След инсталиране:\n1. Настройки на Android → Достъпност → Синтезатор на реч\n2. Изберете току-що инсталирания двигател\n3. Изтеглете гласовите данни за вашия език\n4. Рестартирайте Roadstr напълно';
-
-  @override
-  String get ttsTestNow => 'Тествай сега';
-
-  @override
   String get voiceUnsupportedTitle => 'Гласовото упътване не е налично';
 
   @override
@@ -800,30 +720,6 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get arrivedTitle => '🎉 Пристигнахте!';
-
-  @override
-  String get arrivedBody => 'Достигнахте дестинацията си.';
-
-  @override
-  String get arrivedFeedbackPrompt => 'Как мина?';
-
-  @override
-  String get feedbackBad => 'Зле';
-
-  @override
-  String get feedbackGood => 'Добре!';
-
-  @override
-  String get feedbackDialogTitle => 'Кажете ни какво е объркало';
-
-  @override
-  String get feedbackHint => 'Опишете проблема…';
-
-  @override
-  String get feedbackSent => 'Обратна връзка изпратена — благодаря! 🙏';
-
-  @override
-  String get feedbackSubmit => 'Изпрати';
 
   @override
   String get transportModeCar => 'Автомобил';
@@ -878,9 +774,6 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get poiCuisine => 'Кухня';
-
-  @override
-  String get poiAccessibility => 'Достъпност';
 
   @override
   String get poiWheelchairYes => 'Достъпно за инвалидни колички';
@@ -1086,10 +979,6 @@ class AppLocalizationsBg extends AppLocalizations {
   String get weatherThunderstorm => 'Гръмотевична буря';
 
   @override
-  String get ztlAheadWarning =>
-      'Напред има зона с ограничено движение — маршрутът минава през нея';
-
-  @override
   String get ztlInsideWarning => 'Зона с ограничено движение';
 
   @override
@@ -1222,9 +1111,6 @@ class AppLocalizationsBg extends AppLocalizations {
   String get onboardingLetsGo => 'Да тръгваме!';
 
   @override
-  String get onboardingProfileLoading => 'Зареждане на профил…';
-
-  @override
   String get onboardingNsecHint => 'nsec1…';
 
   @override
@@ -1252,7 +1138,7 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get profileVisibilityOnboarding =>
-      'Roadstr always publishes the Nostr public key needed to verify a report. In pseudonymous mode, other Roadstr users see only a generic avatar and “nostrich”; in public mode, they also see your Nostr name, npub and profile picture. Your reports, locations, reputation and received zaps remain public on Nostr.';
+      'Roadstr винаги публикува публичния ключ в Nostr, необходим за проверка на сигнал. В псевдонимен режим другите потребители на Roadstr виждат само общ аватар и „nostrich“; в публичен режим виждат и вашето име в Nostr, npub и профилна снимка. Вашите сигнали, местоположения, репутация и получени запове остават публични в Nostr.';
 
   @override
   String get parkingSaveHere => 'Запази паркинга тук';
@@ -1358,21 +1244,9 @@ class AppLocalizationsBg extends AppLocalizations {
   String get trafficHeavy => 'Натоварен трафик';
 
   @override
-  String get avoidHighwaysChip => 'Без магистрали';
-
-  @override
-  String get avoidTollsChip => 'Без тол такси';
-
-  @override
-  String get preferShorterChip => 'Най-кратък маршрут';
-
-  @override
   String zapAmountButton(int sats) {
     return 'Zap $sats sat';
   }
-
-  @override
-  String get showRoutePreview => 'Преглед на маршрута';
 
   @override
   String get avoidHighwaysAndTolls => 'Избягвай магистрали и платени пътища';
@@ -1384,4 +1258,40 @@ class AppLocalizationsBg extends AppLocalizations {
   @override
   String get avoidanceUnavoidableSection =>
       'Намалява магистрали/такси · неизбежен участък';
+
+  @override
+  String get nearbyTitle => 'Наблизо';
+
+  @override
+  String get nearbyNeedsGps => 'Изчакване на GPS';
+
+  @override
+  String get nearbyNothingFound => 'Нищо намерено в радиус от 5 км';
+
+  @override
+  String get nearbyFuel => 'Бензиностанция';
+
+  @override
+  String get nearbySupermarket => 'Супермаркет';
+
+  @override
+  String get nearbyAtm => 'Банкомат';
+
+  @override
+  String get nearbyPharmacy => 'Аптека';
+
+  @override
+  String get nearbyHospital => 'Болница';
+
+  @override
+  String get nearbyPolice => 'Полиция';
+
+  @override
+  String get nearbyPostOffice => 'Поща';
+
+  @override
+  String get nearbyParking => 'Паркинг';
+
+  @override
+  String get nearbyCharging => 'Зареждане';
 }
