@@ -568,6 +568,90 @@ abstract class AppLocalizations {
   /// **'Profile'**
   String get profileTitle;
 
+  /// No description provided for @profileVisibilityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile visibility'**
+  String get profileVisibilityTitle;
+
+  /// No description provided for @profileVisibilityDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose whether other Roadstr users see your Nostr name, npub and picture.'**
+  String get profileVisibilityDesc;
+
+  /// No description provided for @profileVisibilityClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Show profile publicly'**
+  String get profileVisibilityClear;
+
+  /// No description provided for @profileVisibilityPseudonymous.
+  ///
+  /// In en, this message translates to:
+  /// **'Pseudonymous mode (recommended)'**
+  String get profileVisibilityPseudonymous;
+
+  /// No description provided for @profileVisibilityPublishError.
+  ///
+  /// In en, this message translates to:
+  /// **'The local choice was saved, but could not be published to Nostr yet.'**
+  String get profileVisibilityPublishError;
+
+  /// No description provided for @nostrichLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'nostrich'**
+  String get nostrichLabel;
+
+  /// No description provided for @profileHiddenNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'This user is using pseudonymous mode.'**
+  String get profileHiddenNotice;
+
+  /// No description provided for @editSpeedLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Add or update speed limit'**
+  String get editSpeedLimit;
+
+  /// No description provided for @requestSpeedLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest a speed limit'**
+  String get requestSpeedLimit;
+
+  /// No description provided for @acceptEditRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept suggestion'**
+  String get acceptEditRequest;
+
+  /// No description provided for @pendingEditRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending edit suggestions'**
+  String get pendingEditRequests;
+
+  /// No description provided for @speedLimitHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed limit'**
+  String get speedLimitHint;
+
+  /// No description provided for @speedLimitSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed limit published'**
+  String get speedLimitSaved;
+
+  /// No description provided for @editRequestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestion sent to the report owner'**
+  String get editRequestSent;
+
   /// No description provided for @notConnected.
   ///
   /// In en, this message translates to:
@@ -975,6 +1059,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{first}, then {second}'**
   String chainedManeuver(String first, String second);
+
+  /// No description provided for @thenManeuver.
+  ///
+  /// In en, this message translates to:
+  /// **'then {instruction}'**
+  String thenManeuver(String instruction);
 
   /// No description provided for @reportSpeedLimitHint.
   ///
@@ -2313,6 +2403,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.'**
   String get onboardingFavoritesSyncNotice;
+
+  /// No description provided for @profileVisibilityOnboarding.
+  ///
+  /// In en, this message translates to:
+  /// **'Roadstr always publishes the Nostr public key needed to verify a report. In pseudonymous mode, other Roadstr users see only a generic avatar and “nostrich”; in public mode, they also see your Nostr name, npub and profile picture. Your reports, locations, reputation and received zaps remain public on Nostr.'**
+  String get profileVisibilityOnboarding;
 
   /// No description provided for @parkingSaveHere.
   ///

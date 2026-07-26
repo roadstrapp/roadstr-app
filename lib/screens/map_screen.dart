@@ -30,6 +30,7 @@ import '../services/routing_service.dart';
 import '../services/weather_service.dart';
 import '../services/speed_limit_service.dart';
 import '../services/poi_search_service.dart';
+import '../services/photon_geocoder.dart';
 import '../services/speed_camera_service.dart';
 import '../services/ztl_service.dart';
 import '../services/opening_hours.dart';
@@ -56,6 +57,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
+import '../utils/fuzzy_match.dart';
 import '../utils/units.dart';
 import '../widgets/speedometer_widget.dart';
 import 'settings_screen.dart';
@@ -182,6 +184,14 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   Timer? _arrivalBannerTimer;
   int _currentStepIdx = 0;
   int _nearestRouteSegmentIdx = 0;
+
+  /// Monotonic progress along the active route.  Navigation decisions must
+  /// use this value rather than the distance to a single maneuver point:
+  /// sparse GPS fixes can cross more than one maneuver between samples.
+  List<double> _routeCumulativeM = const [];
+  List<LatLng> _renderRoutePolyline = const [];
+  List<double> _renderRouteCumulativeM = const [];
+  double _routeProgressM = 0;
   bool _isNavigating = false;
   bool _isCalculating = false;
 
@@ -227,11 +237,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   bool _inZtl = false;
 
   /// Name of the current ZTL zone, for display in the warning banner.
-  String? _ztlName;
 
   /// True when the UPCOMING route step leads into a ZTL zone.
-  bool _ztlOnRoute = false;
-  String? _ztlOnRouteName;
 
   /// Step indices for which the ZTL-on-route warning has already been spoken,
   /// to avoid repeating it on every GPS tick.
@@ -356,6 +363,11 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   bool _showPlaceInfo = false;
   LatLng? _placePoint;
   String? _placeAddress;
+
+  /// Short, recognisable name of the shown place ("Via Attilio Monti 12,
+  /// Ravenna") — used for history entries and the route destination label.
+  /// Distinct from [_placeAddress], which is the longer displayed address.
+  String? _placeLabel;
 
   /// Best Nominatim-derived term used for the Wikipedia geo-search fallback.
   String? _placeWikiQuery;
@@ -623,7 +635,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// call is suspended, leading to two stream listeners on the same GPS stream.
   Future<void> _requestGps({bool silent = false}) async {
     if (_gpsRequested) {
-      if (!silent && _gpsReady) _recenter();
+      if (!silent && _hasRealFix) _recenter();
       return;
     }
     // Lock before the first await — prevents concurrent auto-start + user-tap races.
@@ -644,6 +656,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     }
     setState(() {
       _gpsReady = true;
+      _hasRealFix = false;
       _followUser = true; // next GPS tick will move camera to the real position
       // _headingMode intentionally left as-is (false by default).
       // Navigation sets it to true explicitly; the heading button toggles it.
@@ -652,21 +665,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _camZoom = 17.0;
     });
     _gpsSub = _gps.stream.listen(_onGps);
-    // Seed from the OS's last cached fix so the map jumps to roughly the right
-    // place immediately, instead of waiting several seconds for a cold
-    // bestForNavigation lock (the "location lookup is slow" regression from
-    // deferring GPS start to this point). Only moves the camera — the real
-    // stream sample in _onGps takes over the instant it arrives, and if it
-    // already has, the stale seed is skipped.
-    final seed = await _gps.lastKnown();
-    if (mounted && seed != null && !_hasRealFix) {
-      setState(() {
-        _position = seed.position;
-        _followUser = true;
-      });
-      _animateCamera(toCenter: seed.position, toZoom: 17.0, toRot: 0);
-    }
-    // Do NOT call _recenter() here: _position is still the Italy fallback and
+    // Do NOT call _recenter() here: _position is still the neutral fallback and
     // jumping there would be jarring. The first valid GPS sample in _onGps
     // will move the map to the actual location via the _followUser flag.
     // Never subscribe using the Italy fallback. _onGps subscribes the actual
@@ -837,6 +836,25 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     }
     _prevGpsPos = data.position;
 
+    // On urban junctions the raw two-fix bearing is particularly noisy: a
+    // single multipath fix can describe a false U-turn and rotate the map by
+    // 180°.  While on the active route, use its local tangent as a stable
+    // prior and approach real turns smoothly.  A genuine U-turn leaves the
+    // route and is handled by the existing off-route/reroute path.
+    if (_isNavigating && data.speedKmh > 5) {
+      final local = _routeLocalBearingAt(data.position);
+      if (local != null && local.distM <= 35) {
+        var delta = (local.bearing - effectiveHeading) % 360;
+        if (delta > 180) delta -= 360;
+        if (delta < -180) delta += 360;
+        if (delta.abs() > 110) {
+          effectiveHeading = local.bearing;
+        } else {
+          effectiveHeading = (effectiveHeading + delta * 0.35 + 360) % 360;
+        }
+      }
+    }
+
     // ── Speed-adaptive zoom ──────────────────────────────────────────────────
     // Zoom in when slow (pedestrian, city) and out at high speed (motorway)
     // so the driver always sees enough road ahead.
@@ -883,13 +901,16 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       }
     }
 
-    // ── ZTL proximity check ───────────────────────────────────────────────────
+    // ── ZTL data refresh ──────────────────────────────────────────────────────
+    // The app still needs the data to identify that the driver is already
+    // inside a restricted zone.  Route-ahead warnings were intentionally
+    // removed: a warning hundreds of metres before a ZTL is too noisy and can
+    // be misleading when the route only passes near its boundary.
     unawaited(_ztl.updateIfNeeded(data.position));
     final nowInZtl = _ztl.isInsideZtl(data.position);
     if (nowInZtl != _inZtl) {
       setState(() {
         _inZtl = nowInZtl;
-        _ztlName = nowInZtl ? _ztl.ztlNameAt(data.position) : null;
       });
     }
 
@@ -902,11 +923,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     }
 
     // ── Navigation camera + step logic ───────────────────────────────────────
-    if (_isNavigating && _gpsReady && !_navTransitioning) {
+    if (_isNavigating && _hasRealFix && !_navTransitioning) {
       if (_route != null) {
         _updateNavigationStep();
         _updateRemainingStats();
         _checkArrival();
+        _updateNavNotification();
       }
       unawaited(_checkSpeedCameraProximity());
       unawaited(_checkHazardProximity());
@@ -976,19 +998,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// index.  Called on every GPS tick during navigation.
   void _updateRemainingStats() {
     if (_route == null) return;
-    double rem = 0;
-    for (int i = _currentStepIdx; i < _route!.steps.length; i++) {
-      rem += _route!.steps[i].distanceM;
-    }
-    // Subtract the portion of the current step already completed.
-    if (_currentStepIdx < _route!.steps.length) {
-      final stepDist = _route!.steps[_currentStepIdx].distanceM;
-      if (stepDist > 0 && _distToNextManeuverM < stepDist) {
-        rem -= (stepDist - _distToNextManeuverM);
-      }
-    }
     final totalDist = _route!.totalDistanceM;
-    final elapsedM = (totalDist - rem).clamp(0.0, totalDist);
+    // The route geometry is the source of truth for progress.  Summing step
+    // lengths double-counts provider-specific depart/arrive steps and leaves
+    // the ETA growing when the maneuver index gets stuck.
+    final elapsedM = _routeProgressM.clamp(0.0, totalDist);
+    final rem = (totalDist - elapsedM).clamp(0.0, totalDist);
     // Prefer route-embedded limit (OSRM/GH annotation); fall back to the
     // Overpass cache which is updated asynchronously in the background.
     final routeLimit = _route!.speedLimitAt(elapsedM);
@@ -1063,7 +1078,11 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   void _onArrival() {
     if (!_voiceMuted) _tts.announceArrival();
     final dest = _destination;
-    _stopNavigation();
+    // Let the arrival announcement finish.  Stopping the TTS player in the
+    // same stack frame used to cut the clip and could leave the shared audio
+    // session in an interrupted state, so the user's music stream stayed
+    // silent after reaching the destination.
+    _stopNavigation(stopVoice: false);
     if (dest != null) {
       _arrivalBannerTimer?.cancel();
       setState(() {
@@ -1078,14 +1097,15 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
   void _updateNavigationStep() {
     if (_route == null) return;
+    _updateRouteProgress();
     _checkOffRoute();
     if (_currentStepIdx >= _route!.steps.length - 1) {
       _distToNextManeuverM = 0;
       return;
     }
-    final nextIdx = _currentStepIdx + 1;
-    final nextStep = _route!.steps[nextIdx];
-    final dist =
+    var nextIdx = _currentStepIdx + 1;
+    var nextStep = _route!.steps[nextIdx];
+    var dist =
         const Distance().as(LengthUnit.Meter, _position, nextStep.location);
     _distToNextManeuverM = dist;
 
@@ -1102,7 +1122,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         dist >= midOrNear + 20 &&
         _ttsAnnouncedFar != nextIdx) {
       _ttsAnnouncedFar = nextIdx;
-      _checkZtlOnRoute(nextIdx, nextStep, dist);
       if (!_voiceMuted) {
         _tts.announceManeuver(nextStep.instruction, t.far);
         spokenThisCall = true;
@@ -1115,7 +1134,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         dist >= t.near + 20 &&
         _ttsAnnouncedMid != nextIdx) {
       _ttsAnnouncedMid = nextIdx;
-      _checkZtlOnRoute(nextIdx, nextStep, dist);
       if (!_voiceMuted) {
         _tts.announceManeuver(nextStep.instruction, t.mid);
         spokenThisCall = true;
@@ -1126,7 +1144,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         dist < t.near + 30 &&
         _ttsAnnouncedNear != nextIdx) {
       _ttsAnnouncedNear = nextIdx;
-      _checkZtlOnRoute(nextIdx, nextStep, dist);
       // Highway ramp near = 250 m → speak with distance; others = 50 m → imminent
       final speakDist = t.near >= 200 ? t.near : 0;
       if (!_voiceMuted) {
@@ -1157,19 +1174,24 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       }
     }
 
-    // Advance only at the maneuver point. The previous 80 m radius skipped
-    // turns on dense urban grids and parallel roads. GPS accuracy widens a
-    // small tolerance, but a hard cap prevents very early advancement.
-    final advanceRadius = _transportMode == 'walking'
-        ? _lastGpsAccuracy.clamp(5.0, 12.0)
-        : _lastGpsAccuracy.clamp(7.0, 25.0);
-    if (dist <= advanceRadius) {
+    // Advance every maneuver whose route position has already been crossed.
+    // A GPS sample may jump over a dense urban junction, so checking only the
+    // next point can strand the instruction and make its distance grow forever.
+    final advanceTolerance = _transportMode == 'walking'
+        ? _lastGpsAccuracy.clamp(5.0, 15.0)
+        : _lastGpsAccuracy.clamp(8.0, 30.0);
+    var advanced = false;
+    while (_currentStepIdx + 1 < _route!.steps.length) {
+      final candidateIdx = _currentStepIdx + 1;
+      final candidateProgress = _stepProgressM(candidateIdx);
+      if (candidateProgress > _routeProgressM + advanceTolerance) break;
+      _currentStepIdx = candidateIdx;
+      advanced = true;
+    }
+    if (advanced) {
       setState(() {
-        _currentStepIdx++;
         _consecutiveReroutes = 0;
         // Clear ZTL-on-route banner once the step that triggered it is complete.
-        _ztlOnRoute = false;
-        _ztlOnRouteName = null;
       });
       _updateNavNotification();
 
@@ -1184,6 +1206,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         // to avoid the second speak() from interrupting the first.
         final distToNext =
             const Distance().as(LengthUnit.Meter, _position, nextSt.location);
+        _distToNextManeuverM = distToNext;
         // Only fire the immediate post-maneuver announcement when the next turn
         // is within 250 m — further away the far announcement (which fires later
         // at the right distance) is the correct cue, not an immediate one.
@@ -1226,6 +1249,104 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     }
   }
 
+  /// Prepares cumulative distances for the route geometry.  Keeping this
+  /// array avoids repeatedly walking a potentially very long polyline on GPS
+  /// ticks and lets the completed/remaining paint split at sub-point accuracy.
+  void _prepareRouteProgress(RouteResult route) {
+    final cumulative = <double>[0];
+    for (var i = 1; i < route.polyline.length; i++) {
+      cumulative.add(cumulative.last +
+          const Distance()
+              .as(LengthUnit.Meter, route.polyline[i - 1], route.polyline[i]));
+    }
+    _routeCumulativeM = cumulative;
+    _renderRoutePolyline = _simplifyForRendering(route.polyline);
+    final renderCumulative = <double>[0];
+    for (var i = 1; i < _renderRoutePolyline.length; i++) {
+      renderCumulative.add(renderCumulative.last +
+          const Distance().as(LengthUnit.Meter, _renderRoutePolyline[i - 1],
+              _renderRoutePolyline[i]));
+    }
+    _renderRouteCumulativeM = renderCumulative;
+    _routeProgressM = 0;
+    _remainingDistM = route.totalDistanceM;
+    _remainingSecs = route.totalDurationS;
+    _distToNextManeuverM = 0;
+  }
+
+  /// Route responses can contain tens of thousands of near-identical points.
+  /// Keep navigation decisions on the original geometry, but draw a bounded
+  /// screen-equivalent polyline so every GPS tick does not rebuild a huge
+  /// canvas path.  A 2 m tolerance is below the visual precision of the map.
+  static List<LatLng> _simplifyForRendering(List<LatLng> points) {
+    if (points.length <= 1800) return points;
+    final out = <LatLng>[points.first];
+    var last = points.first;
+    for (final point in points.skip(1)) {
+      final d = const Distance().as(LengthUnit.Meter, last, point);
+      if (d >= 3.0) {
+        out.add(point);
+        last = point;
+      }
+    }
+    if (out.last != points.last) out.add(points.last);
+    return out;
+  }
+
+  double _stepProgressM(int index) {
+    if (_route == null || _routeCumulativeM.isEmpty) return 0;
+    final step = _route!.steps[index];
+    var best = double.infinity;
+    var bestProgress = 0.0;
+    final poly = _route!.polyline;
+    // Maneuvers are sparse compared with the geometry.  A local scan is
+    // sufficient and avoids making every step advancement O(route length).
+    final start = math.max(0, _nearestRouteSegmentIdx - 80);
+    final end = math.min(poly.length - 2, _nearestRouteSegmentIdx + 160);
+    for (var i = start; i <= end; i++) {
+      final projection = _projectOnSegment(step.location, poly[i], poly[i + 1]);
+      if (projection.distM < best) {
+        best = projection.distM;
+        bestProgress = _routeCumulativeM[i] +
+            projection.t * (_routeCumulativeM[i + 1] - _routeCumulativeM[i]);
+      }
+    }
+    // If the current GPS jump crossed a long sparse section, a local window
+    // can still produce a finite but clearly wrong candidate.  Recover with a
+    // full scan in that case.
+    if (!best.isFinite || best > 80) {
+      best = double.infinity;
+      for (var i = 0; i < poly.length - 1; i++) {
+        final projection =
+            _projectOnSegment(step.location, poly[i], poly[i + 1]);
+        if (projection.distM < best) {
+          best = projection.distM;
+          bestProgress = _routeCumulativeM[i] +
+              projection.t * (_routeCumulativeM[i + 1] - _routeCumulativeM[i]);
+        }
+      }
+    }
+    return bestProgress;
+  }
+
+  void _updateRouteProgress() {
+    if (_route == null || _routeCumulativeM.length < 2) return;
+    final nearest = _nearestActiveRouteSegment(_position);
+    if (nearest == null) return;
+    final poly = _route!.polyline;
+    final projection = _projectOnSegment(
+        _position, poly[nearest.segmentIdx], poly[nearest.segmentIdx + 1]);
+    final rawProgress = _routeCumulativeM[nearest.segmentIdx] +
+        projection.t *
+            (_routeCumulativeM[nearest.segmentIdx + 1] -
+                _routeCumulativeM[nearest.segmentIdx]);
+    // GPS can move backwards a few metres at junctions.  Route progress must
+    // remain monotonic, otherwise the next distance briefly increases again.
+    if (rawProgress + 3 >= _routeProgressM) {
+      _routeProgressM = math.max(_routeProgressM, rawProgress);
+    }
+  }
+
   // ── Auto-reroute ────────────────────────────────────────────────────────────
 
   /// Checks whether the user has drifted off the active route.
@@ -1234,7 +1355,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// point-distance so sparse polylines don't miss deviations between waypoints.
   /// Triggers reroute when the user is >60 m from the route and moving.
   void _checkOffRoute() {
-    if (_route == null || !_isNavigating || !_gpsReady || _isRerouting) return;
+    if (_route == null || !_isNavigating || !_hasRealFix || _isRerouting) {
+      return;
+    }
     if (_speed < 1) return; // truly stationary (red light etc.) — skip
     final nearest = _nearestActiveRouteSegment(_position);
     if (nearest == null || nearest.distM < 25) return;
@@ -1254,26 +1377,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       double diff = (_heading - bearingToNext).abs();
       if (diff > 180) diff = 360 - diff;
       if (diff > 135) _rerouteAndNavigate();
-    }
-  }
-
-  /// Fires a one-shot ZTL warning (TTS + banner) when [nextStep]'s destination
-  /// lies inside a known ZTL polygon and we haven't warned for this step yet.
-  void _checkZtlOnRoute(int stepIdx, RouteStep nextStep, double dist) {
-    if (_ztlWarnedSteps.contains(stepIdx)) return;
-    if (!_ztl.isInsideZtl(nextStep.location)) return;
-    _ztlWarnedSteps.add(stepIdx);
-    final name = _ztl.ztlNameAt(nextStep.location);
-    setState(() {
-      _ztlOnRoute = true;
-      _ztlOnRouteName = name;
-    });
-    if (!_voiceMuted) {
-      // Uses the same generic phrase as the banner (l10n, all 27 languages)
-      // instead of a hand-rolled map that only covered 9 and hardcoded the
-      // Italian "ZTL" acronym for every unlisted language.
-      final l = AppLocalizations.of(context);
-      unawaited(_tts.speak(l.ztlAheadWarning));
     }
   }
 
@@ -1380,6 +1483,50 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     return math.sqrt(cx * cx + cy * cy);
   }
 
+  static ({double distM, double t}) _projectOnSegment(
+      LatLng p, LatLng a, LatLng b) {
+    const degM = 111320.0;
+    final cosLat = math.cos(p.latitude * math.pi / 180);
+    final dx = (b.longitude - a.longitude) * degM * cosLat;
+    final dy = (b.latitude - a.latitude) * degM;
+    final px = (p.longitude - a.longitude) * degM * cosLat;
+    final py = (p.latitude - a.latitude) * degM;
+    final len2 = dx * dx + dy * dy;
+    final t = len2 == 0 ? 0.0 : ((px * dx + py * dy) / len2).clamp(0.0, 1.0);
+    final ex = px - t * dx;
+    final ey = py - t * dy;
+    return (distM: math.sqrt(ex * ex + ey * ey), t: t);
+  }
+
+  List<LatLng> _routeProgressPolyline({required bool completed}) {
+    final route = _route;
+    final render = _renderRoutePolyline;
+    if (route == null ||
+        render.length < 2 ||
+        _renderRouteCumulativeM.length != render.length) {
+      return route?.polyline ?? const [];
+    }
+    var i = 0;
+    while (i + 1 < render.length &&
+        _renderRouteCumulativeM[i + 1] < _routeProgressM) {
+      i++;
+    }
+    final a = render[i];
+    final b = render[i + 1];
+    final span = _renderRouteCumulativeM[i + 1] - _renderRouteCumulativeM[i];
+    final t = span <= 0
+        ? 0.0
+        : ((_routeProgressM - _renderRouteCumulativeM[i]) / span)
+            .clamp(0.0, 1.0);
+    final cursor = LatLng(a.latitude + (b.latitude - a.latitude) * t,
+        a.longitude + (b.longitude - a.longitude) * t);
+    if (completed) {
+      if (_routeProgressM <= 0) return const [];
+      return [...render.take(i + 1), cursor];
+    }
+    return [cursor, ...render.skip(i + 1)];
+  }
+
   /// Returns the (far, mid, near) announcement distance thresholds for [step].
   /// All values are in metres. [mid] == 0 means the mid announcement is skipped.
   static ({int far, int mid, int near}) _announcementThresholds(
@@ -1396,6 +1543,31 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     return (far: 220, mid: 0, near: 50);
   }
 
+  /// Returns the camera's closest point on the active route. A proximity
+  /// circle around the GPS position is not enough here: a camera on a parallel
+  /// street, bridge or frontage road must not be announced when the route does
+  /// not actually pass it.
+  ({double distM, double progress})? _cameraRouteMatch(LatLng camera) {
+    final route = _route;
+    if (route == null || _routeCumulativeM.length != route.polyline.length) {
+      return null;
+    }
+    final poly = route.polyline;
+    final start = math.max(0, _nearestRouteSegmentIdx - 120);
+    final end = math.min(poly.length - 2, _nearestRouteSegmentIdx + 900);
+    var best = double.infinity;
+    var progress = 0.0;
+    for (var i = start; i <= end; i++) {
+      final projection = _projectOnSegment(camera, poly[i], poly[i + 1]);
+      if (projection.distM < best) {
+        best = projection.distM;
+        progress = _routeCumulativeM[i] +
+            projection.t * (_routeCumulativeM[i + 1] - _routeCumulativeM[i]);
+      }
+    }
+    return best.isFinite ? (distM: best, progress: progress) : null;
+  }
+
   /// Plays a two-tone proximity beep when the user passes within 250 m of a
   /// speed camera — either community-reported (Nostr) or OSM-sourced. Each
   /// camera fires only once per navigation session.
@@ -1407,16 +1579,27 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       if (_alertedCameraIds.contains(ev.id)) continue;
       final d = dist.as(LengthUnit.Meter, _position, ev.position);
       if (d > 250) continue;
+      final routeMatch = _cameraRouteMatch(ev.position);
+      if (routeMatch == null ||
+          routeMatch.distM > 18 ||
+          routeMatch.progress < _routeProgressM - 25 ||
+          routeMatch.progress > _routeProgressM + 300) {
+        continue;
+      }
       _alertedCameraIds.add(ev.id);
       unawaited(_playSpeedCameraBeep());
       // Speak the reporter-declared limit when present: "Speed camera
-      // reported, speed limit X km/h" (value shown in the user's unit).
+      // reported, speed limit X kilometres per hour".  Pass words to TTS,
+      // never the display symbol "km/h".
       if (!_voiceMuted && ev.speedLimit != null && mounted) {
         final display = Units.imperial
             ? Units.toDisplaySpeed(ev.speedLimit!.toDouble()).round()
             : ev.speedLimit!;
+        final lang = Localizations.localeOf(context).languageCode;
         unawaited(_tts.speak(AppLocalizations.of(context)
-            .speedCameraVoiceAlert(display, Units.speedUnit)));
+            .speedCameraVoiceAlert(display, Units.speedUnitForSpeech(lang))));
+      } else if (!_voiceMuted && mounted) {
+        unawaited(_tts.speak(AppLocalizations.of(context).categorySpeedCamera));
       }
     }
     unawaited(_speedCameraSvc.updateIfNeeded(_position));
@@ -1424,8 +1607,29 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       if (_alertedOsmCameraIds.contains(cam.id)) continue;
       final d = dist.as(LengthUnit.Meter, _position, cam.position);
       if (d > 250) continue;
+      final routeMatch = _cameraRouteMatch(cam.position);
+      if (routeMatch == null ||
+          routeMatch.distM > 18 ||
+          routeMatch.progress < _routeProgressM - 25 ||
+          routeMatch.progress > _routeProgressM + 300) {
+        continue;
+      }
       _alertedOsmCameraIds.add(cam.id);
       unawaited(_playSpeedCameraBeep());
+      if (!_voiceMuted && mounted) {
+        final l = AppLocalizations.of(context);
+        final limit = cam.speedLimitKmh;
+        if (limit != null) {
+          final display = Units.imperial
+              ? Units.toDisplaySpeed(limit.toDouble()).round()
+              : limit;
+          final lang = Localizations.localeOf(context).languageCode;
+          unawaited(_tts.speak(l.speedCameraVoiceAlert(
+              display, Units.speedUnitForSpeech(lang))));
+        } else {
+          unawaited(_tts.speak(l.categorySpeedCamera));
+        }
+      }
     }
   }
 
@@ -1731,7 +1935,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// the user's current position and GPS updates are never blocked.
   void _startNavigation(RouteResult route, {bool silent = false}) {
     // Option A safety net: block user-initiated navigation until GPS is ready.
-    if (!silent && !_gpsReady) {
+    if (!silent && !_hasRealFix) {
       _snack(AppLocalizations.of(context).acquiringGps);
       if (!_gpsRequested) _requestGps();
       return;
@@ -1785,7 +1989,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     // When navigation starts while the device is already moving, _heading may
     // hold a stale compass value. Prefer the GPS movement bearing so the map
     // rotates to the actual direction of travel immediately, with no lag.
-    if (_gpsReady) {
+    if (_hasRealFix) {
       if (_speed > 3 && _prevGpsPos != null) {
         final movBearing = _bearingBetween(_prevGpsPos!, _position);
         if (movBearing.isFinite) _heading = movBearing;
@@ -1794,6 +1998,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       }
     }
 
+    _prepareRouteProgress(route);
     setState(() {
       _route = route;
       _currentStepIdx = 0;
@@ -1801,8 +2006,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _isNavigating = true;
       _showAlternatives = false;
       _alternatives = [];
-      _followUser = _gpsReady;
-      _headingMode = _gpsReady;
+      _followUser = _hasRealFix;
+      _headingMode = _hasRealFix;
       _arrivedAt = null;
       _showArrivalBanner = false;
     });
@@ -1814,7 +2019,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _gpsLossTimer?.cancel();
     _lastFixEpochMs = DateTime.now().millisecondsSinceEpoch;
     _gpsLossTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      if (!mounted || !_isNavigating || !_gpsReady) return;
+      if (!mounted || !_isNavigating || !_hasRealFix) return;
       final silentMs = DateTime.now().millisecondsSinceEpoch - _lastFixEpochMs;
       if (silentMs > _gpsLossThresholdMs && !_gpsSignalLost) {
         setState(() => _gpsSignalLost = true);
@@ -1881,7 +2086,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     setState(() => _navTransitioning = true);
     _fitRouteOnMap(route); // Phase 1 — full-route overview
 
-    if (_gpsReady) {
+    if (_hasRealFix) {
       Future.delayed(const Duration(milliseconds: 1600), () {
         if (!mounted || !_isNavigating) return;
         _animateCamera(
@@ -1903,7 +2108,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     // Block navigation when GPS hasn't acquired a real fix yet.
     // Using the Italy fallback (42.5, 12.5) as origin would produce a useless
     // route from the middle of the country to the destination.
-    if (!_gpsReady && fromPosition == null) {
+    if (!_hasRealFix && fromPosition == null) {
       _snack(AppLocalizations.of(context).acquiringGps);
       _requestGps(); // prompt the user to enable GPS
       return;
@@ -1912,7 +2117,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _pendingLabel = label;
     // Start reverse geocode in parallel (only for map taps where no label is known yet).
     final geocodeFuture =
-        label == null ? RoutingService.reverseGeocode(destination) : null;
+        label == null ? RoutingService.reverseGeocodeLabel(destination) : null;
 
     if (!mounted) return;
     setState(() {
@@ -2062,6 +2267,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _placeAddress = (address?.trim().isNotEmpty ?? false)
           ? address!.trim()
           : preferredLabel;
+      _placeLabel = preferredLabel;
       _placeWiki = null;
       _placeDetails = null;
       _placeOpeningHours = null;
@@ -2083,6 +2289,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     setState(() {
       _placeAddress =
           dispParts.isEmpty ? (_placeAddress ?? preferredLabel) : dispParts;
+      // A caller-supplied label (search result, favourite) is what the user
+      // actually recognises, so it wins over the reverse-geocoded one.
+      _placeLabel = preferredLabel ?? geo?.label ?? _placeLabel;
       _placeOpeningHours = geo?.openingHours;
     });
 
@@ -2121,6 +2330,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _showPlaceInfo = false;
       _placePoint = null;
       _placeAddress = null;
+      _placeLabel = null;
       _placeWikiQuery = null;
       _placeWiki = null;
       _placeDetails = null;
@@ -2320,7 +2530,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
   Future<void> _calculatePlan() async {
     if (_planTo == null) return;
-    final from = _planFrom?.position ?? (_gpsReady ? _position : _camCenter);
+    final from = _planFrom?.position ?? (_hasRealFix ? _position : _camCenter);
     _pendingLabel = _planTo!.label;
     _closePlanner();
     await _requestAlternatives(
@@ -2516,7 +2726,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     );
   }
 
-  void _stopNavigation() {
+  void _stopNavigation({bool stopVoice = true}) {
     _routeRequestGeneration++;
     setState(() {
       _route = null;
@@ -2525,6 +2735,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _isRerouting = false;
       _currentStepIdx = 0;
       _headingMode = false;
+      _routeCumulativeM = const [];
+      _routeProgressM = 0;
       _showAlternatives = false;
       _alternatives = [];
       _showPreview = false;
@@ -2545,8 +2757,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _gpsLossTimer = null;
     _gpsSignalLost = false;
     _ztlWarnedSteps.clear();
-    _ztlOnRoute = false;
-    _ztlOnRouteName = null;
     _pendingFlipBearing = null;
     _flipHoldTicks = 0;
     _destBuilding = null;
@@ -2554,7 +2764,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _animateCamera(toCenter: _position, toZoom: _camZoom, toRot: 0);
     WakelockPlus.disable();
     _navNotif.cancel();
-    _tts.stop();
+    if (stopVoice) unawaited(_tts.stop());
   }
 
   /// Favorites whose label or address contains [query] (case-insensitive).
@@ -2610,9 +2820,17 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       });
       return;
     }
-    _searchDebounce = Timer(const Duration(milliseconds: 500), () async {
+    // Start shortly after the user pauses.  The request-generation guard below
+    // makes older in-flight requests harmless, while a shorter debounce makes
+    // the first useful suggestions appear much sooner.
+    _searchDebounce = Timer(const Duration(milliseconds: 300), () async {
       setState(() => _isSearching = true);
-      final results = await _searchMerged(query);
+      final results = await _searchMerged(query, onPartial: (partial) {
+        if (!mounted || requestGeneration != _searchRequestGeneration) return;
+        // Show whichever provider answers first instead of waiting for the
+        // slower Overpass request before rendering any result.
+        setState(() => _searchResults = partial);
+      });
       if (!mounted || requestGeneration != _searchRequestGeneration) return;
       setState(() {
         _searchResults = results;
@@ -2621,31 +2839,145 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     });
   }
 
-  /// Merges category/brand POI results (Overpass, distance-sorted, reliable
-  /// for "near me" intent) with Nominatim's general geocoding, biased toward
-  /// [_position] when GPS is available. Category matches are shown first —
-  /// they are the fix for generic terms like "cinema" ranking a same-named
-  /// business on the other side of the world above the one down the street.
-  Future<List<NominatimResult>> _searchMerged(String query) async {
-    final near = _gpsReady ? _position : null;
+  /// Merges the three place providers into one suggestion list:
+  ///
+  ///   * **Overpass** (category/brand near me) — the fix for generic terms
+  ///     like "cinema", which Nominatim's global importance ranking would
+  ///     answer with a same-named business on the other side of the world
+  ///     instead of the one 500 m away. Shown first when it matches.
+  ///   * **Photon** — typo-tolerant and prefix-based, so it answers while the
+  ///     user is still typing and survives misspellings.
+  ///   * **Nominatim** — strict, but the best at fully-qualified addresses.
+  ///
+  /// Geocoder hits are then re-ranked by how well they actually match what was
+  /// typed ([FuzzyMatch]) rather than by provider order, and if everything
+  /// comes back empty the query is relaxed once and retried.
+  Future<List<NominatimResult>> _searchMerged(String query,
+      {void Function(List<NominatimResult>)? onPartial}) async {
+    final near = _hasRealFix ? _position : null;
+    final lang = Localizations.localeOf(context).languageCode;
+
     final nominatimFuture = RoutingService.search(query, near: near);
+    final photonFuture =
+        PhotonGeocoder.search(query, near: near, languageCode: lang);
     final poiFuture = near != null
         ? _poiSvc.search(query, near)
         : Future.value(<NominatimResult>[]);
-    final results = await Future.wait([poiFuture, nominatimFuture]);
-    final poiResults = results[0];
-    final nominatimResults = results[1];
-    if (poiResults.isEmpty) return nominatimResults;
-    // Dedupe: skip Nominatim hits that are essentially the same place as a
-    // POI result already included (within 30 m).
+
+    // Paint whatever arrives first (normally Photon) instead of blocking the
+    // whole list on the slowest provider — this is most of the perceived
+    // sluggishness of the search box.
+    if (onPartial != null) {
+      var shown = false;
+      for (final f in [photonFuture, nominatimFuture, poiFuture]) {
+        unawaited(f.then((r) {
+          if (shown || r.isEmpty) return;
+          shown = true;
+          onPartial(_rankResults(query, r, near));
+        }).catchError((_) {}));
+      }
+    }
+
+    final photon = await photonFuture;
+    final nominatim = await nominatimFuture;
+    final poi = await poiFuture;
+
+    // Nominatim first in the merge order so its better-formatted entry wins
+    // the dedupe when both providers return the same place.
+    var geo = _rankResults(query, _dedupeByProximity([...nominatim, ...photon]),
+        near);
+
+    if (geo.isEmpty && poi.isEmpty) {
+      final relaxed = _relaxQuery(query);
+      if (relaxed != null) {
+        final retry = await Future.wait([
+          RoutingService.search(relaxed, near: near),
+          PhotonGeocoder.search(relaxed, near: near, languageCode: lang),
+        ]);
+        geo = _rankResults(
+            relaxed, _dedupeByProximity([...retry[0], ...retry[1]]), near);
+      }
+    }
+
+    if (poi.isEmpty) return geo;
+    // Skip geocoder hits that are essentially the same place as a POI result
+    // already included (within 30 m).
     const dist = Distance();
-    final merged = [...poiResults];
-    for (final n in nominatimResults) {
-      final isDup = poiResults
+    final merged = [...poi];
+    for (final n in geo) {
+      final isDup = poi
           .any((p) => dist.as(LengthUnit.Meter, p.position, n.position) < 30);
       if (!isDup) merged.add(n);
     }
     return merged;
+  }
+
+  /// Orders geocoder results by textual match quality first, proximity second,
+  /// and caps the list at a scannable length.
+  static List<NominatimResult> _rankResults(
+      String query, List<NominatimResult> results, LatLng? near) {
+    if (results.length < 2) return results;
+    const dist = Distance();
+    final scored = results
+        .map((r) => (
+              result: r,
+              score: _matchScore(query, r),
+              distance:
+                  near == null ? 0.0 : dist.as(LengthUnit.Meter, near, r.position),
+            ))
+        .toList();
+    scored.sort((a, b) {
+      // Group scores into coarse bands: a 2 % scoring difference should not
+      // outweigh being 40 km closer.
+      final band = (b.score * 10).round().compareTo((a.score * 10).round());
+      if (band != 0) return band;
+      return a.distance.compareTo(b.distance);
+    });
+    return scored.map((e) => e.result).take(10).toList();
+  }
+
+  /// Best match between what was typed and the several names a result carries.
+  ///
+  /// Scoring the street name alone and the "street, town" form separately
+  /// matters: the town is part of the label whether or not the user typed it,
+  /// so comparing only against the full string would punish everyone who just
+  /// types a street name — by far the common case.
+  static double _matchScore(String query, NominatimResult r) {
+    final namePart = r.shortName.split(',').first;
+    return math.max(
+      math.max(FuzzyMatch.score(query, namePart),
+          FuzzyMatch.score(query, r.shortName)),
+      // The full address is a weaker signal: it contains region and country
+      // words that no one types.
+      FuzzyMatch.score(query, r.displayName) * 0.9,
+    );
+  }
+
+  /// Removes results pointing at the same place (within 30 m), keeping the
+  /// first occurrence — providers overlap heavily since both read OSM.
+  static List<NominatimResult> _dedupeByProximity(List<NominatimResult> all) {
+    const dist = Distance();
+    final out = <NominatimResult>[];
+    for (final r in all) {
+      final dup = out.any(
+          (k) => dist.as(LengthUnit.Meter, k.position, r.position) < 30);
+      if (!dup) out.add(r);
+    }
+    return out;
+  }
+
+  /// Builds a shorter, more likely-to-hit variant of a query that returned
+  /// nothing, or null when there is nothing sensible to drop.
+  ///
+  /// European street names are usually "type + given name(s) + surname"
+  /// ("via Attilio Monti") while OSM frequently stores only "type + surname"
+  /// ("via Monti"). Keeping the first and last words reproduces exactly that
+  /// shape, which recovers the single most common miss.
+  static String? _relaxQuery(String query) {
+    final words = query.trim().split(RegExp(r'\s+'))
+      ..removeWhere((w) => w.isEmpty);
+    if (words.length < 3) return null;
+    return '${words.first} ${words.last}';
   }
 
   void _selectSearchResult(NominatimResult result) {
@@ -2718,6 +3050,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     setState(() {
       _placePoint = result.position;
       _placeAddress = result.displayName.split(',').take(3).join(', ');
+      _placeLabel = result.shortName;
       _placeWikiQuery = wikiQ;
       _placeWiki = null;
       _placeDetails = null;
@@ -2765,7 +3098,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     // Solicit a fresh one-shot GPS fix: the cursor must snap to where the
     // user actually is, not the last (possibly stale) stream sample. The fix
     // arrives via _onGps and, with _followUser on, re-centers the camera.
-    if (_gpsReady) unawaited(_gps.refresh());
+    if (_hasRealFix) unawaited(_gps.refresh());
     setState(() {
       _followUser = true;
       // During navigation, re-enable heading mode so the map resumes rotating
@@ -2812,7 +3145,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _camTicker?.cancel();
       _camTicker = null;
       _animateCamera(
-          toCenter: _gpsReady ? _position : _camCenter,
+          toCenter: _hasRealFix ? _position : _camCenter,
           toZoom: _camZoom,
           toRot: -_compassHeading);
       return;
@@ -2832,7 +3165,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     final startRot = _mapController.camera.rotation;
     final startZoom = _mapController.camera.zoom;
     final startCenter = _mapController.camera.center;
-    final endCenter = _gpsReady ? _position : startCenter;
+    final endCenter = _hasRealFix ? _position : startCenter;
     const dur = 550;
     final startMs = DateTime.now().millisecondsSinceEpoch;
 
@@ -3245,7 +3578,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
-                onPressed: _gpsReady
+                onPressed: _hasRealFix
                     ? () {
                         Navigator.pop(context);
                         _saveParkingPosition(_position);
@@ -3294,6 +3627,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     final privKey = await _secStorage.read(key: 'nostr_priv_hex');
     final pubKey = await _secStorage.read(key: 'nostr_pub_hex');
     final flavor = await _secStorage.read(key: 'nostr_flavor');
+    final requests = pubKey == event.pubkey
+        ? await NostrRelayService.fetchEditRequests(event.id)
+        : const <RoadEventEditRequest>[];
     if (!mounted) return;
     showModalBottomSheet(
       context: context,
@@ -3302,6 +3638,15 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         event: event,
         colors: c,
         isLoggedIn: pubKey != null, // logged in = has pubkey, even Amber-only
+        isOwner: pubKey == event.pubkey,
+        editRequests: requests,
+        onEditSpeedLimit: pubKey == event.pubkey
+            ? (limit, requestId) =>
+                _publishSpeedLimitUpdate(event, limit, requestId: requestId)
+            : null,
+        onRequestSpeedLimit: pubKey != null && pubKey != event.pubkey
+            ? (limit) => _publishSpeedLimitRequest(event, limit)
+            : null,
         onConfirm: pubKey != null
             ? (stillThere) async {
                 // Optimistically update local counters for immediate feedback.
@@ -3360,6 +3705,86 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     );
   }
 
+  Future<void> _publishSpeedLimitUpdate(RoadEvent event, int speedLimit,
+      {String? requestId}) async {
+    final pubKey = await _secStorage.read(key: 'nostr_pub_hex');
+    final flavor = await _secStorage.read(key: 'nostr_flavor');
+    if (pubKey == null || pubKey != event.pubkey || flavor == null) {
+      throw const FormatException('Only the report owner can edit it');
+    }
+    if (flavor == 'amber') {
+      final unsigned = NostrRelayService.buildKind1317Map(
+        eventId: event.id,
+        ownerPubKeyHex: pubKey,
+        speedLimit: speedLimit,
+        position: event.position,
+        comment: event.comment,
+        requestId: requestId,
+      );
+      final result = await Amberflutter().signEvent(
+        currentUser: Nip19().npubEncode(pubKey),
+        eventJson: jsonEncode(unsigned),
+      );
+      final signed =
+          jsonDecode(result['event'] as String) as Map<String, dynamic>;
+      await _nostr.publishRawEvent(signed, expectedUnsigned: unsigned);
+    } else {
+      final priv = await _secStorage.read(key: 'nostr_priv_hex');
+      if (priv == null) throw const FormatException('Private key unavailable');
+      await _nostr.publishRoadEventUpdate(
+        privKeyHex: priv,
+        ownerPubKeyHex: pubKey,
+        eventId: event.id,
+        position: event.position,
+        speedLimit: speedLimit,
+        comment: event.comment,
+        requestId: requestId,
+      );
+    }
+    event.speedLimit = speedLimit;
+    if (mounted) {
+      setState(() {});
+      _snack(AppLocalizations.of(context).speedLimitSaved);
+    }
+  }
+
+  Future<void> _publishSpeedLimitRequest(
+      RoadEvent event, int speedLimit) async {
+    final pubKey = await _secStorage.read(key: 'nostr_pub_hex');
+    final flavor = await _secStorage.read(key: 'nostr_flavor');
+    if (pubKey == null || flavor == null) {
+      throw const FormatException('Connect a Nostr profile first');
+    }
+    if (flavor == 'amber') {
+      final unsigned = NostrRelayService.buildKind1318Map(
+        eventId: event.id,
+        requesterPubKeyHex: pubKey,
+        ownerPubKeyHex: event.pubkey,
+        speedLimit: speedLimit,
+        position: event.position,
+      );
+      final result = await Amberflutter().signEvent(
+        currentUser: Nip19().npubEncode(pubKey),
+        eventJson: jsonEncode(unsigned),
+      );
+      final signed =
+          jsonDecode(result['event'] as String) as Map<String, dynamic>;
+      await _nostr.publishRawEvent(signed, expectedUnsigned: unsigned);
+    } else {
+      final priv = await _secStorage.read(key: 'nostr_priv_hex');
+      if (priv == null) throw const FormatException('Private key unavailable');
+      await _nostr.publishRoadEventEditRequest(
+        privKeyHex: priv,
+        requesterPubKeyHex: pubKey,
+        ownerPubKeyHex: event.pubkey,
+        eventId: event.id,
+        position: event.position,
+        speedLimit: speedLimit,
+      );
+    }
+    if (mounted) _snack(AppLocalizations.of(context).editRequestSent);
+  }
+
   Future<void> _showReportSheet({LatLng? position}) async {
     final privKey = await _secStorage.read(key: 'nostr_priv_hex');
     final pubKey = await _secStorage.read(key: 'nostr_pub_hex');
@@ -3400,7 +3825,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       if (!mounted) return;
     }
     final c = RoadstrColors.of(context);
-    final pos = position ?? (_gpsReady ? _position : _camCenter);
+    final pos = position ?? (_hasRealFix ? _position : _camCenter);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -3770,19 +4195,27 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                 if (_route != null && !_showAlternatives) ...[
                   PolylineLayer(polylines: [
                     Polyline(
-                        points: _route!.polyline,
+                        points: _renderRoutePolyline,
                         strokeWidth: 8,
-                        color: c.accent.withValues(alpha: 0.25)),
+                        // Neutral underlay avoids leaving a violet/orange ghost
+                        // on the completed leg after the grey overlay is drawn.
+                        color: Colors.grey.shade500.withValues(alpha: 0.22)),
                     Polyline(
-                        points: _route!.polyline,
+                        points: _routeProgressPolyline(completed: false),
                         strokeWidth: 5,
                         color: c.accent,
                         strokeCap: StrokeCap.round),
+                    if (_routeProgressM > 0)
+                      Polyline(
+                          points: _routeProgressPolyline(completed: true),
+                          strokeWidth: 5,
+                          color: Colors.grey.shade500,
+                          strokeCap: StrokeCap.round),
                   ]),
                   // Heavy traffic overlay in red during navigation.
                   if (_roadEvents.isNotEmpty)
                     PolylineLayer(polylines: [
-                      for (final seg in _trafficSegments(_route!.polyline))
+                      for (final seg in _trafficSegments(_renderRoutePolyline))
                         Polyline(
                             points: seg,
                             strokeWidth: 8,
@@ -3917,7 +4350,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                           ),
                         ),
                   ]),
-                if (_gpsReady)
+                if (_hasRealFix)
                   MarkerLayer(
                       // rotate: true keeps the marker upright in screen space so
                       // its heading angle is always relative to the screen, not the
@@ -4037,29 +4470,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                 ),
               ),
 
-          // ── ZTL WARNING BANNER ───────────────────────────────────────────────
-          // "On-route" banner: next step leads INTO a ZTL (shown above "inside" banner).
-          if (_ztlOnRoute)
-            Positioned(
-              top: (_isNavigating ? topInset + 140 : topInset + 76),
-              left: 16,
-              right: 16,
-              child: _ZtlBanner(
-                name: _ztlOnRouteName,
-                pos: _position,
-                colors: c,
-                onRoute: true,
-              ),
-            ),
-          // "Inside" banner: user is already inside the ZTL.
-          if (_inZtl && !_ztlOnRoute)
-            Positioned(
-              top: (_isNavigating ? topInset + 140 : topInset + 76),
-              left: 16,
-              right: 16,
-              child: _ZtlBanner(name: _ztlName, pos: _position, colors: c),
-            ),
-
           // ── GPS SIGNAL LOST (tunnel/underground) ─────────────────────────────
           // Discreet pill, centered, below the nav banner: informative, not
           // alarming — navigation continues on the last known position.
@@ -4106,19 +4516,19 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
               left: 12,
               bottom: 88 + bottomInset + 12,
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                if (_gpsReady)
+                if (_hasRealFix)
                   _MapFab(
                       onTap: _showReportSheet,
                       colors: c,
                       child: Icon(Icons.report_problem_outlined,
                           color: c.textPrimary, size: 22)),
-                if (_gpsReady) const SizedBox(height: 8),
+                if (_hasRealFix) const SizedBox(height: 8),
                 _MapFab(
                     onTap: _openPlanner,
                     colors: c,
                     child: Icon(Icons.alt_route_rounded,
                         color: c.accent, size: 28)),
-                if (_gpsReady || _parkingPosition != null) ...[
+                if (_hasRealFix || _parkingPosition != null) ...[
                   const SizedBox(height: 8),
                   _MapFab(
                       onTap: _showParkingSheet,
@@ -4142,7 +4552,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                 fromCtrl: _planFromCtrl,
                 toCtrl: _planToCtrl,
                 activeField: _planActiveField,
-                hasGps: _gpsReady,
+                hasGps: _hasRealFix,
                 canCalculate: _planTo != null,
                 transportMode: _transportMode,
                 onModeChanged: (m) => setState(() => _transportMode = m),
@@ -4197,7 +4607,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                 _MapFab(
                   onTap: _requestGps,
                   colors: c,
-                  child: _gpsRequested && !_gpsReady
+                  child: _gpsRequested && !_hasRealFix
                       ? SizedBox(
                           width: 18,
                           height: 18,
@@ -4205,7 +4615,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                               strokeWidth: 2, color: c.accent))
                       : Icon(
                           _followUser ? Icons.gps_fixed : Icons.gps_not_fixed,
-                          color: _gpsReady
+                          color: _hasRealFix
                               ? (_followUser ? c.accent : c.textPrimary)
                               : c.textSecondary,
                           size: 22),
@@ -4308,8 +4718,10 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                         onNavigate: () {
                           // Capture values BEFORE _closePlaceInfo() nulls them out.
                           final dest = _placePoint!;
-                          final label =
-                              _placeAddress?.split(',').first ?? _pendingLabel;
+                          // _placeLabel is the structured short name; never
+                          // split the address on ',' here — its first component
+                          // is the house number ("12") in most of Europe.
+                          final label = _placeLabel ?? _pendingLabel;
                           _closePlaceInfo();
                           _requestAlternatives(dest, label: label);
                         },
@@ -4379,7 +4791,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             ),
 
           // ── GPS ACQUIRING BADGE ──────────────────────────────────────────────
-          if (_gpsRequested && !_gpsReady)
+          if (_gpsRequested && !_hasRealFix)
             Positioned(
               top: topInset + 76,
               left: 0,
@@ -4430,7 +4842,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           _gpsSub?.cancel();
           _gpsSub = null;
           _gps.stop();
-          if (mounted) setState(() => _gpsReady = false);
+          if (mounted) {
+            setState(() {
+              _gpsReady = false;
+              _hasRealFix = false;
+            });
+          }
           WakelockPlus.disable();
         }
       case AppLifecycleState.resumed:
@@ -4442,7 +4859,10 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             if (!mounted) return;
             if (ok) {
               _gpsSub = _gps.stream.listen(_onGps);
-              setState(() => _gpsReady = true);
+              setState(() {
+                _gpsReady = true;
+                _hasRealFix = false;
+              });
             }
           }));
         }
@@ -4814,11 +5234,20 @@ class _RoadEventDetail extends StatefulWidget {
   final RoadEvent event;
   final RoadstrColors colors;
   final bool isLoggedIn;
+  final bool isOwner;
+  final List<RoadEventEditRequest> editRequests;
+  final Future<void> Function(int speedLimit, String? requestId)?
+      onEditSpeedLimit;
+  final Future<void> Function(int speedLimit)? onRequestSpeedLimit;
   final void Function(bool)? onConfirm;
   const _RoadEventDetail(
       {required this.event,
       required this.colors,
       required this.isLoggedIn,
+      this.isOwner = false,
+      this.editRequests = const [],
+      this.onEditSpeedLimit,
+      this.onRequestSpeedLimit,
       this.onConfirm});
   @override
   State<_RoadEventDetail> createState() => _RoadEventDetailState();
@@ -4826,6 +5255,8 @@ class _RoadEventDetail extends StatefulWidget {
 
 class _RoadEventDetailState extends State<_RoadEventDetail> {
   int _zapSat = 0;
+  bool _reporterPublic = false;
+  NostrProfile? _reporterProfile;
 
   @override
   void initState() {
@@ -4834,6 +5265,29 @@ class _RoadEventDetailState extends State<_RoadEventDetail> {
         .then((msats) {
       if (mounted) setState(() => _zapSat = msats ~/ 1000);
     });
+    _loadReporterProfile();
+  }
+
+  Future<void> _loadReporterProfile() async {
+    final visibility =
+        await NostrRelayService.fetchProfileVisibility(widget.event.pubkey);
+    if (!mounted || visibility?.isPublic != true) {
+      if (mounted) setState(() => _reporterPublic = false);
+      return;
+    }
+    final profile = await NostrRelayService.fetchProfile(widget.event.pubkey);
+    if (mounted) {
+      setState(() {
+        _reporterPublic = true;
+        _reporterProfile = profile;
+      });
+    }
+  }
+
+  void _openReporterProfile() {
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => ProfileScreen(pubkeyHex: widget.event.pubkey),
+    ));
   }
 
   void _openZapSheet() {
@@ -4848,6 +5302,62 @@ class _RoadEventDetailState extends State<_RoadEventDetail> {
         },
       ),
     );
+  }
+
+  Future<void> _askSpeedLimit({String? requestId}) async {
+    final ctrl = TextEditingController(
+        text: requestId == null && widget.event.speedLimit != null
+            ? '${Units.imperial ? Units.toDisplaySpeed(widget.event.speedLimit!.toDouble()).round() : widget.event.speedLimit}'
+            : '');
+    final value = await showDialog<int>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: widget.colors.surface2,
+        title: Text(requestId == null && widget.isOwner
+            ? AppLocalizations.of(ctx).editSpeedLimit
+            : AppLocalizations.of(ctx).requestSpeedLimit),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          maxLength: 3,
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(ctx).speedLimitHint,
+            suffixText: Units.speedUnit,
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(AppLocalizations.of(ctx).cancel)),
+          FilledButton(
+            onPressed: () {
+              final raw = int.tryParse(ctrl.text.trim());
+              if (raw == null || raw <= 0 || raw > 300) return;
+              Navigator.pop(
+                  ctx, Units.imperial ? (raw * 1.60934).round() : raw);
+            },
+            child: Text(AppLocalizations.of(ctx).ok),
+          ),
+        ],
+      ),
+    );
+    ctrl.dispose();
+    if (value == null || !mounted) return;
+    try {
+      if (requestId != null) {
+        await widget.onEditSpeedLimit!(value, requestId);
+      } else if (widget.isOwner) {
+        await widget.onEditSpeedLimit!(value, null);
+      } else {
+        await widget.onRequestSpeedLimit!(value);
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.toString())));
+      }
+    }
   }
 
   @override
@@ -4938,6 +5448,52 @@ class _RoadEventDetailState extends State<_RoadEventDetail> {
               Text(event.comment,
                   style: TextStyle(color: c.textSecondary, fontSize: 13)),
             ],
+            if ((widget.onEditSpeedLimit != null ||
+                    widget.onRequestSpeedLimit != null) &&
+                event.category == RoadCategory.speedCamera) ...[
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => _askSpeedLimit(),
+                  icon: Icon(widget.isOwner
+                      ? Icons.edit_rounded
+                      : Icons.lightbulb_outline_rounded),
+                  label: Text(widget.isOwner
+                      ? AppLocalizations.of(context).editSpeedLimit
+                      : AppLocalizations.of(context).requestSpeedLimit),
+                ),
+              ),
+            ],
+            if (widget.isOwner && widget.editRequests.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(AppLocalizations.of(context).pendingEditRequests,
+                  style: TextStyle(
+                      color: c.textPrimary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700)),
+              const SizedBox(height: 6),
+              ...widget.editRequests.map((request) => Card(
+                    color: c.surface3,
+                    margin: const EdgeInsets.only(bottom: 6),
+                    child: ListTile(
+                      dense: true,
+                      title: Text('${request.speedLimit} ${Units.speedUnit}',
+                          style: TextStyle(color: c.textPrimary)),
+                      subtitle: Text(
+                          '${request.requesterPubkey.substring(0, 8)}…',
+                          style:
+                              TextStyle(color: c.textSecondary, fontSize: 10)),
+                      trailing: TextButton(
+                        onPressed: widget.onEditSpeedLimit == null
+                            ? null
+                            : () => _askSpeedLimit(requestId: request.id),
+                        child: Text(
+                            AppLocalizations.of(context).acceptEditRequest),
+                      ),
+                    ),
+                  )),
+            ],
             const SizedBox(height: 14),
             Row(children: [
               const Icon(Icons.check_circle_outline,
@@ -4952,6 +5508,55 @@ class _RoadEventDetailState extends State<_RoadEventDetail> {
               Text('${event.denials}',
                   style: TextStyle(color: c.textSecondary, fontSize: 12)),
             ]),
+            const SizedBox(height: 12),
+            InkWell(
+              onTap: _openReporterProfile,
+              borderRadius: BorderRadius.circular(10),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(children: [
+                  CircleAvatar(
+                    radius: 16,
+                    backgroundColor: c.accentSoft,
+                    backgroundImage:
+                        _reporterPublic && _reporterProfile?.picture != null
+                            ? NetworkImage(_reporterProfile!.picture!)
+                            : null,
+                    child: _reporterPublic && _reporterProfile?.picture != null
+                        ? null
+                        : Icon(Icons.person_outline_rounded,
+                            color: c.accent, size: 18),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _reporterPublic &&
+                              _reporterProfile?.label.isNotEmpty == true
+                          ? _reporterProfile!.label
+                          : AppLocalizations.of(context).nostrichLabel,
+                      style: TextStyle(
+                          color: c.textPrimary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  if (_reporterPublic)
+                    Flexible(
+                      child: Text(
+                        Nip19().npubEncode(event.pubkey),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            color: c.textSecondary,
+                            fontSize: 9,
+                            fontFamily: 'monospace'),
+                      ),
+                    ),
+                  Icon(Icons.chevron_right_rounded,
+                      color: c.textSecondary, size: 18),
+                ]),
+              ),
+            ),
             if (widget.isLoggedIn && widget.onConfirm != null) ...[
               const SizedBox(height: 16),
               Row(children: [
@@ -6681,16 +7286,31 @@ class _HistoryResults extends StatelessWidget {
                   Divider(height: 0.5, color: colors.border),
               itemBuilder: (_, i) {
                 final h = history[i];
+                // "Via Attilio Monti 12, Ravenna" → street on the title line,
+                // town on the subtitle line, so entries stay identifiable even
+                // when the street name is long.
+                final comma = h.label.indexOf(',');
+                final title =
+                    comma > 0 ? h.label.substring(0, comma).trim() : h.label;
+                final subtitle =
+                    comma > 0 ? h.label.substring(comma + 1).trim() : '';
                 return ListTile(
                   tileColor: Colors.transparent,
                   dense: true,
                   leading: Icon(Icons.location_on_outlined,
                       color: colors.accent, size: 20),
-                  title: Text(h.label,
+                  title: Text(title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style:
                           TextStyle(color: colors.textPrimary, fontSize: 14)),
+                  subtitle: subtitle.isEmpty
+                      ? null
+                      : Text(subtitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              color: colors.textSecondary, fontSize: 12)),
                   onTap: () => onSelect(h),
                 );
               },
@@ -7812,15 +8432,19 @@ class _NavInstruction extends StatelessWidget {
         ]),
       ),
       // ── Next-step preview tile (left-anchored, own background) ─────────────
-      // Fixed width = exactly half the panel above (which is edge-to-edge,
-      // i.e. half the screen width) so the tile never grows with long text —
-      // it stays half as wide as the main instruction bar while keeping the
-      // same tall height/icon/font sizing.
+      // Half the screen wide at minimum (so short instructions keep the
+      // familiar half-panel look), but free to grow up to the full width when
+      // the text needs it. A hard `width:` here used to clip every instruction
+      // longer than a couple of words to "Contin…" while the space next to the
+      // tile sat empty.
       if (showNext)
         Align(
           alignment: Alignment.centerLeft,
           child: Container(
-            width: MediaQuery.of(context).size.width * 0.5,
+            constraints: BoxConstraints(
+              minWidth: MediaQuery.of(context).size.width * 0.5,
+              maxWidth: MediaQuery.of(context).size.width,
+            ),
             padding: EdgeInsets.symmetric(
                 horizontal: land ? 16 : 24, vertical: land ? 16 : 28),
             decoration: BoxDecoration(
@@ -7834,23 +8458,28 @@ class _NavInstruction extends StatelessWidget {
                     offset: const Offset(2, 4))
               ],
             ),
-            child: Row(children: [
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
               Icon(_directionIcon(nextStep!.direction, nextStep!.modifier),
                   color: colors.accent, size: land ? 30 : 48),
               const SizedBox(width: 12),
-              // Expanded (not Flexible) so text truncates at the fixed tile
-              // width instead of letting the Row grow to fit long instructions.
-              Expanded(
+              // Flexible (not Expanded): the tile is sized by its content up to
+              // the full screen width, so the instruction wraps instead of
+              // being cut off mid-word.
+              Flexible(
                   child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(nextStep!.instruction,
+                  // "then …" makes it unmistakable that this is the manoeuvre
+                  // AFTER the one in the main banner, not the current one.
+                  Text(
+                      AppLocalizations.of(context)
+                          .thenManeuver(_uncapitalised(nextStep!.instruction)),
                       style: TextStyle(
                           color: colors.textPrimary,
                           fontSize: land ? 16 : 26,
                           fontWeight: FontWeight.w600),
-                      maxLines: 1,
+                      maxLines: land ? 2 : 3,
                       overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4),
                   Text(_distLabel(nextStep!.distanceM, ''),
@@ -7868,6 +8497,20 @@ class _NavInstruction extends StatelessWidget {
 
   String _distLabel(double m, String nowLabel) =>
       Units.fmtDist(m, nowLabel: nowLabel);
+
+  /// Lowercases the first letter of a router instruction so it reads naturally
+  /// after the "then" prefix ("Continue on Via Roma" → "then continue on Via
+  /// Roma"). Acronyms and road codes are left untouched: a second uppercase
+  /// character (or a digit) means the word is not an ordinary sentence start,
+  /// so "SS16 exit" stays "SS16 exit".
+  static String _uncapitalised(String s) {
+    if (s.length < 2) return s;
+    final second = s[1];
+    if (second.toUpperCase() == second && second.toLowerCase() != second) {
+      return s; // "SS16", "NW" …
+    }
+    return '${s[0].toLowerCase()}${s.substring(1)}';
+  }
 
   /// Returns either a roundabout custom icon (when exit data is available) or
   /// the standard direction icon box.
@@ -7985,8 +8628,8 @@ class _NavPanel extends StatelessWidget {
     // Bumped for at-a-glance legibility while driving. The row height is
     // governed by the speedometer (70/110 px), so larger type does not grow
     // the bar — the text column still fits well within that height.
-    final fsDist = land ? 19.0 : 28.0;
-    final fsSub = land ? 13.0 : 16.5;
+    final fsDist = land ? 24.0 : 34.0;
+    final fsSub = land ? 15.5 : 19.0;
     final vTop = land ? 6.0 : 14.0;
     final vBot = land
         ? (bottomInset > 0 ? bottomInset + 4 : 8.0)
@@ -8234,66 +8877,6 @@ class _MapFab extends StatelessWidget {
 /// reflect the current map orientation. A red "N" sits at the arrow tip so
 /// the user can always see which way is north. When heading mode is active the
 /// border glows purple.
-// ── Speed limit sign ─────────────────────────────────────────────────────────
-
-/// Circular road sign: red border, white fill, black number — exactly like a
-/// real posted speed limit sign. Only rendered when a numeric limit is known.
-/// Warning banner shown when the GPS position is inside a ZTL polygon.
-class _ZtlBanner extends StatelessWidget {
-  final String? name;
-  final LatLng pos;
-  final RoadstrColors colors;
-
-  /// True = warning shown BEFORE entering ZTL (route leads into one).
-  /// False = user is already inside ZTL.
-  final bool onRoute;
-  const _ZtlBanner(
-      {this.name,
-      required this.pos,
-      required this.colors,
-      this.onRoute = false});
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    // Unnamed OSM element: use the country's OFFICIAL term when known
-    // (ZTL in Italy/France, ZAC in Portugal — see ZtlService.officialAcronymFor),
-    // otherwise a generic translated label instead of a hardcoded "ZTL".
-    final label = (name != null && name!.isNotEmpty)
-        ? name!
-        : (ZtlService.officialAcronymFor(pos) ?? l.ztlInsideWarning);
-    final bg = onRoute ? Colors.orange.shade800 : Colors.red.shade700;
-    final icon = onRoute ? Icons.warning_amber_rounded : Icons.no_crash_rounded;
-    final msg = onRoute
-        ? '⚠ $label — ${l.ztlAheadWarning}'
-        : '⚠ $label — ${l.ztlInsideWarning}';
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
-              blurRadius: 8,
-              offset: const Offset(0, 2))
-        ],
-      ),
-      child: Row(children: [
-        Icon(icon, color: Colors.white, size: 22),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            msg,
-            style: const TextStyle(
-                color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
-          ),
-        ),
-      ]),
-    );
-  }
-}
-
 class _SpeedLimitSign extends StatelessWidget {
   final int speedKmh;
   const _SpeedLimitSign(this.speedKmh);
@@ -8305,14 +8888,14 @@ class _SpeedLimitSign extends StatelessWidget {
     final display = Units.imperial
         ? Units.toDisplaySpeed(speedKmh.toDouble()).round()
         : speedKmh;
-    final fontSize = display >= 100 ? 13.0 : 16.0;
+    final fontSize = display >= 100 ? 23.5 : 27.0;
     return Container(
-      width: 46,
-      height: 46,
+      width: 78,
+      height: 78,
       decoration: BoxDecoration(
         color: Colors.white,
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.red, width: 4),
+        border: Border.all(color: Colors.red, width: 6.5),
         boxShadow: [
           BoxShadow(
               color: Colors.black.withValues(alpha: 0.25),

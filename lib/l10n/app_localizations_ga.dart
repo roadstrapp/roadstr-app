@@ -235,6 +235,50 @@ class AppLocalizationsGa extends AppLocalizations {
   String get profileTitle => 'Próifíl';
 
   @override
+  String get profileVisibilityTitle => 'Profile visibility';
+
+  @override
+  String get profileVisibilityDesc =>
+      'Choose whether other Roadstr users see your Nostr name, npub and picture.';
+
+  @override
+  String get profileVisibilityClear => 'Show profile publicly';
+
+  @override
+  String get profileVisibilityPseudonymous => 'Pseudonymous mode (recommended)';
+
+  @override
+  String get profileVisibilityPublishError =>
+      'The local choice was saved, but could not be published to Nostr yet.';
+
+  @override
+  String get nostrichLabel => 'nostrich';
+
+  @override
+  String get profileHiddenNotice => 'This user is using pseudonymous mode.';
+
+  @override
+  String get editSpeedLimit => 'Add or update speed limit';
+
+  @override
+  String get requestSpeedLimit => 'Suggest a speed limit';
+
+  @override
+  String get acceptEditRequest => 'Accept suggestion';
+
+  @override
+  String get pendingEditRequests => 'Pending edit suggestions';
+
+  @override
+  String get speedLimitHint => 'Speed limit';
+
+  @override
+  String get speedLimitSaved => 'Speed limit published';
+
+  @override
+  String get editRequestSent => 'Suggestion sent to the report owner';
+
+  @override
   String get notConnected => 'Gan nasc';
 
   @override
@@ -460,6 +504,11 @@ class AppLocalizationsGa extends AppLocalizations {
   @override
   String chainedManeuver(String first, String second) {
     return '$first, ansin $second';
+  }
+
+  @override
+  String thenManeuver(String instruction) {
+    return 'ansin $instruction';
   }
 
   @override
@@ -1196,6 +1245,10 @@ class AppLocalizationsGa extends AppLocalizations {
   @override
   String get onboardingFavoritesSyncNotice =>
       'Roghnach: is féidir do cheanáin shábháilte a shioncronú idir do ghléasanna trí na hathsheachadáin Nostr, criptithe ó cheann go ceann (NIP-44) le d’eochair féin — ní fheiceann na hathsheachadáin ach téacs criptithe, agus ní féidir le duine ar bith seachas tú féin an t-ábhar a léamh. Cumasaigh am ar bith ó na Socruithe.';
+
+  @override
+  String get profileVisibilityOnboarding =>
+      'Roadstr always publishes the Nostr public key needed to verify a report. In pseudonymous mode, other Roadstr users see only a generic avatar and “nostrich”; in public mode, they also see your Nostr name, npub and profile picture. Your reports, locations, reputation and received zaps remain public on Nostr.';
 
   @override
   String get parkingSaveHere => 'Sábháil páirceáil anseo';

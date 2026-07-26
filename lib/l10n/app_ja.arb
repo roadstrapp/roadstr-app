@@ -175,6 +175,7 @@
   "@chainedManeuver": {
     "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
   },
+  "thenManeuver": "その後 {instruction}",
   "reportSpeedLimitHint": "制限速度(任意)",
   "reportedSpeedLimit": "報告された制限速度",
   "speedCameraVoiceAlert": "速度カメラあり、制限速度 {limit} {unit}",

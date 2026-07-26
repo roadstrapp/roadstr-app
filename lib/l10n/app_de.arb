@@ -175,6 +175,7 @@
   "@chainedManeuver": {
     "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
   },
+  "thenManeuver": "dann {instruction}",
   "reportSpeedLimitHint": "Tempolimit (optional)",
   "reportedSpeedLimit": "Gemeldetes Tempolimit",
   "speedCameraVoiceAlert": "Blitzer gemeldet, Tempolimit {limit} {unit}",

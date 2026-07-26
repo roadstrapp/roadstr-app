@@ -18,16 +18,36 @@ error()   { echo -e "${RED}✗${NC}  $*"; exit 1; }
 info "Checking prerequisites..."
 command -v flutter >/dev/null 2>&1 || error "flutter not found in PATH"
 command -v apksigner >/dev/null 2>&1 || error "apksigner not found — install Android SDK Build Tools"
+command -v keytool >/dev/null 2>&1 || error "keytool not found — install a JDK"
 
 # ── Keystore setup ────────────────────────────────────────────────────────────
 KEY_PROPS="android/key.properties"
 if [ -f "$KEY_PROPS" ]; then
     STORE_FILE=$(grep "^storeFile=" "$KEY_PROPS" | cut -d= -f2- | tr -d '[:space:]')
-    if [ -f "$STORE_FILE" ]; then
-        info "Keystore found at $STORE_FILE — will sign with release key."
+    STORE_PASSWORD=$(grep "^storePassword=" "$KEY_PROPS" | cut -d= -f2- | tr -d '[:space:]')
+    KEY_ALIAS=$(grep "^keyAlias=" "$KEY_PROPS" | cut -d= -f2- | tr -d '[:space:]')
+
+    if [[ "$STORE_FILE" = /* ]]; then
+        RESOLVED_STORE_FILE="$STORE_FILE"
+    elif [ -f "$SCRIPT_DIR/$STORE_FILE" ]; then
+        RESOLVED_STORE_FILE="$SCRIPT_DIR/$STORE_FILE"
+    elif [ -f "$SCRIPT_DIR/android/$STORE_FILE" ]; then
+        RESOLVED_STORE_FILE="$SCRIPT_DIR/android/$STORE_FILE"
     else
         error "key.properties points to a missing keystore: $STORE_FILE"
     fi
+
+    EXPECTED_CERT_SHA256=$(
+        keytool -list -v \
+            -keystore "$RESOLVED_STORE_FILE" \
+            -storepass "$STORE_PASSWORD" \
+            -alias "$KEY_ALIAS" 2>/dev/null \
+            | awk '/SHA256:/ {gsub(":", "", $2); print toupper($2); exit}'
+    )
+    [ -n "$EXPECTED_CERT_SHA256" ] || error "Could not read release certificate fingerprint from $RESOLVED_STORE_FILE"
+
+    info "Keystore found at $RESOLVED_STORE_FILE — will sign with release key."
+    info "Expected release certificate SHA-256: $EXPECTED_CERT_SHA256"
 else
     warning "android/key.properties not found."
     warning "A public release must use the official release key."
@@ -67,6 +87,12 @@ flutter build apk --release \
 for apk in build/app/outputs/flutter-apk/app-*-release.apk; do
     [ -f "$apk" ] || error "No release APK was produced"
     apksigner verify "$apk" || error "Unsigned or invalid APK: $apk"
+    APK_CERT_SHA256=$(
+        apksigner verify --print-certs "$apk" \
+            | awk -F': ' '/Signer #1 certificate SHA-256 digest:/ {gsub(":", "", $2); print toupper($2); exit}'
+    )
+    [ "$APK_CERT_SHA256" = "$EXPECTED_CERT_SHA256" ] || \
+        error "APK signed with unexpected certificate: $apk ($APK_CERT_SHA256 != $EXPECTED_CERT_SHA256)"
 done
 
 echo ""

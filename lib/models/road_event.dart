@@ -168,7 +168,7 @@ class RoadEvent {
   /// Reporter-declared speed limit in km/h (from the `maxspeed` tag), for
   /// speed-camera reports. Null when not provided. Always stored in km/h;
   /// the UI converts to mph for imperial users.
-  final int? speedLimit;
+  int? speedLimit;
   int confirmations;
   int denials;
 
@@ -303,4 +303,25 @@ class RoadEvent {
       return null;
     }
   }
+}
+
+/// A proposed change to a Roadstr report. Requests never change the report by
+/// themselves: only a later kind-1317 update signed by the original author is
+/// applied to the public event.
+class RoadEventEditRequest {
+  final String id;
+  final String eventId;
+  final String requesterPubkey;
+  final int? speedLimit;
+  final String comment;
+  final int createdAt;
+
+  const RoadEventEditRequest({
+    required this.id,
+    required this.eventId,
+    required this.requesterPubkey,
+    required this.speedLimit,
+    required this.comment,
+    required this.createdAt,
+  });
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:latlong2/latlong.dart';
+import '../utils/fuzzy_match.dart';
 import 'bounded_http.dart';
 import 'routing_service.dart' show NominatimResult;
 
@@ -319,7 +320,11 @@ class PoiSearchService {
     'https://overpass-api.de/api/interpreter',
     'https://overpass.openstreetmap.fr/api/interpreter',
   ];
-  static const _radiusM = 8000;
+  // A local category search does not need an 8 km Overpass extract.  Named
+  // streets and businesses are handled by Nominatim; this query is only the
+  // nearby-category supplement, so keeping it to 4 km makes responses much
+  // smaller and considerably faster.
+  static const _radiusM = 4000;
 
   /// Category keyword -> OSM tag filters (any one may match). Keys are
   /// lowercase, accent-stripped. Currently covers Italian + English; extend
@@ -373,21 +378,46 @@ class PoiSearchService {
   /// if [query] matches no known category and no brand/name hits are found —
   /// callers should fall back to (or merge with) [RoutingService.search].
   Future<List<NominatimResult>> search(String query, LatLng center) async {
-    final normalized = _normalize(query);
-    final tags = _categories[normalized];
+    final tags = _categoryFor(query);
     try {
       if (tags != null) {
         return await _queryTags(tags, center);
       }
-      // No category match: try it as a brand/business name (e.g. "Famila",
-      // "Esselunga"). Only worth the round trip for non-trivial queries.
-      if (normalized.length >= 3) {
-        return await _queryName(query, center);
-      }
+      // Named streets and businesses are already covered by Nominatim. Do not
+      // issue a second large Overpass regex query for every keystroke: the
+      // category path above is the only supplement that needs local OSM tags.
       return [];
     } catch (_) {
       return [];
     }
+  }
+
+  /// Resolves [query] to a category's OSM tag filters, tolerating misspellings
+  /// and simple plurals ("farmacie" → "farmacia", "hotle" → "hotel").
+  ///
+  /// The tolerance is deliberately narrow — the candidate must be within two
+  /// characters of the keyword — because a false positive here fires a 4 km
+  /// Overpass query and injects unrelated POIs into the suggestion list.
+  /// Prefix matches are therefore NOT accepted: "barcellona" must not be read
+  /// as "bar".
+  static List<String>? _categoryFor(String query) {
+    final normalized = FuzzyMatch.normalize(query);
+    if (normalized.isEmpty) return null;
+    final exact = _categories[normalized];
+    if (exact != null) return exact;
+    if (normalized.length < 4) return null;
+
+    List<String>? best;
+    var bestScore = 0.8;
+    for (final entry in _categories.entries) {
+      if ((entry.key.length - normalized.length).abs() > 2) continue;
+      final s = FuzzyMatch.wordScore(normalized, entry.key);
+      if (s > bestScore) {
+        bestScore = s;
+        best = entry.value;
+      }
+    }
+    return best;
   }
 
   /// Returns structured information for the most plausible OSM POI near
@@ -615,19 +645,7 @@ class PoiSearchService {
       return 'node$parts(around:$_radiusM,${center.latitude},${center.longitude});'
           'way$parts(around:$_radiusM,${center.latitude},${center.longitude});';
     }).join();
-    final query = '[out:json][timeout:8];($clauses);out center 20;';
-    return _run(query, center);
-  }
-
-  Future<List<NominatimResult>> _queryName(String raw, LatLng center) async {
-    final safe = _qlSafeRegex(raw);
-    final query = '[out:json][timeout:8];'
-        '(node["shop"]["name"~"$safe",i](around:$_radiusM,${center.latitude},${center.longitude});'
-        'node["amenity"]["name"~"$safe",i](around:$_radiusM,${center.latitude},${center.longitude});'
-        'node["brand"~"$safe",i](around:$_radiusM,${center.latitude},${center.longitude});'
-        'way["shop"]["name"~"$safe",i](around:$_radiusM,${center.latitude},${center.longitude});'
-        'way["amenity"]["name"~"$safe",i](around:$_radiusM,${center.latitude},${center.longitude});'
-        ');out center 15;';
+    final query = '[out:json][timeout:5];($clauses);out center 12;';
     return _run(query, center);
   }
 
@@ -641,8 +659,8 @@ class PoiSearchService {
             'User-Agent': 'Roadstr/1.0 (navigation app)',
           },
           body: 'data=${Uri.encodeQueryComponent(query)}',
-          maxBytes: 10 * 1024 * 1024,
-          timeout: const Duration(seconds: 8),
+          maxBytes: 6 * 1024 * 1024,
+          timeout: const Duration(seconds: 5),
         );
         if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
         final data = jsonDecode(res.body) as Map<String, dynamic>;
@@ -702,28 +720,9 @@ class PoiSearchService {
   static double _distM(LatLng a, LatLng b) =>
       const Distance().as(LengthUnit.Meter, a, b);
 
-  static String _normalize(String s) {
-    var n = s.trim().toLowerCase();
-    const accents = {
-      'à': 'a',
-      'á': 'a',
-      'è': 'e',
-      'é': 'e',
-      'ì': 'i',
-      'í': 'i',
-      'ò': 'o',
-      'ó': 'o',
-      'ù': 'u',
-      'ú': 'u',
-    };
-    accents.forEach((k, v) => n = n.replaceAll(k, v));
-    return n;
-  }
+  /// Lowercase, accent-folded, punctuation-stripped form used for name
+  /// comparisons. Delegates to the shared search normaliser so POI matching and
+  /// suggestion ranking always agree on what "the same text" means.
+  static String _normalize(String s) => FuzzyMatch.normalize(s);
 
-  /// Escapes [raw] for safe embedding inside an Overpass QL regex string
-  /// literal: neutralizes regex metacharacters first (so "a.b*" is matched
-  /// literally, not as a pattern), then escapes any remaining `"` for the QL
-  /// string boundary.
-  static String _qlSafeRegex(String raw) =>
-      RegExp.escape(raw).replaceAll('"', '\\"');
 }

@@ -175,6 +175,7 @@
   "@chainedManeuver": {
     "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
   },
+  "thenManeuver": "затем {instruction}",
   "reportSpeedLimitHint": "Ограничение скорости (необязательно)",
   "reportedSpeedLimit": "Заявленное ограничение скорости",
   "speedCameraVoiceAlert": "Камера, ограничение скорости {limit} {unit}",

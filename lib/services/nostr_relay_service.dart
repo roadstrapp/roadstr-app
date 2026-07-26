@@ -41,6 +41,16 @@ class NostrProfile {
           : '';
 }
 
+/// Whether a Roadstr user has explicitly opted in to showing their Nostr
+/// metadata to other Roadstr users.  Missing events mean `false` by design.
+class RoadstrProfileVisibility {
+  final bool isPublic;
+  final int createdAt;
+
+  const RoadstrProfileVisibility(
+      {required this.isPublic, required this.createdAt});
+}
+
 /// Manages the Nostr WebSocket connection for receiving and publishing road events.
 ///
 /// Protocol (NIP-01):
@@ -78,6 +88,8 @@ class NostrRelayService {
   /// the map during the brief gap between sending CLOSE and receiving new EVENTs.
   /// Expired events are purged by the [_cleanupTimer] every 2 minutes.
   final _events = <String, RoadEvent>{};
+  final _pendingRoadUpdates = <String, Map<String, dynamic>>{};
+  final _latestRoadUpdateAt = <String, int>{};
   final _controller = StreamController<List<RoadEvent>>.broadcast();
 
   WebSocketChannel? _ws;
@@ -384,6 +396,58 @@ class NostrRelayService {
     await _publishEvent(signed.toJson());
   }
 
+  /// Publishes the user's Roadstr profile-visibility preference.  This is a
+  /// replaceable NIP-78 event: relays keep the newest event with this `d` tag.
+  /// A missing event is intentionally interpreted as pseudonymous by clients.
+  Future<void> publishProfileVisibility({
+    required String privKeyHex,
+    required String pubKeyHex,
+    required bool isPublic,
+  }) async {
+    _requireConnected();
+    if (!_isHex32(pubKeyHex)) {
+      throw const FormatException('Invalid Nostr public key');
+    }
+    final now = _nowS();
+    final signed = _eventApi.finishEvent(
+      Event(
+        pubkey: pubKeyHex,
+        created_at: now,
+        kind: 30078,
+        tags: [
+          ['d', 'roadstr-profile-visibility'],
+          ['client', 'roadstr'],
+        ],
+        content: jsonEncode({'public': isPublic}),
+      ),
+      privKeyHex,
+    );
+    if (!verifyEventJson(signed.toJson())) {
+      throw const FormatException('The local Nostr key pair does not match');
+    }
+    await _publishEvent(signed.toJson());
+  }
+
+  /// Unsigned counterpart used by Amber/NIP-55.
+  static Map<String, dynamic> buildProfileVisibilityMap({
+    required String pubKeyHex,
+    required bool isPublic,
+    int? now,
+  }) {
+    final event = Event(
+      pubkey: pubKeyHex,
+      created_at: now ?? _nowS(),
+      kind: 30078,
+      tags: [
+        ['d', 'roadstr-profile-visibility'],
+        ['client', 'roadstr'],
+      ],
+      content: jsonEncode({'public': isPublic}),
+    );
+    event.id = EventApi().getEventHash(event);
+    return event.toJson();
+  }
+
   void dispose() {
     if (_disposed) return;
     _disposed = true;
@@ -519,7 +583,7 @@ class NostrRelayService {
       'REQ',
       _eventsSubId,
       {
-        'kinds': [1315],
+        'kinds': [1315, 1317, 1318],
         '#g': geohashes,
         // Speed-camera reports have the longest category TTL (30 days).
         'since': _nowS() - 30 * 86400,
@@ -589,6 +653,9 @@ class NostrRelayService {
             case 1315:
               if (msg[1] != _eventsSubId) return;
               _handleRoadEvent(json);
+            case 1317:
+              if (msg[1] != _eventsSubId) return;
+              _handleRoadUpdate(json);
             case 1316:
               if (msg[1] == _confSubId) {
                 _handleConfirmation(json);
@@ -636,6 +703,8 @@ class NostrRelayService {
       return;
     }
     _events[event.id] = event;
+    final pending = _pendingRoadUpdates.remove(event.id);
+    if (pending != null) _applyRoadUpdate(pending, event);
     if (_events.length > _maxCachedEvents) {
       final oldest =
           _events.values.reduce((a, b) => a.createdAt <= b.createdAt ? a : b);
@@ -644,6 +713,45 @@ class NostrRelayService {
     }
     _pendingIds.add(event.id);
     if (!_controller.isClosed) _controller.add(currentEvents);
+  }
+
+  void _handleRoadUpdate(Map<String, dynamic> json) {
+    final targetId = _tagValue(json, 'e');
+    if (targetId == null) return;
+    final event = _events[targetId];
+    if (event == null) {
+      _pendingRoadUpdates[targetId] = json;
+      return;
+    }
+    if (_applyRoadUpdate(json, event) && !_controller.isClosed) {
+      _controller.add(currentEvents);
+    }
+  }
+
+  bool _applyRoadUpdate(Map<String, dynamic> json, RoadEvent event) {
+    // Only the original reporter can update a report. A request from another
+    // pubkey is deliberately ignored here until the owner signs kind-1317.
+    if (json['pubkey'] != event.pubkey) return false;
+    final createdAt = json['created_at'] as int? ?? 0;
+    if (createdAt <= (_latestRoadUpdateAt[event.id] ?? event.createdAt)) {
+      return false;
+    }
+    final maxspeed = _tagValue(json, 'maxspeed');
+    final limit = int.tryParse(maxspeed ?? '');
+    if (limit == null || limit < 5 || limit > 300) return false;
+    event.speedLimit = limit;
+    _latestRoadUpdateAt[event.id] = createdAt;
+    return true;
+  }
+
+  static String? _tagValue(Map<String, dynamic> json, String key) {
+    final tags = (json['tags'] as List?) ?? const [];
+    for (final raw in tags) {
+      if (raw is List && raw.length >= 2 && raw[0] == key) {
+        return raw[1].toString();
+      }
+    }
+    return null;
   }
 
   void _handleConfirmation(Map<String, dynamic> json) {
@@ -851,6 +959,130 @@ class NostrRelayService {
     return event.toJson();
   }
 
+  static Map<String, dynamic> buildKind1317Map({
+    required String eventId,
+    required String ownerPubKeyHex,
+    required int speedLimit,
+    required LatLng position,
+    required String comment,
+    String? requestId,
+  }) {
+    if (speedLimit < 5 || speedLimit > 300) {
+      throw const FormatException('Invalid speed limit');
+    }
+    final event = Event(
+      pubkey: ownerPubKeyHex,
+      created_at: _nowS(),
+      kind: 1317,
+      tags: [
+        ['e', eventId],
+        ['p', ownerPubKeyHex],
+        ['g', _gh(position.latitude, position.longitude, 4)],
+        ['g', _gh(position.latitude, position.longitude, 5)],
+        ['g', _gh(position.latitude, position.longitude, 6)],
+        ['maxspeed', '$speedLimit'],
+        if (requestId != null) ['request', requestId],
+      ],
+      content: comment,
+    );
+    event.id = EventApi().getEventHash(event);
+    return event.toJson();
+  }
+
+  static Map<String, dynamic> buildKind1318Map({
+    required String eventId,
+    required String requesterPubKeyHex,
+    required String ownerPubKeyHex,
+    required int speedLimit,
+    required LatLng position,
+  }) {
+    if (speedLimit < 5 || speedLimit > 300) {
+      throw const FormatException('Invalid speed limit');
+    }
+    final event = Event(
+      pubkey: requesterPubKeyHex,
+      created_at: _nowS(),
+      kind: 1318,
+      tags: [
+        ['e', eventId],
+        ['p', ownerPubKeyHex],
+        ['g', _gh(position.latitude, position.longitude, 4)],
+        ['g', _gh(position.latitude, position.longitude, 5)],
+        ['g', _gh(position.latitude, position.longitude, 6)],
+        ['maxspeed', '$speedLimit'],
+      ],
+      content: '',
+    );
+    event.id = EventApi().getEventHash(event);
+    return event.toJson();
+  }
+
+  Future<void> publishRoadEventUpdate({
+    required String privKeyHex,
+    required String ownerPubKeyHex,
+    required String eventId,
+    required LatLng position,
+    required int speedLimit,
+    String comment = '',
+    String? requestId,
+  }) async {
+    _requireConnected();
+    final signed = _eventApi.finishEvent(
+      Event(
+        pubkey: ownerPubKeyHex,
+        created_at: _nowS(),
+        kind: 1317,
+        tags: [
+          ['e', eventId],
+          ['p', ownerPubKeyHex],
+          ['g', _gh(position.latitude, position.longitude, 4)],
+          ['g', _gh(position.latitude, position.longitude, 5)],
+          ['g', _gh(position.latitude, position.longitude, 6)],
+          ['maxspeed', '$speedLimit'],
+          if (requestId != null) ['request', requestId],
+        ],
+        content: comment,
+      ),
+      privKeyHex,
+    );
+    if (!verifyEventJson(signed.toJson()) || signed.pubkey != ownerPubKeyHex) {
+      throw const FormatException('The local Nostr key pair does not match');
+    }
+    await _publishEvent(signed.toJson());
+  }
+
+  Future<void> publishRoadEventEditRequest({
+    required String privKeyHex,
+    required String requesterPubKeyHex,
+    required String ownerPubKeyHex,
+    required String eventId,
+    required LatLng position,
+    required int speedLimit,
+  }) async {
+    _requireConnected();
+    final signed = _eventApi.finishEvent(
+      Event(
+        pubkey: requesterPubKeyHex,
+        created_at: _nowS(),
+        kind: 1318,
+        tags: [
+          ['e', eventId],
+          ['p', ownerPubKeyHex],
+          ['g', _gh(position.latitude, position.longitude, 4)],
+          ['g', _gh(position.latitude, position.longitude, 5)],
+          ['g', _gh(position.latitude, position.longitude, 6)],
+          ['maxspeed', '$speedLimit'],
+        ],
+        content: '',
+      ),
+      privKeyHex,
+    );
+    if (!verifyEventJson(signed.toJson())) {
+      throw const FormatException('The local Nostr key pair does not match');
+    }
+    await _publishEvent(signed.toJson());
+  }
+
   /// Publishes an already-signed kind-1315 event (e.g. from Amber) and returns
   /// the corresponding local [RoadEvent] for immediate map display.
   Future<RoadEvent> publishRawRoadEvent({
@@ -944,6 +1176,8 @@ class NostrRelayService {
       ws = WebSocketChannel.connect(Uri.parse('wss://relay.damus.io'));
       final events = <RoadEvent>[];
       final eventIds = <String>{};
+      final pendingUpdates = <String, Map<String, dynamic>>{};
+      final updateTimes = <String, int>{};
       // One vote per pubkey per event, and dedupe re-delivered events —
       // same anti-inflation rules the live stream enforces via _countedVotes.
       final countedVotes = <String>{};
@@ -967,6 +1201,40 @@ class NostrRelayService {
                 final ev = RoadEvent.fromNostr(json);
                 if (ev != null && eventIds.add(ev.id)) {
                   events.add(ev);
+                  final update = pendingUpdates.remove(ev.id);
+                  if (update != null) {
+                    final limit =
+                        int.tryParse(_tagValue(update, 'maxspeed') ?? '');
+                    final updateAt = update['created_at'] as int? ?? 0;
+                    if (update['pubkey'] == ev.pubkey &&
+                        updateAt > ev.createdAt &&
+                        limit != null &&
+                        limit >= 5 &&
+                        limit <= 300) {
+                      ev.speedLimit = limit;
+                    }
+                  }
+                }
+              } else if (msg[1] == evSub && json['kind'] == 1317) {
+                final target = _tagValue(json, 'e');
+                final limit = int.tryParse(_tagValue(json, 'maxspeed') ?? '');
+                if (target == null ||
+                    limit == null ||
+                    limit < 5 ||
+                    limit > 300) {
+                  return;
+                }
+                final idx = events.indexWhere((e) => e.id == target);
+                if (idx < 0) {
+                  pendingUpdates[target] = json;
+                  return;
+                }
+                final event = events[idx];
+                final created = json['created_at'] as int? ?? 0;
+                if (json['pubkey'] == event.pubkey &&
+                    created > (updateTimes[target] ?? event.createdAt)) {
+                  updateTimes[target] = created;
+                  event.speedLimit = limit;
                 }
               } else if (msg[1] == confSub && json['kind'] == 1316) {
                 final tags = (json['tags'] as List)
@@ -1029,7 +1297,7 @@ class NostrRelayService {
         'REQ',
         evSub,
         {
-          'kinds': [1315],
+          'kinds': [1315, 1317],
           'authors': [pubHex],
           'since': _nowS() - 30 * 86400, // last 30 days
           'limit': safeLimit,
@@ -1045,6 +1313,78 @@ class NostrRelayService {
     } finally {
       ws?.sink.close().catchError((_) {});
     }
+  }
+
+  /// Fetches pending speed-limit suggestions for one report. A request is only
+  /// effective after the owner publishes a kind-1317 update.
+  static Future<List<RoadEventEditRequest>> fetchEditRequests(
+      String eventId) async {
+    if (!_isHex32(eventId)) return [];
+    for (final relayUrl in _profileRelays) {
+      WebSocketChannel? ws;
+      try {
+        ws = WebSocketChannel.connect(Uri.parse(relayUrl));
+        final subId = randomSubId();
+        final completer = Completer<List<RoadEventEditRequest>>();
+        final out = <RoadEventEditRequest>[];
+        ws.stream.listen((raw) {
+          if (completer.isCompleted) return;
+          try {
+            if (raw is! String || raw.length > _maxInboundMessageChars) return;
+            final msg = jsonDecode(raw) as List;
+            if (msg[0] == 'EVENT' && msg[1] == subId) {
+              final json = (msg[2] as Map).cast<String, dynamic>();
+              if (json['kind'] != 1318 || !verifyEventJson(json)) return;
+              final tags = (json['tags'] as List?) ?? const [];
+              String? target;
+              String? rawLimit;
+              for (final tag in tags) {
+                if (tag is! List || tag.length < 2) continue;
+                if (tag[0] == 'e') target = tag[1].toString();
+                if (tag[0] == 'maxspeed') rawLimit = tag[1].toString();
+              }
+              final limit = int.tryParse(rawLimit ?? '');
+              if (target != eventId ||
+                  limit == null ||
+                  limit < 5 ||
+                  limit > 300) {
+                return;
+              }
+              out.add(RoadEventEditRequest(
+                id: json['id'] as String,
+                eventId: target!,
+                requesterPubkey: json['pubkey'] as String,
+                speedLimit: limit,
+                comment: json['content'] as String? ?? '',
+                createdAt: json['created_at'] as int? ?? 0,
+              ));
+            } else if (msg[0] == 'EOSE' && msg[1] == subId) {
+              completer.complete(out);
+            }
+          } catch (_) {}
+        }, onError: (_) {
+          if (!completer.isCompleted) completer.complete(out);
+        }, onDone: () {
+          if (!completer.isCompleted) completer.complete(out);
+        });
+        ws.sink.add(jsonEncode([
+          'REQ',
+          subId,
+          {
+            'kinds': [1318],
+            '#e': [eventId],
+            'limit': 100,
+          }
+        ]));
+        return await completer.future
+            .timeout(const Duration(seconds: 6), onTimeout: () => out);
+      } catch (_) {
+        // Try the next profile relay.
+      } finally {
+        ws?.sink.close().catchError((_) {});
+      }
+    }
+    return [];
   }
 
   /// Fetches the NIP-01 kind-0 metadata event for [pubHex] from a public relay
@@ -1073,6 +1413,90 @@ class NostrRelayService {
       if (result != null) return result;
     }
     return null;
+  }
+
+  /// Reads the latest Roadstr visibility preference from public relays.
+  /// Invalid, missing or malformed events are treated as pseudonymous.
+  static Future<RoadstrProfileVisibility?> fetchProfileVisibility(
+      String pubHex) async {
+    if (!_isHex32(pubHex)) return null;
+    RoadstrProfileVisibility? latest;
+    for (final relayUrl in _profileRelays) {
+      final result = await _fetchProfileVisibilityFromRelay(pubHex, relayUrl);
+      if (result != null &&
+          (latest == null || result.createdAt > latest.createdAt)) {
+        latest = result;
+      }
+    }
+    return latest;
+  }
+
+  static Future<RoadstrProfileVisibility?> _fetchProfileVisibilityFromRelay(
+      String pubHex, String relayUrl) async {
+    WebSocketChannel? ws;
+    try {
+      ws = WebSocketChannel.connect(Uri.parse(relayUrl));
+      final completer = Completer<RoadstrProfileVisibility?>();
+      final subId = randomSubId();
+      RoadstrProfileVisibility? latest;
+      var latestCreatedAt = -1;
+      ws.stream.listen(
+        (raw) {
+          if (completer.isCompleted) return;
+          try {
+            if (raw is! String || raw.length > _maxInboundMessageChars) return;
+            final msg = jsonDecode(raw) as List;
+            if (msg[0] == 'EVENT' && msg[1] == subId) {
+              final json = (msg[2] as Map).cast<String, dynamic>();
+              if (json['pubkey'] != pubHex ||
+                  json['kind'] != 30078 ||
+                  !verifyEventJson(json)) {
+                return;
+              }
+              final tags = (json['tags'] as List?) ?? const [];
+              final hasD = tags.any((tag) =>
+                  tag is List &&
+                  tag.length >= 2 &&
+                  tag[0] == 'd' &&
+                  tag[1] == 'roadstr-profile-visibility');
+              if (!hasD) return;
+              final content = jsonDecode(json['content'] as String);
+              if (content is! Map || content['public'] is! bool) return;
+              final createdAt = json['created_at'] as int? ?? -1;
+              if (createdAt > latestCreatedAt) {
+                latestCreatedAt = createdAt;
+                latest = RoadstrProfileVisibility(
+                    isPublic: content['public'] as bool, createdAt: createdAt);
+              }
+            } else if (msg[0] == 'EOSE' && msg[1] == subId) {
+              if (!completer.isCompleted) completer.complete(latest);
+            }
+          } catch (_) {}
+        },
+        onError: (_) {
+          if (!completer.isCompleted) completer.complete(null);
+        },
+        onDone: () {
+          if (!completer.isCompleted) completer.complete(null);
+        },
+      );
+      ws.sink.add(jsonEncode([
+        'REQ',
+        subId,
+        {
+          'kinds': [30078],
+          'authors': [pubHex],
+          '#d': ['roadstr-profile-visibility'],
+          'limit': 5,
+        }
+      ]));
+      return await completer.future
+          .timeout(const Duration(seconds: 5), onTimeout: () => null);
+    } catch (_) {
+      return null;
+    } finally {
+      ws?.sink.close().catchError((_) {});
+    }
   }
 
   static Future<NostrProfile?> _fetchProfileFromRelay(

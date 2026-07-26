@@ -175,6 +175,7 @@
   "@chainedManeuver": {
     "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
   },
+  "thenManeuver": "derefter {instruction}",
   "reportSpeedLimitHint": "Hastighedsgrænse (valgfri)",
   "reportedSpeedLimit": "Rapporteret hastighedsgrænse",
   "speedCameraVoiceAlert": "Fotovogn rapporteret, hastighedsgrænse {limit} {unit}",

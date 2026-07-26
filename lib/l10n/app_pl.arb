@@ -175,6 +175,7 @@
   "@chainedManeuver": {
     "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
   },
+  "thenManeuver": "następnie {instruction}",
   "reportSpeedLimitHint": "Ograniczenie prędkości (opcjonalnie)",
   "reportedSpeedLimit": "Zgłoszone ograniczenie prędkości",
   "speedCameraVoiceAlert": "Zgłoszono fotoradar, ograniczenie prędkości {limit} {unit}",

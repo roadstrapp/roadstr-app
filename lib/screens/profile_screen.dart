@@ -19,20 +19,28 @@
 //   - Reputation score: confirmations / (confirmations + denials) across all
 //     of the user's road events, loaded in parallel with the balance fetch.
 //   - Lightning balance: total satoshis received as NIP-57 zap receipts.
+import 'dart:async';
+import 'dart:convert';
 import 'package:amberflutter/amberflutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:nostr_tools/nostr_tools.dart';
 import '../l10n/app_localizations.dart';
 import '../models/road_event.dart';
 import '../services/nostr_relay_service.dart';
+import '../services/profile_visibility_service.dart';
 import '../services/routing_service.dart';
 import '../services/zap_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/units.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  /// When set, this is a public profile opened from another user's report.
+  /// When null, the screen shows the local user's own profile/login screen.
+  final String? pubkeyHex;
+  const ProfileScreen({super.key, this.pubkeyHex});
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
@@ -52,6 +60,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _amber = Amberflutter();
 
   String? _npub;
+  String? _targetPubHex;
+  bool _profilePublic = false;
   String? _flavor;
   String? _picture;
   String? _name;
@@ -77,16 +87,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadProfile() async {
-    final pub = await _st.read(key: _kPub);
-    final flav = await _st.read(key: _kFlavor);
-    final picture = await _st.read(key: _kPicture);
-    final name = await _st.read(key: _kName);
+    final ownPub = await _st.read(key: _kPub);
+    final pub = widget.pubkeyHex ?? ownPub;
+    final flav =
+        widget.pubkeyHex == null ? await _st.read(key: _kFlavor) : null;
+    final picture =
+        widget.pubkeyHex == null ? await _st.read(key: _kPicture) : null;
+    final name = widget.pubkeyHex == null ? await _st.read(key: _kName) : null;
+    final isOwn = widget.pubkeyHex == null || widget.pubkeyHex == ownPub;
+    final visibility = isOwn || pub == null
+        ? null
+        : await NostrRelayService.fetchProfileVisibility(pub);
     if (!mounted) return;
     setState(() {
+      _targetPubHex = pub;
       _npub = pub != null ? Nip19().npubEncode(pub) : null;
       _flavor = flav;
       _picture = picture;
       _name = name;
+      _profilePublic = isOwn || visibility?.isPublic == true;
       _loading = false;
     });
     // Re-fetch Nostr profile whenever name or picture is missing in storage.
@@ -94,7 +113,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     //   a) the user logged in with nsec before the profile-fetch feature existed,
     //   b) the initial fetch timed out or failed,
     //   c) the user updated their Nostr profile since last opening the app.
-    if (pub != null && (name == null || picture == null)) {
+    if (pub != null &&
+        _profilePublic &&
+        widget.pubkeyHex == null &&
+        (name == null || picture == null)) {
+      _fetchAndStoreProfile(pub);
+    }
+    if (pub != null && _profilePublic && widget.pubkeyHex != null) {
       _fetchAndStoreProfile(pub);
     }
   }
@@ -111,7 +136,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// no confirmations/denials have been received.
   Future<void> _loadMyEvents() async {
     if (_loadingEvents || _myEvents != null) return;
-    final pub = await _st.read(key: _kPub);
+    final pub = _targetPubHex;
     if (pub == null) return;
     setState(() => _loadingEvents = true);
 
@@ -165,9 +190,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final profile = await NostrRelayService.fetchProfile(pubHex);
     if (profile == null) return;
     final name = profile.label;
-    if (name.isNotEmpty) await _st.write(key: _kName, value: name);
-    if (profile.picture != null) {
-      await _st.write(key: _kPicture, value: profile.picture!);
+    if (_isOwnProfile) {
+      if (name.isNotEmpty) await _st.write(key: _kName, value: name);
+      if (profile.picture != null) {
+        await _st.write(key: _kPicture, value: profile.picture!);
+      }
     }
     if (!mounted) return;
     setState(() {
@@ -176,7 +203,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  bool get _loggedIn => _npub != null;
+  bool get _loggedIn => _targetPubHex != null;
+  bool get _isOwnProfile =>
+      widget.pubkeyHex == null || widget.pubkeyHex == _targetPubHex;
+  bool get _showPublicProfile => _isOwnProfile || _profilePublic;
 
   // ── Amber (NIP-55) ────────────────────────────────────────────────────────
 
@@ -213,6 +243,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
       _fetchAndStoreProfile(
           pubHex); // fire-and-forget; updates name/avatar async
+      unawaited(ProfileVisibilityService.publish(
+          isPublic: (Hive.box('settings')
+                  .get(ProfileVisibilityService.storageKey, defaultValue: false)
+              as bool)));
       _loadMyEvents();
     } catch (e) {
       if (!mounted) return;
@@ -349,6 +383,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _flavor = 'nsec';
       });
       _fetchAndStoreProfile(pubHex); // fire-and-forget
+      unawaited(ProfileVisibilityService.publish(
+          isPublic: (Hive.box('settings')
+                  .get(ProfileVisibilityService.storageKey, defaultValue: false)
+              as bool)));
       _loadMyEvents();
     } catch (_) {
       if (mounted) _showError(l.invalidNsecTitle, l.invalidNsecMessage);
@@ -410,8 +448,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showEventDetail(RoadEvent event, RoadstrColors c) {
     showDialog(
       context: context,
-      builder: (_) => _EventDetailDialog(event: event, colors: c),
+      builder: (_) => _EventDetailDialog(
+          event: event,
+          colors: c,
+          onEditSpeedLimit: event.category == RoadCategory.speedCamera
+              ? (limit) => _publishEventSpeedLimit(event, limit)
+              : null),
     );
+  }
+
+  Future<void> _publishEventSpeedLimit(
+      RoadEvent event, int displayLimit) async {
+    final pub = await _st.read(key: _kPub);
+    final flavor = await _st.read(key: _kFlavor);
+    if (pub == null || pub != event.pubkey || flavor == null) {
+      throw const FormatException('Only the report owner can edit it');
+    }
+    final limit =
+        Units.imperial ? (displayLimit * 1.60934).round() : displayLimit;
+    final relay = NostrRelayService();
+    try {
+      await relay.connect();
+      if (flavor == 'amber') {
+        final unsigned = NostrRelayService.buildKind1317Map(
+          eventId: event.id,
+          ownerPubKeyHex: pub,
+          speedLimit: limit,
+          position: event.position,
+          comment: event.comment,
+        );
+        final result = await _amber.signEvent(
+          currentUser: Nip19().npubEncode(pub),
+          eventJson: jsonEncode(unsigned),
+        );
+        final signed =
+            jsonDecode(result['event'] as String) as Map<String, dynamic>;
+        await relay.publishRawEvent(signed, expectedUnsigned: unsigned);
+      } else {
+        final priv = await _st.read(key: _kPriv);
+        if (priv == null) {
+          throw const FormatException('Private key unavailable');
+        }
+        await relay.publishRoadEventUpdate(
+          privKeyHex: priv,
+          ownerPubKeyHex: pub,
+          eventId: event.id,
+          position: event.position,
+          speedLimit: limit,
+          comment: event.comment,
+        );
+      }
+    } finally {
+      relay.dispose();
+    }
+    event.speedLimit = limit;
+    if (mounted) setState(() {});
   }
 
   void _showError(String title, String msg) {
@@ -469,6 +560,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   List<Widget> _buildLoggedIn(RoadstrColors c, AppLocalizations l) => [
+        if (!_showPublicProfile)
+          Container(
+            margin: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: c.accentSoft,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: c.accent.withValues(alpha: 0.3)),
+            ),
+            child: Row(children: [
+              Icon(Icons.visibility_off_outlined, color: c.accent, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                  child: Text(l.profileHiddenNotice,
+                      style: TextStyle(
+                          color: c.textSecondary, fontSize: 12, height: 1.4))),
+            ]),
+          ),
         Center(
             child: Stack(clipBehavior: Clip.none, children: [
           Container(
@@ -480,14 +589,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
               border: Border.all(color: c.accent, width: 2),
             ),
             child: ClipOval(
-              child: _picture != null
+              child: _showPublicProfile && _picture != null
                   ? Image.network(
                       _picture!,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) =>
                           Icon(Icons.person_rounded, color: c.accent, size: 40),
                     )
-                  : Icon(Icons.person_rounded, color: c.accent, size: 40),
+                  : Icon(
+                      _showPublicProfile
+                          ? Icons.person_rounded
+                          : Icons.person_outline_rounded,
+                      color: c.accent,
+                      size: 40),
             ),
           ),
           Positioned(
@@ -507,7 +621,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ])),
         const SizedBox(height: 8),
-        if (_name != null && _name!.isNotEmpty)
+        if (_showPublicProfile && _name != null && _name!.isNotEmpty)
           Center(
               child: Text(_name!,
                   style: TextStyle(
@@ -517,53 +631,67 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 4),
         Center(
             child: Text(
-          _flavor == 'amber' ? l.connectedViaAmber : l.connectedViaNsec,
+          _showPublicProfile
+              ? (_flavor == 'amber' ? l.connectedViaAmber : l.connectedViaNsec)
+              : l.nostrichLabel,
           style: TextStyle(color: c.textSecondary, fontSize: 12),
         )),
         const SizedBox(height: 24),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: c.surface2,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: c.border, width: 0.5),
-          ),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(l.publicKeyLabel,
-                style: TextStyle(
-                    color: c.textSecondary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1)),
-            const SizedBox(height: 8),
-            Row(children: [
-              Expanded(
-                child: Text(_npub!,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        color: c.textPrimary,
-                        fontSize: 11,
-                        fontFamily: 'monospace')),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: _npub!));
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(l.npubCopiedToClipboard,
-                        style: const TextStyle(color: Colors.white)),
-                    backgroundColor: const Color(0xFF1A1A2E),
-                    behavior: SnackBarBehavior.floating,
-                  ));
-                },
-                icon: Icon(Icons.copy_rounded, color: c.accent, size: 20),
-                visualDensity: VisualDensity.compact,
-              ),
+        if (_showPublicProfile)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: c.surface2,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: c.border, width: 0.5),
+            ),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(l.publicKeyLabel,
+                  style: TextStyle(
+                      color: c.textSecondary,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1)),
+              const SizedBox(height: 8),
+              Row(children: [
+                Expanded(
+                  child: Text(_npub!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          color: c.textPrimary,
+                          fontSize: 11,
+                          fontFamily: 'monospace')),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: _npub!));
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(l.npubCopiedToClipboard,
+                          style: const TextStyle(color: Colors.white)),
+                      backgroundColor: const Color(0xFF1A1A2E),
+                      behavior: SnackBarBehavior.floating,
+                    ));
+                  },
+                  icon: Icon(Icons.copy_rounded, color: c.accent, size: 20),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ]),
             ]),
-          ]),
-        ),
+          ),
+        if (!_showPublicProfile)
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: c.surface2,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: c.border, width: 0.5),
+            ),
+            child: Text(l.profileVisibilityPseudonymous,
+                style: TextStyle(color: c.textSecondary, fontSize: 12)),
+          ),
         const SizedBox(height: 20),
 
         // ── Reputation + Lightning balance ────────────────────────────────────────
@@ -609,22 +737,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
               .toList()),
 
         const SizedBox(height: 24),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: _logout,
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Color(0xFFFF4444)),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              padding: const EdgeInsets.symmetric(vertical: 14),
+        if (_isOwnProfile)
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _logout,
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFFFF4444)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              icon: const Icon(Icons.logout_rounded,
+                  color: Color(0xFFFF4444), size: 18),
+              label: Text(l.logoutButton,
+                  style: const TextStyle(color: Color(0xFFFF4444))),
             ),
-            icon: const Icon(Icons.logout_rounded,
-                color: Color(0xFFFF4444), size: 18),
-            label: Text(l.logoutButton,
-                style: const TextStyle(color: Color(0xFFFF4444))),
           ),
-        ),
       ];
 
   List<Widget> _buildLoggedOut(RoadstrColors c, AppLocalizations l) => [
@@ -941,7 +1070,9 @@ class _EventTileState extends State<_EventTile> {
 class _EventDetailDialog extends StatefulWidget {
   final RoadEvent event;
   final RoadstrColors colors;
-  const _EventDetailDialog({required this.event, required this.colors});
+  final Future<void> Function(int speedLimit)? onEditSpeedLimit;
+  const _EventDetailDialog(
+      {required this.event, required this.colors, this.onEditSpeedLimit});
   @override
   State<_EventDetailDialog> createState() => _EventDetailDialogState();
 }
@@ -1017,6 +1148,72 @@ class _EventDetailDialogState extends State<_EventDetailDialog> {
             else ...[
               _infoRow('Lat', ev.position.latitude.toStringAsFixed(6), c),
               _infoRow('Lon', ev.position.longitude.toStringAsFixed(6), c),
+            ],
+
+            if (ev.speedLimit != null) ...[
+              const SizedBox(height: 4),
+              _infoRow(
+                  AppLocalizations.of(context).speedLimitHint,
+                  '${Units.imperial ? Units.toDisplaySpeed(ev.speedLimit!.toDouble()).round() : ev.speedLimit} ${Units.speedUnit}',
+                  c),
+            ],
+            if (widget.onEditSpeedLimit != null) ...[
+              const SizedBox(height: 6),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    final navigator = Navigator.of(context);
+                    final messenger = ScaffoldMessenger.of(context);
+                    final ctrl = TextEditingController(
+                        text: ev.speedLimit == null
+                            ? ''
+                            : '${Units.imperial ? Units.toDisplaySpeed(ev.speedLimit!.toDouble()).round() : ev.speedLimit}');
+                    final raw = await showDialog<int>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: Text(AppLocalizations.of(ctx).editSpeedLimit),
+                        content: TextField(
+                          controller: ctrl,
+                          autofocus: true,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                              labelText:
+                                  AppLocalizations.of(ctx).speedLimitHint),
+                        ),
+                        actions: [
+                          TextButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              child: Text(AppLocalizations.of(ctx).cancel)),
+                          FilledButton(
+                              onPressed: () {
+                                final value = int.tryParse(ctrl.text.trim());
+                                if (value != null &&
+                                    value > 0 &&
+                                    value <= 300) {
+                                  Navigator.pop(ctx, value);
+                                }
+                              },
+                              child: Text(AppLocalizations.of(ctx).ok)),
+                        ],
+                      ),
+                    );
+                    ctrl.dispose();
+                    if (raw == null || !mounted) return;
+                    try {
+                      await widget.onEditSpeedLimit!(raw);
+                      if (mounted) navigator.pop();
+                    } catch (error) {
+                      if (mounted) {
+                        messenger.showSnackBar(
+                            SnackBar(content: Text(error.toString())));
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.edit_rounded, size: 16),
+                  label: Text(AppLocalizations.of(context).editSpeedLimit),
+                ),
+              ),
             ],
 
             const SizedBox(height: 10),

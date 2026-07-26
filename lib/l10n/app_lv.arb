@@ -175,6 +175,7 @@
   "@chainedManeuver": {
     "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
   },
+  "thenManeuver": "pēc tam {instruction}",
   "reportSpeedLimitHint": "Ātruma ierobežojums (neobligāts)",
   "reportedSpeedLimit": "Ziņotais ātruma ierobežojums",
   "speedCameraVoiceAlert": "Ātruma kamera, ierobežojums {limit} {unit}",

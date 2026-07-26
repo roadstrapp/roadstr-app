@@ -175,6 +175,7 @@
   "@chainedManeuver": {
     "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
   },
+  "thenManeuver": "然后{instruction}",
   "reportSpeedLimitHint": "限速(可选)",
   "reportedSpeedLimit": "报告的限速",
   "speedCameraVoiceAlert": "测速摄像头,限速 {limit} {unit}",

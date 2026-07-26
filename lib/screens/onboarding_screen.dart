@@ -14,12 +14,14 @@ import 'package:amberflutter/amberflutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:nostr_tools/nostr_tools.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../l10n/app_localizations.dart';
 import '../services/kokoro/kokoro_model_manager.dart';
 import '../services/kokoro/kokoro_voices.dart';
 import '../services/nostr_relay_service.dart';
+import '../services/profile_visibility_service.dart';
 import '../theme/app_theme.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -49,6 +51,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _waitingAmber = false;
   bool _nsecError = false;
   bool _fetchingProfile = false;
+  bool _profilePublic = false;
 
   // ── Location permission state ───────────────────────────────────────────────
   LocationPermission _locPerm = LocationPermission.denied;
@@ -64,6 +67,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void initState() {
     super.initState();
+    _profilePublic = Hive.box('settings')
+        .get(ProfileVisibilityService.storageKey, defaultValue: false) as bool;
     _checkExistingLogin();
     _checkLocPermission();
     _checkKokoroStatus();
@@ -142,6 +147,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         });
       }
       _fetchAndStoreProfile(hex);
+      unawaited(ProfileVisibilityService.publish(isPublic: _profilePublic));
     } catch (_) {
       if (mounted) setState(() => _waitingAmber = false);
     }
@@ -160,6 +166,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       await _st.write(key: _kFlavor, value: 'nsec');
       if (mounted) setState(() => _npub = npub);
       _fetchAndStoreProfile(pubHex);
+      unawaited(ProfileVisibilityService.publish(isPublic: _profilePublic));
     } catch (_) {
       if (mounted) setState(() => _nsecError = true);
     }
@@ -256,8 +263,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         content: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
-            child: Text(l.disclaimerBody,
-                style: const TextStyle(fontSize: 12.5, height: 1.45)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l.disclaimerBody,
+                    style: const TextStyle(fontSize: 12.5, height: 1.45)),
+                const SizedBox(height: 14),
+                Text(l.profileVisibilityOnboarding,
+                    style: const TextStyle(fontSize: 12.5, height: 1.45)),
+              ],
+            ),
           ),
         ),
         actions: [
@@ -399,8 +414,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   fetchingProfile: _fetchingProfile,
                   waitingAmber: _waitingAmber,
                   nsecError: _nsecError,
+                  profilePublic: _profilePublic,
                   onAmber: _loginWithAmber,
                   onNsec: _showNsecDialog,
+                  onProfileVisibilityChanged: (value) async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    setState(() => _profilePublic = value);
+                    await Hive.box('settings')
+                        .put(ProfileVisibilityService.storageKey, value);
+                    try {
+                      await ProfileVisibilityService.publish(isPublic: value);
+                    } catch (_) {
+                      if (mounted) {
+                        messenger.showSnackBar(
+                          SnackBar(
+                              content: Text(l.profileVisibilityPublishError)),
+                        );
+                      }
+                    }
+                  },
                   onNext: _nextPage,
                 ),
                 _PermissionsPage(
@@ -575,8 +607,10 @@ class _NostrPage extends StatelessWidget {
   final bool fetchingProfile;
   final bool waitingAmber;
   final bool nsecError;
+  final bool profilePublic;
   final VoidCallback onAmber;
   final VoidCallback onNsec;
+  final ValueChanged<bool> onProfileVisibilityChanged;
   final VoidCallback onNext;
   const _NostrPage({
     required this.c,
@@ -587,8 +621,10 @@ class _NostrPage extends StatelessWidget {
     required this.fetchingProfile,
     required this.waitingAmber,
     required this.nsecError,
+    required this.profilePublic,
     required this.onAmber,
     required this.onNsec,
+    required this.onProfileVisibilityChanged,
     required this.onNext,
   });
 
@@ -723,6 +759,38 @@ class _NostrPage extends StatelessWidget {
                             fontSize: 12,
                             height: 1.5))),
               ]),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.fromLTRB(12, 10, 8, 8),
+              decoration: BoxDecoration(
+                color: c.surface2,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: c.border, width: 0.5),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l.profileVisibilityTitle,
+                      style: TextStyle(
+                          color: c.textPrimary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 4),
+                  Text(l.profileVisibilityOnboarding,
+                      style: TextStyle(
+                          color: c.textSecondary, fontSize: 11, height: 1.4)),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    title: Text(profilePublic
+                        ? l.profileVisibilityClear
+                        : l.profileVisibilityPseudonymous),
+                    value: profilePublic,
+                    onChanged: onProfileVisibilityChanged,
+                  ),
+                ],
+              ),
             ),
           ]),
         )),

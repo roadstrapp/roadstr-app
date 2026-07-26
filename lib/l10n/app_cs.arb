@@ -175,6 +175,7 @@
   "@chainedManeuver": {
     "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
   },
+  "thenManeuver": "poté {instruction}",
   "reportSpeedLimitHint": "Rychlostní limit (volitelné)",
   "reportedSpeedLimit": "Nahlášený rychlostní limit",
   "speedCameraVoiceAlert": "Radar nahlášen, limit {limit} {unit}",

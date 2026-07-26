@@ -152,6 +152,12 @@ class RoutingService {
   static const _orsBase = 'https://api.openrouteservice.org/v2/directions/';
   static const _graphhopperPublic = 'https://graphhopper.com/api/1/route';
 
+  /// Short-lived cache for repeated submissions/refinements of the same
+  /// search. Results are copied on return so callers cannot mutate the cache.
+  static final _searchCache =
+      <String, ({DateTime at, List<NominatimResult> results})>{};
+  static const _searchCacheTtl = Duration(seconds: 45);
+
   /// Public, keyless Valhalla service operated by the German OpenStreetMap
   /// community.  Unlike the default OSRM profiles, Valhalla supports hard
   /// exclusions for both motorways and toll roads worldwide.
@@ -203,17 +209,25 @@ class RoutingService {
   /// score, not a proximity score.
   static Future<List<NominatimResult>> search(String query,
       {LatLng? near}) async {
-    if (query.trim().isEmpty) return [];
+    final normalized = query.trim().toLowerCase();
+    if (normalized.isEmpty) return [];
+    final cacheKey = near == null
+        ? normalized
+        : '$normalized|${near.latitude.toStringAsFixed(2)},${near.longitude.toStringAsFixed(2)}';
+    final cached = _searchCache[cacheKey];
+    if (cached != null &&
+        DateTime.now().difference(cached.at) < _searchCacheTtl) {
+      return List<NominatimResult>.from(cached.results);
+    }
     try {
       final viewbox = near != null
-          ? '&viewbox=${near.longitude - 0.5},${near.latitude + 0.5},'
-              '${near.longitude + 0.5},${near.latitude - 0.5}&bounded=0'
+          ? '&viewbox=${near.longitude - 0.25},${near.latitude + 0.25},'
+              '${near.longitude + 0.25},${near.latitude - 0.25}&bounded=0'
           : '';
       final uri = Uri.parse('$_nominatim'
-          '?q=${Uri.encodeComponent(query)}'
-          // limit=8 gives a richer POI list without excessive bandwidth.
-          // polygon_geojson=0 skips shape data we don't need, keeping responses lean.
-          '&format=json&limit=8&addressdetails=1&polygon_geojson=0$viewbox');
+          '?q=${Uri.encodeComponent(query.trim())}'
+          // Six results are enough for suggestions and reduce payload/parsing.
+          '&format=json&limit=6&addressdetails=1&polygon_geojson=0$viewbox');
       final res = await BoundedHttp.get(
         uri,
         headers: {'User-Agent': 'Roadstr/1.0'},
@@ -236,6 +250,13 @@ class RoutingService {
             .as(LengthUnit.Meter, near, a.position)
             .compareTo(
                 const Distance().as(LengthUnit.Meter, near, b.position)));
+      }
+      _searchCache[cacheKey] = (at: DateTime.now(), results: results);
+      if (_searchCache.length > 24) {
+        final oldest = _searchCache.entries
+            .reduce((a, b) => a.value.at.isBefore(b.value.at) ? a : b)
+            .key;
+        _searchCache.remove(oldest);
       }
       return results;
     } catch (_) {
@@ -263,6 +284,17 @@ class RoutingService {
     }
   }
 
+  /// Reverse-geocodes [point] to a short, recognisable place label
+  /// ("Via Attilio Monti 12, Ravenna") for history entries and route labels.
+  /// See [shortLabelFrom] for why this is not `reverseGeocode(parts: 1)`.
+  static Future<String?> reverseGeocodeLabel(LatLng point) async {
+    try {
+      return (await reverseGeocodeDetail(point))?.label;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Extended reverse geocode that fetches Nominatim's structured address
   /// breakdown (`addressdetails=1`).
   ///
@@ -273,7 +305,15 @@ class RoutingService {
   ///     quarter → neighbourhood → city → town → village → municipality → county.
   ///     Numeric-only strings (house numbers) are excluded to avoid Wikipedia
   ///     results like "Via 5" instead of "Rome".
-  static Future<({String display, String? wikiQuery, String? openingHours})?>
+  ///   - `label`: a short, human-recognisable name for the place — see
+  ///     [shortLabelFrom].
+  static Future<
+          ({
+            String display,
+            String? wikiQuery,
+            String? openingHours,
+            String label,
+          })?>
       reverseGeocodeDetail(LatLng point) async {
     try {
       // extratags=1 adds the raw OSM tags of the matched element, including
@@ -342,10 +382,65 @@ class RoutingService {
         openingHours: (openingHours != null && openingHours.isNotEmpty)
             ? openingHours
             : null,
+        label: shortLabelFrom(display, addr, name: data['name'] as String?),
       );
     } catch (_) {
       return null;
     }
+  }
+
+  /// Builds a short label a human can recognise in a history / favourites list.
+  ///
+  /// The naive `display_name.split(',').first` is wrong for most of Europe:
+  /// Nominatim formats street addresses house-number-first, so it yields a bare
+  /// "12" — every entry in the history then looks like an anonymous number next
+  /// to a pin. This uses the structured `address` block instead and rebuilds
+  /// "Via Attilio Monti 12, Ravenna".
+  ///
+  /// [addr] is Nominatim's `address` object; [name] its top-level `name` field
+  /// (set for POIs). [display] is only the last-resort fallback.
+  static String shortLabelFrom(String display, Map<String, dynamic> addr,
+      {String? name}) {
+    String? str(Object? v) {
+      final s = v is String ? v.trim() : null;
+      return (s == null || s.isEmpty) ? null : s;
+    }
+
+    final city = str(addr['city']) ??
+        str(addr['town']) ??
+        str(addr['village']) ??
+        str(addr['hamlet']) ??
+        str(addr['municipality']);
+    final road = str(addr['road']) ?? str(addr['pedestrian']);
+    final houseNo = str(addr['house_number']);
+
+    // A named POI wins: "Ospedale Santa Maria delle Croci" beats its street.
+    final poi = str(name) ??
+        str(addr['amenity']) ??
+        str(addr['shop']) ??
+        str(addr['tourism']) ??
+        str(addr['historic']) ??
+        str(addr['leisure']);
+    if (poi != null && !RegExp(r'^\d+$').hasMatch(poi)) {
+      return city != null && city != poi ? '$poi, $city' : poi;
+    }
+
+    if (road != null) {
+      final street = houseNo != null ? '$road $houseNo' : road;
+      return city != null ? '$street, $city' : street;
+    }
+
+    // No street either (open country, a square, a place node): fall back to the
+    // first display component that is not a bare house number.
+    final parts = display
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty && !RegExp(r'^\d+$').hasMatch(s))
+        .toList();
+    if (parts.isEmpty) return city ?? display.split(',').first.trim();
+    return parts.length > 1 && city != null && parts.first != city
+        ? '${parts.first}, $city'
+        : parts.first;
   }
 
   /// Calculates a single driving route from [origin] to [destination].
@@ -906,10 +1001,19 @@ class RoutingService {
       final step = s as Map<String, dynamic>;
       final maneuver = step['maneuver'] as Map<String, dynamic>;
       final loc = maneuver['location'] as List;
+      final providerDirection = maneuver['type'] as String? ?? 'straight';
+      final providerModifier = maneuver['modifier'] as String? ?? '';
+      final correctedModifier =
+          _correctedModifier(step, providerDirection, providerModifier);
+      final resolvedDirection = providerDirection == 'continue' &&
+              correctedModifier != providerModifier &&
+              correctedModifier != 'straight'
+          ? 'turn'
+          : providerDirection;
       steps.add(RouteStep(
         instruction: _buildInstruction(step, lang),
-        direction: maneuver['type'] as String? ?? 'straight',
-        modifier: maneuver['modifier'] as String? ?? '',
+        direction: resolvedDirection,
+        modifier: correctedModifier,
         distanceM: (step['distance'] as num).toDouble(),
         location:
             LatLng((loc[1] as num).toDouble(), (loc[0] as num).toDouble()),
@@ -1033,10 +1137,13 @@ class RoutingService {
       [String lang = 'en']) {
     final maneuver = step['maneuver'] as Map<String, dynamic>;
     final type = maneuver['type'] as String? ?? '';
-    final modifier = maneuver['modifier'] as String? ?? '';
-    final name = (step['name'] as String?) ?? '';
+    final providerModifier = maneuver['modifier'] as String? ?? '';
+    final modifier = _correctedModifier(step, type, providerModifier);
+    final name = ((step['name'] as String?) ?? '').trim();
+    final ref = ((step['ref'] as String?) ?? '').trim();
+    final roadName = name.isNotEmpty ? name : ref;
     final prep = lang == 'it' ? ' su ' : ' on ';
-    final road = name.isNotEmpty ? '$prep$name' : '';
+    final road = roadName.isNotEmpty ? '$prep$roadName' : '';
     final it = lang == 'it';
 
     switch (type) {
@@ -1066,11 +1173,33 @@ class RoutingService {
             return it ? 'Continua dritto$road' : 'Continue straight$road';
         }
       case 'new name':
+        if (modifier != 'straight' && modifier.isNotEmpty) {
+          return it
+              ? 'Svolta ${_italianModifier(modifier)}$road'
+              : 'Turn ${_englishModifier(modifier)}$road';
+        }
         return it ? 'Continua$road' : 'Continue$road';
+      case 'continue':
+        if (modifier == 'left' ||
+            modifier == 'right' ||
+            modifier == 'slight left' ||
+            modifier == 'slight right' ||
+            modifier == 'sharp left' ||
+            modifier == 'sharp right') {
+          return it
+              ? 'Svolta ${_italianModifier(modifier)}$road'
+              : 'Turn ${_englishModifier(modifier)}$road';
+        }
+        return it ? 'Continua dritto$road' : 'Continue straight$road';
       case 'merge':
         return it ? 'Immettiti$road' : 'Merge onto$road';
       case 'on ramp':
-        return it ? 'Prendi la rampa$road' : 'Take the ramp$road';
+        if (modifier == 'left' || modifier == 'right') {
+          return it
+              ? 'Svolta ${_italianModifier(modifier)} sulla rampa$road'
+              : 'Turn ${_englishModifier(modifier)} onto the on-ramp$road';
+        }
+        return it ? 'Prendi la rampa$road' : 'Take the on-ramp$road';
       case 'off ramp':
         {
           // OSRM puts highway exit numbers in step['exits'] (a string like "12" or "12A"),
@@ -1122,6 +1251,57 @@ class RoutingService {
       default:
         return it ? 'Continua dritto$road' : 'Continue straight$road';
     }
+  }
+
+  static String _italianModifier(String modifier) => switch (modifier) {
+        'left' || 'slight left' || 'sharp left' => 'a sinistra',
+        'right' || 'slight right' || 'sharp right' => 'a destra',
+        _ => 'dritto',
+      };
+
+  static String _englishModifier(String modifier) => switch (modifier) {
+        'left' || 'slight left' || 'sharp left' => 'left',
+        'right' || 'slight right' || 'sharp right' => 'right',
+        _ => 'straight',
+      };
+
+  /// OSRM occasionally labels a real junction as `new name`/`straight` when
+  /// the turn angle is determined by a stop-sign intersection.  Its
+  /// intersection bearings are more reliable than the text modifier for this
+  /// case, so use them to correct only clearly non-straight changes.
+  static String _correctedModifier(
+      Map<String, dynamic> step, String type, String providerModifier) {
+    if (type == 'roundabout' || type == 'rotary') return providerModifier;
+    final intersections = step['intersections'] as List?;
+    final first = intersections?.whereType<Map>().firstOrNull;
+    final bearings = (first?['bearings'] as List?)
+        ?.whereType<num>()
+        .map((v) => v.toDouble())
+        .toList();
+    final inIndex = (first?['in'] as num?)?.toInt();
+    final outIndex = (first?['out'] as num?)?.toInt();
+    if (bearings == null ||
+        inIndex == null ||
+        outIndex == null ||
+        inIndex < 0 ||
+        outIndex < 0 ||
+        inIndex >= bearings.length ||
+        outIndex >= bearings.length) {
+      return providerModifier;
+    }
+    // OSRM bearings point away from the intersection.  Reverse the inbound
+    // road bearing to obtain the driver's approach direction before comparing
+    // it with the outgoing road.
+    final inboundTravelBearing = (bearings[inIndex] + 180) % 360;
+    var delta = (bearings[outIndex] - inboundTravelBearing) % 360;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+    final magnitude = delta.abs();
+    if (magnitude < 18 || magnitude > 160) return providerModifier;
+    if (delta < 0) {
+      return magnitude > 110 ? 'sharp left' : 'left';
+    }
+    return magnitude > 110 ? 'sharp right' : 'right';
   }
 
   /// Extracts the roundabout exit number from an instruction string.

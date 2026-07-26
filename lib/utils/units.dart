@@ -33,6 +33,41 @@ class Units {
 
   static String get speedUnit => imperial ? 'mph' : 'km/h';
 
+  /// Spoken unit for TTS.  Symbols such as "km/h" are read literally by
+  /// phonemizers (for example "kappaemme barra acca" in Italian), so voice
+  /// alerts must always use words.
+  static String speedUnitForSpeech(String lang) => switch (lang) {
+        'it' => imperial ? 'miglia orarie' : 'chilometri orari',
+        'en' => imperial ? 'miles per hour' : 'kilometres per hour',
+        'de' => imperial ? 'Meilen pro Stunde' : 'Kilometer pro Stunde',
+        'es' => imperial ? 'millas por hora' : 'kilómetros por hora',
+        'fr' => imperial ? 'miles par heure' : 'kilomètres par heure',
+        'pt' => imperial ? 'milhas por hora' : 'quilómetros por hora',
+        'nl' => imperial ? 'mijl per uur' : 'kilometer per uur',
+        'da' => imperial ? 'mil i timen' : 'kilometer i timen',
+        'sv' => imperial ? 'miles per hour' : 'kilometer i timmen',
+        'fi' => imperial ? 'mailia tunnissa' : 'kilometriä tunnissa',
+        'pl' => imperial ? 'mil na godzinę' : 'kilometrów na godzinę',
+        'cs' => imperial ? 'mil za hodinu' : 'kilometrů za hodinu',
+        'sk' => imperial ? 'míľ za hodinu' : 'kilometrov za hodinu',
+        'sl' => imperial ? 'milj na uro' : 'kilometrov na uro',
+        'hr' => imperial ? 'milja na sat' : 'kilometara na sat',
+        'hu' => imperial ? 'mérföld per óra' : 'kilométer per óra',
+        'ro' => imperial ? 'mile pe oră' : 'kilometri pe oră',
+        'bg' => imperial ? 'мили в час' : 'километра в час',
+        'ru' => imperial ? 'миль в час' : 'километров в час',
+        'uk' => imperial ? 'миль на годину' : 'кілометрів на годину',
+        'el' => imperial ? 'μίλια ανά ώρα' : 'χιλιόμετρα ανά ώρα',
+        'et' => imperial ? 'miili tunnis' : 'kilomeetrit tunnis',
+        'lt' => imperial ? 'mylių per valandą' : 'kilometrų per valandą',
+        'lv' => imperial ? 'jūdzes stundā' : 'kilometri stundā',
+        'ga' => imperial ? 'míle san uair' : 'ciliméadar san uair',
+        'mt' => imperial ? 'mili fis-siegħa' : 'kilometri fis-siegħa',
+        'ja' => imperial ? 'マイル毎時' : 'キロ毎時',
+        'zh' => imperial ? '英里每小时' : '公里每小时',
+        _ => imperial ? 'miles per hour' : 'kilometres per hour',
+      };
+
   /// Build the TTS preamble for a maneuver distance announcement.
   /// Returns an empty string when [metres] is 0 (imminent turn).
   static String ttsDistPrefix(int metres, String lang) {

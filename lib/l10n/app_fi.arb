@@ -175,6 +175,7 @@
   "@chainedManeuver": {
     "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
   },
+  "thenManeuver": "sitten {instruction}",
   "reportSpeedLimitHint": "Nopeusrajoitus (valinnainen)",
   "reportedSpeedLimit": "Ilmoitettu nopeusrajoitus",
   "speedCameraVoiceAlert": "Nopeuskamera ilmoitettu, rajoitus {limit} {unit}",

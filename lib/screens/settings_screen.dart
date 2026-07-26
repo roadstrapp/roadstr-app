@@ -18,6 +18,7 @@ import '../theme/theme_provider.dart';
 import '../services/routing_service.dart';
 import '../services/favorites_crypto.dart';
 import '../services/favorites_sync_service.dart';
+import '../services/profile_visibility_service.dart';
 import '../services/kokoro/kokoro_model_manager.dart';
 import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
@@ -39,6 +40,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // ── Nostr identity (for sync) ─────────────────────────────────────────────
   String? _nostrPub;
   String? _nostrPriv; // null when signing via Amber
+  bool _profilePublic = false;
   String? _syncPassphrase;
   bool _syncBusy = false;
   final _syncSvc = FavoritesSyncService();
@@ -65,6 +67,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadFavorites();
     _loadSecrets();
     _loadNostrIdentity();
+    _profilePublic = _box.get(ProfileVisibilityService.storageKey,
+        defaultValue: false) as bool;
     _loadAppVersion();
     _kokoroGender = _box.get('kokoroVoiceGender',
         defaultValue: kKokoroDefaultGender) as String;
@@ -250,11 +254,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final favs = List<FavoritePlace>.of(_favorites);
     unawaited(_syncSvc
         .push(
-          favorites: favs,
-          pubKeyHex: _nostrPub!,
-          privKeyHex: _nostrPriv,
-          passphrase: _syncPassphrase,
-        )
+      favorites: favs,
+      pubKeyHex: _nostrPub!,
+      privKeyHex: _nostrPriv,
+      passphrase: _syncPassphrase,
+    )
         .then((ok) {
       if (ok) {
         _box.put('favoritesSyncLastAt', DateTime.now().millisecondsSinceEpoch);
@@ -830,6 +834,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {});
   }
 
+  Future<void> _setProfileVisibility(bool value) async {
+    setState(() => _profilePublic = value);
+    await _box.put(ProfileVisibilityService.storageKey, value);
+    try {
+      await ProfileVisibilityService.publish(isPublic: value);
+    } catch (_) {
+      if (mounted) {
+        _snackSettings(
+            AppLocalizations.of(context).profileVisibilityPublishError);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = RoadstrColors.of(context);
@@ -974,6 +991,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
             ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // ── NOSTR PROFILE VISIBILITY ───────────────────────────────────
+          _SectionHeader(l.profileVisibilityTitle, c),
+          _SwitchTile(
+            title: _profilePublic
+                ? l.profileVisibilityClear
+                : l.profileVisibilityPseudonymous,
+            subtitle: l.profileVisibilityDesc,
+            value: _profilePublic,
+            onChanged: _setProfileVisibility,
+            colors: c,
           ),
 
           const SizedBox(height: 24),

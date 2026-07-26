@@ -175,6 +175,7 @@
   "@chainedManeuver": {
     "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
   },
+  "thenManeuver": "tada {instruction}",
   "reportSpeedLimitHint": "Greičio apribojimas (nebūtina)",
   "reportedSpeedLimit": "Praneštas greičio apribojimas",
   "speedCameraVoiceAlert": "Greičio kamera, apribojimas {limit} {unit}",

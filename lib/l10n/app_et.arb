@@ -175,6 +175,7 @@
   "@chainedManeuver": {
     "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
   },
+  "thenManeuver": "seejärel {instruction}",
   "reportSpeedLimitHint": "Kiiruspiirang (valikuline)",
   "reportedSpeedLimit": "Teatatud kiiruspiirang",
   "speedCameraVoiceAlert": "Kiiruskaamera, piirang {limit} {unit}",
