@@ -21,19 +21,6 @@ class AppLocalizationsLt extends AppLocalizations {
   String get noRouteFound => 'Maršrutas nerastas. Patikrinkite ryšį.';
 
   @override
-  String get emptyServerResponse =>
-      'Tuščias serverio atsakymas. Patikrinkite ryšį.';
-
-  @override
-  String routeError(String error) {
-    return 'Maršruto skaičiavimo klaida: $error';
-  }
-
-  @override
-  String get gpsNotAvailable =>
-      'GPS nepasiekiamas — Nustatymai → Programa → Roadstr → Leidimai → Vieta';
-
-  @override
   String get acquiringGps => 'Gaunamas GPS…';
 
   @override
@@ -50,11 +37,6 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get chooseRoute => 'Pasirinkti maršrutą';
-
-  @override
-  String routeOptionsCount(int count) {
-    return '$count parinktys';
-  }
 
   @override
   String get cancel => 'Atšaukti';
@@ -78,7 +60,7 @@ class AppLocalizationsLt extends AppLocalizations {
   String get selectedPosition => 'Pasirinkta padėtis';
 
   @override
-  String get bottomBarNotifications => 'Notifications';
+  String get bottomBarNotifications => 'Pranešimai';
 
   @override
   String get bottomBarProfile => 'Profilis';
@@ -87,21 +69,21 @@ class AppLocalizationsLt extends AppLocalizations {
   String get bottomBarMenu => 'Meniu';
 
   @override
-  String get notificationsTitle => 'Notifications';
+  String get notificationsTitle => 'Pranešimai';
 
   @override
-  String get notificationsEmpty => 'No notifications yet';
+  String get notificationsEmpty => 'Pranešimų kol kas nėra';
 
   @override
   String get notificationsEmptyBody =>
-      'Zaps and reactions to your road reports will appear here.';
+      'Zapai ir reakcijos į jūsų eismo pranešimus bus rodomi čia.';
 
   @override
-  String get notificationsLoginRequired => 'Connect your Nostr profile';
+  String get notificationsLoginRequired => 'Prijunkite savo Nostr profilį';
 
   @override
   String get notificationsLoginRequiredBody =>
-      'Sign in with Amber or nsec to receive notifications from other users.';
+      'Prisijunkite su Amber arba nsec, kad gautumėte pranešimus iš kitų naudotojų.';
 
   @override
   String get settingsTitle => 'Nustatymai';
@@ -134,12 +116,6 @@ class AppLocalizationsLt extends AppLocalizations {
   String get langSystem => 'Sistemos numatytoji';
 
   @override
-  String get langItalian => 'Italiano';
-
-  @override
-  String get langEnglish => 'English';
-
-  @override
   String get keepScreenOn => 'Laikyti ekraną įjungtą';
 
   @override
@@ -152,12 +128,6 @@ class AppLocalizationsLt extends AppLocalizations {
   @override
   String get autoCenterOnLaunchDesc =>
       'GPS automatiškai naudojamas tik jei vietos leidimas jau suteiktas';
-
-  @override
-  String get rotateMap => 'Žemėlapis seka kryptį';
-
-  @override
-  String get rotateMapDescription => 'Žemėlapis sukasi pagal vairavimo kryptį';
 
   @override
   String get mapTileUrlLabel => 'Žemėlapio plytelių URL';
@@ -234,48 +204,49 @@ class AppLocalizationsLt extends AppLocalizations {
   String get profileTitle => 'Profilis';
 
   @override
-  String get profileVisibilityTitle => 'Profile visibility';
+  String get profileVisibilityTitle => 'Profilio matomumas';
 
   @override
   String get profileVisibilityDesc =>
-      'Choose whether other Roadstr users see your Nostr name, npub and picture.';
+      'Pasirinkite, ar kiti Roadstr naudotojai mato jūsų Nostr vardą, npub ir nuotrauką.';
 
   @override
-  String get profileVisibilityClear => 'Show profile publicly';
+  String get profileVisibilityClear => 'Rodyti profilį viešai';
 
   @override
-  String get profileVisibilityPseudonymous => 'Pseudonymous mode (recommended)';
+  String get profileVisibilityPseudonymous =>
+      'Pseudonimo režimas (rekomenduojama)';
 
   @override
   String get profileVisibilityPublishError =>
-      'The local choice was saved, but could not be published to Nostr yet.';
+      'Pasirinkimas išsaugotas įrenginyje, bet dar nepavyko jo paskelbti Nostr tinkle.';
 
   @override
   String get nostrichLabel => 'nostrich';
 
   @override
-  String get profileHiddenNotice => 'This user is using pseudonymous mode.';
+  String get profileHiddenNotice => 'Šis naudotojas naudoja pseudonimo režimą.';
 
   @override
-  String get editSpeedLimit => 'Add or update speed limit';
+  String get editSpeedLimit => 'Pridėti arba atnaujinti greičio apribojimą';
 
   @override
-  String get requestSpeedLimit => 'Suggest a speed limit';
+  String get requestSpeedLimit => 'Pasiūlyti greičio apribojimą';
 
   @override
-  String get acceptEditRequest => 'Accept suggestion';
+  String get acceptEditRequest => 'Priimti pasiūlymą';
 
   @override
-  String get pendingEditRequests => 'Pending edit suggestions';
+  String get pendingEditRequests => 'Laukiantys pakeitimų pasiūlymai';
 
   @override
-  String get speedLimitHint => 'Speed limit';
+  String get speedLimitHint => 'Greičio apribojimas';
 
   @override
-  String get speedLimitSaved => 'Speed limit published';
+  String get speedLimitSaved => 'Greičio apribojimas paskelbtas';
 
   @override
-  String get editRequestSent => 'Suggestion sent to the report owner';
+  String get editRequestSent => 'Pasiūlymas išsiųstas pranešimo autoriui';
 
   @override
   String get notConnected => 'Neprisijungta';
@@ -352,17 +323,7 @@ class AppLocalizationsLt extends AppLocalizations {
   String get requestKeyFromAmber => 'Prašyti viešojo rakto iš Amber';
 
   @override
-  String get amberNotFound =>
-      'Amber nerastas. Įdiekite jį iš Play Store arba rankiniu būdu įveskite savo npub.';
-
-  @override
   String get waitingForAmberResponse => 'Laukiama Amber atsakymo…';
-
-  @override
-  String get pasteNpubManually => 'Įklijuokite savo npub rankiniu būdu:';
-
-  @override
-  String get confirmNpub => 'Patvirtinti npub';
 
   @override
   String get enterNsecTitle => 'Įvesti nsec';
@@ -377,21 +338,11 @@ class AppLocalizationsLt extends AppLocalizations {
   String get invalidNsecTitle => 'Neteisingas nsec';
 
   @override
-  String get invalidNpubMessage =>
-      'Įsitikinkite, kad įklijavote teisingą npub.';
-
-  @override
   String get invalidNsecMessage =>
       'Įsitikinkite, kad įklijavote teisingą nsec.';
 
   @override
-  String get amberResponseError => 'Amber atsakymo klaida';
-
-  @override
   String get ok => 'Gerai';
-
-  @override
-  String get or => 'arba';
 
   @override
   String get gpsNotActiveTitle => 'GPS neaktyvus';
@@ -430,11 +381,6 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get zapSending => 'Siunčiama…';
-
-  @override
-  String zapSat(int sats) {
-    return '⚡$sats sat';
-  }
 
   @override
   String get fetchingLightningAddress => 'Gaunamas Lightning adresas…';
@@ -731,34 +677,6 @@ class AppLocalizationsLt extends AppLocalizations {
       'Skaityti posūkio nurodymus garsiai navigacijos metu';
 
   @override
-  String get testVoiceEngine => 'Išbandyti balso variklį';
-
-  @override
-  String get testVoiceEngineDesc =>
-      'Palieskite, kad patikrintumėte TTS variklį ir gautumėte nustatymo instrukcijas';
-
-  @override
-  String get ttsDialogTitle => 'Trūksta balso variklio';
-
-  @override
-  String get ttsDialogBody =>
-      'Nerasta veikiančio Text-to-Speech variklio.\n\n„Roadstr“ remiasi tik atvirojo kodo programine įranga — įdiekite vieną iš šių nemokamų variklių iš F-Droid:';
-
-  @override
-  String get ttsRhvoiceDesc =>
-      'Natūraliai skambantis balsas, ribotas kalbų sąrašas';
-
-  @override
-  String get ttsEspeakDesc => 'Apima daugiau nei 100 kalbų, robotiškas balsas';
-
-  @override
-  String get ttsInstallNote =>
-      '⚠️ Įdiegus:\n1. Android nustatymai → Pritaikymas neįgaliesiems → Teksto į kalbą keitiklis\n2. Pasirinkite ką tik įdiegtą variklį\n3. Atsisiųskite savo kalbos balso duomenis\n4. Visiškai paleiskite „Roadstr“ iš naujo';
-
-  @override
-  String get ttsTestNow => 'Išbandyti dabar';
-
-  @override
   String get voiceUnsupportedTitle => 'Balso nukreipimas nepasiekiamas';
 
   @override
@@ -799,30 +717,6 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get arrivedTitle => '🎉 Atvykote!';
-
-  @override
-  String get arrivedBody => 'Pasiekėte savo kelionės tikslą.';
-
-  @override
-  String get arrivedFeedbackPrompt => 'Kaip sekėsi?';
-
-  @override
-  String get feedbackBad => 'Blogai';
-
-  @override
-  String get feedbackGood => 'Gerai!';
-
-  @override
-  String get feedbackDialogTitle => 'Pasakykite mums, kas nutiko ne taip';
-
-  @override
-  String get feedbackHint => 'Aprašykite problemą…';
-
-  @override
-  String get feedbackSent => 'Atsiliepimas išsiųstas — ačiū! 🙏';
-
-  @override
-  String get feedbackSubmit => 'Siųsti';
 
   @override
   String get transportModeCar => 'Automobilis';
@@ -876,9 +770,6 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get poiCuisine => 'Virtuvė';
-
-  @override
-  String get poiAccessibility => 'Prieinamumas';
 
   @override
   String get poiWheelchairYes => 'Prieinama neįgaliojo vežimėliu';
@@ -1085,10 +976,6 @@ class AppLocalizationsLt extends AppLocalizations {
   String get weatherThunderstorm => 'Perkūnija';
 
   @override
-  String get ztlAheadWarning =>
-      'Priekyje riboto eismo zona — maršrutas eina per ją';
-
-  @override
   String get ztlInsideWarning => 'Riboto eismo zona';
 
   @override
@@ -1220,9 +1107,6 @@ class AppLocalizationsLt extends AppLocalizations {
   String get onboardingLetsGo => 'Važiuojame!';
 
   @override
-  String get onboardingProfileLoading => 'Profilis įkeliamas…';
-
-  @override
   String get onboardingNsecHint => 'nsec1…';
 
   @override
@@ -1250,7 +1134,7 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get profileVisibilityOnboarding =>
-      'Roadstr always publishes the Nostr public key needed to verify a report. In pseudonymous mode, other Roadstr users see only a generic avatar and “nostrich”; in public mode, they also see your Nostr name, npub and profile picture. Your reports, locations, reputation and received zaps remain public on Nostr.';
+      'Roadstr visada paskelbia Nostr viešąjį raktą, reikalingą pranešimui patikrinti. Pseudonimo režimu kiti Roadstr naudotojai mato tik bendrinį avatarą ir „nostrich“; viešuoju režimu jie taip pat mato jūsų Nostr vardą, npub ir profilio nuotrauką. Jūsų pranešimai, vietos, reputacija ir gauti zapai lieka vieši Nostr tinkle.';
 
   @override
   String get parkingSaveHere => 'Išsaugoti stovėjimą čia';
@@ -1357,21 +1241,9 @@ class AppLocalizationsLt extends AppLocalizations {
   String get trafficHeavy => 'Intensyvus eismas';
 
   @override
-  String get avoidHighwaysChip => 'Vengti greitkelių';
-
-  @override
-  String get avoidTollsChip => 'Vengti mokamų kelių';
-
-  @override
-  String get preferShorterChip => 'Trumpiausias maršrutas';
-
-  @override
   String zapAmountButton(int sats) {
     return 'Zap $sats sat';
   }
-
-  @override
-  String get showRoutePreview => 'Rodyti maršruto peržiūrą';
 
   @override
   String get avoidHighwaysAndTolls => 'Vengti greitkelių ir mokamų kelių';
@@ -1383,4 +1255,40 @@ class AppLocalizationsLt extends AppLocalizations {
   @override
   String get avoidanceUnavoidableSection =>
       'Mažina greitkelius/mokamus kelius · neišvengiama atkarpa';
+
+  @override
+  String get nearbyTitle => 'Netoliese';
+
+  @override
+  String get nearbyNeedsGps => 'Laukiama GPS';
+
+  @override
+  String get nearbyNothingFound => '5 km spinduliu nieko nerasta';
+
+  @override
+  String get nearbyFuel => 'Degalinė';
+
+  @override
+  String get nearbySupermarket => 'Prekybos centras';
+
+  @override
+  String get nearbyAtm => 'Bankomatas';
+
+  @override
+  String get nearbyPharmacy => 'Vaistinė';
+
+  @override
+  String get nearbyHospital => 'Ligoninė';
+
+  @override
+  String get nearbyPolice => 'Policija';
+
+  @override
+  String get nearbyPostOffice => 'Paštas';
+
+  @override
+  String get nearbyParking => 'Stovėjimo aikštelė';
+
+  @override
+  String get nearbyCharging => 'Įkrovimas';
 }

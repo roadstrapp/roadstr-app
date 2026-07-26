@@ -35,6 +35,7 @@ import '../services/routing_service.dart';
 import '../services/zap_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/units.dart';
+import '../widgets/sheets/road_event_sheets.dart' show SpeedLimitDialog;
 
 class ProfileScreen extends StatefulWidget {
   /// When set, this is a public profile opened from another user's report.
@@ -457,15 +458,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> _publishEventSpeedLimit(
-      RoadEvent event, int displayLimit) async {
+  /// Publishes a kind-1317 update. [limit] is already in km/h — the dialog
+  /// converts from the displayed unit, so converting again here would turn
+  /// 50 mph into 130 km/h on an imperial device.
+  Future<void> _publishEventSpeedLimit(RoadEvent event, int limit) async {
     final pub = await _st.read(key: _kPub);
     final flavor = await _st.read(key: _kFlavor);
     if (pub == null || pub != event.pubkey || flavor == null) {
       throw const FormatException('Only the report owner can edit it');
     }
-    final limit =
-        Units.imperial ? (displayLimit * 1.60934).round() : displayLimit;
     final relay = NostrRelayService();
     try {
       await relay.connect();
@@ -1165,40 +1166,17 @@ class _EventDetailDialogState extends State<_EventDetailDialog> {
                   onPressed: () async {
                     final navigator = Navigator.of(context);
                     final messenger = ScaffoldMessenger.of(context);
-                    final ctrl = TextEditingController(
-                        text: ev.speedLimit == null
-                            ? ''
-                            : '${Units.imperial ? Units.toDisplaySpeed(ev.speedLimit!.toDouble()).round() : ev.speedLimit}');
                     final raw = await showDialog<int>(
                       context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: Text(AppLocalizations.of(ctx).editSpeedLimit),
-                        content: TextField(
-                          controller: ctrl,
-                          autofocus: true,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                              labelText:
-                                  AppLocalizations.of(ctx).speedLimitHint),
-                        ),
-                        actions: [
-                          TextButton(
-                              onPressed: () => Navigator.pop(ctx),
-                              child: Text(AppLocalizations.of(ctx).cancel)),
-                          FilledButton(
-                              onPressed: () {
-                                final value = int.tryParse(ctrl.text.trim());
-                                if (value != null &&
-                                    value > 0 &&
-                                    value <= 300) {
-                                  Navigator.pop(ctx, value);
-                                }
-                              },
-                              child: Text(AppLocalizations.of(ctx).ok)),
-                        ],
+                      // Shared dialog: it owns its text controller, which is
+                      // what keeps the disposal from racing the closing
+                      // animation (see [SpeedLimitDialog]).
+                      builder: (_) => SpeedLimitDialog(
+                        surface: c.surface2,
+                        title: (l) => l.editSpeedLimit,
+                        initialLimitKmh: ev.speedLimit,
                       ),
                     );
-                    ctrl.dispose();
                     if (raw == null || !mounted) return;
                     try {
                       await widget.onEditSpeedLimit!(raw);

@@ -22,19 +22,6 @@ class AppLocalizationsMt extends AppLocalizations {
       'L-ebda rotta ma nstabet. Iċċekkja l-konnessjoni tiegħek.';
 
   @override
-  String get emptyServerResponse =>
-      'Risposta vojta mis-server. Iċċekkja l-konnessjoni tiegħek.';
-
-  @override
-  String routeError(String error) {
-    return 'Żball fil-kalkolu tar-rotta: $error';
-  }
-
-  @override
-  String get gpsNotAvailable =>
-      'GPS mhux disponibbli — Settings → App → Roadstr → Permissions → Location';
-
-  @override
   String get acquiringGps => 'Qed nikseb GPS…';
 
   @override
@@ -51,11 +38,6 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get chooseRoute => 'Agħżel rotta';
-
-  @override
-  String routeOptionsCount(int count) {
-    return '$count għażliet';
-  }
 
   @override
   String get cancel => 'Ikkanċella';
@@ -79,7 +61,7 @@ class AppLocalizationsMt extends AppLocalizations {
   String get selectedPosition => 'Pożizzjoni magħżula';
 
   @override
-  String get bottomBarNotifications => 'Notifications';
+  String get bottomBarNotifications => 'Notifiki';
 
   @override
   String get bottomBarProfile => 'Profil';
@@ -88,21 +70,21 @@ class AppLocalizationsMt extends AppLocalizations {
   String get bottomBarMenu => 'Menu';
 
   @override
-  String get notificationsTitle => 'Notifications';
+  String get notificationsTitle => 'Notifiki';
 
   @override
-  String get notificationsEmpty => 'No notifications yet';
+  String get notificationsEmpty => 'Għad m\'hemmx notifiki';
 
   @override
   String get notificationsEmptyBody =>
-      'Zaps and reactions to your road reports will appear here.';
+      'Iz-zaps u r-reazzjonijiet għar-rapporti tat-triq tiegħek jidhru hawn.';
 
   @override
-  String get notificationsLoginRequired => 'Connect your Nostr profile';
+  String get notificationsLoginRequired => 'Qabbad il-profil Nostr tiegħek';
 
   @override
   String get notificationsLoginRequiredBody =>
-      'Sign in with Amber or nsec to receive notifications from other users.';
+      'Idħol b\'Amber jew nsec biex tirċievi notifiki minn utenti oħra.';
 
   @override
   String get settingsTitle => 'Settings';
@@ -135,12 +117,6 @@ class AppLocalizationsMt extends AppLocalizations {
   String get langSystem => 'Default tas-sistema';
 
   @override
-  String get langItalian => 'Italiano';
-
-  @override
-  String get langEnglish => 'English';
-
-  @override
   String get keepScreenOn => 'Żomm l-iskrin mixgħul';
 
   @override
@@ -154,13 +130,6 @@ class AppLocalizationsMt extends AppLocalizations {
   @override
   String get autoCenterOnLaunchDesc =>
       'Juża l-GPS awtomatikament biss jekk il-permess tal-post ikun diġà ngħata';
-
-  @override
-  String get rotateMap => 'Il-mappa ssegwi d-direzzjoni';
-
-  @override
-  String get rotateMapDescription =>
-      'Il-mappa tirrotaw abbażi tad-direzzjoni tas-sewqan';
 
   @override
   String get mapTileUrlLabel => 'URL tal-tile tal-mappa';
@@ -237,48 +206,51 @@ class AppLocalizationsMt extends AppLocalizations {
   String get profileTitle => 'Profil';
 
   @override
-  String get profileVisibilityTitle => 'Profile visibility';
+  String get profileVisibilityTitle => 'Viżibbiltà tal-profil';
 
   @override
   String get profileVisibilityDesc =>
-      'Choose whether other Roadstr users see your Nostr name, npub and picture.';
+      'Agħżel jekk utenti oħra ta\' Roadstr jarawx l-isem Nostr, l-npub u r-ritratt tiegħek.';
 
   @override
-  String get profileVisibilityClear => 'Show profile publicly';
+  String get profileVisibilityClear => 'Uri l-profil pubblikament';
 
   @override
-  String get profileVisibilityPseudonymous => 'Pseudonymous mode (recommended)';
+  String get profileVisibilityPseudonymous =>
+      'Modalità psewdonima (rakkomandata)';
 
   @override
   String get profileVisibilityPublishError =>
-      'The local choice was saved, but could not be published to Nostr yet.';
+      'L-għażla ġiet salvata lokalment, imma għadha ma setgħetx tiġi ppubblikata fuq Nostr.';
 
   @override
   String get nostrichLabel => 'nostrich';
 
   @override
-  String get profileHiddenNotice => 'This user is using pseudonymous mode.';
+  String get profileHiddenNotice =>
+      'Dan l-utent qed juża l-modalità psewdonima.';
 
   @override
-  String get editSpeedLimit => 'Add or update speed limit';
+  String get editSpeedLimit => 'Żid jew aġġorna l-limitu tal-veloċità';
 
   @override
-  String get requestSpeedLimit => 'Suggest a speed limit';
+  String get requestSpeedLimit => 'Issuġġerixxi limitu tal-veloċità';
 
   @override
-  String get acceptEditRequest => 'Accept suggestion';
+  String get acceptEditRequest => 'Aċċetta s-suġġeriment';
 
   @override
-  String get pendingEditRequests => 'Pending edit suggestions';
+  String get pendingEditRequests => 'Suġġerimenti ta\' modifika pendenti';
 
   @override
-  String get speedLimitHint => 'Speed limit';
+  String get speedLimitHint => 'Limitu tal-veloċità';
 
   @override
-  String get speedLimitSaved => 'Speed limit published';
+  String get speedLimitSaved => 'Il-limitu tal-veloċità ġie ppubblikat';
 
   @override
-  String get editRequestSent => 'Suggestion sent to the report owner';
+  String get editRequestSent =>
+      'Is-suġġeriment intbagħat lill-awtur tar-rapport';
 
   @override
   String get notConnected => 'Mhux konness';
@@ -354,17 +326,7 @@ class AppLocalizationsMt extends AppLocalizations {
   String get requestKeyFromAmber => 'Itlob iċ-ċavetta pubblika minn Amber';
 
   @override
-  String get amberNotFound =>
-      'Amber ma nstabx. Installa mill-Play Store jew daħħal in-npub tiegħek manwalment.';
-
-  @override
   String get waitingForAmberResponse => 'Qed nistenna r-risposta ta\' Amber…';
-
-  @override
-  String get pasteNpubManually => 'Ippejstja n-npub tiegħek manwalment:';
-
-  @override
-  String get confirmNpub => 'Ikkonferma n-npub';
 
   @override
   String get enterNsecTitle => 'Daħħal nsec';
@@ -379,19 +341,10 @@ class AppLocalizationsMt extends AppLocalizations {
   String get invalidNsecTitle => 'nsec invalidu';
 
   @override
-  String get invalidNpubMessage => 'Kun ċert li ppejstjajt l-npub korrett.';
-
-  @override
   String get invalidNsecMessage => 'Kun ċert li ppejstjajt l-nsec korrett.';
 
   @override
-  String get amberResponseError => 'Żball fir-risposta ta\' Amber';
-
-  @override
   String get ok => 'OK';
-
-  @override
-  String get or => 'jew';
 
   @override
   String get gpsNotActiveTitle => 'GPS mhux attiv';
@@ -430,11 +383,6 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get zapSending => 'Qed jintbagħat…';
-
-  @override
-  String zapSat(int sats) {
-    return '⚡$sats sat';
-  }
 
   @override
   String get fetchingLightningAddress => 'Qed nikseb l-indirizz Lightning…';
@@ -732,33 +680,6 @@ class AppLocalizationsMt extends AppLocalizations {
       'Aqra l-istruzzjonijiet tad-dawra b\'leħen għoli waqt in-navigazzjoni';
 
   @override
-  String get testVoiceEngine => 'Ittestja l-magna tal-vuċi';
-
-  @override
-  String get testVoiceEngineDesc =>
-      'Mess biex tivverifika l-magna TTS u tikseb istruzzjonijiet ta\' konfigurazzjoni';
-
-  @override
-  String get ttsDialogTitle => 'Nieqsa l-magna tal-vuċi';
-
-  @override
-  String get ttsDialogBody =>
-      'Ma nstabet l-ebda magna Text-to-Speech li taħdem.\n\nRoadstr jiddependi biss fuq software open source — installa waħda minn dawn il-magni b\'xejn minn F-Droid:';
-
-  @override
-  String get ttsRhvoiceDesc => 'Vuċi naturali, lista limitata ta\' lingwi';
-
-  @override
-  String get ttsEspeakDesc => 'Tkopri aktar minn 100 lingwa, vuċi robotika';
-
-  @override
-  String get ttsInstallNote =>
-      '⚠️ Wara l-installazzjoni:\n1. Settings tal-Android → Aċċessibbiltà → Test-to-Speech\n2. Agħżel il-magna li għadek kif installajt\n3. Niżżel id-dejta tal-vuċi tal-lingwa tiegħek\n4. Erġa\' ibda Roadstr għal kollox';
-
-  @override
-  String get ttsTestNow => 'Ittestja issa';
-
-  @override
   String get voiceUnsupportedTitle => 'Gwida bil-vuċi mhix disponibbli';
 
   @override
@@ -799,30 +720,6 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get arrivedTitle => '🎉 Wasalt!';
-
-  @override
-  String get arrivedBody => 'Laħaqt id-destinazzjoni tiegħek.';
-
-  @override
-  String get arrivedFeedbackPrompt => 'Kif marret?';
-
-  @override
-  String get feedbackBad => 'Ħażin';
-
-  @override
-  String get feedbackGood => 'Tajjeb!';
-
-  @override
-  String get feedbackDialogTitle => 'Għidilna x\'mar ħażin';
-
-  @override
-  String get feedbackHint => 'Iddeskrivi l-problema…';
-
-  @override
-  String get feedbackSent => 'Feedback intbagħat — grazzi! 🙏';
-
-  @override
-  String get feedbackSubmit => 'Ibgħat';
 
   @override
   String get transportModeCar => 'Karozza';
@@ -877,9 +774,6 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get poiCuisine => 'Kċina';
-
-  @override
-  String get poiAccessibility => 'Aċċessibbiltà';
 
   @override
   String get poiWheelchairYes => 'Aċċessibbli bis-siġġu tar-roti';
@@ -1085,10 +979,6 @@ class AppLocalizationsMt extends AppLocalizations {
   String get weatherThunderstorm => 'Maltempata';
 
   @override
-  String get ztlAheadWarning =>
-      'Żona ta\' traffiku ristrett \'il quddiem — ir-rotta tgħaddi minnha';
-
-  @override
   String get ztlInsideWarning => 'Żona ta\' traffiku ristrett';
 
   @override
@@ -1220,9 +1110,6 @@ class AppLocalizationsMt extends AppLocalizations {
   String get onboardingLetsGo => 'Ejja mmorru!';
 
   @override
-  String get onboardingProfileLoading => 'Qed jitgħabba l-profil…';
-
-  @override
   String get onboardingNsecHint => 'nsec1…';
 
   @override
@@ -1250,7 +1137,7 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get profileVisibilityOnboarding =>
-      'Roadstr always publishes the Nostr public key needed to verify a report. In pseudonymous mode, other Roadstr users see only a generic avatar and “nostrich”; in public mode, they also see your Nostr name, npub and profile picture. Your reports, locations, reputation and received zaps remain public on Nostr.';
+      'Roadstr dejjem jippubblika ċ-ċavetta pubblika Nostr meħtieġa biex jiġi vverifikat rapport. Fil-modalità psewdonima, utenti oħra ta\' Roadstr jaraw biss avatar ġeneriku u „nostrich”; fil-modalità pubblika, jaraw ukoll l-isem Nostr, l-npub u r-ritratt tal-profil tiegħek. Ir-rapporti, il-postijiet, ir-reputazzjoni u z-zaps li tirċievi jibqgħu pubbliċi fuq Nostr.';
 
   @override
   String get parkingSaveHere => 'Issejvja l-parkeġġ hawn';
@@ -1358,21 +1245,9 @@ class AppLocalizationsMt extends AppLocalizations {
   String get trafficHeavy => 'Traffiku qawwi';
 
   @override
-  String get avoidHighwaysChip => 'Evita l-awtostradi';
-
-  @override
-  String get avoidTollsChip => 'Evita l-pedaġġi';
-
-  @override
-  String get preferShorterChip => 'L-iqsar rotta';
-
-  @override
   String zapAmountButton(int sats) {
     return 'Zap $sats sat';
   }
-
-  @override
-  String get showRoutePreview => 'Uri l-previżjoni tar-rotta';
 
   @override
   String get avoidHighwaysAndTolls => 'Evita awtostradi u toroq bi ħlas';
@@ -1384,4 +1259,40 @@ class AppLocalizationsMt extends AppLocalizations {
   @override
   String get avoidanceUnavoidableSection =>
       'Inaqqas awtostradi/toroq bi ħlas · parti inevitabbli';
+
+  @override
+  String get nearbyTitle => 'Fil-qrib';
+
+  @override
+  String get nearbyNeedsGps => 'Qed jistenna l-GPS';
+
+  @override
+  String get nearbyNothingFound => 'Ma nstab xejn f\'raġġ ta\' 5 km';
+
+  @override
+  String get nearbyFuel => 'Fjuwil';
+
+  @override
+  String get nearbySupermarket => 'Supermarket';
+
+  @override
+  String get nearbyAtm => 'ATM';
+
+  @override
+  String get nearbyPharmacy => 'Spiżerija';
+
+  @override
+  String get nearbyHospital => 'Sptar';
+
+  @override
+  String get nearbyPolice => 'Pulizija';
+
+  @override
+  String get nearbyPostOffice => 'Posta';
+
+  @override
+  String get nearbyParking => 'Parkeġġ';
+
+  @override
+  String get nearbyCharging => 'Iċċarġjar';
 }

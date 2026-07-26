@@ -96,7 +96,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (p >= 1.0) {
         final lang = _box.get('language', defaultValue: '') as String;
         unawaited(KokoroTtsService.warmUpLanguage(lang.isNotEmpty ? lang : 'it',
-            gender: _kokoroGender));
+            gender: _kokoroGender,
+            speed: kKokoroSpeedStages[_kokoroSpeedStage]));
       }
     });
 
@@ -607,6 +608,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await _st.write(key: 'favorites_sync_passphrase', value: ctrl.text);
       _syncPassphrase = ctrl.text;
     }
+    // The secure-storage write above is awaited: the screen can be gone by now.
+    if (!mounted) return;
     setState(() {});
   }
 

@@ -21,19 +21,6 @@ class AppLocalizationsCs extends AppLocalizations {
   String get noRouteFound => 'Trasa nenalezena. Zkontrolujte připojení.';
 
   @override
-  String get emptyServerResponse =>
-      'Prázdná odpověď serveru. Zkontrolujte připojení.';
-
-  @override
-  String routeError(String error) {
-    return 'Chyba výpočtu trasy: $error';
-  }
-
-  @override
-  String get gpsNotAvailable =>
-      'GPS nedostupné — Nastavení → Aplikace → Roadstr → Oprávnění → Poloha';
-
-  @override
   String get acquiringGps => 'Získávám GPS…';
 
   @override
@@ -50,11 +37,6 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get chooseRoute => 'Vybrat trasu';
-
-  @override
-  String routeOptionsCount(int count) {
-    return '$count možností';
-  }
 
   @override
   String get cancel => 'Zrušit';
@@ -78,7 +60,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get selectedPosition => 'Vybraná poloha';
 
   @override
-  String get bottomBarNotifications => 'Notifications';
+  String get bottomBarNotifications => 'Oznámení';
 
   @override
   String get bottomBarProfile => 'Profil';
@@ -87,21 +69,21 @@ class AppLocalizationsCs extends AppLocalizations {
   String get bottomBarMenu => 'Nabídka';
 
   @override
-  String get notificationsTitle => 'Notifications';
+  String get notificationsTitle => 'Oznámení';
 
   @override
-  String get notificationsEmpty => 'No notifications yet';
+  String get notificationsEmpty => 'Zatím žádná oznámení';
 
   @override
   String get notificationsEmptyBody =>
-      'Zaps and reactions to your road reports will appear here.';
+      'Zapy a reakce na vaše dopravní hlášení se objeví zde.';
 
   @override
-  String get notificationsLoginRequired => 'Connect your Nostr profile';
+  String get notificationsLoginRequired => 'Připojte svůj profil Nostr';
 
   @override
   String get notificationsLoginRequiredBody =>
-      'Sign in with Amber or nsec to receive notifications from other users.';
+      'Přihlaste se přes Amber nebo nsec, abyste dostávali oznámení od ostatních uživatelů.';
 
   @override
   String get settingsTitle => 'Nastavení';
@@ -134,12 +116,6 @@ class AppLocalizationsCs extends AppLocalizations {
   String get langSystem => 'Výchozí systémový';
 
   @override
-  String get langItalian => 'Italiano';
-
-  @override
-  String get langEnglish => 'English';
-
-  @override
   String get keepScreenOn => 'Ponechat obrazovku zapnutou';
 
   @override
@@ -152,12 +128,6 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get autoCenterOnLaunchDesc =>
       'Automaticky použije GPS, pouze pokud již bylo uděleno oprávnění k poloze';
-
-  @override
-  String get rotateMap => 'Mapa sleduje směr';
-
-  @override
-  String get rotateMapDescription => 'Mapa se otáčí podle směru jízdy';
 
   @override
   String get mapTileUrlLabel => 'URL dlaždic mapy';
@@ -233,48 +203,48 @@ class AppLocalizationsCs extends AppLocalizations {
   String get profileTitle => 'Profil';
 
   @override
-  String get profileVisibilityTitle => 'Profile visibility';
+  String get profileVisibilityTitle => 'Viditelnost profilu';
 
   @override
   String get profileVisibilityDesc =>
-      'Choose whether other Roadstr users see your Nostr name, npub and picture.';
+      'Zvolte, zda ostatní uživatelé Roadstr uvidí vaše jméno na Nostr, npub a obrázek.';
 
   @override
-  String get profileVisibilityClear => 'Show profile publicly';
+  String get profileVisibilityClear => 'Zobrazovat profil veřejně';
 
   @override
-  String get profileVisibilityPseudonymous => 'Pseudonymous mode (recommended)';
+  String get profileVisibilityPseudonymous => 'Pseudonymní režim (doporučeno)';
 
   @override
   String get profileVisibilityPublishError =>
-      'The local choice was saved, but could not be published to Nostr yet.';
+      'Volba byla uložena lokálně, ale zatím ji nebylo možné publikovat na Nostr.';
 
   @override
   String get nostrichLabel => 'nostrich';
 
   @override
-  String get profileHiddenNotice => 'This user is using pseudonymous mode.';
+  String get profileHiddenNotice => 'Tento uživatel používá pseudonymní režim.';
 
   @override
-  String get editSpeedLimit => 'Add or update speed limit';
+  String get editSpeedLimit => 'Přidat nebo upravit rychlostní limit';
 
   @override
-  String get requestSpeedLimit => 'Suggest a speed limit';
+  String get requestSpeedLimit => 'Navrhnout rychlostní limit';
 
   @override
-  String get acceptEditRequest => 'Accept suggestion';
+  String get acceptEditRequest => 'Přijmout návrh';
 
   @override
-  String get pendingEditRequests => 'Pending edit suggestions';
+  String get pendingEditRequests => 'Čekající návrhy úprav';
 
   @override
-  String get speedLimitHint => 'Speed limit';
+  String get speedLimitHint => 'Rychlostní limit';
 
   @override
-  String get speedLimitSaved => 'Speed limit published';
+  String get speedLimitSaved => 'Rychlostní limit publikován';
 
   @override
-  String get editRequestSent => 'Suggestion sent to the report owner';
+  String get editRequestSent => 'Návrh odeslán autorovi hlášení';
 
   @override
   String get notConnected => 'Nepřipojen';
@@ -351,17 +321,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get requestKeyFromAmber => 'Požádat Amber o veřejný klíč';
 
   @override
-  String get amberNotFound =>
-      'Amber nebyl nalezen. Nainstalujte ho z Play Store nebo zadejte svůj npub ručně.';
-
-  @override
   String get waitingForAmberResponse => 'Čekám na odpověď Amberu…';
-
-  @override
-  String get pasteNpubManually => 'Vložte svůj npub ručně:';
-
-  @override
-  String get confirmNpub => 'Potvrdit npub';
 
   @override
   String get enterNsecTitle => 'Vložit nsec';
@@ -376,19 +336,10 @@ class AppLocalizationsCs extends AppLocalizations {
   String get invalidNsecTitle => 'Neplatný nsec';
 
   @override
-  String get invalidNpubMessage => 'Ujistěte se, že jste vložili správný npub.';
-
-  @override
   String get invalidNsecMessage => 'Ujistěte se, že jste vložili správný nsec.';
 
   @override
-  String get amberResponseError => 'Chyba odpovědi Amberu';
-
-  @override
   String get ok => 'OK';
-
-  @override
-  String get or => 'nebo';
 
   @override
   String get gpsNotActiveTitle => 'GPS není aktivní';
@@ -427,11 +378,6 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get zapSending => 'Odesílám…';
-
-  @override
-  String zapSat(int sats) {
-    return '⚡$sats sat';
-  }
 
   @override
   String get fetchingLightningAddress => 'Načítám Lightning adresu…';
@@ -727,33 +673,6 @@ class AppLocalizationsCs extends AppLocalizations {
       'Číst pokyny k odbočení nahlas během navigace';
 
   @override
-  String get testVoiceEngine => 'Otestovat hlasový engine';
-
-  @override
-  String get testVoiceEngineDesc =>
-      'Klepnutím zkontrolujte TTS engine a získejte pokyny k nastavení';
-
-  @override
-  String get ttsDialogTitle => 'Chybí hlasový engine';
-
-  @override
-  String get ttsDialogBody =>
-      'Nebyl nalezen žádný funkční engine Text-to-Speech.\n\nRoadstr se spoléhá pouze na open source software — nainstalujte si jeden z těchto bezplatných enginů z F-Droid:';
-
-  @override
-  String get ttsRhvoiceDesc => 'Přirozeně znějící hlas, omezený seznam jazyků';
-
-  @override
-  String get ttsEspeakDesc => 'Pokrývá více než 100 jazyků, robotický hlas';
-
-  @override
-  String get ttsInstallNote =>
-      '⚠️ Po instalaci:\n1. Nastavení Androidu → Přístupnost → Převod textu na řeč\n2. Vyberte právě nainstalovaný engine\n3. Stáhněte hlasová data pro váš jazyk\n4. Roadstr úplně restartujte';
-
-  @override
-  String get ttsTestNow => 'Otestovat nyní';
-
-  @override
   String get voiceUnsupportedTitle => 'Hlasové navádění není k dispozici';
 
   @override
@@ -794,30 +713,6 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get arrivedTitle => '🎉 Dorazili jste!';
-
-  @override
-  String get arrivedBody => 'Dosáhli jste svého cíle.';
-
-  @override
-  String get arrivedFeedbackPrompt => 'Jak to šlo?';
-
-  @override
-  String get feedbackBad => 'Špatně';
-
-  @override
-  String get feedbackGood => 'Dobře!';
-
-  @override
-  String get feedbackDialogTitle => 'Řekněte nám, co se pokazilo';
-
-  @override
-  String get feedbackHint => 'Popište problém…';
-
-  @override
-  String get feedbackSent => 'Zpětná vazba odeslána — děkujeme! 🙏';
-
-  @override
-  String get feedbackSubmit => 'Odeslat';
 
   @override
   String get transportModeCar => 'Auto';
@@ -871,9 +766,6 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get poiCuisine => 'Kuchyně';
-
-  @override
-  String get poiAccessibility => 'Přístupnost';
 
   @override
   String get poiWheelchairYes => 'Bezbariérový přístup';
@@ -1079,10 +971,6 @@ class AppLocalizationsCs extends AppLocalizations {
   String get weatherThunderstorm => 'Bouřka';
 
   @override
-  String get ztlAheadWarning =>
-      'Vpředu je omezená dopravní zóna — trasa jí prochází';
-
-  @override
   String get ztlInsideWarning => 'Omezená dopravní zóna';
 
   @override
@@ -1214,9 +1102,6 @@ class AppLocalizationsCs extends AppLocalizations {
   String get onboardingLetsGo => 'Jedeme!';
 
   @override
-  String get onboardingProfileLoading => 'Načítání profilu…';
-
-  @override
   String get onboardingNsecHint => 'nsec1…';
 
   @override
@@ -1244,7 +1129,7 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get profileVisibilityOnboarding =>
-      'Roadstr always publishes the Nostr public key needed to verify a report. In pseudonymous mode, other Roadstr users see only a generic avatar and “nostrich”; in public mode, they also see your Nostr name, npub and profile picture. Your reports, locations, reputation and received zaps remain public on Nostr.';
+      'Roadstr vždy publikuje veřejný klíč Nostr potřebný k ověření hlášení. V pseudonymním režimu ostatní uživatelé Roadstr vidí jen obecný avatar a „nostrich“; ve veřejném režimu vidí také vaše jméno na Nostr, npub a profilový obrázek. Vaše hlášení, polohy, reputace a přijaté zapy zůstávají na Nostr veřejné.';
 
   @override
   String get parkingSaveHere => 'Uložit parkování zde';
@@ -1352,21 +1237,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get trafficHeavy => 'Hustý provoz';
 
   @override
-  String get avoidHighwaysChip => 'Vyhnout se dálnicím';
-
-  @override
-  String get avoidTollsChip => 'Vyhnout se mýtu';
-
-  @override
-  String get preferShorterChip => 'Nejkratší trasa';
-
-  @override
   String zapAmountButton(int sats) {
     return 'Zap $sats sat';
   }
-
-  @override
-  String get showRoutePreview => 'Zobrazit náhled trasy';
 
   @override
   String get avoidHighwaysAndTolls => 'Vyhnout se dálnicím a mýtnému';
@@ -1378,4 +1251,40 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get avoidanceUnavoidableSection =>
       'Omezuje dálnice/mýtné · nevyhnutelný úsek';
+
+  @override
+  String get nearbyTitle => 'V okolí';
+
+  @override
+  String get nearbyNeedsGps => 'Čekání na GPS';
+
+  @override
+  String get nearbyNothingFound => 'V okruhu 5 km nic nenalezeno';
+
+  @override
+  String get nearbyFuel => 'Čerpací stanice';
+
+  @override
+  String get nearbySupermarket => 'Supermarket';
+
+  @override
+  String get nearbyAtm => 'Bankomat';
+
+  @override
+  String get nearbyPharmacy => 'Lékárna';
+
+  @override
+  String get nearbyHospital => 'Nemocnice';
+
+  @override
+  String get nearbyPolice => 'Policie';
+
+  @override
+  String get nearbyPostOffice => 'Pošta';
+
+  @override
+  String get nearbyParking => 'Parkoviště';
+
+  @override
+  String get nearbyCharging => 'Nabíjení';
 }

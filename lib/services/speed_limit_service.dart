@@ -29,6 +29,12 @@ class SpeedLimitService {
   // momentary miss near a junction.
   static const _maxConsecutiveMisses = 2;
 
+  /// A limit older than this is no longer reported. Free-drive queries only
+  /// run while the vehicle is moving, so once parked nothing would ever clear
+  /// the cache: the sign used to stay on screen indefinitely, still showing the
+  /// limit of whatever road the last journey ended on.
+  static const _staleAfter = Duration(minutes: 5);
+
   int? _cachedLimit;
   LatLng? _lastQueryPos;
   bool _fetching = false;
@@ -37,12 +43,22 @@ class SpeedLimitService {
   final _overpass = OverpassClient();
   int _missCount = 0;
 
-  /// The most recently fetched speed limit (km/h), or null if unknown.
-  int? get cachedLimit => _cachedLimit;
+  /// Incremented by [reset]; a query that was already in flight compares it on
+  /// completion and drops its result rather than re-filling a cleared cache.
+  int _generation = 0;
+
+  /// The most recently fetched speed limit (km/h), or null when unknown or
+  /// older than [_staleAfter].
+  int? get cachedLimit {
+    final at = _lastSuccessAt;
+    if (_cachedLimit == null || at == null) return null;
+    return DateTime.now().difference(at) > _staleAfter ? null : _cachedLimit;
+  }
 
   /// Clears the cache — call when starting a new navigation session so stale
   /// limits from the previous route don't bleed in.
   void reset() {
+    _generation++;
     _cachedLimit = null;
     _lastQueryPos = null;
     _lastSuccessAt = null;
@@ -56,9 +72,11 @@ class SpeedLimitService {
   /// position is within [_minMoveM] of the last successful query.
   Future<void> updateIfNeeded(LatLng pos) async {
     if (!_needsQuery(pos)) return;
+    final generation = _generation;
     _fetching = true;
     try {
       final result = await _fetchLimit(pos);
+      if (generation != _generation) return; // reset() while in flight
       if (result != null) {
         _cachedLimit = result;
         _missCount = 0;
@@ -73,11 +91,13 @@ class SpeedLimitService {
           '[SpeedLimit] Overpass → ${result ?? "no limit (miss $_missCount)"} km/h');
     } catch (e) {
       debugPrint('[SpeedLimit] Overpass error: $e');
+      if (generation != _generation) return;
       // Rotate to the next mirror before backing off.
       _overpass.rotate();
       _nextRetryAt = DateTime.now().add(const Duration(milliseconds: _retryMs));
     } finally {
-      _fetching = false;
+      // A superseded query must not clear the flag of the one that replaced it.
+      if (generation == _generation) _fetching = false;
     }
   }
 
@@ -99,7 +119,8 @@ class SpeedLimitService {
         'way[highway~"^(motorway|trunk|primary|secondary|tertiary'
         '|unclassified|residential|living_street|motorway_link|trunk_link'
         '|primary_link|secondary_link|tertiary_link)\$"]'
-        '(around:$_radiusM,${pos.latitude},${pos.longitude});'
+        '(around:$_radiusM,${OverpassClient.coord(pos.latitude)},'
+        '${OverpassClient.coord(pos.longitude)});'
         'out tags geom;';
     final elements = await _overpass.fetchElements(query,
         maxBytes: 5 * 1024 * 1024, timeout: const Duration(seconds: 7));

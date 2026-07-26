@@ -172,24 +172,6 @@ abstract class AppLocalizations {
   /// **'No route found. Check your connection.'**
   String get noRouteFound;
 
-  /// No description provided for @emptyServerResponse.
-  ///
-  /// In en, this message translates to:
-  /// **'Empty server response. Check your connection.'**
-  String get emptyServerResponse;
-
-  /// No description provided for @routeError.
-  ///
-  /// In en, this message translates to:
-  /// **'Route calculation error: {error}'**
-  String routeError(String error);
-
-  /// No description provided for @gpsNotAvailable.
-  ///
-  /// In en, this message translates to:
-  /// **'GPS unavailable — Settings → App → Roadstr → Permissions → Location'**
-  String get gpsNotAvailable;
-
   /// No description provided for @acquiringGps.
   ///
   /// In en, this message translates to:
@@ -219,12 +201,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose route'**
   String get chooseRoute;
-
-  /// No description provided for @routeOptionsCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} options'**
-  String routeOptionsCount(int count);
 
   /// No description provided for @cancel.
   ///
@@ -376,18 +352,6 @@ abstract class AppLocalizations {
   /// **'System default'**
   String get langSystem;
 
-  /// No description provided for @langItalian.
-  ///
-  /// In en, this message translates to:
-  /// **'Italiano'**
-  String get langItalian;
-
-  /// No description provided for @langEnglish.
-  ///
-  /// In en, this message translates to:
-  /// **'English'**
-  String get langEnglish;
-
   /// No description provided for @keepScreenOn.
   ///
   /// In en, this message translates to:
@@ -411,18 +375,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Uses GPS automatically only after location permission has already been granted'**
   String get autoCenterOnLaunchDesc;
-
-  /// No description provided for @rotateMap.
-  ///
-  /// In en, this message translates to:
-  /// **'Map follows direction'**
-  String get rotateMap;
-
-  /// No description provided for @rotateMapDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Map rotates based on driving direction'**
-  String get rotateMapDescription;
 
   /// No description provided for @mapTileUrlLabel.
   ///
@@ -784,29 +736,11 @@ abstract class AppLocalizations {
   /// **'Request public key from Amber'**
   String get requestKeyFromAmber;
 
-  /// No description provided for @amberNotFound.
-  ///
-  /// In en, this message translates to:
-  /// **'Amber not found. Install it from the Play Store or enter your npub manually.'**
-  String get amberNotFound;
-
   /// No description provided for @waitingForAmberResponse.
   ///
   /// In en, this message translates to:
   /// **'Waiting for Amber response…'**
   String get waitingForAmberResponse;
-
-  /// No description provided for @pasteNpubManually.
-  ///
-  /// In en, this message translates to:
-  /// **'Paste your npub manually:'**
-  String get pasteNpubManually;
-
-  /// No description provided for @confirmNpub.
-  ///
-  /// In en, this message translates to:
-  /// **'Confirm npub'**
-  String get confirmNpub;
 
   /// No description provided for @enterNsecTitle.
   ///
@@ -832,35 +766,17 @@ abstract class AppLocalizations {
   /// **'Invalid nsec'**
   String get invalidNsecTitle;
 
-  /// No description provided for @invalidNpubMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'Make sure you pasted the correct npub.'**
-  String get invalidNpubMessage;
-
   /// No description provided for @invalidNsecMessage.
   ///
   /// In en, this message translates to:
   /// **'Make sure you pasted the correct nsec.'**
   String get invalidNsecMessage;
 
-  /// No description provided for @amberResponseError.
-  ///
-  /// In en, this message translates to:
-  /// **'Amber response error'**
-  String get amberResponseError;
-
   /// No description provided for @ok.
   ///
   /// In en, this message translates to:
   /// **'OK'**
   String get ok;
-
-  /// No description provided for @or.
-  ///
-  /// In en, this message translates to:
-  /// **'or'**
-  String get or;
 
   /// No description provided for @gpsNotActiveTitle.
   ///
@@ -933,12 +849,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sending…'**
   String get zapSending;
-
-  /// No description provided for @zapSat.
-  ///
-  /// In en, this message translates to:
-  /// **'⚡{sats} sat'**
-  String zapSat(int sats);
 
   /// No description provided for @fetchingLightningAddress.
   ///
@@ -1456,54 +1366,6 @@ abstract class AppLocalizations {
   /// **'Read turn-by-turn instructions aloud during navigation'**
   String get voiceGuidanceDesc;
 
-  /// No description provided for @testVoiceEngine.
-  ///
-  /// In en, this message translates to:
-  /// **'Test voice engine'**
-  String get testVoiceEngine;
-
-  /// No description provided for @testVoiceEngineDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap to check the TTS engine and get setup instructions'**
-  String get testVoiceEngineDesc;
-
-  /// No description provided for @ttsDialogTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Missing voice engine'**
-  String get ttsDialogTitle;
-
-  /// No description provided for @ttsDialogBody.
-  ///
-  /// In en, this message translates to:
-  /// **'No working Text-to-Speech engine was found.\n\nRoadstr only relies on open source software — install one of these free engines from F-Droid:'**
-  String get ttsDialogBody;
-
-  /// No description provided for @ttsRhvoiceDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Natural-sounding voice, limited language list'**
-  String get ttsRhvoiceDesc;
-
-  /// No description provided for @ttsEspeakDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Covers 100+ languages, robotic-sounding voice'**
-  String get ttsEspeakDesc;
-
-  /// No description provided for @ttsInstallNote.
-  ///
-  /// In en, this message translates to:
-  /// **'⚠️ After installing:\n1. Android Settings → Accessibility → Text-to-speech output\n2. Select the engine you just installed\n3. Download your language\'s voice data\n4. Restart Roadstr completely'**
-  String get ttsInstallNote;
-
-  /// No description provided for @ttsTestNow.
-  ///
-  /// In en, this message translates to:
-  /// **'Test now'**
-  String get ttsTestNow;
-
   /// No description provided for @voiceUnsupportedTitle.
   ///
   /// In en, this message translates to:
@@ -1581,54 +1443,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'🎉 You arrived!'**
   String get arrivedTitle;
-
-  /// No description provided for @arrivedBody.
-  ///
-  /// In en, this message translates to:
-  /// **'You have reached your destination.'**
-  String get arrivedBody;
-
-  /// No description provided for @arrivedFeedbackPrompt.
-  ///
-  /// In en, this message translates to:
-  /// **'How did it go?'**
-  String get arrivedFeedbackPrompt;
-
-  /// No description provided for @feedbackBad.
-  ///
-  /// In en, this message translates to:
-  /// **'Bad'**
-  String get feedbackBad;
-
-  /// No description provided for @feedbackGood.
-  ///
-  /// In en, this message translates to:
-  /// **'Good!'**
-  String get feedbackGood;
-
-  /// No description provided for @feedbackDialogTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Tell us what went wrong'**
-  String get feedbackDialogTitle;
-
-  /// No description provided for @feedbackHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Describe the problem…'**
-  String get feedbackHint;
-
-  /// No description provided for @feedbackSent.
-  ///
-  /// In en, this message translates to:
-  /// **'Feedback sent — thank you! 🙏'**
-  String get feedbackSent;
-
-  /// No description provided for @feedbackSubmit.
-  ///
-  /// In en, this message translates to:
-  /// **'Send'**
-  String get feedbackSubmit;
 
   /// No description provided for @transportModeCar.
   ///
@@ -1725,12 +1539,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cuisine'**
   String get poiCuisine;
-
-  /// No description provided for @poiAccessibility.
-  ///
-  /// In en, this message translates to:
-  /// **'Accessibility'**
-  String get poiAccessibility;
 
   /// No description provided for @poiWheelchairYes.
   ///
@@ -2110,12 +1918,6 @@ abstract class AppLocalizations {
   /// **'Thunderstorm'**
   String get weatherThunderstorm;
 
-  /// No description provided for @ztlAheadWarning.
-  ///
-  /// In en, this message translates to:
-  /// **'Restricted traffic zone ahead — the route enters it'**
-  String get ztlAheadWarning;
-
   /// No description provided for @ztlInsideWarning.
   ///
   /// In en, this message translates to:
@@ -2349,12 +2151,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Let\'s go!'**
   String get onboardingLetsGo;
-
-  /// No description provided for @onboardingProfileLoading.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading profile…'**
-  String get onboardingProfileLoading;
 
   /// No description provided for @onboardingNsecHint.
   ///
@@ -2596,35 +2392,11 @@ abstract class AppLocalizations {
   /// **'Heavy traffic'**
   String get trafficHeavy;
 
-  /// No description provided for @avoidHighwaysChip.
-  ///
-  /// In en, this message translates to:
-  /// **'Avoid highways'**
-  String get avoidHighwaysChip;
-
-  /// No description provided for @avoidTollsChip.
-  ///
-  /// In en, this message translates to:
-  /// **'Avoid tolls'**
-  String get avoidTollsChip;
-
-  /// No description provided for @preferShorterChip.
-  ///
-  /// In en, this message translates to:
-  /// **'Shortest route'**
-  String get preferShorterChip;
-
   /// No description provided for @zapAmountButton.
   ///
   /// In en, this message translates to:
   /// **'Zap {sats} sat'**
   String zapAmountButton(int sats);
-
-  /// No description provided for @showRoutePreview.
-  ///
-  /// In en, this message translates to:
-  /// **'Show route preview'**
-  String get showRoutePreview;
 
   /// No description provided for @avoidHighwaysAndTolls.
   ///
@@ -2643,6 +2415,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Minimizes highways/tolls · unavoidable section'**
   String get avoidanceUnavoidableSection;
+
+  /// No description provided for @nearbyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby'**
+  String get nearbyTitle;
+
+  /// No description provided for @nearbyNeedsGps.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for GPS'**
+  String get nearbyNeedsGps;
+
+  /// No description provided for @nearbyNothingFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing found within 5 km'**
+  String get nearbyNothingFound;
+
+  /// No description provided for @nearbyFuel.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel'**
+  String get nearbyFuel;
+
+  /// No description provided for @nearbySupermarket.
+  ///
+  /// In en, this message translates to:
+  /// **'Supermarket'**
+  String get nearbySupermarket;
+
+  /// No description provided for @nearbyAtm.
+  ///
+  /// In en, this message translates to:
+  /// **'ATM'**
+  String get nearbyAtm;
+
+  /// No description provided for @nearbyPharmacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Pharmacy'**
+  String get nearbyPharmacy;
+
+  /// No description provided for @nearbyHospital.
+  ///
+  /// In en, this message translates to:
+  /// **'Hospital'**
+  String get nearbyHospital;
+
+  /// No description provided for @nearbyPolice.
+  ///
+  /// In en, this message translates to:
+  /// **'Police'**
+  String get nearbyPolice;
+
+  /// No description provided for @nearbyPostOffice.
+  ///
+  /// In en, this message translates to:
+  /// **'Post office'**
+  String get nearbyPostOffice;
+
+  /// No description provided for @nearbyParking.
+  ///
+  /// In en, this message translates to:
+  /// **'Parking'**
+  String get nearbyParking;
+
+  /// No description provided for @nearbyCharging.
+  ///
+  /// In en, this message translates to:
+  /// **'Charging'**
+  String get nearbyCharging;
 }
 
 class _AppLocalizationsDelegate

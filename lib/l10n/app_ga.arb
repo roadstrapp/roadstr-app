@@ -4,29 +4,11 @@
   "calculatingRoute": "Ag ríomh bealaigh…",
   "routeNotFoundTitle": "Ní bhfuarthas bealach",
   "noRouteFound": "Ní bhfuarthas bealach. Seiceáil do nasc.",
-  "emptyServerResponse": "Freagra folamh ón bhfreastalaí. Seiceáil do nasc.",
-  "routeError": "Earráid ríomha bealaigh: {error}",
-  "@routeError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "gpsNotAvailable": "GPS nach bhfuil ar fáil — Settings → App → Roadstr → Permissions → Location",
   "acquiringGps": "Ag fáil GPS…",
   "graphhopperServerNotConfigured": "Freastalaí GraphHopper gan chumrú — ag úsáid OSRM",
   "graphhopperApiKeyNotConfigured": "Eochair API GraphHopper gan chumrú — ag úsáid OSRM",
   "openrouteApiKeyNotConfigured": "Eochair API OpenRouteService gan chumrú — ag úsáid OSRM",
   "chooseRoute": "Roghnaigh bealach",
-  "routeOptionsCount": "{count} rogha",
-  "@routeOptionsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cancel": "Cealaigh",
   "startNavigation": "Tosaigh nascleanúint",
   "fastestRoute": "Is tapúla",
@@ -46,12 +28,8 @@
   "themeDarkNostr": "Dorcha · Nostr Corcairghorm",
   "themeDarkBitcoin": "Dorcha · Bitcoin Oráiste",
   "langSystem": "Réamhshocrú córais",
-  "langItalian": "Italiano",
-  "langEnglish": "English",
   "keepScreenOn": "Coinnigh an scáileán ar siúl",
   "keepScreenOnDescription": "Cuireann cosc ar chodladh le linn nascleanúna",
-  "rotateMap": "Leanann léarscáil an treo",
-  "rotateMapDescription": "Rothlaíonn an léarscáil bunaithe ar threo tiomána",
   "mapTileUrlLabel": "URL tile léarscáile",
   "routingProviderLabel": "Soláthraí bealaíochta",
   "osrmProvider": "OSRM (poiblí, gan eochair ag teastáil)",
@@ -98,19 +76,13 @@
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Is sínitheoir aipe Android é Amber atá comhlíontach le NIP-55. Fanann d'eochair phríobháideach scoite laistigh de Amber agus ní roinntear riamh í.",
   "requestKeyFromAmber": "Iarr eochair phoiblí ó Amber",
-  "amberNotFound": "Ní bhfuarthas Amber. Suiteáil é ón Play Store nó cuir isteach do npub de láimh.",
   "waitingForAmberResponse": "Ag fanacht le freagra Amber…",
-  "pasteNpubManually": "Greamaigh do npub de láimh:",
-  "confirmNpub": "Deimhnigh npub",
   "enterNsecTitle": "Cuir isteach nsec",
   "loginButton": "Logáil isteach",
   "invalidNpubTitle": "npub neamhbhailí",
   "invalidNsecTitle": "nsec neamhbhailí",
-  "invalidNpubMessage": "Cinntigh gur ghreamaigh tú an npub ceart.",
   "invalidNsecMessage": "Cinntigh gur ghreamaigh tú an nsec ceart.",
-  "amberResponseError": "Earráid fhreagra Amber",
   "ok": "OK",
-  "or": "nó",
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS nach bhfuil gníomhach",
   "gpsDisabledMessage": "Gníomhachtaigh GPS i socruithe do ghléis chun do shuíomh a fháil agus nascleanúint a úsáid.",
@@ -126,14 +98,6 @@
   "chooseAmountSats": "Roghnaigh méid i satoshi (sats):",
   "customAmount": "Méid saincheaptha…",
   "zapSending": "Ag seolhadh…",
-  "zapSat": "⚡{sats} sat",
-  "@zapSat": {
-    "placeholders": {
-      "sats": {
-        "type": "int"
-      }
-    }
-  },
   "fetchingLightningAddress": "Ag fáil seoladh Lightning…",
   "noLightningAddress": "Níl seoladh Lightning ag an tuairisceoir seo",
   "requestingInvoice": "Ag iarraidh sonrasc…",
@@ -159,28 +123,54 @@
   "notifZapTitle": "Zap faighte",
   "notifZapBody": "Fuair tú zap {sat} sats!",
   "@notifZapBody": {
-    "placeholders": { "sat": { "type": "int" } }
+    "placeholders": {
+      "sat": {
+        "type": "int"
+      }
+    }
   },
   "notifConfirmedTitle": "Tuairisc dearbhaithe",
   "notifConfirmedBody": "Dhearbhaigh tiománaí eile do thuairisc {category}",
   "@notifConfirmedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "notifDeniedTitle": "Tuairisc á conspóid",
   "notifDeniedBody": "Dúirt duine éigin nach bhfuil do {category} ann a thuilleadh",
   "@notifDeniedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "chainedManeuver": "{first}, ansin {second}",
   "@chainedManeuver": {
-    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   },
   "thenManeuver": "ansin {instruction}",
   "reportSpeedLimitHint": "Teorainn luais (roghnach)",
   "reportedSpeedLimit": "Teorainn luais tuairiscithe",
   "speedCameraVoiceAlert": "Ceamara luais tuairiscithe, teorainn {limit} {unit}",
   "@speedCameraVoiceAlert": {
-    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   },
   "optionalComment": "Trácht roghnach…",
   "publish": "Foilsigh",
@@ -283,14 +273,6 @@
   "sectionNavigationVoice": "Guth nascleanúna",
   "voiceGuidance": "Treoir ghutha",
   "voiceGuidanceDesc": "Léigh treoracha casta os ard le linn nascleanúna",
-  "testVoiceEngine": "Tástáil inneall gutha",
-  "testVoiceEngineDesc": "Tapáil chun an t-inneall TTS a sheiceáil agus treoracha socraithe a fháil",
-  "ttsDialogTitle": "Inneall gutha ar iarraidh",
-  "ttsDialogBody": "Níor aimsíodh aon inneall Text-to-Speech atá ag feidhmiú.\n\nNíl Roadstr ag brath ach ar bhogearraí foinse oscailte — suiteáil ceann de na hinnill shaora seo ó F-Droid:",
-  "ttsRhvoiceDesc": "Guth nádúrtha, liosta teangacha teoranta",
-  "ttsEspeakDesc": "Clúdaíonn os cionn 100 teanga, guth róbatach",
-  "ttsInstallNote": "⚠️ Tar éis na suiteála:\n1. Socruithe Android → Inrochtaineacht → Téacs go Guth\n2. Roghnaigh an t-inneall a shuiteáil tú anois beag\n3. Íoslódáil sonraí gutha do theanga\n4. Atosaigh Roadstr go hiomlán",
-  "ttsTestNow": "Tástáil anois",
   "voiceUnsupportedTitle": "Treoir ghutha níl ar fáil",
   "voiceUnsupportedBody": "Níl do theanga tacaithe go fóill le haghaidh treoracha cas labhartha. Beidh treoracha nascleanúna le feiceáil fós mar théacs ar an scáileán.",
   "kokoroModelTitle": "Samhail ghutha (Kokoro AI)",
@@ -304,14 +286,6 @@
   "settingsImperialUnits": "Aonaid impiriúla",
   "settingsImperialUnitsDesc": "Míle agus troithe in ionad ciliméadair agus méadair",
   "arrivedTitle": "🎉 Tháinig tú!",
-  "arrivedBody": "Shroich tú do cheann scríbe.",
-  "arrivedFeedbackPrompt": "Conas a chuaigh sé?",
-  "feedbackBad": "Go dona",
-  "feedbackGood": "Go maith!",
-  "feedbackDialogTitle": "Inis dúinn cad a chuaigh mícheart",
-  "feedbackHint": "Déan cur síos ar an gceist…",
-  "feedbackSent": "Aiseolas seolta — go raibh maith agat! 🙏",
-  "feedbackSubmit": "Seol",
   "transportModeCar": "Carr",
   "transportModeWalk": "De shiúl",
   "etaArrivalLabel": "Arr. {time}",
@@ -326,11 +300,19 @@
   "poiClosedNow": "Dúnta",
   "poiOpensAt": "Osclaíonn: {when}",
   "@poiOpensAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "poiClosesAt": "Dúnann: {when}",
   "@poiClosesAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "searchOnEngine": "Cuardaigh ar {engine}",
   "plannerFromHint": "Ó…",
@@ -351,7 +333,6 @@
   "weatherSnow": "Sneachta",
   "weatherShowers": "Ceathanna",
   "weatherThunderstorm": "Stoirm thoirní",
-  "ztlAheadWarning": "Tá crios tráchta srianta chun tosaigh — téann an bealach tríd",
   "ztlInsideWarning": "Crios tráchta srianta",
   "onboardingAppSubtitle": "Nascleanúint Nostr foinse oscailte",
   "onboardingWelcomeTitle": "Fáilte",
@@ -391,7 +372,6 @@
   "onboardingReadyTitle": "Tá tú réidh le nascleanúint!",
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Ar aghaidh linn!",
-  "onboardingProfileLoading": "Próifíl á luchtú…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "Ar mhaithe le príobháideachas uasta — scaiptear tuairiscí ar líonra Nostr — moltar VPN a úsáid. Is é Mullvad, is féidir a íoc le Bitcoin, an rogha mholta.",
   "exportFavoritesTitle": "Easpórtáil ceanáin",
@@ -445,9 +425,6 @@
   "trafficNormal": "Gnáth-thrácht",
   "trafficModerate": "Trácht measartha",
   "trafficHeavy": "Trácht trom",
-  "avoidHighwaysChip": "Seachain mótarbhealaí",
-  "avoidTollsChip": "Seachain dolaí",
-  "preferShorterChip": "An bealach is giorra",
   "zapAmountButton": "Zap {sats} sat",
   "@zapAmountButton": {
     "placeholders": {
@@ -456,7 +433,6 @@
       }
     }
   },
-  "showRoutePreview": "Taispeáin réamhamharc an bhealaigh",
   "autoCenterOnLaunch": "Láraigh ar mo shuíomh ag an tosú",
   "autoCenterOnLaunchDesc": "Ní úsáideann sé GPS go huathoibríoch ach amháin má deonaíodh cead suímh cheana",
   "openInBrowser": "Oscail sa bhrabhsálaí",
@@ -466,7 +442,6 @@
   "poiCategory": "Catagóir",
   "poiOperator": "Oibreoir",
   "poiCuisine": "Ealaín",
-  "poiAccessibility": "Inrochtaineacht",
   "poiWheelchairYes": "Inrochtana do chathaoireacha rothaí",
   "poiWheelchairLimited": "Rochtain theoranta do chathaoireacha rothaí",
   "poiWheelchairNo": "Gan rochtain do chathaoireacha rothaí",
@@ -508,5 +483,38 @@
   "poiTakeawayOnly": "Beir leat amháin",
   "avoidHighwaysAndTolls": "Seachain mótarbhealaí agus dolaí",
   "avoidRouteUnavailable": "Níor aimsíodh bealach a sheachnaíonn mótarbhealaí agus dolaí araon.",
-  "avoidanceUnavoidableSection": "Laghdaíonn mótarbhealaí/dolaí · cuid dosheachanta"
+  "avoidanceUnavoidableSection": "Laghdaíonn mótarbhealaí/dolaí · cuid dosheachanta",
+  "bottomBarNotifications": "Fógraí",
+  "notificationsTitle": "Fógraí",
+  "notificationsEmpty": "Níl aon fhógra ann fós",
+  "notificationsEmptyBody": "Taispeánfar zaps agus freagairtí ar do thuairiscí bóthair anseo.",
+  "notificationsLoginRequired": "Ceangail do phróifíl Nostr",
+  "notificationsLoginRequiredBody": "Sínigh isteach le Amber nó nsec chun fógraí ó úsáideoirí eile a fháil.",
+  "profileVisibilityTitle": "Infheictheacht na próifíle",
+  "profileVisibilityDesc": "Roghnaigh an bhfeicfidh úsáideoirí eile Roadstr d'ainm Nostr, do npub agus do phictiúr.",
+  "profileVisibilityClear": "Taispeáin an phróifíl go poiblí",
+  "profileVisibilityPseudonymous": "Mód bréagainm (molta)",
+  "profileVisibilityPublishError": "Sábháladh an rogha go háitiúil, ach níorbh fhéidir í a fhoilsiú ar Nostr fós.",
+  "nostrichLabel": "nostrich",
+  "profileHiddenNotice": "Tá an t-úsáideoir seo ag úsáid an mhóid bhréagainm.",
+  "editSpeedLimit": "Cuir teorainn luais leis nó nuashonraigh í",
+  "requestSpeedLimit": "Mol teorainn luais",
+  "acceptEditRequest": "Glac leis an moladh",
+  "pendingEditRequests": "Moltaí eagarthóireachta ar feitheamh",
+  "speedLimitHint": "Teorainn luais",
+  "speedLimitSaved": "Foilsíodh an teorainn luais",
+  "editRequestSent": "Seoladh an moladh chuig údar na tuairisce",
+  "profileVisibilityOnboarding": "Foilsíonn Roadstr an eochair phoiblí Nostr atá riachtanach chun tuairisc a fhíorú i gcónaí. Sa mhód bréagainm, ní fheiceann úsáideoirí eile Roadstr ach abhatár ginearálta agus „nostrich”; sa mhód poiblí, feiceann siad d'ainm Nostr, do npub agus do phictiúr próifíle chomh maith. Fanann do chuid tuairiscí, suíomhanna, cáil agus zaps a fhaigheann tú poiblí ar Nostr.",
+  "nearbyTitle": "In aice láimhe",
+  "nearbyNeedsGps": "Ag fanacht le GPS",
+  "nearbyNothingFound": "Níor aimsíodh aon rud laistigh de 5 km",
+  "nearbyFuel": "Breosla",
+  "nearbySupermarket": "Ollmhargadh",
+  "nearbyAtm": "ATM",
+  "nearbyPharmacy": "Cógaslann",
+  "nearbyHospital": "Ospidéal",
+  "nearbyPolice": "Garda",
+  "nearbyPostOffice": "Oifig an phoist",
+  "nearbyParking": "Páirceáil",
+  "nearbyCharging": "Luchtú"
 }

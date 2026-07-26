@@ -4,29 +4,11 @@
   "calculatingRoute": "Вычисление маршрута…",
   "routeNotFoundTitle": "Маршрут не найден",
   "noRouteFound": "Маршрут не найден. Проверьте соединение.",
-  "emptyServerResponse": "Пустой ответ сервера. Проверьте соединение.",
-  "routeError": "Ошибка расчёта маршрута: {error}",
-  "@routeError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "gpsNotAvailable": "GPS недоступен — Settings → App → Roadstr → Permissions → Location",
   "acquiringGps": "Получение GPS…",
   "graphhopperServerNotConfigured": "Сервер GraphHopper не настроен — используется OSRM",
   "graphhopperApiKeyNotConfigured": "API-ключ GraphHopper не настроен — используется OSRM",
   "openrouteApiKeyNotConfigured": "API-ключ OpenRouteService не настроен — используется OSRM",
   "chooseRoute": "Выбрать маршрут",
-  "routeOptionsCount": "{count} вариантов",
-  "@routeOptionsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cancel": "Отмена",
   "startNavigation": "Начать навигацию",
   "fastestRoute": "Быстрейший",
@@ -46,12 +28,8 @@
   "themeDarkNostr": "Тёмная · Nostr Фиолетовый",
   "themeDarkBitcoin": "Тёмная · Bitcoin Оранжевый",
   "langSystem": "Системный язык",
-  "langItalian": "Italiano",
-  "langEnglish": "English",
   "keepScreenOn": "Не выключать экран",
   "keepScreenOnDescription": "Предотвращает сон во время навигации",
-  "rotateMap": "Карта следует направлению",
-  "rotateMapDescription": "Карта вращается по направлению движения",
   "mapTileUrlLabel": "URL тайлов карты",
   "routingProviderLabel": "Поставщик маршрутизации",
   "osrmProvider": "OSRM (публичный, ключ не нужен)",
@@ -98,19 +76,13 @@
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber — это совместимый с NIP-55 подписчик приложений для Android. Ваш приватный ключ остаётся изолированным внутри Amber и никогда не передаётся.",
   "requestKeyFromAmber": "Запросить публичный ключ из Amber",
-  "amberNotFound": "Amber не найден. Установите его из Play Store или введите npub вручную.",
   "waitingForAmberResponse": "Ожидание ответа от Amber…",
-  "pasteNpubManually": "Вставьте npub вручную:",
-  "confirmNpub": "Подтвердить npub",
   "enterNsecTitle": "Ввести nsec",
   "loginButton": "Войти",
   "invalidNpubTitle": "Неверный npub",
   "invalidNsecTitle": "Неверный nsec",
-  "invalidNpubMessage": "Убедитесь, что вы вставили правильный npub.",
   "invalidNsecMessage": "Убедитесь, что вы вставили правильный nsec.",
-  "amberResponseError": "Ошибка ответа Amber",
   "ok": "ОК",
-  "or": "или",
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS не активен",
   "gpsDisabledMessage": "Активируйте GPS в настройках устройства, чтобы определить своё местоположение и использовать навигацию.",
@@ -126,14 +98,6 @@
   "chooseAmountSats": "Выберите сумму в сатоши (sats):",
   "customAmount": "Произвольная сумма…",
   "zapSending": "Отправка…",
-  "zapSat": "⚡{sats} sat",
-  "@zapSat": {
-    "placeholders": {
-      "sats": {
-        "type": "int"
-      }
-    }
-  },
   "fetchingLightningAddress": "Получение адреса Lightning…",
   "noLightningAddress": "У этого репортёра нет адреса Lightning",
   "requestingInvoice": "Запрос счёта…",
@@ -159,28 +123,54 @@
   "notifZapTitle": "Получен zap",
   "notifZapBody": "Вы получили zap на {sat} сат!",
   "@notifZapBody": {
-    "placeholders": { "sat": { "type": "int" } }
+    "placeholders": {
+      "sat": {
+        "type": "int"
+      }
+    }
   },
   "notifConfirmedTitle": "Отчёт подтверждён",
   "notifConfirmedBody": "Ваш отчёт «{category}» подтвердил другой водитель",
   "@notifConfirmedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "notifDeniedTitle": "Отчёт оспорен",
   "notifDeniedBody": "Кто-то сообщил, что вашего {category} там больше нет",
   "@notifDeniedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "chainedManeuver": "{first}, затем {second}",
   "@chainedManeuver": {
-    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   },
   "thenManeuver": "затем {instruction}",
   "reportSpeedLimitHint": "Ограничение скорости (необязательно)",
   "reportedSpeedLimit": "Заявленное ограничение скорости",
   "speedCameraVoiceAlert": "Камера, ограничение скорости {limit} {unit}",
   "@speedCameraVoiceAlert": {
-    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   },
   "optionalComment": "Необязательный комментарий…",
   "publish": "Опубликовать",
@@ -283,14 +273,6 @@
   "sectionNavigationVoice": "Голос навигации",
   "voiceGuidance": "Голосовое сопровождение",
   "voiceGuidanceDesc": "Озвучивать инструкции поворотов во время навигации",
-  "testVoiceEngine": "Проверить голосовой движок",
-  "testVoiceEngineDesc": "Нажмите, чтобы проверить TTS-движок и получить инструкции по настройке",
-  "ttsDialogTitle": "Голосовой движок отсутствует",
-  "ttsDialogBody": "Не найден работающий движок Text-to-Speech.\n\nRoadstr использует только программное обеспечение с открытым исходным кодом — установите один из этих бесплатных движков из F-Droid:",
-  "ttsRhvoiceDesc": "Естественное звучание голоса, ограниченный список языков",
-  "ttsEspeakDesc": "Поддерживает более 100 языков, роботизированный голос",
-  "ttsInstallNote": "⚠️ После установки:\n1. Настройки Android → Специальные возможности → Синтез речи\n2. Выберите только что установленный движок\n3. Загрузите голосовые данные для вашего языка\n4. Полностью перезапустите Roadstr",
-  "ttsTestNow": "Проверить сейчас",
   "voiceUnsupportedTitle": "Голосовое сопровождение недоступно",
   "voiceUnsupportedBody": "Ваш язык пока не поддерживается для голосовых инструкций. Инструкции навигации по-прежнему будут отображаться в виде текста на экране.",
   "kokoroModelTitle": "Голосовая модель (Kokoro AI)",
@@ -304,14 +286,6 @@
   "settingsImperialUnits": "Имперские единицы",
   "settingsImperialUnitsDesc": "Мили и футы вместо километров и метров",
   "arrivedTitle": "🎉 Вы прибыли!",
-  "arrivedBody": "Вы достигли места назначения.",
-  "arrivedFeedbackPrompt": "Как прошло?",
-  "feedbackBad": "Плохо",
-  "feedbackGood": "Хорошо!",
-  "feedbackDialogTitle": "Расскажите нам, что пошло не так",
-  "feedbackHint": "Опишите проблему…",
-  "feedbackSent": "Отзыв отправлен — спасибо! 🙏",
-  "feedbackSubmit": "Отправить",
   "transportModeCar": "Автомобиль",
   "transportModeWalk": "Пешком",
   "etaArrivalLabel": "Приб. {time}",
@@ -326,11 +300,19 @@
   "poiClosedNow": "Закрыто",
   "poiOpensAt": "Открытие: {when}",
   "@poiOpensAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "poiClosesAt": "Закрытие: {when}",
   "@poiClosesAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "searchOnEngine": "Искать в {engine}",
   "plannerFromHint": "Откуда…",
@@ -351,7 +333,6 @@
   "weatherSnow": "Снег",
   "weatherShowers": "Ливень",
   "weatherThunderstorm": "Гроза",
-  "ztlAheadWarning": "Впереди зона ограниченного движения — маршрут проходит через неё",
   "ztlInsideWarning": "Зона ограниченного движения",
   "onboardingAppSubtitle": "Навигация Nostr с открытым исходным кодом",
   "onboardingWelcomeTitle": "Добро пожаловать",
@@ -391,7 +372,6 @@
   "onboardingReadyTitle": "Вы готовы к навигации!",
   "onboardingReadyBody": "Roadstr откроет карту.\nОстальное можно настроить в Настройках.",
   "onboardingLetsGo": "Поехали!",
-  "onboardingProfileLoading": "Загрузка профиля…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "Для максимальной приватности — сообщения распространяются по сети Nostr — рекомендуется использовать VPN. Mullvad с оплатой в биткоинах — рекомендуемый выбор.",
   "exportFavoritesTitle": "Экспорт избранного",
@@ -445,9 +425,6 @@
   "trafficNormal": "Обычный трафик",
   "trafficModerate": "Умеренный трафик",
   "trafficHeavy": "Плотный трафик",
-  "avoidHighwaysChip": "Избегать автомагистралей",
-  "avoidTollsChip": "Избегать платных дорог",
-  "preferShorterChip": "Кратчайший маршрут",
   "zapAmountButton": "Zap {sats} sat",
   "@zapAmountButton": {
     "placeholders": {
@@ -456,7 +433,6 @@
       }
     }
   },
-  "showRoutePreview": "Показать предпросмотр маршрута",
   "autoCenterOnLaunch": "Центрировать по моему местоположению при запуске",
   "autoCenterOnLaunchDesc": "Автоматически использует GPS, только если разрешение на местоположение уже предоставлено",
   "openInBrowser": "Открыть в браузере",
@@ -466,7 +442,6 @@
   "poiCategory": "Категория",
   "poiOperator": "Оператор",
   "poiCuisine": "Кухня",
-  "poiAccessibility": "Доступность",
   "poiWheelchairYes": "Доступно для инвалидных колясок",
   "poiWheelchairLimited": "Ограниченный доступ для инвалидных колясок",
   "poiWheelchairNo": "Недоступно для инвалидных колясок",
@@ -508,5 +483,38 @@
   "poiTakeawayOnly": "Только на вынос",
   "avoidHighwaysAndTolls": "Избегать автомагистралей и платных дорог",
   "avoidRouteUnavailable": "Маршрут без автомагистралей и платных дорог не найден.",
-  "avoidanceUnavoidableSection": "Минимизирует автомагистрали/платные дороги · неизбежный участок"
+  "avoidanceUnavoidableSection": "Минимизирует автомагистрали/платные дороги · неизбежный участок",
+  "bottomBarNotifications": "Уведомления",
+  "notificationsTitle": "Уведомления",
+  "notificationsEmpty": "Уведомлений пока нет",
+  "notificationsEmptyBody": "Здесь появятся запы и реакции на ваши дорожные сообщения.",
+  "notificationsLoginRequired": "Подключите профиль Nostr",
+  "notificationsLoginRequiredBody": "Войдите через Amber или nsec, чтобы получать уведомления от других пользователей.",
+  "profileVisibilityTitle": "Видимость профиля",
+  "profileVisibilityDesc": "Выберите, видят ли другие пользователи Roadstr ваше имя в Nostr, npub и фото.",
+  "profileVisibilityClear": "Показывать профиль публично",
+  "profileVisibilityPseudonymous": "Псевдонимный режим (рекомендуется)",
+  "profileVisibilityPublishError": "Выбор сохранён локально, но пока не удалось опубликовать его в Nostr.",
+  "nostrichLabel": "nostrich",
+  "profileHiddenNotice": "Этот пользователь использует псевдонимный режим.",
+  "editSpeedLimit": "Добавить или обновить ограничение скорости",
+  "requestSpeedLimit": "Предложить ограничение скорости",
+  "acceptEditRequest": "Принять предложение",
+  "pendingEditRequests": "Ожидающие предложения правок",
+  "speedLimitHint": "Ограничение скорости",
+  "speedLimitSaved": "Ограничение скорости опубликовано",
+  "editRequestSent": "Предложение отправлено автору сообщения",
+  "profileVisibilityOnboarding": "Roadstr всегда публикует открытый ключ Nostr, необходимый для проверки сообщения. В псевдонимном режиме другие пользователи Roadstr видят только обычный аватар и «nostrich»; в публичном режиме они видят также ваше имя в Nostr, npub и фото профиля. Ваши сообщения, местоположения, репутация и полученные запы остаются публичными в Nostr.",
+  "nearbyTitle": "Рядом",
+  "nearbyNeedsGps": "Ожидание GPS",
+  "nearbyNothingFound": "В радиусе 5 км ничего не найдено",
+  "nearbyFuel": "АЗС",
+  "nearbySupermarket": "Супермаркет",
+  "nearbyAtm": "Банкомат",
+  "nearbyPharmacy": "Аптека",
+  "nearbyHospital": "Больница",
+  "nearbyPolice": "Полиция",
+  "nearbyPostOffice": "Почта",
+  "nearbyParking": "Парковка",
+  "nearbyCharging": "Зарядка"
 }

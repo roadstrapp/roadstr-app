@@ -4,29 +4,11 @@
   "calculatingRoute": "Calculando ruta…",
   "routeNotFoundTitle": "Ruta no encontrada",
   "noRouteFound": "No se encontró ninguna ruta. Comprueba tu conexión.",
-  "emptyServerResponse": "Respuesta del servidor vacía. Comprueba tu conexión.",
-  "routeError": "Error al calcular la ruta: {error}",
-  "@routeError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "gpsNotAvailable": "GPS no disponible — Ajustes → App → Roadstr → Permisos → Ubicación",
   "acquiringGps": "Obteniendo GPS…",
   "graphhopperServerNotConfigured": "Servidor GraphHopper no configurado — usando OSRM",
   "graphhopperApiKeyNotConfigured": "Clave API de GraphHopper no configurada — usando OSRM",
   "openrouteApiKeyNotConfigured": "Clave API de OpenRouteService no configurada — usando OSRM",
   "chooseRoute": "Elegir ruta",
-  "routeOptionsCount": "{count} opciones",
-  "@routeOptionsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cancel": "Cancelar",
   "startNavigation": "Iniciar navegación",
   "fastestRoute": "Más rápida",
@@ -46,12 +28,8 @@
   "themeDarkNostr": "Oscuro · Nostr Violeta",
   "themeDarkBitcoin": "Oscuro · Bitcoin Naranja",
   "langSystem": "Predeterminado del sistema",
-  "langItalian": "Italiano",
-  "langEnglish": "English",
   "keepScreenOn": "Mantener pantalla encendida",
   "keepScreenOnDescription": "Evita el modo de reposo durante la navegación",
-  "rotateMap": "El mapa sigue la dirección",
-  "rotateMapDescription": "El mapa rota según la dirección de conducción",
   "mapTileUrlLabel": "URL de mosaicos del mapa",
   "routingProviderLabel": "Proveedor de enrutamiento",
   "osrmProvider": "OSRM (público, sin clave requerida)",
@@ -98,19 +76,13 @@
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber es un firmante de aplicación Android compatible con NIP-55. Tu clave privada permanece aislada dentro de Amber y nunca se comparte.",
   "requestKeyFromAmber": "Solicitar clave pública a Amber",
-  "amberNotFound": "Amber no encontrado. Instálalo desde la Play Store o introduce tu npub manualmente.",
   "waitingForAmberResponse": "Esperando respuesta de Amber…",
-  "pasteNpubManually": "Pega tu npub manualmente:",
-  "confirmNpub": "Confirmar npub",
   "enterNsecTitle": "Insertar nsec",
   "loginButton": "Iniciar sesión",
   "invalidNpubTitle": "npub inválido",
   "invalidNsecTitle": "nsec inválido",
-  "invalidNpubMessage": "Asegúrate de haber pegado el npub correcto.",
   "invalidNsecMessage": "Asegúrate de haber pegado el nsec correcto.",
-  "amberResponseError": "Error de respuesta de Amber",
   "ok": "OK",
-  "or": "o",
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS no activo",
   "gpsDisabledMessage": "Activa el GPS en los ajustes de tu dispositivo para obtener tu ubicación y usar la navegación.",
@@ -126,14 +98,6 @@
   "chooseAmountSats": "Elige el monto en satoshi (sats):",
   "customAmount": "Monto personalizado…",
   "zapSending": "Enviando…",
-  "zapSat": "⚡{sats} sat",
-  "@zapSat": {
-    "placeholders": {
-      "sats": {
-        "type": "int"
-      }
-    }
-  },
   "fetchingLightningAddress": "Obteniendo dirección Lightning…",
   "noLightningAddress": "Este reportero no tiene dirección Lightning",
   "requestingInvoice": "Solicitando factura…",
@@ -159,28 +123,54 @@
   "notifZapTitle": "Zap recibido",
   "notifZapBody": "¡Has recibido un zap de {sat} sats!",
   "@notifZapBody": {
-    "placeholders": { "sat": { "type": "int" } }
+    "placeholders": {
+      "sat": {
+        "type": "int"
+      }
+    }
   },
   "notifConfirmedTitle": "Reporte confirmado",
   "notifConfirmedBody": "Tu reporte de {category} fue confirmado por otro conductor",
   "@notifConfirmedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "notifDeniedTitle": "Reporte cuestionado",
   "notifDeniedBody": "Alguien indicó que tu reporte de {category} ya no está",
   "@notifDeniedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "chainedManeuver": "{first}, luego {second}",
   "@chainedManeuver": {
-    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   },
   "thenManeuver": "luego {instruction}",
   "reportSpeedLimitHint": "Límite de velocidad (opcional)",
   "reportedSpeedLimit": "Límite de velocidad informado",
   "speedCameraVoiceAlert": "Radar informado, límite de velocidad {limit} {unit}",
   "@speedCameraVoiceAlert": {
-    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   },
   "optionalComment": "Comentario opcional…",
   "publish": "Publicar",
@@ -283,14 +273,6 @@
   "sectionNavigationVoice": "Voz de navegación",
   "voiceGuidance": "Guía por voz",
   "voiceGuidanceDesc": "Leer las instrucciones de giro en voz alta durante la navegación",
-  "testVoiceEngine": "Probar motor de voz",
-  "testVoiceEngineDesc": "Toca para comprobar el motor TTS y obtener instrucciones de configuración",
-  "ttsDialogTitle": "Falta el motor de voz",
-  "ttsDialogBody": "No se encontró ningún motor Text-to-Speech funcional.\n\nRoadstr solo depende de software de código abierto — instala uno de estos motores gratuitos desde F-Droid:",
-  "ttsRhvoiceDesc": "Voz natural, lista de idiomas limitada",
-  "ttsEspeakDesc": "Cubre más de 100 idiomas, voz robótica",
-  "ttsInstallNote": "⚠️ Después de instalar:\n1. Ajustes de Android → Accesibilidad → Síntesis de voz\n2. Selecciona el motor que acabas de instalar\n3. Descarga los datos de voz de tu idioma\n4. Reinicia Roadstr por completo",
-  "ttsTestNow": "Probar ahora",
   "voiceUnsupportedTitle": "Guía por voz no disponible",
   "voiceUnsupportedBody": "Tu idioma aún no es compatible con las indicaciones de voz. Las instrucciones de navegación seguirán apareciendo como texto en pantalla.",
   "kokoroModelTitle": "Modelo de voz (Kokoro AI)",
@@ -304,14 +286,6 @@
   "settingsImperialUnits": "Unidades imperiales",
   "settingsImperialUnitsDesc": "Millas y pies en lugar de kilómetros y metros",
   "arrivedTitle": "🎉 ¡Has llegado!",
-  "arrivedBody": "Has llegado a tu destino.",
-  "arrivedFeedbackPrompt": "¿Qué tal?",
-  "feedbackBad": "Mal",
-  "feedbackGood": "¡Bien!",
-  "feedbackDialogTitle": "Cuéntanos qué salió mal",
-  "feedbackHint": "Describe el problema…",
-  "feedbackSent": "Comentario enviado — ¡gracias! 🙏",
-  "feedbackSubmit": "Enviar",
   "transportModeCar": "Coche",
   "transportModeWalk": "A pie",
   "etaArrivalLabel": "Lleg. {time}",
@@ -326,11 +300,19 @@
   "poiClosedNow": "Cerrado",
   "poiOpensAt": "Abre: {when}",
   "@poiOpensAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "poiClosesAt": "Cierra: {when}",
   "@poiClosesAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "searchOnEngine": "Buscar en {engine}",
   "plannerFromHint": "Desde…",
@@ -351,7 +333,6 @@
   "weatherSnow": "Nieve",
   "weatherShowers": "Chubascos",
   "weatherThunderstorm": "Tormenta",
-  "ztlAheadWarning": "Zona de tráfico limitado por delante — la ruta entra en ella",
   "ztlInsideWarning": "Zona de tráfico limitado",
   "onboardingAppSubtitle": "Navegación Nostr de código abierto",
   "onboardingWelcomeTitle": "Bienvenido",
@@ -391,7 +372,6 @@
   "onboardingReadyTitle": "¡Estás listo para navegar!",
   "onboardingReadyBody": "Roadstr abrirá el mapa ahora.\nPuedes configurar todo lo demás en Ajustes.",
   "onboardingLetsGo": "¡Vamos!",
-  "onboardingProfileLoading": "Cargando perfil…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "Para máxima privacidad — los avisos se propagan por la red Nostr — se recomienda usar una VPN. Mullvad, pagable con Bitcoin, es la opción recomendada.",
   "exportFavoritesTitle": "Exportar favoritos",
@@ -445,9 +425,6 @@
   "trafficNormal": "Tráfico normal",
   "trafficModerate": "Tráfico moderado",
   "trafficHeavy": "Tráfico intenso",
-  "avoidHighwaysChip": "Evitar autopistas",
-  "avoidTollsChip": "Evitar peajes",
-  "preferShorterChip": "Ruta más corta",
   "zapAmountButton": "Zap {sats} sat",
   "@zapAmountButton": {
     "placeholders": {
@@ -456,7 +433,6 @@
       }
     }
   },
-  "showRoutePreview": "Ver vista previa de la ruta",
   "autoCenterOnLaunch": "Centrar en mi posición al iniciar",
   "autoCenterOnLaunchDesc": "Usa el GPS automáticamente solo si el permiso de ubicación ya ha sido concedido",
   "openInBrowser": "Abrir en el navegador",
@@ -466,7 +442,6 @@
   "poiCategory": "Categoría",
   "poiOperator": "Operador",
   "poiCuisine": "Cocina",
-  "poiAccessibility": "Accesibilidad",
   "poiWheelchairYes": "Accesible en silla de ruedas",
   "poiWheelchairLimited": "Acceso limitado en silla de ruedas",
   "poiWheelchairNo": "No accesible en silla de ruedas",
@@ -508,5 +483,38 @@
   "poiTakeawayOnly": "Solo para llevar",
   "avoidHighwaysAndTolls": "Evitar autopistas y peajes",
   "avoidRouteUnavailable": "No se encontró una ruta que evite tanto las autopistas como las carreteras de peaje.",
-  "avoidanceUnavoidableSection": "Minimiza autopistas/peajes · tramo inevitable"
+  "avoidanceUnavoidableSection": "Minimiza autopistas/peajes · tramo inevitable",
+  "bottomBarNotifications": "Notificaciones",
+  "notificationsTitle": "Notificaciones",
+  "notificationsEmpty": "Aún no hay notificaciones",
+  "notificationsEmptyBody": "Los zaps y las reacciones a tus avisos aparecerán aquí.",
+  "notificationsLoginRequired": "Conecta tu perfil de Nostr",
+  "notificationsLoginRequiredBody": "Inicia sesión con Amber o nsec para recibir notificaciones de otros usuarios.",
+  "profileVisibilityTitle": "Visibilidad del perfil",
+  "profileVisibilityDesc": "Elige si los demás usuarios de Roadstr ven tu nombre de Nostr, tu npub y tu imagen.",
+  "profileVisibilityClear": "Mostrar el perfil públicamente",
+  "profileVisibilityPseudonymous": "Modo seudónimo (recomendado)",
+  "profileVisibilityPublishError": "La elección se guardó localmente, pero todavía no se pudo publicar en Nostr.",
+  "nostrichLabel": "nostrich",
+  "profileHiddenNotice": "Este usuario usa el modo seudónimo.",
+  "editSpeedLimit": "Añadir o actualizar el límite de velocidad",
+  "requestSpeedLimit": "Sugerir un límite de velocidad",
+  "acceptEditRequest": "Aceptar sugerencia",
+  "pendingEditRequests": "Sugerencias de edición pendientes",
+  "speedLimitHint": "Límite de velocidad",
+  "speedLimitSaved": "Límite de velocidad publicado",
+  "editRequestSent": "Sugerencia enviada al autor del aviso",
+  "profileVisibilityOnboarding": "Roadstr siempre publica la clave pública de Nostr necesaria para verificar un aviso. En modo seudónimo, los demás usuarios de Roadstr solo ven un avatar genérico y «nostrich»; en modo público, también ven tu nombre de Nostr, tu npub y tu imagen de perfil. Tus avisos, ubicaciones, reputación y zaps recibidos siguen siendo públicos en Nostr.",
+  "nearbyTitle": "Cerca de mí",
+  "nearbyNeedsGps": "Esperando el GPS",
+  "nearbyNothingFound": "No hay nada en 5 km",
+  "nearbyFuel": "Gasolinera",
+  "nearbySupermarket": "Supermercado",
+  "nearbyAtm": "Cajero",
+  "nearbyPharmacy": "Farmacia",
+  "nearbyHospital": "Hospital",
+  "nearbyPolice": "Policía",
+  "nearbyPostOffice": "Correos",
+  "nearbyParking": "Aparcamiento",
+  "nearbyCharging": "Recarga"
 }

@@ -21,18 +21,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noRouteFound => '未找到路线。请检查您的连接。';
 
   @override
-  String get emptyServerResponse => '服务器响应为空。请检查您的连接。';
-
-  @override
-  String routeError(String error) {
-    return '路线计算错误：$error';
-  }
-
-  @override
-  String get gpsNotAvailable =>
-      'GPS不可用 — Settings → App → Roadstr → Permissions → Location';
-
-  @override
   String get acquiringGps => '正在获取GPS…';
 
   @override
@@ -47,11 +35,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get chooseRoute => '选择路线';
-
-  @override
-  String routeOptionsCount(int count) {
-    return '$count个选项';
-  }
 
   @override
   String get cancel => '取消';
@@ -75,7 +58,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get selectedPosition => '所选位置';
 
   @override
-  String get bottomBarNotifications => 'Notifications';
+  String get bottomBarNotifications => '通知';
 
   @override
   String get bottomBarProfile => '个人资料';
@@ -84,21 +67,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get bottomBarMenu => '菜单';
 
   @override
-  String get notificationsTitle => 'Notifications';
+  String get notificationsTitle => '通知';
 
   @override
-  String get notificationsEmpty => 'No notifications yet';
+  String get notificationsEmpty => '暂无通知';
 
   @override
-  String get notificationsEmptyBody =>
-      'Zaps and reactions to your road reports will appear here.';
+  String get notificationsEmptyBody => '对你的路况上报的 zap 和互动将显示在这里。';
 
   @override
-  String get notificationsLoginRequired => 'Connect your Nostr profile';
+  String get notificationsLoginRequired => '连接你的 Nostr 资料';
 
   @override
-  String get notificationsLoginRequiredBody =>
-      'Sign in with Amber or nsec to receive notifications from other users.';
+  String get notificationsLoginRequiredBody => '使用 Amber 或 nsec 登录，以接收其他用户的通知。';
 
   @override
   String get settingsTitle => '设置';
@@ -131,12 +112,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get langSystem => '系统默认';
 
   @override
-  String get langItalian => 'Italiano';
-
-  @override
-  String get langEnglish => 'English';
-
-  @override
   String get keepScreenOn => '保持屏幕常亮';
 
   @override
@@ -147,12 +122,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get autoCenterOnLaunchDesc => '仅在已授予位置权限时自动使用GPS';
-
-  @override
-  String get rotateMap => '地图跟随方向';
-
-  @override
-  String get rotateMapDescription => '地图根据行驶方向旋转';
 
   @override
   String get mapTileUrlLabel => '地图瓦片URL';
@@ -227,48 +196,47 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileTitle => '个人资料';
 
   @override
-  String get profileVisibilityTitle => 'Profile visibility';
+  String get profileVisibilityTitle => '资料可见性';
 
   @override
   String get profileVisibilityDesc =>
-      'Choose whether other Roadstr users see your Nostr name, npub and picture.';
+      '选择其他 Roadstr 用户是否能看到你的 Nostr 名称、npub 和头像。';
 
   @override
-  String get profileVisibilityClear => 'Show profile publicly';
+  String get profileVisibilityClear => '公开显示资料';
 
   @override
-  String get profileVisibilityPseudonymous => 'Pseudonymous mode (recommended)';
+  String get profileVisibilityPseudonymous => '化名模式（推荐）';
 
   @override
-  String get profileVisibilityPublishError =>
-      'The local choice was saved, but could not be published to Nostr yet.';
+  String get profileVisibilityPublishError => '选择已保存在本地，但尚未能发布到 Nostr。';
 
   @override
   String get nostrichLabel => 'nostrich';
 
   @override
-  String get profileHiddenNotice => 'This user is using pseudonymous mode.';
+  String get profileHiddenNotice => '该用户正在使用化名模式。';
 
   @override
-  String get editSpeedLimit => 'Add or update speed limit';
+  String get editSpeedLimit => '添加或更新限速';
 
   @override
-  String get requestSpeedLimit => 'Suggest a speed limit';
+  String get requestSpeedLimit => '建议限速';
 
   @override
-  String get acceptEditRequest => 'Accept suggestion';
+  String get acceptEditRequest => '接受建议';
 
   @override
-  String get pendingEditRequests => 'Pending edit suggestions';
+  String get pendingEditRequests => '待处理的修改建议';
 
   @override
-  String get speedLimitHint => 'Speed limit';
+  String get speedLimitHint => '限速';
 
   @override
-  String get speedLimitSaved => 'Speed limit published';
+  String get speedLimitSaved => '限速已发布';
 
   @override
-  String get editRequestSent => 'Suggestion sent to the report owner';
+  String get editRequestSent => '建议已发送给上报者';
 
   @override
   String get notConnected => '未连接';
@@ -341,16 +309,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get requestKeyFromAmber => '从Amber请求公钥';
 
   @override
-  String get amberNotFound => '未找到Amber。从Play Store安装或手动输入您的npub。';
-
-  @override
   String get waitingForAmberResponse => '等待Amber响应…';
-
-  @override
-  String get pasteNpubManually => '手动粘贴您的npub：';
-
-  @override
-  String get confirmNpub => '确认npub';
 
   @override
   String get enterNsecTitle => '输入nsec';
@@ -365,19 +324,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get invalidNsecTitle => '无效的nsec';
 
   @override
-  String get invalidNpubMessage => '请确保您粘贴了正确的npub。';
-
-  @override
   String get invalidNsecMessage => '请确保您粘贴了正确的nsec。';
 
   @override
-  String get amberResponseError => 'Amber响应错误';
-
-  @override
   String get ok => '确定';
-
-  @override
-  String get or => '或';
 
   @override
   String get gpsNotActiveTitle => 'GPS未激活';
@@ -414,11 +364,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get zapSending => '发送中…';
-
-  @override
-  String zapSat(int sats) {
-    return '⚡$sats sat';
-  }
 
   @override
   String get fetchingLightningAddress => '正在获取闪电地址…';
@@ -706,32 +651,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get voiceGuidanceDesc => '导航时朗读转弯指示';
 
   @override
-  String get testVoiceEngine => '测试语音引擎';
-
-  @override
-  String get testVoiceEngineDesc => '点击以检查 TTS 引擎并获取设置说明';
-
-  @override
-  String get ttsDialogTitle => '缺少语音引擎';
-
-  @override
-  String get ttsDialogBody =>
-      '未找到可用的文本转语音引擎。\n\nRoadstr 仅依赖开源软件——请从 F-Droid 安装以下免费引擎之一：';
-
-  @override
-  String get ttsRhvoiceDesc => '声音自然，支持语言有限';
-
-  @override
-  String get ttsEspeakDesc => '支持 100 多种语言，声音机械化';
-
-  @override
-  String get ttsInstallNote =>
-      '⚠️ 安装后：\n1. Android 设置 → 无障碍 → 文字转语音输出\n2. 选择刚安装的引擎\n3. 下载您所用语言的语音数据\n4. 完全重启 Roadstr';
-
-  @override
-  String get ttsTestNow => '立即测试';
-
-  @override
   String get voiceUnsupportedTitle => '语音导航不可用';
 
   @override
@@ -769,30 +688,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get arrivedTitle => '🎉 您已到达！';
-
-  @override
-  String get arrivedBody => '您已到达目的地。';
-
-  @override
-  String get arrivedFeedbackPrompt => '旅途如何？';
-
-  @override
-  String get feedbackBad => '不好';
-
-  @override
-  String get feedbackGood => '很好！';
-
-  @override
-  String get feedbackDialogTitle => '告诉我们哪里出了问题';
-
-  @override
-  String get feedbackHint => '描述问题…';
-
-  @override
-  String get feedbackSent => '反馈已发送 — 谢谢！ 🙏';
-
-  @override
-  String get feedbackSubmit => '发送';
 
   @override
   String get transportModeCar => '驾车';
@@ -846,9 +741,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get poiCuisine => '菜系';
-
-  @override
-  String get poiAccessibility => '无障碍';
 
   @override
   String get poiWheelchairYes => '轮椅可通行';
@@ -1054,9 +946,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get weatherThunderstorm => '雷雨';
 
   @override
-  String get ztlAheadWarning => '前方为限行区,路线将进入该区域';
-
-  @override
   String get ztlInsideWarning => '限行区';
 
   @override
@@ -1187,9 +1076,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get onboardingLetsGo => '出发！';
 
   @override
-  String get onboardingProfileLoading => '正在加载个人资料…';
-
-  @override
   String get onboardingNsecHint => 'nsec1…';
 
   @override
@@ -1216,7 +1102,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get profileVisibilityOnboarding =>
-      'Roadstr always publishes the Nostr public key needed to verify a report. In pseudonymous mode, other Roadstr users see only a generic avatar and “nostrich”; in public mode, they also see your Nostr name, npub and profile picture. Your reports, locations, reputation and received zaps remain public on Nostr.';
+      'Roadstr 始终会发布验证上报所需的 Nostr 公钥。在化名模式下，其他 Roadstr 用户只能看到通用头像和「nostrich」；在公开模式下，他们还能看到你的 Nostr 名称、npub 和头像。你的上报、位置、声誉和收到的 zap 在 Nostr 上仍然是公开的。';
 
   @override
   String get parkingSaveHere => '在此保存停车位置';
@@ -1319,21 +1205,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trafficHeavy => '交通拥堵';
 
   @override
-  String get avoidHighwaysChip => '避开高速公路';
-
-  @override
-  String get avoidTollsChip => '避开收费道路';
-
-  @override
-  String get preferShorterChip => '最短路线';
-
-  @override
   String zapAmountButton(int sats) {
     return 'Zap $sats sat';
   }
-
-  @override
-  String get showRoutePreview => '显示路线预览';
 
   @override
   String get avoidHighwaysAndTolls => '避开高速公路和收费道路';
@@ -1343,4 +1217,40 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get avoidanceUnavoidableSection => '尽量减少高速/收费道路 · 含无法避开的路段';
+
+  @override
+  String get nearbyTitle => '附近';
+
+  @override
+  String get nearbyNeedsGps => '等待 GPS';
+
+  @override
+  String get nearbyNothingFound => '5 公里内没有找到';
+
+  @override
+  String get nearbyFuel => '加油站';
+
+  @override
+  String get nearbySupermarket => '超市';
+
+  @override
+  String get nearbyAtm => 'ATM';
+
+  @override
+  String get nearbyPharmacy => '药店';
+
+  @override
+  String get nearbyHospital => '医院';
+
+  @override
+  String get nearbyPolice => '警察局';
+
+  @override
+  String get nearbyPostOffice => '邮局';
+
+  @override
+  String get nearbyParking => '停车场';
+
+  @override
+  String get nearbyCharging => '充电';
 }

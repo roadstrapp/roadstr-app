@@ -4,29 +4,11 @@
   "calculatingRoute": "Υπολογισμός διαδρομής…",
   "routeNotFoundTitle": "Η διαδρομή δεν βρέθηκε",
   "noRouteFound": "Δεν βρέθηκε διαδρομή. Ελέγξτε τη σύνδεσή σας.",
-  "emptyServerResponse": "Κενή απόκριση διακομιστή. Ελέγξτε τη σύνδεσή σας.",
-  "routeError": "Σφάλμα υπολογισμού διαδρομής: {error}",
-  "@routeError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "gpsNotAvailable": "GPS μη διαθέσιμο — Ρυθμίσεις → Εφαρμογή → Roadstr → Άδειες → Τοποθεσία",
   "acquiringGps": "Λήψη GPS…",
   "graphhopperServerNotConfigured": "Ο διακομιστής GraphHopper δεν έχει ρυθμιστεί — χρησιμοποιείται OSRM",
   "graphhopperApiKeyNotConfigured": "Το κλειδί API GraphHopper δεν έχει ρυθμιστεί — χρησιμοποιείται OSRM",
   "openrouteApiKeyNotConfigured": "Το κλειδί API OpenRouteService δεν έχει ρυθμιστεί — χρησιμοποιείται OSRM",
   "chooseRoute": "Επιλογή διαδρομής",
-  "routeOptionsCount": "{count} επιλογές",
-  "@routeOptionsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cancel": "Ακύρωση",
   "startNavigation": "Εκκίνηση πλοήγησης",
   "fastestRoute": "Ταχύτερη",
@@ -46,12 +28,8 @@
   "themeDarkNostr": "Σκούρο · Nostr Βιολετί",
   "themeDarkBitcoin": "Σκούρο · Bitcoin Πορτοκαλί",
   "langSystem": "Προεπιλογή συστήματος",
-  "langItalian": "Italiano",
-  "langEnglish": "English",
   "keepScreenOn": "Διατήρηση οθόνης ενεργής",
   "keepScreenOnDescription": "Αποτρέπει την αδράνεια κατά την πλοήγηση",
-  "rotateMap": "Ο χάρτης ακολουθεί την κατεύθυνση",
-  "rotateMapDescription": "Ο χάρτης περιστρέφεται βάσει της κατεύθυνσης οδήγησης",
   "mapTileUrlLabel": "URL πλακιδίων χάρτη",
   "routingProviderLabel": "Πάροχος δρομολόγησης",
   "osrmProvider": "OSRM (δημόσιο, δεν απαιτείται κλειδί)",
@@ -98,19 +76,13 @@
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Το Amber είναι ένας υπογράφων εφαρμογών Android συμβατός με NIP-55. Το ιδιωτικό κλειδί σας παραμένει απομονωμένο στο Amber και δεν κοινοποιείται ποτέ.",
   "requestKeyFromAmber": "Αίτηση δημόσιου κλειδιού από το Amber",
-  "amberNotFound": "Το Amber δεν βρέθηκε. Εγκαταστήστε το από το Play Store ή εισαγάγετε χειροκίνητα το npub σας.",
   "waitingForAmberResponse": "Αναμονή απόκρισης Amber…",
-  "pasteNpubManually": "Επικολλήστε το npub σας χειροκίνητα:",
-  "confirmNpub": "Επιβεβαίωση npub",
   "enterNsecTitle": "Εισαγωγή nsec",
   "loginButton": "Σύνδεση",
   "invalidNpubTitle": "Μη έγκυρο npub",
   "invalidNsecTitle": "Μη έγκυρο nsec",
-  "invalidNpubMessage": "Βεβαιωθείτε ότι επικολλήσατε το σωστό npub.",
   "invalidNsecMessage": "Βεβαιωθείτε ότι επικολλήσατε το σωστό nsec.",
-  "amberResponseError": "Σφάλμα απόκρισης Amber",
   "ok": "OK",
-  "or": "ή",
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "Το GPS δεν είναι ενεργό",
   "gpsDisabledMessage": "Ενεργοποιήστε το GPS στις ρυθμίσεις της συσκευής σας για να λάβετε την τοποθεσία σας και να χρησιμοποιήσετε την πλοήγηση.",
@@ -126,14 +98,6 @@
   "chooseAmountSats": "Επιλέξτε ποσό σε satoshi (sats):",
   "customAmount": "Προσαρμοσμένο ποσό…",
   "zapSending": "Αποστολή…",
-  "zapSat": "⚡{sats} sat",
-  "@zapSat": {
-    "placeholders": {
-      "sats": {
-        "type": "int"
-      }
-    }
-  },
   "fetchingLightningAddress": "Λήψη διεύθυνσης Lightning…",
   "noLightningAddress": "Αυτός ο αναφέρων δεν έχει διεύθυνση Lightning",
   "requestingInvoice": "Αίτηση τιμολογίου…",
@@ -159,28 +123,54 @@
   "notifZapTitle": "Ελήφθη zap",
   "notifZapBody": "Λάβατε zap {sat} sats!",
   "@notifZapBody": {
-    "placeholders": { "sat": { "type": "int" } }
+    "placeholders": {
+      "sat": {
+        "type": "int"
+      }
+    }
   },
   "notifConfirmedTitle": "Η αναφορά επιβεβαιώθηκε",
   "notifConfirmedBody": "Η αναφορά σας για {category} επιβεβαιώθηκε από άλλον οδηγό",
   "@notifConfirmedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "notifDeniedTitle": "Η αναφορά αμφισβητήθηκε",
   "notifDeniedBody": "Κάποιος ανέφερε ότι το {category} σας δεν υπάρχει πια",
   "@notifDeniedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "chainedManeuver": "{first}, στη συνέχεια {second}",
   "@chainedManeuver": {
-    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   },
   "thenManeuver": "στη συνέχεια {instruction}",
   "reportSpeedLimitHint": "Όριο ταχύτητας (προαιρετικό)",
   "reportedSpeedLimit": "Αναφερόμενο όριο ταχύτητας",
   "speedCameraVoiceAlert": "Κάμερα ταχύτητας, όριο {limit} {unit}",
   "@speedCameraVoiceAlert": {
-    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   },
   "optionalComment": "Προαιρετικό σχόλιο…",
   "publish": "Δημοσίευση",
@@ -283,14 +273,6 @@
   "sectionNavigationVoice": "Φωνή πλοήγησης",
   "voiceGuidance": "Φωνητική καθοδήγηση",
   "voiceGuidanceDesc": "Ανάγνωση οδηγιών στροφής δυνατά κατά την πλοήγηση",
-  "testVoiceEngine": "Δοκιμή μηχανής φωνής",
-  "testVoiceEngineDesc": "Πατήστε για έλεγχο της μηχανής TTS και οδηγίες ρύθμισης",
-  "ttsDialogTitle": "Λείπει μηχανή φωνής",
-  "ttsDialogBody": "Δεν βρέθηκε λειτουργική μηχανή Text-to-Speech.\n\nΤο Roadstr βασίζεται αποκλειστικά σε λογισμικό ανοιχτού κώδικα — εγκαταστήστε μία από αυτές τις δωρεάν μηχανές από το F-Droid:",
-  "ttsRhvoiceDesc": "Φυσικά ηχητική φωνή, περιορισμένη λίστα γλωσσών",
-  "ttsEspeakDesc": "Καλύπτει πάνω από 100 γλώσσες, ρομποτική φωνή",
-  "ttsInstallNote": "⚠️ Μετά την εγκατάσταση:\n1. Ρυθμίσεις Android → Προσβασιμότητα → Σύνθεση φωνής\n2. Επιλέξτε τη μηχανή που μόλις εγκαταστήσατε\n3. Κατεβάστε τα φωνητικά δεδομένα της γλώσσας σας\n4. Επανεκκινήστε πλήρως το Roadstr",
-  "ttsTestNow": "Δοκιμή τώρα",
   "voiceUnsupportedTitle": "Η φωνητική καθοδήγηση δεν είναι διαθέσιμη",
   "voiceUnsupportedBody": "Η γλώσσα σας δεν υποστηρίζεται ακόμα για φωνητικές οδηγίες στροφής. Οι οδηγίες πλοήγησης θα συνεχίσουν να εμφανίζονται ως κείμενο στην οθόνη.",
   "kokoroModelTitle": "Φωνητικό μοντέλο (Kokoro AI)",
@@ -304,14 +286,6 @@
   "settingsImperialUnits": "Αγγλοσαξονικές μονάδες",
   "settingsImperialUnitsDesc": "Μίλια και πόδια αντί για χιλιόμετρα και μέτρα",
   "arrivedTitle": "🎉 Φτάσατε!",
-  "arrivedBody": "Φτάσατε στον προορισμό σας.",
-  "arrivedFeedbackPrompt": "Πώς πήγε;",
-  "feedbackBad": "Κακά",
-  "feedbackGood": "Καλά!",
-  "feedbackDialogTitle": "Πείτε μας τι πήγε στραβά",
-  "feedbackHint": "Περιγράψτε το πρόβλημα…",
-  "feedbackSent": "Ανατροφοδότηση στάλθηκε — ευχαριστώ! 🙏",
-  "feedbackSubmit": "Αποστολή",
   "transportModeCar": "Αυτοκίνητο",
   "transportModeWalk": "Με τα πόδια",
   "etaArrivalLabel": "Άφ. {time}",
@@ -326,11 +300,19 @@
   "poiClosedNow": "Κλειστά",
   "poiOpensAt": "Ανοίγει: {when}",
   "@poiOpensAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "poiClosesAt": "Κλείνει: {when}",
   "@poiClosesAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "searchOnEngine": "Αναζήτηση στο {engine}",
   "plannerFromHint": "Από…",
@@ -351,7 +333,6 @@
   "weatherSnow": "Χιόνι",
   "weatherShowers": "Καταιγίδα",
   "weatherThunderstorm": "Καταιγίδα",
-  "ztlAheadWarning": "Μπροστά υπάρχει περιορισμένη κυκλοφοριακή ζώνη — η διαδρομή περνά μέσα από αυτήν",
   "ztlInsideWarning": "Περιορισμένη κυκλοφοριακή ζώνη",
   "onboardingAppSubtitle": "Πλοήγηση Nostr ανοιχτού κώδικα",
   "onboardingWelcomeTitle": "Καλώς ορίσατε",
@@ -391,7 +372,6 @@
   "onboardingReadyTitle": "Είστε έτοιμοι να πλοηγηθείτε!",
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Πάμε!",
-  "onboardingProfileLoading": "Φόρτωση προφίλ…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "Για μέγιστη ιδιωτικότητα — οι αναφορές διαδίδονται στο δίκτυο Nostr — συνιστάται η χρήση VPN. Το Mullvad, με πληρωμή σε Bitcoin, είναι η προτεινόμενη επιλογή.",
   "exportFavoritesTitle": "Εξαγωγή αγαπημένων",
@@ -445,9 +425,6 @@
   "trafficNormal": "Κανονική κίνηση",
   "trafficModerate": "Μέτρια κίνηση",
   "trafficHeavy": "Έντονη κίνηση",
-  "avoidHighwaysChip": "Αποφυγή αυτοκινητοδρόμων",
-  "avoidTollsChip": "Αποφυγή διοδίων",
-  "preferShorterChip": "Συντομότερη διαδρομή",
   "zapAmountButton": "Zap {sats} sat",
   "@zapAmountButton": {
     "placeholders": {
@@ -456,7 +433,6 @@
       }
     }
   },
-  "showRoutePreview": "Προεπισκόπηση διαδρομής",
   "autoCenterOnLaunch": "Κεντράρισμα στη θέση μου κατά την εκκίνηση",
   "autoCenterOnLaunchDesc": "Χρησιμοποιεί αυτόματα το GPS μόνο αν έχει ήδη δοθεί άδεια τοποθεσίας",
   "openInBrowser": "Άνοιγμα στο πρόγραμμα περιήγησης",
@@ -466,7 +442,6 @@
   "poiCategory": "Κατηγορία",
   "poiOperator": "Διαχειριστής",
   "poiCuisine": "Κουζίνα",
-  "poiAccessibility": "Προσβασιμότητα",
   "poiWheelchairYes": "Προσβάσιμο με αναπηρικό αμαξίδιο",
   "poiWheelchairLimited": "Περιορισμένη πρόσβαση με αναπηρικό αμαξίδιο",
   "poiWheelchairNo": "Μη προσβάσιμο με αναπηρικό αμαξίδιο",
@@ -508,5 +483,38 @@
   "poiTakeawayOnly": "Μόνο σε πακέτο",
   "avoidHighwaysAndTolls": "Αποφυγή αυτοκινητοδρόμων και διοδίων",
   "avoidRouteUnavailable": "Δεν βρέθηκε διαδρομή που να αποφεύγει και τους αυτοκινητόδρομους και τα διόδια.",
-  "avoidanceUnavoidableSection": "Ελαχιστοποιεί αυτοκινητόδρομους/διόδια · αναπόφευκτο τμήμα"
+  "avoidanceUnavoidableSection": "Ελαχιστοποιεί αυτοκινητόδρομους/διόδια · αναπόφευκτο τμήμα",
+  "bottomBarNotifications": "Ειδοποιήσεις",
+  "notificationsTitle": "Ειδοποιήσεις",
+  "notificationsEmpty": "Δεν υπάρχουν ειδοποιήσεις ακόμη",
+  "notificationsEmptyBody": "Τα zaps και οι αντιδράσεις στις αναφορές σας θα εμφανίζονται εδώ.",
+  "notificationsLoginRequired": "Συνδέστε το προφίλ σας στο Nostr",
+  "notificationsLoginRequiredBody": "Συνδεθείτε με Amber ή nsec για να λαμβάνετε ειδοποιήσεις από άλλους χρήστες.",
+  "profileVisibilityTitle": "Ορατότητα προφίλ",
+  "profileVisibilityDesc": "Επιλέξτε αν οι άλλοι χρήστες του Roadstr βλέπουν το όνομά σας στο Nostr, το npub και τη φωτογραφία σας.",
+  "profileVisibilityClear": "Εμφάνιση προφίλ δημόσια",
+  "profileVisibilityPseudonymous": "Ψευδώνυμη λειτουργία (συνιστάται)",
+  "profileVisibilityPublishError": "Η επιλογή αποθηκεύτηκε τοπικά, αλλά δεν ήταν ακόμη δυνατή η δημοσίευσή της στο Nostr.",
+  "nostrichLabel": "nostrich",
+  "profileHiddenNotice": "Αυτός ο χρήστης χρησιμοποιεί ψευδώνυμη λειτουργία.",
+  "editSpeedLimit": "Προσθήκη ή ενημέρωση ορίου ταχύτητας",
+  "requestSpeedLimit": "Προτείνετε όριο ταχύτητας",
+  "acceptEditRequest": "Αποδοχή πρότασης",
+  "pendingEditRequests": "Εκκρεμείς προτάσεις επεξεργασίας",
+  "speedLimitHint": "Όριο ταχύτητας",
+  "speedLimitSaved": "Το όριο ταχύτητας δημοσιεύτηκε",
+  "editRequestSent": "Η πρόταση στάλθηκε στον συντάκτη της αναφοράς",
+  "profileVisibilityOnboarding": "Το Roadstr δημοσιεύει πάντα το δημόσιο κλειδί Nostr που απαιτείται για την επαλήθευση μιας αναφοράς. Στην ψευδώνυμη λειτουργία, οι άλλοι χρήστες του Roadstr βλέπουν μόνο ένα γενικό άβαταρ και «nostrich»· στη δημόσια λειτουργία βλέπουν επίσης το όνομά σας στο Nostr, το npub και τη φωτογραφία προφίλ σας. Οι αναφορές, οι τοποθεσίες, η φήμη και τα zaps που λαμβάνετε παραμένουν δημόσια στο Nostr.",
+  "nearbyTitle": "Κοντά μου",
+  "nearbyNeedsGps": "Αναμονή GPS",
+  "nearbyNothingFound": "Δεν βρέθηκε τίποτα σε 5 χλμ.",
+  "nearbyFuel": "Καύσιμα",
+  "nearbySupermarket": "Σούπερ μάρκετ",
+  "nearbyAtm": "ΑΤΜ",
+  "nearbyPharmacy": "Φαρμακείο",
+  "nearbyHospital": "Νοσοκομείο",
+  "nearbyPolice": "Αστυνομία",
+  "nearbyPostOffice": "Ταχυδρομείο",
+  "nearbyParking": "Πάρκινγκ",
+  "nearbyCharging": "Φόρτιση"
 }

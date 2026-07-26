@@ -4,29 +4,11 @@
   "calculatingRoute": "Calculating route…",
   "routeNotFoundTitle": "Route not found",
   "noRouteFound": "No route found. Check your connection.",
-  "emptyServerResponse": "Empty server response. Check your connection.",
-  "routeError": "Route calculation error: {error}",
-  "@routeError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "gpsNotAvailable": "GPS unavailable — Settings → App → Roadstr → Permissions → Location",
   "acquiringGps": "Acquiring GPS…",
   "graphhopperServerNotConfigured": "GraphHopper server not configured — using OSRM",
   "graphhopperApiKeyNotConfigured": "GraphHopper API key not configured — using OSRM",
   "openrouteApiKeyNotConfigured": "OpenRouteService API key not configured — using OSRM",
   "chooseRoute": "Choose route",
-  "routeOptionsCount": "{count} options",
-  "@routeOptionsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cancel": "Cancel",
   "startNavigation": "Start navigation",
   "fastestRoute": "Fastest",
@@ -52,14 +34,10 @@
   "themeDarkNostr": "Dark · Nostr Violet",
   "themeDarkBitcoin": "Dark · Bitcoin Orange",
   "langSystem": "System default",
-  "langItalian": "Italiano",
-  "langEnglish": "English",
   "keepScreenOn": "Keep screen on",
   "keepScreenOnDescription": "Prevents sleep during navigation",
   "autoCenterOnLaunch": "Center on my position at startup",
   "autoCenterOnLaunchDesc": "Uses GPS automatically only after location permission has already been granted",
-  "rotateMap": "Map follows direction",
-  "rotateMapDescription": "Map rotates based on driving direction",
   "mapTileUrlLabel": "Map tile URL",
   "routingProviderLabel": "Routing provider",
   "osrmProvider": "OSRM (public, no key required)",
@@ -120,19 +98,13 @@
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber is an Android NIP-55 compliant app signer. Your private key stays isolated inside Amber and is never shared.",
   "requestKeyFromAmber": "Request public key from Amber",
-  "amberNotFound": "Amber not found. Install it from the Play Store or enter your npub manually.",
   "waitingForAmberResponse": "Waiting for Amber response…",
-  "pasteNpubManually": "Paste your npub manually:",
-  "confirmNpub": "Confirm npub",
   "enterNsecTitle": "Insert nsec",
   "loginButton": "Login",
   "invalidNpubTitle": "Invalid npub",
   "invalidNsecTitle": "Invalid nsec",
-  "invalidNpubMessage": "Make sure you pasted the correct npub.",
   "invalidNsecMessage": "Make sure you pasted the correct nsec.",
-  "amberResponseError": "Amber response error",
   "ok": "OK",
-  "or": "or",
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS not active",
   "gpsDisabledMessage": "Activate GPS in your device settings to get your location and use navigation.",
@@ -148,14 +120,6 @@
   "chooseAmountSats": "Choose amount in satoshi (sats):",
   "customAmount": "Custom amount…",
   "zapSending": "Sending…",
-  "zapSat": "⚡{sats} sat",
-  "@zapSat": {
-    "placeholders": {
-      "sats": {
-        "type": "int"
-      }
-    }
-  },
   "fetchingLightningAddress": "Fetching Lightning address…",
   "noLightningAddress": "This reporter has no Lightning address",
   "requestingInvoice": "Requesting invoice…",
@@ -181,31 +145,61 @@
   "notifZapTitle": "Zap received",
   "notifZapBody": "You received a zap of {sat} sats!",
   "@notifZapBody": {
-    "placeholders": { "sat": { "type": "int" } }
+    "placeholders": {
+      "sat": {
+        "type": "int"
+      }
+    }
   },
   "notifConfirmedTitle": "Report confirmed",
   "notifConfirmedBody": "Your {category} report was confirmed by another driver",
   "@notifConfirmedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "notifDeniedTitle": "Report disputed",
   "notifDeniedBody": "Someone said your {category} report is no longer there",
   "@notifDeniedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "chainedManeuver": "{first}, then {second}",
   "@chainedManeuver": {
-    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   },
   "thenManeuver": "then {instruction}",
   "@thenManeuver": {
-    "placeholders": { "instruction": { "type": "String" } }
+    "placeholders": {
+      "instruction": {
+        "type": "String"
+      }
+    }
   },
   "reportSpeedLimitHint": "Speed limit (optional)",
   "reportedSpeedLimit": "Reported speed limit",
   "speedCameraVoiceAlert": "Speed camera reported, speed limit {limit} {unit}",
   "@speedCameraVoiceAlert": {
-    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   },
   "optionalComment": "Optional comment…",
   "publish": "Publish",
@@ -308,14 +302,6 @@
   "sectionNavigationVoice": "Navigation voice",
   "voiceGuidance": "Voice guidance",
   "voiceGuidanceDesc": "Read turn-by-turn instructions aloud during navigation",
-  "testVoiceEngine": "Test voice engine",
-  "testVoiceEngineDesc": "Tap to check the TTS engine and get setup instructions",
-  "ttsDialogTitle": "Missing voice engine",
-  "ttsDialogBody": "No working Text-to-Speech engine was found.\n\nRoadstr only relies on open source software — install one of these free engines from F-Droid:",
-  "ttsRhvoiceDesc": "Natural-sounding voice, limited language list",
-  "ttsEspeakDesc": "Covers 100+ languages, robotic-sounding voice",
-  "ttsInstallNote": "⚠️ After installing:\n1. Android Settings → Accessibility → Text-to-speech output\n2. Select the engine you just installed\n3. Download your language's voice data\n4. Restart Roadstr completely",
-  "ttsTestNow": "Test now",
   "voiceUnsupportedTitle": "Voice guidance unavailable",
   "voiceUnsupportedBody": "Your language isn't yet supported for spoken turn-by-turn directions. Navigation instructions will still appear as text on screen.",
   "kokoroModelTitle": "Voice model (Kokoro AI)",
@@ -329,14 +315,6 @@
   "settingsImperialUnits": "Imperial units",
   "settingsImperialUnitsDesc": "Miles and feet instead of kilometres and metres",
   "arrivedTitle": "🎉 You arrived!",
-  "arrivedBody": "You have reached your destination.",
-  "arrivedFeedbackPrompt": "How did it go?",
-  "feedbackBad": "Bad",
-  "feedbackGood": "Good!",
-  "feedbackDialogTitle": "Tell us what went wrong",
-  "feedbackHint": "Describe the problem…",
-  "feedbackSent": "Feedback sent — thank you! 🙏",
-  "feedbackSubmit": "Send",
   "transportModeCar": "Car",
   "transportModeWalk": "On foot",
   "etaArrivalLabel": "Arr. {time}",
@@ -353,7 +331,6 @@
   "poiCategory": "Category",
   "poiOperator": "Operator",
   "poiCuisine": "Cuisine",
-  "poiAccessibility": "Accessibility",
   "poiWheelchairYes": "Wheelchair accessible",
   "poiWheelchairLimited": "Limited wheelchair access",
   "poiWheelchairNo": "Not wheelchair accessible",
@@ -398,11 +375,19 @@
   "poiClosedNow": "Closed",
   "poiOpensAt": "Opens: {when}",
   "@poiOpensAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "poiClosesAt": "Closes: {when}",
   "@poiClosesAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "searchOnEngine": "Search on {engine}",
   "plannerFromHint": "From…",
@@ -478,7 +463,6 @@
   "weatherSnow": "Snow",
   "weatherShowers": "Showers",
   "weatherThunderstorm": "Thunderstorm",
-  "ztlAheadWarning": "Restricted traffic zone ahead — the route enters it",
   "ztlInsideWarning": "Restricted traffic zone",
   "onboardingAppSubtitle": "Open-source Nostr navigation",
   "onboardingWelcomeTitle": "Welcome",
@@ -518,7 +502,6 @@
   "onboardingReadyTitle": "You're ready to navigate!",
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Let's go!",
-  "onboardingProfileLoading": "Loading profile…",
   "onboardingNsecHint": "nsec1…",
   "kokoroVoiceGenderTitle": "Voice",
   "kokoroVoiceFemale": "Female",
@@ -573,9 +556,6 @@
   "trafficNormal": "Normal traffic",
   "trafficModerate": "Moderate traffic",
   "trafficHeavy": "Heavy traffic",
-  "avoidHighwaysChip": "Avoid highways",
-  "avoidTollsChip": "Avoid tolls",
-  "preferShorterChip": "Shortest route",
   "zapAmountButton": "Zap {sats} sat",
   "@zapAmountButton": {
     "placeholders": {
@@ -584,8 +564,19 @@
       }
     }
   },
-  "showRoutePreview": "Show route preview",
   "avoidHighwaysAndTolls": "Avoid highways and toll roads",
   "avoidRouteUnavailable": "No route avoiding both highways and toll roads was found.",
-  "avoidanceUnavoidableSection": "Minimizes highways/tolls · unavoidable section"
+  "avoidanceUnavoidableSection": "Minimizes highways/tolls · unavoidable section",
+  "nearbyTitle": "Nearby",
+  "nearbyNeedsGps": "Waiting for GPS",
+  "nearbyNothingFound": "Nothing found within 5 km",
+  "nearbyFuel": "Fuel",
+  "nearbySupermarket": "Supermarket",
+  "nearbyAtm": "ATM",
+  "nearbyPharmacy": "Pharmacy",
+  "nearbyHospital": "Hospital",
+  "nearbyPolice": "Police",
+  "nearbyPostOffice": "Post office",
+  "nearbyParking": "Parking",
+  "nearbyCharging": "Charging"
 }

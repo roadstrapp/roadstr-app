@@ -4,29 +4,11 @@
   "calculatingRoute": "Beregner rute…",
   "routeNotFoundTitle": "Rute ikke fundet",
   "noRouteFound": "Ingen rute fundet. Tjek din forbindelse.",
-  "emptyServerResponse": "Tomt serversvar. Tjek din forbindelse.",
-  "routeError": "Fejl ved ruteberegning: {error}",
-  "@routeError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "gpsNotAvailable": "GPS utilgængeligt — Indstillinger → App → Roadstr → Tilladelser → Placering",
   "acquiringGps": "Henter GPS…",
   "graphhopperServerNotConfigured": "GraphHopper-server ikke konfigureret — bruger OSRM",
   "graphhopperApiKeyNotConfigured": "GraphHopper API-nøgle ikke konfigureret — bruger OSRM",
   "openrouteApiKeyNotConfigured": "OpenRouteService API-nøgle ikke konfigureret — bruger OSRM",
   "chooseRoute": "Vælg rute",
-  "routeOptionsCount": "{count} muligheder",
-  "@routeOptionsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cancel": "Annuller",
   "startNavigation": "Start navigation",
   "fastestRoute": "Hurtigste",
@@ -46,12 +28,8 @@
   "themeDarkNostr": "Mørkt · Nostr Violet",
   "themeDarkBitcoin": "Mørkt · Bitcoin Orange",
   "langSystem": "Systemstandard",
-  "langItalian": "Italiano",
-  "langEnglish": "English",
   "keepScreenOn": "Hold skærmen tændt",
   "keepScreenOnDescription": "Forhindrer dvale under navigation",
-  "rotateMap": "Kortet følger retningen",
-  "rotateMapDescription": "Kortet roterer baseret på køreretning",
   "mapTileUrlLabel": "Kortbrikke-URL",
   "routingProviderLabel": "Ruteudbyder",
   "osrmProvider": "OSRM (offentlig, ingen nøgle påkrævet)",
@@ -98,19 +76,13 @@
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber er en NIP-55-kompatibel Android app-underskriver. Din private nøgle forbliver isoleret i Amber og deles aldrig.",
   "requestKeyFromAmber": "Anmod om offentlig nøgle fra Amber",
-  "amberNotFound": "Amber ikke fundet. Installer det fra Play Store eller indtast din npub manuelt.",
   "waitingForAmberResponse": "Venter på Amber-svar…",
-  "pasteNpubManually": "Indsæt din npub manuelt:",
-  "confirmNpub": "Bekræft npub",
   "enterNsecTitle": "Indsæt nsec",
   "loginButton": "Log ind",
   "invalidNpubTitle": "Ugyldig npub",
   "invalidNsecTitle": "Ugyldig nsec",
-  "invalidNpubMessage": "Sørg for, at du indsatte den korrekte npub.",
   "invalidNsecMessage": "Sørg for, at du indsatte den korrekte nsec.",
-  "amberResponseError": "Amber-svarfejl",
   "ok": "OK",
-  "or": "eller",
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS ikke aktiv",
   "gpsDisabledMessage": "Aktiver GPS i dine enhedsindstillinger for at få din placering og bruge navigation.",
@@ -126,14 +98,6 @@
   "chooseAmountSats": "Vælg beløb i satoshi (sats):",
   "customAmount": "Brugerdefineret beløb…",
   "zapSending": "Sender…",
-  "zapSat": "⚡{sats} sat",
-  "@zapSat": {
-    "placeholders": {
-      "sats": {
-        "type": "int"
-      }
-    }
-  },
   "fetchingLightningAddress": "Henter Lightning-adresse…",
   "noLightningAddress": "Denne reporter har ingen Lightning-adresse",
   "requestingInvoice": "Anmoder om faktura…",
@@ -159,28 +123,54 @@
   "notifZapTitle": "Zap modtaget",
   "notifZapBody": "Du modtog et zap på {sat} sats!",
   "@notifZapBody": {
-    "placeholders": { "sat": { "type": "int" } }
+    "placeholders": {
+      "sat": {
+        "type": "int"
+      }
+    }
   },
   "notifConfirmedTitle": "Rapport bekræftet",
   "notifConfirmedBody": "Din {category}-rapport blev bekræftet af en anden bilist",
   "@notifConfirmedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "notifDeniedTitle": "Rapport bestridt",
   "notifDeniedBody": "Nogen har rapporteret, at dit {category} ikke længere er der",
   "@notifDeniedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "chainedManeuver": "{first}, derefter {second}",
   "@chainedManeuver": {
-    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   },
   "thenManeuver": "derefter {instruction}",
   "reportSpeedLimitHint": "Hastighedsgrænse (valgfri)",
   "reportedSpeedLimit": "Rapporteret hastighedsgrænse",
   "speedCameraVoiceAlert": "Fotovogn rapporteret, hastighedsgrænse {limit} {unit}",
   "@speedCameraVoiceAlert": {
-    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   },
   "optionalComment": "Valgfri kommentar…",
   "publish": "Publicer",
@@ -283,14 +273,6 @@
   "sectionNavigationVoice": "Navigationsstemme",
   "voiceGuidance": "Stemmevejledning",
   "voiceGuidanceDesc": "Læs sving-instruktioner højt under navigation",
-  "testVoiceEngine": "Test stemmemotor",
-  "testVoiceEngineDesc": "Tryk for at tjekke TTS-motoren og få opsætningsinstruktioner",
-  "ttsDialogTitle": "Manglende stemmemotor",
-  "ttsDialogBody": "Der blev ikke fundet nogen fungerende Text-to-Speech-motor.\n\nRoadstr bygger udelukkende på open source-software — installer en af disse gratis motorer fra F-Droid:",
-  "ttsRhvoiceDesc": "Naturligt klingende stemme, begrænset sprogliste",
-  "ttsEspeakDesc": "Dækker over 100 sprog, robotagtig stemme",
-  "ttsInstallNote": "⚠️ Efter installation:\n1. Android-indstillinger → Hjælpefunktioner → Tekst-til-tale\n2. Vælg den motor, du lige har installeret\n3. Download stemmedata til dit sprog\n4. Genstart Roadstr helt",
-  "ttsTestNow": "Test nu",
   "voiceUnsupportedTitle": "Stemmevejledning ikke tilgængelig",
   "voiceUnsupportedBody": "Dit sprog understøttes endnu ikke til talte sving-anvisninger. Navigationsinstruktioner vil stadig blive vist som tekst på skærmen.",
   "kokoroModelTitle": "Stemmemodel (Kokoro AI)",
@@ -304,14 +286,6 @@
   "settingsImperialUnits": "Imperiale enheder",
   "settingsImperialUnitsDesc": "Miles og fod i stedet for kilometer og meter",
   "arrivedTitle": "🎉 Du er fremme!",
-  "arrivedBody": "Du har nået din destination.",
-  "arrivedFeedbackPrompt": "Hvordan gik det?",
-  "feedbackBad": "Dårligt",
-  "feedbackGood": "Godt!",
-  "feedbackDialogTitle": "Fortæl os hvad der gik galt",
-  "feedbackHint": "Beskriv problemet…",
-  "feedbackSent": "Feedback sendt — tak! 🙏",
-  "feedbackSubmit": "Send",
   "transportModeCar": "Bil",
   "transportModeWalk": "Til fods",
   "etaArrivalLabel": "Ank. {time}",
@@ -326,11 +300,19 @@
   "poiClosedNow": "Lukket",
   "poiOpensAt": "Åbner: {when}",
   "@poiOpensAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "poiClosesAt": "Lukker: {when}",
   "@poiClosesAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "searchOnEngine": "Søg på {engine}",
   "plannerFromHint": "Fra…",
@@ -351,7 +333,6 @@
   "weatherSnow": "Sne",
   "weatherShowers": "Byger",
   "weatherThunderstorm": "Tordenvejr",
-  "ztlAheadWarning": "Begrænset trafikzone forude — ruten fører igennem",
   "ztlInsideWarning": "Begrænset trafikzone",
   "onboardingAppSubtitle": "Open source Nostr-navigation",
   "onboardingWelcomeTitle": "Velkommen",
@@ -391,7 +372,6 @@
   "onboardingReadyTitle": "Du er klar til at navigere!",
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Kør!",
-  "onboardingProfileLoading": "Indlæser profil…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "For maksimal privatliv — rapporter spredes via Nostr-netværket — anbefales det at bruge en VPN. Mullvad, som kan betales med Bitcoin, er det anbefalede valg.",
   "exportFavoritesTitle": "Eksportér favoritter",
@@ -445,9 +425,6 @@
   "trafficNormal": "Normal trafik",
   "trafficModerate": "Moderat trafik",
   "trafficHeavy": "Tæt trafik",
-  "avoidHighwaysChip": "Undgå motorveje",
-  "avoidTollsChip": "Undgå betalingsveje",
-  "preferShorterChip": "Korteste rute",
   "zapAmountButton": "Zap {sats} sat",
   "@zapAmountButton": {
     "placeholders": {
@@ -456,7 +433,6 @@
       }
     }
   },
-  "showRoutePreview": "Vis ruteforhåndsvisning",
   "autoCenterOnLaunch": "Centrer på min position ved opstart",
   "autoCenterOnLaunchDesc": "Bruger kun GPS automatisk, hvis placeringstilladelsen allerede er givet",
   "openInBrowser": "Åbn i browser",
@@ -466,7 +442,6 @@
   "poiCategory": "Kategori",
   "poiOperator": "Operatør",
   "poiCuisine": "Køkken",
-  "poiAccessibility": "Tilgængelighed",
   "poiWheelchairYes": "Kørestolstilgængelig",
   "poiWheelchairLimited": "Begrænset adgang for kørestole",
   "poiWheelchairNo": "Ikke tilgængelig for kørestole",
@@ -508,5 +483,38 @@
   "poiTakeawayOnly": "Kun takeaway",
   "avoidHighwaysAndTolls": "Undgå motorveje og betalingsveje",
   "avoidRouteUnavailable": "Der blev ikke fundet en rute, der undgår både motorveje og betalingsveje.",
-  "avoidanceUnavoidableSection": "Minimerer motorveje/betaling · uundgåelig strækning"
+  "avoidanceUnavoidableSection": "Minimerer motorveje/betaling · uundgåelig strækning",
+  "bottomBarNotifications": "Notifikationer",
+  "notificationsTitle": "Notifikationer",
+  "notificationsEmpty": "Ingen notifikationer endnu",
+  "notificationsEmptyBody": "Zaps og reaktioner på dine trafikmeldinger vises her.",
+  "notificationsLoginRequired": "Forbind din Nostr-profil",
+  "notificationsLoginRequiredBody": "Log ind med Amber eller nsec for at modtage notifikationer fra andre brugere.",
+  "profileVisibilityTitle": "Profilens synlighed",
+  "profileVisibilityDesc": "Vælg, om andre Roadstr-brugere kan se dit Nostr-navn, din npub og dit billede.",
+  "profileVisibilityClear": "Vis profilen offentligt",
+  "profileVisibilityPseudonymous": "Pseudonym tilstand (anbefales)",
+  "profileVisibilityPublishError": "Valget blev gemt lokalt, men kunne endnu ikke offentliggøres på Nostr.",
+  "nostrichLabel": "nostrich",
+  "profileHiddenNotice": "Denne bruger anvender pseudonym tilstand.",
+  "editSpeedLimit": "Tilføj eller opdater hastighedsgrænse",
+  "requestSpeedLimit": "Foreslå en hastighedsgrænse",
+  "acceptEditRequest": "Accepter forslaget",
+  "pendingEditRequests": "Afventende ændringsforslag",
+  "speedLimitHint": "Hastighedsgrænse",
+  "speedLimitSaved": "Hastighedsgrænsen er offentliggjort",
+  "editRequestSent": "Forslaget er sendt til meldingens forfatter",
+  "profileVisibilityOnboarding": "Roadstr offentliggør altid den offentlige Nostr-nøgle, der er nødvendig for at verificere en melding. I pseudonym tilstand ser andre Roadstr-brugere kun en generisk avatar og „nostrich“; i offentlig tilstand ser de også dit Nostr-navn, din npub og dit profilbillede. Dine meldinger, positioner, dit omdømme og modtagne zaps forbliver offentlige på Nostr.",
+  "nearbyTitle": "I nærheden",
+  "nearbyNeedsGps": "Venter på GPS",
+  "nearbyNothingFound": "Intet fundet inden for 5 km",
+  "nearbyFuel": "Brændstof",
+  "nearbySupermarket": "Supermarked",
+  "nearbyAtm": "Hæveautomat",
+  "nearbyPharmacy": "Apotek",
+  "nearbyHospital": "Hospital",
+  "nearbyPolice": "Politi",
+  "nearbyPostOffice": "Posthus",
+  "nearbyParking": "Parkering",
+  "nearbyCharging": "Opladning"
 }

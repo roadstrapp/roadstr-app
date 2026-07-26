@@ -21,18 +21,6 @@ class AppLocalizationsDa extends AppLocalizations {
   String get noRouteFound => 'Ingen rute fundet. Tjek din forbindelse.';
 
   @override
-  String get emptyServerResponse => 'Tomt serversvar. Tjek din forbindelse.';
-
-  @override
-  String routeError(String error) {
-    return 'Fejl ved ruteberegning: $error';
-  }
-
-  @override
-  String get gpsNotAvailable =>
-      'GPS utilgængeligt — Indstillinger → App → Roadstr → Tilladelser → Placering';
-
-  @override
   String get acquiringGps => 'Henter GPS…';
 
   @override
@@ -49,11 +37,6 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get chooseRoute => 'Vælg rute';
-
-  @override
-  String routeOptionsCount(int count) {
-    return '$count muligheder';
-  }
 
   @override
   String get cancel => 'Annuller';
@@ -77,7 +60,7 @@ class AppLocalizationsDa extends AppLocalizations {
   String get selectedPosition => 'Valgt position';
 
   @override
-  String get bottomBarNotifications => 'Notifications';
+  String get bottomBarNotifications => 'Notifikationer';
 
   @override
   String get bottomBarProfile => 'Profil';
@@ -86,21 +69,21 @@ class AppLocalizationsDa extends AppLocalizations {
   String get bottomBarMenu => 'Menu';
 
   @override
-  String get notificationsTitle => 'Notifications';
+  String get notificationsTitle => 'Notifikationer';
 
   @override
-  String get notificationsEmpty => 'No notifications yet';
+  String get notificationsEmpty => 'Ingen notifikationer endnu';
 
   @override
   String get notificationsEmptyBody =>
-      'Zaps and reactions to your road reports will appear here.';
+      'Zaps og reaktioner på dine trafikmeldinger vises her.';
 
   @override
-  String get notificationsLoginRequired => 'Connect your Nostr profile';
+  String get notificationsLoginRequired => 'Forbind din Nostr-profil';
 
   @override
   String get notificationsLoginRequiredBody =>
-      'Sign in with Amber or nsec to receive notifications from other users.';
+      'Log ind med Amber eller nsec for at modtage notifikationer fra andre brugere.';
 
   @override
   String get settingsTitle => 'Indstillinger';
@@ -133,12 +116,6 @@ class AppLocalizationsDa extends AppLocalizations {
   String get langSystem => 'Systemstandard';
 
   @override
-  String get langItalian => 'Italiano';
-
-  @override
-  String get langEnglish => 'English';
-
-  @override
   String get keepScreenOn => 'Hold skærmen tændt';
 
   @override
@@ -150,12 +127,6 @@ class AppLocalizationsDa extends AppLocalizations {
   @override
   String get autoCenterOnLaunchDesc =>
       'Bruger kun GPS automatisk, hvis placeringstilladelsen allerede er givet';
-
-  @override
-  String get rotateMap => 'Kortet følger retningen';
-
-  @override
-  String get rotateMapDescription => 'Kortet roterer baseret på køreretning';
 
   @override
   String get mapTileUrlLabel => 'Kortbrikke-URL';
@@ -231,48 +202,48 @@ class AppLocalizationsDa extends AppLocalizations {
   String get profileTitle => 'Profil';
 
   @override
-  String get profileVisibilityTitle => 'Profile visibility';
+  String get profileVisibilityTitle => 'Profilens synlighed';
 
   @override
   String get profileVisibilityDesc =>
-      'Choose whether other Roadstr users see your Nostr name, npub and picture.';
+      'Vælg, om andre Roadstr-brugere kan se dit Nostr-navn, din npub og dit billede.';
 
   @override
-  String get profileVisibilityClear => 'Show profile publicly';
+  String get profileVisibilityClear => 'Vis profilen offentligt';
 
   @override
-  String get profileVisibilityPseudonymous => 'Pseudonymous mode (recommended)';
+  String get profileVisibilityPseudonymous => 'Pseudonym tilstand (anbefales)';
 
   @override
   String get profileVisibilityPublishError =>
-      'The local choice was saved, but could not be published to Nostr yet.';
+      'Valget blev gemt lokalt, men kunne endnu ikke offentliggøres på Nostr.';
 
   @override
   String get nostrichLabel => 'nostrich';
 
   @override
-  String get profileHiddenNotice => 'This user is using pseudonymous mode.';
+  String get profileHiddenNotice => 'Denne bruger anvender pseudonym tilstand.';
 
   @override
-  String get editSpeedLimit => 'Add or update speed limit';
+  String get editSpeedLimit => 'Tilføj eller opdater hastighedsgrænse';
 
   @override
-  String get requestSpeedLimit => 'Suggest a speed limit';
+  String get requestSpeedLimit => 'Foreslå en hastighedsgrænse';
 
   @override
-  String get acceptEditRequest => 'Accept suggestion';
+  String get acceptEditRequest => 'Accepter forslaget';
 
   @override
-  String get pendingEditRequests => 'Pending edit suggestions';
+  String get pendingEditRequests => 'Afventende ændringsforslag';
 
   @override
-  String get speedLimitHint => 'Speed limit';
+  String get speedLimitHint => 'Hastighedsgrænse';
 
   @override
-  String get speedLimitSaved => 'Speed limit published';
+  String get speedLimitSaved => 'Hastighedsgrænsen er offentliggjort';
 
   @override
-  String get editRequestSent => 'Suggestion sent to the report owner';
+  String get editRequestSent => 'Forslaget er sendt til meldingens forfatter';
 
   @override
   String get notConnected => 'Ikke forbundet';
@@ -349,17 +320,7 @@ class AppLocalizationsDa extends AppLocalizations {
   String get requestKeyFromAmber => 'Anmod om offentlig nøgle fra Amber';
 
   @override
-  String get amberNotFound =>
-      'Amber ikke fundet. Installer det fra Play Store eller indtast din npub manuelt.';
-
-  @override
   String get waitingForAmberResponse => 'Venter på Amber-svar…';
-
-  @override
-  String get pasteNpubManually => 'Indsæt din npub manuelt:';
-
-  @override
-  String get confirmNpub => 'Bekræft npub';
 
   @override
   String get enterNsecTitle => 'Indsæt nsec';
@@ -374,21 +335,11 @@ class AppLocalizationsDa extends AppLocalizations {
   String get invalidNsecTitle => 'Ugyldig nsec';
 
   @override
-  String get invalidNpubMessage =>
-      'Sørg for, at du indsatte den korrekte npub.';
-
-  @override
   String get invalidNsecMessage =>
       'Sørg for, at du indsatte den korrekte nsec.';
 
   @override
-  String get amberResponseError => 'Amber-svarfejl';
-
-  @override
   String get ok => 'OK';
-
-  @override
-  String get or => 'eller';
 
   @override
   String get gpsNotActiveTitle => 'GPS ikke aktiv';
@@ -427,11 +378,6 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get zapSending => 'Sender…';
-
-  @override
-  String zapSat(int sats) {
-    return '⚡$sats sat';
-  }
 
   @override
   String get fetchingLightningAddress => 'Henter Lightning-adresse…';
@@ -728,34 +674,6 @@ class AppLocalizationsDa extends AppLocalizations {
       'Læs sving-instruktioner højt under navigation';
 
   @override
-  String get testVoiceEngine => 'Test stemmemotor';
-
-  @override
-  String get testVoiceEngineDesc =>
-      'Tryk for at tjekke TTS-motoren og få opsætningsinstruktioner';
-
-  @override
-  String get ttsDialogTitle => 'Manglende stemmemotor';
-
-  @override
-  String get ttsDialogBody =>
-      'Der blev ikke fundet nogen fungerende Text-to-Speech-motor.\n\nRoadstr bygger udelukkende på open source-software — installer en af disse gratis motorer fra F-Droid:';
-
-  @override
-  String get ttsRhvoiceDesc =>
-      'Naturligt klingende stemme, begrænset sprogliste';
-
-  @override
-  String get ttsEspeakDesc => 'Dækker over 100 sprog, robotagtig stemme';
-
-  @override
-  String get ttsInstallNote =>
-      '⚠️ Efter installation:\n1. Android-indstillinger → Hjælpefunktioner → Tekst-til-tale\n2. Vælg den motor, du lige har installeret\n3. Download stemmedata til dit sprog\n4. Genstart Roadstr helt';
-
-  @override
-  String get ttsTestNow => 'Test nu';
-
-  @override
   String get voiceUnsupportedTitle => 'Stemmevejledning ikke tilgængelig';
 
   @override
@@ -796,30 +714,6 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get arrivedTitle => '🎉 Du er fremme!';
-
-  @override
-  String get arrivedBody => 'Du har nået din destination.';
-
-  @override
-  String get arrivedFeedbackPrompt => 'Hvordan gik det?';
-
-  @override
-  String get feedbackBad => 'Dårligt';
-
-  @override
-  String get feedbackGood => 'Godt!';
-
-  @override
-  String get feedbackDialogTitle => 'Fortæl os hvad der gik galt';
-
-  @override
-  String get feedbackHint => 'Beskriv problemet…';
-
-  @override
-  String get feedbackSent => 'Feedback sendt — tak! 🙏';
-
-  @override
-  String get feedbackSubmit => 'Send';
 
   @override
   String get transportModeCar => 'Bil';
@@ -873,9 +767,6 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get poiCuisine => 'Køkken';
-
-  @override
-  String get poiAccessibility => 'Tilgængelighed';
 
   @override
   String get poiWheelchairYes => 'Kørestolstilgængelig';
@@ -1081,10 +972,6 @@ class AppLocalizationsDa extends AppLocalizations {
   String get weatherThunderstorm => 'Tordenvejr';
 
   @override
-  String get ztlAheadWarning =>
-      'Begrænset trafikzone forude — ruten fører igennem';
-
-  @override
   String get ztlInsideWarning => 'Begrænset trafikzone';
 
   @override
@@ -1216,9 +1103,6 @@ class AppLocalizationsDa extends AppLocalizations {
   String get onboardingLetsGo => 'Kør!';
 
   @override
-  String get onboardingProfileLoading => 'Indlæser profil…';
-
-  @override
   String get onboardingNsecHint => 'nsec1…';
 
   @override
@@ -1246,7 +1130,7 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get profileVisibilityOnboarding =>
-      'Roadstr always publishes the Nostr public key needed to verify a report. In pseudonymous mode, other Roadstr users see only a generic avatar and “nostrich”; in public mode, they also see your Nostr name, npub and profile picture. Your reports, locations, reputation and received zaps remain public on Nostr.';
+      'Roadstr offentliggør altid den offentlige Nostr-nøgle, der er nødvendig for at verificere en melding. I pseudonym tilstand ser andre Roadstr-brugere kun en generisk avatar og „nostrich“; i offentlig tilstand ser de også dit Nostr-navn, din npub og dit profilbillede. Dine meldinger, positioner, dit omdømme og modtagne zaps forbliver offentlige på Nostr.';
 
   @override
   String get parkingSaveHere => 'Gem parkering her';
@@ -1353,21 +1237,9 @@ class AppLocalizationsDa extends AppLocalizations {
   String get trafficHeavy => 'Tæt trafik';
 
   @override
-  String get avoidHighwaysChip => 'Undgå motorveje';
-
-  @override
-  String get avoidTollsChip => 'Undgå betalingsveje';
-
-  @override
-  String get preferShorterChip => 'Korteste rute';
-
-  @override
   String zapAmountButton(int sats) {
     return 'Zap $sats sat';
   }
-
-  @override
-  String get showRoutePreview => 'Vis ruteforhåndsvisning';
 
   @override
   String get avoidHighwaysAndTolls => 'Undgå motorveje og betalingsveje';
@@ -1379,4 +1251,40 @@ class AppLocalizationsDa extends AppLocalizations {
   @override
   String get avoidanceUnavoidableSection =>
       'Minimerer motorveje/betaling · uundgåelig strækning';
+
+  @override
+  String get nearbyTitle => 'I nærheden';
+
+  @override
+  String get nearbyNeedsGps => 'Venter på GPS';
+
+  @override
+  String get nearbyNothingFound => 'Intet fundet inden for 5 km';
+
+  @override
+  String get nearbyFuel => 'Brændstof';
+
+  @override
+  String get nearbySupermarket => 'Supermarked';
+
+  @override
+  String get nearbyAtm => 'Hæveautomat';
+
+  @override
+  String get nearbyPharmacy => 'Apotek';
+
+  @override
+  String get nearbyHospital => 'Hospital';
+
+  @override
+  String get nearbyPolice => 'Politi';
+
+  @override
+  String get nearbyPostOffice => 'Posthus';
+
+  @override
+  String get nearbyParking => 'Parkering';
+
+  @override
+  String get nearbyCharging => 'Opladning';
 }

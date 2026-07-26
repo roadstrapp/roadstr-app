@@ -80,14 +80,16 @@ class SpeedCameraService {
   }
 
   Future<List<OsmSpeedCamera>> _fetch(LatLng pos) async {
+    final lat = OverpassClient.coord(pos.latitude);
+    final lon = OverpassClient.coord(pos.longitude);
     // highway=speed_camera is the classic/most widely-used tag; enforcement
     // nodes with maxspeed cover newer mapping practice for fixed cameras.
     // Camera nodes frequently have no maxspeed of their own.  Include the
     // nearby tagged road ways in the same request so the voice alert can read
     // the limit belonging to that road rather than guessing from the camera.
     final query = '[out:json][timeout:8];'
-        '(node["highway"="speed_camera"](around:$_radiusM,${pos.latitude},${pos.longitude});'
-        'node["enforcement"="maxspeed"](around:$_radiusM,${pos.latitude},${pos.longitude});)->.cameras;'
+        '(node["highway"="speed_camera"](around:$_radiusM,$lat,$lon);'
+        'node["enforcement"="maxspeed"](around:$_radiusM,$lat,$lon);)->.cameras;'
         '(.cameras; way(around.cameras:30)["highway"]["maxspeed"];);'
         'out tags geom;';
     final elements = await _overpass.fetchElements(query,

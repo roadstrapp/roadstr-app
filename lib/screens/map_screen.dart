@@ -62,6 +62,7 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
 import '../utils/geo.dart';
+import '../utils/heading_filter.dart';
 import '../utils/units.dart';
 
 class MapScreen extends StatefulWidget {
@@ -219,29 +220,15 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// device magnetometer / GPS bearing is unavailable.
   LatLng? _prevGpsPos;
 
-  /// Movement bearing awaiting confirmation because it implied a near-reversal
-  /// (>100° from the current heading). A single GPS fix that jumps BEHIND the
-  /// true position (urban multipath) produces a large displacement whose
-  /// bearing points backwards — one sample must never flip the map. A real
-  /// U-turn produces the same reversed bearing on consecutive fixes, so the
-  /// flip is accepted only when the next sample agrees with this one.
-  double? _pendingFlipBearing;
-
-  /// Consecutive _onGps ticks in which a reversed bearing was rejected because
-  /// it opposed the route's local direction (road-snap artifact). At ≥5 the
-  /// reversal is accepted regardless — heading must never lock up for good.
-  int _flipHoldTicks = 0;
+  /// Turns consecutive fixes into the direction the map should face, absorbing
+  /// GPS jitter and road-snap reversals along the way.
+  final _headingFilter = HeadingFilter();
 
   /// True when the current GPS position is inside a known ZTL polygon.
   bool _inZtl = false;
 
   /// Name of the current ZTL zone, for display in the warning banner.
-
-  /// True when the UPCOMING route step leads into a ZTL zone.
-
-  /// Step indices for which the ZTL-on-route warning has already been spoken,
-  /// to avoid repeating it on every GPS tick.
-  final _ztlWarnedSteps = <int>{};
+  String? _ztlName;
   final _ztl = ZtlService.instance;
   final _speedLimitSvc = SpeedLimitService();
   final _poiSvc = PoiSearchService();
@@ -259,6 +246,10 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   bool _isSearching = false;
   bool _showSearch = false;
   Timer? _searchDebounce;
+
+  /// The "nearby" category currently being shown, or null when the results
+  /// list belongs to a typed query. Also drives which button looks selected.
+  NearbyCategory? _nearbyCategory;
 
   /// Standard routes plus the optional motorway/toll-free route.
   List<RouteResult> _alternatives = [];
@@ -670,6 +661,19 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     // will move the map to the actual location via the _followUser flag.
     // Never subscribe using the Italy fallback. _onGps subscribes the actual
     // coarse area only after the first valid fix.
+    //
+    // Meanwhile, seed the camera from the fix the OS already has: a cold
+    // bestForNavigation lock takes several seconds, and staring at the neutral
+    // fallback for that long is the "location lookup is slow" complaint from
+    // the field. Only the camera moves — the first real sample overrides it,
+    // and if one has already arrived the stale seed is skipped.
+    final seed = await _gps.lastKnown();
+    if (!mounted || seed == null || _hasRealFix) return;
+    setState(() {
+      _position = seed.position;
+      _followUser = true;
+    });
+    _animateCamera(toCenter: seed.position, toZoom: 17.0, toRot: 0);
   }
 
   void _showGpsDisabledDialog() {
@@ -753,107 +757,20 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     context.read<ThemeProvider>().onPositionUpdate(lat, lng);
 
     // ── Heading resolution ───────────────────────────────────────────────────
-    // Prefer the GPS movement bearing (two-position dead reckoning) when moving
-    // — it always reflects the actual direction of travel, regardless of how
-    // the phone is mounted or oriented.
-    // Fall back to the GPS-provider heading (pos.heading) only when too slow
-    // for a reliable bearing, and only if it carries a valid non-zero value.
-    double effectiveHeading = _heading;
-    if (_prevGpsPos != null && _speed > 3) {
-      // A two-fix bearing is only meaningful when the fixes are farther apart
-      // than the GPS noise floor. Below that, consecutive jittery fixes (e.g.
-      // resync during a turn or roundabout) can land a few metres "behind"
-      // the true position, computing a bearing ~180° off the real direction
-      // of travel — the map spins around, then snaps back once a fix with
-      // real displacement arrives. Gating on distance (not just _speed, which
-      // itself can lag/jitter) filters that out.
-      final movedM =
-          const Distance().as(LengthUnit.Meter, _prevGpsPos!, data.position);
-      final reliabilityFloorM = math.max(8.0, _lastGpsAccuracy * 0.8);
-      if (movedM > reliabilityFloorM) {
-        final movBearing = Geo.bearingBetween(_prevGpsPos!, data.position);
-        if (movBearing.isFinite) {
-          // Distance gating alone can't stop LARGE backward jumps (multipath
-          // can teleport a fix 20+ m behind — well past the noise floor) whose
-          // bearing is ~180° reversed. During navigation, a near-reversal is
-          // accepted only when confirmed by two consecutive agreeing samples:
-          // physics allows no instantaneous U-turn, while a genuine turnaround
-          // keeps producing the reversed bearing on the very next fix.
-          double diffFromCurrent = (movBearing - _heading).abs() % 360;
-          if (diffFromCurrent > 180) diffFromCurrent = 360 - diffFromCurrent;
-          if (!_isNavigating || diffFromCurrent <= 100) {
-            effectiveHeading = movBearing;
-            _pendingFlipBearing = null;
-            _flipHoldTicks = 0;
-          } else {
-            // Route-consistency gate. The 2-sample confirmation below is not
-            // enough on its own: Android's fused provider ROAD-SNAPS fixes,
-            // and near a parallel/opposite street it can glue 2+ consecutive
-            // fixes onto that other road — a consistent (but wrong) reversed
-            // bearing that passes the confirmation. But during navigation we
-            // KNOW the route geometry: while physically on the route, a
-            // bearing that opposes the route's local direction is a glitch by
-            // definition — a genuine U-turn pulls the fix off-route within a
-            // couple of samples (and triggers the existing reroute check).
-            // Safety valve: after several consecutive rejected ticks, accept
-            // anyway, so the heading can never lock up for good.
-            final rl = _routeLocalBearingAt(data.position);
-            double routeDiff = 999;
-            if (rl != null && rl.distM <= 35) {
-              routeDiff = (movBearing - rl.bearing).abs() % 360;
-              if (routeDiff > 180) routeDiff = 360 - routeDiff;
-            }
-            if (routeDiff > 100 && _flipHoldTicks < 5) {
-              // On the route but pointing against it → road-snap artifact.
-              _flipHoldTicks++;
-              _pendingFlipBearing = null;
-            } else {
-              final pending = _pendingFlipBearing;
-              double agree =
-                  pending == null ? 999 : (movBearing - pending).abs() % 360;
-              if (agree > 180) agree = 360 - agree;
-              if (agree <= 45) {
-                // Second consecutive sample agrees — real U-turn, accept it.
-                effectiveHeading = movBearing;
-                _pendingFlipBearing = null;
-                _flipHoldTicks = 0;
-              } else {
-                // First (or non-agreeing) reversal sample — hold heading, wait.
-                _pendingFlipBearing = movBearing;
-              }
-            }
-          }
-        }
-      } else if (data.heading != null &&
-          data.heading!.isFinite &&
-          data.heading! > 0) {
-        effectiveHeading = data.heading!;
-      }
-    } else if (data.heading != null &&
-        data.heading!.isFinite &&
-        data.heading! > 0) {
-      effectiveHeading = data.heading!;
-    }
+    // Which way the map faces, from two consecutive fixes rather than from the
+    // provider's heading (which follows the phone, not the car). All the
+    // jitter, reversal and road-snap handling lives in [HeadingFilter].
+    final effectiveHeading = _headingFilter.resolve(
+      current: _heading,
+      from: _prevGpsPos,
+      to: data.position,
+      speedKmh: _speed,
+      accuracyM: _lastGpsAccuracy,
+      providerHeading: data.heading,
+      navigating: _isNavigating,
+      routeLocalBearingAt: _routeLocalBearingAt,
+    );
     _prevGpsPos = data.position;
-
-    // On urban junctions the raw two-fix bearing is particularly noisy: a
-    // single multipath fix can describe a false U-turn and rotate the map by
-    // 180°.  While on the active route, use its local tangent as a stable
-    // prior and approach real turns smoothly.  A genuine U-turn leaves the
-    // route and is handled by the existing off-route/reroute path.
-    if (_isNavigating && data.speedKmh > 5) {
-      final local = _routeLocalBearingAt(data.position);
-      if (local != null && local.distM <= 35) {
-        var delta = (local.bearing - effectiveHeading) % 360;
-        if (delta > 180) delta -= 360;
-        if (delta < -180) delta += 360;
-        if (delta.abs() > 110) {
-          effectiveHeading = local.bearing;
-        } else {
-          effectiveHeading = (effectiveHeading + delta * 0.35 + 360) % 360;
-        }
-      }
-    }
 
     // ── Speed-adaptive zoom ──────────────────────────────────────────────────
     // Zoom in when slow (pedestrian, city) and out at high speed (motorway)
@@ -911,6 +828,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     if (nowInZtl != _inZtl) {
       setState(() {
         _inZtl = nowInZtl;
+        _ztlName = nowInZtl ? _ztl.ztlNameAt(data.position) : null;
       });
     }
 
@@ -1217,7 +1135,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         _ttsAnnouncedNear = (t.mid == 0 && distToNext < 120) ? newNextIdx : -1;
 
         // Missed-turn guard: if the user isn't approaching the new waypoint
-        // within 2.5 s, reroute silently.
+        // within 5 s, reroute silently.
         _missedTurnTimer?.cancel();
         final capturedStepIdx = _currentStepIdx;
         final distAtAdvance =
@@ -1341,15 +1259,22 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   ///
   /// Uses segment-distance (nearest point on each polyline segment) rather than
   /// point-distance so sparse polylines don't miss deviations between waypoints.
-  /// Triggers reroute when the user is >60 m from the route and moving.
+  /// Triggers a reroute when the user is >55 m from the route and moving.
+  ///
+  /// The thresholds were 25/40 m, but they had been tuned against a distance
+  /// function that applied the cos(latitude) factor to the wrong axis (fixed in
+  /// [Geo.projectOnSegment]): at Italian latitudes a north-south deviation read
+  /// 28 % short, so "40 m" really fired at ~56 m of drift northbound and at
+  /// ~29 m eastbound. Now that the measurement is correct, 30/55 m keeps the
+  /// behaviour drivers were used to instead of rerouting a lane-change early.
   void _checkOffRoute() {
     if (_route == null || !_isNavigating || !_hasRealFix || _isRerouting) {
       return;
     }
     if (_speed < 1) return; // truly stationary (red light etc.) — skip
     final nearest = _nearestActiveRouteSegment(_position);
-    if (nearest == null || nearest.distM < 25) return;
-    if (nearest.distM > 40) {
+    if (nearest == null || nearest.distM < 30) return;
+    if (nearest.distM > 55) {
       _rerouteAndNavigate();
       return;
     }
@@ -1891,8 +1816,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     unawaited(_tts.init(lang));
     if (!silent && !_voiceMuted) unawaited(_tts.announceStart());
     _minDistToDestM = double.infinity;
-    _pendingFlipBearing = null;
-    _flipHoldTicks = 0;
+    _headingFilter.reset();
     // Fetch the destination's building footprint (best-effort, one Overpass
     // round-trip). Skipped on silent restarts (reroutes): same destination,
     // polygon already fetched or fetch already in flight.
@@ -2318,6 +2242,31 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     await _recalcRoutes();
   }
 
+  /// Whether the speed-limit sign belongs on screen.
+  ///
+  /// It is about the road under the wheels, so it shows during navigation and
+  /// during free drive — but not while the user is planning: the preview,
+  /// alternatives, planner and search panels all occupy the same corner, and
+  /// the sign stayed painted over them (and stayed there after the preview was
+  /// dismissed, which is what made it look stuck).
+  bool get _showsSpeedLimitSign =>
+      _isNavigating ||
+      (!_showPreview &&
+          !_showAlternatives &&
+          !_showPlanner &&
+          !_showSearch &&
+          !_showPlaceInfo);
+
+  /// The alternatives as they were before the avoidance switch touched them:
+  /// routes fetched from the avoidance router are dropped, and routes that were
+  /// merely badged as compliant lose the badge.
+  List<RouteResult> _plainAlternatives() => _alternatives
+      .where((route) => !route.fromAvoidanceRouter)
+      .map((route) => route.isHighwayAndTollAvoidance
+          ? route.withAvoidance(RouteAvoidance.none)
+          : route)
+      .toList();
+
   /// Adds/removes a separately calculated avoidance route. The service tries
   /// hard exclusions first and falls back to a verified soft preference.
   Future<void> _toggleAvoidanceRoute(bool enabled) async {
@@ -2325,9 +2274,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     if (destination == null || _transportMode != 'driving') return;
     final requestGeneration = ++_avoidanceRequestGeneration;
     if (!enabled) {
-      final standard = _alternatives
-          .where((route) => !route.isHighwayAndTollAvoidance)
-          .toList();
+      final standard = _plainAlternatives();
       setState(() {
         _avoidanceEnabled = false;
         _avoidanceLoading = false;
@@ -2355,14 +2302,25 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           _transportMode != 'driving') {
         return;
       }
-      final routes = [
-        ..._alternatives.where((r) => !r.isHighwayAndTollAvoidance),
-        route,
-      ];
+      final routes = _plainAlternatives();
+      // When the recommended route already keeps off motorways and toll roads,
+      // the avoidance router hands back that same road. Badging the existing
+      // card instead of appending a second one keeps a single, comparable ETA:
+      // Valhalla times the very same road up to 45 minutes slower than OSRM,
+      // which looked like the avoidance option costing a detour it never made.
+      final twin = routes.indexWhere((r) => RoutingService.followSameRoads(r, route));
+      final int selected;
+      if (twin >= 0) {
+        routes[twin] = routes[twin].withAvoidance(route.avoidance);
+        selected = twin;
+      } else {
+        routes.add(route);
+        selected = routes.length - 1;
+      }
       setState(() {
         _avoidanceLoading = false;
         _alternatives = routes;
-        _selectedAlt = routes.length - 1;
+        _selectedAlt = selected;
       });
       _fitRoutesOnMap(routes);
     } catch (_) {
@@ -2675,9 +2633,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _gpsLossTimer?.cancel();
     _gpsLossTimer = null;
     _gpsSignalLost = false;
-    _ztlWarnedSteps.clear();
-    _pendingFlipBearing = null;
-    _flipHoldTicks = 0;
+    _headingFilter.reset();
     _destBuilding = null;
     _speedLimitSvc.reset();
     _animateCamera(toCenter: _position, toZoom: _camZoom, toRot: 0);
@@ -2729,9 +2685,38 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _selectSearchResult(result);
   }
 
+  /// Runs a one-tap "what is around me" lookup for [category].
+  ///
+  /// Deliberately anchored to the GPS position and not to the map centre: the
+  /// question the buttons answer is "where can I stop *on this drive*", so
+  /// panning the map must not silently change the answer.
+  Future<void> _searchNearby(NearbyCategory category) async {
+    if (!_hasRealFix) return;
+    final requestGeneration = ++_searchRequestGeneration;
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _nearbyCategory = category;
+      _searchResults = [];
+      _isSearching = true;
+    });
+    final results = await _poiSvc.nearby(
+      category,
+      _position,
+      unnamedLabel:
+          nearbyCategoryLabel(category, AppLocalizations.of(context)),
+    );
+    if (!mounted || requestGeneration != _searchRequestGeneration) return;
+    setState(() {
+      _searchResults = results;
+      _isSearching = false;
+    });
+  }
+
   void _onSearchChanged(String query) {
     _searchDebounce?.cancel();
     final requestGeneration = ++_searchRequestGeneration;
+    // Typing takes over from a nearby category.
+    if (_nearbyCategory != null) setState(() => _nearbyCategory = null);
     if (query.length < 3) {
       setState(() {
         _searchResults = [];
@@ -2792,6 +2777,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _followUser = false;
       _showSearch = false;
       _searchResults = [];
+      _nearbyCategory = null;
     });
     FocusScope.of(context).unfocus();
     // Keyboard dismissal resizes the map on Android; animate after that layout
@@ -3849,6 +3835,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           setState(() {
             _showSearch = false;
             _searchResults = [];
+            _nearbyCategory = null;
           });
         } else if (_isNavigating) {
           _showExitNavigationDialog();
@@ -3918,6 +3905,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                     setState(() {
                       _showSearch = false;
                       _searchResults = [];
+                      _nearbyCategory = null;
                     });
                     return;
                   }
@@ -4209,53 +4197,77 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                     setState(() {
                       _searchResults = [];
                       _showSearch = false;
+                      _nearbyCategory = null;
                     });
                     FocusScope.of(context).unfocus();
                   }),
             ),
 
-          // ── SEARCH RESULTS / HISTORY ─────────────────────────────────────────
+          // ── SEARCH RESULTS / NEARBY / HISTORY ────────────────────────────────
           if (_showSearch)
-            // Empty query → show history only (favourites appear ONLY on typed queries)
-            if (_searchController.text.isEmpty && _history.isNotEmpty)
-              Positioned(
-                top: topInset + 76,
-                left: 16,
-                right: 16,
-                child: SearchHistoryList(
-                  history: _history,
-                  favorites: const [],
-                  colors: c,
-                  onSelect: (item) =>
-                      _showSearchPlace(item.position, item.label),
-                  onSelectFavorite: (_) {},
-                  onClear: _clearHistory,
-                ),
-              )
-            else if (_searchResults.isNotEmpty ||
-                _isSearching ||
-                _matchingFavorites(_searchController.text).isNotEmpty)
-              Positioned(
-                top: topInset + 76,
-                left: 16,
-                right: 16,
-                child: SearchResultsList(
-                  results: _searchResults,
-                  isLoading: _isSearching,
-                  favorites: _matchingFavorites(_searchController.text),
-                  colors: c,
-                  onSelect: _selectSearchResult,
-                  onSelectFavorite: (fav) {
-                    _searchController.clear();
-                    setState(() {
-                      _showSearch = false;
-                      _searchResults = [];
-                    });
-                    FocusScope.of(context).unfocus();
-                    _showSearchPlace(fav.position, fav.label, fav.address);
-                  },
+            Positioned(
+              top: topInset + 76,
+              left: 16,
+              right: 16,
+              // Bounded so a long list scrolls inside the overlay instead of
+              // running off the bottom of the screen.
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.62),
+                child: SingleChildScrollView(
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    // Nothing typed: offer the one-tap categories, and the
+                    // history underneath them.
+                    if (_searchController.text.isEmpty) ...[
+                      NearbyBar(
+                        colors: c,
+                        enabled: _hasRealFix,
+                        selected: _nearbyCategory,
+                        onSelect: _searchNearby,
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    if (_nearbyCategory != null ||
+                        _searchResults.isNotEmpty ||
+                        _isSearching ||
+                        _matchingFavorites(_searchController.text).isNotEmpty)
+                      SearchResultsList(
+                        results: _searchResults,
+                        isLoading: _isSearching,
+                        favorites:
+                            _matchingFavorites(_searchController.text),
+                        colors: c,
+                        emptyMessage: _nearbyCategory == null
+                            ? null
+                            : AppLocalizations.of(context).nearbyNothingFound,
+                        onSelect: _selectSearchResult,
+                        onSelectFavorite: (fav) {
+                          _searchController.clear();
+                          setState(() {
+                            _showSearch = false;
+                            _searchResults = [];
+                            _nearbyCategory = null;
+                          });
+                          FocusScope.of(context).unfocus();
+                          _showSearchPlace(
+                              fav.position, fav.label, fav.address);
+                        },
+                      )
+                    else if (_searchController.text.isEmpty &&
+                        _history.isNotEmpty)
+                      SearchHistoryList(
+                        history: _history,
+                        favorites: const [],
+                        colors: c,
+                        onSelect: (item) =>
+                            _showSearchPlace(item.position, item.label),
+                        onSelectFavorite: (_) {},
+                        onClear: _clearHistory,
+                      ),
+                  ]),
                 ),
               ),
+            ),
 
           // ── GPS SIGNAL LOST (tunnel/underground) ─────────────────────────────
           // Discreet pill, centered, below the nav banner: informative, not
@@ -4291,6 +4303,20 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                   ]),
                 ),
               ),
+            ),
+
+          // ── ZTL WARNING BANNER ───────────────────────────────────────────────
+          // Only "you are inside one": a warning hundreds of metres ahead of a
+          // zone the route may merely skirt was too noisy (see _onGps).
+          // While navigating it sits above the speed-limit sign — the top of
+          // the screen belongs to the manoeuvre, which must never be covered.
+          if (_inZtl)
+            Positioned(
+              top: _isNavigating ? null : topInset + 76,
+              bottom: _isNavigating ? 220 + bottomInset : null,
+              left: 16,
+              right: 16,
+              child: ZtlBanner(name: _ztlName, pos: _position),
             ),
 
           // ── LEFT FABs: report event + A→B planner + parking ───────────────────
@@ -4469,7 +4495,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           // 110 + vBot ≈ 124 + max(bottomInset, 16)). 150 + bottomInset keeps a
           // ≥10px gap above the panel for every bottomInset value, so the sign
           // is never covered.
-          if (_currentSpeedLimit != null)
+          // While a route panel is up the sign has nothing to do with what the
+          // user is looking at, and it floated on top of the preview card.
+          if (_currentSpeedLimit != null && _showsSpeedLimitSign)
             Positioned(
               bottom: 150 + bottomInset,
               left: 16,
@@ -4699,10 +4727,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   }
 }
 
-// ── Zap sheet ─────────────────────────────────────────────────────────────────
-
 extension _StringX on String {
   String? get nullIfEmpty => isEmpty ? null : this;
 }
-
-// ── History ───────────────────────────────────────────────────────────────────

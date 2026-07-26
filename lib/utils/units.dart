@@ -13,7 +13,11 @@ class Units {
   /// Format [metres] for on-screen display.
   /// [nowLabel] is returned when the distance is below the minimum threshold.
   static String fmtDist(double metres, {String nowLabel = ''}) {
-    if (metres < 50) return nowLabel.isNotEmpty ? nowLabel : '0';
+    // Under 50 m callers that supply a label ("now") use it; the rest showed a
+    // bare "0" with no unit — on the final approach the whole panel read "0".
+    if (metres < 50) {
+      return nowLabel.isNotEmpty ? nowLabel : (imperial ? '0 ft' : '0 m');
+    }
     if (imperial) {
       final ft = metres / 0.3048;
       if (ft < 500) {

@@ -22,8 +22,7 @@ class Geo {
   /// cos(latitude), which is what [_cosLat] accounts for.
   static const metresPerDegree = 111320.0;
 
-  static double _cosLat(double latitude) =>
-      math.cos(latitude * math.pi / 180);
+  static double _cosLat(double latitude) => math.cos(latitude * math.pi / 180);
 
   /// True when [p] lies inside [polygon] (ray casting, even-odd rule).
   ///
@@ -43,6 +42,19 @@ class Geo {
       }
     }
     return inside;
+  }
+
+  /// Distance in metres between two points.
+  ///
+  /// Equirectangular like the rest of this class: over the distances between
+  /// two consecutive points of a route shape the error against a great-circle
+  /// computation is negligible, and summing it over a 100 000-point polyline
+  /// costs no trigonometry per segment.
+  static double distanceM(LatLng a, LatLng b) {
+    final dx =
+        (b.longitude - a.longitude) * metresPerDegree * _cosLat(a.latitude);
+    final dy = (b.latitude - a.latitude) * metresPerDegree;
+    return math.sqrt(dx * dx + dy * dy);
   }
 
   /// Projects [p] onto segment [a]→[b].

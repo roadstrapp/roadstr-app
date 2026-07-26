@@ -68,9 +68,13 @@ const Map<String, String> kKokoroVoiceSha256 = {
 const String kKokoroDefaultGender = 'f';
 
 /// Discrete speech-speed multipliers for the 6-stage settings slider.
-/// Index 2 (1.0×) is the default/normal speed.
+/// Index 2 (1.0×) is the neutral synthesis speed.
 const List<double> kKokoroSpeedStages = [0.7, 0.85, 1.0, 1.15, 1.3, 1.5];
-const int kKokoroDefaultSpeedStage = 2;
+
+/// Index 4 (1.30×). Kokoro's neutral pace is noticeably slower than a
+/// navigation voice needs to be: an instruction has to land before the
+/// junction, so the default is one that keeps up with driving.
+const int kKokoroDefaultSpeedStage = 4;
 
 /// Languages with on-device neural voice guidance — derived directly from
 /// [kKokoroVoicesByLanguage]. main.dart uses this to gate the first-launch

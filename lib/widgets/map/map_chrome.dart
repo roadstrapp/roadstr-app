@@ -4,12 +4,14 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../screens/notifications_screen.dart';
 import '../../screens/profile_screen.dart';
 import '../../screens/settings_screen.dart';
 import '../../services/activity_notification_service.dart';
+import '../../services/ztl_service.dart';
 import '../../theme/app_theme.dart';
 
 class MapBottomBar extends StatelessWidget {
@@ -236,6 +238,53 @@ class CompassFab extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// "You are inside a restricted traffic zone" banner.
+///
+/// The zone data has been refreshed on every GPS tick since 0.4.6, but the
+/// banner that displayed it was dropped during the map-screen split, leaving
+/// the driver with no indication at all — the one thing the ZTL work was for.
+class ZtlBanner extends StatelessWidget {
+  /// Name of the zone from OSM, when it has one.
+  final String? name;
+
+  /// Current position — decides which official acronym to use as a fallback
+  /// label (ZTL in Italy/France, ZAC in Portugal, generic wording elsewhere).
+  final LatLng pos;
+  const ZtlBanner({super.key, this.name, required this.pos});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final label = (name != null && name!.isNotEmpty)
+        ? name!
+        : (ZtlService.officialAcronymFor(pos) ?? l.ztlInsideWarning);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.red.shade700,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.25),
+              blurRadius: 8,
+              offset: const Offset(0, 2))
+        ],
+      ),
+      child: Row(children: [
+        const Icon(Icons.no_crash_rounded, color: Colors.white, size: 22),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text('⚠ $label — ${l.ztlInsideWarning}',
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600)),
+        ),
+      ]),
     );
   }
 }

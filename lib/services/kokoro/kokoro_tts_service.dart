@@ -102,8 +102,6 @@ class KokoroTtsService {
     }
   }
 
-  Future<void> updateLanguage(String languageCode) => init(languageCode);
-
   /// Set the active language immediately, without loading the model.
   /// Call this before [init] so that [announceStart] can resolve the correct
   /// bundled asset path even while the model is still loading in the background.
@@ -264,15 +262,17 @@ class KokoroTtsService {
     // ── Bundled asset fast-path ──────────────────────────────────────────────
     // Pre-generated WAVs for fixed phrases play immediately — no model needed.
     // This runs even when !_ready so "Partenza" plays while the model loads.
-    // Only at normal speed: bundled assets are pre-rendered at 1.0×, so a
-    // non-default speed must fall through to on-device synthesis instead.
-    final assetPath =
-        _speed == 1.0 ? _bundledAsset(_lang, _gender, text) : null;
+    // The assets are rendered at 1.0×, so any other speed is applied by the
+    // player (pitch-preserving). This used to fall through to synthesis, which
+    // silently disabled the fast path for everyone not on the neutral speed —
+    // including, since the default moved to 1.30×, everyone.
+    final assetPath = _bundledAsset(_lang, _gender, text);
     if (assetPath != null) {
       try {
         await _acquireFocus();
         await _player.stop();
         await _player.setAudioSource(AudioSource.asset(assetPath));
+        await _player.setSpeed(_speed);
         await _player.seek(Duration.zero);
         // Fire-and-forget: play() returns only when playback COMPLETES, so
         // awaiting it here would finish the clip before _speakNow attaches its
@@ -349,6 +349,8 @@ class KokoroTtsService {
       await _acquireFocus();
       debugPrint('[KokoroTTS]   setAudioSource start: ${ms()}ms');
       await _player.setAudioSource(AudioSource.uri(Uri.file(wavFile.path)));
+      // Synthesised at _speed already — undo any rate left by the asset path.
+      await _player.setSpeed(1.0);
       debugPrint('[KokoroTTS]   setAudioSource done: ${ms()}ms');
       await _player.seek(Duration.zero);
       // Fire-and-forget — see the bundled path above for why play() must not
@@ -363,12 +365,12 @@ class KokoroTtsService {
   }
 
   /// Pre-synthesise startup and arrival phrases and write them to the disk WAV
-  /// cache.  Runs in the background after [init] — never awaited. Only warms
-  /// normal speed (1.0×): bundled assets already cover that instantly, and
-  /// non-default speeds are rare enough not to warrant pre-synthesis.
+  /// cache.  Runs in the background after [init] — never awaited. Warms the
+  /// speed actually in use: a clip cached under a different speed is a cache
+  /// miss at announcement time, which is exactly when there is no time for it.
   Future<void> _prewarmCache() async {
     for (final phrase in [_letsGo(_lang), _arrived(_lang)]) {
-      final wavFile = await _diskCacheFile(_lang, _gender, 1.0, phrase);
+      final wavFile = await _diskCacheFile(_lang, _gender, _speed, phrase);
       if (await wavFile.exists()) {
         continue; // already on disk from a previous session
       }
@@ -386,12 +388,12 @@ class KokoroTtsService {
         _synthCompleter = completer;
         final Float32List audio;
         try {
-          audio = await _engine.synthesize(ipa, _voiceData!);
+          audio = await _engine.synthesize(ipa, _voiceData!, speed: _speed);
         } finally {
           _synthCompleter = null;
           completer.complete();
         }
-        _cacheAudio('$_lang:$_gender:1.00:$phrase', audio);
+        _cacheAudio('$_lang:$_gender:${_speed.toStringAsFixed(2)}:$phrase', audio);
         await _writeWav(wavFile, audio);
         debugPrint('[KokoroTTS] prewarm saved: "$phrase"');
       } catch (e) {
@@ -405,7 +407,8 @@ class KokoroTtsService {
   /// instant. Safe to call without a [KokoroTtsService] instance — uses the
   /// singletons.
   static Future<void> warmUpLanguage(String languageCode,
-      {String gender = kKokoroDefaultGender}) async {
+      {String gender = kKokoroDefaultGender,
+      double speed = 1.0}) async {
     if (!kKokoroVoicesByLanguage.containsKey(languageCode)) return;
     try {
       final phonemizer = EspeakPhonemizer.instance;
@@ -416,10 +419,11 @@ class KokoroTtsService {
           await KokoroModelManager.instance.voiceFile(languageCode, gender);
       final voiceData = (await voiceFile.readAsBytes()).buffer.asFloat32List();
       for (final phrase in [_letsGo(languageCode), _arrived(languageCode)]) {
-        final wavFile = await _diskCacheFile(languageCode, gender, 1.0, phrase);
+        final wavFile =
+            await _diskCacheFile(languageCode, gender, speed, phrase);
         if (await wavFile.exists()) continue;
         final ipa = await phonemizer.phonemize(phrase, languageCode);
-        final audio = await engine.synthesize(ipa, voiceData);
+        final audio = await engine.synthesize(ipa, voiceData, speed: speed);
         await _writeWav(wavFile, audio);
         debugPrint(
             '[KokoroTTS] warmUpLanguage: saved "$phrase" ($languageCode/$gender)');

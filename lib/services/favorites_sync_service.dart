@@ -363,6 +363,10 @@ class FavoritesSyncService {
     WebSocketChannel? ws;
     try {
       ws = WebSocketChannel.connect(Uri.parse(url));
+      // A relay that refuses the upgrade (damus answers 503 under load)
+      // must fail here, inside the try, instead of escaping as an
+      // unhandled asynchronous error and leaving a REQ on a dead socket.
+      await ws.ready.timeout(const Duration(seconds: 5));
       final completer = Completer<bool>();
       ws.stream.listen((raw) {
         if (completer.isCompleted) return;
@@ -390,6 +394,10 @@ class FavoritesSyncService {
     WebSocketChannel? ws;
     try {
       ws = WebSocketChannel.connect(Uri.parse(url));
+      // A relay that refuses the upgrade (damus answers 503 under load)
+      // must fail here, inside the try, instead of escaping as an
+      // unhandled asynchronous error and leaving a REQ on a dead socket.
+      await ws.ready.timeout(const Duration(seconds: 5));
       final completer = Completer<Map<String, dynamic>?>();
       final subId = randomSubId();
       ws.stream.listen((raw) {

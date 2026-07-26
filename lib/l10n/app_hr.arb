@@ -4,29 +4,11 @@
   "calculatingRoute": "Izračunavam rutu…",
   "routeNotFoundTitle": "Ruta nije pronađena",
   "noRouteFound": "Nije pronađena nijedna ruta. Provjerite vezu.",
-  "emptyServerResponse": "Prazan odgovor poslužitelja. Provjerite vezu.",
-  "routeError": "Pogreška pri izračunu rute: {error}",
-  "@routeError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "gpsNotAvailable": "GPS nije dostupan — Postavke → Aplikacija → Roadstr → Dozvole → Lokacija",
   "acquiringGps": "Dohvaćam GPS…",
   "graphhopperServerNotConfigured": "GraphHopper poslužitelj nije konfiguriran — koristi se OSRM",
   "graphhopperApiKeyNotConfigured": "GraphHopper API ključ nije konfiguriran — koristi se OSRM",
   "openrouteApiKeyNotConfigured": "OpenRouteService API ključ nije konfiguriran — koristi se OSRM",
   "chooseRoute": "Odaberi rutu",
-  "routeOptionsCount": "{count} opcija",
-  "@routeOptionsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cancel": "Odustani",
   "startNavigation": "Pokreni navigaciju",
   "fastestRoute": "Najbrža",
@@ -46,12 +28,8 @@
   "themeDarkNostr": "Tamna · Nostr Ljubičasta",
   "themeDarkBitcoin": "Tamna · Bitcoin Narančasta",
   "langSystem": "Zadano sustava",
-  "langItalian": "Italiano",
-  "langEnglish": "English",
   "keepScreenOn": "Drži zaslon uključenim",
   "keepScreenOnDescription": "Sprječava uspavljivanje za vrijeme navigacije",
-  "rotateMap": "Karta prati smjer",
-  "rotateMapDescription": "Karta se rotira prema smjeru vožnje",
   "mapTileUrlLabel": "URL pločica karte",
   "routingProviderLabel": "Davatelj usmjeravanja",
   "osrmProvider": "OSRM (javan, nije potreban ključ)",
@@ -98,19 +76,13 @@
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber je NIP-55 kompatibilni Android potpisnik aplikacija. Vaš privatni ključ ostaje izoliran unutar Ambera i nikada se ne dijeli.",
   "requestKeyFromAmber": "Zatraži javni ključ od Ambera",
-  "amberNotFound": "Amber nije pronađen. Instalirajte ga iz Play Storea ili ručno unesite svoj npub.",
   "waitingForAmberResponse": "Čekam odgovor od Ambera…",
-  "pasteNpubManually": "Zalijepite svoj npub ručno:",
-  "confirmNpub": "Potvrdi npub",
   "enterNsecTitle": "Unesite nsec",
   "loginButton": "Prijava",
   "invalidNpubTitle": "Nevažeći npub",
   "invalidNsecTitle": "Nevažeći nsec",
-  "invalidNpubMessage": "Provjerite jeste li zalijepili ispravan npub.",
   "invalidNsecMessage": "Provjerite jeste li zalijepili ispravan nsec.",
-  "amberResponseError": "Pogreška odgovora Ambera",
   "ok": "OK",
-  "or": "ili",
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS nije aktivan",
   "gpsDisabledMessage": "Aktivirajte GPS u postavkama uređaja kako biste dobili svoju lokaciju i koristili navigaciju.",
@@ -126,14 +98,6 @@
   "chooseAmountSats": "Odaberite iznos u satoshijima (sats):",
   "customAmount": "Prilagođeni iznos…",
   "zapSending": "Slanje…",
-  "zapSat": "⚡{sats} sat",
-  "@zapSat": {
-    "placeholders": {
-      "sats": {
-        "type": "int"
-      }
-    }
-  },
   "fetchingLightningAddress": "Dohvaćam Lightning adresu…",
   "noLightningAddress": "Ovaj izvjestitelj nema Lightning adresu",
   "requestingInvoice": "Tražim račun…",
@@ -159,28 +123,54 @@
   "notifZapTitle": "Primljen zap",
   "notifZapBody": "Primili ste zap od {sat} sats!",
   "@notifZapBody": {
-    "placeholders": { "sat": { "type": "int" } }
+    "placeholders": {
+      "sat": {
+        "type": "int"
+      }
+    }
   },
   "notifConfirmedTitle": "Prijava potvrđena",
   "notifConfirmedBody": "Vašu prijavu {category} potvrdio je drugi vozač",
   "@notifConfirmedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "notifDeniedTitle": "Prijava osporena",
   "notifDeniedBody": "Netko je prijavio da vašeg {category} više nema",
   "@notifDeniedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "chainedManeuver": "{first}, zatim {second}",
   "@chainedManeuver": {
-    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   },
   "thenManeuver": "zatim {instruction}",
   "reportSpeedLimitHint": "Ograničenje brzine (neobavezno)",
   "reportedSpeedLimit": "Prijavljeno ograničenje brzine",
   "speedCameraVoiceAlert": "Prijavljena kamera, ograničenje {limit} {unit}",
   "@speedCameraVoiceAlert": {
-    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   },
   "optionalComment": "Neobavezan komentar…",
   "publish": "Objavi",
@@ -283,14 +273,6 @@
   "sectionNavigationVoice": "Glas navigacije",
   "voiceGuidance": "Glasovno vođenje",
   "voiceGuidanceDesc": "Naglas čitaj upute za skretanje tijekom navigacije",
-  "testVoiceEngine": "Testiraj glasovni mehanizam",
-  "testVoiceEngineDesc": "Dodirnite za provjeru TTS mehanizma i upute za postavljanje",
-  "ttsDialogTitle": "Nedostaje glasovni mehanizam",
-  "ttsDialogBody": "Nije pronađen funkcionalan Text-to-Speech mehanizam.\n\nRoadstr se oslanja isključivo na softver otvorenog koda — instalirajte jedan od ovih besplatnih mehanizama s F-Droida:",
-  "ttsRhvoiceDesc": "Prirodno zvučeći glas, ograničen popis jezika",
-  "ttsEspeakDesc": "Pokriva preko 100 jezika, robotski glas",
-  "ttsInstallNote": "⚠️ Nakon instalacije:\n1. Android postavke → Pristupačnost → Pretvaranje teksta u govor\n2. Odaberite upravo instalirani mehanizam\n3. Preuzmite glasovne podatke za vaš jezik\n4. Potpuno ponovno pokrenite Roadstr",
-  "ttsTestNow": "Testiraj sada",
   "voiceUnsupportedTitle": "Glasovno vođenje nije dostupno",
   "voiceUnsupportedBody": "Vaš jezik još nije podržan za glasovne upute za skretanje. Upute za navigaciju i dalje će se prikazivati kao tekst na zaslonu.",
   "kokoroModelTitle": "Glasovni model (Kokoro AI)",
@@ -304,14 +286,6 @@
   "settingsImperialUnits": "Imperijalne jedinice",
   "settingsImperialUnitsDesc": "Milje i stope umjesto kilometara i metara",
   "arrivedTitle": "🎉 Stigli ste!",
-  "arrivedBody": "Stigli ste na odredište.",
-  "arrivedFeedbackPrompt": "Kako je prošlo?",
-  "feedbackBad": "Loše",
-  "feedbackGood": "Dobro!",
-  "feedbackDialogTitle": "Recite nam što je pošlo po krivu",
-  "feedbackHint": "Opišite problem…",
-  "feedbackSent": "Povratna informacija poslana — hvala! 🙏",
-  "feedbackSubmit": "Pošalji",
   "transportModeCar": "Auto",
   "transportModeWalk": "Pješice",
   "etaArrivalLabel": "Dol. {time}",
@@ -326,11 +300,19 @@
   "poiClosedNow": "Zatvoreno",
   "poiOpensAt": "Otvara: {when}",
   "@poiOpensAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "poiClosesAt": "Zatvara: {when}",
   "@poiClosesAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "searchOnEngine": "Traži na {engine}",
   "plannerFromHint": "Od…",
@@ -351,7 +333,6 @@
   "weatherSnow": "Snijeg",
   "weatherShowers": "Pljuskovi",
   "weatherThunderstorm": "Oluja",
-  "ztlAheadWarning": "Ispred je ograničena prometna zona — ruta prolazi kroz nju",
   "ztlInsideWarning": "Ograničena prometna zona",
   "onboardingAppSubtitle": "Nostr navigacija otvorenog koda",
   "onboardingWelcomeTitle": "Dobrodošli",
@@ -391,7 +372,6 @@
   "onboardingReadyTitle": "Spreman si za navigaciju!",
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Idemo!",
-  "onboardingProfileLoading": "Učitavanje profila…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "Za maksimalnu privatnost — prijave se šire Nostr mrežom — preporučuje se korištenje VPN-a. Mullvad, uz plaćanje Bitcoinom, preporučeni je izbor.",
   "exportFavoritesTitle": "Izvezi favorite",
@@ -445,9 +425,6 @@
   "trafficNormal": "Normalan promet",
   "trafficModerate": "Umjeren promet",
   "trafficHeavy": "Gust promet",
-  "avoidHighwaysChip": "Izbjegni autoceste",
-  "avoidTollsChip": "Izbjegni cestarine",
-  "preferShorterChip": "Najkraća ruta",
   "zapAmountButton": "Zap {sats} sat",
   "@zapAmountButton": {
     "placeholders": {
@@ -456,7 +433,6 @@
       }
     }
   },
-  "showRoutePreview": "Prikaži pregled rute",
   "autoCenterOnLaunch": "Centriraj na moju lokaciju pri pokretanju",
   "autoCenterOnLaunchDesc": "Automatski koristi GPS samo ako je dopuštenje za lokaciju već odobreno",
   "openInBrowser": "Otvori u pregledniku",
@@ -466,7 +442,6 @@
   "poiCategory": "Kategorija",
   "poiOperator": "Upravitelj",
   "poiCuisine": "Kuhinja",
-  "poiAccessibility": "Pristupačnost",
   "poiWheelchairYes": "Pristupačno za invalidska kolica",
   "poiWheelchairLimited": "Ograničen pristup za invalidska kolica",
   "poiWheelchairNo": "Nije pristupačno za invalidska kolica",
@@ -508,5 +483,38 @@
   "poiTakeawayOnly": "Samo za van",
   "avoidHighwaysAndTolls": "Izbjegavaj autoceste i cestarine",
   "avoidRouteUnavailable": "Nije pronađena ruta koja izbjegava i autoceste i ceste s naplatom.",
-  "avoidanceUnavoidableSection": "Smanjuje autoceste/cestarine · neizbježna dionica"
+  "avoidanceUnavoidableSection": "Smanjuje autoceste/cestarine · neizbježna dionica",
+  "bottomBarNotifications": "Obavijesti",
+  "notificationsTitle": "Obavijesti",
+  "notificationsEmpty": "Još nema obavijesti",
+  "notificationsEmptyBody": "Zapovi i reakcije na vaše prometne prijave pojavit će se ovdje.",
+  "notificationsLoginRequired": "Povežite svoj Nostr profil",
+  "notificationsLoginRequiredBody": "Prijavite se pomoću Ambera ili nsec-a da biste primali obavijesti drugih korisnika.",
+  "profileVisibilityTitle": "Vidljivost profila",
+  "profileVisibilityDesc": "Odaberite vide li drugi korisnici Roadstra vaše Nostr ime, npub i sliku.",
+  "profileVisibilityClear": "Prikaži profil javno",
+  "profileVisibilityPseudonymous": "Pseudonimni način (preporučeno)",
+  "profileVisibilityPublishError": "Odabir je spremljen lokalno, ali još ga nije bilo moguće objaviti na Nostru.",
+  "nostrichLabel": "nostrich",
+  "profileHiddenNotice": "Ovaj korisnik koristi pseudonimni način.",
+  "editSpeedLimit": "Dodaj ili ažuriraj ograničenje brzine",
+  "requestSpeedLimit": "Predloži ograničenje brzine",
+  "acceptEditRequest": "Prihvati prijedlog",
+  "pendingEditRequests": "Prijedlozi izmjena na čekanju",
+  "speedLimitHint": "Ograničenje brzine",
+  "speedLimitSaved": "Ograničenje brzine objavljeno",
+  "editRequestSent": "Prijedlog poslan autoru prijave",
+  "profileVisibilityOnboarding": "Roadstr uvijek objavljuje javni Nostr ključ potreban za provjeru prijave. U pseudonimnom načinu drugi korisnici Roadstra vide samo generički avatar i „nostrich”; u javnom načinu vide i vaše Nostr ime, npub i profilnu sliku. Vaše prijave, lokacije, ugled i primljeni zapovi ostaju javni na Nostru.",
+  "nearbyTitle": "U blizini",
+  "nearbyNeedsGps": "Čekanje GPS-a",
+  "nearbyNothingFound": "Ništa nije pronađeno unutar 5 km",
+  "nearbyFuel": "Benzinska",
+  "nearbySupermarket": "Supermarket",
+  "nearbyAtm": "Bankomat",
+  "nearbyPharmacy": "Ljekarna",
+  "nearbyHospital": "Bolnica",
+  "nearbyPolice": "Policija",
+  "nearbyPostOffice": "Pošta",
+  "nearbyParking": "Parkiralište",
+  "nearbyCharging": "Punjenje"
 }

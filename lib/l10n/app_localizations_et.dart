@@ -21,19 +21,6 @@ class AppLocalizationsEt extends AppLocalizations {
   String get noRouteFound => 'Marsruuti ei leitud. Kontrollige ühendust.';
 
   @override
-  String get emptyServerResponse =>
-      'Tühi serveri vastus. Kontrollige ühendust.';
-
-  @override
-  String routeError(String error) {
-    return 'Marsruudi arvutusviga: $error';
-  }
-
-  @override
-  String get gpsNotAvailable =>
-      'GPS pole saadaval — Settings → App → Roadstr → Permissions → Location';
-
-  @override
   String get acquiringGps => 'GPS-i hankimine…';
 
   @override
@@ -50,11 +37,6 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get chooseRoute => 'Vali marsruut';
-
-  @override
-  String routeOptionsCount(int count) {
-    return '$count valikut';
-  }
 
   @override
   String get cancel => 'Tühista';
@@ -78,7 +60,7 @@ class AppLocalizationsEt extends AppLocalizations {
   String get selectedPosition => 'Valitud asukoht';
 
   @override
-  String get bottomBarNotifications => 'Notifications';
+  String get bottomBarNotifications => 'Teavitused';
 
   @override
   String get bottomBarProfile => 'Profiil';
@@ -87,21 +69,21 @@ class AppLocalizationsEt extends AppLocalizations {
   String get bottomBarMenu => 'Menüü';
 
   @override
-  String get notificationsTitle => 'Notifications';
+  String get notificationsTitle => 'Teavitused';
 
   @override
-  String get notificationsEmpty => 'No notifications yet';
+  String get notificationsEmpty => 'Teavitusi veel pole';
 
   @override
   String get notificationsEmptyBody =>
-      'Zaps and reactions to your road reports will appear here.';
+      'Zapid ja reaktsioonid sinu liiklusteadetele ilmuvad siia.';
 
   @override
-  String get notificationsLoginRequired => 'Connect your Nostr profile';
+  String get notificationsLoginRequired => 'Ühenda oma Nostri profiil';
 
   @override
   String get notificationsLoginRequiredBody =>
-      'Sign in with Amber or nsec to receive notifications from other users.';
+      'Logi sisse Amberi või nseciga, et saada teavitusi teistelt kasutajatelt.';
 
   @override
   String get settingsTitle => 'Seaded';
@@ -134,12 +116,6 @@ class AppLocalizationsEt extends AppLocalizations {
   String get langSystem => 'Süsteemi vaikeväärtus';
 
   @override
-  String get langItalian => 'Italiano';
-
-  @override
-  String get langEnglish => 'English';
-
-  @override
   String get keepScreenOn => 'Hoia ekraan üleval';
 
   @override
@@ -152,12 +128,6 @@ class AppLocalizationsEt extends AppLocalizations {
   @override
   String get autoCenterOnLaunchDesc =>
       'Kasutab GPS-i automaatselt ainult siis, kui asukohaluba on juba antud';
-
-  @override
-  String get rotateMap => 'Kaart järgib suunda';
-
-  @override
-  String get rotateMapDescription => 'Kaart pöörub sõidusuuna järgi';
 
   @override
   String get mapTileUrlLabel => 'Kaardi tile\'i URL';
@@ -233,48 +203,50 @@ class AppLocalizationsEt extends AppLocalizations {
   String get profileTitle => 'Profiil';
 
   @override
-  String get profileVisibilityTitle => 'Profile visibility';
+  String get profileVisibilityTitle => 'Profiili nähtavus';
 
   @override
   String get profileVisibilityDesc =>
-      'Choose whether other Roadstr users see your Nostr name, npub and picture.';
+      'Vali, kas teised Roadstri kasutajad näevad sinu Nostri nime, npubi ja pilti.';
 
   @override
-  String get profileVisibilityClear => 'Show profile publicly';
+  String get profileVisibilityClear => 'Näita profiili avalikult';
 
   @override
-  String get profileVisibilityPseudonymous => 'Pseudonymous mode (recommended)';
+  String get profileVisibilityPseudonymous =>
+      'Pseudonüümne režiim (soovitatav)';
 
   @override
   String get profileVisibilityPublishError =>
-      'The local choice was saved, but could not be published to Nostr yet.';
+      'Valik salvestati seadmesse, kuid seda ei õnnestunud veel Nostris avaldada.';
 
   @override
   String get nostrichLabel => 'nostrich';
 
   @override
-  String get profileHiddenNotice => 'This user is using pseudonymous mode.';
+  String get profileHiddenNotice =>
+      'See kasutaja kasutab pseudonüümset režiimi.';
 
   @override
-  String get editSpeedLimit => 'Add or update speed limit';
+  String get editSpeedLimit => 'Lisa või uuenda kiiruspiirangut';
 
   @override
-  String get requestSpeedLimit => 'Suggest a speed limit';
+  String get requestSpeedLimit => 'Paku kiiruspiirangut';
 
   @override
-  String get acceptEditRequest => 'Accept suggestion';
+  String get acceptEditRequest => 'Võta ettepanek vastu';
 
   @override
-  String get pendingEditRequests => 'Pending edit suggestions';
+  String get pendingEditRequests => 'Ootel muudatusettepanekud';
 
   @override
-  String get speedLimitHint => 'Speed limit';
+  String get speedLimitHint => 'Kiiruspiirang';
 
   @override
-  String get speedLimitSaved => 'Speed limit published';
+  String get speedLimitSaved => 'Kiiruspiirang avaldatud';
 
   @override
-  String get editRequestSent => 'Suggestion sent to the report owner';
+  String get editRequestSent => 'Ettepanek saadeti teate autorile';
 
   @override
   String get notConnected => 'Pole ühendatud';
@@ -350,17 +322,7 @@ class AppLocalizationsEt extends AppLocalizations {
   String get requestKeyFromAmber => 'Taotle avalikku võtit Amberilt';
 
   @override
-  String get amberNotFound =>
-      'Amberi ei leitud. Installige see Play Store\'ist või sisestage oma npub käsitsi.';
-
-  @override
   String get waitingForAmberResponse => 'Ootan Amberi vastust…';
-
-  @override
-  String get pasteNpubManually => 'Kleepige oma npub käsitsi:';
-
-  @override
-  String get confirmNpub => 'Kinnita npub';
 
   @override
   String get enterNsecTitle => 'Sisesta nsec';
@@ -375,19 +337,10 @@ class AppLocalizationsEt extends AppLocalizations {
   String get invalidNsecTitle => 'Kehtetu nsec';
 
   @override
-  String get invalidNpubMessage => 'Veenduge, et kleepisite õige npub.';
-
-  @override
   String get invalidNsecMessage => 'Veenduge, et kleepisite õige nsec.';
 
   @override
-  String get amberResponseError => 'Amberi vastuse viga';
-
-  @override
   String get ok => 'OK';
-
-  @override
-  String get or => 'või';
 
   @override
   String get gpsNotActiveTitle => 'GPS pole aktiivne';
@@ -426,11 +379,6 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get zapSending => 'Saatmine…';
-
-  @override
-  String zapSat(int sats) {
-    return '⚡$sats sat';
-  }
 
   @override
   String get fetchingLightningAddress => 'Lightningi aadressi hankimine…';
@@ -727,33 +675,6 @@ class AppLocalizationsEt extends AppLocalizations {
       'Loe pööramisjuhiseid navigeerimise ajal valjult ette';
 
   @override
-  String get testVoiceEngine => 'Testi häälemootorit';
-
-  @override
-  String get testVoiceEngineDesc =>
-      'Puuduta, et kontrollida TTS-mootorit ja saada seadistusjuhised';
-
-  @override
-  String get ttsDialogTitle => 'Häälemootor puudub';
-
-  @override
-  String get ttsDialogBody =>
-      'Töötavat Text-to-Speech mootorit ei leitud.\n\nRoadstr tugineb ainult avatud lähtekoodiga tarkvarale — installi üks neist tasuta mootoritest F-Droidist:';
-
-  @override
-  String get ttsRhvoiceDesc => 'Loomulik hääl, piiratud keelte loend';
-
-  @override
-  String get ttsEspeakDesc => 'Katab üle 100 keele, robotlik hääl';
-
-  @override
-  String get ttsInstallNote =>
-      '⚠️ Pärast installimist:\n1. Androidi seaded → Hõlbustus → Tekst kõneks\n2. Vali äsja installitud mootor\n3. Laadi alla oma keele häälandmed\n4. Taaskäivita Roadstr täielikult';
-
-  @override
-  String get ttsTestNow => 'Testi kohe';
-
-  @override
   String get voiceUnsupportedTitle => 'Häälejuhendamine pole saadaval';
 
   @override
@@ -794,30 +715,6 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get arrivedTitle => '🎉 Olete kohal!';
-
-  @override
-  String get arrivedBody => 'Jõudsite oma sihtkohta.';
-
-  @override
-  String get arrivedFeedbackPrompt => 'Kuidas läks?';
-
-  @override
-  String get feedbackBad => 'Halvasti';
-
-  @override
-  String get feedbackGood => 'Hästi!';
-
-  @override
-  String get feedbackDialogTitle => 'Rääkige meile, mis läks valesti';
-
-  @override
-  String get feedbackHint => 'Kirjeldage probleemi…';
-
-  @override
-  String get feedbackSent => 'Tagasiside saadetud — tänan! 🙏';
-
-  @override
-  String get feedbackSubmit => 'Saada';
 
   @override
   String get transportModeCar => 'Auto';
@@ -871,9 +768,6 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get poiCuisine => 'Köök';
-
-  @override
-  String get poiAccessibility => 'Ligipääsetavus';
 
   @override
   String get poiWheelchairYes => 'Ratastooliga ligipääsetav';
@@ -1079,10 +973,6 @@ class AppLocalizationsEt extends AppLocalizations {
   String get weatherThunderstorm => 'Äike';
 
   @override
-  String get ztlAheadWarning =>
-      'Ees on piiratud liikluse tsoon — marsruut läbib seda';
-
-  @override
   String get ztlInsideWarning => 'Piiratud liikluse tsoon';
 
   @override
@@ -1214,9 +1104,6 @@ class AppLocalizationsEt extends AppLocalizations {
   String get onboardingLetsGo => 'Lähme!';
 
   @override
-  String get onboardingProfileLoading => 'Profiili laadimine…';
-
-  @override
   String get onboardingNsecHint => 'nsec1…';
 
   @override
@@ -1244,7 +1131,7 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get profileVisibilityOnboarding =>
-      'Roadstr always publishes the Nostr public key needed to verify a report. In pseudonymous mode, other Roadstr users see only a generic avatar and “nostrich”; in public mode, they also see your Nostr name, npub and profile picture. Your reports, locations, reputation and received zaps remain public on Nostr.';
+      'Roadstr avaldab alati Nostri avaliku võtme, mida on vaja teate kontrollimiseks. Pseudonüümses režiimis näevad teised Roadstri kasutajad ainult üldist avatari ja nime „nostrich“; avalikus režiimis näevad nad ka sinu Nostri nime, npubi ja profiilipilti. Sinu teated, asukohad, maine ja saadud zapid jäävad Nostris avalikuks.';
 
   @override
   String get parkingSaveHere => 'Salvesta parkimine siia';
@@ -1351,21 +1238,9 @@ class AppLocalizationsEt extends AppLocalizations {
   String get trafficHeavy => 'Tihe liiklus';
 
   @override
-  String get avoidHighwaysChip => 'Väldi kiirteid';
-
-  @override
-  String get avoidTollsChip => 'Väldi teemakse';
-
-  @override
-  String get preferShorterChip => 'Lühim marsruut';
-
-  @override
   String zapAmountButton(int sats) {
     return 'Zap $sats sat';
   }
-
-  @override
-  String get showRoutePreview => 'Kuva marsruudi eelvaade';
 
   @override
   String get avoidHighwaysAndTolls => 'Väldi kiirteid ja tasulisi teid';
@@ -1377,4 +1252,40 @@ class AppLocalizationsEt extends AppLocalizations {
   @override
   String get avoidanceUnavoidableSection =>
       'Vähendab kiirteid/tasulisi teid · vältimatu lõik';
+
+  @override
+  String get nearbyTitle => 'Läheduses';
+
+  @override
+  String get nearbyNeedsGps => 'GPS-i ootamine';
+
+  @override
+  String get nearbyNothingFound => '5 km raadiuses ei leitud midagi';
+
+  @override
+  String get nearbyFuel => 'Tankla';
+
+  @override
+  String get nearbySupermarket => 'Supermarket';
+
+  @override
+  String get nearbyAtm => 'Sularahaautomaat';
+
+  @override
+  String get nearbyPharmacy => 'Apteek';
+
+  @override
+  String get nearbyHospital => 'Haigla';
+
+  @override
+  String get nearbyPolice => 'Politsei';
+
+  @override
+  String get nearbyPostOffice => 'Postkontor';
+
+  @override
+  String get nearbyParking => 'Parkla';
+
+  @override
+  String get nearbyCharging => 'Laadimine';
 }

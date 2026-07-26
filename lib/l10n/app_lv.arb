@@ -4,29 +4,11 @@
   "calculatingRoute": "Aprēķina maršrutu…",
   "routeNotFoundTitle": "Maršruts nav atrasts",
   "noRouteFound": "Maršruts nav atrasts. Pārbaudiet savienojumu.",
-  "emptyServerResponse": "Tukša servera atbilde. Pārbaudiet savienojumu.",
-  "routeError": "Maršruta aprēķināšanas kļūda: {error}",
-  "@routeError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "gpsNotAvailable": "GPS nav pieejams — Iestatījumi → Lietotne → Roadstr → Atļaujas → Atrašanās vieta",
   "acquiringGps": "Iegūst GPS…",
   "graphhopperServerNotConfigured": "GraphHopper serveris nav konfigurēts — izmanto OSRM",
   "graphhopperApiKeyNotConfigured": "GraphHopper API atslēga nav konfigurēta — izmanto OSRM",
   "openrouteApiKeyNotConfigured": "OpenRouteService API atslēga nav konfigurēta — izmanto OSRM",
   "chooseRoute": "Izvēlēties maršrutu",
-  "routeOptionsCount": "{count} iespējas",
-  "@routeOptionsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cancel": "Atcelt",
   "startNavigation": "Sākt navigāciju",
   "fastestRoute": "Ātrākais",
@@ -46,12 +28,8 @@
   "themeDarkNostr": "Tumšs · Nostr Violets",
   "themeDarkBitcoin": "Tumšs · Bitcoin Oranžs",
   "langSystem": "Sistēmas noklusējums",
-  "langItalian": "Italiano",
-  "langEnglish": "English",
   "keepScreenOn": "Paturēt ekrānu ieslēgtu",
   "keepScreenOnDescription": "Novērš miega režīmu navigācijas laikā",
-  "rotateMap": "Karte seko virzienam",
-  "rotateMapDescription": "Karte griežas atbilstoši braukšanas virzienam",
   "mapTileUrlLabel": "Kartes flīžu URL",
   "routingProviderLabel": "Maršrutēšanas pakalpojumu sniedzējs",
   "osrmProvider": "OSRM (publisks, nav nepieciešama atslēga)",
@@ -98,19 +76,13 @@
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber ir NIP-55 saderīga Android lietotņu parakstītāja lietotne. Jūsu privātā atslēga paliek izolēta Amber iekšienē un netiek kopīgota.",
   "requestKeyFromAmber": "Pieprasīt publisko atslēgu no Amber",
-  "amberNotFound": "Amber nav atrasts. Instalējiet to no Play Store vai manuāli ievadiet savu npub.",
   "waitingForAmberResponse": "Gaida Amber atbildi…",
-  "pasteNpubManually": "Ielīmējiet savu npub manuāli:",
-  "confirmNpub": "Apstiprināt npub",
   "enterNsecTitle": "Ievietot nsec",
   "loginButton": "Pieteikties",
   "invalidNpubTitle": "Nederīgs npub",
   "invalidNsecTitle": "Nederīgs nsec",
-  "invalidNpubMessage": "Pārliecinieties, ka esat ielīmējis pareizo npub.",
   "invalidNsecMessage": "Pārliecinieties, ka esat ielīmējis pareizo nsec.",
-  "amberResponseError": "Amber atbildes kļūda",
   "ok": "Labi",
-  "or": "vai",
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS nav aktīvs",
   "gpsDisabledMessage": "Ieslēdziet GPS ierīces iestatījumos, lai noteiktu savu atrašanās vietu un izmantotu navigāciju.",
@@ -126,14 +98,6 @@
   "chooseAmountSats": "Izvēlieties summu satoshi (sats):",
   "customAmount": "Pielāgota summa…",
   "zapSending": "Sūta…",
-  "zapSat": "⚡{sats} sat",
-  "@zapSat": {
-    "placeholders": {
-      "sats": {
-        "type": "int"
-      }
-    }
-  },
   "fetchingLightningAddress": "Iegūst Lightning adresi…",
   "noLightningAddress": "Šim ziņotājam nav Lightning adreses",
   "requestingInvoice": "Pieprasa rēķinu…",
@@ -159,28 +123,54 @@
   "notifZapTitle": "Saņemts zap",
   "notifZapBody": "Jūs saņēmāt {sat} sat vērtu zap!",
   "@notifZapBody": {
-    "placeholders": { "sat": { "type": "int" } }
+    "placeholders": {
+      "sat": {
+        "type": "int"
+      }
+    }
   },
   "notifConfirmedTitle": "Ziņojums apstiprināts",
   "notifConfirmedBody": "Jūsu {category} ziņojumu apstiprināja cits vadītājs",
   "@notifConfirmedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "notifDeniedTitle": "Ziņojums apstrīdēts",
   "notifDeniedBody": "Kāds ziņoja, ka jūsu {category} vairs tur nav",
   "@notifDeniedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "chainedManeuver": "{first}, pēc tam {second}",
   "@chainedManeuver": {
-    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   },
   "thenManeuver": "pēc tam {instruction}",
   "reportSpeedLimitHint": "Ātruma ierobežojums (neobligāts)",
   "reportedSpeedLimit": "Ziņotais ātruma ierobežojums",
   "speedCameraVoiceAlert": "Ātruma kamera, ierobežojums {limit} {unit}",
   "@speedCameraVoiceAlert": {
-    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   },
   "optionalComment": "Neobligāts komentārs…",
   "publish": "Publicēt",
@@ -283,14 +273,6 @@
   "sectionNavigationVoice": "Navigācijas balss",
   "voiceGuidance": "Balss vadība",
   "voiceGuidanceDesc": "Skaļi nolasīt pagrieziena norādes navigācijas laikā",
-  "testVoiceEngine": "Testēt balss dzinēju",
-  "testVoiceEngineDesc": "Pieskarieties, lai pārbaudītu TTS dzinēju un saņemtu iestatīšanas norādījumus",
-  "ttsDialogTitle": "Trūkst balss dzinēja",
-  "ttsDialogBody": "Netika atrasts neviens darbojošies Text-to-Speech dzinējs.\n\n“Roadstr” paļaujas tikai uz atvērtā koda programmatūru — instalējiet kādu no šiem bezmaksas dzinējiem no F-Droid:",
-  "ttsRhvoiceDesc": "Dabiski skanoša balss, ierobežots valodu saraksts",
-  "ttsEspeakDesc": "Aptver vairāk nekā 100 valodas, robotiska balss",
-  "ttsInstallNote": "⚠️ Pēc instalēšanas:\n1. Android iestatījumi → Pieejamība → Teksta pārvēršana runā\n2. Izvēlieties tikko instalēto dzinēju\n3. Lejupielādējiet savas valodas balss datus\n4. Pilnībā restartējiet “Roadstr”",
-  "ttsTestNow": "Testēt tagad",
   "voiceUnsupportedTitle": "Balss vadība nav pieejama",
   "voiceUnsupportedBody": "Jūsu valoda vēl netiek atbalstīta balss pagrieziena norādēm. Navigācijas norādes joprojām tiks rādītas kā teksts ekrānā.",
   "kokoroModelTitle": "Balss modelis (Kokoro AI)",
@@ -304,14 +286,6 @@
   "settingsImperialUnits": "Imperiālās mērvienības",
   "settingsImperialUnitsDesc": "Jūdzes un pēdas, nevis kilometri un metri",
   "arrivedTitle": "🎉 Esat ieradušies!",
-  "arrivedBody": "Esat sasniedzis savu galamērķi.",
-  "arrivedFeedbackPrompt": "Kā gāja?",
-  "feedbackBad": "Slikti",
-  "feedbackGood": "Labi!",
-  "feedbackDialogTitle": "Pastāstiet mums, kas nogāja greizi",
-  "feedbackHint": "Aprakstiet problēmu…",
-  "feedbackSent": "Atsauksme nosūtīta — paldies! 🙏",
-  "feedbackSubmit": "Sūtīt",
   "transportModeCar": "Automašīna",
   "transportModeWalk": "Kājām",
   "etaArrivalLabel": "Ierašanās {time}",
@@ -326,11 +300,19 @@
   "poiClosedNow": "Slēgts",
   "poiOpensAt": "Atveras: {when}",
   "@poiOpensAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "poiClosesAt": "Aizveras: {when}",
   "@poiClosesAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "searchOnEngine": "Meklēt {engine}",
   "plannerFromHint": "No…",
@@ -351,7 +333,6 @@
   "weatherSnow": "Sniegs",
   "weatherShowers": "Lietusgāzes",
   "weatherThunderstorm": "Pērkona vētra",
-  "ztlAheadWarning": "Priekšā ierobežotas satiksmes zona — maršruts iet cauri tai",
   "ztlInsideWarning": "Ierobežotas satiksmes zona",
   "onboardingAppSubtitle": "Atvērtā koda Nostr navigācija",
   "onboardingWelcomeTitle": "Laipni lūdzam",
@@ -391,7 +372,6 @@
   "onboardingReadyTitle": "Esat gatavs navigācijai!",
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Braucam!",
-  "onboardingProfileLoading": "Ielādē profilu…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "Maksimālai privātumam — ziņojumi tiek izplatīti Nostr tīklā — ieteicams izmantot VPN. Ieteicamā izvēle ir Mullvad, par kuru var maksāt ar Bitcoin.",
   "exportFavoritesTitle": "Eksportēt izlasi",
@@ -445,9 +425,6 @@
   "trafficNormal": "Parasta satiksme",
   "trafficModerate": "Mērena satiksme",
   "trafficHeavy": "Intensīva satiksme",
-  "avoidHighwaysChip": "Izvairīties no automaģistrālēm",
-  "avoidTollsChip": "Izvairīties no maksas ceļiem",
-  "preferShorterChip": "Īsākais maršruts",
   "zapAmountButton": "Zap {sats} sat",
   "@zapAmountButton": {
     "placeholders": {
@@ -456,7 +433,6 @@
       }
     }
   },
-  "showRoutePreview": "Rādīt maršruta priekšskatījumu",
   "autoCenterOnLaunch": "Palaižot centrēt uz manu atrašanās vietu",
   "autoCenterOnLaunchDesc": "Automātiski izmanto GPS tikai tad, ja atrašanās vietas atļauja jau ir piešķirta",
   "openInBrowser": "Atvērt pārlūkā",
@@ -466,7 +442,6 @@
   "poiCategory": "Kategorija",
   "poiOperator": "Operators",
   "poiCuisine": "Virtuve",
-  "poiAccessibility": "Pieejamība",
   "poiWheelchairYes": "Pieejams ratiņkrēslā",
   "poiWheelchairLimited": "Ierobežota pieejamība ratiņkrēslā",
   "poiWheelchairNo": "Nav pieejams ratiņkrēslā",
@@ -508,5 +483,38 @@
   "poiTakeawayOnly": "Tikai līdzņemšanai",
   "avoidHighwaysAndTolls": "Izvairīties no automaģistrālēm un maksas ceļiem",
   "avoidRouteUnavailable": "Maršruts, kas izvairās gan no automaģistrālēm, gan maksas ceļiem, netika atrasts.",
-  "avoidanceUnavoidableSection": "Samazina automaģistrāles/maksas ceļus · neizbēgams posms"
+  "avoidanceUnavoidableSection": "Samazina automaģistrāles/maksas ceļus · neizbēgams posms",
+  "bottomBarNotifications": "Paziņojumi",
+  "notificationsTitle": "Paziņojumi",
+  "notificationsEmpty": "Paziņojumu vēl nav",
+  "notificationsEmptyBody": "Zapi un reakcijas uz jūsu ceļu ziņojumiem parādīsies šeit.",
+  "notificationsLoginRequired": "Savienojiet savu Nostr profilu",
+  "notificationsLoginRequiredBody": "Pierakstieties ar Amber vai nsec, lai saņemtu paziņojumus no citiem lietotājiem.",
+  "profileVisibilityTitle": "Profila redzamība",
+  "profileVisibilityDesc": "Izvēlieties, vai citi Roadstr lietotāji redz jūsu Nostr vārdu, npub un attēlu.",
+  "profileVisibilityClear": "Rādīt profilu publiski",
+  "profileVisibilityPseudonymous": "Pseidonīma režīms (ieteicams)",
+  "profileVisibilityPublishError": "Izvēle tika saglabāta ierīcē, bet to vēl neizdevās publicēt Nostr tīklā.",
+  "nostrichLabel": "nostrich",
+  "profileHiddenNotice": "Šis lietotājs izmanto pseidonīma režīmu.",
+  "editSpeedLimit": "Pievienot vai atjaunināt ātruma ierobežojumu",
+  "requestSpeedLimit": "Ieteikt ātruma ierobežojumu",
+  "acceptEditRequest": "Pieņemt ieteikumu",
+  "pendingEditRequests": "Neizskatītie labojumu ieteikumi",
+  "speedLimitHint": "Ātruma ierobežojums",
+  "speedLimitSaved": "Ātruma ierobežojums publicēts",
+  "editRequestSent": "Ieteikums nosūtīts ziņojuma autoram",
+  "profileVisibilityOnboarding": "Roadstr vienmēr publicē Nostr publisko atslēgu, kas nepieciešama ziņojuma pārbaudei. Pseidonīma režīmā citi Roadstr lietotāji redz tikai vispārīgu avataru un „nostrich”; publiskajā režīmā viņi redz arī jūsu Nostr vārdu, npub un profila attēlu. Jūsu ziņojumi, atrašanās vietas, reputācija un saņemtie zapi paliek publiski Nostr tīklā.",
+  "nearbyTitle": "Tuvumā",
+  "nearbyNeedsGps": "Gaida GPS",
+  "nearbyNothingFound": "5 km rādiusā nekas nav atrasts",
+  "nearbyFuel": "Degviela",
+  "nearbySupermarket": "Lielveikals",
+  "nearbyAtm": "Bankomāts",
+  "nearbyPharmacy": "Aptieka",
+  "nearbyHospital": "Slimnīca",
+  "nearbyPolice": "Policija",
+  "nearbyPostOffice": "Pasts",
+  "nearbyParking": "Autostāvvieta",
+  "nearbyCharging": "Uzlāde"
 }

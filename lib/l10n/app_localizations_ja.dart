@@ -21,18 +21,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noRouteFound => 'ルートが見つかりません。接続を確認してください。';
 
   @override
-  String get emptyServerResponse => 'サーバーの応答が空です。接続を確認してください。';
-
-  @override
-  String routeError(String error) {
-    return 'ルート計算エラー：$error';
-  }
-
-  @override
-  String get gpsNotAvailable =>
-      'GPS利用不可 — Settings → App → Roadstr → Permissions → Location';
-
-  @override
   String get acquiringGps => 'GPS取得中…';
 
   @override
@@ -49,11 +37,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get chooseRoute => 'ルートを選択';
-
-  @override
-  String routeOptionsCount(int count) {
-    return '$countつの選択肢';
-  }
 
   @override
   String get cancel => 'キャンセル';
@@ -77,7 +60,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get selectedPosition => '選択した位置';
 
   @override
-  String get bottomBarNotifications => 'Notifications';
+  String get bottomBarNotifications => '通知';
 
   @override
   String get bottomBarProfile => 'プロフィール';
@@ -86,21 +69,20 @@ class AppLocalizationsJa extends AppLocalizations {
   String get bottomBarMenu => 'メニュー';
 
   @override
-  String get notificationsTitle => 'Notifications';
+  String get notificationsTitle => '通知';
 
   @override
-  String get notificationsEmpty => 'No notifications yet';
+  String get notificationsEmpty => '通知はまだありません';
 
   @override
-  String get notificationsEmptyBody =>
-      'Zaps and reactions to your road reports will appear here.';
+  String get notificationsEmptyBody => 'あなたの道路レポートへの zap やリアクションがここに表示されます。';
 
   @override
-  String get notificationsLoginRequired => 'Connect your Nostr profile';
+  String get notificationsLoginRequired => 'Nostr プロフィールを接続';
 
   @override
   String get notificationsLoginRequiredBody =>
-      'Sign in with Amber or nsec to receive notifications from other users.';
+      '他のユーザーからの通知を受け取るには、Amber または nsec でログインしてください。';
 
   @override
   String get settingsTitle => '設定';
@@ -133,12 +115,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get langSystem => 'システムデフォルト';
 
   @override
-  String get langItalian => 'Italiano';
-
-  @override
-  String get langEnglish => 'English';
-
-  @override
   String get keepScreenOn => '画面をオンに保つ';
 
   @override
@@ -149,12 +125,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get autoCenterOnLaunchDesc => '位置情報の権限が既に許可されている場合のみ、GPSを自動的に使用します';
-
-  @override
-  String get rotateMap => 'マップが方向に追従';
-
-  @override
-  String get rotateMapDescription => '走行方向に基づいてマップが回転';
 
   @override
   String get mapTileUrlLabel => 'マップタイルURL';
@@ -229,48 +199,48 @@ class AppLocalizationsJa extends AppLocalizations {
   String get profileTitle => 'プロフィール';
 
   @override
-  String get profileVisibilityTitle => 'Profile visibility';
+  String get profileVisibilityTitle => 'プロフィールの公開範囲';
 
   @override
   String get profileVisibilityDesc =>
-      'Choose whether other Roadstr users see your Nostr name, npub and picture.';
+      '他の Roadstr ユーザーに Nostr の名前・npub・画像を表示するかどうかを選びます。';
 
   @override
-  String get profileVisibilityClear => 'Show profile publicly';
+  String get profileVisibilityClear => 'プロフィールを公開する';
 
   @override
-  String get profileVisibilityPseudonymous => 'Pseudonymous mode (recommended)';
+  String get profileVisibilityPseudonymous => '仮名モード（推奨）';
 
   @override
   String get profileVisibilityPublishError =>
-      'The local choice was saved, but could not be published to Nostr yet.';
+      '選択は端末に保存されましたが、まだ Nostr に公開できていません。';
 
   @override
   String get nostrichLabel => 'nostrich';
 
   @override
-  String get profileHiddenNotice => 'This user is using pseudonymous mode.';
+  String get profileHiddenNotice => 'このユーザーは仮名モードを使用しています。';
 
   @override
-  String get editSpeedLimit => 'Add or update speed limit';
+  String get editSpeedLimit => '制限速度を追加・更新';
 
   @override
-  String get requestSpeedLimit => 'Suggest a speed limit';
+  String get requestSpeedLimit => '制限速度を提案';
 
   @override
-  String get acceptEditRequest => 'Accept suggestion';
+  String get acceptEditRequest => '提案を承認';
 
   @override
-  String get pendingEditRequests => 'Pending edit suggestions';
+  String get pendingEditRequests => '保留中の編集提案';
 
   @override
-  String get speedLimitHint => 'Speed limit';
+  String get speedLimitHint => '制限速度';
 
   @override
-  String get speedLimitSaved => 'Speed limit published';
+  String get speedLimitSaved => '制限速度を公開しました';
 
   @override
-  String get editRequestSent => 'Suggestion sent to the report owner';
+  String get editRequestSent => 'レポートの作成者に提案を送信しました';
 
   @override
   String get notConnected => '未接続';
@@ -343,17 +313,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get requestKeyFromAmber => 'Amberから公開鍵をリクエスト';
 
   @override
-  String get amberNotFound =>
-      'Amberが見つかりません。Play Storeからインストールするか、npubを手動で入力してください。';
-
-  @override
   String get waitingForAmberResponse => 'Amberの応答を待っています…';
-
-  @override
-  String get pasteNpubManually => 'npubを手動で貼り付け：';
-
-  @override
-  String get confirmNpub => 'npubを確認';
 
   @override
   String get enterNsecTitle => 'nsecを入力';
@@ -368,19 +328,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get invalidNsecTitle => '無効なnsec';
 
   @override
-  String get invalidNpubMessage => '正しいnpubを貼り付けたか確認してください。';
-
-  @override
   String get invalidNsecMessage => '正しいnsecを貼り付けたか確認してください。';
 
   @override
-  String get amberResponseError => 'Amber応答エラー';
-
-  @override
   String get ok => 'OK';
-
-  @override
-  String get or => 'または';
 
   @override
   String get gpsNotActiveTitle => 'GPSがアクティブではありません';
@@ -418,11 +369,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get zapSending => '送信中…';
-
-  @override
-  String zapSat(int sats) {
-    return '⚡$sats sat';
-  }
 
   @override
   String get fetchingLightningAddress => 'Lightningアドレスを取得中…';
@@ -712,32 +658,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get voiceGuidanceDesc => 'ナビゲーション中に曲がる指示を音声で読み上げます';
 
   @override
-  String get testVoiceEngine => '音声エンジンをテスト';
-
-  @override
-  String get testVoiceEngineDesc => 'タップしてTTSエンジンを確認し、設定手順を取得';
-
-  @override
-  String get ttsDialogTitle => '音声エンジンがありません';
-
-  @override
-  String get ttsDialogBody =>
-      '動作するText-to-Speechエンジンが見つかりませんでした。\n\nRoadstrはオープンソースソフトウェアのみに依存しています — F-Droidからこれらの無料エンジンのいずれかをインストールしてください：';
-
-  @override
-  String get ttsRhvoiceDesc => '自然な音声、対応言語は限定的';
-
-  @override
-  String get ttsEspeakDesc => '100以上の言語に対応、機械的な音声';
-
-  @override
-  String get ttsInstallNote =>
-      '⚠️ インストール後：\n1. Android設定 → ユーザー補助 → テキスト読み上げの出力\n2. インストールしたばかりのエンジンを選択\n3. お使いの言語の音声データをダウンロード\n4. Roadstrを完全に再起動';
-
-  @override
-  String get ttsTestNow => '今すぐテスト';
-
-  @override
   String get voiceUnsupportedTitle => '音声案内は利用できません';
 
   @override
@@ -777,30 +697,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get arrivedTitle => '🎉 到着しました！';
-
-  @override
-  String get arrivedBody => '目的地に到着しました。';
-
-  @override
-  String get arrivedFeedbackPrompt => 'いかがでしたか？';
-
-  @override
-  String get feedbackBad => '悪い';
-
-  @override
-  String get feedbackGood => '良い！';
-
-  @override
-  String get feedbackDialogTitle => '何が問題だったか教えてください';
-
-  @override
-  String get feedbackHint => '問題を説明してください…';
-
-  @override
-  String get feedbackSent => 'フィードバックを送信しました — ありがとう！ 🙏';
-
-  @override
-  String get feedbackSubmit => '送信';
 
   @override
   String get transportModeCar => '車';
@@ -854,9 +750,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get poiCuisine => '料理';
-
-  @override
-  String get poiAccessibility => 'アクセシビリティ';
 
   @override
   String get poiWheelchairYes => '車椅子で利用可能';
@@ -1062,9 +955,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get weatherThunderstorm => '雷雨';
 
   @override
-  String get ztlAheadWarning => 'この先に交通制限区域があります。ルートはその中を通ります';
-
-  @override
   String get ztlInsideWarning => '交通制限区域';
 
   @override
@@ -1195,9 +1085,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingLetsGo => 'さあ出発！';
 
   @override
-  String get onboardingProfileLoading => 'プロフィールを読み込み中…';
-
-  @override
   String get onboardingNsecHint => 'nsec1…';
 
   @override
@@ -1224,7 +1111,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get profileVisibilityOnboarding =>
-      'Roadstr always publishes the Nostr public key needed to verify a report. In pseudonymous mode, other Roadstr users see only a generic avatar and “nostrich”; in public mode, they also see your Nostr name, npub and profile picture. Your reports, locations, reputation and received zaps remain public on Nostr.';
+      'Roadstr はレポートを検証するために必要な Nostr の公開鍵を常に公開します。仮名モードでは、他の Roadstr ユーザーには汎用アバターと「nostrich」だけが表示されます。公開モードでは、Nostr の名前・npub・プロフィール画像も表示されます。あなたのレポート、位置情報、評価、受け取った zap は Nostr 上で公開されたままです。';
 
   @override
   String get parkingSaveHere => 'ここに駐車位置を保存';
@@ -1328,21 +1215,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trafficHeavy => '渋滞';
 
   @override
-  String get avoidHighwaysChip => '高速道路を回避';
-
-  @override
-  String get avoidTollsChip => '有料道路を回避';
-
-  @override
-  String get preferShorterChip => '最短ルート';
-
-  @override
   String zapAmountButton(int sats) {
     return 'Zap $sats sat';
   }
-
-  @override
-  String get showRoutePreview => 'ルートプレビューを表示';
 
   @override
   String get avoidHighwaysAndTolls => '高速道路と有料道路を避ける';
@@ -1352,4 +1227,40 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get avoidanceUnavoidableSection => '高速道路・有料道路を最小化 · 回避不能区間あり';
+
+  @override
+  String get nearbyTitle => '周辺';
+
+  @override
+  String get nearbyNeedsGps => 'GPS を待機中';
+
+  @override
+  String get nearbyNothingFound => '5 km 以内に見つかりません';
+
+  @override
+  String get nearbyFuel => 'ガソリン';
+
+  @override
+  String get nearbySupermarket => 'スーパー';
+
+  @override
+  String get nearbyAtm => 'ATM';
+
+  @override
+  String get nearbyPharmacy => '薬局';
+
+  @override
+  String get nearbyHospital => '病院';
+
+  @override
+  String get nearbyPolice => '警察';
+
+  @override
+  String get nearbyPostOffice => '郵便局';
+
+  @override
+  String get nearbyParking => '駐車場';
+
+  @override
+  String get nearbyCharging => '充電';
 }

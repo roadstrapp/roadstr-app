@@ -52,8 +52,6 @@ class ZtlService {
   /// Returns the list of ZTL zones currently loaded (may be empty).
   List<ZtlZone> get zones => _zones;
 
-  /// Returns the restricted ways currently loaded (may be empty).
-  List<ZtlWay> get restrictedWays => _restrictedWays;
 
   /// If the user has moved >2 km from the last query point, re-fetches
   /// ZTL data from Overpass. Call on each GPS update; silently no-ops
@@ -140,8 +138,8 @@ class ZtlService {
 
   Future<({List<ZtlZone> zones, List<ZtlWay> ways})> _fetchZtl(
       LatLng pos) async {
-    final lat = pos.latitude;
-    final lng = pos.longitude;
+    final lat = OverpassClient.coord(pos.latitude);
+    final lng = OverpassClient.coord(pos.longitude);
     // Two data sources in one query:
     //
     // 1. Restricted DRIVABLE ways — the standard Italian ZTL mapping.

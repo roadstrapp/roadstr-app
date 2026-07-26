@@ -30,7 +30,11 @@ class ZapSheet extends StatefulWidget {
   final RoadEvent event;
   final RoadstrColors colors;
   final void Function(int sats) onZapSent;
-  const ZapSheet({super.key, required this.event, required this.colors, required this.onZapSent});
+  const ZapSheet(
+      {super.key,
+      required this.event,
+      required this.colors,
+      required this.onZapSent});
   @override
   State<ZapSheet> createState() => _ZapSheetState();
 }
@@ -290,6 +294,79 @@ class _ZapSheetState extends State<ZapSheet> {
   }
 }
 
+/// Asks for a speed limit and pops with it in km/h (null when cancelled).
+///
+/// The text controller lives here, in a widget, rather than in the caller.
+/// Creating it in an `async` method and disposing it right after `showDialog`
+/// resolves looks harmless but is not: the future completes on `Navigator.pop`
+/// while the dialog is still animating out and still rebuilding its TextField,
+/// which then touches a disposed controller. That threw "A TextEditingController
+/// was used after being disposed" and brought the whole route down with the red
+/// "_dependents.isEmpty" screen. Owned by a State, the controller is disposed
+/// when the route is actually gone.
+class SpeedLimitDialog extends StatefulWidget {
+  final Color surface;
+
+  /// Resolves the dialog title against the active localisations.
+  final String Function(AppLocalizations) title;
+
+  /// Pre-filled value in km/h, or null for an empty field.
+  final int? initialLimitKmh;
+  const SpeedLimitDialog({
+    super.key,
+    required this.surface,
+    required this.title,
+    this.initialLimitKmh,
+  });
+
+  @override
+  State<SpeedLimitDialog> createState() => _SpeedLimitDialogState();
+}
+
+class _SpeedLimitDialogState extends State<SpeedLimitDialog> {
+  late final TextEditingController _ctrl = TextEditingController(
+      text: widget.initialLimitKmh == null
+          ? ''
+          : '${Units.imperial ? Units.toDisplaySpeed(widget.initialLimitKmh!.toDouble()).round() : widget.initialLimitKmh}');
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final raw = int.tryParse(_ctrl.text.trim());
+    if (raw == null || raw <= 0 || raw > 300) return;
+    Navigator.pop(context, Units.imperial ? (raw * 1.60934).round() : raw);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return AlertDialog(
+      backgroundColor: widget.surface,
+      title: Text(widget.title(l)),
+      content: TextField(
+        controller: _ctrl,
+        autofocus: true,
+        keyboardType: TextInputType.number,
+        maxLength: 3,
+        onSubmitted: (_) => _submit(),
+        decoration: InputDecoration(
+          labelText: l.speedLimitHint,
+          suffixText: Units.speedUnit,
+        ),
+      ),
+      actions: [
+        TextButton(
+            onPressed: () => Navigator.pop(context), child: Text(l.cancel)),
+        FilledButton(onPressed: _submit, child: Text(l.ok)),
+      ],
+    );
+  }
+}
+
 // ── Road event widgets ────────────────────────────────────────────────────────
 
 class RoadEventDetailSheet extends StatefulWidget {
@@ -302,7 +379,9 @@ class RoadEventDetailSheet extends StatefulWidget {
       onEditSpeedLimit;
   final Future<void> Function(int speedLimit)? onRequestSpeedLimit;
   final void Function(bool)? onConfirm;
-  const RoadEventDetailSheet({super.key, required this.event,
+  const RoadEventDetailSheet(
+      {super.key,
+      required this.event,
       required this.colors,
       required this.isLoggedIn,
       this.isOwner = false,
@@ -366,44 +445,16 @@ class _RoadEventDetailState extends State<RoadEventDetailSheet> {
   }
 
   Future<void> _askSpeedLimit({String? requestId}) async {
-    final ctrl = TextEditingController(
-        text: requestId == null && widget.event.speedLimit != null
-            ? '${Units.imperial ? Units.toDisplaySpeed(widget.event.speedLimit!.toDouble()).round() : widget.event.speedLimit}'
-            : '');
     final value = await showDialog<int>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: widget.colors.surface2,
-        title: Text(requestId == null && widget.isOwner
-            ? AppLocalizations.of(ctx).editSpeedLimit
-            : AppLocalizations.of(ctx).requestSpeedLimit),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          keyboardType: TextInputType.number,
-          maxLength: 3,
-          decoration: InputDecoration(
-            labelText: AppLocalizations.of(ctx).speedLimitHint,
-            suffixText: Units.speedUnit,
-          ),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(AppLocalizations.of(ctx).cancel)),
-          FilledButton(
-            onPressed: () {
-              final raw = int.tryParse(ctrl.text.trim());
-              if (raw == null || raw <= 0 || raw > 300) return;
-              Navigator.pop(
-                  ctx, Units.imperial ? (raw * 1.60934).round() : raw);
-            },
-            child: Text(AppLocalizations.of(ctx).ok),
-          ),
-        ],
+      builder: (_) => SpeedLimitDialog(
+        surface: widget.colors.surface2,
+        title: requestId == null && widget.isOwner
+            ? (l) => l.editSpeedLimit
+            : (l) => l.requestSpeedLimit,
+        initialLimitKmh: requestId == null ? widget.event.speedLimit : null,
       ),
     );
-    ctrl.dispose();
     if (value == null || !mounted) return;
     try {
       if (requestId != null) {
@@ -434,7 +485,12 @@ class _RoadEventDetailState extends State<RoadEventDetailSheet> {
         border: Border.all(color: c.border, width: 0.5),
       ),
       padding: EdgeInsets.fromLTRB(20, 16, 20, 24 + navBar),
-      child: Column(
+      // Scrollable: a modal sheet is capped at 9/16 of the screen, and an owned
+      // speed-camera report with a comment, a speed limit and pending
+      // suggestions is taller than that — it used to overflow into the
+      // yellow-and-black striped bar instead of scrolling.
+      child: SingleChildScrollView(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -680,7 +736,9 @@ class _RoadEventDetailState extends State<RoadEventDetailSheet> {
                         color: Color(0xFFF7931A), fontSize: 13)),
               ),
             ),
-          ]),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -689,7 +747,11 @@ class ReportSheet extends StatefulWidget {
   final RoadstrColors colors;
   final LatLng position;
   final Future<void> Function(RoadCategory, String, int?) onSubmit;
-  const ReportSheet({super.key, required this.colors, required this.position, required this.onSubmit});
+  const ReportSheet(
+      {super.key,
+      required this.colors,
+      required this.position,
+      required this.onSubmit});
   @override
   State<ReportSheet> createState() => _ReportSheetState();
 }

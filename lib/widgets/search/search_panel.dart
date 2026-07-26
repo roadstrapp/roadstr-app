@@ -5,8 +5,144 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/favorite_place.dart';
 import '../../models/search_history_item.dart';
+import '../../services/poi_search_service.dart' show NearbyCategory;
 import '../../services/routing_service.dart' show NominatimResult;
 import '../../theme/app_theme.dart';
+import '../../utils/units.dart';
+
+/// The translated name of a nearby category, used both on its button and as
+/// the label of results OSM has no name for.
+String nearbyCategoryLabel(NearbyCategory category, AppLocalizations l) =>
+    switch (category) {
+      NearbyCategory.fuel => l.nearbyFuel,
+      NearbyCategory.supermarket => l.nearbySupermarket,
+      NearbyCategory.atm => l.nearbyAtm,
+      NearbyCategory.pharmacy => l.nearbyPharmacy,
+      NearbyCategory.hospital => l.nearbyHospital,
+      NearbyCategory.police => l.nearbyPolice,
+      NearbyCategory.postOffice => l.nearbyPostOffice,
+      NearbyCategory.parking => l.nearbyParking,
+      NearbyCategory.charging => l.nearbyCharging,
+    };
+
+/// One tap per thing a driver stops for, scrolling horizontally above the
+/// history. Sits in the search overlay because that is where a user goes when
+/// they want to *get somewhere* — the whole point of the feature is that it
+/// answers "is there a petrol station around here" without typing anything.
+class NearbyBar extends StatelessWidget {
+  final RoadstrColors colors;
+
+  /// Null while no fix is available: without a position there is no "nearby",
+  /// so the buttons are shown disabled rather than lying about being ready.
+  final bool enabled;
+  final NearbyCategory? selected;
+  final ValueChanged<NearbyCategory> onSelect;
+  const NearbyBar({
+    super.key,
+    required this.colors,
+    required this.onSelect,
+    this.enabled = true,
+    this.selected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.surface2,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.border, width: 0.5),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 12,
+              offset: const Offset(0, 4))
+        ],
+      ),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: Row(children: [
+            Icon(Icons.near_me_rounded, color: colors.accent, size: 14),
+            const SizedBox(width: 6),
+            Text(enabled ? l.nearbyTitle : l.nearbyNeedsGps,
+                style: TextStyle(
+                    color: colors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600)),
+          ]),
+        ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          child: Row(children: [
+            for (final category in NearbyCategory.values) ...[
+              _NearbyButton(
+                category: category,
+                label: nearbyCategoryLabel(category, l),
+                colors: colors,
+                selected: category == selected,
+                onTap: enabled ? () => onSelect(category) : null,
+              ),
+              const SizedBox(width: 8),
+            ],
+          ]),
+        ),
+      ]),
+    );
+  }
+}
+
+class _NearbyButton extends StatelessWidget {
+  final NearbyCategory category;
+  final String label;
+  final RoadstrColors colors;
+  final bool selected;
+  final VoidCallback? onTap;
+  const _NearbyButton({
+    required this.category,
+    required this.label,
+    required this.colors,
+    required this.selected,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final disabled = onTap == null;
+    return Opacity(
+      opacity: disabled ? 0.4 : 1,
+      child: Material(
+        color: selected ? colors.accentSoft : colors.surface3,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: selected ? colors.accent : Colors.transparent,
+                  width: 1.5),
+            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Text(category.emoji,
+                  style: const TextStyle(fontSize: 15, height: 1)),
+              const SizedBox(width: 6),
+              Text(label,
+                  style: TextStyle(
+                      color: selected ? colors.accent : colors.textPrimary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600)),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class SearchHistoryList extends StatelessWidget {
   final List<SearchHistoryItem> history;
@@ -238,12 +374,18 @@ class SearchResultsList extends StatelessWidget {
   final RoadstrColors colors;
   final ValueChanged<NominatimResult> onSelect;
   final ValueChanged<FavoritePlace> onSelectFavorite;
+
+  /// Message for a finished search that found nothing. A typed search can stay
+  /// silent (the user is still editing), but a nearby category that comes back
+  /// empty has to say so — otherwise the tap looks like it did nothing.
+  final String? emptyMessage;
   const SearchResultsList({super.key, required this.results,
       required this.isLoading,
       required this.colors,
       required this.onSelect,
       required this.onSelectFavorite,
-      this.favorites = const []});
+      this.favorites = const [],
+      this.emptyMessage});
 
   @override
   Widget build(BuildContext context) {
@@ -331,6 +473,7 @@ class SearchResultsList extends StatelessWidget {
                     itemBuilder: (_, i) {
                       final r = results[i];
                       final catLabel = r.categoryLabel;
+                      final distance = r.distanceM;
                       return ListTile(
                         tileColor: Colors.transparent,
                         leading: Container(
@@ -357,11 +500,35 @@ class SearchResultsList extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                                 color: colors.textSecondary, fontSize: 12)),
+                        // Straight-line distance, present only on nearby
+                        // results: with the list sorted by it, it is the one
+                        // number that decides which one the driver picks.
+                        trailing: distance == null
+                            ? null
+                            : Text(Units.fmtDist(distance),
+                                style: TextStyle(
+                                    color: colors.accent,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600)),
                         onTap: () => onSelect(r),
                       );
                     },
                   ),
-                ],
+                ] else if (emptyMessage != null && favorites.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 18),
+                    child: Row(children: [
+                      Icon(Icons.search_off_rounded,
+                          color: colors.textSecondary, size: 18),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(emptyMessage!,
+                            style: TextStyle(
+                                color: colors.textSecondary, fontSize: 13)),
+                      ),
+                    ]),
+                  ),
               ]),
             ), // Material
     );

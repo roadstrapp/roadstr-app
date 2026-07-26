@@ -53,7 +53,22 @@ class LnurlPayInfo {
 /// Stateless service (all methods are `static`) that orchestrates LNURL-pay
 /// and NIP-57/NIP-47 zap flows for road-event tips.
 class ZapService {
-  static const _relay = 'wss://relay.damus.io';
+  /// Relays queried for zap receipts and Lightning addresses, and advertised
+  /// to the LNURL server as the places to publish the receipt.
+  ///
+  /// The same four Roadstr publishes road events to (see
+  /// [NostrRelayService]): a receipt that lands on only one of them still
+  /// counts, and a relay that is down no longer zeroes the profile's zap
+  /// total. Asking a single relay meant an outage there read as "0 sats".
+  static const _relays = [
+    'wss://nos.lol',
+    'wss://relay.primal.net',
+    'wss://nostr.oxtr.dev',
+    'wss://relay.damus.io',
+  ];
+
+  /// Relay used when an NWC URI carries none of its own.
+  static const _nwcFallbackRelay = 'wss://relay.damus.io';
 
   // ── Data fetching ──────────────────────────────────────────────────────────
 
@@ -66,12 +81,56 @@ class ZapService {
   /// The kind-0 event is verified (author, id hash, Schnorr signature) before
   /// its content is trusted: a malicious relay that could substitute the
   /// Lightning address would redirect every zap to an attacker's wallet.
+  ///
+  /// All relays are asked **at once** and the newest kind-0 wins. Sequentially
+  /// one dead relay would have cost its full timeout before the next was even
+  /// tried — on the road-event sheet that is the difference between a sheet
+  /// that opens and one that hangs. Taking the newest, rather than the first
+  /// to answer, also means a relay sitting on a stale profile cannot send a
+  /// zap to a Lightning address the user has since changed.
   static Future<String?> fetchLightningAddress(String pubHex) async {
     if (!_isHex32(pubHex)) return null;
+    final cached = _addressCache[pubHex];
+    if (cached != null && DateTime.now().isBefore(cached.until)) {
+      return cached.address;
+    }
+    final perRelay = await Future.wait([
+      for (final relay in _relays) _fetchLightningAddressFrom(pubHex, relay),
+    ]);
+    String? best;
+    var bestCreatedAt = -1;
+    for (final result in perRelay) {
+      if (result != null &&
+          result.address.isNotEmpty &&
+          result.createdAt > bestCreatedAt) {
+        bestCreatedAt = result.createdAt;
+        best = result.address;
+      }
+    }
+    if (best != null) {
+      // Opening two reports in a row must not re-run four sockets each time.
+      if (_addressCache.length > 64) _addressCache.clear();
+      _addressCache[pubHex] = (
+        address: best,
+        until: DateTime.now().add(const Duration(minutes: 10)),
+      );
+    }
+    return best;
+  }
+
+  /// Short-lived Lightning-address cache, keyed by public key.
+  static final _addressCache = <String, ({String address, DateTime until})>{};
+
+  static Future<({String address, int createdAt})?> _fetchLightningAddressFrom(
+      String pubHex, String relay) async {
     WebSocketChannel? ws;
     try {
-      ws = WebSocketChannel.connect(Uri.parse(_relay));
-      final completer = Completer<String?>();
+      ws = WebSocketChannel.connect(Uri.parse(relay));
+      // A relay that refuses the upgrade (damus answers 503 under load)
+      // must fail here, inside the try, instead of escaping as an
+      // unhandled asynchronous error and leaving a REQ on a dead socket.
+      await ws.ready.timeout(const Duration(seconds: 5));
+      final completer = Completer<({String address, int createdAt})?>();
       final subId = randomSubId();
       var latestCreatedAt = -1;
       String? latestAddress;
@@ -94,7 +153,11 @@ class ZapService {
                 latestAddress = lud;
               }
             } else if (msg[0] == 'EOSE' && msg[1] == subId) {
-              if (!completer.isCompleted) completer.complete(latestAddress);
+              if (!completer.isCompleted) {
+                completer.complete(latestAddress == null
+                    ? null
+                    : (address: latestAddress!, createdAt: latestCreatedAt));
+              }
             }
           } catch (_) {}
         },
@@ -230,7 +293,7 @@ class ZapService {
           ['p', recipientPubHex],
           ['e', eventId],
           ['amount', amountMsat.toString()],
-          ['relays', _relay],
+          ['relays', ..._relays],
         ],
         content: '',
       ),
@@ -340,7 +403,7 @@ class ZapService {
       return null;
     }
     final walletPub = uri.host;
-    final relay = uri.queryParameters['relay'] ?? _relay;
+    final relay = uri.queryParameters['relay'] ?? _nwcFallbackRelay;
     final secret = uri.queryParameters['secret'];
     final relayUri = Uri.tryParse(relay);
     if (!_isHex32(walletPub) ||
@@ -362,6 +425,10 @@ class ZapService {
       final nip04 = Nip04();
       final api = EventApi();
       ws = WebSocketChannel.connect(relayUri);
+      // A relay that refuses the upgrade (damus answers 503 under load)
+      // must fail here, inside the try, instead of escaping as an
+      // unhandled asynchronous error and leaving a REQ on a dead socket.
+      await ws.ready.timeout(const Duration(seconds: 5));
       final completer = Completer<String?>();
       final subId = randomSubId();
 
@@ -461,22 +528,52 @@ class ZapService {
 
   // ── Zap totals ─────────────────────────────────────────────────────────────
 
-  /// Returns the total **millisatoshi** received by a specific road event,
-  /// computed
-  /// by summing the `amount` tags from all NIP-57 kind-9735 zap receipts that
+  /// Returns the total **millisatoshi** received by a specific road event, by
+  /// summing the `amount` tags of the NIP-57 kind-9735 zap receipts that
   /// reference [eventId] via the `#e` filter.
   ///
-  /// Note: amounts in kind-9735 receipts are in **millisatoshi**; this method
+  /// Every relay is asked at once and the receipts are merged by event id, so
+  /// a receipt that only reached one of them is still counted exactly once.
   static Future<int> fetchZapTotal(
       String eventId, String recipientPubHex) async {
     final signer = await resolveZapSigner(recipientPubHex);
     if (signer == null) return 0;
+    // One shared map for all four relays: a receipt stored on several of them
+    // is verified once (Schnorr verification is the expensive part here) and
+    // counted once.
+    final receipts = <String, int>{};
+    await Future.wait([
+      for (final relay in _relays)
+        _fetchReceiptsFrom(relay,
+            eventId: eventId,
+            recipientPub: recipientPubHex,
+            signer: signer,
+            into: receipts),
+    ]);
+    return receipts.values.fold<int>(0, (a, b) => a + b);
+  }
+
+  /// Receipts held by one relay: event id → verified millisatoshi.
+  ///
+  /// [eventId] filters by road report (`#e`); passing null sums every receipt
+  /// addressed to [recipientPub] (`#p`), which is the lifetime balance.
+  static Future<void> _fetchReceiptsFrom(
+    String relay, {
+    String? eventId,
+    required String recipientPub,
+    required String signer,
+    required Map<String, int> into,
+    int limit = 500,
+    Duration timeout = const Duration(seconds: 6),
+  }) async {
     WebSocketChannel? ws;
     try {
-      ws = WebSocketChannel.connect(Uri.parse(_relay));
-      var totalMsat = 0;
-      final seen = <String>{};
-      final completer = Completer<int>();
+      ws = WebSocketChannel.connect(Uri.parse(relay));
+      // A relay that refuses the upgrade (damus answers 503 under load)
+      // must fail here, inside the try, instead of escaping as an
+      // unhandled asynchronous error and leaving a REQ on a dead socket.
+      await ws.ready.timeout(const Duration(seconds: 5));
+      final completer = Completer<void>();
       final subId = randomSubId();
 
       ws.stream.listen(
@@ -488,25 +585,25 @@ class ZapService {
             if (msg[0] == 'EVENT' && msg[1] == subId) {
               final event = (msg[2] as Map).cast<String, dynamic>();
               final id = event['id'] as String?;
-              if (id != null && seen.add(id)) {
-                totalMsat += verifiedReceiptAmount(
-                      event,
-                      eventId: eventId,
-                      recipientPub: recipientPubHex,
-                      receiptSigner: signer,
-                    ) ??
-                    0;
+              if (id != null && !into.containsKey(id)) {
+                final amount = verifiedReceiptAmount(
+                  event,
+                  eventId: eventId,
+                  recipientPub: recipientPub,
+                  receiptSigner: signer,
+                );
+                if (amount != null) into[id] = amount;
               }
             } else if (msg[0] == 'EOSE' && msg[1] == subId) {
-              if (!completer.isCompleted) completer.complete(totalMsat);
+              if (!completer.isCompleted) completer.complete();
             }
           } catch (_) {}
         },
         onError: (_) {
-          if (!completer.isCompleted) completer.complete(totalMsat);
+          if (!completer.isCompleted) completer.complete();
         },
         onDone: () {
-          if (!completer.isCompleted) completer.complete(totalMsat);
+          if (!completer.isCompleted) completer.complete();
         },
       );
       ws.sink.add(jsonEncode([
@@ -514,14 +611,13 @@ class ZapService {
         subId,
         {
           'kinds': [9735],
-          '#e': [eventId],
-          'limit': 500,
+          if (eventId != null) '#e': [eventId] else '#p': [recipientPub],
+          'limit': limit,
         }
       ]));
-      return await completer.future
-          .timeout(const Duration(seconds: 6), onTimeout: () => totalMsat);
+      await completer.future.timeout(timeout, onTimeout: () {});
     } catch (_) {
-      return 0;
+      // A relay that fails contributes nothing; the others still counted.
     } finally {
       ws?.sink.close().catchError((_) {});
     }
@@ -534,59 +630,18 @@ class ZapService {
   static Future<int> fetchBalance(String pubHex) async {
     final signer = await resolveZapSigner(pubHex);
     if (signer == null) return 0;
-    WebSocketChannel? ws;
-    try {
-      ws = WebSocketChannel.connect(Uri.parse(_relay));
-      var totalMsat = 0;
-      final seen = <String>{};
-      final completer = Completer<int>();
-      final subId = randomSubId();
-
-      ws.stream.listen(
-        (raw) {
-          if (completer.isCompleted) return;
-          try {
-            if (raw is! String || raw.length > 256 * 1024) return;
-            final msg = jsonDecode(raw) as List;
-            if (msg[0] == 'EVENT' && msg[1] == subId) {
-              final event = (msg[2] as Map).cast<String, dynamic>();
-              final id = event['id'] as String?;
-              if (id != null && seen.add(id)) {
-                totalMsat += verifiedReceiptAmount(
-                      event,
-                      recipientPub: pubHex,
-                      receiptSigner: signer,
-                    ) ??
-                    0;
-              }
-            } else if (msg[0] == 'EOSE' && msg[1] == subId) {
-              if (!completer.isCompleted) completer.complete(totalMsat);
-            }
-          } catch (_) {}
-        },
-        onError: (_) {
-          if (!completer.isCompleted) completer.complete(totalMsat);
-        },
-        onDone: () {
-          if (!completer.isCompleted) completer.complete(totalMsat);
-        },
-      );
-      ws.sink.add(jsonEncode([
-        'REQ',
-        subId,
-        {
-          'kinds': [9735],
-          '#p': [pubHex],
-          'limit': 1000,
-        }
-      ]));
-      return await completer.future
-          .timeout(const Duration(seconds: 8), onTimeout: () => totalMsat);
-    } catch (_) {
-      return 0;
-    } finally {
-      ws?.sink.close().catchError((_) {});
-    }
+    final receipts = <String, int>{};
+    await Future.wait([
+      for (final relay in _relays)
+        // A lifetime balance can span many more receipts than one report's.
+        _fetchReceiptsFrom(relay,
+            recipientPub: pubHex,
+            signer: signer,
+            into: receipts,
+            limit: 1000,
+            timeout: const Duration(seconds: 8)),
+    ]);
+    return receipts.values.fold<int>(0, (a, b) => a + b);
   }
 
   /// A relay is not proof of payment. NIP-57 ultimately trusts the recipient's

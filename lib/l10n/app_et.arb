@@ -4,29 +4,11 @@
   "calculatingRoute": "Marsruudi arvutamine…",
   "routeNotFoundTitle": "Marsruuti ei leitud",
   "noRouteFound": "Marsruuti ei leitud. Kontrollige ühendust.",
-  "emptyServerResponse": "Tühi serveri vastus. Kontrollige ühendust.",
-  "routeError": "Marsruudi arvutusviga: {error}",
-  "@routeError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "gpsNotAvailable": "GPS pole saadaval — Settings → App → Roadstr → Permissions → Location",
   "acquiringGps": "GPS-i hankimine…",
   "graphhopperServerNotConfigured": "GraphHopperi server pole seadistatud — kasutatakse OSRM-i",
   "graphhopperApiKeyNotConfigured": "GraphHopperi API-võti pole seadistatud — kasutatakse OSRM-i",
   "openrouteApiKeyNotConfigured": "OpenRouteService'i API-võti pole seadistatud — kasutatakse OSRM-i",
   "chooseRoute": "Vali marsruut",
-  "routeOptionsCount": "{count} valikut",
-  "@routeOptionsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cancel": "Tühista",
   "startNavigation": "Alusta navigeerimist",
   "fastestRoute": "Kiirem",
@@ -46,12 +28,8 @@
   "themeDarkNostr": "Tume · Nostr Violetne",
   "themeDarkBitcoin": "Tume · Bitcoin Oranž",
   "langSystem": "Süsteemi vaikeväärtus",
-  "langItalian": "Italiano",
-  "langEnglish": "English",
   "keepScreenOn": "Hoia ekraan üleval",
   "keepScreenOnDescription": "Takistab une-olekut navigeerimise ajal",
-  "rotateMap": "Kaart järgib suunda",
-  "rotateMapDescription": "Kaart pöörub sõidusuuna järgi",
   "mapTileUrlLabel": "Kaardi tile'i URL",
   "routingProviderLabel": "Marsruutimise pakkuja",
   "osrmProvider": "OSRM (avalik, võtit pole vaja)",
@@ -98,19 +76,13 @@
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber on NIP-55 nõuetele vastav Androidi rakenduse allkirjastaja. Teie privaatvõti jääb Amberi sisse isoleerituks ega ole kunagi jagatud.",
   "requestKeyFromAmber": "Taotle avalikku võtit Amberilt",
-  "amberNotFound": "Amberi ei leitud. Installige see Play Store'ist või sisestage oma npub käsitsi.",
   "waitingForAmberResponse": "Ootan Amberi vastust…",
-  "pasteNpubManually": "Kleepige oma npub käsitsi:",
-  "confirmNpub": "Kinnita npub",
   "enterNsecTitle": "Sisesta nsec",
   "loginButton": "Logi sisse",
   "invalidNpubTitle": "Kehtetu npub",
   "invalidNsecTitle": "Kehtetu nsec",
-  "invalidNpubMessage": "Veenduge, et kleepisite õige npub.",
   "invalidNsecMessage": "Veenduge, et kleepisite õige nsec.",
-  "amberResponseError": "Amberi vastuse viga",
   "ok": "OK",
-  "or": "või",
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS pole aktiivne",
   "gpsDisabledMessage": "Aktiveerige GPS seadme seadetes, et saada oma asukoht ja kasutada navigeerimist.",
@@ -126,14 +98,6 @@
   "chooseAmountSats": "Valige summa satoshides (sats):",
   "customAmount": "Kohandatud summa…",
   "zapSending": "Saatmine…",
-  "zapSat": "⚡{sats} sat",
-  "@zapSat": {
-    "placeholders": {
-      "sats": {
-        "type": "int"
-      }
-    }
-  },
   "fetchingLightningAddress": "Lightningi aadressi hankimine…",
   "noLightningAddress": "Sellel reporteril pole Lightningi aadressi",
   "requestingInvoice": "Arve taotlemine…",
@@ -159,28 +123,54 @@
   "notifZapTitle": "Zap saadud",
   "notifZapBody": "Said {sat} sati suuruse zapi!",
   "@notifZapBody": {
-    "placeholders": { "sat": { "type": "int" } }
+    "placeholders": {
+      "sat": {
+        "type": "int"
+      }
+    }
   },
   "notifConfirmedTitle": "Teade kinnitatud",
   "notifConfirmedBody": "Teise juhi poolt kinnitati sinu {category} teade",
   "@notifConfirmedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "notifDeniedTitle": "Teade vaidlustatud",
   "notifDeniedBody": "Keegi teatas, et sinu {category} ei ole enam seal",
   "@notifDeniedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "chainedManeuver": "{first}, seejärel {second}",
   "@chainedManeuver": {
-    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   },
   "thenManeuver": "seejärel {instruction}",
   "reportSpeedLimitHint": "Kiiruspiirang (valikuline)",
   "reportedSpeedLimit": "Teatatud kiiruspiirang",
   "speedCameraVoiceAlert": "Kiiruskaamera, piirang {limit} {unit}",
   "@speedCameraVoiceAlert": {
-    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   },
   "optionalComment": "Valikuline kommentaar…",
   "publish": "Avalda",
@@ -283,14 +273,6 @@
   "sectionNavigationVoice": "Navigeerimishääl",
   "voiceGuidance": "Häälejuhendamine",
   "voiceGuidanceDesc": "Loe pööramisjuhiseid navigeerimise ajal valjult ette",
-  "testVoiceEngine": "Testi häälemootorit",
-  "testVoiceEngineDesc": "Puuduta, et kontrollida TTS-mootorit ja saada seadistusjuhised",
-  "ttsDialogTitle": "Häälemootor puudub",
-  "ttsDialogBody": "Töötavat Text-to-Speech mootorit ei leitud.\n\nRoadstr tugineb ainult avatud lähtekoodiga tarkvarale — installi üks neist tasuta mootoritest F-Droidist:",
-  "ttsRhvoiceDesc": "Loomulik hääl, piiratud keelte loend",
-  "ttsEspeakDesc": "Katab üle 100 keele, robotlik hääl",
-  "ttsInstallNote": "⚠️ Pärast installimist:\n1. Androidi seaded → Hõlbustus → Tekst kõneks\n2. Vali äsja installitud mootor\n3. Laadi alla oma keele häälandmed\n4. Taaskäivita Roadstr täielikult",
-  "ttsTestNow": "Testi kohe",
   "voiceUnsupportedTitle": "Häälejuhendamine pole saadaval",
   "voiceUnsupportedBody": "Sinu keel ei ole veel toetatud häälega pööramisjuhiste jaoks. Navigeerimisjuhised kuvatakse jätkuvalt tekstina ekraanil.",
   "kokoroModelTitle": "Häälemudel (Kokoro AI)",
@@ -304,14 +286,6 @@
   "settingsImperialUnits": "Angloameerika ühikud",
   "settingsImperialUnitsDesc": "Miilid ja jalad kilomeetrite ja meetrite asemel",
   "arrivedTitle": "🎉 Olete kohal!",
-  "arrivedBody": "Jõudsite oma sihtkohta.",
-  "arrivedFeedbackPrompt": "Kuidas läks?",
-  "feedbackBad": "Halvasti",
-  "feedbackGood": "Hästi!",
-  "feedbackDialogTitle": "Rääkige meile, mis läks valesti",
-  "feedbackHint": "Kirjeldage probleemi…",
-  "feedbackSent": "Tagasiside saadetud — tänan! 🙏",
-  "feedbackSubmit": "Saada",
   "transportModeCar": "Auto",
   "transportModeWalk": "Jalgsi",
   "etaArrivalLabel": "Saab. {time}",
@@ -326,11 +300,19 @@
   "poiClosedNow": "Suletud",
   "poiOpensAt": "Avaneb: {when}",
   "@poiOpensAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "poiClosesAt": "Sulgub: {when}",
   "@poiClosesAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "searchOnEngine": "Otsi {engine}",
   "plannerFromHint": "Kust…",
@@ -351,7 +333,6 @@
   "weatherSnow": "Lumi",
   "weatherShowers": "Hoogsadu",
   "weatherThunderstorm": "Äike",
-  "ztlAheadWarning": "Ees on piiratud liikluse tsoon — marsruut läbib seda",
   "ztlInsideWarning": "Piiratud liikluse tsoon",
   "onboardingAppSubtitle": "Avatud lähtekoodiga Nostr navigatsioon",
   "onboardingWelcomeTitle": "Tere tulemast",
@@ -391,7 +372,6 @@
   "onboardingReadyTitle": "Olete valmis navigeerima!",
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Lähme!",
-  "onboardingProfileLoading": "Profiili laadimine…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "Maksimaalse privaatsuse tagamiseks — teated levivad Nostr-võrgus — on soovitatav kasutada VPN-i. Soovitatud valik on Mullvad, mille eest saab maksta Bitcoiniga.",
   "exportFavoritesTitle": "Ekspordi lemmikud",
@@ -445,9 +425,6 @@
   "trafficNormal": "Tavaline liiklus",
   "trafficModerate": "Mõõdukas liiklus",
   "trafficHeavy": "Tihe liiklus",
-  "avoidHighwaysChip": "Väldi kiirteid",
-  "avoidTollsChip": "Väldi teemakse",
-  "preferShorterChip": "Lühim marsruut",
   "zapAmountButton": "Zap {sats} sat",
   "@zapAmountButton": {
     "placeholders": {
@@ -456,7 +433,6 @@
       }
     }
   },
-  "showRoutePreview": "Kuva marsruudi eelvaade",
   "autoCenterOnLaunch": "Käivitusel minu asukohale keskendamine",
   "autoCenterOnLaunchDesc": "Kasutab GPS-i automaatselt ainult siis, kui asukohaluba on juba antud",
   "openInBrowser": "Ava brauseris",
@@ -466,7 +442,6 @@
   "poiCategory": "Kategooria",
   "poiOperator": "Operaator",
   "poiCuisine": "Köök",
-  "poiAccessibility": "Ligipääsetavus",
   "poiWheelchairYes": "Ratastooliga ligipääsetav",
   "poiWheelchairLimited": "Piiratud ligipääs ratastooliga",
   "poiWheelchairNo": "Ratastooliga ligipääs puudub",
@@ -508,5 +483,38 @@
   "poiTakeawayOnly": "Ainult kaasavõtt",
   "avoidHighwaysAndTolls": "Väldi kiirteid ja tasulisi teid",
   "avoidRouteUnavailable": "Marsruuti, mis väldiks nii kiirteid kui ka tasulisi teid, ei leitud.",
-  "avoidanceUnavoidableSection": "Vähendab kiirteid/tasulisi teid · vältimatu lõik"
+  "avoidanceUnavoidableSection": "Vähendab kiirteid/tasulisi teid · vältimatu lõik",
+  "bottomBarNotifications": "Teavitused",
+  "notificationsTitle": "Teavitused",
+  "notificationsEmpty": "Teavitusi veel pole",
+  "notificationsEmptyBody": "Zapid ja reaktsioonid sinu liiklusteadetele ilmuvad siia.",
+  "notificationsLoginRequired": "Ühenda oma Nostri profiil",
+  "notificationsLoginRequiredBody": "Logi sisse Amberi või nseciga, et saada teavitusi teistelt kasutajatelt.",
+  "profileVisibilityTitle": "Profiili nähtavus",
+  "profileVisibilityDesc": "Vali, kas teised Roadstri kasutajad näevad sinu Nostri nime, npubi ja pilti.",
+  "profileVisibilityClear": "Näita profiili avalikult",
+  "profileVisibilityPseudonymous": "Pseudonüümne režiim (soovitatav)",
+  "profileVisibilityPublishError": "Valik salvestati seadmesse, kuid seda ei õnnestunud veel Nostris avaldada.",
+  "nostrichLabel": "nostrich",
+  "profileHiddenNotice": "See kasutaja kasutab pseudonüümset režiimi.",
+  "editSpeedLimit": "Lisa või uuenda kiiruspiirangut",
+  "requestSpeedLimit": "Paku kiiruspiirangut",
+  "acceptEditRequest": "Võta ettepanek vastu",
+  "pendingEditRequests": "Ootel muudatusettepanekud",
+  "speedLimitHint": "Kiiruspiirang",
+  "speedLimitSaved": "Kiiruspiirang avaldatud",
+  "editRequestSent": "Ettepanek saadeti teate autorile",
+  "profileVisibilityOnboarding": "Roadstr avaldab alati Nostri avaliku võtme, mida on vaja teate kontrollimiseks. Pseudonüümses režiimis näevad teised Roadstri kasutajad ainult üldist avatari ja nime „nostrich“; avalikus režiimis näevad nad ka sinu Nostri nime, npubi ja profiilipilti. Sinu teated, asukohad, maine ja saadud zapid jäävad Nostris avalikuks.",
+  "nearbyTitle": "Läheduses",
+  "nearbyNeedsGps": "GPS-i ootamine",
+  "nearbyNothingFound": "5 km raadiuses ei leitud midagi",
+  "nearbyFuel": "Tankla",
+  "nearbySupermarket": "Supermarket",
+  "nearbyAtm": "Sularahaautomaat",
+  "nearbyPharmacy": "Apteek",
+  "nearbyHospital": "Haigla",
+  "nearbyPolice": "Politsei",
+  "nearbyPostOffice": "Postkontor",
+  "nearbyParking": "Parkla",
+  "nearbyCharging": "Laadimine"
 }

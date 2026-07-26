@@ -13,6 +13,31 @@ enum OsmPoiKind {
   other,
 }
 
+/// The things a driver stops for, offered as one tap instead of a typed query.
+///
+/// Every one of them is a well-established OSM tag with worldwide coverage —
+/// no bespoke data and no third-party directory. The order is the order they
+/// appear in the UI, which is roughly how often a driver needs them.
+enum NearbyCategory {
+  fuel(['amenity=fuel'], '⛽'),
+  supermarket(['shop=supermarket', 'shop=convenience'], '🛒'),
+  atm(['amenity=atm', 'amenity=bank'], '🏧'),
+  pharmacy(['amenity=pharmacy'], '💊'),
+  hospital(['amenity=hospital', 'amenity=clinic'], '🏥'),
+  police(['amenity=police'], '👮'),
+  postOffice(['amenity=post_office'], '📮'),
+  parking(['amenity=parking'], '🅿️'),
+  charging(['amenity=charging_station'], '🔌');
+
+  /// OSM tag filters; a POI matching any one of them belongs to the category.
+  final List<String> filters;
+
+  /// Shown on the category button and on unnamed results.
+  final String emoji;
+
+  const NearbyCategory(this.filters, this.emoji);
+}
+
 /// One EV connector advertised by an OSM charging station.
 class OsmEvConnector {
   final String type;
@@ -207,9 +232,8 @@ class OsmPoiDetails {
         if (raw == null || raw == 'no' || raw == '0') continue;
         final parsedCount =
             RegExp(r'^\d{1,3}$').hasMatch(raw) ? int.tryParse(raw) : null;
-        final count = parsedCount != null && parsedCount > 0
-            ? parsedCount
-            : null;
+        final count =
+            parsedCount != null && parsedCount > 0 ? parsedCount : null;
         if (count == null && raw != 'yes') continue;
         connectors.add(OsmEvConnector(
           type: type,
@@ -313,7 +337,10 @@ class OsmPoiDetails {
 /// within a radius of the user and is inherently local — the category path
 /// below is the fix for that specific bug class.
 class PoiSearchService {
-  final _overpass = OverpassClient();
+  PoiSearchService({OverpassClient? overpass})
+      : _overpass = overpass ?? OverpassClient();
+
+  final OverpassClient _overpass;
 
   // A local category search does not need an 8 km Overpass extract.  Named
   // streets and businesses are handled by Nominatim; this query is only the
@@ -362,10 +389,121 @@ class PoiSearchService {
     // misc
     'scuola': ['amenity=school'], 'school': ['amenity=school'],
     'posta': ['amenity=post_office'], 'post office': ['amenity=post_office'],
+    'polizia': ['amenity=police'], 'police': ['amenity=police'],
+    'carabinieri': ['amenity=police'], 'commissariato': ['amenity=police'],
+    'polizei': ['amenity=police'], 'policia': ['amenity=police'],
     'chiesa': ['amenity=place_of_worship'],
     'church': ['amenity=place_of_worship'],
     'supermercati': ['shop=supermarket'],
   };
+
+  /// How far "around me" reaches, tried in order.
+  ///
+  /// The near ring first: in a city it already holds far more than a screenful,
+  /// it comes back smaller and quicker, and — the reason it exists — Overpass
+  /// has no notion of "nearest", it just returns the first N matches it finds.
+  /// Asking for 5 km in central Berlin and keeping the closest 25 of whatever
+  /// came back would therefore be picking 25 arbitrary car parks, not the 25
+  /// nearest. Where the near ring is thin (a village, a motorway at night) the
+  /// wide one runs as well, and there the wider answer is small anyway.
+  static const nearbyRings = [1500, 5000];
+
+  /// Enough results in the near ring to not bother widening.
+  static const _enoughNearbyResults = 10;
+
+  /// The most one screen of results can usefully show.
+  static const _maxNearbyResults = 25;
+
+  /// Elements one query may return. Only [_maxNearbyResults] are kept, but the
+  /// selection is only as good as the pool it chooses from.
+  static const _nearbyElementCap = 120;
+
+  /// Everything of [category] around [center], nearest first.
+  ///
+  /// Unlike [search], results without a `name` tag are **kept**: a cash machine
+  /// in a wall or an unbranded filling station is exactly what the driver is
+  /// looking for, and dropping it because OSM has no name for it would make the
+  /// feature look empty in half of Europe. Those entries are labelled with
+  /// [unnamedLabel] — the caller passes the translated category name.
+  Future<List<NominatimResult>> nearby(
+    NearbyCategory category,
+    LatLng center, {
+    required String unnamedLabel,
+  }) async {
+    // Re-tapping a category, or coming back to it after looking at a result,
+    // must not cost another round trip — and must not hammer a free mirror.
+    final cacheKey = '${category.name}@${_cacheCell(center)}';
+    final cached = _nearbyCache[cacheKey];
+    if (cached != null && DateTime.now().isBefore(cached.until)) {
+      return cached.results;
+    }
+
+    var found = const <NominatimResult>[];
+    for (final radiusM in nearbyRings) {
+      final ring = await _nearbyRing(category, center, radiusM, unnamedLabel);
+      // Never trade a good answer for a worse one: a wider ring that comes
+      // back empty means the request failed, not that the places found in the
+      // near ring stopped existing.
+      if (ring.length > found.length) found = ring;
+      if (found.length >= _enoughNearbyResults) break;
+    }
+    if (found.isEmpty) return const [];
+
+    if (_nearbyCache.length > 40) _nearbyCache.clear();
+    _nearbyCache[cacheKey] = (
+      results: found,
+      until: DateTime.now().add(const Duration(minutes: 5)),
+    );
+    return found;
+  }
+
+  /// One ring of [nearby]: the nearest [_maxNearbyResults] within [radiusM].
+  Future<List<NominatimResult>> _nearbyRing(NearbyCategory category,
+      LatLng center, int radiusM, String unnamedLabel) async {
+    final lat = OverpassClient.coord(center.latitude);
+    final lon = OverpassClient.coord(center.longitude);
+    final clauses = category.filters.map((filter) {
+      final kv = filter.split('=');
+      final tag = '["${kv[0]}"="${kv[1]}"]';
+      return 'node$tag(around:$radiusM,$lat,$lon);'
+          'way$tag(around:$radiusM,$lat,$lon);';
+    }).join();
+    final query =
+        '[out:json][timeout:8];($clauses);out center $_nearbyElementCap;';
+    try {
+      final elements = await _overpass.fetchElementsHedged(query,
+          maxBytes: 6 * 1024 * 1024, timeout: const Duration(seconds: 10));
+      if (elements == null) return const [];
+      final results = <NominatimResult>[];
+      final seen = <String>{};
+      for (final element in elements) {
+        final result = _toResult(element, center, fallbackName: unnamedLabel);
+        if (result == null) continue;
+        // Overpass returns the same shop as both a node and a building way
+        // often enough to be noticeable in a single sweep.
+        final key = '${result.shortName}@'
+            '${result.position.latitude.toStringAsFixed(4)},'
+            '${result.position.longitude.toStringAsFixed(4)}';
+        if (!seen.add(key)) continue;
+        results.add(result);
+      }
+      results.sort((a, b) => (a.distanceM ?? 0).compareTo(b.distanceM ?? 0));
+      return results.take(_maxNearbyResults).toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  /// Cache key cell: ~500 m, so results are reused while the driver is around
+  /// the same place but recomputed once they have actually moved on. Distances
+  /// shown against a fix half a cell away are off by at most a few hundred
+  /// metres, which does not change which petrol station is the near one.
+  static String _cacheCell(LatLng p) =>
+      '${(p.latitude * 200).round()},${(p.longitude * 200).round()}';
+
+  /// Short-lived nearby results, keyed by category and position cell.
+  final _nearbyCache =
+      <String, ({List<NominatimResult> results, DateTime until})>{};
 
   /// Searches for POIs matching [query] near [center]. Returns an empty list
   /// if [query] matches no known category and no brand/name hits are found —
@@ -422,7 +560,8 @@ class PoiSearchService {
     String languageCode = 'en',
     int radiusM = 40,
   }) async {
-    final lat = center.latitude, lon = center.longitude;
+    final lat = OverpassClient.coord(center.latitude);
+    final lon = OverpassClient.coord(center.longitude);
     final query = '[out:json][timeout:8];'
         'nwr(around:$radiusM,$lat,$lon)'
         '[~"^(amenity|shop|tourism|historic|leisure|office|craft|healthcare|railway|aeroway|natural)\$"~"."];'
@@ -448,10 +587,7 @@ class PoiSearchService {
         elat = (ctr?['lat'] as num?)?.toDouble();
         elon = (ctr?['lon'] as num?)?.toDouble();
       }
-      if (elat == null ||
-          elon == null ||
-          !elat.isFinite ||
-          !elon.isFinite) {
+      if (elat == null || elon == null || !elat.isFinite || !elon.isFinite) {
         continue;
       }
       final d = _distM(center, LatLng(elat, elon));
@@ -483,7 +619,8 @@ class PoiSearchService {
   /// signal than any fixed radius — the router's arrive-point sits on the
   /// road, while the user actually stops at the door or inside a courtyard.
   Future<List<LatLng>?> buildingPolygonAt(LatLng point) async {
-    final lat = point.latitude, lon = point.longitude;
+    final lat = OverpassClient.coord(point.latitude);
+    final lon = OverpassClient.coord(point.longitude);
     // around: measures distance to the way's OUTLINE, not its interior — a
     // destination point deep inside a large footprint is far from every wall.
     // 60 m covers buildings up to ~120 m across (geocoded centroids of most
@@ -561,6 +698,8 @@ class PoiSearchService {
 
   Future<List<NominatimResult>> _queryTags(
       List<String> tagFilters, LatLng center) async {
+    final lat = OverpassClient.coord(center.latitude);
+    final lon = OverpassClient.coord(center.longitude);
     final clauses = tagFilters.map((f) {
       // "amenity=cinema" or "amenity=restaurant;cuisine=pizza" (extra filters
       // joined with ';' apply as additional exact-match tag constraints).
@@ -568,8 +707,8 @@ class PoiSearchService {
         final kv = p.split('=');
         return '["${kv[0]}"="${kv[1]}"]';
       }).join();
-      return 'node$parts(around:$_radiusM,${center.latitude},${center.longitude});'
-          'way$parts(around:$_radiusM,${center.latitude},${center.longitude});';
+      return 'node$parts(around:$_radiusM,$lat,$lon);'
+          'way$parts(around:$_radiusM,$lat,$lon);';
     }).join();
     final query = '[out:json][timeout:5];($clauses);out center 12;';
     return _run(query, center);
@@ -588,9 +727,21 @@ class PoiSearchService {
     return results;
   }
 
-  static NominatimResult? _toResult(Map<String, dynamic> el, LatLng center) {
+  /// Converts one Overpass element into a search result.
+  ///
+  /// Without [fallbackName] an unnamed element is dropped (a typed search for
+  /// "Esselunga" has nothing to say about a nameless building); with one it is
+  /// kept under that label — see [nearby].
+  static NominatimResult? _toResult(Map<String, dynamic> el, LatLng center,
+      {String? fallbackName}) {
     final tags = (el['tags'] as Map?)?.cast<String, dynamic>();
-    final name = tags?['name'] as String?;
+    var name = tags?['name'] as String?;
+    if (name == null || name.isEmpty) {
+      // Branded but unnamed (very common for fuel and ATMs) reads better as
+      // the brand than as a generic label.
+      name = (tags?['brand'] as String?)?.trim();
+    }
+    if (name == null || name.isEmpty) name = fallbackName;
     if (name == null || name.isEmpty) return null;
     double? lat = (el['lat'] as num?)?.toDouble();
     double? lon = (el['lon'] as num?)?.toDouble();
@@ -615,13 +766,15 @@ class PoiSearchService {
         tags?['amenity'] as String? ??
         tags?['tourism'] as String?;
 
+    final position = LatLng(lat, lon);
     return NominatimResult(
       displayName: name,
       shortName: name,
-      position: LatLng(lat, lon),
+      position: position,
       cls: cls,
       type: type,
       openingHours: (tags?['opening_hours'] as String?)?.trim(),
+      distanceM: _distM(center, position),
     );
   }
 
@@ -632,5 +785,4 @@ class PoiSearchService {
   /// comparisons. Delegates to the shared search normaliser so POI matching and
   /// suggestion ranking always agree on what "the same text" means.
   static String _normalize(String s) => FuzzyMatch.normalize(s);
-
 }

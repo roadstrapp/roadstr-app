@@ -4,29 +4,11 @@
   "calculatingRoute": "Útvonal számítása…",
   "routeNotFoundTitle": "Útvonal nem található",
   "noRouteFound": "Nem található útvonal. Ellenőrizze a kapcsolatot.",
-  "emptyServerResponse": "Üres szerverhválasz. Ellenőrizze a kapcsolatot.",
-  "routeError": "Útvonalszámítási hiba: {error}",
-  "@routeError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "gpsNotAvailable": "GPS nem érhető el — Beállítások → Alkalmazás → Roadstr → Engedélyek → Hely",
   "acquiringGps": "GPS lekérése…",
   "graphhopperServerNotConfigured": "A GraphHopper szerver nincs beállítva — OSRM használata",
   "graphhopperApiKeyNotConfigured": "A GraphHopper API kulcs nincs beállítva — OSRM használata",
   "openrouteApiKeyNotConfigured": "Az OpenRouteService API kulcs nincs beállítva — OSRM használata",
   "chooseRoute": "Útvonal választása",
-  "routeOptionsCount": "{count} lehetőség",
-  "@routeOptionsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cancel": "Mégse",
   "startNavigation": "Navigáció indítása",
   "fastestRoute": "Leggyorsabb",
@@ -46,12 +28,8 @@
   "themeDarkNostr": "Sötét · Nostr Lila",
   "themeDarkBitcoin": "Sötét · Bitcoin Narancs",
   "langSystem": "Rendszer alapértelmezett",
-  "langItalian": "Italiano",
-  "langEnglish": "English",
   "keepScreenOn": "Képernyő bekapcsolt állapotban tartása",
   "keepScreenOnDescription": "Megakadályozza az alvó módot navigáció közben",
-  "rotateMap": "A térkép követi az irányt",
-  "rotateMapDescription": "A térkép a haladási irány alapján forog",
   "mapTileUrlLabel": "Térképcsempe URL",
   "routingProviderLabel": "Útválasztó szolgáltató",
   "osrmProvider": "OSRM (nyilvános, kulcs nem szükséges)",
@@ -98,19 +76,13 @@
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Az Amber egy NIP-55 kompatibilis Android alkalmazás-aláíró. Privát kulcsa az Amberen belül marad és soha nem kerül megosztásra.",
   "requestKeyFromAmber": "Nyilvános kulcs kérése az Ambertől",
-  "amberNotFound": "Az Amber nem található. Telepítse a Play Áruházból, vagy adja meg manuálisan az npub-ját.",
   "waitingForAmberResponse": "Várakozás az Amber válaszára…",
-  "pasteNpubManually": "Illessze be manuálisan az npub-ját:",
-  "confirmNpub": "npub megerősítése",
   "enterNsecTitle": "nsec beillesztése",
   "loginButton": "Bejelentkezés",
   "invalidNpubTitle": "Érvénytelen npub",
   "invalidNsecTitle": "Érvénytelen nsec",
-  "invalidNpubMessage": "Győződjön meg arról, hogy a megfelelő npub-ot illesztette be.",
   "invalidNsecMessage": "Győződjön meg arról, hogy a megfelelő nsec-et illesztette be.",
-  "amberResponseError": "Amber válasz hiba",
   "ok": "OK",
-  "or": "vagy",
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS nem aktív",
   "gpsDisabledMessage": "Engedélyezze a GPS-t az eszközbeállításokban, hogy megkapja tartózkodási helyét és használja a navigációt.",
@@ -126,14 +98,6 @@
   "chooseAmountSats": "Válasszon összeget satoshi (sats) egységben:",
   "customAmount": "Egyéni összeg…",
   "zapSending": "Küldés…",
-  "zapSat": "⚡{sats} sat",
-  "@zapSat": {
-    "placeholders": {
-      "sats": {
-        "type": "int"
-      }
-    }
-  },
   "fetchingLightningAddress": "Lightning cím lekérése…",
   "noLightningAddress": "Ennek a bejelentőnek nincs Lightning címe",
   "requestingInvoice": "Számla kérése…",
@@ -159,28 +123,54 @@
   "notifZapTitle": "Zap érkezett",
   "notifZapBody": "{sat} sat értékű zapet kaptál!",
   "@notifZapBody": {
-    "placeholders": { "sat": { "type": "int" } }
+    "placeholders": {
+      "sat": {
+        "type": "int"
+      }
+    }
   },
   "notifConfirmedTitle": "Bejelentés megerősítve",
   "notifConfirmedBody": "A {category} bejelentésedet egy másik sofőr megerősítette",
   "@notifConfirmedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "notifDeniedTitle": "Bejelentés vitatva",
   "notifDeniedBody": "Valaki jelezte, hogy a {category} már nincs ott",
   "@notifDeniedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "chainedManeuver": "{first}, majd {second}",
   "@chainedManeuver": {
-    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   },
   "thenManeuver": "majd {instruction}",
   "reportSpeedLimitHint": "Sebességkorlát (opcionális)",
   "reportedSpeedLimit": "Jelentett sebességkorlát",
   "speedCameraVoiceAlert": "Traffipax jelentve, sebességkorlát {limit} {unit}",
   "@speedCameraVoiceAlert": {
-    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   },
   "optionalComment": "Opcionális megjegyzés…",
   "publish": "Közzététel",
@@ -283,14 +273,6 @@
   "sectionNavigationVoice": "Navigációs hang",
   "voiceGuidance": "Hangos útmutatás",
   "voiceGuidanceDesc": "Kanyarodási utasítások felolvasása navigáció közben",
-  "testVoiceEngine": "Hangmotor tesztelése",
-  "testVoiceEngineDesc": "Koppintson a TTS motor ellenőrzéséhez és a beállítási útmutatóhoz",
-  "ttsDialogTitle": "Hiányzó hangmotor",
-  "ttsDialogBody": "Nem található működő Text-to-Speech motor.\n\nA Roadstr kizárólag nyílt forráskódú szoftverekre támaszkodik — telepítse az alábbi ingyenes motorok egyikét az F-Droidról:",
-  "ttsRhvoiceDesc": "Természetesen hangzó hang, korlátozott nyelvlista",
-  "ttsEspeakDesc": "Több mint 100 nyelvet fed le, robotikus hang",
-  "ttsInstallNote": "⚠️ A telepítés után:\n1. Android beállítások → Kisegítő lehetőségek → Szövegfelolvasás\n2. Válassza ki az imént telepített motort\n3. Töltse le a nyelvéhez tartozó hangadatokat\n4. Indítsa újra teljesen a Roadstr-t",
-  "ttsTestNow": "Tesztelés most",
   "voiceUnsupportedTitle": "Hangos útmutatás nem érhető el",
   "voiceUnsupportedBody": "Az Ön nyelve még nem támogatott a beszélt kanyarodási utasításokhoz. A navigációs utasítások továbbra is szövegként jelennek meg a képernyőn.",
   "kokoroModelTitle": "Hangmodell (Kokoro AI)",
@@ -304,14 +286,6 @@
   "settingsImperialUnits": "Angolszász mértékegységek",
   "settingsImperialUnitsDesc": "Mérföld és láb kilométer és méter helyett",
   "arrivedTitle": "🎉 Megérkezett!",
-  "arrivedBody": "Elérte úticélját.",
-  "arrivedFeedbackPrompt": "Hogy ment?",
-  "feedbackBad": "Rossz",
-  "feedbackGood": "Jól!",
-  "feedbackDialogTitle": "Mondja el, mi ment rosszul",
-  "feedbackHint": "Írja le a problémát…",
-  "feedbackSent": "Visszajelzés elküldve — köszönjük! 🙏",
-  "feedbackSubmit": "Küldés",
   "transportModeCar": "Autó",
   "transportModeWalk": "Gyalog",
   "etaArrivalLabel": "Érk. {time}",
@@ -326,11 +300,19 @@
   "poiClosedNow": "Zárva",
   "poiOpensAt": "Nyit: {when}",
   "@poiOpensAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "poiClosesAt": "Zár: {when}",
   "@poiClosesAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "searchOnEngine": "Keresés a(z) {engine} on",
   "plannerFromHint": "Honnan…",
@@ -351,7 +333,6 @@
   "weatherSnow": "Hó",
   "weatherShowers": "Záporok",
   "weatherThunderstorm": "Zivatar",
-  "ztlAheadWarning": "Korlátozott forgalmú zóna következik — az útvonal áthalad rajta",
   "ztlInsideWarning": "Korlátozott forgalmú zóna",
   "onboardingAppSubtitle": "Nyílt forráskódú Nostr navigáció",
   "onboardingWelcomeTitle": "Üdvözöljük",
@@ -391,7 +372,6 @@
   "onboardingReadyTitle": "Készen áll a navigálásra!",
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Induljunk!",
-  "onboardingProfileLoading": "Profil betöltése…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "A maximális adatvédelem érdekében — a bejelentések a Nostr hálózaton terjednek — VPN használata ajánlott. Az ajánlott választás a Mullvad, amely Bitcoinnal fizethető.",
   "exportFavoritesTitle": "Kedvencek exportálása",
@@ -445,9 +425,6 @@
   "trafficNormal": "Normál forgalom",
   "trafficModerate": "Mérsékelt forgalom",
   "trafficHeavy": "Erős forgalom",
-  "avoidHighwaysChip": "Autópályák elkerülése",
-  "avoidTollsChip": "Fizetős utak elkerülése",
-  "preferShorterChip": "Legrövidebb útvonal",
   "zapAmountButton": "Zap {sats} sat",
   "@zapAmountButton": {
     "placeholders": {
@@ -456,7 +433,6 @@
       }
     }
   },
-  "showRoutePreview": "Útvonal előnézete",
   "autoCenterOnLaunch": "Indításkor középre igazítás a helyzetemre",
   "autoCenterOnLaunchDesc": "Csak akkor használja automatikusan a GPS-t, ha a helyengedélyt már megadták",
   "openInBrowser": "Megnyitás böngészőben",
@@ -466,7 +442,6 @@
   "poiCategory": "Kategória",
   "poiOperator": "Üzemeltető",
   "poiCuisine": "Konyha",
-  "poiAccessibility": "Akadálymentesség",
   "poiWheelchairYes": "Kerekesszékkel megközelíthető",
   "poiWheelchairLimited": "Korlátozottan megközelíthető kerekesszékkel",
   "poiWheelchairNo": "Kerekesszékkel nem megközelíthető",
@@ -508,5 +483,38 @@
   "poiTakeawayOnly": "Csak elvitel",
   "avoidHighwaysAndTolls": "Autópályák és fizetős utak kerülése",
   "avoidRouteUnavailable": "Nem található olyan útvonal, amely az autópályákat és a fizetős utakat is elkerüli.",
-  "avoidanceUnavoidableSection": "Minimalizálja az autópályát/fizetős utat · elkerülhetetlen szakasz"
+  "avoidanceUnavoidableSection": "Minimalizálja az autópályát/fizetős utat · elkerülhetetlen szakasz",
+  "bottomBarNotifications": "Értesítések",
+  "notificationsTitle": "Értesítések",
+  "notificationsEmpty": "Még nincsenek értesítések",
+  "notificationsEmptyBody": "A zapek és a bejelentéseidre érkező reakciók itt jelennek meg.",
+  "notificationsLoginRequired": "Csatlakoztasd a Nostr-profilodat",
+  "notificationsLoginRequiredBody": "Jelentkezz be Amberrel vagy nsec-kel, hogy értesítéseket kapj más felhasználóktól.",
+  "profileVisibilityTitle": "Profil láthatósága",
+  "profileVisibilityDesc": "Válaszd ki, hogy a többi Roadstr-felhasználó látja-e a Nostr-neved, az npub-od és a képed.",
+  "profileVisibilityClear": "Profil nyilvános megjelenítése",
+  "profileVisibilityPseudonymous": "Álnév mód (ajánlott)",
+  "profileVisibilityPublishError": "A választás helyben elmentve, de a Nostrra még nem sikerült közzétenni.",
+  "nostrichLabel": "nostrich",
+  "profileHiddenNotice": "Ez a felhasználó álnév módot használ.",
+  "editSpeedLimit": "Sebességkorlát hozzáadása vagy frissítése",
+  "requestSpeedLimit": "Sebességkorlát javaslása",
+  "acceptEditRequest": "Javaslat elfogadása",
+  "pendingEditRequests": "Függőben lévő módosítási javaslatok",
+  "speedLimitHint": "Sebességkorlát",
+  "speedLimitSaved": "Sebességkorlát közzétéve",
+  "editRequestSent": "Javaslat elküldve a bejelentés szerzőjének",
+  "profileVisibilityOnboarding": "A Roadstr mindig közzéteszi a bejelentés ellenőrzéséhez szükséges Nostr nyilvános kulcsot. Álnév módban a többi Roadstr-felhasználó csak egy általános avatart és a „nostrich” nevet látja; nyilvános módban a Nostr-nevedet, az npub-odat és a profilképedet is. A bejelentéseid, helyzeteid, a hírneved és a kapott zapek nyilvánosak maradnak a Nostron.",
+  "nearbyTitle": "A közelben",
+  "nearbyNeedsGps": "Várakozás GPS-re",
+  "nearbyNothingFound": "5 km-en belül nincs találat",
+  "nearbyFuel": "Üzemanyag",
+  "nearbySupermarket": "Szupermarket",
+  "nearbyAtm": "Bankautomata",
+  "nearbyPharmacy": "Gyógyszertár",
+  "nearbyHospital": "Kórház",
+  "nearbyPolice": "Rendőrség",
+  "nearbyPostOffice": "Posta",
+  "nearbyParking": "Parkoló",
+  "nearbyCharging": "Töltő"
 }
