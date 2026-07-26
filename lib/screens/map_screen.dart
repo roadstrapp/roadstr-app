@@ -30,7 +30,7 @@ import '../services/routing_service.dart';
 import '../services/weather_service.dart';
 import '../services/speed_limit_service.dart';
 import '../services/poi_search_service.dart';
-import '../services/photon_geocoder.dart';
+import '../services/place_search_service.dart';
 import '../services/speed_camera_service.dart';
 import '../services/ztl_service.dart';
 import '../services/opening_hours.dart';
@@ -57,7 +57,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
-import '../utils/fuzzy_match.dart';
 import '../utils/units.dart';
 import '../widgets/speedometer_widget.dart';
 import 'settings_screen.dart';
@@ -246,6 +245,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   final _ztl = ZtlService.instance;
   final _speedLimitSvc = SpeedLimitService();
   final _poiSvc = PoiSearchService();
+  late final _placeSearch = PlaceSearchService(poi: _poiSvc);
   final _favSyncSvc = FavoritesSyncService();
   final _speedCameraSvc = SpeedCameraService();
 
@@ -2500,7 +2500,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     }
     _planDebounce = Timer(const Duration(milliseconds: 500), () async {
       setState(() => _planSearching = true);
-      final r = await _searchMerged(query);
+      final r = await _searchPlaces(query);
       if (!mounted || requestGeneration != _planRequestGeneration) return;
       setState(() {
         _planResults = r;
@@ -2801,7 +2801,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       result = _searchResults.first;
     } else {
       setState(() => _isSearching = true);
-      final results = await _searchMerged(query);
+      final results = await _searchPlaces(query);
       if (!mounted || requestGeneration != _searchRequestGeneration) return;
       setState(() => _isSearching = false);
       if (results.isEmpty) return;
@@ -2825,7 +2825,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     // the first useful suggestions appear much sooner.
     _searchDebounce = Timer(const Duration(milliseconds: 300), () async {
       setState(() => _isSearching = true);
-      final results = await _searchMerged(query, onPartial: (partial) {
+      final results = await _searchPlaces(query, onPartial: (partial) {
         if (!mounted || requestGeneration != _searchRequestGeneration) return;
         // Show whichever provider answers first instead of waiting for the
         // slower Overpass request before rendering any result.
@@ -2839,146 +2839,16 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     });
   }
 
-  /// Merges the three place providers into one suggestion list:
-  ///
-  ///   * **Overpass** (category/brand near me) — the fix for generic terms
-  ///     like "cinema", which Nominatim's global importance ranking would
-  ///     answer with a same-named business on the other side of the world
-  ///     instead of the one 500 m away. Shown first when it matches.
-  ///   * **Photon** — typo-tolerant and prefix-based, so it answers while the
-  ///     user is still typing and survives misspellings.
-  ///   * **Nominatim** — strict, but the best at fully-qualified addresses.
-  ///
-  /// Geocoder hits are then re-ranked by how well they actually match what was
-  /// typed ([FuzzyMatch]) rather than by provider order, and if everything
-  /// comes back empty the query is relaxed once and retried.
-  Future<List<NominatimResult>> _searchMerged(String query,
-      {void Function(List<NominatimResult>)? onPartial}) async {
-    final near = _hasRealFix ? _position : null;
-    final lang = Localizations.localeOf(context).languageCode;
-
-    final nominatimFuture = RoutingService.search(query, near: near);
-    final photonFuture =
-        PhotonGeocoder.search(query, near: near, languageCode: lang);
-    final poiFuture = near != null
-        ? _poiSvc.search(query, near)
-        : Future.value(<NominatimResult>[]);
-
-    // Paint whatever arrives first (normally Photon) instead of blocking the
-    // whole list on the slowest provider — this is most of the perceived
-    // sluggishness of the search box.
-    if (onPartial != null) {
-      var shown = false;
-      for (final f in [photonFuture, nominatimFuture, poiFuture]) {
-        unawaited(f.then((r) {
-          if (shown || r.isEmpty) return;
-          shown = true;
-          onPartial(_rankResults(query, r, near));
-        }).catchError((_) {}));
-      }
-    }
-
-    final photon = await photonFuture;
-    final nominatim = await nominatimFuture;
-    final poi = await poiFuture;
-
-    // Nominatim first in the merge order so its better-formatted entry wins
-    // the dedupe when both providers return the same place.
-    var geo = _rankResults(query, _dedupeByProximity([...nominatim, ...photon]),
-        near);
-
-    if (geo.isEmpty && poi.isEmpty) {
-      final relaxed = _relaxQuery(query);
-      if (relaxed != null) {
-        final retry = await Future.wait([
-          RoutingService.search(relaxed, near: near),
-          PhotonGeocoder.search(relaxed, near: near, languageCode: lang),
-        ]);
-        geo = _rankResults(
-            relaxed, _dedupeByProximity([...retry[0], ...retry[1]]), near);
-      }
-    }
-
-    if (poi.isEmpty) return geo;
-    // Skip geocoder hits that are essentially the same place as a POI result
-    // already included (within 30 m).
-    const dist = Distance();
-    final merged = [...poi];
-    for (final n in geo) {
-      final isDup = poi
-          .any((p) => dist.as(LengthUnit.Meter, p.position, n.position) < 30);
-      if (!isDup) merged.add(n);
-    }
-    return merged;
-  }
-
-  /// Orders geocoder results by textual match quality first, proximity second,
-  /// and caps the list at a scannable length.
-  static List<NominatimResult> _rankResults(
-      String query, List<NominatimResult> results, LatLng? near) {
-    if (results.length < 2) return results;
-    const dist = Distance();
-    final scored = results
-        .map((r) => (
-              result: r,
-              score: _matchScore(query, r),
-              distance:
-                  near == null ? 0.0 : dist.as(LengthUnit.Meter, near, r.position),
-            ))
-        .toList();
-    scored.sort((a, b) {
-      // Group scores into coarse bands: a 2 % scoring difference should not
-      // outweigh being 40 km closer.
-      final band = (b.score * 10).round().compareTo((a.score * 10).round());
-      if (band != 0) return band;
-      return a.distance.compareTo(b.distance);
-    });
-    return scored.map((e) => e.result).take(10).toList();
-  }
-
-  /// Best match between what was typed and the several names a result carries.
-  ///
-  /// Scoring the street name alone and the "street, town" form separately
-  /// matters: the town is part of the label whether or not the user typed it,
-  /// so comparing only against the full string would punish everyone who just
-  /// types a street name — by far the common case.
-  static double _matchScore(String query, NominatimResult r) {
-    final namePart = r.shortName.split(',').first;
-    return math.max(
-      math.max(FuzzyMatch.score(query, namePart),
-          FuzzyMatch.score(query, r.shortName)),
-      // The full address is a weaker signal: it contains region and country
-      // words that no one types.
-      FuzzyMatch.score(query, r.displayName) * 0.9,
-    );
-  }
-
-  /// Removes results pointing at the same place (within 30 m), keeping the
-  /// first occurrence — providers overlap heavily since both read OSM.
-  static List<NominatimResult> _dedupeByProximity(List<NominatimResult> all) {
-    const dist = Distance();
-    final out = <NominatimResult>[];
-    for (final r in all) {
-      final dup = out.any(
-          (k) => dist.as(LengthUnit.Meter, k.position, r.position) < 30);
-      if (!dup) out.add(r);
-    }
-    return out;
-  }
-
-  /// Builds a shorter, more likely-to-hit variant of a query that returned
-  /// nothing, or null when there is nothing sensible to drop.
-  ///
-  /// European street names are usually "type + given name(s) + surname"
-  /// ("via Attilio Monti") while OSM frequently stores only "type + surname"
-  /// ("via Monti"). Keeping the first and last words reproduces exactly that
-  /// shape, which recovers the single most common miss.
-  static String? _relaxQuery(String query) {
-    final words = query.trim().split(RegExp(r'\s+'))
-      ..removeWhere((w) => w.isEmpty);
-    if (words.length < 3) return null;
-    return '${words.first} ${words.last}';
-  }
+  /// Runs a place search with the screen's live context — GPS bias and UI
+  /// language. All ranking and provider logic lives in [PlaceSearchService].
+  Future<List<NominatimResult>> _searchPlaces(String query,
+          {void Function(List<NominatimResult>)? onPartial}) =>
+      _placeSearch.search(
+        query,
+        near: _hasRealFix ? _position : null,
+        languageCode: Localizations.localeOf(context).languageCode,
+        onPartial: onPartial,
+      );
 
   void _selectSearchResult(NominatimResult result) {
     // Save to history on every explicit selection, not just on navigation start.
