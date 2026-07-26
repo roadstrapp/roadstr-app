@@ -4,8 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:roadstr/utils/geo.dart';
 
-/// Ravenna — the latitude the distortion below was measured at.
-const _lat = 44.417;
+/// Torino — the latitude the distortion below was measured at.
+const _lat = 45.070;
 const _lon = 12.199;
 
 /// Degrees of latitude for [m] metres north.

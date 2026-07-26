@@ -3,8 +3,8 @@ import 'dart:math' as math;
 /// Tolerant text matching for place search.
 ///
 /// Geocoders match strings strictly, so two everyday inputs fail outright:
-/// a typo ("via attillio monti") and a name longer than the one OSM stores
-/// (the user types "via attilio monti", OSM has "via monti"). This scores how
+/// a typo ("via robberto ricci") and a name longer than the one OSM stores
+/// (the user types "via roberto ricci", OSM has "via ricci"). This scores how
 /// well a query describes a candidate name, allowing both — the search UI then
 /// ranks by that score instead of trusting provider order.
 class FuzzyMatch {
@@ -114,10 +114,10 @@ class FuzzyMatch {
   ///   * how much of the candidate the query accounts for — this is what makes
   ///     the shorter, tighter name win.
   ///
-  /// That symmetry is what recovers the real-world miss "via attilio monti" →
-  /// **Via Monti**: the query direction alone scores it poorly (a whole word is
-  /// unaccounted for), so a wrong-but-longer "Via Attilio Rivalta" would beat
-  /// it; the candidate direction scores Via Monti perfectly and pulls it back
+  /// That symmetry is what recovers the real-world miss "via roberto ricci" →
+  /// **Via Ricci**: the query direction alone scores it poorly (a whole word is
+  /// unaccounted for), so a wrong-but-longer "Via Roberto Baldini" would beat
+  /// it; the candidate direction scores Via Ricci perfectly and pulls it back
   /// to the top.
   ///
   /// Words are weighted by length, and street-type stop words ("via", "street")
