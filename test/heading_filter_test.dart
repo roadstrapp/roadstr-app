@@ -9,7 +9,7 @@ LatLng north(LatLng from, double metres) =>
     LatLng(from.latitude + metres * _m, from.longitude);
 
 void main() {
-  const start = LatLng(44.4184, 12.2035);
+  const start = LatLng(45.0703, 7.6869);
 
   double resolve(
     HeadingFilter filter, {

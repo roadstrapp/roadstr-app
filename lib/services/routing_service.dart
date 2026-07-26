@@ -307,7 +307,7 @@ class RoutingService {
   }
 
   /// Reverse-geocodes [point] to a short, recognisable place label
-  /// ("Via Attilio Monti 12, Ravenna") for history entries and route labels.
+  /// ("Via Roberto Ricci 12, Torino") for history entries and route labels.
   /// See [shortLabelFrom] for why this is not `reverseGeocode(parts: 1)`.
   static Future<String?> reverseGeocodeLabel(LatLng point) async {
     try {
@@ -387,7 +387,7 @@ class RoutingService {
       ].where((s) => s != null && s.isNotEmpty && !isNumber(s)).firstOrNull;
 
       // Combine POI name with city so that generic names like "Teodorico"
-      // become "Teodorico Ravenna" — making the Wikipedia / web-search
+      // become "Teodorico Torino" — making the Wikipedia / web-search
       // fallback much more accurate without affecting the geo-based lookup.
       String? wikiQuery;
       if (poiName != null) {
@@ -416,7 +416,7 @@ class RoutingService {
   /// Nominatim formats street addresses house-number-first, so it yields a bare
   /// "12" — every entry in the history then looks like an anonymous number next
   /// to a pin. This uses the structured `address` block instead and rebuilds
-  /// "Via Attilio Monti 12, Ravenna".
+  /// "Via Roberto Ricci 12, Torino".
   ///
   /// [addr] is Nominatim's `address` object; [name] its top-level `name` field
   /// (set for POIs). [display] is only the last-resort fallback.
@@ -832,7 +832,7 @@ class RoutingService {
   ///
   /// Measured against live servers on routes from 34 km to 645 km: at 5 km
   /// spacing OSRM reproduces the Valhalla road almost exactly everywhere
-  /// (Ravenna→Florence, Caltabellotta→Messina, Udine→Genoa, Munich→Vienna).
+  /// (Torino→Florence, Caltabellotta→Messina, Udine→Genoa, Munich→Vienna).
   /// Sparser sampling lets it wander (25 waypoints over Udine→Genoa drifted
   /// 2.6 km off), and denser sampling is worse, not better: waypoints closer
   /// than a couple of kilometres start snapping onto parallel service roads
@@ -846,7 +846,7 @@ class RoutingService {
   /// other route on screen — instead of trusting Valhalla's clock.
   ///
   /// Valhalla and OSRM disagree profoundly about how fast a secondary road is
-  /// driven. Measured live: the motorway-free Ravenna→Florence route is
+  /// driven. Measured live: the motorway-free Torino→Florence route is
   /// 135.4 km in 200 minutes according to Valhalla and 143 according to OSRM;
   /// Caltabellotta→Messina 621 vs 454; Udine→Genoa 639 vs 559. Since the other
   /// cards are OSRM's, Valhalla's number turned a sensible "a few minutes
@@ -1744,7 +1744,7 @@ class NominatimResult {
   final String? type;
 
   /// City / town / village from the structured address — used to build a
-  /// geo-disambiguated Wikipedia query (e.g. "Teodorico Ravenna").
+  /// geo-disambiguated Wikipedia query (e.g. "Teodorico Torino").
   final String? city;
 
   /// Raw OSM `opening_hours` string when the source carries it (Overpass POI

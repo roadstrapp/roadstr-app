@@ -12,9 +12,9 @@ import 'routing_service.dart' show NominatimResult;
 /// token of the query has to be found, spelled correctly, in the indexed name.
 /// Two very common real-world inputs therefore return *nothing at all*:
 ///
-///   * a typo — "via attillio monti";
-///   * a longer-than-OSM name — the user types "via attilio monti" while OSM
-///     has the street as "via monti".
+///   * a typo — "via robberto ricci";
+///   * a longer-than-OSM name — the user types "via roberto ricci" while OSM
+///     has the street as "via ricci".
 ///
 /// Photon is built on Elasticsearch with fuzzy matching and edge n-grams, so it
 /// answers both, and it answers while the user is still typing (it is designed

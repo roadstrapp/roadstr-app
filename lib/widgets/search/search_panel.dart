@@ -265,7 +265,7 @@ class SearchHistoryList extends StatelessWidget {
                   Divider(height: 0.5, color: colors.border),
               itemBuilder: (_, i) {
                 final h = history[i];
-                // "Via Attilio Monti 12, Ravenna" → street on the title line,
+                // "Via Roberto Ricci 12, Torino" → street on the title line,
                 // town on the subtitle line, so entries stay identifiable even
                 // when the street name is long.
                 final comma = h.label.indexOf(',');
