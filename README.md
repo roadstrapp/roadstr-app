@@ -44,8 +44,9 @@ It combines real-time GPS turn-by-turn navigation with community-sourced traffic
 | Auto dark mode (sunset / sunrise via GPS position) | ✅ |
 | 27 languages (all EU official languages + RU, JA, ZH) | ✅ |
 | Navigation notification in Android shade | ✅ |
+| Nostr DMs / collaborative alerts | ✅ |
 | Offline maps | 🔜 Planned |
-| Nostr DMs / collaborative alerts | 🔜 Planned |
+
 
 ---
 
