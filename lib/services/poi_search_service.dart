@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'dart:math' as math;
 import 'package:latlong2/latlong.dart';
 import '../utils/fuzzy_match.dart';
+import '../utils/geo.dart';
 import 'bounded_http.dart';
 import 'routing_service.dart' show NominatimResult;
 
@@ -543,12 +543,12 @@ class PoiSearchService {
         for (final el in elements) {
           final poly = _elementRing(el);
           if (poly == null) continue;
-          if (_pointInPolygon(point, poly)) {
+          if (Geo.pointInPolygon(point, poly)) {
             containing = poly;
             break;
           }
           for (int i = 0; i < poly.length - 1; i++) {
-            final d = _segDistM(point, poly[i], poly[i + 1]);
+            final d = Geo.distanceToSegmentM(point, poly[i], poly[i + 1]);
             if (d < nearestD) {
               nearestD = d;
               nearest = poly;
@@ -600,37 +600,6 @@ class PoiSearchService {
       return outer.length >= 4 ? outer : null;
     }
     return null;
-  }
-
-  /// Ray-casting point-in-polygon.
-  static bool _pointInPolygon(LatLng p, List<LatLng> polygon) {
-    final n = polygon.length;
-    if (n < 3) return false;
-    bool inside = false;
-    final x = p.longitude, y = p.latitude;
-    for (int i = 0, j = n - 1; i < n; j = i++) {
-      final xi = polygon[i].longitude, yi = polygon[i].latitude;
-      final xj = polygon[j].longitude, yj = polygon[j].latitude;
-      if (((yi > y) != (yj > y)) &&
-          (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) {
-        inside = !inside;
-      }
-    }
-    return inside;
-  }
-
-  /// Distance in metres from [p] to segment [a]-[b] (equirectangular approx).
-  static double _segDistM(LatLng p, LatLng a, LatLng b) {
-    const degM = 111320.0;
-    final cosLat = math.cos(p.latitude * math.pi / 180);
-    final dx = (b.longitude - a.longitude) * degM * cosLat;
-    final dy = (b.latitude - a.latitude) * degM;
-    final ex = (p.longitude - a.longitude) * degM * cosLat;
-    final ey = (p.latitude - a.latitude) * degM;
-    final len2 = dx * dx + dy * dy;
-    final t = len2 == 0 ? 0.0 : ((ex * dx + ey * dy) / len2).clamp(0.0, 1.0);
-    final cx = ex - t * dx, cy = ey - t * dy;
-    return math.sqrt(cx * cx + cy * cy);
   }
 
   Future<List<NominatimResult>> _queryTags(

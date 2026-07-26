@@ -61,6 +61,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
+import '../utils/geo.dart';
 import '../utils/units.dart';
 
 class MapScreen extends StatefulWidget {
@@ -770,7 +771,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           const Distance().as(LengthUnit.Meter, _prevGpsPos!, data.position);
       final reliabilityFloorM = math.max(8.0, _lastGpsAccuracy * 0.8);
       if (movedM > reliabilityFloorM) {
-        final movBearing = _bearingBetween(_prevGpsPos!, data.position);
+        final movBearing = Geo.bearingBetween(_prevGpsPos!, data.position);
         if (movBearing.isFinite) {
           // Distance gating alone can't stop LARGE backward jumps (multipath
           // can teleport a fix 20+ m behind — well past the noise floor) whose
@@ -981,18 +982,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         (gps.latitude + dlat).clamp(-89.9, 89.9), gps.longitude + dlng);
   }
 
-  /// Computes the initial bearing (degrees, 0–360 clockwise from north) from
-  /// [from] to [to] using the haversine formula.
-  static double _bearingBetween(LatLng from, LatLng to) {
-    final lat1 = from.latitude * math.pi / 180;
-    final lat2 = to.latitude * math.pi / 180;
-    final dLon = (to.longitude - from.longitude) * math.pi / 180;
-    final y = math.sin(dLon) * math.cos(lat2);
-    final x = math.cos(lat1) * math.sin(lat2) -
-        math.sin(lat1) * math.cos(lat2) * math.cos(dLon);
-    return (math.atan2(y, x) * 180 / math.pi + 360) % 360;
-  }
-
   /// Recalculates [_remainingDistM] and [_remainingSecs] from the current step
   /// index.  Called on every GPS tick during navigation.
   void _updateRemainingStats() {
@@ -1051,8 +1040,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     final building = _destBuilding;
     if (onLastStep &&
         building != null &&
-        (_pointInPolygon(_position, building) ||
-            _distToPolylineM(_position, building) <= 10)) {
+        (Geo.pointInPolygon(_position, building) ||
+            Geo.distanceToPolylineM(_position, building) <= 10)) {
       _onArrival();
       return;
     }
@@ -1303,7 +1292,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     final start = math.max(0, _nearestRouteSegmentIdx - 80);
     final end = math.min(poly.length - 2, _nearestRouteSegmentIdx + 160);
     for (var i = start; i <= end; i++) {
-      final projection = _projectOnSegment(step.location, poly[i], poly[i + 1]);
+      final projection = Geo.projectOnSegment(step.location, poly[i], poly[i + 1]);
       if (projection.distM < best) {
         best = projection.distM;
         bestProgress = _routeCumulativeM[i] +
@@ -1317,7 +1306,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       best = double.infinity;
       for (var i = 0; i < poly.length - 1; i++) {
         final projection =
-            _projectOnSegment(step.location, poly[i], poly[i + 1]);
+            Geo.projectOnSegment(step.location, poly[i], poly[i + 1]);
         if (projection.distM < best) {
           best = projection.distM;
           bestProgress = _routeCumulativeM[i] +
@@ -1333,7 +1322,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     final nearest = _nearestActiveRouteSegment(_position);
     if (nearest == null) return;
     final poly = _route!.polyline;
-    final projection = _projectOnSegment(
+    final projection = Geo.projectOnSegment(
         _position, poly[nearest.segmentIdx], poly[nearest.segmentIdx + 1]);
     final rawProgress = _routeCumulativeM[nearest.segmentIdx] +
         projection.t *
@@ -1372,39 +1361,11 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     final steps = _route!.steps;
     if (_speed > 20 && _currentStepIdx + 1 < steps.length) {
       final nextWaypoint = steps[_currentStepIdx + 1].location;
-      final bearingToNext = _bearingBetween(_position, nextWaypoint);
+      final bearingToNext = Geo.bearingBetween(_position, nextWaypoint);
       double diff = (_heading - bearingToNext).abs();
       if (diff > 180) diff = 360 - diff;
       if (diff > 135) _rerouteAndNavigate();
     }
-  }
-
-  /// Ray-casting point-in-polygon (same algorithm as ZtlService's).
-  static bool _pointInPolygon(LatLng p, List<LatLng> polygon) {
-    final n = polygon.length;
-    if (n < 3) return false;
-    bool inside = false;
-    final x = p.longitude, y = p.latitude;
-    for (int i = 0, j = n - 1; i < n; j = i++) {
-      final xi = polygon[i].longitude, yi = polygon[i].latitude;
-      final xj = polygon[j].longitude, yj = polygon[j].latitude;
-      if (((yi > y) != (yj > y)) &&
-          (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) {
-        inside = !inside;
-      }
-    }
-    return inside;
-  }
-
-  /// Minimum distance (metres) from [p] to any segment of [poly].
-  static double _distToPolylineM(LatLng p, List<LatLng> poly) {
-    double best = double.infinity;
-    for (int i = 0; i < poly.length - 1; i++) {
-      final d = _distToSegment(p.latitude, p.longitude, poly[i].latitude,
-          poly[i].longitude, poly[i + 1].latitude, poly[i + 1].longitude);
-      if (d < best) best = d;
-    }
-    return best;
   }
 
   /// Distance from [pos] to the active route polyline and the bearing of the
@@ -1416,7 +1377,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     final poly = _route!.polyline;
     return (
       distM: nearest.distM,
-      bearing: _bearingBetween(
+      bearing: Geo.bearingBetween(
         poly[nearest.segmentIdx],
         poly[nearest.segmentIdx + 1],
       ),
@@ -1439,8 +1400,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
     void scan(int from, int through) {
       for (var i = from; i <= through; i++) {
-        final d = _distToSegment(pos.latitude, pos.longitude, poly[i].latitude,
-            poly[i].longitude, poly[i + 1].latitude, poly[i + 1].longitude);
+        final d = Geo.distanceToSegmentM(pos, poly[i], poly[i + 1]);
         if (d < bestDist) {
           bestDist = d;
           bestIdx = i;
@@ -1455,46 +1415,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     }
     _nearestRouteSegmentIdx = bestIdx;
     return (distM: bestDist, segmentIdx: bestIdx);
-  }
-
-  /// Minimum distance (metres) from point (px,py) to the line segment (ax,ay)→(bx,by).
-  /// Uses an equirectangular approximation — accurate enough within 100 m.
-  static double _distToSegment(
-      double px, double py, double ax, double ay, double bx, double by) {
-    // Convert degrees to approximate metres (equirectangular)
-    const degM = 111320.0;
-    final cosLat = math.cos(px * math.pi / 180);
-    final dx = (bx - ax) * degM * cosLat;
-    final dy = (by - ay) * degM;
-    final len2 = dx * dx + dy * dy;
-    if (len2 == 0) {
-      // Degenerate segment (A == B): just distance to point A
-      final ex = (px - ax) * degM * cosLat;
-      final ey = (py - ay) * degM;
-      return math.sqrt(ex * ex + ey * ey);
-    }
-    // Parameter t: projection of P onto the segment, clamped to [0, 1]
-    final ex = (px - ax) * degM * cosLat;
-    final ey = (py - ay) * degM;
-    final t = ((ex * dx + ey * dy) / len2).clamp(0.0, 1.0);
-    final cx = ex - t * dx;
-    final cy = ey - t * dy;
-    return math.sqrt(cx * cx + cy * cy);
-  }
-
-  static ({double distM, double t}) _projectOnSegment(
-      LatLng p, LatLng a, LatLng b) {
-    const degM = 111320.0;
-    final cosLat = math.cos(p.latitude * math.pi / 180);
-    final dx = (b.longitude - a.longitude) * degM * cosLat;
-    final dy = (b.latitude - a.latitude) * degM;
-    final px = (p.longitude - a.longitude) * degM * cosLat;
-    final py = (p.latitude - a.latitude) * degM;
-    final len2 = dx * dx + dy * dy;
-    final t = len2 == 0 ? 0.0 : ((px * dx + py * dy) / len2).clamp(0.0, 1.0);
-    final ex = px - t * dx;
-    final ey = py - t * dy;
-    return (distM: math.sqrt(ex * ex + ey * ey), t: t);
   }
 
   List<LatLng> _routeProgressPolyline({required bool completed}) {
@@ -1557,7 +1477,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     var best = double.infinity;
     var progress = 0.0;
     for (var i = start; i <= end; i++) {
-      final projection = _projectOnSegment(camera, poly[i], poly[i + 1]);
+      final projection = Geo.projectOnSegment(camera, poly[i], poly[i + 1]);
       if (projection.distM < best) {
         best = projection.distM;
         progress = _routeCumulativeM[i] +
@@ -1990,7 +1910,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     // rotates to the actual direction of travel immediately, with no lag.
     if (_hasRealFix) {
       if (_speed > 3 && _prevGpsPos != null) {
-        final movBearing = _bearingBetween(_prevGpsPos!, _position);
+        final movBearing = Geo.bearingBetween(_prevGpsPos!, _position);
         if (movBearing.isFinite) _heading = movBearing;
       } else if (_compassHeading.isFinite && _compassHeading != 0) {
         _heading = _compassHeading;

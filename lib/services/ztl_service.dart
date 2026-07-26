@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
 import 'bounded_http.dart';
+import '../utils/geo.dart';
 
 /// A single ZTL zone: name (null when OSM has no `name` tag on the element)
 /// + closed polygon of LatLng vertices.
@@ -99,7 +100,7 @@ class ZtlService {
   /// [_wayProximityM] of) any restricted way.
   bool isInsideZtl(LatLng pos) {
     for (final z in _zones) {
-      if (_pointInPolygon(pos, z.polygon)) return true;
+      if (Geo.pointInPolygon(pos, z.polygon)) return true;
     }
     for (final w in _restrictedWays) {
       if (_nearPolyline(pos, w.points, _wayProximityM)) return true;
@@ -110,7 +111,7 @@ class ZtlService {
   /// Returns the name of the ZTL zone or restricted way at [pos], or null.
   String? ztlNameAt(LatLng pos) {
     for (final z in _zones) {
-      if (_pointInPolygon(pos, z.polygon)) return z.name;
+      if (Geo.pointInPolygon(pos, z.polygon)) return z.name;
     }
     for (final w in _restrictedWays) {
       if (_nearPolyline(pos, w.points, _wayProximityM)) return w.name;
@@ -284,21 +285,4 @@ out geom;
 
   // ── Ray-casting polygon containment ──────────────────────────────────────
 
-  /// Returns true when [p] is inside [polygon] (ray-casting algorithm).
-  static bool _pointInPolygon(LatLng p, List<LatLng> polygon) {
-    final n = polygon.length;
-    if (n < 3) return false;
-    bool inside = false;
-    final x = p.longitude;
-    final y = p.latitude;
-    for (int i = 0, j = n - 1; i < n; j = i++) {
-      final xi = polygon[i].longitude, yi = polygon[i].latitude;
-      final xj = polygon[j].longitude, yj = polygon[j].latitude;
-      if (((yi > y) != (yj > y)) &&
-          (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) {
-        inside = !inside;
-      }
-    }
-    return inside;
-  }
 }
