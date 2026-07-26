@@ -68,7 +68,12 @@ class OverpassClient {
     if (res.statusCode != 200) throw OverpassException(res.statusCode);
     final data = jsonDecode(res.body) as Map<String, dynamic>;
     final elements = data['elements'] as List?;
-    return elements?.cast<Map<String, dynamic>>() ?? const [];
+    if (elements == null) return const [];
+    // whereType, not cast: `cast` is a lazy view that throws on *access*, so a
+    // malformed element would blow up inside the caller's parsing loop —
+    // outside the try that is supposed to handle a bad response. Filtering
+    // eagerly here means callers only ever see well-formed elements.
+    return elements.whereType<Map<String, dynamic>>().toList(growable: false);
   }
 
   /// Tries every mirror in turn, returning null only when all of them fail.

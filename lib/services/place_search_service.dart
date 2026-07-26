@@ -37,6 +37,15 @@ class PlaceSearchService {
   /// layout time.
   static const _maxResults = 10;
 
+  /// Longest query dispatched to the providers.
+  ///
+  /// No place name comes close. The cap is here because the search box runs on
+  /// every keystroke: an accidentally pasted wall of text would otherwise
+  /// become a huge request and a quadratic amount of fuzzy scoring on the UI
+  /// thread. Truncating rather than rejecting keeps a long-but-real address
+  /// working.
+  static const maxQueryLength = 200;
+
   static const _distance = Distance();
 
   /// Searches for [query], biased toward [near] when a GPS fix is available.
@@ -51,8 +60,11 @@ class PlaceSearchService {
     String languageCode = 'en',
     void Function(List<NominatimResult>)? onPartial,
   }) async {
-    final trimmed = query.trim();
+    var trimmed = query.trim();
     if (trimmed.isEmpty) return const [];
+    if (trimmed.length > maxQueryLength) {
+      trimmed = trimmed.substring(0, maxQueryLength);
+    }
 
     final nominatimFuture = RoutingService.search(trimmed, near: near);
     final photonFuture =
