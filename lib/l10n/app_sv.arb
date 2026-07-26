@@ -175,6 +175,7 @@
   "@chainedManeuver": {
     "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
   },
+  "thenManeuver": "sedan {instruction}",
   "reportSpeedLimitHint": "Hastighetsgräns (valfritt)",
   "reportedSpeedLimit": "Rapporterad hastighetsgräns",
   "speedCameraVoiceAlert": "Fartkamera rapporterad, hastighetsgräns {limit} {unit}",

@@ -175,6 +175,7 @@
   "@chainedManeuver": {
     "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
   },
+  "thenManeuver": "ansin {instruction}",
   "reportSpeedLimitHint": "Teorainn luais (roghnach)",
   "reportedSpeedLimit": "Teorainn luais tuairiscithe",
   "speedCameraVoiceAlert": "Ceamara luais tuairiscithe, teorainn {limit} {unit}",

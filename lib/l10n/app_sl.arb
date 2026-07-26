@@ -175,6 +175,7 @@
   "@chainedManeuver": {
     "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
   },
+  "thenManeuver": "nato {instruction}",
   "reportSpeedLimitHint": "Omejitev hitrosti (neobvezno)",
   "reportedSpeedLimit": "Prijavljena omejitev hitrosti",
   "speedCameraVoiceAlert": "Prijavljen radar, omejitev {limit} {unit}",

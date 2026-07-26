@@ -175,6 +175,7 @@
   "@chainedManeuver": {
     "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
   },
+  "thenManeuver": "след това {instruction}",
   "reportSpeedLimitHint": "Ограничение на скоростта (по избор)",
   "reportedSpeedLimit": "Съобщено ограничение на скоростта",
   "speedCameraVoiceAlert": "Камера, ограничение {limit} {unit}",

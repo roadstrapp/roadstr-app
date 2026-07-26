@@ -175,6 +175,7 @@
   "@chainedManeuver": {
     "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
   },
+  "thenManeuver": "daarna {instruction}",
   "reportSpeedLimitHint": "Snelheidslimiet (optioneel)",
   "reportedSpeedLimit": "Gemelde snelheidslimiet",
   "speedCameraVoiceAlert": "Flitser gemeld, snelheidslimiet {limit} {unit}",
