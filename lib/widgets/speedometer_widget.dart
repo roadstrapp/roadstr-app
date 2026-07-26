@@ -10,7 +10,7 @@ class SpeedometerWidget extends StatelessWidget {
   /// Current speed limit in km/h, or null when unknown.
   ///
   /// It is NOT rendered here: the limit already has its own road-sign widget
-  /// next to the speedometer (`_SpeedLimitSign`), and drawing the number twice
+  /// next to the speedometer (`SpeedLimitSign`), and drawing the number twice
   /// was confusing at a glance. It is still needed to colour the dial red when
   /// the driver is over the limit.
   final int? speedLimit;
