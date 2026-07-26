@@ -1,8 +1,7 @@
-import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
-import 'bounded_http.dart';
+import 'overpass_client.dart';
 
 /// A speed camera position sourced from OpenStreetMap (not user-reported).
 class OsmSpeedCamera {
@@ -28,12 +27,6 @@ class OsmSpeedCamera {
 ///
 /// Same throttle/cache/mirror-rotation pattern as [SpeedLimitService].
 class SpeedCameraService {
-  // NB: overpass.osm.ch removed — Switzerland-only extract, returns empty
-  // success for Italy (see SpeedLimitService._endpoints for the full story).
-  static const _endpoints = [
-    'https://overpass-api.de/api/interpreter',
-    'https://overpass.openstreetmap.fr/api/interpreter',
-  ];
   static const _radiusM = 3000; // fetch cameras within 3 km of position
   static const _minMoveM = 800.0; // min travel distance before re-querying
   static const _maxAgeMs = 120000; // re-query after 2 min even without movement
@@ -44,7 +37,7 @@ class SpeedCameraService {
   bool _fetching = false;
   DateTime? _lastSuccessAt;
   DateTime? _nextRetryAt;
-  int _endpointIdx = 0;
+  final _overpass = OverpassClient();
 
   /// The most recently fetched cameras near the last queried position.
   List<OsmSpeedCamera> get cachedCameras => _cached;
@@ -68,7 +61,7 @@ class SpeedCameraService {
       debugPrint('[SpeedCamera] Overpass → ${_cached.length} cameras nearby');
     } catch (e) {
       debugPrint('[SpeedCamera] Overpass error: $e');
-      _endpointIdx = (_endpointIdx + 1) % _endpoints.length;
+      _overpass.rotate();
       _nextRetryAt = DateTime.now().add(const Duration(milliseconds: _retryMs));
     } finally {
       _fetching = false;
@@ -97,21 +90,8 @@ class SpeedCameraService {
         'node["enforcement"="maxspeed"](around:$_radiusM,${pos.latitude},${pos.longitude});)->.cameras;'
         '(.cameras; way(around.cameras:30)["highway"]["maxspeed"];);'
         'out tags geom;';
-    final res = await BoundedHttp.post(
-      Uri.parse(_endpoints[_endpointIdx]),
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': 'Roadstr/1.0 (navigation app)',
-      },
-      body: 'data=${Uri.encodeQueryComponent(query)}',
-      maxBytes: 5 * 1024 * 1024,
-      timeout: const Duration(seconds: 8),
-    );
-
-    if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
-    final data = jsonDecode(res.body) as Map<String, dynamic>;
-    final elements =
-        (data['elements'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final elements = await _overpass.fetchElements(query,
+        maxBytes: 5 * 1024 * 1024, timeout: const Duration(seconds: 8));
     final nodes = <({int id, LatLng position, Map<String, dynamic> tags})>[];
     final ways = <({int? speedLimitKmh, List<LatLng> geometry})>[];
     for (final el in elements) {
