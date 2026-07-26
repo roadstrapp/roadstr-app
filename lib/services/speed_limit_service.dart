@@ -1,8 +1,7 @@
-import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
-import 'bounded_http.dart';
+import 'overpass_client.dart';
 
 /// Queries the Overpass API for the posted speed limit of the road
 /// the user is currently on. This is the primary speed-limit source:
@@ -17,16 +16,6 @@ import 'bounded_http.dart';
 /// Call [updateIfNeeded] on every GPS tick — it is a no-op when position
 /// hasn't changed enough. Read [cachedLimit] synchronously.
 class SpeedLimitService {
-  /// Public Overpass endpoints, tried in order. The main instance is often
-  /// "too busy"; the mirror keeps the feature alive when it rejects us.
-  /// NB: overpass.osm.ch was REMOVED — it is a Switzerland-only extract that
-  /// returns HTTP 200 with zero elements for any Italian location, which was
-  /// cached as a legitimate "no limit here" and blanked the sign. Only
-  /// worldwide mirrors (verified: IPv4 + global coverage) belong here.
-  static const _endpoints = [
-    'https://overpass-api.de/api/interpreter',
-    'https://overpass.openstreetmap.fr/api/interpreter',
-  ];
   static const _radiusM = 60; // OSM way search radius (metres)
   static const _minMoveM = 100.0; // min travel distance before re-querying
   static const _maxAgeMs = 60000; // re-query after 60 s even without movement
@@ -45,7 +34,7 @@ class SpeedLimitService {
   bool _fetching = false;
   DateTime? _lastSuccessAt;
   DateTime? _nextRetryAt;
-  int _endpointIdx = 0;
+  final _overpass = OverpassClient();
   int _missCount = 0;
 
   /// The most recently fetched speed limit (km/h), or null if unknown.
@@ -85,7 +74,7 @@ class SpeedLimitService {
     } catch (e) {
       debugPrint('[SpeedLimit] Overpass error: $e');
       // Rotate to the next mirror before backing off.
-      _endpointIdx = (_endpointIdx + 1) % _endpoints.length;
+      _overpass.rotate();
       _nextRetryAt = DateTime.now().add(const Duration(milliseconds: _retryMs));
     } finally {
       _fetching = false;
@@ -112,23 +101,9 @@ class SpeedLimitService {
         '|primary_link|secondary_link|tertiary_link)\$"]'
         '(around:$_radiusM,${pos.latitude},${pos.longitude});'
         'out tags geom;';
-    final res = await BoundedHttp.post(
-      Uri.parse(_endpoints[_endpointIdx]),
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': 'Roadstr/1.0 (navigation app)',
-      },
-      body: 'data=${Uri.encodeQueryComponent(query)}',
-      maxBytes: 5 * 1024 * 1024,
-      timeout: const Duration(seconds: 7),
-    );
-
-    if (res.statusCode != 200) {
-      throw Exception('HTTP ${res.statusCode}');
-    }
-    final data = jsonDecode(res.body) as Map<String, dynamic>;
-    final elements = (data['elements'] as List?)?.cast<Map<String, dynamic>>();
-    if (elements == null || elements.isEmpty) return null;
+    final elements = await _overpass.fetchElements(query,
+        maxBytes: 5 * 1024 * 1024, timeout: const Duration(seconds: 7));
+    if (elements.isEmpty) return null;
 
     final candidates = <({double distanceM, Map<String, dynamic> tags})>[];
     for (final element in elements) {
