@@ -28,7 +28,8 @@ class NavInstruction extends StatelessWidget {
 
   /// Live GPS distance to the next maneuver point.
   final double distToNextM;
-  const NavInstruction({super.key, 
+  const NavInstruction({
+    super.key,
     required this.step,
     required this.route,
     required this.stepIdx,
@@ -111,21 +112,22 @@ class NavInstruction extends StatelessWidget {
         ]),
       ),
       // ── Next-step preview tile (left-anchored, own background) ─────────────
-      // Half the screen wide at minimum (so short instructions keep the
-      // familiar half-panel look), but free to grow up to the full width when
-      // the text needs it. A hard `width:` here used to clip every instruction
-      // longer than a couple of words to "Contin…" while the space next to the
-      // tile sat empty.
+      // Fixed width = exactly half the panel above (which is edge-to-edge,
+      // i.e. half the screen width) so the tile never grows with long text —
+      // it stays half as wide as the main instruction bar. Long instructions
+      // wrap over the available lines and only then ellipsise.
+      //
+      // Sizing is a quarter shorter than it used to be (vertical padding
+      // 28→20, icon 48→36, type 26/22→20/17): the tile is a preview of what
+      // comes after the manoeuvre, so it must not eat the map. The type shrank
+      // in step with the box so the same instructions still fit on three lines.
       if (showNext)
         Align(
           alignment: Alignment.centerLeft,
           child: Container(
-            constraints: BoxConstraints(
-              minWidth: MediaQuery.of(context).size.width * 0.5,
-              maxWidth: MediaQuery.of(context).size.width,
-            ),
+            width: MediaQuery.of(context).size.width * 0.5,
             padding: EdgeInsets.symmetric(
-                horizontal: land ? 16 : 24, vertical: land ? 16 : 28),
+                horizontal: land ? 16 : 24, vertical: land ? 12 : 20),
             decoration: BoxDecoration(
               color: colors.surface3,
               borderRadius:
@@ -137,14 +139,14 @@ class NavInstruction extends StatelessWidget {
                     offset: const Offset(2, 4))
               ],
             ),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
+            child: Row(children: [
               Icon(_directionIcon(nextStep!.direction, nextStep!.modifier),
-                  color: colors.accent, size: land ? 30 : 48),
-              const SizedBox(width: 12),
-              // Flexible (not Expanded): the tile is sized by its content up to
-              // the full screen width, so the instruction wraps instead of
-              // being cut off mid-word.
-              Flexible(
+                  color: colors.accent, size: land ? 23 : 36),
+              const SizedBox(width: 10),
+              // Expanded (not Flexible) so the text takes the whole remaining
+              // width of the fixed tile and wraps there, instead of letting the
+              // Row grow to fit long instructions.
+              Expanded(
                   child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -156,15 +158,15 @@ class NavInstruction extends StatelessWidget {
                           .thenManeuver(_uncapitalised(nextStep!.instruction)),
                       style: TextStyle(
                           color: colors.textPrimary,
-                          fontSize: land ? 16 : 26,
+                          fontSize: land ? 13 : 20,
                           fontWeight: FontWeight.w600),
                       maxLines: land ? 2 : 3,
                       overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Text(_distLabel(nextStep!.distanceM, ''),
                       style: TextStyle(
                           color: colors.textSecondary,
-                          fontSize: land ? 14 : 22,
+                          fontSize: land ? 11 : 17,
                           fontWeight: FontWeight.w500)),
                 ],
               )),
@@ -268,7 +270,9 @@ class NavPanel extends StatelessWidget {
   /// Live remaining seconds (estimated from remaining distance).
   final double remainingSecs;
   final int? speedLimit;
-  const NavPanel({super.key, required this.route,
+  const NavPanel(
+      {super.key,
+      required this.route,
       required this.speed,
       required this.bottomInset,
       required this.colors,

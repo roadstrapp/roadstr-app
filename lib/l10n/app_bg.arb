@@ -4,29 +4,11 @@
   "calculatingRoute": "Изчисляване на маршрут…",
   "routeNotFoundTitle": "Маршрутът не е намерен",
   "noRouteFound": "Не е намерен маршрут. Проверете връзката си.",
-  "emptyServerResponse": "Празен отговор от сървъра. Проверете връзката си.",
-  "routeError": "Грешка при изчисляване на маршрута: {error}",
-  "@routeError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "gpsNotAvailable": "GPS не е наличен — Настройки → Приложение → Roadstr → Разрешения → Местоположение",
   "acquiringGps": "Получаване на GPS…",
   "graphhopperServerNotConfigured": "Сървърът GraphHopper не е конфигуриран — използва се OSRM",
   "graphhopperApiKeyNotConfigured": "API ключът на GraphHopper не е конфигуриран — използва се OSRM",
   "openrouteApiKeyNotConfigured": "API ключът на OpenRouteService не е конфигуриран — използва се OSRM",
   "chooseRoute": "Избор на маршрут",
-  "routeOptionsCount": "{count} опции",
-  "@routeOptionsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cancel": "Отказ",
   "startNavigation": "Стартиране на навигацията",
   "fastestRoute": "Най-бърз",
@@ -46,12 +28,8 @@
   "themeDarkNostr": "Тъмна · Nostr Виолетово",
   "themeDarkBitcoin": "Тъмна · Bitcoin Оранжево",
   "langSystem": "Системно по подразбиране",
-  "langItalian": "Italiano",
-  "langEnglish": "English",
   "keepScreenOn": "Дръж екрана включен",
   "keepScreenOnDescription": "Предотвратява преминаването в режим на сън по време на навигация",
-  "rotateMap": "Картата следва посоката",
-  "rotateMapDescription": "Картата се завърта според посоката на движение",
   "mapTileUrlLabel": "URL на картографски плочки",
   "routingProviderLabel": "Доставчик на маршрутизиране",
   "osrmProvider": "OSRM (публичен, без ключ)",
@@ -98,19 +76,13 @@
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber е подписвач на приложения за Android, съвместим с NIP-55. Вашият личен ключ остава изолиран в Amber и никога не се споделя.",
   "requestKeyFromAmber": "Поискайте публичен ключ от Amber",
-  "amberNotFound": "Amber не е намерен. Инсталирайте го от Play Store или въведете ръчно вашия npub.",
   "waitingForAmberResponse": "Изчакване на отговор от Amber…",
-  "pasteNpubManually": "Поставете вашия npub ръчно:",
-  "confirmNpub": "Потвърдете npub",
   "enterNsecTitle": "Вмъкнете nsec",
   "loginButton": "Вход",
   "invalidNpubTitle": "Невалиден npub",
   "invalidNsecTitle": "Невалиден nsec",
-  "invalidNpubMessage": "Уверете се, че сте поставили правилния npub.",
   "invalidNsecMessage": "Уверете се, че сте поставили правилния nsec.",
-  "amberResponseError": "Грешка в отговора на Amber",
   "ok": "OK",
-  "or": "или",
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS не е активен",
   "gpsDisabledMessage": "Активирайте GPS в настройките на устройството, за да получите местоположението си и да използвате навигацията.",
@@ -126,14 +98,6 @@
   "chooseAmountSats": "Изберете сума в satoshi (sats):",
   "customAmount": "Персонализирана сума…",
   "zapSending": "Изпращане…",
-  "zapSat": "⚡{sats} sat",
-  "@zapSat": {
-    "placeholders": {
-      "sats": {
-        "type": "int"
-      }
-    }
-  },
   "fetchingLightningAddress": "Извличане на Lightning адрес…",
   "noLightningAddress": "Този репортер няма Lightning адрес",
   "requestingInvoice": "Заявка за фактура…",
@@ -159,28 +123,54 @@
   "notifZapTitle": "Получен zap",
   "notifZapBody": "Получихте zap от {sat} сата!",
   "@notifZapBody": {
-    "placeholders": { "sat": { "type": "int" } }
+    "placeholders": {
+      "sat": {
+        "type": "int"
+      }
+    }
   },
   "notifConfirmedTitle": "Сигналът е потвърден",
   "notifConfirmedBody": "Вашият сигнал за {category} беше потвърден от друг шофьор",
   "@notifConfirmedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "notifDeniedTitle": "Сигналът е оспорен",
   "notifDeniedBody": "Някой съобщи, че вашето {category} вече го няма",
   "@notifDeniedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "chainedManeuver": "{first}, след това {second}",
   "@chainedManeuver": {
-    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   },
   "thenManeuver": "след това {instruction}",
   "reportSpeedLimitHint": "Ограничение на скоростта (по избор)",
   "reportedSpeedLimit": "Съобщено ограничение на скоростта",
   "speedCameraVoiceAlert": "Камера, ограничение {limit} {unit}",
   "@speedCameraVoiceAlert": {
-    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   },
   "optionalComment": "Незадължителен коментар…",
   "publish": "Публикуване",
@@ -283,14 +273,6 @@
   "sectionNavigationVoice": "Глас за навигация",
   "voiceGuidance": "Гласово упътване",
   "voiceGuidanceDesc": "Прочитане на инструкциите за завой на глас по време на навигация",
-  "testVoiceEngine": "Тествай гласовия двигател",
-  "testVoiceEngineDesc": "Докоснете, за да проверите TTS двигателя и да получите инструкции за настройка",
-  "ttsDialogTitle": "Липсва гласов двигател",
-  "ttsDialogBody": "Не е намерен работещ Text-to-Speech двигател.\n\nRoadstr разчита единствено на софтуер с отворен код — инсталирайте един от тези безплатни двигатели от F-Droid:",
-  "ttsRhvoiceDesc": "Естествено звучащ глас, ограничен списък с езици",
-  "ttsEspeakDesc": "Покрива над 100 езика, роботизиран глас",
-  "ttsInstallNote": "⚠️ След инсталиране:\n1. Настройки на Android → Достъпност → Синтезатор на реч\n2. Изберете току-що инсталирания двигател\n3. Изтеглете гласовите данни за вашия език\n4. Рестартирайте Roadstr напълно",
-  "ttsTestNow": "Тествай сега",
   "voiceUnsupportedTitle": "Гласовото упътване не е налично",
   "voiceUnsupportedBody": "Вашият език все още не се поддържа за гласови насоки за завой. Инструкциите за навигация ще продължат да се показват като текст на екрана.",
   "kokoroModelTitle": "Гласов модел (Kokoro AI)",
@@ -304,14 +286,6 @@
   "settingsImperialUnits": "Имперски единици",
   "settingsImperialUnitsDesc": "Мили и фийта вместо километри и метри",
   "arrivedTitle": "🎉 Пристигнахте!",
-  "arrivedBody": "Достигнахте дестинацията си.",
-  "arrivedFeedbackPrompt": "Как мина?",
-  "feedbackBad": "Зле",
-  "feedbackGood": "Добре!",
-  "feedbackDialogTitle": "Кажете ни какво е объркало",
-  "feedbackHint": "Опишете проблема…",
-  "feedbackSent": "Обратна връзка изпратена — благодаря! 🙏",
-  "feedbackSubmit": "Изпрати",
   "transportModeCar": "Автомобил",
   "transportModeWalk": "Пеша",
   "etaArrivalLabel": "Пр. {time}",
@@ -326,11 +300,19 @@
   "poiClosedNow": "Затворено",
   "poiOpensAt": "Отваря: {when}",
   "@poiOpensAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "poiClosesAt": "Затваря: {when}",
   "@poiClosesAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "searchOnEngine": "Търси в {engine}",
   "plannerFromHint": "От…",
@@ -351,7 +333,6 @@
   "weatherSnow": "Сняг",
   "weatherShowers": "Валежи",
   "weatherThunderstorm": "Гръмотевична буря",
-  "ztlAheadWarning": "Напред има зона с ограничено движение — маршрутът минава през нея",
   "ztlInsideWarning": "Зона с ограничено движение",
   "onboardingAppSubtitle": "Open-source Nostr навигация",
   "onboardingWelcomeTitle": "Добре дошли",
@@ -391,7 +372,6 @@
   "onboardingReadyTitle": "Готови сте да навигирате!",
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Да тръгваме!",
-  "onboardingProfileLoading": "Зареждане на профил…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "За максимална поверителност — сигналите се разпространяват в мрежата Nostr — се препоръчва използването на VPN. Mullvad, с плащане в биткойн, е препоръчителният избор.",
   "exportFavoritesTitle": "Експортиране на любими",
@@ -445,9 +425,6 @@
   "trafficNormal": "Нормален трафик",
   "trafficModerate": "Умерен трафик",
   "trafficHeavy": "Натоварен трафик",
-  "avoidHighwaysChip": "Без магистрали",
-  "avoidTollsChip": "Без тол такси",
-  "preferShorterChip": "Най-кратък маршрут",
   "zapAmountButton": "Zap {sats} sat",
   "@zapAmountButton": {
     "placeholders": {
@@ -456,7 +433,6 @@
       }
     }
   },
-  "showRoutePreview": "Преглед на маршрута",
   "autoCenterOnLaunch": "Центриране върху моята позиция при стартиране",
   "autoCenterOnLaunchDesc": "Използва GPS автоматично само ако разрешението за местоположение вече е дадено",
   "openInBrowser": "Отваряне в браузър",
@@ -466,7 +442,6 @@
   "poiCategory": "Категория",
   "poiOperator": "Оператор",
   "poiCuisine": "Кухня",
-  "poiAccessibility": "Достъпност",
   "poiWheelchairYes": "Достъпно за инвалидни колички",
   "poiWheelchairLimited": "Ограничен достъп за инвалидни колички",
   "poiWheelchairNo": "Няма достъп за инвалидни колички",
@@ -508,5 +483,38 @@
   "poiTakeawayOnly": "Само за вкъщи",
   "avoidHighwaysAndTolls": "Избягвай магистрали и платени пътища",
   "avoidRouteUnavailable": "Не е намерен маршрут, който избягва магистрали и платени пътища.",
-  "avoidanceUnavoidableSection": "Намалява магистрали/такси · неизбежен участък"
+  "avoidanceUnavoidableSection": "Намалява магистрали/такси · неизбежен участък",
+  "bottomBarNotifications": "Известия",
+  "notificationsTitle": "Известия",
+  "notificationsEmpty": "Все още няма известия",
+  "notificationsEmptyBody": "Тук ще се появяват запове и реакции на вашите пътни сигнали.",
+  "notificationsLoginRequired": "Свържете своя профил в Nostr",
+  "notificationsLoginRequiredBody": "Влезте с Amber или nsec, за да получавате известия от други потребители.",
+  "profileVisibilityTitle": "Видимост на профила",
+  "profileVisibilityDesc": "Изберете дали другите потребители на Roadstr виждат вашето име в Nostr, npub и снимка.",
+  "profileVisibilityClear": "Показвай профила публично",
+  "profileVisibilityPseudonymous": "Псевдонимен режим (препоръчително)",
+  "profileVisibilityPublishError": "Изборът е запазен локално, но все още не можа да бъде публикуван в Nostr.",
+  "nostrichLabel": "nostrich",
+  "profileHiddenNotice": "Този потребител използва псевдонимен режим.",
+  "editSpeedLimit": "Добавяне или обновяване на ограничението на скоростта",
+  "requestSpeedLimit": "Предложи ограничение на скоростта",
+  "acceptEditRequest": "Приеми предложението",
+  "pendingEditRequests": "Чакащи предложения за редакция",
+  "speedLimitHint": "Ограничение на скоростта",
+  "speedLimitSaved": "Ограничението на скоростта е публикувано",
+  "editRequestSent": "Предложението е изпратено на автора на сигнала",
+  "profileVisibilityOnboarding": "Roadstr винаги публикува публичния ключ в Nostr, необходим за проверка на сигнал. В псевдонимен режим другите потребители на Roadstr виждат само общ аватар и „nostrich“; в публичен режим виждат и вашето име в Nostr, npub и профилна снимка. Вашите сигнали, местоположения, репутация и получени запове остават публични в Nostr.",
+  "nearbyTitle": "Наблизо",
+  "nearbyNeedsGps": "Изчакване на GPS",
+  "nearbyNothingFound": "Нищо намерено в радиус от 5 км",
+  "nearbyFuel": "Бензиностанция",
+  "nearbySupermarket": "Супермаркет",
+  "nearbyAtm": "Банкомат",
+  "nearbyPharmacy": "Аптека",
+  "nearbyHospital": "Болница",
+  "nearbyPolice": "Полиция",
+  "nearbyPostOffice": "Поща",
+  "nearbyParking": "Паркинг",
+  "nearbyCharging": "Зареждане"
 }

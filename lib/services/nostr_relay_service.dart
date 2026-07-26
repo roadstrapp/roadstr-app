@@ -64,22 +64,38 @@ class NostrRelayService {
   static const _maxInboundMessageChars = 256 * 1024;
   static const _maxCachedEvents = 1000;
 
-  /// Primary relays used for subscriptions (tried in round-robin order on
-  /// failure). NB: relay.nostr.band was deliberately REMOVED — this is the
-  /// persistent socket that carries the user's geohash area subscriptions
-  /// (a coarse live-location beacon), and nostr.band feeds a public search
-  /// indexer: the one place that trail must never land.
+  /// Relays Roadstr talks to, in preference order.
+  ///
+  /// Every one of them was verified end to end: publish a Roadstr custom kind
+  /// (1316), then read it straight back. That rules out relays which answer
+  /// `OK` and quietly drop what they do not recognise — of the candidates
+  /// tested, njump.me and nostr21.com refused the write, nostrelites.org wants
+  /// a web of trust, eden.nostr.land wants AUTH, and snort/nostr.wine/
+  /// purplerelay returned nothing at all for kind 1315.
+  ///
+  /// relay.damus.io is last on purpose: it is the biggest, but it refused a
+  /// third of the connection attempts during testing (HTTP 503), and while it
+  /// was the only relay being asked the user's own reports vanished from their
+  /// profile.
+  ///
+  /// Two relays were never enough: one bad day at either of them took the road
+  /// events down with it. Four independent operators means a report survives —
+  /// and stays readable — through any single outage.
+  ///
+  /// NB: relay.nostr.band stays deliberately OUT. This is the socket that
+  /// carries the user's geohash area subscriptions (a coarse live-location
+  /// beacon), and nostr.band feeds a public search indexer: the one place that
+  /// trail must never land.
   static const _relays = [
-    'wss://relay.damus.io',
     'wss://nos.lol',
+    'wss://relay.primal.net',
+    'wss://nostr.oxtr.dev',
+    'wss://relay.damus.io',
   ];
 
-  /// Additional relays used only for publishing (fire-and-forget) to maximise
-  /// event propagation across the Nostr network.
-  static const _publishRelays = [
-    'wss://relay.damus.io',
-    'wss://nos.lol',
-  ];
+  /// Publishing targets. Every report goes to all of them in parallel, so a
+  /// single relay refusing or dropping it never loses the report.
+  static const _publishRelays = _relays;
 
   // ── state ─────────────────────────────────────────────────────────────────
 
@@ -180,6 +196,10 @@ class NostrRelayService {
     try {
       if (_disposed) return;
       _ws = WebSocketChannel.connect(Uri.parse(url));
+      // A refused upgrade (damus answers 503 under load) reaches the listener
+      // below, which rotates to the next relay. `ready` carries the same error
+      // and would otherwise surface as an unhandled asynchronous exception.
+      _ws!.ready.catchError((Object _) {});
       _wsSub = _ws!.stream.listen(
         _onMessage,
         onError: (_) => _scheduleReconnect(),
@@ -1161,19 +1181,60 @@ class NostrRelayService {
     }
   }
 
-  /// Fetches all kind-1315 road events published by [pubHex] from a public relay,
-  /// then enriches each event with its kind-1316 confirmation/denial counts.
+  /// Fetches all kind-1315 road events published by [pubHex] and enriches each
+  /// with its kind-1316 confirmation/denial counts.
   ///
-  /// Uses two sequential subscriptions:
-  ///   1. Fetch events (`evSub`) — wait for EOSE.
-  ///   2. Fetch confirmations (`confSub`) filtered by the collected event IDs.
+  /// Queries **every** relay in [_relays] and merges the answers. This used to
+  /// ask relay.damus.io alone — which during testing refused a third of the
+  /// connections outright (HTTP 503) and answered one probe with no kind-1315
+  /// event at all, while nos.lol served them normally. "My reports" was
+  /// therefore empty no matter how much the user had reported, even while the
+  /// map was showing those very reports, fetched from the other relay.
   static Future<List<RoadEvent>> fetchUserEvents(String pubHex,
       {int limit = 100}) async {
     if (!_isHex32(pubHex)) return [];
     final safeLimit = limit.clamp(1, 500);
+    final perRelay = await Future.wait([
+      for (final url in _relays)
+        _fetchUserEventsFromRelay(pubHex, url, safeLimit),
+    ]);
+    final merged = <String, RoadEvent>{};
+    for (final events in perRelay) {
+      for (final event in events) {
+        final existing = merged[event.id];
+        if (existing == null) {
+          merged[event.id] = event;
+          continue;
+        }
+        // The same report from two relays: the vote counts must NOT be summed.
+        // A kind-1316 event stored on both relays would be counted twice and
+        // inflate the reputation, so keep the higher of the two instead.
+        if (event.confirmations > existing.confirmations) {
+          existing.confirmations = event.confirmations;
+        }
+        if (event.denials > existing.denials) {
+          existing.denials = event.denials;
+        }
+        existing.speedLimit ??= event.speedLimit;
+      }
+    }
+    return merged.values.toList();
+  }
+
+  /// One relay's answer to [fetchUserEvents].
+  ///
+  /// Uses two sequential subscriptions:
+  ///   1. Fetch events (`evSub`) — wait for EOSE.
+  ///   2. Fetch confirmations (`confSub`) filtered by the collected event IDs.
+  static Future<List<RoadEvent>> _fetchUserEventsFromRelay(
+      String pubHex, String relayUrl, int safeLimit) async {
     WebSocketChannel? ws;
     try {
-      ws = WebSocketChannel.connect(Uri.parse('wss://relay.damus.io'));
+      ws = WebSocketChannel.connect(Uri.parse(relayUrl));
+      // A relay that refuses the upgrade (damus answers 503 under load)
+      // must fail here, inside the try, instead of escaping as an
+      // unhandled asynchronous error and leaving a REQ on a dead socket.
+      await ws.ready.timeout(const Duration(seconds: 5));
       final events = <RoadEvent>[];
       final eventIds = <String>{};
       final pendingUpdates = <String, Map<String, dynamic>>{};
@@ -1186,103 +1247,102 @@ class NostrRelayService {
       final confSub = randomSubId();
       var confirmationRequested = false;
 
+      /// Applies a verified kind-1317 speed-limit update to its report, newest
+      /// wins. Only the report's own author may change it.
+      void applyUpdate(RoadEvent event, Map<String, dynamic> update) {
+        final limit = int.tryParse(_tagValue(update, 'maxspeed') ?? '');
+        final createdAt = update['created_at'] as int? ?? 0;
+        if (update['pubkey'] != event.pubkey) return;
+        if (limit == null || limit < 5 || limit > 300) return;
+        if (createdAt <= (updateTimes[event.id] ?? event.createdAt)) return;
+        updateTimes[event.id] = createdAt;
+        event.speedLimit = limit;
+      }
+
+      /// A road report of the user's own.
+      void onReport(Map<String, dynamic> json) {
+        final event = RoadEvent.fromNostr(json);
+        if (event == null || !eventIds.add(event.id)) return;
+        events.add(event);
+        // Its update may have arrived before it did.
+        final pending = pendingUpdates.remove(event.id);
+        if (pending != null) applyUpdate(event, pending);
+      }
+
+      /// A speed-limit update, which may name a report not yet received.
+      void onUpdate(Map<String, dynamic> json) {
+        final target = _tagValue(json, 'e');
+        if (target == null) return;
+        final index = events.indexWhere((e) => e.id == target);
+        if (index < 0) {
+          pendingUpdates[target] = json;
+          return;
+        }
+        applyUpdate(events[index], json);
+      }
+
+      /// Somebody else confirming or denying one of those reports.
+      void onVote(Map<String, dynamic> json) {
+        final targetIds = <String>[];
+        final statuses = <String>[];
+        for (final tag in (json['tags'] as List)) {
+          if (tag is! List || tag.length < 2) continue;
+          if (tag[0] == 'e') targetIds.add(tag[1].toString());
+          if (tag[0] == 'status') statuses.add(tag[1].toString());
+        }
+        // Exactly one of each: a vote tagging several reports, or claiming two
+        // outcomes, is malformed and must not be counted anywhere.
+        if (targetIds.length != 1 || statuses.length != 1) return;
+        final index = events.indexWhere((e) => e.id == targetIds.single);
+        if (index < 0) return;
+        if (!countedVotes.add('${targetIds.single}:${json['pubkey']}')) return;
+        if (statuses.single == 'still_there') {
+          events[index].confirmations++;
+        } else if (statuses.single == 'no_longer_there') {
+          events[index].denials++;
+        }
+      }
+
+      /// After the reports, ask for the votes on exactly those ids.
+      void requestVotes() {
+        if (confirmationRequested) return;
+        confirmationRequested = true;
+        if (eventIds.isEmpty) {
+          completer.complete(events);
+          return;
+        }
+        ws?.sink.add(jsonEncode([
+          'REQ',
+          confSub,
+          {
+            'kinds': [1316],
+            '#e': eventIds.toList(),
+            'limit': 500,
+          }
+        ]));
+      }
+
       ws.stream.listen(
         (raw) {
           if (completer.isCompleted) return;
           try {
             if (raw is! String || raw.length > _maxInboundMessageChars) return;
             final msg = jsonDecode(raw) as List;
-            if (msg[0] == 'EVENT') {
-              final json = (msg[2] as Map).cast<String, dynamic>();
-              // Same trust rule as the live subscription: verify id + signature
-              // before using anything a relay sends.
-              if (!verifyEventJson(json)) return;
-              if (msg[1] == evSub && json['kind'] == 1315) {
-                final ev = RoadEvent.fromNostr(json);
-                if (ev != null && eventIds.add(ev.id)) {
-                  events.add(ev);
-                  final update = pendingUpdates.remove(ev.id);
-                  if (update != null) {
-                    final limit =
-                        int.tryParse(_tagValue(update, 'maxspeed') ?? '');
-                    final updateAt = update['created_at'] as int? ?? 0;
-                    if (update['pubkey'] == ev.pubkey &&
-                        updateAt > ev.createdAt &&
-                        limit != null &&
-                        limit >= 5 &&
-                        limit <= 300) {
-                      ev.speedLimit = limit;
-                    }
-                  }
-                }
-              } else if (msg[1] == evSub && json['kind'] == 1317) {
-                final target = _tagValue(json, 'e');
-                final limit = int.tryParse(_tagValue(json, 'maxspeed') ?? '');
-                if (target == null ||
-                    limit == null ||
-                    limit < 5 ||
-                    limit > 300) {
-                  return;
-                }
-                final idx = events.indexWhere((e) => e.id == target);
-                if (idx < 0) {
-                  pendingUpdates[target] = json;
-                  return;
-                }
-                final event = events[idx];
-                final created = json['created_at'] as int? ?? 0;
-                if (json['pubkey'] == event.pubkey &&
-                    created > (updateTimes[target] ?? event.createdAt)) {
-                  updateTimes[target] = created;
-                  event.speedLimit = limit;
-                }
-              } else if (msg[1] == confSub && json['kind'] == 1316) {
-                final tags = (json['tags'] as List)
-                    .map((t) => List<String>.from(t as List))
-                    .toList();
-                final targetIds = <String>[];
-                final statuses = <String>[];
-                for (final t in tags) {
-                  if (t.length < 2) continue;
-                  if (t[0] == 'e') targetIds.add(t[1]);
-                  if (t[0] == 'status') statuses.add(t[1]);
-                }
-                if (targetIds.length != 1 || statuses.length != 1) return;
-                final targetId = targetIds.single;
-                final status = statuses.single;
-                if (status != 'still_there' && status != 'no_longer_there') {
-                  return;
-                }
-                final idx = events.indexWhere((e) => e.id == targetId);
-                if (idx < 0) return;
-                if (!countedVotes.add('$targetId:${json['pubkey']}')) return;
-                if (status == 'still_there') {
-                  events[idx].confirmations++;
-                } else if (status == 'no_longer_there') {
-                  events[idx].denials++;
-                }
+            if (msg[0] == 'EOSE') {
+              if (msg[1] == evSub) requestVotes();
+              if (msg[1] == confSub && !completer.isCompleted) {
+                completer.complete(events);
               }
-            } else if (msg[0] == 'EOSE') {
-              if (msg[1] == evSub) {
-                if (confirmationRequested) return;
-                confirmationRequested = true;
-                if (eventIds.isEmpty) {
-                  completer.complete(events);
-                  return;
-                }
-                ws?.sink.add(jsonEncode([
-                  'REQ',
-                  confSub,
-                  {
-                    'kinds': [1316],
-                    '#e': eventIds.toList(),
-                    'limit': 500,
-                  }
-                ]));
-              } else if (msg[1] == confSub) {
-                if (!completer.isCompleted) completer.complete(events);
-              }
+              return;
             }
+            if (msg[0] != 'EVENT') return;
+            final json = (msg[2] as Map).cast<String, dynamic>();
+            // Same trust rule as the live subscription: verify id + signature
+            // before using anything a relay sends.
+            if (!verifyEventJson(json)) return;
+            if (msg[1] == evSub && json['kind'] == 1315) return onReport(json);
+            if (msg[1] == evSub && json['kind'] == 1317) return onUpdate(json);
+            if (msg[1] == confSub && json['kind'] == 1316) return onVote(json);
           } catch (_) {}
         },
         onError: (_) {
@@ -1299,7 +1359,9 @@ class NostrRelayService {
         {
           'kinds': [1315, 1317],
           'authors': [pubHex],
-          'since': _nowS() - 30 * 86400, // last 30 days
+          // A year, not a month: this is the user's own reporting history, and
+          // a speed camera reported six weeks ago is still their report.
+          'since': _nowS() - 365 * 86400,
           'limit': safeLimit,
         }
       ]));
@@ -1320,96 +1382,104 @@ class NostrRelayService {
   static Future<List<RoadEventEditRequest>> fetchEditRequests(
       String eventId) async {
     if (!_isHex32(eventId)) return [];
-    for (final relayUrl in _profileRelays) {
-      WebSocketChannel? ws;
-      try {
-        ws = WebSocketChannel.connect(Uri.parse(relayUrl));
-        final subId = randomSubId();
-        final completer = Completer<List<RoadEventEditRequest>>();
-        final out = <RoadEventEditRequest>[];
-        ws.stream.listen((raw) {
-          if (completer.isCompleted) return;
-          try {
-            if (raw is! String || raw.length > _maxInboundMessageChars) return;
-            final msg = jsonDecode(raw) as List;
-            if (msg[0] == 'EVENT' && msg[1] == subId) {
-              final json = (msg[2] as Map).cast<String, dynamic>();
-              if (json['kind'] != 1318 || !verifyEventJson(json)) return;
-              final tags = (json['tags'] as List?) ?? const [];
-              String? target;
-              String? rawLimit;
-              for (final tag in tags) {
-                if (tag is! List || tag.length < 2) continue;
-                if (tag[0] == 'e') target = tag[1].toString();
-                if (tag[0] == 'maxspeed') rawLimit = tag[1].toString();
-              }
-              final limit = int.tryParse(rawLimit ?? '');
-              if (target != eventId ||
-                  limit == null ||
-                  limit < 5 ||
-                  limit > 300) {
-                return;
-              }
-              out.add(RoadEventEditRequest(
-                id: json['id'] as String,
-                eventId: target!,
-                requesterPubkey: json['pubkey'] as String,
-                speedLimit: limit,
-                comment: json['content'] as String? ?? '',
-                createdAt: json['created_at'] as int? ?? 0,
-              ));
-            } else if (msg[0] == 'EOSE' && msg[1] == subId) {
-              completer.complete(out);
-            }
-          } catch (_) {}
-        }, onError: (_) {
-          if (!completer.isCompleted) completer.complete(out);
-        }, onDone: () {
-          if (!completer.isCompleted) completer.complete(out);
-        });
-        ws.sink.add(jsonEncode([
-          'REQ',
-          subId,
-          {
-            'kinds': [1318],
-            '#e': [eventId],
-            'limit': 100,
-          }
-        ]));
-        return await completer.future
-            .timeout(const Duration(seconds: 6), onTimeout: () => out);
-      } catch (_) {
-        // Try the next profile relay.
-      } finally {
-        ws?.sink.close().catchError((_) {});
+    // Asked of every relay at once and merged, deduped by event id. Returning
+    // the first relay's answer meant one relay having nothing — or being down —
+    // hid the suggestions the others were holding.
+    final perRelay = await Future.wait([
+      for (final url in _relays) _fetchEditRequestsFromRelay(eventId, url),
+    ]);
+    final merged = <String, RoadEventEditRequest>{};
+    for (final requests in perRelay) {
+      for (final request in requests) {
+        merged[request.id] = request;
       }
     }
-    return [];
+    return merged.values.toList();
   }
 
-  /// Fetches the NIP-01 kind-0 metadata event for [pubHex] from a public relay
-  /// and returns a [NostrProfile] with name, displayName, and picture URL.
-  /// Returns `null` if the relay has no profile or the request times out (6 s).
-  /// Relays tried in order when fetching a Nostr kind-0 profile.
-  /// Having multiple fallbacks increases the chance of finding the profile
-  /// even when one relay is offline or doesn't have the user's metadata.
-  /// nostr.band removed here too: a profile REQ carries authors=[npub], and
-  /// handing "this npub is active right now at this IP" to a search-engine
-  /// operator is not worth a third fallback for cosmetic data.
-  static const _profileRelays = [
-    'wss://relay.damus.io',
-    'wss://nos.lol',
-  ];
+  /// One relay's answer to [fetchEditRequests].
+  static Future<List<RoadEventEditRequest>> _fetchEditRequestsFromRelay(
+      String eventId, String relayUrl) async {
+    WebSocketChannel? ws;
+    try {
+      ws = WebSocketChannel.connect(Uri.parse(relayUrl));
+      // A relay that refuses the upgrade (damus answers 503 under load)
+      // must fail here, inside the try, instead of escaping as an
+      // unhandled asynchronous error and leaving a REQ on a dead socket.
+      await ws.ready.timeout(const Duration(seconds: 5));
+      final subId = randomSubId();
+      final completer = Completer<List<RoadEventEditRequest>>();
+      final out = <RoadEventEditRequest>[];
+      ws.stream.listen((raw) {
+        if (completer.isCompleted) return;
+        try {
+          if (raw is! String || raw.length > _maxInboundMessageChars) return;
+          final msg = jsonDecode(raw) as List;
+          if (msg[0] == 'EVENT' && msg[1] == subId) {
+            final json = (msg[2] as Map).cast<String, dynamic>();
+            if (json['kind'] != 1318 || !verifyEventJson(json)) return;
+            final tags = (json['tags'] as List?) ?? const [];
+            String? target;
+            String? rawLimit;
+            for (final tag in tags) {
+              if (tag is! List || tag.length < 2) continue;
+              if (tag[0] == 'e') target = tag[1].toString();
+              if (tag[0] == 'maxspeed') rawLimit = tag[1].toString();
+            }
+            final limit = int.tryParse(rawLimit ?? '');
+            if (target != eventId ||
+                limit == null ||
+                limit < 5 ||
+                limit > 300) {
+              return;
+            }
+            out.add(RoadEventEditRequest(
+              id: json['id'] as String,
+              eventId: target!,
+              requesterPubkey: json['pubkey'] as String,
+              speedLimit: limit,
+              comment: json['content'] as String? ?? '',
+              createdAt: json['created_at'] as int? ?? 0,
+            ));
+          } else if (msg[0] == 'EOSE' && msg[1] == subId) {
+            completer.complete(out);
+          }
+        } catch (_) {}
+      }, onError: (_) {
+        if (!completer.isCompleted) completer.complete(out);
+      }, onDone: () {
+        if (!completer.isCompleted) completer.complete(out);
+      });
+      ws.sink.add(jsonEncode([
+        'REQ',
+        subId,
+        {
+          'kinds': [1318],
+          '#e': [eventId],
+          'limit': 100,
+        }
+      ]));
+      return await completer.future
+          .timeout(const Duration(seconds: 6), onTimeout: () => out);
+    } catch (_) {
+      return const [];
+    } finally {
+      ws?.sink.close().catchError((_) {});
+    }
+  }
 
   /// Fetches a Nostr kind-0 (profile metadata) event for [pubHex].
   ///
-  /// Tries [_profileRelays] in sequence and returns the first non-null result.
-  /// This makes profile loading resilient to relay outages, which is the most
-  /// common reason for the picture/name not loading after nsec login.
+  /// Asks all relays **at once** and takes the first non-null answer in
+  /// preference order. Asking them one after another would have made a single
+  /// unresponsive relay cost its whole timeout before the next was even tried;
+  /// in parallel the wait is the slowest relay's, not the sum of all of them.
   static Future<NostrProfile?> fetchProfile(String pubHex) async {
     if (!_isHex32(pubHex)) return null;
-    for (final relayUrl in _profileRelays) {
-      final result = await _fetchProfileFromRelay(pubHex, relayUrl);
+    final perRelay = await Future.wait([
+      for (final url in _relays) _fetchProfileFromRelay(pubHex, url),
+    ]);
+    for (final result in perRelay) {
       if (result != null) return result;
     }
     return null;
@@ -1417,12 +1487,18 @@ class NostrRelayService {
 
   /// Reads the latest Roadstr visibility preference from public relays.
   /// Invalid, missing or malformed events are treated as pseudonymous.
+  ///
+  /// All relays are asked at once and the newest answer wins: the preference
+  /// is a replaceable-style setting, so an outdated copy left on one relay
+  /// must never override a newer one published elsewhere.
   static Future<RoadstrProfileVisibility?> fetchProfileVisibility(
       String pubHex) async {
     if (!_isHex32(pubHex)) return null;
+    final perRelay = await Future.wait([
+      for (final url in _relays) _fetchProfileVisibilityFromRelay(pubHex, url),
+    ]);
     RoadstrProfileVisibility? latest;
-    for (final relayUrl in _profileRelays) {
-      final result = await _fetchProfileVisibilityFromRelay(pubHex, relayUrl);
+    for (final result in perRelay) {
       if (result != null &&
           (latest == null || result.createdAt > latest.createdAt)) {
         latest = result;
@@ -1436,6 +1512,10 @@ class NostrRelayService {
     WebSocketChannel? ws;
     try {
       ws = WebSocketChannel.connect(Uri.parse(relayUrl));
+      // A relay that refuses the upgrade (damus answers 503 under load)
+      // must fail here, inside the try, instead of escaping as an
+      // unhandled asynchronous error and leaving a REQ on a dead socket.
+      await ws.ready.timeout(const Duration(seconds: 5));
       final completer = Completer<RoadstrProfileVisibility?>();
       final subId = randomSubId();
       RoadstrProfileVisibility? latest;
@@ -1504,6 +1584,10 @@ class NostrRelayService {
     WebSocketChannel? ws;
     try {
       ws = WebSocketChannel.connect(Uri.parse(relayUrl));
+      // A relay that refuses the upgrade (damus answers 503 under load)
+      // must fail here, inside the try, instead of escaping as an
+      // unhandled asynchronous error and leaving a REQ on a dead socket.
+      await ws.ready.timeout(const Duration(seconds: 5));
       final completer = Completer<NostrProfile?>();
       final subId = randomSubId();
       NostrProfile? latest;

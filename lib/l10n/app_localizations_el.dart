@@ -21,19 +21,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get noRouteFound => 'Δεν βρέθηκε διαδρομή. Ελέγξτε τη σύνδεσή σας.';
 
   @override
-  String get emptyServerResponse =>
-      'Κενή απόκριση διακομιστή. Ελέγξτε τη σύνδεσή σας.';
-
-  @override
-  String routeError(String error) {
-    return 'Σφάλμα υπολογισμού διαδρομής: $error';
-  }
-
-  @override
-  String get gpsNotAvailable =>
-      'GPS μη διαθέσιμο — Ρυθμίσεις → Εφαρμογή → Roadstr → Άδειες → Τοποθεσία';
-
-  @override
   String get acquiringGps => 'Λήψη GPS…';
 
   @override
@@ -50,11 +37,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get chooseRoute => 'Επιλογή διαδρομής';
-
-  @override
-  String routeOptionsCount(int count) {
-    return '$count επιλογές';
-  }
 
   @override
   String get cancel => 'Ακύρωση';
@@ -78,7 +60,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get selectedPosition => 'Επιλεγμένη θέση';
 
   @override
-  String get bottomBarNotifications => 'Notifications';
+  String get bottomBarNotifications => 'Ειδοποιήσεις';
 
   @override
   String get bottomBarProfile => 'Προφίλ';
@@ -87,21 +69,21 @@ class AppLocalizationsEl extends AppLocalizations {
   String get bottomBarMenu => 'Μενού';
 
   @override
-  String get notificationsTitle => 'Notifications';
+  String get notificationsTitle => 'Ειδοποιήσεις';
 
   @override
-  String get notificationsEmpty => 'No notifications yet';
+  String get notificationsEmpty => 'Δεν υπάρχουν ειδοποιήσεις ακόμη';
 
   @override
   String get notificationsEmptyBody =>
-      'Zaps and reactions to your road reports will appear here.';
+      'Τα zaps και οι αντιδράσεις στις αναφορές σας θα εμφανίζονται εδώ.';
 
   @override
-  String get notificationsLoginRequired => 'Connect your Nostr profile';
+  String get notificationsLoginRequired => 'Συνδέστε το προφίλ σας στο Nostr';
 
   @override
   String get notificationsLoginRequiredBody =>
-      'Sign in with Amber or nsec to receive notifications from other users.';
+      'Συνδεθείτε με Amber ή nsec για να λαμβάνετε ειδοποιήσεις από άλλους χρήστες.';
 
   @override
   String get settingsTitle => 'Ρυθμίσεις';
@@ -134,12 +116,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get langSystem => 'Προεπιλογή συστήματος';
 
   @override
-  String get langItalian => 'Italiano';
-
-  @override
-  String get langEnglish => 'English';
-
-  @override
   String get keepScreenOn => 'Διατήρηση οθόνης ενεργής';
 
   @override
@@ -152,13 +128,6 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get autoCenterOnLaunchDesc =>
       'Χρησιμοποιεί αυτόματα το GPS μόνο αν έχει ήδη δοθεί άδεια τοποθεσίας';
-
-  @override
-  String get rotateMap => 'Ο χάρτης ακολουθεί την κατεύθυνση';
-
-  @override
-  String get rotateMapDescription =>
-      'Ο χάρτης περιστρέφεται βάσει της κατεύθυνσης οδήγησης';
 
   @override
   String get mapTileUrlLabel => 'URL πλακιδίων χάρτη';
@@ -236,48 +205,50 @@ class AppLocalizationsEl extends AppLocalizations {
   String get profileTitle => 'Προφίλ';
 
   @override
-  String get profileVisibilityTitle => 'Profile visibility';
+  String get profileVisibilityTitle => 'Ορατότητα προφίλ';
 
   @override
   String get profileVisibilityDesc =>
-      'Choose whether other Roadstr users see your Nostr name, npub and picture.';
+      'Επιλέξτε αν οι άλλοι χρήστες του Roadstr βλέπουν το όνομά σας στο Nostr, το npub και τη φωτογραφία σας.';
 
   @override
-  String get profileVisibilityClear => 'Show profile publicly';
+  String get profileVisibilityClear => 'Εμφάνιση προφίλ δημόσια';
 
   @override
-  String get profileVisibilityPseudonymous => 'Pseudonymous mode (recommended)';
+  String get profileVisibilityPseudonymous =>
+      'Ψευδώνυμη λειτουργία (συνιστάται)';
 
   @override
   String get profileVisibilityPublishError =>
-      'The local choice was saved, but could not be published to Nostr yet.';
+      'Η επιλογή αποθηκεύτηκε τοπικά, αλλά δεν ήταν ακόμη δυνατή η δημοσίευσή της στο Nostr.';
 
   @override
   String get nostrichLabel => 'nostrich';
 
   @override
-  String get profileHiddenNotice => 'This user is using pseudonymous mode.';
+  String get profileHiddenNotice =>
+      'Αυτός ο χρήστης χρησιμοποιεί ψευδώνυμη λειτουργία.';
 
   @override
-  String get editSpeedLimit => 'Add or update speed limit';
+  String get editSpeedLimit => 'Προσθήκη ή ενημέρωση ορίου ταχύτητας';
 
   @override
-  String get requestSpeedLimit => 'Suggest a speed limit';
+  String get requestSpeedLimit => 'Προτείνετε όριο ταχύτητας';
 
   @override
-  String get acceptEditRequest => 'Accept suggestion';
+  String get acceptEditRequest => 'Αποδοχή πρότασης';
 
   @override
-  String get pendingEditRequests => 'Pending edit suggestions';
+  String get pendingEditRequests => 'Εκκρεμείς προτάσεις επεξεργασίας';
 
   @override
-  String get speedLimitHint => 'Speed limit';
+  String get speedLimitHint => 'Όριο ταχύτητας';
 
   @override
-  String get speedLimitSaved => 'Speed limit published';
+  String get speedLimitSaved => 'Το όριο ταχύτητας δημοσιεύτηκε';
 
   @override
-  String get editRequestSent => 'Suggestion sent to the report owner';
+  String get editRequestSent => 'Η πρόταση στάλθηκε στον συντάκτη της αναφοράς';
 
   @override
   String get notConnected => 'Μη συνδεδεμένο';
@@ -354,17 +325,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get requestKeyFromAmber => 'Αίτηση δημόσιου κλειδιού από το Amber';
 
   @override
-  String get amberNotFound =>
-      'Το Amber δεν βρέθηκε. Εγκαταστήστε το από το Play Store ή εισαγάγετε χειροκίνητα το npub σας.';
-
-  @override
   String get waitingForAmberResponse => 'Αναμονή απόκρισης Amber…';
-
-  @override
-  String get pasteNpubManually => 'Επικολλήστε το npub σας χειροκίνητα:';
-
-  @override
-  String get confirmNpub => 'Επιβεβαίωση npub';
 
   @override
   String get enterNsecTitle => 'Εισαγωγή nsec';
@@ -379,21 +340,11 @@ class AppLocalizationsEl extends AppLocalizations {
   String get invalidNsecTitle => 'Μη έγκυρο nsec';
 
   @override
-  String get invalidNpubMessage =>
-      'Βεβαιωθείτε ότι επικολλήσατε το σωστό npub.';
-
-  @override
   String get invalidNsecMessage =>
       'Βεβαιωθείτε ότι επικολλήσατε το σωστό nsec.';
 
   @override
-  String get amberResponseError => 'Σφάλμα απόκρισης Amber';
-
-  @override
   String get ok => 'OK';
-
-  @override
-  String get or => 'ή';
 
   @override
   String get gpsNotActiveTitle => 'Το GPS δεν είναι ενεργό';
@@ -432,11 +383,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get zapSending => 'Αποστολή…';
-
-  @override
-  String zapSat(int sats) {
-    return '⚡$sats sat';
-  }
 
   @override
   String get fetchingLightningAddress => 'Λήψη διεύθυνσης Lightning…';
@@ -734,34 +680,6 @@ class AppLocalizationsEl extends AppLocalizations {
       'Ανάγνωση οδηγιών στροφής δυνατά κατά την πλοήγηση';
 
   @override
-  String get testVoiceEngine => 'Δοκιμή μηχανής φωνής';
-
-  @override
-  String get testVoiceEngineDesc =>
-      'Πατήστε για έλεγχο της μηχανής TTS και οδηγίες ρύθμισης';
-
-  @override
-  String get ttsDialogTitle => 'Λείπει μηχανή φωνής';
-
-  @override
-  String get ttsDialogBody =>
-      'Δεν βρέθηκε λειτουργική μηχανή Text-to-Speech.\n\nΤο Roadstr βασίζεται αποκλειστικά σε λογισμικό ανοιχτού κώδικα — εγκαταστήστε μία από αυτές τις δωρεάν μηχανές από το F-Droid:';
-
-  @override
-  String get ttsRhvoiceDesc =>
-      'Φυσικά ηχητική φωνή, περιορισμένη λίστα γλωσσών';
-
-  @override
-  String get ttsEspeakDesc => 'Καλύπτει πάνω από 100 γλώσσες, ρομποτική φωνή';
-
-  @override
-  String get ttsInstallNote =>
-      '⚠️ Μετά την εγκατάσταση:\n1. Ρυθμίσεις Android → Προσβασιμότητα → Σύνθεση φωνής\n2. Επιλέξτε τη μηχανή που μόλις εγκαταστήσατε\n3. Κατεβάστε τα φωνητικά δεδομένα της γλώσσας σας\n4. Επανεκκινήστε πλήρως το Roadstr';
-
-  @override
-  String get ttsTestNow => 'Δοκιμή τώρα';
-
-  @override
   String get voiceUnsupportedTitle =>
       'Η φωνητική καθοδήγηση δεν είναι διαθέσιμη';
 
@@ -803,30 +721,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get arrivedTitle => '🎉 Φτάσατε!';
-
-  @override
-  String get arrivedBody => 'Φτάσατε στον προορισμό σας.';
-
-  @override
-  String get arrivedFeedbackPrompt => 'Πώς πήγε;';
-
-  @override
-  String get feedbackBad => 'Κακά';
-
-  @override
-  String get feedbackGood => 'Καλά!';
-
-  @override
-  String get feedbackDialogTitle => 'Πείτε μας τι πήγε στραβά';
-
-  @override
-  String get feedbackHint => 'Περιγράψτε το πρόβλημα…';
-
-  @override
-  String get feedbackSent => 'Ανατροφοδότηση στάλθηκε — ευχαριστώ! 🙏';
-
-  @override
-  String get feedbackSubmit => 'Αποστολή';
 
   @override
   String get transportModeCar => 'Αυτοκίνητο';
@@ -881,9 +775,6 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get poiCuisine => 'Κουζίνα';
-
-  @override
-  String get poiAccessibility => 'Προσβασιμότητα';
 
   @override
   String get poiWheelchairYes => 'Προσβάσιμο με αναπηρικό αμαξίδιο';
@@ -1090,10 +981,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get weatherThunderstorm => 'Καταιγίδα';
 
   @override
-  String get ztlAheadWarning =>
-      'Μπροστά υπάρχει περιορισμένη κυκλοφοριακή ζώνη — η διαδρομή περνά μέσα από αυτήν';
-
-  @override
   String get ztlInsideWarning => 'Περιορισμένη κυκλοφοριακή ζώνη';
 
   @override
@@ -1225,9 +1112,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get onboardingLetsGo => 'Πάμε!';
 
   @override
-  String get onboardingProfileLoading => 'Φόρτωση προφίλ…';
-
-  @override
   String get onboardingNsecHint => 'nsec1…';
 
   @override
@@ -1255,7 +1139,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get profileVisibilityOnboarding =>
-      'Roadstr always publishes the Nostr public key needed to verify a report. In pseudonymous mode, other Roadstr users see only a generic avatar and “nostrich”; in public mode, they also see your Nostr name, npub and profile picture. Your reports, locations, reputation and received zaps remain public on Nostr.';
+      'Το Roadstr δημοσιεύει πάντα το δημόσιο κλειδί Nostr που απαιτείται για την επαλήθευση μιας αναφοράς. Στην ψευδώνυμη λειτουργία, οι άλλοι χρήστες του Roadstr βλέπουν μόνο ένα γενικό άβαταρ και «nostrich»· στη δημόσια λειτουργία βλέπουν επίσης το όνομά σας στο Nostr, το npub και τη φωτογραφία προφίλ σας. Οι αναφορές, οι τοποθεσίες, η φήμη και τα zaps που λαμβάνετε παραμένουν δημόσια στο Nostr.';
 
   @override
   String get parkingSaveHere => 'Αποθήκευση στάθμευσης εδώ';
@@ -1363,21 +1247,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get trafficHeavy => 'Έντονη κίνηση';
 
   @override
-  String get avoidHighwaysChip => 'Αποφυγή αυτοκινητοδρόμων';
-
-  @override
-  String get avoidTollsChip => 'Αποφυγή διοδίων';
-
-  @override
-  String get preferShorterChip => 'Συντομότερη διαδρομή';
-
-  @override
   String zapAmountButton(int sats) {
     return 'Zap $sats sat';
   }
-
-  @override
-  String get showRoutePreview => 'Προεπισκόπηση διαδρομής';
 
   @override
   String get avoidHighwaysAndTolls => 'Αποφυγή αυτοκινητοδρόμων και διοδίων';
@@ -1389,4 +1261,40 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get avoidanceUnavoidableSection =>
       'Ελαχιστοποιεί αυτοκινητόδρομους/διόδια · αναπόφευκτο τμήμα';
+
+  @override
+  String get nearbyTitle => 'Κοντά μου';
+
+  @override
+  String get nearbyNeedsGps => 'Αναμονή GPS';
+
+  @override
+  String get nearbyNothingFound => 'Δεν βρέθηκε τίποτα σε 5 χλμ.';
+
+  @override
+  String get nearbyFuel => 'Καύσιμα';
+
+  @override
+  String get nearbySupermarket => 'Σούπερ μάρκετ';
+
+  @override
+  String get nearbyAtm => 'ΑΤΜ';
+
+  @override
+  String get nearbyPharmacy => 'Φαρμακείο';
+
+  @override
+  String get nearbyHospital => 'Νοσοκομείο';
+
+  @override
+  String get nearbyPolice => 'Αστυνομία';
+
+  @override
+  String get nearbyPostOffice => 'Ταχυδρομείο';
+
+  @override
+  String get nearbyParking => 'Πάρκινγκ';
+
+  @override
+  String get nearbyCharging => 'Φόρτιση';
 }

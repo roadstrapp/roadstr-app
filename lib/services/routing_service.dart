@@ -10,8 +10,10 @@
 // Geocoding uses the Nominatim OpenStreetMap API (addressdetails=1) for both
 // forward search and reverse geocoding.
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
+import '../utils/geo.dart';
 import '../utils/units.dart';
 import 'bounded_http.dart';
 
@@ -78,6 +80,11 @@ class RouteResult {
   /// prevents the UI from claiming a strict exclusion after a soft fallback.
   final RouteAvoidance avoidance;
 
+  /// True when the route itself came out of the avoidance router (Valhalla),
+  /// as opposed to a normal route that was found to already comply. Only the
+  /// former disappears again when the avoidance switch is turned off.
+  final bool fromAvoidanceRouter;
+
   const RouteResult({
     required this.polyline,
     required this.steps,
@@ -85,7 +92,22 @@ class RouteResult {
     required this.totalDurationS,
     this.speedLimits = const [],
     this.avoidance = RouteAvoidance.none,
+    this.fromAvoidanceRouter = false,
   });
+
+  /// Same route, different avoidance verdict. Used when a standard route turns
+  /// out to already satisfy the avoidance policy: it keeps its own geometry,
+  /// distance and — crucially — its own ETA, which came from the same engine
+  /// as every other route on screen.
+  RouteResult withAvoidance(RouteAvoidance value) => RouteResult(
+        polyline: polyline,
+        steps: steps,
+        totalDistanceM: totalDistanceM,
+        totalDurationS: totalDurationS,
+        speedLimits: speedLimits,
+        avoidance: value,
+        fromAvoidanceRouter: fromAvoidanceRouter,
+      );
 
   bool get isHighwayAndTollAvoidance => avoidance != RouteAvoidance.none;
 
@@ -308,13 +330,12 @@ class RoutingService {
   ///   - `label`: a short, human-recognisable name for the place — see
   ///     [shortLabelFrom].
   static Future<
-          ({
-            String display,
-            String? wikiQuery,
-            String? openingHours,
-            String label,
-          })?>
-      reverseGeocodeDetail(LatLng point) async {
+      ({
+        String display,
+        String? wikiQuery,
+        String? openingHours,
+        String label,
+      })?> reverseGeocodeDetail(LatLng point) async {
     try {
       // extratags=1 adds the raw OSM tags of the matched element, including
       // `opening_hours` (parsed client-side for the open/closed badge). No
@@ -769,14 +790,21 @@ class RoutingService {
   ///
   /// This intentionally does not send OSRM's optional `exclude` parameter:
   /// the public OSRM profiles used by Roadstr do not configure the necessary
-  /// excludable sets and return HTTP 400. Valhalla applies OSM access/toll/road
+  /// excludable sets and return HTTP 400 ("Exclude flag combination is not
+  /// supported", verified live). Valhalla applies OSM access/toll/road
   /// classification rules per region and reports whether the result still
   /// contains a highway or toll segment. That result drives the UI wording.
+  ///
+  /// The travel time, however, does **not** come from Valhalla: see
+  /// [_retimedThroughOsrm].
   static Future<RouteResult> getHighwayAndTollAvoidanceRoute(
       LatLng origin, LatLng destination,
-      {String lang = 'en', @visibleForTesting Uri? endpoint}) async {
+      {String lang = 'en',
+      @visibleForTesting Uri? endpoint,
+      @visibleForTesting Uri? retimeEndpoint}) async {
+    final RouteResult route;
     try {
-      return await _getValhallaAvoidanceRoute(
+      route = await _getValhallaAvoidanceRoute(
         origin,
         destination,
         lang: lang,
@@ -784,14 +812,203 @@ class RoutingService {
         hardExclusion: true,
       );
     } on RoutingException {
-      return _getValhallaAvoidanceRoute(
-        origin,
-        destination,
-        lang: lang,
-        endpoint: endpoint,
-        hardExclusion: false,
+      return _retimedThroughOsrm(
+        await _getValhallaAvoidanceRoute(
+          origin,
+          destination,
+          lang: lang,
+          endpoint: endpoint,
+          hardExclusion: false,
+        ),
+        endpoint: retimeEndpoint,
+        stubbedValhalla: endpoint != null,
       );
     }
+    return _retimedThroughOsrm(route,
+        endpoint: retimeEndpoint, stubbedValhalla: endpoint != null);
+  }
+
+  /// One waypoint roughly every this many metres when re-timing a route.
+  ///
+  /// Measured against live servers on routes from 34 km to 645 km: at 5 km
+  /// spacing OSRM reproduces the Valhalla road almost exactly everywhere
+  /// (Ravenna→Florence, Caltabellotta→Messina, Udine→Genoa, Munich→Vienna).
+  /// Sparser sampling lets it wander (25 waypoints over Udine→Genoa drifted
+  /// 2.6 km off), and denser sampling is worse, not better: waypoints closer
+  /// than a couple of kilometres start snapping onto parallel service roads
+  /// and inject detours of their own.
+  static const _retimeSpacingM = 5000.0;
+
+  /// Waypoint ceiling for one re-timing request. 120 keeps the URL near 2 kB.
+  static const _retimeMaxWaypoints = 120;
+
+  /// Re-times the avoidance route with OSRM — the engine that timed every
+  /// other route on screen — instead of trusting Valhalla's clock.
+  ///
+  /// Valhalla and OSRM disagree profoundly about how fast a secondary road is
+  /// driven. Measured live: the motorway-free Ravenna→Florence route is
+  /// 135.4 km in 200 minutes according to Valhalla and 143 according to OSRM;
+  /// Caltabellotta→Messina 621 vs 454; Udine→Genoa 639 vs 559. Since the other
+  /// cards are OSRM's, Valhalla's number turned a sensible "a few minutes
+  /// longer than the motorway" into an absurd hour and a half — the avoidance
+  /// option looked like a detour it never made.
+  ///
+  /// OSRM cannot exclude motorways, but it can be *forced along* a geometry:
+  /// routed through waypoints sampled from the Valhalla shape it drives the
+  /// same roads and reports its own timing for them.
+  ///
+  /// The check is per leg, not per route. Each leg spans one ~5 km slice of
+  /// the Valhalla shape, so comparing the leg's length with that slice's arc
+  /// length says whether OSRM really followed it there. Legs that match
+  /// contribute OSRM's time; legs that don't keep Valhalla's share for that
+  /// slice. A single stretch OSRM refuses to follow — they exist, and they are
+  /// regional — therefore costs the accuracy of that stretch alone instead of
+  /// the whole re-timing. If less than half the distance could be verified, or
+  /// anything fails, the Valhalla figures are kept unchanged.
+  static Future<RouteResult> _retimedThroughOsrm(RouteResult route,
+      {Uri? endpoint, bool stubbedValhalla = false}) async {
+    // A stubbed Valhalla with no stubbed OSRM means a test: never reach out to
+    // the public server behind the test's back.
+    if (stubbedValhalla && endpoint == null) return route;
+    final line = route.polyline;
+    if (line.length < 2 || route.totalDistanceM <= 0) return route;
+    try {
+      // Cumulative distance along the shape: the arc length of every slice.
+      final cumulative = List<double>.filled(line.length, 0);
+      // How many sea crossings precede each point, so a slice containing one
+      // can be recognised in O(1) below.
+      final crossings = List<int>.filled(line.length, 0);
+      for (var i = 1; i < line.length; i++) {
+        final step = Geo.distanceM(line[i - 1], line[i]);
+        cumulative[i] = cumulative[i - 1] + step;
+        crossings[i] = crossings[i - 1] + (step > _maxRoadStepM ? 1 : 0);
+      }
+      final shapeLength = cumulative.last;
+      if (shapeLength <= 0) return route;
+
+      final sampleCount = (shapeLength / _retimeSpacingM).round().clamp(
+                3,
+                _retimeMaxWaypoints - 1,
+              ) +
+          1;
+      final indices = [
+        for (var i = 0; i < sampleCount; i++)
+          (i * (line.length - 1) / (sampleCount - 1)).round(),
+      ];
+      final waypoints = indices
+          .map((i) => '${line[i].longitude.toStringAsFixed(5)},'
+              '${line[i].latitude.toStringAsFixed(5)}')
+          .join(';');
+
+      final base = endpoint?.toString() ?? _osrmDriving;
+      final res = await BoundedHttp.get(
+        Uri.parse('$base/$waypoints?overview=false&steps=false'),
+        headers: {'User-Agent': 'Roadstr/1.0'},
+        maxBytes: _maxRouteResponseBytes,
+        timeout: const Duration(seconds: 30),
+      );
+      if (res.statusCode != 200) return route;
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      if (data['code'] != 'Ok') return route;
+      final osrm = (data['routes'] as List).first as Map<String, dynamic>;
+      final legs = osrm['legs'] as List?;
+      if (legs == null || legs.length != sampleCount - 1) return route;
+
+      var seconds = 0.0;
+      var verifiedM = 0.0;
+      var ferryM = 0.0;
+      for (var i = 0; i < legs.length; i++) {
+        final arcM = cumulative[indices[i + 1]] - cumulative[indices[i]];
+        if (arcM <= 0) continue;
+        final leg = legs[i] as Map<String, dynamic>;
+        final legM = (leg['distance'] as num?)?.toDouble();
+        final legS = (leg['duration'] as num?)?.toDouble();
+        if (legM == null || legS == null || !legM.isFinite || !legS.isFinite) {
+          return route;
+        }
+        // A slice containing a sea crossing keeps Valhalla's time: it reads the
+        // ferry's own scheduled duration from OSM, where a road router can only
+        // guess at a speed — and OSRM may not even take the same boat.
+        final crossesWater = crossings[indices[i + 1]] > crossings[indices[i]];
+        // 20 % (or 150 m on very short slices) of slack absorbs the difference
+        // between two engines' geometry; a leg that left the road entirely is
+        // far outside it.
+        if (!crossesWater &&
+            (legM - arcM).abs() <= math.max(150.0, 0.2 * arcM)) {
+          seconds += legS;
+          verifiedM += arcM;
+        } else {
+          seconds += route.totalDurationS * arcM / shapeLength;
+          if (crossesWater) ferryM += arcM;
+        }
+      }
+      // Sea crossings are excluded from the "did we verify enough?" budget:
+      // a Naples→Palermo route is 80 % boat, and the 20 % of driving around it
+      // is still worth timing properly.
+      final roadLength = shapeLength - ferryM;
+      if (verifiedM < 0.5 * roadLength || seconds <= 0) {
+        debugPrint('[Avoidance] re-timing rejected: only '
+            '${(verifiedM / math.max(roadLength, 1) * 100).round()} % of '
+            '${(roadLength / 1000).round()} road km followed the same road');
+        return route;
+      }
+      debugPrint('[Avoidance] re-timed ${(roadLength / 1000).round()} road km '
+          '(${(verifiedM / math.max(roadLength, 1) * 100).round()} % verified '
+          'over ${legs.length} legs'
+          '${ferryM > 0 ? ', ${(ferryM / 1000).round()} km by sea' : ''}): '
+          '${(route.totalDurationS / 60).round()} min '
+          '→ ${(seconds / 60).round()} min');
+
+      return RouteResult(
+        polyline: route.polyline,
+        steps: route.steps,
+        totalDistanceM: route.totalDistanceM,
+        totalDurationS: seconds,
+        speedLimits: route.speedLimits,
+        avoidance: route.avoidance,
+        fromAvoidanceRouter: true,
+      );
+    } catch (_) {
+      return route; // best-effort: a failed re-timing is not a failed route
+    }
+  }
+
+  /// True when two routes drive down the same roads.
+  ///
+  /// The avoidance route comes from Valhalla while every other route on screen
+  /// comes from the user's provider (OSRM by default), and the two engines
+  /// disagree substantially about travel speed on secondary roads. When the
+  /// recommended route already avoids motorways and tolls, the avoidance
+  /// router returns that very same road — and showing it a second time with
+  /// Valhalla's ETA reads as "the identical route now takes 47 minutes
+  /// longer". This check lets the caller recognise the duplicate and keep a
+  /// single card with a single, comparable ETA.
+  ///
+  /// Two routes match when their lengths agree within 2 % and every sampled
+  /// point of each polyline lies within [toleranceM] of the other polyline —
+  /// so a route that only detours around one toll section is *not* a match.
+  static bool followSameRoads(RouteResult a, RouteResult b,
+      {double toleranceM = 45}) {
+    if (a.polyline.length < 2 || b.polyline.length < 2) return false;
+    final la = a.totalDistanceM, lb = b.totalDistanceM;
+    if (la <= 0 || lb <= 0) return false;
+    if ((la - lb).abs() / math.max(la, lb) > 0.02) return false;
+    return _insideCorridor(a.polyline, b.polyline, toleranceM) &&
+        _insideCorridor(b.polyline, a.polyline, toleranceM);
+  }
+
+  /// True when [samples] evenly spaced points of [line] all lie within
+  /// [toleranceM] of [reference].
+  static bool _insideCorridor(
+      List<LatLng> line, List<LatLng> reference, double toleranceM,
+      {int samples = 48}) {
+    final step = math.max(1, (line.length / samples).floor());
+    for (var i = 0; i < line.length; i += step) {
+      if (Geo.distanceToPolylineM(line[i], reference) > toleranceM) {
+        return false;
+      }
+    }
+    return Geo.distanceToPolylineM(line.last, reference) <= toleranceM;
   }
 
   static Future<RouteResult> _getValhallaAvoidanceRoute(
@@ -907,6 +1124,7 @@ class RoutingService {
         avoidance: hasHighway || hasToll
             ? RouteAvoidance.minimizedHighwaysAndTolls
             : RouteAvoidance.highwayAndTollFree,
+        fromAvoidanceRouter: true,
       ));
     } on RoutingException {
       rethrow;
@@ -914,6 +1132,17 @@ class RoutingService {
       throw RoutingException(message: e.toString());
     }
   }
+
+  /// A step in the route shape longer than this is not a road.
+  ///
+  /// Shape points sit on road nodes, so they are metres to hundreds of metres
+  /// apart; across thirty live routes on six continents the widest gap on
+  /// tarmac was 1.9 km. A jump of tens or hundreds of kilometres is a sea
+  /// crossing: OSM draws a ferry route as a way with barely any nodes, so
+  /// Naples→Palermo arrives as a single 305 km straight line. Those slices are
+  /// real parts of the journey — they are simply not slices OSRM's road timing
+  /// can say anything about. See [_retimedThroughOsrm].
+  static const _maxRoadStepM = 25000.0;
 
   static String _valhallaLanguage(String languageCode) {
     const locales = <String, String>{
@@ -1522,6 +1751,11 @@ class NominatimResult {
   /// results). Parsed client-side into an open/closed badge; null when absent.
   final String? openingHours;
 
+  /// Straight-line distance from the user, in metres, when the result came
+  /// from a "nearby" lookup. Null for ordinary search results, where the
+  /// origin of the query is not necessarily the user's position.
+  final double? distanceM;
+
   const NominatimResult({
     required this.displayName,
     required this.shortName,
@@ -1530,6 +1764,7 @@ class NominatimResult {
     this.type,
     this.city,
     this.openingHours,
+    this.distanceM,
   });
 
   /// Returns an emoji that visually represents the feature category so users

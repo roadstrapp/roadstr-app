@@ -11,8 +11,9 @@ class ThemeProvider extends ChangeNotifier {
   Box? _box;
   AppThemeId _current = AppThemeId.lightNostr;
 
-  /// Whether automatic dark mode (sunset/sunrise) is enabled.
-  bool _autoDarkEnabled = true;
+  /// Whether automatic dark mode (sunset/sunrise) is enabled. Off unless the
+  /// user asks for it: the theme they picked is the theme they expect to see.
+  bool _autoDarkEnabled = false;
 
   /// True when the current time/position is between sunset and sunrise.
   bool _autoDarkActive = false;
@@ -50,7 +51,7 @@ class ThemeProvider extends ChangeNotifier {
           : await Hive.openBox('settings');
       final saved = _box?.get(_key, defaultValue: 0) as int;
       _current = AppThemeIdExt.fromIndex(saved);
-      _autoDarkEnabled = _box?.get(_autoDarkKey, defaultValue: true) as bool;
+      _autoDarkEnabled = _box?.get(_autoDarkKey, defaultValue: false) as bool;
     } catch (_) {
       _box = null;
     }

@@ -4,29 +4,11 @@
   "calculatingRoute": "ルートを計算中…",
   "routeNotFoundTitle": "ルートが見つかりません",
   "noRouteFound": "ルートが見つかりません。接続を確認してください。",
-  "emptyServerResponse": "サーバーの応答が空です。接続を確認してください。",
-  "routeError": "ルート計算エラー：{error}",
-  "@routeError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "gpsNotAvailable": "GPS利用不可 — Settings → App → Roadstr → Permissions → Location",
   "acquiringGps": "GPS取得中…",
   "graphhopperServerNotConfigured": "GraphHopperサーバーが設定されていません — OSRMを使用",
   "graphhopperApiKeyNotConfigured": "GraphHopper APIキーが設定されていません — OSRMを使用",
   "openrouteApiKeyNotConfigured": "OpenRouteService APIキーが設定されていません — OSRMを使用",
   "chooseRoute": "ルートを選択",
-  "routeOptionsCount": "{count}つの選択肢",
-  "@routeOptionsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cancel": "キャンセル",
   "startNavigation": "ナビゲーション開始",
   "fastestRoute": "最速",
@@ -46,12 +28,8 @@
   "themeDarkNostr": "ダーク · Nostrバイオレット",
   "themeDarkBitcoin": "ダーク · ビットコインオレンジ",
   "langSystem": "システムデフォルト",
-  "langItalian": "Italiano",
-  "langEnglish": "English",
   "keepScreenOn": "画面をオンに保つ",
   "keepScreenOnDescription": "ナビゲーション中にスリープを防止",
-  "rotateMap": "マップが方向に追従",
-  "rotateMapDescription": "走行方向に基づいてマップが回転",
   "mapTileUrlLabel": "マップタイルURL",
   "routingProviderLabel": "ルーティングプロバイダー",
   "osrmProvider": "OSRM（公共、キー不要）",
@@ -98,19 +76,13 @@
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "AmberはNIP-55準拠のAndroidアプリ署名者です。秘密鍵はAmber内に隔離され、共有されることはありません。",
   "requestKeyFromAmber": "Amberから公開鍵をリクエスト",
-  "amberNotFound": "Amberが見つかりません。Play Storeからインストールするか、npubを手動で入力してください。",
   "waitingForAmberResponse": "Amberの応答を待っています…",
-  "pasteNpubManually": "npubを手動で貼り付け：",
-  "confirmNpub": "npubを確認",
   "enterNsecTitle": "nsecを入力",
   "loginButton": "ログイン",
   "invalidNpubTitle": "無効なnpub",
   "invalidNsecTitle": "無効なnsec",
-  "invalidNpubMessage": "正しいnpubを貼り付けたか確認してください。",
   "invalidNsecMessage": "正しいnsecを貼り付けたか確認してください。",
-  "amberResponseError": "Amber応答エラー",
   "ok": "OK",
-  "or": "または",
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPSがアクティブではありません",
   "gpsDisabledMessage": "現在地を取得してナビゲーションを使用するには、デバイスの設定でGPSを有効にしてください。",
@@ -126,14 +98,6 @@
   "chooseAmountSats": "サトシ（sats）の金額を選択：",
   "customAmount": "カスタム金額…",
   "zapSending": "送信中…",
-  "zapSat": "⚡{sats} sat",
-  "@zapSat": {
-    "placeholders": {
-      "sats": {
-        "type": "int"
-      }
-    }
-  },
   "fetchingLightningAddress": "Lightningアドレスを取得中…",
   "noLightningAddress": "このレポーターにはLightningアドレスがありません",
   "requestingInvoice": "インボイスをリクエスト中…",
@@ -159,28 +123,54 @@
   "notifZapTitle": "Zapを受信",
   "notifZapBody": "{sat} satのZapを受け取りました!",
   "@notifZapBody": {
-    "placeholders": { "sat": { "type": "int" } }
+    "placeholders": {
+      "sat": {
+        "type": "int"
+      }
+    }
   },
   "notifConfirmedTitle": "報告が確認されました",
   "notifConfirmedBody": "あなたの{category}の報告が他のドライバーによって確認されました",
   "@notifConfirmedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "notifDeniedTitle": "報告に異議あり",
   "notifDeniedBody": "あなたの{category}はもうないと報告されました",
   "@notifDeniedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "chainedManeuver": "{first}、その後 {second}",
   "@chainedManeuver": {
-    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   },
   "thenManeuver": "その後 {instruction}",
   "reportSpeedLimitHint": "制限速度(任意)",
   "reportedSpeedLimit": "報告された制限速度",
   "speedCameraVoiceAlert": "速度カメラあり、制限速度 {limit} {unit}",
   "@speedCameraVoiceAlert": {
-    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   },
   "optionalComment": "任意のコメント…",
   "publish": "公開",
@@ -283,14 +273,6 @@
   "sectionNavigationVoice": "ナビゲーション音声",
   "voiceGuidance": "音声案内",
   "voiceGuidanceDesc": "ナビゲーション中に曲がる指示を音声で読み上げます",
-  "testVoiceEngine": "音声エンジンをテスト",
-  "testVoiceEngineDesc": "タップしてTTSエンジンを確認し、設定手順を取得",
-  "ttsDialogTitle": "音声エンジンがありません",
-  "ttsDialogBody": "動作するText-to-Speechエンジンが見つかりませんでした。\n\nRoadstrはオープンソースソフトウェアのみに依存しています — F-Droidからこれらの無料エンジンのいずれかをインストールしてください：",
-  "ttsRhvoiceDesc": "自然な音声、対応言語は限定的",
-  "ttsEspeakDesc": "100以上の言語に対応、機械的な音声",
-  "ttsInstallNote": "⚠️ インストール後：\n1. Android設定 → ユーザー補助 → テキスト読み上げの出力\n2. インストールしたばかりのエンジンを選択\n3. お使いの言語の音声データをダウンロード\n4. Roadstrを完全に再起動",
-  "ttsTestNow": "今すぐテスト",
   "voiceUnsupportedTitle": "音声案内は利用できません",
   "voiceUnsupportedBody": "お使いの言語は音声によるナビゲーション案内にまだ対応していません。ナビゲーションの指示は引き続き画面にテキストで表示されます。",
   "kokoroModelTitle": "音声モデル (Kokoro AI)",
@@ -304,14 +286,6 @@
   "settingsImperialUnits": "ヤード・ポンド法",
   "settingsImperialUnitsDesc": "キロメートル・メートルの代わりにマイル・フィートを使用",
   "arrivedTitle": "🎉 到着しました！",
-  "arrivedBody": "目的地に到着しました。",
-  "arrivedFeedbackPrompt": "いかがでしたか？",
-  "feedbackBad": "悪い",
-  "feedbackGood": "良い！",
-  "feedbackDialogTitle": "何が問題だったか教えてください",
-  "feedbackHint": "問題を説明してください…",
-  "feedbackSent": "フィードバックを送信しました — ありがとう！ 🙏",
-  "feedbackSubmit": "送信",
   "transportModeCar": "車",
   "transportModeWalk": "徒歩",
   "etaArrivalLabel": "着 {time}",
@@ -326,11 +300,19 @@
   "poiClosedNow": "閉店",
   "poiOpensAt": "開店: {when}",
   "@poiOpensAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "poiClosesAt": "閉店: {when}",
   "@poiClosesAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "searchOnEngine": "{engine}で検索",
   "plannerFromHint": "出発地…",
@@ -351,7 +333,6 @@
   "weatherSnow": "雪",
   "weatherShowers": "にわか雨",
   "weatherThunderstorm": "雷雨",
-  "ztlAheadWarning": "この先に交通制限区域があります。ルートはその中を通ります",
   "ztlInsideWarning": "交通制限区域",
   "onboardingAppSubtitle": "オープンソース Nostr ナビゲーション",
   "onboardingWelcomeTitle": "ようこそ",
@@ -391,7 +372,6 @@
   "onboardingReadyTitle": "ナビゲーションの準備ができました！",
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "さあ出発！",
-  "onboardingProfileLoading": "プロフィールを読み込み中…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "最大限のプライバシーのために — 報告はNostrネットワークに伝播されます — VPNの使用を推奨します。ビットコインで支払えるMullvadがおすすめです。",
   "exportFavoritesTitle": "お気に入りをエクスポート",
@@ -445,9 +425,6 @@
   "trafficNormal": "通常の交通量",
   "trafficModerate": "やや混雑",
   "trafficHeavy": "渋滞",
-  "avoidHighwaysChip": "高速道路を回避",
-  "avoidTollsChip": "有料道路を回避",
-  "preferShorterChip": "最短ルート",
   "zapAmountButton": "Zap {sats} sat",
   "@zapAmountButton": {
     "placeholders": {
@@ -456,7 +433,6 @@
       }
     }
   },
-  "showRoutePreview": "ルートプレビューを表示",
   "autoCenterOnLaunch": "起動時に現在地を中心にする",
   "autoCenterOnLaunchDesc": "位置情報の権限が既に許可されている場合のみ、GPSを自動的に使用します",
   "openInBrowser": "ブラウザで開く",
@@ -466,7 +442,6 @@
   "poiCategory": "カテゴリ",
   "poiOperator": "運営者",
   "poiCuisine": "料理",
-  "poiAccessibility": "アクセシビリティ",
   "poiWheelchairYes": "車椅子で利用可能",
   "poiWheelchairLimited": "車椅子での利用は一部制限",
   "poiWheelchairNo": "車椅子では利用不可",
@@ -508,5 +483,38 @@
   "poiTakeawayOnly": "テイクアウトのみ",
   "avoidHighwaysAndTolls": "高速道路と有料道路を避ける",
   "avoidRouteUnavailable": "高速道路と有料道路の両方を避けるルートが見つかりませんでした。",
-  "avoidanceUnavoidableSection": "高速道路・有料道路を最小化 · 回避不能区間あり"
+  "avoidanceUnavoidableSection": "高速道路・有料道路を最小化 · 回避不能区間あり",
+  "bottomBarNotifications": "通知",
+  "notificationsTitle": "通知",
+  "notificationsEmpty": "通知はまだありません",
+  "notificationsEmptyBody": "あなたの道路レポートへの zap やリアクションがここに表示されます。",
+  "notificationsLoginRequired": "Nostr プロフィールを接続",
+  "notificationsLoginRequiredBody": "他のユーザーからの通知を受け取るには、Amber または nsec でログインしてください。",
+  "profileVisibilityTitle": "プロフィールの公開範囲",
+  "profileVisibilityDesc": "他の Roadstr ユーザーに Nostr の名前・npub・画像を表示するかどうかを選びます。",
+  "profileVisibilityClear": "プロフィールを公開する",
+  "profileVisibilityPseudonymous": "仮名モード（推奨）",
+  "profileVisibilityPublishError": "選択は端末に保存されましたが、まだ Nostr に公開できていません。",
+  "nostrichLabel": "nostrich",
+  "profileHiddenNotice": "このユーザーは仮名モードを使用しています。",
+  "editSpeedLimit": "制限速度を追加・更新",
+  "requestSpeedLimit": "制限速度を提案",
+  "acceptEditRequest": "提案を承認",
+  "pendingEditRequests": "保留中の編集提案",
+  "speedLimitHint": "制限速度",
+  "speedLimitSaved": "制限速度を公開しました",
+  "editRequestSent": "レポートの作成者に提案を送信しました",
+  "profileVisibilityOnboarding": "Roadstr はレポートを検証するために必要な Nostr の公開鍵を常に公開します。仮名モードでは、他の Roadstr ユーザーには汎用アバターと「nostrich」だけが表示されます。公開モードでは、Nostr の名前・npub・プロフィール画像も表示されます。あなたのレポート、位置情報、評価、受け取った zap は Nostr 上で公開されたままです。",
+  "nearbyTitle": "周辺",
+  "nearbyNeedsGps": "GPS を待機中",
+  "nearbyNothingFound": "5 km 以内に見つかりません",
+  "nearbyFuel": "ガソリン",
+  "nearbySupermarket": "スーパー",
+  "nearbyAtm": "ATM",
+  "nearbyPharmacy": "薬局",
+  "nearbyHospital": "病院",
+  "nearbyPolice": "警察",
+  "nearbyPostOffice": "郵便局",
+  "nearbyParking": "駐車場",
+  "nearbyCharging": "充電"
 }

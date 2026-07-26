@@ -4,29 +4,11 @@
   "calculatingRoute": "Qed nikkalkola r-rotta…",
   "routeNotFoundTitle": "Rotta ma nstabitx",
   "noRouteFound": "L-ebda rotta ma nstabet. Iċċekkja l-konnessjoni tiegħek.",
-  "emptyServerResponse": "Risposta vojta mis-server. Iċċekkja l-konnessjoni tiegħek.",
-  "routeError": "Żball fil-kalkolu tar-rotta: {error}",
-  "@routeError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "gpsNotAvailable": "GPS mhux disponibbli — Settings → App → Roadstr → Permissions → Location",
   "acquiringGps": "Qed nikseb GPS…",
   "graphhopperServerNotConfigured": "Is-server GraphHopper mhux ikkonfigurat — tuża OSRM",
   "graphhopperApiKeyNotConfigured": "Ċavetta API GraphHopper mhux ikkonfigurata — tuża OSRM",
   "openrouteApiKeyNotConfigured": "Ċavetta API OpenRouteService mhux ikkonfigurata — tuża OSRM",
   "chooseRoute": "Agħżel rotta",
-  "routeOptionsCount": "{count} għażliet",
-  "@routeOptionsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cancel": "Ikkanċella",
   "startNavigation": "Ibda n-navigazzjoni",
   "fastestRoute": "L-aktar mgħaġġel",
@@ -46,12 +28,8 @@
   "themeDarkNostr": "Skur · Nostr Vjola",
   "themeDarkBitcoin": "Skur · Bitcoin Oranġjo",
   "langSystem": "Default tas-sistema",
-  "langItalian": "Italiano",
-  "langEnglish": "English",
   "keepScreenOn": "Żomm l-iskrin mixgħul",
   "keepScreenOnDescription": "Jimpedixxi l-irqad waqt in-navigazzjoni",
-  "rotateMap": "Il-mappa ssegwi d-direzzjoni",
-  "rotateMapDescription": "Il-mappa tirrotaw abbażi tad-direzzjoni tas-sewqan",
   "mapTileUrlLabel": "URL tal-tile tal-mappa",
   "routingProviderLabel": "Fornitur tal-routing",
   "osrmProvider": "OSRM (pubbliku, l-ebda ċavetta meħtieġa)",
@@ -98,19 +76,13 @@
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber huwa firmatarju ta' app Android konformi ma' NIP-55. Iċ-ċavetta privata tiegħek tibqa' iżolata ġewwa Amber u qatt ma tinqasam.",
   "requestKeyFromAmber": "Itlob iċ-ċavetta pubblika minn Amber",
-  "amberNotFound": "Amber ma nstabx. Installa mill-Play Store jew daħħal in-npub tiegħek manwalment.",
   "waitingForAmberResponse": "Qed nistenna r-risposta ta' Amber…",
-  "pasteNpubManually": "Ippejstja n-npub tiegħek manwalment:",
-  "confirmNpub": "Ikkonferma n-npub",
   "enterNsecTitle": "Daħħal nsec",
   "loginButton": "Idħol",
   "invalidNpubTitle": "npub invalidu",
   "invalidNsecTitle": "nsec invalidu",
-  "invalidNpubMessage": "Kun ċert li ppejstjajt l-npub korrett.",
   "invalidNsecMessage": "Kun ċert li ppejstjajt l-nsec korrett.",
-  "amberResponseError": "Żball fir-risposta ta' Amber",
   "ok": "OK",
-  "or": "jew",
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS mhux attiv",
   "gpsDisabledMessage": "Attiva l-GPS fis-settings tal-apparat tiegħek biex tikseb il-pożizzjoni tiegħek u tuża n-navigazzjoni.",
@@ -126,14 +98,6 @@
   "chooseAmountSats": "Agħżel l-ammont f'satoshi (sats):",
   "customAmount": "Ammont personalizzat…",
   "zapSending": "Qed jintbagħat…",
-  "zapSat": "⚡{sats} sat",
-  "@zapSat": {
-    "placeholders": {
-      "sats": {
-        "type": "int"
-      }
-    }
-  },
   "fetchingLightningAddress": "Qed nikseb l-indirizz Lightning…",
   "noLightningAddress": "Dan ir-rapporteur m'għandu l-ebda indirizz Lightning",
   "requestingInvoice": "Qed nitlob fattura…",
@@ -159,28 +123,54 @@
   "notifZapTitle": "Zap riċevut",
   "notifZapBody": "Irċevejt zap ta' {sat} sats!",
   "@notifZapBody": {
-    "placeholders": { "sat": { "type": "int" } }
+    "placeholders": {
+      "sat": {
+        "type": "int"
+      }
+    }
   },
   "notifConfirmedTitle": "Rapport ikkonfermat",
   "notifConfirmedBody": "Ir-rapport tiegħek dwar {category} ġie kkonfermat minn sewwieq ieħor",
   "@notifConfirmedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "notifDeniedTitle": "Rapport ikkontestat",
   "notifDeniedBody": "Xi ħadd irrapporta li {category} tiegħek m'għadux hemm",
   "@notifDeniedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "chainedManeuver": "{first}, imbagħad {second}",
   "@chainedManeuver": {
-    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   },
   "thenManeuver": "imbagħad {instruction}",
   "reportSpeedLimitHint": "Limitu tal-veloċità (mhux obbligatorju)",
   "reportedSpeedLimit": "Limitu tal-veloċità rrappurtat",
   "speedCameraVoiceAlert": "Kamera tal-veloċità, limitu {limit} {unit}",
   "@speedCameraVoiceAlert": {
-    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   },
   "optionalComment": "Kumment fakultattiv…",
   "publish": "Ippubblika",
@@ -283,14 +273,6 @@
   "sectionNavigationVoice": "Vuċi tan-navigazzjoni",
   "voiceGuidance": "Gwida bil-vuċi",
   "voiceGuidanceDesc": "Aqra l-istruzzjonijiet tad-dawra b'leħen għoli waqt in-navigazzjoni",
-  "testVoiceEngine": "Ittestja l-magna tal-vuċi",
-  "testVoiceEngineDesc": "Mess biex tivverifika l-magna TTS u tikseb istruzzjonijiet ta' konfigurazzjoni",
-  "ttsDialogTitle": "Nieqsa l-magna tal-vuċi",
-  "ttsDialogBody": "Ma nstabet l-ebda magna Text-to-Speech li taħdem.\n\nRoadstr jiddependi biss fuq software open source — installa waħda minn dawn il-magni b'xejn minn F-Droid:",
-  "ttsRhvoiceDesc": "Vuċi naturali, lista limitata ta' lingwi",
-  "ttsEspeakDesc": "Tkopri aktar minn 100 lingwa, vuċi robotika",
-  "ttsInstallNote": "⚠️ Wara l-installazzjoni:\n1. Settings tal-Android → Aċċessibbiltà → Test-to-Speech\n2. Agħżel il-magna li għadek kif installajt\n3. Niżżel id-dejta tal-vuċi tal-lingwa tiegħek\n4. Erġa' ibda Roadstr għal kollox",
-  "ttsTestNow": "Ittestja issa",
   "voiceUnsupportedTitle": "Gwida bil-vuċi mhix disponibbli",
   "voiceUnsupportedBody": "Il-lingwa tiegħek għadha mhix appoġġjata għal struzzjonijiet ta' dawra mitkellma. L-istruzzjonijiet tan-navigazzjoni se jibqgħu jidhru bħala test fuq l-iskrin.",
   "kokoroModelTitle": "Mudell tal-vuċi (Kokoro AI)",
@@ -304,14 +286,6 @@
   "settingsImperialUnits": "Unitajiet imperjali",
   "settingsImperialUnitsDesc": "Mili u piedi minflok kilometri u metri",
   "arrivedTitle": "🎉 Wasalt!",
-  "arrivedBody": "Laħaqt id-destinazzjoni tiegħek.",
-  "arrivedFeedbackPrompt": "Kif marret?",
-  "feedbackBad": "Ħażin",
-  "feedbackGood": "Tajjeb!",
-  "feedbackDialogTitle": "Għidilna x'mar ħażin",
-  "feedbackHint": "Iddeskrivi l-problema…",
-  "feedbackSent": "Feedback intbagħat — grazzi! 🙏",
-  "feedbackSubmit": "Ibgħat",
   "transportModeCar": "Karozza",
   "transportModeWalk": "Bil-mixi",
   "etaArrivalLabel": "Wasl. {time}",
@@ -326,11 +300,19 @@
   "poiClosedNow": "Magħluq",
   "poiOpensAt": "Jiftaħ: {when}",
   "@poiOpensAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "poiClosesAt": "Jagħlaq: {when}",
   "@poiClosesAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "searchOnEngine": "Fittex fuq {engine}",
   "plannerFromHint": "Minn…",
@@ -351,7 +333,6 @@
   "weatherSnow": "Borra",
   "weatherShowers": "Xita qawwija",
   "weatherThunderstorm": "Maltempata",
-  "ztlAheadWarning": "Żona ta' traffiku ristrett 'il quddiem — ir-rotta tgħaddi minnha",
   "ztlInsideWarning": "Żona ta' traffiku ristrett",
   "onboardingAppSubtitle": "Navigazzjoni Nostr open-source",
   "onboardingWelcomeTitle": "Merħba",
@@ -391,7 +372,6 @@
   "onboardingReadyTitle": "Int lest biex tinnawiga!",
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "Ejja mmorru!",
-  "onboardingProfileLoading": "Qed jitgħabba l-profil…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "Għal privatezza massima — ir-rapporti jixterdu fin-netwerk Nostr — huwa rrakkomandat l-użu ta' VPN. Mullvad, li tista' tħallas bil-Bitcoin, hija l-għażla rrakkomandata.",
   "exportFavoritesTitle": "Esporta l-favoriti",
@@ -445,9 +425,6 @@
   "trafficNormal": "Traffiku normali",
   "trafficModerate": "Traffiku moderat",
   "trafficHeavy": "Traffiku qawwi",
-  "avoidHighwaysChip": "Evita l-awtostradi",
-  "avoidTollsChip": "Evita l-pedaġġi",
-  "preferShorterChip": "L-iqsar rotta",
   "zapAmountButton": "Zap {sats} sat",
   "@zapAmountButton": {
     "placeholders": {
@@ -456,7 +433,6 @@
       }
     }
   },
-  "showRoutePreview": "Uri l-previżjoni tar-rotta",
   "autoCenterOnLaunch": "Iċċentra fuq il-pożizzjoni tiegħi mat-tħaddim",
   "autoCenterOnLaunchDesc": "Juża l-GPS awtomatikament biss jekk il-permess tal-post ikun diġà ngħata",
   "openInBrowser": "Iftaħ fil-brawżer",
@@ -466,7 +442,6 @@
   "poiCategory": "Kategorija",
   "poiOperator": "Operatur",
   "poiCuisine": "Kċina",
-  "poiAccessibility": "Aċċessibbiltà",
   "poiWheelchairYes": "Aċċessibbli bis-siġġu tar-roti",
   "poiWheelchairLimited": "Aċċess limitat bis-siġġu tar-roti",
   "poiWheelchairNo": "Mhux aċċessibbli bis-siġġu tar-roti",
@@ -508,5 +483,38 @@
   "poiTakeawayOnly": "Takeaway biss",
   "avoidHighwaysAndTolls": "Evita awtostradi u toroq bi ħlas",
   "avoidRouteUnavailable": "Ma nstabitx rotta li tevita kemm l-awtostradi kif ukoll it-toroq bi ħlas.",
-  "avoidanceUnavoidableSection": "Inaqqas awtostradi/toroq bi ħlas · parti inevitabbli"
+  "avoidanceUnavoidableSection": "Inaqqas awtostradi/toroq bi ħlas · parti inevitabbli",
+  "bottomBarNotifications": "Notifiki",
+  "notificationsTitle": "Notifiki",
+  "notificationsEmpty": "Għad m'hemmx notifiki",
+  "notificationsEmptyBody": "Iz-zaps u r-reazzjonijiet għar-rapporti tat-triq tiegħek jidhru hawn.",
+  "notificationsLoginRequired": "Qabbad il-profil Nostr tiegħek",
+  "notificationsLoginRequiredBody": "Idħol b'Amber jew nsec biex tirċievi notifiki minn utenti oħra.",
+  "profileVisibilityTitle": "Viżibbiltà tal-profil",
+  "profileVisibilityDesc": "Agħżel jekk utenti oħra ta' Roadstr jarawx l-isem Nostr, l-npub u r-ritratt tiegħek.",
+  "profileVisibilityClear": "Uri l-profil pubblikament",
+  "profileVisibilityPseudonymous": "Modalità psewdonima (rakkomandata)",
+  "profileVisibilityPublishError": "L-għażla ġiet salvata lokalment, imma għadha ma setgħetx tiġi ppubblikata fuq Nostr.",
+  "nostrichLabel": "nostrich",
+  "profileHiddenNotice": "Dan l-utent qed juża l-modalità psewdonima.",
+  "editSpeedLimit": "Żid jew aġġorna l-limitu tal-veloċità",
+  "requestSpeedLimit": "Issuġġerixxi limitu tal-veloċità",
+  "acceptEditRequest": "Aċċetta s-suġġeriment",
+  "pendingEditRequests": "Suġġerimenti ta' modifika pendenti",
+  "speedLimitHint": "Limitu tal-veloċità",
+  "speedLimitSaved": "Il-limitu tal-veloċità ġie ppubblikat",
+  "editRequestSent": "Is-suġġeriment intbagħat lill-awtur tar-rapport",
+  "profileVisibilityOnboarding": "Roadstr dejjem jippubblika ċ-ċavetta pubblika Nostr meħtieġa biex jiġi vverifikat rapport. Fil-modalità psewdonima, utenti oħra ta' Roadstr jaraw biss avatar ġeneriku u „nostrich”; fil-modalità pubblika, jaraw ukoll l-isem Nostr, l-npub u r-ritratt tal-profil tiegħek. Ir-rapporti, il-postijiet, ir-reputazzjoni u z-zaps li tirċievi jibqgħu pubbliċi fuq Nostr.",
+  "nearbyTitle": "Fil-qrib",
+  "nearbyNeedsGps": "Qed jistenna l-GPS",
+  "nearbyNothingFound": "Ma nstab xejn f'raġġ ta' 5 km",
+  "nearbyFuel": "Fjuwil",
+  "nearbySupermarket": "Supermarket",
+  "nearbyAtm": "ATM",
+  "nearbyPharmacy": "Spiżerija",
+  "nearbyHospital": "Sptar",
+  "nearbyPolice": "Pulizija",
+  "nearbyPostOffice": "Posta",
+  "nearbyParking": "Parkeġġ",
+  "nearbyCharging": "Iċċarġjar"
 }

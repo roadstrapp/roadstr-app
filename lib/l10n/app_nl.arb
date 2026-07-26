@@ -4,29 +4,11 @@
   "calculatingRoute": "Route berekenen…",
   "routeNotFoundTitle": "Route niet gevonden",
   "noRouteFound": "Geen route gevonden. Controleer uw verbinding.",
-  "emptyServerResponse": "Leeg serverantwoord. Controleer uw verbinding.",
-  "routeError": "Fout bij routeberekening: {error}",
-  "@routeError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "gpsNotAvailable": "GPS niet beschikbaar — Instellingen → App → Roadstr → Machtigingen → Locatie",
   "acquiringGps": "GPS verkrijgen…",
   "graphhopperServerNotConfigured": "GraphHopper-server niet geconfigureerd — OSRM wordt gebruikt",
   "graphhopperApiKeyNotConfigured": "GraphHopper API-sleutel niet geconfigureerd — OSRM wordt gebruikt",
   "openrouteApiKeyNotConfigured": "OpenRouteService API-sleutel niet geconfigureerd — OSRM wordt gebruikt",
   "chooseRoute": "Route kiezen",
-  "routeOptionsCount": "{count} opties",
-  "@routeOptionsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cancel": "Annuleren",
   "startNavigation": "Navigatie starten",
   "fastestRoute": "Snelste",
@@ -46,12 +28,8 @@
   "themeDarkNostr": "Donker · Nostr Violet",
   "themeDarkBitcoin": "Donker · Bitcoin Oranje",
   "langSystem": "Systeemstandaard",
-  "langItalian": "Italiano",
-  "langEnglish": "English",
   "keepScreenOn": "Scherm ingeschakeld houden",
   "keepScreenOnDescription": "Voorkomt slaapstand tijdens navigatie",
-  "rotateMap": "Kaart volgt richting",
-  "rotateMapDescription": "Kaart draait mee met rijrichting",
   "mapTileUrlLabel": "Kaart-tegel URL",
   "routingProviderLabel": "Routingprovider",
   "osrmProvider": "OSRM (openbaar, geen sleutel vereist)",
@@ -98,19 +76,13 @@
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber is een NIP-55-compatibele Android app-ondertekenaar. Uw privésleutel blijft geïsoleerd in Amber en wordt nooit gedeeld.",
   "requestKeyFromAmber": "Publieke sleutel aanvragen bij Amber",
-  "amberNotFound": "Amber niet gevonden. Installeer het via de Play Store of voer uw npub handmatig in.",
   "waitingForAmberResponse": "Wachten op Amber-reactie…",
-  "pasteNpubManually": "Plak uw npub handmatig:",
-  "confirmNpub": "npub bevestigen",
   "enterNsecTitle": "nsec invoeren",
   "loginButton": "Inloggen",
   "invalidNpubTitle": "Ongeldige npub",
   "invalidNsecTitle": "Ongeldige nsec",
-  "invalidNpubMessage": "Controleer of u de juiste npub hebt geplakt.",
   "invalidNsecMessage": "Controleer of u de juiste nsec hebt geplakt.",
-  "amberResponseError": "Amber-antwoordfout",
   "ok": "OK",
-  "or": "of",
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS niet actief",
   "gpsDisabledMessage": "Schakel GPS in via uw apparaatinstellingen om uw locatie te bepalen en navigatie te gebruiken.",
@@ -126,14 +98,6 @@
   "chooseAmountSats": "Kies bedrag in satoshi (sats):",
   "customAmount": "Aangepast bedrag…",
   "zapSending": "Versturen…",
-  "zapSat": "⚡{sats} sat",
-  "@zapSat": {
-    "placeholders": {
-      "sats": {
-        "type": "int"
-      }
-    }
-  },
   "fetchingLightningAddress": "Lightning-adres ophalen…",
   "noLightningAddress": "Deze melder heeft geen Lightning-adres",
   "requestingInvoice": "Factuur aanvragen…",
@@ -159,28 +123,54 @@
   "notifZapTitle": "Zap ontvangen",
   "notifZapBody": "Je hebt een zap van {sat} sats ontvangen!",
   "@notifZapBody": {
-    "placeholders": { "sat": { "type": "int" } }
+    "placeholders": {
+      "sat": {
+        "type": "int"
+      }
+    }
   },
   "notifConfirmedTitle": "Melding bevestigd",
   "notifConfirmedBody": "Je melding van {category} is bevestigd door een andere bestuurder",
   "@notifConfirmedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "notifDeniedTitle": "Melding betwist",
   "notifDeniedBody": "Iemand meldde dat je {category} er niet meer is",
   "@notifDeniedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "chainedManeuver": "{first}, daarna {second}",
   "@chainedManeuver": {
-    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   },
   "thenManeuver": "daarna {instruction}",
   "reportSpeedLimitHint": "Snelheidslimiet (optioneel)",
   "reportedSpeedLimit": "Gemelde snelheidslimiet",
   "speedCameraVoiceAlert": "Flitser gemeld, snelheidslimiet {limit} {unit}",
   "@speedCameraVoiceAlert": {
-    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   },
   "optionalComment": "Optionele opmerking…",
   "publish": "Publiceren",
@@ -283,14 +273,6 @@
   "sectionNavigationVoice": "Navigatiestem",
   "voiceGuidance": "Spraakbegeleiding",
   "voiceGuidanceDesc": "Afslaginstructies hardop voorlezen tijdens navigatie",
-  "testVoiceEngine": "Spraakengine testen",
-  "testVoiceEngineDesc": "Tik om de TTS-engine te controleren en installatie-instructies te krijgen",
-  "ttsDialogTitle": "Spraakengine ontbreekt",
-  "ttsDialogBody": "Er is geen werkende Text-to-Speech-engine gevonden.\n\nRoadstr vertrouwt uitsluitend op opensourcesoftware — installeer een van deze gratis engines via F-Droid:",
-  "ttsRhvoiceDesc": "Natuurlijk klinkende stem, beperkte talenlijst",
-  "ttsEspeakDesc": "Ondersteunt meer dan 100 talen, robotachtige stem",
-  "ttsInstallNote": "⚠️ Na installatie:\n1. Android-instellingen → Toegankelijkheid → Tekst-naar-spraak\n2. Selecteer de zojuist geïnstalleerde engine\n3. Download de spraakgegevens voor jouw taal\n4. Start Roadstr volledig opnieuw op",
-  "ttsTestNow": "Nu testen",
   "voiceUnsupportedTitle": "Spraakbegeleiding niet beschikbaar",
   "voiceUnsupportedBody": "Je taal wordt nog niet ondersteund voor gesproken aanwijzingen. Navigatie-instructies blijven wel als tekst op het scherm verschijnen.",
   "kokoroModelTitle": "Stemmodel (Kokoro AI)",
@@ -304,14 +286,6 @@
   "settingsImperialUnits": "Imperiale eenheden",
   "settingsImperialUnitsDesc": "Mijlen en voet in plaats van kilometers en meters",
   "arrivedTitle": "🎉 Je bent er!",
-  "arrivedBody": "Je hebt je bestemming bereikt.",
-  "arrivedFeedbackPrompt": "Hoe is het gegaan?",
-  "feedbackBad": "Slecht",
-  "feedbackGood": "Goed!",
-  "feedbackDialogTitle": "Vertel ons wat er mis ging",
-  "feedbackHint": "Beschrijf het probleem…",
-  "feedbackSent": "Feedback verstuurd — bedankt! 🙏",
-  "feedbackSubmit": "Versturen",
   "transportModeCar": "Auto",
   "transportModeWalk": "Te voet",
   "etaArrivalLabel": "Aanks. {time}",
@@ -326,11 +300,19 @@
   "poiClosedNow": "Gesloten",
   "poiOpensAt": "Opent: {when}",
   "@poiOpensAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "poiClosesAt": "Sluit: {when}",
   "@poiClosesAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "searchOnEngine": "Zoeken op {engine}",
   "plannerFromHint": "Van…",
@@ -351,7 +333,6 @@
   "weatherSnow": "Sneeuw",
   "weatherShowers": "Buien",
   "weatherThunderstorm": "Onweer",
-  "ztlAheadWarning": "Verkeersbeperkte zone vooruit — de route gaat erdoorheen",
   "ztlInsideWarning": "Verkeersbeperkte zone",
   "onboardingAppSubtitle": "Open-source Nostr-navigatie",
   "onboardingWelcomeTitle": "Welkom",
@@ -391,7 +372,6 @@
   "onboardingReadyTitle": "U bent klaar om te navigeren!",
   "onboardingReadyBody": "Roadstr opent nu de kaart.\nU kunt alles overige configureren in Instellingen.",
   "onboardingLetsGo": "Laten we gaan!",
-  "onboardingProfileLoading": "Profiel laden…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "Voor maximale privacy — meldingen worden via het Nostr-netwerk verspreid — wordt het gebruik van een VPN aanbevolen. Mullvad, te betalen met Bitcoin, is de aanbevolen keuze.",
   "exportFavoritesTitle": "Favorieten exporteren",
@@ -445,9 +425,6 @@
   "trafficNormal": "Normaal verkeer",
   "trafficModerate": "Matig verkeer",
   "trafficHeavy": "Druk verkeer",
-  "avoidHighwaysChip": "Snelwegen vermijden",
-  "avoidTollsChip": "Tolwegen vermijden",
-  "preferShorterChip": "Kortste route",
   "zapAmountButton": "Zap {sats} sat",
   "@zapAmountButton": {
     "placeholders": {
@@ -456,7 +433,6 @@
       }
     }
   },
-  "showRoutePreview": "Routevoorbeeld tonen",
   "autoCenterOnLaunch": "Centreer bij opstarten op mijn locatie",
   "autoCenterOnLaunchDesc": "Gebruikt GPS alleen automatisch als locatietoestemming al is verleend",
   "openInBrowser": "Openen in browser",
@@ -466,7 +442,6 @@
   "poiCategory": "Categorie",
   "poiOperator": "Beheerder",
   "poiCuisine": "Keuken",
-  "poiAccessibility": "Toegankelijkheid",
   "poiWheelchairYes": "Rolstoeltoegankelijk",
   "poiWheelchairLimited": "Beperkt rolstoeltoegankelijk",
   "poiWheelchairNo": "Niet rolstoeltoegankelijk",
@@ -508,5 +483,38 @@
   "poiTakeawayOnly": "Alleen afhalen",
   "avoidHighwaysAndTolls": "Vermijd snelwegen en tolwegen",
   "avoidRouteUnavailable": "Er is geen route gevonden die zowel snelwegen als tolwegen vermijdt.",
-  "avoidanceUnavoidableSection": "Beperkt snelwegen/tolwegen · onvermijdelijk deel"
+  "avoidanceUnavoidableSection": "Beperkt snelwegen/tolwegen · onvermijdelijk deel",
+  "bottomBarNotifications": "Meldingen",
+  "notificationsTitle": "Meldingen",
+  "notificationsEmpty": "Nog geen meldingen",
+  "notificationsEmptyBody": "Zaps en reacties op uw verkeersmeldingen verschijnen hier.",
+  "notificationsLoginRequired": "Verbind uw Nostr-profiel",
+  "notificationsLoginRequiredBody": "Log in met Amber of nsec om meldingen van andere gebruikers te ontvangen.",
+  "profileVisibilityTitle": "Profielzichtbaarheid",
+  "profileVisibilityDesc": "Kies of andere Roadstr-gebruikers uw Nostr-naam, npub en afbeelding zien.",
+  "profileVisibilityClear": "Profiel openbaar tonen",
+  "profileVisibilityPseudonymous": "Pseudonieme modus (aanbevolen)",
+  "profileVisibilityPublishError": "De keuze is lokaal opgeslagen, maar kon nog niet op Nostr worden gepubliceerd.",
+  "nostrichLabel": "nostrich",
+  "profileHiddenNotice": "Deze gebruiker gebruikt de pseudonieme modus.",
+  "editSpeedLimit": "Snelheidslimiet toevoegen of bijwerken",
+  "requestSpeedLimit": "Een snelheidslimiet voorstellen",
+  "acceptEditRequest": "Voorstel accepteren",
+  "pendingEditRequests": "Openstaande wijzigingsvoorstellen",
+  "speedLimitHint": "Snelheidslimiet",
+  "speedLimitSaved": "Snelheidslimiet gepubliceerd",
+  "editRequestSent": "Voorstel naar de melder gestuurd",
+  "profileVisibilityOnboarding": "Roadstr publiceert altijd de Nostr-publieke sleutel die nodig is om een melding te verifiëren. In de pseudonieme modus zien andere Roadstr-gebruikers alleen een algemene avatar en „nostrich”; in de openbare modus zien ze ook uw Nostr-naam, npub en profielfoto. Uw meldingen, locaties, reputatie en ontvangen zaps blijven openbaar op Nostr.",
+  "nearbyTitle": "In de buurt",
+  "nearbyNeedsGps": "Wachten op gps",
+  "nearbyNothingFound": "Niets gevonden binnen 5 km",
+  "nearbyFuel": "Tankstation",
+  "nearbySupermarket": "Supermarkt",
+  "nearbyAtm": "Geldautomaat",
+  "nearbyPharmacy": "Apotheek",
+  "nearbyHospital": "Ziekenhuis",
+  "nearbyPolice": "Politie",
+  "nearbyPostOffice": "Postkantoor",
+  "nearbyParking": "Parkeren",
+  "nearbyCharging": "Laadpunt"
 }

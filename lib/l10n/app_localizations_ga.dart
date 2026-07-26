@@ -21,19 +21,6 @@ class AppLocalizationsGa extends AppLocalizations {
   String get noRouteFound => 'Ní bhfuarthas bealach. Seiceáil do nasc.';
 
   @override
-  String get emptyServerResponse =>
-      'Freagra folamh ón bhfreastalaí. Seiceáil do nasc.';
-
-  @override
-  String routeError(String error) {
-    return 'Earráid ríomha bealaigh: $error';
-  }
-
-  @override
-  String get gpsNotAvailable =>
-      'GPS nach bhfuil ar fáil — Settings → App → Roadstr → Permissions → Location';
-
-  @override
   String get acquiringGps => 'Ag fáil GPS…';
 
   @override
@@ -50,11 +37,6 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get chooseRoute => 'Roghnaigh bealach';
-
-  @override
-  String routeOptionsCount(int count) {
-    return '$count rogha';
-  }
 
   @override
   String get cancel => 'Cealaigh';
@@ -78,7 +60,7 @@ class AppLocalizationsGa extends AppLocalizations {
   String get selectedPosition => 'Suíomh roghnaithe';
 
   @override
-  String get bottomBarNotifications => 'Notifications';
+  String get bottomBarNotifications => 'Fógraí';
 
   @override
   String get bottomBarProfile => 'Próifíl';
@@ -87,21 +69,21 @@ class AppLocalizationsGa extends AppLocalizations {
   String get bottomBarMenu => 'Roghchlár';
 
   @override
-  String get notificationsTitle => 'Notifications';
+  String get notificationsTitle => 'Fógraí';
 
   @override
-  String get notificationsEmpty => 'No notifications yet';
+  String get notificationsEmpty => 'Níl aon fhógra ann fós';
 
   @override
   String get notificationsEmptyBody =>
-      'Zaps and reactions to your road reports will appear here.';
+      'Taispeánfar zaps agus freagairtí ar do thuairiscí bóthair anseo.';
 
   @override
-  String get notificationsLoginRequired => 'Connect your Nostr profile';
+  String get notificationsLoginRequired => 'Ceangail do phróifíl Nostr';
 
   @override
   String get notificationsLoginRequiredBody =>
-      'Sign in with Amber or nsec to receive notifications from other users.';
+      'Sínigh isteach le Amber nó nsec chun fógraí ó úsáideoirí eile a fháil.';
 
   @override
   String get settingsTitle => 'Socruithe';
@@ -134,12 +116,6 @@ class AppLocalizationsGa extends AppLocalizations {
   String get langSystem => 'Réamhshocrú córais';
 
   @override
-  String get langItalian => 'Italiano';
-
-  @override
-  String get langEnglish => 'English';
-
-  @override
   String get keepScreenOn => 'Coinnigh an scáileán ar siúl';
 
   @override
@@ -152,13 +128,6 @@ class AppLocalizationsGa extends AppLocalizations {
   @override
   String get autoCenterOnLaunchDesc =>
       'Ní úsáideann sé GPS go huathoibríoch ach amháin má deonaíodh cead suímh cheana';
-
-  @override
-  String get rotateMap => 'Leanann léarscáil an treo';
-
-  @override
-  String get rotateMapDescription =>
-      'Rothlaíonn an léarscáil bunaithe ar threo tiomána';
 
   @override
   String get mapTileUrlLabel => 'URL tile léarscáile';
@@ -235,48 +204,49 @@ class AppLocalizationsGa extends AppLocalizations {
   String get profileTitle => 'Próifíl';
 
   @override
-  String get profileVisibilityTitle => 'Profile visibility';
+  String get profileVisibilityTitle => 'Infheictheacht na próifíle';
 
   @override
   String get profileVisibilityDesc =>
-      'Choose whether other Roadstr users see your Nostr name, npub and picture.';
+      'Roghnaigh an bhfeicfidh úsáideoirí eile Roadstr d\'ainm Nostr, do npub agus do phictiúr.';
 
   @override
-  String get profileVisibilityClear => 'Show profile publicly';
+  String get profileVisibilityClear => 'Taispeáin an phróifíl go poiblí';
 
   @override
-  String get profileVisibilityPseudonymous => 'Pseudonymous mode (recommended)';
+  String get profileVisibilityPseudonymous => 'Mód bréagainm (molta)';
 
   @override
   String get profileVisibilityPublishError =>
-      'The local choice was saved, but could not be published to Nostr yet.';
+      'Sábháladh an rogha go háitiúil, ach níorbh fhéidir í a fhoilsiú ar Nostr fós.';
 
   @override
   String get nostrichLabel => 'nostrich';
 
   @override
-  String get profileHiddenNotice => 'This user is using pseudonymous mode.';
+  String get profileHiddenNotice =>
+      'Tá an t-úsáideoir seo ag úsáid an mhóid bhréagainm.';
 
   @override
-  String get editSpeedLimit => 'Add or update speed limit';
+  String get editSpeedLimit => 'Cuir teorainn luais leis nó nuashonraigh í';
 
   @override
-  String get requestSpeedLimit => 'Suggest a speed limit';
+  String get requestSpeedLimit => 'Mol teorainn luais';
 
   @override
-  String get acceptEditRequest => 'Accept suggestion';
+  String get acceptEditRequest => 'Glac leis an moladh';
 
   @override
-  String get pendingEditRequests => 'Pending edit suggestions';
+  String get pendingEditRequests => 'Moltaí eagarthóireachta ar feitheamh';
 
   @override
-  String get speedLimitHint => 'Speed limit';
+  String get speedLimitHint => 'Teorainn luais';
 
   @override
-  String get speedLimitSaved => 'Speed limit published';
+  String get speedLimitSaved => 'Foilsíodh an teorainn luais';
 
   @override
-  String get editRequestSent => 'Suggestion sent to the report owner';
+  String get editRequestSent => 'Seoladh an moladh chuig údar na tuairisce';
 
   @override
   String get notConnected => 'Gan nasc';
@@ -352,17 +322,7 @@ class AppLocalizationsGa extends AppLocalizations {
   String get requestKeyFromAmber => 'Iarr eochair phoiblí ó Amber';
 
   @override
-  String get amberNotFound =>
-      'Ní bhfuarthas Amber. Suiteáil é ón Play Store nó cuir isteach do npub de láimh.';
-
-  @override
   String get waitingForAmberResponse => 'Ag fanacht le freagra Amber…';
-
-  @override
-  String get pasteNpubManually => 'Greamaigh do npub de láimh:';
-
-  @override
-  String get confirmNpub => 'Deimhnigh npub';
 
   @override
   String get enterNsecTitle => 'Cuir isteach nsec';
@@ -377,19 +337,10 @@ class AppLocalizationsGa extends AppLocalizations {
   String get invalidNsecTitle => 'nsec neamhbhailí';
 
   @override
-  String get invalidNpubMessage => 'Cinntigh gur ghreamaigh tú an npub ceart.';
-
-  @override
   String get invalidNsecMessage => 'Cinntigh gur ghreamaigh tú an nsec ceart.';
 
   @override
-  String get amberResponseError => 'Earráid fhreagra Amber';
-
-  @override
   String get ok => 'OK';
-
-  @override
-  String get or => 'nó';
 
   @override
   String get gpsNotActiveTitle => 'GPS nach bhfuil gníomhach';
@@ -428,11 +379,6 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get zapSending => 'Ag seolhadh…';
-
-  @override
-  String zapSat(int sats) {
-    return '⚡$sats sat';
-  }
 
   @override
   String get fetchingLightningAddress => 'Ag fáil seoladh Lightning…';
@@ -730,33 +676,6 @@ class AppLocalizationsGa extends AppLocalizations {
       'Léigh treoracha casta os ard le linn nascleanúna';
 
   @override
-  String get testVoiceEngine => 'Tástáil inneall gutha';
-
-  @override
-  String get testVoiceEngineDesc =>
-      'Tapáil chun an t-inneall TTS a sheiceáil agus treoracha socraithe a fháil';
-
-  @override
-  String get ttsDialogTitle => 'Inneall gutha ar iarraidh';
-
-  @override
-  String get ttsDialogBody =>
-      'Níor aimsíodh aon inneall Text-to-Speech atá ag feidhmiú.\n\nNíl Roadstr ag brath ach ar bhogearraí foinse oscailte — suiteáil ceann de na hinnill shaora seo ó F-Droid:';
-
-  @override
-  String get ttsRhvoiceDesc => 'Guth nádúrtha, liosta teangacha teoranta';
-
-  @override
-  String get ttsEspeakDesc => 'Clúdaíonn os cionn 100 teanga, guth róbatach';
-
-  @override
-  String get ttsInstallNote =>
-      '⚠️ Tar éis na suiteála:\n1. Socruithe Android → Inrochtaineacht → Téacs go Guth\n2. Roghnaigh an t-inneall a shuiteáil tú anois beag\n3. Íoslódáil sonraí gutha do theanga\n4. Atosaigh Roadstr go hiomlán';
-
-  @override
-  String get ttsTestNow => 'Tástáil anois';
-
-  @override
   String get voiceUnsupportedTitle => 'Treoir ghutha níl ar fáil';
 
   @override
@@ -797,30 +716,6 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get arrivedTitle => '🎉 Tháinig tú!';
-
-  @override
-  String get arrivedBody => 'Shroich tú do cheann scríbe.';
-
-  @override
-  String get arrivedFeedbackPrompt => 'Conas a chuaigh sé?';
-
-  @override
-  String get feedbackBad => 'Go dona';
-
-  @override
-  String get feedbackGood => 'Go maith!';
-
-  @override
-  String get feedbackDialogTitle => 'Inis dúinn cad a chuaigh mícheart';
-
-  @override
-  String get feedbackHint => 'Déan cur síos ar an gceist…';
-
-  @override
-  String get feedbackSent => 'Aiseolas seolta — go raibh maith agat! 🙏';
-
-  @override
-  String get feedbackSubmit => 'Seol';
 
   @override
   String get transportModeCar => 'Carr';
@@ -874,9 +769,6 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get poiCuisine => 'Ealaín';
-
-  @override
-  String get poiAccessibility => 'Inrochtaineacht';
 
   @override
   String get poiWheelchairYes => 'Inrochtana do chathaoireacha rothaí';
@@ -1083,10 +975,6 @@ class AppLocalizationsGa extends AppLocalizations {
   String get weatherThunderstorm => 'Stoirm thoirní';
 
   @override
-  String get ztlAheadWarning =>
-      'Tá crios tráchta srianta chun tosaigh — téann an bealach tríd';
-
-  @override
   String get ztlInsideWarning => 'Crios tráchta srianta';
 
   @override
@@ -1218,9 +1106,6 @@ class AppLocalizationsGa extends AppLocalizations {
   String get onboardingLetsGo => 'Ar aghaidh linn!';
 
   @override
-  String get onboardingProfileLoading => 'Próifíl á luchtú…';
-
-  @override
   String get onboardingNsecHint => 'nsec1…';
 
   @override
@@ -1248,7 +1133,7 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get profileVisibilityOnboarding =>
-      'Roadstr always publishes the Nostr public key needed to verify a report. In pseudonymous mode, other Roadstr users see only a generic avatar and “nostrich”; in public mode, they also see your Nostr name, npub and profile picture. Your reports, locations, reputation and received zaps remain public on Nostr.';
+      'Foilsíonn Roadstr an eochair phoiblí Nostr atá riachtanach chun tuairisc a fhíorú i gcónaí. Sa mhód bréagainm, ní fheiceann úsáideoirí eile Roadstr ach abhatár ginearálta agus „nostrich”; sa mhód poiblí, feiceann siad d\'ainm Nostr, do npub agus do phictiúr próifíle chomh maith. Fanann do chuid tuairiscí, suíomhanna, cáil agus zaps a fhaigheann tú poiblí ar Nostr.';
 
   @override
   String get parkingSaveHere => 'Sábháil páirceáil anseo';
@@ -1355,21 +1240,9 @@ class AppLocalizationsGa extends AppLocalizations {
   String get trafficHeavy => 'Trácht trom';
 
   @override
-  String get avoidHighwaysChip => 'Seachain mótarbhealaí';
-
-  @override
-  String get avoidTollsChip => 'Seachain dolaí';
-
-  @override
-  String get preferShorterChip => 'An bealach is giorra';
-
-  @override
   String zapAmountButton(int sats) {
     return 'Zap $sats sat';
   }
-
-  @override
-  String get showRoutePreview => 'Taispeáin réamhamharc an bhealaigh';
 
   @override
   String get avoidHighwaysAndTolls => 'Seachain mótarbhealaí agus dolaí';
@@ -1381,4 +1254,40 @@ class AppLocalizationsGa extends AppLocalizations {
   @override
   String get avoidanceUnavoidableSection =>
       'Laghdaíonn mótarbhealaí/dolaí · cuid dosheachanta';
+
+  @override
+  String get nearbyTitle => 'In aice láimhe';
+
+  @override
+  String get nearbyNeedsGps => 'Ag fanacht le GPS';
+
+  @override
+  String get nearbyNothingFound => 'Níor aimsíodh aon rud laistigh de 5 km';
+
+  @override
+  String get nearbyFuel => 'Breosla';
+
+  @override
+  String get nearbySupermarket => 'Ollmhargadh';
+
+  @override
+  String get nearbyAtm => 'ATM';
+
+  @override
+  String get nearbyPharmacy => 'Cógaslann';
+
+  @override
+  String get nearbyHospital => 'Ospidéal';
+
+  @override
+  String get nearbyPolice => 'Garda';
+
+  @override
+  String get nearbyPostOffice => 'Oifig an phoist';
+
+  @override
+  String get nearbyParking => 'Páirceáil';
+
+  @override
+  String get nearbyCharging => 'Luchtú';
 }

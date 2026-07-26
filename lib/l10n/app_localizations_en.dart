@@ -21,19 +21,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noRouteFound => 'No route found. Check your connection.';
 
   @override
-  String get emptyServerResponse =>
-      'Empty server response. Check your connection.';
-
-  @override
-  String routeError(String error) {
-    return 'Route calculation error: $error';
-  }
-
-  @override
-  String get gpsNotAvailable =>
-      'GPS unavailable — Settings → App → Roadstr → Permissions → Location';
-
-  @override
   String get acquiringGps => 'Acquiring GPS…';
 
   @override
@@ -50,11 +37,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chooseRoute => 'Choose route';
-
-  @override
-  String routeOptionsCount(int count) {
-    return '$count options';
-  }
 
   @override
   String get cancel => 'Cancel';
@@ -134,12 +116,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get langSystem => 'System default';
 
   @override
-  String get langItalian => 'Italiano';
-
-  @override
-  String get langEnglish => 'English';
-
-  @override
   String get keepScreenOn => 'Keep screen on';
 
   @override
@@ -151,12 +127,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get autoCenterOnLaunchDesc =>
       'Uses GPS automatically only after location permission has already been granted';
-
-  @override
-  String get rotateMap => 'Map follows direction';
-
-  @override
-  String get rotateMapDescription => 'Map rotates based on driving direction';
 
   @override
   String get mapTileUrlLabel => 'Map tile URL';
@@ -348,17 +318,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get requestKeyFromAmber => 'Request public key from Amber';
 
   @override
-  String get amberNotFound =>
-      'Amber not found. Install it from the Play Store or enter your npub manually.';
-
-  @override
   String get waitingForAmberResponse => 'Waiting for Amber response…';
-
-  @override
-  String get pasteNpubManually => 'Paste your npub manually:';
-
-  @override
-  String get confirmNpub => 'Confirm npub';
 
   @override
   String get enterNsecTitle => 'Insert nsec';
@@ -373,19 +333,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invalidNsecTitle => 'Invalid nsec';
 
   @override
-  String get invalidNpubMessage => 'Make sure you pasted the correct npub.';
-
-  @override
   String get invalidNsecMessage => 'Make sure you pasted the correct nsec.';
 
   @override
-  String get amberResponseError => 'Amber response error';
-
-  @override
   String get ok => 'OK';
-
-  @override
-  String get or => 'or';
 
   @override
   String get gpsNotActiveTitle => 'GPS not active';
@@ -424,11 +375,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get zapSending => 'Sending…';
-
-  @override
-  String zapSat(int sats) {
-    return '⚡$sats sat';
-  }
 
   @override
   String get fetchingLightningAddress => 'Fetching Lightning address…';
@@ -724,33 +670,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Read turn-by-turn instructions aloud during navigation';
 
   @override
-  String get testVoiceEngine => 'Test voice engine';
-
-  @override
-  String get testVoiceEngineDesc =>
-      'Tap to check the TTS engine and get setup instructions';
-
-  @override
-  String get ttsDialogTitle => 'Missing voice engine';
-
-  @override
-  String get ttsDialogBody =>
-      'No working Text-to-Speech engine was found.\n\nRoadstr only relies on open source software — install one of these free engines from F-Droid:';
-
-  @override
-  String get ttsRhvoiceDesc => 'Natural-sounding voice, limited language list';
-
-  @override
-  String get ttsEspeakDesc => 'Covers 100+ languages, robotic-sounding voice';
-
-  @override
-  String get ttsInstallNote =>
-      '⚠️ After installing:\n1. Android Settings → Accessibility → Text-to-speech output\n2. Select the engine you just installed\n3. Download your language\'s voice data\n4. Restart Roadstr completely';
-
-  @override
-  String get ttsTestNow => 'Test now';
-
-  @override
   String get voiceUnsupportedTitle => 'Voice guidance unavailable';
 
   @override
@@ -792,30 +711,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get arrivedTitle => '🎉 You arrived!';
-
-  @override
-  String get arrivedBody => 'You have reached your destination.';
-
-  @override
-  String get arrivedFeedbackPrompt => 'How did it go?';
-
-  @override
-  String get feedbackBad => 'Bad';
-
-  @override
-  String get feedbackGood => 'Good!';
-
-  @override
-  String get feedbackDialogTitle => 'Tell us what went wrong';
-
-  @override
-  String get feedbackHint => 'Describe the problem…';
-
-  @override
-  String get feedbackSent => 'Feedback sent — thank you! 🙏';
-
-  @override
-  String get feedbackSubmit => 'Send';
 
   @override
   String get transportModeCar => 'Car';
@@ -869,9 +764,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get poiCuisine => 'Cuisine';
-
-  @override
-  String get poiAccessibility => 'Accessibility';
 
   @override
   String get poiWheelchairYes => 'Wheelchair accessible';
@@ -1077,10 +969,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weatherThunderstorm => 'Thunderstorm';
 
   @override
-  String get ztlAheadWarning =>
-      'Restricted traffic zone ahead — the route enters it';
-
-  @override
   String get ztlInsideWarning => 'Restricted traffic zone';
 
   @override
@@ -1210,9 +1098,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingLetsGo => 'Let\'s go!';
-
-  @override
-  String get onboardingProfileLoading => 'Loading profile…';
 
   @override
   String get onboardingNsecHint => 'nsec1…';
@@ -1348,21 +1233,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trafficHeavy => 'Heavy traffic';
 
   @override
-  String get avoidHighwaysChip => 'Avoid highways';
-
-  @override
-  String get avoidTollsChip => 'Avoid tolls';
-
-  @override
-  String get preferShorterChip => 'Shortest route';
-
-  @override
   String zapAmountButton(int sats) {
     return 'Zap $sats sat';
   }
-
-  @override
-  String get showRoutePreview => 'Show route preview';
 
   @override
   String get avoidHighwaysAndTolls => 'Avoid highways and toll roads';
@@ -1374,4 +1247,40 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get avoidanceUnavoidableSection =>
       'Minimizes highways/tolls · unavoidable section';
+
+  @override
+  String get nearbyTitle => 'Nearby';
+
+  @override
+  String get nearbyNeedsGps => 'Waiting for GPS';
+
+  @override
+  String get nearbyNothingFound => 'Nothing found within 5 km';
+
+  @override
+  String get nearbyFuel => 'Fuel';
+
+  @override
+  String get nearbySupermarket => 'Supermarket';
+
+  @override
+  String get nearbyAtm => 'ATM';
+
+  @override
+  String get nearbyPharmacy => 'Pharmacy';
+
+  @override
+  String get nearbyHospital => 'Hospital';
+
+  @override
+  String get nearbyPolice => 'Police';
+
+  @override
+  String get nearbyPostOffice => 'Post office';
+
+  @override
+  String get nearbyParking => 'Parking';
+
+  @override
+  String get nearbyCharging => 'Charging';
 }

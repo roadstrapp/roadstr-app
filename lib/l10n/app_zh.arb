@@ -4,29 +4,11 @@
   "calculatingRoute": "正在计算路线…",
   "routeNotFoundTitle": "未找到路线",
   "noRouteFound": "未找到路线。请检查您的连接。",
-  "emptyServerResponse": "服务器响应为空。请检查您的连接。",
-  "routeError": "路线计算错误：{error}",
-  "@routeError": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "gpsNotAvailable": "GPS不可用 — Settings → App → Roadstr → Permissions → Location",
   "acquiringGps": "正在获取GPS…",
   "graphhopperServerNotConfigured": "GraphHopper服务器未配置 — 使用OSRM",
   "graphhopperApiKeyNotConfigured": "GraphHopper API密钥未配置 — 使用OSRM",
   "openrouteApiKeyNotConfigured": "OpenRouteService API密钥未配置 — 使用OSRM",
   "chooseRoute": "选择路线",
-  "routeOptionsCount": "{count}个选项",
-  "@routeOptionsCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "cancel": "取消",
   "startNavigation": "开始导航",
   "fastestRoute": "最快",
@@ -46,12 +28,8 @@
   "themeDarkNostr": "深色 · Nostr紫",
   "themeDarkBitcoin": "深色 · 比特币橙",
   "langSystem": "系统默认",
-  "langItalian": "Italiano",
-  "langEnglish": "English",
   "keepScreenOn": "保持屏幕常亮",
   "keepScreenOnDescription": "导航期间防止屏幕休眠",
-  "rotateMap": "地图跟随方向",
-  "rotateMapDescription": "地图根据行驶方向旋转",
   "mapTileUrlLabel": "地图瓦片URL",
   "routingProviderLabel": "路由提供商",
   "osrmProvider": "OSRM（公共，无需密钥）",
@@ -98,19 +76,13 @@
   "amberDialogTitle": "Amber / NIP-55",
   "amberDescription": "Amber是符合NIP-55标准的Android应用签名器。您的私钥隔离在Amber内部，永不共享。",
   "requestKeyFromAmber": "从Amber请求公钥",
-  "amberNotFound": "未找到Amber。从Play Store安装或手动输入您的npub。",
   "waitingForAmberResponse": "等待Amber响应…",
-  "pasteNpubManually": "手动粘贴您的npub：",
-  "confirmNpub": "确认npub",
   "enterNsecTitle": "输入nsec",
   "loginButton": "登录",
   "invalidNpubTitle": "无效的npub",
   "invalidNsecTitle": "无效的nsec",
-  "invalidNpubMessage": "请确保您粘贴了正确的npub。",
   "invalidNsecMessage": "请确保您粘贴了正确的nsec。",
-  "amberResponseError": "Amber响应错误",
   "ok": "确定",
-  "or": "或",
   "@_GPS_DIALOG": {},
   "gpsNotActiveTitle": "GPS未激活",
   "gpsDisabledMessage": "在设备设置中激活GPS以获取您的位置并使用导航。",
@@ -126,14 +98,6 @@
   "chooseAmountSats": "选择聪（sats）的数量：",
   "customAmount": "自定义金额…",
   "zapSending": "发送中…",
-  "zapSat": "⚡{sats} sat",
-  "@zapSat": {
-    "placeholders": {
-      "sats": {
-        "type": "int"
-      }
-    }
-  },
   "fetchingLightningAddress": "正在获取闪电地址…",
   "noLightningAddress": "此报告者没有闪电地址",
   "requestingInvoice": "请求发票…",
@@ -159,28 +123,54 @@
   "notifZapTitle": "收到闪电赞",
   "notifZapBody": "你收到了 {sat} sats 的闪电赞!",
   "@notifZapBody": {
-    "placeholders": { "sat": { "type": "int" } }
+    "placeholders": {
+      "sat": {
+        "type": "int"
+      }
+    }
   },
   "notifConfirmedTitle": "举报已确认",
   "notifConfirmedBody": "你举报的{category}已被其他司机确认",
   "@notifConfirmedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "notifDeniedTitle": "举报被质疑",
   "notifDeniedBody": "有人反馈你举报的{category}已经不在了",
   "@notifDeniedBody": {
-    "placeholders": { "category": { "type": "String" } }
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
   },
   "chainedManeuver": "{first},然后{second}",
   "@chainedManeuver": {
-    "placeholders": { "first": { "type": "String" }, "second": { "type": "String" } }
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   },
   "thenManeuver": "然后{instruction}",
   "reportSpeedLimitHint": "限速(可选)",
   "reportedSpeedLimit": "报告的限速",
   "speedCameraVoiceAlert": "测速摄像头,限速 {limit} {unit}",
   "@speedCameraVoiceAlert": {
-    "placeholders": { "limit": { "type": "int" }, "unit": { "type": "String" } }
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   },
   "optionalComment": "可选评论…",
   "publish": "发布",
@@ -283,14 +273,6 @@
   "sectionNavigationVoice": "导航语音",
   "voiceGuidance": "语音引导",
   "voiceGuidanceDesc": "导航时朗读转弯指示",
-  "testVoiceEngine": "测试语音引擎",
-  "testVoiceEngineDesc": "点击以检查 TTS 引擎并获取设置说明",
-  "ttsDialogTitle": "缺少语音引擎",
-  "ttsDialogBody": "未找到可用的文本转语音引擎。\n\nRoadstr 仅依赖开源软件——请从 F-Droid 安装以下免费引擎之一：",
-  "ttsRhvoiceDesc": "声音自然，支持语言有限",
-  "ttsEspeakDesc": "支持 100 多种语言，声音机械化",
-  "ttsInstallNote": "⚠️ 安装后：\n1. Android 设置 → 无障碍 → 文字转语音输出\n2. 选择刚安装的引擎\n3. 下载您所用语言的语音数据\n4. 完全重启 Roadstr",
-  "ttsTestNow": "立即测试",
   "voiceUnsupportedTitle": "语音导航不可用",
   "voiceUnsupportedBody": "您的语言目前尚不支持语音转弯指示。导航说明仍会以文字形式显示在屏幕上。",
   "kokoroModelTitle": "语音模型 (Kokoro AI)",
@@ -304,14 +286,6 @@
   "settingsImperialUnits": "英制单位",
   "settingsImperialUnitsDesc": "使用英里和英尺代替公里和米",
   "arrivedTitle": "🎉 您已到达！",
-  "arrivedBody": "您已到达目的地。",
-  "arrivedFeedbackPrompt": "旅途如何？",
-  "feedbackBad": "不好",
-  "feedbackGood": "很好！",
-  "feedbackDialogTitle": "告诉我们哪里出了问题",
-  "feedbackHint": "描述问题…",
-  "feedbackSent": "反馈已发送 — 谢谢！ 🙏",
-  "feedbackSubmit": "发送",
   "transportModeCar": "驾车",
   "transportModeWalk": "步行",
   "etaArrivalLabel": "到达 {time}",
@@ -326,11 +300,19 @@
   "poiClosedNow": "已关闭",
   "poiOpensAt": "开门: {when}",
   "@poiOpensAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "poiClosesAt": "关门: {when}",
   "@poiClosesAt": {
-    "placeholders": { "when": { "type": "String" } }
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
   },
   "searchOnEngine": "在{engine}上搜索",
   "plannerFromHint": "从…",
@@ -351,7 +333,6 @@
   "weatherSnow": "雪",
   "weatherShowers": "阵雨",
   "weatherThunderstorm": "雷雨",
-  "ztlAheadWarning": "前方为限行区,路线将进入该区域",
   "ztlInsideWarning": "限行区",
   "onboardingAppSubtitle": "开源 Nostr 导航",
   "onboardingWelcomeTitle": "欢迎",
@@ -391,7 +372,6 @@
   "onboardingReadyTitle": "您已准备好导航！",
   "onboardingReadyBody": "Roadstr will now open the map.\nYou can configure everything else in Settings.",
   "onboardingLetsGo": "出发！",
-  "onboardingProfileLoading": "正在加载个人资料…",
   "onboardingNsecHint": "nsec1…",
   "onboardingVpnNotice": "为了最大程度保护隐私——路况报告会在 Nostr 网络中传播——建议使用 VPN。推荐使用可用比特币付款的 Mullvad。",
   "exportFavoritesTitle": "导出收藏",
@@ -445,9 +425,6 @@
   "trafficNormal": "交通正常",
   "trafficModerate": "交通缓行",
   "trafficHeavy": "交通拥堵",
-  "avoidHighwaysChip": "避开高速公路",
-  "avoidTollsChip": "避开收费道路",
-  "preferShorterChip": "最短路线",
   "zapAmountButton": "Zap {sats} sat",
   "@zapAmountButton": {
     "placeholders": {
@@ -456,7 +433,6 @@
       }
     }
   },
-  "showRoutePreview": "显示路线预览",
   "autoCenterOnLaunch": "启动时以我的位置为中心",
   "autoCenterOnLaunchDesc": "仅在已授予位置权限时自动使用GPS",
   "openInBrowser": "在浏览器中打开",
@@ -466,7 +442,6 @@
   "poiCategory": "类别",
   "poiOperator": "运营方",
   "poiCuisine": "菜系",
-  "poiAccessibility": "无障碍",
   "poiWheelchairYes": "轮椅可通行",
   "poiWheelchairLimited": "轮椅通行受限",
   "poiWheelchairNo": "轮椅不可通行",
@@ -508,5 +483,38 @@
   "poiTakeawayOnly": "仅限外带",
   "avoidHighwaysAndTolls": "避开高速公路和收费道路",
   "avoidRouteUnavailable": "未找到同时避开高速公路和收费道路的路线。",
-  "avoidanceUnavoidableSection": "尽量减少高速/收费道路 · 含无法避开的路段"
+  "avoidanceUnavoidableSection": "尽量减少高速/收费道路 · 含无法避开的路段",
+  "bottomBarNotifications": "通知",
+  "notificationsTitle": "通知",
+  "notificationsEmpty": "暂无通知",
+  "notificationsEmptyBody": "对你的路况上报的 zap 和互动将显示在这里。",
+  "notificationsLoginRequired": "连接你的 Nostr 资料",
+  "notificationsLoginRequiredBody": "使用 Amber 或 nsec 登录，以接收其他用户的通知。",
+  "profileVisibilityTitle": "资料可见性",
+  "profileVisibilityDesc": "选择其他 Roadstr 用户是否能看到你的 Nostr 名称、npub 和头像。",
+  "profileVisibilityClear": "公开显示资料",
+  "profileVisibilityPseudonymous": "化名模式（推荐）",
+  "profileVisibilityPublishError": "选择已保存在本地，但尚未能发布到 Nostr。",
+  "nostrichLabel": "nostrich",
+  "profileHiddenNotice": "该用户正在使用化名模式。",
+  "editSpeedLimit": "添加或更新限速",
+  "requestSpeedLimit": "建议限速",
+  "acceptEditRequest": "接受建议",
+  "pendingEditRequests": "待处理的修改建议",
+  "speedLimitHint": "限速",
+  "speedLimitSaved": "限速已发布",
+  "editRequestSent": "建议已发送给上报者",
+  "profileVisibilityOnboarding": "Roadstr 始终会发布验证上报所需的 Nostr 公钥。在化名模式下，其他 Roadstr 用户只能看到通用头像和「nostrich」；在公开模式下，他们还能看到你的 Nostr 名称、npub 和头像。你的上报、位置、声誉和收到的 zap 在 Nostr 上仍然是公开的。",
+  "nearbyTitle": "附近",
+  "nearbyNeedsGps": "等待 GPS",
+  "nearbyNothingFound": "5 公里内没有找到",
+  "nearbyFuel": "加油站",
+  "nearbySupermarket": "超市",
+  "nearbyAtm": "ATM",
+  "nearbyPharmacy": "药店",
+  "nearbyHospital": "医院",
+  "nearbyPolice": "警察局",
+  "nearbyPostOffice": "邮局",
+  "nearbyParking": "停车场",
+  "nearbyCharging": "充电"
 }
