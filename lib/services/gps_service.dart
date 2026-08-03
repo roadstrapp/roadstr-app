@@ -209,8 +209,13 @@ class GpsService {
   }
 
   Future<void> stop() async {
-    await _subscription?.cancel();
+    // Detach synchronously before awaiting cancellation. Android can deliver a
+    // rapid pause→resume pair; if [start] ran during this await it used to see
+    // the old non-null subscription, return "already active", and then this
+    // method would cancel it, leaving GPS marked ready with no live stream.
+    final subscription = _subscription;
     _subscription = null;
+    await subscription?.cancel();
   }
 
   Future<void> dispose() async {

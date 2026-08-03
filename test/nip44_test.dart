@@ -1,10 +1,6 @@
-// Self-consistency tests for the from-scratch NIP-44 v2 implementation.
-// These don't validate against the official nip44.vectors.json (not vendored
-// here), but they do catch the classes of bugs most likely in a hand-rolled
-// AEAD: asymmetric round-trip failures, padding boundary errors, and MAC/
-// tamper-detection regressions.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kepler/kepler.dart';
+import 'package:nostr_tools/nostr_tools.dart' show KeyApi;
 import 'package:pointycastle/export.dart' show ECPrivateKey, ECPublicKey;
 import 'package:roadstr/services/nip44.dart';
 
@@ -19,6 +15,18 @@ void main() {
   final bobPriv = _hexPriv(bobKp.privateKey as ECPrivateKey);
   final alicePub = _hexPub(aliceKp.publicKey as ECPublicKey);
   final bobPub = _hexPub(bobKp.publicKey as ECPublicKey);
+
+  test('decrypts the official NIP-44 v2 example vector', () {
+    const sec1 =
+        '0000000000000000000000000000000000000000000000000000000000000001';
+    const sec2 =
+        '0000000000000000000000000000000000000000000000000000000000000002';
+    const payload =
+        'AgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABee0G5VSK0/9YypIObAtD'
+        'KfYEAjD35uVkHyB0F4DwrcNaCXlCWZKaArsGrY6M9wnuTMxWfp1RTN9Xga8no+'
+        'kF5Vsb';
+    expect(Nip44.decrypt(sec1, KeyApi().getPublicKey(sec2), payload), 'a');
+  });
 
   test('round-trips a normal message', () {
     const msg = 'Roadstr favorites sync payload — ciao mondo! 🚗';
