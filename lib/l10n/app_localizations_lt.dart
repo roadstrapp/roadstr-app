@@ -1213,6 +1213,17 @@ class AppLocalizationsLt extends AppLocalizations {
       'Antras sinchronizuojamų mėgstamiausių šifravimo sluoksnis: net jei jūsų Nostr raktas būtų pavogtas, momentinė kopija relėse be šios slaptafrazės lieka neperskaitoma. Ją įvesite po kartą kiekviename naujame įrenginyje. Palikite tuščią, kad išjungtumėte.';
 
   @override
+  String get syncCustomRelayTitle => 'Jūsų pačių relė (nebūtina)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Pridėkite relę, kurią patys prižiūrite ar už kurią mokate, ir mėgstamiausios vietos bus skelbiamos ir ten. Viešosios relės nieko nežada apie tai, kiek ilgai saugo duomenis; jūsų žada. Palikite tuščią, kad būtų naudojamos tik integruotos relės.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Netinkamas relės adresas. Jis turi prasidėti wss://';
+
+  @override
   String get syncSuccessSnack => 'Mėgstamiausi sinchronizuoti';
 
   @override

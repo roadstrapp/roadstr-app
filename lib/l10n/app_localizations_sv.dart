@@ -1210,6 +1210,17 @@ class AppLocalizationsSv extends AppLocalizations {
       'Andra krypteringslagret för synkroniserade favoriter: även om din Nostr-nyckel skulle komprometteras förblir ögonblicksbilden på reläerna oläslig utan denna lösenfras. Du anger den en gång på varje ny enhet. Lämna tomt för att inaktivera.';
 
   @override
+  String get syncCustomRelayTitle => 'Ditt eget relä (valfritt)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Lägg till ett relä som du driver eller betalar för, så publiceras dina favoriter även där. Publika reläer lovar ingenting om hur länge de sparar data; ditt eget gör det. Lämna tomt för att bara använda de inbyggda reläerna.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Ogiltig reläadress. Den måste börja med wss://';
+
+  @override
   String get syncSuccessSnack => 'Favoriter synkroniserade';
 
   @override

@@ -1209,6 +1209,17 @@ class AppLocalizationsDa extends AppLocalizations {
       'Andet krypteringslag for synkroniserede favoritter: selv hvis din Nostr-nøgle blev kompromitteret, forbliver øjebliksbilledet på relæerne ulæseligt uden denne adgangssætning. Du indtaster den én gang på hver ny enhed. Lad feltet stå tomt for at deaktivere.';
 
   @override
+  String get syncCustomRelayTitle => 'Dit eget relæ (valgfrit)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Tilføj et relæ, du selv driver eller betaler for, så udgives dine favoritter også der. Offentlige relæer lover intet om, hvor længe de gemmer data; det gør dit eget. Lad feltet stå tomt for kun at bruge de indbyggede relæer.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Ugyldig relæadresse. Den skal begynde med wss://';
+
+  @override
   String get syncSuccessSnack => 'Favoritter synkroniseret';
 
   @override

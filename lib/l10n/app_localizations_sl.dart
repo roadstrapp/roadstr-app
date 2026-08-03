@@ -1206,6 +1206,17 @@ class AppLocalizationsSl extends AppLocalizations {
       'Druga plast šifriranja za sinhronizirane priljubljene: tudi če bi bil vaš ključ Nostr ogrožen, posnetek na relejih brez te fraze ostane neberljiv. Vnesete jo enkrat na vsaki novi napravi. Pustite prazno za izklop.';
 
   @override
+  String get syncCustomRelayTitle => 'Lasten rele (izbirno)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Dodajte rele, ki ga sami gostite ali plačujete, in priljubljene se bodo objavljale tudi tam. Javni releji ne obljubljajo ničesar o tem, kako dolgo hranijo podatke; vaš pa. Pustite prazno za uporabo le vgrajenih relejev.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Neveljaven naslov releja. Začeti se mora z wss://';
+
+  @override
   String get syncSuccessSnack => 'Priljubljene sinhronizirane';
 
   @override

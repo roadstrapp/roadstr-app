@@ -1208,6 +1208,17 @@ class AppLocalizationsFi extends AppLocalizations {
       'Toinen salauskerros synkronoiduille suosikeille: vaikka Nostr-avaimesi vaarantuisi, releillä oleva tilannekuva pysyy lukukelvottomana ilman tätä salalausetta. Syötät sen kerran jokaisella uudella laitteella. Jätä tyhjäksi poistaaksesi käytöstä.';
 
   @override
+  String get syncCustomRelayTitle => 'Oma releesi (valinnainen)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Lisää relee, jota ylläpidät tai josta maksat, niin suosikkisi julkaistaan myös sinne. Julkiset releet eivät lupaa mitään siitä, kuinka kauan ne säilyttävät tietoja; omasi lupaa. Jätä tyhjäksi, jos haluat käyttää vain sisäänrakennettuja releitä.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Virheellinen releen osoite. Sen on alettava wss://';
+
+  @override
   String get syncSuccessSnack => 'Suosikit synkronoitu';
 
   @override

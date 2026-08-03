@@ -1178,6 +1178,16 @@ class AppLocalizationsZh extends AppLocalizations {
       '同步收藏的第二层加密:即使您的 Nostr 密钥泄露,没有此密码短语,中继上的快照也无法解密。每台新设备只需输入一次。留空即可停用。';
 
   @override
+  String get syncCustomRelayTitle => '你自己的中继（可选）';
+
+  @override
+  String get syncCustomRelayDesc =>
+      '添加一个你自己运行或付费的中继，你的收藏也会发布到那里。公共中继不会承诺数据保留多久，而你自己的中继可以。留空则仅使用内置中继。';
+
+  @override
+  String get syncCustomRelayInvalid => '中继地址无效，必须以 wss:// 开头';
+
+  @override
   String get syncSuccessSnack => '收藏已同步';
 
   @override

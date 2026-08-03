@@ -237,10 +237,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           }
         })
         .whereType<FavoritePlace>()
+        .take(FavoritePlace.maxStoredItems)
         .toList();
   }
 
   void _saveFavorites() {
+    if (_favorites.length > FavoritePlace.maxStoredItems) {
+      _favorites.removeRange(FavoritePlace.maxStoredItems, _favorites.length);
+    }
     _box.put(
         'favorites', _favorites.map((f) => jsonEncode(f.toMap())).toList());
     _autoPushFavorites();
@@ -250,8 +254,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// so a reinstall + login restores them automatically (see the auto-pull on
   /// map startup). Silent — no spinner, no snackbar; failures are ignored and
   /// the user can still push/pull manually. Only runs when logged in.
+  ///
+  /// An empty list is pushed like any other: the snapshot is authoritative, so
+  /// deleting the last favourite must replace the stored one rather than leave
+  /// it behind for the next reinstall to restore.
   void _autoPushFavorites() {
-    if (_nostrPub == null || _favorites.isEmpty) return;
+    if (_nostrPub == null) return;
     final favs = List<FavoritePlace>.of(_favorites);
     unawaited(_syncSvc
         .push(
@@ -418,6 +426,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           .whereType<Map>()
           .map((m) => FavoritePlace.fromMapSafe(m))
           .whereType<FavoritePlace>()
+          .take(FavoritePlace.maxStoredItems)
           .toList();
       if (!mounted) return;
       setState(() {
@@ -484,7 +493,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _pushSync() async {
     final l = AppLocalizations.of(context);
-    if (_nostrPub == null || _favorites.isEmpty || _syncBusy) return;
+    if (_nostrPub == null || _syncBusy) return;
     setState(() => _syncBusy = true);
     final ok = await _syncSvc.push(
         favorites: _favorites,
@@ -609,6 +618,81 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _syncPassphrase = ctrl.text;
     }
     // The secure-storage write above is awaited: the screen can be gone by now.
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  /// Lets the user add one relay of their own to the favourites sync.
+  ///
+  /// Opt-in and empty by default — see [FavoritesSyncService.relays] for why
+  /// this is typed in rather than read from the user's published relay list.
+  Future<void> _editCustomSyncRelay() async {
+    final l = AppLocalizations.of(context);
+    final c = RoadstrColors.of(context);
+    final ctrl = TextEditingController(text: _syncSvc.customRelay ?? '');
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: c.surface2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l.syncCustomRelayTitle,
+            style: TextStyle(
+                color: c.textPrimary,
+                fontSize: 15,
+                fontWeight: FontWeight.w700)),
+        content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l.syncCustomRelayDesc,
+                  style: TextStyle(
+                      color: c.textSecondary, fontSize: 12.5, height: 1.5)),
+              const SizedBox(height: 12),
+              TextField(
+                controller: ctrl,
+                autocorrect: false,
+                autofocus: true,
+                keyboardType: TextInputType.url,
+                style: TextStyle(color: c.textPrimary, fontSize: 14),
+                decoration: InputDecoration(
+                  hintText: 'wss://relay.example.com',
+                  hintStyle: TextStyle(color: c.textSecondary),
+                  filled: true,
+                  fillColor: c.surface1,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                ),
+              ),
+            ]),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l.cancel, style: TextStyle(color: c.textSecondary))),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: c.accent),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l.ok, style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    if (saved != true || !mounted) return;
+    final typed = ctrl.text.trim();
+    if (typed.isEmpty) {
+      await _box.delete(FavoritesSyncService.kCustomRelayKey);
+      if (!mounted) return;
+      setState(() {});
+      return;
+    }
+    final normalised = FavoritesSyncService.normaliseRelayUrl(typed);
+    if (normalised == null) {
+      _snackSettings(l.syncCustomRelayInvalid);
+      return;
+    }
+    await _box.put(FavoritesSyncService.kCustomRelayKey, normalised);
     if (!mounted) return;
     setState(() {});
   }
@@ -1394,8 +1478,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Row(children: [
                   Expanded(
                       child: OutlinedButton.icon(
-                    onPressed:
-                        (_syncBusy || _favorites.isEmpty) ? null : _pushSync,
+                    // Enabled with an empty list too: pushing "no favourites"
+                    // is how the deletion of the last one reaches the relays.
+                    onPressed: _syncBusy ? null : _pushSync,
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: c.border),
                       shape: RoundedRectangleBorder(
@@ -1440,6 +1525,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           fontSize: 13,
                           fontWeight: FontWeight.w500)),
                   onTap: _editSyncPassphrase,
+                ),
+                ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(
+                    Icons.dns_outlined,
+                    color: _syncSvc.customRelay != null
+                        ? c.accent
+                        : c.textSecondary,
+                    size: 18,
+                  ),
+                  title: Text(l.syncCustomRelayTitle,
+                      style: TextStyle(
+                          color: c.textPrimary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500)),
+                  subtitle: _syncSvc.customRelay == null
+                      ? null
+                      : Text(_syncSvc.customRelay!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              TextStyle(color: c.textSecondary, fontSize: 11)),
+                  onTap: _editCustomSyncRelay,
                 ),
                 if (_syncBusy) ...[
                   const SizedBox(height: 10),
