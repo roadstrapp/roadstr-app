@@ -247,6 +247,14 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   bool _showSearch = false;
   Timer? _searchDebounce;
 
+  /// Fires when typing has actually stopped, not merely paused, and promotes
+  /// the fast Photon-only pass to a full search. See [SearchPhase].
+  Timer? _searchSettleDebounce;
+
+  /// Long enough to be past the gap between two words rather than inside it —
+  /// a keystroke landing before this cancels it and the fast pass runs again.
+  static const _searchSettleDelay = Duration(milliseconds: 1100);
+
   /// The "nearby" category currently being shown, or null when the results
   /// list belongs to a typed query. Also drives which button looks selected.
   NearbyCategory? _nearbyCategory;
@@ -385,6 +393,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   Timer? _planDebounce;
 
   StreamSubscription<GpsData>? _gpsSub;
+  Future<void>? _gpsPauseStop;
+  int _gpsLifecycleGeneration = 0;
 
   @override
   void initState() {
@@ -547,21 +557,17 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       final now = DateTime.now().millisecondsSinceEpoch;
       if (now - _lastCompassUiMs >= 100) {
         _lastCompassUiMs = now;
-        // During navigation the GPS movement bearing drives _heading and the
-        // camera — the compass must NOT overwrite it or the cursor will point
-        // in the phone's physical orientation rather than the direction of travel.
-        if (mounted && !_isNavigating) {
+        // The compass owns the heading only while standing still. In motion —
+        // and always during navigation — the GPS course owns it, because the
+        // magnetometer reports where the phone points, which in a cradle or a
+        // pocket is not where the car points.
+        //
+        // This callback never touches the map controller: it publishes a
+        // heading and lets [_updateFollowTarget] drive the camera, so the
+        // rotation has a single writer instead of racing the GPS tick.
+        if (mounted && !_isNavigating && !_headingFilter.isMoving) {
           setState(() => _heading = _compassHeading);
-          // Free-roam heading-up mode: rotate the map with the magnetometer
-          // (cursor stays pointing up). Skip while a camera animation runs.
-          if (_headingMode &&
-              _followUser &&
-              _camTicker == null &&
-              _northTimer == null) {
-            _mapController.moveAndRotate(_position, _camZoom, -_compassHeading);
-            _camRotDeg = -_compassHeading;
-            _camCenter = _position;
-          }
+          _updateFollowTarget();
         }
       }
     });
@@ -757,20 +763,37 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     context.read<ThemeProvider>().onPositionUpdate(lat, lng);
 
     // ── Heading resolution ───────────────────────────────────────────────────
-    // Which way the map faces, from two consecutive fixes rather than from the
-    // provider's heading (which follows the phone, not the car). All the
-    // jitter, reversal and road-snap handling lives in [HeadingFilter].
+    // Which way the map faces, primarily from consecutive fixes with the GPS
+    // provider's course-over-ground as a fallback. Neither source follows how
+    // the phone is physically held; magnetometer use is stationary-only.
+    // Jitter, reversal and road-snap handling lives in [HeadingFilter].
+    final sampleSpeed =
+        data.speedKmh.isFinite && data.speedKmh > 0 ? data.speedKmh : 0.0;
+    // Exactly one caller advances the hysteresis, and it is this one. The
+    // compass callback only reads [HeadingFilter.isMoving].
+    final moving = _headingFilter.updateMotion(sampleSpeed);
+    final sampleAccuracy = data.accuracy.isFinite && data.accuracy > 0
+        ? data.accuracy
+        : _lastGpsAccuracy;
+    final headingOrigin = _prevGpsPos;
     final effectiveHeading = _headingFilter.resolve(
       current: _heading,
-      from: _prevGpsPos,
+      from: headingOrigin,
       to: data.position,
-      speedKmh: _speed,
-      accuracyM: _lastGpsAccuracy,
+      speedKmh: sampleSpeed,
+      accuracyM: sampleAccuracy,
       providerHeading: data.heading,
       navigating: _isNavigating,
       routeLocalBearingAt: _routeLocalBearingAt,
     );
-    _prevGpsPos = data.position;
+    // Do not throw away the bearing baseline at 2 Hz. At ordinary urban
+    // speeds each individual hop is shorter than the 8 m noise floor; keeping
+    // the old origin lets those small hops accumulate into a reliable course.
+    if (headingOrigin == null ||
+        HeadingFilter.hasReliableMovement(
+            headingOrigin, data.position, sampleAccuracy)) {
+      _prevGpsPos = data.position;
+    }
 
     // ── Speed-adaptive zoom ──────────────────────────────────────────────────
     // Zoom in when slow (pedestrian, city) and out at high speed (motorway)
@@ -795,13 +818,18 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
     setState(() {
       _position = data.position;
-      _speed = data.speedKmh.isFinite ? data.speedKmh : 0;
+      _speed = sampleSpeed;
       if (data.accuracy.isFinite && data.accuracy > 0) {
         _lastGpsAccuracy = data.accuracy;
       }
-      // During navigation show direction of travel; outside navigation show the
-      // compass bearing updated by the magnetometer stream (_compassHeading).
-      if (_isNavigating) _heading = effectiveHeading;
+      // In motion the cursor represents the vehicle's course, in navigation
+      // and in free drive alike. Standing still there is no course to show,
+      // and the compass takes over in [_startCompass] — the hysteresis in
+      // [HeadingFilter.updateMotion] is what stops the two from trading the
+      // heading back and forth while crawling in traffic.
+      if (_isNavigating || moving) {
+        _heading = effectiveHeading;
+      }
     });
 
     // ── Free-drive speed limit ───────────────────────────────────────────────
@@ -855,27 +883,44 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         WakelockPlus.enable();
       }
 
-      if (_followUser) {
-        // During navigation use the GPS movement bearing (effectiveHeading) so
-        // the map rotates to face the direction of travel, not where the phone
-        // physically points (which is _compassHeading from the magnetometer).
-        final rot = _headingMode ? -effectiveHeading : _camRotDeg;
-        // In heading-up mode shift the camera ahead so the GPS cursor appears
-        // at ~2/5 from the bottom of the screen (more road visible ahead).
-        final center = (_headingMode && _isNavigating)
-            ? _navCameraCenter(_position, effectiveHeading, targetZoom)
-            : _position;
-        _followTargetCenter = center;
-        _followTargetZoom = targetZoom;
-        _followTargetRot = rot;
-        _startFollowTicker();
-      }
-    } else if (_followUser && _camTicker == null && _northTimer == null) {
-      // Outside navigation: follow GPS position, keep whatever rotation the user
-      // set (north button, manual gesture). Never override rotation with compass.
-      _mapController.moveAndRotate(_position, _camZoom, _camRotDeg);
-      _camCenter = _position;
+      _updateFollowTarget(zoom: targetZoom);
+    } else {
+      // Free drive. Same call, same smoothing, same single writer — the only
+      // difference is that the zoom is left where the user put it.
+      _updateFollowTarget();
     }
+  }
+
+  /// The only place that aims the follow camera.
+  ///
+  /// Both the GPS stream and the magnetometer end up here, which is the point:
+  /// they used to drive [_mapController] independently, a few milliseconds
+  /// apart, each overwriting the other's rotation — that is what made heading
+  /// behaviour so brittle to change. Now they publish a heading and this
+  /// decides where the camera should be; [_startFollowTicker] eases it there.
+  ///
+  /// Rotation follows [_heading] whenever heading-up mode is on, in navigation
+  /// and in free drive alike. With heading-up off the user's own rotation is
+  /// preserved and only the cursor turns.
+  void _updateFollowTarget({double? zoom}) {
+    if (!_followUser || _camTicker != null || _northTimer != null) return;
+    // The start-of-navigation overview owns the camera for its whole 2.2 s,
+    // not just while its animation ticker happens to be alive: there is a gap
+    // between the route-overview animation ending and the zoom-to-driver one
+    // starting, and a fix landing in it used to yank the map to the cursor
+    // mid-transition.
+    if (_navTransitioning) return;
+    if (!_hasRealFix && !_camCenter.latitude.isFinite) return;
+    final targetZoom = zoom ?? _camZoom;
+    final anchor = _hasRealFix ? _position : _camCenter;
+    // In heading-up navigation shift the camera ahead so the cursor sits at
+    // ~2/5 from the bottom of the screen (more road visible ahead).
+    _followTargetCenter = (_isNavigating && _headingMode)
+        ? _navCameraCenter(anchor, _heading, targetZoom)
+        : anchor;
+    _followTargetZoom = targetZoom;
+    _followTargetRot = _headingMode ? -_heading : _camRotDeg;
+    _startFollowTicker();
   }
 
   /// Shifts the camera center [heading]° ahead of [gps] by an amount that
@@ -1210,7 +1255,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     final start = math.max(0, _nearestRouteSegmentIdx - 80);
     final end = math.min(poly.length - 2, _nearestRouteSegmentIdx + 160);
     for (var i = start; i <= end; i++) {
-      final projection = Geo.projectOnSegment(step.location, poly[i], poly[i + 1]);
+      final projection =
+          Geo.projectOnSegment(step.location, poly[i], poly[i + 1]);
       if (projection.distM < best) {
         best = projection.distM;
         bestProgress = _routeCumulativeM[i] +
@@ -1833,7 +1879,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     // hold a stale compass value. Prefer the GPS movement bearing so the map
     // rotates to the actual direction of travel immediately, with no lag.
     if (_hasRealFix) {
-      if (_speed > 3 && _prevGpsPos != null) {
+      if (_headingFilter.isMoving && _prevGpsPos != null) {
         final movBearing = Geo.bearingBetween(_prevGpsPos!, _position);
         if (movBearing.isFinite) _heading = movBearing;
       } else if (_compassHeading.isFinite && _compassHeading != 0) {
@@ -1879,7 +1925,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _watchdogFrozenTicks = 0;
     _headingWatchdog = Timer.periodic(const Duration(seconds: 2), (_) {
       if (!mounted || !_isNavigating || !_headingMode) return;
-      if (_speed < 5) {
+      if (!_headingFilter.isMoving) {
         _watchdogFrozenTicks = 0;
         return;
       }
@@ -1932,8 +1978,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     if (_hasRealFix) {
       Future.delayed(const Duration(milliseconds: 1600), () {
         if (!mounted || !_isNavigating) return;
-        _animateCamera(
-            toCenter: _position, toZoom: 17.0, toRot: -_compassHeading);
+        // Seeded above from the GPS course when already under way, so starting
+        // navigation on the move does not swing the map to the compass first.
+        _animateCamera(toCenter: _position, toZoom: 17.0, toRot: -_heading);
       });
       Future.delayed(const Duration(milliseconds: 1600 + 620), () {
         if (!mounted) return;
@@ -2308,7 +2355,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       // card instead of appending a second one keeps a single, comparable ETA:
       // Valhalla times the very same road up to 45 minutes slower than OSRM,
       // which looked like the avoidance option costing a detour it never made.
-      final twin = routes.indexWhere((r) => RoutingService.followSameRoads(r, route));
+      final twin =
+          routes.indexWhere((r) => RoutingService.followSameRoads(r, route));
       final int selected;
       if (twin >= 0) {
         routes[twin] = routes[twin].withAvoidance(route.avoidance);
@@ -2657,9 +2705,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     query = query.trim();
     if (query.isEmpty) return;
     _searchDebounce?.cancel();
+    _searchSettleDebounce?.cancel();
     final requestGeneration = ++_searchRequestGeneration;
     FocusScope.of(context).unfocus();
-    // Use cached results if available; otherwise geocode the raw query.
+    // Use cached results if available; otherwise geocode the raw query. The
+    // fallback below runs a full search (the default phase), so submitting a
+    // query nothing has answered yet still gets the strict geocoder.
     NominatimResult? result;
     final favMatch = _matchingFavorites(query);
     if (favMatch.isNotEmpty) {
@@ -2702,8 +2753,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     final results = await _poiSvc.nearby(
       category,
       _position,
-      unnamedLabel:
-          nearbyCategoryLabel(category, AppLocalizations.of(context)),
+      unnamedLabel: nearbyCategoryLabel(category, AppLocalizations.of(context)),
     );
     if (!mounted || requestGeneration != _searchRequestGeneration) return;
     setState(() {
@@ -2714,6 +2764,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
   void _onSearchChanged(String query) {
     _searchDebounce?.cancel();
+    // Every keystroke pushes the settle timer back, so the strict geocoder is
+    // asked once per query the user actually stops on — not once per word.
+    _searchSettleDebounce?.cancel();
     final requestGeneration = ++_searchRequestGeneration;
     // Typing takes over from a nearby category.
     if (_nearbyCategory != null) setState(() => _nearbyCategory = null);
@@ -2729,13 +2782,40 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     // the first useful suggestions appear much sooner.
     _searchDebounce = Timer(const Duration(milliseconds: 300), () async {
       setState(() => _isSearching = true);
-      final results = await _searchPlaces(query, onPartial: (partial) {
-        if (!mounted || requestGeneration != _searchRequestGeneration) return;
-        // Show whichever provider answers first instead of waiting for the
-        // slower Overpass request before rendering any result.
-        setState(() => _searchResults = partial);
-      });
+      final results = await _searchPlaces(query,
+          phase: SearchPhase.typeAhead,
+          onPartial: (partial) {
+            if (!mounted || requestGeneration != _searchRequestGeneration) {
+              return;
+            }
+            // Show whichever provider answers first instead of waiting for the
+            // slower Overpass request before rendering any result.
+            setState(() => _searchResults = partial);
+          });
       if (!mounted || requestGeneration != _searchRequestGeneration) return;
+      setState(() {
+        _searchResults = results;
+        _isSearching = false;
+      });
+    });
+
+    // Second, longer pause: the user has stopped typing rather than paused
+    // mid-word, so the strict geocoder is finally worth asking. Suggestions are
+    // already on screen from the fast pass above — this refines them in place
+    // instead of making the first ones wait for it.
+    //
+    // This does repeat the Photon call the fast pass already made, and that is
+    // the cheaper trade: Photon is built to be asked once per keystroke, so one
+    // extra request costs it nothing, while threading the earlier results
+    // through to here would mean caching them and reasoning about when they go
+    // stale. Nominatim, the provider that actually minds, is asked once.
+    _searchSettleDebounce = Timer(_searchSettleDelay, () async {
+      final results = await _searchPlaces(query, phase: SearchPhase.settled);
+      if (!mounted ||
+          requestGeneration != _searchRequestGeneration ||
+          results.isEmpty) {
+        return;
+      }
       setState(() {
         _searchResults = results;
         _isSearching = false;
@@ -2746,11 +2826,13 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// Runs a place search with the screen's live context — GPS bias and UI
   /// language. All ranking and provider logic lives in [PlaceSearchService].
   Future<List<NominatimResult>> _searchPlaces(String query,
-          {void Function(List<NominatimResult>)? onPartial}) =>
+          {SearchPhase phase = SearchPhase.settled,
+          void Function(List<NominatimResult>)? onPartial}) =>
       _placeSearch.search(
         query,
         near: _hasRealFix ? _position : null,
         languageCode: Localizations.localeOf(context).languageCode,
+        phase: phase,
         onPartial: onPartial,
       );
 
@@ -2881,9 +2963,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       // accidental tap on the compass FAB).
       if (_isNavigating) _headingMode = true;
     });
-    // During navigation animate to the current GPS bearing; outside navigation
+    // Heading-up (either context) faces the direction of travel; with it off,
     // keep whatever rotation the user set so they don't lose their view.
-    final rot = _isNavigating ? -_heading : _camRotDeg;
+    final rot = (_isNavigating || _headingMode) ? -_heading : _camRotDeg;
     final center = (_isNavigating && _headingMode)
         ? _navCameraCenter(_position, _heading, _camZoom)
         : _position;
@@ -2908,8 +2990,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       });
       return;
     }
-    // OFF → ON in free roam: the map starts rotating with the magnetometer
-    // (see _startCompass); the cursor stays pointing up.
+    // OFF → ON in free roam: while moving the map follows GPS course; while
+    // stationary it follows the magnetometer (see [_startCompass]).
     if (!_isNavigating && !_headingMode) {
       setState(() {
         _headingMode = true;
@@ -2919,10 +3001,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _northTimer = null;
       _camTicker?.cancel();
       _camTicker = null;
+      // -_heading, not -_compassHeading: _heading is already whichever source
+      // is authoritative right now (GPS course in motion, compass at rest).
       _animateCamera(
           toCenter: _hasRealFix ? _position : _camCenter,
           toZoom: _camZoom,
-          toRot: -_compassHeading);
+          toRot: -_heading);
       return;
     }
     // ON → OFF (either context): back to north-up.
@@ -3002,7 +3086,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
     var lastFrameMs = DateTime.now().millisecondsSinceEpoch;
     _followTicker = Timer.periodic(const Duration(milliseconds: 16), (timer) {
-      if (!mounted || !_followUser || !_isNavigating) {
+      if (!mounted || !_followUser) {
         timer.cancel();
         _followTicker = null;
         return;
@@ -3050,6 +3134,20 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _camRotDeg = rot;
       _camZoom = zoom;
       _camCenter = LatLng(lat, lng);
+
+      // Outside navigation, stand down once the camera has caught up with the
+      // target: free drive can sit at a red light for minutes, and there is no
+      // reason to run a 60 Hz timer to re-apply a camera that is already where
+      // it belongs. Any new target restarts it — [_startFollowTicker] is
+      // idempotent and called on every fix and every compass update. During
+      // navigation it keeps running: the target moves continuously anyway.
+      if (!_isNavigating &&
+          rotDelta.abs() < 0.05 &&
+          (_followTargetZoom - zoom).abs() < 0.005 &&
+          Geo.distanceM(LatLng(lat, lng), target) < 0.5) {
+        timer.cancel();
+        _followTicker = null;
+      }
     });
   }
 
@@ -3168,6 +3266,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           }
         })
         .whereType<SearchHistoryItem>()
+        .take(100)
         .toList();
   }
 
@@ -3182,7 +3281,14 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       final pub = await _secStorage.read(key: 'nostr_pub_hex');
       if (pub == null) return;
       final priv = await _secStorage.read(key: 'nostr_priv_hex');
-      final pass = Hive.box('settings').get('fav_sync_pass') as String?;
+      // Secure storage first, Hive only as the pre-migration fallback: the
+      // settings screen moved this passphrase out of Hive and *deletes* the
+      // old key on the way. Reading Hive alone meant that after the very
+      // first visit to settings this lookup returned null forever, and every
+      // passphrase-sealed snapshot silently failed to auto-restore — exactly
+      // the reinstall case the whole feature exists for.
+      final pass = await _secStorage.read(key: 'favorites_sync_passphrase') ??
+          Hive.box('settings').get('fav_sync_pass') as String?;
       final result = await _favSyncSvc.pull(
           pubKeyHex: pub, privKeyHex: priv, passphrase: pass);
       final fetched = result.favorites;
@@ -3196,6 +3302,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           _favorites.add(f);
         }
         changed = true;
+      }
+      if (_favorites.length > FavoritePlace.maxStoredItems) {
+        _favorites.removeRange(FavoritePlace.maxStoredItems, _favorites.length);
       }
       if (!changed) return;
       Hive.box('settings').put(
@@ -3219,6 +3328,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           }
         })
         .whereType<FavoritePlace>()
+        .take(FavoritePlace.maxStoredItems)
         .toList();
   }
 
@@ -3942,8 +4052,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                   // different host over several seconds, the map flickers tile
                   // by tile. Starting the reload at full opacity keeps the old
                   // tile painted until the new one is ready to take its place.
-                  tileDisplay:
-                      const TileDisplay.fadeIn(reloadStartOpacity: 1),
+                  tileDisplay: const TileDisplay.fadeIn(reloadStartOpacity: 1),
                   tileBuilder: c.isDark ? _darkTileBuilder : null,
                 ),
                 if (_showAlternatives)
@@ -4127,22 +4236,30 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                   ]),
                 if (_hasRealFix)
                   MarkerLayer(
-                      // rotate: true keeps the marker upright in screen space so
-                      // its heading angle is always relative to the screen, not the
-                      // map. Without this, flutter_map rotates the marker widget
-                      // together with the map, making the arrow appear perpendicular
-                      // to the direction of travel when the map is tilted.
-                      rotate: true,
+                      // NOT counter-rotated (rotate defaults to false).
+                      //
+                      // flutter_map already draws this layer inside the map's
+                      // own rotation transform, so a marker left alone turns
+                      // with the map, in the same frame, at the map's frame
+                      // rate. [_heading] is a geographic bearing (0 = north),
+                      // which is exactly what that transform expects: the
+                      // arrow ends up along the road on screen whatever the
+                      // camera is doing — heading-up, north-up, mid-rotation,
+                      // or turned by hand.
+                      //
+                      // Counter-rotating and adding the rotation back in the
+                      // widget cannot work, and that is the bug this replaces:
+                      // the map rotates every frame while this tree rebuilds
+                      // only on GPS ticks, so the correction is always stale
+                      // by an amount that peaks exactly in curves — the one
+                      // moment the cursor has to be right.
                       markers: [
                         Marker(
                             point: _position,
                             width: 48,
                             height: 48,
                             child: UserMarker(
-                                // In heading mode the map top = travel direction,
-                                // so heading 0 (arrow up) is correct.
-                                // Outside navigation the compass bearing is used.
-                                heading: _headingMode ? 0 : _heading,
+                                heading: _heading,
                                 accent: c.accent,
                                 // Ostrich only while an actual walking route is
                                 // active — reverts to the arrow the instant
@@ -4234,8 +4351,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                       SearchResultsList(
                         results: _searchResults,
                         isLoading: _isSearching,
-                        favorites:
-                            _matchingFavorites(_searchController.text),
+                        favorites: _matchingFavorites(_searchController.text),
                         colors: c,
                         emptyMessage: _nearbyCategory == null
                             ? null
@@ -4644,6 +4760,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.paused:
+        _gpsLifecycleGeneration++;
         // Screen off / app backgrounded. Stop sensors to save battery.
         // GPS keeps running if navigation is active (foreground service handles it).
         _magnetSub?.cancel();
@@ -4656,7 +4773,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           // _gpsReady so that the resumed handler knows to restart.
           _gpsSub?.cancel();
           _gpsSub = null;
-          _gps.stop();
+          _gpsPauseStop = _gps.stop();
           if (mounted) {
             setState(() {
               _gpsReady = false;
@@ -4666,21 +4783,30 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           WakelockPlus.disable();
         }
       case AppLifecycleState.resumed:
+        final generation = ++_gpsLifecycleGeneration;
         // Re-start sensors and clean up stale events.
         if (_magnetSub == null) _startCompass();
-        // _gpsReady was cleared in paused when not navigating. Restart GPS now.
-        if (!_gpsReady && _gpsRequested) {
-          unawaited(_gps.start().then((ok) {
-            if (!mounted) return;
+        // Wait for pause-time cancellation before creating a new native
+        // location stream. Without this ordering, a quick app switch could
+        // mark GPS ready and then let the late stop cancel the new stream.
+        final pauseStop = _gpsPauseStop;
+        unawaited(() async {
+          await pauseStop;
+          if (!mounted || generation != _gpsLifecycleGeneration) return;
+          // _gpsReady was cleared in paused when not navigating. Restart now.
+          if (!_gpsReady && _gpsRequested) {
+            final ok = await _gps.start();
+            if (!mounted || generation != _gpsLifecycleGeneration) return;
             if (ok) {
+              await _gpsSub?.cancel();
               _gpsSub = _gps.stream.listen(_onGps);
               setState(() {
                 _gpsReady = true;
                 _hasRealFix = false;
               });
             }
-          }));
-        }
+          }
+        }());
         if (mounted) {
           final pruned = _roadEvents.where((e) => !e.isExpired).toList();
           if (pruned.length != _roadEvents.length) {
@@ -4688,6 +4814,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           }
         }
       case AppLifecycleState.detached:
+        _gpsLifecycleGeneration++;
         // App fully closed — stop GPS immediately so the foreground
         // service (and its CPU wakelock) are released before the process exits.
         _gps.stop();
@@ -4718,6 +4845,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     unawaited(_gps.dispose());
     _searchController.dispose();
     _searchDebounce?.cancel();
+    _searchSettleDebounce?.cancel();
     _arrivalBannerTimer?.cancel();
     _planFromCtrl.dispose();
     _planToCtrl.dispose();
