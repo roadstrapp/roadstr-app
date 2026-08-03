@@ -1209,6 +1209,17 @@ class AppLocalizationsCs extends AppLocalizations {
       'Druhá vrstva šifrování synchronizovaných oblíbených: i kdyby byl váš klíč Nostr kompromitován, snímek na relayích zůstane bez této fráze nečitelný. Zadáte ji jednou na každém novém zařízení. Ponechte prázdné pro vypnutí.';
 
   @override
+  String get syncCustomRelayTitle => 'Vlastní relay (volitelné)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Přidejte relay, který provozujete nebo platíte, a oblíbená místa se budou publikovat i tam. Veřejné relaye nic neslibují o tom, jak dlouho data uchovávají; ten váš ano. Ponechte prázdné pro použití pouze vestavěných relayů.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Neplatná adresa relaye. Musí začínat wss://';
+
+  @override
   String get syncSuccessSnack => 'Oblíbené synchronizovány';
 
   @override

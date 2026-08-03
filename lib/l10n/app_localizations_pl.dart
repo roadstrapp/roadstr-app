@@ -1211,6 +1211,17 @@ class AppLocalizationsPl extends AppLocalizations {
       'Druga warstwa szyfrowania synchronizowanych ulubionych: nawet gdyby Twój klucz Nostr został przejęty, migawka na przekaźnikach pozostaje nieczytelna bez tego hasła. Wpiszesz je raz na każdym nowym urządzeniu. Pozostaw puste, aby wyłączyć.';
 
   @override
+  String get syncCustomRelayTitle => 'Twój własny przekaźnik (opcjonalnie)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Dodaj przekaźnik, który prowadzisz lub opłacasz — ulubione będą publikowane także tam. Publiczne przekaźniki niczego nie obiecują co do czasu przechowywania danych, twój tak. Pozostaw puste, aby używać tylko wbudowanych przekaźników.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Nieprawidłowy adres przekaźnika. Musi zaczynać się od wss://';
+
+  @override
   String get syncSuccessSnack => 'Ulubione zsynchronizowane';
 
   @override

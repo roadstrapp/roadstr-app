@@ -75,18 +75,105 @@ class FavSyncPull {
 }
 
 class FavoritesSyncService {
-  // NB: relay.nostr.band deliberately absent — see threat model above.
-  static const _relays = [
+  /// Two relays were not enough for the one thing in this app the user cannot
+  /// regenerate. Road events expire and the community re-reports them;
+  /// favourites are home and work, and if every relay holding them is down
+  /// after a reinstall they are simply gone.
+  ///
+  /// Measured 2026-08-03, 30 rounds over ten minutes, each a full connect +
+  /// REQ + EOSE rather than a ping:
+  ///
+  ///   relay.damus.io    8/30  ( 27 %)   22 × HTTP 503
+  ///   nos.lol          30/30  (100 %)
+  ///   purplerelay.com  30/30  (100 %)   fastest of the three
+  ///
+  /// So damus refuses roughly three connections in four, not the one in four
+  /// an earlier version of this comment claimed — which means that with the
+  /// old two-relay set the sync was single-homed on nos.lol most of the time,
+  /// for the only data here that cannot be re-created. Re-measure before
+  /// trusting these figures again; relay availability is not a constant.
+  ///
+  /// purplerelay.com was picked on a different criterion than the road-event
+  /// relays: not reach, but how little it aggregates. Asked for kind 1315 it
+  /// answers empty, i.e. it is not hoovering up everything that passes — and
+  /// every extra relay here is another archive of the encrypted snapshot and
+  /// another place the targeted "does this npub use Roadstr?" probe works (see
+  /// ENUMERATION above). For the same reason bridges and search indexers are
+  /// disqualified outright, whatever their uptime: relay.mostr.pub replicates
+  /// elsewhere by design and relay.nostr.band feeds a public search index.
+  ///
+  /// Qualified end to end before being added, on kind 30078 rather than a
+  /// regular kind: publish, read back, then publish again under the same 'd'
+  /// tag and confirm the relay keeps exactly one event, the newer. A relay
+  /// that stored both would quietly break last-write-wins.
+  static const _defaultRelays = [
     'wss://relay.damus.io',
     'wss://nos.lol',
+    'wss://purplerelay.com',
   ];
   static const _legacyDTag = 'roadstr-favorites';
   static const kind = 30078;
+
+  /// Hive key for the user's own relay, opt-in and empty by default.
+  static const kCustomRelayKey = 'fav_sync_custom_relay';
+
+  /// The relays a sync touches: the three above plus the user's own, if set.
+  ///
+  /// **Why this is opt-in and not derived from NIP-65.** Reading the user's
+  /// published relay list would look like the obvious answer to "two relays is
+  /// thin", and it is the wrong one here. That list is public: publishing the
+  /// snapshot to it would hand an attacker the signed, authoritative list of
+  /// places to look for this user's 'd' tag, turning the targeted probe in the
+  /// ENUMERATION note above from a guess into a lookup. It is also chosen for
+  /// social reach, which is the opposite of the criterion these three were
+  /// picked on — bridges and search indexers would walk straight back in.
+  ///
+  /// What a personal relay does give, and no public one can, is a retention
+  /// promise: none of the three above declares a retention policy, so none of
+  /// them owes the user their favourites tomorrow. Somebody running or paying
+  /// for a relay has that guarantee, and this is how they use it.
+  List<String> get relays {
+    final custom = customRelay;
+    return custom == null ? _defaultRelays : [..._defaultRelays, custom];
+  }
+
+  /// The configured personal relay, or null when unset or no longer valid.
+  String? get customRelay {
+    final raw = _box.get(kCustomRelayKey);
+    return raw is String ? normaliseRelayUrl(raw) : null;
+  }
+
+  /// Validates a user-typed relay URL, returning the cleaned form or null.
+  ///
+  /// Deliberately strict, because this string decides where an encrypted
+  /// snapshot of the user's home address gets published: TLS only (`ws://`
+  /// would put the traffic, and the fact that it is Roadstr traffic, in the
+  /// clear on the local network), no embedded credentials, no query or
+  /// fragment, and a host that actually looks like one.
+  static String? normaliseRelayUrl(String input) {
+    final trimmed = input.trim();
+    if (trimmed.isEmpty || trimmed.length > 200) return null;
+    final uri = Uri.tryParse(trimmed);
+    if (uri == null ||
+        uri.scheme != 'wss' ||
+        uri.host.isEmpty ||
+        !uri.host.contains('.') ||
+        uri.userInfo.isNotEmpty ||
+        uri.hasQuery ||
+        uri.hasFragment) {
+      return null;
+    }
+    // Drop a trailing slash so the same relay typed two ways is one entry.
+    final path = uri.path == '/' ? '' : uri.path;
+    final normalised = uri.replace(path: path).toString();
+    return _defaultRelays.contains(normalised) ? null : normalised;
+  }
 
   /// Max accepted event content length on pull. Legit content is ≤ 65535
   /// plaintext bytes → ~88 KB of base64; anything bigger is a hostile relay
   /// trying to waste memory/CPU and is dropped before hashing/verification.
   static const _maxContentChars = 200000;
+  static const _maxInboundMessageChars = 256 * 1024;
 
   /// Plaintext size bucket (bytes). Every snapshot is padded up to a
   /// multiple of this before encryption, capped at NIP-44's 65535 limit.
@@ -104,13 +191,45 @@ class FavoritesSyncService {
   static String hashedDTag(String pubKeyHex) =>
       sha256.convert(utf8.encode('$_legacyDTag:$pubKeyHex')).toString();
 
+  /// Serialises every push, across instances. The snapshot is a *replaceable*
+  /// event: two overlapping pushes both read the same high-water mark before
+  /// either persists its own, so they can be signed with the same created_at
+  /// and finish in any order — and the relay would then keep whichever event
+  /// id happens to sort lower, quietly resurrecting favourites the user had
+  /// just deleted. Editing favourites fires an auto-push on every change, so
+  /// overlapping pushes are the normal case, not an exotic one. Static because
+  /// the settings screen and the map each hold their own instance while the
+  /// event they overwrite is one and the same.
+  static Future<void> _pushChain = Future.value();
+
   /// Publishes [favorites], NIP-44 encrypted (optionally passphrase-wrapped),
   /// to all configured relays. Returns true if at least one relay accepted.
+  ///
+  /// Calls queue behind each other in call order, so the last edit made is the
+  /// last snapshot published.
   Future<bool> push({
     required List<FavoritePlace> favorites,
     required String pubKeyHex,
     String? privKeyHex, // null when signing via Amber
     String? passphrase, // optional second encryption factor
+  }) {
+    final result = _pushChain.then((_) => _pushSerialised(
+          favorites: favorites,
+          pubKeyHex: pubKeyHex,
+          privKeyHex: privKeyHex,
+          passphrase: passphrase,
+        ));
+    // The chain must survive a failed push, otherwise one error would strand
+    // every later one behind a future that never completes.
+    _pushChain = result.then((_) {}, onError: (_) {});
+    return result;
+  }
+
+  Future<bool> _pushSerialised({
+    required List<FavoritePlace> favorites,
+    required String pubKeyHex,
+    String? privKeyHex,
+    String? passphrase,
   }) async {
     var plaintext = jsonEncode(favorites.map((f) => f.toMap()).toList());
     if (passphrase != null && passphrase.isNotEmpty) {
@@ -139,7 +258,7 @@ class FavoritesSyncService {
     if (signedJson == null) return false;
 
     var anyOk = false;
-    await Future.wait(_relays.map((url) async {
+    await Future.wait(relays.map((url) async {
       if (await _publishOne(url, signedJson)) anyOk = true;
     }));
     if (anyOk) {
@@ -203,6 +322,7 @@ class FavoritesSyncService {
           .whereType<Map>()
           .map((m) => FavoritePlace.fromMapSafe(m))
           .whereType<FavoritePlace>()
+          .take(FavoritePlace.maxStoredItems)
           .toList();
       await _box.put(_kLastTs, fetchedTs);
       return FavSyncPull.ok(favs);
@@ -263,7 +383,7 @@ class FavoritesSyncService {
       content: '',
       createdAt: _nextCreatedAt(),
     );
-    await Future.wait(_relays.map((url) async {
+    await Future.wait(relays.map((url) async {
       if (wipe != null) await _publishOne(url, wipe);
       if (del != null) await _publishOne(url, del);
     }));
@@ -347,7 +467,7 @@ class FavoritesSyncService {
   Future<Map<String, dynamic>?> _fetchNewest(
       String pubKeyHex, String dTag) async {
     final results = await Future.wait(
-        _relays.map((url) => _fetchLatest(url, pubKeyHex, dTag)));
+        relays.map((url) => _fetchLatest(url, pubKeyHex, dTag)));
     Map<String, dynamic>? best;
     for (final r in results) {
       if (r == null) continue;
@@ -371,8 +491,14 @@ class FavoritesSyncService {
       ws.stream.listen((raw) {
         if (completer.isCompleted) return;
         try {
-          final msg = jsonDecode(raw as String) as List;
-          if (msg[0] == 'OK') completer.complete(msg[2] == true);
+          if (raw is! String || raw.length > _maxInboundMessageChars) return;
+          final msg = jsonDecode(raw) as List;
+          // The OK must name the event we just sent: a relay answering
+          // "accepted" for some other id would otherwise report a successful
+          // sync for a snapshot it never stored.
+          if (msg.length >= 3 && msg[0] == 'OK' && msg[1] == eventJson['id']) {
+            completer.complete(msg[2] == true);
+          }
         } catch (_) {}
       }, onError: (_) {
         if (!completer.isCompleted) completer.complete(false);
@@ -400,11 +526,19 @@ class FavoritesSyncService {
       await ws.ready.timeout(const Duration(seconds: 5));
       final completer = Completer<Map<String, dynamic>?>();
       final subId = randomSubId();
+      var receivedEvents = 0;
       ws.stream.listen((raw) {
         if (completer.isCompleted) return;
         try {
-          final msg = jsonDecode(raw as String) as List;
+          if (raw is! String || raw.length > _maxInboundMessageChars) return;
+          final msg = jsonDecode(raw) as List;
           if (msg[0] == 'EVENT' && msg[1] == subId) {
+            // `limit: 1` is only a relay hint. Stop before signature
+            // verification if a hostile relay ignores it and floods events.
+            if (++receivedEvents > 4) {
+              completer.complete(null);
+              return;
+            }
             final json = (msg[2] as Map).cast<String, dynamic>();
             // Relays are untrusted. Before using anything they send:
             // (1) cheap size guard — drop grotesquely oversized content

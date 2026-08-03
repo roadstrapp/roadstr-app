@@ -1211,6 +1211,17 @@ class AppLocalizationsPt extends AppLocalizations {
       'Segunda camada de criptografia para os favoritos sincronizados: mesmo que a sua chave Nostr fosse comprometida, o snapshot nos relays permanece ilegível sem esta frase-senha. Você a insere uma vez em cada novo dispositivo. Deixe vazio para desativar.';
 
   @override
+  String get syncCustomRelayTitle => 'Um relay teu (opcional)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Adiciona um relay que geres ou pagas e os teus favoritos passam a ser publicados também aí. Os relays públicos não prometem nada sobre quanto tempo guardam os dados; o teu promete. Deixa vazio para usar apenas os relays predefinidos.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Endereço de relay inválido. Tem de começar por wss://';
+
+  @override
   String get syncSuccessSnack => 'Favoritos sincronizados';
 
   @override

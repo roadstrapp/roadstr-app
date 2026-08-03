@@ -1212,6 +1212,17 @@ class AppLocalizationsHr extends AppLocalizations {
       'Drugi sloj šifriranja za sinkronizirane favorite: čak i ako bi vaš Nostr ključ bio ugrožen, snimka na relejima ostaje nečitljiva bez ove fraze. Unosite je jednom na svakom novom uređaju. Ostavite prazno za isključivanje.';
 
   @override
+  String get syncCustomRelayTitle => 'Vlastiti relej (neobavezno)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Dodajte relej koji sami održavate ili plaćate i favoriti će se objavljivati i ondje. Javni releji ne obećavaju ništa o tome koliko dugo čuvaju podatke; vaš obećava. Ostavite prazno za korištenje samo ugrađenih releja.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Nevaljana adresa releja. Mora počinjati s wss://';
+
+  @override
   String get syncSuccessSnack => 'Favoriti sinkronizirani';
 
   @override

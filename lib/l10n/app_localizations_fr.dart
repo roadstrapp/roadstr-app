@@ -1216,6 +1216,17 @@ class AppLocalizationsFr extends AppLocalizations {
       'Deuxième couche de chiffrement pour les favoris synchronisés : même si votre clé Nostr était compromise, l\'instantané sur les relais reste illisible sans cette phrase secrète. Vous la saisirez une fois sur chaque nouvel appareil. Laissez vide pour désactiver.';
 
   @override
+  String get syncCustomRelayTitle => 'Votre propre relais (facultatif)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Ajoutez un relais que vous hébergez ou payez : vos favoris y seront aussi publiés. Les relais publics ne promettent rien quant à la durée de conservation des données ; le vôtre, si. Laissez vide pour n\'utiliser que les relais intégrés.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Adresse de relais invalide. Elle doit commencer par wss://';
+
+  @override
   String get syncSuccessSnack => 'Favoris synchronisés';
 
   @override

@@ -1205,6 +1205,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Second encryption layer for synced favorites: even if your Nostr key were ever compromised, the snapshot on the relays stays unreadable without this passphrase. You\'ll enter it once on each new device. Leave empty to disable.';
 
   @override
+  String get syncCustomRelayTitle => 'Your own relay (optional)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Add a relay you run or pay for, and your favourites are published there too. Public relays promise nothing about how long they keep data; your own does. Leave empty to use only the built-in relays.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Not a valid relay address. It must start with wss://';
+
+  @override
   String get syncSuccessSnack => 'Favorites synced';
 
   @override

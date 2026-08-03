@@ -1216,6 +1216,17 @@ class AppLocalizationsIt extends AppLocalizations {
       'Secondo livello di cifratura per i preferiti sincronizzati: anche se la tua chiave Nostr venisse compromessa, lo snapshot sui relay resta illeggibile senza questa passphrase. La inserirai una volta su ogni nuovo dispositivo. Lascia vuoto per disattivare.';
 
   @override
+  String get syncCustomRelayTitle => 'Un tuo relay (opzionale)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Aggiungi un relay che gestisci tu o che paghi: i preferiti verranno pubblicati anche lì. I relay pubblici non promettono nulla su quanto a lungo conservano i dati, il tuo sì. Lascia vuoto per usare solo i relay predefiniti.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Indirizzo relay non valido. Deve iniziare con wss://';
+
+  @override
   String get syncSuccessSnack => 'Preferiti sincronizzati';
 
   @override

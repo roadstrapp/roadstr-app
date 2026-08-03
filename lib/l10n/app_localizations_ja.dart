@@ -1188,6 +1188,16 @@ class AppLocalizationsJa extends AppLocalizations {
       '同期されたお気に入りの第二の暗号化層です。Nostr鍵が万一漏洩しても、このパスフレーズがなければリレー上のスナップショットは解読できません。新しい端末ごとに一度入力します。無効にするには空欄のままにしてください。';
 
   @override
+  String get syncCustomRelayTitle => '自分のリレー（任意）';
+
+  @override
+  String get syncCustomRelayDesc =>
+      '自分で運用している、または料金を払っているリレーを追加すると、お気に入りがそこにも公開されます。公開リレーはデータをどれだけ保持するか何も約束しませんが、自分のリレーなら約束できます。空欄のままにすると、内蔵のリレーだけを使用します。';
+
+  @override
+  String get syncCustomRelayInvalid => 'リレーのアドレスが正しくありません。wss:// で始まる必要があります';
+
+  @override
   String get syncSuccessSnack => 'お気に入りを同期しました';
 
   @override

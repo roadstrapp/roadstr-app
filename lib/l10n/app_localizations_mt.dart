@@ -1217,6 +1217,17 @@ class AppLocalizationsMt extends AppLocalizations {
       'It-tieni saff ta\' kriptaġġ għall-favoriti sinkronizzati: anke jekk iċ-ċavetta Nostr tiegħek tiġi kompromessa, l-istampa fuq ir-relays tibqa\' ma tinqarax mingħajr din il-frażi. Iddaħħalha darba fuq kull apparat ġdid. Ħalli vojt biex titfi.';
 
   @override
+  String get syncCustomRelayTitle => 'Ir-relay tiegħek (mhux obbligatorju)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Żid relay li tmexxi jew tħallas għalih, u l-favoriti tiegħek jiġu ppubblikati hemm ukoll. Ir-relays pubbliċi ma jwiegħdu xejn dwar kemm iżommu d-data; tiegħek iwiegħed. Ħalli vojt biex tuża biss ir-relays inkorporati.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Indirizz tar-relay mhux validu. Irid jibda bi wss://';
+
+  @override
   String get syncSuccessSnack => 'Il-favoriti ġew sinkronizzati';
 
   @override

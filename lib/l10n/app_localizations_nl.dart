@@ -1211,6 +1211,17 @@ class AppLocalizationsNl extends AppLocalizations {
       'Tweede versleutelingslaag voor gesynchroniseerde favorieten: zelfs als je Nostr-sleutel ooit gecompromitteerd raakt, blijft de momentopname op de relays onleesbaar zonder deze wachtwoordzin. Je voert hem één keer in op elk nieuw apparaat. Laat leeg om uit te schakelen.';
 
   @override
+  String get syncCustomRelayTitle => 'Je eigen relay (optioneel)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Voeg een relay toe die je zelf beheert of betaalt; je favorieten worden dan ook daar gepubliceerd. Publieke relays beloven niets over hoe lang ze gegevens bewaren, die van jou wel. Laat leeg om alleen de ingebouwde relays te gebruiken.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Geen geldig relay-adres. Het moet beginnen met wss://';
+
+  @override
   String get syncSuccessSnack => 'Favorieten gesynchroniseerd';
 
   @override

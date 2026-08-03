@@ -1215,6 +1215,17 @@ class AppLocalizationsDe extends AppLocalizations {
       'Zweite Verschlüsselungsebene für synchronisierte Favoriten: Selbst wenn Ihr Nostr-Schlüssel kompromittiert würde, bleibt der Snapshot auf den Relays ohne diese Passphrase unlesbar. Sie geben sie einmal pro neuem Gerät ein. Leer lassen zum Deaktivieren.';
 
   @override
+  String get syncCustomRelayTitle => 'Eigener Relay (optional)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Füge einen Relay hinzu, den du selbst betreibst oder bezahlst — deine Favoriten werden dann auch dort veröffentlicht. Öffentliche Relays sagen nichts darüber zu, wie lange sie Daten aufbewahren; dein eigener schon. Leer lassen, um nur die integrierten Relays zu nutzen.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Keine gültige Relay-Adresse. Sie muss mit wss:// beginnen';
+
+  @override
   String get syncSuccessSnack => 'Favoriten synchronisiert';
 
   @override

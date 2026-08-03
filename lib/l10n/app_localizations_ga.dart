@@ -1212,6 +1212,17 @@ class AppLocalizationsGa extends AppLocalizations {
       'Dara sraith criptithe do na ceanáin shioncronaithe: fiú dá gcuirfí d\'eochair Nostr i mbaol, fanann an roinneog ar na hathsheachadáin doléite gan an pasfhrása seo. Cuirfidh tú isteach é uair amháin ar gach gléas nua. Fág folamh chun é a dhíchumasú.';
 
   @override
+  String get syncCustomRelayTitle => 'Do athsheachadán féin (roghnach)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Cuir athsheachadán leis a ritheann tú nó a íocann tú as, agus foilseofar do cheanáin ann freisin. Ní gheallann athsheachadáin phoiblí aon rud faoi cé chomh fada a choinníonn siad sonraí; geallann do cheann féin. Fág folamh chun na cinn ionsuite a úsáid.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Seoladh athsheachadáin neamhbhailí. Caithfidh sé tosú le wss://';
+
+  @override
   String get syncSuccessSnack => 'Ceanáin sioncronaithe';
 
   @override

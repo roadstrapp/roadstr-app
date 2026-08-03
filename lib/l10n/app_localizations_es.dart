@@ -1213,6 +1213,17 @@ class AppLocalizationsEs extends AppLocalizations {
       'Segunda capa de cifrado para los favoritos sincronizados: aunque tu clave Nostr se viera comprometida, la copia en los relays sigue siendo ilegible sin esta frase. La introducirás una vez en cada dispositivo nuevo. Déjala vacía para desactivarla.';
 
   @override
+  String get syncCustomRelayTitle => 'Tu propio relay (opcional)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Añade un relay que gestiones o pagues y tus favoritos se publicarán también allí. Los relays públicos no prometen nada sobre cuánto tiempo conservan los datos; el tuyo sí. Déjalo vacío para usar solo los relays integrados.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Dirección de relay no válida. Debe empezar por wss://';
+
+  @override
   String get syncSuccessSnack => 'Favoritos sincronizados';
 
   @override
