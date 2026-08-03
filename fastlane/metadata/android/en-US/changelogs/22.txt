@@ -1,0 +1,42 @@
+The cursor now points where you are actually going, and relays are
+treated as hostile by default.
+
+• Outside navigation the cursor and the map now follow your direction of
+  travel while you are moving, instead of the phone's compass — no more
+  arrow sideways to the road when the phone sits at an angle
+• The compass takes over only when you are stopped, and the handover has
+  a dead band so crawling in traffic no longer makes the map hesitate
+• The cursor now turns with the map itself, so it stays lined up with the
+  road all the way through a curve and after rotating the map by hand
+• Starting navigation while already driving no longer swings the map to
+  the compass first
+• A GPS fix arriving mid-transition can no longer cut the route overview
+  short when navigation starts
+• Passphrase-protected favourites now restore automatically again after a
+  reinstall, instead of being skipped
+• You can now add a relay of your own to the favourites sync, in Settings.
+  Public relays make no promise about how long they keep anything; one you
+  run or pay for does
+
+• Favourites sync now uses three relays instead of two, so deleting or
+  restoring saved places no longer depends on a single relay being up
+• Deleting your last favourite is now published like any other change,
+  instead of leaving the old list on the relays
+• Favourite uploads are queued, so two quick edits can no longer land in
+  the wrong order and bring back a place you just deleted
+• A relay can no longer grow the app's memory by streaming updates that
+  point at reports which never arrive
+• "My reports" now re-checks locally that each report is actually yours,
+  and its own budget can no longer be spent by confirmations
+• Sync no longer reports success when a relay acknowledges the wrong event
+• Bounded work per history fetch, so a relay that ignores the requested
+  limit cannot make the app verify signatures indefinitely
+• Stricter address checks on Lightning address lookups, and a total
+  deadline on the response instead of a per-chunk one
+• Place names from search providers are length-capped before display
+• Reconnects and map-data retries now back off instead of repeating at a
+  fixed rate, which saves battery on a bad connection and stops the app
+  from adding load to a service that is already struggling
+• Search sends far less traffic while you type: suggestions now come from
+  the provider built for partial words, and the strict address lookup runs
+  once you stop typing rather than on every pause

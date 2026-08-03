@@ -44,9 +44,12 @@ RepoType: git
 Repo: https://github.com/roadstrapp/roadstr-app
 
 Builds:
-  - versionName: 0.4.12
-    versionCode: 21
-    commit: v0.4.12
+  - versionName: 0.4.13
+    versionCode: 22
+    # Must match the git tag exactly. The tags in this repo carry a dot after
+    # the v (v.0.4.12, v.0.4.11); earlier entries here said "v0.4.12", which
+    # resolves to nothing and would fail the F-Droid build.
+    commit: v.0.4.13
     subdir: .
     sudo:
       - apt-get update
@@ -61,5 +64,5 @@ Builds:
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 0.4.12
-CurrentVersionCode: 21
+CurrentVersion: 0.4.13
+CurrentVersionCode: 22
