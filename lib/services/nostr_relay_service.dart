@@ -10,6 +10,7 @@
 //     fully cleared on re-subscribe — TTL expiry is handled in a background timer.
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' show Random;
 
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:hive/hive.dart';
@@ -64,6 +65,19 @@ class NostrRelayService {
   static const _maxInboundMessageChars = 256 * 1024;
   static const _maxCachedEvents = 1000;
 
+  /// Ceiling on kind-1317 updates held waiting for a report that has not
+  /// arrived, and how long one may wait. See [_pendingRoadUpdates].
+  static const _maxPendingRoadUpdates = 200;
+  static const _pendingRoadUpdateTtl = Duration(minutes: 15);
+
+  /// Ceiling on remembered activity-notification ids, so a relay replaying
+  /// endless zaps/confirmations cannot grow the de-duplication set forever.
+  static const _maxNotifiedEventIds = 2000;
+
+  /// Ceiling on anti-rollback marks for report updates. See
+  /// [_rememberRoadUpdateAt] for why these outlive their events.
+  static const _maxRoadUpdateMarks = 2000;
+
   /// Relays Roadstr talks to, in preference order.
   ///
   /// Every one of them was verified end to end: publish a Roadstr custom kind
@@ -104,6 +118,11 @@ class NostrRelayService {
   /// the map during the brief gap between sending CLOSE and receiving new EVENTs.
   /// Expired events are purged by the [_cleanupTimer] every 2 minutes.
   final _events = <String, RoadEvent>{};
+
+  /// kind-1317 updates that named a report we have not received yet, keyed by
+  /// the report id. Bounded and aged out by [_pruneEventDerivedState]: nothing
+  /// stops a relay from streaming signed updates pointing at ids that will
+  /// never arrive, and an unbounded map would grow with every one of them.
   final _pendingRoadUpdates = <String, Map<String, dynamic>>{};
   final _latestRoadUpdateAt = <String, int>{};
   final _controller = StreamController<List<RoadEvent>>.broadcast();
@@ -111,6 +130,19 @@ class NostrRelayService {
   WebSocketChannel? _ws;
   StreamSubscription<dynamic>? _wsSub;
   Timer? _reconnectTimer;
+
+  /// Completed sweeps of the whole relay pool that failed, reset by any
+  /// successful connection. Drives the backoff in [_scheduleReconnect]:
+  /// 1.25 s while working through the pool, then 2.5 s, 5, 10, 20, 40 and
+  /// 60 s per sweep for as long as every relay keeps refusing.
+  int _reconnectAttempt = 0;
+
+  /// Failures since the last successful connection or completed sweep.
+  int _failuresThisSweep = 0;
+  static const _baseReconnectDelay = Duration(milliseconds: 1250);
+  static const _maxReconnectDelay = Duration(seconds: 60);
+  static const _maxReconnectAttempt = 6;
+  static final _random = Random.secure();
 
   /// Debounce timer that delays sending the confirmation (kind-1316) REQ until
   /// all kind-1315 historical events have been received (after EOSE).
@@ -207,6 +239,9 @@ class NostrRelayService {
         cancelOnError: false,
       );
       _connected = true;
+      // The socket is up: the next failure starts from the short delay again.
+      _reconnectAttempt = 0;
+      _failuresThisSweep = 0;
       // Replay the last area subscription if the app already had one active.
       if (_lastGeohashes.isNotEmpty) _sendEventsReq(_lastGeohashes);
       if (_myPubKeyForNotif != null) _sendMyNotificationReqs();
@@ -325,7 +360,7 @@ class NostrRelayService {
     const distance = Distance();
     _events.removeWhere((_, event) =>
         distance.as(LengthUnit.Kilometer, center, event.position) > 100);
-    _pruneVotes();
+    _pruneEventDerivedState();
     if (_connected) _sendEventsReq(_lastGeohashes);
   }
 
@@ -488,11 +523,15 @@ class NostrRelayService {
   /// Removes expired events from the cache and pushes an updated list downstream.
   void _removeExpired() {
     if (_disposed) return;
+    // Unconditionally, so that [_pendingRoadUpdateTtl] is an actual deadline
+    // driven by this timer rather than something that only happens to be
+    // enforced when the pending map fills up or the event cache shrinks.
+    _prunePendingRoadUpdates();
     final before = _events.length;
     _events.removeWhere((_, ev) => ev.isExpired);
     if (_events.length != before) {
       // Drop vote records for events that no longer exist.
-      _pruneVotes();
+      _pruneEventDerivedState();
       if (!_controller.isClosed) _controller.add(currentEvents);
     }
   }
@@ -505,13 +544,45 @@ class NostrRelayService {
     }
   }
 
-  /// Increments [_relayIdx] so the next [connect] call uses a different relay.
+  /// Increments [_relayIdx] so the next [connect] call uses a different relay,
+  /// and backs off before trying.
+  ///
+  /// A fixed 5 s retry is fine for one dropped connection and wrong for the
+  /// case that actually happens: no connectivity at all. In a long tunnel, on
+  /// a flight, or with the relays refusing connections, every failure retried
+  /// instantly at 5 s means 720 connection attempts an hour, on battery, per
+  /// user — and aimed hardest at exactly the relay that is already answering
+  /// 503 because it is overloaded. Roadstr's relays are volunteer-run
+  /// infrastructure; a client that hammers harder the worse things get is a
+  /// small denial of service with good intentions.
+  ///
+  /// So: exponential, capped, and jittered. The jitter matters as much as the
+  /// backoff — without it every client that dropped when a relay went down
+  /// comes back in the same second and knocks it over again.
   void _scheduleReconnect() {
     if (_disposed) return;
     _connected = false;
     _reconnectTimer?.cancel();
     _relayIdx++;
-    _reconnectTimer = Timer(const Duration(seconds: 5), connect);
+    // The backoff must measure "the network is down", not "this one relay said
+    // no". Measured over ten minutes, relay.damus.io refused 22 of 30
+    // connections with HTTP 503 while nos.lol accepted all 30 — so a failure
+    // is weak evidence about the *next* relay in the rotation, and letting one
+    // sick relay stretch the delay would punish the healthy ones behind it.
+    // The counter therefore advances only once the whole pool has been tried
+    // and refused; inside a sweep the short base delay just moves us along.
+    if (++_failuresThisSweep >= _relays.length) {
+      _failuresThisSweep = 0;
+      if (_reconnectAttempt < _maxReconnectAttempt) _reconnectAttempt++;
+    }
+    final base = _baseReconnectDelay.inMilliseconds * (1 << _reconnectAttempt);
+    final capped = base > _maxReconnectDelay.inMilliseconds
+        ? _maxReconnectDelay.inMilliseconds
+        : base;
+    // ±25 %, so a fleet of clients spreads out instead of arriving together.
+    final jittered = capped * (0.75 + _random.nextDouble() * 0.5);
+    _reconnectTimer =
+        Timer(Duration(milliseconds: jittered.round()), () => connect());
   }
 
   void _send(dynamic msg) {
@@ -729,7 +800,7 @@ class NostrRelayService {
       final oldest =
           _events.values.reduce((a, b) => a.createdAt <= b.createdAt ? a : b);
       _events.remove(oldest.id);
-      _pruneVotes();
+      _pruneEventDerivedState();
     }
     _pendingIds.add(event.id);
     if (!_controller.isClosed) _controller.add(currentEvents);
@@ -740,6 +811,21 @@ class NostrRelayService {
     if (targetId == null) return;
     final event = _events[targetId];
     if (event == null) {
+      // Park it — but never let the parking lot grow without bound: when it is
+      // full the oldest waiting update is dropped, so a flood of updates for
+      // ids that never arrive costs a fixed amount of memory instead of one
+      // entry per hostile message.
+      if (_pendingRoadUpdates.length >= _maxPendingRoadUpdates) {
+        _prunePendingRoadUpdates();
+        if (_pendingRoadUpdates.length >= _maxPendingRoadUpdates) {
+          final oldest = _pendingRoadUpdates.entries.reduce((a, b) =>
+              (a.value['created_at'] as int? ?? 0) <=
+                      (b.value['created_at'] as int? ?? 0)
+                  ? a
+                  : b);
+          _pendingRoadUpdates.remove(oldest.key);
+        }
+      }
       _pendingRoadUpdates[targetId] = json;
       return;
     }
@@ -760,8 +846,26 @@ class NostrRelayService {
     final limit = int.tryParse(maxspeed ?? '');
     if (limit == null || limit < 5 || limit > 300) return false;
     event.speedLimit = limit;
-    _latestRoadUpdateAt[event.id] = createdAt;
+    _rememberRoadUpdateAt(event.id, createdAt);
     return true;
+  }
+
+  /// Stores the newest update timestamp applied to [id] — the high-water mark
+  /// that makes a replayed older kind-1317 a no-op.
+  ///
+  /// Bounded by count, and deliberately *not* cleared when [_events] shrinks:
+  /// an event dropped for cache capacity and re-delivered afterwards would
+  /// otherwise arrive with no memory of what had already been applied to it,
+  /// and the first stale update a relay replayed would be accepted as new.
+  /// The mark is cheap (an id and an int); the protection it gives up is not.
+  void _rememberRoadUpdateAt(String id, int createdAt) {
+    _latestRoadUpdateAt[id] = createdAt;
+    if (_latestRoadUpdateAt.length > _maxRoadUpdateMarks) {
+      final excess = _latestRoadUpdateAt.length - _maxRoadUpdateMarks;
+      for (final key in _latestRoadUpdateAt.keys.take(excess).toList()) {
+        _latestRoadUpdateAt.remove(key);
+      }
+    }
   }
 
   static String? _tagValue(Map<String, dynamic> json, String key) {
@@ -826,7 +930,7 @@ class NostrRelayService {
     // "someone confirmed you" and must never self-notify.
     if (json['pubkey'] == myEvent.pubkey) return;
     final id = json['id'] as String?;
-    if (id == null || !_notifiedEventIds.add(id)) return;
+    if (id == null || !_rememberNotified(id)) return;
     final createdAt = json['created_at'] as int? ?? 0;
     if (createdAt > _lastConfNotifiedAt) {
       _lastConfNotifiedAt = createdAt;
@@ -857,7 +961,7 @@ class NostrRelayService {
     );
     if (amountMsat == null) return;
     final id = json['id'] as String?;
-    if (id == null || !_notifiedEventIds.add(id)) return;
+    if (id == null || !_rememberNotified(id)) return;
     final createdAt = json['created_at'] as int? ?? 0;
     if (createdAt > _lastZapNotifiedAt) {
       _lastZapNotifiedAt = createdAt;
@@ -868,12 +972,37 @@ class NostrRelayService {
         id: id, createdAt: createdAt, amountSat: amountMsat ~/ 1000));
   }
 
-  void _pruneVotes() {
+  /// Records [id] as already notified, returning false if it was seen before.
+  /// The set is FIFO-trimmed: a relay replaying activity forever must not turn
+  /// the de-duplication memory into unbounded growth.
+  bool _rememberNotified(String id) {
+    if (!_notifiedEventIds.add(id)) return false;
+    if (_notifiedEventIds.length > _maxNotifiedEventIds) {
+      final excess = _notifiedEventIds.length - _maxNotifiedEventIds;
+      _notifiedEventIds.removeAll(_notifiedEventIds.take(excess).toList());
+    }
+    return true;
+  }
+
+  /// Drops the vote records whose event is gone, plus the updates still
+  /// waiting for an event that never showed up. Called wherever [_events]
+  /// shrinks.
+  ///
+  /// Note what is *not* here: [_latestRoadUpdateAt] is a security mark, not a
+  /// cache entry, and is bounded on its own terms — see [_rememberRoadUpdateAt].
+  void _pruneEventDerivedState() {
     _countedVotes.removeWhere((vote) {
       final separator = vote.indexOf(':');
       return separator <= 0 ||
           !_events.containsKey(vote.substring(0, separator));
     });
+    _prunePendingRoadUpdates();
+  }
+
+  void _prunePendingRoadUpdates() {
+    final cutoff = _nowS() - _pendingRoadUpdateTtl.inSeconds;
+    _pendingRoadUpdates
+        .removeWhere((_, json) => (json['created_at'] as int? ?? 0) < cutoff);
   }
 
   // ── Geohash encoder (pure Dart, no external dependencies) ───────────────
@@ -1242,6 +1371,20 @@ class NostrRelayService {
       // One vote per pubkey per event, and dedupe re-delivered events —
       // same anti-inflation rules the live stream enforces via _countedVotes.
       final countedVotes = <String>{};
+      // `limit` in the REQ is a request, not a rule: a relay is free to send
+      // as much as it likes, and every message costs a signature verification.
+      // Count what actually arrives and stop the subscription at the ceiling
+      // the caller asked for, whatever the relay decides to do.
+      //
+      // One budget per subscription, not one shared budget. The two phases run
+      // in sequence — reports first, then the votes on them — so a shared
+      // counter would let a user with many reports, or one popular report,
+      // spend the whole allowance on confirmations and silently truncate the
+      // very list being displayed.
+      var processedReports = 0;
+      var processedVotes = 0;
+      final maxReports = safeLimit * 2;
+      final maxVotes = safeLimit * 5;
       final completer = Completer<List<RoadEvent>>();
       final evSub = randomSubId();
       final confSub = randomSubId();
@@ -1336,10 +1479,31 @@ class NostrRelayService {
               return;
             }
             if (msg[0] != 'EVENT') return;
+            // Counted before verification: the signature check is the
+            // expensive part, so the ceiling has to sit in front of it.
+            if (msg[1] == evSub) {
+              if (++processedReports > maxReports) {
+                if (!completer.isCompleted) completer.complete(events);
+                return;
+              }
+            } else if (msg[1] == confSub) {
+              // Votes are enrichment: stop counting them and answer with the
+              // reports already collected rather than dropping the lot.
+              if (++processedVotes > maxVotes) {
+                if (!completer.isCompleted) completer.complete(events);
+                return;
+              }
+            } else {
+              return;
+            }
             final json = (msg[2] as Map).cast<String, dynamic>();
             // Same trust rule as the live subscription: verify id + signature
             // before using anything a relay sends.
             if (!verifyEventJson(json)) return;
+            // The REQ asked for `authors: [pubHex]`, but a relay is free to
+            // ignore its own filters: re-check the author locally, or somebody
+            // else's validly signed report lands in "my reports".
+            if (msg[1] == evSub && json['pubkey'] != pubHex) return;
             if (msg[1] == evSub && json['kind'] == 1315) return onReport(json);
             if (msg[1] == evSub && json['kind'] == 1317) return onUpdate(json);
             if (msg[1] == confSub && json['kind'] == 1316) return onVote(json);
@@ -1410,12 +1574,17 @@ class NostrRelayService {
       final subId = randomSubId();
       final completer = Completer<List<RoadEventEditRequest>>();
       final out = <RoadEventEditRequest>[];
+      var receivedEvents = 0;
       ws.stream.listen((raw) {
         if (completer.isCompleted) return;
         try {
           if (raw is! String || raw.length > _maxInboundMessageChars) return;
           final msg = jsonDecode(raw) as List;
           if (msg[0] == 'EVENT' && msg[1] == subId) {
+            if (++receivedEvents > 100) {
+              completer.complete(out);
+              return;
+            }
             final json = (msg[2] as Map).cast<String, dynamic>();
             if (json['kind'] != 1318 || !verifyEventJson(json)) return;
             final tags = (json['tags'] as List?) ?? const [];
@@ -1433,12 +1602,13 @@ class NostrRelayService {
                 limit > 300) {
               return;
             }
+            final comment = _boundedText(json['content'], 500) ?? '';
             out.add(RoadEventEditRequest(
               id: json['id'] as String,
               eventId: target!,
               requesterPubkey: json['pubkey'] as String,
               speedLimit: limit,
-              comment: json['content'] as String? ?? '',
+              comment: comment,
               createdAt: json['created_at'] as int? ?? 0,
             ));
           } else if (msg[0] == 'EOSE' && msg[1] == subId) {
@@ -1520,6 +1690,7 @@ class NostrRelayService {
       final subId = randomSubId();
       RoadstrProfileVisibility? latest;
       var latestCreatedAt = -1;
+      var receivedEvents = 0;
       ws.stream.listen(
         (raw) {
           if (completer.isCompleted) return;
@@ -1527,6 +1698,10 @@ class NostrRelayService {
             if (raw is! String || raw.length > _maxInboundMessageChars) return;
             final msg = jsonDecode(raw) as List;
             if (msg[0] == 'EVENT' && msg[1] == subId) {
+              if (++receivedEvents > 10) {
+                completer.complete(latest);
+                return;
+              }
               final json = (msg[2] as Map).cast<String, dynamic>();
               if (json['pubkey'] != pubHex ||
                   json['kind'] != 30078 ||
@@ -1592,6 +1767,7 @@ class NostrRelayService {
       final subId = randomSubId();
       NostrProfile? latest;
       var latestCreatedAt = -1;
+      var receivedEvents = 0;
 
       ws.stream.listen(
         (raw) {
@@ -1600,6 +1776,10 @@ class NostrRelayService {
             if (raw is! String || raw.length > _maxInboundMessageChars) return;
             final msg = jsonDecode(raw) as List;
             if (msg[0] == 'EVENT' && msg[1] == subId) {
+              if (++receivedEvents > 10) {
+                completer.complete(latest);
+                return;
+              }
               final json = (msg[2] as Map).cast<String, dynamic>();
               // Verify author + id + signature: a forged kind-0 would let a
               // malicious relay plant an arbitrary display name/avatar.

@@ -58,11 +58,17 @@ class SpeedCameraService {
       _lastQueryPos = pos;
       _lastSuccessAt = DateTime.now();
       _nextRetryAt = null;
+      _overpass.noteSuccess();
       debugPrint('[SpeedCamera] Overpass → ${_cached.length} cameras nearby');
     } catch (e) {
       debugPrint('[SpeedCamera] Overpass error: $e');
+      // Growing back-off: see [OverpassClient.failureBackoff]. Three services
+      // poll these mirrors during a drive; none of them may keep a fixed rate
+      // against a mirror that is failing.
       _overpass.rotate();
-      _nextRetryAt = DateTime.now().add(const Duration(milliseconds: _retryMs));
+      _overpass.noteFailure(e);
+      _nextRetryAt = DateTime.now().add(_overpass
+          .failureBackoff(base: const Duration(milliseconds: _retryMs)));
     } finally {
       _fetching = false;
     }

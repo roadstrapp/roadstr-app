@@ -74,12 +74,18 @@ class ZtlService {
       _restrictedWays = ways;
       _lastQueryPos = pos;
       _nextRetryAt = null;
+      _overpass.noteSuccess();
       debugPrint(
           '[ZTL] loaded ${zones.length} zones, ${ways.length} restricted ways');
     } catch (e) {
       debugPrint('[ZTL] fetch failed: $e');
+      // ...and the back-off grows with each consecutive failure, so a mirror
+      // that is down for the whole drive is asked a handful of times, not
+      // every 15 s. See [OverpassClient.failureBackoff].
       _overpass.rotate();
-      _nextRetryAt = DateTime.now().add(const Duration(milliseconds: _retryMs));
+      _overpass.noteFailure(e);
+      _nextRetryAt = DateTime.now().add(_overpass
+          .failureBackoff(base: const Duration(milliseconds: _retryMs)));
     } finally {
       _fetching = false;
     }

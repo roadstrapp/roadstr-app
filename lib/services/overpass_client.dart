@@ -43,10 +43,47 @@ class OverpassClient {
   static String coord(double value) => value.toStringAsFixed(7);
 
   int _idx = 0;
+  int _failureStreak = 0;
+  bool _lastFailureWasThrottle = false;
 
   /// The mirrors this instance may use. Overridden in tests to keep every
   /// request — including the hedged one below — on a local server.
   List<String> get availableMirrors => mirrors;
+
+  /// Records the outcome of a request so [failureBackoff] can grow. Callers
+  /// that keep their own retry timer should report both outcomes.
+  void noteSuccess() {
+    _failureStreak = 0;
+    _lastFailureWasThrottle = false;
+  }
+
+  void noteFailure(Object? error) {
+    if (_failureStreak < 8) _failureStreak++;
+    // 429 is the mirror saying "you specifically, slow down"; 504 is it saying
+    // "I am overloaded". Both deserve a longer pause than a lost packet.
+    final status = error is OverpassException ? error.statusCode : 0;
+    _lastFailureWasThrottle = status == 429 || status == 504 || status == 503;
+  }
+
+  /// How long to wait before trying again after [noteFailure].
+  ///
+  /// The mirrors are free, volunteer-run, and shared by every OSM tool in
+  /// existence. A fixed retry means an app that keeps knocking at the same
+  /// rate no matter how loudly the server says no — and, during navigation,
+  /// three services doing it at once for the whole drive. Exponential with a
+  /// ceiling keeps a transient failure cheap to recover from while making a
+  /// sustained outage cost the mirror almost nothing.
+  Duration failureBackoff({
+    Duration base = const Duration(seconds: 15),
+    Duration max = const Duration(minutes: 5),
+  }) {
+    if (_failureStreak == 0) return Duration.zero;
+    // Being throttled starts the ramp higher rather than steeper: the point is
+    // to get out of the mirror's way now, not to escalate later.
+    final start = _lastFailureWasThrottle ? base * 4 : base;
+    final grown = start * (1 << (_failureStreak - 1));
+    return grown > max ? max : grown;
+  }
 
   /// The mirror the next request will use.
   String get currentMirror => availableMirrors[_idx % availableMirrors.length];
