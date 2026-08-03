@@ -87,14 +87,19 @@ class SpeedLimitService {
       _lastQueryPos = pos;
       _lastSuccessAt = DateTime.now();
       _nextRetryAt = null;
+      _overpass.noteSuccess();
       debugPrint(
           '[SpeedLimit] Overpass → ${result ?? "no limit (miss $_missCount)"} km/h');
     } catch (e) {
       debugPrint('[SpeedLimit] Overpass error: $e');
       if (generation != _generation) return;
-      // Rotate to the next mirror before backing off.
+      // Rotate to the next mirror before backing off. The delay grows with
+      // consecutive failures: a whole drive spent retrying a mirror that is
+      // down every 15 s is a lot of pointless traffic aimed at a free service.
       _overpass.rotate();
-      _nextRetryAt = DateTime.now().add(const Duration(milliseconds: _retryMs));
+      _overpass.noteFailure(e);
+      _nextRetryAt = DateTime.now().add(_overpass
+          .failureBackoff(base: const Duration(milliseconds: _retryMs)));
     } finally {
       // A superseded query must not clear the flag of the one that replaced it.
       if (generation == _generation) _fetching = false;
