@@ -1212,6 +1212,17 @@ class AppLocalizationsRo extends AppLocalizations {
       'Al doilea strat de criptare pentru favoritele sincronizate: chiar dacă cheia dvs. Nostr ar fi compromisă, instantaneul de pe relee rămâne ilizibil fără această frază. O introduceți o singură dată pe fiecare dispozitiv nou. Lăsați gol pentru dezactivare.';
 
   @override
+  String get syncCustomRelayTitle => 'Releul tău (opțional)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Adaugă un releu pe care îl administrezi sau îl plătești, iar favoritele vor fi publicate și acolo. Releele publice nu promit nimic despre cât timp păstrează datele; al tău da. Lasă gol pentru a folosi doar releele implicite.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Adresă de releu nevalidă. Trebuie să înceapă cu wss://';
+
+  @override
   String get syncSuccessSnack => 'Favoritele au fost sincronizate';
 
   @override

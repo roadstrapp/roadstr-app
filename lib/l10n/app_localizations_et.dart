@@ -1210,6 +1210,17 @@ class AppLocalizationsEt extends AppLocalizations {
       'Sünkroonitud lemmikute teine krüpteerimiskiht: isegi kui teie Nostr-võti satuks ohtu, jääb hetktõmmis releedel ilma selle fraasita loetamatuks. Sisestate selle üks kord igas uues seadmes. Keelamiseks jätke tühjaks.';
 
   @override
+  String get syncCustomRelayTitle => 'Sinu enda relee (valikuline)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Lisa relee, mida ise majutad või mille eest maksad — lemmikud avaldatakse ka sinna. Avalikud releed ei luba midagi selle kohta, kui kaua nad andmeid hoiavad; sinu oma lubab. Jäta tühjaks, et kasutada ainult sisseehitatud releesid.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Vigane relee aadress. See peab algama wss://';
+
+  @override
   String get syncSuccessSnack => 'Lemmikud sünkroonitud';
 
   @override

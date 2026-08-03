@@ -1208,6 +1208,17 @@ class AppLocalizationsLv extends AppLocalizations {
       'Otrs šifrēšanas slānis sinhronizētajām izlasēm: pat ja jūsu Nostr atslēga tiktu kompromitēta, momentuzņēmums relejos bez šīs frāzes paliek nelasāms. Ievadīsiet to vienreiz katrā jaunā ierīcē. Atstājiet tukšu, lai atspējotu.';
 
   @override
+  String get syncCustomRelayTitle => 'Jūsu paša relejs (neobligāti)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Pievienojiet releju, ko uzturat vai apmaksājat, un izlase tiks publicēta arī tur. Publiskie releji neko nesola par to, cik ilgi glabā datus; jūsu relejs sola. Atstājiet tukšu, lai izmantotu tikai iebūvētos relejus.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Nederīga releja adrese. Tai jāsākas ar wss://';
+
+  @override
   String get syncSuccessSnack => 'Izlase sinhronizēta';
 
   @override

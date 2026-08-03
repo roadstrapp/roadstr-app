@@ -2344,6 +2344,24 @@ abstract class AppLocalizations {
   /// **'Second encryption layer for synced favorites: even if your Nostr key were ever compromised, the snapshot on the relays stays unreadable without this passphrase. You\'ll enter it once on each new device. Leave empty to disable.'**
   String get syncPassphraseDesc;
 
+  /// No description provided for @syncCustomRelayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own relay (optional)'**
+  String get syncCustomRelayTitle;
+
+  /// No description provided for @syncCustomRelayDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a relay you run or pay for, and your favourites are published there too. Public relays promise nothing about how long they keep data; your own does. Leave empty to use only the built-in relays.'**
+  String get syncCustomRelayDesc;
+
+  /// No description provided for @syncCustomRelayInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a valid relay address. It must start with wss://'**
+  String get syncCustomRelayInvalid;
+
   /// No description provided for @syncSuccessSnack.
   ///
   /// In en, this message translates to:

@@ -1213,6 +1213,17 @@ class AppLocalizationsHu extends AppLocalizations {
       'Második titkosítási réteg a szinkronizált kedvencekhez: még ha a Nostr-kulcsa kompromittálódna is, a relék pillanatképe e jelmondat nélkül olvashatatlan marad. Minden új eszközön egyszer kell megadnia. Hagyja üresen a kikapcsoláshoz.';
 
   @override
+  String get syncCustomRelayTitle => 'Saját relay (opcionális)';
+
+  @override
+  String get syncCustomRelayDesc =>
+      'Adj hozzá egy relayt, amelyet te üzemeltetsz vagy fizetsz, és a kedvenceid oda is közzé lesznek téve. A nyilvános relayek semmit sem ígérnek arról, meddig őrzik meg az adatokat; a sajátod igen. Hagyd üresen, ha csak a beépített relayeket szeretnéd használni.';
+
+  @override
+  String get syncCustomRelayInvalid =>
+      'Érvénytelen relay-cím. wss:// előtaggal kell kezdődnie';
+
+  @override
   String get syncSuccessSnack => 'Kedvencek szinkronizálva';
 
   @override
