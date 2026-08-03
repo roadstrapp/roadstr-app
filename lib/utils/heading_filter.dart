@@ -4,11 +4,20 @@ import 'geo.dart';
 
 /// Which way the map should face, decided from consecutive GPS fixes.
 ///
-/// The direction of travel is computed from two positions (dead reckoning)
-/// rather than taken from the GPS provider's own heading, because that one
-/// reflects how the phone is held. Two things make it harder than subtracting
-/// coordinates, and both are why this is a class with memory rather than a
-/// formula:
+/// Two questions, both answered here so the answers cannot drift apart:
+///
+///   * *which way* is the vehicle pointing — [resolve], from two positions
+///     (dead reckoning) with the provider's course-over-ground as a fallback;
+///   * *is it moving at all* — [isMoving], which is what decides whether the
+///     cursor follows that course or the magnetometer.
+///
+/// Neither answer ever comes from the magnetometer, which reports how the
+/// phone is held: in a cradle turned sideways, or in a pocket, that is
+/// perpendicular to the road. The compass is only meaningful standing still,
+/// where there is no course to speak of.
+///
+/// Two things make movement bearing harder than subtracting coordinates, and
+/// both are why this is a class with memory rather than a formula:
 ///
 ///   * fixes jitter, so two samples taken metres apart can point anywhere;
 ///   * Android's fused provider ROAD-SNAPS fixes, and next to a parallel or
@@ -21,7 +30,24 @@ import 'geo.dart';
 class HeadingFilter {
   /// Below this speed a two-fix bearing means nothing; the provider heading is
   /// all there is.
-  static const _minSpeedKmh = 3.0;
+  static const minTravelHeadingSpeedKmh = 3.0;
+
+  /// Speeds at which the vehicle's course takes over from the phone's compass,
+  /// and hands back.
+  ///
+  /// Two values rather than one because a single threshold is not a decision,
+  /// it is a coin toss repeated twice a second: a car crawling in traffic sits
+  /// exactly on it, and the heading source flips between GPS course and
+  /// magnetometer on every fix. On screen that is a map that cannot make up
+  /// its mind which way to face. The gap between the two is the hysteresis.
+  static const movingEnterKmh = 5.0;
+  static const movingExitKmh = 2.0;
+
+  /// How long a "moving" verdict survives without a fresh fix. The stream
+  /// simply stops in a tunnel, in an underground car park, or when the
+  /// permission is revoked; without an expiry the last verdict would stand
+  /// forever and the compass would never take over again.
+  static const _motionStaleness = Duration(seconds: 6);
 
   /// Movement under this is indistinguishable from noise. Scaled by the fix's
   /// own accuracy, with a floor for optimistic accuracy reports.
@@ -63,11 +89,43 @@ class HeadingFilter {
 
   double? _pendingReversal;
   int _heldTicks = 0;
+  bool _moving = false;
+  DateTime? _lastMotionAt;
 
   /// Forgets the pending reversal. Call when a journey starts or ends.
+  ///
+  /// The motion state is deliberately *not* cleared: whether the vehicle is
+  /// moving is a fact about the world, not about the journey, and starting
+  /// navigation while already driving must not hand the heading back to the
+  /// magnetometer for the first few fixes.
   void reset() {
     _pendingReversal = null;
     _heldTicks = 0;
+  }
+
+  /// Feeds one speed sample and returns whether the device counts as moving.
+  /// Call exactly once per GPS fix — it advances the hysteresis.
+  bool updateMotion(double speedKmh) {
+    _lastMotionAt = DateTime.now();
+    if (!speedKmh.isFinite || speedKmh < 0) return _moving = false;
+    if (_moving) {
+      if (speedKmh < movingExitKmh) _moving = false;
+    } else if (speedKmh > movingEnterKmh) {
+      _moving = true;
+    }
+    return _moving;
+  }
+
+  /// Whether the vehicle is moving, without disturbing the hysteresis.
+  ///
+  /// This is the read side for everything that is not the GPS stream — the
+  /// magnetometer callback and the widget tree — so that exactly one caller
+  /// advances the state and the rest only observe it.
+  bool get isMoving {
+    final last = _lastMotionAt;
+    if (last == null) return false;
+    if (DateTime.now().difference(last) > _motionStaleness) return false;
+    return _moving;
   }
 
   /// The heading to steer the map by for a fix at [to].
@@ -86,11 +144,14 @@ class HeadingFilter {
   }) {
     final fallback = (providerHeading != null &&
             providerHeading.isFinite &&
+            // Geolocator maps an unavailable Android bearing to 0.0, which is
+            // indistinguishable from true north. Hold the last course until
+            // the position baseline is long enough to calculate north safely.
             providerHeading > 0)
-        ? providerHeading
+        ? providerHeading % 360
         : current;
-    if (from == null || speedKmh <= _minSpeedKmh) return fallback;
-    if (Geo.distanceM(from, to) <= _reliabilityFloor(accuracyM)) {
+    if (from == null || !usesTravelHeading(speedKmh)) return fallback;
+    if (!hasReliableMovement(from, to, accuracyM)) {
       return fallback;
     }
 
@@ -142,6 +203,18 @@ class HeadingFilter {
     if (delta.abs() > _snapToRouteDeg) return local.bearing;
     return (heading + delta * _smoothingFactor + 360) % 360;
   }
+
+  /// Whether two fixes at this speed can yield a bearing at all. This is the
+  /// dead-reckoning floor used inside [resolve] — to decide which *source*
+  /// should drive the cursor, use [isMoving], which has hysteresis.
+  static bool usesTravelHeading(double speedKmh) =>
+      speedKmh.isFinite && speedKmh > minTravelHeadingSpeedKmh;
+
+  /// Consecutive high-rate fixes are often less than the noise floor apart.
+  /// Callers use this to retain the last useful origin until enough movement
+  /// has accumulated instead of resetting the baseline on every tiny sample.
+  static bool hasReliableMovement(LatLng from, LatLng to, double accuracyM) =>
+      Geo.distanceM(from, to) > _reliabilityFloor(accuracyM);
 
   static double _reliabilityFloor(double accuracyM) =>
       accuracyM * 0.8 > _minMoveM ? accuracyM * 0.8 : _minMoveM;
