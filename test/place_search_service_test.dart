@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:roadstr/services/place_search_service.dart';
+import 'package:roadstr/services/poi_search_service.dart';
 import 'package:roadstr/services/routing_service.dart' show NominatimResult;
 
 NominatimResult r(String short, {String? display, double lat = 44.4, double lon = 12.2}) =>
@@ -122,4 +123,51 @@ void main() {
       expect(score, lessThan(0.9)); // scaled down vs a direct name match
     });
   });
+
+  group('search phases', () {
+    // What is verifiable without a network: the category provider is the one
+    // deliberately kept in BOTH phases, because it only reaches Overpass when
+    // the word actually names a category — deferring it would make "pharmacy"
+    // answer late for no saving. Nominatim's absence from the fast pass is
+    // enforced in PlaceSearchService.search itself; its endpoint is a const,
+    // so there is no seam to assert on here without a live request.
+    test('the category provider is asked in both phases', () async {
+      final poi = _RecordingPoi();
+      final service = PlaceSearchService(poi: poi);
+      const near = LatLng(44.4, 12.2);
+
+      await service.search('pharmacy', near: near, phase: SearchPhase.typeAhead);
+      expect(poi.calls, 1, reason: 'fast pass must still answer categories');
+
+      await service.search('pharmacy', near: near, phase: SearchPhase.settled);
+      expect(poi.calls, 2);
+    });
+
+    test('settled is the default, so existing callers are unchanged', () async {
+      final poi = _RecordingPoi();
+      await PlaceSearchService(poi: poi)
+          .search('pharmacy', near: const LatLng(44.4, 12.2));
+      expect(poi.calls, 1);
+    });
+
+    test('an empty query reaches no provider at all', () async {
+      final poi = _RecordingPoi();
+      final service = PlaceSearchService(poi: poi);
+      expect(await service.search('   ', near: const LatLng(44.4, 12.2)),
+          isEmpty);
+      expect(poi.calls, 0);
+    });
+  });
+}
+
+/// Counts how often the category provider is consulted. Returns nothing, so
+/// the surrounding search still runs its merge and ranking paths.
+class _RecordingPoi extends PoiSearchService {
+  int calls = 0;
+
+  @override
+  Future<List<NominatimResult>> search(String query, LatLng center) async {
+    calls++;
+    return const [];
+  }
 }
