@@ -762,18 +762,23 @@ class PoiSearchService {
             : tags?['tourism'] != null
                 ? 'tourism'
                 : null;
-    final type = tags?['shop'] as String? ??
-        tags?['amenity'] as String? ??
-        tags?['tourism'] as String?;
+    // `cls` above is one of three literals we chose; `type` is raw tag value.
+    final type = NominatimResult.clampRemoteText(
+        tags?['shop'] ?? tags?['amenity'] ?? tags?['tourism'], 80);
 
     final position = LatLng(lat, lon);
+    // Overpass mirrors are third-party endpoints: cap what they name a place
+    // before it reaches a list tile or the search history.
+    final safeName = NominatimResult.clampRemoteText(name, 120);
+    if (safeName == null) return null;
     return NominatimResult(
-      displayName: name,
-      shortName: name,
+      displayName: safeName,
+      shortName: safeName,
       position: position,
       cls: cls,
       type: type,
-      openingHours: (tags?['opening_hours'] as String?)?.trim(),
+      openingHours:
+          NominatimResult.clampRemoteText(tags?['opening_hours'], 300),
       distanceM: _distM(center, position),
     );
   }

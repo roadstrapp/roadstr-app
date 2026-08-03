@@ -24,6 +24,8 @@ class SearchHistoryItem {
         lon > 180) {
       return null;
     }
-    return SearchHistoryItem(j['label'] as String, LatLng(lat, lon));
+    final label = j['label'];
+    if (label is! String || label.isEmpty || label.length > 300) return null;
+    return SearchHistoryItem(label, LatLng(lat, lon));
   }
 }

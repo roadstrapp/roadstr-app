@@ -16,6 +16,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bech32/bech32.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:nostr_tools/nostr_tools.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -134,6 +135,7 @@ class ZapService {
       final subId = randomSubId();
       var latestCreatedAt = -1;
       String? latestAddress;
+      var receivedEvents = 0;
 
       ws.stream.listen(
         (raw) {
@@ -142,6 +144,12 @@ class ZapService {
             if (raw is! String || raw.length > 256 * 1024) return;
             final msg = jsonDecode(raw) as List;
             if (msg[0] == 'EVENT' && msg[1] == subId) {
+              if (++receivedEvents > 10) {
+                completer.complete(latestAddress == null
+                    ? null
+                    : (address: latestAddress!, createdAt: latestCreatedAt));
+                return;
+              }
               final json = (msg[2] as Map).cast<String, dynamic>();
               if (json['pubkey'] != pubHex || !verifyEventJson(json)) return;
               final content =
@@ -575,6 +583,11 @@ class ZapService {
       await ws.ready.timeout(const Duration(seconds: 5));
       final completer = Completer<void>();
       final subId = randomSubId();
+      // [limit] is only a hint in the REQ; a relay may answer with as many
+      // receipts as it wants and each one costs a Schnorr verification. Count
+      // the messages that actually arrive and hang up at the ceiling, before
+      // paying for the signature check.
+      var received = 0;
 
       ws.stream.listen(
         (raw) {
@@ -583,6 +596,10 @@ class ZapService {
             if (raw is! String || raw.length > 256 * 1024) return;
             final msg = jsonDecode(raw) as List;
             if (msg[0] == 'EVENT' && msg[1] == subId) {
+              if (++received > limit) {
+                completer.complete();
+                return;
+              }
               final event = (msg[2] as Map).cast<String, dynamic>();
               final id = event['id'] as String?;
               if (id != null && !into.containsKey(id)) {
@@ -778,10 +795,19 @@ class ZapService {
         return null;
       }
       final bytes = <int>[];
-      await for (final chunk in response.stream.timeout(timeout)) {
-        if (bytes.length + chunk.length > maxBytes) return null;
-        bytes.addAll(chunk);
-      }
+      // Total deadline for the body, not a per-chunk inactivity timeout: the
+      // latter restarts on every byte, so a peer trickling one byte before
+      // each expiry would hold the request open indefinitely. Same rule as
+      // [BoundedHttp].
+      await (() async {
+        await for (final chunk in response.stream) {
+          if (bytes.length + chunk.length > maxBytes) {
+            throw const HttpException('LNURL response is too large');
+          }
+          bytes.addAll(chunk);
+        }
+      })()
+          .timeout(timeout);
       final decoded = jsonDecode(utf8.decode(bytes));
       return decoded is Map
           ? decoded.map((key, value) => MapEntry(key.toString(), value))
@@ -804,27 +830,54 @@ class ZapService {
     }
   }
 
+  /// Exposed so the SSRF address filter can be tested directly — resolving a
+  /// hostname that maps to a private range is not something a unit test can
+  /// arrange reliably.
+  @visibleForTesting
+  static bool isPublicAddress(InternetAddress address) =>
+      _isPublicAddress(address);
+
   static bool _isPublicAddress(InternetAddress address) {
     if (address.type == InternetAddressType.IPv4) {
-      final b = address.rawAddress;
-      return !(b[0] == 0 ||
-          b[0] == 10 ||
-          b[0] == 127 ||
-          (b[0] == 100 && b[1] >= 64 && b[1] <= 127) ||
-          (b[0] == 169 && b[1] == 254) ||
-          (b[0] == 172 && b[1] >= 16 && b[1] <= 31) ||
-          (b[0] == 192 && b[1] == 168) ||
-          (b[0] == 198 && (b[1] == 18 || b[1] == 19)) ||
-          b[0] >= 224);
+      return _isPublicV4(address.rawAddress);
     }
     final b = address.rawAddress;
     if (b.length != 16) return false;
+    // An IPv6 address can carry an IPv4 one inside it: ::ffff:127.0.0.1 and
+    // ::127.0.0.1 both reach the loopback interface, and 64:ff9b::/96 does the
+    // same through NAT64. Judge those by their embedded v4 address, otherwise
+    // the whole private-range test below simply never looks at the bytes that
+    // decide where the packet goes.
+    final v4Mapped =
+        b.take(10).every((v) => v == 0) && b[10] == 0xff && b[11] == 0xff;
+    final v4Compatible = b.take(12).every((v) => v == 0) && !(b[12] == 0);
+    final nat64 = b[0] == 0x00 &&
+        b[1] == 0x64 &&
+        b[2] == 0xff &&
+        b[3] == 0x9b &&
+        b.skip(4).take(8).every((v) => v == 0);
+    if (v4Mapped || v4Compatible || nat64) {
+      return _isPublicV4(b.sublist(12));
+    }
     final unspecifiedOrLoopback =
         b.take(15).every((v) => v == 0) && (b[15] == 0 || b[15] == 1);
     final linkLocal = b[0] == 0xfe && (b[1] & 0xc0) == 0x80;
     final uniqueLocal = (b[0] & 0xfe) == 0xfc;
     final multicast = b[0] == 0xff;
     return !(unspecifiedOrLoopback || linkLocal || uniqueLocal || multicast);
+  }
+
+  static bool _isPublicV4(List<int> b) {
+    if (b.length != 4) return false;
+    return !(b[0] == 0 ||
+        b[0] == 10 ||
+        b[0] == 127 ||
+        (b[0] == 100 && b[1] >= 64 && b[1] <= 127) ||
+        (b[0] == 169 && b[1] == 254) ||
+        (b[0] == 172 && b[1] >= 16 && b[1] <= 31) ||
+        (b[0] == 192 && b[1] == 168) ||
+        (b[0] == 198 && (b[1] == 18 || b[1] == 19)) ||
+        b[0] >= 224);
   }
 
   static bool _isValidLnurlMetadata(String raw) {

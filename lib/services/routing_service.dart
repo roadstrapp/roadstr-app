@@ -1767,6 +1767,23 @@ class NominatimResult {
     this.distanceM,
   });
 
+  /// Longest a name or address coming from a remote geocoder may be before it
+  /// is cut. Nothing on the other side of these APIs is under our control: a
+  /// compromised or simply broken endpoint can answer with a kilobyte-long
+  /// "street name", which a `ListTile` will happily try to lay out and Hive
+  /// will happily store in the search history.
+  static const _maxRemoteTextChars = 300;
+
+  /// Trims [value] and caps it at [max] characters. Returns null for anything
+  /// that is not a usable non-empty string.
+  static String? clampRemoteText(dynamic value,
+      [int max = _maxRemoteTextChars]) {
+    if (value is! String) return null;
+    final clean = value.trim();
+    if (clean.isEmpty) return null;
+    return clean.length <= max ? clean : clean.substring(0, max);
+  }
+
   /// Returns an emoji that visually represents the feature category so users
   /// can distinguish POI types (restaurants, monuments, roads…) at a glance.
   String get emoji => _categoryEmoji(cls, type);
@@ -1958,20 +1975,23 @@ class NominatimResult {
         lon > 180) {
       throw const FormatException('Nominatim: invalid coordinates');
     }
-    final display = j['display_name'] as String;
+    final display = clampRemoteText(j['display_name']);
+    if (display == null) throw const FormatException('Nominatim: no name');
     final clsVal = j['class'] as String?;
 
     // addressdetails=1 gives structured address components. Use them to build
     // a meaningful shortName instead of the raw first comma-token (often just
     // a house number like "1" for street addresses).
     final addr = (j['address'] as Map<String, dynamic>?) ?? {};
-    final road = addr['road'] as String?;
-    final houseNo = addr['house_number'] as String?;
-    final city = (addr['city'] ??
-        addr['town'] ??
-        addr['village'] ??
-        addr['hamlet'] ??
-        addr['municipality']) as String?;
+    final road = clampRemoteText(addr['road'], 120);
+    final houseNo = clampRemoteText(addr['house_number'], 24);
+    final city = clampRemoteText(
+        addr['city'] ??
+            addr['town'] ??
+            addr['village'] ??
+            addr['hamlet'] ??
+            addr['municipality'],
+        120);
 
     String short;
     if (road != null && houseNo != null) {
@@ -1988,19 +2008,13 @@ class NominatimResult {
       short = display.split(',').first.trim();
     }
 
-    final cityVal = (addr['city'] ??
-        addr['town'] ??
-        addr['village'] ??
-        addr['hamlet'] ??
-        addr['municipality']) as String?;
-
     return NominatimResult(
       displayName: display,
       shortName: short,
       position: LatLng(lat, lon),
-      cls: clsVal,
-      type: j['type'] as String?,
-      city: cityVal,
+      cls: clampRemoteText(clsVal, 80),
+      type: clampRemoteText(j['type'], 80),
+      city: city,
     );
   }
 }

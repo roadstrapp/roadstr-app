@@ -3,6 +3,10 @@ import 'package:latlong2/latlong.dart';
 /// A user-saved place (e.g. "Home", "Office") stored in Hive under key
 /// 'favorites' as a JSON-encoded list.
 class FavoritePlace {
+  static const maxLabelChars = 200;
+  static const maxAddressChars = 500;
+  static const maxStoredItems = 1000;
+
   final String label;
   final String address;
   final LatLng position;
@@ -26,12 +30,19 @@ class FavoritePlace {
       final lon = (m['lon'] as num?)?.toDouble() ?? double.nan;
       if (!lat.isFinite || lat < -90 || lat > 90) return null;
       if (!lon.isFinite || lon < -180 || lon > 180) return null;
-      final label = m['label'] as String?;
-      final address = m['address'] as String?;
-      if (label == null || label.isEmpty) return null;
+      final rawLabel = m['label'] as String?;
+      final rawAddress = m['address'] as String?;
+      final label = rawLabel?.trim();
+      final address = rawAddress?.trim() ?? '';
+      if (label == null ||
+          label.isEmpty ||
+          label.length > maxLabelChars ||
+          address.length > maxAddressChars) {
+        return null;
+      }
       return FavoritePlace(
         label: label,
-        address: address ?? '',
+        address: address,
         position: LatLng(lat, lon),
       );
     } catch (_) {
