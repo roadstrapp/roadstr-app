@@ -46,6 +46,66 @@ void main() {
     );
   });
 
+  test('zero provider heading waits for a reliable movement baseline', () {
+    final filter = HeadingFilter();
+    expect(
+      resolve(filter,
+          current: 90,
+          from: start,
+          to: north(start, 2),
+          speedKmh: 30,
+          providerHeading: 0),
+      90,
+    );
+  });
+
+  test('travel-course threshold rejects non-finite and stationary speeds', () {
+    expect(HeadingFilter.usesTravelHeading(double.nan), isFalse);
+    expect(HeadingFilter.usesTravelHeading(3), isFalse);
+    expect(HeadingFilter.usesTravelHeading(3.1), isTrue);
+  });
+
+  group('motion hysteresis', () {
+    test('needs the enter threshold to start, the exit one to stop', () {
+      final filter = HeadingFilter();
+      expect(filter.isMoving, isFalse, reason: 'no sample yet');
+      // Between the two thresholds and rising: still stationary. This is the
+      // band a single threshold would flip-flop across.
+      expect(filter.updateMotion(4), isFalse);
+      expect(filter.updateMotion(HeadingFilter.movingEnterKmh), isFalse);
+      expect(filter.updateMotion(5.5), isTrue);
+      // Same band, now falling: stays moving. Crawling in traffic must not
+      // hand the heading back to the magnetometer.
+      expect(filter.updateMotion(4), isTrue);
+      // Both thresholds are exclusive: sitting exactly on one is not a
+      // crossing, so neither edge can chatter.
+      expect(filter.updateMotion(HeadingFilter.movingExitKmh), isTrue);
+      expect(filter.updateMotion(HeadingFilter.movingExitKmh - 0.1), isFalse);
+    });
+
+    test('a garbage speed sample is never movement', () {
+      final filter = HeadingFilter();
+      expect(filter.updateMotion(50), isTrue);
+      expect(filter.updateMotion(double.nan), isFalse);
+      expect(filter.updateMotion(50), isTrue);
+      expect(filter.updateMotion(-1), isFalse);
+    });
+
+    test('reset keeps the motion state — it outlives a journey', () {
+      final filter = HeadingFilter();
+      expect(filter.updateMotion(50), isTrue);
+      filter.reset();
+      expect(filter.isMoving, isTrue);
+    });
+  });
+
+  test('small fixes can accumulate against a retained bearing origin', () {
+    final first = north(start, 4);
+    final second = north(start, 9);
+    expect(HeadingFilter.hasReliableMovement(start, first, 5), isFalse);
+    expect(HeadingFilter.hasReliableMovement(start, second, 5), isTrue);
+  });
+
   test('a movement smaller than the noise floor is ignored', () {
     final filter = HeadingFilter();
     // 4 m of movement with 20 m accuracy: the floor is 16 m.
