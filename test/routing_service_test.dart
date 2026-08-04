@@ -17,6 +17,111 @@ void main() {
   Uri endpoint() =>
       Uri.parse('http://${server.address.host}:${server.port}/route');
 
+  test('straight road-name changes are not exposed as fake maneuvers', () {
+    const point = LatLng(45, 9);
+    final cleaned = RoutingService.coalescePassiveNameChanges([
+      const RouteStep(
+        instruction: 'Continue on Industrial Road',
+        direction: 'continue',
+        modifier: 'straight',
+        distanceM: 300,
+        location: point,
+      ),
+      const RouteStep(
+        instruction: 'Continue on Airport Connector',
+        direction: 'new name',
+        modifier: 'straight',
+        distanceM: 220,
+        location: point,
+      ),
+      const RouteStep(
+        instruction: 'Take exit 199',
+        direction: 'off ramp',
+        modifier: 'right',
+        distanceM: 100,
+        location: point,
+      ),
+    ]);
+
+    expect(cleaned, hasLength(2));
+    expect(cleaned.first.instruction, 'Continue on Industrial Road');
+    expect(cleaned.first.distanceM, 520);
+    expect(cleaned.last.direction, 'off ramp');
+  });
+
+  test('Valhalla preserves a right motorway exit instead of calling it a turn',
+      () async {
+    const points = [
+      LatLng(45.0, 9.0),
+      LatLng(45.001, 9.0),
+      LatLng(45.002, 9.001),
+      LatLng(45.003, 9.002),
+    ];
+    server.listen((request) async {
+      request.response.headers.contentType = ContentType.json;
+      request.response.write(jsonEncode({
+        'trip': {
+          'status': 0,
+          'summary': {
+            'has_highway': false,
+            'has_toll': false,
+            'length': 0.4,
+            'time': 60,
+          },
+          'legs': [
+            {
+              'shape': _encodePolyline6(points),
+              'maneuvers': [
+                {
+                  'type': 1,
+                  'instruction': 'Start',
+                  'length': 0.2,
+                  'begin_shape_index': 0,
+                },
+                {
+                  'type': 7,
+                  'instruction': 'Continue on renamed road',
+                  'length': 0.1,
+                  'begin_shape_index': 1,
+                },
+                {
+                  'type': 20,
+                  'instruction': 'Take exit 199',
+                  'length': 0.1,
+                  'begin_shape_index': 2,
+                  'sign': {
+                    'exit_number_elements': [
+                      {'text': '199'}
+                    ],
+                  },
+                },
+                {
+                  'type': 4,
+                  'instruction': 'Arrive',
+                  'length': 0,
+                  'begin_shape_index': 3,
+                },
+              ],
+            },
+          ],
+        },
+      }));
+      await request.response.close();
+    });
+
+    final route = await RoutingService.getHighwayAndTollAvoidanceRoute(
+      points.first,
+      points.last,
+      endpoint: endpoint(),
+    );
+
+    expect(route.steps, hasLength(3));
+    expect(route.steps.first.distanceM, 300);
+    expect(route.steps[1].direction, 'off ramp');
+    expect(route.steps[1].modifier, 'right');
+    expect(route.steps[1].exitLabel, '199');
+  });
+
   test('requests hard motorway/toll exclusions and marks verified route',
       () async {
     const points = [LatLng(45.0, 9.0), LatLng(45.001, 9.002)];
@@ -394,6 +499,65 @@ void main() {
           RoutingService.followSameRoads(
               routeOf(const [], 1113), routeOf(line(), 1113)),
           isFalse);
+    });
+  });
+
+  group('decorative fields never cost the whole route', () {
+    const point = LatLng(45, 9);
+
+    RouteStep step({int? exitNumber, String? exitLabel}) => RouteStep(
+          instruction: 'Take the exit',
+          direction: 'off ramp',
+          modifier: 'right',
+          distanceM: 100,
+          location: point,
+          exitNumber: exitNumber,
+          exitLabel: exitLabel,
+        );
+
+    test('an out-of-range roundabout exit is dropped, not fatal', () {
+      // A roundabout with thirteen arms is rare, not impossible, and the exit
+      // count only decorates an icon. Rejecting the route over it would leave
+      // the driver unable to navigate at all.
+      final out = RoutingService.sanitiseDecorations([step(exitNumber: 13)]);
+      expect(out.single.exitNumber, isNull);
+      expect(out.single.instruction, 'Take the exit',
+          reason: 'the maneuver itself survives');
+      expect(
+          RoutingService.sanitiseDecorations([step(exitNumber: 0)])
+              .single
+              .exitNumber,
+          isNull);
+    });
+
+    test('a plausible exit number is kept exactly', () {
+      for (final n in [1, 7, 12]) {
+        expect(
+            RoutingService.sanitiseDecorations([step(exitNumber: n)])
+                .single
+                .exitNumber,
+            n,
+            reason: '$n');
+      }
+    });
+
+    test('an overlong exit label is dropped, not fatal', () {
+      expect(
+          RoutingService.sanitiseDecorations([step(exitLabel: 'X' * 33)])
+              .single
+              .exitLabel,
+          isNull);
+      expect(
+          RoutingService.sanitiseDecorations([step(exitLabel: '199')])
+              .single
+              .exitLabel,
+          '199');
+    });
+
+    test('an untouched list is returned as-is, so nothing is rebuilt', () {
+      final steps = [step(exitNumber: 3, exitLabel: '199')];
+      expect(
+          identical(RoutingService.sanitiseDecorations(steps), steps), isTrue);
     });
   });
 }
