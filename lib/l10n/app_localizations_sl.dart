@@ -714,6 +714,15 @@ class AppLocalizationsSl extends AppLocalizations {
   String get arrivedTitle => '🎉 Ste prispeli!';
 
   @override
+  String get arrivalAhead => 'Prispeli boste na cilj';
+
+  @override
+  String get arrivalAheadLeft => 'Prispeli boste na cilj na levi strani';
+
+  @override
+  String get arrivalAheadRight => 'Prispeli boste na cilj na desni strani';
+
+  @override
   String get transportModeCar => 'Avto';
 
   @override

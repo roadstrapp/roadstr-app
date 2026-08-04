@@ -717,6 +717,15 @@ class AppLocalizationsEt extends AppLocalizations {
   String get arrivedTitle => '🎉 Olete kohal!';
 
   @override
+  String get arrivalAhead => 'Jõuate sihtkohta';
+
+  @override
+  String get arrivalAheadLeft => 'Jõuate sihtkohta vasakul';
+
+  @override
+  String get arrivalAheadRight => 'Jõuate sihtkohta paremal';
+
+  @override
   String get transportModeCar => 'Auto';
 
   @override

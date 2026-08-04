@@ -717,6 +717,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get arrivedTitle => '🎉 Вы прибыли!';
 
   @override
+  String get arrivalAhead => 'Вы прибудете в пункт назначения';
+
+  @override
+  String get arrivalAheadLeft => 'Вы прибудете в пункт назначения слева';
+
+  @override
+  String get arrivalAheadRight => 'Вы прибудете в пункт назначения справа';
+
+  @override
   String get transportModeCar => 'Автомобиль';
 
   @override

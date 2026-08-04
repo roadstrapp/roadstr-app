@@ -717,6 +717,17 @@ class AppLocalizationsSv extends AppLocalizations {
   String get arrivedTitle => '🎉 Du är framme!';
 
   @override
+  String get arrivalAhead => 'Du kommer att anlända till din destination';
+
+  @override
+  String get arrivalAheadLeft =>
+      'Du kommer att anlända till din destination på vänster sida';
+
+  @override
+  String get arrivalAheadRight =>
+      'Du kommer att anlända till din destination på höger sida';
+
+  @override
   String get transportModeCar => 'Bil';
 
   @override

@@ -718,6 +718,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get arrivedTitle => '🎉 Je bent er!';
 
   @override
+  String get arrivalAhead => 'Je komt aan op je bestemming';
+
+  @override
+  String get arrivalAheadLeft => 'Je bestemming ligt aan de linkerkant';
+
+  @override
+  String get arrivalAheadRight => 'Je bestemming ligt aan de rechterkant';
+
+  @override
   String get transportModeCar => 'Auto';
 
   @override

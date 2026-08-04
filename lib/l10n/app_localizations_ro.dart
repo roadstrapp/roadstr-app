@@ -717,6 +717,15 @@ class AppLocalizationsRo extends AppLocalizations {
   String get arrivedTitle => '🎉 Ați ajuns!';
 
   @override
+  String get arrivalAhead => 'Veți ajunge la destinație';
+
+  @override
+  String get arrivalAheadLeft => 'Veți ajunge la destinație pe partea stângă';
+
+  @override
+  String get arrivalAheadRight => 'Veți ajunge la destinație pe partea dreaptă';
+
+  @override
   String get transportModeCar => 'Mașină';
 
   @override

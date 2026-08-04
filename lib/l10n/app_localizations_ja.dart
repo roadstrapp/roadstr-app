@@ -699,6 +699,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get arrivedTitle => '🎉 到着しました！';
 
   @override
+  String get arrivalAhead => '目的地に到着します';
+
+  @override
+  String get arrivalAheadLeft => '目的地は左側です';
+
+  @override
+  String get arrivalAheadRight => '目的地は右側です';
+
+  @override
   String get transportModeCar => '車';
 
   @override
