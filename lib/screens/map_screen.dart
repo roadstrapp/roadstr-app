@@ -41,6 +41,7 @@ import '../models/road_event.dart';
 import '../models/search_history_item.dart';
 import '../models/way_point.dart';
 import '../services/activity_notification_service.dart';
+import '../services/navigation_guidance.dart';
 import '../services/navigation_notification_service.dart';
 import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
@@ -285,10 +286,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   bool _voiceMuted = false;
 
   // ── Voice guidance state ────────────────────────────────────────────────────
-  int _ttsAnnouncedFar = -1; // first/far warning (distance varies by step type)
-  int _ttsAnnouncedMid = -1; // second/mid warning
-  int _ttsAnnouncedNear =
-      -1; // near warning (50 m non-highway, 250 m highway ramp)
+  int _ttsAnnouncedFar = -1; // advance warning, distance scales with speed
+  int _ttsAnnouncedNear = -1; // repeat at the point of action
   /// Step index whose instruction was already voiced as the "…then…" tail of a
   /// chained announcement, so it is not repeated on its own after advancing.
   int _chainSpokenIdx = -1;
@@ -1054,49 +1053,45 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _distToNextManeuverM = 0;
       return;
     }
-    var nextIdx = _currentStepIdx + 1;
-    var nextStep = _route!.steps[nextIdx];
-    var dist =
-        const Distance().as(LengthUnit.Meter, _position, nextStep.location);
+    final nextIdx = _currentStepIdx + 1;
+    final nextStep = _route!.steps[nextIdx];
+    final dist = NavigationGuidance.remainingToManeuver(
+      maneuverProgressM: _stepProgressM(nextIdx),
+      routeProgressM: _routeProgressM,
+    );
     _distToNextManeuverM = dist;
 
     // ── Voice guidance announcements ─────────────────────────────────────────
-    // Skip departure steps — "Head north on Via X" while already moving is wrong.
-    final bool isDepartStep = nextStep.direction == 'depart';
-    final t = _announcementThresholds(nextStep, _speed, _transportMode);
+    // Departure and arrival are lifecycle messages, not ordinary maneuvers:
+    // start is announced once by _startNavigation and present-tense arrival
+    // only by _onArrival after its GPS/building checks actually pass.
+    final isActionStep =
+        nextStep.direction != 'depart' && nextStep.direction != 'arrive';
+    final t = NavigationGuidance.thresholds(_speed, _transportMode);
     bool spokenThisCall =
         false; // prevents far+immediate from clashing in one tick
     // Far announcement
-    final midOrNear = t.mid > 0 ? t.mid : t.near;
-    if (!isDepartStep &&
+    if (isActionStep &&
         dist < t.far + 20 &&
-        dist >= midOrNear + 20 &&
+        dist >= t.near + 20 &&
         _ttsAnnouncedFar != nextIdx) {
       _ttsAnnouncedFar = nextIdx;
       if (!_voiceMuted) {
-        _tts.announceManeuver(nextStep.instruction, t.far);
-        spokenThisCall = true;
-      }
-    }
-    // Mid announcement (skipped when t.mid == 0)
-    else if (!isDepartStep &&
-        t.mid > 0 &&
-        dist < t.mid + 20 &&
-        dist >= t.near + 20 &&
-        _ttsAnnouncedMid != nextIdx) {
-      _ttsAnnouncedMid = nextIdx;
-      if (!_voiceMuted) {
-        _tts.announceManeuver(nextStep.instruction, t.mid);
+        // The remaining distance, not the window that let this through. They
+        // are only close together when the driver coasts into the window at a
+        // steady speed; accelerating onto a slip road widens the window from
+        // ~330 m to 800 m in one tick, and announcing the window would call a
+        // ramp 380 m away "in 800 metres".
+        _tts.announceManeuver(nextStep.instruction,
+            NavigationGuidance.spokenDistanceM(dist, imminentBelowM: t.near));
         spokenThisCall = true;
       }
     }
     // Near/final announcement
-    else if (!isDepartStep &&
+    else if (isActionStep &&
         dist < t.near + 30 &&
         _ttsAnnouncedNear != nextIdx) {
       _ttsAnnouncedNear = nextIdx;
-      // Highway ramp near = 250 m → speak with distance; others = 50 m → imminent
-      final speakDist = t.near >= 200 ? t.near : 0;
       if (!_voiceMuted) {
         // Chain the following maneuver when it comes almost immediately after
         // this one (e.g. roundabout exit → continue on Via Roma), so the two
@@ -1120,7 +1115,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             _ttsAnnouncedNear = followIdx;
           }
         }
-        _tts.announceManeuver(instruction, speakDist);
+        // At the point of action repeat the instruction without a distance:
+        // "take exit 199", not "in 120 metres, take exit 199".
+        _tts.announceManeuver(instruction, 0);
         spokenThisCall = true;
       }
     }
@@ -1149,48 +1146,59 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       final newNextIdx = _currentStepIdx + 1;
       if (newNextIdx < (_route?.steps.length ?? 0)) {
         final nextSt = _route!.steps[newNextIdx];
-        final t = _announcementThresholds(nextSt, _speed, _transportMode);
-        // Urban steps only: announce new next instruction immediately after maneuver.
-        // Highway/ramp steps (t.mid > 0) keep the full 3-tier system untouched.
+        final t = NavigationGuidance.thresholds(_speed, _transportMode);
+        // Announce a genuinely close following maneuver immediately after the
+        // previous one. Longer legs keep their speed-sensitive far cue.
         // Guard spokenThisCall: if far/near fired in this same GPS tick (e.g. walking
         // where far = 60 m and advance threshold = 80 m coincide), skip the immediate
         // to avoid the second speak() from interrupting the first.
-        final distToNext =
-            const Distance().as(LengthUnit.Meter, _position, nextSt.location);
+        final distToNext = NavigationGuidance.remainingToManeuver(
+          maneuverProgressM: _stepProgressM(newNextIdx),
+          routeProgressM: _routeProgressM,
+        );
         _distToNextManeuverM = distToNext;
         // Only fire the immediate post-maneuver announcement when the next turn
         // is within 250 m — further away the far announcement (which fires later
         // at the right distance) is the correct cue, not an immediate one.
-        if (t.mid == 0 &&
-            !_voiceMuted &&
+        final announceImmediately = !_voiceMuted &&
             !spokenThisCall &&
             nextSt.direction != 'depart' &&
+            nextSt.direction != 'arrive' &&
             distToNext < 250 &&
-            newNextIdx != _chainSpokenIdx) {
-          // Round to nearest 50 m for natural speech; drop distance for imminent turns.
-          final spokenDist =
-              distToNext > 80 ? ((distToNext / 50).round() * 50).toInt() : 0;
-          _tts.announceManeuver(nextSt.instruction, spokenDist);
+            newNextIdx != _chainSpokenIdx;
+        final wasAlreadyChained = newNextIdx == _chainSpokenIdx;
+        if (announceImmediately) {
+          _tts.announceManeuver(
+              nextSt.instruction,
+              NavigationGuidance.spokenDistanceM(distToNext,
+                  imminentBelowM: 80));
         }
-        // Suppress far/mid (already spoken above).
-        _ttsAnnouncedFar = newNextIdx;
-        _ttsAnnouncedMid = newNextIdx;
+        // Suppress the far cue only when this maneuver was actually spoken.
+        // The old unconditional assignment skipped the only advance warning
+        // for ramps more than 250 m away, which is why some on-ramps arrived
+        // with guidance only at the last moment.
+        _ttsAnnouncedFar =
+            (announceImmediately || wasAlreadyChained) ? newNextIdx : -1;
         // If the immediate announcement fired and the next step is already close,
         // suppress near too — avoids two back-to-back announcements within seconds.
-        _ttsAnnouncedNear = (t.mid == 0 && distToNext < 120) ? newNextIdx : -1;
+        _ttsAnnouncedNear = wasAlreadyChained ||
+                (announceImmediately && distToNext < t.near + 20)
+            ? newNextIdx
+            : -1;
 
         // Missed-turn guard: if the user isn't approaching the new waypoint
         // within 5 s, reroute silently.
         _missedTurnTimer?.cancel();
         final capturedStepIdx = _currentStepIdx;
-        final distAtAdvance =
-            const Distance().as(LengthUnit.Meter, _position, nextSt.location);
+        final distAtAdvance = distToNext;
         _missedTurnTimer = Timer(const Duration(milliseconds: 5000), () {
           if (!mounted || !_isNavigating || _isRerouting) return;
           if (_currentStepIdx != capturedStepIdx) return; // naturally advanced
           if (_route == null || newNextIdx >= _route!.steps.length) return;
-          final currentDist = const Distance().as(
-              LengthUnit.Meter, _position, _route!.steps[newNextIdx].location);
+          final currentDist = NavigationGuidance.remainingToManeuver(
+            maneuverProgressM: _stepProgressM(newNextIdx),
+            routeProgressM: _routeProgressM,
+          );
           // Reroute if not meaningfully closer (< 50 m improvement) and moving.
           if (currentDist > distAtAdvance - 50 && _speed > 3) {
             _rerouteAndNavigate();
@@ -1415,22 +1423,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       return [...render.take(i + 1), cursor];
     }
     return [cursor, ...render.skip(i + 1)];
-  }
-
-  /// Returns the (far, mid, near) announcement distance thresholds for [step].
-  /// All values are in metres. [mid] == 0 means the mid announcement is skipped.
-  static ({int far, int mid, int near}) _announcementThresholds(
-      RouteStep step, double speed, String transportMode) {
-    if (transportMode == 'walking') return (far: 60, mid: 0, near: 15);
-    if (transportMode == 'cycling') return (far: 150, mid: 0, near: 30);
-    final isRamp = step.direction == 'off ramp' || step.direction == 'on ramp';
-    if (isRamp) return (far: 1500, mid: 500, near: 250);
-    final isRoundabout =
-        step.direction == 'roundabout' || step.direction == 'rotary';
-    if (isRoundabout) return (far: 400, mid: 100, near: 50);
-    if (speed > 80) return (far: 800, mid: 300, near: 50);
-    if (speed > 40) return (far: 400, mid: 0, near: 50);
-    return (far: 220, mid: 0, near: 50);
   }
 
   /// Returns the camera's closest point on the active route. A proximity
@@ -1759,9 +1751,16 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     final distM =
         _distToNextManeuverM > 0 ? _distToNextManeuverM : step.distanceM;
     if (!mounted) return;
-    final distLabel =
-        Units.fmtDist(distM, nowLabel: AppLocalizations.of(context).now);
-    _navNotif.show(step.instruction, distLabel);
+    final l = AppLocalizations.of(context);
+    final distLabel = Units.fmtDist(distM, nowLabel: l.now);
+    final instruction = step.direction == 'arrive'
+        ? switch (step.modifier) {
+            'left' => l.arrivalAheadLeft,
+            'right' => l.arrivalAheadRight,
+            _ => l.arrivalAhead,
+          }
+        : step.instruction;
+    _navNotif.show(instruction, distLabel);
   }
 
   Future<({RoutingProvider provider, String? apiKey, String? ghServer})>
@@ -1836,11 +1835,10 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           _pendingLabel ?? AppLocalizations.of(context).selectedPosition;
       _saveToHistory(label, _destination!);
     }
-    // Suppress far/mid for step 1 (the first real action after depart) on fresh
-    // start so the user only hears "Let's go!" and not an immediate "Head north on…"
-    // which is redundant when the route is already visible on screen.
+    // Suppress the far cue for step 1 (the first real action after depart) on
+    // a fresh start so the user only hears "Let's go!" and not an immediate
+    // "Head north on…", redundant when the route is already on screen.
     _ttsAnnouncedFar = silent ? -1 : 1;
-    _ttsAnnouncedMid = silent ? -1 : 1;
     _ttsAnnouncedNear = -1;
     _chainSpokenIdx = -1;
     _speedLimitSvc.reset();
@@ -1952,20 +1950,32 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       // Just animate the camera to the current GPS position at nav zoom level.
       _animateCamera(toCenter: _position, toZoom: 17.0, toRot: -_heading);
       _updateNavNotification();
-      // Announce the first non-departure step immediately.
-      // Then suppress far+mid for that same step so the GPS-tick loop doesn't
-      // re-fire the same instruction a second later.
+      // Announce the first actionable step only when it is already within its
+      // speed-sensitive warning window. A silent reroute on a long final road
+      // used to select the `arrive` step and say "you have arrived" many miles
+      // early; arrival is now owned exclusively by _onArrival.
       if (route.steps.isNotEmpty && !_voiceMuted) {
-        final firstAction = route.steps.firstWhere(
-          (s) => s.direction != 'depart',
-          orElse: () => route.steps.first,
+        final firstIdx = route.steps.indexWhere(
+          (s) => s.direction != 'depart' && s.direction != 'arrive',
         );
-        _tts.announceManeuver(firstAction.instruction, 0);
-        // Step index of firstAction in the new route.
-        final firstIdx = route.steps.indexOf(firstAction);
         if (firstIdx >= 0) {
-          _ttsAnnouncedFar = firstIdx;
-          _ttsAnnouncedMid = firstIdx;
+          final firstAction = route.steps[firstIdx];
+          final distance = NavigationGuidance.remainingToManeuver(
+            maneuverProgressM: _stepProgressM(firstIdx),
+            routeProgressM: _routeProgressM,
+          );
+          final thresholds =
+              NavigationGuidance.thresholds(_speed, _transportMode);
+          if (distance <= thresholds.far + 20) {
+            // How far it actually is, not the window that let it through: a
+            // silent reroute is exactly when a driver can least afford being
+            // told "in 800 metres" 200 m from the ramp.
+            final spokenDistance = NavigationGuidance.spokenDistanceM(
+                distance,
+                imminentBelowM: thresholds.near);
+            _tts.announceManeuver(firstAction.instruction, spokenDistance);
+            _ttsAnnouncedFar = firstIdx;
+          }
         }
       }
       return;
@@ -2782,16 +2792,15 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     // the first useful suggestions appear much sooner.
     _searchDebounce = Timer(const Duration(milliseconds: 300), () async {
       setState(() => _isSearching = true);
-      final results = await _searchPlaces(query,
-          phase: SearchPhase.typeAhead,
+      final results = await _searchPlaces(query, phase: SearchPhase.typeAhead,
           onPartial: (partial) {
-            if (!mounted || requestGeneration != _searchRequestGeneration) {
-              return;
-            }
-            // Show whichever provider answers first instead of waiting for the
-            // slower Overpass request before rendering any result.
-            setState(() => _searchResults = partial);
-          });
+        if (!mounted || requestGeneration != _searchRequestGeneration) {
+          return;
+        }
+        // Show whichever provider answers first instead of waiting for the
+        // slower Overpass request before rendering any result.
+        setState(() => _searchResults = partial);
+      });
       if (!mounted || requestGeneration != _searchRequestGeneration) return;
       setState(() {
         _searchResults = results;
