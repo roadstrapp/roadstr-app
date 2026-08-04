@@ -723,6 +723,15 @@ class AppLocalizationsEl extends AppLocalizations {
   String get arrivedTitle => '🎉 Φτάσατε!';
 
   @override
+  String get arrivalAhead => 'Θα φτάσετε στον προορισμό σας';
+
+  @override
+  String get arrivalAheadLeft => 'Θα φτάσετε στον προορισμό σας στα αριστερά';
+
+  @override
+  String get arrivalAheadRight => 'Θα φτάσετε στον προορισμό σας στα δεξιά';
+
+  @override
   String get transportModeCar => 'Αυτοκίνητο';
 
   @override

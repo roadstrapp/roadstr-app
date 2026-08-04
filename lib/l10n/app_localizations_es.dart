@@ -718,6 +718,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get arrivedTitle => '🎉 ¡Has llegado!';
 
   @override
+  String get arrivalAhead => 'Llegarás a tu destino';
+
+  @override
+  String get arrivalAheadLeft => 'Llegarás a tu destino a la izquierda';
+
+  @override
+  String get arrivalAheadRight => 'Llegarás a tu destino a la derecha';
+
+  @override
   String get transportModeCar => 'Coche';
 
   @override

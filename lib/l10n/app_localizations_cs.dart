@@ -715,6 +715,15 @@ class AppLocalizationsCs extends AppLocalizations {
   String get arrivedTitle => '🎉 Dorazili jste!';
 
   @override
+  String get arrivalAhead => 'Dorazíte do cíle';
+
+  @override
+  String get arrivalAheadLeft => 'Dorazíte do cíle vlevo';
+
+  @override
+  String get arrivalAheadRight => 'Dorazíte do cíle vpravo';
+
+  @override
   String get transportModeCar => 'Auto';
 
   @override

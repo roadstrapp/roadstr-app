@@ -690,6 +690,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get arrivedTitle => '🎉 您已到达！';
 
   @override
+  String get arrivalAhead => '您将到达目的地';
+
+  @override
+  String get arrivalAheadLeft => '目的地将在左侧';
+
+  @override
+  String get arrivalAheadRight => '目的地将在右侧';
+
+  @override
   String get transportModeCar => '驾车';
 
   @override

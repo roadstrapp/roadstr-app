@@ -717,6 +717,15 @@ class AppLocalizationsPl extends AppLocalizations {
   String get arrivedTitle => '🎉 Dotarłeś!';
 
   @override
+  String get arrivalAhead => 'Dotrzesz do celu';
+
+  @override
+  String get arrivalAheadLeft => 'Dotrzesz do celu po lewej stronie';
+
+  @override
+  String get arrivalAheadRight => 'Dotrzesz do celu po prawej stronie';
+
+  @override
   String get transportModeCar => 'Samochód';
 
   @override

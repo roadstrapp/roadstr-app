@@ -716,6 +716,15 @@ class AppLocalizationsFi extends AppLocalizations {
   String get arrivedTitle => '🎉 Olet perillä!';
 
   @override
+  String get arrivalAhead => 'Saavut määränpäähäsi';
+
+  @override
+  String get arrivalAheadLeft => 'Saavut määränpäähäsi vasemmalla';
+
+  @override
+  String get arrivalAheadRight => 'Saavut määränpäähäsi oikealla';
+
+  @override
   String get transportModeCar => 'Auto';
 
   @override
