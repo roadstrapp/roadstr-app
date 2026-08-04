@@ -718,6 +718,15 @@ class AppLocalizationsHr extends AppLocalizations {
   String get arrivedTitle => '🎉 Stigli ste!';
 
   @override
+  String get arrivalAhead => 'Stići ćete na odredište';
+
+  @override
+  String get arrivalAheadLeft => 'Stići ćete na odredište s lijeve strane';
+
+  @override
+  String get arrivalAheadRight => 'Stići ćete na odredište s desne strane';
+
+  @override
   String get transportModeCar => 'Auto';
 
   @override

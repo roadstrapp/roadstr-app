@@ -722,6 +722,17 @@ class AppLocalizationsBg extends AppLocalizations {
   String get arrivedTitle => '🎉 Пристигнахте!';
 
   @override
+  String get arrivalAhead => 'Ще пристигнете до местоназначението си';
+
+  @override
+  String get arrivalAheadLeft =>
+      'Ще пристигнете до местоназначението си отляво';
+
+  @override
+  String get arrivalAheadRight =>
+      'Ще пристигнете до местоназначението си отдясно';
+
+  @override
   String get transportModeCar => 'Автомобил';
 
   @override

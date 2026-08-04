@@ -716,6 +716,17 @@ class AppLocalizationsDa extends AppLocalizations {
   String get arrivedTitle => '🎉 Du er fremme!';
 
   @override
+  String get arrivalAhead => 'Du vil ankomme til din destination';
+
+  @override
+  String get arrivalAheadLeft =>
+      'Du vil ankomme til din destination i venstre side';
+
+  @override
+  String get arrivalAheadRight =>
+      'Du vil ankomme til din destination i højre side';
+
+  @override
   String get transportModeCar => 'Bil';
 
   @override

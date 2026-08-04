@@ -716,6 +716,15 @@ class AppLocalizationsSk extends AppLocalizations {
   String get arrivedTitle => '🎉 Dorazili ste!';
 
   @override
+  String get arrivalAhead => 'Dorazíte do cieľa';
+
+  @override
+  String get arrivalAheadLeft => 'Dorazíte do cieľa na ľavej strane';
+
+  @override
+  String get arrivalAheadRight => 'Dorazíte do cieľa na pravej strane';
+
+  @override
   String get transportModeCar => 'Auto';
 
   @override

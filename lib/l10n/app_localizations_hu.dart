@@ -718,6 +718,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get arrivedTitle => '🎉 Megérkezett!';
 
   @override
+  String get arrivalAhead => 'Meg fog érkezni az úti céljához';
+
+  @override
+  String get arrivalAheadLeft => 'Az úti célja a bal oldalon lesz';
+
+  @override
+  String get arrivalAheadRight => 'Az úti célja a jobb oldalon lesz';
+
+  @override
   String get transportModeCar => 'Autó';
 
   @override

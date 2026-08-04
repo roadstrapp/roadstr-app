@@ -1444,6 +1444,24 @@ abstract class AppLocalizations {
   /// **'🎉 You arrived!'**
   String get arrivedTitle;
 
+  /// No description provided for @arrivalAhead.
+  ///
+  /// In en, this message translates to:
+  /// **'You will arrive at your destination'**
+  String get arrivalAhead;
+
+  /// No description provided for @arrivalAheadLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'You will arrive at your destination on the left'**
+  String get arrivalAheadLeft;
+
+  /// No description provided for @arrivalAheadRight.
+  ///
+  /// In en, this message translates to:
+  /// **'You will arrive at your destination on the right'**
+  String get arrivalAheadRight;
+
   /// No description provided for @transportModeCar.
   ///
   /// In en, this message translates to:

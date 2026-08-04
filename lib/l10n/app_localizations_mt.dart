@@ -722,6 +722,17 @@ class AppLocalizationsMt extends AppLocalizations {
   String get arrivedTitle => '🎉 Wasalt!';
 
   @override
+  String get arrivalAhead => 'Se tasal fid-destinazzjoni tiegħek';
+
+  @override
+  String get arrivalAheadLeft =>
+      'Se tasal fid-destinazzjoni tiegħek fuq ix-xellug';
+
+  @override
+  String get arrivalAheadRight =>
+      'Se tasal fid-destinazzjoni tiegħek fuq il-lemin';
+
+  @override
   String get transportModeCar => 'Karozza';
 
   @override

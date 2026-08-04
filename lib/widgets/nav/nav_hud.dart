@@ -3,8 +3,6 @@
 //
 // Both are driven entirely by the route and the live GPS figures handed to
 // them, so they can be rendered in isolation from any state or map.
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
@@ -12,6 +10,7 @@ import '../../services/routing_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/units.dart';
 import '../speedometer_widget.dart';
+import 'maneuver_symbol.dart';
 
 class NavInstruction extends StatelessWidget {
   final RouteStep step;
@@ -42,8 +41,8 @@ class NavInstruction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final land = MediaQuery.of(context).orientation == Orientation.landscape;
-    final iconSz = land ? 36.0 : 56.0;
     final boxSz = land ? 60.0 : 96.0;
     final fsMain = land ? 18.0 : 26.0;
     final fsSub = land ? 14.0 : 19.0;
@@ -76,14 +75,14 @@ class NavInstruction extends StatelessWidget {
           ],
         ),
         child: Row(children: [
-          _stepIcon(step, boxSz, iconSz, colors),
+          _stepIcon(step, boxSz, colors),
           const SizedBox(width: 12),
           Expanded(
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                Text(step.instruction,
+                Text(_displayInstruction(step, l),
                     style: TextStyle(
                         color: colors.textPrimary,
                         fontSize: fsMain,
@@ -98,14 +97,14 @@ class NavInstruction extends StatelessWidget {
                     Icon(Icons.straight_rounded,
                         color: colors.accent, size: fsSub),
                     const SizedBox(width: 4),
-                    Text(_distLabel(liveDist, AppLocalizations.of(context).now),
+                    Text(_distLabel(liveDist, l.now),
                         style: TextStyle(
                             color: colors.accent,
                             fontSize: fsSub,
                             fontWeight: FontWeight.w700)),
                   ])
                 else
-                  Text(_distLabel(liveDist, AppLocalizations.of(context).now),
+                  Text(_distLabel(liveDist, l.now),
                       style: TextStyle(
                           color: colors.textSecondary, fontSize: fsSub)),
               ])),
@@ -140,8 +139,12 @@ class NavInstruction extends StatelessWidget {
               ],
             ),
             child: Row(children: [
-              Icon(_directionIcon(nextStep!.direction, nextStep!.modifier),
-                  color: colors.accent, size: land ? 23 : 36),
+              ManeuverSymbol(
+                step: nextStep!,
+                size: land ? 28 : 40,
+                colors: colors,
+                showBackground: false,
+              ),
               const SizedBox(width: 10),
               // Expanded (not Flexible) so the text takes the whole remaining
               // width of the fixed tile and wraps there, instead of letting the
@@ -153,9 +156,7 @@ class NavInstruction extends StatelessWidget {
                 children: [
                   // "then …" makes it unmistakable that this is the manoeuvre
                   // AFTER the one in the main banner, not the current one.
-                  Text(
-                      AppLocalizations.of(context)
-                          .thenManeuver(_uncapitalised(nextStep!.instruction)),
+                  Text(l.thenManeuver(_uncapitalised(nextStep!.instruction)),
                       style: TextStyle(
                           color: colors.textPrimary,
                           fontSize: land ? 13 : 20,
@@ -163,7 +164,7 @@ class NavInstruction extends StatelessWidget {
                       maxLines: land ? 2 : 3,
                       overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 3),
-                  Text(_distLabel(nextStep!.distanceM, ''),
+                  Text(_distLabel(distToNextStepM, ''),
                       style: TextStyle(
                           color: colors.textSecondary,
                           fontSize: land ? 11 : 17,
@@ -179,6 +180,15 @@ class NavInstruction extends StatelessWidget {
   String _distLabel(double m, String nowLabel) =>
       Units.fmtDist(m, nowLabel: nowLabel);
 
+  String _displayInstruction(RouteStep value, AppLocalizations l) {
+    if (value.direction != 'arrive') return value.instruction;
+    return switch (value.modifier) {
+      'left' => l.arrivalAheadLeft,
+      'right' => l.arrivalAheadRight,
+      _ => l.arrivalAhead,
+    };
+  }
+
   /// Lowercases the first letter of a router instruction so it reads naturally
   /// after the "then" prefix ("Continue on Via Roma" → "then continue on Via
   /// Roma"). Acronyms and road codes are left untouched: a second uppercase
@@ -193,67 +203,8 @@ class NavInstruction extends StatelessWidget {
     return '${s[0].toLowerCase()}${s.substring(1)}';
   }
 
-  /// Returns either a roundabout custom icon (when exit data is available) or
-  /// the standard direction icon box.
-  Widget _stepIcon(RouteStep s, double boxSz, double iconSz, RoadstrColors c) {
-    final isRound = s.direction == 'roundabout' || s.direction == 'rotary';
-    if (isRound && s.exitNumber != null && s.exitNumber! >= 1) {
-      return SizedBox(
-        width: boxSz,
-        height: boxSz,
-        child: CustomPaint(
-          painter: RoundaboutPainter(
-            exitNumber: s.exitNumber!.clamp(1, 6),
-            accent: c.accent,
-            ring: c.border,
-            island: c.surface3,
-          ),
-        ),
-      );
-    }
-    return Container(
-      width: boxSz,
-      height: boxSz,
-      decoration: BoxDecoration(
-          color: c.accentSoft, borderRadius: BorderRadius.circular(12)),
-      child: Icon(_directionIcon(s.direction, s.modifier),
-          color: c.accent, size: iconSz),
-    );
-  }
-
-  IconData _directionIcon(String direction, String modifier) {
-    // Map direction+modifier to a meaningful icon.
-    switch (direction) {
-      case 'arrive':
-        return Icons.flag_rounded;
-      case 'depart':
-        return Icons.play_arrow_rounded;
-      case 'roundabout':
-      case 'rotary':
-        return Icons.roundabout_right;
-      case 'merge':
-        return Icons.merge;
-      case 'fork':
-        return modifier.contains('left') ? Icons.fork_left : Icons.fork_right;
-      case 'on ramp':
-      case 'off ramp':
-        return modifier.contains('left') ? Icons.ramp_left : Icons.ramp_right;
-      case 'end of road':
-      case 'turn':
-      case 'new name':
-        return switch (modifier) {
-          'left' => Icons.turn_left,
-          'right' => Icons.turn_right,
-          'slight left' => Icons.turn_slight_left,
-          'slight right' => Icons.turn_slight_right,
-          'sharp left' => Icons.turn_sharp_left,
-          'sharp right' => Icons.turn_sharp_right,
-          'uturn' => Icons.u_turn_left,
-          _ => Icons.straight,
-        };
-      default:
-        return Icons.straight;
-    }
+  Widget _stepIcon(RouteStep s, double boxSz, RoadstrColors c) {
+    return ManeuverSymbol(step: s, size: boxSz, colors: c);
   }
 }
 
@@ -377,116 +328,4 @@ class NavPanel extends StatelessWidget {
       ]),
     );
   }
-}
-
-/// Draws a roundabout diagram with the highlighted exit arc for exit N (1-6).
-///
-/// Canvas geometry (y-down, angles CW-positive):
-///   entry  = bottom = π/2
-///   traffic flows CCW (right-hand traffic) → negative sweep
-///   exit N = π/2 - N × 75°  (canvas angle, counting CCW from entry)
-///   highlighted arc sweeps CCW (negative) from entry to exit N
-class RoundaboutPainter extends CustomPainter {
-  final int exitNumber; // 1-6
-  final Color accent;
-  final Color ring;
-  final Color island;
-
-  const RoundaboutPainter({
-    required this.exitNumber,
-    required this.accent,
-    required this.ring,
-    required this.island,
-  });
-
-  // 75° per exit in radians; CCW in canvas = subtract from entry angle
-  static const _kStep = 75.0 * math.pi / 180.0;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-    final outerR = size.width * 0.42;
-    final innerR = outerR * 0.50;
-    final arrowLen = size.width * 0.14;
-    final arrowTip = size.width * 0.06;
-    final strokeW = size.width * 0.09;
-    final arrowW = size.width * 0.06;
-
-    // ── Background ring ───────────────────────────────────────────────────────
-    canvas.drawCircle(
-        Offset(cx, cy),
-        (outerR + innerR) / 2,
-        Paint()
-          ..color = ring.withValues(alpha: 0.5)
-          ..strokeWidth = strokeW
-          ..style = PaintingStyle.stroke);
-
-    // ── Island fill ───────────────────────────────────────────────────────────
-    canvas.drawCircle(Offset(cx, cy), innerR - strokeW * 0.5,
-        Paint()..color = island.withValues(alpha: 0.4));
-
-    // ── Angles ────────────────────────────────────────────────────────────────
-    // entry at bottom (canvas π/2); exits go CCW = subtract
-    const entryC = math.pi / 2.0;
-    final n = exitNumber.clamp(1, 6);
-    final exitC = entryC - n * _kStep; // canvas angle of the exit
-    // Sweep is CCW (negative). Clamp so exit 5-6 don't wrap past full circle.
-    final sweep = (-n * _kStep).clamp(-5.8, -0.25);
-
-    // ── Highlighted arc (accent, CCW from entry to exit) ─────────────────────
-    canvas.drawArc(
-      Rect.fromCircle(center: Offset(cx, cy), radius: (outerR + innerR) / 2),
-      entryC,
-      sweep,
-      false,
-      Paint()
-        ..color = accent
-        ..strokeWidth = strokeW
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.butt,
-    );
-
-    // ── Entry arrow: from outside inward at bottom ────────────────────────────
-    final entryRing =
-        Offset(cx + outerR * math.cos(entryC), cy + outerR * math.sin(entryC));
-    final entryOut = Offset(cx + (outerR + arrowLen) * math.cos(entryC),
-        cy + (outerR + arrowLen) * math.sin(entryC));
-    canvas.drawLine(
-        entryOut,
-        entryRing,
-        Paint()
-          ..color = ring
-          ..strokeWidth = arrowW
-          ..strokeCap = StrokeCap.round);
-
-    // ── Exit arrow: from ring outward at exit angle (accent) ──────────────────
-    final exitRing =
-        Offset(cx + outerR * math.cos(exitC), cy + outerR * math.sin(exitC));
-    final exitOut = Offset(cx + (outerR + arrowLen) * math.cos(exitC),
-        cy + (outerR + arrowLen) * math.sin(exitC));
-    final exitPaint = Paint()
-      ..color = accent
-      ..strokeWidth = arrowW
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(exitRing, exitOut, exitPaint);
-
-    // Arrowhead chevron at tip
-    final back = exitC + math.pi;
-    const hw = 0.4;
-    canvas.drawLine(
-        exitOut,
-        Offset(exitOut.dx + arrowTip * math.cos(back + hw),
-            exitOut.dy + arrowTip * math.sin(back + hw)),
-        exitPaint);
-    canvas.drawLine(
-        exitOut,
-        Offset(exitOut.dx + arrowTip * math.cos(back - hw),
-            exitOut.dy + arrowTip * math.sin(back - hw)),
-        exitPaint);
-  }
-
-  @override
-  bool shouldRepaint(RoundaboutPainter old) =>
-      old.exitNumber != exitNumber || old.accent != accent;
 }

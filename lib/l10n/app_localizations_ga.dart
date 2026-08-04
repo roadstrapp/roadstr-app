@@ -718,6 +718,15 @@ class AppLocalizationsGa extends AppLocalizations {
   String get arrivedTitle => '🎉 Tháinig tú!';
 
   @override
+  String get arrivalAhead => 'Sroichfidh tú do cheann scríbe';
+
+  @override
+  String get arrivalAheadLeft => 'Sroichfidh tú do cheann scríbe ar chlé';
+
+  @override
+  String get arrivalAheadRight => 'Sroichfidh tú do cheann scríbe ar dheis';
+
+  @override
   String get transportModeCar => 'Carr';
 
   @override

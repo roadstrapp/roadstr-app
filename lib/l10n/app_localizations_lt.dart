@@ -719,6 +719,15 @@ class AppLocalizationsLt extends AppLocalizations {
   String get arrivedTitle => '🎉 Atvykote!';
 
   @override
+  String get arrivalAhead => 'Atvyksite į paskirties vietą';
+
+  @override
+  String get arrivalAheadLeft => 'Atvyksite į paskirties vietą kairėje';
+
+  @override
+  String get arrivalAheadRight => 'Atvyksite į paskirties vietą dešinėje';
+
+  @override
   String get transportModeCar => 'Automobilis';
 
   @override
