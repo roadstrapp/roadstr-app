@@ -39,6 +39,9 @@ class RouteStep {
   /// Exit number for roundabout/rotary maneuvers (1-based). Null for other types.
   final int? exitNumber;
 
+  /// Motorway/freeway exit label such as "199" or "12A".
+  final String? exitLabel;
+
   const RouteStep({
     required this.instruction,
     required this.direction,
@@ -46,7 +49,27 @@ class RouteStep {
     required this.distanceM,
     required this.location,
     this.exitNumber,
+    this.exitLabel,
   });
+
+  RouteStep copyWith({
+    String? instruction,
+    String? direction,
+    String? modifier,
+    double? distanceM,
+    LatLng? location,
+    int? exitNumber,
+    String? exitLabel,
+  }) =>
+      RouteStep(
+        instruction: instruction ?? this.instruction,
+        direction: direction ?? this.direction,
+        modifier: modifier ?? this.modifier,
+        distanceM: distanceM ?? this.distanceM,
+        location: location ?? this.location,
+        exitNumber: exitNumber ?? this.exitNumber,
+        exitLabel: exitLabel ?? this.exitLabel,
+      );
 }
 
 /// The complete result of a route calculation: polyline + turn-by-turn steps.
@@ -544,7 +567,8 @@ class RoutingService {
             final step = s as Map<String, dynamic>;
             final instr = (step['instruction'] as String?) ?? '';
             final dist = (step['distance'] as num?)?.toDouble() ?? 0.0;
-            final type = step['type']?.toString() ?? 'step';
+            final type = _intValue(step['type']) ?? 6;
+            final maneuver = _orsManeuver(type);
             LatLng loc;
             final way = (step['way_points'] as List?);
             if (way != null && way.isNotEmpty) {
@@ -555,13 +579,16 @@ class RoutingService {
                   ? coords.first
                   : LatLng(origin.latitude, origin.longitude);
             }
-            final orsIsRoundabout = type == 'roundabout';
             steps.add(RouteStep(
               instruction: instr,
-              direction: type,
+              direction: maneuver.direction,
+              modifier: maneuver.modifier,
               distanceM: dist,
               location: loc,
-              exitNumber: orsIsRoundabout ? _parseExitNumber(instr) : null,
+              exitNumber: maneuver.direction == 'roundabout'
+                  ? ((step['exit_number'] as num?)?.toInt() ??
+                      _parseExitNumber(instr))
+                  : null,
             ));
           }
         }
@@ -632,21 +659,24 @@ class RoutingService {
           final m = instr as Map<String, dynamic>;
           final text = (m['text'] as String?) ?? '';
           final dist = (m['distance'] as num?)?.toDouble() ?? 0.0;
-          final sign = m['sign']?.toString() ?? '';
+          final sign = _intValue(m['sign']) ?? 0;
+          final maneuver = _graphHopperManeuver(sign);
           final idx = (m['interval'] as List?)?.first as int? ?? 0;
           final loc = idx >= 0 && idx < coords.length
               ? coords[idx]
               : (coords.isNotEmpty
                   ? coords.first
                   : LatLng(origin.latitude, origin.longitude));
-          final isRoundabout =
-              sign == '6' || sign == 'roundabout' || sign == 'rotary';
           steps.add(RouteStep(
               instruction: text,
-              direction: sign,
+              direction: maneuver.direction,
+              modifier: maneuver.modifier,
               distanceM: dist,
               location: loc,
-              exitNumber: isRoundabout ? _parseExitNumber(text) : null));
+              exitNumber: maneuver.direction == 'roundabout'
+                  ? ((m['exit_number'] as num?)?.toInt() ??
+                      _parseExitNumber(text))
+                  : null));
         }
 
         // GraphHopper details=max_speed: [[fromIdx, toIdx, valueKmh], ...]
@@ -1112,6 +1142,7 @@ class RoutingService {
             distanceM: ((maneuver['length'] as num?)?.toDouble() ?? 0.0) * 1000,
             location: coords[pointIndex],
             exitNumber: (maneuver['roundabout_exit_count'] as num?)?.toInt(),
+            exitLabel: _valhallaExitLabel(maneuver),
           ));
         }
       }
@@ -1208,18 +1239,87 @@ class RoutingService {
   }
 
   static ({String direction, String modifier}) _valhallaManeuver(int type) {
-    if (type == 1 || type == 2) return (direction: 'depart', modifier: '');
-    if (type == 4 || type == 5) return (direction: 'arrive', modifier: '');
-    if (type == 26 || type == 27) {
-      return (direction: 'roundabout', modifier: '');
-    }
-    const right = {9, 10, 11, 12, 13, 14};
-    const left = {15, 16, 17, 18, 19, 20};
-    const uturn = {6, 7};
-    if (right.contains(type)) return (direction: 'turn', modifier: 'right');
-    if (left.contains(type)) return (direction: 'turn', modifier: 'left');
-    if (uturn.contains(type)) return (direction: 'turn', modifier: 'uturn');
-    return (direction: 'continue', modifier: 'straight');
+    // Official Valhalla Maneuver.Type values. Keeping ramp/exit/stay distinct
+    // is essential for both the symbol and the spoken timing.
+    return switch (type) {
+      1 => (direction: 'depart', modifier: ''),
+      2 => (direction: 'depart', modifier: 'right'),
+      3 => (direction: 'depart', modifier: 'left'),
+      4 => (direction: 'arrive', modifier: ''),
+      5 => (direction: 'arrive', modifier: 'right'),
+      6 => (direction: 'arrive', modifier: 'left'),
+      7 => (direction: 'new name', modifier: 'straight'),
+      8 || 22 => (direction: 'continue', modifier: 'straight'),
+      9 => (direction: 'turn', modifier: 'slight right'),
+      10 => (direction: 'turn', modifier: 'right'),
+      11 => (direction: 'turn', modifier: 'sharp right'),
+      12 => (direction: 'turn', modifier: 'uturn right'),
+      13 => (direction: 'turn', modifier: 'uturn left'),
+      14 => (direction: 'turn', modifier: 'sharp left'),
+      15 => (direction: 'turn', modifier: 'left'),
+      16 => (direction: 'turn', modifier: 'slight left'),
+      17 => (direction: 'on ramp', modifier: 'straight'),
+      18 => (direction: 'on ramp', modifier: 'right'),
+      19 => (direction: 'on ramp', modifier: 'left'),
+      20 => (direction: 'off ramp', modifier: 'right'),
+      21 => (direction: 'off ramp', modifier: 'left'),
+      23 => (direction: 'fork', modifier: 'right'),
+      24 => (direction: 'fork', modifier: 'left'),
+      25 => (direction: 'merge', modifier: ''),
+      26 || 27 => (direction: 'roundabout', modifier: ''),
+      28 || 29 => (direction: 'ferry', modifier: 'straight'),
+      _ => (direction: 'continue', modifier: 'straight'),
+    };
+  }
+
+  /// Official openrouteservice instruction type table.
+  static ({String direction, String modifier}) _orsManeuver(int type) =>
+      switch (type) {
+        0 => (direction: 'turn', modifier: 'left'),
+        1 => (direction: 'turn', modifier: 'right'),
+        2 => (direction: 'turn', modifier: 'sharp left'),
+        3 => (direction: 'turn', modifier: 'sharp right'),
+        4 => (direction: 'turn', modifier: 'slight left'),
+        5 => (direction: 'turn', modifier: 'slight right'),
+        6 => (direction: 'continue', modifier: 'straight'),
+        7 => (direction: 'roundabout', modifier: ''),
+        8 => (direction: 'continue', modifier: 'straight'),
+        9 => (direction: 'turn', modifier: 'uturn left'),
+        10 => (direction: 'arrive', modifier: ''),
+        11 => (direction: 'depart', modifier: ''),
+        12 => (direction: 'fork', modifier: 'left'),
+        13 => (direction: 'fork', modifier: 'right'),
+        _ => (direction: 'continue', modifier: 'straight'),
+      };
+
+  /// Official GraphHopper instruction signs.
+  static ({String direction, String modifier}) _graphHopperManeuver(int sign) =>
+      switch (sign) {
+        -8 => (direction: 'turn', modifier: 'uturn left'),
+        -7 => (direction: 'fork', modifier: 'left'),
+        -3 => (direction: 'turn', modifier: 'sharp left'),
+        -2 => (direction: 'turn', modifier: 'left'),
+        -1 => (direction: 'turn', modifier: 'slight left'),
+        0 => (direction: 'continue', modifier: 'straight'),
+        1 => (direction: 'turn', modifier: 'slight right'),
+        2 => (direction: 'turn', modifier: 'right'),
+        3 => (direction: 'turn', modifier: 'sharp right'),
+        4 => (direction: 'arrive', modifier: ''),
+        5 => (direction: 'continue', modifier: 'straight'),
+        6 => (direction: 'roundabout', modifier: ''),
+        7 => (direction: 'fork', modifier: 'right'),
+        8 => (direction: 'turn', modifier: 'uturn right'),
+        _ => (direction: 'continue', modifier: 'straight'),
+      };
+
+  static String? _valhallaExitLabel(Map<String, dynamic> maneuver) {
+    final sign = maneuver['sign'] as Map?;
+    final elements = sign?['exit_number_elements'] as List?;
+    if (elements == null || elements.isEmpty) return null;
+    final first = elements.first;
+    if (first is! Map) return null;
+    final text = first['text']?.toString().trim();
+    return text == null || text.isEmpty ? null : text;
   }
 
   static RouteResult _parseOsrmRoute(Map<String, dynamic> route,
@@ -1255,6 +1355,7 @@ class RoutingService {
         location:
             LatLng((loc[1] as num).toDouble(), (loc[0] as num).toDouble()),
         exitNumber: maneuver['exit'] as int?,
+        exitLabel: (step['exits'] as String?)?.trim(),
       ));
     }
 
@@ -1271,6 +1372,19 @@ class RoutingService {
   }
 
   static RouteResult _validatedRoute(RouteResult route) {
+    final cleanedSteps =
+        sanitiseDecorations(coalescePassiveNameChanges(route.steps));
+    if (!identical(cleanedSteps, route.steps)) {
+      route = RouteResult(
+        polyline: route.polyline,
+        steps: cleanedSteps,
+        totalDistanceM: route.totalDistanceM,
+        totalDurationS: route.totalDurationS,
+        speedLimits: route.speedLimits,
+        avoidance: route.avoidance,
+        fromAvoidanceRouter: route.fromAvoidanceRouter,
+      );
+    }
     if (route.polyline.length < 2 ||
         route.steps.isEmpty ||
         route.steps.length > _maxRouteSteps ||
@@ -1320,6 +1434,79 @@ class RoutingService {
     }
     return route;
   }
+
+  /// Removes straight `new name` pseudo-maneuvers while preserving distance.
+  ///
+  /// OSM commonly assigns several names to consecutive sections of one
+  /// physical road. Routers expose each rename as a maneuver even though the
+  /// driver does nothing. Speaking all of them creates a rapid sequence of
+  /// contradictory-sounding instructions immediately before a real ramp.
+  @visibleForTesting
+  static List<RouteStep> coalescePassiveNameChanges(List<RouteStep> steps) {
+    if (steps.length < 2) return steps;
+    var changed = false;
+    final out = <RouteStep>[];
+    for (final step in steps) {
+      final passiveRename = step.direction == 'new name' &&
+          (step.modifier.isEmpty || step.modifier == 'straight');
+      if (!passiveRename || out.isEmpty) {
+        out.add(step);
+        continue;
+      }
+      changed = true;
+      // The merged step keeps the previous maneuver's location and gains the
+      // renamed section's length, so the distance to the next real maneuver
+      // stays right.
+      final previous = out.removeLast();
+      out.add(previous.copyWith(
+        distanceM: previous.distanceM + step.distanceM,
+      ));
+    }
+    // Returning the original list unchanged lets the caller skip rebuilding
+    // the route when there was nothing to coalesce.
+    return changed ? out : steps;
+  }
+
+  /// Drops exit numbers and labels that are out of range instead of rejecting
+  /// the route that carries them.
+  ///
+  /// These two fields decorate an icon: the exit count inside the roundabout
+  /// symbol and the "199" on an exit sign. Refusing the whole route over one
+  /// would leave the driver unable to navigate at all because a roundabout has
+  /// thirteen arms, or because a router put something unexpected in a label —
+  /// a far worse outcome than a roundabout icon with no number in it. Every
+  /// other check in [_validatedRoute] guards something that would actually
+  /// break: NaN coordinates, absurd geometry, unbounded strings.
+  @visibleForTesting
+  static List<RouteStep> sanitiseDecorations(List<RouteStep> steps) {
+    var changed = false;
+    final out = <RouteStep>[];
+    for (final step in steps) {
+      final badNumber =
+          step.exitNumber != null && (step.exitNumber! < 1 || step.exitNumber! > 12);
+      final label = step.exitLabel;
+      final badLabel = label != null && label.length > 32;
+      if (!badNumber && !badLabel) {
+        out.add(step);
+        continue;
+      }
+      changed = true;
+      out.add(RouteStep(
+        instruction: step.instruction,
+        direction: step.direction,
+        modifier: step.modifier,
+        distanceM: step.distanceM,
+        location: step.location,
+        // copyWith cannot clear a field, so the step is rebuilt.
+        exitNumber: badNumber ? null : step.exitNumber,
+        exitLabel: badLabel ? null : label,
+      ));
+    }
+    return changed ? out : steps;
+  }
+
+  static int? _intValue(dynamic value) =>
+      value is num ? value.toInt() : int.tryParse(value?.toString() ?? '');
 
   /// Test a GraphHopper server URL for connectivity and basic response.
   ///
@@ -1546,7 +1733,10 @@ class RoutingService {
   /// the supported navigation languages.
   static int? _parseExitNumber(String instruction) {
     // Numeric ordinal: "1°", "2ª", "3rd", "4th" etc.
-    final numMatch = RegExp(r'\b([1-9])[°ªaero]').firstMatch(instruction);
+    final numMatch = RegExp(
+      r'\b(1[0-2]|[1-9])(?:°|º|ª|st|nd|rd|th)',
+      caseSensitive: false,
+    ).firstMatch(instruction);
     if (numMatch != null) return int.tryParse(numMatch.group(1)!);
     // Spelled-out ordinals (covers it/es/fr/pt/en)
     const ordinals = {
