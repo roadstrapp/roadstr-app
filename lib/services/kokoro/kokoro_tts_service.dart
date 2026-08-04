@@ -142,6 +142,7 @@ class KokoroTtsService {
     // Reset maneuver dedup so a navigation started right after this stop
     // never has its first instruction swallowed by the previous session.
     _lastManeuverText = null;
+    _lastManeuverWasImminent = false;
     try {
       await _player.stop();
     } catch (_) {}
@@ -393,7 +394,8 @@ class KokoroTtsService {
           _synthCompleter = null;
           completer.complete();
         }
-        _cacheAudio('$_lang:$_gender:${_speed.toStringAsFixed(2)}:$phrase', audio);
+        _cacheAudio(
+            '$_lang:$_gender:${_speed.toStringAsFixed(2)}:$phrase', audio);
         await _writeWav(wavFile, audio);
         debugPrint('[KokoroTTS] prewarm saved: "$phrase"');
       } catch (e) {
@@ -407,8 +409,7 @@ class KokoroTtsService {
   /// instant. Safe to call without a [KokoroTtsService] instance — uses the
   /// singletons.
   static Future<void> warmUpLanguage(String languageCode,
-      {String gender = kKokoroDefaultGender,
-      double speed = 1.0}) async {
+      {String gender = kKokoroDefaultGender, double speed = 1.0}) async {
     if (!kKokoroVoicesByLanguage.containsKey(languageCode)) return;
     try {
       final phonemizer = EspeakPhonemizer.instance;
@@ -450,6 +451,7 @@ class KokoroTtsService {
   /// right before the turn. Deduping here, at the single choke point every
   /// announcement passes through, catches every such path at once.
   String? _lastManeuverText;
+  bool _lastManeuverWasImminent = false;
   int _lastManeuverAtMs = 0;
   static const _maneuverDedupMs = 12000;
 
@@ -459,11 +461,18 @@ class KokoroTtsService {
   Future<void> announceManeuver(String instruction, int distMeters) {
     final clean = _normalizeOrdinals(instruction, _lang);
     final now = DateTime.now().millisecondsSinceEpoch;
+    final imminent = distMeters <= 0;
+    // The first zero-distance call is the point-of-action repeat ("take exit
+    // 199" at the gore). Allow its transition from an advance warning even
+    // inside the dedup window, while still suppressing duplicate imminent
+    // calls caused by repeated GPS ticks or a rapid reroute.
     if (clean == _lastManeuverText &&
-        now - _lastManeuverAtMs < _maneuverDedupMs) {
+        now - _lastManeuverAtMs < _maneuverDedupMs &&
+        (!imminent || _lastManeuverWasImminent)) {
       return Future.value();
     }
     _lastManeuverText = clean;
+    _lastManeuverWasImminent = imminent;
     _lastManeuverAtMs = now;
     final prefix = Units.ttsDistPrefix(distMeters, _lang);
     return speak(prefix.isNotEmpty ? '$prefix$clean' : clean, priority: true);
