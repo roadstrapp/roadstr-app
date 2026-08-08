@@ -1,58 +1,34 @@
-# F-Droid metadata file for Roadstr
-# Submit this file via merge request to:
-#   https://gitlab.com/fdroid/fdroiddata  →  metadata/app.roadstr.yml
+# F-Droid metadata for Roadstr.
 #
-# Before submitting:
-#   1. Replace <COMMIT_HASH> with the git commit hash of your release tag
-#   2. Add screenshots to fastlane/metadata/android/en-US/images/phoneScreenshots/
-#   3. Run: fdroid lint metadata/app.roadstr.yml
-
+# Submit as metadata/app.roadstr.yml to https://gitlab.com/fdroid/fdroiddata
+# — the filename must be the applicationId exactly (app.roadstr, as declared
+# in android/app/build.gradle.kts). An earlier submission was filed as
+# org.roadstr.app, an id this app has never used.
+#
+# Summary and Description are deliberately absent: F-Droid takes them from
+# fastlane/metadata/android/en-US/ (short_description.txt, full_description.txt,
+# title.txt), and duplicating them here is what maintainers ask to remove.
 Categories:
   - Navigation
 License: GPL-3.0-only
-AuthorName: Roadstr Team
-AuthorEmail: ''
+AuthorName: Roadstr
 SourceCode: https://github.com/roadstrapp/roadstr-app
 IssueTracker: https://github.com/roadstrapp/roadstr-app/issues
 Changelog: https://github.com/roadstrapp/roadstr-app/releases
 
 AutoName: Roadstr
-Name: Roadstr
-Summary: Decentralised navigation with Nostr road events and Lightning zaps
-Description: |-
-    Roadstr is a free, open-source navigation app built on decentralised
-    technologies.
-
-    '''Turn-by-turn navigation''' powered by OpenStreetMap and OSRM with
-    voice guidance in 27 languages, speed-limit signs, and automatic rerouting.
-
-    '''Nostr road events''' — report and receive real-time traffic jams, police,
-    accidents, speed cameras, and road hazards published to the Nostr network
-    (kind 1315/1316).
-
-    '''Lightning zaps''' — tip developers and appreciate good reports with
-    Bitcoin Lightning via NIP-57 and NWC wallet connect.
-
-    '''Privacy first''' — no account required, no tracking, no analytics.
-    Location is sent directly to selected routing/OpenStreetMap services and,
-    for road-event subscriptions, as a coarse city-level geohash to Nostr relays.
-
-    No Google Play Services required — falls back to Android LocationManager
-    on degoogled devices.
 
 RepoType: git
-Repo: https://github.com/roadstrapp/roadstr-app
+Repo: https://github.com/roadstrapp/roadstr-app.git
 
 Builds:
+
   - versionName: 0.4.13
     versionCode: 22
-    # Must match the git tag exactly. The tags in this repo carry a dot after
-    # the v (v.0.4.12, v.0.4.11); earlier entries here said "v0.4.12", which
-    # resolves to nothing and would fail the F-Droid build.
     commit: v.0.4.13
     subdir: .
-    # The build server has no Flutter SDK; it comes from the shared srclib.
-    # Keep this pinned to the version the release was built and tested with.
+    # The build server has no Flutter SDK; it comes from the shared srclib,
+    # pinned to the version this release was built and tested with.
     srclibs:
       - flutter@3.44.3
     sudo:
@@ -64,21 +40,20 @@ Builds:
       - $$flutter$$/bin/flutter pub get
     # The universal APK, deliberately, not a per-ABI split. With splits enabled
     # the Flutter Gradle plugin multiplies an ABI offset into the versionCode
-    # (arm64 ships as 2022, not 22), and F-Droid rejects a build whose APK
-    # versionCode does not match the one declared above.
+    # (arm64 ships as 2022, not 22), and a build whose APK versionCode differs
+    # from the one declared above is rejected.
     build:
       - $$flutter$$/bin/flutter build apk --release
     output: build/app/outputs/flutter-apk/app-release.apk
 
-# ── Automatic update detection ────────────────────────────────────────────────
-# `Version` alone looks for a tag named exactly like the version ("0.4.13").
-# This repository tags releases with a dot after the v — v.0.4.13, v.0.4.12 —
-# so the pattern has to be spelled out, otherwise every new release is found
-# and then discarded for having no matching tag.
 AutoUpdateMode: Version v.%v
-# Restricted to the current tag shape on purpose: the repo still carries older
-# tags in other formats (v0.3.4, v0.2.beta) which are not releases of this
-# build recipe and must not be picked up as candidates.
 UpdateCheckMode: Tags ^v\.[0-9]+\.[0-9]+\.[0-9]+$
+# Read the version straight out of the Gradle file with an explicit regex.
+# This is a Flutter app: the automatic manifest scan finds nothing, because
+# Flutter normally resolves the version from pubspec.yaml at build time and
+# no Android file states it. Both values are therefore written literally in
+# build.gradle.kts, and kept in step with pubspec.yaml by
+# test/version_consistency_test.dart in the app repo.
+UpdateCheckData: android/app/build.gradle.kts|versionCode\s*=\s*(\d+)|.|versionName\s*=\s*"([^"]+)"
 CurrentVersion: 0.4.13
 CurrentVersionCode: 22
