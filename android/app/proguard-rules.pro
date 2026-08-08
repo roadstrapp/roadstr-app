@@ -12,7 +12,10 @@
 # FlutterPlayStoreSplitApplication is excluded on the same grounds: it is the
 # Application class for Play Store split installs, and this APK declares plain
 # android.app.Application (verified with `aapt dump xmltree`), so nothing can
-# reach it either.
+# reach it either. Both exclusions stay even though the Gradle build now
+# refuses the com.google.android.play group outright — R8 keeping a class it
+# cannot resolve is how the dangling references got into the dex in the first
+# place.
 -keep class !io.flutter.embedding.engine.deferredcomponents.**,!io.flutter.embedding.android.FlutterPlayStoreSplitApplication,io.flutter.** { *; }
 -dontwarn io.flutter.**
 -dontwarn com.google.android.play.core.**
