@@ -32,6 +32,11 @@ Builds:
       - $$flutter$$/bin/flutter precache --no-web --no-linux --no-windows --no-macos
         --no-fuchsia --android
       - $$flutter$$/bin/flutter pub get
+    scanignore:
+      - android/app/src/main/jniLibs/arm64-v8a/libespeak-ng.so
+      - android/app/src/main/jniLibs/armeabi-v7a/libespeak-ng.so
+      - android/app/src/main/jniLibs/x86_64/libespeak-ng.so
+      - assets/espeak-ng-data.tar.gz
     build: $$flutter$$/bin/flutter build apk --release
     ndk: 27.1.12297006
 
