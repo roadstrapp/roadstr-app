@@ -1,9 +1,21 @@
 # ── Roadstr ProGuard / R8 rules ───────────────────────────────────────────────
 
-# Flutter engine — keep all reflection-based classes
--keep class io.flutter.** { *; }
--keep class io.flutter.embedding.** { *; }
+# Flutter engine — keep all reflection-based classes.
+#
+# Everything EXCEPT the Play Store deferred-component manager. Roadstr has no
+# deferred components, so that class is never reached — but a blanket keep of
+# io.flutter.** told R8 to preserve it anyway, and it carries references to
+# com.google.android.play.core.*. Those references end up in the dex without
+# the library behind them: dead symbols that would throw if anything ever
+# reached them, and that F-Droid's scanner reports as Google dependencies.
+# Excluding it lets R8 drop the class and the references with it.
+# FlutterPlayStoreSplitApplication is excluded on the same grounds: it is the
+# Application class for Play Store split installs, and this APK declares plain
+# android.app.Application (verified with `aapt dump xmltree`), so nothing can
+# reach it either.
+-keep class !io.flutter.embedding.engine.deferredcomponents.**,!io.flutter.embedding.android.FlutterPlayStoreSplitApplication,io.flutter.** { *; }
 -dontwarn io.flutter.**
+-dontwarn com.google.android.play.core.**
 
 # Kotlin coroutines & serialization
 -keep class kotlinx.coroutines.** { *; }
