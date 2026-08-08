@@ -48,8 +48,22 @@ android {
         applicationId = "app.roadstr"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        // ── Version ───────────────────────────────────────────────────────────
+        // Literal values, not flutter.versionCode/flutter.versionName.
+        //
+        // Flutter resolves those from pubspec.yaml at build time, through
+        // local.properties, so nothing in the checked-out tree states the
+        // version. F-Droid's `checkupdates` reads this file with a regex
+        // against a bare clone — it never runs Gradle — so with the dynamic
+        // form it found nothing, walked back through every tag looking for a
+        // readable one, and failed with "Couldn't find any version
+        // information". That is what blocks automatic update detection.
+        //
+        // These two lines are the single source of truth for the Android
+        // build and MUST match `version:` in pubspec.yaml. That is enforced by
+        // test/version_consistency_test.dart rather than by memory.
+        versionCode = 22
+        versionName = "0.4.13"
     }
 
     // ── Signing ───────────────────────────────────────────────────────────────
@@ -92,9 +106,17 @@ android {
     // x86_64     → emulators and rare x86 tablets
     // universal  → fat fallback (use when ABI is unknown)
     //
-    // Note: ZapStore and F-Droid do NOT require unique versionCodes per ABI
-    // (that is only needed for Google Play Store). All APKs share the same
-    // versionCode, which is simpler and fully compatible with both stores.
+    // NB: the APKs do NOT share a versionCode, whatever this comment used to
+    // claim. With splits enabled the Flutter Gradle plugin multiplies an ABI
+    // offset into it, so a versionCode of 22 ships as:
+    //
+    //   armeabi-v7a → 1022     arm64-v8a → 2022     x86_64 → 4022
+    //   universal   →   22
+    //
+    // Verify with `aapt dump badging <apk>` before assuming otherwise. This
+    // matters for F-Droid, which fails a build whose APK versionCode differs
+    // from the one declared in the metadata — which is why the F-Droid recipe
+    // builds the universal APK rather than a split one.
     splits {
         abi {
             isEnable = true
