@@ -1,0 +1,24 @@
+Voice guidance that says what it is about to do, and when.
+
+• Instructions that appeared on screen but were never spoken are now spoken.
+  Chaining only happened when the next turn was within 55 m, and being
+  chained also cancelled that turn's own warnings — so a manoeuvre could be
+  named once inside another sentence and never mentioned again
+• When an instruction is repeated at the point of action, the next one is
+  announced with it and with its distance: "take the first exit, then in
+  300 metres take the off-ramp"
+• The destination is only named within 3 km. Further out you are told how
+  far the road runs instead, so "you will arrive" no longer arrives with
+  ten miles still to drive
+• Announcements now say the distance that is actually left. Accelerating
+  onto a slip road used to widen the warning window mid-manoeuvre and call
+  a ramp 380 m ahead "in 800 metres"
+• Motorway exits are read from each router's real manoeuvre table. A right
+  exit was being classified as a left turn, which is why its symbol looked
+  like a merge going the wrong way
+• Roads that change name mid-stretch no longer produce a burst of
+  instructions before a junction — OpenStreetMap names consecutive sections
+  of one road differently, and each rename was announced as a manoeuvre
+• A roundabout with an unknown exit count no longer claims "first exit"
+• Speed limits, speed cameras and restricted-zone lookups no longer keep a
+  route from loading when a router reports an unusual exit number
