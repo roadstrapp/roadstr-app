@@ -17,7 +17,7 @@ Builds:
     commit: v.0.4.14
     sudo:
       - apt-get update
-      - apt-get install -y cmake ninja-build
+      - apt-get install -y build-essential cmake
     output: build/app/outputs/flutter-apk/app-release.apk
     srclibs:
       - flutter@3.44.3
