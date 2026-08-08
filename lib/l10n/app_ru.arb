@@ -289,6 +289,7 @@
   "arrivalAhead": "Вы прибудете в пункт назначения",
   "arrivalAheadLeft": "Вы прибудете в пункт назначения слева",
   "arrivalAheadRight": "Вы прибудете в пункт назначения справа",
+  "continueForDistance": "продолжайте движение прямо {distance}",
   "transportModeCar": "Автомобиль",
   "transportModeWalk": "Пешком",
   "etaArrivalLabel": "Приб. {time}",

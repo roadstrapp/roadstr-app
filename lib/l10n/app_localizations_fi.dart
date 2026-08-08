@@ -725,6 +725,11 @@ class AppLocalizationsFi extends AppLocalizations {
   String get arrivalAheadRight => 'Saavut määränpäähäsi oikealla';
 
   @override
+  String continueForDistance(String distance) {
+    return 'jatka suoraan $distance';
+  }
+
+  @override
   String get transportModeCar => 'Auto';
 
   @override

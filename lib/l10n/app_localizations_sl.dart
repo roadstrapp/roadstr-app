@@ -723,6 +723,11 @@ class AppLocalizationsSl extends AppLocalizations {
   String get arrivalAheadRight => 'Prispeli boste na cilj na desni strani';
 
   @override
+  String continueForDistance(String distance) {
+    return 'nadaljujte naravnost $distance';
+  }
+
+  @override
   String get transportModeCar => 'Avto';
 
   @override

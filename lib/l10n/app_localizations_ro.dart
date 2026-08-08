@@ -726,6 +726,11 @@ class AppLocalizationsRo extends AppLocalizations {
   String get arrivalAheadRight => 'Veți ajunge la destinație pe partea dreaptă';
 
   @override
+  String continueForDistance(String distance) {
+    return 'continuă drept înainte $distance';
+  }
+
+  @override
   String get transportModeCar => 'Mașină';
 
   @override
