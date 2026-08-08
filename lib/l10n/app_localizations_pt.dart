@@ -726,6 +726,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get arrivalAheadRight => 'Chegará ao seu destino à direita';
 
   @override
+  String continueForDistance(String distance) {
+    return 'continua em frente durante $distance';
+  }
+
+  @override
   String get transportModeCar => 'Carro';
 
   @override

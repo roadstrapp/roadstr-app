@@ -289,6 +289,7 @@
   "arrivalAhead": "Atvyksite į paskirties vietą",
   "arrivalAheadLeft": "Atvyksite į paskirties vietą kairėje",
   "arrivalAheadRight": "Atvyksite į paskirties vietą dešinėje",
+  "continueForDistance": "važiuokite tiesiai {distance}",
   "transportModeCar": "Automobilis",
   "transportModeWalk": "Pėsčiomis",
   "etaArrivalLabel": "Atvyk. {time}",

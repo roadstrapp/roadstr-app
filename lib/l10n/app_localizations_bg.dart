@@ -733,6 +733,11 @@ class AppLocalizationsBg extends AppLocalizations {
       'Ще пристигнете до местоназначението си отдясно';
 
   @override
+  String continueForDistance(String distance) {
+    return 'продължете направо $distance';
+  }
+
+  @override
   String get transportModeCar => 'Автомобил';
 
   @override

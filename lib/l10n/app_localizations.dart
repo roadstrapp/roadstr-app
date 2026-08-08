@@ -1462,6 +1462,12 @@ abstract class AppLocalizations {
   /// **'You will arrive at your destination on the right'**
   String get arrivalAheadRight;
 
+  /// Chained tail spoken when the destination is still far: the driver is told how far the road runs instead of being told they will arrive.
+  ///
+  /// In en, this message translates to:
+  /// **'continue straight for {distance}'**
+  String continueForDistance(String distance);
+
   /// No description provided for @transportModeCar.
   ///
   /// In en, this message translates to:

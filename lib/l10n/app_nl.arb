@@ -289,6 +289,7 @@
   "arrivalAhead": "Je komt aan op je bestemming",
   "arrivalAheadLeft": "Je bestemming ligt aan de linkerkant",
   "arrivalAheadRight": "Je bestemming ligt aan de rechterkant",
+  "continueForDistance": "rijd {distance} rechtdoor",
   "transportModeCar": "Auto",
   "transportModeWalk": "Te voet",
   "etaArrivalLabel": "Aanks. {time}",

@@ -727,6 +727,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get arrivalAheadRight => 'Az úti célja a jobb oldalon lesz';
 
   @override
+  String continueForDistance(String distance) {
+    return 'haladjon egyenesen $distance hosszan';
+  }
+
+  @override
   String get transportModeCar => 'Autó';
 
   @override

@@ -730,6 +730,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get arrivalAheadRight => 'Vous arriverez à destination sur la droite';
 
   @override
+  String continueForDistance(String distance) {
+    return 'continuez tout droit pendant $distance';
+  }
+
+  @override
   String get transportModeCar => 'Voiture';
 
   @override

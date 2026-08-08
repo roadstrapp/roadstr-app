@@ -699,6 +699,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get arrivalAheadRight => '目的地将在右侧';
 
   @override
+  String continueForDistance(String distance) {
+    return '继续直行$distance';
+  }
+
+  @override
   String get transportModeCar => '驾车';
 
   @override

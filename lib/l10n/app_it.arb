@@ -246,6 +246,7 @@
   "arrivalAhead": "Arriverai a destinazione",
   "arrivalAheadLeft": "Arriverai a destinazione sulla sinistra",
   "arrivalAheadRight": "Arriverai a destinazione sulla destra",
+  "continueForDistance": "prosegui dritto per {distance}",
   "transportModeCar": "Auto",
   "transportModeWalk": "A piedi",
   "etaArrivalLabel": "Arr. {time}",

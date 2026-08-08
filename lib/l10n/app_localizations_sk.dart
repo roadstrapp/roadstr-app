@@ -725,6 +725,11 @@ class AppLocalizationsSk extends AppLocalizations {
   String get arrivalAheadRight => 'Dorazíte do cieľa na pravej strane';
 
   @override
+  String continueForDistance(String distance) {
+    return 'pokračujte rovno $distance';
+  }
+
+  @override
   String get transportModeCar => 'Auto';
 
   @override
