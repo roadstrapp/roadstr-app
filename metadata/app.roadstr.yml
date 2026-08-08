@@ -51,18 +51,34 @@ Builds:
     # resolves to nothing and would fail the F-Droid build.
     commit: v.0.4.13
     subdir: .
+    # The build server has no Flutter SDK; it comes from the shared srclib.
+    # Keep this pinned to the version the release was built and tested with.
+    srclibs:
+      - flutter@3.44.3
     sudo:
       - apt-get update
       - apt-get install -y openjdk-17-jdk-headless
-    init:
-      - flutter pub get
+    prebuild:
+      - $$flutter$$/bin/flutter config --no-analytics
+      - $$flutter$$/bin/flutter precache --no-web --no-linux --no-windows --no-macos --no-fuchsia --android
+      - $$flutter$$/bin/flutter pub get
+    # The universal APK, deliberately, not a per-ABI split. With splits enabled
+    # the Flutter Gradle plugin multiplies an ABI offset into the versionCode
+    # (arm64 ships as 2022, not 22), and F-Droid rejects a build whose APK
+    # versionCode does not match the one declared above.
     build:
-      - flutter build apk --release --split-per-abi
-    output: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-    gradle:
-      - yes
+      - $$flutter$$/bin/flutter build apk --release
+    output: build/app/outputs/flutter-apk/app-release.apk
 
-AutoUpdateMode: Version
-UpdateCheckMode: Tags
+# ── Automatic update detection ────────────────────────────────────────────────
+# `Version` alone looks for a tag named exactly like the version ("0.4.13").
+# This repository tags releases with a dot after the v — v.0.4.13, v.0.4.12 —
+# so the pattern has to be spelled out, otherwise every new release is found
+# and then discarded for having no matching tag.
+AutoUpdateMode: Version v.%v
+# Restricted to the current tag shape on purpose: the repo still carries older
+# tags in other formats (v0.3.4, v0.2.beta) which are not releases of this
+# build recipe and must not be picked up as candidates.
+UpdateCheckMode: Tags ^v\.[0-9]+\.[0-9]+\.[0-9]+$
 CurrentVersion: 0.4.13
 CurrentVersionCode: 22
