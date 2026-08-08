@@ -1,0 +1,16 @@
+No Google code left in the app. None.
+
+Roadstr was built to work on phones with no Google services, and it did — but
+the APK still carried Google Play Services code it could never run. It arrived
+uninvited, as a dependency of the location plugin, and sat there as dead weight.
+It is gone.
+
+• Google Play Services Location removed. The app has always read your position
+  through Android's own location service, on every device; the Play Services
+  code was never called, only shipped. It is no longer in the APK at all
+• Google Play Store components removed too — split-install and deferred
+  delivery classes Roadstr never used
+• Nothing changes in how location works. Same provider, same accuracy, same
+  behaviour on de-Googled phones — there is simply nothing else left beside it
+• The build now refuses these libraries outright, so they cannot come back
+  through some future dependency without someone noticing
