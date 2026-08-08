@@ -62,8 +62,8 @@ android {
         // These two lines are the single source of truth for the Android
         // build and MUST match `version:` in pubspec.yaml. That is enforced by
         // test/version_consistency_test.dart rather than by memory.
-        versionCode = 22
-        versionName = "0.4.13"
+        versionCode = 23
+        versionName = "0.4.14"
     }
 
     // ── Signing ───────────────────────────────────────────────────────────────
@@ -108,10 +108,10 @@ android {
     //
     // NB: the APKs do NOT share a versionCode, whatever this comment used to
     // claim. With splits enabled the Flutter Gradle plugin multiplies an ABI
-    // offset into it, so a versionCode of 22 ships as:
+    // offset into it, so a versionCode of N ships as:
     //
-    //   armeabi-v7a → 1022     arm64-v8a → 2022     x86_64 → 4022
-    //   universal   →   22
+    //   armeabi-v7a → 1000+N     arm64-v8a → 2000+N     x86_64 → 4000+N
+    //   universal   →      N
     //
     // Verify with `aapt dump badging <apk>` before assuming otherwise. This
     // matters for F-Droid, which fails a build whose APK versionCode differs

@@ -23,18 +23,32 @@ Repo: https://github.com/roadstrapp/roadstr-app.git
 
 Builds:
 
-  - versionName: 0.4.13
-    versionCode: 22
-    commit: v.0.4.13
+  - versionName: 0.4.14
+    versionCode: 23
+    commit: v.0.4.14
     subdir: .
     # The build server has no Flutter SDK; it comes from the shared srclib,
     # pinned to the version this release was built and tested with.
     srclibs:
       - flutter@3.44.3
+    ndk: 27.1.12297006
     sudo:
       - apt-get update
-      - apt-get install -y openjdk-17-jdk-headless
+      - apt-get install -y openjdk-17-jdk-headless cmake ninja-build
+    # No prebuilt binaries are used. The three libespeak-ng.so and the
+    # espeak-ng-data archive are committed so that ordinary `flutter build`
+    # works offline, but they are deleted here and rebuilt from pinned
+    # upstream revisions (espeak-ng 4870adfa, sonic fbf75c3d) by a script that
+    # maps build paths out of the output for reproducibility. The checksums of
+    # what it produces are asserted by a Gradle task on every build, so a
+    # mismatch fails the build rather than shipping quietly.
+    rm:
+      - android/app/src/main/jniLibs/arm64-v8a/libespeak-ng.so
+      - android/app/src/main/jniLibs/armeabi-v7a/libespeak-ng.so
+      - android/app/src/main/jniLibs/x86_64/libespeak-ng.so
+      - assets/espeak-ng-data.tar.gz
     prebuild:
+      - ROADSTR_ANDROID_NDK=$$NDK$$ bash tools/build_espeak_android.sh
       - $$flutter$$/bin/flutter config --no-analytics
       - $$flutter$$/bin/flutter precache --no-web --no-linux --no-windows --no-macos --no-fuchsia --android
       - $$flutter$$/bin/flutter pub get
@@ -55,5 +69,5 @@ UpdateCheckMode: Tags ^v\.[0-9]+\.[0-9]+\.[0-9]+$
 # build.gradle.kts, and kept in step with pubspec.yaml by
 # test/version_consistency_test.dart in the app repo.
 UpdateCheckData: android/app/build.gradle.kts|versionCode\s*=\s*(\d+)|.|versionName\s*=\s*"([^"]+)"
-CurrentVersion: 0.4.13
-CurrentVersionCode: 22
+CurrentVersion: 0.4.14
+CurrentVersionCode: 23
