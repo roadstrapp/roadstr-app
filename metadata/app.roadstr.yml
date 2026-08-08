@@ -1,3 +1,10 @@
+AntiFeatures:
+  NonFreeDep:
+    en-US: The geolocator plugin links Google Play Services Location. Roadstr
+      never calls it — location comes from Android's own LocationManager, which
+      the app selects explicitly so that it works on devices with no Google
+      services at all. The library is dead weight rather than a dependency the
+      app relies on, and removing it is tracked upstream.
 Categories:
   - Navigation
 License: GPL-3.0-only
