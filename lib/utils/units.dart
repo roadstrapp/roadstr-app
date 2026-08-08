@@ -87,6 +87,35 @@ class Units {
     return _inMiles(miStr, lang);
   }
 
+  /// The same distance phrase as [ttsDistPrefix], reshaped to sit inside a
+  /// sentence rather than open one: "…, then in 300 metres take the exit".
+  ///
+  /// Derived from the prefix instead of duplicating the per-language tables,
+  /// which would be two places to keep in step for no gain. Only two things
+  /// differ: the trailing separator the prefix form ends with, and the initial
+  /// capital. Lowercasing is safe here because every language that reaches
+  /// this either has no letter case (ja, zh) or, in these phrases, opens with
+  /// a preposition rather than a noun.
+  static String ttsDistInline(int metres, String lang) {
+    final prefix = ttsDistPrefix(metres, lang).trimRight();
+    if (prefix.isEmpty) return '';
+    final trimmed = prefix.replaceFirst(RegExp(r'[,、，]$'), '');
+    if (trimmed.isEmpty) return '';
+    return trimmed[0].toLowerCase() + trimmed.substring(1);
+  }
+
+  /// Whether [lang] separates words with spaces. Japanese and Chinese do not,
+  /// and inserting one makes a spoken phrase read as two broken fragments.
+  static bool usesWordSpacing(String lang) => lang != 'ja' && lang != 'zh';
+
+  /// Joins a distance phrase to an instruction with the right spacing.
+  static String joinDistance(String distance, String instruction, String lang) {
+    if (distance.isEmpty) return instruction;
+    return usesWordSpacing(lang)
+        ? '$distance $instruction'
+        : '$distance$instruction';
+  }
+
   static String _inMeters(int m, String lang) => switch (lang) {
         'it' => 'Tra $m metri, ',
         'es' => 'En $m metros, ',

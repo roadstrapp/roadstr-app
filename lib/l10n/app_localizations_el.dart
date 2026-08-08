@@ -732,6 +732,11 @@ class AppLocalizationsEl extends AppLocalizations {
   String get arrivalAheadRight => 'Θα φτάσετε στον προορισμό σας στα δεξιά';
 
   @override
+  String continueForDistance(String distance) {
+    return 'συνεχίστε ευθεία για $distance';
+  }
+
+  @override
   String get transportModeCar => 'Αυτοκίνητο';
 
   @override

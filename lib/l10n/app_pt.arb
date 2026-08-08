@@ -289,6 +289,7 @@
   "arrivalAhead": "Chegará ao seu destino",
   "arrivalAheadLeft": "Chegará ao seu destino à esquerda",
   "arrivalAheadRight": "Chegará ao seu destino à direita",
+  "continueForDistance": "continua em frente durante {distance}",
   "transportModeCar": "Carro",
   "transportModeWalk": "A pé",
   "etaArrivalLabel": "Cheg. {time}",

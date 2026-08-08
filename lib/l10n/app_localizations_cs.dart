@@ -724,6 +724,11 @@ class AppLocalizationsCs extends AppLocalizations {
   String get arrivalAheadRight => 'Dorazíte do cíle vpravo';
 
   @override
+  String continueForDistance(String distance) {
+    return 'pokračujte rovně $distance';
+  }
+
+  @override
   String get transportModeCar => 'Auto';
 
   @override

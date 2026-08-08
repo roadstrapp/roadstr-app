@@ -727,6 +727,11 @@ class AppLocalizationsGa extends AppLocalizations {
   String get arrivalAheadRight => 'Sroichfidh tú do cheann scríbe ar dheis';
 
   @override
+  String continueForDistance(String distance) {
+    return 'lean ort díreach ar aghaidh ar feadh $distance';
+  }
+
+  @override
   String get transportModeCar => 'Carr';
 
   @override

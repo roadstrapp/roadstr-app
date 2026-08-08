@@ -1,3 +1,22 @@
+/// What follows the current maneuver in a chained announcement.
+enum ChainedTail {
+  /// Nothing to add.
+  none,
+
+  /// The next maneuver, spoken without a distance because it is immediate.
+  maneuver,
+
+  /// The next maneuver, prefixed with how far away it is.
+  maneuverWithDistance,
+
+  /// "then you will arrive at your destination" — only when close enough.
+  arrival,
+
+  /// "then continue for 5 km" — the destination is too far to be worth
+  /// naming yet, but the driver should know the road runs a long way.
+  continueAhead,
+}
+
 /// Pure navigation-guidance policy shared by the live map and unit tests.
 ///
 /// Keeping distance selection out of the widget makes the safety-critical
@@ -30,6 +49,44 @@ class NavigationGuidance {
     final near = _roundTo10(40.0 + 80.0 * progress);
     return (far: far, near: near);
   }
+
+  /// What to append to the point-of-action announcement, if anything.
+  ///
+  /// The last time a maneuver is spoken is the driver's last chance to hear
+  /// what comes after it, and until now that only happened when the next
+  /// maneuver was within 55 m — anything further away was shown on screen and
+  /// never said aloud. So the tail is now always offered, and it carries the
+  /// distance: "take the first exit, then in 300 metres take the off-ramp".
+  static ChainedTail chainedTail({
+    required String followDirection,
+    required double gapM,
+  }) {
+    if (!gapM.isFinite || gapM < 0) return ChainedTail.none;
+    // "Head north on…" is a lifecycle message; it is never a follow-up.
+    if (followDirection == 'depart') return ChainedTail.none;
+
+    if (followDirection == 'arrive') {
+      // Announcing the destination is only useful near it. Saying "then you
+      // will arrive" with eleven miles of motorway still to go — which is what
+      // a field report caught — tells the driver nothing and buries the
+      // maneuver they actually have to make.
+      return gapM <= arrivalChainWithinM
+          ? ChainedTail.arrival
+          : ChainedTail.continueAhead;
+    }
+    // Back to back: a distance here would be noise ("then in 20 metres…").
+    return gapM < immediateChainBelowM
+        ? ChainedTail.maneuver
+        : ChainedTail.maneuverWithDistance;
+  }
+
+  /// Below this the follow-up maneuver is effectively part of the current one,
+  /// so it is chained without a distance.
+  static const immediateChainBelowM = 55.0;
+
+  /// The destination is only worth naming inside this range; beyond it the
+  /// driver is told how far the road runs instead.
+  static const arrivalChainWithinM = 3000.0;
 
   /// Remaining route distance to a maneuver.
   ///

@@ -289,6 +289,7 @@
   "arrivalAhead": "Dorazíte do cieľa",
   "arrivalAheadLeft": "Dorazíte do cieľa na ľavej strane",
   "arrivalAheadRight": "Dorazíte do cieľa na pravej strane",
+  "continueForDistance": "pokračujte rovno {distance}",
   "transportModeCar": "Auto",
   "transportModeWalk": "Pešo",
   "etaArrivalLabel": "Príj. {time}",

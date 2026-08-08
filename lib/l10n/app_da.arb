@@ -289,6 +289,7 @@
   "arrivalAhead": "Du vil ankomme til din destination",
   "arrivalAheadLeft": "Du vil ankomme til din destination i venstre side",
   "arrivalAheadRight": "Du vil ankomme til din destination i højre side",
+  "continueForDistance": "fortsæt ligeud i {distance}",
   "transportModeCar": "Bil",
   "transportModeWalk": "Til fods",
   "etaArrivalLabel": "Ank. {time}",

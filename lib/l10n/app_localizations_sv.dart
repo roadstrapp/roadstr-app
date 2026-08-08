@@ -728,6 +728,11 @@ class AppLocalizationsSv extends AppLocalizations {
       'Du kommer att anlända till din destination på höger sida';
 
   @override
+  String continueForDistance(String distance) {
+    return 'fortsätt rakt fram i $distance';
+  }
+
+  @override
   String get transportModeCar => 'Bil';
 
   @override

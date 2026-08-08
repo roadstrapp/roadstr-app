@@ -289,6 +289,7 @@
   "arrivalAhead": "Θα φτάσετε στον προορισμό σας",
   "arrivalAheadLeft": "Θα φτάσετε στον προορισμό σας στα αριστερά",
   "arrivalAheadRight": "Θα φτάσετε στον προορισμό σας στα δεξιά",
+  "continueForDistance": "συνεχίστε ευθεία για {distance}",
   "transportModeCar": "Αυτοκίνητο",
   "transportModeWalk": "Με τα πόδια",
   "etaArrivalLabel": "Άφ. {time}",

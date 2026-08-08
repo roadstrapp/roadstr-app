@@ -733,6 +733,11 @@ class AppLocalizationsMt extends AppLocalizations {
       'Se tasal fid-destinazzjoni tiegħek fuq il-lemin';
 
   @override
+  String continueForDistance(String distance) {
+    return 'kompli dritt għal $distance';
+  }
+
+  @override
   String get transportModeCar => 'Karozza';
 
   @override

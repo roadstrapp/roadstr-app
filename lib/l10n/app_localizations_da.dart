@@ -727,6 +727,11 @@ class AppLocalizationsDa extends AppLocalizations {
       'Du vil ankomme til din destination i højre side';
 
   @override
+  String continueForDistance(String distance) {
+    return 'fortsæt ligeud i $distance';
+  }
+
+  @override
   String get transportModeCar => 'Bil';
 
   @override

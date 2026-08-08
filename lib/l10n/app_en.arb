@@ -318,6 +318,15 @@
   "arrivalAhead": "You will arrive at your destination",
   "arrivalAheadLeft": "You will arrive at your destination on the left",
   "arrivalAheadRight": "You will arrive at your destination on the right",
+  "continueForDistance": "continue straight for {distance}",
+  "@continueForDistance": {
+    "description": "Chained tail spoken when the destination is still far: the driver is told how far the road runs instead of being told they will arrive.",
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
   "transportModeCar": "Car",
   "transportModeWalk": "On foot",
   "etaArrivalLabel": "Arr. {time}",

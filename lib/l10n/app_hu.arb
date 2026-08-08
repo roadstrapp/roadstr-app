@@ -289,6 +289,7 @@
   "arrivalAhead": "Meg fog érkezni az úti céljához",
   "arrivalAheadLeft": "Az úti célja a bal oldalon lesz",
   "arrivalAheadRight": "Az úti célja a jobb oldalon lesz",
+  "continueForDistance": "haladjon egyenesen {distance} hosszan",
   "transportModeCar": "Autó",
   "transportModeWalk": "Gyalog",
   "etaArrivalLabel": "Érk. {time}",

@@ -289,6 +289,7 @@
   "arrivalAhead": "Stići ćete na odredište",
   "arrivalAheadLeft": "Stići ćete na odredište s lijeve strane",
   "arrivalAheadRight": "Stići ćete na odredište s desne strane",
+  "continueForDistance": "nastavite ravno {distance}",
   "transportModeCar": "Auto",
   "transportModeWalk": "Pješice",
   "etaArrivalLabel": "Dol. {time}",

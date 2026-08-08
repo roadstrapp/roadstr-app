@@ -726,6 +726,11 @@ class AppLocalizationsEt extends AppLocalizations {
   String get arrivalAheadRight => 'Jõuate sihtkohta paremal';
 
   @override
+  String continueForDistance(String distance) {
+    return 'jätkake otse $distance';
+  }
+
+  @override
   String get transportModeCar => 'Auto';
 
   @override

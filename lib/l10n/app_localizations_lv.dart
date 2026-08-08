@@ -724,6 +724,11 @@ class AppLocalizationsLv extends AppLocalizations {
   String get arrivalAheadRight => 'Jūs ieradīsieties galamērķī labajā pusē';
 
   @override
+  String continueForDistance(String distance) {
+    return 'brauciet taisni $distance';
+  }
+
+  @override
   String get transportModeCar => 'Automašīna';
 
   @override

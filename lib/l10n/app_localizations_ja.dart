@@ -708,6 +708,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get arrivalAheadRight => '目的地は右側です';
 
   @override
+  String continueForDistance(String distance) {
+    return '$distance直進します';
+  }
+
+  @override
   String get transportModeCar => '車';
 
   @override

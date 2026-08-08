@@ -71,6 +71,73 @@ void main() {
     });
   });
 
+  group('chained tail', () {
+    test('a follow-up further than a few metres is announced with distance',
+        () {
+      // The regression this guards: chaining used to require the next maneuver
+      // to be within 55 m, so anything beyond that appeared on screen and was
+      // never spoken at this point at all.
+      expect(
+        NavigationGuidance.chainedTail(followDirection: 'off ramp', gapM: 300),
+        ChainedTail.maneuverWithDistance,
+      );
+      expect(
+        NavigationGuidance.chainedTail(followDirection: 'turn', gapM: 3000),
+        ChainedTail.maneuverWithDistance,
+      );
+    });
+
+    test('a back-to-back follow-up drops the distance', () {
+      // "…take the first exit, then in 20 metres turn right" is noise.
+      expect(
+        NavigationGuidance.chainedTail(followDirection: 'turn', gapM: 20),
+        ChainedTail.maneuver,
+      );
+    });
+
+    test('the destination is only named once it is close', () {
+      expect(
+        NavigationGuidance.chainedTail(followDirection: 'arrive', gapM: 2000),
+        ChainedTail.arrival,
+      );
+      expect(
+        NavigationGuidance.chainedTail(
+            followDirection: 'arrive',
+            gapM: NavigationGuidance.arrivalChainWithinM),
+        ChainedTail.arrival,
+      );
+    });
+
+    test('a distant destination becomes "continue for X" instead', () {
+      // Announcing arrival with eleven miles still to drive is what a field
+      // report caught; the driver is told how far the road runs instead.
+      expect(
+        NavigationGuidance.chainedTail(followDirection: 'arrive', gapM: 17000),
+        ChainedTail.continueAhead,
+      );
+      expect(
+        NavigationGuidance.chainedTail(followDirection: 'arrive', gapM: 3001),
+        ChainedTail.continueAhead,
+      );
+    });
+
+    test('departure is never a follow-up, and garbage is never spoken', () {
+      expect(
+        NavigationGuidance.chainedTail(followDirection: 'depart', gapM: 100),
+        ChainedTail.none,
+      );
+      expect(
+        NavigationGuidance.chainedTail(
+            followDirection: 'turn', gapM: double.nan),
+        ChainedTail.none,
+      );
+      expect(
+        NavigationGuidance.chainedTail(followDirection: 'turn', gapM: -5),
+        ChainedTail.none,
+      );
+    });
+  });
+
   test('maneuver distance follows the route rather than a straight chord', () {
     expect(
       NavigationGuidance.remainingToManeuver(

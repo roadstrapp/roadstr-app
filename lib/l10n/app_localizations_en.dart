@@ -724,6 +724,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'You will arrive at your destination on the right';
 
   @override
+  String continueForDistance(String distance) {
+    return 'continue straight for $distance';
+  }
+
+  @override
   String get transportModeCar => 'Car';
 
   @override

@@ -726,6 +726,11 @@ class AppLocalizationsRu extends AppLocalizations {
   String get arrivalAheadRight => 'Вы прибудете в пункт назначения справа';
 
   @override
+  String continueForDistance(String distance) {
+    return 'продолжайте движение прямо $distance';
+  }
+
+  @override
   String get transportModeCar => 'Автомобиль';
 
   @override

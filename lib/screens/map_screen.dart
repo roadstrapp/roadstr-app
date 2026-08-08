@@ -1093,27 +1093,21 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         _ttsAnnouncedNear != nextIdx) {
       _ttsAnnouncedNear = nextIdx;
       if (!_voiceMuted) {
-        // Chain the following maneuver when it comes almost immediately after
-        // this one (e.g. roundabout exit → continue on Via Roma), so the two
-        // instructions sound connected — "…take the second exit, then continue
-        // on Via Roma" — instead of two disconnected phrases.
+        // This is the driver's last chance to hear what comes after this
+        // maneuver, so the follow-up is always chained on — with its distance.
+        // "Take the first exit, then in 300 metres take the off-ramp."
         final followIdx = nextIdx + 1;
         var instruction = nextStep.instruction;
-        if (followIdx < _route!.steps.length) {
-          final follow = _route!.steps[followIdx];
-          final chainThresholdM = _transportMode == 'walking' ? 30.0 : 55.0;
-          if (nextStep.distanceM > 0 &&
-              nextStep.distanceM < chainThresholdM &&
-              follow.direction != 'depart' &&
-              follow.direction != 'arrive' &&
-              follow.instruction.isNotEmpty) {
-            instruction = AppLocalizations.of(context)
-                .chainedManeuver(nextStep.instruction, follow.instruction);
-            // The tail is now spoken; suppress its own near + post-advance
-            // immediate announcement.
-            _chainSpokenIdx = followIdx;
-            _ttsAnnouncedNear = followIdx;
-          }
+        final tail = followIdx < _route!.steps.length
+            ? _chainedTail(_route!.steps[followIdx], nextStep.distanceM)
+            : null;
+        if (tail != null) {
+          instruction = AppLocalizations.of(context)
+              .chainedManeuver(nextStep.instruction, tail);
+          // Only the immediate post-advance announcement is suppressed — the
+          // follow-up keeps its own cues. Marking it fully spoken is what
+          // used to leave maneuvers visible on screen but never said again.
+          _chainSpokenIdx = followIdx;
         }
         // At the point of action repeat the instruction without a distance:
         // "take exit 199", not "in 120 metres, take exit 199".
@@ -1173,16 +1167,22 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
               NavigationGuidance.spokenDistanceM(distToNext,
                   imminentBelowM: 80));
         }
-        // Suppress the far cue only when this maneuver was actually spoken.
-        // The old unconditional assignment skipped the only advance warning
-        // for ramps more than 250 m away, which is why some on-ramps arrived
-        // with guidance only at the last moment.
+        // Suppress the far cue only when this maneuver has just been spoken
+        // *and* the far window is already open — otherwise it would fire a
+        // second later and repeat what the driver just heard. A maneuver that
+        // was chained but is still kilometres away keeps its far cue: being
+        // named once inside another sentence is not the same as being warned
+        // about, and losing that warning is why instructions could appear on
+        // screen and never be spoken again.
+        final farWindowOpen = distToNext < t.far + 20;
         _ttsAnnouncedFar =
-            (announceImmediately || wasAlreadyChained) ? newNextIdx : -1;
-        // If the immediate announcement fired and the next step is already close,
-        // suppress near too — avoids two back-to-back announcements within seconds.
-        _ttsAnnouncedNear = wasAlreadyChained ||
-                (announceImmediately && distToNext < t.near + 20)
+            (announceImmediately || (wasAlreadyChained && farWindowOpen))
+                ? newNextIdx
+                : -1;
+        // The near cue is the point of action and is never suppressed for a
+        // chained maneuver — only to avoid doubling up with an immediate
+        // announcement that has just said the same thing.
+        _ttsAnnouncedNear = (announceImmediately && distToNext < t.near + 20)
             ? newNextIdx
             : -1;
 
@@ -1250,6 +1250,41 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     }
     if (out.last != points.last) out.add(points.last);
     return out;
+  }
+
+  /// The spoken tail for a chained announcement, or null when there is
+  /// nothing worth adding. [gapM] is the distance from the maneuver being
+  /// announced to [follow].
+  String? _chainedTail(RouteStep follow, double gapM) {
+    final l = AppLocalizations.of(context);
+    final lang = Localizations.localeOf(context).languageCode;
+    switch (NavigationGuidance.chainedTail(
+      followDirection: follow.direction,
+      gapM: gapM,
+    )) {
+      case ChainedTail.none:
+        return null;
+      case ChainedTail.arrival:
+        return switch (follow.modifier) {
+          'left' => l.arrivalAheadLeft,
+          'right' => l.arrivalAheadRight,
+          _ => l.arrivalAhead,
+        };
+      case ChainedTail.continueAhead:
+        // No maneuver to describe and the destination is still far: tell the
+        // driver how long this road runs, so the silence that follows is
+        // expected rather than worrying.
+        return l.continueForDistance(Units.fmtDist(gapM));
+      case ChainedTail.maneuver:
+        return follow.instruction.isEmpty ? null : follow.instruction;
+      case ChainedTail.maneuverWithDistance:
+        if (follow.instruction.isEmpty) return null;
+        return Units.joinDistance(
+          Units.ttsDistInline(gapM.round(), lang),
+          follow.instruction,
+          lang,
+        );
+    }
   }
 
   double _stepProgressM(int index) {

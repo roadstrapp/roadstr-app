@@ -289,6 +289,7 @@
   "arrivalAhead": "Jūs ieradīsieties galamērķī",
   "arrivalAheadLeft": "Jūs ieradīsieties galamērķī kreisajā pusē",
   "arrivalAheadRight": "Jūs ieradīsieties galamērķī labajā pusē",
+  "continueForDistance": "brauciet taisni {distance}",
   "transportModeCar": "Automašīna",
   "transportModeWalk": "Kājām",
   "etaArrivalLabel": "Ierašanās {time}",

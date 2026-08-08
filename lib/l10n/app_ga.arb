@@ -289,6 +289,7 @@
   "arrivalAhead": "Sroichfidh tú do cheann scríbe",
   "arrivalAheadLeft": "Sroichfidh tú do cheann scríbe ar chlé",
   "arrivalAheadRight": "Sroichfidh tú do cheann scríbe ar dheis",
+  "continueForDistance": "lean ort díreach ar aghaidh ar feadh {distance}",
   "transportModeCar": "Carr",
   "transportModeWalk": "De shiúl",
   "etaArrivalLabel": "Arr. {time}",
