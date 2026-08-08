@@ -106,17 +106,19 @@ android {
     // x86_64     → emulators and rare x86 tablets
     // universal  → fat fallback (use when ABI is unknown)
     //
-    // NB: the APKs do NOT share a versionCode, whatever this comment used to
-    // claim. With splits enabled the Flutter Gradle plugin multiplies an ABI
-    // offset into it, so a versionCode of N ships as:
+    // Whether the APKs share a versionCode depends on how the build is
+    // invoked, not on this block. Measured with `aapt dump badging`:
     //
-    //   armeabi-v7a → 1000+N     arm64-v8a → 2000+N     x86_64 → 4000+N
-    //   universal   →      N
+    //   flutter build apk --release --split-per-abi
+    //     armeabi-v7a → 1000+N   arm64-v8a → 2000+N   x86_64 → 4000+N
+    //   flutter build apk --release          (splits still produced here)
+    //     every APK  → N
     //
-    // Verify with `aapt dump badging <apk>` before assuming otherwise. This
-    // matters for F-Droid, which fails a build whose APK versionCode differs
-    // from the one declared in the metadata — which is why the F-Droid recipe
-    // builds the universal APK rather than a split one.
+    // The Flutter Gradle plugin adds the ABI offset only when that flag sets
+    // the split-per-abi project property; `splits.abi` alone does not trigger
+    // it. This matters for F-Droid, which fails a build whose APK versionCode
+    // differs from the declared one — hence the recipe builds without the
+    // flag and ships the universal APK. Check with aapt before assuming.
     splits {
         abi {
             isEnable = true
