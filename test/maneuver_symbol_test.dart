@@ -9,6 +9,7 @@ RouteStep step(
   String direction, {
   String modifier = '',
   int? exit,
+  int? arms,
 }) =>
     RouteStep(
       instruction: '$direction $modifier',
@@ -17,6 +18,7 @@ RouteStep step(
       distanceM: 100,
       location: const LatLng(45, 9),
       exitNumber: exit,
+      roundaboutArmCount: arms,
     );
 
 void main() {
@@ -40,9 +42,11 @@ void main() {
   });
 
   test('roundabout visual retains the requested exit number', () {
-    final visual = ManeuverVisual.fromStep(step('roundabout', exit: 3));
+    final visual =
+        ManeuverVisual.fromStep(step('roundabout', exit: 3, arms: 5));
     expect(visual.kind, ManeuverVisualKind.roundabout);
     expect(visual.roundaboutExit, 3);
+    expect(visual.roundaboutArmCount, 5);
   });
 
   test('an unknown roundabout exit stays unknown instead of becoming 1', () {
@@ -56,7 +60,17 @@ void main() {
 
   test('an out-of-range exit is clamped, not silently trusted', () {
     expect(ManeuverVisual.fromStep(step('roundabout', exit: 40)).roundaboutExit,
-        12);
+        kMaxRoundaboutArms);
+  });
+
+  test('roundabout arm count is independent from the exit ordinal', () {
+    final fourArm =
+        ManeuverVisual.fromStep(step('roundabout', exit: 2, arms: 4));
+    final sixArm =
+        ManeuverVisual.fromStep(step('roundabout', exit: 2, arms: 6));
+    expect(fourArm.roundaboutExit, sixArm.roundaboutExit);
+    expect(fourArm.roundaboutArmCount, 4);
+    expect(sixArm.roundaboutArmCount, 6);
   });
 
   test('maps every turn modifier without left/right ambiguity', () {
@@ -96,7 +110,10 @@ void main() {
       step('on ramp', modifier: 'right'),
       step('off ramp', modifier: 'left'),
       step('off ramp', modifier: 'right'),
-      step('roundabout', exit: 3),
+      step('roundabout', exit: 3, arms: 4),
+      step('roundabout', exit: 3, arms: 5),
+      step('roundabout', exit: 4, arms: 6),
+      step('roundabout', exit: 5, arms: 7),
       step('arrive'),
       step('depart'),
       step('ferry'),

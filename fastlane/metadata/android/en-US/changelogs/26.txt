@@ -1,0 +1,13 @@
+Roundabout signs that match the junction you are actually approaching.
+
+• The roundabout symbol now draws the real number of arms, read from
+  OpenStreetMap, instead of inferring them from the exit number. "Take the
+  third exit" looks different at a four-arm junction than at a six-arm one,
+  and now the sign does too
+• New cursor styles to choose from — city, racing, SUV, electric, bicycle,
+  formula — alongside the existing arrow
+• The speedometer has been redrawn
+• The extra map lookups this needs are capped, so a route through fifty
+  roundabouts cannot turn into one enormous request to a volunteer-run
+  OpenStreetMap server, and no more of your itinerary leaves the device than
+  the signs actually need
