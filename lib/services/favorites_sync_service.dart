@@ -25,7 +25,12 @@
 //    npubs that drive and probably hold bitcoin). Honest limit: the tag is
 //    derived from public info, so a TARGETED "does npub X use Roadstr?"
 //    check is still computable — a per-user secret can't be shared across
-//    devices on the Amber path, where the app never sees the nsec.
+//    devices on the Amber path, where the app never sees the nsec. Second
+//    honest limit: the *shape* of the tag is itself a hint. Apps using NIP-78
+//    normally pick a readable 'd' ("myapp-settings"), so a 64-char hex one on
+//    kind 30078 stands out — a relay can list that pattern and get a set of
+//    likely Roadstr users without knowing any pubkey. The value is protected;
+//    the fact that the app was used is only obscured, not hidden.
 //  • SIZE: plaintext is padded with trailing spaces (JSON-legal) to a 4 KiB
 //    bucket before encryption, hiding the favorites count and its growth
 //    over time from ciphertext-length analysis (NIP-44's own padding is too

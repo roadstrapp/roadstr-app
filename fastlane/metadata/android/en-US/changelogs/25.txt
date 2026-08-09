@@ -1,0 +1,15 @@
+A privacy audit of our own work, and what it turned up.
+
+• Voice clips no longer outlive the journey. Spoken instructions are
+  synthesised to audio files, and those files said your street names out
+  loud — kept on the device indefinitely, with no way to clear them. Only
+  fixed phrases are stored now; anything naming a place is deleted when
+  navigation ends, at startup, and after a crash
+• Exporting favourites is encrypted by default. The file holds home and
+  work and leaves the app for your Downloads folder; protecting it is no
+  longer something you have to remember to switch on
+• Reported positions are published with 11 cm precision instead of 1 cm.
+  GPS is accurate to metres, so the extra digit was noise attached to your
+  identity
+• The map no longer keeps its camera loop running while you sit still with
+  heading-up mode on — compass noise was waking it sixty times a second
