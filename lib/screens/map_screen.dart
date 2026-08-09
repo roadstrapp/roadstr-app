@@ -914,11 +914,27 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     final anchor = _hasRealFix ? _position : _camCenter;
     // In heading-up navigation shift the camera ahead so the cursor sits at
     // ~2/5 from the bottom of the screen (more road visible ahead).
-    _followTargetCenter = (_isNavigating && _headingMode)
+    final center = (_isNavigating && _headingMode)
         ? _navCameraCenter(anchor, _heading, targetZoom)
         : anchor;
+    final rot = _headingMode ? -_heading : _camRotDeg;
+
+    // Standing still outside navigation, the magnetometer jitters by a
+    // fraction of a degree ten times a second. Each of those would otherwise
+    // restart the 60 Hz ticker — which then runs for about a second easing
+    // toward a target nobody can see move — so at a red light the camera loop
+    // would effectively never stop. Ignore updates too small to be visible.
+    final settled = !_isNavigating &&
+        _followTicker == null &&
+        _followTargetCenter != null &&
+        (rot - _followTargetRot).abs() < 0.5 &&
+        (targetZoom - _followTargetZoom).abs() < 0.005 &&
+        Geo.distanceM(center, _followTargetCenter!) < 1.0;
+    if (settled) return;
+
+    _followTargetCenter = center;
     _followTargetZoom = targetZoom;
-    _followTargetRot = _headingMode ? -_heading : _camRotDeg;
+    _followTargetRot = rot;
     _startFollowTicker();
   }
 
