@@ -14,7 +14,7 @@ Repo: https://github.com/roadstrapp/roadstr-app.git
 Builds:
   - versionName: 0.4.17
     versionCode: 26
-    commit: a70cc28b50140f161d849dce9552e34698086025
+    commit: 03c44c26e34e2e9d72a3977abced7341e80fc95a
     sudo:
       - apt-get update
       - apt-get install -y build-essential cmake
