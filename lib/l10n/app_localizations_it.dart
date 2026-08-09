@@ -96,6 +96,48 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sectionMap => 'Mappa';
 
   @override
+  String get sectionNavigationAppearance => 'Aspetto navigazione';
+
+  @override
+  String get speedometerStyleLabel => 'Tachigrafo';
+
+  @override
+  String get speedometerClassic => 'Classico (predefinito)';
+
+  @override
+  String get speedometerDigital => 'Digitale';
+
+  @override
+  String get speedometerAnalog => 'Analogico';
+
+  @override
+  String get speedometerSport => 'Sport';
+
+  @override
+  String get speedometerMinimal => 'Minimal';
+
+  @override
+  String get movementCursorStyleLabel => 'Cursore di movimento';
+
+  @override
+  String get cursorStandard => 'Standard (predefinito)';
+
+  @override
+  String get cursorFormula1 => 'Formula 1';
+
+  @override
+  String get cursorSuv => 'SUV';
+
+  @override
+  String get cursorRacing => 'Auto da corsa';
+
+  @override
+  String get cursorElectric => 'Auto elettrica';
+
+  @override
+  String get cursorCity => 'Utilitaria';
+
+  @override
   String get sectionInfo => 'Info';
 
   @override

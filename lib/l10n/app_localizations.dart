@@ -310,6 +310,90 @@ abstract class AppLocalizations {
   /// **'Map'**
   String get sectionMap;
 
+  /// No description provided for @sectionNavigationAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation appearance'**
+  String get sectionNavigationAppearance;
+
+  /// No description provided for @speedometerStyleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Speedometer'**
+  String get speedometerStyleLabel;
+
+  /// No description provided for @speedometerClassic.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic (default)'**
+  String get speedometerClassic;
+
+  /// No description provided for @speedometerDigital.
+  ///
+  /// In en, this message translates to:
+  /// **'Digital'**
+  String get speedometerDigital;
+
+  /// No description provided for @speedometerAnalog.
+  ///
+  /// In en, this message translates to:
+  /// **'Analog'**
+  String get speedometerAnalog;
+
+  /// No description provided for @speedometerSport.
+  ///
+  /// In en, this message translates to:
+  /// **'Sport'**
+  String get speedometerSport;
+
+  /// No description provided for @speedometerMinimal.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimal'**
+  String get speedometerMinimal;
+
+  /// No description provided for @movementCursorStyleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement cursor'**
+  String get movementCursorStyleLabel;
+
+  /// No description provided for @cursorStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard (default)'**
+  String get cursorStandard;
+
+  /// No description provided for @cursorFormula1.
+  ///
+  /// In en, this message translates to:
+  /// **'Formula 1'**
+  String get cursorFormula1;
+
+  /// No description provided for @cursorSuv.
+  ///
+  /// In en, this message translates to:
+  /// **'SUV'**
+  String get cursorSuv;
+
+  /// No description provided for @cursorRacing.
+  ///
+  /// In en, this message translates to:
+  /// **'Racing car'**
+  String get cursorRacing;
+
+  /// No description provided for @cursorElectric.
+  ///
+  /// In en, this message translates to:
+  /// **'Electric car'**
+  String get cursorElectric;
+
+  /// No description provided for @cursorCity.
+  ///
+  /// In en, this message translates to:
+  /// **'City car'**
+  String get cursorCity;
+
   /// No description provided for @sectionInfo.
   ///
   /// In en, this message translates to:

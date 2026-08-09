@@ -6,21 +6,71 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 enum CursorStyle {
   arrow,
+  formula1,
+  suv,
+  racing,
+  electric,
+  city,
+  bicycle,
   ostrich;
+
+  static const storageKey = 'movementCursorStyle';
+
+  /// Styles the user may choose for normal map use and car navigation.
+  /// Walking and cycling have mode-specific cursors and are never persisted
+  /// through this preference.
+  static const drivingStyles = [
+    CursorStyle.arrow,
+    CursorStyle.formula1,
+    CursorStyle.suv,
+    CursorStyle.racing,
+    CursorStyle.electric,
+    CursorStyle.city,
+  ];
+
+  static CursorStyle fromStorage(Object? value) {
+    if (value is! String) return CursorStyle.arrow;
+    for (final style in drivingStyles) {
+      if (style.name == value) return style;
+    }
+    return CursorStyle.arrow;
+  }
+
+  /// Resolves the visible cursor without allowing the walking or bicycle
+  /// sprites to leak into other transport modes.
+  static CursorStyle resolve({
+    required bool isNavigating,
+    required String transportMode,
+    required Object? storedDrivingStyle,
+  }) {
+    if (isNavigating && transportMode == 'walking') {
+      return CursorStyle.ostrich;
+    }
+    if (isNavigating && transportMode == 'cycling') {
+      return CursorStyle.bicycle;
+    }
+    return fromStorage(storedDrivingStyle);
+  }
 
   String get assetPath => switch (this) {
         CursorStyle.arrow => 'assets/cursors/arrow.svg',
+        CursorStyle.formula1 => 'assets/cursors/formula1.png',
+        CursorStyle.suv => 'assets/cursors/suv.png',
+        CursorStyle.racing => 'assets/cursors/racing.png',
+        CursorStyle.electric => 'assets/cursors/electric.png',
+        CursorStyle.city => 'assets/cursors/city.png',
+        CursorStyle.bicycle => 'assets/cursors/bicycle.png',
         CursorStyle.ostrich => 'assets/cursors/ostrich.png',
       };
 
-  bool get isPng => this == CursorStyle.ostrich;
+  bool get isPng => this != CursorStyle.arrow;
 }
 
 /// Renders the cursor icon at [size]×[size].
 ///
-/// SVG styles render via [SvgPicture.asset]; the ostrich uses [Image.asset]
-/// since it is a PNG. Pass [colorFilter] to tint SVG icons; it is ignored
-/// for PNG (which already carries its own colours).
+/// SVG styles render via [SvgPicture.asset]; generated vehicle cursors and the
+/// ostrich use [Image.asset]. Pass [colorFilter] to tint SVG icons; it is
+/// ignored for PNG assets, which already carry their own colours.
 class CursorWidget extends StatelessWidget {
   final CursorStyle style;
   final double size;
@@ -54,9 +104,8 @@ class CursorWidget extends StatelessWidget {
 }
 
 /// Wraps [CursorWidget] with a cartoon "poof" transition whenever [style]
-/// changes (arrow ↔ ostrich when a walking route starts/ends): the current
-/// icon shrinks away behind a puff of smoke, then the new icon grows back
-/// out of it — a classic Looney-Tunes-style swap instead of an instant cut.
+/// changes: the current icon shrinks away behind a puff of smoke, then the new
+/// icon grows back out of it instead of changing abruptly.
 class AnimatedCursorWidget extends StatefulWidget {
   final CursorStyle style;
   final double size;

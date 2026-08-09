@@ -505,13 +505,16 @@ void main() {
   group('decorative fields never cost the whole route', () {
     const point = LatLng(45, 9);
 
-    RouteStep step({int? exitNumber, String? exitLabel}) => RouteStep(
+    RouteStep step(
+            {int? exitNumber, int? roundaboutArmCount, String? exitLabel}) =>
+        RouteStep(
           instruction: 'Take the exit',
           direction: 'off ramp',
           modifier: 'right',
           distanceM: 100,
           location: point,
           exitNumber: exitNumber,
+          roundaboutArmCount: roundaboutArmCount,
           exitLabel: exitLabel,
         );
 
@@ -519,7 +522,7 @@ void main() {
       // A roundabout with thirteen arms is rare, not impossible, and the exit
       // count only decorates an icon. Rejecting the route over it would leave
       // the driver unable to navigate at all.
-      final out = RoutingService.sanitiseDecorations([step(exitNumber: 13)]);
+      final out = RoutingService.sanitiseDecorations([step(exitNumber: 21)]);
       expect(out.single.exitNumber, isNull);
       expect(out.single.instruction, 'Take the exit',
           reason: 'the maneuver itself survives');
@@ -531,7 +534,7 @@ void main() {
     });
 
     test('a plausible exit number is kept exactly', () {
-      for (final n in [1, 7, 12]) {
+      for (final n in [1, 7, 13, kMaxRoundaboutArms]) {
         expect(
             RoutingService.sanitiseDecorations([step(exitNumber: n)])
                 .single
@@ -539,6 +542,17 @@ void main() {
             n,
             reason: '$n');
       }
+    });
+
+    test('keeps a plausible topology and drops a contradictory one', () {
+      final valid = RoutingService.sanitiseDecorations(
+          [step(exitNumber: 3, roundaboutArmCount: 5)]).single;
+      expect(valid.roundaboutArmCount, 5);
+
+      final invalid = RoutingService.sanitiseDecorations(
+          [step(exitNumber: 6, roundaboutArmCount: 4)]).single;
+      expect(invalid.exitNumber, 6);
+      expect(invalid.roundaboutArmCount, isNull);
     });
 
     test('an overlong exit label is dropped, not fatal', () {
@@ -559,6 +573,31 @@ void main() {
       expect(
           identical(RoutingService.sanitiseDecorations(steps), steps), isTrue);
     });
+  });
+
+  test('a roundabout-heavy route does not turn into an unbounded lookup', () {
+    // Two things are bounded here: the work handed to a free Overpass mirror,
+    // and how much of the itinerary leaves the device in one request.
+    const point = LatLng(45, 9);
+    RouteStep roundabout(int i) => RouteStep(
+          instruction: 'Roundabout $i',
+          direction: 'roundabout',
+          modifier: '',
+          distanceM: 100,
+          // Distinct locations, so de-duplication cannot mask the cap.
+          location: LatLng(point.latitude + i * 0.01, point.longitude),
+          exitNumber: 2,
+        );
+    final route = RouteResult(
+      polyline: const [point, LatLng(45.5, 9)],
+      steps: [for (var i = 0; i < 80; i++) roundabout(i)],
+      totalDistanceM: 40000,
+      totalDurationS: 3600,
+    );
+
+    expect(RoutingService.roundaboutLookupPoints([route]).length,
+        lessThanOrEqualTo(24),
+        reason: 'an 80-roundabout route must not become an 80-clause query');
   });
 }
 

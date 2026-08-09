@@ -6,7 +6,7 @@ It combines real-time GPS turn-by-turn navigation with community-sourced traffic
 If you're searching for the decentralized road event reporting system — "Waze without the centralized tracking" head to Jooray's Github page https://github.com/jooray/roadstr
 
 
-> **Version 0.4.16** — Android only.
+> **Version 0.4.17** — Android only.
 
 ---
 
