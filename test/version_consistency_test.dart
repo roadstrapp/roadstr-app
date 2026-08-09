@@ -58,13 +58,32 @@ void main() {
             .hasMatch(metadata),
         isTrue,
         reason: 'CurrentVersionCode must match pubspec');
-    // The build entry and the tag it points at.
+    // The build entry and the commit it points at.
     expect(RegExp('versionName: $name').hasMatch(metadata), isTrue);
     expect(RegExp('versionCode: $code').hasMatch(metadata), isTrue);
-    expect(RegExp(r'commit: v\.' + name!.replaceAll('.', r'\.'))
-            .hasMatch(metadata),
-        isTrue,
-        reason: 'commit: must point at the v.X.Y.Z tag for this version');
+
+    // A full commit hash, never a tag or branch name: F-Droid asks for this
+    // because a tag can be moved after review, a hash cannot. (Entries that
+    // checkupdates generates by itself do carry the tag name — that is
+    // F-Droid's own process, and outside this file's control.)
+    final commit =
+        RegExp(r'^\s*commit:\s*(\S+)\s*$', multiLine: true).firstMatch(metadata);
+    expect(commit, isNotNull);
+    expect(RegExp(r'^[0-9a-f]{40}$').hasMatch(commit!.group(1)!), isTrue,
+        reason: 'commit: must be a full 40-character hash, not ${commit.group(1)}');
+  });
+
+  test('the pinned commit is the one the current tag points at', () {
+    // Skipped before the release is tagged; once it exists, the metadata must
+    // not be left pointing at the previous release.
+    final name = pubspecMatch!.group(1);
+    final tag = Process.runSync('git', ['rev-list', '-n1', 'v.$name']);
+    if (tag.exitCode != 0) {
+      markTestSkipped('v.$name not tagged yet');
+      return;
+    }
+    final metadata = File('metadata/app.roadstr.yml').readAsStringSync();
+    expect(metadata, contains((tag.stdout as String).trim()));
   });
 
   test('the metadata filename matches the applicationId', () {
