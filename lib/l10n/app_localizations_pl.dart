@@ -95,6 +95,48 @@ class AppLocalizationsPl extends AppLocalizations {
   String get sectionMap => 'Mapa';
 
   @override
+  String get sectionNavigationAppearance => 'Navigation appearance';
+
+  @override
+  String get speedometerStyleLabel => 'Speedometer';
+
+  @override
+  String get speedometerClassic => 'Classic (default)';
+
+  @override
+  String get speedometerDigital => 'Digital';
+
+  @override
+  String get speedometerAnalog => 'Analog';
+
+  @override
+  String get speedometerSport => 'Sport';
+
+  @override
+  String get speedometerMinimal => 'Minimal';
+
+  @override
+  String get movementCursorStyleLabel => 'Movement cursor';
+
+  @override
+  String get cursorStandard => 'Standard (default)';
+
+  @override
+  String get cursorFormula1 => 'Formula 1';
+
+  @override
+  String get cursorSuv => 'SUV';
+
+  @override
+  String get cursorRacing => 'Racing car';
+
+  @override
+  String get cursorElectric => 'Electric car';
+
+  @override
+  String get cursorCity => 'City car';
+
+  @override
   String get sectionInfo => 'Info';
 
   @override

@@ -16,6 +16,9 @@ import 'package:latlong2/latlong.dart';
 import '../utils/geo.dart';
 import '../utils/units.dart';
 import 'bounded_http.dart';
+import 'roundabout_topology_service.dart';
+
+const int kMaxRoundaboutArms = 20;
 
 /// A single turn-by-turn navigation step produced by a routing provider.
 class RouteStep {
@@ -39,6 +42,13 @@ class RouteStep {
   /// Exit number for roundabout/rotary maneuvers (1-based). Null for other types.
   final int? exitNumber;
 
+  /// Total road arms connected to the roundabout, including the entry arm.
+  ///
+  /// Routers generally return only [exitNumber]. Roadstr enriches this field
+  /// from OpenStreetMap topology so the sign can draw the real four-, five-,
+  /// six-arm (and larger) junction instead of guessing from the exit ordinal.
+  final int? roundaboutArmCount;
+
   /// Motorway/freeway exit label such as "199" or "12A".
   final String? exitLabel;
 
@@ -49,6 +59,7 @@ class RouteStep {
     required this.distanceM,
     required this.location,
     this.exitNumber,
+    this.roundaboutArmCount,
     this.exitLabel,
   });
 
@@ -59,6 +70,7 @@ class RouteStep {
     double? distanceM,
     LatLng? location,
     int? exitNumber,
+    int? roundaboutArmCount,
     String? exitLabel,
   }) =>
       RouteStep(
@@ -68,6 +80,7 @@ class RouteStep {
         distanceM: distanceM ?? this.distanceM,
         location: location ?? this.location,
         exitNumber: exitNumber ?? this.exitNumber,
+        roundaboutArmCount: roundaboutArmCount ?? this.roundaboutArmCount,
         exitLabel: exitLabel ?? this.exitLabel,
       );
 }
@@ -179,6 +192,105 @@ class RoutingService {
   static const _maxRouteResponseBytes = 32 * 1024 * 1024;
   static const _maxRoutePoints = 250000;
   static const _maxRouteSteps = 60000;
+  static final _roundaboutTopology = RoundaboutTopologyService();
+
+  /// Adds the real total arm count to every roundabout step in [routes].
+  ///
+  /// The routing response itself normally knows only which ordinal exit to
+  /// take. One batched OSM topology lookup supplies the independent arm count.
+  /// Failure is deliberately non-fatal: the original routes are returned
+  /// unchanged and the maneuver painter falls back to a regular generic sign.
+  /// Most roundabouts one lookup will ask about.
+  ///
+  /// Two reasons, and the second is the one that matters. A city route through
+  /// France or the UK can pass fifty roundabouts, and with alternatives on
+  /// screen that is a query carrying a hundred `around:` clauses to a free,
+  /// volunteer-run mirror — which would either time out or cost it real work.
+  /// And every coordinate in that query is a piece of the user's itinerary,
+  /// handed over in one request before they have even set off: the other
+  /// Overpass lookups in this app disclose where the car *is*, progressively,
+  /// not where it is going. Capping bounds both. The nearest roundabouts are
+  /// kept, because those are the ones whose sign is about to be shown.
+  static const _maxRoundaboutLookups = 24;
+
+  /// The distinct roundabout locations one lookup would ask about, capped.
+  /// Exposed so the bound can be tested without a network round trip.
+  @visibleForTesting
+  static List<LatLng> roundaboutLookupPoints(List<RouteResult> routes) =>
+      _collectRoundabouts(routes).points;
+
+  static ({
+    List<LatLng> points,
+    List<({int routeIndex, int stepIndex, int pointIndex})> refs,
+  }) _collectRoundabouts(List<RouteResult> routes) {
+    final points = <LatLng>[];
+    final pointIndexByKey = <String, int>{};
+    final refs = <({int routeIndex, int stepIndex, int pointIndex})>[];
+    for (var routeIndex = 0; routeIndex < routes.length; routeIndex++) {
+      final steps = routes[routeIndex].steps;
+      for (var stepIndex = 0; stepIndex < steps.length; stepIndex++) {
+        final step = steps[stepIndex];
+        if (step.direction != 'roundabout' && step.direction != 'rotary') {
+          continue;
+        }
+        final key = '${step.location.latitude.toStringAsFixed(5)},'
+            '${step.location.longitude.toStringAsFixed(5)}';
+        final existing = pointIndexByKey[key];
+        if (existing == null && points.length >= _maxRoundaboutLookups) {
+          continue; // beyond the cap: the sign falls back to the generic ring
+        }
+        final pointIndex = existing ??
+            pointIndexByKey.putIfAbsent(key, () {
+              points.add(step.location);
+              return points.length - 1;
+            });
+        refs.add((
+          routeIndex: routeIndex,
+          stepIndex: stepIndex,
+          pointIndex: pointIndex,
+        ));
+      }
+    }
+    return (points: points, refs: refs);
+  }
+
+  static Future<List<RouteResult>> enrichRoundaboutTopology(
+      List<RouteResult> routes) async {
+    final (:points, :refs) = _collectRoundabouts(routes);
+    if (refs.isEmpty) return routes;
+
+    final counts = await _roundaboutTopology.fetchArmCounts(points);
+    if (counts.every((count) => count == null)) return routes;
+
+    final changedSteps = <int, List<RouteStep>>{};
+    for (final ref in refs) {
+      final armCount = counts[ref.pointIndex];
+      if (armCount == null) continue;
+      final route = routes[ref.routeIndex];
+      final step = route.steps[ref.stepIndex];
+      // An incomplete OSM ring must never contradict the router's known exit.
+      if (step.exitNumber != null && armCount < step.exitNumber!) continue;
+      final steps = changedSteps.putIfAbsent(
+          ref.routeIndex, () => List<RouteStep>.of(route.steps));
+      steps[ref.stepIndex] = step.copyWith(roundaboutArmCount: armCount);
+    }
+    if (changedSteps.isEmpty) return routes;
+
+    final enriched = List<RouteResult>.of(routes);
+    for (final entry in changedSteps.entries) {
+      final route = routes[entry.key];
+      enriched[entry.key] = RouteResult(
+        polyline: route.polyline,
+        steps: entry.value,
+        totalDistanceM: route.totalDistanceM,
+        totalDurationS: route.totalDurationS,
+        speedLimits: route.speedLimits,
+        avoidance: route.avoidance,
+        fromAvoidanceRouter: route.fromAvoidanceRouter,
+      );
+    }
+    return enriched;
+  }
 
   /// OSRM driving endpoint — the FOSSGIS community server supports car, foot
   /// and bike profiles AND returns maxspeed annotations; unlike the lightweight
@@ -1467,8 +1579,8 @@ class RoutingService {
     return changed ? out : steps;
   }
 
-  /// Drops exit numbers and labels that are out of range instead of rejecting
-  /// the route that carries them.
+  /// Drops roundabout/exit decorations that are out of range instead of
+  /// rejecting the route that carries them.
   ///
   /// These two fields decorate an icon: the exit count inside the roundabout
   /// symbol and the "199" on an exit sign. Refusing the whole route over one
@@ -1482,11 +1594,17 @@ class RoutingService {
     var changed = false;
     final out = <RouteStep>[];
     for (final step in steps) {
-      final badNumber =
-          step.exitNumber != null && (step.exitNumber! < 1 || step.exitNumber! > 12);
+      final badNumber = step.exitNumber != null &&
+          (step.exitNumber! < 1 || step.exitNumber! > kMaxRoundaboutArms);
+      final badArmCount = step.roundaboutArmCount != null &&
+          (step.roundaboutArmCount! < 3 ||
+              step.roundaboutArmCount! > kMaxRoundaboutArms ||
+              (!badNumber &&
+                  step.exitNumber != null &&
+                  step.roundaboutArmCount! < step.exitNumber!));
       final label = step.exitLabel;
       final badLabel = label != null && label.length > 32;
-      if (!badNumber && !badLabel) {
+      if (!badNumber && !badArmCount && !badLabel) {
         out.add(step);
         continue;
       }
@@ -1499,6 +1617,7 @@ class RoutingService {
         location: step.location,
         // copyWith cannot clear a field, so the step is rebuilt.
         exitNumber: badNumber ? null : step.exitNumber,
+        roundaboutArmCount: badArmCount ? null : step.roundaboutArmCount,
         exitLabel: badLabel ? null : label,
       ));
     }

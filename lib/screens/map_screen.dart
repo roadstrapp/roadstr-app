@@ -54,6 +54,7 @@ import '../widgets/place/place_info_panel.dart';
 import '../widgets/sheets/road_event_sheets.dart';
 import '../widgets/nav/nav_hud.dart';
 import '../widgets/nav/speed_limit_sign.dart';
+import '../widgets/speedometer_widget.dart';
 import '../widgets/route/route_panels.dart';
 import '../widgets/search/search_panel.dart';
 import 'package:sensors_plus/sensors_plus.dart';
@@ -1198,9 +1199,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         // The near cue is the point of action and is never suppressed for a
         // chained maneuver — only to avoid doubling up with an immediate
         // announcement that has just said the same thing.
-        _ttsAnnouncedNear = (announceImmediately && distToNext < t.near + 20)
-            ? newNextIdx
-            : -1;
+        _ttsAnnouncedNear =
+            (announceImmediately && distToNext < t.near + 20) ? newNextIdx : -1;
 
         // Missed-turn guard: if the user isn't approaching the new waypoint
         // within 5 s, reroute silently.
@@ -1701,6 +1701,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                 vehicle: _transportMode)
             .timeout(const Duration(seconds: 15));
       }
+      routes = await _withRoundaboutTopology(routes);
     } catch (_) {
       if (mounted) setState(() => _isRerouting = false);
       return;
@@ -1726,6 +1727,17 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     setState(() => _isRerouting = false);
     // Silent restart: no cinematic overview, camera stays on driver position.
     _startNavigation(routes.first, silent: true);
+  }
+
+  /// Adds real OSM arm counts without ever letting an overloaded volunteer
+  /// Overpass mirror hold navigation hostage.
+  Future<List<RouteResult>> _withRoundaboutTopology(
+      List<RouteResult> routes) async {
+    if (routes.isEmpty) return routes;
+    return RoutingService.enrichRoundaboutTopology(routes).timeout(
+      const Duration(seconds: 6),
+      onTimeout: () => routes,
+    );
   }
 
   // ── In-navigation traffic alert ──────────────────────────────────────────
@@ -2021,8 +2033,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             // How far it actually is, not the window that let it through: a
             // silent reroute is exactly when a driver can least afford being
             // told "in 800 metres" 200 m from the ramp.
-            final spokenDistance = NavigationGuidance.spokenDistanceM(
-                distance,
+            final spokenDistance = NavigationGuidance.spokenDistanceM(distance,
                 imminentBelowM: thresholds.near);
             _tts.announceManeuver(firstAction.instruction, spokenDistance);
             _ttsAnnouncedFar = firstIdx;
@@ -2099,6 +2110,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           graphhopperServer: ghServer,
           lang: lang,
           vehicle: vehicle);
+      routes = await _withRoundaboutTopology(routes);
     } catch (e) {
       if (!mounted || requestGeneration != _routeRequestGeneration) return;
       setState(() => _isCalculating = false);
@@ -2316,6 +2328,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           graphhopperServer: ghServer,
           lang: lang,
           vehicle: vehicle);
+      routes = await _withRoundaboutTopology(routes);
     } catch (e) {
       if (!mounted || requestGeneration != _routeRequestGeneration) return;
       setState(() => _isCalculating = false);
@@ -2399,11 +2412,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _avoidanceLoading = true;
     });
     try {
-      final route = await RoutingService.getHighwayAndTollAvoidanceRoute(
+      var route = await RoutingService.getHighwayAndTollAvoidanceRoute(
         _routeOrigin ?? _position,
         destination,
         lang: Localizations.localeOf(context).languageCode,
       );
+      route = (await _withRoundaboutTopology([route])).single;
       if (!mounted ||
           requestGeneration != _avoidanceRequestGeneration ||
           _destination != destination ||
@@ -4318,17 +4332,24 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                             point: _position,
                             width: 48,
                             height: 48,
-                            child: UserMarker(
+                            child: ValueListenableBuilder<Box>(
+                              valueListenable: Hive.box('settings').listenable(
+                                keys: [CursorStyle.storageKey],
+                              ),
+                              builder: (context, settings, _) => UserMarker(
                                 heading: _heading,
                                 accent: c.accent,
-                                // Ostrich only while an actual walking route is
-                                // active — reverts to the arrow the instant
-                                // navigation ends, not just when the transport
-                                // mode selector happens to still say "walking".
-                                cursorStyle: (_isNavigating &&
-                                        _transportMode == 'walking')
-                                    ? CursorStyle.ostrich
-                                    : CursorStyle.arrow)),
+                                // Walking and cycling get their dedicated
+                                // sprites only while an actual route is active.
+                                // Otherwise use the persisted car/map choice.
+                                cursorStyle: CursorStyle.resolve(
+                                  isNavigating: _isNavigating,
+                                  transportMode: _transportMode,
+                                  storedDrivingStyle:
+                                      settings.get(CursorStyle.storageKey),
+                                ),
+                              ),
+                            )),
                       ]),
               ],
             ),
@@ -4694,7 +4715,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                     onStop: _showExitNavigationDialog,
                     remainingDistM: _remainingDistM,
                     remainingSecs: _remainingSecs,
-                    speedLimit: _currentSpeedLimit)
+                    speedLimit: _currentSpeedLimit,
+                    speedometerStyle: SpeedometerStyle.fromStorage(
+                        Hive.box('settings').get(SpeedometerStyle.storageKey)))
                 : _showPlaceInfo && _placePoint != null
                     ? PlaceInfoPanel(
                         point: _placePoint!,

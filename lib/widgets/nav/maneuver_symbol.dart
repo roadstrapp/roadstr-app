@@ -37,8 +37,10 @@ enum ManeuverVisualKind {
 class ManeuverVisual {
   final ManeuverVisualKind kind;
   final int? roundaboutExit;
+  final int? roundaboutArmCount;
 
-  const ManeuverVisual(this.kind, {this.roundaboutExit});
+  const ManeuverVisual(this.kind,
+      {this.roundaboutExit, this.roundaboutArmCount});
 
   factory ManeuverVisual.fromStep(RouteStep step) {
     final direction = step.direction.toLowerCase().trim();
@@ -58,7 +60,9 @@ class ManeuverVisual {
           // Left null when the router did not give a count, or gave one the
           // route validator dropped: the symbol then shows a roundabout
           // rather than claiming a specific exit.
-          roundaboutExit: step.exitNumber?.clamp(1, 12),
+          roundaboutExit: step.exitNumber?.clamp(1, kMaxRoundaboutArms),
+          roundaboutArmCount:
+              step.roundaboutArmCount?.clamp(3, kMaxRoundaboutArms),
         );
       case 'fork':
       case 'use lane':
@@ -213,7 +217,7 @@ class ManeuverSymbolPainter extends CustomPainter {
         _ramp(canvas, 1, isExit: true);
         break;
       case ManeuverVisualKind.roundabout:
-        _roundabout(canvas, visual.roundaboutExit);
+        _roundabout(canvas, visual.roundaboutExit, visual.roundaboutArmCount);
         break;
       case ManeuverVisualKind.arrive:
         _arrive(canvas);
@@ -378,22 +382,24 @@ class ManeuverSymbolPainter extends CustomPainter {
     _arrow(canvas, end, -math.pi / 2 + side * 0.78);
   }
 
-  void _roundabout(Canvas canvas, int? exitNumber) {
+  void _roundabout(Canvas canvas, int? exitNumber, int? roundaboutArmCount) {
     const center = Offset(50, 48);
     const radius = 24.0;
-    // An unknown exit is drawn as a ring taken straight through, with no
-    // number badge. The alternative — defaulting to 1 — does not say "I don't
-    // know", it says "first exit", which on a thirteen-arm roundabout or a
-    // router that omitted the count is simply a wrong instruction.
-    final n = exitNumber?.clamp(1, 12);
-    final candidates = n == null ? 4 : math.max(3, n + 1);
-    final exitIndex = n ?? 2;
-    final step = 2 * math.pi / candidates;
+    // Exit ordinal and total arms are independent. A third exit can belong to
+    // a 4-, 5- or 6-arm roundabout; OSM topology supplies the latter. When it
+    // is unavailable, keep a regular four-arm fallback (expanded only as much
+    // as needed to represent a higher known exit) instead of pretending the
+    // ordinal itself describes the junction.
+    final n = exitNumber?.clamp(1, kMaxRoundaboutArms);
+    final arms = roundaboutArmCount?.clamp(3, kMaxRoundaboutArms) ??
+        (n == null ? 4 : math.max(4, n + 1));
+    final exitIndex = n?.clamp(1, arms);
+    final step = 2 * math.pi / arms;
     const entryAngle = math.pi / 2;
-    final exitAngle = entryAngle - exitIndex * step;
+    final exitAngle = exitIndex == null ? null : entryAngle - exitIndex * step;
 
     canvas.drawCircle(center, radius, _paint(muted, width: 8));
-    for (var i = 1; i < candidates; i++) {
+    for (var i = 1; i < arms; i++) {
       final a = entryAngle - i * step;
       final inner = Offset(
           center.dx + radius * math.cos(a), center.dy + radius * math.sin(a));
@@ -402,21 +408,31 @@ class ManeuverSymbolPainter extends CustomPainter {
       canvas.drawLine(inner, outer, _paint(muted, width: 6));
     }
 
-    final arcRect = Rect.fromCircle(center: center, radius: radius);
-    canvas.drawArc(
-      arcRect,
-      entryAngle,
-      -exitIndex * step,
-      false,
-      _paint(accent),
-    );
     canvas.drawLine(const Offset(50, 90), const Offset(50, 72), _paint(accent));
-    final ringPoint = Offset(center.dx + radius * math.cos(exitAngle),
-        center.dy + radius * math.sin(exitAngle));
-    final tip = Offset(center.dx + 39 * math.cos(exitAngle),
-        center.dy + 39 * math.sin(exitAngle));
-    canvas.drawLine(ringPoint, tip, _paint(accent));
-    _arrow(canvas, tip, exitAngle);
+    final arcRect = Rect.fromCircle(center: center, radius: radius);
+    if (exitIndex != null && exitAngle != null) {
+      canvas.drawArc(
+        arcRect,
+        entryAngle,
+        -exitIndex * step,
+        false,
+        _paint(accent),
+      );
+      final ringPoint = Offset(center.dx + radius * math.cos(exitAngle),
+          center.dy + radius * math.sin(exitAngle));
+      final tip = Offset(center.dx + 39 * math.cos(exitAngle),
+          center.dy + 39 * math.sin(exitAngle));
+      canvas.drawLine(ringPoint, tip, _paint(accent));
+      _arrow(canvas, tip, exitAngle);
+    } else {
+      // Unknown exit: show only the direction of circulation, not a fabricated
+      // selected arm.
+      canvas.drawArc(arcRect, entryAngle, -step * 0.72, false, _paint(accent));
+      final a = entryAngle - step * 0.72;
+      final tip = Offset(
+          center.dx + radius * math.cos(a), center.dy + radius * math.sin(a));
+      _arrow(canvas, tip, a - math.pi / 2, length: 10);
+    }
 
     if (n == null) return;
     canvas.drawCircle(
@@ -472,6 +488,7 @@ class ManeuverSymbolPainter extends CustomPainter {
   bool shouldRepaint(ManeuverSymbolPainter oldDelegate) =>
       oldDelegate.visual.kind != visual.kind ||
       oldDelegate.visual.roundaboutExit != visual.roundaboutExit ||
+      oldDelegate.visual.roundaboutArmCount != visual.roundaboutArmCount ||
       oldDelegate.accent != accent ||
       oldDelegate.muted != muted ||
       oldDelegate.surface != surface;

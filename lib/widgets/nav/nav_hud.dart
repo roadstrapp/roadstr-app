@@ -221,6 +221,7 @@ class NavPanel extends StatelessWidget {
   /// Live remaining seconds (estimated from remaining distance).
   final double remainingSecs;
   final int? speedLimit;
+  final SpeedometerStyle speedometerStyle;
   const NavPanel(
       {super.key,
       required this.route,
@@ -230,7 +231,8 @@ class NavPanel extends StatelessWidget {
       required this.onStop,
       this.remainingDistM = 0,
       this.remainingSecs = 0,
-      this.speedLimit});
+      this.speedLimit,
+      this.speedometerStyle = SpeedometerStyle.classic});
 
   String get _distLabel {
     final m = remainingDistM > 0 ? remainingDistM : route.totalDistanceM;
@@ -281,7 +283,10 @@ class NavPanel extends StatelessWidget {
       padding: EdgeInsets.only(left: 16, right: 16, top: vTop, bottom: vBot),
       child: Row(children: [
         SpeedometerWidget(
-            speedKmh: speed, size: speedoSz, speedLimit: speedLimit),
+            speedKmh: speed,
+            size: speedoSz,
+            speedLimit: speedLimit,
+            style: speedometerStyle),
         const SizedBox(width: 12),
         Expanded(
             child: Column(

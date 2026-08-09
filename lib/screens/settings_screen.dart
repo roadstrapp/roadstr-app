@@ -22,6 +22,8 @@ import '../services/profile_visibility_service.dart';
 import '../services/kokoro/kokoro_model_manager.dart';
 import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
+import '../widgets/cursor_painter.dart';
+import '../widgets/speedometer_widget.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -1292,6 +1294,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 24),
 
+          // ── NAVIGATION APPEARANCE ───────────────────────────────────────
+          _SectionHeader(l.sectionNavigationAppearance, c),
+          _SpeedometerStyleSelector(box: _box, colors: c),
+          _CursorStyleSelector(box: _box, colors: c),
+
+          const SizedBox(height: 24),
+
           // ── WEB SEARCH ENGINE ───────────────────────────────────────────
           _SectionHeader(l.sectionWebSearch, c),
           _SearchEngineSelector(box: _box, colors: c),
@@ -1820,6 +1829,166 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 32),
         ],
       ),
+    );
+  }
+}
+
+class _SpeedometerStyleSelector extends StatefulWidget {
+  final Box box;
+  final RoadstrColors colors;
+
+  const _SpeedometerStyleSelector({required this.box, required this.colors});
+
+  @override
+  State<_SpeedometerStyleSelector> createState() =>
+      _SpeedometerStyleSelectorState();
+}
+
+class _SpeedometerStyleSelectorState extends State<_SpeedometerStyleSelector> {
+  SpeedometerStyle get _current =>
+      SpeedometerStyle.fromStorage(widget.box.get(SpeedometerStyle.storageKey));
+
+  String _label(SpeedometerStyle style, AppLocalizations l) => switch (style) {
+        SpeedometerStyle.classic => l.speedometerClassic,
+        SpeedometerStyle.digital => l.speedometerDigital,
+        SpeedometerStyle.analog => l.speedometerAnalog,
+        SpeedometerStyle.sport => l.speedometerSport,
+        SpeedometerStyle.minimal => l.speedometerMinimal,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final c = widget.colors;
+    final l = AppLocalizations.of(context);
+    final current = _current;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.fromLTRB(12, 10, 16, 10),
+      decoration: BoxDecoration(
+        color: c.surface2,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: c.border, width: 0.5),
+      ),
+      child: Row(children: [
+        SpeedometerWidget(
+          speedKmh: 88,
+          size: 72,
+          style: current,
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l.speedometerStyleLabel,
+                  style: TextStyle(color: c.textSecondary, fontSize: 12)),
+              DropdownButtonHideUnderline(
+                child: DropdownButton<SpeedometerStyle>(
+                  value: current,
+                  isExpanded: true,
+                  dropdownColor: c.surface2,
+                  borderRadius: BorderRadius.circular(14),
+                  icon: Icon(Icons.expand_more_rounded, color: c.textSecondary),
+                  style: TextStyle(color: c.textPrimary, fontSize: 14),
+                  items: SpeedometerStyle.values
+                      .map((style) => DropdownMenuItem(
+                            value: style,
+                            child: Text(_label(style, l)),
+                          ))
+                      .toList(growable: false),
+                  onChanged: (style) {
+                    if (style == null) return;
+                    widget.box.put(SpeedometerStyle.storageKey, style.name);
+                    setState(() {});
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+class _CursorStyleSelector extends StatefulWidget {
+  final Box box;
+  final RoadstrColors colors;
+
+  const _CursorStyleSelector({required this.box, required this.colors});
+
+  @override
+  State<_CursorStyleSelector> createState() => _CursorStyleSelectorState();
+}
+
+class _CursorStyleSelectorState extends State<_CursorStyleSelector> {
+  CursorStyle get _current =>
+      CursorStyle.fromStorage(widget.box.get(CursorStyle.storageKey));
+
+  String _label(CursorStyle style, AppLocalizations l) => switch (style) {
+        CursorStyle.arrow => l.cursorStandard,
+        CursorStyle.formula1 => l.cursorFormula1,
+        CursorStyle.suv => l.cursorSuv,
+        CursorStyle.racing => l.cursorRacing,
+        CursorStyle.electric => l.cursorElectric,
+        CursorStyle.city => l.cursorCity,
+        CursorStyle.bicycle || CursorStyle.ostrich => '',
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final c = widget.colors;
+    final l = AppLocalizations.of(context);
+    final current = _current;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.fromLTRB(12, 10, 16, 10),
+      decoration: BoxDecoration(
+        color: c.surface2,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: c.border, width: 0.5),
+      ),
+      child: Row(children: [
+        SizedBox.square(
+          dimension: 72,
+          child: Center(child: CursorWidget(style: current, size: 58)),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l.movementCursorStyleLabel,
+                  style: TextStyle(color: c.textSecondary, fontSize: 12)),
+              DropdownButtonHideUnderline(
+                child: DropdownButton<CursorStyle>(
+                  value: current,
+                  isExpanded: true,
+                  dropdownColor: c.surface2,
+                  borderRadius: BorderRadius.circular(14),
+                  icon: Icon(Icons.expand_more_rounded, color: c.textSecondary),
+                  style: TextStyle(color: c.textPrimary, fontSize: 14),
+                  items: CursorStyle.drivingStyles
+                      .map((style) => DropdownMenuItem(
+                            value: style,
+                            child: Row(children: [
+                              CursorWidget(style: style, size: 30),
+                              const SizedBox(width: 10),
+                              Flexible(child: Text(_label(style, l))),
+                            ]),
+                          ))
+                      .toList(growable: false),
+                  onChanged: (style) {
+                    if (style == null) return;
+                    widget.box.put(CursorStyle.storageKey, style.name);
+                    setState(() {});
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ]),
     );
   }
 }
