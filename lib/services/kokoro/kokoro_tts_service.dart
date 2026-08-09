@@ -96,7 +96,9 @@ class KokoroTtsService {
       debugPrint(
           '[KokoroTTS] init OK: ${ms()}ms total  voiceData=${_voiceData!.length} floats');
       unawaited(_configureAudioSession());
-      unawaited(_prewarmCache());
+      // Before repopulating it: clears clips a previous build kept for ever,
+      // and anything a killed process left behind mid-journey.
+      unawaited(purgeSpokenPlaces().then((_) => _prewarmCache()));
     } catch (e) {
       debugPrint('[KokoroTTS] init failed: $e');
     }
@@ -143,6 +145,8 @@ class KokoroTtsService {
     // never has its first instruction swallowed by the previous session.
     _lastManeuverText = null;
     _lastManeuverWasImminent = false;
+    // The journey is over; the clips naming its streets do not outlive it.
+    unawaited(purgeSpokenPlaces());
     try {
       await _player.stop();
     } catch (_) {}
@@ -373,6 +377,7 @@ class KokoroTtsService {
     for (final phrase in [_letsGo(_lang), _arrived(_lang)]) {
       final wavFile = await _diskCacheFile(_lang, _gender, _speed, phrase);
       if (await wavFile.exists()) {
+        _prewarmedPaths.add(wavFile.path);
         continue; // already on disk from a previous session
       }
       if (_synthCompleter != null) {
@@ -397,6 +402,7 @@ class KokoroTtsService {
         _cacheAudio(
             '$_lang:$_gender:${_speed.toStringAsFixed(2)}:$phrase', audio);
         await _writeWav(wavFile, audio);
+        _prewarmedPaths.add(wavFile.path);
         debugPrint('[KokoroTTS] prewarm saved: "$phrase"');
       } catch (e) {
         debugPrint('[KokoroTTS] prewarm failed for "$phrase": $e');
@@ -554,7 +560,22 @@ class KokoroTtsService {
     return null;
   }
 
-  /// Persistent WAV cache: docs/kokoro_wav_cache/{lang}_{gender}_{speed}_{hash}.wav
+  /// Where a synthesised clip is allowed to live.
+  ///
+  /// Anything the app says out loud has to reach the player as a file, so it
+  /// gets written to disk either way. What matters is which phrases are still
+  /// there tomorrow: a clip of "turn right onto [street]" is a record of a
+  /// journey, in audio, and the rest of this app goes to some length to keep
+  /// exactly that kind of thing off the device. Fixed phrases ("Let's go",
+  /// arrival) carry nothing personal and are worth keeping, because they play
+  /// at the moments when there is no time to synthesise.
+  static bool _isPersistable(String text, String lang) =>
+      text == _letsGo(lang) || text == _arrived(lang);
+
+  static const _persistentCacheDir = 'kokoro_wav_cache';
+  static const _sessionCacheDir = 'kokoro_wav_session';
+
+  /// WAV cache path: {dir}/{lang}_{gender}_{speed}_{hash}.wav
   /// Hash is derived from the text so filenames are safe and unique per phrase;
   /// gender/speed are part of the path so switching either never plays a
   /// stale cached clip recorded under different settings.
@@ -563,9 +584,41 @@ class KokoroTtsService {
     final docs = await getApplicationDocumentsDirectory();
     final hash = text.hashCode.abs().toRadixString(16);
     final speedTag = speed.toStringAsFixed(2);
-    return File(
-        '${docs.path}/kokoro_wav_cache/${lang}_${gender}_${speedTag}_$hash.wav');
+    final dir =
+        _isPersistable(text, lang) ? _persistentCacheDir : _sessionCacheDir;
+    return File('${docs.path}/$dir/${lang}_${gender}_${speedTag}_$hash.wav');
   }
+
+  /// Deletes every clip of a phrase that named a place.
+  ///
+  /// Called when a navigation session ends and once at startup — the latter
+  /// also clears clips left by a version that kept them for ever, and by a
+  /// process that was killed before it could tidy up.
+  static Future<void> purgeSpokenPlaces() async {
+    try {
+      final docs = await getApplicationDocumentsDirectory();
+      for (final name in const [_sessionCacheDir, _persistentCacheDir]) {
+        final dir = Directory('${docs.path}/$name');
+        if (!await dir.exists()) continue;
+        await for (final entity in dir.list(followLinks: false)) {
+          if (entity is! File || !entity.path.endsWith('.wav')) continue;
+          // The persistent directory may still hold street-name clips written
+          // by an older build; only the fixed phrases belong there, and those
+          // are cheap to regenerate, so clearing both is the safe reading.
+          if (name == _persistentCacheDir && _prewarmedPaths.contains(entity.path)) {
+            continue;
+          }
+          await entity.delete();
+        }
+      }
+    } catch (_) {
+      // Best effort: a cache that cannot be cleared must not break navigation.
+    }
+  }
+
+  /// Paths written by this run's prewarm, and therefore known to be fixed
+  /// phrases rather than anything naming a place.
+  static final _prewarmedPaths = <String>{};
 
   Future<Float32List> _loadVoiceEmbedding(String lang, String gender) async {
     final file = await _manager.voiceFile(lang, gender);

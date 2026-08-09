@@ -386,8 +386,13 @@ class NostrRelayService {
         created_at: now,
         kind: 1315,
         tags: [
-          ['lat', position.latitude.toStringAsFixed(7)],
-          ['lon', position.longitude.toStringAsFixed(7)],
+          // Six decimals ≈ 11 cm. GPS is accurate to metres, so the seventh
+          // digit was noise — published, alongside a pubkey and a timestamp,
+          // on an event anyone can read. Not five: the Amber path re-parses
+          // these tags and rejects the event if the position moved more than
+          // a metre, and five decimals can round by 0.78 m.
+          ['lat', position.latitude.toStringAsFixed(6)],
+          ['lon', position.longitude.toStringAsFixed(6)],
           ['g', _gh(position.latitude, position.longitude, 4)],
           ['g', _gh(position.latitude, position.longitude, 5)],
           ['g', _gh(position.latitude, position.longitude, 6)],
@@ -1072,8 +1077,9 @@ class NostrRelayService {
       created_at: now,
       kind: 1315,
       tags: [
-        ['lat', position.latitude.toStringAsFixed(7)],
-        ['lon', position.longitude.toStringAsFixed(7)],
+        // Six decimals — see the note on the nsec path above.
+        ['lat', position.latitude.toStringAsFixed(6)],
+        ['lon', position.longitude.toStringAsFixed(6)],
         ['g', _gh(position.latitude, position.longitude, 4)],
         ['g', _gh(position.latitude, position.longitude, 5)],
         ['g', _gh(position.latitude, position.longitude, 6)],

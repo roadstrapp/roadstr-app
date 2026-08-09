@@ -300,7 +300,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final c = RoadstrColors.of(context);
     if (_favorites.isEmpty) return;
     final ctrl = TextEditingController();
-    var encryptIt = false;
+    // Encryption on by default. This file holds home and work — the one thing
+    // in the app the threat model calls out as worth protecting — and it
+    // leaves the sandbox for Downloads, a cloud folder, an attachment. Opting
+    // out stays possible; forgetting to opt in no longer is.
+    var encryptIt = true;
     final go = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -337,6 +341,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           controller: ctrl,
                           obscureText: true,
                           autocorrect: false,
+                          // Rebuilds the dialog so the export button reacts to
+                          // the field: it is disabled while encryption is on
+                          // and the password empty, and without this it stayed
+                          // disabled no matter what was typed.
+                          onChanged: (_) => setDlg(() {}),
                           style: TextStyle(color: c.textPrimary, fontSize: 14),
                           decoration: InputDecoration(
                             hintText: l.exportPasswordHint,
