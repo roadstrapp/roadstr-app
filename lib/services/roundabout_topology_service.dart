@@ -199,8 +199,15 @@ class RoundaboutTopologyService {
       final bearings = connected
           .map((point) => _bearingDegrees(center, point))
           .toList(growable: false);
-      final arms = _clusteredBearingCount(bearings);
-      if (arms < 3 || arms > _maxSupportedArms) continue;
+      const distanceCalc = Distance();
+      final radii = geometry
+          .map((p) => distanceCalc.as(LengthUnit.Meter, center, p))
+          .where((value) => value > 1)
+          .toList(growable: false);
+      if (radii.isEmpty) continue;
+      final radius = radii.reduce((a, b) => a + b) / radii.length;
+      final arms = _clusteredBearingCount(bearings, radius);
+      if (arms == null || arms < 3 || arms > _maxSupportedArms) continue;
       out.add(_RoundaboutComponent(nodes: geometry, armCount: arms));
     }
     return out;
@@ -215,12 +222,30 @@ class RoundaboutTopologyService {
     return angle;
   }
 
-  /// Separated one-way entrance/exit lanes can touch the ring at two nearby
-  /// nodes. Merge only very close bearings so they remain one visual arm while
-  /// genuinely adjacent exits (even on a large multi-arm junction) stay apart.
-  static int _clusteredBearingCount(List<double> bearings) {
+  /// Counts the road arms, or returns null when the count cannot be trusted.
+  ///
+  /// A single road usually meets a roundabout twice — one node for the
+  /// entrance, one for the exit — and on a dual carriageway those two nodes
+  /// sit several metres apart on the ring. How far apart they look *in
+  /// degrees* depends entirely on how big the roundabout is: twelve metres
+  /// subtends about 23° on a 30 m ring and 74° on a 10 m one. A fixed
+  /// threshold therefore cannot work, and the 14° it used to be merged almost
+  /// nothing: a four-exit roundabout with three dual-carriageway approaches
+  /// came out as seven arms, which is what the sign then drew.
+  ///
+  /// The threshold is now derived from the ring's own radius. And when the
+  /// result is still ambiguous — arms closer together than any real junction
+  /// would place them — this returns null so the caller falls back to the
+  /// generic ring. On a road, a symbol showing the wrong junction is worse
+  /// than one showing no detail.
+  static int? _clusteredBearingCount(List<double> bearings, double radiusM) {
     if (bearings.length < 2) return bearings.length;
-    const mergeWithinDegrees = 14.0;
+    // Chord of ~13 m: the span between the two carriageways of one approach,
+    // including the splitter island. Clamped so a tiny ring cannot swallow
+    // genuine arms and a huge one still merges its own pairs.
+    final chordRatio = (13.0 / (2 * radiusM)).clamp(0.0, 1.0);
+    final mergeWithinDegrees =
+        (2 * math.asin(chordRatio) * 180 / math.pi).clamp(18.0, 50.0);
     final sorted = [...bearings]..sort();
     final groups = <List<double>>[
       [sorted.first]
@@ -236,7 +261,22 @@ class RoundaboutTopologyService {
         groups.first.first + 360 - groups.last.last <= mergeWithinDegrees) {
       groups.first.insertAll(0, groups.removeLast());
     }
-    return groups.length;
+    if (groups.length < 2) return groups.length;
+    // Sanity check on the result: real arms are evenly spread, and even an
+    // eight-arm junction leaves 45° between them. Anything tighter means the
+    // merge did not separate approaches from carriageways, and the count is a
+    // guess — say so rather than draw it.
+    final centres = groups
+        .map((g) => g.reduce((a, b) => a + b) / g.length)
+        .toList(growable: false);
+    var minGap = 360.0;
+    for (var i = 0; i < centres.length; i++) {
+      final next = centres[(i + 1) % centres.length];
+      var gap = next - centres[i];
+      if (gap < 0) gap += 360;
+      if (gap < minGap) minGap = gap;
+    }
+    return minGap < 35 ? null : groups.length;
   }
 }
 

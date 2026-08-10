@@ -76,7 +76,14 @@ class Units {
   /// Returns an empty string when [metres] is 0 (imminent turn).
   static String ttsDistPrefix(int metres, String lang) {
     if (metres <= 0) return '';
-    if (!imperial) return _inMeters(metres, lang);
+    if (!imperial) {
+      // Above a kilometre, say kilometres. "In 4567 metres" is a number nobody
+      // can act on at speed — and it is the one distance the driver hears most,
+      // because the motorway cue fires at 800 m and chained instructions can
+      // reach much further ahead.
+      if (metres >= 1000) return _inKilometres(_decimal(metres / 1000, lang), lang);
+      return _inMeters(metres, lang);
+    }
     final ft = (metres / 0.3048).round();
     if (ft < 500) {
       final rounded = (ft / 10).round() * 10;
@@ -134,6 +141,28 @@ class Units {
         'zh' => '在$ft英尺后，',
         'pt' => 'Em $ft pés, ',
         _ => 'In $ft feet, ',
+      };
+
+  /// Formats a distance with one decimal below ten, whole above, using the
+  /// decimal separator the language is read with. A speech engine pronounces
+  /// "4.5" and "4,5" differently, and only one of them is Italian.
+  static String _decimal(double value, String lang) {
+    final text =
+        value < 10 ? value.toStringAsFixed(1) : value.round().toString();
+    const commaDecimal = {'it', 'es', 'fr', 'pt', 'de', 'nl', 'pl', 'ru', 'cs',
+        'sk', 'hu', 'ro', 'bg', 'hr', 'lt', 'lv', 'et', 'sl', 'da', 'fi', 'sv',
+        'el', 'mt'};
+    return commaDecimal.contains(lang) ? text.replaceAll('.', ',') : text;
+  }
+
+  static String _inKilometres(String km, String lang) => switch (lang) {
+        'it' => 'Tra $km chilometri, ',
+        'es' => 'En $km kilómetros, ',
+        'fr' => 'Dans $km kilomètres, ',
+        'ja' => '$kmキロ先で、',
+        'zh' => '在$km公里后，',
+        'pt' => 'Em $km quilómetros, ',
+        _ => 'In $km kilometres, ',
       };
 
   static String _inMiles(String mi, String lang) => switch (lang) {

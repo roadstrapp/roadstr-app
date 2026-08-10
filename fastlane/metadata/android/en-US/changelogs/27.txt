@@ -1,0 +1,18 @@
+A crash fixed, and the roundabout signs corrected.
+
+• Fixed a crash during navigation. The map opened a new database watcher on
+  every GPS fix and never closed the old ones fast enough; after a few
+  minutes of driving the app ran out of room and died
+• Roundabout signs showed too many arms. Where a road meets a roundabout as
+  two separate carriageways it was counted twice — a four-exit junction drew
+  as seven. When the shape still cannot be worked out reliably, a plain
+  roundabout is drawn instead of a wrong one
+• Distances over a kilometre are spoken as kilometres. "In 4567 metres" is
+  now "in 4.5 kilometres", with the decimal read correctly in your language
+• One instruction no longer cuts off another mid-sentence. Advance warnings
+  wait their turn; only the final "now" instruction takes over
+• The map no longer occasionally spins 180°. Standing still the GPS drifts,
+  and the direction was being measured from where it had drifted to
+• More restricted-traffic zones are recognised. Most are tagged in
+  OpenStreetMap as time-limited, and those tags were not being read at all
+• The secondary instruction panel is narrower, so it covers less of the map

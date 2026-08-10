@@ -38,6 +38,11 @@ class KokoroTtsService {
   bool _audioFocusActive = false;
   bool _isSpeaking = false;
 
+  /// Whether what is playing right now is a turn instruction rather than an
+  /// ambient alert. Instructions may cut alerts; they must not cut each other
+  /// mid-sentence, which is how "…take the second exit, then—" happened.
+  bool _speakingManeuver = false;
+
   /// At most one queued low-priority utterance (the newest wins — a stale
   /// hazard alert is worthless once a newer one arrives).
   String? _pendingText;
@@ -222,12 +227,23 @@ class KokoroTtsService {
   ///   is playing and start immediately.
   /// - non-priority utterances (hazard/ZTL/ambient alerts) wait for the
   ///   current one to finish; only the newest pending alert is kept.
-  Future<void> speak(String text, {bool priority = false}) async {
+  Future<void> speak(String text,
+      {bool priority = false, bool maneuver = false}) async {
     if (_isSpeaking && !priority) {
       _pendingText = text;
       debugPrint('[KokoroTTS] queued: "$text"');
       return;
     }
+    // One instruction never truncates another. The exception is the
+    // point-of-action repeat, which is marked non-maneuver-safe by its caller
+    // precisely because arriving late at the junction is worse than talking
+    // over the advance warning it replaces.
+    if (_isSpeaking && priority && maneuver && _speakingManeuver) {
+      _pendingText = text;
+      debugPrint('[KokoroTTS] queued behind a maneuver: "$text"');
+      return;
+    }
+    _speakingManeuver = maneuver;
     await _speakNow(text);
   }
 
@@ -253,6 +269,7 @@ class KokoroTtsService {
   /// one, the old listener fires on the stop() transition but must NOT
   /// release the focus the new utterance is using, nor clear its state.
   void _finishUtterance(int id) {
+    if (id == _utteranceId) _speakingManeuver = false;
     if (id != _utteranceId) return;
     _isSpeaking = false;
     unawaited(_releaseFocus());
@@ -481,7 +498,12 @@ class KokoroTtsService {
     _lastManeuverWasImminent = imminent;
     _lastManeuverAtMs = now;
     final prefix = Units.ttsDistPrefix(distMeters, _lang);
-    return speak(prefix.isNotEmpty ? '$prefix$clean' : clean, priority: true);
+    return speak(prefix.isNotEmpty ? '$prefix$clean' : clean,
+        priority: true,
+        // An advance warning queues behind an instruction already being
+        // spoken; the imminent one takes over, because by then the junction
+        // is seconds away.
+        maneuver: !imminent);
   }
 
   /// Replaces ordinal symbols (e.g. "1°", "2°") with spoken words so the TTS
