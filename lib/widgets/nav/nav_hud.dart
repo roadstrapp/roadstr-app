@@ -124,9 +124,13 @@ class NavInstruction extends StatelessWidget {
         Align(
           alignment: Alignment.centerLeft,
           child: Container(
-            width: MediaQuery.of(context).size.width * 0.5,
+            // 15% narrower than the half-screen tile this used to be, so it
+            // covers less map. Type and padding come down with it rather than
+            // the text being clipped: the same words still fit in the same
+            // number of lines, just set slightly smaller.
+            width: MediaQuery.of(context).size.width * 0.425,
             padding: EdgeInsets.symmetric(
-                horizontal: land ? 16 : 24, vertical: land ? 12 : 20),
+                horizontal: land ? 13 : 20, vertical: land ? 12 : 18),
             decoration: BoxDecoration(
               color: colors.surface3,
               borderRadius:
@@ -141,7 +145,7 @@ class NavInstruction extends StatelessWidget {
             child: Row(children: [
               ManeuverSymbol(
                 step: nextStep!,
-                size: land ? 28 : 40,
+                size: land ? 26 : 36,
                 colors: colors,
                 showBackground: false,
               ),
@@ -159,7 +163,7 @@ class NavInstruction extends StatelessWidget {
                   Text(l.thenManeuver(_uncapitalised(nextStep!.instruction)),
                       style: TextStyle(
                           color: colors.textPrimary,
-                          fontSize: land ? 13 : 20,
+                          fontSize: land ? 12 : 18,
                           fontWeight: FontWeight.w600),
                       maxLines: land ? 2 : 3,
                       overflow: TextOverflow.ellipsis),
@@ -167,7 +171,7 @@ class NavInstruction extends StatelessWidget {
                   Text(_distLabel(distToNextStepM, ''),
                       style: TextStyle(
                           color: colors.textSecondary,
-                          fontSize: land ? 11 : 17,
+                          fontSize: land ? 10 : 15,
                           fontWeight: FontWeight.w500)),
                 ],
               )),

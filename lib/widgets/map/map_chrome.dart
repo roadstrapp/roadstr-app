@@ -10,6 +10,7 @@ import '../../l10n/app_localizations.dart';
 import '../../screens/notifications_screen.dart';
 import '../../screens/profile_screen.dart';
 import '../../screens/settings_screen.dart';
+import '../../utils/settings_listenable.dart';
 import '../../services/activity_notification_service.dart';
 import '../../services/ztl_service.dart';
 import '../../theme/app_theme.dart';
@@ -44,8 +45,8 @@ class MapBottomBar extends StatelessWidget {
         child: Row(children: [
           Expanded(
             child: ValueListenableBuilder<Box>(
-              valueListenable: Hive.box('settings').listenable(
-                keys: pubkey == null
+              valueListenable: SettingsListenable.forKeys(
+                pubkey == null
                     ? const []
                     : [ActivityNotificationService.storageKey(pubkey!)],
               ),
