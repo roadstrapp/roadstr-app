@@ -65,6 +65,7 @@ import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
 import '../utils/geo.dart';
 import '../utils/heading_filter.dart';
+import '../utils/settings_listenable.dart';
 import '../utils/units.dart';
 
 class MapScreen extends StatefulWidget {
@@ -786,12 +787,23 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       navigating: _isNavigating,
       routeLocalBearingAt: _routeLocalBearingAt,
     );
-    // Do not throw away the bearing baseline at 2 Hz. At ordinary urban
-    // speeds each individual hop is shorter than the 8 m noise floor; keeping
-    // the old origin lets those small hops accumulate into a reliable course.
-    if (headingOrigin == null ||
+    if (!moving) {
+      // Stopped: drop the baseline instead of keeping it. Standing still the
+      // fix wanders — by tens of metres where accuracy is poor — so the old
+      // origin stops describing a direction of travel and starts describing
+      // drift. Pulling away from it then yields a bearing that can be any
+      // angle at all, including the reverse of the real one, which is how the
+      // map ends up spinning 180°. Reversing out of a parking space is the
+      // same trap: the point behind the car is no longer where it came from.
+      // With no baseline the next real movement rebuilds one from scratch,
+      // and until then the heading simply holds.
+      _prevGpsPos = null;
+    } else if (headingOrigin == null ||
         HeadingFilter.hasReliableMovement(
             headingOrigin, data.position, sampleAccuracy)) {
+      // Moving: do not throw the baseline away at 2 Hz. At ordinary urban
+      // speeds each hop is shorter than the 8 m noise floor, and keeping the
+      // origin lets those hops accumulate into a reliable course.
       _prevGpsPos = data.position;
     }
 
@@ -4333,8 +4345,11 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                             width: 48,
                             height: 48,
                             child: ValueListenableBuilder<Box>(
-                              valueListenable: Hive.box('settings').listenable(
-                                keys: [CursorStyle.storageKey],
+                              // Not Hive.box(...).listenable() inline: this
+                              // rebuilds on every GPS fix, and a fresh
+                              // listenable each time leaks box subscriptions.
+                              valueListenable: SettingsListenable.forKeys(
+                                const [CursorStyle.storageKey],
                               ),
                               builder: (context, settings, _) => UserMarker(
                                 heading: _heading,

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/activity_notification.dart';
+import '../utils/settings_listenable.dart';
 import '../services/activity_notification_service.dart';
 import '../theme/app_theme.dart';
 
@@ -57,8 +58,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               colors: c,
             )
           : ValueListenableBuilder<Box>(
-              valueListenable: Hive.box('settings').listenable(
-                  keys: [ActivityNotificationService.storageKey(pubkey)]),
+              valueListenable: SettingsListenable.forKeys(
+                  [ActivityNotificationService.storageKey(pubkey)]),
               builder: (_, __, ___) {
                 final items = _service.notificationsFor(pubkey);
                 if (items.isEmpty) {

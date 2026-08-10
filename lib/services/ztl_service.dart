@@ -157,6 +157,16 @@ class ZtlService {
     //    highway=pedestrian is included with no access filter (a pedestrian
     //    street is car-restricted by definition).
     //
+    // 1b. CONDITIONAL restrictions. This is how most Italian ZTLs are really
+    //    tagged, because they only apply during certain hours:
+    //      motor_vehicle:conditional = no @ (Mo-Sa 07:00-20:00)
+    //    None of the plain tags in (1) match those ways, so entire zones were
+    //    invisible to the app — the reported "ZTL not recognised". Only the
+    //    value before the @ is matched here; the opening-hours expression is
+    //    not parsed, so the zone is treated as restricted whenever it exists.
+    //    Also picks up zone-level tagging (`zone:traffic`, `boundary=
+    //    traffic_zone`) used in Italy, Germany and Austria.
+    //
     // 2. Legacy ZTL polygons for the few cities that map them as areas.
     //    NB: the case-insensitive regex flag is `,i` WITHOUT quotes — the
     //    previous `,"i"` was an Overpass QL parse error that made every
@@ -168,6 +178,12 @@ class ZtlService {
      [~"^(access|motor_vehicle|vehicle|motorcar)\$"~"^(no|destination|permit|delivery)\$"]
      (around:2000,$lat,$lng);
   way[highway=pedestrian](around:2000,$lat,$lng);
+  way[highway~"^(living_street|residential|unclassified|service|tertiary|secondary|primary|pedestrian)\$"]
+     [~"^(access|motor_vehicle|vehicle|motorcar):conditional\$"~"^(no|destination|permit|delivery)"]
+     (around:2000,$lat,$lng);
+  way(around:3000,$lat,$lng)["zone:traffic"~"(urban|restricted|limited)",i];
+  relation(around:3000,$lat,$lng)["zone:traffic"~"(urban|restricted|limited)",i];
+  relation(around:3000,$lat,$lng)["boundary"="traffic_zone"];
   relation(around:3000,$lat,$lng)["boundary"~"^(restricted_area|limited_traffic_zone|low_emission_zone)\$"];
   relation(around:3000,$lat,$lng)["name"~"ZTL",i]["access"!="yes"];
   way(around:3000,$lat,$lng)["name"~"ZTL",i]["area"="yes"];
