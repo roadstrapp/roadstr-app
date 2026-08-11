@@ -99,27 +99,41 @@ class PinStemPainter extends CustomPainter {
   bool shouldRepaint(PinStemPainter _) => false;
 }
 
-
 class UserMarker extends StatelessWidget {
   final double heading;
   final Color accent;
   final CursorStyle cursorStyle;
-  const UserMarker({super.key, 
+  final CursorColor cursorColor;
+  final bool ostrichIsMoving;
+  final double ostrichSpeedKmh;
+  const UserMarker({
+    super.key,
     required this.heading,
     required this.accent,
     this.cursorStyle = CursorStyle.arrow,
+    this.cursorColor = CursorColor.violet,
+    this.ostrichIsMoving = false,
+    this.ostrichSpeedKmh = 0,
   });
   @override
   Widget build(BuildContext context) => Transform.rotate(
         angle: heading * math.pi / 180,
-        child: AnimatedCursorWidget(style: cursorStyle, size: 48),
+        child: AnimatedCursorWidget(
+          style: cursorStyle,
+          cursorColor: cursorColor,
+          animateOstrich: cursorStyle == CursorStyle.ostrich,
+          ostrichIsMoving: ostrichIsMoving,
+          ostrichSpeedKmh: ostrichSpeedKmh,
+          size: 48,
+        ),
       );
 }
 
 class DestinationMarker extends StatelessWidget {
   final Color color;
   final bool arrived;
-  const DestinationMarker({super.key, required this.color, this.arrived = false});
+  const DestinationMarker(
+      {super.key, required this.color, this.arrived = false});
   @override
   Widget build(BuildContext context) =>
       Column(mainAxisSize: MainAxisSize.min, children: [

@@ -115,6 +115,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get movementCursorStyleLabel => 'Movement cursor';
 
   @override
+  String get cursorVehicleLabel => '车辆';
+
+  @override
+  String get cursorColorLabel => '颜色';
+
+  @override
   String get cursorStandard => 'Standard (default)';
 
   @override
@@ -131,6 +137,30 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get cursorCity => 'City car';
+
+  @override
+  String get cursorClassic500 => '经典菲亚特 500';
+
+  @override
+  String get cursorColorViolet => '紫色';
+
+  @override
+  String get cursorColorIndigo => '靛蓝';
+
+  @override
+  String get cursorColorBlue => '蓝色';
+
+  @override
+  String get cursorColorGreen => '绿色';
+
+  @override
+  String get cursorColorYellow => '黄色';
+
+  @override
+  String get cursorColorOrange => '橙色';
+
+  @override
+  String get cursorColorRed => '红色';
 
   @override
   String get sectionInfo => '信息';

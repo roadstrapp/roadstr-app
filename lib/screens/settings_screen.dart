@@ -1924,6 +1924,8 @@ class _CursorStyleSelector extends StatefulWidget {
 class _CursorStyleSelectorState extends State<_CursorStyleSelector> {
   CursorStyle get _current =>
       CursorStyle.fromStorage(widget.box.get(CursorStyle.storageKey));
+  CursorColor get _currentColor =>
+      CursorColor.fromStorage(widget.box.get(CursorColor.storageKey));
 
   String _label(CursorStyle style, AppLocalizations l) => switch (style) {
         CursorStyle.arrow => l.cursorStandard,
@@ -1932,7 +1934,18 @@ class _CursorStyleSelectorState extends State<_CursorStyleSelector> {
         CursorStyle.racing => l.cursorRacing,
         CursorStyle.electric => l.cursorElectric,
         CursorStyle.city => l.cursorCity,
+        CursorStyle.classic500 => l.cursorClassic500,
         CursorStyle.bicycle || CursorStyle.ostrich => '',
+      };
+
+  String _colorLabel(CursorColor color, AppLocalizations l) => switch (color) {
+        CursorColor.violet => l.cursorColorViolet,
+        CursorColor.indigo => l.cursorColorIndigo,
+        CursorColor.blue => l.cursorColorBlue,
+        CursorColor.green => l.cursorColorGreen,
+        CursorColor.yellow => l.cursorColorYellow,
+        CursorColor.orange => l.cursorColorOrange,
+        CursorColor.red => l.cursorColorRed,
       };
 
   @override
@@ -1940,6 +1953,7 @@ class _CursorStyleSelectorState extends State<_CursorStyleSelector> {
     final c = widget.colors;
     final l = AppLocalizations.of(context);
     final current = _current;
+    final currentColor = _currentColor;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.fromLTRB(12, 10, 16, 10),
@@ -1951,7 +1965,13 @@ class _CursorStyleSelectorState extends State<_CursorStyleSelector> {
       child: Row(children: [
         SizedBox.square(
           dimension: 72,
-          child: Center(child: CursorWidget(style: current, size: 58)),
+          child: Center(
+            child: CursorWidget(
+              style: current,
+              cursorColor: currentColor,
+              size: 58,
+            ),
+          ),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -1960,6 +1980,9 @@ class _CursorStyleSelectorState extends State<_CursorStyleSelector> {
             children: [
               Text(l.movementCursorStyleLabel,
                   style: TextStyle(color: c.textSecondary, fontSize: 12)),
+              const SizedBox(height: 2),
+              Text(l.cursorVehicleLabel,
+                  style: TextStyle(color: c.textSecondary, fontSize: 11)),
               DropdownButtonHideUnderline(
                 child: DropdownButton<CursorStyle>(
                   value: current,
@@ -1972,7 +1995,11 @@ class _CursorStyleSelectorState extends State<_CursorStyleSelector> {
                       .map((style) => DropdownMenuItem(
                             value: style,
                             child: Row(children: [
-                              CursorWidget(style: style, size: 30),
+                              CursorWidget(
+                                style: style,
+                                cursorColor: currentColor,
+                                size: 30,
+                              ),
                               const SizedBox(width: 10),
                               Flexible(child: Text(_label(style, l))),
                             ]),
@@ -1981,6 +2008,45 @@ class _CursorStyleSelectorState extends State<_CursorStyleSelector> {
                   onChanged: (style) {
                     if (style == null) return;
                     widget.box.put(CursorStyle.storageKey, style.name);
+                    setState(() {});
+                  },
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(l.cursorColorLabel,
+                  style: TextStyle(color: c.textSecondary, fontSize: 11)),
+              DropdownButtonHideUnderline(
+                child: DropdownButton<CursorColor>(
+                  value: currentColor,
+                  isExpanded: true,
+                  dropdownColor: c.surface2,
+                  borderRadius: BorderRadius.circular(14),
+                  icon: Icon(Icons.expand_more_rounded, color: c.textSecondary),
+                  style: TextStyle(color: c.textPrimary, fontSize: 14),
+                  items: CursorColor.values
+                      .map((color) => DropdownMenuItem(
+                            value: color,
+                            child: Row(children: [
+                              Container(
+                                width: 18,
+                                height: 18,
+                                decoration: BoxDecoration(
+                                  color: color.value,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: c.border,
+                                    width: 0.5,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(_colorLabel(color, l)),
+                            ]),
+                          ))
+                      .toList(growable: false),
+                  onChanged: (color) {
+                    if (color == null) return;
+                    widget.box.put(CursorColor.storageKey, color.name);
                     setState(() {});
                   },
                 ),
