@@ -599,6 +599,129 @@ void main() {
         lessThanOrEqualTo(24),
         reason: 'an 80-roundabout route must not become an 80-clause query');
   });
+
+  group('reroute bearing hint', () {
+    // A minimal but valid OSRM /route response: two-point geometry, one
+    // depart step and one arrive step — everything _parseOsrmRoute and
+    // _validatedRoute require and nothing more.
+    Map<String, dynamic> osrmBody(List<LatLng> points) => {
+          'code': 'Ok',
+          'routes': [
+            {
+              'distance': 500.0,
+              'duration': 60.0,
+              'geometry': {
+                'coordinates': [
+                  [points.first.longitude, points.first.latitude],
+                  [points.last.longitude, points.last.latitude],
+                ],
+              },
+              'legs': [
+                {
+                  'steps': [
+                    {
+                      'distance': 500.0,
+                      'maneuver': {
+                        'location': [points.first.longitude, points.first.latitude],
+                        'type': 'depart',
+                      },
+                    },
+                    {
+                      'distance': 0.0,
+                      'maneuver': {
+                        'location': [points.last.longitude, points.last.latitude],
+                        'type': 'arrive',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        };
+
+    test('a bearing hint reaches the OSRM request', () async {
+      const points = [LatLng(45.0, 9.0), LatLng(45.001, 9.001)];
+      String? capturedBearings;
+      server.listen((request) async {
+        capturedBearings = request.uri.queryParameters['bearings'];
+        request.response.headers.contentType = ContentType.json;
+        request.response.write(jsonEncode(osrmBody(points)));
+        await request.response.close();
+      });
+
+      await RoutingService.getRoutes(points.first, points.last,
+          originBearingDeg: 273, endpoint: endpoint());
+
+      expect(capturedBearings, '273,$rerouteBearingToleranceDeg;',
+          reason: 'destination left unconstrained; only the origin is pinned');
+    });
+
+    test('no hint means no bearing constraint at all — today\'s behaviour',
+        () async {
+      const points = [LatLng(45.0, 9.0), LatLng(45.001, 9.001)];
+      String? capturedBearings;
+      var sawParam = false;
+      server.listen((request) async {
+        sawParam = request.uri.queryParameters.containsKey('bearings');
+        capturedBearings = request.uri.queryParameters['bearings'];
+        request.response.headers.contentType = ContentType.json;
+        request.response.write(jsonEncode(osrmBody(points)));
+        await request.response.close();
+      });
+
+      await RoutingService.getRoutes(points.first, points.last,
+          endpoint: endpoint());
+
+      expect(sawParam, isFalse, reason: capturedBearings);
+    });
+
+    test('a negative bearing normalises into 0–359 before it is sent',
+        () async {
+      const points = [LatLng(45.0, 9.0), LatLng(45.001, 9.001)];
+      String? capturedBearings;
+      server.listen((request) async {
+        capturedBearings = request.uri.queryParameters['bearings'];
+        request.response.headers.contentType = ContentType.json;
+        request.response.write(jsonEncode(osrmBody(points)));
+        await request.response.close();
+      });
+
+      await RoutingService.getRoutes(points.first, points.last,
+          originBearingDeg: -10, endpoint: endpoint());
+
+      expect(capturedBearings, '350,$rerouteBearingToleranceDeg;');
+    });
+  });
+
+  group('RoutingService.isImplausibleReroute', () {
+    test('an ordinary detour is never rejected', () {
+      // A few hundred metres of extra driving to reach a turnaround, for a
+      // destination a couple of kilometres away — the everyday case.
+      expect(RoutingService.isImplausibleReroute(2800, 2000), isFalse);
+    });
+
+    test('a real detour around an obstacle survives the generous multiplier',
+        () {
+      // Straight-line distance is short, but a river/rail line/gated estate
+      // forces a genuinely long way around. Must not be mistaken for the
+      // pathological case this check exists to catch.
+      expect(RoutingService.isImplausibleReroute(4000, 800), isFalse);
+    });
+
+    test('a pathological detour is caught', () {
+      // The fear a field report raised explicitly: a reroute must never be
+      // allowed to send someone thousands of kilometres out of their way.
+      expect(RoutingService.isImplausibleReroute(12000000, 2000), isTrue);
+    });
+
+    test('the floor protects very short straight-line distances', () {
+      // 50 m away in a straight line: an 8x multiplier alone would reject
+      // almost any real detour. The floor is what keeps this usable for the
+      // "missed a turn right here" case the feature exists for.
+      expect(RoutingService.isImplausibleReroute(4000, 50), isFalse);
+    });
+  });
 }
 
 String _encodePolyline6(List<LatLng> points) {
