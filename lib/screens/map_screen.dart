@@ -1705,13 +1705,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           ).timeout(const Duration(seconds: 30)),
         ];
       } else {
-        routes = await RoutingService.getRoutes(_position, _destination!,
-                provider: provider,
-                apiKey: apiKey,
-                graphhopperServer: ghServer,
-                lang: lang,
-                vehicle: _transportMode)
-            .timeout(const Duration(seconds: 15));
+        routes = await _rerouteRoutes(
+            provider: provider, apiKey: apiKey, ghServer: ghServer, lang: lang);
       }
       routes = await _withRoundaboutTopology(routes);
     } catch (_) {
@@ -1739,6 +1734,67 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     setState(() => _isRerouting = false);
     // Silent restart: no cinematic overview, camera stays on driver position.
     _startNavigation(routes.first, silent: true);
+  }
+
+  /// Requests the OSRM route(s) for a mid-drive reroute, telling the router
+  /// which way the vehicle is actually facing when that is known.
+  ///
+  /// Without it, a reroute carries only two coordinates — where the car is,
+  /// and the destination — leaving the engine free to assume the vehicle can
+  /// face any direction at all, including one requiring an instant reversal
+  /// it cannot perform. On a long straight road with nowhere to legally turn
+  /// around, that produced a route the driver could not follow, which they
+  /// immediately deviated from again — another reroute, the same shape of
+  /// route, over and over: a field report described it as the map "just
+  /// flipping, without doing anything concrete". See
+  /// [rerouteBearingToleranceDeg] for the mechanism, verified live against
+  /// this exact endpoint.
+  ///
+  /// Falls back to an unconstrained request — today's behaviour — if the
+  /// constrained one fails outright, or if [RoutingService.isImplausibleReroute]
+  /// finds it went somewhere a bearing hint should never send anyone.
+  Future<List<RouteResult>> _rerouteRoutes({
+    required RoutingProvider provider,
+    required String? apiKey,
+    required String? ghServer,
+    required String lang,
+  }) async {
+    Future<List<RouteResult>> request({double? originBearingDeg}) =>
+        RoutingService.getRoutes(_position, _destination!,
+                provider: provider,
+                apiKey: apiKey,
+                graphhopperServer: ghServer,
+                lang: lang,
+                vehicle: _transportMode,
+                originBearingDeg: originBearingDeg)
+            .timeout(const Duration(seconds: 15));
+
+    // Only OSRM (the default provider) understands the bearing parameter this
+    // sends, and only a fix trustworthy enough to have a real course is worth
+    // constraining anything with.
+    if (provider != RoutingProvider.osrm ||
+        !HeadingFilter.usesTravelHeading(_speed)) {
+      return request();
+    }
+
+    List<RouteResult> constrained;
+    try {
+      constrained = await request(originBearingDeg: _heading);
+    } on RoutingException {
+      // Nothing reachable matched that facing within tolerance anywhere —
+      // an unconstrained reroute is still better than none.
+      return request();
+    }
+    if (constrained.isEmpty) return request();
+
+    final straightLineM = Geo.distanceM(_position, _destination!);
+    final shortest = constrained
+        .reduce((a, b) => a.totalDistanceM <= b.totalDistanceM ? a : b);
+    if (RoutingService.isImplausibleReroute(
+        shortest.totalDistanceM, straightLineM)) {
+      return request();
+    }
+    return constrained;
   }
 
   /// Adds real OSM arm counts without ever letting an overloaded volunteer
@@ -4464,8 +4520,15 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                           _showSearchPlace(
                               fav.position, fav.label, fav.address);
                         },
-                      )
-                    else if (_searchController.text.isEmpty &&
+                      ),
+                    // Independent `if`, not `else if`: with an empty query,
+                    // _matchingFavorites('') returns every saved favourite, so
+                    // almost any user with one saved place made the branch
+                    // above always true — permanently hiding search history
+                    // behind it. They are two different "nothing typed yet"
+                    // panels (favourite shortcuts, recent searches) and belong
+                    // on screen together, not competing for the same slot.
+                    if (_searchController.text.isEmpty &&
                         _history.isNotEmpty)
                       SearchHistoryList(
                         history: _history,

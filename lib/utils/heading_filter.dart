@@ -92,6 +92,11 @@ class HeadingFilter {
   bool _moving = false;
   DateTime? _lastMotionAt;
 
+  /// A route-local bearing that disagreed sharply with an already-trusted GPS
+  /// bearing, waiting for a second fix to confirm it before [_towardRoute]
+  /// acts on it. See the field's use for why this exists.
+  double? _pendingRouteSnap;
+
   /// Forgets the pending reversal. Call when a journey starts or ends.
   ///
   /// The motion state is deliberately *not* cleared: whether the vehicle is
@@ -101,6 +106,7 @@ class HeadingFilter {
   void reset() {
     _pendingReversal = null;
     _heldTicks = 0;
+    _pendingRouteSnap = null;
   }
 
   /// Feeds one speed sample and returns whether the device counts as moving.
@@ -160,7 +166,7 @@ class HeadingFilter {
 
     // An ordinary change of direction: take it.
     if (!navigating || angleBetween(bearing, current) <= _reversalDeg) {
-      reset();
+      _resetReversal();
       return _towardRoute(
           bearing, to, speedKmh, navigating, routeLocalBearingAt);
     }
@@ -173,12 +179,24 @@ class HeadingFilter {
     // a multipath glitch does not.
     final pending = _pendingReversal;
     if (pending != null && angleBetween(bearing, pending) <= _agreementDeg) {
-      reset();
+      _resetReversal();
       return _towardRoute(
           bearing, to, speedKmh, navigating, routeLocalBearingAt);
     }
     _pendingReversal = bearing;
     return current;
+  }
+
+  /// Clears only the reversal-detection state. Used on every accepted fix —
+  /// as opposed to [reset], which is the per-journey entry point and also
+  /// forgets [_pendingRouteSnap]. That corroboration state has to survive
+  /// across ordinary accepted fixes to do its job: it is asking "did the last
+  /// fix *and* this one both point at the same unexpected route bearing", and
+  /// both fixes take the "ordinary change of direction" branch above, which
+  /// runs every single GPS tick.
+  void _resetReversal() {
+    _pendingReversal = null;
+    _heldTicks = 0;
   }
 
   /// Eases [heading] toward the route's own direction while driving on it.
@@ -187,6 +205,19 @@ class HeadingFilter {
   /// route is the one thing known to be right there: a large disagreement is
   /// snapped to it, a small one is approached gradually so real turns still
   /// look like turns rather than steps.
+  ///
+  /// [routeLocalBearingAt] answers with the nearest polyline *segment* by raw
+  /// distance alone, with no idea which way the road actually runs there.
+  /// Around a roundabout, or at a junction where two arms both pass within
+  /// the on-route radius, the nearest segment can belong to a different arm
+  /// than the one the driver is on — reporting a bearing pointing the wrong
+  /// way, sometimes close to the reverse of the real one. [heading] going in
+  /// is the two-fix GPS bearing, already checked against a reversal by the
+  /// caller; snapping it away on one disagreeing sample would let a single
+  /// bad nearest-segment match overrule a value that had already earned some
+  /// trust. So a large disagreement is held rather than acted on until the
+  /// same route bearing repeats on the next fix — a real sharp turn keeps
+  /// producing it, a stray match by the roundabout ring does not.
   double _towardRoute(
     double heading,
     LatLng at,
@@ -194,13 +225,29 @@ class HeadingFilter {
     bool navigating,
     ({double distM, double bearing})? Function(LatLng)? routeLocalBearingAt,
   ) {
-    if (!navigating || speedKmh <= _smoothingMinSpeedKmh) return heading;
+    if (!navigating || speedKmh <= _smoothingMinSpeedKmh) {
+      _pendingRouteSnap = null;
+      return heading;
+    }
     final local = routeLocalBearingAt?.call(at);
-    if (local == null || local.distM > _onRouteM) return heading;
+    if (local == null || local.distM > _onRouteM) {
+      _pendingRouteSnap = null;
+      return heading;
+    }
     var delta = (local.bearing - heading) % 360;
     if (delta > 180) delta -= 360;
     if (delta < -180) delta += 360;
-    if (delta.abs() > _snapToRouteDeg) return local.bearing;
+    if (delta.abs() > _snapToRouteDeg) {
+      final pending = _pendingRouteSnap;
+      if (pending != null &&
+          angleBetween(local.bearing, pending) <= _agreementDeg) {
+        _pendingRouteSnap = null;
+        return local.bearing;
+      }
+      _pendingRouteSnap = local.bearing;
+      return heading;
+    }
+    _pendingRouteSnap = null;
     return (heading + delta * _smoothingFactor + 360) % 360;
   }
 
