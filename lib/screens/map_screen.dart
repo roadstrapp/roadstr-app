@@ -83,6 +83,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// Current GPS position (updated by [_onGps]; falls back to Italy centre).
   LatLng _position = const LatLng(42.5, 12.5);
   double _speed = 0;
+  bool _walkingCursorMoving = false;
 
   /// Horizontal accuracy (metres) of the most recent GPS fix. Drives the
   /// dynamic arrival radius in [_checkArrival] — starts at a conservative
@@ -770,6 +771,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     // Jitter, reversal and road-snap handling lives in [HeadingFilter].
     final sampleSpeed =
         data.speedKmh.isFinite && data.speedKmh > 0 ? data.speedKmh : 0.0;
+    // The navigation heading's hysteresis is intentionally calibrated for
+    // road travel. The walking ostrich needs its own, much gentler threshold
+    // so it switches to the phone pose as soon as the pedestrian stops.
+    final walkingCursorMoving = _isNavigating && _transportMode == 'walking'
+        ? (_walkingCursorMoving ? sampleSpeed >= 0.8 : sampleSpeed >= 1.5)
+        : false;
     // Exactly one caller advances the hysteresis, and it is this one. The
     // compass callback only reads [HeadingFilter.isMoving].
     final moving = _headingFilter.updateMotion(sampleSpeed);
@@ -831,6 +838,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     setState(() {
       _position = data.position;
       _speed = sampleSpeed;
+      _walkingCursorMoving = walkingCursorMoving;
       if (data.accuracy.isFinite && data.accuracy > 0) {
         _lastGpsAccuracy = data.accuracy;
       }
@@ -4405,7 +4413,10 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                               // rebuilds on every GPS fix, and a fresh
                               // listenable each time leaks box subscriptions.
                               valueListenable: SettingsListenable.forKeys(
-                                const [CursorStyle.storageKey],
+                                const [
+                                  CursorStyle.storageKey,
+                                  CursorColor.storageKey,
+                                ],
                               ),
                               builder: (context, settings, _) => UserMarker(
                                 heading: _heading,
@@ -4419,6 +4430,11 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                                   storedDrivingStyle:
                                       settings.get(CursorStyle.storageKey),
                                 ),
+                                cursorColor: CursorColor.fromStorage(
+                                  settings.get(CursorColor.storageKey),
+                                ),
+                                ostrichIsMoving: _walkingCursorMoving,
+                                ostrichSpeedKmh: _speed,
                               ),
                             )),
                       ]),

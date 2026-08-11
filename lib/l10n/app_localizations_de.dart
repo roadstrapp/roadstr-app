@@ -120,6 +120,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get movementCursorStyleLabel => 'Movement cursor';
 
   @override
+  String get cursorVehicleLabel => 'Fahrzeug';
+
+  @override
+  String get cursorColorLabel => 'Farbe';
+
+  @override
   String get cursorStandard => 'Standard (default)';
 
   @override
@@ -136,6 +142,30 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get cursorCity => 'City car';
+
+  @override
+  String get cursorClassic500 => 'Klassischer Fiat 500';
+
+  @override
+  String get cursorColorViolet => 'Violett';
+
+  @override
+  String get cursorColorIndigo => 'Indigo';
+
+  @override
+  String get cursorColorBlue => 'Blau';
+
+  @override
+  String get cursorColorGreen => 'Grün';
+
+  @override
+  String get cursorColorYellow => 'Gelb';
+
+  @override
+  String get cursorColorOrange => 'Orange';
+
+  @override
+  String get cursorColorRed => 'Rot';
 
   @override
   String get sectionInfo => 'Info';
