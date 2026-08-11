@@ -1,0 +1,11 @@
+Pick your own colours, and a new way to walk.
+
+• Seven colour tints for the vehicle cursor — violet, indigo, blue, green,
+  yellow, orange, red — chosen from Settings alongside the existing style
+  picker
+• A new "Classic Fiat 500" cursor style
+• Walking navigation now shows the ostrich actually walking or running,
+  smoothly switching pace with your speed, instead of a static icon
+• Fixed a timing bug in the new walking animation where GPS speed noise
+  could start it playing before all its frames were loaded, causing a
+  visible flicker right when a walk begins

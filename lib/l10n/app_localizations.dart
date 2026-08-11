@@ -358,6 +358,18 @@ abstract class AppLocalizations {
   /// **'Movement cursor'**
   String get movementCursorStyleLabel;
 
+  /// No description provided for @cursorVehicleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle'**
+  String get cursorVehicleLabel;
+
+  /// No description provided for @cursorColorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Colour'**
+  String get cursorColorLabel;
+
   /// No description provided for @cursorStandard.
   ///
   /// In en, this message translates to:
@@ -393,6 +405,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'City car'**
   String get cursorCity;
+
+  /// No description provided for @cursorClassic500.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic Fiat 500'**
+  String get cursorClassic500;
+
+  /// No description provided for @cursorColorViolet.
+  ///
+  /// In en, this message translates to:
+  /// **'Violet'**
+  String get cursorColorViolet;
+
+  /// No description provided for @cursorColorIndigo.
+  ///
+  /// In en, this message translates to:
+  /// **'Indigo'**
+  String get cursorColorIndigo;
+
+  /// No description provided for @cursorColorBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get cursorColorBlue;
+
+  /// No description provided for @cursorColorGreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get cursorColorGreen;
+
+  /// No description provided for @cursorColorYellow.
+  ///
+  /// In en, this message translates to:
+  /// **'Yellow'**
+  String get cursorColorYellow;
+
+  /// No description provided for @cursorColorOrange.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get cursorColorOrange;
+
+  /// No description provided for @cursorColorRed.
+  ///
+  /// In en, this message translates to:
+  /// **'Red'**
+  String get cursorColorRed;
 
   /// No description provided for @sectionInfo.
   ///
