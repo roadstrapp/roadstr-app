@@ -1,0 +1,18 @@
+Four field reports, four fixes.
+
+• Search history is no longer hidden. Anyone with a saved favourite never
+  saw their recent searches at all — the two lists were competing for the
+  same slot, and favourites always won
+• The map no longer flips 180° near junctions and roundabout exits. A
+  single stray direction reading close to a roundabout could be trusted
+  instantly; it now has to repeat before the map acts on it
+• Voice guidance could go completely silent for an entire drive, then work
+  again on the next one. A one-time setup step at the start of navigation
+  had no retry — it now retries later in the same drive instead of making
+  you start a new one
+• Recalculating after a wrong turn is smarter about it. On a long road with
+  nowhere to legally turn around, it used to keep proposing a route that
+  assumed an instant reversal — over and over, with the map spinning each
+  time. It now takes into account which way you're actually facing, so it
+  finds a real way back (the next roundabout, the next junction) instead —
+  with a safeguard against an absurd detour in either direction
