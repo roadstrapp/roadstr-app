@@ -38,6 +38,19 @@ class KokoroTtsService {
   bool _audioFocusActive = false;
   bool _isSpeaking = false;
 
+  /// When the last [init] attempt failed. Read by [_startPlayback] to decide
+  /// whether the current speak() call is worth retrying it — see there for
+  /// why a retry belongs on the speak path at all.
+  DateTime? _lastInitFailedAt;
+  static const _reinitCooldown = Duration(seconds: 8);
+
+  /// Whether a failed [init] may be retried right now. Exposed so the backoff
+  /// itself — not just the retry call — is covered by a test that does not
+  /// need a real model, engine or FFI phonemizer.
+  @visibleForTesting
+  static bool shouldRetryInit(DateTime? lastFailedAt, DateTime now) =>
+      lastFailedAt == null || now.difference(lastFailedAt) >= _reinitCooldown;
+
   /// Whether what is playing right now is a turn instruction rather than an
   /// ambient alert. Instructions may cut alerts; they must not cut each other
   /// mid-sentence, which is how "…take the second exit, then—" happened.
@@ -98,6 +111,7 @@ class KokoroTtsService {
       _voiceData = await _loadVoiceEmbedding(languageCode, _gender);
       debugPrint('[KokoroTTS]   voice: ${ms()}ms');
       _ready = true;
+      _lastInitFailedAt = null;
       debugPrint(
           '[KokoroTTS] init OK: ${ms()}ms total  voiceData=${_voiceData!.length} floats');
       unawaited(_configureAudioSession());
@@ -105,6 +119,17 @@ class KokoroTtsService {
       // and anything a killed process left behind mid-journey.
       unawaited(purgeSpokenPlaces().then((_) => _prewarmCache()));
     } catch (e) {
+      // Whatever failed here — the phonemizer, the ONNX Runtime session, a
+      // voice file read — this is called once per navigation, unawaited, from
+      // _startNavigation, right as GPS, the map and routing are also starting
+      // up. A transient failure here left _ready false for the rest of that
+      // drive with nothing but this debugPrint (silenced in release builds)
+      // to show for it: turn-by-turn guidance went completely silent for a
+      // whole navigation, then worked again next time simply because the next
+      // navigation called init() fresh. Recorded here so _startPlayback can
+      // retry later in the SAME drive instead of making the driver start a
+      // new one to get their voice back.
+      _lastInitFailedAt = DateTime.now();
       debugPrint('[KokoroTTS] init failed: $e');
     }
   }
@@ -311,6 +336,14 @@ class KokoroTtsService {
     }
 
     // ── Synthesis path — requires model ──────────────────────────────────────
+    // init() is otherwise called exactly once per navigation, unawaited, right
+    // as GPS/map/routing are also starting up — a transient failure there
+    // used to mean silence for the rest of that drive. Retrying it here,
+    // lazily and rate-limited, means a driver gets their voice guidance back
+    // partway through the SAME drive instead of needing to start a new one.
+    if (!_ready && shouldRetryInit(_lastInitFailedAt, DateTime.now())) {
+      await init(_lang);
+    }
     if (!_ready) {
       debugPrint('[KokoroTTS] speak("$text") skipped — not ready');
       return false;

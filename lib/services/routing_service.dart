@@ -20,6 +20,26 @@ import 'roundabout_topology_service.dart';
 
 const int kMaxRoundaboutArms = 20;
 
+/// OSRM bearing tolerance (degrees either side) used when rerouting a moving
+/// vehicle — see [RoutingService.getRoutes]'s `originBearingDeg`.
+///
+/// Without a bearing hint, a reroute request carries only two coordinates —
+/// where the car is, and the destination — and the engine is free to assume
+/// it can be facing any direction at all, including one requiring an instant
+/// reversal a moving vehicle cannot perform. On a long straight road with
+/// nowhere legal to turn around, that produced a route the driver could not
+/// follow, which they immediately deviated from again, triggering another
+/// reroute — the same shape of route each time, which is what a field report
+/// described as the map "just flipping over and over, without doing anything
+/// concrete". Telling the engine the vehicle's actual course makes it route
+/// forward from where the car really is heading, typically to the next
+/// roundabout or turning point, instead of assuming the impossible.
+///
+/// 45°, not tighter: a moving vehicle's GPS course is not perfectly aligned
+/// with the road, and a strict tolerance can make OSRM search much further
+/// away for a matching segment than intended — the opposite of the point.
+const rerouteBearingToleranceDeg = 45;
+
 /// A single turn-by-turn navigation step produced by a routing provider.
 class RouteStep {
   /// Human-readable instruction in the requested language (e.g. "Turn right on Via Roma").
@@ -874,12 +894,19 @@ class RoutingService {
   /// For GraphHopper and OpenRouteService this wraps [getRoute] and returns a
   /// single-element list. The map screen uses the list to show an alternative
   /// selection panel when the route is longer than 5 km.
+  ///
+  /// [originBearingDeg], when given, tells OSRM which way the vehicle is
+  /// actually facing at [origin], with a tolerance wide enough for a normal
+  /// turn but not an instant reversal — see [rerouteBearingToleranceDeg] for
+  /// why this specific value and what happens without it.
   static Future<List<RouteResult>> getRoutes(LatLng origin, LatLng destination,
       {RoutingProvider provider = RoutingProvider.osrm,
       String? apiKey,
       String? graphhopperServer,
       String lang = 'en',
-      String vehicle = 'driving'}) async {
+      String vehicle = 'driving',
+      double? originBearingDeg,
+      @visibleForTesting Uri? endpoint}) async {
     if (provider != RoutingProvider.osrm) {
       final single = await getRoute(origin, destination,
           provider: provider,
@@ -890,10 +917,21 @@ class RoutingService {
       return single != null ? [single] : [];
     }
     try {
-      final baseCoords = '${_osrmEndpoint(vehicle)}/'
+      // Trailing `;` deliberately leaves the destination unconstrained — only
+      // the origin (the vehicle's current position and facing) is pinned.
+      // Verified against this exact endpoint: the same two points 400 m apart
+      // resolve to a 2 m degenerate route with no bearing given, and to a
+      // realistic ~460 m route via the next junction once the origin bearing
+      // is constrained to face away from the direct line.
+      final bearings = originBearingDeg == null
+          ? ''
+          : '&bearings=${originBearingDeg.round() % 360},'
+              '$rerouteBearingToleranceDeg;';
+      final baseCoords = '${endpoint ?? Uri.parse(_osrmEndpoint(vehicle))}/'
           '${origin.longitude},${origin.latitude};'
           '${destination.longitude},${destination.latitude}'
-          '?overview=full&geometries=geojson&steps=true&alternatives=3';
+          '?overview=full&geometries=geojson&steps=true&alternatives=3'
+          '$bearings';
 
       final res = await BoundedHttp.get(
         Uri.parse(baseCoords),
@@ -923,6 +961,27 @@ class RoutingService {
     } catch (e) {
       throw RoutingException(message: e.toString());
     }
+  }
+
+  /// Whether a bearing-constrained reroute went somewhere it should not have.
+  ///
+  /// A bearing hint fixes routes that assumed an impossible instant reversal,
+  /// but the same mechanism can misfire the other way: if the road network
+  /// genuinely offers nothing matching that facing nearby, OSRM may search
+  /// much further afield to satisfy the constraint rather than admit defeat.
+  /// The caller's job is to catch that and fall back to an unconstrained
+  /// reroute instead — this is the check that tells it to.
+  ///
+  /// Generous on purpose: a real detour around a river, a rail line or a
+  /// gated estate can legitimately run several times the straight-line
+  /// distance, and this must never be the reason a genuinely necessary detour
+  /// gets rejected. It exists to catch the pathological case, not to second-
+  /// guess an ordinary one.
+  static bool isImplausibleReroute(
+      double routeDistanceM, double straightLineDistanceM) {
+    const floorM = 5000.0;
+    const factor = 8.0;
+    return routeDistanceM > straightLineDistanceM * factor + floorM;
   }
 
   /// Calculates the extra driving route shown by the combined avoidance

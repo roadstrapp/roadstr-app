@@ -246,14 +246,61 @@ void main() {
       expect(resolved, closeTo(7, 0.5));
     });
 
-    test('a heading wildly off the route is replaced by it', () {
+    test(
+        'a single stray route bearing does not flip the heading — '
+        'the regression this guards is a 180° map spin near a roundabout',
+        () {
+      // The bug: routeLocalBearingAt picks the nearest polyline *segment* by
+      // raw distance, with no idea which way that road runs. Near a
+      // roundabout or a junction, a different arm can be the nearest point
+      // and report a bearing pointing the wrong way — reported live as the
+      // map spinning 180° right where it matters most. One disagreeing
+      // sample must not be enough to act on.
       final filter = HeadingFilter();
       final resolved = resolve(filter,
           current: 350,
           from: start,
+          to: north(start, 40), // GPS bearing: 0° (already-trusted value)
+          routeLocal: (distM: 5, bearing: 150)); // a stray, wrong-arm match
+      expect(resolved, 0,
+          reason: 'holds the GPS bearing instead of snapping to the glitch');
+    });
+
+    test('the same route bearing repeating is trusted on the second fix',
+        () {
+      // A genuine sharp turn keeps producing the same route bearing on
+      // consecutive fixes; a stray nearest-segment match by a roundabout
+      // ring does not. Two agreements in a row is what tells them apart.
+      final filter = HeadingFilter();
+      resolve(filter,
+          current: 350,
+          from: start,
           to: north(start, 40),
           routeLocal: (distM: 5, bearing: 150));
-      expect(resolved, 150);
+      final confirmed = resolve(filter,
+          current: 0,
+          from: start,
+          to: north(start, 40),
+          routeLocal: (distM: 5, bearing: 150));
+      expect(confirmed, 150);
+    });
+
+    test('a stray sample does not poison the next, unambiguous one', () {
+      // After the glitch, ordinary route-following resumes normally — the
+      // held state does not linger and distort an unrelated later fix.
+      final filter = HeadingFilter();
+      resolve(filter,
+          current: 350,
+          from: start,
+          to: north(start, 40),
+          routeLocal: (distM: 5, bearing: 150)); // stray, held
+      final next = resolve(filter,
+          current: 0,
+          from: start,
+          to: north(start, 40),
+          routeLocal: (distM: 5, bearing: 20)); // ordinary, close disagreement
+      // Eased toward 20°, not snapped to the earlier stray 150°.
+      expect(next, closeTo(7, 0.5));
     });
 
     test('reset forgets a pending reversal', () {
