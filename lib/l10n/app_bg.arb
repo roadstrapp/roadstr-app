@@ -533,5 +533,15 @@
   "nearbyPolice": "Полиция",
   "nearbyPostOffice": "Поща",
   "nearbyParking": "Паркинг",
-  "nearbyCharging": "Зареждане"
+  "nearbyCharging": "Зареждане",
+  "transportModeTransit": "Транспорт",
+  "transitNoServiceHere": "Няма данни за обществен транспорт за тази зона",
+  "transitRequestFailed": "Общественият транспорт не можа да се зареди",
+  "transitRetry": "Опитай отново",
+  "transitWalkLeg": "Пеша",
+  "transitYourLocation": "Вашето местоположение",
+  "transitDestination": "Дестинация",
+  "transitScheduledTimes": "Часовете са по публикувано разписание",
+  "transitDirect": "Директно",
+  "transitTransfers": "{count} прекачвания"
 }

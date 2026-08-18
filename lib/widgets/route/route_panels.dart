@@ -133,23 +133,49 @@ class RoutePlannerBar extends StatelessWidget {
         ]),
         const SizedBox(height: 8),
         // ── Transport mode toggle ─────────────────────────────────────────
-        Row(children: [
-          TransportModeChip(
-            icon: Icons.directions_car_rounded,
-            label: AppLocalizations.of(context).transportModeCar,
-            selected: transportMode == 'driving',
-            colors: c,
-            onTap: () => onModeChanged('driving'),
-          ),
-          const SizedBox(width: 8),
-          TransportModeChip(
-            icon: Icons.directions_walk_rounded,
-            label: AppLocalizations.of(context).transportModeWalk,
-            selected: transportMode == 'walking',
-            colors: c,
-            onTap: () => onModeChanged('walking'),
-          ),
-        ]),
+        // Scrolls horizontally: three labels in a language with long words
+        // (German "ÖPNV" is short, Finnish "Joukkoliikenne" is not) would
+        // otherwise overflow the row on a narrow screen.
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(children: [
+            TransportModeChip(
+              icon: Icons.directions_car_rounded,
+              label: AppLocalizations.of(context).transportModeCar,
+              selected: transportMode == 'driving',
+              colors: c,
+              onTap: () => onModeChanged('driving'),
+            ),
+            const SizedBox(width: 8),
+            // Cycling was reachable only from the result panels, so a journey
+            // could not be planned by bike from the start — the planner is
+            // where a mode is normally chosen.
+            TransportModeChip(
+              icon: Icons.directions_bike_rounded,
+              label: AppLocalizations.of(context).modeBike,
+              selected: transportMode == 'cycling',
+              colors: c,
+              onTap: () => onModeChanged('cycling'),
+            ),
+            const SizedBox(width: 8),
+            TransportModeChip(
+              icon: Icons.directions_walk_rounded,
+              label: AppLocalizations.of(context).transportModeWalk,
+              // Transit journeys start and end on foot, so the walking chip
+              // stays lit while its sub-choice is open — otherwise picking
+              // public transport would look like leaving walking behind.
+              selected: transportMode == 'walking' ||
+                  transportMode == 'transit',
+              colors: c,
+              onTap: () => onModeChanged('walking'),
+            ),
+          ]),
+        ),
+        WalkingSubModes(
+          transportMode: transportMode,
+          colors: c,
+          onModeChanged: onModeChanged,
+        ),
         const SizedBox(height: 10),
         Row(children: [
           TextButton(
@@ -178,6 +204,68 @@ class RoutePlannerBar extends StatelessWidget {
                 style: const TextStyle(color: Colors.white, fontSize: 13)),
           ),
         ]),
+      ]),
+    );
+  }
+}
+
+/// The on-foot sub-choice: walk the whole way, or take a scheduled service.
+///
+/// Appears under the walking chip in every panel that offers transport modes.
+/// It lives here as one widget rather than being repeated in each panel
+/// because there are three of them — the planner, the preview and the
+/// alternatives list — and a sub-menu that exists in only one is a feature the
+/// user cannot find from where they actually are.
+class WalkingSubModes extends StatelessWidget {
+  final String transportMode;
+  final RoadstrColors colors;
+  final ValueChanged<String> onModeChanged;
+  final EdgeInsetsGeometry padding;
+
+  const WalkingSubModes({
+    super.key,
+    required this.transportMode,
+    required this.colors,
+    required this.onModeChanged,
+    this.padding = const EdgeInsets.only(top: 8),
+  });
+
+  /// Whether the journey is on foot at all — transit included, since such a
+  /// journey starts and ends walking.
+  static bool appliesTo(String mode) => mode == 'walking' || mode == 'transit';
+
+  @override
+  Widget build(BuildContext context) {
+    if (!appliesTo(transportMode)) return const SizedBox.shrink();
+    final l = AppLocalizations.of(context);
+    return Padding(
+      padding: padding,
+      child: Row(children: [
+        Icon(Icons.subdirectory_arrow_right_rounded,
+            size: 16, color: colors.textSecondary),
+        const SizedBox(width: 6),
+        Flexible(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              TransportModeChip(
+                icon: Icons.directions_walk_rounded,
+                label: l.transportModeWalk,
+                selected: transportMode == 'walking',
+                colors: colors,
+                onTap: () => onModeChanged('walking'),
+              ),
+              const SizedBox(width: 8),
+              TransportModeChip(
+                icon: Icons.directions_transit_rounded,
+                label: l.transportModeTransit,
+                selected: transportMode == 'transit',
+                colors: colors,
+                onTap: () => onModeChanged('transit'),
+              ),
+            ]),
+          ),
+        ),
       ]),
     );
   }
@@ -478,6 +566,14 @@ class _PreviewPanelState extends State<RoutePreviewPanel>
                       onTap: () => widget.onModeChanged('walking')),
                 ]),
               ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: WalkingSubModes(
+                  transportMode: widget.transportMode,
+                  colors: c,
+                  onModeChanged: widget.onModeChanged,
+                ),
+              ),
               const SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -705,6 +801,14 @@ class _AlternativesPanelState extends State<RouteAlternativesPanel>
                       colors: c,
                       onTap: () => widget.onModeChanged('walking')),
                 ]),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: WalkingSubModes(
+                  transportMode: widget.transportMode,
+                  colors: c,
+                  onModeChanged: widget.onModeChanged,
+                ),
               ),
               if (widget.transportMode == 'driving') ...[
                 const SizedBox(height: 8),

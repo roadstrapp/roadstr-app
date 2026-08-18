@@ -1387,4 +1387,38 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Punjenje';
+
+  @override
+  String get transportModeTransit => 'Prijevoz';
+
+  @override
+  String get transitNoServiceHere =>
+      'Nema podataka o javnom prijevozu za ovo područje';
+
+  @override
+  String get transitRequestFailed => 'Javni prijevoz nije moguće učitati';
+
+  @override
+  String get transitRetry => 'Pokušaj ponovno';
+
+  @override
+  String get transitWalkLeg => 'Pješice';
+
+  @override
+  String get transitYourLocation => 'Vaša lokacija';
+
+  @override
+  String get transitDestination => 'Odredište';
+
+  @override
+  String get transitScheduledTimes =>
+      'Vremena potječu iz objavljenih voznih redova';
+
+  @override
+  String get transitDirect => 'Izravno';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count presjedanja';
+  }
 }

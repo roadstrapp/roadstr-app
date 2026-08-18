@@ -387,7 +387,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       envelope = {
         'v': 1,
         'encrypted': true,
-        ...FavoritesCrypto.encrypt(plaintext, ctrl.text)
+        ...await FavoritesCrypto.encryptAsync(plaintext, ctrl.text)
       };
     } else {
       envelope = {'v': 1, 'encrypted': false, 'data': plaintext};

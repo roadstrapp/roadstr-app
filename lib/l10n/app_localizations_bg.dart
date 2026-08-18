@@ -1393,4 +1393,38 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Зареждане';
+
+  @override
+  String get transportModeTransit => 'Транспорт';
+
+  @override
+  String get transitNoServiceHere =>
+      'Няма данни за обществен транспорт за тази зона';
+
+  @override
+  String get transitRequestFailed =>
+      'Общественият транспорт не можа да се зареди';
+
+  @override
+  String get transitRetry => 'Опитай отново';
+
+  @override
+  String get transitWalkLeg => 'Пеша';
+
+  @override
+  String get transitYourLocation => 'Вашето местоположение';
+
+  @override
+  String get transitDestination => 'Дестинация';
+
+  @override
+  String get transitScheduledTimes => 'Часовете са по публикувано разписание';
+
+  @override
+  String get transitDirect => 'Директно';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count прекачвания';
+  }
 }

@@ -533,5 +533,15 @@
   "nearbyPolice": "Policie",
   "nearbyPostOffice": "Pošta",
   "nearbyParking": "Parkoviště",
-  "nearbyCharging": "Nabíjení"
+  "nearbyCharging": "Nabíjení",
+  "transportModeTransit": "MHD",
+  "transitNoServiceHere": "Pro tuto oblast nejsou data veřejné dopravy",
+  "transitRequestFailed": "Nepodařilo se načíst veřejnou dopravu",
+  "transitRetry": "Zkusit znovu",
+  "transitWalkLeg": "Pěšky",
+  "transitYourLocation": "Vaše poloha",
+  "transitDestination": "Cíl",
+  "transitScheduledTimes": "Časy pocházejí ze zveřejněných jízdních řádů",
+  "transitDirect": "Přímo",
+  "transitTransfers": "{count} přestupů"
 }

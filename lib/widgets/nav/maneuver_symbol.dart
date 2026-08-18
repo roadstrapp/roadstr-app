@@ -435,24 +435,30 @@ class ManeuverSymbolPainter extends CustomPainter {
     }
 
     if (n == null) return;
-    canvas.drawCircle(
-      center,
-      13,
-      Paint()
-        ..color = surface.withValues(alpha: 0.72)
-        ..style = PaintingStyle.fill,
-    );
+    // The exit ordinal is the one thing a driver reads at a glance, often at
+    // speed, so it is sized for legibility rather than for the badge.
     final textPainter = TextPainter(
       text: TextSpan(
         text: '$n',
         style: TextStyle(
           color: accent,
-          fontSize: 17,
+          fontSize: 20,
           fontWeight: FontWeight.w800,
         ),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
+    // Measure first, then fit the badge around the digits. A roundabout may
+    // have up to [kMaxRoundaboutArms] arms, so this has to hold two digits
+    // without clipping — a fixed radius tuned for "3" silently crops "12".
+    final badgeRadius = math.max(15.0, textPainter.width / 2 + 5);
+    canvas.drawCircle(
+      center,
+      badgeRadius,
+      Paint()
+        ..color = surface.withValues(alpha: 0.72)
+        ..style = PaintingStyle.fill,
+    );
     textPainter.paint(
       canvas,
       Offset(center.dx - textPainter.width / 2,

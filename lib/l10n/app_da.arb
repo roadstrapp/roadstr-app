@@ -533,5 +533,15 @@
   "nearbyPolice": "Politi",
   "nearbyPostOffice": "Posthus",
   "nearbyParking": "Parkering",
-  "nearbyCharging": "Opladning"
+  "nearbyCharging": "Opladning",
+  "transportModeTransit": "Offentlig",
+  "transitNoServiceHere": "Ingen data om offentlig transport for dette område",
+  "transitRequestFailed": "Kunne ikke indlæse offentlig transport",
+  "transitRetry": "Prøv igen",
+  "transitWalkLeg": "Gå",
+  "transitYourLocation": "Din placering",
+  "transitDestination": "Destination",
+  "transitScheduledTimes": "Tiderne kommer fra offentliggjorte køreplaner",
+  "transitDirect": "Direkte",
+  "transitTransfers": "{count} skift"
 }

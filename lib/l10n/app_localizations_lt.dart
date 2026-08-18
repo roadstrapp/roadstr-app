@@ -1388,4 +1388,37 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Įkrovimas';
+
+  @override
+  String get transportModeTransit => 'Transportas';
+
+  @override
+  String get transitNoServiceHere =>
+      'Šiai vietovei nėra viešojo transporto duomenų';
+
+  @override
+  String get transitRequestFailed => 'Nepavyko įkelti viešojo transporto';
+
+  @override
+  String get transitRetry => 'Bandyti dar kartą';
+
+  @override
+  String get transitWalkLeg => 'Pėsčiomis';
+
+  @override
+  String get transitYourLocation => 'Jūsų vieta';
+
+  @override
+  String get transitDestination => 'Kelionės tikslas';
+
+  @override
+  String get transitScheduledTimes => 'Laikai paimti iš paskelbtų tvarkaraščių';
+
+  @override
+  String get transitDirect => 'Tiesiogiai';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count persėdimai';
+  }
 }

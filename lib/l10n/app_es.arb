@@ -533,5 +533,15 @@
   "nearbyPolice": "Policía",
   "nearbyPostOffice": "Correos",
   "nearbyParking": "Aparcamiento",
-  "nearbyCharging": "Recarga"
+  "nearbyCharging": "Recarga",
+  "transportModeTransit": "Transporte",
+  "transitNoServiceHere": "No hay datos de transporte público para esta zona",
+  "transitRequestFailed": "No se pudo cargar el transporte público",
+  "transitRetry": "Reintentar",
+  "transitWalkLeg": "A pie",
+  "transitYourLocation": "Tu ubicación",
+  "transitDestination": "Destino",
+  "transitScheduledTimes": "Los horarios provienen de los horarios publicados",
+  "transitDirect": "Directo",
+  "transitTransfers": "{count} transbordos"
 }

@@ -1394,4 +1394,39 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Φόρτιση';
+
+  @override
+  String get transportModeTransit => 'ΜΜΜ';
+
+  @override
+  String get transitNoServiceHere =>
+      'Δεν υπάρχουν δεδομένα δημόσιων συγκοινωνιών για αυτήν την περιοχή';
+
+  @override
+  String get transitRequestFailed =>
+      'Δεν ήταν δυνατή η φόρτωση των δημόσιων συγκοινωνιών';
+
+  @override
+  String get transitRetry => 'Δοκιμάστε ξανά';
+
+  @override
+  String get transitWalkLeg => 'Με τα πόδια';
+
+  @override
+  String get transitYourLocation => 'Η τοποθεσία σας';
+
+  @override
+  String get transitDestination => 'Προορισμός';
+
+  @override
+  String get transitScheduledTimes =>
+      'Οι ώρες προέρχονται από δημοσιευμένα δρομολόγια';
+
+  @override
+  String get transitDirect => 'Απευθείας';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count μετεπιβιβάσεις';
+  }
 }

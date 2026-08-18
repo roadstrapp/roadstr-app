@@ -533,5 +533,15 @@
   "nearbyPolice": "Policja",
   "nearbyPostOffice": "Poczta",
   "nearbyParking": "Parking",
-  "nearbyCharging": "Ładowarka"
+  "nearbyCharging": "Ładowarka",
+  "transportModeTransit": "Komunikacja",
+  "transitNoServiceHere": "Brak danych transportu publicznego dla tego obszaru",
+  "transitRequestFailed": "Nie udało się wczytać transportu publicznego",
+  "transitRetry": "Spróbuj ponownie",
+  "transitWalkLeg": "Pieszo",
+  "transitYourLocation": "Twoja lokalizacja",
+  "transitDestination": "Cel",
+  "transitScheduledTimes": "Godziny pochodzą z opublikowanych rozkładów",
+  "transitDirect": "Bezpośrednio",
+  "transitTransfers": "{count} przesiadek"
 }

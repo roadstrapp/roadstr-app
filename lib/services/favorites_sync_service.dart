@@ -57,6 +57,7 @@ import 'package:nostr_tools/nostr_tools.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../models/favorite_place.dart';
+import '../config/network_config.dart';
 import 'favorites_crypto.dart';
 import 'nip44.dart';
 import 'nostr_event_verify.dart';
@@ -178,7 +179,8 @@ class FavoritesSyncService {
   /// plaintext bytes → ~88 KB of base64; anything bigger is a hostile relay
   /// trying to waste memory/CPU and is dropped before hashing/verification.
   static const _maxContentChars = 200000;
-  static const _maxInboundMessageChars = 256 * 1024;
+  // Shared with the relay service — see [RelayLimits].
+  static const _maxInboundMessageChars = RelayLimits.maxInboundMessageChars;
 
   /// Plaintext size bucket (bytes). Every snapshot is padded up to a
   /// multiple of this before encryption, capped at NIP-44's 65535 limit.
@@ -238,10 +240,13 @@ class FavoritesSyncService {
   }) async {
     var plaintext = jsonEncode(favorites.map((f) => f.toMap()).toList());
     if (passphrase != null && passphrase.isNotEmpty) {
+      // Off the UI isolate: this runs on every favourite edit via auto-push,
+      // so a synchronous key derivation here would freeze the app during
+      // ordinary use, not just on an explicit export.
       plaintext = jsonEncode({
         'v': 1,
         'encrypted': true,
-        ...FavoritesCrypto.encrypt(plaintext, passphrase),
+        ...await FavoritesCrypto.encryptAsync(plaintext, passphrase),
       });
     }
     if (utf8.encode(plaintext).length > 65535) return false;
@@ -316,7 +321,9 @@ class FavoritesSyncService {
           return const FavSyncPull.locked();
         }
         try {
-          decoded = jsonDecode(FavoritesCrypto.decrypt(
+          // Off the UI isolate: auto-pull runs at app startup, where a
+          // synchronous derivation would stall the first frames.
+          decoded = jsonDecode(await FavoritesCrypto.decryptAsync(
               decoded.cast<String, dynamic>(), passphrase));
         } on FavoritesDecryptException {
           return const FavSyncPull.locked(); // wrong passphrase → re-prompt

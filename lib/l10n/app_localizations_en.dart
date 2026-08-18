@@ -1382,4 +1382,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Charging';
+
+  @override
+  String get transportModeTransit => 'Transit';
+
+  @override
+  String get transitNoServiceHere => 'No public transport data for this area';
+
+  @override
+  String get transitRequestFailed => 'Could not load public transport';
+
+  @override
+  String get transitRetry => 'Try again';
+
+  @override
+  String get transitWalkLeg => 'Walk';
+
+  @override
+  String get transitYourLocation => 'Your location';
+
+  @override
+  String get transitDestination => 'Destination';
+
+  @override
+  String get transitScheduledTimes => 'Times come from published timetables';
+
+  @override
+  String get transitDirect => 'Direct';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count changes';
+  }
 }

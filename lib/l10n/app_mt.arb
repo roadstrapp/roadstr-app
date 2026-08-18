@@ -533,5 +533,15 @@
   "nearbyPolice": "Pulizija",
   "nearbyPostOffice": "Posta",
   "nearbyParking": "Parkeġġ",
-  "nearbyCharging": "Iċċarġjar"
+  "nearbyCharging": "Iċċarġjar",
+  "transportModeTransit": "Trasport",
+  "transitNoServiceHere": "M'hemmx dejta tat-trasport pubbliku għal din iż-żona",
+  "transitRequestFailed": "It-trasport pubbliku ma setax jitniżżel",
+  "transitRetry": "Erġa' pprova",
+  "transitWalkLeg": "Bil-mixi",
+  "transitYourLocation": "Il-post tiegħek",
+  "transitDestination": "Destinazzjoni",
+  "transitScheduledTimes": "Il-ħinijiet ġejjin minn skedi ppubblikati",
+  "transitDirect": "Dirett",
+  "transitTransfers": "{count} bidliet"
 }

@@ -533,5 +533,15 @@
   "nearbyPolice": "Polizei",
   "nearbyPostOffice": "Post",
   "nearbyParking": "Parkplatz",
-  "nearbyCharging": "Ladesäule"
+  "nearbyCharging": "Ladesäule",
+  "transportModeTransit": "ÖPNV",
+  "transitNoServiceHere": "Keine Nahverkehrsdaten für dieses Gebiet",
+  "transitRequestFailed": "Nahverkehr konnte nicht geladen werden",
+  "transitRetry": "Erneut versuchen",
+  "transitWalkLeg": "Zu Fuß",
+  "transitYourLocation": "Dein Standort",
+  "transitDestination": "Ziel",
+  "transitScheduledTimes": "Zeiten stammen aus veröffentlichten Fahrplänen",
+  "transitDirect": "Direkt",
+  "transitTransfers": "{count} Umstiege"
 }

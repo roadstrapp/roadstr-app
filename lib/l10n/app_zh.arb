@@ -533,5 +533,15 @@
   "nearbyPolice": "警察局",
   "nearbyPostOffice": "邮局",
   "nearbyParking": "停车场",
-  "nearbyCharging": "充电"
+  "nearbyCharging": "充电",
+  "transportModeTransit": "公共交通",
+  "transitNoServiceHere": "该地区没有公共交通数据",
+  "transitRequestFailed": "无法加载公共交通",
+  "transitRetry": "重试",
+  "transitWalkLeg": "步行",
+  "transitYourLocation": "您的位置",
+  "transitDestination": "目的地",
+  "transitScheduledTimes": "时间来自公布的时刻表",
+  "transitDirect": "直达",
+  "transitTransfers": "{count} 次换乘"
 }

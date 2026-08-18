@@ -1387,4 +1387,38 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Laddning';
+
+  @override
+  String get transportModeTransit => 'Kollektivt';
+
+  @override
+  String get transitNoServiceHere =>
+      'Inga kollektivtrafikdata för detta område';
+
+  @override
+  String get transitRequestFailed => 'Kunde inte ladda kollektivtrafik';
+
+  @override
+  String get transitRetry => 'Försök igen';
+
+  @override
+  String get transitWalkLeg => 'Gå';
+
+  @override
+  String get transitYourLocation => 'Din plats';
+
+  @override
+  String get transitDestination => 'Destination';
+
+  @override
+  String get transitScheduledTimes =>
+      'Tiderna kommer från publicerade tidtabeller';
+
+  @override
+  String get transitDirect => 'Direkt';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count byten';
+  }
 }

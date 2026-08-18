@@ -1394,4 +1394,38 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Iċċarġjar';
+
+  @override
+  String get transportModeTransit => 'Trasport';
+
+  @override
+  String get transitNoServiceHere =>
+      'M\'hemmx dejta tat-trasport pubbliku għal din iż-żona';
+
+  @override
+  String get transitRequestFailed => 'It-trasport pubbliku ma setax jitniżżel';
+
+  @override
+  String get transitRetry => 'Erġa\' pprova';
+
+  @override
+  String get transitWalkLeg => 'Bil-mixi';
+
+  @override
+  String get transitYourLocation => 'Il-post tiegħek';
+
+  @override
+  String get transitDestination => 'Destinazzjoni';
+
+  @override
+  String get transitScheduledTimes =>
+      'Il-ħinijiet ġejjin minn skedi ppubblikati';
+
+  @override
+  String get transitDirect => 'Dirett';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count bidliet';
+  }
 }

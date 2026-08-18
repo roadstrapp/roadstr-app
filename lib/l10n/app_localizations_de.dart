@@ -1392,4 +1392,37 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Ladesäule';
+
+  @override
+  String get transportModeTransit => 'ÖPNV';
+
+  @override
+  String get transitNoServiceHere => 'Keine Nahverkehrsdaten für dieses Gebiet';
+
+  @override
+  String get transitRequestFailed => 'Nahverkehr konnte nicht geladen werden';
+
+  @override
+  String get transitRetry => 'Erneut versuchen';
+
+  @override
+  String get transitWalkLeg => 'Zu Fuß';
+
+  @override
+  String get transitYourLocation => 'Dein Standort';
+
+  @override
+  String get transitDestination => 'Ziel';
+
+  @override
+  String get transitScheduledTimes =>
+      'Zeiten stammen aus veröffentlichten Fahrplänen';
+
+  @override
+  String get transitDirect => 'Direkt';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count Umstiege';
+  }
 }

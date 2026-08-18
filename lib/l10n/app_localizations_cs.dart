@@ -1384,4 +1384,38 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Nabíjení';
+
+  @override
+  String get transportModeTransit => 'MHD';
+
+  @override
+  String get transitNoServiceHere =>
+      'Pro tuto oblast nejsou data veřejné dopravy';
+
+  @override
+  String get transitRequestFailed => 'Nepodařilo se načíst veřejnou dopravu';
+
+  @override
+  String get transitRetry => 'Zkusit znovu';
+
+  @override
+  String get transitWalkLeg => 'Pěšky';
+
+  @override
+  String get transitYourLocation => 'Vaše poloha';
+
+  @override
+  String get transitDestination => 'Cíl';
+
+  @override
+  String get transitScheduledTimes =>
+      'Časy pocházejí ze zveřejněných jízdních řádů';
+
+  @override
+  String get transitDirect => 'Přímo';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count přestupů';
+  }
 }

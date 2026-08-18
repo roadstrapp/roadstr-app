@@ -1387,4 +1387,38 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Încărcare';
+
+  @override
+  String get transportModeTransit => 'Transport';
+
+  @override
+  String get transitNoServiceHere =>
+      'Nu există date de transport public pentru această zonă';
+
+  @override
+  String get transitRequestFailed =>
+      'Transportul public nu a putut fi încărcat';
+
+  @override
+  String get transitRetry => 'Reîncearcă';
+
+  @override
+  String get transitWalkLeg => 'Pe jos';
+
+  @override
+  String get transitYourLocation => 'Locația ta';
+
+  @override
+  String get transitDestination => 'Destinație';
+
+  @override
+  String get transitScheduledTimes => 'Orele provin din orarele publicate';
+
+  @override
+  String get transitDirect => 'Direct';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count schimbări';
+  }
 }

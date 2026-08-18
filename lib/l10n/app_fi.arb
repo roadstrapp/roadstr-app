@@ -533,5 +533,15 @@
   "nearbyPolice": "Poliisi",
   "nearbyPostOffice": "Posti",
   "nearbyParking": "Pysäköinti",
-  "nearbyCharging": "Latauspiste"
+  "nearbyCharging": "Latauspiste",
+  "transportModeTransit": "Joukkoliikenne",
+  "transitNoServiceHere": "Tälle alueelle ei ole joukkoliikennetietoja",
+  "transitRequestFailed": "Joukkoliikennettä ei voitu ladata",
+  "transitRetry": "Yritä uudelleen",
+  "transitWalkLeg": "Kävely",
+  "transitYourLocation": "Sijaintisi",
+  "transitDestination": "Määränpää",
+  "transitScheduledTimes": "Ajat perustuvat julkaistuihin aikatauluihin",
+  "transitDirect": "Suora",
+  "transitTransfers": "{count} vaihtoa"
 }

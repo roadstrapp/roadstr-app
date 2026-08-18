@@ -32,4 +32,36 @@ void main() {
     expect(a['salt'], isNot(equals(b['salt'])));
     expect(a['ciphertext'], isNot(equals(b['ciphertext'])));
   });
+
+  group('off the UI isolate', () {
+    // The derivation is deliberately expensive (600k PBKDF2 iterations) and
+    // synchronous, so running it inline freezes whatever isolate calls it.
+    // Auto-push fires on every favourite edit and auto-pull at startup, which
+    // made that freeze part of ordinary use rather than of an explicit export.
+    test('encryptAsync/decryptAsync round-trip', () async {
+      final envelope =
+          await FavoritesCrypto.encryptAsync('favourite places', 'pw');
+      expect(envelope['ciphertext'], isNotNull);
+      expect(await FavoritesCrypto.decryptAsync(envelope, 'pw'),
+          'favourite places');
+    });
+
+    test('the wrong password still throws across the isolate boundary',
+        () async {
+      // The failure has to survive being forwarded from the background
+      // isolate, otherwise a bad passphrase would look like a success.
+      final envelope = await FavoritesCrypto.encryptAsync('secret', 'right');
+      await expectLater(FavoritesCrypto.decryptAsync(envelope, 'wrong'),
+          throwsA(isA<FavoritesDecryptException>()));
+    });
+
+    test('async output is readable by the synchronous decrypt', () async {
+      // Envelopes written by either path must stay interchangeable, so an
+      // export from one app version imports into another.
+      final envelope = await FavoritesCrypto.encryptAsync('data', 'pw');
+      expect(FavoritesCrypto.decrypt(envelope, 'pw'), 'data');
+      expect(await FavoritesCrypto.decryptAsync(
+          FavoritesCrypto.encrypt('data', 'pw'), 'pw'), 'data');
+    });
+  });
 }

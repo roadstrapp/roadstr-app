@@ -1386,4 +1386,38 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Laadpunt';
+
+  @override
+  String get transportModeTransit => 'OV';
+
+  @override
+  String get transitNoServiceHere =>
+      'Geen openbaarvervoersgegevens voor dit gebied';
+
+  @override
+  String get transitRequestFailed => 'Openbaar vervoer kon niet worden geladen';
+
+  @override
+  String get transitRetry => 'Opnieuw proberen';
+
+  @override
+  String get transitWalkLeg => 'Lopen';
+
+  @override
+  String get transitYourLocation => 'Jouw locatie';
+
+  @override
+  String get transitDestination => 'Bestemming';
+
+  @override
+  String get transitScheduledTimes =>
+      'Tijden komen uit gepubliceerde dienstregelingen';
+
+  @override
+  String get transitDirect => 'Direct';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count overstappen';
+  }
 }

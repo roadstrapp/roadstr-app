@@ -39,6 +39,7 @@ import '../models/favorite_place.dart';
 import '../models/activity_notification.dart';
 import '../models/road_event.dart';
 import '../models/search_history_item.dart';
+import '../models/transit_itinerary.dart';
 import '../models/way_point.dart';
 import '../services/activity_notification_service.dart';
 import '../services/navigation_guidance.dart';
@@ -47,6 +48,8 @@ import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
 import '../services/nostr_relay_service.dart';
 import '../services/favorites_sync_service.dart';
+import '../services/transit_service.dart';
+import '../widgets/transit_itinerary_widget.dart';
 import '../widgets/cursor_painter.dart';
 import '../widgets/map/map_chrome.dart';
 import '../widgets/map/map_markers.dart';
@@ -181,6 +184,23 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// closely while still ironing out GPS jitter at low speed.
   static const _followTauMs = 350.0;
 
+  /// Ceiling on how fast the map may rotate on its own, in degrees per second.
+  ///
+  /// Deliberately well above any real vehicle's yaw rate — a tight roundabout
+  /// is around 30°/s, a motorway slip road nearer 10°/s — so following genuine
+  /// motion is never slowed down. It exists solely to stop a *correction* from
+  /// being applied faster than a driver can read it.
+  ///
+  /// Applies only to the continuous GPS-follow loop. Rotations the user asked
+  /// for (recenter, heading-up toggle) still resolve at once through
+  /// [_animateCamera]: a response to a tap should be immediate, while a
+  /// rotation nobody requested should be gentle.
+  static const _maxFollowTurnDegPerSec = 90.0;
+
+  /// How far the camera may sit from the rotation it was asked for before the
+  /// watchdog treats it as genuinely stuck rather than merely easing.
+  static const _stuckCameraDeg = 25.0;
+
   RouteResult? _route;
   LatLng? _destination;
   LatLng? _arrivedAt;
@@ -267,6 +287,24 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   List<RouteResult> _alternatives = [];
   int _selectedAlt = 0;
   bool _showAlternatives = false;
+
+  /// Destination chosen before the first GPS fix arrived, replayed as soon as
+  /// one does. Without this the request was dropped and the user had to search
+  /// for the place all over again — the most annoying possible moment to lose
+  /// it, since it happens on every cold start.
+  ({LatLng destination, String? label})? _awaitingFixDestination;
+
+  /// Public-transport journeys for the same destination. Kept separate from
+  /// [_alternatives] rather than shoehorned into [RouteResult]: an itinerary
+  /// is a chain of scheduled legs with departure times, not a driveable
+  /// polyline, and the two panels answer different questions.
+  List<TransitItinerary> _transitItineraries = [];
+  int _selectedTransit = 0;
+  bool _showTransit = false;
+
+  /// True when the request failed, as opposed to the area simply having no
+  /// published timetable. Only the former is worth offering a retry for.
+  bool _transitFailed = false;
   LatLng? _routeOrigin;
   bool _avoidanceEnabled = false;
   bool _avoidanceLoading = false;
@@ -305,7 +343,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   Timer? _headingWatchdog;
 
   /// Last heading value seen by the watchdog, used to detect a frozen heading.
-  double _watchdogLastHeading = 0;
 
   /// Number of consecutive watchdog ticks with no heading change while moving.
   int _watchdogFrozenTicks = 0;
@@ -757,10 +794,24 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     }
 
     // A real stream fix has now arrived — the last-known seed must not override.
+    final wasWaitingForFix = !_hasRealFix;
     _hasRealFix = true;
     // GPS-loss bookkeeping: any valid fix clears the "signal lost" state.
     _lastFixEpochMs = DateTime.now().millisecondsSinceEpoch;
     if (_gpsSignalLost) setState(() => _gpsSignalLost = false);
+
+    // Replay a destination that was chosen while still acquiring. Deferred to
+    // the next frame so it routes from the position this fix is about to
+    // commit, rather than from the stale one still in [_position] here.
+    final queued = _awaitingFixDestination;
+    if (wasWaitingForFix && queued != null) {
+      _awaitingFixDestination = null;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_hasRealFix) return;
+        unawaited(
+            _requestAlternatives(queued.destination, label: queued.label));
+      });
+    }
 
     context.read<ThemeProvider>().onPositionUpdate(lat, lng);
 
@@ -2055,10 +2106,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       }
     });
 
-    // Start watchdog: if we're moving but heading hasn't updated for several
-    // seconds, force-reapply heading mode so the map snaps to the correct bearing.
+    // Watchdog: if the camera stops converging on the rotation it was asked
+    // for while the vehicle is moving, nudge the easing loop back to life.
     _headingWatchdog?.cancel();
-    _watchdogLastHeading = _heading;
     _watchdogFrozenTicks = 0;
     _headingWatchdog = Timer.periodic(const Duration(seconds: 2), (_) {
       if (!mounted || !_isNavigating || !_headingMode) return;
@@ -2066,18 +2116,36 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         _watchdogFrozenTicks = 0;
         return;
       }
-      if ((_heading - _watchdogLastHeading).abs() < 1.5) {
+      // Watch the camera, not the heading.
+      //
+      // This used to fire when [_heading] stopped changing, which is not
+      // evidence of anything wrong: a steady heading is what driving in a
+      // straight line looks like, and — more damagingly — it is the heading
+      // filter's *intended* output while it withholds a suspect bearing near a
+      // roundabout or a junction, which is exactly where it deliberately holds
+      // for several fixes. So the watchdog fired precisely where the filter
+      // had been accumulating a correction, and answered with [_recenter],
+      // which cancels the easing loop and slams the whole accumulated delta
+      // through in a fixed 550 ms. That was the abrupt spin on leaving a
+      // roundabout or a slip road: not a wrong heading, a right one delivered
+      // all at once.
+      //
+      // A camera that is genuinely stuck shows it by failing to converge on
+      // the rotation it was asked for. That is what is measured now.
+      final drift = HeadingFilter.angleBetween(
+          _mapController.camera.rotation % 360, _followTargetRot % 360);
+      if (drift > _stuckCameraDeg) {
         _watchdogFrozenTicks++;
         if (_watchdogFrozenTicks >= 3) {
-          // Heading frozen for 6+ s while moving — camera is probably stuck.
-          // Recenter to force map rotation to the current GPS bearing.
           _watchdogFrozenTicks = 0;
-          _recenter();
+          // Re-arm the easing loop instead of animating discretely: it is a
+          // no-op when already running, and when it is not, it resumes the
+          // rate-limited convergence rather than replacing it with a jolt.
+          _startFollowTicker();
         }
       } else {
         _watchdogFrozenTicks = 0;
       }
-      _watchdogLastHeading = _heading;
     });
 
     if (Hive.box('settings').get('keepScreenOn', defaultValue: true) as bool) {
@@ -2147,10 +2215,23 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     // Using the Italy fallback (42.5, 12.5) as origin would produce a useless
     // route from the middle of the country to the destination.
     if (!_hasRealFix && fromPosition == null) {
+      // Routing from the Italy fallback would produce a useless route, so the
+      // request genuinely cannot run yet — but throwing the destination away
+      // makes the user find it again, which is the part that was wrong. Hold
+      // it and run the moment the first real fix lands.
+      _awaitingFixDestination = (destination: destination, label: label);
+      // Record it now as well. Waiting until routing succeeds meant a
+      // destination chosen during acquisition never reached the history
+      // either, so there was nothing to fall back to.
+      if (label != null && label.isNotEmpty) {
+        _saveToHistory(label, destination);
+      }
       _snack(AppLocalizations.of(context).acquiringGps);
       _requestGps(); // prompt the user to enable GPS
       return;
     }
+    // A newer request supersedes anything queued behind the fix.
+    _awaitingFixDestination = null;
 
     _pendingLabel = label;
     // Start reverse geocode in parallel (only for map taps where no label is known yet).
@@ -2173,6 +2254,17 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     FocusScope.of(context).unfocus();
 
     final origin = _routeOrigin!; // GPS or explicit planner origin
+    if (_transportMode == 'transit') {
+      // Resolve the destination label in parallel, exactly as the road path
+      // does, so the panel is not left with a blank title.
+      if (geocodeFuture != null) {
+        final geocoded = await geocodeFuture;
+        if (requestGeneration != _routeRequestGeneration) return;
+        if (geocoded != null) _pendingLabel = geocoded;
+      }
+      await _planTransit(origin, destination, requestGeneration);
+      return;
+    }
     final (:provider, :apiKey, :ghServer) = await _resolveProvider();
     if (!mounted || requestGeneration != _routeRequestGeneration) return;
 
@@ -2217,6 +2309,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _showAlternatives = true;
       _showPreview = false;
       _previewRoute = null;
+      // Switching back to a road mode must retire the transit panel, or both
+      // would claim the same slot.
+      _showTransit = false;
     });
     _fitRoutesOnMap(routes);
   }
@@ -2393,6 +2488,10 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     // [_routeOrigin] is captured by the initial request. It may be an explicit
     // A→B planner origin, so recalculation must not require a live GPS fix.
     final origin = _routeOrigin ?? _position;
+    if (vehicle == 'transit') {
+      await _planTransit(origin, destination, requestGeneration);
+      return;
+    }
     final (:provider, :apiKey, :ghServer) = await _resolveProvider();
     if (!mounted || requestGeneration != _routeRequestGeneration) return;
     final lang = Localizations.localeOf(context).languageCode;
@@ -2423,8 +2522,65 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _showAlternatives = true;
       _showPreview = false;
       _previewRoute = null;
+      // Switching back to a road mode must retire the transit panel, or both
+      // would claim the same slot.
+      _showTransit = false;
     });
     _fitRoutesOnMap(routes);
+  }
+
+  /// Plans a public-transport journey and shows the itinerary panel.
+  ///
+  /// Deliberately not routed through [RoutingService]: the road routers only
+  /// understand car/foot/bike profiles, and an unrecognised mode string falls
+  /// through to the car profile there — which would answer a request for a
+  /// bus with a driving route and no indication that it had done so.
+  Future<void> _planTransit(
+      LatLng origin, LatLng destination, int requestGeneration) async {
+    final result = await const TransitService()
+        .plan(from: origin, to: destination);
+    if (!mounted || requestGeneration != _routeRequestGeneration) return;
+
+    setState(() {
+      _isCalculating = false;
+      _showAlternatives = false;
+      _showPreview = false;
+      _previewRoute = null;
+      _showTransit = true;
+      _selectedTransit = 0;
+      _transitItineraries =
+          result is TransitPlan ? result.itineraries : const [];
+      _transitFailed = result is TransitFailure;
+    });
+
+    if (_transitItineraries.isNotEmpty) {
+      _fitTransitOnMap(_transitItineraries[_selectedTransit]);
+    }
+  }
+
+  /// Frames the whole journey, walking legs included — the first walk is
+  /// often the part the traveller most needs to see.
+  void _fitTransitOnMap(TransitItinerary itinerary) {
+    final points = [
+      for (final leg in itinerary.legs) ...leg.geometry,
+    ];
+    if (points.length < 2) return;
+    _mapController.fitCamera(
+      CameraFit.coordinates(
+        coordinates: points,
+        padding: const EdgeInsets.fromLTRB(48, 96, 48, 260),
+      ),
+    );
+  }
+
+  void _cancelTransit() {
+    _routeRequestGeneration++;
+    setState(() {
+      _showTransit = false;
+      _transitItineraries = [];
+      _transitFailed = false;
+      _destination = null;
+    });
   }
 
   /// Switches transport mode, resets route preferences, and recalculates.
@@ -2618,6 +2774,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
   void _cancelAlternatives() {
     _avoidanceRequestGeneration++;
+    // Cancelling means cancelling, including anything still queued behind the
+    // fix — otherwise it would surprise the user by routing itself later.
+    _awaitingFixDestination = null;
     setState(() {
       _showAlternatives = false;
       _alternatives = [];
@@ -3263,7 +3422,25 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       while (rotDelta < -180) {
         rotDelta += 360;
       }
-      final rot = fromRot + rotDelta * t;
+      // Exponential easing alone is not enough: its time constant is fixed, so
+      // the *rate* it produces is proportional to the size of the correction.
+      // A 5° adjustment resolves gently; a 150° one — which is what arrives
+      // after the heading filter has spent several fixes suppressing a suspect
+      // bearing near a roundabout or a slip road — sweeps through at hundreds
+      // of degrees per second and reads as the map spinning out from under the
+      // driver, right at the moment they are checking whether they took the
+      // correct exit.
+      //
+      // Capping angular velocity fixes that for every source of a large jump,
+      // present and future, instead of chasing them one at a time: a real
+      // vehicle's yaw rate stays well under this even in a tight roundabout
+      // (~30°/s), so the cap never touches genuine motion — it only stretches
+      // artificial jumps into something the eye can follow.
+      var rotStep = rotDelta * t;
+      final maxStep = _maxFollowTurnDegPerSec * dtMs / 1000.0;
+      if (rotStep > maxStep) rotStep = maxStep;
+      if (rotStep < -maxStep) rotStep = -maxStep;
+      final rot = fromRot + rotStep;
       final zoom =
           (fromZoom + (_followTargetZoom - fromZoom) * t).clamp(1.0, 22.0);
       final lat =
@@ -4205,6 +4382,24 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                   tileDisplay: const TileDisplay.fadeIn(reloadStartOpacity: 1),
                   tileBuilder: c.isDark ? _darkTileBuilder : null,
                 ),
+                // Public-transport journey: each leg drawn in its own colour,
+                // so where the walking ends and the ride begins is readable at
+                // a glance rather than a single undifferentiated line.
+                if (_showTransit &&
+                    _selectedTransit < _transitItineraries.length)
+                  PolylineLayer(polylines: [
+                    for (final leg
+                        in _transitItineraries[_selectedTransit].legs)
+                      if (leg.geometry.length >= 2)
+                        Polyline(
+                          points: leg.geometry,
+                          strokeWidth: leg.mode.isTransit ? 7 : 4,
+                          color: leg.mode.isTransit
+                              ? (leg.routeColor ?? c.accent)
+                              : c.textSecondary.withValues(alpha: 0.7),
+                          strokeCap: StrokeCap.round,
+                        ),
+                  ]),
                 if (_showAlternatives)
                   PolylineLayer(polylines: [
                     for (int i = 0; i < _alternatives.length; i++)
@@ -4848,7 +5043,24 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                             onCancel: _cancelPreview,
                             onModeChanged: _recalculateForMode,
                           )
-                        : _showAlternatives
+                        : _showTransit
+                            ? TransitItinerariesPanel(
+                                itineraries: _transitItineraries,
+                                selected: _selectedTransit,
+                                colors: c,
+                                bottomInset: bottomInset,
+                                label: _pendingLabel,
+                                failed: _transitFailed,
+                                onSelect: (i) {
+                                  setState(() => _selectedTransit = i);
+                                  _fitTransitOnMap(_transitItineraries[i]);
+                                },
+                                onCancel: _cancelTransit,
+                                onRetry: _recalcRoutes,
+                                transportMode: _transportMode,
+                                onModeChanged: _recalculateForMode,
+                              )
+                            : _showAlternatives
                             ? RouteAlternativesPanel(
                                 alternatives: _alternatives,
                                 selected: _selectedAlt,

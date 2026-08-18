@@ -533,5 +533,15 @@
   "nearbyPolice": "警察",
   "nearbyPostOffice": "郵便局",
   "nearbyParking": "駐車場",
-  "nearbyCharging": "充電"
+  "nearbyCharging": "充電",
+  "transportModeTransit": "公共交通",
+  "transitNoServiceHere": "このエリアの公共交通データがありません",
+  "transitRequestFailed": "公共交通を読み込めませんでした",
+  "transitRetry": "再試行",
+  "transitWalkLeg": "徒歩",
+  "transitYourLocation": "現在地",
+  "transitDestination": "目的地",
+  "transitScheduledTimes": "時刻は公開された時刻表に基づきます",
+  "transitDirect": "直通",
+  "transitTransfers": "乗換 {count} 回"
 }

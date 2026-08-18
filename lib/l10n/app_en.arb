@@ -617,5 +617,22 @@
   "nearbyPolice": "Police",
   "nearbyPostOffice": "Post office",
   "nearbyParking": "Parking",
-  "nearbyCharging": "Charging"
+  "nearbyCharging": "Charging",
+  "transportModeTransit": "Transit",
+  "transitNoServiceHere": "No public transport data for this area",
+  "transitRequestFailed": "Could not load public transport",
+  "transitRetry": "Try again",
+  "transitWalkLeg": "Walk",
+  "transitYourLocation": "Your location",
+  "transitDestination": "Destination",
+  "transitScheduledTimes": "Times come from published timetables",
+  "transitDirect": "Direct",
+  "transitTransfers": "{count} changes",
+  "@transitTransfers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
