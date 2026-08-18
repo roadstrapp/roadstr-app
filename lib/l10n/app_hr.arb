@@ -533,5 +533,15 @@
   "nearbyPolice": "Policija",
   "nearbyPostOffice": "Pošta",
   "nearbyParking": "Parkiralište",
-  "nearbyCharging": "Punjenje"
+  "nearbyCharging": "Punjenje",
+  "transportModeTransit": "Prijevoz",
+  "transitNoServiceHere": "Nema podataka o javnom prijevozu za ovo područje",
+  "transitRequestFailed": "Javni prijevoz nije moguće učitati",
+  "transitRetry": "Pokušaj ponovno",
+  "transitWalkLeg": "Pješice",
+  "transitYourLocation": "Vaša lokacija",
+  "transitDestination": "Odredište",
+  "transitScheduledTimes": "Vremena potječu iz objavljenih voznih redova",
+  "transitDirect": "Izravno",
+  "transitTransfers": "{count} presjedanja"
 }

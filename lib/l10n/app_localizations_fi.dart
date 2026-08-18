@@ -1383,4 +1383,38 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Latauspiste';
+
+  @override
+  String get transportModeTransit => 'Joukkoliikenne';
+
+  @override
+  String get transitNoServiceHere =>
+      'Tälle alueelle ei ole joukkoliikennetietoja';
+
+  @override
+  String get transitRequestFailed => 'Joukkoliikennettä ei voitu ladata';
+
+  @override
+  String get transitRetry => 'Yritä uudelleen';
+
+  @override
+  String get transitWalkLeg => 'Kävely';
+
+  @override
+  String get transitYourLocation => 'Sijaintisi';
+
+  @override
+  String get transitDestination => 'Määränpää';
+
+  @override
+  String get transitScheduledTimes =>
+      'Ajat perustuvat julkaistuihin aikatauluihin';
+
+  @override
+  String get transitDirect => 'Suora';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count vaihtoa';
+  }
 }

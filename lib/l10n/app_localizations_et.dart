@@ -1385,4 +1385,38 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Laadimine';
+
+  @override
+  String get transportModeTransit => 'Ühistransport';
+
+  @override
+  String get transitNoServiceHere =>
+      'Selle piirkonna kohta puuduvad ühistranspordi andmed';
+
+  @override
+  String get transitRequestFailed => 'Ühistransporti ei õnnestunud laadida';
+
+  @override
+  String get transitRetry => 'Proovi uuesti';
+
+  @override
+  String get transitWalkLeg => 'Jalgsi';
+
+  @override
+  String get transitYourLocation => 'Sinu asukoht';
+
+  @override
+  String get transitDestination => 'Sihtkoht';
+
+  @override
+  String get transitScheduledTimes =>
+      'Ajad pärinevad avaldatud sõiduplaanidest';
+
+  @override
+  String get transitDirect => 'Otse';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count ümberistumist';
+  }
 }

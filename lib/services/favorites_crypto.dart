@@ -3,6 +3,7 @@
 // AES-256 key from the user's password; AES-256-GCM then encrypts the
 // favorites JSON with authentication (tamper/wrong-password detection).
 import 'dart:convert';
+import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -77,6 +78,30 @@ class FavoritesCrypto {
       throw const FavoritesDecryptException('wrong password or corrupted file');
     }
   }
+
+  /// [encrypt] on a background isolate.
+  ///
+  /// 600k PBKDF2 iterations is deliberately expensive — that is the entire
+  /// point of the iteration count — and in pure Dart it costs well over a
+  /// second even on a desktop. Run on the UI isolate that is a frozen app, and
+  /// on a mid-range phone it is long enough for Android to consider showing
+  /// the "isn't responding" dialog. Being inside an `async` method does not
+  /// help: the derivation itself is synchronous and holds the isolate until it
+  /// finishes.
+  ///
+  /// These wrappers exist so that callers get the off-thread behaviour by
+  /// default rather than having to remember it. The synchronous [encrypt] and
+  /// [decrypt] remain for tests and for code already running off the UI
+  /// isolate.
+  static Future<Map<String, dynamic>> encryptAsync(
+          String plaintext, String password) =>
+      Isolate.run(() => encrypt(plaintext, password));
+
+  /// [decrypt] on a background isolate. [FavoritesDecryptException] is
+  /// forwarded to the caller unchanged.
+  static Future<String> decryptAsync(
+          Map<String, dynamic> envelope, String password) =>
+      Isolate.run(() => decrypt(envelope, password));
 
   static Uint8List _deriveKey(String password, Uint8List salt, int iterations) {
     final pbkdf2 = PBKDF2KeyDerivator(Mac('SHA-256/HMAC'))

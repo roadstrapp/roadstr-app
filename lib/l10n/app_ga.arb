@@ -533,5 +533,15 @@
   "nearbyPolice": "Garda",
   "nearbyPostOffice": "Oifig an phoist",
   "nearbyParking": "Páirceáil",
-  "nearbyCharging": "Luchtú"
+  "nearbyCharging": "Luchtú",
+  "transportModeTransit": "Iompar",
+  "transitNoServiceHere": "Níl sonraí iompair phoiblí ann don cheantar seo",
+  "transitRequestFailed": "Níorbh fhéidir iompar poiblí a lódáil",
+  "transitRetry": "Bain triail eile as",
+  "transitWalkLeg": "De shiúl na gcos",
+  "transitYourLocation": "Do shuíomh",
+  "transitDestination": "Ceann scríbe",
+  "transitScheduledTimes": "Tagann na hamanna ó amchláir fhoilsithe",
+  "transitDirect": "Díreach",
+  "transitTransfers": "{count} aistrithe"
 }

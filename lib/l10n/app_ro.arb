@@ -533,5 +533,15 @@
   "nearbyPolice": "Poliție",
   "nearbyPostOffice": "Poștă",
   "nearbyParking": "Parcare",
-  "nearbyCharging": "Încărcare"
+  "nearbyCharging": "Încărcare",
+  "transportModeTransit": "Transport",
+  "transitNoServiceHere": "Nu există date de transport public pentru această zonă",
+  "transitRequestFailed": "Transportul public nu a putut fi încărcat",
+  "transitRetry": "Reîncearcă",
+  "transitWalkLeg": "Pe jos",
+  "transitYourLocation": "Locația ta",
+  "transitDestination": "Destinație",
+  "transitScheduledTimes": "Orele provin din orarele publicate",
+  "transitDirect": "Direct",
+  "transitTransfers": "{count} schimbări"
 }

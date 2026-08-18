@@ -1383,4 +1383,38 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Nabíjanie';
+
+  @override
+  String get transportModeTransit => 'MHD';
+
+  @override
+  String get transitNoServiceHere =>
+      'Pre túto oblasť nie sú dáta verejnej dopravy';
+
+  @override
+  String get transitRequestFailed => 'Nepodarilo sa načítať verejnú dopravu';
+
+  @override
+  String get transitRetry => 'Skúsiť znova';
+
+  @override
+  String get transitWalkLeg => 'Pešo';
+
+  @override
+  String get transitYourLocation => 'Vaša poloha';
+
+  @override
+  String get transitDestination => 'Cieľ';
+
+  @override
+  String get transitScheduledTimes =>
+      'Časy pochádzajú zo zverejnených cestovných poriadkov';
+
+  @override
+  String get transitDirect => 'Priamo';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count prestupov';
+  }
 }

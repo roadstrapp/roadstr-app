@@ -533,5 +533,15 @@
   "nearbyPolice": "Policija",
   "nearbyPostOffice": "Pasts",
   "nearbyParking": "Autostāvvieta",
-  "nearbyCharging": "Uzlāde"
+  "nearbyCharging": "Uzlāde",
+  "transportModeTransit": "Transports",
+  "transitNoServiceHere": "Šai teritorijai nav sabiedriskā transporta datu",
+  "transitRequestFailed": "Neizdevās ielādēt sabiedrisko transportu",
+  "transitRetry": "Mēģināt vēlreiz",
+  "transitWalkLeg": "Kājām",
+  "transitYourLocation": "Jūsu atrašanās vieta",
+  "transitDestination": "Galamērķis",
+  "transitScheduledTimes": "Laiki ņemti no publicētajiem sarakstiem",
+  "transitDirect": "Tieši",
+  "transitTransfers": "{count} pārsēšanās"
 }

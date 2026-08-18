@@ -1391,4 +1391,39 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Ricarica';
+
+  @override
+  String get transportModeTransit => 'Mezzi';
+
+  @override
+  String get transitNoServiceHere =>
+      'Nessun dato di trasporto pubblico per questa zona';
+
+  @override
+  String get transitRequestFailed =>
+      'Impossibile caricare il trasporto pubblico';
+
+  @override
+  String get transitRetry => 'Riprova';
+
+  @override
+  String get transitWalkLeg => 'A piedi';
+
+  @override
+  String get transitYourLocation => 'La tua posizione';
+
+  @override
+  String get transitDestination => 'Destinazione';
+
+  @override
+  String get transitScheduledTimes =>
+      'Gli orari provengono dagli orari pubblicati';
+
+  @override
+  String get transitDirect => 'Diretto';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count cambi';
+  }
 }

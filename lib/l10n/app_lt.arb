@@ -533,5 +533,15 @@
   "nearbyPolice": "Policija",
   "nearbyPostOffice": "Paštas",
   "nearbyParking": "Stovėjimo aikštelė",
-  "nearbyCharging": "Įkrovimas"
+  "nearbyCharging": "Įkrovimas",
+  "transportModeTransit": "Transportas",
+  "transitNoServiceHere": "Šiai vietovei nėra viešojo transporto duomenų",
+  "transitRequestFailed": "Nepavyko įkelti viešojo transporto",
+  "transitRetry": "Bandyti dar kartą",
+  "transitWalkLeg": "Pėsčiomis",
+  "transitYourLocation": "Jūsų vieta",
+  "transitDestination": "Kelionės tikslas",
+  "transitScheduledTimes": "Laikai paimti iš paskelbtų tvarkaraščių",
+  "transitDirect": "Tiesiogiai",
+  "transitTransfers": "{count} persėdimai"
 }

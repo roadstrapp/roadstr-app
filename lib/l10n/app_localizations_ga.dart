@@ -1387,4 +1387,37 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Luchtú';
+
+  @override
+  String get transportModeTransit => 'Iompar';
+
+  @override
+  String get transitNoServiceHere =>
+      'Níl sonraí iompair phoiblí ann don cheantar seo';
+
+  @override
+  String get transitRequestFailed => 'Níorbh fhéidir iompar poiblí a lódáil';
+
+  @override
+  String get transitRetry => 'Bain triail eile as';
+
+  @override
+  String get transitWalkLeg => 'De shiúl na gcos';
+
+  @override
+  String get transitYourLocation => 'Do shuíomh';
+
+  @override
+  String get transitDestination => 'Ceann scríbe';
+
+  @override
+  String get transitScheduledTimes => 'Tagann na hamanna ó amchláir fhoilsithe';
+
+  @override
+  String get transitDirect => 'Díreach';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count aistrithe';
+  }
 }

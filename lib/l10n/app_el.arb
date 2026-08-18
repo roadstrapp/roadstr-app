@@ -533,5 +533,15 @@
   "nearbyPolice": "Αστυνομία",
   "nearbyPostOffice": "Ταχυδρομείο",
   "nearbyParking": "Πάρκινγκ",
-  "nearbyCharging": "Φόρτιση"
+  "nearbyCharging": "Φόρτιση",
+  "transportModeTransit": "ΜΜΜ",
+  "transitNoServiceHere": "Δεν υπάρχουν δεδομένα δημόσιων συγκοινωνιών για αυτήν την περιοχή",
+  "transitRequestFailed": "Δεν ήταν δυνατή η φόρτωση των δημόσιων συγκοινωνιών",
+  "transitRetry": "Δοκιμάστε ξανά",
+  "transitWalkLeg": "Με τα πόδια",
+  "transitYourLocation": "Η τοποθεσία σας",
+  "transitDestination": "Προορισμός",
+  "transitScheduledTimes": "Οι ώρες προέρχονται από δημοσιευμένα δρομολόγια",
+  "transitDirect": "Απευθείας",
+  "transitTransfers": "{count} μετεπιβιβάσεις"
 }
