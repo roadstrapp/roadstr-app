@@ -543,5 +543,10 @@
   "transitDestination": "Kelionės tikslas",
   "transitScheduledTimes": "Laikai paimti iš paskelbtų tvarkaraščių",
   "transitDirect": "Tiesiogiai",
-  "transitTransfers": "{count} persėdimai"
+  "transitTransfers": "{count} persėdimai",
+  "ztlNearRouteWarning": "Dėmesio: {street} yra riboto eismo zona",
+  "themeModernNostr": "Modernus · Nostr violetinė",
+  "themeModernBitcoin": "Modernus · Bitcoin oranžinė",
+  "themeModernDarkNostr": "Modernus tamsus · Nostr violetinė",
+  "themeModernDarkBitcoin": "Modernus tamsus · Bitcoin oranžinė"
 }

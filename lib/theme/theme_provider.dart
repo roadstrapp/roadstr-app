@@ -36,6 +36,20 @@ class ThemeProvider extends ChangeNotifier {
         case AppThemeId.darkNostr:
         case AppThemeId.darkBitcoin:
           return _current;
+        // The modern variants follow the same accent into the dark palette.
+        // Their gradient is a light-theme device — carrying it into night
+        // driving would put a bright wash on the screen at the one time the
+        // whole point is not to.
+        // The light modern variants hand over to their own dark counterparts,
+        // so auto-dark keeps the user in the modern look rather than dropping
+        // them into the flat theme at sunset.
+        case AppThemeId.modernNostr:
+          return AppThemeId.modernDarkNostr;
+        case AppThemeId.modernBitcoin:
+          return AppThemeId.modernDarkBitcoin;
+        case AppThemeId.modernDarkNostr:
+        case AppThemeId.modernDarkBitcoin:
+          return _current;
       }
     }
     return _current;

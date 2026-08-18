@@ -543,5 +543,10 @@
   "transitDestination": "Cel",
   "transitScheduledTimes": "Godziny pochodzą z opublikowanych rozkładów",
   "transitDirect": "Bezpośrednio",
-  "transitTransfers": "{count} przesiadek"
+  "transitTransfers": "{count} przesiadek",
+  "ztlNearRouteWarning": "Uwaga: {street} to strefa ograniczonego ruchu",
+  "themeModernNostr": "Nowoczesny · Fiolet Nostr",
+  "themeModernBitcoin": "Nowoczesny · Pomarańcz Bitcoin",
+  "themeModernDarkNostr": "Nowoczesny ciemny · Fiolet Nostr",
+  "themeModernDarkBitcoin": "Nowoczesny ciemny · Pomarańcz Bitcoin"
 }

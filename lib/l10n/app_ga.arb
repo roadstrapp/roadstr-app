@@ -543,5 +543,10 @@
   "transitDestination": "Ceann scríbe",
   "transitScheduledTimes": "Tagann na hamanna ó amchláir fhoilsithe",
   "transitDirect": "Díreach",
-  "transitTransfers": "{count} aistrithe"
+  "transitTransfers": "{count} aistrithe",
+  "ztlNearRouteWarning": "Aire: is crios tráchta srianta é {street}",
+  "themeModernNostr": "Nua-aimseartha · Corcra Nostr",
+  "themeModernBitcoin": "Nua-aimseartha · Oráiste Bitcoin",
+  "themeModernDarkNostr": "Nua-aimseartha dorcha · Corcra Nostr",
+  "themeModernDarkBitcoin": "Nua-aimseartha dorcha · Oráiste Bitcoin"
 }

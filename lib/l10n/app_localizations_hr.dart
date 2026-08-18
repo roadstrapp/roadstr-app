@@ -1421,4 +1421,21 @@ class AppLocalizationsHr extends AppLocalizations {
   String transitTransfers(int count) {
     return '$count presjedanja';
   }
+
+  @override
+  String ztlNearRouteWarning(String street) {
+    return 'Pozor: $street je zona ograničenog prometa';
+  }
+
+  @override
+  String get themeModernNostr => 'Moderna · Nostr ljubičasta';
+
+  @override
+  String get themeModernBitcoin => 'Moderna · Bitcoin narančasta';
+
+  @override
+  String get themeModernDarkNostr => 'Moderna tamna · Nostr ljubičasta';
+
+  @override
+  String get themeModernDarkBitcoin => 'Moderna tamna · Bitcoin narančasta';
 }

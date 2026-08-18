@@ -33,9 +33,17 @@ subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
     // Forza compileSdk >= 36 su tutti i plugin (es. amberflutter fermo a 33)
+    // e allinea la NDK: i plugin ne dichiarano di proprie (whisper_ggml chiede
+    // la 29.0), ma la 27.1 e' quella con cui viene compilato eSpeak NG e
+    // quella dichiarata nella ricetta F-Droid. Lasciarne convivere due
+    // significherebbe scaricarne un'altra da 1 GB e, soprattutto, far fallire
+    // la build F-Droid, che ne installa una sola.
     afterEvaluate {
         extensions.findByType(com.android.build.gradle.BaseExtension::class)
-            ?.compileSdkVersion(36)
+            ?.apply {
+                compileSdkVersion(36)
+                ndkVersion = "27.1.12297006"
+            }
     }
 }
 subprojects {

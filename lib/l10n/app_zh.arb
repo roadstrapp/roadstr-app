@@ -543,5 +543,10 @@
   "transitDestination": "目的地",
   "transitScheduledTimes": "时间来自公布的时刻表",
   "transitDirect": "直达",
-  "transitTransfers": "{count} 次换乘"
+  "transitTransfers": "{count} 次换乘",
+  "ztlNearRouteWarning": "注意：{street} 是限制交通区",
+  "themeModernNostr": "现代 · Nostr 紫",
+  "themeModernBitcoin": "现代 · Bitcoin 橙",
+  "themeModernDarkNostr": "现代深色 · Nostr 紫",
+  "themeModernDarkBitcoin": "现代深色 · Bitcoin 橙"
 }

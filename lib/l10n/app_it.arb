@@ -506,5 +506,10 @@
   "transitDestination": "Destinazione",
   "transitScheduledTimes": "Gli orari provengono dagli orari pubblicati",
   "transitDirect": "Diretto",
-  "transitTransfers": "{count} cambi"
+  "transitTransfers": "{count} cambi",
+  "ztlNearRouteWarning": "Attenzione: {street} è una via a traffico limitato",
+  "themeModernNostr": "Moderno · Viola Nostr",
+  "themeModernBitcoin": "Moderno · Arancione Bitcoin",
+  "themeModernDarkNostr": "Moderno scuro · Viola Nostr",
+  "themeModernDarkBitcoin": "Moderno scuro · Arancione Bitcoin"
 }
