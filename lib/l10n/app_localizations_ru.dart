@@ -1387,4 +1387,39 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Зарядка';
+
+  @override
+  String get transportModeTransit => 'Транспорт';
+
+  @override
+  String get transitNoServiceHere =>
+      'Нет данных об общественном транспорте для этой зоны';
+
+  @override
+  String get transitRequestFailed =>
+      'Не удалось загрузить общественный транспорт';
+
+  @override
+  String get transitRetry => 'Повторить';
+
+  @override
+  String get transitWalkLeg => 'Пешком';
+
+  @override
+  String get transitYourLocation => 'Ваше местоположение';
+
+  @override
+  String get transitDestination => 'Пункт назначения';
+
+  @override
+  String get transitScheduledTimes =>
+      'Время указано по опубликованному расписанию';
+
+  @override
+  String get transitDirect => 'Без пересадок';
+
+  @override
+  String transitTransfers(int count) {
+    return 'Пересадок: $count';
+  }
 }

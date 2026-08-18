@@ -6,6 +6,7 @@
 // in the background during active navigation.
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -112,10 +113,48 @@ class GpsService {
       if (permission == LocationPermission.denied) return false;
     }
     if (permission == LocationPermission.deniedForever) return false;
+    // Kick off the assistance-data refresh alongside the stream rather than
+    // before it: the download and the satellite search run concurrently, and
+    // awaiting it would delay the very fix it is meant to speed up.
+    unawaited(primeAssistanceData());
     _subscription = Geolocator.getPositionStream(
       locationSettings: _locationSettings,
     ).listen(_onPosition, onError: _onError);
     return true;
+  }
+
+  static const _gnssChannel = MethodChannel('app.roadstr/gnss');
+
+  /// Whether the assistance-data refresh has already been asked for this run.
+  static bool _assistancePrimed = false;
+
+  /// Asks the GNSS engine to refresh its predicted-orbit data (PSDS/XTRA) and
+  /// its clock, which is the single biggest lever on how long a cold fix takes.
+  ///
+  /// Without assistance data the receiver must demodulate the almanac from the
+  /// satellite signal itself — that is a fixed ~30 s of physics, repeated every
+  /// time the cached data goes stale. With it, a fix typically lands in a few
+  /// seconds. This matters far more on a de-Googled device, where the fused
+  /// provider that would normally paper over the delay is simply absent.
+  ///
+  /// It is not a Google dependency: the platform downloads from whatever
+  /// `/etc/gps.conf` names, which is the chipset vendor's service or the ROM
+  /// project's own proxy.
+  ///
+  /// Best-effort and deliberately silent. These are provider extensions that a
+  /// device may ignore outright, and there is nothing a user could do about a
+  /// refusal — the receiver still works, just more slowly. Called once per run;
+  /// repeating it would not make the download arrive faster.
+  static Future<void> primeAssistanceData() async {
+    if (_assistancePrimed || defaultTargetPlatform != TargetPlatform.android) {
+      return;
+    }
+    _assistancePrimed = true;
+    try {
+      await _gnssChannel.invokeMethod<bool>('primeAssistanceData');
+    } catch (_) {
+      // Missing channel, unsupported device, no network: all equally fine.
+    }
   }
 
   /// Returns the last cached fix from the OS, instantly and without waiting for

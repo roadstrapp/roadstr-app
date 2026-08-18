@@ -533,5 +533,15 @@
   "nearbyPolice": "Polis",
   "nearbyPostOffice": "Post",
   "nearbyParking": "Parkering",
-  "nearbyCharging": "Laddning"
+  "nearbyCharging": "Laddning",
+  "transportModeTransit": "Kollektivt",
+  "transitNoServiceHere": "Inga kollektivtrafikdata för detta område",
+  "transitRequestFailed": "Kunde inte ladda kollektivtrafik",
+  "transitRetry": "Försök igen",
+  "transitWalkLeg": "Gå",
+  "transitYourLocation": "Din plats",
+  "transitDestination": "Destination",
+  "transitScheduledTimes": "Tiderna kommer från publicerade tidtabeller",
+  "transitDirect": "Direkt",
+  "transitTransfers": "{count} byten"
 }

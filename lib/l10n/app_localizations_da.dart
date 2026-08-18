@@ -1386,4 +1386,38 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Opladning';
+
+  @override
+  String get transportModeTransit => 'Offentlig';
+
+  @override
+  String get transitNoServiceHere =>
+      'Ingen data om offentlig transport for dette område';
+
+  @override
+  String get transitRequestFailed => 'Kunne ikke indlæse offentlig transport';
+
+  @override
+  String get transitRetry => 'Prøv igen';
+
+  @override
+  String get transitWalkLeg => 'Gå';
+
+  @override
+  String get transitYourLocation => 'Din placering';
+
+  @override
+  String get transitDestination => 'Destination';
+
+  @override
+  String get transitScheduledTimes =>
+      'Tiderne kommer fra offentliggjorte køreplaner';
+
+  @override
+  String get transitDirect => 'Direkte';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count skift';
+  }
 }

@@ -533,5 +533,15 @@
   "nearbyPolice": "Politsei",
   "nearbyPostOffice": "Postkontor",
   "nearbyParking": "Parkla",
-  "nearbyCharging": "Laadimine"
+  "nearbyCharging": "Laadimine",
+  "transportModeTransit": "Ühistransport",
+  "transitNoServiceHere": "Selle piirkonna kohta puuduvad ühistranspordi andmed",
+  "transitRequestFailed": "Ühistransporti ei õnnestunud laadida",
+  "transitRetry": "Proovi uuesti",
+  "transitWalkLeg": "Jalgsi",
+  "transitYourLocation": "Sinu asukoht",
+  "transitDestination": "Sihtkoht",
+  "transitScheduledTimes": "Ajad pärinevad avaldatud sõiduplaanidest",
+  "transitDirect": "Otse",
+  "transitTransfers": "{count} ümberistumist"
 }

@@ -19,6 +19,7 @@ import 'package:nostr_tools/nostr_tools.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../models/activity_notification.dart';
+import '../config/network_config.dart';
 import '../models/road_event.dart';
 import 'nostr_event_verify.dart';
 import 'zap_service.dart';
@@ -62,7 +63,10 @@ class RoadstrProfileVisibility {
 ///   - Client sends `["EVENT", eventJson]` to publish; relay responds `["OK", ...]`.
 class NostrRelayService {
   final _eventApi = EventApi();
-  static const _maxInboundMessageChars = 256 * 1024;
+  // Shared with the favourites sync service — see [RelayLimits] for why the
+  // value is what it is. Kept as a local alias so the six checks below stay
+  // readable.
+  static const _maxInboundMessageChars = RelayLimits.maxInboundMessageChars;
   static const _maxCachedEvents = 1000;
 
   /// Ceiling on kind-1317 updates held waiting for a report that has not

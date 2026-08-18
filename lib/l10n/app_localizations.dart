@@ -2673,6 +2673,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Charging'**
   String get nearbyCharging;
+
+  /// No description provided for @transportModeTransit.
+  ///
+  /// In en, this message translates to:
+  /// **'Transit'**
+  String get transportModeTransit;
+
+  /// No description provided for @transitNoServiceHere.
+  ///
+  /// In en, this message translates to:
+  /// **'No public transport data for this area'**
+  String get transitNoServiceHere;
+
+  /// No description provided for @transitRequestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load public transport'**
+  String get transitRequestFailed;
+
+  /// No description provided for @transitRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get transitRetry;
+
+  /// No description provided for @transitWalkLeg.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk'**
+  String get transitWalkLeg;
+
+  /// No description provided for @transitYourLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Your location'**
+  String get transitYourLocation;
+
+  /// No description provided for @transitDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination'**
+  String get transitDestination;
+
+  /// No description provided for @transitScheduledTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Times come from published timetables'**
+  String get transitScheduledTimes;
+
+  /// No description provided for @transitDirect.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct'**
+  String get transitDirect;
+
+  /// No description provided for @transitTransfers.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} changes'**
+  String transitTransfers(int count);
 }
 
 class _AppLocalizationsDelegate

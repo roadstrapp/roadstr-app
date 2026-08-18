@@ -1359,4 +1359,36 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get nearbyCharging => '充電';
+
+  @override
+  String get transportModeTransit => '公共交通';
+
+  @override
+  String get transitNoServiceHere => 'このエリアの公共交通データがありません';
+
+  @override
+  String get transitRequestFailed => '公共交通を読み込めませんでした';
+
+  @override
+  String get transitRetry => '再試行';
+
+  @override
+  String get transitWalkLeg => '徒歩';
+
+  @override
+  String get transitYourLocation => '現在地';
+
+  @override
+  String get transitDestination => '目的地';
+
+  @override
+  String get transitScheduledTimes => '時刻は公開された時刻表に基づきます';
+
+  @override
+  String get transitDirect => '直通';
+
+  @override
+  String transitTransfers(int count) {
+    return '乗換 $count 回';
+  }
 }

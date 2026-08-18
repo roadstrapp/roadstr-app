@@ -1388,4 +1388,38 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Töltő';
+
+  @override
+  String get transportModeTransit => 'Tömegközlekedés';
+
+  @override
+  String get transitNoServiceHere =>
+      'Nincs tömegközlekedési adat ehhez a területhez';
+
+  @override
+  String get transitRequestFailed => 'A tömegközlekedés betöltése nem sikerült';
+
+  @override
+  String get transitRetry => 'Újra';
+
+  @override
+  String get transitWalkLeg => 'Gyalog';
+
+  @override
+  String get transitYourLocation => 'Az Ön helyzete';
+
+  @override
+  String get transitDestination => 'Úti cél';
+
+  @override
+  String get transitScheduledTimes =>
+      'Az időpontok a közzétett menetrendekből származnak';
+
+  @override
+  String get transitDirect => 'Közvetlen';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count átszállás';
+  }
 }

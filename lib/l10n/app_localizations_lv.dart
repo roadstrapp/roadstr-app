@@ -1384,4 +1384,37 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Uzlāde';
+
+  @override
+  String get transportModeTransit => 'Transports';
+
+  @override
+  String get transitNoServiceHere =>
+      'Šai teritorijai nav sabiedriskā transporta datu';
+
+  @override
+  String get transitRequestFailed => 'Neizdevās ielādēt sabiedrisko transportu';
+
+  @override
+  String get transitRetry => 'Mēģināt vēlreiz';
+
+  @override
+  String get transitWalkLeg => 'Kājām';
+
+  @override
+  String get transitYourLocation => 'Jūsu atrašanās vieta';
+
+  @override
+  String get transitDestination => 'Galamērķis';
+
+  @override
+  String get transitScheduledTimes => 'Laiki ņemti no publicētajiem sarakstiem';
+
+  @override
+  String get transitDirect => 'Tieši';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count pārsēšanās';
+  }
 }

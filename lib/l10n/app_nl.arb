@@ -533,5 +533,15 @@
   "nearbyPolice": "Politie",
   "nearbyPostOffice": "Postkantoor",
   "nearbyParking": "Parkeren",
-  "nearbyCharging": "Laadpunt"
+  "nearbyCharging": "Laadpunt",
+  "transportModeTransit": "OV",
+  "transitNoServiceHere": "Geen openbaarvervoersgegevens voor dit gebied",
+  "transitRequestFailed": "Openbaar vervoer kon niet worden geladen",
+  "transitRetry": "Opnieuw proberen",
+  "transitWalkLeg": "Lopen",
+  "transitYourLocation": "Jouw locatie",
+  "transitDestination": "Bestemming",
+  "transitScheduledTimes": "Tijden komen uit gepubliceerde dienstregelingen",
+  "transitDirect": "Direct",
+  "transitTransfers": "{count} overstappen"
 }

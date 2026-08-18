@@ -1386,4 +1386,39 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get nearbyCharging => 'Ładowarka';
+
+  @override
+  String get transportModeTransit => 'Komunikacja';
+
+  @override
+  String get transitNoServiceHere =>
+      'Brak danych transportu publicznego dla tego obszaru';
+
+  @override
+  String get transitRequestFailed =>
+      'Nie udało się wczytać transportu publicznego';
+
+  @override
+  String get transitRetry => 'Spróbuj ponownie';
+
+  @override
+  String get transitWalkLeg => 'Pieszo';
+
+  @override
+  String get transitYourLocation => 'Twoja lokalizacja';
+
+  @override
+  String get transitDestination => 'Cel';
+
+  @override
+  String get transitScheduledTimes =>
+      'Godziny pochodzą z opublikowanych rozkładów';
+
+  @override
+  String get transitDirect => 'Bezpośrednio';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count przesiadek';
+  }
 }

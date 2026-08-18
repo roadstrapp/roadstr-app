@@ -533,5 +533,15 @@
   "nearbyPolice": "Rendőrség",
   "nearbyPostOffice": "Posta",
   "nearbyParking": "Parkoló",
-  "nearbyCharging": "Töltő"
+  "nearbyCharging": "Töltő",
+  "transportModeTransit": "Tömegközlekedés",
+  "transitNoServiceHere": "Nincs tömegközlekedési adat ehhez a területhez",
+  "transitRequestFailed": "A tömegközlekedés betöltése nem sikerült",
+  "transitRetry": "Újra",
+  "transitWalkLeg": "Gyalog",
+  "transitYourLocation": "Az Ön helyzete",
+  "transitDestination": "Úti cél",
+  "transitScheduledTimes": "Az időpontok a közzétett menetrendekből származnak",
+  "transitDirect": "Közvetlen",
+  "transitTransfers": "{count} átszállás"
 }

@@ -533,5 +533,15 @@
   "nearbyPolice": "Полиция",
   "nearbyPostOffice": "Почта",
   "nearbyParking": "Парковка",
-  "nearbyCharging": "Зарядка"
+  "nearbyCharging": "Зарядка",
+  "transportModeTransit": "Транспорт",
+  "transitNoServiceHere": "Нет данных об общественном транспорте для этой зоны",
+  "transitRequestFailed": "Не удалось загрузить общественный транспорт",
+  "transitRetry": "Повторить",
+  "transitWalkLeg": "Пешком",
+  "transitYourLocation": "Ваше местоположение",
+  "transitDestination": "Пункт назначения",
+  "transitScheduledTimes": "Время указано по опубликованному расписанию",
+  "transitDirect": "Без пересадок",
+  "transitTransfers": "Пересадок: {count}"
 }

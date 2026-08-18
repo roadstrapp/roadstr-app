@@ -1349,4 +1349,36 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get nearbyCharging => '充电';
+
+  @override
+  String get transportModeTransit => '公共交通';
+
+  @override
+  String get transitNoServiceHere => '该地区没有公共交通数据';
+
+  @override
+  String get transitRequestFailed => '无法加载公共交通';
+
+  @override
+  String get transitRetry => '重试';
+
+  @override
+  String get transitWalkLeg => '步行';
+
+  @override
+  String get transitYourLocation => '您的位置';
+
+  @override
+  String get transitDestination => '目的地';
+
+  @override
+  String get transitScheduledTimes => '时间来自公布的时刻表';
+
+  @override
+  String get transitDirect => '直达';
+
+  @override
+  String transitTransfers(int count) {
+    return '$count 次换乘';
+  }
 }
