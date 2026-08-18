@@ -1,0 +1,40 @@
+A crash fixed at the root, clearer zone warnings, and a new look.
+
+Fixed
+
+• The app could die outright mid-drive. The cause was a memory bug inside
+  the bundled speech library, which had not been updated since December
+  2024 — twelve memory-safety fixes had landed upstream since, including
+  ones in exactly the code that reads out distances and numbers. The
+  library is rebuilt past those fixes
+• The map no longer swings round abruptly after leaving a roundabout or a
+  slip road, right when you are checking whether you took the right exit
+• A destination chosen while the GPS is still acquiring is no longer
+  thrown away — it is saved to your recent searches and the route starts
+  on its own as soon as the position arrives
+• Cold GPS fixes should be quicker, without Google: the app now asks the
+  receiver to refresh its own satellite assistance data
+
+Limited traffic zones
+
+• Only the stretches of route actually on a restricted street turn red.
+  The rest of the route keeps its colour, and the part already driven
+  stays grey
+• "You are in a restricted zone" now appears only when you really are in
+  one, based on your live position — not because the route passes nearby
+• Driving past a restricted street shows a yellow notice naming it, so a
+  tempting shortcut is not mistaken for an open road
+• Restricted streets near the route are drawn dotted in red
+
+Look and feel
+
+• Four new themes: modern light and dark, in Nostr Violet and Bitcoin
+  Orange
+• The route is drawn as a lit line with a bright core and a soft halo
+• Driving panels now float above the map with rounded corners and lit
+  edges, and the manoeuvre tile and map controls are lit surfaces
+• Time to arrival is now the headline figure, with distance beside it
+• Bicycle routes can be planned from the start, not only chosen after a
+  route has been calculated
+• The exit number on the roundabout symbol is larger and no longer
+  clipped on roundabouts with many exits
