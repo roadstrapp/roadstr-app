@@ -71,6 +71,25 @@ import '../utils/heading_filter.dart';
 import '../utils/settings_listenable.dart';
 import '../utils/units.dart';
 
+/// Warning red for limited-traffic zones. Deliberately not the theme accent:
+/// this must mean the same thing whichever accent colour the user picked, and
+/// must not be mistakable for an ordinary route.
+const Color _kZtlRed = Color(0xFFE53935);
+
+/// Width of the active route's coloured band.
+///
+/// The laser treatment spends part of its width on the white core, so the band
+/// has to be genuinely wider than the flat 5 px line it replaces — at 6 px the
+/// rails came out hairline and the effect read as a thin line with a crack
+/// down it rather than as a lit track.
+const double _kRouteStrokeW = 9.0;
+
+/// Fraction of [_kRouteStrokeW] given to the white core.
+const double _kRouteCoreRatio = 0.34;
+
+/// Width of the soft halo drawn under the band.
+const double _kRouteGlowW = _kRouteStrokeW + 9;
+
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
   @override
@@ -247,6 +266,24 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// Turns consecutive fixes into the direction the map should face, absorbing
   /// GPS jitter and road-snap reversals along the way.
   final _headingFilter = HeadingFilter();
+
+  /// Restricted streets the active route actually drives along, and those it
+  /// merely passes close to. Kept apart because they warrant opposite
+  /// messages: the first says "you are being sent into a zone you may not be
+  /// allowed to enter", the second says "that inviting shortcut is not one".
+  /// Whether each point of [_renderRoutePolyline] sits on a restricted street.
+  /// Recomputed when the route changes and whenever new zone data arrives, so
+  /// the colouring fills in as Overpass answers rather than being fixed at
+  /// departure.
+  List<bool> _ztlFlags = [];
+
+  /// Restricted streets close to the route that it does not use.
+  List<ZtlWay> _ztlNearRoute = [];
+
+  /// Restricted street the driver is currently passing, while not being on one
+  /// themselves. Recomputed on every GPS fix — this is an advisory about where
+  /// the car is now, not a property of the route.
+  ZtlWay? _ztlPassingBy;
 
   /// True when the current GPS position is inside a known ZTL polygon.
   bool _inZtl = false;
@@ -923,7 +960,16 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     // removed: a warning hundreds of metres before a ZTL is too noisy and can
     // be misleading when the route only passes near its boundary.
     unawaited(_ztl.updateIfNeeded(data.position));
-    final nowInZtl = _ztl.isInsideZtl(data.position);
+    final nowInZtlCandidate = _ztl.isInsideZtl(data.position);
+    // Advisory about a restricted street being driven past. Suppressed while
+    // inside one: at that point the red banner is the accurate message, and
+    // two warnings at once teaches the driver to read neither.
+    final passing =
+        nowInZtlCandidate ? null : _ztl.nearestRestrictedWay(data.position);
+    if (passing?.name != _ztlPassingBy?.name) {
+      setState(() => _ztlPassingBy = passing);
+    }
+    final nowInZtl = nowInZtlCandidate;
     if (nowInZtl != _inZtl) {
       setState(() {
         _inZtl = nowInZtl;
@@ -1298,6 +1344,73 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// Prepares cumulative distances for the route geometry.  Keeping this
   /// array avoids repeatedly walking a potentially very long polyline on GPS
   /// ticks and lets the completed/remaining paint split at sub-point accuracy.
+  /// Recomputes which stretches of the active route run on restricted streets,
+  /// and which restricted streets sit beside it.
+  ///
+  /// Called on a new route and again whenever zone data arrives, because that
+  /// data is fetched progressively as the driver moves: a route calculated
+  /// before Overpass answered would otherwise stay uncoloured for the whole
+  /// journey.
+  void _refreshZtlForRoute(List<LatLng>? polyline) {
+    final render = _renderRoutePolyline;
+    if (polyline == null || render.length < 2) {
+      if (_ztlFlags.isEmpty && _ztlNearRoute.isEmpty) return;
+      setState(() {
+        _ztlFlags = [];
+        _ztlNearRoute = [];
+      });
+      return;
+    }
+    final flags = _ztl.classifyPoints(render);
+    final analysis = _ztl.analyseRoute(polyline);
+    if (!mounted) return;
+    setState(() {
+      _ztlFlags = flags;
+      _ztlNearRoute = analysis.nearby;
+    });
+  }
+
+  /// The not-yet-driven route, cut into consecutive runs of equal restriction.
+  ///
+  /// Runs overlap by one point on purpose: without the shared vertex the
+  /// polylines would meet with a visible gap exactly at the point the colour
+  /// changes, which is the junction the driver is looking at.
+  List<({List<LatLng> points, bool restricted})> _remainingRouteRuns() {
+    final pts = _routeProgressPolyline(completed: false);
+    if (pts.length < 2) return const [];
+
+    final render = _renderRoutePolyline;
+    // The remaining polyline starts at an interpolated cursor, so its flags
+    // are the cached ones from the first whole point onwards, with the cursor
+    // classified on its own.
+    final offset = render.length - (pts.length - 1);
+    List<bool> flags;
+    if (_ztlFlags.length == render.length && offset >= 0) {
+      flags = [
+        _ztl.isOnRestrictedWay(pts.first),
+        for (var i = offset; i < render.length; i++) _ztlFlags[i],
+      ];
+    } else {
+      flags = List<bool>.filled(pts.length, false);
+    }
+    if (flags.length != pts.length) {
+      return [(points: pts, restricted: false)];
+    }
+
+    final runs = <({List<LatLng> points, bool restricted})>[];
+    var start = 0;
+    for (var i = 1; i <= pts.length; i++) {
+      if (i < pts.length && flags[i] == flags[start]) continue;
+      final end = i < pts.length ? i + 1 : i;
+      runs.add((
+        points: pts.sublist(start, end.clamp(0, pts.length)),
+        restricted: flags[start],
+      ));
+      start = i;
+    }
+    return runs;
+  }
+
   void _prepareRouteProgress(RouteResult route) {
     final cumulative = <double>[0];
     for (var i = 1; i < route.polyline.length; i++) {
@@ -2076,6 +2189,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     }
 
     _prepareRouteProgress(route);
+    _refreshZtlForRoute(route.polyline);
     setState(() {
       _route = route;
       _currentStepIdx = 0;
@@ -2968,6 +3082,10 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _destination = null;
       _isNavigating = false;
       _isRerouting = false;
+      // The zone warnings belong to a route; with no route they would linger
+      // as a red overlay over nothing.
+      _ztlFlags = [];
+      _ztlNearRoute = [];
       _currentStepIdx = 0;
       _headingMode = false;
       _routeCumulativeM = const [];
@@ -4421,23 +4539,83 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                         strokeCap: StrokeCap.round,
                       ),
                   ]),
+                // Restricted streets near the route but not on it. Drawn
+                // dashed so they never read as part of the route itself.
+                if (_ztlNearRoute.isNotEmpty && !_showAlternatives)
+                  PolylineLayer(polylines: [
+                    for (final way in _ztlNearRoute)
+                      if (way.points.length >= 2)
+                        Polyline(
+                          points: way.points,
+                          strokeWidth: 4,
+                          color: _kZtlRed.withValues(alpha: 0.75),
+                          pattern: const StrokePattern.dotted(),
+                          strokeCap: StrokeCap.round,
+                        ),
+                  ]),
                 if (_route != null && !_showAlternatives) ...[
                   PolylineLayer(polylines: [
                     Polyline(
                         points: _renderRoutePolyline,
-                        strokeWidth: 8,
+                        strokeWidth: _kRouteStrokeW + 3,
                         // Neutral underlay avoids leaving a violet/orange ghost
                         // on the completed leg after the grey overlay is drawn.
                         color: Colors.grey.shade500.withValues(alpha: 0.22)),
-                    Polyline(
-                        points: _routeProgressPolyline(completed: false),
-                        strokeWidth: 5,
-                        color: c.accent,
-                        strokeCap: StrokeCap.round),
+                    // Remaining route, split so that only the stretches on
+                    // restricted streets are red. Turning the whole line red
+                    // would claim the entire journey is restricted when it is
+                    // usually a block or two.
+                    //
+                    // Each run is drawn twice — coloured band, then a white
+                    // core over it — which is what produces the "laser" look:
+                    // two parallel rails of colour with a lit centre. Painted
+                    // as two stacked strokes rather than three separate lines
+                    // because the edges then stay perfectly parallel through
+                    // every bend, which three independent polylines would not.
+                    for (final run in _remainingRouteRuns()) ...[
+                      // Halo. Two wide, very transparent passes rather than
+                      // one: stacked alpha falls off gradually from the band
+                      // outwards, which is what reads as light spilling onto
+                      // the map instead of as a second, blurry outline.
+                      Polyline(
+                          points: run.points,
+                          strokeWidth: _kRouteGlowW,
+                          color: (run.restricted ? _kZtlRed : c.accent)
+                              .withValues(alpha: 0.16),
+                          strokeCap: StrokeCap.round,
+                          strokeJoin: StrokeJoin.round),
+                      Polyline(
+                          points: run.points,
+                          strokeWidth: _kRouteStrokeW + 4,
+                          color: (run.restricted ? _kZtlRed : c.accent)
+                              .withValues(alpha: 0.28),
+                          strokeCap: StrokeCap.round,
+                          strokeJoin: StrokeJoin.round),
+                      // The two coloured rails.
+                      Polyline(
+                          points: run.points,
+                          strokeWidth: _kRouteStrokeW,
+                          color: run.restricted ? _kZtlRed : c.accent,
+                          strokeCap: StrokeCap.round,
+                          strokeJoin: StrokeJoin.round),
+                      // Lit core. Pure white and fully opaque — the brightness
+                      // is the whole effect, and any transparency here lets
+                      // the map show through and dulls it.
+                      Polyline(
+                          points: run.points,
+                          strokeWidth: _kRouteStrokeW * _kRouteCoreRatio,
+                          color: Colors.white,
+                          strokeCap: StrokeCap.round,
+                          strokeJoin: StrokeJoin.round),
+                    ],
                     if (_routeProgressM > 0)
                       Polyline(
                           points: _routeProgressPolyline(completed: true),
-                          strokeWidth: 5,
+                          // Matches the live stroke's width but stays flat
+                          // grey: the laser core marks the road still to
+                          // drive, so carrying it into the completed leg would
+                          // undo the distinction.
+                          strokeWidth: _kRouteStrokeW,
                           color: Colors.grey.shade500,
                           strokeCap: StrokeCap.round),
                   ]),
@@ -4803,6 +4981,21 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
               left: 16,
               right: 16,
               child: ZtlBanner(name: _ztlName, pos: _position),
+            )
+          // Only when NOT already inside one. The red banner above answers
+          // "you are in a restricted zone", and it is driven by the live GPS
+          // position — never by the route merely touching a zone somewhere
+          // ahead, which would announce a violation that has not happened.
+          //
+          // This one is an advisory about a street being driven past: a
+          // shortcut that looks open and is not.
+          else if (_ztlPassingBy != null)
+            Positioned(
+              top: _isNavigating ? null : topInset + 76,
+              bottom: _isNavigating ? 220 + bottomInset : null,
+              left: 16,
+              right: 16,
+              child: ZtlNearbyNotice(name: _ztlPassingBy!.name, pos: _position),
             ),
 
           // ── LEFT FABs: report event + A→B planner + parking ───────────────────
@@ -4820,22 +5013,24 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                       onTap: _showReportSheet,
                       colors: c,
                       child: Icon(Icons.report_problem_outlined,
-                          color: c.textPrimary, size: 22)),
+                          color: c.onAccent, size: 22)),
                 if (_hasRealFix) const SizedBox(height: 8),
                 MapFab(
                     onTap: _openPlanner,
                     colors: c,
                     child: Icon(Icons.alt_route_rounded,
-                        color: c.accent, size: 28)),
+                        color: c.onAccent, size: 28)),
                 if (_hasRealFix || _parkingPosition != null) ...[
                   const SizedBox(height: 8),
                   MapFab(
                       onTap: _showParkingSheet,
                       colors: c,
                       child: Icon(Icons.local_parking_rounded,
+                          // A saved spot stays distinct, but light enough to
+                          // read against the accent fill.
                           color: _parkingPosition != null
-                              ? Colors.blue.shade400
-                              : c.textPrimary,
+                              ? Colors.lightBlueAccent.shade100
+                              : c.onAccent,
                           size: 24)),
                 ],
               ]),
@@ -4911,12 +5106,16 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: c.accent))
+                              strokeWidth: 2, color: c.onAccent))
                       : Icon(
                           _followUser ? Icons.gps_fixed : Icons.gps_not_fixed,
+                          // States stay distinguishable by opacity now that
+                          // the fill carries the accent: solid when following,
+                          // dimmed when not, fainter still without a fix.
                           color: _hasRealFix
-                              ? (_followUser ? c.accent : c.textPrimary)
-                              : c.textSecondary,
+                              ? c.onAccent
+                                  .withValues(alpha: _followUser ? 1.0 : 0.62)
+                              : c.onAccent.withValues(alpha: 0.38),
                           size: 22),
                 ),
                 if (_isNavigating) ...[
@@ -4932,14 +5131,15 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                           _voiceMuted
                               ? Icons.volume_off_rounded
                               : Icons.volume_up_rounded,
-                          color: _voiceMuted ? c.textSecondary : c.accent,
+                          color: c.onAccent
+                              .withValues(alpha: _voiceMuted ? 0.45 : 1.0),
                           size: 22)),
                   const SizedBox(height: 8),
                   MapFab(
                       onTap: _showReportSheet,
                       colors: c,
                       child: Icon(Icons.report_problem_outlined,
-                          color: const Color(0xFFFFB800), size: 22)),
+                          color: const Color(0xFFFFE082), size: 22)),
                 ],
               ]),
             ),

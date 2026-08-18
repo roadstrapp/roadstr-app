@@ -543,5 +543,10 @@
   "transitDestination": "Bestemming",
   "transitScheduledTimes": "Tijden komen uit gepubliceerde dienstregelingen",
   "transitDirect": "Direct",
-  "transitTransfers": "{count} overstappen"
+  "transitTransfers": "{count} overstappen",
+  "ztlNearRouteWarning": "Let op: {street} is een zone met beperkt verkeer",
+  "themeModernNostr": "Modern · Nostr-paars",
+  "themeModernBitcoin": "Modern · Bitcoin-oranje",
+  "themeModernDarkNostr": "Modern donker · Nostr-paars",
+  "themeModernDarkBitcoin": "Modern donker · Bitcoin-oranje"
 }

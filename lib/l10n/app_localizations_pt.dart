@@ -1421,4 +1421,21 @@ class AppLocalizationsPt extends AppLocalizations {
   String transitTransfers(int count) {
     return '$count baldeações';
   }
+
+  @override
+  String ztlNearRouteWarning(String street) {
+    return 'Atenção: $street é uma zona de acesso condicionado';
+  }
+
+  @override
+  String get themeModernNostr => 'Moderno · Violeta Nostr';
+
+  @override
+  String get themeModernBitcoin => 'Moderno · Laranja Bitcoin';
+
+  @override
+  String get themeModernDarkNostr => 'Moderno escuro · Violeta Nostr';
+
+  @override
+  String get themeModernDarkBitcoin => 'Moderno escuro · Laranja Bitcoin';
 }

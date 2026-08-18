@@ -6,7 +6,19 @@ set -euo pipefail
 # as root. Set ESPEAK_SOURCE_DIR / SONIC_SOURCE_DIR to pre-fetched sources for
 # offline or F-Droid-style builds.
 
-readonly ESPEAK_COMMIT="4870adfa25b1a32b4361592f1be8a40337c58d6c"
+# Pinned past 1.52.0 on purpose. 1.52.0 (Dec 2024) is still upstream's latest
+# tagged release, but twelve memory-safety fixes have landed on master since,
+# and one of them is ours: a real SIGSEGV was captured inside
+# espeak_TextToPhonemes, with a fault address two bytes short of a page
+# boundary - the signature of a buffer running off the end of its page.
+# Upstream fixes since 1.52.0 that cover that path include stack buffer
+# overflows in number and clause formatting (#2409), a NULL phoneme_tab crash
+# (#2475), and a stack buffer overflow when a word stacks many SUFX_M
+# suffixes (#2495), which is the commit pinned here.
+#
+# Tracking an unreleased commit is a deliberate trade: the alternative is
+# shipping a phonemizer that can take the whole app down mid-navigation.
+readonly ESPEAK_COMMIT="56f2e9c730e2438787103168c0412c80c25d014e"
 readonly SONIC_COMMIT="fbf75c3d6d846bad3bb3d456cbc5d07d9fd8c104"
 readonly NDK_VERSION="27.1.12297006"
 readonly ABIS=("arm64-v8a" "armeabi-v7a" "x86_64")

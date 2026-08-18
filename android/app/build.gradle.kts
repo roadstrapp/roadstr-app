@@ -62,8 +62,8 @@ android {
         // These two lines are the single source of truth for the Android
         // build and MUST match `version:` in pubspec.yaml. That is enforced by
         // test/version_consistency_test.dart rather than by memory.
-        versionCode = 30
-        versionName = "0.4.21"
+        versionCode = 31
+        versionName = "0.4.22"
     }
 
     // ── Signing ───────────────────────────────────────────────────────────────
@@ -149,13 +149,13 @@ flutter {
 // replacement even when developers invoke `flutter build` directly.
 val bundledNativeChecksums = mapOf(
     "src/main/jniLibs/arm64-v8a/libespeak-ng.so" to
-        "6e301b195c241c6ae9c8b6b67f79eac6c7cd0cea0c575dc9f47bc73aea44189b",
+        "a53a8ce4a9f815f393d10a220772701c077a3773aad6e8c0256341671f7b6955",
     "src/main/jniLibs/armeabi-v7a/libespeak-ng.so" to
-        "e4ebee2962a1364db285576d2645ed291c5d4681528fa96fc29c0d20cca7580f",
+        "8097f3faf64b01ef5f76e693f1d58ea0ae518945e49a6dd555d9efabb38e582d",
     "src/main/jniLibs/x86_64/libespeak-ng.so" to
-        "33cc7a1432a31e401ceba081e7e207cec22e07e0317d347a355a9b1b6ade6cff",
+        "eaa1991e55b9194a1e97eac745d4a3d9dbab64b0382a54004fe800a1416daa5e",
     "../../assets/espeak-ng-data.tar.gz" to
-        "e245635cf3a0042f8d2081fec0a4c578e58b2f545ec4313823be9862a02f98bb",
+        "441d5fcf375f9bd0418fda5fa772d386388ea31e95de95f7e3a96c57104b67f3",
 )
 
 val verifyBundledNativeAssets by tasks.registering {

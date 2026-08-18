@@ -64,15 +64,21 @@ class NavInstruction extends StatelessWidget {
     return Column(mainAxisSize: MainAxisSize.min, children: [
       // ── Main instruction panel ─────────────────────────────────────────────
       Container(
-        padding: EdgeInsets.fromLTRB(16, topInset + vPad, 16, vPad),
+        // Inset from the screen edges and rounded at the bottom: the panel
+        // becomes an object resting over the map rather than a bar welded to
+        // the top of it, and the sliver of map now visible down each side is
+        // what sells the depth.
+        margin: EdgeInsets.fromLTRB(10, topInset + 6, 10, 0),
+        padding: EdgeInsets.fromLTRB(18, vPad, 18, vPad),
         decoration: BoxDecoration(
-          color: colors.surface2,
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withValues(alpha: 0.18),
-                blurRadius: 12,
-                offset: const Offset(0, 3))
-          ],
+          // The gradient is the "modern" themes' whole point, and the driving
+          // panels are where it earns its place. Null on every other theme,
+          // where the flat colour applies exactly as before.
+          gradient: colors.panelGradient,
+          color: colors.panelGradient == null ? colors.surface2 : null,
+          borderRadius: BorderRadius.circular(RoadstrColors.panelRadius),
+          border: Border.all(color: colors.panelEdge, width: 1),
+          boxShadow: colors.panelShadow,
         ),
         child: Row(children: [
           _stepIcon(step, boxSz, colors),
@@ -86,10 +92,15 @@ class NavInstruction extends StatelessWidget {
                     style: TextStyle(
                         color: colors.textPrimary,
                         fontSize: fsMain,
-                        fontWeight: FontWeight.w600),
+                        fontWeight: FontWeight.w700,
+                        height: 1.15,
+                        // Large type set at default tracking looks loose; a
+                        // slight negative pull tightens the phrase into one
+                        // shape the eye takes in at a glance.
+                        letterSpacing: -0.4),
                     maxLines: land ? 1 : 3,
                     overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 4),
+                SizedBox(height: land ? 4 : 7),
                 // Long straight road: show live distance prominently (large, accent).
                 // Short manoeuvre: standard secondary distance label.
                 if (isLongStraight)
@@ -124,6 +135,7 @@ class NavInstruction extends StatelessWidget {
         Align(
           alignment: Alignment.centerLeft,
           child: Container(
+            margin: const EdgeInsets.only(left: 10, top: 8),
             // 15% narrower than the half-screen tile this used to be, so it
             // covers less map. Type and padding come down with it rather than
             // the text being clipped: the same words still fit in the same
@@ -132,14 +144,20 @@ class NavInstruction extends StatelessWidget {
             padding: EdgeInsets.symmetric(
                 horizontal: land ? 13 : 20, vertical: land ? 12 : 18),
             decoration: BoxDecoration(
-              color: colors.surface3,
-              borderRadius:
-                  const BorderRadius.only(bottomRight: Radius.circular(20)),
+              gradient: colors.panelGradient,
+              color: colors.panelGradient == null ? colors.surface3 : null,
+              // Rounded on every corner now that it floats clear of the panel
+              // above, and a step smaller in radius, edge and shadow than the
+              // main panel — subordinate by weight rather than only by size.
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                  color: colors.panelEdge.withValues(alpha: 0.5), width: 1),
               boxShadow: [
                 BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 8,
-                    offset: const Offset(2, 4))
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 16,
+                    spreadRadius: -3,
+                    offset: const Offset(0, 4))
               ],
             ),
             child: Row(children: [
@@ -212,6 +230,52 @@ class NavInstruction extends StatelessWidget {
   }
 }
 
+/// Height of the stop-navigation button.
+const double _stopBtnH = 66.0;
+const Color _stopBtnRed = Color(0xFFFF4444);
+
+/// Vertical wash for the stop button, written as (pixels from the top, how
+/// far to white at that point).
+///
+/// Absolute pixels rather than fractions because the shape was tuned by eye
+/// against the real control: "1 px of red then 6 px to 46% white" is the
+/// instruction, and fractions would hide it.
+///
+/// The curve is front-loaded on purpose. A straight ramp puts a 50% pink
+/// through the middle of the button, and pink — not white — becomes the
+/// colour the eye reads. Letting the red go quickly hands most of the height
+/// to near-white while keeping the transition free of any visible step.
+const List<(double, double)> _stopBtnRamp = [
+  (0.0, 0.72), // already mostly white at the top edge — no red cap at all
+  (22.0, 0.87),
+  (34.0, 0.96),
+  (56.0, 1.00), // pure white for the last 10 px
+  (_stopBtnH, 1.00),
+];
+
+/// Colour the ramp resolves to at its far end.
+///
+/// On a dark panel a white button would be the brightest object on the screen
+/// at night, pulling the eye away from the road; it resolves into a near-black
+/// blue instead, so the red cap still marks the control while the body sinks
+/// into the panel.
+const Color _stopBtnDarkEnd = Color(0xFF0E1424);
+
+LinearGradient _stopBtnGradientFor(bool dark) {
+  final end = dark ? _stopBtnDarkEnd : Colors.white;
+  return LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      for (final (_, whiteness) in _stopBtnRamp)
+        Color.lerp(_stopBtnRed, end, whiteness)!,
+    ],
+    stops: [
+      for (final (px, _) in _stopBtnRamp) px / _stopBtnH,
+    ],
+  );
+}
+
 class NavPanel extends StatelessWidget {
   final RouteResult route;
   final double speed;
@@ -275,16 +339,19 @@ class NavPanel extends StatelessWidget {
         : (bottomInset > 0 ? bottomInset : 16.0);
     return Container(
       decoration: BoxDecoration(
-        color: colors.surface2,
-        border: Border(top: BorderSide(color: colors.border, width: 0.5)),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 12,
-              offset: const Offset(0, -2))
-        ],
+        gradient: colors.panelGradient,
+        color: colors.panelGradient == null ? colors.surface2 : null,
+        // Rounded only at the top: the bar still meets the bottom edge of the
+        // screen, so rounding there would leave a stripe of map under the
+        // system gesture area with nothing in it.
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(RoadstrColors.panelRadius)),
+        border: Border(
+          top: BorderSide(color: colors.panelEdge, width: 1),
+        ),
+        boxShadow: colors.panelShadow,
       ),
-      padding: EdgeInsets.only(left: 16, right: 16, top: vTop, bottom: vBot),
+      padding: EdgeInsets.only(left: 18, right: 14, top: vTop, bottom: vBot),
       child: Row(children: [
         SpeedometerWidget(
             speedKmh: speed,
@@ -297,17 +364,25 @@ class NavPanel extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-              // Remaining distance — updates every GPS tick
-              Text(_distLabel,
+              // Time to arrival leads. What a driver is deciding — whether to
+              // stop, whether they will make an appointment — depends on how
+              // long is left, not on how many kilometres remain; the distance
+              // is the supporting detail, so it takes the secondary style.
+              Text(_timeLabel(l),
                   style: TextStyle(
                       color: colors.textPrimary,
                       fontSize: fsDist,
-                      fontWeight: FontWeight.bold)),
+                      fontWeight: FontWeight.w800,
+                      height: 1.05,
+                      letterSpacing: -0.8)),
+              SizedBox(height: land ? 1 : 3),
               Row(children: [
-                // Remaining time
-                Text(_timeLabel(l),
+                // Remaining distance — updates every GPS tick
+                Text(_distLabel,
                     style: TextStyle(
-                        color: colors.textSecondary, fontSize: fsSub)),
+                        color: colors.textSecondary,
+                        fontSize: fsSub,
+                        fontWeight: FontWeight.w600)),
                 if (!land) ...[
                   Text('  ·  ',
                       style: TextStyle(
@@ -315,7 +390,9 @@ class NavPanel extends StatelessWidget {
                   // Estimated time of arrival
                   Text(l.etaArrivalLabel(_etaLabel),
                       style: TextStyle(
-                          color: colors.textSecondary, fontSize: fsSub)),
+                          color: colors.textSecondary,
+                          fontSize: fsSub,
+                          fontWeight: FontWeight.w600)),
                 ],
               ]),
             ])),
@@ -323,16 +400,25 @@ class NavPanel extends StatelessWidget {
         GestureDetector(
           onTap: onStop,
           child: Container(
-              width: 48,
-              height: 48,
+              // Upright: narrow at the base and tall, so it reads as a
+              // distinct control rather than as another wide info tile
+              // competing with the figures beside it.
+              width: 46,
+              height: _stopBtnH,
+              alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: const Color(0xFFFF4444).withValues(alpha: 0.12),
-                shape: BoxShape.circle,
+                gradient: _stopBtnGradientFor(colors.isDark),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                    color: const Color(0xFFFF4444).withValues(alpha: 0.4)),
+                    color: _stopBtnRed.withValues(alpha: 0.45)),
               ),
-              child: const Icon(Icons.close_rounded,
-                  color: Color(0xFFFF4444), size: 24)),
+              child: Icon(Icons.close_rounded,
+                  // Brighter red on the dark body, where the deeper shade
+                  // used on white would disappear.
+                  color: colors.isDark
+                      ? const Color(0xFFFF6B6B)
+                      : const Color(0xFFD32F2F),
+                  size: 26)),
         ),
       ]),
     );

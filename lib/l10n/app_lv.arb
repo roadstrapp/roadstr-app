@@ -543,5 +543,10 @@
   "transitDestination": "Galamērķis",
   "transitScheduledTimes": "Laiki ņemti no publicētajiem sarakstiem",
   "transitDirect": "Tieši",
-  "transitTransfers": "{count} pārsēšanās"
+  "transitTransfers": "{count} pārsēšanās",
+  "ztlNearRouteWarning": "Uzmanību: {street} ir ierobežotas satiksmes zona",
+  "themeModernNostr": "Moderns · Nostr violets",
+  "themeModernBitcoin": "Moderns · Bitcoin oranžs",
+  "themeModernDarkNostr": "Moderns tumšs · Nostr violets",
+  "themeModernDarkBitcoin": "Moderns tumšs · Bitcoin oranžs"
 }

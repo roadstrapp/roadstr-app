@@ -543,5 +543,10 @@
   "transitDestination": "Cilj",
   "transitScheduledTimes": "Časi izhajajo iz objavljenih voznih redov",
   "transitDirect": "Neposredno",
-  "transitTransfers": "{count} prestopov"
+  "transitTransfers": "{count} prestopov",
+  "ztlNearRouteWarning": "Pozor: {street} je območje omejenega prometa",
+  "themeModernNostr": "Sodobna · Nostr vijolična",
+  "themeModernBitcoin": "Sodobna · Bitcoin oranžna",
+  "themeModernDarkNostr": "Sodobna temna · Nostr vijolična",
+  "themeModernDarkBitcoin": "Sodobna temna · Bitcoin oranžna"
 }

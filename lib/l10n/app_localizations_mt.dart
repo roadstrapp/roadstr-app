@@ -1428,4 +1428,21 @@ class AppLocalizationsMt extends AppLocalizations {
   String transitTransfers(int count) {
     return '$count bidliet';
   }
+
+  @override
+  String ztlNearRouteWarning(String street) {
+    return 'Attenzjoni: $street hija żona ta\' traffiku ristrett';
+  }
+
+  @override
+  String get themeModernNostr => 'Modern · Vjola Nostr';
+
+  @override
+  String get themeModernBitcoin => 'Modern · Oranġjo Bitcoin';
+
+  @override
+  String get themeModernDarkNostr => 'Modern skur · Vjola Nostr';
+
+  @override
+  String get themeModernDarkBitcoin => 'Modern skur · Oranġjo Bitcoin';
 }
