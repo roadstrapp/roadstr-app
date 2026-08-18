@@ -1,0 +1,31 @@
+Public transport, and a calmer map.
+
+• Plan a journey by bus, tram, metro, train or ferry. Pick "On foot" in the
+  route planner and a sub-choice appears underneath
+• Journeys show every stage door to door: the walk to the stop, which stop
+  to head for and by when, the line to catch in its operator's own colour,
+  the changes, and the walk at the other end
+• Works worldwide from openly published timetables, with no account and no
+  API key. Areas without published data say so plainly instead of
+  pretending there is no service
+• Bicycle routes can now be planned from the start, not only chosen after
+  a route has already been calculated
+
+Fixed
+
+• The map no longer swings round abruptly after leaving a roundabout or a
+  slip road, right when you are checking whether you took the correct exit
+• A destination chosen while the GPS is still acquiring is no longer
+  thrown away — it is remembered, saved to your recent searches, and the
+  route starts on its own as soon as the position arrives
+• Cold GPS fixes should be quicker: the app now asks the receiver to
+  refresh its satellite assistance data, which is what otherwise forces it
+  to spend half a minute reading that data off the satellites themselves
+• The exit number on the roundabout symbol is larger, and no longer
+  clipped on roundabouts with many exits
+• Saving or syncing favourites no longer freezes the app. The password
+  step is deliberately slow by design, and it was running on the same
+  thread as the interface — on every favourite edit and at every startup
+• Requests that fail because a shared server is momentarily busy now back
+  off and retry, respecting the server's own requested delay, instead of
+  being treated the same as a permanently broken request
