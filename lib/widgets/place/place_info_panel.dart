@@ -193,7 +193,8 @@ class _PlaceInfoPanelState extends State<PlaceInfoPanel>
               maxHeight: MediaQuery.sizeOf(context).height * 0.80,
             ),
             decoration: BoxDecoration(
-              color: c.surface2,
+              gradient: c.panelGradient,
+              color: c.panelGradient == null ? c.surface2 : null,
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(20)),
               border: Border(top: BorderSide(color: c.border, width: 0.5)),
@@ -552,7 +553,8 @@ class OsmPoiDetailsCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(13, 12, 13, 13),
       decoration: BoxDecoration(
-        color: colors.surface1,
+        gradient: colors.panelGradient,
+        color: colors.panelGradient == null ? colors.surface1 : null,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: colors.border, width: 0.5),
         boxShadow: [

@@ -543,5 +543,10 @@
   "transitDestination": "Odredište",
   "transitScheduledTimes": "Vremena potječu iz objavljenih voznih redova",
   "transitDirect": "Izravno",
-  "transitTransfers": "{count} presjedanja"
+  "transitTransfers": "{count} presjedanja",
+  "ztlNearRouteWarning": "Pozor: {street} je zona ograničenog prometa",
+  "themeModernNostr": "Moderna · Nostr ljubičasta",
+  "themeModernBitcoin": "Moderna · Bitcoin narančasta",
+  "themeModernDarkNostr": "Moderna tamna · Nostr ljubičasta",
+  "themeModernDarkBitcoin": "Moderna tamna · Bitcoin narančasta"
 }

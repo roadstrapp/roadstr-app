@@ -1429,4 +1429,21 @@ class AppLocalizationsEl extends AppLocalizations {
   String transitTransfers(int count) {
     return '$count μετεπιβιβάσεις';
   }
+
+  @override
+  String ztlNearRouteWarning(String street) {
+    return 'Προσοχή: $street είναι ζώνη περιορισμένης κυκλοφορίας';
+  }
+
+  @override
+  String get themeModernNostr => 'Μοντέρνο · Μωβ Nostr';
+
+  @override
+  String get themeModernBitcoin => 'Μοντέρνο · Πορτοκαλί Bitcoin';
+
+  @override
+  String get themeModernDarkNostr => 'Μοντέρνο σκούρο · Μωβ Nostr';
+
+  @override
+  String get themeModernDarkBitcoin => 'Μοντέρνο σκούρο · Πορτοκαλί Bitcoin';
 }

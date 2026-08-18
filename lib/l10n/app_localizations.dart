@@ -2733,6 +2733,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} changes'**
   String transitTransfers(int count);
+
+  /// No description provided for @ztlNearRouteWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Caution: {street} is a limited traffic zone'**
+  String ztlNearRouteWarning(String street);
+
+  /// No description provided for @themeModernNostr.
+  ///
+  /// In en, this message translates to:
+  /// **'Modern · Nostr Violet'**
+  String get themeModernNostr;
+
+  /// No description provided for @themeModernBitcoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Modern · Bitcoin Orange'**
+  String get themeModernBitcoin;
+
+  /// No description provided for @themeModernDarkNostr.
+  ///
+  /// In en, this message translates to:
+  /// **'Modern Dark · Nostr Violet'**
+  String get themeModernDarkNostr;
+
+  /// No description provided for @themeModernDarkBitcoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Modern Dark · Bitcoin Orange'**
+  String get themeModernDarkBitcoin;
 }
 
 class _AppLocalizationsDelegate

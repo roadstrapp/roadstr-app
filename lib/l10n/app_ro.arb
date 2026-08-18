@@ -543,5 +543,10 @@
   "transitDestination": "Destinație",
   "transitScheduledTimes": "Orele provin din orarele publicate",
   "transitDirect": "Direct",
-  "transitTransfers": "{count} schimbări"
+  "transitTransfers": "{count} schimbări",
+  "ztlNearRouteWarning": "Atenție: {street} este o zonă cu trafic limitat",
+  "themeModernNostr": "Modern · Violet Nostr",
+  "themeModernBitcoin": "Modern · Portocaliu Bitcoin",
+  "themeModernDarkNostr": "Modern închis · Violet Nostr",
+  "themeModernDarkBitcoin": "Modern închis · Portocaliu Bitcoin"
 }

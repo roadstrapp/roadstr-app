@@ -1,6 +1,8 @@
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:async';
+
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:ffi/ffi.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
@@ -79,11 +81,27 @@ class EspeakPhonemizer {
   }
 
   /// Returns IPA phoneme string for [text] spoken in [languageCode].
+  /// Longest single word handed to eSpeak.
+  ///
+  /// A crash captured in the field was a SIGSEGV inside
+  /// `espeak_TextToPhonemes`, faulting two bytes before a page boundary — a
+  /// buffer running off the end of its page. The matching upstream fix is
+  /// "a stack buffer overflow when a word stacks many SUFX_M suffixes": the
+  /// trigger is one long word accumulating suffix after suffix, not long text
+  /// overall, which the existing total-length check already bounded.
+  ///
+  /// The library pin has been moved past that fix, but this stays regardless.
+  /// A phonemizer is a nice-to-have; navigation is not. Nothing this library
+  /// can do to a sixty-character token is worth taking the whole app down
+  /// mid-drive, and no place name is legitimately that long.
+  static const _maxWordChars = 60;
+
   Future<String> phonemize(String text, String languageCode) async {
     if (text.isEmpty) return '';
     if (text.length > 1000) {
       throw const FormatException('Text is too long to phonemize');
     }
+    text = _capWordLengths(text);
     if (!_ready) await init();
     while (_operationLock != null) {
       await _operationLock!.future;
@@ -141,6 +159,26 @@ class EspeakPhonemizer {
       malloc.free(textNative);
       malloc.free(ptrHolder);
     }
+  }
+
+  /// Test seam for [_capWordLengths] — the guard is worth pinning, and
+  /// exercising it through [phonemize] would require the native library.
+  @visibleForTesting
+  static String debugCapWordLengths(String text) => _capWordLengths(text);
+
+  /// Truncates any single token longer than [_maxWordChars].
+  ///
+  /// Truncating mispronounces a word; passing it through can end the process.
+  /// Splitting instead of truncating would keep the suffix chain intact across
+  /// the pieces, which is exactly what overflows.
+  static String _capWordLengths(String text) {
+    if (!text.split(RegExp(r'\s+')).any((w) => w.length > _maxWordChars)) {
+      return text;
+    }
+    return text
+        .split(RegExp(r'(\s+)'))
+        .map((w) => w.length > _maxWordChars ? w.substring(0, _maxWordChars) : w)
+        .join(' ');
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────

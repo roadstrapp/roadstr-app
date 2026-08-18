@@ -543,5 +543,10 @@
   "transitDestination": "Úti cél",
   "transitScheduledTimes": "Az időpontok a közzétett menetrendekből származnak",
   "transitDirect": "Közvetlen",
-  "transitTransfers": "{count} átszállás"
+  "transitTransfers": "{count} átszállás",
+  "ztlNearRouteWarning": "Figyelem: {street} korlátozott forgalmú övezet",
+  "themeModernNostr": "Modern · Nostr lila",
+  "themeModernBitcoin": "Modern · Bitcoin narancs",
+  "themeModernDarkNostr": "Modern sötét · Nostr lila",
+  "themeModernDarkBitcoin": "Modern sötét · Bitcoin narancs"
 }

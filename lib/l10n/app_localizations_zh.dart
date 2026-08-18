@@ -1381,4 +1381,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String transitTransfers(int count) {
     return '$count 次换乘';
   }
+
+  @override
+  String ztlNearRouteWarning(String street) {
+    return '注意：$street 是限制交通区';
+  }
+
+  @override
+  String get themeModernNostr => '现代 · Nostr 紫';
+
+  @override
+  String get themeModernBitcoin => '现代 · Bitcoin 橙';
+
+  @override
+  String get themeModernDarkNostr => '现代深色 · Nostr 紫';
+
+  @override
+  String get themeModernDarkBitcoin => '现代深色 · Bitcoin 橙';
 }

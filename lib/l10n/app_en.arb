@@ -634,5 +634,17 @@
         "type": "int"
       }
     }
-  }
+  },
+  "ztlNearRouteWarning": "Caution: {street} is a limited traffic zone",
+  "themeModernNostr": "Modern · Nostr Violet",
+  "themeModernBitcoin": "Modern · Bitcoin Orange",
+  "@ztlNearRouteWarning": {
+    "placeholders": {
+      "street": {
+        "type": "String"
+      }
+    }
+  },
+  "themeModernDarkNostr": "Modern Dark · Nostr Violet",
+  "themeModernDarkBitcoin": "Modern Dark · Bitcoin Orange"
 }

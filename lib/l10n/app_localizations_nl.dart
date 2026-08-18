@@ -1420,4 +1420,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String transitTransfers(int count) {
     return '$count overstappen';
   }
+
+  @override
+  String ztlNearRouteWarning(String street) {
+    return 'Let op: $street is een zone met beperkt verkeer';
+  }
+
+  @override
+  String get themeModernNostr => 'Modern · Nostr-paars';
+
+  @override
+  String get themeModernBitcoin => 'Modern · Bitcoin-oranje';
+
+  @override
+  String get themeModernDarkNostr => 'Modern donker · Nostr-paars';
+
+  @override
+  String get themeModernDarkBitcoin => 'Modern donker · Bitcoin-oranje';
 }

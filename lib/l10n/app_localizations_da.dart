@@ -1420,4 +1420,21 @@ class AppLocalizationsDa extends AppLocalizations {
   String transitTransfers(int count) {
     return '$count skift';
   }
+
+  @override
+  String ztlNearRouteWarning(String street) {
+    return 'Bemærk: $street er en zone med begrænset trafik';
+  }
+
+  @override
+  String get themeModernNostr => 'Moderne · Nostr-lilla';
+
+  @override
+  String get themeModernBitcoin => 'Moderne · Bitcoin-orange';
+
+  @override
+  String get themeModernDarkNostr => 'Moderne mørk · Nostr-lilla';
+
+  @override
+  String get themeModernDarkBitcoin => 'Moderne mørk · Bitcoin-orange';
 }

@@ -31,7 +31,10 @@ class MapBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         decoration: BoxDecoration(
-          color: colors.surface2,
+          // Same framing as the driving panels, so the home screen and
+          // navigation read as one app rather than two.
+          gradient: colors.panelGradient,
+          color: colors.panelGradient == null ? colors.surface2 : null,
           border: Border(top: BorderSide(color: colors.border, width: 0.5)),
           boxShadow: [
             BoxShadow(
@@ -175,15 +178,31 @@ class MapFab extends StatelessWidget {
   const MapFab({super.key, required this.child, required this.onTap, required this.colors});
   @override
   Widget build(BuildContext context) => Material(
-        color: colors.surface2,
+        // Same lit-object treatment as the manoeuvre tile, so the map controls
+        // belong to it rather than looking like leftover system chrome.
+        color: Colors.transparent,
         shape: const CircleBorder(),
-        elevation: 3,
-        shadowColor: Colors.black.withValues(alpha: 0.25),
-        child: InkWell(
-            onTap: onTap,
-            customBorder: const CircleBorder(),
-            child:
-                SizedBox(width: 44, height: 44, child: Center(child: child))),
+        // Elevation off: the soft wide shadow below does the lifting, and
+        // Material's own tight shadow underneath it just muddied the edge.
+        elevation: 0,
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: colors.accentGloss,
+            shape: BoxShape.circle,
+            // A light rim on a lit sphere. Brightest where the gloss already
+            // is, so the highlight and the rim agree on where the light is.
+            border: Border.all(
+                color: Colors.white.withValues(alpha: 0.35), width: 1),
+            boxShadow: colors.panelShadow,
+          ),
+          child: InkWell(
+              onTap: onTap,
+              customBorder: const CircleBorder(),
+              // 48 px: the minimum comfortable touch target, and these are
+              // pressed one-handed while driving.
+              child:
+                  SizedBox(width: 48, height: 48, child: Center(child: child))),
+        ),
       );
 }
 
@@ -284,6 +303,56 @@ class ZtlBanner extends StatelessWidget {
                   color: Colors.white,
                   fontSize: 14,
                   fontWeight: FontWeight.w600)),
+        ),
+      ]),
+    );
+  }
+}
+
+/// Advisory shown while driving *past* a restricted street.
+///
+/// Yellow with black text, deliberately unlike the red "you are inside a
+/// restricted zone" banner: nothing is wrong here. The point is that a street
+/// which looks open — and may well look like a shortcut — is not, so a driver
+/// choosing to turn does so knowing.
+class ZtlNearbyNotice extends StatelessWidget {
+  /// Street name from OSM, when it has one.
+  final String? name;
+
+  /// Decides the official acronym when the street has no name.
+  final LatLng pos;
+
+  const ZtlNearbyNotice({super.key, required this.pos, this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final label = (name != null && name!.isNotEmpty)
+        ? name!
+        : (ZtlService.officialAcronymFor(pos) ?? l.ztlInsideWarning);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFD54F),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.22),
+              blurRadius: 8,
+              offset: const Offset(0, 2))
+        ],
+      ),
+      child: Row(children: [
+        const Icon(Icons.warning_amber_rounded, color: Colors.black, size: 22),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            l.ztlNearRouteWarning(label),
+            style: const TextStyle(
+                color: Colors.black,
+                fontSize: 14,
+                fontWeight: FontWeight.w600),
+          ),
         ),
       ]),
     );

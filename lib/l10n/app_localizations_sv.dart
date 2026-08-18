@@ -1421,4 +1421,21 @@ class AppLocalizationsSv extends AppLocalizations {
   String transitTransfers(int count) {
     return '$count byten';
   }
+
+  @override
+  String ztlNearRouteWarning(String street) {
+    return 'Varning: $street är en zon med begränsad trafik';
+  }
+
+  @override
+  String get themeModernNostr => 'Modern · Nostr-lila';
+
+  @override
+  String get themeModernBitcoin => 'Modern · Bitcoin-orange';
+
+  @override
+  String get themeModernDarkNostr => 'Modern mörk · Nostr-lila';
+
+  @override
+  String get themeModernDarkBitcoin => 'Modern mörk · Bitcoin-orange';
 }

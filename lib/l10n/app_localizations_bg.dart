@@ -1427,4 +1427,21 @@ class AppLocalizationsBg extends AppLocalizations {
   String transitTransfers(int count) {
     return '$count прекачвания';
   }
+
+  @override
+  String ztlNearRouteWarning(String street) {
+    return 'Внимание: $street е зона с ограничено движение';
+  }
+
+  @override
+  String get themeModernNostr => 'Модерна · Лилаво Nostr';
+
+  @override
+  String get themeModernBitcoin => 'Модерна · Оранжево Bitcoin';
+
+  @override
+  String get themeModernDarkNostr => 'Модерна тъмна · Лилаво Nostr';
+
+  @override
+  String get themeModernDarkBitcoin => 'Модерна тъмна · Оранжево Bitcoin';
 }

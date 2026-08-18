@@ -1426,4 +1426,21 @@ class AppLocalizationsIt extends AppLocalizations {
   String transitTransfers(int count) {
     return '$count cambi';
   }
+
+  @override
+  String ztlNearRouteWarning(String street) {
+    return 'Attenzione: $street è una via a traffico limitato';
+  }
+
+  @override
+  String get themeModernNostr => 'Moderno · Viola Nostr';
+
+  @override
+  String get themeModernBitcoin => 'Moderno · Arancione Bitcoin';
+
+  @override
+  String get themeModernDarkNostr => 'Moderno scuro · Viola Nostr';
+
+  @override
+  String get themeModernDarkBitcoin => 'Moderno scuro · Arancione Bitcoin';
 }

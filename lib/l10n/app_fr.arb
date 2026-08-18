@@ -543,5 +543,10 @@
   "transitDestination": "Destination",
   "transitScheduledTimes": "Les horaires proviennent des horaires publiés",
   "transitDirect": "Direct",
-  "transitTransfers": "{count} correspondances"
+  "transitTransfers": "{count} correspondances",
+  "ztlNearRouteWarning": "Attention : {street} est une zone à trafic limité",
+  "themeModernNostr": "Moderne · Violet Nostr",
+  "themeModernBitcoin": "Moderne · Orange Bitcoin",
+  "themeModernDarkNostr": "Moderne sombre · Violet Nostr",
+  "themeModernDarkBitcoin": "Moderne sombre · Orange Bitcoin"
 }

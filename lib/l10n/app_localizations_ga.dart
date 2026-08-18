@@ -1420,4 +1420,22 @@ class AppLocalizationsGa extends AppLocalizations {
   String transitTransfers(int count) {
     return '$count aistrithe';
   }
+
+  @override
+  String ztlNearRouteWarning(String street) {
+    return 'Aire: is crios tráchta srianta é $street';
+  }
+
+  @override
+  String get themeModernNostr => 'Nua-aimseartha · Corcra Nostr';
+
+  @override
+  String get themeModernBitcoin => 'Nua-aimseartha · Oráiste Bitcoin';
+
+  @override
+  String get themeModernDarkNostr => 'Nua-aimseartha dorcha · Corcra Nostr';
+
+  @override
+  String get themeModernDarkBitcoin =>
+      'Nua-aimseartha dorcha · Oráiste Bitcoin';
 }

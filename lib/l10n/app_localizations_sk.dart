@@ -1417,4 +1417,21 @@ class AppLocalizationsSk extends AppLocalizations {
   String transitTransfers(int count) {
     return '$count prestupov';
   }
+
+  @override
+  String ztlNearRouteWarning(String street) {
+    return 'Pozor: $street je zóna s obmedzenou dopravou';
+  }
+
+  @override
+  String get themeModernNostr => 'Moderný · Nostr fialová';
+
+  @override
+  String get themeModernBitcoin => 'Moderný · Bitcoin oranžová';
+
+  @override
+  String get themeModernDarkNostr => 'Moderný tmavý · Nostr fialová';
+
+  @override
+  String get themeModernDarkBitcoin => 'Moderný tmavý · Bitcoin oranžová';
 }
