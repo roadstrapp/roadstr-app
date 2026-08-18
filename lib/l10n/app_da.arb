@@ -543,5 +543,10 @@
   "transitDestination": "Destination",
   "transitScheduledTimes": "Tiderne kommer fra offentliggjorte køreplaner",
   "transitDirect": "Direkte",
-  "transitTransfers": "{count} skift"
+  "transitTransfers": "{count} skift",
+  "ztlNearRouteWarning": "Bemærk: {street} er en zone med begrænset trafik",
+  "themeModernNostr": "Moderne · Nostr-lilla",
+  "themeModernBitcoin": "Moderne · Bitcoin-orange",
+  "themeModernDarkNostr": "Moderne mørk · Nostr-lilla",
+  "themeModernDarkBitcoin": "Moderne mørk · Bitcoin-orange"
 }

@@ -543,5 +543,10 @@
   "transitDestination": "目的地",
   "transitScheduledTimes": "時刻は公開された時刻表に基づきます",
   "transitDirect": "直通",
-  "transitTransfers": "乗換 {count} 回"
+  "transitTransfers": "乗換 {count} 回",
+  "ztlNearRouteWarning": "注意：{street} は交通制限区域です",
+  "themeModernNostr": "モダン · Nostr パープル",
+  "themeModernBitcoin": "モダン · Bitcoin オレンジ",
+  "themeModernDarkNostr": "モダン ダーク · Nostr パープル",
+  "themeModernDarkBitcoin": "モダン ダーク · Bitcoin オレンジ"
 }

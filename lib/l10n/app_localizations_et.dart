@@ -1419,4 +1419,21 @@ class AppLocalizationsEt extends AppLocalizations {
   String transitTransfers(int count) {
     return '$count ümberistumist';
   }
+
+  @override
+  String ztlNearRouteWarning(String street) {
+    return 'Tähelepanu: $street on piiratud liiklusega ala';
+  }
+
+  @override
+  String get themeModernNostr => 'Moodne · Nostri lilla';
+
+  @override
+  String get themeModernBitcoin => 'Moodne · Bitcoini oranž';
+
+  @override
+  String get themeModernDarkNostr => 'Moodne tume · Nostri lilla';
+
+  @override
+  String get themeModernDarkBitcoin => 'Moodne tume · Bitcoini oranž';
 }

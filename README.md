@@ -6,7 +6,7 @@ It combines real-time GPS turn-by-turn navigation with community-sourced traffic
 If you're searching for the decentralized road event reporting system — "Waze without the centralized tracking" head to Jooray's Github page https://github.com/jooray/roadstr
 
 
-> **Version 0.4.21** — Android only.
+> **Version 0.4.22** — Android only.
 
 ---
 
@@ -51,20 +51,19 @@ If you're searching for the decentralized road event reporting system — "Waze 
 | Public transport routing — bus, tram, metro, rail, coach, ferry (worldwide open timetables) | ✅ |
 | Cycling routes | ✅ |
 | Customisable vehicle cursor — 7 colours, animated walking mode | ✅ |
-| Offline maps | 🔜 Planned |
-| Vector map rendering engine | 🔬 Next major change |
+| Offline maps (MBTiles) | 🔜 Next major change |
+| Vector map rendering engine | 🔬 Under evaluation — see decision doc |
 
 
 ---
 
 ## Roadmap
 
-### Next major change — a real rendering engine
+### Next major change — offline maps
 
 Roadstr currently draws the map from raster tiles fetched over the network. That is
 what makes offline maps hard, keeps styling shallow, and costs bandwidth on every
-journey. Replacing it with a vector rendering engine is the next significant piece of
-work, and it unlocks several planned features at once:
+journey. A vector rendering engine would unlock several things at once:
 
 - **offline maps** — vector data is small enough to carry a region on the device
 - **map rotation and tilt without the blur** that resampled raster tiles produce
@@ -72,22 +71,29 @@ work, and it unlocks several planned features at once:
   itself rather than stopping at the UI around it
 - **less bandwidth**, which matters on a metered connection abroad
 
-Two routes are being weighed, and the decision is deliberately not made yet:
+Building from scratch and forking OsmAnd's engine were both examined in detail. The
+findings are written up in
+[`docs/rendering-engine-decision.md`](docs/rendering-engine-decision.md); in short, the
+current recommendation is **not** to replace the renderer yet:
 
-1. **Build it from scratch.** Full control, no inherited assumptions, and a codebase
-   that stays the size of what this app actually needs. Slower to reach parity.
-2. **Start from OsmAnd's engine** on a separate branch and merge into `main` once it
-   stands up. OsmAnd is GPL-3.0, the same licence as Roadstr, so the reuse is clean.
-   Much faster to something usable, at the cost of adopting a large codebase built
-   around different assumptions.
+- OsmAnd's C++ engine is GPL-3.0-or-later and cleanly reusable, but its **map styles and
+  icons are CC-BY-NC-ND** — non-free, and unusable here. A renderer without a style
+  renders nothing. Its dependency tree also pulls in Qt, Skia, GDAL and ICU, which the
+  F-Droid build realistically cannot compile.
+- The pure-Dart vector option needs `flutter_map` 7.x while this app is on 8.x, and has
+  not been released since 2024.
+- MapLibre's Flutter plugin depends on Google Play Services, which this app does not ship.
 
-Whichever way it goes, the work happens on its own branch and only merges once it is
-at least as good as the tiles it replaces — the app on `main` stays shippable
+So **offline maps come first, on the current stack**, via MBTiles — which is what most of
+the value was about anyway. Vector rendering is revisited when one of the blockers above
+clears; the decision document lists exactly what would change the answer.
+
+Whichever way it eventually goes, that work happens on its own branch and only merges
+once it is at least as good as the tiles it replaces — the app on `main` stays shippable
 throughout.
 
 ### Also planned
 
-- Offline maps (follows the rendering engine)
 - Wider public-transport coverage, by getting more operators' timetables into the open
   data ecosystem the routing already reads
 
