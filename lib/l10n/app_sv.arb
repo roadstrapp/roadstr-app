@@ -543,5 +543,10 @@
   "transitDestination": "Destination",
   "transitScheduledTimes": "Tiderna kommer från publicerade tidtabeller",
   "transitDirect": "Direkt",
-  "transitTransfers": "{count} byten"
+  "transitTransfers": "{count} byten",
+  "ztlNearRouteWarning": "Varning: {street} är en zon med begränsad trafik",
+  "themeModernNostr": "Modern · Nostr-lila",
+  "themeModernBitcoin": "Modern · Bitcoin-orange",
+  "themeModernDarkNostr": "Modern mörk · Nostr-lila",
+  "themeModernDarkBitcoin": "Modern mörk · Bitcoin-orange"
 }

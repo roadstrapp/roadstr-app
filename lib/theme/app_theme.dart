@@ -23,7 +23,19 @@ const kNostrPurple = Color(0xFF8B5CF6);
 const kBitcoinOrange = Color(0xFFF7931A);
 
 /// Available theme identifiers.
-enum AppThemeId { lightNostr, lightBitcoin, darkNostr, darkBitcoin }
+/// Appended, never reordered: [AppThemeIdExt.fromIndex] reads a stored
+/// ordinal, so inserting in the middle would silently change the theme of
+/// everyone who already picked one.
+enum AppThemeId {
+  lightNostr,
+  lightBitcoin,
+  darkNostr,
+  darkBitcoin,
+  modernNostr,
+  modernBitcoin,
+  modernDarkNostr,
+  modernDarkBitcoin,
+}
 
 extension AppThemeIdExt on AppThemeId {
   String localizedLabel(AppLocalizations l) {
@@ -36,6 +48,14 @@ extension AppThemeIdExt on AppThemeId {
         return l.themeDarkNostr;
       case AppThemeId.darkBitcoin:
         return l.themeDarkBitcoin;
+      case AppThemeId.modernNostr:
+        return l.themeModernNostr;
+      case AppThemeId.modernBitcoin:
+        return l.themeModernBitcoin;
+      case AppThemeId.modernDarkNostr:
+        return l.themeModernDarkNostr;
+      case AppThemeId.modernDarkBitcoin:
+        return l.themeModernDarkBitcoin;
     }
   }
 
@@ -43,15 +63,31 @@ extension AppThemeIdExt on AppThemeId {
     switch (this) {
       case AppThemeId.lightNostr:
       case AppThemeId.darkNostr:
+      case AppThemeId.modernNostr:
+      case AppThemeId.modernDarkNostr:
         return kNostrPurple;
       case AppThemeId.lightBitcoin:
       case AppThemeId.darkBitcoin:
+      case AppThemeId.modernBitcoin:
+      case AppThemeId.modernDarkBitcoin:
         return kBitcoinOrange;
     }
   }
 
   bool get isDark =>
-      this == AppThemeId.darkNostr || this == AppThemeId.darkBitcoin;
+      this == AppThemeId.darkNostr ||
+      this == AppThemeId.darkBitcoin ||
+      this == AppThemeId.modernDarkNostr ||
+      this == AppThemeId.modernDarkBitcoin;
+
+  /// Whether this theme paints its panels with a gradient rather than a flat
+  /// fill. Kept separate from [isDark] so a future dark modern variant is a
+  /// one-line change rather than a second boolean threaded everywhere.
+  bool get isModern =>
+      this == AppThemeId.modernNostr ||
+      this == AppThemeId.modernBitcoin ||
+      this == AppThemeId.modernDarkNostr ||
+      this == AppThemeId.modernDarkBitcoin;
   int get index2 => AppThemeId.values.indexOf(this);
   static AppThemeId fromIndex(int i) =>
       AppThemeId.values[i.clamp(0, AppThemeId.values.length - 1)];
@@ -67,6 +103,7 @@ class AppTheme {
   static ThemeData build(AppThemeId id) {
     final accent = id.accent;
     final dark = id.isDark;
+    if (id.isModern) return _buildModern(accent, dark: dark);
     if (dark) {
       return ThemeData(
         useMaterial3: true,
@@ -159,6 +196,126 @@ class AppTheme {
       ],
     );
   }
+
+  /// The "modern" variants: a light base washed with a diagonal gradient that
+  /// runs from white at the top-left to the accent colour at the bottom-right.
+  ///
+  /// Panels stay light so text contrast is unaffected — the gradient is a wash
+  /// behind them, not a recolour of them. That is why the flat surface colours
+  /// below are still near-white: any widget that does not paint
+  /// [RoadstrColors.panelGradient] keeps working and simply looks like the
+  /// light theme, rather than ending up with dark text on a saturated field.
+  static ThemeData _buildModern(Color accent, {required bool dark}) {
+    // Tinted at both edges, plain through the middle. A diagonal wash put the
+    // heaviest colour under one corner of the text and none under the other,
+    // which read as weight rather than as style; a symmetric pair of edges
+    // frames the panel instead of tilting it, and keeps the centre — where the
+    // instruction actually sits — clear for contrast.
+    //
+    // Kept deliberately faint: this is a frame, not a fill.
+    final base = dark ? const Color(0xFF10101C) : Colors.white;
+    // The dark variant needs a touch more tint to register at all against a
+    // near-black panel, where the same 0.22 simply disappears.
+    final edge = Color.lerp(base, accent, dark ? 0.34 : 0.22)!;
+    final gradient = LinearGradient(
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+      colors: [edge, base, base, edge],
+      stops: const [0.0, 0.32, 0.68, 1.0],
+    );
+
+    if (dark) {
+      return ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        colorScheme: ColorScheme.dark(
+          primary: accent,
+          secondary: accent,
+          surface: const Color(0xFF15151F),
+          onSurface: const Color(0xFFEDEDF7),
+        ),
+        scaffoldBackgroundColor: const Color(0xFF0A0A14),
+        cardColor: const Color(0xFF15151F),
+        dividerColor: const Color(0xFF262637),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF15151F),
+          foregroundColor: Color(0xFFEDEDF7),
+          elevation: 0,
+        ),
+        switchTheme: SwitchThemeData(
+          thumbColor: WidgetStateProperty.resolveWith((s) =>
+              s.contains(WidgetState.selected)
+                  ? accent
+                  : const Color(0xFF55556E)),
+          trackColor: WidgetStateProperty.resolveWith((s) =>
+              s.contains(WidgetState.selected)
+                  ? accent.withValues(alpha: 0.40)
+                  : const Color(0xFF262637)),
+        ),
+        extensions: [
+          RoadstrColors(
+            accent: accent,
+            accentSoft: accent.withValues(alpha: 0.20),
+            surface1: const Color(0xFF0A0A14),
+            surface2: const Color(0xFF15151F),
+            surface3: const Color(0xFF1E1E2C),
+            border: const Color(0xFF262637),
+            textPrimary: const Color(0xFFEDEDF7),
+            textSecondary: const Color(0xFF8C8CA8),
+            isDark: true,
+            mapTile:
+                'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+            mapTileSubs: 'abcd',
+            mapTileAttrib: '© OpenStreetMap contributors © CARTO',
+            panelGradient: gradient,
+          )
+        ],
+      );
+    }
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      colorScheme: ColorScheme.light(
+        primary: accent,
+        secondary: accent,
+        surface: Colors.white,
+        onSurface: const Color(0xFF15151F),
+      ),
+      scaffoldBackgroundColor: const Color(0xFFF7F5FC),
+      cardColor: Colors.white,
+      dividerColor: const Color(0xFFE3DEF0),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.white,
+        foregroundColor: Color(0xFF15151F),
+        elevation: 0,
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((s) =>
+            s.contains(WidgetState.selected) ? accent : const Color(0xFFBDBDD0)),
+        trackColor: WidgetStateProperty.resolveWith((s) =>
+            s.contains(WidgetState.selected)
+                ? accent.withValues(alpha: 0.35)
+                : const Color(0xFFE3DEF0)),
+      ),
+      extensions: [
+        RoadstrColors(
+          accent: accent,
+          accentSoft: accent.withValues(alpha: 0.14),
+          surface1: Colors.white,
+          surface2: const Color(0xFFFBFAFF),
+          surface3: const Color(0xFFF2EEFB),
+          border: const Color(0xFFE3DEF0),
+          textPrimary: const Color(0xFF15151F),
+          textSecondary: const Color(0xFF6B6B85),
+          isDark: false,
+          mapTile: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          mapTileAttrib: '© OpenStreetMap contributors',
+          panelGradient: gradient,
+        )
+      ],
+    );
+  }
 }
 
 /// A [ThemeExtension] that exposes Roadstr-specific semantic colours and map
@@ -177,6 +334,12 @@ class RoadstrColors extends ThemeExtension<RoadstrColors> {
   final Color accent, accentSoft, surface1, surface2, surface3;
   final Color border, textPrimary, textSecondary;
   final bool isDark;
+
+  /// Diagonal wash painted behind panels in the "modern" themes, and null in
+  /// the flat ones. Nullable rather than a flag so every existing theme keeps
+  /// its exact appearance, and so a widget opts in by painting it when present
+  /// instead of branching on which theme is active.
+  final Gradient? panelGradient;
 
   /// OpenStreetMap tile URL template, e.g. `https://tile.openstreetmap.org/{z}/{x}/{y}.png`.
   final String mapTile;
@@ -198,6 +361,7 @@ class RoadstrColors extends ThemeExtension<RoadstrColors> {
     required this.mapTile,
     this.mapTileSubs,
     required this.mapTileAttrib,
+    this.panelGradient,
   });
 
   @override
@@ -214,6 +378,7 @@ class RoadstrColors extends ThemeExtension<RoadstrColors> {
     String? mapTile,
     String? mapTileSubs,
     String? mapTileAttrib,
+    Gradient? panelGradient,
   }) =>
       RoadstrColors(
         accent: accent ?? this.accent,
@@ -228,6 +393,7 @@ class RoadstrColors extends ThemeExtension<RoadstrColors> {
         mapTile: mapTile ?? this.mapTile,
         mapTileSubs: mapTileSubs ?? this.mapTileSubs,
         mapTileAttrib: mapTileAttrib ?? this.mapTileAttrib,
+        panelGradient: panelGradient ?? this.panelGradient,
       );
 
   /// Blends towards [other] over a theme change.
@@ -259,8 +425,58 @@ class RoadstrColors extends ThemeExtension<RoadstrColors> {
       mapTile: target.mapTile,
       mapTileSubs: target.mapTileSubs,
       mapTileAttrib: target.mapTileAttrib,
+      // Gradient.lerp copes with a null on either side, so a switch between a
+      // flat and a modern theme fades rather than popping.
+      panelGradient: Gradient.lerp(panelGradient, other.panelGradient, t),
     );
   }
+
+  /// Solid accent fill with a soft highlight in the top-left corner.
+  ///
+  /// Used by the manoeuvre tile and the map controls so they read as one
+  /// family of raised, lit objects rather than as flat swatches. The highlight
+  /// is a light source, not a colour ramp: it stays in the corner and fades
+  /// out well before the middle, which is why the stops are bunched early.
+  ///
+  /// Anything drawn on top of this must be light — see [onAccent].
+  Gradient get accentGloss => LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color.lerp(accent, Colors.white, 0.42)!,
+          Color.lerp(accent, Colors.white, 0.12)!,
+          accent,
+        ],
+        stops: const [0.0, 0.28, 0.75],
+      );
+
+  /// Hairline that catches the light along a panel's edge.
+  ///
+  /// Accent-tinted rather than grey: a neutral outline reads as a box drawn
+  /// around the panel, while a tint of the panel's own colour reads as the
+  /// edge of a lit surface. Kept under half opacity — at full strength it
+  /// becomes a border, which is the plasticky look this is avoiding.
+  Color get panelEdge => accent.withValues(alpha: isDark ? 0.28 : 0.20);
+
+  /// Soft, wide, low-opacity drop shadow.
+  ///
+  /// Large blur with little opacity lifts a panel off the map without the hard
+  /// grey band a tight shadow produces — the panel appears to float rather
+  /// than to be stuck on.
+  List<BoxShadow> get panelShadow => [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: isDark ? 0.38 : 0.13),
+          blurRadius: 24,
+          spreadRadius: -4,
+          offset: const Offset(0, 6),
+        ),
+      ];
+
+  /// Corner radius shared by the raised panels.
+  static const double panelRadius = 22.0;
+
+  /// Foreground colour for content sitting on [accentGloss].
+  Color get onAccent => Colors.white;
 
   static RoadstrColors of(BuildContext context) =>
       Theme.of(context).extension<RoadstrColors>()!;

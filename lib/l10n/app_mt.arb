@@ -543,5 +543,10 @@
   "transitDestination": "Destinazzjoni",
   "transitScheduledTimes": "Il-ħinijiet ġejjin minn skedi ppubblikati",
   "transitDirect": "Dirett",
-  "transitTransfers": "{count} bidliet"
+  "transitTransfers": "{count} bidliet",
+  "ztlNearRouteWarning": "Attenzjoni: {street} hija żona ta' traffiku ristrett",
+  "themeModernNostr": "Modern · Vjola Nostr",
+  "themeModernBitcoin": "Modern · Oranġjo Bitcoin",
+  "themeModernDarkNostr": "Modern skur · Vjola Nostr",
+  "themeModernDarkBitcoin": "Modern skur · Oranġjo Bitcoin"
 }

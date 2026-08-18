@@ -50,7 +50,8 @@ class NearbyBar extends StatelessWidget {
     final l = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: colors.surface2,
+        gradient: colors.panelGradient,
+        color: colors.panelGradient == null ? colors.surface2 : null,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: colors.border, width: 0.5),
         boxShadow: [
@@ -163,7 +164,8 @@ class SearchHistoryList extends StatelessWidget {
     final l = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: colors.surface2,
+        gradient: colors.panelGradient,
+        color: colors.panelGradient == null ? colors.surface2 : null,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: colors.border, width: 0.5),
         boxShadow: [
@@ -206,7 +208,12 @@ class SearchHistoryList extends StatelessWidget {
                     width: 30,
                     height: 30,
                     decoration: BoxDecoration(
-                        color: colors.accentSoft,
+                        // Solid rather than the translucent accentSoft: over
+                        // the panel gradient a wash of accent on accent left
+                        // the chips barely visible at the tinted edges.
+                        color: colors.panelGradient == null
+                            ? colors.accentSoft
+                            : colors.surface3,
                         borderRadius: BorderRadius.circular(8)),
                     child: Icon(Icons.favorite_rounded,
                         color: colors.accent, size: 14),
@@ -312,6 +319,7 @@ class PlaceSearchBar extends StatelessWidget {
   final ValueChanged<String> onChanged;
   final ValueChanged<String> onSubmitted;
   final VoidCallback onClear;
+
   const PlaceSearchBar({super.key, 
     required this.controller,
     required this.colors,
@@ -326,7 +334,8 @@ class PlaceSearchBar extends StatelessWidget {
     return Container(
       height: 52,
       decoration: BoxDecoration(
-        color: colors.surface2,
+        gradient: colors.panelGradient,
+        color: colors.panelGradient == null ? colors.surface2 : null,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(color: colors.border, width: 0.5),
         boxShadow: [
@@ -391,7 +400,8 @@ class SearchResultsList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: colors.surface2,
+        gradient: colors.panelGradient,
+        color: colors.panelGradient == null ? colors.surface2 : null,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: colors.border, width: 0.5),
         boxShadow: [

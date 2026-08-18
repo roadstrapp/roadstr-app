@@ -1417,4 +1417,21 @@ class AppLocalizationsLv extends AppLocalizations {
   String transitTransfers(int count) {
     return '$count pārsēšanās';
   }
+
+  @override
+  String ztlNearRouteWarning(String street) {
+    return 'Uzmanību: $street ir ierobežotas satiksmes zona';
+  }
+
+  @override
+  String get themeModernNostr => 'Moderns · Nostr violets';
+
+  @override
+  String get themeModernBitcoin => 'Moderns · Bitcoin oranžs';
+
+  @override
+  String get themeModernDarkNostr => 'Moderns tumšs · Nostr violets';
+
+  @override
+  String get themeModernDarkBitcoin => 'Moderns tumšs · Bitcoin oranžs';
 }

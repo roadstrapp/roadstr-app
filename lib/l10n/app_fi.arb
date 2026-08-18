@@ -543,5 +543,10 @@
   "transitDestination": "Määränpää",
   "transitScheduledTimes": "Ajat perustuvat julkaistuihin aikatauluihin",
   "transitDirect": "Suora",
-  "transitTransfers": "{count} vaihtoa"
+  "transitTransfers": "{count} vaihtoa",
+  "ztlNearRouteWarning": "Huomio: {street} on rajoitetun liikenteen alue",
+  "themeModernNostr": "Moderni · Nostr-violetti",
+  "themeModernBitcoin": "Moderni · Bitcoin-oranssi",
+  "themeModernDarkNostr": "Moderni tumma · Nostr-violetti",
+  "themeModernDarkBitcoin": "Moderni tumma · Bitcoin-oranssi"
 }

@@ -1422,4 +1422,21 @@ class AppLocalizationsHu extends AppLocalizations {
   String transitTransfers(int count) {
     return '$count átszállás';
   }
+
+  @override
+  String ztlNearRouteWarning(String street) {
+    return 'Figyelem: $street korlátozott forgalmú övezet';
+  }
+
+  @override
+  String get themeModernNostr => 'Modern · Nostr lila';
+
+  @override
+  String get themeModernBitcoin => 'Modern · Bitcoin narancs';
+
+  @override
+  String get themeModernDarkNostr => 'Modern sötét · Nostr lila';
+
+  @override
+  String get themeModernDarkBitcoin => 'Modern sötét · Bitcoin narancs';
 }

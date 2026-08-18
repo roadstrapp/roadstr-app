@@ -1391,4 +1391,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String transitTransfers(int count) {
     return '乗換 $count 回';
   }
+
+  @override
+  String ztlNearRouteWarning(String street) {
+    return '注意：$street は交通制限区域です';
+  }
+
+  @override
+  String get themeModernNostr => 'モダン · Nostr パープル';
+
+  @override
+  String get themeModernBitcoin => 'モダン · Bitcoin オレンジ';
+
+  @override
+  String get themeModernDarkNostr => 'モダン ダーク · Nostr パープル';
+
+  @override
+  String get themeModernDarkBitcoin => 'モダン ダーク · Bitcoin オレンジ';
 }

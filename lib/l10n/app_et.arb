@@ -543,5 +543,10 @@
   "transitDestination": "Sihtkoht",
   "transitScheduledTimes": "Ajad pärinevad avaldatud sõiduplaanidest",
   "transitDirect": "Otse",
-  "transitTransfers": "{count} ümberistumist"
+  "transitTransfers": "{count} ümberistumist",
+  "ztlNearRouteWarning": "Tähelepanu: {street} on piiratud liiklusega ala",
+  "themeModernNostr": "Moodne · Nostri lilla",
+  "themeModernBitcoin": "Moodne · Bitcoini oranž",
+  "themeModernDarkNostr": "Moodne tume · Nostri lilla",
+  "themeModernDarkBitcoin": "Moodne tume · Bitcoini oranž"
 }

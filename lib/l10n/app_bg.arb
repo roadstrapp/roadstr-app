@@ -543,5 +543,10 @@
   "transitDestination": "Дестинация",
   "transitScheduledTimes": "Часовете са по публикувано разписание",
   "transitDirect": "Директно",
-  "transitTransfers": "{count} прекачвания"
+  "transitTransfers": "{count} прекачвания",
+  "ztlNearRouteWarning": "Внимание: {street} е зона с ограничено движение",
+  "themeModernNostr": "Модерна · Лилаво Nostr",
+  "themeModernBitcoin": "Модерна · Оранжево Bitcoin",
+  "themeModernDarkNostr": "Модерна тъмна · Лилаво Nostr",
+  "themeModernDarkBitcoin": "Модерна тъмна · Оранжево Bitcoin"
 }

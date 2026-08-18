@@ -1422,4 +1422,21 @@ class AppLocalizationsRu extends AppLocalizations {
   String transitTransfers(int count) {
     return 'Пересадок: $count';
   }
+
+  @override
+  String ztlNearRouteWarning(String street) {
+    return 'Внимание: $street — зона ограниченного движения';
+  }
+
+  @override
+  String get themeModernNostr => 'Современная · Фиолетовый Nostr';
+
+  @override
+  String get themeModernBitcoin => 'Современная · Оранжевый Bitcoin';
+
+  @override
+  String get themeModernDarkNostr => 'Современная тёмная · Фиолетовый Nostr';
+
+  @override
+  String get themeModernDarkBitcoin => 'Современная тёмная · Оранжевый Bitcoin';
 }
