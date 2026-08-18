@@ -48,8 +48,48 @@ If you're searching for the decentralized road event reporting system — "Waze 
 | 27 languages (all EU official languages + RU, JA, ZH) | ✅ |
 | Navigation notification in Android shade | ✅ |
 | Nostr DMs / collaborative alerts | ✅ |
+| Public transport routing — bus, tram, metro, rail, coach, ferry (worldwide open timetables) | ✅ |
+| Cycling routes | ✅ |
+| Customisable vehicle cursor — 7 colours, animated walking mode | ✅ |
 | Offline maps | 🔜 Planned |
+| Vector map rendering engine | 🔬 Next major change |
 
+
+---
+
+## Roadmap
+
+### Next major change — a real rendering engine
+
+Roadstr currently draws the map from raster tiles fetched over the network. That is
+what makes offline maps hard, keeps styling shallow, and costs bandwidth on every
+journey. Replacing it with a vector rendering engine is the next significant piece of
+work, and it unlocks several planned features at once:
+
+- **offline maps** — vector data is small enough to carry a region on the device
+- **map rotation and tilt without the blur** that resampled raster tiles produce
+- **styling that belongs to the app**, so the light and dark themes extend to the map
+  itself rather than stopping at the UI around it
+- **less bandwidth**, which matters on a metered connection abroad
+
+Two routes are being weighed, and the decision is deliberately not made yet:
+
+1. **Build it from scratch.** Full control, no inherited assumptions, and a codebase
+   that stays the size of what this app actually needs. Slower to reach parity.
+2. **Start from OsmAnd's engine** on a separate branch and merge into `main` once it
+   stands up. OsmAnd is GPL-3.0, the same licence as Roadstr, so the reuse is clean.
+   Much faster to something usable, at the cost of adopting a large codebase built
+   around different assumptions.
+
+Whichever way it goes, the work happens on its own branch and only merges once it is
+at least as good as the tiles it replaces — the app on `main` stays shippable
+throughout.
+
+### Also planned
+
+- Offline maps (follows the rendering engine)
+- Wider public-transport coverage, by getting more operators' timetables into the open
+  data ecosystem the routing already reads
 
 ---
 
@@ -59,9 +99,13 @@ If you're searching for the decentralized road event reporting system — "Waze 
 lib/
 ├── main.dart                         # Entry point, provider tree, first-launch gate
 ├── l10n/                             # ARB files (27 locales) + generated Dart classes
+├── config/
+│   └── network_config.dart           # Request deadlines, response caps, relay limits
 ├── models/
 │   ├── favorite_place.dart           # Saved places data model (Hive-backed)
-│   └── road_event.dart               # Nostr kind-1315/1316 model + TTLs
+│   ├── road_event.dart               # Nostr kind-1315/1316 model + TTLs
+│   ├── transit_itinerary.dart        # Public-transport journey + legs
+│   └── transit_mode.dart             # Transport modes (worldwide, wire-name mapped)
 ├── providers/
 │   └── locale_provider.dart          # Language override (Hive-backed)
 ├── screens/
@@ -83,6 +127,7 @@ lib/
 │   ├── speed_camera_service.dart     # OSM-sourced speed-camera locations (Overpass)
 │   ├── speed_limit_service.dart      # Posted speed limit lookup (Overpass)
 │   ├── sun_calc.dart                 # NOAA solar position — sunrise/sunset times
+│   ├── transit_service.dart          # Public-transport routing (open timetables)
 │   ├── weather_service.dart          # Open-Meteo current conditions
 │   ├── zap_service.dart              # LNURL-pay + NIP-57 zaps + NWC (NIP-47)
 │   ├── ztl_service.dart              # ZTL (limited-traffic zone) polygon lookup
@@ -96,9 +141,13 @@ lib/
 │   ├── app_theme.dart                # Material 3 themes + RoadstrColors extension
 │   └── theme_provider.dart           # Theme state, auto dark mode, Hive persistence
 ├── utils/
+│   ├── heading_filter.dart           # Which way the map faces, from consecutive fixes
+│   ├── polyline.dart                 # Encoded-polyline decoding (server-stated precision)
+│   ├── retry.dart                    # Typed network failures + backoff, honours Retry-After
 │   └── units.dart                    # Metric/imperial formatting helpers
 └── widgets/
-    ├── cursor_painter.dart           # Map cursor (arrow / Nostr ostrich easter egg)
+    ├── cursor_painter.dart           # Map cursor — vehicle styles, colours, walking mode
+    ├── transit_itinerary_widget.dart # Public-transport itinerary cards and panel
     └── speedometer_widget.dart       # Circular analogue speedometer
 ```
 
@@ -172,7 +221,14 @@ Selectable from **Settings → Routing provider**:
 | GraphHopper Cloud | Yes |
 | OpenRouteService | Yes |
 
-OSRM is the default and requires no configuration. All providers support car and walking profiles.
+OSRM is the default and requires no configuration. All providers support car, cycling
+and walking profiles.
+
+**Public transport** is routed separately, against a community-run service that
+aggregates openly published timetables worldwide. It needs no account and no API key,
+and it is queried only when the user explicitly asks for a public-transport journey.
+Coverage depends on which operators publish open data for an area; where none is
+published, the app reports that plainly rather than implying no service exists.
 
 ---
 
