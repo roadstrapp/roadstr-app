@@ -1417,4 +1417,21 @@ class AppLocalizationsFi extends AppLocalizations {
   String transitTransfers(int count) {
     return '$count vaihtoa';
   }
+
+  @override
+  String ztlNearRouteWarning(String street) {
+    return 'Huomio: $street on rajoitetun liikenteen alue';
+  }
+
+  @override
+  String get themeModernNostr => 'Moderni · Nostr-violetti';
+
+  @override
+  String get themeModernBitcoin => 'Moderni · Bitcoin-oranssi';
+
+  @override
+  String get themeModernDarkNostr => 'Moderni tumma · Nostr-violetti';
+
+  @override
+  String get themeModernDarkBitcoin => 'Moderni tumma · Bitcoin-oranssi';
 }

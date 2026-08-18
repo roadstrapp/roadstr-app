@@ -543,5 +543,10 @@
   "transitDestination": "Пункт назначения",
   "transitScheduledTimes": "Время указано по опубликованному расписанию",
   "transitDirect": "Без пересадок",
-  "transitTransfers": "Пересадок: {count}"
+  "transitTransfers": "Пересадок: {count}",
+  "ztlNearRouteWarning": "Внимание: {street} — зона ограниченного движения",
+  "themeModernNostr": "Современная · Фиолетовый Nostr",
+  "themeModernBitcoin": "Современная · Оранжевый Bitcoin",
+  "themeModernDarkNostr": "Современная тёмная · Фиолетовый Nostr",
+  "themeModernDarkBitcoin": "Современная тёмная · Оранжевый Bitcoin"
 }

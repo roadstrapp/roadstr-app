@@ -543,5 +543,10 @@
   "transitDestination": "Προορισμός",
   "transitScheduledTimes": "Οι ώρες προέρχονται από δημοσιευμένα δρομολόγια",
   "transitDirect": "Απευθείας",
-  "transitTransfers": "{count} μετεπιβιβάσεις"
+  "transitTransfers": "{count} μετεπιβιβάσεις",
+  "ztlNearRouteWarning": "Προσοχή: {street} είναι ζώνη περιορισμένης κυκλοφορίας",
+  "themeModernNostr": "Μοντέρνο · Μωβ Nostr",
+  "themeModernBitcoin": "Μοντέρνο · Πορτοκαλί Bitcoin",
+  "themeModernDarkNostr": "Μοντέρνο σκούρο · Μωβ Nostr",
+  "themeModernDarkBitcoin": "Μοντέρνο σκούρο · Πορτοκαλί Bitcoin"
 }

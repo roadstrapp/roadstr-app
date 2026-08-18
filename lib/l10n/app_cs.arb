@@ -543,5 +543,10 @@
   "transitDestination": "Cíl",
   "transitScheduledTimes": "Časy pocházejí ze zveřejněných jízdních řádů",
   "transitDirect": "Přímo",
-  "transitTransfers": "{count} přestupů"
+  "transitTransfers": "{count} přestupů",
+  "ztlNearRouteWarning": "Pozor: {street} je zóna s omezeným provozem",
+  "themeModernNostr": "Moderní · Nostr fialová",
+  "themeModernBitcoin": "Moderní · Bitcoin oranžová",
+  "themeModernDarkNostr": "Moderní tmavý · Nostr fialová",
+  "themeModernDarkBitcoin": "Moderní tmavý · Bitcoin oranžová"
 }

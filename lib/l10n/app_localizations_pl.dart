@@ -1421,4 +1421,21 @@ class AppLocalizationsPl extends AppLocalizations {
   String transitTransfers(int count) {
     return '$count przesiadek';
   }
+
+  @override
+  String ztlNearRouteWarning(String street) {
+    return 'Uwaga: $street to strefa ograniczonego ruchu';
+  }
+
+  @override
+  String get themeModernNostr => 'Nowoczesny · Fiolet Nostr';
+
+  @override
+  String get themeModernBitcoin => 'Nowoczesny · Pomarańcz Bitcoin';
+
+  @override
+  String get themeModernDarkNostr => 'Nowoczesny ciemny · Fiolet Nostr';
+
+  @override
+  String get themeModernDarkBitcoin => 'Nowoczesny ciemny · Pomarańcz Bitcoin';
 }

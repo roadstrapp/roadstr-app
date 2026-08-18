@@ -125,7 +125,7 @@ class ManeuverSymbol extends StatelessWidget {
       height: size,
       decoration: showBackground
           ? BoxDecoration(
-              color: colors.accentSoft,
+              gradient: colors.accentGloss,
               borderRadius: BorderRadius.circular(size * 0.16),
             )
           : null,
@@ -133,9 +133,15 @@ class ManeuverSymbol extends StatelessWidget {
       child: CustomPaint(
         painter: ManeuverSymbolPainter(
           visual: visual,
-          accent: colors.accent,
-          muted: colors.textSecondary.withValues(alpha: 0.34),
-          surface: colors.surface2,
+          // On the filled tile the arrow becomes the light element and the
+          // accent moves to the background, so the pair swaps roles. Without
+          // the swap the symbol would be accent-on-accent and vanish.
+          accent: showBackground ? colors.onAccent : colors.accent,
+          muted: (showBackground ? colors.onAccent : colors.textSecondary)
+              .withValues(alpha: 0.34),
+          // Backs the roundabout exit badge: it has to contrast with the
+          // number drawn over it, which is now white.
+          surface: showBackground ? colors.accent : colors.surface2,
         ),
       ),
     );

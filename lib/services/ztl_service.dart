@@ -42,6 +42,12 @@ class ZtlService {
   /// to trigger when merely passing the mouth of a side street.
   static const _wayProximityM = 12.0;
 
+  /// A restricted street within this distance of the route is worth pointing
+  /// out even though the route avoids it. Wide enough to cover the side
+  /// streets a driver can actually see and be tempted by, tight enough not to
+  /// paint half a historic centre red on every journey through a city.
+  static const _routeVicinityM = 120.0;
+
   List<ZtlZone> _zones = [];
   List<ZtlWay> _restrictedWays = [];
   LatLng? _lastQueryPos;
@@ -101,6 +107,88 @@ class ZtlService {
       if (_nearPolyline(pos, w.points, _wayProximityM)) return true;
     }
     return false;
+  }
+
+  /// Whether [p] lies on a restricted street.
+  ///
+  /// Distinct from [isInsideZtl], which also counts legacy ZTL polygons: this
+  /// asks only "is this point on a street that is itself restricted", which is
+  /// what decides whether a stretch of route is drawn as restricted.
+  bool isOnRestrictedWay(LatLng p) {
+    for (final w in _restrictedWays) {
+      if (_nearPolyline(p, w.points, _wayProximityM)) return true;
+    }
+    return false;
+  }
+
+  /// Marks each point of [points] as on a restricted street or not.
+  ///
+  /// Returned per point rather than as a single verdict for the whole route:
+  /// a journey is normally a few restricted blocks inside an otherwise
+  /// ordinary route, and colouring the entire route for them would say
+  /// something false about most of it.
+  List<bool> classifyPoints(List<LatLng> points) {
+    if (_restrictedWays.isEmpty) {
+      return List<bool>.filled(points.length, false);
+    }
+    return [for (final p in points) isOnRestrictedWay(p)];
+  }
+
+  /// The restricted street nearest to [pos] within [withinM], or null.
+  ///
+  /// Drives the advisory shown while driving *past* a restricted street, so it
+  /// is keyed to where the driver is now — a street two kilometres further
+  /// along the route is not yet anybody's problem.
+  ZtlWay? nearestRestrictedWay(LatLng pos, {double withinM = 60.0}) {
+    for (final w in _restrictedWays) {
+      if (_nearPolyline(pos, w.points, withinM)) return w;
+    }
+    return null;
+  }
+
+  /// Test seam: injects restricted ways without an Overpass round trip.
+  @visibleForTesting
+  void debugSetRestrictedWays(List<ZtlWay> ways) => _restrictedWays = ways;
+
+  /// How a planned route relates to the restricted streets around it.
+  ///
+  /// Two very different warnings come out of this, and conflating them would
+  /// make both useless:
+  ///
+  /// * [transited] — restricted streets the route actually drives along. The
+  ///   driver is being routed into a zone they may not legally enter.
+  /// * [nearby] — restricted streets close to the route but not on it. Nothing
+  ///   is wrong; the point is that these look like an inviting shortcut on the
+  ///   map, and are not. A driver deviating on their own initiative is exactly
+  ///   who this is for.
+  ({List<ZtlWay> transited, List<ZtlWay> nearby}) analyseRoute(
+    List<LatLng> route, {
+    double transitedM = _wayProximityM,
+    double nearbyM = _routeVicinityM,
+  }) {
+    if (route.length < 2 || _restrictedWays.isEmpty) {
+      return (transited: const [], nearby: const []);
+    }
+    final transited = <ZtlWay>[];
+    final nearby = <ZtlWay>[];
+
+    for (final way in _restrictedWays) {
+      if (way.points.length < 2) continue;
+      // Checked in both directions: route vertices against the street, and
+      // street vertices against the route. A route polyline can run for
+      // hundreds of metres between vertices, so testing only its own points
+      // would drive straight through a short restricted street without ever
+      // sampling near it.
+      final onRoute = way.points.any((p) => _nearPolyline(p, route, transitedM)) ||
+          route.any((p) => _nearPolyline(p, way.points, transitedM));
+      if (onRoute) {
+        transited.add(way);
+        continue;
+      }
+      final isNear = way.points.any((p) => _nearPolyline(p, route, nearbyM));
+      if (isNear) nearby.add(way);
+    }
+    return (transited: transited, nearby: nearby);
   }
 
   /// Returns the name of the ZTL zone or restricted way at [pos], or null.
