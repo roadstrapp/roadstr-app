@@ -16,6 +16,7 @@ import 'package:latlong2/latlong.dart';
 import '../utils/geo.dart';
 import '../utils/units.dart';
 import 'bounded_http.dart';
+import 'nav_phrases.dart';
 import 'roundabout_topology_service.dart';
 
 const int kMaxRoundaboutArms = 20;
@@ -72,6 +73,21 @@ class RouteStep {
   /// Motorway/freeway exit label such as "199" or "12A".
   final String? exitLabel;
 
+  /// Name of the road this step leads onto, as OSM records it ("Via Roma").
+  /// Empty when the router gives none.
+  final String roadName;
+
+  /// Road code for the same road ("SS3bis", "A14"), when it has one.
+  ///
+  /// Kept apart from [roadName] rather than merged, because their presence is
+  /// what distinguishes a town street from a numbered road — which is the
+  /// difference between a name worth showing under the cursor and one that
+  /// belongs on a motorway sign.
+  final String roadRef;
+
+  /// True when this is an ordinary named street rather than a numbered road.
+  bool get isUrbanStreet => roadName.isNotEmpty && roadRef.isEmpty;
+
   const RouteStep({
     required this.instruction,
     required this.direction,
@@ -81,6 +97,8 @@ class RouteStep {
     this.exitNumber,
     this.roundaboutArmCount,
     this.exitLabel,
+    this.roadName = '',
+    this.roadRef = '',
   });
 
   RouteStep copyWith({
@@ -92,6 +110,8 @@ class RouteStep {
     int? exitNumber,
     int? roundaboutArmCount,
     String? exitLabel,
+    String? roadName,
+    String? roadRef,
   }) =>
       RouteStep(
         instruction: instruction ?? this.instruction,
@@ -102,6 +122,8 @@ class RouteStep {
         exitNumber: exitNumber ?? this.exitNumber,
         roundaboutArmCount: roundaboutArmCount ?? this.roundaboutArmCount,
         exitLabel: exitLabel ?? this.exitLabel,
+        roadName: roadName ?? this.roadName,
+        roadRef: roadRef ?? this.roadRef,
       );
 }
 
@@ -1548,6 +1570,8 @@ class RoutingService {
             LatLng((loc[1] as num).toDouble(), (loc[0] as num).toDouble()),
         exitNumber: maneuver['exit'] as int?,
         exitLabel: (step['exits'] as String?)?.trim(),
+        roadName: ((step['name'] as String?) ?? '').trim(),
+        roadRef: ((step['ref'] as String?) ?? '').trim(),
       ));
     }
 
@@ -1764,129 +1788,86 @@ class RoutingService {
     final modifier = _correctedModifier(step, type, providerModifier);
     final name = ((step['name'] as String?) ?? '').trim();
     final ref = ((step['ref'] as String?) ?? '').trim();
-    final roadName = name.isNotEmpty ? name : ref;
-    final prep = lang == 'it' ? ' su ' : ' on ';
-    final road = roadName.isNotEmpty ? '$prep$roadName' : '';
-    final it = lang == 'it';
+    // The road code wins over the formal name when both exist. "Take the
+    // SS3bis" matches what is written on the sign the driver is looking for;
+    // "Strada Statale 3 bis Tiberina" is the same road under a name that
+    // appears nowhere on the road itself. On ordinary streets there is no ref,
+    // so the name is used as before.
+    //
+    // Multiple codes come back slash- or semicolon-separated ("SP174/2",
+    // "E45;SS3bis"); only the first is spoken, because reading a list of
+    // synonyms at a junction is worse than naming one of them.
+    final refFirst = ref.split(RegExp(r'[;,]')).first.trim();
+    final roadName = refFirst.isNotEmpty ? refFirst : name;
+
+    String p(String key) => navPhrase(lang, key);
+    final road = roadName.isEmpty ? '' : '${p('on')}$roadName';
+    String withRoad(String key) => '${p(key)}$road';
+
+    /// Turns for the modifiers shared by several maneuver types.
+    String? turnFor(String m) => switch (m) {
+          'left' => withRoad('turnLeft'),
+          'right' => withRoad('turnRight'),
+          'slight left' => withRoad('keepLeft'),
+          'slight right' => withRoad('keepRight'),
+          'sharp left' => withRoad('sharpLeft'),
+          'sharp right' => withRoad('sharpRight'),
+          'uturn' => withRoad('uturn'),
+          _ => null,
+        };
 
     switch (type) {
       case 'depart':
-        return it ? 'Parti$road' : 'Start$road';
+        return withRoad('depart');
       case 'arrive':
-        return it
-            ? 'Sei arrivato a destinazione'
-            : 'You have arrived at your destination';
+        return p('arrive');
       case 'turn':
-        switch (modifier) {
-          case 'left':
-            return it ? 'Svolta a sinistra$road' : 'Turn left$road';
-          case 'right':
-            return it ? 'Svolta a destra$road' : 'Turn right$road';
-          case 'slight left':
-            return it ? 'Tieni la sinistra$road' : 'Keep left$road';
-          case 'slight right':
-            return it ? 'Tieni la destra$road' : 'Keep right$road';
-          case 'sharp left':
-            return it ? 'Svolta netta a sinistra$road' : 'Sharp left$road';
-          case 'sharp right':
-            return it ? 'Svolta netta a destra$road' : 'Sharp right$road';
-          case 'uturn':
-            return it ? 'Fai inversione di marcia$road' : 'Make a U-turn$road';
-          default:
-            return it ? 'Continua dritto$road' : 'Continue straight$road';
-        }
+        return turnFor(modifier) ?? withRoad('continueStraight');
       case 'new name':
-        if (modifier != 'straight' && modifier.isNotEmpty) {
-          return it
-              ? 'Svolta ${_italianModifier(modifier)}$road'
-              : 'Turn ${_englishModifier(modifier)}$road';
-        }
-        return it ? 'Continua$road' : 'Continue$road';
+        return turnFor(modifier) ?? withRoad('continueOn');
       case 'continue':
-        if (modifier == 'left' ||
-            modifier == 'right' ||
-            modifier == 'slight left' ||
-            modifier == 'slight right' ||
-            modifier == 'sharp left' ||
-            modifier == 'sharp right') {
-          return it
-              ? 'Svolta ${_italianModifier(modifier)}$road'
-              : 'Turn ${_englishModifier(modifier)}$road';
-        }
-        return it ? 'Continua dritto$road' : 'Continue straight$road';
+        return turnFor(modifier) ?? withRoad('continueStraight');
       case 'merge':
-        return it ? 'Immettiti$road' : 'Merge onto$road';
+        return withRoad('merge');
       case 'on ramp':
-        if (modifier == 'left' || modifier == 'right') {
-          return it
-              ? 'Svolta ${_italianModifier(modifier)} sulla rampa$road'
-              : 'Turn ${_englishModifier(modifier)} onto the on-ramp$road';
-        }
-        return it ? 'Prendi la rampa$road' : 'Take the on-ramp$road';
+        return switch (modifier) {
+          'left' => withRoad('rampLeft'),
+          'right' => withRoad('rampRight'),
+          _ => withRoad('takeRamp'),
+        };
       case 'off ramp':
         {
-          // OSRM puts highway exit numbers in step['exits'] (a string like "12" or "12A"),
-          // not maneuver['exit'] which is only populated for roundabouts.
+          // OSRM puts highway exit numbers in step['exits'] (a string like
+          // "12" or "12A"), not maneuver['exit'] which is only populated for
+          // roundabouts.
           final exits = (step['exits'] as String?)?.trim();
-          final ref = (step['ref'] as String?)?.split(';').first.trim();
           final label = (exits != null && exits.isNotEmpty)
               ? exits
-              : (ref != null && ref.isNotEmpty)
-                  ? ref
-                  : null;
+              : (refFirst.isNotEmpty ? refFirst : null);
           if (label != null) {
-            return it
-                ? 'Esci all\'uscita $label$road'
-                : 'Take exit $label$road';
+            return '${p('exitLabelled').replaceAll('{label}', label)}$road';
           }
-          return it ? 'Esci dalla rampa$road' : 'Take the exit$road';
+          return withRoad('exitPlain');
         }
       case 'fork':
-        return modifier.contains('left')
-            ? (it
-                ? 'Al bivio tieni la sinistra$road'
-                : 'At the fork keep left$road')
-            : (it
-                ? 'Al bivio tieni la destra$road'
-                : 'At the fork keep right$road');
+        return withRoad(
+            modifier.contains('left') ? 'forkLeft' : 'forkRight');
       case 'end of road':
-        return modifier.contains('left')
-            ? (it
-                ? 'Alla fine della strada svolta a sinistra$road'
-                : 'At the end of the road turn left$road')
-            : (it
-                ? 'Alla fine della strada svolta a destra$road'
-                : 'At the end of the road turn right$road');
+        return withRoad(modifier.contains('left') ? 'endLeft' : 'endRight');
       case 'roundabout':
-        {
-          final exit = maneuver['exit'] as int? ?? 1;
-          return it
-              ? 'Alla rotonda prendi la $exit° uscita$road'
-              : 'At the roundabout take exit $exit$road';
-        }
       case 'rotary':
         {
           final exit = maneuver['exit'] as int? ?? 1;
-          return it
-              ? 'Alla rotatoria prendi la $exit° uscita$road'
-              : 'At the rotary take exit $exit$road';
+          final key = type == 'rotary' ? 'rotary' : 'roundabout';
+          return '${p(key).replaceAll('{n}', '$exit')}$road';
         }
       default:
-        return it ? 'Continua dritto$road' : 'Continue straight$road';
+        return withRoad('continueStraight');
     }
   }
 
-  static String _italianModifier(String modifier) => switch (modifier) {
-        'left' || 'slight left' || 'sharp left' => 'a sinistra',
-        'right' || 'slight right' || 'sharp right' => 'a destra',
-        _ => 'dritto',
-      };
 
-  static String _englishModifier(String modifier) => switch (modifier) {
-        'left' || 'slight left' || 'sharp left' => 'left',
-        'right' || 'slight right' || 'sharp right' => 'right',
-        _ => 'straight',
-      };
+
 
   /// OSRM occasionally labels a real junction as `new name`/`straight` when
   /// the turn angle is determined by a stop-sign intersection.  Its

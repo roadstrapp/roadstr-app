@@ -58,7 +58,23 @@ class KokoroTtsService {
 
   /// At most one queued low-priority utterance (the newest wins — a stale
   /// hazard alert is worthless once a newer one arrives).
-  String? _pendingText;
+  /// Announcements waiting for the current one to finish.
+  ///
+  /// A queue rather than a single slot: at a dense junction three cues can
+  /// arrive inside a couple of seconds, and with one slot the middle one was
+  /// silently overwritten and never spoken at all. Bounded, because a backlog
+  /// of stale instructions is worse than dropping the oldest — by the time it
+  /// would be spoken the junction has passed.
+  final List<String> _pending = <String>[];
+  static const _maxPending = 2;
+
+  /// Earliest moment the current utterance may be cut short.
+  ///
+  /// Something interrupted after a syllable is not just lost, it is worse than
+  /// silence: the driver hears half a word and cannot tell whether it mattered.
+  /// Anything arriving inside this window waits its turn instead.
+  DateTime? _cutAllowedFrom;
+  static const _minAudible = Duration(milliseconds: 1300);
 
   // Synthesis cache: "$lang:$text" → float32 waveform.
   // Keyed by language so entries survive language changes without collision.
@@ -170,7 +186,7 @@ class KokoroTtsService {
   Future<void> stop() async {
     _utteranceId++;
     _isSpeaking = false;
-    _pendingText = null;
+    _pending.clear();
     // Reset maneuver dedup so a navigation started right after this stop
     // never has its first instruction swallowed by the previous session.
     _lastManeuverText = null;
@@ -255,8 +271,13 @@ class KokoroTtsService {
   Future<void> speak(String text,
       {bool priority = false, bool maneuver = false}) async {
     if (_isSpeaking && !priority) {
-      _pendingText = text;
-      debugPrint('[KokoroTTS] queued: "$text"');
+      _enqueue(text);
+      return;
+    }
+    // Even a priority cue waits if the current one has barely begun.
+    final cutFrom = _cutAllowedFrom;
+    if (_isSpeaking && cutFrom != null && DateTime.now().isBefore(cutFrom)) {
+      _enqueue(text);
       return;
     }
     // One instruction never truncates another. The exception is the
@@ -264,17 +285,27 @@ class KokoroTtsService {
     // precisely because arriving late at the junction is worse than talking
     // over the advance warning it replaces.
     if (_isSpeaking && priority && maneuver && _speakingManeuver) {
-      _pendingText = text;
-      debugPrint('[KokoroTTS] queued behind a maneuver: "$text"');
+      _enqueue(text);
       return;
     }
     _speakingManeuver = maneuver;
     await _speakNow(text);
   }
 
+  void _enqueue(String text) {
+    if (_pending.contains(text)) return;
+    _pending.add(text);
+    // Drop the oldest: the newest cue describes the junction now closest.
+    while (_pending.length > _maxPending) {
+      _pending.removeAt(0);
+    }
+    debugPrint('[KokoroTTS] queued (${_pending.length}): "$text"');
+  }
+
   Future<void> _speakNow(String text) async {
     final id = ++_utteranceId;
     _isSpeaking = true;
+    _cutAllowedFrom = DateTime.now().add(_minAudible);
     final started = await _startPlayback(text, id);
     if (!started) {
       _finishUtterance(id);
@@ -298,8 +329,7 @@ class KokoroTtsService {
     if (id != _utteranceId) return;
     _isSpeaking = false;
     unawaited(_releaseFocus());
-    final next = _pendingText;
-    _pendingText = null;
+    final next = _pending.isEmpty ? null : _pending.removeAt(0);
     if (next != null) unawaited(_speakNow(next));
   }
 
@@ -375,7 +405,7 @@ class KokoroTtsService {
         } else {
           debugPrint(
               '[KokoroTTS] speak: "$text"  lang=$_lang/$_gender speed=$_speed');
-          final ipa = await _phonemizer.phonemize(text, _lang);
+          final ipa = _correctIpa(await _phonemizer.phonemize(text, _lang), _lang);
           debugPrint(
               '[KokoroTTS] IPA: "$ipa"  (${DateTime.now().difference(t0).inMilliseconds}ms)');
           if (id != _utteranceId) return false;
@@ -436,7 +466,7 @@ class KokoroTtsService {
         if (await wavFile.exists()) continue; // speak() already wrote the file
       }
       try {
-        final ipa = await _phonemizer.phonemize(phrase, _lang);
+        final ipa = _correctIpa(await _phonemizer.phonemize(phrase, _lang), _lang);
         if (_synthCompleter != null) {
           continue; // speak() started after phonemize
         }
@@ -479,7 +509,8 @@ class KokoroTtsService {
         final wavFile =
             await _diskCacheFile(languageCode, gender, speed, phrase);
         if (await wavFile.exists()) continue;
-        final ipa = await phonemizer.phonemize(phrase, languageCode);
+        final ipa =
+            _correctIpa(await phonemizer.phonemize(phrase, languageCode), languageCode);
         final audio = await engine.synthesize(ipa, voiceData, speed: speed);
         await _writeWav(wavFile, audio);
         debugPrint(
@@ -538,6 +569,37 @@ class KokoroTtsService {
         // is seconds away.
         maneuver: !imminent);
   }
+
+  /// Fixes phoneme sequences the voice model renders badly.
+  ///
+  /// The phonemizer is not at fault here — asked for "bivio" it returns
+  /// `bˈivio`, which is a defensible transcription. But Italian pronounces the
+  /// word in two syllables, /ˈbi.vjo/, with the i and o forming a glide; the
+  /// three-syllable form gives the neural voice a vowel sequence it slurs into
+  /// something closer to "bibio".
+  ///
+  /// So the correction is applied to the phonemes rather than to the text: the
+  /// spelling stays right on screen, and only what the voice is asked to
+  /// produce changes. Add entries here when a word is reported as mispronounced
+  /// and the phonemizer's own output turns out to be reasonable.
+  static String _correctIpa(String ipa, String lang) {
+    final fixes = _ipaFixes[lang];
+    if (fixes == null) return ipa;
+    var out = ipa;
+    for (final entry in fixes.entries) {
+      out = out.replaceAll(entry.key, entry.value);
+    }
+    return out;
+  }
+
+  static const _ipaFixes = <String, Map<String, String>>{
+    'it': {
+      // -io after a consonant is a glide, not its own syllable.
+      'ˈivio': 'ˈivjo',
+      'ˈɔlio': 'ˈɔljo',
+      'ˈaʧo': 'ˈatʃo',
+    },
+  };
 
   /// Replaces ordinal symbols (e.g. "1°", "2°") with spoken words so the TTS
   /// engine does not misread "°" as a temperature unit.
