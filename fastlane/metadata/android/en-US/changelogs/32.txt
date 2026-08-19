@@ -1,0 +1,18 @@
+Stops along the way.
+
+• A journey can now visit up to four places on the way to its destination.
+  Add them in the route planner, one search field per stop
+• Drag the rows by the grip to change the order — and the order matters:
+  the same places visited in a different sequence is a different journey,
+  and the route redraws to match
+• The destination keeps its own marker wherever you drag it to, so the
+  end of the journey stays recognisable
+• Already driving? The new button on the right adds a stop without
+  stopping. It uses the same search as the home screen — address,
+  places, favourites, nearby — and the route recalculates from where you
+  are now, then guidance simply carries on
+• The voice control moved under the instruction panel to make room
+
+Stops left empty are ignored rather than refused, and alternatives are
+not offered once a route is pinned through a stop — the router declines to
+compute them, so asking only costs a wait.
