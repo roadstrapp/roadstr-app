@@ -1434,4 +1434,18 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Moderns tumšs · Bitcoin oranžs';
+
+  @override
+  String get plannerAddStop => 'Pievienot pieturu';
+
+  @override
+  String get plannerStopHint => 'Pietura ceļā';
+
+  @override
+  String get plannerStopsFull => 'Vairāk pieturu pievienot nevar';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Pievienota pietura: $place';
+  }
 }

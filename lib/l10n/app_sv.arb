@@ -548,5 +548,9 @@
   "themeModernNostr": "Modern · Nostr-lila",
   "themeModernBitcoin": "Modern · Bitcoin-orange",
   "themeModernDarkNostr": "Modern mörk · Nostr-lila",
-  "themeModernDarkBitcoin": "Modern mörk · Bitcoin-orange"
+  "themeModernDarkBitcoin": "Modern mörk · Bitcoin-orange",
+  "plannerAddStop": "Lägg till stopp",
+  "plannerStopHint": "Stopp på vägen",
+  "plannerStopsFull": "Inga fler stopp kan läggas till",
+  "plannerStopAdded": "Stopp tillagt: {place}"
 }

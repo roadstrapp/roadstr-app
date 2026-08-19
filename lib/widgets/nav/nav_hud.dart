@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/routing_service.dart';
 import '../../theme/app_theme.dart';
+import '../map/map_chrome.dart';
 import '../../utils/units.dart';
 import '../speedometer_widget.dart';
 import 'maneuver_symbol.dart';
@@ -37,7 +38,19 @@ class NavInstruction extends StatelessWidget {
     this.distToNextStepM = 0,
     this.topInset = 0,
     this.distToNextM = 0,
+    this.voiceMuted = false,
+    this.onToggleVoice,
   });
+
+  /// Voice guidance state and toggle.
+  ///
+  /// Rendered at the end of this column rather than positioned by hand on the
+  /// stack: it must sit below the next-step tile, and that tile's height moves
+  /// with orientation, text length, and whether it is shown at all. Anchoring
+  /// it to the layout keeps it right without a magic offset that would drift
+  /// the first time any of those changed.
+  final bool voiceMuted;
+  final VoidCallback? onToggleVoice;
 
   @override
   Widget build(BuildContext context) {
@@ -194,6 +207,24 @@ class NavInstruction extends StatelessWidget {
                 ],
               )),
             ]),
+          ),
+        ),
+      if (onToggleVoice != null)
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 10, top: 8),
+            child: MapFab(
+              onTap: onToggleVoice!,
+              colors: colors,
+              child: Icon(
+                  voiceMuted
+                      ? Icons.volume_off_rounded
+                      : Icons.volume_up_rounded,
+                  color: colors.onAccent
+                      .withValues(alpha: voiceMuted ? 0.45 : 1.0),
+                  size: 22),
+            ),
           ),
         ),
     ]);

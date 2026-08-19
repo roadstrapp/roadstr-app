@@ -548,5 +548,9 @@
   "themeModernNostr": "现代 · Nostr 紫",
   "themeModernBitcoin": "现代 · Bitcoin 橙",
   "themeModernDarkNostr": "现代深色 · Nostr 紫",
-  "themeModernDarkBitcoin": "现代深色 · Bitcoin 橙"
+  "themeModernDarkBitcoin": "现代深色 · Bitcoin 橙",
+  "plannerAddStop": "添加途经点",
+  "plannerStopHint": "途经点",
+  "plannerStopsFull": "无法添加更多途经点",
+  "plannerStopAdded": "已添加途经点：{place}"
 }

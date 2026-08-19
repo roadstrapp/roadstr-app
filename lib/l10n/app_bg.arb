@@ -548,5 +548,9 @@
   "themeModernNostr": "Модерна · Лилаво Nostr",
   "themeModernBitcoin": "Модерна · Оранжево Bitcoin",
   "themeModernDarkNostr": "Модерна тъмна · Лилаво Nostr",
-  "themeModernDarkBitcoin": "Модерна тъмна · Оранжево Bitcoin"
+  "themeModernDarkBitcoin": "Модерна тъмна · Оранжево Bitcoin",
+  "plannerAddStop": "Добави спирка",
+  "plannerStopHint": "Междинна спирка",
+  "plannerStopsFull": "Не могат да се добавят още спирки",
+  "plannerStopAdded": "Добавена спирка: {place}"
 }

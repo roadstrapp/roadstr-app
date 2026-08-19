@@ -548,5 +548,9 @@
   "themeModernNostr": "Moodne · Nostri lilla",
   "themeModernBitcoin": "Moodne · Bitcoini oranž",
   "themeModernDarkNostr": "Moodne tume · Nostri lilla",
-  "themeModernDarkBitcoin": "Moodne tume · Bitcoini oranž"
+  "themeModernDarkBitcoin": "Moodne tume · Bitcoini oranž",
+  "plannerAddStop": "Lisa peatus",
+  "plannerStopHint": "Vahepeatus",
+  "plannerStopsFull": "Rohkem peatusi ei saa lisada",
+  "plannerStopAdded": "Peatus lisatud: {place}"
 }

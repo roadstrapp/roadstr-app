@@ -1438,4 +1438,18 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Nowoczesny ciemny · Pomarańcz Bitcoin';
+
+  @override
+  String get plannerAddStop => 'Dodaj przystanek';
+
+  @override
+  String get plannerStopHint => 'Przystanek po drodze';
+
+  @override
+  String get plannerStopsFull => 'Nie można dodać kolejnych przystanków';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Dodano przystanek: $place';
+  }
 }

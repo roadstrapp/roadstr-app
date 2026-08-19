@@ -1432,4 +1432,18 @@ class AppLocalizationsSl extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Sodobna temna · Bitcoin oranžna';
+
+  @override
+  String get plannerAddStop => 'Dodaj postanek';
+
+  @override
+  String get plannerStopHint => 'Vmesni postanek';
+
+  @override
+  String get plannerStopsFull => 'Dodatnih postankov ni mogoče dodati';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Dodan postanek: $place';
+  }
 }

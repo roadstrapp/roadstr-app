@@ -2763,6 +2763,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Modern Dark · Bitcoin Orange'**
   String get themeModernDarkBitcoin;
+
+  /// No description provided for @plannerAddStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Add stop'**
+  String get plannerAddStop;
+
+  /// No description provided for @plannerStopHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop along the way'**
+  String get plannerStopHint;
+
+  /// No description provided for @plannerStopsFull.
+  ///
+  /// In en, this message translates to:
+  /// **'No more stops can be added'**
+  String get plannerStopsFull;
+
+  /// No description provided for @plannerStopAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop added: {place}'**
+  String plannerStopAdded(String place);
 }
 
 class _AppLocalizationsDelegate

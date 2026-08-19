@@ -548,5 +548,9 @@
   "themeModernNostr": "Moderný · Nostr fialová",
   "themeModernBitcoin": "Moderný · Bitcoin oranžová",
   "themeModernDarkNostr": "Moderný tmavý · Nostr fialová",
-  "themeModernDarkBitcoin": "Moderný tmavý · Bitcoin oranžová"
+  "themeModernDarkBitcoin": "Moderný tmavý · Bitcoin oranžová",
+  "plannerAddStop": "Pridať zastávku",
+  "plannerStopHint": "Zastávka po ceste",
+  "plannerStopsFull": "Ďalšie zastávky nie je možné pridať",
+  "plannerStopAdded": "Zastávka pridaná: {place}"
 }

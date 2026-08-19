@@ -1439,4 +1439,18 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Современная тёмная · Оранжевый Bitcoin';
+
+  @override
+  String get plannerAddStop => 'Добавить остановку';
+
+  @override
+  String get plannerStopHint => 'Промежуточная остановка';
+
+  @override
+  String get plannerStopsFull => 'Больше остановок добавить нельзя';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Остановка добавлена: $place';
+  }
 }

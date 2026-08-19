@@ -511,5 +511,9 @@
   "themeModernNostr": "Moderno · Viola Nostr",
   "themeModernBitcoin": "Moderno · Arancione Bitcoin",
   "themeModernDarkNostr": "Moderno scuro · Viola Nostr",
-  "themeModernDarkBitcoin": "Moderno scuro · Arancione Bitcoin"
+  "themeModernDarkBitcoin": "Moderno scuro · Arancione Bitcoin",
+  "plannerAddStop": "Aggiungi tappa",
+  "plannerStopHint": "Tappa intermedia",
+  "plannerStopsFull": "Non puoi aggiungere altre tappe",
+  "plannerStopAdded": "Tappa aggiunta: {place}"
 }

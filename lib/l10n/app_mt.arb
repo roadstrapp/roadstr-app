@@ -548,5 +548,9 @@
   "themeModernNostr": "Modern · Vjola Nostr",
   "themeModernBitcoin": "Modern · Oranġjo Bitcoin",
   "themeModernDarkNostr": "Modern skur · Vjola Nostr",
-  "themeModernDarkBitcoin": "Modern skur · Oranġjo Bitcoin"
+  "themeModernDarkBitcoin": "Modern skur · Oranġjo Bitcoin",
+  "plannerAddStop": "Żid waqfa",
+  "plannerStopHint": "Waqfa fit-triq",
+  "plannerStopsFull": "Ma tistax iżżid aktar waqfiet",
+  "plannerStopAdded": "Waqfa miżjuda: {place}"
 }
