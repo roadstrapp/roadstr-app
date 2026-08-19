@@ -81,8 +81,11 @@ class NavInstruction extends StatelessWidget {
         // becomes an object resting over the map rather than a bar welded to
         // the top of it, and the sliver of map now visible down each side is
         // what sells the depth.
-        margin: EdgeInsets.fromLTRB(10, topInset + 6, 10, 0),
-        padding: EdgeInsets.fromLTRB(18, vPad, 18, vPad),
+        // Half the status-bar inset, plus enough to clear the clock and
+        // battery icons that sit in it. Only the panel's rounded top edge
+        // reaches into that band; its text starts below them.
+        margin: EdgeInsets.fromLTRB(10, topInset * 0.5 + 10, 10, 0),
+        padding: EdgeInsets.fromLTRB(18, vPad * 0.6, 18, vPad),
         decoration: BoxDecoration(
           // The gradient is the "modern" themes' whole point, and the driving
           // panels are where it earns its place. Null on every other theme,
@@ -144,11 +147,19 @@ class NavInstruction extends StatelessWidget {
       // 28→20, icon 48→36, type 26/22→20/17): the tile is a preview of what
       // comes after the manoeuvre, so it must not eat the map. The type shrank
       // in step with the box so the same instructions still fit on three lines.
-      if (showNext)
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Container(
-            margin: const EdgeInsets.only(left: 10, top: 8),
+      // Ten pixels under the main panel: the next-step tile on the left and
+      // the voice toggle on the right, in one row. They shared a column
+      // before, which pushed the toggle below the tile and left it hanging
+      // over the map; side by side they cannot collide and the toggle sits
+      // where the eye already goes for the other controls.
+      Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (showNext)
+              Container(
+                margin: const EdgeInsets.only(left: 10),
             // 15% narrower than the half-screen tile this used to be, so it
             // covers less map. Type and padding come down with it rather than
             // the text being clipped: the same words still fit in the same
@@ -208,25 +219,25 @@ class NavInstruction extends StatelessWidget {
               )),
             ]),
           ),
+            const Spacer(),
+            if (onToggleVoice != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: MapFab(
+                  onTap: onToggleVoice!,
+                  colors: colors,
+                  child: Icon(
+                      voiceMuted
+                          ? Icons.volume_off_rounded
+                          : Icons.volume_up_rounded,
+                      color: colors.onAccent
+                          .withValues(alpha: voiceMuted ? 0.45 : 1.0),
+                      size: 22),
+                ),
+              ),
+          ],
         ),
-      if (onToggleVoice != null)
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 10, top: 8),
-            child: MapFab(
-              onTap: onToggleVoice!,
-              colors: colors,
-              child: Icon(
-                  voiceMuted
-                      ? Icons.volume_off_rounded
-                      : Icons.volume_up_rounded,
-                  color: colors.onAccent
-                      .withValues(alpha: voiceMuted ? 0.45 : 1.0),
-                  size: 22),
-            ),
-          ),
-        ),
+      ),
     ]);
   }
 

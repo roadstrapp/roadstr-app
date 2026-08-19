@@ -242,7 +242,22 @@ class ZtlService {
     //    ZTL). `private`/`customers` are deliberately EXCLUDED: those mark
     //    private courtyards and parking lots, not municipal traffic zones,
     //    and would fire false alarms at every private driveway.
-    //    highway=pedestrian is included with no access filter (a pedestrian
+    //    highway=pedestrian now requires an access restriction like every
+    //    other class, having previously been included unconditionally. That
+    //    was the largest source of false positives by a wide margin: measured
+    //    around one Italian historic centre, 160 of the 274 ways the query
+    //    returned were bare pedestrian ways. A pedestrian square or alley is
+    //    not a limited-traffic zone, and in a dense centre there is almost
+    //    always one within the proximity radius of a perfectly drivable road —
+    //    which is how an unrestricted tertiary street came to be announced as
+    //    restricted.
+    //
+    //    zone:traffic no longer matches "urban" either. `zone:traffic=IT:urban`
+    //    is the ordinary "built-up area" tag that sets default speed limits; it
+    //    says nothing about access, and matching it would flag most streets in
+    //    any Italian town.
+    //
+    //    (historical note) highway=pedestrian was included with no access filter (a pedestrian
     //    street is car-restricted by definition).
     //
     // 1b. CONDITIONAL restrictions. This is how most Italian ZTLs are really
@@ -265,12 +280,14 @@ class ZtlService {
   way[highway~"^(living_street|residential|unclassified|service|tertiary|secondary|primary)\$"]
      [~"^(access|motor_vehicle|vehicle|motorcar)\$"~"^(no|destination|permit|delivery)\$"]
      (around:2000,$lat,$lng);
-  way[highway=pedestrian](around:2000,$lat,$lng);
+  way[highway=pedestrian]
+     [~"^(access|motor_vehicle|vehicle|motorcar)\$"~"^(no|destination|permit|delivery)\$"]
+     (around:2000,$lat,$lng);
   way[highway~"^(living_street|residential|unclassified|service|tertiary|secondary|primary|pedestrian)\$"]
      [~"^(access|motor_vehicle|vehicle|motorcar):conditional\$"~"^(no|destination|permit|delivery)"]
      (around:2000,$lat,$lng);
-  way(around:3000,$lat,$lng)["zone:traffic"~"(urban|restricted|limited)",i];
-  relation(around:3000,$lat,$lng)["zone:traffic"~"(urban|restricted|limited)",i];
+  way(around:3000,$lat,$lng)["zone:traffic"~"(restricted|limited)",i];
+  relation(around:3000,$lat,$lng)["zone:traffic"~"(restricted|limited)",i];
   relation(around:3000,$lat,$lng)["boundary"="traffic_zone"];
   relation(around:3000,$lat,$lng)["boundary"~"^(restricted_area|limited_traffic_zone|low_emission_zone)\$"];
   relation(around:3000,$lat,$lng)["name"~"ZTL",i]["access"!="yes"];

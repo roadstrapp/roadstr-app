@@ -285,6 +285,14 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// the car is now, not a property of the route.
   ZtlWay? _ztlPassingBy;
 
+  /// Set when the driver swipes a zone notice away.
+  ///
+  /// Somebody who holds a permit drives their own restricted street daily; a
+  /// warning they cannot dismiss stops being information and becomes noise
+  /// they learn to look past — which is exactly when it fails on the day it
+  /// matters. Cleared as soon as the street changes.
+  bool _ztlNoticeDismissed = false;
+
   /// True when the current GPS position is inside a known ZTL polygon.
   bool _inZtl = false;
 
@@ -979,11 +987,21 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     // two warnings at once teaches the driver to read neither.
     final passing =
         nowInZtlCandidate ? null : _ztl.nearestRestrictedWay(data.position);
-    if (passing?.name != _ztlPassingBy?.name) {
-      setState(() => _ztlPassingBy = passing);
+    // Compared by identity, not by name. Restricted ways are frequently
+    // unnamed, and comparing names meant that leaving an unnamed one — null
+    // before, null after — registered as "no change", so the notice was never
+    // cleared and stayed over the cursor until the app was restarted.
+    if (!identical(passing, _ztlPassingBy)) {
+      setState(() {
+        _ztlPassingBy = passing;
+        // A new street is a new warning: an earlier dismissal was about the
+        // street just left, not about this one.
+        if (passing == null) _ztlNoticeDismissed = false;
+      });
     }
     final nowInZtl = nowInZtlCandidate;
     if (nowInZtl != _inZtl) {
+      _ztlNoticeDismissed = false;
       setState(() {
         _inZtl = nowInZtl;
         _ztlName = nowInZtl ? _ztl.ztlNameAt(data.position) : null;
@@ -1249,8 +1267,13 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             ? _chainedTail(_route!.steps[followIdx], nextStep.distanceM)
             : null;
         if (tail != null) {
+          // Lower-cased before joining. The two clauses become one sentence,
+          // and a capital letter in the middle of one is read by the
+          // phonemizer as the start of a new one — which is where the audible
+          // full stop after "then"/"poi" was coming from. The on-screen text
+          // has always done this; the spoken text had not.
           instruction = AppLocalizations.of(context)
-              .chainedManeuver(nextStep.instruction, tail);
+              .chainedManeuver(nextStep.instruction, _uncapitalised(tail));
           // Only the immediate post-advance announcement is suppressed — the
           // follow-up keeps its own cues. Marking it fully spoken is what
           // used to leave maneuvers visible on screen but never said again.
@@ -1357,6 +1380,20 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// Prepares cumulative distances for the route geometry.  Keeping this
   /// array avoids repeatedly walking a potentially very long polyline on GPS
   /// ticks and lets the completed/remaining paint split at sub-point accuracy.
+  /// Name of the town street being driven right now, or null.
+  ///
+  /// Taken from the step in progress, which carries the name of the road it
+  /// leads onto — that is the road the car is on once the manoeuvre is behind
+  /// it. Numbered roads deliberately return null: their code is already on
+  /// every sign and in the manoeuvre panel.
+  String? get _currentStreetName {
+    final route = _route;
+    if (!_isNavigating || route == null || route.steps.isEmpty) return null;
+    final idx = _currentStepIdx.clamp(0, route.steps.length - 1);
+    final step = route.steps[idx];
+    return step.isUrbanStreet ? step.roadName : null;
+  }
+
   /// Recomputes which stretches of the active route run on restricted streets,
   /// and which restricted streets sit beside it.
   ///
@@ -1468,6 +1505,20 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// The spoken tail for a chained announcement, or null when there is
   /// nothing worth adding. [gapM] is the distance from the maneuver being
   /// announced to [follow].
+  /// Lower-cases the first letter of a clause about to be joined mid-sentence.
+  ///
+  /// Acronyms and road codes are left alone: a second upper-case character (or
+  /// a digit) means the word is not an ordinary sentence opening, so "SS16"
+  /// and "E45" survive intact.
+  static String _uncapitalised(String s) {
+    if (s.length < 2) return s;
+    final second = s[1];
+    if (second.toUpperCase() == second && second.toLowerCase() != second) {
+      return s;
+    }
+    return '${s[0].toLowerCase()}${s.substring(1)}';
+  }
+
   String? _chainedTail(RouteStep follow, double gapM) {
     final l = AppLocalizations.of(context);
     final lang = Localizations.localeOf(context).languageCode;
@@ -1598,17 +1649,61 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// Distance from [pos] to the active route polyline and the bearing of the
   /// nearest segment (i.e. the expected direction of travel at that point).
   /// Returns null when there is no active route.
+  /// Distance to the route and the direction it runs in, at [pos].
+  ///
+  /// The segment is chosen by *progress along the route*, not by raw distance,
+  /// among those close enough to be plausible. That distinction is the whole
+  /// point: at a roundabout the exit arm passes within a few metres of the
+  /// entry arm while pointing the opposite way, and "nearest in space" happily
+  /// returns it. The result is a route bearing that contradicts the direction
+  /// of travel, which is what the heading filter then has to argue with — and
+  /// occasionally loses to, swinging the map round.
+  ///
+  /// Progress cannot make that mistake: it advances monotonically, so the
+  /// entry and exit of the same roundabout are hundreds of metres apart on it
+  /// even when they are metres apart on the ground.
   ({double distM, double bearing})? _routeLocalBearingAt(LatLng pos) {
     final nearest = _nearestActiveRouteSegment(pos);
     if (nearest == null) return null;
     final poly = _route!.polyline;
+    final idx = _segmentNearestInProgress(pos, nearest);
     return (
       distM: nearest.distM,
-      bearing: Geo.bearingBetween(
-        poly[nearest.segmentIdx],
-        poly[nearest.segmentIdx + 1],
-      ),
+      bearing: Geo.bearingBetween(poly[idx], poly[idx + 1]),
     );
+  }
+
+  /// Among segments about as close as the nearest, the one whose position
+  /// along the route is closest to where the driver actually is.
+  ///
+  /// "About as close" rather than "closest": a segment two metres further away
+  /// but four hundred metres back along the route is not a better description
+  /// of where the car is, it is a different piece of road that happens to pass
+  /// nearby.
+  int _segmentNearestInProgress(
+      LatLng pos, ({double distM, int segmentIdx}) nearest) {
+    final poly = _route?.polyline;
+    if (poly == null || _routeCumulativeM.length != poly.length) {
+      return nearest.segmentIdx;
+    }
+    // Only worth disambiguating when something else is genuinely as close.
+    final tolerance = math.max(nearest.distM * 1.6, 20.0);
+    final from = math.max(0, nearest.segmentIdx - 120);
+    final to = math.min(poly.length - 2, nearest.segmentIdx + 120);
+
+    var bestIdx = nearest.segmentIdx;
+    var bestProgressGap = double.infinity;
+    for (var i = from; i <= to; i++) {
+      if (Geo.distanceToSegmentM(pos, poly[i], poly[i + 1]) > tolerance) {
+        continue;
+      }
+      final gap = (_routeCumulativeM[i] - _routeProgressM).abs();
+      if (gap < bestProgressGap) {
+        bestProgressGap = gap;
+        bestIdx = i;
+      }
+    }
+    return bestIdx;
   }
 
   /// Finds the closest active-route segment in a moving window around the
@@ -5150,33 +5245,63 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
               ),
             ),
 
+          // ── CURRENT STREET ────────────────────────────────────────────────
+          // Positioned on the screen rather than attached to the marker: a
+          // label inside the marker layer rotates with the map in heading-up
+          // mode, and a street name upside down is worse than none.
+          if (_isNavigating && _currentStreetName != null)
+            Positioned(
+              // Sits in the gap between the speed/ETA panel and the
+              // speed-limit sign. The panel's top edge is at 124 + inset
+              // (14 padding + 110 speedometer), so this clears it by twelve
+              // pixels and no more — anchored to the bottom rather than to a
+              // fraction of screen height, which drifted between devices.
+              bottom: 136 + bottomInset,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: CurrentStreetLabel(
+                    name: _currentStreetName!, colors: c),
+              ),
+            ),
+
           // ── ZTL WARNING BANNER ───────────────────────────────────────────────
-          // Only "you are inside one": a warning hundreds of metres ahead of a
-          // zone the route may merely skirt was too noisy (see _onGps).
-          // While navigating it sits above the speed-limit sign — the top of
-          // the screen belongs to the manoeuvre, which must never be covered.
-          if (_inZtl)
-            Positioned(
-              top: _isNavigating ? null : topInset + 76,
-              bottom: _isNavigating ? 220 + bottomInset : null,
-              left: 16,
-              right: 16,
-              child: ZtlBanner(name: _ztlName, pos: _position),
-            )
-          // Only when NOT already inside one. The red banner above answers
-          // "you are in a restricted zone", and it is driven by the live GPS
-          // position — never by the route merely touching a zone somewhere
-          // ahead, which would announce a violation that has not happened.
+          // Sits just above the bottom panel rather than mid-screen: the
+          // cursor lives around two fifths up from the bottom, and a banner
+          // there covered the one thing the driver is steering by.
           //
-          // This one is an advisory about a street being driven past: a
-          // shortcut that looks open and is not.
-          else if (_ztlPassingBy != null)
+          // Swipe in any direction to dismiss. Somebody with a permit drives
+          // their own restricted street every day, and a warning that cannot
+          // be got rid of is one they stop reading.
+          if (!_ztlNoticeDismissed && (_inZtl || _ztlPassingBy != null))
             Positioned(
-              top: _isNavigating ? null : topInset + 76,
-              bottom: _isNavigating ? 220 + bottomInset : null,
+              bottom: (_isNavigating ? 176 : 104) + bottomInset,
               left: 16,
               right: 16,
-              child: ZtlNearbyNotice(name: _ztlPassingBy!.name, pos: _position),
+              child: Dismissible(
+                key: ValueKey(
+                    'ztl-${_inZtl ? 'in' : 'near'}-${_ztlName ?? _ztlPassingBy?.name ?? ''}'),
+                direction: DismissDirection.horizontal,
+                onDismissed: (_) =>
+                    setState(() => _ztlNoticeDismissed = true),
+                child: GestureDetector(
+                  // Vertical swipes dismiss too, without a Dismissible of
+                  // their own: nesting two would leave neither able to claim
+                  // the gesture.
+                  onVerticalDragEnd: (d) {
+                    if ((d.primaryVelocity ?? 0) > 200) {
+                      setState(() => _ztlNoticeDismissed = true);
+                    }
+                  },
+                  child: _inZtl
+                      ? ZtlBanner(name: _ztlName, pos: _position)
+                      // Never both: standing inside a zone, "you are in one"
+                      // is the accurate message, and stacking the advisory on
+                      // top would just crowd the screen.
+                      : ZtlNearbyNotice(
+                          name: _ztlPassingBy!.name, pos: _position),
+                ),
+              ),
             ),
 
           // ── LEFT FABs: report event + A→B planner + parking ───────────────────
