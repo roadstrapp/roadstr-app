@@ -358,3 +358,67 @@ class ZtlNearbyNotice extends StatelessWidget {
     );
   }
 }
+
+/// The street currently being driven, shown just under the cursor.
+///
+/// Only ever a town street. A numbered road already announces itself on every
+/// sign and in the manoeuvre panel, and repeating "SS3bis" under the cursor for
+/// two hundred kilometres would be noise; a street name is the thing that is
+/// genuinely hard to know from inside a car in an unfamiliar town.
+///
+/// Sized to its text rather than to a fixed box: "Via Roma" and "Via Torquato
+/// Tasso" are not the same width, and padding one out to the other's size
+/// leaves a plaque with a word floating in it.
+class CurrentStreetLabel extends StatelessWidget {
+  final String name;
+  final RoadstrColors colors;
+
+  const CurrentStreetLabel({
+    super.key,
+    required this.name,
+    required this.colors,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        // Shrink-wraps horizontally; capped so a very long name ellipsises
+        // instead of running off both edges of the screen.
+        //
+        // 52%, not more: the label is centred and the speed-limit sign sits at
+        // the same height on the left. A wider cap lets a long street name
+        // slide underneath the sign, and a covered speed limit is a worse loss
+        // than a truncated street name.
+        constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.52),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          // Solid accent with the same corner highlight the manoeuvre tile and
+          // map controls carry, so it reads as one of them rather than as a
+          // stray label.
+          gradient: colors.accentGloss,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.28),
+                blurRadius: 10,
+                spreadRadius: -2,
+                offset: const Offset(0, 3)),
+          ],
+        ),
+        child: Text(
+          name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: colors.onAccent,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.1,
+          ),
+        ),
+      ),
+    );
+  }
+}
