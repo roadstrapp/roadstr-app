@@ -1398,4 +1398,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => '现代深色 · Bitcoin 橙';
+
+  @override
+  String get plannerAddStop => '添加途经点';
+
+  @override
+  String get plannerStopHint => '途经点';
+
+  @override
+  String get plannerStopsFull => '无法添加更多途经点';
+
+  @override
+  String plannerStopAdded(String place) {
+    return '已添加途经点：$place';
+  }
 }

@@ -548,5 +548,9 @@
   "themeModernNostr": "Sodobna · Nostr vijolična",
   "themeModernBitcoin": "Sodobna · Bitcoin oranžna",
   "themeModernDarkNostr": "Sodobna temna · Nostr vijolična",
-  "themeModernDarkBitcoin": "Sodobna temna · Bitcoin oranžna"
+  "themeModernDarkBitcoin": "Sodobna temna · Bitcoin oranžna",
+  "plannerAddStop": "Dodaj postanek",
+  "plannerStopHint": "Vmesni postanek",
+  "plannerStopsFull": "Dodatnih postankov ni mogoče dodati",
+  "plannerStopAdded": "Dodan postanek: {place}"
 }

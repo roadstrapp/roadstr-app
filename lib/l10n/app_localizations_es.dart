@@ -1439,4 +1439,18 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Moderno oscuro · Naranja Bitcoin';
+
+  @override
+  String get plannerAddStop => 'Añadir parada';
+
+  @override
+  String get plannerStopHint => 'Parada intermedia';
+
+  @override
+  String get plannerStopsFull => 'No se pueden añadir más paradas';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Parada añadida: $place';
+  }
 }

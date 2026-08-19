@@ -1446,4 +1446,18 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Μοντέρνο σκούρο · Πορτοκαλί Bitcoin';
+
+  @override
+  String get plannerAddStop => 'Προσθήκη στάσης';
+
+  @override
+  String get plannerStopHint => 'Ενδιάμεση στάση';
+
+  @override
+  String get plannerStopsFull => 'Δεν μπορούν να προστεθούν άλλες στάσεις';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Προστέθηκε στάση: $place';
+  }
 }

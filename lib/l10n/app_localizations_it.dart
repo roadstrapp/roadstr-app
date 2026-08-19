@@ -1443,4 +1443,18 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Moderno scuro · Arancione Bitcoin';
+
+  @override
+  String get plannerAddStop => 'Aggiungi tappa';
+
+  @override
+  String get plannerStopHint => 'Tappa intermedia';
+
+  @override
+  String get plannerStopsFull => 'Non puoi aggiungere altre tappe';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Tappa aggiunta: $place';
+  }
 }

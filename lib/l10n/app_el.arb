@@ -548,5 +548,9 @@
   "themeModernNostr": "Μοντέρνο · Μωβ Nostr",
   "themeModernBitcoin": "Μοντέρνο · Πορτοκαλί Bitcoin",
   "themeModernDarkNostr": "Μοντέρνο σκούρο · Μωβ Nostr",
-  "themeModernDarkBitcoin": "Μοντέρνο σκούρο · Πορτοκαλί Bitcoin"
+  "themeModernDarkBitcoin": "Μοντέρνο σκούρο · Πορτοκαλί Bitcoin",
+  "plannerAddStop": "Προσθήκη στάσης",
+  "plannerStopHint": "Ενδιάμεση στάση",
+  "plannerStopsFull": "Δεν μπορούν να προστεθούν άλλες στάσεις",
+  "plannerStopAdded": "Προστέθηκε στάση: {place}"
 }

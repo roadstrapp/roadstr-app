@@ -548,5 +548,9 @@
   "themeModernNostr": "Modernus · Nostr violetinė",
   "themeModernBitcoin": "Modernus · Bitcoin oranžinė",
   "themeModernDarkNostr": "Modernus tamsus · Nostr violetinė",
-  "themeModernDarkBitcoin": "Modernus tamsus · Bitcoin oranžinė"
+  "themeModernDarkBitcoin": "Modernus tamsus · Bitcoin oranžinė",
+  "plannerAddStop": "Pridėti sustojimą",
+  "plannerStopHint": "Sustojimas pakeliui",
+  "plannerStopsFull": "Daugiau sustojimų pridėti negalima",
+  "plannerStopAdded": "Pridėtas sustojimas: {place}"
 }

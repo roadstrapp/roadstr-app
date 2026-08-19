@@ -456,14 +456,27 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   // ── Route planner (A→B) ────────────────────────────────────────────────────
   bool _showPlanner = false;
 
+  /// Stops of the journey currently displayed, so a change of transport mode
+  /// recalculates the same journey rather than silently dropping them.
+  List<LatLng> _activeVia = const [];
+
   /// Origin waypoint. `null` means "My Location" (use live GPS position).
   WayPoint? _planFrom;
-  WayPoint? _planTo;
 
-  /// 0 = "From" field active, 1 = "To" field active.
+  /// Stops after the origin, in the order they will be driven. The last entry
+  /// is the destination; everything before it is an intermediate stop.
+  ///
+  /// A list rather than a pair of fields because the order is the feature: the
+  /// same three places visited in a different sequence are a different
+  /// journey, and dragging a row is how the driver says which.
+  final List<WayPoint?> _planStops = [null];
+  final List<TextEditingController> _planStopCtrls = [TextEditingController()];
+
+  /// 0 = origin field active; 1..n selects [_planStops] at index-1.
   int _planActiveField = 0;
   final _planFromCtrl = TextEditingController();
-  final _planToCtrl = TextEditingController();
+
+  WayPoint? get _planTo => _planStops.isEmpty ? null : _planStops.last;
   List<NominatimResult> _planResults = [];
   bool _planSearching = false;
   Timer? _planDebounce;
@@ -2323,7 +2336,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _requestAlternatives(LatLng destination,
-      {String? label, LatLng? fromPosition}) async {
+      {String? label, LatLng? fromPosition, List<LatLng> via = const []}) async {
     final requestGeneration = ++_routeRequestGeneration;
     // Block navigation when GPS hasn't acquired a real fix yet.
     // Using the Italy fallback (42.5, 12.5) as origin would produce a useless
@@ -2346,6 +2359,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     }
     // A newer request supersedes anything queued behind the fix.
     _awaitingFixDestination = null;
+    _activeVia = via;
 
     _pendingLabel = label;
     // Start reverse geocode in parallel (only for map taps where no label is known yet).
@@ -2391,7 +2405,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           apiKey: apiKey,
           graphhopperServer: ghServer,
           lang: lang,
-          vehicle: vehicle);
+          vehicle: vehicle,
+          via: _activeVia);
       routes = await _withRoundaboutTopology(routes);
     } catch (e) {
       if (!mounted || requestGeneration != _routeRequestGeneration) return;
@@ -2616,7 +2631,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           apiKey: apiKey,
           graphhopperServer: ghServer,
           lang: lang,
-          vehicle: vehicle);
+          vehicle: vehicle,
+          via: _activeVia);
       routes = await _withRoundaboutTopology(routes);
     } catch (e) {
       if (!mounted || requestGeneration != _routeRequestGeneration) return;
@@ -2807,10 +2823,16 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   void _openPlanner() => setState(() {
         _showPlanner = true;
         _planFrom = null;
-        _planTo = null;
+        _planStops
+          ..clear()
+          ..add(null);
+        for (final c in _planStopCtrls.skip(1)) {
+          c.dispose();
+        }
+        _planStopCtrls.removeRange(1, _planStopCtrls.length);
         _planActiveField = 1; // start with the "To" field active
         _planFromCtrl.text = AppLocalizations.of(context).myLocation;
-        _planToCtrl.clear();
+        _planStopCtrls.first.clear();
         _planResults = [];
       });
 
@@ -2865,24 +2887,162 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       });
       FocusScope.of(context).requestFocus(); // focus su campo To
     } else {
+      final i = (_planActiveField - 1).clamp(0, _planStops.length - 1);
       setState(() {
-        _planTo = WayPoint(r.shortName, r.position);
-        _planToCtrl.text = r.shortName;
+        _planStops[i] = WayPoint(r.shortName, r.position);
+        _planStopCtrls[i].text = r.shortName;
         _planResults = [];
       });
       FocusScope.of(context).unfocus();
     }
   }
 
+  /// True while the driver is picking a stop to add mid-journey.
+  bool _pickingWaypoint = false;
+
+  /// Opens the ordinary search over the map so a stop can be added without
+  /// stopping the journey.
+  ///
+  /// Reuses the home search wholesale — address, geocoder, favourites, nearby
+  /// — rather than growing a second, thinner search: a driver who has learned
+  /// one search box should not meet a different one at the wheel.
+  void _openWaypointSearch() {
+    _loadFavorites();
+    setState(() {
+      _pickingWaypoint = true;
+      _showSearch = true;
+      _searchResults = [];
+      _searchController.clear();
+    });
+  }
+
+  void _cancelWaypointSearch() {
+    if (!_pickingWaypoint) return;
+    setState(() {
+      _pickingWaypoint = false;
+      _showSearch = false;
+      _searchResults = [];
+    });
+    _searchController.clear();
+  }
+
+  /// Inserts [position] as the next stop and reroutes from where the car is
+  /// now.
+  ///
+  /// Inserted ahead of the final destination, not appended: a driver adding a
+  /// stop while under way means "before I get there". The journey continues
+  /// from the current position rather than from where it originally started,
+  /// which is the difference between a detour and a fresh route.
+  Future<void> _addWaypointNow(LatLng position, String label) async {
+    final destination = _destination;
+    if (destination == null) return;
+    if (_activeVia.length >= RoutingService.maxWaypoints) {
+      _snack(AppLocalizations.of(context).plannerStopsFull);
+      _cancelWaypointSearch();
+      return;
+    }
+    _cancelWaypointSearch();
+    final via = [..._activeVia, position];
+    final origin = _position;
+    final requestGeneration = ++_routeRequestGeneration;
+    setState(() => _isCalculating = true);
+
+    final (:provider, :apiKey, :ghServer) = await _resolveProvider();
+    if (!mounted || requestGeneration != _routeRequestGeneration) return;
+    final lang = Localizations.localeOf(context).languageCode;
+
+    List<RouteResult> routes;
+    try {
+      routes = await RoutingService.getRoutes(origin, destination,
+          provider: provider,
+          apiKey: apiKey,
+          graphhopperServer: ghServer,
+          lang: lang,
+          vehicle: _transportMode,
+          via: via);
+      routes = await _withRoundaboutTopology(routes);
+    } catch (e) {
+      if (!mounted || requestGeneration != _routeRequestGeneration) return;
+      setState(() => _isCalculating = false);
+      _routingError(e.toString());
+      return;
+    }
+    if (!mounted || requestGeneration != _routeRequestGeneration) return;
+    if (routes.isEmpty) {
+      setState(() => _isCalculating = false);
+      _routingError(AppLocalizations.of(context).noRouteFound);
+      return;
+    }
+
+    setState(() {
+      _isCalculating = false;
+      _activeVia = via;
+      // The journey now starts from here; the original origin would route the
+      // driver back to where they set off.
+      _routeOrigin = origin;
+    });
+    _snack(AppLocalizations.of(context).plannerStopAdded(label));
+    // Straight back into guidance rather than through the alternatives panel:
+    // the car is moving, and a chooser on screen at 90 km/h is the wrong
+    // answer to "take me via there".
+    _startNavigation(routes.first, silent: true);
+  }
+
+  /// Adds an empty stop *before* the destination.
+  ///
+  /// Inserted second-to-last rather than appended: a driver adding a stop to
+  /// an existing journey means "on the way there", not "and then somewhere
+  /// else afterwards". The order can still be changed by dragging.
+  void _addPlanStop() {
+    if (_planStops.length > RoutingService.maxWaypoints) return;
+    setState(() {
+      final at = _planStops.length - 1;
+      _planStops.insert(at, null);
+      _planStopCtrls.insert(at, TextEditingController());
+      _planActiveField = at + 1;
+      _planResults = [];
+    });
+  }
+
+  void _removePlanStop(int index) {
+    if (_planStops.length <= 1) return;
+    setState(() {
+      _planStops.removeAt(index);
+      _planStopCtrls.removeAt(index).dispose();
+      _planActiveField = _planStops.length;
+      _planResults = [];
+    });
+  }
+
+  void _reorderPlanStops(int oldIndex, int newIndex) {
+    setState(() {
+      // onReorderItem already accounts for the removed row, so newIndex is the
+      // final position and needs no adjustment — the older onReorder callback
+      // did not, and mixing the two conventions moves rows one place wrong.
+      _planStops.insert(newIndex, _planStops.removeAt(oldIndex));
+      _planStopCtrls.insert(newIndex, _planStopCtrls.removeAt(oldIndex));
+      _planResults = [];
+    });
+  }
+
   Future<void> _calculatePlan() async {
-    if (_planTo == null) return;
+    final to = _planTo;
+    if (to == null) return;
     final from = _planFrom?.position ?? (_hasRealFix ? _position : _camCenter);
-    _pendingLabel = _planTo!.label;
+    // Everything before the last row is a stop on the way. Rows the user added
+    // but never filled in are dropped rather than refused: an empty box is an
+    // abandoned intention, not an error worth blocking the journey over.
+    final via = [
+      for (final stop in _planStops.take(_planStops.length - 1))
+        if (stop != null) stop.position,
+    ];
+    _pendingLabel = to.label;
     _closePlanner();
     await _requestAlternatives(
-      _planTo!.position,
-      label: _planTo!.label,
+      to.position,
+      label: to.label,
       fromPosition: from,
+      via: via,
     );
   }
 
@@ -2891,6 +3051,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     // Cancelling means cancelling, including anything still queued behind the
     // fix — otherwise it would surprise the user by routing itself later.
     _awaitingFixDestination = null;
+    _activeVia = const [];
     setState(() {
       _showAlternatives = false;
       _alternatives = [];
@@ -3266,6 +3427,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   void _selectSearchResult(NominatimResult result) {
     // Save to history on every explicit selection, not just on navigation start.
     _saveToHistory(result.shortName, result.position);
+    // Picking a stop mid-journey skips the place sheet: the driver asked to go
+    // somewhere on the way, not to read about it.
+    if (_pickingWaypoint) {
+      unawaited(_addWaypointNow(result.position, result.shortName));
+      return;
+    }
     unawaited(_showPlaceInfoForResult(result));
     _focusSearchPlace(result.position);
   }
@@ -3275,6 +3442,10 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// that do not carry a full [NominatimResult].
   void _showSearchPlace(LatLng point, String label, [String? address]) {
     _saveToHistory(label, point);
+    if (_pickingWaypoint) {
+      unawaited(_addWaypointNow(point, label));
+      return;
+    }
     _pendingLabel = label;
     unawaited(
         _showPlaceInfoFor(point, preferredLabel: label, address: address));
@@ -4832,11 +5003,20 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                   stepIdx: _currentStepIdx,
                   colors: c,
                   topInset: topInset,
-                  distToNextM: _distToNextManeuverM),
+                  distToNextM: _distToNextManeuverM,
+                  voiceMuted: _voiceMuted,
+                  onToggleVoice: () {
+                    setState(() => _voiceMuted = !_voiceMuted);
+                    Hive.box('settings').put('voiceEnabled', !_voiceMuted);
+                    if (_voiceMuted) _tts.stop();
+                  }),
             ),
 
-          // ── SEARCH BAR (floating with margin — only when not navigating) ────
-          if (!_isNavigating)
+          // ── SEARCH BAR ────────────────────────────────────────────────────
+          // Hidden while driving, except when the driver has explicitly asked
+          // to add a stop — the one case where searching mid-journey is the
+          // point rather than a distraction.
+          if (!_isNavigating || _pickingWaypoint)
             Positioned(
               top: topInset + 12,
               left: 16,
@@ -4852,6 +5032,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                   onSubmitted: _onSearchSubmit,
                   onClear: () {
                     _searchController.clear();
+                    _pickingWaypoint = false;
                     setState(() {
                       _searchResults = [];
                       _showSearch = false;
@@ -5044,8 +5225,15 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
               right: 16,
               child: RoutePlannerBar(
                 fromCtrl: _planFromCtrl,
-                toCtrl: _planToCtrl,
+                stopCtrls: _planStopCtrls,
                 activeField: _planActiveField,
+                onStopTap: (i) => setState(() => _planActiveField = i + 1),
+                onStopChanged: (i, q) => _onPlanSearch(q, i + 1),
+                onAddStop: _planStops.length <= RoutingService.maxWaypoints
+                    ? _addPlanStop
+                    : null,
+                onRemoveStop: _removePlanStop,
+                onReorderStops: _reorderPlanStops,
                 hasGps: _hasRealFix,
                 canCalculate: _planTo != null,
                 transportMode: _transportMode,
@@ -5053,9 +5241,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                 isSearching: _planSearching,
                 colors: c,
                 onFromTap: () => setState(() => _planActiveField = 0),
-                onToTap: () => setState(() => _planActiveField = 1),
                 onFromChanged: (q) => _onPlanSearch(q, 0),
-                onToChanged: (q) => _onPlanSearch(q, 1),
                 onMyLocation: () {
                   setState(() {
                     _planFrom = null;
@@ -5120,20 +5306,16 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                 ),
                 if (_isNavigating) ...[
                   const SizedBox(height: 8),
+                  // Adding a stop mid-journey takes the place the volume
+                  // control used to hold: changing where you are going is a
+                  // far more frequent need than muting the voice, and this is
+                  // the position the hand reaches without looking. Volume
+                  // moves up under the instruction panel.
                   MapFab(
-                      onTap: () {
-                        setState(() => _voiceMuted = !_voiceMuted);
-                        Hive.box('settings').put('voiceEnabled', !_voiceMuted);
-                        if (_voiceMuted) _tts.stop();
-                      },
+                      onTap: _openWaypointSearch,
                       colors: c,
-                      child: Icon(
-                          _voiceMuted
-                              ? Icons.volume_off_rounded
-                              : Icons.volume_up_rounded,
-                          color: c.onAccent
-                              .withValues(alpha: _voiceMuted ? 0.45 : 1.0),
-                          size: 22)),
+                      child: Icon(Icons.add_location_alt_outlined,
+                          color: c.onAccent, size: 22)),
                   const SizedBox(height: 8),
                   MapFab(
                       onTap: _showReportSheet,
@@ -5437,7 +5619,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _searchSettleDebounce?.cancel();
     _arrivalBannerTimer?.cancel();
     _planFromCtrl.dispose();
-    _planToCtrl.dispose();
+    for (final c in _planStopCtrls) {
+      c.dispose();
+    }
     _planDebounce?.cancel();
     WakelockPlus.disable();
     super.dispose();

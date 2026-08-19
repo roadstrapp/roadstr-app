@@ -548,5 +548,9 @@
   "themeModernNostr": "Modern · Nostr lila",
   "themeModernBitcoin": "Modern · Bitcoin narancs",
   "themeModernDarkNostr": "Modern sötét · Nostr lila",
-  "themeModernDarkBitcoin": "Modern sötét · Bitcoin narancs"
+  "themeModernDarkBitcoin": "Modern sötét · Bitcoin narancs",
+  "plannerAddStop": "Megálló hozzáadása",
+  "plannerStopHint": "Útközbeni megálló",
+  "plannerStopsFull": "Nem adható hozzá több megálló",
+  "plannerStopAdded": "Megálló hozzáadva: {place}"
 }

@@ -113,7 +113,7 @@ void main() {
     Widget planner(String mode, void Function(String) onMode) => _host(
           RoutePlannerBar(
             fromCtrl: TextEditingController(),
-            toCtrl: TextEditingController(),
+            stopCtrls: [TextEditingController()],
             activeField: 0,
             hasGps: true,
             canCalculate: true,
@@ -122,13 +122,15 @@ void main() {
             colors:
                 AppTheme.build(AppThemeId.darkNostr).extension<RoadstrColors>()!,
             onFromTap: () {},
-            onToTap: () {},
             onMyLocation: () {},
             onClose: () {},
             onCalculate: () {},
             onFromChanged: (_) {},
-            onToChanged: (_) {},
             onModeChanged: onMode,
+            onStopTap: (_) {},
+            onStopChanged: (_, __) {},
+            onRemoveStop: (_) {},
+            onReorderStops: (_, __) {},
           ),
         );
 

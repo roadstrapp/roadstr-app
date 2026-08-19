@@ -1445,4 +1445,18 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Modern skur · Oranġjo Bitcoin';
+
+  @override
+  String get plannerAddStop => 'Żid waqfa';
+
+  @override
+  String get plannerStopHint => 'Waqfa fit-triq';
+
+  @override
+  String get plannerStopsFull => 'Ma tistax iżżid aktar waqfiet';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Waqfa miżjuda: $place';
+  }
 }

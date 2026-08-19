@@ -1438,4 +1438,18 @@ class AppLocalizationsLt extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Modernus tamsus · Bitcoin oranžinė';
+
+  @override
+  String get plannerAddStop => 'Pridėti sustojimą';
+
+  @override
+  String get plannerStopHint => 'Sustojimas pakeliui';
+
+  @override
+  String get plannerStopsFull => 'Daugiau sustojimų pridėti negalima';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Pridėtas sustojimas: $place';
+  }
 }

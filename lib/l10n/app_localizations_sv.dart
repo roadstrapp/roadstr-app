@@ -1438,4 +1438,18 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Modern mörk · Bitcoin-orange';
+
+  @override
+  String get plannerAddStop => 'Lägg till stopp';
+
+  @override
+  String get plannerStopHint => 'Stopp på vägen';
+
+  @override
+  String get plannerStopsFull => 'Inga fler stopp kan läggas till';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Stopp tillagt: $place';
+  }
 }

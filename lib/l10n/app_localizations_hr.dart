@@ -1438,4 +1438,18 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Moderna tamna · Bitcoin narančasta';
+
+  @override
+  String get plannerAddStop => 'Dodaj postaju';
+
+  @override
+  String get plannerStopHint => 'Usputna postaja';
+
+  @override
+  String get plannerStopsFull => 'Više postaja nije moguće dodati';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Dodana postaja: $place';
+  }
 }

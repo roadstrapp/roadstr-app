@@ -548,5 +548,9 @@
   "themeModernNostr": "Modern · Nostr-paars",
   "themeModernBitcoin": "Modern · Bitcoin-oranje",
   "themeModernDarkNostr": "Modern donker · Nostr-paars",
-  "themeModernDarkBitcoin": "Modern donker · Bitcoin-oranje"
+  "themeModernDarkBitcoin": "Modern donker · Bitcoin-oranje",
+  "plannerAddStop": "Tussenstop toevoegen",
+  "plannerStopHint": "Tussenstop",
+  "plannerStopsFull": "Geen extra tussenstops mogelijk",
+  "plannerStopAdded": "Tussenstop toegevoegd: {place}"
 }

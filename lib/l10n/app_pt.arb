@@ -548,5 +548,9 @@
   "themeModernNostr": "Moderno · Violeta Nostr",
   "themeModernBitcoin": "Moderno · Laranja Bitcoin",
   "themeModernDarkNostr": "Moderno escuro · Violeta Nostr",
-  "themeModernDarkBitcoin": "Moderno escuro · Laranja Bitcoin"
+  "themeModernDarkBitcoin": "Moderno escuro · Laranja Bitcoin",
+  "plannerAddStop": "Adicionar paragem",
+  "plannerStopHint": "Paragem intermédia",
+  "plannerStopsFull": "Não é possível adicionar mais paragens",
+  "plannerStopAdded": "Paragem adicionada: {place}"
 }

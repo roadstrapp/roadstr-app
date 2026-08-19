@@ -1437,4 +1437,18 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Modern donker · Bitcoin-oranje';
+
+  @override
+  String get plannerAddStop => 'Tussenstop toevoegen';
+
+  @override
+  String get plannerStopHint => 'Tussenstop';
+
+  @override
+  String get plannerStopsFull => 'Geen extra tussenstops mogelijk';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Tussenstop toegevoegd: $place';
+  }
 }

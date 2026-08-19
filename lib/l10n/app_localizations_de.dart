@@ -1442,4 +1442,18 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Modern Dunkel · Bitcoin-Orange';
+
+  @override
+  String get plannerAddStop => 'Zwischenziel hinzufügen';
+
+  @override
+  String get plannerStopHint => 'Zwischenziel';
+
+  @override
+  String get plannerStopsFull => 'Keine weiteren Zwischenziele möglich';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Zwischenziel hinzugefügt: $place';
+  }
 }

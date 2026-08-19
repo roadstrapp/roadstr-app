@@ -548,5 +548,9 @@
   "themeModernNostr": "Nowoczesny · Fiolet Nostr",
   "themeModernBitcoin": "Nowoczesny · Pomarańcz Bitcoin",
   "themeModernDarkNostr": "Nowoczesny ciemny · Fiolet Nostr",
-  "themeModernDarkBitcoin": "Nowoczesny ciemny · Pomarańcz Bitcoin"
+  "themeModernDarkBitcoin": "Nowoczesny ciemny · Pomarańcz Bitcoin",
+  "plannerAddStop": "Dodaj przystanek",
+  "plannerStopHint": "Przystanek po drodze",
+  "plannerStopsFull": "Nie można dodać kolejnych przystanków",
+  "plannerStopAdded": "Dodano przystanek: {place}"
 }

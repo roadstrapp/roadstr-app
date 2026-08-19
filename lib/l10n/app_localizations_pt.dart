@@ -1438,4 +1438,18 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Moderno escuro · Laranja Bitcoin';
+
+  @override
+  String get plannerAddStop => 'Adicionar paragem';
+
+  @override
+  String get plannerStopHint => 'Paragem intermédia';
+
+  @override
+  String get plannerStopsFull => 'Não é possível adicionar mais paragens';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Paragem adicionada: $place';
+  }
 }

@@ -548,5 +548,9 @@
   "themeModernNostr": "モダン · Nostr パープル",
   "themeModernBitcoin": "モダン · Bitcoin オレンジ",
   "themeModernDarkNostr": "モダン ダーク · Nostr パープル",
-  "themeModernDarkBitcoin": "モダン ダーク · Bitcoin オレンジ"
+  "themeModernDarkBitcoin": "モダン ダーク · Bitcoin オレンジ",
+  "plannerAddStop": "経由地を追加",
+  "plannerStopHint": "経由地",
+  "plannerStopsFull": "これ以上経由地を追加できません",
+  "plannerStopAdded": "経由地を追加：{place}"
 }

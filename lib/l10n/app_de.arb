@@ -548,5 +548,9 @@
   "themeModernNostr": "Modern · Nostr-Violett",
   "themeModernBitcoin": "Modern · Bitcoin-Orange",
   "themeModernDarkNostr": "Modern Dunkel · Nostr-Violett",
-  "themeModernDarkBitcoin": "Modern Dunkel · Bitcoin-Orange"
+  "themeModernDarkBitcoin": "Modern Dunkel · Bitcoin-Orange",
+  "plannerAddStop": "Zwischenziel hinzufügen",
+  "plannerStopHint": "Zwischenziel",
+  "plannerStopsFull": "Keine weiteren Zwischenziele möglich",
+  "plannerStopAdded": "Zwischenziel hinzugefügt: {place}"
 }

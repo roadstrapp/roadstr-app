@@ -548,5 +548,9 @@
   "themeModernNostr": "Moderna · Nostr ljubičasta",
   "themeModernBitcoin": "Moderna · Bitcoin narančasta",
   "themeModernDarkNostr": "Moderna tamna · Nostr ljubičasta",
-  "themeModernDarkBitcoin": "Moderna tamna · Bitcoin narančasta"
+  "themeModernDarkBitcoin": "Moderna tamna · Bitcoin narančasta",
+  "plannerAddStop": "Dodaj postaju",
+  "plannerStopHint": "Usputna postaja",
+  "plannerStopsFull": "Više postaja nije moguće dodati",
+  "plannerStopAdded": "Dodana postaja: {place}"
 }

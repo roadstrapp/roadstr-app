@@ -1438,4 +1438,18 @@ class AppLocalizationsGa extends AppLocalizations {
   @override
   String get themeModernDarkBitcoin =>
       'Nua-aimseartha dorcha · Oráiste Bitcoin';
+
+  @override
+  String get plannerAddStop => 'Cuir stad leis';
+
+  @override
+  String get plannerStopHint => 'Stad ar an mbealach';
+
+  @override
+  String get plannerStopsFull => 'Ní féidir tuilleadh stadanna a chur leis';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Stad curtha leis: $place';
+  }
 }

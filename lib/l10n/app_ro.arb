@@ -548,5 +548,9 @@
   "themeModernNostr": "Modern · Violet Nostr",
   "themeModernBitcoin": "Modern · Portocaliu Bitcoin",
   "themeModernDarkNostr": "Modern închis · Violet Nostr",
-  "themeModernDarkBitcoin": "Modern închis · Portocaliu Bitcoin"
+  "themeModernDarkBitcoin": "Modern închis · Portocaliu Bitcoin",
+  "plannerAddStop": "Adaugă oprire",
+  "plannerStopHint": "Oprire pe traseu",
+  "plannerStopsFull": "Nu mai pot fi adăugate opriri",
+  "plannerStopAdded": "Oprire adăugată: {place}"
 }

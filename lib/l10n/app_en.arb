@@ -646,5 +646,16 @@
     }
   },
   "themeModernDarkNostr": "Modern Dark · Nostr Violet",
-  "themeModernDarkBitcoin": "Modern Dark · Bitcoin Orange"
+  "themeModernDarkBitcoin": "Modern Dark · Bitcoin Orange",
+  "plannerAddStop": "Add stop",
+  "plannerStopHint": "Stop along the way",
+  "plannerStopsFull": "No more stops can be added",
+  "plannerStopAdded": "Stop added: {place}",
+  "@plannerStopAdded": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -548,5 +548,9 @@
   "themeModernNostr": "Moderni · Nostr-violetti",
   "themeModernBitcoin": "Moderni · Bitcoin-oranssi",
   "themeModernDarkNostr": "Moderni tumma · Nostr-violetti",
-  "themeModernDarkBitcoin": "Moderni tumma · Bitcoin-oranssi"
+  "themeModernDarkBitcoin": "Moderni tumma · Bitcoin-oranssi",
+  "plannerAddStop": "Lisää pysähdys",
+  "plannerStopHint": "Pysähdys matkan varrella",
+  "plannerStopsFull": "Enempää pysähdyksiä ei voi lisätä",
+  "plannerStopAdded": "Pysähdys lisätty: {place}"
 }

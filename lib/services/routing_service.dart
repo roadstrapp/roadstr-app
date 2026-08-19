@@ -899,6 +899,14 @@ class RoutingService {
   /// actually facing at [origin], with a tolerance wide enough for a normal
   /// turn but not an instant reversal — see [rerouteBearingToleranceDeg] for
   /// why this specific value and what happens without it.
+  /// Most intermediate stops a journey may carry.
+  ///
+  /// Five points in total including the destination, which is what the planner
+  /// offers. The ceiling is not arbitrary: every extra point multiplies the
+  /// router's work, and a routing engine asked for a dozen stops starts
+  /// returning a route that is technically optimal and useless to drive.
+  static const maxWaypoints = 4;
+
   static Future<List<RouteResult>> getRoutes(LatLng origin, LatLng destination,
       {RoutingProvider provider = RoutingProvider.osrm,
       String? apiKey,
@@ -906,6 +914,7 @@ class RoutingService {
       String lang = 'en',
       String vehicle = 'driving',
       double? originBearingDeg,
+      List<LatLng> via = const [],
       @visibleForTesting Uri? endpoint}) async {
     if (provider != RoutingProvider.osrm) {
       final single = await getRoute(origin, destination,
@@ -927,10 +936,22 @@ class RoutingService {
           ? ''
           : '&bearings=${originBearingDeg.round() % 360},'
               '$rerouteBearingToleranceDeg;';
+      // OSRM takes any number of semicolon-separated coordinates and visits
+      // them in the order given, so intermediate stops need no separate
+      // request and no stitching of partial routes: the engine optimises the
+      // whole journey at once and the step list comes back continuous.
+      final stops = [
+        for (final p in via.take(maxWaypoints)) '${p.longitude},${p.latitude}',
+      ];
+      // Alternatives are only offered for a plain A-to-B journey. OSRM
+      // declines to compute them once the route is pinned through waypoints,
+      // and asking anyway costs a round trip to be told so.
+      final alternatives = stops.isEmpty ? '&alternatives=3' : '';
       final baseCoords = '${endpoint ?? Uri.parse(_osrmEndpoint(vehicle))}/'
           '${origin.longitude},${origin.latitude};'
+          '${stops.isEmpty ? '' : '${stops.join(';')};'}'
           '${destination.longitude},${destination.latitude}'
-          '?overview=full&geometries=geojson&steps=true&alternatives=3'
+          '?overview=full&geometries=geojson&steps=true$alternatives'
           '$bearings';
 
       final res = await BoundedHttp.get(

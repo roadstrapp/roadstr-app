@@ -548,5 +548,9 @@
   "themeModernNostr": "Moderns · Nostr violets",
   "themeModernBitcoin": "Moderns · Bitcoin oranžs",
   "themeModernDarkNostr": "Moderns tumšs · Nostr violets",
-  "themeModernDarkBitcoin": "Moderns tumšs · Bitcoin oranžs"
+  "themeModernDarkBitcoin": "Moderns tumšs · Bitcoin oranžs",
+  "plannerAddStop": "Pievienot pieturu",
+  "plannerStopHint": "Pietura ceļā",
+  "plannerStopsFull": "Vairāk pieturu pievienot nevar",
+  "plannerStopAdded": "Pievienota pietura: {place}"
 }
