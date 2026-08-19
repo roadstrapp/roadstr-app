@@ -12,8 +12,8 @@ RepoType: git
 Repo: https://github.com/roadstrapp/roadstr-app.git
 
 Builds:
-  - versionName: 0.4.22
-    versionCode: 31
+  - versionName: 0.4.23
+    versionCode: 32
     commit: 18b33278eff28336a50023d3dd354455973b1d41
     sudo:
       - apt-get update
@@ -48,5 +48,5 @@ Builds:
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v\.[0-9]+\.[0-9]+\.[0-9]+$
 UpdateCheckData: pubspec.yaml|version:\s.+\+(\d+)|.|version:\s(.+)\+
-CurrentVersion: 0.4.22
-CurrentVersionCode: 31
+CurrentVersion: 0.4.23
+CurrentVersionCode: 32
