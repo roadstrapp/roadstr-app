@@ -1,0 +1,36 @@
+Directions in your own language, and warnings you can trust.
+
+• Turn-by-turn instructions now exist in all 27 languages. Until now only
+  Italian and English had their own; everyone else was navigated in
+  English
+• Instructions name the road, and prefer the number on the sign — "take
+  the SS3bis", not its formal name, which appears nowhere on the road
+
+Limited traffic zones
+
+• Warnings no longer appear on streets that are not restricted. The
+  search was picking up every pedestrian way with no check on whether
+  cars were actually barred, and in a historic centre there is almost
+  always one within a few metres of a perfectly drivable street
+• A warning could get stuck over the cursor until the app was restarted.
+  Fixed
+• Warnings sit clear of the cursor now, and can be swiped away — useful
+  if you hold a permit for a zone you drive every day
+
+Fixed
+
+• The map no longer swings round now and then. The direction of the route
+  was read from the nearest piece of it, and at a roundabout the exit arm
+  passes within metres of the entry arm pointing the opposite way. It is
+  now read from how far along the route you actually are
+• Spoken instructions no longer break mid-sentence, and a cue arriving
+  between two others is no longer silently skipped. Nothing is cut off in
+  its first second and a bit
+• "Bivio" and similar words are pronounced properly
+
+Also
+
+• The street you are on is shown under the manoeuvre panel, for town
+  streets only — a motorway number is already on every sign
+• The manoeuvre panel sits higher, the voice control moved beside the
+  next-turn preview, and neither covers the speed limit
