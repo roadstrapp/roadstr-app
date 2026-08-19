@@ -548,5 +548,9 @@
   "themeModernNostr": "Nua-aimseartha · Corcra Nostr",
   "themeModernBitcoin": "Nua-aimseartha · Oráiste Bitcoin",
   "themeModernDarkNostr": "Nua-aimseartha dorcha · Corcra Nostr",
-  "themeModernDarkBitcoin": "Nua-aimseartha dorcha · Oráiste Bitcoin"
+  "themeModernDarkBitcoin": "Nua-aimseartha dorcha · Oráiste Bitcoin",
+  "plannerAddStop": "Cuir stad leis",
+  "plannerStopHint": "Stad ar an mbealach",
+  "plannerStopsFull": "Ní féidir tuilleadh stadanna a chur leis",
+  "plannerStopAdded": "Stad curtha leis: {place}"
 }

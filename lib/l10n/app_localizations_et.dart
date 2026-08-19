@@ -1436,4 +1436,18 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Moodne tume · Bitcoini oranž';
+
+  @override
+  String get plannerAddStop => 'Lisa peatus';
+
+  @override
+  String get plannerStopHint => 'Vahepeatus';
+
+  @override
+  String get plannerStopsFull => 'Rohkem peatusi ei saa lisada';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Peatus lisatud: $place';
+  }
 }

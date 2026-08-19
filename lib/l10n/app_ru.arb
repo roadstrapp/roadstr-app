@@ -548,5 +548,9 @@
   "themeModernNostr": "Современная · Фиолетовый Nostr",
   "themeModernBitcoin": "Современная · Оранжевый Bitcoin",
   "themeModernDarkNostr": "Современная тёмная · Фиолетовый Nostr",
-  "themeModernDarkBitcoin": "Современная тёмная · Оранжевый Bitcoin"
+  "themeModernDarkBitcoin": "Современная тёмная · Оранжевый Bitcoin",
+  "plannerAddStop": "Добавить остановку",
+  "plannerStopHint": "Промежуточная остановка",
+  "plannerStopsFull": "Больше остановок добавить нельзя",
+  "plannerStopAdded": "Остановка добавлена: {place}"
 }

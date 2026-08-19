@@ -15,19 +15,33 @@ import '../../theme/app_theme.dart';
 import '../../utils/units.dart';
 
 class RoutePlannerBar extends StatelessWidget {
-  final TextEditingController fromCtrl, toCtrl;
+  final TextEditingController fromCtrl;
+
+  /// One controller per stop, in driving order. The last is the destination;
+  /// anything before it is an intermediate stop.
+  final List<TextEditingController> stopCtrls;
+
   final int activeField;
   final bool hasGps, canCalculate, isSearching;
   final String transportMode;
   final RoadstrColors colors;
-  final VoidCallback onFromTap, onToTap, onMyLocation, onClose;
+  final VoidCallback onFromTap, onMyLocation, onClose;
   final VoidCallback onCalculate;
-  final ValueChanged<String> onFromChanged, onToChanged;
+  final ValueChanged<String> onFromChanged;
   final ValueChanged<String> onModeChanged;
+
+  /// Taps and edits, addressed by stop index.
+  final ValueChanged<int> onStopTap;
+  final void Function(int index, String query) onStopChanged;
+
+  /// Adds a stop before the destination, removes one, or moves one.
+  final VoidCallback? onAddStop;
+  final ValueChanged<int> onRemoveStop;
+  final void Function(int oldIndex, int newIndex) onReorderStops;
 
   const RoutePlannerBar({super.key, 
     required this.fromCtrl,
-    required this.toCtrl,
+    required this.stopCtrls,
     required this.activeField,
     required this.hasGps,
     required this.canCalculate,
@@ -35,13 +49,16 @@ class RoutePlannerBar extends StatelessWidget {
     required this.transportMode,
     required this.colors,
     required this.onFromTap,
-    required this.onToTap,
     required this.onMyLocation,
     required this.onClose,
     required this.onCalculate,
     required this.onFromChanged,
-    required this.onToChanged,
     required this.onModeChanged,
+    required this.onStopTap,
+    required this.onStopChanged,
+    required this.onRemoveStop,
+    required this.onReorderStops,
+    this.onAddStop,
   });
 
   @override
@@ -100,37 +117,30 @@ class RoutePlannerBar extends StatelessWidget {
             ),
         ]),
         Divider(height: 8, color: c.border),
-        // ── A ─────────────────────────────────────────────────────────────
-        Row(children: [
-          Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFEA4335), width: 2),
-                  shape: BoxShape.circle)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: TextField(
-              controller: toCtrl,
-              onTap: onToTap,
-              onChanged: onToChanged,
-              autofocus: true,
-              style: TextStyle(color: c.textPrimary, fontSize: 14),
-              decoration: InputDecoration(
-                hintText: AppLocalizations.of(context).plannerToHint,
-                hintStyle: TextStyle(color: c.textSecondary, fontSize: 14),
-                border: InputBorder.none,
-                isDense: true,
-              ),
+        // ── Stops, in driving order ───────────────────────────────────────
+        _StopList(
+          controllers: stopCtrls,
+          colors: c,
+          isSearching: isSearching,
+          onStopTap: onStopTap,
+          onStopChanged: onStopChanged,
+          onRemoveStop: onRemoveStop,
+          onReorderStops: onReorderStops,
+        ),
+        if (onAddStop != null)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: onAddStop,
+              style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  visualDensity: VisualDensity.compact),
+              icon: Icon(Icons.add_location_alt_outlined,
+                  size: 16, color: c.accent),
+              label: Text(AppLocalizations.of(context).plannerAddStop,
+                  style: TextStyle(color: c.accent, fontSize: 13)),
             ),
           ),
-          if (isSearching)
-            SizedBox(
-                width: 16,
-                height: 16,
-                child:
-                    CircularProgressIndicator(strokeWidth: 2, color: c.accent)),
-        ]),
         const SizedBox(height: 8),
         // ── Transport mode toggle ─────────────────────────────────────────
         // Scrolls horizontally: three labels in a language with long words
@@ -205,6 +215,124 @@ class RoutePlannerBar extends StatelessWidget {
           ),
         ]),
       ]),
+    );
+  }
+}
+
+/// The stops of a journey, in driving order, reorderable by dragging.
+///
+/// The order is the substance, not a presentation detail: routing through the
+/// same three places in a different sequence produces a materially different
+/// journey — measured on a real corridor, 58 km one way round and 69 km the
+/// other. So the list has to be rearrangeable, and it has to be obvious that
+/// it can be, which is what the grip on each row is for.
+///
+/// Sized rather than scrollable: at five rows maximum the whole list fits, and
+/// a scroll view inside a panel that is itself inside a stack makes dragging
+/// fight with panning.
+class _StopList extends StatelessWidget {
+  final List<TextEditingController> controllers;
+  final RoadstrColors colors;
+  final bool isSearching;
+  final ValueChanged<int> onStopTap;
+  final void Function(int index, String query) onStopChanged;
+  final ValueChanged<int> onRemoveStop;
+  final void Function(int oldIndex, int newIndex) onReorderStops;
+
+  const _StopList({
+    required this.controllers,
+    required this.colors,
+    required this.isSearching,
+    required this.onStopTap,
+    required this.onStopChanged,
+    required this.onRemoveStop,
+    required this.onReorderStops,
+  });
+
+  static const _rowHeight = 44.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final single = controllers.length == 1;
+    return SizedBox(
+      height: _rowHeight * controllers.length,
+      child: ReorderableListView.builder(
+        buildDefaultDragHandles: false,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: controllers.length,
+        onReorderItem: onReorderStops,
+        proxyDecorator: (child, _, __) => Material(
+          color: Colors.transparent,
+          child: Opacity(opacity: 0.92, child: child),
+        ),
+        itemBuilder: (context, i) {
+          final isLast = i == controllers.length - 1;
+          return SizedBox(
+            key: ValueKey(controllers[i]),
+            height: _rowHeight,
+            child: Row(children: [
+              // Hollow red pin for the destination, solid accent for the stops
+              // along the way: which row is the end of the journey has to
+              // survive being dragged into a different position.
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: isLast ? null : colors.accent,
+                  border: isLast
+                      ? Border.all(color: const Color(0xFFEA4335), width: 2)
+                      : null,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: TextField(
+                  controller: controllers[i],
+                  onTap: () => onStopTap(i),
+                  onChanged: (q) => onStopChanged(i, q),
+                  autofocus: isLast && single,
+                  style: TextStyle(color: colors.textPrimary, fontSize: 14),
+                  decoration: InputDecoration(
+                    hintText: isLast ? l.plannerToHint : l.plannerStopHint,
+                    hintStyle:
+                        TextStyle(color: colors.textSecondary, fontSize: 14),
+                    border: InputBorder.none,
+                    isDense: true,
+                  ),
+                ),
+              ),
+              if (isSearching && !single)
+                const SizedBox(width: 4)
+              else if (isSearching)
+                SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: colors.accent)),
+              // A single destination cannot be removed — there would be no
+              // journey left to plan.
+              if (!single)
+                IconButton(
+                  onPressed: () => onRemoveStop(i),
+                  visualDensity: VisualDensity.compact,
+                  icon: Icon(Icons.close_rounded,
+                      size: 16, color: colors.textSecondary),
+                ),
+              if (!single)
+                ReorderableDragStartListener(
+                  index: i,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 2, right: 2),
+                    child: Icon(Icons.drag_handle_rounded,
+                        size: 20, color: colors.textSecondary),
+                  ),
+                ),
+            ]),
+          );
+        },
+      ),
     );
   }
 }

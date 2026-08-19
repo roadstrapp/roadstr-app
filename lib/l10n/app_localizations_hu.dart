@@ -1439,4 +1439,18 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Modern sötét · Bitcoin narancs';
+
+  @override
+  String get plannerAddStop => 'Megálló hozzáadása';
+
+  @override
+  String get plannerStopHint => 'Útközbeni megálló';
+
+  @override
+  String get plannerStopsFull => 'Nem adható hozzá több megálló';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Megálló hozzáadva: $place';
+  }
 }

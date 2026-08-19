@@ -1434,4 +1434,18 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Moderni tumma · Bitcoin-oranssi';
+
+  @override
+  String get plannerAddStop => 'Lisää pysähdys';
+
+  @override
+  String get plannerStopHint => 'Pysähdys matkan varrella';
+
+  @override
+  String get plannerStopsFull => 'Enempää pysähdyksiä ei voi lisätä';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Pysähdys lisätty: $place';
+  }
 }

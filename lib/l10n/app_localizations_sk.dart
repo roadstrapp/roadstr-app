@@ -1434,4 +1434,18 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Moderný tmavý · Bitcoin oranžová';
+
+  @override
+  String get plannerAddStop => 'Pridať zastávku';
+
+  @override
+  String get plannerStopHint => 'Zastávka po ceste';
+
+  @override
+  String get plannerStopsFull => 'Ďalšie zastávky nie je možné pridať';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Zastávka pridaná: $place';
+  }
 }

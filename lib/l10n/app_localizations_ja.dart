@@ -1408,4 +1408,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'モダン ダーク · Bitcoin オレンジ';
+
+  @override
+  String get plannerAddStop => '経由地を追加';
+
+  @override
+  String get plannerStopHint => '経由地';
+
+  @override
+  String get plannerStopsFull => 'これ以上経由地を追加できません';
+
+  @override
+  String plannerStopAdded(String place) {
+    return '経由地を追加：$place';
+  }
 }

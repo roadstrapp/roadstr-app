@@ -548,5 +548,9 @@
   "themeModernNostr": "Moderne · Violet Nostr",
   "themeModernBitcoin": "Moderne · Orange Bitcoin",
   "themeModernDarkNostr": "Moderne sombre · Violet Nostr",
-  "themeModernDarkBitcoin": "Moderne sombre · Orange Bitcoin"
+  "themeModernDarkBitcoin": "Moderne sombre · Orange Bitcoin",
+  "plannerAddStop": "Ajouter une étape",
+  "plannerStopHint": "Étape intermédiaire",
+  "plannerStopsFull": "Impossible d'ajouter d'autres étapes",
+  "plannerStopAdded": "Étape ajoutée : {place}"
 }

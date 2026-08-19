@@ -1444,4 +1444,18 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Модерна тъмна · Оранжево Bitcoin';
+
+  @override
+  String get plannerAddStop => 'Добави спирка';
+
+  @override
+  String get plannerStopHint => 'Междинна спирка';
+
+  @override
+  String get plannerStopsFull => 'Не могат да се добавят още спирки';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Добавена спирка: $place';
+  }
 }

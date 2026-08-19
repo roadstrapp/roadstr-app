@@ -1438,4 +1438,18 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get themeModernDarkBitcoin => 'Modern închis · Portocaliu Bitcoin';
+
+  @override
+  String get plannerAddStop => 'Adaugă oprire';
+
+  @override
+  String get plannerStopHint => 'Oprire pe traseu';
+
+  @override
+  String get plannerStopsFull => 'Nu mai pot fi adăugate opriri';
+
+  @override
+  String plannerStopAdded(String place) {
+    return 'Oprire adăugată: $place';
+  }
 }
