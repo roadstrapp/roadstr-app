@@ -491,6 +491,20 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
   StreamSubscription<GpsData>? _gpsSub;
   Future<void>? _gpsPauseStop;
+
+  /// Pending shutdown of the receiver after the app went to the background.
+  ///
+  /// Held rather than acted on immediately so a quick switch away and back
+  /// costs nothing. Cancelled on resume; fires only if the app really stayed
+  /// away.
+  Timer? _gpsIdleStop;
+
+  /// How long the app may sit in the background before the receiver is let go.
+  ///
+  /// Long enough to cover reading a notification, taking a look at a message
+  /// or answering a call; short enough that a phone left in a pocket is not
+  /// quietly tracking for minutes.
+  static const _gpsBackgroundGrace = Duration(seconds: 30);
   int _gpsLifecycleGeneration = 0;
 
   @override
@@ -5304,7 +5318,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
               ),
             ),
 
-          // ── LEFT FABs: report event + A→B planner + parking ───────────────────
+          // ── LEFT FABs: A→B planner + parking ───────────────────────────────────
+          // These two stay left-only, and left the moment navigation starts:
+          // re-planning and checking a saved spot are both pre-trip actions.
+          // Reporting a hazard is not — it belongs on the right in both
+          // states, alongside the other en-route controls, rather than
+          // jumping sides depending on whether a trip is under way.
           if (!_showSearch &&
               !_showAlternatives &&
               !_isNavigating &&
@@ -5314,13 +5333,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
               left: 12,
               bottom: 88 + bottomInset + 12,
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                if (_hasRealFix)
-                  MapFab(
-                      onTap: _showReportSheet,
-                      colors: c,
-                      child: Icon(Icons.report_problem_outlined,
-                          color: c.onAccent, size: 22)),
-                if (_hasRealFix) const SizedBox(height: 8),
                 MapFab(
                     onTap: _openPlanner,
                     colors: c,
@@ -5429,6 +5441,16 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                               : c.onAccent.withValues(alpha: 0.38),
                           size: 22),
                 ),
+                if (_hasRealFix) ...[
+                  const SizedBox(height: 8),
+                  // Same slot, same color, whether or not a trip is under
+                  // way — a hazard can be reported from a standstill too.
+                  MapFab(
+                      onTap: _showReportSheet,
+                      colors: c,
+                      child: Icon(Icons.report_problem_outlined,
+                          color: c.onAccent, size: 22)),
+                ],
                 if (_isNavigating) ...[
                   const SizedBox(height: 8),
                   // Adding a stop mid-journey takes the place the volume
@@ -5441,12 +5463,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                       colors: c,
                       child: Icon(Icons.add_location_alt_outlined,
                           color: c.onAccent, size: 22)),
-                  const SizedBox(height: 8),
-                  MapFab(
-                      onTap: _showReportSheet,
-                      colors: c,
-                      child: Icon(Icons.report_problem_outlined,
-                          color: const Color(0xFFFFE082), size: 22)),
                 ],
               ]),
             ),
@@ -5664,21 +5680,37 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         _accelSub?.cancel();
         _accelSub = null;
         if (!_isNavigating) {
-          // Cancel the stream subscription BEFORE stopping the GPS service so
-          // no late events fire into a partially-torn-down widget. Reset
-          // _gpsReady so that the resumed handler knows to restart.
-          _gpsSub?.cancel();
-          _gpsSub = null;
-          _gpsPauseStop = _gps.stop();
-          if (mounted) {
+          // Not immediately. `paused` also fires for a three-second glance at
+          // a notification, and tearing the receiver down for that costs a
+          // fresh acquisition on return — the user sees the fix drop and come
+          // back for no reason, which reads as a fault rather than as thrift.
+          //
+          // The battery argument for stopping is real: a 2 Hz stream at
+          // navigation accuracy is among the most expensive things a phone
+          // does. It is an argument for stopping when the app is genuinely
+          // away, though, not for stopping the instant it loses focus. Thirty
+          // seconds of receiver is a rounding error against the cost of being
+          // wrong in the other direction.
+          _gpsIdleStop?.cancel();
+          _gpsIdleStop = Timer(_gpsBackgroundGrace, () {
+            if (!mounted || _isNavigating) return;
+            _gpsSub?.cancel();
+            _gpsSub = null;
+            _gpsPauseStop = _gps.stop();
             setState(() {
               _gpsReady = false;
+              // Only now is the position genuinely stale. Clearing it on pause
+              // was what made a brief app switch look like a lost fix.
               _hasRealFix = false;
             });
-          }
+          });
           WakelockPlus.disable();
         }
       case AppLifecycleState.resumed:
+        // Back before the grace period expired: the receiver never stopped, so
+        // there is nothing to restart and no fix was lost.
+        _gpsIdleStop?.cancel();
+        _gpsIdleStop = null;
         final generation = ++_gpsLifecycleGeneration;
         // Re-start sensors and clean up stale events.
         if (_magnetSub == null) _startCompass();
@@ -5710,6 +5742,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           }
         }
       case AppLifecycleState.detached:
+        _gpsIdleStop?.cancel();
+        _gpsIdleStop = null;
         _gpsLifecycleGeneration++;
         // App fully closed — stop GPS immediately so the foreground
         // service (and its CPU wakelock) are released before the process exits.
@@ -5722,6 +5756,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _gpsIdleStop?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _camTicker?.cancel();
     _followTicker?.cancel();

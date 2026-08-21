@@ -15,9 +15,12 @@ void main() {
         NavigationGuidance.thresholds(100, 'driving'),
         (far: 800, near: 120),
       );
+      // far caps at 100 km/h — 800 m of advance warning does not need to grow
+      // further. near keeps scaling past it: 120 m is 3.6 s at 130 km/h,
+      // enough to hear the cue but not enough to act on it.
       expect(
         NavigationGuidance.thresholds(130, 'driving'),
-        (far: 800, near: 120),
+        (far: 800, near: 190),
       );
     });
 

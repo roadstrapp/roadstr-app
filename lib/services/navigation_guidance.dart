@@ -36,6 +36,13 @@ class NavigationGuidance {
   /// dead code that still had to be read and reasoned about at every one of
   /// these call sites. If a maneuver ever genuinely warrants three warnings,
   /// this is where it comes back, deliberately and with a test.
+  ///
+  /// The near cue used to top out at 120 m — three and a half seconds at
+  /// 120 km/h, which a field report caught: enough time to hear "take the
+  /// exit" but not enough to actually take it. It now keeps scaling past
+  /// 100 km/h instead of flattening there, reaching 260 m by 160 km/h —
+  /// about six seconds, matched to how far a car actually needs to move
+  /// into the correct lane.
   static ({int far, int near}) thresholds(
     double speedKmh,
     String transportMode,
@@ -46,7 +53,11 @@ class NavigationGuidance {
     final speed = speedKmh.isFinite ? speedKmh.clamp(0.0, 160.0) : 0.0;
     final progress = ((speed - 45.0) / 55.0).clamp(0.0, 1.0);
     final far = _roundTo10(150.0 + 650.0 * progress);
-    final near = _roundTo10(40.0 + 80.0 * progress);
+    // Unlike `far`, this does not clamp its own progress to the 45–100 km/h
+    // band: a car doing 160 needs more warning than one doing 100, even
+    // though both are "motorway speed" as far as `far` is concerned.
+    final highSpeedProgress = ((speed - 100.0) / 60.0).clamp(0.0, 1.0);
+    final near = _roundTo10(40.0 + 80.0 * progress + 140.0 * highSpeedProgress);
     return (far: far, near: near);
   }
 

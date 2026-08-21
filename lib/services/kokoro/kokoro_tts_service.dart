@@ -280,12 +280,16 @@ class KokoroTtsService {
       _enqueue(text);
       return;
     }
-    // One instruction never truncates another. The exception is the
-    // point-of-action repeat, which is marked non-maneuver-safe by its caller
-    // precisely because arriving late at the junction is worse than talking
-    // over the advance warning it replaces.
+    // An advance warning never truncates another maneuver announcement — the
+    // exception is the point-of-action repeat, which is marked non-maneuver
+    // -safe by its caller precisely because arriving late at the junction is
+    // worse than talking over the advance warning it replaces. But it is also
+    // not queued: in a dense run of junctions a queued advance cue plays only
+    // after the current one finishes, by which point the car has often
+    // already passed the turn it described — the exact "run-on instructions"
+    // a field report caught. A fresher cue for the same or a later maneuver
+    // is on its way regardless, so the stale one is simply dropped.
     if (_isSpeaking && priority && maneuver && _speakingManeuver) {
-      _enqueue(text);
       return;
     }
     _speakingManeuver = maneuver;
