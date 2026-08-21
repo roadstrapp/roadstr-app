@@ -1,0 +1,16 @@
+A mirrored icon, and two new screen controls.
+
+Fixed
+
+• The merge maneuver icon had its two paths swapped, so every merge
+  showed as its own mirror image — a right-side ramp merging onto a
+  road to your left looked like the opposite. Confirmed against a real
+  routing response before fixing it
+
+New settings, both off by default
+
+• Keep the screen on outside navigation too — useful for reading the
+  map stopped or planning a route without the display sleeping
+  mid-glance
+• A minimum screen brightness while the app is open, for OLED screens
+  that dim past the point the map stays readable
