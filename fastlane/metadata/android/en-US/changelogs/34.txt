@@ -1,0 +1,28 @@
+Fixes from real driving: a crash, a swinging map, and voice timing.
+
+Fixed
+
+• GPS no longer drops when you switch away from the app outside
+  navigation. It used to release the location receiver the instant the
+  app left the foreground, even for a three-second glance at a
+  notification, forcing a fresh fix on every return. It now waits 30
+  seconds of actually being backgrounded first
+• A crash while panning the map during navigation exposed a missing
+  safety net: no unhandled exception outside Flutter's own build cycle
+  was being caught anywhere, so any one of them could take the whole app
+  down. They are now caught and logged instead
+• The map could still swing on sharp turns after an earlier roundabout
+  fix. A second cause was hiding behind it: once a large heading
+  correction was confirmed, the camera snapped straight to the route's
+  exact direction instead of easing into it. It now eases the same way
+  ordinary corrections do
+• The final spoken warning before a turn was capped at 120 metres of
+  lead distance no matter the speed — 3.6 seconds at 120 km/h, enough to
+  hear the instruction but not enough to act on it. It now keeps scaling
+  with speed, up to 260 metres at 160 km/h
+• In a run of close-together junctions, spoken instructions could queue
+  up and describe turns already behind you. A stale warning is now
+  dropped instead of queued when a fresher one is on the way
+• The hazard-report button used to sit on the left before navigation and
+  jump to the right once it started — the only control that moved sides.
+  It now stays on the right in both states
