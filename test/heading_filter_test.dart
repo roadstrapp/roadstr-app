@@ -271,6 +271,12 @@ void main() {
       // A genuine sharp turn keeps producing the same route bearing on
       // consecutive fixes; a stray nearest-segment match by a roundabout
       // ring does not. Two agreements in a row is what tells them apart.
+      //
+      // Trusted, not snapped to: the raw two-fix bearing that got here was
+      // itself taken across the turn, so jumping straight to the route's
+      // exact line the instant it corroborates would be a second
+      // discontinuity on top of the first — the eased fraction is the same
+      // one ordinary route-following uses.
       final filter = HeadingFilter();
       resolve(filter,
           current: 350,
@@ -282,7 +288,8 @@ void main() {
           from: start,
           to: north(start, 40),
           routeLocal: (distM: 5, bearing: 150));
-      expect(confirmed, 150);
+      // heading 0 eased 35% of the way to 150.
+      expect(confirmed, closeTo(52.5, 0.001));
     });
 
     test('a stray sample does not poison the next, unambiguous one', () {

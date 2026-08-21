@@ -242,7 +242,19 @@ class HeadingFilter {
       if (pending != null &&
           angleBetween(local.bearing, pending) <= _agreementDeg) {
         _pendingRouteSnap = null;
-        return local.bearing;
+        // Eased, not snapped: corroboration means the disagreement is real
+        // and no longer noise, but the raw two-fix bearing that got here was
+        // itself taken across the turn — jumping straight to the route's
+        // exact line the instant it agrees is a second discontinuity on top
+        // of the first, which is what a field report saw as the map
+        // "swinging" right after a turn sharper than 90°. Easing the same
+        // fraction the ordinary path uses removes that second jump; the
+        // rotation-rate cap in the camera-follow loop is what keeps the
+        // first one readable.
+        var snapDelta = (local.bearing - heading) % 360;
+        if (snapDelta > 180) snapDelta -= 360;
+        if (snapDelta < -180) snapDelta += 360;
+        return (heading + snapDelta * _smoothingFactor + 360) % 360;
       }
       _pendingRouteSnap = local.bearing;
       return heading;

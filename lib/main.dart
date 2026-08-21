@@ -45,6 +45,21 @@ Future<void> main() async {
     debugPrint = (String? message, {int? wrapWidth}) {};
   }
 
+  // Framework errors (thrown during build/layout/paint) already stay on
+  // screen instead of killing the app; this catches the other half — errors
+  // from a gesture callback, a stream listener or an unawaited Future, which
+  // by default take the whole isolate down with them. Logged and swallowed
+  // instead: a driver mid-navigation needs the app to keep running far more
+  // than they need a stack trace.
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    debugPrint('[FlutterError] ${details.exceptionAsString()}');
+  };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint('[UncaughtError] $error\n$stack');
+    return true;
+  };
+
   // Step 2: Hive must be ready before providers try to read persisted settings.
   // The settings box is AES-encrypted (favorites and search history contain
   // saved place coordinates); the key lives in the Android Keystore via
