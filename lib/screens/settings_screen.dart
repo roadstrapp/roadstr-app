@@ -52,6 +52,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _kokoroGender = kKokoroDefaultGender;
   int _kokoroSpeedStage = kKokoroDefaultSpeedStage;
   double _kokoroVolume = 1.0;
+  double _minBrightness = 0.0;
   bool _previewingVoice = false;
   final _previewTts = KokoroTtsService();
 
@@ -78,6 +79,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         defaultValue: kKokoroDefaultSpeedStage) as int;
     _kokoroVolume =
         (_box.get('kokoroVolume', defaultValue: 1.0) as num).toDouble();
+    _minBrightness =
+        (_box.get('minBrightness', defaultValue: 0.0) as num).toDouble();
 
     final mgr = KokoroModelManager.instance;
     if (mgr.isDownloading) {
@@ -1115,6 +1118,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: _getBool('keepScreenOn', true),
             onChanged: (v) => _setBool('keepScreenOn', v),
             colors: c,
+          ),
+          _SwitchTile(
+            title: l.keepScreenOnAlways,
+            subtitle: l.keepScreenOnAlwaysDescription,
+            value: _getBool('keepScreenOnAlways', false),
+            onChanged: (v) => _setBool('keepScreenOnAlways', v),
+            colors: c,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Expanded(
+                    child: Text(l.minBrightness,
+                        style: TextStyle(
+                            color: c.textPrimary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600))),
+                Text(
+                    _minBrightness <= 0
+                        ? l.minBrightnessOff
+                        : '${(_minBrightness * 100).round()}%',
+                    style: TextStyle(
+                        color: c.accent,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600)),
+              ]),
+              Text(l.minBrightnessDescription,
+                  style: TextStyle(color: c.textSecondary, fontSize: 12)),
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor: c.accent,
+                  inactiveTrackColor: c.border,
+                  thumbColor: c.accent,
+                  overlayColor: c.accent.withValues(alpha: 0.15),
+                  trackHeight: 3,
+                ),
+                child: Slider(
+                  value: _minBrightness,
+                  min: 0.0,
+                  max: 1.0,
+                  divisions: 10,
+                  onChanged: (v) => setState(() => _minBrightness = v),
+                  onChangeEnd: (v) => _box.put('minBrightness', v),
+                ),
+              ),
+            ]),
           ),
           _SwitchTile(
             title: l.autoCenterOnLaunch,

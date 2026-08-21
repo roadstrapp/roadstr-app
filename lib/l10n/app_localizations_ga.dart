@@ -195,6 +195,23 @@ class AppLocalizationsGa extends AppLocalizations {
       'Cuireann cosc ar chodladh le linn nascleanúna';
 
   @override
+  String get keepScreenOnAlways => 'Keep screen on outside navigation too';
+
+  @override
+  String get keepScreenOnAlwaysDescription =>
+      'Also applies while browsing the map without an active route';
+
+  @override
+  String get minBrightness => 'Minimum screen brightness';
+
+  @override
+  String get minBrightnessDescription =>
+      'Stops the screen dimming below this level while the app is open — useful on OLED screens that dim further than the map stays readable at';
+
+  @override
+  String get minBrightnessOff => 'Off';
+
+  @override
   String get autoCenterOnLaunch => 'Láraigh ar mo shuíomh ag an tosú';
 
   @override

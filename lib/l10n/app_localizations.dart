@@ -508,6 +508,36 @@ abstract class AppLocalizations {
   /// **'Prevents sleep during navigation'**
   String get keepScreenOnDescription;
 
+  /// No description provided for @keepScreenOnAlways.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep screen on outside navigation too'**
+  String get keepScreenOnAlways;
+
+  /// No description provided for @keepScreenOnAlwaysDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Also applies while browsing the map without an active route'**
+  String get keepScreenOnAlwaysDescription;
+
+  /// No description provided for @minBrightness.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum screen brightness'**
+  String get minBrightness;
+
+  /// No description provided for @minBrightnessDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Stops the screen dimming below this level while the app is open — useful on OLED screens that dim further than the map stays readable at'**
+  String get minBrightnessDescription;
+
+  /// No description provided for @minBrightnessOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get minBrightnessOff;
+
   /// No description provided for @autoCenterOnLaunch.
   ///
   /// In en, this message translates to:

@@ -23,7 +23,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:screen_brightness/screen_brightness.dart';
 import '../services/gps_service.dart';
 import '../services/routing_service.dart';
 import '../services/speed_limit_service.dart';
@@ -507,10 +509,20 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   static const _gpsBackgroundGrace = Duration(seconds: 30);
   int _gpsLifecycleGeneration = 0;
 
+  /// Reacts to the wakelock/brightness settings changing while the map is
+  /// already on screen — cached per [SettingsListenable], not built inline,
+  /// for the same reason the cursor's style listenable is: a fresh
+  /// `box.listenable()` on every rebuild leaks a `box.watch()` subscription.
+  late final ValueListenable<Box> _screenPolicyListenable;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _screenPolicyListenable = SettingsListenable.forKeys(
+        const ['keepScreenOn', 'keepScreenOnAlways', 'minBrightness']);
+    _screenPolicyListenable.addListener(_applyScreenPolicy);
+    _applyScreenPolicy();
     _voiceMuted =
         !(Hive.box('settings').get('voiceEnabled', defaultValue: true) as bool);
     // Warm up the TTS engine at app start so it is ready when navigation begins.
@@ -1040,10 +1052,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       }
       unawaited(_checkSpeedCameraProximity());
       unawaited(_checkHazardProximity());
-      if (Hive.box('settings').get('keepScreenOn', defaultValue: true)
-          as bool) {
-        WakelockPlus.enable();
-      }
+      _applyScreenPolicy();
 
       _updateFollowTarget(zoom: targetZoom);
     } else {
@@ -2384,9 +2393,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       }
     });
 
-    if (Hive.box('settings').get('keepScreenOn', defaultValue: true) as bool) {
-      WakelockPlus.enable();
-    }
+    _applyScreenPolicy();
 
     if (silent) {
       // Reroute during active navigation: no overview zoom, no transition lock.
@@ -3383,7 +3390,10 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _destBuilding = null;
     _speedLimitSvc.reset();
     _animateCamera(toCenter: _position, toZoom: _camZoom, toRot: 0);
-    WakelockPlus.disable();
+    // Not a blind disable: the "always on" setting is meant to survive the
+    // end of a trip, since it describes free-roam browsing just as much as
+    // navigation.
+    _applyScreenPolicy();
     _navNotif.cancel();
     if (stopVoice) unawaited(_tts.stop());
   }
@@ -5668,6 +5678,34 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     ); // PopScope
   }
 
+  /// Reconciles the wakelock and the screen-brightness floor with current
+  /// settings and navigation state.
+  ///
+  /// Not tied to a single event: called on every relevant settings change and
+  /// at the transitions where navigation starts or stops, so flipping a
+  /// setting while sitting on the map takes effect immediately instead of
+  /// waiting for the next GPS fix or the next trip.
+  void _applyScreenPolicy() {
+    final box = Hive.box('settings');
+    final navWantsAwake = _isNavigating &&
+        (box.get('keepScreenOn', defaultValue: true) as bool);
+    final alwaysAwake =
+        box.get('keepScreenOnAlways', defaultValue: false) as bool;
+    if (navWantsAwake || alwaysAwake) {
+      WakelockPlus.enable();
+    } else {
+      WakelockPlus.disable();
+    }
+
+    final floor =
+        (box.get('minBrightness', defaultValue: 0.0) as num).toDouble();
+    if (floor > 0) {
+      unawaited(ScreenBrightness().setApplicationScreenBrightness(floor));
+    } else {
+      unawaited(ScreenBrightness().resetApplicationScreenBrightness());
+    }
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
@@ -5711,6 +5749,10 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         // there is nothing to restart and no fix was lost.
         _gpsIdleStop?.cancel();
         _gpsIdleStop = null;
+        // Restores the "always on" wakelock/brightness that paused forced
+        // off — they are foreground-only, unlike navigation's own wakelock,
+        // which is re-applied on its own tick.
+        _applyScreenPolicy();
         final generation = ++_gpsLifecycleGeneration;
         // Re-start sensors and clean up stale events.
         if (_magnetSub == null) _startCompass();
@@ -5757,6 +5799,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     _gpsIdleStop?.cancel();
+    _screenPolicyListenable.removeListener(_applyScreenPolicy);
+    unawaited(ScreenBrightness().resetApplicationScreenBrightness());
     WidgetsBinding.instance.removeObserver(this);
     _camTicker?.cancel();
     _followTicker?.cancel();
