@@ -196,6 +196,23 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impedisce lo spegnimento durante la navigazione';
 
   @override
+  String get keepScreenOnAlways => 'Schermo acceso anche fuori navigazione';
+
+  @override
+  String get keepScreenOnAlwaysDescription =>
+      'Vale anche mentre esplori la mappa senza un percorso attivo';
+
+  @override
+  String get minBrightness => 'Luminosità minima schermo';
+
+  @override
+  String get minBrightnessDescription =>
+      'Impedisce allo schermo di scendere sotto questo livello mentre l\'app è aperta — utile sugli schermi OLED che si attenuano più di quanto la mappa resti leggibile';
+
+  @override
+  String get minBrightnessOff => 'Disattivata';
+
+  @override
   String get autoCenterOnLaunch => 'Centra sulla mia posizione all\'avvio';
 
   @override

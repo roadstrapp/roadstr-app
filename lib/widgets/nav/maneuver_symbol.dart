@@ -352,18 +352,22 @@ class ManeuverSymbolPainter extends CustomPainter {
   }
 
   void _merge(Canvas canvas, int side) {
-    // Muted line is the adjacent carriageway; the accent route joins it and
-    // continues as one unambiguous upward path.
+    // Muted line is the carriageway being joined; the accent route is the
+    // ramp the driver is actually on. A "merge left" modifier means that
+    // carriageway is to the driver's left, which puts the ramp — the accent
+    // path — on the right at the bottom. The two were swapped: the accent
+    // path started on the same side as the modifier instead of the opposite
+    // one, so every merge rendered as its own mirror image.
     _alternative(
       canvas,
       Path()
-        ..moveTo(50 - side * 27, 88)
-        ..cubicTo(50 - side * 18, 67, 50 - side * 8, 54, 50, 48)
+        ..moveTo(50 + side * 27, 88)
+        ..cubicTo(50 + side * 18, 67, 50 + side * 8, 54, 50, 48)
         ..lineTo(50, 15),
     );
     final path = Path()
-      ..moveTo(50 + side * 25, 88)
-      ..cubicTo(50 + side * 20, 65, 50 + side * 8, 52, 50, 47)
+      ..moveTo(50 - side * 25, 88)
+      ..cubicTo(50 - side * 20, 65, 50 - side * 8, 52, 50, 47)
       ..lineTo(50, 15);
     _route(canvas, path);
     _arrow(canvas, const Offset(50, 15), -math.pi / 2);
