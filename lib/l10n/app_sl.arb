@@ -40,6 +40,8 @@
   "langSystem": "Sistemska privzeta",
   "keepScreenOn": "Ohrani zaslon prižgan",
   "keepScreenOnDescription": "Prepreči spanje med navigacijo",
+  "showAltitude": "Prikaži nadmorsko višino",
+  "showAltitudeDescription": "Majhen prikaz nadmorske višine v realnem času ob kontrolnikih zemljevida",
   "mapTileUrlLabel": "URL ploščice zemljevida",
   "routingProviderLabel": "Ponudnik usmerjanja",
   "osrmProvider": "OSRM (javni, ključ ni potreben)",

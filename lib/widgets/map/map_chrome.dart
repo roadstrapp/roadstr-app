@@ -11,6 +11,7 @@ import '../../screens/notifications_screen.dart';
 import '../../screens/profile_screen.dart';
 import '../../screens/settings_screen.dart';
 import '../../utils/settings_listenable.dart';
+import '../../utils/units.dart';
 import '../../services/activity_notification_service.dart';
 import '../../services/ztl_service.dart';
 import '../../theme/app_theme.dart';
@@ -418,6 +419,51 @@ class CurrentStreetLabel extends StatelessWidget {
             letterSpacing: 0.1,
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Real-time altitude, opt-in via Settings and off by default.
+///
+/// Styled as a small pill rather than a full [MapFab]: it shows a number, not
+/// an action, so it should not invite a tap the way the buttons above it do.
+class AltitudeBadge extends StatelessWidget {
+  final double altitudeM;
+  final RoadstrColors colors;
+
+  const AltitudeBadge({
+    super.key,
+    required this.altitudeM,
+    required this.colors,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: colors.surface2.withValues(alpha: 0.92),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: colors.border, width: 0.5),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 10),
+          ],
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(Icons.landscape_rounded, size: 14, color: colors.textSecondary),
+          const SizedBox(width: 5),
+          Text(
+            Units.fmtAltitude(altitudeM),
+            style: TextStyle(
+              color: colors.textPrimary,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ]),
       ),
     );
   }

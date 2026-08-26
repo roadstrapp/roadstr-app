@@ -211,6 +211,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => 'Hoogte tonen';
+
+  @override
+  String get showAltitudeDescription =>
+      'Een kleine real-time hoogteweergave bij de kaartbediening';
+
+  @override
   String get autoCenterOnLaunch => 'Centreer bij opstarten op mijn locatie';
 
   @override

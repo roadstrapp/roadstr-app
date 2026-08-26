@@ -211,6 +211,13 @@ class AppLocalizationsSv extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => 'Visa höjd';
+
+  @override
+  String get showAltitudeDescription =>
+      'En liten höjdvisning i realtid nära kartkontrollerna';
+
+  @override
   String get autoCenterOnLaunch => 'Centrera på min position vid start';
 
   @override

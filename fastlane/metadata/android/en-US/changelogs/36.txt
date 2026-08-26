@@ -1,0 +1,9 @@
+Optional real-time altitude on the map.
+
+New
+
+• Turn on the new altitude readout in Settings to see your GPS elevation near
+  the map controls
+• Altitude uses metres or feet automatically according to your unit preference
+• The displayed elevation is smoothed to make normal GPS fluctuations less
+  distracting

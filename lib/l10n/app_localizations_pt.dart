@@ -212,6 +212,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => 'Mostrar altitude';
+
+  @override
+  String get showAltitudeDescription =>
+      'Uma pequena indicação de altitude em tempo real perto dos controles do mapa';
+
+  @override
   String get autoCenterOnLaunch => 'Centrar na minha posição ao iniciar';
 
   @override

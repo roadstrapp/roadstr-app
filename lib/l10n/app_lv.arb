@@ -40,6 +40,8 @@
   "langSystem": "Sistēmas noklusējums",
   "keepScreenOn": "Paturēt ekrānu ieslēgtu",
   "keepScreenOnDescription": "Novērš miega režīmu navigācijas laikā",
+  "showAltitude": "Rādīt augstumu",
+  "showAltitudeDescription": "Neliels reāllaika augstuma rādījums pie kartes vadīklām",
   "mapTileUrlLabel": "Kartes flīžu URL",
   "routingProviderLabel": "Maršrutēšanas pakalpojumu sniedzējs",
   "osrmProvider": "OSRM (publisks, nav nepieciešama atslēga)",

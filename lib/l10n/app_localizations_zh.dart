@@ -207,6 +207,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => '显示海拔';
+
+  @override
+  String get showAltitudeDescription => '在地图控件附近显示的小型实时海拔读数';
+
+  @override
   String get autoCenterOnLaunch => '启动时以我的位置为中心';
 
   @override

@@ -212,6 +212,13 @@ class AppLocalizationsGa extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => 'Taispeáin airde';
+
+  @override
+  String get showAltitudeDescription =>
+      'Léamh beag airde fíor-ama in aice le rialtáin na léarscáile';
+
+  @override
   String get autoCenterOnLaunch => 'Láraigh ar mo shuíomh ag an tosú';
 
   @override

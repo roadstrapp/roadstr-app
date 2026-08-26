@@ -40,6 +40,8 @@
   "langSystem": "Implicit sistem",
   "keepScreenOn": "Mențineți ecranul activ",
   "keepScreenOnDescription": "Previne repausul în timpul navigării",
+  "showAltitude": "Afișează altitudinea",
+  "showAltitudeDescription": "O mică indicație a altitudinii în timp real lângă comenzile hărții",
   "mapTileUrlLabel": "URL plăci hartă",
   "routingProviderLabel": "Furnizor de rutare",
   "osrmProvider": "OSRM (public, fără cheie)",
