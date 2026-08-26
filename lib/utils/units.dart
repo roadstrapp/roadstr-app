@@ -35,6 +35,13 @@ class Units {
   /// Convert km/h → mph (display only; internal comparisons stay in km/h).
   static double toDisplaySpeed(double kmh) => imperial ? kmh / 1.60934 : kmh;
 
+  /// Format [metres] of altitude for on-screen display. Whole units only —
+  /// GPS altitude jitters by several metres between fixes, so a decimal
+  /// place would show precision the fix does not actually have.
+  static String fmtAltitude(double metres) => imperial
+      ? '${(metres / 0.3048).round()} ft'
+      : '${metres.round()} m';
+
   static String get speedUnit => imperial ? 'mph' : 'km/h';
 
   /// Spoken unit for TTS.  Symbols such as "km/h" are read literally by

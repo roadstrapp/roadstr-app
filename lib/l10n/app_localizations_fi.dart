@@ -212,6 +212,13 @@ class AppLocalizationsFi extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => 'Näytä korkeus';
+
+  @override
+  String get showAltitudeDescription =>
+      'Pieni reaaliaikainen korkeuslukema karttatoimintojen lähellä';
+
+  @override
   String get autoCenterOnLaunch => 'Keskitä sijaintiini käynnistettäessä';
 
   @override

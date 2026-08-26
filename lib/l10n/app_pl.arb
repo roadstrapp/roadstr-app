@@ -40,6 +40,8 @@
   "langSystem": "Domyślny systemowy",
   "keepScreenOn": "Utrzymuj ekran włączony",
   "keepScreenOnDescription": "Zapobiega uśpieniu podczas nawigacji",
+  "showAltitude": "Pokaż wysokość",
+  "showAltitudeDescription": "Mały wskaźnik wysokości w czasie rzeczywistym obok sterowania mapą",
   "mapTileUrlLabel": "URL kafelków mapy",
   "routingProviderLabel": "Dostawca trasowania",
   "osrmProvider": "OSRM (publiczny, bez klucza)",

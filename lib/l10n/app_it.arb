@@ -65,6 +65,8 @@
   "minBrightness": "Luminosità minima schermo",
   "minBrightnessDescription": "Impedisce allo schermo di scendere sotto questo livello mentre l'app è aperta — utile sugli schermi OLED che si attenuano più di quanto la mappa resti leggibile",
   "minBrightnessOff": "Disattivata",
+  "showAltitude": "Mostra altitudine",
+  "showAltitudeDescription": "Indicazione dell'altitudine in tempo reale vicino ai controlli della mappa",
   "autoCenterOnLaunch": "Centra sulla mia posizione all'avvio",
   "autoCenterOnLaunchDesc": "Usa automaticamente il GPS solo se il permesso di posizione è già stato concesso",
   "mapTileUrlLabel": "URL Tile mappa",

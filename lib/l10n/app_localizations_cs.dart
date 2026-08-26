@@ -212,6 +212,13 @@ class AppLocalizationsCs extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => 'Zobrazit nadmořskou výšku';
+
+  @override
+  String get showAltitudeDescription =>
+      'Malý ukazatel nadmořské výšky v reálném čase u ovládacích prvků mapy';
+
+  @override
   String get autoCenterOnLaunch => 'Při spuštění vycentrovat na mou polohu';
 
   @override

@@ -212,6 +212,13 @@ class AppLocalizationsLt extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => 'Rodyti aukštį';
+
+  @override
+  String get showAltitudeDescription =>
+      'Nedidelis realaus laiko aukščio rodmuo šalia žemėlapio valdiklių';
+
+  @override
   String get autoCenterOnLaunch => 'Paleidžiant centruoti ties mano vieta';
 
   @override

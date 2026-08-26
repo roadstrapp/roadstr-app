@@ -211,6 +211,13 @@ class AppLocalizationsRo extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => 'Afișează altitudinea';
+
+  @override
+  String get showAltitudeDescription =>
+      'O mică indicație a altitudinii în timp real lângă comenzile hărții';
+
+  @override
   String get autoCenterOnLaunch => 'Centrează pe poziția mea la pornire';
 
   @override

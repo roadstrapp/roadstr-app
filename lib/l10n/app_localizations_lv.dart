@@ -211,6 +211,13 @@ class AppLocalizationsLv extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => 'Rādīt augstumu';
+
+  @override
+  String get showAltitudeDescription =>
+      'Neliels reāllaika augstuma rādījums pie kartes vadīklām';
+
+  @override
   String get autoCenterOnLaunch => 'Palaižot centrēt uz manu atrašanās vietu';
 
   @override

@@ -40,6 +40,8 @@
   "langSystem": "Predvolený systémový",
   "keepScreenOn": "Nechať obrazovku zapnutú",
   "keepScreenOnDescription": "Zabraňuje prechodu do spánku počas navigácie",
+  "showAltitude": "Zobraziť nadmorskú výšku",
+  "showAltitudeDescription": "Malý ukazovateľ nadmorskej výšky v reálnom čase pri ovládacích prvkoch mapy",
   "mapTileUrlLabel": "URL dlaždíc mapy",
   "routingProviderLabel": "Poskytovateľ smerovania",
   "osrmProvider": "OSRM (verejný, bez kľúča)",

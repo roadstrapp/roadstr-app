@@ -40,6 +40,8 @@
   "langSystem": "Järjestelmän oletus",
   "keepScreenOn": "Pidä näyttö päällä",
   "keepScreenOnDescription": "Estää laitteen siirtymisen lepotilaan navigoinnin aikana",
+  "showAltitude": "Näytä korkeus",
+  "showAltitudeDescription": "Pieni reaaliaikainen korkeuslukema karttatoimintojen lähellä",
   "mapTileUrlLabel": "Karttalaattojen URL",
   "routingProviderLabel": "Reitityspalveluntarjoaja",
   "osrmProvider": "OSRM (julkinen, ei avain tarvita)",

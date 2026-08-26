@@ -212,6 +212,13 @@ class AppLocalizationsEt extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => 'Näita kõrgust';
+
+  @override
+  String get showAltitudeDescription =>
+      'Väike reaalajas kõrgusnäit kaardi juhtnuppude lähedal';
+
+  @override
   String get autoCenterOnLaunch => 'Käivitusel minu asukohale keskendamine';
 
   @override

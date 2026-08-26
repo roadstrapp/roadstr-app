@@ -40,6 +40,8 @@
   "langSystem": "Predeterminado del sistema",
   "keepScreenOn": "Mantener pantalla encendida",
   "keepScreenOnDescription": "Evita el modo de reposo durante la navegación",
+  "showAltitude": "Mostrar altitud",
+  "showAltitudeDescription": "Una pequeña indicación de altitud en tiempo real junto a los controles del mapa",
   "mapTileUrlLabel": "URL de mosaicos del mapa",
   "routingProviderLabel": "Proveedor de enrutamiento",
   "osrmProvider": "OSRM (público, sin clave requerida)",

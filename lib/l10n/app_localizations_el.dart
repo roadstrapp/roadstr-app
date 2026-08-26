@@ -212,6 +212,13 @@ class AppLocalizationsEl extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => 'Εμφάνιση υψομέτρου';
+
+  @override
+  String get showAltitudeDescription =>
+      'Μια μικρή ένδειξη υψομέτρου σε πραγματικό χρόνο δίπλα στα χειριστήρια του χάρτη';
+
+  @override
   String get autoCenterOnLaunch => 'Κεντράρισμα στη θέση μου κατά την εκκίνηση';
 
   @override
