@@ -212,6 +212,13 @@ class AppLocalizationsBg extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => 'Показвай надморска височина';
+
+  @override
+  String get showAltitudeDescription =>
+      'Малко показание на надморската височина в реално време до бутоните на картата';
+
+  @override
   String get autoCenterOnLaunch =>
       'Центриране върху моята позиция при стартиране';
 

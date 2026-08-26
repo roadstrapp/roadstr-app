@@ -40,6 +40,8 @@
   "langSystem": "Системный язык",
   "keepScreenOn": "Не выключать экран",
   "keepScreenOnDescription": "Предотвращает сон во время навигации",
+  "showAltitude": "Показывать высоту",
+  "showAltitudeDescription": "Небольшой индикатор высоты в реальном времени рядом с элементами управления картой",
   "mapTileUrlLabel": "URL тайлов карты",
   "routingProviderLabel": "Поставщик маршрутизации",
   "osrmProvider": "OSRM (публичный, ключ не нужен)",

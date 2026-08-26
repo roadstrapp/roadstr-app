@@ -40,6 +40,8 @@
   "langSystem": "Systemstandard",
   "keepScreenOn": "Bildschirm eingeschaltet lassen",
   "keepScreenOnDescription": "Verhindert den Ruhezustand während der Navigation",
+  "showAltitude": "Höhe anzeigen",
+  "showAltitudeDescription": "Eine kleine Echtzeit-Höhenanzeige neben den Kartensteuerelementen",
   "mapTileUrlLabel": "Kachel-URL der Karte",
   "routingProviderLabel": "Routing-Anbieter",
   "osrmProvider": "OSRM (öffentlich, kein Schlüssel erforderlich)",

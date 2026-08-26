@@ -58,7 +58,7 @@ app.*.map.json
 tools/.venv/
 kokoro_models/
 .claude/
-
+github-recovery-codes.txt
 # Design working material — renders and source art used to produce the cursor
 # and symbol assets. The shipped versions live in assets/; these are 13 MB of
 # intermediates that nothing builds against.

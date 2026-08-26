@@ -40,6 +40,8 @@
   "langSystem": "Systemstandard",
   "keepScreenOn": "Håll skärmen på",
   "keepScreenOnDescription": "Förhindrar viloläge under navigering",
+  "showAltitude": "Visa höjd",
+  "showAltitudeDescription": "En liten höjdvisning i realtid nära kartkontrollerna",
   "mapTileUrlLabel": "URL för kartbrickor",
   "routingProviderLabel": "Ruttleverantör",
   "osrmProvider": "OSRM (offentlig, ingen nyckel krävs)",

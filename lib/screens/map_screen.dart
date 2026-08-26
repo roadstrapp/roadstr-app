@@ -109,6 +109,13 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   double _speed = 0;
   bool _walkingCursorMoving = false;
 
+  /// Smoothed GPS altitude (metres), shown by [AltitudeBadge] when enabled.
+  ///
+  /// Exponentially smoothed rather than shown raw: consumer GPS altitude
+  /// jitters by several metres fix to fix even standing still, and a number
+  /// that moves every tick reads as noise instead of as elevation.
+  double? _altitudeM;
+
   /// Horizontal accuracy (metres) of the most recent GPS fix. Drives the
   /// dynamic arrival radius in [_checkArrival] — starts at a conservative
   /// value so arrival detection isn't overly tight before the first fix.
@@ -974,6 +981,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _position = data.position;
       _speed = sampleSpeed;
       _walkingCursorMoving = walkingCursorMoving;
+      if (data.altitude.isFinite) {
+        final prev = _altitudeM;
+        // First fix: take it outright, nothing to smooth against yet.
+        _altitudeM =
+            prev == null ? data.altitude : prev + (data.altitude - prev) * 0.15;
+      }
       if (data.accuracy.isFinite && data.accuracy > 0) {
         _lastGpsAccuracy = data.accuracy;
       }
@@ -5460,6 +5473,13 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                       colors: c,
                       child: Icon(Icons.report_problem_outlined,
                           color: c.onAccent, size: 22)),
+                  if (_altitudeM != null &&
+                      (Hive.box('settings')
+                          .get('showAltitude', defaultValue: false)
+                          as bool)) ...[
+                    const SizedBox(height: 8),
+                    AltitudeBadge(altitudeM: _altitudeM!, colors: c),
+                  ],
                 ],
                 if (_isNavigating) ...[
                   const SizedBox(height: 8),

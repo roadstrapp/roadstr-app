@@ -40,6 +40,8 @@
   "langSystem": "システムデフォルト",
   "keepScreenOn": "画面をオンに保つ",
   "keepScreenOnDescription": "ナビゲーション中にスリープを防止",
+  "showAltitude": "標高を表示",
+  "showAltitudeDescription": "地図の操作ボタン付近に表示されるリアルタイムの標高表示",
   "mapTileUrlLabel": "マップタイルURL",
   "routingProviderLabel": "ルーティングプロバイダー",
   "osrmProvider": "OSRM（公共、キー不要）",

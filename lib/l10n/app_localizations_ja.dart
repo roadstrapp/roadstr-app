@@ -210,6 +210,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => '標高を表示';
+
+  @override
+  String get showAltitudeDescription => '地図の操作ボタン付近に表示されるリアルタイムの標高表示';
+
+  @override
   String get autoCenterOnLaunch => '起動時に現在地を中心にする';
 
   @override

@@ -213,6 +213,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => 'Magasság megjelenítése';
+
+  @override
+  String get showAltitudeDescription =>
+      'Kis valós idejű magasságkijelzés a térkép vezérlői mellett';
+
+  @override
   String get autoCenterOnLaunch => 'Indításkor középre igazítás a helyzetemre';
 
   @override

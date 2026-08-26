@@ -211,6 +211,13 @@ class AppLocalizationsPl extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => 'Pokaż wysokość';
+
+  @override
+  String get showAltitudeDescription =>
+      'Mały wskaźnik wysokości w czasie rzeczywistym obok sterowania mapą';
+
+  @override
   String get autoCenterOnLaunch =>
       'Wyśrodkuj na mojej pozycji przy uruchomieniu';
 

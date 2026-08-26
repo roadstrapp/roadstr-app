@@ -56,4 +56,16 @@ void main() {
       expect(Units.joinDistance('', 'take the exit', 'en'), 'take the exit');
     });
   });
+
+  group('fmtAltitude', () {
+    test('metric rounds to the nearest whole metre', () {
+      expect(Units.fmtAltitude(123.4), '123 m');
+      expect(Units.fmtAltitude(123.6), '124 m');
+    });
+
+    test('imperial converts to feet', () {
+      settings.put('imperialUnits', true);
+      expect(Units.fmtAltitude(100), '328 ft');
+    });
+  });
 }

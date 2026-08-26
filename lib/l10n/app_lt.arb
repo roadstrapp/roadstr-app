@@ -40,6 +40,8 @@
   "langSystem": "Sistemos numatytoji",
   "keepScreenOn": "Laikyti ekraną įjungtą",
   "keepScreenOnDescription": "Neleidžia įjungti miego režimo navigacijos metu",
+  "showAltitude": "Rodyti aukštį",
+  "showAltitudeDescription": "Nedidelis realaus laiko aukščio rodmuo šalia žemėlapio valdiklių",
   "mapTileUrlLabel": "Žemėlapio plytelių URL",
   "routingProviderLabel": "Maršrutizavimo tiekėjas",
   "osrmProvider": "OSRM (viešas, raktas nereikalingas)",

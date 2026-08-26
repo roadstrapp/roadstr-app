@@ -538,6 +538,18 @@ abstract class AppLocalizations {
   /// **'Off'**
   String get minBrightnessOff;
 
+  /// No description provided for @showAltitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Show altitude'**
+  String get showAltitude;
+
+  /// No description provided for @showAltitudeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A small real-time elevation readout near the map controls'**
+  String get showAltitudeDescription;
+
   /// No description provided for @autoCenterOnLaunch.
   ///
   /// In en, this message translates to:

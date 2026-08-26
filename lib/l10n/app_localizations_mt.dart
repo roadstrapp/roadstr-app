@@ -213,6 +213,13 @@ class AppLocalizationsMt extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => 'Uri l-għoli';
+
+  @override
+  String get showAltitudeDescription =>
+      'Qari żgħir tal-għoli f\'ħin reali ħdejn il-kontrolli tal-mappa';
+
+  @override
   String get autoCenterOnLaunch =>
       'Iċċentra fuq il-pożizzjoni tiegħi mat-tħaddim';
 

@@ -212,6 +212,13 @@ class AppLocalizationsHr extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => 'Prikaži nadmorsku visinu';
+
+  @override
+  String get showAltitudeDescription =>
+      'Mali prikaz nadmorske visine u stvarnom vremenu pored kontrola karte';
+
+  @override
   String get autoCenterOnLaunch => 'Centriraj na moju lokaciju pri pokretanju';
 
   @override

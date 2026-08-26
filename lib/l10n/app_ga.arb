@@ -40,6 +40,8 @@
   "langSystem": "Réamhshocrú córais",
   "keepScreenOn": "Coinnigh an scáileán ar siúl",
   "keepScreenOnDescription": "Cuireann cosc ar chodladh le linn nascleanúna",
+  "showAltitude": "Taispeáin airde",
+  "showAltitudeDescription": "Léamh beag airde fíor-ama in aice le rialtáin na léarscáile",
   "mapTileUrlLabel": "URL tile léarscáile",
   "routingProviderLabel": "Soláthraí bealaíochta",
   "osrmProvider": "OSRM (poiblí, gan eochair ag teastáil)",

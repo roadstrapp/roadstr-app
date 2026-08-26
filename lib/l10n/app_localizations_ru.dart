@@ -211,6 +211,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => 'Показывать высоту';
+
+  @override
+  String get showAltitudeDescription =>
+      'Небольшой индикатор высоты в реальном времени рядом с элементами управления картой';
+
+  @override
   String get autoCenterOnLaunch =>
       'Центрировать по моему местоположению при запуске';
 

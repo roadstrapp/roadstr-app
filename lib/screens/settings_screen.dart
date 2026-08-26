@@ -1167,6 +1167,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ]),
           ),
           _SwitchTile(
+            title: l.showAltitude,
+            subtitle: l.showAltitudeDescription,
+            value: _getBool('showAltitude', false),
+            onChanged: (v) => _setBool('showAltitude', v),
+            colors: c,
+          ),
+          _SwitchTile(
             title: l.autoCenterOnLaunch,
             subtitle: l.autoCenterOnLaunchDesc,
             value: _getBool('autoCenterOnLaunch', true),

@@ -40,6 +40,8 @@
   "langSystem": "Systemstandard",
   "keepScreenOn": "Hold skærmen tændt",
   "keepScreenOnDescription": "Forhindrer dvale under navigation",
+  "showAltitude": "Vis højde",
+  "showAltitudeDescription": "En lille visning af højden i realtid ved kortkontrollerne",
   "mapTileUrlLabel": "Kortbrikke-URL",
   "routingProviderLabel": "Ruteudbyder",
   "osrmProvider": "OSRM (offentlig, ingen nøgle påkrævet)",

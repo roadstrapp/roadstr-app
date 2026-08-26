@@ -212,6 +212,13 @@ class AppLocalizationsSk extends AppLocalizations {
   String get minBrightnessOff => 'Off';
 
   @override
+  String get showAltitude => 'Zobraziť nadmorskú výšku';
+
+  @override
+  String get showAltitudeDescription =>
+      'Malý ukazovateľ nadmorskej výšky v reálnom čase pri ovládacích prvkoch mapy';
+
+  @override
   String get autoCenterOnLaunch => 'Pri spustení vycentrovať na moju polohu';
 
   @override

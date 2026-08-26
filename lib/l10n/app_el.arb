@@ -40,6 +40,8 @@
   "langSystem": "Προεπιλογή συστήματος",
   "keepScreenOn": "Διατήρηση οθόνης ενεργής",
   "keepScreenOnDescription": "Αποτρέπει την αδράνεια κατά την πλοήγηση",
+  "showAltitude": "Εμφάνιση υψομέτρου",
+  "showAltitudeDescription": "Μια μικρή ένδειξη υψομέτρου σε πραγματικό χρόνο δίπλα στα χειριστήρια του χάρτη",
   "mapTileUrlLabel": "URL πλακιδίων χάρτη",
   "routingProviderLabel": "Πάροχος δρομολόγησης",
   "osrmProvider": "OSRM (δημόσιο, δεν απαιτείται κλειδί)",

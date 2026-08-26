@@ -40,6 +40,8 @@
   "langSystem": "Langue du système",
   "keepScreenOn": "Garder l'écran allumé",
   "keepScreenOnDescription": "Empêche la mise en veille pendant la navigation",
+  "showAltitude": "Afficher l'altitude",
+  "showAltitudeDescription": "Un petit indicateur d'altitude en temps réel près des commandes de la carte",
   "mapTileUrlLabel": "URL des tuiles de carte",
   "routingProviderLabel": "Fournisseur de routage",
   "osrmProvider": "OSRM (public, aucune clé requise)",

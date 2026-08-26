@@ -40,6 +40,8 @@
   "langSystem": "系统默认",
   "keepScreenOn": "保持屏幕常亮",
   "keepScreenOnDescription": "导航期间防止屏幕休眠",
+  "showAltitude": "显示海拔",
+  "showAltitudeDescription": "在地图控件附近显示的小型实时海拔读数",
   "mapTileUrlLabel": "地图瓦片URL",
   "routingProviderLabel": "路由提供商",
   "osrmProvider": "OSRM（公共，无需密钥）",

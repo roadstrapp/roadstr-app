@@ -40,6 +40,8 @@
   "langSystem": "Default tas-sistema",
   "keepScreenOn": "Żomm l-iskrin mixgħul",
   "keepScreenOnDescription": "Jimpedixxi l-irqad waqt in-navigazzjoni",
+  "showAltitude": "Uri l-għoli",
+  "showAltitudeDescription": "Qari żgħir tal-għoli f'ħin reali ħdejn il-kontrolli tal-mappa",
   "mapTileUrlLabel": "URL tal-tile tal-mappa",
   "routingProviderLabel": "Fornitur tal-routing",
   "osrmProvider": "OSRM (pubbliku, l-ebda ċavetta meħtieġa)",

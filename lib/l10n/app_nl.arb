@@ -40,6 +40,8 @@
   "langSystem": "Systeemstandaard",
   "keepScreenOn": "Scherm ingeschakeld houden",
   "keepScreenOnDescription": "Voorkomt slaapstand tijdens navigatie",
+  "showAltitude": "Hoogte tonen",
+  "showAltitudeDescription": "Een kleine real-time hoogteweergave bij de kaartbediening",
   "mapTileUrlLabel": "Kaart-tegel URL",
   "routingProviderLabel": "Routingprovider",
   "osrmProvider": "OSRM (openbaar, geen sleutel vereist)",

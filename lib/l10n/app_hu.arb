@@ -40,6 +40,8 @@
   "langSystem": "Rendszer alapértelmezett",
   "keepScreenOn": "Képernyő bekapcsolt állapotban tartása",
   "keepScreenOnDescription": "Megakadályozza az alvó módot navigáció közben",
+  "showAltitude": "Magasság megjelenítése",
+  "showAltitudeDescription": "Kis valós idejű magasságkijelzés a térkép vezérlői mellett",
   "mapTileUrlLabel": "Térképcsempe URL",
   "routingProviderLabel": "Útválasztó szolgáltató",
   "osrmProvider": "OSRM (nyilvános, kulcs nem szükséges)",

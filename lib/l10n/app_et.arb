@@ -40,6 +40,8 @@
   "langSystem": "Süsteemi vaikeväärtus",
   "keepScreenOn": "Hoia ekraan üleval",
   "keepScreenOnDescription": "Takistab une-olekut navigeerimise ajal",
+  "showAltitude": "Näita kõrgust",
+  "showAltitudeDescription": "Väike reaalajas kõrgusnäit kaardi juhtnuppude lähedal",
   "mapTileUrlLabel": "Kaardi tile'i URL",
   "routingProviderLabel": "Marsruutimise pakkuja",
   "osrmProvider": "OSRM (avalik, võtit pole vaja)",
