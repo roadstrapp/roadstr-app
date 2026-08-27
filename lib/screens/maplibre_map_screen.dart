@@ -15,7 +15,6 @@
 // save/clear, multi-stop route planning. Each noted at its own commit.
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:amberflutter/amberflutter.dart';
@@ -40,13 +39,17 @@ import '../services/poi_search_service.dart';
 import '../services/route_progress.dart';
 import '../services/routing_service.dart';
 import '../services/speed_camera_service.dart';
+import '../services/speed_limit_service.dart';
 import '../services/ztl_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
 import '../utils/geo.dart';
+import '../utils/heading_filter.dart';
 import '../widgets/cursor_painter.dart';
+import '../widgets/map/map_chrome.dart';
 import '../widgets/map/map_markers.dart';
 import '../widgets/nav/nav_hud.dart';
+import '../widgets/nav/speed_limit_sign.dart';
 import '../widgets/route/route_panels.dart';
 import '../widgets/search/search_panel.dart';
 import '../widgets/sheets/road_event_sheets.dart';
@@ -167,7 +170,7 @@ class _CursorPainter extends CustomPainter {
       ..shader = RadialGradient(colors: [
         Colors.black.withValues(alpha: 0.30 - t * 0.08),
         Colors.black.withValues(alpha: 0),
-      ]).createShader(Rect.fromCircle(center: const Offset(24, 0), radius: 16))
+      ]).createShader(Rect.fromCircle(center: Offset.zero, radius: 16))
       ..style = PaintingStyle.fill;
     canvas.save();
     // Starts tucked just under the arrow's own base at t=0, drifts toward
@@ -236,6 +239,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   // the next GPS fix.
   bool _followUser = true;
   GpsData? _lastFix;
+
+  /// Smoothed GPS altitude, same exponential smoothing MapScreen applies —
+  /// raw altitude jitters by several metres fix to fix even standing still.
+  double? _altitudeM;
   bool? _stylingDark;
 
   /// True: the camera turns to face the direction of travel (what every
@@ -254,6 +261,21 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   /// _camState) has stopped running.
   double _pitch = 45.0;
   double _bearing = 0;
+
+  /// Same dead-reckoning heading filter MapScreen feeds every GPS tick —
+  /// without it the raw course-over-ground (data.heading) is what drove the
+  /// camera's bearing here, and that value is genuinely noisy at low speed,
+  /// which is what made the cursor look "ballerino": the cursor itself never
+  /// moves (it stays screen-up), so a shaky *camera* bearing reads as a
+  /// shaky cursor. HeadingFilter has no flutter_map dependency — it only
+  /// ever touches LatLng/Geo — so it ports directly. routeLocalBearingAt is
+  /// passed null (see route_progress.dart's own doc comment): the
+  /// roundabout-disambiguation half of MapScreen's filter needs progress-
+  /// along-route bookkeeping this screen doesn't keep, so this gets the
+  /// dead-reckoning/hysteresis/reversal-rejection behaviour without the
+  /// route-snap easing on top.
+  final _headingFilter = HeadingFilter();
+  LatLng? _prevGpsPos;
 
   // Camera easing — CameraFollowEasing is the same policy
   // MapScreen._startFollowTicker uses, driven here against MapController
@@ -309,6 +331,11 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   double _remainingDistM = 0;
   double _remainingSecs = 0;
 
+  /// Extra stops appended mid-journey via the "add stop" FAB — same idea as
+  /// MapScreen._activeVia, simplified to append-only (no reorder/remove UI).
+  List<LatLng> _activeVia = const [];
+  bool _pickingWaypoint = false;
+
   /// Route position (not GPS wobble) close enough to a maneuver's own point
   /// to advance past it. Wider than typical GPS accuracy so a fix that lands
   /// slightly short or past the exact point doesn't stall the step index.
@@ -339,6 +366,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   LatLng? _parkingPosition;
   List<FavoritePlace> _favorites = [];
 
+  /// OSM-tagged speed limit, same source MapScreen's sign uses: the route's
+  /// own annotation while navigating (route.speedLimitAt), Overpass proximity
+  /// cache otherwise.
+  final _speedLimitSvc = SpeedLimitService();
+  int? _currentSpeedLimit;
+
   // ── Hazard reporting ─────────────────────────────────────────────────────
   // NostrRelayService reused as-is (never touched flutter_map). No
   // subscription to other people's reports here, so no own-report
@@ -346,6 +379,13 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   // _roadEvents — this only publishes, it doesn't display anyone's pins yet.
   final _nostr = NostrRelayService();
   static const _secStorage = FlutterSecureStorage();
+
+  // ── Home identity (bottom bar) ────────────────────────────────────────────
+  // Same three SecureStorage values MapScreen._refreshHomeIdentity reads —
+  // needed for MapBottomBar's profile/notifications entries.
+  String? _myPubkey;
+  String? _profilePicture;
+  String? _nostrFlavor;
 
   @override
   void initState() {
@@ -365,8 +405,53 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     _tts.setVolume(
         (settings.get('kokoroVolume', defaultValue: 1.0) as num).toDouble());
     unawaited(_tts.init('it'));
+    unawaited(_refreshHomeIdentity());
     unawaited(_gps.start());
     _gpsSub = _gps.stream.listen(_onGps);
+  }
+
+  /// Same read as MapScreen._refreshHomeIdentity, ported directly — the
+  /// three SecureStorage values MapBottomBar needs (login state, pubkey,
+  /// avatar), plus the same activity-notification subscription toggle.
+  Future<void> _refreshHomeIdentity() async {
+    if (!mounted) return;
+    final values = await Future.wait([
+      _secStorage.read(key: 'nostr_pub_hex'),
+      _secStorage.read(key: 'nostr_flavor'),
+      _secStorage.read(key: 'nostr_picture'),
+    ]);
+    var pub = values[0];
+    final flavor = values[1];
+    var picture = values[2];
+    final loggedIn = pub != null && (flavor == 'amber' || flavor == 'nsec');
+    if (!loggedIn) {
+      pub = null;
+      picture = null;
+    }
+    if (!mounted) return;
+    final identityChanged = pub != _myPubkey;
+    setState(() {
+      _myPubkey = pub;
+      _nostrFlavor = loggedIn ? flavor : null;
+      _profilePicture = picture;
+    });
+    if (pub != null && identityChanged) {
+      unawaited(_nostr.enableActivityNotifications(pub));
+    } else if (pub == null && identityChanged) {
+      _nostr.disableActivityNotifications();
+    }
+    if (pub != null && (picture == null || picture.isEmpty)) {
+      final requestedPub = pub;
+      final profile = await NostrRelayService.fetchProfile(requestedPub);
+      final fetchedPicture = profile?.picture;
+      if (fetchedPicture == null || fetchedPicture.isEmpty) return;
+      final currentPub = await _secStorage.read(key: 'nostr_pub_hex');
+      if (currentPub != requestedPub) return;
+      await _secStorage.write(key: 'nostr_picture', value: fetchedPicture);
+      if (mounted && _myPubkey == requestedPub) {
+        setState(() => _profilePicture = fetchedPicture);
+      }
+    }
   }
 
   /// Same storage shape MapScreen._loadFavorites reads — one JSON string per
@@ -726,7 +811,52 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
       _searchController.clear();
     });
     FocusManager.instance.primaryFocus?.unfocus();
-    await _calculateRouteTo(result.position);
+    await _onDestinationPicked(result.position);
+  }
+
+  /// Routes a picked position to either a fresh destination search or a
+  /// mid-journey stop, depending on which search flow is open. Shared by
+  /// search-result selection, favourite selection and nearby-category
+  /// results, so all three ways of picking a place go through one place.
+  Future<void> _onDestinationPicked(LatLng pos) async {
+    if (_pickingWaypoint) {
+      await _addWaypoint(pos);
+      return;
+    }
+    await _calculateRouteTo(pos);
+  }
+
+  /// Appends [pos] to the active journey as an extra stop and reroutes
+  /// through it — same idea as MapScreen's waypoint insertion, simplified to
+  /// append-only (no reorder/remove UI). Reuses [_rerouteAndNavigate]'s
+  /// cumDist/step-index refresh: adding a stop changes the step list exactly
+  /// like an automatic reroute does, so there is nothing extra to redo here.
+  Future<void> _addWaypoint(LatLng pos) async {
+    setState(() => _pickingWaypoint = false);
+    final dest = _destination;
+    final origin = _lastFix == null
+        ? null
+        : LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
+    if (dest == null || origin == null) return;
+    if (_activeVia.length >= RoutingService.maxWaypoints) {
+      _showSnack('Numero massimo di tappe raggiunto');
+      return;
+    }
+    _activeVia = [..._activeVia, pos];
+    await _rerouteAndNavigate(origin, dest);
+  }
+
+  /// Opens the search panel mid-journey to pick a stop — the FAB on the
+  /// right column, visible only while navigating.
+  void _openWaypointSearch() {
+    if (_activeVia.length >= RoutingService.maxWaypoints) {
+      _showSnack('Numero massimo di tappe raggiunto');
+      return;
+    }
+    setState(() {
+      _pickingWaypoint = true;
+      _showSearch = true;
+    });
   }
 
   bool _calculatingRoute = false;
@@ -749,6 +879,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     }
     setState(() => _calculatingRoute = true);
     _destination = dest;
+    // A fresh destination starts a new journey — any stop added to a
+    // previous one no longer applies.
+    _activeVia = const [];
     ({RouteResult route, List<({List<LatLng> points, bool restricted})> runs})?
         fetched;
     try {
@@ -858,7 +991,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   /// the work shared between a fresh destination pick and a reroute, so
   /// there is one place that does it, not two that can drift apart.
   Future<({RouteResult route, List<({List<LatLng> points, bool restricted})> runs})?>
-      _fetchRoute(LatLng origin, LatLng dest) async {
+      _fetchRoute(LatLng origin, LatLng dest, {List<LatLng>? via}) async {
     final (:provider, :apiKey, :ghServer) = await _resolveProvider();
     if (!mounted) return null;
     final routes = await RoutingService.getRoutes(origin, dest,
@@ -866,7 +999,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
         apiKey: apiKey,
         graphhopperServer: ghServer,
         lang: 'it',
-        vehicle: _transportMode);
+        vehicle: _transportMode,
+        via: via ?? _activeVia);
     if (!mounted || routes.isEmpty) return null;
     final route = routes.first;
     await _ztl.updateIfNeeded(origin);
@@ -882,6 +1016,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
       _routeRuns = [];
       _isNavigating = false;
       _arrived = false;
+      _activeVia = const [];
     });
   }
 
@@ -953,6 +1088,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     ];
     _ttsAnnouncedFarIdx = -1;
     _ttsAnnouncedNearIdx = -1;
+    _headingFilter.reset();
     setState(() {
       _isNavigating = true;
       _currentStepIdx = 0;
@@ -965,6 +1101,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
 
   void _stopNavigation() {
     unawaited(_tts.stop());
+    _headingFilter.reset();
     setState(() {
       _isNavigating = false;
       _arrived = false;
@@ -985,6 +1122,13 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     _remainingDistM = rem;
     _remainingSecs =
         totalDist > 0 ? route.totalDurationS * rem / totalDist : 0;
+    // Route-embedded limit (OSRM/GH annotation) first, Overpass cache as
+    // fallback — same preference MapScreen._updateRemainingStats uses.
+    final routeLimit = route.speedLimitAt(routeProgressM);
+    _currentSpeedLimit = routeLimit ?? _speedLimitSvc.cachedLimit;
+    if (routeLimit == null) {
+      unawaited(_speedLimitSvc.updateIfNeeded(pos));
+    }
     while (_currentStepIdx + 1 < route.steps.length &&
         _stepCumDist[_currentStepIdx + 1] <= routeProgressM + _advanceToleranceM) {
       _currentStepIdx++;
@@ -1028,6 +1172,52 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     if (!mounted) return;
     if (_isNavigating) _updateNavigationProgress(data);
     _checkOffRoute(data);
+
+    // ── Heading resolution ───────────────────────────────────────────────
+    // Same filter MapScreen runs on every fix: raw course-over-ground
+    // (data.heading) is noisy enough at low speed that using it directly as
+    // the camera bearing is what made the cursor look "ballerino".
+    final sampleSpeed =
+        data.speedKmh.isFinite && data.speedKmh > 0 ? data.speedKmh : 0.0;
+    final moving = _headingFilter.updateMotion(sampleSpeed);
+    final sampleAccuracy =
+        data.accuracy.isFinite && data.accuracy > 0 ? data.accuracy : 20.0;
+    final headingOrigin = _prevGpsPos;
+    final effectiveHeading = _headingFilter.resolve(
+      current: _bearing,
+      from: headingOrigin,
+      to: data.position,
+      speedKmh: sampleSpeed,
+      accuracyM: sampleAccuracy,
+      providerHeading: data.heading,
+      navigating: _isNavigating,
+      routeLocalBearingAt: null,
+    );
+    if (!moving) {
+      _prevGpsPos = null;
+    } else if (headingOrigin == null ||
+        HeadingFilter.hasReliableMovement(
+            headingOrigin, data.position, sampleAccuracy)) {
+      _prevGpsPos = data.position;
+    }
+
+    if (data.altitude.isFinite) {
+      final prev = _altitudeM;
+      _altitudeM =
+          prev == null ? data.altitude : prev + (data.altitude - prev) * 0.15;
+    }
+
+    // ── Free-drive speed limit ───────────────────────────────────────────
+    // During navigation the limit comes from route annotations, resolved
+    // inside _updateNavigationProgress; outside it, query Overpass directly,
+    // same as MapScreen's free-drive path.
+    if (!_isNavigating) {
+      if (sampleSpeed > 10) {
+        unawaited(_speedLimitSvc.updateIfNeeded(data.position));
+      }
+      _currentSpeedLimit = _speedLimitSvc.cachedLimit;
+    }
+
     setState(() {}); // refresh the status readout + navigation progress
     unawaited(_speedCameraSvc.updateIfNeeded(data.position).then((_) {
       if (mounted) setState(() {});
@@ -1037,7 +1227,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
       lat: data.position.latitude,
       lng: data.position.longitude,
       zoom: _camState?.zoom ?? 17,
-      rotDeg: _headingMode ? (data.heading ?? _camState?.rotDeg ?? 0) : 0,
+      rotDeg: _headingMode
+          ? ((_isNavigating || moving) ? effectiveHeading : (_camState?.rotDeg ?? 0))
+          : 0,
     );
     _startFollowTicker();
   }
@@ -1250,10 +1442,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
           left: 12,
           right: 12,
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            // Search hidden once navigating — same as MapScreen: mid-route
-            // search would need to feed a waypoint-insert or a fresh
-            // destination flow, neither of which exists here yet.
-            if (!_isNavigating) ...[
+            // Search hidden once navigating, except while picking a mid-route
+            // stop — same as MapScreen: adding a waypoint reuses the same
+            // search UI a fresh destination search does.
+            if (!_isNavigating || _pickingWaypoint) ...[
               Row(children: [
                 Material(
                   color: c.surface2.withValues(alpha: 0.92),
@@ -1263,7 +1455,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                     onPressed: () {
                       if (_showSearch) {
                         FocusManager.instance.primaryFocus?.unfocus();
-                        setState(() => _showSearch = false);
+                        setState(() {
+                          _showSearch = false;
+                          _pickingWaypoint = false;
+                        });
                       } else {
                         _exitScreen();
                       }
@@ -1325,7 +1520,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                       _nearbyCategory = null;
                     });
                     FocusManager.instance.primaryFocus?.unfocus();
-                    unawaited(_calculateRouteTo(fav.position));
+                    unawaited(_onDestinationPicked(fav.position));
                   },
                 ),
               ],
@@ -1398,7 +1593,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
         // display convention too: the maneuver shown is the one AFTER
         // _currentStepIdx (the step whose point hasn't been reached yet),
         // matching NavInstruction's own "step = upcoming manoeuvre" contract.
-        if (_isNavigating && _route != null && !_arrived)
+        if (_isNavigating && _route != null && !_arrived && !_showSearch)
           Positioned(
             top: 0,
             left: 0,
@@ -1475,6 +1670,21 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                   Hive.box('settings').get(SpeedometerStyle.storageKey)),
             ),
           ),
+        // ── SPEED LIMIT SIGN (navigation + free drive) ──────────────────────
+        // Same widget and offset MapScreen uses — 150 + bottomInset clears
+        // the NavPanel's top edge while navigating and sits well above
+        // MapBottomBar otherwise.
+        if (_currentSpeedLimit != null && !_showSearch)
+          Positioned(
+            bottom: 150 + MediaQuery.of(context).padding.bottom,
+            left: 16,
+            child: SpeedLimitSign(_currentSpeedLimit!),
+          ),
+        // ── RIGHT FABs ────────────────────────────────────────────────────
+        // Compass, recenter, report (always available — a hazard can be
+        // reported from a standstill too), altitude underneath when enabled,
+        // and — only while navigating — add-stop. Same order and same
+        // pre-trip/en-route split as MapScreen's own right column.
         Positioned(
           right: 12,
           bottom: (_route != null && !_isNavigating && !_showSearch
@@ -1483,68 +1693,95 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                       ? 190.0
                       : MediaQuery.of(context).padding.bottom + 16),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Material(
-              color: c.surface2.withValues(alpha: 0.92),
-              shape: const CircleBorder(),
-              child: IconButton(
-                // Needle counter-rotates against the map's own rotation so
-                // it keeps pointing at true north regardless — same idea as
-                // MapScreen's CompassFab, without porting that widget for
-                // one icon.
-                icon: Transform.rotate(
-                  angle: -_bearing * math.pi / 180,
-                  child: Icon(Icons.explore,
-                      color: _headingMode ? c.accent : c.textSecondary),
-                ),
-                onPressed: _toggleHeadingMode,
-              ),
+            CompassFab(
+              rotDeg: _bearing,
+              active: _headingMode,
+              onTap: _toggleHeadingMode,
             ),
             const SizedBox(height: 8),
-            Material(
-              color: c.surface2.withValues(alpha: 0.92),
-              shape: const CircleBorder(),
-              child: IconButton(
-                icon: Icon(
-                  _followUser ? Icons.gps_fixed : Icons.gps_not_fixed,
-                  color: c.accent,
-                ),
-                onPressed: _recenter,
+            MapFab(
+              onTap: _recenter,
+              colors: c,
+              child: Icon(
+                _followUser ? Icons.gps_fixed : Icons.gps_not_fixed,
+                color: c.onAccent.withValues(alpha: _followUser ? 1.0 : 0.62),
+                size: 22,
               ),
             ),
+            if (_lastFix != null) ...[
+              const SizedBox(height: 8),
+              MapFab(
+                onTap: _showReportSheet,
+                colors: c,
+                child: Icon(Icons.report_problem_outlined,
+                    color: c.onAccent, size: 22),
+              ),
+              if (_altitudeM != null &&
+                  (Hive.box('settings')
+                      .get('showAltitude', defaultValue: false) as bool)) ...[
+                const SizedBox(height: 8),
+                AltitudeBadge(altitudeM: _altitudeM!, colors: c),
+              ],
+            ],
+            if (_isNavigating && !_arrived) ...[
+              const SizedBox(height: 8),
+              MapFab(
+                onTap: _openWaypointSearch,
+                colors: c,
+                child: Icon(Icons.add_location_alt_outlined,
+                    color: c.onAccent, size: 22),
+              ),
+            ],
           ]),
         ),
-        // Left FABs — report + parking. Pre-trip only, same as MapScreen:
-        // re-checking a saved spot or filing a report mid-turn-by-turn
-        // isn't the point of either.
+        // ── LEFT FABs — route search shortcut + parking. Pre-trip only, same
+        // as MapScreen: re-planning and checking a saved spot are both
+        // pre-trip actions, reporting is not (it stays on the right, in
+        // both states). "Tragitto" is a simplified stand-in for MapScreen's
+        // full A→B planner (RoutePlannerBar) — that multi-stop form isn't
+        // ported here yet, so this just opens the same search panel the top
+        // search bar does.
         if (!_isNavigating && !_showSearch && _route == null)
           Positioned(
             left: 12,
             bottom: MediaQuery.of(context).padding.bottom + 16,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              if (_lastFix != null) ...[
-                Material(
-                  color: c.surface2.withValues(alpha: 0.92),
-                  shape: const CircleBorder(),
-                  child: IconButton(
-                    icon: Icon(Icons.report_problem_outlined, color: c.accent),
-                    onPressed: _showReportSheet,
-                  ),
-                ),
+              MapFab(
+                onTap: () => setState(() => _showSearch = true),
+                colors: c,
+                child: Icon(Icons.alt_route_rounded, color: c.onAccent, size: 28),
+              ),
+              if (_lastFix != null || _parkingPosition != null) ...[
                 const SizedBox(height: 8),
-              ],
-              if (_lastFix != null || _parkingPosition != null)
-                Material(
-                  color: c.surface2.withValues(alpha: 0.92),
-                  shape: const CircleBorder(),
-                  child: IconButton(
-                    icon: Icon(Icons.local_parking_rounded,
-                        color: _parkingPosition != null
-                            ? Colors.blue.shade300
-                            : c.accent),
-                    onPressed: _showParkingSheet,
-                  ),
+                MapFab(
+                  onTap: _showParkingSheet,
+                  colors: c,
+                  child: Icon(Icons.local_parking_rounded,
+                      color: _parkingPosition != null
+                          ? Colors.lightBlueAccent.shade100
+                          : c.onAccent,
+                      size: 24),
                 ),
+              ],
             ]),
+          ),
+        // ── BOTTOM BAR (notifications / profile / settings) ─────────────────
+        // Same widget MapScreen shows when nothing else claims the bottom —
+        // idle, no search, no route.
+        if (!_isNavigating && !_showSearch && _route == null)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: MapBottomBar(
+              bottomInset: MediaQuery.of(context).padding.bottom,
+              colors: c,
+              pubkey: _myPubkey,
+              profilePicture: _profilePicture,
+              hasNostrLogin:
+                  _nostrFlavor == 'amber' || _nostrFlavor == 'nsec',
+              onProfileReturn: () => unawaited(_refreshHomeIdentity()),
+            ),
           ),
       ]),
     );
