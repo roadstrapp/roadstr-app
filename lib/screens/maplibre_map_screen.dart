@@ -144,6 +144,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   List<NominatimResult> _searchResults = [];
   Timer? _searchDebounce;
   RouteResult? _route;
+  LatLng? _destination;
   List<({List<LatLng> points, bool restricted})> _routeRuns = [];
 
   // ── Navigation ─────────────────────────────────────────────────────────────
@@ -245,33 +246,96 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     });
     FocusManager.instance.primaryFocus?.unfocus();
     if (origin == null) return;
-    final routes = await RoutingService.getRoutes(origin, result.position,
-        lang: 'it', vehicle: 'driving');
-    if (!mounted || routes.isEmpty) return;
-    final route = routes.first;
-    await _ztl.updateIfNeeded(origin);
-    final restricted = _ztl.classifyPoints(route.polyline);
+    _destination = result.position;
+    final route = await _fetchRoute(origin, result.position);
+    if (route == null) return;
     setState(() {
-      _route = route;
-      _routeRuns = _splitByZtl(route.polyline, restricted);
+      _route = route.route;
+      _routeRuns = route.runs;
     });
     final controller = _controller;
-    if (controller == null || route.polyline.isEmpty) return;
+    if (controller == null || route.route.polyline.isEmpty) return;
     unawaited(controller.fitBounds(
       bounds: LngLatBounds.fromPoints([
-        for (final p in route.polyline) Geographic(lon: p.longitude, lat: p.latitude),
+        for (final p in route.route.polyline) Geographic(lon: p.longitude, lat: p.latitude),
       ]),
       padding: const EdgeInsets.all(48),
       pitch: 0,
     ));
   }
 
+  /// Fetches a route from [origin] to [dest] and classifies it against ZTL —
+  /// the work shared between a fresh destination pick and a reroute, so
+  /// there is one place that does it, not two that can drift apart.
+  Future<({RouteResult route, List<({List<LatLng> points, bool restricted})> runs})?>
+      _fetchRoute(LatLng origin, LatLng dest) async {
+    final routes =
+        await RoutingService.getRoutes(origin, dest, lang: 'it', vehicle: 'driving');
+    if (!mounted || routes.isEmpty) return null;
+    final route = routes.first;
+    await _ztl.updateIfNeeded(origin);
+    final restricted = _ztl.classifyPoints(route.polyline);
+    return (route: route, runs: _splitByZtl(route.polyline, restricted));
+  }
+
   void _clearRoute() => setState(() {
         _route = null;
+        _destination = null;
         _routeRuns = [];
         _isNavigating = false;
         _arrived = false;
       });
+
+  /// Distance off the route polyline past which the driver is no longer
+  /// plausibly following it. Same threshold MapScreen._checkOffRoute uses —
+  /// retuned in 0.4.12 against a real driving trace, not derived here.
+  static const _offRouteThresholdM = 55.0;
+
+  bool _isRerouting = false;
+
+  /// Off-route check, called from [_onGps] while navigating. Deliberately
+  /// simpler than MapScreen's own _checkOffRoute: perpendicular distance to
+  /// the nearest polyline segment only, no direction/bearing check against
+  /// the next waypoint — that catches a driver on the correct road but going
+  /// the wrong way on a bidirectional street, which this does not yet.
+  void _checkOffRoute(GpsData data) {
+    final route = _route;
+    final dest = _destination;
+    if (route == null ||
+        dest == null ||
+        !_isNavigating ||
+        _isRerouting ||
+        _arrived) {
+      return;
+    }
+    if (data.speedKmh < 1) return; // stationary — a red light, not off-route
+    final pos = LatLng(data.position.latitude, data.position.longitude);
+    if (Geo.distanceToPolylineM(pos, route.polyline) > _offRouteThresholdM) {
+      unawaited(_rerouteAndNavigate(pos, dest));
+    }
+  }
+
+  Future<void> _rerouteAndNavigate(LatLng origin, LatLng dest) async {
+    if (_isRerouting) return;
+    setState(() => _isRerouting = true);
+    final fetched = await _fetchRoute(origin, dest);
+    if (!mounted) return;
+    if (fetched == null) {
+      setState(() => _isRerouting = false);
+      return;
+    }
+    _cumDist = RouteProgress.cumulativeDistances(fetched.route.polyline);
+    _stepCumDist = [
+      for (final step in fetched.route.steps)
+        _cumDist[RouteProgress.nearestIndex(fetched.route.polyline, step.location)],
+    ];
+    setState(() {
+      _route = fetched.route;
+      _routeRuns = fetched.runs;
+      _currentStepIdx = 0;
+      _isRerouting = false;
+    });
+  }
 
   void _startNavigation() {
     final route = _route;
@@ -320,6 +384,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     _lastFix = data;
     if (!mounted) return;
     if (_isNavigating) _updateNavigationProgress(data);
+    _checkOffRoute(data);
     setState(() {}); // refresh the status readout + navigation progress
     unawaited(_speedCameraSvc.updateIfNeeded(data.position).then((_) {
       if (mounted) setState(() {});
@@ -605,6 +670,27 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                   ]),
                 ),
               ],
+            ],
+            if (_isRerouting) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: c.surface2.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: c.border, width: 0.5),
+                ),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: c.accent)),
+                  const SizedBox(width: 8),
+                  Text('Ricalcolo il percorso…',
+                      style: TextStyle(color: c.textSecondary, fontSize: 12)),
+                ]),
+              ),
+              const SizedBox(height: 8),
             ],
             if (_isNavigating && _route != null && !_arrived) ...[
               Container(
