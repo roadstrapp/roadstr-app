@@ -20,6 +20,11 @@ pluginManagement {
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
     id("com.android.application") version "9.0.1" apply false
+    // maplibre_android applies this plugin without a version, which only
+    // resolves if the version is declared here — the throwaway PoC on
+    // experiment/maplibre-poc needs it, and it's inert (apply false) so it
+    // costs nothing on main once this branch is discarded.
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.1" apply false
 }
 
 include(":app")
