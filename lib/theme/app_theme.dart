@@ -6,8 +6,10 @@
 //   - Bitcoin orange (#F7931A): the official Bitcoin brand colour,
 //     reinforcing the Lightning Network payment integration.
 //
-// Light and dark variants exist for both accents; the dark themes swap the
-// map tiles to CARTO dark_all (see the RoadstrColors.mapTile fields below).
+// Light and dark variants exist for both accents; the dark themes use the
+// same OSM raster tiles as light mode, recoloured by a filter rather than
+// fetched from a separate dark-tile service (see the RoadstrColors.mapTile
+// fields below, and MapScreen._darkTileBuilder for the filter itself).
 //
 // The RoadstrColors ThemeExtension pattern is used instead of raw Theme
 // because it provides strongly-typed semantic colours (e.g. surface1,
@@ -143,10 +145,19 @@ class AppTheme {
             textPrimary: const Color(0xFFEEEEF8),
             textSecondary: const Color(0xFF8888A8),
             isDark: true,
-            mapTile:
-                'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-            mapTileSubs: 'abcd',
-            mapTileAttrib: '© OpenStreetMap contributors © CARTO',
+            // The same standard OSM raster tiles light mode uses, not a
+            // separate dark-tile service. CARTO's anonymous dark_all
+            // endpoint — used here until this release — silently started
+            // serving an "API KEY REQUIRED" watermark instead of tiles once
+            // some unpublished usage threshold was crossed: a third party
+            // could revoke free access at any time with zero warning, which
+            // is exactly the kind of dependency this app avoids elsewhere.
+            // The dark look now comes from inverting these same tiles (see
+            // MapScreen._darkTileBuilder) instead of trusting another
+            // service to keep rendering them for free.
+            mapTile: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            mapTileSubs: null,
+            mapTileAttrib: '© OpenStreetMap contributors',
           )
         ],
       );
@@ -263,10 +274,19 @@ class AppTheme {
             textPrimary: const Color(0xFFEDEDF7),
             textSecondary: const Color(0xFF8C8CA8),
             isDark: true,
-            mapTile:
-                'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-            mapTileSubs: 'abcd',
-            mapTileAttrib: '© OpenStreetMap contributors © CARTO',
+            // The same standard OSM raster tiles light mode uses, not a
+            // separate dark-tile service. CARTO's anonymous dark_all
+            // endpoint — used here until this release — silently started
+            // serving an "API KEY REQUIRED" watermark instead of tiles once
+            // some unpublished usage threshold was crossed: a third party
+            // could revoke free access at any time with zero warning, which
+            // is exactly the kind of dependency this app avoids elsewhere.
+            // The dark look now comes from inverting these same tiles (see
+            // MapScreen._darkTileBuilder) instead of trusting another
+            // service to keep rendering them for free.
+            mapTile: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            mapTileSubs: null,
+            mapTileAttrib: '© OpenStreetMap contributors',
             panelGradient: gradient,
           )
         ],

@@ -29,23 +29,16 @@ void main() {
       expect(light.lerp(dark, 0).isDark, isFalse);
     });
 
-    test('the tile source switches exactly once, at the midpoint', () {
-      // Half a URL is not a URL: the discrete fields must step, not blend,
-      // and must step only once so the tile layer reloads at most once.
-      final seen = <String>[];
+    test('the tile source never changes across the transition', () {
+      // Light and dark used to point at different hosts (plain OSM vs a
+      // separately-hosted dark basemap), so this URL had to step exactly
+      // once, at the midpoint, or the tile layer would reload mid-fade. That
+      // second host is gone: dark mode now recolours the same OSM tile light
+      // mode uses, so there is nothing left to step — the URL is constant for
+      // every t, and a reload the day/night switch itself could ever trigger
+      // is gone with it.
       for (var i = 0; i <= 20; i++) {
-        final url = light.lerp(dark, i / 20).mapTile;
-        if (seen.isEmpty || seen.last != url) seen.add(url);
-      }
-      expect(seen, [light.mapTile, dark.mapTile]);
-    });
-
-    test('isDark steps with the tile source, never out of step with it', () {
-      for (var i = 0; i <= 20; i++) {
-        final c = light.lerp(dark, i / 20);
-        expect(c.isDark, c.mapTile == dark.mapTile,
-            reason: 'at t=${i / 20} the dark flag and the tile source '
-                'disagreed, which would filter light tiles or vice versa');
+        expect(light.lerp(dark, i / 20).mapTile, light.mapTile);
       }
     });
 
@@ -54,11 +47,16 @@ void main() {
       expect(light.lerp(light, 0.5), same(light));
     });
 
-    test('the two themes really do use different tile hosts', () {
-      // If this ever stops being true the reload-on-switch problem disappears
-      // and the tileDisplay workaround in map_screen can be revisited.
-      expect(Uri.parse(light.mapTile).host,
-          isNot(Uri.parse(dark.mapTile).host));
+    test('the two themes use the exact same tile host', () {
+      // Not a coincidence to protect: dark mode used to fetch tiles from
+      // CARTO's free anonymous dark_all endpoint, which started serving an
+      // "API KEY REQUIRED" watermark instead of tiles once some unpublished
+      // usage threshold was crossed — a dependency that could (and did) break
+      // with zero warning. Dark mode now reads the same reliable OSM tiles
+      // light mode already depends on; this test is what stops a future
+      // change from quietly reintroducing a second, independently-failing
+      // tile source for dark mode.
+      expect(Uri.parse(dark.mapTile).host, Uri.parse(light.mapTile).host);
     });
   });
 

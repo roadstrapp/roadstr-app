@@ -4614,23 +4614,64 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// Dark-mode tile filter: boosts contrast without shifting hue, so roads
-  /// stand out against the dark CARTO background. 2.0× multiplier, −20 offset:
-  /// background (13)→6, roads (42)→64, i.e. ~10× contrast for major roads.
-  ///
   /// A top-level function, not an inline closure: `build` runs on every GPS
   /// tick during navigation, and a fresh closure each time gave every tile a
   /// new builder identity several times a second for no benefit.
+  ///
+  /// Renders a dark map from the ordinary light OSM tile, rather than
+  /// fetching a separately-hosted dark tile: inverting lightness turns a
+  /// white background black and dark labels white, and the follow-up hue
+  /// rotation undoes the colour shift a plain inversion leaves behind — a
+  /// green park inverts to magenta; rotating its hue by 180° brings it back
+  /// to green, at the new inverted lightness.
+  ///
+  /// Left there, the park is a vivid, saturated green — inversion flips
+  /// lightness, not intensity, so OSM's pale, low-saturation park fill
+  /// becomes a bright one, nothing like the muted dark-olive CARTO's own
+  /// cartography used. [_mute] tones that down afterwards: it desaturates
+  /// (pulls every colour toward grey) and darkens (scales toward black),
+  /// which mostly affects the saturated area fills — labels and roads were
+  /// already close to greyscale, so they barely move.
   static Widget _darkTileBuilder(BuildContext _, Widget tile, TileImage __) =>
       ColorFiltered(
-        colorFilter: const ColorFilter.matrix([
-          2.0, 0, 0, 0, -20, //
-          0, 2.0, 0, 0, -20, //
-          0, 0, 2.0, 0, -20, //
-          0, 0, 0, 1, 0, //
-        ]),
-        child: tile,
+        colorFilter: const ColorFilter.matrix(_mute),
+        child: ColorFiltered(
+          colorFilter: const ColorFilter.matrix(_hueRotate180),
+          child: ColorFiltered(
+            colorFilter: const ColorFilter.matrix(_invert),
+            child: tile,
+          ),
+        ),
       );
+
+  static const List<double> _invert = [
+    -1, 0, 0, 0, 255, //
+    0, -1, 0, 0, 255, //
+    0, 0, -1, 0, 255, //
+    0, 0, 0, 1, 0, //
+  ];
+
+  /// The standard CSS/SVG hue-rotate(180deg) matrix (BT.601 luma
+  /// coefficients), simplified by cos(180°) = -1 and sin(180°) = 0.
+  static const List<double> _hueRotate180 = [
+    -0.574, 1.430, 0.144, 0, 0, //
+    0.426, 0.430, 0.144, 0, 0, //
+    0.426, 1.430, -0.856, 0, 0, //
+    0, 0, 0, 1, 0, //
+  ];
+
+  /// saturate(0.5) — the standard SVG feColorMatrix saturate formula, again
+  /// with BT.601 luma coefficients — composed with brightness(0.82), i.e.
+  /// every coefficient of the saturate matrix scaled by 0.82 (brightness is
+  /// diag(b,b,b,1) with a zero offset, so scaling by it after saturate just
+  /// scales saturate's R/G/B columns). Two well-known matrices multiplied by
+  /// hand instead of two more nested filters, since this runs per tile.
+  static const List<double> _mute = [
+    0.497, 0.293, 0.030, 0, 0, //
+    0.087, 0.703, 0.030, 0, 0, //
+    0.087, 0.293, 0.440, 0, 0, //
+    0, 0, 0, 1, 0, //
+  ];
 
   void _snack(String msg) {
     if (!mounted) return;
@@ -4792,14 +4833,16 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                   subdomains: c.mapTileSubs?.split('') ?? const [],
                   userAgentPackageName: 'app.roadstr',
                   maxZoom: 19,
-                  // Day/night flips the tile source (OSM standard ↔ CARTO
-                  // dark), which makes flutter_map reload every visible tile.
-                  // With the default reloadStartOpacity of 0 each tile snaps
-                  // to fully transparent the instant its replacement arrives
-                  // and fades back in — and since replies trickle in from a
-                  // different host over several seconds, the map flickers tile
-                  // by tile. Starting the reload at full opacity keeps the old
-                  // tile painted until the new one is ready to take its place.
+                  // Day/night no longer changes this URL — light and dark
+                  // both read the same OSM tiles, recoloured by
+                  // [_darkTileBuilder] — but a custom tile URL entered in
+                  // Settings still can, and reloading every visible tile from
+                  // a new host takes several seconds. With the default
+                  // reloadStartOpacity of 0 each tile snaps to fully
+                  // transparent the instant the reload starts and fades back
+                  // in as replies trickle in, which flickers tile by tile.
+                  // Starting the reload at full opacity keeps the old tile
+                  // painted until the new one is ready to take its place.
                   tileDisplay: const TileDisplay.fadeIn(reloadStartOpacity: 1),
                   tileBuilder: c.isDark ? _darkTileBuilder : null,
                 ),
