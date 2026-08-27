@@ -1,15 +1,19 @@
 # Rendering engine — architecture decision
 
-**Status:** decision proposed, not yet accepted
-**Date:** 2026-08-18
+**Status:** decision proposed, not yet accepted — §7 reopens Option D, not yet resolved
+**Date:** 2026-08-18, revised 2026-08-27
 **Scope:** phases 1–2 (audit and decision). No implementation has been started.
 
 ---
 
 ## Summary
 
-**Recommendation: do not replace the rendering engine. Ship offline maps on the current
-stack instead, and revisit vector rendering once a blocking dependency is resolved.**
+**Recommendation (2026-08-18): do not replace the rendering engine. Ship offline maps on
+the current stack instead, and revisit vector rendering once a blocking dependency is
+resolved.**
+
+**2026-08-27 update:** one of the stated falsifiers in §5 has occurred — see §7. Option D
+is reopened, not yet re-decided.
 
 The investigation started from "build from scratch or fork OsmAnd". Both were examined
 seriously. Both, and the two obvious middle paths, turn out to be blocked by concrete,
@@ -255,3 +259,52 @@ State the falsifiers up front, so this is revisited on evidence rather than on m
 Phases 3–5 of the original brief (prototype, core rendering, styling, benchmarking,
 merge) are **not started**, and should not be until this decision is accepted. The
 `feature/rendering-engine` branch currently contains this document only.
+
+---
+
+## 7. 2026-08-27 — Option D reopened
+
+A different package was checked, not the one §2 Option D evaluated.
+
+**`maplibre` (federated: `maplibre_android` / `maplibre_ios` / `maplibre_web`, by
+`josxha`, github.com/josxha/flutter-maplibre) — v0.3.6** is a separate, actively
+developed Flutter binding to MapLibre Native, not a continuation of `maplibre_gl`. Its
+Android implementation package was pulled and inspected directly:
+
+```kotlin
+// maplibre_android-0.3.6/android/build.gradle.kts
+dependencies {
+    api("org.maplibre.gl:android-sdk-opengl:13.5.+")
+}
+```
+
+One dependency: MapLibre Native's own Android SDK. `grep -r "com.google.android.gms\|
+play-services\|FusedLocationProviderClient"` across the whole package returns nothing.
+Unlike `maplibre_gl`, this package does not bundle its own "my location" layer at all —
+no `GMSLocationEngine` equivalent — so there is nothing here pulling in Play Services to
+begin with, rather than a dependency that was removed. Location stays the app's own
+responsibility, which fits Roadstr's already-vendored `geolocator` better than a bundled
+location layer would have anyway.
+
+This satisfies the falsifier stated in §5: *"MapLibre's Flutter plugin drops its Play
+Services dependency, or a maintained de-Googled fork appears."*
+
+**Not yet verified, before this can move from "reopened" to "decided":**
+
+- iOS side (`maplibre_ios`) was not audited with the same rigour as Android.
+- No F-Droid build attempted. `pub get` resolving cleanly is not the same as F-Droid's
+  build infrastructure successfully compiling the native Android SDK across ABIs.
+- Package maturity: pre-1.0, single primary maintainer. "Actively developed" cuts both
+  ways — less battle-tested at scale than `maplibre_gl` was, and more exposed to
+  breaking changes between minor versions.
+- Two-finger tilt gesture, raster-tile paint properties (`raster-hue-rotate` etc. for
+  dark mode) — assumed available because they're part of the MapLibre style spec that
+  any conformant binding should expose, not confirmed against this specific package's
+  Dart API.
+- Every custom layer in §1.1 (`PolylineLayer` ×6, `MarkerLayer` ×7) would still need to
+  be rebuilt against this package's API, which nothing here changes.
+
+**Recommended next step, if pursued:** a throwaway proof-of-concept — one screen, this
+package, Roadstr's existing OSM raster tiles, on a real Android device — before touching
+`map_screen.dart` or committing to a migration branch. Answers the open questions above
+with evidence instead of resolving them by reading source a second time.
