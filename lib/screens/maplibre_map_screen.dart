@@ -934,14 +934,23 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   /// directly: reads the configured provider/API key/self-hosted GraphHopper
   /// server, migrating a legacy Hive-stored key to SecureStorage the same
   /// way. Without this the screen always fell through to the public OSRM
-  /// demo server regardless of what the driver configured in Settings,
-  /// which is also why routing felt oddly slow — the demo server is shared,
-  /// rate-limited public infrastructure, not whatever faster provider was
-  /// actually set up.
+  /// demo server regardless of what the driver configured in Settings.
+  ///
+  /// The SecureStorage read (and its one-time legacy-key migration) only
+  /// runs when the configured provider actually needs an API key — on the
+  /// default 'osrm' setting, resolution is synchronous. Confirmed on a real
+  /// device that OSRM (the default, untouched) was still the configured
+  /// provider when routing felt slow, so that SecureStorage round-trip
+  /// wasn't the cause — but it is pure overhead on every single-shot and
+  /// automatic-reroute request for the common case, so it's worth avoiding
+  /// regardless of whether it explains the report.
   Future<({RoutingProvider provider, String? apiKey, String? ghServer})>
       _resolveProvider() async {
     final box = Hive.box('settings');
     final providerKey = box.get('routingProvider', defaultValue: 'osrm') as String;
+    if (providerKey == 'osrm') {
+      return (provider: RoutingProvider.osrm, apiKey: null, ghServer: null);
+    }
     var rawKey = await _secStorage.read(key: 'routing_api_key') ?? '';
     if (rawKey.isEmpty) {
       final legacy =
