@@ -12,12 +12,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:provider/provider.dart';
 
 import '../services/gps_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
+import '../widgets/cursor_painter.dart';
+import '../widgets/map/map_markers.dart';
 
 const _roadstrTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
@@ -146,6 +149,32 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
               setState(() => _followUser = false);
             }
           },
+          children: [
+            if (_lastFix != null)
+              WidgetLayer(markers: [
+                Marker(
+                  point: Geographic(
+                      lon: _lastFix!.position.longitude,
+                      lat: _lastFix!.position.latitude),
+                  size: const Size(48, 48),
+                  // Not rotate:true — the camera already turns to face the
+                  // direction of travel each fix (bearing: data.heading in
+                  // _onGps), the same heading-up convention MapScreen's own
+                  // nav camera uses. With the map already doing that turning,
+                  // the cursor's job is only to sit still pointing up, the
+                  // way every nav app's own vehicle icon does; pointing it at
+                  // the true heading too would rotate it twice.
+                  child: UserMarker(
+                    heading: 0,
+                    accent: c.accent,
+                    cursorStyle: CursorStyle.fromStorage(Hive.box('settings')
+                        .get(CursorStyle.storageKey)),
+                    cursorColor: CursorColor.fromStorage(Hive.box('settings')
+                        .get(CursorColor.storageKey)),
+                  ),
+                ),
+              ]),
+          ],
         ),
         Positioned(
           top: MediaQuery.of(context).padding.top + 12,
