@@ -5,12 +5,12 @@
 // Deliberately incomplete: this is the incremental migration from
 // docs/rendering-engine-decision.md §7, not a replacement for MapScreen.
 // Destination search, real routing, ZTL-aware route colouring, speed
-// camera and parking markers, and basic navigation (step advancement,
-// distance-to-maneuver, arrival) are here; off-route detection, rerouting,
-// voice guidance, POI search and favourites-as-markers are not — each is a
-// later phase, migrated and tested on its own. Switching the setting to
-// "maplibre" trades all of that away for tilt/rotate and native dark-mode
-// styling; the settings copy says so.
+// camera and parking markers, navigation (step advancement, distance-to-
+// maneuver, arrival), off-route detection, rerouting and voice guidance
+// are here; POI search and favourites-as-markers are not — each remaining
+// piece is a later phase, migrated and tested on its own. Switching the
+// setting to "maplibre" trades all of that away for tilt/rotate and
+// native dark-mode styling; the settings copy says so.
 import 'dart:async';
 import 'dart:convert';
 
@@ -22,6 +22,9 @@ import 'package:provider/provider.dart';
 
 import '../services/camera_follow.dart';
 import '../services/gps_service.dart';
+import '../services/kokoro/kokoro_tts_service.dart';
+import '../services/kokoro/kokoro_voices.dart';
+import '../services/navigation_guidance.dart';
 import '../services/place_search_service.dart';
 import '../services/route_progress.dart';
 import '../services/routing_service.dart';
@@ -168,6 +171,16 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   /// How close to the final step's own point counts as arrived.
   static const _arrivalRadiusM = 30.0;
 
+  // ── Voice guidance ─────────────────────────────────────────────────────────
+  // KokoroTtsService and NavigationGuidance are both reused as-is. No
+  // chained "then in 300 metres take the off-ramp" tail the way MapScreen
+  // does it — this is the two-stage far/near announcement only, per
+  // maneuver, not the follow-up clause.
+  final _tts = KokoroTtsService();
+  bool _voiceMuted = false;
+  int _ttsAnnouncedFarIdx = -1;
+  int _ttsAnnouncedNearIdx = -1;
+
   // ── Static overlays ───────────────────────────────────────────────────────
   // SpeedCameraService is reused as-is, same as ZtlService — an OSM-backed
   // proximity cache neither of which ever depended on flutter_map. Parking is
@@ -183,6 +196,19 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   void initState() {
     super.initState();
     _loadParkingPosition();
+    // Same settings keys MapScreen reads at startup — muting or changing
+    // voice/speed/volume in Settings applies here too, since it is the same
+    // app-wide preference, not a copy of it.
+    final settings = Hive.box('settings');
+    _voiceMuted = !(settings.get('voiceEnabled', defaultValue: true) as bool);
+    _tts.setGender(settings.get('kokoroVoiceGender',
+        defaultValue: kKokoroDefaultGender) as String);
+    _tts.setSpeed(kKokoroSpeedStages[
+        settings.get('kokoroSpeedStage', defaultValue: kKokoroDefaultSpeedStage)
+            as int]);
+    _tts.setVolume(
+        (settings.get('kokoroVolume', defaultValue: 1.0) as num).toDouble());
+    unawaited(_tts.init('it'));
     unawaited(_gps.start());
     _gpsSub = _gps.stream.listen(_onGps);
   }
@@ -209,6 +235,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     _searchDebounce?.cancel();
     _searchController.dispose();
     unawaited(_gps.dispose());
+    unawaited(_tts.dispose());
     super.dispose();
   }
 
@@ -278,13 +305,16 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     return (route: route, runs: _splitByZtl(route.polyline, restricted));
   }
 
-  void _clearRoute() => setState(() {
-        _route = null;
-        _destination = null;
-        _routeRuns = [];
-        _isNavigating = false;
-        _arrived = false;
-      });
+  void _clearRoute() {
+    unawaited(_tts.stop());
+    setState(() {
+      _route = null;
+      _destination = null;
+      _routeRuns = [];
+      _isNavigating = false;
+      _arrived = false;
+    });
+  }
 
   /// Distance off the route polyline past which the driver is no longer
   /// plausibly following it. Same threshold MapScreen._checkOffRoute uses —
@@ -329,6 +359,11 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
       for (final step in fetched.route.steps)
         _cumDist[RouteProgress.nearestIndex(fetched.route.polyline, step.location)],
     ];
+    // A rerouted step list is a different array — yesterday's announced
+    // indices mean nothing against it, and would silently block every
+    // announcement on the new route until they happened to be overwritten.
+    _ttsAnnouncedFarIdx = -1;
+    _ttsAnnouncedNearIdx = -1;
     setState(() {
       _route = fetched.route;
       _routeRuns = fetched.runs;
@@ -345,17 +380,23 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
       for (final step in route.steps)
         _cumDist[RouteProgress.nearestIndex(route.polyline, step.location)],
     ];
+    _ttsAnnouncedFarIdx = -1;
+    _ttsAnnouncedNearIdx = -1;
     setState(() {
       _isNavigating = true;
       _currentStepIdx = 0;
       _arrived = false;
     });
+    if (!_voiceMuted) unawaited(_tts.announceStart());
   }
 
-  void _stopNavigation() => setState(() {
-        _isNavigating = false;
-        _arrived = false;
-      });
+  void _stopNavigation() {
+    unawaited(_tts.stop());
+    setState(() {
+      _isNavigating = false;
+      _arrived = false;
+    });
+  }
 
   /// Advances [_currentStepIdx] and recomputes [_distToNextStepM] from
   /// [data]. Called from [_onGps] before its own setState, not after — the
@@ -377,6 +418,30 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
             .clamp(0, double.infinity);
     if (isLast && Geo.distanceM(pos, route.steps.last.location) < _arrivalRadiusM) {
       _arrived = true;
+      if (!_voiceMuted) unawaited(_tts.announceArrival());
+      return;
+    }
+    if (!_voiceMuted && !isLast) _announceUpcoming(data.speedKmh, route);
+  }
+
+  /// Two-stage far/near announcement for the maneuver after the current
+  /// step, same distances NavigationGuidance already computes for
+  /// MapScreen — speed-scaled, not a fixed number, so the near cue actually
+  /// gives enough warning at motorway speed instead of flattening at 100 km/h.
+  void _announceUpcoming(double speedKmh, RouteResult route) {
+    final nextIdx = _currentStepIdx + 1;
+    final t = NavigationGuidance.thresholds(speedKmh, 'driving');
+    if (_distToNextStepM < t.far + 20 &&
+        _distToNextStepM >= t.near + 20 &&
+        _ttsAnnouncedFarIdx != nextIdx) {
+      _ttsAnnouncedFarIdx = nextIdx;
+      unawaited(_tts.announceManeuver(
+          route.steps[nextIdx].instruction,
+          NavigationGuidance.spokenDistanceM(_distToNextStepM,
+              imminentBelowM: t.near)));
+    } else if (_distToNextStepM < t.near + 30 && _ttsAnnouncedNearIdx != nextIdx) {
+      _ttsAnnouncedNearIdx = nextIdx;
+      unawaited(_tts.announceManeuver(route.steps[nextIdx].instruction, 0));
     }
   }
 
@@ -737,6 +802,20 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                         ),
                       ],
                     ),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                        _voiceMuted
+                            ? Icons.volume_off_rounded
+                            : Icons.volume_up_rounded,
+                        color: c.textSecondary),
+                    onPressed: () {
+                      setState(() => _voiceMuted = !_voiceMuted);
+                      // Same key MapScreen's own mute toggle writes — one
+                      // app-wide voice preference, not a copy of it.
+                      Hive.box('settings').put('voiceEnabled', !_voiceMuted);
+                      if (_voiceMuted) unawaited(_tts.stop());
+                    },
                   ),
                   IconButton(
                     icon: Icon(Icons.close, color: c.textSecondary),
