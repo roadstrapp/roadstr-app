@@ -1118,9 +1118,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _SwitchTile(
               title: 'Motore mappa: MapLibre (sperimentale)',
               subtitle: 'Tilt e rotazione della camera, styling nativo, '
-                  'ricerca e percorso reali, ZTL, autovelox, navigazione '
-                  'base. Manca ancora: fuori-percorso, reroute, guida '
-                  'vocale, POI, preferiti sulla mappa. Solo per prova.',
+                  'ricerca (incluse categorie e preferiti), percorso reale, '
+                  'ZTL, autovelox, navigazione completa con reroute e '
+                  'guida vocale. Manca ancora: preferiti/parcheggio '
+                  'gestibili sulla mappa. Solo per prova.',
               value:
                   (_box.get('mapEngine', defaultValue: 'osm') as String) ==
                       'maplibre',

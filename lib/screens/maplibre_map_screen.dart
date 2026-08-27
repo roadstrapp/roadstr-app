@@ -4,13 +4,15 @@
 //
 // Deliberately incomplete: this is the incremental migration from
 // docs/rendering-engine-decision.md §7, not a replacement for MapScreen.
-// Destination search, real routing, ZTL-aware route colouring, speed
-// camera and parking markers, navigation (step advancement, distance-to-
+// Destination search, POI/nearby-category search, matching favourites in
+// search results, real routing, ZTL-aware route colouring, speed camera
+// and parking markers, navigation (step advancement, distance-to-
 // maneuver, arrival), off-route detection, rerouting and voice guidance
-// are here; POI search and favourites-as-markers are not — each remaining
-// piece is a later phase, migrated and tested on its own. Switching the
-// setting to "maplibre" trades all of that away for tilt/rotate and
-// native dark-mode styling; the settings copy says so.
+// are here; favourites-as-map-markers is not — matching MapScreen, which
+// doesn't draw them either, only as search rows. Switching the setting to
+// "maplibre" is otherwise close to feature parity now, minus the polish
+// (chained voice instructions, direction-aware off-route, tap-to-manage
+// parking) noted at each piece's own commit. The settings copy says so.
 import 'dart:async';
 import 'dart:convert';
 
@@ -20,12 +22,15 @@ import 'package:latlong2/latlong.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/app_localizations.dart';
+import '../models/favorite_place.dart';
 import '../services/camera_follow.dart';
 import '../services/gps_service.dart';
 import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
 import '../services/navigation_guidance.dart';
 import '../services/place_search_service.dart';
+import '../services/poi_search_service.dart';
 import '../services/route_progress.dart';
 import '../services/routing_service.dart';
 import '../services/speed_camera_service.dart';
@@ -202,10 +207,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   // port, only to wire up.
   final _searchController = TextEditingController();
   final _placeSearch = PlaceSearchService();
+  final _poiSvc = PoiSearchService();
   final _ztl = ZtlService.instance;
   bool _showSearch = false;
   bool _searching = false;
   List<NominatimResult> _searchResults = [];
+  NearbyCategory? _nearbyCategory;
   Timer? _searchDebounce;
   RouteResult? _route;
   LatLng? _destination;
@@ -252,11 +259,13 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   // renders, so there is nothing to port for them on the map itself.
   final _speedCameraSvc = SpeedCameraService();
   LatLng? _parkingPosition;
+  List<FavoritePlace> _favorites = [];
 
   @override
   void initState() {
     super.initState();
     _loadParkingPosition();
+    _loadFavorites();
     // Same settings keys MapScreen reads at startup — muting or changing
     // voice/speed/volume in Settings applies here too, since it is the same
     // app-wide preference, not a copy of it.
@@ -272,6 +281,35 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     unawaited(_tts.init('it'));
     unawaited(_gps.start());
     _gpsSub = _gps.stream.listen(_onGps);
+  }
+
+  /// Same storage shape MapScreen._loadFavorites reads — one JSON string per
+  /// favourite in the 'favorites' list.
+  void _loadFavorites() {
+    final raw =
+        Hive.box('settings').get('favorites', defaultValue: <dynamic>[]) as List;
+    _favorites = raw
+        .whereType<String>()
+        .map((s) {
+          try {
+            return FavoritePlace.fromMapSafe(jsonDecode(s) as Map);
+          } catch (_) {
+            return null;
+          }
+        })
+        .whereType<FavoritePlace>()
+        .take(FavoritePlace.maxStoredItems)
+        .toList();
+  }
+
+  List<FavoritePlace> _matchingFavorites(String query) {
+    if (query.isEmpty) return _favorites;
+    final q = query.toLowerCase();
+    return _favorites
+        .where((f) =>
+            f.label.toLowerCase().contains(q) ||
+            f.address.toLowerCase().contains(q))
+        .toList();
   }
 
   void _loadParkingPosition() {
@@ -318,8 +356,28 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     Navigator.of(context).pop();
   }
 
+  Future<void> _searchNearby(NearbyCategory category) async {
+    if (_lastFix == null) return;
+    final pos = LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {
+      _nearbyCategory = category;
+      _searchResults = [];
+      _searching = true;
+    });
+    final results = await _poiSvc.nearby(category, pos,
+        unnamedLabel: nearbyCategoryLabel(category, AppLocalizations.of(context)));
+    if (!mounted) return;
+    setState(() {
+      _searchResults = results;
+      _searching = false;
+    });
+  }
+
   void _onSearchChanged(String query) {
     _searchDebounce?.cancel();
+    // Typing takes over from a tapped category — same as MapScreen.
+    if (_nearbyCategory != null) setState(() => _nearbyCategory = null);
     if (query.trim().isEmpty) {
       setState(() => _searchResults = []);
       return;
@@ -815,19 +873,53 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                     onSubmitted: (_) {},
                     onClear: () {
                       _searchController.clear();
-                      setState(() => _searchResults = []);
+                      setState(() {
+                        _searchResults = [];
+                        _nearbyCategory = null;
+                      });
                     },
                   ),
                 ),
               ]),
-              if (_showSearch && (_searching || _searchResults.isNotEmpty)) ...[
+              // Nothing typed yet: offer the one-tap nearby categories —
+              // same PoiSearchService MapScreen uses, reused as-is.
+              if (_showSearch && _searchController.text.isEmpty) ...[
+                const SizedBox(height: 8),
+                NearbyBar(
+                  colors: c,
+                  enabled: _lastFix != null,
+                  selected: _nearbyCategory,
+                  onSelect: _searchNearby,
+                ),
+              ],
+              if (_showSearch &&
+                  (_searching ||
+                      _searchResults.isNotEmpty ||
+                      _nearbyCategory != null ||
+                      _matchingFavorites(_searchController.text).isNotEmpty)) ...[
                 const SizedBox(height: 8),
                 SearchResultsList(
                   results: _searchResults,
                   isLoading: _searching,
+                  favorites: _matchingFavorites(_searchController.text),
                   colors: c,
-                  onSelect: _onSelectResult,
-                  onSelectFavorite: (_) {},
+                  emptyMessage: _nearbyCategory == null
+                      ? null
+                      : AppLocalizations.of(context).nearbyNothingFound,
+                  onSelect: (r) {
+                    setState(() => _nearbyCategory = null);
+                    _onSelectResult(r);
+                  },
+                  onSelectFavorite: (fav) {
+                    _searchController.clear();
+                    setState(() {
+                      _showSearch = false;
+                      _searchResults = [];
+                      _nearbyCategory = null;
+                    });
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    unawaited(_calculateRouteTo(fav.position));
+                  },
                 ),
               ],
               if (!_showSearch && _route == null) ...[
