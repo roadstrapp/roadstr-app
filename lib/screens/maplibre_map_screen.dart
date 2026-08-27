@@ -13,15 +13,20 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:provider/provider.dart';
 
 import '../services/camera_follow.dart';
 import '../services/gps_service.dart';
+import '../services/place_search_service.dart';
+import '../services/routing_service.dart';
+import '../services/ztl_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
 import '../widgets/cursor_painter.dart';
 import '../widgets/map/map_markers.dart';
+import '../widgets/search/search_panel.dart';
 
 const _roadstrTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
@@ -60,21 +65,34 @@ String _style({required bool dark}) => '''
 ''';
 
 // Same colour split MapScreen's route rendering uses — the app's accent
-// for an ordinary run, this red for one crossing a restricted zone — see
-// map_screen.dart's _kZtlRed and _remainingRouteRuns. No routing exists in
-// this screen yet, so this is fixed demo geometry near the starting
-// position: it proves the two-colour-run mechanism translates to a
-// GeoJSON source with a data-driven line layer, not that ZTL detection
-// itself has been ported (it hasn't).
+// for an ordinary run, this red for one crossing a restricted zone. See
+// map_screen.dart's _kZtlRed and _remainingRouteRuns; _splitByZtl below is
+// a simplified version of the latter (no completed/remaining distinction —
+// this screen has no navigation-progress concept yet, just a calculated
+// route).
 const _kZtlRed = Color(0xFFE53935);
-final _demoRouteNormal = [
-  const Geographic(lon: 12.494, lat: 42.494),
-  const Geographic(lon: 12.500, lat: 42.500),
-];
-final _demoRouteRestricted = [
-  const Geographic(lon: 12.500, lat: 42.500),
-  const Geographic(lon: 12.508, lat: 42.506),
-];
+
+/// Groups a polyline into contiguous same-classification runs, sharing the
+/// boundary point between adjacent runs so the drawn segments stay visually
+/// connected instead of leaving a gap at each colour change.
+List<({List<LatLng> points, bool restricted})> _splitByZtl(
+    List<LatLng> points, List<bool> restricted) {
+  final runs = <({List<LatLng> points, bool restricted})>[];
+  if (points.length < 2) return runs;
+  var i = 0;
+  while (i < points.length - 1) {
+    final r = restricted[i];
+    final run = <LatLng>[points[i]];
+    var j = i;
+    while (j + 1 < points.length && restricted[j + 1] == r) {
+      run.add(points[j + 1]);
+      j++;
+    }
+    runs.add((points: run, restricted: r));
+    i = j;
+  }
+  return runs;
+}
 
 class MaplibreMapScreen extends StatefulWidget {
   const MaplibreMapScreen({super.key});
@@ -107,6 +125,20 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   Timer? _followTicker;
   int? _lastFollowFrameMs;
 
+  // ── Destination search + routing ─────────────────────────────────────────
+  // PlaceSearchService, RoutingService and ZtlService are all reused as-is:
+  // none of the three ever touched flutter_map, so there is nothing here to
+  // port, only to wire up.
+  final _searchController = TextEditingController();
+  final _placeSearch = PlaceSearchService();
+  final _ztl = ZtlService.instance;
+  bool _showSearch = false;
+  bool _searching = false;
+  List<NominatimResult> _searchResults = [];
+  Timer? _searchDebounce;
+  RouteResult? _route;
+  List<({List<LatLng> points, bool restricted})> _routeRuns = [];
+
   @override
   void initState() {
     super.initState();
@@ -118,9 +150,71 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   void dispose() {
     _gpsSub?.cancel();
     _followTicker?.cancel();
+    _searchDebounce?.cancel();
+    _searchController.dispose();
     unawaited(_gps.dispose());
     super.dispose();
   }
+
+  void _onSearchChanged(String query) {
+    _searchDebounce?.cancel();
+    if (query.trim().isEmpty) {
+      setState(() => _searchResults = []);
+      return;
+    }
+    // Same 400ms debounce map_screen.dart's own search box uses — short
+    // enough not to feel laggy, long enough that a fast typist doesn't fire
+    // a request per keystroke.
+    _searchDebounce = Timer(const Duration(milliseconds: 400), () async {
+      setState(() => _searching = true);
+      final near = _lastFix == null
+          ? null
+          : LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
+      final results = await _placeSearch.search(query, near: near);
+      if (!mounted) return;
+      setState(() {
+        _searchResults = results;
+        _searching = false;
+      });
+    });
+  }
+
+  Future<void> _onSelectResult(NominatimResult result) async {
+    final origin = _lastFix == null
+        ? null
+        : LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
+    setState(() {
+      _showSearch = false;
+      _searchResults = [];
+      _searchController.clear();
+    });
+    FocusManager.instance.primaryFocus?.unfocus();
+    if (origin == null) return;
+    final routes = await RoutingService.getRoutes(origin, result.position,
+        lang: 'it', vehicle: 'driving');
+    if (!mounted || routes.isEmpty) return;
+    final route = routes.first;
+    await _ztl.updateIfNeeded(origin);
+    final restricted = _ztl.classifyPoints(route.polyline);
+    setState(() {
+      _route = route;
+      _routeRuns = _splitByZtl(route.polyline, restricted);
+    });
+    final controller = _controller;
+    if (controller == null || route.polyline.isEmpty) return;
+    unawaited(controller.fitBounds(
+      bounds: LngLatBounds.fromPoints([
+        for (final p in route.polyline) Geographic(lon: p.longitude, lat: p.latitude),
+      ]),
+      padding: const EdgeInsets.all(48),
+      pitch: 0,
+    ));
+  }
+
+  void _clearRoute() => setState(() {
+        _route = null;
+        _routeRuns = [];
+      });
 
   void _onGps(GpsData data) {
     _lastFix = data;
@@ -231,18 +325,24 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
           // since PolylineLayer here colours a whole layer, not a single
           // Polyline the way flutter_map's does.
           layers: [
-            for (final run in [
-              (points: _demoRouteNormal, color: c.accent),
-              (points: _demoRouteRestricted, color: _kZtlRed),
-            ]) ...[
+            for (final run in _routeRuns) ...[
               PolylineLayer(
-                polylines: [Feature(geometry: LineString.from(run.points))],
-                color: run.color.withValues(alpha: 0.28),
+                polylines: [
+                  Feature(
+                      geometry: LineString.from(run.points.map(
+                          (p) => Geographic(lon: p.longitude, lat: p.latitude))))
+                ],
+                color: (run.restricted ? _kZtlRed : c.accent)
+                    .withValues(alpha: 0.28),
                 width: 18,
               ),
               PolylineLayer(
-                polylines: [Feature(geometry: LineString.from(run.points))],
-                color: run.color,
+                polylines: [
+                  Feature(
+                      geometry: LineString.from(run.points.map(
+                          (p) => Geographic(lon: p.longitude, lat: p.latitude))))
+                ],
+                color: run.restricted ? _kZtlRed : c.accent,
                 width: 9,
               ),
             ],
@@ -278,28 +378,88 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
           top: MediaQuery.of(context).padding.top + 12,
           left: 12,
           right: 12,
-          child: Row(children: [
-            Material(
-              color: c.surface2.withValues(alpha: 0.92),
-              shape: const CircleBorder(),
-              child: IconButton(
-                icon: Icon(Icons.arrow_back, color: c.textPrimary),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Material(
                 color: c.surface2.withValues(alpha: 0.92),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: c.border, width: 0.5),
+                shape: const CircleBorder(),
+                child: IconButton(
+                  icon: Icon(Icons.arrow_back, color: c.textPrimary),
+                  onPressed: () {
+                    if (_showSearch) {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      setState(() => _showSearch = false);
+                    } else {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                ),
               ),
-              child: Text(
-                'Motore mappa: MapLibre (sperimentale)',
-                style: TextStyle(color: c.textSecondary, fontSize: 11),
+              const SizedBox(width: 8),
+              Expanded(
+                child: PlaceSearchBar(
+                  controller: _searchController,
+                  colors: c,
+                  onFocus: () => setState(() => _showSearch = true),
+                  onChanged: _onSearchChanged,
+                  onSubmitted: (_) {},
+                  onClear: () {
+                    _searchController.clear();
+                    setState(() => _searchResults = []);
+                  },
+                ),
               ),
-            ),
+            ]),
+            if (_showSearch && (_searching || _searchResults.isNotEmpty)) ...[
+              const SizedBox(height: 8),
+              SearchResultsList(
+                results: _searchResults,
+                isLoading: _searching,
+                colors: c,
+                onSelect: _onSelectResult,
+                onSelectFavorite: (_) {},
+              ),
+            ],
+            if (!_showSearch && _route == null) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: c.surface2.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: c.border, width: 0.5),
+                ),
+                child: Text(
+                  'Motore mappa: MapLibre (sperimentale)',
+                  style: TextStyle(color: c.textSecondary, fontSize: 11),
+                ),
+              ),
+            ],
+            if (!_showSearch && _route != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: c.surface2.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: c.border, width: 0.5),
+                ),
+                child: Row(children: [
+                  Icon(Icons.route_outlined, color: c.accent, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${(_route!.totalDistanceM / 1000).toStringAsFixed(1)} km · '
+                    '${(_route!.totalDurationS / 60).round()} min',
+                    style: TextStyle(color: c.textPrimary, fontSize: 13),
+                  ),
+                  const Spacer(),
+                  InkWell(
+                    onTap: _clearRoute,
+                    child: Icon(Icons.close, color: c.textSecondary, size: 18),
+                  ),
+                ]),
+              ),
+            ],
           ]),
         ),
         Positioned(
