@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -23,6 +24,7 @@ import '../services/kokoro/kokoro_model_manager.dart';
 import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
 import '../widgets/cursor_painter.dart';
+import 'maplibre_poc_screen.dart';
 import '../widgets/speedometer_widget.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -1112,6 +1114,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // ── MAP ─────────────────────────────────────────────────────────
           _SectionHeader(l.sectionMap, c),
+          if (kDebugMode)
+            ListTile(
+              leading: Icon(Icons.science_outlined, color: c.textSecondary),
+              title: Text('MapLibre PoC (throwaway)',
+                  style: TextStyle(color: c.textPrimary)),
+              subtitle: Text('experiment/maplibre-poc branch only',
+                  style: TextStyle(color: c.textSecondary, fontSize: 12)),
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const MaplibrePocScreen())),
+            ),
           _SwitchTile(
             title: l.keepScreenOn,
             subtitle: l.keepScreenOnDescription,
