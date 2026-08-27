@@ -4,22 +4,26 @@
 //
 // Deliberately incomplete: this is the incremental migration from
 // docs/rendering-engine-decision.md §7, not a replacement for MapScreen.
-// Destination search, POI/nearby-category search, matching favourites in
-// search results, real routing, ZTL-aware route colouring, speed camera
-// and parking markers, navigation (step advancement, distance-to-
-// maneuver, arrival), off-route detection, rerouting and voice guidance
-// are here; favourites-as-map-markers is not — matching MapScreen, which
-// doesn't draw them either, only as search rows. Switching the setting to
-// "maplibre" is otherwise close to feature parity now, minus the polish
-// (chained voice instructions, direction-aware off-route, tap-to-manage
-// parking) noted at each piece's own commit. The settings copy says so.
+// Destination search (POI categories + matching favourites), real
+// routing with a proper preview panel before committing, ZTL-aware route
+// colouring, speed camera/parking markers, hazard reporting, north-up/
+// heading-up toggle, navigation with off-route detection, rerouting and
+// voice guidance are all here now. Favourites-as-map-markers is not —
+// matching MapScreen, which doesn't draw them either, only as search
+// rows. What's left is polish, not missing features: chained voice
+// instructions, direction-aware off-route, tap-to-manage parking beyond
+// save/clear, multi-stop route planning. Each noted at its own commit.
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
+import 'package:amberflutter/amberflutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:maplibre/maplibre.dart';
+import 'package:nostr_tools/nostr_tools.dart' show Nip19;
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
@@ -29,6 +33,7 @@ import '../services/gps_service.dart';
 import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
 import '../services/navigation_guidance.dart';
+import '../services/nostr_relay_service.dart';
 import '../services/place_search_service.dart';
 import '../services/poi_search_service.dart';
 import '../services/route_progress.dart';
@@ -41,7 +46,9 @@ import '../utils/geo.dart';
 import '../widgets/cursor_painter.dart';
 import '../widgets/map/map_markers.dart';
 import '../widgets/nav/maneuver_symbol.dart';
+import '../widgets/route/route_panels.dart';
 import '../widgets/search/search_panel.dart';
+import '../widgets/sheets/road_event_sheets.dart';
 
 const _roadstrTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
@@ -182,12 +189,22 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   GpsData? _lastFix;
   bool? _stylingDark;
 
-  /// Live camera pitch, read back from MapEventMoveCamera — the two-finger
-  /// tilt gesture is entirely native, nothing here drives it, so this is the
-  /// only way to know the current angle. Used only for the cursor's shadow
-  /// (below); starts at the initial camera's own pitch so the shadow is
-  /// correctly sized on the very first frame instead of assuming flat.
+  /// True: the camera turns to face the direction of travel (what every
+  /// GPS fix has been doing all along). False: north stays up, the same
+  /// toggle MapScreen's CompassFab drives — the map simply stops being
+  /// re-aimed at heading each fix; the driver's own rotate gesture still
+  /// works either way.
+  bool _headingMode = true;
+
+  /// Live camera pitch and bearing, read back from MapEventMoveCamera — the
+  /// two-finger tilt/rotate gestures are entirely native, nothing here
+  /// drives them, so this is the only way to know the current values.
+  /// _pitch sizes the cursor's shadow (below); _bearing points the compass
+  /// needle, which _camState alone can't do once the user has taken manual
+  /// control and the follow ticker (the only other thing that updates
+  /// _camState) has stopped running.
   double _pitch = 45.0;
+  double _bearing = 0;
 
   // Camera easing — CameraFollowEasing is the same policy
   // MapScreen._startFollowTicker uses, driven here against MapController
@@ -261,6 +278,14 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   LatLng? _parkingPosition;
   List<FavoritePlace> _favorites = [];
 
+  // ── Hazard reporting ─────────────────────────────────────────────────────
+  // NostrRelayService reused as-is (never touched flutter_map). No
+  // subscription to other people's reports here, so no own-report
+  // suppression state is needed the way MapScreen keeps _myPubkey/
+  // _roadEvents — this only publishes, it doesn't display anyone's pins yet.
+  final _nostr = NostrRelayService();
+  static const _secStorage = FlutterSecureStorage();
+
   @override
   void initState() {
     super.initState();
@@ -327,6 +352,239 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     }
   }
 
+  void _saveParkingPosition(LatLng pos) {
+    Hive.box('settings').put(
+        'parking_position',
+        jsonEncode({
+          'lat': pos.latitude,
+          'lon': pos.longitude,
+          'ts': DateTime.now().millisecondsSinceEpoch,
+        }));
+    setState(() => _parkingPosition = pos);
+    _showSnack(AppLocalizations.of(context).parkingSavedSnack);
+  }
+
+  void _clearParkingPosition() {
+    Hive.box('settings').delete('parking_position');
+    setState(() => _parkingPosition = null);
+    _showSnack(AppLocalizations.of(context).parkingRemovedSnack);
+  }
+
+  /// Same content as MapScreen._showParkingSheet, ported directly — no
+  /// flutter_map dependency in the original either, just AppLocalizations
+  /// strings and the two methods above. "Navigate here" routes through
+  /// _calculateRouteTo instead of MapScreen's _requestAlternatives, since
+  /// there is no alternatives flow here.
+  void _showParkingSheet() {
+    final c = RoadstrColors.of(context);
+    final l = AppLocalizations.of(context);
+    final navBar = MediaQuery.of(context).viewPadding.bottom;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        margin: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: c.surface2,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: c.border, width: 0.5),
+        ),
+        padding: EdgeInsets.fromLTRB(20, 16, 20, 24 + navBar),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Center(
+              child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                      color: c.border, borderRadius: BorderRadius.circular(2)))),
+          const SizedBox(height: 14),
+          Row(children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12)),
+              child: Icon(Icons.local_parking_rounded,
+                  color: Colors.blue.shade400, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+                child: Text(
+                    _parkingPosition != null
+                        ? l.parkingMarkerTitle
+                        : l.parkingSaveHere,
+                    style: TextStyle(
+                        color: c.textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600))),
+          ]),
+          const SizedBox(height: 16),
+          if (_parkingPosition != null) ...[
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  unawaited(_calculateRouteTo(_parkingPosition!));
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: c.accent,
+                  shape:
+                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                ),
+                icon: const Icon(Icons.directions, color: Colors.white, size: 18),
+                label: Text(l.parkingNavigateHere,
+                    style: const TextStyle(color: Colors.white)),
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _clearParkingPosition();
+                },
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: Colors.red.withValues(alpha: 0.6)),
+                  shape:
+                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                ),
+                icon: const Icon(Icons.delete_outline_rounded,
+                    color: Colors.red, size: 18),
+                label:
+                    Text(l.parkingRemove, style: const TextStyle(color: Colors.red)),
+              ),
+            ),
+          ] else
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: _lastFix == null
+                    ? null
+                    : () {
+                        Navigator.pop(context);
+                        _saveParkingPosition(_lastFix!.position);
+                      },
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.blue.shade400,
+                  shape:
+                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                ),
+                icon: const Icon(Icons.local_parking_rounded,
+                    color: Colors.white, size: 18),
+                label: Text(l.parkingSaveHere,
+                    style: const TextStyle(color: Colors.white)),
+              ),
+            ),
+        ]),
+      ),
+    );
+  }
+
+  /// Same dual-signing path as MapScreen._showReportSheet (Amber/NIP-55 vs
+  /// a locally stored nsec), ported directly — none of it touches
+  /// flutter_map. Simplified in one way: no _roadEvents list to append the
+  /// published event to, since this screen doesn't subscribe to or draw
+  /// anyone's reports yet, its own included.
+  Future<void> _showReportSheet() async {
+    final privKey = await _secStorage.read(key: 'nostr_priv_hex');
+    final pubKey = await _secStorage.read(key: 'nostr_pub_hex');
+    final flavor = await _secStorage.read(key: 'nostr_flavor');
+    if (!mounted) return;
+    if (pubKey == null) {
+      _showSnack(AppLocalizations.of(context).loginToReport);
+      return;
+    }
+    final settings = Hive.box('settings');
+    if (settings.get('road_report_privacy_ack', defaultValue: false) != true) {
+      final italian = Localizations.localeOf(context).languageCode == 'it';
+      final accepted = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(italian ? 'Report pubblico' : 'Public report'),
+          content: Text(italian
+              ? 'Il report pubblicherà sui relay Nostr posizione esatta, '
+                  'orario, contenuto e chiave pubblica. È pseudonimo, non '
+                  'anonimo, può essere collegato agli altri tuoi report e la '
+                  'cancellazione dai relay non può essere garantita.'
+              : 'This report publishes its exact position, time, content and '
+                  'your public key to Nostr relays. It is pseudonymous, not '
+                  'anonymous, can be linked to your other reports, and relay '
+                  'deletion cannot be guaranteed.'),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(AppLocalizations.of(ctx).cancel)),
+            FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(italian ? 'Ho capito' : 'I understand')),
+          ],
+        ),
+      );
+      if (accepted != true || !mounted) return;
+      await settings.put('road_report_privacy_ack', true);
+      if (!mounted) return;
+    }
+    final c = RoadstrColors.of(context);
+    final pos = _lastFix == null
+        ? null
+        : LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
+    if (pos == null) return;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => ReportSheet(
+        colors: c,
+        position: pos,
+        onSubmit: (category, comment, speedLimit) async {
+          final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+          final expires = now + category.ttlSeconds;
+          if (flavor == 'amber') {
+            final unsigned = NostrRelayService.buildKind1315Map(
+              position: pos,
+              category: category,
+              comment: comment,
+              pubKeyHex: pubKey,
+              now: now,
+              expires: expires,
+              speedLimit: speedLimit,
+            );
+            final result = await Amberflutter().signEvent(
+              currentUser: Nip19().npubEncode(pubKey),
+              eventJson: jsonEncode(unsigned),
+            );
+            final signed =
+                jsonDecode(result['event'] as String) as Map<String, dynamic>;
+            await _nostr.publishRawRoadEvent(
+              eventJson: signed,
+              category: category,
+              position: pos,
+              comment: comment,
+              now: now,
+              expires: expires,
+              expectedPubKeyHex: pubKey,
+            );
+          } else {
+            await _nostr.publishRoadEvent(
+              position: pos,
+              category: category,
+              comment: comment,
+              privKeyHex: privKey!,
+              pubKeyHex: pubKey,
+              speedLimit: speedLimit,
+            );
+          }
+        },
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _gpsSub?.cancel();
@@ -335,6 +593,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     _searchController.dispose();
     unawaited(_gps.dispose());
     unawaited(_tts.dispose());
+    _nostr.dispose();
     super.dispose();
   }
 
@@ -634,10 +893,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
       lat: data.position.latitude,
       lng: data.position.longitude,
       zoom: _camState?.zoom ?? 17,
-      rotDeg: data.heading ?? _camState?.rotDeg ?? 0,
+      rotDeg: _headingMode ? (data.heading ?? _camState?.rotDeg ?? 0) : 0,
     );
     _startFollowTicker();
   }
+
+  void _toggleHeadingMode() => setState(() => _headingMode = !_headingMode);
 
   void _startFollowTicker() {
     if (_followTicker != null) return;
@@ -735,11 +996,15 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
               unawaited(_calculateRouteTo(
                   LatLng(event.point.lat, event.point.lon)));
             } else if (event is MapEventMoveCamera &&
-                (event.camera.pitch - _pitch).abs() > 0.5) {
-              // >0.5° gate: the two-finger tilt gesture fires this on every
-              // native frame, and the shadow it drives doesn't need finer
+                ((event.camera.pitch - _pitch).abs() > 0.5 ||
+                    (event.camera.bearing - _bearing).abs() > 0.5)) {
+              // >0.5° gate: both gestures fire this on every native frame,
+              // and neither the shadow nor the compass needle needs finer
               // resolution than that to look continuous.
-              setState(() => _pitch = event.camera.pitch);
+              setState(() {
+                _pitch = event.camera.pitch;
+                _bearing = event.camera.bearing;
+              });
             }
           },
           // A wide, translucent glow pass under a narrower solid core per
@@ -937,38 +1202,6 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                   ),
                 ),
               ],
-              if (!_showSearch && _route != null) ...[
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: c.surface2.withValues(alpha: 0.92),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: c.border, width: 0.5),
-                  ),
-                  child: Row(children: [
-                    Icon(Icons.route_outlined, color: c.accent, size: 18),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${(_route!.totalDistanceM / 1000).toStringAsFixed(1)} km · '
-                      '${(_route!.totalDurationS / 60).round()} min',
-                      style: TextStyle(color: c.textPrimary, fontSize: 13),
-                    ),
-                    const Spacer(),
-                    TextButton.icon(
-                      onPressed: _startNavigation,
-                      icon: Icon(Icons.navigation_outlined,
-                          color: c.accent, size: 16),
-                      label: Text('Naviga',
-                          style: TextStyle(color: c.accent, fontSize: 13)),
-                    ),
-                    InkWell(
-                      onTap: _clearRoute,
-                      child: Icon(Icons.close, color: c.textSecondary, size: 18),
-                    ),
-                  ]),
-                ),
-              ],
             ],
             if (_isRerouting || _calculatingRoute) ...[
               Container(
@@ -1085,21 +1318,99 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
             ],
           ]),
         ),
-        Positioned(
-          right: 12,
-          bottom: MediaQuery.of(context).padding.bottom + 16,
-          child: Material(
-            color: c.surface2.withValues(alpha: 0.92),
-            shape: const CircleBorder(),
-            child: IconButton(
-              icon: Icon(
-                _followUser ? Icons.gps_fixed : Icons.gps_not_fixed,
-                color: c.accent,
-              ),
-              onPressed: _recenter,
+        // Real preview panel, not the summary chip this replaced — same
+        // widget MapScreen shows (RoutePreviewPanel), reused as-is. Traffic
+        // events/status passed empty/null: that's Nostr road-event
+        // subscription, a separate piece not ported here, so the panel
+        // simply doesn't show a traffic banner rather than a fake one.
+        // Mode switching is a no-op for the same reason driving is the only
+        // vehicle profile anywhere in this screen so far.
+        if (_route != null && !_isNavigating && !_showSearch)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: RoutePreviewPanel(
+              route: _route!,
+              label: null,
+              trafficEvents: const [],
+              bottomInset: MediaQuery.of(context).padding.bottom,
+              colors: c,
+              transportMode: 'driving',
+              onStart: _startNavigation,
+              onCancel: _clearRoute,
+              onModeChanged: (_) {},
             ),
           ),
+        Positioned(
+          right: 12,
+          bottom: (_route != null && !_isNavigating && !_showSearch
+                  ? 220.0
+                  : MediaQuery.of(context).padding.bottom + 16),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Material(
+              color: c.surface2.withValues(alpha: 0.92),
+              shape: const CircleBorder(),
+              child: IconButton(
+                // Needle counter-rotates against the map's own rotation so
+                // it keeps pointing at true north regardless — same idea as
+                // MapScreen's CompassFab, without porting that widget for
+                // one icon.
+                icon: Transform.rotate(
+                  angle: -_bearing * math.pi / 180,
+                  child: Icon(Icons.explore,
+                      color: _headingMode ? c.accent : c.textSecondary),
+                ),
+                onPressed: _toggleHeadingMode,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Material(
+              color: c.surface2.withValues(alpha: 0.92),
+              shape: const CircleBorder(),
+              child: IconButton(
+                icon: Icon(
+                  _followUser ? Icons.gps_fixed : Icons.gps_not_fixed,
+                  color: c.accent,
+                ),
+                onPressed: _recenter,
+              ),
+            ),
+          ]),
         ),
+        // Left FABs — report + parking. Pre-trip only, same as MapScreen:
+        // re-checking a saved spot or filing a report mid-turn-by-turn
+        // isn't the point of either.
+        if (!_isNavigating && !_showSearch && _route == null)
+          Positioned(
+            left: 12,
+            bottom: MediaQuery.of(context).padding.bottom + 16,
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              if (_lastFix != null) ...[
+                Material(
+                  color: c.surface2.withValues(alpha: 0.92),
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    icon: Icon(Icons.report_problem_outlined, color: c.accent),
+                    onPressed: _showReportSheet,
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+              if (_lastFix != null || _parkingPosition != null)
+                Material(
+                  color: c.surface2.withValues(alpha: 0.92),
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    icon: Icon(Icons.local_parking_rounded,
+                        color: _parkingPosition != null
+                            ? Colors.blue.shade300
+                            : c.accent),
+                    onPressed: _showParkingSheet,
+                  ),
+                ),
+            ]),
+          ),
       ]),
     );
   }
