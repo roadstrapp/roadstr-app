@@ -73,4 +73,30 @@ void main() {
           CameraFollowEasing.hasCaughtUp(_s(lat: 45), _s(lat: 45.001)), isFalse);
     });
   });
+
+  group('CameraFollowEasing.navCameraCenter', () {
+    test('shifts due north when heading is 0°', () {
+      final (lat, lng) = CameraFollowEasing.navCameraCenter(45, 9, 0, 17);
+      expect(lat, greaterThan(45));
+      expect(lng, closeTo(9, 1e-9));
+    });
+
+    test('shifts due east when heading is 90°', () {
+      final (lat, lng) = CameraFollowEasing.navCameraCenter(45, 9, 90, 17);
+      expect(lat, closeTo(45, 1e-9));
+      expect(lng, greaterThan(9));
+    });
+
+    test('a tighter zoom (more metres per pixel) shifts further', () {
+      final (latFar, _) = CameraFollowEasing.navCameraCenter(45, 9, 0, 15);
+      final (latNear, _) = CameraFollowEasing.navCameraCenter(45, 9, 0, 17);
+      expect(latFar - 45, greaterThan(latNear - 45));
+    });
+
+    test('clamps latitude at the pole', () {
+      final (lat, _) = CameraFollowEasing.navCameraCenter(89.9, 9, 0, 1);
+      expect(lat, lessThanOrEqualTo(89.9));
+      expect(lat.isFinite, isTrue);
+    });
+  });
 }

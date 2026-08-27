@@ -1105,11 +1105,17 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     _headingFilter.reset();
     setState(() {
       _isNavigating = true;
+      _followUser = true;
       _currentStepIdx = 0;
       _arrived = false;
       _remainingDistM = route.totalDistanceM;
       _remainingSecs = route.totalDurationS;
     });
+    // The camera was left wherever the route-preview fitBounds put it
+    // (zoomed out, top-down, centred on the whole route) — nothing snapped
+    // it back onto the driver when the trip actually started, so navigation
+    // began on a wide overview instead of the driving view.
+    _snapCameraToFix(navShift: _headingMode);
     if (!_voiceMuted) unawaited(_tts.announceStart());
   }
 
@@ -1243,13 +1249,22 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     // never has to wait on a live Overpass round-trip.
     unawaited(_ztl.updateIfNeeded(data.position));
     if (!_followUser) return;
+    final rotDeg = _headingMode
+        ? ((_isNavigating || moving) ? effectiveHeading : (_camState?.rotDeg ?? 0))
+        : 0.0;
+    final zoom = _camState?.zoom ?? 17;
+    // In heading-up navigation shift the camera ahead so the cursor sits
+    // lower in frame (more road visible ahead) — same
+    // MapScreen._navCameraCenter formula, ported to camera_follow.dart.
+    final (targetLat, targetLng) = (_isNavigating && _headingMode)
+        ? CameraFollowEasing.navCameraCenter(
+            data.position.latitude, data.position.longitude, rotDeg, zoom)
+        : (data.position.latitude, data.position.longitude);
     _targetState = CameraFollowState(
-      lat: data.position.latitude,
-      lng: data.position.longitude,
-      zoom: _camState?.zoom ?? 17,
-      rotDeg: _headingMode
-          ? ((_isNavigating || moving) ? effectiveHeading : (_camState?.rotDeg ?? 0))
-          : 0,
+      lat: targetLat,
+      lng: targetLng,
+      zoom: zoom,
+      rotDeg: rotDeg,
     );
     _startFollowTicker();
   }
@@ -1294,23 +1309,31 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
 
   void _recenter() {
     setState(() => _followUser = true);
+    _snapCameraToFix(navShift: _isNavigating && _headingMode);
+  }
+
+  /// Snaps the camera onto the current GPS fix immediately — a request to
+  /// jump there now, not to rejoin the continuous ease mid-flight, same
+  /// split MapScreen keeps between its ticker and _animateCamera for an
+  /// explicit action. [navShift] applies the same forward offset the
+  /// follow ticker uses in heading-up navigation, so recentring while
+  /// driving doesn't undo it.
+  void _snapCameraToFix({required bool navShift}) {
     final fix = _lastFix;
     final controller = _controller;
     if (fix == null || controller == null) return;
-    // A tap for recenter is a request to snap back now, not to rejoin the
-    // continuous ease mid-flight — same split MapScreen keeps between its
-    // ticker and _animateCamera for an explicit action.
-    _camState = CameraFollowState(
-      lat: fix.position.latitude,
-      lng: fix.position.longitude,
-      zoom: 17,
-      rotDeg: fix.heading ?? _camState?.rotDeg ?? 0,
-    );
+    final rotDeg = _headingMode ? (fix.heading ?? _bearing) : 0.0;
+    const zoom = 17.0;
+    final (lat, lng) = navShift
+        ? CameraFollowEasing.navCameraCenter(
+            fix.position.latitude, fix.position.longitude, rotDeg, zoom)
+        : (fix.position.latitude, fix.position.longitude);
+    _camState = CameraFollowState(lat: lat, lng: lng, zoom: zoom, rotDeg: rotDeg);
     unawaited(controller.animateCamera(
-      center: Geographic(lon: fix.position.longitude, lat: fix.position.latitude),
-      zoom: 17,
+      center: Geographic(lon: lng, lat: lat),
+      zoom: zoom,
       pitch: 45,
-      bearing: fix.heading,
+      bearing: rotDeg,
     ));
   }
 
@@ -1327,6 +1350,17 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
       _controller?.setStyle(_style(dark: isDark));
     }
     _stylingDark ??= isDark;
+
+    // Same walking/cycling override MapScreen's cursor uses — the ostrich
+    // and bicycle sprites only appear while actually navigating on foot or
+    // by bike, never leaking into the stored driving skin otherwise.
+    final cursorStyle = CursorStyle.resolve(
+      isNavigating: _isNavigating,
+      transportMode: _transportMode,
+      storedDrivingStyle: Hive.box('settings').get(CursorStyle.storageKey),
+    );
+    final isCharacterCursor =
+        cursorStyle == CursorStyle.ostrich || cursorStyle == CursorStyle.bicycle;
 
     return Scaffold(
       body: Stack(children: [
@@ -1447,12 +1481,25 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                   // plane, the way a nav app's own puck looks like it's
                   // sitting on the road once the camera pitches.
                   flat: true,
-                  child: _MaplibreCursor(
-                    pitch: _pitch,
-                    color: CursorColor.fromStorage(
-                            Hive.box('settings').get(CursorColor.storageKey))
-                        .value,
-                  ),
+                  child: isCharacterCursor
+                      // Ostrich/bicycle: the existing animated sprite system,
+                      // unmodified — no baked shadow to duplicate here the
+                      // way arrow.svg had, so there's nothing to rebuild.
+                      ? UserMarker(
+                          heading: 0,
+                          accent: c.accent,
+                          cursorStyle: cursorStyle,
+                          cursorColor: CursorColor.fromStorage(Hive.box('settings')
+                              .get(CursorColor.storageKey)),
+                          ostrichIsMoving: (_lastFix?.speedKmh ?? 0) >= 1.0,
+                          ostrichSpeedKmh: _lastFix?.speedKmh ?? 0,
+                        )
+                      : _MaplibreCursor(
+                          pitch: _pitch,
+                          color: CursorColor.fromStorage(
+                                  Hive.box('settings').get(CursorColor.storageKey))
+                              .value,
+                        ),
                 ),
               ]),
           ],
