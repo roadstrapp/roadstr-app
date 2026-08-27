@@ -104,6 +104,60 @@ List<({List<LatLng> points, bool restricted})> _splitByZtl(
   return runs;
 }
 
+/// The vehicle cursor plus its own ground shadow, which stretches and
+/// drifts away from the icon as the camera pitches — the parallax cue that
+/// sells "the cursor is a 3D object standing on the tilted road" instead of
+/// a flat decal. Both live inside the same `flat: true` Marker (so the pair
+/// tilts with the ground plane as a unit); this is the separation *within*
+/// that pair, on top of the marker's own rotation.
+///
+/// First pass, numbers not device-verified: reasonable at t=0 (an all but
+/// invisible shadow directly under the icon, correct for a near-top-down
+/// view) and at t=1 (visibly separated, elongated), unconfirmed in between.
+class _NavCursor extends StatelessWidget {
+  final double pitch;
+  final CursorStyle cursorStyle;
+  final CursorColor cursorColor;
+  final Color accent;
+
+  const _NavCursor({
+    required this.pitch,
+    required this.cursorStyle,
+    required this.cursorColor,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // 0 at top-down, 1 at maxPitch (60°, set in MapOptions below).
+    final t = (pitch / 60.0).clamp(0.0, 1.0);
+    return Stack(alignment: Alignment.center, clipBehavior: Clip.none, children: [
+      Positioned(
+        // Starts tucked just under the icon's own base at t=0, drifts
+        // toward the bottom of the marker's 76px box as tilt increases.
+        top: 50 + t * 22,
+        child: Container(
+          width: 26 - t * 4,
+          height: 6 + t * 14,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            gradient: RadialGradient(colors: [
+              Colors.black.withValues(alpha: 0.30 - t * 0.08),
+              Colors.black.withValues(alpha: 0),
+            ]),
+          ),
+        ),
+      ),
+      UserMarker(
+        heading: 0,
+        accent: accent,
+        cursorStyle: cursorStyle,
+        cursorColor: cursorColor,
+      ),
+    ]);
+  }
+}
+
 class MaplibreMapScreen extends StatefulWidget {
   const MaplibreMapScreen({super.key});
 
@@ -122,6 +176,13 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   bool _followUser = true;
   GpsData? _lastFix;
   bool? _stylingDark;
+
+  /// Live camera pitch, read back from MapEventMoveCamera — the two-finger
+  /// tilt gesture is entirely native, nothing here drives it, so this is the
+  /// only way to know the current angle. Used only for the cursor's shadow
+  /// (below); starts at the initial camera's own pitch so the shadow is
+  /// correctly sized on the very first frame instead of assuming flat.
+  double _pitch = 45.0;
 
   // Camera easing — CameraFollowEasing is the same policy
   // MapScreen._startFollowTicker uses, driven here against MapController
@@ -615,6 +676,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
               // context menu, since there's nowhere here yet to show one.
               unawaited(_calculateRouteTo(
                   LatLng(event.point.lat, event.point.lon)));
+            } else if (event is MapEventMoveCamera &&
+                (event.camera.pitch - _pitch).abs() > 0.5) {
+              // >0.5° gate: the two-finger tilt gesture fires this on every
+              // native frame, and the shadow it drives doesn't need finer
+              // resolution than that to look continuous.
+              setState(() => _pitch = event.camera.pitch);
             }
           },
           // A wide, translucent glow pass under a narrower solid core per
@@ -682,7 +749,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                   point: Geographic(
                       lon: _lastFix!.position.longitude,
                       lat: _lastFix!.position.latitude),
-                  size: const Size(48, 48),
+                  // Taller than the cursor itself: the shadow needs room to
+                  // stretch below it without being clipped by the marker's
+                  // own bounding box.
+                  size: const Size(48, 76),
                   // Not rotate:true — the camera already turns to face the
                   // direction of travel each fix (bearing: data.heading in
                   // _onGps), the same heading-up convention MapScreen's own
@@ -698,13 +768,13 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                   // plane, the way a nav app's own puck looks like it's
                   // sitting on the road once the camera pitches.
                   flat: true,
-                  child: UserMarker(
-                    heading: 0,
-                    accent: c.accent,
+                  child: _NavCursor(
+                    pitch: _pitch,
                     cursorStyle: CursorStyle.fromStorage(Hive.box('settings')
                         .get(CursorStyle.storageKey)),
                     cursorColor: CursorColor.fromStorage(Hive.box('settings')
                         .get(CursorColor.storageKey)),
+                    accent: c.accent,
                   ),
                 ),
               ]),
