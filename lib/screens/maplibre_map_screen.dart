@@ -15,20 +15,27 @@
 // save/clear, multi-stop route planning. Each noted at its own commit.
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:amberflutter/amberflutter.dart';
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:maplibre/maplibre.dart';
+import 'package:maplibre/maplibre.dart' hide Box;
 import 'package:nostr_tools/nostr_tools.dart' show Nip19;
 import 'package:provider/provider.dart';
+import 'package:screen_brightness/screen_brightness.dart';
+import 'package:sensors_plus/sensors_plus.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/favorite_place.dart';
+import '../models/search_history_item.dart';
 import '../services/camera_follow.dart';
+import '../services/favorites_sync_service.dart';
 import '../services/gps_service.dart';
 import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
@@ -45,6 +52,7 @@ import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
 import '../utils/geo.dart';
 import '../utils/heading_filter.dart';
+import '../utils/settings_listenable.dart';
 import '../widgets/cursor_painter.dart';
 import '../widgets/map/map_chrome.dart';
 import '../widgets/map/map_markers.dart';
@@ -61,14 +69,17 @@ const _roadstrTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 // through a Flutter ColorFilter — see the PoC commit for why the numbers
 // are what they are (hue-rotate 180° to undo inversion's colour shift,
 // brightness min/max flipped to invert lightness, saturation and contrast
-// pulled back so area fills read as muted rather than neon).
-String _style({required bool dark}) => '''
+// pulled back so area fills read as muted rather than neon). Unlike
+// MapScreen, dark mode here never needs a separate CARTO dark-tile source —
+// the same native paint transform recolours whatever raster source is
+// configured, [tileUrl] included.
+String _style({required bool dark, required String tileUrl}) => '''
 {
   "version": 8,
   "sources": {
     "osm": {
       "type": "raster",
-      "tiles": ["$_roadstrTileUrl"],
+      "tiles": ["$tileUrl"],
       "tileSize": 256,
       "attribution": "© OpenStreetMap contributors"
     }
@@ -203,7 +214,8 @@ class _CursorPainter extends CustomPainter {
     canvas.drawPath(
       arrowPath,
       Paint()
-        ..color = hsl.withLightness((hsl.lightness - 0.30).clamp(0.0, 1.0)).toColor()
+        ..color =
+            hsl.withLightness((hsl.lightness - 0.30).clamp(0.0, 1.0)).toColor()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5
         ..strokeJoin = StrokeJoin.round,
@@ -229,21 +241,28 @@ class MaplibreMapScreen extends StatefulWidget {
   State<MaplibreMapScreen> createState() => _MaplibreMapScreenState();
 }
 
-class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
+class _MaplibreMapScreenState extends State<MaplibreMapScreen>
+    with WidgetsBindingObserver {
   final _gps = GpsService();
   StreamSubscription<GpsData>? _gpsSub;
   MapController? _controller;
 
   // Mirrors MapScreen's _followUser: true until the user pans/rotates/tilts
   // by hand, at which point their gesture must not be immediately fought by
-  // the next GPS fix.
+  // the next GPS fix. Actual initial value comes from the 'autoCenterOnLaunch'
+  // setting in initState, not this default.
   bool _followUser = true;
   GpsData? _lastFix;
+
+  /// Screen-wake and minimum-brightness policy — same
+  /// MapScreen._applyScreenPolicy, reacting to the same three settings.
+  late final ValueListenable<Box> _screenPolicyListenable;
 
   /// Smoothed GPS altitude, same exponential smoothing MapScreen applies —
   /// raw altitude jitters by several metres fix to fix even standing still.
   double? _altitudeM;
   bool? _stylingDark;
+  String? _stylingTileUrl;
 
   /// True: the camera turns to face the direction of travel (what every
   /// GPS fix has been doing all along). False: north stays up, the same
@@ -269,13 +288,29 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   /// moves (it stays screen-up), so a shaky *camera* bearing reads as a
   /// shaky cursor. HeadingFilter has no flutter_map dependency — it only
   /// ever touches LatLng/Geo — so it ports directly. routeLocalBearingAt is
-  /// passed null (see route_progress.dart's own doc comment): the
-  /// roundabout-disambiguation half of MapScreen's filter needs progress-
-  /// along-route bookkeeping this screen doesn't keep, so this gets the
-  /// dead-reckoning/hysteresis/reversal-rejection behaviour without the
-  /// route-snap easing on top.
+  /// [_routeLocalBearingAt] below, the same progress-along-route
+  /// disambiguation MapScreen runs, ported alongside its supporting state.
   final _headingFilter = HeadingFilter();
   LatLng? _prevGpsPos;
+
+  // ── Compass (magnetometer + accelerometer) ────────────────────────────────
+  // Same tilt-compensated compass MapScreen runs — ported unchanged (pure
+  // sensor math, no flutter_map dependency). Owns the heading only while
+  // stationary and not navigating; in motion the GPS/route bearing above
+  // takes over, same split as MapScreen's own _startCompass.
+  double _compassHeading = 0;
+  AccelerometerEvent? _lastAccel;
+  StreamSubscription<MagnetometerEvent>? _magnetSub;
+  StreamSubscription<AccelerometerEvent>? _accelSub;
+  int _lastCompassUiMs = 0;
+
+  // ── Route-local bearing (for HeadingFilter's route-snap easing) ──────────
+  // Same windowed nearest-segment search + progress-based disambiguation as
+  // MapScreen's _nearestActiveRouteSegment/_segmentNearestInProgress —
+  // needed so a two-fix GPS bearing at a roundabout snaps toward the route's
+  // own direction instead of the nearest (possibly wrong-way) arm.
+  int _nearestRouteSegmentIdx = 0;
+  double _routeProgressM = 0;
 
   // Camera easing — CameraFollowEasing is the same policy
   // MapScreen._startFollowTicker uses, driven here against MapController
@@ -341,8 +376,21 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   /// slightly short or past the exact point doesn't stall the step index.
   static const _advanceToleranceM = 15.0;
 
-  /// How close to the final step's own point counts as arrived.
-  static const _arrivalRadiusM = 30.0;
+  /// Horizontal accuracy (metres) of the most recent GPS fix — drives the
+  /// dynamic arrival radius in [_checkArrival], same as MapScreen.
+  double _lastGpsAccuracy = 20;
+
+  /// Smallest GPS-to-destination distance observed so far this leg. Reset on
+  /// every navigation start. Drives the closest-approach fallback in
+  /// [_checkArrival]: once the user got reasonably close and is now moving
+  /// away again, that closest point WAS the arrival.
+  double _minDistToDestM = double.infinity;
+
+  /// Destination's OSM building footprint, fetched best-effort at
+  /// navigation start via PoiSearchService (already reused elsewhere in
+  /// this screen). Stepping into it counts as arrival regardless of how far
+  /// the router's arrive-point (on the road) is.
+  List<LatLng>? _destBuilding;
 
   // ── Voice guidance ─────────────────────────────────────────────────────────
   // KokoroTtsService and NavigationGuidance are both reused as-is. No
@@ -365,6 +413,15 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   final _speedCameraSvc = SpeedCameraService();
   LatLng? _parkingPosition;
   List<FavoritePlace> _favorites = [];
+
+  /// Recent destinations, same MapScreen._history/SearchHistoryItem model —
+  /// shown alongside favourites when the search box is focused but empty.
+  List<SearchHistoryItem> _history = [];
+
+  /// Pulls the encrypted favourites snapshot from Nostr at startup, same
+  /// MapScreen._favSyncSvc/_autoRestoreFavorites — reused as-is, no
+  /// flutter_map dependency.
+  final _favSyncSvc = FavoritesSyncService();
 
   /// OSM-tagged speed limit, same source MapScreen's sign uses: the route's
   /// own annotation while navigating (route.speedLimitAt), Overpass proximity
@@ -390,8 +447,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadParkingPosition();
     _loadFavorites();
+    _loadHistory();
+    unawaited(_autoRestoreFavorites());
+    _startCompass();
     // Same settings keys MapScreen reads at startup — muting or changing
     // voice/speed/volume in Settings applies here too, since it is the same
     // app-wide preference, not a copy of it.
@@ -399,13 +460,32 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     _voiceMuted = !(settings.get('voiceEnabled', defaultValue: true) as bool);
     _tts.setGender(settings.get('kokoroVoiceGender',
         defaultValue: kKokoroDefaultGender) as String);
-    _tts.setSpeed(kKokoroSpeedStages[
-        settings.get('kokoroSpeedStage', defaultValue: kKokoroDefaultSpeedStage)
-            as int]);
+    _tts.setSpeed(kKokoroSpeedStages[settings.get('kokoroSpeedStage',
+        defaultValue: kKokoroDefaultSpeedStage) as int]);
     _tts.setVolume(
         (settings.get('kokoroVolume', defaultValue: 1.0) as num).toDouble());
-    unawaited(_tts.init('it'));
+    // Warms the TTS engine in the stored voice-language preference rather
+    // than a hardcoded 'it', same fallback MapScreen's own startup warm-up
+    // uses.
+    final startLang = settings.get('language', defaultValue: '') as String;
+    unawaited(_tts.init(startLang.isNotEmpty ? startLang : 'it'));
     unawaited(_refreshHomeIdentity());
+
+    _screenPolicyListenable = SettingsListenable.forKeys(
+        const ['keepScreenOn', 'keepScreenOnAlways', 'minBrightness']);
+    _screenPolicyListenable.addListener(_applyScreenPolicy);
+    _applyScreenPolicy();
+
+    // Default ON, same as MapScreen: a navigation app should warm up GPS at
+    // launch. Turning this off in Settings leaves the map at its neutral
+    // view instead of jumping to the driver until they tap the GPS FAB —
+    // the GPS stream itself still starts (this screen's speed-camera/ZTL/
+    // speed-limit caches all depend on a live fix regardless of whether the
+    // camera follows it), which is the one place this diverges from
+    // MapScreen's own stricter "don't even acquire a fix" reading of the
+    // setting.
+    _followUser =
+        settings.get('autoCenterOnLaunch', defaultValue: true) == true;
     unawaited(_gps.start());
     _gpsSub = _gps.stream.listen(_onGps);
   }
@@ -454,11 +534,112 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     }
   }
 
+  /// Subscribes to the device magnetometer and accelerometer to compute a
+  /// tilt-compensated compass bearing — ported unchanged from
+  /// MapScreen._startCompass. All processing is on-device; no data is
+  /// transmitted to any external server.
+  void _startCompass() {
+    _accelSub = accelerometerEventStream().listen((e) => _lastAccel = e);
+    _magnetSub = magnetometerEventStream().listen((mag) {
+      final acc = _lastAccel;
+      if (acc == null) return;
+      final az = _compassAzimuth(acc, mag);
+      if (!az.isFinite) return;
+
+      // Exponential low-pass filter with wrap-around. α=0.15: slow enough to
+      // suppress sensor noise, fast enough to feel responsive.
+      double diff = az - _compassHeading;
+      while (diff > 180) {
+        diff -= 360;
+      }
+      while (diff < -180) {
+        diff += 360;
+      }
+      _compassHeading += diff * 0.15;
+      _compassHeading = _compassHeading % 360;
+      if (_compassHeading < 0) _compassHeading += 360;
+
+      // Throttled to ~10 Hz, same reason as MapScreen: the raw ~50 Hz stream
+      // overwhelms the camera controller with more moveCamera calls than it
+      // can settle, which shows up as oscillation rather than smoothness.
+      final now = DateTime.now().millisecondsSinceEpoch;
+      if (now - _lastCompassUiMs >= 100) {
+        _lastCompassUiMs = now;
+        // The compass owns the heading only while standing still and not
+        // navigating — in motion the magnetometer reports where the phone
+        // points, which in a cradle or a pocket is not where the car points.
+        if (mounted &&
+            !_isNavigating &&
+            !_headingFilter.isMoving &&
+            _headingMode &&
+            _followUser) {
+          final base = _camState;
+          if (base != null) {
+            _targetState = CameraFollowState(
+                lat: base.lat,
+                lng: base.lng,
+                zoom: base.zoom,
+                rotDeg: _compassHeading);
+            _startFollowTicker();
+          }
+        }
+      }
+    });
+  }
+
+  /// Tilt-compensated compass azimuth (degrees, 0 = North, clockwise) —
+  /// ported unchanged from MapScreen._compassAzimuth. See that method's own
+  /// doc comment for the full derivation; all computation is on-device.
+  double _compassAzimuth(AccelerometerEvent acc, MagnetometerEvent mag) {
+    double gx = -acc.x, gy = -acc.y, gz = -acc.z;
+    final gN = math.sqrt(gx * gx + gy * gy + gz * gz);
+    if (gN < 0.1) return _compassHeading;
+    gx /= gN;
+    gy /= gN;
+    gz /= gN;
+
+    double ex = gy * mag.z - gz * mag.y;
+    double ey = gz * mag.x - gx * mag.z;
+    double ez = gx * mag.y - gy * mag.x;
+    final eN = math.sqrt(ex * ex + ey * ey + ez * ez);
+    if (eN < 0.1) return _compassHeading;
+    ex /= eN;
+    ey /= eN;
+    ez /= eN;
+
+    final nz = ex * gy - ey * gx;
+
+    var az = math.atan2(-ez, -nz) * 180 / math.pi;
+    if (az < 0) az += 360;
+    return az;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Same battery-saving split MapScreen's own lifecycle handler uses for
+    // the compass specifically: stop the sensor streams while backgrounded,
+    // restart on return. GPS itself is left to GpsService/the OS foreground
+    // service — this screen doesn't yet mirror MapScreen's separate
+    // idle-stop-with-grace-period timer for the location stream, only the
+    // compass half of that lifecycle handling.
+    switch (state) {
+      case AppLifecycleState.paused:
+        _magnetSub?.cancel();
+        _magnetSub = null;
+        _accelSub?.cancel();
+        _accelSub = null;
+      case AppLifecycleState.resumed:
+        if (_magnetSub == null) _startCompass();
+      default:
+        break;
+    }
+  }
+
   /// Same storage shape MapScreen._loadFavorites reads — one JSON string per
   /// favourite in the 'favorites' list.
   void _loadFavorites() {
-    final raw =
-        Hive.box('settings').get('favorites', defaultValue: <dynamic>[]) as List;
+    final raw = Hive.box('settings').get('favorites', defaultValue: <dynamic>[])
+        as List;
     _favorites = raw
         .whereType<String>()
         .map((s) {
@@ -481,6 +662,106 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
             f.label.toLowerCase().contains(q) ||
             f.address.toLowerCase().contains(q))
         .toList();
+  }
+
+  /// Same storage shape MapScreen._loadHistory reads.
+  void _loadHistory() {
+    final raw = Hive.box('settings')
+        .get('searchHistory', defaultValue: <dynamic>[]) as List<dynamic>;
+    _history = raw
+        .whereType<String>()
+        .map((s) {
+          try {
+            return SearchHistoryItem.fromJsonSafe(
+                jsonDecode(s) as Map<String, dynamic>);
+          } catch (_) {
+            return null;
+          }
+        })
+        .whereType<SearchHistoryItem>()
+        .take(100)
+        .toList();
+  }
+
+  /// Records a confirmed destination — same MapScreen._saveToHistory,
+  /// deduping by position (a re-searched place moves to the top rather than
+  /// appearing twice) and capping at 5 recent entries.
+  void _saveToHistory(String label, LatLng pos) {
+    final item = SearchHistoryItem(label, pos);
+    final updated = [
+      item,
+      ..._history.where((h) =>
+          (h.position.latitude - pos.latitude).abs() > 0.0001 ||
+          (h.position.longitude - pos.longitude).abs() > 0.0001),
+    ];
+    if (updated.length > 5) updated.removeRange(5, updated.length);
+    setState(() => _history = updated);
+    Hive.box('settings').put(
+        'searchHistory', updated.map((h) => jsonEncode(h.toJson())).toList());
+  }
+
+  void _clearHistory() {
+    setState(() => _history = []);
+    Hive.box('settings').delete('searchHistory');
+  }
+
+  /// On startup, pull the encrypted favourites snapshot from Nostr and merge
+  /// it in — same MapScreen._autoRestoreFavorites, ported directly.
+  /// Best-effort and silent: no network keys, nothing synced, or a
+  /// passphrase-locked snapshot all just skip. Never removes a local
+  /// favourite, only adds/updates.
+  Future<void> _autoRestoreFavorites() async {
+    try {
+      final pub = await _secStorage.read(key: 'nostr_pub_hex');
+      if (pub == null) return;
+      final priv = await _secStorage.read(key: 'nostr_priv_hex');
+      final pass = await _secStorage.read(key: 'favorites_sync_passphrase') ??
+          Hive.box('settings').get('fav_sync_pass') as String?;
+      final result = await _favSyncSvc.pull(
+          pubKeyHex: pub, privKeyHex: priv, passphrase: pass);
+      final fetched = result.favorites;
+      if (fetched == null || fetched.isEmpty || !mounted) return;
+      var changed = false;
+      for (final f in fetched) {
+        final i = _favorites.indexWhere((e) => e.label == f.label);
+        if (i >= 0) {
+          _favorites[i] = f;
+        } else {
+          _favorites.add(f);
+        }
+        changed = true;
+      }
+      if (_favorites.length > FavoritePlace.maxStoredItems) {
+        _favorites.removeRange(FavoritePlace.maxStoredItems, _favorites.length);
+      }
+      if (!changed) return;
+      Hive.box('settings').put(
+          'favorites', _favorites.map((f) => jsonEncode(f.toMap())).toList());
+      if (mounted) setState(() {});
+    } catch (_) {
+      // Auto-restore is best-effort; manual pull (Settings) remains available.
+    }
+  }
+
+  /// Screen-wake and minimum-brightness policy — same MapScreen._applyScreenPolicy.
+  void _applyScreenPolicy() {
+    final box = Hive.box('settings');
+    final navWantsAwake =
+        _isNavigating && (box.get('keepScreenOn', defaultValue: true) as bool);
+    final alwaysAwake =
+        box.get('keepScreenOnAlways', defaultValue: false) as bool;
+    if (navWantsAwake || alwaysAwake) {
+      WakelockPlus.enable();
+    } else {
+      WakelockPlus.disable();
+    }
+    final floor =
+        (box.get('minBrightness', defaultValue: 0.0) as num).toDouble();
+    if (floor > 0) {
+      unawaited(ScreenBrightness().setApplicationScreenBrightness(floor));
+    } else {
+      unawaited(ScreenBrightness().resetApplicationScreenBrightness());
+    }
   }
 
   void _loadParkingPosition() {
@@ -542,7 +823,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                      color: c.border, borderRadius: BorderRadius.circular(2)))),
+                      color: c.border,
+                      borderRadius: BorderRadius.circular(2)))),
           const SizedBox(height: 14),
           Row(children: [
             Container(
@@ -576,11 +858,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                 },
                 style: FilledButton.styleFrom(
                   backgroundColor: c.accent,
-                  shape:
-                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(vertical: 13),
                 ),
-                icon: const Icon(Icons.directions, color: Colors.white, size: 18),
+                icon:
+                    const Icon(Icons.directions, color: Colors.white, size: 18),
                 label: Text(l.parkingNavigateHere,
                     style: const TextStyle(color: Colors.white)),
               ),
@@ -595,14 +878,14 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                 },
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(color: Colors.red.withValues(alpha: 0.6)),
-                  shape:
-                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(vertical: 13),
                 ),
                 icon: const Icon(Icons.delete_outline_rounded,
                     color: Colors.red, size: 18),
-                label:
-                    Text(l.parkingRemove, style: const TextStyle(color: Colors.red)),
+                label: Text(l.parkingRemove,
+                    style: const TextStyle(color: Colors.red)),
               ),
             ),
           ] else
@@ -617,8 +900,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                       },
                 style: FilledButton.styleFrom(
                   backgroundColor: Colors.blue.shade400,
-                  shape:
-                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(vertical: 13),
                 ),
                 icon: const Icon(Icons.local_parking_rounded,
@@ -733,6 +1016,11 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _screenPolicyListenable.removeListener(_applyScreenPolicy);
+    unawaited(ScreenBrightness().resetApplicationScreenBrightness());
+    _magnetSub?.cancel();
+    _accelSub?.cancel();
     _gpsSub?.cancel();
     _followTicker?.cancel();
     _searchDebounce?.cancel();
@@ -743,27 +1031,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     super.dispose();
   }
 
-  /// Tears down everything that could still call into the native map view
-  /// (the follow ticker, most directly) before asking Navigator to pop —
-  /// not after. dispose() runs once the pop's own transition settles, which
-  /// leaves a window where a stray 16 ms ticker frame can still fire a
-  /// moveCamera against a platform view partway through being torn down.
-  /// The reported freeze on the back button is consistent with exactly
-  /// that: a method-channel call left waiting on a native view that isn't
-  /// answering back. Whether this is that, or a lower-level bug in a
-  /// pre-1.0 plugin (its 0.3.6 changelog lists more than one platform-view
-  /// disposal fix already), this at least removes the one call site in this
-  /// screen that could trigger it.
-  void _exitScreen() {
-    _followTicker?.cancel();
-    _followTicker = null;
-    _controller = null;
-    Navigator.of(context).pop();
-  }
-
   Future<void> _searchNearby(NearbyCategory category) async {
     if (_lastFix == null) return;
-    final pos = LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
+    final pos =
+        LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
       _nearbyCategory = category;
@@ -771,7 +1042,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
       _searching = true;
     });
     final results = await _poiSvc.nearby(category, pos,
-        unnamedLabel: nearbyCategoryLabel(category, AppLocalizations.of(context)));
+        unnamedLabel:
+            nearbyCategoryLabel(category, AppLocalizations.of(context)));
     if (!mounted) return;
     setState(() {
       _searchResults = results;
@@ -811,18 +1083,21 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
       _searchController.clear();
     });
     FocusManager.instance.primaryFocus?.unfocus();
-    await _onDestinationPicked(result.position);
+    await _onDestinationPicked(result.position, label: result.shortName);
   }
 
   /// Routes a picked position to either a fresh destination search or a
   /// mid-journey stop, depending on which search flow is open. Shared by
   /// search-result selection, favourite selection and nearby-category
   /// results, so all three ways of picking a place go through one place.
-  Future<void> _onDestinationPicked(LatLng pos) async {
+  /// [label], when given, is recorded to search history — only for an
+  /// actual destination, same as MapScreen: a mid-journey stop isn't one.
+  Future<void> _onDestinationPicked(LatLng pos, {String? label}) async {
     if (_pickingWaypoint) {
       await _addWaypoint(pos);
       return;
     }
+    if (label != null && label.isNotEmpty) _saveToHistory(label, pos);
     await _calculateRouteTo(pos);
   }
 
@@ -882,8 +1157,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     // A fresh destination starts a new journey — any stop added to a
     // previous one no longer applies.
     _activeVia = const [];
-    ({RouteResult route, List<({List<LatLng> points, bool restricted})> runs})?
-        fetched;
+    ({
+      RouteResult route,
+      List<({List<LatLng> points, bool restricted})> runs
+    })? fetched;
     try {
       fetched = await _fetchRoute(origin, dest);
     } catch (_) {
@@ -907,7 +1184,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     if (controller == null || fetched.route.polyline.isEmpty) return;
     unawaited(controller.fitBounds(
       bounds: LngLatBounds.fromPoints([
-        for (final p in fetched.route.polyline) Geographic(lon: p.longitude, lat: p.latitude),
+        for (final p in fetched.route.polyline)
+          Geographic(lon: p.longitude, lat: p.latitude),
       ]),
       padding: const EdgeInsets.all(48),
       pitch: 0,
@@ -927,7 +1205,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
 
   void _showSnack(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   /// Same provider-resolution logic as MapScreen._resolveProvider, ported
@@ -947,7 +1226,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   Future<({RoutingProvider provider, String? apiKey, String? ghServer})>
       _resolveProvider() async {
     final box = Hive.box('settings');
-    final providerKey = box.get('routingProvider', defaultValue: 'osrm') as String;
+    final providerKey =
+        box.get('routingProvider', defaultValue: 'osrm') as String;
     if (providerKey == 'osrm') {
       return (provider: RoutingProvider.osrm, apiKey: null, ghServer: null);
     }
@@ -999,8 +1279,11 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   /// Fetches a route from [origin] to [dest] and classifies it against ZTL —
   /// the work shared between a fresh destination pick and a reroute, so
   /// there is one place that does it, not two that can drift apart.
-  Future<({RouteResult route, List<({List<LatLng> points, bool restricted})> runs})?>
-      _fetchRoute(LatLng origin, LatLng dest, {List<LatLng>? via}) async {
+  Future<
+      ({
+        RouteResult route,
+        List<({List<LatLng> points, bool restricted})> runs
+      })?> _fetchRoute(LatLng origin, LatLng dest, {List<LatLng>? via}) async {
     final (:provider, :apiKey, :ghServer) = await _resolveProvider();
     if (!mounted) return null;
     final routes = await RoutingService.getRoutes(origin, dest,
@@ -1032,6 +1315,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
       _arrived = false;
       _activeVia = const [];
     });
+    _applyScreenPolicy();
   }
 
   /// Distance off the route polyline past which the driver is no longer
@@ -1075,13 +1359,18 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     _cumDist = RouteProgress.cumulativeDistances(fetched.route.polyline);
     _stepCumDist = [
       for (final step in fetched.route.steps)
-        _cumDist[RouteProgress.nearestIndex(fetched.route.polyline, step.location)],
+        _cumDist[
+            RouteProgress.nearestIndex(fetched.route.polyline, step.location)],
     ];
     // A rerouted step list is a different array — yesterday's announced
     // indices mean nothing against it, and would silently block every
     // announcement on the new route until they happened to be overwritten.
     _ttsAnnouncedFarIdx = -1;
     _ttsAnnouncedNearIdx = -1;
+    // A rerouted polyline invalidates the windowed segment search's cached
+    // index just as much as the step-index arrays above.
+    _nearestRouteSegmentIdx = 0;
+    _routeProgressM = 0;
     setState(() {
       _route = fetched.route;
       _routeRuns = fetched.runs;
@@ -1103,6 +1392,19 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     _ttsAnnouncedFarIdx = -1;
     _ttsAnnouncedNearIdx = -1;
     _headingFilter.reset();
+    _nearestRouteSegmentIdx = 0;
+    _routeProgressM = 0;
+    _minDistToDestM = double.infinity;
+    // Fetch the destination's building footprint (best-effort, one Overpass
+    // round-trip) — used by _checkArrival below.
+    final dest = _destination;
+    _destBuilding = null;
+    if (dest != null) {
+      unawaited(_poiSvc.buildingPolygonAt(dest).then((poly) {
+        if (!mounted || _destination != dest) return;
+        _destBuilding = poly;
+      }));
+    }
     setState(() {
       _isNavigating = true;
       _followUser = true;
@@ -1115,7 +1417,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     // (zoomed out, top-down, centred on the whole route) — nothing snapped
     // it back onto the driver when the trip actually started, so navigation
     // began on a wide overview instead of the driving view.
-    _snapCameraToFix(navShift: _headingMode);
+    _snapCameraToFix(navShift: _headingMode, pitch: 60.0);
+    _applyScreenPolicy();
     if (!_voiceMuted) unawaited(_tts.announceStart());
   }
 
@@ -1126,6 +1429,56 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
       _isNavigating = false;
       _arrived = false;
     });
+    _applyScreenPolicy();
+  }
+
+  /// Same confirmation dialog MapScreen shows before actually stopping —
+  /// ported directly, same l10n strings. Reachable from the NavPanel's stop
+  /// button and from the system back gesture while navigating (PopScope,
+  /// in build()).
+  void _showExitNavigationDialog() {
+    final c = RoadstrColors.of(context);
+    final l = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: c.surface2,
+        title: Row(children: [
+          Icon(Icons.navigation_rounded, color: c.accent, size: 20),
+          const SizedBox(width: 8),
+          Text(l.navExitTitle,
+              style: TextStyle(
+                  color: c.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold)),
+        ]),
+        content: Text(l.navExitBody,
+            style: TextStyle(color: c.textSecondary, fontSize: 13)),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: c.accent),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            child: Text(l.navContinue, style: TextStyle(color: c.accent)),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _stopNavigation();
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            child: Text(l.navExit, style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   /// Advances [_currentStepIdx] and recomputes [_distToNextStepM] from
@@ -1137,11 +1490,11 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     final pos = LatLng(data.position.latitude, data.position.longitude);
     final idx = RouteProgress.nearestIndex(route.polyline, pos);
     final routeProgressM = _cumDist[idx];
+    _routeProgressM = routeProgressM;
     final totalDist = route.totalDistanceM;
     final rem = (totalDist - routeProgressM).clamp(0.0, totalDist);
     _remainingDistM = rem;
-    _remainingSecs =
-        totalDist > 0 ? route.totalDurationS * rem / totalDist : 0;
+    _remainingSecs = totalDist > 0 ? route.totalDurationS * rem / totalDist : 0;
     // Route-embedded limit (OSRM/GH annotation) first, Overpass cache as
     // fallback — same preference MapScreen._updateRemainingStats uses.
     final routeLimit = route.speedLimitAt(routeProgressM);
@@ -1150,7 +1503,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
       unawaited(_speedLimitSvc.updateIfNeeded(pos));
     }
     while (_currentStepIdx + 1 < route.steps.length &&
-        _stepCumDist[_currentStepIdx + 1] <= routeProgressM + _advanceToleranceM) {
+        _stepCumDist[_currentStepIdx + 1] <=
+            routeProgressM + _advanceToleranceM) {
       _currentStepIdx++;
     }
     final isLast = _currentStepIdx >= route.steps.length - 1;
@@ -1158,12 +1512,54 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
         ? 0
         : (_stepCumDist[_currentStepIdx + 1] - routeProgressM)
             .clamp(0, double.infinity);
-    if (isLast && Geo.distanceM(pos, route.steps.last.location) < _arrivalRadiusM) {
-      _arrived = true;
-      if (!_voiceMuted) unawaited(_tts.announceArrival());
+    _checkArrival(pos, isLast);
+    if (!_voiceMuted && !isLast && !_arrived) {
+      _announceUpcoming(data.speedKmh, route);
+    }
+  }
+
+  /// Whether the driver has arrived — same multi-signal logic as
+  /// MapScreen._checkArrival, ported directly: never on route-progress alone
+  /// (only true GPS distance to the destination, which is what a router's
+  /// arrive-point sitting hundreds of metres short/past the actual door
+  /// can't fool), widened by GPS accuracy on the last step, then a
+  /// building-footprint check (OSM traces building outlines — stepping into
+  /// the destination's footprint IS arriving regardless of how far the
+  /// road-based arrive-point is), then a closest-approach fallback for a fix
+  /// that's simply never accurate enough to dip under any fixed radius.
+  void _checkArrival(LatLng pos, bool onLastStep) {
+    final dest = _destination;
+    if (dest == null) return;
+    final d = Geo.distanceM(pos, dest);
+    if (d < _minDistToDestM) _minDistToDestM = d;
+    final arrivalRadius = _transportMode == 'walking' ? 15.0 : 40.0;
+    final effectiveRadius =
+        onLastStep ? (_lastGpsAccuracy * 1.5).clamp(10.0, 40.0) : arrivalRadius;
+    if (d < effectiveRadius) {
+      _onArrival();
       return;
     }
-    if (!_voiceMuted && !isLast) _announceUpcoming(data.speedKmh, route);
+    final building = _destBuilding;
+    if (onLastStep &&
+        building != null &&
+        (Geo.pointInPolygon(pos, building) ||
+            Geo.distanceToPolylineM(pos, building) <= 10)) {
+      _onArrival();
+      return;
+    }
+    const closeEnoughM = 60.0;
+    const movingAwayMarginM = 20.0;
+    if (onLastStep &&
+        _minDistToDestM <= closeEnoughM &&
+        d > _minDistToDestM + movingAwayMarginM) {
+      _onArrival();
+    }
+  }
+
+  void _onArrival() {
+    if (_arrived) return;
+    _arrived = true;
+    if (!_voiceMuted) unawaited(_tts.announceArrival());
   }
 
   /// Two-stage far/near announcement for the maneuver after the current
@@ -1181,10 +1577,90 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
           route.steps[nextIdx].instruction,
           NavigationGuidance.spokenDistanceM(_distToNextStepM,
               imminentBelowM: t.near)));
-    } else if (_distToNextStepM < t.near + 30 && _ttsAnnouncedNearIdx != nextIdx) {
+    } else if (_distToNextStepM < t.near + 30 &&
+        _ttsAnnouncedNearIdx != nextIdx) {
       _ttsAnnouncedNearIdx = nextIdx;
       unawaited(_tts.announceManeuver(route.steps[nextIdx].instruction, 0));
     }
+  }
+
+  /// Finds the closest active-route segment in a moving window around the
+  /// previous match, same as MapScreen's own — a full scan of a long route on
+  /// every GPS/heading update can monopolise the UI thread; normal motion
+  /// only advances a handful of polyline points. A wide mismatch (>100 m)
+  /// falls back to a full scan, which recovers correctness after a GPS jump
+  /// or on a self-crossing route.
+  ({double distM, int segmentIdx})? _nearestActiveRouteSegment(LatLng pos) {
+    final poly = _route?.polyline;
+    if (poly == null || poly.length < 2) return null;
+    final lastSegment = poly.length - 2;
+    final start = math.max(0, _nearestRouteSegmentIdx - 100);
+    final end = math.min(lastSegment, _nearestRouteSegmentIdx + 500);
+    double bestDist = double.infinity;
+    var bestIdx = start;
+
+    void scan(int from, int through) {
+      for (var i = from; i <= through; i++) {
+        final d = Geo.distanceToSegmentM(pos, poly[i], poly[i + 1]);
+        if (d < bestDist) {
+          bestDist = d;
+          bestIdx = i;
+        }
+      }
+    }
+
+    scan(start, end);
+    if (bestDist > 100 && (start > 0 || end < lastSegment)) {
+      bestDist = double.infinity;
+      scan(0, lastSegment);
+    }
+    _nearestRouteSegmentIdx = bestIdx;
+    return (distM: bestDist, segmentIdx: bestIdx);
+  }
+
+  /// Among segments about as close as the nearest, the one whose position
+  /// along the route is closest to where the driver actually is — same
+  /// disambiguation MapScreen runs. At a roundabout the exit arm passes
+  /// within a few metres of the entry arm while pointing the opposite way;
+  /// "nearest in space" happily returns it, while progress along the route
+  /// cannot make that mistake (it advances monotonically).
+  int _segmentNearestInProgress(
+      LatLng pos, ({double distM, int segmentIdx}) nearest) {
+    final poly = _route?.polyline;
+    if (poly == null || _cumDist.length != poly.length) {
+      return nearest.segmentIdx;
+    }
+    final tolerance = math.max(nearest.distM * 1.6, 20.0);
+    final from = math.max(0, nearest.segmentIdx - 120);
+    final to = math.min(poly.length - 2, nearest.segmentIdx + 120);
+
+    var bestIdx = nearest.segmentIdx;
+    var bestProgressGap = double.infinity;
+    for (var i = from; i <= to; i++) {
+      if (Geo.distanceToSegmentM(pos, poly[i], poly[i + 1]) > tolerance) {
+        continue;
+      }
+      final gap = (_cumDist[i] - _routeProgressM).abs();
+      if (gap < bestProgressGap) {
+        bestProgressGap = gap;
+        bestIdx = i;
+      }
+    }
+    return bestIdx;
+  }
+
+  /// The route's own local direction near [pos], for HeadingFilter's
+  /// route-snap easing — same MapScreen._routeLocalBearingAt, using the two
+  /// helpers above.
+  ({double distM, double bearing})? _routeLocalBearingAt(LatLng pos) {
+    final nearest = _nearestActiveRouteSegment(pos);
+    if (nearest == null) return null;
+    final poly = _route!.polyline;
+    final idx = _segmentNearestInProgress(pos, nearest);
+    return (
+      distM: nearest.distM,
+      bearing: Geo.bearingBetween(poly[idx], poly[idx + 1])
+    );
   }
 
   void _onGps(GpsData data) {
@@ -1202,6 +1678,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     final moving = _headingFilter.updateMotion(sampleSpeed);
     final sampleAccuracy =
         data.accuracy.isFinite && data.accuracy > 0 ? data.accuracy : 20.0;
+    if (data.accuracy.isFinite && data.accuracy > 0) {
+      _lastGpsAccuracy = data.accuracy;
+    }
     final headingOrigin = _prevGpsPos;
     final effectiveHeading = _headingFilter.resolve(
       current: _bearing,
@@ -1211,7 +1690,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
       accuracyM: sampleAccuracy,
       providerHeading: data.heading,
       navigating: _isNavigating,
-      routeLocalBearingAt: null,
+      routeLocalBearingAt: _route == null ? null : _routeLocalBearingAt,
     );
     if (!moving) {
       _prevGpsPos = null;
@@ -1250,7 +1729,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     unawaited(_ztl.updateIfNeeded(data.position));
     if (!_followUser) return;
     final rotDeg = _headingMode
-        ? ((_isNavigating || moving) ? effectiveHeading : (_camState?.rotDeg ?? 0))
+        ? ((_isNavigating || moving)
+            ? effectiveHeading
+            : (_camState?.rotDeg ?? 0))
         : 0.0;
     final zoom = _camState?.zoom ?? 17;
     // In heading-up navigation shift the camera ahead so the cursor sits
@@ -1292,7 +1773,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
       final nowMs = DateTime.now().millisecondsSinceEpoch;
       final dtMs = (nowMs - (_lastFollowFrameMs ?? nowMs)).clamp(1, 100);
       _lastFollowFrameMs = nowMs;
-      final next = CameraFollowEasing.step(from: from, target: target, dtMs: dtMs);
+      final next =
+          CameraFollowEasing.step(from: from, target: target, dtMs: dtMs);
       if (next == null) return;
       _camState = next;
       unawaited(controller.moveCamera(
@@ -1309,7 +1791,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
 
   void _recenter() {
     setState(() => _followUser = true);
-    _snapCameraToFix(navShift: _isNavigating && _headingMode);
+    _snapCameraToFix(
+        navShift: _isNavigating && _headingMode,
+        pitch: _isNavigating ? 60.0 : 45.0);
   }
 
   /// Snaps the camera onto the current GPS fix immediately — a request to
@@ -1318,7 +1802,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   /// explicit action. [navShift] applies the same forward offset the
   /// follow ticker uses in heading-up navigation, so recentring while
   /// driving doesn't undo it.
-  void _snapCameraToFix({required bool navShift}) {
+  void _snapCameraToFix({required bool navShift, required double pitch}) {
     final fix = _lastFix;
     final controller = _controller;
     if (fix == null || controller == null) return;
@@ -1328,11 +1812,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
         ? CameraFollowEasing.navCameraCenter(
             fix.position.latitude, fix.position.longitude, rotDeg, zoom)
         : (fix.position.latitude, fix.position.longitude);
-    _camState = CameraFollowState(lat: lat, lng: lng, zoom: zoom, rotDeg: rotDeg);
+    _camState =
+        CameraFollowState(lat: lat, lng: lng, zoom: zoom, rotDeg: rotDeg);
     unawaited(controller.animateCamera(
       center: Geographic(lon: lng, lat: lat),
       zoom: zoom,
-      pitch: 45,
+      pitch: pitch,
       bearing: rotDeg,
     ));
   }
@@ -1340,16 +1825,26 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = context.watch<ThemeProvider>().effective.isDark;
-    final c = AppTheme.build(isDark ? AppThemeId.darkNostr : AppThemeId.lightNostr)
-        .extension<RoadstrColors>()!;
+    final c =
+        AppTheme.build(isDark ? AppThemeId.darkNostr : AppThemeId.lightNostr)
+            .extension<RoadstrColors>()!;
+    // Same custom-server override MapScreen's tile layer reads — a
+    // self-hosted or alternate raster source, same default as MapScreen's
+    // own RoadstrColors.mapTile.
+    final tileUrl = Hive.box('settings')
+        .get('mapTileUrl', defaultValue: _roadstrTileUrl) as String;
     // setStyle only after onMapCreated hands us a controller — until then
     // the initial style picks the right one so there's no light-then-dark
-    // flash on first frame.
-    if (_stylingDark != null && _stylingDark != isDark) {
+    // flash on first frame. Also re-applied if the custom tile URL changes
+    // mid-session (edited in Settings while this screen is open).
+    if (_stylingDark != null &&
+        (_stylingDark != isDark || _stylingTileUrl != tileUrl)) {
       _stylingDark = isDark;
-      _controller?.setStyle(_style(dark: isDark));
+      _stylingTileUrl = tileUrl;
+      _controller?.setStyle(_style(dark: isDark, tileUrl: tileUrl));
     }
     _stylingDark ??= isDark;
+    _stylingTileUrl ??= tileUrl;
 
     // Same walking/cycling override MapScreen's cursor uses — the ostrich
     // and bicycle sprites only appear while actually navigating on foot or
@@ -1359,498 +1854,543 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
       transportMode: _transportMode,
       storedDrivingStyle: Hive.box('settings').get(CursorStyle.storageKey),
     );
-    final isCharacterCursor =
-        cursorStyle == CursorStyle.ostrich || cursorStyle == CursorStyle.bicycle;
+    final isCharacterCursor = cursorStyle == CursorStyle.ostrich ||
+        cursorStyle == CursorStyle.bicycle;
 
-    return Scaffold(
-      body: Stack(children: [
-        MapLibreMap(
-          options: MapOptions(
-            initStyle: _style(dark: isDark),
-            initCenter: const Geographic(lon: 12.5, lat: 42.5),
-            initZoom: 17,
-            initPitch: 45,
-            gestures: const MapGestures.all(),
-          ),
-          onMapCreated: (controller) => _controller = controller,
-          onEvent: (event) {
-            if (event is MapEventStartMoveCamera &&
-                event.reason == CameraChangeReason.apiGesture) {
-              setState(() => _followUser = false);
-            } else if (event is MapEventClick &&
-                !_isNavigating &&
-                !_calculatingRoute) {
-              // Tapping a point sets it as the destination directly — no
-              // reverse-geocoded label, unlike MapScreen's long-press
-              // context menu, since there's nowhere here yet to show one.
-              unawaited(_calculateRouteTo(
-                  LatLng(event.point.lat, event.point.lon)));
-            } else if (event is MapEventMoveCamera &&
-                ((event.camera.pitch - _pitch).abs() > 0.5 ||
-                    (event.camera.bearing - _bearing).abs() > 0.5)) {
-              // >0.5° gate: both gestures fire this on every native frame,
-              // and neither the shadow nor the compass needle needs finer
-              // resolution than that to look continuous.
-              setState(() {
-                _pitch = event.camera.pitch;
-                _bearing = event.camera.bearing;
-              });
-            }
-          },
-          // A wide, translucent glow pass under a narrower solid core per
-          // run — an approximation of MapScreen's "laser" route rendering
-          // (halo + glow + two coloured rails), collapsed to two passes
-          // since PolylineLayer here colours a whole layer, not a single
-          // Polyline the way flutter_map's does.
-          layers: [
-            for (final run in _routeRuns) ...[
-              PolylineLayer(
-                polylines: [
-                  Feature(
-                      geometry: LineString.from(run.points.map(
-                          (p) => Geographic(lon: p.longitude, lat: p.latitude))))
-                ],
-                color: (run.restricted ? _kZtlRed : c.accent)
-                    .withValues(alpha: 0.28),
-                width: 18,
-              ),
-              PolylineLayer(
-                polylines: [
-                  Feature(
-                      geometry: LineString.from(run.points.map(
-                          (p) => Geographic(lon: p.longitude, lat: p.latitude))))
-                ],
-                color: run.restricted ? _kZtlRed : c.accent,
-                width: 9,
-              ),
-            ],
-          ],
-          children: [
-            if (_speedCameraSvc.cachedCameras.isNotEmpty ||
-                _parkingPosition != null)
-              WidgetLayer(markers: [
-                for (final cam in _speedCameraSvc.cachedCameras)
-                  Marker(
-                    point: Geographic(
-                        lon: cam.position.longitude, lat: cam.position.latitude),
-                    size: const Size(30, 30),
-                    child: const OsmCameraPin(),
-                  ),
-                if (_parkingPosition != null)
-                  Marker(
-                    point: Geographic(
-                        lon: _parkingPosition!.longitude,
-                        lat: _parkingPosition!.latitude),
-                    size: const Size(38, 38),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade600,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black38, blurRadius: 5)
-                        ],
-                      ),
-                      child: const Icon(Icons.local_parking_rounded,
-                          color: Colors.white, size: 20),
-                    ),
-                  ),
-              ]),
-            if (_lastFix != null)
-              WidgetLayer(markers: [
-                Marker(
-                  point: Geographic(
-                      lon: _lastFix!.position.longitude,
-                      lat: _lastFix!.position.latitude),
-                  // Taller than the cursor itself: the shadow needs room to
-                  // stretch below it without being clipped by the marker's
-                  // own bounding box.
-                  size: const Size(48, 76),
-                  // Not rotate:true — the camera already turns to face the
-                  // direction of travel each fix (bearing: data.heading in
-                  // _onGps), the same heading-up convention MapScreen's own
-                  // nav camera uses. With the map already doing that turning,
-                  // the cursor's job is only to sit still pointing up, the
-                  // way every nav app's own vehicle icon does; pointing it at
-                  // the true heading too would rotate it twice.
-                  //
-                  // flat: true, though — without it the marker stays a
-                  // billboard facing the camera dead-on regardless of pitch,
-                  // which is why tilting with two fingers didn't visibly tilt
-                  // the cursor. flat makes it lie down with the tilted ground
-                  // plane, the way a nav app's own puck looks like it's
-                  // sitting on the road once the camera pitches.
-                  flat: true,
-                  child: isCharacterCursor
-                      // Ostrich/bicycle: the existing animated sprite system,
-                      // unmodified — no baked shadow to duplicate here the
-                      // way arrow.svg had, so there's nothing to rebuild.
-                      ? UserMarker(
-                          heading: 0,
-                          accent: c.accent,
-                          cursorStyle: cursorStyle,
-                          cursorColor: CursorColor.fromStorage(Hive.box('settings')
-                              .get(CursorColor.storageKey)),
-                          ostrichIsMoving: (_lastFix?.speedKmh ?? 0) >= 1.0,
-                          ostrichSpeedKmh: _lastFix?.speedKmh ?? 0,
-                        )
-                      : _MaplibreCursor(
-                          pitch: _pitch,
-                          color: CursorColor.fromStorage(
-                                  Hive.box('settings').get(CursorColor.storageKey))
-                              .value,
-                        ),
+    return PopScope(
+      // Same split MapScreen's own PopScope uses: search and navigation both
+      // claim the system back gesture instead of letting it exit — search
+      // closes (there's no on-screen back button any more to do it), and
+      // navigation asks for confirmation instead of just stopping.
+      canPop: !_showSearch && !_isNavigating,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (_showSearch) {
+          FocusManager.instance.primaryFocus?.unfocus();
+          _searchController.clear();
+          setState(() {
+            _showSearch = false;
+            _searchResults = [];
+            _nearbyCategory = null;
+            _pickingWaypoint = false;
+          });
+        } else if (_isNavigating) {
+          _showExitNavigationDialog();
+        }
+      },
+      child: Scaffold(
+        body: Stack(children: [
+          MapLibreMap(
+            options: MapOptions(
+              initStyle: _style(dark: isDark, tileUrl: tileUrl),
+              initCenter: const Geographic(lon: 12.5, lat: 42.5),
+              initZoom: 17,
+              initPitch: 45,
+              gestures: const MapGestures.all(),
+            ),
+            onMapCreated: (controller) => _controller = controller,
+            onEvent: (event) {
+              if (event is MapEventStartMoveCamera &&
+                  event.reason == CameraChangeReason.apiGesture) {
+                setState(() => _followUser = false);
+              } else if (event is MapEventClick &&
+                  !_isNavigating &&
+                  !_calculatingRoute) {
+                // Tapping a point sets it as the destination directly — no
+                // reverse-geocoded label, unlike MapScreen's long-press
+                // context menu, since there's nowhere here yet to show one.
+                unawaited(_calculateRouteTo(
+                    LatLng(event.point.lat, event.point.lon)));
+              } else if (event is MapEventMoveCamera &&
+                  ((event.camera.pitch - _pitch).abs() > 0.5 ||
+                      (event.camera.bearing - _bearing).abs() > 0.5)) {
+                // >0.5° gate: both gestures fire this on every native frame,
+                // and neither the shadow nor the compass needle needs finer
+                // resolution than that to look continuous.
+                setState(() {
+                  _pitch = event.camera.pitch;
+                  _bearing = event.camera.bearing;
+                });
+              }
+            },
+            // A wide, translucent glow pass under a narrower solid core per
+            // run — an approximation of MapScreen's "laser" route rendering
+            // (halo + glow + two coloured rails), collapsed to two passes
+            // since PolylineLayer here colours a whole layer, not a single
+            // Polyline the way flutter_map's does.
+            layers: [
+              for (final run in _routeRuns) ...[
+                PolylineLayer(
+                  polylines: [
+                    Feature(
+                        geometry: LineString.from(run.points.map((p) =>
+                            Geographic(lon: p.longitude, lat: p.latitude))))
+                  ],
+                  color: (run.restricted ? _kZtlRed : c.accent)
+                      .withValues(alpha: 0.28),
+                  width: 18,
                 ),
-              ]),
-          ],
-        ),
-        Positioned(
-          top: MediaQuery.of(context).padding.top + 12,
-          left: 12,
-          right: 12,
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            // Search hidden once navigating, except while picking a mid-route
-            // stop — same as MapScreen: adding a waypoint reuses the same
-            // search UI a fresh destination search does.
-            if (!_isNavigating || _pickingWaypoint) ...[
-              Row(children: [
-                Material(
-                  color: c.surface2.withValues(alpha: 0.92),
-                  shape: const CircleBorder(),
-                  child: IconButton(
-                    icon: Icon(Icons.arrow_back, color: c.textPrimary),
-                    onPressed: () {
-                      if (_showSearch) {
-                        FocusManager.instance.primaryFocus?.unfocus();
-                        setState(() {
-                          _showSearch = false;
-                          _pickingWaypoint = false;
-                        });
-                      } else {
-                        _exitScreen();
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: PlaceSearchBar(
-                    controller: _searchController,
-                    colors: c,
-                    onFocus: () => setState(() => _showSearch = true),
-                    onChanged: _onSearchChanged,
-                    onSubmitted: (_) {},
-                    onClear: () {
-                      _searchController.clear();
-                      setState(() {
-                        _searchResults = [];
-                        _nearbyCategory = null;
-                      });
-                    },
-                  ),
-                ),
-              ]),
-              // Nothing typed yet: offer the one-tap nearby categories —
-              // same PoiSearchService MapScreen uses, reused as-is.
-              if (_showSearch && _searchController.text.isEmpty) ...[
-                const SizedBox(height: 8),
-                NearbyBar(
-                  colors: c,
-                  enabled: _lastFix != null,
-                  selected: _nearbyCategory,
-                  onSelect: _searchNearby,
+                PolylineLayer(
+                  polylines: [
+                    Feature(
+                        geometry: LineString.from(run.points.map((p) =>
+                            Geographic(lon: p.longitude, lat: p.latitude))))
+                  ],
+                  color: run.restricted ? _kZtlRed : c.accent,
+                  width: 9,
                 ),
               ],
-              if (_showSearch &&
-                  (_searching ||
-                      _searchResults.isNotEmpty ||
-                      _nearbyCategory != null ||
-                      _matchingFavorites(_searchController.text).isNotEmpty)) ...[
-                const SizedBox(height: 8),
-                SearchResultsList(
-                  results: _searchResults,
-                  isLoading: _searching,
-                  favorites: _matchingFavorites(_searchController.text),
+            ],
+            children: [
+              if (_speedCameraSvc.cachedCameras.isNotEmpty ||
+                  _parkingPosition != null)
+                WidgetLayer(markers: [
+                  for (final cam in _speedCameraSvc.cachedCameras)
+                    Marker(
+                      point: Geographic(
+                          lon: cam.position.longitude,
+                          lat: cam.position.latitude),
+                      size: const Size(30, 30),
+                      child: const OsmCameraPin(),
+                    ),
+                  if (_parkingPosition != null)
+                    Marker(
+                      point: Geographic(
+                          lon: _parkingPosition!.longitude,
+                          lat: _parkingPosition!.latitude),
+                      size: const Size(38, 38),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade600,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                          boxShadow: const [
+                            BoxShadow(color: Colors.black38, blurRadius: 5)
+                          ],
+                        ),
+                        child: const Icon(Icons.local_parking_rounded,
+                            color: Colors.white, size: 20),
+                      ),
+                    ),
+                ]),
+              if (_lastFix != null)
+                WidgetLayer(markers: [
+                  Marker(
+                    point: Geographic(
+                        lon: _lastFix!.position.longitude,
+                        lat: _lastFix!.position.latitude),
+                    // Taller than the cursor itself: the shadow needs room to
+                    // stretch below it without being clipped by the marker's
+                    // own bounding box.
+                    size: const Size(48, 76),
+                    // Not rotate:true — the camera already turns to face the
+                    // direction of travel each fix (bearing: data.heading in
+                    // _onGps), the same heading-up convention MapScreen's own
+                    // nav camera uses. With the map already doing that turning,
+                    // the cursor's job is only to sit still pointing up, the
+                    // way every nav app's own vehicle icon does; pointing it at
+                    // the true heading too would rotate it twice.
+                    //
+                    // flat: true, though — without it the marker stays a
+                    // billboard facing the camera dead-on regardless of pitch,
+                    // which is why tilting with two fingers didn't visibly tilt
+                    // the cursor. flat makes it lie down with the tilted ground
+                    // plane, the way a nav app's own puck looks like it's
+                    // sitting on the road once the camera pitches.
+                    flat: true,
+                    child: isCharacterCursor
+                        // Ostrich/bicycle: the existing animated sprite system,
+                        // unmodified — no baked shadow to duplicate here the
+                        // way arrow.svg had, so there's nothing to rebuild.
+                        ? UserMarker(
+                            heading: 0,
+                            accent: c.accent,
+                            cursorStyle: cursorStyle,
+                            cursorColor: CursorColor.fromStorage(
+                                Hive.box('settings')
+                                    .get(CursorColor.storageKey)),
+                            ostrichIsMoving: (_lastFix?.speedKmh ?? 0) >= 1.0,
+                            ostrichSpeedKmh: _lastFix?.speedKmh ?? 0,
+                          )
+                        : _MaplibreCursor(
+                            pitch: _pitch,
+                            color: CursorColor.fromStorage(Hive.box('settings')
+                                    .get(CursorColor.storageKey))
+                                .value,
+                          ),
+                  ),
+                ]),
+            ],
+          ),
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 12,
+            left: 12,
+            right: 12,
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              // Search hidden once navigating, except while picking a mid-route
+              // stop — same as MapScreen: adding a waypoint reuses the same
+              // search UI a fresh destination search does.
+              if (!_isNavigating || _pickingWaypoint) ...[
+                // No back arrow here — MapScreen's home screen never had one
+                // either: PlaceSearchBar's own clear (×) button closes search
+                // once there's text to clear, and the system back gesture
+                // (PopScope, below) closes it the rest of the way.
+                PlaceSearchBar(
+                  controller: _searchController,
                   colors: c,
-                  emptyMessage: _nearbyCategory == null
-                      ? null
-                      : AppLocalizations.of(context).nearbyNothingFound,
-                  onSelect: (r) {
-                    setState(() => _nearbyCategory = null);
-                    _onSelectResult(r);
-                  },
-                  onSelectFavorite: (fav) {
+                  onFocus: () => setState(() => _showSearch = true),
+                  onChanged: _onSearchChanged,
+                  onSubmitted: (_) {},
+                  onClear: () {
                     _searchController.clear();
+                    FocusManager.instance.primaryFocus?.unfocus();
                     setState(() {
                       _showSearch = false;
                       _searchResults = [];
                       _nearbyCategory = null;
+                      _pickingWaypoint = false;
                     });
-                    FocusManager.instance.primaryFocus?.unfocus();
-                    unawaited(_onDestinationPicked(fav.position));
                   },
                 ),
+                // Nothing typed yet: offer the one-tap nearby categories —
+                // same PoiSearchService MapScreen uses, reused as-is.
+                if (_showSearch && _searchController.text.isEmpty) ...[
+                  const SizedBox(height: 8),
+                  NearbyBar(
+                    colors: c,
+                    enabled: _lastFix != null,
+                    selected: _nearbyCategory,
+                    onSelect: _searchNearby,
+                  ),
+                ],
+                if (_showSearch &&
+                    (_searching ||
+                        _searchResults.isNotEmpty ||
+                        _nearbyCategory != null ||
+                        _matchingFavorites(_searchController.text)
+                            .isNotEmpty)) ...[
+                  const SizedBox(height: 8),
+                  SearchResultsList(
+                    results: _searchResults,
+                    isLoading: _searching,
+                    favorites: _matchingFavorites(_searchController.text),
+                    colors: c,
+                    emptyMessage: _nearbyCategory == null
+                        ? null
+                        : AppLocalizations.of(context).nearbyNothingFound,
+                    onSelect: (r) {
+                      setState(() => _nearbyCategory = null);
+                      _onSelectResult(r);
+                    },
+                    onSelectFavorite: (fav) {
+                      _searchController.clear();
+                      setState(() {
+                        _showSearch = false;
+                        _searchResults = [];
+                        _nearbyCategory = null;
+                      });
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      unawaited(
+                          _onDestinationPicked(fav.position, label: fav.label));
+                    },
+                  ),
+                ],
+                // Independent condition, not folded into the block above: with
+                // an empty query _matchingFavorites('') returns every saved
+                // favourite, so almost any user with one saved place would
+                // permanently hide history behind that panel. They're two
+                // different "nothing typed yet" panels and belong on screen
+                // together, same as MapScreen.
+                if (_showSearch &&
+                    _searchController.text.isEmpty &&
+                    _history.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  SearchHistoryList(
+                    history: _history,
+                    favorites: const [],
+                    colors: c,
+                    onSelect: (item) {
+                      _searchController.clear();
+                      setState(() {
+                        _showSearch = false;
+                        _searchResults = [];
+                        _nearbyCategory = null;
+                      });
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      unawaited(_onDestinationPicked(item.position,
+                          label: item.label));
+                    },
+                    onSelectFavorite: (_) {},
+                    onClear: _clearHistory,
+                  ),
+                ],
+                if (!_showSearch && _route == null) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: c.surface2.withValues(alpha: 0.92),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: c.border, width: 0.5),
+                    ),
+                    child: Text(
+                      'Motore mappa: MapLibre (sperimentale)',
+                      style: TextStyle(color: c.textSecondary, fontSize: 11),
+                    ),
+                  ),
+                ],
               ],
-              if (!_showSearch && _route == null) ...[
-                const SizedBox(height: 8),
+              if (_isRerouting || _calculatingRoute) ...[
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: c.surface2.withValues(alpha: 0.92),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: c.border, width: 0.5),
                   ),
-                  child: Text(
-                    'Motore mappa: MapLibre (sperimentale)',
-                    style: TextStyle(color: c.textSecondary, fontSize: 11),
-                  ),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: c.accent)),
+                    const SizedBox(width: 8),
+                    Text(
+                        _isRerouting
+                            ? 'Ricalcolo il percorso…'
+                            : 'Calcolo il percorso…',
+                        style: TextStyle(color: c.textSecondary, fontSize: 12)),
+                  ]),
                 ),
-              ],
-            ],
-            if (_isRerouting || _calculatingRoute) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: c.surface2.withValues(alpha: 0.92),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: c.border, width: 0.5),
-                ),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: c.accent)),
-                  const SizedBox(width: 8),
-                  Text(
-                      _isRerouting
-                          ? 'Ricalcolo il percorso…'
-                          : 'Calcolo il percorso…',
-                      style: TextStyle(color: c.textSecondary, fontSize: 12)),
-                ]),
-              ),
-              const SizedBox(height: 8),
-            ],
-            if (_isNavigating && _arrived) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF22C55E),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Row(children: [
-                  const Icon(Icons.flag_rounded, color: Colors.white),
-                  const SizedBox(width: 10),
-                  const Expanded(
-                    child: Text('Sei arrivato',
-                        style: TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.w700)),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: _clearRoute,
-                  ),
-                ]),
-              ),
-            ],
-          ]),
-        ),
-        // ── NAV INSTRUCTION (full-width, top edge-to-edge) ─────────────────
-        // The real widget MapScreen uses, not an ad-hoc lookalike — same
-        // display convention too: the maneuver shown is the one AFTER
-        // _currentStepIdx (the step whose point hasn't been reached yet),
-        // matching NavInstruction's own "step = upcoming manoeuvre" contract.
-        if (_isNavigating && _route != null && !_arrived && !_showSearch)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Builder(builder: (context) {
-              final steps = _route!.steps;
-              final nextIdx = _currentStepIdx + 1 < steps.length
-                  ? _currentStepIdx + 1
-                  : _currentStepIdx;
-              final step = steps[nextIdx];
-              final nextStep =
-                  nextIdx + 1 < steps.length ? steps[nextIdx + 1] : null;
-              return NavInstruction(
-                step: step,
-                nextStep: nextStep,
-                distToNextStepM: step.distanceM,
-                route: _route!,
-                stepIdx: _currentStepIdx,
-                colors: c,
-                topInset: MediaQuery.of(context).padding.top,
-                distToNextM: _distToNextStepM,
-                voiceMuted: _voiceMuted,
-                onToggleVoice: () {
-                  setState(() => _voiceMuted = !_voiceMuted);
-                  // Same key MapScreen's own mute toggle writes — one
-                  // app-wide voice preference, not a copy of it.
-                  Hive.box('settings').put('voiceEnabled', !_voiceMuted);
-                  if (_voiceMuted) unawaited(_tts.stop());
-                },
-              );
-            }),
-          ),
-        // Real preview panel, not the summary chip this replaced — same
-        // widget MapScreen shows (RoutePreviewPanel), reused as-is. Traffic
-        // events/status passed empty/null: that's Nostr road-event
-        // subscription, a separate piece not ported here, so the panel
-        // simply doesn't show a traffic banner rather than a fake one.
-        if (_route != null && !_isNavigating && !_showSearch)
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: RoutePreviewPanel(
-              route: _route!,
-              label: null,
-              trafficEvents: const [],
-              bottomInset: MediaQuery.of(context).padding.bottom,
-              colors: c,
-              transportMode: _transportMode,
-              onStart: _startNavigation,
-              onCancel: _clearRoute,
-              onModeChanged: (m) => unawaited(_onModeChanged(m)),
-            ),
-          ),
-        // ── NAV PANEL (speedometer, ETA, remaining distance) ────────────────
-        // Same bottom bar MapScreen shows during navigation — reused as-is.
-        // speedLimit is always null here: this screen has no SpeedLimitService
-        // wired up yet (only the speed-camera proximity cache), so the panel
-        // simply never shows a limit rather than showing a wrong one.
-        if (_isNavigating && _route != null && !_arrived)
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: NavPanel(
-              route: _route!,
-              speed: _lastFix?.speedKmh ?? 0,
-              bottomInset: MediaQuery.of(context).padding.bottom,
-              colors: c,
-              onStop: _stopNavigation,
-              remainingDistM: _remainingDistM,
-              remainingSecs: _remainingSecs,
-              speedometerStyle: SpeedometerStyle.fromStorage(
-                  Hive.box('settings').get(SpeedometerStyle.storageKey)),
-            ),
-          ),
-        // ── SPEED LIMIT SIGN (navigation + free drive) ──────────────────────
-        // Same widget and offset MapScreen uses — 150 + bottomInset clears
-        // the NavPanel's top edge while navigating and sits well above
-        // MapBottomBar otherwise.
-        if (_currentSpeedLimit != null && !_showSearch)
-          Positioned(
-            bottom: 150 + MediaQuery.of(context).padding.bottom,
-            left: 16,
-            child: SpeedLimitSign(_currentSpeedLimit!),
-          ),
-        // ── RIGHT FABs ────────────────────────────────────────────────────
-        // Compass, recenter, report (always available — a hazard can be
-        // reported from a standstill too), altitude underneath when enabled,
-        // and — only while navigating — add-stop. Same order and same
-        // pre-trip/en-route split as MapScreen's own right column.
-        Positioned(
-          right: 12,
-          bottom: (_route != null && !_isNavigating && !_showSearch
-                  ? 220.0
-                  : _isNavigating && !_arrived
-                      ? 190.0
-                      : MediaQuery.of(context).padding.bottom + 16),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            CompassFab(
-              rotDeg: _bearing,
-              active: _headingMode,
-              onTap: _toggleHeadingMode,
-            ),
-            const SizedBox(height: 8),
-            MapFab(
-              onTap: _recenter,
-              colors: c,
-              child: Icon(
-                _followUser ? Icons.gps_fixed : Icons.gps_not_fixed,
-                color: c.onAccent.withValues(alpha: _followUser ? 1.0 : 0.62),
-                size: 22,
-              ),
-            ),
-            if (_lastFix != null) ...[
-              const SizedBox(height: 8),
-              MapFab(
-                onTap: _showReportSheet,
-                colors: c,
-                child: Icon(Icons.report_problem_outlined,
-                    color: c.onAccent, size: 22),
-              ),
-              if (_altitudeM != null &&
-                  (Hive.box('settings')
-                      .get('showAltitude', defaultValue: false) as bool)) ...[
                 const SizedBox(height: 8),
-                AltitudeBadge(altitudeM: _altitudeM!, colors: c),
               ],
-            ],
-            if (_isNavigating && !_arrived) ...[
-              const SizedBox(height: 8),
-              MapFab(
-                onTap: _openWaypointSearch,
-                colors: c,
-                child: Icon(Icons.add_location_alt_outlined,
-                    color: c.onAccent, size: 22),
-              ),
-            ],
-          ]),
-        ),
-        // ── LEFT FABs — route search shortcut + parking. Pre-trip only, same
-        // as MapScreen: re-planning and checking a saved spot are both
-        // pre-trip actions, reporting is not (it stays on the right, in
-        // both states). "Tragitto" is a simplified stand-in for MapScreen's
-        // full A→B planner (RoutePlannerBar) — that multi-stop form isn't
-        // ported here yet, so this just opens the same search panel the top
-        // search bar does.
-        if (!_isNavigating && !_showSearch && _route == null)
-          Positioned(
-            left: 12,
-            bottom: MediaQuery.of(context).padding.bottom + 16,
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              MapFab(
-                onTap: () => setState(() => _showSearch = true),
-                colors: c,
-                child: Icon(Icons.alt_route_rounded, color: c.onAccent, size: 28),
-              ),
-              if (_lastFix != null || _parkingPosition != null) ...[
-                const SizedBox(height: 8),
-                MapFab(
-                  onTap: _showParkingSheet,
-                  colors: c,
-                  child: Icon(Icons.local_parking_rounded,
-                      color: _parkingPosition != null
-                          ? Colors.lightBlueAccent.shade100
-                          : c.onAccent,
-                      size: 24),
+              if (_isNavigating && _arrived) ...[
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF22C55E),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(children: [
+                    const Icon(Icons.flag_rounded, color: Colors.white),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Text('Sei arrivato',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700)),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: _clearRoute,
+                    ),
+                  ]),
                 ),
               ],
             ]),
           ),
-        // ── BOTTOM BAR (notifications / profile / settings) ─────────────────
-        // Same widget MapScreen shows when nothing else claims the bottom —
-        // idle, no search, no route.
-        if (!_isNavigating && !_showSearch && _route == null)
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: MapBottomBar(
-              bottomInset: MediaQuery.of(context).padding.bottom,
-              colors: c,
-              pubkey: _myPubkey,
-              profilePicture: _profilePicture,
-              hasNostrLogin:
-                  _nostrFlavor == 'amber' || _nostrFlavor == 'nsec',
-              onProfileReturn: () => unawaited(_refreshHomeIdentity()),
+          // ── NAV INSTRUCTION (full-width, top edge-to-edge) ─────────────────
+          // The real widget MapScreen uses, not an ad-hoc lookalike — same
+          // display convention too: the maneuver shown is the one AFTER
+          // _currentStepIdx (the step whose point hasn't been reached yet),
+          // matching NavInstruction's own "step = upcoming manoeuvre" contract.
+          if (_isNavigating && _route != null && !_arrived && !_showSearch)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Builder(builder: (context) {
+                final steps = _route!.steps;
+                final nextIdx = _currentStepIdx + 1 < steps.length
+                    ? _currentStepIdx + 1
+                    : _currentStepIdx;
+                final step = steps[nextIdx];
+                final nextStep =
+                    nextIdx + 1 < steps.length ? steps[nextIdx + 1] : null;
+                return NavInstruction(
+                  step: step,
+                  nextStep: nextStep,
+                  distToNextStepM: step.distanceM,
+                  route: _route!,
+                  stepIdx: _currentStepIdx,
+                  colors: c,
+                  topInset: MediaQuery.of(context).padding.top,
+                  distToNextM: _distToNextStepM,
+                  voiceMuted: _voiceMuted,
+                  onToggleVoice: () {
+                    setState(() => _voiceMuted = !_voiceMuted);
+                    // Same key MapScreen's own mute toggle writes — one
+                    // app-wide voice preference, not a copy of it.
+                    Hive.box('settings').put('voiceEnabled', !_voiceMuted);
+                    if (_voiceMuted) unawaited(_tts.stop());
+                  },
+                );
+              }),
             ),
+          // Real preview panel, not the summary chip this replaced — same
+          // widget MapScreen shows (RoutePreviewPanel), reused as-is. Traffic
+          // events/status passed empty/null: that's Nostr road-event
+          // subscription, a separate piece not ported here, so the panel
+          // simply doesn't show a traffic banner rather than a fake one.
+          if (_route != null && !_isNavigating && !_showSearch)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: RoutePreviewPanel(
+                route: _route!,
+                label: null,
+                trafficEvents: const [],
+                bottomInset: MediaQuery.of(context).padding.bottom,
+                colors: c,
+                transportMode: _transportMode,
+                onStart: _startNavigation,
+                onCancel: _clearRoute,
+                onModeChanged: (m) => unawaited(_onModeChanged(m)),
+              ),
+            ),
+          // ── NAV PANEL (speedometer, ETA, remaining distance) ────────────────
+          // Same bottom bar MapScreen shows during navigation — reused as-is.
+          // speedLimit is always null here: this screen has no SpeedLimitService
+          // wired up yet (only the speed-camera proximity cache), so the panel
+          // simply never shows a limit rather than showing a wrong one.
+          if (_isNavigating && _route != null && !_arrived)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: NavPanel(
+                route: _route!,
+                speed: _lastFix?.speedKmh ?? 0,
+                bottomInset: MediaQuery.of(context).padding.bottom,
+                colors: c,
+                onStop: _showExitNavigationDialog,
+                remainingDistM: _remainingDistM,
+                remainingSecs: _remainingSecs,
+                speedometerStyle: SpeedometerStyle.fromStorage(
+                    Hive.box('settings').get(SpeedometerStyle.storageKey)),
+              ),
+            ),
+          // ── SPEED LIMIT SIGN (navigation + free drive) ──────────────────────
+          // Same widget and offset MapScreen uses — 150 + bottomInset clears
+          // the NavPanel's top edge while navigating and sits well above
+          // MapBottomBar otherwise.
+          if (_currentSpeedLimit != null && !_showSearch)
+            Positioned(
+              bottom: 150 + MediaQuery.of(context).padding.bottom,
+              left: 16,
+              child: SpeedLimitSign(_currentSpeedLimit!),
+            ),
+          // ── RIGHT FABs ────────────────────────────────────────────────────
+          // Compass, recenter, report (always available — a hazard can be
+          // reported from a standstill too), altitude underneath when enabled,
+          // and — only while navigating — add-stop. Same order and same
+          // pre-trip/en-route split as MapScreen's own right column.
+          Positioned(
+            right: 12,
+            bottom: (_route != null && !_isNavigating && !_showSearch
+                ? 220.0
+                : _isNavigating && !_arrived
+                    ? 190.0
+                    : MediaQuery.of(context).padding.bottom + 16),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              CompassFab(
+                rotDeg: _bearing,
+                active: _headingMode,
+                onTap: _toggleHeadingMode,
+              ),
+              const SizedBox(height: 8),
+              MapFab(
+                onTap: _recenter,
+                colors: c,
+                child: Icon(
+                  _followUser ? Icons.gps_fixed : Icons.gps_not_fixed,
+                  color: c.onAccent.withValues(alpha: _followUser ? 1.0 : 0.62),
+                  size: 22,
+                ),
+              ),
+              if (_lastFix != null) ...[
+                const SizedBox(height: 8),
+                MapFab(
+                  onTap: _showReportSheet,
+                  colors: c,
+                  child: Icon(Icons.report_problem_outlined,
+                      color: c.onAccent, size: 22),
+                ),
+                if (_altitudeM != null &&
+                    (Hive.box('settings')
+                        .get('showAltitude', defaultValue: false) as bool)) ...[
+                  const SizedBox(height: 8),
+                  AltitudeBadge(altitudeM: _altitudeM!, colors: c),
+                ],
+              ],
+              if (_isNavigating && !_arrived) ...[
+                const SizedBox(height: 8),
+                MapFab(
+                  onTap: _openWaypointSearch,
+                  colors: c,
+                  child: Icon(Icons.add_location_alt_outlined,
+                      color: c.onAccent, size: 22),
+                ),
+              ],
+            ]),
           ),
-      ]),
+          // ── LEFT FABs — route search shortcut + parking. Pre-trip only, same
+          // as MapScreen: re-planning and checking a saved spot are both
+          // pre-trip actions, reporting is not (it stays on the right, in
+          // both states). "Tragitto" is a simplified stand-in for MapScreen's
+          // full A→B planner (RoutePlannerBar) — that multi-stop form isn't
+          // ported here yet, so this just opens the same search panel the top
+          // search bar does.
+          if (!_isNavigating && !_showSearch && _route == null)
+            Positioned(
+              left: 12,
+              bottom: MediaQuery.of(context).padding.bottom + 16,
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                MapFab(
+                  onTap: () => setState(() => _showSearch = true),
+                  colors: c,
+                  child: Icon(Icons.alt_route_rounded,
+                      color: c.onAccent, size: 28),
+                ),
+                if (_lastFix != null || _parkingPosition != null) ...[
+                  const SizedBox(height: 8),
+                  MapFab(
+                    onTap: _showParkingSheet,
+                    colors: c,
+                    child: Icon(Icons.local_parking_rounded,
+                        color: _parkingPosition != null
+                            ? Colors.lightBlueAccent.shade100
+                            : c.onAccent,
+                        size: 24),
+                  ),
+                ],
+              ]),
+            ),
+          // ── BOTTOM BAR (notifications / profile / settings) ─────────────────
+          // Same widget MapScreen shows when nothing else claims the bottom —
+          // idle, no search, no route.
+          if (!_isNavigating && !_showSearch && _route == null)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: MapBottomBar(
+                bottomInset: MediaQuery.of(context).padding.bottom,
+                colors: c,
+                pubkey: _myPubkey,
+                profilePicture: _profilePicture,
+                hasNostrLogin:
+                    _nostrFlavor == 'amber' || _nostrFlavor == 'nsec',
+                onProfileReturn: () => unawaited(_refreshHomeIdentity()),
+              ),
+            ),
+        ]),
+      ),
     );
   }
 }
