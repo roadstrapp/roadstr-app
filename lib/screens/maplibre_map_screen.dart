@@ -5,9 +5,9 @@
 // Deliberately incomplete: this is the incremental migration from
 // docs/rendering-engine-decision.md §7, not a replacement for MapScreen.
 // Destination search, real routing, ZTL-aware route colouring, speed
-// camera and parking markers are here; navigation itself (following a
-// route, maneuver instructions, off-route detection, rerouting), POI
-// search, favourites-as-markers and voice guidance are not — each is a
+// camera and parking markers, and basic navigation (step advancement,
+// distance-to-maneuver, arrival) are here; off-route detection, rerouting,
+// voice guidance, POI search and favourites-as-markers are not — each is a
 // later phase, migrated and tested on its own. Switching the setting to
 // "maplibre" trades all of that away for tilt/rotate and native dark-mode
 // styling; the settings copy says so.
@@ -23,13 +23,16 @@ import 'package:provider/provider.dart';
 import '../services/camera_follow.dart';
 import '../services/gps_service.dart';
 import '../services/place_search_service.dart';
+import '../services/route_progress.dart';
 import '../services/routing_service.dart';
 import '../services/speed_camera_service.dart';
 import '../services/ztl_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
+import '../utils/geo.dart';
 import '../widgets/cursor_painter.dart';
 import '../widgets/map/map_markers.dart';
+import '../widgets/nav/maneuver_symbol.dart';
 import '../widgets/search/search_panel.dart';
 
 const _roadstrTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -143,6 +146,27 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   RouteResult? _route;
   List<({List<LatLng> points, bool restricted})> _routeRuns = [];
 
+  // ── Navigation ─────────────────────────────────────────────────────────────
+  // RouteProgress (lib/services/route_progress.dart) is the pure geometry;
+  // this is just the state machine driving it. No voice guidance, no
+  // off-route detection, no rerouting yet — this proves step advancement and
+  // a distance-to-maneuver number against a real route, each of those other
+  // pieces is its own increment on top.
+  bool _isNavigating = false;
+  bool _arrived = false;
+  int _currentStepIdx = 0;
+  List<double> _cumDist = [];
+  List<double> _stepCumDist = [];
+  double _distToNextStepM = 0;
+
+  /// Route position (not GPS wobble) close enough to a maneuver's own point
+  /// to advance past it. Wider than typical GPS accuracy so a fix that lands
+  /// slightly short or past the exact point doesn't stall the step index.
+  static const _advanceToleranceM = 15.0;
+
+  /// How close to the final step's own point counts as arrived.
+  static const _arrivalRadiusM = 30.0;
+
   // ── Static overlays ───────────────────────────────────────────────────────
   // SpeedCameraService is reused as-is, same as ZtlService — an OSM-backed
   // proximity cache neither of which ever depended on flutter_map. Parking is
@@ -245,12 +269,58 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   void _clearRoute() => setState(() {
         _route = null;
         _routeRuns = [];
+        _isNavigating = false;
+        _arrived = false;
       });
+
+  void _startNavigation() {
+    final route = _route;
+    if (route == null || route.steps.isEmpty || route.polyline.isEmpty) return;
+    _cumDist = RouteProgress.cumulativeDistances(route.polyline);
+    _stepCumDist = [
+      for (final step in route.steps)
+        _cumDist[RouteProgress.nearestIndex(route.polyline, step.location)],
+    ];
+    setState(() {
+      _isNavigating = true;
+      _currentStepIdx = 0;
+      _arrived = false;
+    });
+  }
+
+  void _stopNavigation() => setState(() {
+        _isNavigating = false;
+        _arrived = false;
+      });
+
+  /// Advances [_currentStepIdx] and recomputes [_distToNextStepM] from
+  /// [data]. Called from [_onGps] before its own setState, not after — the
+  /// two share one rebuild instead of triggering back to back.
+  void _updateNavigationProgress(GpsData data) {
+    final route = _route;
+    if (route == null || _cumDist.isEmpty || _arrived) return;
+    final pos = LatLng(data.position.latitude, data.position.longitude);
+    final idx = RouteProgress.nearestIndex(route.polyline, pos);
+    final routeProgressM = _cumDist[idx];
+    while (_currentStepIdx + 1 < route.steps.length &&
+        _stepCumDist[_currentStepIdx + 1] <= routeProgressM + _advanceToleranceM) {
+      _currentStepIdx++;
+    }
+    final isLast = _currentStepIdx >= route.steps.length - 1;
+    _distToNextStepM = isLast
+        ? 0
+        : (_stepCumDist[_currentStepIdx + 1] - routeProgressM)
+            .clamp(0, double.infinity);
+    if (isLast && Geo.distanceM(pos, route.steps.last.location) < _arrivalRadiusM) {
+      _arrived = true;
+    }
+  }
 
   void _onGps(GpsData data) {
     _lastFix = data;
     if (!mounted) return;
-    setState(() {}); // refresh the status readout
+    if (_isNavigating) _updateNavigationProgress(data);
+    setState(() {}); // refresh the status readout + navigation progress
     unawaited(_speedCameraSvc.updateIfNeeded(data.position).then((_) {
       if (mounted) setState(() {});
     }));
@@ -443,83 +513,170 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
           left: 12,
           right: 12,
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Material(
-                color: c.surface2.withValues(alpha: 0.92),
-                shape: const CircleBorder(),
-                child: IconButton(
-                  icon: Icon(Icons.arrow_back, color: c.textPrimary),
-                  onPressed: () {
-                    if (_showSearch) {
-                      FocusManager.instance.primaryFocus?.unfocus();
-                      setState(() => _showSearch = false);
-                    } else {
-                      Navigator.of(context).pop();
-                    }
-                  },
+            // Search hidden once navigating — same as MapScreen: mid-route
+            // search would need to feed a waypoint-insert or a fresh
+            // destination flow, neither of which exists here yet.
+            if (!_isNavigating) ...[
+              Row(children: [
+                Material(
+                  color: c.surface2.withValues(alpha: 0.92),
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    icon: Icon(Icons.arrow_back, color: c.textPrimary),
+                    onPressed: () {
+                      if (_showSearch) {
+                        FocusManager.instance.primaryFocus?.unfocus();
+                        setState(() => _showSearch = false);
+                      } else {
+                        Navigator.of(context).pop();
+                      }
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: PlaceSearchBar(
-                  controller: _searchController,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: PlaceSearchBar(
+                    controller: _searchController,
+                    colors: c,
+                    onFocus: () => setState(() => _showSearch = true),
+                    onChanged: _onSearchChanged,
+                    onSubmitted: (_) {},
+                    onClear: () {
+                      _searchController.clear();
+                      setState(() => _searchResults = []);
+                    },
+                  ),
+                ),
+              ]),
+              if (_showSearch && (_searching || _searchResults.isNotEmpty)) ...[
+                const SizedBox(height: 8),
+                SearchResultsList(
+                  results: _searchResults,
+                  isLoading: _searching,
                   colors: c,
-                  onFocus: () => setState(() => _showSearch = true),
-                  onChanged: _onSearchChanged,
-                  onSubmitted: (_) {},
-                  onClear: () {
-                    _searchController.clear();
-                    setState(() => _searchResults = []);
-                  },
+                  onSelect: _onSelectResult,
+                  onSelectFavorite: (_) {},
                 ),
-              ),
-            ]),
-            if (_showSearch && (_searching || _searchResults.isNotEmpty)) ...[
-              const SizedBox(height: 8),
-              SearchResultsList(
-                results: _searchResults,
-                isLoading: _searching,
-                colors: c,
-                onSelect: _onSelectResult,
-                onSelectFavorite: (_) {},
-              ),
+              ],
+              if (!_showSearch && _route == null) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: c.surface2.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: c.border, width: 0.5),
+                  ),
+                  child: Text(
+                    'Motore mappa: MapLibre (sperimentale)',
+                    style: TextStyle(color: c.textSecondary, fontSize: 11),
+                  ),
+                ),
+              ],
+              if (!_showSearch && _route != null) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: c.surface2.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: c.border, width: 0.5),
+                  ),
+                  child: Row(children: [
+                    Icon(Icons.route_outlined, color: c.accent, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${(_route!.totalDistanceM / 1000).toStringAsFixed(1)} km · '
+                      '${(_route!.totalDurationS / 60).round()} min',
+                      style: TextStyle(color: c.textPrimary, fontSize: 13),
+                    ),
+                    const Spacer(),
+                    TextButton.icon(
+                      onPressed: _startNavigation,
+                      icon: Icon(Icons.navigation_outlined,
+                          color: c.accent, size: 16),
+                      label: Text('Naviga',
+                          style: TextStyle(color: c.accent, fontSize: 13)),
+                    ),
+                    InkWell(
+                      onTap: _clearRoute,
+                      child: Icon(Icons.close, color: c.textSecondary, size: 18),
+                    ),
+                  ]),
+                ),
+              ],
             ],
-            if (!_showSearch && _route == null) ...[
-              const SizedBox(height: 8),
+            if (_isNavigating && _route != null && !_arrived) ...[
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: c.surface2.withValues(alpha: 0.92),
-                  borderRadius: BorderRadius.circular(10),
+                  gradient: c.panelGradient,
+                  color: c.panelGradient == null ? c.surface2 : null,
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: c.border, width: 0.5),
-                ),
-                child: Text(
-                  'Motore mappa: MapLibre (sperimentale)',
-                  style: TextStyle(color: c.textSecondary, fontSize: 11),
-                ),
-              ),
-            ],
-            if (!_showSearch && _route != null) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: c.surface2.withValues(alpha: 0.92),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: c.border, width: 0.5),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 10)
+                  ],
                 ),
                 child: Row(children: [
-                  Icon(Icons.route_outlined, color: c.accent, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${(_route!.totalDistanceM / 1000).toStringAsFixed(1)} km · '
-                    '${(_route!.totalDurationS / 60).round()} min',
-                    style: TextStyle(color: c.textPrimary, fontSize: 13),
+                  ManeuverSymbol(
+                    step: _route!.steps[_currentStepIdx],
+                    size: 44,
+                    colors: c,
                   ),
-                  const Spacer(),
-                  InkWell(
-                    onTap: _clearRoute,
-                    child: Icon(Icons.close, color: c.textSecondary, size: 18),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _distToNextStepM < 30
+                              ? 'ora'
+                              : _distToNextStepM < 1000
+                                  ? '${_distToNextStepM.round()} m'
+                                  : '${(_distToNextStepM / 1000).toStringAsFixed(1)} km',
+                          style: TextStyle(
+                              color: c.textPrimary,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800),
+                        ),
+                        Text(
+                          _route!.steps[_currentStepIdx].instruction,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: c.textSecondary, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close, color: c.textSecondary),
+                    onPressed: _stopNavigation,
+                  ),
+                ]),
+              ),
+            ],
+            if (_isNavigating && _arrived) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF22C55E),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(children: [
+                  const Icon(Icons.flag_rounded, color: Colors.white),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Text('Sei arrivato',
+                        style: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w700)),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: _clearRoute,
                   ),
                 ]),
               ),
