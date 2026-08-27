@@ -16,6 +16,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maplibre/maplibre.dart';
 import 'package:provider/provider.dart';
 
+import '../services/camera_follow.dart';
 import '../services/gps_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
@@ -58,6 +59,23 @@ String _style({required bool dark}) => '''
 }
 ''';
 
+// Same colour split MapScreen's route rendering uses — the app's accent
+// for an ordinary run, this red for one crossing a restricted zone — see
+// map_screen.dart's _kZtlRed and _remainingRouteRuns. No routing exists in
+// this screen yet, so this is fixed demo geometry near the starting
+// position: it proves the two-colour-run mechanism translates to a
+// GeoJSON source with a data-driven line layer, not that ZTL detection
+// itself has been ported (it hasn't).
+const _kZtlRed = Color(0xFFE53935);
+final _demoRouteNormal = [
+  const Geographic(lon: 12.494, lat: 42.494),
+  const Geographic(lon: 12.500, lat: 42.500),
+];
+final _demoRouteRestricted = [
+  const Geographic(lon: 12.500, lat: 42.500),
+  const Geographic(lon: 12.508, lat: 42.506),
+];
+
 class MaplibreMapScreen extends StatefulWidget {
   const MaplibreMapScreen({super.key});
 
@@ -72,11 +90,22 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
 
   // Mirrors MapScreen's _followUser: true until the user pans/rotates/tilts
   // by hand, at which point their gesture must not be immediately fought by
-  // the next GPS fix. No smoothing or rate-capping yet, unlike MapScreen's
-  // tuned follow ticker — this slice proves the seam, not the feel.
+  // the next GPS fix.
   bool _followUser = true;
   GpsData? _lastFix;
   bool? _stylingDark;
+
+  // Camera easing — CameraFollowEasing is the same policy
+  // MapScreen._startFollowTicker uses, driven here against MapController
+  // instead of flutter_map's controller. _camState is this screen's own
+  // tracked position, not read back from the controller every frame: while
+  // following, nothing else is moving the camera, so our last computed
+  // frame is already ground truth, and querying it every 16 ms would be
+  // pure overhead.
+  CameraFollowState? _camState;
+  CameraFollowState? _targetState;
+  Timer? _followTicker;
+  int? _lastFollowFrameMs;
 
   @override
   void initState() {
@@ -88,6 +117,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   @override
   void dispose() {
     _gpsSub?.cancel();
+    _followTicker?.cancel();
     unawaited(_gps.dispose());
     super.dispose();
   }
@@ -96,13 +126,50 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     _lastFix = data;
     if (!mounted) return;
     setState(() {}); // refresh the status readout
-    final controller = _controller;
-    if (controller == null || !_followUser) return;
-    unawaited(controller.animateCamera(
-      center: Geographic(lon: data.position.longitude, lat: data.position.latitude),
-      bearing: data.heading,
-      nativeDuration: const Duration(milliseconds: 400),
-    ));
+    if (!_followUser) return;
+    _targetState = CameraFollowState(
+      lat: data.position.latitude,
+      lng: data.position.longitude,
+      zoom: _camState?.zoom ?? 17,
+      rotDeg: data.heading ?? _camState?.rotDeg ?? 0,
+    );
+    _startFollowTicker();
+  }
+
+  void _startFollowTicker() {
+    if (_followTicker != null) return;
+    _lastFollowFrameMs = DateTime.now().millisecondsSinceEpoch;
+    _followTicker = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+      final controller = _controller;
+      final target = _targetState;
+      final from = _camState;
+      if (!mounted || !_followUser || controller == null || target == null) {
+        timer.cancel();
+        _followTicker = null;
+        return;
+      }
+      if (from == null) {
+        // First frame: nothing to ease from yet, snap the tracked state to
+        // the target and let the next frame actually ease.
+        _camState = target;
+        return;
+      }
+      final nowMs = DateTime.now().millisecondsSinceEpoch;
+      final dtMs = (nowMs - (_lastFollowFrameMs ?? nowMs)).clamp(1, 100);
+      _lastFollowFrameMs = nowMs;
+      final next = CameraFollowEasing.step(from: from, target: target, dtMs: dtMs);
+      if (next == null) return;
+      _camState = next;
+      unawaited(controller.moveCamera(
+        center: Geographic(lon: next.lng, lat: next.lat),
+        zoom: next.zoom,
+        bearing: next.rotDeg,
+      ));
+      if (CameraFollowEasing.hasCaughtUp(next, target)) {
+        timer.cancel();
+        _followTicker = null;
+      }
+    });
   }
 
   void _recenter() {
@@ -110,6 +177,15 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     final fix = _lastFix;
     final controller = _controller;
     if (fix == null || controller == null) return;
+    // A tap for recenter is a request to snap back now, not to rejoin the
+    // continuous ease mid-flight — same split MapScreen keeps between its
+    // ticker and _animateCamera for an explicit action.
+    _camState = CameraFollowState(
+      lat: fix.position.latitude,
+      lng: fix.position.longitude,
+      zoom: 17,
+      rotDeg: fix.heading ?? _camState?.rotDeg ?? 0,
+    );
     unawaited(controller.animateCamera(
       center: Geographic(lon: fix.position.longitude, lat: fix.position.latitude),
       zoom: 17,
@@ -149,6 +225,28 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
               setState(() => _followUser = false);
             }
           },
+          // A wide, translucent glow pass under a narrower solid core per
+          // run — an approximation of MapScreen's "laser" route rendering
+          // (halo + glow + two coloured rails), collapsed to two passes
+          // since PolylineLayer here colours a whole layer, not a single
+          // Polyline the way flutter_map's does.
+          layers: [
+            for (final run in [
+              (points: _demoRouteNormal, color: c.accent),
+              (points: _demoRouteRestricted, color: _kZtlRed),
+            ]) ...[
+              PolylineLayer(
+                polylines: [Feature(geometry: LineString.from(run.points))],
+                color: run.color.withValues(alpha: 0.28),
+                width: 18,
+              ),
+              PolylineLayer(
+                polylines: [Feature(geometry: LineString.from(run.points))],
+                color: run.color,
+                width: 9,
+              ),
+            ],
+          ],
           children: [
             if (_lastFix != null)
               WidgetLayer(markers: [
