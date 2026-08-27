@@ -289,20 +289,48 @@ location layer would have anyway.
 This satisfies the falsifier stated in §5: *"MapLibre's Flutter plugin drops its Play
 Services dependency, or a maintained de-Googled fork appears."*
 
+**Full transitive dependency tree, not just the direct one.** Pulled the POM for
+`org.maplibre.gl:android-sdk-opengl:13.5.1` (the native SDK this package wraps) directly
+from Maven Central. Every dependency: `android-sdk-geojson`, `maplibre-android-gestures`,
+`android-sdk-turf` (all MapLibre's own), `kotlin-stdlib` / `kotlinx-coroutines-core`
+(JetBrains), `okhttp` (Square), `timber` (Jake Wharton), and `androidx.annotation` /
+`androidx.fragment` / `androidx.interpolator`. That last group is published under
+Google's org and is, in that narrow sense, "Google" — but AndroidX is the standard
+Apache-2.0 support-library ecosystem every Android app depends on, including every app
+on F-Droid; it does not require the Play Services runtime and is not what `apkanalyzer`
+flags as a Google class on Roadstr's releases (that check targets `com.google.android.gms.*`
+specifically). Nothing in this tree is in that namespace. So there is no compromise being
+weighed here between "Google-free" and "this SDK" — the SDK doesn't touch the thing the
+policy is actually about.
+
+**Codebase lineage, from MapLibre's own repository:** *"This project originated as a fork
+of Mapbox GL Native, before their switch to a non-OSS license in December 2020."*
+(`maplibre/maplibre-native`, `README.md` and `FORK.md`). Forked from Mapbox GL Native
+1.6.0 — itself already a mature, years-old rendering engine used in production well
+before the fork — and continued as an independent open-source project since. Not a
+rewrite from scratch. The engine's maturity and the Flutter binding's maturity are two
+different questions, though: the native SDK (`org.maplibre.gl:android-sdk-opengl`) has
+that long production lineage; the Dart binding on top of it (`maplibre`/`maplibre_android`,
+v0.3.6) is young regardless of how solid the engine underneath is.
+
 **Not yet verified, before this can move from "reopened" to "decided":**
 
-- iOS side (`maplibre_ios`) was not audited with the same rigour as Android.
 - No F-Droid build attempted. `pub get` resolving cleanly is not the same as F-Droid's
-  build infrastructure successfully compiling the native Android SDK across ABIs.
-- Package maturity: pre-1.0, single primary maintainer. "Actively developed" cuts both
-  ways — less battle-tested at scale than `maplibre_gl` was, and more exposed to
-  breaking changes between minor versions.
+  build infrastructure successfully compiling the native Android SDK across ABIs. Lower
+  stakes now: F-Droid has not yet accepted Roadstr at all, so this is not currently a
+  live constraint the way it would be for an already-listed app.
+- Package maturity: the Dart binding is pre-1.0, single primary maintainer. "Actively
+  developed" cuts both ways — less battle-tested at scale, more exposed to breaking
+  changes between minor versions. The underlying native engine does not share this risk.
 - Two-finger tilt gesture, raster-tile paint properties (`raster-hue-rotate` etc. for
   dark mode) — assumed available because they're part of the MapLibre style spec that
   any conformant binding should expose, not confirmed against this specific package's
   Dart API.
 - Every custom layer in §1.1 (`PolylineLayer` ×6, `MarkerLayer` ×7) would still need to
   be rebuilt against this package's API, which nothing here changes.
+
+iOS was explicitly ruled out of scope: Roadstr does not target Apple platforms, so
+`maplibre_ios` needs no evaluation at all.
 
 **Recommended next step, if pursued:** a throwaway proof-of-concept — one screen, this
 package, Roadstr's existing OSM raster tiles, on a real Android device — before touching
