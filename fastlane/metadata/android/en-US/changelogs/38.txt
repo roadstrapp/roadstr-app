@@ -1,0 +1,9 @@
+Fixed the tag format that broke ZapStore updates.
+
+Fixed
+
+• Updating from 0.4.27 to 0.4.28 failed on ZapStore. Every release tag had
+  a stray dot after the "v" (v.0.4.28 instead of v0.4.28), which the
+  publishing tool misread as a malformed version number once it stripped
+  the "v" — breaking update comparison on the client. Tags go out in the
+  standard format from here on
