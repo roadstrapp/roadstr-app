@@ -1012,7 +1012,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
         via: via ?? _activeVia);
     if (!mounted || routes.isEmpty) return null;
     final route = routes.first;
-    await _ztl.updateIfNeeded(origin);
+    // Not awaited: this used to be the whole reason route calculation felt
+    // slow. ZtlService's cache is kept warm in the background by _onGps
+    // (same as MapScreen, which never awaits it in the route path either) —
+    // classifyPoints reads whatever is cached right now rather than blocking
+    // the route on a live Overpass round-trip, which carries a 25 s timeout
+    // and was the actual 15 s the driver was seeing on a cold cache.
     final restricted = _ztl.classifyPoints(route.polyline);
     return (route: route, runs: _splitByZtl(route.polyline, restricted));
   }
@@ -1231,6 +1236,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     unawaited(_speedCameraSvc.updateIfNeeded(data.position).then((_) {
       if (mounted) setState(() {});
     }));
+    // Same background warm-up MapScreen runs on every fix — by the time a
+    // route is actually requested, ZtlService's cache already covers the
+    // area (self-throttled: it only re-fetches every 2 km/on failure
+    // back-off, see updateIfNeeded), so _fetchRoute's classifyPoints call
+    // never has to wait on a live Overpass round-trip.
+    unawaited(_ztl.updateIfNeeded(data.position));
     if (!_followUser) return;
     _targetState = CameraFollowState(
       lat: data.position.latitude,
