@@ -2,14 +2,17 @@
 // "mapEngine" setting (Impostazioni → Mappa), not merged in behind
 // kDebugMode like the throwaway PoC it grew out of.
 //
-// Deliberately incomplete: this is Phase 2 of the incremental migration in
-// docs/rendering-engine-decision.md §7 (style + base camera), not a
-// replacement for MapScreen. No ZTL, no speed cameras, no POI/favourites,
-// no routing, no voice guidance — those are later phases, each migrated
-// and tested on its own. Switching the setting to "maplibre" trades all of
-// that away for tilt/rotate and native dark-mode styling; the settings
-// copy says so.
+// Deliberately incomplete: this is the incremental migration from
+// docs/rendering-engine-decision.md §7, not a replacement for MapScreen.
+// Destination search, real routing, ZTL-aware route colouring, speed
+// camera and parking markers are here; navigation itself (following a
+// route, maneuver instructions, off-route detection, rerouting), POI
+// search, favourites-as-markers and voice guidance are not — each is a
+// later phase, migrated and tested on its own. Switching the setting to
+// "maplibre" trades all of that away for tilt/rotate and native dark-mode
+// styling; the settings copy says so.
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -21,6 +24,7 @@ import '../services/camera_follow.dart';
 import '../services/gps_service.dart';
 import '../services/place_search_service.dart';
 import '../services/routing_service.dart';
+import '../services/speed_camera_service.dart';
 import '../services/ztl_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
@@ -139,11 +143,38 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   RouteResult? _route;
   List<({List<LatLng> points, bool restricted})> _routeRuns = [];
 
+  // ── Static overlays ───────────────────────────────────────────────────────
+  // SpeedCameraService is reused as-is, same as ZtlService — an OSM-backed
+  // proximity cache neither of which ever depended on flutter_map. Parking is
+  // simpler still: one saved LatLng read straight out of the settings box,
+  // the same JSON shape MapScreen._loadParkingPosition reads. Favourites are
+  // deliberately not drawn as markers here: MapScreen doesn't either — they
+  // only ever surface as search-result rows, which SearchResultsList already
+  // renders, so there is nothing to port for them on the map itself.
+  final _speedCameraSvc = SpeedCameraService();
+  LatLng? _parkingPosition;
+
   @override
   void initState() {
     super.initState();
+    _loadParkingPosition();
     unawaited(_gps.start());
     _gpsSub = _gps.stream.listen(_onGps);
+  }
+
+  void _loadParkingPosition() {
+    final raw = Hive.box('settings').get('parking_position') as String?;
+    if (raw == null) return;
+    try {
+      final j = jsonDecode(raw) as Map<String, dynamic>;
+      final lat = (j['lat'] as num).toDouble();
+      final lon = (j['lon'] as num).toDouble();
+      if (lat.isFinite && lon.isFinite && lat.abs() <= 90 && lon.abs() <= 180) {
+        _parkingPosition = LatLng(lat, lon);
+      }
+    } catch (_) {
+      // Corrupt or hand-edited entry: treat as absent rather than crash.
+    }
   }
 
   @override
@@ -220,6 +251,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     _lastFix = data;
     if (!mounted) return;
     setState(() {}); // refresh the status readout
+    unawaited(_speedCameraSvc.updateIfNeeded(data.position).then((_) {
+      if (mounted) setState(() {});
+    }));
     if (!_followUser) return;
     _targetState = CameraFollowState(
       lat: data.position.latitude,
@@ -348,6 +382,36 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
             ],
           ],
           children: [
+            if (_speedCameraSvc.cachedCameras.isNotEmpty ||
+                _parkingPosition != null)
+              WidgetLayer(markers: [
+                for (final cam in _speedCameraSvc.cachedCameras)
+                  Marker(
+                    point: Geographic(
+                        lon: cam.position.longitude, lat: cam.position.latitude),
+                    size: const Size(30, 30),
+                    child: const OsmCameraPin(),
+                  ),
+                if (_parkingPosition != null)
+                  Marker(
+                    point: Geographic(
+                        lon: _parkingPosition!.longitude,
+                        lat: _parkingPosition!.latitude),
+                    size: const Size(38, 38),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade600,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: const [
+                          BoxShadow(color: Colors.black38, blurRadius: 5)
+                        ],
+                      ),
+                      child: const Icon(Icons.local_parking_rounded,
+                          color: Colors.white, size: 20),
+                    ),
+                  ),
+              ]),
             if (_lastFix != null)
               WidgetLayer(markers: [
                 Marker(
