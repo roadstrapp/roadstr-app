@@ -1,0 +1,13 @@
+Dark mode no longer depends on a third party that can revoke access without
+warning.
+
+Fixed
+
+• Dark mode fetched its map tiles from a free, anonymous third-party
+  endpoint that started serving an "API KEY REQUIRED" watermark instead of
+  tiles once some unpublished usage limit was crossed — likely the same
+  cause behind an earlier report of dark mode looking inconsistent on a
+  longer drive
+• Dark mode now recolours the same reliable OpenStreetMap tiles light mode
+  already uses, instead of trusting a second, separately-failing service
+  to keep rendering a dark basemap for free
