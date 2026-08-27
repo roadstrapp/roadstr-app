@@ -31,8 +31,10 @@ import 'providers/locale_provider.dart';
 import 'theme/theme_provider.dart';
 import 'theme/app_theme.dart';
 import 'screens/map_screen.dart';
+import 'screens/maplibre_map_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/kokoro/kokoro_voices.dart';
+import 'utils/settings_listenable.dart';
 
 Future<void> main() async {
   // Step 1: Required before any async platform-channel calls.
@@ -398,5 +400,12 @@ class _VoiceLanguageNoticeGateState extends State<_VoiceLanguageNoticeGate> {
   }
 
   @override
-  Widget build(BuildContext context) => const MapScreen();
+  Widget build(BuildContext context) => ValueListenableBuilder<Box>(
+        valueListenable: SettingsListenable.forKeys(const ['mapEngine']),
+        builder: (context, settings, _) =>
+            (settings.get('mapEngine', defaultValue: 'osm') as String) ==
+                    'maplibre'
+                ? const MaplibreMapScreen()
+                : const MapScreen(),
+      );
 }

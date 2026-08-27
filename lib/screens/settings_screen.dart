@@ -1114,16 +1114,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // ── MAP ─────────────────────────────────────────────────────────
           _SectionHeader(l.sectionMap, c),
-          if (kDebugMode)
+          if (kDebugMode) ...[
+            _SwitchTile(
+              title: 'Motore mappa: MapLibre (sperimentale)',
+              subtitle: 'Tilt e rotazione della camera, styling nativo. '
+                  'Manca ancora tutto il resto: ZTL, autovelox, POI, '
+                  'preferiti, percorso, guida vocale. Solo per prova.',
+              value:
+                  (_box.get('mapEngine', defaultValue: 'osm') as String) ==
+                      'maplibre',
+              onChanged: (v) =>
+                  _box.put('mapEngine', v ? 'maplibre' : 'osm'),
+              colors: c,
+            ),
             ListTile(
               leading: Icon(Icons.science_outlined, color: c.textSecondary),
               title: Text('MapLibre PoC (throwaway)',
                   style: TextStyle(color: c.textPrimary)),
-              subtitle: Text('experiment/maplibre-poc branch only',
+              subtitle: Text('Schermo isolato, non il motore vero e proprio',
                   style: TextStyle(color: c.textSecondary, fontSize: 12)),
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const MaplibrePocScreen())),
             ),
+          ],
           _SwitchTile(
             title: l.keepScreenOn,
             subtitle: l.keepScreenOnDescription,
