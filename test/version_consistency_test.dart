@@ -77,9 +77,9 @@ void main() {
     // Skipped before the release is tagged; once it exists, the metadata must
     // not be left pointing at the previous release.
     final name = pubspecMatch!.group(1);
-    final tag = Process.runSync('git', ['rev-list', '-n1', 'v.$name']);
+    final tag = Process.runSync('git', ['rev-list', '-n1', 'v$name']);
     if (tag.exitCode != 0) {
-      markTestSkipped('v.$name not tagged yet');
+      markTestSkipped('v$name not tagged yet');
       return;
     }
     final metadata = File('metadata/app.roadstr.yml').readAsStringSync();
