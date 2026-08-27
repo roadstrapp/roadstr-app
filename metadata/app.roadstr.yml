@@ -46,7 +46,7 @@ Builds:
     ndk: 27.1.12297006
 
 AutoUpdateMode: Version
-UpdateCheckMode: Tags ^v\.[0-9]+\.[0-9]+\.[0-9]+$
+UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$
 UpdateCheckData: pubspec.yaml|version:\s.+\+(\d+)|.|version:\s(.+)\+
 CurrentVersion: 0.4.28
 CurrentVersionCode: 37
