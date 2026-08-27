@@ -16,6 +16,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:amberflutter/amberflutter.dart';
 import 'package:flutter/material.dart';
@@ -45,10 +46,11 @@ import '../theme/theme_provider.dart';
 import '../utils/geo.dart';
 import '../widgets/cursor_painter.dart';
 import '../widgets/map/map_markers.dart';
-import '../widgets/nav/maneuver_symbol.dart';
+import '../widgets/nav/nav_hud.dart';
 import '../widgets/route/route_panels.dart';
 import '../widgets/search/search_panel.dart';
 import '../widgets/sheets/road_event_sheets.dart';
+import '../widgets/speedometer_widget.dart';
 
 const _roadstrTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
@@ -116,58 +118,105 @@ List<({List<LatLng> points, bool restricted})> _splitByZtl(
   return runs;
 }
 
-/// The vehicle cursor plus its own ground shadow, which stretches and
-/// drifts away from the icon as the camera pitches — the parallax cue that
-/// sells "the cursor is a 3D object standing on the tilted road" instead of
-/// a flat decal. Both live inside the same `flat: true` Marker (so the pair
-/// tilts with the ground plane as a unit); this is the separation *within*
-/// that pair, on top of the marker's own rotation.
-///
-/// First pass, numbers not device-verified: reasonable at t=0 (an all but
-/// invisible shadow directly under the icon, correct for a near-top-down
-/// view) and at t=1 (visibly separated, elongated), unconfirmed in between.
-class _NavCursor extends StatelessWidget {
+/// The MapLibre engine's own navigation cursor — a from-scratch replacement
+/// for [UserMarker], built after reusing it here produced a doubled shadow:
+/// the arrow.svg asset UserMarker draws already bakes in its own static
+/// shadow ellipse, and stacking the new pitch-driven parallax shadow on top
+/// of that duplicated it. Painting the arrow ourselves means there is
+/// exactly one shadow, sized by [pitch] from the start, and nothing here
+/// touches assets/cursors/ or the CursorStyle/CursorWidget asset pipeline —
+/// those stay exactly as they are for MapScreen ("roadstr light"). Same
+/// silhouette and colour treatment as arrow.svg (the default driving
+/// cursor), tinted by the same movement-cursor colour setting instead of a
+/// fixed blue. Vehicle-skin selection (formula1, suv, the ostrich walking
+/// sprite, …) isn't ported — this screen shows one pointer shape, matching
+/// how much of the rest of the cursor system it already skips (no
+/// ostrich/bicycle swap for the walking/cycling profiles either).
+class _MaplibreCursor extends StatelessWidget {
   final double pitch;
-  final CursorStyle cursorStyle;
-  final CursorColor cursorColor;
-  final Color accent;
+  final Color color;
 
-  const _NavCursor({
-    required this.pitch,
-    required this.cursorStyle,
-    required this.cursorColor,
-    required this.accent,
-  });
+  const _MaplibreCursor({required this.pitch, required this.color});
 
   @override
   Widget build(BuildContext context) {
     // 0 at top-down, 1 at maxPitch (60°, set in MapOptions below).
     final t = (pitch / 60.0).clamp(0.0, 1.0);
-    return Stack(alignment: Alignment.center, clipBehavior: Clip.none, children: [
-      Positioned(
-        // Starts tucked just under the icon's own base at t=0, drifts
-        // toward the bottom of the marker's 76px box as tilt increases.
-        top: 50 + t * 22,
-        child: Container(
-          width: 26 - t * 4,
-          height: 6 + t * 14,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
-            gradient: RadialGradient(colors: [
-              Colors.black.withValues(alpha: 0.30 - t * 0.08),
-              Colors.black.withValues(alpha: 0),
-            ]),
-          ),
-        ),
+    return SizedBox(
+      width: 48,
+      height: 76,
+      child: CustomPaint(
+        painter: _CursorPainter(color: color, t: t),
       ),
-      UserMarker(
-        heading: 0,
-        accent: accent,
-        cursorStyle: cursorStyle,
-        cursorColor: cursorColor,
-      ),
-    ]);
+    );
   }
+}
+
+class _CursorPainter extends CustomPainter {
+  final Color color;
+  final double t;
+
+  const _CursorPainter({required this.color, required this.t});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // The arrow itself sits in the top 48×48 of the box, same as arrow.svg's
+    // own 48×48 viewBox — the extra height below is headroom for the shadow
+    // to stretch into as it drifts down with tilt.
+    final shadowPaint = Paint()
+      ..shader = RadialGradient(colors: [
+        Colors.black.withValues(alpha: 0.30 - t * 0.08),
+        Colors.black.withValues(alpha: 0),
+      ]).createShader(Rect.fromCircle(center: const Offset(24, 0), radius: 16))
+      ..style = PaintingStyle.fill;
+    canvas.save();
+    // Starts tucked just under the arrow's own base at t=0, drifts toward
+    // the bottom of the box as tilt increases — the parallax cue that sells
+    // "the cursor is a 3D object standing on the tilted road".
+    canvas.translate(24, 50 + t * 22);
+    canvas.scale(1 - t * 0.15, 0.3 + t * 0.35);
+    canvas.drawCircle(Offset.zero, 16, shadowPaint);
+    canvas.restore();
+
+    final arrowPath = ui.Path()
+      ..moveTo(24, 5.5)
+      ..lineTo(36, 33)
+      ..cubicTo(36.3, 33.7, 35.6, 34.4, 34.9, 34.1)
+      ..lineTo(24, 29.6)
+      ..lineTo(13.1, 34.1)
+      ..cubicTo(12.4, 34.4, 11.7, 33.7, 12, 33)
+      ..close();
+    final hsl = HSLColor.fromColor(color);
+    final fillPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          hsl.withLightness((hsl.lightness + 0.18).clamp(0.0, 1.0)).toColor(),
+          hsl.withLightness((hsl.lightness - 0.10).clamp(0.0, 1.0)).toColor(),
+        ],
+      ).createShader(const Rect.fromLTWH(0, 5.5, 48, 28.6));
+    canvas.drawPath(arrowPath, fillPaint);
+    canvas.drawPath(
+      arrowPath,
+      Paint()
+        ..color = hsl.withLightness((hsl.lightness - 0.30).clamp(0.0, 1.0)).toColor()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..strokeJoin = StrokeJoin.round,
+    );
+    canvas.drawLine(
+      const Offset(24, 10),
+      const Offset(24, 25.5),
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.5)
+        ..strokeWidth = 1.4
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_CursorPainter old) => old.color != color || old.t != t;
 }
 
 class MaplibreMapScreen extends StatefulWidget {
@@ -235,6 +284,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   LatLng? _destination;
   List<({List<LatLng> points, bool restricted})> _routeRuns = [];
 
+  /// 'driving' / 'cycling' / 'walking' — same three profiles
+  /// RoutingService.getRoutes accepts. Switching modes on the preview panel
+  /// recalculates the route for the new profile via [_calculateRouteTo],
+  /// mirroring MapScreen._recalculateForMode.
+  String _transportMode = 'driving';
+
   // ── Navigation ─────────────────────────────────────────────────────────────
   // RouteProgress (lib/services/route_progress.dart) is the pure geometry;
   // this is just the state machine driving it. No voice guidance, no
@@ -247,6 +302,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   List<double> _cumDist = [];
   List<double> _stepCumDist = [];
   double _distToNextStepM = 0;
+
+  /// Live remaining distance/time for the whole route, same figures
+  /// MapScreen._updateRemainingStats feeds its NavPanel — recomputed from
+  /// route progress on every GPS tick during navigation.
+  double _remainingDistM = 0;
+  double _remainingSecs = 0;
 
   /// Route position (not GPS wobble) close enough to a maneuver's own point
   /// to advance past it. Wider than typical GPS accuracy so a fix that lands
@@ -720,9 +781,77 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     ));
   }
 
+  /// Recalculates the current route for a different transport profile —
+  /// same idea as MapScreen._recalculateForMode, simplified: there is no
+  /// alternatives list here to refresh, just the one route this screen ever
+  /// shows, so switching modes is just a fresh [_calculateRouteTo] call.
+  Future<void> _onModeChanged(String mode) async {
+    if (_transportMode == mode) return;
+    setState(() => _transportMode = mode);
+    final dest = _destination;
+    if (dest != null) await _calculateRouteTo(dest);
+  }
+
   void _showSnack(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  /// Same provider-resolution logic as MapScreen._resolveProvider, ported
+  /// directly: reads the configured provider/API key/self-hosted GraphHopper
+  /// server, migrating a legacy Hive-stored key to SecureStorage the same
+  /// way. Without this the screen always fell through to the public OSRM
+  /// demo server regardless of what the driver configured in Settings,
+  /// which is also why routing felt oddly slow — the demo server is shared,
+  /// rate-limited public infrastructure, not whatever faster provider was
+  /// actually set up.
+  Future<({RoutingProvider provider, String? apiKey, String? ghServer})>
+      _resolveProvider() async {
+    final box = Hive.box('settings');
+    final providerKey = box.get('routingProvider', defaultValue: 'osrm') as String;
+    var rawKey = await _secStorage.read(key: 'routing_api_key') ?? '';
+    if (rawKey.isEmpty) {
+      final legacy =
+          (box.get('graphhopperApiKey', defaultValue: '') as String).trim();
+      if (legacy.isNotEmpty) {
+        await _secStorage.write(key: 'routing_api_key', value: legacy);
+        await box.delete('graphhopperApiKey');
+        rawKey = legacy;
+      }
+    }
+    final apiKey = rawKey.trim().isEmpty ? null : rawKey.trim();
+    final rawGhServer =
+        (box.get('graphhopperServer', defaultValue: '') as String).trim();
+    final ghServer = rawGhServer.isEmpty ? null : rawGhServer;
+
+    final l10n = mounted ? AppLocalizations.of(context) : null;
+    RoutingProvider provider;
+    switch (providerKey) {
+      case 'graphhopper':
+        if (ghServer != null) {
+          provider = RoutingProvider.graphHopper;
+        } else {
+          provider = RoutingProvider.osrm;
+          if (l10n != null) _showSnack(l10n.graphhopperServerNotConfigured);
+        }
+      case 'graphhopper_public':
+        if (apiKey != null) {
+          provider = RoutingProvider.graphHopper;
+        } else {
+          provider = RoutingProvider.osrm;
+          if (l10n != null) _showSnack(l10n.graphhopperApiKeyNotConfigured);
+        }
+      case 'openroute':
+        if (apiKey != null) {
+          provider = RoutingProvider.openRoute;
+        } else {
+          provider = RoutingProvider.osrm;
+          if (l10n != null) _showSnack(l10n.openrouteApiKeyNotConfigured);
+        }
+      default:
+        provider = RoutingProvider.osrm;
+    }
+    return (provider: provider, apiKey: apiKey, ghServer: ghServer);
   }
 
   /// Fetches a route from [origin] to [dest] and classifies it against ZTL —
@@ -730,8 +859,14 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   /// there is one place that does it, not two that can drift apart.
   Future<({RouteResult route, List<({List<LatLng> points, bool restricted})> runs})?>
       _fetchRoute(LatLng origin, LatLng dest) async {
-    final routes =
-        await RoutingService.getRoutes(origin, dest, lang: 'it', vehicle: 'driving');
+    final (:provider, :apiKey, :ghServer) = await _resolveProvider();
+    if (!mounted) return null;
+    final routes = await RoutingService.getRoutes(origin, dest,
+        provider: provider,
+        apiKey: apiKey,
+        graphhopperServer: ghServer,
+        lang: 'it',
+        vehicle: _transportMode);
     if (!mounted || routes.isEmpty) return null;
     final route = routes.first;
     await _ztl.updateIfNeeded(origin);
@@ -803,6 +938,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
       _routeRuns = fetched.runs;
       _currentStepIdx = 0;
       _isRerouting = false;
+      _remainingDistM = fetched.route.totalDistanceM;
+      _remainingSecs = fetched.route.totalDurationS;
     });
   }
 
@@ -820,6 +957,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
       _isNavigating = true;
       _currentStepIdx = 0;
       _arrived = false;
+      _remainingDistM = route.totalDistanceM;
+      _remainingSecs = route.totalDurationS;
     });
     if (!_voiceMuted) unawaited(_tts.announceStart());
   }
@@ -841,6 +980,11 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     final pos = LatLng(data.position.latitude, data.position.longitude);
     final idx = RouteProgress.nearestIndex(route.polyline, pos);
     final routeProgressM = _cumDist[idx];
+    final totalDist = route.totalDistanceM;
+    final rem = (totalDist - routeProgressM).clamp(0.0, totalDist);
+    _remainingDistM = rem;
+    _remainingSecs =
+        totalDist > 0 ? route.totalDurationS * rem / totalDist : 0;
     while (_currentStepIdx + 1 < route.steps.length &&
         _stepCumDist[_currentStepIdx + 1] <= routeProgressM + _advanceToleranceM) {
       _currentStepIdx++;
@@ -864,7 +1008,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   /// gives enough warning at motorway speed instead of flattening at 100 km/h.
   void _announceUpcoming(double speedKmh, RouteResult route) {
     final nextIdx = _currentStepIdx + 1;
-    final t = NavigationGuidance.thresholds(speedKmh, 'driving');
+    final t = NavigationGuidance.thresholds(speedKmh, _transportMode);
     if (_distToNextStepM < t.far + 20 &&
         _distToNextStepM >= t.near + 20 &&
         _ttsAnnouncedFarIdx != nextIdx) {
@@ -1091,13 +1235,11 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                   // plane, the way a nav app's own puck looks like it's
                   // sitting on the road once the camera pitches.
                   flat: true,
-                  child: _NavCursor(
+                  child: _MaplibreCursor(
                     pitch: _pitch,
-                    cursorStyle: CursorStyle.fromStorage(Hive.box('settings')
-                        .get(CursorStyle.storageKey)),
-                    cursorColor: CursorColor.fromStorage(Hive.box('settings')
-                        .get(CursorColor.storageKey)),
-                    accent: c.accent,
+                    color: CursorColor.fromStorage(
+                            Hive.box('settings').get(CursorColor.storageKey))
+                        .value,
                   ),
                 ),
               ]),
@@ -1227,73 +1369,6 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
               ),
               const SizedBox(height: 8),
             ],
-            if (_isNavigating && _route != null && !_arrived) ...[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  gradient: c.panelGradient,
-                  color: c.panelGradient == null ? c.surface2 : null,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: c.border, width: 0.5),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        blurRadius: 10)
-                  ],
-                ),
-                child: Row(children: [
-                  ManeuverSymbol(
-                    step: _route!.steps[_currentStepIdx],
-                    size: 44,
-                    colors: c,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          _distToNextStepM < 30
-                              ? 'ora'
-                              : _distToNextStepM < 1000
-                                  ? '${_distToNextStepM.round()} m'
-                                  : '${(_distToNextStepM / 1000).toStringAsFixed(1)} km',
-                          style: TextStyle(
-                              color: c.textPrimary,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800),
-                        ),
-                        Text(
-                          _route!.steps[_currentStepIdx].instruction,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: c.textSecondary, fontSize: 13),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                        _voiceMuted
-                            ? Icons.volume_off_rounded
-                            : Icons.volume_up_rounded,
-                        color: c.textSecondary),
-                    onPressed: () {
-                      setState(() => _voiceMuted = !_voiceMuted);
-                      // Same key MapScreen's own mute toggle writes — one
-                      // app-wide voice preference, not a copy of it.
-                      Hive.box('settings').put('voiceEnabled', !_voiceMuted);
-                      if (_voiceMuted) unawaited(_tts.stop());
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close, color: c.textSecondary),
-                    onPressed: _stopNavigation,
-                  ),
-                ]),
-              ),
-            ],
             if (_isNavigating && _arrived) ...[
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -1318,13 +1393,49 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
             ],
           ]),
         ),
+        // ── NAV INSTRUCTION (full-width, top edge-to-edge) ─────────────────
+        // The real widget MapScreen uses, not an ad-hoc lookalike — same
+        // display convention too: the maneuver shown is the one AFTER
+        // _currentStepIdx (the step whose point hasn't been reached yet),
+        // matching NavInstruction's own "step = upcoming manoeuvre" contract.
+        if (_isNavigating && _route != null && !_arrived)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Builder(builder: (context) {
+              final steps = _route!.steps;
+              final nextIdx = _currentStepIdx + 1 < steps.length
+                  ? _currentStepIdx + 1
+                  : _currentStepIdx;
+              final step = steps[nextIdx];
+              final nextStep =
+                  nextIdx + 1 < steps.length ? steps[nextIdx + 1] : null;
+              return NavInstruction(
+                step: step,
+                nextStep: nextStep,
+                distToNextStepM: step.distanceM,
+                route: _route!,
+                stepIdx: _currentStepIdx,
+                colors: c,
+                topInset: MediaQuery.of(context).padding.top,
+                distToNextM: _distToNextStepM,
+                voiceMuted: _voiceMuted,
+                onToggleVoice: () {
+                  setState(() => _voiceMuted = !_voiceMuted);
+                  // Same key MapScreen's own mute toggle writes — one
+                  // app-wide voice preference, not a copy of it.
+                  Hive.box('settings').put('voiceEnabled', !_voiceMuted);
+                  if (_voiceMuted) unawaited(_tts.stop());
+                },
+              );
+            }),
+          ),
         // Real preview panel, not the summary chip this replaced — same
         // widget MapScreen shows (RoutePreviewPanel), reused as-is. Traffic
         // events/status passed empty/null: that's Nostr road-event
         // subscription, a separate piece not ported here, so the panel
         // simply doesn't show a traffic banner rather than a fake one.
-        // Mode switching is a no-op for the same reason driving is the only
-        // vehicle profile anywhere in this screen so far.
         if (_route != null && !_isNavigating && !_showSearch)
           Positioned(
             left: 0,
@@ -1336,17 +1447,41 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
               trafficEvents: const [],
               bottomInset: MediaQuery.of(context).padding.bottom,
               colors: c,
-              transportMode: 'driving',
+              transportMode: _transportMode,
               onStart: _startNavigation,
               onCancel: _clearRoute,
-              onModeChanged: (_) {},
+              onModeChanged: (m) => unawaited(_onModeChanged(m)),
+            ),
+          ),
+        // ── NAV PANEL (speedometer, ETA, remaining distance) ────────────────
+        // Same bottom bar MapScreen shows during navigation — reused as-is.
+        // speedLimit is always null here: this screen has no SpeedLimitService
+        // wired up yet (only the speed-camera proximity cache), so the panel
+        // simply never shows a limit rather than showing a wrong one.
+        if (_isNavigating && _route != null && !_arrived)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: NavPanel(
+              route: _route!,
+              speed: _lastFix?.speedKmh ?? 0,
+              bottomInset: MediaQuery.of(context).padding.bottom,
+              colors: c,
+              onStop: _stopNavigation,
+              remainingDistM: _remainingDistM,
+              remainingSecs: _remainingSecs,
+              speedometerStyle: SpeedometerStyle.fromStorage(
+                  Hive.box('settings').get(SpeedometerStyle.storageKey)),
             ),
           ),
         Positioned(
           right: 12,
           bottom: (_route != null && !_isNavigating && !_showSearch
                   ? 220.0
-                  : MediaQuery.of(context).padding.bottom + 16),
+                  : _isNavigating && !_arrived
+                      ? 190.0
+                      : MediaQuery.of(context).padding.bottom + 16),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Material(
               color: c.surface2.withValues(alpha: 0.92),
