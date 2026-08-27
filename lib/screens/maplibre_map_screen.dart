@@ -239,6 +239,24 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
     super.dispose();
   }
 
+  /// Tears down everything that could still call into the native map view
+  /// (the follow ticker, most directly) before asking Navigator to pop —
+  /// not after. dispose() runs once the pop's own transition settles, which
+  /// leaves a window where a stray 16 ms ticker frame can still fire a
+  /// moveCamera against a platform view partway through being torn down.
+  /// The reported freeze on the back button is consistent with exactly
+  /// that: a method-channel call left waiting on a native view that isn't
+  /// answering back. Whether this is that, or a lower-level bug in a
+  /// pre-1.0 plugin (its 0.3.6 changelog lists more than one platform-view
+  /// disposal fix already), this at least removes the one call site in this
+  /// screen that could trigger it.
+  void _exitScreen() {
+    _followTicker?.cancel();
+    _followTicker = null;
+    _controller = null;
+    Navigator.of(context).pop();
+  }
+
   void _onSearchChanged(String query) {
     _searchDebounce?.cancel();
     if (query.trim().isEmpty) {
@@ -263,32 +281,70 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
   }
 
   Future<void> _onSelectResult(NominatimResult result) async {
-    final origin = _lastFix == null
-        ? null
-        : LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
     setState(() {
       _showSearch = false;
       _searchResults = [];
       _searchController.clear();
     });
     FocusManager.instance.primaryFocus?.unfocus();
-    if (origin == null) return;
-    _destination = result.position;
-    final route = await _fetchRoute(origin, result.position);
-    if (route == null) return;
+    await _calculateRouteTo(result.position);
+  }
+
+  bool _calculatingRoute = false;
+
+  /// Shared by search-result selection and tapping a point on the map —
+  /// both just name a destination, everything after that is identical.
+  ///
+  /// Every early return used to be silent: no GPS fix yet, the routing call
+  /// throwing (a network error, a malformed response), an empty result —
+  /// each looked from the outside like "I tapped a destination and nothing
+  /// happened", because nothing told the driver why. Every path here now
+  /// says something.
+  Future<void> _calculateRouteTo(LatLng dest) async {
+    final origin = _lastFix == null
+        ? null
+        : LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
+    if (origin == null) {
+      _showSnack('In attesa del GPS…');
+      return;
+    }
+    setState(() => _calculatingRoute = true);
+    _destination = dest;
+    ({RouteResult route, List<({List<LatLng> points, bool restricted})> runs})?
+        fetched;
+    try {
+      fetched = await _fetchRoute(origin, dest);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _calculatingRoute = false);
+      _showSnack('Errore nel calcolo del percorso');
+      return;
+    }
+    if (!mounted) return;
+    if (fetched == null) {
+      setState(() => _calculatingRoute = false);
+      _showSnack('Percorso non trovato');
+      return;
+    }
     setState(() {
-      _route = route.route;
-      _routeRuns = route.runs;
+      _route = fetched!.route;
+      _routeRuns = fetched.runs;
+      _calculatingRoute = false;
     });
     final controller = _controller;
-    if (controller == null || route.route.polyline.isEmpty) return;
+    if (controller == null || fetched.route.polyline.isEmpty) return;
     unawaited(controller.fitBounds(
       bounds: LngLatBounds.fromPoints([
-        for (final p in route.route.polyline) Geographic(lon: p.longitude, lat: p.latitude),
+        for (final p in fetched.route.polyline) Geographic(lon: p.longitude, lat: p.latitude),
       ]),
       padding: const EdgeInsets.all(48),
       pitch: 0,
     ));
+  }
+
+  void _showSnack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   /// Fetches a route from [origin] to [dest] and classifies it against ZTL —
@@ -551,6 +607,14 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
             if (event is MapEventStartMoveCamera &&
                 event.reason == CameraChangeReason.apiGesture) {
               setState(() => _followUser = false);
+            } else if (event is MapEventClick &&
+                !_isNavigating &&
+                !_calculatingRoute) {
+              // Tapping a point sets it as the destination directly — no
+              // reverse-geocoded label, unlike MapScreen's long-press
+              // context menu, since there's nowhere here yet to show one.
+              unawaited(_calculateRouteTo(
+                  LatLng(event.point.lat, event.point.lon)));
             }
           },
           // A wide, translucent glow pass under a narrower solid core per
@@ -626,6 +690,14 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                   // the cursor's job is only to sit still pointing up, the
                   // way every nav app's own vehicle icon does; pointing it at
                   // the true heading too would rotate it twice.
+                  //
+                  // flat: true, though — without it the marker stays a
+                  // billboard facing the camera dead-on regardless of pitch,
+                  // which is why tilting with two fingers didn't visibly tilt
+                  // the cursor. flat makes it lie down with the tilted ground
+                  // plane, the way a nav app's own puck looks like it's
+                  // sitting on the road once the camera pitches.
+                  flat: true,
                   child: UserMarker(
                     heading: 0,
                     accent: c.accent,
@@ -658,7 +730,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                         FocusManager.instance.primaryFocus?.unfocus();
                         setState(() => _showSearch = false);
                       } else {
-                        Navigator.of(context).pop();
+                        _exitScreen();
                       }
                     },
                   ),
@@ -736,7 +808,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                 ),
               ],
             ],
-            if (_isRerouting) ...[
+            if (_isRerouting || _calculatingRoute) ...[
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
@@ -751,7 +823,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen> {
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: c.accent)),
                   const SizedBox(width: 8),
-                  Text('Ricalcolo il percorso…',
+                  Text(
+                      _isRerouting
+                          ? 'Ricalcolo il percorso…'
+                          : 'Calcolo il percorso…',
                       style: TextStyle(color: c.textSecondary, fontSize: 12)),
                 ]),
               ),
