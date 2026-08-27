@@ -102,4 +102,26 @@ class CameraFollowEasing {
         math.cos(current.lat * math.pi / 180);
     return dLat * dLat + dLng * dLng < 0.25;
   }
+
+  /// Shifts a camera centre [headingDeg]° ahead of [lat]/[lng] so the GPS
+  /// marker sits lower in frame — more road ahead, less behind. Extracted
+  /// unchanged from `MapScreen._navCameraCenter` (same constants: 18% of an
+  /// assumed 800px-tall screen, converted to metres at [zoom]), which
+  /// despite its own doc comments calling this "~1/3" and, at its call site,
+  /// "~2/5" from the bottom actually places it at 50% − 18% = 32% from the
+  /// bottom — neither comment matches the number the formula computes.
+  static (double lat, double lng) navCameraCenter(
+      double lat, double lng, double headingDeg, double zoom) {
+    const earthM = 40075016.0;
+    final mpp = earthM / (256.0 * math.pow(2, zoom));
+    final shiftM = 0.18 * 800.0 * mpp;
+    const degPerM = 1.0 / 111320.0;
+    final rad = headingDeg * math.pi / 180.0;
+    final dLat = math.cos(rad) * shiftM * degPerM;
+    final dLng = math.sin(rad) *
+        shiftM *
+        degPerM /
+        math.max(math.cos(lat * math.pi / 180.0), 0.001);
+    return ((lat + dLat).clamp(-89.9, 89.9), lng + dLng);
+  }
 }
