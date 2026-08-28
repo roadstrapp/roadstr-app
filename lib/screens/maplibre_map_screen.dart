@@ -409,6 +409,18 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   int _avoidanceRequestGeneration = 0;
   LatLng? _routeOrigin;
 
+  /// Bumped on every fresh _calculateRouteTo call and on anything that
+  /// invalidates one in flight (stopping/cancelling navigation) — same
+  /// MapScreen._routeRequestGeneration. Guards against a slow response to
+  /// an earlier destination landing after a newer request (or a cancel)
+  /// superseded it, which would otherwise silently resurrect stale
+  /// alternatives/a stale route.
+  int _routeRequestGeneration = 0;
+
+  /// Same guard for the search-as-you-type debounce — MapScreen's
+  /// _searchRequestGeneration.
+  int _searchRequestGeneration = 0;
+
   // ── Public transport ───────────────────────────────────────────────────
   // No "start navigation" here — MapScreen's own TransitItinerariesPanel
   // has no onConfirm at all, just view/select/cancel/switch-mode. A bus or
@@ -1166,6 +1178,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     final privKey = await _secStorage.read(key: 'nostr_priv_hex');
     final pubKey = await _secStorage.read(key: 'nostr_pub_hex');
     final flavor = await _secStorage.read(key: 'nostr_flavor');
+    final requests = pubKey == event.pubkey
+        ? await NostrRelayService.fetchEditRequests(event.id)
+        : const <RoadEventEditRequest>[];
     if (!mounted) return;
     showModalBottomSheet(
       context: context,
@@ -1175,6 +1190,14 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         colors: c,
         isLoggedIn: pubKey != null,
         isOwner: pubKey == event.pubkey,
+        editRequests: requests,
+        onEditSpeedLimit: pubKey == event.pubkey
+            ? (limit, requestId) =>
+                _publishSpeedLimitUpdate(event, limit, requestId: requestId)
+            : null,
+        onRequestSpeedLimit: pubKey != null && pubKey != event.pubkey
+            ? (limit) => _publishSpeedLimitRequest(event, limit)
+            : null,
         onConfirm: pubKey != null
             ? (stillThere) async {
                 if (stillThere) {
@@ -1226,6 +1249,88 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
             : null,
       ),
     );
+  }
+
+  /// The report owner editing their own posted speed limit — same
+  /// MapScreen._publishSpeedLimitUpdate, ported directly (dual Amber/
+  /// local-nsec signing, same as every other publish path here).
+  Future<void> _publishSpeedLimitUpdate(RoadEvent event, int speedLimit,
+      {String? requestId}) async {
+    final pubKey = await _secStorage.read(key: 'nostr_pub_hex');
+    final flavor = await _secStorage.read(key: 'nostr_flavor');
+    if (pubKey == null || pubKey != event.pubkey || flavor == null) {
+      throw const FormatException('Only the report owner can edit it');
+    }
+    if (flavor == 'amber') {
+      final unsigned = NostrRelayService.buildKind1317Map(
+        eventId: event.id,
+        ownerPubKeyHex: pubKey,
+        speedLimit: speedLimit,
+        position: event.position,
+        comment: event.comment,
+        requestId: requestId,
+      );
+      final result = await Amberflutter().signEvent(
+        currentUser: Nip19().npubEncode(pubKey),
+        eventJson: jsonEncode(unsigned),
+      );
+      final signed = jsonDecode(result['event'] as String) as Map<String, dynamic>;
+      await _nostr.publishRawEvent(signed, expectedUnsigned: unsigned);
+    } else {
+      final priv = await _secStorage.read(key: 'nostr_priv_hex');
+      if (priv == null) throw const FormatException('Private key unavailable');
+      await _nostr.publishRoadEventUpdate(
+        privKeyHex: priv,
+        ownerPubKeyHex: pubKey,
+        eventId: event.id,
+        position: event.position,
+        speedLimit: speedLimit,
+        comment: event.comment,
+        requestId: requestId,
+      );
+    }
+    event.speedLimit = speedLimit;
+    if (mounted) {
+      setState(() {});
+      _showSnack(AppLocalizations.of(context).speedLimitSaved);
+    }
+  }
+
+  /// Someone other than the owner suggesting a speed-limit correction —
+  /// same MapScreen._publishSpeedLimitRequest.
+  Future<void> _publishSpeedLimitRequest(RoadEvent event, int speedLimit) async {
+    final pubKey = await _secStorage.read(key: 'nostr_pub_hex');
+    final flavor = await _secStorage.read(key: 'nostr_flavor');
+    if (pubKey == null || flavor == null) {
+      throw const FormatException('Connect a Nostr profile first');
+    }
+    if (flavor == 'amber') {
+      final unsigned = NostrRelayService.buildKind1318Map(
+        eventId: event.id,
+        requesterPubKeyHex: pubKey,
+        ownerPubKeyHex: event.pubkey,
+        speedLimit: speedLimit,
+        position: event.position,
+      );
+      final result = await Amberflutter().signEvent(
+        currentUser: Nip19().npubEncode(pubKey),
+        eventJson: jsonEncode(unsigned),
+      );
+      final signed = jsonDecode(result['event'] as String) as Map<String, dynamic>;
+      await _nostr.publishRawEvent(signed, expectedUnsigned: unsigned);
+    } else {
+      final priv = await _secStorage.read(key: 'nostr_priv_hex');
+      if (priv == null) throw const FormatException('Private key unavailable');
+      await _nostr.publishRoadEventEditRequest(
+        privKeyHex: priv,
+        requesterPubKeyHex: pubKey,
+        ownerPubKeyHex: event.pubkey,
+        eventId: event.id,
+        position: event.position,
+        speedLimit: speedLimit,
+      );
+    }
+    if (mounted) _showSnack(AppLocalizations.of(context).editRequestSent);
   }
 
   Future<void> _showReportSheet() async {
@@ -1386,13 +1491,19 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     // Same 400ms debounce map_screen.dart's own search box uses — short
     // enough not to feel laggy, long enough that a fast typist doesn't fire
     // a request per keystroke.
+    final requestGeneration = ++_searchRequestGeneration;
     _searchDebounce = Timer(const Duration(milliseconds: 400), () async {
       setState(() => _searching = true);
       final near = _lastFix == null
           ? null
           : LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
       final results = await _placeSearch.search(query, near: near);
-      if (!mounted) return;
+      // A faster-typed later query can still resolve after this one — the
+      // cancelled Timer only stops a *pending* fetch, not one already
+      // in flight when a newer keystroke's debounce fired. Without this,
+      // "par" (slow) landing after "paris" (fast) silently overwrites the
+      // right results with stale ones.
+      if (!mounted || requestGeneration != _searchRequestGeneration) return;
       setState(() {
         _searchResults = results;
         _searching = false;
@@ -1806,11 +1917,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     }
     _awaitingFixDestination = null;
     _pendingLabel = label;
+    final requestGeneration = ++_routeRequestGeneration;
     setState(() => _calculatingRoute = true);
     _destination = dest;
     _routeOrigin = origin;
     if (_transportMode == 'transit') {
-      await _planTransit(origin, dest);
+      await _planTransit(origin, dest, requestGeneration);
       return;
     }
     // A fresh destination starts a new journey — any stop added to a
@@ -1825,7 +1937,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     List<RouteResult> routes;
     try {
       final (:provider, :apiKey, :ghServer) = await _resolveProvider();
-      if (!mounted) return;
+      if (!mounted || requestGeneration != _routeRequestGeneration) return;
       routes = await RoutingService.getRoutes(origin, dest,
           provider: provider,
           apiKey: apiKey,
@@ -1835,12 +1947,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
           via: via);
       routes = await _withRoundaboutTopology(routes);
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || requestGeneration != _routeRequestGeneration) return;
       setState(() => _calculatingRoute = false);
       _showSnack(AppLocalizations.of(context).noRouteFound);
       return;
     }
-    if (!mounted) return;
+    if (!mounted || requestGeneration != _routeRequestGeneration) return;
     if (routes.isEmpty) {
       setState(() => _calculatingRoute = false);
       _showSnack(AppLocalizations.of(context).noRouteFound);
@@ -1873,9 +1985,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   }
 
   /// Public-transport itinerary search — same MapScreen._planTransit.
-  Future<void> _planTransit(LatLng origin, LatLng dest) async {
+  Future<void> _planTransit(
+      LatLng origin, LatLng dest, int requestGeneration) async {
     final result = await const TransitService().plan(from: origin, to: dest);
-    if (!mounted) return;
+    if (!mounted || requestGeneration != _routeRequestGeneration) return;
     setState(() {
       _calculatingRoute = false;
       _showAlternatives = false;
@@ -2321,6 +2434,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   }
 
   void _stopNavigation({bool stopVoice = true}) {
+    _routeRequestGeneration++;
     if (stopVoice) unawaited(_tts.stop());
     _headingFilter.reset();
     _arrivalBannerTimer?.cancel();
@@ -2702,8 +2816,66 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     } else if (_distToNextStepM < t.near + 30 &&
         _ttsAnnouncedNearIdx != nextIdx) {
       _ttsAnnouncedNearIdx = nextIdx;
-      unawaited(_tts.announceManeuver(route.steps[nextIdx].instruction, 0));
+      // At the point of action, chain on what follows: "take the first
+      // exit, then in 300 metres take the off-ramp" — this is the driver's
+      // last chance to hear it before it would otherwise arrive as its own,
+      // separate cue. Same NavigationGuidance.chainedTail MapScreen uses to
+      // decide whether there's anything worth adding.
+      var instruction = route.steps[nextIdx].instruction;
+      final followIdx = nextIdx + 1;
+      final tail = followIdx < route.steps.length
+          ? _chainedTail(route.steps[followIdx],
+              route.steps[nextIdx].distanceM)
+          : null;
+      if (tail != null) {
+        instruction = AppLocalizations.of(context)
+            .chainedManeuver(instruction, _uncapitalisedTail(tail));
+      }
+      unawaited(_tts.announceManeuver(instruction, 0));
     }
+  }
+
+  /// The spoken tail for a chained announcement, or null when there is
+  /// nothing worth adding — same MapScreen._chainedTail, delegating to the
+  /// same shared, engine-agnostic NavigationGuidance.chainedTail this
+  /// screen already imports for the far/near thresholds.
+  String? _chainedTail(RouteStep follow, double gapM) {
+    final l = AppLocalizations.of(context);
+    final lang = Localizations.localeOf(context).languageCode;
+    switch (NavigationGuidance.chainedTail(
+        followDirection: follow.direction, gapM: gapM)) {
+      case ChainedTail.none:
+        return null;
+      case ChainedTail.arrival:
+        return switch (follow.modifier) {
+          'left' => l.arrivalAheadLeft,
+          'right' => l.arrivalAheadRight,
+          _ => l.arrivalAhead,
+        };
+      case ChainedTail.continueAhead:
+        return l.continueForDistance(Units.fmtDist(gapM));
+      case ChainedTail.maneuver:
+        return follow.instruction.isEmpty ? null : follow.instruction;
+      case ChainedTail.maneuverWithDistance:
+        if (follow.instruction.isEmpty) return null;
+        return Units.joinDistance(
+            Units.ttsDistInline(gapM.round(), lang), follow.instruction, lang);
+    }
+  }
+
+  /// Lower-cases a clause about to be joined mid-sentence ("then, in 300
+  /// metres, Take the ramp" reads as two sentences otherwise — the
+  /// phonemizer treats a capital mid-utterance as a new one). Acronyms and
+  /// road codes are left alone: a second upper-case character (or a digit)
+  /// means the word isn't an ordinary sentence opening, so "SS16"/"E45"
+  /// survive intact. Same MapScreen._uncapitalised.
+  static String _uncapitalisedTail(String s) {
+    if (s.length < 2) return s;
+    final second = s[1];
+    if (second.toUpperCase() == second && second.toLowerCase() != second) {
+      return s;
+    }
+    return '${s[0].toLowerCase()}${s.substring(1)}';
   }
 
   /// Finds the closest active-route segment in a moving window around the
