@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -24,7 +23,6 @@ import '../services/kokoro/kokoro_model_manager.dart';
 import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
 import '../widgets/cursor_painter.dart';
-import 'maplibre_poc_screen.dart';
 import '../widgets/speedometer_widget.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -1114,33 +1112,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // ── MAP ─────────────────────────────────────────────────────────
           _SectionHeader(l.sectionMap, c),
-          if (kDebugMode) ...[
-            _SwitchTile(
-              title: 'Motore mappa: MapLibre (sperimentale)',
-              subtitle: 'Tilt e rotazione della camera, styling nativo, '
-                  'ricerca (categorie e preferiti), anteprima e navigazione '
-                  'complete con reroute e guida vocale, ZTL, autovelox, '
-                  'parcheggio, segnalazioni, bussola. Manca ancora: tappe '
-                  'multiple, istruzioni concatenate. Solo per prova.',
-              value:
-                  (_box.get('mapEngine', defaultValue: 'osm') as String) ==
-                      'maplibre',
-              onChanged: (v) {
-                _box.put('mapEngine', v ? 'maplibre' : 'osm');
-                setState(() {});
-              },
-              colors: c,
-            ),
-            ListTile(
-              leading: Icon(Icons.science_outlined, color: c.textSecondary),
-              title: Text('MapLibre PoC (throwaway)',
-                  style: TextStyle(color: c.textPrimary)),
-              subtitle: Text('Schermo isolato, non il motore vero e proprio',
-                  style: TextStyle(color: c.textSecondary, fontSize: 12)),
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const MaplibrePocScreen())),
-            ),
-          ],
+          _SwitchTile(
+            title: 'Motore mappa: MapLibre',
+            subtitle: 'Tilt e rotazione della camera, styling nativo, '
+                'ricerca (categorie e preferiti), tappe multiple, '
+                'alternative con esclusione autostrade/pedaggi, trasporto '
+                'pubblico, navigazione completa con reroute e guida vocale, '
+                'ZTL, autovelox, parcheggio, segnalazioni, bussola.',
+            value: (_box.get('mapEngine', defaultValue: 'osm') as String) ==
+                'maplibre',
+            onChanged: (v) {
+              _box.put('mapEngine', v ? 'maplibre' : 'osm');
+              setState(() {});
+            },
+            colors: c,
+          ),
           _SwitchTile(
             title: l.keepScreenOn,
             subtitle: l.keepScreenOnDescription,
