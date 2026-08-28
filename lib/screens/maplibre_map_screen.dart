@@ -251,6 +251,17 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   StreamSubscription<GpsData>? _gpsSub;
   MapController? _controller;
 
+  // ── GPS lifecycle (background/foreground) ─────────────────────────────
+  // Same grace-period idle-stop MapScreen runs: `paused` also fires for a
+  // few-second glance at a notification, and tearing the receiver down for
+  // that costs a fresh acquisition on return, which reads as a fault. GPS
+  // is stopped only after _gpsBackgroundGrace of being genuinely away, and
+  // never while navigating (the foreground service keeps it alive then).
+  Future<void>? _gpsPauseStop;
+  Timer? _gpsIdleStop;
+  static const _gpsBackgroundGrace = Duration(seconds: 30);
+  int _gpsLifecycleGeneration = 0;
+
   // Mirrors MapScreen's _followUser: true until the user pans/rotates/tilts
   // by hand, at which point their gesture must not be immediately fought by
   // the next GPS fix. Actual initial value comes from the 'autoCenterOnLaunch'
@@ -391,6 +402,25 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   Timer? _gpsLossTimer;
   int _lastFixEpochMs = 0;
   static const _gpsLossThresholdMs = 8000;
+
+  /// Guards against a step advancing without the driver actually getting
+  /// closer to the next one — a road-snap artefact more than a real turn
+  /// taken. Same MapScreen mechanism: 5s after a step advances, reroute
+  /// silently if the remaining distance to the new next manoeuvre hasn't
+  /// meaningfully shrunk and the driver is still moving.
+  Timer? _missedTurnTimer;
+
+  /// Watches for the camera failing to converge on the rotation it was
+  /// asked for while the vehicle is moving, and nudges the easing loop back
+  /// to life. Same MapScreen mechanism, watching the camera's drift from
+  /// its target rather than the heading itself — a steady heading is what
+  /// driving straight looks like, and is also the heading filter's
+  /// intended output while it deliberately holds a suspect bearing near a
+  /// roundabout, so watching the heading fired exactly where nothing was
+  /// wrong.
+  Timer? _headingWatchdog;
+  int _watchdogFrozenTicks = 0;
+  static const _stuckCameraDeg = 25.0;
   int _currentStepIdx = 0;
   List<double> _cumDist = [];
   List<double> _stepCumDist = [];
@@ -678,20 +708,61 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Same battery-saving split MapScreen's own lifecycle handler uses for
-    // the compass specifically: stop the sensor streams while backgrounded,
-    // restart on return. GPS itself is left to GpsService/the OS foreground
-    // service — this screen doesn't yet mirror MapScreen's separate
-    // idle-stop-with-grace-period timer for the location stream, only the
-    // compass half of that lifecycle handling.
+    // Same lifecycle handling MapScreen runs, ported in full: compass
+    // sensors stop/restart on every pause/resume, GPS only stops after a
+    // grace period of genuinely being backgrounded (never while
+    // navigating — the foreground service keeps that stream alive), and a
+    // generation counter guards against a resume racing a still-in-flight
+    // pause-time stop.
     switch (state) {
       case AppLifecycleState.paused:
+        _gpsLifecycleGeneration++;
         _magnetSub?.cancel();
         _magnetSub = null;
         _accelSub?.cancel();
         _accelSub = null;
+        if (!_isNavigating) {
+          _gpsIdleStop?.cancel();
+          _gpsIdleStop = Timer(_gpsBackgroundGrace, () {
+            if (!mounted || _isNavigating) return;
+            _gpsSub?.cancel();
+            _gpsSub = null;
+            _gpsPauseStop = _gps.stop();
+          });
+          WakelockPlus.disable();
+        }
       case AppLifecycleState.resumed:
+        // Back before the grace period expired: the receiver never
+        // stopped, so there is nothing to restart and no fix was lost.
+        _gpsIdleStop?.cancel();
+        _gpsIdleStop = null;
+        _applyScreenPolicy();
+        final generation = ++_gpsLifecycleGeneration;
         if (_magnetSub == null) _startCompass();
+        // Wait for pause-time cancellation before creating a new native
+        // location stream — otherwise a quick app switch could start a
+        // fresh stream and then let the late stop cancel it.
+        final pauseStop = _gpsPauseStop;
+        unawaited(() async {
+          await pauseStop;
+          if (!mounted || generation != _gpsLifecycleGeneration) return;
+          if (_gpsSub == null) {
+            final ok = await _gps.start();
+            if (!mounted || generation != _gpsLifecycleGeneration) return;
+            if (ok) {
+              _gpsSub = _gps.stream.listen(_onGps);
+            }
+          }
+        }());
+      case AppLifecycleState.detached:
+        _gpsIdleStop?.cancel();
+        _gpsIdleStop = null;
+        _gpsLifecycleGeneration++;
+        // App fully closed — stop GPS immediately so the foreground
+        // service (and its CPU wakelock) are released before the process
+        // exits.
+        unawaited(_gps.stop());
+        WakelockPlus.disable();
       default:
         break;
     }
@@ -1084,10 +1155,13 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _magnetSub?.cancel();
     _accelSub?.cancel();
     _gpsSub?.cancel();
+    _gpsIdleStop?.cancel();
     _followTicker?.cancel();
     _searchDebounce?.cancel();
     _arrivalBannerTimer?.cancel();
     _gpsLossTimer?.cancel();
+    _missedTurnTimer?.cancel();
+    _headingWatchdog?.cancel();
     _activitySub?.cancel();
     _searchController.dispose();
     unawaited(_gps.dispose());
@@ -1553,6 +1627,29 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         }
       }
     });
+
+    _headingWatchdog?.cancel();
+    _watchdogFrozenTicks = 0;
+    _headingWatchdog = Timer.periodic(const Duration(seconds: 2), (_) {
+      if (!mounted || !_isNavigating || !_headingMode) return;
+      if (!_headingFilter.isMoving) {
+        _watchdogFrozenTicks = 0;
+        return;
+      }
+      final target = _targetState;
+      if (target == null) return;
+      final drift =
+          HeadingFilter.angleBetween(_bearing % 360, target.rotDeg % 360);
+      if (drift > _stuckCameraDeg) {
+        _watchdogFrozenTicks++;
+        if (_watchdogFrozenTicks >= 3) {
+          _watchdogFrozenTicks = 0;
+          _startFollowTicker();
+        }
+      } else {
+        _watchdogFrozenTicks = 0;
+      }
+    });
   }
 
   void _stopNavigation({bool stopVoice = true}) {
@@ -1561,6 +1658,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _arrivalBannerTimer?.cancel();
     _gpsLossTimer?.cancel();
     _gpsLossTimer = null;
+    _missedTurnTimer?.cancel();
+    _missedTurnTimer = null;
+    _headingWatchdog?.cancel();
+    _headingWatchdog = null;
     unawaited(_navNotif.cancel());
     setState(() {
       _route = null;
@@ -1666,6 +1767,33 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     return _splitByZtl(pts, _ztl.classifyPoints(pts));
   }
 
+  /// Arms the missed-turn guard right after a step advances — same
+  /// MapScreen mechanism, adapted to this screen's while-loop advancement
+  /// (which can skip several steps in one tick; the guard only ever cares
+  /// about the step actually current when it fires).
+  void _armMissedTurnGuard({required int newNextIdx, required double distAtAdvance}) {
+    _missedTurnTimer?.cancel();
+    final capturedStepIdx = _currentStepIdx;
+    final dest = _destination;
+    _missedTurnTimer = Timer(const Duration(milliseconds: 5000), () {
+      if (!mounted || !_isNavigating || _isRerouting) return;
+      if (_currentStepIdx != capturedStepIdx) return; // naturally advanced
+      final route = _route;
+      if (route == null || dest == null || newNextIdx >= route.steps.length) {
+        return;
+      }
+      final currentDist =
+          (_stepCumDist[newNextIdx] - _routeProgressM).clamp(0.0, double.infinity);
+      final speed = _lastFix?.speedKmh ?? 0;
+      // Reroute if not meaningfully closer (< 50 m improvement) and moving.
+      if (currentDist > distAtAdvance - 50 && speed > 3) {
+        final pos = LatLng(
+            _lastFix!.position.latitude, _lastFix!.position.longitude);
+        unawaited(_rerouteAndNavigate(pos, dest));
+      }
+    });
+  }
+
   void _updateNavigationProgress(GpsData data) {
     final route = _route;
     if (route == null || _cumDist.isEmpty || _arrived) return;
@@ -1684,6 +1812,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     if (routeLimit == null) {
       unawaited(_speedLimitSvc.updateIfNeeded(pos));
     }
+    final prevStepIdx = _currentStepIdx;
     while (_currentStepIdx + 1 < route.steps.length &&
         _stepCumDist[_currentStepIdx + 1] <=
             routeProgressM + _advanceToleranceM) {
@@ -1694,6 +1823,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         ? 0
         : (_stepCumDist[_currentStepIdx + 1] - routeProgressM)
             .clamp(0, double.infinity);
+    if (_currentStepIdx != prevStepIdx && !isLast) {
+      _armMissedTurnGuard(newNextIdx: _currentStepIdx + 1, distAtAdvance: _distToNextStepM);
+    }
     _checkArrival(pos, isLast);
     if (_arrived) return;
     if (!_voiceMuted && !isLast) {
