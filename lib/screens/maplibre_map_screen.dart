@@ -303,6 +303,15 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   double _pitch = 45.0;
   double _bearing = 0;
 
+  /// Ground-metre forward shift that clears the NavPanel at the live camera's
+  /// current pitch/zoom, measured against the real controller (see
+  /// _shiftCameraAboveNavPanel) rather than estimated — pitch and zoom are
+  /// both constant for the whole nav session, so one measurement covers
+  /// every follow-ticker frame until the next snap refreshes it. Null before
+  /// the first snap has landed.
+  double? _navForwardShiftM;
+  final _navPanelKey = GlobalKey();
+
   /// Same dead-reckoning heading filter MapScreen feeds every GPS tick —
   /// without it the raw course-over-ground (data.heading) is what drove the
   /// camera's bearing here, and that value is genuinely noisy at low speed,
@@ -2468,6 +2477,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _headingWatchdog?.cancel();
     _headingWatchdog = null;
     unawaited(_navNotif.cancel());
+    _navForwardShiftM = null;
     setState(() {
       _route = null;
       _destination = null;
@@ -3282,15 +3292,22 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         : 0.0;
     final zoom = _camState?.zoom ?? 17;
     // In heading-up navigation shift the camera ahead so the cursor sits
-    // lower in frame (more road visible ahead, clear of the NavPanel/
-    // speedometer) — same MapScreen._navCameraCenter formula, ported to
-    // camera_follow.dart, using the real screen height rather than
-    // MapScreen's own hardcoded 800px assumption.
+    // above the NavPanel/speedometer instead of behind it. _navForwardShiftM
+    // is a real distance measured against the live controller by
+    // _shiftCameraAboveNavPanel (the same snap that runs at nav start and on
+    // every recentre) — reused here every tick since pitch, zoom and screen
+    // size are all constant for the session. Before that first measurement
+    // lands, navCameraCenter's formula is a rough placeholder.
+    final navShiftM = _navForwardShiftM;
     final (targetLat, targetLng) = (_isNavigating && _headingMode)
-        ? CameraFollowEasing.navCameraCenter(
-            data.position.latitude, data.position.longitude, rotDeg, zoom,
-            screenHeightPx: MediaQuery.of(context).size.height,
-            pitchDeg: _pitch)
+        ? (navShiftM != null
+            ? CameraFollowEasing.shiftByMetres(
+                data.position.latitude, data.position.longitude, rotDeg,
+                navShiftM)
+            : CameraFollowEasing.navCameraCenter(
+                data.position.latitude, data.position.longitude, rotDeg, zoom,
+                screenHeightPx: MediaQuery.of(context).size.height,
+                pitchDeg: _pitch))
         : (data.position.latitude, data.position.longitude);
     _targetState = CameraFollowState(
       lat: targetLat,
@@ -3381,12 +3398,35 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
             : null;
     final rotDeg = _headingMode ? (trustedHeading ?? _bearing) : 0.0;
     const zoom = 17.0;
-    final screenHeightPx = MediaQuery.of(context).size.height;
-    final (lat, lng) = navShift
-        ? CameraFollowEasing.navCameraCenter(
-            fix.position.latitude, fix.position.longitude, rotDeg, zoom,
-            screenHeightPx: screenHeightPx, pitchDeg: pitch)
-        : (fix.position.latitude, fix.position.longitude);
+    if (!navShift) {
+      _applySnapCamera(
+          fix.position.latitude, fix.position.longitude, zoom, rotDeg, pitch);
+      return;
+    }
+    final panelBox =
+        _navPanelKey.currentContext?.findRenderObject() as RenderBox?;
+    if (panelBox != null && panelBox.hasSize) {
+      unawaited(_shiftCameraAboveNavPanel(
+          fix, zoom, rotDeg, pitch, panelBox.size.height));
+    } else {
+      // The very first call right after _startNavigation's setState: the
+      // NavPanel doesn't exist in the tree yet (it's gated on _isNavigating,
+      // which hasn't rebuilt), so its height can't be read until one frame
+      // has actually laid it out.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final box =
+            _navPanelKey.currentContext?.findRenderObject() as RenderBox?;
+        unawaited(_shiftCameraAboveNavPanel(fix, zoom, rotDeg, pitch,
+            (box != null && box.hasSize) ? box.size.height : 220.0));
+      });
+    }
+  }
+
+  void _applySnapCamera(
+      double lat, double lng, double zoom, double rotDeg, double pitch) {
+    final controller = _controller;
+    if (controller == null) return;
     _camState =
         CameraFollowState(lat: lat, lng: lng, zoom: zoom, rotDeg: rotDeg);
     _targetState = _camState;
@@ -3396,6 +3436,44 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       pitch: pitch,
       bearing: rotDeg,
     ));
+  }
+
+  /// Finds the ground-metre shift that puts the GPS marker just above the
+  /// NavPanel by asking the live controller's own screen↔ground projection,
+  /// instead of estimating it from a hand-derived perspective formula (the
+  /// wrong direction was tried once already — see CameraFollowEasing
+  /// history — and a pitched camera's screen mapping depends on the SDK's
+  /// own camera/FOV model, not just ground distance and pitch).
+  ///
+  /// Centres on the vehicle first (moveCamera is synchronous on Android —
+  /// no visible frame renders before the animateCamera below replaces it),
+  /// so the vehicle sits at screen-centre by definition; toLngLat then
+  /// reads which ground point currently appears just above the panel. That
+  /// point sits exactly as far *behind* the vehicle as the real camera
+  /// centre needs to be *ahead* of it, so reflecting it through the
+  /// vehicle's position gives the centre to animate to. The resulting
+  /// distance is cached in _navForwardShiftM so the follow ticker can reuse
+  /// it every GPS tick without repeating this round trip.
+  Future<void> _shiftCameraAboveNavPanel(GpsData fix, double zoom,
+      double rotDeg, double pitch, double navPanelHeightPx) async {
+    final controller = _controller;
+    if (controller == null || !mounted) return;
+    final screenSize = MediaQuery.of(context).size;
+    final vehicle = Geographic(
+        lon: fix.position.longitude, lat: fix.position.latitude);
+    await controller.moveCamera(
+        center: vehicle, zoom: zoom, pitch: pitch, bearing: rotDeg);
+    if (!mounted || _controller == null) return;
+    const marginPx = 24.0;
+    final targetY = (screenSize.height - navPanelHeightPx - marginPx)
+        .clamp(0.0, screenSize.height);
+    final behind =
+        _controller!.toLngLat(Offset(screenSize.width / 2, targetY));
+    final aheadLat = 2 * vehicle.lat - behind.lat;
+    final aheadLng = 2 * vehicle.lon - behind.lon;
+    _navForwardShiftM = Geo.distanceM(
+        LatLng(vehicle.lat, vehicle.lon), LatLng(aheadLat, aheadLng));
+    _applySnapCamera(aheadLat, aheadLng, zoom, rotDeg, pitch);
   }
 
   /// Name of the town street being driven right now, or null — same
@@ -4110,6 +4188,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               right: 0,
               bottom: 0,
               child: NavPanel(
+                key: _navPanelKey,
                 route: _route!,
                 speed: _lastFix?.speedKmh ?? 0,
                 bottomInset: MediaQuery.of(context).padding.bottom,
