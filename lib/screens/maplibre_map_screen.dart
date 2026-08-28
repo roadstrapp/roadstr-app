@@ -67,6 +67,7 @@ import '../widgets/map/map_chrome.dart';
 import '../widgets/map/map_markers.dart';
 import '../widgets/nav/nav_hud.dart';
 import '../widgets/nav/speed_limit_sign.dart';
+import '../widgets/place/place_info_panel.dart';
 import '../widgets/route/route_panels.dart';
 import '../widgets/search/search_panel.dart';
 import '../widgets/sheets/road_event_sheets.dart';
@@ -371,6 +372,25 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// A destination picked before the first GPS fix arrived — replayed once
   /// one does, in _onGps. Same MapScreen._awaitingFixDestination.
   LatLng? _awaitingFixDestination;
+
+  // ── Place info (search result / map tap) ──────────────────────────────
+  // Shown before committing to a route — "where is this, what's here" —
+  // same MapScreen fields/flow. reverseGeocodeDetail/WikiSearch/
+  // PoiSearchService.nearestDetails are all pure network calls with no
+  // flutter_map dependency, so the fetch logic ports directly.
+  bool _showPlaceInfo = false;
+  LatLng? _placePoint;
+  String? _placeAddress;
+  String? _placeLabel;
+  String? _placeWikiQuery;
+  WikiSummary? _placeWiki;
+  OsmPoiDetails? _placeDetails;
+  String? _placeOpeningHours;
+  bool _placeLoading = false;
+  int _placeRequestGeneration = 0;
+
+  /// Label carried from search into the eventual route preview panel.
+  String? _pendingLabel;
   List<({List<LatLng> points, bool restricted})> _routeRuns = [];
 
   /// 'driving' / 'cycling' / 'walking' — same three profiles
@@ -1341,7 +1361,150 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       _searchController.clear();
     });
     FocusManager.instance.primaryFocus?.unfocus();
-    await _onDestinationPicked(result.position, label: result.shortName);
+    if (_pickingWaypoint) {
+      await _addWaypoint(result.position);
+      return;
+    }
+    _saveToHistory(result.shortName, result.position);
+    await _showPlaceInfoForResult(result);
+    _focusSearchPlace(result.position);
+  }
+
+  /// Recentres the camera on a picked place and tidies up the search UI —
+  /// same MapScreen._focusSearchPlace.
+  void _focusSearchPlace(LatLng point) {
+    setState(() {
+      _followUser = false;
+      _showSearch = false;
+      _searchResults = [];
+      _nearbyCategory = null;
+    });
+    FocusManager.instance.primaryFocus?.unfocus();
+    final controller = _controller;
+    if (controller == null) return;
+    unawaited(controller.animateCamera(
+      center: Geographic(lon: point.longitude, lat: point.latitude),
+      zoom: 16.0,
+    ));
+  }
+
+  /// Whether a Nominatim result is a point-of-interest worth enriching with
+  /// OSM POI details, as opposed to a plain address/administrative area —
+  /// same MapScreen._isPoi.
+  bool _isPoi(NominatimResult result) {
+    const nonPoi = {'highway', 'boundary', 'landuse', 'postcode'};
+    const placeAddressTypes = {
+      'city', 'town', 'village', 'hamlet', 'suburb', 'neighbourhood',
+      'quarter', 'municipality',
+    };
+    if (result.cls == null) return false;
+    if (nonPoi.contains(result.cls)) return false;
+    if (result.cls == 'place' && placeAddressTypes.contains(result.type)) {
+      return false;
+    }
+    return true;
+  }
+
+  /// Shows the place-info panel pre-populated with a Nominatim result,
+  /// skipping the redundant reverse-geocode step since the name is already
+  /// known — same MapScreen._showPlaceInfoForResult.
+  Future<void> _showPlaceInfoForResult(NominatimResult result) async {
+    final requestGeneration = ++_placeRequestGeneration;
+    _pendingLabel = result.shortName;
+    final wikiQ = (result.city != null && result.city != result.shortName)
+        ? '${result.shortName} ${result.city}'
+        : result.shortName;
+    setState(() {
+      _placePoint = result.position;
+      _placeAddress = result.displayName.split(',').take(3).join(', ');
+      _placeLabel = result.shortName;
+      _placeWikiQuery = wikiQ;
+      _placeWiki = null;
+      _placeDetails = null;
+      _placeOpeningHours = result.openingHours;
+      _placeLoading = true;
+      _showPlaceInfo = true;
+      _showSearch = false;
+      _searchResults = [];
+    });
+    if (!mounted) return;
+    final lang = Localizations.localeOf(context).languageCode;
+    final results = await Future.wait<Object?>([
+      WikiSearch.fetchWikiNearby(result.position.latitude, result.position.longitude,
+          lang: lang, fallbackQuery: wikiQ, radiusM: 200),
+      _isPoi(result)
+          ? _poiSvc.nearestDetails(result.position,
+              preferredName: result.shortName, languageCode: lang)
+          : Future<OsmPoiDetails?>.value(null),
+    ]);
+    if (!mounted || requestGeneration != _placeRequestGeneration) return;
+    setState(() {
+      _placeWiki = results[0] as WikiSummary?;
+      _placeDetails = results[1] as OsmPoiDetails?;
+      _placeLoading = false;
+    });
+  }
+
+  /// Shows the place-info panel for a raw point (map tap, favourite,
+  /// history entry) — reverse-geocodes first since no name is known yet.
+  /// Same MapScreen._showPlaceInfoFor.
+  Future<void> _showPlaceInfoFor(LatLng point,
+      {String? preferredLabel, String? address}) async {
+    final requestGeneration = ++_placeRequestGeneration;
+    setState(() {
+      _placePoint = point;
+      _placeAddress =
+          (address?.trim().isNotEmpty ?? false) ? address!.trim() : preferredLabel;
+      _placeLabel = preferredLabel;
+      _placeWiki = null;
+      _placeDetails = null;
+      _placeOpeningHours = null;
+      _placeLoading = true;
+      _showPlaceInfo = true;
+    });
+    final geo = await RoutingService.reverseGeocodeDetail(point);
+    if (!mounted || requestGeneration != _placeRequestGeneration) return;
+    final dispParts = (geo?.display ?? '')
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .take(3)
+        .join(', ');
+    setState(() {
+      _placeAddress = dispParts.isEmpty ? (_placeAddress ?? preferredLabel) : dispParts;
+      _placeLabel = preferredLabel ?? geo?.label ?? _placeLabel;
+      _placeOpeningHours = geo?.openingHours;
+    });
+    final wikiQ = preferredLabel ?? geo?.wikiQuery;
+    setState(() => _placeWikiQuery = wikiQ);
+    if (!mounted) return;
+    final lang = Localizations.localeOf(context).languageCode;
+    final results = await Future.wait<Object?>([
+      WikiSearch.fetchWikiNearby(point.latitude, point.longitude,
+          lang: lang, fallbackQuery: wikiQ, radiusM: 300),
+      _poiSvc.nearestDetails(point, preferredName: wikiQ, languageCode: lang),
+    ]);
+    if (!mounted || requestGeneration != _placeRequestGeneration) return;
+    setState(() {
+      _placeWiki = results[0] as WikiSummary?;
+      _placeDetails = results[1] as OsmPoiDetails?;
+      _placeOpeningHours ??= (results[1] as OsmPoiDetails?)?.openingHours;
+      _placeLoading = false;
+    });
+  }
+
+  void _closePlaceInfo() {
+    _placeRequestGeneration++;
+    setState(() {
+      _showPlaceInfo = false;
+      _placePoint = null;
+      _placeAddress = null;
+      _placeLabel = null;
+      _placeWikiQuery = null;
+      _placeWiki = null;
+      _placeDetails = null;
+      _placeOpeningHours = null;
+    });
   }
 
   /// Pressing Enter/search on the keyboard instead of tapping a row — same
@@ -1392,7 +1555,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       return;
     }
     if (label != null && label.isNotEmpty) _saveToHistory(label, pos);
-    await _calculateRouteTo(pos);
+    await _showPlaceInfoFor(pos, preferredLabel: label);
+    _focusSearchPlace(pos);
   }
 
   /// Appends [pos] to the active journey as an extra stop and reroutes
@@ -1438,7 +1602,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// each looked from the outside like "I tapped a destination and nothing
   /// happened", because nothing told the driver why. Every path here now
   /// says something.
-  Future<void> _calculateRouteTo(LatLng dest) async {
+  Future<void> _calculateRouteTo(LatLng dest, {String? label}) async {
     final origin = _lastFix == null
         ? null
         : LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
@@ -1453,6 +1617,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       return;
     }
     _awaitingFixDestination = null;
+    _pendingLabel = label;
     setState(() => _calculatingRoute = true);
     _destination = dest;
     // A fresh destination starts a new journey — any stop added to a
@@ -2771,7 +2936,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       // claim the system back gesture instead of letting it exit — search
       // closes (there's no on-screen back button any more to do it), and
       // navigation asks for confirmation instead of just stopping.
-      canPop: !_showSearch && !_isNavigating,
+      canPop: !_showSearch && !_showPlaceInfo && !_isNavigating,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         if (_showSearch) {
@@ -2783,6 +2948,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
             _nearbyCategory = null;
             _pickingWaypoint = false;
           });
+        } else if (_showPlaceInfo) {
+          _closePlaceInfo();
         } else if (_isNavigating) {
           _showExitNavigationDialog();
         }
@@ -2805,11 +2972,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               } else if (event is MapEventClick &&
                   !_isNavigating &&
                   !_calculatingRoute) {
-                // Tapping a point sets it as the destination directly — no
-                // reverse-geocoded label, unlike MapScreen's long-press
-                // context menu, since there's nowhere here yet to show one.
-                unawaited(_calculateRouteTo(
-                    LatLng(event.point.lat, event.point.lon)));
+                // Tapping a point opens the place-info panel first, same as
+                // MapScreen's own map tap — "where is this and what's here"
+                // before committing to a route, not straight to routing.
+                final point = LatLng(event.point.lat, event.point.lon);
+                unawaited(_showPlaceInfoFor(point));
+                _focusSearchPlace(point);
               } else if (event is MapEventMoveCamera &&
                   ((event.camera.pitch - _pitch).abs() > 0.5 ||
                       (event.camera.bearing - _bearing).abs() > 0.5)) {
@@ -3180,6 +3348,34 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                 );
               }),
             ),
+          // ── PLACE INFO (search result / map tap, before committing) ────────
+          // Same widget MapScreen shows first — "where is this, what's
+          // here" — before the driver commits to routing anywhere.
+          if (_showPlaceInfo && _placePoint != null && !_showSearch)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: PlaceInfoPanel(
+                point: _placePoint!,
+                address: _placeAddress,
+                wiki: _placeWiki,
+                details: _placeDetails,
+                wikiQuery: _placeWikiQuery,
+                openingHours: _placeOpeningHours,
+                loading: _placeLoading,
+                bottomInset: MediaQuery.of(context).padding.bottom,
+                colors: c,
+                onNavigate: () {
+                  // Capture before _closePlaceInfo nulls them out.
+                  final dest = _placePoint!;
+                  final label = _placeLabel ?? _pendingLabel;
+                  _closePlaceInfo();
+                  unawaited(_calculateRouteTo(dest, label: label));
+                },
+                onClose: _closePlaceInfo,
+              ),
+            ),
           // Real preview panel, not the summary chip this replaced — same
           // widget MapScreen shows (RoutePreviewPanel), reused as-is, now
           // with real traffic data since the road-event subscription lands.
@@ -3190,7 +3386,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               bottom: 0,
               child: RoutePreviewPanel(
                 route: _route!,
-                label: null,
+                label: _pendingLabel,
                 trafficEvents: _routeTrafficEvents(_route!),
                 trafficStatus: _trafficStatus(_route!),
                 bottomInset: MediaQuery.of(context).padding.bottom,
@@ -3377,7 +3573,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
           // full A→B planner (RoutePlannerBar) — that multi-stop form isn't
           // ported here yet, so this just opens the same search panel the top
           // search bar does.
-          if (!_isNavigating && !_showSearch && _route == null)
+          if (!_isNavigating && !_showSearch && !_showPlaceInfo && _route == null)
             Positioned(
               left: 12,
               bottom: MediaQuery.of(context).padding.bottom + 16,
@@ -3405,7 +3601,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
           // ── BOTTOM BAR (notifications / profile / settings) ─────────────────
           // Same widget MapScreen shows when nothing else claims the bottom —
           // idle, no search, no route.
-          if (!_isNavigating && !_showSearch && _route == null)
+          if (!_isNavigating && !_showSearch && !_showPlaceInfo && _route == null)
             Positioned(
               left: 0,
               right: 0,
