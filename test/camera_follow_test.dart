@@ -109,4 +109,24 @@ void main() {
       expect(latTilted - 45, greaterThan(latFlat - 45));
     });
   });
+
+  group('CameraFollowEasing.shiftByMetres', () {
+    test('shifts due north when heading is 0°', () {
+      final (lat, lng) = CameraFollowEasing.shiftByMetres(45, 9, 0, 100);
+      expect(lat, greaterThan(45));
+      expect(lng, closeTo(9, 1e-9));
+    });
+
+    test('a larger metre shift moves further', () {
+      final (latNear, _) = CameraFollowEasing.shiftByMetres(45, 9, 0, 50);
+      final (latFar, _) = CameraFollowEasing.shiftByMetres(45, 9, 0, 200);
+      expect(latFar - 45, greaterThan(latNear - 45));
+    });
+
+    test('zero shift is a no-op', () {
+      final (lat, lng) = CameraFollowEasing.shiftByMetres(45, 9, 37, 0);
+      expect(lat, closeTo(45, 1e-9));
+      expect(lng, closeTo(9, 1e-9));
+    });
+  });
 }
