@@ -117,12 +117,17 @@ class CameraFollowEasing {
   /// — and the clearance it buys over the NavPanel/speedometer — holds on
   /// any device, not just an 800px-tall one.
   ///
-  /// [pitchDeg] compensates for camera tilt: a 3D-perspective camera
-  /// foreshortens a fixed ground-distance shift toward the horizon as pitch
-  /// steepens, so the same [screenHeightPx] fraction buys less on-screen
-  /// clearance over a bottom panel at 60° than at 0°. Scaling the shift by
-  /// `1 / cos(pitchDeg)` (floored so it never divides by something close to
-  /// zero) keeps the marker's on-screen position roughly pitch-independent.
+  /// [pitchDeg] is a rough attempt at compensating for camera tilt — a
+  /// pitched 3D camera does not shift the on-screen marker by the same
+  /// number of pixels per ground-metre that a flat top-down one does, and
+  /// this formula cannot know the real ratio without asking the actual
+  /// projection (screen position for a pitched camera is not a simple
+  /// function of ground distance and pitch alone — it also depends on the
+  /// SDK's own camera/FOV model). Treat this as a coarse fallback only:
+  /// [shiftByMetres] below, driven by a distance measured against the live
+  /// controller, is what the map screen actually uses once navigation is
+  /// under way; this formula only covers the brief window before that first
+  /// measurement lands.
   static (double lat, double lng) navCameraCenter(
       double lat, double lng, double headingDeg, double zoom,
       {double screenHeightPx = 800.0, double pitchDeg = 0.0}) {
@@ -131,6 +136,22 @@ class CameraFollowEasing {
     final pitchCompensation =
         1.0 / math.max(math.cos(pitchDeg * math.pi / 180.0), 0.5);
     final shiftM = 0.18 * screenHeightPx * mpp * pitchCompensation;
+    const degPerM = 1.0 / 111320.0;
+    final rad = headingDeg * math.pi / 180.0;
+    final dLat = math.cos(rad) * shiftM * degPerM;
+    final dLng = math.sin(rad) *
+        shiftM *
+        degPerM /
+        math.max(math.cos(lat * math.pi / 180.0), 0.001);
+    return ((lat + dLat).clamp(-89.9, 89.9), lng + dLng);
+  }
+
+  /// Shifts [lat]/[lng] by exactly [shiftM] metres in the [headingDeg]
+  /// direction — no zoom/pitch guessing, for when the real on-screen shift
+  /// needed has already been measured (e.g. via the map controller's own
+  /// screen↔ground projection) rather than estimated from a formula.
+  static (double lat, double lng) shiftByMetres(
+      double lat, double lng, double headingDeg, double shiftM) {
     const degPerM = 1.0 / 111320.0;
     final rad = headingDeg * math.pi / 180.0;
     final dLat = math.cos(rad) * shiftM * degPerM;
