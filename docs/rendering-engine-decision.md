@@ -1,8 +1,8 @@
 # Rendering engine — architecture decision
 
-**Status:** decision proposed, not yet accepted — §7 reopens Option D, not yet resolved
-**Date:** 2026-08-18, revised 2026-08-27
-**Scope:** phases 1–2 (audit and decision). No implementation has been started.
+**Status:** decided and shipped — §8 records the outcome of §7's reopened Option D
+**Date:** 2026-08-18, revised 2026-08-27, resolved 2026-08-28
+**Scope:** phases 1–2 (audit and decision) plus implementation — §8.
 
 ---
 
@@ -11,6 +11,11 @@
 **Recommendation (2026-08-18): do not replace the rendering engine. Ship offline maps on
 the current stack instead, and revisit vector rendering once a blocking dependency is
 resolved.**
+
+**Outcome (2026-08-28): superseded — see §8.** §7's falsifier held up under implementation,
+not just inspection: a full MapLibre-based engine was built on its own branch and merged
+into `main` in 0.5.0, shipping alongside the original renderer rather than replacing it.
+Offline maps, not vector rendering, is next on the roadmap — see the README.
 
 **2026-08-27 update:** one of the stated falsifiers in §5 has occurred — see §7. Option D
 is reopened, not yet re-decided.
@@ -336,3 +341,34 @@ iOS was explicitly ruled out of scope: Roadstr does not target Apple platforms, 
 package, Roadstr's existing OSM raster tiles, on a real Android device — before touching
 `map_screen.dart` or committing to a migration branch. Answers the open questions above
 with evidence instead of resolving them by reading source a second time.
+
+## 8. 2026-08-28 — Option D decided and shipped
+
+The recommended next step happened, then went further: the throwaway PoC confirmed the
+open questions in §7 in the app's own favour, and rather than stopping there, a full
+engine was built on `feature/maplibre-engine` and carried to feature parity with
+`map_screen.dart` over the following weeks, then merged into `main` in 0.5.0. What was
+verified along the way:
+
+- **F-Droid build:** not yet attempted against F-Droid's own infrastructure (still true —
+  Roadstr is not yet listed there), but the release build already compiles the native SDK
+  across all three shipped ABIs (`arm64-v8a`, `armeabi-v7a`, `x86_64`) via the ordinary
+  `flutter build apk --split-per-abi` path, which is the part F-Droid's build would
+  actually exercise.
+- **Play Services stayed out**, not just absent from this package's own tree: Roadstr's
+  Gradle config already excludes the `com.google.android.gms` and
+  `com.google.android.play` groups outright (`test/no_google_dependencies_test.dart`
+  enforces this), and the new engine never calls MapLibre's own location/tracking APIs —
+  location stays exclusively the app's own vendored `geolocator`, as anticipated in §7.
+- **Every custom layer was rebuilt**, not reused: route polylines (alternatives, active
+  route, progress split, transit legs), and every marker type — user cursor (redrawn from
+  scratch to get a correct pitch-driven shadow instead of double-drawing `arrow.svg`'s own
+  baked one), destination, road events, speed cameras, POI results, favourites, parking.
+- **Two-finger tilt/rotate and native dark-mode recolouring** both work as the style spec
+  promised, confirmed on-device rather than assumed from the spec.
+- **Both engines ship side by side.** The "Motore mappa: MapLibre" toggle in Settings
+  switches between this and the original `flutter_map` renderer at will; the app keeps
+  loading the original one by default, so nothing about the existing experience changed
+  for anyone who doesn't opt in.
+
+With this decided, the roadmap's blocked item — offline maps — is next; see the README.

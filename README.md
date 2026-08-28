@@ -6,7 +6,7 @@ It combines real-time GPS turn-by-turn navigation with community-sourced traffic
 If you're searching for the decentralized road event reporting system — "Waze without the centralized tracking" head to Jooray's Github page https://github.com/jooray/roadstr
 
 
-> **Version 0.4.29** — Android only.
+> **Version 0.5.0** — Android only.
 
 ---
 
@@ -51,46 +51,38 @@ If you're searching for the decentralized road event reporting system — "Waze 
 | Public transport routing — bus, tram, metro, rail, coach, ferry (worldwide open timetables) | ✅ |
 | Cycling routes | ✅ |
 | Customisable vehicle cursor — 7 colours, animated walking mode | ✅ |
+| Vector map rendering engine (MapLibre) — 3D tilt, native styling | ✅ Optional, switchable in Settings |
 | Offline maps (MBTiles) | 🔜 Next major change |
-| Vector map rendering engine | 🔬 Under evaluation — see decision doc |
 
 
 ---
 
 ## Roadmap
 
+### Shipped in 0.5.0 — a vector rendering engine
+
+The blocker recorded here used to be simple: MapLibre's Flutter plugin touches Google
+Play Services in places, which this app does not ship. It turned out not to be a real
+blocker — Roadstr already excludes the `com.google.android.gms` and
+`com.google.android.play` dependency groups outright at the Gradle level (the same
+exclusion that keeps the de-Googled GPS stack clean), and the new engine never calls
+MapLibre's own location APIs in the first place, so the exclusion applies here for free.
+Built from scratch on its own branch over the following month, merged once it reached
+parity with the existing renderer: native 3D tilt and rotation, its own styling for light
+and dark themes, and the full navigation feature set — search, multi-stop planning, route
+alternatives with highway/toll avoidance, public transport, ZTL-aware routing, hazard and
+speed-camera alerts, voice guidance. It ships as an equal option, not a replacement — the
+"Motore mappa: MapLibre" toggle in Settings switches between it and the original
+flutter_map-based renderer at will, and the app keeps shipping on the original one by
+default. See [`docs/rendering-engine-decision.md`](docs/rendering-engine-decision.md) for
+how the earlier evaluation reached the opposite conclusion, and what changed.
+
 ### Next major change — offline maps
 
-Roadstr currently draws the map from raster tiles fetched over the network. That is
-what makes offline maps hard, keeps styling shallow, and costs bandwidth on every
-journey. A vector rendering engine would unlock several things at once:
-
-- **offline maps** — vector data is small enough to carry a region on the device
-- **map rotation and tilt without the blur** that resampled raster tiles produce
-- **styling that belongs to the app**, so the light and dark themes extend to the map
-  itself rather than stopping at the UI around it
-- **less bandwidth**, which matters on a metered connection abroad
-
-Building from scratch and forking OsmAnd's engine were both examined in detail. The
-findings are written up in
-[`docs/rendering-engine-decision.md`](docs/rendering-engine-decision.md); in short, the
-current recommendation is **not** to replace the renderer yet:
-
-- OsmAnd's C++ engine is GPL-3.0-or-later and cleanly reusable, but its **map styles and
-  icons are CC-BY-NC-ND** — non-free, and unusable here. A renderer without a style
-  renders nothing. Its dependency tree also pulls in Qt, Skia, GDAL and ICU, which the
-  F-Droid build realistically cannot compile.
-- The pure-Dart vector option needs `flutter_map` 7.x while this app is on 8.x, and has
-  not been released since 2024.
-- MapLibre's Flutter plugin depends on Google Play Services, which this app does not ship.
-
-So **offline maps come first, on the current stack**, via MBTiles — which is what most of
-the value was about anyway. Vector rendering is revisited when one of the blockers above
-clears; the decision document lists exactly what would change the answer.
-
-Whichever way it eventually goes, that work happens on its own branch and only merges
-once it is at least as good as the tiles it replaces — the app on `main` stays shippable
-throughout.
+With vector rendering in place, offline maps are next: vector data is small enough to
+carry a region on the device, which raster tiles fetched over the network never allowed.
+That work happens on its own branch and only merges once it matches what online maps
+already do — the app on `main` stays shippable throughout.
 
 ### Also planned
 
