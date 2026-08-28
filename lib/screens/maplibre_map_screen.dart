@@ -1,18 +1,13 @@
-// First real slice of the MapLibre rendering engine — reachable via the
-// "mapEngine" setting (Impostazioni → Mappa), not merged in behind
-// kDebugMode like the throwaway PoC it grew out of.
-//
-// Deliberately incomplete: this is the incremental migration from
-// docs/rendering-engine-decision.md §7, not a replacement for MapScreen.
-// Destination search (POI categories + matching favourites), real
-// routing with a proper preview panel before committing, ZTL-aware route
-// colouring, speed camera/parking markers, hazard reporting, north-up/
-// heading-up toggle, navigation with off-route detection, rerouting and
-// voice guidance are all here now. Favourites-as-map-markers is not —
-// matching MapScreen, which doesn't draw them either, only as search
-// rows. What's left is polish, not missing features: chained voice
-// instructions, direction-aware off-route, tap-to-manage parking beyond
-// save/clear, multi-stop route planning. Each noted at its own commit.
+// The MapLibre rendering engine — reachable via the "mapEngine" setting
+// (Impostazioni → Mappa), a full alternative to MapScreen rather than the
+// throwaway PoC it started as: tilt/rotation, native styling, search
+// (POI categories + favourites), place-info-first flow, multi-stop
+// planning, route alternatives with highway/toll avoidance, public
+// transport itineraries, ZTL-aware route colouring, speed camera/hazard
+// alerts, parking, hazard reporting, and full turn-by-turn navigation
+// with off-route detection, rerouting and voice guidance, including
+// chained instructions. Favourites-as-map-markers is not drawn — matching
+// MapScreen, which only surfaces them as search rows.
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -406,6 +401,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   List<RouteResult> _alternatives = [];
   int _selectedAlt = 0;
   bool _showAlternatives = false;
+  // Measured after layout so _fitRoutesOnMap can reserve exactly the space
+  // the panel actually occupies instead of guessing a fixed height — the
+  // panel grows with the number of alternatives, the weather card and the
+  // avoidance toggle, so a fixed guess under-reserves as soon as any of
+  // those add a row.
+  final _altPanelKey = GlobalKey();
   bool _avoidanceEnabled = false;
   bool _avoidanceLoading = false;
   int _avoidanceRequestGeneration = 0;
@@ -1978,12 +1979,24 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     if (controller == null) return;
     final pts = [for (final r in routes) ...r.polyline];
     if (pts.isEmpty) return;
-    unawaited(controller.fitBounds(
-      bounds: LngLatBounds.fromPoints(
-          [for (final p in pts) Geographic(lon: p.longitude, lat: p.latitude)]),
-      padding: const EdgeInsets.fromLTRB(48, 96, 48, 260),
-      pitch: 0,
-    ));
+    // Deferred a frame so the panel — just told to show via setState — has
+    // actually laid out by the time its height is read; a same-frame read
+    // would still see the previous (or no) panel.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final liveController = _controller;
+      if (liveController == null) return;
+      final panelBox =
+          _altPanelKey.currentContext?.findRenderObject() as RenderBox?;
+      final panelHeight =
+          (panelBox != null && panelBox.hasSize) ? panelBox.size.height : 260.0;
+      unawaited(liveController.fitBounds(
+        bounds: LngLatBounds.fromPoints(
+            [for (final p in pts) Geographic(lon: p.longitude, lat: p.latitude)]),
+        padding: EdgeInsets.fromLTRB(48, 96, 48, panelHeight + 24),
+        pitch: 0,
+      ));
+    });
   }
 
   /// Public-transport itinerary search — same MapScreen._planTransit.
@@ -2319,9 +2332,17 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
 
   Future<void> _rerouteAndNavigate(LatLng origin, LatLng dest) async {
     if (_isRerouting) return;
+    // _stopNavigation bumps this on cancel/arrival; without the check below
+    // a reroute fetch still in flight at that moment lands afterwards and
+    // reinstates _route/_routeRuns — the purple line reappearing on a trip
+    // the driver already ended.
+    final requestGeneration = _routeRequestGeneration;
     setState(() => _isRerouting = true);
     final fetched = await _fetchRoute(origin, dest);
-    if (!mounted) return;
+    if (!mounted || requestGeneration != _routeRequestGeneration) {
+      if (mounted) setState(() => _isRerouting = false);
+      return;
+    }
     if (fetched == null) {
       setState(() => _isRerouting = false);
       return;
@@ -3347,7 +3368,18 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     // to ease a negligible remaining distance, not fight the snap.
     _followTicker?.cancel();
     _followTicker = null;
-    final rotDeg = _headingMode ? (fix.heading ?? _bearing) : 0.0;
+    // Geolocator maps an unavailable Android bearing to 0.0, indistinguishable
+    // from true north (same caveat HeadingFilter.resolve guards against) — a
+    // plain `??` treats that 0.0 as a real heading, so starting navigation
+    // from a stop (heading genuinely unavailable) snapped the camera to
+    // whatever raw noise the provider reported instead of falling through to
+    // the last trustworthy bearing.
+    final rawHeading = fix.heading;
+    final trustedHeading =
+        (rawHeading != null && rawHeading.isFinite && rawHeading > 0)
+            ? rawHeading
+            : null;
+    final rotDeg = _headingMode ? (trustedHeading ?? _bearing) : 0.0;
     const zoom = 17.0;
     final screenHeightPx = MediaQuery.of(context).size.height;
     final (lat, lng) = navShift
@@ -3896,26 +3928,6 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                     onClear: _clearHistory,
                   ),
                 ],
-                if (!_showSearch &&
-                    !_showAlternatives &&
-                    !_showTransit &&
-                    !_showPlaceInfo &&
-                    _route == null) ...[
-                  const SizedBox(height: 8),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: c.surface2.withValues(alpha: 0.92),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: c.border, width: 0.5),
-                    ),
-                    child: Text(
-                      'Motore mappa: MapLibre (sperimentale)',
-                      style: TextStyle(color: c.textSecondary, fontSize: 11),
-                    ),
-                  ),
-                ],
               ],
               if (_isRerouting || _calculatingRoute) ...[
                 Container(
@@ -4074,6 +4086,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               right: 0,
               bottom: 0,
               child: RouteAlternativesPanel(
+                key: _altPanelKey,
                 alternatives: _alternatives,
                 selected: _selectedAlt.clamp(0, _alternatives.length - 1),
                 bottomInset: MediaQuery.of(context).padding.bottom,
