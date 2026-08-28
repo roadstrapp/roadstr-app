@@ -40,6 +40,7 @@ import '../models/activity_notification.dart';
 import '../models/favorite_place.dart';
 import '../models/road_event.dart';
 import '../models/search_history_item.dart';
+import '../models/way_point.dart';
 import '../services/activity_notification_service.dart';
 import '../services/camera_follow.dart';
 import '../services/favorites_sync_service.dart';
@@ -391,6 +392,21 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
 
   /// Label carried from search into the eventual route preview panel.
   String? _pendingLabel;
+
+  // ── Route planner (multi-stop A→B) ────────────────────────────────────
+  // Same MapScreen fields — the "tragitto" FAB used to just open ordinary
+  // search as a stand-in for this; now it opens the real thing.
+  bool _showPlanner = false;
+  WayPoint? _planFrom;
+  final List<WayPoint?> _planStops = [null];
+  final List<TextEditingController> _planStopCtrls = [TextEditingController()];
+  int _planActiveField = 0;
+  final _planFromCtrl = TextEditingController();
+  WayPoint? get _planTo => _planStops.isEmpty ? null : _planStops.last;
+  List<NominatimResult> _planResults = [];
+  bool _planSearching = false;
+  Timer? _planDebounce;
+  int _planRequestGeneration = 0;
   List<({List<LatLng> points, bool restricted})> _routeRuns = [];
 
   /// 'driving' / 'cycling' / 'walking' — same three profiles
@@ -1301,6 +1317,11 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _activitySub?.cancel();
     _roadSub?.cancel();
     _eventCleanupTimer?.cancel();
+    _planDebounce?.cancel();
+    _planFromCtrl.dispose();
+    for (final c in _planStopCtrls) {
+      c.dispose();
+    }
     _searchController.dispose();
     unawaited(_gps.dispose());
     unawaited(_tts.dispose());
@@ -1511,6 +1532,142 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// MapScreen._onSearchSubmit: a matching favourite wins first, then the
   /// already-fetched top result, then (nothing cached yet) a fresh search
   /// for its top result.
+  // ── Route planner logic (multi-stop A→B) ──────────────────────────────
+  // Same MapScreen methods, ported directly — none of this ever touched
+  // flutter_map either.
+
+  void _openPlanner() => setState(() {
+        _showPlanner = true;
+        _showSearch = false;
+        _planFrom = null;
+        _planStops
+          ..clear()
+          ..add(null);
+        for (final c in _planStopCtrls.skip(1)) {
+          c.dispose();
+        }
+        _planStopCtrls.removeRange(1, _planStopCtrls.length);
+        _planActiveField = 1; // start with the "To" field active
+        _planFromCtrl.text = AppLocalizations.of(context).myLocation;
+        _planStopCtrls.first.clear();
+        _planResults = [];
+      });
+
+  void _closePlanner() {
+    _planDebounce?.cancel();
+    _planRequestGeneration++;
+    setState(() {
+      _showPlanner = false;
+      _planResults = [];
+    });
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
+
+  void _onPlanSearch(String query, int field) {
+    _planDebounce?.cancel();
+    final requestGeneration = ++_planRequestGeneration;
+    setState(() => _planActiveField = field);
+    if (field == 0) {
+      final myLoc = AppLocalizations.of(context).myLocation;
+      if (query.isEmpty || query == myLoc) {
+        setState(() {
+          _planFrom = null;
+          _planResults = [];
+        });
+        return;
+      }
+    }
+    if (query.length < 3) {
+      setState(() => _planResults = []);
+      return;
+    }
+    _planDebounce = Timer(const Duration(milliseconds: 500), () async {
+      setState(() => _planSearching = true);
+      final near = _lastFix == null
+          ? null
+          : LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
+      final r = await _placeSearch.search(query, near: near);
+      if (!mounted || requestGeneration != _planRequestGeneration) return;
+      setState(() {
+        _planResults = r;
+        _planSearching = false;
+      });
+    });
+  }
+
+  void _selectPlanResult(NominatimResult r) {
+    if (_planActiveField == 0) {
+      setState(() {
+        _planFrom = WayPoint(r.shortName, r.position);
+        _planFromCtrl.text = r.shortName;
+        _planResults = [];
+        _planActiveField = 1;
+      });
+    } else {
+      final i = (_planActiveField - 1).clamp(0, _planStops.length - 1);
+      setState(() {
+        _planStops[i] = WayPoint(r.shortName, r.position);
+        _planStopCtrls[i].text = r.shortName;
+        _planResults = [];
+      });
+      FocusManager.instance.primaryFocus?.unfocus();
+    }
+  }
+
+  /// Adds an empty stop *before* the destination — a stop added to an
+  /// existing plan means "on the way there", not "and then somewhere else
+  /// afterwards". Order can still change by dragging.
+  void _addPlanStop() {
+    if (_planStops.length > RoutingService.maxWaypoints) return;
+    setState(() {
+      final at = _planStops.length - 1;
+      _planStops.insert(at, null);
+      _planStopCtrls.insert(at, TextEditingController());
+      _planActiveField = at + 1;
+      _planResults = [];
+    });
+  }
+
+  void _removePlanStop(int index) {
+    if (_planStops.length <= 1) return;
+    setState(() {
+      _planStops.removeAt(index);
+      _planStopCtrls.removeAt(index).dispose();
+      _planActiveField = _planStops.length;
+      _planResults = [];
+    });
+  }
+
+  void _reorderPlanStops(int oldIndex, int newIndex) {
+    setState(() {
+      _planStops.insert(newIndex, _planStops.removeAt(oldIndex));
+      _planStopCtrls.insert(newIndex, _planStopCtrls.removeAt(oldIndex));
+      _planResults = [];
+    });
+  }
+
+  Future<void> _calculatePlan() async {
+    final to = _planTo;
+    if (to == null) return;
+    final from = _planFrom?.position ??
+        (_lastFix == null
+            ? null
+            : LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude));
+    if (from == null) {
+      _showSnack(AppLocalizations.of(context).acquiringGps);
+      return;
+    }
+    // Everything before the last row is a stop on the way. A row the driver
+    // added but never filled in is dropped rather than refused: an empty
+    // box is an abandoned intention, not an error worth blocking the trip.
+    final via = [
+      for (final stop in _planStops.take(_planStops.length - 1))
+        if (stop != null) stop.position,
+    ];
+    _closePlanner();
+    await _calculateRouteTo(to.position, label: to.label, fromPosition: from, via: via);
+  }
+
   Future<void> _onSearchSubmit(String query) async {
     query = query.trim();
     if (query.isEmpty) return;
@@ -1602,10 +1759,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// each looked from the outside like "I tapped a destination and nothing
   /// happened", because nothing told the driver why. Every path here now
   /// says something.
-  Future<void> _calculateRouteTo(LatLng dest, {String? label}) async {
-    final origin = _lastFix == null
-        ? null
-        : LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
+  Future<void> _calculateRouteTo(LatLng dest,
+      {String? label, LatLng? fromPosition, List<LatLng> via = const []}) async {
+    final origin = fromPosition ??
+        (_lastFix == null
+            ? null
+            : LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude));
     if (origin == null) {
       // Routing from nowhere would be useless, but throwing the destination
       // away makes the user find it again — the part that was actually
@@ -1621,14 +1780,15 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     setState(() => _calculatingRoute = true);
     _destination = dest;
     // A fresh destination starts a new journey — any stop added to a
-    // previous one no longer applies.
-    _activeVia = const [];
+    // previous one no longer applies, unless the planner is handing us its
+    // own via list.
+    _activeVia = via;
     ({
       RouteResult route,
       List<({List<LatLng> points, bool restricted})> runs
     })? fetched;
     try {
-      fetched = await _fetchRoute(origin, dest);
+      fetched = await _fetchRoute(origin, dest, via: via.isEmpty ? null : via);
     } catch (_) {
       if (!mounted) return;
       setState(() => _calculatingRoute = false);
@@ -2936,7 +3096,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       // claim the system back gesture instead of letting it exit — search
       // closes (there's no on-screen back button any more to do it), and
       // navigation asks for confirmation instead of just stopping.
-      canPop: !_showSearch && !_showPlaceInfo && !_isNavigating,
+      canPop: !_showSearch && !_showPlaceInfo && !_showPlanner && !_isNavigating,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         if (_showSearch) {
@@ -2950,6 +3110,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
           });
         } else if (_showPlaceInfo) {
           _closePlaceInfo();
+        } else if (_showPlanner) {
+          _closePlanner();
         } else if (_isNavigating) {
           _showExitNavigationDialog();
         }
@@ -3138,6 +3300,56 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                 ]),
             ],
           ),
+          // ── ROUTE PLANNER (A→B) ──────────────────────────────────────────────
+          if (_showPlanner)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 12,
+              left: 16,
+              right: 16,
+              child: RoutePlannerBar(
+                fromCtrl: _planFromCtrl,
+                stopCtrls: _planStopCtrls,
+                activeField: _planActiveField,
+                onStopTap: (i) => setState(() => _planActiveField = i + 1),
+                onStopChanged: (i, q) => _onPlanSearch(q, i + 1),
+                onAddStop: _planStops.length <= RoutingService.maxWaypoints
+                    ? _addPlanStop
+                    : null,
+                onRemoveStop: _removePlanStop,
+                onReorderStops: _reorderPlanStops,
+                hasGps: _lastFix != null,
+                canCalculate: _planTo != null,
+                transportMode: _transportMode,
+                onModeChanged: (m) => setState(() => _transportMode = m),
+                isSearching: _planSearching,
+                colors: c,
+                onFromTap: () => setState(() => _planActiveField = 0),
+                onFromChanged: (q) => _onPlanSearch(q, 0),
+                onMyLocation: () {
+                  setState(() {
+                    _planFrom = null;
+                    _planFromCtrl.text = AppLocalizations.of(context).myLocation;
+                    _planResults = [];
+                    _planActiveField = 1;
+                  });
+                },
+                onClose: _closePlanner,
+                onCalculate: () => unawaited(_calculatePlan()),
+              ),
+            ),
+          if (_showPlanner && (_planResults.isNotEmpty || _planSearching))
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 140,
+              left: 16,
+              right: 16,
+              child: SearchResultsList(
+                results: _planResults,
+                isLoading: _planSearching,
+                colors: c,
+                onSelect: _selectPlanResult,
+                onSelectFavorite: (_) {},
+              ),
+            ),
           Positioned(
             top: MediaQuery.of(context).padding.top + 12,
             left: 12,
@@ -3147,7 +3359,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               // Search hidden once navigating, except while picking a mid-route
               // stop — same as MapScreen: adding a waypoint reuses the same
               // search UI a fresh destination search does.
-              if (!_isNavigating || _pickingWaypoint) ...[
+              if ((!_isNavigating || _pickingWaypoint) && !_showPlanner) ...[
                 // No back arrow here — MapScreen's home screen never had one
                 // either: PlaceSearchBar's own clear (×) button closes search
                 // once there's text to clear, and the system back gesture
@@ -3566,20 +3778,21 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               ],
             ]),
           ),
-          // ── LEFT FABs — route search shortcut + parking. Pre-trip only, same
-          // as MapScreen: re-planning and checking a saved spot are both
+          // ── LEFT FABs — route planner + parking. Pre-trip only, same as
+          // MapScreen: re-planning and checking a saved spot are both
           // pre-trip actions, reporting is not (it stays on the right, in
-          // both states). "Tragitto" is a simplified stand-in for MapScreen's
-          // full A→B planner (RoutePlannerBar) — that multi-stop form isn't
-          // ported here yet, so this just opens the same search panel the top
-          // search bar does.
-          if (!_isNavigating && !_showSearch && !_showPlaceInfo && _route == null)
+          // both states).
+          if (!_isNavigating &&
+              !_showSearch &&
+              !_showPlaceInfo &&
+              !_showPlanner &&
+              _route == null)
             Positioned(
               left: 12,
               bottom: MediaQuery.of(context).padding.bottom + 16,
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 MapFab(
-                  onTap: () => setState(() => _showSearch = true),
+                  onTap: _openPlanner,
                   colors: c,
                   child: Icon(Icons.alt_route_rounded,
                       color: c.onAccent, size: 28),
@@ -3601,7 +3814,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
           // ── BOTTOM BAR (notifications / profile / settings) ─────────────────
           // Same widget MapScreen shows when nothing else claims the bottom —
           // idle, no search, no route.
-          if (!_isNavigating && !_showSearch && !_showPlaceInfo && _route == null)
+          if (!_isNavigating && !_showSearch && !_showPlaceInfo && !_showPlanner && _route == null)
             Positioned(
               left: 0,
               right: 0,
