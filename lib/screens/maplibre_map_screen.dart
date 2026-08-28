@@ -193,17 +193,19 @@ class _CursorPainter extends CustomPainter {
     // to stretch into as it drifts down with tilt.
     final shadowPaint = Paint()
       ..shader = RadialGradient(colors: [
-        Colors.black.withValues(alpha: 0.30 - t * 0.08),
+        Colors.black.withValues(alpha: 0.35 - t * 0.05),
         Colors.black.withValues(alpha: 0),
-      ]).createShader(Rect.fromCircle(center: Offset.zero, radius: 16))
+      ]).createShader(Rect.fromCircle(center: Offset.zero, radius: 18))
       ..style = PaintingStyle.fill;
     canvas.save();
-    // Starts tucked just under the arrow's own base at t=0, drifts toward
-    // the bottom of the box as tilt increases — the parallax cue that sells
-    // "the cursor is a 3D object standing on the tilted road".
-    canvas.translate(24, 50 + t * 22);
-    canvas.scale(1 - t * 0.15, 0.3 + t * 0.35);
-    canvas.drawCircle(Offset.zero, 16, shadowPaint);
+    // Starts right under the arrow's own base (y≈34) at t=0, drifts a
+    // little further as tilt increases — the app spends nearly all of its
+    // time at t≈0.75-1 (45-60° pitch), so that range is what needs to read
+    // as a contact shadow; a wider drift there just detaches it from the
+    // cursor and makes the vehicle look like it is floating above the road.
+    canvas.translate(24, 36 + t * 14);
+    canvas.scale(1 - t * 0.1, 0.5 + t * 0.3);
+    canvas.drawCircle(Offset.zero, 18, shadowPaint);
     canvas.restore();
 
     final arrowPath = ui.Path()
@@ -1979,7 +1981,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     unawaited(controller.fitBounds(
       bounds: LngLatBounds.fromPoints(
           [for (final p in pts) Geographic(lon: p.longitude, lat: p.latitude)]),
-      padding: const EdgeInsets.all(48),
+      padding: const EdgeInsets.fromLTRB(48, 96, 48, 260),
       pitch: 0,
     ));
   }
@@ -3266,7 +3268,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     final (targetLat, targetLng) = (_isNavigating && _headingMode)
         ? CameraFollowEasing.navCameraCenter(
             data.position.latitude, data.position.longitude, rotDeg, zoom,
-            screenHeightPx: MediaQuery.of(context).size.height)
+            screenHeightPx: MediaQuery.of(context).size.height,
+            pitchDeg: _pitch)
         : (data.position.latitude, data.position.longitude);
     _targetState = CameraFollowState(
       lat: targetLat,
@@ -3350,7 +3353,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     final (lat, lng) = navShift
         ? CameraFollowEasing.navCameraCenter(
             fix.position.latitude, fix.position.longitude, rotDeg, zoom,
-            screenHeightPx: screenHeightPx)
+            screenHeightPx: screenHeightPx, pitchDeg: pitch)
         : (fix.position.latitude, fix.position.longitude);
     _camState =
         CameraFollowState(lat: lat, lng: lng, zoom: zoom, rotDeg: rotDeg);
@@ -3391,6 +3394,17 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     context.watch<ThemeProvider>();
     final c = RoadstrColors.of(context);
     final isDark = c.isDark;
+    // Exactly MapBottomBar's own visibility condition below — kept as one
+    // bool so the right-FAB column can clear it instead of sitting under it
+    // at idle/launch, before the recentre tap that used to "fix" it by
+    // switching the offset branch.
+    final showingBottomBar = !_isNavigating &&
+        !_showSearch &&
+        !_showPlaceInfo &&
+        !_showPlanner &&
+        !_showAlternatives &&
+        !_showTransit &&
+        _route == null;
     // Same custom-server override MapScreen's tile layer reads — a
     // self-hosted or alternate raster source, same default as MapScreen's
     // own RoadstrColors.mapTile.
@@ -4197,12 +4211,19 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
           // pre-trip/en-route split as MapScreen's own right column.
           Positioned(
             right: 12,
-            bottom: ((_showAlternatives && _alternatives.isNotEmpty || _showTransit) &&
+            bottom: ((_showAlternatives && _alternatives.isNotEmpty ||
+                        _showTransit ||
+                        _showPlaceInfo) &&
                     !_showSearch
                 ? 280.0
                 : _isNavigating
                     ? 190.0
-                    : MediaQuery.of(context).padding.bottom + 16),
+                    : showingBottomBar
+                        // MapBottomBar is showing underneath — same
+                        // 100px-plus-safe-area clearance MapScreen's own
+                        // right column uses over its identical bottom bar.
+                        ? 100.0 + MediaQuery.of(context).padding.bottom
+                        : MediaQuery.of(context).padding.bottom + 16),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               CompassFab(
                 rotDeg: _bearing,
@@ -4249,13 +4270,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
           // MapScreen: re-planning and checking a saved spot are both
           // pre-trip actions, reporting is not (it stays on the right, in
           // both states).
-          if (!_isNavigating &&
-              !_showSearch &&
-              !_showPlaceInfo &&
-              !_showPlanner &&
-              !_showAlternatives &&
-              !_showTransit &&
-              _route == null)
+          if (showingBottomBar)
             Positioned(
               left: 12,
               bottom: MediaQuery.of(context).padding.bottom + 16,
@@ -4283,13 +4298,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
           // ── BOTTOM BAR (notifications / profile / settings) ─────────────────
           // Same widget MapScreen shows when nothing else claims the bottom —
           // idle, no search, no route.
-          if (!_isNavigating &&
-              !_showSearch &&
-              !_showPlaceInfo &&
-              !_showPlanner &&
-              !_showAlternatives &&
-              !_showTransit &&
-              _route == null)
+          if (showingBottomBar)
             Positioned(
               left: 0,
               right: 0,
