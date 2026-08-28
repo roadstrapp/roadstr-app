@@ -15,7 +15,9 @@
 // save/clear, multi-stop route planning. Each noted at its own commit.
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:amberflutter/amberflutter.dart';
@@ -23,9 +25,11 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:maplibre/maplibre.dart' hide Box, LengthUnit;
 import 'package:nostr_tools/nostr_tools.dart' show Nip19;
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:sensors_plus/sensors_plus.dart';
@@ -480,6 +484,18 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   final _speedCameraSvc = SpeedCameraService();
   LatLng? _parkingPosition;
   List<FavoritePlace> _favorites = [];
+
+  /// Speed-camera proximity beep + voice alert state — same MapScreen
+  /// fields, one set per source (Nostr-reported events use String ids, OSM
+  /// nodes use int ids) so each camera only fires once per navigation
+  /// session.
+  final _alertedCameraIds = <String>{};
+  final _alertedOsmCameraIds = <int>{};
+
+  /// Hazard proximity voice alert state (police/accident/hazard/
+  /// construction/fog/ice) — separate set, same MapScreen field.
+  final _alertedEventIds = <String>{};
+  final _alertPlayer = AudioPlayer();
 
   /// Recent destinations, same MapScreen._history/SearchHistoryItem model —
   /// shown alongside favourites when the search box is focused but empty.
@@ -1267,6 +1283,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _searchController.dispose();
     unawaited(_gps.dispose());
     unawaited(_tts.dispose());
+    _alertPlayer.dispose();
     _nostr.dispose();
     super.dispose();
   }
@@ -1686,6 +1703,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _nearestRouteSegmentIdx = 0;
     _routeProgressM = 0;
     _minDistToDestM = double.infinity;
+    _alertedCameraIds.clear();
+    _alertedOsmCameraIds.clear();
+    _alertedEventIds.clear();
     // Fetch the destination's building footprint (best-effort, one Overpass
     // round-trip) — used by _checkArrival below.
     final dest = _destination;
@@ -1933,6 +1953,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       _announceUpcoming(data.speedKmh, route);
     }
     _updateNavNotification(route);
+    unawaited(_checkSpeedCameraProximity());
+    unawaited(_checkHazardProximity());
   }
 
   /// Persistent Android notification with the next manoeuvre + distance —
@@ -2112,6 +2134,185 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       distM: nearest.distM,
       bearing: Geo.bearingBetween(poly[idx], poly[idx + 1])
     );
+  }
+
+  /// Distance from [camera] to the active route, and how far along the
+  /// route that point is — same intent as MapScreen._cameraRouteMatch,
+  /// approximated with the windowed nearest-segment search already used for
+  /// heading resolution rather than a dedicated progress-aware scan: close
+  /// enough for a 250m proximity check, and avoids porting a second
+  /// almost-identical search.
+  ({double distM, double progress})? _cameraRouteMatch(LatLng camera) {
+    final route = _route;
+    if (route == null || _cumDist.length != route.polyline.length) return null;
+    final nearest = _nearestActiveRouteSegment(camera);
+    if (nearest == null) return null;
+    return (distM: nearest.distM, progress: _cumDist[nearest.segmentIdx]);
+  }
+
+  /// Plays a two-tone proximity beep when the driver passes within 250m of
+  /// a speed camera on the active route — either community-reported
+  /// (Nostr) or OSM-sourced. Each camera fires only once per navigation
+  /// session. Same MapScreen._checkSpeedCameraProximity, ported directly.
+  Future<void> _checkSpeedCameraProximity() async {
+    if (!_isNavigating || !mounted) return;
+    const dist = Distance();
+    final pos = LatLng(
+        _lastFix!.position.latitude, _lastFix!.position.longitude);
+    for (final ev in _roadEvents) {
+      if (ev.category != RoadCategory.speedCamera) continue;
+      if (_alertedCameraIds.contains(ev.id)) continue;
+      final d = dist.as(LengthUnit.Meter, pos, ev.position);
+      if (d > 250) continue;
+      final routeMatch = _cameraRouteMatch(ev.position);
+      if (routeMatch == null ||
+          routeMatch.distM > 18 ||
+          routeMatch.progress < _routeProgressM - 25 ||
+          routeMatch.progress > _routeProgressM + 300) {
+        continue;
+      }
+      _alertedCameraIds.add(ev.id);
+      unawaited(_playSpeedCameraBeep());
+      if (!_voiceMuted && ev.speedLimit != null && mounted) {
+        final display = Units.imperial
+            ? Units.toDisplaySpeed(ev.speedLimit!.toDouble()).round()
+            : ev.speedLimit!;
+        final lang = Localizations.localeOf(context).languageCode;
+        unawaited(_tts.speak(AppLocalizations.of(context)
+            .speedCameraVoiceAlert(display, Units.speedUnitForSpeech(lang))));
+      } else if (!_voiceMuted && mounted) {
+        unawaited(_tts.speak(AppLocalizations.of(context).categorySpeedCamera));
+      }
+    }
+    unawaited(_speedCameraSvc.updateIfNeeded(pos));
+    for (final cam in _speedCameraSvc.cachedCameras) {
+      if (_alertedOsmCameraIds.contains(cam.id)) continue;
+      final d = dist.as(LengthUnit.Meter, pos, cam.position);
+      if (d > 250) continue;
+      final routeMatch = _cameraRouteMatch(cam.position);
+      if (routeMatch == null ||
+          routeMatch.distM > 18 ||
+          routeMatch.progress < _routeProgressM - 25 ||
+          routeMatch.progress > _routeProgressM + 300) {
+        continue;
+      }
+      _alertedOsmCameraIds.add(cam.id);
+      unawaited(_playSpeedCameraBeep());
+      if (!_voiceMuted && mounted) {
+        final l = AppLocalizations.of(context);
+        final limit = cam.speedLimitKmh;
+        if (limit != null) {
+          final display = Units.imperial
+              ? Units.toDisplaySpeed(limit.toDouble()).round()
+              : limit;
+          final lang = Localizations.localeOf(context).languageCode;
+          unawaited(_tts
+              .speak(l.speedCameraVoiceAlert(display, Units.speedUnitForSpeech(lang))));
+        } else {
+          unawaited(_tts.speak(l.categorySpeedCamera));
+        }
+      }
+    }
+  }
+
+  /// Speaks a voice alert when the driver enters the proximity of a police
+  /// or hazard event that hasn't been announced this session. Fires for
+  /// both the outbound and return trip because _alertedEventIds is cleared
+  /// on each navigation start. Same MapScreen._checkHazardProximity.
+  Future<void> _checkHazardProximity() async {
+    if (!_isNavigating || _voiceMuted || !mounted) return;
+    const dist = Distance();
+    const alertCategories = {
+      RoadCategory.police,
+      RoadCategory.accident,
+      RoadCategory.hazard,
+      RoadCategory.construction,
+      RoadCategory.fog,
+      RoadCategory.ice,
+    };
+    final pos = LatLng(
+        _lastFix!.position.latitude, _lastFix!.position.longitude);
+    final lang = Localizations.localeOf(context).languageCode;
+    for (final ev in _roadEvents) {
+      if (!alertCategories.contains(ev.category)) continue;
+      if (_alertedEventIds.contains(ev.id)) continue;
+      // Never announce the driver's own report back to them.
+      if (_myPubkey != null && ev.pubkey == _myPubkey) continue;
+      final d = dist.as(LengthUnit.Meter, pos, ev.position);
+      if (d > 400) continue;
+      _alertedEventIds.add(ev.id);
+      final l10n = AppLocalizations.of(context);
+      final label = ev.category.localizedLabel(l10n);
+      final msg = <String, String>{
+        'it': 'Attenzione! $label nelle vicinanze.',
+        'en': 'Warning! $label ahead.',
+        'de': 'Achtung! $label in der Nähe.',
+        'fr': 'Attention! $label à proximité.',
+        'es': '¡Atención! $label cerca.',
+        'pt': 'Atenção! $label próximo.',
+        'nl': 'Let op! $label in de buurt.',
+        'pl': 'Uwaga! $label w pobliżu.',
+        'ru': 'Внимание! $label рядом.',
+      };
+      unawaited(_tts.speak(msg[lang] ?? msg['en']!));
+      break; // one alert per GPS tick to avoid stacking
+    }
+  }
+
+  Future<void> _playSpeedCameraBeep() async {
+    try {
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/roadstr_camera_beep.wav');
+      if (!await file.exists()) {
+        await file.writeAsBytes(_makeToneWav([(350, 220), (440, 220)]));
+      }
+      await _alertPlayer.setFilePath(file.path);
+      await _alertPlayer.seek(Duration.zero);
+      await _alertPlayer.play();
+    } catch (_) {}
+  }
+
+  /// Generates a PCM WAV from a list of (frequency Hz, duration ms) pairs.
+  /// Same MapScreen._makeToneWav, ported unchanged.
+  static Uint8List _makeToneWav(List<(double, int)> tones) {
+    const sr = 24000;
+    final samples = <int>[];
+    for (final (freq, ms) in tones) {
+      final n = sr * ms ~/ 1000;
+      for (var i = 0; i < n; i++) {
+        final env = i < 120
+            ? i / 120.0
+            : i > n - 120
+                ? (n - i) / 120.0
+                : 1.0;
+        final s = math.sin(2 * math.pi * freq * i / sr) * 0.6 * env;
+        samples.add((s * 32767).clamp(-32768, 32767).round());
+      }
+    }
+    final dataLen = samples.length * 2;
+    final buf = ByteData(44 + dataLen);
+    void ascii(int p, String s) {
+      for (var i = 0; i < s.length; i++) {
+        buf.setUint8(p + i, s.codeUnitAt(i));
+      }
+    }
+
+    ascii(0, 'RIFF');
+    buf.setUint32(4, 36 + dataLen, Endian.little);
+    ascii(8, 'WAVEfmt ');
+    buf.setUint32(16, 16, Endian.little);
+    buf.setUint16(20, 1, Endian.little);
+    buf.setUint16(22, 1, Endian.little);
+    buf.setUint32(24, sr, Endian.little);
+    buf.setUint32(28, sr * 2, Endian.little);
+    buf.setUint16(32, 2, Endian.little);
+    buf.setUint16(34, 16, Endian.little);
+    ascii(36, 'data');
+    buf.setUint32(40, dataLen, Endian.little);
+    for (var i = 0; i < samples.length; i++) {
+      buf.setInt16(44 + i * 2, samples[i], Endian.little);
+    }
+    return buf.buffer.asUint8List();
   }
 
   /// In-zone / passing-a-restricted-street banner state — same MapScreen
