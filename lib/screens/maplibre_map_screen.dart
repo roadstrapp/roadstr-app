@@ -351,6 +351,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   Timer? _searchDebounce;
   RouteResult? _route;
   LatLng? _destination;
+
+  /// A destination picked before the first GPS fix arrived — replayed once
+  /// one does, in _onGps. Same MapScreen._awaitingFixDestination.
+  LatLng? _awaitingFixDestination;
   List<({List<LatLng> points, bool restricted})> _routeRuns = [];
 
   /// 'driving' / 'cycling' / 'walking' — same three profiles
@@ -1246,9 +1250,16 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         ? null
         : LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
     if (origin == null) {
+      // Routing from nowhere would be useless, but throwing the destination
+      // away makes the user find it again — the part that was actually
+      // wrong. Hold it and run the moment the first real fix lands (see the
+      // replay at the top of _onGps), same as MapScreen's
+      // _awaitingFixDestination.
+      _awaitingFixDestination = dest;
       _showSnack(AppLocalizations.of(context).acquiringGps);
       return;
     }
+    _awaitingFixDestination = null;
     setState(() => _calculatingRoute = true);
     _destination = dest;
     // A fresh destination starts a new journey — any stop added to a
@@ -1900,8 +1911,19 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   }
 
   void _onGps(GpsData data) {
+    final wasWaitingForFix = _lastFix == null;
     _lastFix = data;
     if (!mounted) return;
+    final queued = _awaitingFixDestination;
+    if (wasWaitingForFix && queued != null) {
+      _awaitingFixDestination = null;
+      // Deferred to the next frame so it routes from the position this fix
+      // is about to commit, same as MapScreen.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _lastFix == null) return;
+        unawaited(_calculateRouteTo(queued));
+      });
+    }
     _lastFixEpochMs = DateTime.now().millisecondsSinceEpoch;
     if (_gpsSignalLost) setState(() => _gpsSignalLost = false);
     if (_isNavigating) _updateNavigationProgress(data);
