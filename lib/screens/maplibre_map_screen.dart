@@ -332,6 +332,14 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   final _placeSearch = PlaceSearchService();
   final _poiSvc = PoiSearchService();
   final _ztl = ZtlService.instance;
+
+  /// In-zone/near-restricted-street banner state — same
+  /// MapScreen fields, driven by the same ZtlService the route colouring
+  /// already warms in the background.
+  ZtlWay? _ztlPassingBy;
+  bool _ztlNoticeDismissed = false;
+  bool _inZtl = false;
+  String? _ztlName;
   bool _showSearch = false;
   bool _searching = false;
   List<NominatimResult> _searchResults = [];
@@ -354,7 +362,27 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   // a distance-to-maneuver number against a real route, each of those other
   // pieces is its own increment on top.
   bool _isNavigating = false;
+
+  /// True once _onArrival has fired for the current trip — purely a
+  /// reentry guard at that point (arrival itself ends navigation
+  /// immediately, same as MapScreen), reset at the next _startNavigation.
   bool _arrived = false;
+
+  /// Drives the transient "sei arrivato" banner — independent of
+  /// _isNavigating (which is already false by the time this shows), same
+  /// split MapScreen keeps between _showArrivalBanner and the trip itself
+  /// having ended.
+  bool _showArrivalBanner = false;
+  Timer? _arrivalBannerTimer;
+
+  // ── GPS signal loss (tunnels, underground) ────────────────────────────
+  // Same watchdog MapScreen runs: a tunnel or underground car park stops
+  // the fix stream entirely with no error, so this is the only way to
+  // notice. Any fresh fix clears it in _onGps.
+  bool _gpsSignalLost = false;
+  Timer? _gpsLossTimer;
+  int _lastFixEpochMs = 0;
+  static const _gpsLossThresholdMs = 8000;
   int _currentStepIdx = 0;
   List<double> _cumDist = [];
   List<double> _stepCumDist = [];
@@ -1024,6 +1052,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _gpsSub?.cancel();
     _followTicker?.cancel();
     _searchDebounce?.cancel();
+    _arrivalBannerTimer?.cancel();
+    _gpsLossTimer?.cancel();
     _searchController.dispose();
     unawaited(_gps.dispose());
     unawaited(_tts.dispose());
@@ -1150,7 +1180,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         : LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
     if (dest == null || origin == null) return;
     if (_activeVia.length >= RoutingService.maxWaypoints) {
-      _showSnack('Numero massimo di tappe raggiunto');
+      _showSnack(AppLocalizations.of(context).plannerStopsFull);
       return;
     }
     _activeVia = [..._activeVia, pos];
@@ -1161,7 +1191,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// right column, visible only while navigating.
   void _openWaypointSearch() {
     if (_activeVia.length >= RoutingService.maxWaypoints) {
-      _showSnack('Numero massimo di tappe raggiunto');
+      _showSnack(AppLocalizations.of(context).plannerStopsFull);
       return;
     }
     setState(() {
@@ -1185,7 +1215,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         ? null
         : LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
     if (origin == null) {
-      _showSnack('In attesa del GPS…');
+      _showSnack(AppLocalizations.of(context).acquiringGps);
       return;
     }
     setState(() => _calculatingRoute = true);
@@ -1202,13 +1232,13 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     } catch (_) {
       if (!mounted) return;
       setState(() => _calculatingRoute = false);
-      _showSnack('Errore nel calcolo del percorso');
+      _showSnack(AppLocalizations.of(context).noRouteFound);
       return;
     }
     if (!mounted) return;
     if (fetched == null) {
       setState(() => _calculatingRoute = false);
-      _showSnack('Percorso non trovato');
+      _showSnack(AppLocalizations.of(context).noRouteFound);
       return;
     }
     setState(() {
@@ -1341,18 +1371,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     return (route: route, runs: _splitByZtl(route.polyline, restricted));
   }
 
-  void _clearRoute() {
-    unawaited(_tts.stop());
-    setState(() {
-      _route = null;
-      _destination = null;
-      _routeRuns = [];
-      _isNavigating = false;
-      _arrived = false;
-      _activeVia = const [];
-    });
-    _applyScreenPolicy();
-  }
+  /// Cancels a route preview/plan before navigation ever starts. Same reset
+  /// as actually stopping mid-trip — there's nothing left to distinguish
+  /// once _stopNavigation clears the route itself, so this just is that.
+  void _clearRoute() => _stopNavigation();
 
   /// Distance off the route polyline past which the driver is no longer
   /// plausibly following it. Same threshold MapScreen._checkOffRoute uses —
@@ -1378,8 +1400,24 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     }
     if (data.speedKmh < 1) return; // stationary — a red light, not off-route
     final pos = LatLng(data.position.latitude, data.position.longitude);
-    if (Geo.distanceToPolylineM(pos, route.polyline) > _offRouteThresholdM) {
+    final nearest = _nearestActiveRouteSegment(pos);
+    if (nearest == null || nearest.distM < 30) return;
+    if (nearest.distM > _offRouteThresholdM) {
       unawaited(_rerouteAndNavigate(pos, dest));
+      return;
+    }
+    // Direction check: on a bidirectional road the fix can sit right on the
+    // route polyline while the driver is actually facing the wrong way (a
+    // U-turn, or joining from the far carriageway) — distance alone can't
+    // catch that. Only at meaningful speed and with a strict angle, same as
+    // MapScreen, to avoid false triggers on curves or a bend just ahead.
+    final steps = route.steps;
+    if (data.speedKmh > 20 && _currentStepIdx + 1 < steps.length) {
+      final nextWaypoint = steps[_currentStepIdx + 1].location;
+      final bearingToNext = Geo.bearingBetween(pos, nextWaypoint);
+      var diff = (_bearing - bearingToNext).abs();
+      if (diff > 180) diff = 360 - diff;
+      if (diff > 135) unawaited(_rerouteAndNavigate(pos, dest));
     }
   }
 
@@ -1456,14 +1494,39 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _snapCameraToFix(navShift: _headingMode, pitch: 60.0);
     _applyScreenPolicy();
     if (!_voiceMuted) unawaited(_tts.announceStart());
+
+    // GPS-loss watchdog: a tunnel or underground car park stops the fix
+    // stream with no error, so polling is the only way to notice. After
+    // _gpsLossThresholdMs of silence, show the banner and speak a one-shot
+    // warning; a fresh fix clears both in _onGps.
+    _gpsLossTimer?.cancel();
+    _lastFixEpochMs = DateTime.now().millisecondsSinceEpoch;
+    _gpsLossTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (!mounted || !_isNavigating) return;
+      final silentMs = DateTime.now().millisecondsSinceEpoch - _lastFixEpochMs;
+      if (silentMs > _gpsLossThresholdMs && !_gpsSignalLost) {
+        setState(() => _gpsSignalLost = true);
+        if (!_voiceMuted) {
+          unawaited(_tts.speak(AppLocalizations.of(context).gpsSignalLost));
+        }
+      }
+    });
   }
 
-  void _stopNavigation() {
-    unawaited(_tts.stop());
+  void _stopNavigation({bool stopVoice = true}) {
+    if (stopVoice) unawaited(_tts.stop());
     _headingFilter.reset();
+    _arrivalBannerTimer?.cancel();
+    _gpsLossTimer?.cancel();
+    _gpsLossTimer = null;
     setState(() {
+      _route = null;
+      _destination = null;
+      _routeRuns = [];
       _isNavigating = false;
       _arrived = false;
+      _gpsSignalLost = false;
+      _activeVia = const [];
     });
     _applyScreenPolicy();
   }
@@ -1636,6 +1699,19 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     if (_arrived) return;
     _arrived = true;
     if (!_voiceMuted) unawaited(_tts.announceArrival());
+    // Let the arrival announcement finish — stopping the TTS player in the
+    // same stack frame used to cut the clip and could leave the shared
+    // audio session interrupted, same reason MapScreen keeps stopVoice:
+    // false here. Navigation fully ends now (route/destination cleared,
+    // search and the bottom bar come back) — same as MapScreen: arrival
+    // isn't a special in-between state, it's the trip actually finishing,
+    // with a transient banner layered on top of the now-idle map.
+    _stopNavigation(stopVoice: false);
+    _arrivalBannerTimer?.cancel();
+    setState(() => _showArrivalBanner = true);
+    _arrivalBannerTimer = Timer(const Duration(seconds: 6), () {
+      if (mounted) setState(() => _showArrivalBanner = false);
+    });
   }
 
   /// Two-stage far/near announcement for the maneuver after the current
@@ -1739,9 +1815,40 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     );
   }
 
+  /// In-zone / passing-a-restricted-street banner state — same MapScreen
+  /// logic: route-ahead ZTL warnings were deliberately dropped there (too
+  /// noisy, misleading when the route only brushes a boundary), so this is
+  /// purely about where the driver actually is right now.
+  void _updateZtlBannerState(LatLng pos) {
+    final nowInZtl = _ztl.isInsideZtl(pos);
+    // Advisory about a restricted street being driven past. Suppressed
+    // while inside one: the red banner is already the accurate message,
+    // and two warnings at once teaches the driver to read neither.
+    final passing = nowInZtl ? null : _ztl.nearestRestrictedWay(pos);
+    // Compared by identity, not name: restricted ways are frequently
+    // unnamed, and comparing names would make leaving an unnamed one — null
+    // before, null after — register as "no change", leaving the notice
+    // stuck over the cursor.
+    if (!identical(passing, _ztlPassingBy)) {
+      setState(() {
+        _ztlPassingBy = passing;
+        if (passing == null) _ztlNoticeDismissed = false;
+      });
+    }
+    if (nowInZtl != _inZtl) {
+      _ztlNoticeDismissed = false;
+      setState(() {
+        _inZtl = nowInZtl;
+        _ztlName = nowInZtl ? _ztl.ztlNameAt(pos) : null;
+      });
+    }
+  }
+
   void _onGps(GpsData data) {
     _lastFix = data;
     if (!mounted) return;
+    _lastFixEpochMs = DateTime.now().millisecondsSinceEpoch;
+    if (_gpsSignalLost) setState(() => _gpsSignalLost = false);
     if (_isNavigating) _updateNavigationProgress(data);
     _checkOffRoute(data);
 
@@ -1803,6 +1910,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     // back-off, see updateIfNeeded), so _fetchRoute's classifyPoints call
     // never has to wait on a live Overpass round-trip.
     unawaited(_ztl.updateIfNeeded(data.position));
+    _updateZtlBannerState(data.position);
     if (!_followUser) return;
     final rotDeg = _headingMode
         ? ((_isNavigating || moving)
@@ -2315,15 +2423,13 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                             strokeWidth: 2, color: c.accent)),
                     const SizedBox(width: 8),
                     Text(
-                        _isRerouting
-                            ? 'Ricalcolo il percorso…'
-                            : 'Calcolo il percorso…',
+                        AppLocalizations.of(context).calculatingRoute,
                         style: TextStyle(color: c.textSecondary, fontSize: 12)),
                   ]),
                 ),
                 const SizedBox(height: 8),
               ],
-              if (_isNavigating && _arrived) ...[
+              if (_showArrivalBanner) ...[
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -2334,15 +2440,18 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                   child: Row(children: [
                     const Icon(Icons.flag_rounded, color: Colors.white),
                     const SizedBox(width: 10),
-                    const Expanded(
-                      child: Text('Sei arrivato',
-                          style: TextStyle(
+                    Expanded(
+                      child: Text(AppLocalizations.of(context).arrivedTitle,
+                          style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w700)),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close, color: Colors.white),
-                      onPressed: _clearRoute,
+                      onPressed: () {
+                        _arrivalBannerTimer?.cancel();
+                        setState(() => _showArrivalBanner = false);
+                      },
                     ),
                   ]),
                 ),
@@ -2354,7 +2463,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
           // display convention too: the maneuver shown is the one AFTER
           // _currentStepIdx (the step whose point hasn't been reached yet),
           // matching NavInstruction's own "step = upcoming manoeuvre" contract.
-          if (_isNavigating && _route != null && !_arrived && !_showSearch)
+          if (_isNavigating && _route != null && !_showSearch)
             Positioned(
               top: 0,
               left: 0,
@@ -2411,10 +2520,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
             ),
           // ── NAV PANEL (speedometer, ETA, remaining distance) ────────────────
           // Same bottom bar MapScreen shows during navigation — reused as-is.
-          // speedLimit is always null here: this screen has no SpeedLimitService
-          // wired up yet (only the speed-camera proximity cache), so the panel
-          // simply never shows a limit rather than showing a wrong one.
-          if (_isNavigating && _route != null && !_arrived)
+          if (_isNavigating && _route != null)
             Positioned(
               left: 0,
               right: 0,
@@ -2427,8 +2533,80 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                 onStop: _showExitNavigationDialog,
                 remainingDistM: _remainingDistM,
                 remainingSecs: _remainingSecs,
+                speedLimit: _currentSpeedLimit,
                 speedometerStyle: SpeedometerStyle.fromStorage(
                     Hive.box('settings').get(SpeedometerStyle.storageKey)),
+              ),
+            ),
+          // ── ZTL WARNING BANNER ───────────────────────────────────────────────
+          // Sits just above the bottom panel, same as MapScreen. Swipe in
+          // any direction to dismiss — someone with a permit drives their
+          // own restricted street every day, and a warning that can't be
+          // dismissed is one they stop reading.
+          if (!_ztlNoticeDismissed &&
+              (_inZtl || _ztlPassingBy != null) &&
+              _lastFix != null)
+            Positioned(
+              bottom: (_isNavigating ? 176 : 104) +
+                  MediaQuery.of(context).padding.bottom,
+              left: 16,
+              right: 16,
+              child: Dismissible(
+                key: ValueKey(
+                    'ztl-${_inZtl ? 'in' : 'near'}-${_ztlName ?? _ztlPassingBy?.name ?? ''}'),
+                direction: DismissDirection.horizontal,
+                onDismissed: (_) => setState(() => _ztlNoticeDismissed = true),
+                child: GestureDetector(
+                  onVerticalDragEnd: (d) {
+                    if ((d.primaryVelocity ?? 0) > 200) {
+                      setState(() => _ztlNoticeDismissed = true);
+                    }
+                  },
+                  child: _inZtl
+                      ? ZtlBanner(
+                          name: _ztlName,
+                          pos: LatLng(_lastFix!.position.latitude,
+                              _lastFix!.position.longitude))
+                      : ZtlNearbyNotice(
+                          name: _ztlPassingBy!.name,
+                          pos: LatLng(_lastFix!.position.latitude,
+                              _lastFix!.position.longitude)),
+                ),
+              ),
+            ),
+          // ── GPS SIGNAL LOST (tunnel/underground) ─────────────────────────────
+          // Discreet pill, informative not alarming — navigation continues on
+          // the last known position. Same copy/style as MapScreen's.
+          if (_gpsSignalLost && _isNavigating)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 104,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xCC202030),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.25),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2))
+                    ],
+                  ),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    const Icon(Icons.gps_off_rounded,
+                        color: Colors.white70, size: 16),
+                    const SizedBox(width: 7),
+                    Text(AppLocalizations.of(context).gpsSignalLost,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w500)),
+                  ]),
+                ),
               ),
             ),
           // ── CURRENT STREET ────────────────────────────────────────────────
@@ -2464,7 +2642,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
             right: 12,
             bottom: (_route != null && !_isNavigating && !_showSearch
                 ? 220.0
-                : _isNavigating && !_arrived
+                : _isNavigating
                     ? 190.0
                     : MediaQuery.of(context).padding.bottom + 16),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -2498,7 +2676,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                   AltitudeBadge(altitudeM: _altitudeM!, colors: c),
                 ],
               ],
-              if (_isNavigating && !_arrived) ...[
+              if (_isNavigating) ...[
                 const SizedBox(height: 8),
                 MapFab(
                   onTap: _openWaypointSearch,
