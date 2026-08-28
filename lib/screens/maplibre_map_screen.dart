@@ -254,6 +254,9 @@ class MaplibreMapScreen extends StatefulWidget {
 
 class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     with WidgetsBindingObserver {
+  // Road-tested: the cursor read as too small against a tilted 3D map.
+  static const _kCursorScale = 1.4;
+
   final _gps = GpsService();
   StreamSubscription<GpsData>? _gpsSub;
   MapController? _controller;
@@ -3464,7 +3467,15 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     await controller.moveCamera(
         center: vehicle, zoom: zoom, pitch: pitch, bearing: rotDeg);
     if (!mounted || _controller == null) return;
-    const marginPx = 24.0;
+    // Road-tested: clearing the NavPanel's own measured top by a flat 24px
+    // still falls short under real tilt — perspective on a genuinely pitched
+    // 3D camera compresses "road ahead" toward the horizon far more than
+    // MapScreen's flat 2D map ever did, so the same on-screen ratio that
+    // worked there lands the marker under the street-name label (which
+    // sits just above the NavPanel) or, at steeper tilt, back under the
+    // NavPanel itself. An extra 10% of screen height on top of the
+    // measured panel clearance is the minimum that held up on the road.
+    final marginPx = 24.0 + screenSize.height * 0.10;
     final targetY = (screenSize.height - navPanelHeightPx - marginPx)
         .clamp(0.0, screenSize.height);
     final behind =
@@ -3828,27 +3839,38 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                     // plane, the way a nav app's own puck looks like it's
                     // sitting on the road once the camera pitches.
                     flat: true,
-                    child: usesRealCursorAsset
-                        // Every skin but the default arrow: the real
-                        // UserMarker/CursorWidget system, unmodified — no
-                        // baked shadow to duplicate the way arrow.svg had,
-                        // so there's nothing to rebuild.
-                        ? UserMarker(
-                            heading: 0,
-                            accent: c.accent,
-                            cursorStyle: cursorStyle,
-                            cursorColor: CursorColor.fromStorage(
-                                Hive.box('settings')
-                                    .get(CursorColor.storageKey)),
-                            ostrichIsMoving: (_lastFix?.speedKmh ?? 0) >= 1.0,
-                            ostrichSpeedKmh: _lastFix?.speedKmh ?? 0,
-                          )
-                        : _MaplibreCursor(
-                            pitch: _pitch,
-                            color: CursorColor.fromStorage(Hive.box('settings')
-                                    .get(CursorColor.storageKey))
-                                .value,
-                          ),
+                    // Road-tested feedback: at 100% the cursor read as too
+                    // small against a tilted, mostly-3D map. Transform.scale
+                    // rather than a bigger Marker.size — the painted content
+                    // just overflows its own 48×76 box a little, which the
+                    // Stack only clips at the screen's own edge, nowhere
+                    // near where the centred cursor sits.
+                    child: Transform.scale(
+                      scale: _kCursorScale,
+                      child: usesRealCursorAsset
+                          // Every skin but the default arrow: the real
+                          // UserMarker/CursorWidget system, unmodified — no
+                          // baked shadow to duplicate the way arrow.svg had,
+                          // so there's nothing to rebuild.
+                          ? UserMarker(
+                              heading: 0,
+                              accent: c.accent,
+                              cursorStyle: cursorStyle,
+                              cursorColor: CursorColor.fromStorage(
+                                  Hive.box('settings')
+                                      .get(CursorColor.storageKey)),
+                              ostrichIsMoving:
+                                  (_lastFix?.speedKmh ?? 0) >= 1.0,
+                              ostrichSpeedKmh: _lastFix?.speedKmh ?? 0,
+                            )
+                          : _MaplibreCursor(
+                              pitch: _pitch,
+                              color: CursorColor.fromStorage(
+                                      Hive.box('settings')
+                                          .get(CursorColor.storageKey))
+                                  .value,
+                            ),
+                    ),
                   ),
                 ]),
             ],
