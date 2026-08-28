@@ -24,7 +24,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:maplibre/maplibre.dart' hide Box;
+import 'package:maplibre/maplibre.dart' hide Box, LengthUnit;
 import 'package:nostr_tools/nostr_tools.dart' show Nip19;
 import 'package:provider/provider.dart';
 import 'package:screen_brightness/screen_brightness.dart';
@@ -34,6 +34,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../l10n/app_localizations.dart';
 import '../models/activity_notification.dart';
 import '../models/favorite_place.dart';
+import '../models/road_event.dart';
 import '../models/search_history_item.dart';
 import '../services/activity_notification_service.dart';
 import '../services/camera_follow.dart';
@@ -495,17 +496,25 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   final _speedLimitSvc = SpeedLimitService();
   int? _currentSpeedLimit;
 
-  // ── Hazard reporting ─────────────────────────────────────────────────────
-  // NostrRelayService reused as-is (never touched flutter_map). No
-  // subscription to other people's reports here, so no own-report
-  // suppression state is needed the way MapScreen keeps _myPubkey/
-  // _roadEvents — this only publishes, it doesn't display anyone's pins yet.
-  // connect() *is* required though, unlike the rest of this list — every
-  // publish call throws Exception('Not connected to Nostr relay') without
-  // it (NostrRelayService._requireConnected has no auto-connect fallback),
-  // so hazard reporting was silently broken until initState calls it.
+  // ── Hazard reporting + road-event subscription ────────────────────────────
+  // NostrRelayService reused as-is (never touched flutter_map). connect()
+  // is required, unlike the rest of this list — every publish call throws
+  // Exception('Not connected to Nostr relay') without it
+  // (NostrRelayService._requireConnected has no auto-connect fallback), so
+  // hazard reporting was silently broken until initState calls it.
   final _nostr = NostrRelayService();
   static const _secStorage = FlutterSecureStorage();
+
+  /// Other users' (and the driver's own) road reports — same MapScreen
+  /// fields: a live geohash-area subscription, pruned of expired events on
+  /// a timer.
+  List<RoadEvent> _roadEvents = [];
+  StreamSubscription<List<RoadEvent>>? _roadSub;
+  Timer? _eventCleanupTimer;
+
+  /// Position at which [NostrRelayService.subscribeArea] was last called —
+  /// re-subscribed every 2 km of movement, same as MapScreen.
+  LatLng? _lastSubscribedPos;
 
   /// Persistent Android notification during nav (next manoeuvre + distance)
   /// — same NavigationNotificationService MapScreen uses.
@@ -553,6 +562,21 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     unawaited(_tts.init(startLang.isNotEmpty ? startLang : 'it'));
     unawaited(_refreshHomeIdentity());
     _activitySub = _nostr.activityStream.listen(_recordActivityNotification);
+    _roadSub = _nostr.stream.listen((events) {
+      if (mounted) {
+        setState(() => _roadEvents = events.where((e) => !e.isExpired).toList());
+      }
+    });
+    // Expired reports would otherwise linger until the next live update —
+    // TTLs on some categories are short enough that a quiet stretch of road
+    // needs its own timer, not just the stream's own pushes.
+    _eventCleanupTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (!mounted) return;
+      final pruned = _roadEvents.where((e) => !e.isExpired).toList();
+      if (pruned.length != _roadEvents.length) {
+        setState(() => _roadEvents = pruned);
+      }
+    });
     unawaited(_nostr.connect());
 
     _screenPolicyListenable = SettingsListenable.forKeys(
@@ -1053,6 +1077,79 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// flutter_map. Simplified in one way: no _roadEvents list to append the
   /// published event to, since this screen doesn't subscribe to or draw
   /// anyone's reports yet, its own included.
+  /// Confirm/deny sheet for another user's (or the driver's own) road
+  /// report — same MapScreen._showRoadEventDetail, minus the
+  /// owner-edits-the-speed-limit flow (onEditSpeedLimit/onRequestSpeedLimit
+  /// left null): a real, separate feature (kind-1317/1318 edit requests)
+  /// not ported here, so the sheet just doesn't offer it rather than
+  /// offering something broken.
+  Future<void> _showRoadEventDetail(RoadEvent event) async {
+    final c = RoadstrColors.of(context);
+    final privKey = await _secStorage.read(key: 'nostr_priv_hex');
+    final pubKey = await _secStorage.read(key: 'nostr_pub_hex');
+    final flavor = await _secStorage.read(key: 'nostr_flavor');
+    if (!mounted) return;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => RoadEventDetailSheet(
+        event: event,
+        colors: c,
+        isLoggedIn: pubKey != null,
+        isOwner: pubKey == event.pubkey,
+        onConfirm: pubKey != null
+            ? (stillThere) async {
+                if (stillThere) {
+                  event.confirmations++;
+                } else {
+                  event.denials++;
+                }
+                if (mounted) setState(() {});
+                try {
+                  if (flavor == 'amber') {
+                    final unsigned = NostrRelayService.buildKind1316Map(
+                      eventId: event.id,
+                      stillThere: stillThere,
+                      pubKeyHex: pubKey,
+                    );
+                    final result = await Amberflutter().signEvent(
+                      currentUser: Nip19().npubEncode(pubKey),
+                      eventJson: jsonEncode(unsigned),
+                    );
+                    final signed =
+                        jsonDecode(result['event'] as String) as Map<String, dynamic>;
+                    await _nostr.publishRawEvent(signed, expectedUnsigned: unsigned);
+                  } else {
+                    await _nostr.confirmRoadEvent(
+                      eventId: event.id,
+                      stillThere: stillThere,
+                      privKeyHex: privKey!,
+                      pubKeyHex: pubKey,
+                    );
+                  }
+                  if (mounted) {
+                    final l = AppLocalizations.of(context);
+                    _showSnack(stillThere
+                        ? '✓ ${l.confirmedLabel}'
+                        : '✗ ${l.removedLabel}');
+                  }
+                } catch (e) {
+                  if (stillThere) {
+                    event.confirmations--;
+                  } else {
+                    event.denials--;
+                  }
+                  if (mounted) {
+                    setState(() {});
+                    _showSnack(e.toString());
+                  }
+                }
+              }
+            : null,
+      ),
+    );
+  }
+
   Future<void> _showReportSheet() async {
     final privKey = await _secStorage.read(key: 'nostr_priv_hex');
     final pubKey = await _secStorage.read(key: 'nostr_pub_hex');
@@ -1123,7 +1220,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
             );
             final signed =
                 jsonDecode(result['event'] as String) as Map<String, dynamic>;
-            await _nostr.publishRawRoadEvent(
+            final event = await _nostr.publishRawRoadEvent(
               eventJson: signed,
               category: category,
               position: pos,
@@ -1132,8 +1229,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               expires: expires,
               expectedPubKeyHex: pubKey,
             );
+            if (mounted) setState(() => _roadEvents = [..._roadEvents, event]);
           } else {
-            await _nostr.publishRoadEvent(
+            final event = await _nostr.publishRoadEvent(
               position: pos,
               category: category,
               comment: comment,
@@ -1141,6 +1239,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               pubKeyHex: pubKey,
               speedLimit: speedLimit,
             );
+            if (mounted) setState(() => _roadEvents = [..._roadEvents, event]);
           }
         },
       ),
@@ -1163,6 +1262,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _missedTurnTimer?.cancel();
     _headingWatchdog?.cancel();
     _activitySub?.cancel();
+    _roadSub?.cancel();
+    _eventCleanupTimer?.cancel();
     _searchController.dispose();
     unawaited(_gps.dispose());
     unawaited(_tts.dispose());
@@ -2120,6 +2221,14 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     // never has to wait on a live Overpass round-trip.
     unawaited(_ztl.updateIfNeeded(data.position));
     _updateZtlBannerState(data.position);
+    // Re-subscribe the road-event feed to the new area every 2 km of
+    // movement — same threshold MapScreen uses.
+    final lastSub = _lastSubscribedPos;
+    if (lastSub == null ||
+        const Distance().as(LengthUnit.Kilometer, data.position, lastSub) > 2) {
+      _lastSubscribedPos = data.position;
+      _nostr.subscribeArea(data.position);
+    }
     if (!_followUser) return;
     final rotDeg = _headingMode
         ? ((_isNavigating || moving)
@@ -2414,6 +2523,21 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               ],
             ],
             children: [
+              // Other users' (and the driver's own) road reports — same
+              // zoom≥11 gate and live-TTL filtering as MapScreen.
+              if (_roadEvents.isNotEmpty && (_camState?.zoom ?? 17) >= 11)
+                WidgetLayer(markers: [
+                  for (final ev in _roadEvents.where((e) => !e.isExpired))
+                    Marker(
+                      point: Geographic(
+                          lon: ev.position.longitude, lat: ev.position.latitude),
+                      size: const Size(36, 36),
+                      child: GestureDetector(
+                        onTap: () => unawaited(_showRoadEventDetail(ev)),
+                        child: RoadEventPin(event: ev),
+                      ),
+                    ),
+                ]),
               if (_speedCameraSvc.cachedCameras.isNotEmpty ||
                   _parkingPosition != null)
                 WidgetLayer(markers: [
