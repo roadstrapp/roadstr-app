@@ -1125,8 +1125,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value:
                   (_box.get('mapEngine', defaultValue: 'osm') as String) ==
                       'maplibre',
-              onChanged: (v) =>
-                  _box.put('mapEngine', v ? 'maplibre' : 'osm'),
+              onChanged: (v) {
+                _box.put('mapEngine', v ? 'maplibre' : 'osm');
+                setState(() {});
+              },
               colors: c,
             ),
             ListTile(
