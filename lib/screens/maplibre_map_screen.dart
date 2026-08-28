@@ -582,6 +582,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       if (mounted) {
         setState(() => _roadEvents = events.where((e) => !e.isExpired).toList());
       }
+      if (_isNavigating) _checkNewTrafficOnRoute(events);
     });
     // Expired reports would otherwise linger until the next live update —
     // TTLs on some categories are short enough that a quiet stretch of road
@@ -1888,6 +1889,140 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     return _splitByZtl(pts, _ztl.classifyPoints(pts));
   }
 
+  /// Nostr road events within 400m of [route]'s polyline — feeds the
+  /// preview panel's traffic badge/list. Same MapScreen._routeTrafficEvents.
+  /// Splits [polyline] into contiguous runs near an active trafficJam
+  /// report, for the red overlay drawn on top of the route. Same
+  /// MapScreen._trafficSegments, ported directly.
+  List<List<LatLng>> _trafficSegments(List<LatLng> polyline) {
+    const thresholdM = 400.0;
+    const dist = Distance();
+    final jams = _roadEvents
+        .where((e) => e.category == RoadCategory.trafficJam && !e.isExpired)
+        .toList();
+    if (jams.isEmpty || polyline.isEmpty) return [];
+
+    final segments = <List<LatLng>>[];
+    List<LatLng>? current;
+    for (var i = 0; i < polyline.length; i++) {
+      final p = polyline[i];
+      final inJam =
+          jams.any((ev) => dist.as(LengthUnit.Meter, p, ev.position) < thresholdM);
+      if (inJam) {
+        if (current == null && i > 0) current = [polyline[i - 1]];
+        current ??= [];
+        current.add(p);
+      } else if (current != null) {
+        current.add(p);
+        if (current.length > 1) segments.add(List.from(current));
+        current = null;
+      }
+    }
+    if (current != null && current.length > 1) segments.add(current);
+    return segments;
+  }
+
+  List<RoadEvent> _routeTrafficEvents(RouteResult route) {
+    const maxM = 400.0;
+    const dist = Distance();
+    return _roadEvents
+        .where((ev) =>
+            !ev.isExpired &&
+            route.polyline
+                .any((p) => dist.as(LengthUnit.Meter, p, ev.position) < maxM))
+        .toList();
+  }
+
+  /// Traffic severity badge for [route], based on the number of active
+  /// trafficJam reports within 400m — same MapScreen._trafficStatus.
+  ({String label, Color color}) _trafficStatus(RouteResult route) {
+    final l = AppLocalizations.of(context);
+    const dist = Distance();
+    final jams = _roadEvents
+        .where((e) =>
+            e.category == RoadCategory.trafficJam &&
+            !e.isExpired &&
+            route.polyline
+                .any((p) => dist.as(LengthUnit.Meter, p, e.position) < 400))
+        .length;
+    if (jams == 0) {
+      return (label: '🟢 ${l.trafficNormal}', color: const Color(0xFF22C55E));
+    }
+    if (jams <= 2) {
+      return (label: '🟡 ${l.trafficModerate}', color: const Color(0xFFF59E0B));
+    }
+    return (label: '🔴 ${l.trafficHeavy}', color: const Color(0xFFEF4444));
+  }
+
+  /// If a NEW trafficJam event appears on the active route mid-journey,
+  /// offers to recalculate — same MapScreen._checkNewTrafficOnRoute, fed
+  /// from the same live stream push rather than a fresh event list of its
+  /// own.
+  void _checkNewTrafficOnRoute(List<RoadEvent> events) {
+    final route = _route;
+    if (route == null) return;
+    const dist = Distance();
+    final newJams = events
+        .where((e) =>
+            e.category == RoadCategory.trafficJam &&
+            !e.isExpired &&
+            !_alertedEventIds.contains(e.id) &&
+            !(_myPubkey != null && e.pubkey == _myPubkey) &&
+            route.polyline
+                .any((p) => dist.as(LengthUnit.Meter, p, e.position) < 400))
+        .toList();
+    if (newJams.isEmpty) return;
+    for (final e in newJams) {
+      _alertedEventIds.add(e.id);
+    }
+    _showTrafficAlert(newJams.first);
+  }
+
+  void _showTrafficAlert(RoadEvent jam) {
+    if (!mounted) return;
+    final c = RoadstrColors.of(context);
+    final l = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: c.surface2,
+        title: Row(children: [
+          const Text('🔴', style: TextStyle(fontSize: 20)),
+          const SizedBox(width: 8),
+          Text(l.trafficAlertTitle,
+              style: TextStyle(
+                  color: c.textPrimary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold)),
+        ]),
+        content: Text(
+          l.trafficAlertBody(jam.category.localizedLabel(l), jam.ageLabel(l)),
+          style: TextStyle(color: c.textSecondary, fontSize: 13, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child:
+                Text(l.trafficContinue, style: TextStyle(color: c.textSecondary)),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: c.accent),
+            onPressed: () {
+              Navigator.pop(context);
+              final fix = _lastFix;
+              final dest = _destination;
+              if (fix == null || dest == null) return;
+              unawaited(_rerouteAndNavigate(
+                  LatLng(fix.position.latitude, fix.position.longitude), dest));
+            },
+            child: Text(l.trafficRecalculate,
+                style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Arms the missed-turn guard right after a step advances — same
   /// MapScreen mechanism, adapted to this screen's while-loop advancement
   /// (which can skip several steps in one tick; the guard only ever cares
@@ -2628,6 +2763,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     final activeRouteRuns = showRouteProgress ? _remainingRouteRuns() : _routeRuns;
     final completedRoutePts =
         showRouteProgress ? _routeProgressPolyline(completed: true) : const <LatLng>[];
+    final trafficSegments =
+        _route == null ? const <List<LatLng>>[] : _trafficSegments(_route!.polyline);
 
     return PopScope(
       // Same split MapScreen's own PopScope uses: search and navigation both
@@ -2722,6 +2859,19 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                   width: routeWidthPx(9),
                 ),
               ],
+              // Heavy-traffic overlay: bright red over any stretch within
+              // 400m of an active trafficJam report, same as MapScreen.
+              for (final seg in trafficSegments)
+                if (seg.length >= 2)
+                  PolylineLayer(
+                    polylines: [
+                      Feature(
+                          geometry: LineString.from(seg.map((p) =>
+                              Geographic(lon: p.longitude, lat: p.latitude))))
+                    ],
+                    color: const Color(0xFFEF4444),
+                    width: routeWidthPx(9),
+                  ),
             ],
             children: [
               // Other users' (and the driver's own) road reports — same
@@ -3031,10 +3181,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               }),
             ),
           // Real preview panel, not the summary chip this replaced — same
-          // widget MapScreen shows (RoutePreviewPanel), reused as-is. Traffic
-          // events/status passed empty/null: that's Nostr road-event
-          // subscription, a separate piece not ported here, so the panel
-          // simply doesn't show a traffic banner rather than a fake one.
+          // widget MapScreen shows (RoutePreviewPanel), reused as-is, now
+          // with real traffic data since the road-event subscription lands.
           if (_route != null && !_isNavigating && !_showSearch)
             Positioned(
               left: 0,
@@ -3043,7 +3191,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               child: RoutePreviewPanel(
                 route: _route!,
                 label: null,
-                trafficEvents: const [],
+                trafficEvents: _routeTrafficEvents(_route!),
+                trafficStatus: _trafficStatus(_route!),
                 bottomInset: MediaQuery.of(context).padding.bottom,
                 colors: c,
                 transportMode: _transportMode,
