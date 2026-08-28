@@ -32,14 +32,17 @@ import 'package:sensors_plus/sensors_plus.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/activity_notification.dart';
 import '../models/favorite_place.dart';
 import '../models/search_history_item.dart';
+import '../services/activity_notification_service.dart';
 import '../services/camera_follow.dart';
 import '../services/favorites_sync_service.dart';
 import '../services/gps_service.dart';
 import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
 import '../services/navigation_guidance.dart';
+import '../services/navigation_notification_service.dart';
 import '../services/nostr_relay_service.dart';
 import '../services/place_search_service.dart';
 import '../services/poi_search_service.dart';
@@ -53,6 +56,7 @@ import '../theme/theme_provider.dart';
 import '../utils/geo.dart';
 import '../utils/heading_filter.dart';
 import '../utils/settings_listenable.dart';
+import '../utils/units.dart';
 import '../widgets/cursor_painter.dart';
 import '../widgets/map/map_chrome.dart';
 import '../widgets/map/map_markers.dart';
@@ -462,8 +466,24 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   // subscription to other people's reports here, so no own-report
   // suppression state is needed the way MapScreen keeps _myPubkey/
   // _roadEvents — this only publishes, it doesn't display anyone's pins yet.
+  // connect() *is* required though, unlike the rest of this list — every
+  // publish call throws Exception('Not connected to Nostr relay') without
+  // it (NostrRelayService._requireConnected has no auto-connect fallback),
+  // so hazard reporting was silently broken until initState calls it.
   final _nostr = NostrRelayService();
   static const _secStorage = FlutterSecureStorage();
+
+  /// Persistent Android notification during nav (next manoeuvre + distance)
+  /// — same NavigationNotificationService MapScreen uses.
+  final _navNotif = NavigationNotificationService();
+
+  /// Silently records the logged-in user's own activity (zaps received,
+  /// confirm/deny on their own reports) for the Notifications screen — same
+  /// ActivityNotificationService MapScreen uses, fed by the same
+  /// _nostr.activityStream enableActivityNotifications (already called from
+  /// _refreshHomeIdentity) populates.
+  final _activityNotif = ActivityNotificationService();
+  StreamSubscription<ActivityNotification>? _activitySub;
 
   // ── Home identity (bottom bar) ────────────────────────────────────────────
   // Same three SecureStorage values MapScreen._refreshHomeIdentity reads —
@@ -498,6 +518,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     final startLang = settings.get('language', defaultValue: '') as String;
     unawaited(_tts.init(startLang.isNotEmpty ? startLang : 'it'));
     unawaited(_refreshHomeIdentity());
+    _activitySub = _nostr.activityStream.listen(_recordActivityNotification);
+    unawaited(_nostr.connect());
 
     _screenPolicyListenable = SettingsListenable.forKeys(
         const ['keepScreenOn', 'keepScreenOnAlways', 'minBrightness']);
@@ -521,6 +543,14 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// Same read as MapScreen._refreshHomeIdentity, ported directly — the
   /// three SecureStorage values MapBottomBar needs (login state, pubkey,
   /// avatar), plus the same activity-notification subscription toggle.
+  /// Records social activity silently for the Notifications screen — same
+  /// MapScreen._recordActivityNotification, ported directly.
+  void _recordActivityNotification(ActivityNotification notification) {
+    final pubkey = _myPubkey;
+    if (pubkey == null) return;
+    unawaited(_activityNotif.record(pubkey, notification));
+  }
+
   Future<void> _refreshHomeIdentity() async {
     if (!mounted) return;
     final values = await Future.wait([
@@ -1054,6 +1084,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _searchDebounce?.cancel();
     _arrivalBannerTimer?.cancel();
     _gpsLossTimer?.cancel();
+    _activitySub?.cancel();
     _searchController.dispose();
     unawaited(_gps.dispose());
     unawaited(_tts.dispose());
@@ -1519,6 +1550,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _arrivalBannerTimer?.cancel();
     _gpsLossTimer?.cancel();
     _gpsLossTimer = null;
+    unawaited(_navNotif.cancel());
     setState(() {
       _route = null;
       _destination = null;
@@ -1652,9 +1684,32 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         : (_stepCumDist[_currentStepIdx + 1] - routeProgressM)
             .clamp(0, double.infinity);
     _checkArrival(pos, isLast);
-    if (!_voiceMuted && !isLast && !_arrived) {
+    if (_arrived) return;
+    if (!_voiceMuted && !isLast) {
       _announceUpcoming(data.speedKmh, route);
     }
+    _updateNavNotification(route);
+  }
+
+  /// Persistent Android notification with the next manoeuvre + distance —
+  /// same MapScreen._updateNavNotification, using the same "next upcoming
+  /// manoeuvre" convention as the in-app NavInstruction card.
+  void _updateNavNotification(RouteResult route) {
+    if (route.steps.isEmpty || !mounted) return;
+    final nextIdx =
+        _currentStepIdx + 1 < route.steps.length ? _currentStepIdx + 1 : _currentStepIdx;
+    final step = route.steps[nextIdx];
+    final distM = _distToNextStepM > 0 ? _distToNextStepM : step.distanceM;
+    final l = AppLocalizations.of(context);
+    final distLabel = Units.fmtDist(distM, nowLabel: l.now);
+    final instruction = step.direction == 'arrive'
+        ? switch (step.modifier) {
+            'left' => l.arrivalAheadLeft,
+            'right' => l.arrivalAheadRight,
+            _ => l.arrivalAhead,
+          }
+        : step.instruction;
+    _navNotif.show(instruction, distLabel);
   }
 
   /// Whether the driver has arrived — same multi-signal logic as
