@@ -1086,6 +1086,42 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     await _onDestinationPicked(result.position, label: result.shortName);
   }
 
+  /// Pressing Enter/search on the keyboard instead of tapping a row — same
+  /// MapScreen._onSearchSubmit: a matching favourite wins first, then the
+  /// already-fetched top result, then (nothing cached yet) a fresh search
+  /// for its top result.
+  Future<void> _onSearchSubmit(String query) async {
+    query = query.trim();
+    if (query.isEmpty) return;
+    _searchDebounce?.cancel();
+    FocusManager.instance.primaryFocus?.unfocus();
+    final favMatch = _matchingFavorites(query);
+    if (favMatch.isNotEmpty) {
+      _searchController.clear();
+      setState(() {
+        _showSearch = false;
+        _searchResults = [];
+      });
+      await _onDestinationPicked(favMatch.first.position, label: favMatch.first.label);
+      return;
+    }
+    NominatimResult result;
+    if (_searchResults.isNotEmpty) {
+      result = _searchResults.first;
+    } else {
+      setState(() => _searching = true);
+      final near = _lastFix == null
+          ? null
+          : LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
+      final results = await _placeSearch.search(query, near: near);
+      if (!mounted) return;
+      setState(() => _searching = false);
+      if (results.isEmpty) return;
+      result = results.first;
+    }
+    await _onSelectResult(result);
+  }
+
   /// Routes a picked position to either a fresh destination search or a
   /// mid-journey stop, depending on which search flow is open. Shared by
   /// search-result selection, favourite selection and nearby-category
@@ -1484,6 +1520,46 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// Advances [_currentStepIdx] and recomputes [_distToNextStepM] from
   /// [data]. Called from [_onGps] before its own setState, not after — the
   /// two share one rebuild instead of triggering back to back.
+  /// The route polyline split at the live progress cursor — same
+  /// MapScreen._routeProgressPolyline, adapted to this screen's own
+  /// _cumDist/_routeProgressM (no separate "render polyline" concept here,
+  /// just the route's own polyline).
+  List<LatLng> _routeProgressPolyline({required bool completed}) {
+    final route = _route;
+    if (route == null || _cumDist.length != route.polyline.length) {
+      return completed ? const [] : (route?.polyline ?? const []);
+    }
+    final render = route.polyline;
+    var i = 0;
+    while (i + 1 < render.length && _cumDist[i + 1] < _routeProgressM) {
+      i++;
+    }
+    final a = render[i];
+    final b = i + 1 < render.length ? render[i + 1] : render[i];
+    final span = i + 1 < render.length ? _cumDist[i + 1] - _cumDist[i] : 0.0;
+    final t = span <= 0
+        ? 0.0
+        : ((_routeProgressM - _cumDist[i]) / span).clamp(0.0, 1.0);
+    final cursor = LatLng(a.latitude + (b.latitude - a.latitude) * t,
+        a.longitude + (b.longitude - a.longitude) * t);
+    if (completed) {
+      if (_routeProgressM <= 0) return const [];
+      return [...render.take(i + 1), cursor];
+    }
+    return [cursor, ...render.skip(i + 1)];
+  }
+
+  /// ZTL-coloured runs for the road still ahead only — same
+  /// MapScreen._remainingRouteRuns. Classification is a cheap local
+  /// proximity check against the already-cached restricted-ways list (no
+  /// network), so recomputing it every GPS tick is the same thing
+  /// MapScreen's own build() already does.
+  List<({List<LatLng> points, bool restricted})> _remainingRouteRuns() {
+    final pts = _routeProgressPolyline(completed: false);
+    if (pts.length < 2) return const [];
+    return _splitByZtl(pts, _ztl.classifyPoints(pts));
+  }
+
   void _updateNavigationProgress(GpsData data) {
     final route = _route;
     if (route == null || _cumDist.isEmpty || _arrived) return;
@@ -1735,11 +1811,14 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         : 0.0;
     final zoom = _camState?.zoom ?? 17;
     // In heading-up navigation shift the camera ahead so the cursor sits
-    // lower in frame (more road visible ahead) — same
-    // MapScreen._navCameraCenter formula, ported to camera_follow.dart.
+    // lower in frame (more road visible ahead, clear of the NavPanel/
+    // speedometer) — same MapScreen._navCameraCenter formula, ported to
+    // camera_follow.dart, using the real screen height rather than
+    // MapScreen's own hardcoded 800px assumption.
     final (targetLat, targetLng) = (_isNavigating && _headingMode)
         ? CameraFollowEasing.navCameraCenter(
-            data.position.latitude, data.position.longitude, rotDeg, zoom)
+            data.position.latitude, data.position.longitude, rotDeg, zoom,
+            screenHeightPx: MediaQuery.of(context).size.height)
         : (data.position.latitude, data.position.longitude);
     _targetState = CameraFollowState(
       lat: targetLat,
@@ -1806,14 +1885,28 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     final fix = _lastFix;
     final controller = _controller;
     if (fix == null || controller == null) return;
+    // Without this, a follow-ticker frame landing mid-flight (either a
+    // stale ticker still easing toward wherever the camera was before this
+    // snap, or a fresh one started by the very next GPS tick) calls
+    // moveCamera and cuts the animateCamera below off wherever it happened
+    // to be — which is what made the camera land in an unpredictable
+    // "random" spot instead of behind the cursor. Cancelling the ticker and
+    // pointing _targetState at the same place _camState is about to become
+    // means even a GPS tick that lands mid-animation only asks the ticker
+    // to ease a negligible remaining distance, not fight the snap.
+    _followTicker?.cancel();
+    _followTicker = null;
     final rotDeg = _headingMode ? (fix.heading ?? _bearing) : 0.0;
     const zoom = 17.0;
+    final screenHeightPx = MediaQuery.of(context).size.height;
     final (lat, lng) = navShift
         ? CameraFollowEasing.navCameraCenter(
-            fix.position.latitude, fix.position.longitude, rotDeg, zoom)
+            fix.position.latitude, fix.position.longitude, rotDeg, zoom,
+            screenHeightPx: screenHeightPx)
         : (fix.position.latitude, fix.position.longitude);
     _camState =
         CameraFollowState(lat: lat, lng: lng, zoom: zoom, rotDeg: rotDeg);
+    _targetState = _camState;
     unawaited(controller.animateCamera(
       center: Geographic(lon: lng, lat: lat),
       zoom: zoom,
@@ -1822,12 +1915,34 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     ));
   }
 
+  /// Name of the town street being driven right now, or null — same
+  /// MapScreen._currentStreetName. Comes straight from the route step
+  /// already in hand (the step in progress carries the name of the road it
+  /// leads onto), no reverse-geocoding call needed. Numbered roads
+  /// deliberately return null: the code is already on every sign and in the
+  /// manoeuvre panel.
+  String? get _currentStreetName {
+    final route = _route;
+    if (!_isNavigating || route == null || route.steps.isEmpty) return null;
+    final idx = _currentStepIdx.clamp(0, route.steps.length - 1);
+    final step = route.steps[idx];
+    return step.isUrbanStreet ? step.roadName : null;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isDark = context.watch<ThemeProvider>().effective.isDark;
-    final c =
-        AppTheme.build(isDark ? AppThemeId.darkNostr : AppThemeId.lightNostr)
-            .extension<RoadstrColors>()!;
+    // Reads the theme actually applied to the app (MaterialApp.theme, driven
+    // by ThemeProvider.effectiveThemeData in main.dart) instead of building
+    // a fresh one from a hardcoded AppThemeId — the previous version always
+    // rendered the plain Nostr light/dark pair regardless of which of the
+    // 8 themes (Bitcoin accent, "modern" gradient variants, auto-dark) the
+    // user actually has selected in Settings, since it never consulted
+    // ThemeProvider.current at all, only .effective.isDark for raster
+    // recolouring. context.watch keeps this screen rebuilding on live theme
+    // changes (auto-dark sunset/sunrise, a Settings edit) same as MapScreen.
+    context.watch<ThemeProvider>();
+    final c = RoadstrColors.of(context);
+    final isDark = c.isDark;
     // Same custom-server override MapScreen's tile layer reads — a
     // self-hosted or alternate raster source, same default as MapScreen's
     // own RoadstrColors.mapTile.
@@ -1854,8 +1969,38 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       transportMode: _transportMode,
       storedDrivingStyle: Hive.box('settings').get(CursorStyle.storageKey),
     );
-    final isCharacterCursor = cursorStyle == CursorStyle.ostrich ||
-        cursorStyle == CursorStyle.bicycle;
+    // Only the 'arrow' style gets the from-scratch painter: it's the one
+    // asset confirmed to bake its own static shadow (arrow.svg's <ellipse>),
+    // which is what the parallax shadow duplicated. Every other driving skin
+    // (formula1/suv/racing/electric/city/classic500) is a plain top-view PNG
+    // with no such baked shadow to duplicate, so it goes through the real
+    // UserMarker/CursorWidget system unmodified — same as ostrich/bicycle
+    // already did. Collapsing every skin to the generic arrow (an earlier
+    // version of this file did) silently dropped the user's actual vehicle
+    // choice and made the cursor read as smaller/thinner than the skin they
+    // picked.
+    final usesRealCursorAsset = cursorStyle != CursorStyle.arrow;
+
+    // MapLibre's line-width paints in physical pixels; MapScreen's
+    // flutter_map equivalent (and the _kRouteGlowW/_kRouteStrokeW constants
+    // these numbers are copied from) paints in logical pixels. Left as-is,
+    // the exact same numeric width renders devicePixelRatio× fatter here
+    // than the light engine — on a typical ~2.5–3× phone that's a very
+    // visibly thicker "laser". Dividing by the ratio corrects it back to
+    // the same on-screen thickness.
+    final dpr = MediaQuery.of(context).devicePixelRatio;
+    int routeWidthPx(double logicalPx) =>
+        (logicalPx / dpr).round().clamp(1, 999);
+    // Once under way, only colour the road still ahead — the driven leg
+    // goes flat grey, same distinction MapScreen's laser vs. completed-grey
+    // split makes. Recomputed every rebuild (every GPS tick): classifyPoints
+    // is a local proximity check against the already-cached restricted-ways
+    // list, no network, same cost MapScreen's own _remainingRouteRuns pays
+    // on every build.
+    final showRouteProgress = _isNavigating && _routeProgressM > 0;
+    final activeRouteRuns = showRouteProgress ? _remainingRouteRuns() : _routeRuns;
+    final completedRoutePts =
+        showRouteProgress ? _routeProgressPolyline(completed: true) : const <LatLng>[];
 
     return PopScope(
       // Same split MapScreen's own PopScope uses: search and navigation both
@@ -1919,7 +2064,17 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
             // since PolylineLayer here colours a whole layer, not a single
             // Polyline the way flutter_map's does.
             layers: [
-              for (final run in _routeRuns) ...[
+              if (completedRoutePts.length >= 2)
+                PolylineLayer(
+                  polylines: [
+                    Feature(
+                        geometry: LineString.from(completedRoutePts.map((p) =>
+                            Geographic(lon: p.longitude, lat: p.latitude))))
+                  ],
+                  color: Colors.grey.shade500,
+                  width: routeWidthPx(9),
+                ),
+              for (final run in activeRouteRuns) ...[
                 PolylineLayer(
                   polylines: [
                     Feature(
@@ -1928,7 +2083,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                   ],
                   color: (run.restricted ? _kZtlRed : c.accent)
                       .withValues(alpha: 0.28),
-                  width: 18,
+                  width: routeWidthPx(18),
                 ),
                 PolylineLayer(
                   polylines: [
@@ -1937,7 +2092,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                             Geographic(lon: p.longitude, lat: p.latitude))))
                   ],
                   color: run.restricted ? _kZtlRed : c.accent,
-                  width: 9,
+                  width: routeWidthPx(9),
                 ),
               ],
             ],
@@ -1998,10 +2153,11 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                     // plane, the way a nav app's own puck looks like it's
                     // sitting on the road once the camera pitches.
                     flat: true,
-                    child: isCharacterCursor
-                        // Ostrich/bicycle: the existing animated sprite system,
-                        // unmodified — no baked shadow to duplicate here the
-                        // way arrow.svg had, so there's nothing to rebuild.
+                    child: usesRealCursorAsset
+                        // Every skin but the default arrow: the real
+                        // UserMarker/CursorWidget system, unmodified — no
+                        // baked shadow to duplicate the way arrow.svg had,
+                        // so there's nothing to rebuild.
                         ? UserMarker(
                             heading: 0,
                             accent: c.accent,
@@ -2041,7 +2197,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                   colors: c,
                   onFocus: () => setState(() => _showSearch = true),
                   onChanged: _onSearchChanged,
-                  onSubmitted: (_) {},
+                  onSubmitted: (q) => unawaited(_onSearchSubmit(q)),
                   onClear: () {
                     _searchController.clear();
                     FocusManager.instance.primaryFocus?.unfocus();
@@ -2273,6 +2429,20 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                 remainingSecs: _remainingSecs,
                 speedometerStyle: SpeedometerStyle.fromStorage(
                     Hive.box('settings').get(SpeedometerStyle.storageKey)),
+              ),
+            ),
+          // ── CURRENT STREET ────────────────────────────────────────────────
+          // Positioned on screen rather than attached to the marker layer —
+          // a label inside that layer rotates with the map in heading-up
+          // mode, and an upside-down street name is worse than none. Same
+          // offset MapScreen uses: clears the NavPanel's top edge by 12px.
+          if (_isNavigating && _currentStreetName != null)
+            Positioned(
+              bottom: 136 + MediaQuery.of(context).padding.bottom,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: CurrentStreetLabel(name: _currentStreetName!, colors: c),
               ),
             ),
           // ── SPEED LIMIT SIGN (navigation + free drive) ──────────────────────
