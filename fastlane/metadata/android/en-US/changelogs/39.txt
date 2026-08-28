@@ -1,0 +1,14 @@
+A new 3D map rendering engine, switchable in Settings — a month in the making.
+
+New
+
+• MapLibre-based rendering engine as a full alternative to the current map:
+  real 3D camera tilt and rotation, native map styling for light/dark
+  themes, and complete feature parity — search, multi-stop route planning,
+  route alternatives with highway/toll avoidance, public transport
+  itineraries, ZTL-aware routing, speed camera and hazard alerts, hazard
+  reporting, turn-by-turn navigation with rerouting and voice guidance
+• Switch between the new engine and the original one anytime from Settings —
+  both keep working, nothing changes for anyone who doesn't opt in
+
+Next up: offline maps.
