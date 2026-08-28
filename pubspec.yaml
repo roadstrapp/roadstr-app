@@ -58,6 +58,7 @@ dependencies:
   # nostr_tools 1.0.9 still constrains web_socket_channel to the 2.x API.
   web_socket_channel: ^2.4.0
   screen_brightness: ^2.1.11
+  maplibre: ^0.3.6
 
 # Roadstr uses a vendored geolocator_android with Google Play Services removed
 # — see third_party/geolocator_android/ROADSTR_FORK.md. The app reads location

@@ -1113,6 +1113,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // ── MAP ─────────────────────────────────────────────────────────
           _SectionHeader(l.sectionMap, c),
           _SwitchTile(
+            title: 'Motore mappa: MapLibre',
+            subtitle: 'Tilt e rotazione della camera, styling nativo, '
+                'ricerca (categorie e preferiti), tappe multiple, '
+                'alternative con esclusione autostrade/pedaggi, trasporto '
+                'pubblico, navigazione completa con reroute e guida vocale, '
+                'ZTL, autovelox, parcheggio, segnalazioni, bussola.',
+            value: (_box.get('mapEngine', defaultValue: 'osm') as String) ==
+                'maplibre',
+            onChanged: (v) {
+              _box.put('mapEngine', v ? 'maplibre' : 'osm');
+              setState(() {});
+            },
+            colors: c,
+          ),
+          _SwitchTile(
             title: l.keepScreenOn,
             subtitle: l.keepScreenOnDescription,
             value: _getBool('keepScreenOn', true),
