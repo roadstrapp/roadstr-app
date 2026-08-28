@@ -116,12 +116,21 @@ class CameraFollowEasing {
   /// `MediaQuery.of(context).size.height`), so the 32%-from-bottom placement
   /// — and the clearance it buys over the NavPanel/speedometer — holds on
   /// any device, not just an 800px-tall one.
+  ///
+  /// [pitchDeg] compensates for camera tilt: a 3D-perspective camera
+  /// foreshortens a fixed ground-distance shift toward the horizon as pitch
+  /// steepens, so the same [screenHeightPx] fraction buys less on-screen
+  /// clearance over a bottom panel at 60° than at 0°. Scaling the shift by
+  /// `1 / cos(pitchDeg)` (floored so it never divides by something close to
+  /// zero) keeps the marker's on-screen position roughly pitch-independent.
   static (double lat, double lng) navCameraCenter(
       double lat, double lng, double headingDeg, double zoom,
-      {double screenHeightPx = 800.0}) {
+      {double screenHeightPx = 800.0, double pitchDeg = 0.0}) {
     const earthM = 40075016.0;
     final mpp = earthM / (256.0 * math.pow(2, zoom));
-    final shiftM = 0.18 * screenHeightPx * mpp;
+    final pitchCompensation =
+        1.0 / math.max(math.cos(pitchDeg * math.pi / 180.0), 0.5);
+    final shiftM = 0.18 * screenHeightPx * mpp * pitchCompensation;
     const degPerM = 1.0 / 111320.0;
     final rad = headingDeg * math.pi / 180.0;
     final dLat = math.cos(rad) * shiftM * degPerM;

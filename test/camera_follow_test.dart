@@ -100,5 +100,13 @@ void main() {
       expect(lat, lessThanOrEqualTo(89.9));
       expect(lat.isFinite, isTrue);
     });
+
+    test('steeper pitch compensates the shift so it does not shrink', () {
+      final (latFlat, _) =
+          CameraFollowEasing.navCameraCenter(45, 9, 0, 17, pitchDeg: 0);
+      final (latTilted, _) =
+          CameraFollowEasing.navCameraCenter(45, 9, 0, 17, pitchDeg: 60);
+      expect(latTilted - 45, greaterThan(latFlat - 45));
+    });
   });
 }
