@@ -104,17 +104,24 @@ class CameraFollowEasing {
   }
 
   /// Shifts a camera centre [headingDeg]° ahead of [lat]/[lng] so the GPS
-  /// marker sits lower in frame — more road ahead, less behind. Extracted
-  /// unchanged from `MapScreen._navCameraCenter` (same constants: 18% of an
-  /// assumed 800px-tall screen, converted to metres at [zoom]), which
-  /// despite its own doc comments calling this "~1/3" and, at its call site,
-  /// "~2/5" from the bottom actually places it at 50% − 18% = 32% from the
-  /// bottom — neither comment matches the number the formula computes.
+  /// marker sits lower in frame — more road ahead, less behind, and clear of
+  /// a bottom nav panel. Same formula as `MapScreen._navCameraCenter` (18%
+  /// of the screen height, converted to metres at [zoom]) — which despite
+  /// its own doc comments calling this "~1/3" and, at its call site, "~2/5"
+  /// from the bottom actually places it at 50% − 18% = 32% from the bottom;
+  /// neither comment matches the number the formula computes. One
+  /// deliberate difference: MapScreen hardcodes an assumed 800px screen
+  /// height, so the shift is only correct on devices close to that height;
+  /// [screenHeightPx] takes the real one instead (pass
+  /// `MediaQuery.of(context).size.height`), so the 32%-from-bottom placement
+  /// — and the clearance it buys over the NavPanel/speedometer — holds on
+  /// any device, not just an 800px-tall one.
   static (double lat, double lng) navCameraCenter(
-      double lat, double lng, double headingDeg, double zoom) {
+      double lat, double lng, double headingDeg, double zoom,
+      {double screenHeightPx = 800.0}) {
     const earthM = 40075016.0;
     final mpp = earthM / (256.0 * math.pow(2, zoom));
-    final shiftM = 0.18 * 800.0 * mpp;
+    final shiftM = 0.18 * screenHeightPx * mpp;
     const degPerM = 1.0 / 111320.0;
     final rad = headingDeg * math.pi / 180.0;
     final dLat = math.cos(rad) * shiftM * degPerM;
