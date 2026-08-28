@@ -40,6 +40,7 @@ import '../models/activity_notification.dart';
 import '../models/favorite_place.dart';
 import '../models/road_event.dart';
 import '../models/search_history_item.dart';
+import '../models/transit_itinerary.dart';
 import '../models/way_point.dart';
 import '../services/activity_notification_service.dart';
 import '../services/camera_follow.dart';
@@ -56,6 +57,7 @@ import '../services/route_progress.dart';
 import '../services/routing_service.dart';
 import '../services/speed_camera_service.dart';
 import '../services/speed_limit_service.dart';
+import '../services/transit_service.dart';
 import '../services/ztl_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
@@ -73,6 +75,7 @@ import '../widgets/route/route_panels.dart';
 import '../widgets/search/search_panel.dart';
 import '../widgets/sheets/road_event_sheets.dart';
 import '../widgets/speedometer_widget.dart';
+import '../widgets/transit_itinerary_widget.dart';
 
 const _roadstrTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
@@ -405,6 +408,15 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   bool _avoidanceLoading = false;
   int _avoidanceRequestGeneration = 0;
   LatLng? _routeOrigin;
+
+  // ── Public transport ───────────────────────────────────────────────────
+  // No "start navigation" here — MapScreen's own TransitItinerariesPanel
+  // has no onConfirm at all, just view/select/cancel/switch-mode. A bus or
+  // train ride isn't guided turn-by-turn the way driving is.
+  bool _showTransit = false;
+  List<TransitItinerary> _transitItineraries = [];
+  int _selectedTransit = 0;
+  bool _transitFailed = false;
 
   // ── Route planner (multi-stop A→B) ────────────────────────────────────
   // Same MapScreen fields — the "tragitto" FAB used to just open ordinary
@@ -1797,13 +1809,19 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     setState(() => _calculatingRoute = true);
     _destination = dest;
     _routeOrigin = origin;
+    if (_transportMode == 'transit') {
+      await _planTransit(origin, dest);
+      return;
+    }
     // A fresh destination starts a new journey — any stop added to a
     // previous one no longer applies, unless the planner is handing us its
     // own via list. Avoidance is also per-journey, so a new destination
-    // starts without it.
+    // starts without it. Switching back from transit must retire that
+    // panel too, or both would claim the same slot.
     _activeVia = via;
     _avoidanceEnabled = false;
     _avoidanceLoading = false;
+    _showTransit = false;
     List<RouteResult> routes;
     try {
       final (:provider, :apiKey, :ghServer) = await _resolveProvider();
@@ -1852,6 +1870,48 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       padding: const EdgeInsets.all(48),
       pitch: 0,
     ));
+  }
+
+  /// Public-transport itinerary search — same MapScreen._planTransit.
+  Future<void> _planTransit(LatLng origin, LatLng dest) async {
+    final result = await const TransitService().plan(from: origin, to: dest);
+    if (!mounted) return;
+    setState(() {
+      _calculatingRoute = false;
+      _showAlternatives = false;
+      _showTransit = true;
+      _selectedTransit = 0;
+      _transitItineraries = result is TransitPlan ? result.itineraries : const [];
+      _transitFailed = result is TransitFailure;
+    });
+    if (_transitItineraries.isNotEmpty) {
+      _fitTransitOnMap(_transitItineraries[_selectedTransit]);
+    }
+  }
+
+  /// Frames the whole journey, walking legs included — the first walk is
+  /// often the part the traveller most needs to see. Same
+  /// MapScreen._fitTransitOnMap, using the native controller.fitBounds.
+  void _fitTransitOnMap(TransitItinerary itinerary) {
+    final controller = _controller;
+    if (controller == null) return;
+    final points = [for (final leg in itinerary.legs) ...leg.geometry];
+    if (points.length < 2) return;
+    unawaited(controller.fitBounds(
+      bounds: LngLatBounds.fromPoints(
+          [for (final p in points) Geographic(lon: p.longitude, lat: p.latitude)]),
+      padding: const EdgeInsets.fromLTRB(48, 96, 48, 260),
+      pitch: 0,
+    ));
+  }
+
+  void _cancelTransit() {
+    setState(() {
+      _showTransit = false;
+      _transitItineraries = [];
+      _transitFailed = false;
+      _destination = null;
+    });
   }
 
   /// Enriches routes with real OSM roundabout arm counts, best-effort —
@@ -3244,7 +3304,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       // claim the system back gesture instead of letting it exit — search
       // closes (there's no on-screen back button any more to do it), and
       // navigation asks for confirmation instead of just stopping.
-      canPop: !_showSearch && !_showPlaceInfo && !_showPlanner && !_isNavigating,
+      canPop: !_showSearch &&
+          !_showPlaceInfo &&
+          !_showPlanner &&
+          !_showAlternatives &&
+          !_showTransit &&
+          !_isNavigating,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         if (_showSearch) {
@@ -3260,6 +3325,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
           _closePlaceInfo();
         } else if (_showPlanner) {
           _closePlanner();
+        } else if (_showAlternatives) {
+          _cancelAlternatives();
+        } else if (_showTransit) {
+          _cancelTransit();
         } else if (_isNavigating) {
           _showExitNavigationDialog();
         }
@@ -3316,6 +3385,23 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
             // since PolylineLayer here colours a whole layer, not a single
             // Polyline the way flutter_map's does.
             layers: [
+              // Public-transport journey: each leg drawn in its own colour,
+              // so where the walking ends and the ride begins is readable
+              // at a glance — same as MapScreen.
+              if (_showTransit && _selectedTransit < _transitItineraries.length)
+                for (final leg in _transitItineraries[_selectedTransit].legs)
+                  if (leg.geometry.length >= 2)
+                    PolylineLayer(
+                      polylines: [
+                        Feature(
+                            geometry: LineString.from(leg.geometry.map((p) =>
+                                Geographic(lon: p.longitude, lat: p.latitude))))
+                      ],
+                      color: leg.mode.isTransit
+                          ? (leg.routeColor ?? c.accent)
+                          : c.textSecondary.withValues(alpha: 0.7),
+                      width: routeWidthPx(leg.mode.isTransit ? 7 : 4),
+                    ),
               // Unselected alternatives — plain and muted, drawn under the
               // selected candidate's laser rendering below.
               for (final alt in alternativePolylines)
@@ -3626,6 +3712,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                 ],
                 if (!_showSearch &&
                     !_showAlternatives &&
+                    !_showTransit &&
                     !_showPlaceInfo &&
                     _route == null) ...[
                   const SizedBox(height: 8),
@@ -3760,6 +3847,34 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                   unawaited(_calculateRouteTo(dest, label: label));
                 },
                 onClose: _closePlaceInfo,
+              ),
+            ),
+          // ── PUBLIC TRANSPORT ─────────────────────────────────────────────────
+          // Same widget MapScreen shows — view/select/switch-mode/cancel only,
+          // no "start navigation": a scheduled ride isn't guided turn-by-turn.
+          if (_showTransit && !_showSearch)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: TransitItinerariesPanel(
+                itineraries: _transitItineraries,
+                selected: _selectedTransit,
+                colors: c,
+                bottomInset: MediaQuery.of(context).padding.bottom,
+                label: _pendingLabel,
+                failed: _transitFailed,
+                onSelect: (i) {
+                  setState(() => _selectedTransit = i);
+                  _fitTransitOnMap(_transitItineraries[i]);
+                },
+                onCancel: _cancelTransit,
+                onRetry: _destination == null
+                    ? null
+                    : () => unawaited(_calculateRouteTo(_destination!,
+                        label: _pendingLabel, fromPosition: _routeOrigin)),
+                transportMode: _transportMode,
+                onModeChanged: (m) => unawaited(_onModeChanged(m)),
               ),
             ),
           // ── ROUTE ALTERNATIVES ──────────────────────────────────────────────
@@ -3910,7 +4025,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
           // pre-trip/en-route split as MapScreen's own right column.
           Positioned(
             right: 12,
-            bottom: (_showAlternatives && _alternatives.isNotEmpty && !_showSearch
+            bottom: ((_showAlternatives && _alternatives.isNotEmpty || _showTransit) &&
+                    !_showSearch
                 ? 280.0
                 : _isNavigating
                     ? 190.0
@@ -3966,6 +4082,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               !_showPlaceInfo &&
               !_showPlanner &&
               !_showAlternatives &&
+              !_showTransit &&
               _route == null)
             Positioned(
               left: 12,
@@ -3999,6 +4116,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               !_showPlaceInfo &&
               !_showPlanner &&
               !_showAlternatives &&
+              !_showTransit &&
               _route == null)
             Positioned(
               left: 0,
