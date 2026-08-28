@@ -393,6 +393,19 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// Label carried from search into the eventual route preview panel.
   String? _pendingLabel;
 
+  // ── Route alternatives + avoidance ────────────────────────────────────
+  // Confirming a candidate here both sets it as the active route AND
+  // starts navigation in one action — same MapScreen flow (onConfirm:
+  // _startNavigation), which is why there's no separate "preview, then
+  // start" step any more: the alternatives panel *is* that step.
+  List<RouteResult> _alternatives = [];
+  int _selectedAlt = 0;
+  bool _showAlternatives = false;
+  bool _avoidanceEnabled = false;
+  bool _avoidanceLoading = false;
+  int _avoidanceRequestGeneration = 0;
+  LatLng? _routeOrigin;
+
   // ── Route planner (multi-stop A→B) ────────────────────────────────────
   // Same MapScreen fields — the "tragitto" FAB used to just open ordinary
   // search as a stand-in for this; now it opens the real thing.
@@ -1759,6 +1772,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// each looked from the outside like "I tapped a destination and nothing
   /// happened", because nothing told the driver why. Every path here now
   /// says something.
+  /// Fetches every alternative for [dest] and shows the alternatives panel
+  /// — same MapScreen flow (_requestAlternatives): confirming a candidate
+  /// there both sets it active and starts navigation, so this never sets
+  /// [_route] itself, only populates [_alternatives].
   Future<void> _calculateRouteTo(LatLng dest,
       {String? label, LatLng? fromPosition, List<LatLng> via = const []}) async {
     final origin = fromPosition ??
@@ -1779,16 +1796,26 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _pendingLabel = label;
     setState(() => _calculatingRoute = true);
     _destination = dest;
+    _routeOrigin = origin;
     // A fresh destination starts a new journey — any stop added to a
     // previous one no longer applies, unless the planner is handing us its
-    // own via list.
+    // own via list. Avoidance is also per-journey, so a new destination
+    // starts without it.
     _activeVia = via;
-    ({
-      RouteResult route,
-      List<({List<LatLng> points, bool restricted})> runs
-    })? fetched;
+    _avoidanceEnabled = false;
+    _avoidanceLoading = false;
+    List<RouteResult> routes;
     try {
-      fetched = await _fetchRoute(origin, dest, via: via.isEmpty ? null : via);
+      final (:provider, :apiKey, :ghServer) = await _resolveProvider();
+      if (!mounted) return;
+      routes = await RoutingService.getRoutes(origin, dest,
+          provider: provider,
+          apiKey: apiKey,
+          graphhopperServer: ghServer,
+          lang: 'it',
+          vehicle: _transportMode,
+          via: via);
+      routes = await _withRoundaboutTopology(routes);
     } catch (_) {
       if (!mounted) return;
       setState(() => _calculatingRoute = false);
@@ -1796,37 +1823,176 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       return;
     }
     if (!mounted) return;
-    if (fetched == null) {
+    if (routes.isEmpty) {
       setState(() => _calculatingRoute = false);
       _showSnack(AppLocalizations.of(context).noRouteFound);
       return;
     }
     setState(() {
-      _route = fetched!.route;
-      _routeRuns = fetched.runs;
       _calculatingRoute = false;
+      _alternatives = routes;
+      _selectedAlt = 0;
+      _showAlternatives = true;
     });
+    _fitRoutesOnMap(routes);
+  }
+
+  /// Animates the camera to fit every alternative's polyline on screen —
+  /// same intent as MapScreen._fitRoutesOnMap, using the native
+  /// controller.fitBounds instead of porting its own degree-based zoom
+  /// heuristic.
+  void _fitRoutesOnMap(List<RouteResult> routes) {
     final controller = _controller;
-    if (controller == null || fetched.route.polyline.isEmpty) return;
+    if (controller == null) return;
+    final pts = [for (final r in routes) ...r.polyline];
+    if (pts.isEmpty) return;
     unawaited(controller.fitBounds(
-      bounds: LngLatBounds.fromPoints([
-        for (final p in fetched.route.polyline)
-          Geographic(lon: p.longitude, lat: p.latitude),
-      ]),
+      bounds: LngLatBounds.fromPoints(
+          [for (final p in pts) Geographic(lon: p.longitude, lat: p.latitude)]),
       padding: const EdgeInsets.all(48),
       pitch: 0,
     ));
   }
 
-  /// Recalculates the current route for a different transport profile —
-  /// same idea as MapScreen._recalculateForMode, simplified: there is no
-  /// alternatives list here to refresh, just the one route this screen ever
-  /// shows, so switching modes is just a fresh [_calculateRouteTo] call.
+  /// Enriches routes with real OSM roundabout arm counts, best-effort —
+  /// same MapScreen._withRoundaboutTopology.
+  Future<List<RouteResult>> _withRoundaboutTopology(List<RouteResult> routes) {
+    if (routes.isEmpty) return Future.value(routes);
+    return RoutingService.enrichRoundaboutTopology(routes)
+        .timeout(const Duration(seconds: 6), onTimeout: () => routes);
+  }
+
+  /// Sets [route] as the active one (ZTL-classifying it just-in-time, since
+  /// only the confirmed candidate is ever coloured — not all of them) and
+  /// starts navigating — same MapScreen onConfirm: _startNavigation.
+  void _confirmAlternative(RouteResult route) {
+    final restricted = _ztl.classifyPoints(route.polyline);
+    setState(() {
+      _route = route;
+      _routeRuns = _splitByZtl(route.polyline, restricted);
+      _showAlternatives = false;
+      _alternatives = [];
+    });
+    _startNavigation();
+  }
+
+  void _cancelAlternatives() {
+    _avoidanceRequestGeneration++;
+    _awaitingFixDestination = null;
+    _activeVia = const [];
+    setState(() {
+      _showAlternatives = false;
+      _alternatives = [];
+      _destination = null;
+      _routeOrigin = null;
+      _avoidanceEnabled = false;
+      _avoidanceLoading = false;
+    });
+  }
+
+  /// Nearest alternative to a map tap, for tap-to-select — same
+  /// MapScreen._nearestAlternative.
+  int _nearestAlternative(LatLng tap) {
+    const thresholdM = 60.0;
+    const dist = Distance();
+    var best = -1;
+    var bestD = thresholdM;
+    for (var i = 0; i < _alternatives.length; i++) {
+      for (final p in _alternatives[i].polyline) {
+        final d = dist.as(LengthUnit.Meter, tap, p);
+        if (d < bestD) {
+          bestD = d;
+          best = i;
+        }
+      }
+    }
+    return best;
+  }
+
+  /// The alternatives list with any avoidance-router route/badge stripped
+  /// back out — same MapScreen._plainAlternatives.
+  List<RouteResult> _plainAlternatives() => _alternatives
+      .where((route) => !route.fromAvoidanceRouter)
+      .map((route) => route.isHighwayAndTollAvoidance
+          ? route.withAvoidance(RouteAvoidance.none)
+          : route)
+      .toList();
+
+  /// Adds/removes a separately calculated highway-and-toll avoidance route
+  /// — same MapScreen._toggleAvoidanceRoute, ported directly.
+  Future<void> _toggleAvoidanceRoute(bool enabled) async {
+    final destination = _destination;
+    if (destination == null || _transportMode != 'driving') return;
+    final requestGeneration = ++_avoidanceRequestGeneration;
+    if (!enabled) {
+      final standard = _plainAlternatives();
+      setState(() {
+        _avoidanceEnabled = false;
+        _avoidanceLoading = false;
+        _alternatives = standard;
+        _selectedAlt = standard.isEmpty ? 0 : _selectedAlt.clamp(0, standard.length - 1);
+      });
+      _fitRoutesOnMap(standard);
+      return;
+    }
+    setState(() {
+      _avoidanceEnabled = true;
+      _avoidanceLoading = true;
+    });
+    try {
+      var route = await RoutingService.getHighwayAndTollAvoidanceRoute(
+        _routeOrigin ?? destination,
+        destination,
+        lang: 'it',
+      );
+      route = (await _withRoundaboutTopology([route])).single;
+      if (!mounted ||
+          requestGeneration != _avoidanceRequestGeneration ||
+          _destination != destination ||
+          _transportMode != 'driving') {
+        return;
+      }
+      final routes = _plainAlternatives();
+      final twin =
+          routes.indexWhere((r) => RoutingService.followSameRoads(r, route));
+      final int selected;
+      if (twin >= 0) {
+        routes[twin] = routes[twin].withAvoidance(route.avoidance);
+        selected = twin;
+      } else {
+        routes.add(route);
+        selected = routes.length - 1;
+      }
+      setState(() {
+        _avoidanceLoading = false;
+        _alternatives = routes;
+        _selectedAlt = selected;
+      });
+      _fitRoutesOnMap(routes);
+    } catch (_) {
+      if (!mounted || requestGeneration != _avoidanceRequestGeneration) return;
+      setState(() {
+        _avoidanceEnabled = false;
+        _avoidanceLoading = false;
+      });
+      _showSnack(AppLocalizations.of(context).avoidRouteUnavailable);
+    }
+  }
+
+  /// Recalculates the alternatives for a different transport profile — same
+  /// idea as MapScreen._recalculateForMode.
   Future<void> _onModeChanged(String mode) async {
     if (_transportMode == mode) return;
-    setState(() => _transportMode = mode);
+    setState(() {
+      _transportMode = mode;
+      _avoidanceRequestGeneration++;
+      _avoidanceEnabled = false;
+      _avoidanceLoading = false;
+    });
     final dest = _destination;
-    if (dest != null) await _calculateRouteTo(dest);
+    if (dest != null) {
+      await _calculateRouteTo(dest, label: _pendingLabel, fromPosition: _routeOrigin);
+    }
   }
 
   void _showSnack(String message) {
@@ -1930,11 +2096,6 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     final restricted = _ztl.classifyPoints(route.polyline);
     return (route: route, runs: _splitByZtl(route.polyline, restricted));
   }
-
-  /// Cancels a route preview/plan before navigation ever starts. Same reset
-  /// as actually stopping mid-trip — there's nothing left to distinguish
-  /// once _stopNavigation clears the route itself, so this just is that.
-  void _clearRoute() => _stopNavigation();
 
   /// Distance off the route polyline past which the driver is no longer
   /// plausibly following it. Same threshold MapScreen._checkOffRoute uses —
@@ -2245,38 +2406,6 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     }
     if (current != null && current.length > 1) segments.add(current);
     return segments;
-  }
-
-  List<RoadEvent> _routeTrafficEvents(RouteResult route) {
-    const maxM = 400.0;
-    const dist = Distance();
-    return _roadEvents
-        .where((ev) =>
-            !ev.isExpired &&
-            route.polyline
-                .any((p) => dist.as(LengthUnit.Meter, p, ev.position) < maxM))
-        .toList();
-  }
-
-  /// Traffic severity badge for [route], based on the number of active
-  /// trafficJam reports within 400m — same MapScreen._trafficStatus.
-  ({String label, Color color}) _trafficStatus(RouteResult route) {
-    final l = AppLocalizations.of(context);
-    const dist = Distance();
-    final jams = _roadEvents
-        .where((e) =>
-            e.category == RoadCategory.trafficJam &&
-            !e.isExpired &&
-            route.polyline
-                .any((p) => dist.as(LengthUnit.Meter, p, e.position) < 400))
-        .length;
-    if (jams == 0) {
-      return (label: '🟢 ${l.trafficNormal}', color: const Color(0xFF22C55E));
-    }
-    if (jams <= 2) {
-      return (label: '🟡 ${l.trafficModerate}', color: const Color(0xFFF59E0B));
-    }
-    return (label: '🔴 ${l.trafficHeavy}', color: const Color(0xFFEF4444));
   }
 
   /// If a NEW trafficJam event appears on the active route mid-journey,
@@ -3085,7 +3214,26 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     // list, no network, same cost MapScreen's own _remainingRouteRuns pays
     // on every build.
     final showRouteProgress = _isNavigating && _routeProgressM > 0;
-    final activeRouteRuns = showRouteProgress ? _remainingRouteRuns() : _routeRuns;
+    // While choosing among alternatives, only the selected candidate gets
+    // the full ZTL-coloured "laser" treatment — the others are drawn as
+    // plain muted lines below it (see alternativePolylines below). Nothing
+    // is classified until it's actually the selected one: classifyPoints is
+    // cheap, but there's no reason to pay it for every unselected candidate
+    // on every rebuild.
+    final selectedAlt = _showAlternatives && _alternatives.isNotEmpty
+        ? _alternatives[_selectedAlt.clamp(0, _alternatives.length - 1)]
+        : null;
+    final activeRouteRuns = selectedAlt != null
+        ? _splitByZtl(selectedAlt.polyline, _ztl.classifyPoints(selectedAlt.polyline))
+        : showRouteProgress
+            ? _remainingRouteRuns()
+            : _routeRuns;
+    final alternativePolylines = _showAlternatives
+        ? [
+            for (var i = 0; i < _alternatives.length; i++)
+              if (i != _selectedAlt) _alternatives[i].polyline
+          ]
+        : const <List<LatLng>>[];
     final completedRoutePts =
         showRouteProgress ? _routeProgressPolyline(completed: true) : const <LatLng>[];
     final trafficSegments =
@@ -3132,8 +3280,18 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                   event.reason == CameraChangeReason.apiGesture) {
                 setState(() => _followUser = false);
               } else if (event is MapEventClick &&
+                  _showAlternatives &&
+                  _alternatives.isNotEmpty) {
+                // While choosing among alternatives, tapping directly on a
+                // route line selects it — same MapScreen behaviour
+                // (_nearestAlternative).
+                final i = _nearestAlternative(
+                    LatLng(event.point.lat, event.point.lon));
+                if (i >= 0) setState(() => _selectedAlt = i);
+              } else if (event is MapEventClick &&
                   !_isNavigating &&
-                  !_calculatingRoute) {
+                  !_calculatingRoute &&
+                  !_showAlternatives) {
                 // Tapping a point opens the place-info panel first, same as
                 // MapScreen's own map tap — "where is this and what's here"
                 // before committing to a route, not straight to routing.
@@ -3158,6 +3316,19 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
             // since PolylineLayer here colours a whole layer, not a single
             // Polyline the way flutter_map's does.
             layers: [
+              // Unselected alternatives — plain and muted, drawn under the
+              // selected candidate's laser rendering below.
+              for (final alt in alternativePolylines)
+                if (alt.length >= 2)
+                  PolylineLayer(
+                    polylines: [
+                      Feature(
+                          geometry: LineString.from(alt.map((p) =>
+                              Geographic(lon: p.longitude, lat: p.latitude))))
+                    ],
+                    color: Colors.grey.shade600.withValues(alpha: 0.6),
+                    width: routeWidthPx(7),
+                  ),
               if (completedRoutePts.length >= 2)
                 PolylineLayer(
                   polylines: [
@@ -3453,7 +3624,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                     onClear: _clearHistory,
                   ),
                 ],
-                if (!_showSearch && _route == null) ...[
+                if (!_showSearch &&
+                    !_showAlternatives &&
+                    !_showPlaceInfo &&
+                    _route == null) ...[
                   const SizedBox(height: 8),
                   Container(
                     padding:
@@ -3588,25 +3762,30 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                 onClose: _closePlaceInfo,
               ),
             ),
-          // Real preview panel, not the summary chip this replaced — same
-          // widget MapScreen shows (RoutePreviewPanel), reused as-is, now
-          // with real traffic data since the road-event subscription lands.
-          if (_route != null && !_isNavigating && !_showSearch)
+          // ── ROUTE ALTERNATIVES ──────────────────────────────────────────────
+          // Same widget MapScreen shows — always the alternatives panel, even
+          // for a single route, with tap-to-select-on-map and the highway/
+          // toll avoidance toggle. Confirming a candidate both sets it active
+          // and starts navigating in one action, same as MapScreen.
+          if (_showAlternatives && _alternatives.isNotEmpty && !_showSearch)
             Positioned(
               left: 0,
               right: 0,
               bottom: 0,
-              child: RoutePreviewPanel(
-                route: _route!,
-                label: _pendingLabel,
-                trafficEvents: _routeTrafficEvents(_route!),
-                trafficStatus: _trafficStatus(_route!),
+              child: RouteAlternativesPanel(
+                alternatives: _alternatives,
+                selected: _selectedAlt.clamp(0, _alternatives.length - 1),
                 bottomInset: MediaQuery.of(context).padding.bottom,
                 colors: c,
                 transportMode: _transportMode,
-                onStart: _startNavigation,
-                onCancel: _clearRoute,
+                destination: _destination!,
+                avoidanceEnabled: _avoidanceEnabled,
+                avoidanceLoading: _avoidanceLoading,
+                onSelect: (i) => setState(() => _selectedAlt = i),
+                onConfirm: _confirmAlternative,
+                onCancel: _cancelAlternatives,
                 onModeChanged: (m) => unawaited(_onModeChanged(m)),
+                onAvoidanceChanged: (v) => unawaited(_toggleAvoidanceRoute(v)),
               ),
             ),
           // ── NAV PANEL (speedometer, ETA, remaining distance) ────────────────
@@ -3731,8 +3910,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
           // pre-trip/en-route split as MapScreen's own right column.
           Positioned(
             right: 12,
-            bottom: (_route != null && !_isNavigating && !_showSearch
-                ? 220.0
+            bottom: (_showAlternatives && _alternatives.isNotEmpty && !_showSearch
+                ? 280.0
                 : _isNavigating
                     ? 190.0
                     : MediaQuery.of(context).padding.bottom + 16),
@@ -3786,6 +3965,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               !_showSearch &&
               !_showPlaceInfo &&
               !_showPlanner &&
+              !_showAlternatives &&
               _route == null)
             Positioned(
               left: 12,
@@ -3814,7 +3994,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
           // ── BOTTOM BAR (notifications / profile / settings) ─────────────────
           // Same widget MapScreen shows when nothing else claims the bottom —
           // idle, no search, no route.
-          if (!_isNavigating && !_showSearch && !_showPlaceInfo && !_showPlanner && _route == null)
+          if (!_isNavigating &&
+              !_showSearch &&
+              !_showPlaceInfo &&
+              !_showPlanner &&
+              !_showAlternatives &&
+              _route == null)
             Positioned(
               left: 0,
               right: 0,
