@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -24,6 +25,7 @@ import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
 import '../widgets/cursor_painter.dart';
 import '../widgets/speedometer_widget.dart';
+import 'offline_maps_poc_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -1127,6 +1129,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
             colors: c,
           ),
+          if (kDebugMode)
+            ListTile(
+              leading: Icon(Icons.cloud_download_outlined, color: c.textSecondary),
+              title: Text('Offline maps PoC (throwaway)',
+                  style: TextStyle(color: c.textPrimary)),
+              subtitle: Text('Isolated screen, not the real feature yet',
+                  style: TextStyle(color: c.textSecondary, fontSize: 12)),
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const OfflineMapsPocScreen())),
+            ),
           _SwitchTile(
             title: l.keepScreenOn,
             subtitle: l.keepScreenOnDescription,
