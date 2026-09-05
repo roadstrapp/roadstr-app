@@ -6,7 +6,7 @@ It combines real-time GPS turn-by-turn navigation with community-sourced traffic
 If you're searching for the decentralized road event reporting system — "Waze without the centralized tracking" head to Jooray's Github page https://github.com/jooray/roadstr
 
 
-> **Version 0.5.0** — Android only.
+> **Version 0.5.1** — Android only.
 
 ---
 
@@ -51,7 +51,7 @@ If you're searching for the decentralized road event reporting system — "Waze 
 | Public transport routing — bus, tram, metro, rail, coach, ferry (worldwide open timetables) | ✅ |
 | Cycling routes | ✅ |
 | Customisable vehicle cursor — 7 colours, animated walking mode | ✅ |
-| Vector map rendering engine (MapLibre) — 3D tilt, native styling | ✅ Optional, switchable in Settings |
+| Vector map rendering engine (MapLibre) — 3D tilt, native styling | ✅ Default, switchable in Settings |
 | Offline maps (MBTiles) | 🔜 Next major change |
 
 
@@ -71,11 +71,13 @@ Built from scratch on its own branch over the following month, merged once it re
 parity with the existing renderer: native 3D tilt and rotation, its own styling for light
 and dark themes, and the full navigation feature set — search, multi-stop planning, route
 alternatives with highway/toll avoidance, public transport, ZTL-aware routing, hazard and
-speed-camera alerts, voice guidance. It ships as an equal option, not a replacement — the
-"Motore mappa: MapLibre" toggle in Settings switches between it and the original
-flutter_map-based renderer at will, and the app keeps shipping on the original one by
-default. See [`docs/rendering-engine-decision.md`](docs/rendering-engine-decision.md) for
-how the earlier evaluation reached the opposite conclusion, and what changed.
+speed-camera alerts, voice guidance. It shipped as an equal option at first — the "Motore
+mappa: MapLibre" toggle in Settings switches between it and the original flutter_map-based
+renderer at will — and became the default from 0.5.1 once the road-tested rough edges
+(camera smoothness, battery draw) were fixed; the original renderer stays reachable from
+the same toggle for anyone who prefers it. See
+[`docs/rendering-engine-decision.md`](docs/rendering-engine-decision.md) for how the
+earlier evaluation reached the opposite conclusion, and what changed.
 
 ### Next major change — offline maps
 

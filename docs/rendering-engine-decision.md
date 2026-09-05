@@ -366,9 +366,11 @@ verified along the way:
   baked one), destination, road events, speed cameras, POI results, favourites, parking.
 - **Two-finger tilt/rotate and native dark-mode recolouring** both work as the style spec
   promised, confirmed on-device rather than assumed from the spec.
-- **Both engines ship side by side.** The "Motore mappa: MapLibre" toggle in Settings
-  switches between this and the original `flutter_map` renderer at will; the app keeps
-  loading the original one by default, so nothing about the existing experience changed
-  for anyone who doesn't opt in.
+- **Both engines still ship side by side.** The "Motore mappa: MapLibre" toggle in
+  Settings switches between this and the original `flutter_map` renderer at will. It
+  shipped opt-in in 0.5.0; once the road-tested rough edges from actually driving with it
+  (camera smoothness between GPS fixes, battery/heat from an over-eager render loop) were
+  fixed, it became the default in 0.5.1. The original renderer is not going away — it's
+  one toggle away for anyone who prefers it.
 
 With this decided, the roadmap's blocked item — offline maps — is next; see the README.
