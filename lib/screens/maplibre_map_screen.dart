@@ -3858,16 +3858,19 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               initZoom: 17,
               initPitch: 45,
               gestures: const MapGestures.all(),
-              // The package defaults this to true, which forces MapLibre's
-              // Android renderer onto a TextureView instead of its own
-              // default GLSurfaceView — the package's own docs call this "a
-              // significant performance penalty", and it exists for cases
-              // like extracting the surface for Android Auto, which this
-              // screen doesn't do. The cursor/pin overlays are ordinary
-              // Flutter widgets positioned in a Stack above the map (see
-              // WidgetLayer), not something composited onto the map's own
-              // texture, so nothing here needs TextureView specifically.
-              androidTextureMode: false,
+              // REVERTED (0.5.2): setting this to false — reasoning that the
+              // package's own docs call textureMode "a significant
+              // performance penalty" and Roadstr doesn't need TextureView
+              // for anything — broke the screen on real devices instead of
+              // just saving battery. Without TextureView, MapLibre's Android
+              // renderer falls back to GLSurfaceView, which punches straight
+              // through the Android view hierarchy rather than composing
+              // through Flutter's texture pipeline: every Flutter widget
+              // stacked "above" the map in the widget tree (search bar,
+              // FABs, everything) ended up hidden behind the raw map
+              // surface instead of drawn over it. Left at the package
+              // default (true) — the documented performance cost is real
+              // but nowhere near as bad as an unusable screen.
             ),
             onMapCreated: (controller) => _controller = controller,
             onEvent: (event) {
