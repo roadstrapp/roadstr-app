@@ -1248,6 +1248,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get parkingSaveHere => 'Parkeerplek hier opslaan';
 
   @override
+  String get parkingLongPressConfirm => 'Deze plek opslaan als parkeerplek?';
+
+  @override
   String get parkingMarkerTitle => 'Parkeerplek';
 
   @override

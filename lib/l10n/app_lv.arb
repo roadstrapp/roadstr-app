@@ -417,6 +417,7 @@
   "onboardingFavoritesSyncNotice": "Pēc izvēles: saglabātā izlase var sinhronizēties starp jūsu ierīcēm caur Nostr relejiem, pilnībā šifrēta (NIP-44) ar jūsu paša atslēgu — releji redz tikai šifrētu tekstu, un neviens cits kā jūs nevar lasīt saturu. Iespējojiet jebkurā laikā Iestatījumos.",
   "parkingMarkerTitle": "Stāvvieta",
   "parkingSaveHere": "Saglabāt stāvvietu šeit",
+  "parkingLongPressConfirm": "Saglabāt šo vietu kā stāvvietu?",
   "parkingSavedSnack": "Stāvvieta saglabāta",
   "parkingNavigateHere": "Navigēt uz stāvvietu",
   "parkingRemove": "Noņemt stāvvietu",

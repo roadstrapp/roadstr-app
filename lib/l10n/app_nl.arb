@@ -417,6 +417,7 @@
   "onboardingFavoritesSyncNotice": "Optioneel: je opgeslagen favorieten kunnen synchroniseren tussen je apparaten via de Nostr-relays, end-to-end versleuteld (NIP-44) met je eigen sleutel — relays zien alleen versleutelde tekst en niemand behalve jij kan de inhoud lezen. Schakel het op elk moment in via Instellingen.",
   "parkingMarkerTitle": "Parkeerplek",
   "parkingSaveHere": "Parkeerplek hier opslaan",
+  "parkingLongPressConfirm": "Deze plek opslaan als parkeerplek?",
   "parkingSavedSnack": "Parkeerplek opgeslagen",
   "parkingNavigateHere": "Navigeer naar parkeerplek",
   "parkingRemove": "Parkeerplek verwijderen",

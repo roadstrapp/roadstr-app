@@ -555,6 +555,7 @@
   "onboardingFavoritesSyncNotice": "Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.",
   "profileVisibilityOnboarding": "Roadstr always publishes the Nostr public key needed to verify a report. In pseudonymous mode, other Roadstr users see only a generic avatar and “nostrich”; in public mode, they also see your Nostr name, npub and profile picture. Your reports, locations, reputation and received zaps remain public on Nostr.",
   "parkingSaveHere": "Save parking here",
+  "parkingLongPressConfirm": "Set this location as parking?",
   "parkingMarkerTitle": "Parking spot",
   "parkingNavigateHere": "Navigate to parking",
   "parkingRemove": "Remove parking",

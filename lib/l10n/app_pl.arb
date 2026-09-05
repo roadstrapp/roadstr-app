@@ -417,6 +417,7 @@
   "onboardingFavoritesSyncNotice": "Opcjonalnie: zapisane ulubione mogą synchronizować się między urządzeniami przez przekaźniki Nostr, szyfrowane end-to-end (NIP-44) twoim własnym kluczem — przekaźniki widzą tylko zaszyfrowany tekst i nikt poza tobą nie może odczytać zawartości. Włącz w dowolnym momencie w Ustawieniach.",
   "parkingMarkerTitle": "Miejsce parkingowe",
   "parkingSaveHere": "Zapisz parkowanie tutaj",
+  "parkingLongPressConfirm": "Zapisać to miejsce jako parkowanie?",
   "parkingSavedSnack": "Miejsce parkingowe zapisane",
   "parkingNavigateHere": "Nawiguj do parkingu",
   "parkingRemove": "Usuń parkowanie",

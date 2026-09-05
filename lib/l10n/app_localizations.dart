@@ -2422,6 +2422,12 @@ abstract class AppLocalizations {
   /// **'Save parking here'**
   String get parkingSaveHere;
 
+  /// No description provided for @parkingLongPressConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Set this location as parking?'**
+  String get parkingLongPressConfirm;
+
   /// No description provided for @parkingMarkerTitle.
   ///
   /// In en, this message translates to:

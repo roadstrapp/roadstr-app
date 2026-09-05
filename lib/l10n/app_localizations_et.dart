@@ -1247,6 +1247,10 @@ class AppLocalizationsEt extends AppLocalizations {
   String get parkingSaveHere => 'Salvesta parkimine siia';
 
   @override
+  String get parkingLongPressConfirm =>
+      'Salvestada see asukoht parkimiskohana?';
+
+  @override
   String get parkingMarkerTitle => 'Parkimiskoht';
 
   @override

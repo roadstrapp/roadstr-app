@@ -1226,6 +1226,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get parkingSaveHere => 'ここに駐車位置を保存';
 
   @override
+  String get parkingLongPressConfirm => 'この場所を駐車位置として保存しますか？';
+
+  @override
   String get parkingMarkerTitle => '駐車位置';
 
   @override

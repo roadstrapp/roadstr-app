@@ -417,6 +417,7 @@
   "onboardingFavoritesSyncNotice": "Volitelné: uložené oblíbené položky se mohou synchronizovat mezi vašimi zařízeními přes Nostr relé, šifrované end-to-end (NIP-44) vaším vlastním klíčem — relé vidí pouze šifrovaný text a nikdo kromě vás nemůže obsah číst. Aktivujte kdykoli v Nastavení.",
   "parkingMarkerTitle": "Místo parkování",
   "parkingSaveHere": "Uložit parkování zde",
+  "parkingLongPressConfirm": "Nastavit toto místo jako parkování?",
   "parkingSavedSnack": "Místo parkování uloženo",
   "parkingNavigateHere": "Navigovat k parkování",
   "parkingRemove": "Odebrat parkování",

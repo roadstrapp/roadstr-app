@@ -417,6 +417,7 @@
   "onboardingFavoritesSyncNotice": "Opțional: favoritele salvate se pot sincroniza între dispozitivele tale prin releele Nostr, criptate end-to-end (NIP-44) cu propria ta cheie — releele văd doar text cifrat și nimeni în afară de tine nu poate citi conținutul. Activează oricând din Setări.",
   "parkingMarkerTitle": "Loc de parcare",
   "parkingSaveHere": "Salvează parcarea aici",
+  "parkingLongPressConfirm": "Salvezi această locație ca parcare?",
   "parkingSavedSnack": "Locul de parcare a fost salvat",
   "parkingNavigateHere": "Navighează la parcare",
   "parkingRemove": "Elimină parcarea",

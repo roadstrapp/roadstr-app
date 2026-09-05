@@ -1250,6 +1250,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get parkingSaveHere => 'Parkolás mentése ide';
 
   @override
+  String get parkingLongPressConfirm => 'Menti ezt a helyet parkolásként?';
+
+  @override
   String get parkingMarkerTitle => 'Parkolóhely';
 
   @override

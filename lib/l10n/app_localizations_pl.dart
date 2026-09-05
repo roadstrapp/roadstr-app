@@ -1248,6 +1248,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get parkingSaveHere => 'Zapisz parkowanie tutaj';
 
   @override
+  String get parkingLongPressConfirm => 'Zapisać to miejsce jako parkowanie?';
+
+  @override
   String get parkingMarkerTitle => 'Miejsce parkingowe';
 
   @override

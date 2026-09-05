@@ -1255,6 +1255,9 @@ class AppLocalizationsMt extends AppLocalizations {
   String get parkingSaveHere => 'Issejvja l-parkeġġ hawn';
 
   @override
+  String get parkingLongPressConfirm => 'Issejvja dan il-post bħala parkeġġ?';
+
+  @override
   String get parkingMarkerTitle => 'Post tal-parkeġġ';
 
   @override

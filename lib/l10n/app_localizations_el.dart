@@ -1255,6 +1255,10 @@ class AppLocalizationsEl extends AppLocalizations {
   String get parkingSaveHere => 'Αποθήκευση στάθμευσης εδώ';
 
   @override
+  String get parkingLongPressConfirm =>
+      'Αποθήκευση αυτής της θέσης ως στάθμευσης;';
+
+  @override
   String get parkingMarkerTitle => 'Θέση στάθμευσης';
 
   @override
