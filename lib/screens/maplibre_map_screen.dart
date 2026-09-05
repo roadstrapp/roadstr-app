@@ -303,12 +303,24 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// Live camera pitch and bearing, read back from MapEventMoveCamera — the
   /// two-finger tilt/rotate gestures are entirely native, nothing here
   /// drives them, so this is the only way to know the current values.
-  /// _pitch sizes the cursor's shadow (below); _bearing points the compass
-  /// needle, which _camState alone can't do once the user has taken manual
-  /// control and the follow ticker (the only other thing that updates
-  /// _camState) has stopped running.
-  double _pitch = 45.0;
-  double _bearing = 0;
+  /// _pitchNotifier sizes the cursor's shadow; _bearingNotifier points the
+  /// compass needle, which _camState alone can't do once the user has taken
+  /// manual control and the follow ticker (the only other thing that
+  /// updates _camState) has stopped running.
+  ///
+  /// ValueNotifiers, not plain fields behind setState: dead reckoning made
+  /// the follow ticker call moveCamera continuously while driving instead
+  /// of only in brief bursts after each fix, so the bearing this reads back
+  /// changes on most of those frames too. A setState here meant the
+  /// *entire* screen (every route polyline, ZTL classification, traffic
+  /// segment) rebuilt up to 60 times a second for the whole drive — that
+  /// was the actual battery/heat cost, not the camera updates themselves.
+  /// Every existing call site reads .value; the two on-screen widgets that
+  /// need to visually track them (the cursor's shadow, the compass needle)
+  /// each wrap themselves in their own ValueListenableBuilder instead, so
+  /// only those rebuild.
+  final ValueNotifier<double> _pitchNotifier = ValueNotifier(45.0);
+  final ValueNotifier<double> _bearingNotifier = ValueNotifier(0.0);
 
   /// Ground-metre forward shift that clears the NavPanel at the live camera's
   /// current pitch/zoom, measured against the real controller (see
@@ -1554,6 +1566,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _gpsIdleStop?.cancel();
     _followTicker?.cancel();
     _displayPosition.dispose();
+    _pitchNotifier.dispose();
+    _bearingNotifier.dispose();
     _searchDebounce?.cancel();
     _arrivalBannerTimer?.cancel();
     _gpsLossTimer?.cancel();
@@ -2465,7 +2479,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     if (data.speedKmh > 20 && _currentStepIdx + 1 < steps.length) {
       final nextWaypoint = steps[_currentStepIdx + 1].location;
       final bearingToNext = Geo.bearingBetween(pos, nextWaypoint);
-      var diff = (_bearing - bearingToNext).abs();
+      var diff = (_bearingNotifier.value - bearingToNext).abs();
       if (diff > 180) diff = 360 - diff;
       if (diff > 135) unawaited(_rerouteAndNavigate(pos, dest));
     }
@@ -2583,8 +2597,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       }
       final target = _targetState;
       if (target == null) return;
-      final drift =
-          HeadingFilter.angleBetween(_bearing % 360, target.rotDeg % 360);
+      final drift = HeadingFilter.angleBetween(
+          _bearingNotifier.value % 360, target.rotDeg % 360);
       if (drift > _stuckCameraDeg) {
         _watchdogFrozenTicks++;
         if (_watchdogFrozenTicks >= 3) {
@@ -3365,7 +3379,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     }
     final headingOrigin = _prevGpsPos;
     final effectiveHeading = _headingFilter.resolve(
-      current: _bearing,
+      current: _bearingNotifier.value,
       from: headingOrigin,
       to: data.position,
       speedKmh: sampleSpeed,
@@ -3448,7 +3462,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
             : CameraFollowEasing.navCameraCenter(
                 data.position.latitude, data.position.longitude, rotDeg, zoom,
                 screenHeightPx: MediaQuery.of(context).size.height,
-                pitchDeg: _pitch))
+                pitchDeg: _pitchNotifier.value))
         : (data.position.latitude, data.position.longitude);
     _targetState = CameraFollowState(
       lat: targetLat,
@@ -3461,10 +3475,20 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
 
   void _toggleHeadingMode() => setState(() => _headingMode = !_headingMode);
 
+  // 30fps, not 60: since dead reckoning made this run continuously for the
+  // whole drive instead of in brief bursts after each fix, every native
+  // moveCamera call this makes is now a sustained, ongoing cost rather than
+  // an occasional one. Camera panning reads as smooth well below the
+  // display's own refresh rate — this halves the platform-channel/native
+  // camera-update traffic for the cost of a frame rate nothing but a very
+  // close look would tell apart from 60fps. Revisit upward if it turns out
+  // to look less smooth in practice than this reasoning predicts.
+  static const _followTickInterval = Duration(milliseconds: 33);
+
   void _startFollowTicker() {
     if (_followTicker != null) return;
     _lastFollowFrameMs = DateTime.now().millisecondsSinceEpoch;
-    _followTicker = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+    _followTicker = Timer.periodic(_followTickInterval, (timer) {
       final controller = _controller;
       final baseTarget = _targetState;
       final from = _camState;
@@ -3505,7 +3529,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                 : CameraFollowEasing.navCameraCenter(
                     rawLat, rawLng, baseTarget.rotDeg, baseTarget.zoom,
                     screenHeightPx: MediaQuery.of(context).size.height,
-                    pitchDeg: _pitch))
+                    pitchDeg: _pitchNotifier.value))
             : (rawLat, rawLng);
         target = CameraFollowState(
             lat: camLat,
@@ -3581,7 +3605,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         (rawHeading != null && rawHeading.isFinite && rawHeading > 0)
             ? rawHeading
             : null;
-    final rotDeg = _headingMode ? (trustedHeading ?? _bearing) : 0.0;
+    final rotDeg =
+        _headingMode ? (trustedHeading ?? _bearingNotifier.value) : 0.0;
     const zoom = 17.0;
     if (!navShift) {
       _applySnapCamera(
@@ -3833,6 +3858,16 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               initZoom: 17,
               initPitch: 45,
               gestures: const MapGestures.all(),
+              // The package defaults this to true, which forces MapLibre's
+              // Android renderer onto a TextureView instead of its own
+              // default GLSurfaceView — the package's own docs call this "a
+              // significant performance penalty", and it exists for cases
+              // like extracting the surface for Android Auto, which this
+              // screen doesn't do. The cursor/pin overlays are ordinary
+              // Flutter widgets positioned in a Stack above the map (see
+              // WidgetLayer), not something composited onto the map's own
+              // texture, so nothing here needs TextureView specifically.
+              androidTextureMode: false,
             ),
             onMapCreated: (controller) => _controller = controller,
             onEvent: (event) {
@@ -3871,15 +3906,22 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                 // reporting has its own FAB).
                 _confirmSetParkingAt(LatLng(event.point.lat, event.point.lon));
               } else if (event is MapEventMoveCamera &&
-                  ((event.camera.pitch - _pitch).abs() > 0.5 ||
-                      (event.camera.bearing - _bearing).abs() > 0.5)) {
+                  ((event.camera.pitch - _pitchNotifier.value).abs() > 0.5 ||
+                      (event.camera.bearing - _bearingNotifier.value).abs() >
+                          0.5)) {
                 // >0.5° gate: both gestures fire this on every native frame,
                 // and neither the shadow nor the compass needle needs finer
-                // resolution than that to look continuous.
-                setState(() {
-                  _pitch = event.camera.pitch;
-                  _bearing = event.camera.bearing;
-                });
+                // resolution than that to look continuous. Deliberately not
+                // setState: dead reckoning calls moveCamera continuously
+                // while driving, so this fires on most of those frames too
+                // — a setState here used to rebuild the *entire* screen
+                // (every route polyline, ZTL classification, traffic
+                // segment) up to 60 times a second for the whole drive,
+                // which is what was actually burning the battery. The two
+                // widgets that need to react each listen to their own
+                // notifier instead.
+                _pitchNotifier.value = event.camera.pitch;
+                _bearingNotifier.value = event.camera.bearing;
               }
             },
             // A wide, translucent glow pass under a narrower solid core per
@@ -4068,11 +4110,19 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                             ostrichIsMoving: (_lastFix?.speedKmh ?? 0) >= 1.0,
                             ostrichSpeedKmh: _lastFix?.speedKmh ?? 0,
                           )
-                        : _MaplibreCursor(
-                            pitch: _pitch,
-                            color: CursorColor.fromStorage(Hive.box('settings')
-                                    .get(CursorColor.storageKey))
-                                .value,
+                        // Its own nested listener — pitch only changes
+                        // during a manual two-finger tilt (constant while
+                        // driving), but when it does, the shadow should
+                        // track it without waiting for an unrelated rebuild.
+                        : ValueListenableBuilder<double>(
+                            valueListenable: _pitchNotifier,
+                            builder: (context, pitch, _) => _MaplibreCursor(
+                              pitch: pitch,
+                              color: CursorColor.fromStorage(
+                                      Hive.box('settings')
+                                          .get(CursorColor.storageKey))
+                                  .value,
+                            ),
                           ),
                   ),
                 ),
@@ -4542,10 +4592,13 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                         ? 100.0 + MediaQuery.of(context).padding.bottom
                         : MediaQuery.of(context).padding.bottom + 16),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              CompassFab(
-                rotDeg: _bearing,
-                active: _headingMode,
-                onTap: _toggleHeadingMode,
+              ValueListenableBuilder<double>(
+                valueListenable: _bearingNotifier,
+                builder: (context, bearing, _) => CompassFab(
+                  rotDeg: bearing,
+                  active: _headingMode,
+                  onTap: _toggleHeadingMode,
+                ),
               ),
               const SizedBox(height: 8),
               MapFab(
