@@ -500,6 +500,25 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   int _lastFixEpochMs = 0;
   static const _gpsLossThresholdMs = 8000;
 
+  // ── Dead reckoning ───────────────────────────────────────────────────────
+  // Road-tested feedback: the cursor sat frozen at the last GPS fix and
+  // jumped to the next one — very visible at speed, where a full second of
+  // travel (GPS ticks roughly once a second) is tens of metres. The follow
+  // ticker now advances the displayed position every 16ms frame along the
+  // last known heading/speed instead of holding it still between fixes; see
+  // _startFollowTicker. Heading here is the resolved travel heading
+  // (_onGps's effectiveHeading), not the camera bearing, which in north-up
+  // mode stays 0 regardless of which way the vehicle is actually moving.
+  double _lastFixHeadingDeg = 0;
+  double _lastFixSpeedMps = 0;
+  // Beyond this since the last real fix, extrapolation stops (freezes at
+  // its last computed position) rather than keep projecting on stale data —
+  // well short of _gpsLossThresholdMs, which is about telling the driver
+  // the signal is gone, not about how far a guess should be trusted.
+  static const _deadReckoningCapMs = 3000;
+  final ValueNotifier<LatLng> _displayPosition =
+      ValueNotifier(const LatLng(0, 0));
+
   /// Guards against a step advancing without the driver actually getting
   /// closer to the next one — a road-snap artefact more than a real turn
   /// taken. Same MapScreen mechanism: 5s after a step advances, reroute
@@ -664,7 +683,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _activitySub = _nostr.activityStream.listen(_recordActivityNotification);
     _roadSub = _nostr.stream.listen((events) {
       if (mounted) {
-        setState(() => _roadEvents = events.where((e) => !e.isExpired).toList());
+        setState(
+            () => _roadEvents = events.where((e) => !e.isExpired).toList());
       }
       if (_isNavigating) _checkNewTrafficOnRoute(events);
     });
@@ -693,9 +713,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     // camera follows it), which is the one place this diverges from
     // MapScreen's own stricter "don't even acquire a fix" reading of the
     // setting.
-    _followUser = Hive.box('settings')
-            .get('autoCenterOnLaunch', defaultValue: true) ==
-        true;
+    _followUser =
+        Hive.box('settings').get('autoCenterOnLaunch', defaultValue: true) ==
+            true;
     unawaited(_gps.start());
     _gpsSub = _gps.stream.listen(_onGps);
   }
@@ -1126,8 +1146,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
             ),
-            child:
-                Text(l.parkingSaveHere, style: TextStyle(color: c.onAccent)),
+            child: Text(l.parkingSaveHere, style: TextStyle(color: c.onAccent)),
           ),
         ],
       ),
@@ -1307,9 +1326,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                       currentUser: Nip19().npubEncode(pubKey),
                       eventJson: jsonEncode(unsigned),
                     );
-                    final signed =
-                        jsonDecode(result['event'] as String) as Map<String, dynamic>;
-                    await _nostr.publishRawEvent(signed, expectedUnsigned: unsigned);
+                    final signed = jsonDecode(result['event'] as String)
+                        as Map<String, dynamic>;
+                    await _nostr.publishRawEvent(signed,
+                        expectedUnsigned: unsigned);
                   } else {
                     await _nostr.confirmRoadEvent(
                       eventId: event.id,
@@ -1364,7 +1384,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         currentUser: Nip19().npubEncode(pubKey),
         eventJson: jsonEncode(unsigned),
       );
-      final signed = jsonDecode(result['event'] as String) as Map<String, dynamic>;
+      final signed =
+          jsonDecode(result['event'] as String) as Map<String, dynamic>;
       await _nostr.publishRawEvent(signed, expectedUnsigned: unsigned);
     } else {
       final priv = await _secStorage.read(key: 'nostr_priv_hex');
@@ -1388,7 +1409,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
 
   /// Someone other than the owner suggesting a speed-limit correction —
   /// same MapScreen._publishSpeedLimitRequest.
-  Future<void> _publishSpeedLimitRequest(RoadEvent event, int speedLimit) async {
+  Future<void> _publishSpeedLimitRequest(
+      RoadEvent event, int speedLimit) async {
     final pubKey = await _secStorage.read(key: 'nostr_pub_hex');
     final flavor = await _secStorage.read(key: 'nostr_flavor');
     if (pubKey == null || flavor == null) {
@@ -1406,7 +1428,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         currentUser: Nip19().npubEncode(pubKey),
         eventJson: jsonEncode(unsigned),
       );
-      final signed = jsonDecode(result['event'] as String) as Map<String, dynamic>;
+      final signed =
+          jsonDecode(result['event'] as String) as Map<String, dynamic>;
       await _nostr.publishRawEvent(signed, expectedUnsigned: unsigned);
     } else {
       final priv = await _secStorage.read(key: 'nostr_priv_hex');
@@ -1530,6 +1553,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _gpsSub?.cancel();
     _gpsIdleStop?.cancel();
     _followTicker?.cancel();
+    _displayPosition.dispose();
     _searchDebounce?.cancel();
     _arrivalBannerTimer?.cancel();
     _gpsLossTimer?.cancel();
@@ -1642,8 +1666,14 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   bool _isPoi(NominatimResult result) {
     const nonPoi = {'highway', 'boundary', 'landuse', 'postcode'};
     const placeAddressTypes = {
-      'city', 'town', 'village', 'hamlet', 'suburb', 'neighbourhood',
-      'quarter', 'municipality',
+      'city',
+      'town',
+      'village',
+      'hamlet',
+      'suburb',
+      'neighbourhood',
+      'quarter',
+      'municipality',
     };
     if (result.cls == null) return false;
     if (nonPoi.contains(result.cls)) return false;
@@ -1678,7 +1708,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     if (!mounted) return;
     final lang = Localizations.localeOf(context).languageCode;
     final results = await Future.wait<Object?>([
-      WikiSearch.fetchWikiNearby(result.position.latitude, result.position.longitude,
+      WikiSearch.fetchWikiNearby(
+          result.position.latitude, result.position.longitude,
           lang: lang, fallbackQuery: wikiQ, radiusM: 200),
       _isPoi(result)
           ? _poiSvc.nearestDetails(result.position,
@@ -1701,8 +1732,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     final requestGeneration = ++_placeRequestGeneration;
     setState(() {
       _placePoint = point;
-      _placeAddress =
-          (address?.trim().isNotEmpty ?? false) ? address!.trim() : preferredLabel;
+      _placeAddress = (address?.trim().isNotEmpty ?? false)
+          ? address!.trim()
+          : preferredLabel;
       _placeLabel = preferredLabel;
       _placeWiki = null;
       _placeDetails = null;
@@ -1719,7 +1751,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         .take(3)
         .join(', ');
     setState(() {
-      _placeAddress = dispParts.isEmpty ? (_placeAddress ?? preferredLabel) : dispParts;
+      _placeAddress =
+          dispParts.isEmpty ? (_placeAddress ?? preferredLabel) : dispParts;
       _placeLabel = preferredLabel ?? geo?.label ?? _placeLabel;
       _placeOpeningHours = geo?.openingHours;
     });
@@ -1879,7 +1912,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     final from = _planFrom?.position ??
         (_lastFix == null
             ? null
-            : LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude));
+            : LatLng(
+                _lastFix!.position.latitude, _lastFix!.position.longitude));
     if (from == null) {
       _showSnack(AppLocalizations.of(context).acquiringGps);
       return;
@@ -1892,7 +1926,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         if (stop != null) stop.position,
     ];
     _closePlanner();
-    await _calculateRouteTo(to.position, label: to.label, fromPosition: from, via: via);
+    await _calculateRouteTo(to.position,
+        label: to.label, fromPosition: from, via: via);
   }
 
   Future<void> _onSearchSubmit(String query) async {
@@ -1907,7 +1942,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         _showSearch = false;
         _searchResults = [];
       });
-      await _onDestinationPicked(favMatch.first.position, label: favMatch.first.label);
+      await _onDestinationPicked(favMatch.first.position,
+          label: favMatch.first.label);
       return;
     }
     NominatimResult result;
@@ -1991,11 +2027,14 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// there both sets it active and starts navigation, so this never sets
   /// [_route] itself, only populates [_alternatives].
   Future<void> _calculateRouteTo(LatLng dest,
-      {String? label, LatLng? fromPosition, List<LatLng> via = const []}) async {
+      {String? label,
+      LatLng? fromPosition,
+      List<LatLng> via = const []}) async {
     final origin = fromPosition ??
         (_lastFix == null
             ? null
-            : LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude));
+            : LatLng(
+                _lastFix!.position.latitude, _lastFix!.position.longitude));
     if (origin == null) {
       // Routing from nowhere would be useless, but throwing the destination
       // away makes the user find it again — the part that was actually
@@ -2088,8 +2127,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       final panelHeight =
           (panelBox != null && panelBox.hasSize) ? panelBox.size.height : 260.0;
       unawaited(liveController.fitBounds(
-        bounds: LngLatBounds.fromPoints(
-            [for (final p in pts) Geographic(lon: p.longitude, lat: p.latitude)]),
+        bounds: LngLatBounds.fromPoints([
+          for (final p in pts) Geographic(lon: p.longitude, lat: p.latitude)
+        ]),
         padding: EdgeInsets.fromLTRB(48, 96, 48, panelHeight + 24),
         pitch: 0,
       ));
@@ -2106,7 +2146,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       _showAlternatives = false;
       _showTransit = true;
       _selectedTransit = 0;
-      _transitItineraries = result is TransitPlan ? result.itineraries : const [];
+      _transitItineraries =
+          result is TransitPlan ? result.itineraries : const [];
       _transitFailed = result is TransitFailure;
     });
     if (_transitItineraries.isNotEmpty) {
@@ -2123,8 +2164,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     final points = [for (final leg in itinerary.legs) ...leg.geometry];
     if (points.length < 2) return;
     unawaited(controller.fitBounds(
-      bounds: LngLatBounds.fromPoints(
-          [for (final p in points) Geographic(lon: p.longitude, lat: p.latitude)]),
+      bounds: LngLatBounds.fromPoints([
+        for (final p in points) Geographic(lon: p.longitude, lat: p.latitude)
+      ]),
       padding: const EdgeInsets.fromLTRB(48, 96, 48, 260),
       pitch: 0,
     ));
@@ -2215,7 +2257,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         _avoidanceEnabled = false;
         _avoidanceLoading = false;
         _alternatives = standard;
-        _selectedAlt = standard.isEmpty ? 0 : _selectedAlt.clamp(0, standard.length - 1);
+        _selectedAlt =
+            standard.isEmpty ? 0 : _selectedAlt.clamp(0, standard.length - 1);
       });
       _fitRoutesOnMap(standard);
       return;
@@ -2276,7 +2319,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     });
     final dest = _destination;
     if (dest != null) {
-      await _calculateRouteTo(dest, label: _pendingLabel, fromPosition: _routeOrigin);
+      await _calculateRouteTo(dest,
+          label: _pendingLabel, fromPosition: _routeOrigin);
     }
   }
 
@@ -2687,8 +2731,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     List<LatLng>? current;
     for (var i = 0; i < polyline.length; i++) {
       final p = polyline[i];
-      final inJam =
-          jams.any((ev) => dist.as(LengthUnit.Meter, p, ev.position) < thresholdM);
+      final inJam = jams
+          .any((ev) => dist.as(LengthUnit.Meter, p, ev.position) < thresholdM);
       if (inJam) {
         if (current == null && i > 0) current = [polyline[i - 1]];
         current ??= [];
@@ -2751,8 +2795,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child:
-                Text(l.trafficContinue, style: TextStyle(color: c.textSecondary)),
+            child: Text(l.trafficContinue,
+                style: TextStyle(color: c.textSecondary)),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: c.accent),
@@ -2776,7 +2820,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// MapScreen mechanism, adapted to this screen's while-loop advancement
   /// (which can skip several steps in one tick; the guard only ever cares
   /// about the step actually current when it fires).
-  void _armMissedTurnGuard({required int newNextIdx, required double distAtAdvance}) {
+  void _armMissedTurnGuard(
+      {required int newNextIdx, required double distAtAdvance}) {
     _missedTurnTimer?.cancel();
     final capturedStepIdx = _currentStepIdx;
     final dest = _destination;
@@ -2787,13 +2832,13 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       if (route == null || dest == null || newNextIdx >= route.steps.length) {
         return;
       }
-      final currentDist =
-          (_stepCumDist[newNextIdx] - _routeProgressM).clamp(0.0, double.infinity);
+      final currentDist = (_stepCumDist[newNextIdx] - _routeProgressM)
+          .clamp(0.0, double.infinity);
       final speed = _lastFix?.speedKmh ?? 0;
       // Reroute if not meaningfully closer (< 50 m improvement) and moving.
       if (currentDist > distAtAdvance - 50 && speed > 3) {
-        final pos = LatLng(
-            _lastFix!.position.latitude, _lastFix!.position.longitude);
+        final pos =
+            LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
         unawaited(_rerouteAndNavigate(pos, dest));
       }
     });
@@ -2829,7 +2874,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         : (_stepCumDist[_currentStepIdx + 1] - routeProgressM)
             .clamp(0, double.infinity);
     if (_currentStepIdx != prevStepIdx && !isLast) {
-      _armMissedTurnGuard(newNextIdx: _currentStepIdx + 1, distAtAdvance: _distToNextStepM);
+      _armMissedTurnGuard(
+          newNextIdx: _currentStepIdx + 1, distAtAdvance: _distToNextStepM);
     }
     _checkArrival(pos, isLast);
     if (_arrived) return;
@@ -2846,8 +2892,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// manoeuvre" convention as the in-app NavInstruction card.
   void _updateNavNotification(RouteResult route) {
     if (route.steps.isEmpty || !mounted) return;
-    final nextIdx =
-        _currentStepIdx + 1 < route.steps.length ? _currentStepIdx + 1 : _currentStepIdx;
+    final nextIdx = _currentStepIdx + 1 < route.steps.length
+        ? _currentStepIdx + 1
+        : _currentStepIdx;
     final step = route.steps[nextIdx];
     final distM = _distToNextStepM > 0 ? _distToNextStepM : step.distanceM;
     final l = AppLocalizations.of(context);
@@ -2945,8 +2992,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       var instruction = route.steps[nextIdx].instruction;
       final followIdx = nextIdx + 1;
       final tail = followIdx < route.steps.length
-          ? _chainedTail(route.steps[followIdx],
-              route.steps[nextIdx].distanceM)
+          ? _chainedTail(route.steps[followIdx], route.steps[nextIdx].distanceM)
           : null;
       if (tail != null) {
         instruction = AppLocalizations.of(context)
@@ -3099,8 +3145,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   Future<void> _checkSpeedCameraProximity() async {
     if (!_isNavigating || !mounted) return;
     const dist = Distance();
-    final pos = LatLng(
-        _lastFix!.position.latitude, _lastFix!.position.longitude);
+    final pos =
+        LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
     for (final ev in _roadEvents) {
       if (ev.category != RoadCategory.speedCamera) continue;
       if (_alertedCameraIds.contains(ev.id)) continue;
@@ -3148,8 +3194,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               ? Units.toDisplaySpeed(limit.toDouble()).round()
               : limit;
           final lang = Localizations.localeOf(context).languageCode;
-          unawaited(_tts
-              .speak(l.speedCameraVoiceAlert(display, Units.speedUnitForSpeech(lang))));
+          unawaited(_tts.speak(l.speedCameraVoiceAlert(
+              display, Units.speedUnitForSpeech(lang))));
         } else {
           unawaited(_tts.speak(l.categorySpeedCamera));
         }
@@ -3172,8 +3218,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       RoadCategory.fog,
       RoadCategory.ice,
     };
-    final pos = LatLng(
-        _lastFix!.position.latitude, _lastFix!.position.longitude);
+    final pos =
+        LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
     final lang = Localizations.localeOf(context).languageCode;
     for (final ev in _roadEvents) {
       if (!alertCategories.contains(ev.category)) continue;
@@ -3335,6 +3381,14 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
             headingOrigin, data.position, sampleAccuracy)) {
       _prevGpsPos = data.position;
     }
+    // Baseline for the follow ticker's dead reckoning (see the field docs
+    // above) — a real fix is always more trustworthy than any extrapolation
+    // of the previous one, so it corrects the displayed position back to
+    // ground truth immediately rather than waiting for the ticker's next
+    // frame to catch up.
+    _lastFixHeadingDeg = effectiveHeading;
+    _lastFixSpeedMps = sampleSpeed / 3.6;
+    _displayPosition.value = data.position;
 
     if (data.altitude.isFinite) {
       final prev = _altitudeM;
@@ -3389,9 +3443,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     final navShiftM = _navForwardShiftM;
     final (targetLat, targetLng) = (_isNavigating && _headingMode)
         ? (navShiftM != null
-            ? CameraFollowEasing.shiftByMetres(
-                data.position.latitude, data.position.longitude, rotDeg,
-                navShiftM)
+            ? CameraFollowEasing.shiftByMetres(data.position.latitude,
+                data.position.longitude, rotDeg, navShiftM)
             : CameraFollowEasing.navCameraCenter(
                 data.position.latitude, data.position.longitude, rotDeg, zoom,
                 screenHeightPx: MediaQuery.of(context).size.height,
@@ -3413,12 +3466,52 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _lastFollowFrameMs = DateTime.now().millisecondsSinceEpoch;
     _followTicker = Timer.periodic(const Duration(milliseconds: 16), (timer) {
       final controller = _controller;
-      final target = _targetState;
+      final baseTarget = _targetState;
       final from = _camState;
-      if (!mounted || !_followUser || controller == null || target == null) {
+      final fix = _lastFix;
+      if (!mounted ||
+          !_followUser ||
+          controller == null ||
+          baseTarget == null) {
         timer.cancel();
         _followTicker = null;
         return;
+      }
+      final nowMs = DateTime.now().millisecondsSinceEpoch;
+      // Dead reckoning fills the gap between GPS fixes (see the field docs
+      // on _lastFixHeadingDeg): while actually moving, advance the last
+      // fix's position along its heading at its speed for however long it's
+      // been since that fix landed, every frame, instead of holding still
+      // until the next one arrives. _onGps's compass-follow path (rotating
+      // the camera to match the device orientation while stationary and not
+      // navigating) only ever runs while NOT moving, so the two can never
+      // fight over _targetState — this only overrides it when moving, which
+      // is exactly when that path is guaranteed to be idle.
+      var target = baseTarget;
+      if (fix != null && _headingFilter.isMoving && _lastFixSpeedMps > 0) {
+        final elapsedS =
+            (nowMs - _lastFixEpochMs).clamp(0, _deadReckoningCapMs) / 1000.0;
+        final (rawLat, rawLng) = CameraFollowEasing.shiftByMetres(
+            fix.position.latitude,
+            fix.position.longitude,
+            _lastFixHeadingDeg,
+            _lastFixSpeedMps * elapsedS);
+        _displayPosition.value = LatLng(rawLat, rawLng);
+        final navShiftM = _navForwardShiftM;
+        final (camLat, camLng) = (_isNavigating && _headingMode)
+            ? (navShiftM != null
+                ? CameraFollowEasing.shiftByMetres(
+                    rawLat, rawLng, baseTarget.rotDeg, navShiftM)
+                : CameraFollowEasing.navCameraCenter(
+                    rawLat, rawLng, baseTarget.rotDeg, baseTarget.zoom,
+                    screenHeightPx: MediaQuery.of(context).size.height,
+                    pitchDeg: _pitch))
+            : (rawLat, rawLng);
+        target = CameraFollowState(
+            lat: camLat,
+            lng: camLng,
+            zoom: baseTarget.zoom,
+            rotDeg: baseTarget.rotDeg);
       }
       if (from == null) {
         // First frame: nothing to ease from yet, snap the tracked state to
@@ -3426,7 +3519,6 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         _camState = target;
         return;
       }
-      final nowMs = DateTime.now().millisecondsSinceEpoch;
       final dtMs = (nowMs - (_lastFollowFrameMs ?? nowMs)).clamp(1, 100);
       _lastFollowFrameMs = nowMs;
       final next =
@@ -3438,7 +3530,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         zoom: next.zoom,
         bearing: next.rotDeg,
       ));
-      if (CameraFollowEasing.hasCaughtUp(next, target)) {
+      // Only stop once genuinely stationary — while moving, target keeps
+      // advancing every frame, so it would rarely if ever "catch up" on its
+      // own, but the explicit check makes that intent obvious rather than
+      // relying on it as a side effect.
+      if (!_headingFilter.isMoving &&
+          CameraFollowEasing.hasCaughtUp(next, target)) {
         timer.cancel();
         _followTicker = null;
       }
@@ -3547,8 +3644,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     final controller = _controller;
     if (controller == null || !mounted) return;
     final screenSize = MediaQuery.of(context).size;
-    final vehicle = Geographic(
-        lon: fix.position.longitude, lat: fix.position.latitude);
+    final vehicle =
+        Geographic(lon: fix.position.longitude, lat: fix.position.latitude);
     await controller.moveCamera(
         center: vehicle, zoom: zoom, pitch: pitch, bearing: rotDeg);
     if (!mounted || _controller == null) return;
@@ -3563,8 +3660,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     final marginPx = 24.0 + screenSize.height * 0.10;
     final targetY = (screenSize.height - navPanelHeightPx - marginPx)
         .clamp(0.0, screenSize.height);
-    final behind =
-        _controller!.toLngLat(Offset(screenSize.width / 2, targetY));
+    final behind = _controller!.toLngLat(Offset(screenSize.width / 2, targetY));
     final aheadLat = 2 * vehicle.lat - behind.lat;
     final aheadLng = 2 * vehicle.lon - behind.lon;
     _navForwardShiftM = Geo.distanceM(
@@ -3676,7 +3772,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         ? _alternatives[_selectedAlt.clamp(0, _alternatives.length - 1)]
         : null;
     final activeRouteRuns = selectedAlt != null
-        ? _splitByZtl(selectedAlt.polyline, _ztl.classifyPoints(selectedAlt.polyline))
+        ? _splitByZtl(
+            selectedAlt.polyline, _ztl.classifyPoints(selectedAlt.polyline))
         : showRouteProgress
             ? _remainingRouteRuns()
             : _routeRuns;
@@ -3686,10 +3783,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               if (i != _selectedAlt) _alternatives[i].polyline
           ]
         : const <List<LatLng>>[];
-    final completedRoutePts =
-        showRouteProgress ? _routeProgressPolyline(completed: true) : const <LatLng>[];
-    final trafficSegments =
-        _route == null ? const <List<LatLng>>[] : _trafficSegments(_route!.polyline);
+    final completedRoutePts = showRouteProgress
+        ? _routeProgressPolyline(completed: true)
+        : const <LatLng>[];
+    final trafficSegments = _route == null
+        ? const <List<LatLng>>[]
+        : _trafficSegments(_route!.polyline);
 
     return PopScope(
       // Same split MapScreen's own PopScope uses: search and navigation both
@@ -3872,7 +3971,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                   for (final ev in _roadEvents.where((e) => !e.isExpired))
                     Marker(
                       point: Geographic(
-                          lon: ev.position.longitude, lat: ev.position.latitude),
+                          lon: ev.position.longitude,
+                          lat: ev.position.latitude),
                       size: const Size(36, 36),
                       child: GestureDetector(
                         onTap: () => unawaited(_showRoadEventDetail(ev)),
@@ -3912,64 +4012,70 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                     ),
                 ]),
               if (_lastFix != null)
-                WidgetLayer(markers: [
-                  Marker(
-                    point: Geographic(
-                        lon: _lastFix!.position.longitude,
-                        lat: _lastFix!.position.latitude),
-                    // Taller than the cursor itself: the shadow needs room to
-                    // stretch below it without being clipped by the marker's
-                    // own bounding box.
-                    size: const Size(48, 76),
-                    // Not rotate:true — the camera already turns to face the
-                    // direction of travel each fix (bearing: data.heading in
-                    // _onGps), the same heading-up convention MapScreen's own
-                    // nav camera uses. With the map already doing that turning,
-                    // the cursor's job is only to sit still pointing up, the
-                    // way every nav app's own vehicle icon does; pointing it at
-                    // the true heading too would rotate it twice.
-                    //
-                    // flat: true, though — without it the marker stays a
-                    // billboard facing the camera dead-on regardless of pitch,
-                    // which is why tilting with two fingers didn't visibly tilt
-                    // the cursor. flat makes it lie down with the tilted ground
-                    // plane, the way a nav app's own puck looks like it's
-                    // sitting on the road once the camera pitches.
-                    flat: true,
-                    // Road-tested feedback: at 100% the cursor read as too
-                    // small against a tilted, mostly-3D map. Transform.scale
-                    // rather than a bigger Marker.size — the painted content
-                    // just overflows its own 48×76 box a little, which the
-                    // Stack only clips at the screen's own edge, nowhere
-                    // near where the centred cursor sits.
-                    child: Transform.scale(
-                      scale: _kCursorScale,
-                      child: usesRealCursorAsset
-                          // Every skin but the default arrow: the real
-                          // UserMarker/CursorWidget system, unmodified — no
-                          // baked shadow to duplicate the way arrow.svg had,
-                          // so there's nothing to rebuild.
-                          ? UserMarker(
-                              heading: 0,
-                              accent: c.accent,
-                              cursorStyle: cursorStyle,
-                              cursorColor: CursorColor.fromStorage(
-                                  Hive.box('settings')
-                                      .get(CursorColor.storageKey)),
-                              ostrichIsMoving:
-                                  (_lastFix?.speedKmh ?? 0) >= 1.0,
-                              ostrichSpeedKmh: _lastFix?.speedKmh ?? 0,
-                            )
-                          : _MaplibreCursor(
-                              pitch: _pitch,
-                              color: CursorColor.fromStorage(
-                                      Hive.box('settings')
-                                          .get(CursorColor.storageKey))
-                                  .value,
-                            ),
+                // _displayPosition is updated every 16ms by the follow
+                // ticker (dead-reckoned between GPS fixes — see
+                // _startFollowTicker), not once per fix like the rest of
+                // this screen's state. Isolating the rebuild to this
+                // ValueListenableBuilder, with the actual cursor widget
+                // passed through as `child`, means the 60fps position
+                // update only reconstructs this one Marker — not the whole
+                // screen (route polylines, ZTL classification and traffic
+                // segments included) 60 times a second.
+                ValueListenableBuilder<LatLng>(
+                  valueListenable: _displayPosition,
+                  builder: (context, pos, child) => WidgetLayer(markers: [
+                    Marker(
+                      point: Geographic(lon: pos.longitude, lat: pos.latitude),
+                      // Taller than the cursor itself: the shadow needs room
+                      // to stretch below it without being clipped by the
+                      // marker's own bounding box.
+                      size: const Size(48, 76),
+                      // Not rotate:true — the camera already turns to face the
+                      // direction of travel each fix (bearing: data.heading in
+                      // _onGps), the same heading-up convention MapScreen's own
+                      // nav camera uses. With the map already doing that turning,
+                      // the cursor's job is only to sit still pointing up, the
+                      // way every nav app's own vehicle icon does; pointing it at
+                      // the true heading too would rotate it twice.
+                      //
+                      // flat: true, though — without it the marker stays a
+                      // billboard facing the camera dead-on regardless of pitch,
+                      // which is why tilting with two fingers didn't visibly tilt
+                      // the cursor. flat makes it lie down with the tilted ground
+                      // plane, the way a nav app's own puck looks like it's
+                      // sitting on the road once the camera pitches.
+                      flat: true,
+                      child: child!,
                     ),
+                  ]),
+                  // Built once per outer rebuild (once per GPS fix, not
+                  // every 16ms tick) and reused across every dead-reckoning
+                  // frame via ValueListenableBuilder's child slot.
+                  child: Transform.scale(
+                    scale: _kCursorScale,
+                    child: usesRealCursorAsset
+                        // Every skin but the default arrow: the real
+                        // UserMarker/CursorWidget system, unmodified — no
+                        // baked shadow to duplicate the way arrow.svg had,
+                        // so there's nothing to rebuild.
+                        ? UserMarker(
+                            heading: 0,
+                            accent: c.accent,
+                            cursorStyle: cursorStyle,
+                            cursorColor: CursorColor.fromStorage(
+                                Hive.box('settings')
+                                    .get(CursorColor.storageKey)),
+                            ostrichIsMoving: (_lastFix?.speedKmh ?? 0) >= 1.0,
+                            ostrichSpeedKmh: _lastFix?.speedKmh ?? 0,
+                          )
+                        : _MaplibreCursor(
+                            pitch: _pitch,
+                            color: CursorColor.fromStorage(Hive.box('settings')
+                                    .get(CursorColor.storageKey))
+                                .value,
+                          ),
                   ),
-                ]),
+                ),
             ],
           ),
           // ── ROUTE PLANNER (A→B) ──────────────────────────────────────────────
@@ -4000,7 +4106,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                 onMyLocation: () {
                   setState(() {
                     _planFrom = null;
-                    _planFromCtrl.text = AppLocalizations.of(context).myLocation;
+                    _planFromCtrl.text =
+                        AppLocalizations.of(context).myLocation;
                     _planResults = [];
                     _planActiveField = 1;
                   });
@@ -4142,8 +4249,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                         child: CircularProgressIndicator(
                             strokeWidth: 2, color: c.accent)),
                     const SizedBox(width: 8),
-                    Text(
-                        AppLocalizations.of(context).calculatingRoute,
+                    Text(AppLocalizations.of(context).calculatingRoute,
                         style: TextStyle(color: c.textSecondary, fontSize: 12)),
                   ]),
                 ),
