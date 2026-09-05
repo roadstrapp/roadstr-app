@@ -1,0 +1,23 @@
+MapLibre is now the default map engine, plus real-world fixes from driving with it.
+
+Changed
+
+• The MapLibre 3D rendering engine (introduced last release as an option)
+  is now the default. The original renderer is still one tap away in
+  Settings for anyone who prefers it
+
+Fixed
+
+• The cursor used to freeze between GPS fixes and jump to the next one —
+  very visible at speed. It now advances smoothly between fixes instead
+  of sitting still
+• Fixed battery drain and device heat introduced by the smoothing above:
+  a screen-wide rebuild was firing up to 60 times a second while driving,
+  and MapLibre was rendering through a slower compatibility mode it
+  didn't need
+• Fixed the male voice not sticking after picking it in Settings, and
+  made it the default
+• Fixed route calculation feeling slow — a cosmetic detail (roundabout
+  exit counts for voice instructions) was blocking the whole route
+  picker from showing
+• Added a long-press "set as parking" prompt on the map
