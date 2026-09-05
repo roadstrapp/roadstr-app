@@ -65,7 +65,7 @@ const Map<String, String> kKokoroVoiceSha256 = {
 };
 
 /// Default voice gender when the user hasn't chosen one yet.
-const String kKokoroDefaultGender = 'f';
+const String kKokoroDefaultGender = 'm';
 
 /// Discrete speech-speed multipliers for the 6-stage settings slider.
 /// Index 2 (1.0×) is the neutral synthesis speed.
