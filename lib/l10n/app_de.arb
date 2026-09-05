@@ -417,6 +417,7 @@
   "onboardingFavoritesSyncNotice": "Optional: Deine gespeicherten Favoriten können über die Nostr-Relays zwischen deinen Geräten synchronisiert werden, Ende-zu-Ende-verschlüsselt (NIP-44) mit deinem eigenen Schlüssel — Relays sehen nur Chiffretext, und niemand außer dir kann die Inhalte lesen. Jederzeit in den Einstellungen aktivierbar.",
   "parkingMarkerTitle": "Parkplatz",
   "parkingSaveHere": "Parkposition hier speichern",
+  "parkingLongPressConfirm": "Diesen Ort als Parkposition speichern?",
   "parkingSavedSnack": "Parkposition gespeichert",
   "parkingNavigateHere": "Zum Parkplatz navigieren",
   "parkingRemove": "Parkposition entfernen",

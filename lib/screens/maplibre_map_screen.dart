@@ -283,6 +283,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// MapScreen._applyScreenPolicy, reacting to the same three settings.
   late final ValueListenable<Box> _screenPolicyListenable;
 
+  /// Reacts to a voice setting changed in Settings while this screen stayed
+  /// mounted underneath it — see _applyVoiceSettings.
+  late final ValueListenable<Box> _voiceSettingsListenable;
+
   /// Smoothed GPS altitude, same exponential smoothing MapScreen applies —
   /// raw altitude jitters by several metres fix to fix even standing still.
   double? _altitudeM;
@@ -648,22 +652,14 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _loadHistory();
     unawaited(_autoRestoreFavorites());
     _startCompass();
-    // Same settings keys MapScreen reads at startup — muting or changing
-    // voice/speed/volume in Settings applies here too, since it is the same
-    // app-wide preference, not a copy of it.
-    final settings = Hive.box('settings');
-    _voiceMuted = !(settings.get('voiceEnabled', defaultValue: true) as bool);
-    _tts.setGender(settings.get('kokoroVoiceGender',
-        defaultValue: kKokoroDefaultGender) as String);
-    _tts.setSpeed(kKokoroSpeedStages[settings.get('kokoroSpeedStage',
-        defaultValue: kKokoroDefaultSpeedStage) as int]);
-    _tts.setVolume(
-        (settings.get('kokoroVolume', defaultValue: 1.0) as num).toDouble());
-    // Warms the TTS engine in the stored voice-language preference rather
-    // than a hardcoded 'it', same fallback MapScreen's own startup warm-up
-    // uses.
-    final startLang = settings.get('language', defaultValue: '') as String;
-    unawaited(_tts.init(startLang.isNotEmpty ? startLang : 'it'));
+    _applyVoiceSettings();
+    _voiceSettingsListenable = SettingsListenable.forKeys(const [
+      'voiceEnabled',
+      'kokoroVoiceGender',
+      'kokoroSpeedStage',
+      'kokoroVolume',
+    ]);
+    _voiceSettingsListenable.addListener(_onVoiceSettingsChanged);
     unawaited(_refreshHomeIdentity());
     _activitySub = _nostr.activityStream.listen(_recordActivityNotification);
     _roadSub = _nostr.stream.listen((events) {
@@ -697,8 +693,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     // camera follows it), which is the one place this diverges from
     // MapScreen's own stricter "don't even acquire a fix" reading of the
     // setting.
-    _followUser =
-        settings.get('autoCenterOnLaunch', defaultValue: true) == true;
+    _followUser = Hive.box('settings')
+            .get('autoCenterOnLaunch', defaultValue: true) ==
+        true;
     unawaited(_gps.start());
     _gpsSub = _gps.stream.listen(_onGps);
   }
@@ -713,6 +710,32 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     if (pubkey == null) return;
     unawaited(_activityNotif.record(pubkey, notification));
   }
+
+  /// Re-reads voice settings (mute, gender, speed, volume, language) and
+  /// applies them to the already-running [_tts] instance. Called from
+  /// initState (first mount) and again via [_voiceSettingsListenable]
+  /// whenever one of those keys changes: this screen stays mounted the whole
+  /// time Settings is pushed on top of it, so initState alone never saw a
+  /// change made there — picking the male voice in Settings kept speaking in
+  /// whatever gender was active when this screen first launched, no matter
+  /// how many times it was changed afterwards, until the app was fully
+  /// restarted. Deliberately does not call setState itself, so it's safe to
+  /// invoke directly from initState; [_onVoiceSettingsChanged] wraps it in
+  /// setState so _voiceMuted's dependents (the mute icon) also refresh.
+  void _applyVoiceSettings() {
+    final settings = Hive.box('settings');
+    _voiceMuted = !(settings.get('voiceEnabled', defaultValue: true) as bool);
+    _tts.setGender(settings.get('kokoroVoiceGender',
+        defaultValue: kKokoroDefaultGender) as String);
+    _tts.setSpeed(kKokoroSpeedStages[settings.get('kokoroSpeedStage',
+        defaultValue: kKokoroDefaultSpeedStage) as int]);
+    _tts.setVolume(
+        (settings.get('kokoroVolume', defaultValue: 1.0) as num).toDouble());
+    final lang = settings.get('language', defaultValue: '') as String;
+    unawaited(_tts.init(lang.isNotEmpty ? lang : 'it'));
+  }
+
+  void _onVoiceSettingsChanged() => setState(_applyVoiceSettings);
 
   Future<void> _refreshHomeIdentity() async {
     if (!mounted) return;
@@ -1057,6 +1080,58 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     Hive.box('settings').delete('parking_position');
     setState(() => _parkingPosition = null);
     _showSnack(AppLocalizations.of(context).parkingRemovedSnack);
+  }
+
+  /// Prompted from a long press on the map — the one long-press action this
+  /// screen didn't already offer some other way (a short tap already covers
+  /// "navigate here" via the place-info panel, and reporting has its own
+  /// FAB). Same confirm-before-acting shape as _showExitNavigationDialog.
+  void _confirmSetParkingAt(LatLng point) {
+    final c = RoadstrColors.of(context);
+    final l = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: c.surface2,
+        title: Row(children: [
+          Icon(Icons.local_parking_rounded, color: c.accent, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(l.parkingSaveHere,
+                style: TextStyle(
+                    color: c.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold)),
+          ),
+        ]),
+        content: Text(l.parkingLongPressConfirm,
+            style: TextStyle(color: c.textSecondary, fontSize: 13)),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: c.accent),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            child: Text(l.cancel, style: TextStyle(color: c.accent)),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _saveParkingPosition(point);
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: c.accent,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            child:
+                Text(l.parkingSaveHere, style: TextStyle(color: c.onAccent)),
+          ),
+        ],
+      ),
+    );
   }
 
   /// Same content as MapScreen._showParkingSheet, ported directly — no
@@ -1448,6 +1523,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _screenPolicyListenable.removeListener(_applyScreenPolicy);
+    _voiceSettingsListenable.removeListener(_onVoiceSettingsChanged);
     unawaited(ScreenBrightness().resetApplicationScreenBrightness());
     _magnetSub?.cancel();
     _accelSub?.cancel();
@@ -1960,7 +2036,6 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
           lang: 'it',
           vehicle: _transportMode,
           via: via);
-      routes = await _withRoundaboutTopology(routes);
     } catch (_) {
       if (!mounted || requestGeneration != _routeRequestGeneration) return;
       setState(() => _calculatingRoute = false);
@@ -1980,6 +2055,16 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       _showAlternatives = true;
     });
     _fitRoutesOnMap(routes);
+    // Roundabout arm-count enrichment only refines voice-instruction wording
+    // ("take the 3rd exit") — it was awaited before showing anything, so a
+    // slow/loaded Overpass mirror (up to the full 6s timeout) held the whole
+    // route screen on a spinner for a cosmetic detail. Alternatives are shown
+    // immediately above; this patches the steps in once it lands, or never,
+    // if the user has already moved on.
+    unawaited(_withRoundaboutTopology(routes).then((enriched) {
+      if (!mounted || requestGeneration != _routeRequestGeneration) return;
+      setState(() => _alternatives = enriched);
+    }));
   }
 
   /// Animates the camera to fit every alternative's polyline on screen —
@@ -3674,6 +3759,18 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                 final point = LatLng(event.point.lat, event.point.lon);
                 unawaited(_showPlaceInfoFor(point));
                 _focusSearchPlace(point);
+              } else if (event is MapEventLongClick &&
+                  !_isNavigating &&
+                  !_calculatingRoute &&
+                  !_showAlternatives) {
+                // A long press is a deliberate "mark this exact spot" action
+                // — the parking case a short tap's place-info flow doesn't
+                // cover. MapScreen has the same option inside its long-press
+                // quick-actions sheet; this is the dedicated equivalent for
+                // the one action that isn't already reachable here (a short
+                // tap already offers "navigate here" via place-info, and
+                // reporting has its own FAB).
+                _confirmSetParkingAt(LatLng(event.point.lat, event.point.lon));
               } else if (event is MapEventMoveCamera &&
                   ((event.camera.pitch - _pitch).abs() > 0.5 ||
                       (event.camera.bearing - _bearing).abs() > 0.5)) {

@@ -1246,6 +1246,10 @@ class AppLocalizationsFi extends AppLocalizations {
   String get parkingSaveHere => 'Tallenna pysäköinti tähän';
 
   @override
+  String get parkingLongPressConfirm =>
+      'Tallennetaanko tämä sijainti pysäköinniksi?';
+
+  @override
   String get parkingMarkerTitle => 'Pysäköintipaikka';
 
   @override

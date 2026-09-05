@@ -1254,6 +1254,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get parkingSaveHere => 'Parkposition hier speichern';
 
   @override
+  String get parkingLongPressConfirm =>
+      'Diesen Ort als Parkposition speichern?';
+
+  @override
   String get parkingMarkerTitle => 'Parkplatz';
 
   @override

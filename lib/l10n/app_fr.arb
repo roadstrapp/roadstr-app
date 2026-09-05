@@ -417,6 +417,7 @@
   "onboardingFavoritesSyncNotice": "Facultatif : vos favoris enregistrés peuvent se synchroniser entre vos appareils via les relais Nostr, chiffrés de bout en bout (NIP-44) avec votre propre clé — les relais ne voient que du texte chiffré et personne d’autre que vous ne peut lire le contenu. Activez-le à tout moment dans les Réglages.",
   "parkingMarkerTitle": "Place de stationnement",
   "parkingSaveHere": "Enregistrer le stationnement ici",
+  "parkingLongPressConfirm": "Enregistrer cet endroit comme stationnement ?",
   "parkingSavedSnack": "Stationnement enregistré",
   "parkingNavigateHere": "Naviguer vers le stationnement",
   "parkingRemove": "Supprimer le stationnement",

@@ -417,6 +417,7 @@
   "onboardingFavoritesSyncNotice": "Neobvezno: shranjene priljubljene se lahko sinhronizirajo med vašimi napravami prek relejev Nostr, šifrirane od konca do konca (NIP-44) z vašim lastnim ključem — releji vidijo le šifrirano besedilo in nihče razen vas ne more brati vsebine. Omogočite kadar koli v Nastavitvah.",
   "parkingMarkerTitle": "Parkirno mesto",
   "parkingSaveHere": "Shrani parkiranje tukaj",
+  "parkingLongPressConfirm": "Shraniti to mesto kot parkiranje?",
   "parkingSavedSnack": "Parkirno mesto shranjeno",
   "parkingNavigateHere": "Navigiraj do parkiranja",
   "parkingRemove": "Odstrani parkiranje",

@@ -1248,6 +1248,9 @@ class AppLocalizationsRo extends AppLocalizations {
   String get parkingSaveHere => 'Salvează parcarea aici';
 
   @override
+  String get parkingLongPressConfirm => 'Salvezi această locație ca parcare?';
+
+  @override
   String get parkingMarkerTitle => 'Loc de parcare';
 
   @override

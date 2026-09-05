@@ -417,6 +417,7 @@
   "onboardingFavoritesSyncNotice": "任意: 保存したお気に入りは、Nostrリレーを通じて端末間で同期できます。自分の鍵でエンドツーエンド暗号化（NIP-44）されるため、リレーには暗号文しか見えず、あなた以外は内容を読めません。設定からいつでも有効にできます。",
   "parkingMarkerTitle": "駐車位置",
   "parkingSaveHere": "ここに駐車位置を保存",
+  "parkingLongPressConfirm": "この場所を駐車位置として保存しますか？",
   "parkingSavedSnack": "駐車位置を保存しました",
   "parkingNavigateHere": "駐車位置へナビ",
   "parkingRemove": "駐車位置を削除",

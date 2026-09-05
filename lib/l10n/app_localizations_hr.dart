@@ -1248,6 +1248,9 @@ class AppLocalizationsHr extends AppLocalizations {
   String get parkingSaveHere => 'Spremi parkiranje ovdje';
 
   @override
+  String get parkingLongPressConfirm => 'Spremiti ovo mjesto kao parkiranje?';
+
+  @override
   String get parkingMarkerTitle => 'Parkirno mjesto';
 
   @override

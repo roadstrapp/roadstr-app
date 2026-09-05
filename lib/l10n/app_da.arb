@@ -417,6 +417,7 @@
   "onboardingFavoritesSyncNotice": "Valgfrit: dine gemte favoritter kan synkroniseres mellem dine enheder via Nostr-relæerne, end-to-end-krypteret (NIP-44) med din egen nøgle — relæerne ser kun krypteret tekst, og ingen andre end dig kan læse indholdet. Aktivér når som helst i Indstillinger.",
   "parkingMarkerTitle": "Parkeringsplads",
   "parkingSaveHere": "Gem parkering her",
+  "parkingLongPressConfirm": "Gem dette sted som parkering?",
   "parkingSavedSnack": "Parkeringsplads gemt",
   "parkingNavigateHere": "Navigér til parkering",
   "parkingRemove": "Fjern parkering",

@@ -417,6 +417,7 @@
   "onboardingFavoritesSyncNotice": "Fakultattiv: il-favoriti salvati jistgħu jiġu sinkronizzati bejn l-apparati tiegħek permezz tar-relays Nostr, kriptati end-to-end (NIP-44) biċ-ċavetta tiegħek stess — ir-relays jaraw biss test kriptat, u ħadd ħliefek ma jista’ jaqra l-kontenut. Attivah meta trid mis-Settings.",
   "parkingMarkerTitle": "Post tal-parkeġġ",
   "parkingSaveHere": "Issejvja l-parkeġġ hawn",
+  "parkingLongPressConfirm": "Issejvja dan il-post bħala parkeġġ?",
   "parkingSavedSnack": "Il-post tal-parkeġġ ġie salvat",
   "parkingNavigateHere": "Innaviga lejn il-parkeġġ",
   "parkingRemove": "Neħħi l-parkeġġ",

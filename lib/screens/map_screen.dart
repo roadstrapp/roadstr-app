@@ -522,6 +522,10 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// `box.listenable()` on every rebuild leaks a `box.watch()` subscription.
   late final ValueListenable<Box> _screenPolicyListenable;
 
+  /// Reacts to a voice setting changed in Settings while this screen stayed
+  /// mounted underneath it — see _applyVoiceSettings.
+  late final ValueListenable<Box> _voiceSettingsListenable;
+
   @override
   void initState() {
     super.initState();
@@ -530,20 +534,17 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         const ['keepScreenOn', 'keepScreenOnAlways', 'minBrightness']);
     _screenPolicyListenable.addListener(_applyScreenPolicy);
     _applyScreenPolicy();
-    _voiceMuted =
-        !(Hive.box('settings').get('voiceEnabled', defaultValue: true) as bool);
-    // Warm up the TTS engine at app start so it is ready when navigation begins.
-    final startLang =
-        Hive.box('settings').get('language', defaultValue: '') as String;
-    _tts.setGender(Hive.box('settings').get('kokoroVoiceGender',
-        defaultValue: kKokoroDefaultGender) as String);
-    _tts.setSpeed(kKokoroSpeedStages[Hive.box('settings')
-            .get('kokoroSpeedStage', defaultValue: kKokoroDefaultSpeedStage)
-        as int]);
-    _tts.setVolume(
-        (Hive.box('settings').get('kokoroVolume', defaultValue: 1.0) as num)
-            .toDouble());
-    _tts.init(startLang.isNotEmpty ? startLang : 'it');
+    // Warm up the TTS engine at app start so it is ready when navigation
+    // begins; also re-applied whenever a voice setting changes while this
+    // screen stays mounted underneath Settings — see _applyVoiceSettings.
+    _applyVoiceSettings();
+    _voiceSettingsListenable = SettingsListenable.forKeys(const [
+      'voiceEnabled',
+      'kokoroVoiceGender',
+      'kokoroSpeedStage',
+      'kokoroVolume',
+    ]);
+    _voiceSettingsListenable.addListener(_onVoiceSettingsChanged);
     _loadHistory();
     _loadFavorites();
     _loadParkingPosition();
@@ -576,6 +577,31 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       if (mounted) unawaited(_maybeAutoCenterAtStartup());
     });
   }
+
+  /// Re-reads voice settings (mute, gender, speed, volume, language) and
+  /// applies them to the already-running [_tts] instance. Called from
+  /// initState (first mount) and again via [_voiceSettingsListenable]
+  /// whenever one of those keys changes: this screen stays mounted the whole
+  /// time Settings is pushed on top of it, so initState alone never saw a
+  /// change made there before the next navigation start (which already
+  /// re-reads gender/speed/volume itself). Deliberately does not call
+  /// setState itself, so it's safe to invoke directly from initState;
+  /// [_onVoiceSettingsChanged] wraps it in setState so _voiceMuted's
+  /// dependents (the mute icon) also refresh.
+  void _applyVoiceSettings() {
+    final settings = Hive.box('settings');
+    _voiceMuted = !(settings.get('voiceEnabled', defaultValue: true) as bool);
+    _tts.setGender(settings.get('kokoroVoiceGender',
+        defaultValue: kKokoroDefaultGender) as String);
+    _tts.setSpeed(kKokoroSpeedStages[settings.get('kokoroSpeedStage',
+        defaultValue: kKokoroDefaultSpeedStage) as int]);
+    _tts.setVolume(
+        (settings.get('kokoroVolume', defaultValue: 1.0) as num).toDouble());
+    final lang = settings.get('language', defaultValue: '') as String;
+    unawaited(_tts.init(lang.isNotEmpty ? lang : 'it'));
+  }
+
+  void _onVoiceSettingsChanged() => setState(_applyVoiceSettings);
 
   /// Re-checks the stored Nostr identity after returning from a screen where
   /// login/logout can happen (Profile), and enables/disables activity
@@ -2536,7 +2562,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           lang: lang,
           vehicle: vehicle,
           via: _activeVia);
-      routes = await _withRoundaboutTopology(routes);
     } catch (e) {
       if (!mounted || requestGeneration != _routeRequestGeneration) return;
       setState(() => _isCalculating = false);
@@ -2572,6 +2597,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _showTransit = false;
     });
     _fitRoutesOnMap(routes);
+    // See _recalcRoutes/maplibre_map_screen._calculateRouteTo — roundabout
+    // enrichment only refines voice wording, not worth blocking on.
+    unawaited(_withRoundaboutTopology(routes).then((enriched) {
+      if (!mounted || requestGeneration != _routeRequestGeneration) return;
+      setState(() => _alternatives = enriched);
+    }));
   }
 
   void _cancelPreview() {
@@ -2762,7 +2793,6 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           lang: lang,
           vehicle: vehicle,
           via: _activeVia);
-      routes = await _withRoundaboutTopology(routes);
     } catch (e) {
       if (!mounted || requestGeneration != _routeRequestGeneration) return;
       setState(() => _isCalculating = false);
@@ -2786,6 +2816,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _showTransit = false;
     });
     _fitRoutesOnMap(routes);
+    // See _requestAlternatives — roundabout enrichment only refines voice
+    // wording, not worth blocking the whole route screen on.
+    unawaited(_withRoundaboutTopology(routes).then((enriched) {
+      if (!mounted || requestGeneration != _routeRequestGeneration) return;
+      setState(() => _alternatives = enriched);
+    }));
   }
 
   /// Plans a public-transport journey and shows the itinerary panel.
@@ -5863,6 +5899,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   void dispose() {
     _gpsIdleStop?.cancel();
     _screenPolicyListenable.removeListener(_applyScreenPolicy);
+    _voiceSettingsListenable.removeListener(_onVoiceSettingsChanged);
     unawaited(ScreenBrightness().resetApplicationScreenBrightness());
     WidgetsBinding.instance.removeObserver(this);
     _camTicker?.cancel();

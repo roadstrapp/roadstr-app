@@ -417,6 +417,7 @@
   "onboardingFavoritesSyncNotice": "Valikuline: salvestatud lemmikud saavad sünkroonida sinu seadmete vahel Nostr releede kaudu, otspunktkrüpteeritult (NIP-44) sinu enda võtmega — releed näevad ainult šifreeritud teksti ja keegi peale sinu ei saa sisu lugeda. Luba igal ajal Seadetest.",
   "parkingMarkerTitle": "Parkimiskoht",
   "parkingSaveHere": "Salvesta parkimine siia",
+  "parkingLongPressConfirm": "Salvestada see asukoht parkimiskohana?",
   "parkingSavedSnack": "Parkimiskoht salvestatud",
   "parkingNavigateHere": "Navigeeri parkimiskohta",
   "parkingRemove": "Eemalda parkimine",

@@ -417,6 +417,7 @@
   "onboardingFavoritesSyncNotice": "Opcional: tus favoritos guardados pueden sincronizarse entre tus dispositivos a través de los relés Nostr, cifrados de extremo a extremo (NIP-44) con tu propia clave — los relés solo ven texto cifrado y nadie más que tú puede leer el contenido. Actívalo cuando quieras desde Ajustes.",
   "parkingMarkerTitle": "Lugar de aparcamiento",
   "parkingSaveHere": "Guardar aparcamiento aquí",
+  "parkingLongPressConfirm": "¿Guardar esta ubicación como aparcamiento?",
   "parkingSavedSnack": "Aparcamiento guardado",
   "parkingNavigateHere": "Navegar al aparcamiento",
   "parkingRemove": "Eliminar aparcamiento",

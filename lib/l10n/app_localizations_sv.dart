@@ -1249,6 +1249,9 @@ class AppLocalizationsSv extends AppLocalizations {
   String get parkingSaveHere => 'Spara parkering här';
 
   @override
+  String get parkingLongPressConfirm => 'Spara den här platsen som parkering?';
+
+  @override
   String get parkingMarkerTitle => 'Parkeringsplats';
 
   @override

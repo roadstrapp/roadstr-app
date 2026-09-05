@@ -1248,6 +1248,9 @@ class AppLocalizationsDa extends AppLocalizations {
   String get parkingSaveHere => 'Gem parkering her';
 
   @override
+  String get parkingLongPressConfirm => 'Gem dette sted som parkering?';
+
+  @override
   String get parkingMarkerTitle => 'Parkeringsplads';
 
   @override

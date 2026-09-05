@@ -417,6 +417,7 @@
   "onboardingFavoritesSyncNotice": "Valinnainen: tallennetut suosikkisi voivat synkronoitua laitteidesi välillä Nostr-releiden kautta, päästä päähän salattuna (NIP-44) omalla avaimellasi — releet näkevät vain salattua tekstiä, eikä kukaan muu kuin sinä voi lukea sisältöä. Ota käyttöön milloin tahansa Asetuksista.",
   "parkingMarkerTitle": "Pysäköintipaikka",
   "parkingSaveHere": "Tallenna pysäköinti tähän",
+  "parkingLongPressConfirm": "Tallennetaanko tämä sijainti pysäköinniksi?",
   "parkingSavedSnack": "Pysäköintipaikka tallennettu",
   "parkingNavigateHere": "Navigoi pysäköintiin",
   "parkingRemove": "Poista pysäköinti",

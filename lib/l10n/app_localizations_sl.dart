@@ -1244,6 +1244,9 @@ class AppLocalizationsSl extends AppLocalizations {
   String get parkingSaveHere => 'Shrani parkiranje tukaj';
 
   @override
+  String get parkingLongPressConfirm => 'Shraniti to mesto kot parkiranje?';
+
+  @override
   String get parkingMarkerTitle => 'Parkirno mesto';
 
   @override

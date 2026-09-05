@@ -1217,6 +1217,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get parkingSaveHere => '在此保存停车位置';
 
   @override
+  String get parkingLongPressConfirm => '将此位置保存为停车位置？';
+
+  @override
   String get parkingMarkerTitle => '停车位置';
 
   @override

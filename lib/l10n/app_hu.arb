@@ -417,6 +417,7 @@
   "onboardingFavoritesSyncNotice": "Nem kötelező: a mentett kedvenceid szinkronizálódhatnak az eszközeid között a Nostr relék segítségével, végponttól végpontig titkosítva (NIP-44) a saját kulcsoddal — a relék csak titkosított szöveget látnak, és rajtad kívül senki sem olvashatja a tartalmat. Bármikor bekapcsolhatod a Beállításokban.",
   "parkingMarkerTitle": "Parkolóhely",
   "parkingSaveHere": "Parkolás mentése ide",
+  "parkingLongPressConfirm": "Menti ezt a helyet parkolásként?",
   "parkingSavedSnack": "Parkolóhely mentve",
   "parkingNavigateHere": "Navigálás a parkoláshoz",
   "parkingRemove": "Parkolás eltávolítása",

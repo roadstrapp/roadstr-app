@@ -1249,6 +1249,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get parkingSaveHere => 'Сохранить парковку здесь';
 
   @override
+  String get parkingLongPressConfirm => 'Сохранить это место как парковку?';
+
+  @override
   String get parkingMarkerTitle => 'Место парковки';
 
   @override

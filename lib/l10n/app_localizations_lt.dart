@@ -1250,6 +1250,9 @@ class AppLocalizationsLt extends AppLocalizations {
   String get parkingSaveHere => 'Išsaugoti stovėjimą čia';
 
   @override
+  String get parkingLongPressConfirm => 'Išsaugoti šią vietą kaip stovėjimą?';
+
+  @override
   String get parkingMarkerTitle => 'Stovėjimo vieta';
 
   @override
