@@ -1,0 +1,10 @@
+Hotfix: 0.5.1's battery optimization broke the MapLibre screen entirely.
+
+Fixed
+
+• 0.5.1 disabled a rendering mode to save battery/heat. On real devices
+  this instead hid every on-screen control (search bar, all buttons)
+  behind the map itself, since the map's Android renderer stopped
+  composing through Flutter the way the rest of the screen needed.
+  Reverted — the battery/heat fixes from 0.5.1 that don't cause this are
+  unaffected
