@@ -1119,8 +1119,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 'alternative con esclusione autostrade/pedaggi, trasporto '
                 'pubblico, navigazione completa con reroute e guida vocale, '
                 'ZTL, autovelox, parcheggio, segnalazioni, bussola.',
-            value: (_box.get('mapEngine', defaultValue: 'osm') as String) ==
-                'maplibre',
+            value:
+                (_box.get('mapEngine', defaultValue: 'maplibre') as String) ==
+                    'maplibre',
             onChanged: (v) {
               _box.put('mapEngine', v ? 'maplibre' : 'osm');
               setState(() {});
