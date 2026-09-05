@@ -1249,6 +1249,9 @@ class AppLocalizationsGa extends AppLocalizations {
   String get parkingSaveHere => 'Sábháil páirceáil anseo';
 
   @override
+  String get parkingLongPressConfirm => 'Sábháil an suíomh seo mar pháirceáil?';
+
+  @override
   String get parkingMarkerTitle => 'Spás páirceála';
 
   @override

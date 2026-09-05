@@ -1246,6 +1246,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get parkingSaveHere => 'Uložiť parkovanie tu';
 
   @override
+  String get parkingLongPressConfirm => 'Uložiť toto miesto ako parkovanie?';
+
+  @override
   String get parkingMarkerTitle => 'Parkovacie miesto';
 
   @override

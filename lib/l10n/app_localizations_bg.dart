@@ -1256,6 +1256,9 @@ class AppLocalizationsBg extends AppLocalizations {
   String get parkingSaveHere => 'Запази паркинга тук';
 
   @override
+  String get parkingLongPressConfirm => 'Запази това място като паркинг?';
+
+  @override
   String get parkingMarkerTitle => 'Място за паркиране';
 
   @override

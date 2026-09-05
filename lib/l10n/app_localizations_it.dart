@@ -1252,6 +1252,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get parkingSaveHere => 'Salva parcheggio qui';
 
   @override
+  String get parkingLongPressConfirm =>
+      'Impostare questo punto come parcheggio?';
+
+  @override
   String get parkingMarkerTitle => 'Posto auto';
 
   @override
