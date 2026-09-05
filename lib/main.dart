@@ -403,7 +403,7 @@ class _VoiceLanguageNoticeGateState extends State<_VoiceLanguageNoticeGate> {
   Widget build(BuildContext context) => ValueListenableBuilder<Box>(
         valueListenable: SettingsListenable.forKeys(const ['mapEngine']),
         builder: (context, settings, _) =>
-            (settings.get('mapEngine', defaultValue: 'osm') as String) ==
+            (settings.get('mapEngine', defaultValue: 'maplibre') as String) ==
                     'maplibre'
                 ? const MaplibreMapScreen()
                 : const MapScreen(),
