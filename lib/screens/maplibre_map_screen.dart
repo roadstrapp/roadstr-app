@@ -320,7 +320,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// need to visually track them (the cursor's shadow, the compass needle)
   /// each wrap themselves in their own ValueListenableBuilder instead, so
   /// only those rebuild.
-  final ValueNotifier<double> _pitchNotifier = ValueNotifier(45.0);
+  final ValueNotifier<double> _pitchNotifier = ValueNotifier(40.0);
   final ValueNotifier<double> _bearingNotifier = ValueNotifier(0.0);
 
   /// Ground-metre forward shift that clears the NavPanel at the live camera's
@@ -2583,7 +2583,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     // (zoomed out, top-down, centred on the whole route) — nothing snapped
     // it back onto the driver when the trip actually started, so navigation
     // began on a wide overview instead of the driving view.
-    _snapCameraToFix(navShift: _headingMode, pitch: 60.0);
+    _snapCameraToFix(navShift: _headingMode, pitch: 55.0);
     _applyScreenPolicy();
     if (!_voiceMuted) unawaited(_tts.announceStart());
 
@@ -3442,11 +3442,24 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     }
 
     setState(() {}); // refresh the status readout + navigation progress
+    // updateIfNeeded is throttled internally (a few hundred metres/minutes
+    // between real fetches) and returns almost immediately as a no-op the
+    // rest of the time — but the callback used to setState() unconditionally
+    // on every single GPS fix regardless, rebuilding the whole screen
+    // (including every road-event/camera/traffic-light marker) for nothing.
+    // Comparing the cache by identity means only an actual new fetch, not
+    // the throttle's early return, triggers a rebuild.
+    final camerasBefore = _speedCameraSvc.cachedCameras;
     unawaited(_speedCameraSvc.updateIfNeeded(data.position).then((_) {
-      if (mounted) setState(() {});
+      if (mounted && !identical(_speedCameraSvc.cachedCameras, camerasBefore)) {
+        setState(() {});
+      }
     }));
+    final lightsBefore = _trafficLightSvc.cachedLights;
     unawaited(_trafficLightSvc.updateIfNeeded(data.position).then((_) {
-      if (mounted) setState(() {});
+      if (mounted && !identical(_trafficLightSvc.cachedLights, lightsBefore)) {
+        setState(() {});
+      }
     }));
     // Same background warm-up MapScreen runs on every fix — by the time a
     // route is actually requested, ZtlService's cache already covers the
@@ -3593,7 +3606,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     setState(() => _followUser = true);
     _snapCameraToFix(
         navShift: _isNavigating && _headingMode,
-        pitch: _isNavigating ? 60.0 : 45.0);
+        pitch: _isNavigating ? 55.0 : 40.0);
   }
 
   /// Snaps the camera onto the current GPS fix immediately — a request to
@@ -3879,7 +3892,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               initStyle: _style(dark: isDark, tileUrl: tileUrl),
               initCenter: const Geographic(lon: 12.5, lat: 42.5),
               initZoom: 17,
-              initPitch: 45,
+              initPitch: 40,
               gestures: const MapGestures.all(),
               // REVERTED (0.5.2): setting this to false — reasoning that the
               // package's own docs call textureMode "a significant
