@@ -1,0 +1,9 @@
+German voice guidance.
+
+Added
+
+• Turn-by-turn voice guidance now supports German, using a second
+  on-device neural TTS engine (Piper, MIT-licensed Thorsten-Voice
+  "Martin" voice) — Kokoro, which powers the other 7 languages, has
+  no German voice at all. Download it the same way as before, from
+  Settings.
