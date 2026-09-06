@@ -51,6 +51,7 @@ import '../services/poi_search_service.dart';
 import '../services/route_progress.dart';
 import '../services/routing_service.dart';
 import '../services/speed_camera_service.dart';
+import '../services/traffic_light_service.dart';
 import '../services/speed_limit_service.dart';
 import '../services/transit_service.dart';
 import '../services/ztl_service.dart';
@@ -605,6 +606,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   // only ever surface as search-result rows, which SearchResultsList already
   // renders, so there is nothing to port for them on the map itself.
   final _speedCameraSvc = SpeedCameraService();
+  final _trafficLightSvc = TrafficLightService();
   LatLng? _parkingPosition;
   List<FavoritePlace> _favorites = [];
 
@@ -3440,6 +3442,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     unawaited(_speedCameraSvc.updateIfNeeded(data.position).then((_) {
       if (mounted) setState(() {});
     }));
+    unawaited(_trafficLightSvc.updateIfNeeded(data.position).then((_) {
+      if (mounted) setState(() {});
+    }));
     // Same background warm-up MapScreen runs on every fix — by the time a
     // route is actually requested, ZtlService's cache already covers the
     // area (self-throttled: it only re-fetches every 2 km/on failure
@@ -4069,6 +4074,22 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                         child: const Icon(Icons.local_parking_rounded,
                             color: Colors.white, size: 20),
                       ),
+                    ),
+                ]),
+              // Traffic-signal icons: only at close zoom — signals are far
+              // denser than speed cameras (every controlled intersection in
+              // a city), so showing them at the same zoom≥11 threshold as
+              // other markers would flood the map.
+              if (_trafficLightSvc.cachedLights.isNotEmpty &&
+                  (_camState?.zoom ?? 17) >= 15)
+                WidgetLayer(markers: [
+                  for (final light in _trafficLightSvc.cachedLights)
+                    Marker(
+                      point: Geographic(
+                          lon: light.position.longitude,
+                          lat: light.position.latitude),
+                      size: const Size(24, 24),
+                      child: const TrafficLightPin(),
                     ),
                 ]),
               if (_lastFix != null)
