@@ -722,6 +722,86 @@ void main() {
       expect(RoutingService.isImplausibleReroute(4000, 50), isFalse);
     });
   });
+
+  group('NominatimResult.fromJson', () {
+    test('parses the brand extratag when present', () {
+      final r = NominatimResult.fromJson({
+        'lat': '44.285',
+        'lon': '11.882',
+        'display_name': "Usato Faenza, Faenza, Italy",
+        'class': 'shop',
+        'type': 'second_hand',
+        'extratags': {'brand': "Mercatino dell'Usato"},
+      });
+      expect(r.brand, "Mercatino dell'Usato");
+    });
+
+    test('brand is null when extratags is absent or has no brand key', () {
+      final r = NominatimResult.fromJson({
+        'lat': '44.285',
+        'lon': '11.882',
+        'display_name': 'Some place, Faenza, Italy',
+        'class': 'shop',
+        'type': 'convenience',
+      });
+      expect(r.brand, isNull);
+    });
+  });
+
+  group('RoutingService.rankByBrandThenDistance', () {
+    const near = LatLng(44.285, 11.882); // Faenza
+
+    NominatimResult result(
+            {required String name, required LatLng at, String? brand}) =>
+        NominatimResult(
+          displayName: name,
+          shortName: name,
+          position: at,
+          brand: brand,
+        );
+
+    test(
+        'a franchise match outranks an unrelated, closer, similarly-named result',
+        () {
+      // The real-world report this guards against: searching a well-known
+      // Italian secondhand-goods franchise returned an unrelated flea
+      // market above the actual franchise location, because it happened
+      // to sit slightly closer and Nominatim's own ranking has no concept
+      // of "these are different businesses that share generic wording".
+      final closerButUnrelated = result(
+        name: 'Mercatino delle pulci',
+        at: const LatLng(44.286, 11.883), // ~150 m away
+      );
+      final fartherButBranded = result(
+        name: 'Usato Faenza',
+        brand: "Mercatino dell'Usato",
+        at: const LatLng(44.29, 11.89), // ~800 m away
+      );
+      final results = [closerButUnrelated, fartherButBranded];
+      RoutingService.rankByBrandThenDistance(
+          results, "mercatino dell'usato", near);
+      expect(results.first, same(fartherButBranded));
+    });
+
+    test('distance still decides when neither or both results have a brand',
+        () {
+      final closer = result(name: 'A', at: const LatLng(44.286, 11.883));
+      final farther = result(name: 'B', at: const LatLng(44.29, 11.89));
+      final results = [farther, closer];
+      RoutingService.rankByBrandThenDistance(results, 'something else', near);
+      expect(results.first, same(closer));
+    });
+
+    test('a weak/unrelated brand tag does not override distance', () {
+      final closer =
+          result(name: 'A', brand: 'Totally Different Co', at: const LatLng(44.286, 11.883));
+      final farther = result(name: 'B', at: const LatLng(44.29, 11.89));
+      final results = [farther, closer];
+      RoutingService.rankByBrandThenDistance(
+          results, "mercatino dell'usato", near);
+      expect(results.first, same(closer));
+    });
+  });
 }
 
 String _encodePolyline6(List<LatLng> points) {
