@@ -2134,6 +2134,13 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     // would still see the previous (or no) panel.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      // Confirming an alternative fast enough left this still-pending
+      // callback free to fire after _startNavigation had already snapped
+      // the camera onto the driver — its own "fit the whole route" framing
+      // landed last and won, leaving navigation looking stuck near
+      // wherever that framing centred rather than following the driver.
+      // Checked here, at fire time, not just when this was scheduled.
+      if (!_showAlternatives || _isNavigating) return;
       final liveController = _controller;
       if (liveController == null) return;
       final panelBox =
