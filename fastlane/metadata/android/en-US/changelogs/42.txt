@@ -6,6 +6,11 @@ Added
 • Traffic-light icons now show on the map at the exact OSM-mapped
   position of each controlled intersection, alongside the existing
   speed-camera markers.
+• Place search now ranks a matching brand/franchise name above a
+  same-category place that merely happens to be closer, so searching a
+  known chain surfaces the right one first.
+• One-tap nearby search: restaurant and hotel categories added
+  alongside the existing ones.
 
 Fixed
 
@@ -16,3 +21,5 @@ Fixed
   standalone announcement.
 • Two different nearby hazard/speed-camera reports of the same kind
   could be announced back to back with the identical sentence.
+• Landscape navigation panel: larger distance/sub-instruction text,
+  and the ETA is no longer hidden in that orientation.
