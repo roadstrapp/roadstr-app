@@ -270,6 +270,24 @@ class KokoroTtsService {
   ///   current one to finish; only the newest pending alert is kept.
   Future<void> speak(String text,
       {bool priority = false, bool maneuver = false}) async {
+    // Ambient alerts (hazard/speed-camera proximity, ZTL…) are deduped by id
+    // upstream, one set per source — but two different reports of the same
+    // category within earshot of each other produce the identical spoken
+    // sentence from two different ids, which upstream dedup cannot see. A
+    // driver hearing "Warning! Hazard ahead" twice within a few seconds reads
+    // it as a glitch, not two distinct warnings. Priority (maneuver) cues
+    // skip this: a turn instruction repeating verbatim is already handled by
+    // [announceManeuver]'s own dedup, which — unlike this one — must tell an
+    // advance warning apart from its point-of-action repeat.
+    if (!priority) {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      if (text == _lastAmbientText &&
+          now - _lastAmbientAtMs < _ambientDedupMs) {
+        return;
+      }
+      _lastAmbientText = text;
+      _lastAmbientAtMs = now;
+    }
     if (_isSpeaking && !priority) {
       _enqueue(text);
       return;
@@ -546,6 +564,15 @@ class KokoroTtsService {
   int _lastManeuverAtMs = 0;
   static const _maneuverDedupMs = 12000;
 
+  /// Last non-priority (ambient) text spoken and when — see the dedup check
+  /// at the top of [speak]. Shorter window than the maneuver dedup: ambient
+  /// alerts naturally repeat over a drive (passing two speed cameras minutes
+  /// apart should both be announced), only a near-simultaneous duplicate from
+  /// a second id is a glitch worth suppressing.
+  String? _lastAmbientText;
+  int _lastAmbientAtMs = 0;
+  static const _ambientDedupMs = 8000;
+
   /// Turn instructions are time-critical: they cut whatever is playing.
   /// Ambient alerts (hazards, ZTL…) go through [speak] without priority and
   /// wait their turn instead.
@@ -572,6 +599,26 @@ class KokoroTtsService {
         // spoken; the imminent one takes over, because by then the junction
         // is seconds away.
         maneuver: !imminent);
+  }
+
+  /// Marks [instruction] as already communicated — via a chained tail on the
+  /// previous maneuver's point-of-action cue ("take the first exit, then in
+  /// 300 metres take the off-ramp") — without actually speaking it.
+  ///
+  /// The chain deliberately always fires regardless of distance (a field
+  /// report caught a distant next maneuver never being said aloud at all),
+  /// so when the driver then closes in on that same maneuver, its own
+  /// standalone far cue can arrive only seconds after the chain finished
+  /// speaking — a priority cue, so it cuts the chain off mid-sentence if it
+  /// is still playing, for a maneuver the driver was just told about.
+  /// Registering it here lets [announceManeuver]'s own dedup catch that far
+  /// cue if it is still within the window; a far cue arriving later — the
+  /// maneuver genuinely was distant when chained — is unaffected and still
+  /// gives proper advance warning.
+  void noteChainedMention(String instruction) {
+    _lastManeuverText = _normalizeOrdinals(instruction, _lang);
+    _lastManeuverAtMs = DateTime.now().millisecondsSinceEpoch;
+    _lastManeuverWasImminent = false;
   }
 
   /// Fixes phoneme sequences the voice model renders badly.

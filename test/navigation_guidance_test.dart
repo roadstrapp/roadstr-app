@@ -111,6 +111,26 @@ void main() {
       );
     });
 
+    test('an arrival right after this maneuver is not chained — the real '
+        'announcement will follow seconds later regardless', () {
+      expect(
+        NavigationGuidance.chainedTail(followDirection: 'arrive', gapM: 80),
+        ChainedTail.none,
+      );
+      expect(
+        NavigationGuidance.chainedTail(
+            followDirection: 'arrive',
+            gapM: NavigationGuidance.arrivalChainSkipBelowM - 1),
+        ChainedTail.none,
+      );
+      expect(
+        NavigationGuidance.chainedTail(
+            followDirection: 'arrive',
+            gapM: NavigationGuidance.arrivalChainSkipBelowM),
+        ChainedTail.arrival,
+      );
+    });
+
     test('a distant destination becomes "continue for X" instead', () {
       // Announcing arrival with eleven miles still to drive is what a field
       // report caught; the driver is told how far the road runs instead.
