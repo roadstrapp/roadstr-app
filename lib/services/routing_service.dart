@@ -13,6 +13,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
+import '../utils/fuzzy_match.dart';
 import '../utils/geo.dart';
 import '../utils/units.dart';
 import 'bounded_http.dart';
@@ -426,7 +427,9 @@ class RoutingService {
       final uri = Uri.parse('$_nominatim'
           '?q=${Uri.encodeComponent(query.trim())}'
           // Six results are enough for suggestions and reduce payload/parsing.
-          '&format=json&limit=6&addressdetails=1&polygon_geojson=0$viewbox');
+          // extratags=1 adds the raw OSM tags, in particular `brand` — see
+          // the brand-aware re-ranking below.
+          '&format=json&limit=6&addressdetails=1&extratags=1&polygon_geojson=0$viewbox');
       final res = await BoundedHttp.get(
         uri,
         headers: {'User-Agent': 'Roadstr/1.0'},
@@ -444,12 +447,7 @@ class RoutingService {
           results.add(NominatimResult.fromJson(e as Map<String, dynamic>));
         } catch (_) {}
       }
-      if (near != null) {
-        results.sort((a, b) => const Distance()
-            .as(LengthUnit.Meter, near, a.position)
-            .compareTo(
-                const Distance().as(LengthUnit.Meter, near, b.position)));
-      }
+      if (near != null) rankByBrandThenDistance(results, normalized, near);
       _searchCache[cacheKey] = (at: DateTime.now(), results: results);
       if (_searchCache.length > 24) {
         final oldest = _searchCache.entries
@@ -461,6 +459,35 @@ class RoutingService {
     } catch (_) {
       return [];
     }
+  }
+
+  /// Re-ranks [results] in place so a strong OSM `brand` match against
+  /// [normalizedQuery] always outranks a merely-closer result.
+  ///
+  /// Chain franchises are usually tagged with `brand` regardless of what a
+  /// given location is called on the sign, and Nominatim's own "importance"
+  /// ranking has no idea two same-named results are a franchise and an
+  /// unrelated shop that merely shares generic wording — a search for a
+  /// well-known franchise ("Mercatino dell'Usato") could otherwise put a
+  /// same-worded but unrelated secondhand shop ahead of the real one just
+  /// for being a few hundred metres closer. A strong brand match is treated
+  /// as a harder signal than proximity and sorted first as a group;
+  /// distance still decides within each group. Exposed separately (rather
+  /// than inlined in [search]) so this ranking rule is testable without a
+  /// network call.
+  @visibleForTesting
+  static void rankByBrandThenDistance(
+      List<NominatimResult> results, String normalizedQuery, LatLng near) {
+    double brandScore(NominatimResult r) =>
+        r.brand == null ? 0.0 : FuzzyMatch.score(normalizedQuery, r.brand!);
+    results.sort((a, b) {
+      final aBrand = brandScore(a) >= 0.66;
+      final bBrand = brandScore(b) >= 0.66;
+      if (aBrand != bBrand) return aBrand ? -1 : 1;
+      return const Distance()
+          .as(LengthUnit.Meter, near, a.position)
+          .compareTo(const Distance().as(LengthUnit.Meter, near, b.position));
+    });
   }
 
   /// Converts [point] to a human-readable address string.
@@ -2126,6 +2153,15 @@ class NominatimResult {
   /// origin of the query is not necessarily the user's position.
   final double? distanceM;
 
+  /// OSM `brand` tag (from `extratags`), when the source carries one — chain
+  /// franchises are usually tagged this way regardless of what the location
+  /// itself is named on the sign. Used to tell a franchise location apart
+  /// from an unrelated shop that merely shares generic wording in its name
+  /// (a search for "Mercatino Usato" — a well-known Italian franchise — can
+  /// otherwise return an unrelated secondhand shop above the real one; see
+  /// [RoutingService.search]'s brand-aware re-ranking).
+  final String? brand;
+
   const NominatimResult({
     required this.displayName,
     required this.shortName,
@@ -2135,6 +2171,7 @@ class NominatimResult {
     this.city,
     this.openingHours,
     this.distanceM,
+    this.brand,
   });
 
   /// Longest a name or address coming from a remote geocoder may be before it
@@ -2378,6 +2415,8 @@ class NominatimResult {
       short = display.split(',').first.trim();
     }
 
+    final extratags = (j['extratags'] as Map<String, dynamic>?) ?? {};
+
     return NominatimResult(
       displayName: display,
       shortName: short,
@@ -2385,6 +2424,7 @@ class NominatimResult {
       cls: clampRemoteText(clsVal, 80),
       type: clampRemoteText(j['type'], 80),
       city: city,
+      brand: clampRemoteText(extratags['brand'], 160),
     );
   }
 }
