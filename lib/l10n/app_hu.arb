@@ -529,6 +529,8 @@
   "nearbyNeedsGps": "Várakozás GPS-re",
   "nearbyNothingFound": "5 km-en belül nincs találat",
   "nearbyFuel": "Üzemanyag",
+  "nearbyRestaurant": "Étterem",
+  "nearbyHotel": "Szálloda",
   "nearbySupermarket": "Szupermarket",
   "nearbyAtm": "Bankautomata",
   "nearbyPharmacy": "Gyógyszertár",

@@ -1392,6 +1392,12 @@ class AppLocalizationsGa extends AppLocalizations {
   String get nearbyFuel => 'Breosla';
 
   @override
+  String get nearbyRestaurant => 'Bialann';
+
+  @override
+  String get nearbyHotel => 'Óstán';
+
+  @override
   String get nearbySupermarket => 'Ollmhargadh';
 
   @override

@@ -529,6 +529,8 @@
   "nearbyNeedsGps": "Odotetaan GPS:ää",
   "nearbyNothingFound": "Ei löytynyt mitään 5 km:n säteellä",
   "nearbyFuel": "Polttoaine",
+  "nearbyRestaurant": "Ravintola",
+  "nearbyHotel": "Hotelli",
   "nearbySupermarket": "Supermarket",
   "nearbyAtm": "Pankkiautomaatti",
   "nearbyPharmacy": "Apteekki",

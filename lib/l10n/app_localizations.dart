@@ -2674,6 +2674,18 @@ abstract class AppLocalizations {
   /// **'Fuel'**
   String get nearbyFuel;
 
+  /// No description provided for @nearbyRestaurant.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurant'**
+  String get nearbyRestaurant;
+
+  /// No description provided for @nearbyHotel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hotel'**
+  String get nearbyHotel;
+
   /// No description provided for @nearbySupermarket.
   ///
   /// In en, this message translates to:

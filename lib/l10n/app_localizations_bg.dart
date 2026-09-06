@@ -1398,6 +1398,12 @@ class AppLocalizationsBg extends AppLocalizations {
   String get nearbyFuel => 'Бензиностанция';
 
   @override
+  String get nearbyRestaurant => 'Ресторант';
+
+  @override
+  String get nearbyHotel => 'Хотел';
+
+  @override
   String get nearbySupermarket => 'Супермаркет';
 
   @override

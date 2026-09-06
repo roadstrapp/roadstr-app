@@ -529,6 +529,8 @@
   "nearbyNeedsGps": "Čekanje GPS-a",
   "nearbyNothingFound": "Ništa nije pronađeno unutar 5 km",
   "nearbyFuel": "Benzinska",
+  "nearbyRestaurant": "Restoran",
+  "nearbyHotel": "Hotel",
   "nearbySupermarket": "Supermarket",
   "nearbyAtm": "Bankomat",
   "nearbyPharmacy": "Ljekarna",

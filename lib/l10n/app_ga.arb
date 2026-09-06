@@ -529,6 +529,8 @@
   "nearbyNeedsGps": "Ag fanacht le GPS",
   "nearbyNothingFound": "Níor aimsíodh aon rud laistigh de 5 km",
   "nearbyFuel": "Breosla",
+  "nearbyRestaurant": "Bialann",
+  "nearbyHotel": "Óstán",
   "nearbySupermarket": "Ollmhargadh",
   "nearbyAtm": "ATM",
   "nearbyPharmacy": "Cógaslann",

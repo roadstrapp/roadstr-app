@@ -529,6 +529,8 @@
   "nearbyNeedsGps": "GPS を待機中",
   "nearbyNothingFound": "5 km 以内に見つかりません",
   "nearbyFuel": "ガソリン",
+  "nearbyRestaurant": "レストラン",
+  "nearbyHotel": "ホテル",
   "nearbySupermarket": "スーパー",
   "nearbyAtm": "ATM",
   "nearbyPharmacy": "薬局",

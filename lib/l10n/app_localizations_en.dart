@@ -1387,6 +1387,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nearbyFuel => 'Fuel';
 
   @override
+  String get nearbyRestaurant => 'Restaurant';
+
+  @override
+  String get nearbyHotel => 'Hotel';
+
+  @override
   String get nearbySupermarket => 'Supermarket';
 
   @override

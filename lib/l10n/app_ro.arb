@@ -529,6 +529,8 @@
   "nearbyNeedsGps": "Se așteaptă GPS-ul",
   "nearbyNothingFound": "Nimic găsit pe o rază de 5 km",
   "nearbyFuel": "Carburant",
+  "nearbyRestaurant": "Restaurant",
+  "nearbyHotel": "Hotel",
   "nearbySupermarket": "Supermarket",
   "nearbyAtm": "Bancomat",
   "nearbyPharmacy": "Farmacie",

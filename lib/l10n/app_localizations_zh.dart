@@ -1353,6 +1353,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get nearbyFuel => '加油站';
 
   @override
+  String get nearbyRestaurant => '餐厅';
+
+  @override
+  String get nearbyHotel => '酒店';
+
+  @override
   String get nearbySupermarket => '超市';
 
   @override

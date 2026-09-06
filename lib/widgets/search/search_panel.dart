@@ -15,6 +15,7 @@ import '../../utils/units.dart';
 String nearbyCategoryLabel(NearbyCategory category, AppLocalizations l) =>
     switch (category) {
       NearbyCategory.fuel => l.nearbyFuel,
+      NearbyCategory.restaurant => l.nearbyRestaurant,
       NearbyCategory.supermarket => l.nearbySupermarket,
       NearbyCategory.atm => l.nearbyAtm,
       NearbyCategory.pharmacy => l.nearbyPharmacy,
@@ -22,6 +23,7 @@ String nearbyCategoryLabel(NearbyCategory category, AppLocalizations l) =>
       NearbyCategory.police => l.nearbyPolice,
       NearbyCategory.postOffice => l.nearbyPostOffice,
       NearbyCategory.parking => l.nearbyParking,
+      NearbyCategory.hotel => l.nearbyHotel,
       NearbyCategory.charging => l.nearbyCharging,
     };
 

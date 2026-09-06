@@ -1388,6 +1388,12 @@ class AppLocalizationsSk extends AppLocalizations {
   String get nearbyFuel => 'Čerpacia stanica';
 
   @override
+  String get nearbyRestaurant => 'Reštaurácia';
+
+  @override
+  String get nearbyHotel => 'Hotel';
+
+  @override
   String get nearbySupermarket => 'Supermarket';
 
   @override

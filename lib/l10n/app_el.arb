@@ -529,6 +529,8 @@
   "nearbyNeedsGps": "Αναμονή GPS",
   "nearbyNothingFound": "Δεν βρέθηκε τίποτα σε 5 χλμ.",
   "nearbyFuel": "Καύσιμα",
+  "nearbyRestaurant": "Εστιατόριο",
+  "nearbyHotel": "Ξενοδοχείο",
   "nearbySupermarket": "Σούπερ μάρκετ",
   "nearbyAtm": "ΑΤΜ",
   "nearbyPharmacy": "Φαρμακείο",

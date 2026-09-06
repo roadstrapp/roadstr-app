@@ -529,6 +529,8 @@
   "nearbyNeedsGps": "Čakanie na GPS",
   "nearbyNothingFound": "V okruhu 5 km sa nič nenašlo",
   "nearbyFuel": "Čerpacia stanica",
+  "nearbyRestaurant": "Reštaurácia",
+  "nearbyHotel": "Hotel",
   "nearbySupermarket": "Supermarket",
   "nearbyAtm": "Bankomat",
   "nearbyPharmacy": "Lekáreň",

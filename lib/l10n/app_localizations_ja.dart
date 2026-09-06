@@ -1363,6 +1363,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get nearbyFuel => 'ガソリン';
 
   @override
+  String get nearbyRestaurant => 'レストラン';
+
+  @override
+  String get nearbyHotel => 'ホテル';
+
+  @override
   String get nearbySupermarket => 'スーパー';
 
   @override

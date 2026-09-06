@@ -618,6 +618,8 @@
   "nearbyNeedsGps": "Waiting for GPS",
   "nearbyNothingFound": "Nothing found within 5 km",
   "nearbyFuel": "Fuel",
+  "nearbyRestaurant": "Restaurant",
+  "nearbyHotel": "Hotel",
   "nearbySupermarket": "Supermarket",
   "nearbyAtm": "ATM",
   "nearbyPharmacy": "Pharmacy",

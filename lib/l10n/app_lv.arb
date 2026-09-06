@@ -529,6 +529,8 @@
   "nearbyNeedsGps": "Gaida GPS",
   "nearbyNothingFound": "5 km rādiusā nekas nav atrasts",
   "nearbyFuel": "Degviela",
+  "nearbyRestaurant": "Restorāns",
+  "nearbyHotel": "Viesnīca",
   "nearbySupermarket": "Lielveikals",
   "nearbyAtm": "Bankomāts",
   "nearbyPharmacy": "Aptieka",

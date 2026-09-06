@@ -529,6 +529,8 @@
   "nearbyNeedsGps": "Изчакване на GPS",
   "nearbyNothingFound": "Нищо намерено в радиус от 5 км",
   "nearbyFuel": "Бензиностанция",
+  "nearbyRestaurant": "Ресторант",
+  "nearbyHotel": "Хотел",
   "nearbySupermarket": "Супермаркет",
   "nearbyAtm": "Банкомат",
   "nearbyPharmacy": "Аптека",

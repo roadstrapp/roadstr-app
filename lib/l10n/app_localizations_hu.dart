@@ -1393,6 +1393,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get nearbyFuel => 'Üzemanyag';
 
   @override
+  String get nearbyRestaurant => 'Étterem';
+
+  @override
+  String get nearbyHotel => 'Szálloda';
+
+  @override
   String get nearbySupermarket => 'Szupermarket';
 
   @override

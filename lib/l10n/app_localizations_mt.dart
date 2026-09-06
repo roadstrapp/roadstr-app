@@ -1399,6 +1399,12 @@ class AppLocalizationsMt extends AppLocalizations {
   String get nearbyFuel => 'Fjuwil';
 
   @override
+  String get nearbyRestaurant => 'Ristorant';
+
+  @override
+  String get nearbyHotel => 'Lukanda';
+
+  @override
   String get nearbySupermarket => 'Supermarket';
 
   @override

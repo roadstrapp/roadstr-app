@@ -1392,6 +1392,12 @@ class AppLocalizationsSv extends AppLocalizations {
   String get nearbyFuel => 'Drivmedel';
 
   @override
+  String get nearbyRestaurant => 'Restaurang';
+
+  @override
+  String get nearbyHotel => 'Hotell';
+
+  @override
   String get nearbySupermarket => 'Livsmedelsbutik';
 
   @override

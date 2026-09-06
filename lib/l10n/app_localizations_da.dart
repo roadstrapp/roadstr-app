@@ -1391,6 +1391,12 @@ class AppLocalizationsDa extends AppLocalizations {
   String get nearbyFuel => 'Brændstof';
 
   @override
+  String get nearbyRestaurant => 'Restaurant';
+
+  @override
+  String get nearbyHotel => 'Hotel';
+
+  @override
   String get nearbySupermarket => 'Supermarked';
 
   @override
