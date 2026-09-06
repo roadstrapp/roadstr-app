@@ -792,7 +792,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get kokoroModelSupportedLangs =>
-      'Tukee: italia, englanti, espanja, ranska, japani, kiina, portugali';
+      'Tukee: italia, englanti, espanja, ranska, japani, kiina, portugali, saksa';
 
   @override
   String get autoDarkMode => 'Automaattinen tumma teema';

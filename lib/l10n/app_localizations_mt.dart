@@ -799,7 +799,7 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get kokoroModelSupportedLangs =>
-      'Jappoġġja: Taljan, Ingliż, Spanjol, Franċiż, Ġappuniż, Ċiniż, Portugiż';
+      'Jappoġġja: Taljan, Ingliż, Spanjol, Franċiż, Ġappuniż, Ċiniż, Portugiż, Ġermaniż';
 
   @override
   String get autoDarkMode => 'Tema skura awtomatika';

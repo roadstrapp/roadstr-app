@@ -292,7 +292,7 @@
   "kokoroModelStatusDownloading": "下载中...",
   "kokoroModelStatusReady": "语音模型就绪",
   "kokoroModelDownloadBtn": "下载",
-  "kokoroModelSupportedLangs": "支持：意大利语、英语、西班牙语、法语、日语、中文、葡萄牙语",
+  "kokoroModelSupportedLangs": "支持：意大利语、英语、西班牙语、法语、日语、中文、葡萄牙语、德语",
   "autoDarkMode": "自动深色主题",
   "autoDarkModeDesc": "日落时自动启用深色主题",
   "settingsImperialUnits": "英制单位",

@@ -33,7 +33,7 @@ import 'theme/app_theme.dart';
 import 'screens/map_screen.dart';
 import 'screens/maplibre_map_screen.dart';
 import 'screens/onboarding_screen.dart';
-import 'services/kokoro/kokoro_voices.dart';
+import 'services/voice_engine_languages.dart';
 import 'utils/settings_listenable.dart';
 
 Future<void> main() async {
@@ -373,7 +373,7 @@ class _VoiceLanguageNoticeGateState extends State<_VoiceLanguageNoticeGate> {
     if (shown) return;
     final systemLang =
         WidgetsBinding.instance.platformDispatcher.locale.languageCode;
-    if (kokoroSupportedLanguages.contains(systemLang)) return;
+    if (voiceGuidanceLanguages.contains(systemLang)) return;
     WidgetsBinding.instance.addPostFrameCallback((_) => _showNotice());
   }
 

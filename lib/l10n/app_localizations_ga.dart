@@ -795,7 +795,7 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get kokoroModelSupportedLangs =>
-      'Tacaíonn: Iodáilis, Béarla, Spáinnis, Fraincis, Seapáinis, Sínis, Portaingéilis';
+      'Tacaíonn: Iodáilis, Béarla, Spáinnis, Fraincis, Seapáinis, Sínis, Portaingéilis, Gearmáinis';
 
   @override
   String get autoDarkMode => 'Téama dorcha uathoibríoch';
