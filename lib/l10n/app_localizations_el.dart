@@ -1400,6 +1400,12 @@ class AppLocalizationsEl extends AppLocalizations {
   String get nearbyFuel => 'Καύσιμα';
 
   @override
+  String get nearbyRestaurant => 'Εστιατόριο';
+
+  @override
+  String get nearbyHotel => 'Ξενοδοχείο';
+
+  @override
   String get nearbySupermarket => 'Σούπερ μάρκετ';
 
   @override

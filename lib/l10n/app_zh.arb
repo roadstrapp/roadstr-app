@@ -529,6 +529,8 @@
   "nearbyNeedsGps": "等待 GPS",
   "nearbyNothingFound": "5 公里内没有找到",
   "nearbyFuel": "加油站",
+  "nearbyRestaurant": "餐厅",
+  "nearbyHotel": "酒店",
   "nearbySupermarket": "超市",
   "nearbyAtm": "ATM",
   "nearbyPharmacy": "药店",

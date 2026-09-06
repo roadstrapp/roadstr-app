@@ -1392,6 +1392,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get nearbyFuel => 'АЗС';
 
   @override
+  String get nearbyRestaurant => 'Ресторан';
+
+  @override
+  String get nearbyHotel => 'Отель';
+
+  @override
   String get nearbySupermarket => 'Супермаркет';
 
   @override

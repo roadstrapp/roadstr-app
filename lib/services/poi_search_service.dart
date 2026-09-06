@@ -20,6 +20,7 @@ enum OsmPoiKind {
 /// appear in the UI, which is roughly how often a driver needs them.
 enum NearbyCategory {
   fuel(['amenity=fuel'], '⛽'),
+  restaurant(['amenity=restaurant'], '🍽️'),
   supermarket(['shop=supermarket', 'shop=convenience'], '🛒'),
   atm(['amenity=atm', 'amenity=bank'], '🏧'),
   pharmacy(['amenity=pharmacy'], '💊'),
@@ -27,6 +28,7 @@ enum NearbyCategory {
   police(['amenity=police'], '👮'),
   postOffice(['amenity=post_office'], '📮'),
   parking(['amenity=parking'], '🅿️'),
+  hotel(['tourism=hotel'], '🏨'),
   charging(['amenity=charging_station'], '🔌');
 
   /// OSM tag filters; a POI matching any one of them belongs to the category.

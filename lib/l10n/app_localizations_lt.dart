@@ -1393,6 +1393,12 @@ class AppLocalizationsLt extends AppLocalizations {
   String get nearbyFuel => 'Degalinė';
 
   @override
+  String get nearbyRestaurant => 'Restoranas';
+
+  @override
+  String get nearbyHotel => 'Viešbutis';
+
+  @override
   String get nearbySupermarket => 'Prekybos centras';
 
   @override

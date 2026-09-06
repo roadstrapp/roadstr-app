@@ -1389,6 +1389,12 @@ class AppLocalizationsCs extends AppLocalizations {
   String get nearbyFuel => 'Čerpací stanice';
 
   @override
+  String get nearbyRestaurant => 'Restaurace';
+
+  @override
+  String get nearbyHotel => 'Hotel';
+
+  @override
   String get nearbySupermarket => 'Supermarket';
 
   @override
