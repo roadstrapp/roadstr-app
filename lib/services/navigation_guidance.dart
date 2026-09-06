@@ -81,6 +81,14 @@ class NavigationGuidance {
       // will arrive" with eleven miles of motorway still to go — which is what
       // a field report caught — tells the driver nothing and buries the
       // maneuver they actually have to make.
+      //
+      // The opposite distance also needs guarding: when this maneuver is
+      // itself only metres from the destination, "you will arrive" and the
+      // real "you have arrived" (fired independently by the arrival-radius
+      // check once the driver actually gets there) land seconds apart and
+      // read as the same thing said twice in a row. Below this the chain is
+      // dropped — the real announcement is imminent regardless.
+      if (gapM < arrivalChainSkipBelowM) return ChainedTail.none;
       return gapM <= arrivalChainWithinM
           ? ChainedTail.arrival
           : ChainedTail.continueAhead;
@@ -98,6 +106,11 @@ class NavigationGuidance {
   /// The destination is only worth naming inside this range; beyond it the
   /// driver is told how far the road runs instead.
   static const arrivalChainWithinM = 3000.0;
+
+  /// Below this, the final maneuver is close enough to the destination that
+  /// the real arrival announcement will fire only seconds later — chaining
+  /// "you will arrive" here would just repeat it.
+  static const arrivalChainSkipBelowM = 150.0;
 
   /// Remaining route distance to a maneuver.
   ///

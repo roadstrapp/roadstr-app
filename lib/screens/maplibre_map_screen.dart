@@ -3053,9 +3053,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       case ChainedTail.continueAhead:
         return l.continueForDistance(Units.fmtDist(gapM));
       case ChainedTail.maneuver:
-        return follow.instruction.isEmpty ? null : follow.instruction;
+        if (follow.instruction.isEmpty) return null;
+        _tts.noteChainedMention(follow.instruction);
+        return follow.instruction;
       case ChainedTail.maneuverWithDistance:
         if (follow.instruction.isEmpty) return null;
+        _tts.noteChainedMention(follow.instruction);
         return Units.joinDistance(
             Units.ttsDistInline(gapM.round(), lang), follow.instruction, lang);
     }
