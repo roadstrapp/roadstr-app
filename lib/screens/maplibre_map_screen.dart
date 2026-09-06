@@ -2498,7 +2498,15 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       if (mounted) setState(() => _isRerouting = false);
       return;
     }
-    if (fetched == null) {
+    // Same guard _startNavigation has, missing here: a route with an empty
+    // polyline (degenerate origin≈destination reroute, or a malformed
+    // response from a routing backend under flaky mobile connectivity —
+    // plausible mid-drive) left RouteProgress.nearestIndex defaulting to
+    // index 0 against an empty _cumDist, indexing past the end of an empty
+    // list and crashing the app outright while it "recalculated the route".
+    if (fetched == null ||
+        fetched.route.steps.isEmpty ||
+        fetched.route.polyline.isEmpty) {
       setState(() => _isRerouting = false);
       return;
     }
