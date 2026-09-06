@@ -799,7 +799,7 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get kokoroModelSupportedLangs =>
-      'Поддържа: италиански, английски, испански, френски, японски, китайски, португалски';
+      'Поддържа: италиански, английски, испански, френски, японски, китайски, португалски, немски';
 
   @override
   String get autoDarkMode => 'Авто тъмна тема';

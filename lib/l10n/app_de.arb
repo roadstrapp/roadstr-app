@@ -292,7 +292,7 @@
   "kokoroModelStatusDownloading": "Herunterladen...",
   "kokoroModelStatusReady": "Sprachmodell bereit",
   "kokoroModelDownloadBtn": "Herunterladen",
-  "kokoroModelSupportedLangs": "Unterstützt: Italienisch, Englisch, Spanisch, Französisch, Japanisch, Chinesisch, Portugiesisch",
+  "kokoroModelSupportedLangs": "Unterstützt: Italienisch, Englisch, Spanisch, Französisch, Japanisch, Chinesisch, Portugiesisch, Deutsch",
   "autoDarkMode": "Automatischer Dunkelmodus",
   "autoDarkModeDesc": "Aktiviert das dunkle Design bei Sonnenuntergang",
   "settingsImperialUnits": "Imperiale Einheiten",

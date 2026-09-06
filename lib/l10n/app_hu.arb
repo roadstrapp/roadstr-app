@@ -292,7 +292,7 @@
   "kokoroModelStatusDownloading": "Letöltés...",
   "kokoroModelStatusReady": "Hangmodell készen áll",
   "kokoroModelDownloadBtn": "Letöltés",
-  "kokoroModelSupportedLangs": "Támogatja: olasz, angol, spanyol, francia, japán, kínai, portugál",
+  "kokoroModelSupportedLangs": "Támogatja: olasz, angol, spanyol, francia, japán, kínai, portugál, német",
   "autoDarkMode": "Automatikus sötét téma",
   "autoDarkModeDesc": "Napnyugtakor aktiválja a sötét témát",
   "settingsImperialUnits": "Angolszász mértékegységek",

@@ -798,7 +798,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get kokoroModelSupportedLangs =>
-      'Prend en charge : italien, anglais, espagnol, français, japonais, chinois, portugais';
+      'Prend en charge : italien, anglais, espagnol, français, japonais, chinois, portugais, allemand';
 
   @override
   String get autoDarkMode => 'Thème sombre automatique';

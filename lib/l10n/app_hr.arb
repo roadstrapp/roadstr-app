@@ -292,7 +292,7 @@
   "kokoroModelStatusDownloading": "Preuzimanje...",
   "kokoroModelStatusReady": "Glasovni model spreman",
   "kokoroModelDownloadBtn": "Preuzmi",
-  "kokoroModelSupportedLangs": "Podržava: talijanski, engleski, španjolski, francuski, japanski, kineski, portugalski",
+  "kokoroModelSupportedLangs": "Podržava: talijanski, engleski, španjolski, francuski, japanski, kineski, portugalski, njemački",
   "autoDarkMode": "Automatska tamna tema",
   "autoDarkModeDesc": "Aktivira tamnu temu pri zalasku sunca",
   "settingsImperialUnits": "Imperijalne jedinice",

@@ -292,7 +292,7 @@
   "kokoroModelStatusDownloading": "Изтегляне...",
   "kokoroModelStatusReady": "Гласовият модел е готов",
   "kokoroModelDownloadBtn": "Изтегли",
-  "kokoroModelSupportedLangs": "Поддържа: италиански, английски, испански, френски, японски, китайски, португалски",
+  "kokoroModelSupportedLangs": "Поддържа: италиански, английски, испански, френски, японски, китайски, португалски, немски",
   "autoDarkMode": "Авто тъмна тема",
   "autoDarkModeDesc": "Активира тъмната тема при залез слънце",
   "settingsImperialUnits": "Имперски единици",

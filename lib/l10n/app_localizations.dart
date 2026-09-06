@@ -1597,7 +1597,7 @@ abstract class AppLocalizations {
   /// No description provided for @kokoroModelSupportedLangs.
   ///
   /// In en, this message translates to:
-  /// **'Supports: Italian, English, Spanish, French, Japanese, Chinese, Portuguese'**
+  /// **'Supports: Italian, English, Spanish, French, Japanese, Chinese, Portuguese, German'**
   String get kokoroModelSupportedLangs;
 
   /// No description provided for @autoDarkMode.

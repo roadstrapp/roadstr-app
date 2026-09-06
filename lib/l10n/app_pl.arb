@@ -292,7 +292,7 @@
   "kokoroModelStatusDownloading": "Pobieranie...",
   "kokoroModelStatusReady": "Model głosowy gotowy",
   "kokoroModelDownloadBtn": "Pobierz",
-  "kokoroModelSupportedLangs": "Obsługuje: włoski, angielski, hiszpański, francuski, japoński, chiński, portugalski",
+  "kokoroModelSupportedLangs": "Obsługuje: włoski, angielski, hiszpański, francuski, japoński, chiński, portugalski, niemiecki",
   "autoDarkMode": "Automatyczny ciemny motyw",
   "autoDarkModeDesc": "Włącza ciemny motyw o zachodzie słońca",
   "settingsImperialUnits": "Jednostki imperialne",

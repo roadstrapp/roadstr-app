@@ -268,7 +268,7 @@
   "kokoroModelStatusDownloading": "Scaricamento...",
   "kokoroModelStatusReady": "Modello vocale pronto",
   "kokoroModelDownloadBtn": "Scarica",
-  "kokoroModelSupportedLangs": "Supporta: italiano, inglese, spagnolo, francese, giapponese, cinese, portoghese",
+  "kokoroModelSupportedLangs": "Supporta: italiano, inglese, spagnolo, francese, giapponese, cinese, portoghese, tedesco",
   "autoDarkMode": "Tema scuro automatico",
   "autoDarkModeDesc": "Attiva il tema scuro al tramonto e all'alba",
   "settingsImperialUnits": "Unità imperiali",

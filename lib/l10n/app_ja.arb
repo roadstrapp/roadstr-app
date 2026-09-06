@@ -292,7 +292,7 @@
   "kokoroModelStatusDownloading": "ダウンロード中...",
   "kokoroModelStatusReady": "音声モデル準備完了",
   "kokoroModelDownloadBtn": "ダウンロード",
-  "kokoroModelSupportedLangs": "対応言語：イタリア語、英語、スペイン語、フランス語、日本語、中国語、ポルトガル語",
+  "kokoroModelSupportedLangs": "対応言語：イタリア語、英語、スペイン語、フランス語、日本語、中国語、ポルトガル語、ドイツ語",
   "autoDarkMode": "自動ダークテーマ",
   "autoDarkModeDesc": "日没時にダークテーマを有効にします",
   "settingsImperialUnits": "ヤード・ポンド法",

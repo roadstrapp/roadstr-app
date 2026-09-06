@@ -62,16 +62,18 @@ common_options=(
   "-DCMAKE_BUILD_TYPE=Release"
 )
 
-# Generate the data files with a host binary, then package only the seven
-# languages Roadstr's Kokoro integration supports. Source voice/language files
-# are included because eSpeak resolves regional variants through them.
+# Generate the data files with a host binary, then package only the
+# languages Roadstr's voice guidance supports (Kokoro's seven, plus German —
+# phonemized here for the Piper engine, since Kokoro itself has no German
+# voice). Source voice/language files are included because eSpeak resolves
+# regional variants through them.
 host_build="$work_dir/host-build"
 cmake -S "$espeak_source" -B "$host_build" "${common_options[@]}"
 cmake --build "$host_build" --target data --parallel
 data_stage="$work_dir/data-stage/espeak-ng-data"
 mkdir -p "$data_stage"
 for file in phondata phontab phonindex phondata-manifest intonations \
-  en_dict cmn_dict fr_dict it_dict es_dict ja_dict pt_dict; do
+  en_dict cmn_dict fr_dict it_dict es_dict ja_dict pt_dict de_dict; do
   install -m 0644 "$host_build/espeak-ng-data/$file" "$data_stage/$file"
 done
 cp -R "$espeak_source/espeak-ng-data/lang" "$data_stage/lang"

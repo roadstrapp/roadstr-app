@@ -155,7 +155,7 @@ val bundledNativeChecksums = mapOf(
     "src/main/jniLibs/x86_64/libespeak-ng.so" to
         "eaa1991e55b9194a1e97eac745d4a3d9dbab64b0382a54004fe800a1416daa5e",
     "../../assets/espeak-ng-data.tar.gz" to
-        "441d5fcf375f9bd0418fda5fa772d386388ea31e95de95f7e3a96c57104b67f3",
+        "ecf9859bd233a19830c0cb048dc2c2f5162a2e4ab2de637cd2f2fabeb63ad84b",
 )
 
 val verifyBundledNativeAssets by tasks.registering {

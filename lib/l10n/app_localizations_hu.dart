@@ -795,7 +795,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get kokoroModelSupportedLangs =>
-      'Támogatja: olasz, angol, spanyol, francia, japán, kínai, portugál';
+      'Támogatja: olasz, angol, spanyol, francia, japán, kínai, portugál, német';
 
   @override
   String get autoDarkMode => 'Automatikus sötét téma';

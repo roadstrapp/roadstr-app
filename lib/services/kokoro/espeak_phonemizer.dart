@@ -192,6 +192,7 @@ class EspeakPhonemizer {
         'ja': 'ja',
         'zh': 'cmn',
         'pt': 'pt-BR',
+        'de': 'de',
       }[lang] ??
       'en';
 

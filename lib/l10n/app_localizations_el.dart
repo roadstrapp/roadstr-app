@@ -800,7 +800,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get kokoroModelSupportedLangs =>
-      'Υποστηρίζει: ιταλικά, αγγλικά, ισπανικά, γαλλικά, ιαπωνικά, κινεζικά, πορτογαλικά';
+      'Υποστηρίζει: ιταλικά, αγγλικά, ισπανικά, γαλλικά, ιαπωνικά, κινεζικά, πορτογαλικά, γερμανικά';
 
   @override
   String get autoDarkMode => 'Αυτόματο σκούρο θέμα';

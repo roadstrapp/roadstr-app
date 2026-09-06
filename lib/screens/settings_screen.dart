@@ -22,6 +22,9 @@ import '../services/profile_visibility_service.dart';
 import '../services/kokoro/kokoro_model_manager.dart';
 import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
+import '../services/piper/piper_model_manager.dart';
+import '../services/voice_engine_languages.dart';
+import '../services/voice_model_download.dart';
 import '../widgets/cursor_painter.dart';
 import '../widgets/speedometer_widget.dart';
 
@@ -56,8 +59,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _previewingVoice = false;
   final _previewTts = KokoroTtsService();
 
+  // ── Combined Kokoro + Piper (German) download progress ───────────────────
+  // Two independent managers, one status badge — see VoiceModelDownload for
+  // why [_downloadProgress] is a blend of the two rather than either one.
+  double _kokoroFrac = 0;
+  double _piperFrac = 0;
+
   StreamSubscription<double>? _progressSub;
   StreamSubscription<String>? _errorSub;
+  StreamSubscription<double>? _piperProgressSub;
+  StreamSubscription<String>? _piperErrorSub;
 
   static const _st = FlutterSecureStorage();
   final _apiKeyCtrl = TextEditingController();
@@ -83,11 +94,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         (_box.get('minBrightness', defaultValue: 0.0) as num).toDouble();
 
     final mgr = KokoroModelManager.instance;
-    if (mgr.isDownloading) {
+    final piperMgr = PiperModelManager.instance;
+    if (mgr.isDownloading || piperMgr.isDownloading) {
       // Download già in corso — mostra la progress bar, non controllare isReady()
       // perché restituirebbe notDownloaded e sovrascriverebbe questo stato.
       _kokoroStatus = _KokoroStatus.downloading;
-      _downloadProgress = mgr.lastProgress;
+      _kokoroFrac = mgr.lastProgress;
+      _piperFrac = piperMgr.lastProgress;
+      _downloadProgress = _combinedProgress();
     } else {
       _checkKokoroStatus();
     }
@@ -95,18 +109,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _progressSub = mgr.progressStream.listen((p) {
       if (!mounted) return;
       setState(() {
-        _downloadProgress = p;
-        if (p >= 1.0) _kokoroStatus = _KokoroStatus.ready;
+        _kokoroFrac = p;
+        _downloadProgress = _combinedProgress();
+        if (_kokoroFrac >= 1.0 && _piperFrac >= 1.0) {
+          _kokoroStatus = _KokoroStatus.ready;
+        }
       });
-      if (p >= 1.0) {
-        final lang = _box.get('language', defaultValue: '') as String;
-        unawaited(KokoroTtsService.warmUpLanguage(lang.isNotEmpty ? lang : 'it',
-            gender: _kokoroGender,
-            speed: kKokoroSpeedStages[_kokoroSpeedStage]));
-      }
+      _warmUpCurrentLanguageIfBothReady();
     });
 
     _errorSub = mgr.errorStream.listen((err) {
+      if (!mounted) return;
+      setState(() => _kokoroStatus = _KokoroStatus.notDownloaded);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('${AppLocalizations.of(context).errorTitle}: $err')),
+      );
+    });
+
+    _piperProgressSub = piperMgr.progressStream.listen((p) {
+      if (!mounted) return;
+      setState(() {
+        _piperFrac = p;
+        _downloadProgress = _combinedProgress();
+        if (_kokoroFrac >= 1.0 && _piperFrac >= 1.0) {
+          _kokoroStatus = _KokoroStatus.ready;
+        }
+      });
+      _warmUpCurrentLanguageIfBothReady();
+    });
+
+    _piperErrorSub = piperMgr.errorStream.listen((err) {
       if (!mounted) return;
       setState(() => _kokoroStatus = _KokoroStatus.notDownloaded);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -163,6 +196,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void dispose() {
     _progressSub?.cancel();
     _errorSub?.cancel();
+    _piperProgressSub?.cancel();
+    _piperErrorSub?.cancel();
     _apiKeyCtrl.dispose();
     _nwcCtrl.dispose();
     unawaited(_previewTts.dispose());
@@ -197,7 +232,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return;
     }
     final uiLang = Localizations.localeOf(context).languageCode;
-    final lang = kokoroSupportedLanguages.contains(uiLang) ? uiLang : 'en';
+    final lang = voiceGuidanceLanguages.contains(uiLang) ? uiLang : 'en';
     setState(() => _previewingVoice = true);
     try {
       _previewTts.setLanguage(lang);
@@ -211,22 +246,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  double _combinedProgress() =>
+      VoiceModelDownload.combinedProgress(_kokoroFrac, _piperFrac);
+
+  /// Called after either manager's progress stream fires. Only warms the
+  /// current UI language once EVERYTHING is downloaded — for German this
+  /// needs Piper specifically ready, not just whichever manager just
+  /// finished first.
+  void _warmUpCurrentLanguageIfBothReady() {
+    if (_kokoroFrac < 1.0 || _piperFrac < 1.0) return;
+    final lang = _box.get('language', defaultValue: '') as String;
+    unawaited(KokoroTtsService.warmUpLanguage(lang.isNotEmpty ? lang : 'it',
+        gender: _kokoroGender, speed: kKokoroSpeedStages[_kokoroSpeedStage]));
+  }
+
   Future<void> _checkKokoroStatus() async {
-    final ready =
-        await KokoroModelManager.instance.isReady(kokoroSupportedLanguages);
+    final ready = await VoiceModelDownload.isFullyReady();
     if (mounted) {
-      setState(() => _kokoroStatus =
-          ready ? _KokoroStatus.ready : _KokoroStatus.notDownloaded);
+      setState(() {
+        _kokoroStatus = ready ? _KokoroStatus.ready : _KokoroStatus.notDownloaded;
+        if (ready) {
+          _kokoroFrac = 1.0;
+          _piperFrac = 1.0;
+          _downloadProgress = 1.0;
+        }
+      });
     }
   }
 
   void _downloadKokoroModel() {
     setState(() {
       _kokoroStatus = _KokoroStatus.downloading;
+      _kokoroFrac = 0;
+      _piperFrac = 0;
       _downloadProgress = 0;
     });
     // startDownload is fire-and-forget; progress arrives via progressStream.
-    KokoroModelManager.instance.startDownload(kokoroSupportedLanguages);
+    VoiceModelDownload.startAll();
   }
 
   void _loadFavorites() {

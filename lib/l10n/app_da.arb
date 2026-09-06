@@ -292,7 +292,7 @@
   "kokoroModelStatusDownloading": "Downloader...",
   "kokoroModelStatusReady": "Stemmemodel er klar",
   "kokoroModelDownloadBtn": "Download",
-  "kokoroModelSupportedLangs": "Understøtter: italiensk, engelsk, spansk, fransk, japansk, kinesisk, portugisisk",
+  "kokoroModelSupportedLangs": "Understøtter: italiensk, engelsk, spansk, fransk, japansk, kinesisk, portugisisk, tysk",
   "autoDarkMode": "Auto mørkt tema",
   "autoDarkModeDesc": "Aktiverer det mørke tema ved solnedgang",
   "settingsImperialUnits": "Imperiale enheder",

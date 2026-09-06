@@ -793,7 +793,7 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get kokoroModelSupportedLangs =>
-      'Understøtter: italiensk, engelsk, spansk, fransk, japansk, kinesisk, portugisisk';
+      'Understøtter: italiensk, engelsk, spansk, fransk, japansk, kinesisk, portugisisk, tysk';
 
   @override
   String get autoDarkMode => 'Auto mørkt tema';

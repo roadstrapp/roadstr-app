@@ -794,7 +794,7 @@ class AppLocalizationsEt extends AppLocalizations {
 
   @override
   String get kokoroModelSupportedLangs =>
-      'Toetab: itaalia, inglise, hispaania, prantsuse, jaapani, hiina, portugali';
+      'Toetab: itaalia, inglise, hispaania, prantsuse, jaapani, hiina, portugali, saksa';
 
   @override
   String get autoDarkMode => 'Automaatne tume teema';

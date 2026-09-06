@@ -292,7 +292,7 @@
   "kokoroModelStatusDownloading": "Λήψη...",
   "kokoroModelStatusReady": "Το φωνητικό μοντέλο είναι έτοιμο",
   "kokoroModelDownloadBtn": "Λήψη",
-  "kokoroModelSupportedLangs": "Υποστηρίζει: ιταλικά, αγγλικά, ισπανικά, γαλλικά, ιαπωνικά, κινεζικά, πορτογαλικά",
+  "kokoroModelSupportedLangs": "Υποστηρίζει: ιταλικά, αγγλικά, ισπανικά, γαλλικά, ιαπωνικά, κινεζικά, πορτογαλικά, γερμανικά",
   "autoDarkMode": "Αυτόματο σκούρο θέμα",
   "autoDarkModeDesc": "Ενεργοποιεί το σκούρο θέμα στο ηλιοβασίλεμα",
   "settingsImperialUnits": "Αγγλοσαξονικές μονάδες",

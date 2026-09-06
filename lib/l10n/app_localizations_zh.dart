@@ -767,7 +767,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get kokoroModelDownloadBtn => '下载';
 
   @override
-  String get kokoroModelSupportedLangs => '支持：意大利语、英语、西班牙语、法语、日语、中文、葡萄牙语';
+  String get kokoroModelSupportedLangs => '支持：意大利语、英语、西班牙语、法语、日语、中文、葡萄牙语、德语';
 
   @override
   String get autoDarkMode => '自动深色主题';
