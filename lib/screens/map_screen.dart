@@ -32,6 +32,7 @@ import '../services/speed_limit_service.dart';
 import '../services/poi_search_service.dart';
 import '../services/place_search_service.dart';
 import '../services/speed_camera_service.dart';
+import '../services/traffic_light_service.dart';
 import '../services/ztl_service.dart';
 import 'package:amberflutter/amberflutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -313,6 +314,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   late final _placeSearch = PlaceSearchService(poi: _poiSvc);
   final _favSyncSvc = FavoritesSyncService();
   final _speedCameraSvc = SpeedCameraService();
+  final _trafficLightSvc = TrafficLightService();
 
   /// OSM-sourced camera ids already alerted this session — separate from
   /// [_alertedCameraIds] (Nostr event ids, String) since OSM node ids are int
@@ -1890,6 +1892,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       }
     }
     unawaited(_speedCameraSvc.updateIfNeeded(_position));
+    unawaited(_trafficLightSvc.updateIfNeeded(_position));
     for (final cam in _speedCameraSvc.cachedCameras) {
       if (_alertedOsmCameraIds.contains(cam.id)) continue;
       final d = dist.as(LengthUnit.Meter, _position, cam.position);
@@ -5088,6 +5091,20 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                         width: 30,
                         height: 30,
                         child: const OsmCameraPin(),
+                      ),
+                  ]),
+                // Traffic-signal icons: only at close zoom — signals are far
+                // denser than speed cameras (every controlled intersection
+                // in a city), so the zoom≥11 threshold above would flood
+                // the map with them.
+                if (_trafficLightSvc.cachedLights.isNotEmpty && _camZoom >= 15)
+                  MarkerLayer(markers: [
+                    for (final light in _trafficLightSvc.cachedLights)
+                      Marker(
+                        point: light.position,
+                        width: 24,
+                        height: 24,
+                        child: const TrafficLightPin(),
                       ),
                   ]),
                 // Saved parking spot — local-only, persists until removed.

@@ -49,6 +49,26 @@ class OsmCameraPin extends StatelessWidget {
       );
 }
 
+/// Marker for an OSM-sourced traffic-signal node — a plain icon at the exact
+/// intersection position, same visual family (muted fill, white ring) as
+/// [OsmCameraPin] so both read as "static OSM data" rather than a live
+/// community report.
+class TrafficLightPin extends StatelessWidget {
+  const TrafficLightPin({super.key});
+  @override
+  Widget build(BuildContext context) => Container(
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.6),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 1.2),
+          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 3)],
+        ),
+        child: const Center(
+          child: Text('🚦', style: TextStyle(fontSize: 13, height: 1)),
+        ),
+      );
+}
+
 class PinMarker extends StatelessWidget {
   const PinMarker({super.key});
   @override
