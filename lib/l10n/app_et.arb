@@ -529,6 +529,8 @@
   "nearbyNeedsGps": "GPS-i ootamine",
   "nearbyNothingFound": "5 km raadiuses ei leitud midagi",
   "nearbyFuel": "Tankla",
+  "nearbyRestaurant": "Restoran",
+  "nearbyHotel": "Hotell",
   "nearbySupermarket": "Supermarket",
   "nearbyAtm": "Sularahaautomaat",
   "nearbyPharmacy": "Apteek",

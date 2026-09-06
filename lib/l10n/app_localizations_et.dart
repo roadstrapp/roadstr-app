@@ -1391,6 +1391,12 @@ class AppLocalizationsEt extends AppLocalizations {
   String get nearbyFuel => 'Tankla';
 
   @override
+  String get nearbyRestaurant => 'Restoran';
+
+  @override
+  String get nearbyHotel => 'Hotell';
+
+  @override
   String get nearbySupermarket => 'Supermarket';
 
   @override

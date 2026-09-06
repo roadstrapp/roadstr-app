@@ -373,8 +373,14 @@ class NavPanel extends StatelessWidget {
     // Bumped for at-a-glance legibility while driving. The row height is
     // governed by the speedometer (70/110 px), so larger type does not grow
     // the bar — the text column still fits well within that height.
-    final fsDist = land ? 24.0 : 34.0;
-    final fsSub = land ? 15.5 : 19.0;
+    // Landscape (a wide dash mount, the most common way to actually drive
+    // with this) was tuned tighter than portrait to fit the shorter row —
+    // a field report called it too small to read at a glance. Bumped
+    // toward the portrait sizes; the row still has vertical room since it
+    // is the speedometer (70px in landscape) that governs the height, not
+    // this text.
+    final fsDist = land ? 28.0 : 34.0;
+    final fsSub = land ? 17.5 : 19.0;
     final vTop = land ? 6.0 : 14.0;
     final vBot = land
         ? (bottomInset > 0 ? bottomInset + 4 : 8.0)
@@ -425,17 +431,20 @@ class NavPanel extends StatelessWidget {
                         color: colors.textSecondary,
                         fontSize: fsSub,
                         fontWeight: FontWeight.w600)),
-                if (!land) ...[
-                  Text('  ·  ',
-                      style: TextStyle(
-                          color: colors.textSecondary, fontSize: fsSub)),
-                  // Estimated time of arrival
-                  Text(l.etaArrivalLabel(_etaLabel),
-                      style: TextStyle(
-                          color: colors.textSecondary,
-                          fontSize: fsSub,
-                          fontWeight: FontWeight.w600)),
-                ],
+                // ETA used to be hidden in landscape to save vertical
+                // space, but a field report specifically about landscape
+                // (a dash mount, the common way to actually drive with
+                // this) asked for it — landscape has the width to spare
+                // even where it doesn't have the height.
+                Text('  ·  ',
+                    style:
+                        TextStyle(color: colors.textSecondary, fontSize: fsSub)),
+                // Estimated time of arrival
+                Text(l.etaArrivalLabel(_etaLabel),
+                    style: TextStyle(
+                        color: colors.textSecondary,
+                        fontSize: fsSub,
+                        fontWeight: FontWeight.w600)),
               ]),
             ])),
         // Stop navigation

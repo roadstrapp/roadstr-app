@@ -1386,6 +1386,12 @@ class AppLocalizationsSl extends AppLocalizations {
   String get nearbyFuel => 'Bencinska črpalka';
 
   @override
+  String get nearbyRestaurant => 'Restavracija';
+
+  @override
+  String get nearbyHotel => 'Hotel';
+
+  @override
   String get nearbySupermarket => 'Supermarket';
 
   @override

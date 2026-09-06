@@ -529,6 +529,8 @@
   "nearbyNeedsGps": "Väntar på GPS",
   "nearbyNothingFound": "Inget hittades inom 5 km",
   "nearbyFuel": "Drivmedel",
+  "nearbyRestaurant": "Restaurang",
+  "nearbyHotel": "Hotell",
   "nearbySupermarket": "Livsmedelsbutik",
   "nearbyAtm": "Uttagsautomat",
   "nearbyPharmacy": "Apotek",

@@ -529,6 +529,8 @@
   "nearbyNeedsGps": "Warten auf GPS",
   "nearbyNothingFound": "Nichts im Umkreis von 5 km",
   "nearbyFuel": "Tankstelle",
+  "nearbyRestaurant": "Restaurant",
+  "nearbyHotel": "Hotel",
   "nearbySupermarket": "Supermarkt",
   "nearbyAtm": "Geldautomat",
   "nearbyPharmacy": "Apotheke",
