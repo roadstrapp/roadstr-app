@@ -1,0 +1,18 @@
+Traffic-light icons on the map, plus fixes for repeated/overlapping voice
+guidance.
+
+Added
+
+• Traffic-light icons now show on the map at the exact OSM-mapped
+  position of each controlled intersection, alongside the existing
+  speed-camera markers.
+
+Fixed
+
+• The "you have arrived" voice cue could play twice in a row when the
+  final turn was close to the destination.
+• A turn instruction mentioned in advance ("...then in 300 metres take
+  the ramp") could get cut off moments later by that same turn's own
+  standalone announcement.
+• Two different nearby hazard/speed-camera reports of the same kind
+  could be announced back to back with the identical sentence.

@@ -62,8 +62,8 @@ android {
         // These two lines are the single source of truth for the Android
         // build and MUST match `version:` in pubspec.yaml. That is enforced by
         // test/version_consistency_test.dart rather than by memory.
-        versionCode = 41
-        versionName = "0.5.2"
+        versionCode = 42
+        versionName = "0.5.3"
     }
 
     // ── Signing ───────────────────────────────────────────────────────────────
