@@ -794,7 +794,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get kokoroModelSupportedLangs =>
-      'Поддерживает: итальянский, английский, испанский, французский, японский, китайский, португальский';
+      'Поддерживает: итальянский, английский, испанский, французский, японский, китайский, португальский, немецкий';
 
   @override
   String get autoDarkMode => 'Автоматическая тёмная тема';

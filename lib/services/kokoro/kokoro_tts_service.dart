@@ -5,26 +5,35 @@ import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../utils/units.dart';
+import '../piper/piper_engine.dart';
+import '../piper/piper_voices.dart';
 import 'espeak_phonemizer.dart';
 import 'kokoro_engine.dart';
 import 'kokoro_model_manager.dart';
 import 'kokoro_voices.dart';
 
-/// Drop-in replacement for [TtsService] using the on-device Kokoro-82M neural
-/// TTS model.  Only the seven languages supported by Kokoro receive voice
-/// guidance; all other languages degrade silently to text-only navigation.
+/// Drop-in replacement for [TtsService] using on-device neural TTS: Kokoro-82M
+/// for the seven languages it ships voices for, and Piper (a separate VITS
+/// model, see ../piper/piper_engine.dart) for German, which Kokoro doesn't
+/// support at all. Every other language degrades silently to text-only
+/// navigation.
 ///
 /// Initialisation flow:
 ///   1. Call [init] whenever the active language changes (e.g. at nav start).
 ///   2. If the model files are not yet on disk, [init] returns silently — the
-///      [KokoroModelManager] download UI (settings screen) must be used first.
+///      [KokoroModelManager]/[PiperModelManager] download UI (settings
+///      screen) must be used first.
 ///   3. Once ready, [speak], [announceStart], [announceManeuver] and
 ///      [announceArrival] produce synthesised speech.
 class KokoroTtsService {
   final _phonemizer = EspeakPhonemizer.instance;
   final _engine = KokoroEngine.instance;
+  final _piperEngine = PiperEngine.instance;
   final _manager = KokoroModelManager.instance;
   final _player = AudioPlayer();
+
+  /// True while [_lang] is handled by Piper instead of Kokoro.
+  bool get _usesPiper => kPiperSupportedLanguages.contains(_lang);
 
   String _lang = 'en';
   String _gender = kKokoroDefaultGender;
@@ -92,7 +101,17 @@ class KokoroTtsService {
   Completer<void>? _synthCompleter;
 
   bool get isReady => _ready;
-  bool get _langSupported => kKokoroVoicesByLanguage.containsKey(_lang);
+  bool get _langSupported =>
+      kKokoroVoicesByLanguage.containsKey(_lang) || _usesPiper;
+
+  /// Dispatches synthesis to whichever engine [_lang] uses. Piper has no
+  /// style-vector/voice-embedding file — [_voiceData] stays unused for it.
+  Future<Float32List> _synthesizeAudio(String ipa, {required double speed}) {
+    if (_usesPiper) return _piperEngine.synthesize(ipa, speed: speed);
+    return _engine.synthesize(ipa, _voiceData!, speed: speed);
+  }
+
+  int get _sampleRateHz => _usesPiper ? kPiperSampleRate : 24000;
 
   // ── Lifecycle ────────────────────────────────────────────────────────────────
 
@@ -122,10 +141,16 @@ class KokoroTtsService {
     try {
       await _phonemizer.init();
       debugPrint('[KokoroTTS]   phonemizer: ${ms()}ms');
-      await _engine.init();
-      debugPrint('[KokoroTTS]   engine: ${ms()}ms');
-      _voiceData = await _loadVoiceEmbedding(languageCode, _gender);
-      debugPrint('[KokoroTTS]   voice: ${ms()}ms');
+      if (_usesPiper) {
+        await _piperEngine.init();
+        debugPrint('[KokoroTTS]   piper engine: ${ms()}ms');
+        _voiceData = null;
+      } else {
+        await _engine.init();
+        debugPrint('[KokoroTTS]   engine: ${ms()}ms');
+        _voiceData = await _loadVoiceEmbedding(languageCode, _gender);
+        debugPrint('[KokoroTTS]   voice: ${ms()}ms');
+      }
       _ready = true;
       _lastInitFailedAt = null;
       debugPrint(
@@ -435,7 +460,7 @@ class KokoroTtsService {
           final completer = Completer<void>();
           _synthCompleter = completer;
           try {
-            audio = await _engine.synthesize(ipa, _voiceData!, speed: _speed);
+            audio = await _synthesizeAudio(ipa, speed: _speed);
           } finally {
             _synthCompleter = null;
             completer.complete();
@@ -447,7 +472,7 @@ class KokoroTtsService {
         }
 
         // Persist to disk so future speak() calls (even after restart) are instant.
-        await _writeWav(wavFile, audio);
+        await _writeWav(wavFile, audio, sampleRate: _sampleRateHz);
       } else {
         debugPrint('[KokoroTTS]   disk hit: ${ms()}ms');
       }
@@ -496,14 +521,14 @@ class KokoroTtsService {
         _synthCompleter = completer;
         final Float32List audio;
         try {
-          audio = await _engine.synthesize(ipa, _voiceData!, speed: _speed);
+          audio = await _synthesizeAudio(ipa, speed: _speed);
         } finally {
           _synthCompleter = null;
           completer.complete();
         }
         _cacheAudio(
             '$_lang:$_gender:${_speed.toStringAsFixed(2)}:$phrase', audio);
-        await _writeWav(wavFile, audio);
+        await _writeWav(wavFile, audio, sampleRate: _sampleRateHz);
         _prewarmedPaths.add(wavFile.path);
         debugPrint('[KokoroTTS] prewarm saved: "$phrase"');
       } catch (e) {
@@ -518,6 +543,9 @@ class KokoroTtsService {
   /// singletons.
   static Future<void> warmUpLanguage(String languageCode,
       {String gender = kKokoroDefaultGender, double speed = 1.0}) async {
+    if (kPiperSupportedLanguages.contains(languageCode)) {
+      return _warmUpPiperLanguage(languageCode, gender: gender, speed: speed);
+    }
     if (!kKokoroVoicesByLanguage.containsKey(languageCode)) return;
     try {
       final phonemizer = EspeakPhonemizer.instance;
@@ -534,12 +562,37 @@ class KokoroTtsService {
         final ipa =
             _correctIpa(await phonemizer.phonemize(phrase, languageCode), languageCode);
         final audio = await engine.synthesize(ipa, voiceData, speed: speed);
-        await _writeWav(wavFile, audio);
+        await _writeWav(wavFile, audio, sampleRate: 24000);
         debugPrint(
             '[KokoroTTS] warmUpLanguage: saved "$phrase" ($languageCode/$gender)');
       }
     } catch (e) {
       debugPrint('[KokoroTTS] warmUpLanguage failed: $e');
+    }
+  }
+
+  /// Piper counterpart to the Kokoro branch above — single voice, no gender
+  /// fan-out, 22.05 kHz output.
+  static Future<void> _warmUpPiperLanguage(String languageCode,
+      {required String gender, required double speed}) async {
+    try {
+      final phonemizer = EspeakPhonemizer.instance;
+      final engine = PiperEngine.instance;
+      await phonemizer.init();
+      await engine.init();
+      for (final phrase in [_letsGo(languageCode), _arrived(languageCode)]) {
+        final wavFile =
+            await _diskCacheFile(languageCode, gender, speed, phrase);
+        if (await wavFile.exists()) continue;
+        final ipa = _correctIpa(
+            await phonemizer.phonemize(phrase, languageCode), languageCode);
+        final audio = await engine.synthesize(ipa, speed: speed);
+        await _writeWav(wavFile, audio, sampleRate: kPiperSampleRate);
+        debugPrint(
+            '[KokoroTTS] warmUpLanguage (Piper): saved "$phrase" ($languageCode)');
+      }
+    } catch (e) {
+      debugPrint('[KokoroTTS] warmUpLanguage (Piper) failed: $e');
     }
   }
 
@@ -721,6 +774,8 @@ class KokoroTtsService {
   /// the one guaranteed to exist for every language, regardless of which
   /// gender the app defaults new users to.
   static String? _bundledAsset(String lang, String gender, String text) {
+    // Piper (German) has no pre-baked bundled WAVs — always synthesise.
+    if (kPiperSupportedLanguages.contains(lang)) return null;
     final g = kokoroHasGenderChoice(lang) ? gender : 'f';
     if (text == _letsGo(lang)) {
       return 'assets/kokoro_phrases/${lang}_${g}_letsgo.wav';
@@ -797,8 +852,9 @@ class KokoroTtsService {
     return bytes.buffer.asFloat32List();
   }
 
-  static Future<void> _writeWav(File file, Float32List audio) async {
-    final wav = _float32ToWav(audio, 24000);
+  static Future<void> _writeWav(File file, Float32List audio,
+      {required int sampleRate}) async {
+    final wav = _float32ToWav(audio, sampleRate);
     await file.create(recursive: true);
     await file.writeAsBytes(wav);
     await _trimDiskCache(file.parent);
@@ -890,6 +946,7 @@ class KokoroTtsService {
         'ja' => '出発します！',
         'zh' => '出发！',
         'pt' => 'Vamos lá!',
+        'de' => "Los geht's!",
         _ => "Let's go!",
       };
 
@@ -900,6 +957,7 @@ class KokoroTtsService {
         'ja' => '目的地に到着しました。',
         'zh' => '您已到达目的地。',
         'pt' => 'Chegou ao seu destino.',
+        'de' => 'Sie haben Ihr Ziel erreicht.',
         _ => 'You have arrived at your destination.',
       };
 
@@ -913,6 +971,7 @@ class KokoroTtsService {
         'ja' => '200メートル先、右折です',
         'zh' => '前方200米，右转',
         'pt' => 'Em 200 metros, vire à direita',
+        'de' => 'In 200 Metern rechts abbiegen',
         _ => 'In 200 meters, turn right',
       };
 }

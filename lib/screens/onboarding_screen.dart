@@ -19,7 +19,8 @@ import 'package:nostr_tools/nostr_tools.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../l10n/app_localizations.dart';
 import '../services/kokoro/kokoro_model_manager.dart';
-import '../services/kokoro/kokoro_voices.dart';
+import '../services/piper/piper_model_manager.dart';
+import '../services/voice_model_download.dart';
 import '../services/nostr_relay_service.dart';
 import '../services/profile_visibility_service.dart';
 import '../theme/app_theme.dart';
@@ -58,11 +59,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _locChecked = false;
   bool _locLoading = false;
 
-  // ── Kokoro download state ───────────────────────────────────────────────────
+  // ── Voice model download state (Kokoro + Piper for German) ───────────────
   _KokoroStatus _kokoroStatus = _KokoroStatus.unknown;
   double _kokoroProgress = 0;
+  double _kokoroFrac = 0;
+  double _piperFrac = 0;
   StreamSubscription<double>? _progressSub;
   StreamSubscription<String>? _errorSub;
+  StreamSubscription<double>? _piperProgressSub;
+  StreamSubscription<String>? _piperErrorSub;
 
   @override
   void initState() {
@@ -78,6 +83,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void dispose() {
     _progressSub?.cancel();
     _errorSub?.cancel();
+    _piperProgressSub?.cancel();
+    _piperErrorSub?.cancel();
     _pageCtrl.dispose();
     super.dispose();
   }
@@ -314,14 +321,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Future<void> _checkKokoroStatus() async {
     final mgr = KokoroModelManager.instance;
-    if (mgr.isDownloading) {
+    final piperMgr = PiperModelManager.instance;
+    if (mgr.isDownloading || piperMgr.isDownloading) {
       setState(() {
         _kokoroStatus = _KokoroStatus.downloading;
       });
       _listenDownload();
       return;
     }
-    final ready = await mgr.isReady(kokoroSupportedLanguages);
+    final ready = await VoiceModelDownload.isFullyReady();
     if (mounted) {
       setState(() => _kokoroStatus =
           ready ? _KokoroStatus.ready : _KokoroStatus.notDownloaded);
@@ -330,29 +338,50 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void _listenDownload() {
     final mgr = KokoroModelManager.instance;
+    final piperMgr = PiperModelManager.instance;
     _progressSub?.cancel();
     _errorSub?.cancel();
+    _piperProgressSub?.cancel();
+    _piperErrorSub?.cancel();
     // NOTE: progressStream is a broadcast stream on a singleton that never
     // closes, so an onDone callback would never fire. Completion is signalled
     // by the final progress value of 1.0 (emitted after all files are on disk).
     _progressSub = mgr.progressStream.listen((p) async {
       if (!mounted) return;
-      setState(() => _kokoroProgress = p);
-      if (p >= 1.0) {
-        final ok = await mgr.isReady(kokoroSupportedLanguages);
+      setState(() {
+        _kokoroFrac = p;
+        _kokoroProgress = VoiceModelDownload.combinedProgress(_kokoroFrac, _piperFrac);
+      });
+      if (_kokoroFrac >= 1.0 && _piperFrac >= 1.0) {
+        final ok = await VoiceModelDownload.isFullyReady();
         if (mounted && ok) setState(() => _kokoroStatus = _KokoroStatus.ready);
       }
     });
     _errorSub = mgr.errorStream.listen((_) {
       if (mounted) setState(() => _kokoroStatus = _KokoroStatus.notDownloaded);
     });
+    _piperProgressSub = piperMgr.progressStream.listen((p) async {
+      if (!mounted) return;
+      setState(() {
+        _piperFrac = p;
+        _kokoroProgress = VoiceModelDownload.combinedProgress(_kokoroFrac, _piperFrac);
+      });
+      if (_kokoroFrac >= 1.0 && _piperFrac >= 1.0) {
+        final ok = await VoiceModelDownload.isFullyReady();
+        if (mounted && ok) setState(() => _kokoroStatus = _KokoroStatus.ready);
+      }
+    });
+    _piperErrorSub = piperMgr.errorStream.listen((_) {
+      if (mounted) setState(() => _kokoroStatus = _KokoroStatus.notDownloaded);
+    });
   }
 
   void _startKokoroDownload() {
-    final mgr = KokoroModelManager.instance;
-    mgr.startDownload(kokoroSupportedLanguages);
+    VoiceModelDownload.startAll();
     setState(() {
       _kokoroStatus = _KokoroStatus.downloading;
+      _kokoroFrac = 0;
+      _piperFrac = 0;
       _kokoroProgress = 0;
     });
     _listenDownload();

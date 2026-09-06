@@ -292,7 +292,7 @@
   "kokoroModelStatusDownloading": "Laddar ner...",
   "kokoroModelStatusReady": "Röstmodell är redo",
   "kokoroModelDownloadBtn": "Ladda ner",
-  "kokoroModelSupportedLangs": "Stödjer: italienska, engelska, spanska, franska, japanska, kinesiska, portugisiska",
+  "kokoroModelSupportedLangs": "Stödjer: italienska, engelska, spanska, franska, japanska, kinesiska, portugisiska, tyska",
   "autoDarkMode": "Automatiskt mörkt tema",
   "autoDarkModeDesc": "Aktiverar det mörka temat vid solnedgången",
   "settingsImperialUnits": "Imperiala enheter",

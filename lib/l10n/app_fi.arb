@@ -292,7 +292,7 @@
   "kokoroModelStatusDownloading": "Ladataan...",
   "kokoroModelStatusReady": "Ääntömalli valmis",
   "kokoroModelDownloadBtn": "Lataa",
-  "kokoroModelSupportedLangs": "Tukee: italia, englanti, espanja, ranska, japani, kiina, portugali",
+  "kokoroModelSupportedLangs": "Tukee: italia, englanti, espanja, ranska, japani, kiina, portugali, saksa",
   "autoDarkMode": "Automaattinen tumma teema",
   "autoDarkModeDesc": "Ottaa tumman teeman käyttöön auringonlaskun aikaan",
   "settingsImperialUnits": "Imperiaaliset yksiköt",

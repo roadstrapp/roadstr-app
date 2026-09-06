@@ -292,7 +292,7 @@
   "kokoroModelStatusDownloading": "Stiahnutie...",
   "kokoroModelStatusReady": "Hlasový model je pripravený",
   "kokoroModelDownloadBtn": "Stiahnuť",
-  "kokoroModelSupportedLangs": "Podporuje: taliančinu, angličtinu, španielčinu, francúzštinu, japončinu, čínštinu, portugalčinu",
+  "kokoroModelSupportedLangs": "Podporuje: taliančinu, angličtinu, španielčinu, francúzštinu, japončinu, čínštinu, portugalčinu, nemčinu",
   "autoDarkMode": "Automatická tmavá téma",
   "autoDarkModeDesc": "Aktivuje tmavú tému pri západe slnka",
   "settingsImperialUnits": "Imperiálne jednotky",
