@@ -150,27 +150,102 @@ class PlaceSearchService {
     return merged;
   }
 
-  /// Orders results by textual match quality first, proximity second, and caps
-  /// the list at a scannable length.
+  /// A result counts as "a real match" above this score — same 0.66
+  /// threshold [FuzzyMatch.wordScore] itself already treats as "this is the
+  /// same word", reused here rather than inventing a second one.
+  static const _matchThreshold = 0.66;
+
+  /// Orders results so that, among everything that actually matches the
+  /// query, distance decides — not a finer textual-quality difference that a
+  /// franchise's own branches routinely produce just by how each one happens
+  /// to be worded on the sign ("Mercatino dell'Usato" vs "Mercatino Usato -
+  /// Faenza" score noticeably differently as plain text despite being the
+  /// exact same chain a driver searched for). A trailing city name in the
+  /// query — "mercatino usato faenza" — outranks plain distance: it is a
+  /// stronger, explicit signal of intent than "closer to where I am now".
+  /// Caps the list at a scannable length.
   static List<NominatimResult> rankResults(
       String query, List<NominatimResult> results, LatLng? near) {
     if (results.length < 2) return results;
+    final detected = _detectQueryCity(query, results);
+    final queryCity = detected?.city;
+    // Score the venue name without the trailing city phrase: a bare "shop
+    // name" result (the common shape for a POI, see NominatimResult.fromJson)
+    // never contains the city text at all, so leaving it in the query only
+    // dilutes the match score of every result uniformly for no benefit — the
+    // city is already handled as its own, stronger signal below.
+    final matchQuery = detected == null
+        ? query
+        : detected.words
+            .sublist(0, detected.words.length - detected.cityWordCount)
+            .join(' ');
+    final effectiveQuery = matchQuery.isEmpty ? query : matchQuery;
     final scored = results
         .map((r) => (
               result: r,
-              score: matchScore(query, r),
+              score: matchScore(effectiveQuery, r),
               distance: near == null
                   ? 0.0
                   : _distance.as(LengthUnit.Meter, near, r.position),
+              inQueryCity: queryCity != null &&
+                  r.city != null &&
+                  FuzzyMatch.score(queryCity, r.city!) >= _matchThreshold,
+              // A brand match counts as confident even when the location's
+              // own name text (extra wording, a district suffix, ...) scores
+              // lower than the plain name/address comparison above — chain
+              // franchises are tagged this way regardless of what a given
+              // location calls itself on the sign. Same signal
+              // RoutingService.rankByBrandThenDistance uses; folded in here
+              // too since this — not that pre-sort — is what actually
+              // decides the order the search UI shows.
+              brandMatch: r.brand != null &&
+                  FuzzyMatch.score(effectiveQuery, r.brand!) >= _matchThreshold,
             ))
         .toList();
     scored.sort((a, b) {
-      // Coarse score bands: a 2 % scoring difference must not outweigh being
-      // 40 km closer.
+      if (queryCity != null && a.inQueryCity != b.inQueryCity) {
+        return a.inQueryCity ? -1 : 1;
+      }
+      final aMatch = a.score >= _matchThreshold || a.brandMatch;
+      final bMatch = b.score >= _matchThreshold || b.brandMatch;
+      if (aMatch != bMatch) return aMatch ? -1 : 1;
+      if (aMatch) return a.distance.compareTo(b.distance);
+      // Neither is a confident match: fall back to coarse score bands, then
+      // distance — the previous behaviour, kept only for this weak tier so
+      // something still shows up in a sensible order when nothing scores well.
       final band = (b.score * 10).round().compareTo((a.score * 10).round());
       return band != 0 ? band : a.distance.compareTo(b.distance);
     });
     return scored.map((e) => e.result).take(_maxResults).toList();
+  }
+
+  /// Whether the query names a city that at least one result is actually
+  /// in — returns that city exactly as the matching result spells it (for
+  /// consistent comparison against every other result's own [city] field),
+  /// the full query split into words, and how many trailing words are the
+  /// city phrase (so the caller can strip them before scoring the venue
+  /// name). Null if nothing in the results confirms the query names a place
+  /// at all. Checked with no extra network round-trip: real Nominatim/Photon
+  /// hits for a branch actually in that city already carry it in their own
+  /// structured address, which is a more reliable signal than trying to
+  /// tell a city name apart from an ordinary word in the query text alone.
+  static ({String city, List<String> words, int cityWordCount})?
+      _detectQueryCity(String query, List<NominatimResult> results) {
+    final words = query.trim().split(RegExp(r'\s+'))
+      ..removeWhere((w) => w.isEmpty);
+    if (words.isEmpty) return null;
+    // Longest trailing chunk first ("Reggio Emilia" before just "Emilia").
+    for (var n = words.length < 3 ? words.length : 3; n >= 1; n--) {
+      final chunk = words.sublist(words.length - n).join(' ');
+      for (final r in results) {
+        final city = r.city;
+        if (city == null) continue;
+        if (FuzzyMatch.score(chunk, city) >= _matchThreshold) {
+          return (city: city, words: words, cityWordCount: n);
+        }
+      }
+    }
+    return null;
   }
 
   /// Best match between the query and the several names a result carries.
