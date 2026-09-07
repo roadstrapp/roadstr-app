@@ -4,11 +4,18 @@ import 'package:roadstr/services/place_search_service.dart';
 import 'package:roadstr/services/poi_search_service.dart';
 import 'package:roadstr/services/routing_service.dart' show NominatimResult;
 
-NominatimResult r(String short, {String? display, double lat = 44.4, double lon = 12.2}) =>
+NominatimResult r(String short,
+        {String? display,
+        double lat = 44.4,
+        double lon = 12.2,
+        String? city,
+        String? brand}) =>
     NominatimResult(
       displayName: display ?? short,
       shortName: short,
       position: LatLng(lat, lon),
+      city: city,
+      brand: brand,
     );
 
 void main() {
@@ -103,6 +110,82 @@ void main() {
     test('a single result is returned untouched', () {
       final one = [r('Via Roma')];
       expect(PlaceSearchService.rankResults('qualsiasi cosa', one, null), one);
+    });
+
+    test('a generic/franchise query lists confident matches nearest first, '
+        'even when they score slightly differently as plain text', () {
+      final near = LatLng(44.4, 12.2); // Ravenna-ish
+      final ranked = PlaceSearchService.rankResults(
+        'mercatino usato',
+        [
+          r('Mercatino Usato - Faenza (Via Emilia)',
+              lat: 44.29, lon: 11.88, city: 'Faenza'), // ~35 km, worded oddly
+          r('Mercatino dell\'Usato', lat: 44.42, lon: 12.21), // ~2 km, plain name
+        ],
+        near,
+      );
+      expect(ranked.first.shortName, "Mercatino dell'Usato");
+    });
+
+    test('a brand match ranks with the confident tier even when its own '
+        'name text scores lower than a same-worded unrelated shop', () {
+      final near = LatLng(44.4, 12.2);
+      final ranked = PlaceSearchService.rankResults(
+        'mercatino usato',
+        [
+          // Closer, shares generic wording, NOT the franchise.
+          r('Mercatino delle Pulci', lat: 44.41, lon: 12.21),
+          // Farther, but tagged as the real franchise via `brand`.
+          r('Il Mercatino di Paolo',
+              lat: 44.30, lon: 11.90, brand: "Mercatino dell'Usato"),
+        ],
+        near,
+      );
+      expect(ranked.first.shortName, 'Il Mercatino di Paolo');
+    });
+
+    test('a city named in the query outranks plain distance', () {
+      final near = LatLng(44.4, 12.2); // near Ravenna
+      final ranked = PlaceSearchService.rankResults(
+        'mercatino usato faenza',
+        [
+          // Closer to the user, but not in Faenza.
+          r('Mercatino Usato Ravenna', lat: 44.41, lon: 12.20, city: 'Ravenna'),
+          // Farther from the user, but actually in Faenza — the named city.
+          r('Mercatino Usato Faenza', lat: 44.29, lon: 11.88, city: 'Faenza'),
+        ],
+        near,
+      );
+      expect(ranked.first.shortName, 'Mercatino Usato Faenza');
+    });
+
+    test('a city name that matches no result is not invented — plain '
+        'distance ordering still applies', () {
+      final near = LatLng(44.4, 12.2);
+      final ranked = PlaceSearchService.rankResults(
+        'mercatino usato nowhereville',
+        [
+          r('Mercatino Usato A', lat: 44.41, lon: 12.20, city: 'Ravenna'),
+          r('Mercatino Usato B', lat: 44.29, lon: 11.88, city: 'Faenza'),
+        ],
+        near,
+      );
+      // Neither result is "in Nowhereville", so the closer one still wins.
+      expect(ranked.first.shortName, 'Mercatino Usato A');
+    });
+
+    test('multiple cities named in different results only boost the one the '
+        'query actually names, not every city-tagged result', () {
+      final near = LatLng(44.4, 12.2);
+      final ranked = PlaceSearchService.rankResults(
+        'mercatino usato faenza',
+        [
+          r('Mercatino Usato Lugo', lat: 44.42, lon: 12.22, city: 'Lugo'),
+          r('Mercatino Usato Faenza', lat: 44.29, lon: 11.88, city: 'Faenza'),
+        ],
+        near,
+      );
+      expect(ranked.first.shortName, 'Mercatino Usato Faenza');
     });
   });
 
