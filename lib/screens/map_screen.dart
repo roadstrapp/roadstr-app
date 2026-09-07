@@ -31,6 +31,7 @@ import '../services/routing_service.dart';
 import '../services/speed_limit_service.dart';
 import '../services/poi_search_service.dart';
 import '../services/place_search_service.dart';
+import '../services/crossing_hazard_service.dart';
 import '../services/speed_camera_service.dart';
 import '../services/traffic_light_service.dart';
 import '../services/ztl_service.dart';
@@ -315,6 +316,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   final _favSyncSvc = FavoritesSyncService();
   final _speedCameraSvc = SpeedCameraService();
   final _trafficLightSvc = TrafficLightService();
+  final _crossingHazardSvc = CrossingHazardService();
 
   /// OSM-sourced camera ids already alerted this session — separate from
   /// [_alertedCameraIds] (Nostr event ids, String) since OSM node ids are int
@@ -1896,6 +1898,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     }
     unawaited(_speedCameraSvc.updateIfNeeded(_position));
     unawaited(_trafficLightSvc.updateIfNeeded(_position));
+    unawaited(_crossingHazardSvc.updateIfNeeded(_position));
     for (final cam in _speedCameraSvc.cachedCameras) {
       if (_alertedOsmCameraIds.contains(cam.id)) continue;
       final d = dist.as(LengthUnit.Meter, _position, cam.position);
@@ -5109,6 +5112,37 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                         height: 24,
                         child: const TrafficLightPin(),
                       ),
+                  ]),
+                // Speed bumps: same zoom≥15 OsmAnd itself uses for
+                // traffic_calming nodes.
+                if (_crossingHazardSvc.cachedHazards
+                        .any((h) => h.kind == CrossingHazardKind.speedBump) &&
+                    _camZoom >= 15)
+                  MarkerLayer(markers: [
+                    for (final h in _crossingHazardSvc.cachedHazards)
+                      if (h.kind == CrossingHazardKind.speedBump)
+                        Marker(
+                          point: h.position,
+                          width: 22,
+                          height: 22,
+                          child: const SpeedBumpPin(),
+                        ),
+                  ]),
+                // Crosswalks: gated a stop higher — by far the densest OSM
+                // point feature in any built-up area, same reason OsmAnd
+                // itself only shows highway=crossing from zoom 16.
+                if (_crossingHazardSvc.cachedHazards
+                        .any((h) => h.kind == CrossingHazardKind.crosswalk) &&
+                    _camZoom >= 16)
+                  MarkerLayer(markers: [
+                    for (final h in _crossingHazardSvc.cachedHazards)
+                      if (h.kind == CrossingHazardKind.crosswalk)
+                        Marker(
+                          point: h.position,
+                          width: 20,
+                          height: 20,
+                          child: const CrosswalkPin(),
+                        ),
                   ]),
                 // Saved parking spot — local-only, persists until removed.
                 if (_parkingPosition != null)

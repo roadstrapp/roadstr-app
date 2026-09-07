@@ -69,6 +69,42 @@ class TrafficLightPin extends StatelessWidget {
       );
 }
 
+/// Marker for an OSM-sourced pedestrian crossing (`highway=crossing`) — same
+/// muted "static OSM data" family as [OsmCameraPin]/[TrafficLightPin].
+class CrosswalkPin extends StatelessWidget {
+  const CrosswalkPin({super.key});
+  @override
+  Widget build(BuildContext context) => Container(
+        decoration: BoxDecoration(
+          color: Colors.amber.shade700.withValues(alpha: 0.75),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 1.2),
+          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 3)],
+        ),
+        child: const Center(
+          child: Text('🚸', style: TextStyle(fontSize: 13, height: 1)),
+        ),
+      );
+}
+
+/// Marker for an OSM-sourced speed bump/hump/table (`traffic_calming=*`) —
+/// same muted "static OSM data" family as [OsmCameraPin]/[TrafficLightPin].
+class SpeedBumpPin extends StatelessWidget {
+  const SpeedBumpPin({super.key});
+  @override
+  Widget build(BuildContext context) => Container(
+        decoration: BoxDecoration(
+          color: Colors.orange.shade800.withValues(alpha: 0.75),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 1.2),
+          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 3)],
+        ),
+        child: const Center(
+          child: Text('〰️', style: TextStyle(fontSize: 13, height: 1)),
+        ),
+      );
+}
+
 class PinMarker extends StatelessWidget {
   const PinMarker({super.key});
   @override
