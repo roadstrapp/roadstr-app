@@ -1,0 +1,23 @@
+Crosswalk/speed-bump map icons, better search ranking, and a couple of
+route-planner fixes.
+
+Added
+
+• Crosswalks and speed bumps now show on the map at their exact
+  OSM-mapped position, sourced the same way the speed-camera and
+  traffic-light markers already are.
+
+Fixed
+
+• Search results now list confident matches nearest-first — a
+  franchise's own branches no longer get shuffled by minor wording
+  differences outranking real distance.
+• Typing a city name at the end of a search ("mercatino usato
+  faenza") now prioritises results actually in that city over merely
+  closer ones elsewhere.
+• The two-point route planner ("Da" field) now works even without a
+  GPS fix yet, falling back to the current map view.
+• Long-press on the map: "report event here" is back at the exact
+  long-pressed point, alongside "set parking here".
+• A "location services are off" prompt now appears when tapping the
+  recentre button with no GPS fix, instead of doing nothing.
