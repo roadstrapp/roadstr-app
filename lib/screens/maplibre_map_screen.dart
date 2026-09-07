@@ -50,6 +50,7 @@ import '../services/place_search_service.dart';
 import '../services/poi_search_service.dart';
 import '../services/route_progress.dart';
 import '../services/routing_service.dart';
+import '../services/crossing_hazard_service.dart';
 import '../services/speed_camera_service.dart';
 import '../services/traffic_light_service.dart';
 import '../services/speed_limit_service.dart';
@@ -607,6 +608,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   // renders, so there is nothing to port for them on the map itself.
   final _speedCameraSvc = SpeedCameraService();
   final _trafficLightSvc = TrafficLightService();
+  final _crossingHazardSvc = CrossingHazardService();
   LatLng? _parkingPosition;
   List<FavoritePlace> _favorites = [];
 
@@ -1116,53 +1118,77 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _showSnack(AppLocalizations.of(context).parkingRemovedSnack);
   }
 
-  /// Prompted from a long press on the map — the one long-press action this
-  /// screen didn't already offer some other way (a short tap already covers
-  /// "navigate here" via the place-info panel, and reporting has its own
-  /// FAB). Same confirm-before-acting shape as _showExitNavigationDialog.
-  void _confirmSetParkingAt(LatLng point) {
+  /// Prompted from a long press on the map. "Navigate here" isn't offered —
+  /// a short tap already covers that via the place-info panel — but
+  /// reporting only had a FAB (GPS-position-only) until this was added:
+  /// a driver who long-presses a hazard they can see ahead, or one they
+  /// already passed and want to mark at its real spot rather than where
+  /// they are now, had no way to do that. Same MapScreen.reportEventHere
+  /// action, at the tapped point instead of the current fix.
+  void _showLongPressMenu(LatLng point) {
     final c = RoadstrColors.of(context);
     final l = AppLocalizations.of(context);
-    showDialog(
+    final navBar = MediaQuery.of(context).viewPadding.bottom;
+    showModalBottomSheet(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: c.surface2,
-        title: Row(children: [
-          Icon(Icons.local_parking_rounded, color: c.accent, size: 20),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(l.parkingSaveHere,
-                style: TextStyle(
-                    color: c.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold)),
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        margin: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: c.surface2,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: c.border, width: 0.5),
+        ),
+        padding: EdgeInsets.fromLTRB(20, 16, 20, 24 + navBar),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Center(
+              child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                      color: c.border,
+                      borderRadius: BorderRadius.circular(2)))),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                unawaited(_showReportSheet(position: point));
+              },
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(
+                    color: const Color(0xFFFFB800).withValues(alpha: 0.6)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 13),
+              ),
+              icon: const Icon(Icons.report_problem_outlined,
+                  color: Color(0xFFFFB800), size: 18),
+              label: Text(l.reportEventHere,
+                  style: const TextStyle(color: Color(0xFFFFB800))),
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                _saveParkingPosition(point);
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: c.accent,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 13),
+              ),
+              icon: Icon(Icons.local_parking_rounded, color: c.onAccent, size: 18),
+              label:
+                  Text(l.parkingSaveHere, style: TextStyle(color: c.onAccent)),
+            ),
           ),
         ]),
-        content: Text(l.parkingLongPressConfirm,
-            style: TextStyle(color: c.textSecondary, fontSize: 13)),
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.pop(context),
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: c.accent),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-            child: Text(l.cancel, style: TextStyle(color: c.accent)),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _saveParkingPosition(point);
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: c.accent,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-            child: Text(l.parkingSaveHere, style: TextStyle(color: c.onAccent)),
-          ),
-        ],
       ),
     );
   }
@@ -1460,7 +1486,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     if (mounted) _showSnack(AppLocalizations.of(context).editRequestSent);
   }
 
-  Future<void> _showReportSheet() async {
+  Future<void> _showReportSheet({LatLng? position}) async {
     final privKey = await _secStorage.read(key: 'nostr_priv_hex');
     final pubKey = await _secStorage.read(key: 'nostr_pub_hex');
     final flavor = await _secStorage.read(key: 'nostr_flavor');
@@ -1500,9 +1526,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       if (!mounted) return;
     }
     final c = RoadstrColors.of(context);
-    final pos = _lastFix == null
-        ? null
-        : LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude);
+    final pos = position ??
+        (_lastFix != null
+            ? LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude)
+            : _camState != null
+                ? LatLng(_camState!.lat, _camState!.lng)
+                : null);
     if (pos == null) return;
     showModalBottomSheet(
       context: context,
@@ -1925,11 +1954,16 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   Future<void> _calculatePlan() async {
     final to = _planTo;
     if (to == null) return;
+    // "My Location" without a real fix yet falls back to where the map is
+    // currently centred — same as MapScreen's _camCenter fallback — so the
+    // planner still works with GPS off as long as the user picked an
+    // explicit destination; only refuse outright once neither exists.
     final from = _planFrom?.position ??
-        (_lastFix == null
-            ? null
-            : LatLng(
-                _lastFix!.position.latitude, _lastFix!.position.longitude));
+        (_lastFix != null
+            ? LatLng(_lastFix!.position.latitude, _lastFix!.position.longitude)
+            : _camState != null
+                ? LatLng(_camState!.lat, _camState!.lng)
+                : null);
     if (from == null) {
       _showSnack(AppLocalizations.of(context).acquiringGps);
       return;
@@ -3461,6 +3495,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         setState(() {});
       }
     }));
+    final hazardsBefore = _crossingHazardSvc.cachedHazards;
+    unawaited(_crossingHazardSvc.updateIfNeeded(data.position).then((_) {
+      if (mounted && !identical(_crossingHazardSvc.cachedHazards, hazardsBefore)) {
+        setState(() {});
+      }
+    }));
     // Same background warm-up MapScreen runs on every fix — by the time a
     // route is actually requested, ZtlService's cache already covers the
     // area (self-throttled: it only re-fetches every 2 km/on failure
@@ -3602,11 +3642,62 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     });
   }
 
-  void _recenter() {
+  /// Same MapScreen._requestGps(silent: false) reasoning: GPS starts silently
+  /// at launch regardless of service state (this screen's speed-camera/ZTL/
+  /// speed-limit caches all depend on a live fix), but a deliberate tap on
+  /// the recentre FAB with no fix yet is exactly when a "location services
+  /// are off" dialog is actually useful instead of a silent no-op.
+  Future<void> _recenter() async {
+    if (_lastFix == null) {
+      if (!await _gps.isServiceEnabled()) {
+        if (mounted) _showGpsDisabledDialog();
+        return;
+      }
+      if (mounted) _showSnack(AppLocalizations.of(context).acquiringGps);
+      return;
+    }
     setState(() => _followUser = true);
     _snapCameraToFix(
         navShift: _isNavigating && _headingMode,
         pitch: _isNavigating ? 55.0 : 40.0);
+  }
+
+  void _showGpsDisabledDialog() {
+    final c = RoadstrColors.of(context);
+    final l = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: c.surface2,
+        title: Row(children: [
+          Icon(Icons.gps_off_rounded, color: c.accent, size: 22),
+          const SizedBox(width: 8),
+          Text(l.gpsNotActiveTitle,
+              style: TextStyle(
+                  color: c.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold)),
+        ]),
+        content: Text(l.gpsDisabledMessage,
+            style:
+                TextStyle(color: c.textSecondary, fontSize: 13, height: 1.5)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l.ok, style: TextStyle(color: c.textSecondary)),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: c.accent),
+            onPressed: () async {
+              Navigator.pop(context);
+              await _gps.openSettings();
+            },
+            child: Text(l.openSettings,
+                style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   /// Snaps the camera onto the current GPS fix immediately — a request to
@@ -3937,13 +4028,11 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                   !_calculatingRoute &&
                   !_showAlternatives) {
                 // A long press is a deliberate "mark this exact spot" action
-                // — the parking case a short tap's place-info flow doesn't
-                // cover. MapScreen has the same option inside its long-press
-                // quick-actions sheet; this is the dedicated equivalent for
-                // the one action that isn't already reachable here (a short
-                // tap already offers "navigate here" via place-info, and
-                // reporting has its own FAB).
-                _confirmSetParkingAt(LatLng(event.point.lat, event.point.lon));
+                // — parking and reporting-at-an-arbitrary-point, the two
+                // cases a short tap's place-info flow doesn't cover ("navigate
+                // here" is already reachable there). Same two actions
+                // MapScreen's long-press quick-actions sheet offers.
+                _showLongPressMenu(LatLng(event.point.lat, event.point.lon));
               } else if (event is MapEventMoveCamera &&
                   ((event.camera.pitch - _pitchNotifier.value).abs() > 0.5 ||
                       (event.camera.bearing - _bearingNotifier.value).abs() >
@@ -4107,6 +4196,38 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                       size: const Size(24, 24),
                       child: const TrafficLightPin(),
                     ),
+                ]),
+              // Speed bumps: same zoom≥15 OsmAnd itself uses for
+              // traffic_calming nodes.
+              if (_crossingHazardSvc.cachedHazards
+                      .any((h) => h.kind == CrossingHazardKind.speedBump) &&
+                  (_camState?.zoom ?? 17) >= 15)
+                WidgetLayer(markers: [
+                  for (final h in _crossingHazardSvc.cachedHazards)
+                    if (h.kind == CrossingHazardKind.speedBump)
+                      Marker(
+                        point: Geographic(
+                            lon: h.position.longitude, lat: h.position.latitude),
+                        size: const Size(22, 22),
+                        child: const SpeedBumpPin(),
+                      ),
+                ]),
+              // Crosswalks: gated a stop higher than speed bumps — they are
+              // by far the densest OSM point feature in any built-up area
+              // (700+ within 1.5 km is routine), same reason OsmAnd itself
+              // only shows highway=crossing from zoom 16.
+              if (_crossingHazardSvc.cachedHazards
+                      .any((h) => h.kind == CrossingHazardKind.crosswalk) &&
+                  (_camState?.zoom ?? 17) >= 16)
+                WidgetLayer(markers: [
+                  for (final h in _crossingHazardSvc.cachedHazards)
+                    if (h.kind == CrossingHazardKind.crosswalk)
+                      Marker(
+                        point: Geographic(
+                            lon: h.position.longitude, lat: h.position.latitude),
+                        size: const Size(20, 20),
+                        child: const CrosswalkPin(),
+                      ),
                 ]),
               if (_lastFix != null)
                 // _displayPosition is updated every 16ms by the follow
