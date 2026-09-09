@@ -1,0 +1,6 @@
+Version code correction — no app changes.
+
+A past publish to ZapStore went out under version_code 2036 by mistake,
+well above every real release since, which made ZapStore's "highest
+version_code wins" update check keep offering that old build instead of
+current ones. This release jumps past it so updates work correctly again.
