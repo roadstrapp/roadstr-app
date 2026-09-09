@@ -62,8 +62,14 @@ android {
         // These two lines are the single source of truth for the Android
         // build and MUST match `version:` in pubspec.yaml. That is enforced by
         // test/version_consistency_test.dart rather than by memory.
-        versionCode = 44
-        versionName = "0.5.5"
+        // versionCode jumps from 44 straight to 2045 (not 45) on purpose: a
+        // past ZapStore publish (app.roadstr@0.4.27) went out under this same
+        // signing key with version_code=2036 by mistake — comfortably above
+        // every real release since — so ZapStore's "highest version_code
+        // wins" update logic kept treating that phantom 0.4.27 as newer than
+        // any real 0.5.x release. This has to clear 2036, not just increment.
+        versionCode = 2045
+        versionName = "0.5.6"
     }
 
     // ── Signing ───────────────────────────────────────────────────────────────
