@@ -246,6 +246,23 @@ class AppLocalizationsGa extends AppLocalizations {
       'Léamh beag airde fíor-ama in aice le rialtáin na léarscáile';
 
   @override
+  String get sectionRoadOverlays => 'Eilimintí bóthair';
+
+  @override
+  String get showCrosswalks => 'Trasrianta coisithe';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Taispeánann sé trasrianta coisithe ó OpenStreetMap ar an léarscáil';
+
+  @override
+  String get showTrafficLights => 'Soilse tráchta';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Taispeánann sé soilse tráchta ó OpenStreetMap ar an léarscáil';
+
+  @override
   String get autoCenterOnLaunch => 'Láraigh ar mo shuíomh ag an tosú';
 
   @override

@@ -245,6 +245,23 @@ class AppLocalizationsDa extends AppLocalizations {
       'En lille visning af højden i realtid ved kortkontrollerne';
 
   @override
+  String get sectionRoadOverlays => 'Vejelementer';
+
+  @override
+  String get showCrosswalks => 'Fodgængerfelter';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Viser fodgængerfelter fra OpenStreetMap på kortet';
+
+  @override
+  String get showTrafficLights => 'Trafiklys';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Viser trafiklys fra OpenStreetMap på kortet';
+
+  @override
   String get autoCenterOnLaunch => 'Centrer på min position ved opstart';
 
   @override

@@ -246,6 +246,23 @@ class AppLocalizationsBg extends AppLocalizations {
       'Малко показание на надморската височина в реално време до бутоните на картата';
 
   @override
+  String get sectionRoadOverlays => 'Пътни елементи';
+
+  @override
+  String get showCrosswalks => 'Пешеходни пътеки';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Показва на картата пешеходните пътеки от OpenStreetMap';
+
+  @override
+  String get showTrafficLights => 'Светофари';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Показва на картата светофарите от OpenStreetMap';
+
+  @override
   String get autoCenterOnLaunch =>
       'Центриране върху моята позиция при стартиране';
 
