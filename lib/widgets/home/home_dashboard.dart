@@ -64,10 +64,8 @@ class _HomeDashboardState extends State<HomeDashboard> {
               height: 56,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                gradient: widget.colors.panelGradient,
-                color: widget.colors.panelGradient == null
-                    ? widget.colors.surface2
-                    : null,
+                gradient:
+                    widget.colors.panelGradient ?? widget.colors.surfaceSheen,
                 borderRadius: BorderRadius.circular(22),
                 border: Border.all(color: widget.colors.panelEdge),
                 boxShadow: widget.colors.panelShadow,
@@ -95,10 +93,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
       padding: EdgeInsets.fromLTRB(12, 0, 12, widget.bottomInset > 0 ? 8 : 12),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: widget.colors.panelGradient,
-          color: widget.colors.panelGradient == null
-              ? widget.colors.surface2
-              : null,
+          gradient: widget.colors.panelGradient ?? widget.colors.surfaceSheen,
           borderRadius: BorderRadius.circular(28),
           border: Border.all(color: widget.colors.panelEdge),
           boxShadow: widget.colors.panelShadow,
