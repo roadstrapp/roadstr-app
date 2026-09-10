@@ -67,17 +67,12 @@ class RoutePlannerBar extends StatelessWidget {
     final c = colors;
     return Container(
       decoration: BoxDecoration(
-        color: c.surface2,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: c.border, width: 0.5),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.16),
-              blurRadius: 12,
-              offset: const Offset(0, 3))
-        ],
+        gradient: c.panelGradient ?? c.surfaceSheen,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: c.panelEdge),
+        boxShadow: c.panelShadow,
       ),
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         // ── Da ────────────────────────────────────────────────────────────
         Row(children: [
@@ -106,7 +101,11 @@ class RoutePlannerBar extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: AppLocalizations.of(context).plannerFromHint,
                 hintStyle: TextStyle(color: c.textSecondary, fontSize: 14),
+                filled: false,
+                contentPadding: EdgeInsets.zero,
                 border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
                 isDense: true,
               ),
             ),
@@ -299,7 +298,11 @@ class _StopList extends StatelessWidget {
                     hintText: isLast ? l.plannerToHint : l.plannerStopHint,
                     hintStyle:
                         TextStyle(color: colors.textSecondary, fontSize: 14),
+                    filled: false,
+                    contentPadding: EdgeInsets.zero,
                     border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
                     isDense: true,
                   ),
                 ),
@@ -422,22 +425,25 @@ class TransportModeChip extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? c.accent : c.surface3,
-          borderRadius: BorderRadius.circular(20),
+          gradient: selected ? c.accentGloss : c.surfaceSheen,
+          borderRadius: BorderRadius.circular(15),
           border: Border.all(
-              color: selected ? c.accent : c.border, width: selected ? 2 : 0.5),
+              color:
+                  selected ? Colors.white.withValues(alpha: 0.28) : c.panelEdge,
+              width: 1),
+          boxShadow: selected ? c.cardShadow : null,
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon,
-              size: 14, color: selected ? Colors.white : c.textSecondary),
-          const SizedBox(width: 5),
+          Icon(icon, size: 15, color: selected ? c.onAccent : c.textSecondary),
+          const SizedBox(width: 6),
           Text(label,
               style: TextStyle(
                   fontSize: 12,
-                  color: selected ? Colors.white : c.textSecondary,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal)),
+                  color: selected ? c.onAccent : c.textSecondary,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w600)),
         ]),
       ),
     );
@@ -556,8 +562,7 @@ class _PreviewPanelState extends State<RoutePreviewPanel>
           },
           child: Container(
             decoration: BoxDecoration(
-              gradient: c.panelGradient,
-              color: c.panelGradient == null ? c.surface2 : null,
+              gradient: c.panelGradient ?? c.surfaceSheen,
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(28)),
               border: Border(top: BorderSide(color: c.panelEdge, width: 1)),
@@ -912,16 +917,11 @@ class _AlternativesPanelState extends State<RouteAlternativesPanel>
           },
           child: Container(
             decoration: BoxDecoration(
-              color: c.surface2,
+              gradient: c.panelGradient ?? c.surfaceSheen,
               borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(20)),
-              border: Border(top: BorderSide(color: c.border, width: 0.5)),
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.12),
-                    blurRadius: 16,
-                    offset: const Offset(0, -4))
-              ],
+                  const BorderRadius.vertical(top: Radius.circular(28)),
+              border: Border(top: BorderSide(color: c.panelEdge)),
+              boxShadow: c.panelShadow,
             ),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               const SizedBox(height: 10),
@@ -1172,13 +1172,22 @@ class RouteCard extends StatelessWidget {
         margin: const EdgeInsets.only(right: 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color:
-              isSelected ? highlight.withValues(alpha: 0.12) : colors.surface2,
-          borderRadius: BorderRadius.circular(16),
+          gradient: isSelected
+              ? LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color.lerp(colors.surface2, highlight, 0.18)!,
+                    Color.lerp(colors.surface2, highlight, 0.07)!,
+                  ],
+                )
+              : colors.surfaceSheen,
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isSelected ? highlight : colors.border,
-            width: isSelected ? 2 : 0.5,
+            color: isSelected ? highlight : colors.panelEdge,
+            width: isSelected ? 1.5 : 1,
           ),
+          boxShadow: isSelected ? colors.cardShadow : null,
         ),
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

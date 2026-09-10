@@ -10,6 +10,14 @@ import '../../services/routing_service.dart' show NominatimResult;
 import '../../theme/app_theme.dart';
 import '../../utils/units.dart';
 
+BoxDecoration _floatingPanel(RoadstrColors colors, {double radius = 18}) =>
+    BoxDecoration(
+      gradient: colors.surfaceSheen,
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: colors.panelEdge),
+      boxShadow: colors.cardShadow,
+    );
+
 /// The translated name of a nearby category, used both on its button and as
 /// the label of results OSM has no name for.
 String nearbyCategoryLabel(NearbyCategory category, AppLocalizations l) =>
@@ -51,18 +59,7 @@ class NearbyBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return Container(
-      decoration: BoxDecoration(
-        gradient: colors.panelGradient,
-        color: colors.panelGradient == null ? colors.surface2 : null,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colors.border, width: 0.5),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 12,
-              offset: const Offset(0, 4))
-        ],
-      ),
+      decoration: _floatingPanel(colors),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -154,7 +151,9 @@ class SearchHistoryList extends StatelessWidget {
   final ValueChanged<SearchHistoryItem> onSelect;
   final ValueChanged<FavoritePlace> onSelectFavorite;
   final VoidCallback onClear;
-  const SearchHistoryList({super.key, required this.history,
+  const SearchHistoryList(
+      {super.key,
+      required this.history,
       required this.colors,
       required this.onSelect,
       required this.onSelectFavorite,
@@ -165,18 +164,7 @@ class SearchHistoryList extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return Container(
-      decoration: BoxDecoration(
-        gradient: colors.panelGradient,
-        color: colors.panelGradient == null ? colors.surface2 : null,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colors.border, width: 0.5),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 12,
-              offset: const Offset(0, 4))
-        ],
-      ),
+      decoration: _floatingPanel(colors),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         // ── Saved places section ─────────────────────────────────────────
         if (favorites.isNotEmpty) ...[
@@ -322,7 +310,8 @@ class PlaceSearchBar extends StatelessWidget {
   final ValueChanged<String> onSubmitted;
   final VoidCallback onClear;
 
-  const PlaceSearchBar({super.key, 
+  const PlaceSearchBar({
+    super.key,
     required this.controller,
     required this.colors,
     required this.onFocus,
@@ -334,23 +323,20 @@ class PlaceSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 52,
-      decoration: BoxDecoration(
-        gradient: colors.panelGradient,
-        color: colors.panelGradient == null ? colors.surface2 : null,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: colors.border, width: 0.5),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.18),
-              blurRadius: 12,
-              offset: const Offset(0, 3))
-        ],
-      ),
+      height: 58,
+      decoration: _floatingPanel(colors, radius: 22),
       child: Row(children: [
-        const SizedBox(width: 18),
-        Icon(Icons.search, color: colors.textSecondary, size: 20),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
+        Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: colors.accentSoft,
+            borderRadius: BorderRadius.circular(13),
+          ),
+          child: Icon(Icons.search_rounded, color: colors.accent, size: 20),
+        ),
+        const SizedBox(width: 10),
         Expanded(
           child: TextField(
             controller: controller,
@@ -358,11 +344,18 @@ class PlaceSearchBar extends StatelessWidget {
             onChanged: onChanged,
             onSubmitted: onSubmitted,
             textInputAction: TextInputAction.search,
-            style: TextStyle(color: colors.textPrimary, fontSize: 16),
+            style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 15,
+                fontWeight: FontWeight.w600),
             decoration: InputDecoration(
               hintText: AppLocalizations.of(context).searchHint,
-              hintStyle: TextStyle(color: colors.textSecondary, fontSize: 16),
+              hintStyle: TextStyle(color: colors.textSecondary, fontSize: 15),
+              filled: false,
+              contentPadding: EdgeInsets.zero,
               border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
               isDense: true,
             ),
           ),
@@ -390,7 +383,9 @@ class SearchResultsList extends StatelessWidget {
   /// silent (the user is still editing), but a nearby category that comes back
   /// empty has to say so — otherwise the tap looks like it did nothing.
   final String? emptyMessage;
-  const SearchResultsList({super.key, required this.results,
+  const SearchResultsList(
+      {super.key,
+      required this.results,
       required this.isLoading,
       required this.colors,
       required this.onSelect,
@@ -401,18 +396,7 @@ class SearchResultsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        gradient: colors.panelGradient,
-        color: colors.panelGradient == null ? colors.surface2 : null,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colors.border, width: 0.5),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 12,
-              offset: const Offset(0, 4))
-        ],
-      ),
+      decoration: _floatingPanel(colors),
       child: isLoading && favorites.isEmpty
           ? Padding(
               padding: const EdgeInsets.all(16),

@@ -541,22 +541,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l.profileTitle),
-        centerTitle: true,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(0.5),
-          child: Divider(height: 0.5, color: c.border),
-        ),
       ),
-      body: _loading
-          ? Center(child: CircularProgressIndicator(color: c.accent))
-          : ListView(
-              // Bottom padding via SafeArea so the Disconnect button is never
-              // hidden by the Android navigation bar in edge-to-edge mode.
-              padding: EdgeInsets.fromLTRB(
-                  20, 20, 20, 20 + MediaQuery.of(context).viewPadding.bottom),
-              children:
-                  _loggedIn ? _buildLoggedIn(c, l) : _buildLoggedOut(c, l),
-            ),
+      body: RoadstrScreenBackground(
+        child: _loading
+            ? Center(child: CircularProgressIndicator(color: c.accent))
+            : ListView(
+                // Bottom padding via SafeArea so the Disconnect button is never
+                // hidden by the Android navigation bar in edge-to-edge mode.
+                padding: EdgeInsets.fromLTRB(
+                    20, 8, 20, 20 + MediaQuery.of(context).viewPadding.bottom),
+                children:
+                    _loggedIn ? _buildLoggedIn(c, l) : _buildLoggedOut(c, l),
+              ),
+      ),
     );
   }
 
@@ -586,8 +583,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             height: 80,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: c.accentSoft,
+              gradient: c.surfaceSheen,
               border: Border.all(color: c.accent, width: 2),
+              boxShadow: c.cardShadow,
             ),
             child: ClipOval(
               child: _showPublicProfile && _picture != null
@@ -641,11 +639,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (_showPublicProfile)
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: c.surface2,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: c.border, width: 0.5),
-            ),
+            decoration: c.premiumCard(radius: 18),
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(l.publicKeyLabel,
@@ -685,11 +679,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (!_showPublicProfile)
           Container(
             padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: c.surface2,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: c.border, width: 0.5),
-            ),
+            decoration: c.premiumCard(radius: 18),
             child: Text(l.profileVisibilityPseudonymous,
                 style: TextStyle(color: c.textSecondary, fontSize: 12)),
           ),
@@ -720,10 +710,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         else if (_myEvents == null || _myEvents!.isEmpty)
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-                color: c.surface2,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: c.border, width: 0.5)),
+            decoration: c.premiumCard(radius: 18),
             child: Center(
                 child: Text(AppLocalizations.of(context).noReportsYet,
                     style: TextStyle(color: c.textSecondary, fontSize: 13))),
@@ -764,8 +751,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           height: 80,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: c.accentSoft,
+            gradient: c.surfaceSheen,
             border: Border.all(color: c.accent, width: 2),
+            boxShadow: c.cardShadow,
           ),
           child: Icon(Icons.person_outline, color: c.accent, size: 40),
         )),
@@ -854,10 +842,11 @@ class _BalanceBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7931A).withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-            color: const Color(0xFFF7931A).withValues(alpha: 0.35), width: 0.5),
+        gradient: colors.surfaceSheen,
+        borderRadius: BorderRadius.circular(18),
+        border:
+            Border.all(color: const Color(0xFFF7931A).withValues(alpha: 0.42)),
+        boxShadow: colors.cardShadow,
       ),
       child: Row(children: [
         const Text('⚡', style: TextStyle(fontSize: 24)),
@@ -908,9 +897,10 @@ class _ReputationBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _color.withValues(alpha: 0.35), width: 0.5),
+        gradient: colors.surfaceSheen,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _color.withValues(alpha: 0.42)),
+        boxShadow: colors.cardShadow,
       ),
       child: Row(children: [
         Icon(Icons.verified_rounded, color: _color, size: 28),
@@ -983,11 +973,7 @@ class _EventTileState extends State<_EventTile> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: c.surface2,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: c.border, width: 0.5),
-        ),
+        decoration: c.premiumCard(radius: 18),
         child: Row(children: [
           Text(event.category.emoji, style: const TextStyle(fontSize: 22)),
           const SizedBox(width: 12),
@@ -1401,9 +1387,10 @@ class _LoginTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: colors.surface2,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: borderColor, width: 0.5),
+          gradient: colors.surfaceSheen,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: borderColor),
+          boxShadow: colors.cardShadow,
         ),
         child: Row(children: [
           Container(
