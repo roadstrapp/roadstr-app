@@ -262,6 +262,60 @@ abstract class AppLocalizations {
   /// **'Menu'**
   String get bottomBarMenu;
 
+  /// No description provided for @homeGoodMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get homeGoodMorning;
+
+  /// No description provided for @homeGoodAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get homeGoodAfternoon;
+
+  /// No description provided for @homeGoodEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get homeGoodEvening;
+
+  /// No description provided for @homeReadyToGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to go?'**
+  String get homeReadyToGo;
+
+  /// No description provided for @homeNavigate.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate'**
+  String get homeNavigate;
+
+  /// No description provided for @homeParking.
+  ///
+  /// In en, this message translates to:
+  /// **'Parking'**
+  String get homeParking;
+
+  /// No description provided for @homeActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get homeActivity;
+
+  /// No description provided for @homeEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'Events'**
+  String get homeEvents;
+
+  /// No description provided for @homeSavedPlaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved places'**
+  String get homeSavedPlaces;
+
   /// No description provided for @notificationsTitle.
   ///
   /// In en, this message translates to:

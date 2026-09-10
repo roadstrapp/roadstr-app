@@ -160,65 +160,66 @@ class NavInstruction extends StatelessWidget {
             if (showNext)
               Container(
                 margin: const EdgeInsets.only(left: 10),
-            // 15% narrower than the half-screen tile this used to be, so it
-            // covers less map. Type and padding come down with it rather than
-            // the text being clipped: the same words still fit in the same
-            // number of lines, just set slightly smaller.
-            width: MediaQuery.of(context).size.width * 0.425,
-            padding: EdgeInsets.symmetric(
-                horizontal: land ? 13 : 20, vertical: land ? 12 : 18),
-            decoration: BoxDecoration(
-              gradient: colors.panelGradient,
-              color: colors.panelGradient == null ? colors.surface3 : null,
-              // Rounded on every corner now that it floats clear of the panel
-              // above, and a step smaller in radius, edge and shadow than the
-              // main panel — subordinate by weight rather than only by size.
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                  color: colors.panelEdge.withValues(alpha: 0.5), width: 1),
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.12),
-                    blurRadius: 16,
-                    spreadRadius: -3,
-                    offset: const Offset(0, 4))
-              ],
-            ),
-            child: Row(children: [
-              ManeuverSymbol(
-                step: nextStep!,
-                size: land ? 26 : 36,
-                colors: colors,
-                showBackground: false,
+                // 15% narrower than the half-screen tile this used to be, so it
+                // covers less map. Type and padding come down with it rather than
+                // the text being clipped: the same words still fit in the same
+                // number of lines, just set slightly smaller.
+                width: MediaQuery.of(context).size.width * 0.425,
+                padding: EdgeInsets.symmetric(
+                    horizontal: land ? 13 : 20, vertical: land ? 12 : 18),
+                decoration: BoxDecoration(
+                  gradient: colors.panelGradient,
+                  color: colors.panelGradient == null ? colors.surface3 : null,
+                  // Rounded on every corner now that it floats clear of the panel
+                  // above, and a step smaller in radius, edge and shadow than the
+                  // main panel — subordinate by weight rather than only by size.
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                      color: colors.panelEdge.withValues(alpha: 0.5), width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.12),
+                        blurRadius: 16,
+                        spreadRadius: -3,
+                        offset: const Offset(0, 4))
+                  ],
+                ),
+                child: Row(children: [
+                  ManeuverSymbol(
+                    step: nextStep!,
+                    size: land ? 26 : 36,
+                    colors: colors,
+                    showBackground: false,
+                  ),
+                  const SizedBox(width: 10),
+                  // Expanded (not Flexible) so the text takes the whole remaining
+                  // width of the fixed tile and wraps there, instead of letting the
+                  // Row grow to fit long instructions.
+                  Expanded(
+                      child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // "then …" makes it unmistakable that this is the manoeuvre
+                      // AFTER the one in the main banner, not the current one.
+                      Text(
+                          l.thenManeuver(_uncapitalised(nextStep!.instruction)),
+                          style: TextStyle(
+                              color: colors.textPrimary,
+                              fontSize: land ? 12 : 18,
+                              fontWeight: FontWeight.w600),
+                          maxLines: land ? 2 : 3,
+                          overflow: TextOverflow.ellipsis),
+                      const SizedBox(height: 3),
+                      Text(_distLabel(distToNextStepM, ''),
+                          style: TextStyle(
+                              color: colors.textSecondary,
+                              fontSize: land ? 10 : 15,
+                              fontWeight: FontWeight.w500)),
+                    ],
+                  )),
+                ]),
               ),
-              const SizedBox(width: 10),
-              // Expanded (not Flexible) so the text takes the whole remaining
-              // width of the fixed tile and wraps there, instead of letting the
-              // Row grow to fit long instructions.
-              Expanded(
-                  child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // "then …" makes it unmistakable that this is the manoeuvre
-                  // AFTER the one in the main banner, not the current one.
-                  Text(l.thenManeuver(_uncapitalised(nextStep!.instruction)),
-                      style: TextStyle(
-                          color: colors.textPrimary,
-                          fontSize: land ? 12 : 18,
-                          fontWeight: FontWeight.w600),
-                      maxLines: land ? 2 : 3,
-                      overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 3),
-                  Text(_distLabel(distToNextStepM, ''),
-                      style: TextStyle(
-                          color: colors.textSecondary,
-                          fontSize: land ? 10 : 15,
-                          fontWeight: FontWeight.w500)),
-                ],
-              )),
-            ]),
-          ),
             const Spacer(),
             if (onToggleVoice != null)
               Padding(
@@ -369,7 +370,7 @@ class NavPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final land = MediaQuery.of(context).orientation == Orientation.landscape;
-    final speedoSz = land ? 70.0 : 110.0;
+    final speedoSz = land ? 66.0 : 88.0;
     // Bumped for at-a-glance legibility while driving. The row height is
     // governed by the speedometer (70/110 px), so larger type does not grow
     // the bar — the text column still fits well within that height.
@@ -379,12 +380,17 @@ class NavPanel extends StatelessWidget {
     // toward the portrait sizes; the row still has vertical room since it
     // is the speedometer (70px in landscape) that governs the height, not
     // this text.
-    final fsDist = land ? 28.0 : 34.0;
-    final fsSub = land ? 17.5 : 19.0;
+    final fsDist = land ? 26.0 : 30.0;
+    final fsSub = land ? 15.0 : 16.0;
     final vTop = land ? 6.0 : 14.0;
     final vBot = land
         ? (bottomInset > 0 ? bottomInset + 4 : 8.0)
         : (bottomInset > 0 ? bottomInset : 16.0);
+    final remaining =
+        remainingDistM > 0 ? remainingDistM : route.totalDistanceM;
+    final routeProgress = route.totalDistanceM <= 0
+        ? 0.0
+        : (1 - remaining / route.totalDistanceM).clamp(0.0, 1.0);
     return Container(
       decoration: BoxDecoration(
         gradient: colors.panelGradient,
@@ -400,77 +406,98 @@ class NavPanel extends StatelessWidget {
         boxShadow: colors.panelShadow,
       ),
       padding: EdgeInsets.only(left: 18, right: 14, top: vTop, bottom: vBot),
-      child: Row(children: [
-        SpeedometerWidget(
-            speedKmh: speed,
-            size: speedoSz,
-            speedLimit: speedLimit,
-            style: speedometerStyle),
-        const SizedBox(width: 12),
-        Expanded(
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-              // Time to arrival leads. What a driver is deciding — whether to
-              // stop, whether they will make an appointment — depends on how
-              // long is left, not on how many kilometres remain; the distance
-              // is the supporting detail, so it takes the secondary style.
-              Text(_timeLabel(l),
-                  style: TextStyle(
-                      color: colors.textPrimary,
-                      fontSize: fsDist,
-                      fontWeight: FontWeight.w800,
-                      height: 1.05,
-                      letterSpacing: -0.8)),
-              SizedBox(height: land ? 1 : 3),
-              Row(children: [
-                // Remaining distance — updates every GPS tick
-                Text(_distLabel,
-                    style: TextStyle(
-                        color: colors.textSecondary,
-                        fontSize: fsSub,
-                        fontWeight: FontWeight.w600)),
-                // ETA used to be hidden in landscape to save vertical
-                // space, but a field report specifically about landscape
-                // (a dash mount, the common way to actually drive with
-                // this) asked for it — landscape has the width to spare
-                // even where it doesn't have the height.
-                Text('  ·  ',
-                    style:
-                        TextStyle(color: colors.textSecondary, fontSize: fsSub)),
-                // Estimated time of arrival
-                Text(l.etaArrivalLabel(_etaLabel),
-                    style: TextStyle(
-                        color: colors.textSecondary,
-                        fontSize: fsSub,
-                        fontWeight: FontWeight.w600)),
-              ]),
-            ])),
-        // Stop navigation
-        GestureDetector(
-          onTap: onStop,
-          child: Container(
-              // Upright: narrow at the base and tall, so it reads as a
-              // distinct control rather than as another wide info tile
-              // competing with the figures beside it.
-              width: 46,
-              height: _stopBtnH,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                gradient: _stopBtnGradientFor(colors.isDark),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                    color: _stopBtnRed.withValues(alpha: 0.45)),
-              ),
-              child: Icon(Icons.close_rounded,
-                  // Brighter red on the dark body, where the deeper shade
-                  // used on white would disappear.
-                  color: colors.isDark
-                      ? const Color(0xFFFF6B6B)
-                      : const Color(0xFFD32F2F),
-                  size: 26)),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Container(
+          width: 38,
+          height: 4,
+          decoration: BoxDecoration(
+            color: colors.textSecondary.withValues(alpha: 0.42),
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
+        const SizedBox(height: 9),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: LinearProgressIndicator(
+            value: routeProgress,
+            minHeight: 5,
+            color: colors.accent,
+            backgroundColor: colors.surface3,
+          ),
+        ),
+        const SizedBox(height: 11),
+        Row(children: [
+          SpeedometerWidget(
+              speedKmh: speed,
+              size: speedoSz,
+              speedLimit: speedLimit,
+              style: speedometerStyle),
+          const SizedBox(width: 12),
+          Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                // Time to arrival leads. What a driver is deciding — whether to
+                // stop, whether they will make an appointment — depends on how
+                // long is left, not on how many kilometres remain; the distance
+                // is the supporting detail, so it takes the secondary style.
+                Text(_timeLabel(l),
+                    style: TextStyle(
+                        color: colors.textPrimary,
+                        fontSize: fsDist,
+                        fontWeight: FontWeight.w800,
+                        height: 1.05,
+                        letterSpacing: -0.8)),
+                SizedBox(height: land ? 1 : 3),
+                Row(children: [
+                  // Remaining distance — updates every GPS tick
+                  Text(_distLabel,
+                      style: TextStyle(
+                          color: colors.textSecondary,
+                          fontSize: fsSub,
+                          fontWeight: FontWeight.w600)),
+                  // ETA used to be hidden in landscape to save vertical
+                  // space, but a field report specifically about landscape
+                  // (a dash mount, the common way to actually drive with
+                  // this) asked for it — landscape has the width to spare
+                  // even where it doesn't have the height.
+                  Text('  ·  ',
+                      style: TextStyle(
+                          color: colors.textSecondary, fontSize: fsSub)),
+                  // Estimated time of arrival
+                  Text(l.etaArrivalLabel(_etaLabel),
+                      style: TextStyle(
+                          color: colors.textSecondary,
+                          fontSize: fsSub,
+                          fontWeight: FontWeight.w600)),
+                ]),
+              ])),
+          // Stop navigation
+          GestureDetector(
+            onTap: onStop,
+            child: Container(
+                // Upright: narrow at the base and tall, so it reads as a
+                // distinct control rather than as another wide info tile
+                // competing with the figures beside it.
+                width: 46,
+                height: _stopBtnH,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  gradient: _stopBtnGradientFor(colors.isDark),
+                  borderRadius: BorderRadius.circular(14),
+                  border:
+                      Border.all(color: _stopBtnRed.withValues(alpha: 0.45)),
+                ),
+                child: Icon(Icons.close_rounded,
+                    // Brighter red on the dark body, where the deeper shade
+                    // used on white would disappear.
+                    color: colors.isDark
+                        ? const Color(0xFFFF6B6B)
+                        : const Color(0xFFD32F2F),
+                    size: 26)),
+          ),
+        ]),
       ]),
     );
   }

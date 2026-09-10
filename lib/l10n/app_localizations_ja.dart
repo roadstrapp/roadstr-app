@@ -69,6 +69,33 @@ class AppLocalizationsJa extends AppLocalizations {
   String get bottomBarMenu => 'メニュー';
 
   @override
+  String get homeGoodMorning => 'Good morning';
+
+  @override
+  String get homeGoodAfternoon => 'Good afternoon';
+
+  @override
+  String get homeGoodEvening => 'Good evening';
+
+  @override
+  String get homeReadyToGo => 'Ready to go?';
+
+  @override
+  String get homeNavigate => 'Navigate';
+
+  @override
+  String get homeParking => 'Parking';
+
+  @override
+  String get homeActivity => 'Activity';
+
+  @override
+  String get homeEvents => 'Events';
+
+  @override
+  String get homeSavedPlaces => 'Saved places';
+
+  @override
   String get notificationsTitle => '通知';
 
   @override
