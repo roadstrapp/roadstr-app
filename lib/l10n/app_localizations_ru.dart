@@ -218,6 +218,23 @@ class AppLocalizationsRu extends AppLocalizations {
       'Небольшой индикатор высоты в реальном времени рядом с элементами управления картой';
 
   @override
+  String get sectionRoadOverlays => 'Элементы дороги';
+
+  @override
+  String get showCrosswalks => 'Пешеходные переходы';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Показывает на карте пешеходные переходы из OpenStreetMap';
+
+  @override
+  String get showTrafficLights => 'Светофоры';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Показывает на карте светофоры из OpenStreetMap';
+
+  @override
   String get autoCenterOnLaunch =>
       'Центрировать по моему местоположению при запуске';
 

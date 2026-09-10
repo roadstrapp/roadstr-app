@@ -219,6 +219,23 @@ class AppLocalizationsSk extends AppLocalizations {
       'Malý ukazovateľ nadmorskej výšky v reálnom čase pri ovládacích prvkoch mapy';
 
   @override
+  String get sectionRoadOverlays => 'Prvky cesty';
+
+  @override
+  String get showCrosswalks => 'Priechody pre chodcov';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Zobrazí na mape priechody pre chodcov z OpenStreetMap';
+
+  @override
+  String get showTrafficLights => 'Semafory';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Zobrazí na mape semafory z OpenStreetMap';
+
+  @override
   String get autoCenterOnLaunch => 'Pri spustení vycentrovať na moju polohu';
 
   @override

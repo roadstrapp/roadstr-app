@@ -218,6 +218,23 @@ class AppLocalizationsSl extends AppLocalizations {
       'Majhen prikaz nadmorske višine v realnem času ob kontrolnikih zemljevida';
 
   @override
+  String get sectionRoadOverlays => 'Elementi ceste';
+
+  @override
+  String get showCrosswalks => 'Prehodi za pešce';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Na zemljevidu prikaže prehode za pešce iz OpenStreetMap';
+
+  @override
+  String get showTrafficLights => 'Semaforji';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Na zemljevidu prikaže semaforje iz OpenStreetMap';
+
+  @override
   String get autoCenterOnLaunch => 'Ob zagonu usredišči na mojo lokacijo';
 
   @override

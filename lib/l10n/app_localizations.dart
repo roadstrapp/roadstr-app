@@ -550,6 +550,36 @@ abstract class AppLocalizations {
   /// **'A small real-time elevation readout near the map controls'**
   String get showAltitudeDescription;
 
+  /// No description provided for @sectionRoadOverlays.
+  ///
+  /// In en, this message translates to:
+  /// **'Road element overlays'**
+  String get sectionRoadOverlays;
+
+  /// No description provided for @showCrosswalks.
+  ///
+  /// In en, this message translates to:
+  /// **'Pedestrian crossings'**
+  String get showCrosswalks;
+
+  /// No description provided for @showCrosswalksDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows OSM-mapped pedestrian crossings on the map'**
+  String get showCrosswalksDescription;
+
+  /// No description provided for @showTrafficLights.
+  ///
+  /// In en, this message translates to:
+  /// **'Traffic lights'**
+  String get showTrafficLights;
+
+  /// No description provided for @showTrafficLightsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows OSM-mapped traffic lights on the map'**
+  String get showTrafficLightsDescription;
+
   /// No description provided for @autoCenterOnLaunch.
   ///
   /// In en, this message translates to:

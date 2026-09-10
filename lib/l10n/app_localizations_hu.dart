@@ -220,6 +220,23 @@ class AppLocalizationsHu extends AppLocalizations {
       'Kis valós idejű magasságkijelzés a térkép vezérlői mellett';
 
   @override
+  String get sectionRoadOverlays => 'Útelemek';
+
+  @override
+  String get showCrosswalks => 'Gyalogátkelőhelyek';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Megjeleníti a térképen az OpenStreetMap gyalogátkelőhelyeit';
+
+  @override
+  String get showTrafficLights => 'Közlekedési lámpák';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Megjeleníti a térképen az OpenStreetMap közlekedési lámpáit';
+
+  @override
   String get autoCenterOnLaunch => 'Indításkor középre igazítás a helyzetemre';
 
   @override

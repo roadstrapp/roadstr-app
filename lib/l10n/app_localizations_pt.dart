@@ -219,6 +219,23 @@ class AppLocalizationsPt extends AppLocalizations {
       'Uma pequena indicação de altitude em tempo real perto dos controles do mapa';
 
   @override
+  String get sectionRoadOverlays => 'Elementos da estrada';
+
+  @override
+  String get showCrosswalks => 'Passadeiras';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Mostra no mapa as passadeiras do OpenStreetMap';
+
+  @override
+  String get showTrafficLights => 'Semáforos';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Mostra no mapa os semáforos do OpenStreetMap';
+
+  @override
   String get autoCenterOnLaunch => 'Centrar na minha posição ao iniciar';
 
   @override
