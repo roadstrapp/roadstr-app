@@ -232,10 +232,22 @@ class KokoroTtsService {
   // ── Audio focus / ducking ────────────────────────────────────────────────────
 
   /// Configures the audio session once for navigation guidance.
-  /// On Android: requests AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK so other apps
-  /// (music, podcasts) lower their volume while the voice plays, then fade
-  /// back to full volume within ~1 second when focus is released.
-  /// On iOS: AVAudioSessionCategoryOptions.duckOthers achieves the same.
+  ///
+  /// Android: requests plain AUDIOFOCUS_GAIN_TRANSIENT — not
+  /// _MAY_DUCK. A field report caught music/podcasts over Bluetooth
+  /// stopping outright for a voice cue and never resuming afterwards: many
+  /// media apps can't actually duck a Bluetooth A2DP stream (there is no
+  /// per-app volume there), so on a MAY_DUCK request they choose to pause
+  /// instead — but MAY_DUCK's contract never obliged them to resume once
+  /// we release focus, and plenty don't. Plain TRANSIENT carries the
+  /// stronger, near-universally honoured "must pause, will resume on
+  /// regain" contract instead — the same choice Google Maps/Waze make for
+  /// their own voice prompts. The cost is that apps that genuinely could
+  /// duck now pause instead, which is a worse experience for them but a
+  /// working one, against silence that never comes back for everyone else.
+  /// On iOS: AVAudioSessionCategoryOptions.duckOthers achieves the
+  /// ducking behaviour where it works; left as-is since this app is
+  /// Android-only today.
   Future<void> _configureAudioSession() async {
     if (_audioSessionConfigured) return;
     _audioSessionConfigured = true;
@@ -251,8 +263,7 @@ class KokoroTtsService {
           contentType: AndroidAudioContentType.speech,
           usage: AndroidAudioUsage.assistanceNavigationGuidance,
         ),
-        androidAudioFocusGainType:
-            AndroidAudioFocusGainType.gainTransientMayDuck,
+        androidAudioFocusGainType: AndroidAudioFocusGainType.gainTransient,
         androidWillPauseWhenDucked: false,
       ));
       debugPrint('[KokoroTTS] audio session configured');
@@ -359,13 +370,23 @@ class KokoroTtsService {
       return;
     }
     // Mark done + release focus + drain the queue when playback completes.
+    // Timeout is a safety net, not the normal path: if the player's state
+    // ever fails to reach completed/idle at all (a stuck stream, a glitched
+    // native player), _finishUtterance — and with it _releaseFocus — would
+    // otherwise never run, leaving audio focus held indefinitely. That is
+    // exactly what a ducked/paused music or podcast app waits on to resume,
+    // so a stuck utterance would silently keep it paused forever. No
+    // realistic navigation phrase runs anywhere near this long.
     unawaited(_player.playerStateStream
         .firstWhere((s) =>
             s.processingState == ProcessingState.completed ||
             s.processingState == ProcessingState.idle)
+        .timeout(_maxUtteranceWait, onTimeout: () => _player.playerState)
         .then((_) => _finishUtterance(id))
         .catchError((_) => _finishUtterance(id)));
   }
+
+  static const _maxUtteranceWait = Duration(seconds: 25);
 
   /// Runs when utterance [id] finishes, fails, or is cut. The id guard makes
   /// stale completion listeners inert: when a priority utterance cuts this
