@@ -1014,25 +1014,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l.settingsTitle),
-        centerTitle: true,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(0.5),
-          child: Divider(height: 0.5, color: c.border),
-        ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+      body: RoadstrScreenBackground(
+        child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
         children: [
           // ── THEME ───────────────────────────────────────────────────────
           _SectionHeader(l.sectionTheme, c),
-          Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: c.surface2,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: c.border, width: 0.5),
-            ),
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: c.premiumCard(radius: 18),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<AppThemeId>(
                 value: themeProvider.current,
@@ -1085,14 +1077,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // ── LANGUAGE ────────────────────────────────────────────────────
           _SectionHeader(l.sectionLanguage, c),
-          Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: c.surface2,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: c.border, width: 0.5),
-            ),
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: c.premiumCard(radius: 18),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String?>(
                 value: localeProvider.locale?.languageCode,
@@ -1957,6 +1945,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 32),
         ],
+        ),
       ),
     );
   }
@@ -2219,10 +2208,11 @@ class _DonationTile extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         decoration: BoxDecoration(
-          color: c.surface2,
-          borderRadius: BorderRadius.circular(14),
+          gradient: c.surfaceSheen,
+          borderRadius: BorderRadius.circular(18),
           border:
               Border.all(color: c.accent.withValues(alpha: 0.4), width: 0.8),
+          boxShadow: c.cardShadow,
         ),
         child: Row(
           children: [
@@ -2280,11 +2270,7 @@ class _SwitchTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         margin: const EdgeInsets.only(bottom: 8),
-        decoration: BoxDecoration(
-          color: colors.surface2,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: colors.border, width: 0.5),
-        ),
+        decoration: colors.premiumCard(radius: 18),
         child: SwitchListTile(
           title: Text(title,
               style: TextStyle(color: colors.textPrimary, fontSize: 14)),
@@ -2313,18 +2299,18 @@ class _VoiceOptionChip extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: selected
-                ? colors.accent.withValues(alpha: 0.15)
-                : colors.surface3,
-            borderRadius: BorderRadius.circular(10),
+            gradient: selected ? colors.accentGloss : colors.surfaceSheen,
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
-                color: selected ? colors.accent : colors.border,
-                width: selected ? 1.2 : 0.5),
+                color: selected
+                    ? Colors.white.withValues(alpha: 0.28)
+                    : colors.panelEdge),
+            boxShadow: selected ? colors.cardShadow : null,
           ),
           child: Center(
               child: Text(label,
                   style: TextStyle(
-                      color: selected ? colors.accent : colors.textSecondary,
+                      color: selected ? colors.onAccent : colors.textSecondary,
                       fontSize: 13,
                       fontWeight:
                           selected ? FontWeight.w700 : FontWeight.w500))),
@@ -2344,11 +2330,7 @@ class _InfoTile extends StatelessWidget {
     final tile = Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-      decoration: BoxDecoration(
-        color: c.surface2,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: c.border, width: 0.5),
-      ),
+      decoration: c.premiumCard(radius: 18),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -2422,11 +2404,7 @@ class _SearchEngineSelectorState extends State<_SearchEngineSelector> {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: c.surface2,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: c.border, width: 0.5),
-      ),
+      decoration: c.premiumCard(radius: 18),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),

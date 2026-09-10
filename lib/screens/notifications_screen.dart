@@ -44,42 +44,39 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l.notificationsTitle),
-        centerTitle: true,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(0.5),
-          child: Divider(height: 0.5, color: c.border),
-        ),
       ),
-      body: pubkey == null
-          ? _EmptyInbox(
-              icon: Icons.person_outline_rounded,
-              title: l.notificationsLoginRequired,
-              body: l.notificationsLoginRequiredBody,
-              colors: c,
-            )
-          : ValueListenableBuilder<Box>(
-              valueListenable: SettingsListenable.forKeys(
-                  [ActivityNotificationService.storageKey(pubkey)]),
-              builder: (_, __, ___) {
-                final items = _service.notificationsFor(pubkey);
-                if (items.isEmpty) {
-                  return _EmptyInbox(
-                    icon: Icons.notifications_none_rounded,
-                    title: l.notificationsEmpty,
-                    body: l.notificationsEmptyBody,
-                    colors: c,
+      body: RoadstrScreenBackground(
+        child: pubkey == null
+            ? _EmptyInbox(
+                icon: Icons.person_outline_rounded,
+                title: l.notificationsLoginRequired,
+                body: l.notificationsLoginRequiredBody,
+                colors: c,
+              )
+            : ValueListenableBuilder<Box>(
+                valueListenable: SettingsListenable.forKeys(
+                    [ActivityNotificationService.storageKey(pubkey)]),
+                builder: (_, __, ___) {
+                  final items = _service.notificationsFor(pubkey);
+                  if (items.isEmpty) {
+                    return _EmptyInbox(
+                      icon: Icons.notifications_none_rounded,
+                      title: l.notificationsEmpty,
+                      body: l.notificationsEmptyBody,
+                      colors: c,
+                    );
+                  }
+                  return ListView.separated(
+                    padding: EdgeInsets.fromLTRB(16, 8, 16,
+                        20 + MediaQuery.of(context).viewPadding.bottom),
+                    itemCount: items.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (_, index) =>
+                        _NotificationCard(item: items[index], colors: c),
                   );
-                }
-                return ListView.separated(
-                  padding: EdgeInsets.fromLTRB(16, 16, 16,
-                      20 + MediaQuery.of(context).viewPadding.bottom),
-                  itemCount: items.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (_, index) =>
-                      _NotificationCard(item: items[index], colors: c),
-                );
-              },
-            ),
+                },
+              ),
+      ),
     );
   }
 }
@@ -102,8 +99,18 @@ class _EmptyInbox extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(icon, size: 52, color: colors.textSecondary),
-            const SizedBox(height: 16),
+            Container(
+              width: 82,
+              height: 82,
+              decoration: BoxDecoration(
+                gradient: colors.surfaceSheen,
+                shape: BoxShape.circle,
+                border: Border.all(color: colors.panelEdge),
+                boxShadow: colors.cardShadow,
+              ),
+              child: Icon(icon, size: 38, color: colors.accent),
+            ),
+            const SizedBox(height: 22),
             Text(title,
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -163,16 +170,17 @@ class _NotificationCard extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colors.surface2,
-        borderRadius: BorderRadius.circular(14),
+        gradient: colors.surfaceSheen,
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: item.isRead
-              ? colors.border
+              ? colors.panelEdge
               : colors.accent.withValues(alpha: 0.55),
-          width: item.isRead ? 0.5 : 1,
+          width: item.isRead ? 1 : 1.4,
         ),
+        boxShadow: colors.cardShadow,
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(
