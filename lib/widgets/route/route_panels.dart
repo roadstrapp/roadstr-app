@@ -39,7 +39,8 @@ class RoutePlannerBar extends StatelessWidget {
   final ValueChanged<int> onRemoveStop;
   final void Function(int oldIndex, int newIndex) onReorderStops;
 
-  const RoutePlannerBar({super.key, 
+  const RoutePlannerBar({
+    super.key,
     required this.fromCtrl,
     required this.stopCtrls,
     required this.activeField,
@@ -174,8 +175,8 @@ class RoutePlannerBar extends StatelessWidget {
               // Transit journeys start and end on foot, so the walking chip
               // stays lit while its sub-choice is open — otherwise picking
               // public transport would look like leaving walking behind.
-              selected: transportMode == 'walking' ||
-                  transportMode == 'transit',
+              selected:
+                  transportMode == 'walking' || transportMode == 'transit',
               colors: c,
               onTap: () => onModeChanged('walking'),
             ),
@@ -406,7 +407,9 @@ class TransportModeChip extends StatelessWidget {
   final bool selected;
   final RoadstrColors colors;
   final VoidCallback onTap;
-  const TransportModeChip({super.key, required this.icon,
+  const TransportModeChip(
+      {super.key,
+      required this.icon,
       required this.label,
       required this.selected,
       required this.colors,
@@ -452,7 +455,8 @@ class RoutePreviewPanel extends StatefulWidget {
   final VoidCallback onStart;
   final VoidCallback onCancel;
   final ValueChanged<String> onModeChanged;
-  const RoutePreviewPanel({super.key, 
+  const RoutePreviewPanel({
+    super.key,
     required this.route,
     required this.label,
     required this.trafficEvents,
@@ -552,16 +556,12 @@ class _PreviewPanelState extends State<RoutePreviewPanel>
           },
           child: Container(
             decoration: BoxDecoration(
-              color: c.surface2,
+              gradient: c.panelGradient,
+              color: c.panelGradient == null ? c.surface2 : null,
               borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(20)),
-              border: Border(top: BorderSide(color: c.border, width: 0.5)),
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.12),
-                    blurRadius: 16,
-                    offset: const Offset(0, -4))
-              ],
+                  const BorderRadius.vertical(top: Radius.circular(28)),
+              border: Border(top: BorderSide(color: c.panelEdge, width: 1)),
+              boxShadow: c.panelShadow,
             ),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               const SizedBox(height: 10),
@@ -588,29 +588,50 @@ class _PreviewPanelState extends State<RoutePreviewPanel>
                             overflow: TextOverflow.ellipsis),
                         const SizedBox(height: 10),
                       ],
-                      Row(children: [
-                        Icon(Icons.access_time_rounded,
-                            color: c.accent, size: 20),
-                        const SizedBox(width: 6),
-                        Text(widget.route.durationLabel,
-                            style: TextStyle(
-                                color: c.textPrimary,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold)),
-                        const SizedBox(width: 16),
-                        Text(widget.route.distanceLabel,
-                            style: TextStyle(
-                                color: c.textSecondary, fontSize: 15)),
-                      ]),
-                      const SizedBox(height: 8),
-                      Row(children: [
-                        Icon(Icons.schedule_rounded,
-                            color: c.textSecondary, size: 16),
-                        const SizedBox(width: 4),
-                        Text(l.departEta(depStr, arrStr),
-                            style: TextStyle(
-                                color: c.textSecondary, fontSize: 13)),
-                      ]),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 11),
+                        decoration: BoxDecoration(
+                          color: c.surface3,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                              color: c.accent.withValues(alpha: 0.28)),
+                        ),
+                        child: Row(children: [
+                          Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                                color: c.accentSoft,
+                                borderRadius: BorderRadius.circular(11)),
+                            child: Icon(Icons.access_time_rounded,
+                                color: c.accent, size: 19),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(widget.route.durationLabel,
+                                      style: TextStyle(
+                                          color: c.textPrimary,
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: -0.4)),
+                                  Text(l.departEta(depStr, arrStr),
+                                      style: TextStyle(
+                                          color: c.textSecondary,
+                                          fontSize: 12)),
+                                ]),
+                          ),
+                          Text(widget.route.distanceLabel,
+                              style: TextStyle(
+                                  color: c.textSecondary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600)),
+                        ]),
+                      ),
                       if (widget.transportMode != 'walking' &&
                           widget.trafficStatus != null) ...[
                         const SizedBox(height: 8),
@@ -671,28 +692,36 @@ class _PreviewPanelState extends State<RoutePreviewPanel>
               const SizedBox(height: 12),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(children: [
-                  TransportModeChip(
-                      icon: Icons.directions_car_rounded,
-                      label: l.modeCar,
-                      selected: widget.transportMode == 'driving',
-                      colors: c,
-                      onTap: () => widget.onModeChanged('driving')),
-                  const SizedBox(width: 8),
-                  TransportModeChip(
-                      icon: Icons.directions_bike_rounded,
-                      label: l.modeBike,
-                      selected: widget.transportMode == 'cycling',
-                      colors: c,
-                      onTap: () => widget.onModeChanged('cycling')),
-                  const SizedBox(width: 8),
-                  TransportModeChip(
-                      icon: Icons.directions_walk_rounded,
-                      label: l.modeWalk,
-                      selected: widget.transportMode == 'walking',
-                      colors: c,
-                      onTap: () => widget.onModeChanged('walking')),
-                ]),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: c.surface3,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: c.border),
+                  ),
+                  child: Row(children: [
+                    TransportModeChip(
+                        icon: Icons.directions_car_rounded,
+                        label: l.modeCar,
+                        selected: widget.transportMode == 'driving',
+                        colors: c,
+                        onTap: () => widget.onModeChanged('driving')),
+                    const SizedBox(width: 8),
+                    TransportModeChip(
+                        icon: Icons.directions_bike_rounded,
+                        label: l.modeBike,
+                        selected: widget.transportMode == 'cycling',
+                        colors: c,
+                        onTap: () => widget.onModeChanged('cycling')),
+                    const SizedBox(width: 8),
+                    TransportModeChip(
+                        icon: Icons.directions_walk_rounded,
+                        label: l.modeWalk,
+                        selected: widget.transportMode == 'walking',
+                        colors: c,
+                        onTap: () => widget.onModeChanged('walking')),
+                  ]),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -705,40 +734,48 @@ class _PreviewPanelState extends State<RoutePreviewPanel>
               const SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: widget.onCancel,
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: c.border),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 13),
+                child: Column(children: [
+                  SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: c.accentGloss,
+                        borderRadius: BorderRadius.circular(17),
+                        boxShadow: [
+                          BoxShadow(
+                              color: c.accent.withValues(alpha: 0.28),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6))
+                        ],
                       ),
-                      child: Text(l.cancel,
-                          style: TextStyle(color: c.textSecondary)),
+                      child: FilledButton.icon(
+                        onPressed: widget.onStart,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(17)),
+                        ),
+                        icon: Icon(
+                            widget.transportMode == 'walking'
+                                ? Icons.directions_walk_rounded
+                                : Icons.navigation_rounded,
+                            color: c.onAccent,
+                            size: 19),
+                        label: Text(l.startNavigation,
+                            style: TextStyle(
+                                color: c.onAccent,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 15)),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 2,
-                    child: FilledButton.icon(
-                      onPressed: widget.onStart,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: c.accent,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                      ),
-                      icon: Icon(
-                          widget.transportMode == 'walking'
-                              ? Icons.directions_walk_rounded
-                              : Icons.navigation_rounded,
-                          color: Colors.white,
-                          size: 18),
-                      label: Text(l.startNavigation,
-                          style: const TextStyle(color: Colors.white)),
-                    ),
+                  const SizedBox(height: 3),
+                  TextButton(
+                    onPressed: widget.onCancel,
+                    child: Text(l.cancel,
+                        style: TextStyle(color: c.textSecondary)),
                   ),
                 ]),
               ),
@@ -768,7 +805,8 @@ class RouteAlternativesPanel extends StatefulWidget {
   final VoidCallback onCancel;
   final ValueChanged<String> onModeChanged;
   final ValueChanged<bool> onAvoidanceChanged;
-  const RouteAlternativesPanel({super.key, 
+  const RouteAlternativesPanel({
+    super.key,
     required this.alternatives,
     required this.selected,
     required this.bottomInset,
@@ -1109,7 +1147,9 @@ class RouteCard extends StatelessWidget {
   final bool isBest;
   final RoadstrColors colors;
   final VoidCallback onTap;
-  const RouteCard({super.key, required this.route,
+  const RouteCard(
+      {super.key,
+      required this.route,
       required this.isSelected,
       required this.isBest,
       required this.colors,
@@ -1191,7 +1231,11 @@ class TimeBubble extends StatelessWidget {
   final String label;
   final bool isSelected;
   final Color accent;
-  const TimeBubble({super.key, required this.label, required this.isSelected, required this.accent});
+  const TimeBubble(
+      {super.key,
+      required this.label,
+      required this.isSelected,
+      required this.accent});
 
   @override
   Widget build(BuildContext context) {

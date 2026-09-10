@@ -57,6 +57,7 @@ import '../widgets/transit_itinerary_widget.dart';
 import '../widgets/cursor_painter.dart';
 import '../widgets/map/map_chrome.dart';
 import '../widgets/map/map_markers.dart';
+import '../widgets/home/home_dashboard.dart';
 import '../widgets/place/place_info_panel.dart';
 import '../widgets/sheets/road_event_sheets.dart';
 import '../widgets/nav/nav_hud.dart';
@@ -64,6 +65,7 @@ import '../widgets/nav/speed_limit_sign.dart';
 import '../widgets/speedometer_widget.dart';
 import '../widgets/route/route_panels.dart';
 import '../widgets/search/search_panel.dart';
+import 'notifications_screen.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -2500,7 +2502,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _requestAlternatives(LatLng destination,
-      {String? label, LatLng? fromPosition, List<LatLng> via = const []}) async {
+      {String? label,
+      LatLng? fromPosition,
+      List<LatLng> via = const []}) async {
     final requestGeneration = ++_routeRequestGeneration;
     // Block navigation when GPS hasn't acquired a real fix yet.
     // Using the Italy fallback (42.5, 12.5) as origin would produce a useless
@@ -2841,8 +2845,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// bus with a driving route and no indication that it had done so.
   Future<void> _planTransit(
       LatLng origin, LatLng destination, int requestGeneration) async {
-    final result = await const TransitService()
-        .plan(from: origin, to: destination);
+    final result =
+        await const TransitService().plan(from: origin, to: destination);
     if (!mounted || requestGeneration != _routeRequestGeneration) return;
 
     setState(() {
@@ -4767,6 +4771,16 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     final currentStep = (_route != null && _route!.steps.isNotEmpty)
         ? _route!.steps[nextStepIdx]
         : null;
+    // The dashboard is the calm, pre-trip state. Every full-screen workflow
+    // replaces it instead of layering an extra panel above it.
+    final showHomeDashboard = !_isNavigating &&
+        !_showSearch &&
+        !_showPlanner &&
+        !_showPreview &&
+        !_showAlternatives &&
+        !_showTransit &&
+        !_showPlaceInfo &&
+        !_isCalculating;
 
     return PopScope(
       canPop:
@@ -5363,8 +5377,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                     // behind it. They are two different "nothing typed yet"
                     // panels (favourite shortcuts, recent searches) and belong
                     // on screen together, not competing for the same slot.
-                    if (_searchController.text.isEmpty &&
-                        _history.isNotEmpty)
+                    if (_searchController.text.isEmpty && _history.isNotEmpty)
                       SearchHistoryList(
                         history: _history,
                         favorites: const [],
@@ -5376,6 +5389,32 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                       ),
                   ]),
                 ),
+              ),
+            ),
+
+          // ── HOME DASHBOARD ───────────────────────────────────────────────
+          // These actions open the established map flows. The idle state gets
+          // a clear visual centre without duplicating navigation logic.
+          if (showHomeDashboard)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 70 + bottomInset,
+              child: HomeDashboard(
+                colors: c,
+                bottomInset: 0,
+                favorites: _favorites,
+                onNavigate: _openPlanner,
+                onLocate: _requestGps,
+                onParking: _showParkingSheet,
+                onActivity: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => NotificationsScreen(pubkey: _myPubkey)),
+                ),
+                onEvents: _showReportSheet,
+                onFavoriteTap: (favorite) => _showSearchPlace(
+                    favorite.position, favorite.label, favorite.address),
               ),
             ),
 
@@ -5430,8 +5469,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
               left: 0,
               right: 0,
               child: Center(
-                child: CurrentStreetLabel(
-                    name: _currentStreetName!, colors: c),
+                child: CurrentStreetLabel(name: _currentStreetName!, colors: c),
               ),
             ),
 
@@ -5452,8 +5490,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                 key: ValueKey(
                     'ztl-${_inZtl ? 'in' : 'near'}-${_ztlName ?? _ztlPassingBy?.name ?? ''}'),
                 direction: DismissDirection.horizontal,
-                onDismissed: (_) =>
-                    setState(() => _ztlNoticeDismissed = true),
+                onDismissed: (_) => setState(() => _ztlNoticeDismissed = true),
                 child: GestureDetector(
                   // Vertical swipes dismiss too, without a Dismissible of
                   // their own: nesting two would leave neither able to claim
@@ -5484,7 +5521,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
               !_showAlternatives &&
               !_isNavigating &&
               !_showPreview &&
-              !_showPlanner)
+              !_showPlanner &&
+              !showHomeDashboard)
             Positioned(
               left: 12,
               bottom: 88 + bottomInset + 12,
@@ -5564,7 +5602,10 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             ),
 
           // ── RIGHT FABs ────────────────────────────────────────────────────────
-          if (!_showSearch && !_showAlternatives && !_showPreview)
+          if (!_showSearch &&
+              !_showAlternatives &&
+              !_showPreview &&
+              !showHomeDashboard)
             Positioned(
               right: 12,
               bottom: (_isNavigating ? 160 : 88) + bottomInset + 12,
@@ -5607,9 +5648,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                       child: Icon(Icons.report_problem_outlined,
                           color: c.onAccent, size: 22)),
                   if (_altitudeM != null &&
-                      (Hive.box('settings')
-                          .get('showAltitude', defaultValue: false)
-                          as bool)) ...[
+                      (Hive.box('settings').get('showAltitude',
+                          defaultValue: false) as bool)) ...[
                     const SizedBox(height: 8),
                     AltitudeBadge(altitudeM: _altitudeM!, colors: c),
                   ],
@@ -5747,31 +5787,31 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                                 onModeChanged: _recalculateForMode,
                               )
                             : _showAlternatives
-                            ? RouteAlternativesPanel(
-                                alternatives: _alternatives,
-                                selected: _selectedAlt,
-                                bottomInset: bottomInset,
-                                colors: c,
-                                transportMode: _transportMode,
-                                destination: _destination!,
-                                avoidanceEnabled: _avoidanceEnabled,
-                                avoidanceLoading: _avoidanceLoading,
-                                onSelect: (i) =>
-                                    setState(() => _selectedAlt = i),
-                                onConfirm: _startNavigation,
-                                onCancel: _cancelAlternatives,
-                                onModeChanged: _recalculateForMode,
-                                onAvoidanceChanged: _toggleAvoidanceRoute,
-                              )
-                            : MapBottomBar(
-                                bottomInset: bottomInset,
-                                colors: c,
-                                pubkey: _myPubkey,
-                                profilePicture: _profilePicture,
-                                hasNostrLogin: _nostrFlavor == 'amber' ||
-                                    _nostrFlavor == 'nsec',
-                                onProfileReturn: () =>
-                                    unawaited(_refreshHomeIdentity())),
+                                ? RouteAlternativesPanel(
+                                    alternatives: _alternatives,
+                                    selected: _selectedAlt,
+                                    bottomInset: bottomInset,
+                                    colors: c,
+                                    transportMode: _transportMode,
+                                    destination: _destination!,
+                                    avoidanceEnabled: _avoidanceEnabled,
+                                    avoidanceLoading: _avoidanceLoading,
+                                    onSelect: (i) =>
+                                        setState(() => _selectedAlt = i),
+                                    onConfirm: _startNavigation,
+                                    onCancel: _cancelAlternatives,
+                                    onModeChanged: _recalculateForMode,
+                                    onAvoidanceChanged: _toggleAvoidanceRoute,
+                                  )
+                                : MapBottomBar(
+                                    bottomInset: bottomInset,
+                                    colors: c,
+                                    pubkey: _myPubkey,
+                                    profilePicture: _profilePicture,
+                                    hasNostrLogin: _nostrFlavor == 'amber' ||
+                                        _nostrFlavor == 'nsec',
+                                    onProfileReturn: () =>
+                                        unawaited(_refreshHomeIdentity())),
           ),
 
           // ── ROUTE CALCULATION OVERLAY ────────────────────────────────────────
@@ -5840,8 +5880,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// waiting for the next GPS fix or the next trip.
   void _applyScreenPolicy() {
     final box = Hive.box('settings');
-    final navWantsAwake = _isNavigating &&
-        (box.get('keepScreenOn', defaultValue: true) as bool);
+    final navWantsAwake =
+        _isNavigating && (box.get('keepScreenOn', defaultValue: true) as bool);
     final alwaysAwake =
         box.get('keepScreenOnAlways', defaultValue: false) as bool;
     if (navWantsAwake || alwaysAwake) {

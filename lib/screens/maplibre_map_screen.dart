@@ -63,6 +63,7 @@ import '../utils/heading_filter.dart';
 import '../utils/settings_listenable.dart';
 import '../utils/units.dart';
 import '../widgets/cursor_painter.dart';
+import '../widgets/home/home_dashboard.dart';
 import '../widgets/map/map_chrome.dart';
 import '../widgets/map/map_markers.dart';
 import '../widgets/nav/nav_hud.dart';
@@ -73,6 +74,7 @@ import '../widgets/search/search_panel.dart';
 import '../widgets/sheets/road_event_sheets.dart';
 import '../widgets/speedometer_widget.dart';
 import '../widgets/transit_itinerary_widget.dart';
+import 'notifications_screen.dart';
 
 const _roadstrTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
@@ -1183,7 +1185,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                     borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(vertical: 13),
               ),
-              icon: Icon(Icons.local_parking_rounded, color: c.onAccent, size: 18),
+              icon: Icon(Icons.local_parking_rounded,
+                  color: c.onAccent, size: 18),
               label:
                   Text(l.parkingSaveHere, style: TextStyle(color: c.onAccent)),
             ),
@@ -3497,7 +3500,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     }));
     final hazardsBefore = _crossingHazardSvc.cachedHazards;
     unawaited(_crossingHazardSvc.updateIfNeeded(data.position).then((_) {
-      if (mounted && !identical(_crossingHazardSvc.cachedHazards, hazardsBefore)) {
+      if (mounted &&
+          !identical(_crossingHazardSvc.cachedHazards, hazardsBefore)) {
         setState(() {});
       }
     }));
@@ -3859,6 +3863,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         !_showAlternatives &&
         !_showTransit &&
         _route == null;
+    // The idle map keeps the same discoverable home dashboard whichever map
+    // rendering engine is selected. Route/search/navigation states replace it.
+    final showHomeDashboard = showingBottomBar;
     // Same custom-server override MapScreen's tile layer reads — a
     // self-hosted or alternate raster source, same default as MapScreen's
     // own RoadstrColors.mapTile.
@@ -4207,7 +4214,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                     if (h.kind == CrossingHazardKind.speedBump)
                       Marker(
                         point: Geographic(
-                            lon: h.position.longitude, lat: h.position.latitude),
+                            lon: h.position.longitude,
+                            lat: h.position.latitude),
                         size: const Size(22, 22),
                         child: const SpeedBumpPin(),
                       ),
@@ -4224,7 +4232,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                     if (h.kind == CrossingHazardKind.crosswalk)
                       Marker(
                         point: Geographic(
-                            lon: h.position.longitude, lat: h.position.latitude),
+                            lon: h.position.longitude,
+                            lat: h.position.latitude),
                         size: const Size(20, 20),
                         child: const CrosswalkPin(),
                       ),
@@ -4747,76 +4756,102 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               left: 16,
               child: SpeedLimitSign(_currentSpeedLimit!),
             ),
+          // ── HOME DASHBOARD ───────────────────────────────────────────────
+          if (showHomeDashboard)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 70 + MediaQuery.of(context).padding.bottom,
+              child: HomeDashboard(
+                colors: c,
+                bottomInset: 0,
+                favorites: _favorites,
+                onNavigate: _openPlanner,
+                onLocate: _recenter,
+                onParking: _showParkingSheet,
+                onActivity: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => NotificationsScreen(pubkey: _myPubkey)),
+                ),
+                onEvents: _showReportSheet,
+                onFavoriteTap: (favorite) => unawaited(_onDestinationPicked(
+                    favorite.position,
+                    label: favorite.label)),
+              ),
+            ),
           // ── RIGHT FABs ────────────────────────────────────────────────────
           // Compass, recenter, report (always available — a hazard can be
           // reported from a standstill too), altitude underneath when enabled,
           // and — only while navigating — add-stop. Same order and same
           // pre-trip/en-route split as MapScreen's own right column.
-          Positioned(
-            right: 12,
-            bottom: ((_showAlternatives && _alternatives.isNotEmpty ||
-                        _showTransit ||
-                        _showPlaceInfo) &&
-                    !_showSearch
-                ? 280.0
-                : _isNavigating
-                    ? 190.0
-                    : showingBottomBar
-                        // MapBottomBar is showing underneath — same
-                        // 100px-plus-safe-area clearance MapScreen's own
-                        // right column uses over its identical bottom bar.
-                        ? 100.0 + MediaQuery.of(context).padding.bottom
-                        : MediaQuery.of(context).padding.bottom + 16),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              ValueListenableBuilder<double>(
-                valueListenable: _bearingNotifier,
-                builder: (context, bearing, _) => CompassFab(
-                  rotDeg: bearing,
-                  active: _headingMode,
-                  onTap: _toggleHeadingMode,
+          if (!showHomeDashboard)
+            Positioned(
+              right: 12,
+              bottom: ((_showAlternatives && _alternatives.isNotEmpty ||
+                          _showTransit ||
+                          _showPlaceInfo) &&
+                      !_showSearch
+                  ? 280.0
+                  : _isNavigating
+                      ? 190.0
+                      : showingBottomBar
+                          // MapBottomBar is showing underneath — same
+                          // 100px-plus-safe-area clearance MapScreen's own
+                          // right column uses over its identical bottom bar.
+                          ? 100.0 + MediaQuery.of(context).padding.bottom
+                          : MediaQuery.of(context).padding.bottom + 16),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                ValueListenableBuilder<double>(
+                  valueListenable: _bearingNotifier,
+                  builder: (context, bearing, _) => CompassFab(
+                    rotDeg: bearing,
+                    active: _headingMode,
+                    onTap: _toggleHeadingMode,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              MapFab(
-                onTap: _recenter,
-                colors: c,
-                child: Icon(
-                  _followUser ? Icons.gps_fixed : Icons.gps_not_fixed,
-                  color: c.onAccent.withValues(alpha: _followUser ? 1.0 : 0.62),
-                  size: 22,
-                ),
-              ),
-              if (_lastFix != null) ...[
                 const SizedBox(height: 8),
                 MapFab(
-                  onTap: _showReportSheet,
+                  onTap: _recenter,
                   colors: c,
-                  child: Icon(Icons.report_problem_outlined,
-                      color: c.onAccent, size: 22),
+                  child: Icon(
+                    _followUser ? Icons.gps_fixed : Icons.gps_not_fixed,
+                    color:
+                        c.onAccent.withValues(alpha: _followUser ? 1.0 : 0.62),
+                    size: 22,
+                  ),
                 ),
-                if (_altitudeM != null &&
-                    (Hive.box('settings')
-                        .get('showAltitude', defaultValue: false) as bool)) ...[
+                if (_lastFix != null) ...[
                   const SizedBox(height: 8),
-                  AltitudeBadge(altitudeM: _altitudeM!, colors: c),
+                  MapFab(
+                    onTap: _showReportSheet,
+                    colors: c,
+                    child: Icon(Icons.report_problem_outlined,
+                        color: c.onAccent, size: 22),
+                  ),
+                  if (_altitudeM != null &&
+                      (Hive.box('settings').get('showAltitude',
+                          defaultValue: false) as bool)) ...[
+                    const SizedBox(height: 8),
+                    AltitudeBadge(altitudeM: _altitudeM!, colors: c),
+                  ],
                 ],
-              ],
-              if (_isNavigating) ...[
-                const SizedBox(height: 8),
-                MapFab(
-                  onTap: _openWaypointSearch,
-                  colors: c,
-                  child: Icon(Icons.add_location_alt_outlined,
-                      color: c.onAccent, size: 22),
-                ),
-              ],
-            ]),
-          ),
+                if (_isNavigating) ...[
+                  const SizedBox(height: 8),
+                  MapFab(
+                    onTap: _openWaypointSearch,
+                    colors: c,
+                    child: Icon(Icons.add_location_alt_outlined,
+                        color: c.onAccent, size: 22),
+                  ),
+                ],
+              ]),
+            ),
           // ── LEFT FABs — route planner + parking. Pre-trip only, same as
           // MapScreen: re-planning and checking a saved spot are both
           // pre-trip actions, reporting is not (it stays on the right, in
           // both states).
-          if (showingBottomBar)
+          if (showingBottomBar && !showHomeDashboard)
             Positioned(
               left: 12,
               bottom: MediaQuery.of(context).padding.bottom + 16,
