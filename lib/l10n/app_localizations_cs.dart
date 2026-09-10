@@ -219,6 +219,23 @@ class AppLocalizationsCs extends AppLocalizations {
       'Malý ukazatel nadmořské výšky v reálném čase u ovládacích prvků mapy';
 
   @override
+  String get sectionRoadOverlays => 'Silniční prvky';
+
+  @override
+  String get showCrosswalks => 'Přechody pro chodce';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Zobrazí na mapě přechody pro chodce z OpenStreetMap';
+
+  @override
+  String get showTrafficLights => 'Semafory';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Zobrazí na mapě semafory z OpenStreetMap';
+
+  @override
   String get autoCenterOnLaunch => 'Při spuštění vycentrovat na mou polohu';
 
   @override

@@ -219,6 +219,23 @@ class AppLocalizationsHr extends AppLocalizations {
       'Mali prikaz nadmorske visine u stvarnom vremenu pored kontrola karte';
 
   @override
+  String get sectionRoadOverlays => 'Elementi ceste';
+
+  @override
+  String get showCrosswalks => 'Pješački prijelazi';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Prikazuje na karti pješačke prijelaze iz OpenStreetMapa';
+
+  @override
+  String get showTrafficLights => 'Semafori';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Prikazuje na karti semafore iz OpenStreetMapa';
+
+  @override
   String get autoCenterOnLaunch => 'Centriraj na moju lokaciju pri pokretanju';
 
   @override

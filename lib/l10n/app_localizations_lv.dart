@@ -218,6 +218,23 @@ class AppLocalizationsLv extends AppLocalizations {
       'Neliels reāllaika augstuma rādījums pie kartes vadīklām';
 
   @override
+  String get sectionRoadOverlays => 'Ceļa elementi';
+
+  @override
+  String get showCrosswalks => 'Gājēju pārejas';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Kartē rāda OpenStreetMap gājēju pārejas';
+
+  @override
+  String get showTrafficLights => 'Luksofori';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Kartē rāda OpenStreetMap luksoforus';
+
+  @override
   String get autoCenterOnLaunch => 'Palaižot centrēt uz manu atrašanās vietu';
 
   @override

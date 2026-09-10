@@ -213,6 +213,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get showAltitudeDescription => '在地图控件附近显示的小型实时海拔读数';
 
   @override
+  String get sectionRoadOverlays => '道路元素';
+
+  @override
+  String get showCrosswalks => '人行横道';
+
+  @override
+  String get showCrosswalksDescription => '在地图上显示来自OpenStreetMap的人行横道';
+
+  @override
+  String get showTrafficLights => '交通信号灯';
+
+  @override
+  String get showTrafficLightsDescription => '在地图上显示来自OpenStreetMap的交通信号灯';
+
+  @override
   String get autoCenterOnLaunch => '启动时以我的位置为中心';
 
   @override

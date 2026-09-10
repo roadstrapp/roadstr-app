@@ -219,6 +219,23 @@ class AppLocalizationsLt extends AppLocalizations {
       'Nedidelis realaus laiko aukščio rodmuo šalia žemėlapio valdiklių';
 
   @override
+  String get sectionRoadOverlays => 'Kelio elementai';
+
+  @override
+  String get showCrosswalks => 'Pėsčiųjų perėjos';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Žemėlapyje rodo OpenStreetMap pėsčiųjų perėjas';
+
+  @override
+  String get showTrafficLights => 'Šviesoforai';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Žemėlapyje rodo OpenStreetMap šviesoforus';
+
+  @override
   String get autoCenterOnLaunch => 'Paleidžiant centruoti ties mano vieta';
 
   @override
