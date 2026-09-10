@@ -219,6 +219,23 @@ class AppLocalizationsEl extends AppLocalizations {
       'Μια μικρή ένδειξη υψομέτρου σε πραγματικό χρόνο δίπλα στα χειριστήρια του χάρτη';
 
   @override
+  String get sectionRoadOverlays => 'Στοιχεία δρόμου';
+
+  @override
+  String get showCrosswalks => 'Διαβάσεις πεζών';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Εμφανίζει στον χάρτη τις διαβάσεις πεζών από το OpenStreetMap';
+
+  @override
+  String get showTrafficLights => 'Φανάρια';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Εμφανίζει στον χάρτη τα φανάρια από το OpenStreetMap';
+
+  @override
   String get autoCenterOnLaunch => 'Κεντράρισμα στη θέση μου κατά την εκκίνηση';
 
   @override

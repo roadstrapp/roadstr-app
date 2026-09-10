@@ -318,6 +318,14 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   final _trafficLightSvc = TrafficLightService();
   final _crossingHazardSvc = CrossingHazardService();
 
+  /// Settings → "Road element overlays" toggles — same read-fresh-from-Hive
+  /// reasoning as MapLibreMapScreen's equivalent getters.
+  bool get _showTrafficLights =>
+      Hive.box('settings').get('showTrafficLights', defaultValue: true)
+          as bool;
+  bool get _showCrosswalks =>
+      Hive.box('settings').get('showCrosswalks', defaultValue: true) as bool;
+
   /// OSM-sourced camera ids already alerted this session — separate from
   /// [_alertedCameraIds] (Nostr event ids, String) since OSM node ids are int
   /// and the two sources must never collide or double-suppress each other.
@@ -1897,7 +1905,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       }
     }
     unawaited(_speedCameraSvc.updateIfNeeded(_position));
-    unawaited(_trafficLightSvc.updateIfNeeded(_position));
+    if (_showTrafficLights) {
+      unawaited(_trafficLightSvc.updateIfNeeded(_position));
+    }
     unawaited(_crossingHazardSvc.updateIfNeeded(_position));
     for (final cam in _speedCameraSvc.cachedCameras) {
       if (_alertedOsmCameraIds.contains(cam.id)) continue;
@@ -5103,7 +5113,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                 // denser than speed cameras (every controlled intersection
                 // in a city), so the zoom≥11 threshold above would flood
                 // the map with them.
-                if (_trafficLightSvc.cachedLights.isNotEmpty && _camZoom >= 15)
+                if (_showTrafficLights &&
+                    _trafficLightSvc.cachedLights.isNotEmpty &&
+                    _camZoom >= 15)
                   MarkerLayer(markers: [
                     for (final light in _trafficLightSvc.cachedLights)
                       Marker(
@@ -5114,7 +5126,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                       ),
                   ]),
                 // Speed bumps: same zoom≥15 OsmAnd itself uses for
-                // traffic_calming nodes.
+                // traffic_calming nodes. No Settings toggle (not asked for)
+                // — only crosswalks and traffic lights got one.
                 if (_crossingHazardSvc.cachedHazards
                         .any((h) => h.kind == CrossingHazardKind.speedBump) &&
                     _camZoom >= 15)
@@ -5131,7 +5144,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                 // Crosswalks: gated a stop higher — by far the densest OSM
                 // point feature in any built-up area, same reason OsmAnd
                 // itself only shows highway=crossing from zoom 16.
-                if (_crossingHazardSvc.cachedHazards
+                if (_showCrosswalks &&
+                    _crossingHazardSvc.cachedHazards
                         .any((h) => h.kind == CrossingHazardKind.crosswalk) &&
                     _camZoom >= 16)
                   MarkerLayer(markers: [

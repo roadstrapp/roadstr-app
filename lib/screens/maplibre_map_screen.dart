@@ -610,6 +610,16 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   final _trafficLightSvc = TrafficLightService();
   final _crossingHazardSvc = CrossingHazardService();
   LatLng? _parkingPosition;
+
+  /// Settings → "Road element overlays" toggles. Read fresh from Hive each
+  /// time rather than cached: this screen already rebuilds on every GPS fix
+  /// regardless, so a toggle flipped in Settings and returned from takes
+  /// effect within the next fix rather than needing its own change listener.
+  bool get _showTrafficLights =>
+      Hive.box('settings').get('showTrafficLights', defaultValue: true)
+          as bool;
+  bool get _showCrosswalks =>
+      Hive.box('settings').get('showCrosswalks', defaultValue: true) as bool;
   List<FavoritePlace> _favorites = [];
 
   /// Speed-camera proximity beep + voice alert state — same MapScreen
@@ -3490,11 +3500,17 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       }
     }));
     final lightsBefore = _trafficLightSvc.cachedLights;
-    unawaited(_trafficLightSvc.updateIfNeeded(data.position).then((_) {
-      if (mounted && !identical(_trafficLightSvc.cachedLights, lightsBefore)) {
-        setState(() {});
-      }
-    }));
+    // Skip the Overpass round-trip entirely when the toggle is off — unlike
+    // crosswalks/speed bumps, which share one combined query, this is its
+    // own independent fetch with nothing else riding on it.
+    if (_showTrafficLights) {
+      unawaited(_trafficLightSvc.updateIfNeeded(data.position).then((_) {
+        if (mounted &&
+            !identical(_trafficLightSvc.cachedLights, lightsBefore)) {
+          setState(() {});
+        }
+      }));
+    }
     final hazardsBefore = _crossingHazardSvc.cachedHazards;
     unawaited(_crossingHazardSvc.updateIfNeeded(data.position).then((_) {
       if (mounted && !identical(_crossingHazardSvc.cachedHazards, hazardsBefore)) {
@@ -4185,7 +4201,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               // denser than speed cameras (every controlled intersection in
               // a city), so showing them at the same zoom≥11 threshold as
               // other markers would flood the map.
-              if (_trafficLightSvc.cachedLights.isNotEmpty &&
+              if (_showTrafficLights &&
+                  _trafficLightSvc.cachedLights.isNotEmpty &&
                   (_camState?.zoom ?? 17) >= 15)
                 WidgetLayer(markers: [
                   for (final light in _trafficLightSvc.cachedLights)
@@ -4198,7 +4215,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                     ),
                 ]),
               // Speed bumps: same zoom≥15 OsmAnd itself uses for
-              // traffic_calming nodes.
+              // traffic_calming nodes. No Settings toggle (not asked for) —
+              // only crosswalks and traffic lights got one.
               if (_crossingHazardSvc.cachedHazards
                       .any((h) => h.kind == CrossingHazardKind.speedBump) &&
                   (_camState?.zoom ?? 17) >= 15)
@@ -4216,7 +4234,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               // by far the densest OSM point feature in any built-up area
               // (700+ within 1.5 km is routine), same reason OsmAnd itself
               // only shows highway=crossing from zoom 16.
-              if (_crossingHazardSvc.cachedHazards
+              if (_showCrosswalks &&
+                  _crossingHazardSvc.cachedHazards
                       .any((h) => h.kind == CrossingHazardKind.crosswalk) &&
                   (_camState?.zoom ?? 17) >= 16)
                 WidgetLayer(markers: [
