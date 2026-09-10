@@ -245,6 +245,23 @@ class AppLocalizationsNl extends AppLocalizations {
       'Een kleine real-time hoogteweergave bij de kaartbediening';
 
   @override
+  String get sectionRoadOverlays => 'Wegelementen';
+
+  @override
+  String get showCrosswalks => 'Zebrapaden';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Toont OpenStreetMap-zebrapaden op de kaart';
+
+  @override
+  String get showTrafficLights => 'Verkeerslichten';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Toont OpenStreetMap-verkeerslichten op de kaart';
+
+  @override
   String get autoCenterOnLaunch => 'Centreer bij opstarten op mijn locatie';
 
   @override

@@ -245,6 +245,23 @@ class AppLocalizationsPl extends AppLocalizations {
       'Mały wskaźnik wysokości w czasie rzeczywistym obok sterowania mapą';
 
   @override
+  String get sectionRoadOverlays => 'Elementy drogi';
+
+  @override
+  String get showCrosswalks => 'Przejścia dla pieszych';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Pokazuje na mapie przejścia dla pieszych z OpenStreetMap';
+
+  @override
+  String get showTrafficLights => 'Sygnalizacja świetlna';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Pokazuje na mapie sygnalizację świetlną z OpenStreetMap';
+
+  @override
   String get autoCenterOnLaunch =>
       'Wyśrodkuj na mojej pozycji przy uruchomieniu';
 
