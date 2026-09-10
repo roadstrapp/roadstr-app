@@ -386,11 +386,6 @@ class NavPanel extends StatelessWidget {
     final vBot = land
         ? (bottomInset > 0 ? bottomInset + 4 : 8.0)
         : (bottomInset > 0 ? bottomInset : 16.0);
-    final remaining =
-        remainingDistM > 0 ? remainingDistM : route.totalDistanceM;
-    final routeProgress = route.totalDistanceM <= 0
-        ? 0.0
-        : (1 - remaining / route.totalDistanceM).clamp(0.0, 1.0);
     return Container(
       decoration: BoxDecoration(
         gradient: colors.panelGradient,
@@ -407,25 +402,6 @@ class NavPanel extends StatelessWidget {
       ),
       padding: EdgeInsets.only(left: 18, right: 14, top: vTop, bottom: vBot),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Container(
-          width: 38,
-          height: 4,
-          decoration: BoxDecoration(
-            color: colors.textSecondary.withValues(alpha: 0.42),
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        const SizedBox(height: 9),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: LinearProgressIndicator(
-            value: routeProgress,
-            minHeight: 5,
-            color: colors.accent,
-            backgroundColor: colors.surface3,
-          ),
-        ),
-        const SizedBox(height: 11),
         Row(children: [
           SpeedometerWidget(
               speedKmh: speed,
