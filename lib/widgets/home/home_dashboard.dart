@@ -9,7 +9,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/favorite_place.dart';
 import '../../theme/app_theme.dart';
 
-class HomeDashboard extends StatelessWidget {
+class HomeDashboard extends StatefulWidget {
   final RoadstrColors colors;
   final double bottomInset;
   final List<FavoritePlace> favorites;
@@ -33,6 +33,13 @@ class HomeDashboard extends StatelessWidget {
     required this.onFavoriteTap,
   });
 
+  @override
+  State<HomeDashboard> createState() => _HomeDashboardState();
+}
+
+class _HomeDashboardState extends State<HomeDashboard> {
+  bool _collapsed = false;
+
   String _greeting(AppLocalizations l) {
     final hour = DateTime.now().hour;
     if (hour < 12) return l.homeGoodMorning;
@@ -44,25 +51,78 @@ class HomeDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final compact = MediaQuery.sizeOf(context).height < 700;
+    if (_collapsed) {
+      return Padding(
+        padding:
+            EdgeInsets.fromLTRB(12, 0, 12, widget.bottomInset > 0 ? 8 : 12),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => setState(() => _collapsed = false),
+            borderRadius: BorderRadius.circular(22),
+            child: Ink(
+              height: 56,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                gradient: widget.colors.panelGradient,
+                color: widget.colors.panelGradient == null
+                    ? widget.colors.surface2
+                    : null,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: widget.colors.panelEdge),
+                boxShadow: widget.colors.panelShadow,
+              ),
+              child: Row(children: [
+                Icon(Icons.keyboard_arrow_up_rounded,
+                    color: widget.colors.accent, size: 22),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(l.homeReadyToGo,
+                      style: TextStyle(
+                          color: widget.colors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700)),
+                ),
+                Icon(Icons.auto_awesome_rounded,
+                    color: widget.colors.accent, size: 18),
+              ]),
+            ),
+          ),
+        ),
+      );
+    }
     return Padding(
-      padding: EdgeInsets.fromLTRB(12, 0, 12, bottomInset > 0 ? 8 : 12),
+      padding: EdgeInsets.fromLTRB(12, 0, 12, widget.bottomInset > 0 ? 8 : 12),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: colors.panelGradient,
-          color: colors.panelGradient == null ? colors.surface2 : null,
+          gradient: widget.colors.panelGradient,
+          color: widget.colors.panelGradient == null
+              ? widget.colors.surface2
+              : null,
           borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: colors.panelEdge),
-          boxShadow: colors.panelShadow,
+          border: Border.all(color: widget.colors.panelEdge),
+          boxShadow: widget.colors.panelShadow,
         ),
         child: Padding(
           padding: EdgeInsets.fromLTRB(18, compact ? 12 : 16, 18, 14),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Container(
-              width: 38,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colors.textSecondary.withValues(alpha: 0.42),
-                borderRadius: BorderRadius.circular(8),
+            GestureDetector(
+              onTap: () => setState(() => _collapsed = true),
+              onVerticalDragEnd: (details) {
+                if ((details.primaryVelocity ?? 0) > 80) {
+                  setState(() => _collapsed = true);
+                }
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 7),
+                child: Container(
+                  width: 38,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: widget.colors.textSecondary.withValues(alpha: 0.42),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
               ),
             ),
             SizedBox(height: compact ? 8 : 12),
@@ -73,7 +133,7 @@ class HomeDashboard extends StatelessWidget {
                   children: [
                     Text(_greeting(l),
                         style: TextStyle(
-                          color: colors.textPrimary,
+                          color: widget.colors.textPrimary,
                           fontSize: compact ? 21 : 24,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.5,
@@ -81,34 +141,34 @@ class HomeDashboard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(l.homeReadyToGo,
                         style: TextStyle(
-                            color: colors.textSecondary, fontSize: 14)),
+                            color: widget.colors.textSecondary, fontSize: 14)),
                   ],
                 ),
               ),
               Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: onLocate,
+                  onTap: widget.onLocate,
                   borderRadius: BorderRadius.circular(14),
                   child: Ink(
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                        color: colors.accentSoft,
+                        color: widget.colors.accentSoft,
                         borderRadius: BorderRadius.circular(14)),
                     child: Icon(Icons.my_location_rounded,
-                        color: colors.accent, size: 21),
+                        color: widget.colors.accent, size: 21),
                   ),
                 ),
               ),
             ]),
-            if (favorites.isNotEmpty) ...[
+            if (widget.favorites.isNotEmpty) ...[
               SizedBox(height: compact ? 8 : 12),
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(l.homeSavedPlaces,
                     style: TextStyle(
-                        color: colors.textSecondary,
+                        color: widget.colors.textSecondary,
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.4)),
@@ -118,12 +178,12 @@ class HomeDashboard extends StatelessWidget {
                 height: 38,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  itemCount: favorites.length.clamp(0, 5),
+                  itemCount: widget.favorites.length.clamp(0, 5),
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemBuilder: (_, index) => _SavedPlaceChip(
-                    favorite: favorites[index],
-                    colors: colors,
-                    onTap: () => onFavoriteTap(favorites[index]),
+                    favorite: widget.favorites[index],
+                    colors: widget.colors,
+                    onTap: () => widget.onFavoriteTap(widget.favorites[index]),
                   ),
                 ),
               ),
@@ -134,16 +194,16 @@ class HomeDashboard extends StatelessWidget {
                   child: _HomeAction(
                       icon: Icons.navigation_rounded,
                       label: l.homeNavigate,
-                      colors: colors,
+                      colors: widget.colors,
                       highlighted: true,
-                      onTap: onNavigate)),
+                      onTap: widget.onNavigate)),
               const SizedBox(width: 10),
               Expanded(
                   child: _HomeAction(
                       icon: Icons.local_parking_rounded,
                       label: l.homeParking,
-                      colors: colors,
-                      onTap: onParking)),
+                      colors: widget.colors,
+                      onTap: widget.onParking)),
             ]),
             const SizedBox(height: 10),
             Row(children: [
@@ -151,16 +211,16 @@ class HomeDashboard extends StatelessWidget {
                   child: _HomeAction(
                       icon: Icons.notifications_none_rounded,
                       label: l.homeActivity,
-                      colors: colors,
-                      onTap: onActivity)),
+                      colors: widget.colors,
+                      onTap: widget.onActivity)),
               const SizedBox(width: 10),
               Expanded(
                   child: _HomeAction(
                       icon: Icons.report_problem_outlined,
                       label: l.homeEvents,
-                      colors: colors,
+                      colors: widget.colors,
                       warning: true,
-                      onTap: onEvents)),
+                      onTap: widget.onEvents)),
             ]),
           ]),
         ),
