@@ -246,6 +246,23 @@ class AppLocalizationsEt extends AppLocalizations {
       'Väike reaalajas kõrgusnäit kaardi juhtnuppude lähedal';
 
   @override
+  String get sectionRoadOverlays => 'Tee elemendid';
+
+  @override
+  String get showCrosswalks => 'Ülekäigurajad';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Kuvab kaardil OpenStreetMapi ülekäigurajad';
+
+  @override
+  String get showTrafficLights => 'Foorid';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Kuvab kaardil OpenStreetMapi foorid';
+
+  @override
   String get autoCenterOnLaunch => 'Käivitusel minu asukohale keskendamine';
 
   @override

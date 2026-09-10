@@ -243,6 +243,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get showAltitudeDescription => '地図の操作ボタン付近に表示されるリアルタイムの標高表示';
 
   @override
+  String get sectionRoadOverlays => '道路要素';
+
+  @override
+  String get showCrosswalks => '横断歩道';
+
+  @override
+  String get showCrosswalksDescription => 'OpenStreetMapに登録された横断歩道を地図に表示します';
+
+  @override
+  String get showTrafficLights => '信号機';
+
+  @override
+  String get showTrafficLightsDescription => 'OpenStreetMapに登録された信号機を地図に表示します';
+
+  @override
   String get autoCenterOnLaunch => '起動時に現在地を中心にする';
 
   @override

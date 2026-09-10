@@ -245,6 +245,23 @@ class AppLocalizationsRo extends AppLocalizations {
       'O mică indicație a altitudinii în timp real lângă comenzile hărții';
 
   @override
+  String get sectionRoadOverlays => 'Elemente de drum';
+
+  @override
+  String get showCrosswalks => 'Treceri de pietoni';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Afișează pe hartă trecerile de pietoni din OpenStreetMap';
+
+  @override
+  String get showTrafficLights => 'Semafoare';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Afișează pe hartă semafoarele din OpenStreetMap';
+
+  @override
   String get autoCenterOnLaunch => 'Centrează pe poziția mea la pornire';
 
   @override

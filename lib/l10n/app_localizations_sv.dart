@@ -245,6 +245,23 @@ class AppLocalizationsSv extends AppLocalizations {
       'En liten höjdvisning i realtid nära kartkontrollerna';
 
   @override
+  String get sectionRoadOverlays => 'Vägelement';
+
+  @override
+  String get showCrosswalks => 'Övergångsställen';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Visar övergångsställen från OpenStreetMap på kartan';
+
+  @override
+  String get showTrafficLights => 'Trafikljus';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Visar trafikljus från OpenStreetMap på kartan';
+
+  @override
   String get autoCenterOnLaunch => 'Centrera på min position vid start';
 
   @override

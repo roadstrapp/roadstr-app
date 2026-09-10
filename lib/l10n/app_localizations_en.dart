@@ -245,6 +245,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'A small real-time elevation readout near the map controls';
 
   @override
+  String get sectionRoadOverlays => 'Road element overlays';
+
+  @override
+  String get showCrosswalks => 'Pedestrian crossings';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Shows OSM-mapped pedestrian crossings on the map';
+
+  @override
+  String get showTrafficLights => 'Traffic lights';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Shows OSM-mapped traffic lights on the map';
+
+  @override
   String get autoCenterOnLaunch => 'Center on my position at startup';
 
   @override

@@ -247,6 +247,23 @@ class AppLocalizationsFr extends AppLocalizations {
       'Un petit indicateur d\'altitude en temps réel près des commandes de la carte';
 
   @override
+  String get sectionRoadOverlays => 'Éléments routiers';
+
+  @override
+  String get showCrosswalks => 'Passages piétons';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Affiche sur la carte les passages piétons issus d\'OpenStreetMap';
+
+  @override
+  String get showTrafficLights => 'Feux de circulation';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Affiche sur la carte les feux de circulation issus d\'OpenStreetMap';
+
+  @override
   String get autoCenterOnLaunch => 'Centrer sur ma position au démarrage';
 
   @override

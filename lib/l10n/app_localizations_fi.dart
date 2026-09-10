@@ -246,6 +246,23 @@ class AppLocalizationsFi extends AppLocalizations {
       'Pieni reaaliaikainen korkeuslukema karttatoimintojen lähellä';
 
   @override
+  String get sectionRoadOverlays => 'Tien elementit';
+
+  @override
+  String get showCrosswalks => 'Suojatiet';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Näyttää kartalla OpenStreetMapista löytyvät suojatiet';
+
+  @override
+  String get showTrafficLights => 'Liikennevalot';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Näyttää kartalla OpenStreetMapista löytyvät liikennevalot';
+
+  @override
   String get autoCenterOnLaunch => 'Keskitä sijaintiini käynnistettäessä';
 
   @override

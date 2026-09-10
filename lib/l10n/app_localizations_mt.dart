@@ -247,6 +247,23 @@ class AppLocalizationsMt extends AppLocalizations {
       'Qari żgħir tal-għoli f\'ħin reali ħdejn il-kontrolli tal-mappa';
 
   @override
+  String get sectionRoadOverlays => 'Elementi tat-triq';
+
+  @override
+  String get showCrosswalks => 'Qsim tal-mixi';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Turi fuq il-mappa l-qsim tal-mixi minn OpenStreetMap';
+
+  @override
+  String get showTrafficLights => 'Semafori';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Turi fuq il-mappa s-semafori minn OpenStreetMap';
+
+  @override
   String get autoCenterOnLaunch =>
       'Iċċentra fuq il-pożizzjoni tiegħi mat-tħaddim';
 

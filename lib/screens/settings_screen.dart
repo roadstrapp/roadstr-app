@@ -42,6 +42,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   List<FavoritePlace> _favorites = [];
   String _appVersion = '—';
 
+  /// Local UI state only (not persisted) — collapsed by default so the map
+  /// section doesn't grow every time a new road-element overlay toggle is
+  /// added here.
+  bool _roadOverlaysExpanded = false;
+
   // ── Nostr identity (for sync) ─────────────────────────────────────────────
   String? _nostrPub;
   String? _nostrPriv; // null when signing via Amber
@@ -1226,12 +1231,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ]),
           ),
-          _SwitchTile(
-            title: l.showAltitude,
-            subtitle: l.showAltitudeDescription,
-            value: _getBool('showAltitude', false),
-            onChanged: (v) => _setBool('showAltitude', v),
+          _RoadOverlaysSection(
+            expanded: _roadOverlaysExpanded,
+            onToggleExpanded: () =>
+                setState(() => _roadOverlaysExpanded = !_roadOverlaysExpanded),
             colors: c,
+            title: l.sectionRoadOverlays,
+            children: [
+              _SwitchTile(
+                title: l.showAltitude,
+                subtitle: l.showAltitudeDescription,
+                value: _getBool('showAltitude', false),
+                onChanged: (v) => _setBool('showAltitude', v),
+                colors: c,
+              ),
+              _SwitchTile(
+                title: l.showCrosswalks,
+                subtitle: l.showCrosswalksDescription,
+                value: _getBool('showCrosswalks', true),
+                onChanged: (v) => _setBool('showCrosswalks', v),
+                colors: c,
+              ),
+              _SwitchTile(
+                title: l.showTrafficLights,
+                subtitle: l.showTrafficLightsDescription,
+                value: _getBool('showTrafficLights', true),
+                onChanged: (v) => _setBool('showTrafficLights', v),
+                colors: c,
+              ),
+            ],
           ),
           _SwitchTile(
             title: l.autoCenterOnLaunch,
@@ -2279,6 +2307,72 @@ class _SwitchTile extends StatelessWidget {
           value: value,
           onChanged: onChanged,
           dense: true,
+        ),
+      );
+}
+
+/// Collapsible group for map overlay toggles — starts collapsed so this
+/// keeps fitting on one screen as more overlays (crosswalks, traffic
+/// lights, ...) get added over time instead of each getting its own
+/// permanently-visible row.
+class _RoadOverlaysSection extends StatelessWidget {
+  final bool expanded;
+  final VoidCallback onToggleExpanded;
+  final String title;
+  final List<Widget> children;
+  final RoadstrColors colors;
+  const _RoadOverlaysSection({
+    required this.expanded,
+    required this.onToggleExpanded,
+    required this.title,
+    required this.children,
+    required this.colors,
+  });
+  @override
+  Widget build(BuildContext context) => Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          color: colors.surface2,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: colors.border, width: 0.5),
+        ),
+        child: Column(
+          children: [
+            InkWell(
+              onTap: onToggleExpanded,
+              borderRadius: BorderRadius.circular(14),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 14),
+                child: Row(children: [
+                  Expanded(
+                      child: Text(title,
+                          style: TextStyle(
+                              color: colors.textPrimary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600))),
+                  AnimatedRotation(
+                    turns: expanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(Icons.keyboard_arrow_down_rounded,
+                        color: colors.textSecondary),
+                  ),
+                ]),
+              ),
+            ),
+            AnimatedCrossFade(
+              firstChild: const SizedBox(width: double.infinity),
+              secondChild: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+                child: Column(children: children),
+              ),
+              crossFadeState: expanded
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+              duration: const Duration(milliseconds: 200),
+              sizeCurve: Curves.easeInOut,
+            ),
+          ],
         ),
       );
 }

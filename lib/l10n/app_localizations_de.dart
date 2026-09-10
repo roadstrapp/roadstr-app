@@ -247,6 +247,23 @@ class AppLocalizationsDe extends AppLocalizations {
       'Eine kleine Echtzeit-Höhenanzeige neben den Kartensteuerelementen';
 
   @override
+  String get sectionRoadOverlays => 'Straßenelemente';
+
+  @override
+  String get showCrosswalks => 'Fußgängerüberwege';
+
+  @override
+  String get showCrosswalksDescription =>
+      'Zeigt auf OpenStreetMap kartierte Fußgängerüberwege auf der Karte';
+
+  @override
+  String get showTrafficLights => 'Ampeln';
+
+  @override
+  String get showTrafficLightsDescription =>
+      'Zeigt auf OpenStreetMap kartierte Ampeln auf der Karte';
+
+  @override
   String get autoCenterOnLaunch => 'Beim Start auf meinen Standort zentrieren';
 
   @override
