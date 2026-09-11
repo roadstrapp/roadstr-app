@@ -70,7 +70,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     padding: EdgeInsets.fromLTRB(16, 8, 16,
                         20 + MediaQuery.of(context).viewPadding.bottom),
                     itemCount: items.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (_, index) =>
                         _NotificationCard(item: items[index], colors: c),
                   );
@@ -100,15 +100,26 @@ class _EmptyInbox extends StatelessWidget {
           padding: const EdgeInsets.all(32),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Container(
-              width: 82,
-              height: 82,
+              width: 88,
+              height: 88,
               decoration: BoxDecoration(
-                gradient: colors.surfaceSheen,
+                gradient: RadialGradient(colors: [
+                  colors.accent.withValues(alpha: 0.20),
+                  colors.surface2,
+                ]),
                 shape: BoxShape.circle,
-                border: Border.all(color: colors.panelEdge),
-                boxShadow: colors.cardShadow,
+                border: Border.all(
+                    color: colors.accent.withValues(alpha: 0.38), width: 1.2),
+                boxShadow: [
+                  ...colors.cardShadow,
+                  BoxShadow(
+                    color: colors.accent.withValues(alpha: 0.16),
+                    blurRadius: 28,
+                    spreadRadius: -7,
+                  ),
+                ],
               ),
-              child: Icon(icon, size: 38, color: colors.accent),
+              child: Icon(icon, size: 36, color: colors.accent),
             ),
             const SizedBox(height: 22),
             Text(title,
@@ -171,23 +182,24 @@ class _NotificationCard extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: colors.surfaceSheen,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: item.isRead
-              ? colors.panelEdge
-              : colors.accent.withValues(alpha: 0.55),
-          width: item.isRead ? 1 : 1.4,
-        ),
-        boxShadow: colors.cardShadow,
+      decoration: colors.premiumCard(
+        radius: 20,
+        edgeColor: item.isRead
+            ? colors.panelEdge
+            : colors.accent.withValues(alpha: 0.62),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(
           width: 42,
           height: 42,
           decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.14), shape: BoxShape.circle),
+            gradient: RadialGradient(colors: [
+              color.withValues(alpha: 0.22),
+              color.withValues(alpha: 0.09),
+            ]),
+            shape: BoxShape.circle,
+            border: Border.all(color: color.withValues(alpha: 0.24)),
+          ),
           child: Icon(icon, color: color, size: 23),
         ),
         const SizedBox(width: 12),

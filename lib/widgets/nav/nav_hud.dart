@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/routing_service.dart';
 import '../../theme/app_theme.dart';
+import '../design/roadstr_glass.dart';
 import '../map/map_chrome.dart';
 import '../../utils/units.dart';
 import '../speedometer_widget.dart';
@@ -76,7 +77,8 @@ class NavInstruction extends StatelessWidget {
     // beside the compact chip (which caused the "white box" artefact).
     return Column(mainAxisSize: MainAxisSize.min, children: [
       // ── Main instruction panel ─────────────────────────────────────────────
-      Container(
+      RoadstrGlassSurface(
+        colors: colors,
         // Inset from the screen edges and rounded at the bottom: the panel
         // becomes an object resting over the map rather than a bar welded to
         // the top of it, and the sliver of map now visible down each side is
@@ -86,16 +88,8 @@ class NavInstruction extends StatelessWidget {
         // reaches into that band; its text starts below them.
         margin: EdgeInsets.fromLTRB(10, topInset * 0.5 + 10, 10, 0),
         padding: EdgeInsets.fromLTRB(18, vPad * 0.6, 18, vPad),
-        decoration: BoxDecoration(
-          // The gradient is the "modern" themes' whole point, and the driving
-          // panels are where it earns its place. Null on every other theme,
-          // where the flat colour applies exactly as before.
-          gradient: colors.panelGradient,
-          color: colors.panelGradient == null ? colors.surface2 : null,
-          borderRadius: BorderRadius.circular(RoadstrColors.panelRadius),
-          border: Border.all(color: colors.panelEdge, width: 1),
-          boxShadow: colors.panelShadow,
-        ),
+        level: RoadstrGlassLevel.strong,
+        borderRadius: BorderRadius.circular(RoadstrRadius.large),
         child: Row(children: [
           _stepIcon(step, boxSz, colors),
           const SizedBox(width: 12),
@@ -106,7 +100,7 @@ class NavInstruction extends StatelessWidget {
                   children: [
                 Text(_displayInstruction(step, l),
                     style: TextStyle(
-                        color: colors.textPrimary,
+                        color: colors.mapTextPrimary,
                         fontSize: fsMain,
                         fontWeight: FontWeight.w700,
                         height: 1.15,
@@ -133,7 +127,7 @@ class NavInstruction extends StatelessWidget {
                 else
                   Text(_distLabel(liveDist, l.now),
                       style: TextStyle(
-                          color: colors.textSecondary, fontSize: fsSub)),
+                          color: colors.mapTextSecondary, fontSize: fsSub)),
               ])),
         ]),
       ),
@@ -158,7 +152,8 @@ class NavInstruction extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (showNext)
-              Container(
+              RoadstrGlassSurface(
+                colors: colors,
                 margin: const EdgeInsets.only(left: 10),
                 // 15% narrower than the half-screen tile this used to be, so it
                 // covers less map. Type and padding come down with it rather than
@@ -167,23 +162,8 @@ class NavInstruction extends StatelessWidget {
                 width: MediaQuery.of(context).size.width * 0.425,
                 padding: EdgeInsets.symmetric(
                     horizontal: land ? 13 : 20, vertical: land ? 12 : 18),
-                decoration: BoxDecoration(
-                  gradient: colors.panelGradient,
-                  color: colors.panelGradient == null ? colors.surface3 : null,
-                  // Rounded on every corner now that it floats clear of the panel
-                  // above, and a step smaller in radius, edge and shadow than the
-                  // main panel — subordinate by weight rather than only by size.
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                      color: colors.panelEdge.withValues(alpha: 0.5), width: 1),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.12),
-                        blurRadius: 16,
-                        spreadRadius: -3,
-                        offset: const Offset(0, 4))
-                  ],
-                ),
+                level: RoadstrGlassLevel.medium,
+                borderRadius: BorderRadius.circular(RoadstrRadius.medium),
                 child: Row(children: [
                   ManeuverSymbol(
                     step: nextStep!,
@@ -205,7 +185,7 @@ class NavInstruction extends StatelessWidget {
                       Text(
                           l.thenManeuver(_uncapitalised(nextStep!.instruction)),
                           style: TextStyle(
-                              color: colors.textPrimary,
+                              color: colors.mapTextPrimary,
                               fontSize: land ? 12 : 18,
                               fontWeight: FontWeight.w600),
                           maxLines: land ? 2 : 3,
@@ -213,7 +193,7 @@ class NavInstruction extends StatelessWidget {
                       const SizedBox(height: 3),
                       Text(_distLabel(distToNextStepM, ''),
                           style: TextStyle(
-                              color: colors.textSecondary,
+                              color: colors.mapTextSecondary,
                               fontSize: land ? 10 : 15,
                               fontWeight: FontWeight.w500)),
                     ],
@@ -231,7 +211,7 @@ class NavInstruction extends StatelessWidget {
                       voiceMuted
                           ? Icons.volume_off_rounded
                           : Icons.volume_up_rounded,
-                      color: colors.onAccent
+                      color: colors.mapTextPrimary
                           .withValues(alpha: voiceMuted ? 0.45 : 1.0),
                       size: 22),
                 ),
@@ -386,19 +366,12 @@ class NavPanel extends StatelessWidget {
     final vBot = land
         ? (bottomInset > 0 ? bottomInset + 4 : 8.0)
         : (bottomInset > 0 ? bottomInset : 16.0);
-    return Container(
-      decoration: BoxDecoration(
-        gradient: colors.panelGradient,
-        color: colors.panelGradient == null ? colors.surface2 : null,
-        // Rounded only at the top: the bar still meets the bottom edge of the
-        // screen, so rounding there would leave a stripe of map under the
-        // system gesture area with nothing in it.
-        borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(RoadstrColors.panelRadius)),
-        border: Border(
-          top: BorderSide(color: colors.panelEdge, width: 1),
-        ),
-        boxShadow: colors.panelShadow,
+    return RoadstrGlassSurface(
+      colors: colors,
+      level: RoadstrGlassLevel.strong,
+      borderColor: Colors.transparent,
+      borderRadius: const BorderRadius.vertical(
+        top: Radius.circular(RoadstrRadius.xLarge),
       ),
       padding: EdgeInsets.only(left: 18, right: 14, top: vTop, bottom: vBot),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -420,7 +393,7 @@ class NavPanel extends StatelessWidget {
                 // is the supporting detail, so it takes the secondary style.
                 Text(_timeLabel(l),
                     style: TextStyle(
-                        color: colors.textPrimary,
+                        color: colors.mapTextPrimary,
                         fontSize: fsDist,
                         fontWeight: FontWeight.w800,
                         height: 1.05,
@@ -430,7 +403,7 @@ class NavPanel extends StatelessWidget {
                   // Remaining distance — updates every GPS tick
                   Text(_distLabel,
                       style: TextStyle(
-                          color: colors.textSecondary,
+                          color: colors.mapTextSecondary,
                           fontSize: fsSub,
                           fontWeight: FontWeight.w600)),
                   // ETA used to be hidden in landscape to save vertical
@@ -440,11 +413,11 @@ class NavPanel extends StatelessWidget {
                   // even where it doesn't have the height.
                   Text('  ·  ',
                       style: TextStyle(
-                          color: colors.textSecondary, fontSize: fsSub)),
+                          color: colors.mapTextSecondary, fontSize: fsSub)),
                   // Estimated time of arrival
                   Text(l.etaArrivalLabel(_etaLabel),
                       style: TextStyle(
-                          color: colors.textSecondary,
+                          color: colors.mapTextSecondary,
                           fontSize: fsSub,
                           fontWeight: FontWeight.w600)),
                 ]),
@@ -460,7 +433,7 @@ class NavPanel extends StatelessWidget {
                 height: _stopBtnH,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  gradient: _stopBtnGradientFor(colors.isDark),
+                  gradient: _stopBtnGradientFor(true),
                   borderRadius: BorderRadius.circular(14),
                   border:
                       Border.all(color: _stopBtnRed.withValues(alpha: 0.45)),
@@ -468,9 +441,7 @@ class NavPanel extends StatelessWidget {
                 child: Icon(Icons.close_rounded,
                     // Brighter red on the dark body, where the deeper shade
                     // used on white would disappear.
-                    color: colors.isDark
-                        ? const Color(0xFFFF6B6B)
-                        : const Color(0xFFD32F2F),
+                    color: const Color(0xFFFF6B6B),
                     size: 26)),
           ),
         ]),

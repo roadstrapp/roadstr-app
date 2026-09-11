@@ -35,6 +35,7 @@ import '../services/routing_service.dart';
 import '../services/zap_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/units.dart';
+import '../widgets/design/roadstr_glass.dart';
 import '../widgets/sheets/road_event_sheets.dart' show SpeedLimitDialog;
 
 class ProfileScreen extends StatefulWidget {
@@ -579,13 +580,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Center(
             child: Stack(clipBehavior: Clip.none, children: [
           Container(
-            width: 80,
-            height: 80,
+            width: 92,
+            height: 92,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: c.surfaceSheen,
-              border: Border.all(color: c.accent, width: 2),
-              boxShadow: c.cardShadow,
+              border:
+                  Border.all(color: c.accent.withValues(alpha: 0.75), width: 2),
+              boxShadow: [
+                ...c.cardShadow,
+                BoxShadow(
+                  color: c.accent.withValues(alpha: 0.18),
+                  blurRadius: 28,
+                  spreadRadius: -6,
+                ),
+              ],
             ),
             child: ClipOval(
               child: _showPublicProfile && _picture != null
@@ -747,15 +756,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   List<Widget> _buildLoggedOut(RoadstrColors c, AppLocalizations l) => [
         Center(
             child: Container(
-          width: 80,
-          height: 80,
+          width: 92,
+          height: 92,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: c.surfaceSheen,
-            border: Border.all(color: c.accent, width: 2),
-            boxShadow: c.cardShadow,
+            border:
+                Border.all(color: c.accent.withValues(alpha: 0.75), width: 2),
+            boxShadow: [
+              ...c.cardShadow,
+              BoxShadow(
+                color: c.accent.withValues(alpha: 0.18),
+                blurRadius: 28,
+                spreadRadius: -6,
+              ),
+            ],
           ),
-          child: Icon(Icons.person_outline, color: c.accent, size: 40),
+          child: Icon(Icons.person_outline, color: c.accent, size: 44),
         )),
         const SizedBox(height: 12),
         Center(
@@ -812,10 +829,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 24),
         Container(
           padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: c.accentSoft,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: c.accent.withValues(alpha: 0.3)),
+          decoration: c.premiumCard(
+            radius: RoadstrRadius.medium,
+            edgeColor: c.accent.withValues(alpha: 0.40),
           ),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Icon(Icons.info_outline, color: c.accent, size: 18),
@@ -841,12 +857,9 @@ class _BalanceBadge extends StatelessWidget {
     final c = colors;
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        gradient: colors.surfaceSheen,
-        borderRadius: BorderRadius.circular(18),
-        border:
-            Border.all(color: const Color(0xFFF7931A).withValues(alpha: 0.42)),
-        boxShadow: colors.cardShadow,
+      decoration: colors.premiumCard(
+        radius: 18,
+        edgeColor: const Color(0xFFF7931A).withValues(alpha: 0.48),
       ),
       child: Row(children: [
         const Text('⚡', style: TextStyle(fontSize: 24)),
@@ -896,11 +909,9 @@ class _ReputationBadge extends StatelessWidget {
     final pct = (score * 100).round();
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: colors.surfaceSheen,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _color.withValues(alpha: 0.42)),
-        boxShadow: colors.cardShadow,
+      decoration: colors.premiumCard(
+        radius: 18,
+        edgeColor: _color.withValues(alpha: 0.48),
       ),
       child: Row(children: [
         Icon(Icons.verified_rounded, color: _color, size: 28),
@@ -1381,17 +1392,13 @@ class _LoginTile extends StatelessWidget {
     final borderColor = isWarning
         ? const Color(0xFFFFB800).withValues(alpha: 0.4)
         : colors.border;
-    return InkWell(
+    return RoadstrPressable(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
+      semanticLabel: title,
+      borderRadius: BorderRadius.circular(RoadstrRadius.large),
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: colors.surfaceSheen,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: borderColor),
-          boxShadow: colors.cardShadow,
-        ),
+        decoration: colors.premiumCard(radius: 18, edgeColor: borderColor),
         child: Row(children: [
           Container(
               width: 44,

@@ -9,6 +9,20 @@ void main() {
   final light = colorsOf(AppThemeId.lightNostr);
   final dark = colorsOf(AppThemeId.darkNostr);
 
+  group('built-in theme catalogue', () {
+    test('contains only violet and orange, each in light and dark', () {
+      expect(AppThemeId.values, hasLength(4));
+    });
+
+    test('legacy modern selections migrate without changing identity', () {
+      expect(AppThemeIdExt.fromIndex(4), AppThemeId.lightNostr);
+      expect(AppThemeIdExt.fromIndex(5), AppThemeId.lightBitcoin);
+      expect(AppThemeIdExt.fromIndex(6), AppThemeId.darkNostr);
+      expect(AppThemeIdExt.fromIndex(7), AppThemeId.darkBitcoin);
+      expect(AppThemeIdExt.fromIndex(999), AppThemeId.lightNostr);
+    });
+  });
+
   group('day/night transition', () {
     // MaterialApp cross-fades themes over ~200 ms. This extension used to
     // return `this` for every t, so Roadstr's own surfaces stayed on the old
