@@ -1,0 +1,15 @@
+Visual redesign: a new home dashboard, refined glass-style panels
+throughout, and a simplified theme lineup.
+
+Changed
+
+• New collapsible home dashboard on the map screen.
+• Frosted-glass styling applied consistently across the bottom bar,
+  navigation HUD, route panels and search — one shared design
+  language instead of several ad-hoc looks.
+• Simplified theming: dropped the "modern" gradient variants, keeping
+  the four classic Nostr/Bitcoin themes (light and dark). Anyone who
+  had picked a modern variant falls back to its closest classic
+  counterpart automatically.
+• Cleaned up the bottom bar: removed a small logo that was crowding
+  the notifications/profile/menu buttons, giving them more room.
