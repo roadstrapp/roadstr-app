@@ -9,23 +9,17 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import '../../models/road_event.dart';
+import '../../theme/app_theme.dart';
 import '../cursor_painter.dart';
 
 class RoadEventPin extends StatelessWidget {
   final RoadEvent event;
   const RoadEventPin({super.key, required this.event});
   @override
-  Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(
-          color: event.category.color,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 1.5),
-          boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 4)],
-        ),
-        child: Center(
-          child: Text(event.category.emoji,
-              style: const TextStyle(fontSize: 16, height: 1)),
-        ),
+  Widget build(BuildContext context) => _MapSignalPin(
+        emoji: event.category.emoji,
+        accent: event.category.color,
+        emphasized: true,
       );
 }
 
@@ -36,16 +30,9 @@ class RoadEventPin extends StatelessWidget {
 class OsmCameraPin extends StatelessWidget {
   const OsmCameraPin({super.key});
   @override
-  Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(
-          color: RoadCategory.speedCamera.color.withValues(alpha: 0.55),
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 1.2),
-          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 3)],
-        ),
-        child: const Center(
-          child: Text('📷', style: TextStyle(fontSize: 13, height: 1)),
-        ),
+  Widget build(BuildContext context) => _MapSignalPin(
+        emoji: '📷',
+        accent: RoadCategory.speedCamera.color,
       );
 }
 
@@ -56,16 +43,9 @@ class OsmCameraPin extends StatelessWidget {
 class TrafficLightPin extends StatelessWidget {
   const TrafficLightPin({super.key});
   @override
-  Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.6),
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 1.2),
-          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 3)],
-        ),
-        child: const Center(
-          child: Text('🚦', style: TextStyle(fontSize: 13, height: 1)),
-        ),
+  Widget build(BuildContext context) => const _MapSignalPin(
+        emoji: '🚦',
+        accent: Color(0xFF70D69B),
       );
 }
 
@@ -74,16 +54,9 @@ class TrafficLightPin extends StatelessWidget {
 class CrosswalkPin extends StatelessWidget {
   const CrosswalkPin({super.key});
   @override
-  Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(
-          color: Colors.amber.shade700.withValues(alpha: 0.75),
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 1.2),
-          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 3)],
-        ),
-        child: const Center(
-          child: Text('🚸', style: TextStyle(fontSize: 13, height: 1)),
-        ),
+  Widget build(BuildContext context) => const _MapSignalPin(
+        emoji: '🚸',
+        accent: Color(0xFFFFB347),
       );
 }
 
@@ -92,17 +65,68 @@ class CrosswalkPin extends StatelessWidget {
 class SpeedBumpPin extends StatelessWidget {
   const SpeedBumpPin({super.key});
   @override
-  Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(
-          color: Colors.orange.shade800.withValues(alpha: 0.75),
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 1.2),
-          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 3)],
-        ),
-        child: const Center(
-          child: Text('〰️', style: TextStyle(fontSize: 13, height: 1)),
-        ),
+  Widget build(BuildContext context) => const _MapSignalPin(
+        emoji: '〰️',
+        accent: Color(0xFFFF8547),
       );
+}
+
+class _MapSignalPin extends StatelessWidget {
+  final String emoji;
+  final Color accent;
+  final bool emphasized;
+
+  const _MapSignalPin({
+    required this.emoji,
+    required this.accent,
+    this.emphasized = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = RoadstrColors.of(context);
+    return RepaintBoundary(
+      child: Container(
+        padding: const EdgeInsets.all(2.5),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              accent.withValues(alpha: emphasized ? 0.96 : 0.78),
+              accent.withValues(alpha: emphasized ? 0.68 : 0.42),
+            ],
+          ),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.78)),
+          boxShadow: [
+            BoxShadow(
+              color: accent.withValues(alpha: emphasized ? 0.48 : 0.28),
+              blurRadius: emphasized ? 11 : 7,
+              spreadRadius: emphasized ? 1 : 0,
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.36),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: colors.mapOverlayDark.withValues(alpha: 0.88),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            emoji,
+            style: TextStyle(fontSize: emphasized ? 15 : 12.5, height: 1),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class PinMarker extends StatelessWidget {
@@ -172,15 +196,41 @@ class UserMarker extends StatelessWidget {
     this.ostrichSpeedKmh = 0,
   });
   @override
-  Widget build(BuildContext context) => Transform.rotate(
-        angle: heading * math.pi / 180,
-        child: AnimatedCursorWidget(
-          style: cursorStyle,
-          cursorColor: cursorColor,
-          animateOstrich: cursorStyle == CursorStyle.ostrich,
-          ostrichIsMoving: ostrichIsMoving,
-          ostrichSpeedKmh: ostrichSpeedKmh,
-          size: 48,
+  Widget build(BuildContext context) => RepaintBoundary(
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(colors: [
+                  accent.withValues(alpha: 0.25),
+                  accent.withValues(alpha: 0),
+                ]),
+                boxShadow: [
+                  BoxShadow(
+                    color: accent.withValues(alpha: 0.28),
+                    blurRadius: 15,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+            ),
+            Transform.rotate(
+              angle: heading * math.pi / 180,
+              child: AnimatedCursorWidget(
+                style: cursorStyle,
+                cursorColor: cursorColor,
+                animateOstrich: cursorStyle == CursorStyle.ostrich,
+                ostrichIsMoving: ostrichIsMoving,
+                ostrichSpeedKmh: ostrichSpeedKmh,
+                size: 48,
+              ),
+            ),
+          ],
         ),
       );
 }

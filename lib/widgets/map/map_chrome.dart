@@ -15,6 +15,7 @@ import '../../utils/units.dart';
 import '../../services/activity_notification_service.dart';
 import '../../services/ztl_service.dart';
 import '../../theme/app_theme.dart';
+import '../design/roadstr_glass.dart';
 
 class MapBottomBar extends StatelessWidget {
   final double bottomInset;
@@ -34,15 +35,16 @@ class MapBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: EdgeInsets.fromLTRB(
-            12, 0, 12, bottomInset > 0 ? bottomInset + 8 : 12),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: colors.surfaceSheen,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: colors.panelEdge),
-            boxShadow: colors.panelShadow,
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
+          RoadstrSpacing.sm,
+          0,
+          RoadstrSpacing.sm,
+          bottomInset > 0 ? bottomInset + RoadstrSpacing.xs : RoadstrSpacing.sm,
+        ),
+        child: RoadstrGlassSurface(
+          colors: colors,
+          level: RoadstrGlassLevel.strong,
+          borderRadius: BorderRadius.circular(RoadstrRadius.xLarge),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
           child: Row(children: [
             Expanded(
               child: ValueListenableBuilder<Box>(
@@ -58,7 +60,7 @@ class MapBottomBar extends StatelessWidget {
                   return MapBottomBarItem(
                     icon: Stack(clipBehavior: Clip.none, children: [
                       Icon(Icons.notifications_none_rounded,
-                          color: colors.textSecondary, size: 26),
+                          color: colors.mapTextSecondary, size: 24),
                       if (unread > 0)
                         Positioned(
                           right: -7,
@@ -70,7 +72,7 @@ class MapBottomBar extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: const Color(0xFFEF4444),
                               borderRadius: BorderRadius.circular(9),
-                              border: Border.all(color: colors.surface2),
+                              border: Border.all(color: colors.mapOverlayDark),
                             ),
                             alignment: Alignment.center,
                             child: Text(unread > 99 ? '99+' : '$unread',
@@ -110,13 +112,13 @@ class MapBottomBar extends StatelessWidget {
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => Icon(
                                 Icons.account_circle_outlined,
-                                color: colors.textSecondary,
+                                color: colors.mapTextSecondary,
                                 size: 25),
                           ),
                         ),
                       )
                     : Icon(Icons.account_circle_outlined,
-                        color: colors.textSecondary, size: 26),
+                        color: colors.mapTextSecondary, size: 24),
                 label: AppLocalizations.of(context).bottomBarProfile,
                 colors: colors,
                 onTap: () async {
@@ -130,7 +132,8 @@ class MapBottomBar extends StatelessWidget {
             ),
             Expanded(
               child: MapBottomBarItem(
-                icon: Icon(Icons.menu, color: colors.textSecondary, size: 26),
+                icon: Icon(Icons.menu_rounded,
+                    color: colors.mapTextSecondary, size: 24),
                 label: AppLocalizations.of(context).bottomBarMenu,
                 colors: colors,
                 onTap: () => Navigator.push(context,
@@ -154,34 +157,33 @@ class MapBottomBarItem extends StatelessWidget {
       required this.colors,
       required this.onTap});
   @override
-  Widget build(BuildContext context) => Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(17),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Container(
-                width: 36,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: colors.accentSoft.withValues(alpha: 0.72),
-                  borderRadius: BorderRadius.circular(11),
-                ),
-                child: Center(child: icon),
+  Widget build(BuildContext context) => RoadstrPressable(
+        onTap: onTap,
+        semanticLabel: label,
+        borderRadius: BorderRadius.circular(RoadstrRadius.medium),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 4),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Container(
+              width: 38,
+              height: 31,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.055),
+                borderRadius: BorderRadius.circular(RoadstrRadius.small),
+                border: Border.all(color: colors.mapGlassBorder),
               ),
-              const SizedBox(height: 4),
-              Text(label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: colors.textSecondary,
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w600)),
-            ]),
-          ),
+              child: Center(child: icon),
+            ),
+            const SizedBox(height: 4),
+            Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: colors.mapTextSecondary,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600)),
+          ]),
         ),
       );
 }
@@ -196,31 +198,18 @@ class MapFab extends StatelessWidget {
       required this.onTap,
       required this.colors});
   @override
-  Widget build(BuildContext context) => Material(
-        // Same lit-object treatment as the manoeuvre tile, so the map controls
-        // belong to it rather than looking like leftover system chrome.
-        color: Colors.transparent,
-        shape: const CircleBorder(),
-        // Elevation off: the soft wide shadow below does the lifting, and
-        // Material's own tight shadow underneath it just muddied the edge.
-        elevation: 0,
-        child: Ink(
-          decoration: BoxDecoration(
-            gradient: colors.accentGloss,
-            shape: BoxShape.circle,
-            // A light rim on a lit sphere. Brightest where the gloss already
-            // is, so the highlight and the rim agree on where the light is.
-            border: Border.all(
-                color: Colors.white.withValues(alpha: 0.35), width: 1),
-            boxShadow: colors.panelShadow,
+  Widget build(BuildContext context) => RoadstrPressable(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(RoadstrRadius.medium),
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: RoadstrGlassSurface(
+            colors: colors,
+            level: RoadstrGlassLevel.medium,
+            borderRadius: BorderRadius.circular(RoadstrRadius.medium),
+            child: Center(child: child),
           ),
-          child: InkWell(
-              onTap: onTap,
-              customBorder: const CircleBorder(),
-              // 48 px: the minimum comfortable touch target, and these are
-              // pressed one-handed while driving.
-              child:
-                  SizedBox(width: 48, height: 48, child: Center(child: child))),
         ),
       );
 }
@@ -238,38 +227,38 @@ class CompassFab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = RoadstrColors.of(context);
-    return GestureDetector(
+    return RoadstrPressable(
       onTap: onTap,
-      child: Container(
+      borderRadius: BorderRadius.circular(RoadstrRadius.medium),
+      child: SizedBox(
         width: 44,
         height: 44,
-        decoration: BoxDecoration(
-          color: colors.surface2,
-          shape: BoxShape.circle,
-          border: Border.all(
-              color: active ? colors.accent : colors.panelEdge,
-              width: active ? 1.8 : 1),
-          boxShadow: colors.cardShadow,
-        ),
-        child: Transform.rotate(
-          angle: -rotDeg * math.pi / 180,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Icon(Icons.navigation_rounded,
-                  color: active ? colors.accent : colors.textSecondary,
-                  size: 26),
-              // Red "N" at the arrow tip (top of the icon)
-              Positioned(
-                top: 5,
-                child: Text('N',
-                    style: const TextStyle(
-                        color: Colors.red,
-                        fontSize: 8,
-                        fontWeight: FontWeight.w900,
-                        height: 1.0)),
-              ),
-            ],
+        child: RoadstrGlassSurface(
+          colors: colors,
+          level: RoadstrGlassLevel.medium,
+          borderColor: active ? colors.accent.withValues(alpha: 0.72) : null,
+          borderRadius: BorderRadius.circular(RoadstrRadius.medium),
+          child: Transform.rotate(
+            angle: -rotDeg * math.pi / 180,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(Icons.navigation_rounded,
+                    color: active ? colors.accentGlow : colors.mapTextSecondary,
+                    size: 24),
+                Positioned(
+                  top: 4,
+                  child: Text('N',
+                      style: TextStyle(
+                          color: active
+                              ? const Color(0xFFFFA047)
+                              : colors.mapTextMuted,
+                          fontSize: 8,
+                          fontWeight: FontWeight.w900,
+                          height: 1.0)),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -453,24 +442,19 @@ class AltitudeBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
-      child: Container(
+      child: RoadstrGlassSurface(
+        colors: colors,
+        level: RoadstrGlassLevel.light,
+        borderRadius: BorderRadius.circular(RoadstrRadius.small),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: colors.surface2.withValues(alpha: 0.92),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: colors.border, width: 0.5),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2), blurRadius: 10),
-          ],
-        ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.landscape_rounded, size: 14, color: colors.textSecondary),
+          Icon(Icons.landscape_rounded,
+              size: 14, color: colors.mapTextSecondary),
           const SizedBox(width: 5),
           Text(
             Units.fmtAltitude(altitudeM),
             style: TextStyle(
-              color: colors.textPrimary,
+              color: colors.mapTextPrimary,
               fontSize: 13,
               fontWeight: FontWeight.w700,
               fontFeatures: const [FontFeature.tabularFigures()],

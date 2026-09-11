@@ -1022,7 +1022,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: RoadstrScreenBackground(
         child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          8,
+          16,
+          20 + MediaQuery.of(context).viewPadding.bottom,
+        ),
         children: [
           // ── THEME ───────────────────────────────────────────────────────
           _SectionHeader(l.sectionTheme, c),
@@ -2274,13 +2279,31 @@ class _SectionHeader extends StatelessWidget {
   const _SectionHeader(this.title, this.c);
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 8),
-        child: Text(title.toUpperCase(),
+        padding: const EdgeInsets.fromLTRB(4, 4, 4, 10),
+        child: Row(children: [
+          Container(
+            width: 18,
+            height: 4,
+            decoration: BoxDecoration(
+              gradient: c.accentGloss,
+              borderRadius: BorderRadius.circular(99),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(title.toUpperCase(),
             style: TextStyle(
                 color: c.textSecondary,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1)),
+                fontSize: 10.5,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.15)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Container(
+              height: 1,
+              color: c.border.withValues(alpha: 0.65),
+            ),
+          ),
+        ]),
       );
 }
 
@@ -2298,7 +2321,11 @@ class _SwitchTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         margin: const EdgeInsets.only(bottom: 8),
-        decoration: colors.premiumCard(radius: 18),
+        decoration: colors.premiumCard(
+          radius: 18,
+          edgeColor:
+              value ? colors.accent.withValues(alpha: 0.42) : colors.panelEdge,
+        ),
         child: SwitchListTile(
           title: Text(title,
               style: TextStyle(color: colors.textPrimary, fontSize: 14)),
@@ -2331,10 +2358,11 @@ class _RoadOverlaysSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         margin: const EdgeInsets.only(bottom: 8),
-        decoration: BoxDecoration(
-          color: colors.surface2,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: colors.border, width: 0.5),
+        decoration: colors.premiumCard(
+          radius: 18,
+          edgeColor: expanded
+              ? colors.accent.withValues(alpha: 0.42)
+              : colors.panelEdge,
         ),
         child: Column(
           children: [
@@ -2353,7 +2381,7 @@ class _RoadOverlaysSection extends StatelessWidget {
                               fontWeight: FontWeight.w600))),
                   AnimatedRotation(
                     turns: expanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 200),
+                    duration: const Duration(milliseconds: 240),
                     child: Icon(Icons.keyboard_arrow_down_rounded,
                         color: colors.textSecondary),
                   ),

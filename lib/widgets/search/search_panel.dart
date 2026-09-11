@@ -9,14 +9,7 @@ import '../../services/poi_search_service.dart' show NearbyCategory;
 import '../../services/routing_service.dart' show NominatimResult;
 import '../../theme/app_theme.dart';
 import '../../utils/units.dart';
-
-BoxDecoration _floatingPanel(RoadstrColors colors, {double radius = 18}) =>
-    BoxDecoration(
-      gradient: colors.surfaceSheen,
-      borderRadius: BorderRadius.circular(radius),
-      border: Border.all(color: colors.panelEdge),
-      boxShadow: colors.cardShadow,
-    );
+import '../design/roadstr_glass.dart';
 
 /// The translated name of a nearby category, used both on its button and as
 /// the label of results OSM has no name for.
@@ -58,8 +51,10 @@ class NearbyBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    return Container(
-      decoration: _floatingPanel(colors),
+    return RoadstrGlassSurface(
+      colors: colors,
+      level: RoadstrGlassLevel.medium,
+      borderRadius: BorderRadius.circular(RoadstrRadius.large),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -68,7 +63,7 @@ class NearbyBar extends StatelessWidget {
             const SizedBox(width: 6),
             Text(enabled ? l.nearbyTitle : l.nearbyNeedsGps,
                 style: TextStyle(
-                    color: colors.textSecondary,
+                    color: colors.mapTextSecondary,
                     fontSize: 12,
                     fontWeight: FontWeight.w600)),
           ]),
@@ -113,31 +108,34 @@ class _NearbyButton extends StatelessWidget {
     final disabled = onTap == null;
     return Opacity(
       opacity: disabled ? 0.4 : 1,
-      child: Material(
-        color: selected ? colors.accentSoft : colors.surface3,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                  color: selected ? colors.accent : Colors.transparent,
-                  width: 1.5),
-            ),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Text(category.emoji,
-                  style: const TextStyle(fontSize: 15, height: 1)),
-              const SizedBox(width: 6),
-              Text(label,
-                  style: TextStyle(
-                      color: selected ? colors.accent : colors.textPrimary,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600)),
-            ]),
+      child: RoadstrPressable(
+        onTap: onTap,
+        semanticLabel: label,
+        borderRadius: BorderRadius.circular(RoadstrRadius.small),
+        child: AnimatedContainer(
+          duration: RoadstrMotion.quick,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          decoration: BoxDecoration(
+            color: selected
+                ? colors.accent.withValues(alpha: 0.16)
+                : Colors.white.withValues(alpha: 0.055),
+            borderRadius: BorderRadius.circular(RoadstrRadius.small),
+            border: Border.all(
+                color: selected
+                    ? colors.accent.withValues(alpha: 0.72)
+                    : colors.mapGlassBorder,
+                width: selected ? 1.2 : 0.8),
           ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Text(category.emoji,
+                style: const TextStyle(fontSize: 15, height: 1)),
+            const SizedBox(width: 6),
+            Text(label,
+                style: TextStyle(
+                    color: selected ? colors.accentGlow : colors.mapTextPrimary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600)),
+          ]),
         ),
       ),
     );
@@ -163,8 +161,10 @@ class SearchHistoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    return Container(
-      decoration: _floatingPanel(colors),
+    return RoadstrGlassSurface(
+      colors: colors,
+      level: RoadstrGlassLevel.strong,
+      borderRadius: BorderRadius.circular(RoadstrRadius.large),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         // ── Saved places section ─────────────────────────────────────────
         if (favorites.isNotEmpty) ...[
@@ -175,7 +175,7 @@ class SearchHistoryList extends StatelessWidget {
               const SizedBox(width: 6),
               Text(l.sectionFavorites,
                   style: TextStyle(
-                      color: colors.textSecondary,
+                      color: colors.mapTextSecondary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600)),
             ]),
@@ -188,7 +188,7 @@ class SearchHistoryList extends StatelessWidget {
               padding: EdgeInsets.zero,
               itemCount: favorites.length,
               separatorBuilder: (_, __) =>
-                  Divider(height: 0.5, color: colors.border),
+                  Divider(height: 0.5, color: colors.mapGlassBorder),
               itemBuilder: (_, i) {
                 final fav = favorites[i];
                 return ListTile(
@@ -201,9 +201,7 @@ class SearchHistoryList extends StatelessWidget {
                         // Solid rather than the translucent accentSoft: over
                         // the panel gradient a wash of accent on accent left
                         // the chips barely visible at the tinted edges.
-                        color: colors.panelGradient == null
-                            ? colors.accentSoft
-                            : colors.surface3,
+                        color: colors.accent.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8)),
                     child: Icon(Icons.favorite_rounded,
                         color: colors.accent, size: 14),
@@ -212,14 +210,14 @@ class SearchHistoryList extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                          color: colors.textPrimary,
+                          color: colors.mapTextPrimary,
                           fontSize: 14,
                           fontWeight: FontWeight.w500)),
                   subtitle: Text(fav.address,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style:
-                          TextStyle(color: colors.textSecondary, fontSize: 12)),
+                      style: TextStyle(
+                          color: colors.mapTextSecondary, fontSize: 12)),
                   onTap: () => onSelectFavorite(fav),
                 );
               },
@@ -229,16 +227,17 @@ class SearchHistoryList extends StatelessWidget {
 
         // ── History section ──────────────────────────────────────────────
         if (history.isNotEmpty) ...[
-          if (favorites.isNotEmpty) Divider(height: 0.5, color: colors.border),
+          if (favorites.isNotEmpty)
+            Divider(height: 0.5, color: colors.mapGlassBorder),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
             child: Row(children: [
               Icon(Icons.history_rounded,
-                  color: colors.textSecondary, size: 16),
+                  color: colors.mapTextSecondary, size: 16),
               const SizedBox(width: 6),
               Text(l.history,
                   style: TextStyle(
-                      color: colors.textSecondary,
+                      color: colors.mapTextSecondary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600)),
               const Spacer(),
@@ -259,7 +258,7 @@ class SearchHistoryList extends StatelessWidget {
               padding: EdgeInsets.zero,
               itemCount: history.length,
               separatorBuilder: (_, __) =>
-                  Divider(height: 0.5, color: colors.border),
+                  Divider(height: 0.5, color: colors.mapGlassBorder),
               itemBuilder: (_, i) {
                 final h = history[i];
                 // "Via Roberto Ricci 12, Torino" → street on the title line,
@@ -278,15 +277,15 @@ class SearchHistoryList extends StatelessWidget {
                   title: Text(title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style:
-                          TextStyle(color: colors.textPrimary, fontSize: 14)),
+                      style: TextStyle(
+                          color: colors.mapTextPrimary, fontSize: 14)),
                   subtitle: subtitle.isEmpty
                       ? null
                       : Text(subtitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                              color: colors.textSecondary, fontSize: 12)),
+                              color: colors.mapTextSecondary, fontSize: 12)),
                   onTap: () => onSelect(h),
                 );
               },
@@ -322,49 +321,58 @@ class PlaceSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 58,
-      decoration: _floatingPanel(colors, radius: 22),
-      child: Row(children: [
-        const SizedBox(width: 10),
-        Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            color: colors.accentSoft,
-            borderRadius: BorderRadius.circular(13),
+      child: RoadstrGlassSurface(
+        colors: colors,
+        level: RoadstrGlassLevel.strong,
+        borderRadius: BorderRadius.circular(RoadstrRadius.large),
+        child: Row(children: [
+          const SizedBox(width: 10),
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: colors.accent.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(13),
+              border: Border.all(
+                color: colors.accent.withValues(alpha: 0.26),
+              ),
+            ),
+            child: Icon(Icons.search_rounded, color: colors.accent, size: 20),
           ),
-          child: Icon(Icons.search_rounded, color: colors.accent, size: 20),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: TextField(
-            controller: controller,
-            onTap: onFocus,
-            onChanged: onChanged,
-            onSubmitted: onSubmitted,
-            textInputAction: TextInputAction.search,
-            style: TextStyle(
-                color: colors.textPrimary,
-                fontSize: 15,
-                fontWeight: FontWeight.w600),
-            decoration: InputDecoration(
-              hintText: AppLocalizations.of(context).searchHint,
-              hintStyle: TextStyle(color: colors.textSecondary, fontSize: 15),
-              filled: false,
-              contentPadding: EdgeInsets.zero,
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              isDense: true,
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              onTap: onFocus,
+              onChanged: onChanged,
+              onSubmitted: onSubmitted,
+              textInputAction: TextInputAction.search,
+              style: TextStyle(
+                  color: colors.mapTextPrimary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600),
+              decoration: InputDecoration(
+                hintText: AppLocalizations.of(context).searchHint,
+                hintStyle:
+                    TextStyle(color: colors.mapTextSecondary, fontSize: 15),
+                filled: false,
+                contentPadding: EdgeInsets.zero,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                isDense: true,
+              ),
             ),
           ),
-        ),
-        if (controller.text.isNotEmpty)
-          IconButton(
-              icon: Icon(Icons.close, color: colors.textSecondary, size: 20),
-              onPressed: onClear),
-      ]),
+          if (controller.text.isNotEmpty)
+            IconButton(
+                icon:
+                    Icon(Icons.close, color: colors.mapTextSecondary, size: 20),
+                onPressed: onClear),
+        ]),
+      ),
     );
   }
 }
@@ -395,8 +403,10 @@ class SearchResultsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: _floatingPanel(colors),
+    return RoadstrGlassSurface(
+      colors: colors,
+      level: RoadstrGlassLevel.strong,
+      borderRadius: BorderRadius.circular(RoadstrRadius.large),
       child: isLoading && favorites.isEmpty
           ? Padding(
               padding: const EdgeInsets.all(16),
@@ -417,7 +427,7 @@ class SearchResultsList extends StatelessWidget {
                     padding: EdgeInsets.zero,
                     itemCount: favorites.length,
                     separatorBuilder: (_, __) =>
-                        Divider(height: 0.5, color: colors.border),
+                        Divider(height: 0.5, color: colors.mapGlassBorder),
                     itemBuilder: (_, i) {
                       final fav = favorites[i];
                       return ListTile(
@@ -426,21 +436,21 @@ class SearchResultsList extends StatelessWidget {
                           width: 36,
                           height: 36,
                           decoration: BoxDecoration(
-                              color: colors.accentSoft,
+                              color: colors.accent.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(10)),
                           child: Icon(Icons.favorite_rounded,
                               color: colors.accent, size: 18),
                         ),
                         title: Text(fav.label,
                             style: TextStyle(
-                                color: colors.textPrimary,
+                                color: colors.mapTextPrimary,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600)),
                         subtitle: Text(fav.address,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                                color: colors.textSecondary, fontSize: 12)),
+                                color: colors.mapTextSecondary, fontSize: 12)),
                         onTap: () => onSelectFavorite(fav),
                       );
                     },
@@ -458,14 +468,14 @@ class SearchResultsList extends StatelessWidget {
                                   strokeWidth: 2, color: colors.accent))))
                 else if (results.isNotEmpty) ...[
                   if (favorites.isNotEmpty)
-                    Divider(height: 0.5, color: colors.border),
+                    Divider(height: 0.5, color: colors.mapGlassBorder),
                   ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     padding: EdgeInsets.zero,
                     itemCount: results.length,
                     separatorBuilder: (_, __) =>
-                        Divider(height: 0.5, color: colors.border),
+                        Divider(height: 0.5, color: colors.mapGlassBorder),
                     itemBuilder: (_, i) {
                       final r = results[i];
                       final catLabel = r.categoryLabel;
@@ -476,8 +486,9 @@ class SearchResultsList extends StatelessWidget {
                           width: 36,
                           height: 36,
                           decoration: BoxDecoration(
-                            color: colors.accentSoft,
+                            color: Colors.white.withValues(alpha: 0.07),
                             borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: colors.mapGlassBorder),
                           ),
                           child: Center(
                             child: Text(r.emoji,
@@ -487,7 +498,7 @@ class SearchResultsList extends StatelessWidget {
                         ),
                         title: Text(r.shortName,
                             style: TextStyle(
-                                color: colors.textPrimary,
+                                color: colors.mapTextPrimary,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500)),
                         subtitle: Text(
@@ -495,7 +506,7 @@ class SearchResultsList extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                                color: colors.textSecondary, fontSize: 12)),
+                                color: colors.mapTextSecondary, fontSize: 12)),
                         // Straight-line distance, present only on nearby
                         // results: with the list sorted by it, it is the one
                         // number that decides which one the driver picks.
@@ -516,12 +527,12 @@ class SearchResultsList extends StatelessWidget {
                         horizontal: 16, vertical: 18),
                     child: Row(children: [
                       Icon(Icons.search_off_rounded,
-                          color: colors.textSecondary, size: 18),
+                          color: colors.mapTextSecondary, size: 18),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(emptyMessage!,
                             style: TextStyle(
-                                color: colors.textSecondary, fontSize: 13)),
+                                color: colors.mapTextSecondary, fontSize: 13)),
                       ),
                     ]),
                   ),

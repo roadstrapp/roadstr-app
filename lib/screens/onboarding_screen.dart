@@ -24,6 +24,7 @@ import '../services/voice_model_download.dart';
 import '../services/nostr_relay_service.dart';
 import '../services/profile_visibility_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/design/roadstr_glass.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback onComplete;
@@ -350,7 +351,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       if (!mounted) return;
       setState(() {
         _kokoroFrac = p;
-        _kokoroProgress = VoiceModelDownload.combinedProgress(_kokoroFrac, _piperFrac);
+        _kokoroProgress =
+            VoiceModelDownload.combinedProgress(_kokoroFrac, _piperFrac);
       });
       if (_kokoroFrac >= 1.0 && _piperFrac >= 1.0) {
         final ok = await VoiceModelDownload.isFullyReady();
@@ -364,7 +366,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       if (!mounted) return;
       setState(() {
         _piperFrac = p;
-        _kokoroProgress = VoiceModelDownload.combinedProgress(_kokoroFrac, _piperFrac);
+        _kokoroProgress =
+            VoiceModelDownload.combinedProgress(_kokoroFrac, _piperFrac);
       });
       if (_kokoroFrac >= 1.0 && _piperFrac >= 1.0) {
         final ok = await VoiceModelDownload.isFullyReady();
@@ -404,83 +407,111 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final l = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: c.surface1,
-      body: SafeArea(
-        child: Column(children: [
-          // Progress dots
-          Padding(
-            padding: const EdgeInsets.only(top: 20, bottom: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                  4,
-                  (i) => AnimatedContainer(
-                        duration: const Duration(milliseconds: 260),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        width: _page == i ? 20 : 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: _page == i ? c.accent : c.border,
-                          borderRadius: BorderRadius.circular(4),
+      body: RoadstrScreenBackground(
+        child: SafeArea(
+          child: Column(children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(10, 8, 14, 8),
+                decoration: c.premiumCard(radius: RoadstrRadius.large),
+                child: Row(children: [
+                  const RoadstrBrandMark(size: 34),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Row(
+                      children: List.generate(
+                        4,
+                        (i) => Expanded(
+                          child: AnimatedContainer(
+                            duration: RoadstrMotion.standard,
+                            curve: RoadstrMotion.standardCurve,
+                            height: 4,
+                            margin: EdgeInsets.only(right: i == 3 ? 0 : 6),
+                            decoration: BoxDecoration(
+                              color: i <= _page
+                                  ? c.accent
+                                  : c.border.withValues(alpha: 0.72),
+                              borderRadius: BorderRadius.circular(99),
+                            ),
+                          ),
                         ),
-                      )),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  AnimatedSwitcher(
+                    duration: RoadstrMotion.quick,
+                    child: Text(
+                      '${_page + 1}/4',
+                      key: ValueKey(_page),
+                      style: TextStyle(
+                        color: c.textSecondary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ),
+                ]),
+              ),
             ),
-          ),
-
-          Expanded(
-            child: PageView(
-              controller: _pageCtrl,
-              // Allow free swiping in both directions
-              physics: const ClampingScrollPhysics(),
-              onPageChanged: (p) => setState(() => _page = p),
-              children: [
-                _WelcomePage(c: c, l: l, onNext: _nextPage),
-                _NostrPage(
-                  c: c,
-                  l: l,
-                  npub: _npub,
-                  profileName: _profileName,
-                  profilePicture: _profilePicture,
-                  fetchingProfile: _fetchingProfile,
-                  waitingAmber: _waitingAmber,
-                  nsecError: _nsecError,
-                  profilePublic: _profilePublic,
-                  onAmber: _loginWithAmber,
-                  onNsec: _showNsecDialog,
-                  onProfileVisibilityChanged: (value) async {
-                    final messenger = ScaffoldMessenger.of(context);
-                    setState(() => _profilePublic = value);
-                    await Hive.box('settings')
-                        .put(ProfileVisibilityService.storageKey, value);
-                    try {
-                      await ProfileVisibilityService.publish(isPublic: value);
-                    } catch (_) {
-                      if (mounted) {
-                        messenger.showSnackBar(
-                          SnackBar(
-                              content: Text(l.profileVisibilityPublishError)),
-                        );
+            Expanded(
+              child: PageView(
+                controller: _pageCtrl,
+                // Allow free swiping in both directions
+                physics: const ClampingScrollPhysics(),
+                onPageChanged: (p) => setState(() => _page = p),
+                children: [
+                  _WelcomePage(c: c, l: l, onNext: _nextPage),
+                  _NostrPage(
+                    c: c,
+                    l: l,
+                    npub: _npub,
+                    profileName: _profileName,
+                    profilePicture: _profilePicture,
+                    fetchingProfile: _fetchingProfile,
+                    waitingAmber: _waitingAmber,
+                    nsecError: _nsecError,
+                    profilePublic: _profilePublic,
+                    onAmber: _loginWithAmber,
+                    onNsec: _showNsecDialog,
+                    onProfileVisibilityChanged: (value) async {
+                      final messenger = ScaffoldMessenger.of(context);
+                      setState(() => _profilePublic = value);
+                      await Hive.box('settings')
+                          .put(ProfileVisibilityService.storageKey, value);
+                      try {
+                        await ProfileVisibilityService.publish(isPublic: value);
+                      } catch (_) {
+                        if (mounted) {
+                          messenger.showSnackBar(
+                            SnackBar(
+                                content: Text(l.profileVisibilityPublishError)),
+                          );
+                        }
                       }
-                    }
-                  },
-                  onNext: _nextPage,
-                ),
-                _PermissionsPage(
-                  c: c,
-                  l: l,
-                  locPerm: _locPerm,
-                  locChecked: _locChecked,
-                  locLoading: _locLoading,
-                  kokoroStatus: _kokoroStatus,
-                  kokoroProgress: _kokoroProgress,
-                  onRequestLoc: _requestLocation,
-                  onDownloadKokoro: _startKokoroDownload,
-                  onNext: _nextPage,
-                ),
-                _ReadyPage(c: c, l: l, onStart: _acceptDisclaimerAndComplete),
-              ],
+                    },
+                    onNext: _nextPage,
+                  ),
+                  _PermissionsPage(
+                    c: c,
+                    l: l,
+                    locPerm: _locPerm,
+                    locChecked: _locChecked,
+                    locLoading: _locLoading,
+                    kokoroStatus: _kokoroStatus,
+                    kokoroProgress: _kokoroProgress,
+                    onRequestLoc: _requestLocation,
+                    onDownloadKokoro: _startKokoroDownload,
+                    onNext: _nextPage,
+                  ),
+                  _ReadyPage(c: c, l: l, onStart: _acceptDisclaimerAndComplete),
+                ],
+              ),
             ),
-          ),
-        ]),
+          ]),
+        ),
       ),
     );
   }
@@ -582,11 +613,7 @@ class _WelcomePage extends StatelessWidget {
             // ── VPN privacy notice ─────────────────────────────────────────
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: c.surface2,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: c.border, width: 0.5),
-              ),
+              decoration: c.premiumCard(radius: RoadstrRadius.medium),
               child:
                   Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Icon(Icons.vpn_lock_rounded, color: c.accent, size: 18),
@@ -667,10 +694,12 @@ class _NostrPage extends StatelessWidget {
           width: 52,
           height: 52,
           decoration: BoxDecoration(
-            color: c.accent.withValues(alpha: 0.12),
+            gradient: c.accentGloss,
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
+            boxShadow: c.cardShadow,
           ),
-          child: Icon(Icons.key_rounded, color: c.accent, size: 26),
+          child: const Icon(Icons.key_rounded, color: Colors.white, size: 26),
         ),
         const SizedBox(height: 20),
         Text(l.onboardingNostrTitle,
@@ -771,11 +800,7 @@ class _NostrPage extends StatelessWidget {
             // Nostr identity that becomes available once they do.
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: c.surface2,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: c.border, width: 0.5),
-              ),
+              decoration: c.premiumCard(radius: RoadstrRadius.medium),
               child:
                   Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Icon(Icons.enhanced_encryption_outlined,
@@ -792,11 +817,7 @@ class _NostrPage extends StatelessWidget {
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.fromLTRB(12, 10, 8, 8),
-              decoration: BoxDecoration(
-                color: c.surface2,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: c.border, width: 0.5),
-              ),
+              decoration: c.premiumCard(radius: RoadstrRadius.medium),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -914,17 +935,15 @@ class _LoginOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return RoadstrPressable(
       onTap: loading ? null : onTap,
+      semanticLabel: title,
+      borderRadius: BorderRadius.circular(RoadstrRadius.medium),
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: accent ? c.accent.withValues(alpha: 0.08) : c.surface2,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: accent ? c.accent.withValues(alpha: 0.4) : c.border,
-            width: accent ? 1.5 : 0.5,
-          ),
+        decoration: c.premiumCard(
+          radius: RoadstrRadius.medium,
+          edgeColor: accent ? c.accent.withValues(alpha: 0.58) : c.panelEdge,
         ),
         child: Row(children: [
           Icon(icon, color: accent ? c.accent : c.textSecondary, size: 24),
@@ -995,10 +1014,12 @@ class _PermissionsPage extends StatelessWidget {
           width: 52,
           height: 52,
           decoration: BoxDecoration(
-            color: c.accent.withValues(alpha: 0.12),
+            gradient: c.accentGloss,
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
+            boxShadow: c.cardShadow,
           ),
-          child: Icon(Icons.tune_rounded, color: c.accent, size: 26),
+          child: const Icon(Icons.tune_rounded, color: Colors.white, size: 26),
         ),
         const SizedBox(height: 20),
         Text(l.onboardingSetupTitle,
@@ -1048,11 +1069,7 @@ class _PermissionsPage extends StatelessWidget {
         Container(
           margin: const EdgeInsets.only(top: 10, bottom: 4),
           padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: c.surface2,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: c.border, width: 0.5),
-          ),
+          decoration: c.premiumCard(radius: RoadstrRadius.medium),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Icon(Icons.info_outline_rounded, color: c.accent, size: 18),
             const SizedBox(width: 10),
@@ -1160,16 +1177,11 @@ class _PermSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: granted
-            ? Colors.green.shade700.withValues(alpha: 0.08)
-            : c.surface2,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color:
-              granted ? Colors.green.shade600.withValues(alpha: 0.4) : c.border,
-          width: granted ? 1.2 : 0.5,
-        ),
+      decoration: c.premiumCard(
+        radius: RoadstrRadius.medium,
+        edgeColor: granted
+            ? Colors.green.shade600.withValues(alpha: 0.48)
+            : c.panelEdge,
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Icon(icon, color: granted ? Colors.green.shade600 : c.accent, size: 22),
@@ -1211,11 +1223,12 @@ class _ReadyPage extends StatelessWidget {
           width: 88,
           height: 88,
           decoration: BoxDecoration(
-            color: Colors.green.shade600.withValues(alpha: 0.12),
+            gradient: c.accentGloss,
             shape: BoxShape.circle,
+            border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
+            boxShadow: c.panelShadow,
           ),
-          child:
-              Icon(Icons.check_rounded, color: Colors.green.shade600, size: 48),
+          child: const Icon(Icons.check_rounded, color: Colors.white, size: 48),
         ),
         const SizedBox(height: 28),
         Text(l.onboardingReadyTitle,
@@ -1264,21 +1277,36 @@ class _NextButton extends StatelessWidget {
       {required this.label, required this.onTap, required this.c});
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-        width: double.infinity,
-        child: FilledButton(
-          style: FilledButton.styleFrom(
-            backgroundColor: c.accent,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+  Widget build(BuildContext context) => DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: c.accentGloss,
+          borderRadius: BorderRadius.circular(RoadstrRadius.medium),
+          boxShadow: [
+            BoxShadow(
+              color: c.accent.withValues(alpha: 0.24),
+              blurRadius: 18,
+              offset: const Offset(0, 7),
+            ),
+          ],
+        ),
+        child: SizedBox(
+          width: double.infinity,
+          child: FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(RoadstrRadius.medium),
+              ),
+            ),
+            onPressed: onTap,
+            child: Text(label,
+                style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white)),
           ),
-          onPressed: onTap,
-          child: Text(label,
-              style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white)),
         ),
       );
 }
