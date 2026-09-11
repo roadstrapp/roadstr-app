@@ -68,8 +68,8 @@ android {
         // every real release since — so ZapStore's "highest version_code
         // wins" update logic kept treating that phantom 0.4.27 as newer than
         // any real 0.5.x release. This has to clear 2036, not just increment.
-        versionCode = 2045
-        versionName = "0.5.6"
+        versionCode = 2046
+        versionName = "0.5.7"
     }
 
     // ── Signing ───────────────────────────────────────────────────────────────
