@@ -33,10 +33,6 @@ enum AppThemeId {
   lightBitcoin,
   darkNostr,
   darkBitcoin,
-  modernNostr,
-  modernBitcoin,
-  modernDarkNostr,
-  modernDarkBitcoin,
 }
 
 extension AppThemeIdExt on AppThemeId {
@@ -50,14 +46,6 @@ extension AppThemeIdExt on AppThemeId {
         return l.themeDarkNostr;
       case AppThemeId.darkBitcoin:
         return l.themeDarkBitcoin;
-      case AppThemeId.modernNostr:
-        return l.themeModernNostr;
-      case AppThemeId.modernBitcoin:
-        return l.themeModernBitcoin;
-      case AppThemeId.modernDarkNostr:
-        return l.themeModernDarkNostr;
-      case AppThemeId.modernDarkBitcoin:
-        return l.themeModernDarkBitcoin;
     }
   }
 
@@ -65,34 +53,24 @@ extension AppThemeIdExt on AppThemeId {
     switch (this) {
       case AppThemeId.lightNostr:
       case AppThemeId.darkNostr:
-      case AppThemeId.modernNostr:
-      case AppThemeId.modernDarkNostr:
         return kNostrPurple;
       case AppThemeId.lightBitcoin:
       case AppThemeId.darkBitcoin:
-      case AppThemeId.modernBitcoin:
-      case AppThemeId.modernDarkBitcoin:
         return kBitcoinOrange;
     }
   }
 
   bool get isDark =>
-      this == AppThemeId.darkNostr ||
-      this == AppThemeId.darkBitcoin ||
-      this == AppThemeId.modernDarkNostr ||
-      this == AppThemeId.modernDarkBitcoin;
+      this == AppThemeId.darkNostr || this == AppThemeId.darkBitcoin;
 
-  /// Whether this theme paints its panels with a gradient rather than a flat
-  /// fill. Kept separate from [isDark] so a future dark modern variant is a
-  /// one-line change rather than a second boolean threaded everywhere.
-  bool get isModern =>
-      this == AppThemeId.modernNostr ||
-      this == AppThemeId.modernBitcoin ||
-      this == AppThemeId.modernDarkNostr ||
-      this == AppThemeId.modernDarkBitcoin;
   int get index2 => AppThemeId.values.indexOf(this);
-  static AppThemeId fromIndex(int i) =>
-      AppThemeId.values[i.clamp(0, AppThemeId.values.length - 1)];
+  static AppThemeId fromIndex(int i) => switch (i) {
+        0 || 4 => AppThemeId.lightNostr,
+        1 || 5 => AppThemeId.lightBitcoin,
+        2 || 6 => AppThemeId.darkNostr,
+        3 || 7 => AppThemeId.darkBitcoin,
+        _ => AppThemeId.lightNostr,
+      };
 }
 
 /// Factory for [ThemeData] instances, parameterised by [AppThemeId].
@@ -105,7 +83,6 @@ class AppTheme {
   static ThemeData build(AppThemeId id) {
     final accent = id.accent;
     final dark = id.isDark;
-    if (id.isModern) return _buildModern(accent, dark: dark);
     if (dark) {
       return _premiumTheme(
           ThemeData(
@@ -409,143 +386,6 @@ class AppTheme {
       ),
     );
   }
-
-  /// The "modern" variants: a light base washed with a diagonal gradient that
-  /// runs from white at the top-left to the accent colour at the bottom-right.
-  ///
-  /// Panels stay light so text contrast is unaffected — the gradient is a wash
-  /// behind them, not a recolour of them. That is why the flat surface colours
-  /// below are still near-white: any widget that does not paint
-  /// [RoadstrColors.panelGradient] keeps working and simply looks like the
-  /// light theme, rather than ending up with dark text on a saturated field.
-  static ThemeData _buildModern(Color accent, {required bool dark}) {
-    // Tinted at both edges, plain through the middle. A diagonal wash put the
-    // heaviest colour under one corner of the text and none under the other,
-    // which read as weight rather than as style; a symmetric pair of edges
-    // frames the panel instead of tilting it, and keeps the centre — where the
-    // instruction actually sits — clear for contrast.
-    //
-    // Kept deliberately faint: this is a frame, not a fill.
-    final base = dark ? const Color(0xFF10101C) : Colors.white;
-    // The dark variant needs a touch more tint to register at all against a
-    // near-black panel, where the same 0.22 simply disappears.
-    final edge = Color.lerp(base, accent, dark ? 0.34 : 0.22)!;
-    final gradient = LinearGradient(
-      begin: Alignment.centerLeft,
-      end: Alignment.centerRight,
-      colors: [edge, base, base, edge],
-      stops: const [0.0, 0.32, 0.68, 1.0],
-    );
-
-    if (dark) {
-      return _premiumTheme(
-          ThemeData(
-            useMaterial3: true,
-            brightness: Brightness.dark,
-            colorScheme: ColorScheme.dark(
-              primary: accent,
-              secondary: accent,
-              surface: const Color(0xFF15151F),
-              onSurface: const Color(0xFFEDEDF7),
-            ),
-            scaffoldBackgroundColor: const Color(0xFF0A0A14),
-            cardColor: const Color(0xFF15151F),
-            dividerColor: const Color(0xFF262637),
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Color(0xFF15151F),
-              foregroundColor: Color(0xFFEDEDF7),
-              elevation: 0,
-            ),
-            switchTheme: SwitchThemeData(
-              thumbColor: WidgetStateProperty.resolveWith((s) =>
-                  s.contains(WidgetState.selected)
-                      ? accent
-                      : const Color(0xFF55556E)),
-              trackColor: WidgetStateProperty.resolveWith((s) =>
-                  s.contains(WidgetState.selected)
-                      ? accent.withValues(alpha: 0.40)
-                      : const Color(0xFF262637)),
-            ),
-            extensions: [
-              RoadstrColors(
-                accent: accent,
-                accentSoft: accent.withValues(alpha: 0.20),
-                surface1: const Color(0xFF0A0A14),
-                surface2: const Color(0xFF15151F),
-                surface3: const Color(0xFF1E1E2C),
-                border: const Color(0xFF262637),
-                textPrimary: const Color(0xFFEDEDF7),
-                textSecondary: const Color(0xFF8C8CA8),
-                isDark: true,
-                // The same standard OSM raster tiles light mode uses, not a
-                // separate dark-tile service. CARTO's anonymous dark_all
-                // endpoint — used here until this release — silently started
-                // serving an "API KEY REQUIRED" watermark instead of tiles once
-                // some unpublished usage threshold was crossed: a third party
-                // could revoke free access at any time with zero warning, which
-                // is exactly the kind of dependency this app avoids elsewhere.
-                // The dark look now comes from inverting these same tiles (see
-                // MapScreen._darkTileBuilder) instead of trusting another
-                // service to keep rendering them for free.
-                mapTile: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                mapTileSubs: null,
-                mapTileAttrib: '© OpenStreetMap contributors',
-                panelGradient: gradient,
-              )
-            ],
-          ),
-          accent: accent,
-          dark: true);
-    }
-
-    return _premiumTheme(
-        ThemeData(
-          useMaterial3: true,
-          brightness: Brightness.light,
-          colorScheme: ColorScheme.light(
-            primary: accent,
-            secondary: accent,
-            surface: Colors.white,
-            onSurface: const Color(0xFF15151F),
-          ),
-          scaffoldBackgroundColor: const Color(0xFFF7F5FC),
-          cardColor: Colors.white,
-          dividerColor: const Color(0xFFE3DEF0),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Colors.white,
-            foregroundColor: Color(0xFF15151F),
-            elevation: 0,
-          ),
-          switchTheme: SwitchThemeData(
-            thumbColor: WidgetStateProperty.resolveWith((s) =>
-                s.contains(WidgetState.selected)
-                    ? accent
-                    : const Color(0xFFBDBDD0)),
-            trackColor: WidgetStateProperty.resolveWith((s) =>
-                s.contains(WidgetState.selected)
-                    ? accent.withValues(alpha: 0.35)
-                    : const Color(0xFFE3DEF0)),
-          ),
-          extensions: [
-            RoadstrColors(
-              accent: accent,
-              accentSoft: accent.withValues(alpha: 0.14),
-              surface1: Colors.white,
-              surface2: const Color(0xFFFBFAFF),
-              surface3: const Color(0xFFF2EEFB),
-              border: const Color(0xFFE3DEF0),
-              textPrimary: const Color(0xFF15151F),
-              textSecondary: const Color(0xFF6B6B85),
-              isDark: false,
-              mapTile: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              mapTileAttrib: '© OpenStreetMap contributors',
-              panelGradient: gradient,
-            )
-          ],
-        ),
-        accent: accent,
-        dark: false);
-  }
 }
 
 /// A [ThemeExtension] that exposes Roadstr-specific semantic colours and map
@@ -565,10 +405,8 @@ class RoadstrColors extends ThemeExtension<RoadstrColors> {
   final Color border, textPrimary, textSecondary;
   final bool isDark;
 
-  /// Diagonal wash painted behind panels in the "modern" themes, and null in
-  /// the flat ones. Nullable rather than a flag so every existing theme keeps
-  /// its exact appearance, and so a widget opts in by painting it when present
-  /// instead of branching on which theme is active.
+  /// Optional panel treatment retained for backwards-compatible custom theme
+  /// extensions. The four built-in themes use the shared surface system.
   final Gradient? panelGradient;
 
   /// OpenStreetMap tile URL template, e.g. `https://tile.openstreetmap.org/{z}/{x}/{y}.png`.
@@ -688,6 +526,37 @@ class RoadstrColors extends ThemeExtension<RoadstrColors> {
   /// becomes a border, which is the plasticky look this is avoiding.
   Color get panelEdge => accent.withValues(alpha: isDark ? 0.28 : 0.20);
 
+  // Map chrome remains dark and translucent in every palette so it reads
+  // consistently over both pale and dark tiles. Theme identity comes from
+  // [accent], not from flooding every surface with purple or orange.
+  Color get mapGlassLight => const Color(0xD91A1822);
+  Color get mapGlassMedium => const Color(0xE31A1824);
+  Color get mapGlassStrong => const Color(0xF0181620);
+  Color get mapGlassBorder => Colors.white.withValues(alpha: 0.13);
+  Color get mapTextPrimary => const Color(0xFFF8F7FC);
+  Color get mapTextSecondary => const Color(0xFFAAA6B8);
+  Color get mapTextMuted => const Color(0xFF777384);
+  Color get accentGlow => Color.lerp(accent, Colors.white, 0.10)!;
+  Color get routePrimary => accent;
+  Color get routeGlow => accent.withValues(alpha: 0.22);
+  Color get mapOverlayDark => const Color(0xE6111018);
+
+  List<BoxShadow> mapGlassShadow({bool strong = false}) {
+    return [
+      BoxShadow(
+        color: Colors.black.withValues(alpha: strong ? 0.36 : 0.27),
+        blurRadius: strong ? 30 : 22,
+        spreadRadius: -7,
+        offset: const Offset(0, 10),
+      ),
+      BoxShadow(
+        color: accent.withValues(alpha: strong ? 0.11 : 0.065),
+        blurRadius: strong ? 26 : 18,
+        spreadRadius: -10,
+      ),
+    ];
+  }
+
   /// Soft, wide, low-opacity drop shadow.
   ///
   /// Large blur with little opacity lifts a panel off the map without the hard
@@ -740,8 +609,15 @@ class RoadstrColors extends ThemeExtension<RoadstrColors> {
       BoxDecoration(
         gradient: surfaceSheen,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: edgeColor ?? panelEdge),
-        boxShadow: cardShadow,
+        border: Border.all(color: edgeColor ?? panelEdge, width: 0.9),
+        boxShadow: [
+          ...cardShadow,
+          BoxShadow(
+            color: accent.withValues(alpha: isDark ? 0.055 : 0.025),
+            blurRadius: 24,
+            spreadRadius: -12,
+          ),
+        ],
       );
 
   /// Corner radius shared by the raised panels.
@@ -764,9 +640,48 @@ class RoadstrScreenBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = RoadstrColors.of(context);
-    return DecoratedBox(
-      decoration: BoxDecoration(gradient: colors.screenGradient),
-      child: child,
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        RepaintBoundary(
+          child: DecoratedBox(
+            decoration: BoxDecoration(gradient: colors.screenGradient),
+            child: CustomPaint(painter: _RoadstrAmbientPainter(colors)),
+          ),
+        ),
+        child,
+      ],
     );
   }
+}
+
+class _RoadstrAmbientPainter extends CustomPainter {
+  final RoadstrColors colors;
+  const _RoadstrAmbientPainter(this.colors);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    final radius = size.shortestSide * 0.52;
+    final topCenter = Offset(size.width * 0.92, size.height * 0.03);
+    final bottomCenter = Offset(size.width * 0.08, size.height * 0.92);
+    final opacity = colors.isDark ? 0.12 : 0.065;
+    final paint = Paint()
+      ..shader = RadialGradient(colors: [
+        colors.accent.withValues(alpha: opacity),
+        colors.accent.withValues(alpha: 0),
+      ]).createShader(Rect.fromCircle(center: topCenter, radius: radius));
+    canvas.drawCircle(topCenter, radius, paint);
+    paint.shader = RadialGradient(colors: [
+      colors.accent.withValues(alpha: opacity * 0.55),
+      colors.accent.withValues(alpha: 0),
+    ]).createShader(
+        Rect.fromCircle(center: bottomCenter, radius: radius * 0.8));
+    canvas.drawCircle(bottomCenter, radius * 0.8, paint);
+  }
+
+  @override
+  bool shouldRepaint(_RoadstrAmbientPainter oldDelegate) =>
+      oldDelegate.colors.accent != colors.accent ||
+      oldDelegate.colors.isDark != colors.isDark;
 }

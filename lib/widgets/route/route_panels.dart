@@ -13,6 +13,18 @@ import '../../services/routing_service.dart';
 import '../../services/weather_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/units.dart';
+import '../design/roadstr_glass.dart';
+
+LinearGradient _routePanelGradient(RoadstrColors colors) => LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color.lerp(colors.mapGlassStrong, Colors.white, 0.055)!,
+        colors.mapGlassStrong,
+        Color.lerp(colors.mapGlassStrong, colors.accent, 0.06)!,
+      ],
+      stops: const [0, 0.58, 1],
+    );
 
 class RoutePlannerBar extends StatelessWidget {
   final TextEditingController fromCtrl;
@@ -65,13 +77,10 @@ class RoutePlannerBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = colors;
-    return Container(
-      decoration: BoxDecoration(
-        gradient: c.panelGradient ?? c.surfaceSheen,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: c.panelEdge),
-        boxShadow: c.panelShadow,
-      ),
+    return RoadstrGlassSurface(
+      colors: c,
+      level: RoadstrGlassLevel.strong,
+      borderRadius: BorderRadius.circular(RoadstrRadius.xLarge),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         // ── Da ────────────────────────────────────────────────────────────
@@ -97,10 +106,10 @@ class RoutePlannerBar extends StatelessWidget {
               },
               onChanged: onFromChanged,
               autofocus: false,
-              style: TextStyle(color: c.textPrimary, fontSize: 14),
+              style: TextStyle(color: c.mapTextPrimary, fontSize: 14),
               decoration: InputDecoration(
                 hintText: AppLocalizations.of(context).plannerFromHint,
-                hintStyle: TextStyle(color: c.textSecondary, fontSize: 14),
+                hintStyle: TextStyle(color: c.mapTextSecondary, fontSize: 14),
                 filled: false,
                 contentPadding: EdgeInsets.zero,
                 border: InputBorder.none,
@@ -116,7 +125,7 @@ class RoutePlannerBar extends StatelessWidget {
               child: Icon(Icons.my_location_rounded, color: c.accent, size: 18),
             ),
         ]),
-        Divider(height: 8, color: c.border),
+        Divider(height: 8, color: c.mapGlassBorder),
         // ── Stops, in driving order ───────────────────────────────────────
         _StopList(
           controllers: stopCtrls,
@@ -193,13 +202,13 @@ class RoutePlannerBar extends StatelessWidget {
             style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 12)),
             child: Text(AppLocalizations.of(context).cancel,
-                style: TextStyle(color: c.textSecondary, fontSize: 13)),
+                style: TextStyle(color: c.mapTextSecondary, fontSize: 13)),
           ),
           const Spacer(),
           FilledButton.icon(
             onPressed: canCalculate ? onCalculate : null,
             style: FilledButton.styleFrom(
-              backgroundColor: canCalculate ? c.accent : c.border,
+              backgroundColor: canCalculate ? c.accent : c.mapGlassBorder,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -293,11 +302,11 @@ class _StopList extends StatelessWidget {
                   onTap: () => onStopTap(i),
                   onChanged: (q) => onStopChanged(i, q),
                   autofocus: isLast && single,
-                  style: TextStyle(color: colors.textPrimary, fontSize: 14),
+                  style: TextStyle(color: colors.mapTextPrimary, fontSize: 14),
                   decoration: InputDecoration(
                     hintText: isLast ? l.plannerToHint : l.plannerStopHint,
                     hintStyle:
-                        TextStyle(color: colors.textSecondary, fontSize: 14),
+                        TextStyle(color: colors.mapTextSecondary, fontSize: 14),
                     filled: false,
                     contentPadding: EdgeInsets.zero,
                     border: InputBorder.none,
@@ -322,7 +331,7 @@ class _StopList extends StatelessWidget {
                   onPressed: () => onRemoveStop(i),
                   visualDensity: VisualDensity.compact,
                   icon: Icon(Icons.close_rounded,
-                      size: 16, color: colors.textSecondary),
+                      size: 16, color: colors.mapTextSecondary),
                 ),
               if (!single)
                 ReorderableDragStartListener(
@@ -330,7 +339,7 @@ class _StopList extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.only(left: 2, right: 2),
                     child: Icon(Icons.drag_handle_rounded,
-                        size: 20, color: colors.textSecondary),
+                        size: 20, color: colors.mapTextSecondary),
                   ),
                 ),
             ]),
@@ -374,7 +383,7 @@ class WalkingSubModes extends StatelessWidget {
       padding: padding,
       child: Row(children: [
         Icon(Icons.subdirectory_arrow_right_rounded,
-            size: 16, color: colors.textSecondary),
+            size: 16, color: colors.mapTextSecondary),
         const SizedBox(width: 6),
         Flexible(
           child: SingleChildScrollView(
@@ -421,28 +430,33 @@ class TransportModeChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = colors;
-    return GestureDetector(
+    return RoadstrPressable(
       onTap: onTap,
+      semanticLabel: label,
+      borderRadius: BorderRadius.circular(RoadstrRadius.medium),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
+        duration: RoadstrMotion.quick,
         curve: Curves.easeOutCubic,
         padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
         decoration: BoxDecoration(
-          gradient: selected ? c.accentGloss : c.surfaceSheen,
+          gradient: selected ? c.accentGloss : null,
+          color: selected ? null : Colors.white.withValues(alpha: 0.055),
           borderRadius: BorderRadius.circular(15),
           border: Border.all(
-              color:
-                  selected ? Colors.white.withValues(alpha: 0.28) : c.panelEdge,
+              color: selected
+                  ? Colors.white.withValues(alpha: 0.28)
+                  : c.mapGlassBorder,
               width: 1),
           boxShadow: selected ? c.cardShadow : null,
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, size: 15, color: selected ? c.onAccent : c.textSecondary),
+          Icon(icon,
+              size: 15, color: selected ? c.onAccent : c.mapTextSecondary),
           const SizedBox(width: 6),
           Text(label,
               style: TextStyle(
                   fontSize: 12,
-                  color: selected ? c.onAccent : c.textSecondary,
+                  color: selected ? c.onAccent : c.mapTextSecondary,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w600)),
         ]),
       ),
@@ -562,11 +576,12 @@ class _PreviewPanelState extends State<RoutePreviewPanel>
           },
           child: Container(
             decoration: BoxDecoration(
-              gradient: c.panelGradient ?? c.surfaceSheen,
+              gradient: _routePanelGradient(c),
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(28)),
-              border: Border(top: BorderSide(color: c.panelEdge, width: 1)),
-              boxShadow: c.panelShadow,
+              border:
+                  Border(top: BorderSide(color: c.mapGlassBorder, width: 1)),
+              boxShadow: c.mapGlassShadow(strong: true),
             ),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               const SizedBox(height: 10),
@@ -575,7 +590,7 @@ class _PreviewPanelState extends State<RoutePreviewPanel>
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                          color: c.border,
+                          color: c.accent.withValues(alpha: 0.42),
                           borderRadius: BorderRadius.circular(2)))),
               const SizedBox(height: 14),
               Padding(
@@ -586,7 +601,7 @@ class _PreviewPanelState extends State<RoutePreviewPanel>
                       if (widget.label != null && widget.label!.isNotEmpty) ...[
                         Text(widget.label!,
                             style: TextStyle(
-                                color: c.textPrimary,
+                                color: c.mapTextPrimary,
                                 fontSize: 17,
                                 fontWeight: FontWeight.bold),
                             maxLines: 1,
@@ -597,7 +612,7 @@ class _PreviewPanelState extends State<RoutePreviewPanel>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 11),
                         decoration: BoxDecoration(
-                          color: c.surface3,
+                          color: Colors.white.withValues(alpha: 0.055),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                               color: c.accent.withValues(alpha: 0.28)),
@@ -620,19 +635,19 @@ class _PreviewPanelState extends State<RoutePreviewPanel>
                                 children: [
                                   Text(widget.route.durationLabel,
                                       style: TextStyle(
-                                          color: c.textPrimary,
+                                          color: c.mapTextPrimary,
                                           fontSize: 22,
                                           fontWeight: FontWeight.w800,
                                           letterSpacing: -0.4)),
                                   Text(l.departEta(depStr, arrStr),
                                       style: TextStyle(
-                                          color: c.textSecondary,
+                                          color: c.mapTextSecondary,
                                           fontSize: 12)),
                                 ]),
                           ),
                           Text(widget.route.distanceLabel,
                               style: TextStyle(
-                                  color: c.textSecondary,
+                                  color: c.mapTextSecondary,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600)),
                         ]),
@@ -660,11 +675,11 @@ class _PreviewPanelState extends State<RoutePreviewPanel>
                       ],
                       if (widget.trafficEvents.isNotEmpty) ...[
                         const SizedBox(height: 12),
-                        Divider(height: 0.5, color: c.border),
+                        Divider(height: 0.5, color: c.mapGlassBorder),
                         const SizedBox(height: 10),
                         Text(l.conditionsOnRoute,
                             style: TextStyle(
-                                color: c.textSecondary,
+                                color: c.mapTextSecondary,
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 0.5)),
@@ -677,7 +692,7 @@ class _PreviewPanelState extends State<RoutePreviewPanel>
                                 const SizedBox(width: 6),
                                 Text(ev.category.localizedLabel(l),
                                     style: TextStyle(
-                                        color: c.textPrimary,
+                                        color: c.mapTextPrimary,
                                         fontSize: 13,
                                         fontWeight: FontWeight.w500)),
                                 const SizedBox(width: 4),
@@ -687,7 +702,7 @@ class _PreviewPanelState extends State<RoutePreviewPanel>
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
-                                              color: c.textSecondary,
+                                              color: c.mapTextSecondary,
                                               fontSize: 12))),
                               ]),
                             )),
@@ -700,9 +715,9 @@ class _PreviewPanelState extends State<RoutePreviewPanel>
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: c.surface3,
+                    color: Colors.white.withValues(alpha: 0.055),
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: c.border),
+                    border: Border.all(color: c.mapGlassBorder),
                   ),
                   child: Row(children: [
                     TransportModeChip(
@@ -780,7 +795,7 @@ class _PreviewPanelState extends State<RoutePreviewPanel>
                   TextButton(
                     onPressed: widget.onCancel,
                     child: Text(l.cancel,
-                        style: TextStyle(color: c.textSecondary)),
+                        style: TextStyle(color: c.mapTextSecondary)),
                   ),
                 ]),
               ),
@@ -917,11 +932,11 @@ class _AlternativesPanelState extends State<RouteAlternativesPanel>
           },
           child: Container(
             decoration: BoxDecoration(
-              gradient: c.panelGradient ?? c.surfaceSheen,
+              gradient: _routePanelGradient(c),
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(28)),
-              border: Border(top: BorderSide(color: c.panelEdge)),
-              boxShadow: c.panelShadow,
+              border: Border(top: BorderSide(color: c.mapGlassBorder)),
+              boxShadow: c.mapGlassShadow(strong: true),
             ),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               const SizedBox(height: 10),
@@ -930,14 +945,14 @@ class _AlternativesPanelState extends State<RouteAlternativesPanel>
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                          color: c.border,
+                          color: c.accent.withValues(alpha: 0.42),
                           borderRadius: BorderRadius.circular(2)))),
               const SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Text(l.chooseRoute,
                     style: TextStyle(
-                        color: c.textPrimary,
+                        color: c.mapTextPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.bold)),
               ),
@@ -983,7 +998,7 @@ class _AlternativesPanelState extends State<RouteAlternativesPanel>
                   child: Material(
                     color: widget.avoidanceEnabled
                         ? avoidanceColor.withValues(alpha: 0.12)
-                        : c.surface3,
+                        : Colors.white.withValues(alpha: 0.055),
                     borderRadius: BorderRadius.circular(14),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(14),
@@ -1020,7 +1035,7 @@ class _AlternativesPanelState extends State<RouteAlternativesPanel>
                               children: [
                                 Text(l.avoidHighwaysAndTolls,
                                     style: TextStyle(
-                                      color: c.textPrimary,
+                                      color: c.mapTextPrimary,
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
                                     )),
@@ -1069,7 +1084,7 @@ class _AlternativesPanelState extends State<RouteAlternativesPanel>
                             ' ${Units.speedUnit}');
                         return '$temp · ${_weather!.localizedDescription(l)} · $wind';
                       }(),
-                      style: TextStyle(color: c.textSecondary, fontSize: 12),
+                      style: TextStyle(color: c.mapTextSecondary, fontSize: 12),
                     ),
                   ]),
                 ),
@@ -1098,13 +1113,13 @@ class _AlternativesPanelState extends State<RouteAlternativesPanel>
                     child: OutlinedButton(
                       onPressed: _closeAnimated,
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: c.border),
+                        side: BorderSide(color: c.mapGlassBorder),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                         padding: const EdgeInsets.symmetric(vertical: 13),
                       ),
                       child: Text(AppLocalizations.of(context).cancel,
-                          style: TextStyle(color: c.textSecondary)),
+                          style: TextStyle(color: c.mapTextSecondary)),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -1177,14 +1192,17 @@ class RouteCard extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color.lerp(colors.surface2, highlight, 0.18)!,
-                    Color.lerp(colors.surface2, highlight, 0.07)!,
+                    Color.lerp(colors.mapGlassMedium, highlight, 0.18)!,
+                    Color.lerp(colors.mapGlassMedium, highlight, 0.07)!,
                   ],
                 )
-              : colors.surfaceSheen,
+              : LinearGradient(colors: [
+                  Colors.white.withValues(alpha: 0.07),
+                  Colors.white.withValues(alpha: 0.035),
+                ]),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isSelected ? highlight : colors.panelEdge,
+            color: isSelected ? highlight : colors.mapGlassBorder,
             width: isSelected ? 1.5 : 1,
           ),
           boxShadow: isSelected ? colors.cardShadow : null,
@@ -1197,14 +1215,15 @@ class RouteCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                      color: colors.textPrimary,
+                      color: colors.mapTextPrimary,
                       fontSize: 19,
                       fontWeight: FontWeight.bold)),
               const SizedBox(height: 3),
               Text(route.distanceLabel,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: colors.textSecondary, fontSize: 12)),
+                  style:
+                      TextStyle(color: colors.mapTextSecondary, fontSize: 12)),
               if (isAvoidance || isBest) ...[
                 const SizedBox(height: 8),
                 Container(
