@@ -60,6 +60,7 @@ import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
 import '../utils/geo.dart';
 import '../utils/heading_filter.dart';
+import '../utils/off_route_detector.dart';
 import '../utils/settings_listenable.dart';
 import '../utils/units.dart';
 import '../widgets/cursor_painter.dart';
@@ -2474,18 +2475,23 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       ({
         RouteResult route,
         List<({List<LatLng> points, bool restricted})> runs
-      })?> _fetchRoute(LatLng origin, LatLng dest, {List<LatLng>? via}) async {
+      })?> _fetchRoute(LatLng origin, LatLng dest,
+          {List<LatLng>? via,
+          double? originBearingDeg,
+          LatLng? avoidNear}) async {
     final (:provider, :apiKey, :ghServer) = await _resolveProvider();
     if (!mounted) return null;
-    final routes = await RoutingService.getRoutes(origin, dest,
-        provider: provider,
-        apiKey: apiKey,
-        graphhopperServer: ghServer,
-        lang: 'it',
-        vehicle: _transportMode,
-        via: via ?? _activeVia);
+    final routes = await _requestRoutes(
+      origin,
+      dest,
+      provider: provider,
+      apiKey: apiKey,
+      ghServer: ghServer,
+      via: via ?? _activeVia,
+      originBearingDeg: originBearingDeg,
+    );
     if (!mounted || routes.isEmpty) return null;
-    final route = routes.first;
+    final route = _pickRoute(routes, avoidNear);
     // Not awaited: this used to be the whole reason route calculation felt
     // slow. ZtlService's cache is kept warm in the background by _onGps
     // (same as MapScreen, which never awaits it in the route path either) —
@@ -2496,18 +2502,92 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     return (route: route, runs: _splitByZtl(route.polyline, restricted));
   }
 
-  /// Distance off the route polyline past which the driver is no longer
-  /// plausibly following it. Same threshold MapScreen._checkOffRoute uses —
-  /// retuned in 0.4.12 against a real driving trace, not derived here.
-  static const _offRouteThresholdM = 55.0;
+  /// The first alternative that keeps clear of [avoidNear], falling back to
+  /// the engine's own first choice when nothing has to be avoided or no
+  /// alternative manages it.
+  ///
+  /// This is what makes "recalculate" after a traffic report mean anything:
+  /// the routing engines are deterministic, so asking for the same two points
+  /// again returns the same road through the same queue. OSRM already answers
+  /// a plain A-to-B with up to three alternatives, so the choice is made here
+  /// rather than by asking the engine to exclude an area — which the public
+  /// OSRM profiles cannot do at all.
+  static RouteResult _pickRoute(List<RouteResult> routes, LatLng? avoidNear) {
+    if (avoidNear == null) return routes.first;
+    for (final route in routes) {
+      if (!RoutingService.passesNear(route.polyline, avoidNear)) return route;
+    }
+    return routes.first;
+  }
+
+  /// Asks the router for the route(s), telling it which way the vehicle is
+  /// actually facing when that is known — the same MapScreen._rerouteRoutes
+  /// mechanism, which was never ported to this screen.
+  ///
+  /// Without the hint a reroute carries only two coordinates — where the car
+  /// is and where it is going — leaving the engine free to assume the vehicle
+  /// can face any direction, including one requiring an instant reversal it
+  /// cannot perform. A driver who left the route in a grid of perpendicular
+  /// streets was told to turn 180° and drive back the way they came, instead
+  /// of being sent round the block to rejoin it: legal there, but not where a
+  /// no-entry, a central reservation or simply traffic makes a U-turn
+  /// impossible. See [rerouteBearingToleranceDeg] for the mechanism itself.
+  ///
+  /// Falls back to an unconstrained request whenever the constrained one
+  /// cannot be trusted: a different provider (only OSRM reads the parameter),
+  /// a fix too slow to have a real course, no match within tolerance, or a
+  /// result [RoutingService.isImplausibleReroute] says went somewhere absurd.
+  Future<List<RouteResult>> _requestRoutes(
+    LatLng origin,
+    LatLng dest, {
+    required RoutingProvider provider,
+    required String? apiKey,
+    required String? ghServer,
+    required List<LatLng> via,
+    double? originBearingDeg,
+  }) async {
+    Future<List<RouteResult>> request({double? bearing}) =>
+        RoutingService.getRoutes(origin, dest,
+            provider: provider,
+            apiKey: apiKey,
+            graphhopperServer: ghServer,
+            lang: 'it',
+            vehicle: _transportMode,
+            originBearingDeg: bearing,
+            via: via);
+
+    final speedKmh = _lastFix?.speedKmh ?? 0;
+    if (originBearingDeg == null ||
+        provider != RoutingProvider.osrm ||
+        !HeadingFilter.usesTravelHeading(speedKmh)) {
+      return request();
+    }
+
+    List<RouteResult> constrained;
+    try {
+      constrained = await request(bearing: originBearingDeg);
+    } on RoutingException {
+      // Nothing reachable matched that facing within tolerance anywhere — an
+      // unconstrained reroute is still better than none.
+      return request();
+    }
+    if (constrained.isEmpty) return request();
+    final shortest = constrained
+        .reduce((a, b) => a.totalDistanceM <= b.totalDistanceM ? a : b);
+    if (RoutingService.isImplausibleReroute(
+        shortest.totalDistanceM, Geo.distanceM(origin, dest))) {
+      return request();
+    }
+    return constrained;
+  }
 
   bool _isRerouting = false;
 
-  /// Off-route check, called from [_onGps] while navigating. Deliberately
-  /// simpler than MapScreen's own _checkOffRoute: perpendicular distance to
-  /// the nearest polyline segment only, no direction/bearing check against
-  /// the next waypoint — that catches a driver on the correct road but going
-  /// the wrong way on a bidirectional street, which this does not yet.
+  /// Tracks how the gap to the route is developing, not just how big it is
+  /// right now — see [OffRouteDetector] for the field report that needed it.
+  final _offRoute = OffRouteDetector();
+
+  /// Off-route check, called from [_onGps] while navigating.
   void _checkOffRoute(GpsData data) {
     final route = _route;
     final dest = _destination;
@@ -2521,11 +2601,15 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     if (data.speedKmh < 1) return; // stationary — a red light, not off-route
     final pos = LatLng(data.position.latitude, data.position.longitude);
     final nearest = _nearestActiveRouteSegment(pos);
-    if (nearest == null || nearest.distM < 30) return;
-    if (nearest.distM > _offRouteThresholdM) {
+    if (nearest == null) return;
+    // Fed every fix, including the close ones: the detector measures the gap
+    // against the closest recent approach, so it needs to see the driver
+    // actually on the route to know what leaving it looks like.
+    if (_offRoute.sawDeviation(nearest.distM)) {
       unawaited(_rerouteAndNavigate(pos, dest));
       return;
     }
+    if (nearest.distM < OffRouteDetector.noiseFloorM) return;
     // Direction check: on a bidirectional road the fix can sit right on the
     // route polyline while the driver is actually facing the wrong way (a
     // U-turn, or joining from the far carriageway) — distance alone can't
@@ -2541,7 +2625,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     }
   }
 
-  Future<void> _rerouteAndNavigate(LatLng origin, LatLng dest) async {
+  Future<void> _rerouteAndNavigate(LatLng origin, LatLng dest,
+      {LatLng? avoidNear}) async {
     if (_isRerouting) return;
     // _stopNavigation bumps this on cancel/arrival; without the check below
     // a reroute fetch still in flight at that moment lands afterwards and
@@ -2549,7 +2634,11 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     // the driver already ended.
     final requestGeneration = _routeRequestGeneration;
     setState(() => _isRerouting = true);
-    final fetched = await _fetchRoute(origin, dest);
+    // Mid-drive: the car is moving and facing a direction it cannot reverse
+    // on the spot, so the router is told about it. _lastFixHeadingDeg is the
+    // filtered course over ground, the same value the cursor points along.
+    final fetched = await _fetchRoute(origin, dest,
+        originBearingDeg: _lastFixHeadingDeg, avoidNear: avoidNear);
     if (!mounted || requestGeneration != _routeRequestGeneration) {
       if (mounted) setState(() => _isRerouting = false);
       return;
@@ -2581,6 +2670,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     // index just as much as the step-index arrays above.
     _nearestRouteSegmentIdx = 0;
     _routeProgressM = 0;
+    _offRoute.reset();
     setState(() {
       _route = fetched.route;
       _routeRuns = fetched.runs;
@@ -2604,6 +2694,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _headingFilter.reset();
     _nearestRouteSegmentIdx = 0;
     _routeProgressM = 0;
+    _offRoute.reset();
     _minDistToDestM = double.infinity;
     _alertedCameraIds.clear();
     _alertedOsmCameraIds.clear();
@@ -2883,8 +2974,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               final fix = _lastFix;
               final dest = _destination;
               if (fix == null || dest == null) return;
+              // The point of this button is to get around *this* jam, so the
+              // alternative picked has to actually keep clear of it — a plain
+              // recalculation hands back the same road.
               unawaited(_rerouteAndNavigate(
-                  LatLng(fix.position.latitude, fix.position.longitude), dest));
+                  LatLng(fix.position.latitude, fix.position.longitude), dest,
+                  avoidNear: jam.position));
             },
             child: Text(l.trafficRecalculate,
                 style: const TextStyle(color: Colors.white)),
