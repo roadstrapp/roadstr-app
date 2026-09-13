@@ -1054,6 +1054,37 @@ class RoutingService {
     return routeDistanceM > straightLineDistanceM * factor + floorM;
   }
 
+  /// How close a route has to come to a reported jam to count as still going
+  /// through it.
+  ///
+  /// Wide enough to cover the road itself — both carriageways, and the slack
+  /// between where a driver drops a report and where the queue actually is —
+  /// but deliberately narrower than a city block, because the parallel street
+  /// one block over IS the detour being looked for and must not be rejected
+  /// as "still passing the jam".
+  static const jamAvoidanceRadiusM = 80.0;
+
+  /// Whether [polyline] comes within [radiusM] of [point].
+  ///
+  /// Used to tell a genuine detour around a reported jam from the same road
+  /// handed back again: asking a deterministic engine to recalculate the same
+  /// two points returns the same route, so the alternatives have to be checked
+  /// rather than trusted.
+  static bool passesNear(List<LatLng> polyline, LatLng point,
+      {double radiusM = jamAvoidanceRadiusM}) {
+    if (polyline.isEmpty) return false;
+    if (polyline.length == 1) {
+      return Geo.distanceM(polyline.first, point) <= radiusM;
+    }
+    for (var i = 0; i < polyline.length - 1; i++) {
+      if (Geo.distanceToSegmentM(point, polyline[i], polyline[i + 1]) <=
+          radiusM) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /// Calculates the extra driving route shown by the combined avoidance
   /// switch. A hard exclusion is attempted first. If the graph cannot connect
   /// the endpoints without those road classes, a documented OsmAnd-style soft
