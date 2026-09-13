@@ -48,5 +48,17 @@ void main() {
       final off = LatLng(_north(start, 200).latitude, 9.0 + 5 * _m);
       expect(RouteProgress.nearestIndex(straightLine, off), 2);
     });
+
+    test('an empty polyline answers 0, which is NOT a valid index into it — '
+        'callers must check the polyline before indexing with this', () {
+      // Pinned deliberately. This is a trap, not a feature: a degenerate
+      // route reaching a caller that indexes blindly with this result is
+      // what crashed the app mid-drive once, and the guards added since
+      // (in _updateNavigationProgress, _updateRouteProgress, _stepProgressM)
+      // exist because of it. If this contract is ever changed, those guards
+      // must be revisited rather than quietly left behind.
+      expect(RouteProgress.nearestIndex(const [], start), 0);
+      expect(RouteProgress.cumulativeDistances(const []), isEmpty);
+    });
   });
 }
