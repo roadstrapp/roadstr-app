@@ -802,6 +802,53 @@ void main() {
       expect(results.first, same(closer));
     });
   });
+
+  group('RoutingService.passesNear', () {
+    // A short north-south line through Faenza, ~300 m long.
+    const a = LatLng(44.2860, 11.8830);
+    const b = LatLng(44.2887, 11.8830);
+    const line = [a, b];
+
+    test('a point on the line is on the route', () {
+      expect(RoutingService.passesNear(line, const LatLng(44.2870, 11.8830)),
+          isTrue);
+    });
+
+    test('a point beside the line, inside the radius, still counts — the '
+        'other carriageway is the same jam', () {
+      // ~30 m east of the line.
+      expect(RoutingService.passesNear(line, const LatLng(44.2870, 11.88338)),
+          isTrue);
+    });
+
+    test('the parallel street a block over is a genuine detour, not the '
+        'same road', () {
+      // ~150 m east: further than jamAvoidanceRadiusM, so a route running
+      // here counts as having avoided the jam.
+      expect(RoutingService.passesNear(line, const LatLng(44.2870, 11.88489)),
+          isFalse);
+    });
+
+    test('a point past the end of the line is measured to the endpoint, not '
+        'to an infinite line', () {
+      // Due north of b by ~400 m — beyond the segment entirely.
+      expect(RoutingService.passesNear(line, const LatLng(44.2923, 11.8830)),
+          isFalse);
+    });
+
+    test('the radius is adjustable for callers that need a wider sweep', () {
+      const far = LatLng(44.2870, 11.88489);
+      expect(RoutingService.passesNear(line, far), isFalse);
+      expect(RoutingService.passesNear(line, far, radiusM: 400), isTrue);
+    });
+
+    test('degenerate polylines do not throw', () {
+      expect(RoutingService.passesNear(const [], a), isFalse);
+      expect(RoutingService.passesNear(const [a], a), isTrue);
+      expect(RoutingService.passesNear(const [a], const LatLng(45, 12)),
+          isFalse);
+    });
+  });
 }
 
 String _encodePolyline6(List<LatLng> points) {
