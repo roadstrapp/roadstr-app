@@ -1635,8 +1635,19 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   }
 
   double _stepProgressM(int index) {
-    if (_route == null || _routeCumulativeM.isEmpty) return 0;
-    final step = _route!.steps[index];
+    final route = _route;
+    // Length agreement and a bounds-checked step index, matching the guard
+    // _routeLocalBearingAt and _remainingRouteRuns already use: this walks
+    // the polyline while reading _routeCumulativeM at the same indices, so
+    // the two disagreeing indexes past the end rather than returning a
+    // slightly wrong number.
+    if (route == null ||
+        _routeCumulativeM.length != route.polyline.length ||
+        index < 0 ||
+        index >= route.steps.length) {
+      return 0;
+    }
+    final step = route.steps[index];
     var best = double.infinity;
     var bestProgress = 0.0;
     final poly = _route!.polyline;
@@ -1672,10 +1683,17 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   }
 
   void _updateRouteProgress() {
-    if (_route == null || _routeCumulativeM.length < 2) return;
+    final route = _route;
+    // segmentIdx below is bounded against the polyline, so _routeCumulativeM
+    // has to be the same length for it to be a valid index there too.
+    if (route == null ||
+        _routeCumulativeM.length < 2 ||
+        _routeCumulativeM.length != route.polyline.length) {
+      return;
+    }
     final nearest = _nearestActiveRouteSegment(_position);
     if (nearest == null) return;
-    final poly = _route!.polyline;
+    final poly = route.polyline;
     final projection = Geo.projectOnSegment(
         _position, poly[nearest.segmentIdx], poly[nearest.segmentIdx + 1]);
     final rawProgress = _routeCumulativeM[nearest.segmentIdx] +
