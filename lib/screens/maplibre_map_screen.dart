@@ -3019,7 +3019,19 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
 
   void _updateNavigationProgress(GpsData data) {
     final route = _route;
-    if (route == null || _cumDist.isEmpty || _arrived) return;
+    if (route == null || _arrived) return;
+    // Length agreement, not just "non-empty" — the same guard
+    // _segmentNearestInProgress and _cameraRouteMatch already apply, and for
+    // the same reason: these arrays are built from the route and indexed by
+    // positions found in the route, so a mismatch indexes past the end.
+    // RouteProgress.nearestIndex answers 0 for an empty polyline, which is
+    // not a valid index into one — a degenerate route reaching this line is
+    // what crashed the app mid-drive once already.
+    if (route.polyline.isEmpty ||
+        _cumDist.length != route.polyline.length ||
+        _stepCumDist.length != route.steps.length) {
+      return;
+    }
     final pos = LatLng(data.position.latitude, data.position.longitude);
     final idx = RouteProgress.nearestIndex(route.polyline, pos);
     final routeProgressM = _cumDist[idx];
