@@ -45,11 +45,23 @@ class OffRouteDetector {
     _samplesAway = 0;
   }
 
+  /// How much larger than the fix's own uncertainty a gap has to be before it
+  /// is treated as evidence of anything.
+  ///
+  /// The same 1.5× margin the arrival radius already applies to accuracy.
+  static const accuracyMargin = 1.5;
+
   /// Feeds one fix's distance to the route, and reports whether the driver
   /// should be considered off route.
   ///
   /// [distM] is the perpendicular distance to the active route polyline.
-  bool sawDeviation(double distM) {
+  /// [accuracyM] is that fix's own horizontal accuracy radius: in a street of
+  /// tall buildings multipath can park a fix tens of metres off the road it
+  /// was taken on, and rerouting off a reading that uncertain is chasing the
+  /// error, not the driver. Such a fix is ignored for trend purposes — it
+  /// neither proves a deviation nor disproves one, so it leaves the trend
+  /// exactly as it was rather than resetting it.
+  bool sawDeviation(double distM, {double accuracyM = 0}) {
     if (!distM.isFinite) return false;
     if (distM > hardThresholdM) {
       reset();
@@ -68,6 +80,11 @@ class OffRouteDetector {
       _samplesAway = 0;
       return false;
     }
+    // This looks like a deviation; the remaining question is whether this
+    // particular fix is certain enough to say so. A small distance is always
+    // trusted — it is what establishes the baseline above — but a large one
+    // from an uncertain fix is exactly what multipath produces.
+    if (accuracyM.isFinite && distM < accuracyM * accuracyMargin) return false;
     _samplesAway++;
     // Holding a gap this far out only means anything once the car is off the
     // road itself; a 15 m swing that stays inside the noise floor is a wide
