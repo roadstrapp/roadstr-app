@@ -25,8 +25,10 @@ If you're searching for the decentralized road event reporting system — "Waze 
 | Tilt-compensated compass heading | ✅ |
 | Live speed-limit display (explicit OSM `maxspeed` data; unknown stays unknown) | ✅ |
 | Speed-camera alerts — OSM baseline data + community reports | ✅ |
+| Road-element overlays — traffic lights, pedestrian crossings, speed bumps (OSM) | ✅ |
 | ZTL (limited-traffic zone) proximity warnings | ✅ |
 | On-device AI voice guidance (Kokoro-82M) — male/female voice, adjustable speed | ✅ |
+| German voice guidance via a second on-device engine (Piper / Thorsten-Voice) | ✅ |
 | Nostr road events — kind 1315 (reports) / 1316 (confirmations) | ✅ |
 | Traffic alerts on-route with rerouting prompt | ✅ |
 | Nostr identity login (Amber NIP-55 / nsec) | ✅ |
@@ -47,7 +49,8 @@ If you're searching for the decentralized road event reporting system — "Waze 
 | Auto dark mode (sunset / sunrise via GPS position) | ✅ |
 | 27 languages (all EU official languages + RU, JA, ZH) | ✅ |
 | Navigation notification in Android shade | ✅ |
-| Nostr DMs / collaborative alerts | ✅ |
+| Collaborative report corrections — owner-signed updates + third-party edit requests | ✅ |
+| Activity inbox — zaps and confirmations received on your own reports | ✅ |
 | Public transport routing — bus, tram, metro, rail, coach, ferry (worldwide open timetables) | ✅ |
 | Cycling routes | ✅ |
 | Customisable vehicle cursor — 7 colours, animated walking mode | ✅ |
@@ -97,58 +100,96 @@ already do — the app on `main` stays shippable throughout.
 
 ```
 lib/
-├── main.dart                         # Entry point, provider tree, first-launch gate
-├── l10n/                             # ARB files (27 locales) + generated Dart classes
+├── main.dart                          # Entry point, provider tree, first-launch gate
+├── l10n/                              # ARB files (27 locales) + generated Dart classes
 ├── config/
-│   └── network_config.dart           # Request deadlines, response caps, relay limits
+│   └── network_config.dart            # Request deadlines, response caps, relay limits
 ├── models/
-│   ├── favorite_place.dart           # Saved places data model (Hive-backed)
-│   ├── road_event.dart               # Nostr kind-1315/1316 model + TTLs
-│   ├── transit_itinerary.dart        # Public-transport journey + legs
-│   └── transit_mode.dart             # Transport modes (worldwide, wire-name mapped)
+│   ├── activity_notification.dart     # Zap / confirmation notifications for own reports
+│   ├── favorite_place.dart            # Saved places data model (Hive-backed)
+│   ├── road_event.dart                # Nostr kind-1315/1316 model + TTLs
+│   ├── search_history_item.dart       # Recent destinations
+│   ├── transit_itinerary.dart         # Public-transport journey + legs
+│   ├── transit_mode.dart              # Transport modes (worldwide, wire-name mapped)
+│   └── way_point.dart                 # A named point in the multi-stop planner
 ├── providers/
-│   └── locale_provider.dart          # Language override (Hive-backed)
+│   └── locale_provider.dart           # Language override (Hive-backed)
 ├── screens/
-│   ├── map_screen.dart               # Main map, navigation, route planner, Nostr events
-│   ├── onboarding_screen.dart        # First-launch flow — identity, permissions, voice model
-│   ├── profile_screen.dart           # Nostr identity, reports history, zap balance
-│   ├── settings_screen.dart          # Theme, routing, voice, language, NWC, favourites
-│   └── wikipedia_webview_screen.dart # Restricted in-app Wikipedia article reader
+│   ├── maplibre_map_screen.dart       # Default engine — vector rendering, 3D tilt
+│   ├── map_screen.dart                # Original flutter_map engine, still switchable
+│   ├── notifications_screen.dart      # Zaps and confirmations on your own reports
+│   ├── onboarding_screen.dart         # First-launch flow — identity, permissions, voice
+│   ├── profile_screen.dart            # Nostr identity, reports history, zap balance
+│   ├── settings_screen.dart           # Theme, routing, voice, language, NWC, favourites
+│   └── wikipedia_webview_screen.dart  # Restricted in-app Wikipedia article reader
 ├── services/
-│   ├── favorites_crypto.dart         # PBKDF2 + AES-256-GCM for favourites export
-│   ├── favorites_sync_service.dart   # Encrypted cross-device favourites sync (kind 30078)
-│   ├── gps_service.dart              # Android foreground GPS stream
-│   ├── bounded_http.dart             # Streaming HTTP limits and redirect blocking
-│   ├── navigation_notification_service.dart  # Android turn-by-turn notification
-│   ├── nip44.dart                    # NIP-44 v2 encryption (ECDH + ChaCha20 + HMAC)
-│   ├── nostr_relay_service.dart      # WebSocket relay, geohash area subscriptions
-│   ├── poi_search_service.dart       # Category / brand POI search near position (Overpass)
-│   ├── routing_service.dart          # OSRM / GraphHopper / ORS routing
-│   ├── speed_camera_service.dart     # OSM-sourced speed-camera locations (Overpass)
-│   ├── speed_limit_service.dart      # Posted speed limit lookup (Overpass)
-│   ├── sun_calc.dart                 # NOAA solar position — sunrise/sunset times
-│   ├── transit_service.dart          # Public-transport routing (open timetables)
-│   ├── weather_service.dart          # Open-Meteo current conditions
-│   ├── zap_service.dart              # LNURL-pay + NIP-57 zaps + NWC (NIP-47)
-│   ├── ztl_service.dart              # ZTL (limited-traffic zone) polygon lookup
-│   └── kokoro/
-│       ├── kokoro_engine.dart        # ONNX Runtime inference wrapper
-│       ├── kokoro_model_manager.dart # Model download + file management
-│       ├── kokoro_tts_service.dart   # TTS orchestration + audio playback
-│       ├── kokoro_voices.dart        # Voice / language registry
-│       └── espeak_phonemizer.dart    # Dart FFI bridge to eSpeak NG
+│   ├── activity_notification_service.dart # Android notifications for zaps/confirmations
+│   ├── bolt11_invoice.dart            # Lightning invoice parsing and validation
+│   ├── bounded_http.dart              # Streaming HTTP limits and redirect blocking
+│   ├── camera_follow.dart             # Pure camera-easing policy, engine-agnostic
+│   ├── crossing_hazard_service.dart   # Pedestrian crossings + speed bumps (Overpass)
+│   ├── favorites_crypto.dart          # PBKDF2 + AES-256-GCM for favourites export
+│   ├── favorites_sync_service.dart    # Encrypted cross-device sync (kind 30078)
+│   ├── gps_service.dart               # Android foreground GPS stream
+│   ├── navigation_guidance.dart       # When to speak, and at what distance
+│   ├── navigation_notification_service.dart # Android turn-by-turn notification
+│   ├── nav_phrases.dart               # Manoeuvre wording per language
+│   ├── nip44.dart                     # NIP-44 v2 encryption (ECDH + ChaCha20 + HMAC)
+│   ├── nostr_event_verify.dart        # Signature verification for incoming events
+│   ├── nostr_relay_service.dart       # WebSocket relay, geohash area subscriptions
+│   ├── opening_hours.dart             # OSM opening_hours parser (open/closed badge)
+│   ├── overpass_client.dart           # Shared mirror rotation, backoff, response caps
+│   ├── photon_geocoder.dart           # Typo-tolerant prefix search
+│   ├── place_search_service.dart      # Merges + ranks the search providers
+│   ├── poi_search_service.dart        # Category / brand POI search (Overpass)
+│   ├── profile_visibility_service.dart # Opt-in public profile flag
+│   ├── roundabout_topology_service.dart # Real OSM roundabout arm counts
+│   ├── route_progress.dart            # Pure progress-along-polyline geometry
+│   ├── routing_service.dart           # OSRM / GraphHopper / ORS routing
+│   ├── speed_camera_service.dart      # OSM-sourced speed cameras (Overpass)
+│   ├── speed_limit_service.dart       # Posted speed limit lookup (Overpass)
+│   ├── sun_calc.dart                  # NOAA solar position — sunrise/sunset times
+│   ├── traffic_light_service.dart     # OSM traffic signals (Overpass)
+│   ├── transit_service.dart           # Public-transport routing (open timetables)
+│   ├── voice_engine_languages.dart    # Which engine covers which language
+│   ├── voice_model_download.dart      # Combined Kokoro + Piper download status
+│   ├── weather_service.dart           # Open-Meteo current conditions
+│   ├── zap_service.dart               # LNURL-pay + NIP-57 zaps + NWC (NIP-47)
+│   ├── ztl_service.dart               # ZTL (limited-traffic zone) lookup
+│   ├── kokoro/                        # On-device TTS for 7 languages
+│   │   ├── espeak_phonemizer.dart     # Dart FFI bridge to eSpeak NG (shared)
+│   │   ├── kokoro_engine.dart         # ONNX Runtime inference wrapper
+│   │   ├── kokoro_model_manager.dart  # Model download + file management
+│   │   ├── kokoro_tts_service.dart    # TTS orchestration + audio playback
+│   │   └── kokoro_voices.dart         # Voice / language registry
+│   └── piper/                         # On-device TTS for German
+│       ├── piper_engine.dart          # VITS ONNX inference (own tensor contract)
+│       ├── piper_model_manager.dart   # Model download + verification
+│       └── piper_voices.dart          # Pinned model revision and checksums
 ├── theme/
-│   ├── app_theme.dart                # Material 3 themes + RoadstrColors extension
-│   └── theme_provider.dart           # Theme state, auto dark mode, Hive persistence
+│   ├── app_theme.dart                 # Material 3 themes + RoadstrColors extension
+│   └── theme_provider.dart            # Theme state, auto dark mode, Hive persistence
 ├── utils/
-│   ├── heading_filter.dart           # Which way the map faces, from consecutive fixes
-│   ├── polyline.dart                 # Encoded-polyline decoding (server-stated precision)
-│   ├── retry.dart                    # Typed network failures + backoff, honours Retry-After
-│   └── units.dart                    # Metric/imperial formatting helpers
+│   ├── fuzzy_match.dart               # Tolerant text matching for search ranking
+│   ├── geo.dart                       # Distances, bearings, point-to-segment maths
+│   ├── heading_filter.dart            # Which way the map faces, from consecutive fixes
+│   ├── off_route_detector.dart        # Whether the driver has actually left the route
+│   ├── polyline.dart                  # Encoded-polyline decoding
+│   ├── retry.dart                     # Typed network failures + backoff
+│   ├── settings_listenable.dart       # Rebuild on specific Hive setting changes
+│   └── units.dart                     # Metric/imperial formatting helpers
 └── widgets/
-    ├── cursor_painter.dart           # Map cursor — vehicle styles, colours, walking mode
-    ├── transit_itinerary_widget.dart # Public-transport itinerary cards and panel
-    └── speedometer_widget.dart       # Circular analogue speedometer
+    ├── cursor_painter.dart            # Map cursor — vehicle styles, colours, walking
+    ├── speedometer_widget.dart        # Circular analogue speedometer
+    ├── transit_itinerary_widget.dart  # Public-transport itinerary cards and panel
+    ├── design/roadstr_glass.dart      # Shared glass surfaces, spacing/motion tokens
+    ├── home/home_dashboard.dart       # Collapsible home panel on the map
+    ├── map/                           # Bottom bar, FABs, banners, map markers
+    ├── nav/                           # Turn-by-turn HUD, manoeuvre symbols, limit sign
+    ├── place/place_info_panel.dart    # Tapped-place details sheet
+    ├── route/route_panels.dart        # Route preview and alternatives panels
+    ├── search/search_panel.dart       # Search field, results, nearby categories
+    └── sheets/road_event_sheets.dart  # Report and event-detail bottom sheets
 ```
 
 ---
@@ -167,6 +208,8 @@ lib/
 | NIP-78 | Arbitrary app data (kind 30078) — encrypted favourites snapshot |
 | kind-1315 | Road event report (police, speed camera, traffic jam, accident, hazard…) |
 | kind-1316 | Road event confirmation / dismissal |
+| kind-1317 | Correction to a report, signed by its original author — the only edit that is authoritative |
+| kind-1318 | Correction *requested* by someone else; takes effect only once the author answers with a 1317 |
 
 ---
 
@@ -232,17 +275,33 @@ published, the app reports that plainly rather than implying no service exists.
 
 ---
 
-## Voice guidance — Kokoro AI
+## Voice guidance — on-device AI
 
-Roadstr ships with an optional on-device AI text-to-speech engine based on [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M):
+Roadstr ships optional on-device text-to-speech. Nothing is sent to a cloud API and no
+audio leaves the phone. Two engines are used, because no single open model covers every
+language the app is translated into:
 
-- **Fully on-device** — the 82 MB ONNX model runs entirely on the device via [flutter_onnxruntime](https://pub.dev/packages/flutter_onnxruntime). No cloud API, no audio leaves the phone.
-- **Phonemisation** via eSpeak NG through a Dart FFI bridge compiled as an Android native library.
-- **Supported languages**: Italian, English, Spanish, French, Japanese, Chinese, Portuguese.
-- **Male or female voice**, selectable per install, plus a 6-stage speech-speed control — both previewable in Settings before committing. French has no male voice in the upstream Kokoro-82M model, so it always uses the female voice.
-- The model is downloaded on demand from **Settings → Navigation voice → Voice model** (~82 MB).
+| Engine | Languages | Model |
+|---|---|---|
+| [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) | Italian, English, Spanish, French, Japanese, Chinese, Portuguese | ~82 MB, shared across all seven |
+| [Piper](https://github.com/OHF-Voice/piper1-gpl) — Thorsten-Voice "Martin" | German | ~63 MB |
 
-For unsupported languages, navigation instructions remain available as text on screen; no voice engine is started.
+German needs the second engine because Kokoro-82M has no German voice at all: its
+shipped voice packs cover nine locales, none of them German. Piper is a different
+architecture (VITS) with its own tensor contract and its own model file, so it gets its
+own engine rather than another entry in Kokoro's voice table — but it reuses the same
+eSpeak NG phonemiser, and the download appears as one combined progress bar in Settings.
+
+- **Phonemisation** via eSpeak NG through a Dart FFI bridge compiled as an Android
+  native library, shared by both engines.
+- **Male or female voice** and a 6-stage speech-speed control for the Kokoro languages,
+  both previewable in Settings before committing. French has no male voice in the
+  upstream Kokoro-82M model, so it always uses the female one; German has the single
+  Martin voice.
+- Models are downloaded on demand from **Settings → Navigation voice → Voice model**.
+
+For languages neither engine covers, navigation instructions remain available as text on
+screen; no voice engine is started.
 
 The committed eSpeak libraries are reproducible from pinned upstream commits:
 
@@ -264,8 +323,14 @@ Four built-in themes, selectable from **Settings → Theme**:
 |---|---|
 | Light · Nostr Violet | Default light theme, purple (#8B5CF6) accent |
 | Light · Bitcoin Orange | Light theme, Bitcoin orange (#F7931A) accent |
-| Dark · Nostr Violet | Dark theme with CartoDB dark map tiles |
-| Dark · Bitcoin Orange | Dark theme with CartoDB dark map tiles |
+| Dark · Nostr Violet | Dark theme, purple accent |
+| Dark · Bitcoin Orange | Dark theme, Bitcoin orange accent |
+
+The dark themes render the same OpenStreetMap tiles as the light ones, recoloured on
+the device (lightness inverted, hue rotated back) rather than fetched from a separate
+dark-tile service. CARTO's anonymous dark endpoint was used until 0.5.0, when it began
+serving an "API KEY REQUIRED" watermark instead of tiles without warning — exactly the
+kind of third-party dependency this app avoids elsewhere.
 
 **Auto dark mode** (enabled by default) switches to the matching dark variant at local sunset and back at sunrise, calculated from the device's GPS position using the NOAA solar position algorithm. Toggleable from **Settings → Theme**.
 
@@ -287,7 +352,7 @@ To connect a wallet, paste a `nostr+walletconnect://…` URI from a compatible w
 ## Privacy
 
 - **No accounts, no central servers, no telemetry/analytics SDKs** — the app talks directly to public Nostr relays, OSM tile/Overpass servers, and the chosen routing provider. Nothing is collected or sent to Roadstr itself.
-- **GPS coordinates are read locally but are sent to third-party services as part of normal operation**: the routing provider (origin/destination), Overpass (periodic position pings during navigation, for live speed limits, speed cameras and POI search), and Open-Meteo (for the weather row). None of these requests carry an account or persistent identifier — but if your threat model requires hiding your IP-linked location from those services, use a VPN (the onboarding flow suggests one). Saved favourites and the parking spot never leave the device unless you explicitly export or sync them.
+- **GPS coordinates are read locally but are sent to third-party services as part of normal operation**: the routing provider (origin/destination), Overpass (periodic position pings during navigation, for live speed limits, speed cameras, traffic lights, pedestrian crossings, speed bumps, restricted zones and POI search), and Open-Meteo (for the weather row). None of these requests carry an account or persistent identifier — but if your threat model requires hiding your IP-linked location from those services, use a VPN (the onboarding flow suggests one). Saved favourites and the parking spot never leave the device unless you explicitly export or sync them.
 - **Road events are pseudonymous** — published under the user's Nostr public key with no additional personal metadata, and every event received from a relay is signature-verified before being trusted (relays cannot forge reports under someone else's identity).
 - **Favourites sync is end-to-end encrypted** (NIP-44) to the user's own key — relays storing the synced snapshot see only ciphertext.
 - **Nostr private keys (nsec) never leave Android's encrypted secure storage** — not copyable, not exportable, not logged.
@@ -321,13 +386,13 @@ Enable USB debugging on the phone. Some devices require accepting a "Trust this 
 The app requests location permission on first launch. If denied, go to *Settings → Apps → Roadstr → Permissions → Location*.
 
 **Map tiles don't load**  
-Check your internet connection. Tiles are fetched at runtime from OpenStreetMap (light themes) or CartoDB (dark themes).
+Check your internet connection. Tiles are fetched at runtime from OpenStreetMap; the dark themes recolour those same tiles on the device.
 
 **Amber shows "invalid request"**  
 Ensure your version of Amber supports NIP-55. Roadstr uses the `get_public_key` and `sign_event` methods via `startActivityForResult`.
 
 **Voice guidance not working**  
-Download the Kokoro model from *Settings → Navigation voice → Voice model* (~82 MB). Voice is currently available for Italian, English, Spanish, French, Japanese, Chinese, and Portuguese; other languages keep text instructions on screen.
+Download the voice models from *Settings → Navigation voice → Voice model*. Voice is currently available for Italian, English, Spanish, French, Japanese, Chinese, Portuguese and German; other languages keep text instructions on screen.
 
 ---
 
@@ -359,8 +424,10 @@ appreciated.
 - [Nominatim](https://nominatim.org/) for geocoding
 - [Overpass API](https://overpass-api.de/) and its public mirrors for speed limits, speed cameras and POI queries
 - [Open-Meteo](https://open-meteo.com/) for weather data, free and API-key-free
-- [CartoDB](https://carto.com/) for the dark map tile style
 - [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) for the on-device TTS model
+- [Piper](https://github.com/OHF-Voice/piper1-gpl) and [Thorsten-Voice](https://www.thorsten-voice.de/) for the German on-device voice
+- [MapLibre](https://maplibre.org/) for the vector rendering engine
+- [Photon](https://photon.komoot.io/) for typo-tolerant geocoding
 - [eSpeak NG](https://github.com/espeak-ng/espeak-ng) for phonemisation
 - [Nostr protocol](https://nostr.com/) and all NIP authors
 - [flutter_map](https://pub.dev/packages/flutter_map) for the Flutter map widget
