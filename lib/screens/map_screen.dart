@@ -74,6 +74,7 @@ import '../theme/app_theme.dart';
 import '../theme/theme_provider.dart';
 import '../utils/geo.dart';
 import '../utils/heading_filter.dart';
+import '../utils/off_route_detector.dart';
 import '../utils/settings_listenable.dart';
 import '../utils/units.dart';
 
@@ -1538,6 +1539,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   }
 
   void _prepareRouteProgress(RouteResult route) {
+    // A new polyline means the closest approach measured against the old one
+    // says nothing about this one.
+    _offRoute.reset();
     final cumulative = <double>[0];
     for (var i = 1; i < route.polyline.length; i++) {
       cumulative.add(cumulative.last +
@@ -1699,17 +1703,25 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// 28 % short, so "40 m" really fired at ~56 m of drift northbound and at
   /// ~29 m eastbound. Now that the measurement is correct, 30/55 m keeps the
   /// behaviour drivers were used to instead of rerouting a lane-change early.
+  /// Tracks how the gap to the route is developing, not just how big it is
+  /// right now — see [OffRouteDetector] for the field report that needed it.
+  final _offRoute = OffRouteDetector();
+
   void _checkOffRoute() {
     if (_route == null || !_isNavigating || !_hasRealFix || _isRerouting) {
       return;
     }
     if (_speed < 1) return; // truly stationary (red light etc.) — skip
     final nearest = _nearestActiveRouteSegment(_position);
-    if (nearest == null || nearest.distM < 30) return;
-    if (nearest.distM > 55) {
+    if (nearest == null) return;
+    // Fed every fix, including the close ones: the detector measures the gap
+    // against the closest recent approach, so it needs to see the driver
+    // actually on the route to know what leaving it looks like.
+    if (_offRoute.sawDeviation(nearest.distM)) {
       _rerouteAndNavigate();
       return;
     }
+    if (nearest.distM < OffRouteDetector.noiseFloorM) return;
 
     // Direction check: on bidirectional roads the user may be on the correct
     // polyline but heading the wrong way. Only apply at meaningful speed and
