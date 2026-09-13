@@ -2605,7 +2605,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     // Fed every fix, including the close ones: the detector measures the gap
     // against the closest recent approach, so it needs to see the driver
     // actually on the route to know what leaving it looks like.
-    if (_offRoute.sawDeviation(nearest.distM)) {
+    if (_offRoute.sawDeviation(nearest.distM, accuracyM: data.accuracy)) {
       unawaited(_rerouteAndNavigate(pos, dest));
       return;
     }

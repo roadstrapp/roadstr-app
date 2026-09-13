@@ -10,6 +10,15 @@ int? firstDeviationAt(OffRouteDetector d, List<double> distances) {
   return null;
 }
 
+/// Same as [firstDeviationAt], with every fix carrying [accuracyM].
+int? firstDeviationAt2(OffRouteDetector d, List<double> distances,
+    {required double accuracyM}) {
+  for (var i = 0; i < distances.length; i++) {
+    if (d.sawDeviation(distances[i], accuracyM: accuracyM)) return i;
+  }
+  return null;
+}
+
 void main() {
   group('OffRouteDetector', () {
     test('a fix well past the hard threshold is off route immediately', () {
@@ -84,6 +93,37 @@ void main() {
       // A reroute is now in flight; the very next fix must not immediately
       // demand another one.
       expect(d.sawDeviation(46), isFalse);
+    });
+
+    test('a gap no bigger than the fix\'s own uncertainty proves nothing', () {
+      final d = OffRouteDetector();
+      // City-canyon multipath: 40 m accuracy, so a 40 m gap is as likely to
+      // be the fix being wrong as the driver being elsewhere.
+      expect(
+        firstDeviationAt2(d, [8, 22, 34, 45, 46, 45, 44], accuracyM: 40),
+        isNull,
+      );
+    });
+
+    test('an uncertain fix does not wipe out a trend built from good ones',
+        () {
+      final d = OffRouteDetector();
+      // Three good fixes establish the deviation, one bad fix lands in the
+      // middle, and the run must still complete rather than start over.
+      expect(d.sawDeviation(8, accuracyM: 8), isFalse);
+      expect(d.sawDeviation(34, accuracyM: 8), isFalse);
+      expect(d.sawDeviation(45, accuracyM: 8), isFalse);
+      expect(d.sawDeviation(46, accuracyM: 40), isFalse); // ignored
+      expect(d.sawDeviation(46, accuracyM: 8), isFalse);
+      expect(d.sawDeviation(45, accuracyM: 8), isTrue);
+    });
+
+    test('a good fix at ordinary accuracy is unaffected by the gate', () {
+      final d = OffRouteDetector();
+      expect(
+        firstDeviationAt2(d, [8, 22, 34, 45, 46, 45], accuracyM: 10),
+        isNotNull,
+      );
     });
 
     test('a non-finite distance is ignored rather than trusted', () {
