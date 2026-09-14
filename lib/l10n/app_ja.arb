@@ -193,6 +193,7 @@
   "publish": "公開",
   "publishing": "公開中…",
   "reportPublished": "レポートが公開されました ✓",
+  "reportQueuedOffline": "保存しました — オンラインに戻り次第公開されます ⏳",
   "@_PROFILE_ZAP": {},
   "myReports": "マイレポート",
   "noReportsYet": "公開されたレポートはありません",

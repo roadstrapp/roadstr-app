@@ -1570,43 +1570,61 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         onSubmit: (category, comment, speedLimit) async {
           final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
           final expires = now + category.ttlSeconds;
-          if (flavor == 'amber') {
-            final unsigned = NostrRelayService.buildKind1315Map(
-              position: pos,
-              category: category,
-              comment: comment,
-              pubKeyHex: pubKey,
-              now: now,
-              expires: expires,
-              speedLimit: speedLimit,
-            );
-            final result = await Amberflutter().signEvent(
-              currentUser: Nip19().npubEncode(pubKey),
-              eventJson: jsonEncode(unsigned),
-            );
-            final signed =
-                jsonDecode(result['event'] as String) as Map<String, dynamic>;
-            final event = await _nostr.publishRawRoadEvent(
-              eventJson: signed,
-              category: category,
-              position: pos,
-              comment: comment,
-              now: now,
-              expires: expires,
-              expectedPubKeyHex: pubKey,
-            );
-            if (mounted) setState(() => _roadEvents = [..._roadEvents, event]);
-          } else {
-            final event = await _nostr.publishRoadEvent(
-              position: pos,
-              category: category,
-              comment: comment,
-              privKeyHex: privKey!,
-              pubKeyHex: pubKey,
-              speedLimit: speedLimit,
-            );
-            if (mounted) setState(() => _roadEvents = [..._roadEvents, event]);
+          // Signing needs no network either way (on-device crypto, or a
+          // local IPC call to Amber) and always succeeds offline; only the
+          // publish that follows can fail for that reason, in which case
+          // NostrRelayService has already queued the signed event and this
+          // reports "queued" rather than "published" — never "failed",
+          // never silently dropped. See RoadReportQueuedException.
+          try {
+            if (flavor == 'amber') {
+              final unsigned = NostrRelayService.buildKind1315Map(
+                position: pos,
+                category: category,
+                comment: comment,
+                pubKeyHex: pubKey,
+                now: now,
+                expires: expires,
+                speedLimit: speedLimit,
+              );
+              final result = await Amberflutter().signEvent(
+                currentUser: Nip19().npubEncode(pubKey),
+                eventJson: jsonEncode(unsigned),
+              );
+              final signed = jsonDecode(result['event'] as String)
+                  as Map<String, dynamic>;
+              final event = await _nostr.publishRawRoadEvent(
+                eventJson: signed,
+                category: category,
+                position: pos,
+                comment: comment,
+                now: now,
+                expires: expires,
+                expectedPubKeyHex: pubKey,
+              );
+              if (mounted) {
+                setState(() => _roadEvents = [..._roadEvents, event]);
+              }
+            } else {
+              final event = await _nostr.publishRoadEvent(
+                position: pos,
+                category: category,
+                comment: comment,
+                privKeyHex: privKey!,
+                pubKeyHex: pubKey,
+                speedLimit: speedLimit,
+              );
+              if (mounted) {
+                setState(() => _roadEvents = [..._roadEvents, event]);
+              }
+            }
+          } on RoadReportQueuedException catch (e) {
+            if (mounted) {
+              setState(() => _roadEvents = [..._roadEvents, e.event]);
+            }
+            return false;
           }
+          return true;
         },
       ),
     );

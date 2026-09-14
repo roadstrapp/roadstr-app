@@ -250,6 +250,7 @@
   "publish": "Publish",
   "publishing": "Publishing…",
   "reportPublished": "Report published ✓",
+  "reportQueuedOffline": "Saved — will publish once you're back online ⏳",
   "@_PROFILE_ZAP": {},
   "myReports": "MY REPORTS",
   "noReportsYet": "No reports published",

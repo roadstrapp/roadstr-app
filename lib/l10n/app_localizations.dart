@@ -1288,6 +1288,12 @@ abstract class AppLocalizations {
   /// **'Report published ✓'**
   String get reportPublished;
 
+  /// No description provided for @reportQueuedOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved — will publish once you\'re back online ⏳'**
+  String get reportQueuedOffline;
+
   /// No description provided for @myReports.
   ///
   /// In en, this message translates to:

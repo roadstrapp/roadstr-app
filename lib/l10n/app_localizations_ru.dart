@@ -621,6 +621,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get reportPublished => 'Отчёт опубликован ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Сохранено — будет опубликовано, как только появится связь ⏳';
+
+  @override
   String get myReports => 'МОИ ОТЧЁТЫ';
 
   @override

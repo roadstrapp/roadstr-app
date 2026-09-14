@@ -4660,45 +4660,59 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
           final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
           final expires = now + category.ttlSeconds;
           RoadEvent event;
-          if (flavor == 'amber') {
-            // Sign via Amber (NIP-55) — private key never leaves the signer app.
-            final unsigned = NostrRelayService.buildKind1315Map(
-              position: pos,
-              category: category,
-              comment: comment,
-              pubKeyHex: pubKey,
-              now: now,
-              expires: expires,
-              speedLimit: speedLimit,
-            );
-            final result = await Amberflutter().signEvent(
-              currentUser: Nip19().npubEncode(pubKey),
-              eventJson: jsonEncode(unsigned),
-            );
-            final signed =
-                jsonDecode(result['event'] as String) as Map<String, dynamic>;
-            event = await _nostr.publishRawRoadEvent(
-              eventJson: signed,
-              category: category,
-              position: pos,
-              comment: comment,
-              now: now,
-              expires: expires,
-              expectedPubKeyHex: pubKey,
-            );
-          } else {
-            // Sign locally with the stored nsec private key.
-            event = await _nostr.publishRoadEvent(
-              position: pos,
-              category: category,
-              comment: comment,
-              privKeyHex: privKey!,
-              pubKeyHex: pubKey,
-              speedLimit: speedLimit,
-            );
+          var published = true;
+          // Signing needs no network either way (on-device crypto, or a
+          // local IPC call to Amber) and always succeeds offline; only the
+          // publish that follows can fail for that reason, in which case
+          // NostrRelayService has already queued the signed event and
+          // [published] below reports "queued" rather than "published" —
+          // never "failed", never silently dropped. See
+          // RoadReportQueuedException.
+          try {
+            if (flavor == 'amber') {
+              // Sign via Amber (NIP-55) — private key never leaves the signer app.
+              final unsigned = NostrRelayService.buildKind1315Map(
+                position: pos,
+                category: category,
+                comment: comment,
+                pubKeyHex: pubKey,
+                now: now,
+                expires: expires,
+                speedLimit: speedLimit,
+              );
+              final result = await Amberflutter().signEvent(
+                currentUser: Nip19().npubEncode(pubKey),
+                eventJson: jsonEncode(unsigned),
+              );
+              final signed = jsonDecode(result['event'] as String)
+                  as Map<String, dynamic>;
+              event = await _nostr.publishRawRoadEvent(
+                eventJson: signed,
+                category: category,
+                position: pos,
+                comment: comment,
+                now: now,
+                expires: expires,
+                expectedPubKeyHex: pubKey,
+              );
+            } else {
+              // Sign locally with the stored nsec private key.
+              event = await _nostr.publishRoadEvent(
+                position: pos,
+                category: category,
+                comment: comment,
+                privKeyHex: privKey!,
+                pubKeyHex: pubKey,
+                speedLimit: speedLimit,
+              );
+            }
+          } on RoadReportQueuedException catch (e) {
+            event = e.event;
+            published = false;
           }
           _myPubkey = pubKey; // keep own-report suppression current
           if (mounted) setState(() => _roadEvents = [..._roadEvents, event]);
+          return published;
         },
       ),
     );

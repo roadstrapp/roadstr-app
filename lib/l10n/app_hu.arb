@@ -193,6 +193,7 @@
   "publish": "Közzététel",
   "publishing": "Közzététel…",
   "reportPublished": "Jelentés közzétéve ✓",
+  "reportQueuedOffline": "Mentve — közzétesszük, amint újra online leszel ⏳",
   "@_PROFILE_ZAP": {},
   "myReports": "SAJÁT JELENTÉSEIM",
   "noReportsYet": "Nem tett közzé jelentéseket",

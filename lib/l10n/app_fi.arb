@@ -193,6 +193,7 @@
   "publish": "Julkaise",
   "publishing": "Julkaistaan…",
   "reportPublished": "Raportti julkaistu ✓",
+  "reportQueuedOffline": "Tallennettu — julkaistaan heti, kun olet taas verkossa ⏳",
   "@_PROFILE_ZAP": {},
   "myReports": "OMAT RAPORTTINI",
   "noReportsYet": "Ei julkaistuja raportteja",

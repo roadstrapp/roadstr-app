@@ -625,6 +625,10 @@ class AppLocalizationsBg extends AppLocalizations {
   String get reportPublished => 'Докладът е публикуван ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Запазено — ще бъде публикувано, щом връзката се възстанови ⏳';
+
+  @override
   String get myReports => 'МОИТЕ ДОКЛАДИ';
 
   @override

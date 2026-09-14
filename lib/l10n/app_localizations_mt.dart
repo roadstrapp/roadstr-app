@@ -625,6 +625,10 @@ class AppLocalizationsMt extends AppLocalizations {
   String get reportPublished => 'Rapport ippubblikat ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Issejvjat — jiġi ppubblikat hekk kif terġa\' tkun online ⏳';
+
+  @override
   String get myReports => 'IR-RAPPORTI TIEGĦI';
 
   @override

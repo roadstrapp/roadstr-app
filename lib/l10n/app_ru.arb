@@ -193,6 +193,7 @@
   "publish": "Опубликовать",
   "publishing": "Публикация…",
   "reportPublished": "Отчёт опубликован ✓",
+  "reportQueuedOffline": "Сохранено — будет опубликовано, как только появится связь ⏳",
   "@_PROFILE_ZAP": {},
   "myReports": "МОИ ОТЧЁТЫ",
   "noReportsYet": "Нет опубликованных отчётов",

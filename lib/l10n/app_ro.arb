@@ -193,6 +193,7 @@
   "publish": "Publicare",
   "publishing": "Se publică…",
   "reportPublished": "Raport publicat ✓",
+  "reportQueuedOffline": "Salvat — va fi publicat imediat ce revii online ⏳",
   "@_PROFILE_ZAP": {},
   "myReports": "RAPOARTELE MELE",
   "noReportsYet": "Niciun raport publicat",

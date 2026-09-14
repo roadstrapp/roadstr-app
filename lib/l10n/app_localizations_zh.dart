@@ -601,6 +601,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get reportPublished => '报告已发布 ✓';
 
   @override
+  String get reportQueuedOffline => '已保存——恢复联网后将自动发布 ⏳';
+
+  @override
   String get myReports => '我的报告';
 
   @override

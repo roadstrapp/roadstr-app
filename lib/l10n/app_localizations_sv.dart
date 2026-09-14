@@ -620,6 +620,10 @@ class AppLocalizationsSv extends AppLocalizations {
   String get reportPublished => 'Rapport publicerad ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Sparad — publiceras så snart du är online igen ⏳';
+
+  @override
   String get myReports => 'MINA RAPPORTER';
 
   @override

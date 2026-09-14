@@ -193,6 +193,7 @@
   "publish": "Publicer",
   "publishing": "Publicerer…",
   "reportPublished": "Rapport publiceret ✓",
+  "reportQueuedOffline": "Gemt — publiceres, så snart du er online igen ⏳",
   "@_PROFILE_ZAP": {},
   "myReports": "MINE RAPPORTER",
   "noReportsYet": "Ingen rapporter publiceret",

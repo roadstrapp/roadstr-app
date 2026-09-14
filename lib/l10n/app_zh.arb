@@ -193,6 +193,7 @@
   "publish": "发布",
   "publishing": "发布中…",
   "reportPublished": "报告已发布 ✓",
+  "reportQueuedOffline": "已保存——恢复联网后将自动发布 ⏳",
   "@_PROFILE_ZAP": {},
   "myReports": "我的报告",
   "noReportsYet": "尚未发布报告",

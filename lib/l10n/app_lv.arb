@@ -193,6 +193,7 @@
   "publish": "Publicēt",
   "publishing": "Publicē…",
   "reportPublished": "Ziņojums publicēts ✓",
+  "reportQueuedOffline": "Saglabāts — tiks publicēts, tiklīdz atkal būsiet tiešsaistē ⏳",
   "@_PROFILE_ZAP": {},
   "myReports": "MANI ZIŅOJUMI",
   "noReportsYet": "Nav publicētu ziņojumu",

@@ -193,6 +193,7 @@
   "publish": "Skelbti",
   "publishing": "Skelbiama…",
   "reportPublished": "Ataskaita paskelbta ✓",
+  "reportQueuedOffline": "Išsaugota — bus paskelbta, kai tik vėl prisijungsite prie interneto ⏳",
   "@_PROFILE_ZAP": {},
   "myReports": "MANO ATASKAITOS",
   "noReportsYet": "Nėra paskelbtų ataskaitų",

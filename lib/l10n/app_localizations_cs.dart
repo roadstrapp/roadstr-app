@@ -619,6 +619,10 @@ class AppLocalizationsCs extends AppLocalizations {
   String get reportPublished => 'Zpráva zveřejněna ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Uloženo — bude zveřejněno, jakmile budete opět online ⏳';
+
+  @override
   String get myReports => 'MOJE ZPRÁVY';
 
   @override

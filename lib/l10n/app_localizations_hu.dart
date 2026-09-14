@@ -621,6 +621,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get reportPublished => 'Jelentés közzétéve ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Mentve — közzétesszük, amint újra online leszel ⏳';
+
+  @override
   String get myReports => 'SAJÁT JELENTÉSEIM';
 
   @override

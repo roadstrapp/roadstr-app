@@ -620,6 +620,10 @@ class AppLocalizationsSk extends AppLocalizations {
   String get reportPublished => 'Správa zverejnená ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Uložené — bude zverejnené, hneď ako budete opäť online ⏳';
+
+  @override
   String get myReports => 'MOJE SPRÁVY';
 
   @override

@@ -217,6 +217,7 @@
   "publish": "Pubblica",
   "publishing": "Pubblicazione…",
   "reportPublished": "Segnalazione pubblicata ✓",
+  "reportQueuedOffline": "Salvata — sarà pubblicata al ritorno della connessione ⏳",
   "myReports": "LE MIE SEGNALAZIONI",
   "noReportsYet": "Nessuna segnalazione pubblicata",
   "zapBalance": "Balance Zap",

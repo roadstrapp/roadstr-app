@@ -623,6 +623,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get reportPublished => 'Segnalazione pubblicata ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Salvata — sarà pubblicata al ritorno della connessione ⏳';
+
+  @override
   String get myReports => 'LE MIE SEGNALAZIONI';
 
   @override

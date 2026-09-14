@@ -193,6 +193,7 @@
   "publish": "Publiceren",
   "publishing": "Publiceren…",
   "reportPublished": "Rapport gepubliceerd ✓",
+  "reportQueuedOffline": "Opgeslagen — wordt gepubliceerd zodra je weer online bent ⏳",
   "@_PROFILE_ZAP": {},
   "myReports": "MIJN RAPPORTEN",
   "noReportsYet": "Geen rapporten gepubliceerd",

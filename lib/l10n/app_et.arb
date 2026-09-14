@@ -193,6 +193,7 @@
   "publish": "Avalda",
   "publishing": "Avaldamine…",
   "reportPublished": "Aruanne avaldatud ✓",
+  "reportQueuedOffline": "Salvestatud — avaldatakse niipea, kui oled taas võrgus ⏳",
   "@_PROFILE_ZAP": {},
   "myReports": "MINU ARUANDED",
   "noReportsYet": "Avaldatud aruandeid pole",

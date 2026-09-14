@@ -606,6 +606,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get reportPublished => 'レポートが公開されました ✓';
 
   @override
+  String get reportQueuedOffline => '保存しました — オンラインに戻り次第公開されます ⏳';
+
+  @override
   String get myReports => 'マイレポート';
 
   @override

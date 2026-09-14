@@ -620,6 +620,10 @@ class AppLocalizationsFi extends AppLocalizations {
   String get reportPublished => 'Raportti julkaistu ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Tallennettu — julkaistaan heti, kun olet taas verkossa ⏳';
+
+  @override
   String get myReports => 'OMAT RAPORTTINI';
 
   @override

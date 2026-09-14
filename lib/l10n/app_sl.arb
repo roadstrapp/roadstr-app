@@ -193,6 +193,7 @@
   "publish": "Objavi",
   "publishing": "Objavljanje…",
   "reportPublished": "Poročilo objavljeno ✓",
+  "reportQueuedOffline": "Shranjeno — objavljeno bo takoj, ko boste spet povezani ⏳",
   "@_PROFILE_ZAP": {},
   "myReports": "MOJA POROČILA",
   "noReportsYet": "Ni objavljenih poročil",

@@ -618,6 +618,10 @@ class AppLocalizationsLv extends AppLocalizations {
   String get reportPublished => 'Ziņojums publicēts ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Saglabāts — tiks publicēts, tiklīdz atkal būsiet tiešsaistē ⏳';
+
+  @override
   String get myReports => 'MANI ZIŅOJUMI';
 
   @override

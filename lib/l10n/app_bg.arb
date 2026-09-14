@@ -193,6 +193,7 @@
   "publish": "Публикуване",
   "publishing": "Публикуване…",
   "reportPublished": "Докладът е публикуван ✓",
+  "reportQueuedOffline": "Запазено — ще бъде публикувано, щом връзката се възстанови ⏳",
   "@_PROFILE_ZAP": {},
   "myReports": "МОИТЕ ДОКЛАДИ",
   "noReportsYet": "Няма публикувани доклади",
