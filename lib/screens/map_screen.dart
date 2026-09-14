@@ -329,6 +329,13 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   bool get _showCrosswalks =>
       Hive.box('settings').get('showCrosswalks', defaultValue: true) as bool;
 
+  /// Read fresh for the same reason as [_showTrafficLights] — a route
+  /// already being driven does not react to a setting flipped mid-journey,
+  /// but the next one calculated does, without needing a change listener.
+  bool get _avoidUnpavedRoads =>
+      Hive.box('settings').get('avoidUnpavedRoads', defaultValue: false)
+          as bool;
+
   /// OSM-sourced camera ids already alerted this session — separate from
   /// [_alertedCameraIds] (Nostr event ids, String) since OSM node ids are int
   /// and the two sources must never collide or double-suppress each other.
@@ -2108,6 +2115,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
             lang: lang,
           ).timeout(const Duration(seconds: 30)),
         ];
+      } else if (_avoidUnpavedRoads && _transportMode == 'driving') {
+        routes = await _rerouteWithOffRoadAvoidance(
+            provider: provider, apiKey: apiKey, ghServer: ghServer, lang: lang);
       } else {
         routes = await _rerouteRoutes(
             provider: provider, apiKey: apiKey, ghServer: ghServer, lang: lang);
@@ -2199,6 +2209,32 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       return request();
     }
     return constrained;
+  }
+
+  /// Off-road-avoidance reroute, falling back to the plain OSRM reroute
+  /// ([_rerouteRoutes]) on any failure. Unlike the highway/toll branch this
+  /// mirrors in [_rerouteAndNavigate], failure here must not abort the
+  /// reroute outright: a driver who just deviated needs a route right now,
+  /// and Valhalla being briefly unreachable is not a reason to leave them on
+  /// none at all. The setting is a preference, not a requirement.
+  Future<List<RouteResult>> _rerouteWithOffRoadAvoidance({
+    required RoutingProvider provider,
+    required String? apiKey,
+    required String? ghServer,
+    required String lang,
+  }) async {
+    try {
+      return [
+        await RoutingService.getOffRoadAvoidanceRoute(
+          _position,
+          _destination!,
+          lang: lang,
+        ).timeout(const Duration(seconds: 30)),
+      ];
+    } catch (_) {
+      return _rerouteRoutes(
+          provider: provider, apiKey: apiKey, ghServer: ghServer, lang: lang);
+    }
   }
 
   /// Adds real OSM arm counts without ever letting an overloaded volunteer
@@ -2647,12 +2683,22 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       return;
     }
 
+    var selected = 0;
+    // Skipped with stops: Valhalla's avoidance endpoint only takes an origin
+    // and a destination, so folding it in here would offer — and
+    // auto-select — a route that silently skips every stop the driver added.
+    if (_avoidUnpavedRoads && vehicle == 'driving' && _activeVia.isEmpty) {
+      (routes, selected) =
+          await _withOffRoadAvoidance(origin, destination, routes);
+      if (!mounted || requestGeneration != _routeRequestGeneration) return;
+    }
+
     // Always use the route-choice panel. Even a single/short standard route
     // needs access to transport modes and to the additional avoidance option.
     setState(() {
       _isCalculating = false;
       _alternatives = routes;
-      _selectedAlt = 0;
+      _selectedAlt = selected;
       _showAlternatives = true;
       _showPreview = false;
       _previewRoute = null;
@@ -2868,10 +2914,19 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       setState(() => _isCalculating = false);
       return;
     }
+    var selected = 0;
+    // Skipped with stops: Valhalla's avoidance endpoint only takes an origin
+    // and a destination, so folding it in here would offer — and
+    // auto-select — a route that silently skips every stop the driver added.
+    if (_avoidUnpavedRoads && vehicle == 'driving' && _activeVia.isEmpty) {
+      (routes, selected) =
+          await _withOffRoadAvoidance(origin, destination, routes);
+      if (!mounted || requestGeneration != _routeRequestGeneration) return;
+    }
     setState(() {
       _isCalculating = false;
       _alternatives = routes;
-      _selectedAlt = 0;
+      _selectedAlt = selected;
       _showAlternatives = true;
       _showPreview = false;
       _previewRoute = null;
@@ -2971,13 +3026,47 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
 
   /// The alternatives as they were before the avoidance switch touched them:
   /// routes fetched from the avoidance router are dropped, and routes that were
-  /// merely badged as compliant lose the badge.
+  /// merely badged as compliant lose the badge. Off-road avoidance is a
+  /// separate, independent axis (see [_withOffRoadAvoidance]) and must
+  /// survive this: it is on or off from Settings, never from the highway/toll
+  /// pill this feeds.
   List<RouteResult> _plainAlternatives() => _alternatives
-      .where((route) => !route.fromAvoidanceRouter)
+      .where((route) => !route.fromAvoidanceRouter || route.isOffRoadAvoidance)
       .map((route) => route.isHighwayAndTollAvoidance
           ? route.withAvoidance(RouteAvoidance.none)
           : route)
       .toList();
+
+  /// Folds in the off-road-avoidance route when the Settings toggle is on —
+  /// same slot-in-or-append logic as [_toggleAvoidanceRoute]: reuse an
+  /// alternative that already avoids tracks rather than showing a duplicate,
+  /// append a new one otherwise, and select whichever index avoids them. This
+  /// is what turns "avoid unpaved roads" from something the driver must
+  /// remember to tap on every trip into an always-applied preference — same
+  /// MapLibreMapScreen._withOffRoadAvoidance.
+  ///
+  /// Never the reason a route fails to appear: any failure here (Valhalla
+  /// unreachable, no better route exists) returns [routes] unchanged with
+  /// [preferredIndex] still selected.
+  Future<(List<RouteResult>, int)> _withOffRoadAvoidance(
+      LatLng origin, LatLng dest, List<RouteResult> routes,
+      {int preferredIndex = 0}) async {
+    try {
+      var route = await RoutingService.getOffRoadAvoidanceRoute(origin, dest,
+          lang: Localizations.localeOf(context).languageCode);
+      route = (await _withRoundaboutTopology([route])).single;
+      final twin =
+          routes.indexWhere((r) => RoutingService.followSameRoads(r, route));
+      if (twin >= 0) {
+        final merged = [...routes];
+        merged[twin] = merged[twin].withAvoidance(route.avoidance);
+        return (merged, twin);
+      }
+      return ([...routes, route], routes.length);
+    } catch (_) {
+      return (routes, preferredIndex);
+    }
+  }
 
   /// Adds/removes a separately calculated avoidance route. The service tries
   /// hard exclusions first and falls back to a verified soft preference.

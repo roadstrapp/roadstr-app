@@ -266,29 +266,40 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final accepted = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Text(l.disclaimerTitle),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l.disclaimerBody,
-                    style: const TextStyle(fontSize: 12.5, height: 1.45)),
-                const SizedBox(height: 14),
-                Text(l.profileVisibilityOnboarding,
-                    style: const TextStyle(fontSize: 12.5, height: 1.45)),
-              ],
+      // barrierDismissible only stops a tap outside the dialog; the Android
+      // back button/gesture pops the route regardless unless told not to.
+      // A back-dismiss already couldn't unlock the app on its own — only the
+      // Accept button below ever returns true, and onComplete only runs on
+      // true — but leaving it poppable meant the terms could be waved away
+      // without ever being read, which is not the same as declining them.
+      // The driver is asked once to explicitly accept or to quit the app;
+      // there is no third way out of this screen.
+      builder: (ctx) => PopScope(
+        canPop: false,
+        child: AlertDialog(
+          title: Text(l.disclaimerTitle),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l.disclaimerBody,
+                      style: const TextStyle(fontSize: 12.5, height: 1.45)),
+                  const SizedBox(height: 14),
+                  Text(l.profileVisibilityOnboarding,
+                      style: const TextStyle(fontSize: 12.5, height: 1.45)),
+                ],
+              ),
             ),
           ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l.disclaimerAccept),
+            ),
+          ],
         ),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(l.disclaimerAccept),
-          ),
-        ],
       ),
     );
     if (accepted == true && mounted) widget.onComplete();
