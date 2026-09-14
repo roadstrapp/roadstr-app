@@ -41,6 +41,7 @@ class NavInstruction extends StatelessWidget {
     this.distToNextM = 0,
     this.voiceMuted = false,
     this.onToggleVoice,
+    this.onOpenSettings,
   });
 
   /// Voice guidance state and toggle.
@@ -52,6 +53,17 @@ class NavInstruction extends StatelessWidget {
   /// the first time any of those changed.
   final bool voiceMuted;
   final VoidCallback? onToggleVoice;
+
+  /// Opens Settings without leaving navigation. Before this there was no way
+  /// to reach it at all once a route started — the bottom bar it normally
+  /// lives on is hidden during navigation on purpose, and nothing replaced
+  /// it — so muting a persistent car-Bluetooth pairing, dimming the screen
+  /// for a night drive, or the new "avoid unpaved roads" preference meant
+  /// stopping the trip first. The full screen, not a stripped-down copy: the
+  /// disclaimer already tells the driver never to interact with the device
+  /// while the vehicle is moving, mounted and glanceable is the assumption
+  /// throughout, not something a smaller panel here would relax.
+  final VoidCallback? onOpenSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -201,6 +213,16 @@ class NavInstruction extends StatelessWidget {
                 ]),
               ),
             const Spacer(),
+            if (onOpenSettings != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: MapFab(
+                  onTap: onOpenSettings!,
+                  colors: colors,
+                  child: Icon(Icons.settings_outlined,
+                      color: colors.mapTextPrimary, size: 22),
+                ),
+              ),
             if (onToggleVoice != null)
               Padding(
                 padding: const EdgeInsets.only(right: 12),

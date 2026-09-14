@@ -66,6 +66,7 @@ import '../widgets/speedometer_widget.dart';
 import '../widgets/route/route_panels.dart';
 import '../widgets/search/search_panel.dart';
 import 'notifications_screen.dart';
+import 'settings_screen.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -5432,7 +5433,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                     setState(() => _voiceMuted = !_voiceMuted);
                     Hive.box('settings').put('voiceEnabled', !_voiceMuted);
                     if (_voiceMuted) _tts.stop();
-                  }),
+                  },
+                  onOpenSettings: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const SettingsScreen()))),
             ),
 
           // ── SEARCH BAR ────────────────────────────────────────────────────
