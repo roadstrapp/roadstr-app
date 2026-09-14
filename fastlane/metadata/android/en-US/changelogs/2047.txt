@@ -1,0 +1,45 @@
+An "avoid unpaved roads" option, offline road reports, and fixes for
+navigation, Bluetooth audio and GPS recovery.
+
+Added
+
+• "Avoid unpaved roads" — a new Settings preference that steers driving
+  routes away from OSM-tagged tracks and dirt roads whenever a paved
+  alternative exists. Applied automatically to every route and reroute
+  once turned on, not something to remember to ask for each trip.
+  Always a best-effort steer, never a guarantee — map data on road
+  surfaces is incomplete, so a road's real condition still needs
+  judging on sight.
+• Road reports created with no signal are now saved and published
+  automatically the moment a relay connection succeeds, instead of
+  being lost — useful on roads where signal is scarce.
+• Settings can now be opened during active navigation, from a new icon
+  next to the mute button, without stopping the trip.
+
+Changed
+
+• Off-route recalculation no longer demands a U-turn. Deviating on
+  purpose in a grid of perpendicular streets used to leave the app
+  pinning the old route behind the car instead of recalculating; it now
+  finds the short way back to the original route instead.
+• "Recalculate" after a traffic-jam alert now genuinely routes around
+  the reported jam rather than handing back the same road.
+• The first-launch disclaimer now says plainly that turn-by-turn
+  routing is OpenStreetMap data interpreted by third-party engines,
+  not vetted by Roadstr — and can no longer be swiped away with the
+  back button/gesture, only by accepting it.
+
+Fixed
+
+• Bluetooth music/podcasts could stay paused after Roadstr finished
+  speaking instead of resuming, caused by the audio player managing
+  the phone's audio session on its own and a stale internal flag that
+  skipped handing focus back.
+• A GPS stream could silently stop delivering fixes after an Android
+  location-provider fault, leaving "recenter" stuck on "Acquiring
+  GPS…" indefinitely. It is now detected and restarted automatically.
+• A single very inaccurate GPS fix (e.g. deep among tall buildings)
+  could trigger a needless reroute; a shaky fix is now ignored unless
+  several fixes in a row actually confirm the driver left the route.
+• A malformed or empty response from a routing server could crash
+  navigation outright — closed the same gap already guarded elsewhere.
