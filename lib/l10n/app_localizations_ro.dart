@@ -620,6 +620,10 @@ class AppLocalizationsRo extends AppLocalizations {
   String get reportPublished => 'Raport publicat ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Salvat — va fi publicat imediat ce revii online ⏳';
+
+  @override
   String get myReports => 'RAPOARTELE MELE';
 
   @override

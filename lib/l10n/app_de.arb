@@ -193,6 +193,7 @@
   "publish": "Veröffentlichen",
   "publishing": "Wird veröffentlicht…",
   "reportPublished": "Bericht veröffentlicht ✓",
+  "reportQueuedOffline": "Gespeichert — wird veröffentlicht, sobald du wieder online bist ⏳",
   "@_PROFILE_ZAP": {},
   "myReports": "MEINE BERICHTE",
   "noReportsYet": "Keine Berichte veröffentlicht",

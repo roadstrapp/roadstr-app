@@ -621,6 +621,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get reportPublished => 'Relatório publicado ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Guardado — será publicado assim que voltar a ficar online ⏳';
+
+  @override
   String get myReports => 'MEUS RELATÓRIOS';
 
   @override

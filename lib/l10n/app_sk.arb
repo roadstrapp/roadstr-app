@@ -193,6 +193,7 @@
   "publish": "Zverejniť",
   "publishing": "Zverejňujem…",
   "reportPublished": "Správa zverejnená ✓",
+  "reportQueuedOffline": "Uložené — bude zverejnené, hneď ako budete opäť online ⏳",
   "@_PROFILE_ZAP": {},
   "myReports": "MOJE SPRÁVY",
   "noReportsYet": "Žiadne správy neboli zverejnené",

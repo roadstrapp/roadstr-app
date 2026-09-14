@@ -619,6 +619,10 @@ class AppLocalizationsDa extends AppLocalizations {
   String get reportPublished => 'Rapport publiceret ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Gemt — publiceres, så snart du er online igen ⏳';
+
+  @override
   String get myReports => 'MINE RAPPORTER';
 
   @override

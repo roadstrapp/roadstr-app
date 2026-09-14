@@ -622,6 +622,10 @@ class AppLocalizationsLt extends AppLocalizations {
   String get reportPublished => 'Ataskaita paskelbta ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Išsaugota — bus paskelbta, kai tik vėl prisijungsite prie interneto ⏳';
+
+  @override
   String get myReports => 'MANO ATASKAITOS';
 
   @override

@@ -621,6 +621,10 @@ class AppLocalizationsHr extends AppLocalizations {
   String get reportPublished => 'Izvješće objavljeno ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Spremljeno — bit će objavljeno čim se ponovno spojite na internet ⏳';
+
+  @override
   String get myReports => 'MOJA IZVJEŠĆA';
 
   @override

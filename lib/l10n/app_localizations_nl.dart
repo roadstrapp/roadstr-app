@@ -620,6 +620,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get reportPublished => 'Rapport gepubliceerd ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Opgeslagen — wordt gepubliceerd zodra je weer online bent ⏳';
+
+  @override
   String get myReports => 'MIJN RAPPORTEN';
 
   @override
