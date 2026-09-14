@@ -1166,6 +1166,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // ── MAP ─────────────────────────────────────────────────────────
           _SectionHeader(l.sectionMap, c),
+          // First in the section, not after the routing-provider box further
+          // down: this is the one setting from a driver who nearly crashed
+          // on OSM-routed dirt tracks, and it deserves to be seen without
+          // scrolling past unrelated config to find it.
+          _SwitchTile(
+            title: l.avoidUnpavedRoads,
+            subtitle: l.avoidUnpavedRoadsDescription,
+            value: _getBool('avoidUnpavedRoads', false),
+            onChanged: (v) => _setBool('avoidUnpavedRoads', v),
+            colors: c,
+          ),
           _SwitchTile(
             title: 'Motore mappa: MapLibre',
             subtitle: 'Tilt e rotazione della camera, styling nativo, '
@@ -1440,13 +1451,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
             ]),
-          ),
-          _SwitchTile(
-            title: l.avoidUnpavedRoads,
-            subtitle: l.avoidUnpavedRoadsDescription,
-            value: _getBool('avoidUnpavedRoads', false),
-            onChanged: (v) => _setBool('avoidUnpavedRoads', v),
-            colors: c,
           ),
 
           const SizedBox(height: 24),
