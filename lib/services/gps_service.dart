@@ -49,6 +49,11 @@ class GpsService {
   GpsData? _lastData;
   GpsData? get lastData => _lastData;
 
+  /// When the platform stream last actually delivered something, including
+  /// the moment [start] first subscribed — see [_watchdog].
+  DateTime? _lastEventAt;
+  Timer? _watchdog;
+
   /// Android-specific location settings used by `geolocator`.
   ///
   /// - `distanceFilter: 0` — emit every sample; the app does its own filtering.
@@ -117,10 +122,68 @@ class GpsService {
     // before it: the download and the satellite search run concurrently, and
     // awaiting it would delay the very fix it is meant to speed up.
     unawaited(primeAssistanceData());
+    _lastEventAt = DateTime.now();
     _subscription = Geolocator.getPositionStream(
       locationSettings: _locationSettings,
-    ).listen(_onPosition, onError: _onError);
+    ).listen(_onStreamPosition, onError: _onError, onDone: _onStreamEnded);
+    // See [_checkWatchdog]: some Android failures close the platform stream
+    // without either an error or ever emitting again, and [_subscription]
+    // being non-null is not proof anything is still listening — it is just
+    // Dart's handle to a stream that may already be dead. This is the one
+    // thing left checking that fixes are still actually arriving.
+    _watchdog?.cancel();
+    _watchdog =
+        Timer.periodic(_watchdogInterval, (_) => unawaited(_checkWatchdog()));
     return true;
+  }
+
+  /// How often [_checkWatchdog] looks for a stream that has gone silent.
+  static const _watchdogInterval = Duration(seconds: 20);
+
+  /// How long the stream may go without delivering anything before it is
+  /// treated as dead and restarted, rather than merely between fixes.
+  ///
+  /// Comfortably above the 500 ms sample interval and above any ordinary gap
+  /// — a tunnel, an urban canyon, ordinary GNSS jitter — so ordinary driving
+  /// never restarts a stream that is simply between fixes; only one that has
+  /// genuinely stopped delivering anything does. Restarting when the cause
+  /// really was a brief signal gap costs nothing: the new subscription just
+  /// keeps waiting for the same fix the old one would have.
+  static const _watchdogStaleAfter = Duration(seconds: 45);
+
+  Future<void> _checkWatchdog() async {
+    if (_disposed || _subscription == null) return;
+    final lastEvent = _lastEventAt;
+    if (lastEvent == null ||
+        DateTime.now().difference(lastEvent) < _watchdogStaleAfter) {
+      return;
+    }
+    // The service being off is a real "no fix to have" state, not a dead
+    // stream — restarting into it would just recreate the same silence.
+    if (!await Geolocator.isLocationServiceEnabled()) return;
+    await _restart();
+  }
+
+  /// The platform stream ended on its own — an Android location-provider
+  /// fault (GPS toggled off mid-session, the provider crashing) can close the
+  /// underlying channel outright. [_subscription] would otherwise stay
+  /// non-null forever after this, since Dart's handle to a finished stream is
+  /// still a perfectly valid non-null object — every later [start] call would
+  /// keep short-circuiting on "already active" against a stream already dead,
+  /// which is exactly a field report of the app quietly giving up on GPS
+  /// until an app restart. This is the one path standing between that and a
+  /// self-healing service, alongside the watchdog above for the failure
+  /// modes that end the stream without this ever firing at all.
+  void _onStreamEnded() {
+    _subscription = null;
+    if (_disposed) return;
+    unawaited(_restart());
+  }
+
+  Future<void> _restart() async {
+    if (_disposed) return;
+    await stop();
+    await start();
   }
 
   static const _gnssChannel = MethodChannel('app.roadstr/gnss');
@@ -191,6 +254,16 @@ class GpsService {
     }
   }
 
+  /// Wraps [_onPosition] for the periodic stream specifically, so
+  /// [_lastEventAt] — what [_checkWatchdog] judges the stream's health by —
+  /// reflects the stream actually delivering something, not a one-shot
+  /// [refresh] succeeding on its own separate platform call while the
+  /// stream underneath it stays dead.
+  void _onStreamPosition(Position pos) {
+    _lastEventAt = DateTime.now();
+    _onPosition(pos);
+  }
+
   void _onPosition(Position pos) {
     if (_disposed || _controller.isClosed) return;
     // Guard against NaN/Infinity coordinates that some Android devices emit
@@ -248,6 +321,8 @@ class GpsService {
   }
 
   Future<void> stop() async {
+    _watchdog?.cancel();
+    _watchdog = null;
     // Detach synchronously before awaiting cancellation. Android can deliver a
     // rapid pause→resume pair; if [start] ran during this await it used to see
     // the old non-null subscription, return "already active", and then this
