@@ -621,6 +621,10 @@ class AppLocalizationsGa extends AppLocalizations {
   String get reportPublished => 'Tuarascáil foilsithe ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Sábháilte — foilseofar é a luaithe a bheidh tú ar líne arís ⏳';
+
+  @override
   String get myReports => 'MO THUARASCÁLACHA';
 
   @override

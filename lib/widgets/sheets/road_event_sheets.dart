@@ -746,7 +746,12 @@ class _RoadEventDetailState extends State<RoadEventDetailSheet> {
 class ReportSheet extends StatefulWidget {
   final RoadstrColors colors;
   final LatLng position;
-  final Future<void> Function(RoadCategory, String, int?) onSubmit;
+
+  /// Returns true once the report actually reached a relay, false when every
+  /// relay was unreachable and it was queued locally instead (still shown on
+  /// the map — see RoadReportQueuedException) — the two outcomes get
+  /// different confirmation text below, never a hidden failure.
+  final Future<bool> Function(RoadCategory, String, int?) onSubmit;
   const ReportSheet(
       {super.key,
       required this.colors,
@@ -922,9 +927,10 @@ class _ReportSheetState extends State<ReportSheet> {
                         : () async {
                             final messenger = ScaffoldMessenger.of(context);
                             final publishedMessage = l.reportPublished;
+                            final queuedMessage = l.reportQueuedOffline;
                             setState(() => _sending = true);
                             try {
-                              await widget.onSubmit(
+                              final published = await widget.onSubmit(
                                   _selected!,
                                   _ctrl.text.trim(),
                                   _selected == RoadCategory.speedCamera
@@ -934,10 +940,15 @@ class _ReportSheetState extends State<ReportSheet> {
                                 Navigator.pop(this.context);
                                 messenger.showSnackBar(
                                   SnackBar(
-                                    content: Text(publishedMessage,
+                                    content: Text(
+                                        published
+                                            ? publishedMessage
+                                            : queuedMessage,
                                         style: const TextStyle(
                                             color: Colors.white)),
-                                    backgroundColor: const Color(0xFF1A1A2E),
+                                    backgroundColor: published
+                                        ? const Color(0xFF1A1A2E)
+                                        : const Color(0xFF7A5B12),
                                     behavior: SnackBarBehavior.floating,
                                   ),
                                 );

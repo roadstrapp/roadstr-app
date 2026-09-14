@@ -625,6 +625,10 @@ class AppLocalizationsEl extends AppLocalizations {
   String get reportPublished => 'Αναφορά δημοσιεύτηκε ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Αποθηκεύτηκε — θα δημοσιευτεί μόλις επανασυνδεθείτε στο διαδίκτυο ⏳';
+
+  @override
   String get myReports => 'ΟΙ ΑΝΑΦΟΡΕΣ ΜΟΥ';
 
   @override

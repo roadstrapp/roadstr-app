@@ -193,6 +193,7 @@
   "publish": "Publicera",
   "publishing": "Publicerar…",
   "reportPublished": "Rapport publicerad ✓",
+  "reportQueuedOffline": "Sparad — publiceras så snart du är online igen ⏳",
   "@_PROFILE_ZAP": {},
   "myReports": "MINA RAPPORTER",
   "noReportsYet": "Inga rapporter publicerade",

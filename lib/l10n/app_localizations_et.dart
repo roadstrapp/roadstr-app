@@ -620,6 +620,10 @@ class AppLocalizationsEt extends AppLocalizations {
   String get reportPublished => 'Aruanne avaldatud ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Salvestatud — avaldatakse niipea, kui oled taas võrgus ⏳';
+
+  @override
   String get myReports => 'MINU ARUANDED';
 
   @override

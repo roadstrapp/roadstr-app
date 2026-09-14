@@ -12,7 +12,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' show Random;
 
-import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:flutter/foundation.dart' show debugPrint, visibleForTesting;
 import 'package:hive/hive.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nostr_tools/nostr_tools.dart';
@@ -51,6 +51,25 @@ class RoadstrProfileVisibility {
 
   const RoadstrProfileVisibility(
       {required this.isPublic, required this.createdAt});
+}
+
+/// Thrown by [NostrRelayService.publishRoadEvent] and
+/// [NostrRelayService.publishRawRoadEvent] when every relay was unreachable —
+/// third-country roads with scarce signal are exactly the case Roadstr needs
+/// to keep working in, not fail a report over. The event is already signed
+/// and safely queued on disk; [event] is the same local, immediately usable
+/// result a successful publish would have returned, so the caller can still
+/// show it on the map right away. [NostrRelayService.flushPendingReports]
+/// retries it the next time a relay connection succeeds, dropping it first if
+/// its category's TTL elapses before that happens — a "traffic jam" or
+/// "police" report published hours late as if just observed would mislead
+/// whoever sees it.
+class RoadReportQueuedException implements Exception {
+  final RoadEvent event;
+  const RoadReportQueuedException(this.event);
+
+  @override
+  String toString() => 'Road report queued for publish when back online';
 }
 
 /// Manages the Nostr WebSocket connection for receiving and publishing road events.
@@ -249,10 +268,83 @@ class NostrRelayService {
       // Replay the last area subscription if the app already had one active.
       if (_lastGeohashes.isNotEmpty) _sendEventsReq(_lastGeohashes);
       if (_myPubKeyForNotif != null) _sendMyNotificationReqs();
+      // This fires on the very first successful connect too, not just a
+      // reconnect — exactly right, since a report created while the app
+      // launched with no signal at all is queued the same way one created
+      // mid-drive is, and both need this same first success to go out.
+      unawaited(flushPendingReports());
     } catch (_) {
       _scheduleReconnect();
     }
   }
+
+  static const _pendingReportsKey = 'pending_road_reports';
+
+  /// Signed kind-1315 events waiting for a relay, most recently queued last.
+  ///
+  /// Stored as one JSON-encoded string per entry — same shape as the
+  /// 'favorites' list — rather than nested maps: Hive's box erases the
+  /// generic type of anything nested inside a stored List, so a bare
+  /// `Map<String, dynamic>` reads back as `Map<dynamic, dynamic>` and casting
+  /// it needlessly risks the whole queue over one bad entry, where a single
+  /// malformed string just fails to decode and is dropped on its own.
+  List<Map<String, dynamic>> get _pendingReports =>
+      (_box.get(_pendingReportsKey, defaultValue: <dynamic>[]) as List)
+          .whereType<String>()
+          .map((s) {
+            try {
+              return jsonDecode(s) as Map<String, dynamic>;
+            } catch (_) {
+              return null;
+            }
+          })
+          .whereType<Map<String, dynamic>>()
+          .toList();
+
+  void _setPendingReports(List<Map<String, dynamic>> entries) =>
+      _box.put(_pendingReportsKey, entries.map(jsonEncode).toList());
+
+  void _queuePendingReport(Map<String, dynamic> eventJson, int expiresAt) {
+    _setPendingReports(
+        _pendingReports..add({'event': eventJson, 'expiresAt': expiresAt}));
+  }
+
+  /// Retries every queued report now that a relay connection has succeeded.
+  ///
+  /// Each one that still publishes, or has outlived its category's TTL while
+  /// waiting, is dropped from the queue; one that fails again — the same
+  /// no-signal stretch is not over yet — is kept for the next successful
+  /// [connect]. A report published hours after the hazard was actually
+  /// observed would mislead whoever sees it, so a stale one is discarded
+  /// silently rather than sent late.
+  Future<void> flushPendingReports() async {
+    if (_disposed) return;
+    final pending = _pendingReports;
+    if (pending.isEmpty) return;
+    final now = _nowS();
+    final stillPending = <Map<String, dynamic>>[];
+    for (final entry in pending) {
+      final expiresAt = entry['expiresAt'] as int? ?? 0;
+      if (expiresAt <= now) continue;
+      final eventJson = (entry['event'] as Map?)?.cast<String, dynamic>();
+      if (eventJson == null || !verifyEventJson(eventJson)) continue;
+      try {
+        await _publishEvent(eventJson);
+      } catch (_) {
+        stillPending.add(entry);
+      }
+    }
+    _setPendingReports(stillPending);
+  }
+
+  /// Test-only window onto the queue, so its Hive round-trip and the TTL
+  /// filter in [flushPendingReports] can be checked without a live relay —
+  /// [_pendingReports] and [_queuePendingReport] are otherwise private.
+  @visibleForTesting
+  List<Map<String, dynamic>> get debugPendingReports => _pendingReports;
+  @visibleForTesting
+  void debugQueuePendingReport(Map<String, dynamic> eventJson, int expiresAt) =>
+      _queuePendingReport(eventJson, expiresAt);
 
   /// Enables live notifications for [pubKeyHex]'s own activity: zaps received
   /// and confirmations/denials of their road reports. Call once after login
@@ -372,6 +464,12 @@ class NostrRelayService {
   /// so the map marker appears without waiting for the relay echo.
   ///
   /// The event is also sent to all [_publishRelays] for redundancy (NIP-01).
+  ///
+  /// Signing needs no network at all — it is pure local cryptography — so a
+  /// driver with no signal can still create a report. Only the publish step
+  /// can fail for that reason, and when it does the already-signed event is
+  /// queued (see [RoadReportQueuedException]) instead of being lost, so it
+  /// still reaches the network once a relay is reachable again.
   Future<RoadEvent> publishRoadEvent({
     required LatLng position,
     required RoadCategory category,
@@ -380,7 +478,6 @@ class NostrRelayService {
     required String pubKeyHex,
     int? speedLimit,
   }) async {
-    _requireConnected();
     _validatePublishInput(position, comment, pubKeyHex);
     final now = _nowS();
     final expires = now + category.ttlSeconds;
@@ -411,9 +508,9 @@ class NostrRelayService {
     if (!verifyEventJson(signed.toJson())) {
       throw const FormatException('The local Nostr key pair does not match');
     }
-    await _publishEvent(signed.toJson());
-    // Return the local event with the same ID the relay will assign.
-    return RoadEvent(
+    // The same local event either a successful publish or a queued one
+    // returns: the relay assigns no id of its own, so it is stable either way.
+    final localEvent = RoadEvent(
       id: signed.id,
       pubkey: pubKeyHex,
       category: category,
@@ -423,6 +520,14 @@ class NostrRelayService {
       expiresAt: expires,
       speedLimit: speedLimit,
     );
+    try {
+      _requireConnected();
+      await _publishEvent(signed.toJson());
+    } catch (_) {
+      _queuePendingReport(signed.toJson(), expires);
+      throw RoadReportQueuedException(localEvent);
+    }
+    return localEvent;
   }
 
   /// Publishes a kind-1316 confirmation or denial for an existing road event.
@@ -1244,6 +1349,10 @@ class NostrRelayService {
 
   /// Publishes an already-signed kind-1315 event (e.g. from Amber) and returns
   /// the corresponding local [RoadEvent] for immediate map display.
+  ///
+  /// Amber signs entirely on-device too, so this can fail to reach a relay
+  /// for the same offline reason [publishRoadEvent] can — and queues the
+  /// event the same way, via [RoadReportQueuedException].
   Future<RoadEvent> publishRawRoadEvent({
     required Map<String, dynamic> eventJson,
     required RoadCategory category,
@@ -1253,7 +1362,6 @@ class NostrRelayService {
     required int expires,
     required String expectedPubKeyHex,
   }) async {
-    _requireConnected();
     if (!verifyEventJson(eventJson) || eventJson['kind'] != 1315) {
       throw const FormatException('Signer returned an invalid road event');
     }
@@ -1267,10 +1375,7 @@ class NostrRelayService {
         parsed.expiresAt != expires) {
       throw const FormatException('Signer changed the road report payload');
     }
-    // Same redundancy as the nsec path (publishRoadEvent): all publish relays,
-    // not just the primary — Amber users' reports must propagate equally well.
-    await _publishEvent(eventJson);
-    return RoadEvent(
+    final localEvent = RoadEvent(
       id: eventJson['id'] as String,
       pubkey: eventJson['pubkey'] as String,
       category: category,
@@ -1280,6 +1385,17 @@ class NostrRelayService {
       expiresAt: expires,
       speedLimit: parsed.speedLimit,
     );
+    try {
+      // Same redundancy as the nsec path (publishRoadEvent): all publish
+      // relays, not just the primary — Amber users' reports must propagate
+      // equally well.
+      _requireConnected();
+      await _publishEvent(eventJson);
+    } catch (_) {
+      _queuePendingReport(eventJson, expires);
+      throw RoadReportQueuedException(localEvent);
+    }
+    return localEvent;
   }
 
   /// Publishes an externally-signed event only if the signer preserved every

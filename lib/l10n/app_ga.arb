@@ -193,6 +193,7 @@
   "publish": "Foilsigh",
   "publishing": "Ag foilsiú…",
   "reportPublished": "Tuarascáil foilsithe ✓",
+  "reportQueuedOffline": "Sábháilte — foilseofar é a luaithe a bheidh tú ar líne arís ⏳",
   "@_PROFILE_ZAP": {},
   "myReports": "MO THUARASCÁLACHA",
   "noReportsYet": "Gan tuarascálacha foilsithe",

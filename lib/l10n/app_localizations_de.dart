@@ -623,6 +623,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get reportPublished => 'Bericht veröffentlicht ✓';
 
   @override
+  String get reportQueuedOffline =>
+      'Gespeichert — wird veröffentlicht, sobald du wieder online bist ⏳';
+
+  @override
   String get myReports => 'MEINE BERICHTE';
 
   @override
