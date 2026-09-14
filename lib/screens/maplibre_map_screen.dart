@@ -76,6 +76,7 @@ import '../widgets/sheets/road_event_sheets.dart';
 import '../widgets/speedometer_widget.dart';
 import '../widgets/transit_itinerary_widget.dart';
 import 'notifications_screen.dart';
+import 'settings_screen.dart';
 
 const _roadstrTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
@@ -4774,6 +4775,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                     Hive.box('settings').put('voiceEnabled', !_voiceMuted);
                     if (_voiceMuted) unawaited(_tts.stop());
                   },
+                  onOpenSettings: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const SettingsScreen())),
                 );
               }),
             ),
