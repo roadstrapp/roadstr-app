@@ -635,7 +635,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// Hazard proximity voice alert state (police/accident/hazard/
   /// construction/fog/ice) — separate set, same MapScreen field.
   final _alertedEventIds = <String>{};
-  final _alertPlayer = AudioPlayer();
+  /// Focus for this beep is borrowed from the TTS service, which owns the
+  /// app's audio session — see KokoroTtsService.beginExternalCue. Left to
+  /// manage the session itself, just_audio requests focus on every beep and
+  /// never abandons it, which is what kept Bluetooth music and podcasts
+  /// paused for the rest of the drive.
+  final _alertPlayer = AudioPlayer(handleAudioSessionActivation: false);
 
   /// Recent destinations, same MapScreen._history/SearchHistoryItem model —
   /// shown alongside favourites when the search box is focused but empty.
@@ -3442,9 +3447,15 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       if (!await file.exists()) {
         await file.writeAsBytes(_makeToneWav([(350, 220), (440, 220)]));
       }
-      await _alertPlayer.setFilePath(file.path);
-      await _alertPlayer.seek(Duration.zero);
-      await _alertPlayer.play();
+      await _tts.beginExternalCue();
+      try {
+        await _alertPlayer.setFilePath(file.path);
+        await _alertPlayer.seek(Duration.zero);
+        // play() returns when the tone has finished, not when it starts.
+        await _alertPlayer.play();
+      } finally {
+        await _tts.endExternalCue();
+      }
     } catch (_) {}
   }
 
