@@ -138,6 +138,14 @@ enum RouteAvoidance {
   none,
   highwayAndTollFree,
   minimizedHighwaysAndTolls,
+
+  /// Best-effort: Valhalla was told to strongly disfavour `highway=track`
+  /// ways, the closest OSM tagging gets to "unmaintained dirt road a normal
+  /// car has no business on". There is no boolean exclude for this the way
+  /// there is for highways/tolls — see [RoutingService.getOffRoadAvoidanceRoute]
+  /// — so unlike [highwayAndTollFree] this is never a guarantee, only a
+  /// steer, and the UI must never word it as one.
+  offRoadAvoided,
 }
 
 class RouteResult {
@@ -188,10 +196,14 @@ class RouteResult {
         fromAvoidanceRouter: fromAvoidanceRouter,
       );
 
-  bool get isHighwayAndTollAvoidance => avoidance != RouteAvoidance.none;
+  bool get isHighwayAndTollAvoidance =>
+      avoidance == RouteAvoidance.highwayAndTollFree ||
+      avoidance == RouteAvoidance.minimizedHighwaysAndTolls;
 
   bool get avoidsHighwaysAndTolls =>
       avoidance == RouteAvoidance.highwayAndTollFree;
+
+  bool get isOffRoadAvoidance => avoidance == RouteAvoidance.offRoadAvoided;
 
   /// Returns the posted speed limit at [elapsedM] metres from the route start,
   /// or null when the limit is unknown or no data is available.
@@ -1130,6 +1142,37 @@ class RoutingService {
         endpoint: retimeEndpoint, stubbedValhalla: endpoint != null);
   }
 
+  /// Calculates a route that strongly disfavours unpaved "off-road" tracks —
+  /// the routing side of a field report where the default OSRM route sent a
+  /// driver down one. Unlike [getHighwayAndTollAvoidanceRoute] there is no
+  /// hard exclude to attempt first: Valhalla has no boolean "never a track"
+  /// switch for car costing, only the continuous `use_tracks` weight, so this
+  /// is a single request and the result is always reported as a preference,
+  /// never a guarantee — see [RouteAvoidance.offRoadAvoided]. A destination
+  /// only reachable via a short track (a driveway, a farm gate) still gets a
+  /// route rather than none at all, which is the point: this steers the
+  /// driver away from the roads that nearly caused a crash without ever
+  /// refusing to navigate at all.
+  ///
+  /// Re-timed through OSRM for the same reason as the highway/toll route —
+  /// see [_retimedThroughOsrm].
+  static Future<RouteResult> getOffRoadAvoidanceRoute(
+      LatLng origin, LatLng destination,
+      {String lang = 'en',
+      @visibleForTesting Uri? endpoint,
+      @visibleForTesting Uri? retimeEndpoint}) async {
+    final route = await _getValhallaAutoRoute(
+      origin,
+      destination,
+      lang: lang,
+      endpoint: endpoint,
+      costingOptions: const {'use_tracks': 0},
+      classify: (_) => RouteAvoidance.offRoadAvoided,
+    );
+    return _retimedThroughOsrm(route,
+        endpoint: retimeEndpoint, stubbedValhalla: endpoint != null);
+  }
+
   /// One waypoint roughly every this many metres when re-timing a route.
   ///
   /// Measured against live servers on routes from 34 km to 645 km: at 5 km
@@ -1317,7 +1360,57 @@ class RoutingService {
       LatLng origin, LatLng destination,
       {required String lang,
       required Uri? endpoint,
-      required bool hardExclusion}) async {
+      required bool hardExclusion}) {
+    return _getValhallaAutoRoute(
+      origin,
+      destination,
+      lang: lang,
+      endpoint: endpoint,
+      costingOptions: hardExclusion
+          ? const {
+              'exclude_highways': true,
+              'exclude_tolls': true,
+            }
+          : const {
+              'use_highways': 0,
+              'use_tolls': 0,
+              // A routing-only penalty: strongly discourages even a very
+              // short tolled segment without inflating the displayed ETA.
+              'toll_booth_penalty': 900,
+            },
+      classify: (summary) {
+        final hasHighway = summary['has_highway'] == true;
+        final hasToll = summary['has_toll'] == true;
+        if (hardExclusion && (hasHighway || hasToll)) {
+          throw RoutingException(
+            message: 'Hard avoidance route still contains an excluded road',
+          );
+        }
+        return hasHighway || hasToll
+            ? RouteAvoidance.minimizedHighwaysAndTolls
+            : RouteAvoidance.highwayAndTollFree;
+      },
+    );
+  }
+
+  /// Requests a route from Valhalla with [costingOptions] applied to the
+  /// `auto` profile, and parses it the same way regardless of which
+  /// avoidance policy asked for it. [classify] turns the response summary
+  /// into the [RouteAvoidance] the caller wants reported — it may also throw
+  /// a [RoutingException] to reject a route that does not meet a hard
+  /// requirement (as [_getValhallaAvoidanceRoute] does for a hard exclusion
+  /// that Valhalla could not actually honour).
+  ///
+  /// Shared by [_getValhallaAvoidanceRoute] (highways/tolls) and
+  /// [getOffRoadAvoidanceRoute] (`use_tracks`) — the request/parse plumbing
+  /// neither cares about, only the costing knob and the resulting label do.
+  static Future<RouteResult> _getValhallaAutoRoute(
+      LatLng origin, LatLng destination,
+      {required String lang,
+      required Uri? endpoint,
+      required Map<String, dynamic> costingOptions,
+      required RouteAvoidance Function(Map<String, dynamic> summary)
+          classify}) async {
     try {
       final request = jsonEncode({
         'locations': [
@@ -1325,20 +1418,7 @@ class RoutingService {
           {'lat': destination.latitude, 'lon': destination.longitude},
         ],
         'costing': 'auto',
-        'costing_options': {
-          'auto': hardExclusion
-              ? {
-                  'exclude_highways': true,
-                  'exclude_tolls': true,
-                }
-              : {
-                  'use_highways': 0,
-                  'use_tolls': 0,
-                  // A routing-only penalty: strongly discourages even a very
-                  // short tolled segment without inflating the displayed ETA.
-                  'toll_booth_penalty': 900,
-                },
-        },
+        'costing_options': {'auto': costingOptions},
         'units': 'kilometers',
         'language': _valhallaLanguage(lang),
       });
@@ -1366,14 +1446,8 @@ class RoutingService {
           body: res.body,
         );
       }
-      final summary = trip['summary'] as Map<String, dynamic>?;
-      final hasHighway = summary?['has_highway'] == true;
-      final hasToll = summary?['has_toll'] == true;
-      if (hardExclusion && (hasHighway || hasToll)) {
-        throw RoutingException(
-          message: 'Hard avoidance route still contains an excluded road',
-        );
-      }
+      final summary = trip['summary'] as Map<String, dynamic>? ?? const {};
+      final avoidance = classify(summary);
 
       final legs = trip['legs'] as List? ?? const [];
       if (legs.isEmpty) {
@@ -1422,11 +1496,9 @@ class RoutingService {
         polyline: coords,
         steps: steps,
         totalDistanceM:
-            ((summary?['length'] as num?)?.toDouble() ?? 0.0) * 1000,
-        totalDurationS: (summary?['time'] as num?)?.toDouble() ?? 0.0,
-        avoidance: hasHighway || hasToll
-            ? RouteAvoidance.minimizedHighwaysAndTolls
-            : RouteAvoidance.highwayAndTollFree,
+            ((summary['length'] as num?)?.toDouble() ?? 0.0) * 1000,
+        totalDurationS: (summary['time'] as num?)?.toDouble() ?? 0.0,
+        avoidance: avoidance,
         fromAvoidanceRouter: true,
       ));
     } on RoutingException {
