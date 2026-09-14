@@ -185,6 +185,108 @@ void main() {
     expect(route.steps.last.direction, 'arrive');
   });
 
+  test('off-road avoidance disfavours tracks via use_tracks, not a hard exclude',
+      () async {
+    const points = [LatLng(45.0, 9.0), LatLng(45.001, 9.002)];
+    server.listen((request) async {
+      final payload = jsonDecode(request.uri.queryParameters['json']!)
+          as Map<String, dynamic>;
+      final auto = (payload['costing_options'] as Map<String, dynamic>)['auto']
+          as Map<String, dynamic>;
+      // No exclude_* flag exists for tracks — this is the only real lever.
+      expect(auto['use_tracks'], 0);
+      expect(auto.containsKey('exclude_highways'), isFalse);
+
+      request.response.headers.contentType = ContentType.json;
+      request.response.write(jsonEncode({
+        'trip': {
+          'status': 0,
+          'summary': {'length': 0.25, 'time': 42.0},
+          'legs': [
+            {
+              'shape': _encodePolyline6(points),
+              'maneuvers': [
+                {
+                  'type': 1,
+                  'instruction': 'Start',
+                  'length': 0.25,
+                  'begin_shape_index': 0,
+                },
+                {
+                  'type': 4,
+                  'instruction': 'Arrive',
+                  'length': 0.0,
+                  'begin_shape_index': 1,
+                },
+              ],
+            },
+          ],
+        },
+      }));
+      await request.response.close();
+    });
+
+    final route = await RoutingService.getOffRoadAvoidanceRoute(
+      points.first,
+      points.last,
+      endpoint: endpoint(),
+    );
+
+    expect(route.avoidance, RouteAvoidance.offRoadAvoided);
+    expect(route.isOffRoadAvoidance, isTrue);
+    // The two avoidance axes must stay independent: a route that steers
+    // around tracks says nothing about highways/tolls, and the UI badge for
+    // one must never light up for the other.
+    expect(route.isHighwayAndTollAvoidance, isFalse);
+    expect(route.avoidsHighwaysAndTolls, isFalse);
+  });
+
+  test('off-road avoidance still returns a route when Valhalla could not find one better',
+      () async {
+    // Unlike the highway/toll hard exclusion, an unreachable-without-a-track
+    // destination must never make this throw — refusing to navigate at all
+    // is worse than a route that includes the track it tried to avoid.
+    const points = [LatLng(45.0, 9.0), LatLng(45.001, 9.002)];
+    server.listen((request) async {
+      request.response.headers.contentType = ContentType.json;
+      request.response.write(jsonEncode({
+        'trip': {
+          'status': 0,
+          'summary': {'length': 0.25, 'time': 42.0},
+          'legs': [
+            {
+              'shape': _encodePolyline6(points),
+              'maneuvers': [
+                {
+                  'type': 1,
+                  'instruction': 'Start',
+                  'length': 0.25,
+                  'begin_shape_index': 0,
+                },
+                {
+                  'type': 4,
+                  'instruction': 'Arrive',
+                  'length': 0.0,
+                  'begin_shape_index': 1,
+                },
+              ],
+            },
+          ],
+        },
+      }));
+      await request.response.close();
+    });
+
+    final route = await RoutingService.getOffRoadAvoidanceRoute(
+      points.first,
+      points.last,
+      endpoint: endpoint(),
+    );
+
+    expect(route.polyline, hasLength(2));
+    expect(route.avoidance, RouteAvoidance.offRoadAvoided);
+  });
+
   test('falls back to soft penalties and reports an unavoidable section',
       () async {
     const points = [LatLng(45.0, 9.0), LatLng(45.001, 9.002)];

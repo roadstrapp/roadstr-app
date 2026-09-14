@@ -1441,6 +1441,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ]),
           ),
+          _SwitchTile(
+            title: l.avoidUnpavedRoads,
+            subtitle: l.avoidUnpavedRoadsDescription,
+            value: _getBool('avoidUnpavedRoads', false),
+            onChanged: (v) => _setBool('avoidUnpavedRoads', v),
+            colors: c,
+          ),
 
           const SizedBox(height: 24),
 

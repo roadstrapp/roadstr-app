@@ -623,6 +623,13 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
           as bool;
   bool get _showCrosswalks =>
       Hive.box('settings').get('showCrosswalks', defaultValue: true) as bool;
+
+  /// Read fresh for the same reason as [_showTrafficLights] — a route
+  /// already being driven does not react to a setting flipped mid-journey,
+  /// but the next one calculated does, without needing a change listener.
+  bool get _avoidUnpavedRoads =>
+      Hive.box('settings').get('avoidUnpavedRoads', defaultValue: false)
+          as bool;
   List<FavoritePlace> _favorites = [];
 
   /// Speed-camera proximity beep + voice alert state — same MapScreen
@@ -2156,10 +2163,18 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       _showSnack(AppLocalizations.of(context).noRouteFound);
       return;
     }
+    var selected = 0;
+    // Skipped with stops: Valhalla's avoidance endpoint only takes an origin
+    // and a destination, so folding it in here would offer — and
+    // auto-select — a route that silently skips every stop the driver added.
+    if (_avoidUnpavedRoads && _transportMode == 'driving' && via.isEmpty) {
+      (routes, selected) = await _withOffRoadAvoidance(origin, dest, routes);
+      if (!mounted || requestGeneration != _routeRequestGeneration) return;
+    }
     setState(() {
       _calculatingRoute = false;
       _alternatives = routes;
-      _selectedAlt = 0;
+      _selectedAlt = selected;
       _showAlternatives = true;
     });
     _fitRoutesOnMap(routes);
@@ -2312,14 +2327,70 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     return best;
   }
 
-  /// The alternatives list with any avoidance-router route/badge stripped
-  /// back out — same MapScreen._plainAlternatives.
+  /// The alternatives list with any highway/toll avoidance-router route/badge
+  /// stripped back out — same MapScreen._plainAlternatives. Off-road
+  /// avoidance is a separate, independent axis (see [_withOffRoadAvoidance])
+  /// and must survive this: it is on or off from Settings, never from the
+  /// highway/toll pill this feeds.
   List<RouteResult> _plainAlternatives() => _alternatives
-      .where((route) => !route.fromAvoidanceRouter)
+      .where((route) => !route.fromAvoidanceRouter || route.isOffRoadAvoidance)
       .map((route) => route.isHighwayAndTollAvoidance
           ? route.withAvoidance(RouteAvoidance.none)
           : route)
       .toList();
+
+  /// Folds in the off-road-avoidance route when the Settings toggle is on,
+  /// same slot-in-or-append logic as [_toggleAvoidanceRoute]: reuse an
+  /// alternative that already avoids tracks rather than showing a duplicate,
+  /// append a new one otherwise, and select whichever index is the one that
+  /// avoids them. This is what turns "avoid unpaved roads" from something the
+  /// driver must remember to tap on every trip into an always-applied
+  /// preference — the field report behind it was routed onto a dirt track as
+  /// the ordinary, unmarked, auto-selected route, not an alternative anyone
+  /// had a chance to decline.
+  ///
+  /// Never the reason a route fails to appear: any failure here (Valhalla
+  /// unreachable, no better route exists) returns [routes] unchanged with
+  /// [preferredIndex] still selected.
+  Future<(List<RouteResult>, int)> _withOffRoadAvoidance(
+      LatLng origin, LatLng dest, List<RouteResult> routes,
+      {int preferredIndex = 0}) async {
+    try {
+      var route =
+          await RoutingService.getOffRoadAvoidanceRoute(origin, dest,
+              lang: 'it');
+      route = (await _withRoundaboutTopology([route])).single;
+      final twin = routes
+          .indexWhere((r) => RoutingService.followSameRoads(r, route));
+      if (twin >= 0) {
+        final merged = [...routes];
+        merged[twin] = merged[twin].withAvoidance(route.avoidance);
+        return (merged, twin);
+      }
+      return ([...routes, route], routes.length);
+    } catch (_) {
+      return (routes, preferredIndex);
+    }
+  }
+
+  /// The reroute-time counterpart of [_withOffRoadAvoidance]: there is no
+  /// alternatives panel mid-navigation, only the one route actually being
+  /// driven, so this replaces it outright instead of folding a second option
+  /// in. Same fail-open contract — a driver who deviated needs a reroute now,
+  /// and a Valhalla hiccup must fall back to [route] rather than leave them
+  /// on no route at all.
+  Future<RouteResult> _preferOffRoadRoute(
+      LatLng origin, LatLng dest, RouteResult route) async {
+    if (!_avoidUnpavedRoads || _transportMode != 'driving') return route;
+    try {
+      final avoided =
+          await RoutingService.getOffRoadAvoidanceRoute(origin, dest,
+              lang: 'it');
+      return (await _withRoundaboutTopology([avoided])).single;
+    } catch (_) {
+      return route;
+    }
+  }
 
   /// Adds/removes a separately calculated highway-and-toll avoidance route
   /// — same MapScreen._toggleAvoidanceRoute, ported directly.
@@ -2496,7 +2567,19 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       originBearingDeg: originBearingDeg,
     );
     if (!mounted || routes.isEmpty) return null;
-    final route = _pickRoute(routes, avoidNear);
+    var route = _pickRoute(routes, avoidNear);
+    // Applied to every plain A-to-B reroute this function serves — an
+    // off-route recalculation, a traffic-jam "recalculate" — because the
+    // setting is a standing preference, not something the driver re-enables
+    // per event. See [_preferOffRoadRoute]: it no-ops instantly when the
+    // setting is off. Skipped with an active via list: unlike OSRM,
+    // Valhalla's avoidance endpoint takes only an origin and a destination,
+    // so using it here would silently drive past a stop the driver
+    // deliberately added.
+    if ((via ?? _activeVia).isEmpty) {
+      route = await _preferOffRoadRoute(origin, dest, route);
+      if (!mounted) return null;
+    }
     // Not awaited: this used to be the whole reason route calculation felt
     // slow. ZtlService's cache is kept warm in the background by _onGps
     // (same as MapScreen, which never awaits it in the route path either) —

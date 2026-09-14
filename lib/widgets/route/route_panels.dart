@@ -1170,15 +1170,32 @@ class RouteCard extends StatelessWidget {
       required this.colors,
       required this.onTap});
 
+  /// The badge text for this card, or null when it gets no badge at all
+  /// (an ordinary alternative that is neither the fastest nor an avoidance
+  /// route). Off-road avoidance is checked first: a route can only ever
+  /// carry one avoidance verdict at a time, but keeping the order explicit
+  /// here means adding a third axis later is one more early return, not a
+  /// rewritten ternary chain.
+  String? _badgeLabel(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    if (route.isOffRoadAvoidance) return l.avoidUnpavedRoads;
+    if (route.isHighwayAndTollAvoidance) {
+      return route.avoidsHighwaysAndTolls
+          ? l.avoidHighwaysAndTolls
+          : l.avoidanceUnavoidableSection;
+    }
+    return isBest ? l.fastestRoute : null;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isAvoidance = route.isHighwayAndTollAvoidance;
-    final avoidanceComplete = route.avoidsHighwaysAndTolls;
-    final highlight = isAvoidance
-        ? (avoidanceComplete
+    final isAvoidance =
+        route.isHighwayAndTollAvoidance || route.isOffRoadAvoidance;
+    final highlight = !isAvoidance
+        ? colors.accent
+        : (route.isOffRoadAvoidance || route.avoidsHighwaysAndTolls)
             ? const Color(0xFF14A67A)
-            : const Color(0xFFF59E0B))
-        : colors.accent;
+            : const Color(0xFFF59E0B);
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -1233,14 +1250,7 @@ class RouteCard extends StatelessWidget {
                     color: highlight.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Text(
-                      isAvoidance
-                          ? (avoidanceComplete
-                              ? AppLocalizations.of(context)
-                                  .avoidHighwaysAndTolls
-                              : AppLocalizations.of(context)
-                                  .avoidanceUnavoidableSection)
-                          : AppLocalizations.of(context).fastestRoute,
+                  child: Text(_badgeLabel(context) ?? '',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
