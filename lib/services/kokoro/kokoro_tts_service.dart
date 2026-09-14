@@ -30,7 +30,15 @@ class KokoroTtsService {
   final _engine = KokoroEngine.instance;
   final _piperEngine = PiperEngine.instance;
   final _manager = KokoroModelManager.instance;
-  final _player = AudioPlayer();
+  /// Audio focus is ours to manage, never just_audio's — see [_acquireFocus]
+  /// and [_releaseFocus]. Left on the default, `play()` calls
+  /// `setActive(true)` itself and then *refuses to play at all* if it comes
+  /// back false, which it routinely does: the Android plugin returns false on
+  /// AUDIOFOCUS_REQUEST_DELAYED (normal while a Bluetooth device is switching
+  /// profile) even though the system grants focus a moment later. Guidance
+  /// went silent exactly when it mattered, and nothing ever handed that
+  /// late-granted focus back, so the driver's music stayed paused for good.
+  final _player = AudioPlayer(handleAudioSessionActivation: false);
 
   /// True while [_lang] is handled by Piper instead of Kokoro.
   bool get _usesPiper => kPiperSupportedLanguages.contains(_lang);
@@ -44,8 +52,13 @@ class KokoroTtsService {
   int _utteranceId =
       0; // bumped on every speak() call to cancel in-flight synth
   bool _audioSessionConfigured = false;
-  bool _audioFocusActive = false;
   bool _isSpeaking = false;
+
+  /// Non-speech cues (the speed-camera beep) that currently need the focus we
+  /// hold. They play on their own player, from the map screen, and overlap the
+  /// spoken warning that accompanies them — so neither side may hand focus
+  /// back while the other is still making noise. See [beginExternalCue].
+  int _externalCues = 0;
 
   /// When the last [init] attempt failed. Read by [_startPlayback] to decide
   /// whether the current speak() call is worth retrying it — see there for
@@ -221,7 +234,7 @@ class KokoroTtsService {
     try {
       await _player.stop();
     } catch (_) {}
-    unawaited(_releaseFocus());
+    if (_externalCues == 0) unawaited(_releaseFocus());
   }
 
   Future<void> dispose() async {
@@ -276,25 +289,60 @@ class KokoroTtsService {
     // ALWAYS re-activate — never short-circuit on a cached "active" flag.
     // The OS silently revokes the audio session on any external interruption
     // (incoming call, notification sound, another media app, Bluetooth
-    // connect/disconnect, Assistant). Our flag stays stale-true through that,
-    // so the old `if (_audioFocusActive) return;` meant we never re-requested
-    // focus afterwards — the player kept running against a dead session and
-    // ALL guidance went silent "after a while", never recovering.
+    // connect/disconnect, Assistant), without telling us. Any flag of ours
+    // saying "we already hold focus" stays stale-true through that, and
+    // short-circuiting on one meant we never re-requested focus afterwards —
+    // the player kept running against a dead session and ALL guidance went
+    // silent "after a while", never recovering.
     // setActive(true) on an already-active session is a harmless no-op.
     try {
       final session = await AudioSession.instance;
-      final granted = await session.setActive(true);
-      _audioFocusActive = granted;
+      await session.setActive(true);
     } catch (_) {}
   }
 
+  /// Hands audio focus back, unconditionally.
+  ///
+  /// This used to return early unless a local flag said we held focus, and
+  /// that is what left Bluetooth music and podcasts paused for good. Such a
+  /// flag cannot be authoritative: audio_session's Android plugin
+  /// stores the focus request BEFORE checking whether the system granted
+  /// it, and never clears it on failure — so a request that came back
+  /// AUDIOFOCUS_REQUEST_DELAYED (routine while a Bluetooth device switches
+  /// profile) reports `false` here while the OS goes on to grant it a
+  /// moment later and duly pauses whatever was playing. just_audio's own
+  /// play() also requests focus on its own account, which this flag never
+  /// sees at all. Either way the driver's podcast was waiting on a
+  /// AUDIOFOCUS_GAIN that the early return meant we never sent.
+  ///
+  /// Abandoning focus we do not hold costs nothing: the plugin answers
+  /// `true` and does nothing when it has no request stored.
   Future<void> _releaseFocus() async {
-    if (!_audioFocusActive) return;
-    _audioFocusActive = false;
     try {
       final session = await AudioSession.instance;
       await session.setActive(false);
     } catch (_) {}
+  }
+
+  /// Borrows the audio focus this service owns, for a short sound played
+  /// elsewhere (the speed-camera beep, on the map screen's own player).
+  ///
+  /// Every caller must pair this with [endExternalCue], preferably in a
+  /// `finally`. A cue that plays without the lease would have just_audio
+  /// request focus on its own account and never give it back — the driver's
+  /// podcast then waits forever on an AUDIOFOCUS_GAIN nobody sends.
+  Future<void> beginExternalCue() async {
+    _externalCues++;
+    await _acquireFocus();
+  }
+
+  /// Returns a lease taken by [beginExternalCue]. Focus goes back to whatever
+  /// was playing before only once nothing of ours is still sounding: the beep
+  /// and the spoken warning that follows it overlap by design.
+  Future<void> endExternalCue() async {
+    if (_externalCues > 0) _externalCues--;
+    if (_externalCues > 0 || _isSpeaking) return;
+    await _releaseFocus();
   }
 
   // ── Public speak API ─────────────────────────────────────────────────────────
@@ -377,10 +425,13 @@ class KokoroTtsService {
     // exactly what a ducked/paused music or podcast app waits on to resume,
     // so a stuck utterance would silently keep it paused forever. No
     // realistic navigation phrase runs anywhere near this long.
+    // Only `completed`. `idle` is also what our own stop() at the top of
+    // _startPlayback produces, and playerStateStream hands a newly attached
+    // listener the latest value it has — which can still be that stale idle,
+    // ending the utterance (and releasing focus) while the clip is only just
+    // starting. The timeout below is what covers a clip that never completes.
     unawaited(_player.playerStateStream
-        .firstWhere((s) =>
-            s.processingState == ProcessingState.completed ||
-            s.processingState == ProcessingState.idle)
+        .firstWhere((s) => s.processingState == ProcessingState.completed)
         .timeout(_maxUtteranceWait, onTimeout: () => _player.playerState)
         .then((_) => _finishUtterance(id))
         .catchError((_) => _finishUtterance(id)));
@@ -396,9 +447,26 @@ class KokoroTtsService {
     if (id == _utteranceId) _speakingManeuver = false;
     if (id != _utteranceId) return;
     _isSpeaking = false;
-    unawaited(_releaseFocus());
     final next = _pending.isEmpty ? null : _pending.removeAt(0);
-    if (next != null) unawaited(_speakNow(next));
+    if (next != null) {
+      // Straight on to the next cue: hold the focus we already have rather
+      // than handing it back for a few milliseconds, which would have the
+      // music app resume just in time to be interrupted again.
+      unawaited(_speakNow(next));
+      return;
+    }
+    unawaited(_endUtterance());
+  }
+
+  /// Closes our own audio stream before handing focus back, in that order:
+  /// the app resuming on the other side should not have to fade in under a
+  /// player of ours that is still nominally holding the output.
+  Future<void> _endUtterance() async {
+    try {
+      await _player.stop();
+    } catch (_) {}
+    if (_externalCues > 0) return;
+    await _releaseFocus();
   }
 
   /// Loads and starts playback of [text] (bundled WAV or on-device synthesis).
