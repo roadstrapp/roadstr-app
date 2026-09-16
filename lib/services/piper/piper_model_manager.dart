@@ -20,6 +20,10 @@ class PiperModelManager {
   PiperModelManager._();
   static final PiperModelManager instance = PiperModelManager._();
 
+  /// Ceiling on one voice/model file's total download time — see where it's
+  /// used, next to the per-chunk inactivity timeout it complements.
+  static const _maxTaskDownloadTime = Duration(minutes: 10);
+
   Directory? _dir;
 
   bool _downloading = false;
@@ -128,6 +132,11 @@ class PiperModelManager {
         final sink = partial.openWrite();
         var taskBytes = 0;
         try {
+          // The per-chunk timeout below only catches a connection that goes
+          // fully silent; a server trickling one byte just under that window
+          // forever would never trip it and could hold the download open
+          // indefinitely. This bounds the whole task's wall-clock time
+          // regardless of how often chunks arrive.
           await response.stream
               .timeout(const Duration(seconds: 30))
               .forEach((chunk) {
@@ -140,7 +149,7 @@ class PiperModelManager {
               onProgress?.call(
                   ((downloadedBytes + taskBytes) / totalBytes).clamp(0.0, 1.0));
             }
-          });
+          }).timeout(_maxTaskDownloadTime);
         } finally {
           await sink.close();
         }
