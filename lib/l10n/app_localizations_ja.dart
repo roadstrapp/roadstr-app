@@ -1328,6 +1328,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get syncFavoritesTitle => 'お気に入りを同期';
 
   @override
+  String get favoritesAutoSyncTitle => '自動同期';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      '変更をすぐに公開し、起動時に取得します。下のボタンを使う必要はありません。デフォルトではオフです。暗号化されていてもリレーが見られる情報については上記で説明しています。';
+
+  @override
   String get syncFavoritesDesc =>
       'お気に入りをエンドツーエンド暗号化してNostrリレーに公開し、すべての端末で利用できます。リレーには暗号文しか見えません — あなた以外は内容を読めません。';
 

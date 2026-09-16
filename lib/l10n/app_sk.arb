@@ -429,6 +429,8 @@
   "parkingRemove": "Odstrániť parkovanie",
   "parkingRemovedSnack": "Parkovacie miesto odstránené",
   "syncFavoritesTitle": "Synchronizovať obľúbené",
+  "favoritesAutoSyncTitle": "Synchronizovať automaticky",
+  "favoritesAutoSyncDesc": "Okamžite publikuje každú zmenu a pri spustení ju stiahne, bez potreby tlačidiel nižšie. V predvolenom nastavení vypnuté: čo môžu relé napriek šifrovaniu stále vidieť, je vysvetlené vyššie.",
   "syncFavoritesDesc": "Publikujte svoje obľúbené, šifrované end-to-end, na svoje Nostr relé, aby vás nasledovali na všetkých zariadeniach. Relé vidia iba šifrovaný text — nikto okrem vás nemôže obsah čítať.",
   "syncNoIdentity": "Prihláste sa cez Nostr (Nastavenia → Profil) na aktiváciu synchronizácie",
   "syncNowButton": "Odoslať na Nostr",

@@ -1355,6 +1355,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get syncFavoritesTitle => 'Favorieten synchroniseren';
 
   @override
+  String get favoritesAutoSyncTitle => 'Automatisch synchroniseren';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      'Publiceert elke wijziging direct en haalt deze bij het opstarten op, zonder de knoppen hieronder nodig te hebben. Standaard uitgeschakeld: wat relays ondanks de versleuteling nog kunnen zien staat hierboven uitgelegd.';
+
+  @override
   String get syncFavoritesDesc =>
       'Publiceer je favorieten, end-to-end versleuteld, naar je Nostr-relays zodat ze je volgen op al je apparaten. Relays zien alleen versleutelde tekst — niemand behalve jij kan de inhoud lezen.';
 

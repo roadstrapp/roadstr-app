@@ -319,13 +319,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// Best-effort background push of favorites to Nostr after any local change,
   /// so a reinstall + login restores them automatically (see the auto-pull on
   /// map startup). Silent — no spinner, no snackbar; failures are ignored and
-  /// the user can still push/pull manually. Only runs when logged in.
+  /// the user can still push/pull manually.
+  ///
+  /// Gated on the 'favoritesSyncAutoEnabled' setting, off by default: this
+  /// used to fire for anyone simply logged in, with no separate opt-in at
+  /// all, contradicting the onboarding text's promise of an "optional...
+  /// enable it from Settings" feature. The manual push/pull buttons remain a
+  /// one-off action either way and are not gated by this — tapping one is
+  /// its own explicit consent.
   ///
   /// An empty list is pushed like any other: the snapshot is authoritative, so
   /// deleting the last favourite must replace the stored one rather than leave
   /// it behind for the next reinstall to restore.
   void _autoPushFavorites() {
     if (_nostrPub == null) return;
+    if (!_getBool('favoritesSyncAutoEnabled', false)) return;
     final favs = List<FavoritePlace>.of(_favorites);
     unawaited(_syncSvc
         .push(
@@ -1646,7 +1654,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text(l.syncFavoritesDesc,
                   style: TextStyle(
                       color: c.textSecondary, fontSize: 12, height: 1.5)),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
+              // Off by default and never implied by logging in: pushing on
+              // every edit and pulling on every launch happened regardless
+              // of this toggle until it existed, silently, for anyone
+              // signed in — which is not what "optional, enable it from
+              // Settings" promised in onboarding. The buttons below stay a
+              // one-off action either way; this is the standing decision.
+              SwitchListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                activeThumbColor: c.accent,
+                value: _getBool('favoritesSyncAutoEnabled', false),
+                onChanged: (v) => _setBool('favoritesSyncAutoEnabled', v),
+                title: Text(l.favoritesAutoSyncTitle,
+                    style: TextStyle(
+                        color: c.textPrimary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500)),
+                subtitle: Text(l.favoritesAutoSyncDesc,
+                    style: TextStyle(
+                        color: c.textSecondary, fontSize: 11.5, height: 1.4)),
+              ),
+              const SizedBox(height: 4),
               if (_nostrPub == null)
                 Text(l.syncNoIdentity,
                     style: TextStyle(

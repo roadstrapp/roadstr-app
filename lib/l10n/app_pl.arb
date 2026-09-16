@@ -429,6 +429,8 @@
   "parkingRemove": "Usuń parkowanie",
   "parkingRemovedSnack": "Miejsce parkingowe usunięte",
   "syncFavoritesTitle": "Synchronizuj ulubione",
+  "favoritesAutoSyncTitle": "Synchronizuj automatycznie",
+  "favoritesAutoSyncDesc": "Publikuje każdą zmianę natychmiast i pobiera ją przy starcie, bez potrzeby używania przycisków poniżej. Domyślnie wyłączone: co przekaźniki mogą i tak zobaczyć mimo szyfrowania, wyjaśniono powyżej.",
   "syncFavoritesDesc": "Opublikuj swoje ulubione, zaszyfrowane end-to-end, na swoich przekaźnikach Nostr, aby podążały za tobą na wszystkich urządzeniach. Przekaźniki widzą tylko zaszyfrowany tekst — nikt poza tobą nie może odczytać zawartości.",
   "syncNoIdentity": "Zaloguj się przez Nostr (Ustawienia → Profil), aby włączyć synchronizację",
   "syncNowButton": "Wyślij do Nostr",

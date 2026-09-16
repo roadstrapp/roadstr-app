@@ -1351,6 +1351,13 @@ class AppLocalizationsLv extends AppLocalizations {
   String get syncFavoritesTitle => 'Sinhronizēt izlasi';
 
   @override
+  String get favoritesAutoSyncTitle => 'Sinhronizēt automātiski';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      'Nekavējoties publicē katru izmaiņu un lejupielādē to palaišanas laikā, neizmantojot zemāk esošās pogas. Pēc noklusējuma izslēgts: ko releji tomēr var redzēt, neskatoties uz šifrēšanu, paskaidrots iepriekš.';
+
+  @override
   String get syncFavoritesDesc =>
       'Publicējiet savu izlasi, pilnībā šifrētu, savos Nostr relejos, lai tā sekotu jums visās ierīcēs. Releji redz tikai šifrētu tekstu — neviens cits kā jūs nevar lasīt saturu.';
 

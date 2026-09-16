@@ -2620,6 +2620,18 @@ abstract class AppLocalizations {
   /// **'Sync favorites'**
   String get syncFavoritesTitle;
 
+  /// No description provided for @favoritesAutoSyncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync automatically'**
+  String get favoritesAutoSyncTitle;
+
+  /// No description provided for @favoritesAutoSyncDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Pushes every change immediately and pulls on startup, without needing the buttons below. Off by default: what relays can still see even through the encryption is explained above.'**
+  String get favoritesAutoSyncDesc;
+
   /// No description provided for @syncFavoritesDesc.
   ///
   /// In en, this message translates to:

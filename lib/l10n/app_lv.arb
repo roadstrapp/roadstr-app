@@ -429,6 +429,8 @@
   "parkingRemove": "Noņemt stāvvietu",
   "parkingRemovedSnack": "Stāvvieta noņemta",
   "syncFavoritesTitle": "Sinhronizēt izlasi",
+  "favoritesAutoSyncTitle": "Sinhronizēt automātiski",
+  "favoritesAutoSyncDesc": "Nekavējoties publicē katru izmaiņu un lejupielādē to palaišanas laikā, neizmantojot zemāk esošās pogas. Pēc noklusējuma izslēgts: ko releji tomēr var redzēt, neskatoties uz šifrēšanu, paskaidrots iepriekš.",
   "syncFavoritesDesc": "Publicējiet savu izlasi, pilnībā šifrētu, savos Nostr relejos, lai tā sekotu jums visās ierīcēs. Releji redz tikai šifrētu tekstu — neviens cits kā jūs nevar lasīt saturu.",
   "syncNoIdentity": "Pierakstieties ar Nostr (Iestatījumi → Profils), lai iespējotu sinhronizāciju",
   "syncNowButton": "Nosūtīt uz Nostr",

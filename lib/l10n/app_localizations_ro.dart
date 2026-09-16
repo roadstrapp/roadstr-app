@@ -1355,6 +1355,13 @@ class AppLocalizationsRo extends AppLocalizations {
   String get syncFavoritesTitle => 'Sincronizează favoritele';
 
   @override
+  String get favoritesAutoSyncTitle => 'Sincronizează automat';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      'Publică fiecare modificare imediat și o descarcă la pornire, fără a fi nevoie de butoanele de mai jos. Dezactivat implicit: ce pot vedea totuși releele, în ciuda criptării, este explicat mai sus.';
+
+  @override
   String get syncFavoritesDesc =>
       'Publică favoritele tale, criptate end-to-end, pe releele tale Nostr pentru a te urma pe toate dispozitivele. Releele văd doar text cifrat — nimeni în afară de tine nu poate citi conținutul.';
 

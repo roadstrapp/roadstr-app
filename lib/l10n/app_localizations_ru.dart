@@ -1354,6 +1354,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get syncFavoritesTitle => 'Синхронизация избранного';
 
   @override
+  String get favoritesAutoSyncTitle => 'Синхронизировать автоматически';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      'Публикует каждое изменение сразу и загружает его при запуске, без использования кнопок ниже. По умолчанию выключено: что реле всё же могут увидеть, несмотря на шифрование, объясняется выше.';
+
+  @override
   String get syncFavoritesDesc =>
       'Публикуйте своё избранное со сквозным шифрованием на ваших реле Nostr, чтобы оно следовало за вами на всех устройствах. Реле видят только шифртекст — никто, кроме вас, не может прочитать содержимое.';
 

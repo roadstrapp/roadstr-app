@@ -1360,6 +1360,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get syncFavoritesTitle => 'Sincronizza preferiti';
 
   @override
+  String get favoritesAutoSyncTitle => 'Sincronizza automaticamente';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      'Pubblica ogni modifica in tempo reale e la scarica all\'avvio, senza bisogno dei pulsanti sotto. Disattivata di default: cosa possono comunque vedere i relay, anche con la cifratura, è spiegato sopra.';
+
+  @override
   String get syncFavoritesDesc =>
       'Pubblica i tuoi preferiti, cifrati end-to-end, sui tuoi relay Nostr così ti seguono su altri dispositivi. I relay vedono solo dati cifrati — nessuno tranne te può leggerne il contenuto.';
 

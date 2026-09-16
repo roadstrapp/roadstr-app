@@ -429,6 +429,8 @@
   "parkingRemove": "Neħħi l-parkeġġ",
   "parkingRemovedSnack": "Il-post tal-parkeġġ tneħħa",
   "syncFavoritesTitle": "Sinkronizza l-favoriti",
+  "favoritesAutoSyncTitle": "Issinkronizza awtomatikament",
+  "favoritesAutoSyncDesc": "Jippubblika kull bidla minnufih u jniżżilha mal-bidu, mingħajr bżonn tal-buttuni ta' taħt. Mitfi b'default: x'jistgħu xorta jaraw ir-relays minkejja l-kriptaġġ hu spjegat hawn fuq.",
   "syncFavoritesDesc": "Ippubblika l-favoriti tiegħek, kriptati end-to-end, fuq ir-relays Nostr tiegħek biex isegwuk fuq l-apparati kollha. Ir-relays jaraw biss test kriptat — ħadd ħliefek ma jista’ jaqra l-kontenut.",
   "syncNoIdentity": "Idħol b’Nostr (Settings → Profil) biex tattiva s-sinkronizzazzjoni",
   "syncNowButton": "Ibgħat lil Nostr",

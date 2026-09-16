@@ -429,6 +429,8 @@
   "parkingRemove": "删除停车位置",
   "parkingRemovedSnack": "停车位置已删除",
   "syncFavoritesTitle": "同步收藏",
+  "favoritesAutoSyncTitle": "自动同步",
+  "favoritesAutoSyncDesc": "会立即发布每次更改，并在启动时拉取，无需使用下面的按钮。默认关闭：即使经过加密，中继仍可看到的信息已在上文说明。",
   "syncFavoritesDesc": "将您的收藏以端到端加密方式发布到您的Nostr中继，让它们在所有设备上跟随您。中继只能看到密文 — 除您之外没有人能读取内容。",
   "syncNoIdentity": "使用Nostr登录（设置 → 个人资料）以启用同步",
   "syncNowButton": "推送到Nostr",

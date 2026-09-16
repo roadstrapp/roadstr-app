@@ -429,6 +429,8 @@
   "parkingRemove": "Elimină parcarea",
   "parkingRemovedSnack": "Locul de parcare a fost eliminat",
   "syncFavoritesTitle": "Sincronizează favoritele",
+  "favoritesAutoSyncTitle": "Sincronizează automat",
+  "favoritesAutoSyncDesc": "Publică fiecare modificare imediat și o descarcă la pornire, fără a fi nevoie de butoanele de mai jos. Dezactivat implicit: ce pot vedea totuși releele, în ciuda criptării, este explicat mai sus.",
   "syncFavoritesDesc": "Publică favoritele tale, criptate end-to-end, pe releele tale Nostr pentru a te urma pe toate dispozitivele. Releele văd doar text cifrat — nimeni în afară de tine nu poate citi conținutul.",
   "syncNoIdentity": "Autentifică-te cu Nostr (Setări → Profil) pentru a activa sincronizarea",
   "syncNowButton": "Trimite pe Nostr",

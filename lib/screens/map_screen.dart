@@ -4214,7 +4214,16 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// no network keys → skip; nothing synced → skip; a passphrase-locked
   /// snapshot (passphrase wiped by the reinstall) → skip (manual pull can
   /// prompt for it). Never removes a local favorite — only adds/updates.
+  ///
+  /// Gated on 'favoritesSyncAutoEnabled', off by default — same reasoning as
+  /// SettingsScreen._autoPushFavorites: pulling on every launch just because
+  /// the user is logged in, with no separate opt-in, is not what "optional...
+  /// enable it from Settings" promises.
   Future<void> _autoRestoreFavorites() async {
+    if (!(Hive.box('settings')
+        .get('favoritesSyncAutoEnabled', defaultValue: false) as bool)) {
+      return;
+    }
     try {
       final pub = await _secStorage.read(key: 'nostr_pub_hex');
       if (pub == null) return;

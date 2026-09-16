@@ -429,6 +429,8 @@
   "parkingRemove": "Poista pysäköinti",
   "parkingRemovedSnack": "Pysäköintipaikka poistettu",
   "syncFavoritesTitle": "Synkronoi suosikit",
+  "favoritesAutoSyncTitle": "Synkronoi automaattisesti",
+  "favoritesAutoSyncDesc": "Julkaisee jokaisen muutoksen heti ja hakee sen käynnistyksen yhteydessä ilman alla olevia painikkeita. Oletuksena pois päältä: mitä releet voivat salauksesta huolimatta silti nähdä, on selitetty yllä.",
   "syncFavoritesDesc": "Julkaise suosikkisi päästä päähän salattuna Nostr-releillesi, jotta ne seuraavat sinua kaikilla laitteillasi. Releet näkevät vain salattua tekstiä — kukaan muu kuin sinä ei voi lukea sisältöä.",
   "syncNoIdentity": "Kirjaudu Nostrilla (Asetukset → Profiili) ottaaksesi synkronoinnin käyttöön",
   "syncNowButton": "Lähetä Nostriin",

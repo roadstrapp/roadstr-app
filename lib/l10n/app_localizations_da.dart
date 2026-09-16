@@ -1355,6 +1355,13 @@ class AppLocalizationsDa extends AppLocalizations {
   String get syncFavoritesTitle => 'Synkronisér favoritter';
 
   @override
+  String get favoritesAutoSyncTitle => 'Synkroniser automatisk';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      'Udgiver hver ændring med det samme og henter den ved opstart, uden at du behøver knapperne nedenfor. Slået fra som standard: hvad relæer stadig kan se på trods af krypteringen, er forklaret ovenfor.';
+
+  @override
   String get syncFavoritesDesc =>
       'Udgiv dine favoritter, end-to-end-krypteret, til dine Nostr-relæer, så de følger dig på tværs af enheder. Relæerne ser kun krypteret tekst — ingen andre end dig kan læse indholdet.';
 

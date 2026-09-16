@@ -1355,6 +1355,13 @@ class AppLocalizationsEt extends AppLocalizations {
   String get syncFavoritesTitle => 'Sünkrooni lemmikud';
 
   @override
+  String get favoritesAutoSyncTitle => 'Sünkrooni automaatselt';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      'Avaldab iga muudatuse kohe ja laadib selle käivitamisel alla, ilma allolevaid nuppe kasutamata. Vaikimisi väljas: mida releed krüpteerimisest hoolimata ikkagi näha võivad, on selgitatud eespool.';
+
+  @override
   String get syncFavoritesDesc =>
       'Avalda oma lemmikud otspunktkrüpteeritult oma Nostr releedele, et need järgneksid sulle kõigis seadmetes. Releed näevad ainult šifreeritud teksti — keegi peale sinu ei saa sisu lugeda.';
 

@@ -429,6 +429,8 @@
   "parkingRemove": "駐車位置を削除",
   "parkingRemovedSnack": "駐車位置を削除しました",
   "syncFavoritesTitle": "お気に入りを同期",
+  "favoritesAutoSyncTitle": "自動同期",
+  "favoritesAutoSyncDesc": "変更をすぐに公開し、起動時に取得します。下のボタンを使う必要はありません。デフォルトではオフです。暗号化されていてもリレーが見られる情報については上記で説明しています。",
   "syncFavoritesDesc": "お気に入りをエンドツーエンド暗号化してNostrリレーに公開し、すべての端末で利用できます。リレーには暗号文しか見えません — あなた以外は内容を読めません。",
   "syncNoIdentity": "同期を有効にするにはNostrでログインしてください（設定 → プロフィール）",
   "syncNowButton": "Nostrへ送信",
