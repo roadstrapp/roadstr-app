@@ -1057,7 +1057,16 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// Best-effort and silent: no network keys, nothing synced, or a
   /// passphrase-locked snapshot all just skip. Never removes a local
   /// favourite, only adds/updates.
+  ///
+  /// Gated on 'favoritesSyncAutoEnabled', off by default — same reasoning as
+  /// SettingsScreen._autoPushFavorites: pulling on every launch just because
+  /// the user is logged in, with no separate opt-in, is not what "optional...
+  /// enable it from Settings" promises.
   Future<void> _autoRestoreFavorites() async {
+    if (!(Hive.box('settings')
+        .get('favoritesSyncAutoEnabled', defaultValue: false) as bool)) {
+      return;
+    }
     try {
       final pub = await _secStorage.read(key: 'nostr_pub_hex');
       if (pub == null) return;

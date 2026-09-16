@@ -1356,6 +1356,13 @@ class AppLocalizationsGa extends AppLocalizations {
   String get syncFavoritesTitle => 'Sioncronaigh ceanáin';
 
   @override
+  String get favoritesAutoSyncTitle => 'Sioncronaigh go huathoibríoch';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      'Foilsíonn gach athrú láithreach agus déanann é a íoslódáil ag am tosaithe, gan gá leis na cnaipí thíos. As go réamhshocraithe: an méid is féidir le hathsheachadáin a fheiceáil fós in ainneoin an chriptithe, tá sé sin míníte thuas.';
+
+  @override
   String get syncFavoritesDesc =>
       'Foilsigh do cheanáin, criptithe ó cheann go ceann, chuig d’athsheachadáin Nostr ionas go leanfaidh siad thú ar fud do ghléasanna. Ní fheiceann na hathsheachadáin ach téacs criptithe — ní féidir le duine ar bith seachas tú féin an t-ábhar a léamh.';
 

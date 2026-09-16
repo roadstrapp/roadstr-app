@@ -1362,6 +1362,13 @@ class AppLocalizationsBg extends AppLocalizations {
   String get syncFavoritesTitle => 'Синхронизиране на любими';
 
   @override
+  String get favoritesAutoSyncTitle => 'Автоматично синхронизиране';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      'Публикува всяка промяна незабавно и я изтегля при стартиране, без да са нужни бутоните по-долу. Изключено по подразбиране: какво все пак могат да видят релетата въпреки криптирането е обяснено по-горе.';
+
+  @override
   String get syncFavoritesDesc =>
       'Публикувайте любимите си, шифровани от край до край, към вашите Nostr релета, за да ви следват на всички устройства. Релетата виждат само шифрован текст — никой освен вас не може да чете съдържанието.';
 

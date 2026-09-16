@@ -429,6 +429,8 @@
   "parkingRemove": "Eemalda parkimine",
   "parkingRemovedSnack": "Parkimiskoht eemaldatud",
   "syncFavoritesTitle": "Sünkrooni lemmikud",
+  "favoritesAutoSyncTitle": "Sünkrooni automaatselt",
+  "favoritesAutoSyncDesc": "Avaldab iga muudatuse kohe ja laadib selle käivitamisel alla, ilma allolevaid nuppe kasutamata. Vaikimisi väljas: mida releed krüpteerimisest hoolimata ikkagi näha võivad, on selgitatud eespool.",
   "syncFavoritesDesc": "Avalda oma lemmikud otspunktkrüpteeritult oma Nostr releedele, et need järgneksid sulle kõigis seadmetes. Releed näevad ainult šifreeritud teksti — keegi peale sinu ei saa sisu lugeda.",
   "syncNoIdentity": "Sünkroonimise lubamiseks logi sisse Nostriga (Seaded → Profiil)",
   "syncNowButton": "Saada Nostrisse",

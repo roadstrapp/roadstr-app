@@ -1355,6 +1355,13 @@ class AppLocalizationsHr extends AppLocalizations {
   String get syncFavoritesTitle => 'Sinkroniziraj favorite';
 
   @override
+  String get favoritesAutoSyncTitle => 'Automatski sinkroniziraj';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      'Odmah objavljuje svaku promjenu i preuzima je pri pokretanju, bez potrebe za gumbima ispod. Zadano isključeno: što releji unatoč šifriranju ipak mogu vidjeti objašnjeno je iznad.';
+
+  @override
   String get syncFavoritesDesc =>
       'Objavite svoje favorite, end-to-end šifrirane, na svoje Nostr releje kako bi vas pratili na svim uređajima. Releji vide samo šifrirani tekst — nitko osim vas ne može čitati sadržaj.';
 

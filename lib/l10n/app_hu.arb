@@ -429,6 +429,8 @@
   "parkingRemove": "Parkolás eltávolítása",
   "parkingRemovedSnack": "Parkolóhely eltávolítva",
   "syncFavoritesTitle": "Kedvencek szinkronizálása",
+  "favoritesAutoSyncTitle": "Automatikus szinkronizálás",
+  "favoritesAutoSyncDesc": "Minden módosítást azonnal közzétesz, és indításkor letölti, az alábbi gombok nélkül is. Alapértelmezés szerint kikapcsolva: hogy a relék a titkosítás ellenére mit láthatnak, azt fentebb magyaráztuk el.",
   "syncFavoritesDesc": "Tedd közzé kedvenceidet végponttól végpontig titkosítva a Nostr reléiden, hogy minden eszközödön kövessenek. A relék csak titkosított szöveget látnak — rajtad kívül senki sem olvashatja a tartalmat.",
   "syncNoIdentity": "Jelentkezz be Nostrral (Beállítások → Profil) a szinkronizálás engedélyezéséhez",
   "syncNowButton": "Küldés a Nostrra",

@@ -1357,6 +1357,13 @@ class AppLocalizationsLt extends AppLocalizations {
   String get syncFavoritesTitle => 'Sinchronizuoti mėgstamiausius';
 
   @override
+  String get favoritesAutoSyncTitle => 'Sinchronizuoti automatiškai';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      'Kiekvieną pakeitimą iškart paskelbia ir atsisiunčia paleidimo metu, nereikalaujant naudoti toliau pateiktų mygtukų. Pagal numatytuosius nustatymus išjungta: ką relės vis tiek gali matyti, nepaisant šifravimo, paaiškinta aukščiau.';
+
+  @override
   String get syncFavoritesDesc =>
       'Publikuokite savo mėgstamiausius, šifruotus nuo galo iki galo, savo Nostr relėse, kad jie sektų jus visuose įrenginiuose. Relės mato tik šifruotą tekstą — niekas, išskyrus jus, negali skaityti turinio.';
 

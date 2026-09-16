@@ -429,6 +429,8 @@
   "parkingRemove": "Ukloni parkiranje",
   "parkingRemovedSnack": "Parkirno mjesto uklonjeno",
   "syncFavoritesTitle": "Sinkroniziraj favorite",
+  "favoritesAutoSyncTitle": "Automatski sinkroniziraj",
+  "favoritesAutoSyncDesc": "Odmah objavljuje svaku promjenu i preuzima je pri pokretanju, bez potrebe za gumbima ispod. Zadano isključeno: što releji unatoč šifriranju ipak mogu vidjeti objašnjeno je iznad.",
   "syncFavoritesDesc": "Objavite svoje favorite, end-to-end šifrirane, na svoje Nostr releje kako bi vas pratili na svim uređajima. Releji vide samo šifrirani tekst — nitko osim vas ne može čitati sadržaj.",
   "syncNoIdentity": "Prijavite se s Nostrom (Postavke → Profil) za omogućavanje sinkronizacije",
   "syncNowButton": "Pošalji na Nostr",

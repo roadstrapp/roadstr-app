@@ -429,6 +429,8 @@
   "parkingRemove": "Parkposition entfernen",
   "parkingRemovedSnack": "Parkposition entfernt",
   "syncFavoritesTitle": "Favoriten synchronisieren",
+  "favoritesAutoSyncTitle": "Automatisch synchronisieren",
+  "favoritesAutoSyncDesc": "Überträgt jede Änderung sofort und lädt sie beim Start herunter, ohne die Schaltflächen unten zu benötigen. Standardmäßig deaktiviert: Was die Relays trotz Verschlüsselung dennoch sehen können, ist oben erklärt.",
   "syncFavoritesDesc": "Veröffentliche deine Favoriten Ende-zu-Ende-verschlüsselt auf deinen Nostr-Relays, damit sie dir auf allen Geräten folgen. Relays sehen nur Chiffretext — niemand außer dir kann die Inhalte lesen.",
   "syncNoIdentity": "Melde dich mit Nostr an (Einstellungen → Profil), um die Synchronisierung zu aktivieren",
   "syncNowButton": "An Nostr senden",

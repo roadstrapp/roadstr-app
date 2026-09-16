@@ -1357,6 +1357,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get syncFavoritesTitle => 'Kedvencek szinkronizálása';
 
   @override
+  String get favoritesAutoSyncTitle => 'Automatikus szinkronizálás';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      'Minden módosítást azonnal közzétesz, és indításkor letölti, az alábbi gombok nélkül is. Alapértelmezés szerint kikapcsolva: hogy a relék a titkosítás ellenére mit láthatnak, azt fentebb magyaráztuk el.';
+
+  @override
   String get syncFavoritesDesc =>
       'Tedd közzé kedvenceidet végponttól végpontig titkosítva a Nostr reléiden, hogy minden eszközödön kövessenek. A relék csak titkosított szöveget látnak — rajtad kívül senki sem olvashatja a tartalmat.';
 

@@ -1318,6 +1318,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get syncFavoritesTitle => '同步收藏';
 
   @override
+  String get favoritesAutoSyncTitle => '自动同步';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      '会立即发布每次更改，并在启动时拉取，无需使用下面的按钮。默认关闭：即使经过加密，中继仍可看到的信息已在上文说明。';
+
+  @override
   String get syncFavoritesDesc =>
       '将您的收藏以端到端加密方式发布到您的Nostr中继，让它们在所有设备上跟随您。中继只能看到密文 — 除您之外没有人能读取内容。';
 

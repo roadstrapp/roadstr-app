@@ -1351,6 +1351,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syncFavoritesTitle => 'Sync favorites';
 
   @override
+  String get favoritesAutoSyncTitle => 'Sync automatically';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      'Pushes every change immediately and pulls on startup, without needing the buttons below. Off by default: what relays can still see even through the encryption is explained above.';
+
+  @override
   String get syncFavoritesDesc =>
       'Publish your favorites, end-to-end encrypted, to your Nostr relays so they follow you across devices. Relays only ever see ciphertext — nobody but you can read the contents.';
 

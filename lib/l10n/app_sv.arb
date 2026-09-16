@@ -429,6 +429,8 @@
   "parkingRemove": "Ta bort parkering",
   "parkingRemovedSnack": "Parkeringsplats borttagen",
   "syncFavoritesTitle": "Synkronisera favoriter",
+  "favoritesAutoSyncTitle": "Synkronisera automatiskt",
+  "favoritesAutoSyncDesc": "Publicerar varje ändring direkt och hämtar den vid start, utan att behöva knapparna nedan. Avstängt som standard: vad reläer ändå kan se trots krypteringen förklaras ovan.",
   "syncFavoritesDesc": "Publicera dina favoriter, end-to-end-krypterade, till dina Nostr-reläer så att de följer dig på alla enheter. Reläerna ser bara krypterad text — ingen utom du kan läsa innehållet.",
   "syncNoIdentity": "Logga in med Nostr (Inställningar → Profil) för att aktivera synkronisering",
   "syncNowButton": "Skicka till Nostr",

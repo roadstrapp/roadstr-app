@@ -429,6 +429,8 @@
   "parkingRemove": "Supprimer le stationnement",
   "parkingRemovedSnack": "Stationnement supprimé",
   "syncFavoritesTitle": "Synchroniser les favoris",
+  "favoritesAutoSyncTitle": "Synchroniser automatiquement",
+  "favoritesAutoSyncDesc": "Publie chaque modification immédiatement et la récupère au démarrage, sans avoir besoin des boutons ci-dessous. Désactivé par défaut : ce que les relais peuvent quand même voir malgré le chiffrement est expliqué ci-dessus.",
   "syncFavoritesDesc": "Publiez vos favoris, chiffrés de bout en bout, sur vos relais Nostr pour qu’ils vous suivent sur tous vos appareils. Les relais ne voient que du texte chiffré — personne d’autre que vous ne peut lire le contenu.",
   "syncNoIdentity": "Connectez-vous avec Nostr (Réglages → Profil) pour activer la synchronisation",
   "syncNowButton": "Envoyer vers Nostr",

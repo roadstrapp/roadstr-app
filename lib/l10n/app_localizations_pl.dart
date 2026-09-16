@@ -1355,6 +1355,13 @@ class AppLocalizationsPl extends AppLocalizations {
   String get syncFavoritesTitle => 'Synchronizuj ulubione';
 
   @override
+  String get favoritesAutoSyncTitle => 'Synchronizuj automatycznie';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      'Publikuje każdą zmianę natychmiast i pobiera ją przy starcie, bez potrzeby używania przycisków poniżej. Domyślnie wyłączone: co przekaźniki mogą i tak zobaczyć mimo szyfrowania, wyjaśniono powyżej.';
+
+  @override
   String get syncFavoritesDesc =>
       'Opublikuj swoje ulubione, zaszyfrowane end-to-end, na swoich przekaźnikach Nostr, aby podążały za tobą na wszystkich urządzeniach. Przekaźniki widzą tylko zaszyfrowany tekst — nikt poza tobą nie może odczytać zawartości.';
 

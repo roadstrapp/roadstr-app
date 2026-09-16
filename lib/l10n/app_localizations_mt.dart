@@ -1362,6 +1362,13 @@ class AppLocalizationsMt extends AppLocalizations {
   String get syncFavoritesTitle => 'Sinkronizza l-favoriti';
 
   @override
+  String get favoritesAutoSyncTitle => 'Issinkronizza awtomatikament';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      'Jippubblika kull bidla minnufih u jniżżilha mal-bidu, mingħajr bżonn tal-buttuni ta\' taħt. Mitfi b\'default: x\'jistgħu xorta jaraw ir-relays minkejja l-kriptaġġ hu spjegat hawn fuq.';
+
+  @override
   String get syncFavoritesDesc =>
       'Ippubblika l-favoriti tiegħek, kriptati end-to-end, fuq ir-relays Nostr tiegħek biex isegwuk fuq l-apparati kollha. Ir-relays jaraw biss test kriptat — ħadd ħliefek ma jista’ jaqra l-kontenut.';
 
