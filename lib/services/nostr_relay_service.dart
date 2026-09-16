@@ -187,12 +187,32 @@ class NostrRelayService {
 
   /// IDs of kind-1315 events received in the current batch; used to build the
   /// follow-up kind-1316 confirmation REQ after EOSE.
+  ///
+  /// Cleared on EOSE and on [subscribeArea] moving to a new geohash cell —
+  /// but a live subscription gets no further EOSE for as long as the driver
+  /// stays in the same cell, which can be hours, so this is otherwise
+  /// unbounded: [_maxPendingIds] is what actually stops a flood of validly
+  /// signed events for the active area (trivial to produce — Nostr
+  /// identities are free) from growing it without limit for that whole time.
   final _pendingIds = <String>{};
+  static const _maxPendingIds = 500;
 
   /// "eventId:pubkey" pairs whose confirmation/denial has been counted.
   /// Enforces one vote per identity per event and makes re-fetched
-  /// confirmations idempotent. Pruned together with expired events.
+  /// confirmations idempotent. Pruned together with expired events — which
+  /// bounds the total across all events, but not how many one single event
+  /// can accumulate before then, and a report can stay cached for its whole
+  /// TTL (up to 30 days). [_maxVotesPerEvent] is the per-event cap: past it,
+  /// further confirmations for that report are ignored rather than counted.
   final _countedVotes = <String>{};
+  static const _maxVotesPerEvent = 200;
+
+  /// Per-event vote tally backing [_maxVotesPerEvent]. Checking that cap
+  /// against [_countedVotes] directly would mean scanning every recorded
+  /// voter, for every event, on every single incoming confirmation — this
+  /// keeps the check O(1). Kept in lockstep with [_countedVotes] and pruned
+  /// together in [_pruneEventDerivedState].
+  final _voteCountByEvent = <String, int>{};
   final _publishAcks = <String, Completer<bool>>{};
 
   // ── activity notifications (zaps + confirmations/denials of MY reports) ────
@@ -233,12 +253,26 @@ class NostrRelayService {
   List<RoadEvent> get currentEvents =>
       _events.values.where((e) => !e.isExpired).toList();
 
+  /// Bumped by every [connect] attempt and captured by that attempt's own
+  /// completion handlers, so a signal belonging to an attempt [connect] has
+  /// already superseded — or the doubled onError-then-onDone a failed
+  /// handshake fires, see [_onStreamEnded] — cannot act a second time for
+  /// what is really one failure.
+  int _connectGeneration = 0;
+
+  /// How long the WebSocket upgrade handshake may take before this attempt
+  /// counts as failed. Generous — a slow mobile network legitimately takes
+  /// longer than a LAN — because a false timeout here would reconnect into
+  /// the very connection that was about to succeed.
+  static const _handshakeTimeout = Duration(seconds: 10);
+
   /// Opens a WebSocket connection to the next relay in the round-robin list.
   ///
   /// If a previous subscription existed, it is replayed on the new connection
   /// so the caller does not need to call [subscribeArea] again after reconnect.
   Future<void> connect() async {
     if (_disposed) return;
+    final generation = ++_connectGeneration;
     await _wsSub?.cancel();
     _ws?.sink.close().catchError((_) {});
     _connected = false;
@@ -248,34 +282,64 @@ class NostrRelayService {
         Timer.periodic(const Duration(minutes: 2), (_) => _removeExpired());
 
     final url = _relays[_relayIdx % _relays.length];
+    final channel = WebSocketChannel.connect(Uri.parse(url));
     try {
-      if (_disposed) return;
-      _ws = WebSocketChannel.connect(Uri.parse(url));
-      // A refused upgrade (damus answers 503 under load) reaches the listener
-      // below, which rotates to the next relay. `ready` carries the same error
-      // and would otherwise surface as an unhandled asynchronous exception.
-      _ws!.ready.catchError((Object _) {});
-      _wsSub = _ws!.stream.listen(
-        _onMessage,
-        onError: (_) => _scheduleReconnect(),
-        onDone: _scheduleReconnect,
-        cancelOnError: false,
-      );
-      _connected = true;
-      // The socket is up: the next failure starts from the short delay again.
-      _reconnectAttempt = 0;
-      _failuresThisSweep = 0;
-      // Replay the last area subscription if the app already had one active.
-      if (_lastGeohashes.isNotEmpty) _sendEventsReq(_lastGeohashes);
-      if (_myPubKeyForNotif != null) _sendMyNotificationReqs();
-      // This fires on the very first successful connect too, not just a
-      // reconnect — exactly right, since a report created while the app
-      // launched with no signal at all is queued the same way one created
-      // mid-drive is, and both need this same first success to go out.
-      unawaited(flushPendingReports());
+      // The connection is not real until the handshake actually completes —
+      // WebSocketChannel.connect() returns a channel object synchronously
+      // whether or not the upgrade will ever succeed. Treating that object
+      // as "connected" (the previous behaviour) is what broke the backoff
+      // below: a refused upgrade (a relay answering 503 under load, or
+      // simply unreachable) still reset the reconnect counters to zero
+      // before failing, so a total outage retried every ~1.25 s forever
+      // instead of ever escalating — hammering exactly the relays already
+      // struggling, once per client, indefinitely.
+      await channel.ready.timeout(_handshakeTimeout);
     } catch (_) {
-      _scheduleReconnect();
+      _onStreamEnded(generation);
+      return;
     }
+    if (_disposed || generation != _connectGeneration) {
+      // Superseded while the handshake was in flight (disposed, or a later
+      // connect() call already started) — this success arrived too late to
+      // matter, so close it rather than leaving an orphaned socket open.
+      channel.sink.close().catchError((_) {});
+      return;
+    }
+    _ws = channel;
+    _wsSub = _ws!.stream.listen(
+      _onMessage,
+      onError: (_) => _onStreamEnded(generation),
+      onDone: () => _onStreamEnded(generation),
+      cancelOnError: false,
+    );
+    _connected = true;
+    // The handshake actually succeeded: the next failure starts from the
+    // short delay again.
+    _reconnectAttempt = 0;
+    _failuresThisSweep = 0;
+    // Replay the last area subscription if the app already had one active.
+    if (_lastGeohashes.isNotEmpty) _sendEventsReq(_lastGeohashes);
+    if (_myPubKeyForNotif != null) _sendMyNotificationReqs();
+    // This fires on the very first successful connect too, not just a
+    // reconnect — exactly right, since a report created while the app
+    // launched with no signal at all is queued the same way one created
+    // mid-drive is, and both need this same first success to go out.
+    unawaited(flushPendingReports());
+  }
+
+  /// The live connection ended, however that was reported — a failed
+  /// handshake (onError from [connect]'s own catch, immediately followed by
+  /// the underlying stream itself emitting that same error and closing, per
+  /// IOWebSocketChannel's own documented behaviour), or an ordinary drop of
+  /// an already-open connection reported via onError, onDone, or both.
+  /// [generation] makes every signal after the first one for a given
+  /// [connect] attempt a no-op, so one real failure schedules exactly one
+  /// reconnect rather than compounding _relayIdx/backoff bookkeeping that
+  /// assumes one call per failure.
+  void _onStreamEnded(int generation) {
+    if (generation != _connectGeneration) return;
+    _connectGeneration++;
+    _scheduleReconnect();
   }
 
   static const _pendingReportsKey = 'pending_road_reports';
@@ -848,27 +912,44 @@ class NostrRelayService {
               '[Nostr] NOTICE from relay: ${msg.length > 1 ? msg[1] : ""}');
         case 'EVENT':
           if (msg.length < 3) return;
+          final subId = msg[1];
           final json = (msg[2] as Map).cast<String, dynamic>();
+          final kind = json['kind'];
+          // Cheap filtering before the expensive part. Recomputing an
+          // event's canonical id and checking its Schnorr signature is real
+          // CPU cost, and a relay — or anyone publishing through one, since
+          // Nostr identities are free to mint — forwarding a flood of
+          // validly-signed events for a kind or subscription this
+          // connection never asked for would otherwise pay that cost on
+          // every single one before ever being told "not for us". Neither
+          // check trusts anything about the event's own content: only which
+          // subscription it arrived on and what kind it claims, both of
+          // which the relay itself had to route correctly for the message
+          // to reach this socket at all.
+          final wantsIt = switch (kind) {
+            1315 || 1317 => subId == _eventsSubId,
+            1316 => subId == _confSubId || subId == _myConfSubId,
+            9735 => subId == _zapSubId,
+            _ => false,
+          };
+          if (!wantsIt) return;
           // Relays are untrusted: drop events whose id doesn't match the
           // canonical hash or whose Schnorr signature is invalid. Without
           // this check a malicious relay could fabricate road events or
           // confirmations attributed to any pubkey.
           if (!_verifyEvent(json)) return;
-          switch (json['kind'] as int) {
+          switch (kind as int) {
             case 1315:
-              if (msg[1] != _eventsSubId) return;
               _handleRoadEvent(json);
             case 1317:
-              if (msg[1] != _eventsSubId) return;
               _handleRoadUpdate(json);
             case 1316:
-              if (msg[1] == _confSubId) {
+              if (subId == _confSubId) {
                 _handleConfirmation(json);
-              } else if (msg[1] == _myConfSubId) {
+              } else if (subId == _myConfSubId) {
                 _handleMyConfirmation(json);
               }
             case 9735:
-              if (msg[1] != _zapSubId) return;
               _handleZapReceipt(json);
           }
         case 'EOSE':
@@ -916,7 +997,9 @@ class NostrRelayService {
       _events.remove(oldest.id);
       _pruneEventDerivedState();
     }
-    _pendingIds.add(event.id);
+    // Past the cap, the event above is still cached and shown on the map —
+    // only its confirmation counts may not get fetched on the next EOSE.
+    if (_pendingIds.length < _maxPendingIds) _pendingIds.add(event.id);
     if (!_controller.isClosed) _controller.add(currentEvents);
   }
 
@@ -1009,11 +1092,17 @@ class NostrRelayService {
     if (status != 'still_there' && status != 'no_longer_there') return;
     final ev = _events[targetId];
     if (ev == null) return;
+    // Capped per event: without this, minting throwaway Nostr identities —
+    // free and instant — to flood one report with fake confirmations would
+    // grow _countedVotes without bound for as long as that report stays
+    // cached, which for some categories is up to 30 days.
+    if ((_voteCountByEvent[targetId] ?? 0) >= _maxVotesPerEvent) return;
     // One vote per pubkey per event: prevents a single identity from
     // inflating counts, and prevents double-counting when confirmations are
     // re-fetched after every re-subscription.
     final voter = '$targetId:${json['pubkey']}';
     if (!_countedVotes.add(voter)) return;
+    _voteCountByEvent[targetId] = (_voteCountByEvent[targetId] ?? 0) + 1;
     if (status == 'still_there') {
       ev.confirmations++;
     } else if (status == 'no_longer_there') {
@@ -1110,6 +1199,7 @@ class NostrRelayService {
       return separator <= 0 ||
           !_events.containsKey(vote.substring(0, separator));
     });
+    _voteCountByEvent.removeWhere((id, _) => !_events.containsKey(id));
     _prunePendingRoadUpdates();
   }
 
