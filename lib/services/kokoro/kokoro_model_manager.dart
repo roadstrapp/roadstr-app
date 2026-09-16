@@ -17,6 +17,10 @@ class KokoroModelManager {
   KokoroModelManager._();
   static final KokoroModelManager instance = KokoroModelManager._();
 
+  /// Ceiling on one voice/model file's total download time — see where it's
+  /// used, next to the per-chunk inactivity timeout it complements.
+  static const _maxTaskDownloadTime = Duration(minutes: 10);
+
   Directory? _dir;
 
   // ── Static download state (survives widget dispose) ──────────────────────────
@@ -184,6 +188,13 @@ class KokoroModelManager {
         final sink = partial.openWrite();
         var taskBytes = 0;
         try {
+          // The per-chunk timeout below only catches a connection that goes
+          // fully silent; a server trickling one byte just under that window
+          // forever would never trip it and could hold the download open
+          // indefinitely. This bounds the whole task's wall-clock time
+          // regardless of how often chunks arrive — generous for even a
+          // genuinely slow connection finishing a real file, finite for one
+          // that never will.
           await response.stream
               .timeout(const Duration(seconds: 30))
               .forEach((chunk) {
@@ -196,7 +207,7 @@ class KokoroModelManager {
               onProgress?.call(
                   ((downloadedBytes + taskBytes) / totalBytes).clamp(0.0, 1.0));
             }
-          });
+          }).timeout(_maxTaskDownloadTime);
         } finally {
           // Close even on mid-download failure or the file handle leaks; the
           // truncated file itself is harmless — the size check re-downloads it.
