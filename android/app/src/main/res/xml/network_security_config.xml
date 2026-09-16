@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Cleartext HTTP stays refused everywhere by default (base-config below,
+  matching usesCleartextTraffic="false" in the manifest) — this file exists
+  to carve out exactly one narrow exception, not to weaken that.
+
+  Settings' self-hosted GraphHopper field ships with the hint
+  "http://localhost:8989/route", the ordinary shape of a routing engine
+  running on the same device or, during development, the Android emulator.
+  Without an exception listed here that hint is a dead end: the base policy
+  blocks it like any other cleartext request, and RoutingService additionally
+  refuses to even attempt an http:// GraphHopper URL that is not one of these
+  loopback hosts — see RoutingService.validateGraphhopperServerUrl. Anything
+  else — a public IP, a LAN address, a real domain — still needs HTTPS.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <!-- The Android emulator's alias for the host machine's localhost. -->
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>

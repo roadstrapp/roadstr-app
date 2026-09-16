@@ -951,6 +951,54 @@ void main() {
           isFalse);
     });
   });
+
+  group('RoutingService.validateGraphhopperServerUrl', () {
+    test('accepts the documented self-hosted localhost URL', () {
+      expect(
+          () => RoutingService.validateGraphhopperServerUrl(
+              'http://localhost:8989/route'),
+          returnsNormally);
+    });
+
+    test('accepts loopback by IP and the Android emulator alias', () {
+      expect(
+          () => RoutingService.validateGraphhopperServerUrl(
+              'http://127.0.0.1:8989/route'),
+          returnsNormally);
+      expect(
+          () => RoutingService.validateGraphhopperServerUrl(
+              'http://10.0.2.2:8989/route'),
+          returnsNormally);
+    });
+
+    test('accepts HTTPS anywhere, loopback or not', () {
+      expect(
+          () => RoutingService.validateGraphhopperServerUrl(
+              'https://graphhopper.example.com/route'),
+          returnsNormally);
+    });
+
+    test('refuses plain HTTP to a real host — cleartext coordinates', () {
+      expect(
+          () => RoutingService.validateGraphhopperServerUrl(
+              'http://graphhopper.example.com/route'),
+          throwsA(isA<RoutingException>()));
+    });
+
+    test('refuses plain HTTP to a LAN address — still not loopback', () {
+      expect(
+          () => RoutingService.validateGraphhopperServerUrl(
+              'http://192.168.1.50:8989/route'),
+          throwsA(isA<RoutingException>()));
+    });
+
+    test('refuses an unparsable or hostless URL', () {
+      expect(() => RoutingService.validateGraphhopperServerUrl(''),
+          throwsA(isA<RoutingException>()));
+      expect(() => RoutingService.validateGraphhopperServerUrl('not a url'),
+          throwsA(isA<RoutingException>()));
+    });
+  });
 }
 
 String _encodePolyline6(List<LatLng> points) {
