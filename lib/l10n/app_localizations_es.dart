@@ -1357,6 +1357,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get syncFavoritesTitle => 'Sincronizar favoritos';
 
   @override
+  String get favoritesAutoSyncTitle => 'Sincronizar automáticamente';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      'Publica cada cambio de inmediato y lo descarga al iniciar, sin necesidad de los botones de abajo. Desactivado por defecto: lo que los relés pueden ver igualmente pese al cifrado se explica arriba.';
+
+  @override
   String get syncFavoritesDesc =>
       'Publica tus favoritos, cifrados de extremo a extremo, en tus relés Nostr para que te sigan en todos tus dispositivos. Los relés solo ven texto cifrado — nadie más que tú puede leer el contenido.';
 

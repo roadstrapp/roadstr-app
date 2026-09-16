@@ -429,6 +429,8 @@
   "parkingRemove": "Bain an pháirceáil",
   "parkingRemovedSnack": "Spás páirceála bainte",
   "syncFavoritesTitle": "Sioncronaigh ceanáin",
+  "favoritesAutoSyncTitle": "Sioncronaigh go huathoibríoch",
+  "favoritesAutoSyncDesc": "Foilsíonn gach athrú láithreach agus déanann é a íoslódáil ag am tosaithe, gan gá leis na cnaipí thíos. As go réamhshocraithe: an méid is féidir le hathsheachadáin a fheiceáil fós in ainneoin an chriptithe, tá sé sin míníte thuas.",
   "syncFavoritesDesc": "Foilsigh do cheanáin, criptithe ó cheann go ceann, chuig d’athsheachadáin Nostr ionas go leanfaidh siad thú ar fud do ghléasanna. Ní fheiceann na hathsheachadáin ach téacs criptithe — ní féidir le duine ar bith seachas tú féin an t-ábhar a léamh.",
   "syncNoIdentity": "Logáil isteach le Nostr (Socruithe → Próifíl) chun sioncronú a chumasú",
   "syncNowButton": "Seol chuig Nostr",

@@ -1360,6 +1360,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get syncFavoritesTitle => 'Synchroniser les favoris';
 
   @override
+  String get favoritesAutoSyncTitle => 'Synchroniser automatiquement';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      'Publie chaque modification immédiatement et la récupère au démarrage, sans avoir besoin des boutons ci-dessous. Désactivé par défaut : ce que les relais peuvent quand même voir malgré le chiffrement est expliqué ci-dessus.';
+
+  @override
   String get syncFavoritesDesc =>
       'Publiez vos favoris, chiffrés de bout en bout, sur vos relais Nostr pour qu’ils vous suivent sur tous vos appareils. Les relais ne voient que du texte chiffré — personne d’autre que vous ne peut lire le contenu.';
 

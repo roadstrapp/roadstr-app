@@ -429,6 +429,8 @@
   "parkingRemove": "Parkeerplek verwijderen",
   "parkingRemovedSnack": "Parkeerplek verwijderd",
   "syncFavoritesTitle": "Favorieten synchroniseren",
+  "favoritesAutoSyncTitle": "Automatisch synchroniseren",
+  "favoritesAutoSyncDesc": "Publiceert elke wijziging direct en haalt deze bij het opstarten op, zonder de knoppen hieronder nodig te hebben. Standaard uitgeschakeld: wat relays ondanks de versleuteling nog kunnen zien staat hierboven uitgelegd.",
   "syncFavoritesDesc": "Publiceer je favorieten, end-to-end versleuteld, naar je Nostr-relays zodat ze je volgen op al je apparaten. Relays zien alleen versleutelde tekst — niemand behalve jij kan de inhoud lezen.",
   "syncNoIdentity": "Log in met Nostr (Instellingen → Profiel) om synchronisatie in te schakelen",
   "syncNowButton": "Naar Nostr sturen",

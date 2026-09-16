@@ -1353,6 +1353,13 @@ class AppLocalizationsFi extends AppLocalizations {
   String get syncFavoritesTitle => 'Synkronoi suosikit';
 
   @override
+  String get favoritesAutoSyncTitle => 'Synkronoi automaattisesti';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      'Julkaisee jokaisen muutoksen heti ja hakee sen käynnistyksen yhteydessä ilman alla olevia painikkeita. Oletuksena pois päältä: mitä releet voivat salauksesta huolimatta silti nähdä, on selitetty yllä.';
+
+  @override
   String get syncFavoritesDesc =>
       'Julkaise suosikkisi päästä päähän salattuna Nostr-releillesi, jotta ne seuraavat sinua kaikilla laitteillasi. Releet näkevät vain salattua tekstiä — kukaan muu kuin sinä ei voi lukea sisältöä.';
 

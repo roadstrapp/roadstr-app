@@ -1351,6 +1351,13 @@ class AppLocalizationsSk extends AppLocalizations {
   String get syncFavoritesTitle => 'Synchronizovať obľúbené';
 
   @override
+  String get favoritesAutoSyncTitle => 'Synchronizovať automaticky';
+
+  @override
+  String get favoritesAutoSyncDesc =>
+      'Okamžite publikuje každú zmenu a pri spustení ju stiahne, bez potreby tlačidiel nižšie. V predvolenom nastavení vypnuté: čo môžu relé napriek šifrovaniu stále vidieť, je vysvetlené vyššie.';
+
+  @override
   String get syncFavoritesDesc =>
       'Publikujte svoje obľúbené, šifrované end-to-end, na svoje Nostr relé, aby vás nasledovali na všetkých zariadeniach. Relé vidia iba šifrovaný text — nikto okrem vás nemôže obsah čítať.';
 
