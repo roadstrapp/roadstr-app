@@ -799,6 +799,7 @@ class RoutingService {
         final server = (graphhopperServer?.trim().isNotEmpty ?? false)
             ? graphhopperServer!.trim()
             : _graphhopperPublic;
+        validateGraphhopperServerUrl(server);
         final parts = <String>[
           'point=${origin.latitude},${origin.longitude}',
           'point=${destination.latitude},${destination.longitude}',
@@ -1861,6 +1862,36 @@ class RoutingService {
   static int? _intValue(dynamic value) =>
       value is num ? value.toInt() : int.tryParse(value?.toString() ?? '');
 
+  /// Hosts the app's Android network security config carves a narrow
+  /// cleartext exception for — see network_security_config.xml. Kept here,
+  /// next to the one place in Dart that needs to agree with it, rather than
+  /// duplicated from memory.
+  static const _cleartextAllowedHosts = {'localhost', '127.0.0.1', '10.0.2.2'};
+
+  /// Refuses a self-hosted GraphHopper URL that would silently fail (or,
+  /// were the app's cleartext policy ever loosened to make it "work",
+  /// silently send origin/destination coordinates in plaintext).
+  ///
+  /// The Settings hint for this field is "http://localhost:8989/route" — the
+  /// ordinary shape of a routing engine on the same device — and the app's
+  /// network security config permits cleartext to exactly that host plus
+  /// 127.0.0.1 and the Android emulator's 10.0.2.2 alias for it, nothing
+  /// else. An http:// URL to any other host is refused outright rather than
+  /// attempted and left to fail on the network layer with no clear reason,
+  /// and rather than "fixed" by weakening the cleartext policy generally —
+  /// a self-hosted server anywhere but this device needs real HTTPS.
+  static void validateGraphhopperServerUrl(String server) {
+    final uri = Uri.tryParse(server);
+    if (uri == null || uri.host.isEmpty) {
+      throw RoutingException(message: 'Invalid GraphHopper server URL');
+    }
+    if (uri.scheme == 'http' && !_cleartextAllowedHosts.contains(uri.host)) {
+      throw RoutingException(
+          message: 'Self-hosted GraphHopper must use HTTPS, unless it is '
+              'running on localhost/127.0.0.1');
+    }
+  }
+
   /// Test a GraphHopper server URL for connectivity and basic response.
   ///
   /// The probe route uses Null Island (0,0 → 0.1,0.1), which no real map
@@ -1870,6 +1901,7 @@ class RoutingService {
   /// auth failures, or non-GraphHopper responses fail the test.
   static Future<void> testGraphHopperServer(String server,
       {String? apiKey}) async {
+    validateGraphhopperServerUrl(server);
     final parts = <String>[
       'point=0.0,0.0',
       'point=0.1,0.1',
