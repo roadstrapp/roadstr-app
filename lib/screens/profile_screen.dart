@@ -245,10 +245,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
       _fetchAndStoreProfile(
           pubHex); // fire-and-forget; updates name/avatar async
-      unawaited(ProfileVisibilityService.publish(
-          isPublic: (Hive.box('settings')
-                  .get(ProfileVisibilityService.storageKey, defaultValue: false)
-              as bool)));
+      // Only when a prior explicit choice was public: the default,
+      // pseudonymous state needs no event at all — its absence is already
+      // read that way — so publishing it again on every single login would
+      // just tie this pubkey to "uses Roadstr" for no benefit.
+      final wasPublic = Hive.box('settings')
+          .get(ProfileVisibilityService.storageKey, defaultValue: false) as bool;
+      if (wasPublic) {
+        unawaited(ProfileVisibilityService.publish(isPublic: wasPublic));
+      }
       _loadMyEvents();
     } catch (e) {
       if (!mounted) return;
@@ -385,10 +390,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _flavor = 'nsec';
       });
       _fetchAndStoreProfile(pubHex); // fire-and-forget
-      unawaited(ProfileVisibilityService.publish(
-          isPublic: (Hive.box('settings')
-                  .get(ProfileVisibilityService.storageKey, defaultValue: false)
-              as bool)));
+      // See the Amber login above: only publish a prior explicit public
+      // choice, never the unchanged pseudonymous default.
+      final wasPublic = Hive.box('settings')
+          .get(ProfileVisibilityService.storageKey, defaultValue: false) as bool;
+      if (wasPublic) {
+        unawaited(ProfileVisibilityService.publish(isPublic: wasPublic));
+      }
       _loadMyEvents();
     } catch (_) {
       if (mounted) _showError(l.invalidNsecTitle, l.invalidNsecMessage);

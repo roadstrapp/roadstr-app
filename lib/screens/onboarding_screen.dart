@@ -155,7 +155,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         });
       }
       _fetchAndStoreProfile(hex);
-      unawaited(ProfileVisibilityService.publish(isPublic: _profilePublic));
+      // Only when the driver actually chose public visibility before
+      // logging in: the default, pseudonymous state needs no event at all
+      // — its absence is already read that way — so publishing it anyway
+      // on every single login would just tie this pubkey to "uses Roadstr"
+      // for no benefit, whether or not the driver ever touched the toggle.
+      if (_profilePublic) {
+        unawaited(ProfileVisibilityService.publish(isPublic: _profilePublic));
+      }
     } catch (_) {
       if (mounted) setState(() => _waitingAmber = false);
     }
@@ -174,7 +181,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       await _st.write(key: _kFlavor, value: 'nsec');
       if (mounted) setState(() => _npub = npub);
       _fetchAndStoreProfile(pubHex);
-      unawaited(ProfileVisibilityService.publish(isPublic: _profilePublic));
+      // See _loginWithAmber: only publish a deliberately-chosen public state.
+      if (_profilePublic) {
+        unawaited(ProfileVisibilityService.publish(isPublic: _profilePublic));
+      }
     } catch (_) {
       if (mounted) setState(() => _nsecError = true);
     }
