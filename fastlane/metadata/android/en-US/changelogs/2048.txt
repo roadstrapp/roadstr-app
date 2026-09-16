@@ -1,0 +1,37 @@
+Security hardening from an independent audit: privacy opt-ins, Nostr relay
+resilience, and honest store/network claims.
+
+Changed
+
+• Favorites sync is now a real opt-in ("Sync automatically" in Settings,
+  off by default). It used to auto-publish an encrypted snapshot on every
+  edit and auto-pull one on every launch for anyone simply signed in with
+  Nostr, contradicting the onboarding text's own "optional, enable it from
+  Settings" wording.
+• Logging in no longer publishes a profile-visibility event unless you had
+  actually chosen public visibility beforehand. Publishing the untouched,
+  pseudonymous default on every sign-in tied your key to "uses Roadstr" on
+  public relays for no benefit — its absence already means pseudonymous.
+• The store listing no longer claims "GPS data never leaves your device" or
+  "offline-capable routing" — both were false. Rewritten to match what the
+  app actually does, also fixing a license line that said AGPL instead of
+  GPL.
+• The self-hosted GraphHopper setting's "http://localhost:8989/route" hint
+  now actually works: cleartext is permitted for exactly localhost,
+  127.0.0.1 and the Android emulator alias, nothing else, and any other
+  http:// address is refused with a clear error instead of failing silently.
+
+Fixed
+
+• A relay outage could be retried roughly every 1.25 seconds indefinitely
+  instead of backing off, because the reconnect counters were reset before
+  the WebSocket handshake had actually finished. Now waits for a real
+  handshake before resetting anything.
+• Confirmation votes and pending-event tracking on the Nostr road-event
+  stream had no per-report or total ceiling, letting a flood of freshly
+  minted Nostr identities grow memory use against one popular report
+  without limit. Both are now capped, and cheap checks run before the
+  costly signature verification on every incoming event, not after.
+• Voice-model downloads (Kokoro/Piper) only had a per-chunk stall timeout;
+  a server trickling data indefinitely could hold a download open forever.
+  Added a total time limit per file.
