@@ -1,7 +1,7 @@
 Roadstr is a free, open-source navigation app for Android built on decentralised technologies.
 
 🗺️ TURN-BY-TURN NAVIGATION
-Offline-capable routing powered by OpenStreetMap and OSRM. Voice guidance in 27 languages. Speed-limit signs, automatic rerouting, and arrival detection.
+Turn-by-turn routing powered by OpenStreetMap and OSRM. Voice guidance in 27 languages. Speed-limit signs, automatic rerouting, and arrival detection.
 
 📡 NOSTR ROAD EVENTS
 Report traffic jams, police, accidents, speed cameras, road closures, and road hazards. Events are published to the Nostr network so every driver in the area can see them in real time. Confirm or deny reports from other users.
@@ -10,13 +10,13 @@ Report traffic jams, police, accidents, speed cameras, road closures, and road h
 Tip the app developers and appreciate good road reports directly with Bitcoin Lightning payments via NIP-57 zaps and NWC wallet connect.
 
 🔒 PRIVACY FIRST
-No account required. No tracking. No analytics. GPS data never leaves your device. Road events are published pseudonymously via your Nostr identity. You can use the app completely anonymously.
+No account required. No tracking. No analytics SDKs. No first-party servers — Roadstr talks directly to public Nostr relays, OSM/Overpass, your chosen routing provider, and (for weather) Open-Meteo. This is not an offline app: coordinates or coarse areas reach those services as part of normal operation, never with an account or persistent identifier attached, and nothing is collected by Roadstr itself. Road events are published pseudonymously under your Nostr public key, with an exact position and timestamp attached — pseudonymous, not anonymous. Saved places and parking stay on-device unless you explicitly export or sync them.
 
 🔑 NOSTR IDENTITY
 Log in with your existing Nostr private key (nsec) or via Amber (NIP-55 external signer). Your keypair is stored encrypted on-device.
 
 🌍 OPEN SOURCE
-Roadstr is fully open source (AGPL-3.0). Source code: https://github.com/roadstrapp/roadstr-app
+Roadstr is fully open source (GPL-3.0). Source code: https://github.com/roadstrapp/roadstr-app
 
 FEATURES
 • Turn-by-turn voice navigation (27 languages)
