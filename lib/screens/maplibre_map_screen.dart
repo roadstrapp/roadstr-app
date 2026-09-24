@@ -631,6 +631,11 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   bool get _avoidUnpavedRoads =>
       Hive.box('settings').get('avoidUnpavedRoads', defaultValue: false)
           as bool;
+
+  /// The altitude readout is an opt-in setting; read fresh like the getters
+  /// above, so flipping it in Settings shows up on return without a listener.
+  bool get _showAltitude =>
+      Hive.box('settings').get('showAltitude', defaultValue: false) as bool;
   List<FavoritePlace> _favorites = [];
 
   /// Speed-camera proximity beep + voice alert state — same MapScreen
@@ -5030,6 +5035,23 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                     label: favorite.label)),
               ),
             ),
+          // ── ALTITUDE, IDLE HOME ──────────────────────────────────────────
+          // The right FAB column below carries the altitude badge, but that
+          // whole column is hidden while the home dashboard is showing (the
+          // dashboard has its own locate and report buttons) — and it took
+          // the badge with it. Since the home redesign the readout therefore
+          // vanished on exactly the screen most people open the app to, with
+          // the setting still on. Shown here instead, clear of the search bar,
+          // whenever the column is not.
+          if (showHomeDashboard &&
+              _lastFix != null &&
+              _altitudeM != null &&
+              _showAltitude)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 72,
+              right: 12,
+              child: AltitudeBadge(altitudeM: _altitudeM!, colors: c),
+            ),
           // ── RIGHT FABs ────────────────────────────────────────────────────
           // Compass, recenter, report (always available — a hazard can be
           // reported from a standstill too), altitude underneath when enabled,
@@ -5079,9 +5101,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                     child: Icon(Icons.report_problem_outlined,
                         color: c.onAccent, size: 22),
                   ),
-                  if (_altitudeM != null &&
-                      (Hive.box('settings').get('showAltitude',
-                          defaultValue: false) as bool)) ...[
+                  if (_altitudeM != null && _showAltitude) ...[
                     const SizedBox(height: 8),
                     AltitudeBadge(altitudeM: _altitudeM!, colors: c),
                   ],
