@@ -702,6 +702,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get categoryPolice => 'Policie';
 
   @override
+  String get categoryPoliceStation => 'Policejní stanice';
+
+  @override
   String get categorySpeedCamera => 'Rychlostní radar';
 
   @override

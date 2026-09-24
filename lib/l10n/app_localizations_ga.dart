@@ -704,6 +704,9 @@ class AppLocalizationsGa extends AppLocalizations {
   String get categoryPolice => 'Póilíní';
 
   @override
+  String get categoryPoliceStation => 'Stáisiún Gardaí';
+
+  @override
   String get categorySpeedCamera => 'Ceamara luais';
 
   @override

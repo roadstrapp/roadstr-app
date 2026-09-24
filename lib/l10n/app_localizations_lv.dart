@@ -701,6 +701,9 @@ class AppLocalizationsLv extends AppLocalizations {
   String get categoryPolice => 'Policija';
 
   @override
+  String get categoryPoliceStation => 'Policijas iecirknis';
+
+  @override
   String get categorySpeedCamera => 'Ātruma kamera';
 
   @override

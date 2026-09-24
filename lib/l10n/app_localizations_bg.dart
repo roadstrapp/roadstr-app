@@ -708,6 +708,9 @@ class AppLocalizationsBg extends AppLocalizations {
   String get categoryPolice => 'Полиция';
 
   @override
+  String get categoryPoliceStation => 'Полицейски участък';
+
+  @override
   String get categorySpeedCamera => 'Камера за скорост';
 
   @override

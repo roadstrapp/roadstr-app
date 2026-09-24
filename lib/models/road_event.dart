@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import '../l10n/app_localizations.dart';
 
-/// The 13 categories of road events that can be reported in Roadstr.
+/// The 14 categories of road events that can be reported in Roadstr.
 ///
 /// Each category maps to a Nostr `t` tag value ([nostrKey]), an emoji, a
 /// colour for the map pin, and a client-side TTL ([ttlSeconds]) that controls
@@ -20,13 +20,20 @@ import '../l10n/app_localizations.dart';
 ///   situations resolve quickly and stale alerts are actively misleading.
 /// - Semi-permanent conditions (construction, road condition): 7–30 days —
 ///   roadworks and surface damage persist for weeks.
-/// - Fixed infrastructure (speed camera): 30 days — cameras rarely move;
-///   users benefit from long-lived alerts.
+/// - Fixed infrastructure (speed camera, police station): 30 days — they do
+///   not move; users benefit from long-lived alerts.
+///
+/// [police] and [policeStation] are deliberately separate. The first is a
+/// patrol or checkpoint: transient, gone within hours, worth a voice warning
+/// while driving past. The second is a building: it stays where it is, so it
+/// lives as long as a speed camera does and is a point of reference rather
+/// than something to be warned about.
 ///
 /// The relay `expiration` and client TTL are both enforced; whichever expires
 /// first hides the event.
 enum RoadCategory {
   police,
+  policeStation,
   speedCamera,
   trafficJam,
   accident,
@@ -44,6 +51,7 @@ enum RoadCategory {
       values.firstWhere((c) => c.nostrKey == key, orElse: () => other);
 
   String get nostrKey => switch (this) {
+        RoadCategory.policeStation => 'police_station',
         RoadCategory.speedCamera => 'speed_camera',
         RoadCategory.trafficJam => 'traffic_jam',
         RoadCategory.roadClosure => 'road_closure',
@@ -53,6 +61,7 @@ enum RoadCategory {
 
   String get emoji => switch (this) {
         RoadCategory.police => '👮',
+        RoadCategory.policeStation => '🏛️',
         RoadCategory.speedCamera => '📷',
         RoadCategory.trafficJam => '🚗',
         RoadCategory.accident => '💥',
@@ -69,6 +78,7 @@ enum RoadCategory {
 
   String localizedLabel(AppLocalizations l) => switch (this) {
         RoadCategory.police => l.categoryPolice,
+        RoadCategory.policeStation => l.categoryPoliceStation,
         RoadCategory.speedCamera => l.categorySpeedCamera,
         RoadCategory.trafficJam => l.categoryTrafficJam,
         RoadCategory.accident => l.categoryAccident,
@@ -88,6 +98,7 @@ enum RoadCategory {
   /// [localizedLabel] in widget code to respect the user's language setting.
   String get label => switch (this) {
         RoadCategory.police => 'Police',
+        RoadCategory.policeStation => 'Police Station',
         RoadCategory.speedCamera => 'Speed Camera',
         RoadCategory.trafficJam => 'Traffic Jam',
         RoadCategory.accident => 'Accident',
@@ -104,6 +115,9 @@ enum RoadCategory {
 
   Color get color => switch (this) {
         RoadCategory.police => const Color(0xFF2563EB),
+        // Same family as the patrol pin, darker, so the two read as related
+        // but never as the same thing at a glance.
+        RoadCategory.policeStation => const Color(0xFF1E3A8A),
         RoadCategory.speedCamera => const Color(0xFF7C3AED),
         RoadCategory.trafficJam => const Color(0xFFD97706),
         RoadCategory.accident => const Color(0xFFDC2626),
@@ -123,6 +137,7 @@ enum RoadCategory {
   /// hint and may be absent.
   int get ttlSeconds => switch (this) {
         RoadCategory.police => 4 * 3600, // 4 h
+        RoadCategory.policeStation => 30 * 86400, // 30 d — a building
         RoadCategory.speedCamera => 30 * 86400, // 30 d
         RoadCategory.trafficJam => 1 * 3600, // 1 h
         RoadCategory.accident => 4 * 3600, // 4 h

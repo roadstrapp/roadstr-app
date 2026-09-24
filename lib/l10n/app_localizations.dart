@@ -1432,6 +1432,12 @@ abstract class AppLocalizations {
   /// **'Police'**
   String get categoryPolice;
 
+  /// No description provided for @categoryPoliceStation.
+  ///
+  /// In en, this message translates to:
+  /// **'Police Station'**
+  String get categoryPoliceStation;
+
   /// No description provided for @categorySpeedCamera.
   ///
   /// In en, this message translates to:

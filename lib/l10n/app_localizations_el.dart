@@ -708,6 +708,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get categoryPolice => 'Αστυνομία';
 
   @override
+  String get categoryPoliceStation => 'Αστυνομικό τμήμα';
+
+  @override
   String get categorySpeedCamera => 'Κάμερα ταχύτητας';
 
   @override

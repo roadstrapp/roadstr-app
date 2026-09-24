@@ -698,6 +698,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get categoryPolice => 'Police';
 
   @override
+  String get categoryPoliceStation => 'Police Station';
+
+  @override
   String get categorySpeedCamera => 'Speed Camera';
 
   @override
