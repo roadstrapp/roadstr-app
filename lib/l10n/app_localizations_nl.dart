@@ -703,6 +703,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get categoryPolice => 'Politie';
 
   @override
+  String get categoryPoliceStation => 'Politiebureau';
+
+  @override
   String get categorySpeedCamera => 'Flitser';
 
   @override

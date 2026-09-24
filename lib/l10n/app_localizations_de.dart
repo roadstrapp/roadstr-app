@@ -706,6 +706,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get categoryPolice => 'Polizei';
 
   @override
+  String get categoryPoliceStation => 'Polizeistation';
+
+  @override
   String get categorySpeedCamera => 'Blitzer';
 
   @override

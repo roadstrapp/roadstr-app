@@ -234,6 +234,7 @@
   "searchEngineGoogleDesc": "Très efficace. Mais rappelons-le : Google vous connaît mieux que votre mère et revend tout aux annonceurs. C'est votre choix. 🍪",
   "@_CATEGORIES": {},
   "categoryPolice": "Police",
+  "categoryPoliceStation": "Poste de police",
   "categorySpeedCamera": "Radar",
   "categoryTrafficJam": "Embouteillage",
   "categoryAccident": "Accident",

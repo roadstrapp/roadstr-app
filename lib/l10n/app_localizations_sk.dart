@@ -703,6 +703,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get categoryPolice => 'Polícia';
 
   @override
+  String get categoryPoliceStation => 'Policajná stanica';
+
+  @override
   String get categorySpeedCamera => 'Rýchlostný radar';
 
   @override
