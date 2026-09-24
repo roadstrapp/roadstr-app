@@ -1,0 +1,41 @@
+Police stations as a road report, the altitude readout back on the MapLibre
+home screen, and a round of battery savings.
+
+Added
+
+• Police stations can now be reported as their own road event. They are
+  separate from the existing police report, which is a patrol or checkpoint
+  that is gone within hours: a station is a building, so its marker stays on
+  the map for 30 days, like a speed camera, and it gets no voice warning as
+  you pass. Older versions show it as a generic "Other" marker.
+
+Fixed
+
+• The altitude readout had disappeared from the MapLibre map on the home
+  screen since the last redesign, and the setting for it was buried in a
+  collapsed "Road element overlays" group. Both are fixed: it shows again,
+  and the switch is now a row of its own in the Map section.
+
+Changed
+
+• Battery: map markers (crosswalks, traffic lights, speed bumps, cameras,
+  reports) are now built only when they can actually be on screen. Before,
+  every marker in range was rebuilt on every camera frame, off-screen ones
+  included, which in a dense city meant hundreds a frame.
+• Battery: the map camera is no longer re-rendered when it has not visibly
+  moved — mostly in slow traffic. At road speed and in turns nothing changes.
+• Battery: the map camera stops animating while the app is in the
+  background, so navigating with the screen off and just the voice no longer
+  keeps the phone busy following a map nobody can see.
+• Battery: the distance in the navigation notification is updated at most
+  once every three seconds instead of twice a second (a new instruction still
+  shows at once), and the compass sensors only run when something can use
+  them.
+• Battery: map data (traffic lights, crosswalks, speed cameras) is no longer
+  re-downloaded every two minutes while parked, and is fetched less often
+  while driving. Traffic lights and crosswalks are also skipped while the
+  screen is off, since they only feed map markers.
+• Navigation now finds its place on long routes without rescanning the whole
+  route on every GPS fix, does much less work up front when starting a long
+  route with many manoeuvres, and copes better with routes that double back
+  over the same road.
