@@ -129,4 +129,120 @@ void main() {
       expect(lng, closeTo(9, 1e-9));
     });
   });
+
+  group('CameraFrameGate', () {
+    // Metres of northward travel → degrees of latitude.
+    double north(double metres) => 45 + metres / 111320;
+
+    /// Drives the gate the way the follow ticker does: a frame every 33 ms
+    /// for [seconds], the camera moving steadily north at [kmh], on a straight
+    /// road. Returns how many of those frames were let through.
+    int framesSent({required double kmh, double seconds = 10, double zoom = 17}) {
+      final gate = CameraFrameGate();
+      final metresPerSecond = kmh / 3.6;
+      var sent = 0;
+      for (var ms = 0; ms <= seconds * 1000; ms += 33) {
+        final state = _s(lat: north(metresPerSecond * ms / 1000), zoom: zoom);
+        if (gate.shouldSend(state, ms)) {
+          gate.markSent(state, ms);
+          sent++;
+        }
+      }
+      return sent;
+    }
+
+    final totalFrames = (10 * 1000 / 33).floor() + 1;
+
+    test('the very first frame always goes out', () {
+      expect(CameraFrameGate().shouldSend(_s(), 0), isTrue);
+    });
+
+    test('a crawl is throttled hard — most frames would be the same picture',
+        () {
+      // 5 km/h: about 0.06 m a frame, a seventh of a pixel.
+      final sent = framesSent(kmh: 5);
+      expect(sent, lessThan(totalFrames * 0.35),
+          reason: 'sent $sent of $totalFrames');
+    });
+
+    test('stop-and-go speed roughly halves the frames', () {
+      final sent = framesSent(kmh: 20);
+      expect(sent, lessThan(totalFrames * 0.75));
+      expect(sent, greaterThan(totalFrames * 0.35));
+    });
+
+    test('at road speed every frame goes out — nothing is lost where it shows',
+        () {
+      // 50 km/h at zoom 17 is over a pixel a frame.
+      expect(framesSent(kmh: 50), totalFrames);
+      expect(framesSent(kmh: 120), totalFrames);
+    });
+
+    test('zoomed out, the same speed moves less on screen, so more is skipped',
+        () {
+      expect(framesSent(kmh: 50, zoom: 15),
+          lessThan(framesSent(kmh: 50, zoom: 17)));
+    });
+
+    test('a slow crawl still advances steadily, not in long lurches', () {
+      // 3 km/h: a frame is far below the threshold, but the gap limit must
+      // keep it moving. Between two sends there may be at most maxGapMs.
+      final gate = CameraFrameGate();
+      final mps = 3 / 3.6;
+      var lastSentMs = 0;
+      var longest = 0;
+      for (var ms = 0; ms <= 10000; ms += 33) {
+        final state = _s(lat: north(mps * ms / 1000));
+        if (gate.shouldSend(state, ms)) {
+          longest = math.max(longest, ms - lastSentMs);
+          lastSentMs = ms;
+          gate.markSent(state, ms);
+        }
+      }
+      expect(longest, lessThanOrEqualTo(gate.maxGapMs + 33));
+    });
+
+    test('turning is never throttled, even standing still', () {
+      // 30°/s is about a degree a frame — ~7 dp at the screen edge.
+      final gate = CameraFrameGate();
+      var sent = 0;
+      var frames = 0;
+      for (var ms = 0; ms <= 3000; ms += 33) {
+        final state = _s(rot: 30 * ms / 1000);
+        frames++;
+        if (gate.shouldSend(state, ms)) {
+          gate.markSent(state, ms);
+          sent++;
+        }
+      }
+      expect(sent, frames);
+    });
+
+    test('a camera that has genuinely stopped is not re-sent every gap', () {
+      final gate = CameraFrameGate();
+      final still = _s();
+      expect(gate.shouldSend(still, 0), isTrue);
+      gate.markSent(still, 0);
+      for (var ms = 33; ms <= 5000; ms += 33) {
+        expect(gate.shouldSend(still, ms), isFalse);
+      }
+    });
+
+    test('rotation is measured the short way round the compass', () {
+      final gate = CameraFrameGate();
+      // 359° → 1° is two degrees of turning, not 358.
+      final small = gate.changeDp(_s(rot: 359), _s(rot: 1));
+      final large = gate.changeDp(_s(rot: 0), _s(rot: 180));
+      expect(small, lessThan(large / 50));
+    });
+
+    test('reset makes the next frame go out whatever it is', () {
+      final gate = CameraFrameGate();
+      final state = _s();
+      gate.markSent(state, 0);
+      expect(gate.shouldSend(state, 10), isFalse);
+      gate.reset();
+      expect(gate.shouldSend(state, 20), isTrue);
+    });
+  });
 }

@@ -444,6 +444,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   Timer? _followTicker;
   int? _lastFollowFrameMs;
 
+  /// Lets the ticker keep easing every tick while only sending the camera to
+  /// the map when the view has changed enough to show — see CameraFrameGate.
+  final _frameGate = CameraFrameGate();
+
   // ── Destination search + routing ─────────────────────────────────────────
   // PlaceSearchService, RoutingService and ZtlService are all reused as-is:
   // none of the three ever touched flutter_map, so there is nothing here to
@@ -3915,6 +3919,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
 
   void _startFollowTicker() {
     if (_followTicker != null) return;
+    // Something else (a snap, an animation, a pan) may have moved the camera
+    // since the last frame this gate saw, so the first one out is always sent.
+    _frameGate.reset();
     _lastFollowFrameMs = DateTime.now().millisecondsSinceEpoch;
     _followTicker = Timer.periodic(_followTickInterval, (timer) {
       final controller = _controller;
@@ -3940,6 +3947,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       // fight over _targetState — this only overrides it when moving, which
       // is exactly when that path is guaranteed to be idle.
       var target = baseTarget;
+      LatLng? deadReckoned;
       if (fix != null && _headingFilter.isMoving && _lastFixSpeedMps > 0) {
         final elapsedS =
             (nowMs - _lastFixEpochMs).clamp(0, _deadReckoningCapMs) / 1000.0;
@@ -3948,7 +3956,11 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
             fix.position.longitude,
             _lastFixHeadingDeg,
             _lastFixSpeedMps * elapsedS);
-        _displayPosition.value = LatLng(rawLat, rawLng);
+        // Not published yet: the cursor is a marker projected through the
+        // camera, so if it advanced on a tick whose camera frame is then
+        // skipped it would creep against a map that had not moved and snap
+        // back on the next one. The two go out together, below.
+        deadReckoned = LatLng(rawLat, rawLng);
         final navShiftM = _navForwardShiftM;
         final (camLat, camLng) = (_isNavigating && _headingMode)
             ? (navShiftM != null
@@ -3977,17 +3989,24 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
           CameraFollowEasing.step(from: from, target: target, dtMs: dtMs);
       if (next == null) return;
       _camState = next;
-      unawaited(controller.moveCamera(
-        center: Geographic(lon: next.lng, lat: next.lat),
-        zoom: next.zoom,
-        bearing: next.rotDeg,
-      ));
       // Only stop once genuinely stationary — while moving, target keeps
       // advancing every frame, so it would rarely if ever "catch up" on its
       // own, but the explicit check makes that intent obvious rather than
       // relying on it as a side effect.
-      if (!_headingFilter.isMoving &&
-          CameraFollowEasing.hasCaughtUp(next, target)) {
+      final settled = !_headingFilter.isMoving &&
+          CameraFollowEasing.hasCaughtUp(next, target);
+      // The final frame is always sent, so stopping never leaves the camera
+      // a fraction of a pixel short of where it was heading.
+      if (settled || _frameGate.shouldSend(next, nowMs)) {
+        _frameGate.markSent(next, nowMs);
+        if (deadReckoned != null) _displayPosition.value = deadReckoned;
+        unawaited(controller.moveCamera(
+          center: Geographic(lon: next.lng, lat: next.lat),
+          zoom: next.zoom,
+          bearing: next.rotDeg,
+        ));
+      }
+      if (settled) {
         timer.cancel();
         _followTicker = null;
       }
