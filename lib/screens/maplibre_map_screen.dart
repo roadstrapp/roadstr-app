@@ -454,6 +454,18 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// the map when the view has changed enough to show — see CameraFrameGate.
   final _frameGate = CameraFrameGate();
 
+  /// False from the moment the activity stops (Flutter's `paused`, which on
+  /// Android is `onStop` — no longer visible; a mere loss of focus, as in
+  /// split-screen, is `inactive` and leaves this true) until it is back.
+  ///
+  /// Navigating with the screen off and only the voice for guidance is one of
+  /// the commonest ways to use a nav app, and the follow ticker used to keep
+  /// running through all of it: 30 times a second, easing a camera nobody can
+  /// see and calling moveCamera on a map whose surface no longer exists —
+  /// enough to keep the CPU out of deep idle for the whole drive. Everything
+  /// that guidance actually depends on runs off the GPS stream, not this.
+  bool _appVisible = true;
+
   // ── Destination search + routing ─────────────────────────────────────────
   // PlaceSearchService, RoutingService and ZtlService are all reused as-is:
   // none of the three ever touched flutter_map, so there is nothing here to
@@ -1040,6 +1052,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     // pause-time stop.
     switch (state) {
       case AppLifecycleState.paused:
+        _appVisible = false;
+        _followTicker?.cancel();
+        _followTicker = null;
         _gpsLifecycleGeneration++;
         _stopCompass();
         if (!_isNavigating) {
@@ -1057,6 +1072,18 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         // stopped, so there is nothing to restart and no fix was lost.
         _gpsIdleStop?.cancel();
         _gpsIdleStop = null;
+        _appVisible = true;
+        if (_followUser) {
+          // The ticker was not running while hidden, so the tracked camera is
+          // wherever it was when the app went away — possibly kilometres back
+          // on a long drive. Easing from there would visibly fly the map
+          // across the whole distance; the GPS stream kept the target current
+          // the entire time, so start from it instead and the first frame
+          // lands the camera straight on the vehicle.
+          final target = _targetState;
+          if (target != null) _camState = target;
+          _startFollowTicker();
+        }
         _applyScreenPolicy();
         final generation = ++_gpsLifecycleGeneration;
         _syncCompass();
@@ -3846,7 +3873,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     // Skip the Overpass round-trip entirely when the toggle is off — unlike
     // crosswalks/speed bumps, which share one combined query, this is its
     // own independent fetch with nothing else riding on it.
-    if (_showTrafficLights) {
+    //
+    // Also skipped while the app is not visible: these two caches feed map
+    // markers and nothing else — no voice, no alert — so fetching them for a
+    // screen that is off is radio for nothing. The first fix after coming
+    // back refreshes them if the vehicle has moved far enough to need it.
+    if (_showTrafficLights && _appVisible) {
       unawaited(_trafficLightSvc.updateIfNeeded(data.position).then((_) {
         if (mounted &&
             !identical(_trafficLightSvc.cachedLights, lightsBefore)) {
@@ -3855,12 +3887,14 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       }));
     }
     final hazardsBefore = _crossingHazardSvc.cachedHazards;
-    unawaited(_crossingHazardSvc.updateIfNeeded(data.position).then((_) {
-      if (mounted &&
-          !identical(_crossingHazardSvc.cachedHazards, hazardsBefore)) {
-        setState(() {});
-      }
-    }));
+    if (_appVisible) {
+      unawaited(_crossingHazardSvc.updateIfNeeded(data.position).then((_) {
+        if (mounted &&
+            !identical(_crossingHazardSvc.cachedHazards, hazardsBefore)) {
+          setState(() {});
+        }
+      }));
+    }
     // Same background warm-up MapScreen runs on every fix — by the time a
     // route is actually requested, ZtlService's cache already covers the
     // area (self-throttled: it only re-fetches every 2 km/on failure
@@ -3925,7 +3959,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   static const _followTickInterval = Duration(milliseconds: 33);
 
   void _startFollowTicker() {
-    if (_followTicker != null) return;
+    if (_followTicker != null || !_appVisible) return;
     // Something else (a snap, an animation, a pan) may have moved the camera
     // since the last frame this gate saw, so the first one out is always sent.
     _frameGate.reset();
