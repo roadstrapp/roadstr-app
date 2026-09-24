@@ -369,6 +369,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   int _nearestRouteSegmentIdx = 0;
   double _routeProgressM = 0;
 
+  /// Polyline index the driver was last matched to, so the next fix looks in a
+  /// window around it instead of scanning the whole route — see
+  /// RouteProgress.nearestIndexNear. Reset with [_routeProgressM] whenever the
+  /// polyline itself is replaced.
+  int _progressIdx = 0;
+
   // ── Marker culling ────────────────────────────────────────────────────
   // WidgetLayer rebuilds on every camera change and builds a widget for every
   // marker it is given, on screen or not — see ViewportWindow for the cost
@@ -2874,11 +2880,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       return;
     }
     _cumDist = RouteProgress.cumulativeDistances(fetched.route.polyline);
-    _stepCumDist = [
-      for (final step in fetched.route.steps)
-        _cumDist[
-            RouteProgress.nearestIndex(fetched.route.polyline, step.location)],
-    ];
+    final stepIdx = RouteProgress.nearestIndicesAlong(fetched.route.polyline,
+        [for (final step in fetched.route.steps) step.location]);
+    _stepCumDist = [for (final i in stepIdx) _cumDist[i]];
     // A rerouted step list is a different array — yesterday's announced
     // indices mean nothing against it, and would silently block every
     // announcement on the new route until they happened to be overwritten.
@@ -2888,6 +2892,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     // index just as much as the step-index arrays above.
     _nearestRouteSegmentIdx = 0;
     _routeProgressM = 0;
+    _progressIdx = 0;
     _offRoute.reset();
     setState(() {
       _route = fetched.route;
@@ -2903,15 +2908,15 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     final route = _route;
     if (route == null || route.steps.isEmpty || route.polyline.isEmpty) return;
     _cumDist = RouteProgress.cumulativeDistances(route.polyline);
-    _stepCumDist = [
-      for (final step in route.steps)
-        _cumDist[RouteProgress.nearestIndex(route.polyline, step.location)],
-    ];
+    final stepIdx = RouteProgress.nearestIndicesAlong(
+        route.polyline, [for (final step in route.steps) step.location]);
+    _stepCumDist = [for (final i in stepIdx) _cumDist[i]];
     _ttsAnnouncedFarIdx = -1;
     _ttsAnnouncedNearIdx = -1;
     _headingFilter.reset();
     _nearestRouteSegmentIdx = 0;
     _routeProgressM = 0;
+    _progressIdx = 0;
     _offRoute.reset();
     _minDistToDestM = double.infinity;
     _alertedCameraIds.clear();
@@ -3253,7 +3258,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       return;
     }
     final pos = LatLng(data.position.latitude, data.position.longitude);
-    final idx = RouteProgress.nearestIndex(route.polyline, pos);
+    final idx =
+        RouteProgress.nearestIndexNear(route.polyline, pos, hint: _progressIdx);
+    _progressIdx = idx;
     final routeProgressM = _cumDist[idx];
     _routeProgressM = routeProgressM;
     final totalDist = route.totalDistanceM;
