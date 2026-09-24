@@ -1255,6 +1255,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ]),
           ),
+          // Its own row, not inside the collapsed overlays group below:
+          // altitude is a readout, not a road element, and tucking it into
+          // a section that starts closed made the setting effectively
+          // unfindable for anyone who had not already turned it on.
+          _SwitchTile(
+            title: l.showAltitude,
+            subtitle: l.showAltitudeDescription,
+            value: _getBool('showAltitude', false),
+            onChanged: (v) => _setBool('showAltitude', v),
+            colors: c,
+          ),
           _RoadOverlaysSection(
             expanded: _roadOverlaysExpanded,
             onToggleExpanded: () =>
@@ -1262,13 +1273,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             colors: c,
             title: l.sectionRoadOverlays,
             children: [
-              _SwitchTile(
-                title: l.showAltitude,
-                subtitle: l.showAltitudeDescription,
-                value: _getBool('showAltitude', false),
-                onChanged: (v) => _setBool('showAltitude', v),
-                colors: c,
-              ),
               _SwitchTile(
                 title: l.showCrosswalks,
                 subtitle: l.showCrosswalksDescription,
