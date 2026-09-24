@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
 import 'overpass_client.dart';
+import 'refetch_policy.dart';
 
 /// Queries the Overpass API for the posted speed limit of the road
 /// the user is currently on. This is the primary speed-limit source:
@@ -17,8 +18,14 @@ import 'overpass_client.dart';
 /// hasn't changed enough. Read [cachedLimit] synchronously.
 class SpeedLimitService {
   static const _radiusM = 60; // OSM way search radius (metres)
-  static const _minMoveM = 100.0; // min travel distance before re-querying
-  static const _maxAgeMs = 60000; // re-query after 60 s even without movement
+
+  /// Unchanged at 100 m: the limit sign is worth its request rate. The
+  /// refresh-without-moving interval is not, and is tied to [_staleAfter]
+  /// rather than a number of its own: it exists only to keep a limit alive
+  /// while stopped (a traffic light, a queue), so it needs to beat that
+  /// expiry, not to fire every minute. It was 60 s.
+  static const _policy = RefetchPolicy(
+      minMoveM: 100.0, maxAge: Duration(minutes: 4)); // < _staleAfter
   static const _retryMs = 15000; // back-off delay after a failed attempt
   // Consecutive empty results tolerated before clearing the cached limit.
   // At a turn or roundabout the GPS fix can transiently sit outside every
@@ -69,7 +76,7 @@ class SpeedLimitService {
 
   /// Triggers an async Overpass query if position has changed enough.
   /// Silently no-ops when: already fetching, inside retry back-off, or
-  /// position is within [_minMoveM] of the last successful query.
+  /// position is within [_policy]'s distance of the last successful query.
   Future<void> updateIfNeeded(LatLng pos) async {
     if (!_needsQuery(pos)) return;
     final generation = _generation;
@@ -110,11 +117,11 @@ class SpeedLimitService {
     if (_fetching) return false;
     final now = DateTime.now();
     if (_nextRetryAt != null && now.isBefore(_nextRetryAt!)) return false;
-    if (_lastQueryPos == null) return true;
-    final moved = const Distance().as(LengthUnit.Meter, _lastQueryPos!, pos);
-    if (moved > _minMoveM) return true;
-    if (_lastSuccessAt == null) return true;
-    return now.difference(_lastSuccessAt!).inMilliseconds > _maxAgeMs;
+    return _policy.isDue(
+        lastQueryPos: _lastQueryPos,
+        pos: pos,
+        lastSuccessAt: _lastSuccessAt,
+        now: now);
   }
 
   Future<int?> _fetchLimit(LatLng pos) async {
