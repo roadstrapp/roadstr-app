@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
 import 'overpass_client.dart';
+import 'refetch_policy.dart';
 
 /// A speed camera position sourced from OpenStreetMap (not user-reported).
 class OsmSpeedCamera {
@@ -28,8 +29,13 @@ class OsmSpeedCamera {
 /// Same throttle/cache/mirror-rotation pattern as [SpeedLimitService].
 class SpeedCameraService {
   static const _radiusM = 3000; // fetch cameras within 3 km of position
-  static const _minMoveM = 800.0; // min travel distance before re-querying
-  static const _maxAgeMs = 120000; // re-query after 2 min even without movement
+
+  /// Half way to the edge of the 3 km radius: 1.5 km of cameras still ahead,
+  /// where the nearest thing anything acts on is an alert 250 m out and a
+  /// route look-ahead of 300 m. It used to be 800 m, and also refetched every
+  /// two minutes with nothing moving.
+  static const _policy =
+      RefetchPolicy(minMoveM: _radiusM / 2, maxAge: Duration(minutes: 15));
   static const _retryMs = 15000; // back-off delay after a failed attempt
 
   List<OsmSpeedCamera> _cached = [];
@@ -78,11 +84,11 @@ class SpeedCameraService {
     if (_fetching) return false;
     final now = DateTime.now();
     if (_nextRetryAt != null && now.isBefore(_nextRetryAt!)) return false;
-    if (_lastQueryPos == null) return true;
-    final moved = const Distance().as(LengthUnit.Meter, _lastQueryPos!, pos);
-    if (moved > _minMoveM) return true;
-    if (_lastSuccessAt == null) return true;
-    return now.difference(_lastSuccessAt!).inMilliseconds > _maxAgeMs;
+    return _policy.isDue(
+        lastQueryPos: _lastQueryPos,
+        pos: pos,
+        lastSuccessAt: _lastSuccessAt,
+        now: now);
   }
 
   Future<List<OsmSpeedCamera>> _fetch(LatLng pos) async {

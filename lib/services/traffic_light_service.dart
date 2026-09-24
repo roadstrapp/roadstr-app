@@ -1,6 +1,7 @@
 import 'package:latlong2/latlong.dart';
 import 'package:flutter/foundation.dart';
 import 'overpass_client.dart';
+import 'refetch_policy.dart';
 
 /// A traffic-light position sourced from OpenStreetMap's `highway=
 /// traffic_signals` node tag.
@@ -20,8 +21,13 @@ class OsmTrafficLight {
 /// much heavier Overpass response.
 class TrafficLightService {
   static const _radiusM = 1500;
-  static const _minMoveM = 500.0; // min travel distance before re-querying
-  static const _maxAgeMs = 120000; // re-query after 2 min even without movement
+
+  /// Refetched once the vehicle is half way to the edge of what it holds
+  /// (750 m of a 1.5 km radius), which still leaves 750 m of lights ahead —
+  /// beyond anything the camera can show at the zoom they appear at. It used
+  /// to be 500 m, and also refetched every two minutes with nothing moving.
+  static const _policy =
+      RefetchPolicy(minMoveM: _radiusM / 2, maxAge: Duration(minutes: 15));
   static const _retryMs = 15000; // back-off delay after a failed attempt
   static const _maxResults = 400; // guard against dense urban intersections
 
@@ -68,11 +74,11 @@ class TrafficLightService {
     if (_fetching) return false;
     final now = DateTime.now();
     if (_nextRetryAt != null && now.isBefore(_nextRetryAt!)) return false;
-    if (_lastQueryPos == null) return true;
-    final moved = const Distance().as(LengthUnit.Meter, _lastQueryPos!, pos);
-    if (moved > _minMoveM) return true;
-    if (_lastSuccessAt == null) return true;
-    return now.difference(_lastSuccessAt!).inMilliseconds > _maxAgeMs;
+    return _policy.isDue(
+        lastQueryPos: _lastQueryPos,
+        pos: pos,
+        lastSuccessAt: _lastSuccessAt,
+        now: now);
   }
 
   Future<List<OsmTrafficLight>> _fetch(LatLng pos) async {
