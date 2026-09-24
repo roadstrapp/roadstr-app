@@ -15,6 +15,54 @@
 //     service constructor, keeping startup fast.
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+/// Decides whether a navigation notification update is worth posting.
+///
+/// The map screens call [NavigationNotificationService.show] on every GPS fix
+/// — about twice a second for the whole drive — and the distance label is
+/// rounded to the metre, so the text genuinely differs on nearly every call
+/// at speed. Posting each one is not free: every `notify()` is a binder call
+/// into the system server, a re-render in SystemUI, and a fresh copy pushed to
+/// anything mirroring notifications — a smartwatch over Bluetooth, Android
+/// Auto — for a number nobody can read that fast on a lock screen.
+///
+/// A new manoeuvre always goes out at once; only the distance ticking down
+/// under an unchanged instruction is rate-limited.
+class NotificationThrottle {
+  NotificationThrottle({this.minInterval = const Duration(seconds: 3)});
+
+  /// The least time between two updates that differ only in distance.
+  final Duration minInterval;
+
+  String? _instruction;
+  String? _distance;
+  DateTime? _postedAt;
+
+  bool shouldPost(String instruction, String distance, DateTime now) {
+    final postedAt = _postedAt;
+    if (postedAt == null || instruction != _instruction) {
+      return _record(instruction, distance, now);
+    }
+    if (distance == _distance) return false;
+    if (now.difference(postedAt) < minInterval) return false;
+    return _record(instruction, distance, now);
+  }
+
+  bool _record(String instruction, String distance, DateTime now) {
+    _instruction = instruction;
+    _distance = distance;
+    _postedAt = now;
+    return true;
+  }
+
+  /// Forget what was last posted, so the first update of the next trip is
+  /// never mistaken for a repeat of the last update of this one.
+  void reset() {
+    _instruction = null;
+    _distance = null;
+    _postedAt = null;
+  }
+}
+
 /// Manages the persistent navigation notification shown in the Android
 /// notification shade during active turn-by-turn navigation.
 class NavigationNotificationService {
@@ -26,6 +74,7 @@ class NavigationNotificationService {
   static const _notifId = 42;
 
   final _plugin = FlutterLocalNotificationsPlugin();
+  final _throttle = NotificationThrottle();
   bool _initialized = false;
 
   /// Initializes the plugin on first use (lazy). Safe to call repeatedly.
@@ -43,6 +92,7 @@ class NavigationNotificationService {
   /// [instruction]: the current maneuver description (e.g. "Turn right on Main St.").
   /// [distance]: human-readable distance to the next maneuver (e.g. "200 m").
   Future<void> show(String instruction, String distance) async {
+    if (!_throttle.shouldPost(instruction, distance, DateTime.now())) return;
     await _ensureInit();
     await _plugin.show(
       id: _notifId,
@@ -68,6 +118,7 @@ class NavigationNotificationService {
 
   /// Dismisses the navigation notification. Called when the user stops navigation.
   Future<void> cancel() async {
+    _throttle.reset();
     if (!_initialized) return;
     await _plugin.cancel(id: _notifId);
   }
