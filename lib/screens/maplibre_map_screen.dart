@@ -3960,9 +3960,25 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
 
   void _startFollowTicker() {
     if (_followTicker != null || !_appVisible) return;
-    // Something else (a snap, an animation, a pan) may have moved the camera
-    // since the last frame this gate saw, so the first one out is always sent.
-    _frameGate.reset();
+    // Something else (a snap, an animation, a pan, a fit-to-bounds) may have
+    // moved the camera since the last frame this gate saw — in which case the
+    // first frame out must be sent whatever it looks like. Rather than list
+    // every such thing, ask the map: if the camera it reports is where this
+    // screen thinks it is, nothing has, and forgetting the last frame would
+    // only make a parked phone send an identical one on every GPS fix.
+    final live = _liveCamera;
+    final tracked = _camState;
+    final inSync = live != null &&
+        tracked != null &&
+        _frameGate.changeDp(
+                tracked,
+                CameraFollowState(
+                    lat: live.center.lat,
+                    lng: live.center.lon,
+                    zoom: live.zoom,
+                    rotDeg: live.bearing)) <
+            1.0;
+    if (!inSync) _frameGate.reset();
     _lastFollowFrameMs = DateTime.now().millisecondsSinceEpoch;
     _followTicker = Timer.periodic(_followTickInterval, (timer) {
       final controller = _controller;
@@ -4036,9 +4052,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       // relying on it as a side effect.
       final settled = !_headingFilter.isMoving &&
           CameraFollowEasing.hasCaughtUp(next, target);
-      // The final frame is always sent, so stopping never leaves the camera
-      // a fraction of a pixel short of where it was heading.
-      if (settled || _frameGate.shouldSend(next, nowMs)) {
+      // The final frame is sent whenever it differs from the last one at all,
+      // so stopping never leaves the camera a fraction of a pixel short of
+      // where it was heading — and not when it does not, which at a
+      // standstill is nearly every time.
+      if (_frameGate.shouldSend(next, nowMs) ||
+          (settled && _frameGate.hasVisibleChange(next))) {
         _frameGate.markSent(next, nowMs);
         if (deadReckoned != null) _displayPosition.value = deadReckoned;
         unawaited(controller.moveCamera(
