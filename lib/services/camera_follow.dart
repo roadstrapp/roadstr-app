@@ -162,3 +162,92 @@ class CameraFollowEasing {
     return ((lat + dLat).clamp(-89.9, 89.9), lng + dLng);
   }
 }
+
+/// Decides whether a follow-camera frame changed the view enough to be worth
+/// sending to the map at all.
+///
+/// The follow ticker runs at ~30 Hz for the whole drive and every frame it
+/// sends is a native camera update: a full re-render of a tilted 3D vector
+/// map, plus the platform-channel round trip. At walking or stop-and-go speed
+/// most of those frames move the view by a fraction of a pixel — the same
+/// picture rendered again, at 30 Hz, for nothing. (At 20 km/h and zoom 17 a
+/// frame is about 0.4 dp of travel.)
+///
+/// This measures how much the view has changed since the last frame that was
+/// *actually sent*, as an on-screen distance, and lets a frame through only
+/// once that reaches [minChangeDp] — or once [maxGapMs] has passed with any
+/// visible change at all, so a very slow crawl still advances steadily rather
+/// than in long lurches. The easing itself keeps running every tick; only the
+/// expensive send is gated, so the camera never falls behind, it just stops
+/// re-drawing itself between changes nobody could see.
+///
+/// The three components are converted to the same unit so they can be added:
+/// ground travel by the map's metres per dp, and rotation and zoom by what
+/// they do to a point at [edgeRadiusDp] from the centre — where they show up
+/// first. Turning at 30°/s moves that point ~7 dp a frame, so cornering and
+/// zooming are never throttled; only a steady crawl is.
+class CameraFrameGate {
+  CameraFrameGate({
+    this.minChangeDp = 0.6,
+    this.maxGapMs = 150,
+    this.edgeRadiusDp = 400,
+  });
+
+  /// The smallest on-screen change worth a frame, in logical pixels.
+  final double minChangeDp;
+
+  /// The longest a visible change may wait before being sent regardless.
+  final int maxGapMs;
+
+  /// Distance from the screen centre at which rotation and zoom are measured.
+  final double edgeRadiusDp;
+
+  /// A change below this is not "visible change at all" — a camera that has
+  /// genuinely stopped must not be re-sent every [maxGapMs] forever.
+  static const _negligibleDp = 0.05;
+
+  CameraFollowState? _sent;
+  int _sentAtMs = 0;
+
+  /// Whether [next], arriving at [nowMs], should be sent. Does not record it:
+  /// call [markSent] once it actually has been.
+  bool shouldSend(CameraFollowState next, int nowMs) {
+    final sent = _sent;
+    if (sent == null) return true;
+    final change = changeDp(sent, next);
+    if (change >= minChangeDp) return true;
+    return change > _negligibleDp && nowMs - _sentAtMs >= maxGapMs;
+  }
+
+  void markSent(CameraFollowState state, int nowMs) {
+    _sent = state;
+    _sentAtMs = nowMs;
+  }
+
+  /// Forget what was last sent, so the next frame always goes out — after the
+  /// ticker has been idle, or something else (a snap, an animation) moved the
+  /// camera behind this gate's back.
+  void reset() => _sent = null;
+
+  /// How far, on screen, the view moved from [a] to [b], in logical pixels.
+  double changeDp(CameraFollowState a, CameraFollowState b) {
+    // Flat-earth distance, same approximation as [hasCaughtUp]: a frame is
+    // centimetres to metres, nowhere near where it stops being accurate.
+    final dLat = (b.lat - a.lat) * 111320;
+    final dLng = (b.lng - a.lng) * 111320 * math.cos(a.lat * math.pi / 180);
+    final metres = math.sqrt(dLat * dLat + dLng * dLng);
+    final metresPerDp =
+        78271.51696 * math.cos(b.lat * math.pi / 180).abs() / math.pow(2, b.zoom);
+    final travel = metresPerDp > 0 ? metres / metresPerDp : 0.0;
+
+    var rot = (b.rotDeg - a.rotDeg) % 360;
+    if (rot > 180) rot -= 360;
+    if (rot < -180) rot += 360;
+    final turn = rot.abs() * math.pi / 180 * edgeRadiusDp;
+
+    // Scale changes by 2^Δzoom; at the edge radius that is this many pixels.
+    final zoom = (math.pow(2, (b.zoom - a.zoom).abs()) - 1) * edgeRadiusDp;
+
+    return travel + turn + zoom;
+  }
+}
