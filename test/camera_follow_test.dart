@@ -236,6 +236,20 @@ void main() {
       expect(small, lessThan(large / 50));
     });
 
+    test('the last frame is worth sending only if it differs from the last', () {
+      final gate = CameraFrameGate();
+      final state = _s();
+      // Nothing sent yet: anything is a change.
+      expect(gate.hasVisibleChange(state), isTrue);
+      gate.markSent(state, 0);
+      // The camera already is where it is going: re-sending it is a redundant
+      // native frame, which is what a parked phone did on every GPS fix.
+      expect(gate.hasVisibleChange(state), isFalse);
+      // Even a change too small for a normal frame counts for the last one —
+      // the camera should not be left a fraction of a pixel short.
+      expect(gate.hasVisibleChange(_s(lat: north(0.05))), isTrue);
+    });
+
     test('reset makes the next frame go out whatever it is', () {
       final gate = CameraFrameGate();
       final state = _s();
