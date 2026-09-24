@@ -704,6 +704,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get categoryPolice => 'Rendőrség';
 
   @override
+  String get categoryPoliceStation => 'Rendőrőrs';
+
+  @override
   String get categorySpeedCamera => 'Sebességmérő kamera';
 
   @override

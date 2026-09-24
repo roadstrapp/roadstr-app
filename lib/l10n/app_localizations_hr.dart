@@ -704,6 +704,9 @@ class AppLocalizationsHr extends AppLocalizations {
   String get categoryPolice => 'Policija';
 
   @override
+  String get categoryPoliceStation => 'Policijska postaja';
+
+  @override
   String get categorySpeedCamera => 'Kamera za brzinu';
 
   @override

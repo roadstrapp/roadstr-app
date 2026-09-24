@@ -700,6 +700,9 @@ class AppLocalizationsSl extends AppLocalizations {
   String get categoryPolice => 'Policija';
 
   @override
+  String get categoryPoliceStation => 'Policijska postaja';
+
+  @override
   String get categorySpeedCamera => 'Radar za merjenje hitrosti';
 
   @override

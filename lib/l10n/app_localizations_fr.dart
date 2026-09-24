@@ -707,6 +707,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get categoryPolice => 'Police';
 
   @override
+  String get categoryPoliceStation => 'Poste de police';
+
+  @override
   String get categorySpeedCamera => 'Radar';
 
   @override

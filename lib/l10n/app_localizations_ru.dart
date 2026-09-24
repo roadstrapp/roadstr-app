@@ -704,6 +704,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get categoryPolice => 'Полиция';
 
   @override
+  String get categoryPoliceStation => 'Отделение полиции';
+
+  @override
   String get categorySpeedCamera => 'Камера контроля скорости';
 
   @override

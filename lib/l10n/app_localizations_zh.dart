@@ -678,6 +678,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get categoryPolice => '警察';
 
   @override
+  String get categoryPoliceStation => '警察局';
+
+  @override
   String get categorySpeedCamera => '测速摄像头';
 
   @override

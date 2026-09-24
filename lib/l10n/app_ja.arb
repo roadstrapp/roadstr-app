@@ -234,6 +234,7 @@
   "searchEngineGoogleDesc": "非常に効果的。でも覚えておいて：Googleはあなたのお母さんよりあなたのことを知っていて、すべてを広告主に売っています。まあ、あなたの選択です。🍪",
   "@_CATEGORIES": {},
   "categoryPolice": "警察",
+  "categoryPoliceStation": "警察署",
   "categorySpeedCamera": "速度測定カメラ",
   "categoryTrafficJam": "渋滞",
   "categoryAccident": "事故",

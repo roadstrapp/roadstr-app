@@ -703,6 +703,9 @@ class AppLocalizationsFi extends AppLocalizations {
   String get categoryPolice => 'Poliisi';
 
   @override
+  String get categoryPoliceStation => 'Poliisiasema';
+
+  @override
   String get categorySpeedCamera => 'Nopeusvalvontakamera';
 
   @override

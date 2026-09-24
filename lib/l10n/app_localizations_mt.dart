@@ -708,6 +708,9 @@ class AppLocalizationsMt extends AppLocalizations {
   String get categoryPolice => 'Pulizija';
 
   @override
+  String get categoryPoliceStation => 'Għassa tal-Pulizija';
+
+  @override
   String get categorySpeedCamera => 'Kamera tal-veloċità';
 
   @override

@@ -703,6 +703,9 @@ class AppLocalizationsSv extends AppLocalizations {
   String get categoryPolice => 'Polis';
 
   @override
+  String get categoryPoliceStation => 'Polisstation';
+
+  @override
   String get categorySpeedCamera => 'Fartkamera';
 
   @override

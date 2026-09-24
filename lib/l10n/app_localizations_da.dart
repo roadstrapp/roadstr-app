@@ -702,6 +702,9 @@ class AppLocalizationsDa extends AppLocalizations {
   String get categoryPolice => 'Politi';
 
   @override
+  String get categoryPoliceStation => 'Politistation';
+
+  @override
   String get categorySpeedCamera => 'Fartkamera';
 
   @override

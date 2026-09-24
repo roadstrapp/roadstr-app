@@ -234,6 +234,7 @@
   "searchEngineGoogleDesc": "Väga tõhus. Aga pidage meeles: Google teab teid paremini kui teie ema ja müüb kõike reklaamijatele. Teie otsus muidugi. 🍪",
   "@_CATEGORIES": {},
   "categoryPolice": "Politsei",
+  "categoryPoliceStation": "Politseijaoskond",
   "categorySpeedCamera": "Kiiruskaamerna",
   "categoryTrafficJam": "Liiklusummik",
   "categoryAccident": "Õnnetus",

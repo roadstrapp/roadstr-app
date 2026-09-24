@@ -703,6 +703,9 @@ class AppLocalizationsRo extends AppLocalizations {
   String get categoryPolice => 'Poliție';
 
   @override
+  String get categoryPoliceStation => 'Secție de poliție';
+
+  @override
   String get categorySpeedCamera => 'Radar de viteză';
 
   @override
