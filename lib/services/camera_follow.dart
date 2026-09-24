@@ -219,6 +219,15 @@ class CameraFrameGate {
     return change > _negligibleDp && nowMs - _sentAtMs >= maxGapMs;
   }
 
+  /// Whether [next] differs from the last frame sent by any amount that could
+  /// show at all — the test for the final frame before the ticker stands
+  /// down, which must land the camera exactly on its target *if* it is not
+  /// already there, and must not be re-sent when it is.
+  bool hasVisibleChange(CameraFollowState next) {
+    final sent = _sent;
+    return sent == null || changeDp(sent, next) > _negligibleDp;
+  }
+
   void markSent(CameraFollowState state, int nowMs) {
     _sent = state;
     _sentAtMs = nowMs;
