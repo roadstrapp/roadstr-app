@@ -63,6 +63,7 @@ import '../utils/heading_filter.dart';
 import '../utils/off_route_detector.dart';
 import '../utils/settings_listenable.dart';
 import '../utils/units.dart';
+import '../utils/viewport_window.dart';
 import '../widgets/cursor_painter.dart';
 import '../widgets/home/home_dashboard.dart';
 import '../widgets/map/map_chrome.dart';
@@ -367,6 +368,69 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   // own direction instead of the nearest (possibly wrong-way) arm.
   int _nearestRouteSegmentIdx = 0;
   double _routeProgressM = 0;
+
+  // ── Marker culling ────────────────────────────────────────────────────
+  // WidgetLayer rebuilds on every camera change and builds a widget for every
+  // marker it is given, on screen or not — see ViewportWindow for the cost
+  // that was, and why culling against it is invisible. The camera used for
+  // that comes from the map's own move events rather than [_camState], which
+  // only tracks the follow ticker and goes stale the moment the driver pans
+  // or zooms by hand.
+  MapCamera? _liveCamera;
+
+  /// The camera the marker layers were last culled against, so a later camera
+  /// event can tell whether the view has moved far enough to need a re-cull.
+  MapCamera? _cullAnchor;
+  Timer? _cullRebuildTimer;
+
+  /// A window for the live camera, or null (meaning: no culling, exactly as
+  /// before) until the map has reported one. Also records that camera as the
+  /// anchor the next event is compared against.
+  ViewportWindow? _markerWindow() {
+    final cam = _liveCamera;
+    if (cam == null) return null;
+    _cullAnchor = cam;
+    final size = MediaQuery.of(context).size;
+    return ViewportWindow(
+      centerLat: cam.center.lat,
+      centerLng: cam.center.lon,
+      zoom: cam.zoom,
+      bearingDeg: cam.bearing,
+      pitchDeg: cam.pitch,
+      screenWidthDp: size.width,
+      screenHeightDp: size.height,
+    );
+  }
+
+  /// Every camera move the map reports. The window is generous enough that the
+  /// GPS-driven rebuild (twice a second) already keeps it fresh while driving;
+  /// this only has to catch the view changing *between* those — a hand pan, a
+  /// pinch, a two-finger tilt or rotate — by more than the margin absorbs.
+  void _onLiveCamera(MapCamera cam) {
+    _liveCamera = cam;
+    final anchor = _cullAnchor;
+    if (anchor != null && !_cullStale(anchor, cam)) return;
+    if (_cullRebuildTimer != null) return;
+    // Throttled: a fling emits an event per frame, and each rebuild is the
+    // same cost as a GPS one.
+    _cullRebuildTimer = Timer(const Duration(milliseconds: 150), () {
+      _cullRebuildTimer = null;
+      if (mounted) setState(() {});
+    });
+  }
+
+  static bool _cullStale(MapCamera anchor, MapCamera now) {
+    if ((now.zoom - anchor.zoom).abs() >= 0.3) return true;
+    if ((now.pitch - anchor.pitch).abs() >= 8) return true;
+    var db = (now.bearing - anchor.bearing).abs() % 360;
+    if (db > 180) db = 360 - db;
+    // Rotating swaps which way the narrow side of the window points, so this
+    // is the tightest of the four.
+    if (db >= 10) return true;
+    return Geo.distanceM(LatLng(anchor.center.lat, anchor.center.lon),
+            LatLng(now.center.lat, now.center.lon)) >=
+        80;
+  }
 
   // Camera easing — CameraFollowEasing is the same policy
   // MapScreen._startFollowTicker uses, driven here against MapController
@@ -1694,6 +1758,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _activitySub?.cancel();
     _roadSub?.cancel();
     _eventCleanupTimer?.cancel();
+    _cullRebuildTimer?.cancel();
     _planDebounce?.cancel();
     _planFromCtrl.dispose();
     for (final c in _planStopCtrls) {
@@ -4152,6 +4217,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     // Same custom-server override MapScreen's tile layer reads — a
     // self-hosted or alternate raster source, same default as MapScreen's
     // own RoadstrColors.mapTile.
+    final cull = _markerWindow();
     final tileUrl = Hive.box('settings')
         .get('mapTileUrl', defaultValue: _roadstrTileUrl) as String;
     // setStyle only after onMapCreated hands us a controller — until then
@@ -4291,6 +4357,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
             ),
             onMapCreated: (controller) => _controller = controller,
             onEvent: (event) {
+              if (event is MapEventMoveCamera) _onLiveCamera(event.camera);
               if (event is MapEventStartMoveCamera &&
                   event.reason == CameraChangeReason.apiGesture) {
                 setState(() => _followUser = false);
@@ -4428,7 +4495,11 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               // zoom≥11 gate and live-TTL filtering as MapScreen.
               if (_roadEvents.isNotEmpty && (_camState?.zoom ?? 17) >= 11)
                 WidgetLayer(markers: [
-                  for (final ev in _roadEvents.where((e) => !e.isExpired))
+                  for (final ev in _roadEvents.where((e) =>
+                      !e.isExpired &&
+                      (cull == null ||
+                          cull.contains(
+                              e.position.latitude, e.position.longitude))))
                     Marker(
                       point: Geographic(
                           lon: ev.position.longitude,
@@ -4443,7 +4514,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
               if (_speedCameraSvc.cachedCameras.isNotEmpty ||
                   _parkingPosition != null)
                 WidgetLayer(markers: [
-                  for (final cam in _speedCameraSvc.cachedCameras)
+                  for (final cam in _speedCameraSvc.cachedCameras.where((c) =>
+                      cull == null ||
+                      cull.contains(
+                          c.position.latitude, c.position.longitude)))
                     Marker(
                       point: Geographic(
                           lon: cam.position.longitude,
@@ -4479,7 +4553,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                   _trafficLightSvc.cachedLights.isNotEmpty &&
                   (_camState?.zoom ?? 17) >= 15)
                 WidgetLayer(markers: [
-                  for (final light in _trafficLightSvc.cachedLights)
+                  for (final light in _trafficLightSvc.cachedLights.where((l) =>
+                      cull == null ||
+                      cull.contains(
+                          l.position.latitude, l.position.longitude)))
                     Marker(
                       point: Geographic(
                           lon: light.position.longitude,
@@ -4496,7 +4573,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                   (_camState?.zoom ?? 17) >= 15)
                 WidgetLayer(markers: [
                   for (final h in _crossingHazardSvc.cachedHazards)
-                    if (h.kind == CrossingHazardKind.speedBump)
+                    if (h.kind == CrossingHazardKind.speedBump &&
+                        (cull == null ||
+                            cull.contains(
+                                h.position.latitude, h.position.longitude)))
                       Marker(
                         point: Geographic(
                             lon: h.position.longitude,
@@ -4515,7 +4595,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                   (_camState?.zoom ?? 17) >= 16)
                 WidgetLayer(markers: [
                   for (final h in _crossingHazardSvc.cachedHazards)
-                    if (h.kind == CrossingHazardKind.crosswalk)
+                    if (h.kind == CrossingHazardKind.crosswalk &&
+                        (cull == null ||
+                            cull.contains(
+                                h.position.latitude, h.position.longitude)))
                       Marker(
                         point: Geographic(
                             lon: h.position.longitude,
