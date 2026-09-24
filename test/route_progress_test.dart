@@ -61,4 +61,103 @@ void main() {
       expect(RouteProgress.cumulativeDistances(const []), isEmpty);
     });
   });
+
+  // A long straight route, a vertex every 10 m, 5 km in all.
+  final longRoute = [for (var i = 0; i <= 500; i++) _north(start, i * 10.0)];
+
+  group('nearestIndexNear', () {
+    test('agrees with the full scan wherever the driver actually is', () {
+      // Every position along the route, hint always the previous answer — the
+      // way the navigation loop uses it.
+      var hint = 0;
+      for (var metres = 0.0; metres <= 5000; metres += 7) {
+        final position = _north(start, metres);
+        final near =
+            RouteProgress.nearestIndexNear(longRoute, position, hint: hint);
+        expect(near, RouteProgress.nearestIndex(longRoute, position),
+            reason: 'at ${metres.round()} m');
+        hint = near;
+      }
+    });
+
+    test('a jump far outside the window still finds the true nearest', () {
+      // A fix after a long tunnel, or the polyline replaced by a reroute: the
+      // window around the old hint holds nothing near the new position.
+      final position = _north(start, 4000);
+      expect(RouteProgress.nearestIndexNear(longRoute, position, hint: 5),
+          400);
+    });
+
+    test('a hint past the end of a shorter, replacement route is harmless',
+        () {
+      final short = longRoute.sublist(0, 20);
+      final idx = RouteProgress.nearestIndexNear(short, _north(start, 100),
+          hint: 450);
+      expect(idx, 10);
+    });
+
+    test('an empty polyline answers 0, like the full scan', () {
+      expect(RouteProgress.nearestIndexNear(const [], start, hint: 0), 0);
+    });
+
+    test('on a route that doubles back it stays on the pass being driven', () {
+      // North 1 km, then straight back south over the same road: every
+      // vertex from the outbound leg appears again, at the same coordinates.
+      final out = [for (var i = 0; i <= 100; i++) _north(start, i * 10.0)];
+      final there = [...out, ...out.reversed.skip(1)];
+      final position = _north(start, 500); // 500 m from the start either way
+
+      // The full scan can only ever return the first occurrence …
+      expect(RouteProgress.nearestIndex(there, position), 50);
+      // … while a driver on the way back, hint near the return leg, is on the
+      // second: index 150 (100 out + 50 back).
+      expect(RouteProgress.nearestIndexNear(there, position, hint: 148), 150);
+      // And on the way out it stays on the first.
+      expect(RouteProgress.nearestIndexNear(there, position, hint: 48), 50);
+    });
+  });
+
+  group('nearestIndicesAlong', () {
+    test('matches a full scan per point on an ordinary route', () {
+      final points = [
+        longRoute[0],
+        longRoute[120],
+        longRoute[300],
+        longRoute[500],
+      ];
+      expect(RouteProgress.nearestIndicesAlong(longRoute, points),
+          [for (final p in points) RouteProgress.nearestIndex(longRoute, p)]);
+    });
+
+    test('a route that loops back to its start puts the last point at the end',
+        () {
+      // Out and back: the arrival point is the same coordinate as the
+      // departure. A full scan puts it at index 0, so the "arrive" step would
+      // claim to be at the very start of the route. In route order it is last.
+      final out = [for (var i = 0; i <= 100; i++) _north(start, i * 10.0)];
+      final loop = [...out, ...out.reversed.skip(1)];
+      final steps = [loop.first, loop[100], loop.last];
+
+      expect(RouteProgress.nearestIndex(loop, steps.last), 0,
+          reason: 'the trap this avoids');
+      expect(RouteProgress.nearestIndicesAlong(loop, steps),
+          [0, 100, loop.length - 1]);
+    });
+
+    test('a point that is not on the route falls back rather than guessing',
+        () {
+      final far = LatLng(start.latitude + 2000 * _m, start.longitude);
+      final result = RouteProgress.nearestIndicesAlong(
+          longRoute, [longRoute[10], far, longRoute[400]]);
+      expect(result[0], 10);
+      expect(result[1], 200);
+      expect(result[2], 400);
+    });
+
+    test('no points, or no route, is an empty or zero answer, never a throw',
+        () {
+      expect(RouteProgress.nearestIndicesAlong(longRoute, const []), isEmpty);
+      expect(RouteProgress.nearestIndicesAlong(const [], [start]), [0]);
+    });
+  });
 }
