@@ -717,7 +717,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _loadFavorites();
     _loadHistory();
     unawaited(_autoRestoreFavorites());
-    _startCompass();
+    _syncCompass();
     _applyVoiceSettings();
     _voiceSettingsListenable = SettingsListenable.forKeys(const [
       'voiceEnabled',
@@ -849,6 +849,37 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// tilt-compensated compass bearing — ported unchanged from
   /// MapScreen._startCompass. All processing is on-device; no data is
   /// transmitted to any external server.
+  /// The compass is only ever consulted while the map follows the phone's own
+  /// orientation at a standstill: not navigating (the heading comes from the
+  /// route and the GPS course then — in a cradle or a pocket the magnetometer
+  /// says where the phone points, not the car), and in heading-up mode (in
+  /// north-up there is nothing for it to steer). Outside that the two sensors
+  /// were still delivering ~10 events a second through the platform channel,
+  /// each one running the tilt-compensation maths, for a result nothing read.
+  bool get _compassWanted => !_isNavigating && _headingMode;
+
+  /// Starts or stops the compass sensors to match [_compassWanted]. Called
+  /// wherever that can change: navigation starting or ending, the heading
+  /// toggle, app pause/resume.
+  void _syncCompass() {
+    if (_compassWanted) {
+      if (_magnetSub == null) _startCompass();
+    } else {
+      _stopCompass();
+    }
+  }
+
+  void _stopCompass() {
+    _magnetSub?.cancel();
+    _magnetSub = null;
+    _accelSub?.cancel();
+    _accelSub = null;
+    // Not left behind: paired with a fresh magnetometer sample much later, a
+    // stale gravity vector would tilt-compensate to the wrong azimuth for the
+    // first readings after a restart.
+    _lastAccel = null;
+  }
+
   void _startCompass() {
     _accelSub = accelerometerEventStream().listen((e) => _lastAccel = e);
     _magnetSub = magnetometerEventStream().listen((mag) {
@@ -936,10 +967,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     switch (state) {
       case AppLifecycleState.paused:
         _gpsLifecycleGeneration++;
-        _magnetSub?.cancel();
-        _magnetSub = null;
-        _accelSub?.cancel();
-        _accelSub = null;
+        _stopCompass();
         if (!_isNavigating) {
           _gpsIdleStop?.cancel();
           _gpsIdleStop = Timer(_gpsBackgroundGrace, () {
@@ -957,7 +985,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         _gpsIdleStop = null;
         _applyScreenPolicy();
         final generation = ++_gpsLifecycleGeneration;
-        if (_magnetSub == null) _startCompass();
+        _syncCompass();
         // Wait for pause-time cancellation before creating a new native
         // location stream — otherwise a quick app switch could start a
         // fresh stream and then let the late stop cancel it.
@@ -2844,6 +2872,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     // began on a wide overview instead of the driving view.
     _snapCameraToFix(navShift: _headingMode, pitch: 55.0);
     _applyScreenPolicy();
+    _syncCompass();
     if (!_voiceMuted) unawaited(_tts.announceStart());
 
     // GPS-loss watchdog: a tunnel or underground car park stops the fix
@@ -2910,6 +2939,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       _activeVia = const [];
     });
     _applyScreenPolicy();
+    _syncCompass();
   }
 
   /// Same confirmation dialog MapScreen shows before actually stopping —
@@ -3803,7 +3833,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _startFollowTicker();
   }
 
-  void _toggleHeadingMode() => setState(() => _headingMode = !_headingMode);
+  void _toggleHeadingMode() {
+    setState(() => _headingMode = !_headingMode);
+    _syncCompass();
+  }
 
   // 30fps, not 60: since dead reckoning made this run continuously for the
   // whole drive instead of in brief bursts after each fix, every native
