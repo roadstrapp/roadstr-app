@@ -1,6 +1,7 @@
 import 'package:latlong2/latlong.dart';
 import 'package:flutter/foundation.dart';
 import 'overpass_client.dart';
+import 'refetch_policy.dart';
 
 /// What kind of road-surface hazard/marking an [OsmCrossingHazard] is.
 enum CrossingHazardKind {
@@ -32,8 +33,12 @@ class OsmCrossingHazard {
 /// not a community-reported one.
 class CrossingHazardService {
   static const _radiusM = 1500;
-  static const _minMoveM = 500.0;
-  static const _maxAgeMs = 120000;
+
+  /// Same reasoning as TrafficLightService: half way to the edge of the
+  /// 1.5 km radius, still 750 m ahead — and no timer-driven refetch of an
+  /// unchanged neighbourhood while parked.
+  static const _policy =
+      RefetchPolicy(minMoveM: _radiusM / 2, maxAge: Duration(minutes: 15));
   static const _retryMs = 15000;
   static const _maxResults = 400;
 
@@ -80,11 +85,11 @@ class CrossingHazardService {
     if (_fetching) return false;
     final now = DateTime.now();
     if (_nextRetryAt != null && now.isBefore(_nextRetryAt!)) return false;
-    if (_lastQueryPos == null) return true;
-    final moved = const Distance().as(LengthUnit.Meter, _lastQueryPos!, pos);
-    if (moved > _minMoveM) return true;
-    if (_lastSuccessAt == null) return true;
-    return now.difference(_lastSuccessAt!).inMilliseconds > _maxAgeMs;
+    return _policy.isDue(
+        lastQueryPos: _lastQueryPos,
+        pos: pos,
+        lastSuccessAt: _lastSuccessAt,
+        now: now);
   }
 
   Future<List<OsmCrossingHazard>> _fetch(LatLng pos) async {
