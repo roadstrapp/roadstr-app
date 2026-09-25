@@ -1,0 +1,29 @@
+# Kotlin rewrite risks and blockers
+
+| ID | Risk | Impact | Likelihood | Mitigation / gate | Status |
+|---|---|---:|---:|---|---|
+| R-01 | Official release certificate is not available in the checkout | Critical | High | Obtain controlled certificate fingerprint and verify a signed APK before cutover | Open blocker |
+| R-02 | Hive 2.2.3 binary/encryption compatibility is guessed | Critical | High | Use real fixtures and prefer a headless legacy Dart bridge until native decoding is proven | Open |
+| R-03 | `flutter_secure_storage` has multiple historical Android formats | Critical | High | Test v10.3.1 plus supported older 0.5.x fixtures; preserve plugin-compatible reader/bridge | Open |
+| R-04 | A failed migration creates a blank identity/profile | Critical | Medium | Fail closed, retain legacy files, compare derived pubkey, show recovery UI | Design gate |
+| R-05 | Version code or signing mismatch blocks normal Android update | Critical | Medium | Exact identity checks, higher code than 2050, signed APK upgrade test | Open |
+| R-06 | Nostr event bytes/tags change during port | Critical | Medium | Export deterministic golden fixtures and compare IDs, tags, signatures and payloads | Not started |
+| R-07 | Legacy raster map setting is silently removed | High | Medium | Keep the setting and implement equivalent raster behavior through native MapLibre or transitional path | Not started |
+| R-08 | Map/navigation lifecycle regresses on rotation/background/process death | High | Medium | Service/ViewModel ownership, lifecycle tests and manual navigation sessions | Not started |
+| R-09 | GPS battery behavior regresses on de-Googled devices | High | Medium | Port existing LocationManager/watchdog policy and benchmark against Flutter | Not started |
+| R-10 | Voice models are unnecessarily re-downloaded | High | Medium | Reuse `kokoro/`, `piper/`, eSpeak files after size/hash validation | Not started |
+| R-11 | MapLibre Native dependency introduces proprietary/Google transitive code | High | Medium | Dependency/license table, Gradle dependency audit and no-Google test | Not started |
+| R-12 | F-Droid recipe no longer builds or detects versions | High | Medium | Keep literal version values, port recipe/output/NDK steps, validate from bare clone | Not started |
+| R-13 | 27 localization sets lose keys/placeholders/fallback behavior | High | Medium | Key-coverage and placeholder comparison before UI completion | Not started |
+| R-14 | Amber/NIP-55 signing semantics change | High | Medium | Intent fixtures/manual signer tests; never copy private keys for Amber | Not started |
+| R-15 | Native release build cannot be reproduced offline/F-Droid-style | High | Medium | Pin dependencies, retain eSpeak reproducibility and build in clean environment | Not started |
+| R-16 | Protocol/network limits are approximated instead of ported | High | Medium | Port bounded HTTP/relay policies from source with fixture and adversarial tests | Not started |
+| R-17 | Physical-device upgrade path is untested | Critical | High | Manual signed-APK checklist owned by user; no release candidate without evidence | Open |
+| R-18 | Parallel Flutter/main changes expand parity gap | Medium | Medium | Periodically audit main, update matrix intentionally, never silently drop features | Process |
+
+## Current stop condition
+
+No destructive framework-removal work may begin until R-01 through R-04 have
+evidence and the migration prototype can preserve identity, protected storage,
+favourites and model assets in fixtures.
+
