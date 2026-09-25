@@ -77,6 +77,7 @@ import '../utils/geo.dart';
 import '../utils/heading_filter.dart';
 import '../utils/off_route_detector.dart';
 import '../utils/settings_listenable.dart';
+import '../utils/ui_language.dart';
 import '../utils/units.dart';
 
 /// Warning red for limited-traffic zones. Deliberately not the theme accent:
@@ -625,8 +626,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         defaultValue: kKokoroDefaultSpeedStage) as int]);
     _tts.setVolume(
         (settings.get('kokoroVolume', defaultValue: 1.0) as num).toDouble());
-    final lang = settings.get('language', defaultValue: '') as String;
-    unawaited(_tts.init(lang.isNotEmpty ? lang : 'it'));
+    unawaited(_tts.init(currentUiLanguage()));
   }
 
   void _onVoiceSettingsChanged() => setState(_applyVoiceSettings);

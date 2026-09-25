@@ -62,6 +62,7 @@ import '../utils/geo.dart';
 import '../utils/heading_filter.dart';
 import '../utils/off_route_detector.dart';
 import '../utils/settings_listenable.dart';
+import '../utils/ui_language.dart';
 import '../utils/units.dart';
 import '../utils/viewport_window.dart';
 import '../widgets/cursor_painter.dart';
@@ -884,8 +885,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         defaultValue: kKokoroDefaultSpeedStage) as int]);
     _tts.setVolume(
         (settings.get('kokoroVolume', defaultValue: 1.0) as num).toDouble());
-    final lang = settings.get('language', defaultValue: '') as String;
-    unawaited(_tts.init(lang.isNotEmpty ? lang : 'it'));
+    unawaited(_tts.init(currentUiLanguage()));
   }
 
   void _onVoiceSettingsChanged() => setState(_applyVoiceSettings);
@@ -2311,7 +2311,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
           provider: provider,
           apiKey: apiKey,
           graphhopperServer: ghServer,
-          lang: 'it',
+          lang: currentUiLanguage(),
           vehicle: _transportMode,
           via: via);
     } catch (_) {
@@ -2521,7 +2521,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     try {
       var route =
           await RoutingService.getOffRoadAvoidanceRoute(origin, dest,
-              lang: 'it');
+              lang: currentUiLanguage());
       route = (await _withRoundaboutTopology([route])).single;
       final twin = routes
           .indexWhere((r) => RoutingService.followSameRoads(r, route));
@@ -2548,7 +2548,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     try {
       final avoided =
           await RoutingService.getOffRoadAvoidanceRoute(origin, dest,
-              lang: 'it');
+              lang: currentUiLanguage());
       return (await _withRoundaboutTopology([avoided])).single;
     } catch (_) {
       return route;
@@ -2581,7 +2581,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       var route = await RoutingService.getHighwayAndTollAvoidanceRoute(
         _routeOrigin ?? destination,
         destination,
-        lang: 'it',
+        lang: currentUiLanguage(),
       );
       route = (await _withRoundaboutTopology([route])).single;
       if (!mounted ||
@@ -2802,7 +2802,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
             provider: provider,
             apiKey: apiKey,
             graphhopperServer: ghServer,
-            lang: 'it',
+            lang: currentUiLanguage(),
             vehicle: _transportMode,
             originBearingDeg: bearing,
             via: via);

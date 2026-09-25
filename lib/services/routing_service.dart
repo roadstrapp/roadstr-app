@@ -713,7 +713,7 @@ class RoutingService {
             [origin.longitude, origin.latitude],
             [destination.longitude, destination.latitude]
           ],
-          'language': lang,
+          'language': orsLanguage(lang),
           'instructions': true,
         });
         final res = await BoundedHttp.post(
@@ -804,7 +804,7 @@ class RoutingService {
           'point=${origin.latitude},${origin.longitude}',
           'point=${destination.latitude},${destination.longitude}',
           'vehicle=${_ghVehicle(vehicle)}',
-          'locale=${lang == 'it' ? 'it' : 'en'}',
+          'locale=${Uri.encodeQueryComponent(lang)}',
           'instructions=true',
           'points_encoded=false',
           'details=max_speed',
@@ -1520,6 +1520,34 @@ class RoutingService {
   /// can say anything about. See [_retimedThroughOsrm].
   static const _maxRoadStepM = 25000.0;
 
+  /// OpenRouteService rejects a `language` it does not know with an HTTP 400
+  /// — and a rejected request means no route at all, not an English one — so
+  /// the app's language is mapped onto ORS's own list, English otherwise. Its
+  /// codes are not ISO 639-1 throughout: Greek is `gr`, Ukrainian `ua`.
+  @visibleForTesting
+  static String orsLanguage(String languageCode) {
+    const codes = <String, String>{
+      'cs': 'cs',
+      'de': 'de',
+      'en': 'en',
+      'es': 'es',
+      'fr': 'fr',
+      'el': 'gr',
+      'hu': 'hu',
+      'it': 'it',
+      'ja': 'ja',
+      'nl': 'nl',
+      'pl': 'pl',
+      'pt': 'pt',
+      'ro': 'ro',
+      'ru': 'ru',
+      'tr': 'tr',
+      'uk': 'ua',
+      'zh': 'zh',
+    };
+    return codes[languageCode.toLowerCase()] ?? 'en';
+  }
+
   static String _valhallaLanguage(String languageCode) {
     const locales = <String, String>{
       'bg': 'bg-BG',
@@ -2163,7 +2191,7 @@ extension WikiSearch on RoutingService {
   static Future<WikiSummary?> fetchWikiNearby(
     double lat,
     double lon, {
-    String lang = 'it',
+    String lang = 'en',
     String? fallbackQuery,
     int radiusM = 500,
   }) async {
@@ -2222,13 +2250,13 @@ extension WikiSearch on RoutingService {
   /// Fetches a Wikipedia article summary by title using the REST v1 summary API.
   ///
   /// Tries [lang] first; if the article is missing or is a disambiguation page,
-  /// retries with the alternate language (it ↔ en). Disambiguation pages are
-  /// skipped because their `extract` is not useful for the place-info panel.
+  /// retries in English. Disambiguation pages are skipped because their
+  /// `extract` is not useful for the place-info panel.
   static Future<WikiSummary?> fetchWikiSummary(String query,
-      {String lang = 'it'}) async {
+      {String lang = 'en'}) async {
     try {
       final encoded = Uri.encodeComponent(query);
-      for (final l in [lang, lang == 'it' ? 'en' : 'it']) {
+      for (final l in [lang, if (lang != 'en') 'en']) {
         final uri = Uri.parse(
             'https://$l.wikipedia.org/api/rest_v1/page/summary/$encoded');
         final res = await BoundedHttp.get(
