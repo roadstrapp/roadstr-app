@@ -1,8 +1,9 @@
 # Storage compatibility inventory
 
-Status: forensic inventory complete; bounded transactional migration core is
-implemented and tested, while the real Hive/secure-storage reader remains
-blocked on controlled legacy fixtures.
+Status: forensic inventory, bounded transactional migration core and the
+synthetic Dart-to-Kotlin envelope fixture are implemented and tested. The real
+Hive/secure-storage reader remains blocked on controlled installed-app
+fixtures.
 
 The existing app uses one Hive box named `settings` in the application
 documents directory. `lib/main.dart` obtains a 32-byte key from
@@ -55,6 +56,7 @@ are shown as templates.
 
 ```text
 autoDark
+autoCenterOnLaunch
 avoidUnpavedRoads
 fav_sync_custom_relay
 fav_sync_last_ts
@@ -124,12 +126,18 @@ native migration must preserve that safety property and must also cover the
 secure-storage formats, which the current startup code does not migrate to a
 new implementation.
 
+The normalized v1 envelope, its bounds and its exact evidence boundary are
+specified in `LEGACY_SNAPSHOT_ENVELOPE.md`. Its committed fixture covers every
+fixed key above, one valid instance of every dynamic key prefix, all nine
+secure keys and representative asset metadata. This catches contract drift but
+does not replace raw Hive/secure-storage fixtures.
+
 ## Open verification items
 
 - Produce fixtures from real supported 0.5.x installations, including an old
   secure-storage format and an encrypted Hive box.
 - Confirm the exact Android Keystore aliases/files on a signed installed build.
-- Verify every dynamic key and any plugin-owned files not visible from Dart.
+- Exercise every dynamic key and any plugin-owned files in real install fixtures.
 - Decide the supported legacy release range after fixture coverage exists.
 - Prove failure behavior for Keystore failure, corrupt Hive, process death and
   missing keys before any Flutter UI removal.

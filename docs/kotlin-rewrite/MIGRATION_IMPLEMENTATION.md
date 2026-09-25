@@ -13,13 +13,21 @@ not a production startup change.
   assets and Amber identities containing a private key fail closed.
 - `LegacySnapshotFingerprint` provides a stable order-independent SHA-256 for
   comparing staged and reopened snapshots without logging their contents.
+- `LegacySnapshotEnvelope.kt` implements the versioned, canonical and bounded
+  Flutter-to-Kotlin hand-off plus a read-only `LegacySnapshotReader` adapter.
+  Its trailing SHA-256 detects transport corruption but is not treated as
+  authentication.
 - `TransactionalMigration.kt` defines the reader/writer/marker interfaces and
   enforces the order `read → validate → stage → commit → verify → mark complete`.
 - No interface exposes a legacy-delete operation. Cleanup remains a separate,
   later policy decision.
 - Unit tests cover success, idempotent completion, commit failure, verification
   failure, private/public key mismatch, unknown keys, unsafe/duplicate assets,
-  deterministic fingerprints and the audited key contract.
+  deterministic fingerprints, envelope limits/corruption and the audited key
+  contract.
+- Dart generates `legacy_snapshot_v1.b64`; Dart and Kotlin both decode the
+  exact bytes and assert coverage of all 40 fixed Hive keys, three dynamic
+  per-identity keys, nine secure keys and three synthetic asset records.
 - The pure Kotlin core now covers geometry/progress, heading/off-route,
   camera/viewport, formatting/TTS, fuzzy search, refetch/retry,
   sunrise/sunset, opening hours and strict BOLT-11 parsing.
@@ -36,10 +44,11 @@ not a production startup change.
 - No production Activity, manifest, application ID, permissions or Flutter
   runtime has been replaced.
 - No real user data, key, NWC URI or voice asset is used by the tests.
-- No cross-language **legacy storage** fixture exists yet. The shared core
-  harness does not prove Hive, secure-storage or Keystore compatibility.
+- No raw installed-app fixture exists yet. The shared normalized envelope does
+  not prove Hive, secure-storage or Keystore compatibility.
 
-The next migration increment must provide a controlled fixture producer and a
-reader adapter. Only after those fixtures prove the exact legacy formats should
-the coordinator be connected to native startup. Until then, the Flutter app
-remains the only production path.
+The next migration increment must run a controlled reader against supported
+installed 0.5.x states, including encrypted Hive, current and historical
+secure-storage formats, nsec and Amber. Only after those fixtures prove the
+exact legacy formats should the coordinator be connected to native startup.
+Until then, the Flutter app remains the only production path.
