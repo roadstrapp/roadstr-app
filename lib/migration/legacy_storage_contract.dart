@@ -1,3 +1,4 @@
+/// Audited names from the supported Flutter storage layout.
 const String legacySettingsBoxName = 'settings';
 const String legacySettingsFileName = 'settings.hive';
 const String legacySettingsMigrationBackupFileName =

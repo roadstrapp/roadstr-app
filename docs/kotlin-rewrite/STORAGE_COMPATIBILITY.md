@@ -2,9 +2,9 @@
 
 Status: forensic inventory, bounded transactional migration core, a
 reproducible encrypted Hive 2.2.3 fixture, a strict read-only Dart collector
-and a copy-before-open bridge candidate are implemented and tested through the
-Dart-to-Kotlin envelope. Reading protected storage from controlled signed
-installations remains open.
+and a copy-before-open bridge plus isolated headless transport are implemented
+and tested through the Dart-to-Kotlin envelope. Reading protected storage from
+controlled signed installations remains open.
 
 The existing app uses one Hive box named `settings` in the application
 documents directory. `lib/main.dart` obtains a 32-byte key from
@@ -157,6 +157,15 @@ Hive key, corrupt Hive bytes, source symlink, unknown secure key, mismatched
 Hive/secure presence or copy instability fails closed with a value-free error.
 The source box and its asset files remain byte-for-byte unchanged in tests.
 
+`legacyMigrationHeadlessMain` is a secondary, tree-shaker-preserved Dart
+entrypoint. Its Kotlin launcher creates a separate engine on the Android main
+thread, disables generated plugin registration, app-registers only
+`path_provider` and `flutter_secure_storage`, performs one versioned read, then
+destroys the engine before the worker-thread reader decodes the envelope. The
+reader rejects main-thread invocation and bounds the request wait to 30 seconds
+by default (120 seconds maximum), followed by at most five seconds waiting for
+timeout disposal. Nothing invokes this launcher from current app startup.
+
 The voice manifest contains the current 18 reusable paths: Kokoro's model,
 tokenizer and every catalogued voice, both Piper files and the eSpeak sentinel.
 The manifest is tested directly against the production Kokoro/Piper catalogues;
@@ -177,6 +186,8 @@ signed installed-app or secure-storage fixtures.
   and historical secure-storage formats and encrypted Hive boxes.
 - Verify that the candidate `resetOnError=false`, backup-protected plugin read
   preserves rollback on each supported historical format.
+- Execute the isolated headless launcher end-to-end on each signed fixture and
+  measure engine startup time and peak memory.
 - Confirm the exact Android Keystore aliases/files on a signed installed build.
 - Exercise every dynamic key and any plugin-owned files in real install fixtures.
 - Decide the supported legacy release range after fixture coverage exists.

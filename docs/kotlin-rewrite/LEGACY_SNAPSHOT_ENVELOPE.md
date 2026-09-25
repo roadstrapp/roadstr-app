@@ -7,15 +7,17 @@ files by itself.
 
 The relevant implementations are:
 
-- Dart producer: `tools/kotlin_rewrite/legacy_snapshot_envelope.dart`;
+- Dart producer: `lib/migration/legacy_snapshot_envelope.dart`;
 - read-only Hive/asset collector:
-  `tools/kotlin_rewrite/legacy_snapshot_collector.dart`;
+  `lib/migration/legacy_snapshot_collector.dart`;
 - reproducible encrypted-box generator:
   `tools/kotlin_rewrite/legacy_raw_hive_fixture.dart`;
 - copy-before-open bridge assembler:
-  `tools/kotlin_rewrite/legacy_migration_bridge_reader.dart`;
+  `lib/migration/legacy_migration_bridge_reader.dart`;
 - explicit safe-options adapter for the legacy secure-storage plugin:
-  `tools/kotlin_rewrite/legacy_secure_storage_source.dart`;
+  `lib/migration/legacy_secure_storage_source.dart`;
+- versioned headless channel server:
+  `lib/migration/legacy_migration_headless.dart`;
 - Kotlin consumer: `LegacySnapshotEnvelope.kt`.
 
 The Dart chain starts from the exact encrypted Hive 2.2.3 fixture
@@ -105,9 +107,10 @@ dart run tools/kotlin_rewrite/generate_legacy_hive_fixture.dart
 dart run tools/kotlin_rewrite/generate_legacy_hive_fixture.dart --check
 flutter test test/legacy_snapshot_envelope_test.dart \
   test/legacy_snapshot_collector_test.dart \
-  test/legacy_migration_bridge_reader_test.dart
+  test/legacy_migration_bridge_reader_test.dart \
+  test/legacy_migration_headless_test.dart
 cd android && ./gradlew :app:testDebugUnitTest \
-  --tests app.roadstr.migration.LegacySnapshotEnvelopeTest
+  --tests 'app.roadstr.migration.Legacy*Test'
 ```
 
 Each generator prints base64 to stdout and does not write a file. `--check`
@@ -130,6 +133,11 @@ unchanged, and fails closed for absent/partial state, unknown secure keys,
 invalid or wrong AES keys, corrupt Hive bytes, interrupted plaintext-encryption
 migration and symlinks. Hive 2.2.3's secondary asynchronous lock-cleanup error
 after a wrong key is contained and reduced to one neutral bridge failure.
+The shared `legacy_bridge_protocol.tsv` fixture also locks Dart and Kotlin to
+the same channel, protocol version, methods, entrypoint and neutral error code.
+The bounded one-shot Kotlin reader decodes the exact envelope only after its
+transport closes, rejects main-thread use and fails neutrally on timeout,
+duplicate completion, transport failure or malformed bytes.
 
 It does not prove that boxes copied from supported installed releases,
 historical `flutter_secure_storage` data or Android Keystore keys can be read.

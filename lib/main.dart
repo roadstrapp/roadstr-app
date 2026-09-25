@@ -27,6 +27,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'l10n/app_localizations.dart';
+import 'migration/legacy_migration_headless.dart';
 import 'providers/locale_provider.dart';
 import 'theme/theme_provider.dart';
 import 'theme/app_theme.dart';
@@ -35,6 +36,12 @@ import 'screens/maplibre_map_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/voice_engine_languages.dart';
 import 'utils/settings_listenable.dart';
+
+/// Secondary entrypoint used only by the isolated native migration bridge.
+/// Production Flutter startup continues to use [main].
+@pragma('vm:entry-point')
+Future<void> legacyMigrationHeadlessMain() =>
+    startLegacyMigrationHeadlessServer();
 
 Future<void> main() async {
   // Step 1: Required before any async platform-channel calls.

@@ -17,8 +17,7 @@ class LegacyMigrationBridgeException implements Exception {
   String toString() => 'LegacyMigrationBridgeException: $message';
 }
 
-/// Designed to assemble the bounded migration envelope from a dedicated Dart
-/// isolate.
+/// Assembles the bounded migration envelope from a dedicated Dart isolate.
 ///
 /// The source Hive file is never opened directly. It is copied to a temporary
 /// directory first, then the copy is opened with the exact Hive 2.2.3 cipher.

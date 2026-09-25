@@ -13,9 +13,10 @@ until migration, feature, protocol, UI and release parity are proven.
 3. **M2 — migration feasibility**: real Hive/secure-storage fixtures,
    transactional migration prototype, identity verification and asset reuse.
    The transactional prototype and a raw synthetic encrypted-Hive-to-Kotlin
-   evidence chain are now present, including a copy-before-open bridge reader;
-   signed installed fixtures and real secure-storage/Keystore reads are still
-   open. Do not mass-port UI before this gate is green.
+   evidence chain are now present, including a copy-before-open reader and an
+   isolated versioned headless transport; signed installed fixtures and real
+   secure-storage/Keystore reads are still open. Do not mass-port UI before
+   this gate is green.
 4. **M3 — pure-core parity (in progress)**: geo, route progress, heading,
    off-route, camera policy, viewport, units, opening hours, retry, invoice and
    protocol fixtures. A first shared Dart/Kotlin vector set is green.
@@ -53,14 +54,18 @@ The first native increment is intentionally isolated from production startup:
 - The bridge candidate rejects partial/interrupted legacy states, opens only a
   temporary Hive copy, inventories all 18 known reusable voice assets and
   disables the secure-storage plugin's destructive `resetOnError` behavior.
-- The Kotlin suite currently has 59 deterministic unit tests, all independent
-  of Android UI/runtime state.
+- A secondary Dart entrypoint and isolated Kotlin `FlutterEngine` launcher now
+  implement the versioned one-shot hand-off without startup wiring. Only
+  `path_provider` and `flutter_secure_storage` are app-registered in that
+  engine.
+- The Kotlin suite remains independent of Android UI/runtime state; the exact
+  current count is recorded in `CORE_PARITY.md` after each full run.
 - `docs/kotlin-rewrite/MIGRATION_IMPLEMENTATION.md` records what is and is not
   wired.
 
 This does **not** complete `KOTLIN-002`, `KOTLIN-005` or `KOTLIN-007`: raw
-installed-app storage fixtures, broader cross-language coverage, the exact
-Android reader/bridge and a native store are still required.
+installed-app storage fixtures, signed-device execution of the Android bridge,
+broader cross-language coverage and a native store are still required.
 
 ## Task cards
 
@@ -84,16 +89,19 @@ Android reader/bridge and a native store are still required.
 - **Objective:** Capture supported 0.5.x Hive and secure-storage states without exposing secrets.
 - **Current Dart/Flutter source:** `lib/main.dart`, `lib/screens/profile_screen.dart`, `lib/screens/settings_screen.dart`, `flutter_secure_storage 10.3.1`, `hive 2.2.3`.
 - **New Kotlin files/modules:** normalized Dart/Kotlin envelope, strict Dart
-  collector, copy-before-open bridge assembler and synthetic encrypted raw Hive
-  fixture are present; the installed-app fixture manifest remains.
-- **Dependencies:** Controlled test device/install or a headless Flutter fixture runner.
+  collector, copy-before-open assembler, headless Flutter transport and
+  synthetic encrypted raw Hive fixture are present; the installed-app fixture
+  manifest remains.
+- **Dependencies:** Controlled signed test device/install; the headless runner
+  candidate is now present but deliberately not startup-wired.
 - **Migration impact:** Defines supported legacy range and all keys/files.
 - **User-visible impact:** None.
 - **Tests:** Normalized envelope round-trip, contract coverage, corruption,
   duplicate, malformed UTF-8, bounds and a synthetic encrypted Hive 2.2.3
   round-trip are green. Synthetic missing/wrong Hive keys, partial state,
   interrupted backup and source immutability are green; installed
-  plugin-format reads and Keystore failure cases remain.
+  plugin-format reads and Keystore failure cases remain. Shared protocol,
+  one-shot, timeout, cleanup and neutral-error tests are green off-device.
 - **Parity evidence:** Fixture manifest with counts, types, hashes and known fixed dummy nsec/npub.
 - **Security/privacy impact:** No real nsec/NWC/passphrase in source or logs;
   fixture secrets are fixed test-only values. The bridge sets
@@ -172,9 +180,11 @@ Android reader/bridge and a native store are still required.
 - **Current Dart/Flutter source:** `lib/main.dart`, all keys/files in `STORAGE_COMPATIBILITY.md`.
 - **New Kotlin files/modules:** `app/roadstr/migration/LegacyStorageContract.kt`,
   `LegacyStorageModels.kt`, `LegacySnapshotEnvelope.kt`,
-  `TransactionalMigration.kt`; the real `service/migration`,
-  `storage/legacy`, `storage/native` integration is still pending.
-- **Dependencies:** KOTLIN-002; either proven native readers or minimal headless Flutter bridge.
+  `LegacyHeadlessSnapshotReader.kt`, `FlutterLegacyEnvelopeTransport.kt`,
+  `TransactionalMigration.kt`; the real `service/migration` and
+  `storage/native` integration is still pending.
+- **Dependencies:** KOTLIN-002; the minimal headless bridge candidate is
+  implemented, while signed-device format evidence remains blocking.
 - **Migration impact:** Highest risk; direct update from supported 0.5.x is required.
 - **User-visible impact:** Startup may show neutral progress/recovery state, never a fake logout.
 - **Tests:** A-Z migration matrix, rerun, process death, power-loss simulation, corrupt Hive, wrong/missing secret, Keystore failure.

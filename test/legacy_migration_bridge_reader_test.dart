@@ -5,10 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:roadstr/services/kokoro/kokoro_voices.dart';
 import 'package:roadstr/services/piper/piper_voices.dart';
 
-import '../tools/kotlin_rewrite/legacy_migration_bridge_reader.dart';
-import '../tools/kotlin_rewrite/legacy_secure_storage_source.dart';
+import 'package:roadstr/migration/legacy_migration_bridge_reader.dart';
+import 'package:roadstr/migration/legacy_secure_storage_source.dart';
 import '../tools/kotlin_rewrite/legacy_snapshot_fixture.dart';
-import '../tools/kotlin_rewrite/legacy_storage_contract.dart';
+import 'package:roadstr/migration/legacy_storage_contract.dart';
 
 const _rawFixturePath =
     'android/app/src/test/resources/parity/legacy_settings_hive_v1.b64';

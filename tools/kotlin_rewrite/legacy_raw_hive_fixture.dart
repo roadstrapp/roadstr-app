@@ -6,7 +6,7 @@ import 'package:crypto/crypto.dart';
 import 'package:hive/hive.dart';
 
 import 'legacy_snapshot_fixture.dart';
-import 'legacy_storage_contract.dart';
+import 'package:roadstr/migration/legacy_storage_contract.dart';
 
 /// Generates a reproducible Hive 2.2.3 `settings.hive` test artifact.
 ///

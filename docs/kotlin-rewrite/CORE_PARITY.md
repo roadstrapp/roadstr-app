@@ -45,7 +45,8 @@ test-only deterministic bytes; it is not a real wallet invoice or secret.
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 538 tests passed, including both shared fixture oracles and
-  the copy-before-open migration bridge matrix.
-- `./gradlew :app:testDebugUnitTest`: 59 Kotlin tests passed.
+- `flutter test`: 542 tests passed, including both shared fixture oracles, the
+  copy-before-open matrix and the versioned headless Dart handler.
+- `./gradlew :app:testDebugUnitTest`: 67 Kotlin tests passed, including the
+  bounded headless transport reader matrix.
 - No production Activity, manifest or startup wiring changed.

@@ -71,7 +71,8 @@ class LegacyEnvelopeException implements Exception {
   String toString() => 'LegacyEnvelopeException: $message';
 }
 
-/// Deterministic bridge format shared with `LegacySnapshotEnvelope.kt`.
+/// Deterministic production bridge format shared with
+/// `LegacySnapshotEnvelope.kt`.
 ///
 /// The final SHA-256 detects accidental corruption only. The production
 /// bridge must still read private app storage directly and native migration

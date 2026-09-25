@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'legacy_snapshot_envelope.dart';
+import 'package:roadstr/migration/legacy_snapshot_envelope.dart';
 import 'legacy_snapshot_fixture.dart';
 
 const fixturePath =

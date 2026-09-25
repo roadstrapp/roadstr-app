@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 
-import 'legacy_snapshot_envelope.dart';
-import 'legacy_storage_contract.dart';
+import 'package:roadstr/migration/legacy_snapshot_envelope.dart';
+import 'package:roadstr/migration/legacy_storage_contract.dart';
 
 final String fixturePrivateKeyHex = List.filled(32, '11').join();
 final String fixturePublicKeyHex = List.filled(32, '22').join();

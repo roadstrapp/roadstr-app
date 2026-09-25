@@ -5,8 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 
 import '../tools/kotlin_rewrite/legacy_raw_hive_fixture.dart';
-import '../tools/kotlin_rewrite/legacy_snapshot_collector.dart';
-import '../tools/kotlin_rewrite/legacy_snapshot_envelope.dart';
+import 'package:roadstr/migration/legacy_snapshot_collector.dart';
+import 'package:roadstr/migration/legacy_snapshot_envelope.dart';
 import '../tools/kotlin_rewrite/legacy_snapshot_fixture.dart';
 
 const _rawFixturePath =

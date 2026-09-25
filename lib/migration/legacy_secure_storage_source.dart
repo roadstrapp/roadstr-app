@@ -11,7 +11,8 @@ class LegacySecureStorageReadException implements Exception {
   String toString() => 'LegacySecureStorageReadException: $message';
 }
 
-/// Narrow adapter around the exact plugin API used by the legacy app.
+/// Narrow production adapter around the exact plugin API used by the legacy
+/// app.
 ///
 /// `resetOnError` is deliberately false: the package's Dart default is true
 /// and may delete protected values after a decryption error. Algorithm changes
