@@ -14,8 +14,9 @@ until migration, feature, protocol, UI and release parity are proven.
    transactional migration prototype, identity verification and asset reuse.
    The transactional prototype is now present; the real reader/fixture gate is
    still open. Do not mass-port UI before this gate is green.
-4. **M3 — pure-core parity**: geo, route progress, polyline, units, opening
-   hours, retry, invoice and protocol fixtures.
+4. **M3 — pure-core parity (in progress)**: geo, route progress, heading,
+   off-route, camera policy, viewport, units, opening hours, retry, invoice and
+   protocol fixtures. A first shared Dart/Kotlin vector set is green.
 5. **M4 — services**: bounded networking, search, routing, Nostr, Lightning,
    Amber/NIP-55, GPS and lifecycle.
 6. **M5 — map/UI/voice**: MapLibre Native, navigation overlays, Compose parity,
@@ -36,15 +37,19 @@ The first native increment is intentionally isolated from production startup:
   coordinator.
 - `android/app/src/test/kotlin/app/roadstr/migration/` contains deterministic
   unit tests for identity binding, safe assets, idempotence and failure paths.
-- `android/app/src/main/kotlin/app/roadstr/core/geo/` contains the first pure
-  Kotlin parity slice: geometry, encoded polylines and route progress, with
-  deterministic Android unit tests.
+- `android/app/src/main/kotlin/app/roadstr/core/` contains geometry, route
+  progress, heading/off-route, camera/viewport, units/TTS, fuzzy matching,
+  refetch/retry, solar/opening-hours and strict BOLT-11 logic.
+- `android/app/src/test/resources/parity/core_vectors.tsv` is consumed by both
+  Flutter and Kotlin tests and includes Dart-generated solar and BOLT-11 data.
+- The Kotlin suite currently has 54 deterministic unit tests, all independent
+  of Android UI/runtime state.
 - `docs/kotlin-rewrite/MIGRATION_IMPLEMENTATION.md` records what is and is not
   wired.
 
 This does **not** complete `KOTLIN-002`, `KOTLIN-005` or `KOTLIN-007`: real
-legacy fixtures, cross-language fixture outputs, the exact Android reader/
-bridge and a native store are still required.
+legacy storage fixtures, broader cross-language coverage, the exact Android
+reader/bridge and a native store are still required.
 
 ## Task cards
 
@@ -112,12 +117,15 @@ bridge and a native store are still required.
 
 - **Objective:** Port deterministic algorithms before services/UI.
 - **Current Dart/Flutter source:** `lib/utils/*`, `lib/services/route_progress.dart`, `opening_hours.dart`, `bolt11_invoice.dart`, `sun_calc.dart`, `fuzzy_match.dart`.
-- **New Kotlin files/modules:** `core/model`, `core/geo`, `core/format`, `core/protocol`.
+- **New Kotlin files/modules:** `core/geo`, `core/navigation`, `core/map`,
+  `core/format`, `core/search`, `core/network`, `core/time`, `core/protocol`.
 - **Dependencies:** Kotlin stdlib and vetted FOSS crypto/serialization only where required.
 - **Migration impact:** None directly.
 - **User-visible impact:** Must remain behaviorally identical.
 - **Tests:** Same fixtures for geo, heading, off-route, polyline, progress, opening hours, units and invoices.
-- **Parity evidence:** Deterministic result diffs with fixed locale/time/random inputs.
+- **Parity evidence:** Shared TSV vectors executed by Flutter and Kotlin for
+  solar times, fuzzy normalization, opening hours, polyline and BOLT-11;
+  dedicated native tests cover stateful navigation/camera behavior.
 - **Security/privacy impact:** No custom crypto replacement; reject malformed input like Dart.
 - **Battery/performance impact:** Benchmark hot geometry loops and allocation rate.
 - **Acceptance criteria:** No unapproved fixture difference; all relevant Flutter tests have native equivalents.
