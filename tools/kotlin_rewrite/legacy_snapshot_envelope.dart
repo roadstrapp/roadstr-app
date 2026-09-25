@@ -7,15 +7,18 @@ const int legacySnapshotSchemaVersion = 1;
 
 const int _formatVersion = 1;
 const int _digestBytes = 32;
-const int _maxEntriesPerStore = 512;
-const int _maxKeyBytes = 256;
-const int _maxOrdinaryValueBytes = 4 * 1024 * 1024;
-const int _maxSecureValueBytes = 64 * 1024;
-const int _maxAssets = 256;
-const int _maxAssetPathBytes = 1024;
-const int _maxAssetSizeBytes = 4 * 1024 * 1024 * 1024;
-const int _maxEnvelopeBytes = 64 * 1024 * 1024;
 final Uint8List _magic = Uint8List.fromList(ascii.encode('RSTRMIG1'));
+
+abstract final class LegacyEnvelopeLimits {
+  static const int maxEntriesPerStore = 512;
+  static const int maxKeyBytes = 256;
+  static const int maxOrdinaryValueBytes = 4 * 1024 * 1024;
+  static const int maxSecureValueBytes = 64 * 1024;
+  static const int maxAssets = 256;
+  static const int maxAssetPathBytes = 1024;
+  static const int maxAssetSizeBytes = 4 * 1024 * 1024 * 1024;
+  static const int maxEnvelopeBytes = 64 * 1024 * 1024;
+}
 
 class LegacyEnvelopeIdentity {
   const LegacyEnvelopeIdentity({
@@ -75,11 +78,15 @@ class LegacyEnvelopeException implements Exception {
 /// must validate the decoded identity before writing anything.
 abstract final class LegacySnapshotEnvelopeCodec {
   static Uint8List encode(LegacyEnvelopeSnapshot snapshot) {
-    _ensure(snapshot.ordinaryValues.length <= _maxEntriesPerStore,
+    _ensure(
+        snapshot.ordinaryValues.length <=
+            LegacyEnvelopeLimits.maxEntriesPerStore,
         'Too many ordinary entries');
-    _ensure(snapshot.secureValues.length <= _maxEntriesPerStore,
+    _ensure(
+        snapshot.secureValues.length <= LegacyEnvelopeLimits.maxEntriesPerStore,
         'Too many secure entries');
-    _ensure(snapshot.assets.length <= _maxAssets, 'Too many assets');
+    _ensure(snapshot.assets.length <= LegacyEnvelopeLimits.maxAssets,
+        'Too many assets');
     _ensure(
       snapshot.assets.map((asset) => asset.relativePath).toSet().length ==
           snapshot.assets.length,
@@ -90,13 +97,16 @@ abstract final class LegacySnapshotEnvelopeCodec {
     writer.writeBytes(_magic);
     writer.writeInt32(_formatVersion);
     writer.writeInt32(snapshot.schemaVersion);
-    writer.writeMap(snapshot.ordinaryValues, _maxOrdinaryValueBytes);
-    writer.writeMap(snapshot.secureValues, _maxSecureValueBytes);
+    writer.writeMap(
+        snapshot.ordinaryValues, LegacyEnvelopeLimits.maxOrdinaryValueBytes);
+    writer.writeMap(
+        snapshot.secureValues, LegacyEnvelopeLimits.maxSecureValueBytes);
+    writer.writeNullableString(snapshot.identity.publicKeyHex,
+        LegacyEnvelopeLimits.maxSecureValueBytes);
     writer.writeNullableString(
-        snapshot.identity.publicKeyHex, _maxSecureValueBytes);
-    writer.writeNullableString(snapshot.identity.flavor, _maxSecureValueBytes);
-    writer.writeNullableString(
-        snapshot.identity.privateKeyHex, _maxSecureValueBytes);
+        snapshot.identity.flavor, LegacyEnvelopeLimits.maxSecureValueBytes);
+    writer.writeNullableString(snapshot.identity.privateKeyHex,
+        LegacyEnvelopeLimits.maxSecureValueBytes);
 
     final assets = snapshot.assets.toList()
       ..sort((left, right) {
@@ -108,8 +118,11 @@ abstract final class LegacySnapshotEnvelopeCodec {
       });
     writer.writeInt32(assets.length);
     for (final asset in assets) {
-      writer.writeString(asset.relativePath, _maxAssetPathBytes);
-      _ensure(asset.sizeBytes >= 0 && asset.sizeBytes <= _maxAssetSizeBytes,
+      writer.writeString(
+          asset.relativePath, LegacyEnvelopeLimits.maxAssetPathBytes);
+      _ensure(
+          asset.sizeBytes >= 0 &&
+              asset.sizeBytes <= LegacyEnvelopeLimits.maxAssetSizeBytes,
           'Invalid asset size');
       writer.writeInt64(asset.sizeBytes);
       writer.writeString(asset.sha256, 64);
@@ -126,7 +139,8 @@ abstract final class LegacySnapshotEnvelopeCodec {
   static LegacyEnvelopeSnapshot decode(Uint8List envelope) {
     _ensure(envelope.length >= _magic.length + 12 + _digestBytes,
         'Envelope is truncated');
-    _ensure(envelope.length <= _maxEnvelopeBytes, 'Envelope is too large');
+    _ensure(envelope.length <= LegacyEnvelopeLimits.maxEnvelopeBytes,
+        'Envelope is too large');
 
     final bodyLength = envelope.length - _digestBytes;
     final actualDigest =
@@ -142,21 +156,29 @@ abstract final class LegacySnapshotEnvelopeCodec {
     _ensure(
         cursor.readInt32() == _formatVersion, 'Unsupported envelope format');
     final schemaVersion = cursor.readInt32();
-    final ordinaryValues = cursor.readMap(_maxOrdinaryValueBytes);
-    final secureValues = cursor.readMap(_maxSecureValueBytes);
+    final ordinaryValues =
+        cursor.readMap(LegacyEnvelopeLimits.maxOrdinaryValueBytes);
+    final secureValues =
+        cursor.readMap(LegacyEnvelopeLimits.maxSecureValueBytes);
     final identity = LegacyEnvelopeIdentity(
-      publicKeyHex: cursor.readNullableString(_maxSecureValueBytes),
-      flavor: cursor.readNullableString(_maxSecureValueBytes),
-      privateKeyHex: cursor.readNullableString(_maxSecureValueBytes),
+      publicKeyHex:
+          cursor.readNullableString(LegacyEnvelopeLimits.maxSecureValueBytes),
+      flavor:
+          cursor.readNullableString(LegacyEnvelopeLimits.maxSecureValueBytes),
+      privateKeyHex:
+          cursor.readNullableString(LegacyEnvelopeLimits.maxSecureValueBytes),
     );
-    final assetCount = cursor.readCount(_maxAssets, 'asset');
+    final assetCount =
+        cursor.readCount(LegacyEnvelopeLimits.maxAssets, 'asset');
     final assetPaths = <String>{};
     final assets = <LegacyEnvelopeAsset>[];
     for (var index = 0; index < assetCount; index++) {
-      final relativePath = cursor.readString(_maxAssetPathBytes);
+      final relativePath =
+          cursor.readString(LegacyEnvelopeLimits.maxAssetPathBytes);
       _ensure(assetPaths.add(relativePath), 'Duplicate asset path');
       final sizeBytes = cursor.readInt64();
-      _ensure(sizeBytes >= 0 && sizeBytes <= _maxAssetSizeBytes,
+      _ensure(
+          sizeBytes >= 0 && sizeBytes <= LegacyEnvelopeLimits.maxAssetSizeBytes,
           'Invalid asset size');
       assets.add(LegacyEnvelopeAsset(
         relativePath: relativePath,
@@ -183,7 +205,7 @@ class _EnvelopeWriter {
     writeInt32(values.length);
     final keys = values.keys.toList()..sort();
     for (final key in keys) {
-      writeString(key, _maxKeyBytes);
+      writeString(key, LegacyEnvelopeLimits.maxKeyBytes);
       writeString(values[key]!, maxValueBytes);
     }
   }
@@ -215,7 +237,8 @@ class _EnvelopeWriter {
 
   void writeBytes(List<int> bytes) {
     _ensure(
-      _builder.length + bytes.length <= _maxEnvelopeBytes - _digestBytes,
+      _builder.length + bytes.length <=
+          LegacyEnvelopeLimits.maxEnvelopeBytes - _digestBytes,
       'Envelope is too large',
     );
     _builder.add(bytes);
@@ -232,10 +255,10 @@ class _EnvelopeCursor {
   int _offset = 0;
 
   Map<String, String> readMap(int maxValueBytes) {
-    final count = readCount(_maxEntriesPerStore, 'entry');
+    final count = readCount(LegacyEnvelopeLimits.maxEntriesPerStore, 'entry');
     final values = <String, String>{};
     for (var index = 0; index < count; index++) {
-      final key = readString(_maxKeyBytes);
+      final key = readString(LegacyEnvelopeLimits.maxKeyBytes);
       final value = readString(maxValueBytes);
       _ensure(!values.containsKey(key), 'Duplicate map key');
       values[key] = value;

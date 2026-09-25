@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../tools/kotlin_rewrite/legacy_snapshot_envelope.dart';
 import '../tools/kotlin_rewrite/legacy_snapshot_fixture.dart';
+import '../tools/kotlin_rewrite/legacy_storage_contract.dart';
 
 const _fixturePath =
     'android/app/src/test/resources/parity/legacy_snapshot_v1.b64';
@@ -35,9 +36,12 @@ void main() {
     expect(
       decoded.assets.map((asset) => asset.relativePath),
       [
-        'espeak-ng-data/.roadstr-ready',
-        'kokoro/model.onnx',
-        'piper/model.onnx'
+        'espeak-ng-data/.roadstr_extracted',
+        'kokoro/if_sara.bin',
+        'kokoro/model_q8f16.onnx',
+        'kokoro/tokenizer.json',
+        'piper/de_DE-thorsten-medium.onnx',
+        'piper/de_DE-thorsten-medium.onnx.json',
       ],
     );
   });

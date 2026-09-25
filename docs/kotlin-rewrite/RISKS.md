@@ -3,7 +3,7 @@
 | ID | Risk | Impact | Likelihood | Mitigation / gate | Status |
 |---|---|---:|---:|---|---|
 | R-01 | Official release certificate is not available in the checkout | Critical | High | Obtain controlled certificate fingerprint and verify a signed APK before cutover | Open blocker |
-| R-02 | Hive 2.2.3 binary/encryption compatibility is guessed | Critical | High | Use real fixtures and prefer a headless legacy Dart bridge until native decoding is proven | Open |
+| R-02 | Hive 2.2.3 compatibility with boxes from supported installed releases is unproven | Critical | High | Synthetic encrypted Hive read is green; add signed-install fixtures and retain the Dart bridge until native decoding is proven | Open (synthetic green) |
 | R-03 | `flutter_secure_storage` has multiple historical Android formats | Critical | High | Test v10.3.1 plus supported older 0.5.x fixtures; preserve plugin-compatible reader/bridge | Open |
 | R-04 | A failed migration creates a blank identity/profile | Critical | Medium | Fail closed, retain legacy files, compare derived pubkey, show recovery UI | Design gate |
 | R-05 | Version code or signing mismatch blocks normal Android update | Critical | Medium | Exact identity checks, higher code than 2050, signed APK upgrade test | Open |
@@ -26,4 +26,3 @@
 No destructive framework-removal work may begin until R-01 through R-04 have
 evidence and the migration prototype can preserve identity, protected storage,
 favourites and model assets in fixtures.
-

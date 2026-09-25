@@ -22,6 +22,8 @@ class LegacyStorageContractTest {
 
         assertEquals(expected, LegacyStorageContract.secureKeys)
         assertTrue("autoCenterOnLaunch" in LegacyStorageContract.hiveKeys)
+        assertTrue("disclaimer_accepted" in LegacyStorageContract.hiveKeys)
+        assertTrue("onboarding_v1" in LegacyStorageContract.hiveKeys)
     }
 
     @Test
