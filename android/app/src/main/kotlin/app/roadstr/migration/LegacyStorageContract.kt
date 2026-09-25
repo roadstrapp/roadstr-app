@@ -81,6 +81,9 @@ object LegacyStorageContract {
         "activity_confirmation_cursor_",
     )
 
-    fun isDynamicKey(key: String): Boolean =
-        dynamicKeyPrefixes.any(key::startsWith)
+    private val publicKeyHex = Regex("^[0-9a-fA-F]{64}$")
+
+    fun isDynamicKey(key: String): Boolean = dynamicKeyPrefixes.any { prefix ->
+        key.startsWith(prefix) && publicKeyHex.matches(key.removePrefix(prefix))
+    }
 }

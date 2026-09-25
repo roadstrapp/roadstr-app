@@ -1,5 +1,7 @@
 package app.roadstr.migration
 
+import java.security.MessageDigest
+
 /**
  * Normalized representation produced by the legacy reader.
  *
@@ -46,6 +48,13 @@ fun interface IdentityVerifier {
 
 object LegacyStorageValidator {
     private const val supportedSchemaVersion = 1
+    private const val maxEntriesPerStore = 512
+    private const val maxKeyBytes = 256
+    private const val maxOrdinaryValueBytes = 4 * 1024 * 1024
+    private const val maxSecureValueBytes = 64 * 1024
+    private const val maxAssets = 256
+    private const val maxAssetPathBytes = 1024
+    private const val maxAssetSizeBytes = 4L * 1024 * 1024 * 1024
     private val hex64 = Regex("^[0-9a-fA-F]{64}$")
     private val sha256 = Regex("^[0-9a-fA-F]{64}$")
 
@@ -56,6 +65,21 @@ object LegacyStorageValidator {
         if (snapshot.schemaVersion != supportedSchemaVersion) {
             return SnapshotValidation.failure(
                 "Unsupported legacy snapshot schema: ${snapshot.schemaVersion}",
+            )
+        }
+
+        if (snapshot.ordinaryValues.size > maxEntriesPerStore ||
+            snapshot.secureValues.size > maxEntriesPerStore
+        ) {
+            return SnapshotValidation.failure("Legacy snapshot contains too many entries")
+        }
+
+        val unknownOrdinary = snapshot.ordinaryValues.keys.filterNot { key ->
+            key in LegacyStorageContract.hiveKeys || LegacyStorageContract.isDynamicKey(key)
+        }
+        if (unknownOrdinary.isNotEmpty()) {
+            return SnapshotValidation.failure(
+                "Unknown Hive keys present: ${unknownOrdinary.sorted()}",
             )
         }
 
@@ -74,6 +98,18 @@ object LegacyStorageValidator {
             )
         }
 
+
+        for ((key, value) in snapshot.ordinaryValues) {
+            if (key.toByteArray().size > maxKeyBytes || value.toByteArray().size > maxOrdinaryValueBytes) {
+                return SnapshotValidation.failure("Oversized ordinary value: $key")
+            }
+        }
+        for ((key, value) in snapshot.secureValues) {
+            if (key.toByteArray().size > maxKeyBytes || value.toByteArray().size > maxSecureValueBytes) {
+                return SnapshotValidation.failure("Oversized secure value: $key")
+            }
+        }
+
         val identity = snapshot.identity
         if (identity.flavor != null && identity.flavor !in setOf("amber", "nsec")) {
             return SnapshotValidation.failure("Unknown identity flavor: ${identity.flavor}")
@@ -86,6 +122,20 @@ object LegacyStorageValidator {
         }
         if (identity.flavor == "nsec" && identity.privateKeyHex == null) {
             return SnapshotValidation.failure("nsec identity has no private key")
+        }
+        if (identity.flavor == "amber" && identity.privateKeyHex != null) {
+            return SnapshotValidation.failure("Amber identity unexpectedly contains a private key")
+        }
+        val identityBindings = mapOf(
+            "nostr_pub_hex" to identity.publicKeyHex,
+            "nostr_priv_hex" to identity.privateKeyHex,
+            "nostr_flavor" to identity.flavor,
+        )
+        for ((key, normalizedValue) in identityBindings) {
+            val storedValue = snapshot.secureValues[key] ?: continue
+            if (normalizedValue == null || !storedValue.equals(normalizedValue, ignoreCase = key != "nostr_flavor")) {
+                return SnapshotValidation.failure("Identity does not match secure value: $key")
+            }
         }
         if (identity.privateKeyHex != null) {
             val expected = identity.publicKeyHex
@@ -100,12 +150,22 @@ object LegacyStorageValidator {
             }
         }
 
+        if (snapshot.assets.size > maxAssets) {
+            return SnapshotValidation.failure("Legacy snapshot contains too many assets")
+        }
+        val assetPaths = mutableSetOf<String>()
         for (asset in snapshot.assets) {
             if (!isSafeRelativePath(asset.relativePath)) {
                 return SnapshotValidation.failure("Unsafe asset path: ${asset.relativePath}")
             }
-            if (asset.sizeBytes < 0L) {
-                return SnapshotValidation.failure("Negative asset size: ${asset.relativePath}")
+            if (asset.relativePath.toByteArray().size > maxAssetPathBytes) {
+                return SnapshotValidation.failure("Asset path is too long")
+            }
+            if (!assetPaths.add(asset.relativePath)) {
+                return SnapshotValidation.failure("Duplicate asset path: ${asset.relativePath}")
+            }
+            if (asset.sizeBytes !in 0..maxAssetSizeBytes) {
+                return SnapshotValidation.failure("Invalid asset size: ${asset.relativePath}")
             }
             if (!sha256.matches(asset.sha256)) {
                 return SnapshotValidation.failure("Invalid asset checksum: ${asset.relativePath}")
@@ -119,5 +179,66 @@ object LegacyStorageValidator {
         if (path.isBlank() || path.startsWith('/') || path.startsWith('\\')) return false
         if (path.contains('\\')) return false
         return path.split('/').none { it.isBlank() || it == "." || it == ".." }
+    }
+}
+
+/**
+ * Stable, order-independent digest for staged/native comparison.
+ *
+ * It is never a loggable identity and never replaces field-by-field
+ * validation. Its purpose is to detect omissions or mutation between read,
+ * stage and reopen without serializing secrets into diagnostics.
+ */
+object LegacySnapshotFingerprint {
+    fun sha256(snapshot: LegacyStorageSnapshot): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        digest.updateInt(snapshot.schemaVersion)
+        digest.updateMap(snapshot.ordinaryValues)
+        digest.updateMap(snapshot.secureValues)
+        digest.updateNullableString(snapshot.identity.publicKeyHex)
+        digest.updateNullableString(snapshot.identity.flavor)
+        digest.updateNullableString(snapshot.identity.privateKeyHex)
+        val assets = snapshot.assets.sortedWith(
+            compareBy(LegacyAsset::relativePath, LegacyAsset::sizeBytes, LegacyAsset::sha256),
+        )
+        digest.updateInt(assets.size)
+        for (asset in assets) {
+            digest.updateString(asset.relativePath)
+            digest.updateLong(asset.sizeBytes)
+            digest.updateString(asset.sha256.lowercase())
+        }
+        return digest.digest().joinToString("") {
+            (it.toInt() and 0xff).toString(16).padStart(2, '0')
+        }
+    }
+
+    private fun MessageDigest.updateMap(values: Map<String, String>) {
+        updateInt(values.size)
+        for ((key, value) in values.toSortedMap()) {
+            updateString(key)
+            updateString(value)
+        }
+    }
+
+    private fun MessageDigest.updateNullableString(value: String?) {
+        update(if (value == null) 0 else 1)
+        if (value != null) updateString(value)
+    }
+
+    private fun MessageDigest.updateString(value: String) {
+        val bytes = value.toByteArray(Charsets.UTF_8)
+        updateInt(bytes.size)
+        update(bytes)
+    }
+
+    private fun MessageDigest.updateInt(value: Int) {
+        update((value ushr 24).toByte())
+        update((value ushr 16).toByte())
+        update((value ushr 8).toByte())
+        update(value.toByte())
+    }
+
+    private fun MessageDigest.updateLong(value: Long) {
+        for (shift in 56 downTo 0 step 8) update((value ushr shift).toByte())
     }
 }

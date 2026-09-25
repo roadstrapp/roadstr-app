@@ -1,7 +1,8 @@
 # Storage compatibility inventory
 
-Status: forensic inventory complete; native migration implementation not yet
-started.
+Status: forensic inventory complete; bounded transactional migration core is
+implemented and tested, while the real Hive/secure-storage reader remains
+blocked on controlled legacy fixtures.
 
 The existing app uses one Hive box named `settings` in the application
 documents directory. `lib/main.dart` obtains a 32-byte key from
@@ -132,4 +133,3 @@ new implementation.
 - Decide the supported legacy release range after fixture coverage exists.
 - Prove failure behavior for Keystore failure, corrupt Hive, process death and
   missing keys before any Flutter UI removal.
-

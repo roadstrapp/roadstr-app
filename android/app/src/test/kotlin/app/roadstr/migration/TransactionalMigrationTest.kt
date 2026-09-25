@@ -108,6 +108,60 @@ class TransactionalMigrationTest {
         assertTrue(writer.calls.isEmpty())
     }
 
+    @Test
+    fun `unknown Hive key fails closed before native writes`() {
+        val writer = FakeWriter()
+        val invalid = snapshot().copy(
+            ordinaryValues = snapshot().ordinaryValues + ("future_unmapped_key" to "value"),
+        )
+
+        val result = TransactionalMigration(
+            FakeReader(invalid), writer, FakeMarker(), verifier,
+        ).run()
+
+        assertEquals(MigrationOutcome.Failed, result.outcome)
+        assertTrue(writer.calls.isEmpty())
+    }
+
+    @Test
+    fun `Amber identity cannot acquire a private key`() {
+        val writer = FakeWriter()
+        val invalid = snapshot().copy(
+            identity = LegacyIdentity(expectedPublicKey, "amber", expectedPrivateKey),
+        )
+
+        val result = TransactionalMigration(
+            FakeReader(invalid), writer, FakeMarker(), verifier,
+        ).run()
+
+        assertEquals(MigrationOutcome.Failed, result.outcome)
+        assertTrue(writer.calls.isEmpty())
+    }
+
+    @Test
+    fun `snapshot fingerprint is stable across map and asset order`() {
+        val first = snapshot().copy(
+            assets = listOf(
+                LegacyAsset("piper/model.onnx", 200, "bb".repeat(32)),
+                LegacyAsset("kokoro/model.onnx", 100, "aa".repeat(32)),
+            ),
+        )
+        val reordered = first.copy(
+            ordinaryValues = first.ordinaryValues.entries.reversed().associate { it.toPair() },
+            secureValues = first.secureValues.entries.reversed().associate { it.toPair() },
+            assets = first.assets.reversed(),
+        )
+
+        assertEquals(
+            LegacySnapshotFingerprint.sha256(first),
+            LegacySnapshotFingerprint.sha256(reordered),
+        )
+        assertFalse(
+            LegacySnapshotFingerprint.sha256(first) ==
+                LegacySnapshotFingerprint.sha256(first.copy(ordinaryValues = first.ordinaryValues + ("language" to "de"))),
+        )
+    }
+
     private fun snapshot() = LegacyStorageSnapshot(
         schemaVersion = 1,
         ordinaryValues = mapOf("language" to "it", "themeId" to "2"),

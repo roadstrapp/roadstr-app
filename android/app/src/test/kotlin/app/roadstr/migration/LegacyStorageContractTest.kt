@@ -1,6 +1,7 @@
 package app.roadstr.migration
 
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class LegacyStorageContractTest {
@@ -30,5 +31,7 @@ class LegacyStorageContractTest {
                 "activity_confirmation_cursor_" + "c".repeat(64),
             ),
         )
+        assertFalse(LegacyStorageContract.isDynamicKey("activity_inbox_"))
+        assertFalse(LegacyStorageContract.isDynamicKey("activity_inbox_not-a-pubkey"))
     }
 }
