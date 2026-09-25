@@ -1,7 +1,8 @@
 package app.roadstr.migration
 
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class LegacyStorageContractTest {
@@ -19,7 +20,8 @@ class LegacyStorageContractTest {
             "favorites_sync_passphrase",
         )
 
-        assertTrue(LegacyStorageContract.secureKeys.containsAll(expected))
+        assertEquals(expected, LegacyStorageContract.secureKeys)
+        assertTrue("autoCenterOnLaunch" in LegacyStorageContract.hiveKeys)
     }
 
     @Test

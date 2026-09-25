@@ -35,6 +35,7 @@ object LegacyStorageContract {
      */
     val hiveKeys: Set<String> = setOf(
         "autoDark",
+        "autoCenterOnLaunch",
         "avoidUnpavedRoads",
         "fav_sync_custom_relay",
         "fav_sync_last_ts",
