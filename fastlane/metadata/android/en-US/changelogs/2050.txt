@@ -1,0 +1,15 @@
+Turn-by-turn directions in the language you chose.
+
+Fixed
+
+• On the new map, the turn-by-turn instructions were always in Italian,
+  whatever language the app was set to. Read aloud by a voice in your
+  language, that came out as Italian with a foreign accent. They now follow
+  the app's language.
+• With the language left on "system default", the voice started in Italian
+  instead of the phone's language. It now follows the phone.
+• GraphHopper directions are now requested in the app's language (they were
+  only ever Italian or English), and a language OpenRouteService does not
+  offer falls back to English instead of failing the route.
+• Wikipedia place summaries fell back to the Italian edition when there was
+  no article in your language. They now fall back to English.
