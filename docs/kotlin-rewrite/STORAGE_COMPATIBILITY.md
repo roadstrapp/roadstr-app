@@ -2,8 +2,9 @@
 
 Status: forensic inventory, bounded transactional migration core, a
 reproducible encrypted Hive 2.2.3 fixture, a strict read-only Dart collector
-and the Dart-to-Kotlin envelope are implemented and tested. Reading protected
-storage from controlled signed installations remains open.
+and a copy-before-open bridge candidate are implemented and tested through the
+Dart-to-Kotlin envelope. Reading protected storage from controlled signed
+installations remains open.
 
 The existing app uses one Hive box named `settings` in the application
 documents directory. `lib/main.dart` obtains a 32-byte key from
@@ -21,16 +22,30 @@ even when no value plaintext is recoverable without the key.
 
 The resolved Android plugin is `flutter_secure_storage` 10.3.1. The app uses
 the default `FlutterSecureStorage()` options, not the deprecated
-`EncryptedSharedPreferences` option. The default plugin path is:
+`EncryptedSharedPreferences` option. Inspection of both its Dart options and
+Android implementation found:
 
 - Android `SharedPreferences` data name `FlutterSecureStorage`;
 - default prefixed keys (the plugin's default prefix plus `_` and the logical
   key);
+- wrapped AES keys in `FlutterSecureKeyStorage`;
+- namespaced algorithm/config markers in
+  `FlutterSecureStorageConfiguration:FlutterSecureStorage`, with fallback to
+  the older global `FlutterSecureStorageConfiguration` preferences;
 - AES-GCM value encryption with a random IV;
 - an AES data key wrapped with RSA-OAEP/SHA-256 in an Android Keystore alias
-  derived from the package name;
-- plugin configuration/algorithm metadata and wrapped-key preferences managed
-  by the plugin.
+  `app.roadstr.FlutterSecureStoragePluginKeyOAEP`; older custom-cipher data can
+  use `app.roadstr.FlutterSecureStoragePluginKey` with RSA-PKCS1/AES-CBC;
+- Dart's default `AndroidOptions` sends `resetOnError=true`,
+  `migrateOnAlgorithmChange=true` and `migrateWithBackup=false`.
+
+The last point is materially different from the Java config's fallback value:
+on a decrypt/read failure, the default Dart configuration may delete protected
+values and retry. The bridge candidate therefore sets `resetOnError=false`
+explicitly and requests the plugin's backup-protected algorithm migration.
+That candidate can still re-encrypt historical secure storage, so it is not
+approved for startup until current and older signed-install fixtures prove its
+rollback behavior.
 
 Older installed releases or older plugin migrations may still contain the
 plugin's prior EncryptedSharedPreferences/custom-cipher formats. This is why a
@@ -135,6 +150,18 @@ native migration must preserve that safety property and must also cover the
 secure-storage formats, which the current startup code does not migrate to a
 new implementation.
 
+`legacy_migration_bridge_reader.dart` first rejects an interrupted
+`settings.hive.migration-backup` state, validates that the source is a regular
+file, and then opens only a bounded temporary copy. A formally valid but wrong
+Hive key, corrupt Hive bytes, source symlink, unknown secure key, mismatched
+Hive/secure presence or copy instability fails closed with a value-free error.
+The source box and its asset files remain byte-for-byte unchanged in tests.
+
+The voice manifest contains the current 18 reusable paths: Kokoro's model,
+tokenizer and every catalogued voice, both Piper files and the eSpeak sentinel.
+The manifest is tested directly against the production Kokoro/Piper catalogues;
+missing optional downloads are valid and are skipped.
+
 The normalized v1 envelope, its bounds and its exact evidence boundary are
 specified in `LEGACY_SNAPSHOT_ENVELOPE.md`. Its committed fixture covers every
 fixed key above, one valid instance of every dynamic key prefix, all nine
@@ -148,8 +175,10 @@ signed installed-app or secure-storage fixtures.
 
 - Produce fixtures from real supported 0.5.x installations, including current
   and historical secure-storage formats and encrypted Hive boxes.
+- Verify that the candidate `resetOnError=false`, backup-protected plugin read
+  preserves rollback on each supported historical format.
 - Confirm the exact Android Keystore aliases/files on a signed installed build.
 - Exercise every dynamic key and any plugin-owned files in real install fixtures.
 - Decide the supported legacy release range after fixture coverage exists.
-- Prove failure behavior for Keystore failure, corrupt Hive, process death and
-  missing keys before any Flutter UI removal.
+- Prove failure behavior on installed fixtures for Keystore failure, corrupt
+  Hive, process death and missing keys before any Flutter UI removal.

@@ -106,6 +106,27 @@ class _NormalizationBudget {
   }
 }
 
+abstract final class LegacySecureValueValidator {
+  static Map<String, String> validate(Map<String, String> values) {
+    if (values.length > LegacyEnvelopeLimits.maxEntriesPerStore ||
+        values.keys.any((key) => !legacySecureKeys.contains(key))) {
+      throw const LegacySnapshotCollectionException(
+        'Legacy secure storage contains unsupported keys',
+      );
+    }
+    for (final entry in values.entries) {
+      if (utf8.encode(entry.key).length > LegacyEnvelopeLimits.maxKeyBytes ||
+          utf8.encode(entry.value).length >
+              LegacyEnvelopeLimits.maxSecureValueBytes) {
+        throw const LegacySnapshotCollectionException(
+          'Legacy secure entry exceeds the envelope limit',
+        );
+      }
+    }
+    return Map.unmodifiable(values);
+  }
+}
+
 /// Reads an already-open legacy Hive box and an injectable secure-storage
 /// snapshot without modifying either source.
 class LegacySnapshotCollector {
@@ -186,29 +207,15 @@ class LegacySnapshotCollector {
       ordinaryValues[rawKey] = normalized;
     }
 
-    late final Map<String, String> secureValues;
+    late final Map<String, String> rawSecureValues;
     try {
-      secureValues = await readSecureValues();
+      rawSecureValues = await readSecureValues();
     } catch (_) {
       throw const LegacySnapshotCollectionException(
         'Legacy secure storage could not be read',
       );
     }
-    if (secureValues.length > LegacyEnvelopeLimits.maxEntriesPerStore ||
-        secureValues.keys.any((key) => !legacySecureKeys.contains(key))) {
-      throw const LegacySnapshotCollectionException(
-        'Legacy secure storage contains unsupported keys',
-      );
-    }
-    for (final entry in secureValues.entries) {
-      if (utf8.encode(entry.key).length > LegacyEnvelopeLimits.maxKeyBytes ||
-          utf8.encode(entry.value).length >
-              LegacyEnvelopeLimits.maxSecureValueBytes) {
-        throw const LegacySnapshotCollectionException(
-          'Legacy secure entry exceeds the envelope limit',
-        );
-      }
-    }
+    final secureValues = LegacySecureValueValidator.validate(rawSecureValues);
 
     return LegacyEnvelopeSnapshot(
       schemaVersion: legacySnapshotSchemaVersion,
