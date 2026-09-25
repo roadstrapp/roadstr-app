@@ -128,7 +128,8 @@ abstract final class LegacySecureValueValidator {
 }
 
 /// Reads an already-open legacy Hive box and an injectable secure-storage
-/// snapshot without modifying either source.
+/// snapshot without modifying either source. This is shared by fixture tooling
+/// and the isolated production migration entrypoint.
 class LegacySnapshotCollector {
   const LegacySnapshotCollector();
 

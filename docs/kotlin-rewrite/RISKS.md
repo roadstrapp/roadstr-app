@@ -21,6 +21,7 @@
 | R-17 | Physical-device upgrade path is untested | Critical | High | Manual signed-APK checklist owned by user; no release candidate without evidence | Open |
 | R-18 | Parallel Flutter/main changes expand parity gap | Medium | Medium | Periodically audit main, update matrix intentionally, never silently drop features | Process |
 | R-19 | Default Dart `AndroidOptions` sets `resetOnError=true`, allowing a read/decrypt error to erase protected values | Critical | Medium | Bridge explicitly sets false; prove historical reads and address current startup in a separate reviewed change | Open blocker |
+| R-20 | A headless Flutter engine can deadlock startup, leak plugins or outlive migration | Critical | Medium | Worker-thread-only bounded wait, one-shot protocol, minimal plugin registration and engine destruction before decode; prove on signed devices before wiring | Open (adapter green) |
 
 ## Current stop condition
 
