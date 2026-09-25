@@ -1,0 +1,279 @@
+# Kotlin rewrite migration plan and KOTLIN roadmap
+
+This plan intentionally stops at the audit/design boundary. The Flutter
+implementation is retained until migration, feature, protocol, UI and release
+parity are proven.
+
+## Gates and milestones
+
+1. **M0 — forensic baseline**: complete identity, release, feature, storage,
+   protocol, security and test inventory. `KOTLIN-001` is complete.
+2. **M1 — native skeleton**: native Gradle/Compose shell with the same package,
+   resources, permissions and version discipline. No data deletion.
+3. **M2 — migration feasibility**: real Hive/secure-storage fixtures,
+   transactional migration prototype, identity verification and asset reuse.
+   Do not mass-port UI before this gate is green.
+4. **M3 — pure-core parity**: geo, route progress, polyline, units, opening
+   hours, retry, invoice and protocol fixtures.
+5. **M4 — services**: bounded networking, search, routing, Nostr, Lightning,
+   Amber/NIP-55, GPS and lifecycle.
+6. **M5 — map/UI/voice**: MapLibre Native, navigation overlays, Compose parity,
+   27 locales and Kokoro/Piper/eSpeak reuse.
+7. **M6 — hardening/release**: security, dependency/license review,
+   performance/battery comparison, signed APK upgrade matrix, F-Droid/ZapStore
+   build validation.
+8. **M7 — candidate**: only after every release blocker in
+   `RELEASE_COMPATIBILITY.md` is green and the user explicitly approves the
+   cutover/release.
+
+## Task cards
+
+### KOTLIN-001 — Freeze and document the baseline (DONE)
+
+- **Objective:** Record current main, identity, architecture, tests and release path.
+- **Current Dart/Flutter source:** Entire repository at `ad5476e`; especially `README.md`, `pubspec.yaml`, `android/`, `lib/`, `test/`.
+- **New Kotlin files/modules:** None; audit documents under `docs/kotlin-rewrite/`.
+- **Dependencies:** Repository access, Flutter SDK and resolved lockfile.
+- **Migration impact:** None.
+- **User-visible impact:** None.
+- **Tests:** `flutter analyze`; `flutter test`.
+- **Parity evidence:** Clean baseline, 519 tests passed, feature/storage/protocol/UI matrices.
+- **Security/privacy impact:** Recorded manifest, network, secure storage and native checksum defenses.
+- **Battery/performance impact:** None measured; baseline measurements remain required.
+- **Acceptance criteria:** Main untouched, branch from recorded SHA, documents present, no production sources removed.
+- **Rollback notes:** Delete/revert documentation commit only; no runtime rollback needed.
+
+### KOTLIN-002 — Build real legacy storage fixtures
+
+- **Objective:** Capture supported 0.5.x Hive and secure-storage states without exposing secrets.
+- **Current Dart/Flutter source:** `lib/main.dart`, `lib/screens/profile_screen.dart`, `lib/screens/settings_screen.dart`, `flutter_secure_storage 10.3.1`, `hive 2.2.3`.
+- **New Kotlin files/modules:** `tools/parity/storage_fixture_schema`; test fixtures kept encrypted/redacted where possible.
+- **Dependencies:** Controlled test device/install or a headless Flutter fixture runner.
+- **Migration impact:** Defines supported legacy range and all keys/files.
+- **User-visible impact:** None.
+- **Tests:** Hive round-trip, plugin format read, corrupt/truncated file, missing key and Keystore failure cases.
+- **Parity evidence:** Fixture manifest with counts, types, hashes and known fixed dummy nsec/npub.
+- **Security/privacy impact:** No real nsec/NWC/passphrase in source or logs; fixture secrets are fixed test-only values.
+- **Battery/performance impact:** Measure one-time migration duration and peak memory.
+- **Acceptance criteria:** Every key in `STORAGE_COMPATIBILITY.md` is represented, including Amber, nsec, NWC and voice assets.
+- **Rollback notes:** Keep original fixture and legacy data untouched; rerun bridge against it.
+
+### KOTLIN-003 — Prove package, version and signing continuity
+
+- **Objective:** Establish the official signing certificate and native update identity.
+- **Current Dart/Flutter source:** `android/app/build.gradle.kts`, `build_release.sh`, `metadata/app.roadstr.yml`, `android/key.properties.template`.
+- **New Kotlin files/modules:** `android/app/build.gradle.kts` evolution and a release verification task/script.
+- **Dependencies:** Official key owner, controlled keystore configuration, Android build tools.
+- **Migration impact:** A signature mismatch makes in-place update impossible.
+- **User-visible impact:** Must be no uninstall/reinstall.
+- **Tests:** `apksigner`, `aapt`/bundletool version checks, package install-over-existing-app manual test.
+- **Parity evidence:** Certificate digest matches official APK; candidate code >2050; manifest identity exact.
+- **Security/privacy impact:** Never commit or print key material; reject debug-signed release.
+- **Battery/performance impact:** None.
+- **Acceptance criteria:** Signed native APK is accepted over current official Flutter APK without data clear.
+- **Rollback notes:** Until acceptance, distribute only internal unsigned/locally signed artifacts labelled non-release.
+
+### KOTLIN-004 — Create the native Gradle/Compose shell
+
+- **Objective:** Add a minimal native Activity/theme/resource shell beside Flutter sources.
+- **Current Dart/Flutter source:** Flutter Android embedding, `lib/main.dart`, `lib/theme/app_theme.dart`, manifest/resources.
+- **New Kotlin files/modules:** `android/app/src/main/kotlin/app/roadstr/RoadstrApplication.kt`, `MainActivity.kt`, `core/ui/theme/*`, `feature/home/*`.
+- **Dependencies:** AGP/Gradle/JDK, Compose BOM, AndroidX; dependency/license review.
+- **Migration impact:** Must not open or delete legacy storage yet.
+- **User-visible impact:** Internal shell only; no cutover.
+- **Tests:** Native unit/Compose smoke tests, manifest/package/resource checks.
+- **Parity evidence:** Same label/icon/permissions/edge-to-edge and a documented placeholder boundary.
+- **Security/privacy impact:** Preserve backup, cleartext and recents/privacy settings.
+- **Battery/performance impact:** Cold/warm start and idle frame baseline.
+- **Acceptance criteria:** Native debug build works without changing Flutter production entrypoint or package identity.
+- **Rollback notes:** Remove the shell module; Flutter build remains available.
+
+### KOTLIN-005 — Port pure core behavior with cross-language fixtures
+
+- **Objective:** Port deterministic algorithms before services/UI.
+- **Current Dart/Flutter source:** `lib/utils/*`, `lib/services/route_progress.dart`, `opening_hours.dart`, `bolt11_invoice.dart`, `sun_calc.dart`, `fuzzy_match.dart`.
+- **New Kotlin files/modules:** `core/model`, `core/geo`, `core/format`, `core/protocol`.
+- **Dependencies:** Kotlin stdlib and vetted FOSS crypto/serialization only where required.
+- **Migration impact:** None directly.
+- **User-visible impact:** Must remain behaviorally identical.
+- **Tests:** Same fixtures for geo, heading, off-route, polyline, progress, opening hours, units and invoices.
+- **Parity evidence:** Deterministic result diffs with fixed locale/time/random inputs.
+- **Security/privacy impact:** No custom crypto replacement; reject malformed input like Dart.
+- **Battery/performance impact:** Benchmark hot geometry loops and allocation rate.
+- **Acceptance criteria:** No unapproved fixture difference; all relevant Flutter tests have native equivalents.
+- **Rollback notes:** Keep calls routed to Dart/reference until native implementation is verified.
+
+### KOTLIN-006 — Port Nostr protocol and publish queues
+
+- **Objective:** Preserve event IDs, tags, signatures, relay behavior, TTL and offline semantics.
+- **Current Dart/Flutter source:** `lib/services/nostr_relay_service.dart`, `nostr_event_verify.dart`, `nip44.dart`, `road_event.dart`.
+- **New Kotlin files/modules:** `core/crypto`, `service/nostr`, `service/nostr/fixtures`.
+- **Dependencies:** Vetted secp256k1/NIP-44 implementation; OkHttp WebSocket or equivalent FOSS library.
+- **Migration impact:** Pending reports, cursors and activity inbox must survive.
+- **User-visible impact:** Same reports, confirmations, corrections, inbox and offline retry.
+- **Tests:** Golden event vectors, relay parser fuzz/bounds, queue crash/retry and signature verification tests.
+- **Parity evidence:** Cross-language event JSON/ID/tag comparison and relay transcript fixtures.
+- **Security/privacy impact:** Preserve key isolation, verification-before-trust and inbound DoS limits.
+- **Battery/performance impact:** Compare reconnect, socket and event-processing wakeups.
+- **Acceptance criteria:** All shipped Nostr kinds and filters are byte/semantic compatible.
+- **Rollback notes:** Keep Flutter protocol path available behind migration bridge until signed upgrade tests pass.
+
+### KOTLIN-007 — Implement transactional legacy migration
+
+- **Objective:** Migrate protected state, ordinary settings, queues and identity idempotently.
+- **Current Dart/Flutter source:** `lib/main.dart`, all keys/files in `STORAGE_COMPATIBILITY.md`.
+- **New Kotlin files/modules:** `service/migration`, `storage/legacy`, `storage/native`, recovery screen.
+- **Dependencies:** KOTLIN-002; either proven native readers or minimal headless Flutter bridge.
+- **Migration impact:** Highest risk; direct update from supported 0.5.x is required.
+- **User-visible impact:** Startup may show neutral progress/recovery state, never a fake logout.
+- **Tests:** A-Z migration matrix, rerun, process death, power-loss simulation, corrupt Hive, wrong/missing secret, Keystore failure.
+- **Parity evidence:** Identity/npub, every critical setting/count, NWC, assets and onboarding state compare exactly.
+- **Security/privacy impact:** Transactional commit, no secret logs, fail closed, retained backup until verified startup.
+- **Battery/performance impact:** One-time migration duration and peak memory under a defined budget.
+- **Acceptance criteria:** Migration is idempotent/crash-safe and never deletes legacy data before verification.
+- **Rollback notes:** Recovery reopens legacy state; native marker is written last and can be safely ignored by Flutter.
+
+### KOTLIN-008 — Port native storage after migration is proven
+
+- **Objective:** Separate preferences, structured data, secrets, caches and voice assets intentionally.
+- **Current Dart/Flutter source:** Hive access in map/settings/profile/services; secure storage calls.
+- **New Kotlin files/modules:** `storage/preferences`, `storage/database`, `storage/secrets`, `storage/assets`.
+- **Dependencies:** DataStore/Room only where justified; Android Keystore.
+- **Migration impact:** New schema/version marker and backup/rollback policy.
+- **User-visible impact:** No settings/default/favourite/history change.
+- **Tests:** schema round-trips, secret non-export/log tests, asset reuse and checksum tests.
+- **Parity evidence:** Storage comparison against migrated fixture and second-start no-op.
+- **Security/privacy impact:** No nsec/NWC/passphrase in plain preferences or database.
+- **Battery/performance impact:** Startup I/O and write frequency compared with Hive.
+- **Acceptance criteria:** Native storage is reopenable after process death and migration marker is durable.
+- **Rollback notes:** Retain legacy reader/bridge for the supported skip-version window.
+
+### KOTLIN-009 — Port bounded networking, search and routing
+
+- **Objective:** Preserve all endpoints, headers, bounds, retry and provider behavior.
+- **Current Dart/Flutter source:** `bounded_http.dart`, `network_config.dart`, `retry.dart`, routing/search/Overpass/Photon/Nominatim services.
+- **New Kotlin files/modules:** `core/network`, `service/routing`, `service/search`, `service/overpass`.
+- **Dependencies:** OkHttp, Kotlin coroutines/Flow; no Google/Firebase/telemetry SDK.
+- **Migration impact:** Routing provider, API key and GraphHopper URL must survive.
+- **User-visible impact:** Same providers, results, language and error/fallback behavior.
+- **Tests:** HTTP transcript fixtures, redirect/size/TLS/cleartext tests, provider response fixtures and retry tests.
+- **Parity evidence:** Request/response normalized diff and provider matrix.
+- **Security/privacy impact:** Preserve URL validation, body caps, user-agent, no silent cloud fallback.
+- **Battery/performance impact:** Compare network retries, cache hit rate and cancellation.
+- **Acceptance criteria:** All current providers pass without changed limits or privacy behavior.
+- **Rollback notes:** Use existing Flutter services while an individual native provider is incomplete.
+
+### KOTLIN-010 — Port Lightning, NWC and Amber
+
+- **Objective:** Preserve NIP-47/NIP-57/BOLT-11 and direct NIP-55 signer flows.
+- **Current Dart/Flutter source:** `zap_service.dart`, `bolt11_invoice.dart`, profile/onboarding/settings screens.
+- **New Kotlin files/modules:** `service/lightning`, `service/amber`, `core/nostr/signing`.
+- **Dependencies:** Vetted crypto/URL parser; Android Activity Result APIs; no proprietary wallet SDK.
+- **Migration impact:** NWC URI and identity flavor must be preserved exactly.
+- **User-visible impact:** Same signer approval/cancel flow, wallet fallback and zap behavior.
+- **Tests:** fixed invoice/NIP-04/NIP-47/NIP-57 fixtures; manual Amber signer matrix.
+- **Parity evidence:** signed unsigned-event fields and wallet request transcript comparison.
+- **Security/privacy impact:** Amber never receives a private key from Roadstr; NWC secret stays Keystore-backed.
+- **Battery/performance impact:** No persistent relay/socket owned by a Composable; bounded payment flow.
+- **Acceptance criteria:** nsec and Amber users remain configured and can perform the same operations.
+- **Rollback notes:** Keep Flutter signing/payment bridge until manual update tests pass.
+
+### KOTLIN-011 — Port GPS and lifecycle ownership
+
+- **Objective:** Match LocationManager cadence, watchdog, assistance, heading, foreground and background behavior.
+- **Current Dart/Flutter source:** `lib/services/gps_service.dart`, map screen lifecycle/camera policies, notification service.
+- **New Kotlin files/modules:** `service/location`, `service/navigation`, `service/notifications`, lifecycle-aware ViewModels.
+- **Dependencies:** Android platform LocationManager/sensors/foreground APIs only; no fused location or Play Services.
+- **Migration impact:** Active navigation state and notification actions must not be lost on recreation.
+- **User-visible impact:** Same permissions, fix cadence, background grace, guidance and notification lifecycle.
+- **Tests:** fake LocationManager streams, watchdog/dead stream, rotation/process/lifecycle tests and de-Googled manual test.
+- **Parity evidence:** timing/state traces compared with Flutter baseline.
+- **Security/privacy impact:** Preserve permission scope, no coordinate logs and notification privacy.
+- **Battery/performance impact:** CPU/wakeups/GPS duration/map camera updates measured in comparable sessions.
+- **Acceptance criteria:** No obvious battery/navigation regression and same background behavior.
+- **Rollback notes:** Keep Flutter GPS/navigation runtime until signed manual sessions are green.
+
+### KOTLIN-012 — Port MapLibre and map overlays
+
+- **Objective:** Reproduce native MapLibre styling, camera, cursor, routes and overlays while preserving raster semantics.
+- **Current Dart/Flutter source:** both map screens, map chrome/markers, theme and cursor widgets/services.
+- **New Kotlin files/modules:** `feature/map`, `feature/navigation/map`, MapLibre style/source helpers.
+- **Dependencies:** MapLibre Native Android after license/transitive dependency audit.
+- **Migration impact:** `mapEngine`, tile URL, cursor and map settings must remain.
+- **User-visible impact:** Same map engine default, toggle, overlays, tilt, bearing and controls.
+- **Tests:** style/source unit tests, screenshot/golden references, tap/gesture and marker culling tests.
+- **Parity evidence:** reference states in `UI_PARITY.md`, camera traces and frame-time comparison.
+- **Security/privacy impact:** Preserve tile/provider URLs, cleartext restrictions and no location telemetry.
+- **Battery/performance impact:** Avoid rebuilding static GeoJSON; measure jank, memory and camera updates.
+- **Acceptance criteria:** Map and legacy raster setting are functionally equivalent with no overlay gaps.
+- **Rollback notes:** Native map may remain opt-in while Flutter renderer is retained.
+
+### KOTLIN-013 — Port Compose UI and 27 locales
+
+- **Objective:** Reproduce screen hierarchy, styling, accessibility, orientation and all translations.
+- **Current Dart/Flutter source:** screens/widgets/theme/l10n/nav phrase tables.
+- **New Kotlin files/modules:** `feature/*`, `core/ui/theme`, Android resources/locale resolver and semantics.
+- **Dependencies:** Compose Material 3 and AndroidX only after license review.
+- **Migration impact:** Settings names/defaults and onboarding/disclosure keys must map exactly.
+- **User-visible impact:** Must feel like an update, not a redesign.
+- **Tests:** Compose tests, key/placeholder/plural coverage, screenshot comparisons and compact-device layouts.
+- **Parity evidence:** every state catalogue entry in `UI_PARITY.md` with locale/theme/orientation inputs.
+- **Security/privacy impact:** preserve privacy disclosure wording and task-switcher handling.
+- **Battery/performance impact:** frame/jank and recomposition profile versus Flutter references.
+- **Acceptance criteria:** no shipped feature remains PARTIAL and no locale is dropped.
+- **Rollback notes:** Continue Flutter UI for any incomplete screen; no partial production cutover.
+
+### KOTLIN-014 — Port voice engines and asset reuse
+
+- **Objective:** Keep Kokoro/Piper/eSpeak coverage, scheduling, audio focus and model files.
+- **Current Dart/Flutter source:** `lib/services/kokoro`, `lib/services/piper`, `voice_model_download.dart`, committed eSpeak artifacts.
+- **New Kotlin files/modules:** `service/voice`, ONNX runner, JNI/eSpeak bridge and asset verifier.
+- **Dependencies:** ONNX Runtime Android and existing reproducible eSpeak NDK build; license review.
+- **Migration impact:** Discover and reuse existing `kokoro/`, `piper/`, `espeak-ng-data/` directories.
+- **User-visible impact:** No unnecessary 100+ MB download; same language/voice/gender/speed behavior.
+- **Tests:** checksum/size, atomic `.part` rename, phrase scheduling, audio focus/Bluetooth and all language coverage.
+- **Parity evidence:** same model registry, hashes, phrase outputs and navigation timing.
+- **Security/privacy impact:** verify downloaded assets and do not log phrases/coordinates.
+- **Battery/performance impact:** inference latency, memory, audio wakeups and cancellation comparison.
+- **Acceptance criteria:** existing valid models are reused and voice guidance remains available.
+- **Rollback notes:** retain Flutter voice engine/bridge until native audio sessions are proven.
+
+### KOTLIN-015 — Security, dependency and release pipeline parity
+
+- **Objective:** Port hardening, GPL/FOSS review, R8, ABI, checksum and store metadata.
+- **Current Dart/Flutter source:** manifest/network config, Gradle, ProGuard, `build_release.sh`, F-Droid/ZapStore metadata.
+- **New Kotlin files/modules:** native Gradle convention/config, license table, release verification tooling.
+- **Dependencies:** Final native dependency set; F-Droid-compatible repositories/artifacts.
+- **Migration impact:** None beyond version/signing/build output continuity.
+- **User-visible impact:** Same permissions, package, release identity and update channels.
+- **Tests:** clean build, dependency tree audit, no-Google scan, R8 smoke, ABI/APK/signature/checksum verification.
+- **Parity evidence:** release artifact manifest compared with current baseline and F-Droid recipe build.
+- **Security/privacy impact:** no debug secrets/logs, backup/cleartext policies and native hashes preserved.
+- **Battery/performance impact:** release shrink/size and startup comparison.
+- **Acceptance criteria:** reproducible native artifacts pass F-Droid/ZapStore constraints without publishing.
+- **Rollback notes:** Flutter release pipeline remains authoritative until explicit cutover approval.
+
+### KOTLIN-016 — Full upgrade matrix and candidate decision
+
+- **Objective:** Prove direct signed update and all release blockers before any cutover.
+- **Current Dart/Flutter source:** current stable installed APK plus all source areas above.
+- **New Kotlin files/modules:** migration test harness, candidate checklist and release evidence bundle.
+- **Dependencies:** KOTLIN-002 through KOTLIN-015, official signing certificate and user physical-device testing.
+- **Migration impact:** Tests brand-new, current stable, older 0.5.x, Amber, nsec, favourites, NWC, models, queues, corruption and skip-version scenarios.
+- **User-visible impact:** Must be indistinguishable from a normal update.
+- **Tests:** A-Z matrix from the specification, no `adb` in agent work, manual signed APK upgrade by user.
+- **Parity evidence:** signed APK certificate/version outputs, migration diffs, UI/protocol/perf reports and no unapproved matrix gaps.
+- **Security/privacy impact:** verify no secret logs, no unexpected permissions, no blank identity on failure.
+- **Battery/performance impact:** critical navigation path not worse than comparable Flutter baseline.
+- **Acceptance criteria:** every release blocker is green; user explicitly approves release/cutover.
+- **Rollback notes:** retain a signed Flutter rollback release and legacy migration bridge until the supported window expires.
+
+## Explicit prohibitions before approval
+
+- Do not delete `lib/`, `pubspec.yaml`, Flutter assets or the migration bridge.
+- Do not change `applicationId`, signing identity, label, icons or version code
+  backwards.
+- Do not invoke `adb`, tag/publish a release or modify GitHub/F-Droid/ZapStore
+  state.
+- Do not add unrelated features or redesign the UI during parity work.
+
