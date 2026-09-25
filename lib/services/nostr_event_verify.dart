@@ -10,6 +10,8 @@ import 'dart:math';
 
 import 'package:nostr_tools/nostr_tools.dart';
 
+import 'nostr_protocol_codec.dart';
+
 final _eventApi = EventApi();
 final _rng = Random.secure();
 
@@ -28,18 +30,17 @@ String randomSubId() =>
 /// Any malformed or forged event returns false — never throws.
 bool verifyEventJson(Map<String, dynamic> json) {
   try {
+    final draft = nostrEventDraftFromJson(json);
     final ev = Event(
-      kind: json['kind'] as int,
-      tags: (json['tags'] as List)
-          .map((t) => List<String>.from(t as List))
-          .toList(),
-      content: json['content'] as String? ?? '',
-      created_at: json['created_at'] as int,
+      kind: draft.kind,
+      tags: draft.tags.map((tag) => tag.toList()).toList(),
+      content: draft.content,
+      created_at: draft.createdAt,
       id: json['id'] as String,
       sig: json['sig'] as String,
-      pubkey: json['pubkey'] as String,
+      pubkey: draft.pubkey,
     );
-    if (_eventApi.getEventHash(ev) != ev.id) return false;
+    if (draft.id != ev.id) return false;
     return _eventApi.verifySignature(ev);
   } catch (_) {
     return false;
