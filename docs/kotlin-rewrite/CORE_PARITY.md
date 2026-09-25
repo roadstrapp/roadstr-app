@@ -37,12 +37,13 @@ test-only deterministic bytes; it is not a real wallet invoice or secret.
   to the future native networking adapter.
 - BOLT-11 validation is only one part of Lightning. LNURL, NIP-47 and NIP-57
   wire behavior remain open.
-- Full cross-language fixture coverage for route responses, Nostr and legacy
-  storage remains required before those gates can close.
+- Full cross-language fixture coverage for route responses and Nostr, plus raw
+  source-format legacy storage fixtures, remains required before those gates
+  can close. The normalized legacy envelope is now shared separately.
 
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 520 tests passed, including the shared-vector oracle.
-- `./gradlew :app:testDebugUnitTest`: 54 Kotlin tests passed.
+- `flutter test`: 524 tests passed, including both shared fixture oracles.
+- `./gradlew :app:testDebugUnitTest`: 61 Kotlin tests passed.
 - No production Activity, manifest or startup wiring changed.

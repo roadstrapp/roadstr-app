@@ -2,6 +2,18 @@ package app.roadstr.migration
 
 import java.security.MessageDigest
 
+internal object LegacySnapshotLimits {
+    const val SUPPORTED_SCHEMA_VERSION = 1
+    const val MAX_ENTRIES_PER_STORE = 512
+    const val MAX_KEY_BYTES = 256
+    const val MAX_ORDINARY_VALUE_BYTES = 4 * 1024 * 1024
+    const val MAX_SECURE_VALUE_BYTES = 64 * 1024
+    const val MAX_ASSETS = 256
+    const val MAX_ASSET_PATH_BYTES = 1024
+    const val MAX_ASSET_SIZE_BYTES = 4L * 1024 * 1024 * 1024
+    const val MAX_ENVELOPE_BYTES = 64 * 1024 * 1024
+}
+
 /**
  * Normalized representation produced by the legacy reader.
  *
@@ -47,14 +59,6 @@ fun interface IdentityVerifier {
 }
 
 object LegacyStorageValidator {
-    private const val supportedSchemaVersion = 1
-    private const val maxEntriesPerStore = 512
-    private const val maxKeyBytes = 256
-    private const val maxOrdinaryValueBytes = 4 * 1024 * 1024
-    private const val maxSecureValueBytes = 64 * 1024
-    private const val maxAssets = 256
-    private const val maxAssetPathBytes = 1024
-    private const val maxAssetSizeBytes = 4L * 1024 * 1024 * 1024
     private val hex64 = Regex("^[0-9a-fA-F]{64}$")
     private val sha256 = Regex("^[0-9a-fA-F]{64}$")
 
@@ -62,14 +66,14 @@ object LegacyStorageValidator {
         snapshot: LegacyStorageSnapshot,
         identityVerifier: IdentityVerifier,
     ): SnapshotValidation {
-        if (snapshot.schemaVersion != supportedSchemaVersion) {
+        if (snapshot.schemaVersion != LegacySnapshotLimits.SUPPORTED_SCHEMA_VERSION) {
             return SnapshotValidation.failure(
                 "Unsupported legacy snapshot schema: ${snapshot.schemaVersion}",
             )
         }
 
-        if (snapshot.ordinaryValues.size > maxEntriesPerStore ||
-            snapshot.secureValues.size > maxEntriesPerStore
+        if (snapshot.ordinaryValues.size > LegacySnapshotLimits.MAX_ENTRIES_PER_STORE ||
+            snapshot.secureValues.size > LegacySnapshotLimits.MAX_ENTRIES_PER_STORE
         ) {
             return SnapshotValidation.failure("Legacy snapshot contains too many entries")
         }
@@ -100,12 +104,16 @@ object LegacyStorageValidator {
 
 
         for ((key, value) in snapshot.ordinaryValues) {
-            if (key.toByteArray().size > maxKeyBytes || value.toByteArray().size > maxOrdinaryValueBytes) {
+            if (key.toByteArray().size > LegacySnapshotLimits.MAX_KEY_BYTES ||
+                value.toByteArray().size > LegacySnapshotLimits.MAX_ORDINARY_VALUE_BYTES
+            ) {
                 return SnapshotValidation.failure("Oversized ordinary value: $key")
             }
         }
         for ((key, value) in snapshot.secureValues) {
-            if (key.toByteArray().size > maxKeyBytes || value.toByteArray().size > maxSecureValueBytes) {
+            if (key.toByteArray().size > LegacySnapshotLimits.MAX_KEY_BYTES ||
+                value.toByteArray().size > LegacySnapshotLimits.MAX_SECURE_VALUE_BYTES
+            ) {
                 return SnapshotValidation.failure("Oversized secure value: $key")
             }
         }
@@ -150,7 +158,7 @@ object LegacyStorageValidator {
             }
         }
 
-        if (snapshot.assets.size > maxAssets) {
+        if (snapshot.assets.size > LegacySnapshotLimits.MAX_ASSETS) {
             return SnapshotValidation.failure("Legacy snapshot contains too many assets")
         }
         val assetPaths = mutableSetOf<String>()
@@ -158,13 +166,13 @@ object LegacyStorageValidator {
             if (!isSafeRelativePath(asset.relativePath)) {
                 return SnapshotValidation.failure("Unsafe asset path: ${asset.relativePath}")
             }
-            if (asset.relativePath.toByteArray().size > maxAssetPathBytes) {
+            if (asset.relativePath.toByteArray().size > LegacySnapshotLimits.MAX_ASSET_PATH_BYTES) {
                 return SnapshotValidation.failure("Asset path is too long")
             }
             if (!assetPaths.add(asset.relativePath)) {
                 return SnapshotValidation.failure("Duplicate asset path: ${asset.relativePath}")
             }
-            if (asset.sizeBytes !in 0..maxAssetSizeBytes) {
+            if (asset.sizeBytes !in 0..LegacySnapshotLimits.MAX_ASSET_SIZE_BYTES) {
                 return SnapshotValidation.failure("Invalid asset size: ${asset.relativePath}")
             }
             if (!sha256.matches(asset.sha256)) {
