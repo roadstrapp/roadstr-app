@@ -1,0 +1,7 @@
+protocol_version	1
+channel	app.roadstr/legacy_migration
+ready_method	bridgeReady
+read_method	readLegacySnapshot
+entrypoint_library	package:roadstr/main.dart
+entrypoint_function	legacyMigrationHeadlessMain
+failure_code	legacy_snapshot_unavailable

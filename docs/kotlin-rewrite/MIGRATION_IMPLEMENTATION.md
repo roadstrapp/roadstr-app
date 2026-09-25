@@ -30,6 +30,15 @@ not a production startup change.
 - `legacy_secure_storage_source.dart` wraps the exact resolved plugin with
   `resetOnError=false` and backup-protected algorithm migration. Its real
   Android/Keystore behavior remains a signed-install test gate.
+- `legacy_migration_headless.dart` exposes a preserved secondary Dart
+  entrypoint and a versioned one-shot MethodChannel handler. Kotlin launches
+  it in an isolated `FlutterEngine`, registers only the two required app
+  plugins, enforces worker-thread use and a bounded timeout, destroys the
+  engine, then decodes the envelope.
+- `legacy_bridge_protocol.tsv` is asserted by both runtimes so channel,
+  methods, version, entrypoint and neutral error code cannot drift silently.
+  `LEGACY_HEADLESS_BRIDGE.md` records its threading, lifecycle and evidence
+  boundary.
 - The explicit voice manifest tracks 18 Kokoro/Piper/eSpeak paths and is locked
   to the production voice catalogues by tests.
 - `TransactionalMigration.kt` defines the reader/writer/marker interfaces and
@@ -52,10 +61,12 @@ not a production startup change.
 
 ## Deliberately not implemented yet
 
-- No native code reads the real Android `SharedPreferences`, Keystore or Hive
-  files.
-- No Flutter headless engine entrypoint or Kotlin launcher is bundled yet; the
-  isolated Dart reader/assembler is ready for that later integration.
+- No Kotlin parser reads Android `SharedPreferences`, Keystore or Hive files;
+  the isolated candidate deliberately delegates those formats to the exact
+  Flutter plugins and Hive runtime.
+- The headless launcher is not invoked by `MainActivity`, `Application` or any
+  production startup path. Its Android/Keystore execution still requires
+  controlled signed-install testing.
 - No native marker/store is connected to `MainActivity`.
 - No production Activity, manifest, application ID, permissions or Flutter
   runtime has been replaced.

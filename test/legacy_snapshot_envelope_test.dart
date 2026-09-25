@@ -4,9 +4,9 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import '../tools/kotlin_rewrite/legacy_snapshot_envelope.dart';
+import 'package:roadstr/migration/legacy_snapshot_envelope.dart';
 import '../tools/kotlin_rewrite/legacy_snapshot_fixture.dart';
-import '../tools/kotlin_rewrite/legacy_storage_contract.dart';
+import 'package:roadstr/migration/legacy_storage_contract.dart';
 
 const _fixturePath =
     'android/app/src/test/resources/parity/legacy_snapshot_v1.b64';
