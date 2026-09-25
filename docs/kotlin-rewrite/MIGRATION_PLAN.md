@@ -1,8 +1,8 @@
 # Kotlin rewrite migration plan and KOTLIN roadmap
 
-This plan intentionally stops at the audit/design boundary. The Flutter
-implementation is retained until migration, feature, protocol, UI and release
-parity are proven.
+This plan keeps the Flutter implementation as the production oracle while the
+native migration core is introduced incrementally. Flutter remains in place
+until migration, feature, protocol, UI and release parity are proven.
 
 ## Gates and milestones
 
@@ -12,7 +12,8 @@ parity are proven.
    resources, permissions and version discipline. No data deletion.
 3. **M2 — migration feasibility**: real Hive/secure-storage fixtures,
    transactional migration prototype, identity verification and asset reuse.
-   Do not mass-port UI before this gate is green.
+   The transactional prototype is now present; the real reader/fixture gate is
+   still open. Do not mass-port UI before this gate is green.
 4. **M3 — pure-core parity**: geo, route progress, polyline, units, opening
    hours, retry, invoice and protocol fixtures.
 5. **M4 — services**: bounded networking, search, routing, Nostr, Lightning,
@@ -25,6 +26,25 @@ parity are proven.
 8. **M7 — candidate**: only after every release blocker in
    `RELEASE_COMPATIBILITY.md` is green and the user explicitly approves the
    cutover/release.
+
+## Current implementation status
+
+The first native increment is intentionally isolated from production startup:
+
+- `android/app/src/main/kotlin/app/roadstr/migration/` contains the audited
+  storage contract, normalized snapshot model, validation and transactional
+  coordinator.
+- `android/app/src/test/kotlin/app/roadstr/migration/` contains deterministic
+  unit tests for identity binding, safe assets, idempotence and failure paths.
+- `android/app/src/main/kotlin/app/roadstr/core/geo/` contains the first pure
+  Kotlin parity slice: geometry, encoded polylines and route progress, with
+  deterministic Android unit tests.
+- `docs/kotlin-rewrite/MIGRATION_IMPLEMENTATION.md` records what is and is not
+  wired.
+
+This does **not** complete `KOTLIN-002`, `KOTLIN-005` or `KOTLIN-007`: real
+legacy fixtures, cross-language fixture outputs, the exact Android reader/
+bridge and a native store are still required.
 
 ## Task cards
 
@@ -43,7 +63,7 @@ parity are proven.
 - **Acceptance criteria:** Main untouched, branch from recorded SHA, documents present, no production sources removed.
 - **Rollback notes:** Delete/revert documentation commit only; no runtime rollback needed.
 
-### KOTLIN-002 — Build real legacy storage fixtures
+### KOTLIN-002 — Build real legacy storage fixtures (IN PROGRESS)
 
 - **Objective:** Capture supported 0.5.x Hive and secure-storage states without exposing secrets.
 - **Current Dart/Flutter source:** `lib/main.dart`, `lib/screens/profile_screen.dart`, `lib/screens/settings_screen.dart`, `flutter_secure_storage 10.3.1`, `hive 2.2.3`.
@@ -88,7 +108,7 @@ parity are proven.
 - **Acceptance criteria:** Native debug build works without changing Flutter production entrypoint or package identity.
 - **Rollback notes:** Remove the shell module; Flutter build remains available.
 
-### KOTLIN-005 — Port pure core behavior with cross-language fixtures
+### KOTLIN-005 — Port pure core behavior with cross-language fixtures (IN PROGRESS)
 
 - **Objective:** Port deterministic algorithms before services/UI.
 - **Current Dart/Flutter source:** `lib/utils/*`, `lib/services/route_progress.dart`, `opening_hours.dart`, `bolt11_invoice.dart`, `sun_calc.dart`, `fuzzy_match.dart`.
@@ -118,11 +138,11 @@ parity are proven.
 - **Acceptance criteria:** All shipped Nostr kinds and filters are byte/semantic compatible.
 - **Rollback notes:** Keep Flutter protocol path available behind migration bridge until signed upgrade tests pass.
 
-### KOTLIN-007 — Implement transactional legacy migration
+### KOTLIN-007 — Implement transactional legacy migration (PROTOTYPE)
 
 - **Objective:** Migrate protected state, ordinary settings, queues and identity idempotently.
 - **Current Dart/Flutter source:** `lib/main.dart`, all keys/files in `STORAGE_COMPATIBILITY.md`.
-- **New Kotlin files/modules:** `service/migration`, `storage/legacy`, `storage/native`, recovery screen.
+- **New Kotlin files/modules:** `app/roadstr/migration/LegacyStorageContract.kt`, `LegacyStorageModels.kt`, `TransactionalMigration.kt`; the real `service/migration`, `storage/legacy`, `storage/native` integration is still pending.
 - **Dependencies:** KOTLIN-002; either proven native readers or minimal headless Flutter bridge.
 - **Migration impact:** Highest risk; direct update from supported 0.5.x is required.
 - **User-visible impact:** Startup may show neutral progress/recovery state, never a fake logout.
@@ -130,7 +150,7 @@ parity are proven.
 - **Parity evidence:** Identity/npub, every critical setting/count, NWC, assets and onboarding state compare exactly.
 - **Security/privacy impact:** Transactional commit, no secret logs, fail closed, retained backup until verified startup.
 - **Battery/performance impact:** One-time migration duration and peak memory under a defined budget.
-- **Acceptance criteria:** Migration is idempotent/crash-safe and never deletes legacy data before verification.
+- **Acceptance criteria:** Prototype is idempotent/crash-safe and never deletes legacy data before verification; production acceptance additionally requires real legacy fixtures and startup integration.
 - **Rollback notes:** Recovery reopens legacy state; native marker is written last and can be safely ignored by Flutter.
 
 ### KOTLIN-008 — Port native storage after migration is proven
@@ -276,4 +296,3 @@ parity are proven.
 - Do not invoke `adb`, tag/publish a release or modify GitHub/F-Droid/ZapStore
   state.
 - Do not add unrelated features or redesign the UI during parity work.
-
