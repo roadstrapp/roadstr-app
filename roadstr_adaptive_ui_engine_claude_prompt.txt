@@ -1,0 +1,340 @@
+Roadstr — Adaptive UI Rendering Engine
+
+Engineering Specification / Roadmap Prompt for Claude Code
+
+You are working on Roadstr.
+
+For this first pass, DO NOT implement the whole feature. Inspect the
+repository and produce a technically grounded architecture, roadmap, and
+atomic backlog for an Adaptive UI Rendering Engine. The roadmap must be
+structured so work can later be divided between Claude Code and ChatGPT
+Codex with minimal overlap.
+
+Do not redesign Roadstr from scratch. Preserve working architecture and
+behavior wherever reasonable.
+
+PRODUCT GOAL
+
+Roadstr needs a UI orchestration layer for its navigation experience.
+This is NOT a custom geographic/cartographic renderer and must not
+replace Flutter’s renderer or the existing map engine.
+
+The Adaptive UI Rendering Engine should dynamically decide: - what UI is
+visible; - where it is positioned; - its prominence; - navigation-camera
+behavior; - controls shown/hidden; - transitions; - how touch
+interaction changes the navigation experience; - how the interface
+adapts to navigation state and user intent.
+
+Conceptually:
+
+Navigation state + map state + user interaction + route state + movement
+state → Adaptive UI Engine → UI composition + camera intent → existing
+Flutter/map stack
+
+The engine should make Roadstr context-aware rather than merely
+responsive.
+
+KEY EXPERIENCE
+
+While actively driving: - use a navigation-oriented tilted perspective
+where supported; - position the vehicle appropriately for forward
+visibility; - follow heading; - emphasize maneuver instructions; -
+minimize secondary controls; - optimize information for glanceability.
+
+When the user touches, drags, rotates or pans the map: - temporarily
+disengage automatic camera following; - enter an explicit exploration
+state; - optionally transition toward a more useful exploration
+perspective; - expose appropriate map controls; - reprioritize/collapse
+UI without hiding critical navigation information.
+
+After inactivity or an explicit recenter action: - smoothly resume
+navigation follow; - restore navigation camera policy; - restore
+driving-oriented UI.
+
+Do NOT implement this as unrelated booleans scattered through widgets.
+
+REPOSITORY AUDIT
+
+Before proposing implementation details, inspect the relevant repository
+and determine: - Flutter/Dart version; - architecture and state
+management; - map SDK/library; - map controller abstractions; -
+navigation engine and route state; - GPS/location services; - camera
+control; - navigation screen hierarchy; - gesture handling; -
+theme/design system; - animation approach; - orientation/lifecycle
+handling; - platform code; - tests; - relevant technical debt.
+
+Base all recommendations on the actual repository.
+
+Create: docs/adaptive_ui/REPOSITORY_AUDIT.md
+
+Include relevant files, current data flow, important classes,
+constraints, reusable components, refactoring candidates and risks.
+
+DO NOT BUILD A CARTOGRAPHIC ENGINE
+
+Use the existing map SDK for pitch/tilt, bearing, zoom, center, padding,
+camera animation, gestures, layer visibility and styling whenever
+supported.
+
+The new layer should issue semantic camera intentions, conceptually
+like: - followNavigation - explore - routeOverview - recenter -
+resumeFollow
+
+Do not scatter raw map-controller commands across widgets. Establish
+clear camera ownership.
+
+STATE-DRIVEN DESIGN
+
+Separate WHAT the UI should do from HOW Flutter renders it.
+
+Conceptually:
+
+RawApplicationState → AdaptiveUiStateResolver → AdaptiveUiState →
+Flutter widgets
+
+Investigate useful inputs including navigation status, maneuver state,
+route state, speed/movement, heading, GPS accuracy, zoom/pitch/bearing,
+map readiness, gestures, recenter requests, orientation, screen size and
+safe areas.
+
+Do not add speculative inputs without a real use case.
+
+Investigate explicit high-level modes such as: - browsing -
+navigationFollow - navigationExplore - navigationOverview - rerouting -
+approachingManeuver - stopped - arrived
+
+Use repository-appropriate naming. Avoid combinatorial boolean state.
+
+CAMERA ORCHESTRATION
+
+Design a dedicated semantic camera layer responsible for: - following
+user/heading; - route overview; - exploration camera; - recenter; -
+pitch/bearing transitions; - zoom policy; - camera padding based on
+UI; - animation timing/easing; - suppressing automatic camera updates
+during deliberate interaction.
+
+Screens/widgets must not fight over camera ownership.
+
+TOUCH/GESTURE POLICY
+
+Explicitly model: navigationFollow → user pans → navigationExplore.
+
+During exploration, automatic follow must not fight the user.
+
+When interaction ends, begin a configurable inactivity policy rather
+than snapping back immediately.
+
+Explicit recenter should immediately request navigation-follow mode.
+
+Automatic resume may occur after a configurable timeout. Keep timeout
+policy centralized and testable.
+
+ADAPTIVE UI COMPOSITION
+
+Resolve presentation centrally. Consider typed values for: -
+primary/secondary maneuver presentation; - speed and ETA visibility; -
+map controls; - recenter; - route overview; - compass; - bottom panel
+mode; - instruction panel mode; - map viewport insets/padding; - camera
+mode.
+
+Prefer richer enums/sealed models over dozens of booleans.
+
+Driving mode must prioritize maneuver, maneuver distance, road name,
+route, speed, ETA/distance, then secondary controls.
+
+CAMERA + UI COORDINATION
+
+Camera framing must understand occupied UI space. If panels change size,
+derive map viewport padding from the same resolved UI state. Do not
+hardcode map-center offsets independently from layout.
+
+Design a shared concept such as MapViewportInsets / UiOcclusion /
+CameraPadding according to repository conventions.
+
+POLICY VS MECHANISM
+
+Separate behavior policy from map/Flutter mechanisms.
+
+Example policy: When navigating and the user pans, enter exploration
+mode and resume follow after inactivity.
+
+Mechanism: Invoke the existing map SDK camera API.
+
+Most behavior policy should be unit-testable without rendering a map.
+
+CONFIGURATION
+
+Centralize tunables: - exploration timeout; - animation durations; -
+pitch values; - navigation zoom ranges; - stopped-state delay; - control
+visibility timeout; - any justified thresholds.
+
+No scattered magic numbers.
+
+PERFORMANCE
+
+Avoid rebuilding the entire navigation screen for every GPS update.
+Isolate selectors/listeners, throttle/debounce only where semantically
+safe, avoid needless allocations and repeated controller creation, and
+document high-frequency paths.
+
+Do not throttle safety-critical maneuver information for cosmetic
+performance.
+
+TESTING
+
+The policy/state engine should be strongly unit-tested.
+
+Required scenarios should include: - navigation follow + pan →
+exploration; - exploration + timeout → follow request; - exploration +
+recenter → immediate follow; - follow + route overview → overview; -
+navigation ends → browsing; - rapid/competing transitions; - GPS/heading
+unavailable; - map controller not ready; - interrupted camera
+animations; - app lifecycle changes.
+
+Abstract/mock camera SDK calls where practical.
+
+MIGRATION
+
+Do not rewrite the navigation screen in one giant commit.
+
+Prefer an incremental migration: 1. characterize current behavior with
+tests; 2. introduce state models; 3. introduce camera abstraction; 4.
+route existing camera commands through it; 5. introduce interaction
+state; 6. introduce adaptive composition; 7. migrate widgets
+incrementally; 8. remove obsolete logic; 9. profile/polish.
+
+Keep the app buildable at major checkpoints.
+
+ROADMAP
+
+Create: docs/adaptive_ui/ROADMAP.md
+
+Suggested phases: 0 Repository Audit 1 Behavioral Characterization 2
+State Model 3 Camera Abstraction 4 Gesture / Interaction State 5
+Adaptive UI Composition 6 Navigation Screen Migration 7 Camera/UI
+Coordination 8 Animation & Polish 9 Performance 10 Testing /
+Stabilization 11 Cleanup / Documentation
+
+Change the phases if repository inspection supports a better
+decomposition.
+
+ATOMIC BACKLOG — MANDATORY
+
+Create: docs/adaptive_ui/BACKLOG.md
+
+Every task must have a unique ID: AUI-001, AUI-002, etc.
+
+For EVERY task include: - ID - Title - Goal - Detailed description -
+Expected files/modules - Dependencies - Acceptance criteria - Tests
+required - Estimated complexity: XS/S/M/L/XL - Parallelization safety -
+Recommended agent: CLAUDE / CODEX / EITHER / HUMAN REVIEW
+
+Descriptions should be sufficiently self-contained to reuse later as
+coding-agent prompts.
+
+CLAUDE / CODEX WORK SPLIT
+
+Prefer CLAUDE for: - repository-wide architecture; - cross-cutting
+refactors; - state-machine design; - camera architecture; - multi-module
+migrations; - integration; - architecture conflict resolution.
+
+Prefer CODEX for: - isolated widgets; - unit tests; - helpers/models; -
+small interface-bounded refactors; - individual animation components; -
+lint cleanup; - focused bug fixes; - benchmarks/test fixtures.
+
+These are guidelines, not absolute rules.
+
+Explicitly identify PARALLEL GROUPS in BACKLOG.md and explain why their
+files do not overlap.
+
+Explicitly identify serialized dependencies.
+
+Suggest temporary file/module ownership derived from the real repository
+so Claude and Codex do not modify the same core files concurrently.
+
+ARCHITECTURE DOCUMENT
+
+Create: docs/adaptive_ui/ARCHITECTURE.md
+
+Include: - problem statement; - current architecture; - proposed
+architecture; - data flow; - state model; - camera ownership; - gesture
+handling; - UI composition; - policy/mechanism separation; -
+lifecycle; - testing; - migration.
+
+Use Mermaid diagrams where useful.
+
+DECISION LOG
+
+Create: docs/adaptive_ui/DECISIONS.md
+
+For meaningful decisions record: Decision / Context / Alternatives /
+Choice / Consequences.
+
+RISK REGISTER
+
+Create: docs/adaptive_ui/RISKS.md
+
+Cover map SDK limitations, gesture conflicts, camera race conditions,
+rebuilds, state coupling, lifecycle bugs, navigation regressions,
+parallel-work merge conflicts and device differences.
+
+Rank risks by probability, impact and mitigation.
+
+DO NOT OVER-ENGINEER
+
+This engine exists specifically for Roadstr. Do NOT build: - a generic
+plugin framework; - a replacement Flutter rendering tree; - a custom
+layout engine where Flutter suffices; - reflection/DSL infrastructure; -
+an event bus just because the word “engine” sounds architectural; -
+unnecessary service locators.
+
+The engine should mainly provide: state resolution + policy +
+orchestration + camera coordination.
+
+Flutter remains responsible for widget rendering.
+
+SUCCESS SCENARIO
+
+The final architecture should cleanly support:
+
+1.  Navigation starts.
+2.  Roadstr enters navigation-follow.
+3.  Camera uses navigation pitch/bearing/zoom.
+4.  UI prioritizes maneuver information.
+5.  User drags the map.
+6.  Engine detects exploration intent.
+7.  Follow pauses.
+8.  Camera transitions appropriately.
+9.  Exploration controls appear.
+10. Navigation information remains available but reprioritized.
+11. User stops touching.
+12. Inactivity policy begins.
+13. Roadstr does not fight continued exploration.
+14. User taps recenter OR timeout expires.
+15. Camera smoothly resumes navigation.
+16. Driving-oriented UI returns.
+
+This must be driven by explicit, testable state rather than widget-local
+hacks.
+
+FIRST-PASS DELIVERABLES
+
+Produce: - docs/adaptive_ui/REPOSITORY_AUDIT.md -
+docs/adaptive_ui/ARCHITECTURE.md - docs/adaptive_ui/ROADMAP.md -
+docs/adaptive_ui/BACKLOG.md - docs/adaptive_ui/DECISIONS.md -
+docs/adaptive_ui/RISKS.md
+
+Small exploratory code/tests are allowed only when needed to validate
+assumptions.
+
+DO NOT begin the repository-wide implementation yet.
+
+At the end report: 1. recommended architecture; 2. largest technical
+risk; 3. reusable existing Roadstr code; 4. code that should be
+refactored; 5. critical path; 6. Claude-owned tasks; 7. Codex-owned
+tasks; 8. tasks that can begin immediately in parallel; 9. the first
+implementation task after human approval.
+
+The result must be a practical engineering plan that Claude Code and
+Codex can execute collaboratively without creating unnecessary merge
+conflicts.
