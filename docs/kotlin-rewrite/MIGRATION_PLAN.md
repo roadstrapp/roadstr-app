@@ -13,9 +13,9 @@ until migration, feature, protocol, UI and release parity are proven.
 3. **M2 — migration feasibility**: real Hive/secure-storage fixtures,
    transactional migration prototype, identity verification and asset reuse.
    The transactional prototype and a raw synthetic encrypted-Hive-to-Kotlin
-   evidence chain are now present; signed installed fixtures and real
-   secure-storage/Keystore reads are still open. Do not mass-port UI before
-   this gate is green.
+   evidence chain are now present, including a copy-before-open bridge reader;
+   signed installed fixtures and real secure-storage/Keystore reads are still
+   open. Do not mass-port UI before this gate is green.
 4. **M3 — pure-core parity (in progress)**: geo, route progress, heading,
    off-route, camera policy, viewport, units, opening hours, retry, invoice and
    protocol fixtures. A first shared Dart/Kotlin vector set is green.
@@ -50,6 +50,9 @@ The first native increment is intentionally isolated from production startup:
 - `legacy_settings_hive_v1.b64` is an encrypted Hive 2.2.3 binary. A read-only
   Dart collector reopens it with the fixture key, validates actual dynamic
   value shapes and produces the exact shared envelope.
+- The bridge candidate rejects partial/interrupted legacy states, opens only a
+  temporary Hive copy, inventories all 18 known reusable voice assets and
+  disables the secure-storage plugin's destructive `resetOnError` behavior.
 - The Kotlin suite currently has 59 deterministic unit tests, all independent
   of Android UI/runtime state.
 - `docs/kotlin-rewrite/MIGRATION_IMPLEMENTATION.md` records what is and is not
@@ -81,17 +84,21 @@ Android reader/bridge and a native store are still required.
 - **Objective:** Capture supported 0.5.x Hive and secure-storage states without exposing secrets.
 - **Current Dart/Flutter source:** `lib/main.dart`, `lib/screens/profile_screen.dart`, `lib/screens/settings_screen.dart`, `flutter_secure_storage 10.3.1`, `hive 2.2.3`.
 - **New Kotlin files/modules:** normalized Dart/Kotlin envelope, strict Dart
-  collector and synthetic encrypted raw Hive fixture are present; the
-  installed-app fixture manifest remains.
+  collector, copy-before-open bridge assembler and synthetic encrypted raw Hive
+  fixture are present; the installed-app fixture manifest remains.
 - **Dependencies:** Controlled test device/install or a headless Flutter fixture runner.
 - **Migration impact:** Defines supported legacy range and all keys/files.
 - **User-visible impact:** None.
 - **Tests:** Normalized envelope round-trip, contract coverage, corruption,
   duplicate, malformed UTF-8, bounds and a synthetic encrypted Hive 2.2.3
-  round-trip are green; installed plugin-format reads, missing/wrong protected
-  keys and Keystore failure cases remain.
+  round-trip are green. Synthetic missing/wrong Hive keys, partial state,
+  interrupted backup and source immutability are green; installed
+  plugin-format reads and Keystore failure cases remain.
 - **Parity evidence:** Fixture manifest with counts, types, hashes and known fixed dummy nsec/npub.
-- **Security/privacy impact:** No real nsec/NWC/passphrase in source or logs; fixture secrets are fixed test-only values.
+- **Security/privacy impact:** No real nsec/NWC/passphrase in source or logs;
+  fixture secrets are fixed test-only values. The bridge sets
+  `resetOnError=false` instead of accepting the plugin's destructive Dart
+  default.
 - **Battery/performance impact:** Measure one-time migration duration and peak memory.
 - **Acceptance criteria:** Every key in `STORAGE_COMPATIBILITY.md` is represented, including Amber, nsec, NWC and voice assets.
 - **Rollback notes:** Keep original fixture and legacy data untouched; rerun bridge against it.

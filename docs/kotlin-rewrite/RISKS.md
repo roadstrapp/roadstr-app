@@ -4,7 +4,7 @@
 |---|---|---:|---:|---|---|
 | R-01 | Official release certificate is not available in the checkout | Critical | High | Obtain controlled certificate fingerprint and verify a signed APK before cutover | Open blocker |
 | R-02 | Hive 2.2.3 compatibility with boxes from supported installed releases is unproven | Critical | High | Synthetic encrypted Hive read is green; add signed-install fixtures and retain the Dart bridge until native decoding is proven | Open (synthetic green) |
-| R-03 | `flutter_secure_storage` has multiple historical Android formats | Critical | High | Test v10.3.1 plus supported older 0.5.x fixtures; preserve plugin-compatible reader/bridge | Open |
+| R-03 | `flutter_secure_storage` has multiple historical Android formats | Critical | High | Candidate uses the exact plugin with backup-protected migration; test v10.3.1 plus supported older 0.5.x signed fixtures | Open (adapter isolated) |
 | R-04 | A failed migration creates a blank identity/profile | Critical | Medium | Fail closed, retain legacy files, compare derived pubkey, show recovery UI | Design gate |
 | R-05 | Version code or signing mismatch blocks normal Android update | Critical | Medium | Exact identity checks, higher code than 2050, signed APK upgrade test | Open |
 | R-06 | Nostr event bytes/tags change during port | Critical | Medium | Export deterministic golden fixtures and compare IDs, tags, signatures and payloads | Not started |
@@ -20,6 +20,7 @@
 | R-16 | Protocol/network limits are approximated instead of ported | High | Medium | Port bounded HTTP/relay policies from source with fixture and adversarial tests | Not started |
 | R-17 | Physical-device upgrade path is untested | Critical | High | Manual signed-APK checklist owned by user; no release candidate without evidence | Open |
 | R-18 | Parallel Flutter/main changes expand parity gap | Medium | Medium | Periodically audit main, update matrix intentionally, never silently drop features | Process |
+| R-19 | Default Dart `AndroidOptions` sets `resetOnError=true`, allowing a read/decrypt error to erase protected values | Critical | Medium | Bridge explicitly sets false; prove historical reads and address current startup in a separate reviewed change | Open blocker |
 
 ## Current stop condition
 

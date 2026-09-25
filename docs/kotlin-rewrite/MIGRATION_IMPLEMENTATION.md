@@ -23,6 +23,15 @@ not a production startup change.
 - `legacy_settings_hive_v1.b64` is a reproducible, genuinely encrypted Hive
   2.2.3 box containing synthetic values. The Dart collector turns it into the
   exact committed envelope consumed by Kotlin without mutating the box.
+- `legacy_migration_bridge_reader.dart` distinguishes absent from partial
+  legacy state, validates the canonical 32-byte Hive key, opens only a stable
+  bounded temporary copy and assembles the full envelope. Wrong keys and Hive's
+  follow-up asynchronous cleanup error are contained without exposing values.
+- `legacy_secure_storage_source.dart` wraps the exact resolved plugin with
+  `resetOnError=false` and backup-protected algorithm migration. Its real
+  Android/Keystore behavior remains a signed-install test gate.
+- The explicit voice manifest tracks 18 Kokoro/Piper/eSpeak paths and is locked
+  to the production voice catalogues by tests.
 - `TransactionalMigration.kt` defines the reader/writer/marker interfaces and
   enforces the order `read → validate → stage → commit → verify → mark complete`.
 - No interface exposes a legacy-delete operation. Cleanup remains a separate,
@@ -45,7 +54,8 @@ not a production startup change.
 
 - No native code reads the real Android `SharedPreferences`, Keystore or Hive
   files.
-- No Flutter headless bridge is bundled yet.
+- No Flutter headless engine entrypoint or Kotlin launcher is bundled yet; the
+  isolated Dart reader/assembler is ready for that later integration.
 - No native marker/store is connected to `MainActivity`.
 - No production Activity, manifest, application ID, permissions or Flutter
   runtime has been replaced.
@@ -53,6 +63,9 @@ not a production startup change.
 - No raw installed-app fixture exists yet. The synthetic raw Hive fixture
   proves the current Dart binary read path, but not historical installed-box,
   secure-storage or Keystore compatibility.
+- The current production app still constructs `FlutterSecureStorage()` with
+  `resetOnError=true`; changing its startup behavior is outside this isolated
+  bridge increment and needs a separately reviewed compatibility fix.
 
 The next migration increment must run a controlled reader against supported
 installed 0.5.x states, including encrypted Hive, current and historical

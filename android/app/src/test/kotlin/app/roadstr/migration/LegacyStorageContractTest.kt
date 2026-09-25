@@ -24,6 +24,7 @@ class LegacyStorageContractTest {
         assertTrue("autoCenterOnLaunch" in LegacyStorageContract.hiveKeys)
         assertTrue("disclaimer_accepted" in LegacyStorageContract.hiveKeys)
         assertTrue("onboarding_v1" in LegacyStorageContract.hiveKeys)
+        assertEquals("settings.hive.migration-backup", LegacyStorageContract.settingsMigrationBackupFileName)
     }
 
     @Test

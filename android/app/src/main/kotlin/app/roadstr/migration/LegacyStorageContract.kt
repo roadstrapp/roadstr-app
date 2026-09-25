@@ -11,6 +11,7 @@ package app.roadstr.migration
 object LegacyStorageContract {
     const val settingsBoxName = "settings"
     const val settingsFileName = "settings.hive"
+    const val settingsMigrationBackupFileName = "settings.hive.migration-backup"
     const val settingsEncryptionKey = "hive_settings_key"
 
     const val modelDirectoryKokoro = "kokoro"

@@ -1,5 +1,7 @@
 const String legacySettingsBoxName = 'settings';
 const String legacySettingsFileName = 'settings.hive';
+const String legacySettingsMigrationBackupFileName =
+    'settings.hive.migration-backup';
 
 const Set<String> legacyFixedHiveKeys = {
   'autoDark',
@@ -62,6 +64,29 @@ const Set<String> legacyDynamicHiveKeyPrefixes = {
   'activity_inbox_',
   'activity_zap_cursor_',
   'activity_confirmation_cursor_',
+};
+
+/// Explicit app-document assets worth reusing after the native cutover.
+/// Missing files are valid because users download only the languages they use.
+const Set<String> legacyVoiceAssetRelativePaths = {
+  'espeak-ng-data/.roadstr_extracted',
+  'kokoro/model_q8f16.onnx',
+  'kokoro/tokenizer.json',
+  'kokoro/af_heart.bin',
+  'kokoro/am_michael.bin',
+  'kokoro/ef_dora.bin',
+  'kokoro/em_alex.bin',
+  'kokoro/ff_siwis.bin',
+  'kokoro/if_sara.bin',
+  'kokoro/im_nicola.bin',
+  'kokoro/jf_alpha.bin',
+  'kokoro/jm_kumo.bin',
+  'kokoro/pf_dora.bin',
+  'kokoro/pm_alex.bin',
+  'kokoro/zf_xiaobei.bin',
+  'kokoro/zm_yunxi.bin',
+  'piper/de_DE-thorsten-medium.onnx',
+  'piper/de_DE-thorsten-medium.onnx.json',
 };
 
 final RegExp _publicKeyHex = RegExp(r'^[0-9a-fA-F]{64}$');
