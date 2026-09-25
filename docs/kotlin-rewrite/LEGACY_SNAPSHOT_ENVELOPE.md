@@ -12,6 +12,10 @@ The relevant implementations are:
   `tools/kotlin_rewrite/legacy_snapshot_collector.dart`;
 - reproducible encrypted-box generator:
   `tools/kotlin_rewrite/legacy_raw_hive_fixture.dart`;
+- copy-before-open bridge assembler:
+  `tools/kotlin_rewrite/legacy_migration_bridge_reader.dart`;
+- explicit safe-options adapter for the legacy secure-storage plugin:
+  `tools/kotlin_rewrite/legacy_secure_storage_source.dart`;
 - Kotlin consumer: `LegacySnapshotEnvelope.kt`.
 
 The Dart chain starts from the exact encrypted Hive 2.2.3 fixture
@@ -42,6 +46,9 @@ substitute for semantic validation.
 Asset collection is explicit rather than recursive: only named regular files
 below `kokoro/`, `piper/` and `espeak-ng-data/` are hashed. Traversal,
 duplicates and symbolic links fail closed; absent optional files are skipped.
+The bridge opens a maximum-128-MiB temporary copy of `settings.hive`, never the
+source file, and rejects a source that changes during copying. It returns null
+only when both Hive and secure state are absent; partial state is an error.
 
 ## Binary layout
 
@@ -97,7 +104,8 @@ dart run tools/kotlin_rewrite/generate_legacy_snapshot_fixture.dart --check
 dart run tools/kotlin_rewrite/generate_legacy_hive_fixture.dart
 dart run tools/kotlin_rewrite/generate_legacy_hive_fixture.dart --check
 flutter test test/legacy_snapshot_envelope_test.dart \
-  test/legacy_snapshot_collector_test.dart
+  test/legacy_snapshot_collector_test.dart \
+  test/legacy_migration_bridge_reader_test.dart
 cd android && ./gradlew :app:testDebugUnitTest \
   --tests app.roadstr.migration.LegacySnapshotEnvelopeTest
 ```
@@ -115,6 +123,13 @@ deterministically to Kotlin. It covers all 42 audited fixed Hive keys, one
 instance of each of the three dynamic prefixes, all nine secure keys and six
 explicit synthetic assets. Inspection also confirms key names remain visible
 metadata while fixture values are encrypted.
+
+It also proves the assembled bridge copies the source before opening it,
+produces the exact committed Kotlin envelope, leaves all source bytes
+unchanged, and fails closed for absent/partial state, unknown secure keys,
+invalid or wrong AES keys, corrupt Hive bytes, interrupted plaintext-encryption
+migration and symlinks. Hive 2.2.3's secondary asynchronous lock-cleanup error
+after a wrong key is contained and reduced to one neutral bridge failure.
 
 It does not prove that boxes copied from supported installed releases,
 historical `flutter_secure_storage` data or Android Keystore keys can be read.
