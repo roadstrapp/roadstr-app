@@ -17,6 +17,12 @@ not a production startup change.
   Flutter-to-Kotlin hand-off plus a read-only `LegacySnapshotReader` adapter.
   Its trailing SHA-256 detects transport corruption but is not treated as
   authentication.
+- `legacy_snapshot_collector.dart` reads an already-open `settings` box,
+  canonicalizes only supported Hive value shapes, accepts an injectable secure
+  snapshot and builds a bounded asset manifest without following symlinks.
+- `legacy_settings_hive_v1.b64` is a reproducible, genuinely encrypted Hive
+  2.2.3 box containing synthetic values. The Dart collector turns it into the
+  exact committed envelope consumed by Kotlin without mutating the box.
 - `TransactionalMigration.kt` defines the reader/writer/marker interfaces and
   enforces the order `read → validate → stage → commit → verify → mark complete`.
 - No interface exposes a legacy-delete operation. Cleanup remains a separate,
@@ -26,8 +32,8 @@ not a production startup change.
   deterministic fingerprints, envelope limits/corruption and the audited key
   contract.
 - Dart generates `legacy_snapshot_v1.b64`; Dart and Kotlin both decode the
-  exact bytes and assert coverage of all 40 fixed Hive keys, three dynamic
-  per-identity keys, nine secure keys and three synthetic asset records.
+  exact bytes and assert coverage of all 42 fixed Hive keys, three dynamic
+  per-identity keys, nine secure keys and six synthetic asset records.
 - The pure Kotlin core now covers geometry/progress, heading/off-route,
   camera/viewport, formatting/TTS, fuzzy search, refetch/retry,
   sunrise/sunset, opening hours and strict BOLT-11 parsing.
@@ -44,8 +50,9 @@ not a production startup change.
 - No production Activity, manifest, application ID, permissions or Flutter
   runtime has been replaced.
 - No real user data, key, NWC URI or voice asset is used by the tests.
-- No raw installed-app fixture exists yet. The shared normalized envelope does
-  not prove Hive, secure-storage or Keystore compatibility.
+- No raw installed-app fixture exists yet. The synthetic raw Hive fixture
+  proves the current Dart binary read path, but not historical installed-box,
+  secure-storage or Keystore compatibility.
 
 The next migration increment must run a controlled reader against supported
 installed 0.5.x states, including encrypted Hive, current and historical

@@ -1,9 +1,9 @@
 # Storage compatibility inventory
 
-Status: forensic inventory, bounded transactional migration core and the
-synthetic Dart-to-Kotlin envelope fixture are implemented and tested. The real
-Hive/secure-storage reader remains blocked on controlled installed-app
-fixtures.
+Status: forensic inventory, bounded transactional migration core, a
+reproducible encrypted Hive 2.2.3 fixture, a strict read-only Dart collector
+and the Dart-to-Kotlin envelope are implemented and tested. Reading protected
+storage from controlled signed installations remains open.
 
 The existing app uses one Hive box named `settings` in the application
 documents directory. `lib/main.dart` obtains a 32-byte key from
@@ -11,6 +11,11 @@ documents directory. `lib/main.dart` obtains a 32-byte key from
 Hive with `HiveAesCipher`. With Hive 2.2.3 this is a binary Hive frame format
 using AES-CBC/PKCS7 at the box layer. The current startup also contains an
 in-place plaintext-to-encrypted migration with a `.migration-backup` file.
+
+The synthetic raw fixture confirms an important forensic boundary:
+`HiveAesCipher` encrypts stored values, but logical key names remain visible in
+the box bytes. The legacy file must therefore be treated as sensitive metadata
+even when no value plaintext is recoverable without the key.
 
 ## Secure storage implementation observed
 
@@ -58,6 +63,7 @@ are shown as templates.
 autoDark
 autoCenterOnLaunch
 avoidUnpavedRoads
+disclaimer_accepted
 fav_sync_custom_relay
 fav_sync_last_ts
 fav_sync_legacy_cleaned
@@ -80,6 +86,7 @@ minBrightness
 movementCursorColor
 movementCursorStyle
 nwcUri                          # legacy secret, migrated to secure storage
+onboarding_v1
 parking_position
 pending_road_reports
 privacy_disclosure_v2
@@ -100,10 +107,12 @@ activity_zap_cursor_<pubkey>
 activity_confirmation_cursor_<pubkey>
 ```
 
-Values include JSON-encoded lists/maps, strings, booleans, integers and
-numbers. `favorites` contains `label`, `address`, `lat`, and `lon`; search
-history contains `label`, `lat`, and `lon`; pending reports are JSON strings
-containing a signed event and `expiresAt`.
+Values include Hive lists/maps, strings, booleans, integers and numbers.
+`favorites`, `searchHistory` and `pending_road_reports` are Hive lists whose
+items are JSON strings. Favourite JSON contains `label`, `address`, `lat` and
+`lon`; search-history JSON contains `label`, `lat` and `lon`; pending-report
+JSON contains a signed event and `expiresAt`. Activity inbox entries are Hive
+maps rather than JSON strings.
 
 ## Migration policy
 
@@ -129,13 +138,16 @@ new implementation.
 The normalized v1 envelope, its bounds and its exact evidence boundary are
 specified in `LEGACY_SNAPSHOT_ENVELOPE.md`. Its committed fixture covers every
 fixed key above, one valid instance of every dynamic key prefix, all nine
-secure keys and representative asset metadata. This catches contract drift but
-does not replace raw Hive/secure-storage fixtures.
+secure keys and explicit Kokoro, Piper and eSpeak asset metadata. A second
+committed fixture is an actual encrypted Hive 2.2.3 box with synthetic values;
+the Dart collector reads that box and produces the exact envelope decoded by
+Kotlin. This catches raw-shape and transport drift, but it does not replace
+signed installed-app or secure-storage fixtures.
 
 ## Open verification items
 
-- Produce fixtures from real supported 0.5.x installations, including an old
-  secure-storage format and an encrypted Hive box.
+- Produce fixtures from real supported 0.5.x installations, including current
+  and historical secure-storage formats and encrypted Hive boxes.
 - Confirm the exact Android Keystore aliases/files on a signed installed build.
 - Exercise every dynamic key and any plugin-owned files in real install fixtures.
 - Decide the supported legacy release range after fixture coverage exists.

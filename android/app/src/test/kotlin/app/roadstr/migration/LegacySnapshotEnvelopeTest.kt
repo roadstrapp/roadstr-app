@@ -33,9 +33,12 @@ class LegacySnapshotEnvelopeTest {
         assertEquals("nsec", snapshot.identity.flavor)
         assertEquals(
             listOf(
-                "espeak-ng-data/.roadstr-ready",
-                "kokoro/model.onnx",
-                "piper/model.onnx",
+                "espeak-ng-data/.roadstr_extracted",
+                "kokoro/if_sara.bin",
+                "kokoro/model_q8f16.onnx",
+                "kokoro/tokenizer.json",
+                "piper/de_DE-thorsten-medium.onnx",
+                "piper/de_DE-thorsten-medium.onnx.json",
             ),
             snapshot.assets.map(LegacyAsset::relativePath),
         )
