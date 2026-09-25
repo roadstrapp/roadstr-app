@@ -22,7 +22,16 @@ import '../models/activity_notification.dart';
 import '../config/network_config.dart';
 import '../models/road_event.dart';
 import 'nostr_event_verify.dart';
+import 'nostr_protocol_codec.dart';
 import 'zap_service.dart';
+
+Event _nostrToolsEvent(NostrEventDraft draft) => Event(
+      pubkey: draft.pubkey,
+      created_at: draft.createdAt,
+      kind: draft.kind,
+      tags: draft.tags.map((tag) => tag.toList()).toList(),
+      content: draft.content,
+    );
 
 // ── Nostr profile (kind 0) ────────────────────────────────────────────────────
 
@@ -545,28 +554,18 @@ class NostrRelayService {
     _validatePublishInput(position, comment, pubKeyHex);
     final now = _nowS();
     final expires = now + category.ttlSeconds;
+    final draft = RoadstrNostrEvents.report(
+      pubkey: pubKeyHex,
+      createdAt: now,
+      latitude: position.latitude,
+      longitude: position.longitude,
+      category: category.nostrKey,
+      expiresAt: expires,
+      content: comment,
+      speedLimit: speedLimit,
+    );
     final signed = _eventApi.finishEvent(
-      Event(
-        pubkey: pubKeyHex,
-        created_at: now,
-        kind: 1315,
-        tags: [
-          // Six decimals ≈ 11 cm. GPS is accurate to metres, so the seventh
-          // digit was noise — published, alongside a pubkey and a timestamp,
-          // on an event anyone can read. Not five: the Amber path re-parses
-          // these tags and rejects the event if the position moved more than
-          // a metre, and five decimals can round by 0.78 m.
-          ['lat', position.latitude.toStringAsFixed(6)],
-          ['lon', position.longitude.toStringAsFixed(6)],
-          ['g', _gh(position.latitude, position.longitude, 4)],
-          ['g', _gh(position.latitude, position.longitude, 5)],
-          ['g', _gh(position.latitude, position.longitude, 6)],
-          ['t', category.nostrKey],
-          ['expiration', '$expires'],
-          if (speedLimit != null) ['maxspeed', '$speedLimit'],
-        ],
-        content: comment,
-      ),
+      _nostrToolsEvent(draft),
       privKeyHex,
     );
     if (!verifyEventJson(signed.toJson())) {
@@ -610,19 +609,13 @@ class NostrRelayService {
     if (!_isHex32(eventId) || !_isHex32(pubKeyHex)) {
       throw const FormatException('Invalid Nostr confirmation fields');
     }
-    final signed = _eventApi.finishEvent(
-      Event(
-        pubkey: pubKeyHex,
-        created_at: _nowS(),
-        kind: 1316,
-        tags: [
-          ['e', eventId],
-          ['status', stillThere ? 'still_there' : 'no_longer_there'],
-        ],
-        content: '',
-      ),
-      privKeyHex,
+    final draft = RoadstrNostrEvents.vote(
+      pubkey: pubKeyHex,
+      createdAt: _nowS(),
+      eventId: eventId,
+      stillThere: stillThere,
     );
+    final signed = _eventApi.finishEvent(_nostrToolsEvent(draft), privKeyHex);
     if (!verifyEventJson(signed.toJson())) {
       throw const FormatException('The local Nostr key pair does not match');
     }
@@ -642,17 +635,13 @@ class NostrRelayService {
       throw const FormatException('Invalid Nostr public key');
     }
     final now = _nowS();
+    final draft = RoadstrNostrEvents.profileVisibility(
+      pubkey: pubKeyHex,
+      createdAt: now,
+      isPublic: isPublic,
+    );
     final signed = _eventApi.finishEvent(
-      Event(
-        pubkey: pubKeyHex,
-        created_at: now,
-        kind: 30078,
-        tags: [
-          ['d', 'roadstr-profile-visibility'],
-          ['client', 'roadstr'],
-        ],
-        content: jsonEncode({'public': isPublic}),
-      ),
+      _nostrToolsEvent(draft),
       privKeyHex,
     );
     if (!verifyEventJson(signed.toJson())) {
@@ -667,18 +656,11 @@ class NostrRelayService {
     required bool isPublic,
     int? now,
   }) {
-    final event = Event(
+    return RoadstrNostrEvents.profileVisibility(
       pubkey: pubKeyHex,
-      created_at: now ?? _nowS(),
-      kind: 30078,
-      tags: [
-        ['d', 'roadstr-profile-visibility'],
-        ['client', 'roadstr'],
-      ],
-      content: jsonEncode({'public': isPublic}),
-    );
-    event.id = EventApi().getEventHash(event);
-    return event.toJson();
+      createdAt: now ?? _nowS(),
+      isPublic: isPublic,
+    ).toJson();
   }
 
   void dispose() {
@@ -777,7 +759,7 @@ class NostrRelayService {
     final id = eventJson['id'] as String;
     final primaryAck = Completer<bool>();
     _publishAcks[id] = primaryAck;
-    _send(['EVENT', eventJson]);
+    _send(NostrRelayWire.publish(eventJson));
 
     final attempts = <Future<bool>>[
       primaryAck.future.timeout(
@@ -846,37 +828,30 @@ class NostrRelayService {
   /// Sends a NIP-01 REQ for kind-1315 events tagged with [geohashes].
   /// Closes any previous events subscription first to avoid duplicate messages.
   void _sendEventsReq(List<String> geohashes) {
-    if (_eventsSubId.isNotEmpty) _send(['CLOSE', _eventsSubId]);
+    if (_eventsSubId.isNotEmpty) {
+      _send(NostrRelayWire.close(_eventsSubId));
+    }
     _eventsSubId = randomSubId();
-    _send([
-      'REQ',
-      _eventsSubId,
-      {
-        'kinds': [1315, 1317, 1318],
-        '#g': geohashes,
-        // Speed-camera reports have the longest category TTL (30 days).
-        'since': _nowS() - 30 * 86400,
-        'limit': 500,
-      }
-    ]);
+    _send(NostrRelayWire.areaRequest(
+      subscriptionId: _eventsSubId,
+      geohashes: geohashes,
+      now: _nowS(),
+    ));
   }
 
   /// Sends a NIP-01 REQ for kind-1316 confirmation/denial events that reference
   /// the given [ids]. Called after EOSE for the events subscription.
   void _sendConfReq(List<String> ids) {
     if (ids.isEmpty) return;
-    if (_confSubId.isNotEmpty) _send(['CLOSE', _confSubId]);
+    if (_confSubId.isNotEmpty) {
+      _send(NostrRelayWire.close(_confSubId));
+    }
     _confSubId = randomSubId();
-    _send([
-      'REQ',
-      _confSubId,
-      {
-        'kinds': [1316],
-        '#e': ids,
-        'since': _nowS() - 30 * 86400,
-        'limit': 1000,
-      }
-    ]);
+    _send(NostrRelayWire.confirmationRequest(
+      subscriptionId: _confSubId,
+      eventIds: ids,
+      now: _nowS(),
+    ));
   }
 
   /// Dispatches incoming NIP-01 relay messages to the appropriate handler.
@@ -1211,51 +1186,14 @@ class NostrRelayService {
 
   // ── Geohash encoder (pure Dart, no external dependencies) ───────────────
 
-  /// Base-32 alphabet used by the geohash standard (Niemeyer, 2008).
-  static const _gh32 = '0123456789bcdefghjkmnpqrstuvwxyz';
-
   /// Encodes [lat]/[lon] to a geohash string of [precision] characters.
   ///
   /// Algorithm: interleave longitude bits (even positions) and latitude bits
   /// (odd positions), then encode each group of 5 bits as a base-32 character.
   /// A precision-4 hash covers ~40 × 20 km; precision-5 covers ~5 × 5 km;
   /// precision-6 covers ~1.2 × 0.6 km.
-  static String _gh(double lat, double lon, int precision) {
-    var minLat = -90.0, maxLat = 90.0;
-    var minLon = -180.0, maxLon = 180.0;
-    // Start with longitude (even bit index = 0, 2, 4 …)
-    var isLon = true, bits = 0, count = 0;
-    final buf = StringBuffer();
-    while (buf.length < precision) {
-      if (isLon) {
-        final mid = (minLon + maxLon) / 2;
-        if (lon >= mid) {
-          bits = (bits << 1) | 1;
-          minLon = mid;
-        } else {
-          bits = bits << 1;
-          maxLon = mid;
-        }
-      } else {
-        final mid = (minLat + maxLat) / 2;
-        if (lat >= mid) {
-          bits = (bits << 1) | 1;
-          minLat = mid;
-        } else {
-          bits = bits << 1;
-          maxLat = mid;
-        }
-      }
-      isLon = !isLon;
-      // Every 5 bits form one base-32 character.
-      if (++count == 5) {
-        buf.write(_gh32[bits]);
-        bits = 0;
-        count = 0;
-      }
-    }
-    return buf.toString();
-  }
+  static String _gh(double lat, double lon, int precision) =>
+      roadstrGeohash(lat, lon, precision);
 
   static int _nowS() => DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
@@ -1270,27 +1208,17 @@ class NostrRelayService {
     required int now,
     required int expires,
     int? speedLimit,
-  }) {
-    final event = Event(
-      pubkey: pubKeyHex,
-      created_at: now,
-      kind: 1315,
-      tags: [
-        // Six decimals — see the note on the nsec path above.
-        ['lat', position.latitude.toStringAsFixed(6)],
-        ['lon', position.longitude.toStringAsFixed(6)],
-        ['g', _gh(position.latitude, position.longitude, 4)],
-        ['g', _gh(position.latitude, position.longitude, 5)],
-        ['g', _gh(position.latitude, position.longitude, 6)],
-        ['t', category.nostrKey],
-        ['expiration', '$expires'],
-        if (speedLimit != null) ['maxspeed', '$speedLimit'],
-      ],
-      content: comment,
-    );
-    event.id = EventApi().getEventHash(event);
-    return event.toJson();
-  }
+  }) =>
+      RoadstrNostrEvents.report(
+        pubkey: pubKeyHex,
+        createdAt: now,
+        latitude: position.latitude,
+        longitude: position.longitude,
+        category: category.nostrKey,
+        expiresAt: expires,
+        content: comment,
+        speedLimit: speedLimit,
+      ).toJson();
 
   /// Builds an unsigned kind-1316 confirmation/denial map for external signing.
   /// The `status` tag carries either `"still_there"` or `"no_longer_there"`.
@@ -1298,20 +1226,14 @@ class NostrRelayService {
     required String eventId,
     required bool stillThere,
     required String pubKeyHex,
-  }) {
-    final event = Event(
-      pubkey: pubKeyHex,
-      created_at: _nowS(),
-      kind: 1316,
-      tags: [
-        ['e', eventId],
-        ['status', stillThere ? 'still_there' : 'no_longer_there'],
-      ],
-      content: '',
-    );
-    event.id = EventApi().getEventHash(event);
-    return event.toJson();
-  }
+    int? now,
+  }) =>
+      RoadstrNostrEvents.vote(
+        pubkey: pubKeyHex,
+        createdAt: now ?? _nowS(),
+        eventId: eventId,
+        stillThere: stillThere,
+      ).toJson();
 
   static Map<String, dynamic> buildKind1317Map({
     required String eventId,
@@ -1320,28 +1242,18 @@ class NostrRelayService {
     required LatLng position,
     required String comment,
     String? requestId,
-  }) {
-    if (speedLimit < 5 || speedLimit > 300) {
-      throw const FormatException('Invalid speed limit');
-    }
-    final event = Event(
-      pubkey: ownerPubKeyHex,
-      created_at: _nowS(),
-      kind: 1317,
-      tags: [
-        ['e', eventId],
-        ['p', ownerPubKeyHex],
-        ['g', _gh(position.latitude, position.longitude, 4)],
-        ['g', _gh(position.latitude, position.longitude, 5)],
-        ['g', _gh(position.latitude, position.longitude, 6)],
-        ['maxspeed', '$speedLimit'],
-        if (requestId != null) ['request', requestId],
-      ],
-      content: comment,
-    );
-    event.id = EventApi().getEventHash(event);
-    return event.toJson();
-  }
+    int? now,
+  }) =>
+      RoadstrNostrEvents.update(
+        ownerPubkey: ownerPubKeyHex,
+        createdAt: now ?? _nowS(),
+        eventId: eventId,
+        speedLimit: speedLimit,
+        latitude: position.latitude,
+        longitude: position.longitude,
+        content: comment,
+        requestId: requestId,
+      ).toJson();
 
   static Map<String, dynamic> buildKind1318Map({
     required String eventId,
@@ -1349,27 +1261,17 @@ class NostrRelayService {
     required String ownerPubKeyHex,
     required int speedLimit,
     required LatLng position,
-  }) {
-    if (speedLimit < 5 || speedLimit > 300) {
-      throw const FormatException('Invalid speed limit');
-    }
-    final event = Event(
-      pubkey: requesterPubKeyHex,
-      created_at: _nowS(),
-      kind: 1318,
-      tags: [
-        ['e', eventId],
-        ['p', ownerPubKeyHex],
-        ['g', _gh(position.latitude, position.longitude, 4)],
-        ['g', _gh(position.latitude, position.longitude, 5)],
-        ['g', _gh(position.latitude, position.longitude, 6)],
-        ['maxspeed', '$speedLimit'],
-      ],
-      content: '',
-    );
-    event.id = EventApi().getEventHash(event);
-    return event.toJson();
-  }
+    int? now,
+  }) =>
+      RoadstrNostrEvents.editRequest(
+        requesterPubkey: requesterPubKeyHex,
+        ownerPubkey: ownerPubKeyHex,
+        createdAt: now ?? _nowS(),
+        eventId: eventId,
+        speedLimit: speedLimit,
+        latitude: position.latitude,
+        longitude: position.longitude,
+      ).toJson();
 
   Future<void> publishRoadEventUpdate({
     required String privKeyHex,
@@ -1381,22 +1283,18 @@ class NostrRelayService {
     String? requestId,
   }) async {
     _requireConnected();
+    final draft = RoadstrNostrEvents.update(
+      ownerPubkey: ownerPubKeyHex,
+      createdAt: _nowS(),
+      eventId: eventId,
+      speedLimit: speedLimit,
+      latitude: position.latitude,
+      longitude: position.longitude,
+      content: comment,
+      requestId: requestId,
+    );
     final signed = _eventApi.finishEvent(
-      Event(
-        pubkey: ownerPubKeyHex,
-        created_at: _nowS(),
-        kind: 1317,
-        tags: [
-          ['e', eventId],
-          ['p', ownerPubKeyHex],
-          ['g', _gh(position.latitude, position.longitude, 4)],
-          ['g', _gh(position.latitude, position.longitude, 5)],
-          ['g', _gh(position.latitude, position.longitude, 6)],
-          ['maxspeed', '$speedLimit'],
-          if (requestId != null) ['request', requestId],
-        ],
-        content: comment,
-      ),
+      _nostrToolsEvent(draft),
       privKeyHex,
     );
     if (!verifyEventJson(signed.toJson()) || signed.pubkey != ownerPubKeyHex) {
@@ -1414,21 +1312,17 @@ class NostrRelayService {
     required int speedLimit,
   }) async {
     _requireConnected();
+    final draft = RoadstrNostrEvents.editRequest(
+      requesterPubkey: requesterPubKeyHex,
+      ownerPubkey: ownerPubKeyHex,
+      createdAt: _nowS(),
+      eventId: eventId,
+      speedLimit: speedLimit,
+      latitude: position.latitude,
+      longitude: position.longitude,
+    );
     final signed = _eventApi.finishEvent(
-      Event(
-        pubkey: requesterPubKeyHex,
-        created_at: _nowS(),
-        kind: 1318,
-        tags: [
-          ['e', eventId],
-          ['p', ownerPubKeyHex],
-          ['g', _gh(position.latitude, position.longitude, 4)],
-          ['g', _gh(position.latitude, position.longitude, 5)],
-          ['g', _gh(position.latitude, position.longitude, 6)],
-          ['maxspeed', '$speedLimit'],
-        ],
-        content: '',
-      ),
+      _nostrToolsEvent(draft),
       privKeyHex,
     );
     if (!verifyEventJson(signed.toJson())) {

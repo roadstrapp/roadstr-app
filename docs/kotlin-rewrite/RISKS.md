@@ -7,7 +7,7 @@
 | R-03 | `flutter_secure_storage` has multiple historical Android formats | Critical | High | Candidate uses the exact plugin with backup-protected migration; test v10.3.1 plus supported older 0.5.x signed fixtures | Open (adapter isolated) |
 | R-04 | A failed migration creates a blank identity/profile | Critical | Medium | Fail closed, retain legacy files, compare derived pubkey, show recovery UI | Design gate |
 | R-05 | Version code or signing mismatch blocks normal Android update | Critical | Medium | Exact identity checks, higher code than 2050, signed APK upgrade test | Open |
-| R-06 | Nostr event bytes/tags change during port | Critical | Medium | Export deterministic golden fixtures and compare IDs, tags, signatures and payloads | Not started |
+| R-06 | Nostr event bytes/tags change during port | Critical | Medium | Shared Dart/Kotlin fixture now locks canonical JSON, IDs, all Roadstr 1315 categories, 1316-1318 and profile visibility; native signature vectors remain required | In progress (deterministic core green) |
 | R-07 | Legacy raster map setting is silently removed | High | Medium | Keep the setting and implement equivalent raster behavior through native MapLibre or transitional path | Not started |
 | R-08 | Map/navigation lifecycle regresses on rotation/background/process death | High | Medium | Service/ViewModel ownership, lifecycle tests and manual navigation sessions | Not started |
 | R-09 | GPS battery behavior regresses on de-Googled devices | High | Medium | Port existing LocationManager/watchdog policy and benchmark against Flutter | Not started |
@@ -17,7 +17,7 @@
 | R-13 | 27 localization sets lose keys/placeholders/fallback behavior | High | Medium | Key-coverage and placeholder comparison before UI completion | Not started |
 | R-14 | Amber/NIP-55 signing semantics change | High | Medium | Intent fixtures/manual signer tests; never copy private keys for Amber | Not started |
 | R-15 | Native release build cannot be reproduced offline/F-Droid-style | High | Medium | Pin dependencies, retain eSpeak reproducibility and build in clean environment | Not started |
-| R-16 | Protocol/network limits are approximated instead of ported | High | Medium | Port bounded HTTP/relay policies from source with fixture and adversarial tests | Not started |
+| R-16 | Protocol/network limits are approximated instead of ported | High | Medium | Area/confirmation REQ and EVENT/CLOSE bytes are fixture-locked; port bounded inbound parsing and remaining network policy from source | In progress (outbound core green) |
 | R-17 | Physical-device upgrade path is untested | Critical | High | Manual signed-APK checklist owned by user; no release candidate without evidence | Open |
 | R-18 | Parallel Flutter/main changes expand parity gap | Medium | Medium | Periodically audit main, update matrix intentionally, never silently drop features | Process |
 | R-19 | Default Dart `AndroidOptions` sets `resetOnError=true`, allowing a read/decrypt error to erase protected values | Critical | Medium | Bridge explicitly sets false; prove historical reads and address current startup in a separate reviewed change | Open blocker |

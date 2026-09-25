@@ -58,6 +58,10 @@ The first native increment is intentionally isolated from production startup:
   implement the versioned one-shot hand-off without startup wiring. Only
   `path_provider` and `flutter_secure_storage` are app-registered in that
   engine.
+- A production-used Dart Nostr codec and dependency-free Kotlin counterpart now
+  match a shared fixture for canonical JSON/IDs, Roadstr kinds 1315-1318,
+  profile visibility and core outbound relay frames. Signing and sockets remain
+  deliberately unwired.
 - The Kotlin suite remains independent of Android UI/runtime state; the exact
   current count is recorded in `CORE_PARITY.md` after each full run.
 - `docs/kotlin-rewrite/MIGRATION_IMPLEMENTATION.md` records what is and is not
@@ -159,7 +163,7 @@ broader cross-language coverage and a native store are still required.
 - **Acceptance criteria:** No unapproved fixture difference; all relevant Flutter tests have native equivalents.
 - **Rollback notes:** Keep calls routed to Dart/reference until native implementation is verified.
 
-### KOTLIN-006 — Port Nostr protocol and publish queues
+### KOTLIN-006 — Port Nostr protocol and publish queues (IN PROGRESS)
 
 - **Objective:** Preserve event IDs, tags, signatures, relay behavior, TTL and offline semantics.
 - **Current Dart/Flutter source:** `lib/services/nostr_relay_service.dart`, `nostr_event_verify.dart`, `nip44.dart`, `road_event.dart`.
@@ -168,7 +172,9 @@ broader cross-language coverage and a native store are still required.
 - **Migration impact:** Pending reports, cursors and activity inbox must survive.
 - **User-visible impact:** Same reports, confirmations, corrections, inbox and offline retry.
 - **Tests:** Golden event vectors, relay parser fuzz/bounds, queue crash/retry and signature verification tests.
-- **Parity evidence:** Cross-language event JSON/ID/tag comparison and relay transcript fixtures.
+- **Parity evidence:** `nostr_protocol_v1.tsv` now provides cross-language
+  event JSON/ID/tag comparison and initial outbound relay frames; native
+  signatures, inbound transcripts and queue behavior remain open.
 - **Security/privacy impact:** Preserve key isolation, verification-before-trust and inbound DoS limits.
 - **Battery/performance impact:** Compare reconnect, socket and event-processing wakeups.
 - **Acceptance criteria:** All shipped Nostr kinds and filters are byte/semantic compatible.
