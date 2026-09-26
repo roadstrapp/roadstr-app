@@ -15,7 +15,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:bech32/bech32.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:nostr_tools/nostr_tools.dart';
@@ -24,33 +23,10 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'bolt11_invoice.dart';
 import 'lightning_protocol.dart';
+import 'lnurl_protocol.dart';
 import 'nostr_event_verify.dart';
 import 'nostr_relay_ingress.dart';
 import 'nostr_relay_message.dart';
-
-// ── Models ────────────────────────────────────────────────────────────────────
-
-/// Holds the metadata returned by a LNURL-pay endpoint (`/.well-known/lnurlp`).
-/// All amounts are in **millisatoshi** as per the LNURL-pay spec.
-class LnurlPayInfo {
-  final String callback;
-  final int minSendable; // millisatoshi
-  final int maxSendable;
-  final String metadata;
-  final String? nostrPubkey;
-
-  /// True when the LNURL server supports NIP-57 zap requests — i.e. it will
-  /// forward the `nostr` query-parameter (kind-9734 JSON) to the Nostr network.
-  final bool allowsNostr;
-  const LnurlPayInfo({
-    required this.callback,
-    required this.minSendable,
-    required this.maxSendable,
-    required this.metadata,
-    required this.nostrPubkey,
-    required this.allowsNostr,
-  });
-}
 
 // ── ZapService ────────────────────────────────────────────────────────────────
 
@@ -218,58 +194,14 @@ class ZapService {
   /// Returns `null` if the server is unreachable or returns an error status.
   static Future<LnurlPayInfo?> fetchLnurlPayInfo(String lud16) async {
     try {
-      Uri metadataUri;
-      if (lud16.toLowerCase().startsWith('lnurl1')) {
-        final decoded = _decodeLnurl(lud16);
-        if (decoded == null) return null;
-        metadataUri = decoded;
-      } else {
-        final address = lud16.trim();
-        if (address.length > 254) return null;
-        final parts = address.split('@');
-        if (parts.length != 2) return null;
-        final user = parts[0].trim();
-        final domain = parts[1].trim();
-        if (user.isEmpty || domain.isEmpty || user.contains('/')) return null;
-        metadataUri = Uri(
-          scheme: 'https',
-          host: domain,
-          pathSegments: ['.well-known', 'lnurlp', user],
-        );
-      }
-      if (!_isSafeHttpsUri(metadataUri)) return null;
+      final metadataUri = LnurlProtocol.resolveMetadataUri(lud16);
+      if (metadataUri == null) return null;
       final data = await _boundedJsonGet(
         metadataUri,
         timeout: const Duration(seconds: 6),
       );
       if (data == null) return null;
-      if (data['status'] == 'ERROR') return null;
-      final callback = Uri.tryParse(data['callback'] as String? ?? '');
-      final min = (data['minSendable'] as num?)?.toInt();
-      final max = (data['maxSendable'] as num?)?.toInt();
-      final metadata = data['metadata'] as String?;
-      final allowsNostr = data['allowsNostr'] == true;
-      final nostrPubkey = data['nostrPubkey'] as String?;
-      if (callback == null ||
-          !_isSafeHttpsUri(callback) ||
-          min == null ||
-          max == null ||
-          metadata == null ||
-          metadata.length > 65536 ||
-          !_isValidLnurlMetadata(metadata) ||
-          (allowsNostr && (nostrPubkey == null || !_isHex32(nostrPubkey))) ||
-          min <= 0 ||
-          max < min) {
-        return null;
-      }
-      return LnurlPayInfo(
-        callback: callback.toString(),
-        minSendable: min,
-        maxSendable: max,
-        metadata: metadata,
-        nostrPubkey: allowsNostr ? nostrPubkey!.toLowerCase() : null,
-        allowsNostr: allowsNostr,
-      );
+      return LnurlProtocol.parsePayInfo(data);
     } catch (_) {
       return null;
     }
@@ -347,38 +279,23 @@ class ZapService {
     Map<String, dynamic>? zapRequest,
   }) async {
     try {
-      if (amountMsat < payInfo.minSendable ||
-          amountMsat > payInfo.maxSendable) {
-        return null;
-      }
-      final callback = Uri.tryParse(payInfo.callback);
-      if (callback == null || !_isSafeHttpsUri(callback)) return null;
-      final query = <String, String>{
-        ...callback.queryParameters,
-        'amount': amountMsat.toString(),
-      };
-      if (zapRequest != null && payInfo.allowsNostr) {
-        query['nostr'] = jsonEncode(zapRequest);
-      }
+      final request = LnurlProtocol.buildInvoiceRequest(
+        payInfo: payInfo,
+        amountMsat: amountMsat,
+        zapRequest: zapRequest,
+      );
+      if (request == null) return null;
       final data = await _boundedJsonGet(
-        callback.replace(queryParameters: query),
+        request.uri,
         timeout: const Duration(seconds: 10),
       );
       if (data == null) return null;
-      if (data['status'] == 'ERROR') return null;
-      final invoice = data['pr'] as String?;
-      if (invoice == null) return null;
-      final decoded = Bolt11Invoice.tryParse(invoice);
-      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      if (decoded == null ||
-          decoded.amountMsat != amountMsat ||
-          decoded.isExpiredAt(now) ||
-          !decoded.descriptionMatches(
-            query['nostr'] ?? payInfo.metadata,
-          )) {
-        return null;
-      }
-      return invoice;
+      return LnurlProtocol.validateInvoiceResponse(
+        data: data,
+        request: request,
+        amountMsat: amountMsat,
+        nowUnixSeconds: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      );
     } catch (_) {
       return null;
     }
@@ -721,28 +638,6 @@ class ZapService {
     return info?.allowsNostr == true ? info!.nostrPubkey : null;
   }
 
-  static bool _isSafeHttpsUri(Uri uri) {
-    if (uri.scheme != 'https' || uri.host.isEmpty || uri.userInfo.isNotEmpty) {
-      return false;
-    }
-    final host = uri.host.toLowerCase();
-    if (host == 'localhost' || host.endsWith('.localhost')) return false;
-    final ip = RegExp(r'^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$')
-        .firstMatch(host);
-    if (ip != null) {
-      final octets = [for (var i = 1; i <= 4; i++) int.parse(ip.group(i)!)];
-      if (octets.any((v) => v > 255) ||
-          octets[0] == 10 ||
-          octets[0] == 127 ||
-          (octets[0] == 169 && octets[1] == 254) ||
-          (octets[0] == 172 && octets[1] >= 16 && octets[1] <= 31) ||
-          (octets[0] == 192 && octets[1] == 168)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   static Future<Map<String, dynamic>?> _boundedJsonGet(
     Uri uri, {
     required Duration timeout,
@@ -786,7 +681,7 @@ class ZapService {
   }
 
   static Future<bool> _isSafeHttpsTarget(Uri uri) async {
-    if (!_isSafeHttpsUri(uri)) return false;
+    if (!LnurlProtocol.isSafeHttpsUri(uri)) return false;
     try {
       final addresses = await InternetAddress.lookup(uri.host)
           .timeout(const Duration(seconds: 4));
@@ -844,35 +739,5 @@ class ZapService {
         (b[0] == 192 && b[1] == 168) ||
         (b[0] == 198 && (b[1] == 18 || b[1] == 19)) ||
         b[0] >= 224);
-  }
-
-  static bool _isValidLnurlMetadata(String raw) {
-    try {
-      final decoded = jsonDecode(raw);
-      if (decoded is! List || decoded.isEmpty || decoded.length > 100) {
-        return false;
-      }
-      return decoded.every((item) =>
-          item is List &&
-          item.length == 2 &&
-          item[0] is String &&
-          item[1] is String);
-    } catch (_) {
-      return false;
-    }
-  }
-
-  static Uri? _decodeLnurl(String encoded) {
-    try {
-      final decoded =
-          const Bech32Codec().decode(encoded.toLowerCase(), encoded.length);
-      if (decoded.hrp != 'lnurl') return null;
-      final bytes = Bolt11Invoice.convertFiveBitWords(decoded.data);
-      if (bytes == null || bytes.length > 2048) return null;
-      final uri = Uri.tryParse(utf8.decode(bytes));
-      return uri != null && _isSafeHttpsUri(uri) ? uri : null;
-    } catch (_) {
-      return null;
-    }
   }
 }

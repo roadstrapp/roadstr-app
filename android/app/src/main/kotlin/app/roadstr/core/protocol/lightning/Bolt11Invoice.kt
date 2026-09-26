@@ -189,10 +189,10 @@ class Bolt11Invoice private constructor(
     }
 }
 
-private data class DecodedBech32(val humanReadablePart: String, val data: List<Int>)
+internal data class DecodedBech32(val humanReadablePart: String, val data: List<Int>)
 
 /** Original Bech32 checksum variant required by BOLT-11 (not Bech32m). */
-private object Bech32 {
+internal object Bech32 {
     private const val CHECKSUM_LENGTH = 6
     private const val CHECKSUM_CONSTANT = 1
     private const val CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
