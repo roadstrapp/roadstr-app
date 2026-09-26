@@ -76,6 +76,10 @@ The first native increment is intentionally isolated from production startup:
   72 shared cases. A pinned, vetted Kotlin NIP-44 core separately matches 77
   official/hostile shared cases; signing, key isolation, persistence and
   sockets remain unwired.
+- The production NWC path now delegates legacy NIP-04 ECDH/AES-CBC to a
+  bounded Dart boundary compatible with `nostr_tools 1.0.9`. Kotlin matches 64
+  shared valid/hostile cases using the same pinned Bouncy Castle dependency;
+  encryption negotiation, signing, secret storage and sockets remain unwired.
 - The Kotlin suite remains independent of Android UI/runtime state; the exact
   current count is recorded in `CORE_PARITY.md` after each full run.
 - `docs/kotlin-rewrite/MIGRATION_IMPLEMENTATION.md` records what is and is not
@@ -182,10 +186,12 @@ broader cross-language coverage and a native store are still required.
 
 - **Objective:** Preserve event IDs, tags, signatures, relay behavior, TTL and offline semantics.
 - **Current Dart/Flutter source:** `lib/services/nostr_relay_service.dart`,
-  `nostr_event_verify.dart`, `nostr_nip19.dart`, `nip44.dart`, `road_event.dart`.
+  `nostr_event_verify.dart`, `nostr_nip19.dart`, `nip04.dart`, `nip44.dart`,
+  `road_event.dart`.
 - **New Kotlin files/modules:** deterministic event and queue policy under
   `core/protocol/nostr`; future crypto/socket adapters under `service/nostr`.
-- **Dependencies:** Pinned Bouncy Castle lightweight primitives for NIP-44;
+- **Dependencies:** Pinned Bouncy Castle lightweight primitives for NIP-04 and
+  NIP-44;
   future OkHttp WebSocket or equivalent FOSS library.
 - **Migration impact:** Pending reports, cursors and activity inbox must survive.
 - **User-visible impact:** Same reports, confirmations, corrections, inbox and offline retry.
@@ -202,7 +208,9 @@ broader cross-language coverage and a native store are still required.
   `favorites_sync_protocol_v1.tsv` provides 72 NIP-78 payload, privacy,
   timestamp, draft/filter, admission, selection and rollback cases;
   `nip44_v2_v1.tsv` provides 77 official/hostile ECDH, HKDF, payload, padding,
-  maximum-size and rejection cases. Native signatures/general key derivation,
+  maximum-size and rejection cases; `nip04_v1.tsv` provides 64 legacy NWC
+  ECDH/AES-CBC/Base64/size/rejection cases cross-checked with `nostr_tools`.
+  Native signatures/general key derivation, NIP-47 encryption negotiation,
   NIP-44 service dispatch, Amber intents, WebSocket lifecycle, persistence
   adapters, process-death behavior and an approved queue cap remain open.
 - **Security/privacy impact:** Preserve key isolation, verification-before-trust and inbound DoS limits.
@@ -274,8 +282,9 @@ broader cross-language coverage and a native store are still required.
 - **Parity evidence:** BOLT-11 vectors plus `lightning_protocol_v1.tsv` with
   69 NWC URI/command/wire/response and NIP-57 draft/receipt cases, plus
   `lnurl_protocol_v1.tsv` with 77 source/metadata/callback/invoice cases;
-  NIP-04 ciphertext, native DNS/HTTP, signatures and live-wallet transcripts
-  remain open.
+  `nip04_v1.tsv` adds 64 legacy ECDH/AES-CBC/hostile cases. NIP-47 encryption
+  negotiation, native DNS/HTTP, signatures/key isolation and live-wallet
+  transcripts remain open.
 - **Security/privacy impact:** Amber never receives a private key from Roadstr; NWC secret stays Keystore-backed.
 - **Battery/performance impact:** No persistent relay/socket owned by a Composable; bounded payment flow.
 - **Acceptance criteria:** nsec and Amber users remain configured and can perform the same operations.

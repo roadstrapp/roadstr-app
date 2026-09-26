@@ -24,6 +24,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'bolt11_invoice.dart';
 import 'lightning_protocol.dart';
 import 'lnurl_protocol.dart';
+import 'nip04.dart';
 import 'nostr_event_verify.dart';
 import 'nostr_relay_ingress.dart';
 import 'nostr_relay_message.dart';
@@ -353,7 +354,6 @@ class ZapService {
     try {
       // Step 2: Derive the ephemeral public key used as the sender identity.
       final ourPub = KeyApi().getPublicKey(secret);
-      final nip04 = Nip04();
       final api = EventApi();
       ws = WebSocketChannel.connect(relayUri);
       // A relay that refuses the upgrade (damus answers 503 under load)
@@ -392,8 +392,11 @@ class ZapService {
                     clientPubkey: ourPub,
                   ) &&
                   verifyEventJson(ev)) {
-                final plain =
-                    nip04.decrypt(secret, walletPub, ev['content'] as String);
+                final plain = Nip04Cipher.decrypt(
+                  secret,
+                  walletPub,
+                  ev['content'] as String,
+                );
                 final resp = jsonDecode(plain) as Map<String, dynamic>;
                 final response = NwcProtocol.inspectResponse(
                   resp,
@@ -416,7 +419,7 @@ class ZapService {
 
       // Step 3+4: Encrypt the pay_invoice command and publish as kind-23194.
       final reqContent = NwcProtocol.payInvoiceCommand(invoice);
-      final encrypted = nip04.encrypt(secret, walletPub, reqContent);
+      final encrypted = Nip04Cipher.encrypt(secret, walletPub, reqContent);
       final requestDraft = NwcProtocol.requestDraft(
         clientPubkey: ourPub,
         createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,

@@ -91,7 +91,8 @@ work, and the NIP-78 caller and wire payload are unchanged.
 - connecting `Nip44V2` to a native identity/key-isolation service;
 - Amber/NIP-55 encryption intents and signer permission behavior;
 - NIP-78 storage, passphrase encryption, relay sockets and signed events;
-- NIP-04 for existing wallet compatibility and NIP-47 negotiation;
+- NIP-47 encryption negotiation and native payment wiring; legacy NIP-04 is
+  now separately fixture-locked in `NIP04_CORE_PARITY.md`;
 - Android-device interoperability, heap/timing measurements and a clean
   minified release/F-Droid dependency audit.
 
@@ -103,7 +104,7 @@ Flutter implementation and stored ciphertext unchanged.
 
 - the 77-row fixture is current under `--check`;
 - `flutter analyze` reports no issues;
-- all 574 Flutter tests and all 97 Kotlin tests pass;
+- all 582 Flutter tests and all 99 Kotlin tests pass;
 - the debug Android APK passes D8, duplicate-class checks and packaging;
 - Gradle dependency insight resolves only the direct pinned
   `bcprov-jdk18on:1.86` artifact.

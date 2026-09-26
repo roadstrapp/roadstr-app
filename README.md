@@ -134,6 +134,7 @@ lib/
 │   ├── navigation_guidance.dart       # When to speak, and at what distance
 │   ├── navigation_notification_service.dart # Android turn-by-turn notification
 │   ├── nav_phrases.dart               # Manoeuvre wording per language
+│   ├── nip04.dart                     # Legacy NWC encryption (ECDH + AES-256-CBC)
 │   ├── nip44.dart                     # NIP-44 v2 encryption (ECDH + ChaCha20 + HMAC)
 │   ├── nostr_event_verify.dart        # Signature verification for incoming events
 │   ├── nostr_relay_service.dart       # WebSocket relay, geohash area subscriptions
