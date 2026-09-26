@@ -16,7 +16,7 @@ service or UI cutover.
 | `core.network` | `retry.dart`, `refetch_policy.dart` | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
 | `core.protocol.lightning` | `bolt11_invoice.dart` | Bech32 checksum, network/amount, tags, expiry and SHA-256 bindings |
-| `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_relay_service.dart` | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash and core outbound frames |
+| `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_pending_report_queue.dart`, `nostr_relay_service.dart` | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash, core outbound frames and offline FIFO/TTL/retry policy |
 
 ## Shared vectors
 
@@ -35,6 +35,10 @@ production-used Dart codec, cross-checked against `nostr_tools`, and consumed by
 the Kotlin Nostr suite. See `NOSTR_CORE_PARITY.md` for its exact scope and the
 remaining signing/network gates.
 
+`nostr_pending_queue_v1.tsv` is the third shared core fixture. It locks exact
+signed-entry storage JSON and six deterministic queue transcripts across Dart
+and Kotlin, including expiration boundaries and ordered retry retention.
+
 ## Current limits
 
 - No class in this phase is called by production startup or UI.
@@ -48,12 +52,16 @@ remaining signing/network gates.
   synthetic encrypted Hive source fixture and shared envelope, while
   installed-app secure-storage/Keystore evidence is still required before its
   gate can close.
+- The Kotlin queue policy is not wired to a native store or socket. The current
+  Flutter queue is unbounded and does not serialize concurrent flush calls;
+  changing either behavior requires an explicit, fixture-backed decision.
 
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 550 tests passed, including the Nostr/`nostr_tools`
-  cross-check, both migration fixture oracles and the headless Dart handler.
-- `./gradlew :app:testDebugUnitTest`: 74 Kotlin tests passed, including the
-  Nostr byte-parity suite and bounded headless transport reader matrix.
+- `flutter test`: 556 tests passed, including the Nostr/`nostr_tools`
+  cross-check, pending-queue transcripts, both migration fixture oracles and
+  the headless Dart handler.
+- `./gradlew :app:testDebugUnitTest`: 81 Kotlin tests passed, including the
+  Nostr byte/queue-parity suites and bounded headless transport reader matrix.
 - No production Activity, manifest or startup wiring changed.

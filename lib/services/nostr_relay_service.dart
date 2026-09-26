@@ -22,6 +22,7 @@ import '../models/activity_notification.dart';
 import '../config/network_config.dart';
 import '../models/road_event.dart';
 import 'nostr_event_verify.dart';
+import 'nostr_pending_report_queue.dart';
 import 'nostr_protocol_codec.dart';
 import 'zap_service.dart';
 
@@ -362,24 +363,16 @@ class NostrRelayService {
   /// it needlessly risks the whole queue over one bad entry, where a single
   /// malformed string just fails to decode and is dropped on its own.
   List<Map<String, dynamic>> get _pendingReports =>
-      (_box.get(_pendingReportsKey, defaultValue: <dynamic>[]) as List)
-          .whereType<String>()
-          .map((s) {
-            try {
-              return jsonDecode(s) as Map<String, dynamic>;
-            } catch (_) {
-              return null;
-            }
-          })
-          .whereType<Map<String, dynamic>>()
-          .toList();
+      PendingRoadReportStorage.decode(
+        _box.get(_pendingReportsKey, defaultValue: <dynamic>[]),
+      );
 
   void _setPendingReports(List<Map<String, dynamic>> entries) =>
-      _box.put(_pendingReportsKey, entries.map(jsonEncode).toList());
+      _box.put(_pendingReportsKey, PendingRoadReportStorage.encode(entries));
 
   void _queuePendingReport(Map<String, dynamic> eventJson, int expiresAt) {
-    _setPendingReports(
-        _pendingReports..add({'event': eventJson, 'expiresAt': expiresAt}));
+    _setPendingReports(_pendingReports
+      ..add(PendingRoadReportStorage.entry(eventJson, expiresAt)));
   }
 
   /// Retries every queued report now that a relay connection has succeeded.
@@ -395,19 +388,13 @@ class NostrRelayService {
     final pending = _pendingReports;
     if (pending.isEmpty) return;
     final now = _nowS();
-    final stillPending = <Map<String, dynamic>>[];
-    for (final entry in pending) {
-      final expiresAt = entry['expiresAt'] as int? ?? 0;
-      if (expiresAt <= now) continue;
-      final eventJson = (entry['event'] as Map?)?.cast<String, dynamic>();
-      if (eventJson == null || !verifyEventJson(eventJson)) continue;
-      try {
-        await _publishEvent(eventJson);
-      } catch (_) {
-        stillPending.add(entry);
-      }
-    }
-    _setPendingReports(stillPending);
+    final result = await flushPendingRoadReports(
+      pending: pending,
+      now: now,
+      verify: verifyEventJson,
+      publish: _publishEvent,
+    );
+    _setPendingReports(result.remaining);
   }
 
   /// Test-only window onto the queue, so its Hive round-trip and the TTL

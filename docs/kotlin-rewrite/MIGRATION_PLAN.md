@@ -62,6 +62,10 @@ The first native increment is intentionally isolated from production startup:
   match a shared fixture for canonical JSON/IDs, Roadstr kinds 1315-1318,
   profile visibility and core outbound relay frames. Signing and sockets remain
   deliberately unwired.
+- The production pending-report queue now delegates its unchanged Hive JSON and
+  FIFO/TTL/retry policy to a pure Dart boundary; a dependency-free Kotlin
+  counterpart matches the same shared transcripts. Native persistence remains
+  deliberately unwired.
 - The Kotlin suite remains independent of Android UI/runtime state; the exact
   current count is recorded in `CORE_PARITY.md` after each full run.
 - `docs/kotlin-rewrite/MIGRATION_IMPLEMENTATION.md` records what is and is not
@@ -167,14 +171,18 @@ broader cross-language coverage and a native store are still required.
 
 - **Objective:** Preserve event IDs, tags, signatures, relay behavior, TTL and offline semantics.
 - **Current Dart/Flutter source:** `lib/services/nostr_relay_service.dart`, `nostr_event_verify.dart`, `nip44.dart`, `road_event.dart`.
-- **New Kotlin files/modules:** `core/crypto`, `service/nostr`, `service/nostr/fixtures`.
+- **New Kotlin files/modules:** deterministic event and queue policy under
+  `core/protocol/nostr`; future crypto/socket adapters under `service/nostr`.
 - **Dependencies:** Vetted secp256k1/NIP-44 implementation; OkHttp WebSocket or equivalent FOSS library.
 - **Migration impact:** Pending reports, cursors and activity inbox must survive.
 - **User-visible impact:** Same reports, confirmations, corrections, inbox and offline retry.
 - **Tests:** Golden event vectors, relay parser fuzz/bounds, queue crash/retry and signature verification tests.
 - **Parity evidence:** `nostr_protocol_v1.tsv` now provides cross-language
-  event JSON/ID/tag comparison and initial outbound relay frames; native
-  signatures, inbound transcripts and queue behavior remain open.
+  event JSON/ID/tag comparison and initial outbound relay frames;
+  `nostr_pending_queue_v1.tsv` provides exact persisted JSON and FIFO/TTL/
+  validation/retry transcripts. Native signatures, inbound transcripts,
+  persistence adapters, process-death behavior and an approved queue cap remain
+  open.
 - **Security/privacy impact:** Preserve key isolation, verification-before-trust and inbound DoS limits.
 - **Battery/performance impact:** Compare reconnect, socket and event-processing wakeups.
 - **Acceptance criteria:** All shipped Nostr kinds and filters are byte/semantic compatible.
