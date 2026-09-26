@@ -15,7 +15,7 @@ service or UI cutover.
 | `core.search` | `fuzzy_match.dart` | accent folding, bounded Levenshtein, address weighting and stop-word rejection |
 | `core.network` | `retry.dart`, `refetch_policy.dart` | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
-| `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `zap_service.dart` | BOLT-11 parsing plus NIP-47 URI/request/response and NIP-57 draft/receipt bindings |
+| `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `lnurl_protocol.dart`, `zap_service.dart` | BOLT-11 parsing, LNURL-pay source/metadata/callback/invoice binding, NIP-47 URI/request/response and NIP-57 draft/receipt bindings |
 | `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_pending_report_queue.dart`, `nostr_relay_message.dart`, `nostr_relay_ingress.dart`, `nostr_nip19.dart`, `nostr_relay_service.dart` | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash, outbound frames, offline FIFO/TTL/retry policy, bounded inbound envelopes, pre-verification routing/budgets and strict fixed-size NIP-19 keys |
 
 ## Shared vectors
@@ -63,14 +63,21 @@ layouts, response binding and outcome classification, NIP-57 zap drafts and
 receipt cardinality/invoice/preimage/amount/recipient/event bindings. See
 `LIGHTNING_CORE_PARITY.md` for the exact boundary.
 
+`lnurl_protocol_v1.tsv` is the eighth shared core fixture. Its 77 cases lock
+Lightning-address and `lud06` resolution, lexical HTTPS/SSRF admission,
+metadata shape and amount bounds, callback query construction and BOLT-11
+amount/expiry/description binding. The Dart core is now called by production
+`ZapService`; Kotlin remains detached from native networking.
+
 ## Current limits
 
 - No class in this phase is called by production startup or UI.
 - Stateful navigation tests cover policy decisions, not Android sensor timing.
 - Retry scheduling is pure policy; coroutine execution and cancellation belong
   to the future native networking adapter.
-- NIP-47/NIP-57 deterministic wire and binding rules are covered; NIP-04,
-  native signing, LNURL HTTP, wallet sockets and orchestration remain open.
+- NIP-47/NIP-57 and LNURL-pay deterministic wire, parsing and binding rules are
+  covered; NIP-04, native signing, LNURL DNS/HTTP/redirect execution, wallet
+  sockets and orchestration remain open.
 - Full cross-language fixture coverage for route responses and the remaining
   signed/networked Nostr surface is required. Legacy storage now has a
   synthetic encrypted Hive source fixture and shared envelope, while
@@ -90,10 +97,11 @@ receipt cardinality/invoice/preimage/amount/recipient/event bindings. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 571 tests passed, including the Nostr/`nostr_tools`
-  cross-check, pending-queue, bounded-inbound, ingress, NIP-19 and Lightning
-  transcripts, both migration fixture oracles and the headless Dart handler.
-- `./gradlew :app:testDebugUnitTest`: 93 Kotlin tests passed, including the
-  Nostr byte/queue/inbound/ingress/NIP-19, Lightning parity and bounded
+- `flutter test`: 572 tests passed, including the Nostr/`nostr_tools`
+  cross-check, pending-queue, bounded-inbound, ingress, NIP-19, Lightning and
+  LNURL transcripts, both migration fixture oracles and the headless Dart
+  handler.
+- `./gradlew :app:testDebugUnitTest`: 94 Kotlin tests passed, including the
+  Nostr byte/queue/inbound/ingress/NIP-19, Lightning/LNURL parity and bounded
   headless transport reader suites.
 - No production Activity, manifest or startup wiring changed.

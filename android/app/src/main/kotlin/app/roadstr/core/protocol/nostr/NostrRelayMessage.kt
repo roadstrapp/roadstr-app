@@ -196,7 +196,7 @@ object NostrRelayMessageDecoder {
 private class JsonParseException : RuntimeException()
 
 /** Small JSON parser kept internal so the deterministic core adds no runtime dependency. */
-private class BoundedJsonParser(
+internal class BoundedJsonParser(
     private val input: String,
 ) {
     private var position = 0
