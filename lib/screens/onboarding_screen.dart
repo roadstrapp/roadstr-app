@@ -15,12 +15,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:nostr_tools/nostr_tools.dart';
+import 'package:nostr_tools/nostr_tools.dart' show KeyApi;
 import 'package:url_launcher/url_launcher.dart';
 import '../l10n/app_localizations.dart';
 import '../services/kokoro/kokoro_model_manager.dart';
 import '../services/piper/piper_model_manager.dart';
 import '../services/voice_model_download.dart';
+import '../services/nostr_nip19.dart';
 import '../services/nostr_relay_service.dart';
 import '../services/profile_visibility_service.dart';
 import '../theme/app_theme.dart';
@@ -98,7 +99,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final pic = await _st.read(key: _kPicture);
     if (pub != null && _hexPublicKey.hasMatch(pub) && mounted) {
       setState(() {
-        _npub = Nip19().npubEncode(pub);
+        _npub = NostrNip19.encodePublicKey(pub);
         _profileName = name;
         _profilePicture = pic;
       });
@@ -141,11 +142,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       final raw = result['signature'] as String? ?? '';
       if (raw.isEmpty) throw Exception('No key from Amber');
       final hex =
-          raw.startsWith('npub') ? Nip19().decode(raw)['data'] as String : raw;
+          raw.startsWith('npub') ? NostrNip19.decodePublicKey(raw) : raw;
       if (!_hexPublicKey.hasMatch(hex)) {
         throw const FormatException('Invalid Amber public key');
       }
-      final npub = Nip19().npubEncode(hex);
+      final npub = NostrNip19.encodePublicKey(hex);
       await _st.write(key: _kPub, value: hex);
       await _st.write(key: _kFlavor, value: 'amber');
       if (mounted) {
@@ -171,11 +172,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _loginWithNsec(String nsec) async {
     setState(() => _nsecError = false);
     try {
-      final decoded = Nip19().decode(nsec);
-      if (decoded['type'] != 'nsec') throw const FormatException('not nsec');
-      final privHex = decoded['data'] as String;
+      final privHex = NostrNip19.decodePrivateKey(nsec);
       final pubHex = KeyApi().getPublicKey(privHex);
-      final npub = Nip19().npubEncode(pubHex);
+      final npub = NostrNip19.encodePublicKey(pubHex);
       await _st.write(key: _kPriv, value: privHex);
       await _st.write(key: _kPub, value: pubHex);
       await _st.write(key: _kFlavor, value: 'nsec');

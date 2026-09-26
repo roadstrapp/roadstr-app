@@ -10,7 +10,7 @@ are exported.
 | Protocol / kind | Current behavior | Oracle |
 |---|---|---|
 | NIP-01 | REQ/EVENT/EOSE/CLOSE, verified relay events, bounded frames, publish redundancy | `lib/services/nostr_relay_service.dart` |
-| NIP-19 | npub/nsec encoding and Amber key normalization | profile/onboarding screens |
+| NIP-19 | strict 32-byte npub/nsec encoding and Amber key normalization | `nostr_nip19.dart`, profile/onboarding screens |
 | NIP-44 v2 | encrypted favourites payloads and self-encryption | `lib/services/nip44.dart`, `favorites_sync_service.dart` |
 | NIP-47 | NWC `pay_invoice` request/response using NIP-04 | `lib/services/zap_service.dart` |
 | NIP-55 | Amber signer Intent flow, no private key for Amber | `amberflutter` calls in screens/services |
@@ -40,7 +40,7 @@ tests:
 - kind 30078 favourites payload, hashed and legacy `d` tags, timestamp bump and
   optional passphrase envelope;
 - NIP-44 official vector, self-encryption and padding boundaries;
-- NIP-19 npub/nsec encodings;
+- NIP-19 npub/nsec encodings (shared Dart/Kotlin fixture green);
 - NIP-57 kind 9734 request and receipt binding rules;
 - NWC/NIP-47 request, NIP-04 ciphertext and response validation;
 - offline queue JSON representation, expiration and retry behavior;
@@ -55,9 +55,10 @@ visibility and the main area/confirmation relay frames. A second shared fixture
 locks the pending-report Hive JSON plus FIFO, TTL, validation and retry
 transcripts in both runtimes. A third fixture locks bounded inbound decoding
 for NIP-01/NIP-42 envelope types, structural failures, UTF-16 size limits and
-nesting limits. Native Schnorr, native queue storage, socket lifecycle,
-signature-aware dispatch and other NIPs are still outstanding; see
-`NOSTR_CORE_PARITY.md`.
+nesting limits. A fourth fixture locks strict fixed-size NIP-19 `npub`/`nsec`
+encoding, decoding and malformed-input rejection against `nostr_tools`. Native
+Schnorr/key derivation, native queue storage, socket lifecycle, signature-aware
+dispatch and other NIPs are still outstanding; see `NOSTR_CORE_PARITY.md`.
 
 ## Network semantics that must not drift
 
