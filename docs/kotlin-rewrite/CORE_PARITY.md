@@ -16,7 +16,7 @@ service or UI cutover.
 | `core.network` | `retry.dart`, `refetch_policy.dart` | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
 | `core.protocol.lightning` | `bolt11_invoice.dart` | Bech32 checksum, network/amount, tags, expiry and SHA-256 bindings |
-| `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_pending_report_queue.dart`, `nostr_relay_service.dart` | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash, core outbound frames and offline FIFO/TTL/retry policy |
+| `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_pending_report_queue.dart`, `nostr_relay_message.dart`, `nostr_relay_service.dart` | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash, outbound frames, offline FIFO/TTL/retry policy and bounded inbound envelopes |
 
 ## Shared vectors
 
@@ -39,6 +39,11 @@ remaining signing/network gates.
 signed-entry storage JSON and six deterministic queue transcripts across Dart
 and Kotlin, including expiration boundaries and ordered retry retention.
 
+`nostr_relay_messages_v1.tsv` is the fourth shared core fixture. Its 25
+generated transcripts lock NIP-01/NIP-42 message classification, malformed
+shape rejection, UTF-16 frame limits, a 64-container nesting cap and JSON
+escape handling. Kotlin uses an internal bounded parser with no new dependency.
+
 ## Current limits
 
 - No class in this phase is called by production startup or UI.
@@ -55,13 +60,16 @@ and Kotlin, including expiration boundaries and ordered retry retention.
 - The Kotlin queue policy is not wired to a native store or socket. The current
   Flutter queue is unbounded and does not serialize concurrent flush calls;
   changing either behavior requires an explicit, fixture-backed decision.
+- The inbound decoder is structural only: native subscription routing, event
+  budgets, signature verification and WebSocket lifecycle remain open.
 
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 556 tests passed, including the Nostr/`nostr_tools`
-  cross-check, pending-queue transcripts, both migration fixture oracles and
-  the headless Dart handler.
-- `./gradlew :app:testDebugUnitTest`: 81 Kotlin tests passed, including the
-  Nostr byte/queue-parity suites and bounded headless transport reader matrix.
+- `flutter test`: 561 tests passed, including the Nostr/`nostr_tools`
+  cross-check, pending-queue and bounded-inbound transcripts, both migration
+  fixture oracles and the headless Dart handler.
+- `./gradlew :app:testDebugUnitTest`: 85 Kotlin tests passed, including the
+  Nostr byte/queue/inbound-parity suites and bounded headless transport reader
+  matrix.
 - No production Activity, manifest or startup wiring changed.

@@ -66,6 +66,10 @@ The first native increment is intentionally isolated from production startup:
   FIFO/TTL/retry policy to a pure Dart boundary; a dependency-free Kotlin
   counterpart matches the same shared transcripts. Native persistence remains
   deliberately unwired.
+- The production Nostr service now delegates live, ACK and one-shot relay
+  envelopes to a bounded Dart decoder. A dependency-free Kotlin parser matches
+  25 valid/hostile transcripts, including exact size and nesting boundaries;
+  no native socket is wired.
 - The Kotlin suite remains independent of Android UI/runtime state; the exact
   current count is recorded in `CORE_PARITY.md` after each full run.
 - `docs/kotlin-rewrite/MIGRATION_IMPLEMENTATION.md` records what is and is not
@@ -180,9 +184,10 @@ broader cross-language coverage and a native store are still required.
 - **Parity evidence:** `nostr_protocol_v1.tsv` now provides cross-language
   event JSON/ID/tag comparison and initial outbound relay frames;
   `nostr_pending_queue_v1.tsv` provides exact persisted JSON and FIFO/TTL/
-  validation/retry transcripts. Native signatures, inbound transcripts,
-  persistence adapters, process-death behavior and an approved queue cap remain
-  open.
+  validation/retry transcripts; `nostr_relay_messages_v1.tsv` provides bounded
+  inbound envelope transcripts. Native signatures/dispatch, WebSocket
+  lifecycle, persistence adapters, process-death behavior and an approved queue
+  cap remain open.
 - **Security/privacy impact:** Preserve key isolation, verification-before-trust and inbound DoS limits.
 - **Battery/performance impact:** Compare reconnect, socket and event-processing wakeups.
 - **Acceptance criteria:** All shipped Nostr kinds and filters are byte/semantic compatible.
