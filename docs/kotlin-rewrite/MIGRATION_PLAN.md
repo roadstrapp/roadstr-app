@@ -253,12 +253,14 @@ broader cross-language coverage and a native store are still required.
 
 - **Objective:** Preserve NIP-47/NIP-57/BOLT-11 and direct NIP-55 signer flows.
 - **Current Dart/Flutter source:** `zap_service.dart`, `bolt11_invoice.dart`, profile/onboarding/settings screens.
-- **New Kotlin files/modules:** `service/lightning`, `service/amber`, `core/nostr/signing`.
+- **New Kotlin files/modules:** deterministic `core/protocol/lightning` is green; future `service/lightning`, `service/amber`, `core/nostr/signing` adapters remain.
 - **Dependencies:** Vetted crypto/URL parser; Android Activity Result APIs; no proprietary wallet SDK.
 - **Migration impact:** NWC URI and identity flavor must be preserved exactly.
 - **User-visible impact:** Same signer approval/cancel flow, wallet fallback and zap behavior.
 - **Tests:** fixed invoice/NIP-04/NIP-47/NIP-57 fixtures; manual Amber signer matrix.
-- **Parity evidence:** signed unsigned-event fields and wallet request transcript comparison.
+- **Parity evidence:** BOLT-11 vectors plus `lightning_protocol_v1.tsv` with
+  69 NWC URI/command/wire/response and NIP-57 draft/receipt cases; NIP-04
+  ciphertext, native signatures and live-wallet transcripts remain open.
 - **Security/privacy impact:** Amber never receives a private key from Roadstr; NWC secret stays Keystore-backed.
 - **Battery/performance impact:** No persistent relay/socket owned by a Composable; bounded payment flow.
 - **Acceptance criteria:** nsec and Amber users remain configured and can perform the same operations.
