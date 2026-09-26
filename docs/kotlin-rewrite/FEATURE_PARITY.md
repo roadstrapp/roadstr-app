@@ -24,7 +24,7 @@ No native production runtime exists, so no Kotlin row is marked functional.
 | Wikipedia | restricted in-app Wikipedia article reader | `wikipedia_webview_screen.dart` | FUNCTIONAL | NOT_STARTED | URI allowlist tests |
 | Favourites | local favourites, import/export, limits and validation | `favorite_place.dart`, map/settings screens | FUNCTIONAL | NOT_STARTED | storage migration and content comparison |
 | Parking | saved local parking position | map screens | FUNCTIONAL | NOT_STARTED | storage migration |
-| Nostr relay | NIP-01 sockets, relay rotation, retry/backoff and limits | `nostr_relay_service.dart` | FUNCTIONAL | CORE_ONLY | outbound frame fixture + adversarial WebSocket fixtures |
+| Nostr relay | NIP-01 sockets, relay rotation, retry/backoff and limits | `nostr_relay_service.dart`, `nostr_relay_message.dart` | FUNCTIONAL | CORE_ONLY | outbound and bounded inbound fixtures green; native sockets, dispatch and adversarial lifecycle tests required |
 | Road events | kind 1315 reports, TTL, geohashes, confirmations/dismissals | `road_event.dart`, `nostr_relay_service.dart` | FUNCTIONAL | CORE_ONLY | shared golden events green; signatures/runtime still required |
 | Corrections | kind 1317 owner edits and kind 1318 edit requests | `nostr_relay_service.dart`, profile/map screens | FUNCTIONAL | CORE_ONLY | exact tags/IDs green; signatures and conflict tests required |
 | Offline queue | pending signed reports, TTL drop and retry | `nostr_relay_service.dart`, `nostr_pending_report_queue.dart` | FUNCTIONAL | CORE_ONLY | shared JSON/FIFO/TTL/retry fixture green; native store, concurrency and process-death tests required |
