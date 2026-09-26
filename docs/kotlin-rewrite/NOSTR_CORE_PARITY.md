@@ -1,9 +1,10 @@
 # Nostr deterministic core parity
 
 This increment ports the byte-deterministic part of Roadstr's Nostr protocol
-without introducing a native signer, WebSocket, private-key path or startup
-wiring. Flutter remains the production runtime and `nostr_tools` remains the
-production Schnorr implementation.
+and its pure offline-report flush policy without introducing a native signer,
+WebSocket, private-key path, storage adapter or startup wiring. Flutter remains
+the production runtime and `nostr_tools` remains the production Schnorr
+implementation.
 
 ## Implemented boundary
 
@@ -27,6 +28,14 @@ surface with only JDK/Kotlin primitives. Its JSON writer intentionally accepts
 only the value types used by NIP-01 here; in particular it rejects floating
 point JSON values and non-string object keys instead of silently choosing a
 different representation.
+
+`lib/services/nostr_pending_report_queue.dart` now isolates the production
+Hive representation and one queue-flush pass from sockets/storage. The
+production service delegates to it without changing behavior. Kotlin's
+`NostrPendingReportQueue.kt` mirrors the same FIFO rules: capture one clock,
+drop entries whose expiration is less than or equal to it, verify before
+publish, retain transport failures in order and commit the resulting queue
+only after the whole pass.
 
 ## Shared fixture
 
@@ -55,6 +64,19 @@ Both runtimes consume that committed file. Dart additionally proves that the
 public `NostrRelayService` Amber builders produce the fixture values, so the
 vectors are not detached test-only examples.
 
+`android/app/src/test/resources/parity/nostr_pending_queue_v1.tsv` is generated
+by `tools/kotlin_rewrite/generate_nostr_queue_fixture.dart`. Use:
+
+```text
+dart run tools/kotlin_rewrite/generate_nostr_queue_fixture.dart --check
+```
+
+Its six flush transcripts cover empty/mixed queues, the TTL boundary, invalid
+events, successful publication, false/exceptional transport outcomes, FIFO
+retention and a post-2038 clock. A storage row locks the exact Hive JSON string
+for a complete signed kind-1315 event. Both Dart and Kotlin consume the same
+file.
+
 ## Safety properties
 
 - Drafts and filter builders copy caller-owned tag/id/geohash collections.
@@ -63,6 +85,10 @@ vectors are not detached test-only examples.
 - Update/edit speed limits retain the current inclusive 5..300 boundary.
 - Dart verification still performs both canonical-ID comparison and BIP-340
   signature verification, and rejects content, ID or signature tampering.
+- Expiration is evaluated before verification/publication, failed publishes
+  retain their original order and malformed persisted strings are isolated.
+- A crash before the one final queue write can republish the same immutable
+  Nostr event ID, but cannot lose an unpublished entry through a partial write.
 
 ## Explicitly not implemented
 
@@ -73,9 +99,14 @@ separate review and fixtures:
 - Amber/NIP-55 Intent behavior and key-isolation evidence;
 - WebSocket lifecycle, relay rotation, reconnect jitter and publish ACKs;
 - bounded inbound parsing/fuzzing and every remaining filter/transcript;
-- pending-report persistence, retry/crash recovery and activity cursors;
+- native parsing/storage for the persisted report list, process-death tests,
+  queue serialization/capping and activity cursors;
 - NIP-19, NIP-44, NIP-47, NIP-57 and the favourites kind-30078 envelope.
 
+The current Flutter product has neither a queue-size cap nor single-flight
+protection around overlapping flushes. This increment records that inherited
+risk rather than silently changing user-visible retry behavior.
+
 No native class in this increment is reachable from `MainActivity`, the
-manifest or app startup. Rollback is removal of the native package/fixture and
+manifest or app startup. Rollback is removal of the native package/fixtures and
 restoring the small Dart service delegations; no stored data format changed.

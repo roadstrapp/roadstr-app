@@ -22,6 +22,7 @@
 | R-18 | Parallel Flutter/main changes expand parity gap | Medium | Medium | Periodically audit main, update matrix intentionally, never silently drop features | Process |
 | R-19 | Default Dart `AndroidOptions` sets `resetOnError=true`, allowing a read/decrypt error to erase protected values | Critical | Medium | Bridge explicitly sets false; prove historical reads and address current startup in a separate reviewed change | Open blocker |
 | R-20 | A headless Flutter engine can deadlock startup, leak plugins or outlive migration | Critical | Medium | Worker-thread-only bounded wait, one-shot protocol, minimal plugin registration and engine destruction before decode; prove on signed devices before wiring | Open (adapter green) |
+| R-21 | The shipped pending-report queue is unbounded and overlapping flushes can race the final Hive rewrite | High | Medium | Preserve current behavior in parity fixtures; before native wiring, approve a bounded policy and single-flight/transactional adapter with crash/concurrency tests | Open (source gap recorded) |
 
 ## Current stop condition
 

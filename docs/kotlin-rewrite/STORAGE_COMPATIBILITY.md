@@ -129,6 +129,11 @@ items are JSON strings. Favourite JSON contains `label`, `address`, `lat` and
 JSON contains a signed event and `expiresAt`. Activity inbox entries are Hive
 maps rather than JSON strings.
 
+`nostr_pending_queue_v1.tsv` now locks one complete signed pending-report JSON
+string byte-for-byte and the pure FIFO/TTL/retry policy in Dart and Kotlin.
+This proves the item representation, not native Hive-list parsing, transactional
+storage, concurrency or process-death recovery; those remain migration gates.
+
 ## Migration policy
 
 1. Detect an existing legacy Flutter installation and do not create a blank
