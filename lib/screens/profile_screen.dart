@@ -26,9 +26,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:nostr_tools/nostr_tools.dart';
+import 'package:nostr_tools/nostr_tools.dart' show KeyApi;
 import '../l10n/app_localizations.dart';
 import '../models/road_event.dart';
+import '../services/nostr_nip19.dart';
 import '../services/nostr_relay_service.dart';
 import '../services/profile_visibility_service.dart';
 import '../services/routing_service.dart';
@@ -103,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!mounted) return;
     setState(() {
       _targetPubHex = pub;
-      _npub = pub != null ? Nip19().npubEncode(pub) : null;
+      _npub = pub != null ? NostrNip19.encodePublicKey(pub) : null;
       _flavor = flav;
       _picture = picture;
       _name = name;
@@ -176,15 +177,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Both formats are normalised here so the rest of the app always stores hex
   /// in secure storage and only derives the npub display string on demand.
   ({String pubHex, String npub}) _parsePubkey(String raw) {
-    final nip19 = Nip19();
     if (raw.startsWith('npub1')) {
       // Bech32 npub — decode to hex, keep the original npub for display.
-      final decoded = nip19.decode(raw);
-      return (pubHex: decoded['data'] as String, npub: raw);
+      return (pubHex: NostrNip19.decodePublicKey(raw), npub: raw);
     }
     // Hex pubkey — encode to npub for display.
     final hex = raw.toLowerCase().trim();
-    return (pubHex: hex, npub: nip19.npubEncode(hex));
+    return (pubHex: hex, npub: NostrNip19.encodePublicKey(hex));
   }
 
   /// After login, fetches the user name and avatar from the relay (kind-0 metadata).
@@ -375,12 +374,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loginWithNsec(String nsec) async {
     final l = AppLocalizations.of(context);
     try {
-      final nip19 = Nip19();
-      final decoded = nip19.decode(nsec);
-      if (decoded['type'] != 'nsec') throw const FormatException('not nsec');
-      final privHex = decoded['data'] as String;
+      final privHex = NostrNip19.decodePrivateKey(nsec);
       final pubHex = KeyApi().getPublicKey(privHex);
-      final npub = nip19.npubEncode(pubHex);
+      final npub = NostrNip19.encodePublicKey(pubHex);
       await _st.write(key: _kPriv, value: privHex);
       await _st.write(key: _kPub, value: pubHex);
       await _st.write(key: _kFlavor, value: 'nsec');
@@ -488,7 +484,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           comment: event.comment,
         );
         final result = await _amber.signEvent(
-          currentUser: Nip19().npubEncode(pub),
+          currentUser: NostrNip19.encodePublicKey(pub),
           eventJson: jsonEncode(unsigned),
         );
         final signed =

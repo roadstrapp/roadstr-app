@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:nostr_tools/nostr_tools.dart' show Nip19;
 
 import '../../l10n/app_localizations.dart';
 import '../../screens/profile_screen.dart';
 import '../../models/road_event.dart';
+import '../../services/nostr_nip19.dart';
 import '../../services/nostr_relay_service.dart';
 import '../../services/zap_service.dart';
 import '../../theme/app_theme.dart';
@@ -660,7 +660,7 @@ class _RoadEventDetailState extends State<RoadEventDetailSheet> {
                   if (_reporterPublic)
                     Flexible(
                       child: Text(
-                        Nip19().npubEncode(event.pubkey),
+                        NostrNip19.encodePublicKey(event.pubkey),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(

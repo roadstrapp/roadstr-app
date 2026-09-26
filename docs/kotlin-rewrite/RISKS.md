@@ -15,7 +15,7 @@
 | R-11 | MapLibre Native dependency introduces proprietary/Google transitive code | High | Medium | Dependency/license table, Gradle dependency audit and no-Google test | Not started |
 | R-12 | F-Droid recipe no longer builds or detects versions | High | Medium | Keep literal version values, port recipe/output/NDK steps, validate from bare clone | Not started |
 | R-13 | 27 localization sets lose keys/placeholders/fallback behavior | High | Medium | Key-coverage and placeholder comparison before UI completion | Not started |
-| R-14 | Amber/NIP-55 signing semantics change | High | Medium | Intent fixtures/manual signer tests; never copy private keys for Amber | Not started |
+| R-14 | Amber/NIP-55 signing semantics change | High | Medium | NIP-19 key normalization is fixture-locked; add Intent fixtures/manual signer tests and never copy private keys for Amber | In progress (key representation green) |
 | R-15 | Native release build cannot be reproduced offline/F-Droid-style | High | Medium | Pin dependencies, retain eSpeak reproducibility and build in clean environment | Not started |
 | R-16 | Protocol/network limits are approximated instead of ported | High | Medium | Outbound bytes plus inbound envelope size/depth/shape are fixture-locked; port signature-aware dispatch, per-stream budgets and remaining socket policy from source | In progress (structural core green) |
 | R-17 | Physical-device upgrade path is untested | Critical | High | Manual signed-APK checklist owned by user; no release candidate without evidence | Open |

@@ -28,7 +28,7 @@ No native production runtime exists, so no Kotlin row is marked functional.
 | Road events | kind 1315 reports, TTL, geohashes, confirmations/dismissals | `road_event.dart`, `nostr_relay_service.dart` | FUNCTIONAL | CORE_ONLY | shared golden events green; signatures/runtime still required |
 | Corrections | kind 1317 owner edits and kind 1318 edit requests | `nostr_relay_service.dart`, profile/map screens | FUNCTIONAL | CORE_ONLY | exact tags/IDs green; signatures and conflict tests required |
 | Offline queue | pending signed reports, TTL drop and retry | `nostr_relay_service.dart`, `nostr_pending_report_queue.dart` | FUNCTIONAL | CORE_ONLY | shared JSON/FIFO/TTL/retry fixture green; native store, concurrency and process-death tests required |
-| Profile/identity | Amber NIP-55 and local nsec, profile metadata and visibility | onboarding/profile screens | FUNCTIONAL | NOT_STARTED | fixed nsec + manual Amber tests |
+| Profile/identity | Amber NIP-55 and local nsec, profile metadata and visibility | `nostr_nip19.dart`, onboarding/profile screens | FUNCTIONAL | CORE_ONLY | npub/nsec representation fixture green; native key derivation/storage + manual Amber tests required |
 | Activity inbox | persisted zaps/confirmations, cursors and dedupe | `activity_notification_service.dart` | FUNCTIONAL | NOT_STARTED | per-pubkey storage fixtures |
 | Favourites sync | NIP-78 kind 30078, NIP-44, optional passphrase and relay policy | `favorites_sync_service.dart` | FUNCTIONAL | NOT_STARTED | wire and rollback fixtures |
 | Lightning | LNURL-pay, NIP-57 zaps, BOLT-11 validation and fallback link | `zap_service.dart`, `bolt11_invoice.dart` | FUNCTIONAL | CORE_ONLY | invoice/protocol fixtures |

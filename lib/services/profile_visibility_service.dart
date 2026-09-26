@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:amberflutter/amberflutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:nostr_tools/nostr_tools.dart';
 
+import 'nostr_nip19.dart';
 import 'nostr_relay_service.dart';
 
 /// Persists and publishes the Roadstr profile-visibility preference.
@@ -27,7 +27,7 @@ class ProfileVisibilityService {
         final unsigned = NostrRelayService.buildProfileVisibilityMap(
             pubKeyHex: pub, isPublic: isPublic);
         final result = await Amberflutter().signEvent(
-          currentUser: Nip19().npubEncode(pub),
+          currentUser: NostrNip19.encodePublicKey(pub),
           eventJson: jsonEncode(unsigned),
         );
         final signed =
