@@ -18,7 +18,7 @@ class NostrRelayIngressParityTest {
 
     @Test
     fun `native admission policy reproduces every stateful Dart transcript`() {
-        assertEquals(35, rows.size)
+        assertEquals(60, rows.size)
         val policies = mutableMapOf<String, NostrRelayIngress>()
         for (fields in rows) {
             val scenario = fields[0]
@@ -209,6 +209,40 @@ class NostrRelayIngressParityTest {
                     subscriptionId = "visibility",
                     routes = mapOf(
                         30078 to NostrIngressRoute.PROFILE_VISIBILITY,
+                    ),
+                    maxEvents = 2,
+                ),
+            ),
+        )
+
+        "one-off" -> NostrRelayIngress(
+            listOf(
+                NostrIngressRule(
+                    name = "favorite-snapshot",
+                    subscriptionId = "favorites",
+                    routes = mapOf(
+                        30078 to NostrIngressRoute.FAVORITE_SNAPSHOT,
+                    ),
+                    maxEvents = 4,
+                ),
+                NostrIngressRule(
+                    name = "lightning-address",
+                    subscriptionId = "lightning",
+                    fallbackRoute = NostrIngressRoute.LIGHTNING_ADDRESS,
+                    maxEvents = 10,
+                ),
+                NostrIngressRule(
+                    name = "nwc-response",
+                    subscriptionId = "nwc",
+                    routes = mapOf(
+                        23195 to NostrIngressRoute.NWC_RESPONSE,
+                    ),
+                ),
+                NostrIngressRule(
+                    name = "zap-receipts",
+                    subscriptionId = "receipts",
+                    routes = mapOf(
+                        9735 to NostrIngressRoute.ZAP_RECEIPT_QUERY,
                     ),
                     maxEvents = 2,
                 ),

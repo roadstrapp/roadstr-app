@@ -57,10 +57,11 @@ import 'package:nostr_tools/nostr_tools.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../models/favorite_place.dart';
-import '../config/network_config.dart';
 import 'favorites_crypto.dart';
 import 'nip44.dart';
 import 'nostr_event_verify.dart';
+import 'nostr_relay_ingress.dart';
+import 'nostr_relay_message.dart';
 
 /// Result of [FavoritesSyncService.pull].
 class FavSyncPull {
@@ -179,8 +180,6 @@ class FavoritesSyncService {
   /// plaintext bytes → ~88 KB of base64; anything bigger is a hostile relay
   /// trying to waste memory/CPU and is dropped before hashing/verification.
   static const _maxContentChars = 200000;
-  // Shared with the relay service — see [RelayLimits].
-  static const _maxInboundMessageChars = RelayLimits.maxInboundMessageChars;
 
   /// Plaintext size bucket (bytes). Every snapshot is padded up to a
   /// multiple of this before encryption, capped at NIP-44's 65535 limit.
@@ -502,16 +501,14 @@ class FavoritesSyncService {
       final completer = Completer<bool>();
       ws.stream.listen((raw) {
         if (completer.isCompleted) return;
-        try {
-          if (raw is! String || raw.length > _maxInboundMessageChars) return;
-          final msg = jsonDecode(raw) as List;
-          // The OK must name the event we just sent: a relay answering
-          // "accepted" for some other id would otherwise report a successful
-          // sync for a snapshot it never stored.
-          if (msg.length >= 3 && msg[0] == 'OK' && msg[1] == eventJson['id']) {
-            completer.complete(msg[2] == true);
-          }
-        } catch (_) {}
+        final message = NostrRelayMessageDecoder.decode(raw).message;
+        // The OK must name the event we just sent: a relay answering
+        // "accepted" for some other id would otherwise report a successful
+        // sync for a snapshot it never stored.
+        if (message is NostrRelayOkMessage &&
+            message.eventId == eventJson['id']) {
+          completer.complete(message.accepted == true);
+        }
       }, onError: (_) {
         if (!completer.isCompleted) completer.complete(false);
       }, onDone: () {
@@ -538,20 +535,31 @@ class FavoritesSyncService {
       await ws.ready.timeout(const Duration(seconds: 5));
       final completer = Completer<Map<String, dynamic>?>();
       final subId = randomSubId();
-      var receivedEvents = 0;
+      final ingress = NostrRelayIngress([
+        NostrIngressRule(
+          name: 'favorite-snapshot',
+          subscriptionId: subId,
+          routes: const {kind: NostrIngressRoute.favoriteSnapshot},
+          maxEvents: 4,
+        ),
+      ]);
       ws.stream.listen((raw) {
         if (completer.isCompleted) return;
         try {
-          if (raw is! String || raw.length > _maxInboundMessageChars) return;
-          final msg = jsonDecode(raw) as List;
-          if (msg[0] == 'EVENT' && msg[1] == subId) {
+          final message = NostrRelayMessageDecoder.decode(raw).message;
+          if (message is NostrRelayEventMessage) {
             // `limit: 1` is only a relay hint. Stop before signature
             // verification if a hostile relay ignores it and floods events.
-            if (++receivedEvents > 4) {
+            final json = message.event;
+            final decision = ingress.inspect(
+              subscriptionId: message.subscriptionId,
+              claimedKind: json['kind'],
+            );
+            if (decision.limitReached) {
               completer.complete(null);
               return;
             }
-            final json = (msg[2] as Map).cast<String, dynamic>();
+            if (!decision.shouldVerify) return;
             // Relays are untrusted. Before using anything they send:
             // (1) cheap size guard — drop grotesquely oversized content
             //     before spending CPU hashing it;
@@ -571,7 +579,8 @@ class FavoritesSyncService {
                 _verifyEvent(json)) {
               completer.complete(json);
             }
-          } else if (msg[0] == 'EOSE' && msg[1] == subId) {
+          } else if (message is NostrRelayEoseMessage &&
+              message.subscriptionId == subId) {
             if (!completer.isCompleted) completer.complete(null);
           }
         } catch (_) {

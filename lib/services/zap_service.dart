@@ -24,6 +24,8 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'bolt11_invoice.dart';
 import 'nostr_event_verify.dart';
+import 'nostr_relay_ingress.dart';
+import 'nostr_relay_message.dart';
 
 // ── Models ────────────────────────────────────────────────────────────────────
 
@@ -135,22 +137,36 @@ class ZapService {
       final subId = randomSubId();
       var latestCreatedAt = -1;
       String? latestAddress;
-      var receivedEvents = 0;
+      final ingress = NostrRelayIngress([
+        NostrIngressRule(
+          name: 'lightning-address',
+          subscriptionId: subId,
+          // Keep the shipped behavior: this path verifies author/signature
+          // but historically trusted the kind-0 REQ instead of rechecking the
+          // event kind locally. The explicit fallback records that parity gap.
+          fallbackRoute: NostrIngressRoute.lightningAddress,
+          maxEvents: 10,
+        ),
+      ]);
 
       ws.stream.listen(
         (raw) {
           if (completer.isCompleted) return;
           try {
-            if (raw is! String || raw.length > 256 * 1024) return;
-            final msg = jsonDecode(raw) as List;
-            if (msg[0] == 'EVENT' && msg[1] == subId) {
-              if (++receivedEvents > 10) {
+            final message = NostrRelayMessageDecoder.decode(raw).message;
+            if (message is NostrRelayEventMessage) {
+              final json = message.event;
+              final decision = ingress.inspect(
+                subscriptionId: message.subscriptionId,
+                claimedKind: json['kind'],
+              );
+              if (decision.limitReached) {
                 completer.complete(latestAddress == null
                     ? null
                     : (address: latestAddress!, createdAt: latestCreatedAt));
                 return;
               }
-              final json = (msg[2] as Map).cast<String, dynamic>();
+              if (!decision.shouldVerify) return;
               if (json['pubkey'] != pubHex || !verifyEventJson(json)) return;
               final content =
                   jsonDecode(json['content'] as String) as Map<String, dynamic>;
@@ -160,7 +176,8 @@ class ZapService {
                 latestCreatedAt = createdAt;
                 latestAddress = lud;
               }
-            } else if (msg[0] == 'EOSE' && msg[1] == subId) {
+            } else if (message is NostrRelayEoseMessage &&
+                message.subscriptionId == subId) {
               if (!completer.isCompleted) {
                 completer.complete(latestAddress == null
                     ? null
@@ -439,6 +456,13 @@ class ZapService {
       await ws.ready.timeout(const Duration(seconds: 5));
       final completer = Completer<String?>();
       final subId = randomSubId();
+      final ingress = NostrRelayIngress([
+        NostrIngressRule(
+          name: 'nwc-response',
+          subscriptionId: subId,
+          routes: const {23195: NostrIngressRoute.nwcResponse},
+        ),
+      ]);
 
       late final dynamic reqEvent;
 
@@ -446,10 +470,14 @@ class ZapService {
         (raw) {
           if (completer.isCompleted) return;
           try {
-            if (raw is! String || raw.length > 256 * 1024) return;
-            final msg = jsonDecode(raw) as List;
-            if (msg.length >= 3 && msg[0] == 'EVENT' && msg[1] == subId) {
-              final ev = (msg[2] as Map).cast<String, dynamic>();
+            final message = NostrRelayMessageDecoder.decode(raw).message;
+            if (message is NostrRelayEventMessage) {
+              final ev = message.event;
+              final decision = ingress.inspect(
+                subscriptionId: message.subscriptionId,
+                claimedKind: ev['kind'],
+              );
+              if (!decision.shouldVerify) return;
               // Step 6: Receive kind-23195 from the wallet and decrypt.
               final tags = (ev['tags'] as List?)
                       ?.whereType<List>()
@@ -587,20 +615,31 @@ class ZapService {
       // receipts as it wants and each one costs a Schnorr verification. Count
       // the messages that actually arrive and hang up at the ceiling, before
       // paying for the signature check.
-      var received = 0;
+      final ingress = NostrRelayIngress([
+        NostrIngressRule(
+          name: 'zap-receipts',
+          subscriptionId: subId,
+          routes: const {9735: NostrIngressRoute.zapReceiptQuery},
+          maxEvents: limit,
+        ),
+      ]);
 
       ws.stream.listen(
         (raw) {
           if (completer.isCompleted) return;
           try {
-            if (raw is! String || raw.length > 256 * 1024) return;
-            final msg = jsonDecode(raw) as List;
-            if (msg[0] == 'EVENT' && msg[1] == subId) {
-              if (++received > limit) {
+            final message = NostrRelayMessageDecoder.decode(raw).message;
+            if (message is NostrRelayEventMessage) {
+              final event = message.event;
+              final decision = ingress.inspect(
+                subscriptionId: message.subscriptionId,
+                claimedKind: event['kind'],
+              );
+              if (decision.limitReached) {
                 completer.complete();
                 return;
               }
-              final event = (msg[2] as Map).cast<String, dynamic>();
+              if (!decision.shouldVerify) return;
               final id = event['id'] as String?;
               if (id != null && !into.containsKey(id)) {
                 final amount = verifiedReceiptAmount(
@@ -611,7 +650,8 @@ class ZapService {
                 );
                 if (amount != null) into[id] = amount;
               }
-            } else if (msg[0] == 'EOSE' && msg[1] == subId) {
+            } else if (message is NostrRelayEoseMessage &&
+                message.subscriptionId == subId) {
               if (!completer.isCompleted) completer.complete();
             }
           } catch (_) {}
