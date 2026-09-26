@@ -12,9 +12,9 @@ are exported.
 | NIP-01 | REQ/EVENT/EOSE/CLOSE, verified relay events, bounded frames, publish redundancy | `lib/services/nostr_relay_service.dart` |
 | NIP-19 | strict 32-byte npub/nsec encoding and Amber key normalization | `nostr_nip19.dart`, profile/onboarding screens |
 | NIP-44 v2 | encrypted favourites payloads and self-encryption | `lib/services/nip44.dart`, `favorites_sync_service.dart` |
-| NIP-47 | NWC `pay_invoice` request/response using NIP-04 | `lib/services/zap_service.dart` |
+| NIP-47 | NWC `pay_invoice` request/response using NIP-04 | `lightning_protocol.dart`, `zap_service.dart` |
 | NIP-55 | Amber signer Intent flow, no private key for Amber | `amberflutter` calls in screens/services |
-| NIP-57 | kind 9734 zap request and kind 9735 receipt validation | `lib/services/zap_service.dart` |
+| NIP-57 | kind 9734 zap request and kind 9735 receipt validation | `lightning_protocol.dart`, `zap_service.dart` |
 | NIP-78 | kind 30078 replaceable encrypted favourites snapshot | `favorites_sync_service.dart` |
 | Roadstr 1315 | road report, category, coordinates, geohash, expiration/TTL | `nostr_relay_service.dart`, `road_event.dart` |
 | Roadstr 1316 | confirmation/dismissal referencing a 1315 | `nostr_relay_service.dart` |
@@ -60,9 +60,11 @@ encoding, decoding and malformed-input rejection against `nostr_tools`. A
 fifth Nostr fixture locks stateful subscription/kind routing, collision
 precedence and pre-verification event budgets for every production relay loop,
 including favourites, Lightning-address, NWC-response and receipt queries.
-Native Schnorr/key derivation, native queue storage, socket lifecycle and
+The 69-case Lightning fixture additionally locks NWC URI/command/wire/response
+semantics and NIP-57 draft/receipt bindings, including lazy verifier ordering.
+Native NIP-04, Schnorr/key derivation, queue storage, socket lifecycle and
 signature-aware dispatch wiring are still outstanding; see
-`NOSTR_CORE_PARITY.md`.
+`NOSTR_CORE_PARITY.md` and `LIGHTNING_CORE_PARITY.md`.
 
 ## Network semantics that must not drift
 

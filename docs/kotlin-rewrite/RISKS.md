@@ -23,6 +23,7 @@
 | R-19 | Default Dart `AndroidOptions` sets `resetOnError=true`, allowing a read/decrypt error to erase protected values | Critical | Medium | Bridge explicitly sets false; prove historical reads and address current startup in a separate reviewed change | Open blocker |
 | R-20 | A headless Flutter engine can deadlock startup, leak plugins or outlive migration | Critical | Medium | Worker-thread-only bounded wait, one-shot protocol, minimal plugin registration and engine destruction before decode; prove on signed devices before wiring | Open (adapter green) |
 | R-21 | The shipped pending-report queue is unbounded and overlapping flushes can race the final Hive rewrite | High | Medium | Preserve current behavior in parity fixtures; before native wiring, approve a bounded policy and single-flight/transactional adapter with crash/concurrency tests | Open (source gap recorded) |
+| R-22 | Native Lightning accepts a different wallet URI, response or zap receipt than Flutter | Critical | Medium | 69 shared NIP-47/NIP-57 cases lock URI, wire, outcome and receipt bindings; add NIP-04/signature/live-wallet evidence before wiring | In progress (deterministic core green) |
 
 ## Current stop condition
 

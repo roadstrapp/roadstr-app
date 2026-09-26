@@ -23,6 +23,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'bolt11_invoice.dart';
+import 'lightning_protocol.dart';
 import 'nostr_event_verify.dart';
 import 'nostr_relay_ingress.dart';
 import 'nostr_relay_message.dart';
@@ -302,25 +303,28 @@ class ZapService {
         !_isHex32(recipientPubHex) ||
         !_isHex32(eventId) ||
         amountMsat <= 0 ||
-        amountMsat > 21000000 * 100000000000) {
+        amountMsat > Nip57Protocol.maxAmountMsat) {
       throw const FormatException('Invalid zap request fields');
     }
     if (KeyApi().getPublicKey(senderPrivHex).toLowerCase() !=
         senderPubHex.toLowerCase()) {
       throw const FormatException('Nostr key pair does not match');
     }
+    final draft = Nip57Protocol.zapRequestDraft(
+      senderPubkey: senderPubHex,
+      createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      recipientPubkey: recipientPubHex,
+      eventId: eventId,
+      amountMsat: amountMsat,
+      relays: _relays,
+    );
     final event = EventApi().finishEvent(
       Event(
-        pubkey: senderPubHex,
-        created_at: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        kind: 9734,
-        tags: [
-          ['p', recipientPubHex],
-          ['e', eventId],
-          ['amount', amountMsat.toString()],
-          ['relays', ..._relays],
-        ],
-        content: '',
+        pubkey: draft.pubkey,
+        created_at: draft.createdAt,
+        kind: draft.kind,
+        tags: draft.tags,
+        content: draft.content,
       ),
       senderPrivHex,
     );
@@ -416,29 +420,14 @@ class ZapService {
     required String invoice,
     required String nwcUri,
   }) async {
-    // Dart parses custom hierarchical schemes directly. The previous host
-    // substitution made `uri.host` equal to the dummy host instead of the
-    // wallet pubkey, breaking every valid NWC URI.
-    final uri = Uri.tryParse(nwcUri.trim());
-    if (uri == null || uri.scheme != 'nostr+walletconnect') return null;
-    if (uri.userInfo.isNotEmpty ||
-        uri.path.isNotEmpty ||
-        uri.queryParametersAll['secret']?.length != 1 ||
-        (uri.queryParametersAll['relay']?.length ?? 0) > 1) {
-      return null;
-    }
-    final walletPub = uri.host;
-    final relay = uri.queryParameters['relay'] ?? _nwcFallbackRelay;
-    final secret = uri.queryParameters['secret'];
-    final relayUri = Uri.tryParse(relay);
-    if (!_isHex32(walletPub) ||
-        secret == null ||
-        !_isHex32(secret) ||
-        relayUri == null ||
-        relayUri.scheme != 'wss' ||
-        relayUri.host.isEmpty) {
-      return null;
-    }
+    final connection = NwcConnection.tryParse(
+      nwcUri,
+      fallbackRelay: _nwcFallbackRelay,
+    );
+    if (connection == null) return null;
+    final walletPub = connection.walletPubkey;
+    final secret = connection.secret;
+    final relayUri = connection.relayUri;
     final decodedInvoice = Bolt11Invoice.tryParse(invoice);
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     if (decodedInvoice == null || decodedInvoice.isExpiredAt(now)) return null;
@@ -479,34 +468,23 @@ class ZapService {
               );
               if (!decision.shouldVerify) return;
               // Step 6: Receive kind-23195 from the wallet and decrypt.
-              final tags = (ev['tags'] as List?)
-                      ?.whereType<List>()
-                      .map((t) => t.map((e) => e.toString()).toList())
-                      .toList() ??
-                  const <List<String>>[];
-              final boundToRequest = tags.any(
-                  (t) => t.length >= 2 && t[0] == 'e' && t[1] == reqEvent.id);
-              final addressedToUs = tags
-                  .any((t) => t.length >= 2 && t[0] == 'p' && t[1] == ourPub);
-              if (ev['kind'] == 23195 &&
-                  ev['pubkey'] == walletPub &&
-                  boundToRequest &&
-                  addressedToUs &&
+              if (NwcProtocol.responseEventIsBound(
+                    ev,
+                    walletPubkey: walletPub,
+                    requestEventId: reqEvent.id,
+                    clientPubkey: ourPub,
+                  ) &&
                   verifyEventJson(ev)) {
                 final plain =
                     nip04.decrypt(secret, walletPub, ev['content'] as String);
                 final resp = jsonDecode(plain) as Map<String, dynamic>;
-                if (resp['result_type'] != 'pay_invoice' ||
-                    resp['error'] != null) {
-                  completer.complete(null);
-                  return;
+                final response = NwcProtocol.inspectResponse(
+                  resp,
+                  decodedInvoice,
+                );
+                if (response.shouldComplete) {
+                  completer.complete(response.preimage);
                 }
-                final result = resp['result'] as Map?;
-                final preimage = result?['preimage'] as String?;
-                completer.complete(
-                    preimage != null && decodedInvoice.preimageMatches(preimage)
-                        ? preimage
-                        : null);
               }
             }
           } catch (_) {}
@@ -520,21 +498,22 @@ class ZapService {
       );
 
       // Step 3+4: Encrypt the pay_invoice command and publish as kind-23194.
-      final reqContent = jsonEncode({
-        'method': 'pay_invoice',
-        'params': {'invoice': invoice},
-      });
+      final reqContent = NwcProtocol.payInvoiceCommand(invoice);
       final encrypted = nip04.encrypt(secret, walletPub, reqContent);
+      final requestDraft = NwcProtocol.requestDraft(
+        clientPubkey: ourPub,
+        createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        walletPubkey: walletPub,
+        encryptedContent: encrypted,
+      );
 
       reqEvent = api.finishEvent(
         Event(
-          pubkey: ourPub,
-          created_at: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          kind: 23194,
-          tags: [
-            ['p', walletPub]
-          ],
-          content: encrypted,
+          pubkey: requestDraft.pubkey,
+          created_at: requestDraft.createdAt,
+          kind: requestDraft.kind,
+          tags: requestDraft.tags,
+          content: requestDraft.content,
         ),
         secret,
       );
@@ -542,15 +521,11 @@ class ZapService {
       // Step 5: Subscribe to the response BEFORE publishing the request, so we
       // don't miss a fast wallet response. The `#e` filter targets this specific
       // request by event ID.
-      ws.sink.add(jsonEncode([
-        'REQ',
-        subId,
-        {
-          'kinds': [23195],
-          'authors': [walletPub],
-          '#e': [reqEvent.id],
-        }
-      ]));
+      ws.sink.add(jsonEncode(NwcProtocol.responseRequest(
+        subscriptionId: subId,
+        walletPubkey: walletPub,
+        requestEventId: reqEvent.id,
+      )));
       ws.sink.add(jsonEncode(['EVENT', reqEvent.toJson()]));
 
       return await completer.future
@@ -713,73 +688,24 @@ class ZapService {
     required String receiptSigner,
   }) {
     try {
-      if (receipt['kind'] != 9735 ||
-          receipt['pubkey'] != receiptSigner ||
-          !verifyEventJson(receipt)) {
-        return null;
-      }
-      final tags = (receipt['tags'] as List)
-          .map((t) => List<String>.from(t as List))
-          .toList();
-      final bolt11Values = <String>[];
-      final descriptionValues = <String>[];
-      final preimageValues = <String>[];
-      final receiptRecipients = <String>[];
-      final receiptEvents = <String>[];
-      for (final t in tags) {
-        if (t.length < 2) continue;
-        if (t[0] == 'bolt11') bolt11Values.add(t[1]);
-        if (t[0] == 'description') descriptionValues.add(t[1]);
-        if (t[0] == 'preimage') preimageValues.add(t[1]);
-        if (t[0] == 'p') receiptRecipients.add(t[1]);
-        if (t[0] == 'e') receiptEvents.add(t[1]);
-      }
-      if (bolt11Values.length != 1 ||
-          descriptionValues.length != 1 ||
-          preimageValues.length > 1 ||
-          receiptRecipients.length != 1 ||
-          receiptEvents.length > 1) {
-        return null;
-      }
-      final bolt11 = bolt11Values.single;
-      final description = descriptionValues.single;
-      final invoice = Bolt11Invoice.tryParse(bolt11);
-      if (invoice == null || !invoice.descriptionMatches(description)) {
-        return null;
-      }
-      if (preimageValues.isNotEmpty &&
-          !invoice.preimageMatches(preimageValues.single)) {
-        return null;
-      }
-
-      final request = (jsonDecode(description) as Map).cast<String, dynamic>();
-      if (request['kind'] != 9734 || !verifyEventJson(request)) return null;
-      final requestTags = (request['tags'] as List)
-          .map((t) => List<String>.from(t as List))
-          .toList();
-      final amounts = <String>[];
-      final requestEvents = <String>[];
-      final requestRecipients = <String>[];
-      for (final t in requestTags) {
-        if (t.length < 2) continue;
-        if (t[0] == 'amount') amounts.add(t[1]);
-        if (t[0] == 'e') requestEvents.add(t[1]);
-        if (t[0] == 'p') requestRecipients.add(t[1]);
-      }
-      if (amounts.length != 1 ||
-          requestRecipients.length != 1 ||
-          requestEvents.length > 1 ||
-          int.tryParse(amounts.single) != invoice.amountMsat ||
-          receiptRecipients.single != requestRecipients.single ||
-          (recipientPub != null && requestRecipients.single != recipientPub) ||
-          (eventId != null &&
-              (requestEvents.length != 1 || requestEvents.single != eventId)) ||
-          (requestEvents.isEmpty != receiptEvents.isEmpty) ||
-          (requestEvents.isNotEmpty &&
-              receiptEvents.single != requestEvents.single)) {
-        return null;
-      }
-      return invoice.amountMsat;
+      final envelope = Nip57Protocol.inspectReceipt(
+        receipt,
+        receiptSigner: receiptSigner,
+        verifySignature: () => verifyEventJson(receipt),
+      );
+      if (envelope == null) return null;
+      final invoice = Bolt11Invoice.tryParse(envelope.bolt11);
+      if (invoice == null) return null;
+      final request =
+          (jsonDecode(envelope.description) as Map).cast<String, dynamic>();
+      return Nip57Protocol.boundReceiptAmount(
+        envelope: envelope,
+        invoice: invoice,
+        request: request,
+        verifyRequestSignature: () => verifyEventJson(request),
+        eventId: eventId,
+        recipientPubkey: recipientPub,
+      );
     } catch (_) {
       return null;
     }

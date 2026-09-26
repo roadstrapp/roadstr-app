@@ -15,7 +15,7 @@ service or UI cutover.
 | `core.search` | `fuzzy_match.dart` | accent folding, bounded Levenshtein, address weighting and stop-word rejection |
 | `core.network` | `retry.dart`, `refetch_policy.dart` | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
-| `core.protocol.lightning` | `bolt11_invoice.dart` | Bech32 checksum, network/amount, tags, expiry and SHA-256 bindings |
+| `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `zap_service.dart` | BOLT-11 parsing plus NIP-47 URI/request/response and NIP-57 draft/receipt bindings |
 | `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_pending_report_queue.dart`, `nostr_relay_message.dart`, `nostr_relay_ingress.dart`, `nostr_nip19.dart`, `nostr_relay_service.dart` | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash, outbound frames, offline FIFO/TTL/retry policy, bounded inbound envelopes, pre-verification routing/budgets and strict fixed-size NIP-19 keys |
 
 ## Shared vectors
@@ -57,14 +57,20 @@ verification. The Dart policy is used by the production relay service and its
 favourites, Lightning-address, NWC and zap-receipt one-shot loops; the Kotlin
 state machine is still detached from native sockets.
 
+`lightning_protocol_v1.tsv` is the seventh shared core fixture. Its 69 cases
+lock NWC URI parsing and secret redaction, exact NIP-47 command/draft/filter
+layouts, response binding and outcome classification, NIP-57 zap drafts and
+receipt cardinality/invoice/preimage/amount/recipient/event bindings. See
+`LIGHTNING_CORE_PARITY.md` for the exact boundary.
+
 ## Current limits
 
 - No class in this phase is called by production startup or UI.
 - Stateful navigation tests cover policy decisions, not Android sensor timing.
 - Retry scheduling is pure policy; coroutine execution and cancellation belong
   to the future native networking adapter.
-- BOLT-11 validation is only one part of Lightning. LNURL, NIP-47 and NIP-57
-  wire behavior remain open.
+- NIP-47/NIP-57 deterministic wire and binding rules are covered; NIP-04,
+  native signing, LNURL HTTP, wallet sockets and orchestration remain open.
 - Full cross-language fixture coverage for route responses and the remaining
   signed/networked Nostr surface is required. Legacy storage now has a
   synthetic encrypted Hive source fixture and shared envelope, while
@@ -84,10 +90,10 @@ state machine is still detached from native sockets.
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 569 tests passed, including the Nostr/`nostr_tools`
-  cross-check, pending-queue, bounded-inbound, ingress and NIP-19 transcripts,
-  both migration fixture oracles and the headless Dart handler.
-- `./gradlew :app:testDebugUnitTest`: 91 Kotlin tests passed, including the
-  Nostr byte/queue/inbound/ingress/NIP-19 parity suites and bounded headless
-  transport reader matrix.
+- `flutter test`: 571 tests passed, including the Nostr/`nostr_tools`
+  cross-check, pending-queue, bounded-inbound, ingress, NIP-19 and Lightning
+  transcripts, both migration fixture oracles and the headless Dart handler.
+- `./gradlew :app:testDebugUnitTest`: 93 Kotlin tests passed, including the
+  Nostr byte/queue/inbound/ingress/NIP-19, Lightning parity and bounded
+  headless transport reader suites.
 - No production Activity, manifest or startup wiring changed.
