@@ -53,11 +53,13 @@ JSON parser, so the pure Kotlin core gains no serialization dependency.
 `lib/services/nostr_relay_ingress.dart` is now the production admission gate
 between structural relay decoding and signature verification. Live road,
 confirmation and zap streams plus one-shot user-history, edit-request,
-visibility and profile fetches use it to reject unknown subscription/kind
-pairs and enforce independent per-subscription event budgets before paying the
-canonical-hash/Schnorr cost. A `verify` verdict only permits cryptographic
-verification; it never marks relay data trusted. Ordered rules preserve the
-shipped precedence even if opaque random subscription ids collide.
+visibility, profile, favourites, Lightning-address, NWC-response and
+zap-receipt fetches use it to reject unknown subscription/kind pairs and
+enforce the shipped independent event budgets before paying the canonical-
+hash/Schnorr cost. Favourites publication ACKs also use the shared structural
+decoder. A `verify` verdict only permits cryptographic verification; it never
+marks relay data trusted. Ordered rules preserve the shipped precedence even
+if opaque random subscription ids collide.
 
 `NostrRelayIngress.kt` mirrors the same state machine and accepts integral JSON
 `Long` kinds emitted by the native bounded parser. It remains detached from a
@@ -149,11 +151,13 @@ are cross-checked against `nostr_tools`; all private values are test-only.
 dart run tools/kotlin_rewrite/generate_nostr_ingress_fixture.dart --check
 ```
 
-Its 35 stateful steps cover every live route, unknown subscriptions, missing or
-wrongly typed kinds, exact/over-budget behavior, independent report/vote
-budgets, limit-before-kind precedence, defensive configuration and deliberate
-subscription-id collisions. Expected outcomes are declared independently in
-the generator before both runtimes replay the transcript.
+Its 60 stateful steps cover every live and one-shot route, unknown
+subscriptions, missing or wrongly typed kinds, exact/over-budget behavior,
+independent report/vote/favourites/Lightning/receipt budgets, the intentionally
+unbounded shipped NWC response stream, limit-before-kind precedence, defensive
+configuration and deliberate subscription-id collisions. Expected outcomes
+are declared independently in the generator before both runtimes replay the
+transcript.
 
 ## Safety properties
 
@@ -185,8 +189,7 @@ separate review and fixtures:
 - Amber/NIP-55 Intent behavior and key-isolation evidence;
 - WebSocket lifecycle, relay rotation, reconnect jitter and publish ACKs;
 - native signature-aware dispatch/socket wiring, broader parser fuzzing,
-  ingress coverage for the remaining Zap/favourites loops and every remaining
-  filter/transcript;
+  and complete filter/transcript coverage beyond admission decisions;
 - native parsing/storage for the persisted report list, process-death tests,
   queue serialization/capping and activity cursors;
 - NIP-44, NIP-47, NIP-57 and the favourites kind-30078 envelope.
@@ -195,11 +198,11 @@ The current Flutter product has neither a queue-size cap nor single-flight
 protection around overlapping flushes. This increment records that inherited
 risk rather than silently changing user-visible retry behavior.
 
-The profile-metadata fetch historically relies on its kind-0 REQ and locally
-checks author/signature but not kind. Its ingress rule therefore uses an
-explicit fallback route to preserve behavior; tightening it to kind 0 remains
-a separately reviewed hardening change rather than an undocumented parity
-drift.
+The profile-metadata and Lightning-address fetches historically rely on their
+kind-0 REQs and locally check author/signature but not kind. Their ingress
+rules therefore use explicit fallback routes to preserve behavior; tightening
+them to kind 0 remains a separately reviewed hardening change rather than an
+undocumented parity drift.
 
 No native class in this increment is reachable from `MainActivity`, the
 manifest or app startup. Rollback is removal of the native package/fixtures and

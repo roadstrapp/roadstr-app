@@ -30,9 +30,9 @@ No native production runtime exists, so no Kotlin row is marked functional.
 | Offline queue | pending signed reports, TTL drop and retry | `nostr_relay_service.dart`, `nostr_pending_report_queue.dart` | FUNCTIONAL | CORE_ONLY | shared JSON/FIFO/TTL/retry fixture green; native store, concurrency and process-death tests required |
 | Profile/identity | Amber NIP-55 and local nsec, profile metadata and visibility | `nostr_nip19.dart`, onboarding/profile screens | FUNCTIONAL | CORE_ONLY | npub/nsec representation fixture green; native key derivation/storage + manual Amber tests required |
 | Activity inbox | persisted zaps/confirmations, cursors and dedupe | `activity_notification_service.dart` | FUNCTIONAL | NOT_STARTED | per-pubkey storage fixtures |
-| Favourites sync | NIP-78 kind 30078, NIP-44, optional passphrase and relay policy | `favorites_sync_service.dart` | FUNCTIONAL | NOT_STARTED | wire and rollback fixtures |
-| Lightning | LNURL-pay, NIP-57 zaps, BOLT-11 validation and fallback link | `zap_service.dart`, `bolt11_invoice.dart` | FUNCTIONAL | CORE_ONLY | invoice/protocol fixtures |
-| NWC | NIP-47 pay_invoice over NIP-04 | `zap_service.dart` | FUNCTIONAL | NOT_STARTED | fixed wallet URI and encrypted request fixtures |
+| Favourites sync | NIP-78 kind 30078, NIP-44, optional passphrase and relay policy | `favorites_sync_service.dart` | FUNCTIONAL | CORE_ONLY | bounded ingress green; payload wire and rollback fixtures required |
+| Lightning | LNURL-pay, NIP-57 zaps, BOLT-11 validation and fallback link | `zap_service.dart`, `bolt11_invoice.dart` | FUNCTIONAL | CORE_ONLY | invoice plus relay admission green; LNURL/NIP-57 fixtures required |
+| NWC | NIP-47 pay_invoice over NIP-04 | `zap_service.dart` | FUNCTIONAL | CORE_ONLY | bounded response admission green; URI/encrypted request fixtures required |
 | GPS | LocationManager path, last-known, watchdog, assistance and lifecycle | `gps_service.dart`, map screens | FUNCTIONAL | NOT_STARTED | de-Googled manual test + lifecycle tests |
 | Background navigation | foreground notification, wakelock, screen/brightness policy | navigation notification/map screens | FUNCTIONAL | NOT_STARTED | process/background manual test |
 | Voice | Kokoro, Piper, eSpeak phonemization, language/voice/speed/audio policy | `lib/services/kokoro`, `piper` | FUNCTIONAL | NOT_STARTED | asset reuse, audio and language matrix |
