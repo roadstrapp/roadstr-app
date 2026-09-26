@@ -23,7 +23,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:maplibre/maplibre.dart' hide Box, LengthUnit;
-import 'package:nostr_tools/nostr_tools.dart' show Nip19;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:screen_brightness/screen_brightness.dart';
@@ -45,6 +44,7 @@ import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
 import '../services/navigation_guidance.dart';
 import '../services/navigation_notification_service.dart';
+import '../services/nostr_nip19.dart';
 import '../services/nostr_relay_service.dart';
 import '../services/place_search_service.dart';
 import '../services/poi_search_service.dart';
@@ -1533,7 +1533,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                       pubKeyHex: pubKey,
                     );
                     final result = await Amberflutter().signEvent(
-                      currentUser: Nip19().npubEncode(pubKey),
+                      currentUser: NostrNip19.encodePublicKey(pubKey),
                       eventJson: jsonEncode(unsigned),
                     );
                     final signed = jsonDecode(result['event'] as String)
@@ -1591,7 +1591,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         requestId: requestId,
       );
       final result = await Amberflutter().signEvent(
-        currentUser: Nip19().npubEncode(pubKey),
+        currentUser: NostrNip19.encodePublicKey(pubKey),
         eventJson: jsonEncode(unsigned),
       );
       final signed =
@@ -1635,7 +1635,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         position: event.position,
       );
       final result = await Amberflutter().signEvent(
-        currentUser: Nip19().npubEncode(pubKey),
+        currentUser: NostrNip19.encodePublicKey(pubKey),
         eventJson: jsonEncode(unsigned),
       );
       final signed =
@@ -1731,7 +1731,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
                 speedLimit: speedLimit,
               );
               final result = await Amberflutter().signEvent(
-                currentUser: Nip19().npubEncode(pubKey),
+                currentUser: NostrNip19.encodePublicKey(pubKey),
                 eventJson: jsonEncode(unsigned),
               );
               final signed = jsonDecode(result['event'] as String)

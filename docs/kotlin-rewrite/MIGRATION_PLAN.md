@@ -174,7 +174,8 @@ broader cross-language coverage and a native store are still required.
 ### KOTLIN-006 — Port Nostr protocol and publish queues (IN PROGRESS)
 
 - **Objective:** Preserve event IDs, tags, signatures, relay behavior, TTL and offline semantics.
-- **Current Dart/Flutter source:** `lib/services/nostr_relay_service.dart`, `nostr_event_verify.dart`, `nip44.dart`, `road_event.dart`.
+- **Current Dart/Flutter source:** `lib/services/nostr_relay_service.dart`,
+  `nostr_event_verify.dart`, `nostr_nip19.dart`, `nip44.dart`, `road_event.dart`.
 - **New Kotlin files/modules:** deterministic event and queue policy under
   `core/protocol/nostr`; future crypto/socket adapters under `service/nostr`.
 - **Dependencies:** Vetted secp256k1/NIP-44 implementation; OkHttp WebSocket or equivalent FOSS library.
@@ -185,9 +186,11 @@ broader cross-language coverage and a native store are still required.
   event JSON/ID/tag comparison and initial outbound relay frames;
   `nostr_pending_queue_v1.tsv` provides exact persisted JSON and FIFO/TTL/
   validation/retry transcripts; `nostr_relay_messages_v1.tsv` provides bounded
-  inbound envelope transcripts. Native signatures/dispatch, WebSocket
-  lifecycle, persistence adapters, process-death behavior and an approved queue
-  cap remain open.
+  inbound envelope transcripts; `nostr_nip19_v1.tsv` provides 35 strict
+  `npub`/`nsec` encode/decode and rejection cases cross-checked against
+  `nostr_tools`. Native signatures/key derivation/dispatch, Amber intents,
+  WebSocket lifecycle, persistence adapters, process-death behavior and an
+  approved queue cap remain open.
 - **Security/privacy impact:** Preserve key isolation, verification-before-trust and inbound DoS limits.
 - **Battery/performance impact:** Compare reconnect, socket and event-processing wakeups.
 - **Acceptance criteria:** All shipped Nostr kinds and filters are byte/semantic compatible.

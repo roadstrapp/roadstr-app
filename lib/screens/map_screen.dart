@@ -37,7 +37,6 @@ import '../services/traffic_light_service.dart';
 import '../services/ztl_service.dart';
 import 'package:amberflutter/amberflutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:nostr_tools/nostr_tools.dart' show Nip19;
 import '../l10n/app_localizations.dart';
 import '../models/favorite_place.dart';
 import '../models/activity_notification.dart';
@@ -50,6 +49,7 @@ import '../services/navigation_guidance.dart';
 import '../services/navigation_notification_service.dart';
 import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
+import '../services/nostr_nip19.dart';
 import '../services/nostr_relay_service.dart';
 import '../services/favorites_sync_service.dart';
 import '../services/transit_service.dart';
@@ -4497,7 +4497,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                       pubKeyHex: pubKey,
                     );
                     final result = await Amberflutter().signEvent(
-                      currentUser: Nip19().npubEncode(pubKey),
+                      currentUser: NostrNip19.encodePublicKey(pubKey),
                       eventJson: jsonEncode(unsigned),
                     );
                     final signed = jsonDecode(result['event'] as String)
@@ -4554,7 +4554,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         requestId: requestId,
       );
       final result = await Amberflutter().signEvent(
-        currentUser: Nip19().npubEncode(pubKey),
+        currentUser: NostrNip19.encodePublicKey(pubKey),
         eventJson: jsonEncode(unsigned),
       );
       final signed =
@@ -4596,7 +4596,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         position: event.position,
       );
       final result = await Amberflutter().signEvent(
-        currentUser: Nip19().npubEncode(pubKey),
+        currentUser: NostrNip19.encodePublicKey(pubKey),
         eventJson: jsonEncode(unsigned),
       );
       final signed =
@@ -4690,7 +4690,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
                 speedLimit: speedLimit,
               );
               final result = await Amberflutter().signEvent(
-                currentUser: Nip19().npubEncode(pubKey),
+                currentUser: NostrNip19.encodePublicKey(pubKey),
                 eventJson: jsonEncode(unsigned),
               );
               final signed = jsonDecode(result['event'] as String)
