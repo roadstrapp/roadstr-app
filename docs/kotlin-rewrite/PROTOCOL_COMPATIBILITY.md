@@ -51,7 +51,9 @@ Current evidence includes an official NIP-44 vector test in
 and pending-report tests. BOLT-11 has a native strict parser and shared fixture.
 Nostr now has a first shared deterministic-core fixture covering canonical
 serialization/IDs, all Roadstr 1315 categories, kinds 1316-1318, profile
-visibility and the main area/confirmation relay frames. Native Schnorr, the
+visibility and the main area/confirmation relay frames. A second shared fixture
+locks the pending-report Hive JSON plus FIFO, TTL, validation and retry
+transcripts in both runtimes. Native Schnorr, native queue storage, the
 remaining relay transcripts and other NIPs are still outstanding; see
 `NOSTR_CORE_PARITY.md`.
 
@@ -61,7 +63,8 @@ Port semantically, not approximately:
 
 - relay list, publish redundancy, WebSocket handshake timeout, reconnect
   backoff, subscription filters and duplicate/dedupe behavior;
-- inbound message/event count and size caps, TTL pruning and pending queue caps;
+- inbound message/event count and size caps, TTL pruning, and an explicitly
+  reviewed pending-queue cap (the current Dart queue is unbounded);
 - exact HTTP endpoints, headers/user-agent, bounded bodies, redirects, timeout,
   cancellation, retry and cleartext loopback policy;
 - geohash precision and filter composition;
