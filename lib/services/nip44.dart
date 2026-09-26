@@ -33,9 +33,36 @@ class Nip44 {
   /// Encrypts [plaintext] from [privKeyHex] to [pubKeyHex] (both 64-char hex,
   /// x-only per Nostr convention — the even-Y point is assumed, same as NIP-04).
   static String encrypt(String privKeyHex, String pubKeyHex, String plaintext) {
-    final convKey = _conversationKey(privKeyHex, pubKeyHex);
+    final convKey = conversationKey(privKeyHex, pubKeyHex);
     final nonce = _randomBytes(32);
-    final keys = _messageKeys(convKey, nonce);
+    return encryptWithConversationKey(convKey, nonce, plaintext);
+  }
+
+  /// Deterministic NIP-44 encryption boundary used by cross-runtime vectors.
+  /// Production callers should use [encrypt] so the nonce comes from a CSPRNG.
+  static String encryptWithNonce(
+    String privKeyHex,
+    String pubKeyHex,
+    String plaintext,
+    Uint8List nonce,
+  ) =>
+      encryptWithConversationKey(
+        conversationKey(privKeyHex, pubKeyHex),
+        nonce,
+        plaintext,
+      );
+
+  /// Encrypts with an already-derived conversation key. This keeps key
+  /// derivation and payload construction independently testable against the
+  /// upstream NIP-44 vectors without changing the production wire format.
+  static String encryptWithConversationKey(
+    Uint8List convKey,
+    Uint8List nonce,
+    String plaintext,
+  ) {
+    _requireLength('conversation key', convKey, 32);
+    _requireLength('nonce', nonce, 32);
+    final keys = messageKeys(convKey, nonce);
     final padded = _pad(utf8.encode(plaintext));
     final ciphertext = _chacha20(keys.chachaKey, keys.chachaNonce, padded);
     final mac = _hmacSha256(keys.hmacKey, [...nonce, ...ciphertext]);
@@ -46,6 +73,23 @@ class Nip44 {
   /// integrity failure (wrong key, tampered ciphertext, malformed payload) —
   /// never returns partially-trusted plaintext.
   static String decrypt(String privKeyHex, String pubKeyHex, String payload) {
+    // Preserve the shipped failure order: malformed envelopes are rejected
+    // before any key parsing or elliptic-curve work.
+    final raw = _decodePayload(payload);
+    return _decryptRaw(conversationKey(privKeyHex, pubKeyHex), raw);
+  }
+
+  /// Decrypts with an already-derived conversation key. Used by official
+  /// vector replay and by the native parity fixture.
+  static String decryptWithConversationKey(
+    Uint8List convKey,
+    String payload,
+  ) {
+    _requireLength('conversation key', convKey, 32);
+    return _decryptRaw(convKey, _decodePayload(payload));
+  }
+
+  static Uint8List _decodePayload(String payload) {
     final Uint8List raw;
     try {
       raw = base64.decode(payload);
@@ -58,12 +102,15 @@ class Nip44 {
     if (raw.length < 1 + 32 + 32 + 32) {
       throw const Nip44DecryptException('payload too short');
     }
+    return raw;
+  }
+
+  static String _decryptRaw(Uint8List convKey, Uint8List raw) {
     final nonce = raw.sublist(1, 33);
     final mac = raw.sublist(raw.length - 32);
     final ciphertext = raw.sublist(33, raw.length - 32);
 
-    final convKey = _conversationKey(privKeyHex, pubKeyHex);
-    final keys = _messageKeys(convKey, Uint8List.fromList(nonce));
+    final keys = messageKeys(convKey, Uint8List.fromList(nonce));
     final expectedMac = _hmacSha256(keys.hmacKey, [...nonce, ...ciphertext]);
     if (!_constantTimeEquals(expectedMac, mac)) {
       throw const Nip44DecryptException('MAC verification failed');
@@ -74,7 +121,7 @@ class Nip44 {
 
   // ── key derivation ──────────────────────────────────────────────────────
 
-  static Uint8List _conversationKey(String privKeyHex, String pubKeyHex) {
+  static Uint8List conversationKey(String privKeyHex, String pubKeyHex) {
     // Kepler.byteSecret returns [x-coordinate(32B), y-coordinate(8B trunc)];
     // NIP-44, like NIP-04, only uses the unhashed 32-byte X coordinate of the
     // ECDH shared point. '02' prefix = assume the even-Y point for the
@@ -85,9 +132,11 @@ class Nip44 {
     return Uint8List.fromList(_hmacSha256(_saltBytes, sharedX));
   }
 
-  static _MessageKeys _messageKeys(Uint8List convKey, Uint8List nonce) {
+  static Nip44MessageKeys messageKeys(Uint8List convKey, Uint8List nonce) {
+    _requireLength('conversation key', convKey, 32);
+    _requireLength('nonce', nonce, 32);
     final expanded = _hkdfExpand(convKey, nonce, 76);
-    return _MessageKeys(
+    return Nip44MessageKeys(
       chachaKey: Uint8List.fromList(expanded.sublist(0, 32)),
       chachaNonce: Uint8List.fromList(expanded.sublist(32, 44)),
       hmacKey: Uint8List.fromList(expanded.sublist(44, 76)),
@@ -125,7 +174,7 @@ class Nip44 {
     if (n == 0 || n > 65535) {
       throw ArgumentError('NIP-44 plaintext must be 1..65535 bytes, got $n');
     }
-    final target = _paddedLen(n);
+    final target = paddedLength(n);
     final out = Uint8List(2 + target);
     out[0] = (n >> 8) & 0xff;
     out[1] = n & 0xff;
@@ -141,7 +190,7 @@ class Nip44 {
     // Reference implementation also requires the padded length to be EXACTLY
     // what _paddedLen(n) prescribes — a spec-conformance check that rejects
     // payloads other NIP-44 implementations would refuse too.
-    if (n <= 0 || n > 65535 || padded.length != 2 + _paddedLen(n)) {
+    if (n <= 0 || n > 65535 || padded.length != 2 + paddedLength(n)) {
       throw const Nip44DecryptException('invalid length prefix');
     }
     return utf8.decode(padded.sublist(2, 2 + n));
@@ -151,7 +200,10 @@ class Nip44 {
   /// padded_len = chunk * (floor((n-1)/chunk) + 1). Computed with exact integer
   /// bit-length arithmetic (not floating-point log2) to avoid rounding at
   /// power-of-two boundaries.
-  static int _paddedLen(int n) {
+  static int paddedLength(int n) {
+    if (n <= 0) {
+      throw ArgumentError.value(n, 'n', 'must be positive');
+    }
     if (n <= 32) return 32;
     final m = n - 1;
     final nextPower = 1 << m.bitLength; // == 2^(floor(log2(m))+1)
@@ -172,11 +224,17 @@ class Nip44 {
     }
     return diff == 0;
   }
+
+  static void _requireLength(String name, List<int> value, int expected) {
+    if (value.length != expected) {
+      throw ArgumentError('$name must be $expected bytes, got ${value.length}');
+    }
+  }
 }
 
-class _MessageKeys {
+class Nip44MessageKeys {
   final Uint8List chachaKey, chachaNonce, hmacKey;
-  const _MessageKeys(
+  const Nip44MessageKeys(
       {required this.chachaKey,
       required this.chachaNonce,
       required this.hmacKey});

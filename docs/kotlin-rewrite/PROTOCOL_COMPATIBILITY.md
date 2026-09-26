@@ -67,9 +67,12 @@ metadata validation, callback construction and invoice amount/expiry/
 description binding. The 72-case NIP-78 fixture locks relay normalization,
 hashed/legacy tags, favourites/passphrase JSON, padding and limits, timestamps,
 snapshot/cleanup drafts, filters, event admission, relay selection and
-anti-rollback. Native NIP-04/NIP-44, Schnorr/key derivation, queue/favourites
-storage, DNS/HTTP execution, socket lifecycle and signature-aware dispatch
-wiring are still outstanding; see `NOSTR_CORE_PARITY.md`,
+anti-rollback. The 77-case NIP-44 fixture locks native ECDH validation, HKDF,
+ChaCha20/HMAC payloads, Unicode, Base64, exact padding, maximum sizes and all
+official hostile vectors against production Dart. Native NIP-04,
+Schnorr/general key derivation, NIP-44 service wiring, queue/favourites storage,
+DNS/HTTP execution, socket lifecycle and signature-aware dispatch remain
+outstanding; see `NOSTR_CORE_PARITY.md`, `NIP44_CORE_PARITY.md`,
 `LIGHTNING_CORE_PARITY.md` and `FAVORITES_SYNC_CORE_PARITY.md`.
 
 ## Network semantics that must not drift
