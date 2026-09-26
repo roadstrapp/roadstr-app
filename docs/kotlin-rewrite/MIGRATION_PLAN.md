@@ -70,6 +70,10 @@ The first native increment is intentionally isolated from production startup:
   envelopes to a bounded Dart decoder. A dependency-free Kotlin parser matches
   25 valid/hostile transcripts, including exact size and nesting boundaries;
   no native socket is wired.
+- The production favourites-sync service now delegates its relay URL, payload,
+  padding, timestamp, kind-30078/NIP-09 draft, filter, event-binding, relay
+  selection and rollback decisions to a pure Dart boundary. Kotlin matches all
+  72 shared cases; NIP-44, signing, persistence and sockets remain unwired.
 - The Kotlin suite remains independent of Android UI/runtime state; the exact
   current count is recorded in `CORE_PARITY.md` after each full run.
 - `docs/kotlin-rewrite/MIGRATION_IMPLEMENTATION.md` records what is and is not
@@ -191,10 +195,12 @@ broader cross-language coverage and a native store are still required.
   `npub`/`nsec` encode/decode and rejection cases cross-checked against
   `nostr_tools`; `nostr_ingress_v1.tsv` provides 60 stateful
   subscription/kind/budget decisions for all shipped relay loops, including
-  one-shot favourites/Lightning/NWC/zap queries, and collision precedence.
-  Native signatures/key derivation/dispatch wiring, Amber intents, WebSocket
-  lifecycle, persistence adapters, process-death behavior and an approved queue
-  cap remain open.
+  one-shot favourites/Lightning/NWC/zap queries, and collision precedence;
+  `favorites_sync_protocol_v1.tsv` provides 72 NIP-78 payload, privacy,
+  timestamp, draft/filter, admission, selection and rollback cases. Native
+  NIP-44/signatures/key derivation/dispatch wiring, Amber intents, WebSocket
+  lifecycle, persistence adapters, process-death behavior and an approved
+  queue cap remain open.
 - **Security/privacy impact:** Preserve key isolation, verification-before-trust and inbound DoS limits.
 - **Battery/performance impact:** Compare reconnect, socket and event-processing wakeups.
 - **Acceptance criteria:** All shipped Nostr kinds and filters are byte/semantic compatible.

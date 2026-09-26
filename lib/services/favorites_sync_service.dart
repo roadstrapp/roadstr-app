@@ -47,10 +47,8 @@
 //    indexer, the single worst place to park privacy-sensitive events.
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math' as math;
 
 import 'package:amberflutter/amberflutter.dart';
-import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:hive/hive.dart';
 import 'package:nostr_tools/nostr_tools.dart';
@@ -58,8 +56,10 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../models/favorite_place.dart';
 import 'favorites_crypto.dart';
+import 'favorites_sync_protocol.dart';
 import 'nip44.dart';
 import 'nostr_event_verify.dart';
+import 'nostr_protocol_codec.dart';
 import 'nostr_relay_ingress.dart';
 import 'nostr_relay_message.dart';
 
@@ -113,13 +113,9 @@ class FavoritesSyncService {
   /// regular kind: publish, read back, then publish again under the same 'd'
   /// tag and confirm the relay keeps exactly one event, the newer. A relay
   /// that stored both would quietly break last-write-wins.
-  static const _defaultRelays = [
-    'wss://relay.damus.io',
-    'wss://nos.lol',
-    'wss://purplerelay.com',
-  ];
-  static const _legacyDTag = 'roadstr-favorites';
-  static const kind = 30078;
+  static const _defaultRelays = FavoritesSyncProtocol.defaultRelays;
+  static const _legacyDTag = FavoritesSyncProtocol.legacyDTag;
+  static const kind = FavoritesSyncProtocol.kind;
 
   /// Hive key for the user's own relay, opt-in and empty by default.
   static const kCustomRelayKey = 'fav_sync_custom_relay';
@@ -158,32 +154,8 @@ class FavoritesSyncService {
   /// clear on the local network), no embedded credentials, no query or
   /// fragment, and a host that actually looks like one.
   static String? normaliseRelayUrl(String input) {
-    final trimmed = input.trim();
-    if (trimmed.isEmpty || trimmed.length > 200) return null;
-    final uri = Uri.tryParse(trimmed);
-    if (uri == null ||
-        uri.scheme != 'wss' ||
-        uri.host.isEmpty ||
-        !uri.host.contains('.') ||
-        uri.userInfo.isNotEmpty ||
-        uri.hasQuery ||
-        uri.hasFragment) {
-      return null;
-    }
-    // Drop a trailing slash so the same relay typed two ways is one entry.
-    final path = uri.path == '/' ? '' : uri.path;
-    final normalised = uri.replace(path: path).toString();
-    return _defaultRelays.contains(normalised) ? null : normalised;
+    return FavoritesSyncProtocol.normaliseRelayUrl(input);
   }
-
-  /// Max accepted event content length on pull. Legit content is ≤ 65535
-  /// plaintext bytes → ~88 KB of base64; anything bigger is a hostile relay
-  /// trying to waste memory/CPU and is dropped before hashing/verification.
-  static const _maxContentChars = 200000;
-
-  /// Plaintext size bucket (bytes). Every snapshot is padded up to a
-  /// multiple of this before encryption, capped at NIP-44's 65535 limit.
-  static const _padBucket = 4096;
 
   // Hive keys (encrypted settings box).
   static const _kLastTs = 'fav_sync_last_ts';
@@ -195,7 +167,7 @@ class FavoritesSyncService {
 
   /// Per-user 'd' tag — see ENUMERATION in the threat model above.
   static String hashedDTag(String pubKeyHex) =>
-      sha256.convert(utf8.encode('$_legacyDTag:$pubKeyHex')).toString();
+      FavoritesSyncProtocol.hashedDTag(pubKeyHex);
 
   /// Serialises every push, across instances. The snapshot is a *replaceable*
   /// event: two overlapping pushes both read the same high-water mark before
@@ -237,32 +209,34 @@ class FavoritesSyncService {
     String? privKeyHex,
     String? passphrase,
   }) async {
-    var plaintext = jsonEncode(favorites.map((f) => f.toMap()).toList());
+    var plaintext = FavoritesSyncProtocol.encodeFavorites(favorites);
     if (passphrase != null && passphrase.isNotEmpty) {
       // Off the UI isolate: this runs on every favourite edit via auto-push,
       // so a synchronous key derivation here would freeze the app during
       // ordinary use, not just on an explicit export.
-      plaintext = jsonEncode({
-        'v': 1,
-        'encrypted': true,
-        ...await FavoritesCrypto.encryptAsync(plaintext, passphrase),
-      });
+      plaintext = FavoritesSyncProtocol.wrapPassphraseEnvelope(
+        await FavoritesCrypto.encryptAsync(plaintext, passphrase),
+      );
     }
-    if (utf8.encode(plaintext).length > 65535) return false;
-    final encrypted =
-        await _encrypt(padToBucket(plaintext), pubKeyHex, privKeyHex);
+    if (utf8.encode(plaintext).length >
+        FavoritesSyncProtocol.maxPlaintextBytes) {
+      return false;
+    }
+    final encrypted = await _encrypt(
+      FavoritesSyncProtocol.padToBucket(plaintext),
+      pubKeyHex,
+      privKeyHex,
+    );
     if (encrypted == null) return false;
 
     final ts = _nextCreatedAt();
-    final signedJson = await _signEvent(
-      pubKeyHex: pubKeyHex,
+    final signedJson = await _signDraft(
+      draft: FavoritesSyncProtocol.snapshotDraft(
+        pubkey: pubKeyHex,
+        createdAt: ts,
+        encryptedContent: encrypted,
+      ),
       privKeyHex: privKeyHex,
-      kind: kind,
-      tags: [
-        ['d', hashedDTag(pubKeyHex)],
-      ],
-      content: encrypted,
-      createdAt: ts,
     );
     if (signedJson == null) return false;
 
@@ -301,7 +275,10 @@ class FavoritesSyncService {
 
     final fetchedTs = best['created_at'] as int? ?? 0;
     final lastTs = _box.get(_kLastTs) as int?;
-    if (lastTs != null && fetchedTs < lastTs) {
+    if (!FavoritesSyncProtocol.passesRollbackGuard(
+      fetchedCreatedAt: fetchedTs,
+      lastCreatedAt: lastTs,
+    )) {
       // Older than what this device already saw/published → stale relay or
       // deliberate replay of an outdated (validly signed) snapshot.
       return const FavSyncPull.none();
@@ -345,54 +322,41 @@ class FavoritesSyncService {
   // ── privacy helpers ──────────────────────────────────────────────────────
 
   /// Pads [s] with trailing spaces (legal after any top-level JSON value) to
-  /// the next [_padBucket] multiple, so ciphertext length no longer tracks
-  /// the favorites count. Capped at NIP-44's 65535-byte plaintext limit.
+  /// the next [FavoritesSyncProtocol.padBucket] multiple, so ciphertext length
+  /// no longer tracks the favorites count. Capped at NIP-44's 65535-byte
+  /// plaintext limit.
   @visibleForTesting
-  static String padToBucket(String s) {
-    final len = utf8.encode(s).length;
-    if (len > 65535) {
-      throw ArgumentError.value(
-          len, 's', 'NIP-44 plaintext exceeds 65535 bytes');
-    }
-    if (len == 65535) return s;
-    var target = ((len + _padBucket - 1) ~/ _padBucket) * _padBucket;
-    target = math.min(target, 65535);
-    return s + ' ' * (target - len);
-  }
+  static String padToBucket(String s) => FavoritesSyncProtocol.padToBucket(s);
 
   /// created_at = start of the current UTC hour, monotonically bumped above
   /// the persisted high-water mark so a same-hour re-publish (or a publish
   /// right after a pull) still wins replaceable-event ordering.
   int _nextCreatedAt() {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final hourStart = now - now % 3600;
     final last = _box.get(_kLastTs) as int? ?? 0;
-    return math.max(hourStart, last + 1);
+    return FavoritesSyncProtocol.nextCreatedAt(
+      nowUnixSeconds: now,
+      lastCreatedAt: last,
+    );
   }
 
   /// Best-effort removal of the legacy fixed-'d' event: overwrite its content
   /// with an empty replaceable event, then publish a NIP-09 deletion request
   /// for the whole replaceable address.
   Future<void> _cleanupLegacy(String pubKeyHex, String privKeyHex) async {
-    final wipe = await _signEvent(
-      pubKeyHex: pubKeyHex,
+    final wipe = await _signDraft(
+      draft: FavoritesSyncProtocol.legacyWipeDraft(
+        pubkey: pubKeyHex,
+        createdAt: _nextCreatedAt(),
+      ),
       privKeyHex: privKeyHex,
-      kind: kind,
-      tags: [
-        ['d', _legacyDTag],
-      ],
-      content: '',
-      createdAt: _nextCreatedAt(),
     );
-    final del = await _signEvent(
-      pubKeyHex: pubKeyHex,
+    final del = await _signDraft(
+      draft: FavoritesSyncProtocol.legacyDeletionDraft(
+        pubkey: pubKeyHex,
+        createdAt: _nextCreatedAt(),
+      ),
       privKeyHex: privKeyHex,
-      kind: 5,
-      tags: [
-        ['a', '$kind:$pubKeyHex:$_legacyDTag'],
-      ],
-      content: '',
-      createdAt: _nextCreatedAt(),
     );
     await Future.wait(relays.map((url) async {
       if (wipe != null) await _publishOne(url, wipe);
@@ -402,20 +366,16 @@ class FavoritesSyncService {
 
   // ── signing (nsec locally; Amber via NIP-55) ─────────────────────────────
 
-  Future<Map<String, dynamic>?> _signEvent({
-    required String pubKeyHex,
+  Future<Map<String, dynamic>?> _signDraft({
+    required NostrEventDraft draft,
     required String? privKeyHex,
-    required int kind,
-    required List<List<String>> tags,
-    required String content,
-    required int createdAt,
   }) async {
     final unsigned = Event(
-      pubkey: pubKeyHex,
-      created_at: createdAt,
-      kind: kind,
-      tags: tags,
-      content: content,
+      pubkey: draft.pubkey,
+      created_at: draft.createdAt,
+      kind: draft.kind,
+      tags: draft.tags,
+      content: draft.content,
     );
     unsigned.id = _eventApi.getEventHash(unsigned);
     if (privKeyHex != null) {
@@ -424,7 +384,7 @@ class FavoritesSyncService {
     try {
       final result = await Amberflutter().signEvent(
         eventJson: jsonEncode(unsigned.toJson()),
-        currentUser: pubKeyHex,
+        currentUser: draft.pubkey,
       );
       final sig = result['signature'] as String?;
       if (sig == null || sig.isEmpty) return null;
@@ -479,15 +439,7 @@ class FavoritesSyncService {
       String pubKeyHex, String dTag) async {
     final results = await Future.wait(
         relays.map((url) => _fetchLatest(url, pubKeyHex, dTag)));
-    Map<String, dynamic>? best;
-    for (final r in results) {
-      if (r == null) continue;
-      if (best == null ||
-          (r['created_at'] as int? ?? 0) > (best['created_at'] as int? ?? 0)) {
-        best = r;
-      }
-    }
-    return best;
+    return FavoritesSyncProtocol.newestSnapshot(results);
   }
 
   Future<bool> _publishOne(String url, Map<String, dynamic> eventJson) async {
@@ -568,15 +520,12 @@ class FavoritesSyncService {
             // (3) kind and 'd' must match what was asked — a relay could
             //     answer with a different (validly signed) event of ours;
             // (4) verify id + signature.
-            final content = json['content'];
-            if (content is String && content.length > _maxContentChars) return;
-            final tags = (json['tags'] as List?) ?? const [];
-            final dMatches = tags.any((t) =>
-                t is List && t.length >= 2 && t[0] == 'd' && t[1] == dTag);
-            if (json['pubkey'] == pubKeyHex &&
-                json['kind'] == kind &&
-                dMatches &&
-                _verifyEvent(json)) {
+            if (FavoritesSyncProtocol.snapshotEventIsBound(
+              json,
+              pubkey: pubKeyHex,
+              dTag: dTag,
+              verifySignature: () => _verifyEvent(json),
+            )) {
               completer.complete(json);
             }
           } else if (message is NostrRelayEoseMessage &&
@@ -591,16 +540,11 @@ class FavoritesSyncService {
       }, onDone: () {
         if (!completer.isCompleted) completer.complete(null);
       });
-      ws.sink.add(jsonEncode([
-        'REQ',
-        subId,
-        {
-          'kinds': [kind],
-          'authors': [pubKeyHex],
-          '#d': [dTag],
-          'limit': 1,
-        }
-      ]));
+      ws.sink.add(jsonEncode(FavoritesSyncProtocol.fetchRequest(
+        subscriptionId: subId,
+        pubkey: pubKeyHex,
+        dTag: dTag,
+      )));
       return await completer.future
           .timeout(const Duration(seconds: 6), onTimeout: () => null);
     } catch (_) {
