@@ -162,7 +162,8 @@ broader cross-language coverage and a native store are still required.
 - **Dependencies:** Kotlin stdlib and vetted FOSS crypto/serialization only where required.
 - **Migration impact:** None directly.
 - **User-visible impact:** Must remain behaviorally identical.
-- **Tests:** Same fixtures for geo, heading, off-route, polyline, progress, opening hours, units and invoices.
+- **Tests:** Same fixtures for geo, heading, off-route, polyline, progress,
+  opening hours, units, invoices and deterministic LNURL-pay behavior.
 - **Parity evidence:** Shared TSV vectors executed by Flutter and Kotlin for
   solar times, fuzzy normalization, opening hours, polyline and BOLT-11;
   dedicated native tests cover stateful navigation/camera behavior.
@@ -252,15 +253,19 @@ broader cross-language coverage and a native store are still required.
 ### KOTLIN-010 — Port Lightning, NWC and Amber
 
 - **Objective:** Preserve NIP-47/NIP-57/BOLT-11 and direct NIP-55 signer flows.
-- **Current Dart/Flutter source:** `zap_service.dart`, `bolt11_invoice.dart`, profile/onboarding/settings screens.
+- **Current Dart/Flutter source:** `zap_service.dart`, `bolt11_invoice.dart`,
+  `lightning_protocol.dart`, `lnurl_protocol.dart`, profile/onboarding/settings
+  screens.
 - **New Kotlin files/modules:** deterministic `core/protocol/lightning` is green; future `service/lightning`, `service/amber`, `core/nostr/signing` adapters remain.
 - **Dependencies:** Vetted crypto/URL parser; Android Activity Result APIs; no proprietary wallet SDK.
 - **Migration impact:** NWC URI and identity flavor must be preserved exactly.
 - **User-visible impact:** Same signer approval/cancel flow, wallet fallback and zap behavior.
-- **Tests:** fixed invoice/NIP-04/NIP-47/NIP-57 fixtures; manual Amber signer matrix.
+- **Tests:** fixed invoice/LNURL/NIP-04/NIP-47/NIP-57 fixtures; manual Amber signer matrix.
 - **Parity evidence:** BOLT-11 vectors plus `lightning_protocol_v1.tsv` with
-  69 NWC URI/command/wire/response and NIP-57 draft/receipt cases; NIP-04
-  ciphertext, native signatures and live-wallet transcripts remain open.
+  69 NWC URI/command/wire/response and NIP-57 draft/receipt cases, plus
+  `lnurl_protocol_v1.tsv` with 77 source/metadata/callback/invoice cases;
+  NIP-04 ciphertext, native DNS/HTTP, signatures and live-wallet transcripts
+  remain open.
 - **Security/privacy impact:** Amber never receives a private key from Roadstr; NWC secret stays Keystore-backed.
 - **Battery/performance impact:** No persistent relay/socket owned by a Composable; bounded payment flow.
 - **Acceptance criteria:** nsec and Amber users remain configured and can perform the same operations.

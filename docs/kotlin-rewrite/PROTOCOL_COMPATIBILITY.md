@@ -62,8 +62,11 @@ precedence and pre-verification event budgets for every production relay loop,
 including favourites, Lightning-address, NWC-response and receipt queries.
 The 69-case Lightning fixture additionally locks NWC URI/command/wire/response
 semantics and NIP-57 draft/receipt bindings, including lazy verifier ordering.
-Native NIP-04, Schnorr/key derivation, queue storage, socket lifecycle and
-signature-aware dispatch wiring are still outstanding; see
+The 77-case LNURL fixture locks `lud16`/`lud06` resolution, HTTPS admission,
+metadata validation, callback construction and invoice amount/expiry/
+description binding. Native NIP-04, Schnorr/key derivation, queue storage,
+DNS/HTTP execution, socket lifecycle and signature-aware dispatch wiring are
+still outstanding; see
 `NOSTR_CORE_PARITY.md` and `LIGHTNING_CORE_PARITY.md`.
 
 ## Network semantics that must not drift
