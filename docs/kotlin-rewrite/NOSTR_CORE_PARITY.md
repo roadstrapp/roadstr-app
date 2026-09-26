@@ -192,7 +192,9 @@ separate review and fixtures:
   and complete filter/transcript coverage beyond admission decisions;
 - native parsing/storage for the persisted report list, process-death tests,
   queue serialization/capping and activity cursors;
-- NIP-44, NIP-47, NIP-57 and the favourites kind-30078 envelope.
+- NIP-44, NIP-04 crypto, full NIP-47/NIP-57 socket/signature orchestration and
+  the favourites kind-30078 envelope. Deterministic Lightning rules are covered
+  separately in `LIGHTNING_CORE_PARITY.md`.
 
 The current Flutter product has neither a queue-size cap nor single-flight
 protection around overlapping flushes. This increment records that inherited
