@@ -64,10 +64,13 @@ The 69-case Lightning fixture additionally locks NWC URI/command/wire/response
 semantics and NIP-57 draft/receipt bindings, including lazy verifier ordering.
 The 77-case LNURL fixture locks `lud16`/`lud06` resolution, HTTPS admission,
 metadata validation, callback construction and invoice amount/expiry/
-description binding. Native NIP-04, Schnorr/key derivation, queue storage,
-DNS/HTTP execution, socket lifecycle and signature-aware dispatch wiring are
-still outstanding; see
-`NOSTR_CORE_PARITY.md` and `LIGHTNING_CORE_PARITY.md`.
+description binding. The 72-case NIP-78 fixture locks relay normalization,
+hashed/legacy tags, favourites/passphrase JSON, padding and limits, timestamps,
+snapshot/cleanup drafts, filters, event admission, relay selection and
+anti-rollback. Native NIP-04/NIP-44, Schnorr/key derivation, queue/favourites
+storage, DNS/HTTP execution, socket lifecycle and signature-aware dispatch
+wiring are still outstanding; see `NOSTR_CORE_PARITY.md`,
+`LIGHTNING_CORE_PARITY.md` and `FAVORITES_SYNC_CORE_PARITY.md`.
 
 ## Network semantics that must not drift
 

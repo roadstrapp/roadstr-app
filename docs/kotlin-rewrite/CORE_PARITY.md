@@ -16,7 +16,7 @@ service or UI cutover.
 | `core.network` | `retry.dart`, `refetch_policy.dart` | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
 | `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `lnurl_protocol.dart`, `zap_service.dart` | BOLT-11 parsing, LNURL-pay source/metadata/callback/invoice binding, NIP-47 URI/request/response and NIP-57 draft/receipt bindings |
-| `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_pending_report_queue.dart`, `nostr_relay_message.dart`, `nostr_relay_ingress.dart`, `nostr_nip19.dart`, `nostr_relay_service.dart` | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash, outbound frames, offline FIFO/TTL/retry policy, bounded inbound envelopes, pre-verification routing/budgets and strict fixed-size NIP-19 keys |
+| `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_pending_report_queue.dart`, `nostr_relay_message.dart`, `nostr_relay_ingress.dart`, `nostr_nip19.dart`, `favorites_sync_protocol.dart`, Nostr/favourites services | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash, outbound frames, offline FIFO/TTL/retry policy, bounded inbound envelopes, pre-verification routing/budgets, strict fixed-size NIP-19 keys and deterministic NIP-78 favourites policy |
 
 ## Shared vectors
 
@@ -69,15 +69,24 @@ metadata shape and amount bounds, callback query construction and BOLT-11
 amount/expiry/description binding. The Dart core is now called by production
 `ZapService`; Kotlin remains detached from native networking.
 
+`favorites_sync_protocol_v1.tsv` is the ninth shared core fixture. Its 72
+cases lock custom-relay normalization, per-user and legacy `d` tags, favourites
+JSON and passphrase envelopes, byte padding and limits, timestamp ordering,
+snapshot/cleanup drafts, exact fetch filters, lazy event admission, newest
+selection and anti-rollback. The Dart core is called by production
+`FavoritesSyncService`; Kotlin remains detached from crypto, storage and
+networking. See `FAVORITES_SYNC_CORE_PARITY.md` for the exact boundary.
+
 ## Current limits
 
 - No class in this phase is called by production startup or UI.
 - Stateful navigation tests cover policy decisions, not Android sensor timing.
 - Retry scheduling is pure policy; coroutine execution and cancellation belong
   to the future native networking adapter.
-- NIP-47/NIP-57 and LNURL-pay deterministic wire, parsing and binding rules are
-  covered; NIP-04, native signing, LNURL DNS/HTTP/redirect execution, wallet
-  sockets and orchestration remain open.
+- NIP-47/NIP-57, LNURL-pay and NIP-78 favourites deterministic wire, parsing,
+  padding, binding and rollback rules are covered; NIP-04/NIP-44, native
+  signing, LNURL DNS/HTTP/redirect execution, wallet/relay sockets, persistence
+  and orchestration remain open.
 - Full cross-language fixture coverage for route responses and the remaining
   signed/networked Nostr surface is required. Legacy storage now has a
   synthetic encrypted Hive source fixture and shared envelope, while
@@ -97,11 +106,11 @@ amount/expiry/description binding. The Dart core is now called by production
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 572 tests passed, including the Nostr/`nostr_tools`
+- `flutter test`: 573 tests passed, including the Nostr/`nostr_tools`
   cross-check, pending-queue, bounded-inbound, ingress, NIP-19, Lightning and
-  LNURL transcripts, both migration fixture oracles and the headless Dart
-  handler.
-- `./gradlew :app:testDebugUnitTest`: 94 Kotlin tests passed, including the
-  Nostr byte/queue/inbound/ingress/NIP-19, Lightning/LNURL parity and bounded
-  headless transport reader suites.
+  LNURL/NIP-78 transcripts, both migration fixture oracles and the headless
+  Dart handler.
+- `./gradlew :app:testDebugUnitTest`: 95 Kotlin tests passed, including the
+  Nostr byte/queue/inbound/ingress/NIP-19/NIP-78, Lightning/LNURL parity and
+  bounded headless transport reader suites.
 - No production Activity, manifest or startup wiring changed.

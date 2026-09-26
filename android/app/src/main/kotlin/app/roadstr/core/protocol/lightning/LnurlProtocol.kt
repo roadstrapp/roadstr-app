@@ -52,7 +52,7 @@ object LnurlProtocol {
                 val candidate = "https://${domain.lowercase()}/.well-known/lnurlp/${encodePathSegment(user)}"
                 canonicalHttpsUrl(candidate)?.takeIf(::isSafeHttpsUrl)
             }
-        } catch (_: RuntimeException) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -86,7 +86,7 @@ object LnurlProtocol {
                 nostrPubkey = if (allowsNostr) nostrPubkey!!.lowercase() else null,
                 allowsNostr = allowsNostr,
             )
-        } catch (_: RuntimeException) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -111,7 +111,7 @@ object LnurlProtocol {
                 url = replaceQuery(uri, query),
                 description = description,
             )
-        } catch (_: RuntimeException) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -131,7 +131,7 @@ object LnurlProtocol {
                     !decoded.isExpiredAt(nowUnixSeconds) &&
                     decoded.descriptionMatches(request.description)
             }
-        } catch (_: RuntimeException) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -160,7 +160,7 @@ object LnurlProtocol {
                 }
             }
             true
-        } catch (_: RuntimeException) {
+        } catch (_: Exception) {
             false
         }
     }
@@ -176,7 +176,7 @@ object LnurlProtocol {
                     item[0] is String &&
                     item[1] is String
             }
-    } catch (_: RuntimeException) {
+    } catch (_: Exception) {
         false
     }
 
@@ -209,7 +209,7 @@ object LnurlProtocol {
                 if (uri.rawQuery != null) append('?').append(normalizeEscapes(uri.rawQuery))
                 if (uri.rawFragment != null) append('#').append(normalizeEscapes(uri.rawFragment))
             }
-        } catch (_: RuntimeException) {
+        } catch (_: Exception) {
             null
         }
     }
