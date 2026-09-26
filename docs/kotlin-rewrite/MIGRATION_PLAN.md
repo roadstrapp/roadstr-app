@@ -188,9 +188,11 @@ broader cross-language coverage and a native store are still required.
   validation/retry transcripts; `nostr_relay_messages_v1.tsv` provides bounded
   inbound envelope transcripts; `nostr_nip19_v1.tsv` provides 35 strict
   `npub`/`nsec` encode/decode and rejection cases cross-checked against
-  `nostr_tools`. Native signatures/key derivation/dispatch, Amber intents,
-  WebSocket lifecycle, persistence adapters, process-death behavior and an
-  approved queue cap remain open.
+  `nostr_tools`; `nostr_ingress_v1.tsv` provides 35 stateful
+  subscription/kind/budget decisions and collision precedence steps. Native
+  signatures/key derivation/dispatch wiring, Amber intents, WebSocket
+  lifecycle, persistence adapters, process-death behavior and an approved
+  queue cap remain open.
 - **Security/privacy impact:** Preserve key isolation, verification-before-trust and inbound DoS limits.
 - **Battery/performance impact:** Compare reconnect, socket and event-processing wakeups.
 - **Acceptance criteria:** All shipped Nostr kinds and filters are byte/semantic compatible.

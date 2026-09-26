@@ -23,6 +23,7 @@ import '../models/road_event.dart';
 import 'nostr_event_verify.dart';
 import 'nostr_pending_report_queue.dart';
 import 'nostr_protocol_codec.dart';
+import 'nostr_relay_ingress.dart';
 import 'nostr_relay_message.dart';
 import 'zap_service.dart';
 
@@ -186,6 +187,7 @@ class NostrRelayService {
   /// NIP-01 subscription IDs so we can send CLOSE before a new REQ.
   String _eventsSubId = '';
   String _confSubId = '';
+  NostrRelayIngress? _liveIngress;
 
   /// The geohash (precision 4) of the last subscribed area.
   /// Compared on each [subscribeArea] call to avoid redundant REQ messages.
@@ -450,6 +452,7 @@ class NostrRelayService {
     if (_myConfSubId.isNotEmpty) _send(['CLOSE', _myConfSubId]);
     _zapSubId = '';
     _myConfSubId = '';
+    _liveIngress = null;
     _myPubKeyForNotif = null;
     _myZapSigner = null;
     _myEventIds = {};
@@ -460,6 +463,7 @@ class NostrRelayService {
     final pub = _myPubKeyForNotif;
     if (pub == null) return;
     _zapSubId = randomSubId();
+    _liveIngress = null;
     _send([
       'REQ',
       _zapSubId,
@@ -471,6 +475,7 @@ class NostrRelayService {
     ]);
     if (_myEventIds.isNotEmpty) {
       _myConfSubId = randomSubId();
+      _liveIngress = null;
       _send([
         'REQ',
         _myConfSubId,
@@ -808,6 +813,7 @@ class NostrRelayService {
       _send(NostrRelayWire.close(_eventsSubId));
     }
     _eventsSubId = randomSubId();
+    _liveIngress = null;
     _send(NostrRelayWire.areaRequest(
       subscriptionId: _eventsSubId,
       geohashes: geohashes,
@@ -823,6 +829,7 @@ class NostrRelayService {
       _send(NostrRelayWire.close(_confSubId));
     }
     _confSubId = randomSubId();
+    _liveIngress = null;
     _send(NostrRelayWire.confirmationRequest(
       subscriptionId: _confSubId,
       eventIds: ids,
@@ -878,31 +885,54 @@ class NostrRelayService {
           // subscription it arrived on and what kind it claims, both of
           // which the relay itself had to route correctly for the message
           // to reach this socket at all.
-          final wantsIt = switch (kind) {
-            1315 || 1317 => subId == _eventsSubId,
-            1316 => subId == _confSubId || subId == _myConfSubId,
-            9735 => subId == _zapSubId,
-            _ => false,
-          };
-          if (!wantsIt) return;
+          final ingress = _liveIngress ??= NostrRelayIngress([
+            NostrIngressRule(
+              name: 'events',
+              subscriptionId: _eventsSubId,
+              routes: const {
+                1315: NostrIngressRoute.roadEvent,
+                1317: NostrIngressRoute.roadUpdate,
+              },
+            ),
+            NostrIngressRule(
+              name: 'confirmations',
+              subscriptionId: _confSubId,
+              routes: const {1316: NostrIngressRoute.confirmation},
+            ),
+            NostrIngressRule(
+              name: 'own-confirmations',
+              subscriptionId: _myConfSubId,
+              routes: const {1316: NostrIngressRoute.ownConfirmation},
+            ),
+            NostrIngressRule(
+              name: 'zaps',
+              subscriptionId: _zapSubId,
+              routes: const {9735: NostrIngressRoute.zapReceipt},
+            ),
+          ]);
+          final decision = ingress.inspect(
+            subscriptionId: subId,
+            claimedKind: kind,
+          );
+          if (!decision.shouldVerify) return;
           // Relays are untrusted: drop events whose id doesn't match the
           // canonical hash or whose Schnorr signature is invalid. Without
           // this check a malicious relay could fabricate road events or
           // confirmations attributed to any pubkey.
           if (!_verifyEvent(json)) return;
-          switch (kind as int) {
-            case 1315:
+          switch (decision.route) {
+            case NostrIngressRoute.roadEvent:
               _handleRoadEvent(json);
-            case 1317:
+            case NostrIngressRoute.roadUpdate:
               _handleRoadUpdate(json);
-            case 1316:
-              if (subId == _confSubId) {
-                _handleConfirmation(json);
-              } else if (subId == _myConfSubId) {
-                _handleMyConfirmation(json);
-              }
-            case 9735:
+            case NostrIngressRoute.confirmation:
+              _handleConfirmation(json);
+            case NostrIngressRoute.ownConfirmation:
+              _handleMyConfirmation(json);
+            case NostrIngressRoute.zapReceipt:
               _handleZapReceipt(json);
+            default:
+              return;
           }
         case NostrRelayEoseMessage(:final subscriptionId):
           if (subscriptionId == _eventsSubId) {
@@ -1474,13 +1504,28 @@ class NostrRelayService {
       // counter would let a user with many reports, or one popular report,
       // spend the whole allowance on confirmations and silently truncate the
       // very list being displayed.
-      var processedReports = 0;
-      var processedVotes = 0;
       final maxReports = safeLimit * 2;
       final maxVotes = safeLimit * 5;
       final completer = Completer<List<RoadEvent>>();
       final evSub = randomSubId();
       final confSub = randomSubId();
+      final ingress = NostrRelayIngress([
+        NostrIngressRule(
+          name: 'user-events',
+          subscriptionId: evSub,
+          routes: const {
+            1315: NostrIngressRoute.userReport,
+            1317: NostrIngressRoute.userUpdate,
+          },
+          maxEvents: maxReports,
+        ),
+        NostrIngressRule(
+          name: 'user-votes',
+          subscriptionId: confSub,
+          routes: const {1316: NostrIngressRoute.userVote},
+          maxEvents: maxVotes,
+        ),
+      ]);
       var confirmationRequested = false;
 
       /// Applies a verified kind-1317 speed-limit update to its report, newest
@@ -1572,24 +1617,22 @@ class NostrRelayService {
             }
             if (message is! NostrRelayEventMessage) return;
             final messageSubId = message.subscriptionId;
-            // Counted before verification: the signature check is the
-            // expensive part, so the ceiling has to sit in front of it.
-            if (messageSubId == evSub) {
-              if (++processedReports > maxReports) {
-                if (!completer.isCompleted) completer.complete(events);
-                return;
-              }
-            } else if (messageSubId == confSub) {
-              // Votes are enrichment: stop counting them and answer with the
-              // reports already collected rather than dropping the lot.
-              if (++processedVotes > maxVotes) {
-                if (!completer.isCompleted) completer.complete(events);
-                return;
-              }
-            } else {
+            final json = message.event;
+            // Subscription, claimed kind and per-subscription budget are all
+            // checked before the expensive signature verification. Messages
+            // on a recognized subscription consume budget even when their
+            // claimed kind is wrong, matching the previous flood ceiling.
+            final decision = ingress.inspect(
+              subscriptionId: messageSubId,
+              claimedKind: json['kind'],
+            );
+            if (decision.limitReached) {
+              // Votes are enrichment: answer with the reports already
+              // collected rather than dropping the lot.
+              if (!completer.isCompleted) completer.complete(events);
               return;
             }
-            final json = message.event;
+            if (!decision.shouldVerify) return;
             // Same trust rule as the live subscription: verify id + signature
             // before using anything a relay sends.
             if (!verifyEventJson(json)) return;
@@ -1597,14 +1640,15 @@ class NostrRelayService {
             // ignore its own filters: re-check the author locally, or somebody
             // else's validly signed report lands in "my reports".
             if (messageSubId == evSub && json['pubkey'] != pubHex) return;
-            if (messageSubId == evSub && json['kind'] == 1315) {
-              return onReport(json);
-            }
-            if (messageSubId == evSub && json['kind'] == 1317) {
-              return onUpdate(json);
-            }
-            if (messageSubId == confSub && json['kind'] == 1316) {
-              return onVote(json);
+            switch (decision.route) {
+              case NostrIngressRoute.userReport:
+                return onReport(json);
+              case NostrIngressRoute.userUpdate:
+                return onUpdate(json);
+              case NostrIngressRoute.userVote:
+                return onVote(json);
+              default:
+                return;
             }
           } catch (_) {}
         },
@@ -1673,19 +1717,29 @@ class NostrRelayService {
       final subId = randomSubId();
       final completer = Completer<List<RoadEventEditRequest>>();
       final out = <RoadEventEditRequest>[];
-      var receivedEvents = 0;
+      final ingress = NostrRelayIngress([
+        NostrIngressRule(
+          name: 'edit-requests',
+          subscriptionId: subId,
+          routes: const {1318: NostrIngressRoute.editRequest},
+          maxEvents: 100,
+        ),
+      ]);
       ws.stream.listen((raw) {
         if (completer.isCompleted) return;
         try {
           final message = NostrRelayMessageDecoder.decode(raw).message;
-          if (message is NostrRelayEventMessage &&
-              message.subscriptionId == subId) {
-            if (++receivedEvents > 100) {
+          if (message is NostrRelayEventMessage) {
+            final json = message.event;
+            final decision = ingress.inspect(
+              subscriptionId: message.subscriptionId,
+              claimedKind: json['kind'],
+            );
+            if (decision.limitReached) {
               completer.complete(out);
               return;
             }
-            final json = message.event;
-            if (json['kind'] != 1318 || !verifyEventJson(json)) return;
+            if (!decision.shouldVerify || !verifyEventJson(json)) return;
             final tags = (json['tags'] as List?) ?? const [];
             String? target;
             String? rawLimit;
@@ -1790,22 +1844,31 @@ class NostrRelayService {
       final subId = randomSubId();
       RoadstrProfileVisibility? latest;
       var latestCreatedAt = -1;
-      var receivedEvents = 0;
+      final ingress = NostrRelayIngress([
+        NostrIngressRule(
+          name: 'profile-visibility',
+          subscriptionId: subId,
+          routes: const {30078: NostrIngressRoute.profileVisibility},
+          maxEvents: 10,
+        ),
+      ]);
       ws.stream.listen(
         (raw) {
           if (completer.isCompleted) return;
           try {
             final message = NostrRelayMessageDecoder.decode(raw).message;
-            if (message is NostrRelayEventMessage &&
-                message.subscriptionId == subId) {
-              if (++receivedEvents > 10) {
+            if (message is NostrRelayEventMessage) {
+              final json = message.event;
+              final decision = ingress.inspect(
+                subscriptionId: message.subscriptionId,
+                claimedKind: json['kind'],
+              );
+              if (decision.limitReached) {
                 completer.complete(latest);
                 return;
               }
-              final json = message.event;
-              if (json['pubkey'] != pubHex ||
-                  json['kind'] != 30078 ||
-                  !verifyEventJson(json)) {
+              if (!decision.shouldVerify) return;
+              if (json['pubkey'] != pubHex || !verifyEventJson(json)) {
                 return;
               }
               final tags = (json['tags'] as List?) ?? const [];
@@ -1868,20 +1931,31 @@ class NostrRelayService {
       final subId = randomSubId();
       NostrProfile? latest;
       var latestCreatedAt = -1;
-      var receivedEvents = 0;
+      final ingress = NostrRelayIngress([
+        NostrIngressRule(
+          name: 'profile-metadata',
+          subscriptionId: subId,
+          fallbackRoute: NostrIngressRoute.profileMetadata,
+          maxEvents: 10,
+        ),
+      ]);
 
       ws.stream.listen(
         (raw) {
           if (completer.isCompleted) return;
           try {
             final message = NostrRelayMessageDecoder.decode(raw).message;
-            if (message is NostrRelayEventMessage &&
-                message.subscriptionId == subId) {
-              if (++receivedEvents > 10) {
+            if (message is NostrRelayEventMessage) {
+              final json = message.event;
+              final decision = ingress.inspect(
+                subscriptionId: message.subscriptionId,
+                claimedKind: json['kind'],
+              );
+              if (decision.limitReached) {
                 completer.complete(latest);
                 return;
               }
-              final json = message.event;
+              if (!decision.shouldVerify) return;
               // Verify author + id + signature: a forged kind-0 would let a
               // malicious relay plant an arbitrary display name/avatar.
               if (json['pubkey'] != pubHex || !verifyEventJson(json)) return;

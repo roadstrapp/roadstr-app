@@ -1,0 +1,37 @@
+# Roadstr Nostr relay ingress fixture v1.
+# scenario	step	subscription	kind	verdict	route	rule	observed
+live	unknown-subscription	other	int:1315	ignore	-	-	0
+live	road-event	events	int:1315	verify	roadEvent	events	1
+live	road-update	events	int:1317	verify	roadUpdate	events	2
+live	wrong-kind-consumes-budget	events	int:1316	rejectKind	-	events	3
+live	confirmation	confirmations	int:1316	verify	confirmation	confirmations	1
+live	own-confirmation	mine	int:1316	verify	ownConfirmation	mine	1
+live	zap-receipt	zaps	int:9735	verify	zapReceipt	zaps	1
+live	string-kind	events	string:1315	rejectKind	-	events	4
+live	missing-kind	events	null	rejectKind	-	events	5
+live	wrong-zap-kind	zaps	int:1315	rejectKind	-	zaps	2
+live-collision	collision-confirmation-first	same	int:1316	verify	confirmation	events	1
+live-collision	collision-zap	same	int:9735	verify	zapReceipt	events	2
+live-collision	collision-road	same	int:1315	verify	roadEvent	events	3
+live-collision	collision-update	same	int:1317	verify	roadUpdate	events	4
+live-collision	collision-wrong-kind	same	int:999	rejectKind	-	events	5
+history	history-unknown	other	int:1315	ignore	-	-	0
+history	history-wrong-kind	events	int:999	rejectKind	-	reports	1
+history	history-exact-budget	events	int:1315	verify	userReport	reports	2
+history	history-over-budget	events	int:1317	limitReached	-	reports	3
+history	history-remains-exhausted	events	int:1315	limitReached	-	reports	4
+history	votes-independent-budget	votes	int:1316	verify	userVote	votes	1
+history	limit-precedes-kind	votes	int:999	limitReached	-	votes	2
+history-collision	history-collision-vote-route	same	int:1316	verify	userVote	reports	1
+history-collision	history-collision-report-route	same	int:1315	verify	userReport	reports	2
+history-collision	history-collision-first-budget-wins	same	int:1317	limitReached	-	reports	3
+history-collision	history-collision-unknown	other	int:1316	ignore	-	-	0
+edit	edit-wrong-kind	edit	int:1317	rejectKind	-	edit	1
+edit	edit-exact-budget	edit	int:1318	verify	editRequest	edit	2
+edit	edit-over-budget	edit	int:1318	limitReached	-	edit	3
+fallback	fallback-string-kind	profile	string:0	verify	profileMetadata	profile	1
+fallback	fallback-missing-kind	profile	null	verify	profileMetadata	profile	2
+fallback	fallback-over-budget	profile	int:0	limitReached	-	profile	3
+visibility	visibility-event	visibility	int:30078	verify	profileVisibility	visibility	1
+visibility	visibility-wrong-kind	visibility	int:0	rejectKind	-	visibility	2
+visibility	visibility-limit-precedes-kind	visibility	int:0	limitReached	-	visibility	3
