@@ -56,9 +56,12 @@ locks the pending-report Hive JSON plus FIFO, TTL, validation and retry
 transcripts in both runtimes. A third fixture locks bounded inbound decoding
 for NIP-01/NIP-42 envelope types, structural failures, UTF-16 size limits and
 nesting limits. A fourth fixture locks strict fixed-size NIP-19 `npub`/`nsec`
-encoding, decoding and malformed-input rejection against `nostr_tools`. Native
-Schnorr/key derivation, native queue storage, socket lifecycle, signature-aware
-dispatch and other NIPs are still outstanding; see `NOSTR_CORE_PARITY.md`.
+encoding, decoding and malformed-input rejection against `nostr_tools`. A
+fifth Nostr fixture locks stateful subscription/kind routing, collision
+precedence and pre-verification event budgets for the production relay service.
+Native Schnorr/key derivation, native queue storage, socket lifecycle and
+signature-aware dispatch wiring are still outstanding; see
+`NOSTR_CORE_PARITY.md`.
 
 ## Network semantics that must not drift
 

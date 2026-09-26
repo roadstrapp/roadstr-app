@@ -16,7 +16,7 @@ service or UI cutover.
 | `core.network` | `retry.dart`, `refetch_policy.dart` | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
 | `core.protocol.lightning` | `bolt11_invoice.dart` | Bech32 checksum, network/amount, tags, expiry and SHA-256 bindings |
-| `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_pending_report_queue.dart`, `nostr_relay_message.dart`, `nostr_nip19.dart`, `nostr_relay_service.dart` | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash, outbound frames, offline FIFO/TTL/retry policy, bounded inbound envelopes and strict fixed-size NIP-19 keys |
+| `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_pending_report_queue.dart`, `nostr_relay_message.dart`, `nostr_relay_ingress.dart`, `nostr_nip19.dart`, `nostr_relay_service.dart` | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash, outbound frames, offline FIFO/TTL/retry policy, bounded inbound envelopes, pre-verification routing/budgets and strict fixed-size NIP-19 keys |
 
 ## Shared vectors
 
@@ -50,6 +50,12 @@ of invalid case, checksum, prefix, padding, payload length and hex. The valid
 vectors are cross-checked against `nostr_tools`; Kotlin uses a dependency-free
 codec and neither runtime exposes candidate secret input in decode errors.
 
+`nostr_ingress_v1.tsv` is the sixth shared core fixture. Its 35 sequential
+decisions lock subscription/kind routing, unknown-input rejection, independent
+budgets, exact ceiling behavior and collision precedence before signature
+verification. The Dart policy is used by the production relay service; the
+Kotlin state machine is still detached from native sockets.
+
 ## Current limits
 
 - No class in this phase is called by production startup or UI.
@@ -66,8 +72,9 @@ codec and neither runtime exposes candidate secret input in decode errors.
 - The Kotlin queue policy is not wired to a native store or socket. The current
   Flutter queue is unbounded and does not serialize concurrent flush calls;
   changing either behavior requires an explicit, fixture-backed decision.
-- The inbound decoder is structural only: native subscription routing, event
-  budgets, signature verification and WebSocket lifecycle remain open.
+- The inbound decoder and ingress policy are detached native pieces: signature
+  verification, socket lifecycle and wiring them into a native service remain
+  open. Zap/favourites relay loops still need the shared admission boundary.
 - The NIP-19 slice covers key representation only. Native secp256k1 public-key
   derivation/scalar validation, signing, Amber intents and identity storage are
   still open.
@@ -75,10 +82,10 @@ codec and neither runtime exposes candidate secret input in decode errors.
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 565 tests passed, including the Nostr/`nostr_tools`
-  cross-check, pending-queue, bounded-inbound and NIP-19 transcripts, both
-  migration fixture oracles and the headless Dart handler.
-- `./gradlew :app:testDebugUnitTest`: 88 Kotlin tests passed, including the
-  Nostr byte/queue/inbound/NIP-19 parity suites and bounded headless transport
-  reader matrix.
+- `flutter test`: 569 tests passed, including the Nostr/`nostr_tools`
+  cross-check, pending-queue, bounded-inbound, ingress and NIP-19 transcripts,
+  both migration fixture oracles and the headless Dart handler.
+- `./gradlew :app:testDebugUnitTest`: 91 Kotlin tests passed, including the
+  Nostr byte/queue/inbound/ingress/NIP-19 parity suites and bounded headless
+  transport reader matrix.
 - No production Activity, manifest or startup wiring changed.
