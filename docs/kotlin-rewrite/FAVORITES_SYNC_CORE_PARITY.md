@@ -68,7 +68,8 @@ IDs.
 
 ## Explicitly outside this slice
 
-- native NIP-44 v2 self-encryption/decryption and official vectors;
+- wiring the separately fixture-locked native NIP-44 v2 core into identity and
+  favourites-sync services; see `NIP44_CORE_PARITY.md`;
 - PBKDF2/AES-GCM passphrase encryption and secure passphrase handling;
 - secp256k1/BIP-340 signing, verification and Amber/NIP-55 intents;
 - WebSocket connection, relay ACK/EOSE, timeout and cancellation behavior;

@@ -73,7 +73,9 @@ The first native increment is intentionally isolated from production startup:
 - The production favourites-sync service now delegates its relay URL, payload,
   padding, timestamp, kind-30078/NIP-09 draft, filter, event-binding, relay
   selection and rollback decisions to a pure Dart boundary. Kotlin matches all
-  72 shared cases; NIP-44, signing, persistence and sockets remain unwired.
+  72 shared cases. A pinned, vetted Kotlin NIP-44 core separately matches 77
+  official/hostile shared cases; signing, key isolation, persistence and
+  sockets remain unwired.
 - The Kotlin suite remains independent of Android UI/runtime state; the exact
   current count is recorded in `CORE_PARITY.md` after each full run.
 - `docs/kotlin-rewrite/MIGRATION_IMPLEMENTATION.md` records what is and is not
@@ -183,7 +185,8 @@ broader cross-language coverage and a native store are still required.
   `nostr_event_verify.dart`, `nostr_nip19.dart`, `nip44.dart`, `road_event.dart`.
 - **New Kotlin files/modules:** deterministic event and queue policy under
   `core/protocol/nostr`; future crypto/socket adapters under `service/nostr`.
-- **Dependencies:** Vetted secp256k1/NIP-44 implementation; OkHttp WebSocket or equivalent FOSS library.
+- **Dependencies:** Pinned Bouncy Castle lightweight primitives for NIP-44;
+  future OkHttp WebSocket or equivalent FOSS library.
 - **Migration impact:** Pending reports, cursors and activity inbox must survive.
 - **User-visible impact:** Same reports, confirmations, corrections, inbox and offline retry.
 - **Tests:** Golden event vectors, relay parser fuzz/bounds, queue crash/retry and signature verification tests.
@@ -197,10 +200,11 @@ broader cross-language coverage and a native store are still required.
   subscription/kind/budget decisions for all shipped relay loops, including
   one-shot favourites/Lightning/NWC/zap queries, and collision precedence;
   `favorites_sync_protocol_v1.tsv` provides 72 NIP-78 payload, privacy,
-  timestamp, draft/filter, admission, selection and rollback cases. Native
-  NIP-44/signatures/key derivation/dispatch wiring, Amber intents, WebSocket
-  lifecycle, persistence adapters, process-death behavior and an approved
-  queue cap remain open.
+  timestamp, draft/filter, admission, selection and rollback cases;
+  `nip44_v2_v1.tsv` provides 77 official/hostile ECDH, HKDF, payload, padding,
+  maximum-size and rejection cases. Native signatures/general key derivation,
+  NIP-44 service dispatch, Amber intents, WebSocket lifecycle, persistence
+  adapters, process-death behavior and an approved queue cap remain open.
 - **Security/privacy impact:** Preserve key isolation, verification-before-trust and inbound DoS limits.
 - **Battery/performance impact:** Compare reconnect, socket and event-processing wakeups.
 - **Acceptance criteria:** All shipped Nostr kinds and filters are byte/semantic compatible.
