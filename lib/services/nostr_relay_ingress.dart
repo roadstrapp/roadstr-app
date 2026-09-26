@@ -19,6 +19,10 @@ enum NostrIngressRoute {
   editRequest,
   profileVisibility,
   profileMetadata,
+  favoriteSnapshot,
+  lightningAddress,
+  nwcResponse,
+  zapReceiptQuery,
 }
 
 class NostrIngressRule {

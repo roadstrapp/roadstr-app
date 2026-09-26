@@ -50,11 +50,12 @@ of invalid case, checksum, prefix, padding, payload length and hex. The valid
 vectors are cross-checked against `nostr_tools`; Kotlin uses a dependency-free
 codec and neither runtime exposes candidate secret input in decode errors.
 
-`nostr_ingress_v1.tsv` is the sixth shared core fixture. Its 35 sequential
+`nostr_ingress_v1.tsv` is the sixth shared core fixture. Its 60 sequential
 decisions lock subscription/kind routing, unknown-input rejection, independent
 budgets, exact ceiling behavior and collision precedence before signature
-verification. The Dart policy is used by the production relay service; the
-Kotlin state machine is still detached from native sockets.
+verification. The Dart policy is used by the production relay service and its
+favourites, Lightning-address, NWC and zap-receipt one-shot loops; the Kotlin
+state machine is still detached from native sockets.
 
 ## Current limits
 
@@ -74,7 +75,8 @@ Kotlin state machine is still detached from native sockets.
   changing either behavior requires an explicit, fixture-backed decision.
 - The inbound decoder and ingress policy are detached native pieces: signature
   verification, socket lifecycle and wiring them into a native service remain
-  open. Zap/favourites relay loops still need the shared admission boundary.
+  open. Every shipped Dart relay loop now uses the shared structural decoder,
+  and every event-consuming loop uses the shared admission boundary.
 - The NIP-19 slice covers key representation only. Native secp256k1 public-key
   derivation/scalar validation, signing, Amber intents and identity storage are
   still open.
