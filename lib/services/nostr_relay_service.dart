@@ -19,11 +19,11 @@ import 'package:nostr_tools/nostr_tools.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../models/activity_notification.dart';
-import '../config/network_config.dart';
 import '../models/road_event.dart';
 import 'nostr_event_verify.dart';
 import 'nostr_pending_report_queue.dart';
 import 'nostr_protocol_codec.dart';
+import 'nostr_relay_message.dart';
 import 'zap_service.dart';
 
 Event _nostrToolsEvent(NostrEventDraft draft) => Event(
@@ -92,10 +92,6 @@ class RoadReportQueuedException implements Exception {
 ///   - Client sends `["EVENT", eventJson]` to publish; relay responds `["OK", ...]`.
 class NostrRelayService {
   final _eventApi = EventApi();
-  // Shared with the favourites sync service — see [RelayLimits] for why the
-  // value is what it is. Kept as a local alias so the six checks below stay
-  // readable.
-  static const _maxInboundMessageChars = RelayLimits.maxInboundMessageChars;
   static const _maxCachedEvents = 1000;
 
   /// Ceiling on kind-1317 updates held waiting for a report that has not
@@ -777,19 +773,12 @@ class NostrRelayService {
       final ack = Completer<bool>();
       subscription = ws.stream.listen(
         (raw) {
-          if (ack.isCompleted ||
-              raw is! String ||
-              raw.length > _maxInboundMessageChars) {
-            return;
+          if (ack.isCompleted) return;
+          final message = NostrRelayMessageDecoder.decode(raw).message;
+          if (message is NostrRelayOkMessage &&
+              message.eventId == eventJson['id']) {
+            ack.complete(message.accepted == true);
           }
-          try {
-            final msg = jsonDecode(raw) as List;
-            if (msg.length >= 3 &&
-                msg[0] == 'OK' &&
-                msg[1] == eventJson['id']) {
-              ack.complete(msg[2] == true);
-            }
-          } catch (_) {}
         },
         onError: (_) {
           if (!ack.isCompleted) ack.complete(false);
@@ -853,29 +842,30 @@ class NostrRelayService {
   ///             back-to-back EOSE signals don't trigger multiple conf REQs.
   void _onMessage(dynamic raw) {
     try {
-      if (_disposed || raw is! String || raw.length > _maxInboundMessageChars) {
-        return;
-      }
-      final msg = jsonDecode(raw) as List;
-      if (msg.isEmpty) return;
-      switch (msg[0] as String) {
-        case 'OK':
+      if (_disposed) return;
+      final message = NostrRelayMessageDecoder.decode(raw).message;
+      switch (message) {
+        case NostrRelayOkMessage(
+            :final eventId,
+            :final accepted,
+            :final reason
+          ):
           // Format: ['OK', event_id, accepted, reason]
-          if (msg.length >= 3 && msg[1] is String) {
-            final ack = _publishAcks[msg[1]];
-            if (ack != null && !ack.isCompleted) ack.complete(msg[2] == true);
+          final ack = _publishAcks[eventId];
+          if (ack != null && !ack.isCompleted) {
+            ack.complete(accepted == true);
           }
-          if (msg.length >= 3 && msg[2] == false) {
+          if (accepted == false) {
             debugPrint(
-                '[Nostr] Relay rejected event ${msg[1]}: ${msg.length > 3 ? msg[3] : ""}');
+                '[Nostr] Relay rejected event $eventId: ${reason ?? ""}');
           }
-        case 'NOTICE':
-          debugPrint(
-              '[Nostr] NOTICE from relay: ${msg.length > 1 ? msg[1] : ""}');
-        case 'EVENT':
-          if (msg.length < 3) return;
-          final subId = msg[1];
-          final json = (msg[2] as Map).cast<String, dynamic>();
+        case NostrRelayNoticeMessage(:final detail):
+          debugPrint('[Nostr] NOTICE from relay: $detail');
+        case NostrRelayEventMessage(
+            :final subscriptionId,
+            event: final json,
+          ):
+          final subId = subscriptionId;
           final kind = json['kind'];
           // Cheap filtering before the expensive part. Recomputing an
           // event's canonical id and checking its Schnorr signature is real
@@ -914,8 +904,8 @@ class NostrRelayService {
             case 9735:
               _handleZapReceipt(json);
           }
-        case 'EOSE':
-          if (msg[1] == _eventsSubId) {
+        case NostrRelayEoseMessage(:final subscriptionId):
+          if (subscriptionId == _eventsSubId) {
             // All historical kind-1315 events received; now fetch their confirmations.
             // The 300 ms delay lets any in-flight EVENTs arrive before we build the
             // confirmation filter from [_pendingIds].
@@ -925,6 +915,12 @@ class NostrRelayService {
               _pendingIds.clear();
             });
           }
+        case NostrRelayClosedMessage():
+          return;
+        case NostrRelayAuthMessage():
+          return;
+        case null:
+          return;
       }
     } catch (_) {}
   }
@@ -1566,24 +1562,24 @@ class NostrRelayService {
         (raw) {
           if (completer.isCompleted) return;
           try {
-            if (raw is! String || raw.length > _maxInboundMessageChars) return;
-            final msg = jsonDecode(raw) as List;
-            if (msg[0] == 'EOSE') {
-              if (msg[1] == evSub) requestVotes();
-              if (msg[1] == confSub && !completer.isCompleted) {
+            final message = NostrRelayMessageDecoder.decode(raw).message;
+            if (message is NostrRelayEoseMessage) {
+              if (message.subscriptionId == evSub) requestVotes();
+              if (message.subscriptionId == confSub && !completer.isCompleted) {
                 completer.complete(events);
               }
               return;
             }
-            if (msg[0] != 'EVENT') return;
+            if (message is! NostrRelayEventMessage) return;
+            final messageSubId = message.subscriptionId;
             // Counted before verification: the signature check is the
             // expensive part, so the ceiling has to sit in front of it.
-            if (msg[1] == evSub) {
+            if (messageSubId == evSub) {
               if (++processedReports > maxReports) {
                 if (!completer.isCompleted) completer.complete(events);
                 return;
               }
-            } else if (msg[1] == confSub) {
+            } else if (messageSubId == confSub) {
               // Votes are enrichment: stop counting them and answer with the
               // reports already collected rather than dropping the lot.
               if (++processedVotes > maxVotes) {
@@ -1593,17 +1589,23 @@ class NostrRelayService {
             } else {
               return;
             }
-            final json = (msg[2] as Map).cast<String, dynamic>();
+            final json = message.event;
             // Same trust rule as the live subscription: verify id + signature
             // before using anything a relay sends.
             if (!verifyEventJson(json)) return;
             // The REQ asked for `authors: [pubHex]`, but a relay is free to
             // ignore its own filters: re-check the author locally, or somebody
             // else's validly signed report lands in "my reports".
-            if (msg[1] == evSub && json['pubkey'] != pubHex) return;
-            if (msg[1] == evSub && json['kind'] == 1315) return onReport(json);
-            if (msg[1] == evSub && json['kind'] == 1317) return onUpdate(json);
-            if (msg[1] == confSub && json['kind'] == 1316) return onVote(json);
+            if (messageSubId == evSub && json['pubkey'] != pubHex) return;
+            if (messageSubId == evSub && json['kind'] == 1315) {
+              return onReport(json);
+            }
+            if (messageSubId == evSub && json['kind'] == 1317) {
+              return onUpdate(json);
+            }
+            if (messageSubId == confSub && json['kind'] == 1316) {
+              return onVote(json);
+            }
           } catch (_) {}
         },
         onError: (_) {
@@ -1675,14 +1677,14 @@ class NostrRelayService {
       ws.stream.listen((raw) {
         if (completer.isCompleted) return;
         try {
-          if (raw is! String || raw.length > _maxInboundMessageChars) return;
-          final msg = jsonDecode(raw) as List;
-          if (msg[0] == 'EVENT' && msg[1] == subId) {
+          final message = NostrRelayMessageDecoder.decode(raw).message;
+          if (message is NostrRelayEventMessage &&
+              message.subscriptionId == subId) {
             if (++receivedEvents > 100) {
               completer.complete(out);
               return;
             }
-            final json = (msg[2] as Map).cast<String, dynamic>();
+            final json = message.event;
             if (json['kind'] != 1318 || !verifyEventJson(json)) return;
             final tags = (json['tags'] as List?) ?? const [];
             String? target;
@@ -1708,7 +1710,8 @@ class NostrRelayService {
               comment: comment,
               createdAt: json['created_at'] as int? ?? 0,
             ));
-          } else if (msg[0] == 'EOSE' && msg[1] == subId) {
+          } else if (message is NostrRelayEoseMessage &&
+              message.subscriptionId == subId) {
             completer.complete(out);
           }
         } catch (_) {}
@@ -1792,14 +1795,14 @@ class NostrRelayService {
         (raw) {
           if (completer.isCompleted) return;
           try {
-            if (raw is! String || raw.length > _maxInboundMessageChars) return;
-            final msg = jsonDecode(raw) as List;
-            if (msg[0] == 'EVENT' && msg[1] == subId) {
+            final message = NostrRelayMessageDecoder.decode(raw).message;
+            if (message is NostrRelayEventMessage &&
+                message.subscriptionId == subId) {
               if (++receivedEvents > 10) {
                 completer.complete(latest);
                 return;
               }
-              final json = (msg[2] as Map).cast<String, dynamic>();
+              final json = message.event;
               if (json['pubkey'] != pubHex ||
                   json['kind'] != 30078 ||
                   !verifyEventJson(json)) {
@@ -1820,7 +1823,8 @@ class NostrRelayService {
                 latest = RoadstrProfileVisibility(
                     isPublic: content['public'] as bool, createdAt: createdAt);
               }
-            } else if (msg[0] == 'EOSE' && msg[1] == subId) {
+            } else if (message is NostrRelayEoseMessage &&
+                message.subscriptionId == subId) {
               if (!completer.isCompleted) completer.complete(latest);
             }
           } catch (_) {}
@@ -1870,14 +1874,14 @@ class NostrRelayService {
         (raw) {
           if (completer.isCompleted) return;
           try {
-            if (raw is! String || raw.length > _maxInboundMessageChars) return;
-            final msg = jsonDecode(raw) as List;
-            if (msg[0] == 'EVENT' && msg[1] == subId) {
+            final message = NostrRelayMessageDecoder.decode(raw).message;
+            if (message is NostrRelayEventMessage &&
+                message.subscriptionId == subId) {
               if (++receivedEvents > 10) {
                 completer.complete(latest);
                 return;
               }
-              final json = (msg[2] as Map).cast<String, dynamic>();
+              final json = message.event;
               // Verify author + id + signature: a forged kind-0 would let a
               // malicious relay plant an arbitrary display name/avatar.
               if (json['pubkey'] != pubHex || !verifyEventJson(json)) return;
@@ -1892,7 +1896,8 @@ class NostrRelayService {
                   picture: _safePictureUrl(meta['picture']),
                 );
               }
-            } else if (msg[0] == 'EOSE' && msg[1] == subId) {
+            } else if (message is NostrRelayEoseMessage &&
+                message.subscriptionId == subId) {
               if (!completer.isCompleted) completer.complete(latest);
             }
           } catch (_) {}

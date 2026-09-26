@@ -53,8 +53,10 @@ Nostr now has a first shared deterministic-core fixture covering canonical
 serialization/IDs, all Roadstr 1315 categories, kinds 1316-1318, profile
 visibility and the main area/confirmation relay frames. A second shared fixture
 locks the pending-report Hive JSON plus FIFO, TTL, validation and retry
-transcripts in both runtimes. Native Schnorr, native queue storage, the
-remaining relay transcripts and other NIPs are still outstanding; see
+transcripts in both runtimes. A third fixture locks bounded inbound decoding
+for NIP-01/NIP-42 envelope types, structural failures, UTF-16 size limits and
+nesting limits. Native Schnorr, native queue storage, socket lifecycle,
+signature-aware dispatch and other NIPs are still outstanding; see
 `NOSTR_CORE_PARITY.md`.
 
 ## Network semantics that must not drift
