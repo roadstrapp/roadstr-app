@@ -1,8 +1,8 @@
-# Routing-provider request parity
+# Routing-provider request and response parity
 
-This increment freezes Roadstr's outbound routing request contract without
-giving Kotlin ownership of an HTTP engine. Flutter still dispatches every live
-request and parses every provider response.
+This increment freezes Roadstr's outbound routing request contract and inbound
+response normalization without giving Kotlin ownership of an HTTP engine.
+Flutter still dispatches every live request.
 
 ## Production-used Dart boundary
 
@@ -36,6 +36,22 @@ is the socket-free Kotlin counterpart. It also mirrors Dart's relevant string,
 number, rounding, Unicode-trim and form-query behavior so fixture equality is
 byte-exact rather than semantic-only.
 
+`lib/services/routing_response_protocol.dart` is now the production-used Dart
+boundary for OSRM, OpenRouteService, GraphHopper and Valhalla response parsing.
+It owns the normalized route/step/speed-limit model, validation, passive-name
+coalescing, maneuver decoration sanitization, Valhalla polyline6 decoding and
+OSRM retiming-leg parsing. `RoutingService` retains live HTTP dispatch,
+provider fallback and orchestration, but delegates every route response to this
+boundary.
+
+`RoutingResponseProtocol.kt` mirrors that normalization without sockets or
+Android dependencies. It preserves provider-specific maneuver tables, OSRM
+bearing correction and localized instructions, GraphHopper speed intervals,
+Valhalla multi-leg endpoint de-duplication, route bounds and malformed-response
+behavior. `NavigationPhrases.kt` is mechanically generated from the 27-language
+Dart phrase table so translated route instructions do not become a second
+hand-maintained source of truth.
+
 ## Shared fixture
 
 `routing_requests_v1.tsv` contains 89 Dart-generated outcomes:
@@ -67,16 +83,42 @@ dart run tools/kotlin_rewrite/generate_routing_requests_fixture.dart --check
 `RoutingRequestProtocolParityTest.kt` reconstructs and compares all 89 outcomes
 and checks the routing constants and boundary behavior independently.
 
+`routing_responses_v1.tsv` contains 59 additional Dart-generated outcomes:
+
+- 28 OSRM language cases covering all 27 shipped languages plus fallback;
+- 8 OSRM maneuver, alternative, provider-error and malformed-route cases;
+- 3 OpenRouteService maneuver/shape cases;
+- 3 GraphHopper maneuver and speed-limit cases;
+- 5 Valhalla maneuver, multi-leg, status and malformed-shape cases;
+- 3 OSRM retiming responses;
+- 7 localized/numeric exit-number cases;
+- 2 signed and malformed polyline6 cases.
+
+The canonical comparison includes geometry, maneuver instruction/direction/
+modifier/location/decorations, road name/ref, distance, duration, avoidance
+metadata, speed-limit offsets and provider errors. Regenerate or verify it with:
+
+```text
+dart run tools/kotlin_rewrite/generate_routing_responses_fixture.dart
+dart run tools/kotlin_rewrite/generate_routing_responses_fixture.dart --check
+dart run tools/kotlin_rewrite/generate_kotlin_navigation_phrases.dart --check
+```
+
+`routing_response_protocol_test.dart` locks the extracted production Dart
+oracle and its validation rules. `RoutingResponseProtocolParityTest.kt`
+replays all 59 outcomes and separately checks native cleanup and limits.
+
 ## Deliberately outside this slice
 
 - no Kotlin HTTP engine, DNS resolver, connection pool or socket is wired;
 - native timeout, cancellation, retry, redirect, TLS and cleartext enforcement
   still belongs to the future bounded-network adapter;
-- OSRM, OpenRouteService, GraphHopper and Valhalla response parsing and provider
-  fallback remain in Flutter;
+- provider selection, fallback, retry/cancellation and route orchestration
+  remain in Flutter;
 - persisted provider/API-key migration and live-provider/device tests remain
   release gates.
 
-Rollback is removal of the Kotlin boundary and fixture plus inlining the Dart
-builders into `RoutingService`. No endpoint default, stored setting, API key or
-live-network owner changed in this increment.
+Rollback is removal of the Kotlin boundaries/fixtures and re-inlining the Dart
+request builders and response parser into `RoutingService`. No endpoint
+default, stored setting, API key or live-network owner changed in this
+increment.

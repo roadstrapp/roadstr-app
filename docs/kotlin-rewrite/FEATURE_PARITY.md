@@ -9,10 +9,10 @@ No native production runtime exists, so no Kotlin row is marked functional.
 |---|---|---|---|---|---|
 | App shell | First-launch gate, privacy disclosure, error/recovery screen | `lib/main.dart`, `lib/screens/onboarding_screen.dart` | FUNCTIONAL | NOT_STARTED | cold start and migration fixtures |
 | Navigation | Home/map hierarchy, bottom bar, sheets and route panels | `lib/screens/map_screen.dart`, `maplibre_map_screen.dart` | FUNCTIONAL | NOT_STARTED | UI catalogue + navigation flows |
-| Driving routes | OSRM, alternatives, progress, rerouting, traffic avoidance | `lib/services/routing_service.dart` | FUNCTIONAL | CORE_ONLY | exact OSRM/Valhalla requests green; responses, progress and provider fallback remain |
-| Walking/cycling | Walking and cycling route modes and guidance | `routing_service.dart`, map screens | FUNCTIONAL | CORE_ONLY | exact OSRM/ORS/GraphHopper mode requests green; responses and guidance remain |
-| GraphHopper | Public/cloud and self-hosted URL, API key and loopback policy | `routing_service.dart`, settings | FUNCTIONAL | CORE_ONLY | safety and exact route/probe requests green; key migration, responses and live native execution remain |
-| OpenRouteService | ORS route modes, API key and localized requests | `routing_service.dart` | FUNCTIONAL | CORE_ONLY | exact localized requests green; key migration, responses and live native execution remain |
+| Driving routes | OSRM, alternatives, progress, rerouting, traffic avoidance | `lib/services/routing_service.dart` | FUNCTIONAL | CORE_ONLY | exact OSRM/Valhalla requests and normalized responses green; progress, orchestration and provider fallback remain |
+| Walking/cycling | Walking and cycling route modes and guidance | `routing_service.dart`, map screens | FUNCTIONAL | CORE_ONLY | exact OSRM/ORS/GraphHopper requests and responses green; live guidance remains |
+| GraphHopper | Public/cloud and self-hosted URL, API key and loopback policy | `routing_service.dart`, settings | FUNCTIONAL | CORE_ONLY | safety, exact route/probe requests and response normalization green; key migration and live native execution remain |
+| OpenRouteService | ORS route modes, API key and localized requests | `routing_service.dart` | FUNCTIONAL | CORE_ONLY | exact localized requests and response normalization green; key migration and live native execution remain |
 | Public transport | Bus, tram, metro, rail, coach, ferry itineraries | `lib/services/transit_service.dart`, transit widgets | FUNCTIONAL | NOT_STARTED | Berlin fixture and live-provider manual test |
 | MapLibre map | Vector style, tilt, rotation, camera easing, overlays | `maplibre_map_screen.dart`, `lib/theme/app_theme.dart` | FUNCTIONAL/default | CORE_ONLY | screenshot/golden + performance |
 | Legacy map engine | Raster `flutter_map` renderer selectable in Settings | `map_screen.dart`, `settings_screen.dart` | FUNCTIONAL/selectable | NOT_STARTED | setting preserved and behavior verified |
@@ -38,7 +38,7 @@ No native production runtime exists, so no Kotlin row is marked functional.
 | Voice | Kokoro, Piper, eSpeak phonemization, language/voice/speed/audio policy | `lib/services/kokoro`, `piper` | FUNCTIONAL | NOT_STARTED | asset reuse, audio and language matrix |
 | Settings | routing, voice, map, theme, units, sync, privacy and cursor settings | `settings_screen.dart` | FUNCTIONAL | NOT_STARTED | all persisted keys and defaults |
 | Themes | Violet/Bitcoin Orange, light/dark, auto sunrise/sunset | `app_theme.dart`, `theme_provider.dart` | FUNCTIONAL | CORE_ONLY | theme tests + screenshots |
-| Localization | 27 locales, fallback and route voice phrases | `lib/l10n`, `nav_phrases.dart` | FUNCTIONAL | NOT_STARTED | key/placeholder comparison |
+| Localization | 27 locales, fallback and route voice phrases | `lib/l10n`, `nav_phrases.dart` | FUNCTIONAL | CORE_ONLY | generated 27-language route-instruction table green; UI keys/placeholders remain |
 | Privacy/security | no telemetry, backup off, cleartext bounds, input caps and secret hygiene | manifest, network config, services | FUNCTIONAL | CORE_ONLY | HTTP cap/redirect/loopback plus search request/privacy-rounding fixtures green; static and runtime security audit remains |
 | Release identity | version checks, R8, ABI/native checksum and store metadata | Gradle, `build_release.sh`, metadata | FUNCTIONAL | NOT_STARTED | clean native/F-Droid/release build |
 
