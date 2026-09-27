@@ -65,9 +65,10 @@ agent, but no Kotlin HTTP engine, DNS resolver, connection pool or socket is
 wired. Request objects are inert. The future adapter must apply the separate
 timeout, response-size, redirect, TLS and cleartext policy before dispatch.
 
-No API key is represented in this fixture. OSRM, ORS, GraphHopper, Valhalla,
-response parsing, provider fallback/cancellation, Overpass backoff execution
-and Android network integration remain later `KOTLIN-009` slices.
+No API key is represented in this fixture. Routing request composition is now
+covered separately by `ROUTING_NETWORK_CORE_PARITY.md`; search/route response
+parsing, provider fallback/cancellation, Overpass backoff execution and Android
+network integration remain later `KOTLIN-009` slices.
 
 Rollback is removal of the Kotlin boundary and fixture plus inlining the small
 Dart builders back into their three callers. No persisted state, endpoint,

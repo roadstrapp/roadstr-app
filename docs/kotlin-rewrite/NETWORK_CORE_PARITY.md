@@ -1,4 +1,4 @@
-# Native HTTP safety and search-request parity
+# Native HTTP safety and provider-request parity
 
 This increment freezes the deterministic HTTP safety decisions needed by the
 native networking rewrite without opening a socket or changing production
@@ -28,6 +28,12 @@ code.
 Nominatim, Photon and Overpass paths. Its socket-free Kotlin counterpart locks
 the exact method, endpoint, encoding, parameters, headers and form body. See
 `SEARCH_NETWORK_CORE_PARITY.md` for the provider matrix and privacy boundary.
+
+`lib/services/routing_request_protocol.dart` is called by the live Dart routing
+service for OSRM, OpenRouteService, GraphHopper and Valhalla. Its Kotlin
+counterpart freezes request composition, including provider profiles/locales,
+API-key destination, waypoints, alternatives, bearings, retiming and avoidance
+options. See `ROUTING_NETWORK_CORE_PARITY.md`.
 
 ## Compatibility detail
 
@@ -68,6 +74,11 @@ Overpass request outcomes. It is consumed by both runtimes and includes their
 intentionally different text encodings, Nominatim viewboxes, Photon location
 rounding/language allowlist and exact Overpass mirror/header/body contract.
 
+`routing_requests_v1.tsv` adds 89 Dart-generated OSRM, OpenRouteService,
+GraphHopper and Valhalla request/language outcomes. It is consumed by both
+runtimes and includes mode/locale mapping, API-key isolation, coordinate/query
+encoding, waypoint and bearing boundaries, retiming and avoidance policies.
+
 ## Deliberately outside this slice
 
 - no native HTTP engine, OkHttp dependency, DNS resolver or socket is wired;
@@ -78,7 +89,7 @@ rounding/language allowlist and exact Overpass mirror/header/body contract.
 - redirect/TLS/cleartext behavior needs Android integration tests in addition
   to this policy fixture;
 - Nominatim, Photon and Overpass response fixtures remain; OSRM, ORS,
-  GraphHopper and Valhalla request/response fixtures remain to be ported;
+  GraphHopper and Valhalla response fixtures remain to be ported;
 - DNS-aware SSRF checks for LNURL remain part of the later live-network gate.
 
 The Kotlin policy has no Android, Activity, startup or persistence wiring.

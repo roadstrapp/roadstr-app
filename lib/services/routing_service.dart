@@ -20,6 +20,7 @@ import 'bounded_http.dart';
 import 'http_safety_policy.dart';
 import 'nav_phrases.dart';
 import 'roundabout_topology_service.dart';
+import 'routing_request_protocol.dart';
 import 'search_provider_protocol.dart';
 
 const int kMaxRoundaboutArms = 20;
@@ -42,7 +43,8 @@ const int kMaxRoundaboutArms = 20;
 /// 45°, not tighter: a moving vehicle's GPS course is not perfectly aligned
 /// with the road, and a strict tolerance can make OSRM search much further
 /// away for a matching segment than intended — the opposite of the point.
-const rerouteBearingToleranceDeg = 45;
+const rerouteBearingToleranceDeg =
+    RoutingRequestProtocol.rerouteBearingToleranceDegrees;
 
 /// A single turn-by-turn navigation step produced by a routing provider.
 class RouteStep {
@@ -349,63 +351,11 @@ class RoutingService {
     return enriched;
   }
 
-  /// OSRM driving endpoint — the FOSSGIS community server supports car, foot
-  /// and bike profiles AND returns maxspeed annotations; unlike the lightweight
-  /// demo at router.project-osrm.org which rejects annotations=maxspeed.
-  static const _osrmDriving =
-      'https://routing.openstreetmap.de/routed-car/route/v1/driving';
-
-  /// OSRM walking/cycling endpoints — same community server, different profiles.
-  static const _osrmWalking =
-      'https://routing.openstreetmap.de/routed-foot/route/v1/foot';
-  static const _osrmBike =
-      'https://routing.openstreetmap.de/routed-bike/route/v1/bike';
-  /// ORS base — the profile segment ('driving-car', 'foot-walking'…) is appended.
-  static const _orsBase = 'https://api.openrouteservice.org/v2/directions/';
-  static const _graphhopperPublic = 'https://graphhopper.com/api/1/route';
-
   /// Short-lived cache for repeated submissions/refinements of the same
   /// search. Results are copied on return so callers cannot mutate the cache.
   static final _searchCache =
       <String, ({DateTime at, List<NominatimResult> results})>{};
   static const _searchCacheTtl = Duration(seconds: 45);
-
-  /// Public, keyless Valhalla service operated by the German OpenStreetMap
-  /// community.  Unlike the default OSRM profiles, Valhalla supports hard
-  /// exclusions for both motorways and toll roads worldwide.
-  ///
-  /// NB: the API lives on `valhalla1.openstreetmap.de`. The bare
-  /// `valhalla.openstreetmap.de/route` host serves the HTML demo web app, so
-  /// every request there returned a web page instead of JSON — which silently
-  /// broke the entire toll/highway avoidance feature. Verified live: this host
-  /// returns a proper trip with `summary.has_toll` / `has_highway` flags and
-  /// honours `exclude_tolls` / `exclude_highways`.
-  static const _valhallaRoute = 'https://valhalla1.openstreetmap.de/route';
-
-  // ── Vehicle / transport-mode helpers ──────────────────────────────────────
-
-  /// Returns the correct OSRM base URL for the requested transport mode.
-  /// The two servers are separate because router.project-osrm.org only exposes
-  /// the car profile, while routing.openstreetmap.de has foot and bike too.
-  static String _osrmEndpoint(String vehicle) {
-    if (vehicle == 'walking') return _osrmWalking;
-    if (vehicle == 'cycling') return _osrmBike;
-    return _osrmDriving;
-  }
-
-  /// Translates the vehicle string to the GraphHopper vehicle parameter.
-  static String _ghVehicle(String vehicle) {
-    if (vehicle == 'walking') return 'foot';
-    if (vehicle == 'cycling') return 'bike';
-    return 'car';
-  }
-
-  /// Translates the vehicle string to the OpenRouteService profile segment.
-  static String _orsProfile(String vehicle) {
-    if (vehicle == 'walking') return 'foot-walking';
-    if (vehicle == 'cycling') return 'cycling-regular';
-    return 'driving-car';
-  }
 
   /// Searches for addresses and POIs via the Nominatim geocoding API.
   ///
@@ -705,24 +655,18 @@ class RoutingService {
       String vehicle = 'driving'}) async {
     try {
       if (provider == RoutingProvider.openRoute && apiKey != null) {
-        // OpenRouteService (POST JSON)
-        final uri = Uri.parse('$_orsBase${_orsProfile(vehicle)}');
-        final body = jsonEncode({
-          'coordinates': [
-            [origin.longitude, origin.latitude],
-            [destination.longitude, destination.latitude]
-          ],
-          'language': orsLanguage(lang),
-          'instructions': true,
-        });
+        final request = RoutingRequestProtocol.openRouteService(
+          origin: RoutingRequestPoint(origin.latitude, origin.longitude),
+          destination:
+              RoutingRequestPoint(destination.latitude, destination.longitude),
+          apiKey: apiKey,
+          languageCode: lang,
+          vehicle: vehicle,
+        );
         final res = await BoundedHttp.post(
-          uri,
-          headers: {
-            'Authorization': apiKey,
-            'Content-Type': 'application/json',
-            'User-Agent': 'Roadstr/1.0'
-          },
-          body: body,
+          request.uri,
+          headers: request.headers,
+          body: request.body,
           maxBytes: _maxRouteResponseBytes,
           timeout: const Duration(seconds: 10),
         );
@@ -795,27 +739,22 @@ class RoutingService {
 
       if (provider == RoutingProvider.graphHopper) {
         // GraphHopper: support public API (apiKey) or self-hosted server (graphhopperServer)
-        final server = (graphhopperServer?.trim().isNotEmpty ?? false)
-            ? graphhopperServer!.trim()
-            : _graphhopperPublic;
+        final server =
+            RoutingRequestProtocol.graphHopperEndpoint(graphhopperServer);
         validateGraphhopperServerUrl(server);
-        final parts = <String>[
-          'point=${origin.latitude},${origin.longitude}',
-          'point=${destination.latitude},${destination.longitude}',
-          'vehicle=${_ghVehicle(vehicle)}',
-          'locale=${Uri.encodeQueryComponent(lang)}',
-          'instructions=true',
-          'points_encoded=false',
-          'details=max_speed',
-        ];
-        if (apiKey != null && server == _graphhopperPublic) {
-          parts.add('key=${Uri.encodeQueryComponent(apiKey)}');
-        }
-        final uri = Uri.parse(server).replace(query: parts.join('&'));
+        final request = RoutingRequestProtocol.graphHopperRoute(
+          origin: RoutingRequestPoint(origin.latitude, origin.longitude),
+          destination:
+              RoutingRequestPoint(destination.latitude, destination.longitude),
+          server: server,
+          languageCode: lang,
+          vehicle: vehicle,
+          apiKey: apiKey,
+        );
 
         final res = await BoundedHttp.get(
-          uri,
-          headers: {'User-Agent': 'Roadstr/1.0'},
+          request.uri,
+          headers: request.headers,
           maxBytes: _maxRouteResponseBytes,
           timeout: const Duration(seconds: 12),
         );
@@ -912,17 +851,19 @@ class RoutingService {
       }
 
       // Fallback / default: OSRM — choose the right public server for the mode.
-      final baseCoords = '${_osrmEndpoint(vehicle)}/'
-          '${origin.longitude},${origin.latitude};'
-          '${destination.longitude},${destination.latitude}'
-          '?overview=full&geometries=geojson&steps=true';
+      final request = RoutingRequestProtocol.osrmRoute(
+        origin: RoutingRequestPoint(origin.latitude, origin.longitude),
+        destination:
+            RoutingRequestPoint(destination.latitude, destination.longitude),
+        vehicle: vehicle,
+      );
 
       // NOTE: no annotations=maxspeed — that is a Mapbox Directions extension,
       // vanilla OSRM (including FOSSGIS) rejects it with 400. Speed limits
       // come from SpeedLimitService (Overpass) instead.
       final res = await BoundedHttp.get(
-        Uri.parse(baseCoords),
-        headers: {'User-Agent': 'Roadstr/1.0'},
+        request.uri,
+        headers: request.headers,
         maxBytes: _maxRouteResponseBytes,
         timeout: const Duration(seconds: 10),
       );
@@ -966,7 +907,8 @@ class RoutingService {
   /// offers. The ceiling is not arbitrary: every extra point multiplies the
   /// router's work, and a routing engine asked for a dozen stops starts
   /// returning a route that is technically optimal and useless to drive.
-  static const maxWaypoints = 4;
+  static const maxWaypoints =
+      RoutingRequestProtocol.maxIntermediateWaypoints;
 
   static Future<List<RouteResult>> getRoutes(LatLng origin, LatLng destination,
       {RoutingProvider provider = RoutingProvider.osrm,
@@ -993,31 +935,26 @@ class RoutingService {
       // resolve to a 2 m degenerate route with no bearing given, and to a
       // realistic ~460 m route via the next junction once the origin bearing
       // is constrained to face away from the direct line.
-      final bearings = originBearingDeg == null
-          ? ''
-          : '&bearings=${originBearingDeg.round() % 360},'
-              '$rerouteBearingToleranceDeg;';
       // OSRM takes any number of semicolon-separated coordinates and visits
-      // them in the order given, so intermediate stops need no separate
-      // request and no stitching of partial routes: the engine optimises the
-      // whole journey at once and the step list comes back continuous.
-      final stops = [
-        for (final p in via.take(maxWaypoints)) '${p.longitude},${p.latitude}',
-      ];
-      // Alternatives are only offered for a plain A-to-B journey. OSRM
-      // declines to compute them once the route is pinned through waypoints,
-      // and asking anyway costs a round trip to be told so.
-      final alternatives = stops.isEmpty ? '&alternatives=3' : '';
-      final baseCoords = '${endpoint ?? Uri.parse(_osrmEndpoint(vehicle))}/'
-          '${origin.longitude},${origin.latitude};'
-          '${stops.isEmpty ? '' : '${stops.join(';')};'}'
-          '${destination.longitude},${destination.latitude}'
-          '?overview=full&geometries=geojson&steps=true$alternatives'
-          '$bearings';
+      // them in order. Alternatives are requested only when no stop pins the
+      // route; the shared protocol preserves that distinction and the cap.
+      final request = RoutingRequestProtocol.osrmRoute(
+        origin: RoutingRequestPoint(origin.latitude, origin.longitude),
+        destination:
+            RoutingRequestPoint(destination.latitude, destination.longitude),
+        vehicle: vehicle,
+        via: [
+          for (final point in via)
+            RoutingRequestPoint(point.latitude, point.longitude),
+        ],
+        requestAlternatives: true,
+        originBearingDegrees: originBearingDeg,
+        endpoint: endpoint?.toString(),
+      );
 
       final res = await BoundedHttp.get(
-        Uri.parse(baseCoords),
-        headers: {'User-Agent': 'Roadstr/1.0'},
+        request.uri,
+        headers: request.headers,
         maxBytes: _maxRouteResponseBytes,
         timeout: const Duration(seconds: 10),
       );
@@ -1166,7 +1103,7 @@ class RoutingService {
       destination,
       lang: lang,
       endpoint: endpoint,
-      costingOptions: const {'use_tracks': 0},
+      costingPolicy: ValhallaCostingPolicy.avoidTracks,
       classify: (_) => RouteAvoidance.offRoadAvoided,
     );
     return _retimedThroughOsrm(route,
@@ -1245,10 +1182,13 @@ class RoutingService {
               '${line[i].latitude.toStringAsFixed(5)}')
           .join(';');
 
-      final base = endpoint?.toString() ?? _osrmDriving;
+      final request = RoutingRequestProtocol.osrmRetime(
+        waypoints: waypoints,
+        endpoint: endpoint?.toString(),
+      );
       final res = await BoundedHttp.get(
-        Uri.parse('$base/$waypoints?overview=false&steps=false'),
-        headers: {'User-Agent': 'Roadstr/1.0'},
+        request.uri,
+        headers: request.headers,
         maxBytes: _maxRouteResponseBytes,
         timeout: const Duration(seconds: 30),
       );
@@ -1366,18 +1306,9 @@ class RoutingService {
       destination,
       lang: lang,
       endpoint: endpoint,
-      costingOptions: hardExclusion
-          ? const {
-              'exclude_highways': true,
-              'exclude_tolls': true,
-            }
-          : const {
-              'use_highways': 0,
-              'use_tolls': 0,
-              // A routing-only penalty: strongly discourages even a very
-              // short tolled segment without inflating the displayed ETA.
-              'toll_booth_penalty': 900,
-            },
+      costingPolicy: hardExclusion
+          ? ValhallaCostingPolicy.hardHighwayAndTollExclusion
+          : ValhallaCostingPolicy.softHighwayAndTollAvoidance,
       classify: (summary) {
         final hasHighway = summary['has_highway'] == true;
         final hasToll = summary['has_toll'] == true;
@@ -1393,7 +1324,7 @@ class RoutingService {
     );
   }
 
-  /// Requests a route from Valhalla with [costingOptions] applied to the
+  /// Requests a route from Valhalla with [costingPolicy] applied to the
   /// `auto` profile, and parses it the same way regardless of which
   /// avoidance policy asked for it. [classify] turns the response summary
   /// into the [RouteAvoidance] the caller wants reported — it may also throw
@@ -1408,26 +1339,21 @@ class RoutingService {
       LatLng origin, LatLng destination,
       {required String lang,
       required Uri? endpoint,
-      required Map<String, dynamic> costingOptions,
+      required ValhallaCostingPolicy costingPolicy,
       required RouteAvoidance Function(Map<String, dynamic> summary)
           classify}) async {
     try {
-      final request = jsonEncode({
-        'locations': [
-          {'lat': origin.latitude, 'lon': origin.longitude},
-          {'lat': destination.latitude, 'lon': destination.longitude},
-        ],
-        'costing': 'auto',
-        'costing_options': {'auto': costingOptions},
-        'units': 'kilometers',
-        'language': _valhallaLanguage(lang),
-      });
-      final uri = (endpoint ?? Uri.parse(_valhallaRoute)).replace(
-        queryParameters: {'json': request},
+      final request = RoutingRequestProtocol.valhalla(
+        origin: RoutingRequestPoint(origin.latitude, origin.longitude),
+        destination:
+            RoutingRequestPoint(destination.latitude, destination.longitude),
+        languageCode: lang,
+        costingPolicy: costingPolicy,
+        endpoint: endpoint?.toString(),
       );
       final res = await BoundedHttp.get(
-        uri,
-        headers: {'User-Agent': 'Roadstr/1.0'},
+        request.uri,
+        headers: request.headers,
         maxBytes: _maxRouteResponseBytes,
         timeout: const Duration(seconds: 25),
       );
@@ -1524,56 +1450,8 @@ class RoutingService {
   /// the app's language is mapped onto ORS's own list, English otherwise. Its
   /// codes are not ISO 639-1 throughout: Greek is `gr`, Ukrainian `ua`.
   @visibleForTesting
-  static String orsLanguage(String languageCode) {
-    const codes = <String, String>{
-      'cs': 'cs',
-      'de': 'de',
-      'en': 'en',
-      'es': 'es',
-      'fr': 'fr',
-      'el': 'gr',
-      'hu': 'hu',
-      'it': 'it',
-      'ja': 'ja',
-      'nl': 'nl',
-      'pl': 'pl',
-      'pt': 'pt',
-      'ro': 'ro',
-      'ru': 'ru',
-      'tr': 'tr',
-      'uk': 'ua',
-      'zh': 'zh',
-    };
-    return codes[languageCode.toLowerCase()] ?? 'en';
-  }
-
-  static String _valhallaLanguage(String languageCode) {
-    const locales = <String, String>{
-      'bg': 'bg-BG',
-      'cs': 'cs-CZ',
-      'da': 'da-DK',
-      'de': 'de-DE',
-      'el': 'el-GR',
-      'en': 'en-US',
-      'es': 'es-ES',
-      'et': 'et-EE',
-      'fi': 'fi-FI',
-      'fr': 'fr-FR',
-      'hu': 'hu-HU',
-      'it': 'it-IT',
-      'ja': 'ja-JP',
-      'nl': 'nl-NL',
-      'pl': 'pl-PL',
-      'pt': 'pt-BR',
-      'ro': 'ro-RO',
-      'ru': 'ru-RU',
-      'sk': 'sk-SK',
-      'sl': 'sl-SI',
-      'sv': 'sv-SE',
-      'zh': 'zh-CN',
-    };
-    return locales[languageCode.toLowerCase()] ?? 'en-US';
-  }
+  static String orsLanguage(String languageCode) =>
+      RoutingRequestProtocol.openRouteServiceLanguage(languageCode);
 
   /// Decodes Valhalla's signed polyline6 format.
   static List<LatLng> _decodeValhallaPolyline(String encoded) {
@@ -1924,22 +1802,14 @@ class RoutingService {
   static Future<void> testGraphHopperServer(String server,
       {String? apiKey}) async {
     validateGraphhopperServerUrl(server);
-    final parts = <String>[
-      'point=0.0,0.0',
-      'point=0.1,0.1',
-      'vehicle=car',
-      'locale=it',
-      'instructions=false',
-      'points_encoded=false',
-    ];
-    if (apiKey != null && apiKey.isNotEmpty && server == _graphhopperPublic) {
-      parts.add('key=${Uri.encodeQueryComponent(apiKey)}');
-    }
-    final uri = Uri.parse(server).replace(query: parts.join('&'));
+    final request = RoutingRequestProtocol.graphHopperProbe(
+      server: server,
+      apiKey: apiKey,
+    );
     try {
       final res = await BoundedHttp.get(
-        uri,
-        headers: {'User-Agent': 'Roadstr/1.0'},
+        request.uri,
+        headers: request.headers,
         maxBytes: 2 * 1024 * 1024,
         timeout: const Duration(seconds: 8),
       );
