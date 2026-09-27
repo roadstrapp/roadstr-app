@@ -96,7 +96,11 @@ class FileNativePersistenceTest {
             assertEquals(MigrationOutcome.Migrated, first.run().outcome)
 
             val reopenedPublicStore = FileNativePublicSnapshotStore(directory)
-            val reopenedMarker = FileSnapshotBoundMigrationMarker(directory, reopenedPublicStore)
+            val reopenedMarker = FileSnapshotBoundMigrationMarker(
+                directory,
+                reopenedPublicStore,
+                secretStore,
+            )
             var legacyReads = 0
             val second = TransactionalMigration(
                 reader = LegacySnapshotReader {
@@ -148,7 +152,11 @@ class FileNativePersistenceTest {
             }
 
             val reopenedPublicStore = FileNativePublicSnapshotStore(directory)
-            val marker = FileSnapshotBoundMigrationMarker(directory, reopenedPublicStore)
+            val marker = FileSnapshotBoundMigrationMarker(
+                directory,
+                reopenedPublicStore,
+                secretStore,
+            )
             assertFalse(marker.isComplete())
 
             val repaired = migration(directory, reopenedPublicStore, secretStore).run()
@@ -178,7 +186,7 @@ class FileNativePersistenceTest {
     ) = TransactionalMigration(
         reader = LegacySnapshotReader { snapshot() },
         writer = CompositeNativeSnapshotWriter(publicStore, secretStore),
-        marker = FileSnapshotBoundMigrationMarker(directory, publicStore),
+        marker = FileSnapshotBoundMigrationMarker(directory, publicStore, secretStore),
         identityVerifier = { PUBLIC_KEY },
     )
 
@@ -195,7 +203,7 @@ class FileNativePersistenceTest {
         assets = listOf(LegacyAsset("kokoro/model.onnx", 10, "aa".repeat(32))),
     )
 
-    private class MemorySecretStore : NativeSecretStore {
+    private class MemorySecretStore : NativeSecretStore, NativeSecretCommitmentVerifier {
         private var staged: Map<String, String>? = null
         private var committed: Map<String, String>? = null
 
@@ -209,6 +217,13 @@ class FileNativePersistenceTest {
 
         override fun verify(values: Map<String, String>) {
             check(committed == values)
+        }
+
+        override fun matches(expectedDigests: Map<String, String>): Boolean {
+            val values = committed ?: return false
+            return values.keys == expectedDigests.keys && values.all { (key, value) ->
+                NativeSecretDigest.sha256(key, value) == expectedDigests[key]
+            }
         }
     }
 

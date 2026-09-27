@@ -160,6 +160,11 @@ interface NativeSecretStore {
     fun verify(values: Map<String, String>)
 }
 
+/** Verifies protected state without returning or exporting its raw values. */
+fun interface NativeSecretCommitmentVerifier {
+    fun matches(expectedDigests: Map<String, String>): Boolean
+}
+
 /**
  * Coordinates the public record and protected store under the migration
  * protocol. A failure after either commit leaves the completion marker false;

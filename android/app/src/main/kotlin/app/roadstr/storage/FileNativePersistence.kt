@@ -199,11 +199,13 @@ class FileNativePublicSnapshotStore(directory: File) : NativePublicSnapshotStore
  * Durable completion marker bound to the exact committed public record.
  *
  * Protected values are verified by [CompositeNativeSnapshotWriter] before
- * this marker is written; they are never copied into this public marker.
+ * this marker is written. Reopen also requires the protected store to match
+ * the commitments in the public record; raw values never enter this marker.
  */
 class FileSnapshotBoundMigrationMarker(
     directory: File,
     private val publicStore: NativePublicSnapshotStore,
+    private val secretVerifier: NativeSecretCommitmentVerifier,
 ) : MigrationMarker {
     private val marker = RecoverableAtomicFile(
         directory = directory,
@@ -215,8 +217,9 @@ class FileSnapshotBoundMigrationMarker(
     override fun isComplete(): Boolean = try {
         val markerBytes = marker.read() ?: return false
         val publicBytes = publicStore.read() ?: return false
-        NativeSnapshotRecordCodec.decode(publicBytes)
-        markerMatches(markerBytes, publicBytes)
+        val publicRecord = NativeSnapshotRecordCodec.decode(publicBytes)
+        markerMatches(markerBytes, publicBytes) &&
+            secretVerifier.matches(publicRecord.secureValueDigests)
     } catch (_: RuntimeException) {
         false
     }
