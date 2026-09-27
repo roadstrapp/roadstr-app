@@ -88,6 +88,10 @@ The first native increment is intentionally isolated from production startup:
   and signature-aware socket dispatch remain unwired.
 - The Kotlin suite remains independent of Android UI/runtime state; the exact
   current count is recorded in `CORE_PARITY.md` after each full run.
+- The shipped Dart bounded HTTP helper now delegates response-size and redirect
+  decisions to a pure policy. Kotlin matches a 48-case fixture covering all
+  timeout/size tiers, streaming ceilings and GraphHopper cleartext-loopback
+  admission; no native socket or request is wired.
 - `docs/kotlin-rewrite/MIGRATION_IMPLEMENTATION.md` records what is and is not
   wired.
 
@@ -286,15 +290,22 @@ broader cross-language coverage and a native store are still required.
   production acceptance.
 - **Rollback notes:** Retain legacy reader/bridge for the supported skip-version window.
 
-### KOTLIN-009 — Port bounded networking, search and routing
+### KOTLIN-009 — Port bounded networking, search and routing (IN PROGRESS)
 
 - **Objective:** Preserve all endpoints, headers, bounds, retry and provider behavior.
 - **Current Dart/Flutter source:** `bounded_http.dart`, `network_config.dart`, `retry.dart`, routing/search/Overpass/Photon/Nominatim services.
 - **New Kotlin files/modules:** `core/network`, `service/routing`, `service/search`, `service/overpass`.
+- **Current implementation:** `core/network/HttpSafetyPolicy.kt` mirrors the
+  six timeout tiers, six response limits, redirect refusal, overflow-safe
+  streaming byte accounting and current GraphHopper host/loopback policy. The
+  production Dart bounded client uses the extracted oracle. Native HTTP,
+  provider adapters and response parsing remain unwired.
 - **Dependencies:** OkHttp, Kotlin coroutines/Flow; no Google/Firebase/telemetry SDK.
 - **Migration impact:** Routing provider, API key and GraphHopper URL must survive.
 - **User-visible impact:** Same providers, results, language and error/fallback behavior.
-- **Tests:** HTTP transcript fixtures, redirect/size/TLS/cleartext tests, provider response fixtures and retry tests.
+- **Tests:** A 48-case shared HTTP safety fixture and existing live Dart local-
+  server redirect/oversize tests are green. Native engine redirect/size/TLS/
+  cleartext integration, provider response fixtures and retry execution remain.
 - **Parity evidence:** Request/response normalized diff and provider matrix.
 - **Security/privacy impact:** Preserve URL validation, body caps, user-agent, no silent cloud fallback.
 - **Battery/performance impact:** Compare network retries, cache hit rate and cancellation.

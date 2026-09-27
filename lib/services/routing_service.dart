@@ -17,6 +17,7 @@ import '../utils/fuzzy_match.dart';
 import '../utils/geo.dart';
 import '../utils/units.dart';
 import 'bounded_http.dart';
+import 'http_safety_policy.dart';
 import 'nav_phrases.dart';
 import 'roundabout_topology_service.dart';
 
@@ -1890,12 +1891,6 @@ class RoutingService {
   static int? _intValue(dynamic value) =>
       value is num ? value.toInt() : int.tryParse(value?.toString() ?? '');
 
-  /// Hosts the app's Android network security config carves a narrow
-  /// cleartext exception for — see network_security_config.xml. Kept here,
-  /// next to the one place in Dart that needs to agree with it, rather than
-  /// duplicated from memory.
-  static const _cleartextAllowedHosts = {'localhost', '127.0.0.1', '10.0.2.2'};
-
   /// Refuses a self-hosted GraphHopper URL that would silently fail (or,
   /// were the app's cleartext policy ever loosened to make it "work",
   /// silently send origin/destination coordinates in plaintext).
@@ -1909,14 +1904,15 @@ class RoutingService {
   /// and rather than "fixed" by weakening the cleartext policy generally —
   /// a self-hosted server anywhere but this device needs real HTTPS.
   static void validateGraphhopperServerUrl(String server) {
-    final uri = Uri.tryParse(server);
-    if (uri == null || uri.host.isEmpty) {
-      throw RoutingException(message: 'Invalid GraphHopper server URL');
-    }
-    if (uri.scheme == 'http' && !_cleartextAllowedHosts.contains(uri.host)) {
-      throw RoutingException(
-          message: 'Self-hosted GraphHopper must use HTTPS, unless it is '
-              'running on localhost/127.0.0.1');
+    switch (RoutingEndpointPolicy.graphHopperDecision(server)) {
+      case RoutingEndpointDecision.accepted:
+        return;
+      case RoutingEndpointDecision.invalid:
+        throw RoutingException(message: 'Invalid GraphHopper server URL');
+      case RoutingEndpointDecision.cleartextRejected:
+        throw RoutingException(
+            message: 'Self-hosted GraphHopper must use HTTPS, unless it is '
+                'running on localhost/127.0.0.1');
     }
   }
 
