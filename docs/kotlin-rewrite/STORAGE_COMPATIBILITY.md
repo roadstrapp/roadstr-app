@@ -181,6 +181,11 @@ verifier, public file store, Keystore secret store and commitment-bound marker
 for that root, but exposes no automatic startup hook. The caller must schedule
 its blocking `run()` operation on a worker thread and retain the existing
 Flutter path until signed-install compatibility evidence authorizes activation.
+`NativeMigrationStartupRunner` is the corresponding single-flight worker
+boundary: duplicate launches are ignored, failed attempts remain retryable and
+successful/complete outcomes become terminal for that process. It deliberately
+does not decide whether the current Flutter UI or a future native UI should be
+shown.
 
 The current Flutter migration code deletes the old plaintext Hive file only
 after copying it to a backup and successfully writing the encrypted box. The

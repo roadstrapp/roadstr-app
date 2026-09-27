@@ -44,6 +44,11 @@ not a production startup change.
   NativeMigrationRuntime.kt` composes that path, public store, Keystore store,
   commitment-bound marker and transactional coordinator. It is an explicit
   worker-thread API and is not invoked by the current Flutter startup.
+- `migration/NativeMigrationStartupRunner.kt` adds the asynchronous
+  single-flight boundary above the runtime. It rejects duplicate concurrent
+  requests, reports neutral worker/execution failures, returns to `Idle` after
+  a failed attempt for retry, and becomes terminal only after a non-failed
+  result. It does not choose a UI or alter the current Activity lifecycle.
 - `LegacySnapshotFingerprint` provides a stable order-independent SHA-256 for
   comparing staged and reopened snapshots without logging their contents.
 - `LegacySnapshotEnvelope.kt` implements the versioned, canonical and bounded
@@ -86,7 +91,9 @@ not a production startup change.
   binding, protected-store reopen, nonce randomization, authenticated tamper
   rejection, lost-key retry, envelope limits/corruption and the audited key
   contract. Runtime tests cover stable path resolution, composition,
-  idempotent second start and failed protected commitment reopening.
+  idempotent second start and failed protected commitment reopening. Runner
+  tests cover single-flight behavior, retry after marker failure and executor
+  rejection without sleeping or using a device.
 - Dart generates `legacy_snapshot_v1.b64`; Dart and Kotlin both decode the
   exact bytes and assert coverage of all 42 fixed Hive keys, three dynamic
   per-identity keys, nine secure keys and six synthetic asset records.
@@ -110,6 +117,9 @@ not a production startup change.
 - `NativeMigrationRuntime` is not invoked by `MainActivity`, `Application` or
   any production startup callback; its real `Context` factory is only a
   prepared integration boundary.
+- `NativeMigrationStartupRunner` is likewise not owned by the current Activity
+  lifecycle; startup scheduling, neutral recovery UI and cutover policy remain
+  open.
 - No production Activity, manifest, application ID, permissions or Flutter
   runtime has been replaced.
 - No real user data, key, NWC URI or voice asset is used by the tests.
