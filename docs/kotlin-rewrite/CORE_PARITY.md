@@ -16,7 +16,7 @@ service or UI cutover.
 | `core.network` | `retry.dart`, `refetch_policy.dart` | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
 | `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `lnurl_protocol.dart`, `zap_service.dart` | BOLT-11 parsing, LNURL-pay source/metadata/callback/invoice binding, NIP-47 URI/request/response and NIP-57 draft/receipt bindings |
-| `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_pending_report_queue.dart`, `nostr_relay_message.dart`, `nostr_relay_ingress.dart`, `nostr_nip19.dart`, `nip04.dart`, `nip44.dart`, `favorites_sync_protocol.dart`, Nostr/favourites/Lightning services | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash, outbound frames, offline FIFO/TTL/retry policy, bounded inbound envelopes, pre-verification routing/budgets, strict fixed-size NIP-19 keys, legacy NIP-04, NIP-44 v2 and deterministic NIP-78 favourites policy |
+| `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_pending_report_queue.dart`, `nostr_relay_message.dart`, `nostr_relay_ingress.dart`, `nostr_nip19.dart`, `nostr_schnorr.dart`, `nip04.dart`, `nip44.dart`, `favorites_sync_protocol.dart`, Nostr/favourites/Lightning services | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash, outbound frames, offline FIFO/TTL/retry policy, bounded inbound envelopes, pre-verification routing/budgets, strict NIP-19 keys, x-only derivation/BIP-340, legacy NIP-04, NIP-44 v2 and deterministic NIP-78 policy |
 
 ## Shared vectors
 
@@ -91,6 +91,12 @@ maximum messages and hostile-input rejection. Kotlin reuses the pinned Bouncy
 Castle dependency and remains detached from native NWC key storage, signing
 and sockets. See `NIP04_CORE_PARITY.md`.
 
+`nostr_schnorr_v1.tsv` is the twelfth shared core fixture. Its 43 cases include
+all 19 official BIP-340 vectors, deterministic signatures over six Roadstr
+event shapes and strict malformed/tampered Nostr inputs. Kotlin reuses the
+pinned Bouncy Castle curve primitives; Dart cross-checks the implementation
+already shipped by `nostr_tools`. See `SCHNORR_CORE_PARITY.md`.
+
 ## Current limits
 
 - No class in this phase is called by production startup or UI.
@@ -99,7 +105,7 @@ and sockets. See `NIP04_CORE_PARITY.md`.
   to the future native networking adapter.
 - NIP-47/NIP-57, LNURL-pay, legacy NIP-04, NIP-44 v2 and NIP-78 favourites
   deterministic wire, crypto, parsing, padding, binding and rollback rules are
-  covered; NIP-47 encryption negotiation, native signing/key isolation, LNURL
+  covered; NIP-47 encryption negotiation, signer/key isolation, LNURL
   DNS/HTTP/redirect execution, wallet/relay sockets, persistence and
   orchestration remain open.
 - Full cross-language fixture coverage for route responses and the remaining
@@ -110,24 +116,25 @@ and sockets. See `NIP04_CORE_PARITY.md`.
 - The Kotlin queue policy is not wired to a native store or socket. The current
   Flutter queue is unbounded and does not serialize concurrent flush calls;
   changing either behavior requires an explicit, fixture-backed decision.
-- The inbound decoder and ingress policy are detached native pieces: signature
-  verification, socket lifecycle and wiring them into a native service remain
-  open. Every shipped Dart relay loop now uses the shared structural decoder,
+- The inbound decoder, ingress policy and BIP-340 verifier are detached native
+  pieces: signature-aware dispatch, socket lifecycle and native-service wiring
+  remain open. Every shipped Dart relay loop uses the shared structural decoder
   and every event-consuming loop uses the shared admission boundary.
-- The NIP-19 slice covers key representation only. NIP-04/NIP-44 now validate
-  secp256k1 scalars and perform ECDH, but general public-key derivation,
-  BIP-340 signing/verification, Amber intents and identity storage are open.
+- X-only public-key derivation and BIP-340 vectors are green, but native
+  local-key signing remains blocked on side-channel review, key isolation and
+  storage. Amber intents and identity migration are also open.
 
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 582 tests passed, including the Nostr/`nostr_tools`
-  cross-check, pending-queue, bounded-inbound, ingress, NIP-19, Lightning and
+- `flutter test`: 588 tests passed, including the Nostr/`nostr_tools` and
+  official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
+  NIP-19, Lightning and
   LNURL/NIP-04/NIP-44/NIP-78 transcripts, both migration fixture oracles and the
   headless Dart handler.
-- `./gradlew :app:testDebugUnitTest`: 99 Kotlin tests passed, including the
-  Nostr byte/queue/inbound/ingress/NIP-19/NIP-04/NIP-44/NIP-78, Lightning/LNURL parity
-  and bounded headless transport reader suites.
+- `./gradlew :app:testDebugUnitTest`: 101 Kotlin tests passed, including the
+  Nostr byte/queue/inbound/ingress/NIP-19/BIP-340/NIP-04/NIP-44/NIP-78,
+  Lightning/LNURL parity and bounded headless transport reader suites.
 - `./gradlew :app:assembleDebug`: D8, duplicate-class checks and Android APK
   packaging passed with the pinned Bouncy Castle dependency.
 - No production Activity, manifest or startup wiring changed.

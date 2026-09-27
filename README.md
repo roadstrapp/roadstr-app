@@ -137,6 +137,7 @@ lib/
 │   ├── nip04.dart                     # Legacy NWC encryption (ECDH + AES-256-CBC)
 │   ├── nip44.dart                     # NIP-44 v2 encryption (ECDH + ChaCha20 + HMAC)
 │   ├── nostr_event_verify.dart        # Signature verification for incoming events
+│   ├── nostr_schnorr.dart             # Strict Nostr BIP-340 key/signature boundary
 │   ├── nostr_relay_service.dart       # WebSocket relay, geohash area subscriptions
 │   ├── opening_hours.dart             # OSM opening_hours parser (open/closed badge)
 │   ├── overpass_client.dart           # Shared mirror rotation, backoff, response caps
