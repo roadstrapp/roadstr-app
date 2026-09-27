@@ -62,7 +62,7 @@ native parser must not be assumed safe from the current version alone.
 | secure storage `nostr_flavor` | `amber` or `nsec` | Sensitive identity mode | Native identity record | Preserve mode; Amber must never gain a private key |
 | secure storage `nostr_picture`, `nostr_name` | strings | Profile data | Native profile record | Exact value comparison |
 | secure storage `routing_api_key` | string | Secret | Keystore-backed secret | Exact value comparison; never plain preferences |
-| secure storage `nwc_uri` | `nostr+walletconnect://` string | Critical secret/config | Keystore-backed secret | Parse/validate and compare; do not print |
+| secure storage `nwc_uri` | `nostr+walletconnect://` string | Critical secret/config | Keystore-backed secret | Preserve opaquely at migration; parse/validate at the native Lightning boundary; do not print |
 | secure storage `favorites_sync_passphrase` | string | Critical secret | Keystore-backed secret | Exact value comparison; fail closed |
 | documents `kokoro/` | ONNX/tokenizer/voice files | Large asset, integrity-sensitive | Reuse in place | Verify current size/SHA-256 before reuse |
 | documents `piper/` | ONNX/config files | Large asset, integrity-sensitive | Reuse in place | Verify current size/SHA-256 before reuse |
@@ -161,6 +161,14 @@ file, and then opens only a bounded temporary copy. A formally valid but wrong
 Hive key, corrupt Hive bytes, source symlink, unknown secure key, mismatched
 Hive/secure presence or copy instability fails closed with a value-free error.
 The source box and its asset files remain byte-for-byte unchanged in tests.
+
+Before the native writer is reached, the protected-state admission policy also
+requires a canonical 32-byte Hive key, a complete `nsec` or Amber identity, and
+the same identity fields in both the envelope record and secure storage. An
+anonymous state remains valid when all three identity fields are absent. This
+check is intentionally structural: NWC URI parsing is deferred to the native
+Lightning boundary until real signed-install fixtures establish which
+historical URI variants must remain compatible.
 
 `legacyMigrationHeadlessMain` is a secondary, tree-shaker-preserved Dart
 entrypoint. Its Kotlin launcher creates a separate engine on the Android main

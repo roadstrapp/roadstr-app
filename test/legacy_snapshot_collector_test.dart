@@ -7,6 +7,7 @@ import 'package:hive/hive.dart';
 import '../tools/kotlin_rewrite/legacy_raw_hive_fixture.dart';
 import 'package:roadstr/migration/legacy_snapshot_collector.dart';
 import 'package:roadstr/migration/legacy_snapshot_envelope.dart';
+import 'package:roadstr/migration/legacy_storage_contract.dart';
 import '../tools/kotlin_rewrite/legacy_snapshot_fixture.dart';
 
 const _rawFixturePath =
@@ -207,6 +208,51 @@ void main() {
         throwsA(isA<LegacySnapshotCollectionException>()),
       );
     });
+  });
+
+  test('protected-state policy rejects impossible identity states', () {
+    final nsecWithoutPublic = buildSyntheticLegacySecureValues()
+      ..remove('nostr_pub_hex');
+    final amberWithPrivate = buildSyntheticLegacySecureValues()
+      ..['nostr_flavor'] = 'amber';
+    final amberWithoutPublic = buildSyntheticLegacySecureValues()
+      ..['nostr_flavor'] = 'amber'
+      ..remove('nostr_pub_hex')
+      ..remove('nostr_priv_hex');
+    final unknownFlavor = buildSyntheticLegacySecureValues()
+      ..['nostr_flavor'] = 'hardware';
+    final malformedHiveKey = buildSyntheticLegacySecureValues()
+      ..['hive_settings_key'] = _SecretObject.secret;
+
+    for (final values in [
+      nsecWithoutPublic,
+      amberWithPrivate,
+      amberWithoutPublic,
+      unknownFlavor,
+      malformedHiveKey,
+    ]) {
+      expect(
+        () => LegacySecureValueValidator.validate(values),
+        throwsA(
+          isA<LegacySnapshotCollectionException>().having(
+            (error) => error.message,
+            'message',
+            isNot(contains(_SecretObject.secret)),
+          ),
+        ),
+      );
+    }
+
+    expect(
+      LegacyProtectedStatePolicy.isCanonicalLegacyHiveKey(
+        buildSyntheticLegacySecureValues()['hive_settings_key']!,
+      ),
+      isTrue,
+    );
+    expect(
+      LegacyProtectedStatePolicy.isCanonicalLegacyHiveKey('not-a-key'),
+      isFalse,
+    );
   });
 
   test('asset manifest rejects traversal and symbolic links', () async {
