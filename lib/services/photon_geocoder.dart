@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 
 import 'bounded_http.dart';
 import 'routing_service.dart' show NominatimResult;
+import 'search_provider_protocol.dart';
 
 /// Typo-tolerant, prefix-based geocoder backed by komoot's public **Photon**
 /// service (OpenStreetMap data, no API key, free for reasonable use).
@@ -22,18 +23,10 @@ import 'routing_service.dart' show NominatimResult;
 /// seconds). Nominatim is still queried in parallel because it remains better
 /// at exact, fully-qualified addresses and at house-number interpolation.
 class PhotonGeocoder {
-  static const _endpoint = 'https://photon.komoot.io/api/';
-
-  /// Languages Photon actually has localised indexes for. Anything else must
-  /// be sent without `lang` — the service hard-rejects an unknown value with
-  /// `{"lang":[{"message":"Language is not supported…"}]}` and no results
-  /// (verified live), so this list must not be widened optimistically.
-  static const _supportedLangs = {'en', 'de', 'fr'};
-
   /// Longest query worth sending. A place name never approaches this; the cap
   /// exists so a pasted wall of text cannot be turned into a giant URL or into
   /// a quadratic amount of client-side fuzzy scoring on every keystroke.
-  static const maxQueryLength = 200;
+  static const maxQueryLength = SearchProviderProtocol.photonMaxQueryLength;
 
   /// Searches for [query], biased toward [near] when a GPS fix is available.
   ///
@@ -53,21 +46,19 @@ class PhotonGeocoder {
       // hand a third party the metre-accurate position of the driver. This
       // deliberately discloses less than the ±0.25° viewbox already sent to
       // Nominatim, which is coarser still.
-      final bias = near == null
-          ? ''
-          : '&lat=${near.latitude.toStringAsFixed(2)}'
-              '&lon=${near.longitude.toStringAsFixed(2)}'
-              // Pulls nearby hits up without hard-filtering distant ones —
-              // "Via Roma" in the next town over must stay reachable.
-              '&location_bias_scale=0.3&zoom=12';
-      final lang = _supportedLangs.contains(languageCode)
-          ? '&lang=$languageCode'
-          : '';
-      final uri = Uri.parse('$_endpoint?q=${Uri.encodeQueryComponent(q)}'
-          '&limit=$limit$bias$lang');
+      // Pulls nearby hits up without hard-filtering distant ones — "Via Roma"
+      // in the next town over must stay reachable. Unsupported language
+      // codes are deliberately omitted because Photon rejects them outright.
+      final request = SearchProviderProtocol.photonSearch(
+        q,
+        latitude: near?.latitude,
+        longitude: near?.longitude,
+        languageCode: languageCode,
+        limit: limit,
+      )!;
       final res = await BoundedHttp.get(
-        uri,
-        headers: {'User-Agent': 'Roadstr/1.0'},
+        request.uri,
+        headers: request.headers,
         maxBytes: 2 * 1024 * 1024,
         // Short on purpose: Photon is the "fast" provider of the pair. If it
         // cannot answer within this budget, Nominatim's reply is already due.
