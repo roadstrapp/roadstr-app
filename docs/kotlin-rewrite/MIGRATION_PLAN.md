@@ -250,11 +250,15 @@ broader cross-language coverage and a native store are still required.
 - **Acceptance criteria:** Prototype is idempotent/crash-safe and never deletes legacy data before verification; production acceptance additionally requires real legacy fixtures and startup integration.
 - **Rollback notes:** Recovery reopens legacy state; native marker is written last and can be safely ignored by Flutter.
 
-### KOTLIN-008 — Port native storage after migration is proven
+### KOTLIN-008 — Port native storage after migration is proven (PROTOTYPE)
 
 - **Objective:** Separate preferences, structured data, secrets, caches and voice assets intentionally.
 - **Current Dart/Flutter source:** Hive access in map/settings/profile/services; secure storage calls.
 - **New Kotlin files/modules:** `storage/preferences`, `storage/database`, `storage/secrets`, `storage/assets`.
+- **Current prototype:** `storage/NativeSnapshotStore.kt` defines a versioned
+  public record with per-key protected-value commitments and a composite
+  retryable writer; concrete Android persistence and Keystore adapters remain
+  open.
 - **Dependencies:** DataStore/Room only where justified; Android Keystore.
 - **Migration impact:** New schema/version marker and backup/rollback policy.
 - **User-visible impact:** No settings/default/favourite/history change.
