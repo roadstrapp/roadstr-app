@@ -265,7 +265,8 @@ broader cross-language coverage and a native store are still required.
   wiring and signed-device Keystore evidence remain open. `NativeStoragePaths`
   and `NativeMigrationRuntime` now compose these pieces under
   `noBackupFilesDir/roadstr-native-v1` without invoking them from production
-  startup.
+  startup. `NativeMigrationStartupRunner` adds a single-flight asynchronous
+  retry boundary while leaving lifecycle ownership and cutover policy open.
 - **Dependencies:** DataStore/Room only where justified; Android Keystore.
 - **Migration impact:** New schema/version marker and backup/rollback policy.
 - **User-visible impact:** No settings/default/favourite/history change.
@@ -273,13 +274,16 @@ broader cross-language coverage and a native store are still required.
   interrupted/corrupt replacement recovery, ciphertext tamper and wrong-key
   rejection, durable public/protected marker binding, asset reuse and checksum
   tests, plus runtime path/composition and second-start idempotence tests.
+  Runner tests cover duplicate requests, retry after failure and executor
+  rejection.
 - **Parity evidence:** Storage comparison against migrated fixture and second-start no-op.
 - **Security/privacy impact:** No nsec/NWC/passphrase in plain preferences or database.
 - **Battery/performance impact:** Startup I/O and write frequency compared with Hive.
 - **Acceptance criteria:** JVM reopen and marker durability are covered; device
   power-loss, app-private directory wiring and actual AndroidKeyStore
   create/reopen/invalidation, legacy-reader execution and worker-thread startup
-  ownership must pass before production acceptance.
+  ownership, neutral recovery UI and cutover behavior must pass before
+  production acceptance.
 - **Rollback notes:** Retain legacy reader/bridge for the supported skip-version window.
 
 ### KOTLIN-009 — Port bounded networking, search and routing
