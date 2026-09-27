@@ -1,4 +1,4 @@
-# Native HTTP safety policy parity
+# Native HTTP safety and search-request parity
 
 This increment freezes the deterministic HTTP safety decisions needed by the
 native networking rewrite without opening a socket or changing production
@@ -23,6 +23,11 @@ network ownership. Flutter remains the live client.
 delegates the deterministic size decisions to the fixture-backed policy, so the
 oracle exercised by production and the oracle exported to Kotlin are the same
 code.
+
+`lib/services/search_provider_protocol.dart` is also called by the live Dart
+Nominatim, Photon and Overpass paths. Its socket-free Kotlin counterpart locks
+the exact method, endpoint, encoding, parameters, headers and form body. See
+`SEARCH_NETWORK_CORE_PARITY.md` for the provider matrix and privacy boundary.
 
 ## Compatibility detail
 
@@ -58,16 +63,22 @@ the same generated contract. Existing Dart integration tests still prove that
 an oversized body is rejected and a 3xx response is returned without following
 the redirect.
 
+`search_provider_requests_v1.tsv` adds 39 Dart-generated Nominatim, Photon and
+Overpass request outcomes. It is consumed by both runtimes and includes their
+intentionally different text encodings, Nominatim viewboxes, Photon location
+rounding/language allowlist and exact Overpass mirror/header/body contract.
+
 ## Deliberately outside this slice
 
 - no native HTTP engine, OkHttp dependency, DNS resolver or socket is wired;
-- no native request carries coordinates, API keys or a Roadstr user-agent;
+- no native request is dispatched with coordinates, API keys or a Roadstr
+  user-agent; Kotlin request values are inert fixture-backed data;
 - total deadlines, cancellation and connection-pool ownership still need the
   native adapter;
 - redirect/TLS/cleartext behavior needs Android integration tests in addition
   to this policy fixture;
-- Nominatim, Photon, Overpass, OSRM, ORS, GraphHopper and Valhalla request/
-  response fixtures remain to be ported;
+- Nominatim, Photon and Overpass response fixtures remain; OSRM, ORS,
+  GraphHopper and Valhalla request/response fixtures remain to be ported;
 - DNS-aware SSRF checks for LNURL remain part of the later live-network gate.
 
 The Kotlin policy has no Android, Activity, startup or persistence wiring.

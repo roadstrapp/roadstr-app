@@ -20,6 +20,7 @@ import 'bounded_http.dart';
 import 'http_safety_policy.dart';
 import 'nav_phrases.dart';
 import 'roundabout_topology_service.dart';
+import 'search_provider_protocol.dart';
 
 const int kMaxRoundaboutArms = 20;
 
@@ -359,8 +360,6 @@ class RoutingService {
       'https://routing.openstreetmap.de/routed-foot/route/v1/foot';
   static const _osrmBike =
       'https://routing.openstreetmap.de/routed-bike/route/v1/bike';
-  static const _nominatim = 'https://nominatim.openstreetmap.org/search';
-
   /// ORS base — the profile segment ('driving-car', 'foot-walking'…) is appended.
   static const _orsBase = 'https://api.openrouteservice.org/v2/directions/';
   static const _graphhopperPublic = 'https://graphhopper.com/api/1/route';
@@ -433,19 +432,17 @@ class RoutingService {
       return List<NominatimResult>.from(cached.results);
     }
     try {
-      final viewbox = near != null
-          ? '&viewbox=${near.longitude - 0.25},${near.latitude + 0.25},'
-              '${near.longitude + 0.25},${near.latitude - 0.25}&bounded=0'
-          : '';
-      final uri = Uri.parse('$_nominatim'
-          '?q=${Uri.encodeComponent(query.trim())}'
-          // Six results are enough for suggestions and reduce payload/parsing.
-          // extratags=1 adds the raw OSM tags, in particular `brand` — see
-          // the brand-aware re-ranking below.
-          '&format=json&limit=6&addressdetails=1&extratags=1&polygon_geojson=0$viewbox');
+      // Six results are enough for suggestions and reduce payload/parsing.
+      // extratags=1 adds the raw OSM tags, in particular `brand` — see the
+      // brand-aware re-ranking below.
+      final request = SearchProviderProtocol.nominatimSearch(
+        query,
+        latitude: near?.latitude,
+        longitude: near?.longitude,
+      )!;
       final res = await BoundedHttp.get(
-        uri,
-        headers: {'User-Agent': 'Roadstr/1.0'},
+        request.uri,
+        headers: request.headers,
         maxBytes: 2 * 1024 * 1024,
         timeout: const Duration(seconds: 5),
       );
@@ -558,12 +555,13 @@ class RoutingService {
       // `opening_hours` (parsed client-side for the open/closed badge). No
       // extra location is disclosed — the coordinate is already sent for the
       // reverse lookup itself.
-      final uri = Uri.parse('https://nominatim.openstreetmap.org/reverse'
-          '?lat=${point.latitude}&lon=${point.longitude}'
-          '&format=json&addressdetails=1&extratags=1');
+      final request = SearchProviderProtocol.nominatimReverse(
+        latitude: point.latitude,
+        longitude: point.longitude,
+      );
       final res = await BoundedHttp.get(
-        uri,
-        headers: {'User-Agent': 'Roadstr/1.0'},
+        request.uri,
+        headers: request.headers,
         maxBytes: 2 * 1024 * 1024,
         timeout: const Duration(seconds: 5),
       );

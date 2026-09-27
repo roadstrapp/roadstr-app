@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'bounded_http.dart';
+import 'search_provider_protocol.dart';
 
 /// Thrown when an Overpass mirror answers with a non-200 status.
 class OverpassException implements Exception {
@@ -29,10 +30,7 @@ class OverpassClient {
   /// extract and answers queries for the rest of the world with an empty
   /// success, which reads as "nothing here" rather than as a failure and so
   /// never triggers a fallback. Do not add it back.
-  static const mirrors = [
-    'https://overpass-api.de/api/interpreter',
-    'https://overpass.openstreetmap.fr/api/interpreter',
-  ];
+  static const mirrors = SearchProviderProtocol.overpassMirrors;
 
   /// Formats a latitude or longitude for an Overpass `around:` clause.
   ///
@@ -192,13 +190,11 @@ class OverpassClient {
     required int maxBytes,
     required Duration timeout,
   }) async {
+    final request = SearchProviderProtocol.overpass(mirror, query);
     final res = await BoundedHttp.post(
-      Uri.parse(mirror),
-      headers: const {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': 'Roadstr/1.0 (navigation app)',
-      },
-      body: 'data=${Uri.encodeQueryComponent(query)}',
+      request.uri,
+      headers: request.headers,
+      body: request.body,
       maxBytes: maxBytes,
       timeout: timeout,
     );

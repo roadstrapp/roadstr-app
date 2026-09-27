@@ -13,7 +13,7 @@ service or UI cutover.
 | `core.map` | `camera_follow.dart`, `viewport_window.dart` | exponential easing, rotation cap, frame gate, navigation offset, marker culling window |
 | `core.format` | `units.dart` | metric/imperial display, altitude, 27-language speech units, distance punctuation/spacing |
 | `core.search` | `fuzzy_match.dart` | accent folding, bounded Levenshtein, address weighting and stop-word rejection |
-| `core.network` | `retry.dart`, `refetch_policy.dart`, `bounded_http.dart`, `network_config.dart`, GraphHopper validation | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh, HTTP deadlines/body ceilings/redirect and cleartext-loopback policy |
+| `core.network` | `retry.dart`, `refetch_policy.dart`, `bounded_http.dart`, `network_config.dart`, `search_provider_protocol.dart`, GraphHopper validation | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh, HTTP deadlines/body ceilings/redirect and cleartext-loopback policy, exact Nominatim/Photon/Overpass requests |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
 | `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `lnurl_protocol.dart`, `zap_service.dart` | BOLT-11 parsing, LNURL-pay source/metadata/callback/invoice binding, NIP-47 URI/info negotiation/request/response and NIP-57 draft/receipt bindings |
 | `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_pending_report_queue.dart`, `nostr_relay_message.dart`, `nostr_relay_ingress.dart`, `nostr_nip19.dart`, `nostr_schnorr.dart`, `nip04.dart`, `nip44.dart`, `favorites_sync_protocol.dart`, Nostr/favourites/Lightning services | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash, outbound frames, offline FIFO/TTL/retry policy, bounded inbound envelopes, pre-verification routing/budgets, strict NIP-19 keys, x-only derivation/BIP-340, legacy NIP-04, NIP-44 v2 and deterministic NIP-78 policy |
@@ -106,21 +106,29 @@ decision. The live Dart bounded client calls the extracted policy; Kotlin is
 still an engine-independent counter/admission boundary. See
 `NETWORK_CORE_PARITY.md`.
 
+`search_provider_requests_v1.tsv` is the fourteenth shared core fixture. Its 39
+cases lock exact Nominatim forward/reverse, Photon and Overpass methods, URLs,
+encodings, parameters, mirror order, headers and form bodies. The corresponding
+Dart builder is used by all three live Flutter clients; Kotlin remains detached
+from sockets. See `SEARCH_NETWORK_CORE_PARITY.md`.
+
 ## Current limits
 
-- No class in this phase is called by production startup or UI.
+- No Kotlin class in this phase is called by production startup or UI. The
+  extracted Dart request builders are called by the existing Flutter services.
 - Stateful navigation tests cover policy decisions, not Android sensor timing.
 - Retry scheduling is pure policy; coroutine execution and cancellation belong
   to the future native networking adapter.
-- HTTP size and endpoint decisions are pure policy; no native DNS, TLS,
-  connection, total-deadline or cancellation adapter exists yet.
+- HTTP size, endpoint and search-request decisions are pure Kotlin policy; no
+  native DNS, TLS, connection, total-deadline or cancellation adapter exists
+  yet.
 - NIP-47/NIP-57, LNURL-pay, legacy NIP-04, NIP-44 v2 and NIP-78 favourites
   deterministic wire, crypto, parsing, padding, binding and rollback rules are
   covered, including NIP-47 encryption negotiation; native signer/key
   isolation, LNURL DNS/HTTP/redirect execution, wallet/relay sockets,
   persistence and orchestration remain open.
-- Full cross-language fixture coverage for route responses and the remaining
-  signed/networked Nostr surface is required. Legacy storage now has a
+- Full cross-language fixture coverage for search/route responses and the
+  remaining signed/networked Nostr surface is required. Legacy storage now has a
   synthetic encrypted Hive source fixture and shared envelope, while
   installed-app secure-storage/Keystore evidence is still required before its
   gate can close.
@@ -138,15 +146,16 @@ still an engine-independent counter/admission boundary. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 593 tests passed, including the Nostr/`nostr_tools` and
+- `flutter test`: 598 tests passed, including the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
   NIP-19, Lightning and
-  LNURL/NIP-04/NIP-44/NIP-78 transcripts, HTTP safety policy, both migration
-  fixture oracles and the headless Dart handler.
-- `./gradlew :app:testDebugUnitTest`: 130 Kotlin tests passed, including the
+  LNURL/NIP-04/NIP-44/NIP-78 transcripts, HTTP safety and search-provider
+  request policies, both migration fixture oracles and the headless Dart
+  handler.
+- `./gradlew :app:testDebugUnitTest`: 132 Kotlin tests passed, including the
   Nostr byte/queue/inbound/ingress/NIP-19/BIP-340/NIP-04/NIP-44/NIP-78,
-  Lightning/LNURL parity, HTTP safety, native persistence/migration and bounded
-  headless transport reader suites.
+  Lightning/LNURL parity, HTTP safety/search requests, native persistence/
+  migration and bounded headless transport reader suites.
 - `./gradlew :app:assembleDebug`: D8, duplicate-class checks and Android APK
   packaging passed with the pinned Bouncy Castle dependency.
 - No production Activity, manifest or startup wiring changed.
