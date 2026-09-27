@@ -302,20 +302,22 @@ broader cross-language coverage and a native store are still required.
   Photon and Overpass request composition. `RoutingRequestProtocol.kt` mirrors
   exact OSRM, OpenRouteService, GraphHopper and Valhalla request composition,
   including key destination, locale/profile, waypoint/bearing and avoidance
-  behavior. The production Dart bounded client and provider clients use the
-  extracted oracles. Native HTTP, response parsing and provider execution
-  remain unwired.
+  behavior. `RoutingResponseProtocol.kt` mirrors normalized response parsing,
+  maneuver mapping/localization, speed limits, route validation, polyline6 and
+  retiming for all four providers. The production Dart bounded client and
+  provider clients use the extracted request/response oracles. Native HTTP and
+  provider execution remain unwired.
 - **Dependencies:** OkHttp, Kotlin coroutines/Flow; no Google/Firebase/telemetry SDK.
 - **Migration impact:** Routing provider, API key and GraphHopper URL must survive.
 - **User-visible impact:** Same providers, results, language and error/fallback behavior.
 - **Tests:** A 48-case shared HTTP safety fixture, a 39-case search-provider
-  request fixture, an 89-case routing-provider request fixture and existing
-  live Dart local-server redirect/oversize/Overpass tests are green. Native
-  engine redirect/size/TLS/cleartext integration, provider response fixtures
-  and retry execution remain.
+  request fixture, an 89-case routing-provider request fixture, a 59-case
+  routing-provider response fixture and existing live Dart local-server
+  redirect/oversize/Overpass tests are green. Native engine redirect/size/TLS/
+  cleartext integration, search response fixtures and retry execution remain.
 - **Parity evidence:** Exact Nominatim/Photon/Overpass and OSRM/ORS/GraphHopper/
-  Valhalla request bytes are green; normalized response diffs and live native
-  execution are open.
+  Valhalla request bytes plus normalized route responses are green; search
+  responses and live native execution are open.
 - **Security/privacy impact:** Preserve URL validation, body caps, user-agent, no silent cloud fallback.
 - **Battery/performance impact:** Compare network retries, cache hit rate and cancellation.
 - **Acceptance criteria:** All current providers pass without changed limits or privacy behavior.

@@ -18,12 +18,12 @@ import '../utils/geo.dart';
 import '../utils/units.dart';
 import 'bounded_http.dart';
 import 'http_safety_policy.dart';
-import 'nav_phrases.dart';
 import 'roundabout_topology_service.dart';
 import 'routing_request_protocol.dart';
+import 'routing_response_protocol.dart';
 import 'search_provider_protocol.dart';
 
-const int kMaxRoundaboutArms = 20;
+export 'routing_response_protocol.dart';
 
 /// OSRM bearing tolerance (degrees either side) used when rerouting a moving
 /// vehicle — see [RoutingService.getRoutes]'s `originBearingDeg`.
@@ -46,190 +46,8 @@ const int kMaxRoundaboutArms = 20;
 const rerouteBearingToleranceDeg =
     RoutingRequestProtocol.rerouteBearingToleranceDegrees;
 
-/// A single turn-by-turn navigation step produced by a routing provider.
-class RouteStep {
-  /// Human-readable instruction in the requested language (e.g. "Turn right on Via Roma").
-  final String instruction;
-
-  /// Maneuver type from the routing provider (e.g. 'turn', 'roundabout', 'arrive').
-  final String direction;
-
-  /// Turn modifier — sub-type of a 'turn' maneuver: 'left', 'right', 'slight left',
-  /// 'slight right', 'sharp left', 'sharp right', 'straight', 'uturn'.
-  /// Empty string when not applicable (depart, arrive, etc.).
-  final String modifier;
-
-  /// Horizontal distance from this step's maneuver point to the next, in metres.
-  final double distanceM;
-
-  /// The geographic point where this maneuver begins.
-  final LatLng location;
-
-  /// Exit number for roundabout/rotary maneuvers (1-based). Null for other types.
-  final int? exitNumber;
-
-  /// Total road arms connected to the roundabout, including the entry arm.
-  ///
-  /// Routers generally return only [exitNumber]. Roadstr enriches this field
-  /// from OpenStreetMap topology so the sign can draw the real four-, five-,
-  /// six-arm (and larger) junction instead of guessing from the exit ordinal.
-  final int? roundaboutArmCount;
-
-  /// Motorway/freeway exit label such as "199" or "12A".
-  final String? exitLabel;
-
-  /// Name of the road this step leads onto, as OSM records it ("Via Roma").
-  /// Empty when the router gives none.
-  final String roadName;
-
-  /// Road code for the same road ("SS3bis", "A14"), when it has one.
-  ///
-  /// Kept apart from [roadName] rather than merged, because their presence is
-  /// what distinguishes a town street from a numbered road — which is the
-  /// difference between a name worth showing under the cursor and one that
-  /// belongs on a motorway sign.
-  final String roadRef;
-
-  /// True when this is an ordinary named street rather than a numbered road.
-  bool get isUrbanStreet => roadName.isNotEmpty && roadRef.isEmpty;
-
-  const RouteStep({
-    required this.instruction,
-    required this.direction,
-    this.modifier = '',
-    required this.distanceM,
-    required this.location,
-    this.exitNumber,
-    this.roundaboutArmCount,
-    this.exitLabel,
-    this.roadName = '',
-    this.roadRef = '',
-  });
-
-  RouteStep copyWith({
-    String? instruction,
-    String? direction,
-    String? modifier,
-    double? distanceM,
-    LatLng? location,
-    int? exitNumber,
-    int? roundaboutArmCount,
-    String? exitLabel,
-    String? roadName,
-    String? roadRef,
-  }) =>
-      RouteStep(
-        instruction: instruction ?? this.instruction,
-        direction: direction ?? this.direction,
-        modifier: modifier ?? this.modifier,
-        distanceM: distanceM ?? this.distanceM,
-        location: location ?? this.location,
-        exitNumber: exitNumber ?? this.exitNumber,
-        roundaboutArmCount: roundaboutArmCount ?? this.roundaboutArmCount,
-        exitLabel: exitLabel ?? this.exitLabel,
-        roadName: roadName ?? this.roadName,
-        roadRef: roadRef ?? this.roadRef,
-      );
-}
-
-/// The complete result of a route calculation: polyline + turn-by-turn steps.
-/// One speed-limit zone along the route: starts at [distFromStartM] metres
-/// from the route origin and applies until the next entry.
-typedef SpeedLimitEntry = ({double distFromStartM, int? speedKmh});
-
-/// How strongly a route satisfies the optional highway/toll avoidance policy.
-enum RouteAvoidance {
-  none,
-  highwayAndTollFree,
-  minimizedHighwaysAndTolls,
-
-  /// Best-effort: Valhalla was told to strongly disfavour `highway=track`
-  /// ways, the closest OSM tagging gets to "unmaintained dirt road a normal
-  /// car has no business on". There is no boolean exclude for this the way
-  /// there is for highways/tolls — see [RoutingService.getOffRoadAvoidanceRoute]
-  /// — so unlike [highwayAndTollFree] this is never a guarantee, only a
-  /// steer, and the UI must never word it as one.
-  offRoadAvoided,
-}
-
-class RouteResult {
-  /// Ordered list of coordinates forming the route polyline to draw on the map.
-  final List<LatLng> polyline;
-
-  /// Turn-by-turn navigation instructions.
-  final List<RouteStep> steps;
-  final double totalDistanceM;
-  final double totalDurationS;
-
-  /// Speed-limit zones sorted by distance from route start.
-  /// Populated only for GraphHopper (details=max_speed); OSRM has no maxspeed
-  /// annotation (that is a Mapbox extension) and other providers expose none —
-  /// their limits come from SpeedLimitService (Overpass) instead.
-  final List<SpeedLimitEntry> speedLimits;
-
-  /// Avoidance outcome reported by the routing graph. Keeping it on the route
-  /// prevents the UI from claiming a strict exclusion after a soft fallback.
-  final RouteAvoidance avoidance;
-
-  /// True when the route itself came out of the avoidance router (Valhalla),
-  /// as opposed to a normal route that was found to already comply. Only the
-  /// former disappears again when the avoidance switch is turned off.
-  final bool fromAvoidanceRouter;
-
-  const RouteResult({
-    required this.polyline,
-    required this.steps,
-    required this.totalDistanceM,
-    required this.totalDurationS,
-    this.speedLimits = const [],
-    this.avoidance = RouteAvoidance.none,
-    this.fromAvoidanceRouter = false,
-  });
-
-  /// Same route, different avoidance verdict. Used when a standard route turns
-  /// out to already satisfy the avoidance policy: it keeps its own geometry,
-  /// distance and — crucially — its own ETA, which came from the same engine
-  /// as every other route on screen.
-  RouteResult withAvoidance(RouteAvoidance value) => RouteResult(
-        polyline: polyline,
-        steps: steps,
-        totalDistanceM: totalDistanceM,
-        totalDurationS: totalDurationS,
-        speedLimits: speedLimits,
-        avoidance: value,
-        fromAvoidanceRouter: fromAvoidanceRouter,
-      );
-
-  bool get isHighwayAndTollAvoidance =>
-      avoidance == RouteAvoidance.highwayAndTollFree ||
-      avoidance == RouteAvoidance.minimizedHighwaysAndTolls;
-
-  bool get avoidsHighwaysAndTolls =>
-      avoidance == RouteAvoidance.highwayAndTollFree;
-
-  bool get isOffRoadAvoidance => avoidance == RouteAvoidance.offRoadAvoided;
-
-  /// Returns the posted speed limit at [elapsedM] metres from the route start,
-  /// or null when the limit is unknown or no data is available.
-  int? speedLimitAt(double elapsedM) {
-    if (speedLimits.isEmpty) return null;
-    int? result;
-    for (final e in speedLimits) {
-      if (e.distFromStartM > elapsedM) break;
-      result = e.speedKmh;
-    }
-    return result;
-  }
-
+extension RouteResultFormatting on RouteResult {
   String get distanceLabel => Units.fmtDist(totalDistanceM);
-
-  String get durationLabel {
-    final m = (totalDurationS / 60).round();
-    if (m < 60) return '$m min';
-    final h = m ~/ 60;
-    final rem = m % 60;
-    return '${h}h ${rem}min';
-  }
 }
 
 /// Selects which routing back-end to use. Stored as a string in Hive settings.
@@ -249,8 +67,6 @@ class RoutingService {
   // 250 000 points covers ~8000 km of fine-grained footpaths, and 32 MB /
   // 60 000 steps leave matching headroom.
   static const _maxRouteResponseBytes = 32 * 1024 * 1024;
-  static const _maxRoutePoints = 250000;
-  static const _maxRouteSteps = 60000;
   static final _roundaboutTopology = RoundaboutTopologyService();
 
   /// Adds the real total arm count to every roundabout step in [routes].
@@ -680,61 +496,10 @@ class RoutingService {
         if (res.bodyBytes.length > _maxRouteResponseBytes) {
           throw RoutingException(message: 'Routing response too large');
         }
-        final data = jsonDecode(res.body) as Map<String, dynamic>;
-        final feat = (data['features'] as List).first as Map<String, dynamic>;
-        final props = feat['properties'] as Map<String, dynamic>;
-        final summary = props['summary'] as Map<String, dynamic>?;
-        final segments = props['segments'] as List?;
-
-        final rawCoords = feat['geometry']['coordinates'] as List;
-        if (rawCoords.length > _maxRoutePoints) {
-          throw RoutingException(message: 'Route contains too many points');
-        }
-        final coords = rawCoords
-            .map((c) =>
-                LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()))
-            .toList();
-
-        final steps = <RouteStep>[];
-        if (segments != null && segments.isNotEmpty) {
-          final seg = segments.first as Map<String, dynamic>;
-          final sList = seg['steps'] as List? ?? [];
-          for (final s in sList) {
-            final step = s as Map<String, dynamic>;
-            final instr = (step['instruction'] as String?) ?? '';
-            final dist = (step['distance'] as num?)?.toDouble() ?? 0.0;
-            final type = _intValue(step['type']) ?? 6;
-            final maneuver = _orsManeuver(type);
-            LatLng loc;
-            final way = (step['way_points'] as List?);
-            if (way != null && way.isNotEmpty) {
-              final idx = (way.first as int).clamp(0, coords.length - 1);
-              loc = coords[idx];
-            } else {
-              loc = coords.isNotEmpty
-                  ? coords.first
-                  : LatLng(origin.latitude, origin.longitude);
-            }
-            steps.add(RouteStep(
-              instruction: instr,
-              direction: maneuver.direction,
-              modifier: maneuver.modifier,
-              distanceM: dist,
-              location: loc,
-              exitNumber: maneuver.direction == 'roundabout'
-                  ? ((step['exit_number'] as num?)?.toInt() ??
-                      _parseExitNumber(instr))
-                  : null,
-            ));
-          }
-        }
-
-        return _validatedRoute(RouteResult(
-          polyline: coords,
-          steps: steps,
-          totalDistanceM: (summary?['distance'] as num?)?.toDouble() ?? 0.0,
-          totalDurationS: (summary?['duration'] as num?)?.toDouble() ?? 0.0,
-        ));
+        return RoutingResponseProtocol.parseOpenRouteService(
+          res.body,
+          fallbackOrigin: origin,
+        );
       }
 
       if (provider == RoutingProvider.graphHopper) {
@@ -767,87 +532,13 @@ class RoutingService {
         if (res.bodyBytes.length > _maxRouteResponseBytes) {
           throw RoutingException(message: 'Routing response too large');
         }
-        final data = jsonDecode(res.body) as Map<String, dynamic>;
-        if (data['paths'] == null || (data['paths'] as List).isEmpty) {
-          throw RoutingException(
-              message: 'GraphHopper response missing paths', body: res.body);
-        }
-        final path = (data['paths'] as List).first as Map<String, dynamic>;
-        final points = path['points'] as Map<String, dynamic>?;
-        final coords = <LatLng>[];
-        if (points != null && points['coordinates'] != null) {
-          final rawCoords = points['coordinates'] as List;
-          if (rawCoords.length > _maxRoutePoints) {
-            throw RoutingException(message: 'Route contains too many points');
-          }
-          for (final c in rawCoords) {
-            coords.add(
-                LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()));
-          }
-        }
-        final instructions = path['instructions'] as List? ?? [];
-        final steps = <RouteStep>[];
-        for (final instr in instructions) {
-          final m = instr as Map<String, dynamic>;
-          final text = (m['text'] as String?) ?? '';
-          final dist = (m['distance'] as num?)?.toDouble() ?? 0.0;
-          final sign = _intValue(m['sign']) ?? 0;
-          final maneuver = _graphHopperManeuver(sign);
-          final idx = (m['interval'] as List?)?.first as int? ?? 0;
-          final loc = idx >= 0 && idx < coords.length
-              ? coords[idx]
-              : (coords.isNotEmpty
-                  ? coords.first
-                  : LatLng(origin.latitude, origin.longitude));
-          steps.add(RouteStep(
-              instruction: text,
-              direction: maneuver.direction,
-              modifier: maneuver.modifier,
-              distanceM: dist,
-              location: loc,
-              exitNumber: maneuver.direction == 'roundabout'
-                  ? ((m['exit_number'] as num?)?.toInt() ??
-                      _parseExitNumber(text))
-                  : null));
-        }
-
-        // GraphHopper details=max_speed: [[fromIdx, toIdx, valueKmh], ...]
-        // where indices are into the coords array.
-        final ghSpeedLimits = <SpeedLimitEntry>[];
-        try {
-          final details = path['details'] as Map<String, dynamic>?;
-          final msIntervals = details?['max_speed'] as List?;
-          if (msIntervals != null && coords.isNotEmpty) {
-            // Build cumulative distance array for coord → distance lookup.
-            const distCalc = Distance();
-            final cumDist = <double>[0.0];
-            for (int i = 1; i < coords.length; i++) {
-              cumDist.add(cumDist.last +
-                  distCalc.as(LengthUnit.Meter, coords[i - 1], coords[i]));
-            }
-            for (final iv in msIntervals) {
-              final interval = iv as List;
-              final fromIdx =
-                  (interval[0] as num).toInt().clamp(0, coords.length - 1);
-              final val = interval[2];
-              final int? speedKmh = val is num && val > 0 ? val.toInt() : null;
-              ghSpeedLimits
-                  .add((distFromStartM: cumDist[fromIdx], speedKmh: speedKmh));
-            }
-          }
-        } catch (_) {}
-
-        debugPrint('[Routing] GH speedLimits: ${ghSpeedLimits.length} entries'
-            ' (non-null: ${ghSpeedLimits.where((e) => e.speedKmh != null).length})');
-        return _validatedRoute(RouteResult(
-          polyline: coords,
-          steps: steps,
-          totalDistanceM: (path['distance'] as num?)?.toDouble() ?? 0.0,
-          totalDurationS: (path['time'] as num?)?.toDouble() != null
-              ? ((path['time'] as num).toDouble() / 1000.0)
-              : 0.0,
-          speedLimits: ghSpeedLimits,
-        ));
+        final route = RoutingResponseProtocol.parseGraphHopper(
+          res.body,
+          fallbackOrigin: origin,
+        );
+        debugPrint('[Routing] GH speedLimits: ${route.speedLimits.length} entries'
+            ' (non-null: ${route.speedLimits.where((entry) => entry.speedKmh != null).length})');
+        return route;
       }
 
       // Fallback / default: OSRM — choose the right public server for the mode.
@@ -876,13 +567,10 @@ class RoutingService {
       if (res.bodyBytes.length > _maxRouteResponseBytes) {
         throw RoutingException(message: 'Routing response too large');
       }
-      final data = jsonDecode(res.body) as Map<String, dynamic>;
-      if (data['code'] != 'Ok') {
-        throw RoutingException(
-            message: 'OSRM returned error code: ${data['code']}');
-      }
-      return _parseOsrmRoute(
-          (data['routes'] as List).first as Map<String, dynamic>, lang);
+      return RoutingResponseProtocol.parseOsrmRoutes(
+        res.body,
+        languageCode: lang,
+      ).first;
     } on RoutingException {
       rethrow;
     } catch (e) {
@@ -967,14 +655,10 @@ class RoutingService {
       if (res.bodyBytes.length > _maxRouteResponseBytes) {
         throw RoutingException(message: 'Routing response too large');
       }
-      final data = jsonDecode(res.body) as Map<String, dynamic>;
-      if (data['code'] != 'Ok') {
-        throw RoutingException(
-            message: 'OSRM returned error code: ${data['code']}');
-      }
-      return (data['routes'] as List)
-          .map((r) => _parseOsrmRoute(r as Map<String, dynamic>, lang))
-          .toList();
+      return RoutingResponseProtocol.parseOsrmRoutes(
+        res.body,
+        languageCode: lang,
+      );
     } on RoutingException {
       rethrow;
     } catch (e) {
@@ -1193,10 +877,7 @@ class RoutingService {
         timeout: const Duration(seconds: 30),
       );
       if (res.statusCode != 200) return route;
-      final data = jsonDecode(res.body) as Map<String, dynamic>;
-      if (data['code'] != 'Ok') return route;
-      final osrm = (data['routes'] as List).first as Map<String, dynamic>;
-      final legs = osrm['legs'] as List?;
+      final legs = RoutingResponseProtocol.parseOsrmRetimeLegs(res.body);
       if (legs == null || legs.length != sampleCount - 1) return route;
 
       var seconds = 0.0;
@@ -1205,9 +886,8 @@ class RoutingService {
       for (var i = 0; i < legs.length; i++) {
         final arcM = cumulative[indices[i + 1]] - cumulative[indices[i]];
         if (arcM <= 0) continue;
-        final leg = legs[i] as Map<String, dynamic>;
-        final legM = (leg['distance'] as num?)?.toDouble();
-        final legS = (leg['duration'] as num?)?.toDouble();
+        final legM = legs[i].distanceM;
+        final legS = legs[i].durationS;
         if (legM == null || legS == null || !legM.isFinite || !legS.isFinite) {
           return route;
         }
@@ -1364,69 +1044,8 @@ class RoutingService {
           message: 'Valhalla HTTP error',
         );
       }
-      final data = jsonDecode(res.body) as Map<String, dynamic>;
-      final trip = data['trip'] as Map<String, dynamic>?;
-      if (trip == null || trip['status'] != 0) {
-        throw RoutingException(
-          message: 'Valhalla returned no route',
-          body: res.body,
-        );
-      }
-      final summary = trip['summary'] as Map<String, dynamic>? ?? const {};
-      final avoidance = classify(summary);
-
-      final legs = trip['legs'] as List? ?? const [];
-      if (legs.isEmpty) {
-        throw RoutingException(message: 'Valhalla response missing legs');
-      }
-      final coords = <LatLng>[];
-      final steps = <RouteStep>[];
-      for (final rawLeg in legs) {
-        final leg = rawLeg as Map<String, dynamic>;
-        final legCoords =
-            _decodeValhallaPolyline(leg['shape'] as String? ?? '');
-        if (legCoords.isEmpty) {
-          throw RoutingException(message: 'Valhalla response missing shape');
-        }
-        final sharesEndpoint =
-            coords.isNotEmpty && coords.last == legCoords.first;
-        final coordOffset = sharesEndpoint ? coords.length - 1 : coords.length;
-        if (sharesEndpoint) {
-          coords.addAll(legCoords.skip(1));
-        } else {
-          coords.addAll(legCoords);
-        }
-        if (coords.length > _maxRoutePoints) {
-          throw RoutingException(message: 'Route contains too many points');
-        }
-        for (final rawManeuver in (leg['maneuvers'] as List? ?? const [])) {
-          final maneuver = rawManeuver as Map<String, dynamic>;
-          final localIndex =
-              (maneuver['begin_shape_index'] as num?)?.toInt() ?? 0;
-          final pointIndex =
-              (coordOffset + localIndex).clamp(0, coords.length - 1);
-          final type = (maneuver['type'] as num?)?.toInt() ?? 0;
-          final (:direction, :modifier) = _valhallaManeuver(type);
-          steps.add(RouteStep(
-            instruction: (maneuver['instruction'] as String?)?.trim() ?? '',
-            direction: direction,
-            modifier: modifier,
-            distanceM: ((maneuver['length'] as num?)?.toDouble() ?? 0.0) * 1000,
-            location: coords[pointIndex],
-            exitNumber: (maneuver['roundabout_exit_count'] as num?)?.toInt(),
-            exitLabel: _valhallaExitLabel(maneuver),
-          ));
-        }
-      }
-      return _validatedRoute(RouteResult(
-        polyline: coords,
-        steps: steps,
-        totalDistanceM:
-            ((summary['length'] as num?)?.toDouble() ?? 0.0) * 1000,
-        totalDurationS: (summary['time'] as num?)?.toDouble() ?? 0.0,
-        avoidance: avoidance,
-        fromAvoidanceRouter: true,
-      ));
+      final parsed = RoutingResponseProtocol.parseValhalla(res.body);
+      return parsed.route.withAvoidance(classify(parsed.summary));
     } on RoutingException {
       rethrow;
     } catch (e) {
@@ -1453,240 +1072,6 @@ class RoutingService {
   static String orsLanguage(String languageCode) =>
       RoutingRequestProtocol.openRouteServiceLanguage(languageCode);
 
-  /// Decodes Valhalla's signed polyline6 format.
-  static List<LatLng> _decodeValhallaPolyline(String encoded) {
-    final points = <LatLng>[];
-    var index = 0;
-    var lat = 0;
-    var lon = 0;
-    int readDelta() {
-      var result = 0;
-      var shift = 0;
-      int byte;
-      do {
-        if (index >= encoded.length || shift > 30) {
-          throw RoutingException(message: 'Malformed Valhalla shape');
-        }
-        byte = encoded.codeUnitAt(index++) - 63;
-        if (byte < 0 || byte > 63) {
-          throw RoutingException(message: 'Malformed Valhalla shape');
-        }
-        result |= (byte & 0x1f) << shift;
-        shift += 5;
-      } while (byte >= 0x20);
-      return (result & 1) != 0 ? ~(result >> 1) : result >> 1;
-    }
-
-    while (index < encoded.length) {
-      lat += readDelta();
-      lon += readDelta();
-      points.add(LatLng(lat / 1e6, lon / 1e6));
-      if (points.length > _maxRoutePoints) {
-        throw RoutingException(message: 'Route contains too many points');
-      }
-    }
-    return points;
-  }
-
-  static ({String direction, String modifier}) _valhallaManeuver(int type) {
-    // Official Valhalla Maneuver.Type values. Keeping ramp/exit/stay distinct
-    // is essential for both the symbol and the spoken timing.
-    return switch (type) {
-      1 => (direction: 'depart', modifier: ''),
-      2 => (direction: 'depart', modifier: 'right'),
-      3 => (direction: 'depart', modifier: 'left'),
-      4 => (direction: 'arrive', modifier: ''),
-      5 => (direction: 'arrive', modifier: 'right'),
-      6 => (direction: 'arrive', modifier: 'left'),
-      7 => (direction: 'new name', modifier: 'straight'),
-      8 || 22 => (direction: 'continue', modifier: 'straight'),
-      9 => (direction: 'turn', modifier: 'slight right'),
-      10 => (direction: 'turn', modifier: 'right'),
-      11 => (direction: 'turn', modifier: 'sharp right'),
-      12 => (direction: 'turn', modifier: 'uturn right'),
-      13 => (direction: 'turn', modifier: 'uturn left'),
-      14 => (direction: 'turn', modifier: 'sharp left'),
-      15 => (direction: 'turn', modifier: 'left'),
-      16 => (direction: 'turn', modifier: 'slight left'),
-      17 => (direction: 'on ramp', modifier: 'straight'),
-      18 => (direction: 'on ramp', modifier: 'right'),
-      19 => (direction: 'on ramp', modifier: 'left'),
-      20 => (direction: 'off ramp', modifier: 'right'),
-      21 => (direction: 'off ramp', modifier: 'left'),
-      23 => (direction: 'fork', modifier: 'right'),
-      24 => (direction: 'fork', modifier: 'left'),
-      25 => (direction: 'merge', modifier: ''),
-      26 || 27 => (direction: 'roundabout', modifier: ''),
-      28 || 29 => (direction: 'ferry', modifier: 'straight'),
-      _ => (direction: 'continue', modifier: 'straight'),
-    };
-  }
-
-  /// Official openrouteservice instruction type table.
-  static ({String direction, String modifier}) _orsManeuver(int type) =>
-      switch (type) {
-        0 => (direction: 'turn', modifier: 'left'),
-        1 => (direction: 'turn', modifier: 'right'),
-        2 => (direction: 'turn', modifier: 'sharp left'),
-        3 => (direction: 'turn', modifier: 'sharp right'),
-        4 => (direction: 'turn', modifier: 'slight left'),
-        5 => (direction: 'turn', modifier: 'slight right'),
-        6 => (direction: 'continue', modifier: 'straight'),
-        7 => (direction: 'roundabout', modifier: ''),
-        8 => (direction: 'continue', modifier: 'straight'),
-        9 => (direction: 'turn', modifier: 'uturn left'),
-        10 => (direction: 'arrive', modifier: ''),
-        11 => (direction: 'depart', modifier: ''),
-        12 => (direction: 'fork', modifier: 'left'),
-        13 => (direction: 'fork', modifier: 'right'),
-        _ => (direction: 'continue', modifier: 'straight'),
-      };
-
-  /// Official GraphHopper instruction signs.
-  static ({String direction, String modifier}) _graphHopperManeuver(int sign) =>
-      switch (sign) {
-        -8 => (direction: 'turn', modifier: 'uturn left'),
-        -7 => (direction: 'fork', modifier: 'left'),
-        -3 => (direction: 'turn', modifier: 'sharp left'),
-        -2 => (direction: 'turn', modifier: 'left'),
-        -1 => (direction: 'turn', modifier: 'slight left'),
-        0 => (direction: 'continue', modifier: 'straight'),
-        1 => (direction: 'turn', modifier: 'slight right'),
-        2 => (direction: 'turn', modifier: 'right'),
-        3 => (direction: 'turn', modifier: 'sharp right'),
-        4 => (direction: 'arrive', modifier: ''),
-        5 => (direction: 'continue', modifier: 'straight'),
-        6 => (direction: 'roundabout', modifier: ''),
-        7 => (direction: 'fork', modifier: 'right'),
-        8 => (direction: 'turn', modifier: 'uturn right'),
-        _ => (direction: 'continue', modifier: 'straight'),
-      };
-
-  static String? _valhallaExitLabel(Map<String, dynamic> maneuver) {
-    final sign = maneuver['sign'] as Map?;
-    final elements = sign?['exit_number_elements'] as List?;
-    if (elements == null || elements.isEmpty) return null;
-    final first = elements.first;
-    if (first is! Map) return null;
-    final text = first['text']?.toString().trim();
-    return text == null || text.isEmpty ? null : text;
-  }
-
-  static RouteResult _parseOsrmRoute(Map<String, dynamic> route,
-      [String lang = 'en']) {
-    final leg = (route['legs'] as List).first as Map<String, dynamic>;
-    final rawCoords = route['geometry']['coordinates'] as List;
-    if (rawCoords.length > _maxRoutePoints) {
-      throw RoutingException(message: 'Route contains too many points');
-    }
-    final coords = rawCoords
-        .map((c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()))
-        .toList();
-
-    final steps = <RouteStep>[];
-    for (final s in leg['steps'] as List) {
-      final step = s as Map<String, dynamic>;
-      final maneuver = step['maneuver'] as Map<String, dynamic>;
-      final loc = maneuver['location'] as List;
-      final providerDirection = maneuver['type'] as String? ?? 'straight';
-      final providerModifier = maneuver['modifier'] as String? ?? '';
-      final correctedModifier =
-          _correctedModifier(step, providerDirection, providerModifier);
-      final resolvedDirection = providerDirection == 'continue' &&
-              correctedModifier != providerModifier &&
-              correctedModifier != 'straight'
-          ? 'turn'
-          : providerDirection;
-      steps.add(RouteStep(
-        instruction: _buildInstruction(step, lang),
-        direction: resolvedDirection,
-        modifier: correctedModifier,
-        distanceM: (step['distance'] as num).toDouble(),
-        location:
-            LatLng((loc[1] as num).toDouble(), (loc[0] as num).toDouble()),
-        exitNumber: maneuver['exit'] as int?,
-        exitLabel: (step['exits'] as String?)?.trim(),
-        roadName: ((step['name'] as String?) ?? '').trim(),
-        roadRef: ((step['ref'] as String?) ?? '').trim(),
-      ));
-    }
-
-    // No speed limits from OSRM: annotations=maxspeed is a Mapbox extension
-    // that vanilla OSRM rejects, so it is never requested (see the request
-    // NOTE above) and the response never carries usable annotation data.
-    // Limits during OSRM navigation come from SpeedLimitService (Overpass).
-    return _validatedRoute(RouteResult(
-      polyline: coords,
-      steps: steps,
-      totalDistanceM: (route['distance'] as num).toDouble(),
-      totalDurationS: (route['duration'] as num).toDouble(),
-    ));
-  }
-
-  static RouteResult _validatedRoute(RouteResult route) {
-    final cleanedSteps =
-        sanitiseDecorations(coalescePassiveNameChanges(route.steps));
-    if (!identical(cleanedSteps, route.steps)) {
-      route = RouteResult(
-        polyline: route.polyline,
-        steps: cleanedSteps,
-        totalDistanceM: route.totalDistanceM,
-        totalDurationS: route.totalDurationS,
-        speedLimits: route.speedLimits,
-        avoidance: route.avoidance,
-        fromAvoidanceRouter: route.fromAvoidanceRouter,
-      );
-    }
-    if (route.polyline.length < 2 ||
-        route.steps.isEmpty ||
-        route.steps.length > _maxRouteSteps ||
-        !route.totalDistanceM.isFinite ||
-        route.totalDistanceM <= 0 ||
-        route.totalDistanceM > 50000000 ||
-        !route.totalDurationS.isFinite ||
-        route.totalDurationS < 0 ||
-        route.totalDurationS > 366 * 86400) {
-      throw RoutingException(message: 'Malformed or incomplete route');
-    }
-    for (final point in route.polyline) {
-      if (!point.latitude.isFinite ||
-          !point.longitude.isFinite ||
-          point.latitude < -90 ||
-          point.latitude > 90 ||
-          point.longitude < -180 ||
-          point.longitude > 180) {
-        throw RoutingException(message: 'Route contains invalid coordinates');
-      }
-    }
-    for (final step in route.steps) {
-      if (!step.distanceM.isFinite ||
-          step.distanceM < 0 ||
-          step.instruction.length > 1000 ||
-          step.direction.length > 100 ||
-          step.modifier.length > 100 ||
-          !step.location.latitude.isFinite ||
-          !step.location.longitude.isFinite ||
-          step.location.latitude < -90 ||
-          step.location.latitude > 90 ||
-          step.location.longitude < -180 ||
-          step.location.longitude > 180) {
-        throw RoutingException(message: 'Route contains an invalid maneuver');
-      }
-    }
-    var previousDistance = -1.0;
-    for (final entry in route.speedLimits) {
-      if (!entry.distFromStartM.isFinite ||
-          entry.distFromStartM < previousDistance ||
-          entry.distFromStartM > route.totalDistanceM ||
-          (entry.speedKmh != null &&
-              (entry.speedKmh! <= 0 || entry.speedKmh! > 500))) {
-        throw RoutingException(message: 'Route contains invalid speed limits');
-      }
-      previousDistance = entry.distFromStartM;
-    }
-    return route;
-  }
-
   /// Removes straight `new name` pseudo-maneuvers while preserving distance.
   ///
   /// OSM commonly assigns several names to consecutive sections of one
@@ -1694,30 +1079,8 @@ class RoutingService {
   /// driver does nothing. Speaking all of them creates a rapid sequence of
   /// contradictory-sounding instructions immediately before a real ramp.
   @visibleForTesting
-  static List<RouteStep> coalescePassiveNameChanges(List<RouteStep> steps) {
-    if (steps.length < 2) return steps;
-    var changed = false;
-    final out = <RouteStep>[];
-    for (final step in steps) {
-      final passiveRename = step.direction == 'new name' &&
-          (step.modifier.isEmpty || step.modifier == 'straight');
-      if (!passiveRename || out.isEmpty) {
-        out.add(step);
-        continue;
-      }
-      changed = true;
-      // The merged step keeps the previous maneuver's location and gains the
-      // renamed section's length, so the distance to the next real maneuver
-      // stays right.
-      final previous = out.removeLast();
-      out.add(previous.copyWith(
-        distanceM: previous.distanceM + step.distanceM,
-      ));
-    }
-    // Returning the original list unchanged lets the caller skip rebuilding
-    // the route when there was nothing to coalesce.
-    return changed ? out : steps;
-  }
+  static List<RouteStep> coalescePassiveNameChanges(List<RouteStep> steps) =>
+      RoutingResponseProtocol.coalescePassiveNameChanges(steps);
 
   /// Drops roundabout/exit decorations that are out of range instead of
   /// rejecting the route that carries them.
@@ -1727,45 +1090,11 @@ class RoutingService {
   /// would leave the driver unable to navigate at all because a roundabout has
   /// thirteen arms, or because a router put something unexpected in a label —
   /// a far worse outcome than a roundabout icon with no number in it. Every
-  /// other check in [_validatedRoute] guards something that would actually
+  /// other response check guards something that would actually
   /// break: NaN coordinates, absurd geometry, unbounded strings.
   @visibleForTesting
-  static List<RouteStep> sanitiseDecorations(List<RouteStep> steps) {
-    var changed = false;
-    final out = <RouteStep>[];
-    for (final step in steps) {
-      final badNumber = step.exitNumber != null &&
-          (step.exitNumber! < 1 || step.exitNumber! > kMaxRoundaboutArms);
-      final badArmCount = step.roundaboutArmCount != null &&
-          (step.roundaboutArmCount! < 3 ||
-              step.roundaboutArmCount! > kMaxRoundaboutArms ||
-              (!badNumber &&
-                  step.exitNumber != null &&
-                  step.roundaboutArmCount! < step.exitNumber!));
-      final label = step.exitLabel;
-      final badLabel = label != null && label.length > 32;
-      if (!badNumber && !badArmCount && !badLabel) {
-        out.add(step);
-        continue;
-      }
-      changed = true;
-      out.add(RouteStep(
-        instruction: step.instruction,
-        direction: step.direction,
-        modifier: step.modifier,
-        distanceM: step.distanceM,
-        location: step.location,
-        // copyWith cannot clear a field, so the step is rebuilt.
-        exitNumber: badNumber ? null : step.exitNumber,
-        roundaboutArmCount: badArmCount ? null : step.roundaboutArmCount,
-        exitLabel: badLabel ? null : label,
-      ));
-    }
-    return changed ? out : steps;
-  }
-
-  static int? _intValue(dynamic value) =>
-      value is num ? value.toInt() : int.tryParse(value?.toString() ?? '');
+  static List<RouteStep> sanitiseDecorations(List<RouteStep> steps) =>
+      RoutingResponseProtocol.sanitiseDecorations(steps);
 
   /// Refuses a self-hosted GraphHopper URL that would silently fail (or,
   /// were the app's cleartext policy ever loosened to make it "work",
@@ -1833,179 +1162,6 @@ class RoutingService {
       throw RoutingException(message: e.toString());
     }
   }
-
-  static String _buildInstruction(Map<String, dynamic> step,
-      [String lang = 'en']) {
-    final maneuver = step['maneuver'] as Map<String, dynamic>;
-    final type = maneuver['type'] as String? ?? '';
-    final providerModifier = maneuver['modifier'] as String? ?? '';
-    final modifier = _correctedModifier(step, type, providerModifier);
-    final name = ((step['name'] as String?) ?? '').trim();
-    final ref = ((step['ref'] as String?) ?? '').trim();
-    // The road code wins over the formal name when both exist. "Take the
-    // SS3bis" matches what is written on the sign the driver is looking for;
-    // "Strada Statale 3 bis Tiberina" is the same road under a name that
-    // appears nowhere on the road itself. On ordinary streets there is no ref,
-    // so the name is used as before.
-    //
-    // Multiple codes come back slash- or semicolon-separated ("SP174/2",
-    // "E45;SS3bis"); only the first is spoken, because reading a list of
-    // synonyms at a junction is worse than naming one of them.
-    final refFirst = ref.split(RegExp(r'[;,]')).first.trim();
-    final roadName = refFirst.isNotEmpty ? refFirst : name;
-
-    String p(String key) => navPhrase(lang, key);
-    final road = roadName.isEmpty ? '' : '${p('on')}$roadName';
-    String withRoad(String key) => '${p(key)}$road';
-
-    /// Turns for the modifiers shared by several maneuver types.
-    String? turnFor(String m) => switch (m) {
-          'left' => withRoad('turnLeft'),
-          'right' => withRoad('turnRight'),
-          'slight left' => withRoad('keepLeft'),
-          'slight right' => withRoad('keepRight'),
-          'sharp left' => withRoad('sharpLeft'),
-          'sharp right' => withRoad('sharpRight'),
-          'uturn' => withRoad('uturn'),
-          _ => null,
-        };
-
-    switch (type) {
-      case 'depart':
-        return withRoad('depart');
-      case 'arrive':
-        return p('arrive');
-      case 'turn':
-        return turnFor(modifier) ?? withRoad('continueStraight');
-      case 'new name':
-        return turnFor(modifier) ?? withRoad('continueOn');
-      case 'continue':
-        return turnFor(modifier) ?? withRoad('continueStraight');
-      case 'merge':
-        return withRoad('merge');
-      case 'on ramp':
-        return switch (modifier) {
-          'left' => withRoad('rampLeft'),
-          'right' => withRoad('rampRight'),
-          _ => withRoad('takeRamp'),
-        };
-      case 'off ramp':
-        {
-          // OSRM puts highway exit numbers in step['exits'] (a string like
-          // "12" or "12A"), not maneuver['exit'] which is only populated for
-          // roundabouts.
-          final exits = (step['exits'] as String?)?.trim();
-          final label = (exits != null && exits.isNotEmpty)
-              ? exits
-              : (refFirst.isNotEmpty ? refFirst : null);
-          if (label != null) {
-            return '${p('exitLabelled').replaceAll('{label}', label)}$road';
-          }
-          return withRoad('exitPlain');
-        }
-      case 'fork':
-        return withRoad(
-            modifier.contains('left') ? 'forkLeft' : 'forkRight');
-      case 'end of road':
-        return withRoad(modifier.contains('left') ? 'endLeft' : 'endRight');
-      case 'roundabout':
-      case 'rotary':
-        {
-          final exit = maneuver['exit'] as int? ?? 1;
-          final key = type == 'rotary' ? 'rotary' : 'roundabout';
-          return '${p(key).replaceAll('{n}', '$exit')}$road';
-        }
-      default:
-        return withRoad('continueStraight');
-    }
-  }
-
-
-
-
-  /// OSRM occasionally labels a real junction as `new name`/`straight` when
-  /// the turn angle is determined by a stop-sign intersection.  Its
-  /// intersection bearings are more reliable than the text modifier for this
-  /// case, so use them to correct only clearly non-straight changes.
-  static String _correctedModifier(
-      Map<String, dynamic> step, String type, String providerModifier) {
-    if (type == 'roundabout' || type == 'rotary') return providerModifier;
-    final intersections = step['intersections'] as List?;
-    final first = intersections?.whereType<Map>().firstOrNull;
-    final bearings = (first?['bearings'] as List?)
-        ?.whereType<num>()
-        .map((v) => v.toDouble())
-        .toList();
-    final inIndex = (first?['in'] as num?)?.toInt();
-    final outIndex = (first?['out'] as num?)?.toInt();
-    if (bearings == null ||
-        inIndex == null ||
-        outIndex == null ||
-        inIndex < 0 ||
-        outIndex < 0 ||
-        inIndex >= bearings.length ||
-        outIndex >= bearings.length) {
-      return providerModifier;
-    }
-    // OSRM bearings point away from the intersection.  Reverse the inbound
-    // road bearing to obtain the driver's approach direction before comparing
-    // it with the outgoing road.
-    final inboundTravelBearing = (bearings[inIndex] + 180) % 360;
-    var delta = (bearings[outIndex] - inboundTravelBearing) % 360;
-    if (delta > 180) delta -= 360;
-    if (delta < -180) delta += 360;
-    final magnitude = delta.abs();
-    if (magnitude < 18 || magnitude > 160) return providerModifier;
-    if (delta < 0) {
-      return magnitude > 110 ? 'sharp left' : 'left';
-    }
-    return magnitude > 110 ? 'sharp right' : 'right';
-  }
-
-  /// Extracts the roundabout exit number from an instruction string.
-  /// Handles ordinal digits (1°, 2ª, 1st, 2nd) and spelled-out forms in
-  /// the supported navigation languages.
-  static int? _parseExitNumber(String instruction) {
-    // Numeric ordinal: "1°", "2ª", "3rd", "4th" etc.
-    final numMatch = RegExp(
-      r'\b(1[0-2]|[1-9])(?:°|º|ª|st|nd|rd|th)',
-      caseSensitive: false,
-    ).firstMatch(instruction);
-    if (numMatch != null) return int.tryParse(numMatch.group(1)!);
-    // Spelled-out ordinals (covers it/es/fr/pt/en)
-    const ordinals = {
-      'first': 1,
-      'prima': 1,
-      'première': 1,
-      'primera': 1,
-      'primeira': 1,
-      'second': 2,
-      'seconda': 2,
-      'deuxième': 2,
-      'segunda': 2,
-      'third': 3,
-      'terza': 3,
-      'troisième': 3,
-      'tercera': 3,
-      'terceira': 3,
-      'fourth': 4,
-      'quarta': 4,
-      'quatrième': 4,
-      'cuarta': 4,
-      'fifth': 5,
-      'quinta': 5,
-      'cinquième': 5,
-      'sixth': 6,
-      'sesta': 6,
-      'sixième': 6,
-      'sexta': 6,
-    };
-    final lower = instruction.toLowerCase();
-    for (final e in ordinals.entries) {
-      if (lower.contains(e.key)) return e.value;
-    }
-    return null;
-  }
 }
 
 // ── Wikipedia ─────────────────────────────────────────────────────────────────
@@ -2022,19 +1178,6 @@ class WikiSummary {
     this.imageUrl,
     this.pageUrl,
   });
-}
-
-/// Thrown by [RoutingService.getRoute] and [RoutingService.getRoutes] when the
-/// routing provider returns an HTTP error or an unexpected response body.
-class RoutingException implements Exception {
-  final int? statusCode;
-  final String message;
-  final String? body;
-  RoutingException({this.statusCode, required this.message, this.body});
-
-  @override
-  String toString() =>
-      'RoutingException(statusCode: $statusCode, message: $message)';
 }
 
 /// Extension on [RoutingService] that adds geo-aware Wikipedia lookups.

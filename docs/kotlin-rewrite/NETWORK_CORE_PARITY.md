@@ -35,6 +35,11 @@ counterpart freezes request composition, including provider profiles/locales,
 API-key destination, waypoints, alternatives, bearings, retiming and avoidance
 options. See `ROUTING_NETWORK_CORE_PARITY.md`.
 
+`lib/services/routing_response_protocol.dart` is also called by every live Dart
+routing path. Its Kotlin counterpart freezes normalized route geometry,
+maneuvers, localized instructions, speed limits, response validation and
+provider errors. Network dispatch and fallback remain owned by Flutter.
+
 ## Compatibility detail
 
 The shipped GraphHopper validator requires a host and refuses explicit
@@ -79,6 +84,11 @@ GraphHopper and Valhalla request/language outcomes. It is consumed by both
 runtimes and includes mode/locale mapping, API-key isolation, coordinate/query
 encoding, waypoint and bearing boundaries, retiming and avoidance policies.
 
+`routing_responses_v1.tsv` adds 59 Dart-generated outcomes for those four
+providers. Both runtimes compare the complete normalized route, including all
+27 localized OSRM instruction tables, provider maneuver mappings, decorations,
+speed limits, polyline6/multi-leg handling, retiming and malformed inputs.
+
 ## Deliberately outside this slice
 
 - no native HTTP engine, OkHttp dependency, DNS resolver or socket is wired;
@@ -88,8 +98,8 @@ encoding, waypoint and bearing boundaries, retiming and avoidance policies.
   native adapter;
 - redirect/TLS/cleartext behavior needs Android integration tests in addition
   to this policy fixture;
-- Nominatim, Photon and Overpass response fixtures remain; OSRM, ORS,
-  GraphHopper and Valhalla response fixtures remain to be ported;
+- Nominatim, Photon and Overpass response fixtures remain; routing provider
+  fallback/orchestration and live native execution remain to be ported;
 - DNS-aware SSRF checks for LNURL remain part of the later live-network gate.
 
 The Kotlin policy has no Android, Activity, startup or persistence wiring.
