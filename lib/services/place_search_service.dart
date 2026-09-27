@@ -5,7 +5,8 @@ import 'package:latlong2/latlong.dart';
 import '../utils/fuzzy_match.dart';
 import 'photon_geocoder.dart';
 import 'poi_search_service.dart';
-import 'routing_service.dart' show NominatimResult, RoutingService;
+import 'routing_service.dart' show RoutingService;
+import 'search_response_protocol.dart';
 
 /// How much of the provider set a search may use.
 ///
@@ -52,7 +53,8 @@ enum SearchPhase {
 /// the list, because [PhotonGeocoder] already normalises its results into the
 /// same "street number, city" shape.
 class PlaceSearchService {
-  PlaceSearchService({PoiSearchService? poi}) : _poi = poi ?? PoiSearchService();
+  PlaceSearchService({PoiSearchService? poi})
+      : _poi = poi ?? PoiSearchService();
 
   final PoiSearchService _poi;
 
@@ -124,8 +126,8 @@ class PlaceSearchService {
 
     // Nominatim first in the merge order: the two providers agree on shape, so
     // this only decides which copy survives the dedupe.
-    var geo =
-        rankResults(trimmed, dedupeByProximity([...nominatim, ...photon]), near);
+    var geo = rankResults(
+        trimmed, dedupeByProximity([...nominatim, ...photon]), near);
 
     // The relaxed retry is a "found nothing anywhere" recovery — it doubles the
     // requests, so it belongs to the settled query, not to a word in progress
@@ -135,7 +137,8 @@ class PlaceSearchService {
       if (relaxed != null) {
         final retry = await Future.wait([
           RoutingService.search(relaxed, near: near),
-          PhotonGeocoder.search(relaxed, near: near, languageCode: languageCode),
+          PhotonGeocoder.search(relaxed,
+              near: near, languageCode: languageCode),
         ]);
         geo = rankResults(
             relaxed, dedupeByProximity([...retry[0], ...retry[1]]), near);

@@ -22,8 +22,10 @@ import 'roundabout_topology_service.dart';
 import 'routing_request_protocol.dart';
 import 'routing_response_protocol.dart';
 import 'search_provider_protocol.dart';
+import 'search_response_protocol.dart';
 
 export 'routing_response_protocol.dart';
+export 'search_response_protocol.dart';
 
 /// OSRM bearing tolerance (degrees either side) used when rerouting a moving
 /// vehicle — see [RoutingService.getRoutes]'s `originBearingDeg`.
@@ -213,16 +215,7 @@ class RoutingService {
         timeout: const Duration(seconds: 5),
       );
       if (res.statusCode != 200) return [];
-      final list = jsonDecode(res.body) as List;
-      // Parse each entry defensively: one malformed result (bad coordinates,
-      // missing field) must skip only itself — mapping the whole list in one
-      // go would throw into the outer catch and discard EVERY result.
-      final results = <NominatimResult>[];
-      for (final e in list) {
-        try {
-          results.add(NominatimResult.fromJson(e as Map<String, dynamic>));
-        } catch (_) {}
-      }
+      final results = SearchResponseProtocol.parseNominatimSearch(res.body);
       if (near != null) rankByBrandThenDistance(results, normalized, near);
       _searchCache[cacheKey] = (at: DateTime.now(), results: results);
       if (_searchCache.length > 24) {
@@ -332,60 +325,7 @@ class RoutingService {
         timeout: const Duration(seconds: 5),
       );
       if (res.statusCode != 200) return null;
-      final data = jsonDecode(res.body) as Map<String, dynamic>;
-      final display = data['display_name'] as String? ?? '';
-      final addr = data['address'] as Map<String, dynamic>? ?? {};
-      final extra = data['extratags'] as Map<String, dynamic>? ?? {};
-      final openingHours = (extra['opening_hours'] as String?)?.trim();
-
-      // Choose the best Wikipedia search term in priority order:
-      // 1. POI name (e.g. "Colosseum")
-      // 2. Neighbourhood / street with a meaningful name
-      // 3. City name
-      // NEVER house numbers or plain numeric strings
-      bool isNumber(String? s) =>
-          s == null || RegExp(r'^\d+$').hasMatch(s.trim());
-
-      // Best POI-level name (high priority, excluding place hierarchy)
-      final poiName = [
-        data['name'] as String?,
-        addr['tourism'] as String?,
-        addr['amenity'] as String?,
-        addr['historic'] as String?,
-        addr['leisure'] as String?,
-        addr['suburb'] as String?,
-        addr['quarter'] as String?,
-        addr['neighbourhood'] as String?,
-      ].where((s) => s != null && s.isNotEmpty && !isNumber(s)).firstOrNull;
-
-      // City / municipality for geographic disambiguation
-      final city = [
-        addr['city'] as String?,
-        addr['town'] as String?,
-        addr['village'] as String?,
-        addr['municipality'] as String?,
-        addr['county'] as String?,
-      ].where((s) => s != null && s.isNotEmpty && !isNumber(s)).firstOrNull;
-
-      // Combine POI name with city so that generic names like "Teodorico"
-      // become "Teodorico Torino" — making the Wikipedia / web-search
-      // fallback much more accurate without affecting the geo-based lookup.
-      String? wikiQuery;
-      if (poiName != null) {
-        wikiQuery =
-            (city != null && city != poiName) ? '$poiName $city' : poiName;
-      } else {
-        wikiQuery = city;
-      }
-
-      return (
-        display: display,
-        wikiQuery: wikiQuery,
-        openingHours: (openingHours != null && openingHours.isNotEmpty)
-            ? openingHours
-            : null,
-        label: shortLabelFrom(display, addr, name: data['name'] as String?),
-      );
+      return SearchResponseProtocol.parseNominatimReverse(res.body);
     } catch (_) {
       return null;
     }
@@ -402,56 +342,8 @@ class RoutingService {
   /// [addr] is Nominatim's `address` object; [name] its top-level `name` field
   /// (set for POIs). [display] is only the last-resort fallback.
   static String shortLabelFrom(String display, Map<String, dynamic> addr,
-      {String? name}) {
-    // Every component comes from a third-party geocoder and ends up persisted
-    // in the history box and rendered in one-line list tiles. Bound each part
-    // and strip control characters at the door, the same way OsmPoiDetails
-    // treats raw OSM tags.
-    const maxPart = 80;
-    String? str(Object? v) {
-      if (v is! String) return null;
-      final s = v.replaceAll(RegExp(r'[\u0000-\u001f]'), ' ').trim();
-      if (s.isEmpty) return null;
-      return s.length <= maxPart ? s : '${s.substring(0, maxPart)}…';
-    }
-
-    final city = str(addr['city']) ??
-        str(addr['town']) ??
-        str(addr['village']) ??
-        str(addr['hamlet']) ??
-        str(addr['municipality']);
-    final road = str(addr['road']) ?? str(addr['pedestrian']);
-    final houseNo = str(addr['house_number']);
-
-    // A named POI wins: "Ospedale Santa Maria delle Croci" beats its street.
-    final poi = str(name) ??
-        str(addr['amenity']) ??
-        str(addr['shop']) ??
-        str(addr['tourism']) ??
-        str(addr['historic']) ??
-        str(addr['leisure']);
-    if (poi != null && !RegExp(r'^\d+$').hasMatch(poi)) {
-      return city != null && city != poi ? '$poi, $city' : poi;
-    }
-
-    if (road != null) {
-      final street = houseNo != null ? '$road $houseNo' : road;
-      return city != null ? '$street, $city' : street;
-    }
-
-    // No street either (open country, a square, a place node): fall back to the
-    // first display component that is not a bare house number.
-    final parts = display
-        .split(',')
-        .map((p) => str(p))
-        .whereType<String>()
-        .where((p) => !RegExp(r'^\d+$').hasMatch(p))
-        .toList();
-    if (parts.isEmpty) return city ?? display.split(',').first.trim();
-    return parts.length > 1 && city != null && parts.first != city
-        ? '${parts.first}, $city'
-        : parts.first;
-  }
+          {String? name}) =>
+      SearchResponseProtocol.shortLabelFrom(display, addr, name: name);
 
   /// Calculates a single driving route from [origin] to [destination].
   ///
@@ -536,7 +428,8 @@ class RoutingService {
           res.body,
           fallbackOrigin: origin,
         );
-        debugPrint('[Routing] GH speedLimits: ${route.speedLimits.length} entries'
+        debugPrint(
+            '[Routing] GH speedLimits: ${route.speedLimits.length} entries'
             ' (non-null: ${route.speedLimits.where((entry) => entry.speedKmh != null).length})');
         return route;
       }
@@ -595,8 +488,7 @@ class RoutingService {
   /// offers. The ceiling is not arbitrary: every extra point multiplies the
   /// router's work, and a routing engine asked for a dozen stops starts
   /// returning a route that is technically optimal and useless to drive.
-  static const maxWaypoints =
-      RoutingRequestProtocol.maxIntermediateWaypoints;
+  static const maxWaypoints = RoutingRequestProtocol.maxIntermediateWaypoints;
 
   static Future<List<RouteResult>> getRoutes(LatLng origin, LatLng destination,
       {RoutingProvider provider = RoutingProvider.osrm,
@@ -1289,312 +1181,5 @@ extension WikiSearch on RoutingService {
     } catch (_) {
       return null;
     }
-  }
-}
-
-/// A geocoded location result from the Nominatim search API.
-class NominatimResult {
-  /// Full formatted address as returned by Nominatim (may be very long).
-  final String displayName;
-
-  /// Shortened display name — the first comma-separated component of [displayName].
-  /// Used in search suggestion lists and navigation history labels.
-  final String shortName;
-  final LatLng position;
-
-  /// Nominatim `class` field — broad feature category (e.g. 'amenity', 'tourism',
-  /// 'highway', 'shop', 'office'). Used to select the result emoji.
-  final String? cls;
-
-  /// Nominatim `type` field — specific sub-type within [cls] (e.g. 'restaurant',
-  /// 'museum', 'residential'). Used together with [cls] for fine-grained emoji.
-  final String? type;
-
-  /// City / town / village from the structured address — used to build a
-  /// geo-disambiguated Wikipedia query (e.g. "Teodorico Torino").
-  final String? city;
-
-  /// Raw OSM `opening_hours` string when the source carries it (Overpass POI
-  /// results). Parsed client-side into an open/closed badge; null when absent.
-  final String? openingHours;
-
-  /// Straight-line distance from the user, in metres, when the result came
-  /// from a "nearby" lookup. Null for ordinary search results, where the
-  /// origin of the query is not necessarily the user's position.
-  final double? distanceM;
-
-  /// OSM `brand` tag (from `extratags`), when the source carries one — chain
-  /// franchises are usually tagged this way regardless of what the location
-  /// itself is named on the sign. Used to tell a franchise location apart
-  /// from an unrelated shop that merely shares generic wording in its name
-  /// (a search for "Mercatino Usato" — a well-known Italian franchise — can
-  /// otherwise return an unrelated secondhand shop above the real one; see
-  /// [RoutingService.search]'s brand-aware re-ranking).
-  final String? brand;
-
-  const NominatimResult({
-    required this.displayName,
-    required this.shortName,
-    required this.position,
-    this.cls,
-    this.type,
-    this.city,
-    this.openingHours,
-    this.distanceM,
-    this.brand,
-  });
-
-  /// Longest a name or address coming from a remote geocoder may be before it
-  /// is cut. Nothing on the other side of these APIs is under our control: a
-  /// compromised or simply broken endpoint can answer with a kilobyte-long
-  /// "street name", which a `ListTile` will happily try to lay out and Hive
-  /// will happily store in the search history.
-  static const _maxRemoteTextChars = 300;
-
-  /// Trims [value] and caps it at [max] characters. Returns null for anything
-  /// that is not a usable non-empty string.
-  static String? clampRemoteText(dynamic value,
-      [int max = _maxRemoteTextChars]) {
-    if (value is! String) return null;
-    final clean = value.trim();
-    if (clean.isEmpty) return null;
-    return clean.length <= max ? clean : clean.substring(0, max);
-  }
-
-  /// Returns an emoji that visually represents the feature category so users
-  /// can distinguish POI types (restaurants, monuments, roads…) at a glance.
-  String get emoji => _categoryEmoji(cls, type);
-
-  /// A short human-readable category label shown below the result name.
-  /// Falls back to the second address component if the type is not mapped.
-  String get categoryLabel {
-    if (cls == 'highway') {
-      // shortName already contains "Road HouseNo, City"; show broader context
-      // (district / region) from the remaining displayName components.
-      final parts = displayName.split(',').map((p) => p.trim()).toList();
-      // Skip house-number (parts[0]) and road (parts[1]); take up to 2 more
-      // for "Quartiere, Città" style context without repeating shortName.
-      final ctx = parts.skip(2).where((p) => p.isNotEmpty).take(2).join(', ');
-      return ctx;
-    }
-    final mapped = _categoryLabel(cls, type);
-    if (mapped != null) return mapped;
-    final parts = displayName.split(',');
-    return parts.length > 1 ? parts[1].trim() : '';
-  }
-
-  static String _categoryEmoji(String? cls, String? type) {
-    switch (cls) {
-      case 'highway':
-        return '🛣️';
-      case 'place':
-        return switch (type) {
-          'city' || 'town' => '🏙️',
-          'village' || 'hamlet' => '🏘️',
-          'suburb' || 'neighbourhood' => '🏡',
-          _ => '📍',
-        };
-      case 'amenity':
-        return switch (type) {
-          'restaurant' || 'fast_food' || 'food_court' => '🍽️',
-          'cafe' || 'coffee_shop' => '☕',
-          'bar' || 'pub' || 'nightclub' => '🍺',
-          'hospital' || 'clinic' || 'doctors' => '🏥',
-          'pharmacy' => '💊',
-          'school' || 'kindergarten' => '🏫',
-          'university' || 'college' => '🎓',
-          'bank' || 'atm' => '🏦',
-          'fuel' || 'charging_station' => '⛽',
-          'parking' => '🅿️',
-          'police' => '👮',
-          'post_office' => '📮',
-          'library' => '📚',
-          'theatre' || 'cinema' => '🎭',
-          'place_of_worship' => '⛪',
-          'marketplace' => '🛒',
-          'townhall' => '🏛️',
-          _ => '📍',
-        };
-      case 'tourism':
-        return switch (type) {
-          'museum' => '🏛️',
-          'hotel' || 'hostel' || 'motel' || 'guest_house' => '🏨',
-          'attraction' || 'monument' || 'viewpoint' => '🗺️',
-          'artwork' || 'gallery' => '🎨',
-          'camp_site' => '⛺',
-          'theme_park' || 'zoo' => '🎡',
-          _ => '🗺️',
-        };
-      case 'shop':
-        return switch (type) {
-          'supermarket' || 'convenience' => '🛒',
-          'bakery' => '🥖',
-          'clothes' || 'fashion' => '👗',
-          'electronics' => '📱',
-          'books' => '📚',
-          'florist' => '💐',
-          _ => '🛍️',
-        };
-      case 'office':
-        return switch (type) {
-          'government' || 'administrative' => '🏛️',
-          'company' || 'commercial' => '🏢',
-          'ngo' || 'association' => '🏢',
-          _ => '🏢',
-        };
-      case 'building':
-        return switch (type) {
-          'public' || 'government' => '🏛️',
-          'hospital' => '🏥',
-          'school' || 'university' => '🎓',
-          _ => '🏗️',
-        };
-      case 'natural':
-        return switch (type) {
-          'beach' => '🏖️',
-          'water' || 'lake' => '💧',
-          'peak' || 'hill' => '⛰️',
-          'wood' || 'forest' => '🌲',
-          _ => '🌿',
-        };
-      case 'leisure':
-        return switch (type) {
-          'park' || 'garden' => '🌳',
-          'sports_centre' || 'stadium' => '🏟️',
-          'swimming_pool' => '🏊',
-          _ => '🎭',
-        };
-      case 'historic':
-        return '🏛️';
-      case 'railway':
-        return '🚉';
-      case 'aeroway':
-        return '✈️';
-      case 'waterway':
-        return '🌊';
-      case 'landuse':
-        return '🗺️';
-      default:
-        return '📍';
-    }
-  }
-
-  static String? _categoryLabel(String? cls, String? type) {
-    switch (cls) {
-      case 'highway':
-        return 'Road';
-      case 'place':
-        return switch (type) {
-          'city' => 'City',
-          'town' => 'Town',
-          'village' => 'Village',
-          _ => 'Place',
-        };
-      case 'amenity':
-        return switch (type) {
-          'restaurant' => 'Restaurant',
-          'fast_food' => 'Fast food',
-          'cafe' => 'Café',
-          'bar' || 'pub' => 'Bar / Pub',
-          'hospital' => 'Hospital',
-          'pharmacy' => 'Pharmacy',
-          'school' => 'School',
-          'university' => 'University',
-          'bank' => 'Bank',
-          'atm' => 'ATM',
-          'fuel' => 'Petrol station',
-          'parking' => 'Parking',
-          'police' => 'Police',
-          'post_office' => 'Post office',
-          'library' => 'Library',
-          'theatre' => 'Theatre',
-          'cinema' => 'Cinema',
-          'place_of_worship' => 'Place of worship',
-          'townhall' => 'Town hall',
-          _ => 'Service',
-        };
-      case 'tourism':
-        return switch (type) {
-          'museum' => 'Museum',
-          'hotel' || 'hostel' || 'motel' => 'Hotel',
-          'attraction' || 'monument' => 'Attraction / Monument',
-          'artwork' => 'Artwork',
-          'gallery' => 'Gallery',
-          _ => 'Tourism',
-        };
-      case 'shop':
-        return 'Shop';
-      case 'office':
-        return 'Office';
-      case 'historic':
-        return 'Historic site';
-      case 'leisure':
-        return 'Leisure';
-      case 'natural':
-        return 'Natural area';
-      case 'railway':
-        return 'Railway / Station';
-      case 'aeroway':
-        return 'Airport';
-      default:
-        return null;
-    }
-  }
-
-  factory NominatimResult.fromJson(Map<String, dynamic> j) {
-    final lat = double.tryParse(j['lat'] as String) ?? double.nan;
-    final lon = double.tryParse(j['lon'] as String) ?? double.nan;
-    if (!lat.isFinite ||
-        !lon.isFinite ||
-        lat < -90 ||
-        lat > 90 ||
-        lon < -180 ||
-        lon > 180) {
-      throw const FormatException('Nominatim: invalid coordinates');
-    }
-    final display = clampRemoteText(j['display_name']);
-    if (display == null) throw const FormatException('Nominatim: no name');
-    final clsVal = j['class'] as String?;
-
-    // addressdetails=1 gives structured address components. Use them to build
-    // a meaningful shortName instead of the raw first comma-token (often just
-    // a house number like "1" for street addresses).
-    final addr = (j['address'] as Map<String, dynamic>?) ?? {};
-    final road = clampRemoteText(addr['road'], 120);
-    final houseNo = clampRemoteText(addr['house_number'], 24);
-    final city = clampRemoteText(
-        addr['city'] ??
-            addr['town'] ??
-            addr['village'] ??
-            addr['hamlet'] ??
-            addr['municipality'],
-        120);
-
-    String short;
-    if (road != null && houseNo != null) {
-      // Address with house number (buildings, residences — any class):
-      // European order puts road first: "Via Roma 1, Milano".
-      short = '$road $houseNo';
-      if (city != null) short += ', $city';
-    } else if (road != null && clsVal == 'highway') {
-      // Road segment without a specific building number.
-      short = road;
-      if (city != null) short += ', $city';
-    } else {
-      // POI / place / city: first displayName component is already the name.
-      short = display.split(',').first.trim();
-    }
-
-    final extratags = (j['extratags'] as Map<String, dynamic>?) ?? {};
-
-    return NominatimResult(
-      displayName: display,
-      shortName: short,
-      position: LatLng(lat, lon),
-      cls: clampRemoteText(clsVal, 80),
-      type: clampRemoteText(j['type'], 80),
-      city: city,
-      brand: clampRemoteText(extratags['brand'], 160),
-    );
   }
 }

@@ -2,7 +2,7 @@ import 'package:latlong2/latlong.dart';
 import '../utils/fuzzy_match.dart';
 import '../utils/geo.dart';
 import 'overpass_client.dart';
-import 'routing_service.dart' show NominatimResult;
+import 'search_response_protocol.dart';
 
 enum OsmPoiKind {
   parking,
@@ -735,55 +735,12 @@ class PoiSearchService {
   /// "Esselunga" has nothing to say about a nameless building); with one it is
   /// kept under that label — see [nearby].
   static NominatimResult? _toResult(Map<String, dynamic> el, LatLng center,
-      {String? fallbackName}) {
-    final tags = (el['tags'] as Map?)?.cast<String, dynamic>();
-    var name = tags?['name'] as String?;
-    if (name == null || name.isEmpty) {
-      // Branded but unnamed (very common for fuel and ATMs) reads better as
-      // the brand than as a generic label.
-      name = (tags?['brand'] as String?)?.trim();
-    }
-    if (name == null || name.isEmpty) name = fallbackName;
-    if (name == null || name.isEmpty) return null;
-    double? lat = (el['lat'] as num?)?.toDouble();
-    double? lon = (el['lon'] as num?)?.toDouble();
-    if (lat == null || lon == null) {
-      final c = el['center'] as Map?;
-      lat = (c?['lat'] as num?)?.toDouble();
-      lon = (c?['lon'] as num?)?.toDouble();
-    }
-    if (lat == null || lon == null || !lat.isFinite || !lon.isFinite) {
-      return null;
-    }
-    if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
-
-    final cls = tags?['shop'] != null
-        ? 'shop'
-        : tags?['amenity'] != null
-            ? 'amenity'
-            : tags?['tourism'] != null
-                ? 'tourism'
-                : null;
-    // `cls` above is one of three literals we chose; `type` is raw tag value.
-    final type = NominatimResult.clampRemoteText(
-        tags?['shop'] ?? tags?['amenity'] ?? tags?['tourism'], 80);
-
-    final position = LatLng(lat, lon);
-    // Overpass mirrors are third-party endpoints: cap what they name a place
-    // before it reaches a list tile or the search history.
-    final safeName = NominatimResult.clampRemoteText(name, 120);
-    if (safeName == null) return null;
-    return NominatimResult(
-      displayName: safeName,
-      shortName: safeName,
-      position: position,
-      cls: cls,
-      type: type,
-      openingHours:
-          NominatimResult.clampRemoteText(tags?['opening_hours'], 300),
-      distanceM: _distM(center, position),
-    );
-  }
+          {String? fallbackName}) =>
+      SearchResponseProtocol.overpassElementToResult(
+        el,
+        center,
+        fallbackName: fallbackName,
+      );
 
   static double _distM(LatLng a, LatLng b) =>
       const Distance().as(LengthUnit.Meter, a, b);

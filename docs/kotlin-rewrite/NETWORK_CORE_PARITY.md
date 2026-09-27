@@ -29,6 +29,12 @@ Nominatim, Photon and Overpass paths. Its socket-free Kotlin counterpart locks
 the exact method, endpoint, encoding, parameters, headers and form body. See
 `SEARCH_NETWORK_CORE_PARITY.md` for the provider matrix and privacy boundary.
 
+`lib/services/search_response_protocol.dart` is called by those live Dart
+clients and the POI result mapper. Its socket-free Kotlin counterpart freezes
+Nominatim forward/reverse, Photon GeoJSON and Overpass envelope/result parsing,
+including validation, bounded remote text, labels/categories and distance
+rounding.
+
 `lib/services/routing_request_protocol.dart` is called by the live Dart routing
 service for OSRM, OpenRouteService, GraphHopper and Valhalla. Its Kotlin
 counterpart freezes request composition, including provider profiles/locales,
@@ -89,6 +95,11 @@ providers. Both runtimes compare the complete normalized route, including all
 27 localized OSRM instruction tables, provider maneuver mappings, decorations,
 speed limits, polyline6/multi-leg handling, retiming and malformed inputs.
 
+`search_responses_v1.tsv` adds 34 Dart-generated Nominatim forward/reverse,
+Photon and Overpass outcomes. Both runtimes compare normalized fields,
+coordinates, categories, labels, text bounds, node/way centres, distances and
+malformed-payload behavior; a category matrix covers 53 class/type pairs.
+
 ## Deliberately outside this slice
 
 - no native HTTP engine, OkHttp dependency, DNS resolver or socket is wired;
@@ -98,8 +109,8 @@ speed limits, polyline6/multi-leg handling, retiming and malformed inputs.
   native adapter;
 - redirect/TLS/cleartext behavior needs Android integration tests in addition
   to this policy fixture;
-- Nominatim, Photon and Overpass response fixtures remain; routing provider
-  fallback/orchestration and live native execution remain to be ported;
+- search ranking/history, provider fallback/cancellation, Overpass backoff,
+  routing provider orchestration and live native execution remain to be ported;
 - DNS-aware SSRF checks for LNURL remain part of the later live-network gate.
 
 The Kotlin policy has no Android, Activity, startup or persistence wiring.
