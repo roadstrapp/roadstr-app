@@ -175,6 +175,13 @@ provider: real Keystore create/reopen/invalidation and Android filesystem
 directory-entry durability under power loss remain signed-device gates,
 alongside app-private directory and startup wiring.
 
+`NativeStoragePaths` reserves `noBackupFilesDir/roadstr-native-v1` as the future
+native root. `NativeMigrationRuntime` composes the exact reader, identity
+verifier, public file store, Keystore secret store and commitment-bound marker
+for that root, but exposes no automatic startup hook. The caller must schedule
+its blocking `run()` operation on a worker thread and retain the existing
+Flutter path until signed-install compatibility evidence authorizes activation.
+
 The current Flutter migration code deletes the old plaintext Hive file only
 after copying it to a backup and successfully writing the encrypted box. The
 native migration must preserve that safety property and must also cover the

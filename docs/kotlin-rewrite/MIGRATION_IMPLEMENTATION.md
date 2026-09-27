@@ -38,6 +38,12 @@ not a production startup change.
   zeroes transient plaintext byte arrays, and reuses stage/active/backup
   recovery. It exposes verification and commitment matching, never a raw-value
   read API.
+- `storage/NativeStoragePaths.kt` fixes the future native root at
+  `context.noBackupFilesDir/roadstr-native-v1`, preserving state across an
+  in-place update while keeping it outside backup/restore. `migration/
+  NativeMigrationRuntime.kt` composes that path, public store, Keystore store,
+  commitment-bound marker and transactional coordinator. It is an explicit
+  worker-thread API and is not invoked by the current Flutter startup.
 - `LegacySnapshotFingerprint` provides a stable order-independent SHA-256 for
   comparing staged and reopened snapshots without logging their contents.
 - `LegacySnapshotEnvelope.kt` implements the versioned, canonical and bounded
@@ -79,7 +85,8 @@ not a production startup change.
   public-store reopen, interrupted replacement rollback, durable-marker
   binding, protected-store reopen, nonce randomization, authenticated tamper
   rejection, lost-key retry, envelope limits/corruption and the audited key
-  contract.
+  contract. Runtime tests cover stable path resolution, composition,
+  idempotent second start and failed protected commitment reopening.
 - Dart generates `legacy_snapshot_v1.b64`; Dart and Kotlin both decode the
   exact bytes and assert coverage of all 42 fixed Hive keys, three dynamic
   per-identity keys, nine secure keys and six synthetic asset records.
@@ -98,8 +105,11 @@ not a production startup change.
 - The headless launcher is not invoked by `MainActivity`, `Application` or any
   production startup path. Its Android/Keystore execution still requires
   controlled signed-install testing.
-- The file-backed native marker/store is not connected to `MainActivity` or an
-  app-private production directory.
+- The file-backed native marker/store is not connected to `MainActivity` or
+  used by the production runtime.
+- `NativeMigrationRuntime` is not invoked by `MainActivity`, `Application` or
+  any production startup callback; its real `Context` factory is only a
+  prepared integration boundary.
 - No production Activity, manifest, application ID, permissions or Flutter
   runtime has been replaced.
 - No real user data, key, NWC URI or voice asset is used by the tests.
