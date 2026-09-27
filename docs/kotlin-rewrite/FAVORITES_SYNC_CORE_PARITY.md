@@ -71,7 +71,8 @@ IDs.
 - wiring the separately fixture-locked native NIP-44 v2 core into identity and
   favourites-sync services; see `NIP44_CORE_PARITY.md`;
 - PBKDF2/AES-GCM passphrase encryption and secure passphrase handling;
-- secp256k1/BIP-340 signing, verification and Amber/NIP-55 intents;
+- wiring the separately fixture-locked BIP-340 core, key isolation and
+  Amber/NIP-55 intents;
 - WebSocket connection, relay ACK/EOSE, timeout and cancellation behavior;
 - Hive high-water/cleanup state, local favourites storage and process-death
   behavior;

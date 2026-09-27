@@ -35,6 +35,8 @@ with fixed clocks, keys and randomness where applicable, then consumed by Kotlin
 tests:
 
 - canonical event serialization, event IDs and signature inputs;
+- x-only public-key derivation and BIP-340 signing/verification (43-case
+  official/Roadstr shared fixture green);
 - kind 1315 tags/content for every road-event category, including expiration
   and geohash levels;
 - kind 1316 confirmation/dismissal;
@@ -67,7 +69,9 @@ precedence and pre-verification event budgets for every production relay loop,
 including favourites, Lightning-address, NWC-response and receipt queries.
 The 69-case Lightning fixture additionally locks NWC URI/command/wire/response
 semantics and NIP-57 draft/receipt bindings, including lazy verifier ordering.
-The 77-case LNURL fixture locks `lud16`/`lud06` resolution, HTTPS admission,
+The 43-case Schnorr fixture locks every official BIP-340 vector, six signed
+Roadstr event shapes and strict malformed/tampered Nostr inputs. The 77-case
+LNURL fixture locks `lud16`/`lud06` resolution, HTTPS admission,
 metadata validation, callback construction and invoice amount/expiry/
 description binding. The 72-case NIP-78 fixture locks relay normalization,
 hashed/legacy tags, favourites/passphrase JSON, padding and limits, timestamps,
@@ -77,9 +81,10 @@ ChaCha20/HMAC payloads, Unicode, Base64, exact padding, maximum sizes and all
 official hostile vectors against production Dart. The 64-case NIP-04 fixture
 locks the legacy NWC ECDH/AES-CBC boundary, valid Base64 compatibility and
 bounded malformed-input rejection against the shipped Dart adapter.
-Schnorr/general key derivation, NIP-47 encryption negotiation, NIP-44 service
-wiring, queue/favourites storage, DNS/HTTP execution, socket lifecycle and
-signature-aware dispatch remain outstanding; see `NOSTR_CORE_PARITY.md`,
+Native signer side-channel approval/key isolation, NIP-47 encryption
+negotiation, NIP-44 service wiring, queue/favourites storage, DNS/HTTP
+execution, socket lifecycle and signature-aware dispatch remain outstanding;
+see `NOSTR_CORE_PARITY.md`, `SCHNORR_CORE_PARITY.md`,
 `NIP04_CORE_PARITY.md`, `NIP44_CORE_PARITY.md`, `LIGHTNING_CORE_PARITY.md` and
 `FAVORITES_SYNC_CORE_PARITY.md`.
 

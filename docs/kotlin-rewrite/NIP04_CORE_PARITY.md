@@ -74,7 +74,8 @@ a user key or production secret.
 ## Explicitly outside this slice
 
 - NIP-47 info-event fetching and NIP-44/NIP-04 encryption negotiation;
-- native BIP-340 signing/verification and Keystore-backed NWC secret storage;
+- wiring the separately fixture-locked BIP-340 core and Keystore-backed NWC
+  secret storage;
 - relay lifecycle, timeout/cancellation and complete native payment flow;
 - live-wallet/device interoperability and downgrade-policy review.
 

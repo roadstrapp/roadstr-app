@@ -80,6 +80,11 @@ The first native increment is intentionally isolated from production startup:
   bounded Dart boundary compatible with `nostr_tools 1.0.9`. Kotlin matches 64
   shared valid/hostile cases using the same pinned Bouncy Castle dependency;
   encryption negotiation, signing, secret storage and sockets remain unwired.
+- The production Dart event verifier now delegates strict NIP-01 hash/signature
+  checks to an extracted Schnorr boundary. Kotlin matches all 19 official
+  BIP-340 vectors, six signed Roadstr event shapes and strict hostile inputs in
+  a 43-case fixture. Native signer/key storage, side-channel approval, Amber
+  and signature-aware socket dispatch remain unwired.
 - The Kotlin suite remains independent of Android UI/runtime state; the exact
   current count is recorded in `CORE_PARITY.md` after each full run.
 - `docs/kotlin-rewrite/MIGRATION_IMPLEMENTATION.md` records what is and is not
@@ -190,8 +195,8 @@ broader cross-language coverage and a native store are still required.
   `road_event.dart`.
 - **New Kotlin files/modules:** deterministic event and queue policy under
   `core/protocol/nostr`; future crypto/socket adapters under `service/nostr`.
-- **Dependencies:** Pinned Bouncy Castle lightweight primitives for NIP-04 and
-  NIP-44;
+- **Dependencies:** Pinned Bouncy Castle lightweight primitives for NIP-04,
+  NIP-44 and the detached BIP-340 candidate;
   future OkHttp WebSocket or equivalent FOSS library.
 - **Migration impact:** Pending reports, cursors and activity inbox must survive.
 - **User-visible impact:** Same reports, confirmations, corrections, inbox and offline retry.
@@ -209,10 +214,12 @@ broader cross-language coverage and a native store are still required.
   timestamp, draft/filter, admission, selection and rollback cases;
   `nip44_v2_v1.tsv` provides 77 official/hostile ECDH, HKDF, payload, padding,
   maximum-size and rejection cases; `nip04_v1.tsv` provides 64 legacy NWC
-  ECDH/AES-CBC/Base64/size/rejection cases cross-checked with `nostr_tools`.
-  Native signatures/general key derivation, NIP-47 encryption negotiation,
-  NIP-44 service dispatch, Amber intents, WebSocket lifecycle, persistence
-  adapters, process-death behavior and an approved queue cap remain open.
+  ECDH/AES-CBC/Base64/size/rejection cases cross-checked with `nostr_tools`;
+  `nostr_schnorr_v1.tsv` provides all 19 official BIP-340 vectors, six signed
+  Roadstr events and strict malformed-input cases. Signer side-channel
+  approval/key isolation, NIP-47 encryption negotiation, NIP-44 service
+  dispatch, Amber intents, WebSocket lifecycle, persistence adapters,
+  process-death behavior and an approved queue cap remain open.
 - **Security/privacy impact:** Preserve key isolation, verification-before-trust and inbound DoS limits.
 - **Battery/performance impact:** Compare reconnect, socket and event-processing wakeups.
 - **Acceptance criteria:** All shipped Nostr kinds and filters are byte/semantic compatible.

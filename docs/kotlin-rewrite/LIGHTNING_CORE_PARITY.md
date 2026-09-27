@@ -42,7 +42,9 @@ The LNURL core additionally covers:
   description selection;
 - returned BOLT-11 amount, expiry and description-hash binding.
 
-Signature checks remain injected gates. Receipt kind and expected signer are
+Signature checks remain injected gates. The separately fixture-locked native
+BIP-340 core can satisfy those gates once key isolation and service wiring are
+reviewed. Receipt kind and expected signer are
 checked before the receipt verifier is invoked; invoice bindings and request
 kind are checked before the embedded request verifier is invoked. This keeps
 hostile cheap failures from forcing unnecessary Schnorr work.
@@ -86,7 +88,7 @@ hostile envelope/padding/key rejection. See `NIP04_CORE_PARITY.md`.
 
 ## Explicitly outside this slice
 
-- native secp256k1/BIP-340 signing and verification;
+- wiring the native BIP-340 core to NWC/zap flows with reviewed key isolation;
 - NIP-47 info-event fetching and NIP-44/NIP-04 encryption negotiation;
 - LNURL DNS resolution, bounded HTTP execution, redirect handling and live
   provider interoperability;
