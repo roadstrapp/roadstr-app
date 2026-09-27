@@ -8,11 +8,9 @@
 // silently redirect zaps.
 import 'dart:math';
 
-import 'package:nostr_tools/nostr_tools.dart';
-
 import 'nostr_protocol_codec.dart';
+import 'nostr_schnorr.dart';
 
-final _eventApi = EventApi();
 final _rng = Random.secure();
 
 /// Random 16-hex-char NIP-01 subscription id.
@@ -31,17 +29,13 @@ String randomSubId() =>
 bool verifyEventJson(Map<String, dynamic> json) {
   try {
     final draft = nostrEventDraftFromJson(json);
-    final ev = Event(
-      kind: draft.kind,
-      tags: draft.tags.map((tag) => tag.toList()).toList(),
-      content: draft.content,
-      created_at: draft.createdAt,
-      id: json['id'] as String,
-      sig: json['sig'] as String,
-      pubkey: draft.pubkey,
+    final id = json['id'] as String;
+    if (draft.id != id) return false;
+    return NostrSchnorr.verifyHash(
+      draft.pubkey,
+      id,
+      json['sig'] as String,
     );
-    if (draft.id != ev.id) return false;
-    return _eventApi.verifySignature(ev);
   } catch (_) {
     return false;
   }
