@@ -123,6 +123,11 @@ abstract final class LegacySecureValueValidator {
         );
       }
     }
+    final protectedStateFailure =
+        LegacyProtectedStatePolicy.validateSecureValues(values);
+    if (protectedStateFailure != null) {
+      throw LegacySnapshotCollectionException(protectedStateFailure);
+    }
     return Map.unmodifiable(values);
   }
 }
