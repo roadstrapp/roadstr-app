@@ -118,32 +118,31 @@ object LegacyStorageValidator {
             }
         }
 
+        val protectedState = LegacyProtectedStatePolicy.validateSecureShapes(snapshot.secureValues)
+        if (!protectedState.valid) return protectedState
+
         val identity = snapshot.identity
-        if (identity.flavor != null && identity.flavor !in setOf("amber", "nsec")) {
-            return SnapshotValidation.failure("Unknown identity flavor: ${identity.flavor}")
-        }
+        val identityBindings = LegacyProtectedStatePolicy.validateIdentityBindings(
+            snapshot.secureValues,
+            identity,
+        )
+        if (!identityBindings.valid) return identityBindings
+
         if (identity.publicKeyHex != null && !hex64.matches(identity.publicKeyHex)) {
             return SnapshotValidation.failure("Invalid stored public key")
         }
         if (identity.privateKeyHex != null && !hex64.matches(identity.privateKeyHex)) {
             return SnapshotValidation.failure("Invalid stored private key")
         }
-        if (identity.flavor == "nsec" && identity.privateKeyHex == null) {
-            return SnapshotValidation.failure("nsec identity has no private key")
+        if (identity.flavor == "nsec" &&
+            (identity.privateKeyHex == null || identity.publicKeyHex == null)
+        ) {
+            return SnapshotValidation.failure("nsec identity is incomplete")
         }
-        if (identity.flavor == "amber" && identity.privateKeyHex != null) {
-            return SnapshotValidation.failure("Amber identity unexpectedly contains a private key")
-        }
-        val identityBindings = mapOf(
-            "nostr_pub_hex" to identity.publicKeyHex,
-            "nostr_priv_hex" to identity.privateKeyHex,
-            "nostr_flavor" to identity.flavor,
-        )
-        for ((key, normalizedValue) in identityBindings) {
-            val storedValue = snapshot.secureValues[key] ?: continue
-            if (normalizedValue == null || !storedValue.equals(normalizedValue, ignoreCase = key != "nostr_flavor")) {
-                return SnapshotValidation.failure("Identity does not match secure value: $key")
-            }
+        if (identity.flavor == "amber" &&
+            (identity.publicKeyHex == null || identity.privateKeyHex != null)
+        ) {
+            return SnapshotValidation.failure("Amber identity is incomplete")
         }
         if (identity.privateKeyHex != null) {
             val expected = identity.publicKeyHex

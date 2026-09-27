@@ -139,6 +139,56 @@ class TransactionalMigrationTest {
     }
 
     @Test
+    fun `nsec identity must be complete on both protected maps`() {
+        val writer = FakeWriter()
+        val invalid = snapshot().copy(
+            secureValues = mapOf(
+                "nostr_flavor" to "nsec",
+                "nostr_priv_hex" to expectedPrivateKey,
+            ),
+        )
+
+        val result = TransactionalMigration(
+            FakeReader(invalid), writer, FakeMarker(), verifier,
+        ).run()
+
+        assertEquals(MigrationOutcome.Failed, result.outcome)
+        assertTrue(writer.calls.isEmpty())
+        assertFalse(result.reason.orEmpty().contains(expectedPrivateKey))
+    }
+
+    @Test
+    fun `identity fields must be mirrored by secure storage`() {
+        val writer = FakeWriter()
+        val invalid = snapshot().copy(
+            secureValues = mapOf("nwc_uri" to "fixture-only"),
+        )
+
+        val result = TransactionalMigration(
+            FakeReader(invalid), writer, FakeMarker(), verifier,
+        ).run()
+
+        assertEquals(MigrationOutcome.Failed, result.outcome)
+        assertTrue(writer.calls.isEmpty())
+    }
+
+    @Test
+    fun `noncanonical Hive key fails before native writes`() {
+        val writer = FakeWriter()
+        val invalid = snapshot().copy(
+            secureValues = snapshot().secureValues +
+                ("hive_settings_key" to "not-a-canonical-key"),
+        )
+
+        val result = TransactionalMigration(
+            FakeReader(invalid), writer, FakeMarker(), verifier,
+        ).run()
+
+        assertEquals(MigrationOutcome.Failed, result.outcome)
+        assertTrue(writer.calls.isEmpty())
+    }
+
+    @Test
     fun `snapshot fingerprint is stable across map and asset order`() {
         val first = snapshot().copy(
             assets = listOf(
@@ -165,7 +215,12 @@ class TransactionalMigrationTest {
     private fun snapshot() = LegacyStorageSnapshot(
         schemaVersion = 1,
         ordinaryValues = mapOf("language" to "it", "themeId" to "2"),
-        secureValues = mapOf("nwc_uri" to "fixture-only"),
+        secureValues = mapOf(
+            "nwc_uri" to "fixture-only",
+            "nostr_pub_hex" to expectedPublicKey,
+            "nostr_priv_hex" to expectedPrivateKey,
+            "nostr_flavor" to "nsec",
+        ),
         identity = LegacyIdentity(
             publicKeyHex = expectedPublicKey,
             flavor = "nsec",

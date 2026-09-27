@@ -10,7 +10,12 @@ not a production startup change.
 - `LegacyStorageModels.kt` defines a bounded normalized snapshot boundary,
   identity and asset records, schema validation, key separation, safe relative
   paths and checksum shape checks. Unknown keys, oversized values, duplicate
-  assets and Amber identities containing a private key fail closed.
+  assets and impossible protected identity states fail closed.
+- `LegacyProtectedStatePolicy.kt` and its Dart counterpart reject
+  non-canonical Hive keys, incomplete nsec/Amber states and one-way identity
+  bindings before native staging. Protected values never appear in policy
+  diagnostics; native BIP-340 derivation remains the final private/public
+  consistency check.
 - `LegacySnapshotFingerprint` provides a stable order-independent SHA-256 for
   comparing staged and reopened snapshots without logging their contents.
 - `LegacySnapshotEnvelope.kt` implements the versioned, canonical and bounded
@@ -47,8 +52,8 @@ not a production startup change.
   later policy decision.
 - Unit tests cover success, idempotent completion, commit failure, verification
   failure, private/public key mismatch, unknown keys, unsafe/duplicate assets,
-  deterministic fingerprints, envelope limits/corruption and the audited key
-  contract.
+  incomplete protected identity, non-canonical Hive keys, deterministic
+  fingerprints, envelope limits/corruption and the audited key contract.
 - Dart generates `legacy_snapshot_v1.b64`; Dart and Kotlin both decode the
   exact bytes and assert coverage of all 42 fixed Hive keys, three dynamic
   per-identity keys, nine secure keys and six synthetic asset records.
@@ -71,6 +76,9 @@ not a production startup change.
 - No production Activity, manifest, application ID, permissions or Flutter
   runtime has been replaced.
 - No real user data, key, NWC URI or voice asset is used by the tests.
+- The protected-state admission policy does not yet parse historical NWC URI
+  variants during migration; that decision remains behind the native Lightning
+  boundary until signed-install fixtures establish the supported range.
 - No raw installed-app fixture exists yet. The synthetic raw Hive fixture
   proves the current Dart binary read path, but not historical installed-box,
   secure-storage or Keystore compatibility.

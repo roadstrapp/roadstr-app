@@ -130,6 +130,9 @@ broader cross-language coverage and a native store are still required.
   interrupted backup and source immutability are green; installed
   plugin-format reads and Keystore failure cases remain. Shared protocol,
   one-shot, timeout, cleanup and neutral-error tests are green off-device.
+- **Protected-state gate:** Canonical Hive-key shape, complete nsec/Amber
+  identity states and two-way secure/envelope bindings now fail closed before
+  native staging; native private/public derivation remains mandatory.
 - **Parity evidence:** Fixture manifest with counts, types, hashes and known fixed dummy nsec/npub.
 - **Security/privacy impact:** No real nsec/NWC/passphrase in source or logs;
   fixture secrets are fixed test-only values. The bridge sets

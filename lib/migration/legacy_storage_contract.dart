@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 /// Audited names from the supported Flutter storage layout.
 const String legacySettingsBoxName = 'settings';
 const String legacySettingsFileName = 'settings.hive';
@@ -91,6 +93,7 @@ const Set<String> legacyVoiceAssetRelativePaths = {
 };
 
 final RegExp _publicKeyHex = RegExp(r'^[0-9a-fA-F]{64}$');
+final RegExp _canonicalHiveKey = RegExp(r'^[A-Za-z0-9+/]{43}=$');
 
 bool isLegacyDynamicHiveKey(String key) {
   for (final prefix in legacyDynamicHiveKeyPrefixes) {
@@ -104,3 +107,54 @@ bool isLegacyDynamicHiveKey(String key) {
 
 bool isKnownLegacyHiveKey(String key) =>
     legacyFixedHiveKeys.contains(key) || isLegacyDynamicHiveKey(key);
+
+/// Deterministic shape policy for values that must remain protected during
+/// the Dart-to-native hand-off.
+///
+/// This deliberately does not derive a public key: cryptographic derivation
+/// belongs to the native validation boundary, where the supplied
+/// identity verifier can reject a private/public mismatch before any write.
+/// The collector still rejects impossible modes and malformed encodings early.
+abstract final class LegacyProtectedStatePolicy {
+  static String? validateSecureValues(Map<String, String> values) {
+    final hiveKey = values['hive_settings_key'];
+    if (hiveKey != null && !isCanonicalLegacyHiveKey(hiveKey)) {
+      return 'Legacy Hive encryption key is invalid';
+    }
+
+    final publicKey = values['nostr_pub_hex'];
+    final privateKey = values['nostr_priv_hex'];
+    final flavor = values['nostr_flavor'];
+    if (publicKey != null && !_publicKeyHex.hasMatch(publicKey)) {
+      return 'Stored public key has an invalid shape';
+    }
+    if (privateKey != null && !_publicKeyHex.hasMatch(privateKey)) {
+      return 'Stored private key has an invalid shape';
+    }
+    if (flavor != null && flavor != 'amber' && flavor != 'nsec') {
+      return 'Stored identity flavor is unsupported';
+    }
+
+    final hasIdentity =
+        publicKey != null || privateKey != null || flavor != null;
+    if (!hasIdentity) return null;
+    if (flavor == null) return 'Stored identity flavor is missing';
+    if (flavor == 'nsec' && (publicKey == null || privateKey == null)) {
+      return 'nsec identity is incomplete';
+    }
+    if (flavor == 'amber' && (publicKey == null || privateKey != null)) {
+      return 'Amber identity is incomplete';
+    }
+    return null;
+  }
+
+  static bool isCanonicalLegacyHiveKey(String encoded) {
+    if (!_canonicalHiveKey.hasMatch(encoded)) return false;
+    try {
+      final decoded = base64Decode(encoded);
+      return decoded.length == 32 && base64Encode(decoded) == encoded;
+    } on FormatException {
+      return false;
+    }
+  }
+}

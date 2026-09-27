@@ -27,7 +27,6 @@ class LegacyMigrationBridgeReader {
   const LegacyMigrationBridgeReader();
 
   static const int maxLegacyHiveSourceBytes = 128 * 1024 * 1024;
-  static final RegExp _canonicalHiveKey = RegExp(r'^[A-Za-z0-9+/]{43}=$');
 
   Future<Uint8List?> readEncoded({
     required Directory documentsDirectory,
@@ -155,7 +154,7 @@ class LegacyMigrationBridgeReader {
   }
 
   List<int> _decodeHiveKey(String encoded) {
-    if (!_canonicalHiveKey.hasMatch(encoded)) {
+    if (!LegacyProtectedStatePolicy.isCanonicalLegacyHiveKey(encoded)) {
       throw const LegacyMigrationBridgeException(
         'Legacy Hive encryption key is invalid',
       );
