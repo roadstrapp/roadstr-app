@@ -108,6 +108,11 @@ Port semantically, not approximately:
 - Nominatim etiquette, Overpass mirror rotation/backoff and route provider
   fallback behavior.
 
+The deterministic subset of that HTTP contract is now locked by the 48-case
+`http_safety_policy_v1.tsv`: timeout and response tiers, redirect refusal,
+declared/streamed size ceilings and current GraphHopper loopback admission.
+`NETWORK_CORE_PARITY.md` records the remaining live-network gates.
+
 ## Acceptance criteria
 
 For deterministic inputs, Kotlin must match required protocol bytes/fields and

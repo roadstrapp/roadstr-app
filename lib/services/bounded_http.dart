@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
+import 'http_safety_policy.dart';
+
 /// HTTP helper that enforces a response limit while bytes are streaming.
 /// Checking `Response.bodyBytes.length` after `http.get` is too late: an
 /// untrusted server may already have forced the process to buffer hundreds of
@@ -41,12 +43,15 @@ class BoundedHttp {
     required int maxBytes,
     required Duration timeout,
   }) async {
-    if (maxBytes <= 0) throw ArgumentError.value(maxBytes, 'maxBytes');
-    request.followRedirects = false;
+    BoundedHttpPolicy.validateMaxBytes(maxBytes);
+    request.followRedirects = BoundedHttpPolicy.followRedirects;
     final client = http.Client();
     try {
       final streamed = await client.send(request).timeout(timeout);
-      if ((streamed.contentLength ?? 0) > maxBytes) {
+      if (!BoundedHttpPolicy.acceptsContentLength(
+        streamed.contentLength,
+        maxBytes,
+      )) {
         throw const HttpException('HTTP response is too large');
       }
       final builder = BytesBuilder(copy: false);
@@ -56,10 +61,14 @@ class BoundedHttp {
       // sending one byte just before every timeout.
       await (() async {
         await for (final chunk in streamed.stream) {
-          received += chunk.length;
-          if (received > maxBytes) {
+          if (!BoundedHttpPolicy.acceptsChunk(
+            receivedBytes: received,
+            chunkBytes: chunk.length,
+            maxBytes: maxBytes,
+          )) {
             throw const HttpException('HTTP response is too large');
           }
+          received += chunk.length;
           builder.add(chunk);
         }
       })()
