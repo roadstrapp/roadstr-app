@@ -19,7 +19,7 @@ No native production runtime exists, so no Kotlin row is marked functional.
 | Map overlays | routes, current cursor, traffic lights, crossings, bumps, cameras, ZTL | `lib/services/*_service.dart`, map screens | FUNCTIONAL | CORE_ONLY | overlay fixture and camera tests |
 | Navigation HUD | manoeuvre symbols, road name, speed, limit, altitude, distance | `lib/widgets/nav`, `speedometer_widget.dart` | FUNCTIONAL | NOT_STARTED | existing goldens + screen comparison |
 | Vehicle cursor | styles, seven colours, walking animation and culling | `lib/widgets/cursor_painter.dart` | FUNCTIONAL | NOT_STARTED | existing cursor goldens |
-| Search | Photon, Nominatim, category/brand Overpass, ranking/history | `place_search_service.dart`, `poi_search_service.dart` | FUNCTIONAL | CORE_ONLY | provider, ranking and history fixtures |
+| Search | Photon, Nominatim, category/brand Overpass, ranking/history | `place_search_service.dart`, `poi_search_service.dart` | FUNCTIONAL | CORE_ONLY | 39-case exact request fixture green; response, ranking and history fixtures remain |
 | Place details | OSM details, opening hours, contextual POI data | `place_info_panel.dart`, `opening_hours.dart` | FUNCTIONAL | CORE_ONLY | parser and screen parity |
 | Wikipedia | restricted in-app Wikipedia article reader | `wikipedia_webview_screen.dart` | FUNCTIONAL | NOT_STARTED | URI allowlist tests |
 | Favourites | local favourites, import/export, limits and validation | `favorite_place.dart`, map/settings screens | FUNCTIONAL | NOT_STARTED | storage migration and content comparison |
@@ -39,7 +39,7 @@ No native production runtime exists, so no Kotlin row is marked functional.
 | Settings | routing, voice, map, theme, units, sync, privacy and cursor settings | `settings_screen.dart` | FUNCTIONAL | NOT_STARTED | all persisted keys and defaults |
 | Themes | Violet/Bitcoin Orange, light/dark, auto sunrise/sunset | `app_theme.dart`, `theme_provider.dart` | FUNCTIONAL | CORE_ONLY | theme tests + screenshots |
 | Localization | 27 locales, fallback and route voice phrases | `lib/l10n`, `nav_phrases.dart` | FUNCTIONAL | NOT_STARTED | key/placeholder comparison |
-| Privacy/security | no telemetry, backup off, cleartext bounds, input caps and secret hygiene | manifest, network config, services | FUNCTIONAL | CORE_ONLY | HTTP cap/redirect/loopback policy fixture green; static and runtime security audit remains |
+| Privacy/security | no telemetry, backup off, cleartext bounds, input caps and secret hygiene | manifest, network config, services | FUNCTIONAL | CORE_ONLY | HTTP cap/redirect/loopback plus search request/privacy-rounding fixtures green; static and runtime security audit remains |
 | Release identity | version checks, R8, ABI/native checksum and store metadata | Gradle, `build_release.sh`, metadata | FUNCTIONAL | NOT_STARTED | clean native/F-Droid/release build |
 
 Any row that remains `PARTIAL` in the Kotlin column is a release blocker unless

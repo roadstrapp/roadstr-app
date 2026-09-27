@@ -111,7 +111,10 @@ Port semantically, not approximately:
 The deterministic subset of that HTTP contract is now locked by the 48-case
 `http_safety_policy_v1.tsv`: timeout and response tiers, redirect refusal,
 declared/streamed size ceilings and current GraphHopper loopback admission.
-`NETWORK_CORE_PARITY.md` records the remaining live-network gates.
+The 39-case `search_provider_requests_v1.tsv` additionally locks exact
+Nominatim forward/reverse, Photon and Overpass methods, URLs, encodings,
+coordinates, headers and form bodies. `NETWORK_CORE_PARITY.md` and
+`SEARCH_NETWORK_CORE_PARITY.md` record the remaining live-network gates.
 
 ## Acceptance criteria
 

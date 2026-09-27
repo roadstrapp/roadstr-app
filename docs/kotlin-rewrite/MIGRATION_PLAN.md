@@ -297,16 +297,20 @@ broader cross-language coverage and a native store are still required.
 - **New Kotlin files/modules:** `core/network`, `service/routing`, `service/search`, `service/overpass`.
 - **Current implementation:** `core/network/HttpSafetyPolicy.kt` mirrors the
   six timeout tiers, six response limits, redirect refusal, overflow-safe
-  streaming byte accounting and current GraphHopper host/loopback policy. The
-  production Dart bounded client uses the extracted oracle. Native HTTP,
-  provider adapters and response parsing remain unwired.
+  streaming byte accounting and current GraphHopper host/loopback policy.
+  `SearchProviderProtocol.kt` also mirrors exact Nominatim forward/reverse,
+  Photon and Overpass request composition. The production Dart bounded client
+  and all three provider clients use the extracted oracles. Native HTTP,
+  response parsing and provider execution remain unwired.
 - **Dependencies:** OkHttp, Kotlin coroutines/Flow; no Google/Firebase/telemetry SDK.
 - **Migration impact:** Routing provider, API key and GraphHopper URL must survive.
 - **User-visible impact:** Same providers, results, language and error/fallback behavior.
-- **Tests:** A 48-case shared HTTP safety fixture and existing live Dart local-
-  server redirect/oversize tests are green. Native engine redirect/size/TLS/
-  cleartext integration, provider response fixtures and retry execution remain.
-- **Parity evidence:** Request/response normalized diff and provider matrix.
+- **Tests:** A 48-case shared HTTP safety fixture, a 39-case search-provider
+  request fixture and existing live Dart local-server redirect/oversize/
+  Overpass tests are green. Native engine redirect/size/TLS/cleartext
+  integration, provider response fixtures and retry execution remain.
+- **Parity evidence:** Exact Nominatim/Photon/Overpass request bytes are green;
+  response normalized diff and the remaining provider matrix are open.
 - **Security/privacy impact:** Preserve URL validation, body caps, user-agent, no silent cloud fallback.
 - **Battery/performance impact:** Compare network retries, cache hit rate and cancellation.
 - **Acceptance criteria:** All current providers pass without changed limits or privacy behavior.
