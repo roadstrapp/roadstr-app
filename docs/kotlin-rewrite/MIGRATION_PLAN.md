@@ -76,10 +76,11 @@ The first native increment is intentionally isolated from production startup:
   72 shared cases. A pinned, vetted Kotlin NIP-44 core separately matches 77
   official/hostile shared cases; signing, key isolation, persistence and
   sockets remain unwired.
-- The production NWC path now delegates legacy NIP-04 ECDH/AES-CBC to a
-  bounded Dart boundary compatible with `nostr_tools 1.0.9`. Kotlin matches 64
-  shared valid/hostile cases using the same pinned Bouncy Castle dependency;
-  encryption negotiation, signing, secret storage and sockets remain unwired.
+- The production NWC path verifies kind-13194 wallet capabilities, prefers
+  NIP-44 v2 and retains tagless NIP-04 only for verified legacy peers. Kotlin
+  matches the 89-case negotiation/wire fixture; its NIP-44 and NIP-04 cores
+  separately match 77 and 64 valid/hostile cases. Native signing, secret
+  storage, crypto dispatch and sockets remain unwired.
 - The production Dart event verifier now delegates strict NIP-01 hash/signature
   checks to an extracted Schnorr boundary. Kotlin matches all 19 official
   BIP-340 vectors, six signed Roadstr event shapes and strict hostile inputs in
@@ -207,9 +208,10 @@ broader cross-language coverage and a native store are still required.
   validation/retry transcripts; `nostr_relay_messages_v1.tsv` provides bounded
   inbound envelope transcripts; `nostr_nip19_v1.tsv` provides 35 strict
   `npub`/`nsec` encode/decode and rejection cases cross-checked against
-  `nostr_tools`; `nostr_ingress_v1.tsv` provides 60 stateful
+  `nostr_tools`; `nostr_ingress_v1.tsv` provides 63 stateful
   subscription/kind/budget decisions for all shipped relay loops, including
-  one-shot favourites/Lightning/NWC/zap queries, and collision precedence;
+  one-shot favourites/Lightning/NWC-info/NWC-response/zap queries, and
+  collision precedence;
   `favorites_sync_protocol_v1.tsv` provides 72 NIP-78 payload, privacy,
   timestamp, draft/filter, admission, selection and rollback cases;
   `nip44_v2_v1.tsv` provides 77 official/hostile ECDH, HKDF, payload, padding,
@@ -217,8 +219,8 @@ broader cross-language coverage and a native store are still required.
   ECDH/AES-CBC/Base64/size/rejection cases cross-checked with `nostr_tools`;
   `nostr_schnorr_v1.tsv` provides all 19 official BIP-340 vectors, six signed
   Roadstr events and strict malformed-input cases. Signer side-channel
-  approval/key isolation, NIP-47 encryption negotiation, NIP-44 service
-  dispatch, Amber intents, WebSocket lifecycle, persistence adapters,
+  approval/key isolation, native NIP-47/NIP-44 service dispatch, Amber intents,
+  WebSocket lifecycle, persistence adapters,
   process-death behavior and an approved queue cap remain open.
 - **Security/privacy impact:** Preserve key isolation, verification-before-trust and inbound DoS limits.
 - **Battery/performance impact:** Compare reconnect, socket and event-processing wakeups.
@@ -287,11 +289,12 @@ broader cross-language coverage and a native store are still required.
 - **User-visible impact:** Same signer approval/cancel flow, wallet fallback and zap behavior.
 - **Tests:** fixed invoice/LNURL/NIP-04/NIP-47/NIP-57 fixtures; manual Amber signer matrix.
 - **Parity evidence:** BOLT-11 vectors plus `lightning_protocol_v1.tsv` with
-  69 NWC URI/command/wire/response and NIP-57 draft/receipt cases, plus
+  89 NWC URI/command/info-negotiation/wire/response and NIP-57 draft/receipt
+  cases, plus
   `lnurl_protocol_v1.tsv` with 77 source/metadata/callback/invoice cases;
-  `nip04_v1.tsv` adds 64 legacy ECDH/AES-CBC/hostile cases. NIP-47 encryption
-  negotiation, native DNS/HTTP, signatures/key isolation and live-wallet
-  transcripts remain open.
+  `nip04_v1.tsv` adds 64 legacy ECDH/AES-CBC/hostile cases. Native DNS/HTTP,
+  signatures/key isolation, crypto/socket dispatch and live-wallet transcripts
+  remain open.
 - **Security/privacy impact:** Amber never receives a private key from Roadstr; NWC secret stays Keystore-backed.
 - **Battery/performance impact:** No persistent relay/socket owned by a Composable; bounded payment flow.
 - **Acceptance criteria:** nsec and Amber users remain configured and can perform the same operations.

@@ -163,6 +163,12 @@ NostrRelayIngress _policy(String scenario) => switch (scenario) {
             maxEvents: 10,
           ),
           NostrIngressRule(
+            name: 'nwc-info',
+            subscriptionId: 'nwc-info',
+            routes: const {13194: NostrIngressRoute.nwcInfo},
+            maxEvents: 2,
+          ),
+          NostrIngressRule(
             name: 'nwc-response',
             subscriptionId: 'nwc',
             routes: const {23195: NostrIngressRoute.nwcResponse},
@@ -574,6 +580,28 @@ List<_Step> _steps() => [
         kind: 'int:0',
         expected:
             _expected('limitReached', rule: 'lightning-address', observed: 11),
+      ),
+      (
+        scenario: 'one-off',
+        name: 'nwc-info-wrong-kind',
+        subscription: 'nwc-info',
+        kind: 'int:23194',
+        expected: _expected('rejectKind', rule: 'nwc-info', observed: 1),
+      ),
+      (
+        scenario: 'one-off',
+        name: 'nwc-info',
+        subscription: 'nwc-info',
+        kind: 'int:13194',
+        expected: _expected('verify',
+            route: 'nwcInfo', rule: 'nwc-info', observed: 2),
+      ),
+      (
+        scenario: 'one-off',
+        name: 'nwc-info-over-budget',
+        subscription: 'nwc-info',
+        kind: 'int:13194',
+        expected: _expected('limitReached', rule: 'nwc-info', observed: 3),
       ),
       (
         scenario: 'one-off',

@@ -69,7 +69,40 @@ data class NwcResponseDecision(
     }
 }
 
-/** Deterministic NIP-47 behavior around future NIP-04 and socket adapters. */
+enum class NwcEncryptionScheme(val code: String) {
+    NIP44_V2("nip44_v2"),
+    NIP04("nip04"),
+}
+
+class NwcEncryptionSelection private constructor(
+    val scheme: NwcEncryptionScheme,
+    val isLegacy: Boolean,
+) {
+    val requestTag: String?
+        get() = if (isLegacy) null else scheme.code
+
+    companion object {
+        fun explicit(scheme: NwcEncryptionScheme): NwcEncryptionSelection =
+            NwcEncryptionSelection(scheme, false)
+
+        fun legacyNip04(): NwcEncryptionSelection =
+            NwcEncryptionSelection(NwcEncryptionScheme.NIP04, true)
+    }
+}
+
+data class NwcInfoDecision(
+    val shouldComplete: Boolean,
+    val selection: NwcEncryptionSelection?,
+) {
+    companion object {
+        fun ignored(): NwcInfoDecision = NwcInfoDecision(false, null)
+        fun incompatible(): NwcInfoDecision = NwcInfoDecision(true, null)
+        fun supported(selection: NwcEncryptionSelection): NwcInfoDecision =
+            NwcInfoDecision(true, selection)
+    }
+}
+
+/** Deterministic NIP-47 behavior around crypto and socket adapters. */
 object NwcProtocol {
     fun payInvoiceCommand(invoice: String): String = NostrJson.encode(
         linkedMapOf(
@@ -83,6 +116,7 @@ object NwcProtocol {
         createdAt: Long,
         walletPubkey: String,
         encryptedContent: String,
+        encryption: NwcEncryptionSelection = NwcEncryptionSelection.legacyNip04(),
     ): NostrEventDraft {
         require(clientPubkey.isHex32() && walletPubkey.isHex32()) {
             "Invalid NWC event key"
@@ -91,9 +125,76 @@ object NwcProtocol {
             pubkey = clientPubkey,
             createdAt = createdAt,
             kind = 23194,
-            tags = listOf(listOf("p", walletPubkey)),
+            tags = buildList {
+                encryption.requestTag?.let { tag -> add(listOf("encryption", tag)) }
+                add(listOf("p", walletPubkey))
+            },
             content = encryptedContent,
         )
+    }
+
+    fun infoRequest(
+        subscriptionId: String,
+        walletPubkey: String,
+    ): List<Any?> {
+        require(walletPubkey.isHex32()) { "Invalid NWC info filter" }
+        return listOf(
+            "REQ",
+            subscriptionId,
+            linkedMapOf(
+                "kinds" to listOf(13194),
+                "authors" to listOf(walletPubkey),
+                "limit" to 1,
+            ),
+        )
+    }
+
+    /**
+     * Verifies and interprets a wallet's replaceable kind-13194 info event.
+     * Structurally unrelated events skip the potentially expensive verifier.
+     */
+    fun inspectInfoEvent(
+        event: Map<String, Any?>,
+        walletPubkey: String,
+        verifySignature: () -> Boolean,
+    ): NwcInfoDecision {
+        return try {
+            if (
+                event["kind"].asIntegralLong() != 13194L ||
+                event["pubkey"] != walletPubkey ||
+                event["content"] !is String
+            ) {
+                return NwcInfoDecision.ignored()
+            }
+            val tags = strictStringTags(event["tags"]) ?: return NwcInfoDecision.ignored()
+            if (!verifySignature()) return NwcInfoDecision.ignored()
+
+            val methods = (event["content"] as String).spaceSeparated()
+            if ("pay_invoice" !in methods) return NwcInfoDecision.incompatible()
+            val encryptionTags = tags.filter { tag ->
+                tag.isNotEmpty() && tag[0] == "encryption"
+            }
+            if (encryptionTags.isEmpty()) {
+                return NwcInfoDecision.supported(NwcEncryptionSelection.legacyNip04())
+            }
+            if (encryptionTags.size != 1 || encryptionTags.single().size != 2) {
+                return NwcInfoDecision.incompatible()
+            }
+            val modes = encryptionTags.single()[1].spaceSeparated()
+            when {
+                NwcEncryptionScheme.NIP44_V2.code in modes -> NwcInfoDecision.supported(
+                    NwcEncryptionSelection.explicit(NwcEncryptionScheme.NIP44_V2),
+                )
+
+                NwcEncryptionScheme.NIP04.code in modes -> NwcInfoDecision.supported(
+                    NwcEncryptionSelection.explicit(NwcEncryptionScheme.NIP04),
+                )
+
+                else -> NwcInfoDecision.incompatible()
+            }
+        } catch (_: Exception) {
+            NwcInfoDecision.ignored()
+        }
     }
 
     fun responseRequest(
@@ -310,6 +411,9 @@ object Nip57Protocol {
 
 private fun String.isHex32(): Boolean =
     length == 64 && all { character -> character.digitToIntOrNull(16) != null }
+
+private fun String.spaceSeparated(): Set<String> =
+    trim().split(Regex("\\s+")).filter { part -> part.isNotEmpty() }.toSet()
 
 private fun Any?.asIntegralLong(): Long? = when (this) {
     is Byte -> toLong()

@@ -15,7 +15,7 @@ service or UI cutover.
 | `core.search` | `fuzzy_match.dart` | accent folding, bounded Levenshtein, address weighting and stop-word rejection |
 | `core.network` | `retry.dart`, `refetch_policy.dart` | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
-| `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `lnurl_protocol.dart`, `zap_service.dart` | BOLT-11 parsing, LNURL-pay source/metadata/callback/invoice binding, NIP-47 URI/request/response and NIP-57 draft/receipt bindings |
+| `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `lnurl_protocol.dart`, `zap_service.dart` | BOLT-11 parsing, LNURL-pay source/metadata/callback/invoice binding, NIP-47 URI/info negotiation/request/response and NIP-57 draft/receipt bindings |
 | `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_pending_report_queue.dart`, `nostr_relay_message.dart`, `nostr_relay_ingress.dart`, `nostr_nip19.dart`, `nostr_schnorr.dart`, `nip04.dart`, `nip44.dart`, `favorites_sync_protocol.dart`, Nostr/favourites/Lightning services | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash, outbound frames, offline FIFO/TTL/retry policy, bounded inbound envelopes, pre-verification routing/budgets, strict NIP-19 keys, x-only derivation/BIP-340, legacy NIP-04, NIP-44 v2 and deterministic NIP-78 policy |
 
 ## Shared vectors
@@ -50,18 +50,20 @@ of invalid case, checksum, prefix, padding, payload length and hex. The valid
 vectors are cross-checked against `nostr_tools`; Kotlin uses a dependency-free
 codec and neither runtime exposes candidate secret input in decode errors.
 
-`nostr_ingress_v1.tsv` is the sixth shared core fixture. Its 60 sequential
+`nostr_ingress_v1.tsv` is the sixth shared core fixture. Its 63 sequential
 decisions lock subscription/kind routing, unknown-input rejection, independent
 budgets, exact ceiling behavior and collision precedence before signature
 verification. The Dart policy is used by the production relay service and its
-favourites, Lightning-address, NWC and zap-receipt one-shot loops; the Kotlin
-state machine is still detached from native sockets.
+favourites, Lightning-address, NWC info/response and zap-receipt one-shot
+loops; the Kotlin state machine is still detached from native sockets.
 
-`lightning_protocol_v1.tsv` is the seventh shared core fixture. Its 69 cases
-lock NWC URI parsing and secret redaction, exact NIP-47 command/draft/filter
-layouts, response binding and outcome classification, NIP-57 zap drafts and
-receipt cardinality/invoice/preimage/amount/recipient/event bindings. See
-`LIGHTNING_CORE_PARITY.md` for the exact boundary.
+`lightning_protocol_v1.tsv` is the seventh shared core fixture. Its 89 cases
+lock NWC URI parsing and secret redaction, kind-13194 discovery/signature/
+capability negotiation, NIP-44 preference and downgrade rejection, exact
+NIP-47 command/draft/filter layouts, response binding and outcome
+classification, NIP-57 zap drafts and receipt cardinality/invoice/preimage/
+amount/recipient/event bindings. See `LIGHTNING_CORE_PARITY.md` for the exact
+boundary.
 
 `lnurl_protocol_v1.tsv` is the eighth shared core fixture. Its 77 cases lock
 Lightning-address and `lud06` resolution, lexical HTTPS/SSRF admission,
@@ -105,9 +107,9 @@ already shipped by `nostr_tools`. See `SCHNORR_CORE_PARITY.md`.
   to the future native networking adapter.
 - NIP-47/NIP-57, LNURL-pay, legacy NIP-04, NIP-44 v2 and NIP-78 favourites
   deterministic wire, crypto, parsing, padding, binding and rollback rules are
-  covered; NIP-47 encryption negotiation, signer/key isolation, LNURL
-  DNS/HTTP/redirect execution, wallet/relay sockets, persistence and
-  orchestration remain open.
+  covered, including NIP-47 encryption negotiation; native signer/key
+  isolation, LNURL DNS/HTTP/redirect execution, wallet/relay sockets,
+  persistence and orchestration remain open.
 - Full cross-language fixture coverage for route responses and the remaining
   signed/networked Nostr surface is required. Legacy storage now has a
   synthetic encrypted Hive source fixture and shared envelope, while

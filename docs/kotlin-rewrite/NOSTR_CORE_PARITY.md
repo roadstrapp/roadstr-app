@@ -97,9 +97,10 @@ and x-only curve points, authenticates before decrypting, strictly decodes
 UTF-8 and remains detached from key storage and NIP-78 orchestration. See
 `NIP44_CORE_PARITY.md` for the crypto/dependency boundary.
 
-`lib/services/nip04.dart` is now the production NWC encryption boundary used
-by `ZapService`, preserving interoperability with `nostr_tools 1.0.9` while
-adding explicit size, IV, block, PKCS#7 and UTF-8 checks. `Nip04Cipher.kt`
+`lib/services/nip04.dart` is now the production legacy NWC encryption boundary
+used by `ZapService` after negotiation selects NIP-04, preserving
+interoperability with `nostr_tools 1.0.9` while adding explicit size, IV,
+block, PKCS#7 and UTF-8 checks. `Nip04Cipher.kt`
 mirrors its x-only secp256k1 ECDH and AES-256-CBC wire format with Bouncy
 Castle lightweight primitives. It remains detached from NWC keys, signing and
 sockets. See `NIP04_CORE_PARITY.md` for the legacy-security limitations.
@@ -185,11 +186,12 @@ are cross-checked against `nostr_tools`; all private values are test-only.
 dart run tools/kotlin_rewrite/generate_nostr_ingress_fixture.dart --check
 ```
 
-Its 60 stateful steps cover every live and one-shot route, unknown
+Its 63 stateful steps cover every live and one-shot route, unknown
 subscriptions, missing or wrongly typed kinds, exact/over-budget behavior,
-independent report/vote/favourites/Lightning/receipt budgets, the intentionally
-unbounded shipped NWC response stream, limit-before-kind precedence, defensive
-configuration and deliberate subscription-id collisions. Expected outcomes
+independent report/vote/favourites/Lightning/NWC-info/receipt budgets, the
+intentionally unbounded shipped NWC response stream, limit-before-kind
+precedence, defensive configuration and deliberate subscription-id
+collisions. Expected outcomes
 are declared independently in the generator before both runtimes replay the
 transcript.
 
@@ -283,8 +285,8 @@ separate review and fixtures:
   and complete filter/transcript coverage beyond admission decisions;
 - native parsing/storage for the persisted report list, process-death tests,
   queue serialization/capping and activity cursors;
-- NIP-47 encryption negotiation, full NIP-47/NIP-57 socket/signature
-  orchestration, and NIP-78 NIP-44 key-storage/encryption wiring plus
+- native NIP-47/NIP-57 crypto/socket/signature orchestration, and NIP-78
+  NIP-44 key-storage/encryption wiring plus
   storage/network adapters. Deterministic Lightning, NIP-04, NIP-44 and
   favourites rules are covered separately in `LIGHTNING_CORE_PARITY.md`,
   `NIP04_CORE_PARITY.md`, `NIP44_CORE_PARITY.md`,

@@ -7,9 +7,9 @@ production boundary in `lib/services/nip04.dart` instead of constructing
 `nostr_tools.Nip04` directly.
 
 NIP-04 is deprecated and unauthenticated. It remains necessary for NIP-47
-wallets that do not advertise an `encryption` mode; future NWC negotiation
-should prefer NIP-44 v2. This slice preserves the currently shipped NIP-04
-path and does not claim to implement that negotiation.
+wallets whose verified info event does not advertise an `encryption` mode.
+The later shared NWC boundary now prefers NIP-44 v2 and dispatches here only
+for that legacy selection.
 
 ## Preserved wire profile
 
@@ -73,7 +73,8 @@ a user key or production secret.
 
 ## Explicitly outside this slice
 
-- NIP-47 info-event fetching and NIP-44/NIP-04 encryption negotiation;
+- native NIP-47 crypto/socket dispatch (info-event negotiation is now
+  fixture-locked in both runtimes and live in Flutter);
 - wiring the separately fixture-locked BIP-340 core and Keystore-backed NWC
   secret storage;
 - relay lifecycle, timeout/cancellation and complete native payment flow;

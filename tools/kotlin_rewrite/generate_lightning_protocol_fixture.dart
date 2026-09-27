@@ -158,6 +158,14 @@ List<_FixtureCase> _cases() {
       ['p', _client],
     ],
   };
+  final validInfoEvent = <String, dynamic>{
+    'kind': 13194,
+    'pubkey': _wallet,
+    'tags': [
+      ['encryption', 'nip44_v2 nip04'],
+    ],
+    'content': 'pay_invoice get_balance',
+  };
 
   return [
     (
@@ -240,6 +248,211 @@ List<_FixtureCase> _cases() {
         },
       ),
     (
+      operation: 'nwc_info_filter',
+      name: 'info-filter',
+      payload: {
+        'subscriptionId': 'nwc-info-fixture',
+        'walletPubkey': _wallet,
+      },
+      expected: {
+        'accepted': true,
+        'wire': [
+          'REQ',
+          'nwc-info-fixture',
+          {
+            'kinds': [13194],
+            'authors': [_wallet],
+            'limit': 1,
+          }
+        ],
+      },
+    ),
+    (
+      operation: 'nwc_info_filter',
+      name: 'info-filter-invalid-wallet',
+      payload: {
+        'subscriptionId': 'nwc-info-fixture',
+        'walletPubkey': 'bad',
+      },
+      expected: {'accepted': false},
+    ),
+    for (final info in <({
+      String name,
+      Map<String, dynamic> event,
+      bool signatureValid,
+      String decision,
+      String? scheme,
+      String? requestTag,
+      int verifyCalls,
+    })>[
+      (
+        name: 'prefer-nip44',
+        event: validInfoEvent,
+        signatureValid: true,
+        decision: 'supported',
+        scheme: 'nip44_v2',
+        requestTag: 'nip44_v2',
+        verifyCalls: 1,
+      ),
+      (
+        name: 'nip44-only',
+        event: {
+          ...validInfoEvent,
+          'tags': [
+            ['encryption', 'nip44_v2']
+          ],
+        },
+        signatureValid: true,
+        decision: 'supported',
+        scheme: 'nip44_v2',
+        requestTag: 'nip44_v2',
+        verifyCalls: 1,
+      ),
+      (
+        name: 'explicit-nip04',
+        event: {
+          ...validInfoEvent,
+          'tags': [
+            ['encryption', 'nip04']
+          ],
+        },
+        signatureValid: true,
+        decision: 'supported',
+        scheme: 'nip04',
+        requestTag: 'nip04',
+        verifyCalls: 1,
+      ),
+      (
+        name: 'absent-encryption-is-legacy-nip04',
+        event: {...validInfoEvent, 'tags': <List<String>>[]},
+        signatureValid: true,
+        decision: 'supported',
+        scheme: 'nip04',
+        requestTag: null,
+        verifyCalls: 1,
+      ),
+      (
+        name: 'unknown-and-nip04',
+        event: {
+          ...validInfoEvent,
+          'tags': [
+            ['encryption', 'future_mode nip04']
+          ],
+        },
+        signatureValid: true,
+        decision: 'supported',
+        scheme: 'nip04',
+        requestTag: 'nip04',
+        verifyCalls: 1,
+      ),
+      for (final incompatible in <(String, Map<String, dynamic>)>[
+        (
+          'unknown-only',
+          {
+            ...validInfoEvent,
+            'tags': [
+              ['encryption', 'future_mode']
+            ],
+          },
+        ),
+        (
+          'empty-encryption',
+          {
+            ...validInfoEvent,
+            'tags': [
+              ['encryption', '']
+            ],
+          },
+        ),
+        (
+          'duplicate-encryption',
+          {
+            ...validInfoEvent,
+            'tags': [
+              ['encryption', 'nip44_v2'],
+              ['encryption', 'nip04'],
+            ],
+          },
+        ),
+        (
+          'missing-pay-invoice',
+          {...validInfoEvent, 'content': 'get_balance get_info'},
+        ),
+      ])
+        (
+          name: incompatible.$1,
+          event: incompatible.$2,
+          signatureValid: true,
+          decision: 'incompatible',
+          scheme: null,
+          requestTag: null,
+          verifyCalls: 1,
+        ),
+      (
+        name: 'whitespace-separated-values',
+        event: {
+          ...validInfoEvent,
+          'tags': [
+            ['encryption', '  nip04\t nip44_v2  ']
+          ],
+          'content': ' get_balance\n pay_invoice ',
+        },
+        signatureValid: true,
+        decision: 'supported',
+        scheme: 'nip44_v2',
+        requestTag: 'nip44_v2',
+        verifyCalls: 1,
+      ),
+      for (final ignored in <(String, Map<String, dynamic>)>[
+        ('wrong-kind', {...validInfoEvent, 'kind': 23194}),
+        ('wrong-author', {...validInfoEvent, 'pubkey': _wrong}),
+        ('mistyped-content', {...validInfoEvent, 'content': 1}),
+        ('non-list-tags', {...validInfoEvent, 'tags': 'bad'}),
+        (
+          'mistyped-tag-value',
+          {
+            ...validInfoEvent,
+            'tags': [
+              ['encryption', 44]
+            ],
+          },
+        ),
+      ])
+        (
+          name: ignored.$1,
+          event: ignored.$2,
+          signatureValid: true,
+          decision: 'ignore',
+          scheme: null,
+          requestTag: null,
+          verifyCalls: 0,
+        ),
+      (
+        name: 'invalid-signature',
+        event: validInfoEvent,
+        signatureValid: false,
+        decision: 'ignore',
+        scheme: null,
+        requestTag: null,
+        verifyCalls: 1,
+      ),
+    ])
+      (
+        operation: 'nwc_info',
+        name: info.name,
+        payload: {
+          'event': info.event,
+          'walletPubkey': _wallet,
+          'signatureValid': info.signatureValid,
+        },
+        expected: {
+          'decision': info.decision,
+          'scheme': info.scheme,
+          'requestTag': info.requestTag,
+          'verifyCalls': info.verifyCalls,
+        },
+      ),
+    (
       operation: 'nwc_request_draft',
       name: 'request-draft',
       payload: {
@@ -258,6 +471,31 @@ List<_FixtureCase> _cases() {
         content: 'ciphertext?iv=fixture',
       ),
     ),
+    for (final encryption in <(String, String)>[
+      ('nip44', 'nip44_v2'),
+      ('explicit-nip04', 'nip04'),
+    ])
+      (
+        operation: 'nwc_request_draft',
+        name: 'request-draft-${encryption.$1}',
+        payload: {
+          'clientPubkey': _client,
+          'createdAt': _createdAt,
+          'walletPubkey': _wallet,
+          'encryptedContent': 'ciphertext',
+          'encryption': encryption.$2,
+        },
+        expected: _draftExpected(
+          pubkey: _client,
+          createdAt: _createdAt,
+          kind: 23194,
+          tags: [
+            ['encryption', encryption.$2],
+            ['p', _wallet],
+          ],
+          content: 'ciphertext',
+        ),
+      ),
     for (final invalid in [
       {'clientPubkey': 'bad', 'walletPubkey': _wallet},
       {'clientPubkey': _client, 'walletPubkey': 'bad'},
@@ -651,13 +889,55 @@ Map<String, dynamic> _evaluate(_FixtureCase fixtureCase) {
       return {
         'command': NwcProtocol.payInvoiceCommand(payload['invoice'] as String),
       };
+    case 'nwc_info_filter':
+      try {
+        return {
+          'accepted': true,
+          'wire': NwcProtocol.infoRequest(
+            subscriptionId: payload['subscriptionId'] as String,
+            walletPubkey: payload['walletPubkey'] as String,
+          ),
+        };
+      } catch (_) {
+        return {'accepted': false};
+      }
+    case 'nwc_info':
+      var verifyCalls = 0;
+      final decision = NwcProtocol.inspectInfoEvent(
+        (payload['event'] as Map).cast<String, dynamic>(),
+        walletPubkey: payload['walletPubkey'] as String,
+        verifySignature: () {
+          verifyCalls++;
+          return payload['signatureValid'] as bool;
+        },
+      );
+      return {
+        'decision': !decision.shouldComplete
+            ? 'ignore'
+            : decision.selection == null
+                ? 'incompatible'
+                : 'supported',
+        'scheme': decision.selection?.scheme.code,
+        'requestTag': decision.selection?.requestTag,
+        'verifyCalls': verifyCalls,
+      };
     case 'nwc_request_draft':
       try {
+        final encryption = switch (payload['encryption']) {
+          'nip44_v2' => const NwcEncryptionSelection.explicit(
+              NwcEncryptionScheme.nip44V2,
+            ),
+          'nip04' => const NwcEncryptionSelection.explicit(
+              NwcEncryptionScheme.nip04,
+            ),
+          _ => const NwcEncryptionSelection.legacyNip04(),
+        };
         final draft = NwcProtocol.requestDraft(
           clientPubkey: payload['clientPubkey'] as String,
           createdAt: payload['createdAt'] as int,
           walletPubkey: payload['walletPubkey'] as String,
           encryptedContent: payload['encryptedContent'] as String,
+          encryption: encryption,
         );
         return {'accepted': true, 'wire': draft.toJson()};
       } catch (_) {

@@ -201,9 +201,9 @@ lib/
 | NIP | Purpose |
 |---|---|
 | NIP-01 | Base relay protocol (REQ / EVENT / EOSE / CLOSE) |
-| NIP-04 | Symmetric encryption for NWC pay requests |
+| NIP-04 | Legacy symmetric encryption for NWC pay requests |
 | NIP-19 | Bech32 key encoding (npub / nsec) |
-| NIP-44 | Versioned encryption (v2) — encrypted favourites sync |
+| NIP-44 | Versioned encryption (v2) — favourites sync and negotiated NWC |
 | NIP-47 | Nostr Wallet Connect — pay Lightning invoices from any compatible wallet |
 | NIP-55 | Android Signer Application — Amber integration |
 | NIP-57 | Zap receipts — Lightning tips attached to kind-1315 road events |
@@ -344,7 +344,7 @@ Users can tip road-event reporters with Bitcoin over the Lightning Network:
 
 1. Roadstr fetches the reporter's Lightning address (`lud16`) from their Nostr kind-0 profile.
 2. It resolves the LNURL-pay endpoint and attaches a signed NIP-57 zap request (kind-9734) if the user is logged in with nsec.
-3. Payment is sent via **NWC (NIP-47)** if a wallet URI is configured, or falls back to a `lightning:` deep link that opens any installed Lightning wallet.
+3. Payment is sent via **NWC (NIP-47)** if a wallet URI is configured: Roadstr verifies the wallet info event, prefers NIP-44 v2 and retains NIP-04 only for a verified legacy advertisement. Otherwise it falls back to a `lightning:` deep link that opens any installed Lightning wallet.
 4. The LNURL server publishes a kind-9735 zap receipt to Nostr relays once the invoice is settled.
 
 To connect a wallet, paste a `nostr+walletconnect://…` URI from a compatible wallet (Alby Hub, Mutiny, Cashu NWC) in **Settings → Lightning → Nostr Wallet Connect**.
