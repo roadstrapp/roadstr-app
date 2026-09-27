@@ -257,16 +257,22 @@ broader cross-language coverage and a native store are still required.
 - **New Kotlin files/modules:** `storage/preferences`, `storage/database`, `storage/secrets`, `storage/assets`.
 - **Current prototype:** `storage/NativeSnapshotStore.kt` defines a versioned
   public record with per-key protected-value commitments and a composite
-  retryable writer; concrete Android persistence and Keystore adapters remain
-  open.
+  retryable writer. `storage/FileNativePersistence.kt` now adds a bounded,
+  fsynced public file store with stage/active/backup recovery and a durable
+  completion marker bound to the exact public-record digest. Keystore and
+  startup adapters remain open.
 - **Dependencies:** DataStore/Room only where justified; Android Keystore.
 - **Migration impact:** New schema/version marker and backup/rollback policy.
 - **User-visible impact:** No settings/default/favourite/history change.
-- **Tests:** schema round-trips, secret non-export/log tests, asset reuse and checksum tests.
+- **Tests:** schema round-trips, secret non-export/log tests, process reopen,
+  interrupted/corrupt replacement recovery, durable-marker binding, asset
+  reuse and checksum tests.
 - **Parity evidence:** Storage comparison against migrated fixture and second-start no-op.
 - **Security/privacy impact:** No nsec/NWC/passphrase in plain preferences or database.
 - **Battery/performance impact:** Startup I/O and write frequency compared with Hive.
-- **Acceptance criteria:** Native storage is reopenable after process death and migration marker is durable.
+- **Acceptance criteria:** JVM reopen and marker durability are covered; device
+  power-loss, app-private directory wiring and Keystore-backed secret reopen
+  must pass before production acceptance.
 - **Rollback notes:** Retain legacy reader/bridge for the supported skip-version window.
 
 ### KOTLIN-009 — Port bounded networking, search and routing
