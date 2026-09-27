@@ -27,8 +27,17 @@ not a production startup change.
   same-directory replacement, reopens and validates the replacement, and can
   restore a valid backup after an interrupted or corrupt activation. Its
   durable marker contains only a fixed header and SHA-256 of the exact public
-  record, so a missing, changed or undecodable record makes migration
-  incomplete without copying protected values into the marker.
+  record. Completion now also requires the reopened protected store to match
+  every commitment in that public record, so a missing key/file, changed value
+  or undecodable record makes migration incomplete without copying protected
+  values into the marker.
+- `storage/NativeSecretPersistence.kt` adds the bounded canonical protected
+  payload and an authenticated AES-256-GCM file envelope. The production
+  `AndroidKeystoreNativeSecretStore` creates or reopens a non-exportable key
+  under `AndroidKeyStore`, uses a fresh 96-bit nonce and fixed associated data,
+  zeroes transient plaintext byte arrays, and reuses stage/active/backup
+  recovery. It exposes verification and commitment matching, never a raw-value
+  read API.
 - `LegacySnapshotFingerprint` provides a stable order-independent SHA-256 for
   comparing staged and reopened snapshots without logging their contents.
 - `LegacySnapshotEnvelope.kt` implements the versioned, canonical and bounded
@@ -68,7 +77,9 @@ not a production startup change.
   incomplete protected identity, non-canonical Hive keys, deterministic
   fingerprints, native commitment redaction, native-store retry/corruption,
   public-store reopen, interrupted replacement rollback, durable-marker
-  binding, envelope limits/corruption and the audited key contract.
+  binding, protected-store reopen, nonce randomization, authenticated tamper
+  rejection, lost-key retry, envelope limits/corruption and the audited key
+  contract.
 - Dart generates `legacy_snapshot_v1.b64`; Dart and Kotlin both decode the
   exact bytes and assert coverage of all 42 fixed Hive keys, three dynamic
   per-identity keys, nine secure keys and six synthetic asset records.
@@ -81,9 +92,9 @@ not a production startup change.
 
 ## Deliberately not implemented yet
 
-- No Kotlin parser reads Android `SharedPreferences`, Keystore or Hive files;
-  the isolated candidate deliberately delegates those formats to the exact
-  Flutter plugins and Hive runtime.
+- No Kotlin parser reads legacy Android `SharedPreferences`, historical
+  Keystore entries or Hive files; the isolated legacy reader deliberately
+  delegates those formats to the exact Flutter plugins and Hive runtime.
 - The headless launcher is not invoked by `MainActivity`, `Application` or any
   production startup path. Its Android/Keystore execution still requires
   controlled signed-install testing.
@@ -101,10 +112,10 @@ not a production startup change.
 - The current production app still constructs `FlutterSecureStorage()` with
   `resetOnError=true`; changing its startup behavior is outside this isolated
   bridge increment and needs a separately reviewed compatibility fix.
-- No Keystore-backed `NativeSecretStore` is wired yet. The public file adapter
-  is JVM-tested with file fsync and recoverable same-directory renames, but
-  filesystem-directory durability and real power-loss behavior remain a
-  signed-device test gate before startup integration.
+- The Keystore-backed `NativeSecretStore` compiles but is not wired to startup
+  and cannot be executed by host JVM tests. Real AndroidKeyStore reopen,
+  invalidation, filesystem-directory durability and power-loss behavior remain
+  signed-device gates before startup integration.
 
 The next migration increment must run a controlled reader against supported
 installed 0.5.x states, including encrypted Hive, current and historical

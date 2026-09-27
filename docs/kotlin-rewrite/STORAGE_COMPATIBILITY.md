@@ -158,11 +158,22 @@ bounded, decoded and file-fsynced before same-directory activation; the old
 active record remains recoverable until the replacement has been reopened and
 validated. `FileSnapshotBoundMigrationMarker` stores only a fixed header plus
 SHA-256 of those exact public bytes, and therefore reports incomplete after a
-missing, corrupt or changed public record. JVM tests cover reopen, interruption
-between renames, corrupt-active rollback and retry. Android filesystem
-directory-entry durability under real power loss is not established by those
-tests and remains a signed-device gate, alongside the Keystore-backed secret
-adapter and startup wiring.
+missing, corrupt or changed public record. Marker reopen additionally asks the
+protected store to decrypt and match every per-key commitment in the public
+record, so a missing protected file or unavailable/wrong key cannot produce a
+false completed state.
+
+`AndroidKeystoreNativeSecretStore` implements the protected half with a
+canonical bounded map inside a versioned AES-256-GCM envelope. Its key alias is
+`app.roadstr.native.secrets.v1`; key material is generated and used only by
+`AndroidKeyStore`, with no export API. Each write gets a fresh 96-bit nonce,
+uses fixed domain-specific associated data and goes through the same recoverable
+stage/active/backup protocol. Host tests inject a JCA AES-GCM boundary and cover
+reopen, random nonces, ciphertext tamper, interrupted activation, wrong/lost
+key behavior, commitment mismatch and retry. They do not emulate the Android
+provider: real Keystore create/reopen/invalidation and Android filesystem
+directory-entry durability under power loss remain signed-device gates,
+alongside app-private directory and startup wiring.
 
 The current Flutter migration code deletes the old plaintext Hive file only
 after copying it to a backup and successfully writing the encrypted box. The
