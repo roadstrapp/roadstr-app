@@ -16,6 +16,12 @@ not a production startup change.
   bindings before native staging. Protected values never appear in policy
   diagnostics; native BIP-340 derivation remains the final private/public
   consistency check.
+- `storage/NativeSnapshotStore.kt` defines the v1 native public record and its
+  bounded codec. Ordinary values, public identity and asset metadata are
+  persisted with per-key secret commitments; raw secure values are handed only
+  to the `NativeSecretStore` adapter. `CompositeNativeSnapshotWriter` makes
+  public and protected staging/commit/verification retryable while leaving the
+  migration marker as the final step.
 - `LegacySnapshotFingerprint` provides a stable order-independent SHA-256 for
   comparing staged and reopened snapshots without logging their contents.
 - `LegacySnapshotEnvelope.kt` implements the versioned, canonical and bounded
@@ -53,7 +59,8 @@ not a production startup change.
 - Unit tests cover success, idempotent completion, commit failure, verification
   failure, private/public key mismatch, unknown keys, unsafe/duplicate assets,
   incomplete protected identity, non-canonical Hive keys, deterministic
-  fingerprints, envelope limits/corruption and the audited key contract.
+  fingerprints, native commitment redaction, native-store retry/corruption,
+  envelope limits/corruption and the audited key contract.
 - Dart generates `legacy_snapshot_v1.b64`; Dart and Kotlin both decode the
   exact bytes and assert coverage of all 42 fixed Hive keys, three dynamic
   per-identity keys, nine secure keys and six synthetic asset records.
@@ -85,6 +92,9 @@ not a production startup change.
 - The current production app still constructs `FlutterSecureStorage()` with
   `resetOnError=true`; changing its startup behavior is outside this isolated
   bridge increment and needs a separately reviewed compatibility fix.
+- No concrete Android `DataStore`/file adapter or Keystore-backed
+  `NativeSecretStore` is wired yet; this increment freezes their boundary and
+  tests the transaction semantics with injected stores.
 
 The next migration increment must run a controlled reader against supported
 installed 0.5.x states, including encrypted Hive, current and historical

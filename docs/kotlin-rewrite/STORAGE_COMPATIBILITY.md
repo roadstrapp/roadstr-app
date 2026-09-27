@@ -3,8 +3,10 @@
 Status: forensic inventory, bounded transactional migration core, a
 reproducible encrypted Hive 2.2.3 fixture, a strict read-only Dart collector
 and a copy-before-open bridge plus isolated headless transport are implemented
-and tested through the Dart-to-Kotlin envelope. Reading protected storage from
-controlled signed installations remains open.
+and tested through the Dart-to-Kotlin envelope. The native side now also has a
+versioned public-record/secret-store boundary with redacted commitments;
+reading protected storage from controlled signed installations and wiring the
+real Android persistence adapters remain open.
 
 The existing app uses one Hive box named `settings` in the application
 documents directory. `lib/main.dart` obtains a 32-byte key from
@@ -142,8 +144,9 @@ storage, concurrency or process-death recovery; those remain migration gates.
    Hive and secure-storage code if deterministic native decoding is not proven.
 3. Serialize a versioned, bounded migration envelope into native code. Do not
    pass secrets through logs or shell arguments.
-4. Write native records transactionally to temporary/new storage, flush/fsync,
-   reopen them, and compare critical values/counts.
+4. Write native public records transactionally to temporary/new storage,
+   flush/fsync, reopen them, and compare commitments; write secure values only
+   through the Keystore-backed secret adapter and compare them there.
 5. Mark migration complete only after validation and one successful native
    startup. Keep a backup of legacy storage until that point.
 6. Make reruns idempotent and crash-safe. On failure, show a neutral recovery
