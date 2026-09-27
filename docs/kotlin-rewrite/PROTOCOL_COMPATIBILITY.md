@@ -115,6 +115,9 @@ The 39-case `search_provider_requests_v1.tsv` additionally locks exact
 Nominatim forward/reverse, Photon and Overpass methods, URLs, encodings,
 coordinates, headers and form bodies. `NETWORK_CORE_PARITY.md` and
 `SEARCH_NETWORK_CORE_PARITY.md` record the remaining live-network gates.
+The 34-case `search_responses_v1.tsv` locks their normalized fields,
+coordinates, labels/categories, bounded text, distance rounding and malformed
+payload behavior, including a 53-pair Nominatim class/type category matrix.
 The 89-case `routing_requests_v1.tsv` locks OSRM, OpenRouteService,
 GraphHopper and Valhalla methods, URLs, profiles/locales, coordinates,
 headers/bodies, API-key boundaries, waypoint/alternative/bearing rules,
