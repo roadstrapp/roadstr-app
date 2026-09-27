@@ -1,12 +1,9 @@
 // NIP-44 v2 encryption (versioned encryption for Nostr events).
 // Spec: https://github.com/nostr-protocol/nips/blob/master/44.md
 //
-// Used for Roadstr's own private data (encrypted favorites sync) — NOT for
-// NWC/zaps. NIP-47 (Nostr Wallet Connect) still specifies NIP-04 in its
-// current spec and real-world wallets only understand that; converting
-// zap_service.dart to NIP-44 would break wallet compatibility, so it stays
-// on NIP-04. NIP-44 is the modern standard for everything Roadstr controls
-// end-to-end, which is what this class is for.
+// Used for Roadstr's private favourites sync and for NIP-47 wallets that
+// advertise `nip44_v2`. NWC peers without an encryption advertisement retain
+// the separate legacy NIP-04 path required for backward compatibility.
 //
 // Algorithm: ECDH(secp256k1) -> HKDF-extract(salt="nip44-v2") -> conversation
 // key -> per-message HKDF-expand(info=nonce) -> ChaCha20(IETF, 12-byte nonce)

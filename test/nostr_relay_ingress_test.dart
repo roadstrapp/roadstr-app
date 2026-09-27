@@ -13,7 +13,7 @@ void main() {
       generated
           .split('\n')
           .where((line) => line.isNotEmpty && !line.startsWith('#')),
-      hasLength(60),
+      hasLength(63),
     );
   });
 

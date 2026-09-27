@@ -18,7 +18,7 @@ class NostrRelayIngressParityTest {
 
     @Test
     fun `native admission policy reproduces every stateful Dart transcript`() {
-        assertEquals(60, rows.size)
+        assertEquals(63, rows.size)
         val policies = mutableMapOf<String, NostrRelayIngress>()
         for (fields in rows) {
             val scenario = fields[0]
@@ -230,6 +230,14 @@ class NostrRelayIngressParityTest {
                     subscriptionId = "lightning",
                     fallbackRoute = NostrIngressRoute.LIGHTNING_ADDRESS,
                     maxEvents = 10,
+                ),
+                NostrIngressRule(
+                    name = "nwc-info",
+                    subscriptionId = "nwc-info",
+                    routes = mapOf(
+                        13194 to NostrIngressRoute.NWC_INFO,
+                    ),
+                    maxEvents = 2,
                 ),
                 NostrIngressRule(
                     name = "nwc-response",

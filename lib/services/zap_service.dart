@@ -8,8 +8,8 @@
 //   Step 4 — POST/GET the LNURL callback to obtain a BOLT-11 invoice.
 //   Step 5 — Pay the invoice: via NWC (NIP-47) if configured, else deep-link.
 //
-// NWC (Nostr Wallet Connect, NIP-47) uses NIP-04 symmetric encryption
-// (secp256k1 ECDH + AES-256-CBC) to send a pay_invoice command to a wallet
+// NWC (Nostr Wallet Connect, NIP-47) negotiates authenticated NIP-44 v2 or
+// legacy NIP-04 encryption before sending a pay_invoice command to a wallet
 // daemon listening on a Nostr relay.
 import 'dart:async';
 import 'dart:convert';
@@ -25,6 +25,7 @@ import 'bolt11_invoice.dart';
 import 'lightning_protocol.dart';
 import 'lnurl_protocol.dart';
 import 'nip04.dart';
+import 'nip44.dart';
 import 'nostr_event_verify.dart';
 import 'nostr_relay_ingress.dart';
 import 'nostr_relay_message.dart';
@@ -325,9 +326,9 @@ class ZapService {
   /// NIP-47 / NWC flow:
   ///   1. Parse the `nostr+walletconnect://<walletPubkey>?relay=...&secret=...` URI.
   ///   2. Derive our ephemeral public key from `secret`.
-  ///   3. Encrypt the `pay_invoice` command with NIP-04 (ECDH + AES-256-CBC)
-  ///      using `secret` (our private key) and `walletPubkey` (wallet's public key).
-  ///   4. Publish the encrypted request as kind-23194 to the wallet's relay.
+  ///   3. Verify the wallet's kind-13194 info event and negotiate NIP-44 v2,
+  ///      retaining tagless NIP-04 only for legacy wallets.
+  ///   4. Encrypt and publish the `pay_invoice` request as kind-23194.
   ///   5. Subscribe to kind-23195 responses from the wallet, filtered by our
   ///      request event ID (`#e` tag).
   ///   6. Decrypt the response and extract the `preimage` to confirm payment.
@@ -360,30 +361,57 @@ class ZapService {
       // must fail here, inside the try, instead of escaping as an
       // unhandled asynchronous error and leaving a REQ on a dead socket.
       await ws.ready.timeout(const Duration(seconds: 5));
-      final completer = Completer<String?>();
-      final subId = randomSubId();
+      final infoCompleter = Completer<NwcEncryptionSelection?>();
+      final responseCompleter = Completer<String?>();
+      final infoSubId = randomSubId();
+      final responseSubId = randomSubId();
       final ingress = NostrRelayIngress([
         NostrIngressRule(
+          name: 'nwc-info',
+          subscriptionId: infoSubId,
+          routes: const {13194: NostrIngressRoute.nwcInfo},
+          maxEvents: 2,
+        ),
+        NostrIngressRule(
           name: 'nwc-response',
-          subscriptionId: subId,
+          subscriptionId: responseSubId,
           routes: const {23195: NostrIngressRoute.nwcResponse},
         ),
       ]);
 
-      late final dynamic reqEvent;
+      dynamic reqEvent;
+      NwcEncryptionSelection? encryption;
 
       ws.stream.listen(
         (raw) {
-          if (completer.isCompleted) return;
           try {
             final message = NostrRelayMessageDecoder.decode(raw).message;
             if (message is NostrRelayEventMessage) {
               final ev = message.event;
-              final decision = ingress.inspect(
+              final admission = ingress.inspect(
                 subscriptionId: message.subscriptionId,
                 claimedKind: ev['kind'],
               );
-              if (!decision.shouldVerify) return;
+              if (message.subscriptionId == infoSubId) {
+                if (infoCompleter.isCompleted || !admission.shouldVerify) {
+                  return;
+                }
+                final decision = NwcProtocol.inspectInfoEvent(
+                  ev,
+                  walletPubkey: walletPub,
+                  verifySignature: () => verifyEventJson(ev),
+                );
+                if (decision.shouldComplete) {
+                  infoCompleter.complete(decision.selection);
+                }
+                return;
+              }
+              if (responseCompleter.isCompleted ||
+                  reqEvent == null ||
+                  encryption == null) {
+                return;
+              }
+              if (!admission.shouldVerify) return;
               // Step 6: Receive kind-23195 from the wallet and decrypt.
               if (NwcProtocol.responseEventIsBound(
                     ev,
@@ -392,39 +420,78 @@ class ZapService {
                     clientPubkey: ourPub,
                   ) &&
                   verifyEventJson(ev)) {
-                final plain = Nip04Cipher.decrypt(
-                  secret,
-                  walletPub,
-                  ev['content'] as String,
-                );
+                final plain = switch (encryption.scheme) {
+                  NwcEncryptionScheme.nip44V2 => Nip44.decrypt(
+                      secret,
+                      walletPub,
+                      ev['content'] as String,
+                    ),
+                  NwcEncryptionScheme.nip04 => Nip04Cipher.decrypt(
+                      secret,
+                      walletPub,
+                      ev['content'] as String,
+                    ),
+                };
                 final resp = jsonDecode(plain) as Map<String, dynamic>;
                 final response = NwcProtocol.inspectResponse(
                   resp,
                   decodedInvoice,
                 );
                 if (response.shouldComplete) {
-                  completer.complete(response.preimage);
+                  responseCompleter.complete(response.preimage);
                 }
               }
+            } else if (message is NostrRelayEoseMessage &&
+                message.subscriptionId == infoSubId &&
+                !infoCompleter.isCompleted) {
+              infoCompleter.complete(null);
             }
           } catch (_) {}
         },
         onError: (_) {
-          if (!completer.isCompleted) completer.complete(null);
+          if (!infoCompleter.isCompleted) infoCompleter.complete(null);
+          if (!responseCompleter.isCompleted) {
+            responseCompleter.complete(null);
+          }
         },
         onDone: () {
-          if (!completer.isCompleted) completer.complete(null);
+          if (!infoCompleter.isCompleted) infoCompleter.complete(null);
+          if (!responseCompleter.isCompleted) {
+            responseCompleter.complete(null);
+          }
         },
       );
 
-      // Step 3+4: Encrypt the pay_invoice command and publish as kind-23194.
+      // Step 3: Discover the wallet's authenticated capabilities. Only a
+      // verified info event with an absent encryption tag selects legacy
+      // NIP-04; missing, forged or incompatible info fails closed so a relay
+      // cannot suppress NIP-44 support and force a downgrade.
+      ws.sink.add(jsonEncode(NwcProtocol.infoRequest(
+        subscriptionId: infoSubId,
+        walletPubkey: walletPub,
+      )));
+      encryption = await infoCompleter.future.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => null,
+      );
+      ws.sink.add(jsonEncode(['CLOSE', infoSubId]));
+      final selectedEncryption = encryption;
+      if (selectedEncryption == null) return null;
+
+      // Step 4: Encrypt the pay_invoice command and publish as kind-23194.
       final reqContent = NwcProtocol.payInvoiceCommand(invoice);
-      final encrypted = Nip04Cipher.encrypt(secret, walletPub, reqContent);
+      final encrypted = switch (selectedEncryption.scheme) {
+        NwcEncryptionScheme.nip44V2 =>
+          Nip44.encrypt(secret, walletPub, reqContent),
+        NwcEncryptionScheme.nip04 =>
+          Nip04Cipher.encrypt(secret, walletPub, reqContent),
+      };
       final requestDraft = NwcProtocol.requestDraft(
         clientPubkey: ourPub,
         createdAt: DateTime.now().millisecondsSinceEpoch ~/ 1000,
         walletPubkey: walletPub,
         encryptedContent: encrypted,
+        encryption: selectedEncryption,
       );
 
       reqEvent = api.finishEvent(
@@ -442,13 +509,13 @@ class ZapService {
       // don't miss a fast wallet response. The `#e` filter targets this specific
       // request by event ID.
       ws.sink.add(jsonEncode(NwcProtocol.responseRequest(
-        subscriptionId: subId,
+        subscriptionId: responseSubId,
         walletPubkey: walletPub,
         requestEventId: reqEvent.id,
       )));
       ws.sink.add(jsonEncode(['EVENT', reqEvent.toJson()]));
 
-      return await completer.future
+      return await responseCompleter.future
           .timeout(const Duration(seconds: 30), onTimeout: () => null);
     } catch (_) {
       return null;
