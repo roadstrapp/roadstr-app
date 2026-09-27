@@ -19,7 +19,7 @@ No native production runtime exists, so no Kotlin row is marked functional.
 | Map overlays | routes, current cursor, traffic lights, crossings, bumps, cameras, ZTL | `lib/services/*_service.dart`, map screens | FUNCTIONAL | CORE_ONLY | overlay fixture and camera tests |
 | Navigation HUD | manoeuvre symbols, road name, speed, limit, altitude, distance | `lib/widgets/nav`, `speedometer_widget.dart` | FUNCTIONAL | NOT_STARTED | existing goldens + screen comparison |
 | Vehicle cursor | styles, seven colours, walking animation and culling | `lib/widgets/cursor_painter.dart` | FUNCTIONAL | NOT_STARTED | existing cursor goldens |
-| Search | Photon, Nominatim, category/brand Overpass, ranking/history | `place_search_service.dart`, `poi_search_service.dart` | FUNCTIONAL | CORE_ONLY | 39-case exact request fixture green; response, ranking and history fixtures remain |
+| Search | Photon, Nominatim, category/brand Overpass, ranking/history | `place_search_service.dart`, `poi_search_service.dart` | FUNCTIONAL | CORE_ONLY | 39 exact-request and 34 normalized-response cases green; ranking/history and live orchestration remain |
 | Place details | OSM details, opening hours, contextual POI data | `place_info_panel.dart`, `opening_hours.dart` | FUNCTIONAL | CORE_ONLY | parser and screen parity |
 | Wikipedia | restricted in-app Wikipedia article reader | `wikipedia_webview_screen.dart` | FUNCTIONAL | NOT_STARTED | URI allowlist tests |
 | Favourites | local favourites, import/export, limits and validation | `favorite_place.dart`, map/settings screens | FUNCTIONAL | NOT_STARTED | storage migration and content comparison |

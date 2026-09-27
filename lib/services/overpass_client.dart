@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'bounded_http.dart';
 import 'search_provider_protocol.dart';
+import 'search_response_protocol.dart';
 
 /// Thrown when an Overpass mirror answers with a non-200 status.
 class OverpassException implements Exception {
@@ -199,9 +199,6 @@ class OverpassClient {
       timeout: timeout,
     );
     if (res.statusCode != 200) throw OverpassException(res.statusCode);
-    final data = jsonDecode(res.body) as Map<String, dynamic>;
-    final elements = data['elements'] as List?;
-    if (elements == null) return const [];
-    return elements.whereType<Map<String, dynamic>>().toList(growable: false);
+    return SearchResponseProtocol.parseOverpassElements(res.body);
   }
 }
