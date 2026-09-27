@@ -22,6 +22,13 @@ not a production startup change.
   to the `NativeSecretStore` adapter. `CompositeNativeSnapshotWriter` makes
   public and protected staging/commit/verification retryable while leaving the
   migration marker as the final step.
+- `storage/FileNativePersistence.kt` provides the concrete bounded public-file
+  store. It fsyncs a validated stage, retains the previous active file during
+  same-directory replacement, reopens and validates the replacement, and can
+  restore a valid backup after an interrupted or corrupt activation. Its
+  durable marker contains only a fixed header and SHA-256 of the exact public
+  record, so a missing, changed or undecodable record makes migration
+  incomplete without copying protected values into the marker.
 - `LegacySnapshotFingerprint` provides a stable order-independent SHA-256 for
   comparing staged and reopened snapshots without logging their contents.
 - `LegacySnapshotEnvelope.kt` implements the versioned, canonical and bounded
@@ -60,7 +67,8 @@ not a production startup change.
   failure, private/public key mismatch, unknown keys, unsafe/duplicate assets,
   incomplete protected identity, non-canonical Hive keys, deterministic
   fingerprints, native commitment redaction, native-store retry/corruption,
-  envelope limits/corruption and the audited key contract.
+  public-store reopen, interrupted replacement rollback, durable-marker
+  binding, envelope limits/corruption and the audited key contract.
 - Dart generates `legacy_snapshot_v1.b64`; Dart and Kotlin both decode the
   exact bytes and assert coverage of all 42 fixed Hive keys, three dynamic
   per-identity keys, nine secure keys and six synthetic asset records.
@@ -79,7 +87,8 @@ not a production startup change.
 - The headless launcher is not invoked by `MainActivity`, `Application` or any
   production startup path. Its Android/Keystore execution still requires
   controlled signed-install testing.
-- No native marker/store is connected to `MainActivity`.
+- The file-backed native marker/store is not connected to `MainActivity` or an
+  app-private production directory.
 - No production Activity, manifest, application ID, permissions or Flutter
   runtime has been replaced.
 - No real user data, key, NWC URI or voice asset is used by the tests.
@@ -92,9 +101,10 @@ not a production startup change.
 - The current production app still constructs `FlutterSecureStorage()` with
   `resetOnError=true`; changing its startup behavior is outside this isolated
   bridge increment and needs a separately reviewed compatibility fix.
-- No concrete Android `DataStore`/file adapter or Keystore-backed
-  `NativeSecretStore` is wired yet; this increment freezes their boundary and
-  tests the transaction semantics with injected stores.
+- No Keystore-backed `NativeSecretStore` is wired yet. The public file adapter
+  is JVM-tested with file fsync and recoverable same-directory renames, but
+  filesystem-directory durability and real power-loss behavior remain a
+  signed-device test gate before startup integration.
 
 The next migration increment must run a controlled reader against supported
 installed 0.5.x states, including encrypted Hive, current and historical
