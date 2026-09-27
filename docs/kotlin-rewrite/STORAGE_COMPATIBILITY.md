@@ -152,6 +152,18 @@ storage, concurrency or process-death recovery; those remain migration gates.
 6. Make reruns idempotent and crash-safe. On failure, show a neutral recovery
    screen and retain the old data.
 
+The library-level `FileNativePublicSnapshotStore` now implements the public
+half of step 4 with fixed `active`, `.stage` and `.backup` files. A stage is
+bounded, decoded and file-fsynced before same-directory activation; the old
+active record remains recoverable until the replacement has been reopened and
+validated. `FileSnapshotBoundMigrationMarker` stores only a fixed header plus
+SHA-256 of those exact public bytes, and therefore reports incomplete after a
+missing, corrupt or changed public record. JVM tests cover reopen, interruption
+between renames, corrupt-active rollback and retry. Android filesystem
+directory-entry durability under real power loss is not established by those
+tests and remains a signed-device gate, alongside the Keystore-backed secret
+adapter and startup wiring.
+
 The current Flutter migration code deletes the old plaintext Hive file only
 after copying it to a backup and successfully writing the encrypted box. The
 native migration must preserve that safety property and must also cover the
