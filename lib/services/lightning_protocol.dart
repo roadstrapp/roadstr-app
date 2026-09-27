@@ -58,7 +58,57 @@ class NwcConnection {
   String toString() => 'NwcConnection(<redacted>)';
 }
 
-/// Deterministic NIP-47 behavior around the NIP-04 crypto/socket adapters.
+enum NwcEncryptionScheme {
+  nip44V2('nip44_v2'),
+  nip04('nip04');
+
+  const NwcEncryptionScheme(this.code);
+
+  final String code;
+}
+
+/// Encryption selected for one NIP-47 connection.
+///
+/// Legacy wallets imply NIP-04 by omitting the `encryption` tag entirely;
+/// wallets that advertise a mode receive that mode explicitly on requests.
+class NwcEncryptionSelection {
+  const NwcEncryptionSelection.explicit(this.scheme) : isLegacy = false;
+
+  const NwcEncryptionSelection.legacyNip04()
+      : scheme = NwcEncryptionScheme.nip04,
+        isLegacy = true;
+
+  final NwcEncryptionScheme scheme;
+  final bool isLegacy;
+
+  String? get requestTag => isLegacy ? null : scheme.code;
+}
+
+/// Outcome of inspecting one NIP-47 kind-13194 info event.
+///
+/// Invalid or unauthenticated events are ignored so they cannot force a
+/// downgrade. An authentic but incompatible event completes negotiation as a
+/// failure instead of silently falling back to legacy NIP-04.
+class NwcInfoDecision {
+  const NwcInfoDecision._({
+    required this.shouldComplete,
+    required this.selection,
+  });
+
+  const NwcInfoDecision.ignored()
+      : this._(shouldComplete: false, selection: null);
+
+  const NwcInfoDecision.incompatible()
+      : this._(shouldComplete: true, selection: null);
+
+  const NwcInfoDecision.supported(NwcEncryptionSelection selection)
+      : this._(shouldComplete: true, selection: selection);
+
+  final bool shouldComplete;
+  final NwcEncryptionSelection? selection;
+}
+
+/// Deterministic NIP-47 behavior around the crypto/socket adapters.
 abstract final class NwcProtocol {
   static String payInvoiceCommand(String invoice) => jsonEncode({
         'method': 'pay_invoice',
@@ -70,6 +120,8 @@ abstract final class NwcProtocol {
     required int createdAt,
     required String walletPubkey,
     required String encryptedContent,
+    NwcEncryptionSelection encryption =
+        const NwcEncryptionSelection.legacyNip04(),
   }) {
     if (!_isHex32(clientPubkey) || !_isHex32(walletPubkey)) {
       throw const FormatException('Invalid NWC event key');
@@ -79,10 +131,87 @@ abstract final class NwcProtocol {
       createdAt: createdAt,
       kind: 23194,
       tags: [
+        if (encryption.requestTag != null)
+          ['encryption', encryption.requestTag!],
         ['p', walletPubkey],
       ],
       content: encryptedContent,
     );
+  }
+
+  static List<Object?> infoRequest({
+    required String subscriptionId,
+    required String walletPubkey,
+  }) {
+    if (!_isHex32(walletPubkey)) {
+      throw const FormatException('Invalid NWC info filter');
+    }
+    return [
+      'REQ',
+      subscriptionId,
+      {
+        'kinds': [13194],
+        'authors': [walletPubkey],
+        'limit': 1,
+      }
+    ];
+  }
+
+  /// Verifies and interprets a wallet's replaceable kind-13194 info event.
+  ///
+  /// The signature callback is deliberately lazy: it is not invoked for an
+  /// event that cannot possibly be the requested wallet info event.
+  static NwcInfoDecision inspectInfoEvent(
+    Map<String, dynamic> event, {
+    required String walletPubkey,
+    required bool Function() verifySignature,
+  }) {
+    try {
+      if (event['kind'] != 13194 ||
+          event['pubkey'] != walletPubkey ||
+          event['content'] is! String ||
+          event['tags'] is! List) {
+        return const NwcInfoDecision.ignored();
+      }
+      final tags = <List<String>>[];
+      for (final rawTag in event['tags'] as List) {
+        if (rawTag is! List || rawTag.any((value) => value is! String)) {
+          return const NwcInfoDecision.ignored();
+        }
+        tags.add(List<String>.from(rawTag));
+      }
+      if (!verifySignature()) return const NwcInfoDecision.ignored();
+
+      final methods = _spaceSeparated(event['content'] as String);
+      if (!methods.contains('pay_invoice')) {
+        return const NwcInfoDecision.incompatible();
+      }
+      final encryptionTags = tags
+          .where((tag) => tag.isNotEmpty && tag[0] == 'encryption')
+          .toList();
+      if (encryptionTags.isEmpty) {
+        return const NwcInfoDecision.supported(
+          NwcEncryptionSelection.legacyNip04(),
+        );
+      }
+      if (encryptionTags.length != 1 || encryptionTags.single.length != 2) {
+        return const NwcInfoDecision.incompatible();
+      }
+      final modes = _spaceSeparated(encryptionTags.single[1]);
+      if (modes.contains(NwcEncryptionScheme.nip44V2.code)) {
+        return const NwcInfoDecision.supported(
+          NwcEncryptionSelection.explicit(NwcEncryptionScheme.nip44V2),
+        );
+      }
+      if (modes.contains(NwcEncryptionScheme.nip04.code)) {
+        return const NwcInfoDecision.supported(
+          NwcEncryptionSelection.explicit(NwcEncryptionScheme.nip04),
+        );
+      }
+      return const NwcInfoDecision.incompatible();
+    } catch (_) {
+      return const NwcInfoDecision.ignored();
+    }
   }
 
   static List<Object?> responseRequest({
@@ -329,3 +458,6 @@ abstract final class Nip57Protocol {
 }
 
 bool _isHex32(String value) => RegExp(r'^[0-9a-fA-F]{64}$').hasMatch(value);
+
+Set<String> _spaceSeparated(String value) =>
+    value.trim().split(RegExp(r'\s+')).where((part) => part.isNotEmpty).toSet();

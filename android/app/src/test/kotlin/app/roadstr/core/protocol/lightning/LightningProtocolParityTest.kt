@@ -24,7 +24,7 @@ class LightningProtocolParityTest {
 
     @Test
     fun `native NIP-47 and NIP-57 core reproduces every Dart case`() {
-        assertEquals(69, rows.size)
+        assertEquals(89, rows.size)
         for (fields in rows) {
             val operation = fields[0]
             val caseName = fields[1]
@@ -72,12 +72,52 @@ class LightningProtocolParityTest {
             "command" to NwcProtocol.payInvoiceCommand(payload.string("invoice")),
         )
 
+        "nwc_info_filter" -> try {
+            linkedMapOf(
+                "accepted" to true,
+                "wire" to NwcProtocol.infoRequest(
+                    subscriptionId = payload.string("subscriptionId"),
+                    walletPubkey = payload.string("walletPubkey"),
+                ),
+            )
+        } catch (_: IllegalArgumentException) {
+            linkedMapOf("accepted" to false)
+        }
+
+        "nwc_info" -> {
+            var verifyCalls = 0
+            val decision = NwcProtocol.inspectInfoEvent(
+                event = payload.objectValue("event"),
+                walletPubkey = payload.string("walletPubkey"),
+                verifySignature = {
+                    verifyCalls++
+                    payload.boolean("signatureValid")
+                },
+            )
+            linkedMapOf(
+                "decision" to when {
+                    !decision.shouldComplete -> "ignore"
+                    decision.selection == null -> "incompatible"
+                    else -> "supported"
+                },
+                "scheme" to decision.selection?.scheme?.code,
+                "requestTag" to decision.selection?.requestTag,
+                "verifyCalls" to verifyCalls,
+            )
+        }
+
         "nwc_request_draft" -> try {
+            val encryption = when (payload["encryption"]) {
+                "nip44_v2" -> NwcEncryptionSelection.explicit(NwcEncryptionScheme.NIP44_V2)
+                "nip04" -> NwcEncryptionSelection.explicit(NwcEncryptionScheme.NIP04)
+                else -> NwcEncryptionSelection.legacyNip04()
+            }
             val draft = NwcProtocol.requestDraft(
                 clientPubkey = payload.string("clientPubkey"),
                 createdAt = payload.long("createdAt"),
                 walletPubkey = payload.string("walletPubkey"),
                 encryptedContent = payload.string("encryptedContent"),
+                encryption = encryption,
             )
             linkedMapOf("accepted" to true, "wire" to draft.toWireMap())
         } catch (_: IllegalArgumentException) {

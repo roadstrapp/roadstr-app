@@ -52,6 +52,9 @@ one-off	lightning-budget-eight	lightning	int:0	verify	lightningAddress	lightning
 one-off	lightning-budget-nine	lightning	int:0	verify	lightningAddress	lightning-address	9
 one-off	lightning-exact-budget	lightning	int:0	verify	lightningAddress	lightning-address	10
 one-off	lightning-over-budget	lightning	int:0	limitReached	-	lightning-address	11
+one-off	nwc-info-wrong-kind	nwc-info	int:23194	rejectKind	-	nwc-info	1
+one-off	nwc-info	nwc-info	int:13194	verify	nwcInfo	nwc-info	2
+one-off	nwc-info-over-budget	nwc-info	int:13194	limitReached	-	nwc-info	3
 one-off	nwc-response	nwc	int:23195	verify	nwcResponse	nwc-response	1
 one-off	nwc-wrong-kind	nwc	int:23194	rejectKind	-	nwc-response	2
 one-off	nwc-string-kind	nwc	string:23195	rejectKind	-	nwc-response	3

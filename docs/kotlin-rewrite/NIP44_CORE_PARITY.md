@@ -84,7 +84,8 @@ u16 padding profile could ever accept.
 The public Dart API was only factored into deterministic conversation-key and
 nonce-aware boundaries. `Nip44.encrypt` still selects its nonce with
 `Random.secure`, `Nip44.decrypt` still rejects malformed envelopes before key
-work, and the NIP-78 caller and wire payload are unchanged.
+work, and the NIP-78 wire payload is unchanged. The production NIP-47 path now
+also uses this API after a verified wallet info event advertises `nip44_v2`.
 
 ## Explicitly outside this slice
 
@@ -92,8 +93,9 @@ work, and the NIP-78 caller and wire payload are unchanged.
 - Amber/NIP-55 encryption intents and signer permission behavior;
 - NIP-78 storage, passphrase encryption, relay sockets and wiring the
   separately fixture-locked BIP-340 core to signed events;
-- NIP-47 encryption negotiation and native payment wiring; legacy NIP-04 is
-  now separately fixture-locked in `NIP04_CORE_PARITY.md`;
+- native NIP-47 payment wiring; negotiation is shared-core fixture-locked and
+  live in Flutter, while legacy NIP-04 remains separately fixture-locked in
+  `NIP04_CORE_PARITY.md`;
 - Android-device interoperability, heap/timing measurements and a clean
   minified release/F-Droid dependency audit.
 

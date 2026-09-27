@@ -21,6 +21,7 @@ enum NostrIngressRoute {
   profileMetadata,
   favoriteSnapshot,
   lightningAddress,
+  nwcInfo,
   nwcResponse,
   zapReceiptQuery,
 }

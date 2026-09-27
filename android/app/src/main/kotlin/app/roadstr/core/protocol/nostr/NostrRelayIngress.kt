@@ -21,6 +21,7 @@ enum class NostrIngressRoute(val wireName: String) {
     PROFILE_METADATA("profileMetadata"),
     FAVORITE_SNAPSHOT("favoriteSnapshot"),
     LIGHTNING_ADDRESS("lightningAddress"),
+    NWC_INFO("nwcInfo"),
     NWC_RESPONSE("nwcResponse"),
     ZAP_RECEIPT_QUERY("zapReceiptQuery"),
 }
