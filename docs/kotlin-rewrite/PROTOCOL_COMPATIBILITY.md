@@ -118,6 +118,9 @@ coordinates, headers and form bodies. `NETWORK_CORE_PARITY.md` and
 The 34-case `search_responses_v1.tsv` locks their normalized fields,
 coordinates, labels/categories, bounded text, distance rounding and malformed
 payload behavior, including a 53-pair Nominatim class/type category matrix.
+The 53-case `search_ranking_v1.tsv` locks query/phase planning, fuzzy/city/
+brand/distance ordering, rounded proximity dedupe, provider/POI precedence,
+result caps and relaxed-retry admission.
 The 89-case `routing_requests_v1.tsv` locks OSRM, OpenRouteService,
 GraphHopper and Valhalla methods, URLs, profiles/locales, coordinates,
 headers/bodies, API-key boundaries, waypoint/alternative/bearing rules,

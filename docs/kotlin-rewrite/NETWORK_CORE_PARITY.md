@@ -35,6 +35,11 @@ Nominatim forward/reverse, Photon GeoJSON and Overpass envelope/result parsing,
 including validation, bounded remote text, labels/categories and distance
 rounding.
 
+`lib/services/search_ranking_protocol.dart` is called by production
+`PlaceSearchService` after normalization. Its Kotlin counterpart freezes query
+caps, phase/provider planning, fuzzy/city/brand/distance ranking, proximity
+dedupe, relaxed retry and POI-first merge without scheduling a request.
+
 `lib/services/routing_request_protocol.dart` is called by the live Dart routing
 service for OSRM, OpenRouteService, GraphHopper and Valhalla. Its Kotlin
 counterpart freezes request composition, including provider profiles/locales,
@@ -100,6 +105,11 @@ Photon and Overpass outcomes. Both runtimes compare normalized fields,
 coordinates, categories, labels, text bounds, node/way centres, distances and
 malformed-payload behavior; a category matrix covers 53 class/type pairs.
 
+`search_ranking_v1.tsv` adds 53 Dart-generated planning/ranking outcomes. Both
+runtimes compare provider-phase flags, prepared/relaxed queries, match scores,
+ordered normalized results, 30 m duplicate decisions, Nominatim/POI precedence
+and the 10-result ceiling.
+
 ## Deliberately outside this slice
 
 - no native HTTP engine, OkHttp dependency, DNS resolver or socket is wired;
@@ -109,8 +119,8 @@ malformed-payload behavior; a category matrix covers 53 class/type pairs.
   native adapter;
 - redirect/TLS/cleartext behavior needs Android integration tests in addition
   to this policy fixture;
-- search ranking/history, provider fallback/cancellation, Overpass backoff,
-  routing provider orchestration and live native execution remain to be ported;
+- search history, partial-result concurrency, provider fallback/cancellation,
+  Overpass backoff, routing orchestration and live native execution remain;
 - DNS-aware SSRF checks for LNURL remain part of the later live-network gate.
 
 The Kotlin policy has no Android, Activity, startup or persistence wiring.

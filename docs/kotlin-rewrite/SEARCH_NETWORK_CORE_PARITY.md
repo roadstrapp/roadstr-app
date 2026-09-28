@@ -1,8 +1,8 @@
-# Search-provider request and response parity
+# Search-provider request, response and ranking parity
 
 This increment freezes the exact outbound request contract and deterministic
-inbound normalization for Roadstr's three search data sources without giving
-Kotlin ownership of a socket. Flutter still executes every live request.
+inbound normalization/ranking for Roadstr's three search data sources without
+giving Kotlin ownership of a socket. Flutter still executes every live request.
 
 ## Production-used Dart boundary
 
@@ -22,6 +22,12 @@ test-only copy.
 Its Kotlin counterpart, `core.network.SearchResponseProtocol.kt`, freezes the
 same Nominatim forward/reverse, Photon GeoJSON and Overpass envelope/result
 normalization while remaining detached from Android networking and UI.
+
+`lib/services/search_ranking_protocol.dart` is called by the live
+`PlaceSearchService` for query preparation, phase planning, geocoder deduping,
+ranking, relaxed retry and POI-first merging. Its Kotlin counterpart,
+`core.search.SearchRankingProtocol.kt`, consumes only normalized values and
+does not schedule work or access storage/networking.
 
 The extraction preserves these provider-specific details:
 
@@ -93,6 +99,30 @@ dart run tools/kotlin_rewrite/generate_search_responses_fixture.dart --check
 service tests remain the integration evidence that live clients call the
 extracted production parser.
 
+`search_ranking_v1.tsv` adds 53 Dart-generated policy outcomes:
+
+- 7 provider/query execution plans;
+- 6 relaxed-query and 6 direct match-score cases;
+- 6 proximity-deduplication cases;
+- 15 ranking and 3 cross-geocoder merge cases;
+- 5 POI-first merge and 5 retry-admission cases.
+
+The fixture locks the 200 UTF-16-unit query cap, typeahead versus settled
+providers, optional location bias, 30 m rounded-Vincenty duplicate radius,
+Nominatim-first duplicate retention, fuzzy confidence/brand/distance tiers,
+trailing cities up to three words, the 10-result cap, one relaxed retry and
+POI precedence. Regenerate or verify it with:
+
+```text
+dart run tools/kotlin_rewrite/generate_search_ranking_fixture.dart
+dart run tools/kotlin_rewrite/generate_search_ranking_fixture.dart --check
+```
+
+`search_ranking_protocol_test.dart` and
+`SearchRankingProtocolParityTest.kt` consume the shared outcomes. Existing
+`place_search_service_test.dart` cases prove that the production service and
+its compatibility methods delegate without changing behavior.
+
 ## Privacy and execution boundary
 
 Kotlin can construct a value containing the same coarse coordinates and user
@@ -103,10 +133,10 @@ timeout, response-size, redirect, TLS and cleartext policy before dispatch.
 No API key is represented in this fixture. Routing request composition and
 response parsing are now covered separately by
 `ROUTING_NETWORK_CORE_PARITY.md`; search provider fallback/cancellation,
-ranking/history, Overpass backoff execution and Android network integration
-remain later `KOTLIN-009` slices.
+partial-result concurrency, history persistence, Overpass backoff execution
+and Android network integration remain later slices.
 
 Rollback is removal of the Kotlin boundaries and fixtures plus inlining the
-small Dart builders/parsers back into their callers. No persisted state,
+small Dart builders/parsers/policy back into their callers. No persisted state,
 endpoint, mirror order, request limit or live-network owner changed in this
 increment.
