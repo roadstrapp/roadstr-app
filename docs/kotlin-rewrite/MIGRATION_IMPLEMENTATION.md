@@ -142,9 +142,16 @@ not a production startup change.
   The service also publishes normalized fixes through a process-local,
   listener-isolated `EventChannel`; both renderers attach a typed shadow feed,
   but those fixes do not drive UI or navigation and are neither logged nor
-  persisted. This runs only in builds compiled with
-  `ROADSTR_NATIVE_NAVIGATION=true`; the default is false, so ordinary builds
-  keep the existing Flutter GPS path.
+  persisted. The same opt-in channel accepts bounded navigation-notification
+  update/reset commands while the service is running. A replacement-safe
+  process-local dispatcher applies the existing throttle/private metadata via
+  Android `NotificationManager`, reusing `roadstr_navigation` and ID 42 so it
+  updates the current slot rather than adding another notification. The Dart
+  service waits for this shadow operation before invoking the established
+  Flutter plugin, which therefore remains the final authority. This runs only
+  in builds compiled with `ROADSTR_NATIVE_NAVIGATION=true`; the default is
+  false, so ordinary builds keep the existing Flutter GPS and notification
+  paths.
 - No real user data, key, NWC URI or voice asset is used by the tests.
 - The protected-state admission policy does not yet parse historical NWC URI
   variants during migration; that decision remains behind the native Lightning

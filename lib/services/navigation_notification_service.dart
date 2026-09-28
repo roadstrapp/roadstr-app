@@ -15,6 +15,8 @@
 //     service constructor, keeping startup fast.
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import 'native_navigation_bridge.dart';
+
 /// Decides whether a navigation notification update is worth posting.
 ///
 /// The map screens call [NavigationNotificationService.show] on every GPS fix
@@ -66,6 +68,12 @@ class NotificationThrottle {
 /// Manages the persistent navigation notification shown in the Android
 /// notification shade during active turn-by-turn navigation.
 class NavigationNotificationService {
+  NavigationNotificationService({
+    NativeNavigationBridge nativeBridge = const NativeNavigationBridge(),
+    bool mirrorNative = false,
+  })  : _nativeBridge = nativeBridge,
+        _mirrorNative = mirrorNative;
+
   static const _channelId = 'roadstr_navigation';
   static const _channelName = 'Navigation';
 
@@ -75,6 +83,8 @@ class NavigationNotificationService {
 
   final _plugin = FlutterLocalNotificationsPlugin();
   final _throttle = NotificationThrottle();
+  final NativeNavigationBridge _nativeBridge;
+  final bool _mirrorNative;
   bool _initialized = false;
 
   /// Initializes the plugin on first use (lazy). Safe to call repeatedly.
@@ -93,7 +103,12 @@ class NavigationNotificationService {
   /// [distance]: human-readable distance to the next maneuver (e.g. "200 m").
   Future<void> show(String instruction, String distance) async {
     if (!_throttle.shouldPost(instruction, distance, DateTime.now())) return;
+    Future<void>? nativeUpdate;
+    if (_mirrorNative) {
+      nativeUpdate = _mirrorNativeUpdate(instruction, distance);
+    }
     await _ensureInit();
+    await nativeUpdate;
     await _plugin.show(
       id: _notifId,
       title: instruction,
@@ -119,7 +134,32 @@ class NavigationNotificationService {
   /// Dismisses the navigation notification. Called when the user stops navigation.
   Future<void> cancel() async {
     _throttle.reset();
+    if (_mirrorNative) {
+      await _resetNativeNotification();
+    }
     if (!_initialized) return;
     await _plugin.cancel(id: _notifId);
+  }
+
+  Future<void> _mirrorNativeUpdate(
+    String instruction,
+    String distance,
+  ) async {
+    try {
+      await _nativeBridge.updateNavigationNotification(
+        instruction: instruction,
+        distance: distance,
+      );
+    } catch (_) {
+      // The established Flutter notification remains authoritative.
+    }
+  }
+
+  Future<void> _resetNativeNotification() async {
+    try {
+      await _nativeBridge.resetNavigationNotification();
+    } catch (_) {
+      // Native cleanup is best-effort while the canary remains shadow-only.
+    }
   }
 }
