@@ -50,6 +50,7 @@ import '../services/place_search_service.dart';
 import '../services/poi_search_service.dart';
 import '../services/route_progress.dart';
 import '../services/routing_service.dart';
+import '../services/search_history_protocol.dart';
 import '../services/crossing_hazard_service.dart';
 import '../services/speed_camera_service.dart';
 import '../services/traffic_light_service.dart';
@@ -1147,21 +1148,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
 
   /// Same storage shape MapScreen._loadHistory reads.
   void _loadHistory() {
-    final raw = Hive.box('settings')
-        .get('searchHistory', defaultValue: <dynamic>[]) as List<dynamic>;
-    _history = raw
-        .whereType<String>()
-        .map((s) {
-          try {
-            return SearchHistoryItem.fromJsonSafe(
-                jsonDecode(s) as Map<String, dynamic>);
-          } catch (_) {
-            return null;
-          }
-        })
-        .whereType<SearchHistoryItem>()
-        .take(100)
-        .toList();
+    _history = SearchHistoryProtocol.decodeStored(Hive.box('settings').get(
+      SearchHistoryProtocol.storageKey,
+      defaultValue: <dynamic>[],
+    ));
   }
 
   /// Records a confirmed destination — same MapScreen._saveToHistory,
@@ -1169,21 +1159,17 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// appearing twice) and capping at 5 recent entries.
   void _saveToHistory(String label, LatLng pos) {
     final item = SearchHistoryItem(label, pos);
-    final updated = [
-      item,
-      ..._history.where((h) =>
-          (h.position.latitude - pos.latitude).abs() > 0.0001 ||
-          (h.position.longitude - pos.longitude).abs() > 0.0001),
-    ];
-    if (updated.length > 5) updated.removeRange(5, updated.length);
+    final updated = SearchHistoryProtocol.prepend(item, _history);
     setState(() => _history = updated);
     Hive.box('settings').put(
-        'searchHistory', updated.map((h) => jsonEncode(h.toJson())).toList());
+      SearchHistoryProtocol.storageKey,
+      SearchHistoryProtocol.encodeStored(updated),
+    );
   }
 
   void _clearHistory() {
     setState(() => _history = []);
-    Hive.box('settings').delete('searchHistory');
+    Hive.box('settings').delete(SearchHistoryProtocol.storageKey);
   }
 
   /// On startup, pull the encrypted favourites snapshot from Nostr and merge

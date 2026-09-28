@@ -110,6 +110,11 @@ runtimes compare provider-phase flags, prepared/relaxed queries, match scores,
 ordered normalized results, 30 m duplicate decisions, Nominatim/POI precedence
 and the 10-result ceiling.
 
+`search_history_v1.tsv` adds 31 Dart-generated history-value outcomes. Both
+runtimes compare tolerant row admission, coordinate/label limits, newest-first
+dedupe, 100-load/5-store ceilings and persisted JSON strings. Flutter keeps
+encrypted Hive ownership; Kotlin has no persistence adapter yet.
+
 ## Deliberately outside this slice
 
 - no native HTTP engine, OkHttp dependency, DNS resolver or socket is wired;
@@ -119,8 +124,9 @@ and the 10-result ceiling.
   native adapter;
 - redirect/TLS/cleartext behavior needs Android integration tests in addition
   to this policy fixture;
-- search history, partial-result concurrency, provider fallback/cancellation,
-  Overpass backoff, routing orchestration and live native execution remain;
+- the native search-history store, partial-result concurrency, provider
+  fallback/cancellation, Overpass backoff, routing orchestration and live
+  native execution remain;
 - DNS-aware SSRF checks for LNURL remain part of the later live-network gate.
 
 The Kotlin policy has no Android, Activity, startup or persistence wiring.
