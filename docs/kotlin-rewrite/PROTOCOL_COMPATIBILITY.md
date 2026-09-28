@@ -114,10 +114,11 @@ declared/streamed size ceilings and current GraphHopper loopback admission.
 Ten local native integration cases prove that the OkHttp adapter applies that
 contract to exact routing/search requests, whole-call deadlines, redirect and
 retry refusal, physical cancellation and value-free failures. Production
-The headless native routing service additionally executes resolved OSRM/ORS/
-GraphHopper requests and the one-retry bearing fallback without converting
-caller cancellation into another request. Production ownership and Android
-DNS/TLS/cleartext evidence remain open.
+ownership remains with Flutter. The headless native routing service additionally
+executes resolved OSRM/ORS/GraphHopper requests and the one-retry bearing
+fallback without converting caller cancellation into another request. The
+headless search service likewise executes Nominatim, Photon and category-
+Overpass orchestration. Android DNS/TLS/cleartext evidence remains open.
 The 39-case `search_provider_requests_v1.tsv` additionally locks exact
 Nominatim forward/reverse, Photon and Overpass methods, URLs, encodings,
 coordinates, headers and form bodies. `NETWORK_CORE_PARITY.md` and
@@ -135,8 +136,10 @@ encrypted Hive ownership and is not yet wired to a native store.
 The 32-case `search_orchestration_v1.tsv` locks enabled provider sets,
 out-of-order first-partial and final delivery, failure-as-empty fallback, all
 settled completion orders, one relaxed retry batch, provider precedence and
-rejection of duplicate, invalid or late completions. Kotlin remains detached
-from physical cancellation, coroutines, sockets and UI request generations.
+rejection of duplicate, invalid or late completions. The headless Kotlin search
+service now drives that protocol with concurrent bounded calls, independent
+failure fallback, Overpass mirror rotation and physical all-job cancellation;
+production UI request generations remain detached.
 The 89-case `routing_requests_v1.tsv` locks OSRM, OpenRouteService,
 GraphHopper and Valhalla methods, URLs, profiles/locales, coordinates,
 headers/bodies, API-key boundaries, waypoint/alternative/bearing rules,

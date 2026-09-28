@@ -342,9 +342,15 @@ broader cross-language coverage and a native store are still required.
   10/12-second deadlines and 32 MiB full-route ceiling, and drives the exact
   constrained-to-unconstrained OSRM fallback without swallowing caller
   cancellation.
+  `service/search/NativeSearchService.kt` now composes and dispatches bounded
+  Nominatim, Photon and category-Overpass requests, starts phase-enabled
+  providers concurrently, delivers one safe partial, rotates vetted Overpass
+  mirrors, drives exactly one relaxed geocoder batch and propagates caller
+  cancellation to every active transport call.
   The production Dart bounded client, provider clients and map screens use the
   extracted request/response/ranking/history oracles. Native search-provider
-  execution, routing startup/UI ownership and history storage remain unwired.
+  startup/UI ownership, request generations, caching and history storage remain
+  unwired; headless native search execution is green.
 - **Dependencies:** OkHttp 4.12.0 and kotlinx-coroutines 1.10.2 are pinned to
   the versions already selected by MapLibre/AndroidX; no Google/Firebase/
   telemetry SDK.
@@ -362,16 +368,20 @@ broader cross-language coverage and a native store are still required.
   deadline, value-free failures and physical cancellation. Ten routing-service
   tests add all three primary providers, exact limits, real local
   GraphHopper-through-OkHttp execution, failure redaction, bearing fallback and
-  cancellation-without-retry. Android TLS/cleartext integration, secure-store/
-  history-store, search-provider and startup/UI wiring remain.
+  cancellation-without-retry. Ten search-service tests add exact limits,
+  concurrent providers, partial/final delivery, failure isolation, one relaxed
+  batch, category query/mirror fallback, a real loopback POST and all-job
+  cancellation. Android TLS/cleartext integration, secure-store/history-store,
+  caching and startup/UI wiring remain.
 - **Parity evidence:** Exact Nominatim/Photon/Overpass and OSRM/ORS/GraphHopper/
   Valhalla request bytes, normalized search/route responses, deterministic
   search planning/ranking/orchestration, OSRM reroute fallback, avoidance/
   re-timing decisions, provider/key/server resolution, routing-time legacy-key
   migration and history value semantics are green; headless native primary-
-  provider routing execution is green. Native secure/history stores, search
-  orchestration, avoidance execution, Android network integration and
-  production ownership are open.
+  provider routing execution and headless search orchestration/execution are
+  green. Native secure/history stores, search caching/UI generations,
+  avoidance execution, Android network integration and production ownership
+  are open.
 - **Security/privacy impact:** Preserve URL validation, body caps, user-agent, no silent cloud fallback.
 - **Battery/performance impact:** Compare network retries, cache hit rate and cancellation.
 - **Acceptance criteria:** All current providers pass without changed limits or privacy behavior.
