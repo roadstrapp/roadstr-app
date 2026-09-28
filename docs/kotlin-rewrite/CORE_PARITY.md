@@ -113,7 +113,8 @@ the 2 MiB small route/probe tier. See
 cases lock exact Nominatim forward/reverse, Photon and Overpass methods, URLs,
 encodings, parameters, mirror order, headers and form bodies. The corresponding
 Dart builder is used by all three live Flutter clients; Kotlin remains detached
-from sockets. See `SEARCH_NETWORK_CORE_PARITY.md`.
+from production startup, while the headless native search service now dispatches
+the same forward-search values. See `SEARCH_NETWORK_CORE_PARITY.md`.
 
 `routing_requests_v1.tsv` is the fifteenth shared core fixture. Its 89 cases
 lock exact OSRM, OpenRouteService, GraphHopper and Valhalla methods, endpoints,
@@ -136,15 +137,16 @@ lock Nominatim forward/reverse, Photon GeoJSON and Overpass envelope/result
 normalization, including hostile payloads, bounded text, coordinate validation,
 category/label mapping, node/way centres and distance rounding. The extracted
 Dart parser is used by the live Flutter search clients; the Kotlin parser
-remains socket-free and detached from production wiring. See
+is now exercised after bounded headless Nominatim, Photon and Overpass dispatch
+but remains detached from production wiring. See
 `SEARCH_NETWORK_CORE_PARITY.md`.
 
 `search_ranking_v1.tsv` is the eighteenth shared core fixture. Its 53 cases
 lock query/phase planning, matching, rounded-distance deduplication, provider
 merge precedence, city/brand/distance ranking, result caps and relaxed-retry
 admission. The Dart policy is called by production `PlaceSearchService`; the
-Kotlin policy remains detached from asynchronous provider execution, storage
-and UI. See `SEARCH_NETWORK_CORE_PARITY.md`.
+Kotlin policy is now driven by the headless concurrent search service but
+remains detached from storage and UI. See `SEARCH_NETWORK_CORE_PARITY.md`.
 
 `search_history_v1.tsv` is the nineteenth shared core fixture. Its 31 cases
 lock tolerant persisted-row decoding, coordinate and UTF-16 label validation,
@@ -160,7 +162,8 @@ completion order, first-nonempty partial delivery, provider failure fallback,
 one relaxed Nominatim/Photon retry, terminal merge ordering and rejection of
 duplicate, disabled, premature or late completions. Production Dart
 `PlaceSearchService` calls the extracted state machine; Kotlin remains detached
-from coroutines, sockets and UI request generations. See
+from UI request generations, while `NativeSearchService` now drives it with
+structured coroutines and bounded provider calls. See
 `SEARCH_NETWORK_CORE_PARITY.md`.
 
 `routing_orchestration_v1.tsv` is the twenty-first shared core fixture. Its 28
@@ -195,10 +198,10 @@ detached from secure storage and startup. See
   extracted Dart request builders, response parsers and search-ranking policy
   are called by the existing Flutter services.
 - Stateful navigation tests cover policy decisions, not Android sensor timing.
-- General retry scheduling and search-provider orchestration remain pure
-  policy. The native routing service now owns one sequential OSRM bearing
-  fallback state machine; its caller still owns the long-lived job and UI
-  request generation.
+- General retry scheduling remains pure policy. The native routing service now
+  owns one sequential OSRM bearing fallback state machine, and the native
+  search service owns concurrent provider jobs plus one relaxed retry; callers
+  still own long-lived jobs and UI request generations.
 - HTTP size, endpoint, search/routing request and response decisions are Kotlin
   policy and local OkHttp integration tests cover connection, total deadlines
   and cancellation. Android DNS, TLS, Network Security Config and cleartext
@@ -211,9 +214,11 @@ detached from secure storage and startup. See
   request generations remain open.
 - Search provider planning, normalized-result ranking/merge, out-of-order
   completion/failure handling, one-partial/one-retry orchestration and
-  deterministic history value semantics are covered. Encrypted Hive still owns
-  Flutter persistence; an Android backend, provider-job ownership, UI request-
-  generation handling and live native provider execution remain open.
+  deterministic history value semantics are covered. Headless Nominatim,
+  Photon and category-Overpass execution, mirror fallback and cancellation are
+  green. Encrypted Hive still owns Flutter persistence; an Android history/
+  cache backend, UI request-generation handling, startup ownership and device
+  network evidence remain open.
 - NIP-47/NIP-57, LNURL-pay, legacy NIP-04, NIP-44 v2 and NIP-78 favourites
   deterministic wire, crypto, parsing, padding, binding and rollback rules are
   covered, including NIP-47 encryption negotiation; native signer/key
@@ -245,13 +250,13 @@ detached from secure storage and startup. See
   request/response/configuration policies, search/routing/avoidance
   orchestration and re-timing, search planning/ranking/history, both migration
   fixture oracles and the headless Dart handler.
-- `./gradlew :app:testDebugUnitTest`: 174 Kotlin tests passed, including the
+- `./gradlew :app:testDebugUnitTest`: 184 Kotlin tests passed, including the
   Nostr byte/queue/inbound/ingress/NIP-19/BIP-340/NIP-04/NIP-44/NIP-78,
   Lightning/LNURL parity, HTTP safety/search/routing requests, responses,
   configuration, orchestration and re-timing, search planning/ranking/
   orchestration/history, native persistence/migration and bounded headless
-  transport reader, native bounded-HTTP integration and headless routing
-  service suites.
+  transport reader, native bounded-HTTP integration and headless routing and
+  search service suites.
 - `./gradlew :app:assembleDebug`: D8, duplicate-class checks and Android APK
   packaging passed with pinned Bouncy Castle, OkHttp and coroutines
   dependencies.

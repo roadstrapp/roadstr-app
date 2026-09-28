@@ -42,6 +42,16 @@ drives the one-retry OSRM bearing state machine. Caller cancellation propagates
 through the service and physically cancels the active call without starting the
 fallback. The service has no startup, UI or secure-store owner yet.
 
+`service.search.NativeSearchService` is the matching headless search executor.
+It launches every phase-enabled Nominatim, Photon and category-Overpass job as
+a child of the caller, feeds completions to the fixture-locked state machine in
+arrival order, emits at most one nonempty partial, and starts exactly one
+relaxed geocoder batch when admitted. It keeps the shipped 5 s/2 MiB
+Nominatim, 4 s/2 MiB Photon and 5 s-per-mirror/6 MiB Overpass bounds. Provider
+failures degrade independently to empty results, vetted Overpass mirrors rotate
+on status/transport/parser failures, and caller cancellation reaches every
+active OkHttp call without becoming a retry.
+
 The app pins OkHttp 4.12.0 and kotlinx-coroutines 1.10.2, matching the versions
 already selected by MapLibre/AndroidX instead of upgrading the existing Flutter
 runtime transitively. Both are permissively licensed; MockWebServer 4.12.0 is
@@ -67,7 +77,9 @@ dedupe, relaxed retry and POI-first merge without scheduling a request.
 `PlaceSearchService`. Its Kotlin counterpart freezes enabled-provider tracking,
 out-of-order completion, first-nonempty partial delivery, failure-as-empty
 fallback, one relaxed retry batch and one immutable final result without
-opening a socket or choosing a coroutine implementation.
+opening a socket or choosing a coroutine implementation. The separate native
+search service now supplies that coroutine/network owner without changing the
+state machine.
 
 `lib/services/routing_request_protocol.dart` is called by the live Dart routing
 service for OSRM, OpenRouteService, GraphHopper and Valhalla. Its Kotlin
@@ -147,6 +159,12 @@ cap, a real self-hosted GraphHopper loopback exchange, value-free status/parser
 failures, invalid endpoint rejection, exactly one bearing fallback and caller
 cancellation without a hidden retry.
 
+Ten `NativeSearchServiceTest` cases prove empty/typeahead admission, exact
+provider limits, real three-provider concurrency and arrival-order partials,
+failure isolation, exactly one relaxed batch, stale-callback isolation,
+category matching/query composition, Overpass mirror preference/fallback, a
+real loopback POST through OkHttp and all-provider cancellation without retry.
+
 `search_provider_requests_v1.tsv` adds 39 Dart-generated Nominatim, Photon and
 Overpass request outcomes. It is consumed by both runtimes and includes their
 intentionally different text encodings, Nominatim viewboxes, Photon location
@@ -200,20 +218,21 @@ ordering, final merge precedence, duplicate suppression and terminal behavior.
 
 ## Deliberately outside this slice
 
-- no native search provider service or production owner is wired. The native
-  routing service is headless and only synthetic loopback tests dispatch
-  coordinates, test keys and Roadstr user agents;
+- the native routing and search services are headless: no Activity, ViewModel,
+  startup or production owner invokes them. Only synthetic/local-loopback tests
+  dispatch coordinates, test keys, queries and Roadstr user agents;
 - DNS, TLS, Android Network Security Config and cleartext-loopback behavior
   still need Android integration/device tests in addition to local JVM tests;
-- the native search-history store, search-provider job cancellation, UI
-  request-generation suppression, Overpass backoff and live search execution
-  remain above the single-call adapter; routing avoidance/re-timing still has
-  no coroutine service owner;
+- the native search-history store, Nominatim result cache, UI request-generation
+  suppression, long-lived Overpass backoff and production search ownership
+  remain open; provider-job cancellation and interactive category mirror
+  fallback are green. Routing avoidance/re-timing still has no coroutine
+  service owner;
 - routing configuration decisions are locked, but native secure-storage/
   Keystore access and installed-app migration evidence remain open;
 - DNS-aware SSRF checks for LNURL remain part of the later live-network gate.
 
-The Kotlin adapter and routing service have no Activity, startup or persistence
-wiring. Rollback is removal of the service, adapter and direct dependency
-declarations while leaving the pure boundaries and Flutter client in place; no
-stored data or endpoint defaults change.
+The Kotlin adapter and routing/search services have no Activity, startup or
+persistence wiring. Rollback is removal of the services, adapter and direct
+dependency declarations while leaving the pure boundaries and Flutter client
+in place; no stored data or endpoint defaults change.

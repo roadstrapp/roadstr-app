@@ -2,8 +2,9 @@
 
 This increment freezes the exact outbound request contract and deterministic
 inbound normalization/ranking for Roadstr's three search data sources. A
-bounded Kotlin socket adapter now exists, but Flutter still executes every live
-request and owns all provider orchestration.
+headless Kotlin service now executes bounded Nominatim, Photon and category-
+Overpass requests and owns their structured provider jobs, while Flutter still
+owns every production request and all user-visible orchestration.
 
 ## Production-used Dart boundary
 
@@ -45,6 +46,23 @@ newest-first coordinate deduplication, list limits and the persisted JSON value
 shape used by both Flutter map implementations. Its Kotlin counterpart,
 `core.search.SearchHistoryProtocol.kt`, is storage-free: it can read and write
 the same logical values but is not wired to Hive or an Android store.
+
+## Native headless execution
+
+`service.search.NativeSearchService` composes requests only through the shared
+protocols and executes them through `NativeBoundedHttpClient`. It preserves the
+live 5 s/2 MiB Nominatim, 4 s/2 MiB Photon and 5 s-per-mirror/6 MiB Overpass
+budgets. Initial providers run concurrently under the caller's coroutine;
+completion order drives the existing state machine, one callback-safe partial
+may be emitted, and an admitted relaxed query starts one Nominatim/Photon batch.
+
+The nearby category supplement retains the production 4 km radius, 12-element
+Overpass cap, seven-decimal coordinates, exact/fuzzy category admission and
+compound tag clauses. Non-category text opens no Overpass socket. Status,
+transport and malformed-envelope failures advance through the two vetted
+mirrors, successful results become the next preference and are ordered by
+distance. A provider failure cannot hide peer results, while caller
+cancellation is never converted to an empty completion or hidden retry.
 
 The extraction preserves these provider-specific details:
 
@@ -187,21 +205,28 @@ that the live Dart owner starts providers concurrently, degrades synchronous
 and asynchronous failures to empty results, launches one relaxed batch and
 does not let a stale rendering callback fail the final search.
 
+Ten `NativeSearchServiceTest` cases add the same execution evidence on Kotlin:
+provider-set admission, exact per-provider bounds, simultaneous starts,
+arrival-order partial/final behavior, failure isolation, one relaxed batch,
+callback isolation, category/query behavior, mirror rotation, real loopback
+OkHttp POST dispatch and physical cancellation of all active provider jobs.
+
 ## Privacy and execution boundary
 
-Kotlin can construct a value containing the same coarse coordinates and user
-agent and can pass it to the shared bounded OkHttp adapter. Local tests prove
-the timeout, response-size, redirect/retry and cancellation behavior, but no
-production search service invokes it. Android DNS, TLS and cleartext behavior
-still requires integration/device evidence.
+Kotlin now passes the same coarse coordinate values and user agents through the
+shared bounded OkHttp adapter from a headless search service. Local tests prove
+the timeout, response-size, mirror fallback and cancellation behavior, but no
+production Activity or ViewModel invokes it. Android DNS, TLS and cleartext
+behavior still requires integration/device evidence.
 
 No API key is represented in this fixture. Routing request composition and
 response parsing are now covered separately by
-`ROUTING_NETWORK_CORE_PARITY.md`; provider-job ownership, UI request-generation
-suppression, the native history persistence adapter, Overpass backoff execution
-and Android network integration remain later slices.
+`ROUTING_NETWORK_CORE_PARITY.md`; UI request-generation suppression, the native
+history persistence adapter, Nominatim caching, long-lived Overpass backoff and
+Android network integration remain later slices.
 
-Rollback is removal of the Kotlin boundaries and fixtures plus inlining the
-small Dart builders/parsers/policies back into their callers. The history JSON
-shape, encrypted Hive owner/key, endpoints, mirror order, request limits and
-live-network owner did not change in this increment.
+Rollback is removal of the native service while leaving the Kotlin parity
+boundaries/fixtures and the small Dart builders/parsers/policies intact.
+The history JSON shape, encrypted Hive owner/key, endpoints, mirror order,
+request limits and production live-network owner did not change in this
+increment.
