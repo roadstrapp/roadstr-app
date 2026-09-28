@@ -19,6 +19,7 @@ import '../utils/units.dart';
 import 'bounded_http.dart';
 import 'http_safety_policy.dart';
 import 'roundabout_topology_service.dart';
+import 'routing_avoidance_protocol.dart';
 import 'routing_orchestration_protocol.dart';
 import 'routing_request_protocol.dart';
 import 'routing_response_protocol.dart';
@@ -714,35 +715,25 @@ class RoutingService {
   /// The travel time, however, does **not** come from Valhalla: see
   /// [_retimedThroughOsrm].
   static Future<RouteResult> getHighwayAndTollAvoidanceRoute(
-      LatLng origin, LatLng destination,
-      {String lang = 'en',
-      @visibleForTesting Uri? endpoint,
-      @visibleForTesting Uri? retimeEndpoint}) async {
-    final RouteResult route;
-    try {
-      route = await _getValhallaAvoidanceRoute(
-        origin,
-        destination,
-        lang: lang,
-        endpoint: endpoint,
-        hardExclusion: true,
-      );
-    } on RoutingException {
-      return _retimedThroughOsrm(
-        await _getValhallaAvoidanceRoute(
+          LatLng origin, LatLng destination,
+          {String lang = 'en',
+          @visibleForTesting Uri? endpoint,
+          @visibleForTesting Uri? retimeEndpoint}) =>
+      orchestrateAvoidance(
+        mode: RoutingAvoidanceMode.highwaysAndTolls,
+        request: (attempt) => _getValhallaAvoidanceRoute(
           origin,
           destination,
           lang: lang,
           endpoint: endpoint,
-          hardExclusion: false,
+          hardExclusion: attempt == RoutingAvoidanceAttempt.hard,
         ),
-        endpoint: retimeEndpoint,
-        stubbedValhalla: endpoint != null,
+        retime: (route) => _retimedThroughOsrm(
+          route,
+          endpoint: retimeEndpoint,
+          stubbedValhalla: endpoint != null,
+        ),
       );
-    }
-    return _retimedThroughOsrm(route,
-        endpoint: retimeEndpoint, stubbedValhalla: endpoint != null);
-  }
 
   /// Calculates a route that strongly disfavours unpaved "off-road" tracks —
   /// the routing side of a field report where the default OSRM route sent a
@@ -759,35 +750,66 @@ class RoutingService {
   /// Re-timed through OSRM for the same reason as the highway/toll route —
   /// see [_retimedThroughOsrm].
   static Future<RouteResult> getOffRoadAvoidanceRoute(
-      LatLng origin, LatLng destination,
-      {String lang = 'en',
-      @visibleForTesting Uri? endpoint,
-      @visibleForTesting Uri? retimeEndpoint}) async {
-    final route = await _getValhallaAutoRoute(
-      origin,
-      destination,
-      lang: lang,
-      endpoint: endpoint,
-      costingPolicy: ValhallaCostingPolicy.avoidTracks,
-      classify: (_) => RouteAvoidance.offRoadAvoided,
-    );
-    return _retimedThroughOsrm(route,
-        endpoint: retimeEndpoint, stubbedValhalla: endpoint != null);
-  }
+          LatLng origin, LatLng destination,
+          {String lang = 'en',
+          @visibleForTesting Uri? endpoint,
+          @visibleForTesting Uri? retimeEndpoint}) =>
+      orchestrateAvoidance(
+        mode: RoutingAvoidanceMode.offRoad,
+        request: (_) => _getValhallaAutoRoute(
+          origin,
+          destination,
+          lang: lang,
+          endpoint: endpoint,
+          costingPolicy: ValhallaCostingPolicy.avoidTracks,
+          classify: (_) => RouteAvoidance.offRoadAvoided,
+        ),
+        retime: (route) => _retimedThroughOsrm(
+          route,
+          endpoint: retimeEndpoint,
+          stubbedValhalla: endpoint != null,
+        ),
+      );
 
-  /// One waypoint roughly every this many metres when re-timing a route.
+  /// Async production adapter around [RoutingAvoidanceProtocol].
   ///
-  /// Measured against live servers on routes from 34 km to 645 km: at 5 km
-  /// spacing OSRM reproduces the Valhalla road almost exactly everywhere
-  /// (Torino→Florence, Caltabellotta→Messina, Udine→Genoa, Munich→Vienna).
-  /// Sparser sampling lets it wander (25 waypoints over Udine→Genoa drifted
-  /// 2.6 km off), and denser sampling is worse, not better: waypoints closer
-  /// than a couple of kilometres start snapping onto parallel service roads
-  /// and inject detours of their own.
-  static const _retimeSpacingM = 5000.0;
+  /// The request and best-effort re-timing remain injectable so the ordering,
+  /// failure boundary and one-retry ceiling can be tested without sockets.
+  @visibleForTesting
+  static Future<RouteResult> orchestrateAvoidance({
+    required RoutingAvoidanceMode mode,
+    required Future<RouteResult> Function(RoutingAvoidanceAttempt attempt)
+        request,
+    required Future<RouteResult> Function(RouteResult route) retime,
+  }) async {
+    final state = RoutingAvoidanceProtocol(mode);
+    var attempt = state.initialAttempt;
+    while (true) {
+      RoutingAvoidanceDecision decision;
+      try {
+        final route = await request(attempt);
+        decision = state.accept(
+          attempt,
+          RoutingAvoidanceAttemptOutcome.success,
+          route,
+        );
+      } on RoutingException {
+        decision = state.accept(
+          attempt,
+          RoutingAvoidanceAttemptOutcome.routingFailure,
+        );
+        if (decision.propagateFailure) rethrow;
+      }
 
-  /// Waypoint ceiling for one re-timing request. 120 keeps the URL near 2 kB.
-  static const _retimeMaxWaypoints = 120;
+      final finalRoute = decision.finalRoute;
+      if (finalRoute != null) return retime(finalRoute);
+      final next = decision.nextAttempt;
+      if (next == null) {
+        throw StateError('Avoidance orchestration produced no terminal action');
+      }
+      attempt = next;
+    }
+  }
 
   /// Re-times the avoidance route with OSRM — the engine that timed every
   /// other route on screen — instead of trusting Valhalla's clock.
@@ -817,38 +839,12 @@ class RoutingService {
     // A stubbed Valhalla with no stubbed OSRM means a test: never reach out to
     // the public server behind the test's back.
     if (stubbedValhalla && endpoint == null) return route;
-    final line = route.polyline;
-    if (line.length < 2 || route.totalDistanceM <= 0) return route;
     try {
-      // Cumulative distance along the shape: the arc length of every slice.
-      final cumulative = List<double>.filled(line.length, 0);
-      // How many sea crossings precede each point, so a slice containing one
-      // can be recognised in O(1) below.
-      final crossings = List<int>.filled(line.length, 0);
-      for (var i = 1; i < line.length; i++) {
-        final step = Geo.distanceM(line[i - 1], line[i]);
-        cumulative[i] = cumulative[i - 1] + step;
-        crossings[i] = crossings[i - 1] + (step > _maxRoadStepM ? 1 : 0);
-      }
-      final shapeLength = cumulative.last;
-      if (shapeLength <= 0) return route;
-
-      final sampleCount = (shapeLength / _retimeSpacingM).round().clamp(
-                3,
-                _retimeMaxWaypoints - 1,
-              ) +
-          1;
-      final indices = [
-        for (var i = 0; i < sampleCount; i++)
-          (i * (line.length - 1) / (sampleCount - 1)).round(),
-      ];
-      final waypoints = indices
-          .map((i) => '${line[i].longitude.toStringAsFixed(5)},'
-              '${line[i].latitude.toStringAsFixed(5)}')
-          .join(';');
+      final plan = RoutingRetimePolicy.buildPlan(route);
+      if (plan == null) return route;
 
       final request = RoutingRequestProtocol.osrmRetime(
-        waypoints: waypoints,
+        waypoints: plan.waypoints,
         endpoint: endpoint?.toString(),
       );
       final res = await BoundedHttp.get(
@@ -859,61 +855,7 @@ class RoutingService {
       );
       if (res.statusCode != 200) return route;
       final legs = RoutingResponseProtocol.parseOsrmRetimeLegs(res.body);
-      if (legs == null || legs.length != sampleCount - 1) return route;
-
-      var seconds = 0.0;
-      var verifiedM = 0.0;
-      var ferryM = 0.0;
-      for (var i = 0; i < legs.length; i++) {
-        final arcM = cumulative[indices[i + 1]] - cumulative[indices[i]];
-        if (arcM <= 0) continue;
-        final legM = legs[i].distanceM;
-        final legS = legs[i].durationS;
-        if (legM == null || legS == null || !legM.isFinite || !legS.isFinite) {
-          return route;
-        }
-        // A slice containing a sea crossing keeps Valhalla's time: it reads the
-        // ferry's own scheduled duration from OSM, where a road router can only
-        // guess at a speed — and OSRM may not even take the same boat.
-        final crossesWater = crossings[indices[i + 1]] > crossings[indices[i]];
-        // 20 % (or 150 m on very short slices) of slack absorbs the difference
-        // between two engines' geometry; a leg that left the road entirely is
-        // far outside it.
-        if (!crossesWater &&
-            (legM - arcM).abs() <= math.max(150.0, 0.2 * arcM)) {
-          seconds += legS;
-          verifiedM += arcM;
-        } else {
-          seconds += route.totalDurationS * arcM / shapeLength;
-          if (crossesWater) ferryM += arcM;
-        }
-      }
-      // Sea crossings are excluded from the "did we verify enough?" budget:
-      // a Naples→Palermo route is 80 % boat, and the 20 % of driving around it
-      // is still worth timing properly.
-      final roadLength = shapeLength - ferryM;
-      if (verifiedM < 0.5 * roadLength || seconds <= 0) {
-        debugPrint('[Avoidance] re-timing rejected: only '
-            '${(verifiedM / math.max(roadLength, 1) * 100).round()} % of '
-            '${(roadLength / 1000).round()} road km followed the same road');
-        return route;
-      }
-      debugPrint('[Avoidance] re-timed ${(roadLength / 1000).round()} road km '
-          '(${(verifiedM / math.max(roadLength, 1) * 100).round()} % verified '
-          'over ${legs.length} legs'
-          '${ferryM > 0 ? ', ${(ferryM / 1000).round()} km by sea' : ''}): '
-          '${(route.totalDurationS / 60).round()} min '
-          '→ ${(seconds / 60).round()} min');
-
-      return RouteResult(
-        polyline: route.polyline,
-        steps: route.steps,
-        totalDistanceM: route.totalDistanceM,
-        totalDurationS: seconds,
-        speedLimits: route.speedLimits,
-        avoidance: route.avoidance,
-        fromAvoidanceRouter: true,
-      );
+      return RoutingRetimePolicy.apply(route, plan, legs);
     } catch (_) {
       return route; // best-effort: a failed re-timing is not a failed route
     }
@@ -1033,17 +975,6 @@ class RoutingService {
       throw RoutingException(message: e.toString());
     }
   }
-
-  /// A step in the route shape longer than this is not a road.
-  ///
-  /// Shape points sit on road nodes, so they are metres to hundreds of metres
-  /// apart; across thirty live routes on six continents the widest gap on
-  /// tarmac was 1.9 km. A jump of tens or hundreds of kilometres is a sea
-  /// crossing: OSM draws a ferry route as a way with barely any nodes, so
-  /// Naples→Palermo arrives as a single 305 km straight line. Those slices are
-  /// real parts of the journey — they are simply not slices OSRM's road timing
-  /// can say anything about. See [_retimedThroughOsrm].
-  static const _maxRoadStepM = 25000.0;
 
   /// OpenRouteService rejects a `language` it does not know with an HTTP 400
   /// — and a rejected request means no route at all, not an English one — so

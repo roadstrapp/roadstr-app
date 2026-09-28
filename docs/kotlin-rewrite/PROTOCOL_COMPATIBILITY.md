@@ -138,9 +138,11 @@ their normalized geometry, localized instructions, maneuver/decorative fields,
 speed limits, multi-leg/polyline6 behavior, validation/errors and retiming.
 The 28-case `routing_orchestration_v1.tsv` locks moving-OSRM bearing admission,
 the exact implausible-detour boundary, one unconstrained retry, terminal
-failure and hostile duplicate/late outcomes. `ROUTING_NETWORK_CORE_PARITY.md`
-records the remaining avoidance/retiming, cancellation and native-execution
-gates.
+failure and hostile duplicate/late outcomes. The 36-case
+`routing_avoidance_v1.tsv` locks the hard-to-soft/track state machines and
+OSRM sampling, per-leg distance, ferry, proportional-time and minimum-coverage
+decisions. `ROUTING_NETWORK_CORE_PARITY.md` records the remaining cancellation,
+coroutine/HTTP adapter and native-execution gates.
 
 ## Acceptance criteria
 
