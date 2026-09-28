@@ -1,4 +1,4 @@
-# Search-provider request, response, ranking and history parity
+# Search-provider request, response, ranking, orchestration and history parity
 
 This increment freezes the exact outbound request contract and deterministic
 inbound normalization/ranking for Roadstr's three search data sources without
@@ -28,6 +28,16 @@ normalization while remaining detached from Android networking and UI.
 ranking, relaxed retry and POI-first merging. Its Kotlin counterpart,
 `core.search.SearchRankingProtocol.kt`, consumes only normalized values and
 does not schedule work or access storage/networking.
+
+`lib/services/search_orchestration_protocol.dart` is now the production-used
+state machine around those pure decisions. `PlaceSearchService` starts every
+enabled initial provider concurrently, feeds completions in arrival order,
+emits at most the first nonempty ranked partial, waits for the complete enabled
+set, and either publishes one final merge or starts exactly one relaxed
+Nominatim/Photon batch. A provider exception is represented as an empty
+completion, and duplicate, disabled, premature and post-terminal completions
+cannot alter the outcome. `core.search.SearchOrchestrationProtocol.kt` freezes
+the same state transitions without owning futures, coroutines, sockets or UI.
 
 `lib/services/search_history_protocol.dart` now owns tolerant history decoding,
 newest-first coordinate deduplication, list limits and the persisted JSON value
@@ -151,6 +161,31 @@ dart run tools/kotlin_rewrite/generate_search_history_fixture.dart --check
 `MapScreen` and `MaplibreMapScreen` delegate their load/save/clear value policy
 to the Dart boundary while retaining the same encrypted Hive box and key.
 
+`search_orchestration_v1.tsv` adds 32 Dart-generated stateful transcripts:
+
+- 19 phase, partial, ranking, merge and retry outcomes;
+- all 6 settled three-provider initial-completion permutations, with both retry
+  completion orders;
+- 7 hostile duplicate, disabled, premature, invalid-batch and late-completion
+  transcripts.
+
+The fixture locks exact provider sets with and without location, one ranked
+first-nonempty partial, waiting for all enabled providers, Nominatim-first
+geocoder deduplication, POI-first final merge, retry admission/query/order and
+terminal immutability. Regenerate or verify it with:
+
+```text
+dart run tools/kotlin_rewrite/generate_search_orchestration_fixture.dart
+dart run tools/kotlin_rewrite/generate_search_orchestration_fixture.dart --check
+```
+
+`search_orchestration_protocol_test.dart` and
+`SearchOrchestrationProtocolParityTest.kt` consume the shared transcripts.
+Injected-provider `place_search_service_test.dart` cases additionally prove
+that the live Dart owner starts providers concurrently, degrades synchronous
+and asynchronous failures to empty results, launches one relaxed batch and
+does not let a stale rendering callback fail the final search.
+
 ## Privacy and execution boundary
 
 Kotlin can construct a value containing the same coarse coordinates and user
@@ -160,9 +195,9 @@ timeout, response-size, redirect, TLS and cleartext policy before dispatch.
 
 No API key is represented in this fixture. Routing request composition and
 response parsing are now covered separately by
-`ROUTING_NETWORK_CORE_PARITY.md`; search provider fallback/cancellation,
-partial-result concurrency, the native history persistence adapter, Overpass
-backoff execution and Android network integration remain later slices.
+`ROUTING_NETWORK_CORE_PARITY.md`; physical provider cancellation, UI
+request-generation suppression, the native history persistence adapter,
+Overpass backoff execution and Android network integration remain later slices.
 
 Rollback is removal of the Kotlin boundaries and fixtures plus inlining the
 small Dart builders/parsers/policies back into their callers. The history JSON
