@@ -1,8 +1,8 @@
 # Pure Kotlin core parity evidence
 
 This phase keeps every new component detached from `MainActivity`, Flutter
-startup and Android storage. It establishes deterministic behavior before any
-service or UI cutover.
+startup and Android storage. It establishes deterministic behavior and bounded
+native service adapters before any production or UI cutover.
 
 ## Implemented slices
 
@@ -14,6 +14,7 @@ service or UI cutover.
 | `core.format` | `units.dart` | metric/imperial display, altitude, 27-language speech units, distance punctuation/spacing |
 | `core.search` | `fuzzy_match.dart`, `search_ranking_protocol.dart`, `search_orchestration_protocol.dart`, `search_history_protocol.dart` | accent folding, bounded Levenshtein, address weighting, provider planning, proximity dedupe, city/brand/distance ranking, out-of-order provider completion, one partial, relaxed retry, POI-first final merge, history validation/recency/storage shape |
 | `core.network` | `retry.dart`, `refetch_policy.dart`, `bounded_http.dart`, `network_config.dart`, `search_provider_protocol.dart`, `search_response_protocol.dart`, `routing_request_protocol.dart`, `routing_response_protocol.dart`, `routing_orchestration_protocol.dart`, `routing_avoidance_protocol.dart`, `routing_provider_config.dart`, GraphHopper validation | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh, HTTP deadlines/body ceilings/redirect and cleartext-loopback policy, exact search requests and normalized responses plus routing-provider requests/responses, one-retry bearing fallback, avoidance fallback, per-leg re-timing and persisted provider/key/server resolution |
+| `service.network` | `bounded_http.dart` | shared OkHttp pool, exact GET/POST adaptation, whole-call deadline, declared/streamed body caps, redirect/retry refusal, value-free failures and physical coroutine cancellation |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
 | `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `lnurl_protocol.dart`, `zap_service.dart` | BOLT-11 parsing, LNURL-pay source/metadata/callback/invoice binding, NIP-47 URI/info negotiation/request/response and NIP-57 draft/receipt bindings |
 | `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_pending_report_queue.dart`, `nostr_relay_message.dart`, `nostr_relay_ingress.dart`, `nostr_nip19.dart`, `nostr_schnorr.dart`, `nip04.dart`, `nip44.dart`, `favorites_sync_protocol.dart`, Nostr/favourites/Lightning services | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash, outbound frames, offline FIFO/TTL/retry policy, bounded inbound envelopes, pre-verification routing/budgets, strict NIP-19 keys, x-only derivation/BIP-340, legacy NIP-04, NIP-44 v2 and deterministic NIP-78 policy |
@@ -189,22 +190,23 @@ Kotlin mirror remains detached from secure storage and native dispatch. See
   extracted Dart request builders, response parsers and search-ranking policy
   are called by the existing Flutter services.
 - Stateful navigation tests cover policy decisions, not Android sensor timing.
-- Retry scheduling is pure policy; coroutine execution and cancellation belong
-  to the future native networking adapter.
-- HTTP size, endpoint, search/routing request and response decisions are pure
-  Kotlin policy; no
-  native DNS, TLS, connection, total-deadline or cancellation adapter exists
-  yet.
+- Retry scheduling and provider orchestration remain pure policy. The native
+  HTTP adapter executes and physically cancels one bounded request, but does
+  not yet own provider jobs or retry state machines.
+- HTTP size, endpoint, search/routing request and response decisions are Kotlin
+  policy and local OkHttp integration tests cover connection, total deadlines
+  and cancellation. Android DNS, TLS, Network Security Config and cleartext
+  integration evidence remains open.
 - Mid-navigation OSRM bearing fallback, avoidance attempt ordering and
   per-slice re-timing admission are covered, including both one-retry ceilings.
   Persisted provider/key/server resolution and routing-time legacy migration
-  are covered. A native secure-store adapter, coroutine/HTTP execution, UI
-  request generations and live native dispatch remain open.
+  are covered. A native secure-store adapter, provider-level coroutine
+  execution, UI request generations and live native dispatch remain open.
 - Search provider planning, normalized-result ranking/merge, out-of-order
   completion/failure handling, one-partial/one-retry orchestration and
   deterministic history value semantics are covered. Encrypted Hive still owns
-  Flutter persistence; an Android backend, physical request cancellation, UI
-  request-generation handling and live native provider execution remain open.
+  Flutter persistence; an Android backend, provider-job ownership, UI request-
+  generation handling and live native provider execution remain open.
 - NIP-47/NIP-57, LNURL-pay, legacy NIP-04, NIP-44 v2 and NIP-78 favourites
   deterministic wire, crypto, parsing, padding, binding and rollback rules are
   covered, including NIP-47 encryption negotiation; native signer/key
@@ -236,12 +238,13 @@ Kotlin mirror remains detached from secure storage and native dispatch. See
   request/response/configuration policies, search/routing/avoidance
   orchestration and re-timing, search planning/ranking/history, both migration
   fixture oracles and the headless Dart handler.
-- `./gradlew :app:testDebugUnitTest`: 154 Kotlin tests passed, including the
+- `./gradlew :app:testDebugUnitTest`: 164 Kotlin tests passed, including the
   Nostr byte/queue/inbound/ingress/NIP-19/BIP-340/NIP-04/NIP-44/NIP-78,
   Lightning/LNURL parity, HTTP safety/search/routing requests, responses,
   configuration, orchestration and re-timing, search planning/ranking/
   orchestration/history, native persistence/migration and bounded headless
-  transport reader suites.
+  transport reader and native bounded-HTTP integration suites.
 - `./gradlew :app:assembleDebug`: D8, duplicate-class checks and Android APK
-  packaging passed with the pinned Bouncy Castle dependency.
+  packaging passed with pinned Bouncy Castle, OkHttp and coroutines
+  dependencies.
 - No production Activity, manifest or startup wiring changed.

@@ -199,14 +199,17 @@ server read.
 
 ## Deliberately outside this slice
 
-- no Kotlin HTTP engine, DNS resolver, connection pool or socket is wired;
-- native timeout, cancellation, retry, redirect, TLS and cleartext enforcement
-  still belongs to the future bounded-network adapter;
+- the shared Kotlin HTTP engine now owns local-test sockets, connection pooling,
+  total deadlines, redirect/retry refusal, response bounds and single-call
+  cancellation, but no routing provider service invokes it in production;
+- DNS, TLS and cleartext enforcement still need Android integration/device
+  evidence;
 - provider/key/server resolution and routing-time legacy-key migration are now
   fixture-locked and used by Flutter, but the native secure-store adapter,
   request-generation suppression and all native live dispatch remain open;
-- physical cancellation and coroutine ownership remain open for the native
-  adapter even though reroute fallback admission is now fixture-locked;
+- provider-job ownership, request-generation suppression and orchestration
+  cancellation remain open even though a cancelled coroutine now cancels its
+  physical OkHttp call;
 - installed-app secure-storage/Keystore migration and live-provider/device
   tests remain release gates.
 
