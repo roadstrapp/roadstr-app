@@ -69,6 +69,12 @@ hard-to-soft and direct-track attempt ordering, route-shape sampling, ferry
 recognition, per-leg OSRM admission, proportional Valhalla fallback and the
 minimum verified-road budget. It does not dispatch or cancel requests.
 
+`lib/services/routing_provider_config.dart` is called by both production map
+implementations. Its Kotlin counterpart freezes persisted provider/key/server
+resolution, required-credential fallback, secure-key precedence and the
+routing-time legacy-key migration decision. Kotlin still has no secure-storage
+adapter and does not dispatch the resulting configuration.
+
 ## Compatibility detail
 
 The shipped GraphHopper validator requires a host and refuses explicit
@@ -128,6 +134,12 @@ compare 10 hard/soft/track state transcripts and 26 re-timing cases spanning
 sampling/count caps, rounding, ferry detection, malformed legs, distance slack,
 coverage thresholds, proportional fallback and metadata retention.
 
+`routing_provider_config_v1.tsv` adds 34 Dart-generated outcomes. Both runtimes
+compare provider-key matching, OSRM credential-read modes, required keys and
+servers, fallback issues, secure/legacy precedence, migration intent and Dart
+Unicode trimming. Dart adapter tests additionally lock storage callback order
+and failed-write safety.
+
 `search_responses_v1.tsv` adds 34 Dart-generated Nominatim forward/reverse,
 Photon and Overpass outcomes. Both runtimes compare normalized fields,
 coordinates, categories, labels, text bounds, node/way centres, distances and
@@ -161,6 +173,8 @@ ordering, final merge precedence, duplicate suppression and terminal behavior.
   request-generation suppression, Overpass backoff and live native execution
   remain; avoidance/re-timing policy is locked but has no coroutine/HTTP
   adapter;
+- routing configuration decisions are locked, but native secure-storage/
+  Keystore access and installed-app migration evidence remain open;
 - DNS-aware SSRF checks for LNURL remain part of the later live-network gate.
 
 The Kotlin policy has no Android, Activity, startup or persistence wiring.

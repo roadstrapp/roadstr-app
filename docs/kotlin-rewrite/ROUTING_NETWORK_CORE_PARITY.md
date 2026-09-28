@@ -75,6 +75,16 @@ keeps Valhalla time for ferry and diverged slices, accepts OSRM timing within
 `RoutingAvoidanceProtocol.kt` and `RoutingRetimePolicy` mirror those decisions
 without coroutines or sockets.
 
+`lib/services/routing_provider_config.dart` now owns provider, API-key and
+self-hosted GraphHopper-server resolution for both production map
+implementations. It preserves their historical difference: MapLibre's exact
+`osrm` fast path reads no credentials, while the raster map still performs the
+existing routing-time legacy-key migration. A missing required key/server
+falls back to OSRM with the same warning category, secure storage wins over
+Hive, and migration writes the trimmed legacy key before deleting it.
+`RoutingProviderConfigProtocol.kt` mirrors the pure decision without Android
+storage or network dependencies.
+
 ## Shared fixture
 
 `routing_requests_v1.tsv` contains 89 Dart-generated outcomes:
@@ -169,19 +179,36 @@ failures do not cause a hidden fallback; both runtimes independently verify
 that accepted re-timing preserves geometry, maneuvers, speed limits, distance
 and avoidance classification.
 
+`routing_provider_config_v1.tsv` contains 34 Dart-generated outcomes covering
+exact, unknown, case-mismatched and whitespace provider keys; both OSRM read
+modes; GraphHopper server and cloud-key requirements; OpenRouteService keys;
+null, empty and whitespace secure values; secure-key precedence; legacy
+migration; stale server retention; and Dart Unicode/BOM trimming. Regenerate
+or verify it with:
+
+```text
+dart run tools/kotlin_rewrite/generate_routing_provider_config_fixture.dart
+dart run tools/kotlin_rewrite/generate_routing_provider_config_fixture.dart --check
+```
+
+`routing_provider_config_test.dart` and
+`RoutingProviderConfigProtocolParityTest.kt` consume the shared contract.
+Additional Dart adapter tests lock callback suppression and ordering, including
+that a failed secure write never deletes the legacy value or continues to the
+server read.
+
 ## Deliberately outside this slice
 
 - no Kotlin HTTP engine, DNS resolver, connection pool or socket is wired;
 - native timeout, cancellation, retry, redirect, TLS and cleartext enforcement
   still belongs to the future bounded-network adapter;
-- persisted provider/key resolution, request-generation suppression and all
-  live dispatch remain in Flutter; hard/soft admission and OSRM re-timing
-  decisions are fixture-locked, but no native coroutine/HTTP adapter executes
-  them yet;
+- provider/key/server resolution and routing-time legacy-key migration are now
+  fixture-locked and used by Flutter, but the native secure-store adapter,
+  request-generation suppression and all native live dispatch remain open;
 - physical cancellation and coroutine ownership remain open for the native
   adapter even though reroute fallback admission is now fixture-locked;
-- persisted provider/API-key migration and live-provider/device tests remain
-  release gates.
+- installed-app secure-storage/Keystore migration and live-provider/device
+  tests remain release gates.
 
 Rollback is removal of the Kotlin boundaries/fixtures and re-inlining the Dart
 request builders, response parser and extracted routing orchestration policies.
