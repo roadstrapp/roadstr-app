@@ -31,6 +31,32 @@ void main() {
     expect(calls, isEmpty);
   });
 
+  test('rollout factory is explicit and defaults to a stable dart define',
+      () async {
+    expect(NativeNavigationRollout.dartDefine, 'ROADSTR_NATIVE_NAVIGATION');
+    expect(
+      NativeNavigationRollout.create().enabled,
+      NativeNavigationRollout.enabledByDefault,
+    );
+
+    final disabled = NativeNavigationRollout.create(enabled: false);
+    expect(disabled.enabled, isFalse);
+    expect(await disabled.start(), isFalse);
+
+    final enabled = NativeNavigationRollout.create(
+      bridge: const NativeNavigationBridge(channel: channel),
+      enabled: true,
+    );
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      return call.method == NativeNavigationBridgeContract.startForegroundGps
+          ? true
+          : null;
+    });
+    expect(enabled.enabled, isTrue);
+    expect(await enabled.start(), isTrue);
+    await enabled.dispose();
+  });
+
   test('enabled ownership is idempotent across duplicate starts and stops',
       () async {
     final calls = <MethodCall>[];
