@@ -107,6 +107,12 @@ The first native increment is intentionally isolated from production startup:
   validation, recency/deduplication and serialization to a pure Dart boundary.
   Kotlin matches 31 shared outcomes; encrypted Hive remains the live owner and
   the native persistence adapter is still unwired.
+- `service/location/NativeLocationService.kt` and
+  `service/location/AndroidLocationManagerSource.kt` now provide a headless
+  AOSP GPS boundary with the Dart-compatible 500 ms cadence, safe fix
+  normalization, last-known behavior, 20/45-second dead-stream watchdog and
+  cancellable lifecycle ownership. Startup, permission/UI, foreground
+  notification and device lifecycle wiring remain deliberately unwired.
 - `docs/kotlin-rewrite/MIGRATION_IMPLEMENTATION.md` records what is and is not
   wired.
 
@@ -425,16 +431,16 @@ broader cross-language coverage and a native store are still required.
 - **Acceptance criteria:** nsec and Amber users remain configured and can perform the same operations.
 - **Rollback notes:** Keep Flutter signing/payment bridge until manual update tests pass.
 
-### KOTLIN-011 — Port GPS and lifecycle ownership
+### KOTLIN-011 — Port GPS and lifecycle ownership (IN PROGRESS)
 
 - **Objective:** Match LocationManager cadence, watchdog, assistance, heading, foreground and background behavior.
 - **Current Dart/Flutter source:** `lib/services/gps_service.dart`, map screen lifecycle/camera policies, notification service.
-- **New Kotlin files/modules:** `service/location`, `service/navigation`, `service/notifications`, lifecycle-aware ViewModels.
+- **New Kotlin files/modules:** `service/location` now contains the headless AOSP `LocationManager` adapter and lifecycle/watchdog policy; `service/navigation`, `service/notifications` and lifecycle-aware ViewModels remain.
 - **Dependencies:** Android platform LocationManager/sensors/foreground APIs only; no fused location or Play Services.
 - **Migration impact:** Active navigation state and notification actions must not be lost on recreation.
 - **User-visible impact:** Same permissions, fix cadence, background grace, guidance and notification lifecycle.
-- **Tests:** fake LocationManager streams, watchdog/dead stream, rotation/process/lifecycle tests and de-Googled manual test.
-- **Parity evidence:** timing/state traces compared with Flutter baseline.
+- **Tests:** 11 deterministic JVM tests cover fix normalization, last-known speed, fake streams, watchdog/dead stream, disabled-provider behavior, callback isolation, cancellation and disposal; rotation/process/lifecycle tests and de-Googled manual test remain.
+- **Parity evidence:** headless AOSP source/policy and timing/state watchdog traces are green; startup and physical-device traces remain.
 - **Security/privacy impact:** Preserve permission scope, no coordinate logs and notification privacy.
 - **Battery/performance impact:** CPU/wakeups/GPS duration/map camera updates measured in comparable sessions.
 - **Acceptance criteria:** No obvious battery/navigation regression and same background behavior.
