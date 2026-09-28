@@ -3,6 +3,8 @@
 import 'package:latlong2/latlong.dart';
 
 class SearchHistoryItem {
+  static const maxLabelLength = 300;
+
   final String label;
   final LatLng position;
   const SearchHistoryItem(this.label, this.position);
@@ -25,7 +27,9 @@ class SearchHistoryItem {
       return null;
     }
     final label = j['label'];
-    if (label is! String || label.isEmpty || label.length > 300) return null;
+    if (label is! String || label.isEmpty || label.length > maxLabelLength) {
+      return null;
+    }
     return SearchHistoryItem(label, LatLng(lat, lon));
   }
 }

@@ -121,6 +121,10 @@ payload behavior, including a 53-pair Nominatim class/type category matrix.
 The 53-case `search_ranking_v1.tsv` locks query/phase planning, fuzzy/city/
 brand/distance ordering, rounded proximity dedupe, provider/POI precedence,
 result caps and relaxed-retry admission.
+The 31-case `search_history_v1.tsv` locks the existing local history key/value
+contract, hostile-row rejection, UTF-16/coordinate bounds, recency/dedupe,
+load/write ceilings and representative exact JSON spellings. It changes no
+encrypted Hive ownership and is not yet wired to a native store.
 The 89-case `routing_requests_v1.tsv` locks OSRM, OpenRouteService,
 GraphHopper and Valhalla methods, URLs, profiles/locales, coordinates,
 headers/bodies, API-key boundaries, waypoint/alternative/bearing rules,
