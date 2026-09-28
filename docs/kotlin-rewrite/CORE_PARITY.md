@@ -17,7 +17,7 @@ adapters and dormant native persistence before any production or UI cutover.
 | `service.network` | `bounded_http.dart` | shared OkHttp pool, exact GET/POST adaptation, whole-call deadline, declared/streamed body caps, redirect/retry refusal, value-free failures and physical coroutine cancellation |
 | `service.routing` | `routing_service.dart` | resolved OSRM/ORS/GraphHopper dispatch, provider-specific deadlines, 32 MiB journey-route bound, normalized responses, value-free failures, cancellable one-retry bearing fallback, Valhalla hard/soft/track avoidance and best-effort OSRM re-timing |
 | `service.location` | `gps_service.dart` | AOSP `LocationManager` source, 500 ms sampling boundary, safe fix normalization, last-known fix, 20/45-second dead-stream watchdog and cancellable lifecycle ownership; startup/UI/foreground wiring remains |
-| `service.navigation` | map-screen lifecycle/navigation state | 30-second background grace, generation-safe pause/resume, GPS retention during navigation, detach cleanup and foreground-only wakelock policy; Android service/ViewModel wiring remains |
+| `service.navigation` | map-screen lifecycle/navigation state | 30-second background grace, generation-safe pause/resume, GPS retention during navigation, detach cleanup, foreground-only wakelock policy and dormant AOSP foreground-service adapter; Activity/ViewModel start wiring remains |
 | `service.notifications` | `navigation_notification_service.dart` | 3-second distance-only throttle, immediate maneuver changes, reset semantics and private ongoing notification metadata; Android `NotificationManager` adapter remains |
 | `feature.map` | `maplibre_map_screen.dart`, `map_screen.dart`, map services/widgets | raster MapLibre style JSON, dark recoloring, tile URL admission/escaping, ZTL route-run segmentation and zoom/viewport marker culling; native renderer and Activity/UI wiring remain |
 | `storage` | encrypted Hive search history | canonical encrypted history file, serialized prepend/clear/import, atomic recovery, Keystore boundary and migration-marker ciphertext binding |
@@ -253,8 +253,9 @@ detached from secure storage and startup. See
   decisions headlessly; MapLibre Android dependency selection, native renderer,
   Compose layers, gestures and screenshot/device evidence remain open.
 - Native navigation lifecycle and notification policies are now deterministic,
-  but the Android foreground service, notification channel registration,
-  Activity/ViewModel ownership and background-process evidence remain open.
+  and the dormant Android location foreground-service adapter is registered,
+  but Activity/ViewModel start ownership and background-process evidence remain
+  open.
 
 ## Verification for this increment
 
