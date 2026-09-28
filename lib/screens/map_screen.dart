@@ -416,7 +416,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   Timer? _missedTurnTimer;
 
   final _nostr = NostrRelayService();
-  final _navNotif = NavigationNotificationService();
+  final _navNotif = NavigationNotificationService(
+    mirrorNative: NativeNavigationRollout.enabledByDefault,
+  );
   final _activityNotif = ActivityNotificationService();
   StreamSubscription<ActivityNotification>? _activitySub;
   final _tts = KokoroTtsService();

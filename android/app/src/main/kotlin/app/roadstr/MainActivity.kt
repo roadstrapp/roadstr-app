@@ -9,6 +9,8 @@ import app.roadstr.service.navigation.NativeNavigationBridge
 import app.roadstr.service.navigation.NativeNavigationForegroundService
 import app.roadstr.service.navigation.NativeNavigationFixStreamHandler
 import app.roadstr.service.navigation.NativeNavigationServiceState
+import app.roadstr.service.notifications.NativeNavigationNotificationCommand
+import app.roadstr.service.notifications.NativeNavigationNotificationDispatcher
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
@@ -33,6 +35,10 @@ class MainActivity : FlutterFragmentActivity() {
                     NativeNavigationBridge.STOP_FOREGROUND_GPS -> stopNativeForegroundGps(result)
                     NativeNavigationBridge.IS_FOREGROUND_GPS_RUNNING ->
                         result.success(NativeNavigationServiceState.isForegroundGpsRunning())
+                    NativeNavigationBridge.UPDATE_NAVIGATION_NOTIFICATION ->
+                        updateNativeNavigationNotification(call.arguments, result)
+                    NativeNavigationBridge.RESET_NAVIGATION_NOTIFICATION ->
+                        resetNativeNavigationNotification(result)
                     else -> result.notImplemented()
                 }
             }
@@ -71,6 +77,45 @@ class MainActivity : FlutterFragmentActivity() {
     private fun stopNativeForegroundGps(result: MethodChannel.Result) {
         stopService(NativeNavigationForegroundService.stopIntent(this))
         result.success(true)
+    }
+
+    private fun updateNativeNavigationNotification(
+        arguments: Any?,
+        result: MethodChannel.Result,
+    ) {
+        val update = NativeNavigationBridge.parseNotificationUpdate(arguments)
+        if (update == null) {
+            result.error(
+                NativeNavigationBridge.ERROR_INVALID_ARGUMENTS,
+                "Navigation notification requires bounded instruction and distance text",
+                null,
+            )
+            return
+        }
+        if (!NativeNavigationServiceState.isForegroundGpsRunning()) {
+            result.success(false)
+            return
+        }
+        result.success(
+            NativeNavigationNotificationDispatcher.dispatch(
+                NativeNavigationNotificationCommand.Update(
+                    instruction = update.instruction,
+                    distance = update.distance,
+                ),
+            ),
+        )
+    }
+
+    private fun resetNativeNavigationNotification(result: MethodChannel.Result) {
+        if (!NativeNavigationServiceState.isForegroundGpsRunning()) {
+            result.success(false)
+            return
+        }
+        result.success(
+            NativeNavigationNotificationDispatcher.dispatch(
+                NativeNavigationNotificationCommand.Reset,
+            ),
+        )
     }
 
     private fun hasLocationPermission(): Boolean =

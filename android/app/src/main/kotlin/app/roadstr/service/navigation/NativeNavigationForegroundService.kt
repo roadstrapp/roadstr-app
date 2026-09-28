@@ -12,6 +12,11 @@ import android.os.IBinder
 import app.roadstr.R
 import app.roadstr.service.location.AndroidLocationManagerSource
 import app.roadstr.service.location.NativeLocationService
+import app.roadstr.service.notifications.NativeNavigationNotification
+import app.roadstr.service.notifications.NativeNavigationNotificationCommand
+import app.roadstr.service.notifications.NativeNavigationNotificationDispatcher
+import app.roadstr.service.notifications.NativeNavigationNotificationPolicy
+import app.roadstr.service.notifications.NativeNavigationNotificationSubscription
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -27,13 +32,18 @@ import kotlinx.coroutines.runBlocking
  */
 class NativeNavigationForegroundService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val navigationNotificationPolicy = NativeNavigationNotificationPolicy()
     private var locationService: NativeLocationService? = null
+    private var notificationSubscription: NativeNavigationNotificationSubscription? = null
     private var foregroundStarted = false
 
     override fun onCreate() {
         super.onCreate()
         NativeNavigationServiceState.markForegroundGpsStopped()
         createLocationChannel()
+        createNavigationChannel()
+        notificationSubscription =
+            NativeNavigationNotificationDispatcher.attach(::handleNavigationNotification)
         locationService = NativeLocationService(
             source = AndroidLocationManagerSource(applicationContext, mainLooper),
             // Canary consumers observe this process-local stream without
@@ -57,6 +67,9 @@ class NativeNavigationForegroundService : Service() {
     override fun onDestroy() {
         NativeNavigationServiceState.markForegroundGpsStopped()
         foregroundStarted = false
+        notificationSubscription?.cancel()
+        notificationSubscription = null
+        navigationNotificationPolicy.reset()
         runBlocking(Dispatchers.Default) {
             locationService?.dispose()
         }
@@ -90,6 +103,7 @@ class NativeNavigationForegroundService : Service() {
 
     private fun stopLocation() {
         NativeNavigationServiceState.markForegroundGpsStopped()
+        navigationNotificationPolicy.reset()
         serviceScope.launch {
             locationService?.dispose()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -121,6 +135,67 @@ class NativeNavigationForegroundService : Service() {
             lockscreenVisibility = Notification.VISIBILITY_PRIVATE
         }
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+    }
+
+    private fun createNavigationChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val channel = NotificationChannel(
+            NativeNavigationNotificationPolicy.CHANNEL_ID,
+            NativeNavigationNotificationPolicy.CHANNEL_NAME,
+            NotificationManager.IMPORTANCE_LOW,
+        ).apply {
+            description = "Roadstr turn-by-turn navigation"
+            setShowBadge(false)
+            lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+        }
+        getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+    }
+
+    private fun handleNavigationNotification(command: NativeNavigationNotificationCommand) {
+        when (command) {
+            is NativeNavigationNotificationCommand.Update -> {
+                val update = navigationNotificationPolicy.nextUpdate(
+                    instruction = command.instruction,
+                    distance = command.distance,
+                    nowMillis = System.currentTimeMillis(),
+                ) ?: return
+                try {
+                    getSystemService(NotificationManager::class.java).notify(
+                        update.id,
+                        buildNavigationNotification(update),
+                    )
+                } catch (_: SecurityException) {
+                    navigationNotificationPolicy.reset()
+                }
+            }
+
+            NativeNavigationNotificationCommand.Reset -> {
+                navigationNotificationPolicy.reset()
+                getSystemService(NotificationManager::class.java).cancel(
+                    NativeNavigationNotificationPolicy.NOTIFICATION_ID,
+                )
+            }
+        }
+    }
+
+    private fun buildNavigationNotification(
+        update: NativeNavigationNotification,
+    ): Notification {
+        val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder(this, update.channelId)
+        } else {
+            @Suppress("DEPRECATION")
+            Notification.Builder(this)
+        }
+        return builder
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle(update.title)
+            .setContentText(update.body)
+            .setOngoing(update.ongoing)
+            .setOnlyAlertOnce(update.onlyAlertOnce)
+            .setAutoCancel(update.autoCancel)
+            .setVisibility(Notification.VISIBILITY_PRIVATE)
+            .build()
     }
 
     private fun buildLocationNotification(): Notification {

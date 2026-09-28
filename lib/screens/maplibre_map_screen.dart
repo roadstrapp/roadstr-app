@@ -796,7 +796,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
 
   /// Persistent Android notification during nav (next manoeuvre + distance)
   /// — same NavigationNotificationService MapScreen uses.
-  final _navNotif = NavigationNotificationService();
+  final _navNotif = NavigationNotificationService(
+    mirrorNative: NativeNavigationRollout.enabledByDefault,
+  );
 
   /// Silently records the logged-in user's own activity (zaps received,
   /// confirm/deny on their own reports) for the Notifications screen — same
