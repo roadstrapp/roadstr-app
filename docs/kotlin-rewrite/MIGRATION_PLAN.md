@@ -348,7 +348,10 @@ broader cross-language coverage and a native store are still required.
   resolved OSRM, OpenRouteService and GraphHopper requests, preserves their
   10/12-second deadlines and 32 MiB full-route ceiling, and drives the exact
   constrained-to-unconstrained OSRM fallback without swallowing caller
-  cancellation.
+  cancellation. It also executes 25-second Valhalla hard-exclusion,
+  soft-preference and track-avoidance attempts, applies the single hard-to-soft
+  fallback, classifies the accepted route and performs best-effort 30-second
+  OSRM per-leg re-timing without hiding cancellation.
   `service/search/NativeSearchService.kt` now composes and dispatches bounded
   Nominatim, Photon and category-Overpass requests, starts phase-enabled
   providers concurrently, delivers one safe partial, rotates vetted Overpass
@@ -374,10 +377,11 @@ broader cross-language coverage and a native store are still required.
   provider-configuration fixture and existing live Dart local-server redirect/
   oversize/Overpass tests are green. Ten native local-server tests add exact
   GET/POST dispatch, redirect/retry refusal, declared/streamed limits, total
-  deadline, value-free failures and physical cancellation. Ten routing-service
-  tests add all three primary providers, exact limits, real local
-  GraphHopper-through-OkHttp execution, failure redaction, bearing fallback and
-  cancellation-without-retry. Ten search-service tests add exact limits,
+  deadline, value-free failures and physical cancellation. Twenty routing
+  service tests add all three primary providers, exact limits, real local
+  GraphHopper/Valhalla/OSRM execution through OkHttp, failure redaction,
+  bearing and avoidance fallback, re-timing degradation and cancellation-
+  without-retry. Ten search-service tests add exact limits,
   concurrent providers, partial/final delivery, failure isolation, one relaxed
   batch, category query/mirror fallback, a real loopback POST and all-job
   cancellation. Twelve new storage tests cover encrypted history import/
@@ -388,11 +392,11 @@ broader cross-language coverage and a native store are still required.
   Valhalla request bytes, normalized search/route responses, deterministic
   search planning/ranking/orchestration, OSRM reroute fallback, avoidance/
   re-timing decisions, provider/key/server resolution, routing-time legacy-key
-  migration and history value semantics are green; headless native primary-
-  provider routing execution and headless search orchestration/execution are
-  green. The native encrypted history store is green but not UI-owned; routing
-  secret reads, search caching/UI generations, avoidance execution, Android
-  network integration and production ownership are open.
+  migration and history value semantics are green. Headless native primary-
+  provider routing, Valhalla avoidance, best-effort OSRM re-timing and search
+  orchestration/execution are green. The native encrypted history store is
+  green but not UI-owned; routing secret reads, search caching/UI generations,
+  Android network integration and production ownership are open.
 - **Security/privacy impact:** Preserve URL validation, body caps, user-agent, no silent cloud fallback.
 - **Battery/performance impact:** Compare network retries, cache hit rate and cancellation.
 - **Acceptance criteria:** All current providers pass without changed limits or privacy behavior.
