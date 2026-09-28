@@ -221,12 +221,18 @@ behavior still requires integration/device evidence.
 
 No API key is represented in this fixture. Routing request composition and
 response parsing are now covered separately by
-`ROUTING_NETWORK_CORE_PARITY.md`; UI request-generation suppression, the native
-history persistence adapter, Nominatim caching, long-lived Overpass backoff and
-Android network integration remain later slices.
+`ROUTING_NETWORK_CORE_PARITY.md`. `FileNativeSearchHistoryStore` now provides a
+detached, serialized AES-GCM history backend with atomic recovery. Migration
+extracts the normalized legacy list before the public snapshot is encoded, and
+the completion marker binds the exact validated ciphertext digest. JVM tests
+cover reopen, malformed rows, plaintext absence, corruption, wrong keys,
+concurrent prepends and retry after a valid ciphertext replacement. UI
+request-generation suppression, history UI ownership, real Android Keystore
+evidence, Nominatim caching, long-lived Overpass backoff and Android network
+integration remain later slices.
 
 Rollback is removal of the native service while leaving the Kotlin parity
 boundaries/fixtures and the small Dart builders/parsers/policies intact.
-The history JSON shape, encrypted Hive owner/key, endpoints, mirror order,
-request limits and production live-network owner did not change in this
-increment.
+The history JSON shape, current Flutter encrypted-Hive owner/key, endpoints,
+mirror order, request limits and production live-network owner did not change
+in this increment.
