@@ -206,22 +206,28 @@ class FileSnapshotBoundMigrationMarker(
     directory: File,
     private val publicStore: NativePublicSnapshotStore,
     private val secretVerifier: NativeSecretCommitmentVerifier,
+    private val searchHistoryVerifier: NativeSearchHistoryMigrationStore? = null,
 ) : MigrationMarker {
+    private val markerMagic = if (searchHistoryVerifier == null) MAGIC_V1 else MAGIC_V2
     private val marker = RecoverableAtomicFile(
         directory = directory,
         fileName = NATIVE_MIGRATION_MARKER_FILE,
         maxBytes = MARKER_BYTES,
-        validator = ::validateMarker,
+        validator = { validateMarker(it, markerMagic) },
     )
 
-    override fun isComplete(): Boolean = try {
-        val markerBytes = marker.read() ?: return false
-        val publicBytes = publicStore.read() ?: return false
-        val publicRecord = NativeSnapshotRecordCodec.decode(publicBytes)
-        markerMatches(markerBytes, publicBytes) &&
-            secretVerifier.matches(publicRecord.secureValueDigests)
-    } catch (_: RuntimeException) {
-        false
+    override fun isComplete(): Boolean {
+        return try {
+            val markerBytes = marker.read() ?: return false
+            val publicBytes = publicStore.read() ?: return false
+            val publicRecord = NativeSnapshotRecordCodec.decode(publicBytes)
+            val historyDigest = searchHistoryVerifier?.committedCiphertextDigest()
+            if (searchHistoryVerifier != null && historyDigest == null) return false
+            markerMatches(markerBytes, publicBytes, historyDigest, markerMagic) &&
+                secretVerifier.matches(publicRecord.secureValueDigests)
+        } catch (_: RuntimeException) {
+            false
+        }
     }
 
     override fun markComplete() {
@@ -229,7 +235,11 @@ class FileSnapshotBoundMigrationMarker(
             val publicBytes = publicStore.read()
                 ?: throw NativePersistenceException("Native public snapshot is unavailable")
             NativeSnapshotRecordCodec.decode(publicBytes)
-            marker.stage(markerFor(publicBytes))
+            val historyDigest = searchHistoryVerifier?.committedCiphertextDigest()
+            if (searchHistoryVerifier != null && historyDigest == null) {
+                throw NativePersistenceException("Native search history is unavailable")
+            }
+            marker.stage(markerFor(publicBytes, historyDigest, markerMagic))
             marker.commit()
             if (!isComplete()) {
                 throw NativePersistenceException("Native migration marker verification failed")
@@ -242,31 +252,57 @@ class FileSnapshotBoundMigrationMarker(
     }
 
     private companion object {
-        val MAGIC = "RSTRMIG1".toByteArray(Charsets.US_ASCII)
+        val MAGIC_V1 = "RSTRMIG1".toByteArray(Charsets.US_ASCII)
+        val MAGIC_V2 = "RSTRMIG2".toByteArray(Charsets.US_ASCII)
+        val HISTORY_DIGEST_DOMAIN =
+            "roadstr-native-migration-history-v1".toByteArray(Charsets.US_ASCII)
         const val DIGEST_BYTES = 32
-        val MARKER_BYTES = MAGIC.size + DIGEST_BYTES
+        val MARKER_BYTES = MAGIC_V1.size + DIGEST_BYTES
 
-        fun validateMarker(bytes: ByteArray) {
+        fun validateMarker(bytes: ByteArray, magic: ByteArray) {
             if (bytes.size != MARKER_BYTES ||
-                !MessageDigest.isEqual(MAGIC, bytes.copyOfRange(0, MAGIC.size))
+                !MessageDigest.isEqual(magic, bytes.copyOfRange(0, magic.size))
             ) {
                 throw NativePersistenceException("Native migration marker is invalid")
             }
         }
 
-        fun markerFor(publicBytes: ByteArray): ByteArray {
-            val digest = MessageDigest.getInstance("SHA-256").digest(publicBytes)
+        fun markerFor(
+            publicBytes: ByteArray,
+            historyDigest: ByteArray?,
+            magic: ByteArray,
+        ): ByteArray {
+            val digest = markerDigest(publicBytes, historyDigest)
             return ByteArray(MARKER_BYTES).also { result ->
-                MAGIC.copyInto(result)
-                digest.copyInto(result, destinationOffset = MAGIC.size)
+                magic.copyInto(result)
+                digest.copyInto(result, destinationOffset = magic.size)
             }
         }
 
-        fun markerMatches(markerBytes: ByteArray, publicBytes: ByteArray): Boolean {
-            validateMarker(markerBytes)
-            val storedDigest = markerBytes.copyOfRange(MAGIC.size, MARKER_BYTES)
-            val actualDigest = MessageDigest.getInstance("SHA-256").digest(publicBytes)
+        fun markerMatches(
+            markerBytes: ByteArray,
+            publicBytes: ByteArray,
+            historyDigest: ByteArray?,
+            magic: ByteArray,
+        ): Boolean {
+            validateMarker(markerBytes, magic)
+            val storedDigest = markerBytes.copyOfRange(magic.size, MARKER_BYTES)
+            val actualDigest = markerDigest(publicBytes, historyDigest)
             return MessageDigest.isEqual(storedDigest, actualDigest)
+        }
+
+        fun markerDigest(publicBytes: ByteArray, historyDigest: ByteArray?): ByteArray {
+            if (historyDigest == null) {
+                return MessageDigest.getInstance("SHA-256").digest(publicBytes)
+            }
+            if (historyDigest.size != DIGEST_BYTES) {
+                throw NativePersistenceException("Native search history digest is invalid")
+            }
+            val digest = MessageDigest.getInstance("SHA-256")
+            digest.update(HISTORY_DIGEST_DOMAIN)
+            digest.update(publicBytes)
+            digest.update(historyDigest)
+            return digest.digest()
         }
     }
 }
