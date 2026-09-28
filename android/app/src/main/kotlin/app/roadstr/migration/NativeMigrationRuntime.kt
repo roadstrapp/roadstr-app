@@ -3,9 +3,11 @@ package app.roadstr.migration
 import android.content.Context
 import app.roadstr.storage.AndroidKeystoreNativeSecretStore
 import app.roadstr.storage.FileNativePublicSnapshotStore
+import app.roadstr.storage.FileNativeSearchHistoryStore
 import app.roadstr.storage.FileSnapshotBoundMigrationMarker
 import app.roadstr.storage.NativeSecretCommitmentVerifier
 import app.roadstr.storage.NativeSecretStore
+import app.roadstr.storage.NativeSearchHistoryMigrationStore
 import app.roadstr.storage.NativeStoragePaths
 
 /**
@@ -28,7 +30,15 @@ class NativeMigrationRuntime private constructor(
         ): NativeMigrationRuntime {
             val paths = NativeStoragePaths.from(context)
             val secretStore = AndroidKeystoreNativeSecretStore(paths.rootDirectory)
-            return create(paths, reader, identityVerifier, secretStore, secretStore)
+            val searchHistoryStore = FileNativeSearchHistoryStore(paths)
+            return create(
+                paths,
+                reader,
+                identityVerifier,
+                secretStore,
+                secretStore,
+                searchHistoryStore,
+            )
         }
 
         /**
@@ -53,12 +63,14 @@ class NativeMigrationRuntime private constructor(
             identityVerifier: IdentityVerifier,
             secretStore: NativeSecretStore,
             secretVerifier: NativeSecretCommitmentVerifier,
+            searchHistoryStore: NativeSearchHistoryMigrationStore? = null,
         ): NativeMigrationRuntime {
             val publicStore = FileNativePublicSnapshotStore(paths.rootDirectory)
             val marker = FileSnapshotBoundMigrationMarker(
                 directory = paths.rootDirectory,
                 publicStore = publicStore,
                 secretVerifier = secretVerifier,
+                searchHistoryVerifier = searchHistoryStore,
             )
             return NativeMigrationRuntime(
                 paths = paths,
@@ -67,6 +79,7 @@ class NativeMigrationRuntime private constructor(
                     writer = app.roadstr.storage.CompositeNativeSnapshotWriter(
                         publicStore = publicStore,
                         secretStore = secretStore,
+                        searchHistoryStore = searchHistoryStore,
                     ),
                     marker = marker,
                     identityVerifier = identityVerifier,

@@ -19,18 +19,20 @@ not a production startup change.
 - `storage/NativeSnapshotStore.kt` defines the v1 native public record and its
   bounded codec. Ordinary values, public identity and asset metadata are
   persisted with per-key secret commitments; raw secure values are handed only
-  to the `NativeSecretStore` adapter. `CompositeNativeSnapshotWriter` makes
-  public and protected staging/commit/verification retryable while leaving the
-  migration marker as the final step.
+  to the `NativeSecretStore` adapter. Privacy-sensitive `searchHistory` is
+  excluded from this public record and handed to its encrypted store.
+  `CompositeNativeSnapshotWriter` makes public, protected and history
+  staging/commit/verification retryable while leaving the migration marker as
+  the final step.
 - `storage/FileNativePersistence.kt` provides the concrete bounded public-file
   store. It fsyncs a validated stage, retains the previous active file during
   same-directory replacement, reopens and validates the replacement, and can
   restore a valid backup after an interrupted or corrupt activation. Its
-  durable marker contains only a fixed header and SHA-256 of the exact public
-  record. Completion now also requires the reopened protected store to match
-  every commitment in that public record, so a missing key/file, changed value
-  or undecodable record makes migration incomplete without copying protected
-  values into the marker.
+  durable marker contains only a fixed header and a SHA-256 commitment. Its v2
+  form binds the exact public record and validated encrypted history file;
+  completion also requires the reopened protected store to match every secret
+  commitment. A missing key/file, changed value or undecodable record therefore
+  makes migration incomplete without copying protected values into the marker.
 - `storage/NativeSecretPersistence.kt` adds the bounded canonical protected
   payload and an authenticated AES-256-GCM file envelope. The production
   `AndroidKeystoreNativeSecretStore` creates or reopens a non-exportable key
@@ -38,12 +40,22 @@ not a production startup change.
   zeroes transient plaintext byte arrays, and reuses stage/active/backup
   recovery. It exposes verification and commitment matching, never a raw-value
   read API.
+- `storage/NativeSearchHistoryStore.kt` adds a separate canonical history
+  payload encrypted with AES-256-GCM under
+  `app.roadstr.native.search-history.v1`. It imports the normalized legacy list
+  without opening Hive, preserves the 100-row read window, applies the existing
+  five-row/deduplication policy to later writes, serializes concurrent
+  operations and uses the same recoverable stage/active/backup replacement.
+  Normal loads degrade damaged optional history to empty; mutations fail closed
+  so unreadable ciphertext is not silently overwritten. Explicit transactional
+  migration can repair it from the retained legacy source.
 - `storage/NativeStoragePaths.kt` fixes the future native root at
   `context.noBackupFilesDir/roadstr-native-v1`, preserving state across an
   in-place update while keeping it outside backup/restore. `migration/
-  NativeMigrationRuntime.kt` composes that path, public store, Keystore store,
-  commitment-bound marker and transactional coordinator. It is an explicit
-  worker-thread API and is not invoked by the current Flutter startup.
+  NativeMigrationRuntime.kt` composes that path, public store, Keystore secret
+  and search-history stores, commitment-bound marker and transactional
+  coordinator. It is an explicit worker-thread API and is not invoked by the
+  current Flutter startup.
 - `migration/NativeMigrationStartupRunner.kt` adds the asynchronous
   single-flight boundary above the runtime. It rejects duplicate concurrent
   requests, reports neutral worker/execution failures, returns to `Idle` after

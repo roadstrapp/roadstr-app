@@ -1,5 +1,6 @@
 package app.roadstr.storage
 
+import app.roadstr.core.search.SearchHistoryProtocol
 import app.roadstr.migration.LegacyAsset
 import app.roadstr.migration.LegacyIdentity
 import app.roadstr.migration.LegacySnapshotEnvelope
@@ -27,7 +28,9 @@ data class NativeSnapshotRecord(
         fun fromLegacy(snapshot: LegacyStorageSnapshot): NativeSnapshotRecord =
             NativeSnapshotRecord(
                 schemaVersion = CURRENT_SCHEMA_VERSION,
-                ordinaryValues = snapshot.ordinaryValues.toSortedMap(),
+                ordinaryValues = snapshot.ordinaryValues
+                    .filterKeys { it != SearchHistoryProtocol.STORAGE_KEY }
+                    .toSortedMap(),
                 secureValueDigests = snapshot.secureValues
                     .toSortedMap()
                     .mapValues { (key, value) -> NativeSecretDigest.sha256(key, value) },
@@ -166,6 +169,20 @@ fun interface NativeSecretCommitmentVerifier {
 }
 
 /**
+ * Transactional migration boundary for privacy-sensitive search history.
+ *
+ * The normalized legacy JSON is accepted only in memory. Implementations
+ * persist an encrypted replacement and expose only a digest of its validated
+ * ciphertext so the completion marker can bind the exact committed file.
+ */
+interface NativeSearchHistoryMigrationStore {
+    fun stageLegacy(normalizedLegacyValue: String?)
+    fun commitStaged()
+    fun verifyLegacy(normalizedLegacyValue: String?)
+    fun committedCiphertextDigest(): ByteArray?
+}
+
+/**
  * Coordinates the public record and protected store under the migration
  * protocol. A failure after either commit leaves the completion marker false;
  * the next run stages a complete replacement and verifies both stores again.
@@ -173,11 +190,16 @@ fun interface NativeSecretCommitmentVerifier {
 class CompositeNativeSnapshotWriter(
     private val publicStore: NativePublicSnapshotStore,
     private val secretStore: NativeSecretStore,
+    private val searchHistoryStore: NativeSearchHistoryMigrationStore? = null,
 ) : NativeSnapshotWriter {
     private var stagedRecord: NativeSnapshotRecord? = null
     private var stagedSecrets: Map<String, String>? = null
 
     override fun stage(snapshot: LegacyStorageSnapshot) {
+        val legacySearchHistory = snapshot.ordinaryValues[SearchHistoryProtocol.STORAGE_KEY]
+        if (legacySearchHistory != null && searchHistoryStore == null) {
+            throw IllegalStateException("Native search-history store is unavailable")
+        }
         val record = NativeSnapshotRecord.fromLegacy(snapshot)
         val encoded = NativeSnapshotRecordCodec.encode(record)
         try {
@@ -189,6 +211,11 @@ class CompositeNativeSnapshotWriter(
             secretStore.stage(snapshot.secureValues.toMap())
         } catch (_: RuntimeException) {
             throw IllegalStateException("Native protected store staging failed")
+        }
+        try {
+            searchHistoryStore?.stageLegacy(legacySearchHistory)
+        } catch (_: RuntimeException) {
+            throw IllegalStateException("Native search-history staging failed")
         }
         stagedRecord = record
         stagedSecrets = snapshot.secureValues.toMap()
@@ -208,9 +235,18 @@ class CompositeNativeSnapshotWriter(
         } catch (_: RuntimeException) {
             throw IllegalStateException("Native protected store commit failed")
         }
+        try {
+            searchHistoryStore?.commitStaged()
+        } catch (_: RuntimeException) {
+            throw IllegalStateException("Native search-history commit failed")
+        }
     }
 
     override fun verify(snapshot: LegacyStorageSnapshot) {
+        val legacySearchHistory = snapshot.ordinaryValues[SearchHistoryProtocol.STORAGE_KEY]
+        if (legacySearchHistory != null && searchHistoryStore == null) {
+            throw IllegalStateException("Native search-history store is unavailable")
+        }
         val expected = NativeSnapshotRecord.fromLegacy(snapshot)
         val actual = try {
             publicStore.read()?.let(NativeSnapshotRecordCodec::decode)
@@ -222,6 +258,13 @@ class CompositeNativeSnapshotWriter(
             secretStore.verify(snapshot.secureValues)
         } catch (_: RuntimeException) {
             throw IllegalStateException("Native protected store verification failed")
+        }
+        try {
+            searchHistoryStore?.verifyLegacy(
+                legacySearchHistory,
+            )
+        } catch (_: RuntimeException) {
+            throw IllegalStateException("Native search-history verification failed")
         }
     }
 }

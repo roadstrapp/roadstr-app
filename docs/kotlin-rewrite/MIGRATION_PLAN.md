@@ -280,9 +280,13 @@ broader cross-language coverage and a native store are still required.
   fsynced public file store with stage/active/backup recovery and a durable
   completion marker bound to the exact public-record digest and protected
   commitments. `storage/NativeSecretPersistence.kt` adds a canonical
-  AES-256-GCM envelope and a non-exportable AndroidKeyStore adapter. Startup
-  wiring and signed-device Keystore evidence remain open. `NativeStoragePaths`
-  and `NativeMigrationRuntime` now compose these pieces under
+  AES-256-GCM envelope and a non-exportable AndroidKeyStore adapter.
+  `storage/NativeSearchHistoryStore.kt` extracts coordinate-bearing history
+  from the public record into a separately keyed AES-GCM file with serialized
+  atomic operations; the v2 completion marker binds its validated ciphertext
+  digest as well as the public snapshot. Startup wiring and signed-device
+  Keystore evidence remain open. `NativeStoragePaths` and
+  `NativeMigrationRuntime` now compose these pieces under
   `noBackupFilesDir/roadstr-native-v1` without invoking them from production
   startup. `NativeMigrationStartupRunner` adds a single-flight asynchronous
   retry boundary while leaving lifecycle ownership and cutover policy open.
@@ -291,12 +295,15 @@ broader cross-language coverage and a native store are still required.
 - **User-visible impact:** No settings/default/favourite/history change.
 - **Tests:** schema round-trips, secret non-export/log tests, process reopen,
   interrupted/corrupt replacement recovery, ciphertext tamper and wrong-key
-  rejection, durable public/protected marker binding, asset reuse and checksum
-  tests, plus runtime path/composition and second-start idempotence tests.
+  rejection, durable public/protected/history marker binding, history reopen,
+  malformed-row import, plaintext absence, concurrency and fail-closed
+  mutation, asset reuse and checksum tests, plus runtime path/composition and
+  second-start idempotence tests.
   Runner tests cover duplicate requests, retry after failure and executor
   rejection.
 - **Parity evidence:** Storage comparison against migrated fixture and second-start no-op.
-- **Security/privacy impact:** No nsec/NWC/passphrase in plain preferences or database.
+- **Security/privacy impact:** No nsec/NWC/passphrase or search-history labels/
+  coordinates in the public native snapshot.
 - **Battery/performance impact:** Startup I/O and write frequency compared with Hive.
 - **Acceptance criteria:** JVM reopen and marker durability are covered; device
   power-loss, app-private directory wiring and actual AndroidKeyStore
@@ -347,10 +354,12 @@ broader cross-language coverage and a native store are still required.
   providers concurrently, delivers one safe partial, rotates vetted Overpass
   mirrors, drives exactly one relaxed geocoder batch and propagates caller
   cancellation to every active transport call.
-  The production Dart bounded client, provider clients and map screens use the
+  `storage/NativeSearchHistoryStore.kt` now supplies encrypted atomic history
+  persistence and transactional legacy extraction without opening Hive. The
+  production Dart bounded client, provider clients and map screens use the
   extracted request/response/ranking/history oracles. Native search-provider
-  startup/UI ownership, request generations, caching and history storage remain
-  unwired; headless native search execution is green.
+  startup/UI ownership, request generations and caching remain unwired;
+  headless native search execution and the detached history backend are green.
 - **Dependencies:** OkHttp 4.12.0 and kotlinx-coroutines 1.10.2 are pinned to
   the versions already selected by MapLibre/AndroidX; no Google/Firebase/
   telemetry SDK.
@@ -371,17 +380,19 @@ broader cross-language coverage and a native store are still required.
   cancellation-without-retry. Ten search-service tests add exact limits,
   concurrent providers, partial/final delivery, failure isolation, one relaxed
   batch, category query/mirror fallback, a real loopback POST and all-job
-  cancellation. Android TLS/cleartext integration, secure-store/history-store,
-  caching and startup/UI wiring remain.
+  cancellation. Twelve new storage tests cover encrypted history import/
+  reopen, migration-marker binding, corruption, wrong keys and concurrency.
+  Android TLS/cleartext integration, device Keystore, caching and startup/UI
+  wiring remain.
 - **Parity evidence:** Exact Nominatim/Photon/Overpass and OSRM/ORS/GraphHopper/
   Valhalla request bytes, normalized search/route responses, deterministic
   search planning/ranking/orchestration, OSRM reroute fallback, avoidance/
   re-timing decisions, provider/key/server resolution, routing-time legacy-key
   migration and history value semantics are green; headless native primary-
   provider routing execution and headless search orchestration/execution are
-  green. Native secure/history stores, search caching/UI generations,
-  avoidance execution, Android network integration and production ownership
-  are open.
+  green. The native encrypted history store is green but not UI-owned; routing
+  secret reads, search caching/UI generations, avoidance execution, Android
+  network integration and production ownership are open.
 - **Security/privacy impact:** Preserve URL validation, body caps, user-agent, no silent cloud fallback.
 - **Battery/performance impact:** Compare network retries, cache hit rate and cancellation.
 - **Acceptance criteria:** All current providers pass without changed limits or privacy behavior.

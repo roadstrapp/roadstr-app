@@ -1,5 +1,6 @@
 package app.roadstr.storage
 
+import app.roadstr.core.search.SearchHistoryProtocol
 import app.roadstr.migration.LegacyAsset
 import app.roadstr.migration.LegacyIdentity
 import app.roadstr.migration.LegacySnapshotEnvelope
@@ -49,6 +50,34 @@ class NativeSnapshotStoreTest {
             calls,
         )
         assertEquals(snapshot().secureValues, secretStore.committed)
+    }
+
+    @Test
+    fun `search history cannot fall through to the public snapshot`() {
+        val calls = mutableListOf<String>()
+        val writer = CompositeNativeSnapshotWriter(
+            FakePublicStore(calls),
+            FakeSecretStore(calls),
+        )
+        val normalizedHistory =
+            """["{\"label\":\"Private Place\",\"lat\":45.0,\"lon\":9.0}"]"""
+        val sensitive = snapshot().copy(
+            ordinaryValues = snapshot().ordinaryValues +
+                (SearchHistoryProtocol.STORAGE_KEY to normalizedHistory),
+        )
+
+        val failure = assertThrows(IllegalStateException::class.java) {
+            writer.stage(sensitive)
+        }
+
+        assertTrue(calls.isEmpty())
+        assertFalse(failure.message.orEmpty().contains("Private Place"))
+        val encoded = NativeSnapshotRecordCodec.encode(sensitive)
+        assertFalse(String(encoded, StandardCharsets.ISO_8859_1).contains("Private Place"))
+        assertFalse(
+            NativeSnapshotRecordCodec.decode(encoded).ordinaryValues
+                .containsKey(SearchHistoryProtocol.STORAGE_KEY),
+        )
     }
 
     @Test

@@ -4,9 +4,9 @@ Status: forensic inventory, bounded transactional migration core, a
 reproducible encrypted Hive 2.2.3 fixture, a strict read-only Dart collector
 and a copy-before-open bridge plus isolated headless transport are implemented
 and tested through the Dart-to-Kotlin envelope. The native side now also has a
-versioned public-record/secret-store boundary with redacted commitments;
-reading protected storage from controlled signed installations and wiring the
-real Android persistence adapters remain open.
+versioned public-record/secret-store boundary with redacted commitments and a
+separate encrypted search-history store. Controlled signed-install reads,
+real Android Keystore evidence and production startup wiring remain open.
 
 The existing app uses one Hive box named `settings` in the application
 documents directory. `lib/main.dart` obtains a 32-byte key from
@@ -151,8 +151,9 @@ storage, concurrency or process-death recovery; those remain migration gates.
 3. Serialize a versioned, bounded migration envelope into native code. Do not
    pass secrets through logs or shell arguments.
 4. Write native public records transactionally to temporary/new storage,
-   flush/fsync, reopen them, and compare commitments; write secure values only
-   through the Keystore-backed secret adapter and compare them there.
+   flush/fsync, reopen them, and compare commitments; write secure values and
+   coordinate-bearing search history only through their Keystore-backed
+   encrypted adapters and compare them there.
 5. Mark migration complete only after validation and one successful native
    startup. Keep a backup of legacy storage until that point.
 6. Make reruns idempotent and crash-safe. On failure, show a neutral recovery
@@ -162,12 +163,13 @@ The library-level `FileNativePublicSnapshotStore` now implements the public
 half of step 4 with fixed `active`, `.stage` and `.backup` files. A stage is
 bounded, decoded and file-fsynced before same-directory activation; the old
 active record remains recoverable until the replacement has been reopened and
-validated. `FileSnapshotBoundMigrationMarker` stores only a fixed header plus
-SHA-256 of those exact public bytes, and therefore reports incomplete after a
-missing, corrupt or changed public record. Marker reopen additionally asks the
-protected store to decrypt and match every per-key commitment in the public
-record, so a missing protected file or unavailable/wrong key cannot produce a
-false completed state.
+validated. `FileSnapshotBoundMigrationMarker` stores only a fixed header plus a
+SHA-256 commitment. Its history-aware v2 form binds both the exact public bytes
+and the digest of the validated encrypted history file, and therefore reports
+incomplete after either file is missing, corrupt or changed. Marker reopen also
+asks the protected store to decrypt and match every per-key commitment in the
+public record, so a missing protected file or unavailable/wrong key cannot
+produce a false completed state.
 
 `AndroidKeystoreNativeSecretStore` implements the protected half with a
 canonical bounded map inside a versioned AES-256-GCM envelope. Its key alias is
@@ -181,10 +183,22 @@ provider: real Keystore create/reopen/invalidation and Android filesystem
 directory-entry durability under power loss remain signed-device gates,
 alongside app-private directory and startup wiring.
 
+`FileNativeSearchHistoryStore` extracts `searchHistory` before the public
+snapshot is encoded and writes a separate versioned AES-256-GCM envelope under
+the non-exportable alias `app.roadstr.native.search-history.v1`. Its canonical
+plaintext framing is bounded to 100 rows; operational prepend preserves the
+existing coordinate dedupe and five-row cap. All file work is serialized,
+uses stage/active/backup recovery and reopens after commit. Host tests cover
+legacy malformed-row tolerance, reopen, plaintext absence, concurrency,
+interrupted replacement, corruption, wrong/lost keys and marker invalidation/
+retry. Real Android Keystore behavior and UI ownership remain device/startup
+gates.
+
 `NativeStoragePaths` reserves `noBackupFilesDir/roadstr-native-v1` as the future
 native root. `NativeMigrationRuntime` composes the exact reader, identity
-verifier, public file store, Keystore secret store and commitment-bound marker
-for that root, but exposes no automatic startup hook. The caller must schedule
+verifier, public file store, Keystore secret/history stores and
+commitment-bound marker for that root, but exposes no automatic startup hook.
+The caller must schedule
 its blocking `run()` operation on a worker thread and retain the existing
 Flutter path until signed-install compatibility evidence authorizes activation.
 `NativeMigrationStartupRunner` is the corresponding single-flight worker

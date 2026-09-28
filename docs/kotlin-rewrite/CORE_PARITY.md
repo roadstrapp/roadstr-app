@@ -1,8 +1,8 @@
 # Pure Kotlin core parity evidence
 
-This phase keeps every new component detached from `MainActivity`, Flutter
-startup and Android storage. It establishes deterministic behavior and bounded
-native service adapters before any production or UI cutover.
+This phase keeps every new component detached from `MainActivity` and Flutter
+startup. It establishes deterministic behavior, bounded native service
+adapters and dormant native persistence before any production or UI cutover.
 
 ## Implemented slices
 
@@ -16,6 +16,7 @@ native service adapters before any production or UI cutover.
 | `core.network` | `retry.dart`, `refetch_policy.dart`, `bounded_http.dart`, `network_config.dart`, `search_provider_protocol.dart`, `search_response_protocol.dart`, `routing_request_protocol.dart`, `routing_response_protocol.dart`, `routing_orchestration_protocol.dart`, `routing_avoidance_protocol.dart`, `routing_provider_config.dart`, GraphHopper validation | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh, HTTP deadlines/body ceilings/redirect and cleartext-loopback policy, exact search requests and normalized responses plus routing-provider requests/responses, one-retry bearing fallback, avoidance fallback, per-leg re-timing and persisted provider/key/server resolution |
 | `service.network` | `bounded_http.dart` | shared OkHttp pool, exact GET/POST adaptation, whole-call deadline, declared/streamed body caps, redirect/retry refusal, value-free failures and physical coroutine cancellation |
 | `service.routing` | `routing_service.dart` | resolved OSRM/ORS/GraphHopper dispatch, provider-specific deadlines, 32 MiB journey-route bound, normalized responses, value-free failures and cancellable one-retry bearing fallback |
+| `storage` | encrypted Hive search history | canonical encrypted history file, serialized prepend/clear/import, atomic recovery, Keystore boundary and migration-marker ciphertext binding |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
 | `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `lnurl_protocol.dart`, `zap_service.dart` | BOLT-11 parsing, LNURL-pay source/metadata/callback/invoice binding, NIP-47 URI/info negotiation/request/response and NIP-57 draft/receipt bindings |
 | `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_pending_report_queue.dart`, `nostr_relay_message.dart`, `nostr_relay_ingress.dart`, `nostr_nip19.dart`, `nostr_schnorr.dart`, `nip04.dart`, `nip44.dart`, `favorites_sync_protocol.dart`, Nostr/favourites/Lightning services | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash, outbound frames, offline FIFO/TTL/retry policy, bounded inbound envelopes, pre-verification routing/budgets, strict NIP-19 keys, x-only derivation/BIP-340, legacy NIP-04, NIP-44 v2 and deterministic NIP-78 policy |
@@ -216,9 +217,10 @@ detached from secure storage and startup. See
   completion/failure handling, one-partial/one-retry orchestration and
   deterministic history value semantics are covered. Headless Nominatim,
   Photon and category-Overpass execution, mirror fallback and cancellation are
-  green. Encrypted Hive still owns Flutter persistence; an Android history/
-  cache backend, UI request-generation handling, startup ownership and device
-  network evidence remain open.
+  green. The dormant Android AES-GCM history backend and transactional legacy
+  extraction are green; encrypted Hive still owns the production Flutter path.
+  History UI ownership, cache storage, UI request-generation handling, startup
+  ownership, real device-Keystore and network evidence remain open.
 - NIP-47/NIP-57, LNURL-pay, legacy NIP-04, NIP-44 v2 and NIP-78 favourites
   deterministic wire, crypto, parsing, padding, binding and rollback rules are
   covered, including NIP-47 encryption negotiation; native signer/key
@@ -250,13 +252,14 @@ detached from secure storage and startup. See
   request/response/configuration policies, search/routing/avoidance
   orchestration and re-timing, search planning/ranking/history, both migration
   fixture oracles and the headless Dart handler.
-- `./gradlew :app:testDebugUnitTest`: 184 Kotlin tests passed, including the
+- `./gradlew :app:testDebugUnitTest`: 196 Kotlin tests passed, including the
   Nostr byte/queue/inbound/ingress/NIP-19/BIP-340/NIP-04/NIP-44/NIP-78,
   Lightning/LNURL parity, HTTP safety/search/routing requests, responses,
   configuration, orchestration and re-timing, search planning/ranking/
   orchestration/history, native persistence/migration and bounded headless
-  transport reader, native bounded-HTTP integration and headless routing and
-  search service suites.
+  transport reader, encrypted/atomic search-history persistence and migration
+  binding, native bounded-HTTP integration and headless routing/search service
+  suites.
 - `./gradlew :app:assembleDebug`: D8, duplicate-class checks and Android APK
   packaging passed with pinned Bouncy Castle, OkHttp and coroutines
   dependencies.
