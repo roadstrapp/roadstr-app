@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:roadstr/services/place_search_service.dart';
@@ -112,7 +114,8 @@ void main() {
       expect(PlaceSearchService.rankResults('qualsiasi cosa', one, null), one);
     });
 
-    test('a generic/franchise query lists confident matches nearest first, '
+    test(
+        'a generic/franchise query lists confident matches nearest first, '
         'even when they score slightly differently as plain text', () {
       final near = LatLng(44.4, 12.2); // Ravenna-ish
       final ranked = PlaceSearchService.rankResults(
@@ -120,14 +123,16 @@ void main() {
         [
           r('Mercatino Usato - Faenza (Via Emilia)',
               lat: 44.29, lon: 11.88, city: 'Faenza'), // ~35 km, worded oddly
-          r('Mercatino dell\'Usato', lat: 44.42, lon: 12.21), // ~2 km, plain name
+          r('Mercatino dell\'Usato',
+              lat: 44.42, lon: 12.21), // ~2 km, plain name
         ],
         near,
       );
       expect(ranked.first.shortName, "Mercatino dell'Usato");
     });
 
-    test('a brand match ranks with the confident tier even when its own '
+    test(
+        'a brand match ranks with the confident tier even when its own '
         'name text scores lower than a same-worded unrelated shop', () {
       final near = LatLng(44.4, 12.2);
       final ranked = PlaceSearchService.rankResults(
@@ -159,7 +164,8 @@ void main() {
       expect(ranked.first.shortName, 'Mercatino Usato Faenza');
     });
 
-    test('a city name that matches no result is not invented — plain '
+    test(
+        'a city name that matches no result is not invented — plain '
         'distance ordering still applies', () {
       final near = LatLng(44.4, 12.2);
       final ranked = PlaceSearchService.rankResults(
@@ -174,7 +180,8 @@ void main() {
       expect(ranked.first.shortName, 'Mercatino Usato A');
     });
 
-    test('multiple cities named in different results only boost the one the '
+    test(
+        'multiple cities named in different results only boost the one the '
         'query actually names, not every city-tagged result', () {
       final near = LatLng(44.4, 12.2);
       final ranked = PlaceSearchService.rankResults(
@@ -219,7 +226,8 @@ void main() {
       final service = PlaceSearchService(poi: poi);
       const near = LatLng(44.4, 12.2);
 
-      await service.search('pharmacy', near: near, phase: SearchPhase.typeAhead);
+      await service.search('pharmacy',
+          near: near, phase: SearchPhase.typeAhead);
       expect(poi.calls, 1, reason: 'fast pass must still answer categories');
 
       await service.search('pharmacy', near: near, phase: SearchPhase.settled);
@@ -236,9 +244,103 @@ void main() {
     test('an empty query reaches no provider at all', () async {
       final poi = _RecordingPoi();
       final service = PlaceSearchService(poi: poi);
-      expect(await service.search('   ', near: const LatLng(44.4, 12.2)),
-          isEmpty);
+      expect(
+          await service.search('   ', near: const LatLng(44.4, 12.2)), isEmpty);
       expect(poi.calls, 0);
+    });
+  });
+
+  group('async provider orchestration', () {
+    test('first non-empty completion is partial and final waits for all',
+        () async {
+      final nominatim = Completer<List<NominatimResult>>();
+      final photon = Completer<List<NominatimResult>>();
+      final poi = _CompleterPoi();
+      final partials = <List<NominatimResult>>[];
+      final service = PlaceSearchService(
+        poi: poi,
+        nominatimSearch: (_, __) => nominatim.future,
+        photonSearch: (_, __, ___) => photon.future,
+      );
+
+      var finished = false;
+      final search = service.search(
+        'via roberto ricci',
+        near: const LatLng(45, 9),
+        onPartial: partials.add,
+      )..then((_) => finished = true);
+
+      photon.complete([r('Photon', lat: 45.1, lon: 9.1)]);
+      await pumpEventQueue();
+      expect(partials.single.single.shortName, 'Photon');
+      expect(finished, isFalse);
+
+      poi.completer.complete([r('Poi', lat: 46, lon: 10)]);
+      await pumpEventQueue();
+      expect(partials, hasLength(1));
+      expect(finished, isFalse);
+
+      nominatim.complete([r('Nominatim', lat: 47, lon: 11)]);
+      expect(
+        (await search).map((result) => result.shortName),
+        ['Poi', 'Photon', 'Nominatim'],
+      );
+      expect(finished, isTrue);
+    });
+
+    test('one failing provider degrades to empty without hiding peer results',
+        () async {
+      final service = PlaceSearchService(
+        poi: _ValuePoi([r('Poi', lat: 46, lon: 10)]),
+        nominatimSearch: (_, __) => throw StateError('sync failure'),
+        photonSearch: (_, __, ___) => Future.error(StateError('async failure')),
+      );
+
+      final results = await service.search(
+        'via roberto ricci',
+        near: const LatLng(45, 9),
+      );
+      expect(results.map((result) => result.shortName), ['Poi']);
+    });
+
+    test('all-empty settled search starts exactly one relaxed provider batch',
+        () async {
+      final nominatimQueries = <String>[];
+      final photonQueries = <String>[];
+      final service = PlaceSearchService(
+        poi: _ValuePoi(const []),
+        nominatimSearch: (query, _) async {
+          nominatimQueries.add(query);
+          return query == 'via ricci' ? [r('Recovered')] : const [];
+        },
+        photonSearch: (query, _, __) async {
+          photonQueries.add(query);
+          return const [];
+        },
+      );
+
+      final results = await service.search(
+        'via roberto ricci',
+        near: const LatLng(45, 9),
+      );
+      expect(nominatimQueries, ['via roberto ricci', 'via ricci']);
+      expect(photonQueries, ['via roberto ricci', 'via ricci']);
+      expect(results.single.shortName, 'Recovered');
+    });
+
+    test('a throwing partial callback cannot fail the final search', () async {
+      final service = PlaceSearchService(
+        poi: _ValuePoi(const []),
+        nominatimSearch: (_, __) async => const [],
+        photonSearch: (_, __, ___) async => [r('Photon')],
+      );
+
+      final results = await service.search(
+        'museum',
+        phase: SearchPhase.typeAhead,
+        onPartial: (_) => throw StateError('widget already gone'),
+      );
+      expect(results.single.shortName, 'Photon');
     });
   });
 }
@@ -253,4 +355,22 @@ class _RecordingPoi extends PoiSearchService {
     calls++;
     return const [];
   }
+}
+
+class _CompleterPoi extends PoiSearchService {
+  final completer = Completer<List<NominatimResult>>();
+
+  @override
+  Future<List<NominatimResult>> search(String query, LatLng center) =>
+      completer.future;
+}
+
+class _ValuePoi extends PoiSearchService {
+  _ValuePoi(this.results);
+
+  final List<NominatimResult> results;
+
+  @override
+  Future<List<NominatimResult>> search(String query, LatLng center) async =>
+      results;
 }
