@@ -17,6 +17,7 @@ adapters and dormant native persistence before any production or UI cutover.
 | `service.network` | `bounded_http.dart` | shared OkHttp pool, exact GET/POST adaptation, whole-call deadline, declared/streamed body caps, redirect/retry refusal, value-free failures and physical coroutine cancellation |
 | `service.routing` | `routing_service.dart` | resolved OSRM/ORS/GraphHopper dispatch, provider-specific deadlines, 32 MiB journey-route bound, normalized responses, value-free failures, cancellable one-retry bearing fallback, Valhalla hard/soft/track avoidance and best-effort OSRM re-timing |
 | `service.location` | `gps_service.dart` | AOSP `LocationManager` source, 500 ms sampling boundary, safe fix normalization, last-known fix, 20/45-second dead-stream watchdog and cancellable lifecycle ownership; startup/UI/foreground wiring remains |
+| `feature.map` | `maplibre_map_screen.dart`, `map_screen.dart`, map services/widgets | raster MapLibre style JSON, dark recoloring, tile URL admission/escaping, ZTL route-run segmentation and zoom/viewport marker culling; native renderer and Activity/UI wiring remain |
 | `storage` | encrypted Hive search history | canonical encrypted history file, serialized prepend/clear/import, atomic recovery, Keystore boundary and migration-marker ciphertext binding |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
 | `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `lnurl_protocol.dart`, `zap_service.dart` | BOLT-11 parsing, LNURL-pay source/metadata/callback/invoice binding, NIP-47 URI/info negotiation/request/response and NIP-57 draft/receipt bindings |
@@ -246,6 +247,9 @@ detached from secure storage and startup. See
 - The headless native AOSP GPS source and watchdog are green, but Android
   permission prompting, foreground notification, lifecycle/ViewModel ownership
   and de-Googled physical-device evidence remain open.
+- The native map foundation now matches the Flutter raster style and overlay
+  decisions headlessly; MapLibre Android dependency selection, native renderer,
+  Compose layers, gestures and screenshot/device evidence remain open.
 
 ## Verification for this increment
 
@@ -257,7 +261,7 @@ detached from secure storage and startup. See
   request/response/configuration policies, search/routing/avoidance
   orchestration and re-timing, search planning/ranking/history, both migration
   fixture oracles and the headless Dart handler.
-- `./gradlew :app:testDebugUnitTest`: 217 Kotlin tests passed, including the
+- `./gradlew :app:testDebugUnitTest`: 224 Kotlin tests passed, including the
   Nostr byte/queue/inbound/ingress/NIP-19/BIP-340/NIP-04/NIP-44/NIP-78,
   Lightning/LNURL parity, HTTP safety/search/routing requests, responses,
   configuration, orchestration and re-timing, search planning/ranking/
@@ -265,7 +269,9 @@ detached from secure storage and startup. See
   transport reader, encrypted/atomic search-history persistence and migration
   binding, native bounded-HTTP integration and headless routing/search service
   suites, including Valhalla avoidance and OSRM re-timing execution, plus the
-  headless AOSP GPS normalization, last-known, watchdog and cancellation suite.
+  headless AOSP GPS normalization, last-known, watchdog and cancellation suite,
+  plus the native map style, tile safety, route segmentation and marker-culling
+  suite.
 - `./gradlew :app:assembleDebug`: D8, duplicate-class checks and Android APK
   packaging passed with pinned Bouncy Castle, OkHttp and coroutines
   dependencies.
