@@ -124,8 +124,10 @@ The first native increment is intentionally isolated from production startup:
   the headless foreground/lifecycle contract: 30-second background grace,
   generation-safe resume, GPS retention during navigation, wakelock decisions,
   detach cleanup and the 3-second private notification throttle. The actual
-  Android foreground service, notification channel and Activity/ViewModel
-  ownership remain deliberately unwired.
+  `NativeNavigationForegroundService` is now registered as an explicit,
+  `exported=false` AOSP location adapter with a low/private channel and
+  explicit start/stop actions, but Activity/ViewModel ownership deliberately
+  does not start it yet.
 - `docs/kotlin-rewrite/MIGRATION_IMPLEMENTATION.md` records what is and is not
   wired.
 
@@ -448,12 +450,12 @@ broader cross-language coverage and a native store are still required.
 
 - **Objective:** Match LocationManager cadence, watchdog, assistance, heading, foreground and background behavior.
 - **Current Dart/Flutter source:** `lib/services/gps_service.dart`, map screen lifecycle/camera policies, notification service.
-- **New Kotlin files/modules:** `service/location` contains the headless AOSP `LocationManager` adapter and watchdog; `service/navigation/NativeNavigationLifecycle.kt` and `service/notifications/NativeNavigationNotificationPolicy.kt` contain the lifecycle/foreground policy and notification throttle; Android service, channel and lifecycle-aware ViewModels remain.
+- **New Kotlin files/modules:** `service/location` contains the headless AOSP `LocationManager` adapter and watchdog; `service/navigation/NativeNavigationLifecycle.kt` and `service/notifications/NativeNavigationNotificationPolicy.kt` contain the lifecycle/foreground policy and notification throttle; `service/navigation/NativeNavigationForegroundService.kt` now owns the dormant AOSP `startForeground` adapter; Activity/ViewModel start ownership remains.
 - **Dependencies:** Android platform LocationManager/sensors/foreground APIs only; no fused location or Play Services.
 - **Migration impact:** Active navigation state and notification actions must not be lost on recreation.
 - **User-visible impact:** Same permissions, fix cadence, background grace, guidance and notification lifecycle.
 - **Tests:** 21 deterministic JVM tests cover fix normalization, last-known speed, fake streams, watchdog/dead stream, disabled-provider behavior, callback isolation, cancellation, disposal, lifecycle grace/generation/wakelock and notification throttle/privacy; rotation/process/lifecycle tests and de-Googled manual test remain.
-- **Parity evidence:** headless AOSP source/policy, lifecycle transitions, watchdog traces and notification decisions are green; startup, foreground-service and physical-device traces remain.
+- **Parity evidence:** headless AOSP source/policy, lifecycle transitions, watchdog traces, notification decisions and Android foreground-service compilation/manifest checks are green; startup and physical-device traces remain.
 - **Security/privacy impact:** Preserve permission scope, no coordinate logs and notification privacy.
 - **Battery/performance impact:** CPU/wakeups/GPS duration/map camera updates measured in comparable sessions.
 - **Acceptance criteria:** No obvious battery/navigation regression and same background behavior.
