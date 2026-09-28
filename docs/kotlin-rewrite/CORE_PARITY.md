@@ -16,6 +16,7 @@ adapters and dormant native persistence before any production or UI cutover.
 | `core.network` | `retry.dart`, `refetch_policy.dart`, `bounded_http.dart`, `network_config.dart`, `search_provider_protocol.dart`, `search_response_protocol.dart`, `routing_request_protocol.dart`, `routing_response_protocol.dart`, `routing_orchestration_protocol.dart`, `routing_avoidance_protocol.dart`, `routing_provider_config.dart`, GraphHopper validation | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh, HTTP deadlines/body ceilings/redirect and cleartext-loopback policy, exact search requests and normalized responses plus routing-provider requests/responses, one-retry bearing fallback, avoidance fallback, per-leg re-timing and persisted provider/key/server resolution |
 | `service.network` | `bounded_http.dart` | shared OkHttp pool, exact GET/POST adaptation, whole-call deadline, declared/streamed body caps, redirect/retry refusal, value-free failures and physical coroutine cancellation |
 | `service.routing` | `routing_service.dart` | resolved OSRM/ORS/GraphHopper dispatch, provider-specific deadlines, 32 MiB journey-route bound, normalized responses, value-free failures, cancellable one-retry bearing fallback, Valhalla hard/soft/track avoidance and best-effort OSRM re-timing |
+| `service.location` | `gps_service.dart` | AOSP `LocationManager` source, 500 ms sampling boundary, safe fix normalization, last-known fix, 20/45-second dead-stream watchdog and cancellable lifecycle ownership; startup/UI/foreground wiring remains |
 | `storage` | encrypted Hive search history | canonical encrypted history file, serialized prepend/clear/import, atomic recovery, Keystore boundary and migration-marker ciphertext binding |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
 | `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `lnurl_protocol.dart`, `zap_service.dart` | BOLT-11 parsing, LNURL-pay source/metadata/callback/invoice binding, NIP-47 URI/info negotiation/request/response and NIP-57 draft/receipt bindings |
@@ -242,6 +243,9 @@ detached from secure storage and startup. See
 - X-only public-key derivation and BIP-340 vectors are green, but native
   local-key signing remains blocked on side-channel review, key isolation and
   storage. Amber intents and identity migration are also open.
+- The headless native AOSP GPS source and watchdog are green, but Android
+  permission prompting, foreground notification, lifecycle/ViewModel ownership
+  and de-Googled physical-device evidence remain open.
 
 ## Verification for this increment
 
@@ -253,14 +257,15 @@ detached from secure storage and startup. See
   request/response/configuration policies, search/routing/avoidance
   orchestration and re-timing, search planning/ranking/history, both migration
   fixture oracles and the headless Dart handler.
-- `./gradlew :app:testDebugUnitTest`: 206 Kotlin tests passed, including the
+- `./gradlew :app:testDebugUnitTest`: 217 Kotlin tests passed, including the
   Nostr byte/queue/inbound/ingress/NIP-19/BIP-340/NIP-04/NIP-44/NIP-78,
   Lightning/LNURL parity, HTTP safety/search/routing requests, responses,
   configuration, orchestration and re-timing, search planning/ranking/
   orchestration/history, native persistence/migration and bounded headless
   transport reader, encrypted/atomic search-history persistence and migration
   binding, native bounded-HTTP integration and headless routing/search service
-  suites, including Valhalla avoidance and OSRM re-timing execution.
+  suites, including Valhalla avoidance and OSRM re-timing execution, plus the
+  headless AOSP GPS normalization, last-known, watchdog and cancellation suite.
 - `./gradlew :app:assembleDebug`: D8, duplicate-class checks and Android APK
   packaging passed with pinned Bouncy Castle, OkHttp and coroutines
   dependencies.
