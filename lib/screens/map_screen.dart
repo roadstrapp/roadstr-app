@@ -572,6 +572,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     super.initState();
     _nativeNavigationOwnership =
         widget.nativeNavigationOwnership ?? NativeNavigationRollout.create();
+    unawaited(_nativeNavigationOwnership.reconcileBestEffort(
+      navigationActive: _isNavigating,
+    ));
     WidgetsBinding.instance.addObserver(this);
     _screenPolicyListenable = SettingsListenable.forKeys(
         const ['keepScreenOn', 'keepScreenOnAlways', 'minBrightness']);
@@ -6077,6 +6080,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         // there is nothing to restart and no fix was lost.
         _gpsIdleStop?.cancel();
         _gpsIdleStop = null;
+        unawaited(_nativeNavigationOwnership.reconcileBestEffort(
+          navigationActive: _isNavigating,
+        ));
         // Restores the "always on" wakelock/brightness that paused forced
         // off — they are foreground-only, unlike navigation's own wakelock,
         // which is re-applied on its own tick.

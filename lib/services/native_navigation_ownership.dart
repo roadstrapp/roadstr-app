@@ -67,6 +67,31 @@ class NativeNavigationOwnership {
         _ownsForegroundGps = false;
       });
 
+  /// Reconciles local navigation intent with the Android service runtime.
+  ///
+  /// A recreated owner adopts an already-running service while navigation is
+  /// active, starts it when missing, and stops an orphan when navigation is no
+  /// longer active. Failed cleanup keeps ownership true so a later lifecycle
+  /// callback can retry it.
+  Future<bool> reconcile({required bool navigationActive}) => _run(() async {
+        if (!enabled || _disposed) return false;
+
+        final running = await _bridge.isForegroundGpsRunning();
+        _ownsForegroundGps = running;
+        if (navigationActive) {
+          if (running) return true;
+          final started = await _bridge.startForegroundGps();
+          _ownsForegroundGps = started;
+          return started;
+        }
+
+        if (running) {
+          await _bridge.stopForegroundGps();
+          _ownsForegroundGps = false;
+        }
+        return false;
+      });
+
   /// Releases this owner and makes future starts no-ops.
   Future<void> dispose() => _run(() async {
         if (_disposed) return;
@@ -92,6 +117,15 @@ class NativeNavigationOwnership {
       await stop();
     } catch (_) {
       // A later stop or dispose can retry the still-owned service.
+    }
+  }
+
+  /// Canary-only lifecycle reconciliation that cannot interrupt the UI.
+  Future<void> reconcileBestEffort({required bool navigationActive}) async {
+    try {
+      await reconcile(navigationActive: navigationActive);
+    } catch (_) {
+      // Local ownership remains conservative and a later resume can retry.
     }
   }
 
