@@ -12,7 +12,7 @@ service or UI cutover.
 | `core.navigation` | `heading_filter.dart`, `off_route_detector.dart` | motion hysteresis, stale motion, reversal confirmation, route-snap veto, deviation trend |
 | `core.map` | `camera_follow.dart`, `viewport_window.dart` | exponential easing, rotation cap, frame gate, navigation offset, marker culling window |
 | `core.format` | `units.dart` | metric/imperial display, altitude, 27-language speech units, distance punctuation/spacing |
-| `core.search` | `fuzzy_match.dart` | accent folding, bounded Levenshtein, address weighting and stop-word rejection |
+| `core.search` | `fuzzy_match.dart`, `search_ranking_protocol.dart` | accent folding, bounded Levenshtein, address weighting, provider planning, proximity dedupe, city/brand/distance ranking, relaxed retry and POI-first merge |
 | `core.network` | `retry.dart`, `refetch_policy.dart`, `bounded_http.dart`, `network_config.dart`, `search_provider_protocol.dart`, `search_response_protocol.dart`, `routing_request_protocol.dart`, `routing_response_protocol.dart`, GraphHopper validation | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh, HTTP deadlines/body ceilings/redirect and cleartext-loopback policy, exact search requests and normalized responses plus routing-provider requests and normalized responses |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
 | `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `lnurl_protocol.dart`, `zap_service.dart` | BOLT-11 parsing, LNURL-pay source/metadata/callback/invoice binding, NIP-47 URI/info negotiation/request/response and NIP-57 draft/receipt bindings |
@@ -135,11 +135,18 @@ Dart parser is used by the live Flutter search clients; the Kotlin parser
 remains socket-free and detached from production wiring. See
 `SEARCH_NETWORK_CORE_PARITY.md`.
 
+`search_ranking_v1.tsv` is the eighteenth shared core fixture. Its 53 cases
+lock query/phase planning, matching, rounded-distance deduplication, provider
+merge precedence, city/brand/distance ranking, result caps and relaxed-retry
+admission. The Dart policy is called by production `PlaceSearchService`; the
+Kotlin policy remains detached from asynchronous provider execution, storage
+and UI. See `SEARCH_NETWORK_CORE_PARITY.md`.
+
 ## Current limits
 
 - No Kotlin class in this phase is called by production startup or UI. The
-  extracted Dart request builders and response parsers are called by the
-  existing Flutter services.
+  extracted Dart request builders, response parsers and search-ranking policy
+  are called by the existing Flutter services.
 - Stateful navigation tests cover policy decisions, not Android sensor timing.
 - Retry scheduling is pure policy; coroutine execution and cancellation belong
   to the future native networking adapter.
@@ -147,6 +154,9 @@ remains socket-free and detached from production wiring. See
   Kotlin policy; no
   native DNS, TLS, connection, total-deadline or cancellation adapter exists
   yet.
+- Search provider planning, normalized-result ranking and merge decisions are
+  covered; asynchronous partial-result delivery, history persistence and live
+  native provider execution remain open.
 - NIP-47/NIP-57, LNURL-pay, legacy NIP-04, NIP-44 v2 and NIP-78 favourites
   deterministic wire, crypto, parsing, padding, binding and rollback rules are
   covered, including NIP-47 encryption negotiation; native signer/key
@@ -171,16 +181,17 @@ remains socket-free and detached from production wiring. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 611 Flutter tests passed, including the Nostr/`nostr_tools` and
+- `flutter test`: 615 Flutter tests passed, including the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
   NIP-19, Lightning and
   LNURL/NIP-04/NIP-44/NIP-78 transcripts, HTTP safety, search/routing-provider
-  request and response policies, both migration fixture oracles and the
-  headless Dart handler.
-- `./gradlew :app:testDebugUnitTest`: 138 Kotlin tests passed, including the
+  request/response policies, search planning/ranking, both migration fixture
+  oracles and the headless Dart handler.
+- `./gradlew :app:testDebugUnitTest`: 140 Kotlin tests passed, including the
   Nostr byte/queue/inbound/ingress/NIP-19/BIP-340/NIP-04/NIP-44/NIP-78,
-  Lightning/LNURL parity, HTTP safety/search/routing requests and responses, native
-  persistence/migration and bounded headless transport reader suites.
+  Lightning/LNURL parity, HTTP safety/search/routing requests and responses,
+  search planning/ranking, native persistence/migration and bounded headless
+  transport reader suites.
 - `./gradlew :app:assembleDebug`: D8, duplicate-class checks and Android APK
   packaging passed with the pinned Bouncy Castle dependency.
 - No production Activity, manifest or startup wiring changed.
