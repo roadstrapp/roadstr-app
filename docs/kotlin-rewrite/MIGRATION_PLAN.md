@@ -333,10 +333,16 @@ broader cross-language coverage and a native store are still required.
   `SearchRankingProtocol.kt` mirrors deterministic provider-phase planning,
   dedupe, ranking, retry and merge policy. `SearchHistoryProtocol.kt` mirrors
   tolerant history decoding, recency, deduplication, limits and JSON values.
+  `service/network/NativeBoundedHttpClient.kt` now executes those search and
+  routing request values through a shared OkHttp pool with whole-call
+  deadlines, declared/streamed body ceilings, redirect/retry refusal,
+  value-free failures and physical coroutine cancellation.
   The production Dart bounded client, provider clients and map screens use the
-  extracted request/response/ranking/history oracles. Native HTTP, provider
-  execution and history storage remain unwired.
-- **Dependencies:** OkHttp, Kotlin coroutines/Flow; no Google/Firebase/telemetry SDK.
+  extracted request/response/ranking/history oracles. Native provider-service
+  execution, startup ownership and history storage remain unwired.
+- **Dependencies:** OkHttp 4.12.0 and kotlinx-coroutines 1.10.2 are pinned to
+  the versions already selected by MapLibre/AndroidX; no Google/Firebase/
+  telemetry SDK.
 - **Migration impact:** Routing provider, API key and GraphHopper URL must survive.
 - **User-visible impact:** Same providers, results, language and error/fallback behavior.
 - **Tests:** A 48-case shared HTTP safety fixture, a 39-case search-provider
@@ -346,15 +352,18 @@ broader cross-language coverage and a native store are still required.
   59-case routing-provider response fixture, a 28-case routing-orchestration
   fixture, a 36-case routing-avoidance/re-timing fixture, a 34-case routing
   provider-configuration fixture and existing live Dart local-server redirect/
-  oversize/Overpass tests are green. Native engine redirect/size/TLS/cleartext
-  integration, secure-store/history-store wiring and physical cancellation
-  remain.
+  oversize/Overpass tests are green. Ten native local-server tests add exact
+  GET/POST dispatch, redirect/retry refusal, declared/streamed limits, total
+  deadline, value-free failures and physical cancellation. Android TLS/
+  cleartext integration, secure-store/history-store and provider-service
+  wiring remain.
 - **Parity evidence:** Exact Nominatim/Photon/Overpass and OSRM/ORS/GraphHopper/
   Valhalla request bytes, normalized search/route responses, deterministic
   search planning/ranking/orchestration, OSRM reroute fallback, avoidance/
   re-timing decisions, provider/key/server resolution, routing-time legacy-key
   migration and history value semantics are green; native secure/history
-  stores, coroutine/socket adapters and native execution are open.
+  stores, provider coroutine orchestration, Android network integration and
+  native production execution are open.
 - **Security/privacy impact:** Preserve URL validation, body caps, user-agent, no silent cloud fallback.
 - **Battery/performance impact:** Compare network retries, cache hit rate and cancellation.
 - **Acceptance criteria:** All current providers pass without changed limits or privacy behavior.

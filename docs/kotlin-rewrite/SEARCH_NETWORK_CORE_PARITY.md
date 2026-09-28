@@ -1,8 +1,9 @@
 # Search-provider request, response, ranking, orchestration and history parity
 
 This increment freezes the exact outbound request contract and deterministic
-inbound normalization/ranking for Roadstr's three search data sources without
-giving Kotlin ownership of a socket. Flutter still executes every live request.
+inbound normalization/ranking for Roadstr's three search data sources. A
+bounded Kotlin socket adapter now exists, but Flutter still executes every live
+request and owns all provider orchestration.
 
 ## Production-used Dart boundary
 
@@ -189,15 +190,16 @@ does not let a stale rendering callback fail the final search.
 ## Privacy and execution boundary
 
 Kotlin can construct a value containing the same coarse coordinates and user
-agent, but no Kotlin HTTP engine, DNS resolver, connection pool or socket is
-wired. Request objects are inert. The future adapter must apply the separate
-timeout, response-size, redirect, TLS and cleartext policy before dispatch.
+agent and can pass it to the shared bounded OkHttp adapter. Local tests prove
+the timeout, response-size, redirect/retry and cancellation behavior, but no
+production search service invokes it. Android DNS, TLS and cleartext behavior
+still requires integration/device evidence.
 
 No API key is represented in this fixture. Routing request composition and
 response parsing are now covered separately by
-`ROUTING_NETWORK_CORE_PARITY.md`; physical provider cancellation, UI
-request-generation suppression, the native history persistence adapter,
-Overpass backoff execution and Android network integration remain later slices.
+`ROUTING_NETWORK_CORE_PARITY.md`; provider-job ownership, UI request-generation
+suppression, the native history persistence adapter, Overpass backoff execution
+and Android network integration remain later slices.
 
 Rollback is removal of the Kotlin boundaries and fixtures plus inlining the
 small Dart builders/parsers/policies back into their callers. The history JSON

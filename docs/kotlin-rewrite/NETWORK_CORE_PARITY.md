@@ -1,8 +1,9 @@
 # Native HTTP safety and provider-request parity
 
-This increment freezes the deterministic HTTP safety decisions needed by the
-native networking rewrite without opening a socket or changing production
-network ownership. Flutter remains the live client.
+This increment freezes the deterministic HTTP safety decisions and adds a
+real, cancellable native transport without changing production network
+ownership. Flutter remains the live client; Kotlin sockets are exercised only
+against local test servers.
 
 ## Implemented boundary
 
@@ -23,6 +24,19 @@ network ownership. Flutter remains the live client.
 delegates the deterministic size decisions to the fixture-backed policy, so the
 oracle exercised by production and the oracle exported to Kotlin are the same
 code.
+
+`service.network.NativeBoundedHttpClient` is the first socket-owning Kotlin
+adapter. It accepts both native search and routing request values, reuses one
+OkHttp dispatcher/connection pool, applies an explicit whole-call deadline,
+rejects oversized declared bodies before reading, accounts every streamed
+chunk before retaining it, disables HTTP and HTTPS redirects, disables hidden
+connection retries and cancels the physical OkHttp `Call` when its coroutine is
+cancelled. Its value-free failure type never includes a URI, header or body.
+
+The app pins OkHttp 4.12.0 and kotlinx-coroutines 1.10.2, matching the versions
+already selected by MapLibre/AndroidX instead of upgrading the existing Flutter
+runtime transitively. Both are permissively licensed; MockWebServer 4.12.0 is
+test-only.
 
 `lib/services/search_provider_protocol.dart` is also called by the live Dart
 Nominatim, Photon and Overpass paths. Its socket-free Kotlin counterpart locks
@@ -107,7 +121,11 @@ dart run tools/kotlin_rewrite/generate_http_safety_fixture.dart --check
 Both `http_safety_policy_test.dart` and `HttpSafetyPolicyParityTest.kt` consume
 the same generated contract. Existing Dart integration tests still prove that
 an oversized body is rejected and a 3xx response is returned without following
-the redirect.
+the redirect. Ten `NativeBoundedHttpClientTest` local-server cases additionally
+prove exact routing GET and search POST dispatch, repeated response headers,
+redirect refusal, declared and chunked overflow, exact-limit acceptance, total
+slow-body deadline, physical coroutine cancellation, value-free invalid-request
+failure and no hidden transport retry.
 
 `search_provider_requests_v1.tsv` adds 39 Dart-generated Nominatim, Photon and
 Overpass request outcomes. It is consumed by both runtimes and includes their
@@ -162,21 +180,19 @@ ordering, final merge precedence, duplicate suppression and terminal behavior.
 
 ## Deliberately outside this slice
 
-- no native HTTP engine, OkHttp dependency, DNS resolver or socket is wired;
-- no native request is dispatched with coordinates, API keys or a Roadstr
-  user-agent; Kotlin request values are inert fixture-backed data;
-- total deadlines, cancellation and connection-pool ownership still need the
-  native adapter;
-- redirect/TLS/cleartext behavior needs Android integration tests in addition
-  to this policy fixture;
-- the native search-history store, physical request cancellation, UI
-  request-generation suppression, Overpass backoff and live native execution
-  remain; avoidance/re-timing policy is locked but has no coroutine/HTTP
-  adapter;
+- no native search/routing provider service or production owner is wired; only
+  synthetic loopback tests dispatch coordinates, keys and Roadstr user agents;
+- DNS, TLS, Android Network Security Config and cleartext-loopback behavior
+  still need Android integration/device tests in addition to local JVM tests;
+- the native search-history store, provider-job cancellation, UI request-
+  generation suppression, Overpass backoff and live native execution remain
+  above the single-call adapter; avoidance/re-timing and provider orchestration
+  still have no coroutine service owner;
 - routing configuration decisions are locked, but native secure-storage/
   Keystore access and installed-app migration evidence remain open;
 - DNS-aware SSRF checks for LNURL remain part of the later live-network gate.
 
-The Kotlin policy has no Android, Activity, startup or persistence wiring.
-Rollback is removal of the Kotlin boundary and fixture plus restoration of the
-small Dart delegation; no stored data or endpoint defaults change.
+The Kotlin adapter has no Activity, startup, provider-service or persistence
+wiring. Rollback is removal of the adapter/direct dependency declarations while
+leaving the pure boundaries and Flutter client in place; no stored data or
+endpoint defaults change.
