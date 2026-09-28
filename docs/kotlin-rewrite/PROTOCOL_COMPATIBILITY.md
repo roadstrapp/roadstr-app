@@ -108,13 +108,16 @@ Port semantically, not approximately:
 - Nominatim etiquette, Overpass mirror rotation/backoff and route provider
   fallback behavior.
 
-The deterministic subset of that HTTP contract is now locked by the 48-case
+The deterministic subset of that HTTP contract is now locked by the 51-case
 `http_safety_policy_v1.tsv`: timeout and response tiers, redirect refusal,
 declared/streamed size ceilings and current GraphHopper loopback admission.
 Ten local native integration cases prove that the OkHttp adapter applies that
 contract to exact routing/search requests, whole-call deadlines, redirect and
 retry refusal, physical cancellation and value-free failures. Production
-provider ownership and Android DNS/TLS/cleartext evidence remain open.
+The headless native routing service additionally executes resolved OSRM/ORS/
+GraphHopper requests and the one-retry bearing fallback without converting
+caller cancellation into another request. Production ownership and Android
+DNS/TLS/cleartext evidence remain open.
 The 39-case `search_provider_requests_v1.tsv` additionally locks exact
 Nominatim forward/reverse, Photon and Overpass methods, URLs, encodings,
 coordinates, headers and form bodies. `NETWORK_CORE_PARITY.md` and
@@ -148,8 +151,8 @@ OSRM sampling, per-leg distance, ferry, proportional-time and minimum-coverage
 decisions. The 34-case `routing_provider_config_v1.tsv` locks provider/key/
 server resolution, OSRM read modes, fallback issues, secure/legacy precedence,
 routing-time migration and Unicode trimming. `ROUTING_NETWORK_CORE_PARITY.md`
-records the remaining secure-store, provider-orchestration, Android network
-integration and native-execution gates.
+records the remaining secure-store/startup ownership, avoidance execution and
+Android network-integration gates.
 
 ## Acceptance criteria
 

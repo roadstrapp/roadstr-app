@@ -28,6 +28,7 @@ String buildHttpSafetyFixture() {
   const limits = <String, int>{
     'small_json': NetworkLimits.smallJson,
     'route': NetworkLimits.route,
+    'journey_route': NetworkLimits.journeyRoute,
     'transit_plan': NetworkLimits.transitPlan,
     'area_query': NetworkLimits.areaQuery,
     'large_area_query': NetworkLimits.largeAreaQuery,
@@ -48,6 +49,16 @@ String buildHttpSafetyFixture() {
     ('negative-invalid', -1, 16),
     ('route-exact', NetworkLimits.route, NetworkLimits.route),
     ('route-over', NetworkLimits.route + 1, NetworkLimits.route),
+    (
+      'journey-route-exact',
+      NetworkLimits.journeyRoute,
+      NetworkLimits.journeyRoute,
+    ),
+    (
+      'journey-route-over',
+      NetworkLimits.journeyRoute + 1,
+      NetworkLimits.journeyRoute,
+    ),
   ]) {
     final accepted = BoundedHttpPolicy.acceptsContentLength(value.$2, value.$3);
     rows.add(

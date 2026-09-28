@@ -1,8 +1,8 @@
 # Routing-provider request, response and orchestration parity
 
 This increment freezes Roadstr's outbound routing request contract and inbound
-response normalization without giving Kotlin ownership of an HTTP engine.
-Flutter still dispatches every live request.
+response normalization and adds a headless Kotlin executor above the bounded
+HTTP engine. Flutter still dispatches every production request.
 
 ## Production-used Dart boundary
 
@@ -84,6 +84,28 @@ falls back to OSRM with the same warning category, secure storage wins over
 Hive, and migration writes the trimmed legacy key before deleting it.
 `RoutingProviderConfigProtocol.kt` mirrors the pure decision without Android
 storage or network dependencies.
+
+## Headless native executor
+
+`service.routing.NativeRoutingService` consumes an already resolved
+`RoutingProviderConfiguration` and forms a complete primary-provider path:
+
+- OSRM, OpenRouteService and GraphHopper request composition;
+- the shipped 10-second OSRM/ORS and 12-second GraphHopper deadlines;
+- the existing 32 MiB full-journey response ceiling, now named
+  `journey_route` separately from the 2 MiB small route/probe tier;
+- status and transport classification without retaining response bodies, URLs,
+  coordinates or API keys in exceptions;
+- normalized response parsing and immutable route lists;
+- the exact constrained-to-unconstrained OSRM reroute state machine.
+
+The service catches only its value-free routing failures. A caller
+`CancellationException` therefore propagates through the orchestration loop,
+cancels the active OkHttp call and cannot trigger the fallback request. Ten JVM
+tests cover all three providers, limits, a real loopback GraphHopper exchange,
+redaction, invalid endpoint admission, both fallback causes and cancellation.
+Secure-store reads, startup/UI ownership, generation suppression and avoidance
+execution remain deliberately outside this slice.
 
 ## Shared fixture
 
@@ -201,19 +223,22 @@ server read.
 
 - the shared Kotlin HTTP engine now owns local-test sockets, connection pooling,
   total deadlines, redirect/retry refusal, response bounds and single-call
-  cancellation, but no routing provider service invokes it in production;
+  cancellation; the routing service invokes it headlessly but not from
+  production startup or UI;
 - DNS, TLS and cleartext enforcement still need Android integration/device
   evidence;
 - provider/key/server resolution and routing-time legacy-key migration are now
   fixture-locked and used by Flutter, but the native secure-store adapter,
-  request-generation suppression and all native live dispatch remain open;
-- provider-job ownership, request-generation suppression and orchestration
-  cancellation remain open even though a cancelled coroutine now cancels its
-  physical OkHttp call;
+  request-generation suppression and production native dispatch remain open;
+- caller cancellation now stops routing orchestration and the physical request;
+  long-lived job/ViewModel ownership and stale UI-generation suppression remain
+  open;
+- Valhalla avoidance attempt execution and OSRM re-timing remain pure/native
+  policy without a coroutine service owner;
 - installed-app secure-storage/Keystore migration and live-provider/device
   tests remain release gates.
 
-Rollback is removal of the Kotlin boundaries/fixtures and re-inlining the Dart
-request builders, response parser and extracted routing orchestration policies.
-No endpoint default, stored setting, API key or live-network owner changed in
-this increment.
+Rollback is removal of the headless service and its transport boundary while
+retaining the Kotlin policies/fixtures and authoritative Flutter routing path.
+No endpoint default, stored setting, API key or production network owner
+changed in this increment.

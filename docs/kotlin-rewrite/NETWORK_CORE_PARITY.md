@@ -1,4 +1,4 @@
-# Native HTTP safety and provider-request parity
+# Native HTTP safety and provider execution parity
 
 This increment freezes the deterministic HTTP safety decisions and adds a
 real, cancellable native transport without changing production network
@@ -12,7 +12,8 @@ against local test servers.
 `core.network.HttpSafetyPolicy.kt`. The shared boundary covers:
 
 - the six per-attempt timeout tiers from `NetworkTimeouts`;
-- the six response caps from `NetworkLimits`;
+- the seven response caps from `NetworkLimits`, including the separate 32 MiB
+  full-journey route ceiling used by the live routing service;
 - redirect forwarding disabled before dispatch;
 - declared `Content-Length` rejection before buffering;
 - cumulative per-chunk accounting with the exact byte ceiling accepted;
@@ -32,6 +33,14 @@ rejects oversized declared bodies before reading, accounts every streamed
 chunk before retaining it, disables HTTP and HTTPS redirects, disables hidden
 connection retries and cancels the physical OkHttp `Call` when its coroutine is
 cancelled. Its value-free failure type never includes a URI, header or body.
+
+`service.routing.NativeRoutingService` is the first headless native provider
+executor. Given an already resolved configuration, it composes and dispatches
+OSRM, OpenRouteService or GraphHopper requests, keeps the shipped 10/12-second
+provider deadlines and 32 MiB full-route ceiling, normalizes the response and
+drives the one-retry OSRM bearing state machine. Caller cancellation propagates
+through the service and physically cancels the active call without starting the
+fallback. The service has no startup, UI or secure-store owner yet.
 
 The app pins OkHttp 4.12.0 and kotlinx-coroutines 1.10.2, matching the versions
 already selected by MapLibre/AndroidX instead of upgrading the existing Flutter
@@ -69,13 +78,17 @@ options. See `ROUTING_NETWORK_CORE_PARITY.md`.
 `lib/services/routing_response_protocol.dart` is also called by every live Dart
 routing path. Its Kotlin counterpart freezes normalized route geometry,
 maneuvers, localized instructions, speed limits, response validation and
-provider errors. Network dispatch and fallback remain owned by Flutter.
+provider errors. The headless Kotlin routing service now exercises the same
+parser after bounded dispatch, while production dispatch and UI fallback remain
+owned by Flutter.
 
 `lib/services/routing_orchestration_protocol.dart` is called by both production
 map implementations through `RoutingService`. Its Kotlin counterpart freezes
 when a moving OSRM reroute may carry a bearing, constrained-result admission,
 the `8 × + 5 km` implausible-detour ceiling, one unconstrained fallback and
-terminal failure/ordering semantics. It does not dispatch or cancel requests.
+terminal failure/ordering semantics. `NativeRoutingService` now drives it
+sequentially and deliberately catches only value-free routing failures, leaving
+caller cancellation terminal.
 
 `lib/services/routing_avoidance_protocol.dart` is called by both production
 avoidance entry points through `RoutingService`. Its Kotlin counterpart freezes
@@ -87,7 +100,8 @@ minimum verified-road budget. It does not dispatch or cancel requests.
 implementations. Its Kotlin counterpart freezes persisted provider/key/server
 resolution, required-credential fallback, secure-key precedence and the
 routing-time legacy-key migration decision. Kotlin still has no secure-storage
-adapter and does not dispatch the resulting configuration.
+adapter; the headless routing service accepts and dispatches only an already
+resolved configuration.
 
 ## Compatibility detail
 
@@ -101,11 +115,11 @@ deliberately.
 
 ## Shared fixture
 
-`http_safety_policy_v1.tsv` contains 48 Dart-generated cases:
+`http_safety_policy_v1.tsv` contains 51 Dart-generated cases:
 
-- 6 timeout tiers and 6 response limits;
+- 6 timeout tiers and 7 response limits;
 - redirect policy;
-- 7 declared-length boundaries;
+- 9 declared-length boundaries;
 - 9 chunk transcripts, including exact, cumulative and oversized cases;
 - 19 GraphHopper endpoint cases covering HTTPS, ports, loopback aliases, LAN
   cleartext, IPv6, subdomains, malformed/hostless input and current scheme/
@@ -126,6 +140,12 @@ prove exact routing GET and search POST dispatch, repeated response headers,
 redirect refusal, declared and chunked overflow, exact-limit acceptance, total
 slow-body deadline, physical coroutine cancellation, value-free invalid-request
 failure and no hidden transport retry.
+
+Ten `NativeRoutingServiceTest` cases prove OSRM/ORS/GraphHopper composition and
+normalization above that adapter, provider-specific deadlines, the full-route
+cap, a real self-hosted GraphHopper loopback exchange, value-free status/parser
+failures, invalid endpoint rejection, exactly one bearing fallback and caller
+cancellation without a hidden retry.
 
 `search_provider_requests_v1.tsv` adds 39 Dart-generated Nominatim, Photon and
 Overpass request outcomes. It is consumed by both runtimes and includes their
@@ -180,19 +200,20 @@ ordering, final merge precedence, duplicate suppression and terminal behavior.
 
 ## Deliberately outside this slice
 
-- no native search/routing provider service or production owner is wired; only
-  synthetic loopback tests dispatch coordinates, keys and Roadstr user agents;
+- no native search provider service or production owner is wired. The native
+  routing service is headless and only synthetic loopback tests dispatch
+  coordinates, test keys and Roadstr user agents;
 - DNS, TLS, Android Network Security Config and cleartext-loopback behavior
   still need Android integration/device tests in addition to local JVM tests;
-- the native search-history store, provider-job cancellation, UI request-
-  generation suppression, Overpass backoff and live native execution remain
-  above the single-call adapter; avoidance/re-timing and provider orchestration
-  still have no coroutine service owner;
+- the native search-history store, search-provider job cancellation, UI
+  request-generation suppression, Overpass backoff and live search execution
+  remain above the single-call adapter; routing avoidance/re-timing still has
+  no coroutine service owner;
 - routing configuration decisions are locked, but native secure-storage/
   Keystore access and installed-app migration evidence remain open;
 - DNS-aware SSRF checks for LNURL remain part of the later live-network gate.
 
-The Kotlin adapter has no Activity, startup, provider-service or persistence
-wiring. Rollback is removal of the adapter/direct dependency declarations while
-leaving the pure boundaries and Flutter client in place; no stored data or
-endpoint defaults change.
+The Kotlin adapter and routing service have no Activity, startup or persistence
+wiring. Rollback is removal of the service, adapter and direct dependency
+declarations while leaving the pure boundaries and Flutter client in place; no
+stored data or endpoint defaults change.

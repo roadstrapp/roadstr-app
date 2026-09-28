@@ -89,7 +89,7 @@ The first native increment is intentionally isolated from production startup:
 - The Kotlin suite remains independent of Android UI/runtime state; the exact
   current count is recorded in `CORE_PARITY.md` after each full run.
 - The shipped Dart bounded HTTP helper now delegates response-size and redirect
-  decisions to a pure policy. Kotlin matches a 48-case fixture covering all
+  decisions to a pure policy. Kotlin matches a 51-case fixture covering all
   timeout/size tiers, streaming ceilings and GraphHopper cleartext-loopback
   admission; no native socket or request is wired.
 - The live Nominatim, Photon and Overpass clients now delegate deterministic
@@ -311,7 +311,7 @@ broader cross-language coverage and a native store are still required.
 - **Current Dart/Flutter source:** `bounded_http.dart`, `network_config.dart`, `retry.dart`, routing/search/Overpass/Photon/Nominatim services.
 - **New Kotlin files/modules:** `core/network`, `service/routing`, `service/search`, `service/overpass`.
 - **Current implementation:** `core/network/HttpSafetyPolicy.kt` mirrors the
-  six timeout tiers, six response limits, redirect refusal, overflow-safe
+  six timeout tiers, seven response limits, redirect refusal, overflow-safe
   streaming byte accounting and current GraphHopper host/loopback policy.
   `SearchProviderProtocol.kt` also mirrors exact Nominatim forward/reverse,
   Photon and Overpass request composition. `RoutingRequestProtocol.kt` mirrors
@@ -337,15 +337,20 @@ broader cross-language coverage and a native store are still required.
   routing request values through a shared OkHttp pool with whole-call
   deadlines, declared/streamed body ceilings, redirect/retry refusal,
   value-free failures and physical coroutine cancellation.
+  `service/routing/NativeRoutingService.kt` now composes, dispatches and parses
+  resolved OSRM, OpenRouteService and GraphHopper requests, preserves their
+  10/12-second deadlines and 32 MiB full-route ceiling, and drives the exact
+  constrained-to-unconstrained OSRM fallback without swallowing caller
+  cancellation.
   The production Dart bounded client, provider clients and map screens use the
-  extracted request/response/ranking/history oracles. Native provider-service
-  execution, startup ownership and history storage remain unwired.
+  extracted request/response/ranking/history oracles. Native search-provider
+  execution, routing startup/UI ownership and history storage remain unwired.
 - **Dependencies:** OkHttp 4.12.0 and kotlinx-coroutines 1.10.2 are pinned to
   the versions already selected by MapLibre/AndroidX; no Google/Firebase/
   telemetry SDK.
 - **Migration impact:** Routing provider, API key and GraphHopper URL must survive.
 - **User-visible impact:** Same providers, results, language and error/fallback behavior.
-- **Tests:** A 48-case shared HTTP safety fixture, a 39-case search-provider
+- **Tests:** A 51-case shared HTTP safety fixture, a 39-case search-provider
   request fixture, a 34-case search-provider response fixture, a 53-case search
   planning/ranking fixture, a 32-case search-orchestration fixture, a 31-case
   search-history fixture, an 89-case routing-provider request fixture, a
@@ -354,16 +359,19 @@ broader cross-language coverage and a native store are still required.
   provider-configuration fixture and existing live Dart local-server redirect/
   oversize/Overpass tests are green. Ten native local-server tests add exact
   GET/POST dispatch, redirect/retry refusal, declared/streamed limits, total
-  deadline, value-free failures and physical cancellation. Android TLS/
-  cleartext integration, secure-store/history-store and provider-service
-  wiring remain.
+  deadline, value-free failures and physical cancellation. Ten routing-service
+  tests add all three primary providers, exact limits, real local
+  GraphHopper-through-OkHttp execution, failure redaction, bearing fallback and
+  cancellation-without-retry. Android TLS/cleartext integration, secure-store/
+  history-store, search-provider and startup/UI wiring remain.
 - **Parity evidence:** Exact Nominatim/Photon/Overpass and OSRM/ORS/GraphHopper/
   Valhalla request bytes, normalized search/route responses, deterministic
   search planning/ranking/orchestration, OSRM reroute fallback, avoidance/
   re-timing decisions, provider/key/server resolution, routing-time legacy-key
-  migration and history value semantics are green; native secure/history
-  stores, provider coroutine orchestration, Android network integration and
-  native production execution are open.
+  migration and history value semantics are green; headless native primary-
+  provider routing execution is green. Native secure/history stores, search
+  orchestration, avoidance execution, Android network integration and
+  production ownership are open.
 - **Security/privacy impact:** Preserve URL validation, body caps, user-agent, no silent cloud fallback.
 - **Battery/performance impact:** Compare network retries, cache hit rate and cancellation.
 - **Acceptance criteria:** All current providers pass without changed limits or privacy behavior.

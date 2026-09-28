@@ -8,6 +8,7 @@ timeout	background	-	-	25000
 timeout	socket_handshake	-	-	5000
 limit	small_json	-	-	1048576
 limit	route	-	-	2097152
+limit	journey_route	-	-	33554432
 limit	transit_plan	-	-	2097152
 limit	area_query	-	-	6291456
 limit	large_area_query	-	-	10485760
@@ -20,6 +21,8 @@ content_length	one-over	17	16	false
 content_length	negative-invalid	-1	16	false
 content_length	route-exact	2097152	2097152	true
 content_length	route-over	2097153	2097152	false
+content_length	journey-route-exact	33554432	33554432	true
+content_length	journey-route-over	33554433	33554432	false
 chunks	empty	8	-	accepted:0
 chunks	zero-chunks	8	0,0	accepted:0
 chunks	single-exact	8	8	accepted:8
