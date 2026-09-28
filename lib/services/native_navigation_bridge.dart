@@ -11,8 +11,13 @@ abstract final class NativeNavigationBridgeContract {
   static const String startForegroundGps = 'startForegroundGps';
   static const String stopForegroundGps = 'stopForegroundGps';
   static const String isForegroundGpsRunning = 'isForegroundGpsRunning';
+  static const String updateNavigationNotification =
+      'updateNavigationNotification';
+  static const String resetNavigationNotification =
+      'resetNavigationNotification';
   static const String permissionDeniedCode = 'permission_denied';
   static const String startFailedCode = 'start_failed';
+  static const String invalidArgumentsCode = 'invalid_arguments';
 }
 
 /// Explicit caller for the Android native GPS foreground service canary.
@@ -52,5 +57,28 @@ class NativeNavigationBridge {
       NativeNavigationBridgeContract.isForegroundGpsRunning,
     );
     return running ?? false;
+  }
+
+  /// Mirrors one bounded turn-by-turn notification update to the native service.
+  Future<bool> updateNavigationNotification({
+    required String instruction,
+    required String distance,
+  }) async {
+    final accepted = await _channel.invokeMethod<bool>(
+      NativeNavigationBridgeContract.updateNavigationNotification,
+      <String, String>{
+        'instruction': instruction,
+        'distance': distance,
+      },
+    );
+    return accepted ?? false;
+  }
+
+  /// Resets native notification throttling and removes its navigation update.
+  Future<bool> resetNavigationNotification() async {
+    final accepted = await _channel.invokeMethod<bool>(
+      NativeNavigationBridgeContract.resetNavigationNotification,
+    );
+    return accepted ?? false;
   }
 }

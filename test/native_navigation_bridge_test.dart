@@ -22,9 +22,15 @@ void main() {
         NativeNavigationBridgeContract.stopForegroundGps, 'stopForegroundGps');
     expect(NativeNavigationBridgeContract.isForegroundGpsRunning,
         'isForegroundGpsRunning');
+    expect(NativeNavigationBridgeContract.updateNavigationNotification,
+        'updateNavigationNotification');
+    expect(NativeNavigationBridgeContract.resetNavigationNotification,
+        'resetNavigationNotification');
     expect(NativeNavigationBridgeContract.permissionDeniedCode,
         'permission_denied');
     expect(NativeNavigationBridgeContract.startFailedCode, 'start_failed');
+    expect(NativeNavigationBridgeContract.invalidArgumentsCode,
+        'invalid_arguments');
   });
 
   test('runtime query returns the native foreground GPS state', () async {
@@ -58,6 +64,36 @@ void main() {
     expect(calls[0].arguments, isNull);
     expect(calls[1].method, NativeNavigationBridgeContract.stopForegroundGps);
     expect(calls[1].arguments, isNull);
+  });
+
+  test('notification mirror sends bounded text and an explicit reset',
+      () async {
+    final calls = <MethodCall>[];
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      calls.add(call);
+      return true;
+    });
+    const bridge = NativeNavigationBridge(channel: channel);
+
+    expect(
+      await bridge.updateNavigationNotification(
+        instruction: 'Turn right',
+        distance: '200 m',
+      ),
+      isTrue,
+    );
+    expect(await bridge.resetNavigationNotification(), isTrue);
+
+    expect(calls, hasLength(2));
+    expect(calls.first.method,
+        NativeNavigationBridgeContract.updateNavigationNotification);
+    expect(
+      calls.first.arguments,
+      <String, String>{'instruction': 'Turn right', 'distance': '200 m'},
+    );
+    expect(calls.last.method,
+        NativeNavigationBridgeContract.resetNavigationNotification);
+    expect(calls.last.arguments, isNull);
   });
 
   test('native permission failures cross the boundary unchanged', () async {

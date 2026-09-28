@@ -16,7 +16,7 @@ enum class NativeNotificationVisibility {
     Private,
 }
 
-/** Exact throttle boundary used before a native NotificationManager adapter. */
+/** Exact throttle boundary used by the native NotificationManager adapter. */
 class NativeNotificationThrottle(
     private val minIntervalMillis: Long = MIN_INTERVAL_MILLIS,
 ) {
@@ -58,8 +58,7 @@ class NativeNotificationThrottle(
 }
 
 /**
- * Builds private, low-noise navigation updates without owning Android APIs.
- * A later adapter can map these fields to NotificationManager unchanged.
+ * Builds private, low-noise navigation updates for the Android service adapter.
  */
 class NativeNavigationNotificationPolicy(
     private val throttle: NativeNotificationThrottle = NativeNotificationThrottle(),

@@ -130,15 +130,19 @@ The first native increment is intentionally isolated from production startup:
   `NativeNavigationForegroundService` is now registered as an explicit,
   `exported=false` AOSP location adapter with a low/private channel and
   explicit start/stop actions. `MainActivity` exposes an opt-in
-  `app.roadstr/native_navigation` `MethodChannel` with explicit start/stop/state
-  methods and permission/error results. A process-local atomic service state
-  lets the isolated Dart wrapper and serialized ownership coordinator adopt,
-  restart or clean up foreground GPS after Activity/renderer recreation. Both
-  Flutter map renderers reconcile on init/resume and attach a typed fix
-  `EventChannel` shadow feed only when compiled with
-  `ROADSTR_NATIVE_NAVIGATION=true`. Native fixes are not persisted, logged or
-  used to drive the map yet; ordinary builds remain inert, and full
-  Activity/ViewModel ownership and cutover remain open.
+  `app.roadstr/native_navigation` `MethodChannel` with explicit
+  start/stop/state plus bounded notification update/reset methods and
+  permission/error results. A process-local atomic service state lets the
+  isolated Dart wrapper and serialized ownership coordinator adopt, restart
+  or clean up foreground GPS after Activity/renderer recreation. Both Flutter
+  map renderers reconcile on init/resume and attach a typed fix `EventChannel`
+  shadow feed only when compiled with `ROADSTR_NATIVE_NAVIGATION=true`. The
+  same canary mirrors notification commands through a process-local dispatcher
+  to the native `NotificationManager`, reusing channel `roadstr_navigation`
+  and ID 42; Flutter posts or cancels last and remains authoritative. Native
+  fixes are not persisted, logged or used to drive the map yet; ordinary
+  builds remain inert, and full Activity/ViewModel ownership and cutover
+  remain open.
 - `docs/kotlin-rewrite/MIGRATION_IMPLEMENTATION.md` records what is and is not
   wired.
 
@@ -461,12 +465,12 @@ broader cross-language coverage and a native store are still required.
 
 - **Objective:** Match LocationManager cadence, watchdog, assistance, heading, foreground and background behavior.
 - **Current Dart/Flutter source:** `lib/services/gps_service.dart`, map screen lifecycle/camera policies, notification service.
-- **New Kotlin files/modules:** `service/location` contains the headless AOSP `LocationManager` adapter and watchdog; `service/navigation/NativeNavigationLifecycle.kt` and `service/notifications/NativeNavigationNotificationPolicy.kt` contain the lifecycle/foreground policy and notification throttle; `service/navigation/NativeNavigationForegroundService.kt` owns the AOSP `startForeground` adapter, `NativeNavigationServiceState.kt` exposes its process-local state and `NativeNavigationFixDispatcher.kt` provides listener-isolated fix encoding/fan-out; `service/navigation/NativeNavigationBridge.kt` plus `MainActivity` provide the opt-in start/stop/state `MethodChannel` and fix `EventChannel`; `lib/services/native_navigation_bridge.dart`, `native_navigation_ownership.dart` and `native_navigation_fix_feed.dart` mirror, serialize, reconcile and observe it; `MaplibreMapScreen` and legacy `MapScreen` own start/stop/dispose/reconcile plus a non-driving shadow feed only behind the disabled-by-default compile-time canary, while full ViewModel ownership remains.
+- **New Kotlin files/modules:** `service/location` contains the headless AOSP `LocationManager` adapter and watchdog; `service/navigation/NativeNavigationLifecycle.kt` and `service/notifications/NativeNavigationNotificationPolicy.kt` contain the lifecycle/foreground policy and notification throttle; `service/navigation/NativeNavigationForegroundService.kt` owns the AOSP `startForeground` and `NotificationManager` adapters, `NativeNavigationServiceState.kt` exposes its process-local state, `NativeNavigationFixDispatcher.kt` provides listener-isolated fix encoding/fan-out and `NativeNavigationNotificationRuntime.kt` provides replacement-safe notification command dispatch; `service/navigation/NativeNavigationBridge.kt` plus `MainActivity` provide the opt-in start/stop/state/notification `MethodChannel` and fix `EventChannel`; `lib/services/native_navigation_bridge.dart`, `native_navigation_ownership.dart` and `native_navigation_fix_feed.dart` mirror, serialize, reconcile and observe it; `MaplibreMapScreen` and legacy `MapScreen` own start/stop/dispose/reconcile plus non-driving fix and notification shadows only behind the disabled-by-default compile-time canary, while full ViewModel ownership remains.
 - **Dependencies:** Android platform LocationManager/sensors/foreground APIs only; no fused location or Play Services.
 - **Migration impact:** Active navigation state and notification actions must not be lost on recreation.
 - **User-visible impact:** Same permissions, fix cadence, background grace, guidance and notification lifecycle.
-- **Tests:** 25 deterministic JVM tests cover fix normalization, last-known speed, fake streams, watchdog/dead stream, disabled-provider behavior, callback isolation, cancellation, disposal, lifecycle grace/generation/wakelock, notification throttle/privacy, service runtime state, fix encoding/fan-out and the bridge command/state/event contracts; rotation/process/lifecycle tests and de-Googled manual test remain.
-- **Parity evidence:** headless AOSP source/policy, lifecycle transitions, watchdog traces, notification decisions, Android foreground-service compilation/manifest checks, fix EventChannel and disabled-by-default ownership/reconciliation/shadow wiring in both renderers are green; enabled-build physical-device traces remain.
+- **Tests:** 28 deterministic JVM tests cover fix normalization, last-known speed, fake streams, watchdog/dead stream, disabled-provider behavior, callback isolation, cancellation, disposal, lifecycle grace/generation/wakelock, notification throttle/privacy, replacement-safe notification dispatch, bounded update parsing, service runtime state, fix encoding/fan-out and the bridge command/state/event contracts; rotation/process/lifecycle tests and de-Googled manual test remain.
+- **Parity evidence:** headless AOSP source/policy, lifecycle transitions, watchdog traces, notification decisions, Android foreground-service and `NotificationManager` compilation, manifest checks, fix EventChannel and disabled-by-default ownership/reconciliation/fix-and-notification shadow wiring in both renderers are green; enabled-build physical-device traces remain.
 - **Security/privacy impact:** Preserve permission scope, no coordinate logs and notification privacy.
 - **Battery/performance impact:** CPU/wakeups/GPS duration/map camera updates measured in comparable sessions.
 - **Acceptance criteria:** No obvious battery/navigation regression and same background behavior.

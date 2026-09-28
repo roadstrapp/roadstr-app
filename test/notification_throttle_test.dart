@@ -1,9 +1,30 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:roadstr/services/native_navigation_bridge.dart';
 import 'package:roadstr/services/navigation_notification_service.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   final t0 = DateTime(2026, 9, 24, 12);
   Duration s(int n) => Duration(seconds: n);
+
+  const nativeChannel = MethodChannel('test.roadstr/native_navigation');
+  const flutterNotificationChannel = MethodChannel(
+    'dexterous.com/flutter/local_notifications',
+  );
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+
+  tearDown(() {
+    debugDefaultTargetPlatformOverride = null;
+    messenger.setMockMethodCallHandler(nativeChannel, null);
+    messenger.setMockMethodCallHandler(flutterNotificationChannel, null);
+  });
 
   test('the first update of a trip always goes out', () {
     final throttle = NotificationThrottle();
@@ -54,5 +75,44 @@ void main() {
     // Same text, a moment later: from a fresh trip this is a first update,
     // not a repeat of the old one.
     expect(throttle.shouldPost('Turn left', '400 m', t0.add(s(1))), isTrue);
+  });
+
+  test('canary mirror finishes before the authoritative Flutter operation',
+      () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    AndroidFlutterLocalNotificationsPlugin.registerWith();
+    final events = <String>[];
+    var nativeResult = Completer<bool>();
+    messenger.setMockMethodCallHandler(nativeChannel, (call) {
+      events.add('native:${call.method}');
+      return nativeResult.future;
+    });
+    messenger.setMockMethodCallHandler(flutterNotificationChannel,
+        (call) async {
+      events.add('flutter:${call.method}');
+      return call.method == 'initialize' ? true : null;
+    });
+    final service = NavigationNotificationService(
+      nativeBridge: const NativeNavigationBridge(channel: nativeChannel),
+      mirrorNative: true,
+    );
+
+    final show = service.show('Turn right', '200 m');
+    await Future<void>.delayed(Duration.zero);
+    expect(events, contains('flutter:initialize'));
+    expect(events, isNot(contains('flutter:show')));
+
+    nativeResult.complete(true);
+    await show;
+    expect(events.last, 'flutter:show');
+
+    nativeResult = Completer<bool>();
+    final cancel = service.cancel();
+    await Future<void>.delayed(Duration.zero);
+    expect(events.last, 'native:resetNavigationNotification');
+
+    nativeResult.complete(true);
+    await cancel;
+    expect(events.last, 'flutter:cancel');
   });
 }
