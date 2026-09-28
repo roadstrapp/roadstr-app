@@ -144,7 +144,13 @@ kotlin {
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     implementation("org.bouncycastle:bcprov-jdk18on:1.86")
+    // Match the versions already selected transitively by MapLibre/AndroidX.
+    // Pinning them makes the native adapter reproducible without upgrading the
+    // existing Flutter runtime's network or coroutine stack.
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
 }
 
 flutter {
