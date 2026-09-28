@@ -27,6 +27,7 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 import '../services/gps_service.dart';
+import '../services/routing_provider_config.dart';
 import '../services/routing_service.dart';
 import '../services/speed_limit_service.dart';
 import '../services/poi_search_service.dart';
@@ -2316,53 +2317,42 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     final box = Hive.box('settings');
     final providerKey =
         box.get('routingProvider', defaultValue: 'osrm') as String;
-    var rawKey = await _secStorage.read(key: 'routing_api_key') ?? '';
-    // One-time migration: move legacy Hive value to SecureStorage.
-    if (rawKey.isEmpty) {
-      final legacy =
-          (box.get('graphhopperApiKey', defaultValue: '') as String).trim();
-      if (legacy.isNotEmpty) {
-        await _secStorage.write(key: 'routing_api_key', value: legacy);
-        await box.delete('graphhopperApiKey');
-        rawKey = legacy;
-      }
-    }
-    final String? apiKey = rawKey.trim().nullIfEmpty;
-    final String? ghServer =
-        (box.get('graphhopperServer', defaultValue: '') as String)
-            .trim()
-            .nullIfEmpty;
+    final resolved = await RoutingProviderConfigResolver.resolveStored(
+      providerKey: providerKey,
+      // Preserve the raster screen's shipped migration timing: it checks
+      // Secure Storage even for OSRM. MapLibre's intentional fast-path is
+      // represented separately in its call below.
+      deferCredentialReadForOsrm: false,
+      readSecureApiKey: () => _secStorage.read(key: 'routing_api_key'),
+      readLegacyApiKey: () =>
+          box.get('graphhopperApiKey', defaultValue: '') as String,
+      writeSecureApiKey: (value) =>
+          _secStorage.write(key: 'routing_api_key', value: value),
+      deleteLegacyApiKey: () => box.delete('graphhopperApiKey'),
+      readGraphHopperServer: () =>
+          box.get('graphhopperServer', defaultValue: '') as String,
+    );
 
     // The widget may have been disposed during the awaited SecureStorage reads;
     // guard every context use below so a stale context never reaches _snack.
     final l10n = mounted ? AppLocalizations.of(context) : null;
-    RoutingProvider provider;
-    switch (providerKey) {
-      case 'graphhopper':
-        if (ghServer != null) {
-          provider = RoutingProvider.graphHopper;
-        } else {
-          provider = RoutingProvider.osrm;
-          if (l10n != null) _snack(l10n.graphhopperServerNotConfigured);
-        }
-      case 'graphhopper_public':
-        if (apiKey != null) {
-          provider = RoutingProvider.graphHopper;
-        } else {
-          provider = RoutingProvider.osrm;
-          if (l10n != null) _snack(l10n.graphhopperApiKeyNotConfigured);
-        }
-      case 'openroute':
-        if (apiKey != null) {
-          provider = RoutingProvider.openRoute;
-        } else {
-          provider = RoutingProvider.osrm;
-          if (l10n != null) _snack(l10n.openrouteApiKeyNotConfigured);
-        }
-      default:
-        provider = RoutingProvider.osrm;
+    if (l10n != null) {
+      switch (resolved.issue) {
+        case RoutingProviderConfigurationIssue.none:
+          break;
+        case RoutingProviderConfigurationIssue.graphHopperServerMissing:
+          _snack(l10n.graphhopperServerNotConfigured);
+        case RoutingProviderConfigurationIssue.graphHopperApiKeyMissing:
+          _snack(l10n.graphhopperApiKeyNotConfigured);
+        case RoutingProviderConfigurationIssue.openRouteApiKeyMissing:
+          _snack(l10n.openrouteApiKeyNotConfigured);
+      }
     }
-    return (provider: provider, apiKey: apiKey, ghServer: ghServer);
+    return (
+      provider: resolved.provider,
+      apiKey: resolved.apiKey,
+      ghServer: resolved.graphHopperServer,
+    );
   }
 
   /// Starts navigation on [route].
@@ -6155,8 +6145,4 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     WakelockPlus.disable();
     super.dispose();
   }
-}
-
-extension _StringX on String {
-  String? get nullIfEmpty => isEmpty ? null : this;
 }

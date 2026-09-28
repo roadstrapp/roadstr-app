@@ -325,6 +325,9 @@ broader cross-language coverage and a native store are still required.
   implementations. `RoutingAvoidanceProtocol.kt` mirrors hard-to-soft and
   direct-track attempt ordering plus geometry sampling, ferry handling and
   per-leg OSRM re-timing admission now used by production Dart.
+  `RoutingProviderConfigProtocol.kt` mirrors provider/key/server resolution,
+  required-credential fallback and routing-time legacy-key migration now used
+  by both production map implementations.
   `SearchResponseProtocol.kt` mirrors
   Nominatim forward/reverse, Photon and Overpass response normalization. The
   `SearchRankingProtocol.kt` mirrors deterministic provider-phase planning,
@@ -341,15 +344,17 @@ broader cross-language coverage and a native store are still required.
   planning/ranking fixture, a 32-case search-orchestration fixture, a 31-case
   search-history fixture, an 89-case routing-provider request fixture, a
   59-case routing-provider response fixture, a 28-case routing-orchestration
-  fixture, a 36-case routing-avoidance/re-timing fixture and existing live Dart
-  local-server redirect/oversize/Overpass tests are green. Native engine
-  redirect/size/TLS/cleartext integration,
-  history-store wiring and physical cancellation remain.
+  fixture, a 36-case routing-avoidance/re-timing fixture, a 34-case routing
+  provider-configuration fixture and existing live Dart local-server redirect/
+  oversize/Overpass tests are green. Native engine redirect/size/TLS/cleartext
+  integration, secure-store/history-store wiring and physical cancellation
+  remain.
 - **Parity evidence:** Exact Nominatim/Photon/Overpass and OSRM/ORS/GraphHopper/
   Valhalla request bytes, normalized search/route responses, deterministic
   search planning/ranking/orchestration, OSRM reroute fallback, avoidance/
-  re-timing decisions and history value semantics are green; the native history
-  store, coroutine/socket adapters and native execution are open.
+  re-timing decisions, provider/key/server resolution, routing-time legacy-key
+  migration and history value semantics are green; native secure/history
+  stores, coroutine/socket adapters and native execution are open.
 - **Security/privacy impact:** Preserve URL validation, body caps, user-agent, no silent cloud fallback.
 - **Battery/performance impact:** Compare network retries, cache hit rate and cancellation.
 - **Acceptance criteria:** All current providers pass without changed limits or privacy behavior.
