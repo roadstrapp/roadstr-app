@@ -19,12 +19,11 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-/**
- * Dormant Android adapter for the already-tested AOSP GPS coordinator.
+/** Android adapter for the already-tested AOSP GPS coordinator.
  *
- * Nothing starts this service yet: Activity/ViewModel wiring is intentionally a
- * later migration step. Keeping the adapter explicit now lets that step use
- * the Android foreground contract without reimplementing GPS ownership.
+ * Production screens can start it only through the opt-in navigation canary.
+ * The runtime state lets a recreated Activity or renderer adopt or clean up an
+ * existing service without issuing duplicate foreground commands.
  */
 class NativeNavigationForegroundService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -33,6 +32,7 @@ class NativeNavigationForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        NativeNavigationServiceState.markForegroundGpsStopped()
         createLocationChannel()
         locationService = NativeLocationService(
             source = AndroidLocationManagerSource(applicationContext, mainLooper),
@@ -55,6 +55,8 @@ class NativeNavigationForegroundService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
+        NativeNavigationServiceState.markForegroundGpsStopped()
+        foregroundStarted = false
         runBlocking(Dispatchers.Default) {
             locationService?.dispose()
         }
@@ -66,13 +68,16 @@ class NativeNavigationForegroundService : Service() {
     private fun startLocation() {
         if (foregroundStarted) return
         if (!hasLocationPermission()) {
+            NativeNavigationServiceState.markForegroundGpsStopped()
             stopSelf()
             return
         }
         try {
             startForeground(LOCATION_NOTIFICATION_ID, buildLocationNotification())
             foregroundStarted = true
+            NativeNavigationServiceState.markForegroundGpsStarted()
         } catch (_: SecurityException) {
+            NativeNavigationServiceState.markForegroundGpsStopped()
             stopSelf()
             return
         }
@@ -84,6 +89,7 @@ class NativeNavigationForegroundService : Service() {
     }
 
     private fun stopLocation() {
+        NativeNavigationServiceState.markForegroundGpsStopped()
         serviceScope.launch {
             locationService?.dispose()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

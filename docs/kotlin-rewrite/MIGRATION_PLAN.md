@@ -112,9 +112,9 @@ The first native increment is intentionally isolated from production startup:
   AOSP GPS boundary with the Dart-compatible 500 ms cadence, safe fix
   normalization, last-known behavior, 20/45-second dead-stream watchdog and
   cancellable lifecycle ownership. Both Flutter map renderers now have a
-  disabled-by-default canary owning the foreground start/stop/dispose boundary;
-  permission UX, complete startup cutover and device lifecycle evidence remain
-  open.
+  disabled-by-default canary owning the foreground start/stop/dispose boundary
+  and reconciling native service state on init/resume; permission UX, complete
+  startup cutover and device lifecycle evidence remain open.
 - `feature/map/NativeMapStyle.kt` and
   `feature/map/NativeMapOverlayPolicy.kt` now provide a headless MapLibre
   foundation: raster style JSON, dark recoloring, tile URL admission and
@@ -129,10 +129,11 @@ The first native increment is intentionally isolated from production startup:
   `NativeNavigationForegroundService` is now registered as an explicit,
   `exported=false` AOSP location adapter with a low/private channel and
   explicit start/stop actions. `MainActivity` exposes an opt-in
-  `app.roadstr/native_navigation` `MethodChannel` with explicit start/stop
-  methods and permission/error results. The isolated Dart wrapper and its
-  serialized ownership coordinator mirror this contract. Both Flutter map
-  renderers call it only when compiled with
+  `app.roadstr/native_navigation` `MethodChannel` with explicit start/stop/state
+  methods and permission/error results. A process-local atomic service state
+  lets the isolated Dart wrapper and serialized ownership coordinator adopt,
+  restart or clean up foreground GPS after Activity/renderer recreation. Both
+  Flutter map renderers reconcile on init/resume only when compiled with
   `ROADSTR_NATIVE_NAVIGATION=true`; ordinary builds remain inert, and full
   Activity/ViewModel ownership and cutover remain open.
 - `docs/kotlin-rewrite/MIGRATION_IMPLEMENTATION.md` records what is and is not
@@ -457,12 +458,12 @@ broader cross-language coverage and a native store are still required.
 
 - **Objective:** Match LocationManager cadence, watchdog, assistance, heading, foreground and background behavior.
 - **Current Dart/Flutter source:** `lib/services/gps_service.dart`, map screen lifecycle/camera policies, notification service.
-- **New Kotlin files/modules:** `service/location` contains the headless AOSP `LocationManager` adapter and watchdog; `service/navigation/NativeNavigationLifecycle.kt` and `service/notifications/NativeNavigationNotificationPolicy.kt` contain the lifecycle/foreground policy and notification throttle; `service/navigation/NativeNavigationForegroundService.kt` owns the dormant AOSP `startForeground` adapter; `service/navigation/NativeNavigationBridge.kt` plus `MainActivity` provide the opt-in start/stop channel; `lib/services/native_navigation_bridge.dart` and `native_navigation_ownership.dart` mirror and serialize it; `MaplibreMapScreen` and legacy `MapScreen` own start/stop/dispose only behind the disabled-by-default compile-time canary, while full ViewModel ownership remains.
+- **New Kotlin files/modules:** `service/location` contains the headless AOSP `LocationManager` adapter and watchdog; `service/navigation/NativeNavigationLifecycle.kt` and `service/notifications/NativeNavigationNotificationPolicy.kt` contain the lifecycle/foreground policy and notification throttle; `service/navigation/NativeNavigationForegroundService.kt` owns the AOSP `startForeground` adapter and `NativeNavigationServiceState.kt` exposes its process-local state; `service/navigation/NativeNavigationBridge.kt` plus `MainActivity` provide the opt-in start/stop/state channel; `lib/services/native_navigation_bridge.dart` and `native_navigation_ownership.dart` mirror, serialize and reconcile it; `MaplibreMapScreen` and legacy `MapScreen` own start/stop/dispose/reconcile only behind the disabled-by-default compile-time canary, while full ViewModel ownership remains.
 - **Dependencies:** Android platform LocationManager/sensors/foreground APIs only; no fused location or Play Services.
 - **Migration impact:** Active navigation state and notification actions must not be lost on recreation.
 - **User-visible impact:** Same permissions, fix cadence, background grace, guidance and notification lifecycle.
-- **Tests:** 22 deterministic JVM tests cover fix normalization, last-known speed, fake streams, watchdog/dead stream, disabled-provider behavior, callback isolation, cancellation, disposal, lifecycle grace/generation/wakelock, notification throttle/privacy and the bridge command contract; rotation/process/lifecycle tests and de-Googled manual test remain.
-- **Parity evidence:** headless AOSP source/policy, lifecycle transitions, watchdog traces, notification decisions, Android foreground-service compilation/manifest checks and disabled-by-default ownership wiring in both renderers are green; enabled-build physical-device traces remain.
+- **Tests:** 23 deterministic JVM tests cover fix normalization, last-known speed, fake streams, watchdog/dead stream, disabled-provider behavior, callback isolation, cancellation, disposal, lifecycle grace/generation/wakelock, notification throttle/privacy, service runtime state and the bridge command/state contract; rotation/process/lifecycle tests and de-Googled manual test remain.
+- **Parity evidence:** headless AOSP source/policy, lifecycle transitions, watchdog traces, notification decisions, Android foreground-service compilation/manifest checks and disabled-by-default ownership/reconciliation wiring in both renderers are green; enabled-build physical-device traces remain.
 - **Security/privacy impact:** Preserve permission scope, no coordinate logs and notification privacy.
 - **Battery/performance impact:** CPU/wakeups/GPS duration/map camera updates measured in comparable sessions.
 - **Acceptance criteria:** No obvious battery/navigation regression and same background behavior.

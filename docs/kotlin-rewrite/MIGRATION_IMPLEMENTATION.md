@@ -133,12 +133,14 @@ not a production startup change.
   lifecycle; startup scheduling, neutral recovery UI and cutover policy remain
   open.
 - The existing Flutter Activity and production Flutter runtime remain the
-  active path. A dormant, non-exported foreground service and an opt-in native
-  navigation `MethodChannel` are registered. The isolated Dart wrapper and its
-  ownership coordinator have contract tests. Both Flutter map renderers invoke
-  the coordinator only in builds compiled with
-  `ROADSTR_NATIVE_NAVIGATION=true`; the default is false, so ordinary builds
-  keep the existing Flutter GPS path.
+  active path. A non-exported foreground service and an opt-in native
+  navigation `MethodChannel` are registered. The channel exposes explicit
+  start, stop and process-local running-state operations. The isolated Dart
+  wrapper and its ownership coordinator have contract/reconciliation tests;
+  both Flutter map renderers reconcile on init/resume, adopting an active
+  service, restarting a missing one during navigation, or stopping an orphan.
+  This runs only in builds compiled with `ROADSTR_NATIVE_NAVIGATION=true`; the
+  default is false, so ordinary builds keep the existing Flutter GPS path.
 - No real user data, key, NWC URI or voice asset is used by the tests.
 - The protected-state admission policy does not yet parse historical NWC URI
   variants during migration; that decision remains behind the native Lightning

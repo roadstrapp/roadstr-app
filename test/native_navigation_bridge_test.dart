@@ -13,16 +13,33 @@ void main() {
     messenger.setMockMethodCallHandler(channel, null);
   });
 
-  test('contract mirrors the native opt-in start and stop methods', () {
+  test('contract mirrors native opt-in commands and runtime state', () {
     expect(NativeNavigationBridgeContract.channelName,
         'app.roadstr/native_navigation');
     expect(NativeNavigationBridgeContract.startForegroundGps,
         'startForegroundGps');
     expect(
         NativeNavigationBridgeContract.stopForegroundGps, 'stopForegroundGps');
+    expect(NativeNavigationBridgeContract.isForegroundGpsRunning,
+        'isForegroundGpsRunning');
     expect(NativeNavigationBridgeContract.permissionDeniedCode,
         'permission_denied');
     expect(NativeNavigationBridgeContract.startFailedCode, 'start_failed');
+  });
+
+  test('runtime query returns the native foreground GPS state', () async {
+    final calls = <MethodCall>[];
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      calls.add(call);
+      return true;
+    });
+    const bridge = NativeNavigationBridge(channel: channel);
+
+    expect(await bridge.isForegroundGpsRunning(), isTrue);
+    expect(calls, hasLength(1));
+    expect(calls.single.method,
+        NativeNavigationBridgeContract.isForegroundGpsRunning);
+    expect(calls.single.arguments, isNull);
   });
 
   test('start and stop send explicit calls without arguments', () async {
