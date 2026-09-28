@@ -113,6 +113,12 @@ The first native increment is intentionally isolated from production startup:
   normalization, last-known behavior, 20/45-second dead-stream watchdog and
   cancellable lifecycle ownership. Startup, permission/UI, foreground
   notification and device lifecycle wiring remain deliberately unwired.
+- `feature/map/NativeMapStyle.kt` and
+  `feature/map/NativeMapOverlayPolicy.kt` now provide a headless MapLibre
+  foundation: raster style JSON, dark recoloring, tile URL admission and
+  escaping, ZTL route segmentation and viewport/zoom marker culling. The
+  native renderer, Compose layers and Activity wiring remain deliberately
+  unwired.
 - `docs/kotlin-rewrite/MIGRATION_IMPLEMENTATION.md` records what is and is not
   wired.
 
@@ -446,16 +452,16 @@ broader cross-language coverage and a native store are still required.
 - **Acceptance criteria:** No obvious battery/navigation regression and same background behavior.
 - **Rollback notes:** Keep Flutter GPS/navigation runtime until signed manual sessions are green.
 
-### KOTLIN-012 — Port MapLibre and map overlays
+### KOTLIN-012 — Port MapLibre and map overlays (IN PROGRESS)
 
 - **Objective:** Reproduce native MapLibre styling, camera, cursor, routes and overlays while preserving raster semantics.
 - **Current Dart/Flutter source:** both map screens, map chrome/markers, theme and cursor widgets/services.
-- **New Kotlin files/modules:** `feature/map`, `feature/navigation/map`, MapLibre style/source helpers.
+- **New Kotlin files/modules:** `feature/map/NativeMapStyle.kt` and `feature/map/NativeMapOverlayPolicy.kt` provide the engine-independent style/source and overlay policies; `feature/navigation/map`, native MapLibre binding and UI layers remain.
 - **Dependencies:** MapLibre Native Android after license/transitive dependency audit.
 - **Migration impact:** `mapEngine`, tile URL, cursor and map settings must remain.
 - **User-visible impact:** Same map engine default, toggle, overlays, tilt, bearing and controls.
-- **Tests:** style/source unit tests, screenshot/golden references, tap/gesture and marker culling tests.
-- **Parity evidence:** reference states in `UI_PARITY.md`, camera traces and frame-time comparison.
+- **Tests:** 7 deterministic JVM tests cover light/dark style output, tile URL safety/escaping, ZTL route segmentation and viewport/zoom marker culling; screenshot/golden, tap/gesture and device marker-rendering tests remain.
+- **Parity evidence:** headless style and overlay decisions are green; reference states in `UI_PARITY.md`, camera traces and frame-time comparison remain.
 - **Security/privacy impact:** Preserve tile/provider URLs, cleartext restrictions and no location telemetry.
 - **Battery/performance impact:** Avoid rebuilding static GeoJSON; measure jank, memory and camera updates.
 - **Acceptance criteria:** Map and legacy raster setting are functionally equivalent with no overlay gaps.
