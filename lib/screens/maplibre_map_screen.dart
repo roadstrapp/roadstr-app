@@ -49,6 +49,7 @@ import '../services/nostr_relay_service.dart';
 import '../services/place_search_service.dart';
 import '../services/poi_search_service.dart';
 import '../services/route_progress.dart';
+import '../services/routing_provider_config.dart';
 import '../services/routing_service.dart';
 import '../services/search_history_protocol.dart';
 import '../services/crossing_hazard_service.dart';
@@ -2626,15 +2627,14 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         .showSnackBar(SnackBar(content: Text(message)));
   }
 
-  /// Same provider-resolution logic as MapScreen._resolveProvider, ported
-  /// directly: reads the configured provider/API key/self-hosted GraphHopper
-  /// server, migrating a legacy Hive-stored key to SecureStorage the same
-  /// way. Without this the screen always fell through to the public OSRM
-  /// demo server regardless of what the driver configured in Settings.
+  /// Resolves the configured provider/API key/self-hosted GraphHopper server
+  /// through the shared policy, including one-time migration of the old Hive
+  /// key to Secure Storage. Without this the screen would fall through to the
+  /// public OSRM demo server regardless of what the driver configured.
   ///
-  /// The SecureStorage read (and its one-time legacy-key migration) only
-  /// runs when the configured provider actually needs an API key — on the
-  /// default 'osrm' setting, resolution is synchronous. Confirmed on a real
+  /// The SecureStorage read (and its one-time legacy-key migration) only runs
+  /// for non-default provider configurations — on the exact default 'osrm'
+  /// setting, resolution is synchronous. Confirmed on a real
   /// device that OSRM (the default, untouched) was still the configured
   /// provider when routing felt slow, so that SecureStorage round-trip
   /// wasn't the cause — but it is pure overhead on every single-shot and
@@ -2645,52 +2645,37 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     final box = Hive.box('settings');
     final providerKey =
         box.get('routingProvider', defaultValue: 'osrm') as String;
-    if (providerKey == 'osrm') {
-      return (provider: RoutingProvider.osrm, apiKey: null, ghServer: null);
-    }
-    var rawKey = await _secStorage.read(key: 'routing_api_key') ?? '';
-    if (rawKey.isEmpty) {
-      final legacy =
-          (box.get('graphhopperApiKey', defaultValue: '') as String).trim();
-      if (legacy.isNotEmpty) {
-        await _secStorage.write(key: 'routing_api_key', value: legacy);
-        await box.delete('graphhopperApiKey');
-        rawKey = legacy;
-      }
-    }
-    final apiKey = rawKey.trim().isEmpty ? null : rawKey.trim();
-    final rawGhServer =
-        (box.get('graphhopperServer', defaultValue: '') as String).trim();
-    final ghServer = rawGhServer.isEmpty ? null : rawGhServer;
+    final resolved = await RoutingProviderConfigResolver.resolveStored(
+      providerKey: providerKey,
+      deferCredentialReadForOsrm: true,
+      readSecureApiKey: () => _secStorage.read(key: 'routing_api_key'),
+      readLegacyApiKey: () =>
+          box.get('graphhopperApiKey', defaultValue: '') as String,
+      writeSecureApiKey: (value) =>
+          _secStorage.write(key: 'routing_api_key', value: value),
+      deleteLegacyApiKey: () => box.delete('graphhopperApiKey'),
+      readGraphHopperServer: () =>
+          box.get('graphhopperServer', defaultValue: '') as String,
+    );
 
     final l10n = mounted ? AppLocalizations.of(context) : null;
-    RoutingProvider provider;
-    switch (providerKey) {
-      case 'graphhopper':
-        if (ghServer != null) {
-          provider = RoutingProvider.graphHopper;
-        } else {
-          provider = RoutingProvider.osrm;
-          if (l10n != null) _showSnack(l10n.graphhopperServerNotConfigured);
-        }
-      case 'graphhopper_public':
-        if (apiKey != null) {
-          provider = RoutingProvider.graphHopper;
-        } else {
-          provider = RoutingProvider.osrm;
-          if (l10n != null) _showSnack(l10n.graphhopperApiKeyNotConfigured);
-        }
-      case 'openroute':
-        if (apiKey != null) {
-          provider = RoutingProvider.openRoute;
-        } else {
-          provider = RoutingProvider.osrm;
-          if (l10n != null) _showSnack(l10n.openrouteApiKeyNotConfigured);
-        }
-      default:
-        provider = RoutingProvider.osrm;
+    if (l10n != null) {
+      switch (resolved.issue) {
+        case RoutingProviderConfigurationIssue.none:
+          break;
+        case RoutingProviderConfigurationIssue.graphHopperServerMissing:
+          _showSnack(l10n.graphhopperServerNotConfigured);
+        case RoutingProviderConfigurationIssue.graphHopperApiKeyMissing:
+          _showSnack(l10n.graphhopperApiKeyNotConfigured);
+        case RoutingProviderConfigurationIssue.openRouteApiKeyMissing:
+          _showSnack(l10n.openrouteApiKeyNotConfigured);
+      }
     }
-    return (provider: provider, apiKey: apiKey, ghServer: ghServer);
+    return (
+      provider: resolved.provider,
+      apiKey: resolved.apiKey,
+      ghServer: resolved.graphHopperServer,
+    );
   }
 
   /// Fetches a route from [origin] to [dest] and classifies it against ZTL —

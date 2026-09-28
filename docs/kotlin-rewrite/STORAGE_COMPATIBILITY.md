@@ -131,6 +131,12 @@ items are JSON strings. Favourite JSON contains `label`, `address`, `lat` and
 JSON contains a signed event and `expiresAt`. Activity inbox entries are Hive
 maps rather than JSON strings.
 
+The production routing-time resolver now fixture-locks precedence between
+secure `routing_api_key` and legacy Hive `graphhopperApiKey`, including
+write-before-delete migration and failure retention. This does not prove access
+to historical Android secure-storage formats; installed-app fixtures and the
+native Keystore adapter remain required.
+
 `nostr_pending_queue_v1.tsv` now locks one complete signed pending-report JSON
 string byte-for-byte and the pure FIFO/TTL/retry policy in Dart and Kotlin.
 This proves the item representation, not native Hive-list parsing, transactional

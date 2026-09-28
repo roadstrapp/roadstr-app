@@ -13,7 +13,7 @@ service or UI cutover.
 | `core.map` | `camera_follow.dart`, `viewport_window.dart` | exponential easing, rotation cap, frame gate, navigation offset, marker culling window |
 | `core.format` | `units.dart` | metric/imperial display, altitude, 27-language speech units, distance punctuation/spacing |
 | `core.search` | `fuzzy_match.dart`, `search_ranking_protocol.dart`, `search_orchestration_protocol.dart`, `search_history_protocol.dart` | accent folding, bounded Levenshtein, address weighting, provider planning, proximity dedupe, city/brand/distance ranking, out-of-order provider completion, one partial, relaxed retry, POI-first final merge, history validation/recency/storage shape |
-| `core.network` | `retry.dart`, `refetch_policy.dart`, `bounded_http.dart`, `network_config.dart`, `search_provider_protocol.dart`, `search_response_protocol.dart`, `routing_request_protocol.dart`, `routing_response_protocol.dart`, `routing_orchestration_protocol.dart`, `routing_avoidance_protocol.dart`, GraphHopper validation | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh, HTTP deadlines/body ceilings/redirect and cleartext-loopback policy, exact search requests and normalized responses plus routing-provider requests/responses, one-retry bearing fallback, avoidance fallback and per-leg re-timing |
+| `core.network` | `retry.dart`, `refetch_policy.dart`, `bounded_http.dart`, `network_config.dart`, `search_provider_protocol.dart`, `search_response_protocol.dart`, `routing_request_protocol.dart`, `routing_response_protocol.dart`, `routing_orchestration_protocol.dart`, `routing_avoidance_protocol.dart`, `routing_provider_config.dart`, GraphHopper validation | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh, HTTP deadlines/body ceilings/redirect and cleartext-loopback policy, exact search requests and normalized responses plus routing-provider requests/responses, one-retry bearing fallback, avoidance fallback, per-leg re-timing and persisted provider/key/server resolution |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
 | `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `lnurl_protocol.dart`, `zap_service.dart` | BOLT-11 parsing, LNURL-pay source/metadata/callback/invoice binding, NIP-47 URI/info negotiation/request/response and NIP-57 draft/receipt bindings |
 | `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_pending_report_queue.dart`, `nostr_relay_message.dart`, `nostr_relay_ingress.dart`, `nostr_nip19.dart`, `nostr_schnorr.dart`, `nip04.dart`, `nip44.dart`, `favorites_sync_protocol.dart`, Nostr/favourites/Lightning services | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash, outbound frames, offline FIFO/TTL/retry policy, bounded inbound envelopes, pre-verification routing/budgets, strict NIP-19 keys, x-only derivation/BIP-340, legacy NIP-04, NIP-44 v2 and deterministic NIP-78 policy |
@@ -175,6 +175,14 @@ extracted state machine and re-timing policy; Kotlin remains detached from
 coroutines, sockets and UI request generations. See
 `ROUTING_NETWORK_CORE_PARITY.md`.
 
+`routing_provider_config_v1.tsv` is the twenty-third shared core fixture. Its
+34 outcomes lock exact provider-key matching, GraphHopper server and API-key
+requirements, OpenRouteService key requirements, OSRM fallback warnings,
+Unicode trimming, secure-key precedence and one-shot legacy-key migration.
+Both Flutter map implementations call the extracted Dart resolver while the
+Kotlin mirror remains detached from secure storage and native dispatch. See
+`ROUTING_NETWORK_CORE_PARITY.md`.
+
 ## Current limits
 
 - No Kotlin class in this phase is called by production startup or UI. The
@@ -189,8 +197,9 @@ coroutines, sockets and UI request generations. See
   yet.
 - Mid-navigation OSRM bearing fallback, avoidance attempt ordering and
   per-slice re-timing admission are covered, including both one-retry ceilings.
-  Persisted provider/key resolution, coroutine/HTTP execution, UI request
-  generations and live native dispatch remain open.
+  Persisted provider/key/server resolution and routing-time legacy migration
+  are covered. A native secure-store adapter, coroutine/HTTP execution, UI
+  request generations and live native dispatch remain open.
 - Search provider planning, normalized-result ranking/merge, out-of-order
   completion/failure handling, one-partial/one-retry orchestration and
   deterministic history value semantics are covered. Encrypted Hive still owns
@@ -220,18 +229,19 @@ coroutines, sockets and UI request generations. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 641 Flutter tests passed, including the Nostr/`nostr_tools` and
+- `flutter test`: 647 Flutter tests passed, including the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
   NIP-19, Lightning and
   LNURL/NIP-04/NIP-44/NIP-78 transcripts, HTTP safety, search/routing-provider
-  request/response policies, search/routing/avoidance orchestration and
-  re-timing, search planning/ranking/history, both migration fixture oracles
-  and the headless Dart handler.
-- `./gradlew :app:testDebugUnitTest`: 153 Kotlin tests passed, including the
+  request/response/configuration policies, search/routing/avoidance
+  orchestration and re-timing, search planning/ranking/history, both migration
+  fixture oracles and the headless Dart handler.
+- `./gradlew :app:testDebugUnitTest`: 154 Kotlin tests passed, including the
   Nostr byte/queue/inbound/ingress/NIP-19/BIP-340/NIP-04/NIP-44/NIP-78,
   Lightning/LNURL parity, HTTP safety/search/routing requests, responses,
-  orchestration and re-timing, search planning/ranking/orchestration/history, native
-  persistence/migration and bounded headless transport reader suites.
+  configuration, orchestration and re-timing, search planning/ranking/
+  orchestration/history, native persistence/migration and bounded headless
+  transport reader suites.
 - `./gradlew :app:assembleDebug`: D8, duplicate-class checks and Android APK
   packaging passed with the pinned Bouncy Castle dependency.
 - No production Activity, manifest or startup wiring changed.
