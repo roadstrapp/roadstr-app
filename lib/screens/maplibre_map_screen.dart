@@ -1801,7 +1801,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     }
     _searchController.dispose();
     unawaited(_gps.dispose());
-    unawaited(_disposeNativeNavigationOwnership());
+    unawaited(_nativeNavigationOwnership.disposeBestEffort());
     unawaited(_tts.dispose());
     _alertPlayer.dispose();
     _nostr.dispose();
@@ -2928,7 +2928,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       _remainingDistM = route.totalDistanceM;
       _remainingSecs = route.totalDurationS;
     });
-    unawaited(_startNativeNavigationOwnership());
+    unawaited(_nativeNavigationOwnership.startBestEffort());
     // The camera was left wherever the route-preview fitBounds put it
     // (zoomed out, top-down, centred on the whole route) — nothing snapped
     // it back onto the driver when the trip actually started, so navigation
@@ -3001,33 +3001,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       _gpsSignalLost = false;
       _activeVia = const [];
     });
-    unawaited(_stopNativeNavigationOwnership());
+    unawaited(_nativeNavigationOwnership.stopBestEffort());
     _applyScreenPolicy();
     _syncCompass();
-  }
-
-  Future<void> _startNativeNavigationOwnership() async {
-    try {
-      await _nativeNavigationOwnership.start();
-    } catch (_) {
-      // Canary failures must not interrupt the established Flutter journey.
-    }
-  }
-
-  Future<void> _stopNativeNavigationOwnership() async {
-    try {
-      await _nativeNavigationOwnership.stop();
-    } catch (_) {
-      // Keep the owner retryable; dispose provides a final cleanup attempt.
-    }
-  }
-
-  Future<void> _disposeNativeNavigationOwnership() async {
-    try {
-      await _nativeNavigationOwnership.dispose();
-    } catch (_) {
-      // The Android process teardown remains the final service boundary.
-    }
   }
 
   /// Same confirmation dialog MapScreen shows before actually stopping —

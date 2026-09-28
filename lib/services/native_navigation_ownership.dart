@@ -77,6 +77,33 @@ class NativeNavigationOwnership {
         _disposed = true;
       });
 
+  /// Canary-only start that cannot interrupt the established Flutter journey.
+  Future<void> startBestEffort() async {
+    try {
+      await start();
+    } catch (_) {
+      // Explicit start remains retryable because ownership was not claimed.
+    }
+  }
+
+  /// Canary-only stop that retains ownership when Android rejects cleanup.
+  Future<void> stopBestEffort() async {
+    try {
+      await stop();
+    } catch (_) {
+      // A later stop or dispose can retry the still-owned service.
+    }
+  }
+
+  /// Final screen-teardown attempt that never surfaces into widget disposal.
+  Future<void> disposeBestEffort() async {
+    try {
+      await dispose();
+    } catch (_) {
+      // Android process teardown remains the final service boundary.
+    }
+  }
+
   Future<T> _run<T>(Future<T> Function() operation) {
     final previous = _transition;
     final next = _runAfter(previous, operation);

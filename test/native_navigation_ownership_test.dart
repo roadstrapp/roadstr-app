@@ -111,6 +111,33 @@ void main() {
     expect(attempts, 2);
   });
 
+  test('best-effort screen boundary absorbs failure and preserves retry',
+      () async {
+    var attempts = 0;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      if (call.method == NativeNavigationBridgeContract.startForegroundGps) {
+        attempts++;
+        if (attempts == 1) {
+          throw PlatformException(
+            code: NativeNavigationBridgeContract.startFailedCode,
+          );
+        }
+        return true;
+      }
+      return null;
+    });
+    final owner = NativeNavigationOwnership(
+      bridge: const NativeNavigationBridge(channel: channel),
+      enabled: true,
+    );
+
+    await owner.startBestEffort();
+    expect(owner.ownsForegroundGps, isFalse);
+    await owner.startBestEffort();
+    expect(owner.ownsForegroundGps, isTrue);
+    await owner.disposeBestEffort();
+  });
+
   test('concurrent start and stop calls remain ordered', () async {
     final calls = <MethodCall>[];
     final startDone = Completer<void>();
