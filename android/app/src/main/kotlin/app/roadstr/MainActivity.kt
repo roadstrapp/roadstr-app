@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import app.roadstr.service.navigation.NativeNavigationBridge
 import app.roadstr.service.navigation.NativeNavigationForegroundService
+import app.roadstr.service.navigation.NativeNavigationServiceState
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -28,6 +29,8 @@ class MainActivity : FlutterFragmentActivity() {
                 when (call.method) {
                     NativeNavigationBridge.START_FOREGROUND_GPS -> startNativeForegroundGps(result)
                     NativeNavigationBridge.STOP_FOREGROUND_GPS -> stopNativeForegroundGps(result)
+                    NativeNavigationBridge.IS_FOREGROUND_GPS_RUNNING ->
+                        result.success(NativeNavigationServiceState.isForegroundGpsRunning())
                     else -> result.notImplemented()
                 }
             }

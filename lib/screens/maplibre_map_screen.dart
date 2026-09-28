@@ -812,6 +812,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     super.initState();
     _nativeNavigationOwnership =
         widget.nativeNavigationOwnership ?? NativeNavigationRollout.create();
+    unawaited(_nativeNavigationOwnership.reconcileBestEffort(
+      navigationActive: _isNavigating,
+    ));
     WidgetsBinding.instance.addObserver(this);
     _loadParkingPosition();
     _loadFavorites();
@@ -1086,6 +1089,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         _gpsIdleStop?.cancel();
         _gpsIdleStop = null;
         _appVisible = true;
+        unawaited(_nativeNavigationOwnership.reconcileBestEffort(
+          navigationActive: _isNavigating,
+        ));
         if (_followUser) {
           // The ticker was not running while hidden, so the tracked camera is
           // wherever it was when the app went away — possibly kilometres back

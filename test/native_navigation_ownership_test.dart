@@ -25,10 +25,86 @@ void main() {
     final owner = NativeNavigationOwnership();
 
     expect(await owner.start(), isFalse);
+    expect(await owner.reconcile(navigationActive: true), isFalse);
     await owner.stop();
 
     expect(owner.ownsForegroundGps, isFalse);
     expect(calls, isEmpty);
+  });
+
+  test('active reconciliation adopts a running service without restarting it',
+      () async {
+    final calls = <MethodCall>[];
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      calls.add(call);
+      if (call.method ==
+          NativeNavigationBridgeContract.isForegroundGpsRunning) {
+        return true;
+      }
+      return null;
+    });
+    final owner = NativeNavigationOwnership(
+      bridge: const NativeNavigationBridge(channel: channel),
+      enabled: true,
+    );
+
+    expect(await owner.reconcile(navigationActive: true), isTrue);
+    expect(owner.ownsForegroundGps, isTrue);
+    expect(
+      calls.map((call) => call.method),
+      [NativeNavigationBridgeContract.isForegroundGpsRunning],
+    );
+
+    await owner.stop();
+    expect(
+      calls.map((call) => call.method),
+      [
+        NativeNavigationBridgeContract.isForegroundGpsRunning,
+        NativeNavigationBridgeContract.stopForegroundGps,
+      ],
+    );
+  });
+
+  test('reconciliation stops an orphan and starts a missing active service',
+      () async {
+    final calls = <MethodCall>[];
+    var running = true;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      calls.add(call);
+      switch (call.method) {
+        case NativeNavigationBridgeContract.isForegroundGpsRunning:
+          return running;
+        case NativeNavigationBridgeContract.startForegroundGps:
+          running = true;
+          return true;
+        case NativeNavigationBridgeContract.stopForegroundGps:
+          running = false;
+          return null;
+      }
+      return null;
+    });
+    final owner = NativeNavigationOwnership(
+      bridge: const NativeNavigationBridge(channel: channel),
+      enabled: true,
+    );
+
+    expect(await owner.reconcile(navigationActive: false), isFalse);
+    expect(owner.ownsForegroundGps, isFalse);
+    expect(running, isFalse);
+    expect(await owner.reconcile(navigationActive: true), isTrue);
+    expect(owner.ownsForegroundGps, isTrue);
+    expect(running, isTrue);
+    expect(
+      calls.map((call) => call.method),
+      [
+        NativeNavigationBridgeContract.isForegroundGpsRunning,
+        NativeNavigationBridgeContract.stopForegroundGps,
+        NativeNavigationBridgeContract.isForegroundGpsRunning,
+        NativeNavigationBridgeContract.startForegroundGps,
+      ],
+    );
+
+    await owner.dispose();
   });
 
   test('rollout factory is explicit and defaults to a stable dart define',
