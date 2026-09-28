@@ -1,4 +1,4 @@
-# Routing-provider request and response parity
+# Routing-provider request, response and reroute-orchestration parity
 
 This increment freezes Roadstr's outbound routing request contract and inbound
 response normalization without giving Kotlin ownership of an HTTP engine.
@@ -51,6 +51,18 @@ Valhalla multi-leg endpoint de-duplication, route bounds and malformed-response
 behavior. `NavigationPhrases.kt` is mechanically generated from the 27-language
 Dart phrase table so translated route instructions do not become a second
 hand-maintained source of truth.
+
+`lib/services/routing_orchestration_protocol.dart` now owns the production
+mid-navigation bearing fallback used by both Flutter map implementations. Only
+a moving OSRM reroute with a supplied course starts with the shipped 45-degree
+bearing constraint. A routing failure, empty constrained answer or shortest
+route beyond `8 ×` straight-line distance plus 5 km admits exactly one
+unconstrained retry; a plausible answer, second empty answer or second failure
+is terminal. OpenRouteService, GraphHopper, stationary fixes and absent
+bearings go directly to one unconstrained attempt. The asynchronous Dart
+adapter preserves existing timeout/error behavior, while
+`RoutingOrchestrationProtocol.kt` freezes the same state transitions without
+coroutines or sockets.
 
 ## Shared fixture
 
@@ -108,17 +120,37 @@ dart run tools/kotlin_rewrite/generate_kotlin_navigation_phrases.dart --check
 oracle and its validation rules. `RoutingResponseProtocolParityTest.kt`
 replays all 59 outcomes and separately checks native cleanup and limits.
 
+`routing_orchestration_v1.tsv` contains 28 stateful Dart-generated reroute
+transcripts. They cover all three providers, the exact 3 km/h course threshold,
+missing/non-finite inputs, negative bearings, constrained success/empty/failure,
+the exact implausible-detour boundary, shortest-alternative admission, one
+unconstrained fallback, route-order retention, terminal failure and rejection
+of premature, duplicate or late outcomes. Regenerate or verify it with:
+
+```text
+dart run tools/kotlin_rewrite/generate_routing_orchestration_fixture.dart
+dart run tools/kotlin_rewrite/generate_routing_orchestration_fixture.dart --check
+```
+
+`routing_orchestration_protocol_test.dart` and
+`RoutingOrchestrationProtocolParityTest.kt` consume the shared transcripts.
+Injected Dart executor tests additionally prove the exact bearing sequence,
+single fallback, order retention and propagation of non-routing failures
+without opening a socket.
+
 ## Deliberately outside this slice
 
 - no Kotlin HTTP engine, DNS resolver, connection pool or socket is wired;
 - native timeout, cancellation, retry, redirect, TLS and cleartext enforcement
   still belongs to the future bounded-network adapter;
-- provider selection, fallback, retry/cancellation and route orchestration
-  remain in Flutter;
+- persisted provider/key resolution, avoidance hard/soft execution, OSRM
+  retiming, request-generation suppression and live dispatch remain in Flutter;
+- physical cancellation and coroutine ownership remain open for the native
+  adapter even though reroute fallback admission is now fixture-locked;
 - persisted provider/API-key migration and live-provider/device tests remain
   release gates.
 
 Rollback is removal of the Kotlin boundaries/fixtures and re-inlining the Dart
-request builders and response parser into `RoutingService`. No endpoint
-default, stored setting, API key or live-network owner changed in this
+request builders, response parser and two screen-local reroute policies. No
+endpoint default, stored setting, API key or live-network owner changed in this
 increment.

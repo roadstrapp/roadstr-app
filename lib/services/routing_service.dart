@@ -19,12 +19,14 @@ import '../utils/units.dart';
 import 'bounded_http.dart';
 import 'http_safety_policy.dart';
 import 'roundabout_topology_service.dart';
+import 'routing_orchestration_protocol.dart';
 import 'routing_request_protocol.dart';
 import 'routing_response_protocol.dart';
 import 'search_provider_protocol.dart';
 import 'search_response_protocol.dart';
 
 export 'routing_response_protocol.dart';
+export 'routing_orchestration_protocol.dart' show RoutingProvider;
 export 'search_response_protocol.dart';
 
 /// OSRM bearing tolerance (degrees either side) used when rerouting a moving
@@ -51,9 +53,6 @@ const rerouteBearingToleranceDeg =
 extension RouteResultFormatting on RouteResult {
   String get distanceLabel => Units.fmtDist(totalDistanceM);
 }
-
-/// Selects which routing back-end to use. Stored as a string in Hive settings.
-enum RoutingProvider { osrm, openRoute, graphHopper }
 
 /// Stateless routing and geocoding helper. All methods are `static`.
 class RoutingService {
@@ -558,6 +557,96 @@ class RoutingService {
     }
   }
 
+  /// Executes the production mid-navigation bearing fallback policy.
+  ///
+  /// The request itself remains in [getRoutes]. This wrapper only decides
+  /// whether OSRM gets a first bearing-constrained attempt and whether that
+  /// result is trustworthy enough to avoid one unconstrained retry.
+  static Future<List<RouteResult>> getRerouteRoutes(
+    LatLng origin,
+    LatLng destination, {
+    RoutingProvider provider = RoutingProvider.osrm,
+    String? apiKey,
+    String? graphhopperServer,
+    String lang = 'en',
+    String vehicle = 'driving',
+    required double speedKmh,
+    double? originBearingDeg,
+    List<LatLng> via = const [],
+    Duration? requestTimeout,
+  }) =>
+      orchestrateReroute(
+        provider: provider,
+        speedKmh: speedKmh,
+        originBearingDeg: originBearingDeg,
+        straightLineDistanceM: Geo.distanceM(origin, destination),
+        request: (bearing) {
+          final pending = getRoutes(
+            origin,
+            destination,
+            provider: provider,
+            apiKey: apiKey,
+            graphhopperServer: graphhopperServer,
+            lang: lang,
+            vehicle: vehicle,
+            originBearingDeg: bearing,
+            via: via,
+          );
+          return requestTimeout == null
+              ? pending
+              : pending.timeout(requestTimeout);
+        },
+      );
+
+  /// Async adapter around [RoutingOrchestrationProtocol].
+  ///
+  /// Kept injectable so provider timing/failure behavior can be tested without
+  /// opening a socket. Non-routing failures (including the caller's timeout)
+  /// deliberately propagate without a fallback, matching the shipped flow.
+  @visibleForTesting
+  static Future<List<RouteResult>> orchestrateReroute({
+    required RoutingProvider provider,
+    required double speedKmh,
+    required double? originBearingDeg,
+    required double straightLineDistanceM,
+    required Future<List<RouteResult>> Function(double? bearing) request,
+  }) async {
+    final state = RoutingOrchestrationProtocol(
+      provider: provider,
+      speedKmh: speedKmh,
+      originBearingDegrees: originBearingDeg,
+      straightLineDistanceM: straightLineDistanceM,
+    );
+    var attempt = state.initialAttempt;
+    while (true) {
+      RoutingOrchestrationDecision decision;
+      try {
+        final routes = await request(
+          attempt == RoutingRouteAttempt.constrained ? originBearingDeg : null,
+        );
+        decision = state.accept(
+          attempt,
+          RoutingAttemptOutcome.success,
+          routes,
+        );
+      } on RoutingException {
+        decision = state.accept(
+          attempt,
+          RoutingAttemptOutcome.routingFailure,
+        );
+        if (decision.propagateFailure) rethrow;
+      }
+
+      final finalRoutes = decision.finalRoutes;
+      if (finalRoutes != null) return finalRoutes;
+      final next = decision.nextAttempt;
+      if (next == null) {
+        throw StateError('Routing orchestration produced no terminal action');
+      }
+      attempt = next;
+    }
+  }
+
   /// Whether a bearing-constrained reroute went somewhere it should not have.
   ///
   /// A bearing hint fixes routes that assumed an impossible instant reversal,
@@ -573,11 +662,11 @@ class RoutingService {
   /// gets rejected. It exists to catch the pathological case, not to second-
   /// guess an ordinary one.
   static bool isImplausibleReroute(
-      double routeDistanceM, double straightLineDistanceM) {
-    const floorM = 5000.0;
-    const factor = 8.0;
-    return routeDistanceM > straightLineDistanceM * factor + floorM;
-  }
+          double routeDistanceM, double straightLineDistanceM) =>
+      RoutingOrchestrationProtocol.isImplausibleReroute(
+        routeDistanceM,
+        straightLineDistanceM,
+      );
 
   /// How close a route has to come to a reported jam to count as still going
   /// through it.

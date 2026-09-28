@@ -2782,41 +2782,19 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     required String? ghServer,
     required List<LatLng> via,
     double? originBearingDeg,
-  }) async {
-    Future<List<RouteResult>> request({double? bearing}) =>
-        RoutingService.getRoutes(origin, dest,
-            provider: provider,
-            apiKey: apiKey,
-            graphhopperServer: ghServer,
-            lang: currentUiLanguage(),
-            vehicle: _transportMode,
-            originBearingDeg: bearing,
-            via: via);
-
-    final speedKmh = _lastFix?.speedKmh ?? 0;
-    if (originBearingDeg == null ||
-        provider != RoutingProvider.osrm ||
-        !HeadingFilter.usesTravelHeading(speedKmh)) {
-      return request();
-    }
-
-    List<RouteResult> constrained;
-    try {
-      constrained = await request(bearing: originBearingDeg);
-    } on RoutingException {
-      // Nothing reachable matched that facing within tolerance anywhere — an
-      // unconstrained reroute is still better than none.
-      return request();
-    }
-    if (constrained.isEmpty) return request();
-    final shortest = constrained
-        .reduce((a, b) => a.totalDistanceM <= b.totalDistanceM ? a : b);
-    if (RoutingService.isImplausibleReroute(
-        shortest.totalDistanceM, Geo.distanceM(origin, dest))) {
-      return request();
-    }
-    return constrained;
-  }
+  }) =>
+      RoutingService.getRerouteRoutes(
+        origin,
+        dest,
+        provider: provider,
+        apiKey: apiKey,
+        graphhopperServer: ghServer,
+        lang: currentUiLanguage(),
+        vehicle: _transportMode,
+        speedKmh: _lastFix?.speedKmh ?? 0,
+        originBearingDeg: originBearingDeg,
+        via: via,
+      );
 
   bool _isRerouting = false;
 
