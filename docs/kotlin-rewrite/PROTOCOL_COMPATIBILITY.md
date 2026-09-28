@@ -136,8 +136,11 @@ headers/bodies, API-key boundaries, waypoint/alternative/bearing rules,
 retiming and avoidance policies. The 59-case `routing_responses_v1.tsv` locks
 their normalized geometry, localized instructions, maneuver/decorative fields,
 speed limits, multi-leg/polyline6 behavior, validation/errors and retiming.
-`ROUTING_NETWORK_CORE_PARITY.md` records the remaining orchestration and native-
-execution gates.
+The 28-case `routing_orchestration_v1.tsv` locks moving-OSRM bearing admission,
+the exact implausible-detour boundary, one unconstrained retry, terminal
+failure and hostile duplicate/late outcomes. `ROUTING_NETWORK_CORE_PARITY.md`
+records the remaining avoidance/retiming, cancellation and native-execution
+gates.
 
 ## Acceptance criteria
 

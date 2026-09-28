@@ -57,6 +57,12 @@ routing path. Its Kotlin counterpart freezes normalized route geometry,
 maneuvers, localized instructions, speed limits, response validation and
 provider errors. Network dispatch and fallback remain owned by Flutter.
 
+`lib/services/routing_orchestration_protocol.dart` is called by both production
+map implementations through `RoutingService`. Its Kotlin counterpart freezes
+when a moving OSRM reroute may carry a bearing, constrained-result admission,
+the `8 × + 5 km` implausible-detour ceiling, one unconstrained fallback and
+terminal failure/ordering semantics. It does not dispatch or cancel requests.
+
 ## Compatibility detail
 
 The shipped GraphHopper validator requires a host and refuses explicit
@@ -106,6 +112,11 @@ providers. Both runtimes compare the complete normalized route, including all
 27 localized OSRM instruction tables, provider maneuver mappings, decorations,
 speed limits, polyline6/multi-leg handling, retiming and malformed inputs.
 
+`routing_orchestration_v1.tsv` adds 28 Dart-generated stateful reroute
+transcripts. Both runtimes compare provider/course admission, constrained and
+unconstrained outcomes, exact detour boundaries, shortest-route decisions,
+single fallback, terminal errors and duplicate/late completion rejection.
+
 `search_responses_v1.tsv` adds 34 Dart-generated Nominatim forward/reverse,
 Photon and Overpass outcomes. Both runtimes compare normalized fields,
 coordinates, categories, labels, text bounds, node/way centres, distances and
@@ -136,8 +147,8 @@ ordering, final merge precedence, duplicate suppression and terminal behavior.
 - redirect/TLS/cleartext behavior needs Android integration tests in addition
   to this policy fixture;
 - the native search-history store, physical request cancellation, UI
-  request-generation suppression, Overpass backoff, routing orchestration and
-  live native execution remain;
+  request-generation suppression, Overpass backoff, routing avoidance/retiming
+  execution and live native execution remain;
 - DNS-aware SSRF checks for LNURL remain part of the later live-network gate.
 
 The Kotlin policy has no Android, Activity, startup or persistence wiring.

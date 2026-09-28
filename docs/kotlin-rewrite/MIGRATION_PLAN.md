@@ -319,7 +319,10 @@ broader cross-language coverage and a native store are still required.
   including key destination, locale/profile, waypoint/bearing and avoidance
   behavior. `RoutingResponseProtocol.kt` mirrors normalized response parsing,
   maneuver mapping/localization, speed limits, route validation, polyline6 and
-  retiming for all four providers. `SearchResponseProtocol.kt` mirrors
+  retiming for all four providers. `RoutingOrchestrationProtocol.kt` mirrors
+  moving-OSRM bearing admission, implausible-route rejection and the exact
+  one-unconstrained-retry state machine now used by both production map
+  implementations. `SearchResponseProtocol.kt` mirrors
   Nominatim forward/reverse, Photon and Overpass response normalization. The
   `SearchRankingProtocol.kt` mirrors deterministic provider-phase planning,
   dedupe, ranking, retry and merge policy. `SearchHistoryProtocol.kt` mirrors
@@ -334,14 +337,15 @@ broader cross-language coverage and a native store are still required.
   request fixture, a 34-case search-provider response fixture, a 53-case search
   planning/ranking fixture, a 32-case search-orchestration fixture, a 31-case
   search-history fixture, an 89-case routing-provider request fixture, a
-  59-case routing-provider response fixture and existing live Dart local-server
-  redirect/oversize/Overpass tests are green. Native engine redirect/size/TLS/
-  cleartext integration, history-store wiring and physical cancellation remain.
+  59-case routing-provider response fixture, a 28-case routing-orchestration
+  fixture and existing live Dart local-server redirect/oversize/Overpass tests
+  are green. Native engine redirect/size/TLS/cleartext integration,
+  history-store wiring and physical cancellation remain.
 - **Parity evidence:** Exact Nominatim/Photon/Overpass and OSRM/ORS/GraphHopper/
   Valhalla request bytes, normalized search/route responses, deterministic
-  search planning/ranking/orchestration and history value semantics are green;
-  the native history store, coroutine/socket execution and native execution are
-  open.
+  search planning/ranking/orchestration, OSRM reroute fallback and history value
+  semantics are green; the native history store, avoidance/retiming adapters,
+  coroutine/socket execution and native execution are open.
 - **Security/privacy impact:** Preserve URL validation, body caps, user-agent, no silent cloud fallback.
 - **Battery/performance impact:** Compare network retries, cache hit rate and cancellation.
 - **Acceptance criteria:** All current providers pass without changed limits or privacy behavior.

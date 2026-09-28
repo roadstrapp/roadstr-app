@@ -2174,44 +2174,19 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     required String? apiKey,
     required String? ghServer,
     required String lang,
-  }) async {
-    Future<List<RouteResult>> request({double? originBearingDeg}) =>
-        RoutingService.getRoutes(_position, _destination!,
-                provider: provider,
-                apiKey: apiKey,
-                graphhopperServer: ghServer,
-                lang: lang,
-                vehicle: _transportMode,
-                originBearingDeg: originBearingDeg)
-            .timeout(const Duration(seconds: 15));
-
-    // Only OSRM (the default provider) understands the bearing parameter this
-    // sends, and only a fix trustworthy enough to have a real course is worth
-    // constraining anything with.
-    if (provider != RoutingProvider.osrm ||
-        !HeadingFilter.usesTravelHeading(_speed)) {
-      return request();
-    }
-
-    List<RouteResult> constrained;
-    try {
-      constrained = await request(originBearingDeg: _heading);
-    } on RoutingException {
-      // Nothing reachable matched that facing within tolerance anywhere —
-      // an unconstrained reroute is still better than none.
-      return request();
-    }
-    if (constrained.isEmpty) return request();
-
-    final straightLineM = Geo.distanceM(_position, _destination!);
-    final shortest = constrained
-        .reduce((a, b) => a.totalDistanceM <= b.totalDistanceM ? a : b);
-    if (RoutingService.isImplausibleReroute(
-        shortest.totalDistanceM, straightLineM)) {
-      return request();
-    }
-    return constrained;
-  }
+  }) =>
+      RoutingService.getRerouteRoutes(
+        _position,
+        _destination!,
+        provider: provider,
+        apiKey: apiKey,
+        graphhopperServer: ghServer,
+        lang: lang,
+        vehicle: _transportMode,
+        speedKmh: _speed,
+        originBearingDeg: _heading,
+        requestTimeout: const Duration(seconds: 15),
+      );
 
   /// Off-road-avoidance reroute, falling back to the plain OSRM reroute
   /// ([_rerouteRoutes]) on any failure. Unlike the highway/toll branch this
