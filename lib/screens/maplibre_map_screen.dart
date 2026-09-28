@@ -44,6 +44,7 @@ import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
 import '../services/navigation_guidance.dart';
 import '../services/navigation_notification_service.dart';
+import '../services/native_navigation_ownership.dart';
 import '../services/nostr_nip19.dart';
 import '../services/nostr_relay_service.dart';
 import '../services/place_search_service.dart';
@@ -256,7 +257,14 @@ class _CursorPainter extends CustomPainter {
 }
 
 class MaplibreMapScreen extends StatefulWidget {
-  const MaplibreMapScreen({super.key});
+  const MaplibreMapScreen({
+    super.key,
+    this.nativeNavigationOwnership,
+  });
+
+  /// Injectable only for controlled rollout and lifecycle verification.
+  /// Ordinary builds use the disabled-by-default compile-time canary.
+  final NativeNavigationOwnership? nativeNavigationOwnership;
 
   @override
   State<MaplibreMapScreen> createState() => _MaplibreMapScreenState();
@@ -268,6 +276,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   static const _kCursorScale = 1.4;
 
   final _gps = GpsService();
+  late final NativeNavigationOwnership _nativeNavigationOwnership;
   StreamSubscription<GpsData>? _gpsSub;
   MapController? _controller;
 
@@ -801,6 +810,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   @override
   void initState() {
     super.initState();
+    _nativeNavigationOwnership =
+        widget.nativeNavigationOwnership ?? NativeNavigationRollout.create();
     WidgetsBinding.instance.addObserver(this);
     _loadParkingPosition();
     _loadFavorites();
@@ -1790,6 +1801,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     }
     _searchController.dispose();
     unawaited(_gps.dispose());
+    unawaited(_disposeNativeNavigationOwnership());
     unawaited(_tts.dispose());
     _alertPlayer.dispose();
     _nostr.dispose();
@@ -2916,6 +2928,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       _remainingDistM = route.totalDistanceM;
       _remainingSecs = route.totalDurationS;
     });
+    unawaited(_startNativeNavigationOwnership());
     // The camera was left wherever the route-preview fitBounds put it
     // (zoomed out, top-down, centred on the whole route) — nothing snapped
     // it back onto the driver when the trip actually started, so navigation
@@ -2988,8 +3001,33 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
       _gpsSignalLost = false;
       _activeVia = const [];
     });
+    unawaited(_stopNativeNavigationOwnership());
     _applyScreenPolicy();
     _syncCompass();
+  }
+
+  Future<void> _startNativeNavigationOwnership() async {
+    try {
+      await _nativeNavigationOwnership.start();
+    } catch (_) {
+      // Canary failures must not interrupt the established Flutter journey.
+    }
+  }
+
+  Future<void> _stopNativeNavigationOwnership() async {
+    try {
+      await _nativeNavigationOwnership.stop();
+    } catch (_) {
+      // Keep the owner retryable; dispose provides a final cleanup attempt.
+    }
+  }
+
+  Future<void> _disposeNativeNavigationOwnership() async {
+    try {
+      await _nativeNavigationOwnership.dispose();
+    } catch (_) {
+      // The Android process teardown remains the final service boundary.
+    }
   }
 
   /// Same confirmation dialog MapScreen shows before actually stopping —

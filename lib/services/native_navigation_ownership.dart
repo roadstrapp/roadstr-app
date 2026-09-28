@@ -1,5 +1,24 @@
 import 'native_navigation_bridge.dart';
 
+/// Compile-time rollout boundary for the first production-screen canary.
+///
+/// Ordinary builds keep this disabled. A controlled build can opt in with
+/// `--dart-define=ROADSTR_NATIVE_NAVIGATION=true` without persisting a user
+/// setting or changing startup behavior for existing installs.
+abstract final class NativeNavigationRollout {
+  static const String dartDefine = 'ROADSTR_NATIVE_NAVIGATION';
+  static const bool enabledByDefault = bool.fromEnvironment(
+    dartDefine,
+    defaultValue: false,
+  );
+
+  static NativeNavigationOwnership create({
+    NativeNavigationBridge bridge = const NativeNavigationBridge(),
+    bool enabled = enabledByDefault,
+  }) =>
+      NativeNavigationOwnership(bridge: bridge, enabled: enabled);
+}
+
 /// Owns the native foreground GPS service for one Dart navigation session.
 ///
 /// The owner is disabled by default. When enabled, it is deliberately the
