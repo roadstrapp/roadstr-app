@@ -1,18 +1,25 @@
 package app.roadstr.service.routing
 
 import app.roadstr.core.network.NetworkResponseLimit
+import app.roadstr.core.network.RoutingAvoidanceMode
 import app.roadstr.core.network.RoutingProvider
 import app.roadstr.core.network.RoutingProviderConfiguration
 import app.roadstr.core.network.RoutingProviderConfigurationIssue
 import app.roadstr.core.network.RoutingRequestHttpMethod
 import app.roadstr.core.network.RoutingRequestPoint
+import app.roadstr.core.network.RoutingRouteAvoidance
+import app.roadstr.service.network.NativeBoundedHttpClient
 import app.roadstr.service.network.NativeHttpException
 import app.roadstr.service.network.NativeHttpFailureKind
 import app.roadstr.service.network.NativeHttpRequestLimits
 import app.roadstr.service.network.NativeHttpResponse
 import app.roadstr.service.network.NativeRoutingHttpTransport
+import java.net.URI
+import java.net.URLDecoder
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.math.roundToInt
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
@@ -272,6 +279,288 @@ class NativeRoutingServiceTest {
         assertEquals(1, calls)
     }
 
+    @Test
+    fun `hard avoidance uses exact Valhalla policy limits and classification`() = runBlocking {
+        var recordedMethod: RoutingRequestHttpMethod? = null
+        var recordedUri: String? = null
+        var recordedUserAgent: String? = null
+        var recordedLimits: NativeHttpRequestLimits? = null
+        val service = NativeRoutingService(
+            transport = NativeRoutingHttpTransport { request, limits ->
+                recordedMethod = request.method
+                recordedUri = request.uri
+                recordedUserAgent = request.headers["User-Agent"]
+                recordedLimits = limits
+                response(valhallaBody())
+            },
+            valhallaEndpointOverride = VALHALLA_TEST_ENDPOINT,
+            osrmRetimeEndpointOverride = null,
+        )
+
+        val route = service.getAvoidanceRoute(
+            avoidanceQuery(
+                mode = RoutingAvoidanceMode.HIGHWAYS_AND_TOLLS,
+                languageCode = "it",
+            ),
+        )
+
+        assertEquals(RoutingRequestHttpMethod.Get, recordedMethod)
+        assertEquals(
+            """{"locations":[{"lat":45.0,"lon":9.0},{"lat":45.01,"lon":9.01}],"costing":"auto","costing_options":{"auto":{"exclude_highways":true,"exclude_tolls":true}},"units":"kilometers","language":"it-IT"}""",
+            decodeValhallaJson(recordedUri!!),
+        )
+        assertEquals("Roadstr/1.0", recordedUserAgent)
+        assertEquals(
+            NativeRoutingService.VALHALLA_TIMEOUT_MILLIS,
+            recordedLimits!!.timeoutMillis,
+        )
+        assertEquals(
+            NetworkResponseLimit.JourneyRoute.bytes,
+            recordedLimits!!.maxResponseBytes,
+        )
+        assertEquals(RoutingRouteAvoidance.HighwayAndTollFree, route.avoidance)
+        assertEquals(120.0, route.totalDurationS, 0.0)
+    }
+
+    @Test
+    fun `rejected hard route retries soft once and applies OSRM retiming`() = runBlocking {
+        val uris = mutableListOf<String>()
+        val timeouts = mutableListOf<Long>()
+        val service = NativeRoutingService(
+            transport = NativeRoutingHttpTransport { request, limits ->
+                uris += request.uri
+                timeouts += limits.timeoutMillis
+                when (uris.size) {
+                    1, 2 -> response(valhallaBody(hasHighway = true))
+                    3 -> response(osrmRetimeBody(durationSeconds = 66.0))
+                    else -> error("Unexpected routing request")
+                }
+            },
+            valhallaEndpointOverride = VALHALLA_TEST_ENDPOINT,
+            osrmRetimeEndpointOverride = OSRM_RETIME_TEST_ENDPOINT,
+        )
+
+        val route = service.getAvoidanceRoute(
+            avoidanceQuery(RoutingAvoidanceMode.HIGHWAYS_AND_TOLLS),
+        )
+
+        assertEquals(3, uris.size)
+        assertTrue(decodeValhallaJson(uris[0]).contains("\"exclude_highways\":true"))
+        assertTrue(decodeValhallaJson(uris[1]).contains("\"use_highways\":0"))
+        assertTrue(decodeValhallaJson(uris[1]).contains("\"toll_booth_penalty\":900"))
+        assertTrue(uris[2].startsWith("$OSRM_RETIME_TEST_ENDPOINT/9.00000,45.00000;"))
+        assertTrue(uris[2].endsWith("?overview=false&steps=false"))
+        assertEquals(
+            listOf(
+                NativeRoutingService.VALHALLA_TIMEOUT_MILLIS,
+                NativeRoutingService.VALHALLA_TIMEOUT_MILLIS,
+                NativeRoutingService.OSRM_RETIME_TIMEOUT_MILLIS,
+            ),
+            timeouts,
+        )
+        assertEquals(RoutingRouteAvoidance.MinimizedHighwaysAndTolls, route.avoidance)
+        assertEquals(66.0, route.totalDurationS, 0.0)
+        assertTrue(route.fromAvoidanceRouter)
+    }
+
+    @Test
+    fun `hard transport failure retries soft and returns its route`() = runBlocking {
+        val payloads = mutableListOf<String>()
+        val service = NativeRoutingService(
+            transport = NativeRoutingHttpTransport { request, _ ->
+                payloads += decodeValhallaJson(request.uri)
+                if (payloads.size == 1) {
+                    throw NativeHttpException(NativeHttpFailureKind.Transport)
+                }
+                response(valhallaBody())
+            },
+            valhallaEndpointOverride = VALHALLA_TEST_ENDPOINT,
+            osrmRetimeEndpointOverride = null,
+        )
+
+        val route = service.getAvoidanceRoute(
+            avoidanceQuery(RoutingAvoidanceMode.HIGHWAYS_AND_TOLLS),
+        )
+
+        assertEquals(2, payloads.size)
+        assertTrue(payloads.first().contains("\"exclude_tolls\":true"))
+        assertTrue(payloads.last().contains("\"use_tolls\":0"))
+        assertEquals(RoutingRouteAvoidance.HighwayAndTollFree, route.avoidance)
+    }
+
+    @Test
+    fun `soft avoidance failure is terminal and preserves final status`() = runBlocking {
+        var calls = 0
+        val service = NativeRoutingService(
+            transport = NativeRoutingHttpTransport { _, _ ->
+                calls++
+                response(
+                    body = "provider-body-must-not-escape",
+                    statusCode = if (calls == 1) 502 else 503,
+                )
+            },
+            valhallaEndpointOverride = VALHALLA_TEST_ENDPOINT,
+            osrmRetimeEndpointOverride = null,
+        )
+
+        val failure = expectFailure(NativeRoutingFailureKind.HttpStatus) {
+            service.getAvoidanceRoute(
+                avoidanceQuery(RoutingAvoidanceMode.HIGHWAYS_AND_TOLLS),
+            )
+        }
+
+        assertEquals(2, calls)
+        assertEquals(503, failure.statusCode)
+        assertFalse(failure.toString().contains("provider-body-must-not-escape"))
+    }
+
+    @Test
+    fun `off-road avoidance uses tracks policy without hidden fallback`() = runBlocking {
+        val payloads = mutableListOf<String>()
+        val service = NativeRoutingService(
+            transport = NativeRoutingHttpTransport { request, _ ->
+                payloads += decodeValhallaJson(request.uri)
+                response(valhallaBody(hasHighway = true, hasToll = true))
+            },
+            valhallaEndpointOverride = VALHALLA_TEST_ENDPOINT,
+            osrmRetimeEndpointOverride = null,
+        )
+
+        val route = service.getAvoidanceRoute(
+            avoidanceQuery(RoutingAvoidanceMode.OFF_ROAD),
+        )
+
+        assertEquals(1, payloads.size)
+        assertTrue(payloads.single().contains("\"use_tracks\":0"))
+        assertFalse(payloads.single().contains("exclude_highways"))
+        assertEquals(RoutingRouteAvoidance.OffRoadAvoided, route.avoidance)
+    }
+
+    @Test
+    fun `off-road failure is terminal after one request`() = runBlocking {
+        var calls = 0
+        val service = NativeRoutingService(
+            transport = NativeRoutingHttpTransport { _, _ ->
+                calls++
+                throw NativeHttpException(NativeHttpFailureKind.Timeout)
+            },
+            valhallaEndpointOverride = VALHALLA_TEST_ENDPOINT,
+            osrmRetimeEndpointOverride = null,
+        )
+
+        expectFailure(NativeRoutingFailureKind.Timeout) {
+            service.getAvoidanceRoute(avoidanceQuery(RoutingAvoidanceMode.OFF_ROAD))
+        }
+
+        assertEquals(1, calls)
+    }
+
+    @Test
+    fun `retiming failure keeps accepted Valhalla route`() = runBlocking {
+        var calls = 0
+        val service = NativeRoutingService(
+            transport = NativeRoutingHttpTransport { _, _ ->
+                calls++
+                if (calls == 1) response(valhallaBody()) else response("malformed-retime")
+            },
+            valhallaEndpointOverride = VALHALLA_TEST_ENDPOINT,
+            osrmRetimeEndpointOverride = OSRM_RETIME_TEST_ENDPOINT,
+        )
+
+        val route = service.getAvoidanceRoute(
+            avoidanceQuery(RoutingAvoidanceMode.HIGHWAYS_AND_TOLLS),
+        )
+
+        assertEquals(2, calls)
+        assertEquals(120.0, route.totalDurationS, 0.0)
+        assertEquals(RoutingRouteAvoidance.HighwayAndTollFree, route.avoidance)
+    }
+
+    @Test
+    fun `avoidance cancellation stops hard attempt without soft fallback`() = runBlocking {
+        val calls = AtomicInteger()
+        val started = CompletableDeferred<Unit>()
+        val service = NativeRoutingService(
+            transport = NativeRoutingHttpTransport { _, _ ->
+                calls.incrementAndGet()
+                started.complete(Unit)
+                awaitCancellation()
+            },
+            valhallaEndpointOverride = VALHALLA_TEST_ENDPOINT,
+            osrmRetimeEndpointOverride = null,
+        )
+        val job = launch(Dispatchers.Default) {
+            service.getAvoidanceRoute(
+                avoidanceQuery(RoutingAvoidanceMode.HIGHWAYS_AND_TOLLS),
+            )
+        }
+        started.await()
+
+        job.cancelAndJoin()
+
+        assertEquals(1, calls.get())
+    }
+
+    @Test
+    fun `retiming cancellation propagates instead of returning stale route`() = runBlocking {
+        var calls = 0
+        val service = NativeRoutingService(
+            transport = NativeRoutingHttpTransport { _, _ ->
+                calls++
+                if (calls == 1) {
+                    response(valhallaBody())
+                } else {
+                    throw CancellationException("cancelled retiming")
+                }
+            },
+            valhallaEndpointOverride = VALHALLA_TEST_ENDPOINT,
+            osrmRetimeEndpointOverride = OSRM_RETIME_TEST_ENDPOINT,
+        )
+
+        try {
+            service.getAvoidanceRoute(
+                avoidanceQuery(RoutingAvoidanceMode.HIGHWAYS_AND_TOLLS),
+            )
+            fail("Expected retiming cancellation")
+        } catch (_: CancellationException) {
+            // Expected: cancellation must not be converted to a stale success.
+        }
+
+        assertEquals(2, calls)
+    }
+
+    @Test
+    fun `avoidance requests cross the real bounded adapter`() = runBlocking {
+        val server = newServer()
+        server.enqueue(MockResponse().setBody(valhallaBody()))
+        server.enqueue(MockResponse().setBody(osrmRetimeBody(durationSeconds = 72.0)))
+        val valhallaEndpoint = server.url("/route").toString()
+        val retimeEndpoint = server.url("/route/v1/driving").toString().removeSuffix("/")
+        val service = NativeRoutingService(
+            transport = NativeBoundedHttpClient(),
+            valhallaEndpointOverride = valhallaEndpoint,
+            osrmRetimeEndpointOverride = retimeEndpoint,
+        )
+
+        val route = service.getAvoidanceRoute(
+            avoidanceQuery(RoutingAvoidanceMode.HIGHWAYS_AND_TOLLS),
+        )
+
+        assertEquals(72.0, route.totalDurationS, 0.0)
+        val valhallaRequest = server.takeRequest(2, TimeUnit.SECONDS)
+        val retimeRequest = server.takeRequest(2, TimeUnit.SECONDS)
+        assertNotNull(valhallaRequest)
+        assertNotNull(retimeRequest)
+        assertTrue(valhallaRequest!!.path!!.startsWith("/route?json="))
+        assertTrue(
+            valhallaRequest.requestUrl!!.queryParameter("json")!!
+                .contains("\"exclude_highways\":true"),
+        )
+        assertTrue(retimeRequest!!.path!!.startsWith("/route/v1/driving/9.00000,45.00000;"))
+        assertEquals("Roadstr/1.0", valhallaRequest.getHeader("User-Agent"))
+        assertEquals("Roadstr/1.0", retimeRequest.getHeader("User-Agent"))
+    }
+
     private fun newServer(): MockWebServer = MockWebServer().also { server ->
         server.start()
         servers += server
@@ -300,6 +589,16 @@ class NativeRoutingServiceTest {
         via = via,
     )
 
+    private fun avoidanceQuery(
+        mode: RoutingAvoidanceMode,
+        languageCode: String = "en",
+    ): NativeAvoidanceRoutingQuery = NativeAvoidanceRoutingQuery(
+        origin = RoutingRequestPoint(45.0, 9.0),
+        destination = RoutingRequestPoint(45.01, 9.01),
+        mode = mode,
+        languageCode = languageCode,
+    )
+
     private fun response(body: String, statusCode: Int = 200): NativeHttpResponse =
         NativeHttpResponse(
             statusCode = statusCode,
@@ -317,6 +616,52 @@ class NativeRoutingServiceTest {
     private fun graphHopperBody(): String =
         """{"paths":[{"distance":654.0,"time":60000,"points":{"coordinates":[[9.0,45.0],[9.01,45.01]]},"instructions":[{"text":"Continue","distance":654.0,"sign":0,"interval":[0,1]}]}]}"""
 
+    private fun valhallaBody(
+        hasHighway: Boolean = false,
+        hasToll: Boolean = false,
+    ): String {
+        val shape = encodeValhallaShape(
+            RoutingRequestPoint(45.0, 9.0),
+            RoutingRequestPoint(45.01, 9.01),
+        ).replace("\\", "\\\\").replace("\"", "\\\"")
+        return """{"trip":{"status":0,"summary":{"length":1.362,"time":120.0,"has_highway":$hasHighway,"has_toll":$hasToll},"legs":[{"shape":"$shape","maneuvers":[{"type":1,"instruction":"Start","length":1.362,"begin_shape_index":0}]}]}}"""
+    }
+
+    private fun osrmRetimeBody(durationSeconds: Double): String =
+        """{"code":"Ok","routes":[{"legs":[{}, {"distance":1362.0,"duration":$durationSeconds}, {}]}]}"""
+
+    private fun decodeValhallaJson(uri: String): String {
+        val rawQuery = checkNotNull(URI(uri).rawQuery)
+        val encodedJson = rawQuery.substringAfter("json=", missingDelimiterValue = "")
+        check(encodedJson.isNotEmpty())
+        return URLDecoder.decode(encodedJson, Charsets.UTF_8.name())
+    }
+
+    private fun encodeValhallaShape(vararg points: RoutingRequestPoint): String {
+        val output = StringBuilder()
+        var previousLatitude = 0
+        var previousLongitude = 0
+
+        fun appendDelta(delta: Int) {
+            var value = if (delta < 0) (delta shl 1).inv() else delta shl 1
+            while (value >= 0x20) {
+                output.append(((value and 0x1f) or 0x20).plus(63).toChar())
+                value = value shr 5
+            }
+            output.append(value.plus(63).toChar())
+        }
+
+        points.forEach { point ->
+            val latitude = (point.latitude * 1_000_000).roundToInt()
+            val longitude = (point.longitude * 1_000_000).roundToInt()
+            appendDelta(latitude - previousLatitude)
+            appendDelta(longitude - previousLongitude)
+            previousLatitude = latitude
+            previousLongitude = longitude
+        }
+        return output.toString()
+    }
+
     private suspend fun expectFailure(
         expected: NativeRoutingFailureKind,
         block: suspend () -> Unit,
@@ -329,5 +674,10 @@ class NativeRoutingServiceTest {
             return failure
         }
         error("unreachable")
+    }
+
+    private companion object {
+        const val VALHALLA_TEST_ENDPOINT = "https://valhalla.test/route"
+        const val OSRM_RETIME_TEST_ENDPOINT = "https://osrm.test/route/v1/driving"
     }
 }

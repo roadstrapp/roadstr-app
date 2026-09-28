@@ -88,7 +88,8 @@ storage or network dependencies.
 ## Headless native executor
 
 `service.routing.NativeRoutingService` consumes an already resolved
-`RoutingProviderConfiguration` and forms a complete primary-provider path:
+`RoutingProviderConfiguration` and forms a complete headless path for the
+current primary and avoidance providers:
 
 - OSRM, OpenRouteService and GraphHopper request composition;
 - the shipped 10-second OSRM/ORS and 12-second GraphHopper deadlines;
@@ -97,15 +98,22 @@ storage or network dependencies.
 - status and transport classification without retaining response bodies, URLs,
   coordinates or API keys in exceptions;
 - normalized response parsing and immutable route lists;
-- the exact constrained-to-unconstrained OSRM reroute state machine.
+- the exact constrained-to-unconstrained OSRM reroute state machine;
+- Valhalla hard exclusion with one soft-preference fallback, direct track
+  avoidance, accepted-route classification and best-effort OSRM per-leg
+  re-timing with the shipped 25/30-second deadlines.
 
-The service catches only its value-free routing failures. A caller
-`CancellationException` therefore propagates through the orchestration loop,
-cancels the active OkHttp call and cannot trigger the fallback request. Ten JVM
-tests cover all three providers, limits, a real loopback GraphHopper exchange,
-redaction, invalid endpoint admission, both fallback causes and cancellation.
-Secure-store reads, startup/UI ownership, generation suppression and avoidance
-execution remain deliberately outside this slice.
+The orchestration loops catch only value-free routing failures. Best-effort
+re-timing degrades on transport or response failure but explicitly rethrows a
+caller `CancellationException`; cancellation therefore stops the active OkHttp
+call and cannot trigger a fallback or stale result. Ten JVM tests cover all
+three providers, limits, a real loopback GraphHopper exchange, redaction,
+invalid endpoint admission, both fallback causes and cancellation.
+Ten additional JVM tests cover exact Valhalla policies and bounds, hard-route
+rejection, the single soft fallback, direct tracks, terminal failures,
+best-effort re-timing, cancellation and a real Valhalla-to-OSRM loopback
+exchange. Secure-store reads, startup/UI ownership and generation suppression
+remain deliberately outside this slice.
 
 ## Shared fixture
 
@@ -233,8 +241,8 @@ server read.
 - caller cancellation now stops routing orchestration and the physical request;
   long-lived job/ViewModel ownership and stale UI-generation suppression remain
   open;
-- Valhalla avoidance attempt execution and OSRM re-timing remain pure/native
-  policy without a coroutine service owner;
+- Valhalla avoidance execution and OSRM re-timing now have a cancellable
+  headless coroutine owner; startup/ViewModel/UI ownership remains open;
 - installed-app secure-storage/Keystore migration and live-provider/device
   tests remain release gates.
 

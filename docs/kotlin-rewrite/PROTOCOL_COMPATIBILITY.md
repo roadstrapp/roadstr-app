@@ -116,7 +116,8 @@ contract to exact routing/search requests, whole-call deadlines, redirect and
 retry refusal, physical cancellation and value-free failures. Production
 ownership remains with Flutter. The headless native routing service additionally
 executes resolved OSRM/ORS/GraphHopper requests and the one-retry bearing
-fallback without converting caller cancellation into another request. The
+fallback, plus Valhalla hard/soft/track avoidance and best-effort OSRM
+re-timing, without converting caller cancellation into another request. The
 headless search service likewise executes Nominatim, Photon and category-
 Overpass orchestration. Android DNS/TLS/cleartext evidence remains open.
 The 39-case `search_provider_requests_v1.tsv` additionally locks exact
@@ -154,8 +155,8 @@ OSRM sampling, per-leg distance, ferry, proportional-time and minimum-coverage
 decisions. The 34-case `routing_provider_config_v1.tsv` locks provider/key/
 server resolution, OSRM read modes, fallback issues, secure/legacy precedence,
 routing-time migration and Unicode trimming. `ROUTING_NETWORK_CORE_PARITY.md`
-records the remaining secure-store/startup ownership, avoidance execution and
-Android network-integration gates.
+records the remaining secure-store/startup ownership and Android network-
+integration gates.
 
 ## Acceptance criteria
 

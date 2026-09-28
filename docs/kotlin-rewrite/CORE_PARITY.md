@@ -15,7 +15,7 @@ adapters and dormant native persistence before any production or UI cutover.
 | `core.search` | `fuzzy_match.dart`, `search_ranking_protocol.dart`, `search_orchestration_protocol.dart`, `search_history_protocol.dart` | accent folding, bounded Levenshtein, address weighting, provider planning, proximity dedupe, city/brand/distance ranking, out-of-order provider completion, one partial, relaxed retry, POI-first final merge, history validation/recency/storage shape |
 | `core.network` | `retry.dart`, `refetch_policy.dart`, `bounded_http.dart`, `network_config.dart`, `search_provider_protocol.dart`, `search_response_protocol.dart`, `routing_request_protocol.dart`, `routing_response_protocol.dart`, `routing_orchestration_protocol.dart`, `routing_avoidance_protocol.dart`, `routing_provider_config.dart`, GraphHopper validation | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh, HTTP deadlines/body ceilings/redirect and cleartext-loopback policy, exact search requests and normalized responses plus routing-provider requests/responses, one-retry bearing fallback, avoidance fallback, per-leg re-timing and persisted provider/key/server resolution |
 | `service.network` | `bounded_http.dart` | shared OkHttp pool, exact GET/POST adaptation, whole-call deadline, declared/streamed body caps, redirect/retry refusal, value-free failures and physical coroutine cancellation |
-| `service.routing` | `routing_service.dart` | resolved OSRM/ORS/GraphHopper dispatch, provider-specific deadlines, 32 MiB journey-route bound, normalized responses, value-free failures and cancellable one-retry bearing fallback |
+| `service.routing` | `routing_service.dart` | resolved OSRM/ORS/GraphHopper dispatch, provider-specific deadlines, 32 MiB journey-route bound, normalized responses, value-free failures, cancellable one-retry bearing fallback, Valhalla hard/soft/track avoidance and best-effort OSRM re-timing |
 | `storage` | encrypted Hive search history | canonical encrypted history file, serialized prepend/clear/import, atomic recovery, Keystore boundary and migration-marker ciphertext binding |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
 | `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `lnurl_protocol.dart`, `zap_service.dart` | BOLT-11 parsing, LNURL-pay source/metadata/callback/invoice binding, NIP-47 URI/info negotiation/request/response and NIP-57 draft/receipt bindings |
@@ -211,8 +211,9 @@ detached from secure storage and startup. See
   per-slice re-timing admission are covered, including both one-retry ceilings.
   Persisted provider/key/server resolution and routing-time legacy migration
   are covered. Headless native OSRM/ORS/GraphHopper execution and cancellation
-  are green; secure-store reads, avoidance execution, startup ownership and UI
-  request generations remain open.
+  are green, as are Valhalla hard/soft/track avoidance execution and OSRM
+  per-leg re-timing; secure-store reads, startup ownership and UI request
+  generations remain open.
 - Search provider planning, normalized-result ranking/merge, out-of-order
   completion/failure handling, one-partial/one-retry orchestration and
   deterministic history value semantics are covered. Headless Nominatim,
@@ -252,14 +253,14 @@ detached from secure storage and startup. See
   request/response/configuration policies, search/routing/avoidance
   orchestration and re-timing, search planning/ranking/history, both migration
   fixture oracles and the headless Dart handler.
-- `./gradlew :app:testDebugUnitTest`: 196 Kotlin tests passed, including the
+- `./gradlew :app:testDebugUnitTest`: 206 Kotlin tests passed, including the
   Nostr byte/queue/inbound/ingress/NIP-19/BIP-340/NIP-04/NIP-44/NIP-78,
   Lightning/LNURL parity, HTTP safety/search/routing requests, responses,
   configuration, orchestration and re-timing, search planning/ranking/
   orchestration/history, native persistence/migration and bounded headless
   transport reader, encrypted/atomic search-history persistence and migration
   binding, native bounded-HTTP integration and headless routing/search service
-  suites.
+  suites, including Valhalla avoidance and OSRM re-timing execution.
 - `./gradlew :app:assembleDebug`: D8, duplicate-class checks and Android APK
   packaging passed with pinned Bouncy Castle, OkHttp and coroutines
   dependencies.
