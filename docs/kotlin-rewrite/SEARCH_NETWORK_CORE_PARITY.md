@@ -1,4 +1,4 @@
-# Search-provider request, response and ranking parity
+# Search-provider request, response, ranking and history parity
 
 This increment freezes the exact outbound request contract and deterministic
 inbound normalization/ranking for Roadstr's three search data sources without
@@ -28,6 +28,12 @@ normalization while remaining detached from Android networking and UI.
 ranking, relaxed retry and POI-first merging. Its Kotlin counterpart,
 `core.search.SearchRankingProtocol.kt`, consumes only normalized values and
 does not schedule work or access storage/networking.
+
+`lib/services/search_history_protocol.dart` now owns tolerant history decoding,
+newest-first coordinate deduplication, list limits and the persisted JSON value
+shape used by both Flutter map implementations. Its Kotlin counterpart,
+`core.search.SearchHistoryProtocol.kt`, is storage-free: it can read and write
+the same logical values but is not wired to Hive or an Android store.
 
 The extraction preserves these provider-specific details:
 
@@ -123,6 +129,28 @@ dart run tools/kotlin_rewrite/generate_search_ranking_fixture.dart --check
 `place_search_service_test.dart` cases prove that the production service and
 its compatibility methods delegate without changing behavior.
 
+`search_history_v1.tsv` adds 31 Dart-generated storage-policy outcomes:
+
+- 14 tolerant decode and validation cases;
+- 10 recency/deduplication cases;
+- 7 serialization and storage-cap cases.
+
+The fixture locks the existing `searchHistory` key, 300 UTF-16-unit label cap,
+coordinate bounds, malformed-row skipping, 100 valid-row load ceiling,
+`0.0001` per-axis duplicate window, newest-first ordering, five-row write cap,
+Unicode/control escaping, negative zero and common decimal/exponent spellings.
+Regenerate or verify it with:
+
+```text
+dart run tools/kotlin_rewrite/generate_search_history_fixture.dart
+dart run tools/kotlin_rewrite/generate_search_history_fixture.dart --check
+```
+
+`search_history_protocol_test.dart` and
+`SearchHistoryProtocolParityTest.kt` consume the shared outcomes. Production
+`MapScreen` and `MaplibreMapScreen` delegate their load/save/clear value policy
+to the Dart boundary while retaining the same encrypted Hive box and key.
+
 ## Privacy and execution boundary
 
 Kotlin can construct a value containing the same coarse coordinates and user
@@ -133,10 +161,10 @@ timeout, response-size, redirect, TLS and cleartext policy before dispatch.
 No API key is represented in this fixture. Routing request composition and
 response parsing are now covered separately by
 `ROUTING_NETWORK_CORE_PARITY.md`; search provider fallback/cancellation,
-partial-result concurrency, history persistence, Overpass backoff execution
-and Android network integration remain later slices.
+partial-result concurrency, the native history persistence adapter, Overpass
+backoff execution and Android network integration remain later slices.
 
 Rollback is removal of the Kotlin boundaries and fixtures plus inlining the
-small Dart builders/parsers/policy back into their callers. No persisted state,
-endpoint, mirror order, request limit or live-network owner changed in this
-increment.
+small Dart builders/parsers/policies back into their callers. The history JSON
+shape, encrypted Hive owner/key, endpoints, mirror order, request limits and
+live-network owner did not change in this increment.
