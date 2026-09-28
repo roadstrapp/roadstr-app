@@ -49,6 +49,7 @@ import '../models/way_point.dart';
 import '../services/activity_notification_service.dart';
 import '../services/navigation_guidance.dart';
 import '../services/navigation_notification_service.dart';
+import '../services/native_navigation_ownership.dart';
 import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
 import '../services/nostr_nip19.dart';
@@ -102,7 +103,15 @@ const double _kRouteCoreRatio = 0.34;
 const double _kRouteGlowW = _kRouteStrokeW + 9;
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+  const MapScreen({
+    super.key,
+    this.nativeNavigationOwnership,
+  });
+
+  /// Injectable only for controlled rollout and lifecycle verification.
+  /// Ordinary builds use the disabled-by-default compile-time canary.
+  final NativeNavigationOwnership? nativeNavigationOwnership;
+
   @override
   State<MapScreen> createState() => _MapScreenState();
 }
@@ -111,6 +120,7 @@ class MapScreen extends StatefulWidget {
 /// [Ticker] to [_animateCamera] for smooth camera transitions.
 class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   final _gps = GpsService();
+  late final NativeNavigationOwnership _nativeNavigationOwnership;
   final _mapController = MapController();
 
   /// Current GPS position (updated by [_onGps]; falls back to Italy centre).
@@ -560,6 +570,8 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    _nativeNavigationOwnership =
+        widget.nativeNavigationOwnership ?? NativeNavigationRollout.create();
     WidgetsBinding.instance.addObserver(this);
     _screenPolicyListenable = SettingsListenable.forKeys(
         const ['keepScreenOn', 'keepScreenOnAlways', 'minBrightness']);
@@ -2437,6 +2449,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _arrivedAt = null;
       _showArrivalBanner = false;
     });
+    unawaited(_nativeNavigationOwnership.startBestEffort());
 
     // GPS-loss watchdog: in a tunnel or underground the fix stream simply
     // stops. Poll every 3 s; after _gpsLossThresholdMs of silence show the
@@ -3546,6 +3559,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       _alertedOsmCameraIds.clear();
       _consecutiveReroutes = 0;
     });
+    unawaited(_nativeNavigationOwnership.stopBestEffort());
     _currentSpeedLimit = null;
     _speedCameraSvc.reset();
     _missedTurnTimer?.cancel();
@@ -6133,6 +6147,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _alertPlayer.dispose();
     _nostr.dispose();
     unawaited(_gps.dispose());
+    unawaited(_nativeNavigationOwnership.disposeBestEffort());
     _searchController.dispose();
     _searchDebounce?.cancel();
     _searchSettleDebounce?.cancel();
