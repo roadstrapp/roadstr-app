@@ -1,8 +1,9 @@
 # Pure Kotlin core parity evidence
 
-This phase keeps every new component detached from `MainActivity` and Flutter
-startup. It establishes deterministic behavior, bounded native service
-adapters and dormant native persistence before any production or UI cutover.
+This phase keeps every new component detached from the active Flutter startup
+and UI cutover. It establishes deterministic behavior, bounded native service
+adapters and dormant native persistence; the only registered runtime boundary
+is an opt-in `MainActivity` channel for the native GPS service.
 
 ## Implemented slices
 
@@ -17,7 +18,7 @@ adapters and dormant native persistence before any production or UI cutover.
 | `service.network` | `bounded_http.dart` | shared OkHttp pool, exact GET/POST adaptation, whole-call deadline, declared/streamed body caps, redirect/retry refusal, value-free failures and physical coroutine cancellation |
 | `service.routing` | `routing_service.dart` | resolved OSRM/ORS/GraphHopper dispatch, provider-specific deadlines, 32 MiB journey-route bound, normalized responses, value-free failures, cancellable one-retry bearing fallback, Valhalla hard/soft/track avoidance and best-effort OSRM re-timing |
 | `service.location` | `gps_service.dart` | AOSP `LocationManager` source, 500 ms sampling boundary, safe fix normalization, last-known fix, 20/45-second dead-stream watchdog and cancellable lifecycle ownership; startup/UI/foreground wiring remains |
-| `service.navigation` | map-screen lifecycle/navigation state | 30-second background grace, generation-safe pause/resume, GPS retention during navigation, detach cleanup, foreground-only wakelock policy and dormant AOSP foreground-service adapter; Activity/ViewModel start wiring remains |
+| `service.navigation` | map-screen lifecycle/navigation state | 30-second background grace, generation-safe pause/resume, GPS retention during navigation, detach cleanup, foreground-only wakelock policy, dormant AOSP foreground-service adapter and opt-in `MainActivity` bridge; Dart/ViewModel invocation remains |
 | `service.notifications` | `navigation_notification_service.dart` | 3-second distance-only throttle, immediate maneuver changes, reset semantics and private ongoing notification metadata; Android `NotificationManager` adapter remains |
 | `feature.map` | `maplibre_map_screen.dart`, `map_screen.dart`, map services/widgets | raster MapLibre style JSON, dark recoloring, tile URL admission/escaping, ZTL route-run segmentation and zoom/viewport marker culling; native renderer and Activity/UI wiring remain |
 | `storage` | encrypted Hive search history | canonical encrypted history file, serialized prepend/clear/import, atomic recovery, Keystore boundary and migration-marker ciphertext binding |
@@ -254,8 +255,9 @@ detached from secure storage and startup. See
   Compose layers, gestures and screenshot/device evidence remain open.
 - Native navigation lifecycle and notification policies are now deterministic,
   and the dormant Android location foreground-service adapter is registered,
-  but Activity/ViewModel start ownership and background-process evidence remain
-  open.
+  with an opt-in `MainActivity` start/stop channel and permission/error
+  contract; no current Dart path invokes it, and background-process evidence
+  remains open.
 
 ## Verification for this increment
 
@@ -267,7 +269,7 @@ detached from secure storage and startup. See
   request/response/configuration policies, search/routing/avoidance
   orchestration and re-timing, search planning/ranking/history, both migration
   fixture oracles and the headless Dart handler.
-- `./gradlew :app:testDebugUnitTest`: 234 Kotlin tests passed, including the
+- `./gradlew :app:testDebugUnitTest`: 235 Kotlin tests passed, including the
   Nostr byte/queue/inbound/ingress/NIP-19/BIP-340/NIP-04/NIP-44/NIP-78,
   Lightning/LNURL parity, HTTP safety/search/routing requests, responses,
   configuration, orchestration and re-timing, search planning/ranking/
@@ -277,8 +279,11 @@ detached from secure storage and startup. See
   suites, including Valhalla avoidance and OSRM re-timing execution, plus the
   headless AOSP GPS normalization, last-known, watchdog and cancellation suite,
   plus the native map style, tile safety, route segmentation, marker-culling,
-  lifecycle/grace-period and navigation-notification policy suites.
+  lifecycle/grace-period, navigation-notification policy and opt-in bridge
+  contract suites.
 - `./gradlew :app:assembleDebug`: D8, duplicate-class checks and Android APK
   packaging passed with pinned Bouncy Castle, OkHttp and coroutines
   dependencies.
-- No production Activity, manifest or startup wiring changed.
+- `MainActivity` now registers an opt-in native-navigation channel, but no
+  current Dart production path invokes it; Flutter startup and active GPS
+  wiring remain unchanged.

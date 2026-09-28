@@ -3,7 +3,8 @@
 Legend: `FUNCTIONAL` describes the current Flutter product on the baseline;
 `CORE_ONLY` means deterministic Kotlin policy/parser code and tests exist but
 are not connected to a native runtime; `NOT_STARTED` means no native port yet.
-No native production runtime exists, so no Kotlin row is marked functional.
+No native feature is marked functional until its production runtime path and
+device evidence are complete.
 
 | Area | Shipped behavior / oracle | Current source | Flutter state | Kotlin state | Release evidence required |
 |---|---|---|---|---|---|
@@ -34,7 +35,7 @@ No native production runtime exists, so no Kotlin row is marked functional.
 | Lightning | LNURL-pay, NIP-57 zaps, BOLT-11 validation and fallback link | `zap_service.dart`, `bolt11_invoice.dart`, `lightning_protocol.dart`, `lnurl_protocol.dart` | FUNCTIONAL | CORE_ONLY | LNURL source/metadata/callback/invoice and zap draft/receipt bindings green; native DNS/HTTP and crypto required |
 | NWC | NIP-47 pay_invoice with verified NIP-44/NIP-04 negotiation | `zap_service.dart`, `lightning_protocol.dart`, `nip44.dart`, `nip04.dart` | FUNCTIONAL | CORE_ONLY | Flutter negotiation is live and 89 wire/downgrade cases plus crypto/BIP-340 fixtures are green; native signer/sockets/key storage and live-wallet evidence required |
 | GPS | LocationManager path, last-known, watchdog, assistance and lifecycle | `gps_service.dart`, map screens | FUNCTIONAL | CORE_ONLY | headless AOSP LocationManager adapter, safe fix normalization, last-known, watchdog, cancellation and 30-second lifecycle grace are green; startup/UI, foreground service, permission and device-lifecycle evidence remain |
-| Background navigation | foreground notification, wakelock, screen/brightness policy | navigation notification/map screens | FUNCTIONAL | CORE_ONLY | headless GPS retention, generation-safe lifecycle, wakelock policy, private notification throttle and dormant AOSP location foreground-service adapter are green; Activity/ViewModel start wiring and process-background manual test remain |
+| Background navigation | foreground notification, wakelock, screen/brightness policy | navigation notification/map screens | FUNCTIONAL | CORE_ONLY | headless GPS retention, generation-safe lifecycle, wakelock policy, private notification throttle, dormant AOSP location foreground-service adapter and opt-in `MainActivity` bridge contract are green; Dart/ViewModel invocation and process-background manual test remain |
 | Voice | Kokoro, Piper, eSpeak phonemization, language/voice/speed/audio policy | `lib/services/kokoro`, `piper` | FUNCTIONAL | NOT_STARTED | asset reuse, audio and language matrix |
 | Settings | routing, voice, map, theme, units, sync, privacy and cursor settings | `settings_screen.dart` | FUNCTIONAL | NOT_STARTED | all persisted keys and defaults |
 | Themes | Violet/Bitcoin Orange, light/dark, auto sunrise/sunset | `app_theme.dart`, `theme_provider.dart` | FUNCTIONAL | CORE_ONLY | theme tests + screenshots |

@@ -1,9 +1,12 @@
 package app.roadstr
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
+import app.roadstr.service.navigation.NativeNavigationBridge
+import app.roadstr.service.navigation.NativeNavigationForegroundService
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -20,7 +23,52 @@ class MainActivity : FlutterFragmentActivity() {
                     else -> result.notImplemented()
                 }
             }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, NativeNavigationBridge.CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    NativeNavigationBridge.START_FOREGROUND_GPS -> startNativeForegroundGps(result)
+                    NativeNavigationBridge.STOP_FOREGROUND_GPS -> stopNativeForegroundGps(result)
+                    else -> result.notImplemented()
+                }
+            }
     }
+
+    private fun startNativeForegroundGps(result: MethodChannel.Result) {
+        if (!hasLocationPermission()) {
+            result.error(
+                NativeNavigationBridge.ERROR_PERMISSION_DENIED,
+                "Location permission must be granted before starting native GPS",
+                null,
+            )
+            return
+        }
+        try {
+            val intent = NativeNavigationForegroundService.startIntent(this)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+            result.success(true)
+        } catch (error: SecurityException) {
+            result.error(
+                NativeNavigationBridge.ERROR_START_FAILED,
+                "Android rejected the native GPS foreground service",
+                error.message,
+            )
+        }
+    }
+
+    private fun stopNativeForegroundGps(result: MethodChannel.Result) {
+        stopService(NativeNavigationForegroundService.stopIntent(this))
+        result.success(true)
+    }
+
+    private fun hasLocationPermission(): Boolean =
+        checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED ||
+            checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
 
     /**
      * Asks the GNSS engine to refresh its assistance data (PSDS/XTRA) and its
