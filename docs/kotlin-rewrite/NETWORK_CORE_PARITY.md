@@ -63,6 +63,12 @@ when a moving OSRM reroute may carry a bearing, constrained-result admission,
 the `8 × + 5 km` implausible-detour ceiling, one unconstrained fallback and
 terminal failure/ordering semantics. It does not dispatch or cancel requests.
 
+`lib/services/routing_avoidance_protocol.dart` is called by both production
+avoidance entry points through `RoutingService`. Its Kotlin counterpart freezes
+hard-to-soft and direct-track attempt ordering, route-shape sampling, ferry
+recognition, per-leg OSRM admission, proportional Valhalla fallback and the
+minimum verified-road budget. It does not dispatch or cancel requests.
+
 ## Compatibility detail
 
 The shipped GraphHopper validator requires a host and refuses explicit
@@ -117,6 +123,11 @@ transcripts. Both runtimes compare provider/course admission, constrained and
 unconstrained outcomes, exact detour boundaries, shortest-route decisions,
 single fallback, terminal errors and duplicate/late completion rejection.
 
+`routing_avoidance_v1.tsv` adds 36 Dart-generated outcomes. Both runtimes
+compare 10 hard/soft/track state transcripts and 26 re-timing cases spanning
+sampling/count caps, rounding, ferry detection, malformed legs, distance slack,
+coverage thresholds, proportional fallback and metadata retention.
+
 `search_responses_v1.tsv` adds 34 Dart-generated Nominatim forward/reverse,
 Photon and Overpass outcomes. Both runtimes compare normalized fields,
 coordinates, categories, labels, text bounds, node/way centres, distances and
@@ -147,8 +158,9 @@ ordering, final merge precedence, duplicate suppression and terminal behavior.
 - redirect/TLS/cleartext behavior needs Android integration tests in addition
   to this policy fixture;
 - the native search-history store, physical request cancellation, UI
-  request-generation suppression, Overpass backoff, routing avoidance/retiming
-  execution and live native execution remain;
+  request-generation suppression, Overpass backoff and live native execution
+  remain; avoidance/re-timing policy is locked but has no coroutine/HTTP
+  adapter;
 - DNS-aware SSRF checks for LNURL remain part of the later live-network gate.
 
 The Kotlin policy has no Android, Activity, startup or persistence wiring.
