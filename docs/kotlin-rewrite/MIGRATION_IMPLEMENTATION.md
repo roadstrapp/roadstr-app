@@ -135,7 +135,8 @@ not a production startup change.
 - The existing Flutter Activity and production Flutter runtime remain the
   active path. A dormant, non-exported foreground service and an opt-in native
   navigation `MethodChannel` are registered. The isolated Dart wrapper and its
-  contract tests exist, but no current Dart production path invokes them.
+  disabled-by-default ownership coordinator have contract tests, but no
+  current Dart production path invokes them.
 - No real user data, key, NWC URI or voice asset is used by the tests.
 - The protected-state admission policy does not yet parse historical NWC URI
   variants during migration; that decision remains behind the native Lightning

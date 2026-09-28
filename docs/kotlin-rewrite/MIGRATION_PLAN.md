@@ -128,9 +128,10 @@ The first native increment is intentionally isolated from production startup:
   `exported=false` AOSP location adapter with a low/private channel and
   explicit start/stop actions. `MainActivity` exposes an opt-in
   `app.roadstr/native_navigation` `MethodChannel` with explicit start/stop
-  methods and permission/error results. The isolated Dart wrapper now mirrors
-  this contract, but no current Dart production path invokes it;
-  Activity/ViewModel ownership and cutover remain open.
+  methods and permission/error results. The isolated Dart wrapper and its
+  serialized, disabled-by-default ownership coordinator now mirror this
+  contract, but no current Dart production path invokes them; Activity/ViewModel
+  ownership and cutover remain open.
 - `docs/kotlin-rewrite/MIGRATION_IMPLEMENTATION.md` records what is and is not
   wired.
 
@@ -453,7 +454,7 @@ broader cross-language coverage and a native store are still required.
 
 - **Objective:** Match LocationManager cadence, watchdog, assistance, heading, foreground and background behavior.
 - **Current Dart/Flutter source:** `lib/services/gps_service.dart`, map screen lifecycle/camera policies, notification service.
-- **New Kotlin files/modules:** `service/location` contains the headless AOSP `LocationManager` adapter and watchdog; `service/navigation/NativeNavigationLifecycle.kt` and `service/notifications/NativeNavigationNotificationPolicy.kt` contain the lifecycle/foreground policy and notification throttle; `service/navigation/NativeNavigationForegroundService.kt` owns the dormant AOSP `startForeground` adapter; `service/navigation/NativeNavigationBridge.kt` plus `MainActivity` provide the opt-in start/stop channel; `lib/services/native_navigation_bridge.dart` mirrors it for a future consumer; Dart/ViewModel invocation and ownership remain.
+- **New Kotlin files/modules:** `service/location` contains the headless AOSP `LocationManager` adapter and watchdog; `service/navigation/NativeNavigationLifecycle.kt` and `service/notifications/NativeNavigationNotificationPolicy.kt` contain the lifecycle/foreground policy and notification throttle; `service/navigation/NativeNavigationForegroundService.kt` owns the dormant AOSP `startForeground` adapter; `service/navigation/NativeNavigationBridge.kt` plus `MainActivity` provide the opt-in start/stop channel; `lib/services/native_navigation_bridge.dart` and `native_navigation_ownership.dart` mirror and serialize it for a future consumer; Dart/ViewModel invocation and ownership remain.
 - **Dependencies:** Android platform LocationManager/sensors/foreground APIs only; no fused location or Play Services.
 - **Migration impact:** Active navigation state and notification actions must not be lost on recreation.
 - **User-visible impact:** Same permissions, fix cadence, background grace, guidance and notification lifecycle.
