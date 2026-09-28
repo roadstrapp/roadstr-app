@@ -63,9 +63,15 @@ class NetworkLimits {
   /// Small fixed-shape JSON: a weather reading, an invoice, a single lookup.
   static const smallJson = 1024 * 1024;
 
-  /// Geocoder answers and route geometries. A route across a continent with
-  /// full step geometry stays comfortably inside this.
+  /// Geocoder answers and small routing/probe responses.
   static const route = 2 * 1024 * 1024;
+
+  /// Full turn-by-turn road routes, including long walking/cycling journeys.
+  ///
+  /// The live routing service historically used this measured 32 MiB ceiling
+  /// directly. Keeping it as a separate tier avoids silently shrinking that
+  /// compatibility boundary to the smaller geocoder/probe budget.
+  static const journeyRoute = 32 * 1024 * 1024;
 
   /// A public-transport plan: several itineraries, each with per-leg polylines
   /// and timetable detail. Measured at ~88 KB for a short city hop, so this is

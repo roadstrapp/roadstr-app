@@ -22,6 +22,7 @@ enum class NetworkResponseLimit(
 ) {
     SmallJson("small_json", 1L * 1024 * 1024),
     Route("route", 2L * 1024 * 1024),
+    JourneyRoute("journey_route", 32L * 1024 * 1024),
     TransitPlan("transit_plan", 2L * 1024 * 1024),
     AreaQuery("area_query", 6L * 1024 * 1024),
     LargeAreaQuery("large_area_query", 10L * 1024 * 1024),

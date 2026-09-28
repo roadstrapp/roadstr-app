@@ -45,6 +45,26 @@ data class NativeHttpResponse(
         get() = bodyBytes.toString(Charsets.UTF_8)
 }
 
+data class NativeHttpRequestLimits(
+    val timeoutMillis: Long,
+    val maxResponseBytes: Long,
+) {
+    init {
+        require(timeoutMillis > 0) { "HTTP timeout must be positive" }
+        require(maxResponseBytes in 1..Int.MAX_VALUE.toLong()) {
+            "HTTP response budget must fit a byte array"
+        }
+    }
+}
+
+/** Narrow transport boundary used by the native routing service. */
+fun interface NativeRoutingHttpTransport {
+    suspend fun execute(
+        request: RoutingProviderRequest,
+        limits: NativeHttpRequestLimits,
+    ): NativeHttpResponse
+}
+
 enum class NativeHttpFailureKind {
     InvalidRequest,
     ResponseTooLarge,
@@ -78,17 +98,28 @@ class NativeHttpException(
  */
 class NativeBoundedHttpClient private constructor(
     private val callFactory: Call.Factory,
-) {
+) : NativeRoutingHttpTransport {
     constructor() : this(defaultClient())
 
     suspend fun execute(
         request: NativeHttpRequest,
         timeout: NetworkTimeoutBudget,
         responseLimit: NetworkResponseLimit,
+    ): NativeHttpResponse = execute(
+        request = request,
+        limits = NativeHttpRequestLimits(
+            timeoutMillis = timeout.milliseconds,
+            maxResponseBytes = responseLimit.bytes,
+        ),
+    )
+
+    suspend fun execute(
+        request: NativeHttpRequest,
+        limits: NativeHttpRequestLimits,
     ): NativeHttpResponse = executeWithBounds(
         request = request,
-        timeoutMillis = timeout.milliseconds,
-        maxBytes = responseLimit.bytes,
+        timeoutMillis = limits.timeoutMillis,
+        maxBytes = limits.maxResponseBytes,
     )
 
     suspend fun execute(
@@ -99,6 +130,14 @@ class NativeBoundedHttpClient private constructor(
         request = request.toNativeRequest(),
         timeout = timeout,
         responseLimit = responseLimit,
+    )
+
+    override suspend fun execute(
+        request: RoutingProviderRequest,
+        limits: NativeHttpRequestLimits,
+    ): NativeHttpResponse = execute(
+        request = request.toNativeRequest(),
+        limits = limits,
     )
 
     suspend fun execute(

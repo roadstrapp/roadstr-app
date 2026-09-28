@@ -15,6 +15,7 @@ native service adapters before any production or UI cutover.
 | `core.search` | `fuzzy_match.dart`, `search_ranking_protocol.dart`, `search_orchestration_protocol.dart`, `search_history_protocol.dart` | accent folding, bounded Levenshtein, address weighting, provider planning, proximity dedupe, city/brand/distance ranking, out-of-order provider completion, one partial, relaxed retry, POI-first final merge, history validation/recency/storage shape |
 | `core.network` | `retry.dart`, `refetch_policy.dart`, `bounded_http.dart`, `network_config.dart`, `search_provider_protocol.dart`, `search_response_protocol.dart`, `routing_request_protocol.dart`, `routing_response_protocol.dart`, `routing_orchestration_protocol.dart`, `routing_avoidance_protocol.dart`, `routing_provider_config.dart`, GraphHopper validation | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh, HTTP deadlines/body ceilings/redirect and cleartext-loopback policy, exact search requests and normalized responses plus routing-provider requests/responses, one-retry bearing fallback, avoidance fallback, per-leg re-timing and persisted provider/key/server resolution |
 | `service.network` | `bounded_http.dart` | shared OkHttp pool, exact GET/POST adaptation, whole-call deadline, declared/streamed body caps, redirect/retry refusal, value-free failures and physical coroutine cancellation |
+| `service.routing` | `routing_service.dart` | resolved OSRM/ORS/GraphHopper dispatch, provider-specific deadlines, 32 MiB journey-route bound, normalized responses, value-free failures and cancellable one-retry bearing fallback |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
 | `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `lnurl_protocol.dart`, `zap_service.dart` | BOLT-11 parsing, LNURL-pay source/metadata/callback/invoice binding, NIP-47 URI/info negotiation/request/response and NIP-57 draft/receipt bindings |
 | `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_pending_report_queue.dart`, `nostr_relay_message.dart`, `nostr_relay_ingress.dart`, `nostr_nip19.dart`, `nostr_schnorr.dart`, `nip04.dart`, `nip44.dart`, `favorites_sync_protocol.dart`, Nostr/favourites/Lightning services | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash, outbound frames, offline FIFO/TTL/retry policy, bounded inbound envelopes, pre-verification routing/budgets, strict NIP-19 keys, x-only derivation/BIP-340, legacy NIP-04, NIP-44 v2 and deterministic NIP-78 policy |
@@ -100,11 +101,12 @@ event shapes and strict malformed/tampered Nostr inputs. Kotlin reuses the
 pinned Bouncy Castle curve primitives; Dart cross-checks the implementation
 already shipped by `nostr_tools`. See `SCHNORR_CORE_PARITY.md`.
 
-`http_safety_policy_v1.tsv` is the thirteenth shared core fixture. Its 48 cases
-lock the six timeout tiers, six response limits, redirect refusal, declared and
-streamed exact-byte ceilings, and the shipped GraphHopper host/cleartext
-decision. The live Dart bounded client calls the extracted policy; Kotlin is
-still an engine-independent counter/admission boundary. See
+`http_safety_policy_v1.tsv` is the thirteenth shared core fixture. Its 51 cases
+lock the six timeout tiers, seven response limits, redirect refusal, declared
+and streamed exact-byte ceilings, and the shipped GraphHopper host/cleartext
+decision. The live Dart bounded client calls the extracted policy; the 32 MiB
+`journey_route` tier preserves its measured full-route ceiling separately from
+the 2 MiB small route/probe tier. See
 `NETWORK_CORE_PARITY.md`.
 
 `search_provider_requests_v1.tsv` is the fourteenth shared core fixture. Its 39
@@ -117,7 +119,8 @@ from sockets. See `SEARCH_NETWORK_CORE_PARITY.md`.
 lock exact OSRM, OpenRouteService, GraphHopper and Valhalla methods, endpoints,
 profiles, locales, coordinates, headers, bodies, API-key boundaries, waypoint/
 alternative/bearing rules and avoidance policies. The Dart builder is used by
-the live Flutter routing service; Kotlin remains detached from sockets. See
+the live Flutter routing service; the headless Kotlin routing service now uses
+the same values for OSRM/ORS/GraphHopper dispatch. See
 `ROUTING_NETWORK_CORE_PARITY.md`.
 
 `routing_responses_v1.tsv` is the sixteenth shared core fixture. Its 59 cases
@@ -125,8 +128,8 @@ lock normalized OSRM, OpenRouteService, GraphHopper and Valhalla routes,
 maneuver mappings and decorations, all 27 localized OSRM instruction sets,
 speed limits, polyline6 decoding, multi-leg joining, response validation,
 provider errors and OSRM retiming. The extracted Dart parser is used by the
-live Flutter routing service; the Kotlin parser remains socket-free and
-detached from production wiring.
+live Flutter routing service; the headless Kotlin routing service now parses
+primary-provider responses but remains detached from production wiring.
 
 `search_responses_v1.tsv` is the seventeenth shared core fixture. Its 34 cases
 lock Nominatim forward/reverse, Photon GeoJSON and Overpass envelope/result
@@ -165,8 +168,9 @@ stateful transcripts lock provider/course admission, the exact implausible
 detour boundary, shortest-alternative selection, one unconstrained OSRM retry,
 route-order retention, terminal failures and hostile premature/duplicate/late
 outcomes. Both Flutter map implementations call the extracted Dart executor;
-Kotlin remains detached from coroutines, sockets and UI request generations.
-See `ROUTING_NETWORK_CORE_PARITY.md`.
+the Kotlin service now drives this state machine around bounded provider calls,
+including cancellation-without-fallback, but remains detached from UI request
+generations. See `ROUTING_NETWORK_CORE_PARITY.md`.
 
 `routing_avoidance_v1.tsv` is the twenty-second shared core fixture. Its 36
 outcomes lock hard-to-soft and direct-track attempt ordering plus OSRM sampling,
@@ -181,7 +185,8 @@ coroutines, sockets and UI request generations. See
 requirements, OpenRouteService key requirements, OSRM fallback warnings,
 Unicode trimming, secure-key precedence and one-shot legacy-key migration.
 Both Flutter map implementations call the extracted Dart resolver while the
-Kotlin mirror remains detached from secure storage and native dispatch. See
+Kotlin routing service consumes an already resolved configuration but remains
+detached from secure storage and startup. See
 `ROUTING_NETWORK_CORE_PARITY.md`.
 
 ## Current limits
@@ -190,9 +195,10 @@ Kotlin mirror remains detached from secure storage and native dispatch. See
   extracted Dart request builders, response parsers and search-ranking policy
   are called by the existing Flutter services.
 - Stateful navigation tests cover policy decisions, not Android sensor timing.
-- Retry scheduling and provider orchestration remain pure policy. The native
-  HTTP adapter executes and physically cancels one bounded request, but does
-  not yet own provider jobs or retry state machines.
+- General retry scheduling and search-provider orchestration remain pure
+  policy. The native routing service now owns one sequential OSRM bearing
+  fallback state machine; its caller still owns the long-lived job and UI
+  request generation.
 - HTTP size, endpoint, search/routing request and response decisions are Kotlin
   policy and local OkHttp integration tests cover connection, total deadlines
   and cancellation. Android DNS, TLS, Network Security Config and cleartext
@@ -200,8 +206,9 @@ Kotlin mirror remains detached from secure storage and native dispatch. See
 - Mid-navigation OSRM bearing fallback, avoidance attempt ordering and
   per-slice re-timing admission are covered, including both one-retry ceilings.
   Persisted provider/key/server resolution and routing-time legacy migration
-  are covered. A native secure-store adapter, provider-level coroutine
-  execution, UI request generations and live native dispatch remain open.
+  are covered. Headless native OSRM/ORS/GraphHopper execution and cancellation
+  are green; secure-store reads, avoidance execution, startup ownership and UI
+  request generations remain open.
 - Search provider planning, normalized-result ranking/merge, out-of-order
   completion/failure handling, one-partial/one-retry orchestration and
   deterministic history value semantics are covered. Encrypted Hive still owns
@@ -238,12 +245,13 @@ Kotlin mirror remains detached from secure storage and native dispatch. See
   request/response/configuration policies, search/routing/avoidance
   orchestration and re-timing, search planning/ranking/history, both migration
   fixture oracles and the headless Dart handler.
-- `./gradlew :app:testDebugUnitTest`: 164 Kotlin tests passed, including the
+- `./gradlew :app:testDebugUnitTest`: 174 Kotlin tests passed, including the
   Nostr byte/queue/inbound/ingress/NIP-19/BIP-340/NIP-04/NIP-44/NIP-78,
   Lightning/LNURL parity, HTTP safety/search/routing requests, responses,
   configuration, orchestration and re-timing, search planning/ranking/
   orchestration/history, native persistence/migration and bounded headless
-  transport reader and native bounded-HTTP integration suites.
+  transport reader, native bounded-HTTP integration and headless routing
+  service suites.
 - `./gradlew :app:assembleDebug`: D8, duplicate-class checks and Android APK
   packaging passed with pinned Bouncy Castle, OkHttp and coroutines
   dependencies.

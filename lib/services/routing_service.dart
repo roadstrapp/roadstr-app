@@ -13,6 +13,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
+import '../config/network_config.dart';
 import '../utils/fuzzy_match.dart';
 import '../utils/geo.dart';
 import '../utils/units.dart';
@@ -68,7 +69,7 @@ class RoutingService {
   // foot/bike routing is a real use case, so the limits sit well above that:
   // 250 000 points covers ~8000 km of fine-grained footpaths, and 32 MB /
   // 60 000 steps leave matching headroom.
-  static const _maxRouteResponseBytes = 32 * 1024 * 1024;
+  static const _maxRouteResponseBytes = NetworkLimits.journeyRoute;
   static final _roundaboutTopology = RoundaboutTopologyService();
 
   /// Adds the real total arm count to every roundabout step in [routes].
