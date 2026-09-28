@@ -5,8 +5,19 @@ import 'package:latlong2/latlong.dart';
 import 'photon_geocoder.dart';
 import 'poi_search_service.dart';
 import 'routing_service.dart' show RoutingService;
+import 'search_orchestration_protocol.dart';
 import 'search_ranking_protocol.dart';
 import 'search_response_protocol.dart';
+
+typedef NominatimSearchProvider = Future<List<NominatimResult>> Function(
+  String query,
+  LatLng? near,
+);
+typedef PhotonSearchProvider = Future<List<NominatimResult>> Function(
+  String query,
+  LatLng? near,
+  String languageCode,
+);
 
 /// How much of the provider set a search may use.
 ///
@@ -53,10 +64,23 @@ enum SearchPhase {
 /// the list, because [PhotonGeocoder] already normalises its results into the
 /// same "street number, city" shape.
 class PlaceSearchService {
-  PlaceSearchService({PoiSearchService? poi})
-      : _poi = poi ?? PoiSearchService();
+  PlaceSearchService({
+    PoiSearchService? poi,
+    NominatimSearchProvider? nominatimSearch,
+    PhotonSearchProvider? photonSearch,
+  })  : _poi = poi ?? PoiSearchService(),
+        _nominatimSearch = nominatimSearch ??
+            ((query, near) => RoutingService.search(query, near: near)),
+        _photonSearch = photonSearch ??
+            ((query, near, languageCode) => PhotonGeocoder.search(
+                  query,
+                  near: near,
+                  languageCode: languageCode,
+                ));
 
   final PoiSearchService _poi;
+  final NominatimSearchProvider _nominatimSearch;
+  final PhotonSearchProvider _photonSearch;
 
   /// Longest query dispatched to the providers.
   ///
@@ -87,70 +111,94 @@ class PlaceSearchService {
       hasNear: near != null,
     );
     if (plan == null) return const [];
-    final prepared = plan.query;
+    final orchestration = SearchOrchestrationProtocol(plan: plan, near: near);
+    final completed = Completer<List<NominatimResult>>();
 
-    final nominatimFuture = plan.useNominatim
-        ? RoutingService.search(prepared, near: near)
-        : Future.value(const <NominatimResult>[]);
-    final photonFuture = plan.usePhoton
-        ? PhotonGeocoder.search(
-            prepared,
-            near: near,
-            languageCode: languageCode,
-          )
-        : Future.value(const <NominatimResult>[]);
-    // Kept in both phases: it stays local unless the word names a category, so
-    // deferring it would only make "pharmacy" answer late for no saving.
-    final poiFuture = plan.usePoi
-        ? _poi.search(prepared, near!)
-        : Future.value(const <NominatimResult>[]);
-
-    if (onPartial != null) {
-      var shown = false;
-      for (final f in [photonFuture, nominatimFuture, poiFuture]) {
-        unawaited(f.then((r) {
-          if (shown || r.isEmpty) return;
-          shown = true;
-          onPartial(rankResults(prepared, r, near));
-        }).catchError((_) {}));
+    void apply(SearchOrchestrationDecision decision) {
+      final partial = decision.partialResults;
+      if (partial != null && onPartial != null) {
+        try {
+          onPartial(partial);
+        } catch (_) {
+          // A rendering callback must not turn a successful provider response
+          // into a failed search.
+        }
+      }
+      final retry = decision.retryQuery;
+      if (retry != null) {
+        _startProvider(
+          () => _nominatimSearch(retry, near),
+          (results) => apply(orchestration.accept(
+            SearchProviderBatch.retry,
+            SearchProviderKind.nominatim,
+            results,
+          )),
+        );
+        _startProvider(
+          () => _photonSearch(retry, near, languageCode),
+          (results) => apply(orchestration.accept(
+            SearchProviderBatch.retry,
+            SearchProviderKind.photon,
+            results,
+          )),
+        );
+      }
+      final finalResults = decision.finalResults;
+      if (finalResults != null && !completed.isCompleted) {
+        completed.complete(finalResults);
       }
     }
 
-    final photon = await photonFuture;
-    final nominatim = await nominatimFuture;
-    final poi = await poiFuture;
-
-    // Nominatim first in the merge order: the two providers agree on shape, so
-    // this only decides which copy survives the dedupe.
-    var geo = SearchRankingProtocol.rankGeocoders(
-      prepared,
-      nominatim,
-      photon,
-      near,
-    );
-
-    // The relaxed retry is a "found nothing anywhere" recovery — it doubles the
-    // requests, so it belongs to the settled query, not to a word in progress
-    // that is about to gain another letter.
-    final relaxed = SearchRankingProtocol.relaxedRetryQuery(plan, geo, poi);
-    if (relaxed != null) {
-      final retry = await Future.wait([
-        RoutingService.search(relaxed, near: near),
-        PhotonGeocoder.search(
-          relaxed,
-          near: near,
-          languageCode: languageCode,
-        ),
-      ]);
-      geo = SearchRankingProtocol.rankGeocoders(
-        relaxed,
-        retry[0],
-        retry[1],
-        near,
+    void startInitial(
+      SearchProviderKind provider,
+      Future<List<NominatimResult>> Function() request,
+    ) {
+      _startProvider(
+        request,
+        (results) => apply(orchestration.accept(
+          SearchProviderBatch.initial,
+          provider,
+          results,
+        )),
       );
     }
 
-    return SearchRankingProtocol.mergePoiFirst(poi, geo);
+    if (plan.useNominatim) {
+      startInitial(
+        SearchProviderKind.nominatim,
+        () => _nominatimSearch(plan.query, near),
+      );
+    }
+    if (plan.usePhoton) {
+      startInitial(
+        SearchProviderKind.photon,
+        () => _photonSearch(plan.query, near, languageCode),
+      );
+    }
+    // Kept in both phases: it stays local unless the word names a category, so
+    // deferring it would only make "pharmacy" answer late for no saving.
+    if (plan.usePoi) {
+      startInitial(
+        SearchProviderKind.poi,
+        () => _poi.search(plan.query, near!),
+      );
+    }
+    return completed.future;
+  }
+
+  static void _startProvider(
+    Future<List<NominatimResult>> Function() request,
+    void Function(List<NominatimResult>) complete,
+  ) {
+    Future<List<NominatimResult>> guarded() async {
+      try {
+        return await request();
+      } catch (_) {
+        return const [];
+      }
+    }
+
+    unawaited(guarded().then(complete));
   }
 
   /// Orders results so that, among everything that actually matches the

@@ -98,8 +98,11 @@ The first native increment is intentionally isolated from production startup:
   no native socket or search orchestration is wired.
 - Production `PlaceSearchService` now delegates query/phase planning,
   proximity dedupe, city/brand/distance ranking, relaxed retry and POI-first
-  merge to a pure Dart boundary. Kotlin matches 53 shared outcomes; async
-  partial delivery and native provider execution remain unwired.
+  merge to pure Dart boundaries. It also delegates out-of-order completion,
+  first-nonempty partial delivery, provider failure fallback and one relaxed
+  batch to a production-used state machine. Kotlin matches 53 ranking and 32
+  orchestration outcomes; physical cancellation, UI request generations and
+  native provider execution remain unwired.
 - Both production map implementations now delegate search-history decode,
   validation, recency/deduplication and serialization to a pure Dart boundary.
   Kotlin matches 31 shared outcomes; encrypted Hive remains the live owner and
@@ -329,15 +332,16 @@ broader cross-language coverage and a native store are still required.
 - **User-visible impact:** Same providers, results, language and error/fallback behavior.
 - **Tests:** A 48-case shared HTTP safety fixture, a 39-case search-provider
   request fixture, a 34-case search-provider response fixture, a 53-case search
-  planning/ranking fixture, a 31-case search-history fixture, an 89-case
-  routing-provider request fixture, a 59-case routing-provider response fixture
-  and existing live Dart local-server redirect/oversize/Overpass tests are
-  green. Native engine redirect/size/TLS/cleartext integration, history-store
-  wiring and retry execution remain.
+  planning/ranking fixture, a 32-case search-orchestration fixture, a 31-case
+  search-history fixture, an 89-case routing-provider request fixture, a
+  59-case routing-provider response fixture and existing live Dart local-server
+  redirect/oversize/Overpass tests are green. Native engine redirect/size/TLS/
+  cleartext integration, history-store wiring and physical cancellation remain.
 - **Parity evidence:** Exact Nominatim/Photon/Overpass and OSRM/ORS/GraphHopper/
   Valhalla request bytes, normalized search/route responses, deterministic
-  search planning/ranking and history value semantics are green; the native
-  history store, async/live orchestration and native execution are open.
+  search planning/ranking/orchestration and history value semantics are green;
+  the native history store, coroutine/socket execution and native execution are
+  open.
 - **Security/privacy impact:** Preserve URL validation, body caps, user-agent, no silent cloud fallback.
 - **Battery/performance impact:** Compare network retries, cache hit rate and cancellation.
 - **Acceptance criteria:** All current providers pass without changed limits or privacy behavior.

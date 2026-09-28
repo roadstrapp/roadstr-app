@@ -125,6 +125,11 @@ The 31-case `search_history_v1.tsv` locks the existing local history key/value
 contract, hostile-row rejection, UTF-16/coordinate bounds, recency/dedupe,
 load/write ceilings and representative exact JSON spellings. It changes no
 encrypted Hive ownership and is not yet wired to a native store.
+The 32-case `search_orchestration_v1.tsv` locks enabled provider sets,
+out-of-order first-partial and final delivery, failure-as-empty fallback, all
+settled completion orders, one relaxed retry batch, provider precedence and
+rejection of duplicate, invalid or late completions. Kotlin remains detached
+from physical cancellation, coroutines, sockets and UI request generations.
 The 89-case `routing_requests_v1.tsv` locks OSRM, OpenRouteService,
 GraphHopper and Valhalla methods, URLs, profiles/locales, coordinates,
 headers/bodies, API-key boundaries, waypoint/alternative/bearing rules,

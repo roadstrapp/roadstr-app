@@ -40,6 +40,12 @@ rounding.
 caps, phase/provider planning, fuzzy/city/brand/distance ranking, proximity
 dedupe, relaxed retry and POI-first merge without scheduling a request.
 
+`lib/services/search_orchestration_protocol.dart` is also called by production
+`PlaceSearchService`. Its Kotlin counterpart freezes enabled-provider tracking,
+out-of-order completion, first-nonempty partial delivery, failure-as-empty
+fallback, one relaxed retry batch and one immutable final result without
+opening a socket or choosing a coroutine implementation.
+
 `lib/services/routing_request_protocol.dart` is called by the live Dart routing
 service for OSRM, OpenRouteService, GraphHopper and Valhalla. Its Kotlin
 counterpart freezes request composition, including provider profiles/locales,
@@ -115,6 +121,11 @@ runtimes compare tolerant row admission, coordinate/label limits, newest-first
 dedupe, 100-load/5-store ceilings and persisted JSON strings. Flutter keeps
 encrypted Hive ownership; Kotlin has no persistence adapter yet.
 
+`search_orchestration_v1.tsv` adds 32 Dart-generated provider-completion
+transcripts. Both runtimes compare phase/location provider sets, all settled
+completion orders, one partial, failure/empty fallback, retry admission and
+ordering, final merge precedence, duplicate suppression and terminal behavior.
+
 ## Deliberately outside this slice
 
 - no native HTTP engine, OkHttp dependency, DNS resolver or socket is wired;
@@ -124,9 +135,9 @@ encrypted Hive ownership; Kotlin has no persistence adapter yet.
   native adapter;
 - redirect/TLS/cleartext behavior needs Android integration tests in addition
   to this policy fixture;
-- the native search-history store, partial-result concurrency, provider
-  fallback/cancellation, Overpass backoff, routing orchestration and live
-  native execution remain;
+- the native search-history store, physical request cancellation, UI
+  request-generation suppression, Overpass backoff, routing orchestration and
+  live native execution remain;
 - DNS-aware SSRF checks for LNURL remain part of the later live-network gate.
 
 The Kotlin policy has no Android, Activity, startup or persistence wiring.
