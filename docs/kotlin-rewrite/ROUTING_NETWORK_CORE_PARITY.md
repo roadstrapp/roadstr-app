@@ -1,4 +1,4 @@
-# Routing-provider request, response and reroute-orchestration parity
+# Routing-provider request, response and orchestration parity
 
 This increment freezes Roadstr's outbound routing request contract and inbound
 response normalization without giving Kotlin ownership of an HTTP engine.
@@ -63,6 +63,17 @@ bearings go directly to one unconstrained attempt. The asynchronous Dart
 adapter preserves existing timeout/error behavior, while
 `RoutingOrchestrationProtocol.kt` freezes the same state transitions without
 coroutines or sockets.
+
+`lib/services/routing_avoidance_protocol.dart` now owns the production
+hard-exclusion to soft-preference transition, the direct unpaved-track attempt
+and the deterministic part of OSRM re-timing. `RoutingService` uses its async
+adapter for both avoidance entry points and delegates waypoint sampling and
+per-leg admission to `RoutingRetimePolicy`; it still owns the Valhalla/OSRM
+HTTP calls. The policy samples at roughly 5 km with a 120-waypoint ceiling,
+keeps Valhalla time for ferry and diverged slices, accepts OSRM timing within
+20% or 150 m, and requires at least half of the non-ferry distance to verify.
+`RoutingAvoidanceProtocol.kt` and `RoutingRetimePolicy` mirror those decisions
+without coroutines or sockets.
 
 ## Shared fixture
 
@@ -138,19 +149,41 @@ Injected Dart executor tests additionally prove the exact bearing sequence,
 single fallback, order retention and propagation of non-routing failures
 without opening a socket.
 
+`routing_avoidance_v1.tsv` contains 36 Dart-generated outcomes: 10 stateful
+hard/soft/track transcripts and 26 sampling/re-timing cases. They cover direct
+success/failure, the single soft fallback, premature/duplicate/late outcomes,
+degenerate geometry, half-up sampling, the 120-waypoint cap, five-decimal
+coordinates, exact ferry and road thresholds, wrong/null legs, zero arcs,
+minimum distance slack, the 50% verification boundary and avoidance metadata.
+Regenerate or verify it with:
+
+```text
+dart run tools/kotlin_rewrite/generate_routing_avoidance_fixture.dart
+dart run tools/kotlin_rewrite/generate_routing_avoidance_fixture.dart --check
+```
+
+`routing_avoidance_protocol_test.dart` and
+`RoutingAvoidanceProtocolParityTest.kt` consume all 36 outcomes. Additional
+Dart tests exercise the production async adapter and prove that non-routing
+failures do not cause a hidden fallback; both runtimes independently verify
+that accepted re-timing preserves geometry, maneuvers, speed limits, distance
+and avoidance classification.
+
 ## Deliberately outside this slice
 
 - no Kotlin HTTP engine, DNS resolver, connection pool or socket is wired;
 - native timeout, cancellation, retry, redirect, TLS and cleartext enforcement
   still belongs to the future bounded-network adapter;
-- persisted provider/key resolution, avoidance hard/soft execution, OSRM
-  retiming, request-generation suppression and live dispatch remain in Flutter;
+- persisted provider/key resolution, request-generation suppression and all
+  live dispatch remain in Flutter; hard/soft admission and OSRM re-timing
+  decisions are fixture-locked, but no native coroutine/HTTP adapter executes
+  them yet;
 - physical cancellation and coroutine ownership remain open for the native
   adapter even though reroute fallback admission is now fixture-locked;
 - persisted provider/API-key migration and live-provider/device tests remain
   release gates.
 
 Rollback is removal of the Kotlin boundaries/fixtures and re-inlining the Dart
-request builders, response parser and two screen-local reroute policies. No
-endpoint default, stored setting, API key or live-network owner changed in this
-increment.
+request builders, response parser and extracted routing orchestration policies.
+No endpoint default, stored setting, API key or live-network owner changed in
+this increment.
