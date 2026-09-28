@@ -44,6 +44,7 @@ import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
 import '../services/navigation_guidance.dart';
 import '../services/navigation_notification_service.dart';
+import '../services/native_navigation_fix_feed.dart';
 import '../services/native_navigation_ownership.dart';
 import '../services/nostr_nip19.dart';
 import '../services/nostr_relay_service.dart';
@@ -260,11 +261,15 @@ class MaplibreMapScreen extends StatefulWidget {
   const MaplibreMapScreen({
     super.key,
     this.nativeNavigationOwnership,
+    this.nativeNavigationFixFeed,
   });
 
   /// Injectable only for controlled rollout and lifecycle verification.
   /// Ordinary builds use the disabled-by-default compile-time canary.
   final NativeNavigationOwnership? nativeNavigationOwnership;
+
+  /// Injectable shadow feed; native fixes never drive this renderer yet.
+  final NativeNavigationFixFeed? nativeNavigationFixFeed;
 
   @override
   State<MaplibreMapScreen> createState() => _MaplibreMapScreenState();
@@ -277,6 +282,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
 
   final _gps = GpsService();
   late final NativeNavigationOwnership _nativeNavigationOwnership;
+  late final NativeNavigationFixFeed _nativeNavigationFixFeed;
   StreamSubscription<GpsData>? _gpsSub;
   MapController? _controller;
 
@@ -812,6 +818,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     super.initState();
     _nativeNavigationOwnership =
         widget.nativeNavigationOwnership ?? NativeNavigationRollout.create();
+    _nativeNavigationFixFeed = widget.nativeNavigationFixFeed ??
+        NativeNavigationRollout.createFixFeed();
+    _nativeNavigationFixFeed.start();
     unawaited(_nativeNavigationOwnership.reconcileBestEffort(
       navigationActive: _isNavigating,
     ));
@@ -1807,6 +1816,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     }
     _searchController.dispose();
     unawaited(_gps.dispose());
+    unawaited(_nativeNavigationFixFeed.dispose());
     unawaited(_nativeNavigationOwnership.disposeBestEffort());
     unawaited(_tts.dispose());
     _alertPlayer.dispose();

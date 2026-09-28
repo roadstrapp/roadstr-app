@@ -36,9 +36,9 @@ class NativeNavigationForegroundService : Service() {
         createLocationChannel()
         locationService = NativeLocationService(
             source = AndroidLocationManagerSource(applicationContext, mainLooper),
-            // The future native navigation/ViewModel owner consumes fixes.
-            // The dormant adapter deliberately has no UI side effects.
-            onFix = {},
+            // Canary consumers observe this process-local stream without
+            // replacing the established Flutter GPS source yet.
+            onFix = NativeNavigationFixDispatcher::publish,
             scope = serviceScope,
         )
     }

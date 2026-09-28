@@ -4,7 +4,8 @@ This phase keeps the default Flutter startup and UI cutover unchanged. It
 establishes deterministic behavior, bounded native service adapters and dormant
 native persistence; the registered native GPS channel is now reachable from a
 compile-time, disabled-by-default canary in both Flutter map renderers, with
-runtime-state reconciliation after Activity or renderer recreation.
+runtime-state reconciliation and a value-only native-fix shadow stream after
+Activity or renderer recreation.
 
 ## Implemented slices
 
@@ -18,8 +19,8 @@ runtime-state reconciliation after Activity or renderer recreation.
 | `core.network` | `retry.dart`, `refetch_policy.dart`, `bounded_http.dart`, `network_config.dart`, `search_provider_protocol.dart`, `search_response_protocol.dart`, `routing_request_protocol.dart`, `routing_response_protocol.dart`, `routing_orchestration_protocol.dart`, `routing_avoidance_protocol.dart`, `routing_provider_config.dart`, GraphHopper validation | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh, HTTP deadlines/body ceilings/redirect and cleartext-loopback policy, exact search requests and normalized responses plus routing-provider requests/responses, one-retry bearing fallback, avoidance fallback, per-leg re-timing and persisted provider/key/server resolution |
 | `service.network` | `bounded_http.dart` | shared OkHttp pool, exact GET/POST adaptation, whole-call deadline, declared/streamed body caps, redirect/retry refusal, value-free failures and physical coroutine cancellation |
 | `service.routing` | `routing_service.dart` | resolved OSRM/ORS/GraphHopper dispatch, provider-specific deadlines, 32 MiB journey-route bound, normalized responses, value-free failures, cancellable one-retry bearing fallback, Valhalla hard/soft/track avoidance and best-effort OSRM re-timing |
-| `service.location` | `gps_service.dart` | AOSP `LocationManager` source, 500 ms sampling boundary, safe fix normalization, last-known fix, 20/45-second dead-stream watchdog and cancellable lifecycle ownership; both Flutter renderers have a disabled-by-default foreground canary with init/resume reconciliation, while full startup/UI cutover remains |
-| `service.navigation` | map-screen lifecycle/navigation state | 30-second background grace, generation-safe pause/resume, GPS retention during navigation, detach cleanup, foreground-only wakelock policy, AOSP foreground-service adapter, opt-in `MainActivity` bridge, process-local running-state query, isolated Dart wrapper, serialized ownership coordinator and disabled-by-default start/stop/dispose/reconcile wiring in both renderers |
+| `service.location` | `gps_service.dart` | AOSP `LocationManager` source, 500 ms sampling boundary, safe fix normalization, last-known fix, 20/45-second dead-stream watchdog and cancellable lifecycle ownership; both Flutter renderers have a disabled-by-default foreground canary with init/resume reconciliation and an observed native-fix shadow stream, while full startup/UI cutover remains |
+| `service.navigation` | map-screen lifecycle/navigation state | 30-second background grace, generation-safe pause/resume, GPS retention during navigation, detach cleanup, foreground-only wakelock policy, AOSP foreground-service adapter, opt-in `MainActivity` method/event bridges, process-local running-state query and fix fan-out, isolated Dart wrappers, serialized ownership coordinator and disabled-by-default start/stop/dispose/reconcile wiring in both renderers |
 | `service.notifications` | `navigation_notification_service.dart` | 3-second distance-only throttle, immediate maneuver changes, reset semantics and private ongoing notification metadata; Android `NotificationManager` adapter remains |
 | `feature.map` | `maplibre_map_screen.dart`, `map_screen.dart`, map services/widgets | raster MapLibre style JSON, dark recoloring, tile URL admission/escaping, ZTL route-run segmentation and zoom/viewport marker culling; native renderer and Activity/UI wiring remain |
 | `storage` | encrypted Hive search history | canonical encrypted history file, serialized prepend/clear/import, atomic recovery, Keystore boundary and migration-marker ciphertext binding |
@@ -249,7 +250,9 @@ detached from secure storage and startup. See
   local-key signing remains blocked on side-channel review, key isolation and
   storage. Amber intents and identity migration are also open.
 - The headless native AOSP GPS source and watchdog are green, and controlled
-  builds of either renderer can own and reconcile the foreground service.
+  builds of either renderer can own and reconcile the foreground service and
+  consume its normalized fixes through a shadow `EventChannel`. The shadow
+  feed is never persisted or logged and does not drive map/navigation state.
   Android permission UX, full cutover and de-Googled physical-device evidence
   remain open.
 - The native map foundation now matches the Flutter raster style and overlay
@@ -260,23 +263,26 @@ detached from secure storage and startup. See
   opt-in `MainActivity` start/stop/state channel and permission/error contract.
   The Dart wrapper and ownership coordinator preserve idempotency and cleanup
   ordering, adopt an already-running service, restart a missing active service
-  and stop an orphan on init/resume. Both Flutter renderers call them only when
-  the compile-time canary is enabled, while ordinary builds remain inert and
-  process-death/device evidence remains open.
+  and stop an orphan on init/resume. A separate value-only `EventChannel`
+  dispatches normalized fixes to a typed, error-isolated Dart shadow feed in
+  both renderers. These paths exist only when the compile-time canary is
+  enabled, while ordinary builds remain inert and process-death/device evidence
+  remains open.
 
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 660 Flutter tests passed, including the Nostr/`nostr_tools` and
+- `flutter test`: 664 Flutter tests passed, including the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
   NIP-19, Lightning and
   LNURL/NIP-04/NIP-44/NIP-78 transcripts, HTTP safety, search/routing-provider
   request/response/configuration policies, search/routing/avoidance
   orchestration and re-timing, search planning/ranking/history, both migration
   fixture oracles, the headless Dart handler, the opt-in native-navigation
-  channel contract and state query, compile-time rollout, best-effort retry,
-  serialized ownership lifecycle and service reconciliation.
-- `./gradlew :app:testDebugUnitTest`: 236 Kotlin tests passed, including the
+  channel contract and state query, native-fix event decoding/feed isolation,
+  compile-time rollout, best-effort retry, serialized ownership lifecycle and
+  service reconciliation.
+- `./gradlew :app:testDebugUnitTest`: 238 Kotlin tests passed, including the
   Nostr byte/queue/inbound/ingress/NIP-19/BIP-340/NIP-04/NIP-44/NIP-78,
   Lightning/LNURL parity, HTTP safety/search/routing requests, responses,
   configuration, orchestration and re-timing, search planning/ranking/
@@ -287,7 +293,7 @@ detached from secure storage and startup. See
   headless AOSP GPS normalization, last-known, watchdog and cancellation suite,
   plus the native map style, tile safety, route segmentation, marker-culling,
   lifecycle/grace-period, navigation-notification policy, foreground-service
-  runtime state and opt-in bridge contract suites.
+  runtime state, fix encoding/fan-out and opt-in bridge contract suites.
 - `flutter build apk --debug --dart-define=ROADSTR_NATIVE_NAVIGATION=true`: D8,
   duplicate-class checks and canary Android APK packaging passed with pinned
   Bouncy Castle, OkHttp and coroutines dependencies; the opt-in ownership path

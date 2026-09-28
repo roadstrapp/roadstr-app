@@ -49,6 +49,7 @@ import '../models/way_point.dart';
 import '../services/activity_notification_service.dart';
 import '../services/navigation_guidance.dart';
 import '../services/navigation_notification_service.dart';
+import '../services/native_navigation_fix_feed.dart';
 import '../services/native_navigation_ownership.dart';
 import '../services/kokoro/kokoro_tts_service.dart';
 import '../services/kokoro/kokoro_voices.dart';
@@ -106,11 +107,15 @@ class MapScreen extends StatefulWidget {
   const MapScreen({
     super.key,
     this.nativeNavigationOwnership,
+    this.nativeNavigationFixFeed,
   });
 
   /// Injectable only for controlled rollout and lifecycle verification.
   /// Ordinary builds use the disabled-by-default compile-time canary.
   final NativeNavigationOwnership? nativeNavigationOwnership;
+
+  /// Injectable shadow feed; native fixes never drive this renderer yet.
+  final NativeNavigationFixFeed? nativeNavigationFixFeed;
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -121,6 +126,7 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   final _gps = GpsService();
   late final NativeNavigationOwnership _nativeNavigationOwnership;
+  late final NativeNavigationFixFeed _nativeNavigationFixFeed;
   final _mapController = MapController();
 
   /// Current GPS position (updated by [_onGps]; falls back to Italy centre).
@@ -572,6 +578,9 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     super.initState();
     _nativeNavigationOwnership =
         widget.nativeNavigationOwnership ?? NativeNavigationRollout.create();
+    _nativeNavigationFixFeed = widget.nativeNavigationFixFeed ??
+        NativeNavigationRollout.createFixFeed();
+    _nativeNavigationFixFeed.start();
     unawaited(_nativeNavigationOwnership.reconcileBestEffort(
       navigationActive: _isNavigating,
     ));
@@ -6153,6 +6162,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     _alertPlayer.dispose();
     _nostr.dispose();
     unawaited(_gps.dispose());
+    unawaited(_nativeNavigationFixFeed.dispose());
     unawaited(_nativeNavigationOwnership.disposeBestEffort());
     _searchController.dispose();
     _searchDebounce?.cancel();

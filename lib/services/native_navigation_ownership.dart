@@ -1,4 +1,5 @@
 import 'native_navigation_bridge.dart';
+import 'native_navigation_fix_feed.dart';
 
 /// Compile-time rollout boundary for the first production-screen canary.
 ///
@@ -17,6 +18,12 @@ abstract final class NativeNavigationRollout {
     bool enabled = enabledByDefault,
   }) =>
       NativeNavigationOwnership(bridge: bridge, enabled: enabled);
+
+  static NativeNavigationFixFeed createFixFeed({
+    NativeNavigationFixSource source = const NativeNavigationFixBridge(),
+    bool enabled = enabledByDefault,
+  }) =>
+      NativeNavigationFixFeed(source: source, enabled: enabled);
 }
 
 /// Owns the native foreground GPS service for one Dart navigation session.

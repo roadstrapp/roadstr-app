@@ -139,8 +139,12 @@ not a production startup change.
   wrapper and its ownership coordinator have contract/reconciliation tests;
   both Flutter map renderers reconcile on init/resume, adopting an active
   service, restarting a missing one during navigation, or stopping an orphan.
-  This runs only in builds compiled with `ROADSTR_NATIVE_NAVIGATION=true`; the
-  default is false, so ordinary builds keep the existing Flutter GPS path.
+  The service also publishes normalized fixes through a process-local,
+  listener-isolated `EventChannel`; both renderers attach a typed shadow feed,
+  but those fixes do not drive UI or navigation and are neither logged nor
+  persisted. This runs only in builds compiled with
+  `ROADSTR_NATIVE_NAVIGATION=true`; the default is false, so ordinary builds
+  keep the existing Flutter GPS path.
 - No real user data, key, NWC URI or voice asset is used by the tests.
 - The protected-state admission policy does not yet parse historical NWC URI
   variants during migration; that decision remains behind the native Lightning
