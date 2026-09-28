@@ -3,6 +3,7 @@ package app.roadstr.service.navigation
 /** Stable opt-in MethodChannel contract for the native GPS service canary. */
 object NativeNavigationBridge {
     const val CHANNEL = "app.roadstr/native_navigation"
+    const val FIXES_CHANNEL = "app.roadstr/native_navigation_fixes"
     const val START_FOREGROUND_GPS = "startForegroundGps"
     const val STOP_FOREGROUND_GPS = "stopForegroundGps"
     const val IS_FOREGROUND_GPS_RUNNING = "isForegroundGpsRunning"
