@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ro.arb. Do not edit. -->
+<resources>
+    <string name="native_nav_now">Acum</string>
+    <string name="native_nav_then">apoi %1$s</string>
+    <string name="native_nav_arrival_ahead">Veți ajunge la destinație</string>
+    <string name="native_nav_arrival_left">Veți ajunge la destinație pe partea stângă</string>
+    <string name="native_nav_arrival_right">Veți ajunge la destinație pe partea dreaptă</string>
+    <string name="native_nav_eta">Sos. %1$s</string>
+    <string name="native_nav_duration_min">%1$d min</string>
+    <string name="native_nav_duration_hour_min">%1$dh %2$dmin</string>
+    <string name="native_nav_exit">Ieșiți din navigare?</string>
+    <string name="native_nav_settings">Setări</string>
+    <string name="native_nav_voice">Ghidare vocală</string>
+    <string name="native_nav_speed_limit">Limită de viteză</string>
+    <string name="native_nav_altitude">Afișează altitudinea</string>
+</resources>

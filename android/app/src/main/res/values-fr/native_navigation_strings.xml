@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_fr.arb. Do not edit. -->
+<resources>
+    <string name="native_nav_now">Maintenant</string>
+    <string name="native_nav_then">puis %1$s</string>
+    <string name="native_nav_arrival_ahead">Vous arriverez à destination</string>
+    <string name="native_nav_arrival_left">Vous arriverez à destination sur la gauche</string>
+    <string name="native_nav_arrival_right">Vous arriverez à destination sur la droite</string>
+    <string name="native_nav_eta">Arr. %1$s</string>
+    <string name="native_nav_duration_min">%1$d min</string>
+    <string name="native_nav_duration_hour_min">%1$dh%2$dmin</string>
+    <string name="native_nav_exit">Quitter la navigation?</string>
+    <string name="native_nav_settings">Paramètres</string>
+    <string name="native_nav_voice">Guidage vocal</string>
+    <string name="native_nav_speed_limit">Limite de vitesse</string>
+    <string name="native_nav_altitude">Afficher l\'altitude</string>
+</resources>

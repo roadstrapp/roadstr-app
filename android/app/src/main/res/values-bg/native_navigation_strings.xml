@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_bg.arb. Do not edit. -->
+<resources>
+    <string name="native_nav_now">Сега</string>
+    <string name="native_nav_then">след това %1$s</string>
+    <string name="native_nav_arrival_ahead">Ще пристигнете до местоназначението си</string>
+    <string name="native_nav_arrival_left">Ще пристигнете до местоназначението си отляво</string>
+    <string name="native_nav_arrival_right">Ще пристигнете до местоназначението си отдясно</string>
+    <string name="native_nav_eta">Пр. %1$s</string>
+    <string name="native_nav_duration_min">%1$d мин</string>
+    <string name="native_nav_duration_hour_min">%1$dч %2$dмин</string>
+    <string name="native_nav_exit">Излезте от навигацията?</string>
+    <string name="native_nav_settings">Настройки</string>
+    <string name="native_nav_voice">Гласово упътване</string>
+    <string name="native_nav_speed_limit">Ограничение на скоростта</string>
+    <string name="native_nav_altitude">Показвай надморска височина</string>
+</resources>

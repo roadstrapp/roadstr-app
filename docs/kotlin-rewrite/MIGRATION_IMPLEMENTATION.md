@@ -57,6 +57,15 @@ Flutter is still the only launcher and production UI.
   accessible bounded bottom sheet with typed side-effect-free callbacks. Its
   52 values are generated from all 27 ARB files with deterministic drift
   checks; no provider, image loader or intent launcher is owned by the sheet.
+  `feature/navigation/NativeNavigationHudPresentation.kt` ports the bounded
+  live/fallback navigation summary, all 21 manoeuvre families, five persisted
+  speedometer styles and revision-safe monotonic step progression.
+  `NativeManeuverSymbol.kt` draws those families as theme-aware vectors, while
+  `NativeNavigationHud.kt` packages an adaptive portrait/landscape overlay
+  with road/next-step cards, speed, limit, altitude, distance, duration, ETA,
+  voice/settings/stop controls and explicit accessibility semantics. Its 13
+  values are generated from all 27 ARB files; the slice owns no GPS, routing
+  provider, settings store or external side effect.
   Style generations prevent stale reattachment;
   `NativeRouteOverlaySession.kt` adds a revision-safe StateFlow projector for
   normalized route geometry, bounded alternative selection/commit, monotonic
@@ -75,11 +84,12 @@ Flutter is still the only launcher and production UI.
   `NativeMapInteraction.kt` adds typed click/long-click values, projected
   road-event hit priority and Flutter's strict rounded-Vincenty 60 m route-
   alternative selection; product sheets and service caches remain detached. The
-  private shell collects empty route, transit, search, place, camera, cursor
-  and point-overlay state and packages all product panels in their hidden
-  states. It deliberately does not invoke transit/search/place services,
-  submit provider results or begin a query/place load; it has no product route,
-  provider, storage, intent-launcher or GPS feed.
+  private shell collects empty route, transit, search, place, navigation,
+  camera, cursor and point-overlay state and packages all product panels in
+  their hidden states. It deliberately does not invoke transit/search/place or
+  navigation services, submit provider results, begin a query/place load or
+  show/update the HUD; it has no product route, provider, storage,
+  intent-launcher or GPS feed.
 - `LegacyStorageContract.kt` records the audited Hive/secure-storage names and
   dynamic per-identity key prefixes.
 - `LegacyStorageModels.kt` defines a bounded normalized snapshot boundary,

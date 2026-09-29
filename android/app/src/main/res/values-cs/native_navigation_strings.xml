@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_cs.arb. Do not edit. -->
+<resources>
+    <string name="native_nav_now">Teď</string>
+    <string name="native_nav_then">poté %1$s</string>
+    <string name="native_nav_arrival_ahead">Dorazíte do cíle</string>
+    <string name="native_nav_arrival_left">Dorazíte do cíle vlevo</string>
+    <string name="native_nav_arrival_right">Dorazíte do cíle vpravo</string>
+    <string name="native_nav_eta">Příj. %1$s</string>
+    <string name="native_nav_duration_min">%1$d min</string>
+    <string name="native_nav_duration_hour_min">%1$dh %2$dmin</string>
+    <string name="native_nav_exit">Ukončit navigaci?</string>
+    <string name="native_nav_settings">Nastavení</string>
+    <string name="native_nav_voice">Hlasové navádění</string>
+    <string name="native_nav_speed_limit">Rychlostní limit</string>
+    <string name="native_nav_altitude">Zobrazit nadmořskou výšku</string>
+</resources>

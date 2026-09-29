@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_da.arb. Do not edit. -->
+<resources>
+    <string name="native_nav_now">Nu</string>
+    <string name="native_nav_then">derefter %1$s</string>
+    <string name="native_nav_arrival_ahead">Du vil ankomme til din destination</string>
+    <string name="native_nav_arrival_left">Du vil ankomme til din destination i venstre side</string>
+    <string name="native_nav_arrival_right">Du vil ankomme til din destination i højre side</string>
+    <string name="native_nav_eta">Ank. %1$s</string>
+    <string name="native_nav_duration_min">%1$d min</string>
+    <string name="native_nav_duration_hour_min">%1$dt %2$dmin</string>
+    <string name="native_nav_exit">Afslut navigation?</string>
+    <string name="native_nav_settings">Indstillinger</string>
+    <string name="native_nav_voice">Stemmevejledning</string>
+    <string name="native_nav_speed_limit">Hastighedsgrænse</string>
+    <string name="native_nav_altitude">Vis højde</string>
+</resources>

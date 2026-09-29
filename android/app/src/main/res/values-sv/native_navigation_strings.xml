@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_sv.arb. Do not edit. -->
+<resources>
+    <string name="native_nav_now">Nu</string>
+    <string name="native_nav_then">sedan %1$s</string>
+    <string name="native_nav_arrival_ahead">Du kommer att anlända till din destination</string>
+    <string name="native_nav_arrival_left">Du kommer att anlända till din destination på vänster sida</string>
+    <string name="native_nav_arrival_right">Du kommer att anlända till din destination på höger sida</string>
+    <string name="native_nav_eta">Ank. %1$s</string>
+    <string name="native_nav_duration_min">%1$d min</string>
+    <string name="native_nav_duration_hour_min">%1$dh %2$dmin</string>
+    <string name="native_nav_exit">Avsluta navigeringen?</string>
+    <string name="native_nav_settings">Inställningar</string>
+    <string name="native_nav_voice">Röstvägledning</string>
+    <string name="native_nav_speed_limit">Hastighetsgräns</string>
+    <string name="native_nav_altitude">Visa höjd</string>
+</resources>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_zh.arb. Do not edit. -->
+<resources>
+    <string name="native_nav_now">现在</string>
+    <string name="native_nav_then">然后%1$s</string>
+    <string name="native_nav_arrival_ahead">您将到达目的地</string>
+    <string name="native_nav_arrival_left">目的地将在左侧</string>
+    <string name="native_nav_arrival_right">目的地将在右侧</string>
+    <string name="native_nav_eta">到达 %1$s</string>
+    <string name="native_nav_duration_min">%1$d分钟</string>
+    <string name="native_nav_duration_hour_min">%1$d小时%2$d分</string>
+    <string name="native_nav_exit">退出导航？</string>
+    <string name="native_nav_settings">设置</string>
+    <string name="native_nav_voice">语音引导</string>
+    <string name="native_nav_speed_limit">限速</string>
+    <string name="native_nav_altitude">显示海拔</string>
+</resources>

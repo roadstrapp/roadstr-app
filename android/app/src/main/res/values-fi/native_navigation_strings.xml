@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_fi.arb. Do not edit. -->
+<resources>
+    <string name="native_nav_now">Nyt</string>
+    <string name="native_nav_then">sitten %1$s</string>
+    <string name="native_nav_arrival_ahead">Saavut määränpäähäsi</string>
+    <string name="native_nav_arrival_left">Saavut määränpäähäsi vasemmalla</string>
+    <string name="native_nav_arrival_right">Saavut määränpäähäsi oikealla</string>
+    <string name="native_nav_eta">Perillä %1$s</string>
+    <string name="native_nav_duration_min">%1$d min</string>
+    <string name="native_nav_duration_hour_min">%1$dh %2$dmin</string>
+    <string name="native_nav_exit">Lopeta navigointi?</string>
+    <string name="native_nav_settings">Asetukset</string>
+    <string name="native_nav_voice">Ääniopastus</string>
+    <string name="native_nav_speed_limit">Nopeusrajoitus</string>
+    <string name="native_nav_altitude">Näytä korkeus</string>
+</resources>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_mt.arb. Do not edit. -->
+<resources>
+    <string name="native_nav_now">Issa</string>
+    <string name="native_nav_then">imbagħad %1$s</string>
+    <string name="native_nav_arrival_ahead">Se tasal fid-destinazzjoni tiegħek</string>
+    <string name="native_nav_arrival_left">Se tasal fid-destinazzjoni tiegħek fuq ix-xellug</string>
+    <string name="native_nav_arrival_right">Se tasal fid-destinazzjoni tiegħek fuq il-lemin</string>
+    <string name="native_nav_eta">Wasl. %1$s</string>
+    <string name="native_nav_duration_min">%1$d min</string>
+    <string name="native_nav_duration_hour_min">%1$dh %2$dmin</string>
+    <string name="native_nav_exit">Oħroġ min-navigazzjoni?</string>
+    <string name="native_nav_settings">Settings</string>
+    <string name="native_nav_voice">Gwida bil-vuċi</string>
+    <string name="native_nav_speed_limit">Limitu tal-veloċità</string>
+    <string name="native_nav_altitude">Uri l-għoli</string>
+</resources>
