@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_el.arb. Do not edit. -->
+<resources>
+    <string name="native_search_hint">Πού θέλετε να πάτε;</string>
+    <string name="native_search_close">Κλείσιμο</string>
+    <string name="native_search_history">Ιστορικό</string>
+    <string name="native_search_clear_history">Εκκαθάριση</string>
+    <string name="native_search_favorites">Αποθηκευμένα μέρη</string>
+    <string name="native_search_nearby">Κοντά μου</string>
+    <string name="native_search_nearby_needs_gps">Αναμονή GPS</string>
+    <string name="native_search_nearby_empty">Δεν βρέθηκε τίποτα σε 5 χλμ.</string>
+    <string name="native_search_nearby_fuel">Καύσιμα</string>
+    <string name="native_search_nearby_restaurant">Εστιατόριο</string>
+    <string name="native_search_nearby_supermarket">Σούπερ μάρκετ</string>
+    <string name="native_search_nearby_atm">ΑΤΜ</string>
+    <string name="native_search_nearby_pharmacy">Φαρμακείο</string>
+    <string name="native_search_nearby_hospital">Νοσοκομείο</string>
+    <string name="native_search_nearby_police">Αστυνομία</string>
+    <string name="native_search_nearby_post_office">Ταχυδρομείο</string>
+    <string name="native_search_nearby_parking">Πάρκινγκ</string>
+    <string name="native_search_nearby_hotel">Ξενοδοχείο</string>
+    <string name="native_search_nearby_charging">Φόρτιση</string>
+</resources>

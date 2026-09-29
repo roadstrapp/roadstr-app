@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_fi.arb. Do not edit. -->
+<resources>
+    <string name="native_search_hint">Minne haluatte mennä?</string>
+    <string name="native_search_close">Sulje</string>
+    <string name="native_search_history">Historia</string>
+    <string name="native_search_clear_history">Tyhjennä</string>
+    <string name="native_search_favorites">Tallennetut paikat</string>
+    <string name="native_search_nearby">Lähellä</string>
+    <string name="native_search_nearby_needs_gps">Odotetaan GPS:ää</string>
+    <string name="native_search_nearby_empty">Ei löytynyt mitään 5 km:n säteellä</string>
+    <string name="native_search_nearby_fuel">Polttoaine</string>
+    <string name="native_search_nearby_restaurant">Ravintola</string>
+    <string name="native_search_nearby_supermarket">Supermarket</string>
+    <string name="native_search_nearby_atm">Pankkiautomaatti</string>
+    <string name="native_search_nearby_pharmacy">Apteekki</string>
+    <string name="native_search_nearby_hospital">Sairaala</string>
+    <string name="native_search_nearby_police">Poliisi</string>
+    <string name="native_search_nearby_post_office">Posti</string>
+    <string name="native_search_nearby_parking">Pysäköinti</string>
+    <string name="native_search_nearby_hotel">Hotelli</string>
+    <string name="native_search_nearby_charging">Latauspiste</string>
+</resources>

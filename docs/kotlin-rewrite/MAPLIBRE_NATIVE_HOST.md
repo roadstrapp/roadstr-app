@@ -106,7 +106,11 @@ does not invoke Transitous, storage or location. The bounded native request,
 parser and service are green. A revision-safe journey session and accessible
 Compose itinerary panel are now packaged above the map, with card selection
 coordinated to this overlay, but their initial state is hidden and production
-service ownership remains detached.
+service ownership remains detached. A separate revision-safe Compose search
+overlay is also packaged with bounded provider/favorite/history rows and the
+Flutter nearby catalogue. It starts hidden and the shell owns neither a search
+service nor a history store, so no query, user-data read or location request is
+possible from this integration boundary.
 
 ## Camera follow boundary
 
@@ -228,6 +232,10 @@ debug-host selection check.
   thresholds, line colors, work bounds, terminal states, stale revision fencing
   and synchronized UI/map selection. Four Dart UI contracts lock all 27
   generated locale sets, panel semantics and dormant shell ownership.
+- Ten search-presentation JVM cases lock the nearby catalogue, row validation,
+  Flutter work bounds and distance formatting, stale query/outcome fencing,
+  GPS gating, empty/history/unit/hide behavior. Four Dart UI contracts lock its
+  27 generated locale sets, panel semantics and dormant shell ownership.
 - Twenty-four Dart contracts lock the strict Gradle version, lifecycle-compose
   dependency, real `MapView`/style/texture-mode binding, absence of a location
   component, selected/muted route source/layer constants, route-choice/progress
@@ -235,7 +243,7 @@ debug-host selection check.
   and ownership by the private shell, plus the Flutter camera oracle
   and MapLibre command wiring, cursor geometry, point-overlay/transit parity and
   dormant ownership.
-- The complete verification run passes 696 Flutter tests, 354 Kotlin tests,
+- The complete verification run passes 700 Flutter tests, 364 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 
@@ -243,8 +251,9 @@ debug-host selection check.
 
 - physical-device launch, renderer output and network/tile evidence;
 - screenshot/golden comparison in light/dark themes and compact/landscape UI;
-- live route/traffic/transit/source/point update, road-event/place/long-press product
-  handlers, accessibility and attribution interaction;
+- live route/traffic/transit/search/source/point update, search storage,
+  road-event/place/long-press product handlers, accessibility and attribution
+  interaction;
 - native GPS/location ownership, live camera/cursor binding and physical-device
   camera/cursor traces;
 - frame time, memory, thermal and battery comparison;

@@ -485,9 +485,11 @@ broader cross-language coverage and a native store are still required.
   migration and history value semantics are green. Headless native primary-
   provider routing, Valhalla avoidance, best-effort OSRM re-timing and search
   orchestration/execution are green. The native encrypted history store is
-  green but not UI-owned; bounded Transitous execution and map projection are
-  green but remain dormant. Routing secret reads, search caching/UI generations,
-  Android network integration and production ownership are open.
+  green but not UI-owned; a revision-safe search UI state machine and dormant
+  Compose overlay are green without opening that store or a provider. Bounded
+  Transitous execution and map projection are green but remain dormant. Routing
+  secret reads, search caching/live UI wiring, Android network integration and
+  production ownership are open.
 - **Security/privacy impact:** Preserve URL validation, body caps, user-agent, no silent cloud fallback.
 - **Battery/performance impact:** Compare network retries, cache hit rate and cancellation.
 - **Acceptance criteria:** All current providers pass without changed limits or privacy behavior.
@@ -611,7 +613,10 @@ broader cross-language coverage and a native store are still required.
 
 - **Objective:** Reproduce screen hierarchy, styling, accessibility, orientation and all translations.
 - **Current Dart/Flutter source:** screens/widgets/theme/l10n/nav phrase tables.
-- **New Kotlin files/modules:** `feature/*`, `core/ui/theme`, Android resources/locale resolver and semantics. The first bounded slice adds `feature/transit/NativeTransitPresentation.kt` and `NativeTransitItinerariesPanel.kt`.
+- **New Kotlin files/modules:** `feature/*`, `core/ui/theme`, Android resources/
+  locale resolver and semantics. Current bounded slices add the transit
+  presenter/panel and `feature/search/NativeSearchPresentation.kt` plus
+  `NativeSearchOverlay.kt`.
 - **Current implementation:** The private shell packages a hidden
   public-transport itinerary panel with loading, ready, no-service and failure
   states, up to eight selectable cards, boarding/walking/line/timetable detail,
@@ -619,19 +624,28 @@ broader cross-language coverage and a native store are still required.
   revision-safe in-memory coordinator updates card selection and MapLibre
   itinerary selection together but owns no service or provider error text.
   Fifteen panel values are generated from each of the 27 existing Flutter ARB
-  files into Android resources with a deterministic `--check` mode.
+  files into Android resources with a deterministic `--check` mode. The shell
+  also packages a hidden search overlay with revision-safe browsing, loading,
+  partial/final and nearby-empty states; bounded result/favorite/history rows;
+  the exact 11 nearby categories; metric/imperial distances; GPS-disabled
+  controls; keyboard/inset handling and accessibility semantics. It owns no
+  search service, history store or location. Nineteen search values are
+  independently generated for all 27 locales.
 - **Dependencies:** Compose Material 3 and AndroidX only after license review.
 - **Migration impact:** Settings names/defaults and onboarding/disclosure keys must map exactly.
 - **User-visible impact:** Must feel like an update, not a redesign.
-- **Tests:** Ten JVM tests lock formatting, unit thresholds, color fallback,
+- **Tests:** Ten transit JVM tests lock formatting, unit thresholds, color fallback,
   work bounds, state/revision fencing, terminal outcomes, clear behavior,
-  appearance changes and synchronized UI/map selection. Four Dart contracts
-  verify all 27 generated resource sets, Flutter formatter/work-bound oracles,
-  Compose state/accessibility structure and dormant shell ownership. Compose
-  screenshot comparisons, font-scale/TalkBack and compact-device layouts remain.
-- **Parity evidence:** the public-transport state has its first headless and
-  packaged Compose evidence in `UI_PARITY.md`; every other state and visual/
-  orientation evidence remain open.
+  appearance changes and synchronized UI/map selection. Ten search JVM tests
+  lock catalogue/order, row projection, validation and work bounds, query/
+  outcome revisions, GPS gating, empty behavior, history clear, units and hide
+  fencing. Eight Dart contracts verify both 27-locale resource sets, Flutter
+  formatter/catalogue/work-bound oracles, Compose accessibility structure and
+  dormant shell ownership. Compose screenshot comparisons, font-scale/TalkBack
+  and compact-device layouts remain.
+- **Parity evidence:** public-transport and active-search states have their
+  first headless and packaged Compose evidence in `UI_PARITY.md`; every other
+  state and visual/orientation evidence remain open.
 - **Security/privacy impact:** preserve privacy disclosure wording and task-switcher handling.
 - **Battery/performance impact:** frame/jank and recomposition profile versus Flutter references.
 - **Acceptance criteria:** no shipped feature remains PARTIAL and no locale is dropped.

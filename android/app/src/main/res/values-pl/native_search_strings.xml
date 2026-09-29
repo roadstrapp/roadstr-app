@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_pl.arb. Do not edit. -->
+<resources>
+    <string name="native_search_hint">Dokąd chcesz jechać?</string>
+    <string name="native_search_close">Zamknij</string>
+    <string name="native_search_history">Historia</string>
+    <string name="native_search_clear_history">Wyczyść</string>
+    <string name="native_search_favorites">Zapisane miejsca</string>
+    <string name="native_search_nearby">W pobliżu</string>
+    <string name="native_search_nearby_needs_gps">Czekam na GPS</string>
+    <string name="native_search_nearby_empty">Nic nie znaleziono w promieniu 5 km</string>
+    <string name="native_search_nearby_fuel">Paliwo</string>
+    <string name="native_search_nearby_restaurant">Restauracja</string>
+    <string name="native_search_nearby_supermarket">Supermarket</string>
+    <string name="native_search_nearby_atm">Bankomat</string>
+    <string name="native_search_nearby_pharmacy">Apteka</string>
+    <string name="native_search_nearby_hospital">Szpital</string>
+    <string name="native_search_nearby_police">Policja</string>
+    <string name="native_search_nearby_post_office">Poczta</string>
+    <string name="native_search_nearby_parking">Parking</string>
+    <string name="native_search_nearby_hotel">Hotel</string>
+    <string name="native_search_nearby_charging">Ładowarka</string>
+</resources>

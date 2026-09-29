@@ -39,6 +39,8 @@ import app.roadstr.feature.map.NativeMapLibreHost
 import app.roadstr.feature.map.NativeMapPointOverlaySession
 import app.roadstr.feature.map.NativeRouteOverlaySession
 import app.roadstr.feature.map.NativeTransitOverlaySession
+import app.roadstr.feature.search.NativeSearchOverlay
+import app.roadstr.feature.search.NativeSearchSession
 import app.roadstr.feature.transit.NativeTransitItinerariesPanel
 import app.roadstr.feature.transit.NativeTransitJourneySession
 import app.roadstr.feature.transit.NativeTransitTransportMode
@@ -97,6 +99,8 @@ fun NativeRoadstrShell() {
         val cursorState by cursorSession.state.collectAsState()
         val pointOverlaySession = remember { NativeMapPointOverlaySession() }
         val pointOverlayState by pointOverlaySession.state.collectAsState()
+        val searchSession = remember { NativeSearchSession(initialImperial = false) }
+        val searchState by searchSession.state.collectAsState()
         LaunchedEffect(cameraSession, cameraState.frameActive) {
             while (cameraSession.state.value.frameActive) {
                 delay(NativeMapCameraSession.FOLLOW_FRAME_MILLIS)
@@ -154,6 +158,20 @@ fun NativeRoadstrShell() {
                         )
                     }
                 }
+                NativeSearchOverlay(
+                    snapshot = searchState,
+                    onQueryChanged = {},
+                    onSubmit = {},
+                    onClearQuery = {},
+                    onNearby = {},
+                    onSelectResult = {},
+                    onSelectFavorite = {},
+                    onSelectHistory = {},
+                    onClearHistory = {},
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(12.dp),
+                )
                 NativeTransitItinerariesPanel(
                     snapshot = transitUiState,
                     transportMode = transitMode,

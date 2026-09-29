@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_mt.arb. Do not edit. -->
+<resources>
+    <string name="native_search_hint">Fejn trid tmur?</string>
+    <string name="native_search_close">Agħlaq</string>
+    <string name="native_search_history">Storja</string>
+    <string name="native_search_clear_history">Ħassar</string>
+    <string name="native_search_favorites">Postijiet miftuħin</string>
+    <string name="native_search_nearby">Fil-qrib</string>
+    <string name="native_search_nearby_needs_gps">Qed jistenna l-GPS</string>
+    <string name="native_search_nearby_empty">Ma nstab xejn f\'raġġ ta\' 5 km</string>
+    <string name="native_search_nearby_fuel">Fjuwil</string>
+    <string name="native_search_nearby_restaurant">Ristorant</string>
+    <string name="native_search_nearby_supermarket">Supermarket</string>
+    <string name="native_search_nearby_atm">ATM</string>
+    <string name="native_search_nearby_pharmacy">Spiżerija</string>
+    <string name="native_search_nearby_hospital">Sptar</string>
+    <string name="native_search_nearby_police">Pulizija</string>
+    <string name="native_search_nearby_post_office">Posta</string>
+    <string name="native_search_nearby_parking">Parkeġġ</string>
+    <string name="native_search_nearby_hotel">Lukanda</string>
+    <string name="native_search_nearby_charging">Iċċarġjar</string>
+</resources>

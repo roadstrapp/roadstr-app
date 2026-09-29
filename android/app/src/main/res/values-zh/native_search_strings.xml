@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_zh.arb. Do not edit. -->
+<resources>
+    <string name="native_search_hint">您想去哪里？</string>
+    <string name="native_search_close">关闭</string>
+    <string name="native_search_history">历史记录</string>
+    <string name="native_search_clear_history">清除</string>
+    <string name="native_search_favorites">已保存的地点</string>
+    <string name="native_search_nearby">附近</string>
+    <string name="native_search_nearby_needs_gps">等待 GPS</string>
+    <string name="native_search_nearby_empty">5 公里内没有找到</string>
+    <string name="native_search_nearby_fuel">加油站</string>
+    <string name="native_search_nearby_restaurant">餐厅</string>
+    <string name="native_search_nearby_supermarket">超市</string>
+    <string name="native_search_nearby_atm">ATM</string>
+    <string name="native_search_nearby_pharmacy">药店</string>
+    <string name="native_search_nearby_hospital">医院</string>
+    <string name="native_search_nearby_police">警察局</string>
+    <string name="native_search_nearby_post_office">邮局</string>
+    <string name="native_search_nearby_parking">停车场</string>
+    <string name="native_search_nearby_hotel">酒店</string>
+    <string name="native_search_nearby_charging">充电</string>
+</resources>

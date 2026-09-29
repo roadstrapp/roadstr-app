@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ga.arb. Do not edit. -->
+<resources>
+    <string name="native_search_hint">Cá háit ar mhaith leat dul?</string>
+    <string name="native_search_close">Dún</string>
+    <string name="native_search_history">Stair</string>
+    <string name="native_search_clear_history">Glan</string>
+    <string name="native_search_favorites">Áiteanna sábháilte</string>
+    <string name="native_search_nearby">In aice láimhe</string>
+    <string name="native_search_nearby_needs_gps">Ag fanacht le GPS</string>
+    <string name="native_search_nearby_empty">Níor aimsíodh aon rud laistigh de 5 km</string>
+    <string name="native_search_nearby_fuel">Breosla</string>
+    <string name="native_search_nearby_restaurant">Bialann</string>
+    <string name="native_search_nearby_supermarket">Ollmhargadh</string>
+    <string name="native_search_nearby_atm">ATM</string>
+    <string name="native_search_nearby_pharmacy">Cógaslann</string>
+    <string name="native_search_nearby_hospital">Ospidéal</string>
+    <string name="native_search_nearby_police">Garda</string>
+    <string name="native_search_nearby_post_office">Oifig an phoist</string>
+    <string name="native_search_nearby_parking">Páirceáil</string>
+    <string name="native_search_nearby_hotel">Óstán</string>
+    <string name="native_search_nearby_charging">Luchtú</string>
+</resources>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_et.arb. Do not edit. -->
+<resources>
+    <string name="native_search_hint">Kuhu soovite minna?</string>
+    <string name="native_search_close">Sulge</string>
+    <string name="native_search_history">Ajalugu</string>
+    <string name="native_search_clear_history">Tühjenda</string>
+    <string name="native_search_favorites">Salvestatud kohad</string>
+    <string name="native_search_nearby">Läheduses</string>
+    <string name="native_search_nearby_needs_gps">GPS-i ootamine</string>
+    <string name="native_search_nearby_empty">5 km raadiuses ei leitud midagi</string>
+    <string name="native_search_nearby_fuel">Tankla</string>
+    <string name="native_search_nearby_restaurant">Restoran</string>
+    <string name="native_search_nearby_supermarket">Supermarket</string>
+    <string name="native_search_nearby_atm">Sularahaautomaat</string>
+    <string name="native_search_nearby_pharmacy">Apteek</string>
+    <string name="native_search_nearby_hospital">Haigla</string>
+    <string name="native_search_nearby_police">Politsei</string>
+    <string name="native_search_nearby_post_office">Postkontor</string>
+    <string name="native_search_nearby_parking">Parkla</string>
+    <string name="native_search_nearby_hotel">Hotell</string>
+    <string name="native_search_nearby_charging">Laadimine</string>
+</resources>

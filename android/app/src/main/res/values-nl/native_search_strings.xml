@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_nl.arb. Do not edit. -->
+<resources>
+    <string name="native_search_hint">Waar wilt u naartoe?</string>
+    <string name="native_search_close">Sluiten</string>
+    <string name="native_search_history">Geschiedenis</string>
+    <string name="native_search_clear_history">Wissen</string>
+    <string name="native_search_favorites">Opgeslagen plaatsen</string>
+    <string name="native_search_nearby">In de buurt</string>
+    <string name="native_search_nearby_needs_gps">Wachten op gps</string>
+    <string name="native_search_nearby_empty">Niets gevonden binnen 5 km</string>
+    <string name="native_search_nearby_fuel">Tankstation</string>
+    <string name="native_search_nearby_restaurant">Restaurant</string>
+    <string name="native_search_nearby_supermarket">Supermarkt</string>
+    <string name="native_search_nearby_atm">Geldautomaat</string>
+    <string name="native_search_nearby_pharmacy">Apotheek</string>
+    <string name="native_search_nearby_hospital">Ziekenhuis</string>
+    <string name="native_search_nearby_police">Politie</string>
+    <string name="native_search_nearby_post_office">Postkantoor</string>
+    <string name="native_search_nearby_parking">Parkeren</string>
+    <string name="native_search_nearby_hotel">Hotel</string>
+    <string name="native_search_nearby_charging">Laadpunt</string>
+</resources>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_da.arb. Do not edit. -->
+<resources>
+    <string name="native_search_hint">Hvor vil du hen?</string>
+    <string name="native_search_close">Luk</string>
+    <string name="native_search_history">Historik</string>
+    <string name="native_search_clear_history">Ryd</string>
+    <string name="native_search_favorites">Gemte steder</string>
+    <string name="native_search_nearby">I nærheden</string>
+    <string name="native_search_nearby_needs_gps">Venter på GPS</string>
+    <string name="native_search_nearby_empty">Intet fundet inden for 5 km</string>
+    <string name="native_search_nearby_fuel">Brændstof</string>
+    <string name="native_search_nearby_restaurant">Restaurant</string>
+    <string name="native_search_nearby_supermarket">Supermarked</string>
+    <string name="native_search_nearby_atm">Hæveautomat</string>
+    <string name="native_search_nearby_pharmacy">Apotek</string>
+    <string name="native_search_nearby_hospital">Hospital</string>
+    <string name="native_search_nearby_police">Politi</string>
+    <string name="native_search_nearby_post_office">Posthus</string>
+    <string name="native_search_nearby_parking">Parkering</string>
+    <string name="native_search_nearby_hotel">Hotel</string>
+    <string name="native_search_nearby_charging">Opladning</string>
+</resources>
