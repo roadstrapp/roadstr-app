@@ -158,6 +158,12 @@ class NativeMapPointOverlaySessionTest {
 
         assertEquals(14, roadKinds.size)
         assertTrue(roadKinds.all { it.emphasized })
+        assertTrue(roadKinds.all { it.opensRoadEventDetail })
+        assertTrue(
+            NativeMapPointOverlayKind.entries
+                .filterNot { it.name.startsWith("Road") }
+                .none { it.opensRoadEventDetail },
+        )
         assertTrue(roadKinds.all { it.sizeDp == 36.0 && it.minimumZoom == 11.0 })
         assertEquals(
             expectedSymbolsAndAccents,

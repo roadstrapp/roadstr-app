@@ -57,6 +57,25 @@ internal class NativeMapPointOverlayView(context: Context) : View(context) {
         if (snapshot.markers.isNotEmpty()) invalidate()
     }
 
+    fun hitRoadEvent(tap: LatLng): NativeMapPointOverlayMarker? {
+        val liveMap = map ?: return null
+        val tapScreen = liveMap.projection.toScreenLocation(tap)
+        return NativeMapInteractionPolicy.hitRoadEvent(
+            snapshot = snapshot,
+            zoom = liveMap.cameraPosition.zoom,
+            density = density.toDouble(),
+            tap = NativeMapScreenPoint(tapScreen.x.toDouble(), tapScreen.y.toDouble()),
+        ) { point ->
+            val projected = liveMap.projection.toScreenLocation(
+                LatLng(point.latitude, point.longitude),
+            )
+            NativeMapScreenPoint(projected.x.toDouble(), projected.y.toDouble())
+        }
+    }
+
+    val revision: Long
+        get() = snapshot.revision
+
     fun detach() {
         map = null
         invalidate()

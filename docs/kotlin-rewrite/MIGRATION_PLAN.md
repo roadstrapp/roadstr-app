@@ -538,7 +538,9 @@ broader cross-language coverage and a native store are still required.
   `NativeMapCursorOverlayView.kt` provide stale-fenced cursor state and a
   MapLibre-projected, pitch-aware default-arrow painter;
   `NativeMapPointOverlaySession.kt` and `NativeMapPointOverlayView.kt` provide
-  bounded revisioned marker caches and projected billboard rendering. Product
+  bounded revisioned marker caches and projected billboard rendering;
+  `NativeMapInteraction.kt` provides projected road-event hit testing, typed
+  click/long-click values and exact 60 m alternative selection. Product
   `feature/navigation/map`, fix/route feeds and
   remaining overlay UI layers remain.
 - **Dependencies:** MapLibre Native Android OpenGL `13.5.2` is strictly pinned
@@ -546,7 +548,7 @@ broader cross-language coverage and a native store are still required.
   BSD-2-Clause and the resolved runtime graph contains no Google Play Services.
 - **Migration impact:** `mapEngine`, tile URL, cursor and map settings must remain.
 - **User-visible impact:** Same map engine default, toggle, overlays, tilt, bearing and controls.
-- **Tests:** 70 deterministic JVM tests cover light/dark style output, tile URL
+- **Tests:** 78 deterministic JVM tests cover light/dark style output, tile URL
   safety/escaping, ZTL route segmentation, viewport/zoom marker culling,
   audited version/camera values, exact idempotent MapView lifecycle ordering,
   bounded GeoJSON/coordinate validation, physical-pixel widths/colors and
@@ -556,7 +558,8 @@ broader cross-language coverage and a native store are still required.
   capping, recenter and gesture detachment, cursor revision fencing, coordinate/
   colour validation, pitch-aware geometry, bounded point-overlay revisioning,
   ordering, zoom gates, the closed marker catalogue, rounded-Vincenty traffic
-  runs, work bounds and traffic revision fencing; sixteen Dart source/Gradle contracts
+  runs, work bounds, traffic revision fencing, marker-hit priority and strict
+  60 m alternative taps; eighteen Dart source/Gradle contracts
   lock the private host, route renderer/session and Flutter route/camera
   oracles. Screenshot/golden and device rendering tests remain.
 - **Parity evidence:** the headless policies and private native raster renderer
@@ -569,7 +572,9 @@ broader cross-language coverage and a native store are still required.
   48x76 arrow, 1.4 scale, default violet, HSL treatment and pitch-dependent
   shadow/flattening while MapLibre owns coordinate projection. Dormant point
   overlays preserve all road-event/static marker symbols, sizes, ordering and
-  density gates while rejecting off-screen projections.
+  density gates while rejecting off-screen projections. Typed host gestures
+  preserve road-event marker priority and first-wins route-preview selection;
+  product sheets and long-press actions remain detached.
   Its dormant camera boundary preserves the 33 ms cadence, three-second dead
   reckoning cap, 40/55-degree pitch, navigation shift and gesture-detached
   follow without reading location. Reference screenshots, live route/fix
