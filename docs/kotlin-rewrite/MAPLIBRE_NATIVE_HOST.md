@@ -103,8 +103,10 @@ Flutter's display-density correction and round joins/caps. The host attaches
 this layer before road-route alternatives, preserving Flutter's paint order on
 initial load and style replacement. The private shell owns an empty session and
 does not invoke Transitous, storage or location. The bounded native request,
-parser and service are green, but production service ownership and itinerary UI
-remain detached.
+parser and service are green. A revision-safe journey session and accessible
+Compose itinerary panel are now packaged above the map, with card selection
+coordinated to this overlay, but their initial state is hidden and production
+service ownership remains detached.
 
 ## Camera follow boundary
 
@@ -222,6 +224,10 @@ debug-host selection check.
   revision and selection fencing, defensive geometry copies, theme updates,
   deterministic per-leg GeoJSON, operator/fallback/street colors, skipped
   non-drawable legs, invalid input rejection and density-corrected widths.
+- Ten transit-presentation JVM cases lock card formatting, metric/imperial
+  thresholds, line colors, work bounds, terminal states, stale revision fencing
+  and synchronized UI/map selection. Four Dart UI contracts lock all 27
+  generated locale sets, panel semantics and dormant shell ownership.
 - Twenty-four Dart contracts lock the strict Gradle version, lifecycle-compose
   dependency, real `MapView`/style/texture-mode binding, absence of a location
   component, selected/muted route source/layer constants, route-choice/progress
@@ -229,7 +235,7 @@ debug-host selection check.
   and ownership by the private shell, plus the Flutter camera oracle
   and MapLibre command wiring, cursor geometry, point-overlay/transit parity and
   dormant ownership.
-- The complete verification run passes 692 Flutter tests, 344 Kotlin tests,
+- The complete verification run passes 696 Flutter tests, 354 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 

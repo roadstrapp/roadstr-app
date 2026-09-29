@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_et.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">Tühista</string>
+    <string name="native_mode_car">Auto</string>
+    <string name="native_mode_bike">Jalgratas</string>
+    <string name="native_mode_walk">Jalgsi</string>
+    <string name="native_transport_mode_walk">Jalgsi</string>
+    <string name="native_transport_mode_transit">Ühistransport</string>
+    <string name="native_transit_no_service_here">Selle piirkonna kohta puuduvad ühistranspordi andmed</string>
+    <string name="native_transit_request_failed">Ühistransporti ei õnnestunud laadida</string>
+    <string name="native_transit_retry">Proovi uuesti</string>
+    <string name="native_transit_walk_leg">Jalgsi</string>
+    <string name="native_transit_your_location">Sinu asukoht</string>
+    <string name="native_transit_destination">Sihtkoht</string>
+    <string name="native_transit_scheduled_times">Ajad pärinevad avaldatud sõiduplaanidest</string>
+    <string name="native_transit_direct">Otse</string>
+    <string name="native_transit_transfers">%1$d ümberistumist</string>
+</resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ga.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">Cealaigh</string>
+    <string name="native_mode_car">Carr</string>
+    <string name="native_mode_bike">Rothar</string>
+    <string name="native_mode_walk">De chois</string>
+    <string name="native_transport_mode_walk">De shiúl</string>
+    <string name="native_transport_mode_transit">Iompar</string>
+    <string name="native_transit_no_service_here">Níl sonraí iompair phoiblí ann don cheantar seo</string>
+    <string name="native_transit_request_failed">Níorbh fhéidir iompar poiblí a lódáil</string>
+    <string name="native_transit_retry">Bain triail eile as</string>
+    <string name="native_transit_walk_leg">De shiúl na gcos</string>
+    <string name="native_transit_your_location">Do shuíomh</string>
+    <string name="native_transit_destination">Ceann scríbe</string>
+    <string name="native_transit_scheduled_times">Tagann na hamanna ó amchláir fhoilsithe</string>
+    <string name="native_transit_direct">Díreach</string>
+    <string name="native_transit_transfers">%1$d aistrithe</string>
+</resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_sk.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">Zrušiť</string>
+    <string name="native_mode_car">Auto</string>
+    <string name="native_mode_bike">Bicykel</string>
+    <string name="native_mode_walk">Pešo</string>
+    <string name="native_transport_mode_walk">Pešo</string>
+    <string name="native_transport_mode_transit">MHD</string>
+    <string name="native_transit_no_service_here">Pre túto oblasť nie sú dáta verejnej dopravy</string>
+    <string name="native_transit_request_failed">Nepodarilo sa načítať verejnú dopravu</string>
+    <string name="native_transit_retry">Skúsiť znova</string>
+    <string name="native_transit_walk_leg">Pešo</string>
+    <string name="native_transit_your_location">Vaša poloha</string>
+    <string name="native_transit_destination">Cieľ</string>
+    <string name="native_transit_scheduled_times">Časy pochádzajú zo zverejnených cestovných poriadkov</string>
+    <string name="native_transit_direct">Priamo</string>
+    <string name="native_transit_transfers">%1$d prestupov</string>
+</resources>

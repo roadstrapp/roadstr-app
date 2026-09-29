@@ -607,16 +607,31 @@ broader cross-language coverage and a native store are still required.
 - **Acceptance criteria:** Map and legacy raster setting are functionally equivalent with no overlay gaps.
 - **Rollback notes:** Native map may remain opt-in while Flutter renderer is retained.
 
-### KOTLIN-013 — Port Compose UI and 27 locales
+### KOTLIN-013 — Port Compose UI and 27 locales (IN PROGRESS)
 
 - **Objective:** Reproduce screen hierarchy, styling, accessibility, orientation and all translations.
 - **Current Dart/Flutter source:** screens/widgets/theme/l10n/nav phrase tables.
-- **New Kotlin files/modules:** `feature/*`, `core/ui/theme`, Android resources/locale resolver and semantics.
+- **New Kotlin files/modules:** `feature/*`, `core/ui/theme`, Android resources/locale resolver and semantics. The first bounded slice adds `feature/transit/NativeTransitPresentation.kt` and `NativeTransitItinerariesPanel.kt`.
+- **Current implementation:** The private shell packages a hidden
+  public-transport itinerary panel with loading, ready, no-service and failure
+  states, up to eight selectable cards, boarding/walking/line/timetable detail,
+  mode choices, navigation-bar insets and explicit accessibility semantics. A
+  revision-safe in-memory coordinator updates card selection and MapLibre
+  itinerary selection together but owns no service or provider error text.
+  Fifteen panel values are generated from each of the 27 existing Flutter ARB
+  files into Android resources with a deterministic `--check` mode.
 - **Dependencies:** Compose Material 3 and AndroidX only after license review.
 - **Migration impact:** Settings names/defaults and onboarding/disclosure keys must map exactly.
 - **User-visible impact:** Must feel like an update, not a redesign.
-- **Tests:** Compose tests, key/placeholder/plural coverage, screenshot comparisons and compact-device layouts.
-- **Parity evidence:** every state catalogue entry in `UI_PARITY.md` with locale/theme/orientation inputs.
+- **Tests:** Ten JVM tests lock formatting, unit thresholds, color fallback,
+  work bounds, state/revision fencing, terminal outcomes, clear behavior,
+  appearance changes and synchronized UI/map selection. Four Dart contracts
+  verify all 27 generated resource sets, Flutter formatter/work-bound oracles,
+  Compose state/accessibility structure and dormant shell ownership. Compose
+  screenshot comparisons, font-scale/TalkBack and compact-device layouts remain.
+- **Parity evidence:** the public-transport state has its first headless and
+  packaged Compose evidence in `UI_PARITY.md`; every other state and visual/
+  orientation evidence remain open.
 - **Security/privacy impact:** preserve privacy disclosure wording and task-switcher handling.
 - **Battery/performance impact:** frame/jank and recomposition profile versus Flutter references.
 - **Acceptance criteria:** no shipped feature remains PARTIAL and no locale is dropped.

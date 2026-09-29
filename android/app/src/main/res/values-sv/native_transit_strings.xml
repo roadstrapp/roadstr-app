@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_sv.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">Avbryt</string>
+    <string name="native_mode_car">Bil</string>
+    <string name="native_mode_bike">Cykel</string>
+    <string name="native_mode_walk">Till fots</string>
+    <string name="native_transport_mode_walk">Till fots</string>
+    <string name="native_transport_mode_transit">Kollektivt</string>
+    <string name="native_transit_no_service_here">Inga kollektivtrafikdata för detta område</string>
+    <string name="native_transit_request_failed">Kunde inte ladda kollektivtrafik</string>
+    <string name="native_transit_retry">Försök igen</string>
+    <string name="native_transit_walk_leg">Gå</string>
+    <string name="native_transit_your_location">Din plats</string>
+    <string name="native_transit_destination">Destination</string>
+    <string name="native_transit_scheduled_times">Tiderna kommer från publicerade tidtabeller</string>
+    <string name="native_transit_direct">Direkt</string>
+    <string name="native_transit_transfers">%1$d byten</string>
+</resources>

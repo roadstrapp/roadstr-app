@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_mt.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">Ikkanċella</string>
+    <string name="native_mode_car">Karozza</string>
+    <string name="native_mode_bike">Rota</string>
+    <string name="native_mode_walk">Bil-mixi</string>
+    <string name="native_transport_mode_walk">Bil-mixi</string>
+    <string name="native_transport_mode_transit">Trasport</string>
+    <string name="native_transit_no_service_here">M\'hemmx dejta tat-trasport pubbliku għal din iż-żona</string>
+    <string name="native_transit_request_failed">It-trasport pubbliku ma setax jitniżżel</string>
+    <string name="native_transit_retry">Erġa\' pprova</string>
+    <string name="native_transit_walk_leg">Bil-mixi</string>
+    <string name="native_transit_your_location">Il-post tiegħek</string>
+    <string name="native_transit_destination">Destinazzjoni</string>
+    <string name="native_transit_scheduled_times">Il-ħinijiet ġejjin minn skedi ppubblikati</string>
+    <string name="native_transit_direct">Dirett</string>
+    <string name="native_transit_transfers">%1$d bidliet</string>
+</resources>

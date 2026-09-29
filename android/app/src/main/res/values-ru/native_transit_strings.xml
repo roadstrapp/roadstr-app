@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ru.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">Отмена</string>
+    <string name="native_mode_car">Авто</string>
+    <string name="native_mode_bike">Велосипед</string>
+    <string name="native_mode_walk">Пешком</string>
+    <string name="native_transport_mode_walk">Пешком</string>
+    <string name="native_transport_mode_transit">Транспорт</string>
+    <string name="native_transit_no_service_here">Нет данных об общественном транспорте для этой зоны</string>
+    <string name="native_transit_request_failed">Не удалось загрузить общественный транспорт</string>
+    <string name="native_transit_retry">Повторить</string>
+    <string name="native_transit_walk_leg">Пешком</string>
+    <string name="native_transit_your_location">Ваше местоположение</string>
+    <string name="native_transit_destination">Пункт назначения</string>
+    <string name="native_transit_scheduled_times">Время указано по опубликованному расписанию</string>
+    <string name="native_transit_direct">Без пересадок</string>
+    <string name="native_transit_transfers">Пересадок: %1$d</string>
+</resources>
