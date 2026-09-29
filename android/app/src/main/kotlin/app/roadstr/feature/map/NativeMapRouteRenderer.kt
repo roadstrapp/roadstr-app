@@ -7,7 +7,7 @@ import org.maplibre.android.style.layers.Property
 import org.maplibre.android.style.layers.PropertyFactory
 import org.maplibre.android.style.sources.GeoJsonSource
 
-/** MapLibre source/layer adapter for alternative, active, restricted and completed routes. */
+/** MapLibre adapter for alternative, active, restricted, completed and traffic routes. */
 internal class NativeMapRouteRenderer(
     displayDensity: Float,
     initialSnapshot: NativeRouteOverlaySnapshot,
@@ -26,6 +26,10 @@ internal class NativeMapRouteRenderer(
     )
     private val alternativeWidth = NativeRouteLayerMetrics.widthPixels(
         NativeRouteLayerMetrics.ALTERNATIVE_LOGICAL_WIDTH,
+        displayDensity,
+    )
+    private val trafficWidth = NativeRouteLayerMetrics.widthPixels(
+        NativeRouteLayerMetrics.TRAFFIC_LOGICAL_WIDTH,
         displayDensity,
     )
 
@@ -58,6 +62,9 @@ internal class NativeMapRouteRenderer(
         }
         if (style.getSource(COMPLETED_SOURCE_ID) == null) {
             style.addSource(GeoJsonSource(COMPLETED_SOURCE_ID, payload.completedGeoJson))
+        }
+        if (style.getSource(TRAFFIC_SOURCE_ID) == null) {
+            style.addSource(GeoJsonSource(TRAFFIC_SOURCE_ID, payload.trafficGeoJson))
         }
     }
 
@@ -103,6 +110,16 @@ internal class NativeMapRouteRenderer(
                 ),
             )
         }
+        if (style.getLayer(TRAFFIC_LAYER_ID) == null) {
+            style.addLayer(
+                LineLayer(TRAFFIC_LAYER_ID, TRAFFIC_SOURCE_ID).withProperties(
+                    PropertyFactory.lineColor(TRAFFIC_RED_ARGB.toInt()),
+                    PropertyFactory.lineWidth(trafficWidth),
+                    PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+                    PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+                ),
+            )
+        }
     }
 
     private fun applyPayload(style: Style) {
@@ -112,9 +129,12 @@ internal class NativeMapRouteRenderer(
             ?: error("Native route source has an unexpected type")
         val completedSource = style.getSource(COMPLETED_SOURCE_ID) as? GeoJsonSource
             ?: error("Native completed-route source has an unexpected type")
+        val trafficSource = style.getSource(TRAFFIC_SOURCE_ID) as? GeoJsonSource
+            ?: error("Native traffic-route source has an unexpected type")
         alternativesSource.setGeoJson(payload.alternativesGeoJson)
         activeSource.setGeoJson(payload.activeGeoJson)
         completedSource.setGeoJson(payload.completedGeoJson)
+        trafficSource.setGeoJson(payload.trafficGeoJson)
 
         (style.getLayer(ACTIVE_HALO_LAYER_ID) as? LineLayer)?.setProperties(
             PropertyFactory.lineColor(routeColorExpression(payload.accentArgb, HALO_ALPHA)),
@@ -143,15 +163,18 @@ internal class NativeMapRouteRenderer(
         const val ALTERNATIVES_SOURCE_ID = "roadstr-route-alternatives-source"
         const val ACTIVE_SOURCE_ID = "roadstr-route-active-source"
         const val COMPLETED_SOURCE_ID = "roadstr-route-completed-source"
+        const val TRAFFIC_SOURCE_ID = "roadstr-route-traffic-source"
         const val ALTERNATIVES_LAYER_ID = "roadstr-route-alternatives"
         const val COMPLETED_LAYER_ID = "roadstr-route-completed"
         const val ACTIVE_HALO_LAYER_ID = "roadstr-route-active-halo"
         const val ACTIVE_CORE_LAYER_ID = "roadstr-route-active-core"
+        const val TRAFFIC_LAYER_ID = "roadstr-route-traffic"
         const val RESTRICTED_PROPERTY = "restricted"
 
         const val ZTL_RED_ARGB = 0xFFE53935
         const val COMPLETED_GREY_ARGB = 0xFF9E9E9E
         const val ALTERNATIVE_GREY_ARGB = 0x99757575
+        const val TRAFFIC_RED_ARGB = 0xFFEF4444
         const val HALO_ALPHA = 0.28
     }
 }

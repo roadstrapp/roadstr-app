@@ -9,6 +9,7 @@ import kotlin.math.min
 /** Immutable state exposed by the native route-to-map boundary. */
 data class NativeRouteOverlaySessionState(
     val revision: Long,
+    val trafficRevision: Long,
     val progressMeters: Double,
     val totalDistanceMeters: Double,
     val selectedAlternativeIndex: Int?,
@@ -40,6 +41,9 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
     private var selectedAlternativeIndex: Int? = null
     private var progressMeters = 0.0
     private var cursorRestricted = false
+    private var trafficRevision = NO_TRAFFIC_REVISION
+    private var trafficJamPoints: List<NativeMapPoint> = emptyList()
+    private var trafficSegments: List<List<NativeMapPoint>> = emptyList()
 
     val state: StateFlow<NativeRouteOverlaySessionState> = _state.asStateFlow()
 
@@ -55,12 +59,14 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
         require(revision >= 0) { "Route revision must be non-negative" }
         if (revision <= currentRevision) return false
         val prepared = prepareRoute(points, restricted)
+        val nextTrafficSegments = projectTraffic(prepared)
         currentRevision = revision
         route = prepared
         alternatives = emptyList()
         selectedAlternativeIndex = null
         progressMeters = 0.0
         cursorRestricted = false
+        trafficSegments = nextTrafficSegments
         publish(currentSnapshot())
         true
     }
@@ -85,12 +91,14 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
         val prepared = candidates.map { candidate ->
             prepareRoute(candidate.points, candidate.restricted)
         }
+        val nextTrafficSegments = projectTraffic(prepared[selectedIndex])
         currentRevision = revision
         alternatives = prepared
         selectedAlternativeIndex = selectedIndex
         route = prepared[selectedIndex]
         progressMeters = 0.0
         cursorRestricted = false
+        trafficSegments = nextTrafficSegments
         publish(currentSnapshot())
         true
     }
@@ -104,13 +112,36 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
         ) {
             return false
         }
+        val selectedRoute = alternatives[selectedIndex]
+        val nextTrafficSegments = projectTraffic(selectedRoute)
         selectedAlternativeIndex = selectedIndex
-        route = alternatives[selectedIndex]
+        route = selectedRoute
         progressMeters = 0.0
         cursorRestricted = false
+        trafficSegments = nextTrafficSegments
         publish(currentSnapshot())
         true
     }
+
+    /** Replaces active traffic-jam coordinates without changing route state. */
+    fun submitTraffic(
+        revision: Long,
+        jamPoints: List<NativeMapPoint>,
+    ): Boolean = synchronized(lock) {
+        require(revision >= 0) { "Route traffic revision must be non-negative" }
+        if (revision <= trafficRevision) return false
+        val normalized = NativeRouteTrafficPolicy.normalizeJamPoints(jamPoints)
+        val nextSegments = route?.let { projectTraffic(it, normalized) }
+            ?: emptyList()
+        trafficRevision = revision
+        trafficJamPoints = normalized
+        trafficSegments = nextSegments
+        publish(currentSnapshot())
+        true
+    }
+
+    /** Clears traffic geometry and fences late event-cache callbacks. */
+    fun clearTraffic(revision: Long): Boolean = submitTraffic(revision, emptyList())
 
     /** Commits the highlighted candidate and removes muted preview geometry. */
     fun commitSelectedAlternative(revision: Long): Boolean = synchronized(lock) {
@@ -176,6 +207,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
         selectedAlternativeIndex = null
         progressMeters = 0.0
         cursorRestricted = false
+        trafficSegments = emptyList()
         publish(emptySnapshot())
         true
     }
@@ -192,6 +224,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
     private fun publish(snapshot: NativeRouteOverlaySnapshot) {
         _state.value = NativeRouteOverlaySessionState(
             revision = currentRevision,
+            trafficRevision = trafficRevision,
             progressMeters = progressMeters,
             totalDistanceMeters = route?.totalDistanceMeters ?: 0.0,
             selectedAlternativeIndex = selectedAlternativeIndex,
@@ -215,6 +248,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
             cursorRestricted = cursorRestricted,
             accentArgb = accentArgb,
             alternativeRoutes = muted,
+            trafficSegments = trafficSegments,
         )
     }
 
@@ -262,6 +296,16 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
         )
     }
 
+    private fun projectTraffic(
+        preparedRoute: PreparedRoute,
+        jams: List<NativeMapPoint> = trafficJamPoints,
+    ): List<List<NativeMapPoint>> {
+        if (!NativeRouteTrafficPolicy.withinDistanceBudget(preparedRoute.points.size, jams.size)) {
+            return emptyList()
+        }
+        return NativeRouteTrafficPolicy.segments(preparedRoute.points, jams)
+    }
+
     private fun emptySnapshot(): NativeRouteOverlaySnapshot =
         NativeRouteOverlaySnapshot.empty(accentArgb)
 
@@ -269,6 +313,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
         validateAccent(accentArgb)
         return NativeRouteOverlaySessionState(
             revision = NO_ROUTE_REVISION,
+            trafficRevision = NO_TRAFFIC_REVISION,
             progressMeters = 0.0,
             totalDistanceMeters = 0.0,
             selectedAlternativeIndex = null,
@@ -296,6 +341,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
             cursorRestricted: Boolean,
             accentArgb: Long,
             alternativeRoutes: List<List<NativeMapPoint>>,
+            trafficSegments: List<List<NativeMapPoint>>,
         ): NativeRouteOverlaySnapshot {
             if (progressMeters <= 0.0) {
                 return NativeRouteOverlaySnapshot(
@@ -306,6 +352,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
                     completedPoints = emptyList(),
                     accentArgb = accentArgb,
                     alternativeRoutes = alternativeRoutes,
+                    trafficSegments = trafficSegments,
                 )
             }
             if (totalDistanceMeters <= 0.0 || progressMeters >= totalDistanceMeters) {
@@ -314,6 +361,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
                     completedPoints = points,
                     accentArgb = accentArgb,
                     alternativeRoutes = alternativeRoutes,
+                    trafficSegments = trafficSegments,
                 )
             }
 
@@ -359,6 +407,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
                 completedPoints = completed,
                 accentArgb = accentArgb,
                 alternativeRoutes = alternativeRoutes,
+                trafficSegments = trafficSegments,
             )
         }
     }
@@ -368,11 +417,9 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
 
     companion object {
         private const val NO_ROUTE_REVISION = -1L
-        // Route runs share transition vertices. Reserve the compiler's full
-        // run budget so completed + active sources remain below one payload
-        // point ceiling even when every classified run changes.
-        const val MAX_SESSION_ROUTE_POINTS =
-            NativeRouteOverlayCompiler.MAX_ROUTE_POINTS -
-                NativeRouteOverlayCompiler.MAX_ROUTE_RUNS
+        private const val NO_TRAFFIC_REVISION = -1L
+        // Leaves room for duplicated classification boundaries and the worst
+        // alternating traffic runs in one bounded compiler payload.
+        const val MAX_SESSION_ROUTE_POINTS = 80_000
     }
 }

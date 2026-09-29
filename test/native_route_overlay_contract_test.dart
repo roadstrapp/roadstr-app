@@ -50,6 +50,28 @@ void main() {
     );
   });
 
+  test('native traffic layer retains Flutter proximity and red stroke oracle',
+      () {
+    final dart = flutterMap.readAsStringSync();
+    final kotlin = renderer.readAsStringSync();
+
+    expect(dart, contains('const thresholdM = 400.0'));
+    expect(
+      dart,
+      contains('dist.as(LengthUnit.Meter, p, ev.position) < thresholdM'),
+    );
+    expect(dart, contains('color: const Color(0xFFEF4444)'));
+    expect(dart, contains('width: routeWidthPx(9)'));
+    expect(kotlin, contains('roadstr-route-traffic-source'));
+    expect(kotlin, contains('roadstr-route-traffic'));
+    expect(kotlin, contains('TRAFFIC_RED_ARGB = 0xFFEF4444'));
+    expect(kotlin, contains('NativeRouteLayerMetrics.TRAFFIC_LOGICAL_WIDTH'));
+    expect(
+      kotlin.indexOf('LineLayer(TRAFFIC_LAYER_ID'),
+      greaterThan(kotlin.indexOf('LineLayer(ACTIVE_CORE_LAYER_ID')),
+    );
+  });
+
   test('private shell installs empty route sources without GPS or user data',
       () {
     final rendererSource = renderer.readAsStringSync();

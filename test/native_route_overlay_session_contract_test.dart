@@ -43,6 +43,19 @@ void main() {
     );
   });
 
+  test('native session fences and reprojects the Flutter traffic feed', () {
+    final kotlin = session.readAsStringSync();
+    final dart = flutterMap.readAsStringSync();
+
+    expect(dart, contains('_trafficSegments(List<LatLng> polyline)'));
+    expect(dart, contains('if (current == null && i > 0)'));
+    expect(kotlin, contains('fun submitTraffic('));
+    expect(kotlin, contains('fun clearTraffic('));
+    expect(kotlin, contains('revision <= trafficRevision'));
+    expect(kotlin, contains('projectTraffic(selectedRoute)'));
+    expect(kotlin, contains('trafficSegments = trafficSegments'));
+  });
+
   test(
       'private shell owns the reactive session without activating product data',
       () {

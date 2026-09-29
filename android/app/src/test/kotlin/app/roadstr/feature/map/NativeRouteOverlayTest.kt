@@ -17,8 +17,10 @@ class NativeRouteOverlayTest {
         assertEquals(empty, payload.activeGeoJson)
         assertEquals(empty, payload.completedGeoJson)
         assertEquals(empty, payload.alternativesGeoJson)
+        assertEquals(empty, payload.trafficGeoJson)
         assertEquals(0, payload.activeFeatureCount)
         assertEquals(0, payload.alternativeFeatureCount)
+        assertEquals(0, payload.trafficFeatureCount)
         assertEquals(0, payload.pointCount)
     }
 
@@ -192,7 +194,9 @@ class NativeRouteOverlayTest {
         assertEquals(0xFFE53935, NativeMapRouteRenderer.ZTL_RED_ARGB)
         assertEquals(0xFF9E9E9E, NativeMapRouteRenderer.COMPLETED_GREY_ARGB)
         assertEquals(0x99757575, NativeMapRouteRenderer.ALTERNATIVE_GREY_ARGB)
+        assertEquals(0xFFEF4444, NativeMapRouteRenderer.TRAFFIC_RED_ARGB)
         assertEquals(7f, NativeRouteLayerMetrics.ALTERNATIVE_LOGICAL_WIDTH.toFloat(), 0f)
+        assertEquals(9f, NativeRouteLayerMetrics.TRAFFIC_LOGICAL_WIDTH.toFloat(), 0f)
         assertEquals(0.28, NativeMapRouteRenderer.HALO_ALPHA, 0.0)
         assertThrows(IllegalArgumentException::class.java) {
             NativeRouteLayerMetrics.widthPixels(Double.NaN, 3f)
