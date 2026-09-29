@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_lv.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">Atcelt</string>
+    <string name="native_mode_car">Auto</string>
+    <string name="native_mode_bike">Velosipēds</string>
+    <string name="native_mode_walk">Kājām</string>
+    <string name="native_transport_mode_walk">Kājām</string>
+    <string name="native_transport_mode_transit">Transports</string>
+    <string name="native_transit_no_service_here">Šai teritorijai nav sabiedriskā transporta datu</string>
+    <string name="native_transit_request_failed">Neizdevās ielādēt sabiedrisko transportu</string>
+    <string name="native_transit_retry">Mēģināt vēlreiz</string>
+    <string name="native_transit_walk_leg">Kājām</string>
+    <string name="native_transit_your_location">Jūsu atrašanās vieta</string>
+    <string name="native_transit_destination">Galamērķis</string>
+    <string name="native_transit_scheduled_times">Laiki ņemti no publicētajiem sarakstiem</string>
+    <string name="native_transit_direct">Tieši</string>
+    <string name="native_transit_transfers">%1$d pārsēšanās</string>
+</resources>

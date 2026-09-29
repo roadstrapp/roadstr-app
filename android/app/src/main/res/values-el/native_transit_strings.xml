@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_el.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">Ακύρωση</string>
+    <string name="native_mode_car">Αυτοκίνητο</string>
+    <string name="native_mode_bike">Ποδήλατο</string>
+    <string name="native_mode_walk">Πεζός</string>
+    <string name="native_transport_mode_walk">Με τα πόδια</string>
+    <string name="native_transport_mode_transit">ΜΜΜ</string>
+    <string name="native_transit_no_service_here">Δεν υπάρχουν δεδομένα δημόσιων συγκοινωνιών για αυτήν την περιοχή</string>
+    <string name="native_transit_request_failed">Δεν ήταν δυνατή η φόρτωση των δημόσιων συγκοινωνιών</string>
+    <string name="native_transit_retry">Δοκιμάστε ξανά</string>
+    <string name="native_transit_walk_leg">Με τα πόδια</string>
+    <string name="native_transit_your_location">Η τοποθεσία σας</string>
+    <string name="native_transit_destination">Προορισμός</string>
+    <string name="native_transit_scheduled_times">Οι ώρες προέρχονται από δημοσιευμένα δρομολόγια</string>
+    <string name="native_transit_direct">Απευθείας</string>
+    <string name="native_transit_transfers">%1$d μετεπιβιβάσεις</string>
+</resources>

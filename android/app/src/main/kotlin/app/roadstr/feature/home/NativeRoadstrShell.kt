@@ -18,7 +18,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -36,6 +39,9 @@ import app.roadstr.feature.map.NativeMapLibreHost
 import app.roadstr.feature.map.NativeMapPointOverlaySession
 import app.roadstr.feature.map.NativeRouteOverlaySession
 import app.roadstr.feature.map.NativeTransitOverlaySession
+import app.roadstr.feature.transit.NativeTransitItinerariesPanel
+import app.roadstr.feature.transit.NativeTransitJourneySession
+import app.roadstr.feature.transit.NativeTransitTransportMode
 import kotlinx.coroutines.delay
 
 /**
@@ -71,6 +77,20 @@ fun NativeRoadstrShell() {
             transitSession.updateTheme(palette.accentArgb, palette.textSecondaryArgb)
         }
         val transitState by transitSession.state.collectAsState()
+        val transitJourneySession = remember(transitSession) {
+            NativeTransitJourneySession(
+                overlaySession = transitSession,
+                initialAccentArgb = palette.accentArgb,
+            )
+        }
+        LaunchedEffect(transitJourneySession, palette.accentArgb) {
+            transitJourneySession.updatePresentation(
+                accentArgb = palette.accentArgb,
+                imperial = false,
+            )
+        }
+        val transitUiState by transitJourneySession.state.collectAsState()
+        var transitMode by remember { mutableStateOf(NativeTransitTransportMode.Transit) }
         val cameraSession = remember { NativeMapCameraSession() }
         val cameraState by cameraSession.state.collectAsState()
         val cursorSession = remember { NativeMapCursorSession() }
@@ -134,6 +154,21 @@ fun NativeRoadstrShell() {
                         )
                     }
                 }
+                NativeTransitItinerariesPanel(
+                    snapshot = transitUiState,
+                    transportMode = transitMode,
+                    onSelect = { index ->
+                        transitJourneySession.select(transitUiState.revision, index)
+                    },
+                    onCancel = {
+                        if (transitUiState.revision >= 0) {
+                            transitJourneySession.clear(transitUiState.revision)
+                        }
+                    },
+                    onRetry = null,
+                    onModeChanged = { transitMode = it },
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
             }
         }
     }

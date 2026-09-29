@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ro.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">Anulare</string>
+    <string name="native_mode_car">Mașină</string>
+    <string name="native_mode_bike">Bicicletă</string>
+    <string name="native_mode_walk">Pe jos</string>
+    <string name="native_transport_mode_walk">Pe jos</string>
+    <string name="native_transport_mode_transit">Transport</string>
+    <string name="native_transit_no_service_here">Nu există date de transport public pentru această zonă</string>
+    <string name="native_transit_request_failed">Transportul public nu a putut fi încărcat</string>
+    <string name="native_transit_retry">Reîncearcă</string>
+    <string name="native_transit_walk_leg">Pe jos</string>
+    <string name="native_transit_your_location">Locația ta</string>
+    <string name="native_transit_destination">Destinație</string>
+    <string name="native_transit_scheduled_times">Orele provin din orarele publicate</string>
+    <string name="native_transit_direct">Direct</string>
+    <string name="native_transit_transfers">%1$d schimbări</string>
+</resources>

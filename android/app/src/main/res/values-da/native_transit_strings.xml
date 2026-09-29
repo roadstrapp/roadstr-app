@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_da.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">Annuller</string>
+    <string name="native_mode_car">Bil</string>
+    <string name="native_mode_bike">Cykel</string>
+    <string name="native_mode_walk">Til fods</string>
+    <string name="native_transport_mode_walk">Til fods</string>
+    <string name="native_transport_mode_transit">Offentlig</string>
+    <string name="native_transit_no_service_here">Ingen data om offentlig transport for dette område</string>
+    <string name="native_transit_request_failed">Kunne ikke indlæse offentlig transport</string>
+    <string name="native_transit_retry">Prøv igen</string>
+    <string name="native_transit_walk_leg">Gå</string>
+    <string name="native_transit_your_location">Din placering</string>
+    <string name="native_transit_destination">Destination</string>
+    <string name="native_transit_scheduled_times">Tiderne kommer fra offentliggjorte køreplaner</string>
+    <string name="native_transit_direct">Direkte</string>
+    <string name="native_transit_transfers">%1$d skift</string>
+</resources>

@@ -33,6 +33,13 @@ Flutter is still the only launcher and production UI.
   request, parse the real Berlin fixture with bounded precision-aware geometry,
   and execute it through cancellable bounded OkHttp with classified retry. A
   parsed plan can be projected directly into the dormant transit session.
+  `feature/transit/NativeTransitPresentation.kt` adds a revision-safe
+  UI/map coordinator and Flutter-compatible card projection for duration,
+  local clock, metric/imperial walking distance, boarding, line colors and
+  timetable status. `NativeTransitItinerariesPanel.kt` packages the bounded
+  Compose loading, ready, no-service and failure states with accessible
+  selection and mode controls. Its 27 Android locale files are generated from
+  the existing ARB values rather than maintained as a second translation source.
   Style generations prevent stale reattachment;
   `NativeRouteOverlaySession.kt` adds a revision-safe StateFlow projector for
   normalized route geometry, bounded alternative selection/commit, monotonic
@@ -52,8 +59,9 @@ Flutter is still the only launcher and production UI.
   road-event hit priority and Flutter's strict rounded-Vincenty 60 m route-
   alternative selection; product sheets and service caches remain detached. The
   private shell collects empty route, transit, camera, cursor and point-overlay
-  state and deliberately does not invoke the new transit service; it has no
-  product route, transit-provider or GPS feed.
+  state and packages the itinerary panel in its hidden state. It deliberately
+  does not invoke the transit service or submit a plan; it has no product route,
+  transit-provider or GPS feed.
 - `LegacyStorageContract.kt` records the audited Hive/secure-storage names and
   dynamic per-identity key prefixes.
 - `LegacyStorageModels.kt` defines a bounded normalized snapshot boundary,

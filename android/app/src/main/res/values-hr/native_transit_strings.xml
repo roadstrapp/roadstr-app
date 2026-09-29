@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_hr.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">Odustani</string>
+    <string name="native_mode_car">Auto</string>
+    <string name="native_mode_bike">Bicikl</string>
+    <string name="native_mode_walk">Pješice</string>
+    <string name="native_transport_mode_walk">Pješice</string>
+    <string name="native_transport_mode_transit">Prijevoz</string>
+    <string name="native_transit_no_service_here">Nema podataka o javnom prijevozu za ovo područje</string>
+    <string name="native_transit_request_failed">Javni prijevoz nije moguće učitati</string>
+    <string name="native_transit_retry">Pokušaj ponovno</string>
+    <string name="native_transit_walk_leg">Pješice</string>
+    <string name="native_transit_your_location">Vaša lokacija</string>
+    <string name="native_transit_destination">Odredište</string>
+    <string name="native_transit_scheduled_times">Vremena potječu iz objavljenih voznih redova</string>
+    <string name="native_transit_direct">Izravno</string>
+    <string name="native_transit_transfers">%1$d presjedanja</string>
+</resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_fi.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">Peruuta</string>
+    <string name="native_mode_car">Auto</string>
+    <string name="native_mode_bike">Pyörä</string>
+    <string name="native_mode_walk">Kävellen</string>
+    <string name="native_transport_mode_walk">Kävellen</string>
+    <string name="native_transport_mode_transit">Joukkoliikenne</string>
+    <string name="native_transit_no_service_here">Tälle alueelle ei ole joukkoliikennetietoja</string>
+    <string name="native_transit_request_failed">Joukkoliikennettä ei voitu ladata</string>
+    <string name="native_transit_retry">Yritä uudelleen</string>
+    <string name="native_transit_walk_leg">Kävely</string>
+    <string name="native_transit_your_location">Sijaintisi</string>
+    <string name="native_transit_destination">Määränpää</string>
+    <string name="native_transit_scheduled_times">Ajat perustuvat julkaistuihin aikatauluihin</string>
+    <string name="native_transit_direct">Suora</string>
+    <string name="native_transit_transfers">%1$d vaihtoa</string>
+</resources>

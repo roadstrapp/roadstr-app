@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_zh.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">取消</string>
+    <string name="native_mode_car">轿车</string>
+    <string name="native_mode_bike">自行车</string>
+    <string name="native_mode_walk">步行</string>
+    <string name="native_transport_mode_walk">步行</string>
+    <string name="native_transport_mode_transit">公共交通</string>
+    <string name="native_transit_no_service_here">该地区没有公共交通数据</string>
+    <string name="native_transit_request_failed">无法加载公共交通</string>
+    <string name="native_transit_retry">重试</string>
+    <string name="native_transit_walk_leg">步行</string>
+    <string name="native_transit_your_location">您的位置</string>
+    <string name="native_transit_destination">目的地</string>
+    <string name="native_transit_scheduled_times">时间来自公布的时刻表</string>
+    <string name="native_transit_direct">直达</string>
+    <string name="native_transit_transfers">%1$d 次换乘</string>
+</resources>

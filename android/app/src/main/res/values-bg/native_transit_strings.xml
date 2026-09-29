@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_bg.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">Отказ</string>
+    <string name="native_mode_car">Кола</string>
+    <string name="native_mode_bike">Велосипед</string>
+    <string name="native_mode_walk">Пеша</string>
+    <string name="native_transport_mode_walk">Пеша</string>
+    <string name="native_transport_mode_transit">Транспорт</string>
+    <string name="native_transit_no_service_here">Няма данни за обществен транспорт за тази зона</string>
+    <string name="native_transit_request_failed">Общественият транспорт не можа да се зареди</string>
+    <string name="native_transit_retry">Опитай отново</string>
+    <string name="native_transit_walk_leg">Пеша</string>
+    <string name="native_transit_your_location">Вашето местоположение</string>
+    <string name="native_transit_destination">Дестинация</string>
+    <string name="native_transit_scheduled_times">Часовете са по публикувано разписание</string>
+    <string name="native_transit_direct">Директно</string>
+    <string name="native_transit_transfers">%1$d прекачвания</string>
+</resources>

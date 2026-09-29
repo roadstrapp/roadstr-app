@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_hu.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">Mégse</string>
+    <string name="native_mode_car">Autó</string>
+    <string name="native_mode_bike">Bicikli</string>
+    <string name="native_mode_walk">Gyalog</string>
+    <string name="native_transport_mode_walk">Gyalog</string>
+    <string name="native_transport_mode_transit">Tömegközlekedés</string>
+    <string name="native_transit_no_service_here">Nincs tömegközlekedési adat ehhez a területhez</string>
+    <string name="native_transit_request_failed">A tömegközlekedés betöltése nem sikerült</string>
+    <string name="native_transit_retry">Újra</string>
+    <string name="native_transit_walk_leg">Gyalog</string>
+    <string name="native_transit_your_location">Az Ön helyzete</string>
+    <string name="native_transit_destination">Úti cél</string>
+    <string name="native_transit_scheduled_times">Az időpontok a közzétett menetrendekből származnak</string>
+    <string name="native_transit_direct">Közvetlen</string>
+    <string name="native_transit_transfers">%1$d átszállás</string>
+</resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_lt.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">Atšaukti</string>
+    <string name="native_mode_car">Automobilis</string>
+    <string name="native_mode_bike">Dviratis</string>
+    <string name="native_mode_walk">Pėsčiomis</string>
+    <string name="native_transport_mode_walk">Pėsčiomis</string>
+    <string name="native_transport_mode_transit">Transportas</string>
+    <string name="native_transit_no_service_here">Šiai vietovei nėra viešojo transporto duomenų</string>
+    <string name="native_transit_request_failed">Nepavyko įkelti viešojo transporto</string>
+    <string name="native_transit_retry">Bandyti dar kartą</string>
+    <string name="native_transit_walk_leg">Pėsčiomis</string>
+    <string name="native_transit_your_location">Jūsų vieta</string>
+    <string name="native_transit_destination">Kelionės tikslas</string>
+    <string name="native_transit_scheduled_times">Laikai paimti iš paskelbtų tvarkaraščių</string>
+    <string name="native_transit_direct">Tiesiogiai</string>
+    <string name="native_transit_transfers">%1$d persėdimai</string>
+</resources>

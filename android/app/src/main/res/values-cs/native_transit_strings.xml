@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_cs.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">Zrušit</string>
+    <string name="native_mode_car">Auto</string>
+    <string name="native_mode_bike">Kolo</string>
+    <string name="native_mode_walk">Pěšky</string>
+    <string name="native_transport_mode_walk">Pěšky</string>
+    <string name="native_transport_mode_transit">MHD</string>
+    <string name="native_transit_no_service_here">Pro tuto oblast nejsou data veřejné dopravy</string>
+    <string name="native_transit_request_failed">Nepodařilo se načíst veřejnou dopravu</string>
+    <string name="native_transit_retry">Zkusit znovu</string>
+    <string name="native_transit_walk_leg">Pěšky</string>
+    <string name="native_transit_your_location">Vaše poloha</string>
+    <string name="native_transit_destination">Cíl</string>
+    <string name="native_transit_scheduled_times">Časy pocházejí ze zveřejněných jízdních řádů</string>
+    <string name="native_transit_direct">Přímo</string>
+    <string name="native_transit_transfers">%1$d přestupů</string>
+</resources>
