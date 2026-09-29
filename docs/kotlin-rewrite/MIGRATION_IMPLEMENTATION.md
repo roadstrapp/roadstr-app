@@ -25,6 +25,10 @@ Flutter is still the only launcher and production UI.
   deterministic active/ZTL/completed GeoJSON and the matching MapLibre
   completed/halo/core layers plus muted route-choice candidates underneath and
   bright-red traffic runs above.
+  `NativeTransitOverlay.kt`, `NativeTransitOverlaySession.kt` and
+  `NativeMapTransitRenderer.kt` add a bounded revision-safe selected-itinerary
+  source with Flutter's per-leg operator/accent/street colors, 7/4 logical
+  widths and route-underlay ordering.
   Style generations prevent stale reattachment;
   `NativeRouteOverlaySession.kt` adds a revision-safe StateFlow projector for
   normalized route geometry, bounded alternative selection/commit, monotonic
@@ -43,8 +47,8 @@ Flutter is still the only launcher and production UI.
   `NativeMapInteraction.kt` adds typed click/long-click values, projected
   road-event hit priority and Flutter's strict rounded-Vincenty 60 m route-
   alternative selection; product sheets and service caches remain detached. The
-  private shell collects empty route, camera, cursor and point-overlay state and has no
-  product route or GPS feed.
+  private shell collects empty route, transit, camera, cursor and point-overlay state and has no
+  product route, transit-provider or GPS feed.
 - `LegacyStorageContract.kt` records the audited Hive/secure-storage names and
   dynamic per-identity key prefixes.
 - `LegacyStorageModels.kt` defines a bounded normalized snapshot boundary,
