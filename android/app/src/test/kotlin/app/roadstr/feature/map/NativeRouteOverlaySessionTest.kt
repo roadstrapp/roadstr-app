@@ -2,6 +2,7 @@ package app.roadstr.feature.map
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -38,6 +39,109 @@ class NativeRouteOverlaySessionTest {
         assertEquals(2, state.snapshot.payload().activeFeatureCount)
         assertEquals(0, state.snapshot.completedPoints.size)
         assertEquals(accent, state.snapshot.accentArgb)
+    }
+
+    @Test
+    fun `alternative preview highlights one route and mutes the others`() {
+        val session = NativeRouteOverlaySession(accent)
+        val candidates = listOf(
+            candidate(longitudeOffset = 0.0, restricted = false),
+            candidate(longitudeOffset = 1.0, restricted = true),
+            candidate(longitudeOffset = 2.0, restricted = false),
+        )
+
+        assertTrue(session.submitAlternatives(3, candidates, selectedIndex = 1))
+
+        val state = session.state.value
+        val payload = state.snapshot.payload()
+        assertEquals(3L, state.revision)
+        assertEquals(3, state.alternativeCount)
+        assertEquals(1, state.selectedAlternativeIndex)
+        assertEquals(2, payload.alternativeFeatureCount)
+        assertTrue(payload.activeGeoJson.contains("[10.0,45.0]"))
+        assertTrue(payload.activeGeoJson.contains("\"restricted\":true"))
+        assertFalse(payload.alternativesGeoJson.contains("[10.0,45.0]"))
+    }
+
+    @Test
+    fun `alternative selection rejects stale callbacks and changes highlighted geometry`() {
+        val session = NativeRouteOverlaySession(accent)
+        val candidates = listOf(
+            candidate(longitudeOffset = 0.0, restricted = false),
+            candidate(longitudeOffset = 1.0, restricted = false),
+        )
+        session.submitAlternatives(5, candidates, selectedIndex = 0)
+
+        assertFalse(session.selectAlternative(4, selectedIndex = 1))
+        assertTrue(session.selectAlternative(5, selectedIndex = 1))
+        assertFalse(session.selectAlternative(5, selectedIndex = 1))
+
+        val state = session.state.value
+        assertEquals(1, state.selectedAlternativeIndex)
+        assertTrue(state.snapshot.activeGeoJson().contains("[10.0,45.0]"))
+        assertTrue(state.snapshot.alternativesGeoJson().contains("[9.0,45.0]"))
+    }
+
+    @Test
+    fun `progress starts only after the selected alternative is committed`() {
+        val session = NativeRouteOverlaySession(accent)
+        session.submitAlternatives(
+            8,
+            listOf(
+                candidate(longitudeOffset = 0.0, restricted = false),
+                candidate(longitudeOffset = 1.0, restricted = false),
+            ),
+            selectedIndex = 1,
+        )
+
+        assertFalse(session.updateProgress(8, 1.0, cursorRestricted = false))
+        assertFalse(session.commitSelectedAlternative(7))
+        assertTrue(session.commitSelectedAlternative(8))
+        assertTrue(session.updateProgress(8, 1.0, cursorRestricted = false))
+
+        val state = session.state.value
+        assertEquals(null, state.selectedAlternativeIndex)
+        assertEquals(0, state.alternativeCount)
+        assertEquals(0, state.snapshot.payload().alternativeFeatureCount)
+        assertTrue(state.progressMeters > 0.0)
+    }
+
+    @Test
+    fun `direct route replacement clears an alternative preview`() {
+        val session = NativeRouteOverlaySession(accent)
+        session.submitAlternatives(
+            1,
+            listOf(
+                candidate(longitudeOffset = 0.0, restricted = false),
+                candidate(longitudeOffset = 1.0, restricted = false),
+            ),
+            selectedIndex = 0,
+        )
+
+        assertTrue(session.submitRoute(2, points, listOf(false, false, false)))
+
+        val state = session.state.value
+        assertEquals(null, state.selectedAlternativeIndex)
+        assertEquals(0, state.alternativeCount)
+        assertEquals(0, state.snapshot.payload().alternativeFeatureCount)
+    }
+
+    @Test
+    fun `session rejects pathological restriction runs before publishing`() {
+        val session = NativeRouteOverlaySession(accent)
+        val count = NativeRouteOverlayCompiler.MAX_ROUTE_RUNS * 2 + 2
+        val densePoints = List(count) { index ->
+            NativeMapPoint(latitude = 45.0, longitude = 9.0 + index * 0.000001)
+        }
+
+        assertThrows(IllegalArgumentException::class.java) {
+            session.submitRoute(
+                revision = 1,
+                points = densePoints,
+                restricted = List(count) { index -> index % 2 == 0 },
+            )
+        }
+        assertEquals(-1L, session.state.value.revision)
     }
 
     @Test
@@ -112,6 +216,18 @@ class NativeRouteOverlaySessionTest {
     private fun NativeRouteOverlaySnapshot.completedGeoJson(): String =
         NativeRouteOverlayCompiler.compile(this).completedGeoJson
 
+    private fun NativeRouteOverlaySnapshot.alternativesGeoJson(): String =
+        NativeRouteOverlayCompiler.compile(this).alternativesGeoJson
+
     private fun NativeRouteOverlaySnapshot.payload(): NativeRouteOverlayPayload =
         NativeRouteOverlayCompiler.compile(this)
+
+    private fun candidate(longitudeOffset: Double, restricted: Boolean): NativeRouteCandidate =
+        NativeRouteCandidate(
+            points = listOf(
+                NativeMapPoint(latitude = 45.0, longitude = 9.0 + longitudeOffset),
+                NativeMapPoint(latitude = 45.1, longitude = 9.1 + longitudeOffset),
+            ),
+            restricted = listOf(restricted, restricted),
+        )
 }

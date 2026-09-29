@@ -16,8 +16,33 @@ class NativeRouteOverlayTest {
         val empty = "{\"type\":\"FeatureCollection\",\"features\":[]}"
         assertEquals(empty, payload.activeGeoJson)
         assertEquals(empty, payload.completedGeoJson)
+        assertEquals(empty, payload.alternativesGeoJson)
         assertEquals(0, payload.activeFeatureCount)
+        assertEquals(0, payload.alternativeFeatureCount)
         assertEquals(0, payload.pointCount)
+    }
+
+    @Test
+    fun `compiler emits unselected alternatives in stable route order`() {
+        val first = listOf(NativeMapPoint(45.0, 9.0), NativeMapPoint(45.1, 9.1))
+        val second = listOf(NativeMapPoint(46.0, 10.0), NativeMapPoint(46.1, 10.1))
+
+        val payload = NativeRouteOverlayCompiler.compile(
+            NativeRouteOverlaySnapshot(
+                activeRuns = emptyList(),
+                completedPoints = emptyList(),
+                accentArgb = 0xFF8B5CF6,
+                alternativeRoutes = listOf(first, second),
+            ),
+        )
+
+        assertEquals(2, payload.alternativeFeatureCount)
+        assertEquals(4, payload.pointCount)
+        assertTrue(payload.alternativesGeoJson.contains("[9.0,45.0],[9.1,45.1]"))
+        assertTrue(
+            payload.alternativesGeoJson.indexOf("[9.0,45.0]") <
+                payload.alternativesGeoJson.indexOf("[10.0,46.0]"),
+        )
     }
 
     @Test
@@ -140,6 +165,18 @@ class NativeRouteOverlayTest {
             NativeRouteOverlayCompiler.compile(
                 NativeRouteOverlaySnapshot(
                     activeRuns = emptyList(),
+                    completedPoints = emptyList(),
+                    accentArgb = 0xFF8B5CF6,
+                    alternativeRoutes = List(
+                        NativeRouteOverlayCompiler.MAX_ROUTE_ALTERNATIVES + 1,
+                    ) { line },
+                ),
+            )
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            NativeRouteOverlayCompiler.compile(
+                NativeRouteOverlaySnapshot(
+                    activeRuns = emptyList(),
                     completedPoints = List(NativeRouteOverlayCompiler.MAX_ROUTE_POINTS + 1) { point },
                     accentArgb = 0xFF8B5CF6,
                 ),
@@ -154,6 +191,8 @@ class NativeRouteOverlayTest {
         assertEquals(7f, NativeRouteLayerMetrics.widthPixels(18.0, 2.625f), 0f)
         assertEquals(0xFFE53935, NativeMapRouteRenderer.ZTL_RED_ARGB)
         assertEquals(0xFF9E9E9E, NativeMapRouteRenderer.COMPLETED_GREY_ARGB)
+        assertEquals(0x99757575, NativeMapRouteRenderer.ALTERNATIVE_GREY_ARGB)
+        assertEquals(7f, NativeRouteLayerMetrics.ALTERNATIVE_LOGICAL_WIDTH.toFloat(), 0f)
         assertEquals(0.28, NativeMapRouteRenderer.HALO_ALPHA, 0.0)
         assertThrows(IllegalArgumentException::class.java) {
             NativeRouteLayerMetrics.widthPixels(Double.NaN, 3f)
