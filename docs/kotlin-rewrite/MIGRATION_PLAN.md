@@ -142,7 +142,10 @@ The first native increment is intentionally isolated from production startup:
   `NativeMapCameraSession.kt` and `NativeMapCameraRenderer.kt` pair preserves
   the Flutter follow cadence, dead reckoning, navigation offset, pitch/bearing,
   recenter and gesture-detachment policy through sequence-safe MapLibre camera
-  commands. The private shell supplies only empty route/camera state. Location,
+  commands. `NativeMapCursorSession.kt` and
+  `NativeMapCursorOverlayView.kt` add a stale-fenced value boundary and
+  camera-reprojected Android painter for the default Flutter MapLibre cursor.
+  The private shell supplies only empty route/camera/cursor state. Location,
   product route data, remaining overlays, production navigation, screenshots
   and device evidence remain unwired.
 - `service/navigation/NativeNavigationLifecycle.kt` and
@@ -523,21 +526,25 @@ broader cross-language coverage and a native store are still required.
   projector with bounded alternative selection and explicit commit;
   `NativeMapCameraSession.kt` and `NativeMapCameraRenderer.kt`
   provide a revision-safe value session and imperative MapLibre adapter for
-  camera follow. Product `feature/navigation/map`, fix/route feeds and
+  camera follow; `NativeMapCursorSession.kt` and
+  `NativeMapCursorOverlayView.kt` provide stale-fenced cursor state and a
+  MapLibre-projected, pitch-aware default-arrow painter. Product
+  `feature/navigation/map`, fix/route feeds and
   remaining overlay UI layers remain.
 - **Dependencies:** MapLibre Native Android OpenGL `13.5.2` is strictly pinned
   to the same artifact used by `maplibre_android 0.3.6`; its POM declares
   BSD-2-Clause and the resolved runtime graph contains no Google Play Services.
 - **Migration impact:** `mapEngine`, tile URL, cursor and map settings must remain.
 - **User-visible impact:** Same map engine default, toggle, overlays, tilt, bearing and controls.
-- **Tests:** 42 deterministic JVM tests cover light/dark style output, tile URL
+- **Tests:** 50 deterministic JVM tests cover light/dark style output, tile URL
   safety/escaping, ZTL route segmentation, viewport/zoom marker culling,
   audited version/camera values, exact idempotent MapView lifecycle ordering,
   bounded GeoJSON/coordinate validation, physical-pixel widths/colors and
   stale-style rejection, revision fencing, bounded route alternatives,
   stale-safe selection/commit, monotonic progress, interpolated cursor, live
   classification refresh, camera dead reckoning, heading/north-up, turn
-  capping, recenter and gesture detachment; ten Dart source/Gradle contracts
+  capping, recenter and gesture detachment, cursor revision fencing, coordinate/
+  colour validation and pitch-aware geometry; twelve Dart source/Gradle contracts
   lock the private host, route renderer/session and Flutter route/camera
   oracles. Screenshot/golden and device rendering tests remain.
 - **Parity evidence:** the headless policies and private native raster renderer
@@ -545,7 +552,9 @@ broader cross-language coverage and a native store are still required.
   texture mode. Its completed-grey and active accent/ZTL layers preserve the
   Flutter ordering, round joins/caps, 18/9/9 logical widths and 0.28 halo alpha.
   Muted alternatives preserve grey-600 at 0.6 alpha and seven-logical-pixel
-  width below the selected route.
+  width below the selected route. The dormant cursor preserves the generic
+  48x76 arrow, 1.4 scale, default violet, HSL treatment and pitch-dependent
+  shadow/flattening while MapLibre owns coordinate projection.
   Its dormant camera boundary preserves the 33 ms cadence, three-second dead
   reckoning cap, 40/55-degree pitch, navigation shift and gesture-detached
   follow without reading location. Reference screenshots, live route/fix

@@ -29,6 +29,7 @@ import app.roadstr.R
 import app.roadstr.core.ui.theme.RoadstrTheme
 import app.roadstr.core.ui.theme.RoadstrThemeId
 import app.roadstr.feature.map.NativeMapCameraSession
+import app.roadstr.feature.map.NativeMapCursorSession
 import app.roadstr.feature.map.NativeMapLibreHost
 import app.roadstr.feature.map.NativeRouteOverlaySession
 import kotlinx.coroutines.delay
@@ -57,6 +58,8 @@ fun NativeRoadstrShell() {
         val routeState by routeSession.state.collectAsState()
         val cameraSession = remember { NativeMapCameraSession() }
         val cameraState by cameraSession.state.collectAsState()
+        val cursorSession = remember { NativeMapCursorSession() }
+        val cursorState by cursorSession.state.collectAsState()
         LaunchedEffect(cameraSession, cameraState.frameActive) {
             while (cameraSession.state.value.frameActive) {
                 delay(NativeMapCameraSession.FOLLOW_FRAME_MILLIS)
@@ -78,6 +81,7 @@ fun NativeRoadstrShell() {
                     dark = themeId.dark,
                     routeOverlay = routeState.snapshot,
                     cameraCommand = cameraState.command,
+                    cursorSnapshot = cursorState,
                     onCameraGesture = cameraSession::onUserGesture,
                     modifier = Modifier.fillMaxSize(),
                 )

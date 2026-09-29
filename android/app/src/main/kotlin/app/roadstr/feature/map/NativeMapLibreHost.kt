@@ -3,6 +3,8 @@ package app.roadstr.feature.map
 import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.res.Configuration
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -44,6 +46,7 @@ fun NativeMapLibreHost(
     dark: Boolean,
     routeOverlay: NativeRouteOverlaySnapshot,
     cameraCommand: NativeMapCameraCommand?,
+    cursorSnapshot: NativeMapCursorSnapshot,
     onCameraGesture: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -58,6 +61,7 @@ fun NativeMapLibreHost(
             initialStyleJson = styleJson,
             initialRouteOverlay = routeOverlay,
             initialCameraCommand = cameraCommand,
+            initialCursorSnapshot = cursorSnapshot,
             onCameraGesture = onCameraGesture,
         )
     }
@@ -70,6 +74,9 @@ fun NativeMapLibreHost(
     }
     LaunchedEffect(host, cameraCommand) {
         host.updateCamera(cameraCommand)
+    }
+    LaunchedEffect(host, cursorSnapshot) {
+        host.updateCursor(cursorSnapshot)
     }
 
     DisposableEffect(host, lifecycleOwner) {
@@ -108,18 +115,21 @@ fun NativeMapLibreHost(
     }
 
     AndroidView(
-        factory = { host.mapView },
+        factory = { host.rootView },
         modifier = modifier.semantics { contentDescription = mapDescription },
     )
 }
 
 private class NativeMapLibreViewHost private constructor(
+    val rootView: FrameLayout,
     val mapView: MapView,
     val lifecycle: NativeMapLifecycleController,
     private val routeRenderer: NativeMapRouteRenderer,
     private val cameraRenderer: NativeMapCameraRenderer,
+    private val cursorOverlay: NativeMapCursorOverlayView,
     private val onCameraGesture: () -> Unit,
     initialCameraCommand: NativeMapCameraCommand?,
+    initialCursorSnapshot: NativeMapCursorSnapshot,
     initialStyleJson: String,
 ) {
     private var active = true
@@ -132,15 +142,21 @@ private class NativeMapLibreViewHost private constructor(
             onCameraGesture()
         }
     }
+    private val cameraMoveListener = MapLibreMap.OnCameraMoveListener {
+        if (active) cursorOverlay.refreshProjection()
+    }
 
     init {
         lifecycle.handle(NativeMapLifecycleEvent.Create)
         cameraRenderer.update(initialCameraCommand)
+        cursorOverlay.update(initialCursorSnapshot)
         mapView.getMapAsync { readyMap ->
             if (!active) return@getMapAsync
             map = readyMap
             readyMap.addOnCameraMoveStartedListener(cameraMoveStartedListener)
+            readyMap.addOnCameraMoveListener(cameraMoveListener)
             cameraRenderer.attach(readyMap)
+            cursorOverlay.attach(readyMap)
             applyStyleIfNeeded()
         }
     }
@@ -161,11 +177,18 @@ private class NativeMapLibreViewHost private constructor(
         cameraRenderer.update(command)
     }
 
+    fun updateCursor(snapshot: NativeMapCursorSnapshot) {
+        if (!active) return
+        cursorOverlay.update(snapshot)
+    }
+
     fun dispose() {
         if (!active) return
         active = false
         map?.removeOnCameraMoveStartedListener(cameraMoveStartedListener)
+        map?.removeOnCameraMoveListener(cameraMoveListener)
         cameraRenderer.detach()
+        cursorOverlay.detach()
         map = null
         routeRenderer.detach()
         styleGeneration.dispose()
@@ -192,6 +215,7 @@ private class NativeMapLibreViewHost private constructor(
             initialStyleJson: String,
             initialRouteOverlay: NativeRouteOverlaySnapshot,
             initialCameraCommand: NativeMapCameraCommand?,
+            initialCursorSnapshot: NativeMapCursorSnapshot,
             onCameraGesture: () -> Unit,
         ): NativeMapLibreViewHost {
             MapLibre.getInstance(context.applicationContext)
@@ -218,6 +242,21 @@ private class NativeMapLibreViewHost private constructor(
                     ).backgroundArgb.toInt(),
                 )
             val mapView = MapView(context, options)
+            val cursorOverlay = NativeMapCursorOverlayView(context)
+            val matchParent = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+            )
+            val rootView = FrameLayout(context).apply {
+                addView(mapView, matchParent)
+                addView(
+                    cursorOverlay,
+                    FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                    ),
+                )
+            }
             val routeRenderer = NativeMapRouteRenderer(
                 displayDensity = context.resources.displayMetrics.density,
                 initialSnapshot = initialRouteOverlay,
@@ -235,12 +274,15 @@ private class NativeMapLibreViewHost private constructor(
                 },
             )
             return NativeMapLibreViewHost(
+                rootView = rootView,
                 mapView = mapView,
                 lifecycle = lifecycle,
                 routeRenderer = routeRenderer,
                 cameraRenderer = cameraRenderer,
+                cursorOverlay = cursorOverlay,
                 onCameraGesture = onCameraGesture,
                 initialCameraCommand = initialCameraCommand,
+                initialCursorSnapshot = initialCursorSnapshot,
                 initialStyleJson = initialStyleJson,
             )
         }

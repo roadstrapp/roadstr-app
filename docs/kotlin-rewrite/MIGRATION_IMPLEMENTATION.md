@@ -30,8 +30,11 @@ Flutter is still the only launcher and production UI.
   progress, cursor interpolation and late ZTL refreshes. `NativeMapCameraSession.kt` and
   `NativeMapCameraRenderer.kt` add a sequence-safe camera-follow boundary with
   the Flutter cadence, dead reckoning, navigation shift, bearing/pitch,
-  recenter and gesture-detachment policies. The private shell collects empty
-  route and camera state and has no product route or GPS feed.
+  recenter and gesture-detachment policies. `NativeMapCursorSession.kt` and
+  `NativeMapCursorOverlayView.kt` add a monotonic user-position boundary and
+  camera-reprojected painter matching the default Flutter MapLibre arrow. The
+  private shell collects empty route, camera and cursor state and has no
+  product route or GPS feed.
 - `LegacyStorageContract.kt` records the audited Hive/secure-storage names and
   dynamic per-identity key prefixes.
 - `LegacyStorageModels.kt` defines a bounded normalized snapshot boundary,
