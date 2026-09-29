@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_es.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">Cancelar</string>
+    <string name="native_mode_car">Coche</string>
+    <string name="native_mode_bike">Bici</string>
+    <string name="native_mode_walk">A pie</string>
+    <string name="native_transport_mode_walk">A pie</string>
+    <string name="native_transport_mode_transit">Transporte</string>
+    <string name="native_transit_no_service_here">No hay datos de transporte público para esta zona</string>
+    <string name="native_transit_request_failed">No se pudo cargar el transporte público</string>
+    <string name="native_transit_retry">Reintentar</string>
+    <string name="native_transit_walk_leg">A pie</string>
+    <string name="native_transit_your_location">Tu ubicación</string>
+    <string name="native_transit_destination">Destino</string>
+    <string name="native_transit_scheduled_times">Los horarios provienen de los horarios publicados</string>
+    <string name="native_transit_direct">Directo</string>
+    <string name="native_transit_transfers">%1$d transbordos</string>
+</resources>

@@ -26,6 +26,7 @@ integration work, while Flutter remains the sole launcher.
 | `service.navigation` | map-screen lifecycle/navigation state | 30-second background grace, generation-safe pause/resume, GPS retention during navigation, detach cleanup, foreground-only wakelock policy, AOSP foreground-service adapter, opt-in `MainActivity` method/event bridges, process-local running-state query and fix fan-out, isolated Dart wrappers, serialized ownership coordinator and disabled-by-default start/stop/dispose/reconcile wiring in both renderers |
 | `service.notifications` | `navigation_notification_service.dart` | 3-second distance-only throttle, immediate maneuver changes, reset semantics and private ongoing notification metadata; the disabled-by-default canary now mirrors bounded updates through the service `NotificationManager` adapter using the existing channel/ID, with Flutter completing last and remaining authoritative |
 | `feature.map` | `maplibre_map_screen.dart`, `map_screen.dart`, map services/widgets | raster MapLibre style JSON, dark recoloring, tile URL admission/escaping, ZTL/traffic route-run segmentation and zoom/viewport marker culling; a lifecycle-safe MapLibre Native 13.5.2 AndroidView now installs bounded selected/completed/muted-alternative/traffic route and per-leg transit layers, consumes revision-safe route/transit/camera/cursor/point sessions and emits typed marker/map gestures with Flutter-parity 60 m alternative selection only in the private Compose shell, while product data/UI remain unwired |
+| `feature.transit` | `transit_itinerary_widget.dart`, `transit_itinerary.dart`, `units.dart`, 27 ARB files | bounded card projection, metric/imperial formatting, boarding/line/timetable details, revision-safe UI/map selection, loading/ready/no-service/failure states and an accessible dormant Compose panel with generated locale resources |
 | `core.ui` / `feature.home` | `app_theme.dart`, Flutter Android embedding | exact four-palette colors and stored ordinal aliases, edge-to-edge private Compose/MapLibre canary, non-exported/no-intent-filter shell contract; no production startup or storage access |
 | `storage` | encrypted Hive search history | canonical encrypted history file, serialized prepend/clear/import, atomic recovery, Keystore boundary and migration-marker ciphertext binding |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
@@ -295,9 +296,15 @@ detached from secure storage and startup. See
   layer preserves operator color or theme-accent fallback at seven logical
   pixels and secondary-text street legs at 0.7 alpha and four logical pixels,
   below every road-route layer and across style replacement.
-  The shell supplies empty route, transit, camera, cursor and point feeds and has no location component or
+  A revision-safe transit journey session now projects up to eight cards and
+  synchronizes their selection with that map layer. The packaged Compose panel
+  covers loading, ready, no-service and failure states plus boarding, leg-chain,
+  walking, timetable and transport-mode detail; its 15 visible values come from
+  generated Android resources for all 27 Flutter locales. The shell supplies
+  empty route, transit, camera, cursor and point feeds and has no location component or
   production route/transit feed; the native service is intentionally not
-  invoked by the shell. Live data/product handlers, itinerary UI, screenshots and
+  invoked by the shell and the panel therefore remains hidden. Live data/product
+  handlers, screenshots and
   physical-device evidence remain open.
 - Native navigation lifecycle and notification policies are now deterministic,
   and the Android location foreground-service adapter is registered with an
@@ -317,7 +324,7 @@ detached from secure storage and startup. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 692 Flutter tests passed, including the native shell,
+- `flutter test`: 696 Flutter tests passed, including the native shell,
   private MapLibre host, route-overlay, route-session, transit-overlay/session, camera-session and
   user-cursor, point-overlay/interaction and route-traffic Gradle/source contracts, the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
@@ -330,7 +337,7 @@ detached from secure storage and startup. See
   compile-time rollout, best-effort retry, serialized ownership lifecycle and
   service reconciliation, plus the bounded notification bridge and
   native-before-Flutter update/cancel ordering.
-- `./gradlew :app:testDebugUnitTest`: 344 Kotlin tests passed, including the
+- `./gradlew :app:testDebugUnitTest`: 354 Kotlin tests passed, including the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
   GeoJSON, Flutter-compatible route and per-leg transit metrics/colors,
@@ -349,8 +356,9 @@ detached from secure storage and startup. See
   transport reader, encrypted/atomic search-history persistence and migration
   binding, native bounded-HTTP integration and headless routing/search service
   suites, including Valhalla avoidance and OSRM re-timing execution, plus the
-  Transitous request/parser/Berlin fixture, bounded service retry/cancellation
-  and parsed-plan map projection, plus the
+  Transitous request/parser/Berlin fixture, bounded service retry/cancellation,
+  parsed-plan map projection, transit card formatting and revision-safe
+  UI/map selection, plus the
   headless AOSP GPS normalization, last-known, watchdog and cancellation suite,
   plus the native map style, tile safety, route segmentation, marker-culling,
   lifecycle/grace-period, navigation-notification policy, foreground-service

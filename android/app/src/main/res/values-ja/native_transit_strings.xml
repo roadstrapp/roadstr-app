@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ja.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">キャンセル</string>
+    <string name="native_mode_car">車</string>
+    <string name="native_mode_bike">自転車</string>
+    <string name="native_mode_walk">徒歩</string>
+    <string name="native_transport_mode_walk">徒歩</string>
+    <string name="native_transport_mode_transit">公共交通</string>
+    <string name="native_transit_no_service_here">このエリアの公共交通データがありません</string>
+    <string name="native_transit_request_failed">公共交通を読み込めませんでした</string>
+    <string name="native_transit_retry">再試行</string>
+    <string name="native_transit_walk_leg">徒歩</string>
+    <string name="native_transit_your_location">現在地</string>
+    <string name="native_transit_destination">目的地</string>
+    <string name="native_transit_scheduled_times">時刻は公開された時刻表に基づきます</string>
+    <string name="native_transit_direct">直通</string>
+    <string name="native_transit_transfers">乗換 %1$d 回</string>
+</resources>

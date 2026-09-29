@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_nl.arb. Do not edit. -->
+<resources>
+    <string name="native_cancel">Annuleren</string>
+    <string name="native_mode_car">Auto</string>
+    <string name="native_mode_bike">Fiets</string>
+    <string name="native_mode_walk">Te voet</string>
+    <string name="native_transport_mode_walk">Te voet</string>
+    <string name="native_transport_mode_transit">OV</string>
+    <string name="native_transit_no_service_here">Geen openbaarvervoersgegevens voor dit gebied</string>
+    <string name="native_transit_request_failed">Openbaar vervoer kon niet worden geladen</string>
+    <string name="native_transit_retry">Opnieuw proberen</string>
+    <string name="native_transit_walk_leg">Lopen</string>
+    <string name="native_transit_your_location">Jouw locatie</string>
+    <string name="native_transit_destination">Bestemming</string>
+    <string name="native_transit_scheduled_times">Tijden komen uit gepubliceerde dienstregelingen</string>
+    <string name="native_transit_direct">Direct</string>
+    <string name="native_transit_transfers">%1$d overstappen</string>
+</resources>
