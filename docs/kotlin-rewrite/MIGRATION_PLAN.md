@@ -417,6 +417,9 @@ broader cross-language coverage and a native store are still required.
   by both production map implementations.
   `SearchResponseProtocol.kt` mirrors
   Nominatim forward/reverse, Photon and Overpass response normalization. The
+  `OsmPlaceDetailsProtocol.kt` mirrors the bounded public OSM tag projection,
+  localized names/descriptions, safe HTTPS contacts and contextual parking,
+  charging, fuel, lodging and food fields used by the place sheet. The
   `SearchRankingProtocol.kt` mirrors deterministic provider-phase planning,
   dedupe, ranking, retry and merge policy. `SearchHistoryProtocol.kt` mirrors
   tolerant history decoding, recency, deduplication, limits and JSON values.
@@ -616,7 +619,7 @@ broader cross-language coverage and a native store are still required.
 - **New Kotlin files/modules:** `feature/*`, `core/ui/theme`, Android resources/
   locale resolver and semantics. Current bounded slices add the transit
   presenter/panel and `feature/search/NativeSearchPresentation.kt` plus
-  `NativeSearchOverlay.kt`.
+  `NativeSearchOverlay.kt`, and the place presenter/panel.
 - **Current implementation:** The private shell packages a hidden
   public-transport itinerary panel with loading, ready, no-service and failure
   states, up to eight selectable cards, boarding/walking/line/timetable detail,
@@ -630,7 +633,12 @@ broader cross-language coverage and a native store are still required.
   the exact 11 nearby categories; metric/imperial distances; GPS-disabled
   controls; keyboard/inset handling and accessibility semantics. It owns no
   search service, history store or location. Nineteen search values are
-  independently generated for all 27 locales.
+  independently generated for all 27 locales. A third hidden place-detail
+  sheet projects bounded localized OSM data, opening-hours transitions, safe
+  typed website/Wikipedia callbacks and contextual parking, charging, fuel,
+  lodging and food sections. Its revision-safe session owns no provider,
+  storage, image loader or intent launcher, and 52 place values are generated
+  independently for all 27 locales.
 - **Dependencies:** Compose Material 3 and AndroidX only after license review.
 - **Migration impact:** Settings names/defaults and onboarding/disclosure keys must map exactly.
 - **User-visible impact:** Must feel like an update, not a redesign.
@@ -639,13 +647,16 @@ broader cross-language coverage and a native store are still required.
   appearance changes and synchronized UI/map selection. Ten search JVM tests
   lock catalogue/order, row projection, validation and work bounds, query/
   outcome revisions, GPS gating, empty behavior, history clear, units and hide
-  fencing. Eight Dart contracts verify both 27-locale resource sets, Flutter
-  formatter/catalogue/work-bound oracles, Compose accessibility structure and
-  dormant shell ownership. Compose screenshot comparisons, font-scale/TalkBack
-  and compact-device layouts remain.
-- **Parity evidence:** public-transport and active-search states have their
-  first headless and packaged Compose evidence in `UI_PARITY.md`; every other
-  state and visual/orientation evidence remain open.
+  fencing. Eight place parser/presentation JVM cases lock localized OSM
+  extraction, safe contact admission and contextual fields; seven more lock
+  title/article/opening projections and revision fencing. Twelve Dart contracts
+  verify all three 27-locale resource sets, Flutter formatter/catalogue/work-
+  bound oracles, Compose accessibility structure and dormant shell ownership.
+  Compose screenshot comparisons, drag behavior, font-scale/TalkBack and
+  compact-device layouts remain.
+- **Parity evidence:** public-transport, active-search and place-detail states
+  have their first headless and packaged Compose evidence in `UI_PARITY.md`;
+  every other state and visual/orientation evidence remain open.
 - **Security/privacy impact:** preserve privacy disclosure wording and task-switcher handling.
 - **Battery/performance impact:** frame/jank and recomposition profile versus Flutter references.
 - **Acceptance criteria:** no shipped feature remains PARTIAL and no locale is dropped.

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_lt.arb. Do not edit. -->
+<resources>
+    <string name="native_place_loading">Įkeliama informacija…</string>
+    <string name="native_place_cancel">Atšaukti</string>
+    <string name="native_place_navigate">Naviguoti čia</string>
+    <string name="native_place_read_wikipedia">Skaityti Vikipedijoje</string>
+    <string name="native_place_search_engine">Ieškoti %1$s</string>
+    <string name="native_place_osm_details">Informacija iš OpenStreetMap</string>
+    <string name="native_place_category">Kategorija</string>
+    <string name="native_place_operator">Operatorius</string>
+    <string name="native_place_cuisine">Virtuvė</string>
+    <string name="native_place_wheelchair_yes">Prieinama neįgaliojo vežimėliu</string>
+    <string name="native_place_wheelchair_limited">Ribotas pritaikymas neįgaliojo vežimėliui</string>
+    <string name="native_place_wheelchair_no">Neprieinama neįgaliojo vežimėliu</string>
+    <string name="native_place_contact">Kontaktai</string>
+    <string name="native_place_address">Adresas</string>
+    <string name="native_place_website">Svetainė</string>
+    <string name="native_place_access_private">Privati prieiga</string>
+    <string name="native_place_access_customers">Tik klientams</string>
+    <string name="native_place_access_permit">Reikalingas leidimas</string>
+    <string name="native_place_access_no">Viešos prieigos nėra</string>
+    <string name="native_place_access_destination">Prieiga tik į paskirties vietą</string>
+    <string name="native_place_lightning">Priima Lightning</string>
+    <string name="native_place_bitcoin">Priima Bitcoin</string>
+    <string name="native_place_parking">Stovėjimo aikštelė</string>
+    <string name="native_place_parking_surface">Antžeminė</string>
+    <string name="native_place_parking_underground">Požeminė</string>
+    <string name="native_place_parking_multi_storey">Daugiaaukštė</string>
+    <string name="native_place_parking_street_side">Šalia gatvės</string>
+    <string name="native_place_parking_lane">Gatvėje</string>
+    <string name="native_place_parking_rooftop">Ant stogo</string>
+    <string name="native_place_fee">Mokestis</string>
+    <string name="native_place_free">Nemokama</string>
+    <string name="native_place_paid">Mokama</string>
+    <string name="native_place_capacity">Talpa</string>
+    <string name="native_place_max_stay">Ilgiausia stovėjimo trukmė</string>
+    <string name="native_place_price">Kaina</string>
+    <string name="native_place_charging">Įkrovimas</string>
+    <string name="native_place_connector_type2">2 tipas</string>
+    <string name="native_place_connector_chademo">CHAdeMO</string>
+    <string name="native_place_connector_ccs">CCS</string>
+    <string name="native_place_diesel">Dyzelinas</string>
+    <string name="native_place_petrol95">Benzinas 95</string>
+    <string name="native_place_smoking_allowed">Rūkyti leidžiama</string>
+    <string name="native_place_smoking_outside">Rūkymas lauke</string>
+    <string name="native_place_smoking_areas">Rūkymo zonos</string>
+    <string name="native_place_smoke_free">Nerūkoma</string>
+    <string name="native_place_outdoor_seating">Lauko sėdimos vietos</string>
+    <string name="native_place_takeaway">Išsinešti</string>
+    <string name="native_place_takeaway_only">Tik išsinešti</string>
+    <string name="native_place_open_now">Dabar atidaryta</string>
+    <string name="native_place_closed_now">Uždaryta</string>
+    <string name="native_place_opens_at">Atsidaro: %1$s</string>
+    <string name="native_place_closes_at">Užsidaro: %1$s</string>
+</resources>
