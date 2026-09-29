@@ -50,6 +50,13 @@ renderer and uses a generation gate so stale asynchronous callbacks cannot
 attach sources to an obsolete style. The private shell deliberately supplies
 an empty snapshot: no product route, GPS fix or user location reaches it yet.
 
+`NativeRouteOverlaySession` is the stateful boundary before this renderer. It
+accepts only newer route revisions, rejects backwards progress, interpolates
+the cursor along WGS84 geometry, keeps completed and remaining segments
+separate, and can refresh restriction flags without replacing the route. It
+publishes immutable snapshots through `StateFlow`; the private shell collects
+that flow but has no route producer attached yet.
+
 ## Dependency and licence boundary
 
 The Flutter plugin `maplibre_android 0.3.6` requests
@@ -75,10 +82,14 @@ debug-host selection check.
   JSON, tile URL admission/escaping, ZTL segmentation and marker culling.
 - Seven route-overlay JVM cases lock bounded deterministic GeoJSON, coordinate
   and ARGB rejection, density-corrected metrics/colors and style generations.
-- Four Dart contracts lock the strict Gradle version, lifecycle-compose
+- Seven route-session JVM cases lock revision fencing, monotonic progress,
+  terminal completion, cursor interpolation, classification refresh and theme
+  preservation.
+- Six Dart contracts lock the strict Gradle version, lifecycle-compose
   dependency, real `MapView`/style/texture-mode binding, absence of a location
-  component, route source/layer constants and ownership by the private shell.
-- The complete verification run passes 672 Flutter tests, 256 Kotlin tests,
+  component, route source/layer constants, route-progress oracle and ownership
+  by the private shell.
+- The complete verification run passes 674 Flutter tests, 263 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 

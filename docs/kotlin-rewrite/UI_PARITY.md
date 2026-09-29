@@ -40,9 +40,10 @@ MapLibre Native raster view with the Flutter initial camera and texture mode.
 Only an explicit internal invocation can start its admitted HTTPS OSM tile
 requests; it does not read legacy/native storage or request location. The shell
 also installs the Flutter-compatible active/ZTL/completed route sources and
-layers with an intentionally empty snapshot. This proves renderer integration,
-not visual route parity: it does not yet claim screen, navigation, locale,
-accessibility, live-overlay, gesture or screenshot parity.
+layers through a revision-safe StateFlow route session with an intentionally
+empty snapshot. This proves renderer integration, not visual route parity: it
+does not yet claim screen, navigation, locale, accessibility, live-overlay,
+gesture or screenshot parity.
 
 ## Non-negotiable UX invariants
 
