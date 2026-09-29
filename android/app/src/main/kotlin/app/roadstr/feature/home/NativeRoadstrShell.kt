@@ -24,6 +24,7 @@ import app.roadstr.R
 import app.roadstr.core.ui.theme.RoadstrTheme
 import app.roadstr.core.ui.theme.RoadstrThemeId
 import app.roadstr.feature.map.NativeMapLibreHost
+import app.roadstr.feature.map.NativeRouteOverlaySnapshot
 
 /**
  * Dormant native UI boundary used to prove Compose and MapLibre packaging.
@@ -42,6 +43,7 @@ fun NativeRoadstrShell() {
     }
     RoadstrTheme(themeId = themeId) {
         val shellDescription = stringResource(R.string.native_shell_description)
+        val routeOverlay = NativeRouteOverlaySnapshot.empty(themeId.accentArgb)
         Scaffold(
             modifier = Modifier
                 .fillMaxSize()
@@ -55,6 +57,7 @@ fun NativeRoadstrShell() {
             ) {
                 NativeMapLibreHost(
                     dark = themeId.dark,
+                    routeOverlay = routeOverlay,
                     modifier = Modifier.fillMaxSize(),
                 )
                 Surface(
