@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_lv.arb. Do not edit. -->
+<resources>
+    <string name="native_nav_now">Tagad</string>
+    <string name="native_nav_then">pēc tam %1$s</string>
+    <string name="native_nav_arrival_ahead">Jūs ieradīsieties galamērķī</string>
+    <string name="native_nav_arrival_left">Jūs ieradīsieties galamērķī kreisajā pusē</string>
+    <string name="native_nav_arrival_right">Jūs ieradīsieties galamērķī labajā pusē</string>
+    <string name="native_nav_eta">Ierašanās %1$s</string>
+    <string name="native_nav_duration_min">%1$d min</string>
+    <string name="native_nav_duration_hour_min">%1$dh %2$dmin</string>
+    <string name="native_nav_exit">Iziet no navigācijas?</string>
+    <string name="native_nav_settings">Iestatījumi</string>
+    <string name="native_nav_voice">Balss vadība</string>
+    <string name="native_nav_speed_limit">Ātruma ierobežojums</string>
+    <string name="native_nav_altitude">Rādīt augstumu</string>
+</resources>

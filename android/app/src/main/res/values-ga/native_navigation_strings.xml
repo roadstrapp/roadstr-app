@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ga.arb. Do not edit. -->
+<resources>
+    <string name="native_nav_now">Anois</string>
+    <string name="native_nav_then">ansin %1$s</string>
+    <string name="native_nav_arrival_ahead">Sroichfidh tú do cheann scríbe</string>
+    <string name="native_nav_arrival_left">Sroichfidh tú do cheann scríbe ar chlé</string>
+    <string name="native_nav_arrival_right">Sroichfidh tú do cheann scríbe ar dheis</string>
+    <string name="native_nav_eta">Arr. %1$s</string>
+    <string name="native_nav_duration_min">%1$d nóim</string>
+    <string name="native_nav_duration_hour_min">%1$dh %2$dnóim</string>
+    <string name="native_nav_exit">Fág an nascleanúint?</string>
+    <string name="native_nav_settings">Socruithe</string>
+    <string name="native_nav_voice">Treoir ghutha</string>
+    <string name="native_nav_speed_limit">Teorainn luais</string>
+    <string name="native_nav_altitude">Taispeáin airde</string>
+</resources>

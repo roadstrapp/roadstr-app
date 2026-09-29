@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_hr.arb. Do not edit. -->
+<resources>
+    <string name="native_nav_now">Sada</string>
+    <string name="native_nav_then">zatim %1$s</string>
+    <string name="native_nav_arrival_ahead">Stići ćete na odredište</string>
+    <string name="native_nav_arrival_left">Stići ćete na odredište s lijeve strane</string>
+    <string name="native_nav_arrival_right">Stići ćete na odredište s desne strane</string>
+    <string name="native_nav_eta">Dol. %1$s</string>
+    <string name="native_nav_duration_min">%1$d min</string>
+    <string name="native_nav_duration_hour_min">%1$dh %2$dmin</string>
+    <string name="native_nav_exit">Izaći iz navigacije?</string>
+    <string name="native_nav_settings">Postavke</string>
+    <string name="native_nav_voice">Glasovno vođenje</string>
+    <string name="native_nav_speed_limit">Ograničenje brzine</string>
+    <string name="native_nav_altitude">Prikaži nadmorsku visinu</string>
+</resources>
