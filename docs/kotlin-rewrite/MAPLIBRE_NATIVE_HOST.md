@@ -80,6 +80,22 @@ a different map instance is attached. The private shell owns the session and
 only drives frames while it reports active work. It submits no fix, requests no
 permission and has no location source, so this boundary remains dormant.
 
+## User cursor boundary
+
+`NativeMapCursorSession` is a sensor-free value boundary for a future native
+location producer. Monotonic sequence numbers reject repeated or late fixes;
+an explicit clear both hides the cursor and fences older callbacks. Coordinates
+are finite WGS84 values, and the colour input is a validated 32-bit ARGB value.
+
+`NativeMapCursorOverlayView` sits above the `MapView` in a non-interactive,
+accessibility-hidden `FrameLayout` child. It asks MapLibre to project the
+current coordinate and invalidates on every camera move. The painter preserves
+the Flutter generic cursor's 48x76 geometry, 1.4 scale, default violet, HSL
+gradient/outline and pitch-dependent flattening/contact shadow. It remains
+screen-up while the heading-up camera turns beneath it. The private shell
+creates the session but submits no position and reads no location, so nothing
+is rendered until a future explicitly owned fix feed is connected.
+
 ## Dependency and licence boundary
 
 The Flutter plugin `maplibre_android 0.3.6` requests
@@ -112,12 +128,15 @@ debug-host selection check.
 - Nine camera-session JVM cases lock stale-fix rejection, heading/north-up
   projection, navigation shift, pitch, dead reckoning, turn capping, recenter
   and gesture detachment.
-- Ten Dart contracts lock the strict Gradle version, lifecycle-compose
+- Eight cursor-session JVM cases lock stale-fix fencing, clear behavior,
+  coordinate/ARGB validation, Flutter geometry, pitch clamping and HSL colour
+  treatment.
+- Twelve Dart contracts lock the strict Gradle version, lifecycle-compose
   dependency, real `MapView`/style/texture-mode binding, absence of a location
   component, selected/muted route source/layer constants, route-choice/progress
   oracle and ownership by the private shell, plus the Flutter camera oracle
-  and MapLibre command wiring.
-- The complete verification run passes 678 Flutter tests, 278 Kotlin tests,
+  and MapLibre command wiring, cursor geometry and dormant ownership.
+- The complete verification run passes 680 Flutter tests, 286 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 
@@ -126,8 +145,8 @@ debug-host selection check.
 - physical-device launch, renderer output and network/tile evidence;
 - screenshot/golden comparison in light/dark themes and compact/landscape UI;
 - live route/source update, remaining overlays and attribution interaction;
-- native GPS/location ownership, live camera binding and physical-device
-  camera traces;
+- native GPS/location ownership, live camera/cursor binding and physical-device
+  camera/cursor traces;
 - frame time, memory, thermal and battery comparison;
 - process recreation and saved camera state;
 - release/R8/F-Droid dependency and licence verification.
