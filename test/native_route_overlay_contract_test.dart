@@ -30,6 +30,26 @@ void main() {
     expect(kotlin, contains('const val HALO_ALPHA = 0.28'));
   });
 
+  test('native alternative layer retains Flutter muted preview styling', () {
+    final dart = flutterMap.readAsStringSync();
+    final kotlin = renderer.readAsStringSync();
+
+    expect(dart, contains('for (final alt in alternativePolylines)'));
+    expect(
+      dart,
+      contains('Colors.grey.shade600.withValues(alpha: 0.6)'),
+    );
+    expect(dart, contains('width: routeWidthPx(7)'));
+    expect(kotlin, contains('roadstr-route-alternatives-source'));
+    expect(kotlin, contains('roadstr-route-alternatives'));
+    expect(kotlin, contains('style.addLayerBelow('));
+    expect(kotlin, contains('ALTERNATIVE_GREY_ARGB = 0x99757575'));
+    expect(
+      kotlin,
+      contains('NativeRouteLayerMetrics.ALTERNATIVE_LOGICAL_WIDTH'),
+    );
+  });
+
   test('private shell installs empty route sources without GPS or user data',
       () {
     final rendererSource = renderer.readAsStringSync();

@@ -7,7 +7,7 @@ import org.maplibre.android.style.layers.Property
 import org.maplibre.android.style.layers.PropertyFactory
 import org.maplibre.android.style.sources.GeoJsonSource
 
-/** MapLibre source/layer adapter for active, restricted and completed routes. */
+/** MapLibre source/layer adapter for alternative, active, restricted and completed routes. */
 internal class NativeMapRouteRenderer(
     displayDensity: Float,
     initialSnapshot: NativeRouteOverlaySnapshot,
@@ -22,6 +22,10 @@ internal class NativeMapRouteRenderer(
     )
     private val completedWidth = NativeRouteLayerMetrics.widthPixels(
         NativeRouteLayerMetrics.COMPLETED_LOGICAL_WIDTH,
+        displayDensity,
+    )
+    private val alternativeWidth = NativeRouteLayerMetrics.widthPixels(
+        NativeRouteLayerMetrics.ALTERNATIVE_LOGICAL_WIDTH,
         displayDensity,
     )
 
@@ -46,6 +50,9 @@ internal class NativeMapRouteRenderer(
     }
 
     private fun ensureSources(style: Style) {
+        if (style.getSource(ALTERNATIVES_SOURCE_ID) == null) {
+            style.addSource(GeoJsonSource(ALTERNATIVES_SOURCE_ID, payload.alternativesGeoJson))
+        }
         if (style.getSource(ACTIVE_SOURCE_ID) == null) {
             style.addSource(GeoJsonSource(ACTIVE_SOURCE_ID, payload.activeGeoJson))
         }
@@ -63,6 +70,17 @@ internal class NativeMapRouteRenderer(
                     PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
                     PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
                 ),
+            )
+        }
+        if (style.getLayer(ALTERNATIVES_LAYER_ID) == null) {
+            style.addLayerBelow(
+                LineLayer(ALTERNATIVES_LAYER_ID, ALTERNATIVES_SOURCE_ID).withProperties(
+                    PropertyFactory.lineColor(ALTERNATIVE_GREY_ARGB.toInt()),
+                    PropertyFactory.lineWidth(alternativeWidth),
+                    PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+                    PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+                ),
+                COMPLETED_LAYER_ID,
             )
         }
         if (style.getLayer(ACTIVE_HALO_LAYER_ID) == null) {
@@ -88,10 +106,13 @@ internal class NativeMapRouteRenderer(
     }
 
     private fun applyPayload(style: Style) {
+        val alternativesSource = style.getSource(ALTERNATIVES_SOURCE_ID) as? GeoJsonSource
+            ?: error("Native alternative-route source has an unexpected type")
         val activeSource = style.getSource(ACTIVE_SOURCE_ID) as? GeoJsonSource
             ?: error("Native route source has an unexpected type")
         val completedSource = style.getSource(COMPLETED_SOURCE_ID) as? GeoJsonSource
             ?: error("Native completed-route source has an unexpected type")
+        alternativesSource.setGeoJson(payload.alternativesGeoJson)
         activeSource.setGeoJson(payload.activeGeoJson)
         completedSource.setGeoJson(payload.completedGeoJson)
 
@@ -119,8 +140,10 @@ internal class NativeMapRouteRenderer(
         )
 
     companion object {
+        const val ALTERNATIVES_SOURCE_ID = "roadstr-route-alternatives-source"
         const val ACTIVE_SOURCE_ID = "roadstr-route-active-source"
         const val COMPLETED_SOURCE_ID = "roadstr-route-completed-source"
+        const val ALTERNATIVES_LAYER_ID = "roadstr-route-alternatives"
         const val COMPLETED_LAYER_ID = "roadstr-route-completed"
         const val ACTIVE_HALO_LAYER_ID = "roadstr-route-active-halo"
         const val ACTIVE_CORE_LAYER_ID = "roadstr-route-active-core"
@@ -128,6 +151,7 @@ internal class NativeMapRouteRenderer(
 
         const val ZTL_RED_ARGB = 0xFFE53935
         const val COMPLETED_GREY_ARGB = 0xFF9E9E9E
+        const val ALTERNATIVE_GREY_ARGB = 0x99757575
         const val HALO_ALPHA = 0.28
     }
 }

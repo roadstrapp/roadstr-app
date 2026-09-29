@@ -7,6 +7,7 @@ data class NativeRouteOverlaySnapshot(
     val activeRuns: List<NativeRouteRun>,
     val completedPoints: List<NativeMapPoint>,
     val accentArgb: Long,
+    val alternativeRoutes: List<List<NativeMapPoint>> = emptyList(),
 ) {
     companion object {
         fun empty(accentArgb: Long): NativeRouteOverlaySnapshot =
@@ -21,7 +22,9 @@ data class NativeRouteOverlaySnapshot(
 data class NativeRouteOverlayPayload(
     val activeGeoJson: String,
     val completedGeoJson: String,
+    val alternativesGeoJson: String,
     val activeFeatureCount: Int,
+    val alternativeFeatureCount: Int,
     val pointCount: Int,
     val accentArgb: Long,
 )
@@ -30,6 +33,7 @@ data class NativeRouteOverlayPayload(
 object NativeRouteOverlayCompiler {
     const val MAX_ROUTE_POINTS = 250_000
     const val MAX_ROUTE_RUNS = 4_096
+    const val MAX_ROUTE_ALTERNATIVES = 8
     private const val EMPTY_FEATURE_COLLECTION =
         "{\"type\":\"FeatureCollection\",\"features\":[]}"
 
@@ -39,6 +43,9 @@ object NativeRouteOverlayCompiler {
         }
         require(snapshot.activeRuns.size <= MAX_ROUTE_RUNS) {
             "Route has too many classified runs"
+        }
+        require(snapshot.alternativeRoutes.size <= MAX_ROUTE_ALTERNATIVES) {
+            "Route has too many alternatives"
         }
         require(snapshot.completedPoints.isEmpty() || snapshot.completedPoints.size >= 2) {
             "Completed route must be empty or drawable"
@@ -51,14 +58,22 @@ object NativeRouteOverlayCompiler {
             pointCount += run.points.size.toLong()
             require(pointCount <= MAX_ROUTE_POINTS.toLong()) { "Route has too many overlay points" }
         }
+        snapshot.alternativeRoutes.forEach { alternative ->
+            require(alternative.size >= 2) { "Every alternative route must be drawable" }
+            pointCount += alternative.size.toLong()
+            require(pointCount <= MAX_ROUTE_POINTS.toLong()) { "Route has too many overlay points" }
+        }
 
         snapshot.completedPoints.forEach(::requireValidPoint)
         snapshot.activeRuns.forEach { run -> run.points.forEach(::requireValidPoint) }
+        snapshot.alternativeRoutes.forEach { route -> route.forEach(::requireValidPoint) }
 
         return NativeRouteOverlayPayload(
             activeGeoJson = featureCollection(snapshot.activeRuns),
             completedGeoJson = completedFeatureCollection(snapshot.completedPoints),
+            alternativesGeoJson = alternativesFeatureCollection(snapshot.alternativeRoutes),
             activeFeatureCount = snapshot.activeRuns.size,
+            alternativeFeatureCount = snapshot.alternativeRoutes.size,
             pointCount = pointCount.toInt(),
             accentArgb = snapshot.accentArgb,
         )
@@ -93,6 +108,23 @@ object NativeRouteOverlayCompiler {
         }
     }
 
+    private fun alternativesFeatureCollection(routes: List<List<NativeMapPoint>>): String {
+        if (routes.isEmpty()) return EMPTY_FEATURE_COLLECTION
+        return buildString {
+            append("{\"type\":\"FeatureCollection\",\"features\":[")
+            routes.forEachIndexed { index, points ->
+                if (index > 0) append(',')
+                append(
+                    "{\"type\":\"Feature\",\"properties\":{}," +
+                        "\"geometry\":{\"type\":\"LineString\",\"coordinates\":[",
+                )
+                appendCoordinates(points)
+                append("]}}")
+            }
+            append("]}")
+        }
+    }
+
     private fun StringBuilder.appendCoordinates(points: List<NativeMapPoint>) {
         points.forEachIndexed { index, point ->
             if (index > 0) append(',')
@@ -122,6 +154,7 @@ object NativeRouteLayerMetrics {
     const val HALO_LOGICAL_WIDTH = 18.0
     const val CORE_LOGICAL_WIDTH = 9.0
     const val COMPLETED_LOGICAL_WIDTH = 9.0
+    const val ALTERNATIVE_LOGICAL_WIDTH = 7.0
 
     fun widthPixels(logicalWidth: Double, displayDensity: Float): Float {
         require(logicalWidth.isFinite() && logicalWidth > 0.0) {

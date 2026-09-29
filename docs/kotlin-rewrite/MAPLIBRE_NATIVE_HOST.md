@@ -35,12 +35,18 @@ live. A late asynchronous map-ready callback is ignored after disposal.
 
 ## Route overlay boundary
 
-`NativeMapRouteRenderer` installs two GeoJSON sources and three ordered line
-layers: completed grey, active halo, then active core. Active features retain
+`NativeMapRouteRenderer` installs three GeoJSON sources and four ordered line
+layers: muted alternatives, completed grey, active halo, then active core.
+Active features retain
 the ZTL classification as a boolean expression property, selecting Flutter's
 `0xFFE53935` restricted red or the current theme accent. Round joins/caps,
 18/9/9 logical widths with Flutter's display-density correction, and the 0.28
 halo alpha match the default Flutter MapLibre renderer.
+
+Unselected route-choice candidates use Flutter's grey-600 at 0.6 alpha and
+seven-logical-pixel width, corrected for display density. They are installed
+explicitly below the completed and selected-route layers, including when a
+style is reattached.
 
 `NativeRouteOverlayCompiler` rejects non-finite or out-of-WGS84 coordinates,
 single-point lines, invalid ARGB values, more than 4,096 classified runs or
@@ -54,8 +60,10 @@ an empty snapshot: no product route, GPS fix or user location reaches it yet.
 accepts only newer route revisions, rejects backwards progress, interpolates
 the cursor along WGS84 geometry, keeps completed and remaining segments
 separate, and can refresh restriction flags without replacing the route. It
-publishes immutable snapshots through `StateFlow`; the private shell collects
-that flow but has no route producer attached yet.
+publishes immutable snapshots through `StateFlow`. It also accepts up to eight
+bounded route candidates, highlights one while muting the others, fences stale
+selection callbacks and requires an explicit commit before progress can start.
+The private shell collects that flow but has no route producer attached yet.
 
 ## Camera follow boundary
 
@@ -95,20 +103,21 @@ debug-host selection check.
   idempotent disposal, restart, low-memory behavior and destroy-before-create.
 - The seven existing map-policy JVM cases continue to lock light/dark raster
   JSON, tile URL admission/escaping, ZTL segmentation and marker culling.
-- Seven route-overlay JVM cases lock bounded deterministic GeoJSON, coordinate
+- Eight route-overlay JVM cases lock bounded deterministic GeoJSON, coordinate
   and ARGB rejection, density-corrected metrics/colors and style generations.
-- Seven route-session JVM cases lock revision fencing, monotonic progress,
-  terminal completion, cursor interpolation, classification refresh and theme
-  preservation.
+- Twelve route-session JVM cases lock revision fencing, bounded alternative
+  previews, stale-safe selection/commit, monotonic progress, terminal
+  completion, cursor interpolation, pathological classification rejection,
+  classification refresh and theme preservation.
 - Nine camera-session JVM cases lock stale-fix rejection, heading/north-up
   projection, navigation shift, pitch, dead reckoning, turn capping, recenter
   and gesture detachment.
-- Eight Dart contracts lock the strict Gradle version, lifecycle-compose
+- Ten Dart contracts lock the strict Gradle version, lifecycle-compose
   dependency, real `MapView`/style/texture-mode binding, absence of a location
-  component, route source/layer constants, route-progress oracle and ownership
-  by the private shell, plus the Flutter camera oracle and MapLibre command
-  wiring.
-- The complete verification run passes 676 Flutter tests, 272 Kotlin tests,
+  component, selected/muted route source/layer constants, route-choice/progress
+  oracle and ownership by the private shell, plus the Flutter camera oracle
+  and MapLibre command wiring.
+- The complete verification run passes 678 Flutter tests, 278 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 
