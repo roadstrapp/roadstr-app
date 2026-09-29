@@ -39,7 +39,10 @@ Flutter is still the only launcher and production UI.
   camera-reprojected painter matching the default Flutter MapLibre arrow.
   `NativeMapPointOverlaySession.kt` and `NativeMapPointOverlayView.kt` add a
   bounded revision-safe marker catalogue and projected billboard painter for
-  road reports, cameras, parking, traffic lights, bumps and crossings. The
+  road reports, cameras, parking, traffic lights, bumps and crossings.
+  `NativeMapInteraction.kt` adds typed click/long-click values, projected
+  road-event hit priority and Flutter's strict rounded-Vincenty 60 m route-
+  alternative selection; product sheets and service caches remain detached. The
   private shell collects empty route, camera, cursor and point-overlay state and has no
   product route or GPS feed.
 - `LegacyStorageContract.kt` records the audited Hive/secure-storage names and

@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -49,12 +50,15 @@ fun NativeMapLibreHost(
     cursorSnapshot: NativeMapCursorSnapshot,
     pointOverlay: NativeMapPointOverlaySnapshot,
     onCameraGesture: () -> Unit,
+    onMapInteraction: (NativeMapInteraction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val styleJson = remember(dark) { NativeMapStyle.rasterStyle(dark = dark) }
     val mapDescription = stringResource(R.string.native_map_description)
+    val currentCameraGesture = rememberUpdatedState(onCameraGesture)
+    val currentMapInteraction = rememberUpdatedState(onMapInteraction)
     val host = remember(context, lifecycleOwner) {
         NativeMapLibreViewHost.create(
             context = context,
@@ -64,7 +68,8 @@ fun NativeMapLibreHost(
             initialCameraCommand = cameraCommand,
             initialCursorSnapshot = cursorSnapshot,
             initialPointOverlay = pointOverlay,
-            onCameraGesture = onCameraGesture,
+            onCameraGesture = { currentCameraGesture.value() },
+            onMapInteraction = { currentMapInteraction.value(it) },
         )
     }
 
@@ -134,6 +139,7 @@ private class NativeMapLibreViewHost private constructor(
     private val cursorOverlay: NativeMapCursorOverlayView,
     private val pointOverlay: NativeMapPointOverlayView,
     private val onCameraGesture: () -> Unit,
+    private val onMapInteraction: (NativeMapInteraction) -> Unit,
     initialCameraCommand: NativeMapCameraCommand?,
     initialCursorSnapshot: NativeMapCursorSnapshot,
     initialPointOverlay: NativeMapPointOverlaySnapshot,
@@ -155,6 +161,38 @@ private class NativeMapLibreViewHost private constructor(
             cursorOverlay.refreshProjection()
         }
     }
+    private val mapClickListener = MapLibreMap.OnMapClickListener { tap ->
+        if (!active) {
+            false
+        } else {
+            val point = NativeMapPoint(tap.latitude, tap.longitude)
+            val marker = if (pointOverlay.revision >= 0) {
+                pointOverlay.hitRoadEvent(tap)
+            } else {
+                null
+            }
+            onMapInteraction(
+                NativeMapInteractionPolicy.tap(
+                    point = point,
+                    marker = marker,
+                    markerRevision = pointOverlay.revision,
+                ),
+            )
+            true
+        }
+    }
+    private val mapLongClickListener = MapLibreMap.OnMapLongClickListener { tap ->
+        if (!active) {
+            false
+        } else {
+            onMapInteraction(
+                NativeMapInteractionPolicy.longPress(
+                    NativeMapPoint(tap.latitude, tap.longitude),
+                ),
+            )
+            true
+        }
+    }
 
     init {
         lifecycle.handle(NativeMapLifecycleEvent.Create)
@@ -166,6 +204,8 @@ private class NativeMapLibreViewHost private constructor(
             map = readyMap
             readyMap.addOnCameraMoveStartedListener(cameraMoveStartedListener)
             readyMap.addOnCameraMoveListener(cameraMoveListener)
+            readyMap.addOnMapClickListener(mapClickListener)
+            readyMap.addOnMapLongClickListener(mapLongClickListener)
             cameraRenderer.attach(readyMap)
             pointOverlay.attach(readyMap)
             cursorOverlay.attach(readyMap)
@@ -204,6 +244,8 @@ private class NativeMapLibreViewHost private constructor(
         active = false
         map?.removeOnCameraMoveStartedListener(cameraMoveStartedListener)
         map?.removeOnCameraMoveListener(cameraMoveListener)
+        map?.removeOnMapClickListener(mapClickListener)
+        map?.removeOnMapLongClickListener(mapLongClickListener)
         cameraRenderer.detach()
         pointOverlay.detach()
         cursorOverlay.detach()
@@ -236,6 +278,7 @@ private class NativeMapLibreViewHost private constructor(
             initialCursorSnapshot: NativeMapCursorSnapshot,
             initialPointOverlay: NativeMapPointOverlaySnapshot,
             onCameraGesture: () -> Unit,
+            onMapInteraction: (NativeMapInteraction) -> Unit,
         ): NativeMapLibreViewHost {
             MapLibre.getInstance(context.applicationContext)
             val camera = CameraPosition.Builder()
@@ -309,6 +352,7 @@ private class NativeMapLibreViewHost private constructor(
                 cursorOverlay = cursorOverlay,
                 pointOverlay = pointOverlay,
                 onCameraGesture = onCameraGesture,
+                onMapInteraction = onMapInteraction,
                 initialCameraCommand = initialCameraCommand,
                 initialCursorSnapshot = initialCursorSnapshot,
                 initialPointOverlay = initialPointOverlay,

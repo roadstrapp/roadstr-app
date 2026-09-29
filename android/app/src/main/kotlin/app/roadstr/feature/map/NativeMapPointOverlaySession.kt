@@ -31,7 +31,26 @@ enum class NativeMapPointOverlayKind(
     Parking("P", 0xFF1E88E5, 38.0, Double.NEGATIVE_INFINITY, false, 2),
     TrafficLight("🚦", 0xFF70D69B, 24.0, 15.0, false, 3),
     SpeedBump("〰️", 0xFFFF8547, 22.0, 15.0, false, 4),
-    Crosswalk("🚸", 0xFFFFB347, 20.0, 16.0, false, 5),
+    Crosswalk("🚸", 0xFFFFB347, 20.0, 16.0, false, 5);
+
+    val opensRoadEventDetail: Boolean
+        get() = when (this) {
+            RoadPolice,
+            RoadPoliceStation,
+            RoadSpeedCamera,
+            RoadTrafficJam,
+            RoadAccident,
+            RoadClosure,
+            RoadConstruction,
+            RoadHazard,
+            RoadCondition,
+            RoadPothole,
+            RoadFog,
+            RoadIce,
+            RoadAnimal,
+            RoadOther -> true
+            else -> false
+        }
 }
 
 data class NativeMapPointOverlayMarker(

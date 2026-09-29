@@ -30,6 +30,7 @@ import app.roadstr.core.ui.theme.RoadstrTheme
 import app.roadstr.core.ui.theme.RoadstrThemeId
 import app.roadstr.feature.map.NativeMapCameraSession
 import app.roadstr.feature.map.NativeMapCursorSession
+import app.roadstr.feature.map.NativeMapInteraction
 import app.roadstr.feature.map.NativeMapLibreHost
 import app.roadstr.feature.map.NativeMapPointOverlaySession
 import app.roadstr.feature.map.NativeRouteOverlaySession
@@ -87,6 +88,14 @@ fun NativeRoadstrShell() {
                     cursorSnapshot = cursorState,
                     pointOverlay = pointOverlayState,
                     onCameraGesture = cameraSession::onUserGesture,
+                    onMapInteraction = { interaction ->
+                        if (interaction is NativeMapInteraction.MapTap) {
+                            routeSession.selectAlternativeAt(
+                                revision = routeSession.state.value.revision,
+                                tap = interaction.point,
+                            )
+                        }
+                    },
                     modifier = Modifier.fillMaxSize(),
                 )
                 Surface(
