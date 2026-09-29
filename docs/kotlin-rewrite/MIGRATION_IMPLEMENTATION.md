@@ -32,8 +32,11 @@ Flutter is still the only launcher and production UI.
   the Flutter cadence, dead reckoning, navigation shift, bearing/pitch,
   recenter and gesture-detachment policies. `NativeMapCursorSession.kt` and
   `NativeMapCursorOverlayView.kt` add a monotonic user-position boundary and
-  camera-reprojected painter matching the default Flutter MapLibre arrow. The
-  private shell collects empty route, camera and cursor state and has no
+  camera-reprojected painter matching the default Flutter MapLibre arrow.
+  `NativeMapPointOverlaySession.kt` and `NativeMapPointOverlayView.kt` add a
+  bounded revision-safe marker catalogue and projected billboard painter for
+  road reports, cameras, parking, traffic lights, bumps and crossings. The
+  private shell collects empty route, camera, cursor and point-overlay state and has no
   product route or GPS feed.
 - `LegacyStorageContract.kt` records the audited Hive/secure-storage names and
   dynamic per-identity key prefixes.
