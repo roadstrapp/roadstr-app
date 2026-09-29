@@ -1,43 +1,11 @@
 package app.roadstr.feature.map
 
+import app.roadstr.core.network.TransitParsedPlan
+import app.roadstr.core.network.TransitMode
 import kotlin.math.roundToInt
 
-/** Closed native counterpart of Flutter's worldwide [TransitMode] catalogue. */
-enum class NativeTransitMode(
-    val wireName: String,
-    val isTransit: Boolean,
-) {
-    Walk("WALK", false),
-    Bike("BIKE", false),
-    Car("CAR", false),
-    Tram("TRAM", true),
-    Subway("SUBWAY", true),
-    Metro("METRO", true),
-    Suburban("SUBURBAN", true),
-    RegionalRail("REGIONAL_RAIL", true),
-    RegionalFastRail("REGIONAL_FAST_RAIL", true),
-    LongDistance("LONG_DISTANCE", true),
-    HighspeedRail("HIGHSPEED_RAIL", true),
-    NightRail("NIGHT_RAIL", true),
-    Rail("RAIL", true),
-    Bus("BUS", true),
-    Coach("COACH", true),
-    Ferry("FERRY", true),
-    Airplane("AIRPLANE", true),
-    Funicular("FUNICULAR", true),
-    AerialLift("AERIAL_LIFT", true),
-    OnDemand("ODM", true),
-    Other("OTHER", true),
-    ;
-
-    companion object {
-        /** Total parser: future provider modes retain a drawable fallback. */
-        fun fromWire(value: String?): NativeTransitMode {
-            val normalized = value?.trim()?.uppercase() ?: return Other
-            return entries.firstOrNull { it.wireName == normalized } ?: Other
-        }
-    }
-}
+/** Map compatibility name backed by the single worldwide transit catalogue. */
+typealias NativeTransitMode = TransitMode
 
 data class NativeTransitLeg(
     val mode: NativeTransitMode,
@@ -46,6 +14,24 @@ data class NativeTransitLeg(
 )
 
 data class NativeTransitItinerary(val legs: List<NativeTransitLeg>)
+
+/** Lossless geometry/color projection from the rich transit plan into map-only values. */
+object NativeTransitOverlayProjection {
+    fun fromPlan(plan: TransitParsedPlan): List<NativeTransitItinerary> =
+        plan.itineraries.take(NativeTransitOverlayCompiler.MAX_ITINERARIES).map { itinerary ->
+            NativeTransitItinerary(
+                legs = itinerary.legs.map { leg ->
+                    NativeTransitLeg(
+                        mode = leg.mode,
+                        points = leg.geometry.map { point ->
+                            NativeMapPoint(point.latitude, point.longitude)
+                        },
+                        routeColorArgb = leg.routeColorArgb,
+                    )
+                },
+            )
+        }
+}
 
 /** Selected-itinerary value consumed by the private MapLibre renderer. */
 data class NativeTransitOverlaySnapshot(

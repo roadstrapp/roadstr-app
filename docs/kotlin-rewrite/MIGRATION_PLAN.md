@@ -393,8 +393,10 @@ broader cross-language coverage and a native store are still required.
 ### KOTLIN-009 — Port bounded networking, search and routing (IN PROGRESS)
 
 - **Objective:** Preserve all endpoints, headers, bounds, retry and provider behavior.
-- **Current Dart/Flutter source:** `bounded_http.dart`, `network_config.dart`, `retry.dart`, routing/search/Overpass/Photon/Nominatim services.
-- **New Kotlin files/modules:** `core/network`, `service/routing`, `service/search`, `service/overpass`.
+- **Current Dart/Flutter source:** `bounded_http.dart`, `network_config.dart`,
+  `retry.dart`, routing/search/Overpass/Photon/Nominatim and Transitous services.
+- **New Kotlin files/modules:** `core/network`, `service/routing`,
+  `service/search`, `service/overpass`, `service/transit`.
 - **Current implementation:** `core/network/HttpSafetyPolicy.kt` mirrors the
   six timeout tiers, seven response limits, redirect refusal, overflow-safe
   streaming byte accounting and current GraphHopper host/loopback policy.
@@ -435,6 +437,13 @@ broader cross-language coverage and a native store are still required.
   providers concurrently, delivers one safe partial, rotates vetted Overpass
   mirrors, drives exactly one relaxed geocoder batch and propagates caller
   cancellation to every active transport call.
+  `TransitProtocol.kt` now preserves the exact Transitous plan request and
+  bounded itinerary/leg/boarding response model, including the complete mode
+  catalogue, precision-tagged polyline decoding, sentinels, helper semantics,
+  walk-only filtering and duration order against the real Berlin fixture.
+  `service/transit/NativeTransitService.kt` executes it with the shared bounded
+  OkHttp transport, a 20-second/2-MiB budget, transient-only three-attempt
+  retry, bounded `Retry-After`, value-free failures and physical cancellation.
   `storage/NativeSearchHistoryStore.kt` now supplies encrypted atomic history
   persistence and transactional legacy extraction without opening Hive. The
   production Dart bounded client, provider clients and map screens use the
@@ -462,7 +471,10 @@ broader cross-language coverage and a native store are still required.
   without-retry. Ten search-service tests add exact limits,
   concurrent providers, partial/final delivery, failure isolation, one relaxed
   batch, category query/mirror fallback, a real loopback POST and all-job
-  cancellation. Twelve new storage tests cover encrypted history import/
+  cancellation. Eight transit-protocol and nine transit-service tests add exact
+  request/parser parity, the real Berlin fixture, local OkHttp execution,
+  retry/status/body classification, redaction and cancellation. Twelve new
+  storage tests cover encrypted history import/
   reopen, migration-marker binding, corruption, wrong keys and concurrency.
   Android TLS/cleartext integration, device Keystore, caching and startup/UI
   wiring remain.
@@ -473,7 +485,8 @@ broader cross-language coverage and a native store are still required.
   migration and history value semantics are green. Headless native primary-
   provider routing, Valhalla avoidance, best-effort OSRM re-timing and search
   orchestration/execution are green. The native encrypted history store is
-  green but not UI-owned; routing secret reads, search caching/UI generations,
+  green but not UI-owned; bounded Transitous execution and map projection are
+  green but remain dormant. Routing secret reads, search caching/UI generations,
   Android network integration and production ownership are open.
 - **Security/privacy impact:** Preserve URL validation, body caps, user-agent, no silent cloud fallback.
 - **Battery/performance impact:** Compare network retries, cache hit rate and cancellation.
@@ -541,7 +554,8 @@ broader cross-language coverage and a native store are still required.
   bounded revisioned marker caches and projected billboard rendering;
   `NativeTransitOverlay.kt`, `NativeTransitOverlaySession.kt` and
   `NativeMapTransitRenderer.kt` provide the bounded worldwide mode catalogue,
-  revision-safe selected-itinerary state and per-leg MapLibre rendering;
+  revision-safe selected-itinerary state, direct parsed-plan projection and
+  per-leg MapLibre rendering;
   `NativeMapInteraction.kt` provides projected road-event hit testing, typed
   click/long-click values and exact 60 m alternative selection. Product
   `feature/navigation/map`, fix/route feeds and
@@ -551,7 +565,7 @@ broader cross-language coverage and a native store are still required.
   BSD-2-Clause and the resolved runtime graph contains no Google Play Services.
 - **Migration impact:** `mapEngine`, tile URL, cursor and map settings must remain.
 - **User-visible impact:** Same map engine default, toggle, overlays, tilt, bearing and controls.
-- **Tests:** 90 deterministic JVM tests cover light/dark style output, tile URL
+- **Tests:** 91 deterministic JVM tests cover light/dark style output, tile URL
   safety/escaping, ZTL route segmentation, viewport/zoom marker culling,
   audited version/camera values, exact idempotent MapView lifecycle ordering,
   bounded GeoJSON/coordinate validation, physical-pixel widths/colors and
@@ -563,7 +577,7 @@ broader cross-language coverage and a native store are still required.
   ordering, zoom gates, the closed marker catalogue, rounded-Vincenty traffic
   runs, work bounds, traffic revision fencing, marker-hit priority and strict
   60 m alternative taps, bounded transit revisions/selections, worldwide modes,
-  per-leg GeoJSON/colors and 7/4 density-corrected widths; twenty-one Dart source/Gradle contracts
+  per-leg GeoJSON/colors and 7/4 density-corrected widths; twenty-four Dart source/Gradle contracts
   lock the private host, route renderer/session and Flutter route/camera
   oracles. Screenshot/golden and device rendering tests remain.
 - **Parity evidence:** the headless policies and private native raster renderer
@@ -573,7 +587,8 @@ broader cross-language coverage and a native store are still required.
   Muted alternatives preserve grey-600 at 0.6 alpha and seven-logical-pixel
   width below the selected route. Traffic preserves the strict rounded-distance
   400 m gate and nine-logical-pixel bright-red layer above the active core.
-  The dormant transit layer preserves provider colors with accent fallback,
+  The dormant transit layer accepts bounded parsed Transitous plans and
+  preserves provider colors with accent fallback,
   secondary text at 0.7 alpha for street legs, 7/4 logical widths and placement
   below all road routes. The dormant cursor preserves the generic
   48x76 arrow, 1.4 scale, default violet, HSL treatment and pitch-dependent

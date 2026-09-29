@@ -5,6 +5,18 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   final flutterMap = File('lib/screens/maplibre_map_screen.dart');
   final flutterModes = File('lib/models/transit_mode.dart');
+  final flutterItinerary = File('lib/models/transit_itinerary.dart');
+  final flutterService = File('lib/services/transit_service.dart');
+  final flutterPolyline = File('lib/utils/polyline.dart');
+  final fixture = File('test/fixtures/transit_plan_berlin.json');
+  final protocol = File(
+    'android/app/src/main/kotlin/app/roadstr/core/network/'
+    'TransitProtocol.kt',
+  );
+  final nativeService = File(
+    'android/app/src/main/kotlin/app/roadstr/service/transit/'
+    'NativeTransitService.kt',
+  );
   final overlay = File(
     'android/app/src/main/kotlin/app/roadstr/feature/map/'
     'NativeTransitOverlay.kt',
@@ -46,7 +58,7 @@ void main() {
       'native transit mode catalogue stays aligned with worldwide Flutter modes',
       () {
     final dart = flutterModes.readAsStringSync();
-    final native = overlay.readAsStringSync();
+    final native = protocol.readAsStringSync();
 
     for (final wireName in <String>[
       'WALK',
@@ -78,6 +90,10 @@ void main() {
         contains('TransitMode.walk || TransitMode.bike || TransitMode.car'));
     expect(native, contains('Walk("WALK", false)'));
     expect(native, contains('Other("OTHER", true)'));
+    expect(
+      overlay.readAsStringSync(),
+      contains('typealias NativeTransitMode = TransitMode'),
+    );
   });
 
   test('private shell owns a bounded dormant transit renderer', () {
@@ -98,5 +114,56 @@ void main() {
     expect(shellSource, contains('NativeTransitOverlaySession'));
     expect(shellSource, contains('transitOverlay = transitState'));
     expect(shellSource, isNot(contains('TransitService')));
+  });
+
+  test('native Transitous request keeps Flutter endpoint and budgets', () {
+    final dart = flutterService.readAsStringSync();
+    final kotlin = protocol.readAsStringSync();
+    final service = nativeService.readAsStringSync();
+
+    expect(dart, contains("'https://api.transitous.org/api/v1/plan'"));
+    expect(dart, contains('static const _itineraryCount = 3'));
+    expect(dart, contains('static const _maxAccessWalkSeconds = 1800'));
+    expect(dart, contains('maxBytes: NetworkLimits.transitPlan'));
+    expect(dart, contains('timeout: NetworkTimeouts.transit'));
+    expect(kotlin, contains('REQUESTED_ITINERARIES = 3'));
+    expect(kotlin, contains('MAX_ACCESS_WALK_SECONDS = 1_800'));
+    expect(service, contains('NetworkTimeoutBudget.Transit.milliseconds'));
+    expect(service, contains('NetworkResponseLimit.TransitPlan.bytes'));
+  });
+
+  test('native parser is locked to the real Berlin and polyline oracles', () {
+    final dartModel = flutterItinerary.readAsStringSync();
+    final dartPolyline = flutterPolyline.readAsStringSync();
+    final kotlin = protocol.readAsStringSync();
+
+    expect(fixture.existsSync(), isTrue);
+    expect(fixture.lengthSync(), greaterThan(40000));
+    expect(dartModel, contains("precision: _asInt(json['precision']) ?? 5"));
+    expect(dartModel,
+        contains("if (name == null || name == 'START' || name == 'END')"));
+    expect(dartPolyline, contains('if (shift > 30) return null'));
+    expect(kotlin,
+        contains('fun decodePolyline(encoded: String, precision: Int)'));
+    expect(kotlin, contains('if (shift > 30) return null'));
+    expect(kotlin, contains('filterNot(TransitItinerary::isWalkOnly)'));
+    expect(kotlin, contains('.sortedBy(TransitItinerary::durationSeconds)'));
+  });
+
+  test('native transit execution remains cancellable private and dormant', () {
+    final service = nativeService.readAsStringSync();
+    final nativeOverlay = overlay.readAsStringSync();
+    final nativeSession = session.readAsStringSync();
+    final shellSource = shell.readAsStringSync();
+
+    expect(service, contains('NativeTransitHttpTransport'));
+    expect(service, contains('RetryPolicy.Interactive'));
+    expect(service, contains('catch (cancelled: CancellationException)'));
+    expect(service, contains('throw cancelled'));
+    expect(service, isNot(contains('println(')));
+    expect(nativeOverlay, contains('object NativeTransitOverlayProjection'));
+    expect(nativeSession, contains('fun submitPlan('));
+    expect(shellSource, contains('NativeTransitOverlaySession'));
+    expect(shellSource, isNot(contains('NativeTransitService')));
   });
 }

@@ -1,5 +1,7 @@
 package app.roadstr.feature.map
 
+import app.roadstr.core.network.TransitParsedPlan
+import app.roadstr.core.network.TransitProtocol
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotSame
@@ -87,6 +89,23 @@ class NativeTransitOverlaySessionTest {
         assertEquals(0xFFF7931A, session.state.value.accentArgb)
         assertEquals(0xFF8888A8, session.state.value.textSecondaryArgb)
         assertEquals(1, NativeTransitOverlayCompiler.compile(session.state.value).featureCount)
+    }
+
+    @Test
+    fun `parsed provider plan projects only geometry mode and operator color`() {
+        val parsed = TransitProtocol.parsePlan(
+            """{"itineraries":[{"duration":600,"startTime":"2026-08-19T08:00:00Z","endTime":"2026-08-19T08:10:00Z","legs":[{"mode":"BUS","duration":600,"startTime":"2026-08-19T08:00:00Z","endTime":"2026-08-19T08:10:00Z","routeColor":"123456","legGeometry":{"precision":5,"points":"_p~iF~ps|U_ulLnnqC_mqNvxq`@"}}]}]}""",
+        ) as TransitParsedPlan
+        val session = NativeTransitOverlaySession(accent, secondary)
+
+        assertTrue(session.submitPlan(9, parsed))
+
+        val leg = session.state.value.legs.single()
+        assertEquals(NativeTransitMode.Bus, leg.mode)
+        assertEquals(0xFF123456, leg.routeColorArgb)
+        assertEquals(3, leg.points.size)
+        assertEquals(38.5, leg.points.first().latitude, 0.000001)
+        assertEquals(-120.2, leg.points.first().longitude, 0.000001)
     }
 
     @Test

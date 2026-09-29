@@ -1,5 +1,6 @@
 package app.roadstr.feature.map
 
+import app.roadstr.core.network.TransitParsedPlan
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -47,6 +48,17 @@ class NativeTransitOverlaySession(
         publish()
         true
     }
+
+    /** Projects a parsed provider plan without coupling the service to MapLibre types. */
+    fun submitPlan(
+        revision: Long,
+        plan: TransitParsedPlan,
+        selectedIndex: Int = 0,
+    ): Boolean = submitItineraries(
+        revision = revision,
+        itineraries = NativeTransitOverlayProjection.fromPlan(plan),
+        selectedIndex = selectedIndex,
+    )
 
     fun selectItinerary(revision: Long, selectedIndex: Int): Boolean = synchronized(lock) {
         if (revision != this.revision || selectedIndex !in itineraries.indices) return false
