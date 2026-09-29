@@ -14,6 +14,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -24,7 +28,7 @@ import app.roadstr.R
 import app.roadstr.core.ui.theme.RoadstrTheme
 import app.roadstr.core.ui.theme.RoadstrThemeId
 import app.roadstr.feature.map.NativeMapLibreHost
-import app.roadstr.feature.map.NativeRouteOverlaySnapshot
+import app.roadstr.feature.map.NativeRouteOverlaySession
 
 /**
  * Dormant native UI boundary used to prove Compose and MapLibre packaging.
@@ -43,7 +47,11 @@ fun NativeRoadstrShell() {
     }
     RoadstrTheme(themeId = themeId) {
         val shellDescription = stringResource(R.string.native_shell_description)
-        val routeOverlay = NativeRouteOverlaySnapshot.empty(themeId.accentArgb)
+        val routeSession = remember { NativeRouteOverlaySession(themeId.accentArgb) }
+        LaunchedEffect(routeSession, themeId.accentArgb) {
+            routeSession.updateAccent(themeId.accentArgb)
+        }
+        val routeState by routeSession.state.collectAsState()
         Scaffold(
             modifier = Modifier
                 .fillMaxSize()
@@ -57,7 +65,7 @@ fun NativeRoadstrShell() {
             ) {
                 NativeMapLibreHost(
                     dark = themeId.dark,
-                    routeOverlay = routeOverlay,
+                    routeOverlay = routeState.snapshot,
                     modifier = Modifier.fillMaxSize(),
                 )
                 Surface(
