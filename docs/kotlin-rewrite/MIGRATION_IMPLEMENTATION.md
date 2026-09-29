@@ -21,6 +21,10 @@ Flutter is still the only launcher and production UI.
   retains texture mode for Compose overlays, and owns no location component.
   `NativeMapLifecycle.kt` makes Activity callbacks, Compose disposal, restart
   and low-memory forwarding deterministic and idempotent.
+  `NativeRouteOverlay.kt` and `NativeMapRouteRenderer.kt` add bounded,
+  deterministic active/ZTL/completed GeoJSON and the matching MapLibre
+  completed/halo/core layers. Style generations prevent stale reattachment;
+  the private shell supplies an empty snapshot and no product route or GPS.
 - `LegacyStorageContract.kt` records the audited Hive/secure-storage names and
   dynamic per-identity key prefixes.
 - `LegacyStorageModels.kt` defines a bounded normalized snapshot boundary,

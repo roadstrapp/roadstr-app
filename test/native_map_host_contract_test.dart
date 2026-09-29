@@ -25,11 +25,13 @@ void main() {
     final source = host.readAsStringSync();
     final shellSource = shell.readAsStringSync();
 
-    expect(source, contains('MapLibre.getInstance(context.applicationContext)'));
+    expect(
+        source, contains('MapLibre.getInstance(context.applicationContext)'));
     expect(source, contains('MAPLIBRE_VERSION = "13.5.2"'));
     expect(source, contains('MapView(context, options)'));
     expect(source, contains('.textureMode(true)'));
-    expect(source, contains('Style.Builder().fromJson(desiredStyleJson)'));
+    expect(source, contains('Style.Builder().fromJson(requestedJson)'));
+    expect(source, contains('styleGeneration.accepts(generation)'));
     expect(source, contains('NativeMapLifecycleEvent.Destroy'));
     expect(source, isNot(contains('LocationComponent')));
     expect(shellSource, contains('NativeMapLibreHost('));
