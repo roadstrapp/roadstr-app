@@ -23,10 +23,11 @@ Flutter is still the only launcher and production UI.
   and low-memory forwarding deterministic and idempotent.
   `NativeRouteOverlay.kt` and `NativeMapRouteRenderer.kt` add bounded,
   deterministic active/ZTL/completed GeoJSON and the matching MapLibre
-  completed/halo/core layers. Style generations prevent stale reattachment;
+  completed/halo/core layers plus muted route-choice candidates underneath.
+  Style generations prevent stale reattachment;
   `NativeRouteOverlaySession.kt` adds a revision-safe StateFlow projector for
-  normalized route geometry, monotonic progress, cursor interpolation and
-  late ZTL refreshes. `NativeMapCameraSession.kt` and
+  normalized route geometry, bounded alternative selection/commit, monotonic
+  progress, cursor interpolation and late ZTL refreshes. `NativeMapCameraSession.kt` and
   `NativeMapCameraRenderer.kt` add a sequence-safe camera-follow boundary with
   the Flutter cadence, dead reckoning, navigation shift, bearing/pitch,
   recenter and gesture-detachment policies. The private shell collects empty

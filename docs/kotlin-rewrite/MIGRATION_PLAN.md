@@ -135,8 +135,10 @@ The first native increment is intentionally isolated from production startup:
   bounded active/restricted/completed route GeoJSON sources and the matching
   completed/halo/core layers, and rejects stale asynchronous style callbacks.
   `NativeRouteOverlaySession.kt` now projects normalized route geometry,
-  revision-safe replacements, monotonic progress, interpolated cursor and
-  refreshed ZTL classifications through a StateFlow. A separate
+  revision-safe replacements, bounded route-choice selection/commit,
+  monotonic progress, interpolated cursor and refreshed ZTL classifications
+  through a StateFlow. Its MapLibre renderer keeps muted unselected candidates
+  below the completed and selected-route layers. A separate
   `NativeMapCameraSession.kt` and `NativeMapCameraRenderer.kt` pair preserves
   the Flutter follow cadence, dead reckoning, navigation offset, pitch/bearing,
   recenter and gesture-detachment policy through sequence-safe MapLibre camera
@@ -516,9 +518,10 @@ broader cross-language coverage and a native store are still required.
   `NativeMapLibreHost.kt` and `NativeMapLifecycle.kt` provide the private
   Compose/AndroidView renderer boundary; `NativeRouteOverlay.kt` and
   `NativeMapRouteRenderer.kt` provide bounded route snapshots/GeoJSON and
-  reinstallable active, restricted and completed MapLibre layers;
+  reinstallable muted-alternative, active, restricted and completed MapLibre layers;
   `NativeRouteOverlaySession.kt` provides the revision-safe StateFlow route
-  projector; `NativeMapCameraSession.kt` and `NativeMapCameraRenderer.kt`
+  projector with bounded alternative selection and explicit commit;
+  `NativeMapCameraSession.kt` and `NativeMapCameraRenderer.kt`
   provide a revision-safe value session and imperative MapLibre adapter for
   camera follow. Product `feature/navigation/map`, fix/route feeds and
   remaining overlay UI layers remain.
@@ -527,19 +530,22 @@ broader cross-language coverage and a native store are still required.
   BSD-2-Clause and the resolved runtime graph contains no Google Play Services.
 - **Migration impact:** `mapEngine`, tile URL, cursor and map settings must remain.
 - **User-visible impact:** Same map engine default, toggle, overlays, tilt, bearing and controls.
-- **Tests:** 36 deterministic JVM tests cover light/dark style output, tile URL
+- **Tests:** 42 deterministic JVM tests cover light/dark style output, tile URL
   safety/escaping, ZTL route segmentation, viewport/zoom marker culling,
   audited version/camera values, exact idempotent MapView lifecycle ordering,
   bounded GeoJSON/coordinate validation, physical-pixel widths/colors and
-  stale-style rejection, revision fencing, monotonic progress, interpolated
-  cursor, live classification refresh, camera dead reckoning, heading/north-up,
-  turn capping, recenter and gesture detachment; eight Dart source/Gradle
-  contracts lock the private host, route renderer/session and Flutter camera
-  oracle. Screenshot/golden and device rendering tests remain.
+  stale-style rejection, revision fencing, bounded route alternatives,
+  stale-safe selection/commit, monotonic progress, interpolated cursor, live
+  classification refresh, camera dead reckoning, heading/north-up, turn
+  capping, recenter and gesture detachment; ten Dart source/Gradle contracts
+  lock the private host, route renderer/session and Flutter route/camera
+  oracles. Screenshot/golden and device rendering tests remain.
 - **Parity evidence:** the headless policies and private native raster renderer
   compile/package with Flutter's `42.5, 12.5`, zoom 17, pitch 40 baseline and
   texture mode. Its completed-grey and active accent/ZTL layers preserve the
   Flutter ordering, round joins/caps, 18/9/9 logical widths and 0.28 halo alpha.
+  Muted alternatives preserve grey-600 at 0.6 alpha and seven-logical-pixel
+  width below the selected route.
   Its dormant camera boundary preserves the 33 ms cadence, three-second dead
   reckoning cap, 40/55-degree pitch, navigation shift and gesture-detached
   follow without reading location. Reference screenshots, live route/fix

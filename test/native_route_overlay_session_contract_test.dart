@@ -27,6 +27,22 @@ void main() {
     expect(kotlin, contains('cursorRestricted'));
   });
 
+  test('native session fences alternative selection before progress', () {
+    final kotlin = session.readAsStringSync();
+    final dart = flutterMap.readAsStringSync();
+
+    expect(dart, contains('final selectedAlt ='));
+    expect(dart, contains('final alternativePolylines = _showAlternatives'));
+    expect(dart, contains('if (i != _selectedAlt) _alternatives[i].polyline'));
+    expect(kotlin, contains('fun submitAlternatives('));
+    expect(kotlin, contains('fun selectAlternative('));
+    expect(kotlin, contains('fun commitSelectedAlternative('));
+    expect(
+      kotlin,
+      contains('route == null || alternatives.isNotEmpty()'),
+    );
+  });
+
   test(
       'private shell owns the reactive session without activating product data',
       () {

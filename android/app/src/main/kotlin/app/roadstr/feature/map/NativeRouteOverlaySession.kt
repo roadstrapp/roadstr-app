@@ -11,7 +11,14 @@ data class NativeRouteOverlaySessionState(
     val revision: Long,
     val progressMeters: Double,
     val totalDistanceMeters: Double,
+    val selectedAlternativeIndex: Int?,
+    val alternativeCount: Int,
     val snapshot: NativeRouteOverlaySnapshot,
+)
+
+data class NativeRouteCandidate(
+    val points: List<NativeMapPoint>,
+    val restricted: List<Boolean>,
 )
 
 /**
@@ -29,6 +36,8 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
     private var accentArgb = initialAccentArgb
     private var currentRevision = NO_ROUTE_REVISION
     private var route: PreparedRoute? = null
+    private var alternatives: List<PreparedRoute> = emptyList()
+    private var selectedAlternativeIndex: Int? = null
     private var progressMeters = 0.0
     private var cursorRestricted = false
 
@@ -48,9 +57,67 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
         val prepared = prepareRoute(points, restricted)
         currentRevision = revision
         route = prepared
+        alternatives = emptyList()
+        selectedAlternativeIndex = null
         progressMeters = 0.0
         cursorRestricted = false
-        publish(prepared.snapshot(progressMeters, cursorRestricted, accentArgb))
+        publish(currentSnapshot())
+        true
+    }
+
+    /**
+     * Installs a bounded route-choice preview. The selected candidate receives
+     * the active/ZTL treatment while every other candidate remains muted.
+     */
+    fun submitAlternatives(
+        revision: Long,
+        candidates: List<NativeRouteCandidate>,
+        selectedIndex: Int,
+    ): Boolean = synchronized(lock) {
+        require(revision >= 0) { "Route revision must be non-negative" }
+        if (revision <= currentRevision) return false
+        require(candidates.isNotEmpty()) { "Route alternatives must not be empty" }
+        require(candidates.size <= NativeRouteOverlayCompiler.MAX_ROUTE_ALTERNATIVES) {
+            "Route has too many alternatives"
+        }
+        require(selectedIndex in candidates.indices) { "Selected route is outside the alternatives" }
+        validateCombinedPointCount(candidates)
+        val prepared = candidates.map { candidate ->
+            prepareRoute(candidate.points, candidate.restricted)
+        }
+        currentRevision = revision
+        alternatives = prepared
+        selectedAlternativeIndex = selectedIndex
+        route = prepared[selectedIndex]
+        progressMeters = 0.0
+        cursorRestricted = false
+        publish(currentSnapshot())
+        true
+    }
+
+    /** Changes the highlighted preview without accepting stale UI callbacks. */
+    fun selectAlternative(revision: Long, selectedIndex: Int): Boolean = synchronized(lock) {
+        if (
+            revision != currentRevision ||
+            selectedIndex !in alternatives.indices ||
+            selectedAlternativeIndex == selectedIndex
+        ) {
+            return false
+        }
+        selectedAlternativeIndex = selectedIndex
+        route = alternatives[selectedIndex]
+        progressMeters = 0.0
+        cursorRestricted = false
+        publish(currentSnapshot())
+        true
+    }
+
+    /** Commits the highlighted candidate and removes muted preview geometry. */
+    fun commitSelectedAlternative(revision: Long): Boolean = synchronized(lock) {
+        if (revision != currentRevision || selectedAlternativeIndex == null) return false
+        alternatives = emptyList()
+        selectedAlternativeIndex = null
+        publish(currentSnapshot())
         true
     }
 
@@ -67,7 +134,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
         require(progressMeters.isFinite() && progressMeters >= 0.0) {
             "Route progress must be finite and non-negative"
         }
-        if (revision != currentRevision || route == null) return false
+        if (revision != currentRevision || route == null || alternatives.isNotEmpty()) return false
         val clamped = min(progressMeters, route!!.totalDistanceMeters)
         if (clamped < this.progressMeters) return false
         if (clamped == this.progressMeters && cursorRestricted == this.cursorRestricted) {
@@ -75,7 +142,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
         }
         this.progressMeters = clamped
         this.cursorRestricted = cursorRestricted
-        publish(route!!.snapshot(clamped, cursorRestricted, accentArgb))
+        publish(currentSnapshot())
         true
     }
 
@@ -91,8 +158,11 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
         }
         val updated = currentRoute.copy(restricted = restricted.toList())
         route = updated
+        selectedAlternativeIndex?.let { selected ->
+            alternatives = alternatives.toMutableList().also { it[selected] = updated }
+        }
         this.cursorRestricted = cursorRestricted
-        publish(updated.snapshot(progressMeters, cursorRestricted, accentArgb))
+        publish(currentSnapshot())
         true
     }
 
@@ -102,6 +172,8 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
         if (revision < currentRevision) return false
         currentRevision = revision
         route = null
+        alternatives = emptyList()
+        selectedAlternativeIndex = null
         progressMeters = 0.0
         cursorRestricted = false
         publish(emptySnapshot())
@@ -113,8 +185,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
         if (this.accentArgb == accentArgb) return false
         validateAccent(accentArgb)
         this.accentArgb = accentArgb
-        val currentRoute = route
-        publish(currentRoute?.snapshot(progressMeters, cursorRestricted, accentArgb) ?: emptySnapshot())
+        publish(currentSnapshot())
         true
     }
 
@@ -123,8 +194,35 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
             revision = currentRevision,
             progressMeters = progressMeters,
             totalDistanceMeters = route?.totalDistanceMeters ?: 0.0,
+            selectedAlternativeIndex = selectedAlternativeIndex,
+            alternativeCount = alternatives.size,
             snapshot = snapshot,
         )
+    }
+
+    private fun currentSnapshot(): NativeRouteOverlaySnapshot {
+        val currentRoute = route ?: return emptySnapshot()
+        val selected = selectedAlternativeIndex
+        val muted = if (selected == null) {
+            emptyList()
+        } else {
+            alternatives.mapIndexedNotNull { index, alternative ->
+                alternative.points.takeUnless { index == selected }
+            }
+        }
+        return currentRoute.snapshot(
+            progressMeters = progressMeters,
+            cursorRestricted = cursorRestricted,
+            accentArgb = accentArgb,
+            alternativeRoutes = muted,
+        )
+    }
+
+    private fun validateCombinedPointCount(routes: List<NativeRouteCandidate>) {
+        val total = routes.sumOf { it.points.size.toLong() }
+        require(total <= MAX_SESSION_ROUTE_POINTS.toLong()) {
+            "Route alternatives have too many overlay points"
+        }
     }
 
     private fun prepareRoute(
@@ -138,12 +236,12 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
         require(points.size <= MAX_SESSION_ROUTE_POINTS) {
             "Route has too many overlay points"
         }
-        // Reuse the compiler's coordinate/ARGB/line guards before retaining
-        // any route data. The active snapshot is intentionally empty here;
-        // restrictions are projected again after progress is known.
+        // Reuse the compiler's coordinate/ARGB/line/run guards before
+        // retaining route data. This prevents a pathological classification
+        // sequence from reaching the renderer as thousands of tiny runs.
         NativeRouteOverlayCompiler.compile(
             NativeRouteOverlaySnapshot(
-                activeRuns = listOf(NativeRouteRun(points, restricted = false)),
+                activeRuns = NativeMapOverlayPolicy.splitRouteByRestriction(points, restricted),
                 completedPoints = emptyList(),
                 accentArgb = accentArgb,
             ),
@@ -173,6 +271,8 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
             revision = NO_ROUTE_REVISION,
             progressMeters = 0.0,
             totalDistanceMeters = 0.0,
+            selectedAlternativeIndex = null,
+            alternativeCount = 0,
             snapshot = NativeRouteOverlaySnapshot.empty(accentArgb),
         )
     }
@@ -195,6 +295,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
             progressMeters: Double,
             cursorRestricted: Boolean,
             accentArgb: Long,
+            alternativeRoutes: List<List<NativeMapPoint>>,
         ): NativeRouteOverlaySnapshot {
             if (progressMeters <= 0.0) {
                 return NativeRouteOverlaySnapshot(
@@ -204,6 +305,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
                     ),
                     completedPoints = emptyList(),
                     accentArgb = accentArgb,
+                    alternativeRoutes = alternativeRoutes,
                 )
             }
             if (totalDistanceMeters <= 0.0 || progressMeters >= totalDistanceMeters) {
@@ -211,6 +313,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
                     activeRuns = emptyList(),
                     completedPoints = points,
                     accentArgb = accentArgb,
+                    alternativeRoutes = alternativeRoutes,
                 )
             }
 
@@ -255,6 +358,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
                 },
                 completedPoints = completed,
                 accentArgb = accentArgb,
+                alternativeRoutes = alternativeRoutes,
             )
         }
     }
