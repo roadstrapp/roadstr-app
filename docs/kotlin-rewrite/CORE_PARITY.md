@@ -24,7 +24,7 @@ integration work, while Flutter remains the sole launcher.
 | `service.location` | `gps_service.dart` | AOSP `LocationManager` source, 500 ms sampling boundary, safe fix normalization, last-known fix, 20/45-second dead-stream watchdog and cancellable lifecycle ownership; both Flutter renderers have a disabled-by-default foreground canary with init/resume reconciliation and an observed native-fix shadow stream, while full startup/UI cutover remains |
 | `service.navigation` | map-screen lifecycle/navigation state | 30-second background grace, generation-safe pause/resume, GPS retention during navigation, detach cleanup, foreground-only wakelock policy, AOSP foreground-service adapter, opt-in `MainActivity` method/event bridges, process-local running-state query and fix fan-out, isolated Dart wrappers, serialized ownership coordinator and disabled-by-default start/stop/dispose/reconcile wiring in both renderers |
 | `service.notifications` | `navigation_notification_service.dart` | 3-second distance-only throttle, immediate maneuver changes, reset semantics and private ongoing notification metadata; the disabled-by-default canary now mirrors bounded updates through the service `NotificationManager` adapter using the existing channel/ID, with Flutter completing last and remaining authoritative |
-| `feature.map` | `maplibre_map_screen.dart`, `map_screen.dart`, map services/widgets | raster MapLibre style JSON, dark recoloring, tile URL admission/escaping, ZTL/traffic route-run segmentation and zoom/viewport marker culling; a lifecycle-safe MapLibre Native 13.5.2 AndroidView now installs bounded selected/completed/muted-alternative/traffic route layers, consumes revision-safe route/camera/cursor/point sessions and emits typed marker/map gestures with Flutter-parity 60 m alternative selection only in the private Compose shell, while product data/UI remain unwired |
+| `feature.map` | `maplibre_map_screen.dart`, `map_screen.dart`, map services/widgets | raster MapLibre style JSON, dark recoloring, tile URL admission/escaping, ZTL/traffic route-run segmentation and zoom/viewport marker culling; a lifecycle-safe MapLibre Native 13.5.2 AndroidView now installs bounded selected/completed/muted-alternative/traffic route and per-leg transit layers, consumes revision-safe route/transit/camera/cursor/point sessions and emits typed marker/map gestures with Flutter-parity 60 m alternative selection only in the private Compose shell, while product data/UI remain unwired |
 | `core.ui` / `feature.home` | `app_theme.dart`, Flutter Android embedding | exact four-palette colors and stored ordinal aliases, edge-to-edge private Compose/MapLibre canary, non-exported/no-intent-filter shell contract; no production startup or storage access |
 | `storage` | encrypted Hive search history | canonical encrypted history file, serialized prepend/clear/import, atomic recovery, Keystore boundary and migration-marker ciphertext binding |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
@@ -287,8 +287,14 @@ detached from secure storage and startup. See
   A projected interaction boundary gives the topmost visible road-event marker
   priority, emits typed map tap/long-press values and selects route alternatives
   with Flutter's first-wins rounded-Vincenty `< 60 m` vertex scan.
-  The shell supplies empty route, camera, cursor and point feeds and has no location component or
-  production route feed; live data/product handlers, screenshots and
+  A separate revision-fenced transit session holds up to eight alternatives,
+  validates the complete worldwide mode catalogue and projects only the selected
+  itinerary into a deterministic per-leg GeoJSON source. Its round MapLibre
+  layer preserves operator color or theme-accent fallback at seven logical
+  pixels and secondary-text street legs at 0.7 alpha and four logical pixels,
+  below every road-route layer and across style replacement.
+  The shell supplies empty route, transit, camera, cursor and point feeds and has no location component or
+  production route/transit feed; live data/product handlers, screenshots and
   physical-device evidence remain open.
 - Native navigation lifecycle and notification policies are now deterministic,
   and the Android location foreground-service adapter is registered with an
@@ -308,8 +314,8 @@ detached from secure storage and startup. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 686 Flutter tests passed, including the native shell,
-  private MapLibre host, route-overlay, route-session, camera-session and
+- `flutter test`: 689 Flutter tests passed, including the native shell,
+  private MapLibre host, route-overlay, route-session, transit-overlay/session, camera-session and
   user-cursor, point-overlay/interaction and route-traffic Gradle/source contracts, the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
   NIP-19, Lightning and
@@ -321,10 +327,11 @@ detached from secure storage and startup. See
   compile-time rollout, best-effort retry, serialized ownership lifecycle and
   service reconciliation, plus the bounded notification bridge and
   native-before-Flutter update/cancel ordering.
-- `./gradlew :app:testDebugUnitTest`: 314 Kotlin tests passed, including the
+- `./gradlew :app:testDebugUnitTest`: 326 Kotlin tests passed, including the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
-  GeoJSON, Flutter-compatible route metrics/colors, revision-safe route
+  GeoJSON, Flutter-compatible route and per-leg transit metrics/colors,
+  revision-safe route/transit
   route-choice selection/commit, projection/progress, rounded-Vincenty traffic
   segmentation/revision fencing, stale-style rejection
   and revision-safe camera follow, user-cursor fencing/visual policy and
