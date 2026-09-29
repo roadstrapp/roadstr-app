@@ -39,6 +39,8 @@ import app.roadstr.feature.map.NativeMapLibreHost
 import app.roadstr.feature.map.NativeMapPointOverlaySession
 import app.roadstr.feature.map.NativeRouteOverlaySession
 import app.roadstr.feature.map.NativeTransitOverlaySession
+import app.roadstr.feature.navigation.NativeNavigationHud
+import app.roadstr.feature.navigation.NativeNavigationHudSession
 import app.roadstr.feature.place.NativePlaceDetailsPanel
 import app.roadstr.feature.place.NativePlaceSession
 import app.roadstr.feature.search.NativeSearchOverlay
@@ -105,6 +107,8 @@ fun NativeRoadstrShell() {
         val searchState by searchSession.state.collectAsState()
         val placeSession = remember { NativePlaceSession() }
         val placeState by placeSession.state.collectAsState()
+        val navigationHudSession = remember { NativeNavigationHudSession() }
+        val navigationHudState by navigationHudSession.state.collectAsState()
         LaunchedEffect(cameraSession, cameraState.frameActive) {
             while (cameraSession.state.value.frameActive) {
                 delay(NativeMapCameraSession.FOLLOW_FRAME_MILLIS)
@@ -203,6 +207,12 @@ fun NativeRoadstrShell() {
                     onOpenArticle = {},
                     onSearchWeb = {},
                     modifier = Modifier.align(Alignment.BottomCenter),
+                )
+                NativeNavigationHud(
+                    snapshot = navigationHudState,
+                    onStop = {},
+                    onToggleVoice = {},
+                    onOpenSettings = {},
                 )
             }
         }

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_hu.arb. Do not edit. -->
+<resources>
+    <string name="native_nav_now">Most</string>
+    <string name="native_nav_then">majd %1$s</string>
+    <string name="native_nav_arrival_ahead">Meg fog érkezni az úti céljához</string>
+    <string name="native_nav_arrival_left">Az úti célja a bal oldalon lesz</string>
+    <string name="native_nav_arrival_right">Az úti célja a jobb oldalon lesz</string>
+    <string name="native_nav_eta">Érk. %1$s</string>
+    <string name="native_nav_duration_min">%1$d p</string>
+    <string name="native_nav_duration_hour_min">%1$dó %2$dp</string>
+    <string name="native_nav_exit">Kilépés a navigációból?</string>
+    <string name="native_nav_settings">Beállítások</string>
+    <string name="native_nav_voice">Hangos útmutatás</string>
+    <string name="native_nav_speed_limit">Sebességkorlát</string>
+    <string name="native_nav_altitude">Magasság megjelenítése</string>
+</resources>

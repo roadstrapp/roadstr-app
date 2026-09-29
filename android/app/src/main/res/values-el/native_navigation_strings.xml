@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_el.arb. Do not edit. -->
+<resources>
+    <string name="native_nav_now">Τώρα</string>
+    <string name="native_nav_then">στη συνέχεια %1$s</string>
+    <string name="native_nav_arrival_ahead">Θα φτάσετε στον προορισμό σας</string>
+    <string name="native_nav_arrival_left">Θα φτάσετε στον προορισμό σας στα αριστερά</string>
+    <string name="native_nav_arrival_right">Θα φτάσετε στον προορισμό σας στα δεξιά</string>
+    <string name="native_nav_eta">Άφ. %1$s</string>
+    <string name="native_nav_duration_min">%1$d λεπτ</string>
+    <string name="native_nav_duration_hour_min">%1$dω %2$dλεπτ</string>
+    <string name="native_nav_exit">Έξοδος από πλοήγηση;</string>
+    <string name="native_nav_settings">Ρυθμίσεις</string>
+    <string name="native_nav_voice">Φωνητική καθοδήγηση</string>
+    <string name="native_nav_speed_limit">Όριο ταχύτητας</string>
+    <string name="native_nav_altitude">Εμφάνιση υψομέτρου</string>
+</resources>

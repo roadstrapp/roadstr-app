@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_et.arb. Do not edit. -->
+<resources>
+    <string name="native_nav_now">Praegu</string>
+    <string name="native_nav_then">seejärel %1$s</string>
+    <string name="native_nav_arrival_ahead">Jõuate sihtkohta</string>
+    <string name="native_nav_arrival_left">Jõuate sihtkohta vasakul</string>
+    <string name="native_nav_arrival_right">Jõuate sihtkohta paremal</string>
+    <string name="native_nav_eta">Saab. %1$s</string>
+    <string name="native_nav_duration_min">%1$d min</string>
+    <string name="native_nav_duration_hour_min">%1$dh %2$dmin</string>
+    <string name="native_nav_exit">Lõpeta navigeerimine?</string>
+    <string name="native_nav_settings">Seaded</string>
+    <string name="native_nav_voice">Häälejuhendamine</string>
+    <string name="native_nav_speed_limit">Kiiruspiirang</string>
+    <string name="native_nav_altitude">Näita kõrgust</string>
+</resources>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_nl.arb. Do not edit. -->
+<resources>
+    <string name="native_nav_now">Nu</string>
+    <string name="native_nav_then">daarna %1$s</string>
+    <string name="native_nav_arrival_ahead">Je komt aan op je bestemming</string>
+    <string name="native_nav_arrival_left">Je bestemming ligt aan de linkerkant</string>
+    <string name="native_nav_arrival_right">Je bestemming ligt aan de rechterkant</string>
+    <string name="native_nav_eta">Aanks. %1$s</string>
+    <string name="native_nav_duration_min">%1$d min</string>
+    <string name="native_nav_duration_hour_min">%1$dh %2$dmin</string>
+    <string name="native_nav_exit">Navigatie beëindigen?</string>
+    <string name="native_nav_settings">Instellingen</string>
+    <string name="native_nav_voice">Spraakbegeleiding</string>
+    <string name="native_nav_speed_limit">Snelheidslimiet</string>
+    <string name="native_nav_altitude">Hoogte tonen</string>
+</resources>

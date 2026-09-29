@@ -63,9 +63,14 @@ order. Its 19 values are generated from the same 27 ARB files. A third slice
 packages the place-detail sheet with bounded OSM content, opening-hours state,
 safe website/Wikipedia values, contextual parking/charging/fuel/lodging/food
 sections and fixed cancel/navigation actions. Its 52 values are generated from
-the same 27 ARB files. The shell keeps all panels hidden and has no transit,
-search or place provider/history-store owner, so it cannot initiate provider
-traffic, launch an external intent or read user data. No live place selection,
+the same 27 ARB files. A fourth slice packages the full-screen navigation HUD:
+all 21 manoeuvre families are drawn as native vectors, while five speedometer
+styles and bounded speed, limit, altitude, distance, duration and ETA summaries
+adapt between portrait and landscape. Its 13 values are generated from the
+same 27 ARB files. The shell keeps all panels hidden and has no transit,
+search, place or navigation provider/history/settings owner, so it cannot
+initiate provider traffic, launch an external intent, read user data or start
+location. No live place selection, route progress, navigation telemetry,
 remote image, drag gesture or long-press product handler is connected. This
 proves bounded UI integration slices, not visual route, marker, cursor,
 full-screen, live-overlay or screenshot/device parity.
@@ -118,6 +123,25 @@ portrait/landscape and live provider/storage/device evidence remain required.
 Place screenshot/golden, real drag/animation, remote image policy, font-scale,
 TalkBack, compact portrait/landscape, intent and live provider/device evidence
 remain required.
+
+## Native navigation-HUD evidence
+
+- `generate_android_navigation_strings.dart` projects 13 existing ARB values
+  into 27 Android resource sets and supports deterministic no-drift checks.
+- `NativeNavigationHudPresenter` preserves live/fallback distance selection,
+  the long-straight gate, all 21 manoeuvre families, bounded roundabout
+  topology, arrival side, metric/imperial speed, limit, altitude, remaining
+  distance, duration and ETA, plus all five persisted speedometer styles.
+- `NativeNavigationHudSession` fences stale revisions and backward step
+  progression without owning location, route, settings or storage adapters.
+- `NativeManeuverSymbol` and `NativeNavigationHud` retain vector manoeuvres,
+  current/next instruction hierarchy, summary/stop/settings/voice controls,
+  portrait/landscape adaptation, system insets and explicit accessibility
+  semantics.
+
+Navigation screenshot/golden, font-scale, TalkBack, compact portrait/landscape,
+real route/GPS/settings integration, interaction safety, performance and
+physical-device rendering evidence remain required.
 
 ## Non-negotiable UX invariants
 

@@ -563,8 +563,9 @@ broader cross-language coverage and a native store are still required.
   per-leg MapLibre rendering;
   `NativeMapInteraction.kt` provides projected road-event hit testing, typed
   click/long-click values and exact 60 m alternative selection. Product
-  `feature/navigation/map`, fix/route feeds and
-  remaining overlay UI layers remain.
+  fix/route feeds and remaining overlay UI layers remain. The first dormant
+  `feature/navigation` HUD slice is packaged under KOTLIN-013 but remains
+  detached from this MapLibre host and every live navigation feed.
 - **Dependencies:** MapLibre Native Android OpenGL `13.5.2` is strictly pinned
   to the same artifact used by `maplibre_android 0.3.6`; its POM declares
   BSD-2-Clause and the resolved runtime graph contains no Google Play Services.
@@ -619,7 +620,9 @@ broader cross-language coverage and a native store are still required.
 - **New Kotlin files/modules:** `feature/*`, `core/ui/theme`, Android resources/
   locale resolver and semantics. Current bounded slices add the transit
   presenter/panel and `feature/search/NativeSearchPresentation.kt` plus
-  `NativeSearchOverlay.kt`, and the place presenter/panel.
+  `NativeSearchOverlay.kt`, the place presenter/panel, and
+  `feature/navigation/NativeNavigationHudPresentation.kt`,
+  `NativeManeuverSymbol.kt` and `NativeNavigationHud.kt`.
 - **Current implementation:** The private shell packages a hidden
   public-transport itinerary panel with loading, ready, no-service and failure
   states, up to eight selectable cards, boarding/walking/line/timetable detail,
@@ -638,7 +641,13 @@ broader cross-language coverage and a native store are still required.
   typed website/Wikipedia callbacks and contextual parking, charging, fuel,
   lodging and food sections. Its revision-safe session owns no provider,
   storage, image loader or intent launcher, and 52 place values are generated
-  independently for all 27 locales.
+  independently for all 27 locales. A fourth hidden navigation-HUD slice
+  projects all 21 manoeuvre families through native vector symbols, preserves
+  five persisted speedometer styles, speed/limit/altitude/distance/duration/ETA
+  summaries and revision-safe monotonic step progression, and adapts between
+  portrait and landscape with explicit accessibility semantics. Its 13 values
+  are independently generated for all 27 locales; it owns no GPS, routing
+  provider, settings storage or production action.
 - **Dependencies:** Compose Material 3 and AndroidX only after license review.
 - **Migration impact:** Settings names/defaults and onboarding/disclosure keys must map exactly.
 - **User-visible impact:** Must feel like an update, not a redesign.
@@ -649,12 +658,16 @@ broader cross-language coverage and a native store are still required.
   outcome revisions, GPS gating, empty behavior, history clear, units and hide
   fencing. Eight place parser/presentation JVM cases lock localized OSM
   extraction, safe contact admission and contextual fields; seven more lock
-  title/article/opening projections and revision fencing. Twelve Dart contracts
-  verify all three 27-locale resource sets, Flutter formatter/catalogue/work-
-  bound oracles, Compose accessibility structure and dormant shell ownership.
+  title/article/opening projections and revision fencing. Twelve navigation-HUD
+  JVM cases lock manoeuvre mapping, roundabout topology, sentence casing,
+  live/fallback projection, arrival cues, units, limits, ETA, speedometer
+  storage and revision/step fencing. Sixteen Dart contracts verify all four
+  27-locale resource sets, Flutter formatter/catalogue/work-bound oracles,
+  Compose accessibility/vector structure and dormant shell ownership.
   Compose screenshot comparisons, drag behavior, font-scale/TalkBack and
   compact-device layouts remain.
-- **Parity evidence:** public-transport, active-search and place-detail states
+- **Parity evidence:** public-transport, active-search, place-detail and
+  navigation-HUD states
   have their first headless and packaged Compose evidence in `UI_PARITY.md`;
   every other state and visual/orientation evidence remain open.
 - **Security/privacy impact:** preserve privacy disclosure wording and task-switcher handling.
