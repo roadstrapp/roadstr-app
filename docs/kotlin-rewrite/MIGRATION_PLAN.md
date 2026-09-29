@@ -132,13 +132,17 @@ The first native increment is intentionally isolated from production startup:
   `NativeMapLibreHost.kt` embeds the audited MapLibre Native `13.5.2` renderer
   in the private Compose shell with the Flutter camera baseline, texture mode,
   lifecycle/disposal ordering and low-memory forwarding. It now installs
-  bounded active/restricted/completed route GeoJSON sources and the matching
-  completed/halo/core layers, and rejects stale asynchronous style callbacks.
+  bounded active/restricted/completed/traffic route GeoJSON sources and the
+  matching completed/halo/core/traffic layers, and rejects stale asynchronous
+  style callbacks.
   `NativeRouteOverlaySession.kt` now projects normalized route geometry,
   revision-safe replacements, bounded route-choice selection/commit,
-  monotonic progress, interpolated cursor and refreshed ZTL classifications
-  through a StateFlow. Its MapLibre renderer keeps muted unselected candidates
-  below the completed and selected-route layers. A separate
+  monotonic progress, interpolated cursor, refreshed ZTL classifications and
+  independently revisioned traffic caches through a StateFlow.
+  `NativeRouteTrafficPolicy.kt` preserves Flutter's rounded-Vincenty 400 m
+  segmentation and continuity boundaries under a bounded work budget. Its
+  MapLibre renderer keeps muted unselected candidates below the completed and
+  selected-route layers and red traffic above the active core. A separate
   `NativeMapCameraSession.kt` and `NativeMapCameraRenderer.kt` pair preserves
   the Flutter follow cadence, dead reckoning, navigation offset, pitch/bearing,
   recenter and gesture-detachment policy through sequence-safe MapLibre camera
@@ -525,7 +529,9 @@ broader cross-language coverage and a native store are still required.
   `NativeMapRouteRenderer.kt` provide bounded route snapshots/GeoJSON and
   reinstallable muted-alternative, active, restricted and completed MapLibre layers;
   `NativeRouteOverlaySession.kt` provides the revision-safe StateFlow route
-  projector with bounded alternative selection and explicit commit;
+  projector with bounded alternative selection, explicit commit and traffic
+  cache fencing; `NativeRouteTrafficPolicy.kt` provides bounded Flutter-parity
+  traffic segmentation;
   `NativeMapCameraSession.kt` and `NativeMapCameraRenderer.kt`
   provide a revision-safe value session and imperative MapLibre adapter for
   camera follow; `NativeMapCursorSession.kt` and
@@ -540,7 +546,7 @@ broader cross-language coverage and a native store are still required.
   BSD-2-Clause and the resolved runtime graph contains no Google Play Services.
 - **Migration impact:** `mapEngine`, tile URL, cursor and map settings must remain.
 - **User-visible impact:** Same map engine default, toggle, overlays, tilt, bearing and controls.
-- **Tests:** 60 deterministic JVM tests cover light/dark style output, tile URL
+- **Tests:** 70 deterministic JVM tests cover light/dark style output, tile URL
   safety/escaping, ZTL route segmentation, viewport/zoom marker culling,
   audited version/camera values, exact idempotent MapView lifecycle ordering,
   bounded GeoJSON/coordinate validation, physical-pixel widths/colors and
@@ -549,7 +555,8 @@ broader cross-language coverage and a native store are still required.
   classification refresh, camera dead reckoning, heading/north-up, turn
   capping, recenter and gesture detachment, cursor revision fencing, coordinate/
   colour validation, pitch-aware geometry, bounded point-overlay revisioning,
-  ordering, zoom gates and the closed marker catalogue; fourteen Dart source/Gradle contracts
+  ordering, zoom gates, the closed marker catalogue, rounded-Vincenty traffic
+  runs, work bounds and traffic revision fencing; sixteen Dart source/Gradle contracts
   lock the private host, route renderer/session and Flutter route/camera
   oracles. Screenshot/golden and device rendering tests remain.
 - **Parity evidence:** the headless policies and private native raster renderer
@@ -557,7 +564,8 @@ broader cross-language coverage and a native store are still required.
   texture mode. Its completed-grey and active accent/ZTL layers preserve the
   Flutter ordering, round joins/caps, 18/9/9 logical widths and 0.28 halo alpha.
   Muted alternatives preserve grey-600 at 0.6 alpha and seven-logical-pixel
-  width below the selected route. The dormant cursor preserves the generic
+  width below the selected route. Traffic preserves the strict rounded-distance
+  400 m gate and nine-logical-pixel bright-red layer above the active core. The dormant cursor preserves the generic
   48x76 arrow, 1.4 scale, default violet, HSL treatment and pitch-dependent
   shadow/flattening while MapLibre owns coordinate projection. Dormant point
   overlays preserve all road-event/static marker symbols, sizes, ordering and

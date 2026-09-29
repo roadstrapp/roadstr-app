@@ -35,8 +35,9 @@ live. A late asynchronous map-ready callback is ignored after disposal.
 
 ## Route overlay boundary
 
-`NativeMapRouteRenderer` installs three GeoJSON sources and four ordered line
-layers: muted alternatives, completed grey, active halo, then active core.
+`NativeMapRouteRenderer` installs four GeoJSON sources and five ordered line
+layers: muted alternatives, completed grey, active halo, active core, then
+bright-red traffic.
 Active features retain
 the ZTL classification as a boolean expression property, selecting Flutter's
 `0xFFE53935` restricted red or the current theme accent. Round joins/caps,
@@ -47,6 +48,15 @@ Unselected route-choice candidates use Flutter's grey-600 at 0.6 alpha and
 seven-logical-pixel width, corrected for display density. They are installed
 explicitly below the completed and selected-route layers, including when a
 style is reattached.
+
+`NativeRouteTrafficPolicy` ports Flutter's active-traffic projection exactly:
+route vertices whose rounded WGS-84 Vincenty distance is strictly below 400 m
+from a live traffic-jam point form red runs, with the preceding and following
+vertices retained for visual continuity. Inputs are finite WGS84 points, the
+cache is capped at 2,048 jams and each projection is capped at one million
+distance checks; exceeding the work budget hides only traffic, never the route.
+The resulting nine-logical-pixel `0xFFEF4444` layer is installed above the
+active route core.
 
 `NativeRouteOverlayCompiler` rejects non-finite or out-of-WGS84 coordinates,
 single-point lines, invalid ARGB values, more than 4,096 classified runs or
@@ -63,7 +73,10 @@ separate, and can refresh restriction flags without replacing the route. It
 publishes immutable snapshots through `StateFlow`. It also accepts up to eight
 bounded route candidates, highlights one while muting the others, fences stale
 selection callbacks and requires an explicit commit before progress can start.
-The private shell collects that flow but has no route producer attached yet.
+An independently monotonic traffic revision can arrive before or after route
+geometry; retained jams are reprojected when route selection changes and stale
+cache callbacks are ignored. The private shell collects that flow but has no
+route or traffic producer attached yet.
 
 ## Camera follow boundary
 
@@ -143,6 +156,9 @@ debug-host selection check.
   previews, stale-safe selection/commit, monotonic progress, terminal
   completion, cursor interpolation, pathological classification rejection,
   classification refresh and theme preservation.
+- Ten traffic-route JVM cases lock rounded-Vincenty threshold behavior,
+  continuity boundaries, disjoint runs, input/work budgets, deterministic
+  GeoJSON, traffic revision fencing and alternative reprojection.
 - Nine camera-session JVM cases lock stale-fix rejection, heading/north-up
   projection, navigation shift, pitch, dead reckoning, turn capping, recenter
   and gesture detachment.
@@ -152,13 +168,13 @@ debug-host selection check.
 - Ten point-overlay JVM cases lock revision fencing, clear behavior, bounded
   IDs/count/coordinates, deterministic order, zoom gates and the closed Flutter
   symbol/size/colour catalogue.
-- Fourteen Dart contracts lock the strict Gradle version, lifecycle-compose
+- Sixteen Dart contracts lock the strict Gradle version, lifecycle-compose
   dependency, real `MapView`/style/texture-mode binding, absence of a location
   component, selected/muted route source/layer constants, route-choice/progress
-  oracle and ownership by the private shell, plus the Flutter camera oracle
+  oracle, traffic segmentation/layer and ownership by the private shell, plus the Flutter camera oracle
   and MapLibre command wiring, cursor geometry, point-overlay parity and
   dormant ownership.
-- The complete verification run passes 682 Flutter tests, 296 Kotlin tests,
+- The complete verification run passes 684 Flutter tests, 306 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 
@@ -166,7 +182,7 @@ debug-host selection check.
 
 - physical-device launch, renderer output and network/tile evidence;
 - screenshot/golden comparison in light/dark themes and compact/landscape UI;
-- live route/source/point update, road-event marker taps, accessibility and
+- live route/traffic/source/point update, road-event marker taps, accessibility and
   attribution interaction;
 - native GPS/location ownership, live camera/cursor binding and physical-device
   camera/cursor traces;
