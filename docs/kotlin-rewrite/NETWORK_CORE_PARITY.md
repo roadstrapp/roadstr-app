@@ -52,6 +52,17 @@ failures degrade independently to empty results, vetted Overpass mirrors rotate
 on status/transport/parser failures, and caller cancellation reaches every
 active OkHttp call without becoming a retry.
 
+`core.network.TransitProtocol` and `service.transit.NativeTransitService` form
+the corresponding headless Transitous boundary. They preserve the shipped
+plan endpoint, UTC departure encoding, three-itinerary request, 1,800-second
+access/egress walking budgets and user agent; parse bounded ragged itinerary,
+leg, boarding, mode, colour and precision-tagged polyline values; and drop
+walk-only alternatives before duration ordering. Execution uses the shared
+OkHttp pool with a 20-second whole-call deadline and 2 MiB body ceiling. Its
+three-attempt interactive retry admits only transport/timeouts, 429 and 5xx,
+honours bounded `Retry-After`, physically propagates cancellation and exposes
+only value-free failures. It has no startup or UI owner.
+
 The app pins OkHttp 4.12.0 and kotlinx-coroutines 1.10.2, matching the versions
 already selected by MapLibre/AndroidX instead of upgrading the existing Flutter
 runtime transitively. Both are permissively licensed; MockWebServer 4.12.0 is
@@ -164,6 +175,14 @@ provider limits, real three-provider concurrency and arrival-order partials,
 failure isolation, exactly one relaxed batch, stale-callback isolation,
 category matching/query composition, Overpass mirror preference/fallback, a
 real loopback POST through OkHttp and all-provider cancellation without retry.
+
+Eight `TransitProtocolTest` cases lock exact request composition, the complete
+21-mode catalogue, UTC/endpoint validation, the real Berlin response fixture,
+precision-aware and truncated polyline handling, sentinel/helper semantics,
+walk-only filtering and parser work bounds. Nine `NativeTransitServiceTest`
+cases add exact limits, a real MockWebServer exchange, unavailable/malformed/
+oversized/status classification, bounded exponential and `Retry-After` waits,
+failure redaction and cancellation without retry.
 
 `search_provider_requests_v1.tsv` adds 39 Dart-generated Nominatim, Photon and
 Overpass request outcomes. It is consumed by both runtimes and includes their
