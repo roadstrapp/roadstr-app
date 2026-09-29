@@ -43,6 +43,8 @@ internal object NativeMapHostContract {
 fun NativeMapLibreHost(
     dark: Boolean,
     routeOverlay: NativeRouteOverlaySnapshot,
+    cameraCommand: NativeMapCameraCommand?,
+    onCameraGesture: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -55,6 +57,8 @@ fun NativeMapLibreHost(
             dark = dark,
             initialStyleJson = styleJson,
             initialRouteOverlay = routeOverlay,
+            initialCameraCommand = cameraCommand,
+            onCameraGesture = onCameraGesture,
         )
     }
 
@@ -63,6 +67,9 @@ fun NativeMapLibreHost(
     }
     LaunchedEffect(host, routeOverlay) {
         host.updateRouteOverlay(routeOverlay)
+    }
+    LaunchedEffect(host, cameraCommand) {
+        host.updateCamera(cameraCommand)
     }
 
     DisposableEffect(host, lifecycleOwner) {
@@ -110,6 +117,9 @@ private class NativeMapLibreViewHost private constructor(
     val mapView: MapView,
     val lifecycle: NativeMapLifecycleController,
     private val routeRenderer: NativeMapRouteRenderer,
+    private val cameraRenderer: NativeMapCameraRenderer,
+    private val onCameraGesture: () -> Unit,
+    initialCameraCommand: NativeMapCameraCommand?,
     initialStyleJson: String,
 ) {
     private var active = true
@@ -117,12 +127,20 @@ private class NativeMapLibreViewHost private constructor(
     private var desiredStyleJson = initialStyleJson
     private var requestedStyleJson: String? = null
     private val styleGeneration = NativeMapStyleGenerationGate()
+    private val cameraMoveStartedListener = MapLibreMap.OnCameraMoveStartedListener { reason ->
+        if (active && reason == MapLibreMap.OnCameraMoveStartedListener.REASON_API_GESTURE) {
+            onCameraGesture()
+        }
+    }
 
     init {
         lifecycle.handle(NativeMapLifecycleEvent.Create)
+        cameraRenderer.update(initialCameraCommand)
         mapView.getMapAsync { readyMap ->
             if (!active) return@getMapAsync
             map = readyMap
+            readyMap.addOnCameraMoveStartedListener(cameraMoveStartedListener)
+            cameraRenderer.attach(readyMap)
             applyStyleIfNeeded()
         }
     }
@@ -138,9 +156,16 @@ private class NativeMapLibreViewHost private constructor(
         routeRenderer.update(snapshot)
     }
 
+    fun updateCamera(command: NativeMapCameraCommand?) {
+        if (!active) return
+        cameraRenderer.update(command)
+    }
+
     fun dispose() {
         if (!active) return
         active = false
+        map?.removeOnCameraMoveStartedListener(cameraMoveStartedListener)
+        cameraRenderer.detach()
         map = null
         routeRenderer.detach()
         styleGeneration.dispose()
@@ -166,6 +191,8 @@ private class NativeMapLibreViewHost private constructor(
             dark: Boolean,
             initialStyleJson: String,
             initialRouteOverlay: NativeRouteOverlaySnapshot,
+            initialCameraCommand: NativeMapCameraCommand?,
+            onCameraGesture: () -> Unit,
         ): NativeMapLibreViewHost {
             MapLibre.getInstance(context.applicationContext)
             val camera = CameraPosition.Builder()
@@ -195,6 +222,7 @@ private class NativeMapLibreViewHost private constructor(
                 displayDensity = context.resources.displayMetrics.density,
                 initialSnapshot = initialRouteOverlay,
             )
+            val cameraRenderer = NativeMapCameraRenderer()
             val lifecycle = NativeMapLifecycleController(
                 object : NativeMapLifecycleTarget {
                     override fun create() = mapView.onCreate(null)
@@ -210,6 +238,9 @@ private class NativeMapLibreViewHost private constructor(
                 mapView = mapView,
                 lifecycle = lifecycle,
                 routeRenderer = routeRenderer,
+                cameraRenderer = cameraRenderer,
+                onCameraGesture = onCameraGesture,
+                initialCameraCommand = initialCameraCommand,
                 initialStyleJson = initialStyleJson,
             )
         }

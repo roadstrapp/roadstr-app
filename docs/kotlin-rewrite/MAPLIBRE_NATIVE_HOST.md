@@ -57,6 +57,21 @@ separate, and can refresh restriction flags without replacing the route. It
 publishes immutable snapshots through `StateFlow`; the private shell collects
 that flow but has no route producer attached yet.
 
+## Camera follow boundary
+
+`NativeMapCameraSession` is a sensor-free, value-only boundary between future
+native fixes and MapLibre. It accepts monotonically sequenced fixes, projects
+at the Flutter renderer's 33 ms cadence, caps dead reckoning at three seconds,
+and preserves heading-up/north-up bearing, 40/55-degree pitch, navigation
+forward shift and the 90-degree-per-second turn cap. A MapLibre API gesture
+stops follow immediately; explicit recentering emits a 300 ms ease command.
+
+`NativeMapCameraRenderer` applies immutable, monotonically sequenced camera
+positions with `moveCamera` or `easeCamera` and reapplies the latest command if
+a different map instance is attached. The private shell owns the session and
+only drives frames while it reports active work. It submits no fix, requests no
+permission and has no location source, so this boundary remains dormant.
+
 ## Dependency and licence boundary
 
 The Flutter plugin `maplibre_android 0.3.6` requests
@@ -85,11 +100,15 @@ debug-host selection check.
 - Seven route-session JVM cases lock revision fencing, monotonic progress,
   terminal completion, cursor interpolation, classification refresh and theme
   preservation.
-- Six Dart contracts lock the strict Gradle version, lifecycle-compose
+- Nine camera-session JVM cases lock stale-fix rejection, heading/north-up
+  projection, navigation shift, pitch, dead reckoning, turn capping, recenter
+  and gesture detachment.
+- Eight Dart contracts lock the strict Gradle version, lifecycle-compose
   dependency, real `MapView`/style/texture-mode binding, absence of a location
   component, route source/layer constants, route-progress oracle and ownership
-  by the private shell.
-- The complete verification run passes 674 Flutter tests, 263 Kotlin tests,
+  by the private shell, plus the Flutter camera oracle and MapLibre command
+  wiring.
+- The complete verification run passes 676 Flutter tests, 272 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 
@@ -97,9 +116,9 @@ debug-host selection check.
 
 - physical-device launch, renderer output and network/tile evidence;
 - screenshot/golden comparison in light/dark themes and compact/landscape UI;
-- gesture, camera easing, live route/source update, remaining overlays and
-  attribution interaction;
-- native GPS/location ownership and navigation camera integration;
+- live route/source update, remaining overlays and attribution interaction;
+- native GPS/location ownership, live camera binding and physical-device
+  camera traces;
 - frame time, memory, thermal and battery comparison;
 - process recreation and saved camera state;
 - release/R8/F-Droid dependency and licence verification.
