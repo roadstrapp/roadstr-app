@@ -28,12 +28,14 @@ import androidx.compose.ui.unit.dp
 import app.roadstr.R
 import app.roadstr.core.ui.theme.RoadstrTheme
 import app.roadstr.core.ui.theme.RoadstrThemeId
+import app.roadstr.core.ui.theme.RoadstrThemeTokens
 import app.roadstr.feature.map.NativeMapCameraSession
 import app.roadstr.feature.map.NativeMapCursorSession
 import app.roadstr.feature.map.NativeMapInteraction
 import app.roadstr.feature.map.NativeMapLibreHost
 import app.roadstr.feature.map.NativeMapPointOverlaySession
 import app.roadstr.feature.map.NativeRouteOverlaySession
+import app.roadstr.feature.map.NativeTransitOverlaySession
 import kotlinx.coroutines.delay
 
 /**
@@ -53,11 +55,22 @@ fun NativeRoadstrShell() {
     }
     RoadstrTheme(themeId = themeId) {
         val shellDescription = stringResource(R.string.native_shell_description)
+        val palette = RoadstrThemeTokens.palette(themeId)
         val routeSession = remember { NativeRouteOverlaySession(themeId.accentArgb) }
         LaunchedEffect(routeSession, themeId.accentArgb) {
             routeSession.updateAccent(themeId.accentArgb)
         }
         val routeState by routeSession.state.collectAsState()
+        val transitSession = remember {
+            NativeTransitOverlaySession(
+                initialAccentArgb = palette.accentArgb,
+                initialTextSecondaryArgb = palette.textSecondaryArgb,
+            )
+        }
+        LaunchedEffect(transitSession, palette.accentArgb, palette.textSecondaryArgb) {
+            transitSession.updateTheme(palette.accentArgb, palette.textSecondaryArgb)
+        }
+        val transitState by transitSession.state.collectAsState()
         val cameraSession = remember { NativeMapCameraSession() }
         val cameraState by cameraSession.state.collectAsState()
         val cursorSession = remember { NativeMapCursorSession() }
@@ -84,6 +97,7 @@ fun NativeRoadstrShell() {
                 NativeMapLibreHost(
                     dark = themeId.dark,
                     routeOverlay = routeState.snapshot,
+                    transitOverlay = transitState,
                     cameraCommand = cameraState.command,
                     cursorSnapshot = cursorState,
                     pointOverlay = pointOverlayState,

@@ -539,6 +539,9 @@ broader cross-language coverage and a native store are still required.
   MapLibre-projected, pitch-aware default-arrow painter;
   `NativeMapPointOverlaySession.kt` and `NativeMapPointOverlayView.kt` provide
   bounded revisioned marker caches and projected billboard rendering;
+  `NativeTransitOverlay.kt`, `NativeTransitOverlaySession.kt` and
+  `NativeMapTransitRenderer.kt` provide the bounded worldwide mode catalogue,
+  revision-safe selected-itinerary state and per-leg MapLibre rendering;
   `NativeMapInteraction.kt` provides projected road-event hit testing, typed
   click/long-click values and exact 60 m alternative selection. Product
   `feature/navigation/map`, fix/route feeds and
@@ -548,7 +551,7 @@ broader cross-language coverage and a native store are still required.
   BSD-2-Clause and the resolved runtime graph contains no Google Play Services.
 - **Migration impact:** `mapEngine`, tile URL, cursor and map settings must remain.
 - **User-visible impact:** Same map engine default, toggle, overlays, tilt, bearing and controls.
-- **Tests:** 78 deterministic JVM tests cover light/dark style output, tile URL
+- **Tests:** 90 deterministic JVM tests cover light/dark style output, tile URL
   safety/escaping, ZTL route segmentation, viewport/zoom marker culling,
   audited version/camera values, exact idempotent MapView lifecycle ordering,
   bounded GeoJSON/coordinate validation, physical-pixel widths/colors and
@@ -559,7 +562,8 @@ broader cross-language coverage and a native store are still required.
   colour validation, pitch-aware geometry, bounded point-overlay revisioning,
   ordering, zoom gates, the closed marker catalogue, rounded-Vincenty traffic
   runs, work bounds, traffic revision fencing, marker-hit priority and strict
-  60 m alternative taps; eighteen Dart source/Gradle contracts
+  60 m alternative taps, bounded transit revisions/selections, worldwide modes,
+  per-leg GeoJSON/colors and 7/4 density-corrected widths; twenty-one Dart source/Gradle contracts
   lock the private host, route renderer/session and Flutter route/camera
   oracles. Screenshot/golden and device rendering tests remain.
 - **Parity evidence:** the headless policies and private native raster renderer
@@ -568,7 +572,10 @@ broader cross-language coverage and a native store are still required.
   Flutter ordering, round joins/caps, 18/9/9 logical widths and 0.28 halo alpha.
   Muted alternatives preserve grey-600 at 0.6 alpha and seven-logical-pixel
   width below the selected route. Traffic preserves the strict rounded-distance
-  400 m gate and nine-logical-pixel bright-red layer above the active core. The dormant cursor preserves the generic
+  400 m gate and nine-logical-pixel bright-red layer above the active core.
+  The dormant transit layer preserves provider colors with accent fallback,
+  secondary text at 0.7 alpha for street legs, 7/4 logical widths and placement
+  below all road routes. The dormant cursor preserves the generic
   48x76 arrow, 1.4 scale, default violet, HSL treatment and pitch-dependent
   shadow/flattening while MapLibre owns coordinate projection. Dormant point
   overlays preserve all road-event/static marker symbols, sizes, ordering and

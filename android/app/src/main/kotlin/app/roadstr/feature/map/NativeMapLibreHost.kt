@@ -46,6 +46,7 @@ internal object NativeMapHostContract {
 fun NativeMapLibreHost(
     dark: Boolean,
     routeOverlay: NativeRouteOverlaySnapshot,
+    transitOverlay: NativeTransitOverlaySnapshot,
     cameraCommand: NativeMapCameraCommand?,
     cursorSnapshot: NativeMapCursorSnapshot,
     pointOverlay: NativeMapPointOverlaySnapshot,
@@ -65,6 +66,7 @@ fun NativeMapLibreHost(
             dark = dark,
             initialStyleJson = styleJson,
             initialRouteOverlay = routeOverlay,
+            initialTransitOverlay = transitOverlay,
             initialCameraCommand = cameraCommand,
             initialCursorSnapshot = cursorSnapshot,
             initialPointOverlay = pointOverlay,
@@ -78,6 +80,9 @@ fun NativeMapLibreHost(
     }
     LaunchedEffect(host, routeOverlay) {
         host.updateRouteOverlay(routeOverlay)
+    }
+    LaunchedEffect(host, transitOverlay) {
+        host.updateTransitOverlay(transitOverlay)
     }
     LaunchedEffect(host, cameraCommand) {
         host.updateCamera(cameraCommand)
@@ -135,6 +140,7 @@ private class NativeMapLibreViewHost private constructor(
     val mapView: MapView,
     val lifecycle: NativeMapLifecycleController,
     private val routeRenderer: NativeMapRouteRenderer,
+    private val transitRenderer: NativeMapTransitRenderer,
     private val cameraRenderer: NativeMapCameraRenderer,
     private val cursorOverlay: NativeMapCursorOverlayView,
     private val pointOverlay: NativeMapPointOverlayView,
@@ -224,6 +230,11 @@ private class NativeMapLibreViewHost private constructor(
         routeRenderer.update(snapshot)
     }
 
+    fun updateTransitOverlay(snapshot: NativeTransitOverlaySnapshot) {
+        if (!active) return
+        transitRenderer.update(snapshot)
+    }
+
     fun updateCamera(command: NativeMapCameraCommand?) {
         if (!active) return
         cameraRenderer.update(command)
@@ -251,6 +262,7 @@ private class NativeMapLibreViewHost private constructor(
         cursorOverlay.detach()
         map = null
         routeRenderer.detach()
+        transitRenderer.detach()
         styleGeneration.dispose()
         lifecycle.handle(NativeMapLifecycleEvent.Destroy)
     }
@@ -262,8 +274,11 @@ private class NativeMapLibreViewHost private constructor(
         requestedStyleJson = requestedJson
         val generation = styleGeneration.next()
         routeRenderer.detach()
+        transitRenderer.detach()
         liveMap.setStyle(Style.Builder().fromJson(requestedJson)) { loadedStyle ->
             if (!active || !styleGeneration.accepts(generation)) return@setStyle
+            // Flutter paints transit first, then route alternatives and the active route.
+            transitRenderer.attach(loadedStyle)
             routeRenderer.attach(loadedStyle)
         }
     }
@@ -274,6 +289,7 @@ private class NativeMapLibreViewHost private constructor(
             dark: Boolean,
             initialStyleJson: String,
             initialRouteOverlay: NativeRouteOverlaySnapshot,
+            initialTransitOverlay: NativeTransitOverlaySnapshot,
             initialCameraCommand: NativeMapCameraCommand?,
             initialCursorSnapshot: NativeMapCursorSnapshot,
             initialPointOverlay: NativeMapPointOverlaySnapshot,
@@ -331,6 +347,10 @@ private class NativeMapLibreViewHost private constructor(
                 displayDensity = context.resources.displayMetrics.density,
                 initialSnapshot = initialRouteOverlay,
             )
+            val transitRenderer = NativeMapTransitRenderer(
+                displayDensity = context.resources.displayMetrics.density,
+                initialSnapshot = initialTransitOverlay,
+            )
             val cameraRenderer = NativeMapCameraRenderer()
             val lifecycle = NativeMapLifecycleController(
                 object : NativeMapLifecycleTarget {
@@ -348,6 +368,7 @@ private class NativeMapLibreViewHost private constructor(
                 mapView = mapView,
                 lifecycle = lifecycle,
                 routeRenderer = routeRenderer,
+                transitRenderer = transitRenderer,
                 cameraRenderer = cameraRenderer,
                 cursorOverlay = cursorOverlay,
                 pointOverlay = pointOverlay,
