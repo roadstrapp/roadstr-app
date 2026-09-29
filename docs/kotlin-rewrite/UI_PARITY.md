@@ -35,9 +35,12 @@ The packaged native shell is intentionally only an integration foundation. Its
 activity is non-exported, excluded from recents and has no intent filter;
 Flutter `MainActivity` remains the sole launcher. The shell establishes
 edge-to-edge Compose hosting and exact light/dark Nostr Violet/Bitcoin Orange
-color tokens, including legacy stored-theme aliases. It does not yet claim
-screen, navigation, locale, accessibility or screenshot parity, and it does
-not read legacy/native storage or start network/location work.
+color tokens, including legacy stored-theme aliases. It also embeds a real
+MapLibre Native raster view with the Flutter initial camera and texture mode.
+Only an explicit internal invocation can start its admitted HTTPS OSM tile
+requests; it does not read legacy/native storage or request location. The shell
+does not yet claim screen, navigation, locale, accessibility, overlay, gesture
+or screenshot parity.
 
 ## Non-negotiable UX invariants
 
