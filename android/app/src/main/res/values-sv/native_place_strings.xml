@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_sv.arb. Do not edit. -->
+<resources>
+    <string name="native_place_loading">Läser in information…</string>
+    <string name="native_place_cancel">Avbryt</string>
+    <string name="native_place_navigate">Navigera hit</string>
+    <string name="native_place_read_wikipedia">Läs på Wikipedia</string>
+    <string name="native_place_search_engine">Sök på %1$s</string>
+    <string name="native_place_osm_details">Information från OpenStreetMap</string>
+    <string name="native_place_category">Kategori</string>
+    <string name="native_place_operator">Operatör</string>
+    <string name="native_place_cuisine">Kök</string>
+    <string name="native_place_wheelchair_yes">Rullstolsanpassat</string>
+    <string name="native_place_wheelchair_limited">Begränsad rullstolstillgänglighet</string>
+    <string name="native_place_wheelchair_no">Inte rullstolsanpassat</string>
+    <string name="native_place_contact">Kontakt</string>
+    <string name="native_place_address">Adress</string>
+    <string name="native_place_website">Webbplats</string>
+    <string name="native_place_access_private">Privat tillträde</string>
+    <string name="native_place_access_customers">Endast kunder</string>
+    <string name="native_place_access_permit">Tillstånd krävs</string>
+    <string name="native_place_access_no">Ingen allmän åtkomst</string>
+    <string name="native_place_access_destination">Endast destinationstrafik</string>
+    <string name="native_place_lightning">Lightning accepteras</string>
+    <string name="native_place_bitcoin">Bitcoin accepteras</string>
+    <string name="native_place_parking">Parkering</string>
+    <string name="native_place_parking_surface">Markparkering</string>
+    <string name="native_place_parking_underground">Underjordisk</string>
+    <string name="native_place_parking_multi_storey">Parkeringshus</string>
+    <string name="native_place_parking_street_side">Längs gatan</string>
+    <string name="native_place_parking_lane">På gatan</string>
+    <string name="native_place_parking_rooftop">På taket</string>
+    <string name="native_place_fee">Avgift</string>
+    <string name="native_place_free">Gratis</string>
+    <string name="native_place_paid">Avgiftsbelagd</string>
+    <string name="native_place_capacity">Kapacitet</string>
+    <string name="native_place_max_stay">Längsta parkeringstid</string>
+    <string name="native_place_price">Pris</string>
+    <string name="native_place_charging">Laddning</string>
+    <string name="native_place_connector_type2">Typ 2</string>
+    <string name="native_place_connector_chademo">CHAdeMO</string>
+    <string name="native_place_connector_ccs">CCS</string>
+    <string name="native_place_diesel">Diesel</string>
+    <string name="native_place_petrol95">Bensin 95</string>
+    <string name="native_place_smoking_allowed">Rökning tillåten</string>
+    <string name="native_place_smoking_outside">Rökning utomhus</string>
+    <string name="native_place_smoking_areas">Rökområden</string>
+    <string name="native_place_smoke_free">Rökfritt</string>
+    <string name="native_place_outdoor_seating">Uteservering</string>
+    <string name="native_place_takeaway">Hämtmat</string>
+    <string name="native_place_takeaway_only">Endast hämtmat</string>
+    <string name="native_place_open_now">Öppet nu</string>
+    <string name="native_place_closed_now">Stängt</string>
+    <string name="native_place_opens_at">Öppnar: %1$s</string>
+    <string name="native_place_closes_at">Stänger: %1$s</string>
+</resources>

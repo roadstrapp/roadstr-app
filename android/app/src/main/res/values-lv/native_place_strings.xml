@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_lv.arb. Do not edit. -->
+<resources>
+    <string name="native_place_loading">Ielādē informāciju…</string>
+    <string name="native_place_cancel">Atcelt</string>
+    <string name="native_place_navigate">Navigēt uz šejieni</string>
+    <string name="native_place_read_wikipedia">Lasīt Vikipēdijā</string>
+    <string name="native_place_search_engine">Meklēt %1$s</string>
+    <string name="native_place_osm_details">Informācija no OpenStreetMap</string>
+    <string name="native_place_category">Kategorija</string>
+    <string name="native_place_operator">Operators</string>
+    <string name="native_place_cuisine">Virtuve</string>
+    <string name="native_place_wheelchair_yes">Pieejams ratiņkrēslā</string>
+    <string name="native_place_wheelchair_limited">Ierobežota pieejamība ratiņkrēslā</string>
+    <string name="native_place_wheelchair_no">Nav pieejams ratiņkrēslā</string>
+    <string name="native_place_contact">Kontakti</string>
+    <string name="native_place_address">Adrese</string>
+    <string name="native_place_website">Tīmekļa vietne</string>
+    <string name="native_place_access_private">Privāta piekļuve</string>
+    <string name="native_place_access_customers">Tikai klientiem</string>
+    <string name="native_place_access_permit">Nepieciešama atļauja</string>
+    <string name="native_place_access_no">Nav publiskas piekļuves</string>
+    <string name="native_place_access_destination">Piekļuve tikai galamērķim</string>
+    <string name="native_place_lightning">Pieņem Lightning</string>
+    <string name="native_place_bitcoin">Pieņem Bitcoin</string>
+    <string name="native_place_parking">Autostāvvieta</string>
+    <string name="native_place_parking_surface">Virszemes</string>
+    <string name="native_place_parking_underground">Pazemes</string>
+    <string name="native_place_parking_multi_storey">Daudzstāvu</string>
+    <string name="native_place_parking_street_side">Ielas malā</string>
+    <string name="native_place_parking_lane">Uz ielas</string>
+    <string name="native_place_parking_rooftop">Uz jumta</string>
+    <string name="native_place_fee">Maksa</string>
+    <string name="native_place_free">Bezmaksas</string>
+    <string name="native_place_paid">Maksas</string>
+    <string name="native_place_capacity">Ietilpība</string>
+    <string name="native_place_max_stay">Maksimālais stāvēšanas laiks</string>
+    <string name="native_place_price">Cena</string>
+    <string name="native_place_charging">Uzlāde</string>
+    <string name="native_place_connector_type2">2. tips</string>
+    <string name="native_place_connector_chademo">CHAdeMO</string>
+    <string name="native_place_connector_ccs">CCS</string>
+    <string name="native_place_diesel">Dīzelis</string>
+    <string name="native_place_petrol95">Benzīns 95</string>
+    <string name="native_place_smoking_allowed">Smēķēšana atļauta</string>
+    <string name="native_place_smoking_outside">Smēķēšana ārā</string>
+    <string name="native_place_smoking_areas">Smēķēšanas zonas</string>
+    <string name="native_place_smoke_free">Bez dūmiem</string>
+    <string name="native_place_outdoor_seating">Āra sēdvietas</string>
+    <string name="native_place_takeaway">Līdzņemšanai</string>
+    <string name="native_place_takeaway_only">Tikai līdzņemšanai</string>
+    <string name="native_place_open_now">Tagad atvērts</string>
+    <string name="native_place_closed_now">Slēgts</string>
+    <string name="native_place_opens_at">Atveras: %1$s</string>
+    <string name="native_place_closes_at">Aizveras: %1$s</string>
+</resources>

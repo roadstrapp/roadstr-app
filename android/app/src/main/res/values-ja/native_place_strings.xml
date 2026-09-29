@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ja.arb. Do not edit. -->
+<resources>
+    <string name="native_place_loading">情報を読み込んでいます…</string>
+    <string name="native_place_cancel">キャンセル</string>
+    <string name="native_place_navigate">ここへナビゲート</string>
+    <string name="native_place_read_wikipedia">Wikipediaで読む</string>
+    <string name="native_place_search_engine">%1$sで検索</string>
+    <string name="native_place_osm_details">OpenStreetMapの情報</string>
+    <string name="native_place_category">カテゴリ</string>
+    <string name="native_place_operator">運営者</string>
+    <string name="native_place_cuisine">料理</string>
+    <string name="native_place_wheelchair_yes">車椅子で利用可能</string>
+    <string name="native_place_wheelchair_limited">車椅子での利用は一部制限</string>
+    <string name="native_place_wheelchair_no">車椅子では利用不可</string>
+    <string name="native_place_contact">連絡先</string>
+    <string name="native_place_address">住所</string>
+    <string name="native_place_website">ウェブサイト</string>
+    <string name="native_place_access_private">私有地へのアクセス</string>
+    <string name="native_place_access_customers">利用者のみ</string>
+    <string name="native_place_access_permit">許可証が必要</string>
+    <string name="native_place_access_no">一般利用不可</string>
+    <string name="native_place_access_destination">目的地へのアクセスのみ</string>
+    <string name="native_place_lightning">Lightning対応</string>
+    <string name="native_place_bitcoin">Bitcoin対応</string>
+    <string name="native_place_parking">駐車場</string>
+    <string name="native_place_parking_surface">平面</string>
+    <string name="native_place_parking_underground">地下</string>
+    <string name="native_place_parking_multi_storey">立体</string>
+    <string name="native_place_parking_street_side">道路脇</string>
+    <string name="native_place_parking_lane">路上</string>
+    <string name="native_place_parking_rooftop">屋上</string>
+    <string name="native_place_fee">料金</string>
+    <string name="native_place_free">無料</string>
+    <string name="native_place_paid">有料</string>
+    <string name="native_place_capacity">収容台数</string>
+    <string name="native_place_max_stay">最大駐車時間</string>
+    <string name="native_place_price">価格</string>
+    <string name="native_place_charging">充電</string>
+    <string name="native_place_connector_type2">タイプ2</string>
+    <string name="native_place_connector_chademo">CHAdeMO</string>
+    <string name="native_place_connector_ccs">CCS</string>
+    <string name="native_place_diesel">軽油</string>
+    <string name="native_place_petrol95">ガソリン95</string>
+    <string name="native_place_smoking_allowed">喫煙可</string>
+    <string name="native_place_smoking_outside">屋外喫煙</string>
+    <string name="native_place_smoking_areas">喫煙エリア</string>
+    <string name="native_place_smoke_free">禁煙</string>
+    <string name="native_place_outdoor_seating">屋外席</string>
+    <string name="native_place_takeaway">テイクアウト</string>
+    <string name="native_place_takeaway_only">テイクアウトのみ</string>
+    <string name="native_place_open_now">営業中</string>
+    <string name="native_place_closed_now">閉店</string>
+    <string name="native_place_opens_at">開店: %1$s</string>
+    <string name="native_place_closes_at">閉店: %1$s</string>
+</resources>

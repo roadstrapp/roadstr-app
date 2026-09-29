@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_hu.arb. Do not edit. -->
+<resources>
+    <string name="native_place_loading">Információk betöltése…</string>
+    <string name="native_place_cancel">Mégse</string>
+    <string name="native_place_navigate">Ide navigálás</string>
+    <string name="native_place_read_wikipedia">Olvasd el a Wikipédián</string>
+    <string name="native_place_search_engine">Keresés a(z) %1$s on</string>
+    <string name="native_place_osm_details">Információk az OpenStreetMapről</string>
+    <string name="native_place_category">Kategória</string>
+    <string name="native_place_operator">Üzemeltető</string>
+    <string name="native_place_cuisine">Konyha</string>
+    <string name="native_place_wheelchair_yes">Kerekesszékkel megközelíthető</string>
+    <string name="native_place_wheelchair_limited">Korlátozottan megközelíthető kerekesszékkel</string>
+    <string name="native_place_wheelchair_no">Kerekesszékkel nem megközelíthető</string>
+    <string name="native_place_contact">Kapcsolat</string>
+    <string name="native_place_address">Cím</string>
+    <string name="native_place_website">Webhely</string>
+    <string name="native_place_access_private">Privát hozzáférés</string>
+    <string name="native_place_access_customers">Csak vásárlóknak</string>
+    <string name="native_place_access_permit">Engedély szükséges</string>
+    <string name="native_place_access_no">Nincs nyilvános hozzáférés</string>
+    <string name="native_place_access_destination">Csak célforgalom</string>
+    <string name="native_place_lightning">Lightning elfogadva</string>
+    <string name="native_place_bitcoin">Bitcoin elfogadva</string>
+    <string name="native_place_parking">Parkolás</string>
+    <string name="native_place_parking_surface">Felszíni</string>
+    <string name="native_place_parking_underground">Föld alatti</string>
+    <string name="native_place_parking_multi_storey">Többszintes</string>
+    <string name="native_place_parking_street_side">Út menti</string>
+    <string name="native_place_parking_lane">Utcai</string>
+    <string name="native_place_parking_rooftop">Tetőn</string>
+    <string name="native_place_fee">Díj</string>
+    <string name="native_place_free">Ingyenes</string>
+    <string name="native_place_paid">Fizetős</string>
+    <string name="native_place_capacity">Kapacitás</string>
+    <string name="native_place_max_stay">Maximális várakozási idő</string>
+    <string name="native_place_price">Ár</string>
+    <string name="native_place_charging">Töltés</string>
+    <string name="native_place_connector_type2">2-es típus</string>
+    <string name="native_place_connector_chademo">CHAdeMO</string>
+    <string name="native_place_connector_ccs">CCS</string>
+    <string name="native_place_diesel">Dízel</string>
+    <string name="native_place_petrol95">95-ös benzin</string>
+    <string name="native_place_smoking_allowed">Dohányzás engedélyezett</string>
+    <string name="native_place_smoking_outside">Dohányzás kint</string>
+    <string name="native_place_smoking_areas">Dohányzóhelyek</string>
+    <string name="native_place_smoke_free">Dohányfüstmentes</string>
+    <string name="native_place_outdoor_seating">Kültéri ülőhelyek</string>
+    <string name="native_place_takeaway">Elvitel</string>
+    <string name="native_place_takeaway_only">Csak elvitel</string>
+    <string name="native_place_open_now">Most nyitva</string>
+    <string name="native_place_closed_now">Zárva</string>
+    <string name="native_place_opens_at">Nyit: %1$s</string>
+    <string name="native_place_closes_at">Zár: %1$s</string>
+</resources>

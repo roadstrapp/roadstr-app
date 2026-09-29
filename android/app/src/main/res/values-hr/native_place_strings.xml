@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_hr.arb. Do not edit. -->
+<resources>
+    <string name="native_place_loading">Učitavanje informacija…</string>
+    <string name="native_place_cancel">Odustani</string>
+    <string name="native_place_navigate">Navigiraj ovdje</string>
+    <string name="native_place_read_wikipedia">Pročitaj na Wikipediji</string>
+    <string name="native_place_search_engine">Traži na %1$s</string>
+    <string name="native_place_osm_details">Informacije s OpenStreetMapa</string>
+    <string name="native_place_category">Kategorija</string>
+    <string name="native_place_operator">Upravitelj</string>
+    <string name="native_place_cuisine">Kuhinja</string>
+    <string name="native_place_wheelchair_yes">Pristupačno za invalidska kolica</string>
+    <string name="native_place_wheelchair_limited">Ograničen pristup za invalidska kolica</string>
+    <string name="native_place_wheelchair_no">Nije pristupačno za invalidska kolica</string>
+    <string name="native_place_contact">Kontakt</string>
+    <string name="native_place_address">Adresa</string>
+    <string name="native_place_website">Web-stranica</string>
+    <string name="native_place_access_private">Privatni pristup</string>
+    <string name="native_place_access_customers">Samo za korisnike</string>
+    <string name="native_place_access_permit">Potrebna dozvola</string>
+    <string name="native_place_access_no">Nema javnog pristupa</string>
+    <string name="native_place_access_destination">Pristup samo do odredišta</string>
+    <string name="native_place_lightning">Prihvaća Lightning</string>
+    <string name="native_place_bitcoin">Prihvaća Bitcoin</string>
+    <string name="native_place_parking">Parkiralište</string>
+    <string name="native_place_parking_surface">Površinsko</string>
+    <string name="native_place_parking_underground">Podzemno</string>
+    <string name="native_place_parking_multi_storey">Višekatno</string>
+    <string name="native_place_parking_street_side">Uz ulicu</string>
+    <string name="native_place_parking_lane">Na ulici</string>
+    <string name="native_place_parking_rooftop">Na krovu</string>
+    <string name="native_place_fee">Naknada</string>
+    <string name="native_place_free">Besplatno</string>
+    <string name="native_place_paid">Uz naplatu</string>
+    <string name="native_place_capacity">Kapacitet</string>
+    <string name="native_place_max_stay">Najdulje zadržavanje</string>
+    <string name="native_place_price">Cijena</string>
+    <string name="native_place_charging">Punjenje</string>
+    <string name="native_place_connector_type2">Tip 2</string>
+    <string name="native_place_connector_chademo">CHAdeMO</string>
+    <string name="native_place_connector_ccs">CCS</string>
+    <string name="native_place_diesel">Dizel</string>
+    <string name="native_place_petrol95">Benzin 95</string>
+    <string name="native_place_smoking_allowed">Pušenje dopušteno</string>
+    <string name="native_place_smoking_outside">Pušenje vani</string>
+    <string name="native_place_smoking_areas">Prostori za pušače</string>
+    <string name="native_place_smoke_free">Bez pušenja</string>
+    <string name="native_place_outdoor_seating">Sjedenje na otvorenom</string>
+    <string name="native_place_takeaway">Za van</string>
+    <string name="native_place_takeaway_only">Samo za van</string>
+    <string name="native_place_open_now">Otvoreno</string>
+    <string name="native_place_closed_now">Zatvoreno</string>
+    <string name="native_place_opens_at">Otvara: %1$s</string>
+    <string name="native_place_closes_at">Zatvara: %1$s</string>
+</resources>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_et.arb. Do not edit. -->
+<resources>
+    <string name="native_place_loading">Laadin teavet…</string>
+    <string name="native_place_cancel">Tühista</string>
+    <string name="native_place_navigate">Navigeeri siia</string>
+    <string name="native_place_read_wikipedia">Loe Vikipeediast</string>
+    <string name="native_place_search_engine">Otsi %1$s</string>
+    <string name="native_place_osm_details">Teave OpenStreetMapist</string>
+    <string name="native_place_category">Kategooria</string>
+    <string name="native_place_operator">Operaator</string>
+    <string name="native_place_cuisine">Köök</string>
+    <string name="native_place_wheelchair_yes">Ratastooliga ligipääsetav</string>
+    <string name="native_place_wheelchair_limited">Piiratud ligipääs ratastooliga</string>
+    <string name="native_place_wheelchair_no">Ratastooliga ligipääs puudub</string>
+    <string name="native_place_contact">Kontakt</string>
+    <string name="native_place_address">Aadress</string>
+    <string name="native_place_website">Veebisait</string>
+    <string name="native_place_access_private">Privaatne juurdepääs</string>
+    <string name="native_place_access_customers">Ainult klientidele</string>
+    <string name="native_place_access_permit">Luba nõutav</string>
+    <string name="native_place_access_no">Avalik juurdepääs puudub</string>
+    <string name="native_place_access_destination">Juurdepääs ainult sihtkohta</string>
+    <string name="native_place_lightning">Lightning on aktsepteeritud</string>
+    <string name="native_place_bitcoin">Bitcoin on aktsepteeritud</string>
+    <string name="native_place_parking">Parkimine</string>
+    <string name="native_place_parking_surface">Maapealne</string>
+    <string name="native_place_parking_underground">Maa-alune</string>
+    <string name="native_place_parking_multi_storey">Mitmekorruseline</string>
+    <string name="native_place_parking_street_side">Tänava ääres</string>
+    <string name="native_place_parking_lane">Tänaval</string>
+    <string name="native_place_parking_rooftop">Katusel</string>
+    <string name="native_place_fee">Tasu</string>
+    <string name="native_place_free">Tasuta</string>
+    <string name="native_place_paid">Tasuline</string>
+    <string name="native_place_capacity">Mahutavus</string>
+    <string name="native_place_max_stay">Maksimaalne parkimisaeg</string>
+    <string name="native_place_price">Hind</string>
+    <string name="native_place_charging">Laadimine</string>
+    <string name="native_place_connector_type2">Tüüp 2</string>
+    <string name="native_place_connector_chademo">CHAdeMO</string>
+    <string name="native_place_connector_ccs">CCS</string>
+    <string name="native_place_diesel">Diisel</string>
+    <string name="native_place_petrol95">Bensiin 95</string>
+    <string name="native_place_smoking_allowed">Suitsetamine lubatud</string>
+    <string name="native_place_smoking_outside">Suitsetamine väljas</string>
+    <string name="native_place_smoking_areas">Suitsetamisalad</string>
+    <string name="native_place_smoke_free">Suitsuvaba</string>
+    <string name="native_place_outdoor_seating">Väljas istumiskohad</string>
+    <string name="native_place_takeaway">Kaasavõtt</string>
+    <string name="native_place_takeaway_only">Ainult kaasavõtt</string>
+    <string name="native_place_open_now">Praegu avatud</string>
+    <string name="native_place_closed_now">Suletud</string>
+    <string name="native_place_opens_at">Avaneb: %1$s</string>
+    <string name="native_place_closes_at">Sulgub: %1$s</string>
+</resources>

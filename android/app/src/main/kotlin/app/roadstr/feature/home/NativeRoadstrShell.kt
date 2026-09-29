@@ -39,6 +39,8 @@ import app.roadstr.feature.map.NativeMapLibreHost
 import app.roadstr.feature.map.NativeMapPointOverlaySession
 import app.roadstr.feature.map.NativeRouteOverlaySession
 import app.roadstr.feature.map.NativeTransitOverlaySession
+import app.roadstr.feature.place.NativePlaceDetailsPanel
+import app.roadstr.feature.place.NativePlaceSession
 import app.roadstr.feature.search.NativeSearchOverlay
 import app.roadstr.feature.search.NativeSearchSession
 import app.roadstr.feature.transit.NativeTransitItinerariesPanel
@@ -101,6 +103,8 @@ fun NativeRoadstrShell() {
         val pointOverlayState by pointOverlaySession.state.collectAsState()
         val searchSession = remember { NativeSearchSession(initialImperial = false) }
         val searchState by searchSession.state.collectAsState()
+        val placeSession = remember { NativePlaceSession() }
+        val placeState by placeSession.state.collectAsState()
         LaunchedEffect(cameraSession, cameraState.frameActive) {
             while (cameraSession.state.value.frameActive) {
                 delay(NativeMapCameraSession.FOLLOW_FRAME_MILLIS)
@@ -185,6 +189,19 @@ fun NativeRoadstrShell() {
                     },
                     onRetry = null,
                     onModeChanged = { transitMode = it },
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+                NativePlaceDetailsPanel(
+                    snapshot = placeState,
+                    onCancel = {
+                        if (placeState.revision >= 0) {
+                            placeSession.hide(placeState.revision)
+                        }
+                    },
+                    onNavigate = {},
+                    onOpenWebsite = {},
+                    onOpenArticle = {},
+                    onSearchWeb = {},
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
             }

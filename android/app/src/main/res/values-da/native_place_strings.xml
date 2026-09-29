@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_da.arb. Do not edit. -->
+<resources>
+    <string name="native_place_loading">Indlæser oplysninger…</string>
+    <string name="native_place_cancel">Annuller</string>
+    <string name="native_place_navigate">Naviger hertil</string>
+    <string name="native_place_read_wikipedia">Læs på Wikipedia</string>
+    <string name="native_place_search_engine">Søg på %1$s</string>
+    <string name="native_place_osm_details">Oplysninger fra OpenStreetMap</string>
+    <string name="native_place_category">Kategori</string>
+    <string name="native_place_operator">Operatør</string>
+    <string name="native_place_cuisine">Køkken</string>
+    <string name="native_place_wheelchair_yes">Kørestolstilgængelig</string>
+    <string name="native_place_wheelchair_limited">Begrænset adgang for kørestole</string>
+    <string name="native_place_wheelchair_no">Ikke tilgængelig for kørestole</string>
+    <string name="native_place_contact">Kontakt</string>
+    <string name="native_place_address">Adresse</string>
+    <string name="native_place_website">Websted</string>
+    <string name="native_place_access_private">Privat adgang</string>
+    <string name="native_place_access_customers">Kun kunder</string>
+    <string name="native_place_access_permit">Tilladelse påkrævet</string>
+    <string name="native_place_access_no">Ingen offentlig adgang</string>
+    <string name="native_place_access_destination">Kun adgang til destinationen</string>
+    <string name="native_place_lightning">Lightning accepteres</string>
+    <string name="native_place_bitcoin">Bitcoin accepteres</string>
+    <string name="native_place_parking">Parkering</string>
+    <string name="native_place_parking_surface">På terræn</string>
+    <string name="native_place_parking_underground">Underjordisk</string>
+    <string name="native_place_parking_multi_storey">Parkeringshus</string>
+    <string name="native_place_parking_street_side">Langs vejen</string>
+    <string name="native_place_parking_lane">På vejen</string>
+    <string name="native_place_parking_rooftop">På taget</string>
+    <string name="native_place_fee">Gebyr</string>
+    <string name="native_place_free">Gratis</string>
+    <string name="native_place_paid">Betalt</string>
+    <string name="native_place_capacity">Kapacitet</string>
+    <string name="native_place_max_stay">Maksimal parkeringstid</string>
+    <string name="native_place_price">Pris</string>
+    <string name="native_place_charging">Opladning</string>
+    <string name="native_place_connector_type2">Type 2</string>
+    <string name="native_place_connector_chademo">CHAdeMO</string>
+    <string name="native_place_connector_ccs">CCS</string>
+    <string name="native_place_diesel">Diesel</string>
+    <string name="native_place_petrol95">Benzin 95</string>
+    <string name="native_place_smoking_allowed">Rygning tilladt</string>
+    <string name="native_place_smoking_outside">Rygning udendørs</string>
+    <string name="native_place_smoking_areas">Rygeområder</string>
+    <string name="native_place_smoke_free">Røgfrit</string>
+    <string name="native_place_outdoor_seating">Udendørs siddepladser</string>
+    <string name="native_place_takeaway">Takeaway</string>
+    <string name="native_place_takeaway_only">Kun takeaway</string>
+    <string name="native_place_open_now">Åbent nu</string>
+    <string name="native_place_closed_now">Lukket</string>
+    <string name="native_place_opens_at">Åbner: %1$s</string>
+    <string name="native_place_closes_at">Lukker: %1$s</string>
+</resources>

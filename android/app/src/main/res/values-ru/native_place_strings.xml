@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ru.arb. Do not edit. -->
+<resources>
+    <string name="native_place_loading">Загрузка информации…</string>
+    <string name="native_place_cancel">Отмена</string>
+    <string name="native_place_navigate">Маршрут сюда</string>
+    <string name="native_place_read_wikipedia">Читать в Википедии</string>
+    <string name="native_place_search_engine">Искать в %1$s</string>
+    <string name="native_place_osm_details">Информация из OpenStreetMap</string>
+    <string name="native_place_category">Категория</string>
+    <string name="native_place_operator">Оператор</string>
+    <string name="native_place_cuisine">Кухня</string>
+    <string name="native_place_wheelchair_yes">Доступно для инвалидных колясок</string>
+    <string name="native_place_wheelchair_limited">Ограниченный доступ для инвалидных колясок</string>
+    <string name="native_place_wheelchair_no">Недоступно для инвалидных колясок</string>
+    <string name="native_place_contact">Контакты</string>
+    <string name="native_place_address">Адрес</string>
+    <string name="native_place_website">Веб-сайт</string>
+    <string name="native_place_access_private">Частный доступ</string>
+    <string name="native_place_access_customers">Только для клиентов</string>
+    <string name="native_place_access_permit">Требуется разрешение</string>
+    <string name="native_place_access_no">Нет общего доступа</string>
+    <string name="native_place_access_destination">Доступ только к месту назначения</string>
+    <string name="native_place_lightning">Принимает Lightning</string>
+    <string name="native_place_bitcoin">Принимает Bitcoin</string>
+    <string name="native_place_parking">Парковка</string>
+    <string name="native_place_parking_surface">Наземная</string>
+    <string name="native_place_parking_underground">Подземная</string>
+    <string name="native_place_parking_multi_storey">Многоуровневая</string>
+    <string name="native_place_parking_street_side">У обочины</string>
+    <string name="native_place_parking_lane">На улице</string>
+    <string name="native_place_parking_rooftop">На крыше</string>
+    <string name="native_place_fee">Плата</string>
+    <string name="native_place_free">Бесплатно</string>
+    <string name="native_place_paid">Платно</string>
+    <string name="native_place_capacity">Вместимость</string>
+    <string name="native_place_max_stay">Максимальное время стоянки</string>
+    <string name="native_place_price">Цена</string>
+    <string name="native_place_charging">Зарядка</string>
+    <string name="native_place_connector_type2">Тип 2</string>
+    <string name="native_place_connector_chademo">CHAdeMO</string>
+    <string name="native_place_connector_ccs">CCS</string>
+    <string name="native_place_diesel">Дизель</string>
+    <string name="native_place_petrol95">Бензин 95</string>
+    <string name="native_place_smoking_allowed">Курение разрешено</string>
+    <string name="native_place_smoking_outside">Курение на улице</string>
+    <string name="native_place_smoking_areas">Места для курения</string>
+    <string name="native_place_smoke_free">Без курения</string>
+    <string name="native_place_outdoor_seating">Места на открытом воздухе</string>
+    <string name="native_place_takeaway">На вынос</string>
+    <string name="native_place_takeaway_only">Только на вынос</string>
+    <string name="native_place_open_now">Открыто</string>
+    <string name="native_place_closed_now">Закрыто</string>
+    <string name="native_place_opens_at">Открытие: %1$s</string>
+    <string name="native_place_closes_at">Закрытие: %1$s</string>
+</resources>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_zh.arb. Do not edit. -->
+<resources>
+    <string name="native_place_loading">正在加载信息…</string>
+    <string name="native_place_cancel">取消</string>
+    <string name="native_place_navigate">导航到此处</string>
+    <string name="native_place_read_wikipedia">在维基百科上阅读</string>
+    <string name="native_place_search_engine">在%1$s上搜索</string>
+    <string name="native_place_osm_details">来自OpenStreetMap的信息</string>
+    <string name="native_place_category">类别</string>
+    <string name="native_place_operator">运营方</string>
+    <string name="native_place_cuisine">菜系</string>
+    <string name="native_place_wheelchair_yes">轮椅可通行</string>
+    <string name="native_place_wheelchair_limited">轮椅通行受限</string>
+    <string name="native_place_wheelchair_no">轮椅不可通行</string>
+    <string name="native_place_contact">联系方式</string>
+    <string name="native_place_address">地址</string>
+    <string name="native_place_website">网站</string>
+    <string name="native_place_access_private">私人通行</string>
+    <string name="native_place_access_customers">仅限顾客</string>
+    <string name="native_place_access_permit">需要许可证</string>
+    <string name="native_place_access_no">不对公众开放</string>
+    <string name="native_place_access_destination">仅限前往目的地</string>
+    <string name="native_place_lightning">支持Lightning</string>
+    <string name="native_place_bitcoin">支持Bitcoin</string>
+    <string name="native_place_parking">停车场</string>
+    <string name="native_place_parking_surface">地面</string>
+    <string name="native_place_parking_underground">地下</string>
+    <string name="native_place_parking_multi_storey">多层</string>
+    <string name="native_place_parking_street_side">路边</string>
+    <string name="native_place_parking_lane">路上</string>
+    <string name="native_place_parking_rooftop">屋顶</string>
+    <string name="native_place_fee">费用</string>
+    <string name="native_place_free">免费</string>
+    <string name="native_place_paid">收费</string>
+    <string name="native_place_capacity">容量</string>
+    <string name="native_place_max_stay">最长停留时间</string>
+    <string name="native_place_price">价格</string>
+    <string name="native_place_charging">充电</string>
+    <string name="native_place_connector_type2">Type 2</string>
+    <string name="native_place_connector_chademo">CHAdeMO</string>
+    <string name="native_place_connector_ccs">CCS</string>
+    <string name="native_place_diesel">柴油</string>
+    <string name="native_place_petrol95">95号汽油</string>
+    <string name="native_place_smoking_allowed">允许吸烟</string>
+    <string name="native_place_smoking_outside">室外吸烟</string>
+    <string name="native_place_smoking_areas">吸烟区</string>
+    <string name="native_place_smoke_free">无烟</string>
+    <string name="native_place_outdoor_seating">户外座位</string>
+    <string name="native_place_takeaway">外带</string>
+    <string name="native_place_takeaway_only">仅限外带</string>
+    <string name="native_place_open_now">营业中</string>
+    <string name="native_place_closed_now">已关闭</string>
+    <string name="native_place_opens_at">开门: %1$s</string>
+    <string name="native_place_closes_at">关门: %1$s</string>
+</resources>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_mt.arb. Do not edit. -->
+<resources>
+    <string name="native_place_loading">Qiegħed itella\' l-informazzjoni…</string>
+    <string name="native_place_cancel">Ikkanċella</string>
+    <string name="native_place_navigate">Naviga hawn</string>
+    <string name="native_place_read_wikipedia">Aqra fuq Wikipedija</string>
+    <string name="native_place_search_engine">Fittex fuq %1$s</string>
+    <string name="native_place_osm_details">Informazzjoni minn OpenStreetMap</string>
+    <string name="native_place_category">Kategorija</string>
+    <string name="native_place_operator">Operatur</string>
+    <string name="native_place_cuisine">Kċina</string>
+    <string name="native_place_wheelchair_yes">Aċċessibbli bis-siġġu tar-roti</string>
+    <string name="native_place_wheelchair_limited">Aċċess limitat bis-siġġu tar-roti</string>
+    <string name="native_place_wheelchair_no">Mhux aċċessibbli bis-siġġu tar-roti</string>
+    <string name="native_place_contact">Kuntatt</string>
+    <string name="native_place_address">Indirizz</string>
+    <string name="native_place_website">Websajt</string>
+    <string name="native_place_access_private">Aċċess privat</string>
+    <string name="native_place_access_customers">Għall-klijenti biss</string>
+    <string name="native_place_access_permit">Meħtieġ permess</string>
+    <string name="native_place_access_no">Ebda aċċess pubbliku</string>
+    <string name="native_place_access_destination">Aċċess għad-destinazzjoni biss</string>
+    <string name="native_place_lightning">Jaċċetta Lightning</string>
+    <string name="native_place_bitcoin">Jaċċetta Bitcoin</string>
+    <string name="native_place_parking">Parkeġġ</string>
+    <string name="native_place_parking_surface">Fil-wiċċ</string>
+    <string name="native_place_parking_underground">Taħt l-art</string>
+    <string name="native_place_parking_multi_storey">B\'ħafna sulari</string>
+    <string name="native_place_parking_street_side">Maġenb it-triq</string>
+    <string name="native_place_parking_lane">Fit-triq</string>
+    <string name="native_place_parking_rooftop">Fuq il-bejt</string>
+    <string name="native_place_fee">Tariffa</string>
+    <string name="native_place_free">B\'xejn</string>
+    <string name="native_place_paid">Bi ħlas</string>
+    <string name="native_place_capacity">Kapaċità</string>
+    <string name="native_place_max_stay">Żjara massima</string>
+    <string name="native_place_price">Prezz</string>
+    <string name="native_place_charging">Iċċarġjar</string>
+    <string name="native_place_connector_type2">Tip 2</string>
+    <string name="native_place_connector_chademo">CHAdeMO</string>
+    <string name="native_place_connector_ccs">CCS</string>
+    <string name="native_place_diesel">Diżil</string>
+    <string name="native_place_petrol95">Petrol 95</string>
+    <string name="native_place_smoking_allowed">It-tipjip permess</string>
+    <string name="native_place_smoking_outside">Tipjip barra</string>
+    <string name="native_place_smoking_areas">Żoni għat-tipjip</string>
+    <string name="native_place_smoke_free">Mingħajr tipjip</string>
+    <string name="native_place_outdoor_seating">Postijiet bilqiegħda barra</string>
+    <string name="native_place_takeaway">Takeaway</string>
+    <string name="native_place_takeaway_only">Takeaway biss</string>
+    <string name="native_place_open_now">Miftuħ issa</string>
+    <string name="native_place_closed_now">Magħluq</string>
+    <string name="native_place_opens_at">Jiftaħ: %1$s</string>
+    <string name="native_place_closes_at">Jagħlaq: %1$s</string>
+</resources>

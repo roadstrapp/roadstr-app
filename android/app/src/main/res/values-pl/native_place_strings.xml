@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_pl.arb. Do not edit. -->
+<resources>
+    <string name="native_place_loading">Ładowanie informacji…</string>
+    <string name="native_place_cancel">Anuluj</string>
+    <string name="native_place_navigate">Nawiguj tutaj</string>
+    <string name="native_place_read_wikipedia">Czytaj na Wikipedii</string>
+    <string name="native_place_search_engine">Szukaj na %1$s</string>
+    <string name="native_place_osm_details">Informacje z OpenStreetMap</string>
+    <string name="native_place_category">Kategoria</string>
+    <string name="native_place_operator">Operator</string>
+    <string name="native_place_cuisine">Kuchnia</string>
+    <string name="native_place_wheelchair_yes">Dostępne dla wózków</string>
+    <string name="native_place_wheelchair_limited">Ograniczony dostęp dla wózków</string>
+    <string name="native_place_wheelchair_no">Niedostępne dla wózków</string>
+    <string name="native_place_contact">Kontakt</string>
+    <string name="native_place_address">Adres</string>
+    <string name="native_place_website">Witryna</string>
+    <string name="native_place_access_private">Dostęp prywatny</string>
+    <string name="native_place_access_customers">Tylko dla klientów</string>
+    <string name="native_place_access_permit">Wymagane zezwolenie</string>
+    <string name="native_place_access_no">Brak dostępu publicznego</string>
+    <string name="native_place_access_destination">Dostęp tylko do celu</string>
+    <string name="native_place_lightning">Akceptuje Lightning</string>
+    <string name="native_place_bitcoin">Akceptuje Bitcoin</string>
+    <string name="native_place_parking">Parking</string>
+    <string name="native_place_parking_surface">Naziemny</string>
+    <string name="native_place_parking_underground">Podziemny</string>
+    <string name="native_place_parking_multi_storey">Wielopoziomowy</string>
+    <string name="native_place_parking_street_side">Przy ulicy</string>
+    <string name="native_place_parking_lane">Na ulicy</string>
+    <string name="native_place_parking_rooftop">Na dachu</string>
+    <string name="native_place_fee">Opłata</string>
+    <string name="native_place_free">Bezpłatny</string>
+    <string name="native_place_paid">Płatny</string>
+    <string name="native_place_capacity">Pojemność</string>
+    <string name="native_place_max_stay">Maksymalny czas postoju</string>
+    <string name="native_place_price">Cena</string>
+    <string name="native_place_charging">Ładowanie</string>
+    <string name="native_place_connector_type2">Typ 2</string>
+    <string name="native_place_connector_chademo">CHAdeMO</string>
+    <string name="native_place_connector_ccs">CCS</string>
+    <string name="native_place_diesel">Olej napędowy</string>
+    <string name="native_place_petrol95">Benzyna 95</string>
+    <string name="native_place_smoking_allowed">Palenie dozwolone</string>
+    <string name="native_place_smoking_outside">Palenie na zewnątrz</string>
+    <string name="native_place_smoking_areas">Strefy dla palących</string>
+    <string name="native_place_smoke_free">Bez dymu</string>
+    <string name="native_place_outdoor_seating">Miejsca na zewnątrz</string>
+    <string name="native_place_takeaway">Na wynos</string>
+    <string name="native_place_takeaway_only">Tylko na wynos</string>
+    <string name="native_place_open_now">Teraz otwarte</string>
+    <string name="native_place_closed_now">Zamknięte</string>
+    <string name="native_place_opens_at">Otwiera: %1$s</string>
+    <string name="native_place_closes_at">Zamyka: %1$s</string>
+</resources>
