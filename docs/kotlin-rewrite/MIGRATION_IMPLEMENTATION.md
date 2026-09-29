@@ -1,10 +1,17 @@
 # Migration prototype status
 
-The first native rewrite increment is intentionally a library-level prototype,
-not a production startup change.
+The native rewrite remains isolated from production startup. It now includes a
+private Compose integration shell in addition to library-level prototypes, but
+Flutter is still the only launcher and production UI.
 
 ## Implemented
 
+- `feature/home/NativeCanaryActivity.kt` is a non-exported, recents-excluded
+  activity with no intent filter. It hosts an edge-to-edge Compose placeholder,
+  opens no storage or network connection and does not invoke migration.
+  `core/ui/theme/RoadstrTheme.kt` reproduces the four current Flutter palettes
+  and their historical stored-ordinal aliases. Manifest and Gradle contract
+  tests lock the private boundary and `MainActivity` launcher ownership.
 - `LegacyStorageContract.kt` records the audited Hive/secure-storage names and
   dynamic per-identity key prefixes.
 - `LegacyStorageModels.kt` defines a bounded normalized snapshot boundary,
@@ -133,7 +140,9 @@ not a production startup change.
   lifecycle; startup scheduling, neutral recovery UI and cutover policy remain
   open.
 - The existing Flutter Activity and production Flutter runtime remain the
-  active path. A non-exported foreground service and an opt-in native
+  active path. The separately registered `NativeCanaryActivity` is private and
+  dormant; it has no production navigation path. A non-exported foreground
+  service and an opt-in native
   navigation `MethodChannel` are registered. The channel exposes explicit
   start, stop and process-local running-state operations. The isolated Dart
   wrapper and its ownership coordinator have contract/reconciliation tests;

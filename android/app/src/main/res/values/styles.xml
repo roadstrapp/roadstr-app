@@ -15,4 +15,11 @@
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
+    <!-- Window fallback for the non-exported Compose canary. Compose owns the
+         actual palette after the first frame. -->
+    <style name="NativeCanaryTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">#F5F5F5</item>
+        <item name="android:colorAccent">#8B5CF6</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
 </resources>

@@ -51,6 +51,14 @@
                  not a deep-link callback, so an exported BROWSABLE filter would
                  be unused attack surface any website could trigger. -->
         </activity>
+        <!-- Dormant Compose packaging canary. It has no external intent filter
+             and no production code launches it; MainActivity remains the sole
+             MAIN/LAUNCHER entry point until the native cutover is approved. -->
+        <activity
+            android:name=".feature.home.NativeCanaryActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:theme="@style/NativeCanaryTheme" />
         <service
             android:name=".service.navigation.NativeNavigationForegroundService"
             android:enabled="true"

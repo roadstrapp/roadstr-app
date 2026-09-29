@@ -6,7 +6,8 @@ native persistence; the registered native GPS channel is now reachable from a
 compile-time, disabled-by-default canary in both Flutter map renderers, with
 runtime-state reconciliation, a value-only native-fix shadow stream and an
 in-place native navigation-notification mirror after Activity or renderer
-recreation.
+recreation. A separate non-exported Compose shell is packaged for native UI
+integration work, while Flutter remains the sole launcher.
 
 ## Implemented slices
 
@@ -24,6 +25,7 @@ recreation.
 | `service.navigation` | map-screen lifecycle/navigation state | 30-second background grace, generation-safe pause/resume, GPS retention during navigation, detach cleanup, foreground-only wakelock policy, AOSP foreground-service adapter, opt-in `MainActivity` method/event bridges, process-local running-state query and fix fan-out, isolated Dart wrappers, serialized ownership coordinator and disabled-by-default start/stop/dispose/reconcile wiring in both renderers |
 | `service.notifications` | `navigation_notification_service.dart` | 3-second distance-only throttle, immediate maneuver changes, reset semantics and private ongoing notification metadata; the disabled-by-default canary now mirrors bounded updates through the service `NotificationManager` adapter using the existing channel/ID, with Flutter completing last and remaining authoritative |
 | `feature.map` | `maplibre_map_screen.dart`, `map_screen.dart`, map services/widgets | raster MapLibre style JSON, dark recoloring, tile URL admission/escaping, ZTL route-run segmentation and zoom/viewport marker culling; native renderer and Activity/UI wiring remain |
+| `core.ui` / `feature.home` | `app_theme.dart`, Flutter Android embedding | exact four-palette colors and stored ordinal aliases, edge-to-edge private Compose placeholder, non-exported/no-intent-filter shell contract; no production startup or storage access |
 | `storage` | encrypted Hive search history | canonical encrypted history file, serialized prepend/clear/import, atomic recovery, Keystore boundary and migration-marker ciphertext binding |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
 | `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `lnurl_protocol.dart`, `zap_service.dart` | BOLT-11 parsing, LNURL-pay source/metadata/callback/invoice binding, NIP-47 URI/info negotiation/request/response and NIP-57 draft/receipt bindings |
@@ -203,9 +205,11 @@ detached from secure storage and startup. See
 
 ## Current limits
 
-- No Kotlin class in this phase is called by production startup or UI. The
-  extracted Dart request builders, response parsers and search-ranking policy
-  are called by the existing Flutter services.
+- No Kotlin class in this phase is called by production startup or Flutter UI.
+  The extracted Dart request builders, response parsers and search-ranking
+  policy are called by the existing Flutter services. The private Compose
+  canary can only be invoked explicitly inside the app and is not a production
+  route.
 - Stateful navigation tests cover policy decisions, not Android sensor timing.
 - General retry scheduling remains pure policy. The native routing service now
   owns one sequential OSRM bearing fallback state machine, and the native
@@ -257,8 +261,9 @@ detached from secure storage and startup. See
   Android permission UX, full cutover and de-Googled physical-device evidence
   remain open.
 - The native map foundation now matches the Flutter raster style and overlay
-  decisions headlessly; MapLibre Android dependency selection, native renderer,
-  Compose layers, gestures and screenshot/device evidence remain open.
+  decisions headlessly. The private Compose shell and theme foundation build;
+  MapLibre Android dependency selection, native renderer, gestures and
+  screenshot/device evidence remain open.
 - Native navigation lifecycle and notification policies are now deterministic,
   and the Android location foreground-service adapter is registered with an
   opt-in `MainActivity` start/stop/state/notification channel and
@@ -277,7 +282,8 @@ detached from secure storage and startup. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 666 Flutter tests passed, including the Nostr/`nostr_tools` and
+- `flutter test`: 668 Flutter tests passed, including the native shell
+  Gradle/manifest contract, the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
   NIP-19, Lightning and
   LNURL/NIP-04/NIP-44/NIP-78 transcripts, HTTP safety, search/routing-provider
@@ -288,7 +294,8 @@ detached from secure storage and startup. See
   compile-time rollout, best-effort retry, serialized ownership lifecycle and
   service reconciliation, plus the bounded notification bridge and
   native-before-Flutter update/cancel ordering.
-- `./gradlew :app:testDebugUnitTest`: 241 Kotlin tests passed, including the
+- `./gradlew :app:testDebugUnitTest`: 243 Kotlin tests passed, including the
+  exact native theme palette/stored-ordinal contract and the
   Nostr byte/queue/inbound/ingress/NIP-19/BIP-340/NIP-04/NIP-44/NIP-78,
   Lightning/LNURL parity, HTTP safety/search/routing requests, responses,
   configuration, orchestration and re-timing, search planning/ranking/
@@ -305,7 +312,12 @@ detached from secure storage and startup. See
   duplicate-class checks and canary Android APK packaging passed with pinned
   Bouncy Castle, OkHttp and coroutines dependencies; the opt-in ownership path
   for both Flutter renderers compiled through the full build pipeline.
+- `flutter build apk --debug`: the default Flutter-launcher APK packages the
+  dormant Compose shell successfully without enabling the navigation canary.
 - `MainActivity` registers the opt-in native-navigation channel. Both map
   renderers own it only in builds compiled with
   `ROADSTR_NATIVE_NAVIGATION=true`; ordinary builds retain the existing
   Flutter startup, active GPS and notification wiring.
+- The merged manifest retains `app.roadstr.MainActivity` as the sole launcher;
+  `NativeCanaryActivity` is non-exported, excluded from recents and has no
+  intent filter. Resolved runtime dependencies contain no Google Play Services.

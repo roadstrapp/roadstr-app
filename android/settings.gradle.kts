@@ -20,6 +20,9 @@ pluginManagement {
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
     id("com.android.application") version "9.0.1" apply false
+    // AGP 9.0.1 supplies Kotlin 2.2.10 to the app module. The Compose
+    // compiler plugin must use the exact same Kotlin version.
+    id("org.jetbrains.kotlin.plugin.compose") version "2.2.10" apply false
     // maplibre_android applies this plugin without a version, which only
     // resolves if the version is declared here — the throwaway PoC on
     // experiment/maplibre-poc needs it, and it's inert (apply false) so it

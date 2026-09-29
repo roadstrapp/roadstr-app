@@ -9,7 +9,9 @@ until migration, feature, protocol, UI and release parity are proven.
 1. **M0 — forensic baseline**: complete identity, release, feature, storage,
    protocol, security and test inventory. `KOTLIN-001` is complete.
 2. **M1 — native skeleton**: native Gradle/Compose shell with the same package,
-   resources, permissions and version discipline. No data deletion.
+   resources, permissions and version discipline. A private, non-exported
+   Compose shell now builds beside Flutter; device startup/performance evidence
+   remains open. No data deletion.
 3. **M2 — migration feasibility**: real Hive/secure-storage fixtures,
    transactional migration prototype, identity verification and asset reuse.
    The transactional prototype and a raw synthetic encrypted-Hive-to-Kotlin
@@ -35,6 +37,11 @@ until migration, feature, protocol, UI and release parity are proven.
 
 The first native increment is intentionally isolated from production startup:
 
+- `feature/home/NativeCanaryActivity.kt` now hosts a private, non-exported
+  edge-to-edge Compose shell with no intent filter, storage access, networking
+  or migration side effect. `MainActivity` remains the only `MAIN`/`LAUNCHER`.
+  `core/ui/theme/RoadstrTheme.kt` preserves all four Flutter palette variants
+  and the four historical stored-ordinal aliases.
 - `android/app/src/main/kotlin/app/roadstr/migration/` contains the audited
   storage contract, normalized snapshot model, validation and transactional
   coordinator.
@@ -212,19 +219,29 @@ broader cross-language coverage and a native store are still required.
 - **Acceptance criteria:** Signed native APK is accepted over current official Flutter APK without data clear.
 - **Rollback notes:** Until acceptance, distribute only internal unsigned/locally signed artifacts labelled non-release.
 
-### KOTLIN-004 — Create the native Gradle/Compose shell
+### KOTLIN-004 — Create the native Gradle/Compose shell (FOUNDATION GREEN)
 
 - **Objective:** Add a minimal native Activity/theme/resource shell beside Flutter sources.
 - **Current Dart/Flutter source:** Flutter Android embedding, `lib/main.dart`, `lib/theme/app_theme.dart`, manifest/resources.
-- **New Kotlin files/modules:** `android/app/src/main/kotlin/app/roadstr/RoadstrApplication.kt`, `MainActivity.kt`, `core/ui/theme/*`, `feature/home/*`.
-- **Dependencies:** AGP/Gradle/JDK, Compose BOM, AndroidX; dependency/license review.
+- **New Kotlin files/modules:** `core/ui/theme/RoadstrTheme.kt`,
+  `feature/home/NativeCanaryActivity.kt`, `NativeRoadstrShell.kt` and
+  `NativeShellContract.kt`.
+- **Dependencies:** Compose BOM `2026.06.01`, Activity Compose `1.13.0`,
+  Material 3 and the Kotlin `2.2.10` Compose compiler plugin. The BOM is pinned
+  to the last stable line compatible with the existing compile SDK 36; the
+  resolved Google Play Services audit is empty.
 - **Migration impact:** Must not open or delete legacy storage yet.
 - **User-visible impact:** Internal shell only; no cutover.
-- **Tests:** Native unit/Compose smoke tests, manifest/package/resource checks.
-- **Parity evidence:** Same label/icon/permissions/edge-to-edge and a documented placeholder boundary.
+- **Tests:** JVM palette/ordinal tests, Dart Gradle/manifest contract tests,
+  merged-manifest inspection and debug APK packaging.
+- **Parity evidence:** Same package/label/icon/permissions and backup/cleartext
+  policy; exact light/dark Nostr/Bitcoin colors; edge-to-edge placeholder with
+  a documented private boundary.
 - **Security/privacy impact:** Preserve backup, cleartext and recents/privacy settings.
 - **Battery/performance impact:** Cold/warm start and idle frame baseline.
-- **Acceptance criteria:** Native debug build works without changing Flutter production entrypoint or package identity.
+- **Acceptance criteria:** The native debug shell builds without changing the
+  Flutter production entrypoint or package identity. Physical-device launch,
+  cold/warm start and idle-frame measurements remain before this card is done.
 - **Rollback notes:** Remove the shell module; Flutter build remains available.
 
 ### KOTLIN-005 — Port pure core behavior with cross-language fixtures (IN PROGRESS)
