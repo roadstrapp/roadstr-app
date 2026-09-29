@@ -45,7 +45,9 @@ route session with an intentionally empty snapshot. A dormant camera session can
 move/ease commands and detach follow on MapLibre gestures, but receives no GPS
 fixes. A separate dormant cursor session can project the generic 48x76 Flutter
 MapLibre arrow, including its pitch-aware shadow, but receives no position and
-therefore draws nothing. This proves renderer integration, not visual route, cursor or camera parity: it
+therefore draws nothing. A bounded dormant point-overlay session also preserves
+the Flutter marker catalogue, billboard sizes, ordering and zoom gates without
+connecting service caches or marker taps. This proves renderer integration, not visual route, marker, cursor or camera parity: it
 does not yet claim screen, navigation, locale, accessibility, live-overlay or
 screenshot/device parity.
 
