@@ -1,19 +1,19 @@
 package app.roadstr.feature.home
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -23,13 +23,15 @@ import androidx.compose.ui.unit.dp
 import app.roadstr.R
 import app.roadstr.core.ui.theme.RoadstrTheme
 import app.roadstr.core.ui.theme.RoadstrThemeId
+import app.roadstr.feature.map.NativeMapLibreHost
 
 /**
- * Dormant native UI boundary used to prove Compose packaging and theme parity.
+ * Dormant native UI boundary used to prove Compose and MapLibre packaging.
  *
- * It owns no storage, network, location or migration state and is not the
- * launcher. Product screens replace this boundary incrementally after their
- * parity gates are green.
+ * It owns no storage, location or migration state and is not the launcher. If
+ * invoked explicitly from inside the app, only the admitted OSM raster source
+ * may perform network I/O. Product screens replace this boundary incrementally
+ * after their parity gates are green.
  */
 @Composable
 fun NativeRoadstrShell() {
@@ -46,31 +48,36 @@ fun NativeRoadstrShell() {
                 .semantics { contentDescription = shellDescription },
             containerColor = MaterialTheme.colorScheme.background,
         ) { contentPadding ->
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(contentPadding)
-                    .padding(horizontal = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+                    .padding(contentPadding),
             ) {
-                Text(
-                    text = stringResource(R.string.app_name),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
+                NativeMapLibreHost(
+                    dark = themeId.dark,
+                    modifier = Modifier.fillMaxSize(),
                 )
-                Spacer(modifier = Modifier.height(16.dp))
                 Surface(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .wrapContentSize(),
                     color = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    shape = RoundedCornerShape(999.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    tonalElevation = 4.dp,
                 ) {
-                    Text(
-                        modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
-                        text = stringResource(R.string.native_shell_status),
-                        style = MaterialTheme.typography.labelLarge,
-                    )
+                    Column(modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp)) {
+                        Text(
+                            text = stringResource(R.string.app_name),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.native_map_canary_status),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
                 }
             }
         }

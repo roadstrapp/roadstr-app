@@ -7,11 +7,20 @@ Flutter is still the only launcher and production UI.
 ## Implemented
 
 - `feature/home/NativeCanaryActivity.kt` is a non-exported, recents-excluded
-  activity with no intent filter. It hosts an edge-to-edge Compose placeholder,
-  opens no storage or network connection and does not invoke migration.
+  activity with no intent filter. It hosts an edge-to-edge Compose shell and a
+  MapLibre Native raster canary, opens no storage and does not invoke migration.
+  The renderer can request only the admitted HTTPS OSM tiles if this private
+  activity is explicitly invoked from inside the app; no production route
+  reaches it.
   `core/ui/theme/RoadstrTheme.kt` reproduces the four current Flutter palettes
   and their historical stored-ordinal aliases. Manifest and Gradle contract
   tests lock the private boundary and `MainActivity` launcher ownership.
+- `feature/map/NativeMapLibreHost.kt` embeds the strictly pinned BSD-2-Clause
+  MapLibre Native OpenGL `13.5.2` artifact already selected by the Flutter
+  plugin. It reuses the validated raster JSON and Flutter initial camera,
+  retains texture mode for Compose overlays, and owns no location component.
+  `NativeMapLifecycle.kt` makes Activity callbacks, Compose disposal, restart
+  and low-memory forwarding deterministic and idempotent.
 - `LegacyStorageContract.kt` records the audited Hive/secure-storage names and
   dynamic per-identity key prefixes.
 - `LegacyStorageModels.kt` defines a bounded normalized snapshot boundary,
