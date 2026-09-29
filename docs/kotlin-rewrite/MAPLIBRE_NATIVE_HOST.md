@@ -33,6 +33,23 @@ unwinds a resumed renderer before destruction, ignores callbacks after final
 destroy and forwards Android low-memory signals only while the renderer is
 live. A late asynchronous map-ready callback is ignored after disposal.
 
+## Route overlay boundary
+
+`NativeMapRouteRenderer` installs two GeoJSON sources and three ordered line
+layers: completed grey, active halo, then active core. Active features retain
+the ZTL classification as a boolean expression property, selecting Flutter's
+`0xFFE53935` restricted red or the current theme accent. Round joins/caps,
+18/9/9 logical widths with Flutter's display-density correction, and the 0.28
+halo alpha match the default Flutter MapLibre renderer.
+
+`NativeRouteOverlayCompiler` rejects non-finite or out-of-WGS84 coordinates,
+single-point lines, invalid ARGB values, more than 4,096 classified runs or
+more than 250,000 total points. It emits deterministic longitude/latitude
+GeoJSON without location access or logging. Style replacement detaches the
+renderer and uses a generation gate so stale asynchronous callbacks cannot
+attach sources to an obsolete style. The private shell deliberately supplies
+an empty snapshot: no product route, GPS fix or user location reaches it yet.
+
 ## Dependency and licence boundary
 
 The Flutter plugin `maplibre_android 0.3.6` requests
@@ -56,10 +73,12 @@ debug-host selection check.
   idempotent disposal, restart, low-memory behavior and destroy-before-create.
 - The seven existing map-policy JVM cases continue to lock light/dark raster
   JSON, tile URL admission/escaping, ZTL segmentation and marker culling.
-- Two Dart contracts lock the strict Gradle version, lifecycle-compose
+- Seven route-overlay JVM cases lock bounded deterministic GeoJSON, coordinate
+  and ARGB rejection, density-corrected metrics/colors and style generations.
+- Four Dart contracts lock the strict Gradle version, lifecycle-compose
   dependency, real `MapView`/style/texture-mode binding, absence of a location
-  component and ownership by the private shell.
-- The complete verification run passes 670 Flutter tests, 249 Kotlin tests,
+  component, route source/layer constants and ownership by the private shell.
+- The complete verification run passes 672 Flutter tests, 256 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 
@@ -67,7 +86,8 @@ debug-host selection check.
 
 - physical-device launch, renderer output and network/tile evidence;
 - screenshot/golden comparison in light/dark themes and compact/landscape UI;
-- gesture, camera easing, overlay/source update and attribution interaction;
+- gesture, camera easing, live route/source update, remaining overlays and
+  attribution interaction;
 - native GPS/location ownership and navigation camera integration;
 - frame time, memory, thermal and battery comparison;
 - process recreation and saved camera state;

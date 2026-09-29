@@ -42,6 +42,7 @@ internal object NativeMapHostContract {
 @Composable
 fun NativeMapLibreHost(
     dark: Boolean,
+    routeOverlay: NativeRouteOverlaySnapshot,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -53,11 +54,15 @@ fun NativeMapLibreHost(
             context = context,
             dark = dark,
             initialStyleJson = styleJson,
+            initialRouteOverlay = routeOverlay,
         )
     }
 
     LaunchedEffect(host, styleJson) {
         host.updateStyle(styleJson)
+    }
+    LaunchedEffect(host, routeOverlay) {
+        host.updateRouteOverlay(routeOverlay)
     }
 
     DisposableEffect(host, lifecycleOwner) {
@@ -104,12 +109,14 @@ fun NativeMapLibreHost(
 private class NativeMapLibreViewHost private constructor(
     val mapView: MapView,
     val lifecycle: NativeMapLifecycleController,
+    private val routeRenderer: NativeMapRouteRenderer,
     initialStyleJson: String,
 ) {
     private var active = true
     private var map: MapLibreMap? = null
     private var desiredStyleJson = initialStyleJson
-    private var appliedStyleJson: String? = null
+    private var requestedStyleJson: String? = null
+    private val styleGeneration = NativeMapStyleGenerationGate()
 
     init {
         lifecycle.handle(NativeMapLifecycleEvent.Create)
@@ -121,23 +128,36 @@ private class NativeMapLibreViewHost private constructor(
     }
 
     fun updateStyle(styleJson: String) {
-        if (!active || (styleJson == desiredStyleJson && styleJson == appliedStyleJson)) return
+        if (!active || (styleJson == desiredStyleJson && styleJson == requestedStyleJson)) return
         desiredStyleJson = styleJson
         applyStyleIfNeeded()
+    }
+
+    fun updateRouteOverlay(snapshot: NativeRouteOverlaySnapshot) {
+        if (!active) return
+        routeRenderer.update(snapshot)
     }
 
     fun dispose() {
         if (!active) return
         active = false
         map = null
+        routeRenderer.detach()
+        styleGeneration.dispose()
         lifecycle.handle(NativeMapLifecycleEvent.Destroy)
     }
 
     private fun applyStyleIfNeeded() {
         val liveMap = map ?: return
-        if (appliedStyleJson == desiredStyleJson) return
-        liveMap.setStyle(Style.Builder().fromJson(desiredStyleJson))
-        appliedStyleJson = desiredStyleJson
+        if (requestedStyleJson == desiredStyleJson) return
+        val requestedJson = desiredStyleJson
+        requestedStyleJson = requestedJson
+        val generation = styleGeneration.next()
+        routeRenderer.detach()
+        liveMap.setStyle(Style.Builder().fromJson(requestedJson)) { loadedStyle ->
+            if (!active || !styleGeneration.accepts(generation)) return@setStyle
+            routeRenderer.attach(loadedStyle)
+        }
     }
 
     companion object {
@@ -145,6 +165,7 @@ private class NativeMapLibreViewHost private constructor(
             context: Context,
             dark: Boolean,
             initialStyleJson: String,
+            initialRouteOverlay: NativeRouteOverlaySnapshot,
         ): NativeMapLibreViewHost {
             MapLibre.getInstance(context.applicationContext)
             val camera = CameraPosition.Builder()
@@ -170,6 +191,10 @@ private class NativeMapLibreViewHost private constructor(
                     ).backgroundArgb.toInt(),
                 )
             val mapView = MapView(context, options)
+            val routeRenderer = NativeMapRouteRenderer(
+                displayDensity = context.resources.displayMetrics.density,
+                initialSnapshot = initialRouteOverlay,
+            )
             val lifecycle = NativeMapLifecycleController(
                 object : NativeMapLifecycleTarget {
                     override fun create() = mapView.onCreate(null)
@@ -184,6 +209,7 @@ private class NativeMapLibreViewHost private constructor(
             return NativeMapLibreViewHost(
                 mapView = mapView,
                 lifecycle = lifecycle,
+                routeRenderer = routeRenderer,
                 initialStyleJson = initialStyleJson,
             )
         }
