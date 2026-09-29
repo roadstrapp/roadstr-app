@@ -124,8 +124,26 @@ above the `MapView` and below the user cursor. MapLibre owns coordinate
 projection; camera moves trigger reprojection, while viewport rejection avoids
 drawing off-screen markers. The view is non-interactive and hidden from
 accessibility so map gestures keep working. The private shell owns an empty
-session: service caches, expiration, road-event taps and accessibility actions
+session: service caches, expiration, road-event detail handlers and accessibility actions
 remain intentionally unwired.
+
+## Map interaction boundary
+
+`NativeMapInteractionPolicy` converts MapLibre click and long-click callbacks
+into bounded typed values without attaching product services. It projects the
+tap and visible markers into screen pixels, uses the same logical marker
+rectangle as Flutter's `GestureDetector`, ignores non-interactive static
+markers and gives the last painted overlapping road event first claim. Marker
+actions carry both the bounded ID and cache revision so a future screen can
+reject stale detail requests.
+
+Ordinary map taps can select a route preview through
+`NativeRouteOverlaySession.selectAlternativeAt`. The scan deliberately matches
+Flutter: candidate vertices are visited in route order, equal distances keep
+the first candidate, `latlong2`'s rounded WGS-84 Vincenty distance is used and
+the gate is strictly below 60 m. Click and long-click listeners are removed on
+host disposal. The private shell wires only route-preview selection; place
+details, road-event sheets and the long-press action menu remain unwired.
 
 ## Dependency and licence boundary
 
@@ -168,13 +186,18 @@ debug-host selection check.
 - Ten point-overlay JVM cases lock revision fencing, clear behavior, bounded
   IDs/count/coordinates, deterministic order, zoom gates and the closed Flutter
   symbol/size/colour catalogue.
-- Sixteen Dart contracts lock the strict Gradle version, lifecycle-compose
+- Eight interaction JVM cases lock typed tap values, marker rectangles and
+  zoom fallthrough, static-marker transparency, topmost overlap priority,
+  invalid projections, first-wins routing, the strict rounded 60 m gate and
+  route-revision fencing.
+- Eighteen Dart contracts lock the strict Gradle version, lifecycle-compose
   dependency, real `MapView`/style/texture-mode binding, absence of a location
   component, selected/muted route source/layer constants, route-choice/progress
-  oracle, traffic segmentation/layer and ownership by the private shell, plus the Flutter camera oracle
+  oracle, traffic segmentation/layer, map-listener disposal, marker hit tests
+  and ownership by the private shell, plus the Flutter camera oracle
   and MapLibre command wiring, cursor geometry, point-overlay parity and
   dormant ownership.
-- The complete verification run passes 684 Flutter tests, 306 Kotlin tests,
+- The complete verification run passes 686 Flutter tests, 314 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 
@@ -182,8 +205,8 @@ debug-host selection check.
 
 - physical-device launch, renderer output and network/tile evidence;
 - screenshot/golden comparison in light/dark themes and compact/landscape UI;
-- live route/traffic/source/point update, road-event marker taps, accessibility and
-  attribution interaction;
+- live route/traffic/source/point update, road-event/place/long-press product
+  handlers, accessibility and attribution interaction;
 - native GPS/location ownership, live camera/cursor binding and physical-device
   camera/cursor traces;
 - frame time, memory, thermal and battery comparison;

@@ -105,11 +105,23 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
 
     /** Changes the highlighted preview without accepting stale UI callbacks. */
     fun selectAlternative(revision: Long, selectedIndex: Int): Boolean = synchronized(lock) {
-        if (
-            revision != currentRevision ||
-            selectedIndex !in alternatives.indices ||
-            selectedAlternativeIndex == selectedIndex
-        ) {
+        if (revision != currentRevision) return false
+        selectAlternativeLocked(selectedIndex)
+    }
+
+    /** Selects the closest candidate vertex within Flutter's strict 60 m tap gate. */
+    fun selectAlternativeAt(revision: Long, tap: NativeMapPoint): Boolean = synchronized(lock) {
+        if (revision != currentRevision || alternatives.isEmpty()) return false
+        val selectedIndex = NativeMapInteractionPolicy.nearestAlternative(
+            tap = tap,
+            alternatives = alternatives.map { it.points },
+        )
+        if (selectedIndex < 0) return false
+        selectAlternativeLocked(selectedIndex)
+    }
+
+    private fun selectAlternativeLocked(selectedIndex: Int): Boolean {
+        if (selectedIndex !in alternatives.indices || selectedAlternativeIndex == selectedIndex) {
             return false
         }
         val selectedRoute = alternatives[selectedIndex]
@@ -120,7 +132,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
         cursorRestricted = false
         trafficSegments = nextTrafficSegments
         publish(currentSnapshot())
-        true
+        return true
     }
 
     /** Replaces active traffic-jam coordinates without changing route state. */

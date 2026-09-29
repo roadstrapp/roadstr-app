@@ -14,6 +14,14 @@ void main() {
     'android/app/src/main/kotlin/app/roadstr/feature/map/'
     'NativeMapPointOverlayView.kt',
   );
+  final interaction = File(
+    'android/app/src/main/kotlin/app/roadstr/feature/map/'
+    'NativeMapInteraction.kt',
+  );
+  final routeSession = File(
+    'android/app/src/main/kotlin/app/roadstr/feature/map/'
+    'NativeRouteOverlaySession.kt',
+  );
   final host = File(
     'android/app/src/main/kotlin/app/roadstr/feature/map/'
     'NativeMapLibreHost.kt',
@@ -66,5 +74,49 @@ void main() {
     expect(shellSource, contains('pointOverlay = pointOverlayState'));
     expect(shellSource, isNot(contains('cachedCameras')));
     expect(shellSource, isNot(contains('RoadEvent')));
+  });
+
+  test('native alternative tap keeps Flutter strict 60 metre oracle', () {
+    final mapSource = flutterMap.readAsStringSync();
+    final interactionSource = interaction.readAsStringSync();
+    final routeSource = routeSession.readAsStringSync();
+
+    expect(mapSource, contains('int _nearestAlternative(LatLng tap)'));
+    expect(mapSource, contains('const thresholdM = 60.0'));
+    expect(mapSource, contains('var bestD = thresholdM'));
+    expect(mapSource, contains('if (d < bestD)'));
+    expect(
+      interactionSource,
+      contains('ALTERNATIVE_TAP_THRESHOLD_METERS = 60.0'),
+    );
+    expect(interactionSource, contains('if (meters < nearestMeters)'));
+    expect(routeSource, contains('fun selectAlternativeAt('));
+    expect(routeSource, contains('revision != currentRevision'));
+  });
+
+  test('private host emits typed map gestures and unregisters listeners', () {
+    final mapSource = flutterMap.readAsStringSync();
+    final overlaySource = overlay.readAsStringSync();
+    final hostSource = host.readAsStringSync();
+    final shellSource = shell.readAsStringSync();
+
+    expect(mapSource, contains('child: GestureDetector('));
+    expect(mapSource, contains('_showRoadEventDetail(ev)'));
+    expect(mapSource, contains('event is MapEventLongClick'));
+    expect(overlaySource, contains('fun hitRoadEvent(tap: LatLng)'));
+    expect(hostSource, contains('addOnMapClickListener(mapClickListener)'));
+    expect(
+      hostSource,
+      contains('addOnMapLongClickListener(mapLongClickListener)'),
+    );
+    expect(hostSource, contains('removeOnMapClickListener(mapClickListener)'));
+    expect(
+      hostSource,
+      contains('removeOnMapLongClickListener(mapLongClickListener)'),
+    );
+    expect(hostSource, contains('NativeMapInteractionPolicy.tap('));
+    expect(shellSource, contains('onMapInteraction = { interaction ->'));
+    expect(shellSource, contains('routeSession.selectAlternativeAt('));
+    expect(shellSource, isNot(contains('_showRoadEventDetail')));
   });
 }
