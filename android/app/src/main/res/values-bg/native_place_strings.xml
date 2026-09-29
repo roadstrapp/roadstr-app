@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_bg.arb. Do not edit. -->
+<resources>
+    <string name="native_place_loading">Зареждане на информация…</string>
+    <string name="native_place_cancel">Отказ</string>
+    <string name="native_place_navigate">Навигирайте тук</string>
+    <string name="native_place_read_wikipedia">Прочети в Wikipedia</string>
+    <string name="native_place_search_engine">Търси в %1$s</string>
+    <string name="native_place_osm_details">Информация от OpenStreetMap</string>
+    <string name="native_place_category">Категория</string>
+    <string name="native_place_operator">Оператор</string>
+    <string name="native_place_cuisine">Кухня</string>
+    <string name="native_place_wheelchair_yes">Достъпно за инвалидни колички</string>
+    <string name="native_place_wheelchair_limited">Ограничен достъп за инвалидни колички</string>
+    <string name="native_place_wheelchair_no">Няма достъп за инвалидни колички</string>
+    <string name="native_place_contact">Контакт</string>
+    <string name="native_place_address">Адрес</string>
+    <string name="native_place_website">Уебсайт</string>
+    <string name="native_place_access_private">Частен достъп</string>
+    <string name="native_place_access_customers">Само за клиенти</string>
+    <string name="native_place_access_permit">Изисква се разрешително</string>
+    <string name="native_place_access_no">Няма обществен достъп</string>
+    <string name="native_place_access_destination">Достъп само до дестинацията</string>
+    <string name="native_place_lightning">Приема Lightning</string>
+    <string name="native_place_bitcoin">Приема Bitcoin</string>
+    <string name="native_place_parking">Паркинг</string>
+    <string name="native_place_parking_surface">Наземен</string>
+    <string name="native_place_parking_underground">Подземен</string>
+    <string name="native_place_parking_multi_storey">Многоетажен</string>
+    <string name="native_place_parking_street_side">Край улицата</string>
+    <string name="native_place_parking_lane">На улицата</string>
+    <string name="native_place_parking_rooftop">На покрива</string>
+    <string name="native_place_fee">Такса</string>
+    <string name="native_place_free">Безплатно</string>
+    <string name="native_place_paid">Платено</string>
+    <string name="native_place_capacity">Капацитет</string>
+    <string name="native_place_max_stay">Максимален престой</string>
+    <string name="native_place_price">Цена</string>
+    <string name="native_place_charging">Зареждане</string>
+    <string name="native_place_connector_type2">Тип 2</string>
+    <string name="native_place_connector_chademo">CHAdeMO</string>
+    <string name="native_place_connector_ccs">CCS</string>
+    <string name="native_place_diesel">Дизел</string>
+    <string name="native_place_petrol95">Бензин 95</string>
+    <string name="native_place_smoking_allowed">Пушенето е разрешено</string>
+    <string name="native_place_smoking_outside">Пушене навън</string>
+    <string name="native_place_smoking_areas">Зони за пушачи</string>
+    <string name="native_place_smoke_free">Без тютюнев дим</string>
+    <string name="native_place_outdoor_seating">Места на открито</string>
+    <string name="native_place_takeaway">За вкъщи</string>
+    <string name="native_place_takeaway_only">Само за вкъщи</string>
+    <string name="native_place_open_now">Отворено</string>
+    <string name="native_place_closed_now">Затворено</string>
+    <string name="native_place_opens_at">Отваря: %1$s</string>
+    <string name="native_place_closes_at">Затваря: %1$s</string>
+</resources>

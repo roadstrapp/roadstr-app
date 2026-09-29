@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ro.arb. Do not edit. -->
+<resources>
+    <string name="native_place_loading">Se încarcă informațiile…</string>
+    <string name="native_place_cancel">Anulare</string>
+    <string name="native_place_navigate">Navigați aici</string>
+    <string name="native_place_read_wikipedia">Citește pe Wikipedia</string>
+    <string name="native_place_search_engine">Caută pe %1$s</string>
+    <string name="native_place_osm_details">Informații din OpenStreetMap</string>
+    <string name="native_place_category">Categorie</string>
+    <string name="native_place_operator">Operator</string>
+    <string name="native_place_cuisine">Bucătărie</string>
+    <string name="native_place_wheelchair_yes">Accesibil pentru scaune rulante</string>
+    <string name="native_place_wheelchair_limited">Acces limitat pentru scaune rulante</string>
+    <string name="native_place_wheelchair_no">Inaccesibil pentru scaune rulante</string>
+    <string name="native_place_contact">Contact</string>
+    <string name="native_place_address">Adresă</string>
+    <string name="native_place_website">Site web</string>
+    <string name="native_place_access_private">Acces privat</string>
+    <string name="native_place_access_customers">Doar pentru clienți</string>
+    <string name="native_place_access_permit">Este necesar un permis</string>
+    <string name="native_place_access_no">Fără acces public</string>
+    <string name="native_place_access_destination">Acces doar la destinație</string>
+    <string name="native_place_lightning">Acceptă Lightning</string>
+    <string name="native_place_bitcoin">Acceptă Bitcoin</string>
+    <string name="native_place_parking">Parcare</string>
+    <string name="native_place_parking_surface">La suprafață</string>
+    <string name="native_place_parking_underground">Subterană</string>
+    <string name="native_place_parking_multi_storey">Supraetajată</string>
+    <string name="native_place_parking_street_side">Lângă stradă</string>
+    <string name="native_place_parking_lane">Pe stradă</string>
+    <string name="native_place_parking_rooftop">Pe acoperiș</string>
+    <string name="native_place_fee">Taxă</string>
+    <string name="native_place_free">Gratuit</string>
+    <string name="native_place_paid">Cu plată</string>
+    <string name="native_place_capacity">Capacitate</string>
+    <string name="native_place_max_stay">Durată maximă</string>
+    <string name="native_place_price">Preț</string>
+    <string name="native_place_charging">Încărcare</string>
+    <string name="native_place_connector_type2">Tip 2</string>
+    <string name="native_place_connector_chademo">CHAdeMO</string>
+    <string name="native_place_connector_ccs">CCS</string>
+    <string name="native_place_diesel">Motorină</string>
+    <string name="native_place_petrol95">Benzină 95</string>
+    <string name="native_place_smoking_allowed">Fumatul permis</string>
+    <string name="native_place_smoking_outside">Fumat în exterior</string>
+    <string name="native_place_smoking_areas">Zone pentru fumători</string>
+    <string name="native_place_smoke_free">Fără fum</string>
+    <string name="native_place_outdoor_seating">Locuri în aer liber</string>
+    <string name="native_place_takeaway">La pachet</string>
+    <string name="native_place_takeaway_only">Doar la pachet</string>
+    <string name="native_place_open_now">Deschis acum</string>
+    <string name="native_place_closed_now">Închis</string>
+    <string name="native_place_opens_at">Se deschide: %1$s</string>
+    <string name="native_place_closes_at">Se închide: %1$s</string>
+</resources>

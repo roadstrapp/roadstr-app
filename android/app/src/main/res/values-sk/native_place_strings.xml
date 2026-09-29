@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_sk.arb. Do not edit. -->
+<resources>
+    <string name="native_place_loading">Načítavanie informácií…</string>
+    <string name="native_place_cancel">Zrušiť</string>
+    <string name="native_place_navigate">Navigovať sem</string>
+    <string name="native_place_read_wikipedia">Čítať na Wikipédii</string>
+    <string name="native_place_search_engine">Hľadať na %1$s</string>
+    <string name="native_place_osm_details">Informácie z OpenStreetMap</string>
+    <string name="native_place_category">Kategória</string>
+    <string name="native_place_operator">Prevádzkovateľ</string>
+    <string name="native_place_cuisine">Kuchyňa</string>
+    <string name="native_place_wheelchair_yes">Bezbariérový prístup</string>
+    <string name="native_place_wheelchair_limited">Obmedzený bezbariérový prístup</string>
+    <string name="native_place_wheelchair_no">Bez bezbariérového prístupu</string>
+    <string name="native_place_contact">Kontakt</string>
+    <string name="native_place_address">Adresa</string>
+    <string name="native_place_website">Webová stránka</string>
+    <string name="native_place_access_private">Súkromný prístup</string>
+    <string name="native_place_access_customers">Len pre zákazníkov</string>
+    <string name="native_place_access_permit">Vyžaduje sa povolenie</string>
+    <string name="native_place_access_no">Bez verejného prístupu</string>
+    <string name="native_place_access_destination">Prístup len k cieľu</string>
+    <string name="native_place_lightning">Prijíma Lightning</string>
+    <string name="native_place_bitcoin">Prijíma Bitcoin</string>
+    <string name="native_place_parking">Parkovanie</string>
+    <string name="native_place_parking_surface">Povrchové</string>
+    <string name="native_place_parking_underground">Podzemné</string>
+    <string name="native_place_parking_multi_storey">Viacpodlažné</string>
+    <string name="native_place_parking_street_side">Pri ulici</string>
+    <string name="native_place_parking_lane">Na ulici</string>
+    <string name="native_place_parking_rooftop">Na streche</string>
+    <string name="native_place_fee">Poplatok</string>
+    <string name="native_place_free">Zadarmo</string>
+    <string name="native_place_paid">Platené</string>
+    <string name="native_place_capacity">Kapacita</string>
+    <string name="native_place_max_stay">Maximálna doba státia</string>
+    <string name="native_place_price">Cena</string>
+    <string name="native_place_charging">Nabíjanie</string>
+    <string name="native_place_connector_type2">Typ 2</string>
+    <string name="native_place_connector_chademo">CHAdeMO</string>
+    <string name="native_place_connector_ccs">CCS</string>
+    <string name="native_place_diesel">Nafta</string>
+    <string name="native_place_petrol95">Benzín 95</string>
+    <string name="native_place_smoking_allowed">Fajčenie povolené</string>
+    <string name="native_place_smoking_outside">Fajčenie vonku</string>
+    <string name="native_place_smoking_areas">Fajčiarske priestory</string>
+    <string name="native_place_smoke_free">Nefajčiarske</string>
+    <string name="native_place_outdoor_seating">Vonkajšie sedenie</string>
+    <string name="native_place_takeaway">So sebou</string>
+    <string name="native_place_takeaway_only">Len so sebou</string>
+    <string name="native_place_open_now">Teraz otvorené</string>
+    <string name="native_place_closed_now">Zatvorené</string>
+    <string name="native_place_opens_at">Otvára: %1$s</string>
+    <string name="native_place_closes_at">Zatvára: %1$s</string>
+</resources>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_el.arb. Do not edit. -->
+<resources>
+    <string name="native_place_loading">Φόρτωση πληροφοριών…</string>
+    <string name="native_place_cancel">Ακύρωση</string>
+    <string name="native_place_navigate">Πλοήγηση εδώ</string>
+    <string name="native_place_read_wikipedia">Διαβάστε στη Wikipedia</string>
+    <string name="native_place_search_engine">Αναζήτηση στο %1$s</string>
+    <string name="native_place_osm_details">Πληροφορίες από το OpenStreetMap</string>
+    <string name="native_place_category">Κατηγορία</string>
+    <string name="native_place_operator">Διαχειριστής</string>
+    <string name="native_place_cuisine">Κουζίνα</string>
+    <string name="native_place_wheelchair_yes">Προσβάσιμο με αναπηρικό αμαξίδιο</string>
+    <string name="native_place_wheelchair_limited">Περιορισμένη πρόσβαση με αναπηρικό αμαξίδιο</string>
+    <string name="native_place_wheelchair_no">Μη προσβάσιμο με αναπηρικό αμαξίδιο</string>
+    <string name="native_place_contact">Επικοινωνία</string>
+    <string name="native_place_address">Διεύθυνση</string>
+    <string name="native_place_website">Ιστότοπος</string>
+    <string name="native_place_access_private">Ιδιωτική πρόσβαση</string>
+    <string name="native_place_access_customers">Μόνο για πελάτες</string>
+    <string name="native_place_access_permit">Απαιτείται άδεια</string>
+    <string name="native_place_access_no">Δεν υπάρχει δημόσια πρόσβαση</string>
+    <string name="native_place_access_destination">Πρόσβαση μόνο στον προορισμό</string>
+    <string name="native_place_lightning">Δέχεται Lightning</string>
+    <string name="native_place_bitcoin">Δέχεται Bitcoin</string>
+    <string name="native_place_parking">Στάθμευση</string>
+    <string name="native_place_parking_surface">Επιφανειακό</string>
+    <string name="native_place_parking_underground">Υπόγειο</string>
+    <string name="native_place_parking_multi_storey">Πολυώροφο</string>
+    <string name="native_place_parking_street_side">Στην άκρη του δρόμου</string>
+    <string name="native_place_parking_lane">Στον δρόμο</string>
+    <string name="native_place_parking_rooftop">Στην οροφή</string>
+    <string name="native_place_fee">Χρέωση</string>
+    <string name="native_place_free">Δωρεάν</string>
+    <string name="native_place_paid">Με χρέωση</string>
+    <string name="native_place_capacity">Χωρητικότητα</string>
+    <string name="native_place_max_stay">Μέγιστη παραμονή</string>
+    <string name="native_place_price">Τιμή</string>
+    <string name="native_place_charging">Φόρτιση</string>
+    <string name="native_place_connector_type2">Τύπος 2</string>
+    <string name="native_place_connector_chademo">CHAdeMO</string>
+    <string name="native_place_connector_ccs">CCS</string>
+    <string name="native_place_diesel">Ντίζελ</string>
+    <string name="native_place_petrol95">Βενζίνη 95</string>
+    <string name="native_place_smoking_allowed">Το κάπνισμα επιτρέπεται</string>
+    <string name="native_place_smoking_outside">Κάπνισμα έξω</string>
+    <string name="native_place_smoking_areas">Χώροι καπνιστών</string>
+    <string name="native_place_smoke_free">Χωρίς κάπνισμα</string>
+    <string name="native_place_outdoor_seating">Καθίσματα εξωτερικού χώρου</string>
+    <string name="native_place_takeaway">Σε πακέτο</string>
+    <string name="native_place_takeaway_only">Μόνο σε πακέτο</string>
+    <string name="native_place_open_now">Ανοιχτά τώρα</string>
+    <string name="native_place_closed_now">Κλειστά</string>
+    <string name="native_place_opens_at">Ανοίγει: %1$s</string>
+    <string name="native_place_closes_at">Κλείνει: %1$s</string>
+</resources>

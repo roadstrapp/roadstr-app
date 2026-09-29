@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_fi.arb. Do not edit. -->
+<resources>
+    <string name="native_place_loading">Ladataan tietoja…</string>
+    <string name="native_place_cancel">Peruuta</string>
+    <string name="native_place_navigate">Navigoi tänne</string>
+    <string name="native_place_read_wikipedia">Lue Wikipediasta</string>
+    <string name="native_place_search_engine">Hae %1$s</string>
+    <string name="native_place_osm_details">Tiedot OpenStreetMapista</string>
+    <string name="native_place_category">Luokka</string>
+    <string name="native_place_operator">Ylläpitäjä</string>
+    <string name="native_place_cuisine">Keittiö</string>
+    <string name="native_place_wheelchair_yes">Esteetön pyörätuolille</string>
+    <string name="native_place_wheelchair_limited">Rajoitettu esteettömyys pyörätuolille</string>
+    <string name="native_place_wheelchair_no">Ei esteetön pyörätuolille</string>
+    <string name="native_place_contact">Yhteystiedot</string>
+    <string name="native_place_address">Osoite</string>
+    <string name="native_place_website">Verkkosivusto</string>
+    <string name="native_place_access_private">Yksityinen pääsy</string>
+    <string name="native_place_access_customers">Vain asiakkaille</string>
+    <string name="native_place_access_permit">Lupa vaaditaan</string>
+    <string name="native_place_access_no">Ei julkista pääsyä</string>
+    <string name="native_place_access_destination">Pääsy vain kohteeseen</string>
+    <string name="native_place_lightning">Lightning käy maksuvälineenä</string>
+    <string name="native_place_bitcoin">Bitcoin käy maksuvälineenä</string>
+    <string name="native_place_parking">Pysäköinti</string>
+    <string name="native_place_parking_surface">Maan tasalla</string>
+    <string name="native_place_parking_underground">Maanalainen</string>
+    <string name="native_place_parking_multi_storey">Pysäköintitalo</string>
+    <string name="native_place_parking_street_side">Kadun varressa</string>
+    <string name="native_place_parking_lane">Kadulla</string>
+    <string name="native_place_parking_rooftop">Katolla</string>
+    <string name="native_place_fee">Maksu</string>
+    <string name="native_place_free">Maksuton</string>
+    <string name="native_place_paid">Maksullinen</string>
+    <string name="native_place_capacity">Kapasiteetti</string>
+    <string name="native_place_max_stay">Enimmäispysäköintiaika</string>
+    <string name="native_place_price">Hinta</string>
+    <string name="native_place_charging">Lataus</string>
+    <string name="native_place_connector_type2">Tyyppi 2</string>
+    <string name="native_place_connector_chademo">CHAdeMO</string>
+    <string name="native_place_connector_ccs">CCS</string>
+    <string name="native_place_diesel">Diesel</string>
+    <string name="native_place_petrol95">Bensiini 95</string>
+    <string name="native_place_smoking_allowed">Tupakointi sallittu</string>
+    <string name="native_place_smoking_outside">Tupakointi ulkona</string>
+    <string name="native_place_smoking_areas">Tupakointialueet</string>
+    <string name="native_place_smoke_free">Savuton</string>
+    <string name="native_place_outdoor_seating">Ulkopaikat</string>
+    <string name="native_place_takeaway">Noutoruoka</string>
+    <string name="native_place_takeaway_only">Vain noutoruoka</string>
+    <string name="native_place_open_now">Auki nyt</string>
+    <string name="native_place_closed_now">Suljettu</string>
+    <string name="native_place_opens_at">Avautuu: %1$s</string>
+    <string name="native_place_closes_at">Sulkeutuu: %1$s</string>
+</resources>

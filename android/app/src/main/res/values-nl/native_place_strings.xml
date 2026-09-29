@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_nl.arb. Do not edit. -->
+<resources>
+    <string name="native_place_loading">Informatie laden…</string>
+    <string name="native_place_cancel">Annuleren</string>
+    <string name="native_place_navigate">Hier naartoe navigeren</string>
+    <string name="native_place_read_wikipedia">Lees op Wikipedia</string>
+    <string name="native_place_search_engine">Zoeken op %1$s</string>
+    <string name="native_place_osm_details">Informatie van OpenStreetMap</string>
+    <string name="native_place_category">Categorie</string>
+    <string name="native_place_operator">Beheerder</string>
+    <string name="native_place_cuisine">Keuken</string>
+    <string name="native_place_wheelchair_yes">Rolstoeltoegankelijk</string>
+    <string name="native_place_wheelchair_limited">Beperkt rolstoeltoegankelijk</string>
+    <string name="native_place_wheelchair_no">Niet rolstoeltoegankelijk</string>
+    <string name="native_place_contact">Contact</string>
+    <string name="native_place_address">Adres</string>
+    <string name="native_place_website">Website</string>
+    <string name="native_place_access_private">Privéterrein</string>
+    <string name="native_place_access_customers">Alleen voor klanten</string>
+    <string name="native_place_access_permit">Vergunning vereist</string>
+    <string name="native_place_access_no">Geen openbare toegang</string>
+    <string name="native_place_access_destination">Alleen bestemmingsverkeer</string>
+    <string name="native_place_lightning">Lightning geaccepteerd</string>
+    <string name="native_place_bitcoin">Bitcoin geaccepteerd</string>
+    <string name="native_place_parking">Parkeren</string>
+    <string name="native_place_parking_surface">Bovengronds</string>
+    <string name="native_place_parking_underground">Ondergronds</string>
+    <string name="native_place_parking_multi_storey">Parkeergarage</string>
+    <string name="native_place_parking_street_side">Langs de straat</string>
+    <string name="native_place_parking_lane">Op straat</string>
+    <string name="native_place_parking_rooftop">Op het dak</string>
+    <string name="native_place_fee">Tarief</string>
+    <string name="native_place_free">Gratis</string>
+    <string name="native_place_paid">Betaald</string>
+    <string name="native_place_capacity">Capaciteit</string>
+    <string name="native_place_max_stay">Maximale parkeerduur</string>
+    <string name="native_place_price">Prijs</string>
+    <string name="native_place_charging">Opladen</string>
+    <string name="native_place_connector_type2">Type 2</string>
+    <string name="native_place_connector_chademo">CHAdeMO</string>
+    <string name="native_place_connector_ccs">CCS</string>
+    <string name="native_place_diesel">Diesel</string>
+    <string name="native_place_petrol95">Benzine 95</string>
+    <string name="native_place_smoking_allowed">Roken toegestaan</string>
+    <string name="native_place_smoking_outside">Roken buiten</string>
+    <string name="native_place_smoking_areas">Rookzones</string>
+    <string name="native_place_smoke_free">Rookvrij</string>
+    <string name="native_place_outdoor_seating">Zitplaatsen buiten</string>
+    <string name="native_place_takeaway">Afhalen</string>
+    <string name="native_place_takeaway_only">Alleen afhalen</string>
+    <string name="native_place_open_now">Nu open</string>
+    <string name="native_place_closed_now">Gesloten</string>
+    <string name="native_place_opens_at">Opent: %1$s</string>
+    <string name="native_place_closes_at">Sluit: %1$s</string>
+</resources>

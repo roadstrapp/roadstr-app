@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ga.arb. Do not edit. -->
+<resources>
+    <string name="native_place_loading">Ag lódáil faisnéise…</string>
+    <string name="native_place_cancel">Cealaigh</string>
+    <string name="native_place_navigate">Nasclean anseo</string>
+    <string name="native_place_read_wikipedia">Léigh ar Vicipéid</string>
+    <string name="native_place_search_engine">Cuardaigh ar %1$s</string>
+    <string name="native_place_osm_details">Faisnéis ó OpenStreetMap</string>
+    <string name="native_place_category">Catagóir</string>
+    <string name="native_place_operator">Oibreoir</string>
+    <string name="native_place_cuisine">Ealaín</string>
+    <string name="native_place_wheelchair_yes">Inrochtana do chathaoireacha rothaí</string>
+    <string name="native_place_wheelchair_limited">Rochtain theoranta do chathaoireacha rothaí</string>
+    <string name="native_place_wheelchair_no">Gan rochtain do chathaoireacha rothaí</string>
+    <string name="native_place_contact">Teagmháil</string>
+    <string name="native_place_address">Seoladh</string>
+    <string name="native_place_website">Suíomh gréasáin</string>
+    <string name="native_place_access_private">Rochtain phríobháideach</string>
+    <string name="native_place_access_customers">Custaiméirí amháin</string>
+    <string name="native_place_access_permit">Cead ag teastáil</string>
+    <string name="native_place_access_no">Gan rochtain phoiblí</string>
+    <string name="native_place_access_destination">Rochtain chuig an gceann scríbe amháin</string>
+    <string name="native_place_lightning">Glactar le Lightning</string>
+    <string name="native_place_bitcoin">Glactar le Bitcoin</string>
+    <string name="native_place_parking">Páirceáil</string>
+    <string name="native_place_parking_surface">Ar an dromchla</string>
+    <string name="native_place_parking_underground">Faoi thalamh</string>
+    <string name="native_place_parking_multi_storey">Ilstórach</string>
+    <string name="native_place_parking_street_side">Cois sráide</string>
+    <string name="native_place_parking_lane">Ar an tsráid</string>
+    <string name="native_place_parking_rooftop">Ar an díon</string>
+    <string name="native_place_fee">Táille</string>
+    <string name="native_place_free">Saor in aisce</string>
+    <string name="native_place_paid">Íoctha</string>
+    <string name="native_place_capacity">Toilleadh</string>
+    <string name="native_place_max_stay">Uastréimhse fanachta</string>
+    <string name="native_place_price">Praghas</string>
+    <string name="native_place_charging">Luchtú</string>
+    <string name="native_place_connector_type2">Cineál 2</string>
+    <string name="native_place_connector_chademo">CHAdeMO</string>
+    <string name="native_place_connector_ccs">CCS</string>
+    <string name="native_place_diesel">Díosal</string>
+    <string name="native_place_petrol95">Peitreal 95</string>
+    <string name="native_place_smoking_allowed">Caitheamh tobac ceadaithe</string>
+    <string name="native_place_smoking_outside">Caitheamh tobac lasmuigh</string>
+    <string name="native_place_smoking_areas">Limistéir chaite tobac</string>
+    <string name="native_place_smoke_free">Saor ó thobac</string>
+    <string name="native_place_outdoor_seating">Suíocháin lasmuigh</string>
+    <string name="native_place_takeaway">Beir leat</string>
+    <string name="native_place_takeaway_only">Beir leat amháin</string>
+    <string name="native_place_open_now">Ar oscailt anois</string>
+    <string name="native_place_closed_now">Dúnta</string>
+    <string name="native_place_opens_at">Osclaíonn: %1$s</string>
+    <string name="native_place_closes_at">Dúnann: %1$s</string>
+</resources>
