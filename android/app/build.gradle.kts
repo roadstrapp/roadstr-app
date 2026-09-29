@@ -5,6 +5,7 @@ import java.security.MessageDigest
 plugins {
     id("com.android.application")
     id("dev.flutter.flutter-gradle-plugin")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 // ── Release signing ───────────────────────────────────────────────────────────
@@ -70,6 +71,10 @@ android {
         // any real 0.5.x release. This has to clear 2036, not just increment.
         versionCode = 2050
         versionName = "0.5.11"
+    }
+
+    buildFeatures {
+        compose = true
     }
 
     // ── Signing ───────────────────────────────────────────────────────────────
@@ -149,6 +154,17 @@ dependencies {
     // existing Flutter runtime's network or coroutine stack.
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+
+    // 2026.06.01 is the last stable BOM line whose Compose UI artifacts keep
+    // minCompileSdk <= 36. Compose 1.12 requires compileSdk 37, while Roadstr's
+    // controlled rewrite intentionally preserves the current SDK 36 baseline.
+    val composeBom = platform("androidx.compose:compose-bom:2026.06.01")
+    implementation(composeBom)
+    implementation("androidx.activity:activity-compose:1.13.0")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+
     testImplementation("junit:junit:4.13.2")
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
 }

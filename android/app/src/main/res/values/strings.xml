@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Roadstr</string>
+    <string name="native_shell_status" translatable="false">Native shell ready</string>
+    <string name="native_shell_description" translatable="false">Internal Roadstr native compatibility shell</string>
+</resources>

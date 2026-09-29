@@ -29,6 +29,16 @@ maneuver styles and 27 ARB locale sets. Native screenshot/golden coverage must
 be added before claiming parity; the existing Flutter goldens are references,
 not proof of Compose rendering.
 
+## Native shell boundary
+
+The packaged native shell is intentionally only an integration foundation. Its
+activity is non-exported, excluded from recents and has no intent filter;
+Flutter `MainActivity` remains the sole launcher. The shell establishes
+edge-to-edge Compose hosting and exact light/dark Nostr Violet/Bitcoin Orange
+color tokens, including legacy stored-theme aliases. It does not yet claim
+screen, navigation, locale, accessibility or screenshot parity, and it does
+not read legacy/native storage or start network/location work.
+
 ## Non-negotiable UX invariants
 
 - No “Roadstr 2” information architecture or settings rename.
@@ -50,4 +60,3 @@ configuration, locale/theme, input data and native result. Record intentional
 pixel differences caused by platform rendering separately from behavioral
 differences. A visual improvement is a later, separate change; it is not part
 of the parity milestone.
-
