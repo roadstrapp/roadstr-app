@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_lt.arb. Do not edit. -->
+<resources>
+    <string name="native_search_hint">Kur norite vykti?</string>
+    <string name="native_search_close">Uždaryti</string>
+    <string name="native_search_history">Istorija</string>
+    <string name="native_search_clear_history">Išvalyti</string>
+    <string name="native_search_favorites">Išsaugotos vietos</string>
+    <string name="native_search_nearby">Netoliese</string>
+    <string name="native_search_nearby_needs_gps">Laukiama GPS</string>
+    <string name="native_search_nearby_empty">5 km spinduliu nieko nerasta</string>
+    <string name="native_search_nearby_fuel">Degalinė</string>
+    <string name="native_search_nearby_restaurant">Restoranas</string>
+    <string name="native_search_nearby_supermarket">Prekybos centras</string>
+    <string name="native_search_nearby_atm">Bankomatas</string>
+    <string name="native_search_nearby_pharmacy">Vaistinė</string>
+    <string name="native_search_nearby_hospital">Ligoninė</string>
+    <string name="native_search_nearby_police">Policija</string>
+    <string name="native_search_nearby_post_office">Paštas</string>
+    <string name="native_search_nearby_parking">Stovėjimo aikštelė</string>
+    <string name="native_search_nearby_hotel">Viešbutis</string>
+    <string name="native_search_nearby_charging">Įkrovimas</string>
+</resources>

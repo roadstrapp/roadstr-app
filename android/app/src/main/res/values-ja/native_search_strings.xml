@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ja.arb. Do not edit. -->
+<resources>
+    <string name="native_search_hint">どこに行きますか？</string>
+    <string name="native_search_close">閉じる</string>
+    <string name="native_search_history">履歴</string>
+    <string name="native_search_clear_history">クリア</string>
+    <string name="native_search_favorites">保存した場所</string>
+    <string name="native_search_nearby">周辺</string>
+    <string name="native_search_nearby_needs_gps">GPS を待機中</string>
+    <string name="native_search_nearby_empty">5 km 以内に見つかりません</string>
+    <string name="native_search_nearby_fuel">ガソリン</string>
+    <string name="native_search_nearby_restaurant">レストラン</string>
+    <string name="native_search_nearby_supermarket">スーパー</string>
+    <string name="native_search_nearby_atm">ATM</string>
+    <string name="native_search_nearby_pharmacy">薬局</string>
+    <string name="native_search_nearby_hospital">病院</string>
+    <string name="native_search_nearby_police">警察</string>
+    <string name="native_search_nearby_post_office">郵便局</string>
+    <string name="native_search_nearby_parking">駐車場</string>
+    <string name="native_search_nearby_hotel">ホテル</string>
+    <string name="native_search_nearby_charging">充電</string>
+</resources>

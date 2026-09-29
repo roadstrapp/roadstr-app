@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_hr.arb. Do not edit. -->
+<resources>
+    <string name="native_search_hint">Kamo želite ići?</string>
+    <string name="native_search_close">Zatvori</string>
+    <string name="native_search_history">Povijest</string>
+    <string name="native_search_clear_history">Obriši</string>
+    <string name="native_search_favorites">Spremljene lokacije</string>
+    <string name="native_search_nearby">U blizini</string>
+    <string name="native_search_nearby_needs_gps">Čekanje GPS-a</string>
+    <string name="native_search_nearby_empty">Ništa nije pronađeno unutar 5 km</string>
+    <string name="native_search_nearby_fuel">Benzinska</string>
+    <string name="native_search_nearby_restaurant">Restoran</string>
+    <string name="native_search_nearby_supermarket">Supermarket</string>
+    <string name="native_search_nearby_atm">Bankomat</string>
+    <string name="native_search_nearby_pharmacy">Ljekarna</string>
+    <string name="native_search_nearby_hospital">Bolnica</string>
+    <string name="native_search_nearby_police">Policija</string>
+    <string name="native_search_nearby_post_office">Pošta</string>
+    <string name="native_search_nearby_parking">Parkiralište</string>
+    <string name="native_search_nearby_hotel">Hotel</string>
+    <string name="native_search_nearby_charging">Punjenje</string>
+</resources>
