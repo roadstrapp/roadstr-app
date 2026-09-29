@@ -18,9 +18,10 @@ integration work, while Flutter remains the sole launcher.
 | `core.map` | `camera_follow.dart`, `viewport_window.dart` | exponential easing, rotation cap, frame gate, navigation offset, marker culling window |
 | `core.format` | `units.dart` | metric/imperial display, altitude, 27-language speech units, distance punctuation/spacing |
 | `core.search` | `fuzzy_match.dart`, `search_ranking_protocol.dart`, `search_orchestration_protocol.dart`, `search_history_protocol.dart` | accent folding, bounded Levenshtein, address weighting, provider planning, proximity dedupe, city/brand/distance ranking, out-of-order provider completion, one partial, relaxed retry, POI-first final merge, history validation/recency/storage shape |
-| `core.network` | `retry.dart`, `refetch_policy.dart`, `bounded_http.dart`, `network_config.dart`, `search_provider_protocol.dart`, `search_response_protocol.dart`, `routing_request_protocol.dart`, `routing_response_protocol.dart`, `routing_orchestration_protocol.dart`, `routing_avoidance_protocol.dart`, `routing_provider_config.dart`, GraphHopper validation | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh, HTTP deadlines/body ceilings/redirect and cleartext-loopback policy, exact search requests and normalized responses plus routing-provider requests/responses, one-retry bearing fallback, avoidance fallback, per-leg re-timing and persisted provider/key/server resolution |
+| `core.network` | `retry.dart`, `refetch_policy.dart`, `bounded_http.dart`, `network_config.dart`, search/routing protocols, `transit_service.dart`, GraphHopper validation | failure/status classes, bounded Retry-After, exponential schedule, movement/age refresh, HTTP deadlines/body ceilings/redirect and cleartext-loopback policy, exact search/routing/Transitous requests and normalized responses, precision-aware transit geometry, one-retry bearing fallback, avoidance fallback, per-leg re-timing and persisted provider/key/server resolution |
 | `service.network` | `bounded_http.dart` | shared OkHttp pool, exact GET/POST adaptation, whole-call deadline, declared/streamed body caps, redirect/retry refusal, value-free failures and physical coroutine cancellation |
 | `service.routing` | `routing_service.dart` | resolved OSRM/ORS/GraphHopper dispatch, provider-specific deadlines, 32 MiB journey-route bound, normalized responses, value-free failures, cancellable one-retry bearing fallback, Valhalla hard/soft/track avoidance and best-effort OSRM re-timing |
+| `service.transit` | `transit_service.dart` | bounded Transitous plan dispatch, 20-second/2-MiB limits, transient-only interactive retry with bounded Retry-After, value-free failures and physical cancellation; production UI ownership remains detached |
 | `service.location` | `gps_service.dart` | AOSP `LocationManager` source, 500 ms sampling boundary, safe fix normalization, last-known fix, 20/45-second dead-stream watchdog and cancellable lifecycle ownership; both Flutter renderers have a disabled-by-default foreground canary with init/resume reconciliation and an observed native-fix shadow stream, while full startup/UI cutover remains |
 | `service.navigation` | map-screen lifecycle/navigation state | 30-second background grace, generation-safe pause/resume, GPS retention during navigation, detach cleanup, foreground-only wakelock policy, AOSP foreground-service adapter, opt-in `MainActivity` method/event bridges, process-local running-state query and fix fan-out, isolated Dart wrappers, serialized ownership coordinator and disabled-by-default start/stop/dispose/reconcile wiring in both renderers |
 | `service.notifications` | `navigation_notification_service.dart` | 3-second distance-only throttle, immediate maneuver changes, reset semantics and private ongoing notification metadata; the disabled-by-default canary now mirrors bounded updates through the service `NotificationManager` adapter using the existing channel/ID, with Flutter completing last and remaining authoritative |
@@ -288,13 +289,15 @@ detached from secure storage and startup. See
   priority, emits typed map tap/long-press values and selects route alternatives
   with Flutter's first-wins rounded-Vincenty `< 60 m` vertex scan.
   A separate revision-fenced transit session holds up to eight alternatives,
-  validates the complete worldwide mode catalogue and projects only the selected
+  receives bounded plans parsed by the native Transitous protocol, validates
+  the complete worldwide mode catalogue and projects only the selected
   itinerary into a deterministic per-leg GeoJSON source. Its round MapLibre
   layer preserves operator color or theme-accent fallback at seven logical
   pixels and secondary-text street legs at 0.7 alpha and four logical pixels,
   below every road-route layer and across style replacement.
   The shell supplies empty route, transit, camera, cursor and point feeds and has no location component or
-  production route/transit feed; live data/product handlers, screenshots and
+  production route/transit feed; the native service is intentionally not
+  invoked by the shell. Live data/product handlers, itinerary UI, screenshots and
   physical-device evidence remain open.
 - Native navigation lifecycle and notification policies are now deterministic,
   and the Android location foreground-service adapter is registered with an
@@ -314,7 +317,7 @@ detached from secure storage and startup. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 689 Flutter tests passed, including the native shell,
+- `flutter test`: 692 Flutter tests passed, including the native shell,
   private MapLibre host, route-overlay, route-session, transit-overlay/session, camera-session and
   user-cursor, point-overlay/interaction and route-traffic Gradle/source contracts, the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
@@ -327,7 +330,7 @@ detached from secure storage and startup. See
   compile-time rollout, best-effort retry, serialized ownership lifecycle and
   service reconciliation, plus the bounded notification bridge and
   native-before-Flutter update/cancel ordering.
-- `./gradlew :app:testDebugUnitTest`: 326 Kotlin tests passed, including the
+- `./gradlew :app:testDebugUnitTest`: 344 Kotlin tests passed, including the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
   GeoJSON, Flutter-compatible route and per-leg transit metrics/colors,
@@ -346,6 +349,8 @@ detached from secure storage and startup. See
   transport reader, encrypted/atomic search-history persistence and migration
   binding, native bounded-HTTP integration and headless routing/search service
   suites, including Valhalla avoidance and OSRM re-timing execution, plus the
+  Transitous request/parser/Berlin fixture, bounded service retry/cancellation
+  and parsed-plan map projection, plus the
   headless AOSP GPS normalization, last-known, watchdog and cancellation suite,
   plus the native map style, tile safety, route segmentation, marker-culling,
   lifecycle/grace-period, navigation-notification policy, foreground-service

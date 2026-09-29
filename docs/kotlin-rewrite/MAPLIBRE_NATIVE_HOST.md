@@ -86,6 +86,9 @@ Each itinerary is capped at 128 legs and all alternatives share a 250,000-point
 budget. Empty itineraries, invalid WGS84 coordinates, invalid ARGB values and
 stale selections fail before publication. Theme changes recolor fallback and
 street legs without replacing the provider revision or selected journey.
+It also accepts a bounded `TransitParsedPlan` projection from the native
+Transitous parser, preserving leg geometry, mode and operator colour while
+discarding provider-only values that the map does not render.
 
 `NativeTransitOverlayCompiler` emits deterministic ordered GeoJSON features for
 drawable legs and accounts for empty or one-point provider geometry without
@@ -99,8 +102,9 @@ legs use secondary text at 0.7 alpha and four logical pixels. Both widths use
 Flutter's display-density correction and round joins/caps. The host attaches
 this layer before road-route alternatives, preserving Flutter's paint order on
 initial load and style replacement. The private shell owns an empty session and
-does not invoke Transitous, storage or location; native provider parsing and
-itinerary UI remain detached.
+does not invoke Transitous, storage or location. The bounded native request,
+parser and service are green, but production service ownership and itinerary UI
+remain detached.
 
 ## Camera follow boundary
 
@@ -214,18 +218,18 @@ debug-host selection check.
   zoom fallthrough, static-marker transparency, topmost overlap priority,
   invalid projections, first-wins routing, the strict rounded 60 m gate and
   route-revision fencing.
-- Twelve transit-overlay JVM cases lock the complete mode catalogue, bounded
+- Thirteen transit-overlay JVM cases lock the complete mode catalogue, bounded
   revision and selection fencing, defensive geometry copies, theme updates,
   deterministic per-leg GeoJSON, operator/fallback/street colors, skipped
   non-drawable legs, invalid input rejection and density-corrected widths.
-- Twenty-one Dart contracts lock the strict Gradle version, lifecycle-compose
+- Twenty-four Dart contracts lock the strict Gradle version, lifecycle-compose
   dependency, real `MapView`/style/texture-mode binding, absence of a location
   component, selected/muted route source/layer constants, route-choice/progress
   oracle, traffic segmentation/layer, map-listener disposal, marker hit tests
   and ownership by the private shell, plus the Flutter camera oracle
   and MapLibre command wiring, cursor geometry, point-overlay/transit parity and
   dormant ownership.
-- The complete verification run passes 689 Flutter tests, 326 Kotlin tests,
+- The complete verification run passes 692 Flutter tests, 344 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 

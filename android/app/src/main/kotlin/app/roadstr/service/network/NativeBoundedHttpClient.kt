@@ -73,6 +73,14 @@ fun interface NativeSearchHttpTransport {
     ): NativeHttpResponse
 }
 
+/** Narrow transport boundary used by the native public-transport service. */
+fun interface NativeTransitHttpTransport {
+    suspend fun execute(
+        request: NativeHttpRequest,
+        limits: NativeHttpRequestLimits,
+    ): NativeHttpResponse
+}
+
 enum class NativeHttpFailureKind {
     InvalidRequest,
     ResponseTooLarge,
@@ -106,7 +114,7 @@ class NativeHttpException(
  */
 class NativeBoundedHttpClient private constructor(
     private val callFactory: Call.Factory,
-) : NativeRoutingHttpTransport, NativeSearchHttpTransport {
+) : NativeRoutingHttpTransport, NativeSearchHttpTransport, NativeTransitHttpTransport {
     constructor() : this(defaultClient())
 
     suspend fun execute(
@@ -121,7 +129,7 @@ class NativeBoundedHttpClient private constructor(
         ),
     )
 
-    suspend fun execute(
+    override suspend fun execute(
         request: NativeHttpRequest,
         limits: NativeHttpRequestLimits,
     ): NativeHttpResponse = executeWithBounds(
