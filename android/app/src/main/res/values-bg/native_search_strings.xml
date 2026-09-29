@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_bg.arb. Do not edit. -->
+<resources>
+    <string name="native_search_hint">Къде искате да отидете?</string>
+    <string name="native_search_close">Затвори</string>
+    <string name="native_search_history">История</string>
+    <string name="native_search_clear_history">Изчисти</string>
+    <string name="native_search_favorites">Запазени места</string>
+    <string name="native_search_nearby">Наблизо</string>
+    <string name="native_search_nearby_needs_gps">Изчакване на GPS</string>
+    <string name="native_search_nearby_empty">Нищо намерено в радиус от 5 км</string>
+    <string name="native_search_nearby_fuel">Бензиностанция</string>
+    <string name="native_search_nearby_restaurant">Ресторант</string>
+    <string name="native_search_nearby_supermarket">Супермаркет</string>
+    <string name="native_search_nearby_atm">Банкомат</string>
+    <string name="native_search_nearby_pharmacy">Аптека</string>
+    <string name="native_search_nearby_hospital">Болница</string>
+    <string name="native_search_nearby_police">Полиция</string>
+    <string name="native_search_nearby_post_office">Поща</string>
+    <string name="native_search_nearby_parking">Паркинг</string>
+    <string name="native_search_nearby_hotel">Хотел</string>
+    <string name="native_search_nearby_charging">Зареждане</string>
+</resources>

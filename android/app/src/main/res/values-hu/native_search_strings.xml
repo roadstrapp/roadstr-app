@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_hu.arb. Do not edit. -->
+<resources>
+    <string name="native_search_hint">Hová szeretne menni?</string>
+    <string name="native_search_close">Bezárás</string>
+    <string name="native_search_history">Előzmények</string>
+    <string name="native_search_clear_history">Törlés</string>
+    <string name="native_search_favorites">Mentett helyek</string>
+    <string name="native_search_nearby">A közelben</string>
+    <string name="native_search_nearby_needs_gps">Várakozás GPS-re</string>
+    <string name="native_search_nearby_empty">5 km-en belül nincs találat</string>
+    <string name="native_search_nearby_fuel">Üzemanyag</string>
+    <string name="native_search_nearby_restaurant">Étterem</string>
+    <string name="native_search_nearby_supermarket">Szupermarket</string>
+    <string name="native_search_nearby_atm">Bankautomata</string>
+    <string name="native_search_nearby_pharmacy">Gyógyszertár</string>
+    <string name="native_search_nearby_hospital">Kórház</string>
+    <string name="native_search_nearby_police">Rendőrség</string>
+    <string name="native_search_nearby_post_office">Posta</string>
+    <string name="native_search_nearby_parking">Parkoló</string>
+    <string name="native_search_nearby_hotel">Szálloda</string>
+    <string name="native_search_nearby_charging">Töltő</string>
+</resources>

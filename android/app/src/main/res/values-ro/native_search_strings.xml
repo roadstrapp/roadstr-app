@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ro.arb. Do not edit. -->
+<resources>
+    <string name="native_search_hint">Unde vrei să mergi?</string>
+    <string name="native_search_close">Închide</string>
+    <string name="native_search_history">Istoric</string>
+    <string name="native_search_clear_history">Șterge</string>
+    <string name="native_search_favorites">Locuri salvate</string>
+    <string name="native_search_nearby">În apropiere</string>
+    <string name="native_search_nearby_needs_gps">Se așteaptă GPS-ul</string>
+    <string name="native_search_nearby_empty">Nimic găsit pe o rază de 5 km</string>
+    <string name="native_search_nearby_fuel">Carburant</string>
+    <string name="native_search_nearby_restaurant">Restaurant</string>
+    <string name="native_search_nearby_supermarket">Supermarket</string>
+    <string name="native_search_nearby_atm">Bancomat</string>
+    <string name="native_search_nearby_pharmacy">Farmacie</string>
+    <string name="native_search_nearby_hospital">Spital</string>
+    <string name="native_search_nearby_police">Poliție</string>
+    <string name="native_search_nearby_post_office">Poștă</string>
+    <string name="native_search_nearby_parking">Parcare</string>
+    <string name="native_search_nearby_hotel">Hotel</string>
+    <string name="native_search_nearby_charging">Încărcare</string>
+</resources>

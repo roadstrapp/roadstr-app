@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_sv.arb. Do not edit. -->
+<resources>
+    <string name="native_search_hint">Vart vill du åka?</string>
+    <string name="native_search_close">Stäng</string>
+    <string name="native_search_history">Historik</string>
+    <string name="native_search_clear_history">Rensa</string>
+    <string name="native_search_favorites">Sparade platser</string>
+    <string name="native_search_nearby">I närheten</string>
+    <string name="native_search_nearby_needs_gps">Väntar på GPS</string>
+    <string name="native_search_nearby_empty">Inget hittades inom 5 km</string>
+    <string name="native_search_nearby_fuel">Drivmedel</string>
+    <string name="native_search_nearby_restaurant">Restaurang</string>
+    <string name="native_search_nearby_supermarket">Livsmedelsbutik</string>
+    <string name="native_search_nearby_atm">Uttagsautomat</string>
+    <string name="native_search_nearby_pharmacy">Apotek</string>
+    <string name="native_search_nearby_hospital">Sjukhus</string>
+    <string name="native_search_nearby_police">Polis</string>
+    <string name="native_search_nearby_post_office">Post</string>
+    <string name="native_search_nearby_parking">Parkering</string>
+    <string name="native_search_nearby_hotel">Hotell</string>
+    <string name="native_search_nearby_charging">Laddning</string>
+</resources>

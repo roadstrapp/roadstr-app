@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_en.arb. Do not edit. -->
+<resources>
+    <string name="native_search_hint">Where do you want to go?</string>
+    <string name="native_search_close">Close</string>
+    <string name="native_search_history">History</string>
+    <string name="native_search_clear_history">Clear</string>
+    <string name="native_search_favorites">Saved Places</string>
+    <string name="native_search_nearby">Nearby</string>
+    <string name="native_search_nearby_needs_gps">Waiting for GPS</string>
+    <string name="native_search_nearby_empty">Nothing found within 5 km</string>
+    <string name="native_search_nearby_fuel">Fuel</string>
+    <string name="native_search_nearby_restaurant">Restaurant</string>
+    <string name="native_search_nearby_supermarket">Supermarket</string>
+    <string name="native_search_nearby_atm">ATM</string>
+    <string name="native_search_nearby_pharmacy">Pharmacy</string>
+    <string name="native_search_nearby_hospital">Hospital</string>
+    <string name="native_search_nearby_police">Police</string>
+    <string name="native_search_nearby_post_office">Post office</string>
+    <string name="native_search_nearby_parking">Parking</string>
+    <string name="native_search_nearby_hotel">Hotel</string>
+    <string name="native_search_nearby_charging">Charging</string>
+</resources>

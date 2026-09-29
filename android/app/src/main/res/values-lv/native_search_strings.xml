@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_lv.arb. Do not edit. -->
+<resources>
+    <string name="native_search_hint">Kurp vēlaties doties?</string>
+    <string name="native_search_close">Aizvērt</string>
+    <string name="native_search_history">Vēsture</string>
+    <string name="native_search_clear_history">Notīrīt</string>
+    <string name="native_search_favorites">Saglabātās vietas</string>
+    <string name="native_search_nearby">Tuvumā</string>
+    <string name="native_search_nearby_needs_gps">Gaida GPS</string>
+    <string name="native_search_nearby_empty">5 km rādiusā nekas nav atrasts</string>
+    <string name="native_search_nearby_fuel">Degviela</string>
+    <string name="native_search_nearby_restaurant">Restorāns</string>
+    <string name="native_search_nearby_supermarket">Lielveikals</string>
+    <string name="native_search_nearby_atm">Bankomāts</string>
+    <string name="native_search_nearby_pharmacy">Aptieka</string>
+    <string name="native_search_nearby_hospital">Slimnīca</string>
+    <string name="native_search_nearby_police">Policija</string>
+    <string name="native_search_nearby_post_office">Pasts</string>
+    <string name="native_search_nearby_parking">Autostāvvieta</string>
+    <string name="native_search_nearby_hotel">Viesnīca</string>
+    <string name="native_search_nearby_charging">Uzlāde</string>
+</resources>
