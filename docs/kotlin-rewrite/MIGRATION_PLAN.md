@@ -38,10 +38,12 @@ until migration, feature, protocol, UI and release parity are proven.
 The first native increment is intentionally isolated from production startup:
 
 - `feature/home/NativeCanaryActivity.kt` now hosts a private, non-exported
-  edge-to-edge Compose shell with no intent filter, storage access, networking
-  or migration side effect. `MainActivity` remains the only `MAIN`/`LAUNCHER`.
-  `core/ui/theme/RoadstrTheme.kt` preserves all four Flutter palette variants
-  and the four historical stored-ordinal aliases.
+  edge-to-edge Compose shell with no intent filter, storage access or migration
+  side effect. `MainActivity` remains the only `MAIN`/`LAUNCHER`. If the private
+  activity is explicitly invoked from inside the app, its native MapLibre host
+  may load only the admitted HTTPS OSM raster style. `core/ui/theme/
+  RoadstrTheme.kt` preserves all four Flutter palette variants and the four
+  historical stored-ordinal aliases.
 - `android/app/src/main/kotlin/app/roadstr/migration/` contains the audited
   storage contract, normalized snapshot model, validation and transactional
   coordinator.
@@ -126,9 +128,11 @@ The first native increment is intentionally isolated from production startup:
 - `feature/map/NativeMapStyle.kt` and
   `feature/map/NativeMapOverlayPolicy.kt` now provide a headless MapLibre
   foundation: raster style JSON, dark recoloring, tile URL admission and
-  escaping, ZTL route segmentation and viewport/zoom marker culling. The
-  native renderer, Compose layers and Activity wiring remain deliberately
-  unwired.
+  escaping, ZTL route segmentation and viewport/zoom marker culling.
+  `NativeMapLibreHost.kt` embeds the audited MapLibre Native `13.5.2` renderer
+  in the private Compose shell with the Flutter camera baseline, texture mode,
+  lifecycle/disposal ordering and low-memory forwarding. Location, overlays,
+  production navigation, screenshots and device evidence remain unwired.
 - `service/navigation/NativeNavigationLifecycle.kt` and
   `service/notifications/NativeNavigationNotificationPolicy.kt` now provide
   the headless foreground/lifecycle contract: 30-second background grace,
@@ -497,12 +501,26 @@ broader cross-language coverage and a native store are still required.
 
 - **Objective:** Reproduce native MapLibre styling, camera, cursor, routes and overlays while preserving raster semantics.
 - **Current Dart/Flutter source:** both map screens, map chrome/markers, theme and cursor widgets/services.
-- **New Kotlin files/modules:** `feature/map/NativeMapStyle.kt` and `feature/map/NativeMapOverlayPolicy.kt` provide the engine-independent style/source and overlay policies; `feature/navigation/map`, native MapLibre binding and UI layers remain.
-- **Dependencies:** MapLibre Native Android after license/transitive dependency audit.
+- **New Kotlin files/modules:** `feature/map/NativeMapStyle.kt` and
+  `NativeMapOverlayPolicy.kt` provide the engine-independent policies;
+  `NativeMapLibreHost.kt` and `NativeMapLifecycle.kt` provide the private
+  Compose/AndroidView renderer boundary. Product `feature/navigation/map` and
+  overlay UI layers remain.
+- **Dependencies:** MapLibre Native Android OpenGL `13.5.2` is strictly pinned
+  to the same artifact used by `maplibre_android 0.3.6`; its POM declares
+  BSD-2-Clause and the resolved runtime graph contains no Google Play Services.
 - **Migration impact:** `mapEngine`, tile URL, cursor and map settings must remain.
 - **User-visible impact:** Same map engine default, toggle, overlays, tilt, bearing and controls.
-- **Tests:** 7 deterministic JVM tests cover light/dark style output, tile URL safety/escaping, ZTL route segmentation and viewport/zoom marker culling; screenshot/golden, tap/gesture and device marker-rendering tests remain.
-- **Parity evidence:** headless style and overlay decisions are green; reference states in `UI_PARITY.md`, camera traces and frame-time comparison remain.
+- **Tests:** 13 deterministic JVM tests cover light/dark style output, tile URL
+  safety/escaping, ZTL route segmentation, viewport/zoom marker culling,
+  audited version/camera values and exact idempotent MapView lifecycle ordering;
+  two Dart source/Gradle contracts lock the private host. Screenshot/golden,
+  tap/gesture and device marker-rendering tests remain.
+- **Parity evidence:** the headless policies and private native raster renderer
+  compile/package with Flutter's `42.5, 12.5`, zoom 17, pitch 40 baseline and
+  texture mode. Reference screenshots, camera traces and frame-time comparison
+  remain. See `MAPLIBRE_NATIVE_HOST.md` for the lifecycle, dependency and
+  security boundary.
 - **Security/privacy impact:** Preserve tile/provider URLs, cleartext restrictions and no location telemetry.
 - **Battery/performance impact:** Avoid rebuilding static GeoJSON; measure jank, memory and camera updates.
 - **Acceptance criteria:** Map and legacy raster setting are functionally equivalent with no overlay gaps.

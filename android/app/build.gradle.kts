@@ -163,7 +163,18 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.13.0")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.10.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
+
+    // maplibre_android 0.3.6 currently requests 13.5.+. Keep the same SDK the
+    // Flutter renderer resolves, but make native builds reproducible and stop a
+    // future 13.5.x publication from changing the binary without review.
+    implementation("org.maplibre.gl:android-sdk-opengl") {
+        version {
+            strictly("13.5.2")
+        }
+        because("Roadstr audits one BSD-2-Clause MapLibre Native binary")
+    }
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
