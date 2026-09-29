@@ -40,7 +40,8 @@ MapLibre Native raster view with the Flutter initial camera and texture mode.
 Only an explicit internal invocation can start its admitted HTTPS OSM tile
 requests; it does not read legacy/native storage or request location. The shell
 also installs the Flutter-compatible active/ZTL/completed route sources and
-layers plus muted route-choice alternatives through a revision-safe StateFlow
+layers plus muted route-choice alternatives and a bright-red 400 m traffic
+layer through a revision-safe StateFlow
 route session with an intentionally empty snapshot. A dormant camera session can also issue sequence-safe
 move/ease commands and detach follow on MapLibre gestures, but receives no GPS
 fixes. A separate dormant cursor session can project the generic 48x76 Flutter

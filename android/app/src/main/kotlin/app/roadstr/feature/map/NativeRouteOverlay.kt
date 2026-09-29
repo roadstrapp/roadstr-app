@@ -8,6 +8,7 @@ data class NativeRouteOverlaySnapshot(
     val completedPoints: List<NativeMapPoint>,
     val accentArgb: Long,
     val alternativeRoutes: List<List<NativeMapPoint>> = emptyList(),
+    val trafficSegments: List<List<NativeMapPoint>> = emptyList(),
 ) {
     companion object {
         fun empty(accentArgb: Long): NativeRouteOverlaySnapshot =
@@ -23,8 +24,10 @@ data class NativeRouteOverlayPayload(
     val activeGeoJson: String,
     val completedGeoJson: String,
     val alternativesGeoJson: String,
+    val trafficGeoJson: String,
     val activeFeatureCount: Int,
     val alternativeFeatureCount: Int,
+    val trafficFeatureCount: Int,
     val pointCount: Int,
     val accentArgb: Long,
 )
@@ -34,6 +37,7 @@ object NativeRouteOverlayCompiler {
     const val MAX_ROUTE_POINTS = 250_000
     const val MAX_ROUTE_RUNS = 4_096
     const val MAX_ROUTE_ALTERNATIVES = 8
+    const val MAX_TRAFFIC_SEGMENTS = 4_096
     private const val EMPTY_FEATURE_COLLECTION =
         "{\"type\":\"FeatureCollection\",\"features\":[]}"
 
@@ -46,6 +50,9 @@ object NativeRouteOverlayCompiler {
         }
         require(snapshot.alternativeRoutes.size <= MAX_ROUTE_ALTERNATIVES) {
             "Route has too many alternatives"
+        }
+        require(snapshot.trafficSegments.size <= MAX_TRAFFIC_SEGMENTS) {
+            "Route has too many traffic segments"
         }
         require(snapshot.completedPoints.isEmpty() || snapshot.completedPoints.size >= 2) {
             "Completed route must be empty or drawable"
@@ -63,17 +70,25 @@ object NativeRouteOverlayCompiler {
             pointCount += alternative.size.toLong()
             require(pointCount <= MAX_ROUTE_POINTS.toLong()) { "Route has too many overlay points" }
         }
+        snapshot.trafficSegments.forEach { segment ->
+            require(segment.size >= 2) { "Every traffic segment must be drawable" }
+            pointCount += segment.size.toLong()
+            require(pointCount <= MAX_ROUTE_POINTS.toLong()) { "Route has too many overlay points" }
+        }
 
         snapshot.completedPoints.forEach(::requireValidPoint)
         snapshot.activeRuns.forEach { run -> run.points.forEach(::requireValidPoint) }
         snapshot.alternativeRoutes.forEach { route -> route.forEach(::requireValidPoint) }
+        snapshot.trafficSegments.forEach { segment -> segment.forEach(::requireValidPoint) }
 
         return NativeRouteOverlayPayload(
             activeGeoJson = featureCollection(snapshot.activeRuns),
             completedGeoJson = completedFeatureCollection(snapshot.completedPoints),
             alternativesGeoJson = alternativesFeatureCollection(snapshot.alternativeRoutes),
+            trafficGeoJson = lineFeatureCollection(snapshot.trafficSegments),
             activeFeatureCount = snapshot.activeRuns.size,
             alternativeFeatureCount = snapshot.alternativeRoutes.size,
+            trafficFeatureCount = snapshot.trafficSegments.size,
             pointCount = pointCount.toInt(),
             accentArgb = snapshot.accentArgb,
         )
@@ -109,10 +124,14 @@ object NativeRouteOverlayCompiler {
     }
 
     private fun alternativesFeatureCollection(routes: List<List<NativeMapPoint>>): String {
-        if (routes.isEmpty()) return EMPTY_FEATURE_COLLECTION
+        return lineFeatureCollection(routes)
+    }
+
+    private fun lineFeatureCollection(lines: List<List<NativeMapPoint>>): String {
+        if (lines.isEmpty()) return EMPTY_FEATURE_COLLECTION
         return buildString {
             append("{\"type\":\"FeatureCollection\",\"features\":[")
-            routes.forEachIndexed { index, points ->
+            lines.forEachIndexed { index, points ->
                 if (index > 0) append(',')
                 append(
                     "{\"type\":\"Feature\",\"properties\":{}," +
@@ -155,6 +174,7 @@ object NativeRouteLayerMetrics {
     const val CORE_LOGICAL_WIDTH = 9.0
     const val COMPLETED_LOGICAL_WIDTH = 9.0
     const val ALTERNATIVE_LOGICAL_WIDTH = 7.0
+    const val TRAFFIC_LOGICAL_WIDTH = 9.0
 
     fun widthPixels(logicalWidth: Double, displayDensity: Float): Float {
         require(logicalWidth.isFinite() && logicalWidth > 0.0) {
