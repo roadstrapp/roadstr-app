@@ -24,7 +24,7 @@ integration work, while Flutter remains the sole launcher.
 | `service.location` | `gps_service.dart` | AOSP `LocationManager` source, 500 ms sampling boundary, safe fix normalization, last-known fix, 20/45-second dead-stream watchdog and cancellable lifecycle ownership; both Flutter renderers have a disabled-by-default foreground canary with init/resume reconciliation and an observed native-fix shadow stream, while full startup/UI cutover remains |
 | `service.navigation` | map-screen lifecycle/navigation state | 30-second background grace, generation-safe pause/resume, GPS retention during navigation, detach cleanup, foreground-only wakelock policy, AOSP foreground-service adapter, opt-in `MainActivity` method/event bridges, process-local running-state query and fix fan-out, isolated Dart wrappers, serialized ownership coordinator and disabled-by-default start/stop/dispose/reconcile wiring in both renderers |
 | `service.notifications` | `navigation_notification_service.dart` | 3-second distance-only throttle, immediate maneuver changes, reset semantics and private ongoing notification metadata; the disabled-by-default canary now mirrors bounded updates through the service `NotificationManager` adapter using the existing channel/ID, with Flutter completing last and remaining authoritative |
-| `feature.map` | `maplibre_map_screen.dart`, `map_screen.dart`, map services/widgets | raster MapLibre style JSON, dark recoloring, tile URL admission/escaping, ZTL route-run segmentation and zoom/viewport marker culling; a lifecycle-safe MapLibre Native 13.5.2 AndroidView now installs bounded active/restricted/completed route sources and layers only in the private Compose shell, while product data/UI remain unwired |
+| `feature.map` | `maplibre_map_screen.dart`, `map_screen.dart`, map services/widgets | raster MapLibre style JSON, dark recoloring, tile URL admission/escaping, ZTL route-run segmentation and zoom/viewport marker culling; a lifecycle-safe MapLibre Native 13.5.2 AndroidView now installs bounded active/restricted/completed route sources and layers through a revision-safe StateFlow session only in the private Compose shell, while product data/UI remain unwired |
 | `core.ui` / `feature.home` | `app_theme.dart`, Flutter Android embedding | exact four-palette colors and stored ordinal aliases, edge-to-edge private Compose/MapLibre canary, non-exported/no-intent-filter shell contract; no production startup or storage access |
 | `storage` | encrypted Hive search history | canonical encrypted history file, serialized prepend/clear/import, atomic recovery, Keystore boundary and migration-marker ciphertext binding |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
@@ -266,10 +266,12 @@ detached from secure storage and startup. See
   idempotent lifecycle/disposal and low-memory forwarding. Its first real
   overlay renderer installs bounded GeoJSON sources for active/restricted and
   completed routes, with the Flutter color, halo, width and layer-order
-  contract and generation-safe style replacement. The shell supplies an empty
-  route snapshot and has no location component or production route feed;
-  remaining overlays, gesture parity, screenshots and physical-device evidence
-  remain open.
+  contract and generation-safe style replacement. A revision-safe native
+  StateFlow session now projects normalized route geometry, monotonic progress,
+  interpolated cursor and late ZTL classifications into those sources. The
+  shell supplies an empty route snapshot and has no location component or
+  production route feed; remaining overlays, gesture parity, screenshots and
+  physical-device evidence remain open.
 - Native navigation lifecycle and notification policies are now deterministic,
   and the Android location foreground-service adapter is registered with an
   opt-in `MainActivity` start/stop/state/notification channel and
@@ -288,8 +290,8 @@ detached from secure storage and startup. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 672 Flutter tests passed, including the native shell,
-  private MapLibre host and route-overlay Gradle/source contracts, the Nostr/`nostr_tools` and
+- `flutter test`: 674 Flutter tests passed, including the native shell,
+  private MapLibre host, route-overlay and route-session Gradle/source contracts, the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
   NIP-19, Lightning and
   LNURL/NIP-04/NIP-44/NIP-78 transcripts, HTTP safety, search/routing-provider
@@ -300,10 +302,11 @@ detached from secure storage and startup. See
   compile-time rollout, best-effort retry, serialized ownership lifecycle and
   service reconciliation, plus the bounded notification bridge and
   native-before-Flutter update/cancel ordering.
-- `./gradlew :app:testDebugUnitTest`: 256 Kotlin tests passed, including the
+- `./gradlew :app:testDebugUnitTest`: 263 Kotlin tests passed, including the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
-  GeoJSON, Flutter-compatible route metrics/colors and stale-style rejection,
+  GeoJSON, Flutter-compatible route metrics/colors, revision-safe route
+  projection/progress and stale-style rejection,
   and the
   Nostr byte/queue/inbound/ingress/NIP-19/BIP-340/NIP-04/NIP-44/NIP-78,
   Lightning/LNURL parity, HTTP safety/search/routing requests, responses,

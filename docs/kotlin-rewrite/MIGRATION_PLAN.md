@@ -134,9 +134,12 @@ The first native increment is intentionally isolated from production startup:
   lifecycle/disposal ordering and low-memory forwarding. It now installs
   bounded active/restricted/completed route GeoJSON sources and the matching
   completed/halo/core layers, and rejects stale asynchronous style callbacks.
-  The private shell supplies only an empty snapshot; location, product route
-  data, remaining overlays, production navigation, screenshots and device
-  evidence remain unwired.
+  `NativeRouteOverlaySession.kt` now projects normalized route geometry,
+  revision-safe replacements, monotonic progress, interpolated cursor and
+  refreshed ZTL classifications through a StateFlow; the private shell
+  supplies only its empty initial snapshot. Location, product route data,
+  remaining overlays, production navigation, screenshots and device evidence
+  remain unwired.
 - `service/navigation/NativeNavigationLifecycle.kt` and
   `service/notifications/NativeNavigationNotificationPolicy.kt` now provide
   the headless foreground/lifecycle contract: 30-second background grace,
@@ -510,20 +513,23 @@ broader cross-language coverage and a native store are still required.
   `NativeMapLibreHost.kt` and `NativeMapLifecycle.kt` provide the private
   Compose/AndroidView renderer boundary; `NativeRouteOverlay.kt` and
   `NativeMapRouteRenderer.kt` provide bounded route snapshots/GeoJSON and
-  reinstallable active, restricted and completed MapLibre layers. Product
-  `feature/navigation/map`, route feeds and remaining overlay UI layers remain.
+  reinstallable active, restricted and completed MapLibre layers;
+  `NativeRouteOverlaySession.kt` provides the revision-safe StateFlow route
+  projector. Product `feature/navigation/map`, route feeds and remaining
+  overlay UI layers remain.
 - **Dependencies:** MapLibre Native Android OpenGL `13.5.2` is strictly pinned
   to the same artifact used by `maplibre_android 0.3.6`; its POM declares
   BSD-2-Clause and the resolved runtime graph contains no Google Play Services.
 - **Migration impact:** `mapEngine`, tile URL, cursor and map settings must remain.
 - **User-visible impact:** Same map engine default, toggle, overlays, tilt, bearing and controls.
-- **Tests:** 20 deterministic JVM tests cover light/dark style output, tile URL
+- **Tests:** 27 deterministic JVM tests cover light/dark style output, tile URL
   safety/escaping, ZTL route segmentation, viewport/zoom marker culling,
   audited version/camera values, exact idempotent MapView lifecycle ordering,
   bounded GeoJSON/coordinate validation, physical-pixel widths/colors and
-  stale-style rejection; four Dart source/Gradle contracts lock the private
-  host and route renderer. Screenshot/golden, tap/gesture and device
-  marker-rendering tests remain.
+  stale-style rejection, revision fencing, monotonic progress, interpolated
+  cursor and live classification refresh; six Dart source/Gradle contracts
+  lock the private host, route renderer and session. Screenshot/golden,
+  tap/gesture and device marker-rendering tests remain.
 - **Parity evidence:** the headless policies and private native raster renderer
   compile/package with Flutter's `42.5, 12.5`, zoom 17, pitch 40 baseline and
   texture mode. Its completed-grey and active accent/ZTL layers preserve the

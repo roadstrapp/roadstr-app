@@ -42,7 +42,8 @@ void main() {
     expect(rendererSource, contains('roadstr-route-active-core'));
     expect(hostSource, contains('styleGeneration.accepts(generation)'));
     expect(hostSource, contains('routeRenderer.attach(loadedStyle)'));
-    expect(shellSource, contains('NativeRouteOverlaySnapshot.empty'));
+    expect(shellSource, contains('NativeRouteOverlaySession'));
+    expect(shellSource, contains('routeState.snapshot'));
     expect(shellSource, isNot(contains('NativeLocation')));
     expect(shellSource, isNot(contains('lastKnownLocation')));
   });
