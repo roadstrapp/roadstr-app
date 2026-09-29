@@ -26,8 +26,11 @@ Flutter is still the only launcher and production UI.
   completed/halo/core layers. Style generations prevent stale reattachment;
   `NativeRouteOverlaySession.kt` adds a revision-safe StateFlow projector for
   normalized route geometry, monotonic progress, cursor interpolation and
-  late ZTL refreshes. The private shell collects an empty initial snapshot and
-  no product route or GPS.
+  late ZTL refreshes. `NativeMapCameraSession.kt` and
+  `NativeMapCameraRenderer.kt` add a sequence-safe camera-follow boundary with
+  the Flutter cadence, dead reckoning, navigation shift, bearing/pitch,
+  recenter and gesture-detachment policies. The private shell collects empty
+  route and camera state and has no product route or GPS feed.
 - `LegacyStorageContract.kt` records the audited Hive/secure-storage names and
   dynamic per-identity key prefixes.
 - `LegacyStorageModels.kt` defines a bounded normalized snapshot boundary,

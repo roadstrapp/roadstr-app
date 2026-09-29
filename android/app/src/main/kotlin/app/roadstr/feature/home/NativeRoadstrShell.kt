@@ -1,5 +1,6 @@
 package app.roadstr.feature.home
 
+import android.os.SystemClock
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,8 +28,10 @@ import androidx.compose.ui.unit.dp
 import app.roadstr.R
 import app.roadstr.core.ui.theme.RoadstrTheme
 import app.roadstr.core.ui.theme.RoadstrThemeId
+import app.roadstr.feature.map.NativeMapCameraSession
 import app.roadstr.feature.map.NativeMapLibreHost
 import app.roadstr.feature.map.NativeRouteOverlaySession
+import kotlinx.coroutines.delay
 
 /**
  * Dormant native UI boundary used to prove Compose and MapLibre packaging.
@@ -52,6 +55,14 @@ fun NativeRoadstrShell() {
             routeSession.updateAccent(themeId.accentArgb)
         }
         val routeState by routeSession.state.collectAsState()
+        val cameraSession = remember { NativeMapCameraSession() }
+        val cameraState by cameraSession.state.collectAsState()
+        LaunchedEffect(cameraSession, cameraState.frameActive) {
+            while (cameraSession.state.value.frameActive) {
+                delay(NativeMapCameraSession.FOLLOW_FRAME_MILLIS)
+                cameraSession.advanceFrame(SystemClock.elapsedRealtime())
+            }
+        }
         Scaffold(
             modifier = Modifier
                 .fillMaxSize()
@@ -66,6 +77,8 @@ fun NativeRoadstrShell() {
                 NativeMapLibreHost(
                     dark = themeId.dark,
                     routeOverlay = routeState.snapshot,
+                    cameraCommand = cameraState.command,
+                    onCameraGesture = cameraSession::onUserGesture,
                     modifier = Modifier.fillMaxSize(),
                 )
                 Surface(
