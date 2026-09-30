@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_mt.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Notifiki</string>
+    <string name="native_activity_close">Agħlaq</string>
+    <string name="native_activity_empty">Għad m\'hemmx notifiki</string>
+    <string name="native_activity_empty_body">Iz-zaps u r-reazzjonijiet għar-rapporti tat-triq tiegħek jidhru hawn.</string>
+    <string name="native_activity_login_required">Qabbad il-profil Nostr tiegħek</string>
+    <string name="native_activity_login_required_body">Idħol b\'Amber jew nsec biex tirċievi notifiki minn utenti oħra.</string>
+    <string name="native_activity_zap_title">Zap riċevut</string>
+    <string name="native_activity_zap_body">Irċevejt zap ta\' %1$d sats!</string>
+    <string name="native_activity_confirmed_title">Rapport ikkonfermat</string>
+    <string name="native_activity_confirmed_body">Ir-rapport tiegħek dwar %1$s ġie kkonfermat minn sewwieq ieħor</string>
+    <string name="native_activity_denied_title">Rapport ikkontestat</string>
+    <string name="native_activity_denied_body">Xi ħadd irrapporta li %1$s tiegħek m\'għadux hemm</string>
+</resources>

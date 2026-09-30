@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_sv.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Aviseringar</string>
+    <string name="native_activity_close">Stäng</string>
+    <string name="native_activity_empty">Inga aviseringar ännu</string>
+    <string name="native_activity_empty_body">Zaps och reaktioner på dina trafikrapporter visas här.</string>
+    <string name="native_activity_login_required">Anslut din Nostr-profil</string>
+    <string name="native_activity_login_required_body">Logga in med Amber eller nsec för att få aviseringar från andra användare.</string>
+    <string name="native_activity_zap_title">Zap mottagen</string>
+    <string name="native_activity_zap_body">Du fick en zap på %1$d sats!</string>
+    <string name="native_activity_confirmed_title">Rapport bekräftad</string>
+    <string name="native_activity_confirmed_body">Din %1$s-rapport bekräftades av en annan förare</string>
+    <string name="native_activity_denied_title">Rapport ifrågasatt</string>
+    <string name="native_activity_denied_body">Någon rapporterade att din %1$s inte längre finns kvar</string>
+</resources>

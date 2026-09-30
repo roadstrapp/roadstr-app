@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_sl.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Obvestila</string>
+    <string name="native_activity_close">Zapri</string>
+    <string name="native_activity_empty">Zaenkrat ni obvestil</string>
+    <string name="native_activity_empty_body">Zapi in odzivi na vaše prometne prijave se bodo prikazali tukaj.</string>
+    <string name="native_activity_login_required">Povežite svoj profil Nostr</string>
+    <string name="native_activity_login_required_body">Prijavite se z Amber ali nsec, da prejemate obvestila drugih uporabnikov.</string>
+    <string name="native_activity_zap_title">Prejet zap</string>
+    <string name="native_activity_zap_body">Prejeli ste zap v vrednosti %1$d satov!</string>
+    <string name="native_activity_confirmed_title">Prijava potrjena</string>
+    <string name="native_activity_confirmed_body">Vašo prijavo %1$s je potrdil drug voznik</string>
+    <string name="native_activity_denied_title">Prijava izpodbijana</string>
+    <string name="native_activity_denied_body">Nekdo je sporočil, da vašega %1$s ni več tam</string>
+</resources>

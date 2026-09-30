@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_nl.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Meldingen</string>
+    <string name="native_activity_close">Sluiten</string>
+    <string name="native_activity_empty">Nog geen meldingen</string>
+    <string name="native_activity_empty_body">Zaps en reacties op uw verkeersmeldingen verschijnen hier.</string>
+    <string name="native_activity_login_required">Verbind uw Nostr-profiel</string>
+    <string name="native_activity_login_required_body">Log in met Amber of nsec om meldingen van andere gebruikers te ontvangen.</string>
+    <string name="native_activity_zap_title">Zap ontvangen</string>
+    <string name="native_activity_zap_body">Je hebt een zap van %1$d sats ontvangen!</string>
+    <string name="native_activity_confirmed_title">Melding bevestigd</string>
+    <string name="native_activity_confirmed_body">Je melding van %1$s is bevestigd door een andere bestuurder</string>
+    <string name="native_activity_denied_title">Melding betwist</string>
+    <string name="native_activity_denied_body">Iemand meldde dat je %1$s er niet meer is</string>
+</resources>

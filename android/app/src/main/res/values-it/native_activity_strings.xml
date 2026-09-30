@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_it.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Notifiche</string>
+    <string name="native_activity_close">Chiudi</string>
+    <string name="native_activity_empty">Ancora nessuna notifica</string>
+    <string name="native_activity_empty_body">Qui compariranno gli zap e le reazioni alle tue segnalazioni stradali.</string>
+    <string name="native_activity_login_required">Collega il tuo profilo Nostr</string>
+    <string name="native_activity_login_required_body">Accedi con Amber o nsec per ricevere le notifiche dagli altri utenti.</string>
+    <string name="native_activity_zap_title">Zap ricevuto</string>
+    <string name="native_activity_zap_body">Hai ricevuto uno zap di %1$d sat!</string>
+    <string name="native_activity_confirmed_title">Segnalazione confermata</string>
+    <string name="native_activity_confirmed_body">La tua segnalazione di %1$s è stata confermata da un altro utente</string>
+    <string name="native_activity_denied_title">Segnalazione contestata</string>
+    <string name="native_activity_denied_body">Qualcuno ha detto che la tua segnalazione di %1$s non c\'è più</string>
+</resources>

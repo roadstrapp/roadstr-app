@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_hu.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Értesítések</string>
+    <string name="native_activity_close">Bezárás</string>
+    <string name="native_activity_empty">Még nincsenek értesítések</string>
+    <string name="native_activity_empty_body">A zapek és a bejelentéseidre érkező reakciók itt jelennek meg.</string>
+    <string name="native_activity_login_required">Csatlakoztasd a Nostr-profilodat</string>
+    <string name="native_activity_login_required_body">Jelentkezz be Amberrel vagy nsec-kel, hogy értesítéseket kapj más felhasználóktól.</string>
+    <string name="native_activity_zap_title">Zap érkezett</string>
+    <string name="native_activity_zap_body">%1$d sat értékű zapet kaptál!</string>
+    <string name="native_activity_confirmed_title">Bejelentés megerősítve</string>
+    <string name="native_activity_confirmed_body">A %1$s bejelentésedet egy másik sofőr megerősítette</string>
+    <string name="native_activity_denied_title">Bejelentés vitatva</string>
+    <string name="native_activity_denied_body">Valaki jelezte, hogy a %1$s már nincs ott</string>
+</resources>

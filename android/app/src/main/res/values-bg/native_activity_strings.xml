@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_bg.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Известия</string>
+    <string name="native_activity_close">Затвори</string>
+    <string name="native_activity_empty">Все още няма известия</string>
+    <string name="native_activity_empty_body">Тук ще се появяват запове и реакции на вашите пътни сигнали.</string>
+    <string name="native_activity_login_required">Свържете своя профил в Nostr</string>
+    <string name="native_activity_login_required_body">Влезте с Amber или nsec, за да получавате известия от други потребители.</string>
+    <string name="native_activity_zap_title">Получен zap</string>
+    <string name="native_activity_zap_body">Получихте zap от %1$d сата!</string>
+    <string name="native_activity_confirmed_title">Сигналът е потвърден</string>
+    <string name="native_activity_confirmed_body">Вашият сигнал за %1$s беше потвърден от друг шофьор</string>
+    <string name="native_activity_denied_title">Сигналът е оспорен</string>
+    <string name="native_activity_denied_body">Някой съобщи, че вашето %1$s вече го няма</string>
+</resources>

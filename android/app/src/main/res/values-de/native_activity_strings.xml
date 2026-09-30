@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_de.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Benachrichtigungen</string>
+    <string name="native_activity_close">Schließen</string>
+    <string name="native_activity_empty">Noch keine Benachrichtigungen</string>
+    <string name="native_activity_empty_body">Zaps und Reaktionen auf Ihre Verkehrsmeldungen erscheinen hier.</string>
+    <string name="native_activity_login_required">Nostr-Profil verbinden</string>
+    <string name="native_activity_login_required_body">Melden Sie sich mit Amber oder nsec an, um Benachrichtigungen anderer Nutzer zu erhalten.</string>
+    <string name="native_activity_zap_title">Zap erhalten</string>
+    <string name="native_activity_zap_body">Du hast einen Zap über %1$d Sats erhalten!</string>
+    <string name="native_activity_confirmed_title">Meldung bestätigt</string>
+    <string name="native_activity_confirmed_body">Deine %1$s-Meldung wurde von einem anderen Fahrer bestätigt</string>
+    <string name="native_activity_denied_title">Meldung angezweifelt</string>
+    <string name="native_activity_denied_body">Jemand hat gemeldet, dass dein %1$s nicht mehr da ist</string>
+</resources>

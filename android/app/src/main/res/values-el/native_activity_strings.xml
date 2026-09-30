@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_el.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Ειδοποιήσεις</string>
+    <string name="native_activity_close">Κλείσιμο</string>
+    <string name="native_activity_empty">Δεν υπάρχουν ειδοποιήσεις ακόμη</string>
+    <string name="native_activity_empty_body">Τα zaps και οι αντιδράσεις στις αναφορές σας θα εμφανίζονται εδώ.</string>
+    <string name="native_activity_login_required">Συνδέστε το προφίλ σας στο Nostr</string>
+    <string name="native_activity_login_required_body">Συνδεθείτε με Amber ή nsec για να λαμβάνετε ειδοποιήσεις από άλλους χρήστες.</string>
+    <string name="native_activity_zap_title">Ελήφθη zap</string>
+    <string name="native_activity_zap_body">Λάβατε zap %1$d sats!</string>
+    <string name="native_activity_confirmed_title">Η αναφορά επιβεβαιώθηκε</string>
+    <string name="native_activity_confirmed_body">Η αναφορά σας για %1$s επιβεβαιώθηκε από άλλον οδηγό</string>
+    <string name="native_activity_denied_title">Η αναφορά αμφισβητήθηκε</string>
+    <string name="native_activity_denied_body">Κάποιος ανέφερε ότι το %1$s σας δεν υπάρχει πια</string>
+</resources>
