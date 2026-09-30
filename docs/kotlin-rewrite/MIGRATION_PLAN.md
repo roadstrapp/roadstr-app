@@ -624,7 +624,9 @@ broader cross-language coverage and a native store are still required.
   `feature/navigation/NativeNavigationHudPresentation.kt`,
   `NativeManeuverSymbol.kt` and `NativeNavigationHud.kt`, plus
   `feature/saved/NativeSavedPlacesPresentation.kt` and
-  `NativeSavedPlacesPanel.kt`.
+  `NativeSavedPlacesPanel.kt`, plus
+  `feature/wikipedia/NativeWikipediaPresentation.kt` and
+  `NativeWikipediaReader.kt`.
 - **Current implementation:** The private shell packages a hidden
   public-transport itinerary panel with loading, ready, no-service and failure
   states, up to eight selectable cards, boarding/walking/line/timetable detail,
@@ -656,6 +658,13 @@ broader cross-language coverage and a native store are still required.
   delete/import/parking state through an accessible settings-like sheet. Its
   nine values are independently generated for all 27 locales; storage, picker,
   PBKDF2/AES-GCM, sync, routing and external actions remain detached.
+  A sixth hidden Wikipedia-reader slice preserves the exact Flutter HTTPS
+  language-host and `/wiki/` allowlist, rejects subframes and external redirects,
+  fences page callbacks by revision and packages progress, back, failure and
+  retry states in an AOSP WebView with JavaScript, permissions, file/content
+  access, mixed content and SSL continuation disabled. Its four values are
+  independently generated for all 27 locales; place selection and the explicit
+  external-browser action remain detached.
 - **Dependencies:** Compose Material 3 and AndroidX only after license review.
 - **Migration impact:** Settings names/defaults and onboarding/disclosure keys must map exactly.
 - **User-visible impact:** Must feel like an update, not a redesign.
@@ -672,13 +681,16 @@ broader cross-language coverage and a native store are still required.
   storage and revision/step fencing. Twelve saved-place JVM cases lock legacy/
   import shapes, item/text/file bounds, encrypted-envelope admission, exact
   merge, parking codec/marker projection and revision-safe mutations. Twenty
-  Dart contracts verify all five 27-locale resource sets, Flutter formatter/
+  Dart contracts verify the first five 27-locale resource sets, Flutter formatter/
   catalogue/work-bound/storage-shape oracles,
   Compose accessibility/vector structure and dormant shell ownership.
+  Ten Wikipedia JVM cases plus four Dart contracts lock URI admission,
+  main-frame navigation, revision fencing, restricted WebView settings, the
+  sixth locale resource set and dormant shell ownership.
   Compose screenshot comparisons, drag behavior, font-scale/TalkBack and
   compact-device layouts remain.
 - **Parity evidence:** public-transport, active-search, place-detail,
-  navigation-HUD and saved-place/parking states
+  navigation-HUD, saved-place/parking and Wikipedia-reader states
   have their first headless and packaged Compose evidence in `UI_PARITY.md`;
   every other state and visual/orientation evidence remain open.
 - **Security/privacy impact:** preserve privacy disclosure wording and task-switcher handling.

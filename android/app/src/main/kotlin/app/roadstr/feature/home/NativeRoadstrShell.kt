@@ -50,6 +50,8 @@ import app.roadstr.feature.search.NativeSearchSession
 import app.roadstr.feature.transit.NativeTransitItinerariesPanel
 import app.roadstr.feature.transit.NativeTransitJourneySession
 import app.roadstr.feature.transit.NativeTransitTransportMode
+import app.roadstr.feature.wikipedia.NativeWikipediaReader
+import app.roadstr.feature.wikipedia.NativeWikipediaSession
 import kotlinx.coroutines.delay
 
 /**
@@ -113,6 +115,8 @@ fun NativeRoadstrShell() {
         val savedPlacesState by savedPlacesSession.state.collectAsState()
         val navigationHudSession = remember { NativeNavigationHudSession() }
         val navigationHudState by navigationHudSession.state.collectAsState()
+        val wikipediaSession = remember { NativeWikipediaSession() }
+        val wikipediaState by wikipediaSession.state.collectAsState()
         LaunchedEffect(cameraSession, cameraState.frameActive) {
             while (cameraSession.state.value.frameActive) {
                 delay(NativeMapCameraSession.FOLLOW_FRAME_MILLIS)
@@ -223,6 +227,34 @@ fun NativeRoadstrShell() {
                     onRemoveParking = {},
                     onClose = {},
                     modifier = Modifier.align(Alignment.BottomCenter),
+                )
+                NativeWikipediaReader(
+                    snapshot = wikipediaState,
+                    onClose = {
+                        if (wikipediaState.revision >= 0) {
+                            wikipediaSession.hide(wikipediaState.revision)
+                        }
+                    },
+                    onOpenExternal = {},
+                    onProgress = { revision, progress ->
+                        wikipediaSession.progress(revision, progress)
+                    },
+                    onPageStarted = { revision, url ->
+                        wikipediaSession.pageStarted(revision, url)
+                    },
+                    onPageFinished = { revision, url, canGoBack ->
+                        wikipediaSession.pageFinished(
+                            revision,
+                            url,
+                            canGoBack,
+                        )
+                    },
+                    onFailed = { revision ->
+                        wikipediaSession.fail(revision)
+                    },
+                    onRetry = { revision ->
+                        wikipediaSession.retry(revision)
+                    },
                 )
                 NativeNavigationHud(
                     snapshot = navigationHudState,
