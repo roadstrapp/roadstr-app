@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Flutter road-event oracles. Do not edit. -->
+<resources>
+    <string name="native_road_event_close">Sulje</string>
+    <string name="native_road_event_cancel">Peruuta</string>
+    <string name="native_road_event_category_police">Poliisi</string>
+    <string name="native_road_event_category_police_station">Poliisiasema</string>
+    <string name="native_road_event_category_speed_camera">Nopeusvalvontakamera</string>
+    <string name="native_road_event_category_traffic_jam">Ruuhka</string>
+    <string name="native_road_event_category_accident">Onnettomuus</string>
+    <string name="native_road_event_category_road_closure">Tiesulku</string>
+    <string name="native_road_event_category_construction">Tietyö</string>
+    <string name="native_road_event_category_hazard">Vaara</string>
+    <string name="native_road_event_category_road_condition">Tien kunto</string>
+    <string name="native_road_event_category_pothole">Kuoppa</string>
+    <string name="native_road_event_category_fog">Sumu</string>
+    <string name="native_road_event_category_ice">Jää</string>
+    <string name="native_road_event_category_animal">Eläin</string>
+    <string name="native_road_event_category_other">Muu</string>
+    <string name="native_road_event_minutes_ago">%1$d min sitten</string>
+    <string name="native_road_event_hours_ago">%1$dt sitten</string>
+    <string name="native_road_event_days_ago">%1$dpv sitten</string>
+    <string name="native_road_event_reported_speed">Ilmoitettu nopeusrajoitus</string>
+    <string name="native_road_event_edit_speed">Lisää tai päivitä nopeusrajoitus</string>
+    <string name="native_road_event_request_speed">Ehdota nopeusrajoitusta</string>
+    <string name="native_road_event_accept_edit">Hyväksy ehdotus</string>
+    <string name="native_road_event_pending_edits">Odottavat muokkausehdotukset</string>
+    <string name="native_road_event_nostrich">nostrich</string>
+    <string name="native_road_event_still_there">Yhä siellä</string>
+    <string name="native_road_event_not_there">Ei enää siellä</string>
+    <string name="native_road_event_login_confirm">Kirjaudu Nostrilla vahvistaaksesi tai kiistääksesi</string>
+    <string name="native_road_event_zap">Zap ⚡ (lähetä sateja)</string>
+    <string name="native_road_event_report_title">Ilmoita tapahtuma</string>
+    <string name="native_road_event_report_speed">Nopeusrajoitus (valinnainen)</string>
+    <string name="native_road_event_optional_comment">Valinnainen kommentti…</string>
+    <string name="native_road_event_publish">Julkaise</string>
+    <string name="native_road_event_publishing">Julkaistaan…</string>
+    <string name="native_road_event_confirmed">Vahvistettu</string>
+    <string name="native_road_event_removed">Poistettu</string>
+    <string name="native_road_event_privacy_title">Public report</string>
+    <string name="native_road_event_privacy_body">This report publishes its exact position, time, content and your public key to Nostr relays. It is pseudonymous, not anonymous, can be linked to your other reports, and relay deletion cannot be guaranteed.</string>
+    <string name="native_road_event_understand">I understand</string>
+</resources>

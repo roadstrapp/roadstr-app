@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Flutter road-event oracles. Do not edit. -->
+<resources>
+    <string name="native_road_event_close">Zavřít</string>
+    <string name="native_road_event_cancel">Zrušit</string>
+    <string name="native_road_event_category_police">Policie</string>
+    <string name="native_road_event_category_police_station">Policejní stanice</string>
+    <string name="native_road_event_category_speed_camera">Rychlostní radar</string>
+    <string name="native_road_event_category_traffic_jam">Zácpa</string>
+    <string name="native_road_event_category_accident">Nehoda</string>
+    <string name="native_road_event_category_road_closure">Uzavírka</string>
+    <string name="native_road_event_category_construction">Stavební práce</string>
+    <string name="native_road_event_category_hazard">Nebezpečí</string>
+    <string name="native_road_event_category_road_condition">Stav vozovky</string>
+    <string name="native_road_event_category_pothole">Výtluk</string>
+    <string name="native_road_event_category_fog">Mlha</string>
+    <string name="native_road_event_category_ice">Led</string>
+    <string name="native_road_event_category_animal">Zvíře</string>
+    <string name="native_road_event_category_other">Ostatní</string>
+    <string name="native_road_event_minutes_ago">před %1$d min</string>
+    <string name="native_road_event_hours_ago">před %1$dh</string>
+    <string name="native_road_event_days_ago">před %1$dd</string>
+    <string name="native_road_event_reported_speed">Nahlášený rychlostní limit</string>
+    <string name="native_road_event_edit_speed">Přidat nebo upravit rychlostní limit</string>
+    <string name="native_road_event_request_speed">Navrhnout rychlostní limit</string>
+    <string name="native_road_event_accept_edit">Přijmout návrh</string>
+    <string name="native_road_event_pending_edits">Čekající návrhy úprav</string>
+    <string name="native_road_event_nostrich">nostrich</string>
+    <string name="native_road_event_still_there">Stále tam</string>
+    <string name="native_road_event_not_there">Už tam není</string>
+    <string name="native_road_event_login_confirm">Přihlaste se s Nostr pro potvrzení nebo zpochybnění</string>
+    <string name="native_road_event_zap">Zap ⚡ (odeslat saty)</string>
+    <string name="native_road_event_report_title">Nahlásit událost</string>
+    <string name="native_road_event_report_speed">Rychlostní limit (volitelné)</string>
+    <string name="native_road_event_optional_comment">Volitelný komentář…</string>
+    <string name="native_road_event_publish">Zveřejnit</string>
+    <string name="native_road_event_publishing">Zveřejňuji…</string>
+    <string name="native_road_event_confirmed">Potvrzeno</string>
+    <string name="native_road_event_removed">Odstraněno</string>
+    <string name="native_road_event_privacy_title">Public report</string>
+    <string name="native_road_event_privacy_body">This report publishes its exact position, time, content and your public key to Nostr relays. It is pseudonymous, not anonymous, can be linked to your other reports, and relay deletion cannot be guaranteed.</string>
+    <string name="native_road_event_understand">I understand</string>
+</resources>

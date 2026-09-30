@@ -74,8 +74,13 @@ edit, delete, import/export and parking actions. Its nine values are generated
 from the same 27 ARB files. A sixth slice packages the restricted Wikipedia
 reader with exact article-host/path admission, main-frame-only navigation,
 progress/back/error/retry state and ephemeral browser data. Its four values are
-generated from the same 27 ARB files. The shell keeps all panels hidden and has no transit,
-search, place, navigation, saved-place or Wikipedia provider/history/settings/storage
+generated from the same 27 ARB files. A seventh slice packages road-event
+detail, privacy disclosure and report composition with the existing 14-category
+wire/marker vocabulary, TTLs, relative age, owner suggestions, confirmations,
+speed limits and typed zap/publish actions. Its 39 values are generated for the
+same 27 locale sets, preserving Flutter's English/Italian privacy fallback. The
+shell keeps all panels hidden and has no transit, search, place, navigation,
+saved-place, Wikipedia or road-event provider/history/settings/storage
 owner, so it cannot
 initiate provider traffic, launch an external intent, read user data or start
 location. No live place selection, route progress, navigation telemetry,
@@ -189,6 +194,31 @@ live map/routing and physical-device migration evidence remain required.
 Wikipedia screenshot/golden, font-scale, TalkBack, real place selection,
 external-browser intent, redirect/TLS integration and physical-device WebView
 evidence remain required.
+
+## Native road-event evidence
+
+- `generate_android_road_event_strings.dart` projects 36 existing ARB values
+  plus the exact three English/Italian Flutter privacy strings into 27 Android
+  resource sets with deterministic no-drift checks.
+- `NativeRoadEventPresenter` validates lowercase event/pubkey identity, WGS84
+  coordinates, five-minute future skew, category and relay expiry, bounded
+  counters, zap totals, speed limits, 500-character inbound comments and up to
+  100 owner suggestions.
+- All 14 `RoadCategoryWire` entries reuse their existing
+  `NativeMapPointOverlayKind`, symbol and color; category TTLs remain owned by
+  the shared Nostr protocol instead of being duplicated in UI code.
+- Relative age thresholds, 200-character report comments, optional 1–300 speed
+  input and positive-number Flutter mph-to-km/h rounding are preserved.
+- `NativeRoadEventSession` fences detail/privacy/composer/submission revisions,
+  prevents duplicate submission and owns no identity, signer, relay, queue,
+  wallet, GPS or persistence adapter.
+- `NativeRoadEventPanels` retains bounded scroll, category radio semantics,
+  owner/visitor speed actions, suggestions, reporter, confirmation/dispute, zap,
+  privacy and publish states through typed callbacks only.
+
+Road-event screenshot/golden, edit dialog, font-scale, TalkBack, map selection,
+privacy storage migration, profile fetch/image, Amber/nsec signing, relay/offline
+queue, zap payment and physical-device evidence remain required.
 
 ## Non-negotiable UX invariants
 

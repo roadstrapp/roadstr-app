@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Flutter road-event oracles. Do not edit. -->
+<resources>
+    <string name="native_road_event_close">Aizvērt</string>
+    <string name="native_road_event_cancel">Atcelt</string>
+    <string name="native_road_event_category_police">Policija</string>
+    <string name="native_road_event_category_police_station">Policijas iecirknis</string>
+    <string name="native_road_event_category_speed_camera">Ātruma kamera</string>
+    <string name="native_road_event_category_traffic_jam">Sastrēgums</string>
+    <string name="native_road_event_category_accident">Avārija</string>
+    <string name="native_road_event_category_road_closure">Ceļa slēgšana</string>
+    <string name="native_road_event_category_construction">Ceļu darbi</string>
+    <string name="native_road_event_category_hazard">Bīstamība</string>
+    <string name="native_road_event_category_road_condition">Ceļa stāvoklis</string>
+    <string name="native_road_event_category_pothole">Bedre</string>
+    <string name="native_road_event_category_fog">Migla</string>
+    <string name="native_road_event_category_ice">Ledus</string>
+    <string name="native_road_event_category_animal">Dzīvnieks</string>
+    <string name="native_road_event_category_other">Cits</string>
+    <string name="native_road_event_minutes_ago">pirms %1$d min</string>
+    <string name="native_road_event_hours_ago">pirms %1$dh</string>
+    <string name="native_road_event_days_ago">pirms %1$dd</string>
+    <string name="native_road_event_reported_speed">Ziņotais ātruma ierobežojums</string>
+    <string name="native_road_event_edit_speed">Pievienot vai atjaunināt ātruma ierobežojumu</string>
+    <string name="native_road_event_request_speed">Ieteikt ātruma ierobežojumu</string>
+    <string name="native_road_event_accept_edit">Pieņemt ieteikumu</string>
+    <string name="native_road_event_pending_edits">Neizskatītie labojumu ieteikumi</string>
+    <string name="native_road_event_nostrich">nostrich</string>
+    <string name="native_road_event_still_there">Joprojām tur</string>
+    <string name="native_road_event_not_there">Vairs tur nav</string>
+    <string name="native_road_event_login_confirm">Piesakieties ar Nostr, lai apstiprinātu vai apstrīdētu</string>
+    <string name="native_road_event_zap">Zap ⚡ (nosūtīt sats)</string>
+    <string name="native_road_event_report_title">Ziņot par notikumu</string>
+    <string name="native_road_event_report_speed">Ātruma ierobežojums (neobligāts)</string>
+    <string name="native_road_event_optional_comment">Neobligāts komentārs…</string>
+    <string name="native_road_event_publish">Publicēt</string>
+    <string name="native_road_event_publishing">Publicē…</string>
+    <string name="native_road_event_confirmed">Apstiprināts</string>
+    <string name="native_road_event_removed">Noņemts</string>
+    <string name="native_road_event_privacy_title">Public report</string>
+    <string name="native_road_event_privacy_body">This report publishes its exact position, time, content and your public key to Nostr relays. It is pseudonymous, not anonymous, can be linked to your other reports, and relay deletion cannot be guaranteed.</string>
+    <string name="native_road_event_understand">I understand</string>
+</resources>

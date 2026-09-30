@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Flutter road-event oracles. Do not edit. -->
+<resources>
+    <string name="native_road_event_close">Închide</string>
+    <string name="native_road_event_cancel">Anulare</string>
+    <string name="native_road_event_category_police">Poliție</string>
+    <string name="native_road_event_category_police_station">Secție de poliție</string>
+    <string name="native_road_event_category_speed_camera">Radar de viteză</string>
+    <string name="native_road_event_category_traffic_jam">Ambuteiaj</string>
+    <string name="native_road_event_category_accident">Accident</string>
+    <string name="native_road_event_category_road_closure">Drum închis</string>
+    <string name="native_road_event_category_construction">Lucrări</string>
+    <string name="native_road_event_category_hazard">Pericol</string>
+    <string name="native_road_event_category_road_condition">Starea drumului</string>
+    <string name="native_road_event_category_pothole">Groapă</string>
+    <string name="native_road_event_category_fog">Ceață</string>
+    <string name="native_road_event_category_ice">Gheață</string>
+    <string name="native_road_event_category_animal">Animal</string>
+    <string name="native_road_event_category_other">Altele</string>
+    <string name="native_road_event_minutes_ago">acum %1$d min</string>
+    <string name="native_road_event_hours_ago">acum %1$dh</string>
+    <string name="native_road_event_days_ago">acum %1$dz</string>
+    <string name="native_road_event_reported_speed">Limită de viteză raportată</string>
+    <string name="native_road_event_edit_speed">Adaugă sau actualizează limita de viteză</string>
+    <string name="native_road_event_request_speed">Sugerează o limită de viteză</string>
+    <string name="native_road_event_accept_edit">Acceptă sugestia</string>
+    <string name="native_road_event_pending_edits">Sugestii de editare în așteptare</string>
+    <string name="native_road_event_nostrich">nostrich</string>
+    <string name="native_road_event_still_there">Încă acolo</string>
+    <string name="native_road_event_not_there">Nu mai este acolo</string>
+    <string name="native_road_event_login_confirm">Conectați-vă cu Nostr pentru a confirma sau contesta</string>
+    <string name="native_road_event_zap">Zap ⚡ (trimiteți sats)</string>
+    <string name="native_road_event_report_title">Raportați un eveniment</string>
+    <string name="native_road_event_report_speed">Limită de viteză (opțional)</string>
+    <string name="native_road_event_optional_comment">Comentariu opțional…</string>
+    <string name="native_road_event_publish">Publicare</string>
+    <string name="native_road_event_publishing">Se publică…</string>
+    <string name="native_road_event_confirmed">Confirmat</string>
+    <string name="native_road_event_removed">Eliminat</string>
+    <string name="native_road_event_privacy_title">Public report</string>
+    <string name="native_road_event_privacy_body">This report publishes its exact position, time, content and your public key to Nostr relays. It is pseudonymous, not anonymous, can be linked to your other reports, and relay deletion cannot be guaranteed.</string>
+    <string name="native_road_event_understand">I understand</string>
+</resources>
