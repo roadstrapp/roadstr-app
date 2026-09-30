@@ -71,8 +71,11 @@ same 27 ARB files. A fifth slice packages saved places and parking: bounded
 legacy/import parsing, exact label merge, revision-safe list mutations, the
 existing blue parking-marker projection and a settings-like sheet with add,
 edit, delete, import/export and parking actions. Its nine values are generated
-from the same 27 ARB files. The shell keeps all panels hidden and has no transit,
-search, place, navigation or saved-place provider/history/settings/storage
+from the same 27 ARB files. A sixth slice packages the restricted Wikipedia
+reader with exact article-host/path admission, main-frame-only navigation,
+progress/back/error/retry state and ephemeral browser data. Its four values are
+generated from the same 27 ARB files. The shell keeps all panels hidden and has no transit,
+search, place, navigation, saved-place or Wikipedia provider/history/settings/storage
 owner, so it cannot
 initiate provider traffic, launch an external intent, read user data or start
 location. No live place selection, route progress, navigation telemetry,
@@ -167,6 +170,25 @@ physical-device rendering evidence remain required.
 Saved-place screenshot/golden, add/edit dialogs, font-scale, TalkBack, real
 file picker plus PBKDF2/AES-GCM interoperability, native persistence/sync,
 live map/routing and physical-device migration evidence remain required.
+
+## Native Wikipedia-reader evidence
+
+- `generate_android_wikipedia_strings.dart` projects four existing ARB values
+  into 27 Android resource sets with deterministic no-drift checks.
+- `NativeWikipediaUriPolicy` mirrors the Flutter HTTPS, language-subdomain,
+  no-user-info/no-port and non-empty `/wiki/` article boundary and admits only
+  main-frame navigation inside that boundary.
+- `NativeWikipediaSession` fences stale page, progress, failure, retry and hide
+  callbacks without owning a WebView, network client or intent launcher.
+- `NativeWikipediaReader` disables JavaScript, file/content access, DOM/database
+  storage, geolocation, mixed content, media autoplay, WebView permissions and
+  file selection; SSL errors are cancelled and browser state is cleared.
+- The explicit external action can receive only the original validated article,
+  while the dormant shell supplies no action and never opens the session.
+
+Wikipedia screenshot/golden, font-scale, TalkBack, real place selection,
+external-browser intent, redirect/TLS integration and physical-device WebView
+evidence remain required.
 
 ## Non-negotiable UX invariants
 

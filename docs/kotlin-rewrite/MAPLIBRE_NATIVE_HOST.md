@@ -249,6 +249,10 @@ debug-host selection check.
   bounds, encrypted-envelope admission, exact merge, parking codec/marker and
   revision-safe mutations. Four Dart UI contracts lock its 9-value/27-locale
   resources, accessible bounded panel and side-effect-free dormant ownership.
+- Ten Wikipedia JVM cases lock exact article admission, main-frame navigation,
+  page/progress/error/retry revisions and hidden-state callback fencing. Four
+  Dart UI contracts lock its 4-value/27-locale resources, restricted WebView
+  configuration and side-effect-free dormant ownership.
 - Twenty-four Dart contracts lock the strict Gradle version, lifecycle-compose
   dependency, real `MapView`/style/texture-mode binding, absence of a location
   component, selected/muted route source/layer constants, route-choice/progress
@@ -256,7 +260,7 @@ debug-host selection check.
   and ownership by the private shell, plus the Flutter camera oracle
   and MapLibre command wiring, cursor geometry, point-overlay/transit parity and
   dormant ownership.
-- The complete verification run passes 712 Flutter tests, 403 Kotlin tests,
+- The complete verification run passes 716 Flutter tests, 413 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 
@@ -264,9 +268,10 @@ debug-host selection check.
 
 - physical-device launch, renderer output and network/tile evidence;
 - screenshot/golden comparison in light/dark themes and compact/landscape UI;
-- live route/traffic/transit/search/place/navigation/saved-place/source/point update,
+- live route/traffic/transit/search/place/navigation/saved-place/Wikipedia/source/point update,
   navigation telemetry/settings, search storage,
-  favourite/parking persistence, picker/crypto/sync/routing, road-event/place/
+  favourite/parking persistence, picker/crypto/sync/routing, Wikipedia intent/
+  redirect/TLS integration, road-event/place/
   long-press product handlers, external place intents, drag
   behavior, remote images, accessibility and attribution interaction;
 - native GPS/location ownership, live camera/cursor binding and physical-device
