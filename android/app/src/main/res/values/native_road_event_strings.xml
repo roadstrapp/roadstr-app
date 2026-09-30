@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Flutter road-event oracles. Do not edit. -->
+<resources>
+    <string name="native_road_event_close">Close</string>
+    <string name="native_road_event_cancel">Cancel</string>
+    <string name="native_road_event_category_police">Police</string>
+    <string name="native_road_event_category_police_station">Police Station</string>
+    <string name="native_road_event_category_speed_camera">Speed Camera</string>
+    <string name="native_road_event_category_traffic_jam">Traffic Jam</string>
+    <string name="native_road_event_category_accident">Accident</string>
+    <string name="native_road_event_category_road_closure">Road Closure</string>
+    <string name="native_road_event_category_construction">Construction</string>
+    <string name="native_road_event_category_hazard">Hazard</string>
+    <string name="native_road_event_category_road_condition">Road Condition</string>
+    <string name="native_road_event_category_pothole">Pothole</string>
+    <string name="native_road_event_category_fog">Fog</string>
+    <string name="native_road_event_category_ice">Ice</string>
+    <string name="native_road_event_category_animal">Animal</string>
+    <string name="native_road_event_category_other">Other</string>
+    <string name="native_road_event_minutes_ago">%1$d min ago</string>
+    <string name="native_road_event_hours_ago">%1$dh ago</string>
+    <string name="native_road_event_days_ago">%1$dd ago</string>
+    <string name="native_road_event_reported_speed">Reported speed limit</string>
+    <string name="native_road_event_edit_speed">Add or update speed limit</string>
+    <string name="native_road_event_request_speed">Suggest a speed limit</string>
+    <string name="native_road_event_accept_edit">Accept suggestion</string>
+    <string name="native_road_event_pending_edits">Pending edit suggestions</string>
+    <string name="native_road_event_nostrich">nostrich</string>
+    <string name="native_road_event_still_there">Still there</string>
+    <string name="native_road_event_not_there">Not there anymore</string>
+    <string name="native_road_event_login_confirm">Login with Nostr to confirm or dispute</string>
+    <string name="native_road_event_zap">Zap ⚡ (send sats)</string>
+    <string name="native_road_event_report_title">Report an event</string>
+    <string name="native_road_event_report_speed">Speed limit (optional)</string>
+    <string name="native_road_event_optional_comment">Optional comment…</string>
+    <string name="native_road_event_publish">Publish</string>
+    <string name="native_road_event_publishing">Publishing…</string>
+    <string name="native_road_event_confirmed">Confirmed</string>
+    <string name="native_road_event_removed">Removed</string>
+    <string name="native_road_event_privacy_title">Public report</string>
+    <string name="native_road_event_privacy_body">This report publishes its exact position, time, content and your public key to Nostr relays. It is pseudonymous, not anonymous, can be linked to your other reports, and relay deletion cannot be guaranteed.</string>
+    <string name="native_road_event_understand">I understand</string>
+</resources>

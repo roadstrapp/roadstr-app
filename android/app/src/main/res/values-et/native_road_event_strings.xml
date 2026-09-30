@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Flutter road-event oracles. Do not edit. -->
+<resources>
+    <string name="native_road_event_close">Sulge</string>
+    <string name="native_road_event_cancel">Tühista</string>
+    <string name="native_road_event_category_police">Politsei</string>
+    <string name="native_road_event_category_police_station">Politseijaoskond</string>
+    <string name="native_road_event_category_speed_camera">Kiiruskaamerna</string>
+    <string name="native_road_event_category_traffic_jam">Liiklusummik</string>
+    <string name="native_road_event_category_accident">Õnnetus</string>
+    <string name="native_road_event_category_road_closure">Tee sulgemine</string>
+    <string name="native_road_event_category_construction">Ehitustööd</string>
+    <string name="native_road_event_category_hazard">Oht</string>
+    <string name="native_road_event_category_road_condition">Teeolude seisund</string>
+    <string name="native_road_event_category_pothole">Auk teel</string>
+    <string name="native_road_event_category_fog">Udu</string>
+    <string name="native_road_event_category_ice">Jää</string>
+    <string name="native_road_event_category_animal">Loom</string>
+    <string name="native_road_event_category_other">Muu</string>
+    <string name="native_road_event_minutes_ago">%1$d min tagasi</string>
+    <string name="native_road_event_hours_ago">%1$dh tagasi</string>
+    <string name="native_road_event_days_ago">%1$dp tagasi</string>
+    <string name="native_road_event_reported_speed">Teatatud kiiruspiirang</string>
+    <string name="native_road_event_edit_speed">Lisa või uuenda kiiruspiirangut</string>
+    <string name="native_road_event_request_speed">Paku kiiruspiirangut</string>
+    <string name="native_road_event_accept_edit">Võta ettepanek vastu</string>
+    <string name="native_road_event_pending_edits">Ootel muudatusettepanekud</string>
+    <string name="native_road_event_nostrich">nostrich</string>
+    <string name="native_road_event_still_there">Endiselt seal</string>
+    <string name="native_road_event_not_there">Enam pole seal</string>
+    <string name="native_road_event_login_confirm">Kinnitamiseks või vaidlustamiseks logige sisse Nostriga</string>
+    <string name="native_road_event_zap">Zap ⚡ (saada sats-e)</string>
+    <string name="native_road_event_report_title">Teata sündmusest</string>
+    <string name="native_road_event_report_speed">Kiiruspiirang (valikuline)</string>
+    <string name="native_road_event_optional_comment">Valikuline kommentaar…</string>
+    <string name="native_road_event_publish">Avalda</string>
+    <string name="native_road_event_publishing">Avaldamine…</string>
+    <string name="native_road_event_confirmed">Kinnitatud</string>
+    <string name="native_road_event_removed">Eemaldatud</string>
+    <string name="native_road_event_privacy_title">Public report</string>
+    <string name="native_road_event_privacy_body">This report publishes its exact position, time, content and your public key to Nostr relays. It is pseudonymous, not anonymous, can be linked to your other reports, and relay deletion cannot be guaranteed.</string>
+    <string name="native_road_event_understand">I understand</string>
+</resources>

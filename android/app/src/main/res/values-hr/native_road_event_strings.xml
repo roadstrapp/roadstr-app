@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Flutter road-event oracles. Do not edit. -->
+<resources>
+    <string name="native_road_event_close">Zatvori</string>
+    <string name="native_road_event_cancel">Odustani</string>
+    <string name="native_road_event_category_police">Policija</string>
+    <string name="native_road_event_category_police_station">Policijska postaja</string>
+    <string name="native_road_event_category_speed_camera">Kamera za brzinu</string>
+    <string name="native_road_event_category_traffic_jam">Prometna gužva</string>
+    <string name="native_road_event_category_accident">Nesreća</string>
+    <string name="native_road_event_category_road_closure">Zatvorena cesta</string>
+    <string name="native_road_event_category_construction">Radovi</string>
+    <string name="native_road_event_category_hazard">Opasnost</string>
+    <string name="native_road_event_category_road_condition">Stanje ceste</string>
+    <string name="native_road_event_category_pothole">Rupa na cesti</string>
+    <string name="native_road_event_category_fog">Magla</string>
+    <string name="native_road_event_category_ice">Led</string>
+    <string name="native_road_event_category_animal">Životinja</string>
+    <string name="native_road_event_category_other">Ostalo</string>
+    <string name="native_road_event_minutes_ago">prije %1$d min</string>
+    <string name="native_road_event_hours_ago">prije %1$dh</string>
+    <string name="native_road_event_days_ago">prije %1$dd</string>
+    <string name="native_road_event_reported_speed">Prijavljeno ograničenje brzine</string>
+    <string name="native_road_event_edit_speed">Dodaj ili ažuriraj ograničenje brzine</string>
+    <string name="native_road_event_request_speed">Predloži ograničenje brzine</string>
+    <string name="native_road_event_accept_edit">Prihvati prijedlog</string>
+    <string name="native_road_event_pending_edits">Prijedlozi izmjena na čekanju</string>
+    <string name="native_road_event_nostrich">nostrich</string>
+    <string name="native_road_event_still_there">Još uvijek tamo</string>
+    <string name="native_road_event_not_there">Više nije tamo</string>
+    <string name="native_road_event_login_confirm">Prijavite se s Nostr za potvrdu ili osporu</string>
+    <string name="native_road_event_zap">Zap ⚡ (pošalji sats)</string>
+    <string name="native_road_event_report_title">Prijavi događaj</string>
+    <string name="native_road_event_report_speed">Ograničenje brzine (neobavezno)</string>
+    <string name="native_road_event_optional_comment">Neobavezan komentar…</string>
+    <string name="native_road_event_publish">Objavi</string>
+    <string name="native_road_event_publishing">Objavljivanje…</string>
+    <string name="native_road_event_confirmed">Potvrđeno</string>
+    <string name="native_road_event_removed">Uklonjeno</string>
+    <string name="native_road_event_privacy_title">Public report</string>
+    <string name="native_road_event_privacy_body">This report publishes its exact position, time, content and your public key to Nostr relays. It is pseudonymous, not anonymous, can be linked to your other reports, and relay deletion cannot be guaranteed.</string>
+    <string name="native_road_event_understand">I understand</string>
+</resources>

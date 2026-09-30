@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Flutter road-event oracles. Do not edit. -->
+<resources>
+    <string name="native_road_event_close">Sluiten</string>
+    <string name="native_road_event_cancel">Annuleren</string>
+    <string name="native_road_event_category_police">Politie</string>
+    <string name="native_road_event_category_police_station">Politiebureau</string>
+    <string name="native_road_event_category_speed_camera">Flitser</string>
+    <string name="native_road_event_category_traffic_jam">File</string>
+    <string name="native_road_event_category_accident">Ongeluk</string>
+    <string name="native_road_event_category_road_closure">Wegafsluiting</string>
+    <string name="native_road_event_category_construction">Wegwerkzaamheden</string>
+    <string name="native_road_event_category_hazard">Gevaar</string>
+    <string name="native_road_event_category_road_condition">Wegconditie</string>
+    <string name="native_road_event_category_pothole">Kuil</string>
+    <string name="native_road_event_category_fog">Mist</string>
+    <string name="native_road_event_category_ice">IJzel</string>
+    <string name="native_road_event_category_animal">Dier</string>
+    <string name="native_road_event_category_other">Overig</string>
+    <string name="native_road_event_minutes_ago">%1$d min geleden</string>
+    <string name="native_road_event_hours_ago">%1$du geleden</string>
+    <string name="native_road_event_days_ago">%1$dd geleden</string>
+    <string name="native_road_event_reported_speed">Gemelde snelheidslimiet</string>
+    <string name="native_road_event_edit_speed">Snelheidslimiet toevoegen of bijwerken</string>
+    <string name="native_road_event_request_speed">Een snelheidslimiet voorstellen</string>
+    <string name="native_road_event_accept_edit">Voorstel accepteren</string>
+    <string name="native_road_event_pending_edits">Openstaande wijzigingsvoorstellen</string>
+    <string name="native_road_event_nostrich">nostrich</string>
+    <string name="native_road_event_still_there">Nog aanwezig</string>
+    <string name="native_road_event_not_there">Niet meer aanwezig</string>
+    <string name="native_road_event_login_confirm">Log in met Nostr om te bevestigen of te betwisten</string>
+    <string name="native_road_event_zap">Zap ⚡ (sats sturen)</string>
+    <string name="native_road_event_report_title">Een gebeurtenis melden</string>
+    <string name="native_road_event_report_speed">Snelheidslimiet (optioneel)</string>
+    <string name="native_road_event_optional_comment">Optionele opmerking…</string>
+    <string name="native_road_event_publish">Publiceren</string>
+    <string name="native_road_event_publishing">Publiceren…</string>
+    <string name="native_road_event_confirmed">Bevestigd</string>
+    <string name="native_road_event_removed">Verwijderd</string>
+    <string name="native_road_event_privacy_title">Public report</string>
+    <string name="native_road_event_privacy_body">This report publishes its exact position, time, content and your public key to Nostr relays. It is pseudonymous, not anonymous, can be linked to your other reports, and relay deletion cannot be guaranteed.</string>
+    <string name="native_road_event_understand">I understand</string>
+</resources>

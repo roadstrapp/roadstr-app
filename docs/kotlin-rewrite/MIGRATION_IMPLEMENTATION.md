@@ -81,6 +81,15 @@ Flutter is still the only launcher and production UI.
   permissions, file/content access, mixed content and SSL continuation disabled,
   while clearing cookies/cache/history around its lifetime. Its four values are
   generated from all 27 ARB files; no place callback or browser intent is wired.
+  `feature/report/NativeRoadEventPresentation.kt` adds bounded detail and report
+  projection over the existing 14-category Nostr wire/MapLibre marker catalogue,
+  including dual expiry, relative age, 500/200-character bounds, metric/imperial
+  speed conversion, owner-only edit suggestions, bilingual privacy gating and
+  revision-safe single-flight submission state. `NativeRoadEventPanels.kt`
+  packages accessible detail/privacy/composer surfaces with typed confirmation,
+  edit, profile, zap and submission callbacks. Its 39 resources cover all 27
+  locales while preserving Flutter's English/Italian privacy-copy fallback; it
+  owns no identity, privacy store, signer, relay, queue, GPS or wallet adapter.
   Style generations prevent stale reattachment;
   `NativeRouteOverlaySession.kt` adds a revision-safe StateFlow projector for
   normalized route geometry, bounded alternative selection/commit, monotonic
@@ -100,10 +109,10 @@ Flutter is still the only launcher and production UI.
   road-event hit priority and Flutter's strict rounded-Vincenty 60 m route-
   alternative selection; product sheets and service caches remain detached. The
   private shell collects empty route, transit, search, place, navigation,
-  saved-place, Wikipedia, camera, cursor and point-overlay state and packages all product panels in
+  saved-place, Wikipedia, road-event, camera, cursor and point-overlay state and packages all product panels in
   their hidden states. It deliberately does not invoke transit/search/place or
   navigation services, submit provider results, begin a query/place load or
-  show/update the HUD or saved-place panel, or open the Wikipedia session; it has no product route, provider, storage,
+  show/update the HUD or saved-place panel, open Wikipedia or show/submit a road event; it has no product route, provider, storage,
   intent-launcher or GPS feed.
 - `LegacyStorageContract.kt` records the audited Hive/secure-storage names and
   dynamic per-identity key prefixes.
