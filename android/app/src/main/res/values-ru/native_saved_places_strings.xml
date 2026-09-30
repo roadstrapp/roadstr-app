@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ru.arb. Do not edit. -->
+<resources>
+    <string name="native_saved_title">Сохранённые места</string>
+    <string name="native_saved_add">Добавить место</string>
+    <string name="native_saved_export">Экспорт избранного</string>
+    <string name="native_saved_import">Импорт избранного</string>
+    <string name="native_saved_imported">Импортировано избранных: %1$d</string>
+    <string name="native_saved_parking_title">Место парковки</string>
+    <string name="native_saved_parking_navigate">Навигация к парковке</string>
+    <string name="native_saved_parking_remove">Удалить парковку</string>
+    <string name="native_saved_close">Закрыть</string>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_el.arb. Do not edit. -->
+<resources>
+    <string name="native_saved_title">Αποθηκευμένα μέρη</string>
+    <string name="native_saved_add">Προσθήκη μέρους</string>
+    <string name="native_saved_export">Εξαγωγή αγαπημένων</string>
+    <string name="native_saved_import">Εισαγωγή αγαπημένων</string>
+    <string name="native_saved_imported">Εισήχθησαν %1$d αγαπημένα</string>
+    <string name="native_saved_parking_title">Θέση στάθμευσης</string>
+    <string name="native_saved_parking_navigate">Πλοήγηση στη στάθμευση</string>
+    <string name="native_saved_parking_remove">Αφαίρεση στάθμευσης</string>
+    <string name="native_saved_close">Κλείσιμο</string>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_sl.arb. Do not edit. -->
+<resources>
+    <string name="native_saved_title">Shranjene lokacije</string>
+    <string name="native_saved_add">Dodaj lokacijo</string>
+    <string name="native_saved_export">Izvozi priljubljene</string>
+    <string name="native_saved_import">Uvozi priljubljene</string>
+    <string name="native_saved_imported">Uvoženih %1$d priljubljenih</string>
+    <string name="native_saved_parking_title">Parkirno mesto</string>
+    <string name="native_saved_parking_navigate">Navigiraj do parkiranja</string>
+    <string name="native_saved_parking_remove">Odstrani parkiranje</string>
+    <string name="native_saved_close">Zapri</string>
+</resources>

@@ -43,6 +43,8 @@ import app.roadstr.feature.navigation.NativeNavigationHud
 import app.roadstr.feature.navigation.NativeNavigationHudSession
 import app.roadstr.feature.place.NativePlaceDetailsPanel
 import app.roadstr.feature.place.NativePlaceSession
+import app.roadstr.feature.saved.NativeSavedPlacesPanel
+import app.roadstr.feature.saved.NativeSavedPlacesSession
 import app.roadstr.feature.search.NativeSearchOverlay
 import app.roadstr.feature.search.NativeSearchSession
 import app.roadstr.feature.transit.NativeTransitItinerariesPanel
@@ -107,6 +109,8 @@ fun NativeRoadstrShell() {
         val searchState by searchSession.state.collectAsState()
         val placeSession = remember { NativePlaceSession() }
         val placeState by placeSession.state.collectAsState()
+        val savedPlacesSession = remember { NativeSavedPlacesSession() }
+        val savedPlacesState by savedPlacesSession.state.collectAsState()
         val navigationHudSession = remember { NativeNavigationHudSession() }
         val navigationHudState by navigationHudSession.state.collectAsState()
         LaunchedEffect(cameraSession, cameraState.frameActive) {
@@ -206,6 +210,18 @@ fun NativeRoadstrShell() {
                     onOpenWebsite = {},
                     onOpenArticle = {},
                     onSearchWeb = {},
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+                NativeSavedPlacesPanel(
+                    snapshot = savedPlacesState,
+                    onAdd = {},
+                    onEdit = { _, _ -> },
+                    onDelete = { _, _ -> },
+                    onExport = {},
+                    onImport = {},
+                    onNavigateParking = {},
+                    onRemoveParking = {},
+                    onClose = {},
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
                 NativeNavigationHud(

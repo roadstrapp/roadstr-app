@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_hu.arb. Do not edit. -->
+<resources>
+    <string name="native_saved_title">Mentett helyek</string>
+    <string name="native_saved_add">Hely hozzáadása</string>
+    <string name="native_saved_export">Kedvencek exportálása</string>
+    <string name="native_saved_import">Kedvencek importálása</string>
+    <string name="native_saved_imported">%1$d kedvenc importálva</string>
+    <string name="native_saved_parking_title">Parkolóhely</string>
+    <string name="native_saved_parking_navigate">Navigálás a parkoláshoz</string>
+    <string name="native_saved_parking_remove">Parkolás eltávolítása</string>
+    <string name="native_saved_close">Bezárás</string>
+</resources>

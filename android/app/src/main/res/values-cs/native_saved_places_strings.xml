@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_cs.arb. Do not edit. -->
+<resources>
+    <string name="native_saved_title">Uložená místa</string>
+    <string name="native_saved_add">Přidat místo</string>
+    <string name="native_saved_export">Exportovat oblíbené</string>
+    <string name="native_saved_import">Importovat oblíbené</string>
+    <string name="native_saved_imported">Importováno %1$d oblíbených</string>
+    <string name="native_saved_parking_title">Místo parkování</string>
+    <string name="native_saved_parking_navigate">Navigovat k parkování</string>
+    <string name="native_saved_parking_remove">Odebrat parkování</string>
+    <string name="native_saved_close">Zavřít</string>
+</resources>

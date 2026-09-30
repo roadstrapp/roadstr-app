@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_fi.arb. Do not edit. -->
+<resources>
+    <string name="native_saved_title">Tallennetut paikat</string>
+    <string name="native_saved_add">Lisää paikka</string>
+    <string name="native_saved_export">Vie suosikit</string>
+    <string name="native_saved_import">Tuo suosikit</string>
+    <string name="native_saved_imported">%1$d suosikkia tuotu</string>
+    <string name="native_saved_parking_title">Pysäköintipaikka</string>
+    <string name="native_saved_parking_navigate">Navigoi pysäköintiin</string>
+    <string name="native_saved_parking_remove">Poista pysäköinti</string>
+    <string name="native_saved_close">Sulje</string>
+</resources>

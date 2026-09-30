@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ga.arb. Do not edit. -->
+<resources>
+    <string name="native_saved_title">Áiteanna sábháilte</string>
+    <string name="native_saved_add">Cuir áit leis</string>
+    <string name="native_saved_export">Easpórtáil ceanáin</string>
+    <string name="native_saved_import">Iompórtáil ceanáin</string>
+    <string name="native_saved_imported">%1$d gceanán iompórtáilte</string>
+    <string name="native_saved_parking_title">Spás páirceála</string>
+    <string name="native_saved_parking_navigate">Nascleanúint chuig an bpáirceáil</string>
+    <string name="native_saved_parking_remove">Bain an pháirceáil</string>
+    <string name="native_saved_close">Dún</string>
+</resources>

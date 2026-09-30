@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ja.arb. Do not edit. -->
+<resources>
+    <string name="native_saved_title">保存した場所</string>
+    <string name="native_saved_add">場所を追加</string>
+    <string name="native_saved_export">お気に入りをエクスポート</string>
+    <string name="native_saved_import">お気に入りをインポート</string>
+    <string name="native_saved_imported">%1$d件のお気に入りをインポートしました</string>
+    <string name="native_saved_parking_title">駐車位置</string>
+    <string name="native_saved_parking_navigate">駐車位置へナビ</string>
+    <string name="native_saved_parking_remove">駐車位置を削除</string>
+    <string name="native_saved_close">閉じる</string>
+</resources>
