@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_fr.arb. Do not edit. -->
+<resources>
+    <string name="native_profile_title">Profil</string>
+    <string name="native_profile_visibility_title">Visibilité du profil</string>
+    <string name="native_profile_visibility_description">Choisissez si les autres utilisateurs de Roadstr voient votre nom Nostr, votre npub et votre photo.</string>
+    <string name="native_profile_visibility_clear">Afficher le profil publiquement</string>
+    <string name="native_profile_visibility_pseudonymous">Mode pseudonyme (recommandé)</string>
+    <string name="native_profile_nostrich">nostrich</string>
+    <string name="native_profile_hidden_notice">Cet utilisateur utilise le mode pseudonyme.</string>
+    <string name="native_profile_not_connected">Non connecté</string>
+    <string name="native_profile_login_title">SE CONNECTER AVEC NOSTR</string>
+    <string name="native_profile_amber_title">Amber / NIP-55</string>
+    <string name="native_profile_amber_description">La clé privée ne quitte jamais votre appareil · Recommandé</string>
+    <string name="native_profile_nsec_title">Insérer nsec</string>
+    <string name="native_profile_nsec_description">Clé privée stockée localement · Moins sécurisé</string>
+    <string name="native_profile_connected_amber">Connecté via Amber (NIP-55)</string>
+    <string name="native_profile_connected_nsec">Connecté via nsec</string>
+    <string name="native_profile_public_key">CLÉ PUBLIQUE</string>
+    <string name="native_profile_npub_copied">npub copié dans le presse-papiers</string>
+    <string name="native_profile_logout">Déconnecter</string>
+    <string name="native_profile_identity_info">Avec une identité Nostr, vous pouvez publier des alertes de trafic, des rapports et des points d\'intérêt de manière décentralisée sur le réseau Nostr, sans serveurs centraux.</string>
+    <string name="native_profile_waiting_amber">En attente de la réponse d\'Amber…</string>
+    <string name="native_profile_reports">MES RAPPORTS</string>
+    <string name="native_profile_no_reports">Aucun rapport publié</string>
+    <string name="native_profile_zap_balance">Solde Zap</string>
+    <string name="native_profile_zap_subtitle">Satoshi reçus de vos rapports</string>
+    <string name="native_profile_reputation_high">Élevée</string>
+    <string name="native_profile_reputation_medium">Moyenne</string>
+    <string name="native_profile_reputation_low">Faible</string>
+    <string name="native_profile_reputation">Réputation %1$s</string>
+    <string name="native_profile_close">Fermer</string>
+    <string name="native_profile_loading">Chargement…</string>
+</resources>

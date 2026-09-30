@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_hr.arb. Do not edit. -->
+<resources>
+    <string name="native_profile_title">Profil</string>
+    <string name="native_profile_visibility_title">Vidljivost profila</string>
+    <string name="native_profile_visibility_description">Odaberite vide li drugi korisnici Roadstra vaše Nostr ime, npub i sliku.</string>
+    <string name="native_profile_visibility_clear">Prikaži profil javno</string>
+    <string name="native_profile_visibility_pseudonymous">Pseudonimni način (preporučeno)</string>
+    <string name="native_profile_nostrich">nostrich</string>
+    <string name="native_profile_hidden_notice">Ovaj korisnik koristi pseudonimni način.</string>
+    <string name="native_profile_not_connected">Nije spojeno</string>
+    <string name="native_profile_login_title">PRIJAVA S NOSTR</string>
+    <string name="native_profile_amber_title">Amber / NIP-55</string>
+    <string name="native_profile_amber_description">Privatni ključ nikada ne napušta vaš uređaj · Preporučeno</string>
+    <string name="native_profile_nsec_title">Unesite nsec</string>
+    <string name="native_profile_nsec_description">Privatni ključ pohranjen lokalno · Manje sigurno</string>
+    <string name="native_profile_connected_amber">Spojeno putem Ambera (NIP-55)</string>
+    <string name="native_profile_connected_nsec">Spojeno putem nsec-a</string>
+    <string name="native_profile_public_key">JAVNI KLJUČ</string>
+    <string name="native_profile_npub_copied">npub kopiran u međuspremnik</string>
+    <string name="native_profile_logout">Odspoji</string>
+    <string name="native_profile_identity_info">S Nostr identitetom možete objavljivati prometna upozorenja, izvješća i zanimljiva mjesta na decentraliziran način u Nostr mreži, bez središnjih poslužitelja.</string>
+    <string name="native_profile_waiting_amber">Čekam odgovor od Ambera…</string>
+    <string name="native_profile_reports">MOJA IZVJEŠĆA</string>
+    <string name="native_profile_no_reports">Nema objavljenih izvješća</string>
+    <string name="native_profile_zap_balance">Zap saldo</string>
+    <string name="native_profile_zap_subtitle">Satoshiji primljeni iz vaših izvješća</string>
+    <string name="native_profile_reputation_high">Visoka</string>
+    <string name="native_profile_reputation_medium">Srednja</string>
+    <string name="native_profile_reputation_low">Niska</string>
+    <string name="native_profile_reputation">Ugled %1$s</string>
+    <string name="native_profile_close">Zatvori</string>
+    <string name="native_profile_loading">Učitavanje…</string>
+</resources>

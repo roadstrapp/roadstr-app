@@ -374,7 +374,7 @@ detached from secure storage and startup. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 728 Flutter tests passed, including the native shell,
+- `flutter test`: 732 Flutter tests passed, including the native shell,
   private MapLibre host, route-overlay, route-session, transit-overlay/session, camera-session and
   user-cursor, point-overlay/interaction and route-traffic Gradle/source contracts, the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
@@ -394,8 +394,11 @@ detached from secure storage and startup. See
   accessible-panel and dormant-ownership contracts, plus the activity-inbox
   locale, storage/cursor oracle, silent-panel and dormant-ownership contracts.
   The route-planning contracts additionally lock the 22-value locale catalogue,
-  Flutter route-panel vocabulary, accessibility bounds and dormant ownership.
-- `./gradlew :app:testDebugUnitTest`: 457 Kotlin tests passed, including the
+  Flutter route-panel vocabulary, accessibility bounds and dormant ownership;
+  the profile contracts lock its 30-value locale catalogue, Flutter identity/
+  reputation oracle, accessibility bounds, callback-only effects and dormant
+  ownership.
+- `./gradlew :app:testDebugUnitTest`: 472 Kotlin tests passed, including the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
   GeoJSON, Flutter-compatible route and per-leg transit metrics/colors,
@@ -431,7 +434,10 @@ detached from secure storage and startup. See
   reuse, expiry/age/comment/speed/unit bounds, owner edit suggestions and
   privacy/composer/single-flight revision fencing, plus bounded activity
   map decoding, per-pubkey keys, dedupe/order/read state, monotonic cursors and
-  logged-out/empty/ready revision fencing, plus
+  logged-out/empty/ready revision fencing, plus strict profile identity and
+  HTTPS metadata admission, pseudonymous suppression, bounded report sorting,
+  exact reputation/balance projection and loading/login/visibility revision
+  fencing, plus
   the
   headless AOSP GPS normalization, last-known, watchdog and cancellation suite,
   plus the native map style, tile safety, route segmentation, marker-culling,
