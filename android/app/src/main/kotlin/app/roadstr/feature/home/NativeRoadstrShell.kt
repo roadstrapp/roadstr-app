@@ -55,6 +55,9 @@ import app.roadstr.feature.saved.NativeSavedPlacesPanel
 import app.roadstr.feature.saved.NativeSavedPlacesSession
 import app.roadstr.feature.search.NativeSearchOverlay
 import app.roadstr.feature.search.NativeSearchSession
+import app.roadstr.feature.settings.NativeSettingsPanel
+import app.roadstr.feature.settings.NativeSettingsSession
+import app.roadstr.feature.settings.NativeSettingsUiAction
 import app.roadstr.feature.transit.NativeTransitItinerariesPanel
 import app.roadstr.feature.transit.NativeTransitJourneySession
 import app.roadstr.feature.transit.NativeTransitTransportMode
@@ -121,6 +124,8 @@ fun NativeRoadstrShell() {
         val pointOverlayState by pointOverlaySession.state.collectAsState()
         val searchSession = remember { NativeSearchSession(initialImperial = false) }
         val searchState by searchSession.state.collectAsState()
+        val settingsSession = remember { NativeSettingsSession() }
+        val settingsState by settingsSession.state.collectAsState()
         val placeSession = remember { NativePlaceSession() }
         val placeState by placeSession.state.collectAsState()
         val profileSession = remember { NativeProfileSession() }
@@ -212,6 +217,75 @@ fun NativeRoadstrShell() {
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .padding(12.dp),
+                )
+                NativeSettingsPanel(
+                    snapshot = settingsState,
+                    onAction = { revision, action ->
+                        when (action) {
+                            NativeSettingsUiAction.Close -> settingsSession.hide(revision)
+                            is NativeSettingsUiAction.BooleanChanged -> {
+                                settingsSession.updateBoolean(revision, action.key, action.value)
+                            }
+                            is NativeSettingsUiAction.ThemeChanged -> {
+                                settingsSession.updateTheme(revision, action.value)
+                            }
+                            is NativeSettingsUiAction.LanguageChanged -> {
+                                settingsSession.updateLanguage(revision, action.value)
+                            }
+                            is NativeSettingsUiAction.MapEngineChanged -> {
+                                settingsSession.updateMapEngine(revision, action.value)
+                            }
+                            is NativeSettingsUiAction.BrightnessChanged -> {
+                                settingsSession.updateBrightness(revision, action.value)
+                            }
+                            is NativeSettingsUiAction.TileUrlChanged -> {
+                                settingsSession.updateMapTileUrl(revision, action.value)
+                            }
+                            is NativeSettingsUiAction.RoutingProviderChanged -> {
+                                settingsSession.updateRoutingProvider(revision, action.value)
+                            }
+                            is NativeSettingsUiAction.GraphHopperServerChanged -> {
+                                settingsSession.updateGraphHopperServer(revision, action.value)
+                            }
+                            is NativeSettingsUiAction.SpeedometerChanged -> {
+                                settingsSession.updateSpeedometer(revision, action.value)
+                            }
+                            is NativeSettingsUiAction.CursorStyleChanged -> {
+                                settingsSession.updateCursorStyle(revision, action.value)
+                            }
+                            is NativeSettingsUiAction.CursorColorChanged -> {
+                                settingsSession.updateCursorColor(revision, action.value)
+                            }
+                            is NativeSettingsUiAction.SearchEngineChanged -> {
+                                settingsSession.updateSearchEngine(revision, action.value)
+                            }
+                            is NativeSettingsUiAction.VoiceGenderChanged -> {
+                                settingsSession.updateVoiceGender(revision, action.value)
+                            }
+                            is NativeSettingsUiAction.VoiceSpeedChanged -> {
+                                settingsSession.updateVoiceSpeedStage(revision, action.stage)
+                            }
+                            is NativeSettingsUiAction.VoiceVolumeChanged -> {
+                                settingsSession.updateVoiceVolume(revision, action.value)
+                            }
+                            NativeSettingsUiAction.ConfigureRoutingKey,
+                            NativeSettingsUiAction.TestGraphHopper,
+                            NativeSettingsUiAction.ConfigureNwc,
+                            NativeSettingsUiAction.OpenSavedPlaces,
+                            NativeSettingsUiAction.ExportFavorites,
+                            NativeSettingsUiAction.ImportFavorites,
+                            NativeSettingsUiAction.SyncPush,
+                            NativeSettingsUiAction.SyncPull,
+                            NativeSettingsUiAction.EditSyncPassphrase,
+                            NativeSettingsUiAction.EditSyncRelay,
+                            NativeSettingsUiAction.DownloadVoiceModel,
+                            NativeSettingsUiAction.OpenMapsAttribution,
+                            NativeSettingsUiAction.OpenSource,
+                            NativeSettingsUiAction.SupportRoadstr,
+                            -> Unit
+                        }
+                    },
+                    modifier = Modifier.align(Alignment.BottomCenter),
                 )
                 NativeRoutePlanningPanel(
                     snapshot = routePlanningState,
