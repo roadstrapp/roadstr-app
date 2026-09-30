@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_da.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Notifikationer</string>
+    <string name="native_activity_close">Luk</string>
+    <string name="native_activity_empty">Ingen notifikationer endnu</string>
+    <string name="native_activity_empty_body">Zaps og reaktioner på dine trafikmeldinger vises her.</string>
+    <string name="native_activity_login_required">Forbind din Nostr-profil</string>
+    <string name="native_activity_login_required_body">Log ind med Amber eller nsec for at modtage notifikationer fra andre brugere.</string>
+    <string name="native_activity_zap_title">Zap modtaget</string>
+    <string name="native_activity_zap_body">Du modtog et zap på %1$d sats!</string>
+    <string name="native_activity_confirmed_title">Rapport bekræftet</string>
+    <string name="native_activity_confirmed_body">Din %1$s-rapport blev bekræftet af en anden bilist</string>
+    <string name="native_activity_denied_title">Rapport bestridt</string>
+    <string name="native_activity_denied_body">Nogen har rapporteret, at dit %1$s ikke længere er der</string>
+</resources>

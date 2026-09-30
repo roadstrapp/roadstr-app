@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_cs.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Oznámení</string>
+    <string name="native_activity_close">Zavřít</string>
+    <string name="native_activity_empty">Zatím žádná oznámení</string>
+    <string name="native_activity_empty_body">Zapy a reakce na vaše dopravní hlášení se objeví zde.</string>
+    <string name="native_activity_login_required">Připojte svůj profil Nostr</string>
+    <string name="native_activity_login_required_body">Přihlaste se přes Amber nebo nsec, abyste dostávali oznámení od ostatních uživatelů.</string>
+    <string name="native_activity_zap_title">Přijat zap</string>
+    <string name="native_activity_zap_body">Obdrželi jste zap ve výši %1$d satů!</string>
+    <string name="native_activity_confirmed_title">Hlášení potvrzeno</string>
+    <string name="native_activity_confirmed_body">Vaše hlášení %1$s potvrdil jiný řidič</string>
+    <string name="native_activity_denied_title">Hlášení zpochybněno</string>
+    <string name="native_activity_denied_body">Někdo nahlásil, že vaše %1$s už tam není</string>
+</resources>

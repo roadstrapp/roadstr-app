@@ -90,6 +90,13 @@ Flutter is still the only launcher and production UI.
   edit, profile, zap and submission callbacks. Its 39 resources cover all 27
   locales while preserving Flutter's English/Italian privacy-copy fallback; it
   owns no identity, privacy store, signer, relay, queue, GPS or wallet adapter.
+  `feature/activity/NativeActivityInboxPresentation.kt` adds the bounded
+  normalized-Hive list-of-maps codec, exact per-pubkey inbox/cursor names,
+  newest-first 100-row dedupe/read-state behavior, monotonic cursor updates and
+  revision-safe logged-out/empty/ready state. `NativeActivityInboxPanel.kt`
+  packages the deliberately silent accessible inbox with 12 values generated
+  from every ARB file; it owns no Hive, file, relay, socket, sound, banner or
+  Android-notification adapter.
   Style generations prevent stale reattachment;
   `NativeRouteOverlaySession.kt` adds a revision-safe StateFlow projector for
   normalized route geometry, bounded alternative selection/commit, monotonic
@@ -109,10 +116,10 @@ Flutter is still the only launcher and production UI.
   road-event hit priority and Flutter's strict rounded-Vincenty 60 m route-
   alternative selection; product sheets and service caches remain detached. The
   private shell collects empty route, transit, search, place, navigation,
-  saved-place, Wikipedia, road-event, camera, cursor and point-overlay state and packages all product panels in
+  saved-place, Wikipedia, road-event, activity, camera, cursor and point-overlay state and packages all product panels in
   their hidden states. It deliberately does not invoke transit/search/place or
   navigation services, submit provider results, begin a query/place load or
-  show/update the HUD or saved-place panel, open Wikipedia or show/submit a road event; it has no product route, provider, storage,
+  show/update the HUD or saved-place/activity panel, open Wikipedia or show/submit a road event; it has no product route, provider, storage,
   intent-launcher or GPS feed.
 - `LegacyStorageContract.kt` records the audited Hive/secure-storage names and
   dynamic per-identity key prefixes.

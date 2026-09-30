@@ -628,7 +628,9 @@ broader cross-language coverage and a native store are still required.
   `feature/wikipedia/NativeWikipediaPresentation.kt` and
   `NativeWikipediaReader.kt`, plus
   `feature/report/NativeRoadEventPresentation.kt` and
-  `NativeRoadEventPanels.kt`.
+  `NativeRoadEventPanels.kt`, plus
+  `feature/activity/NativeActivityInboxPresentation.kt` and
+  `NativeActivityInboxPanel.kt`.
 - **Current implementation:** The private shell packages a hidden
   public-transport itinerary panel with loading, ready, no-service and failure
   states, up to eight selectable cards, boarding/walking/line/timetable detail,
@@ -676,6 +678,13 @@ broader cross-language coverage and a native store are still required.
   for all 27 locales, while preserving Flutter's English/Italian privacy-copy
   fallback. Identity, disclosure persistence, signer, relay, offline queue,
   GPS, profile fetch and Lightning remain detached.
+  An eighth hidden activity-inbox slice decodes the migration bridge's bounded
+  normalized Hive list-of-maps, preserves zap/confirmed/denied rows, exact
+  per-pubkey inbox and cursor names, newest-first 100-row dedupe/read state and
+  monotonic cursor updates. Its revision-safe logged-out/empty/ready Compose
+  surface is deliberately silent and exposes typed close/mark-read callbacks.
+  Twelve values are generated for all 27 locales. Encrypted native persistence,
+  migration writeback and live verified relay ownership remain detached.
 - **Dependencies:** Compose Material 3 and AndroidX only after license review.
 - **Migration impact:** Settings names/defaults and onboarding/disclosure keys must map exactly.
 - **User-visible impact:** Must feel like an update, not a redesign.
@@ -702,10 +711,15 @@ broader cross-language coverage and a native store are still required.
   parity, dual expiry, relative age, hostile-input bounds, owner suggestions,
   metric/imperial conversion, privacy/composer/single-flight revisions, the
   seventh locale resource set and dormant shell ownership.
+  Fourteen activity-inbox JVM cases plus four Dart contracts lock normalized
+  map decoding, per-pubkey storage/cursor keys, ordering/dedupe/read state,
+  cursor monotonicity, revision fencing, 12-value/27-locale resources, silent
+  accessible presentation and dormant shell ownership.
   Compose screenshot comparisons, drag behavior, font-scale/TalkBack and
   compact-device layouts remain.
 - **Parity evidence:** public-transport, active-search, place-detail,
-  navigation-HUD, saved-place/parking, Wikipedia-reader and road-event states
+  navigation-HUD, saved-place/parking, Wikipedia-reader, road-event and
+  activity-inbox states
   have their first headless and packaged Compose evidence in `UI_PARITY.md`;
   every other state and visual/orientation evidence remain open.
 - **Security/privacy impact:** preserve privacy disclosure wording and task-switcher handling.

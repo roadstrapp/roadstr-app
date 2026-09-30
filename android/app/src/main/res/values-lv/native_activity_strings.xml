@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_lv.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Paziņojumi</string>
+    <string name="native_activity_close">Aizvērt</string>
+    <string name="native_activity_empty">Paziņojumu vēl nav</string>
+    <string name="native_activity_empty_body">Zapi un reakcijas uz jūsu ceļu ziņojumiem parādīsies šeit.</string>
+    <string name="native_activity_login_required">Savienojiet savu Nostr profilu</string>
+    <string name="native_activity_login_required_body">Pierakstieties ar Amber vai nsec, lai saņemtu paziņojumus no citiem lietotājiem.</string>
+    <string name="native_activity_zap_title">Saņemts zap</string>
+    <string name="native_activity_zap_body">Jūs saņēmāt %1$d sat vērtu zap!</string>
+    <string name="native_activity_confirmed_title">Ziņojums apstiprināts</string>
+    <string name="native_activity_confirmed_body">Jūsu %1$s ziņojumu apstiprināja cits vadītājs</string>
+    <string name="native_activity_denied_title">Ziņojums apstrīdēts</string>
+    <string name="native_activity_denied_body">Kāds ziņoja, ka jūsu %1$s vairs tur nav</string>
+</resources>

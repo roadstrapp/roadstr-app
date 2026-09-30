@@ -32,6 +32,8 @@ import app.roadstr.R
 import app.roadstr.core.ui.theme.RoadstrTheme
 import app.roadstr.core.ui.theme.RoadstrThemeId
 import app.roadstr.core.ui.theme.RoadstrThemeTokens
+import app.roadstr.feature.activity.NativeActivityInboxPanel
+import app.roadstr.feature.activity.NativeActivityInboxSession
 import app.roadstr.feature.map.NativeMapCameraSession
 import app.roadstr.feature.map.NativeMapCursorSession
 import app.roadstr.feature.map.NativeMapInteraction
@@ -115,6 +117,8 @@ fun NativeRoadstrShell() {
         val placeState by placeSession.state.collectAsState()
         val savedPlacesSession = remember { NativeSavedPlacesSession() }
         val savedPlacesState by savedPlacesSession.state.collectAsState()
+        val activityInboxSession = remember { NativeActivityInboxSession() }
+        val activityInboxState by activityInboxSession.state.collectAsState()
         val roadEventSession = remember { NativeRoadEventSession() }
         val roadEventState by roadEventSession.state.collectAsState()
         val navigationHudSession = remember { NativeNavigationHudSession() }
@@ -230,6 +234,14 @@ fun NativeRoadstrShell() {
                     onNavigateParking = {},
                     onRemoveParking = {},
                     onClose = {},
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+                NativeActivityInboxPanel(
+                    snapshot = activityInboxState,
+                    onClose = activityInboxSession::hide,
+                    onViewed = { revision ->
+                        activityInboxSession.markAllRead(revision)
+                    },
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
                 NativeRoadEventPanels(

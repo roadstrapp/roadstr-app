@@ -257,6 +257,10 @@ debug-host selection check.
   expiry, age/comment/speed/unit bounds, owner suggestions and revision-safe
   privacy/composer/single-flight state. Four Dart UI contracts lock its
   39-value/27-locale resources, accessible panels and dormant ownership.
+- Fourteen activity-inbox JVM cases lock normalized legacy maps, exact
+  per-pubkey inbox/cursor names, ordering/dedupe/read state, monotonic cursors
+  and revision fencing. Four Dart UI contracts lock its 12-value/27-locale
+  resources, silent accessible panel and dormant ownership.
 - Twenty-four Dart contracts lock the strict Gradle version, lifecycle-compose
   dependency, real `MapView`/style/texture-mode binding, absence of a location
   component, selected/muted route source/layer constants, route-choice/progress
@@ -264,7 +268,7 @@ debug-host selection check.
   and ownership by the private shell, plus the Flutter camera oracle
   and MapLibre command wiring, cursor geometry, point-overlay/transit parity and
   dormant ownership.
-- The complete verification run passes 720 Flutter tests, 427 Kotlin tests,
+- The complete verification run passes 724 Flutter tests, 441 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 
@@ -272,10 +276,11 @@ debug-host selection check.
 
 - physical-device launch, renderer output and network/tile evidence;
 - screenshot/golden comparison in light/dark themes and compact/landscape UI;
-- live route/traffic/transit/search/place/navigation/saved-place/Wikipedia/road-event/source/point update,
+- live route/traffic/transit/search/place/navigation/saved-place/Wikipedia/road-event/activity/source/point update,
   navigation telemetry/settings, search storage,
   favourite/parking persistence, picker/crypto/sync/routing, Wikipedia intent/
   redirect/TLS integration, road-event privacy/profile/signer/relay/queue/zap,
+  activity encrypted persistence/migration writeback/verified relay feed,
   place/
   long-press product handlers, external place intents, drag
   behavior, remote images, accessibility and attribution interaction;

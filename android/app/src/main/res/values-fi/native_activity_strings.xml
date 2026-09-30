@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_fi.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Ilmoitukset</string>
+    <string name="native_activity_close">Sulje</string>
+    <string name="native_activity_empty">Ei ilmoituksia vielä</string>
+    <string name="native_activity_empty_body">Zapit ja reaktiot liikenneilmoituksiisi näkyvät täällä.</string>
+    <string name="native_activity_login_required">Yhdistä Nostr-profiilisi</string>
+    <string name="native_activity_login_required_body">Kirjaudu Amberilla tai nsec:llä saadaksesi ilmoituksia muilta käyttäjiltä.</string>
+    <string name="native_activity_zap_title">Zap vastaanotettu</string>
+    <string name="native_activity_zap_body">Sait %1$d satin zapin!</string>
+    <string name="native_activity_confirmed_title">Ilmoitus vahvistettu</string>
+    <string name="native_activity_confirmed_body">Toinen kuljettaja vahvisti %1$s-ilmoituksesi</string>
+    <string name="native_activity_denied_title">Ilmoitus kiistetty</string>
+    <string name="native_activity_denied_body">Joku ilmoitti, ettei %1$s ole enää siellä</string>
+</resources>

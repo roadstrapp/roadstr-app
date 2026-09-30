@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_pl.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Powiadomienia</string>
+    <string name="native_activity_close">Zamknij</string>
+    <string name="native_activity_empty">Brak powiadomień</string>
+    <string name="native_activity_empty_body">Zapy i reakcje na Twoje zgłoszenia pojawią się tutaj.</string>
+    <string name="native_activity_login_required">Połącz swój profil Nostr</string>
+    <string name="native_activity_login_required_body">Zaloguj się przez Amber lub nsec, aby otrzymywać powiadomienia od innych użytkowników.</string>
+    <string name="native_activity_zap_title">Otrzymano zap</string>
+    <string name="native_activity_zap_body">Otrzymałeś zap w wysokości %1$d sat!</string>
+    <string name="native_activity_confirmed_title">Zgłoszenie potwierdzone</string>
+    <string name="native_activity_confirmed_body">Twoje zgłoszenie %1$s zostało potwierdzone przez innego kierowcę</string>
+    <string name="native_activity_denied_title">Zgłoszenie zakwestionowane</string>
+    <string name="native_activity_denied_body">Ktoś zgłosił, że Twoje %1$s już tam nie jest</string>
+</resources>

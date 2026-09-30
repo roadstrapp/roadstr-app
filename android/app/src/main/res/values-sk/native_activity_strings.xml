@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_sk.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Upozornenia</string>
+    <string name="native_activity_close">Zavrieť</string>
+    <string name="native_activity_empty">Zatiaľ žiadne upozornenia</string>
+    <string name="native_activity_empty_body">Zapy a reakcie na vaše dopravné hlásenia sa objavia tu.</string>
+    <string name="native_activity_login_required">Pripojte svoj profil Nostr</string>
+    <string name="native_activity_login_required_body">Prihláste sa cez Amber alebo nsec, aby ste dostávali upozornenia od ostatných používateľov.</string>
+    <string name="native_activity_zap_title">Prijatý zap</string>
+    <string name="native_activity_zap_body">Dostali ste zap vo výške %1$d satov!</string>
+    <string name="native_activity_confirmed_title">Hlásenie potvrdené</string>
+    <string name="native_activity_confirmed_body">Vaše hlásenie %1$s potvrdil iný vodič</string>
+    <string name="native_activity_denied_title">Hlásenie spochybnené</string>
+    <string name="native_activity_denied_body">Niekto nahlásil, že vaše %1$s tam už nie je</string>
+</resources>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_lt.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Pranešimai</string>
+    <string name="native_activity_close">Uždaryti</string>
+    <string name="native_activity_empty">Pranešimų kol kas nėra</string>
+    <string name="native_activity_empty_body">Zapai ir reakcijos į jūsų eismo pranešimus bus rodomi čia.</string>
+    <string name="native_activity_login_required">Prijunkite savo Nostr profilį</string>
+    <string name="native_activity_login_required_body">Prisijunkite su Amber arba nsec, kad gautumėte pranešimus iš kitų naudotojų.</string>
+    <string name="native_activity_zap_title">Gautas zap</string>
+    <string name="native_activity_zap_body">Gavote %1$d sat vertės zap!</string>
+    <string name="native_activity_confirmed_title">Pranešimas patvirtintas</string>
+    <string name="native_activity_confirmed_body">Jūsų %1$s pranešimą patvirtino kitas vairuotojas</string>
+    <string name="native_activity_denied_title">Pranešimas ginčijamas</string>
+    <string name="native_activity_denied_body">Kažkas pranešė, kad jūsų %1$s jau nebėra</string>
+</resources>

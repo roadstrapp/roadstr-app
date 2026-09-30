@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_zh.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">通知</string>
+    <string name="native_activity_close">关闭</string>
+    <string name="native_activity_empty">暂无通知</string>
+    <string name="native_activity_empty_body">对你的路况上报的 zap 和互动将显示在这里。</string>
+    <string name="native_activity_login_required">连接你的 Nostr 资料</string>
+    <string name="native_activity_login_required_body">使用 Amber 或 nsec 登录，以接收其他用户的通知。</string>
+    <string name="native_activity_zap_title">收到闪电赞</string>
+    <string name="native_activity_zap_body">你收到了 %1$d sats 的闪电赞!</string>
+    <string name="native_activity_confirmed_title">举报已确认</string>
+    <string name="native_activity_confirmed_body">你举报的%1$s已被其他司机确认</string>
+    <string name="native_activity_denied_title">举报被质疑</string>
+    <string name="native_activity_denied_body">有人反馈你举报的%1$s已经不在了</string>
+</resources>

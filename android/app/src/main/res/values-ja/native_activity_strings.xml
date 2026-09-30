@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ja.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">通知</string>
+    <string name="native_activity_close">閉じる</string>
+    <string name="native_activity_empty">通知はまだありません</string>
+    <string name="native_activity_empty_body">あなたの道路レポートへの zap やリアクションがここに表示されます。</string>
+    <string name="native_activity_login_required">Nostr プロフィールを接続</string>
+    <string name="native_activity_login_required_body">他のユーザーからの通知を受け取るには、Amber または nsec でログインしてください。</string>
+    <string name="native_activity_zap_title">Zapを受信</string>
+    <string name="native_activity_zap_body">%1$d satのZapを受け取りました!</string>
+    <string name="native_activity_confirmed_title">報告が確認されました</string>
+    <string name="native_activity_confirmed_body">あなたの%1$sの報告が他のドライバーによって確認されました</string>
+    <string name="native_activity_denied_title">報告に異議あり</string>
+    <string name="native_activity_denied_body">あなたの%1$sはもうないと報告されました</string>
+</resources>

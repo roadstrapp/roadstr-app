@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ga.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Fógraí</string>
+    <string name="native_activity_close">Dún</string>
+    <string name="native_activity_empty">Níl aon fhógra ann fós</string>
+    <string name="native_activity_empty_body">Taispeánfar zaps agus freagairtí ar do thuairiscí bóthair anseo.</string>
+    <string name="native_activity_login_required">Ceangail do phróifíl Nostr</string>
+    <string name="native_activity_login_required_body">Sínigh isteach le Amber nó nsec chun fógraí ó úsáideoirí eile a fháil.</string>
+    <string name="native_activity_zap_title">Zap faighte</string>
+    <string name="native_activity_zap_body">Fuair tú zap %1$d sats!</string>
+    <string name="native_activity_confirmed_title">Tuairisc dearbhaithe</string>
+    <string name="native_activity_confirmed_body">Dhearbhaigh tiománaí eile do thuairisc %1$s</string>
+    <string name="native_activity_denied_title">Tuairisc á conspóid</string>
+    <string name="native_activity_denied_body">Dúirt duine éigin nach bhfuil do %1$s ann a thuilleadh</string>
+</resources>
