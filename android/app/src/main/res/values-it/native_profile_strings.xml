@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_it.arb. Do not edit. -->
+<resources>
+    <string name="native_profile_title">Profilo</string>
+    <string name="native_profile_visibility_title">Visibilità del profilo</string>
+    <string name="native_profile_visibility_description">Scegli se gli altri utenti Roadstr vedono il tuo nome Nostr, l\'npub e l\'immagine.</string>
+    <string name="native_profile_visibility_clear">Mostra il profilo pubblicamente</string>
+    <string name="native_profile_visibility_pseudonymous">Modalità pseudonima (consigliata)</string>
+    <string name="native_profile_nostrich">nostrich</string>
+    <string name="native_profile_hidden_notice">Questo utente usa la modalità pseudonima.</string>
+    <string name="native_profile_not_connected">Non connesso</string>
+    <string name="native_profile_login_title">ACCEDI CON NOSTR</string>
+    <string name="native_profile_amber_title">Amber / NIP-55</string>
+    <string name="native_profile_amber_description">La chiave privata non lascia mai il dispositivo · Metodo consigliato</string>
+    <string name="native_profile_nsec_title">Inserisci nsec</string>
+    <string name="native_profile_nsec_description">Chiave privata salvata localmente · Meno sicuro</string>
+    <string name="native_profile_connected_amber">Connesso via Amber (NIP-55)</string>
+    <string name="native_profile_connected_nsec">Connesso via nsec</string>
+    <string name="native_profile_public_key">CHIAVE PUBBLICA</string>
+    <string name="native_profile_npub_copied">npub copiata negli appunti</string>
+    <string name="native_profile_logout">Disconnetti</string>
+    <string name="native_profile_identity_info">Con un\'identità Nostr potrai pubblicare alert di traffico, segnalazioni e punti di interesse in modo decentralizzato sulla rete Nostr, senza server centrali.</string>
+    <string name="native_profile_waiting_amber">In attesa della risposta di Amber…</string>
+    <string name="native_profile_reports">LE MIE SEGNALAZIONI</string>
+    <string name="native_profile_no_reports">Nessuna segnalazione pubblicata</string>
+    <string name="native_profile_zap_balance">Balance Zap</string>
+    <string name="native_profile_zap_subtitle">Satoshi ricevuti dalle tue segnalazioni</string>
+    <string name="native_profile_reputation_high">Alta</string>
+    <string name="native_profile_reputation_medium">Media</string>
+    <string name="native_profile_reputation_low">Bassa</string>
+    <string name="native_profile_reputation">Reputazione %1$s</string>
+    <string name="native_profile_close">Chiudi</string>
+    <string name="native_profile_loading">Caricamento…</string>
+</resources>

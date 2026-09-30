@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_lv.arb. Do not edit. -->
+<resources>
+    <string name="native_profile_title">Profils</string>
+    <string name="native_profile_visibility_title">Profila redzamība</string>
+    <string name="native_profile_visibility_description">Izvēlieties, vai citi Roadstr lietotāji redz jūsu Nostr vārdu, npub un attēlu.</string>
+    <string name="native_profile_visibility_clear">Rādīt profilu publiski</string>
+    <string name="native_profile_visibility_pseudonymous">Pseidonīma režīms (ieteicams)</string>
+    <string name="native_profile_nostrich">nostrich</string>
+    <string name="native_profile_hidden_notice">Šis lietotājs izmanto pseidonīma režīmu.</string>
+    <string name="native_profile_not_connected">Nav savienots</string>
+    <string name="native_profile_login_title">PIETEIKTIES AR NOSTR</string>
+    <string name="native_profile_amber_title">Amber / NIP-55</string>
+    <string name="native_profile_amber_description">Privātā atslēga nekad neatstāj jūsu ierīci · Ieteicams</string>
+    <string name="native_profile_nsec_title">Ievietot nsec</string>
+    <string name="native_profile_nsec_description">Privātā atslēga tiek glabāta lokāli · Mazāk droši</string>
+    <string name="native_profile_connected_amber">Savienots, izmantojot Amber (NIP-55)</string>
+    <string name="native_profile_connected_nsec">Savienots, izmantojot nsec</string>
+    <string name="native_profile_public_key">PUBLISKĀ ATSLĒGA</string>
+    <string name="native_profile_npub_copied">npub nokopēts starpliktuvē</string>
+    <string name="native_profile_logout">Atvienot</string>
+    <string name="native_profile_identity_info">Ar Nostr identitāti varat publicēt satiksmes brīdinājumus, pārskatus un interesantas vietas decentralizētā veidā Nostr tīklā bez centrāliem serveriem.</string>
+    <string name="native_profile_waiting_amber">Gaida Amber atbildi…</string>
+    <string name="native_profile_reports">MANI ZIŅOJUMI</string>
+    <string name="native_profile_no_reports">Nav publicētu ziņojumu</string>
+    <string name="native_profile_zap_balance">Zap atlikums</string>
+    <string name="native_profile_zap_subtitle">Satoshi saņemti no jūsu ziņojumiem</string>
+    <string name="native_profile_reputation_high">Augsta</string>
+    <string name="native_profile_reputation_medium">Vidēja</string>
+    <string name="native_profile_reputation_low">Zema</string>
+    <string name="native_profile_reputation">Reputācija %1$s</string>
+    <string name="native_profile_close">Aizvērt</string>
+    <string name="native_profile_loading">Ielādē…</string>
+</resources>

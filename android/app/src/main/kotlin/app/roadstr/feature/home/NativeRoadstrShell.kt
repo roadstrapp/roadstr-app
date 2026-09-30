@@ -45,6 +45,8 @@ import app.roadstr.feature.navigation.NativeNavigationHud
 import app.roadstr.feature.navigation.NativeNavigationHudSession
 import app.roadstr.feature.place.NativePlaceDetailsPanel
 import app.roadstr.feature.place.NativePlaceSession
+import app.roadstr.feature.profile.NativeProfilePanel
+import app.roadstr.feature.profile.NativeProfileSession
 import app.roadstr.feature.report.NativeRoadEventPanels
 import app.roadstr.feature.report.NativeRoadEventSession
 import app.roadstr.feature.route.NativeRoutePlanningPanel
@@ -121,6 +123,8 @@ fun NativeRoadstrShell() {
         val searchState by searchSession.state.collectAsState()
         val placeSession = remember { NativePlaceSession() }
         val placeState by placeSession.state.collectAsState()
+        val profileSession = remember { NativeProfileSession() }
+        val profileState by profileSession.state.collectAsState()
         val savedPlacesSession = remember { NativeSavedPlacesSession() }
         val savedPlacesState by savedPlacesSession.state.collectAsState()
         val activityInboxSession = remember { NativeActivityInboxSession() }
@@ -282,6 +286,19 @@ fun NativeRoadstrShell() {
                     onOpenWebsite = {},
                     onOpenArticle = {},
                     onSearchWeb = {},
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+                NativeProfilePanel(
+                    snapshot = profileState,
+                    onClose = profileSession::hide,
+                    onAmberLogin = {},
+                    onNsecLogin = {},
+                    onCopyNpub = {},
+                    onVisibilityChanged = { revision, profilePublic ->
+                        profileSession.updateVisibility(revision, profilePublic)
+                    },
+                    onReportSelected = {},
+                    onLogout = {},
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
                 NativeSavedPlacesPanel(
