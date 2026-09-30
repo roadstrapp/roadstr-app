@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ru.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Уведомления</string>
+    <string name="native_activity_close">Закрыть</string>
+    <string name="native_activity_empty">Уведомлений пока нет</string>
+    <string name="native_activity_empty_body">Здесь появятся запы и реакции на ваши дорожные сообщения.</string>
+    <string name="native_activity_login_required">Подключите профиль Nostr</string>
+    <string name="native_activity_login_required_body">Войдите через Amber или nsec, чтобы получать уведомления от других пользователей.</string>
+    <string name="native_activity_zap_title">Получен zap</string>
+    <string name="native_activity_zap_body">Вы получили zap на %1$d сат!</string>
+    <string name="native_activity_confirmed_title">Отчёт подтверждён</string>
+    <string name="native_activity_confirmed_body">Ваш отчёт «%1$s» подтвердил другой водитель</string>
+    <string name="native_activity_denied_title">Отчёт оспорен</string>
+    <string name="native_activity_denied_body">Кто-то сообщил, что вашего %1$s там больше нет</string>
+</resources>

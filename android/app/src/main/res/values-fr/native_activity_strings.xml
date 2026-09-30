@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_fr.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Notifications</string>
+    <string name="native_activity_close">Fermer</string>
+    <string name="native_activity_empty">Aucune notification pour l\'instant</string>
+    <string name="native_activity_empty_body">Les zaps et les réactions à vos signalements apparaîtront ici.</string>
+    <string name="native_activity_login_required">Connectez votre profil Nostr</string>
+    <string name="native_activity_login_required_body">Connectez-vous avec Amber ou nsec pour recevoir les notifications des autres utilisateurs.</string>
+    <string name="native_activity_zap_title">Zap reçu</string>
+    <string name="native_activity_zap_body">Vous avez reçu un zap de %1$d sats !</string>
+    <string name="native_activity_confirmed_title">Signalement confirmé</string>
+    <string name="native_activity_confirmed_body">Votre signalement %1$s a été confirmé par un autre conducteur</string>
+    <string name="native_activity_denied_title">Signalement contesté</string>
+    <string name="native_activity_denied_body">Quelqu\'un a signalé que votre %1$s n\'est plus là</string>
+</resources>

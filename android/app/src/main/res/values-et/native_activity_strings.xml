@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_et.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Teavitused</string>
+    <string name="native_activity_close">Sulge</string>
+    <string name="native_activity_empty">Teavitusi veel pole</string>
+    <string name="native_activity_empty_body">Zapid ja reaktsioonid sinu liiklusteadetele ilmuvad siia.</string>
+    <string name="native_activity_login_required">Ühenda oma Nostri profiil</string>
+    <string name="native_activity_login_required_body">Logi sisse Amberi või nseciga, et saada teavitusi teistelt kasutajatelt.</string>
+    <string name="native_activity_zap_title">Zap saadud</string>
+    <string name="native_activity_zap_body">Said %1$d sati suuruse zapi!</string>
+    <string name="native_activity_confirmed_title">Teade kinnitatud</string>
+    <string name="native_activity_confirmed_body">Teise juhi poolt kinnitati sinu %1$s teade</string>
+    <string name="native_activity_denied_title">Teade vaidlustatud</string>
+    <string name="native_activity_denied_body">Keegi teatas, et sinu %1$s ei ole enam seal</string>
+</resources>

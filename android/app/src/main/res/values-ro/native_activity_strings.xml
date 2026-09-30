@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ro.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Notificări</string>
+    <string name="native_activity_close">Închide</string>
+    <string name="native_activity_empty">Încă nu există notificări</string>
+    <string name="native_activity_empty_body">Zap-urile și reacțiile la raportările tale vor apărea aici.</string>
+    <string name="native_activity_login_required">Conectează-ți profilul Nostr</string>
+    <string name="native_activity_login_required_body">Autentifică-te cu Amber sau nsec pentru a primi notificări de la alți utilizatori.</string>
+    <string name="native_activity_zap_title">Zap primit</string>
+    <string name="native_activity_zap_body">Ai primit un zap de %1$d sats!</string>
+    <string name="native_activity_confirmed_title">Raport confirmat</string>
+    <string name="native_activity_confirmed_body">Raportul tău despre %1$s a fost confirmat de alt șofer</string>
+    <string name="native_activity_denied_title">Raport contestat</string>
+    <string name="native_activity_denied_body">Cineva a semnalat că %1$s tău nu mai e acolo</string>
+</resources>

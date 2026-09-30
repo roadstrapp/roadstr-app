@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_en.arb. Do not edit. -->
+<resources>
+    <string name="native_activity_title">Notifications</string>
+    <string name="native_activity_close">Close</string>
+    <string name="native_activity_empty">No notifications yet</string>
+    <string name="native_activity_empty_body">Zaps and reactions to your road reports will appear here.</string>
+    <string name="native_activity_login_required">Connect your Nostr profile</string>
+    <string name="native_activity_login_required_body">Sign in with Amber or nsec to receive notifications from other users.</string>
+    <string name="native_activity_zap_title">Zap received</string>
+    <string name="native_activity_zap_body">You received a zap of %1$d sats!</string>
+    <string name="native_activity_confirmed_title">Report confirmed</string>
+    <string name="native_activity_confirmed_body">Your %1$s report was confirmed by another driver</string>
+    <string name="native_activity_denied_title">Report disputed</string>
+    <string name="native_activity_denied_body">Someone said your %1$s report is no longer there</string>
+</resources>

@@ -79,8 +79,11 @@ detail, privacy disclosure and report composition with the existing 14-category
 wire/marker vocabulary, TTLs, relative age, owner suggestions, confirmations,
 speed limits and typed zap/publish actions. Its 39 values are generated for the
 same 27 locale sets, preserving Flutter's English/Italian privacy fallback. The
+eighth slice packages the silent activity inbox with logged-out, empty and
+ready states, zap/confirmation/dispute cards, unread state and localized device
+timestamps. Its 12 values are generated for all 27 locale sets. The
 shell keeps all panels hidden and has no transit, search, place, navigation,
-saved-place, Wikipedia or road-event provider/history/settings/storage
+saved-place, Wikipedia, road-event or activity provider/history/settings/storage
 owner, so it cannot
 initiate provider traffic, launch an external intent, read user data or start
 location. No live place selection, route progress, navigation telemetry,
@@ -219,6 +222,27 @@ evidence remain required.
 Road-event screenshot/golden, edit dialog, font-scale, TalkBack, map selection,
 privacy storage migration, profile fetch/image, Amber/nsec signing, relay/offline
 queue, zap payment and physical-device evidence remain required.
+
+## Native activity-inbox evidence
+
+- `generate_android_activity_strings.dart` projects the 12 existing inbox ARB
+  values and integer/string placeholders into all 27 Android resource sets.
+- `NativeActivityInboxProtocol` decodes the normalized legacy Hive list-of-maps,
+  accepts only bounded verified event identities/timestamps/payloads, preserves
+  all three row types and the Flutter unknown-category fallback, sorts newest
+  first, deduplicates new events and caps storage at 100 rows.
+- `NativeActivityCursorProtocol` preserves exact zap/confirmation per-pubkey
+  key names, seeds first activation at now and advances only monotonically.
+- `NativeActivityInboxSession` fences identity/revision changes and returns
+  typed persistence writes for record/mark-read mutations without owning Hive,
+  files, relays, sockets or Android notifications.
+- `NativeActivityInboxPanel` retains logged-out, empty and ready states, unread
+  accents, localized category/body/time presentation and bounded accessible
+  scrolling; opening it requests mark-all-read through a callback only.
+
+Activity-inbox screenshot/golden, font-scale, TalkBack, encrypted native
+persistence/migration writeback, live verified relay subscriptions and
+physical-device evidence remain required.
 
 ## Non-negotiable UX invariants
 

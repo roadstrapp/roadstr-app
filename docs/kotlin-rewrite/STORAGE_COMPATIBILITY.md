@@ -129,7 +129,10 @@ Values include Hive lists/maps, strings, booleans, integers and numbers.
 items are JSON strings. Favourite JSON contains `label`, `address`, `lat` and
 `lon`; search-history JSON contains `label`, `lat` and `lon`; pending-report
 JSON contains a signed event and `expiresAt`. Activity inbox entries are Hive
-maps rather than JSON strings.
+maps rather than JSON strings. The native activity protocol now contract-locks
+their normalized list-of-maps shape, exact per-pubkey key names, 100-row cap,
+dedupe/read behavior and zap/confirmation cursors; durable encrypted native
+storage and migration writeback remain open.
 
 The production routing-time resolver now fixture-locks precedence between
 secure `routing_api_key` and legacy Hive `graphhopperApiKey`, including
