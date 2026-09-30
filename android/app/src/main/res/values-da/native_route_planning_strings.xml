@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_da.arb. Do not edit. -->
+<resources>
+    <string name="native_route_choose">Vælg rute</string>
+    <string name="native_route_cancel">Annuller</string>
+    <string name="native_route_start">Start navigation</string>
+    <string name="native_route_fastest">Hurtigste</string>
+    <string name="native_route_calculate">Beregn rute</string>
+    <string name="native_route_mode_car">Bil</string>
+    <string name="native_route_mode_bike">Cykel</string>
+    <string name="native_route_mode_walk">Til fods</string>
+    <string name="native_route_mode_transit">Offentlig</string>
+    <string name="native_route_from_hint">Fra…</string>
+    <string name="native_route_to_hint">Destination…</string>
+    <string name="native_route_stop_hint">Stop undervejs</string>
+    <string name="native_route_add_stop">Tilføj stop</string>
+    <string name="native_route_my_location">Min placering</string>
+    <string name="native_route_loading">Indlæser…</string>
+    <string name="native_route_depart_eta">Afgang %1$s  →  Ankomst %2$s</string>
+    <string name="native_route_conditions">Betingelser på ruten</string>
+    <string name="native_route_avoid_highways_tolls">Undgå motorveje og betalingsveje</string>
+    <string name="native_route_unavoidable_section">Minimerer motorveje/betaling · uundgåelig strækning</string>
+    <string name="native_route_avoid_unpaved">Undgå grusveje</string>
+    <string name="native_route_duration_min">%1$d min</string>
+    <string name="native_route_duration_hour_min">%1$dt %2$dmin</string>
+</resources>

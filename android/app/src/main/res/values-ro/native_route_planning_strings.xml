@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ro.arb. Do not edit. -->
+<resources>
+    <string name="native_route_choose">Alegeți ruta</string>
+    <string name="native_route_cancel">Anulare</string>
+    <string name="native_route_start">Pornire navigare</string>
+    <string name="native_route_fastest">Cea mai rapidă</string>
+    <string name="native_route_calculate">Calculați ruta</string>
+    <string name="native_route_mode_car">Mașină</string>
+    <string name="native_route_mode_bike">Bicicletă</string>
+    <string name="native_route_mode_walk">Pe jos</string>
+    <string name="native_route_mode_transit">Transport</string>
+    <string name="native_route_from_hint">De la…</string>
+    <string name="native_route_to_hint">Destinație…</string>
+    <string name="native_route_stop_hint">Oprire pe traseu</string>
+    <string name="native_route_add_stop">Adaugă oprire</string>
+    <string name="native_route_my_location">Locația mea</string>
+    <string name="native_route_loading">Se încarcă…</string>
+    <string name="native_route_depart_eta">Plecare %1$s  →  Sosire %2$s</string>
+    <string name="native_route_conditions">Condiții pe rută</string>
+    <string name="native_route_avoid_highways_tolls">Evită autostrăzile și taxele de drum</string>
+    <string name="native_route_unavoidable_section">Reduce autostrăzile/taxele · segment inevitabil</string>
+    <string name="native_route_avoid_unpaved">Evită drumurile de pământ</string>
+    <string name="native_route_duration_min">%1$d min</string>
+    <string name="native_route_duration_hour_min">%1$dh %2$dmin</string>
+</resources>

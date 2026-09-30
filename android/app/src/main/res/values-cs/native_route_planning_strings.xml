@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_cs.arb. Do not edit. -->
+<resources>
+    <string name="native_route_choose">Vybrat trasu</string>
+    <string name="native_route_cancel">Zrušit</string>
+    <string name="native_route_start">Spustit navigaci</string>
+    <string name="native_route_fastest">Nejrychlejší</string>
+    <string name="native_route_calculate">Vypočítat trasu</string>
+    <string name="native_route_mode_car">Auto</string>
+    <string name="native_route_mode_bike">Kolo</string>
+    <string name="native_route_mode_walk">Pěšky</string>
+    <string name="native_route_mode_transit">MHD</string>
+    <string name="native_route_from_hint">Odkud…</string>
+    <string name="native_route_to_hint">Cíl…</string>
+    <string name="native_route_stop_hint">Zastávka po cestě</string>
+    <string name="native_route_add_stop">Přidat zastávku</string>
+    <string name="native_route_my_location">Moje poloha</string>
+    <string name="native_route_loading">Načítám…</string>
+    <string name="native_route_depart_eta">Odjezd %1$s  →  Příjezd %2$s</string>
+    <string name="native_route_conditions">Podmínky na trase</string>
+    <string name="native_route_avoid_highways_tolls">Vyhnout se dálnicím a mýtnému</string>
+    <string name="native_route_unavoidable_section">Omezuje dálnice/mýtné · nevyhnutelný úsek</string>
+    <string name="native_route_avoid_unpaved">Vyhýbat se nezpevněným cestám</string>
+    <string name="native_route_duration_min">%1$d min</string>
+    <string name="native_route_duration_hour_min">%1$dh %2$dmin</string>
+</resources>

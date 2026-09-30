@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_pl.arb. Do not edit. -->
+<resources>
+    <string name="native_route_choose">Wybierz trasę</string>
+    <string name="native_route_cancel">Anuluj</string>
+    <string name="native_route_start">Rozpocznij nawigację</string>
+    <string name="native_route_fastest">Najszybsza</string>
+    <string name="native_route_calculate">Oblicz trasę</string>
+    <string name="native_route_mode_car">Auto</string>
+    <string name="native_route_mode_bike">Rower</string>
+    <string name="native_route_mode_walk">Pieszo</string>
+    <string name="native_route_mode_transit">Komunikacja</string>
+    <string name="native_route_from_hint">Skąd…</string>
+    <string name="native_route_to_hint">Cel…</string>
+    <string name="native_route_stop_hint">Przystanek po drodze</string>
+    <string name="native_route_add_stop">Dodaj przystanek</string>
+    <string name="native_route_my_location">Moja lokalizacja</string>
+    <string name="native_route_loading">Ładowanie…</string>
+    <string name="native_route_depart_eta">Odjazd %1$s  →  Przybycie %2$s</string>
+    <string name="native_route_conditions">Warunki na trasie</string>
+    <string name="native_route_avoid_highways_tolls">Unikaj autostrad i dróg płatnych</string>
+    <string name="native_route_unavoidable_section">Ogranicza autostrady/opłaty · nieunikniony odcinek</string>
+    <string name="native_route_avoid_unpaved">Unikaj dróg gruntowych</string>
+    <string name="native_route_duration_min">%1$d min</string>
+    <string name="native_route_duration_hour_min">%1$dh %2$dmin</string>
+</resources>

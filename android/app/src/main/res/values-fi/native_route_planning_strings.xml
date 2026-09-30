@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_fi.arb. Do not edit. -->
+<resources>
+    <string name="native_route_choose">Valitse reitti</string>
+    <string name="native_route_cancel">Peruuta</string>
+    <string name="native_route_start">Aloita navigointi</string>
+    <string name="native_route_fastest">Nopein</string>
+    <string name="native_route_calculate">Laske reitti</string>
+    <string name="native_route_mode_car">Auto</string>
+    <string name="native_route_mode_bike">Pyörä</string>
+    <string name="native_route_mode_walk">Kävellen</string>
+    <string name="native_route_mode_transit">Joukkoliikenne</string>
+    <string name="native_route_from_hint">Lähtöpiste…</string>
+    <string name="native_route_to_hint">Määränpää…</string>
+    <string name="native_route_stop_hint">Pysähdys matkan varrella</string>
+    <string name="native_route_add_stop">Lisää pysähdys</string>
+    <string name="native_route_my_location">Sijaintini</string>
+    <string name="native_route_loading">Ladataan…</string>
+    <string name="native_route_depart_eta">Lähtö %1$s  →  Saapuminen %2$s</string>
+    <string name="native_route_conditions">Olosuhteet reitillä</string>
+    <string name="native_route_avoid_highways_tolls">Vältä moottoriteitä ja tietulleja</string>
+    <string name="native_route_unavoidable_section">Minimoi moottoritiet/tietullit · väistämätön osuus</string>
+    <string name="native_route_avoid_unpaved">Vältä sorateitä</string>
+    <string name="native_route_duration_min">%1$d min</string>
+    <string name="native_route_duration_hour_min">%1$dh %2$dmin</string>
+</resources>

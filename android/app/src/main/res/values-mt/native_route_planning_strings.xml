@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_mt.arb. Do not edit. -->
+<resources>
+    <string name="native_route_choose">Agħżel rotta</string>
+    <string name="native_route_cancel">Ikkanċella</string>
+    <string name="native_route_start">Ibda n-navigazzjoni</string>
+    <string name="native_route_fastest">L-aktar mgħaġġel</string>
+    <string name="native_route_calculate">Ikkalkola r-rotta</string>
+    <string name="native_route_mode_car">Karozza</string>
+    <string name="native_route_mode_bike">Rota</string>
+    <string name="native_route_mode_walk">Bil-mixi</string>
+    <string name="native_route_mode_transit">Trasport</string>
+    <string name="native_route_from_hint">Minn…</string>
+    <string name="native_route_to_hint">Destinazzjoni…</string>
+    <string name="native_route_stop_hint">Waqfa fit-triq</string>
+    <string name="native_route_add_stop">Żid waqfa</string>
+    <string name="native_route_my_location">Il-pożizzjoni tiegħi</string>
+    <string name="native_route_loading">Qed jitgħabba…</string>
+    <string name="native_route_depart_eta">Tluq %1$s  →  Wasla %2$s</string>
+    <string name="native_route_conditions">Kundizzjonijiet fuq ir-rotta</string>
+    <string name="native_route_avoid_highways_tolls">Evita awtostradi u toroq bi ħlas</string>
+    <string name="native_route_unavoidable_section">Inaqqas awtostradi/toroq bi ħlas · parti inevitabbli</string>
+    <string name="native_route_avoid_unpaved">Evita toroq mhux asfaltati</string>
+    <string name="native_route_duration_min">%1$d min</string>
+    <string name="native_route_duration_hour_min">%1$dh %2$dmin</string>
+</resources>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_es.arb. Do not edit. -->
+<resources>
+    <string name="native_route_choose">Elegir ruta</string>
+    <string name="native_route_cancel">Cancelar</string>
+    <string name="native_route_start">Iniciar navegación</string>
+    <string name="native_route_fastest">Más rápida</string>
+    <string name="native_route_calculate">Calcular ruta</string>
+    <string name="native_route_mode_car">Coche</string>
+    <string name="native_route_mode_bike">Bici</string>
+    <string name="native_route_mode_walk">A pie</string>
+    <string name="native_route_mode_transit">Transporte</string>
+    <string name="native_route_from_hint">Desde…</string>
+    <string name="native_route_to_hint">Destino…</string>
+    <string name="native_route_stop_hint">Parada intermedia</string>
+    <string name="native_route_add_stop">Añadir parada</string>
+    <string name="native_route_my_location">Mi ubicación</string>
+    <string name="native_route_loading">Cargando…</string>
+    <string name="native_route_depart_eta">Salida %1$s  →  Llegada %2$s</string>
+    <string name="native_route_conditions">Condiciones en la ruta</string>
+    <string name="native_route_avoid_highways_tolls">Evitar autopistas y peajes</string>
+    <string name="native_route_unavoidable_section">Minimiza autopistas/peajes · tramo inevitable</string>
+    <string name="native_route_avoid_unpaved">Evitar caminos sin asfaltar</string>
+    <string name="native_route_duration_min">%1$d min</string>
+    <string name="native_route_duration_hour_min">%1$dh %2$dmin</string>
+</resources>

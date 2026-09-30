@@ -47,6 +47,8 @@ import app.roadstr.feature.place.NativePlaceDetailsPanel
 import app.roadstr.feature.place.NativePlaceSession
 import app.roadstr.feature.report.NativeRoadEventPanels
 import app.roadstr.feature.report.NativeRoadEventSession
+import app.roadstr.feature.route.NativeRoutePlanningPanel
+import app.roadstr.feature.route.NativeRoutePlanningSession
 import app.roadstr.feature.saved.NativeSavedPlacesPanel
 import app.roadstr.feature.saved.NativeSavedPlacesSession
 import app.roadstr.feature.search.NativeSearchOverlay
@@ -77,6 +79,10 @@ fun NativeRoadstrShell() {
         val shellDescription = stringResource(R.string.native_shell_description)
         val palette = RoadstrThemeTokens.palette(themeId)
         val routeSession = remember { NativeRouteOverlaySession(themeId.accentArgb) }
+        val routePlanningSession = remember(routeSession) {
+            NativeRoutePlanningSession(routeSession)
+        }
+        val routePlanningState by routePlanningSession.state.collectAsState()
         LaunchedEffect(routeSession, themeId.accentArgb) {
             routeSession.updateAccent(themeId.accentArgb)
         }
@@ -152,10 +158,17 @@ fun NativeRoadstrShell() {
                     onCameraGesture = cameraSession::onUserGesture,
                     onMapInteraction = { interaction ->
                         if (interaction is NativeMapInteraction.MapTap) {
-                            routeSession.selectAlternativeAt(
-                                revision = routeSession.state.value.revision,
-                                tap = interaction.point,
-                            )
+                            if (
+                                !routePlanningSession.selectAlternativeAt(
+                                    revision = routePlanningState.revision,
+                                    point = interaction.point,
+                                )
+                            ) {
+                                routeSession.selectAlternativeAt(
+                                    revision = routeSession.state.value.revision,
+                                    tap = interaction.point,
+                                )
+                            }
                         }
                     },
                     modifier = Modifier.fillMaxSize(),
@@ -195,6 +208,53 @@ fun NativeRoadstrShell() {
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .padding(12.dp),
+                )
+                NativeRoutePlanningPanel(
+                    snapshot = routePlanningState,
+                    onOriginChanged = { value ->
+                        routePlanningSession.updateOrigin(routePlanningState.revision, value)
+                    },
+                    onUseMyLocation = {},
+                    onStopChanged = { index, value ->
+                        routePlanningSession.updateStop(routePlanningState.revision, index, value)
+                    },
+                    onAddStop = {
+                        routePlanningSession.addStop(routePlanningState.revision)
+                    },
+                    onRemoveStop = { index ->
+                        routePlanningSession.removeStop(routePlanningState.revision, index)
+                    },
+                    onMoveStop = { fromIndex, toIndex ->
+                        routePlanningSession.reorderStop(
+                            routePlanningState.revision,
+                            fromIndex,
+                            toIndex,
+                        )
+                    },
+                    onModeChanged = { mode ->
+                        routePlanningSession.selectMode(routePlanningState.revision, mode)
+                    },
+                    onCalculate = {},
+                    onSelectAlternative = { index ->
+                        routePlanningSession.selectAlternative(routePlanningState.revision, index)
+                    },
+                    onAvoidanceChanged = { enabled ->
+                        routePlanningSession.setAvoidanceState(
+                            routePlanningState.revision,
+                            enabled,
+                            loading = false,
+                        )
+                    },
+                    onConfirm = {
+                        routePlanningSession.confirmSelection(routePlanningState.revision)
+                    },
+                    onStart = {},
+                    onCancel = {
+                        if (routePlanningState.revision >= 0) {
+                            routePlanningSession.hide(routePlanningState.revision)
+                        }
+                    },
+                    modifier = Modifier.align(Alignment.BottomCenter),
                 )
                 NativeTransitItinerariesPanel(
                     snapshot = transitUiState,

@@ -97,6 +97,13 @@ Flutter is still the only launcher and production UI.
   packages the deliberately silent accessible inbox with 12 values generated
   from every ARB file; it owns no Hive, file, relay, socket, sound, banner or
   Android-notification adapter.
+  `feature/route/NativeRoutePlanningPresentation.kt` adds revision-fenced
+  planner/loading/alternatives/preview state, one-to-five stable ordered stops,
+  four transport modes, Flutter-compatible duration/unit and avoidance badges,
+  bounded route conditions and synchronized card/MapLibre selection.
+  `NativeRoutePlanningPanel.kt` packages the dormant accessible planner and
+  bottom sheets with 22 values generated from every ARB file; it owns no
+  geocoder, router, GPS, weather, road-event, settings or navigation runtime.
   Style generations prevent stale reattachment;
   `NativeRouteOverlaySession.kt` adds a revision-safe StateFlow projector for
   normalized route geometry, bounded alternative selection/commit, monotonic
@@ -115,11 +122,11 @@ Flutter is still the only launcher and production UI.
   `NativeMapInteraction.kt` adds typed click/long-click values, projected
   road-event hit priority and Flutter's strict rounded-Vincenty 60 m route-
   alternative selection; product sheets and service caches remain detached. The
-  private shell collects empty route, transit, search, place, navigation,
+  private shell collects empty route, route-planning, transit, search, place, navigation,
   saved-place, Wikipedia, road-event, activity, camera, cursor and point-overlay state and packages all product panels in
   their hidden states. It deliberately does not invoke transit/search/place or
   navigation services, submit provider results, begin a query/place load or
-  show/update the HUD or saved-place/activity panel, open Wikipedia or show/submit a road event; it has no product route, provider, storage,
+  show/update the HUD or route/saved-place/activity panel, open Wikipedia or show/submit a road event; it has no product route, provider, storage,
   intent-launcher or GPS feed.
 - `LegacyStorageContract.kt` records the audited Hive/secure-storage names and
   dynamic per-identity key prefixes.

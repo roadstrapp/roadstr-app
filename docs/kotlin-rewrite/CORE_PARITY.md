@@ -34,6 +34,7 @@ integration work, while Flutter remains the sole launcher.
 | `feature.wikipedia` | `wikipedia_webview_screen.dart`, 27 ARB files | exact HTTPS language-host/article-path admission, main-frame-only navigation, revision-safe progress/failure/retry state and a dormant restricted native WebView reader with generated locale resources and ephemeral browser state |
 | `feature.report` | `road_event.dart`, `road_event_sheets.dart`, map screens, 27 ARB files | bounded detail/privacy/composer projection for all 14 wire categories, exact expiry/age/comment/speed/unit rules, owner edit suggestions, revision-safe single-flight submission state and accessible dormant Compose surfaces with generated locale resources |
 | `feature.activity` | `activity_notification.dart`, `activity_notification_service.dart`, `notifications_screen.dart`, 27 ARB files | bounded normalized-Hive map codec, exact per-pubkey inbox/cursor keys, newest-first 100-row dedupe/read state, monotonic cursor policy and an accessible deliberately silent dormant Compose inbox with generated locale resources |
+| `feature.route` | `route_panels.dart`, routing response/avoidance models, 27 ARB files | bounded planner/loading/alternatives/preview state, one-to-five stable ordered stops, four modes, Flutter duration/unit and avoidance-badge projection, revision-safe card/MapLibre selection and accessible dormant Compose panels with generated locale resources |
 | `core.ui` / `feature.home` | `app_theme.dart`, Flutter Android embedding | exact four-palette colors and stored ordinal aliases, edge-to-edge private Compose/MapLibre canary, non-exported/no-intent-filter shell contract; no production startup or storage access |
 | `storage` | encrypted Hive search history | canonical encrypted history file, serialized prepend/clear/import, atomic recovery, Keystore boundary and migration-marker ciphertext binding |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
@@ -342,7 +343,13 @@ detached from secure storage and startup. See
   cursors, and packages logged-out, empty and ready states without ever posting
   an Android notification, sound or banner. Its 12 values are generated for
   all 27 locales.
-  The shell supplies empty route, transit, search, place, navigation,
+  A ninth route-planning slice preserves planner/loading/alternatives/preview
+  transitions, one to five stable ordered stops, four transport modes, exact
+  duration/unit and avoidance-badge projection, bounded route conditions and
+  revision-safe card/MapLibre selection. Its 22 values are generated for all
+  27 locales, while geocoding, routing, GPS, weather and event feeds remain
+  detached.
+  The shell supplies empty route, route-planning, transit, search, place, navigation,
   saved-place, Wikipedia, road-event, activity, camera, cursor and point feeds and
   has no location component or production route/transit/search/place/
   navigation/saved-place/Wikipedia/road-event/activity feed; native provider
@@ -367,7 +374,7 @@ detached from secure storage and startup. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 724 Flutter tests passed, including the native shell,
+- `flutter test`: 728 Flutter tests passed, including the native shell,
   private MapLibre host, route-overlay, route-session, transit-overlay/session, camera-session and
   user-cursor, point-overlay/interaction and route-traffic Gradle/source contracts, the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
@@ -386,7 +393,9 @@ detached from secure storage and startup. See
   dormant-ownership contracts, plus the road-event locale, Flutter-oracle,
   accessible-panel and dormant-ownership contracts, plus the activity-inbox
   locale, storage/cursor oracle, silent-panel and dormant-ownership contracts.
-- `./gradlew :app:testDebugUnitTest`: 441 Kotlin tests passed, including the
+  The route-planning contracts additionally lock the 22-value locale catalogue,
+  Flutter route-panel vocabulary, accessibility bounds and dormant ownership.
+- `./gradlew :app:testDebugUnitTest`: 457 Kotlin tests passed, including the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
   GeoJSON, Flutter-compatible route and per-leg transit metrics/colors,
@@ -396,6 +405,8 @@ detached from secure storage and startup. See
   and revision-safe camera follow, user-cursor fencing/visual policy and
   bounded point-overlay ordering/zoom/catalogue policy, projected road-event
   hit priority and strict 60 m alternative tap selection,
+  route-planning formatting, badge priority, ordered-stop bounds, request
+  fencing, synchronized card/map selection and preview commit,
   dead reckoning, recenter and gesture-detachment behavior,
   and the
   Nostr byte/queue/inbound/ingress/NIP-19/BIP-340/NIP-04/NIP-44/NIP-78,

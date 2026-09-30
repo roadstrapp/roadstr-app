@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_zh.arb. Do not edit. -->
+<resources>
+    <string name="native_route_choose">选择路线</string>
+    <string name="native_route_cancel">取消</string>
+    <string name="native_route_start">开始导航</string>
+    <string name="native_route_fastest">最快</string>
+    <string name="native_route_calculate">计算路线</string>
+    <string name="native_route_mode_car">轿车</string>
+    <string name="native_route_mode_bike">自行车</string>
+    <string name="native_route_mode_walk">步行</string>
+    <string name="native_route_mode_transit">公共交通</string>
+    <string name="native_route_from_hint">从…</string>
+    <string name="native_route_to_hint">目的地…</string>
+    <string name="native_route_stop_hint">途经点</string>
+    <string name="native_route_add_stop">添加途经点</string>
+    <string name="native_route_my_location">我的位置</string>
+    <string name="native_route_loading">加载中…</string>
+    <string name="native_route_depart_eta">出发 %1$s  →  预计到达 %2$s</string>
+    <string name="native_route_conditions">路线状况</string>
+    <string name="native_route_avoid_highways_tolls">避开高速公路和收费道路</string>
+    <string name="native_route_unavoidable_section">尽量减少高速/收费道路 · 含无法避开的路段</string>
+    <string name="native_route_avoid_unpaved">避开非铺装道路</string>
+    <string name="native_route_duration_min">%1$d分钟</string>
+    <string name="native_route_duration_hour_min">%1$d小时%2$d分</string>
+</resources>

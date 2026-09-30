@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_sv.arb. Do not edit. -->
+<resources>
+    <string name="native_route_choose">Välj rutt</string>
+    <string name="native_route_cancel">Avbryt</string>
+    <string name="native_route_start">Starta navigering</string>
+    <string name="native_route_fastest">Snabbaste</string>
+    <string name="native_route_calculate">Beräkna rutt</string>
+    <string name="native_route_mode_car">Bil</string>
+    <string name="native_route_mode_bike">Cykel</string>
+    <string name="native_route_mode_walk">Till fots</string>
+    <string name="native_route_mode_transit">Kollektivt</string>
+    <string name="native_route_from_hint">Från…</string>
+    <string name="native_route_to_hint">Destination…</string>
+    <string name="native_route_stop_hint">Stopp på vägen</string>
+    <string name="native_route_add_stop">Lägg till stopp</string>
+    <string name="native_route_my_location">Min plats</string>
+    <string name="native_route_loading">Laddar…</string>
+    <string name="native_route_depart_eta">Avresa %1$s  →  Ankomst %2$s</string>
+    <string name="native_route_conditions">Förhållanden på rutten</string>
+    <string name="native_route_avoid_highways_tolls">Undvik motorvägar och vägtullar</string>
+    <string name="native_route_unavoidable_section">Minimerar motorvägar/vägtullar · oundviklig sträcka</string>
+    <string name="native_route_avoid_unpaved">Undvik grusvägar</string>
+    <string name="native_route_duration_min">%1$d min</string>
+    <string name="native_route_duration_hour_min">%1$dh %2$dmin</string>
+</resources>
