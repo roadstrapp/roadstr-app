@@ -30,6 +30,7 @@ integration work, while Flutter remains the sole launcher.
 | `feature.place` | `place_info_panel.dart`, `poi_search_service.dart`, `opening_hours.dart`, 27 ARB files | bounded localized OSM detail parsing, safe contacts/URLs, contextual parking/charging/fuel/lodging/food fields, opening-hours projection, revision-safe loading/ready/hidden state and an accessible dormant Compose sheet with generated locale resources |
 | `feature.transit` | `transit_itinerary_widget.dart`, `transit_itinerary.dart`, `units.dart`, 27 ARB files | bounded card projection, metric/imperial formatting, boarding/line/timetable details, revision-safe UI/map selection, loading/ready/no-service/failure states and an accessible dormant Compose panel with generated locale resources |
 | `feature.navigation` | `lib/widgets/nav`, `speedometer_widget.dart`, `units.dart`, 27 ARB files | bounded live/fallback HUD projection, all 21 manoeuvre families, vector symbols, five persisted speedometer styles, speed/limit/altitude/distance/duration/ETA summaries, revision-safe step progression and an adaptive accessible dormant Compose overlay with generated locale resources |
+| `feature.saved` | `favorite_place.dart`, map/settings screens, 27 ARB files | exact bounded legacy/import favourite shapes, label-based merge, parking decode/encode and marker projection, revision-safe add/edit/delete/import/parking state and an accessible dormant Compose sheet with generated locale resources |
 | `core.ui` / `feature.home` | `app_theme.dart`, Flutter Android embedding | exact four-palette colors and stored ordinal aliases, edge-to-edge private Compose/MapLibre canary, non-exported/no-intent-filter shell contract; no production startup or storage access |
 | `storage` | encrypted Hive search history | canonical encrypted history file, serialized prepend/clear/import, atomic recovery, Keystore boundary and migration-marker ciphertext binding |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
@@ -315,9 +316,16 @@ detached from secure storage and startup. See
   vector symbols, five persisted speedometer styles and bounded speed, limit,
   altitude, distance, duration and ETA summaries. Its 13 visible values are
   generated for all 27 locales, and backward step or stale revision updates
-  fail closed. The shell supplies empty route, transit, search, place,
-  navigation, camera, cursor and point feeds and has no location component or
-  production route/transit/search/place/navigation feed; native provider
+  fail closed. A fifth saved-place session decodes and re-encodes Flutter's
+  list-of-JSON-strings favourites and `parking_position`, bounds direct import
+  and encrypted-envelope metadata, preserves exact label merge and projects
+  saved parking through the existing blue marker. Its dormant Compose sheet
+  exposes add/edit/delete/import/export and parking callbacks using nine values
+  generated for all 27 locales, while owning no picker, password crypto,
+  persistence, sync or route adapter. The shell supplies empty route, transit,
+  search, place, navigation, saved-place, camera, cursor and point feeds and
+  has no location component or production route/transit/search/place/
+  navigation/saved-place feed; native provider
   services are intentionally not invoked and all product panels therefore
   remain hidden. Live data/product handlers, external intents, screenshots and
   physical-device evidence remain open.
@@ -339,7 +347,7 @@ detached from secure storage and startup. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 708 Flutter tests passed, including the native shell,
+- `flutter test`: 712 Flutter tests passed, including the native shell,
   private MapLibre host, route-overlay, route-session, transit-overlay/session, camera-session and
   user-cursor, point-overlay/interaction and route-traffic Gradle/source contracts, the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
@@ -352,8 +360,10 @@ detached from secure storage and startup. See
   compile-time rollout, best-effort retry, serialized ownership lifecycle and
   service reconciliation, plus the bounded notification bridge and
   native-before-Flutter update/cancel ordering, and the navigation-HUD locale,
-  manoeuvre, accessibility/vector and dormant-ownership contracts.
-- `./gradlew :app:testDebugUnitTest`: 391 Kotlin tests passed, including the
+  manoeuvre, accessibility/vector and dormant-ownership contracts, plus the
+  saved-place locale, legacy/import shape, accessibility and dormant-ownership
+  contracts.
+- `./gradlew :app:testDebugUnitTest`: 403 Kotlin tests passed, including the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
   GeoJSON, Flutter-compatible route and per-leg transit metrics/colors,
@@ -380,6 +390,8 @@ detached from secure storage and startup. See
   place fields, opening-hours presentation and revision-safe dormant place
   sheet state, plus navigation-HUD manoeuvre/roundabout projection, live and
   fallback summaries, five speedometer styles and revision/step fencing, plus
+  bounded favourite legacy/import parsing, exact label merge, parking codec/
+  marker projection and revision-safe saved-place mutations, plus
   the
   headless AOSP GPS normalization, last-known, watchdog and cancellation suite,
   plus the native map style, tile safety, route segmentation, marker-culling,

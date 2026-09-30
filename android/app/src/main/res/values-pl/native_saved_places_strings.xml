@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_pl.arb. Do not edit. -->
+<resources>
+    <string name="native_saved_title">Zapisane miejsca</string>
+    <string name="native_saved_add">Dodaj miejsce</string>
+    <string name="native_saved_export">Eksportuj ulubione</string>
+    <string name="native_saved_import">Importuj ulubione</string>
+    <string name="native_saved_imported">Zaimportowano %1$d ulubionych</string>
+    <string name="native_saved_parking_title">Miejsce parkingowe</string>
+    <string name="native_saved_parking_navigate">Nawiguj do parkingu</string>
+    <string name="native_saved_parking_remove">Usuń parkowanie</string>
+    <string name="native_saved_close">Zamknij</string>
+</resources>

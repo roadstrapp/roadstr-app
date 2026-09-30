@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_sv.arb. Do not edit. -->
+<resources>
+    <string name="native_saved_title">Sparade platser</string>
+    <string name="native_saved_add">Lägg till plats</string>
+    <string name="native_saved_export">Exportera favoriter</string>
+    <string name="native_saved_import">Importera favoriter</string>
+    <string name="native_saved_imported">%1$d favoriter importerade</string>
+    <string name="native_saved_parking_title">Parkeringsplats</string>
+    <string name="native_saved_parking_navigate">Navigera till parkeringen</string>
+    <string name="native_saved_parking_remove">Ta bort parkering</string>
+    <string name="native_saved_close">Stäng</string>
+</resources>

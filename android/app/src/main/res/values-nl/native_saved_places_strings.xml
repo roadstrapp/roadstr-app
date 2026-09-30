@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_nl.arb. Do not edit. -->
+<resources>
+    <string name="native_saved_title">Opgeslagen plaatsen</string>
+    <string name="native_saved_add">Plaats toevoegen</string>
+    <string name="native_saved_export">Favorieten exporteren</string>
+    <string name="native_saved_import">Favorieten importeren</string>
+    <string name="native_saved_imported">%1$d favorieten geïmporteerd</string>
+    <string name="native_saved_parking_title">Parkeerplek</string>
+    <string name="native_saved_parking_navigate">Navigeer naar parkeerplek</string>
+    <string name="native_saved_parking_remove">Parkeerplek verwijderen</string>
+    <string name="native_saved_close">Sluiten</string>
+</resources>

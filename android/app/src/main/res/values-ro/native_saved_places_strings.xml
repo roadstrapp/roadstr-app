@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ro.arb. Do not edit. -->
+<resources>
+    <string name="native_saved_title">Locuri salvate</string>
+    <string name="native_saved_add">Adaugă loc</string>
+    <string name="native_saved_export">Exportă favoritele</string>
+    <string name="native_saved_import">Importă favoritele</string>
+    <string name="native_saved_imported">%1$d favorite importate</string>
+    <string name="native_saved_parking_title">Loc de parcare</string>
+    <string name="native_saved_parking_navigate">Navighează la parcare</string>
+    <string name="native_saved_parking_remove">Elimină parcarea</string>
+    <string name="native_saved_close">Închide</string>
+</resources>

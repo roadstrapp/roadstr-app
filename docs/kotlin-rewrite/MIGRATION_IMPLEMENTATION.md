@@ -66,6 +66,14 @@ Flutter is still the only launcher and production UI.
   voice/settings/stop controls and explicit accessibility semantics. Its 13
   values are generated from all 27 ARB files; the slice owns no GPS, routing
   provider, settings store or external side effect.
+  `feature/saved/NativeSavedPlacesPresentation.kt` adds bounded typed parsing
+  for Flutter's favourite list-of-JSON-strings storage, direct import payloads,
+  encrypted-envelope metadata and `parking_position`, together with exact
+  label merge, the existing parking-marker projection and revision-safe add/
+  edit/delete/import/parking state. `NativeSavedPlacesPanel.kt` packages the
+  saved-place list plus add/import/export and parking navigate/remove callbacks
+  with nine values generated from every ARB file. It owns no storage, picker,
+  password crypto, sync, route or external intent adapter.
   Style generations prevent stale reattachment;
   `NativeRouteOverlaySession.kt` adds a revision-safe StateFlow projector for
   normalized route geometry, bounded alternative selection/commit, monotonic
@@ -85,10 +93,10 @@ Flutter is still the only launcher and production UI.
   road-event hit priority and Flutter's strict rounded-Vincenty 60 m route-
   alternative selection; product sheets and service caches remain detached. The
   private shell collects empty route, transit, search, place, navigation,
-  camera, cursor and point-overlay state and packages all product panels in
+  saved-place, camera, cursor and point-overlay state and packages all product panels in
   their hidden states. It deliberately does not invoke transit/search/place or
   navigation services, submit provider results, begin a query/place load or
-  show/update the HUD; it has no product route, provider, storage,
+  show/update the HUD or saved-place panel; it has no product route, provider, storage,
   intent-launcher or GPS feed.
 - `LegacyStorageContract.kt` records the audited Hive/secure-storage names and
   dynamic per-identity key prefixes.

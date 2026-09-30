@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_mt.arb. Do not edit. -->
+<resources>
+    <string name="native_saved_title">Postijiet miftuħin</string>
+    <string name="native_saved_add">Żid post</string>
+    <string name="native_saved_export">Esporta l-favoriti</string>
+    <string name="native_saved_import">Importa l-favoriti</string>
+    <string name="native_saved_imported">%1$d favoriti importati</string>
+    <string name="native_saved_parking_title">Post tal-parkeġġ</string>
+    <string name="native_saved_parking_navigate">Innaviga lejn il-parkeġġ</string>
+    <string name="native_saved_parking_remove">Neħħi l-parkeġġ</string>
+    <string name="native_saved_close">Agħlaq</string>
+</resources>
