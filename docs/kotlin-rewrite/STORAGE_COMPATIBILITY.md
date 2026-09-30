@@ -134,6 +134,13 @@ their normalized list-of-maps shape, exact per-pubkey key names, 100-row cap,
 dedupe/read behavior and zap/confirmation cursors; durable encrypted native
 storage and migration writeback remain open.
 
+The dormant native settings slice now contract-locks the scalar keys above,
+their Flutter defaults and their persisted wire shapes. Mutations produce typed
+write intents only: the shell supplies no Hive/native-preference owner, and API
+keys, NWC URIs and sync passphrases never enter the presentation model. Native
+durable writeback, secure-value dialogs and installed-app migration evidence
+therefore remain open gates.
+
 The production routing-time resolver now fixture-locks precedence between
 secure `routing_api_key` and legacy Hive `graphhopperApiKey`, including
 write-before-delete migration and failure retention. This does not prove access

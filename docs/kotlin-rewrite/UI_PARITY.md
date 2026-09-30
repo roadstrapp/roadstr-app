@@ -89,10 +89,16 @@ for all 27 locale sets. A tenth slice packages profile loading, disconnected,
 own and remote states with Amber/nsec choices, strict npub projection,
 pseudonymous metadata suppression, visibility, reputation, zap balance and a
 bounded newest-first report list. Its 30 values are generated for all 27 locale
-sets. The shell keeps all panels hidden and has no transit,
-search, place, route-planning, navigation, saved-place, Wikipedia, road-event,
-activity or profile provider/history/identity/signer/wallet/settings/storage
-owner, so it cannot
+sets. An eleventh slice packages the complete settings hierarchy: four themes,
+system plus 27 language choices, map and routing controls, five speedometers,
+seven cursor styles and colors, search, Lightning/NWC, saved-place/sync, voice
+and information actions. Scalar mutations are typed and revision-safe, text and
+sliders are bounded, and secrets are represented only by configured booleans.
+Its 118 values are generated for all 27 locale sets with the same English
+fallback used by Flutter for newer missing ARB entries. The shell keeps all
+panels hidden and has no transit, search, place, route-planning, navigation,
+saved-place, Wikipedia, road-event, activity, profile or settings provider/
+history/identity/signer/wallet/preferences/secure-storage owner, so it cannot
 initiate provider traffic, launch an external intent, read user data or start
 location. No live place selection, route progress, navigation telemetry,
 remote image, drag gesture or long-press product handler is connected. This
@@ -290,6 +296,26 @@ physical-device evidence remain required.
 Route-planning screenshot/golden, drag-to-dismiss/reorder behavior, IME and
 focus comparison, live geocoder/router/weather/event ownership, font-scale,
 TalkBack and physical-device evidence remain required.
+
+## Native settings evidence
+
+- `generate_android_settings_strings.dart` projects 118 settings values into
+  all 27 Android resource sets, using the English ARB value only where Flutter
+  locales do not yet define a newer key, with deterministic no-drift checking.
+- `NativeSettingsPresenter` preserves exact scalar defaults and persisted wire
+  catalogues, bounds URLs/relay summaries and voice/brightness values, and
+  exposes only configured state for routing, wallet and sync secrets.
+- `NativeSettingsSession` fences stale revisions and returns typed persistence
+  writes without owning Hive, DataStore, Keystore, routing, sync, files, model
+  downloads, intents or clipboard.
+- `NativeSettingsPanel` retains the existing section order and controls with
+  bounded scrolling, 48 dp targets, headings, pane/live-region semantics and
+  typed callbacks only.
+
+Settings screenshot/golden, font-scale, TalkBack, secure-value dialogs, native
+persistence/migration writeback, provider verification, saved-place file/sync,
+voice model/download, external-link and physical-device evidence remain
+required.
 
 ## Non-negotiable UX invariants
 

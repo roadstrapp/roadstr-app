@@ -271,6 +271,11 @@ debug-host selection check.
   strict-60-metre map/card selection and preview commit. Four Dart UI contracts
   lock its 22-value/27-locale resources, accessible panels and dormant shell
   ownership.
+- Fifteen settings JVM cases lock exact Flutter keys/defaults, theme/language/
+  provider/cursor catalogues, bounded text and sliders, configured-secret
+  summaries, typed persistence writes and revision fencing. Four Dart UI
+  contracts lock its 118-value/27-locale resources, accessible callback-only
+  surface, secret hygiene and dormant shell ownership.
 - Twenty-four Dart contracts lock the strict Gradle version, lifecycle-compose
   dependency, real `MapView`/style/texture-mode binding, absence of a location
   component, selected/muted route source/layer constants, route-choice/progress
@@ -278,7 +283,7 @@ debug-host selection check.
   and ownership by the private shell, plus the Flutter camera oracle
   and MapLibre command wiring, cursor geometry, point-overlay/transit parity and
   dormant ownership.
-- The complete verification run passes 732 Flutter tests, 472 Kotlin tests,
+- The complete verification run passes 736 Flutter tests, 487 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 
@@ -286,8 +291,10 @@ debug-host selection check.
 
 - physical-device launch, renderer output and network/tile evidence;
 - screenshot/golden comparison in light/dark themes and compact/landscape UI;
-- live route/route-planning/traffic/transit/search/place/navigation/saved-place/Wikipedia/road-event/activity/profile/source/point update,
-  navigation telemetry/settings, search storage,
+- live route/route-planning/traffic/transit/search/place/navigation/saved-place/Wikipedia/road-event/activity/profile/settings/source/point update,
+  navigation telemetry/settings, search storage, native preference persistence,
+  secure-value dialogs, routing verification, voice-model/download and settings
+  import/export/sync/link effects,
   favourite/parking persistence, picker/crypto/sync/routing, Wikipedia intent/
   redirect/TLS integration, road-event privacy/signer/relay/queue/zap,
   activity encrypted persistence/migration writeback/verified relay feed,
