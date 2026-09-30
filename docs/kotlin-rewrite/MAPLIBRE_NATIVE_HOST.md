@@ -110,7 +110,10 @@ service ownership remains detached. A separate revision-safe Compose search
 overlay is also packaged with bounded provider/favorite/history rows and the
 Flutter nearby catalogue. It starts hidden and the shell owns neither a search
 service nor a history store, so no query, user-data read or location request is
-possible from this integration boundary.
+possible from this integration boundary. The dormant route-planning session
+now coordinates its alternative cards with the same route overlay, including
+strict-60-metre map taps and commit to one active route. Planner, router,
+geocoder, GPS, weather and event feeds remain absent from the shell.
 
 ## Camera follow boundary
 
@@ -172,7 +175,9 @@ actions carry both the bounded ID and cache revision so a future screen can
 reject stale detail requests.
 
 Ordinary map taps can select a route preview through
-`NativeRouteOverlaySession.selectAlternativeAt`. The scan deliberately matches
+`NativeRoutePlanningSession.selectAlternativeAt`, which delegates to
+`NativeRouteOverlaySession.selectAlternativeAt` and republishes the selected
+card. The scan deliberately matches
 Flutter: candidate vertices are visited in route order, equal distances keep
 the first candidate, `latlong2`'s rounded WGS-84 Vincenty distance is used and
 the gate is strictly below 60 m. Click and long-click listeners are removed on
@@ -261,6 +266,11 @@ debug-host selection check.
   per-pubkey inbox/cursor names, ordering/dedupe/read state, monotonic cursors
   and revision fencing. Four Dart UI contracts lock its 12-value/27-locale
   resources, silent accessible panel and dormant ownership.
+- Sixteen route-planning JVM cases lock four modes, one-to-five ordered stops,
+  Flutter duration/unit and avoidance-badge projection, request fencing,
+  strict-60-metre map/card selection and preview commit. Four Dart UI contracts
+  lock its 22-value/27-locale resources, accessible panels and dormant shell
+  ownership.
 - Twenty-four Dart contracts lock the strict Gradle version, lifecycle-compose
   dependency, real `MapView`/style/texture-mode binding, absence of a location
   component, selected/muted route source/layer constants, route-choice/progress
@@ -268,7 +278,7 @@ debug-host selection check.
   and ownership by the private shell, plus the Flutter camera oracle
   and MapLibre command wiring, cursor geometry, point-overlay/transit parity and
   dormant ownership.
-- The complete verification run passes 724 Flutter tests, 441 Kotlin tests,
+- The complete verification run passes 728 Flutter tests, 457 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 
@@ -276,7 +286,7 @@ debug-host selection check.
 
 - physical-device launch, renderer output and network/tile evidence;
 - screenshot/golden comparison in light/dark themes and compact/landscape UI;
-- live route/traffic/transit/search/place/navigation/saved-place/Wikipedia/road-event/activity/source/point update,
+- live route/route-planning/traffic/transit/search/place/navigation/saved-place/Wikipedia/road-event/activity/source/point update,
   navigation telemetry/settings, search storage,
   favourite/parking persistence, picker/crypto/sync/routing, Wikipedia intent/
   redirect/TLS integration, road-event privacy/profile/signer/relay/queue/zap,

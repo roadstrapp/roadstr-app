@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_hr.arb. Do not edit. -->
+<resources>
+    <string name="native_route_choose">Odaberi rutu</string>
+    <string name="native_route_cancel">Odustani</string>
+    <string name="native_route_start">Pokreni navigaciju</string>
+    <string name="native_route_fastest">Najbrža</string>
+    <string name="native_route_calculate">Izračunaj rutu</string>
+    <string name="native_route_mode_car">Auto</string>
+    <string name="native_route_mode_bike">Bicikl</string>
+    <string name="native_route_mode_walk">Pješice</string>
+    <string name="native_route_mode_transit">Prijevoz</string>
+    <string name="native_route_from_hint">Od…</string>
+    <string name="native_route_to_hint">Odredište…</string>
+    <string name="native_route_stop_hint">Usputna postaja</string>
+    <string name="native_route_add_stop">Dodaj postaju</string>
+    <string name="native_route_my_location">Moja lokacija</string>
+    <string name="native_route_loading">Učitavanje…</string>
+    <string name="native_route_depart_eta">Polazak %1$s  →  Dolazak %2$s</string>
+    <string name="native_route_conditions">Uvjeti na ruti</string>
+    <string name="native_route_avoid_highways_tolls">Izbjegavaj autoceste i cestarine</string>
+    <string name="native_route_unavoidable_section">Smanjuje autoceste/cestarine · neizbježna dionica</string>
+    <string name="native_route_avoid_unpaved">Izbjegavaj makadamske ceste</string>
+    <string name="native_route_duration_min">%1$d min</string>
+    <string name="native_route_duration_hour_min">%1$dh %2$dmin</string>
+</resources>

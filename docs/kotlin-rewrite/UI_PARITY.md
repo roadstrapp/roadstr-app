@@ -81,9 +81,12 @@ speed limits and typed zap/publish actions. Its 39 values are generated for the
 same 27 locale sets, preserving Flutter's English/Italian privacy fallback. The
 eighth slice packages the silent activity inbox with logged-out, empty and
 ready states, zap/confirmation/dispute cards, unread state and localized device
-timestamps. Its 12 values are generated for all 27 locale sets. The
-shell keeps all panels hidden and has no transit, search, place, navigation,
-saved-place, Wikipedia, road-event or activity provider/history/settings/storage
+timestamps. Its 12 values are generated for all 27 locale sets. A ninth slice
+packages route planning, loading, alternative choice and pre-navigation preview
+states with five ordered stops, four modes, exact avoidance badges, bounded
+conditions and card/map selection synchronization. Its 22 values are generated
+for all 27 locale sets. The shell keeps all panels hidden and has no transit,
+search, place, route-planning, navigation, saved-place, Wikipedia, road-event or activity provider/history/settings/storage
 owner, so it cannot
 initiate provider traffic, launch an external intent, read user data or start
 location. No live place selection, route progress, navigation telemetry,
@@ -243,6 +246,24 @@ queue, zap payment and physical-device evidence remain required.
 Activity-inbox screenshot/golden, font-scale, TalkBack, encrypted native
 persistence/migration writeback, live verified relay subscriptions and
 physical-device evidence remain required.
+
+## Native route-planning evidence
+
+- `generate_android_route_planning_strings.dart` projects the 22 existing
+  planner/preview ARB values and placeholders into all 27 Android resource sets.
+- `NativeRoutePlanningPresenter` validates bounded normalized routes, preserves
+  Flutter duration/unit formatting and the fastest, highway/toll, unavoidable
+  and unpaved badge priority, and caps preview conditions at three rows.
+- `NativeRoutePlanningSession` fences request generations, preserves one to five
+  stable ordered stops and four transport modes, and synchronizes card and
+  strict-60-metre map selection through `NativeRouteOverlaySession`.
+- `NativeRoutePlanningPanel` retains planner, loading, alternatives and preview
+  hierarchy, GPS affordance, stop reordering, avoidance state, accessible
+  controls and bounded bottom-sheet layout through typed callbacks only.
+
+Route-planning screenshot/golden, drag-to-dismiss/reorder behavior, IME and
+focus comparison, live geocoder/router/weather/event ownership, font-scale,
+TalkBack and physical-device evidence remain required.
 
 ## Non-negotiable UX invariants
 

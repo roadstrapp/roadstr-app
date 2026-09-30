@@ -630,7 +630,9 @@ broader cross-language coverage and a native store are still required.
   `feature/report/NativeRoadEventPresentation.kt` and
   `NativeRoadEventPanels.kt`, plus
   `feature/activity/NativeActivityInboxPresentation.kt` and
-  `NativeActivityInboxPanel.kt`.
+  `NativeActivityInboxPanel.kt`, plus
+  `feature/route/NativeRoutePlanningPresentation.kt` and
+  `NativeRoutePlanningPanel.kt`.
 - **Current implementation:** The private shell packages a hidden
   public-transport itinerary panel with loading, ready, no-service and failure
   states, up to eight selectable cards, boarding/walking/line/timetable detail,
@@ -685,6 +687,12 @@ broader cross-language coverage and a native store are still required.
   surface is deliberately silent and exposes typed close/mark-read callbacks.
   Twelve values are generated for all 27 locales. Encrypted native persistence,
   migration writeback and live verified relay ownership remain detached.
+  A ninth hidden route-planning slice preserves planner/loading/alternative/
+  preview states, one to five ordered stops, four transport modes, Flutter
+  duration/unit formatting, all avoidance badge outcomes, bounded route
+  conditions and revision-safe card/MapLibre selection. Twenty-two values are
+  generated for all 27 locales. Geocoding, routing, GPS, weather, road-event
+  feeds, settings and production start-navigation ownership remain detached.
 - **Dependencies:** Compose Material 3 and AndroidX only after license review.
 - **Migration impact:** Settings names/defaults and onboarding/disclosure keys must map exactly.
 - **User-visible impact:** Must feel like an update, not a redesign.
@@ -715,11 +723,16 @@ broader cross-language coverage and a native store are still required.
   map decoding, per-pubkey storage/cursor keys, ordering/dedupe/read state,
   cursor monotonicity, revision fencing, 12-value/27-locale resources, silent
   accessible presentation and dormant shell ownership.
+  Sixteen route-planning JVM cases plus four Dart contracts lock travel-mode
+  vocabulary, formatter/badge parity, malformed-route bounds, stable ordered
+  stops, request fencing, avoidance state, map/card selection, preview commit,
+  unit reprojection, 22-value/27-locale resources, accessible presentation and
+  dormant shell ownership.
   Compose screenshot comparisons, drag behavior, font-scale/TalkBack and
   compact-device layouts remain.
 - **Parity evidence:** public-transport, active-search, place-detail,
-  navigation-HUD, saved-place/parking, Wikipedia-reader, road-event and
-  activity-inbox states
+  navigation-HUD, saved-place/parking, Wikipedia-reader, road-event,
+  activity-inbox and route-planning states
   have their first headless and packaged Compose evidence in `UI_PARITY.md`;
   every other state and visual/orientation evidence remain open.
 - **Security/privacy impact:** preserve privacy disclosure wording and task-switcher handling.

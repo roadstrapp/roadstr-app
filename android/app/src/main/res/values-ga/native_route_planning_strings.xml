@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ga.arb. Do not edit. -->
+<resources>
+    <string name="native_route_choose">Roghnaigh bealach</string>
+    <string name="native_route_cancel">Cealaigh</string>
+    <string name="native_route_start">Tosaigh nascleanúint</string>
+    <string name="native_route_fastest">Is tapúla</string>
+    <string name="native_route_calculate">Ríomh an bealach</string>
+    <string name="native_route_mode_car">Carr</string>
+    <string name="native_route_mode_bike">Rothar</string>
+    <string name="native_route_mode_walk">De chois</string>
+    <string name="native_route_mode_transit">Iompar</string>
+    <string name="native_route_from_hint">Ó…</string>
+    <string name="native_route_to_hint">Ceann scríbe…</string>
+    <string name="native_route_stop_hint">Stad ar an mbealach</string>
+    <string name="native_route_add_stop">Cuir stad leis</string>
+    <string name="native_route_my_location">Mo shuíomh</string>
+    <string name="native_route_loading">Ag luchtú…</string>
+    <string name="native_route_depart_eta">Imeacht %1$s  →  Sroicheadh %2$s</string>
+    <string name="native_route_conditions">Coinníollacha ar an mbealach</string>
+    <string name="native_route_avoid_highways_tolls">Seachain mótarbhealaí agus dolaí</string>
+    <string name="native_route_unavoidable_section">Laghdaíonn mótarbhealaí/dolaí · cuid dosheachanta</string>
+    <string name="native_route_avoid_unpaved">Seachain bóithre neamhréidhe</string>
+    <string name="native_route_duration_min">%1$d nóim</string>
+    <string name="native_route_duration_hour_min">%1$dh %2$dnóim</string>
+</resources>

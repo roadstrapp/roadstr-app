@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ru.arb. Do not edit. -->
+<resources>
+    <string name="native_route_choose">Выбрать маршрут</string>
+    <string name="native_route_cancel">Отмена</string>
+    <string name="native_route_start">Начать навигацию</string>
+    <string name="native_route_fastest">Быстрейший</string>
+    <string name="native_route_calculate">Рассчитать маршрут</string>
+    <string name="native_route_mode_car">Авто</string>
+    <string name="native_route_mode_bike">Велосипед</string>
+    <string name="native_route_mode_walk">Пешком</string>
+    <string name="native_route_mode_transit">Транспорт</string>
+    <string name="native_route_from_hint">Откуда…</string>
+    <string name="native_route_to_hint">Пункт назначения…</string>
+    <string name="native_route_stop_hint">Промежуточная остановка</string>
+    <string name="native_route_add_stop">Добавить остановку</string>
+    <string name="native_route_my_location">Моё местоположение</string>
+    <string name="native_route_loading">Загрузка…</string>
+    <string name="native_route_depart_eta">Отправление %1$s  →  Прибытие %2$s</string>
+    <string name="native_route_conditions">Условия на маршруте</string>
+    <string name="native_route_avoid_highways_tolls">Избегать автомагистралей и платных дорог</string>
+    <string name="native_route_unavoidable_section">Минимизирует автомагистрали/платные дороги · неизбежный участок</string>
+    <string name="native_route_avoid_unpaved">Избегать грунтовых дорог</string>
+    <string name="native_route_duration_min">%1$d мин</string>
+    <string name="native_route_duration_hour_min">%1$dч %2$dмин</string>
+</resources>
