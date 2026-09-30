@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_lt.arb. Do not edit. -->
+<resources>
+    <string name="native_profile_title">Profilis</string>
+    <string name="native_profile_visibility_title">Profilio matomumas</string>
+    <string name="native_profile_visibility_description">Pasirinkite, ar kiti Roadstr naudotojai mato jūsų Nostr vardą, npub ir nuotrauką.</string>
+    <string name="native_profile_visibility_clear">Rodyti profilį viešai</string>
+    <string name="native_profile_visibility_pseudonymous">Pseudonimo režimas (rekomenduojama)</string>
+    <string name="native_profile_nostrich">nostrich</string>
+    <string name="native_profile_hidden_notice">Šis naudotojas naudoja pseudonimo režimą.</string>
+    <string name="native_profile_not_connected">Neprisijungta</string>
+    <string name="native_profile_login_title">PRISIJUNGTI SU NOSTR</string>
+    <string name="native_profile_amber_title">Amber / NIP-55</string>
+    <string name="native_profile_amber_description">Privatus raktas niekada nepalieka jūsų įrenginio · Rekomenduojama</string>
+    <string name="native_profile_nsec_title">Įvesti nsec</string>
+    <string name="native_profile_nsec_description">Privatus raktas saugomas vietoje · Mažiau saugi</string>
+    <string name="native_profile_connected_amber">Prisijungta per Amber (NIP-55)</string>
+    <string name="native_profile_connected_nsec">Prisijungta per nsec</string>
+    <string name="native_profile_public_key">VIEŠASIS RAKTAS</string>
+    <string name="native_profile_npub_copied">npub nukopijuotas į iškarpinę</string>
+    <string name="native_profile_logout">Atjungti</string>
+    <string name="native_profile_identity_info">Turėdami Nostr tapatybę, galite skelbti eismo įspėjimus, ataskaitas ir lankytinas vietas decentralizuotai Nostr tinkle, be centrinių serverių.</string>
+    <string name="native_profile_waiting_amber">Laukiama Amber atsakymo…</string>
+    <string name="native_profile_reports">MANO ATASKAITOS</string>
+    <string name="native_profile_no_reports">Nėra paskelbtų ataskaitų</string>
+    <string name="native_profile_zap_balance">Zap balansas</string>
+    <string name="native_profile_zap_subtitle">Satoshi gauti iš jūsų ataskaitų</string>
+    <string name="native_profile_reputation_high">Aukšta</string>
+    <string name="native_profile_reputation_medium">Vidutinė</string>
+    <string name="native_profile_reputation_low">Žema</string>
+    <string name="native_profile_reputation">Reputacija %1$s</string>
+    <string name="native_profile_close">Uždaryti</string>
+    <string name="native_profile_loading">Kraunama…</string>
+</resources>

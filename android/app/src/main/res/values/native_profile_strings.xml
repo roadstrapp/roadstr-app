@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_en.arb. Do not edit. -->
+<resources>
+    <string name="native_profile_title">Profile</string>
+    <string name="native_profile_visibility_title">Profile visibility</string>
+    <string name="native_profile_visibility_description">Choose whether other Roadstr users see your Nostr name, npub and picture.</string>
+    <string name="native_profile_visibility_clear">Show profile publicly</string>
+    <string name="native_profile_visibility_pseudonymous">Pseudonymous mode (recommended)</string>
+    <string name="native_profile_nostrich">nostrich</string>
+    <string name="native_profile_hidden_notice">This user is using pseudonymous mode.</string>
+    <string name="native_profile_not_connected">Not connected</string>
+    <string name="native_profile_login_title">LOGIN WITH NOSTR</string>
+    <string name="native_profile_amber_title">Amber / NIP-55</string>
+    <string name="native_profile_amber_description">Private key never leaves your device · Recommended</string>
+    <string name="native_profile_nsec_title">Insert nsec</string>
+    <string name="native_profile_nsec_description">Private key stored locally · Less secure</string>
+    <string name="native_profile_connected_amber">Connected via Amber (NIP-55)</string>
+    <string name="native_profile_connected_nsec">Connected via nsec</string>
+    <string name="native_profile_public_key">PUBLIC KEY</string>
+    <string name="native_profile_npub_copied">npub copied to clipboard</string>
+    <string name="native_profile_logout">Disconnect</string>
+    <string name="native_profile_identity_info">With a Nostr identity you can publish traffic alerts, reports and points of interest in a decentralized way on the Nostr network, without central servers.</string>
+    <string name="native_profile_waiting_amber">Waiting for Amber response…</string>
+    <string name="native_profile_reports">MY REPORTS</string>
+    <string name="native_profile_no_reports">No reports published</string>
+    <string name="native_profile_zap_balance">Zap Balance</string>
+    <string name="native_profile_zap_subtitle">Satoshi received from your reports</string>
+    <string name="native_profile_reputation_high">High</string>
+    <string name="native_profile_reputation_medium">Medium</string>
+    <string name="native_profile_reputation_low">Low</string>
+    <string name="native_profile_reputation">Reputation %1$s</string>
+    <string name="native_profile_close">Close</string>
+    <string name="native_profile_loading">Loading…</string>
+</resources>

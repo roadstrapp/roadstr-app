@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_bg.arb. Do not edit. -->
+<resources>
+    <string name="native_profile_title">Профил</string>
+    <string name="native_profile_visibility_title">Видимост на профила</string>
+    <string name="native_profile_visibility_description">Изберете дали другите потребители на Roadstr виждат вашето име в Nostr, npub и снимка.</string>
+    <string name="native_profile_visibility_clear">Показвай профила публично</string>
+    <string name="native_profile_visibility_pseudonymous">Псевдонимен режим (препоръчително)</string>
+    <string name="native_profile_nostrich">nostrich</string>
+    <string name="native_profile_hidden_notice">Този потребител използва псевдонимен режим.</string>
+    <string name="native_profile_not_connected">Не е свързан</string>
+    <string name="native_profile_login_title">ВЛЕЗТЕ С NOSTR</string>
+    <string name="native_profile_amber_title">Amber / NIP-55</string>
+    <string name="native_profile_amber_description">Личният ключ никога не напуска устройството ви · Препоръчително</string>
+    <string name="native_profile_nsec_title">Вмъкнете nsec</string>
+    <string name="native_profile_nsec_description">Личният ключ се съхранява локално · По-малко сигурно</string>
+    <string name="native_profile_connected_amber">Свързан чрез Amber (NIP-55)</string>
+    <string name="native_profile_connected_nsec">Свързан чрез nsec</string>
+    <string name="native_profile_public_key">ПУБЛИЧЕН КЛЮЧ</string>
+    <string name="native_profile_npub_copied">npub копиран в клипборда</string>
+    <string name="native_profile_logout">Изключване</string>
+    <string name="native_profile_identity_info">С Nostr самоличност можете да публикувате предупреждения за трафик, доклади и забележителности по децентрализиран начин в мрежата Nostr, без централни сървъри.</string>
+    <string name="native_profile_waiting_amber">Изчакване на отговор от Amber…</string>
+    <string name="native_profile_reports">МОИТЕ ДОКЛАДИ</string>
+    <string name="native_profile_no_reports">Няма публикувани доклади</string>
+    <string name="native_profile_zap_balance">Zap баланс</string>
+    <string name="native_profile_zap_subtitle">Satoshi получени от вашите доклади</string>
+    <string name="native_profile_reputation_high">Висока</string>
+    <string name="native_profile_reputation_medium">Средна</string>
+    <string name="native_profile_reputation_low">Ниска</string>
+    <string name="native_profile_reputation">Репутация %1$s</string>
+    <string name="native_profile_close">Затвори</string>
+    <string name="native_profile_loading">Зареждане…</string>
+</resources>

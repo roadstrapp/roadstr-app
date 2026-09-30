@@ -85,8 +85,13 @@ timestamps. Its 12 values are generated for all 27 locale sets. A ninth slice
 packages route planning, loading, alternative choice and pre-navigation preview
 states with five ordered stops, four modes, exact avoidance badges, bounded
 conditions and card/map selection synchronization. Its 22 values are generated
-for all 27 locale sets. The shell keeps all panels hidden and has no transit,
-search, place, route-planning, navigation, saved-place, Wikipedia, road-event or activity provider/history/settings/storage
+for all 27 locale sets. A tenth slice packages profile loading, disconnected,
+own and remote states with Amber/nsec choices, strict npub projection,
+pseudonymous metadata suppression, visibility, reputation, zap balance and a
+bounded newest-first report list. Its 30 values are generated for all 27 locale
+sets. The shell keeps all panels hidden and has no transit,
+search, place, route-planning, navigation, saved-place, Wikipedia, road-event,
+activity or profile provider/history/identity/signer/wallet/settings/storage
 owner, so it cannot
 initiate provider traffic, launch an external intent, read user data or start
 location. No live place selection, route progress, navigation telemetry,
@@ -225,6 +230,27 @@ evidence remain required.
 Road-event screenshot/golden, edit dialog, font-scale, TalkBack, map selection,
 privacy storage migration, profile fetch/image, Amber/nsec signing, relay/offline
 queue, zap payment and physical-device evidence remain required.
+
+## Native profile evidence
+
+- `generate_android_profile_strings.dart` projects 30 existing profile and
+  identity ARB values, including the reputation placeholder, into all 27
+  Android resource sets with deterministic no-drift checking.
+- `NativeProfilePresenter` admits only strict lowercase public/event keys,
+  bounded text, HTTPS avatar references, sane timestamps/counters and at most
+  500 fetched reports; it sorts and exposes at most 100 rows, preserves
+  Flutter's score thresholds and millisatoshi flooring, and suppresses remote
+  identity/activity data when pseudonymous mode is active.
+- `NativeProfileSession` fences identity generations and Amber-waiting,
+  visibility and close mutations without retaining nsec material or owning a
+  signer, relay, wallet, reverse geocoder, image loader, clipboard or storage.
+- `NativeProfilePanel` retains loading, disconnected, own and remote profile
+  states, Amber/nsec choices, visibility, npub copy, reputation, zap balance,
+  reports and disconnect actions through typed callbacks only.
+
+Profile screenshot/golden, font-scale, TalkBack, protected-storage migration,
+live profile/image and report fetches, clipboard, Amber/nsec signer, relay,
+wallet and physical-device evidence remain required.
 
 ## Native activity-inbox evidence
 

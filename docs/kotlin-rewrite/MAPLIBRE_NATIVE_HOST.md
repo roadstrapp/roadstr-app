@@ -278,7 +278,7 @@ debug-host selection check.
   and ownership by the private shell, plus the Flutter camera oracle
   and MapLibre command wiring, cursor geometry, point-overlay/transit parity and
   dormant ownership.
-- The complete verification run passes 728 Flutter tests, 457 Kotlin tests,
+- The complete verification run passes 732 Flutter tests, 472 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 
@@ -286,11 +286,12 @@ debug-host selection check.
 
 - physical-device launch, renderer output and network/tile evidence;
 - screenshot/golden comparison in light/dark themes and compact/landscape UI;
-- live route/route-planning/traffic/transit/search/place/navigation/saved-place/Wikipedia/road-event/activity/source/point update,
+- live route/route-planning/traffic/transit/search/place/navigation/saved-place/Wikipedia/road-event/activity/profile/source/point update,
   navigation telemetry/settings, search storage,
   favourite/parking persistence, picker/crypto/sync/routing, Wikipedia intent/
-  redirect/TLS integration, road-event privacy/profile/signer/relay/queue/zap,
+  redirect/TLS integration, road-event privacy/signer/relay/queue/zap,
   activity encrypted persistence/migration writeback/verified relay feed,
+  profile protected storage/image/clipboard/Amber/nsec/relay/wallet wiring,
   place/
   long-press product handlers, external place intents, drag
   behavior, remote images, accessibility and attribution interaction;

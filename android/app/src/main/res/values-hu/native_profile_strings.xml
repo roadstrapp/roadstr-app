@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_hu.arb. Do not edit. -->
+<resources>
+    <string name="native_profile_title">Profil</string>
+    <string name="native_profile_visibility_title">Profil láthatósága</string>
+    <string name="native_profile_visibility_description">Válaszd ki, hogy a többi Roadstr-felhasználó látja-e a Nostr-neved, az npub-od és a képed.</string>
+    <string name="native_profile_visibility_clear">Profil nyilvános megjelenítése</string>
+    <string name="native_profile_visibility_pseudonymous">Álnév mód (ajánlott)</string>
+    <string name="native_profile_nostrich">nostrich</string>
+    <string name="native_profile_hidden_notice">Ez a felhasználó álnév módot használ.</string>
+    <string name="native_profile_not_connected">Nem csatlakoztatva</string>
+    <string name="native_profile_login_title">BEJELENTKEZÉS NOSTR-RAL</string>
+    <string name="native_profile_amber_title">Amber / NIP-55</string>
+    <string name="native_profile_amber_description">A privát kulcs soha nem hagyja el az eszközt · Ajánlott</string>
+    <string name="native_profile_nsec_title">nsec beillesztése</string>
+    <string name="native_profile_nsec_description">Privát kulcs helyi tárolása · Kevésbé biztonságos</string>
+    <string name="native_profile_connected_amber">Csatlakozva Amber-en keresztül (NIP-55)</string>
+    <string name="native_profile_connected_nsec">Csatlakozva nsec-en keresztül</string>
+    <string name="native_profile_public_key">NYILVÁNOS KULCS</string>
+    <string name="native_profile_npub_copied">npub vágólapra másolva</string>
+    <string name="native_profile_logout">Lecsatlakozás</string>
+    <string name="native_profile_identity_info">Nostr identitással decentralizált módon tehet közzé forgalmi riasztásokat, jelentéseket és érdekességeket a Nostr hálózaton, központi szerverek nélkül.</string>
+    <string name="native_profile_waiting_amber">Várakozás az Amber válaszára…</string>
+    <string name="native_profile_reports">SAJÁT JELENTÉSEIM</string>
+    <string name="native_profile_no_reports">Nem tett közzé jelentéseket</string>
+    <string name="native_profile_zap_balance">Zap egyenleg</string>
+    <string name="native_profile_zap_subtitle">Jelentéseiből kapott satoshi</string>
+    <string name="native_profile_reputation_high">Magas</string>
+    <string name="native_profile_reputation_medium">Közepes</string>
+    <string name="native_profile_reputation_low">Alacsony</string>
+    <string name="native_profile_reputation">Hírnév %1$s</string>
+    <string name="native_profile_close">Bezárás</string>
+    <string name="native_profile_loading">Betöltés…</string>
+</resources>
