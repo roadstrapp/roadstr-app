@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_zh.arb. Do not edit. -->
+<resources>
+    <string name="native_saved_title">已保存的地点</string>
+    <string name="native_saved_add">添加地点</string>
+    <string name="native_saved_export">导出收藏</string>
+    <string name="native_saved_import">导入收藏</string>
+    <string name="native_saved_imported">已导入%1$d个收藏</string>
+    <string name="native_saved_parking_title">停车位置</string>
+    <string name="native_saved_parking_navigate">导航到停车位置</string>
+    <string name="native_saved_parking_remove">删除停车位置</string>
+    <string name="native_saved_close">关闭</string>
+</resources>

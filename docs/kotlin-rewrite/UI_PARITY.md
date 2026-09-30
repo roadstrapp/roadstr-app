@@ -67,8 +67,13 @@ the same 27 ARB files. A fourth slice packages the full-screen navigation HUD:
 all 21 manoeuvre families are drawn as native vectors, while five speedometer
 styles and bounded speed, limit, altitude, distance, duration and ETA summaries
 adapt between portrait and landscape. Its 13 values are generated from the
-same 27 ARB files. The shell keeps all panels hidden and has no transit,
-search, place or navigation provider/history/settings owner, so it cannot
+same 27 ARB files. A fifth slice packages saved places and parking: bounded
+legacy/import parsing, exact label merge, revision-safe list mutations, the
+existing blue parking-marker projection and a settings-like sheet with add,
+edit, delete, import/export and parking actions. Its nine values are generated
+from the same 27 ARB files. The shell keeps all panels hidden and has no transit,
+search, place, navigation or saved-place provider/history/settings/storage
+owner, so it cannot
 initiate provider traffic, launch an external intent, read user data or start
 location. No live place selection, route progress, navigation telemetry,
 remote image, drag gesture or long-press product handler is connected. This
@@ -142,6 +147,26 @@ remain required.
 Navigation screenshot/golden, font-scale, TalkBack, compact portrait/landscape,
 real route/GPS/settings integration, interaction safety, performance and
 physical-device rendering evidence remain required.
+
+## Native saved-place and parking evidence
+
+- `generate_android_saved_places_strings.dart` projects nine existing ARB
+  values into 27 Android resource sets and supports deterministic no-drift
+  checks.
+- `NativeSavedPlacesProtocol` preserves Flutter's list-of-JSON-strings Hive
+  shape, direct import shape, 1,000-item and 5-MiB bounds, encrypted-envelope
+  admission, exact label merge, WGS84 validation and `parking_position` codec.
+- Saved parking projects to the existing native blue `Parking` marker instead
+  of creating a second visual vocabulary.
+- `NativeSavedPlacesSession` fences stale callbacks across add, edit, delete,
+  import and parking changes without owning persistence, picker, sync, route or
+  crypto adapters.
+- `NativeSavedPlacesPanel` retains the saved-place list and conditional export,
+  import, parking navigate/remove and accessible bounded scrolling hierarchy.
+
+Saved-place screenshot/golden, add/edit dialogs, font-scale, TalkBack, real
+file picker plus PBKDF2/AES-GCM interoperability, native persistence/sync,
+live map/routing and physical-device migration evidence remain required.
 
 ## Non-negotiable UX invariants
 

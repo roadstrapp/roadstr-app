@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_lv.arb. Do not edit. -->
+<resources>
+    <string name="native_saved_title">Saglabātās vietas</string>
+    <string name="native_saved_add">Pievienot vietu</string>
+    <string name="native_saved_export">Eksportēt izlasi</string>
+    <string name="native_saved_import">Importēt izlasi</string>
+    <string name="native_saved_imported">Importēti %1$d izlases ieraksti</string>
+    <string name="native_saved_parking_title">Stāvvieta</string>
+    <string name="native_saved_parking_navigate">Navigēt uz stāvvietu</string>
+    <string name="native_saved_parking_remove">Noņemt stāvvietu</string>
+    <string name="native_saved_close">Aizvērt</string>
+</resources>

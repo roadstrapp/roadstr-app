@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_lt.arb. Do not edit. -->
+<resources>
+    <string name="native_saved_title">Išsaugotos vietos</string>
+    <string name="native_saved_add">Pridėti vietą</string>
+    <string name="native_saved_export">Eksportuoti mėgstamiausius</string>
+    <string name="native_saved_import">Importuoti mėgstamiausius</string>
+    <string name="native_saved_imported">Importuota mėgstamiausių: %1$d</string>
+    <string name="native_saved_parking_title">Stovėjimo vieta</string>
+    <string name="native_saved_parking_navigate">Naviguoti į stovėjimo vietą</string>
+    <string name="native_saved_parking_remove">Pašalinti stovėjimą</string>
+    <string name="native_saved_close">Uždaryti</string>
+</resources>

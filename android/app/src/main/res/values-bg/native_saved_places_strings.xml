@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_bg.arb. Do not edit. -->
+<resources>
+    <string name="native_saved_title">Запазени места</string>
+    <string name="native_saved_add">Добави място</string>
+    <string name="native_saved_export">Експортиране на любими</string>
+    <string name="native_saved_import">Импортиране на любими</string>
+    <string name="native_saved_imported">%1$d любими са импортирани</string>
+    <string name="native_saved_parking_title">Място за паркиране</string>
+    <string name="native_saved_parking_navigate">Навигирай до паркинга</string>
+    <string name="native_saved_parking_remove">Премахни паркинга</string>
+    <string name="native_saved_close">Затвори</string>
+</resources>
