@@ -74,6 +74,13 @@ Flutter is still the only launcher and production UI.
   saved-place list plus add/import/export and parking navigate/remove callbacks
   with nine values generated from every ARB file. It owns no storage, picker,
   password crypto, sync, route or external intent adapter.
+  `feature/wikipedia/NativeWikipediaPresentation.kt` mirrors the Flutter
+  reader's exact HTTPS language-subdomain and `/wiki/` article admission plus
+  main-frame-only navigation and revision-fenced progress/failure/retry state.
+  `NativeWikipediaReader.kt` packages a dormant AOSP WebView with JavaScript,
+  permissions, file/content access, mixed content and SSL continuation disabled,
+  while clearing cookies/cache/history around its lifetime. Its four values are
+  generated from all 27 ARB files; no place callback or browser intent is wired.
   Style generations prevent stale reattachment;
   `NativeRouteOverlaySession.kt` adds a revision-safe StateFlow projector for
   normalized route geometry, bounded alternative selection/commit, monotonic
@@ -93,10 +100,10 @@ Flutter is still the only launcher and production UI.
   road-event hit priority and Flutter's strict rounded-Vincenty 60 m route-
   alternative selection; product sheets and service caches remain detached. The
   private shell collects empty route, transit, search, place, navigation,
-  saved-place, camera, cursor and point-overlay state and packages all product panels in
+  saved-place, Wikipedia, camera, cursor and point-overlay state and packages all product panels in
   their hidden states. It deliberately does not invoke transit/search/place or
   navigation services, submit provider results, begin a query/place load or
-  show/update the HUD or saved-place panel; it has no product route, provider, storage,
+  show/update the HUD or saved-place panel, or open the Wikipedia session; it has no product route, provider, storage,
   intent-launcher or GPS feed.
 - `LegacyStorageContract.kt` records the audited Hive/secure-storage names and
   dynamic per-identity key prefixes.

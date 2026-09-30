@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ru.arb. Do not edit. -->
+<resources>
+    <string name="native_wikipedia_open_browser">Открыть в браузере</string>
+    <string name="native_wikipedia_failed">Не удалось безопасно загрузить Википедию.</string>
+    <string name="native_wikipedia_retry">Повторить</string>
+    <string name="native_wikipedia_close">Закрыть</string>
+</resources>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_mt.arb. Do not edit. -->
+<resources>
+    <string name="native_wikipedia_open_browser">Iftaħ fil-brawżer</string>
+    <string name="native_wikipedia_failed">Il-Wikipedia ma setgħetx titgħabba b’mod sigur.</string>
+    <string name="native_wikipedia_retry">Erġa’ pprova</string>
+    <string name="native_wikipedia_close">Agħlaq</string>
+</resources>

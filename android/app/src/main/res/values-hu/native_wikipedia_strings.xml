@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_hu.arb. Do not edit. -->
+<resources>
+    <string name="native_wikipedia_open_browser">Megnyitás böngészőben</string>
+    <string name="native_wikipedia_failed">A Wikipédia nem tölthető be biztonságosan.</string>
+    <string name="native_wikipedia_retry">Újra</string>
+    <string name="native_wikipedia_close">Bezárás</string>
+</resources>

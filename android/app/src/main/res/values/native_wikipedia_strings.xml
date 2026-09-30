@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_en.arb. Do not edit. -->
+<resources>
+    <string name="native_wikipedia_open_browser">Open in browser</string>
+    <string name="native_wikipedia_failed">Wikipedia could not be loaded securely.</string>
+    <string name="native_wikipedia_retry">Retry</string>
+    <string name="native_wikipedia_close">Close</string>
+</resources>
