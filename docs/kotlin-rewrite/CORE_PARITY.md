@@ -32,6 +32,7 @@ integration work, while Flutter remains the sole launcher.
 | `feature.navigation` | `lib/widgets/nav`, `speedometer_widget.dart`, `units.dart`, 27 ARB files | bounded live/fallback HUD projection, all 21 manoeuvre families, vector symbols, five persisted speedometer styles, speed/limit/altitude/distance/duration/ETA summaries, revision-safe step progression and an adaptive accessible dormant Compose overlay with generated locale resources |
 | `feature.saved` | `favorite_place.dart`, map/settings screens, 27 ARB files | exact bounded legacy/import favourite shapes, label-based merge, parking decode/encode and marker projection, revision-safe add/edit/delete/import/parking state and an accessible dormant Compose sheet with generated locale resources |
 | `feature.wikipedia` | `wikipedia_webview_screen.dart`, 27 ARB files | exact HTTPS language-host/article-path admission, main-frame-only navigation, revision-safe progress/failure/retry state and a dormant restricted native WebView reader with generated locale resources and ephemeral browser state |
+| `feature.report` | `road_event.dart`, `road_event_sheets.dart`, map screens, 27 ARB files | bounded detail/privacy/composer projection for all 14 wire categories, exact expiry/age/comment/speed/unit rules, owner edit suggestions, revision-safe single-flight submission state and accessible dormant Compose surfaces with generated locale resources |
 | `core.ui` / `feature.home` | `app_theme.dart`, Flutter Android embedding | exact four-palette colors and stored ordinal aliases, edge-to-edge private Compose/MapLibre canary, non-exported/no-intent-filter shell contract; no production startup or storage access |
 | `storage` | encrypted Hive search history | canonical encrypted history file, serialized prepend/clear/import, atomic recovery, Keystore boundary and migration-marker ciphertext binding |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
@@ -328,10 +329,16 @@ detached from secure storage and startup. See
   subframes and off-origin navigation, disables JavaScript, WebView permissions,
   file/content access, mixed content and SSL continuation, and clears browser
   state around disposal. Its four visible values are generated for all 27
-  locales. The shell supplies empty route, transit, search, place, navigation,
-  saved-place, Wikipedia, camera, cursor and point feeds and
+  locales. A seventh road-event slice reuses the 14-category Nostr/marker
+  catalogue and TTLs, validates untrusted detail/profile/edit-request input,
+  preserves relative age, comment and metric/imperial speed rules, and packages
+  detail, bilingual privacy and report-composer states with typed confirmation,
+  edit, zap and submission callbacks. Its 39 values are generated for all 27
+  locales, including Flutter's English/Italian-only privacy disclosure behavior.
+  The shell supplies empty route, transit, search, place, navigation,
+  saved-place, Wikipedia, road-event, camera, cursor and point feeds and
   has no location component or production route/transit/search/place/
-  navigation/saved-place/Wikipedia feed; native provider
+  navigation/saved-place/Wikipedia/road-event feed; native provider
   services are intentionally not invoked and all product panels therefore
   remain hidden. Live data/product handlers, external intents, screenshots and
   physical-device evidence remain open.
@@ -353,7 +360,7 @@ detached from secure storage and startup. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 716 Flutter tests passed, including the native shell,
+- `flutter test`: 720 Flutter tests passed, including the native shell,
   private MapLibre host, route-overlay, route-session, transit-overlay/session, camera-session and
   user-cursor, point-overlay/interaction and route-traffic Gradle/source contracts, the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
@@ -369,8 +376,9 @@ detached from secure storage and startup. See
   manoeuvre, accessibility/vector and dormant-ownership contracts, plus the
   saved-place locale, legacy/import shape, accessibility and dormant-ownership
   contracts, plus the Wikipedia locale, URI-policy, restricted-WebView and
-  dormant-ownership contracts.
-- `./gradlew :app:testDebugUnitTest`: 413 Kotlin tests passed, including the
+  dormant-ownership contracts, plus the road-event locale, Flutter-oracle,
+  accessible-panel and dormant-ownership contracts.
+- `./gradlew :app:testDebugUnitTest`: 427 Kotlin tests passed, including the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
   GeoJSON, Flutter-compatible route and per-leg transit metrics/colors,
@@ -400,7 +408,9 @@ detached from secure storage and startup. See
   bounded favourite legacy/import parsing, exact label merge, parking codec/
   marker projection and revision-safe saved-place mutations, plus exact
   Wikipedia article admission, main-frame navigation and revision-safe page/
-  progress/error/retry fencing, plus
+  progress/error/retry fencing, plus all 14 road-event categories, map-marker
+  reuse, expiry/age/comment/speed/unit bounds, owner edit suggestions and
+  privacy/composer/single-flight revision fencing, plus
   the
   headless AOSP GPS normalization, last-known, watchdog and cancellation suite,
   plus the native map style, tile safety, route segmentation, marker-culling,

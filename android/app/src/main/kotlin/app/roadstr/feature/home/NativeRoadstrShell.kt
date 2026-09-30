@@ -43,6 +43,8 @@ import app.roadstr.feature.navigation.NativeNavigationHud
 import app.roadstr.feature.navigation.NativeNavigationHudSession
 import app.roadstr.feature.place.NativePlaceDetailsPanel
 import app.roadstr.feature.place.NativePlaceSession
+import app.roadstr.feature.report.NativeRoadEventPanels
+import app.roadstr.feature.report.NativeRoadEventSession
 import app.roadstr.feature.saved.NativeSavedPlacesPanel
 import app.roadstr.feature.saved.NativeSavedPlacesSession
 import app.roadstr.feature.search.NativeSearchOverlay
@@ -113,6 +115,8 @@ fun NativeRoadstrShell() {
         val placeState by placeSession.state.collectAsState()
         val savedPlacesSession = remember { NativeSavedPlacesSession() }
         val savedPlacesState by savedPlacesSession.state.collectAsState()
+        val roadEventSession = remember { NativeRoadEventSession() }
+        val roadEventState by roadEventSession.state.collectAsState()
         val navigationHudSession = remember { NativeNavigationHudSession() }
         val navigationHudState by navigationHudSession.state.collectAsState()
         val wikipediaSession = remember { NativeWikipediaSession() }
@@ -226,6 +230,20 @@ fun NativeRoadstrShell() {
                     onNavigateParking = {},
                     onRemoveParking = {},
                     onClose = {},
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+                NativeRoadEventPanels(
+                    snapshot = roadEventState,
+                    onClose = roadEventSession::hide,
+                    onAcceptPrivacy = roadEventSession::acceptPrivacy,
+                    onSelectCategory = roadEventSession::selectCategory,
+                    onCommentChanged = roadEventSession::updateComment,
+                    onSpeedChanged = roadEventSession::updateSpeed,
+                    onSubmit = {},
+                    onOpenReporter = {},
+                    onVote = { _, _ -> },
+                    onEditSpeedLimit = { _, _ -> },
+                    onZap = {},
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
                 NativeWikipediaReader(

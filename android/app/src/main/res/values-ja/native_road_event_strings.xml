@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from Flutter road-event oracles. Do not edit. -->
+<resources>
+    <string name="native_road_event_close">閉じる</string>
+    <string name="native_road_event_cancel">キャンセル</string>
+    <string name="native_road_event_category_police">警察</string>
+    <string name="native_road_event_category_police_station">警察署</string>
+    <string name="native_road_event_category_speed_camera">速度測定カメラ</string>
+    <string name="native_road_event_category_traffic_jam">渋滞</string>
+    <string name="native_road_event_category_accident">事故</string>
+    <string name="native_road_event_category_road_closure">通行止め</string>
+    <string name="native_road_event_category_construction">工事</string>
+    <string name="native_road_event_category_hazard">危険</string>
+    <string name="native_road_event_category_road_condition">道路状況</string>
+    <string name="native_road_event_category_pothole">路面の穴</string>
+    <string name="native_road_event_category_fog">霧</string>
+    <string name="native_road_event_category_ice">氷</string>
+    <string name="native_road_event_category_animal">動物</string>
+    <string name="native_road_event_category_other">その他</string>
+    <string name="native_road_event_minutes_ago">%1$d分前</string>
+    <string name="native_road_event_hours_ago">%1$d時間前</string>
+    <string name="native_road_event_days_ago">%1$d日前</string>
+    <string name="native_road_event_reported_speed">報告された制限速度</string>
+    <string name="native_road_event_edit_speed">制限速度を追加・更新</string>
+    <string name="native_road_event_request_speed">制限速度を提案</string>
+    <string name="native_road_event_accept_edit">提案を承認</string>
+    <string name="native_road_event_pending_edits">保留中の編集提案</string>
+    <string name="native_road_event_nostrich">nostrich</string>
+    <string name="native_road_event_still_there">まだあります</string>
+    <string name="native_road_event_not_there">もうありません</string>
+    <string name="native_road_event_login_confirm">確認または反論するにはNostrでログイン</string>
+    <string name="native_road_event_zap">Zap ⚡（satsを送る）</string>
+    <string name="native_road_event_report_title">イベントを報告</string>
+    <string name="native_road_event_report_speed">制限速度(任意)</string>
+    <string name="native_road_event_optional_comment">任意のコメント…</string>
+    <string name="native_road_event_publish">公開</string>
+    <string name="native_road_event_publishing">公開中…</string>
+    <string name="native_road_event_confirmed">確認済み</string>
+    <string name="native_road_event_removed">削除済み</string>
+    <string name="native_road_event_privacy_title">Public report</string>
+    <string name="native_road_event_privacy_body">This report publishes its exact position, time, content and your public key to Nostr relays. It is pseudonymous, not anonymous, can be linked to your other reports, and relay deletion cannot be guaranteed.</string>
+    <string name="native_road_event_understand">I understand</string>
+</resources>

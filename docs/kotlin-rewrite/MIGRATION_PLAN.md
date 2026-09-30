@@ -626,7 +626,9 @@ broader cross-language coverage and a native store are still required.
   `feature/saved/NativeSavedPlacesPresentation.kt` and
   `NativeSavedPlacesPanel.kt`, plus
   `feature/wikipedia/NativeWikipediaPresentation.kt` and
-  `NativeWikipediaReader.kt`.
+  `NativeWikipediaReader.kt`, plus
+  `feature/report/NativeRoadEventPresentation.kt` and
+  `NativeRoadEventPanels.kt`.
 - **Current implementation:** The private shell packages a hidden
   public-transport itinerary panel with loading, ready, no-service and failure
   states, up to eight selectable cards, boarding/walking/line/timetable detail,
@@ -665,6 +667,15 @@ broader cross-language coverage and a native store are still required.
   access, mixed content and SSL continuation disabled. Its four values are
   independently generated for all 27 locales; place selection and the explicit
   external-browser action remain detached.
+  A seventh hidden road-event slice reuses the exact 14-category wire and marker
+  catalogue, validates dual expiry, timestamps, counts, comments, coordinates,
+  profiles and owner edit suggestions, and preserves age plus metric/imperial
+  speed presentation. Its revision-safe privacy/detail/composer state exposes
+  typed confirmation, edit, reporter, zap and single-flight submission callbacks
+  through adaptive bounded Compose surfaces. Thirty-nine values are generated
+  for all 27 locales, while preserving Flutter's English/Italian privacy-copy
+  fallback. Identity, disclosure persistence, signer, relay, offline queue,
+  GPS, profile fetch and Lightning remain detached.
 - **Dependencies:** Compose Material 3 and AndroidX only after license review.
 - **Migration impact:** Settings names/defaults and onboarding/disclosure keys must map exactly.
 - **User-visible impact:** Must feel like an update, not a redesign.
@@ -687,10 +698,14 @@ broader cross-language coverage and a native store are still required.
   Ten Wikipedia JVM cases plus four Dart contracts lock URI admission,
   main-frame navigation, revision fencing, restricted WebView settings, the
   sixth locale resource set and dormant shell ownership.
+  Fourteen road-event JVM cases plus four Dart contracts lock category/marker
+  parity, dual expiry, relative age, hostile-input bounds, owner suggestions,
+  metric/imperial conversion, privacy/composer/single-flight revisions, the
+  seventh locale resource set and dormant shell ownership.
   Compose screenshot comparisons, drag behavior, font-scale/TalkBack and
   compact-device layouts remain.
 - **Parity evidence:** public-transport, active-search, place-detail,
-  navigation-HUD, saved-place/parking and Wikipedia-reader states
+  navigation-HUD, saved-place/parking, Wikipedia-reader and road-event states
   have their first headless and packaged Compose evidence in `UI_PARITY.md`;
   every other state and visual/orientation evidence remain open.
 - **Security/privacy impact:** preserve privacy disclosure wording and task-switcher handling.

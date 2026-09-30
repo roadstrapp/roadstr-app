@@ -253,6 +253,10 @@ debug-host selection check.
   page/progress/error/retry revisions and hidden-state callback fencing. Four
   Dart UI contracts lock its 4-value/27-locale resources, restricted WebView
   configuration and side-effect-free dormant ownership.
+- Fourteen road-event JVM cases lock the 14-category marker catalogue, dual
+  expiry, age/comment/speed/unit bounds, owner suggestions and revision-safe
+  privacy/composer/single-flight state. Four Dart UI contracts lock its
+  39-value/27-locale resources, accessible panels and dormant ownership.
 - Twenty-four Dart contracts lock the strict Gradle version, lifecycle-compose
   dependency, real `MapView`/style/texture-mode binding, absence of a location
   component, selected/muted route source/layer constants, route-choice/progress
@@ -260,7 +264,7 @@ debug-host selection check.
   and ownership by the private shell, plus the Flutter camera oracle
   and MapLibre command wiring, cursor geometry, point-overlay/transit parity and
   dormant ownership.
-- The complete verification run passes 716 Flutter tests, 413 Kotlin tests,
+- The complete verification run passes 720 Flutter tests, 427 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 
@@ -268,10 +272,11 @@ debug-host selection check.
 
 - physical-device launch, renderer output and network/tile evidence;
 - screenshot/golden comparison in light/dark themes and compact/landscape UI;
-- live route/traffic/transit/search/place/navigation/saved-place/Wikipedia/source/point update,
+- live route/traffic/transit/search/place/navigation/saved-place/Wikipedia/road-event/source/point update,
   navigation telemetry/settings, search storage,
   favourite/parking persistence, picker/crypto/sync/routing, Wikipedia intent/
-  redirect/TLS integration, road-event/place/
+  redirect/TLS integration, road-event privacy/profile/signer/relay/queue/zap,
+  place/
   long-press product handlers, external place intents, drag
   behavior, remote images, accessibility and attribution interaction;
 - native GPS/location ownership, live camera/cursor binding and physical-device
