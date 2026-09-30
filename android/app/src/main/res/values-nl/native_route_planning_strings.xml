@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_nl.arb. Do not edit. -->
+<resources>
+    <string name="native_route_choose">Route kiezen</string>
+    <string name="native_route_cancel">Annuleren</string>
+    <string name="native_route_start">Navigatie starten</string>
+    <string name="native_route_fastest">Snelste</string>
+    <string name="native_route_calculate">Route berekenen</string>
+    <string name="native_route_mode_car">Auto</string>
+    <string name="native_route_mode_bike">Fiets</string>
+    <string name="native_route_mode_walk">Te voet</string>
+    <string name="native_route_mode_transit">OV</string>
+    <string name="native_route_from_hint">Van…</string>
+    <string name="native_route_to_hint">Bestemming…</string>
+    <string name="native_route_stop_hint">Tussenstop</string>
+    <string name="native_route_add_stop">Tussenstop toevoegen</string>
+    <string name="native_route_my_location">Mijn locatie</string>
+    <string name="native_route_loading">Laden…</string>
+    <string name="native_route_depart_eta">Vertrek %1$s  →  Aankomst %2$s</string>
+    <string name="native_route_conditions">Omstandigheden op route</string>
+    <string name="native_route_avoid_highways_tolls">Vermijd snelwegen en tolwegen</string>
+    <string name="native_route_unavoidable_section">Beperkt snelwegen/tolwegen · onvermijdelijk deel</string>
+    <string name="native_route_avoid_unpaved">Onverharde wegen vermijden</string>
+    <string name="native_route_duration_min">%1$d min</string>
+    <string name="native_route_duration_hour_min">%1$dh %2$dmin</string>
+</resources>

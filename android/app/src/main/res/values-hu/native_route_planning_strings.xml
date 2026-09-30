@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_hu.arb. Do not edit. -->
+<resources>
+    <string name="native_route_choose">Útvonal választása</string>
+    <string name="native_route_cancel">Mégse</string>
+    <string name="native_route_start">Navigáció indítása</string>
+    <string name="native_route_fastest">Leggyorsabb</string>
+    <string name="native_route_calculate">Útvonal kiszámítása</string>
+    <string name="native_route_mode_car">Autó</string>
+    <string name="native_route_mode_bike">Bicikli</string>
+    <string name="native_route_mode_walk">Gyalog</string>
+    <string name="native_route_mode_transit">Tömegközlekedés</string>
+    <string name="native_route_from_hint">Honnan…</string>
+    <string name="native_route_to_hint">Úticél…</string>
+    <string name="native_route_stop_hint">Útközbeni megálló</string>
+    <string name="native_route_add_stop">Megálló hozzáadása</string>
+    <string name="native_route_my_location">Saját helyzetm</string>
+    <string name="native_route_loading">Betöltés…</string>
+    <string name="native_route_depart_eta">Indulás %1$s  →  Megérkezés %2$s</string>
+    <string name="native_route_conditions">Feltételek az útvonalon</string>
+    <string name="native_route_avoid_highways_tolls">Autópályák és fizetős utak kerülése</string>
+    <string name="native_route_unavoidable_section">Minimalizálja az autópályát/fizetős utat · elkerülhetetlen szakasz</string>
+    <string name="native_route_avoid_unpaved">Földutak elkerülése</string>
+    <string name="native_route_duration_min">%1$d p</string>
+    <string name="native_route_duration_hour_min">%1$dó %2$dp</string>
+</resources>

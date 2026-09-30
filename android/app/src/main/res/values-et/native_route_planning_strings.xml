@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_et.arb. Do not edit. -->
+<resources>
+    <string name="native_route_choose">Vali marsruut</string>
+    <string name="native_route_cancel">Tühista</string>
+    <string name="native_route_start">Alusta navigeerimist</string>
+    <string name="native_route_fastest">Kiirem</string>
+    <string name="native_route_calculate">Arvuta marsruut</string>
+    <string name="native_route_mode_car">Auto</string>
+    <string name="native_route_mode_bike">Jalgratas</string>
+    <string name="native_route_mode_walk">Jalgsi</string>
+    <string name="native_route_mode_transit">Ühistransport</string>
+    <string name="native_route_from_hint">Kust…</string>
+    <string name="native_route_to_hint">Sihtkoht…</string>
+    <string name="native_route_stop_hint">Vahepeatus</string>
+    <string name="native_route_add_stop">Lisa peatus</string>
+    <string name="native_route_my_location">Minu asukoht</string>
+    <string name="native_route_loading">Laadimine…</string>
+    <string name="native_route_depart_eta">Väljumine %1$s  →  Saabumine %2$s</string>
+    <string name="native_route_conditions">Tingimused marsruudil</string>
+    <string name="native_route_avoid_highways_tolls">Väldi kiirteid ja tasulisi teid</string>
+    <string name="native_route_unavoidable_section">Vähendab kiirteid/tasulisi teid · vältimatu lõik</string>
+    <string name="native_route_avoid_unpaved">Väldi kruusateid</string>
+    <string name="native_route_duration_min">%1$d min</string>
+    <string name="native_route_duration_hour_min">%1$dh %2$dmin</string>
+</resources>

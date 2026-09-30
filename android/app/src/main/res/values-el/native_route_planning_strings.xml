@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_el.arb. Do not edit. -->
+<resources>
+    <string name="native_route_choose">Επιλογή διαδρομής</string>
+    <string name="native_route_cancel">Ακύρωση</string>
+    <string name="native_route_start">Εκκίνηση πλοήγησης</string>
+    <string name="native_route_fastest">Ταχύτερη</string>
+    <string name="native_route_calculate">Υπολογισμός διαδρομής</string>
+    <string name="native_route_mode_car">Αυτοκίνητο</string>
+    <string name="native_route_mode_bike">Ποδήλατο</string>
+    <string name="native_route_mode_walk">Πεζός</string>
+    <string name="native_route_mode_transit">ΜΜΜ</string>
+    <string name="native_route_from_hint">Από…</string>
+    <string name="native_route_to_hint">Προορισμός…</string>
+    <string name="native_route_stop_hint">Ενδιάμεση στάση</string>
+    <string name="native_route_add_stop">Προσθήκη στάσης</string>
+    <string name="native_route_my_location">Η τοποθεσία μου</string>
+    <string name="native_route_loading">Φόρτωση…</string>
+    <string name="native_route_depart_eta">Αναχώρηση %1$s  →  Άφιξη %2$s</string>
+    <string name="native_route_conditions">Συνθήκες στη διαδρομή</string>
+    <string name="native_route_avoid_highways_tolls">Αποφυγή αυτοκινητοδρόμων και διοδίων</string>
+    <string name="native_route_unavoidable_section">Ελαχιστοποιεί αυτοκινητόδρομους/διόδια · αναπόφευκτο τμήμα</string>
+    <string name="native_route_avoid_unpaved">Αποφυγή χωματόδρομων</string>
+    <string name="native_route_duration_min">%1$d λεπτ</string>
+    <string name="native_route_duration_hour_min">%1$dω %2$dλεπτ</string>
+</resources>
