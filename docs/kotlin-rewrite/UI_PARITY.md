@@ -199,6 +199,10 @@ physical-device rendering evidence remain required.
   admission, exact label merge, WGS84 validation and `parking_position` codec.
 - Saved parking projects to the existing native blue `Parking` marker instead
   of creating a second visual vocabulary.
+- `FileNativeSavedPlacesStore` now imports those exact legacy shapes into a
+  separately keyed AES-GCM stage/active/backup file, reopens every mutation and
+  binds its ciphertext into migration completion without exposing labels,
+  addresses or coordinates in public bytes.
 - `NativeSavedPlacesSession` fences stale callbacks across add, edit, delete,
   import and parking changes without owning persistence, picker, sync, route or
   crypto adapters.
@@ -206,8 +210,8 @@ physical-device rendering evidence remain required.
   import, parking navigate/remove and accessible bounded scrolling hierarchy.
 
 Saved-place screenshot/golden, add/edit dialogs, font-scale, TalkBack, real
-file picker plus PBKDF2/AES-GCM interoperability, native persistence/sync,
-live map/routing and physical-device migration evidence remain required.
+file picker plus PBKDF2 export interoperability, live persistence ownership/
+sync/map/routing and physical-device migration evidence remain required.
 
 ## Native Wikipedia-reader evidence
 

@@ -25,6 +25,8 @@ data class NativeSnapshotRecord(
 ) {
     companion object {
         const val CURRENT_SCHEMA_VERSION = 1
+        const val SAVED_FAVORITES_KEY = "favorites"
+        const val SAVED_PARKING_KEY = "parking_position"
 
         fun fromLegacy(snapshot: LegacyStorageSnapshot): NativeSnapshotRecord =
             NativeSnapshotRecord(
@@ -32,6 +34,8 @@ data class NativeSnapshotRecord(
                 ordinaryValues = snapshot.ordinaryValues
                     .filterKeys {
                         it != SearchHistoryProtocol.STORAGE_KEY &&
+                            it != SAVED_FAVORITES_KEY &&
+                            it != SAVED_PARKING_KEY &&
                             it !in NativeLegacySecretAliases.legacyKeys
                     }
                     .toSortedMap(),
@@ -212,6 +216,14 @@ interface NativeSearchHistoryMigrationStore {
     fun committedCiphertextDigest(): ByteArray?
 }
 
+/** Transactional encrypted migration boundary for favorites and parking. */
+interface NativeSavedPlacesMigrationStore {
+    fun stageLegacy(favoritesValue: String?, parkingValue: String?)
+    fun commitStaged()
+    fun verifyLegacy(favoritesValue: String?, parkingValue: String?)
+    fun committedCiphertextDigest(): ByteArray?
+}
+
 /**
  * Coordinates the public record and protected store under the migration
  * protocol. A failure after either commit leaves the completion marker false;
@@ -221,6 +233,7 @@ class CompositeNativeSnapshotWriter(
     private val publicStore: NativePublicSnapshotStore,
     private val secretStore: NativeSecretStore,
     private val searchHistoryStore: NativeSearchHistoryMigrationStore? = null,
+    private val savedPlacesStore: NativeSavedPlacesMigrationStore? = null,
 ) : NativeSnapshotWriter {
     private var stagedRecord: NativeSnapshotRecord? = null
     private var stagedSecrets: Map<String, String>? = null
@@ -229,6 +242,11 @@ class CompositeNativeSnapshotWriter(
         val legacySearchHistory = snapshot.ordinaryValues[SearchHistoryProtocol.STORAGE_KEY]
         if (legacySearchHistory != null && searchHistoryStore == null) {
             throw IllegalStateException("Native search-history store is unavailable")
+        }
+        val legacyFavorites = snapshot.ordinaryValues[NativeSnapshotRecord.SAVED_FAVORITES_KEY]
+        val legacyParking = snapshot.ordinaryValues[NativeSnapshotRecord.SAVED_PARKING_KEY]
+        if ((legacyFavorites != null || legacyParking != null) && savedPlacesStore == null) {
+            throw IllegalStateException("Native saved-places store is unavailable")
         }
         val record = NativeSnapshotRecord.fromLegacy(snapshot)
         val protectedValues = NativeLegacySecretAliases.protectedValues(snapshot)
@@ -247,6 +265,11 @@ class CompositeNativeSnapshotWriter(
             searchHistoryStore?.stageLegacy(legacySearchHistory)
         } catch (_: RuntimeException) {
             throw IllegalStateException("Native search-history staging failed")
+        }
+        try {
+            savedPlacesStore?.stageLegacy(legacyFavorites, legacyParking)
+        } catch (_: RuntimeException) {
+            throw IllegalStateException("Native saved-places staging failed")
         }
         stagedRecord = record
         stagedSecrets = protectedValues
@@ -271,12 +294,22 @@ class CompositeNativeSnapshotWriter(
         } catch (_: RuntimeException) {
             throw IllegalStateException("Native search-history commit failed")
         }
+        try {
+            savedPlacesStore?.commitStaged()
+        } catch (_: RuntimeException) {
+            throw IllegalStateException("Native saved-places commit failed")
+        }
     }
 
     override fun verify(snapshot: LegacyStorageSnapshot) {
         val legacySearchHistory = snapshot.ordinaryValues[SearchHistoryProtocol.STORAGE_KEY]
         if (legacySearchHistory != null && searchHistoryStore == null) {
             throw IllegalStateException("Native search-history store is unavailable")
+        }
+        val legacyFavorites = snapshot.ordinaryValues[NativeSnapshotRecord.SAVED_FAVORITES_KEY]
+        val legacyParking = snapshot.ordinaryValues[NativeSnapshotRecord.SAVED_PARKING_KEY]
+        if ((legacyFavorites != null || legacyParking != null) && savedPlacesStore == null) {
+            throw IllegalStateException("Native saved-places store is unavailable")
         }
         val expected = NativeSnapshotRecord.fromLegacy(snapshot)
         val protectedValues = NativeLegacySecretAliases.protectedValues(snapshot)
@@ -297,6 +330,11 @@ class CompositeNativeSnapshotWriter(
             )
         } catch (_: RuntimeException) {
             throw IllegalStateException("Native search-history verification failed")
+        }
+        try {
+            savedPlacesStore?.verifyLegacy(legacyFavorites, legacyParking)
+        } catch (_: RuntimeException) {
+            throw IllegalStateException("Native saved-places verification failed")
         }
     }
 }

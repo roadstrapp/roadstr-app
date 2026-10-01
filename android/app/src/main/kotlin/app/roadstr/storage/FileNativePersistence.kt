@@ -207,8 +207,13 @@ class FileSnapshotBoundMigrationMarker(
     private val publicStore: NativePublicSnapshotStore,
     private val secretVerifier: NativeSecretCommitmentVerifier,
     private val searchHistoryVerifier: NativeSearchHistoryMigrationStore? = null,
+    private val savedPlacesVerifier: NativeSavedPlacesMigrationStore? = null,
 ) : MigrationMarker {
-    private val markerMagic = if (searchHistoryVerifier == null) MAGIC_V1 else MAGIC_V2
+    private val markerMagic = when {
+        savedPlacesVerifier != null -> MAGIC_V3
+        searchHistoryVerifier != null -> MAGIC_V2
+        else -> MAGIC_V1
+    }
     private val marker = RecoverableAtomicFile(
         directory = directory,
         fileName = NATIVE_MIGRATION_MARKER_FILE,
@@ -223,7 +228,15 @@ class FileSnapshotBoundMigrationMarker(
             val publicRecord = NativeSnapshotRecordCodec.decode(publicBytes)
             val historyDigest = searchHistoryVerifier?.committedCiphertextDigest()
             if (searchHistoryVerifier != null && historyDigest == null) return false
-            markerMatches(markerBytes, publicBytes, historyDigest, markerMagic) &&
+            val savedPlacesDigest = savedPlacesVerifier?.committedCiphertextDigest()
+            if (savedPlacesVerifier != null && savedPlacesDigest == null) return false
+            markerMatches(
+                markerBytes,
+                publicBytes,
+                historyDigest,
+                savedPlacesDigest,
+                markerMagic,
+            ) &&
                 secretVerifier.matches(publicRecord.secureValueDigests)
         } catch (_: RuntimeException) {
             false
@@ -239,7 +252,18 @@ class FileSnapshotBoundMigrationMarker(
             if (searchHistoryVerifier != null && historyDigest == null) {
                 throw NativePersistenceException("Native search history is unavailable")
             }
-            marker.stage(markerFor(publicBytes, historyDigest, markerMagic))
+            val savedPlacesDigest = savedPlacesVerifier?.committedCiphertextDigest()
+            if (savedPlacesVerifier != null && savedPlacesDigest == null) {
+                throw NativePersistenceException("Native saved places are unavailable")
+            }
+            marker.stage(
+                markerFor(
+                    publicBytes,
+                    historyDigest,
+                    savedPlacesDigest,
+                    markerMagic,
+                ),
+            )
             marker.commit()
             if (!isComplete()) {
                 throw NativePersistenceException("Native migration marker verification failed")
@@ -254,8 +278,11 @@ class FileSnapshotBoundMigrationMarker(
     private companion object {
         val MAGIC_V1 = "RSTRMIG1".toByteArray(Charsets.US_ASCII)
         val MAGIC_V2 = "RSTRMIG2".toByteArray(Charsets.US_ASCII)
+        val MAGIC_V3 = "RSTRMIG3".toByteArray(Charsets.US_ASCII)
         val HISTORY_DIGEST_DOMAIN =
             "roadstr-native-migration-history-v1".toByteArray(Charsets.US_ASCII)
+        val SAVED_PLACES_DIGEST_DOMAIN =
+            "roadstr-native-migration-saved-places-v1".toByteArray(Charsets.US_ASCII)
         const val DIGEST_BYTES = 32
         val MARKER_BYTES = MAGIC_V1.size + DIGEST_BYTES
 
@@ -270,9 +297,10 @@ class FileSnapshotBoundMigrationMarker(
         fun markerFor(
             publicBytes: ByteArray,
             historyDigest: ByteArray?,
+            savedPlacesDigest: ByteArray?,
             magic: ByteArray,
         ): ByteArray {
-            val digest = markerDigest(publicBytes, historyDigest)
+            val digest = markerDigest(publicBytes, historyDigest, savedPlacesDigest)
             return ByteArray(MARKER_BYTES).also { result ->
                 magic.copyInto(result)
                 digest.copyInto(result, destinationOffset = magic.size)
@@ -283,25 +311,42 @@ class FileSnapshotBoundMigrationMarker(
             markerBytes: ByteArray,
             publicBytes: ByteArray,
             historyDigest: ByteArray?,
+            savedPlacesDigest: ByteArray?,
             magic: ByteArray,
         ): Boolean {
             validateMarker(markerBytes, magic)
             val storedDigest = markerBytes.copyOfRange(magic.size, MARKER_BYTES)
-            val actualDigest = markerDigest(publicBytes, historyDigest)
+            val actualDigest = markerDigest(publicBytes, historyDigest, savedPlacesDigest)
             return MessageDigest.isEqual(storedDigest, actualDigest)
         }
 
-        fun markerDigest(publicBytes: ByteArray, historyDigest: ByteArray?): ByteArray {
-            if (historyDigest == null) {
+        fun markerDigest(
+            publicBytes: ByteArray,
+            historyDigest: ByteArray?,
+            savedPlacesDigest: ByteArray?,
+        ): ByteArray {
+            if (historyDigest == null && savedPlacesDigest == null) {
                 return MessageDigest.getInstance("SHA-256").digest(publicBytes)
             }
-            if (historyDigest.size != DIGEST_BYTES) {
+            if (historyDigest != null && historyDigest.size != DIGEST_BYTES) {
                 throw NativePersistenceException("Native search history digest is invalid")
             }
+            if (savedPlacesDigest != null && savedPlacesDigest.size != DIGEST_BYTES) {
+                throw NativePersistenceException("Native saved-places digest is invalid")
+            }
+            if (savedPlacesDigest == null) {
+                val digest = MessageDigest.getInstance("SHA-256")
+                digest.update(HISTORY_DIGEST_DOMAIN)
+                digest.update(publicBytes)
+                digest.update(requireNotNull(historyDigest))
+                return digest.digest()
+            }
             val digest = MessageDigest.getInstance("SHA-256")
-            digest.update(HISTORY_DIGEST_DOMAIN)
+            digest.update(SAVED_PLACES_DIGEST_DOMAIN)
             digest.update(publicBytes)
-            digest.update(historyDigest)
+            digest.update(if (historyDigest == null) 0 else 1)
+            historyDigest?.let(digest::update)
+            digest.update(savedPlacesDigest)
             return digest.digest()
         }
     }

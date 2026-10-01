@@ -6,8 +6,10 @@ and a copy-before-open bridge plus isolated headless transport are implemented
 and tested through the Dart-to-Kotlin envelope. The native side now also has a
 versioned public-record/secret-store boundary with redacted commitments, a
 separate encrypted search-history store and an atomic native store for the 35
-non-secret scalar preferences. Controlled signed-install reads, real Android
-Keystore evidence and production startup wiring remain open.
+non-secret scalar preferences. Favorites and the saved parking coordinate now
+have a separate encrypted atomic store bound into migration completion.
+Controlled signed-install reads, real Android Keystore evidence and production
+startup wiring remain open.
 
 The existing app uses one Hive box named `settings` in the application
 documents directory. `lib/main.dart` obtains a 32-byte key from
@@ -174,8 +176,8 @@ storage, concurrency or process-death recovery; those remain migration gates.
    pass secrets through logs or shell arguments.
 4. Write native public records transactionally to temporary/new storage,
    flush/fsync, reopen them, and compare commitments; write secure values and
-   coordinate-bearing search history only through their Keystore-backed
-   encrypted adapters and compare them there.
+   coordinate-bearing search history, favorites and parking only through their
+   Keystore-backed encrypted adapters and compare them there.
 5. Mark migration complete only after validation and one successful native
    startup. Keep a backup of legacy storage until that point.
 6. Make reruns idempotent and crash-safe. On failure, show a neutral recovery
@@ -215,6 +217,23 @@ legacy malformed-row tolerance, reopen, plaintext absence, concurrency,
 interrupted replacement, corruption, wrong/lost keys and marker invalidation/
 retry. Real Android Keystore behavior and UI ownership remain device/startup
 gates.
+
+`FileNativeSavedPlacesStore` similarly extracts `favorites` and
+`parking_position` before public snapshot encoding. Its canonical v1 record
+contains a monotonic sequence, at most 1,000 validated favorite rows and one
+optional validated parking coordinate/timestamp. The record is integrity
+framed, encrypted with AES-256-GCM under the non-exportable alias
+`app.roadstr.native.saved-places.v1`, replaced through stage/active/backup and
+compared after reopen. Operational add/edit/delete/merge/parking mutations are
+typed and process-revision fenced; they refuse to create a missing record, so
+an unrun migration cannot silently become an empty favorite list. A separately
+named explicit initializer exists only for a confirmed new install.
+
+Migration marker v3 binds the validated saved-places ciphertext digest along
+with the public snapshot and optional encrypted search history. A missing,
+changed, corrupt or wrong-key saved-places file therefore makes migration
+incomplete. Favorite labels, addresses and parking coordinates no longer enter
+the public native snapshot or plaintext native files.
 
 `FileNativePreferenceStore` owns `native_preferences_v1.bin`, a deterministic
 versioned binary map for the closed 35-key non-secret scalar catalogue. The
