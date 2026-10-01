@@ -106,7 +106,12 @@ protected-data recovery states. Its strict gate ignores legacy completion flags,
 requires the exact `privacy_disclosure_v2 == true` value and emits the same three
 completion writes as Flutter. Its 55 values are generated for all 27 locale
 sets; the two recovery strings preserve Flutter's existing English-only text.
-The shell keeps all
+The thirteenth slice packages Flutter's map-first idle dashboard and persistent
+Notifications/Profile/Menu bar. It preserves every workflow replacement gate,
+the collapsed/expanded hierarchy, the five-visible-favourite ceiling, unread
+`99+` badge and typed quick actions. Its ten values are generated for all 27
+locale sets. The shell renders only the empty value projection and does not
+feed it identity, favourites, activity, parking, GPS or route state. The shell keeps all
 panels hidden and has no transit, search, place, route-planning, navigation,
 saved-place, Wikipedia, road-event, activity, profile, settings or onboarding provider/
 history/identity/signer/wallet/preferences/secure-storage/migration owner, so it cannot
@@ -346,6 +351,24 @@ required.
 Onboarding credential dialogs, production storage/migration ownership, Amber,
 permission and download wiring, process recreation, screenshot/golden,
 font-scale, TalkBack and physical-device evidence remain required.
+
+## Native home-chrome evidence
+
+- `generate_android_home_strings.dart` projects the ten existing dashboard and
+  bottom-bar ARB values into all 27 Android resource sets with deterministic
+  no-drift checking.
+- `NativeHomePresenter` mirrors both Flutter renderers' idle replacement gates,
+  sanitizes and caps the visible favourite row at five, and preserves the
+  unread badge's `99+` ceiling.
+- `NativeHomeSession` fences input, expansion, actions and favourite selection
+  by revision and emits only typed values to an external owner.
+- `NativeHomeChrome` packages the collapsed/expanded map-first dashboard,
+  quick actions, safe-area bottom bar, bounded width and accessible touch
+  targets without loading remote profile images or owning product services.
+
+Home screenshot/golden, compact/landscape/font-scale/TalkBack comparison,
+runtime panel coordination, profile image, migrated favourites/activity state,
+GPS/parking actions and physical-device evidence remain required.
 
 ## Non-negotiable UX invariants
 

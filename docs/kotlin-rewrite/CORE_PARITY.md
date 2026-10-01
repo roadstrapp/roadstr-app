@@ -26,6 +26,7 @@ integration work, while Flutter remains the sole launcher.
 | `service.navigation` | map-screen lifecycle/navigation state | 30-second background grace, generation-safe pause/resume, GPS retention during navigation, detach cleanup, foreground-only wakelock policy, AOSP foreground-service adapter, opt-in `MainActivity` method/event bridges, process-local running-state query and fix fan-out, isolated Dart wrappers, serialized ownership coordinator and disabled-by-default start/stop/dispose/reconcile wiring in both renderers |
 | `service.notifications` | `navigation_notification_service.dart` | 3-second distance-only throttle, immediate maneuver changes, reset semantics and private ongoing notification metadata; the disabled-by-default canary now mirrors bounded updates through the service `NotificationManager` adapter using the existing channel/ID, with Flutter completing last and remaining authoritative |
 | `feature.map` | `maplibre_map_screen.dart`, `map_screen.dart`, map services/widgets | raster MapLibre style JSON, dark recoloring, tile URL admission/escaping, exact `maplibre`/`osm` selection and top-down legacy zoom profile, ZTL/traffic route-run segmentation and zoom/viewport marker culling; a lifecycle-safe MapLibre Native 13.5.2 AndroidView now installs bounded selected/completed/muted-alternative/traffic route and per-leg transit layers, consumes revision-safe route/transit/camera/cursor/point sessions and emits typed marker/map gestures with Flutter-parity 60 m alternative selection only in the private Compose shell, while product data/UI remain unwired |
+| `feature.home` | `home_dashboard.dart`, `map_chrome.dart`, both map screens, 27 ARB files | exact idle replacement gates, collapsed/expanded map-first dashboard, five visible favourites, unread `99+` badge, typed quick/bottom-bar actions and an accessible dormant Compose chrome with generated locale resources |
 | `feature.search` | `search_panel.dart`, search/history/favorite models, 27 ARB files | bounded result/favorite/history projection, metric/imperial distances, exact 11-category nearby catalogue, revision-safe loading/partial/final/empty states and an accessible dormant Compose overlay with generated locale resources |
 | `feature.place` | `place_info_panel.dart`, `poi_search_service.dart`, `opening_hours.dart`, 27 ARB files | bounded localized OSM detail parsing, safe contacts/URLs, contextual parking/charging/fuel/lodging/food fields, opening-hours projection, revision-safe loading/ready/hidden state and an accessible dormant Compose sheet with generated locale resources |
 | `feature.transit` | `transit_itinerary_widget.dart`, `transit_itinerary.dart`, `units.dart`, 27 ARB files | bounded card projection, metric/imperial formatting, boarding/line/timetable details, revision-safe UI/map selection, loading/ready/no-service/failure states and an accessible dormant Compose panel with generated locale resources |
@@ -360,6 +361,11 @@ detached from secure storage and startup. See
   migration precedence, exact completion writes, four swipeable pages and
   revision-fenced identity/location/voice state. Its 55 values are generated
   for all 27 locales while all startup effects remain detached.
+  A thirteenth home slice preserves both Flutter map renderers' idle replacement
+  gates, collapsed/expanded dashboard, five visible favourites, unread `99+`
+  badge and typed quick/bottom-bar actions. Its ten values are generated for all
+  27 locales while identity, favourites, activity, parking, location, routes
+  and panel coordination remain detached.
   The shell supplies empty route, route-planning, transit, search, place, navigation,
   saved-place, Wikipedia, road-event, activity, camera, cursor and point feeds and
   has no location component or production route/transit/search/place/
@@ -385,7 +391,7 @@ detached from secure storage and startup. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 753 Flutter tests passed, including the native shell,
+- `flutter test`: 757 Flutter tests passed, including the native shell,
   private MapLibre host, route-overlay, route-session, transit-overlay/session, camera-session and
   user-cursor, point-overlay/interaction and route-traffic Gradle/source contracts, the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
@@ -423,8 +429,10 @@ detached from secure storage and startup. See
   synthetic APK/tool fixtures and never read the local keystore.
   Four onboarding contracts additionally lock 55-value/27-locale generation,
   the Flutter gate/write oracle, undismissable accessible Compose structure and
-  dormant shell ownership.
-- `./gradlew :app:testDebugUnitTest`: 532 Kotlin tests passed, including the
+  dormant shell ownership. Four home contracts additionally lock
+  10-value/27-locale generation, both Flutter visibility oracles, bounded
+  accessible Compose structure and value-only dormant shell ownership.
+- `./gradlew :app:testDebugUnitTest`: 541 Kotlin tests passed, including the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
   GeoJSON, Flutter-compatible route and per-leg transit metrics/colors,

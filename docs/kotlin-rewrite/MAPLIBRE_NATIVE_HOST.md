@@ -291,6 +291,10 @@ debug-host selection check.
   guidance scheduling and focus leases. Four Dart contracts lock parity with
   the Flutter catalogue and prove the native downloader, session and Android
   audio-focus adapter remain dormant.
+- Nine home-presentation JVM cases lock both Flutter idle visibility envelopes,
+  five-item favourite projection, unread badge bounds and revision fencing.
+  Four Dart UI contracts lock its 10-value/27-locale resources, adaptive
+  accessible home/bottom chrome and value-only dormant shell ownership.
 - Twenty-four Dart contracts lock the strict Gradle version, lifecycle-compose
   dependency, real `MapView`/style/texture-mode binding, absence of a location
   component, selected/muted route source/layer constants, route-choice/progress
@@ -298,7 +302,7 @@ debug-host selection check.
   and ownership by the private shell, plus the Flutter camera oracle
   and MapLibre command wiring, cursor geometry, point-overlay/transit parity and
   dormant ownership.
-- The complete verification run passes 753 Flutter tests, 532 Kotlin tests,
+- The complete verification run passes 757 Flutter tests, 541 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 

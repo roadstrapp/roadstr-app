@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_it.arb. Do not edit. -->
+<resources>
+    <string name="native_home_notifications">Notifiche</string>
+    <string name="native_home_profile">Profilo</string>
+    <string name="native_home_menu">Menu</string>
+    <string name="native_home_ready">Pronto a partire?</string>
+    <string name="native_home_navigate">Naviga</string>
+    <string name="native_home_parking">Parcheggio</string>
+    <string name="native_home_activity">Attività</string>
+    <string name="native_home_events">Eventi</string>
+    <string name="native_home_saved_places">Luoghi salvati</string>
+    <string name="native_home_my_location">La mia posizione</string>
+</resources>
