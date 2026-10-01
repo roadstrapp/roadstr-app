@@ -356,6 +356,10 @@ detached from secure storage and startup. See
   revision-safe card/MapLibre selection. Its 22 values are generated for all
   27 locales, while geocoding, routing, GPS, weather and event feeds remain
   detached.
+  A twelfth onboarding slice preserves strict disclosure, protected-storage and
+  migration precedence, exact completion writes, four swipeable pages and
+  revision-fenced identity/location/voice state. Its 55 values are generated
+  for all 27 locales while all startup effects remain detached.
   The shell supplies empty route, route-planning, transit, search, place, navigation,
   saved-place, Wikipedia, road-event, activity, camera, cursor and point feeds and
   has no location component or production route/transit/search/place/
@@ -381,7 +385,7 @@ detached from secure storage and startup. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 749 Flutter tests passed, including the native shell,
+- `flutter test`: 753 Flutter tests passed, including the native shell,
   private MapLibre host, route-overlay, route-session, transit-overlay/session, camera-session and
   user-cursor, point-overlay/interaction and route-traffic Gradle/source contracts, the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
@@ -417,7 +421,10 @@ detached from secure storage and startup. See
   label/ABI admission, certificate matching, SHA-256 manifest output and
   fail-closed behavior for missing certificates or mismatched ABIs. They use
   synthetic APK/tool fixtures and never read the local keystore.
-- `./gradlew :app:testDebugUnitTest`: 520 Kotlin tests passed, including the
+  Four onboarding contracts additionally lock 55-value/27-locale generation,
+  the Flutter gate/write oracle, undismissable accessible Compose structure and
+  dormant shell ownership.
+- `./gradlew :app:testDebugUnitTest`: 532 Kotlin tests passed, including the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
   GeoJSON, Flutter-compatible route and per-leg transit metrics/colors,
