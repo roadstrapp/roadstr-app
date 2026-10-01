@@ -4,4 +4,7 @@
     <string name="native_shell_description" translatable="false">Internal Roadstr native compatibility shell</string>
     <string name="native_map_canary_status" translatable="false">Private MapLibre Native canary</string>
     <string name="native_map_description" translatable="false">Internal native map preview</string>
+    <string name="native_road_test_app_name" translatable="false">Roadstr Kotlin</string>
+    <string name="native_road_test_description" translatable="false">Standalone Roadstr Kotlin road-test shell</string>
+    <string name="native_road_test_status" translatable="false">Standalone Kotlin road-test runtime</string>
 </resources>

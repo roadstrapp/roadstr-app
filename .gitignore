@@ -53,6 +53,9 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 /android/build/reports/
+/native-android/.gradle/
+/native-android/.kotlin/
+!native-android/gradle/wrapper/gradle-wrapper.jar
 
 # Tools virtual environment and downloaded model files (large, generated locally)
 tools/.venv/
