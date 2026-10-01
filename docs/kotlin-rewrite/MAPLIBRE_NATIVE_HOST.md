@@ -298,7 +298,7 @@ debug-host selection check.
   and ownership by the private shell, plus the Flutter camera oracle
   and MapLibre command wiring, cursor geometry, point-overlay/transit parity and
   dormant ownership.
-- The complete verification run passes 744 Flutter tests, 520 Kotlin tests,
+- The complete verification run passes 749 Flutter tests, 520 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 
@@ -324,7 +324,8 @@ debug-host selection check.
   camera/cursor traces;
 - frame time, memory, thermal and battery comparison;
 - process recreation and saved camera state;
-- release/R8/F-Droid dependency and licence verification.
+- clean release/R8/F-Droid build and dependency/licence verification, official
+  certificate evidence and physical-device in-place upgrade.
 
 Until these gates are green, Flutter remains the only launcher and production
 MapLibre renderer. Rollback consists of removing the private host, its strict

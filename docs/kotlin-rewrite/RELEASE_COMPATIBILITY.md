@@ -17,14 +17,19 @@ ship until every item below is verified with a signed APK.
 
 The answer to the required question — whether a branch APK can install directly
 over a current Flutter install and preserve all data — is currently **not yet
-demonstrably yes**. The APK has not been built as native, and the official
-certificate is not available for verification in this checkout.
+demonstrably yes**. The private native shell is packaged in the debug APK, but
+no candidate has been signed with the official certificate or installed over a
+supported production build. Signing material remains external to the checkout.
 
 ## Current release channels
 
-- `build_release.sh` requires `android/key.properties`, checks the keystore
-  certificate, builds obfuscated release APKs, verifies signatures and prints
-  SHA-256 checksums.
+- `build_release.sh` first rejects source drift and a candidate code at or below
+  2050, then requires `android/key.properties`, builds the four obfuscated APKs
+  without Flutter ABI version offsets, and runs the common artifact auditor.
+- `tools/kotlin_rewrite/audit_android_release.sh` checks source identity,
+  version agreement, hardening, ABI/store contracts and, for built artifacts,
+  package/version/label, exact native ABI contents, signature certificate and
+  SHA-256. It writes an atomic tab-separated release manifest.
 - Gradle enables ABI splits for `arm64-v8a`, `armeabi-v7a`, `x86_64` and a
   universal APK. The Flutter split-per-ABI command may apply version-code
   offsets; F-Droid intentionally builds the universal APK without that flag.
@@ -59,9 +64,10 @@ this branch without explicit approval.
 
 ## Native build requirements
 
-The native Gradle build must retain literal version values readable by F-Droid,
-port the metadata/output paths, preserve release signing configuration, keep
-R8/resource shrinking, produce the required ABI artifacts, and include a
-repeatable certificate/checksum verification step. A debug-signed APK must never
-be presented as an official upgrade.
-
+The source and synthetic-artifact portions of this requirement are now green;
+see `RELEASE_TOOLING.md`. The native Gradle build must continue to retain
+literal version values readable by F-Droid, preserve release signing, keep
+R8/resource shrinking and emit all required ABI artifacts. A clean unsigned
+F-Droid-style build, an official signed build and the physical-device upgrade
+matrix remain open. A debug-signed APK must never be presented as an official
+upgrade.

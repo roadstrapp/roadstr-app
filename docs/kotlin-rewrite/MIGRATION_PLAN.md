@@ -232,6 +232,9 @@ broader cross-language coverage and a native store are still required.
 ### KOTLIN-003 — Prove package, version and signing continuity
 
 - **Objective:** Establish the official signing certificate and native update identity.
+- **Progress:** Source identity/version/store checks and synthetic four-APK
+  package/version/ABI/signature/checksum audits are green. Official certificate
+  evidence and install-over-current device testing remain open.
 - **Current Dart/Flutter source:** `android/app/build.gradle.kts`, `build_release.sh`, `metadata/app.roadstr.yml`, `android/key.properties.template`.
 - **New Kotlin files/modules:** `android/app/build.gradle.kts` evolution and a release verification task/script.
 - **Dependencies:** Official key owner, controlled keystore configuration, Android build tools.
@@ -758,6 +761,9 @@ broader cross-language coverage and a native store are still required.
 ### KOTLIN-015 — Security, dependency and release pipeline parity
 
 - **Objective:** Port hardening, GPL/FOSS review, R8, ABI, checksum and store metadata.
+- **Progress:** The guarded official recipe and read-only source/artifact auditor
+  are implemented and fixture-tested. Clean release/F-Droid builds and the full
+  minified dependency/licence audit remain open.
 - **Current Dart/Flutter source:** manifest/network config, Gradle, ProGuard, `build_release.sh`, F-Droid/ZapStore metadata.
 - **New Kotlin files/modules:** native Gradle convention/config, license table, release verification tooling.
 - **Dependencies:** Final native dependency set; F-Droid-compatible repositories/artifacts.
