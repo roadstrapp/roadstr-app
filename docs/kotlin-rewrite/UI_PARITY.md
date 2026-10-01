@@ -291,12 +291,15 @@ wallet and physical-device evidence remain required.
 - `NativeActivityInboxSession` fences identity/revision changes and returns
   typed persistence writes for record/mark-read mutations without owning Hive,
   files, relays, sockets or Android notifications.
+- `FileNativeActivityStore` consumes those typed semantics in a separate
+  Keystore-backed AES-GCM file, atomically preserves multiple identities plus
+  both cursor families and binds its exact ciphertext into migration marker v4;
+  the panel and shell still do not construct it.
 - `NativeActivityInboxPanel` retains logged-out, empty and ready states, unread
   accents, localized category/body/time presentation and bounded accessible
   scrolling; opening it requests mark-all-read through a callback only.
 
-Activity-inbox screenshot/golden, font-scale, TalkBack, encrypted native
-persistence/migration writeback, live verified relay subscriptions and
+Activity-inbox screenshot/golden, font-scale, TalkBack, live verified relay subscriptions and
 physical-device evidence remain required.
 
 ## Native route-planning evidence
