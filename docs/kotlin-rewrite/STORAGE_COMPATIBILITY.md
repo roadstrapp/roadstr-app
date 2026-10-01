@@ -134,8 +134,10 @@ items are JSON strings. Favourite JSON contains `label`, `address`, `lat` and
 JSON contains a signed event and `expiresAt`. Activity inbox entries are Hive
 maps rather than JSON strings. The native activity protocol now contract-locks
 their normalized list-of-maps shape, exact per-pubkey key names, 100-row cap,
-dedupe/read behavior and zap/confirmation cursors; durable encrypted native
-storage and migration writeback remain open.
+dedupe/read behavior and zap/confirmation cursors. `FileNativeActivityStore`
+now imports every identity into one canonical, separately keyed AES-GCM file,
+supports typed record/read/cursor mutations and reopens each atomic replacement.
+Live relay ownership and physical-device migration evidence remain open.
 
 The dormant native settings slice now contract-locks the scalar keys above,
 their Flutter defaults and their persisted wire shapes. Its 35 non-secret
@@ -176,8 +178,9 @@ storage, concurrency or process-death recovery; those remain migration gates.
    pass secrets through logs or shell arguments.
 4. Write native public records transactionally to temporary/new storage,
    flush/fsync, reopen them, and compare commitments; write secure values and
-   coordinate-bearing search history, favorites and parking only through their
-   Keystore-backed encrypted adapters and compare them there.
+   coordinate-bearing search history, favorites, parking and per-identity
+   activity inboxes/cursors only through their Keystore-backed encrypted
+   adapters and compare them there.
 5. Mark migration complete only after validation and one successful native
    startup. Keep a backup of legacy storage until that point.
 6. Make reruns idempotent and crash-safe. On failure, show a neutral recovery
@@ -188,9 +191,10 @@ half of step 4 with fixed `active`, `.stage` and `.backup` files. A stage is
 bounded, decoded and file-fsynced before same-directory activation; the old
 active record remains recoverable until the replacement has been reopened and
 validated. `FileSnapshotBoundMigrationMarker` stores only a fixed header plus a
-SHA-256 commitment. Its history-aware v2 form binds both the exact public bytes
-and the digest of the validated encrypted history file, and therefore reports
-incomplete after either file is missing, corrupt or changed. Marker reopen also
+SHA-256 commitment. Its versioned v2/v3/v4 forms progressively bind the exact
+public bytes and validated encrypted history, saved-place and activity files,
+and therefore report incomplete after any required file is missing, corrupt or
+changed. Marker reopen also
 asks the protected store to decrypt and match every per-key commitment in the
 public record, so a missing protected file or unavailable/wrong key cannot
 produce a false completed state.
@@ -235,6 +239,20 @@ changed, corrupt or wrong-key saved-places file therefore makes migration
 incomplete. Favorite labels, addresses and parking coordinates no longer enter
 the public native snapshot or plaintext native files.
 
+`FileNativeActivityStore` extracts all three dynamic activity-key families
+before public snapshot encoding. Its canonical v1 record groups at most 512
+identities, each with a newest-first 100-row inbox and optional zap/
+confirmation cursors. The integrity-framed record is encrypted with AES-256-GCM
+under `app.roadstr.native.activity.v1` and replaced through the same recoverable
+stage/active/backup protocol. Runtime mutations are typed, revision-fenced and
+require migration or explicit new-install initialization; malformed legacy
+inbox rows degrade to an empty inbox while invalid cursor values fail closed.
+
+Migration marker v4 binds the exact validated activity ciphertext in addition
+to the public snapshot and optional history/saved-place ciphertexts. Dynamic
+activity keys, event identifiers, categories and cursors therefore no longer
+enter the public native record or any plaintext native file.
+
 `FileNativePreferenceStore` owns `native_preferences_v1.bin`, a deterministic
 versioned binary map for the closed 35-key non-secret scalar catalogue. The
 payload is sorted, size-bounded, strictly typed and followed by a SHA-256
@@ -243,7 +261,7 @@ corruption and trailing bytes fail closed. Writes reuse the recoverable
 stage/active/backup protocol, then decode and compare the reopened record.
 Snapshot import is one-shot and later Settings mutations use a monotonic disk
 sequence plus process-local UI-revision fencing. Compound records, dynamic
-inbox keys, search history and every protected/legacy-secret key are excluded.
+inbox/cursor keys, search history and every protected/legacy-secret key are excluded.
 No launcher or shell currently constructs this store.
 
 `NativeStoragePaths` reserves `noBackupFilesDir/roadstr-native-v1` as the future

@@ -36,6 +36,7 @@ data class NativeSnapshotRecord(
                         it != SearchHistoryProtocol.STORAGE_KEY &&
                             it != SAVED_FAVORITES_KEY &&
                             it != SAVED_PARKING_KEY &&
+                            !LegacyStorageContract.isDynamicKey(it) &&
                             it !in NativeLegacySecretAliases.legacyKeys
                     }
                     .toSortedMap(),
@@ -224,6 +225,14 @@ interface NativeSavedPlacesMigrationStore {
     fun committedCiphertextDigest(): ByteArray?
 }
 
+/** Transactional encrypted migration boundary for inboxes and relay cursors. */
+interface NativeActivityMigrationStore {
+    fun stageLegacy(values: Map<String, String>)
+    fun commitStaged()
+    fun verifyLegacy(values: Map<String, String>)
+    fun committedCiphertextDigest(): ByteArray?
+}
+
 /**
  * Coordinates the public record and protected store under the migration
  * protocol. A failure after either commit leaves the completion marker false;
@@ -234,6 +243,7 @@ class CompositeNativeSnapshotWriter(
     private val secretStore: NativeSecretStore,
     private val searchHistoryStore: NativeSearchHistoryMigrationStore? = null,
     private val savedPlacesStore: NativeSavedPlacesMigrationStore? = null,
+    private val activityStore: NativeActivityMigrationStore? = null,
 ) : NativeSnapshotWriter {
     private var stagedRecord: NativeSnapshotRecord? = null
     private var stagedSecrets: Map<String, String>? = null
@@ -247,6 +257,10 @@ class CompositeNativeSnapshotWriter(
         val legacyParking = snapshot.ordinaryValues[NativeSnapshotRecord.SAVED_PARKING_KEY]
         if ((legacyFavorites != null || legacyParking != null) && savedPlacesStore == null) {
             throw IllegalStateException("Native saved-places store is unavailable")
+        }
+        val legacyActivity = snapshot.ordinaryValues.filterKeys(LegacyStorageContract::isDynamicKey)
+        if (legacyActivity.isNotEmpty() && activityStore == null) {
+            throw IllegalStateException("Native activity store is unavailable")
         }
         val record = NativeSnapshotRecord.fromLegacy(snapshot)
         val protectedValues = NativeLegacySecretAliases.protectedValues(snapshot)
@@ -270,6 +284,11 @@ class CompositeNativeSnapshotWriter(
             savedPlacesStore?.stageLegacy(legacyFavorites, legacyParking)
         } catch (_: RuntimeException) {
             throw IllegalStateException("Native saved-places staging failed")
+        }
+        try {
+            activityStore?.stageLegacy(legacyActivity)
+        } catch (_: RuntimeException) {
+            throw IllegalStateException("Native activity staging failed")
         }
         stagedRecord = record
         stagedSecrets = protectedValues
@@ -299,6 +318,11 @@ class CompositeNativeSnapshotWriter(
         } catch (_: RuntimeException) {
             throw IllegalStateException("Native saved-places commit failed")
         }
+        try {
+            activityStore?.commitStaged()
+        } catch (_: RuntimeException) {
+            throw IllegalStateException("Native activity commit failed")
+        }
     }
 
     override fun verify(snapshot: LegacyStorageSnapshot) {
@@ -310,6 +334,10 @@ class CompositeNativeSnapshotWriter(
         val legacyParking = snapshot.ordinaryValues[NativeSnapshotRecord.SAVED_PARKING_KEY]
         if ((legacyFavorites != null || legacyParking != null) && savedPlacesStore == null) {
             throw IllegalStateException("Native saved-places store is unavailable")
+        }
+        val legacyActivity = snapshot.ordinaryValues.filterKeys(LegacyStorageContract::isDynamicKey)
+        if (legacyActivity.isNotEmpty() && activityStore == null) {
+            throw IllegalStateException("Native activity store is unavailable")
         }
         val expected = NativeSnapshotRecord.fromLegacy(snapshot)
         val protectedValues = NativeLegacySecretAliases.protectedValues(snapshot)
@@ -335,6 +363,11 @@ class CompositeNativeSnapshotWriter(
             savedPlacesStore?.verifyLegacy(legacyFavorites, legacyParking)
         } catch (_: RuntimeException) {
             throw IllegalStateException("Native saved-places verification failed")
+        }
+        try {
+            activityStore?.verifyLegacy(legacyActivity)
+        } catch (_: RuntimeException) {
+            throw IllegalStateException("Native activity verification failed")
         }
     }
 }
