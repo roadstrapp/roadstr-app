@@ -369,7 +369,11 @@ broader cross-language coverage and a native store are still required.
   now imports and persists the exact closed set of 35 non-secret scalar
   settings in a deterministic digest-bound stage/active/backup file, while
   legacy Hive secret aliases are promoted only to protected storage under the
-  existing Flutter precedence. Startup wiring and signed-device
+  existing Flutter precedence. `storage/NativeSavedPlacesStore.kt` now removes
+  favorites and parking from
+  public bytes, persists them in a separately keyed AES-GCM atomic file and
+  binds its validated ciphertext into migration marker v3. Startup wiring and
+  signed-device
   Keystore evidence remain open. `NativeStoragePaths` and
   `NativeMigrationRuntime` now compose these pieces under
   `noBackupFilesDir/roadstr-native-v1` without invoking them from production
@@ -383,15 +387,17 @@ broader cross-language coverage and a native store are still required.
   rejection, durable public/protected/history marker binding, history reopen,
   malformed-row import, plaintext absence, concurrency and fail-closed
   mutation, strict scalar import, typed settings writes, preference corruption/
-  reopen/idempotence, secret-alias exclusion/precedence, asset reuse and
+  reopen/idempotence, encrypted favorite/parking import, typed mutations,
+  wrong-key/corruption rejection and marker invalidation, secret-alias
+  exclusion/precedence, asset reuse and
   checksum tests, plus runtime path/composition and
   second-start idempotence tests.
   Runner tests cover duplicate requests, retry after failure and executor
   rejection.
 - **Parity evidence:** Storage comparison against migrated fixture and second-start no-op.
-- **Security/privacy impact:** No nsec/NWC/passphrase, historical secret alias
-  or search-history label/coordinate enters the public snapshot or native
-  preference file.
+- **Security/privacy impact:** No nsec/NWC/passphrase, historical secret alias,
+  favorite label/address, parking coordinate or search-history label/coordinate
+  enters the public snapshot or native preference file.
 - **Battery/performance impact:** Startup I/O and write frequency compared with Hive.
 - **Acceptance criteria:** JVM reopen and marker durability are covered; device
   power-loss, app-private directory wiring and actual AndroidKeyStore
