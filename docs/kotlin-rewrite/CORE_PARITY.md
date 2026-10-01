@@ -36,6 +36,7 @@ integration work, while Flutter remains the sole launcher.
 | `feature.activity` | `activity_notification.dart`, `activity_notification_service.dart`, `notifications_screen.dart`, 27 ARB files | bounded normalized-Hive map codec, exact per-pubkey inbox/cursor keys, newest-first 100-row dedupe/read state, monotonic cursor policy and an accessible deliberately silent dormant Compose inbox with generated locale resources |
 | `feature.route` | `route_panels.dart`, routing response/avoidance models, 27 ARB files | bounded planner/loading/alternatives/preview state, one-to-five stable ordered stops, four modes, Flutter duration/unit and avoidance-badge projection, revision-safe card/MapLibre selection and accessible dormant Compose panels with generated locale resources |
 | `feature.settings` | `settings_screen.dart`, storage keys/defaults, 27 ARB files | exact scalar preference keys/defaults and choice catalogues, bounded text/sliders, safe secret-configuration summaries, revision-safe typed writes and an accessible dormant Compose settings surface with generated locale resources; persistence and effects remain external |
+| `feature.voice` | Kokoro/Piper services, eSpeak phonemization and navigation speech | exact eight-language/13-voice registry, pinned size/SHA-256 asset reuse and atomic installation, bounded Kokoro/Piper input and PCM16 WAV policies, deterministic navigation-speech scheduling and dormant Android audio focus; ONNX/eSpeak/playback ownership remains external |
 | `core.ui` / `feature.home` | `app_theme.dart`, Flutter Android embedding | exact four-palette colors and stored ordinal aliases, edge-to-edge private Compose/MapLibre canary, non-exported/no-intent-filter shell contract; no production startup or storage access |
 | `storage` | encrypted Hive search history | canonical encrypted history file, serialized prepend/clear/import, atomic recovery, Keystore boundary and migration-marker ciphertext binding |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
@@ -375,7 +376,7 @@ detached from secure storage and startup. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 736 Flutter tests passed, including the native shell,
+- `flutter test`: 740 Flutter tests passed, including the native shell,
   private MapLibre host, route-overlay, route-session, transit-overlay/session, camera-session and
   user-cursor, point-overlay/interaction and route-traffic Gradle/source contracts, the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
@@ -400,8 +401,11 @@ detached from secure storage and startup. See
   reputation oracle, accessibility bounds, callback-only effects and dormant
   ownership. The settings contracts lock all 118 values in 27 resource sets,
   exact Flutter keys/defaults and catalogues, accessibility bounds,
-  callback-only effects, secret hygiene and dormant shell ownership.
-- `./gradlew :app:testDebugUnitTest`: 487 Kotlin tests passed, including the
+  callback-only effects, secret hygiene and dormant shell ownership. Four
+  voice contracts lock the exact Flutter asset registry, eight-language
+  selection and speed policies, inference/scheduling bounds, Android focus
+  semantics and the absence of native voice ownership in the shell.
+- `./gradlew :app:testDebugUnitTest`: 515 Kotlin tests passed, including the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
   GeoJSON, Flutter-compatible route and per-leg transit metrics/colors,
@@ -442,7 +446,9 @@ detached from secure storage and startup. See
   exact reputation/balance projection and loading/login/visibility revision
   fencing, plus exact settings defaults/catalogues, input bounds, safe relay
   summaries, typed persistence writes, slider snapping and stale revision
-  fencing, plus
+  fencing, plus the exact Kokoro/Piper catalogue and hashes, safe legacy asset
+  inspection/download installation, bounded inference/WAV policy, deterministic
+  speech queue/interruption/deduplication and external-cue focus leases, plus
   the
   headless AOSP GPS normalization, last-known, watchdog and cancellation suite,
   plus the native map style, tile safety, route segmentation, marker-culling,

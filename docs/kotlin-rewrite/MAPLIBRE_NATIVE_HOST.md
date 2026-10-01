@@ -276,6 +276,11 @@ debug-host selection check.
   summaries, typed persistence writes and revision fencing. Four Dart UI
   contracts lock its 118-value/27-locale resources, accessible callback-only
   surface, secret hygiene and dormant shell ownership.
+- Twenty-eight voice JVM cases lock the exact Kokoro/Piper registry, asset
+  sizes and hashes, safe reuse and atomic installation, inference/WAV bounds,
+  guidance scheduling and focus leases. Four Dart contracts lock parity with
+  the Flutter catalogue and prove the native downloader, session and Android
+  audio-focus adapter remain dormant.
 - Twenty-four Dart contracts lock the strict Gradle version, lifecycle-compose
   dependency, real `MapView`/style/texture-mode binding, absence of a location
   component, selected/muted route source/layer constants, route-choice/progress
@@ -283,7 +288,7 @@ debug-host selection check.
   and ownership by the private shell, plus the Flutter camera oracle
   and MapLibre command wiring, cursor geometry, point-overlay/transit parity and
   dormant ownership.
-- The complete verification run passes 736 Flutter tests, 487 Kotlin tests,
+- The complete verification run passes 740 Flutter tests, 515 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 
@@ -293,7 +298,8 @@ debug-host selection check.
 - screenshot/golden comparison in light/dark themes and compact/landscape UI;
 - live route/route-planning/traffic/transit/search/place/navigation/saved-place/Wikipedia/road-event/activity/profile/settings/source/point update,
   navigation telemetry/settings, search storage, native preference persistence,
-  secure-value dialogs, routing verification, voice-model/download and settings
+  secure-value dialogs, routing verification, native ONNX session/eSpeak JNI/
+  audio playback and live voice route/settings/beep/Bluetooth wiring, and settings
   import/export/sync/link effects,
   favourite/parking persistence, picker/crypto/sync/routing, Wikipedia intent/
   redirect/TLS integration, road-event privacy/signer/relay/queue/zap,
