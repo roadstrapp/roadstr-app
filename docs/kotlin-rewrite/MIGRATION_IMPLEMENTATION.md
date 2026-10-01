@@ -145,20 +145,23 @@ Flutter is still the only launcher and production UI.
 - `storage/NativeSnapshotStore.kt` defines the v1 native public record and its
   bounded codec. Ordinary values, public identity and asset metadata are
   persisted with per-key secret commitments; raw secure values are handed only
-  to the `NativeSecretStore` adapter. Privacy-sensitive `searchHistory` is
-  excluded from this public record and handed to its encrypted store. The
+  to the `NativeSecretStore` adapter. Privacy-sensitive `searchHistory`,
+  favorites/parking and dynamic activity inbox/cursor rows are excluded from
+  this public record and handed to their encrypted stores. The
   legacy Hive aliases `graphhopperApiKey`, `nwcUri` and `fav_sync_pass` are now
   likewise excluded and promoted to protected values only under Flutter's
   secure-value-absent/non-empty fallback rule.
-  `CompositeNativeSnapshotWriter` makes public, protected and history
+  `CompositeNativeSnapshotWriter` makes public, protected, history,
+  saved-place and activity
   staging/commit/verification retryable while leaving the migration marker as
   the final step.
 - `storage/FileNativePersistence.kt` provides the concrete bounded public-file
   store. It fsyncs a validated stage, retains the previous active file during
   same-directory replacement, reopens and validates the replacement, and can
   restore a valid backup after an interrupted or corrupt activation. Its
-  durable marker contains only a fixed header and a SHA-256 commitment. Its v2
-  form binds the exact public record and validated encrypted history file;
+  durable marker contains only a fixed header and a SHA-256 commitment. Its
+  v2/v3/v4 forms bind the exact public record and validated encrypted history,
+  saved-place and activity files;
   completion also requires the reopened protected store to match every secret
   commitment. A missing key/file, changed value or undecodable record therefore
   makes migration incomplete without copying protected values into the marker.
@@ -185,6 +188,14 @@ Flutter is still the only launcher and production UI.
   mutations and refuses runtime mutation before explicit initialization. Its
   validated ciphertext digest is part of migration marker v3, so missing,
   changed or wrong-key saved data prevents completion.
+- `storage/NativeActivityStore.kt` extracts every per-identity inbox and relay
+  cursor into one canonical integrity-framed AES-256-GCM file under the
+  non-exportable `app.roadstr.native.activity.v1` alias. It preserves the exact
+  100-row newest-first/dedupe/read policy, tolerant malformed-inbox migration
+  and strict monotonic cursors, while typed runtime mutations require an
+  existing migrated or explicitly initialized record. Its ciphertext digest
+  extends migration marker v4, so missing, changed, corrupt or wrong-key
+  activity state prevents completion.
 - `storage/NativePreferenceStore.kt` adds a deterministic, digest-bound and
   recoverable atomic file for the closed 35-key non-secret scalar catalogue.
   It strictly imports the public migration snapshot once, projects the exact
@@ -196,7 +207,7 @@ Flutter is still the only launcher and production UI.
   `context.noBackupFilesDir/roadstr-native-v1`, preserving state across an
   in-place update while keeping it outside backup/restore. `migration/
   NativeMigrationRuntime.kt` composes that path, public store, Keystore secret
-  and search-history stores, commitment-bound marker and transactional
+  search-history, saved-place and activity stores, commitment-bound marker and transactional
   coordinator. It is an explicit worker-thread API and is not invoked by the
   current Flutter startup.
 - `migration/NativeMigrationStartupRunner.kt` adds the asynchronous

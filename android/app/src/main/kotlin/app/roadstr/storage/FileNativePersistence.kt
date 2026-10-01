@@ -208,8 +208,10 @@ class FileSnapshotBoundMigrationMarker(
     private val secretVerifier: NativeSecretCommitmentVerifier,
     private val searchHistoryVerifier: NativeSearchHistoryMigrationStore? = null,
     private val savedPlacesVerifier: NativeSavedPlacesMigrationStore? = null,
+    private val activityVerifier: NativeActivityMigrationStore? = null,
 ) : MigrationMarker {
     private val markerMagic = when {
+        activityVerifier != null -> MAGIC_V4
         savedPlacesVerifier != null -> MAGIC_V3
         searchHistoryVerifier != null -> MAGIC_V2
         else -> MAGIC_V1
@@ -230,11 +232,14 @@ class FileSnapshotBoundMigrationMarker(
             if (searchHistoryVerifier != null && historyDigest == null) return false
             val savedPlacesDigest = savedPlacesVerifier?.committedCiphertextDigest()
             if (savedPlacesVerifier != null && savedPlacesDigest == null) return false
+            val activityDigest = activityVerifier?.committedCiphertextDigest()
+            if (activityVerifier != null && activityDigest == null) return false
             markerMatches(
                 markerBytes,
                 publicBytes,
                 historyDigest,
                 savedPlacesDigest,
+                activityDigest,
                 markerMagic,
             ) &&
                 secretVerifier.matches(publicRecord.secureValueDigests)
@@ -256,11 +261,16 @@ class FileSnapshotBoundMigrationMarker(
             if (savedPlacesVerifier != null && savedPlacesDigest == null) {
                 throw NativePersistenceException("Native saved places are unavailable")
             }
+            val activityDigest = activityVerifier?.committedCiphertextDigest()
+            if (activityVerifier != null && activityDigest == null) {
+                throw NativePersistenceException("Native activity is unavailable")
+            }
             marker.stage(
                 markerFor(
                     publicBytes,
                     historyDigest,
                     savedPlacesDigest,
+                    activityDigest,
                     markerMagic,
                 ),
             )
@@ -279,10 +289,13 @@ class FileSnapshotBoundMigrationMarker(
         val MAGIC_V1 = "RSTRMIG1".toByteArray(Charsets.US_ASCII)
         val MAGIC_V2 = "RSTRMIG2".toByteArray(Charsets.US_ASCII)
         val MAGIC_V3 = "RSTRMIG3".toByteArray(Charsets.US_ASCII)
+        val MAGIC_V4 = "RSTRMIG4".toByteArray(Charsets.US_ASCII)
         val HISTORY_DIGEST_DOMAIN =
             "roadstr-native-migration-history-v1".toByteArray(Charsets.US_ASCII)
         val SAVED_PLACES_DIGEST_DOMAIN =
             "roadstr-native-migration-saved-places-v1".toByteArray(Charsets.US_ASCII)
+        val ACTIVITY_DIGEST_DOMAIN =
+            "roadstr-native-migration-activity-v1".toByteArray(Charsets.US_ASCII)
         const val DIGEST_BYTES = 32
         val MARKER_BYTES = MAGIC_V1.size + DIGEST_BYTES
 
@@ -298,9 +311,10 @@ class FileSnapshotBoundMigrationMarker(
             publicBytes: ByteArray,
             historyDigest: ByteArray?,
             savedPlacesDigest: ByteArray?,
+            activityDigest: ByteArray?,
             magic: ByteArray,
         ): ByteArray {
-            val digest = markerDigest(publicBytes, historyDigest, savedPlacesDigest)
+            val digest = markerDigest(publicBytes, historyDigest, savedPlacesDigest, activityDigest)
             return ByteArray(MARKER_BYTES).also { result ->
                 magic.copyInto(result)
                 digest.copyInto(result, destinationOffset = magic.size)
@@ -312,11 +326,17 @@ class FileSnapshotBoundMigrationMarker(
             publicBytes: ByteArray,
             historyDigest: ByteArray?,
             savedPlacesDigest: ByteArray?,
+            activityDigest: ByteArray?,
             magic: ByteArray,
         ): Boolean {
             validateMarker(markerBytes, magic)
             val storedDigest = markerBytes.copyOfRange(magic.size, MARKER_BYTES)
-            val actualDigest = markerDigest(publicBytes, historyDigest, savedPlacesDigest)
+            val actualDigest = markerDigest(
+                publicBytes,
+                historyDigest,
+                savedPlacesDigest,
+                activityDigest,
+            )
             return MessageDigest.isEqual(storedDigest, actualDigest)
         }
 
@@ -324,8 +344,9 @@ class FileSnapshotBoundMigrationMarker(
             publicBytes: ByteArray,
             historyDigest: ByteArray?,
             savedPlacesDigest: ByteArray?,
+            activityDigest: ByteArray?,
         ): ByteArray {
-            if (historyDigest == null && savedPlacesDigest == null) {
+            if (historyDigest == null && savedPlacesDigest == null && activityDigest == null) {
                 return MessageDigest.getInstance("SHA-256").digest(publicBytes)
             }
             if (historyDigest != null && historyDigest.size != DIGEST_BYTES) {
@@ -333,6 +354,20 @@ class FileSnapshotBoundMigrationMarker(
             }
             if (savedPlacesDigest != null && savedPlacesDigest.size != DIGEST_BYTES) {
                 throw NativePersistenceException("Native saved-places digest is invalid")
+            }
+            if (activityDigest != null && activityDigest.size != DIGEST_BYTES) {
+                throw NativePersistenceException("Native activity digest is invalid")
+            }
+            if (activityDigest != null) {
+                val digest = MessageDigest.getInstance("SHA-256")
+                digest.update(ACTIVITY_DIGEST_DOMAIN)
+                digest.update(publicBytes)
+                digest.update(if (historyDigest == null) 0 else 1)
+                historyDigest?.let(digest::update)
+                digest.update(if (savedPlacesDigest == null) 0 else 1)
+                savedPlacesDigest?.let(digest::update)
+                digest.update(activityDigest)
+                return digest.digest()
             }
             if (savedPlacesDigest == null) {
                 val digest = MessageDigest.getInstance("SHA-256")
