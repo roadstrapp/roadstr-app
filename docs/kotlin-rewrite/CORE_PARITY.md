@@ -39,7 +39,7 @@ integration work, while Flutter remains the sole launcher.
 | `feature.settings` | `settings_screen.dart`, storage keys/defaults, 27 ARB files | exact scalar preference keys/defaults and choice catalogues, bounded text/sliders, safe secret-configuration summaries, revision-safe typed writes and an accessible dormant Compose settings surface with generated locale resources; its non-secret writes now have atomic native persistence while ownership/effects remain external |
 | `feature.voice` | Kokoro/Piper services, eSpeak phonemization and navigation speech | exact eight-language/13-voice registry, pinned size/SHA-256 asset reuse and atomic installation, bounded Kokoro/Piper input and PCM16 WAV policies, deterministic navigation-speech scheduling and dormant Android audio focus; ONNX/eSpeak/playback ownership remains external |
 | `core.ui` / `feature.home` | `app_theme.dart`, Flutter Android embedding | exact four-palette colors and stored ordinal aliases, edge-to-edge private Compose/MapLibre canary, non-exported/no-intent-filter shell contract; no production startup or storage access |
-| `storage` | encrypted Hive settings/search history/favorites/parking/activity and secure aliases | canonical encrypted history, saved-places and multi-identity activity files, deterministic 35-key non-secret preference file, atomic recovery/reopen, Keystore boundaries, migration-marker ciphertext binding and protected promotion of three historical secret aliases |
+| `storage` | encrypted Hive settings/search history/favorites/parking/activity/pending reports and secure aliases | canonical encrypted history, saved-places, multi-identity activity and offline-report files, deterministic 35-key non-secret preference file, atomic recovery/reopen, Keystore boundaries, migration-marker ciphertext binding and protected promotion of three historical secret aliases |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
 | `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `lnurl_protocol.dart`, `zap_service.dart` | BOLT-11 parsing, LNURL-pay source/metadata/callback/invoice binding, NIP-47 URI/info negotiation/request/response and NIP-57 draft/receipt bindings |
 | `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_pending_report_queue.dart`, `nostr_relay_message.dart`, `nostr_relay_ingress.dart`, `nostr_nip19.dart`, `nostr_schnorr.dart`, `nip04.dart`, `nip44.dart`, `favorites_sync_protocol.dart`, Nostr/favourites/Lightning services | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash, outbound frames, offline FIFO/TTL/retry policy, bounded inbound envelopes, pre-verification routing/budgets, strict NIP-19 keys, x-only derivation/BIP-340, legacy NIP-04, NIP-44 v2 and deterministic NIP-78 policy |
@@ -391,7 +391,7 @@ detached from secure storage and startup. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 769 Flutter tests passed, including the native shell,
+- `flutter test`: 773 Flutter tests passed, including the native shell,
   private MapLibre host, route-overlay, route-session, transit-overlay/session, camera-session and
   user-cursor, point-overlay/interaction and route-traffic Gradle/source contracts, the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
@@ -437,8 +437,10 @@ detached from secure storage and startup. See
   saved-store contracts lock Flutter's favorite/parking shapes, encrypted
   framing, migration binding and dormant ownership. Four activity-store
   contracts additionally lock Flutter's dynamic inbox/cursor shapes, encrypted
-  framing, marker-v4 migration binding and dormant ownership.
-- `./gradlew :app:testDebugUnitTest`: 567 Kotlin tests passed, including the
+  framing, marker-v4 migration binding and dormant ownership. Four pending-
+  report-store contracts lock the Hive/FIFO oracle, encrypted framing,
+  marker-v5 binding and dormant ownership.
+- `./gradlew :app:testDebugUnitTest`: 574 Kotlin tests passed, including the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
   GeoJSON, Flutter-compatible route and per-leg transit metrics/colors,
@@ -462,7 +464,9 @@ detached from secure storage and startup. See
   secret-alias promotion, encrypted favorite/parking import, mutation/reopen/
   wrong-key recovery and marker binding, encrypted multi-identity activity
   import, typed inbox/cursor mutation, wrong-key/corruption recovery and marker
-  v4 binding, native bounded-HTTP integration and headless routing/search service
+  v4 binding, encrypted pending-report import, concurrent FIFO mutation,
+  single-commit flush, wrong-key/corruption recovery and marker v5 binding,
+  native bounded-HTTP integration and headless routing/search service
   suites, including Valhalla avoidance and OSRM re-timing execution, plus the
   Transitous request/parser/Berlin fixture, bounded service retry/cancellation,
   parsed-plan map projection, transit card formatting and revision-safe

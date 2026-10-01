@@ -27,6 +27,7 @@ data class NativeSnapshotRecord(
         const val CURRENT_SCHEMA_VERSION = 1
         const val SAVED_FAVORITES_KEY = "favorites"
         const val SAVED_PARKING_KEY = "parking_position"
+        const val PENDING_REPORTS_KEY = "pending_road_reports"
 
         fun fromLegacy(snapshot: LegacyStorageSnapshot): NativeSnapshotRecord =
             NativeSnapshotRecord(
@@ -36,6 +37,7 @@ data class NativeSnapshotRecord(
                         it != SearchHistoryProtocol.STORAGE_KEY &&
                             it != SAVED_FAVORITES_KEY &&
                             it != SAVED_PARKING_KEY &&
+                            it != PENDING_REPORTS_KEY &&
                             !LegacyStorageContract.isDynamicKey(it) &&
                             it !in NativeLegacySecretAliases.legacyKeys
                     }
@@ -233,6 +235,14 @@ interface NativeActivityMigrationStore {
     fun committedCiphertextDigest(): ByteArray?
 }
 
+/** Transactional encrypted migration boundary for signed offline reports. */
+interface NativePendingReportMigrationStore {
+    fun stageLegacy(normalizedLegacyValue: String?)
+    fun commitStaged()
+    fun verifyLegacy(normalizedLegacyValue: String?)
+    fun committedCiphertextDigest(): ByteArray?
+}
+
 /**
  * Coordinates the public record and protected store under the migration
  * protocol. A failure after either commit leaves the completion marker false;
@@ -244,6 +254,7 @@ class CompositeNativeSnapshotWriter(
     private val searchHistoryStore: NativeSearchHistoryMigrationStore? = null,
     private val savedPlacesStore: NativeSavedPlacesMigrationStore? = null,
     private val activityStore: NativeActivityMigrationStore? = null,
+    private val pendingReportStore: NativePendingReportMigrationStore? = null,
 ) : NativeSnapshotWriter {
     private var stagedRecord: NativeSnapshotRecord? = null
     private var stagedSecrets: Map<String, String>? = null
@@ -261,6 +272,11 @@ class CompositeNativeSnapshotWriter(
         val legacyActivity = snapshot.ordinaryValues.filterKeys(LegacyStorageContract::isDynamicKey)
         if (legacyActivity.isNotEmpty() && activityStore == null) {
             throw IllegalStateException("Native activity store is unavailable")
+        }
+        val legacyPendingReports =
+            snapshot.ordinaryValues[NativeSnapshotRecord.PENDING_REPORTS_KEY]
+        if (legacyPendingReports != null && pendingReportStore == null) {
+            throw IllegalStateException("Native pending-report store is unavailable")
         }
         val record = NativeSnapshotRecord.fromLegacy(snapshot)
         val protectedValues = NativeLegacySecretAliases.protectedValues(snapshot)
@@ -289,6 +305,11 @@ class CompositeNativeSnapshotWriter(
             activityStore?.stageLegacy(legacyActivity)
         } catch (_: RuntimeException) {
             throw IllegalStateException("Native activity staging failed")
+        }
+        try {
+            pendingReportStore?.stageLegacy(legacyPendingReports)
+        } catch (_: RuntimeException) {
+            throw IllegalStateException("Native pending-report staging failed")
         }
         stagedRecord = record
         stagedSecrets = protectedValues
@@ -323,6 +344,11 @@ class CompositeNativeSnapshotWriter(
         } catch (_: RuntimeException) {
             throw IllegalStateException("Native activity commit failed")
         }
+        try {
+            pendingReportStore?.commitStaged()
+        } catch (_: RuntimeException) {
+            throw IllegalStateException("Native pending-report commit failed")
+        }
     }
 
     override fun verify(snapshot: LegacyStorageSnapshot) {
@@ -338,6 +364,11 @@ class CompositeNativeSnapshotWriter(
         val legacyActivity = snapshot.ordinaryValues.filterKeys(LegacyStorageContract::isDynamicKey)
         if (legacyActivity.isNotEmpty() && activityStore == null) {
             throw IllegalStateException("Native activity store is unavailable")
+        }
+        val legacyPendingReports =
+            snapshot.ordinaryValues[NativeSnapshotRecord.PENDING_REPORTS_KEY]
+        if (legacyPendingReports != null && pendingReportStore == null) {
+            throw IllegalStateException("Native pending-report store is unavailable")
         }
         val expected = NativeSnapshotRecord.fromLegacy(snapshot)
         val protectedValues = NativeLegacySecretAliases.protectedValues(snapshot)
@@ -368,6 +399,11 @@ class CompositeNativeSnapshotWriter(
             activityStore?.verifyLegacy(legacyActivity)
         } catch (_: RuntimeException) {
             throw IllegalStateException("Native activity verification failed")
+        }
+        try {
+            pendingReportStore?.verifyLegacy(legacyPendingReports)
+        } catch (_: RuntimeException) {
+            throw IllegalStateException("Native pending-report verification failed")
         }
     }
 }
