@@ -25,7 +25,7 @@ integration work, while Flutter remains the sole launcher.
 | `service.location` | `gps_service.dart` | AOSP `LocationManager` source, 500 ms sampling boundary, safe fix normalization, last-known fix, 20/45-second dead-stream watchdog and cancellable lifecycle ownership; both Flutter renderers have a disabled-by-default foreground canary with init/resume reconciliation and an observed native-fix shadow stream, while full startup/UI cutover remains |
 | `service.navigation` | map-screen lifecycle/navigation state | 30-second background grace, generation-safe pause/resume, GPS retention during navigation, detach cleanup, foreground-only wakelock policy, AOSP foreground-service adapter, opt-in `MainActivity` method/event bridges, process-local running-state query and fix fan-out, isolated Dart wrappers, serialized ownership coordinator and disabled-by-default start/stop/dispose/reconcile wiring in both renderers |
 | `service.notifications` | `navigation_notification_service.dart` | 3-second distance-only throttle, immediate maneuver changes, reset semantics and private ongoing notification metadata; the disabled-by-default canary now mirrors bounded updates through the service `NotificationManager` adapter using the existing channel/ID, with Flutter completing last and remaining authoritative |
-| `feature.map` | `maplibre_map_screen.dart`, `map_screen.dart`, map services/widgets | raster MapLibre style JSON, dark recoloring, tile URL admission/escaping, ZTL/traffic route-run segmentation and zoom/viewport marker culling; a lifecycle-safe MapLibre Native 13.5.2 AndroidView now installs bounded selected/completed/muted-alternative/traffic route and per-leg transit layers, consumes revision-safe route/transit/camera/cursor/point sessions and emits typed marker/map gestures with Flutter-parity 60 m alternative selection only in the private Compose shell, while product data/UI remain unwired |
+| `feature.map` | `maplibre_map_screen.dart`, `map_screen.dart`, map services/widgets | raster MapLibre style JSON, dark recoloring, tile URL admission/escaping, exact `maplibre`/`osm` selection and top-down legacy zoom profile, ZTL/traffic route-run segmentation and zoom/viewport marker culling; a lifecycle-safe MapLibre Native 13.5.2 AndroidView now installs bounded selected/completed/muted-alternative/traffic route and per-leg transit layers, consumes revision-safe route/transit/camera/cursor/point sessions and emits typed marker/map gestures with Flutter-parity 60 m alternative selection only in the private Compose shell, while product data/UI remain unwired |
 | `feature.search` | `search_panel.dart`, search/history/favorite models, 27 ARB files | bounded result/favorite/history projection, metric/imperial distances, exact 11-category nearby catalogue, revision-safe loading/partial/final/empty states and an accessible dormant Compose overlay with generated locale resources |
 | `feature.place` | `place_info_panel.dart`, `poi_search_service.dart`, `opening_hours.dart`, 27 ARB files | bounded localized OSM detail parsing, safe contacts/URLs, contextual parking/charging/fuel/lodging/food fields, opening-hours projection, revision-safe loading/ready/hidden state and an accessible dormant Compose sheet with generated locale resources |
 | `feature.transit` | `transit_itinerary_widget.dart`, `transit_itinerary.dart`, `units.dart`, 27 ARB files | bounded card projection, metric/imperial formatting, boarding/line/timetable details, revision-safe UI/map selection, loading/ready/no-service/failure states and an accessible dormant Compose panel with generated locale resources |
@@ -299,6 +299,11 @@ detached from secure storage and startup. See
   A projected interaction boundary gives the topmost visible road-event marker
   priority, emits typed map tap/long-press values and selects route alternatives
   with Flutter's first-wins rounded-Vincenty `< 60 m` vertex scan.
+  The same host now has a typed compatibility profile for the persisted
+  `mapEngine=osm` choice: zoom 6 start, 2–19 bounds, zero pitch, disabled tilt
+  gesture and retained bearing, with the custom raster template passed through
+  the existing admission policy. The shell keeps the `maplibre` default and
+  reads no preference.
   A separate revision-fenced transit session holds up to eight alternatives,
   receives bounded plans parsed by the native Transitous protocol, validates
   the complete worldwide mode catalogue and projects only the selected
@@ -376,7 +381,7 @@ detached from secure storage and startup. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 740 Flutter tests passed, including the native shell,
+- `flutter test`: 744 Flutter tests passed, including the native shell,
   private MapLibre host, route-overlay, route-session, transit-overlay/session, camera-session and
   user-cursor, point-overlay/interaction and route-traffic Gradle/source contracts, the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
@@ -404,15 +409,18 @@ detached from secure storage and startup. See
   callback-only effects, secret hygiene and dormant shell ownership. Four
   voice contracts lock the exact Flutter asset registry, eight-language
   selection and speed policies, inference/scheduling bounds, Android focus
-  semantics and the absence of native voice ownership in the shell.
-- `./gradlew :app:testDebugUnitTest`: 515 Kotlin tests passed, including the
+  semantics and the absence of native voice ownership in the shell. Four
+  legacy-raster contracts additionally lock persisted selection, both Flutter
+  camera envelopes, host bounds/custom tiles and dormant ownership.
+- `./gradlew :app:testDebugUnitTest`: 520 Kotlin tests passed, including the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
   GeoJSON, Flutter-compatible route and per-leg transit metrics/colors,
   revision-safe route/transit
   route-choice selection/commit, projection/progress, rounded-Vincenty traffic
   segmentation/revision fencing, stale-style rejection
-  and revision-safe camera follow, user-cursor fencing/visual policy and
+  and revision-safe camera follow, exact `maplibre`/`osm` values and camera
+  profiles, top-down legacy clamping and shared raster output, user-cursor fencing/visual policy and
   bounded point-overlay ordering/zoom/catalogue policy, projected road-event
   hit priority and strict 60 m alternative tap selection,
   route-planning formatting, badge priority, ordered-stop bounds, request
