@@ -213,7 +213,10 @@ Flutter is still the only launcher and production UI.
   `LEGACY_HEADLESS_BRIDGE.md` records its threading, lifecycle and evidence
   boundary.
 - The explicit voice manifest tracks 18 Kokoro/Piper/eSpeak paths and is locked
-  to the production voice catalogues by tests.
+  to the production voice catalogues by tests. The dormant native catalogue
+  additionally pins all 17 downloadable files by revision, exact byte length
+  and SHA-256; its verifier reuses only exact regular files and its unowned
+  downloader uses bounded `.part`/fsync/atomic replacement semantics.
 - `TransactionalMigration.kt` defines the reader/writer/marker interfaces and
   enforces the order `read → validate → stage → commit → verify → mark complete`.
 - No interface exposes a legacy-delete operation. Cleanup remains a separate,
