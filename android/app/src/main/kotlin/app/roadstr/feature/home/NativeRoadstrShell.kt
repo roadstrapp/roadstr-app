@@ -144,6 +144,8 @@ fun NativeRoadstrShell() {
         val navigationHudState by navigationHudSession.state.collectAsState()
         val onboardingSession = remember { NativeOnboardingSession() }
         val onboardingState by onboardingSession.state.collectAsState()
+        val homeSession = remember { NativeHomeSession() }
+        val homeState by homeSession.state.collectAsState()
         val wikipediaSession = remember { NativeWikipediaSession() }
         val wikipediaState by wikipediaSession.state.collectAsState()
         LaunchedEffect(cameraSession, cameraState.frameActive) {
@@ -212,6 +214,16 @@ fun NativeRoadstrShell() {
                         )
                     }
                 }
+                NativeHomeChrome(
+                    snapshot = homeState,
+                    onToggleExpanded = homeSession::toggleExpanded,
+                    onAction = { revision, action ->
+                        homeSession.action(revision, action)
+                    },
+                    onFavorite = { revision, id ->
+                        homeSession.selectFavorite(revision, id)
+                    },
+                )
                 NativeSearchOverlay(
                     snapshot = searchState,
                     onQueryChanged = {},
