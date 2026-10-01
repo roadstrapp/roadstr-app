@@ -254,23 +254,27 @@ broader cross-language coverage and a native store are still required.
 - **Current Dart/Flutter source:** Flutter Android embedding, `lib/main.dart`, `lib/theme/app_theme.dart`, manifest/resources.
 - **New Kotlin files/modules:** `core/ui/theme/RoadstrTheme.kt`,
   `feature/home/NativeCanaryActivity.kt`, `NativeRoadstrShell.kt` and
-  `NativeShellContract.kt`.
+  `NativeShellContract.kt`; `native-android/` adds a separate pure-Android
+  road-test graph and direct `ComponentActivity` launcher.
 - **Dependencies:** Compose BOM `2026.06.01`, Activity Compose `1.13.0`,
   Material 3 and the Kotlin `2.2.10` Compose compiler plugin. The BOM is pinned
   to the last stable line compatible with the existing compile SDK 36; the
   resolved Google Play Services audit is empty.
 - **Migration impact:** Must not open or delete legacy storage yet.
-- **User-visible impact:** Internal shell only; no cutover.
+- **User-visible impact:** The production package is unchanged. The separately
+  installable `app.roadstr.roadtest` harness exposes the internal shell only.
 - **Tests:** JVM palette/ordinal tests, Dart Gradle/manifest contract tests,
-  merged-manifest inspection and debug APK packaging.
+  merged-manifest inspection, ordinary debug packaging and independent native
+  APK/dependency/permission inspection.
 - **Parity evidence:** Same package/label/icon/permissions and backup/cleartext
   policy; exact light/dark Nostr/Bitcoin colors; edge-to-edge placeholder with
   a documented private boundary.
 - **Security/privacy impact:** Preserve backup, cleartext and recents/privacy settings.
 - **Battery/performance impact:** Cold/warm start and idle frame baseline.
-- **Acceptance criteria:** The native debug shell builds without changing the
-  Flutter production entrypoint or package identity. Physical-device launch,
-  cold/warm start and idle-frame measurements remain before this card is done.
+- **Acceptance criteria:** The native shell builds both inside the unchanged
+  Flutter package and as a 59.7-MB Flutter-free side-by-side APK. Physical-
+  device launch, cold/warm start and idle-frame measurements remain before
+  this card is done.
 - **Rollback notes:** Remove the shell module; Flutter build remains available.
 
 ### KOTLIN-005 — Port pure core behavior with cross-language fixtures (IN PROGRESS)

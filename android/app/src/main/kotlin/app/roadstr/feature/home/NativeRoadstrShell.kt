@@ -69,23 +69,34 @@ import app.roadstr.feature.wikipedia.NativeWikipediaReader
 import app.roadstr.feature.wikipedia.NativeWikipediaSession
 import kotlinx.coroutines.delay
 
+enum class NativeShellMode {
+    Canary,
+    RoadTest,
+}
+
 /**
  * Dormant native UI boundary used to prove Compose and MapLibre packaging.
  *
- * It owns no storage, location or migration state and is not the launcher. If
- * invoked explicitly from inside the app, only the admitted OSM raster source
- * may perform network I/O. Product screens replace this boundary incrementally
- * after their parity gates are green.
+ * It owns no storage, location or migration state. The production package does
+ * not launch it; the separate road-test APK can host it directly without
+ * Flutter. Only the admitted OSM raster source may perform network I/O.
+ * Product screens replace this boundary incrementally after their parity gates
+ * are green.
  */
 @Composable
-fun NativeRoadstrShell() {
+fun NativeRoadstrShell(mode: NativeShellMode = NativeShellMode.Canary) {
     val themeId = if (isSystemInDarkTheme()) {
         RoadstrThemeId.DarkNostr
     } else {
         RoadstrThemeId.LightNostr
     }
     RoadstrTheme(themeId = themeId) {
-        val shellDescription = stringResource(R.string.native_shell_description)
+        val shellDescription = stringResource(
+            when (mode) {
+                NativeShellMode.Canary -> R.string.native_shell_description
+                NativeShellMode.RoadTest -> R.string.native_road_test_description
+            },
+        )
         val palette = RoadstrThemeTokens.palette(themeId)
         val routeSession = remember { NativeRouteOverlaySession(themeId.accentArgb) }
         val routePlanningSession = remember(routeSession) {
@@ -209,7 +220,12 @@ fun NativeRoadstrShell() {
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = stringResource(R.string.native_map_canary_status),
+                            text = stringResource(
+                                when (mode) {
+                                    NativeShellMode.Canary -> R.string.native_map_canary_status
+                                    NativeShellMode.RoadTest -> R.string.native_road_test_status
+                                },
+                            ),
                             style = MaterialTheme.typography.labelLarge,
                         )
                     }

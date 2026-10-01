@@ -2,7 +2,9 @@
 
 The native rewrite remains isolated from production startup. It now includes a
 private Compose integration shell in addition to library-level prototypes, but
-Flutter is still the only launcher and production UI.
+Flutter is still the only launcher and production UI of `app.roadstr`. A
+separate `app.roadstr.roadtest` APK now launches that Compose shell directly
+from a Flutter-free Gradle graph for side-by-side integration work.
 
 This branch is a **pre-cutover implementation candidate**, not a Kotlin release
 candidate. Repository-side migration/storage boundaries and deterministic
@@ -13,6 +15,14 @@ estimate from being mistaken for release readiness.
 
 ## Implemented
 
+- `native-android/` is an independent Android application module with its own
+  settings/build graph, `ComponentActivity` launcher and `MAIN`/`LAUNCHER`
+  manifest. It compiles the shared Kotlin `core/` and `feature/` trees directly,
+  applies no Flutter plugin and packages no Dart bundle, Flutter embedding or
+  migration/service source. Its distinct `app.roadstr.roadtest` identity
+  prevents the incomplete harness from reading or replacing production data;
+  the first debug APK is roughly 60 MB and requests only Internet plus
+  AndroidX's package-scoped receiver permission. It is not an update candidate.
 - `feature/home/NativeCanaryActivity.kt` is a non-exported, recents-excluded
   activity with no intent filter. It hosts an edge-to-edge Compose shell and a
   MapLibre Native raster canary, opens no storage and does not invoke migration.

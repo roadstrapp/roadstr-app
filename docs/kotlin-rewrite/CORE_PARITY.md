@@ -7,7 +7,9 @@ compile-time, disabled-by-default canary in both Flutter map renderers, with
 runtime-state reconciliation, a value-only native-fix shadow stream and an
 in-place native navigation-notification mirror after Activity or renderer
 recreation. A separate non-exported Compose shell is packaged for native UI
-integration work, while Flutter remains the sole launcher.
+integration work, while Flutter remains the sole launcher of the production
+package. A separate Flutter-free `app.roadstr.roadtest` APK now launches the
+same provider-free shell directly for side-by-side integration work.
 
 ## Implemented slices
 
@@ -38,7 +40,7 @@ integration work, while Flutter remains the sole launcher.
 | `feature.route` | `route_panels.dart`, routing response/avoidance models, 27 ARB files | bounded planner/loading/alternatives/preview state, one-to-five stable ordered stops, four modes, Flutter duration/unit and avoidance-badge projection, revision-safe card/MapLibre selection and accessible dormant Compose panels with generated locale resources |
 | `feature.settings` | `settings_screen.dart`, storage keys/defaults, 27 ARB files | exact scalar preference keys/defaults and choice catalogues, bounded text/sliders, safe secret-configuration summaries, revision-safe typed writes and an accessible dormant Compose settings surface with generated locale resources; its non-secret writes now have atomic native persistence while ownership/effects remain external |
 | `feature.voice` | Kokoro/Piper services, eSpeak phonemization and navigation speech | exact eight-language/13-voice registry, pinned size/SHA-256 asset reuse and atomic installation, bounded Kokoro/Piper input and PCM16 WAV policies, deterministic navigation-speech scheduling and dormant Android audio focus; ONNX/eSpeak/playback ownership remains external |
-| `core.ui` / `feature.home` | `app_theme.dart`, Flutter Android embedding | exact four-palette colors and stored ordinal aliases, edge-to-edge private Compose/MapLibre canary, non-exported/no-intent-filter shell contract; no production startup or storage access |
+| `core.ui` / `feature.home` | `app_theme.dart`, Flutter Android embedding | exact four-palette colors and stored ordinal aliases, edge-to-edge private Compose/MapLibre canary, non-exported production-package boundary and separate Flutter-free road-test launcher; no production startup or storage access |
 | `storage` | encrypted Hive settings/search history/favorites/parking/activity/pending reports and secure aliases | canonical encrypted history, saved-places, multi-identity activity and offline-report files, deterministic 35-key non-secret preference file, atomic recovery/reopen, Keystore boundaries, migration-marker ciphertext binding and protected promotion of three historical secret aliases |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
 | `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `lnurl_protocol.dart`, `zap_service.dart` | BOLT-11 parsing, LNURL-pay source/metadata/callback/invoice binding, NIP-47 URI/info negotiation/request/response and NIP-57 draft/receipt bindings |
@@ -391,7 +393,7 @@ detached from secure storage and startup. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 773 Flutter tests passed, including the native shell,
+- `flutter test`: 777 Flutter tests passed, including the native shell,
   private MapLibre host, route-overlay, route-session, transit-overlay/session, camera-session and
   user-cursor, point-overlay/interaction and route-traffic Gradle/source contracts, the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
@@ -439,7 +441,10 @@ detached from secure storage and startup. See
   contracts additionally lock Flutter's dynamic inbox/cursor shapes, encrypted
   framing, marker-v4 migration binding and dormant ownership. Four pending-
   report-store contracts lock the Hive/FIFO oracle, encrypted framing,
-  marker-v5 binding and dormant ownership.
+  marker-v5 binding and dormant ownership. Four native-road-test contracts
+  additionally lock the separate application identity, direct Compose
+  launcher, Flutter-free Gradle graph, bounded source ownership and unchanged
+  production launcher.
 - `./gradlew :app:testDebugUnitTest`: 574 Kotlin tests passed, including the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
@@ -504,6 +509,12 @@ detached from secure storage and startup. See
 - `flutter build apk --debug`: the default Flutter-launcher APK packages the
   dormant Compose/MapLibre shell successfully without enabling the navigation
   canary or adding a second launcher.
+- `ANDROID_HOME=... android/gradlew -p native-android :app:assembleDebug`: the
+  independent roughly 60 MB `app.roadstr.roadtest` APK builds from only the
+  shared Kotlin `core/feature` trees. Artifact, DEX and runtime-dependency
+  inspection finds no Flutter/Dart entry, engine, bundle or class; `aapt`
+  confirms SDK 24/36, the direct Compose launcher and only Internet plus the
+  AndroidX package-scoped receiver permission.
 - `MainActivity` registers the opt-in native-navigation channel. Both map
   renderers own it only in builds compiled with
   `ROADSTR_NATIVE_NAVIGATION=true`; ordinary builds retain the existing
