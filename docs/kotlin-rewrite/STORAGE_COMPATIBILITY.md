@@ -178,8 +178,8 @@ storage, concurrency or process-death recovery; those remain migration gates.
    pass secrets through logs or shell arguments.
 4. Write native public records transactionally to temporary/new storage,
    flush/fsync, reopen them, and compare commitments; write secure values and
-   coordinate-bearing search history, favorites, parking and per-identity
-   activity inboxes/cursors only through their Keystore-backed encrypted
+   coordinate-bearing search history, favorites, parking, per-identity
+   activity inboxes/cursors and signed pending reports only through their Keystore-backed encrypted
    adapters and compare them there.
 5. Mark migration complete only after validation and one successful native
    startup. Keep a backup of legacy storage until that point.
@@ -191,8 +191,8 @@ half of step 4 with fixed `active`, `.stage` and `.backup` files. A stage is
 bounded, decoded and file-fsynced before same-directory activation; the old
 active record remains recoverable until the replacement has been reopened and
 validated. `FileSnapshotBoundMigrationMarker` stores only a fixed header plus a
-SHA-256 commitment. Its versioned v2/v3/v4 forms progressively bind the exact
-public bytes and validated encrypted history, saved-place and activity files,
+SHA-256 commitment. Its versioned v2/v3/v4/v5 forms progressively bind the exact
+public bytes and validated encrypted history, saved-place, activity and pending-report files,
 and therefore report incomplete after any required file is missing, corrupt or
 changed. Marker reopen also
 asks the protected store to decrypt and match every per-key commitment in the
@@ -252,6 +252,18 @@ Migration marker v4 binds the exact validated activity ciphertext in addition
 to the public snapshot and optional history/saved-place ciphertexts. Dynamic
 activity keys, event identifiers, categories and cursors therefore no longer
 enter the public native record or any plaintext native file.
+
+`FileNativePendingReportStore` extracts `pending_road_reports` before public
+snapshot encoding and preserves the bridge's full 4-MiB/100,000-value legacy
+admission boundary. It stores the FIFO list in an integrity-framed AES-256-GCM
+file under `app.roadstr.native.pending-reports.v1`, serializes enqueue/flush
+operations and commits the remaining retry set once after a complete pass.
+Invalid or expired rows follow the existing Flutter policy; publish failures
+remain queued and verifier failures abort without rewriting uncertain state.
+
+Migration marker v5 additionally binds the exact validated pending-report
+ciphertext. Signed event payloads, coordinates and expiration times therefore
+no longer enter the public snapshot or plaintext native files.
 
 `FileNativePreferenceStore` owns `native_preferences_v1.bin`, a deterministic
 versioned binary map for the closed 35-key non-secret scalar catalogue. The

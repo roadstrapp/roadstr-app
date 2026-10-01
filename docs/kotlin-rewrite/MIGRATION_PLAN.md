@@ -73,8 +73,9 @@ The first native increment is intentionally isolated from production startup:
   deliberately unwired.
 - The production pending-report queue now delegates its unchanged Hive JSON and
   FIFO/TTL/retry policy to a pure Dart boundary; a dependency-free Kotlin
-  counterpart matches the same shared transcripts. Native persistence remains
-  deliberately unwired.
+  counterpart matches the same shared transcripts. A bounded encrypted native
+  store is composed into the dormant migration runtime, while production relay
+  and startup ownership remain deliberately unwired.
 - The production Nostr service now delegates live, ACK and one-shot relay
   envelopes to a bounded Dart decoder. A dependency-free Kotlin parser matches
   25 valid/hostile transcripts, including exact size and nesting boundaries;
@@ -337,8 +338,8 @@ broader cross-language coverage and a native store are still required.
 - **New Kotlin files/modules:** `app/roadstr/migration/LegacyStorageContract.kt`,
   `LegacyStorageModels.kt`, `LegacySnapshotEnvelope.kt`,
   `LegacyHeadlessSnapshotReader.kt`, `FlutterLegacyEnvelopeTransport.kt`,
-  `TransactionalMigration.kt`; the real `service/migration` and
-  `storage/native` integration is still pending.
+  `TransactionalMigration.kt`, plus the concrete encrypted `storage/` adapters
+  and `NativeMigrationRuntime`; production startup ownership is still pending.
 - **Dependencies:** KOTLIN-002; the minimal headless bridge candidate is
   implemented, while signed-device format evidence remains blocking.
 - **Migration impact:** Highest risk; direct update from supported 0.5.x is required.
@@ -376,7 +377,11 @@ broader cross-language coverage and a native store are still required.
   `storage/NativeActivityStore.kt` now removes all dynamic per-identity inbox
   and cursor rows from public bytes, imports them into a bounded multi-identity
   AES-GCM atomic file, exposes typed revision-fenced inbox/cursor mutations and
-  binds the exact ciphertext into migration marker v4. Startup wiring and
+  binds the exact ciphertext into migration marker v4.
+  `storage/NativePendingReportStore.kt` now removes the signed offline-report
+  queue from public bytes, preserves the full legacy bridge bound in a
+  serialized AES-GCM atomic FIFO and binds it into migration marker v5.
+  Startup wiring and
   signed-device
   Keystore evidence remain open. `NativeStoragePaths` and
   `NativeMigrationRuntime` now compose these pieces under
@@ -392,7 +397,8 @@ broader cross-language coverage and a native store are still required.
   malformed-row import, plaintext absence, concurrency and fail-closed
   mutation, strict scalar import, typed settings writes, preference corruption/
   reopen/idempotence, encrypted favorite/parking and multi-identity activity
-  import, typed inbox/read/cursor mutations,
+  import, typed inbox/read/cursor mutations, pending-report FIFO import,
+  concurrent enqueue/single-commit flush,
   wrong-key/corruption rejection and marker invalidation, secret-alias
   exclusion/precedence, asset reuse and
   checksum tests, plus runtime path/composition and
@@ -401,7 +407,8 @@ broader cross-language coverage and a native store are still required.
   rejection.
 - **Parity evidence:** Storage comparison against migrated fixture and second-start no-op.
 - **Security/privacy impact:** No nsec/NWC/passphrase, historical secret alias,
-  favorite label/address, parking coordinate, activity event/cursor or
+  favorite label/address, parking coordinate, activity event/cursor,
+  signed pending report or
   search-history label/coordinate
   enters the public snapshot or native preference file.
 - **Battery/performance impact:** Startup I/O and write frequency compared with Hive.
