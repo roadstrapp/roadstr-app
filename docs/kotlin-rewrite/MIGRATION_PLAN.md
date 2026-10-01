@@ -637,7 +637,8 @@ broader cross-language coverage and a native store are still required.
   `feature/route/NativeRoutePlanningPresentation.kt` and
   `NativeRoutePlanningPanel.kt`, plus profile, settings and
   `feature/onboarding/NativeOnboardingPresentation.kt` with
-  `NativeOnboardingFlow.kt`.
+  `NativeOnboardingFlow.kt`, plus
+  `feature/home/NativeHomePresentation.kt` and `NativeHomeChrome.kt`.
 - **Current implementation:** The private shell packages a hidden
   public-transport itinerary panel with loading, ready, no-service and failure
   states, up to eight selectable cards, boarding/walking/line/timetable detail,
@@ -705,6 +706,12 @@ broader cross-language coverage and a native store are still required.
   precedence and show the current fail-closed recovery copy. Fifty-five values
   are generated for all 27 locales. Storage, migration, Amber/nsec, permission,
   voice-download and startup ownership remain detached.
+  A thirteenth home-chrome slice preserves both map renderers' idle visibility
+  gates, collapsed/expanded dashboard, five-visible-favourite ceiling, unread
+  `99+` badge and Notifications/Profile/Menu hierarchy. Ten values are generated
+  for all 27 locales. The private shell supplies no identity, favourite,
+  activity, parking, GPS, route or panel-owner data; actions remain typed and
+  side-effect free.
 - **Dependencies:** Compose Material 3 and AndroidX only after license review.
 - **Migration impact:** Settings names/defaults and onboarding/disclosure keys must map exactly.
 - **User-visible impact:** Must feel like an update, not a redesign.
@@ -745,12 +752,16 @@ broader cross-language coverage and a native store are still required.
   onboarding JVM cases plus four Dart contracts lock strict gate precedence,
   exact completion writes, bounded revision-safe state, 55-value/27-locale
   resources, undismissable consent, accessible swipeable presentation and
-  dormant shell ownership.
+  dormant shell ownership. Nine home JVM cases plus four Dart contracts lock
+  exact visibility gates, five-item and unread bounds, revision fencing,
+  10-value/27-locale resources, accessible Compose structure and dormant shell
+  ownership.
   Compose screenshot comparisons, drag behavior, font-scale/TalkBack and
   compact-device layouts remain.
 - **Parity evidence:** public-transport, active-search, place-detail,
   navigation-HUD, saved-place/parking, Wikipedia-reader, road-event,
-  activity-inbox, route-planning, profile, settings and onboarding/startup-gate states
+  activity-inbox, route-planning, profile, settings, onboarding/startup-gate and
+  map-first home-chrome states
   have their first headless and packaged Compose evidence in `UI_PARITY.md`;
   every other state and visual/orientation evidence remain open.
 - **Security/privacy impact:** preserve privacy disclosure wording and task-switcher handling.

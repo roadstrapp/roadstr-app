@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_hr.arb. Do not edit. -->
+<resources>
+    <string name="native_home_notifications">Obavijesti</string>
+    <string name="native_home_profile">Profil</string>
+    <string name="native_home_menu">Izbornik</string>
+    <string name="native_home_ready">Ready to go?</string>
+    <string name="native_home_navigate">Navigate</string>
+    <string name="native_home_parking">Parking</string>
+    <string name="native_home_activity">Activity</string>
+    <string name="native_home_events">Events</string>
+    <string name="native_home_saved_places">Saved places</string>
+    <string name="native_home_my_location">Moja lokacija</string>
+</resources>

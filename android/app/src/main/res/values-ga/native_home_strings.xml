@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ga.arb. Do not edit. -->
+<resources>
+    <string name="native_home_notifications">Fógraí</string>
+    <string name="native_home_profile">Próifíl</string>
+    <string name="native_home_menu">Roghchlár</string>
+    <string name="native_home_ready">Ready to go?</string>
+    <string name="native_home_navigate">Navigate</string>
+    <string name="native_home_parking">Parking</string>
+    <string name="native_home_activity">Activity</string>
+    <string name="native_home_events">Events</string>
+    <string name="native_home_saved_places">Saved places</string>
+    <string name="native_home_my_location">Mo shuíomh</string>
+</resources>

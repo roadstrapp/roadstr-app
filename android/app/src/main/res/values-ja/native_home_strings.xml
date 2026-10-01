@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from lib/l10n/app_ja.arb. Do not edit. -->
+<resources>
+    <string name="native_home_notifications">通知</string>
+    <string name="native_home_profile">プロフィール</string>
+    <string name="native_home_menu">メニュー</string>
+    <string name="native_home_ready">Ready to go?</string>
+    <string name="native_home_navigate">Navigate</string>
+    <string name="native_home_parking">Parking</string>
+    <string name="native_home_activity">Activity</string>
+    <string name="native_home_events">Events</string>
+    <string name="native_home_saved_places">Saved places</string>
+    <string name="native_home_my_location">現在地</string>
+</resources>
