@@ -33,7 +33,12 @@ not proof of Compose rendering.
 
 The packaged native shell is intentionally only an integration foundation. Its
 activity is non-exported, excluded from recents and has no intent filter;
-Flutter `MainActivity` remains the sole launcher. The shell establishes
+Flutter `MainActivity` remains the sole launcher of the production package.
+The separate `native-android/` road-test build gives the same shell a direct
+Compose launcher under `app.roadstr.roadtest`, with no Flutter runtime in its
+Gradle graph or APK. It currently owns no data, GPS or product services and is
+therefore a launchable integration harness rather than a functional fork.
+The shell establishes
 edge-to-edge Compose hosting and exact light/dark Nostr Violet/Bitcoin Orange
 color tokens, including legacy stored-theme aliases. It also embeds a real
 MapLibre Native raster view with the Flutter initial camera and texture mode.

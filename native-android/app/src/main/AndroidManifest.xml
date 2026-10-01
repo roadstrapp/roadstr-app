@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- MapLibre declares these transitively. The current road-test slice owns
+         no connectivity observer or location source, so keep its permission
+         surface honest until those adapters are connected deliberately. -->
+    <uses-permission
+        android:name="android.permission.ACCESS_NETWORK_STATE"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.ACCESS_WIFI_STATE"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.ACCESS_COARSE_LOCATION"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION"
+        tools:node="remove" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/native_road_test_app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:theme="@style/NativeCanaryTheme"
+        android:usesCleartextTraffic="false">
+        <activity
+            android:name=".roadtest.NativeRoadTestActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/NativeCanaryTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

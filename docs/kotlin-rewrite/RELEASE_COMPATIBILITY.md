@@ -20,6 +20,9 @@ over a current Flutter install and preserve all data — is currently **not yet
 demonstrably yes**. The private native shell is packaged in the debug APK, but
 no candidate has been signed with the official certificate or installed over a
 supported production build. Signing material remains external to the checkout.
+The independent `app.roadstr.roadtest` APK is deliberately a different package:
+it proves a Flutter-free launcher/build boundary, but cannot exercise in-place
+migration or count as signing/update evidence.
 
 ## Current release channels
 
