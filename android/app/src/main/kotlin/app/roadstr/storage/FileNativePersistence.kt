@@ -209,8 +209,10 @@ class FileSnapshotBoundMigrationMarker(
     private val searchHistoryVerifier: NativeSearchHistoryMigrationStore? = null,
     private val savedPlacesVerifier: NativeSavedPlacesMigrationStore? = null,
     private val activityVerifier: NativeActivityMigrationStore? = null,
+    private val pendingReportVerifier: NativePendingReportMigrationStore? = null,
 ) : MigrationMarker {
     private val markerMagic = when {
+        pendingReportVerifier != null -> MAGIC_V5
         activityVerifier != null -> MAGIC_V4
         savedPlacesVerifier != null -> MAGIC_V3
         searchHistoryVerifier != null -> MAGIC_V2
@@ -234,12 +236,15 @@ class FileSnapshotBoundMigrationMarker(
             if (savedPlacesVerifier != null && savedPlacesDigest == null) return false
             val activityDigest = activityVerifier?.committedCiphertextDigest()
             if (activityVerifier != null && activityDigest == null) return false
+            val pendingReportDigest = pendingReportVerifier?.committedCiphertextDigest()
+            if (pendingReportVerifier != null && pendingReportDigest == null) return false
             markerMatches(
                 markerBytes,
                 publicBytes,
                 historyDigest,
                 savedPlacesDigest,
                 activityDigest,
+                pendingReportDigest,
                 markerMagic,
             ) &&
                 secretVerifier.matches(publicRecord.secureValueDigests)
@@ -265,12 +270,17 @@ class FileSnapshotBoundMigrationMarker(
             if (activityVerifier != null && activityDigest == null) {
                 throw NativePersistenceException("Native activity is unavailable")
             }
+            val pendingReportDigest = pendingReportVerifier?.committedCiphertextDigest()
+            if (pendingReportVerifier != null && pendingReportDigest == null) {
+                throw NativePersistenceException("Native pending reports are unavailable")
+            }
             marker.stage(
                 markerFor(
                     publicBytes,
                     historyDigest,
                     savedPlacesDigest,
                     activityDigest,
+                    pendingReportDigest,
                     markerMagic,
                 ),
             )
@@ -290,12 +300,15 @@ class FileSnapshotBoundMigrationMarker(
         val MAGIC_V2 = "RSTRMIG2".toByteArray(Charsets.US_ASCII)
         val MAGIC_V3 = "RSTRMIG3".toByteArray(Charsets.US_ASCII)
         val MAGIC_V4 = "RSTRMIG4".toByteArray(Charsets.US_ASCII)
+        val MAGIC_V5 = "RSTRMIG5".toByteArray(Charsets.US_ASCII)
         val HISTORY_DIGEST_DOMAIN =
             "roadstr-native-migration-history-v1".toByteArray(Charsets.US_ASCII)
         val SAVED_PLACES_DIGEST_DOMAIN =
             "roadstr-native-migration-saved-places-v1".toByteArray(Charsets.US_ASCII)
         val ACTIVITY_DIGEST_DOMAIN =
             "roadstr-native-migration-activity-v1".toByteArray(Charsets.US_ASCII)
+        val PENDING_REPORT_DIGEST_DOMAIN =
+            "roadstr-native-migration-pending-reports-v1".toByteArray(Charsets.US_ASCII)
         const val DIGEST_BYTES = 32
         val MARKER_BYTES = MAGIC_V1.size + DIGEST_BYTES
 
@@ -312,9 +325,16 @@ class FileSnapshotBoundMigrationMarker(
             historyDigest: ByteArray?,
             savedPlacesDigest: ByteArray?,
             activityDigest: ByteArray?,
+            pendingReportDigest: ByteArray?,
             magic: ByteArray,
         ): ByteArray {
-            val digest = markerDigest(publicBytes, historyDigest, savedPlacesDigest, activityDigest)
+            val digest = markerDigest(
+                publicBytes,
+                historyDigest,
+                savedPlacesDigest,
+                activityDigest,
+                pendingReportDigest,
+            )
             return ByteArray(MARKER_BYTES).also { result ->
                 magic.copyInto(result)
                 digest.copyInto(result, destinationOffset = magic.size)
@@ -327,6 +347,7 @@ class FileSnapshotBoundMigrationMarker(
             historyDigest: ByteArray?,
             savedPlacesDigest: ByteArray?,
             activityDigest: ByteArray?,
+            pendingReportDigest: ByteArray?,
             magic: ByteArray,
         ): Boolean {
             validateMarker(markerBytes, magic)
@@ -336,6 +357,7 @@ class FileSnapshotBoundMigrationMarker(
                 historyDigest,
                 savedPlacesDigest,
                 activityDigest,
+                pendingReportDigest,
             )
             return MessageDigest.isEqual(storedDigest, actualDigest)
         }
@@ -345,8 +367,11 @@ class FileSnapshotBoundMigrationMarker(
             historyDigest: ByteArray?,
             savedPlacesDigest: ByteArray?,
             activityDigest: ByteArray?,
+            pendingReportDigest: ByteArray?,
         ): ByteArray {
-            if (historyDigest == null && savedPlacesDigest == null && activityDigest == null) {
+            if (historyDigest == null && savedPlacesDigest == null &&
+                activityDigest == null && pendingReportDigest == null
+            ) {
                 return MessageDigest.getInstance("SHA-256").digest(publicBytes)
             }
             if (historyDigest != null && historyDigest.size != DIGEST_BYTES) {
@@ -357,6 +382,22 @@ class FileSnapshotBoundMigrationMarker(
             }
             if (activityDigest != null && activityDigest.size != DIGEST_BYTES) {
                 throw NativePersistenceException("Native activity digest is invalid")
+            }
+            if (pendingReportDigest != null && pendingReportDigest.size != DIGEST_BYTES) {
+                throw NativePersistenceException("Native pending-report digest is invalid")
+            }
+            if (pendingReportDigest != null) {
+                val digest = MessageDigest.getInstance("SHA-256")
+                digest.update(PENDING_REPORT_DIGEST_DOMAIN)
+                digest.update(publicBytes)
+                digest.update(if (historyDigest == null) 0 else 1)
+                historyDigest?.let(digest::update)
+                digest.update(if (savedPlacesDigest == null) 0 else 1)
+                savedPlacesDigest?.let(digest::update)
+                digest.update(if (activityDigest == null) 0 else 1)
+                activityDigest?.let(digest::update)
+                digest.update(pendingReportDigest)
+                return digest.digest()
             }
             if (activityDigest != null) {
                 val digest = MessageDigest.getInstance("SHA-256")

@@ -4,6 +4,13 @@ The native rewrite remains isolated from production startup. It now includes a
 private Compose integration shell in addition to library-level prototypes, but
 Flutter is still the only launcher and production UI.
 
+This branch is a **pre-cutover implementation candidate**, not a Kotlin release
+candidate. Repository-side migration/storage boundaries and deterministic
+parity slices can be closed here; production cutover remains prohibited until
+the signed-install, physical-device, UI, lifecycle, network and release gates
+listed below are evidenced. This distinction prevents a high code-completion
+estimate from being mistaken for release readiness.
+
 ## Implemented
 
 - `feature/home/NativeCanaryActivity.kt` is a non-exported, recents-excluded
@@ -146,13 +153,14 @@ Flutter is still the only launcher and production UI.
   bounded codec. Ordinary values, public identity and asset metadata are
   persisted with per-key secret commitments; raw secure values are handed only
   to the `NativeSecretStore` adapter. Privacy-sensitive `searchHistory`,
-  favorites/parking and dynamic activity inbox/cursor rows are excluded from
+  favorites/parking, dynamic activity inbox/cursor rows and signed pending
+  reports are excluded from
   this public record and handed to their encrypted stores. The
   legacy Hive aliases `graphhopperApiKey`, `nwcUri` and `fav_sync_pass` are now
   likewise excluded and promoted to protected values only under Flutter's
   secure-value-absent/non-empty fallback rule.
   `CompositeNativeSnapshotWriter` makes public, protected, history,
-  saved-place and activity
+  saved-place, activity and pending-report
   staging/commit/verification retryable while leaving the migration marker as
   the final step.
 - `storage/FileNativePersistence.kt` provides the concrete bounded public-file
@@ -160,8 +168,8 @@ Flutter is still the only launcher and production UI.
   same-directory replacement, reopens and validates the replacement, and can
   restore a valid backup after an interrupted or corrupt activation. Its
   durable marker contains only a fixed header and a SHA-256 commitment. Its
-  v2/v3/v4 forms bind the exact public record and validated encrypted history,
-  saved-place and activity files;
+  v2/v3/v4/v5 forms bind the exact public record and validated encrypted
+  history, saved-place, activity and pending-report files;
   completion also requires the reopened protected store to match every secret
   commitment. A missing key/file, changed value or undecodable record therefore
   makes migration incomplete without copying protected values into the marker.
@@ -196,6 +204,12 @@ Flutter is still the only launcher and production UI.
   existing migrated or explicitly initialized record. Its ciphertext digest
   extends migration marker v4, so missing, changed, corrupt or wrong-key
   activity state prevents completion.
+- `storage/NativePendingReportStore.kt` extracts the Hive list-of-JSON-strings
+  offline queue into a separately keyed AES-256-GCM atomic file. It preserves
+  FIFO/TTL/verification/retry semantics, serializes concurrent enqueue/flush
+  operations and writes the remaining retry set once per completed pass. Its
+  validated ciphertext extends migration marker v5; wrong keys, corruption or
+  mutation make completion false without exposing signed events publicly.
 - `storage/NativePreferenceStore.kt` adds a deterministic, digest-bound and
   recoverable atomic file for the closed 35-key non-secret scalar catalogue.
   It strictly imports the public migration snapshot once, projects the exact
@@ -207,7 +221,8 @@ Flutter is still the only launcher and production UI.
   `context.noBackupFilesDir/roadstr-native-v1`, preserving state across an
   in-place update while keeping it outside backup/restore. `migration/
   NativeMigrationRuntime.kt` composes that path, public store, Keystore secret
-  search-history, saved-place and activity stores, commitment-bound marker and transactional
+  search-history, saved-place, activity and pending-report stores,
+  commitment-bound marker and transactional
   coordinator. It is an explicit worker-thread API and is not invoked by the
   current Flutter startup.
 - `migration/NativeMigrationStartupRunner.kt` adds the asynchronous
