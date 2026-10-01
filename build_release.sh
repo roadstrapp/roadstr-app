@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
 # Roadstr — Release Build Script
-# Produces signed, optimised APKs ready for ZapStore and F-Droid sideloading.
+# Produces signed, optimised APKs for the official distribution channels.
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
@@ -19,6 +19,13 @@ info "Checking prerequisites..."
 command -v flutter >/dev/null 2>&1 || error "flutter not found in PATH"
 command -v apksigner >/dev/null 2>&1 || error "apksigner not found — install Android SDK Build Tools"
 command -v keytool >/dev/null 2>&1 || error "keytool not found — install a JDK"
+command -v aapt >/dev/null 2>&1 || error "aapt not found — install Android SDK Build Tools"
+command -v sha256sum >/dev/null 2>&1 || error "sha256sum not found"
+
+# Reject identity, version, hardening, ABI and store-metadata drift before
+# touching credentials or spending time on a release build. A candidate must
+# advance beyond the currently shipped versionCode (2050).
+tools/kotlin_rewrite/audit_android_release.sh --source-only --require-upgrade
 
 # ── Keystore setup ────────────────────────────────────────────────────────────
 KEY_PROPS="android/key.properties"
@@ -76,38 +83,41 @@ info "flutter pub get..."
 flutter pub get 2>/dev/null
 
 # ── Build ─────────────────────────────────────────────────────────────────────
-info "Building split APKs (arm64-v8a · armeabi-v7a · x86_64 · universal)..."
+info "Building APKs (arm64-v8a · armeabi-v7a · x86_64 · universal)..."
 flutter build apk --release \
-    --split-per-abi \
     --obfuscate \
     --split-debug-info="build/debug-symbols"
 
-# A successful Gradle build does not guarantee that an APK was signed. Refuse
-# to publish unless every split passes Android's cryptographic verifier.
-for apk in build/app/outputs/flutter-apk/app-*-release.apk; do
-    [ -f "$apk" ] || error "No release APK was produced"
-    apksigner verify "$apk" || error "Unsigned or invalid APK: $apk"
-    APK_CERT_SHA256=$(
-        apksigner verify --print-certs "$apk" \
-            | awk -F': ' '/Signer #1 certificate SHA-256 digest:/ {gsub(":", "", $2); print toupper($2); exit}'
-    )
-    [ "$APK_CERT_SHA256" = "$EXPECTED_CERT_SHA256" ] || \
-        error "APK signed with unexpected certificate: $apk ($APK_CERT_SHA256 != $EXPECTED_CERT_SHA256)"
-done
+# `--split-per-abi` is deliberately absent: Flutter otherwise adds ABI-specific
+# offsets to versionCode, which violates the F-Droid/store identity contract.
+# The Gradle ABI block still emits the three splits plus the universal APK.
+ARTIFACT_DIR="build/app/outputs/flutter-apk"
+RELEASE_MANIFEST="build/release-manifest.tsv"
+mkdir -p "$(dirname "$RELEASE_MANIFEST")"
+tools/kotlin_rewrite/audit_android_release.sh \
+    --artifacts "$ARTIFACT_DIR" \
+    --mode official \
+    --expected-cert-sha256 "$EXPECTED_CERT_SHA256" \
+    --output "$RELEASE_MANIFEST" \
+    --require-upgrade
 
 echo ""
 echo "─────────────────────────────────────────────────────────────────────────"
 echo -e "${GREEN}✓ Build complete${NC}"
 echo "─────────────────────────────────────────────────────────────────────────"
-ls -lh build/app/outputs/flutter-apk/app-*-release.apk 2>/dev/null || true
+for apk in \
+    "$ARTIFACT_DIR/app-release.apk" \
+    "$ARTIFACT_DIR/app-arm64-v8a-release.apk" \
+    "$ARTIFACT_DIR/app-armeabi-v7a-release.apk" \
+    "$ARTIFACT_DIR/app-x86_64-release.apk"; do
+    ls -lh "$apk"
+done
+info "Audited manifest: $RELEASE_MANIFEST"
 
 # ── SHA-256 ───────────────────────────────────────────────────────────────────
 echo ""
-info "SHA-256 checksums:"
-for apk in build/app/outputs/flutter-apk/app-*-release.apk; do
-    [ -f "$apk" ] || continue
-    sha256sum "$apk"
-done
+info "Audited SHA-256 checksums:"
+awk -F '\t' '$1 == "artifact" && $2 != "variant" { print $4 "  " $3 }' "$RELEASE_MANIFEST"
 
 echo ""
 echo "─────────────────────────────────────────────────────────────────────────"
@@ -123,6 +133,7 @@ echo "   gh release create v${VERSION_NAME} \\"
 echo "     build/app/outputs/flutter-apk/app-arm64-v8a-release.apk \\"
 echo "     build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk \\"
 echo "     build/app/outputs/flutter-apk/app-x86_64-release.apk \\"
+echo "     build/app/outputs/flutter-apk/app-release.apk \\"
 echo "     --title 'Roadstr v${VERSION_NAME}'"
 echo ""
 echo "3. ZAPSTORE:"
