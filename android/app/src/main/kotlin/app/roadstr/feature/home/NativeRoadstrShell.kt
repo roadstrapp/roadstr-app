@@ -36,9 +36,11 @@ import app.roadstr.feature.activity.NativeActivityInboxPanel
 import app.roadstr.feature.activity.NativeActivityInboxSession
 import app.roadstr.feature.map.NativeMapCameraSession
 import app.roadstr.feature.map.NativeMapCursorSession
+import app.roadstr.feature.map.NativeMapEngine
 import app.roadstr.feature.map.NativeMapInteraction
 import app.roadstr.feature.map.NativeMapLibreHost
 import app.roadstr.feature.map.NativeMapPointOverlaySession
+import app.roadstr.feature.map.NativeMapStyle
 import app.roadstr.feature.map.NativeRouteOverlaySession
 import app.roadstr.feature.map.NativeTransitOverlaySession
 import app.roadstr.feature.navigation.NativeNavigationHud
@@ -159,6 +161,8 @@ fun NativeRoadstrShell() {
             ) {
                 NativeMapLibreHost(
                     dark = themeId.dark,
+                    mapEngine = NativeMapEngine.MapLibre,
+                    tileUrl = NativeMapStyle.DEFAULT_TILE_URL,
                     routeOverlay = routeState.snapshot,
                     transitOverlay = transitState,
                     cameraCommand = cameraState.command,

@@ -6,7 +6,9 @@ import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapLibreMap
 
 /** Imperative, sequence-safe adapter from camera commands to MapLibre. */
-internal class NativeMapCameraRenderer {
+internal class NativeMapCameraRenderer(
+    private val engineProfile: NativeMapEngineProfile,
+) {
     private var map: MapLibreMap? = null
     private var pending: NativeMapCameraCommand? = null
     private var appliedSequence = 0L
@@ -30,18 +32,19 @@ internal class NativeMapCameraRenderer {
     private fun apply(command: NativeMapCameraCommand) {
         val liveMap = map ?: return
         if (command.sequence <= appliedSequence) return
+        val constrained = engineProfile.constrain(command)
         val position = CameraPosition.Builder()
-            .target(LatLng(command.center.latitude, command.center.longitude))
-            .zoom(command.zoom)
-            .bearing(command.bearingDegrees)
-            .tilt(command.pitchDegrees)
+            .target(LatLng(constrained.center.latitude, constrained.center.longitude))
+            .zoom(constrained.zoom)
+            .bearing(constrained.bearingDegrees)
+            .tilt(constrained.pitchDegrees)
             .build()
         val update = CameraUpdateFactory.newCameraPosition(position)
-        when (command.motion) {
+        when (constrained.motion) {
             NativeMapCameraMotion.Move -> liveMap.moveCamera(update)
             NativeMapCameraMotion.Ease -> liveMap.easeCamera(
                 update,
-                command.durationMillis,
+                constrained.durationMillis,
                 false,
             )
         }

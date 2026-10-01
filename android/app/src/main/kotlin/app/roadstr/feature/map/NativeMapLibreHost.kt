@@ -45,6 +45,8 @@ internal object NativeMapHostContract {
 @Composable
 fun NativeMapLibreHost(
     dark: Boolean,
+    mapEngine: NativeMapEngine,
+    tileUrl: String,
     routeOverlay: NativeRouteOverlaySnapshot,
     transitOverlay: NativeTransitOverlaySnapshot,
     cameraCommand: NativeMapCameraCommand?,
@@ -56,14 +58,18 @@ fun NativeMapLibreHost(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val styleJson = remember(dark) { NativeMapStyle.rasterStyle(dark = dark) }
+    val engineProfile = remember(mapEngine) { NativeMapEngineCompatibility.profile(mapEngine) }
+    val styleJson = remember(dark, mapEngine, tileUrl) {
+        NativeMapEngineCompatibility.rasterStyle(mapEngine, dark, tileUrl)
+    }
     val mapDescription = stringResource(R.string.native_map_description)
     val currentCameraGesture = rememberUpdatedState(onCameraGesture)
     val currentMapInteraction = rememberUpdatedState(onMapInteraction)
-    val host = remember(context, lifecycleOwner) {
+    val host = remember(context, lifecycleOwner, engineProfile) {
         NativeMapLibreViewHost.create(
             context = context,
             dark = dark,
+            engineProfile = engineProfile,
             initialStyleJson = styleJson,
             initialRouteOverlay = routeOverlay,
             initialTransitOverlay = transitOverlay,
@@ -144,6 +150,7 @@ private class NativeMapLibreViewHost private constructor(
     private val cameraRenderer: NativeMapCameraRenderer,
     private val cursorOverlay: NativeMapCursorOverlayView,
     private val pointOverlay: NativeMapPointOverlayView,
+    private val engineProfile: NativeMapEngineProfile,
     private val onCameraGesture: () -> Unit,
     private val onMapInteraction: (NativeMapInteraction) -> Unit,
     initialCameraCommand: NativeMapCameraCommand?,
@@ -208,6 +215,11 @@ private class NativeMapLibreViewHost private constructor(
         mapView.getMapAsync { readyMap ->
             if (!active) return@getMapAsync
             map = readyMap
+            readyMap.setMinZoomPreference(engineProfile.minimumZoom)
+            readyMap.setMaxZoomPreference(engineProfile.maximumZoom)
+            readyMap.setMinPitchPreference(0.0)
+            readyMap.setMaxPitchPreference(engineProfile.maximumPitchDegrees)
+            readyMap.uiSettings.setTiltGesturesEnabled(engineProfile.tiltGesturesEnabled)
             readyMap.addOnCameraMoveStartedListener(cameraMoveStartedListener)
             readyMap.addOnCameraMoveListener(cameraMoveListener)
             readyMap.addOnMapClickListener(mapClickListener)
@@ -287,6 +299,7 @@ private class NativeMapLibreViewHost private constructor(
         fun create(
             context: Context,
             dark: Boolean,
+            engineProfile: NativeMapEngineProfile,
             initialStyleJson: String,
             initialRouteOverlay: NativeRouteOverlaySnapshot,
             initialTransitOverlay: NativeTransitOverlaySnapshot,
@@ -304,11 +317,13 @@ private class NativeMapLibreViewHost private constructor(
                         NativeMapHostContract.INITIAL_LONGITUDE,
                     ),
                 )
-                .zoom(NativeMapHostContract.INITIAL_ZOOM)
-                .tilt(NativeMapHostContract.INITIAL_TILT)
+                .zoom(engineProfile.initialZoom)
+                .tilt(engineProfile.initialPitchDegrees)
                 .build()
             val options = MapLibreMapOptions.createFromAttributes(context)
                 .camera(camera)
+                .minZoomPreference(engineProfile.minimumZoom)
+                .maxZoomPreference(engineProfile.maximumZoom)
                 .textureMode(true)
                 .foregroundLoadColor(
                     RoadstrThemeTokens.palette(
@@ -351,7 +366,7 @@ private class NativeMapLibreViewHost private constructor(
                 displayDensity = context.resources.displayMetrics.density,
                 initialSnapshot = initialTransitOverlay,
             )
-            val cameraRenderer = NativeMapCameraRenderer()
+            val cameraRenderer = NativeMapCameraRenderer(engineProfile)
             val lifecycle = NativeMapLifecycleController(
                 object : NativeMapLifecycleTarget {
                     override fun create() = mapView.onCreate(null)
@@ -372,6 +387,7 @@ private class NativeMapLibreViewHost private constructor(
                 cameraRenderer = cameraRenderer,
                 cursorOverlay = cursorOverlay,
                 pointOverlay = pointOverlay,
+                engineProfile = engineProfile,
                 onCameraGesture = onCameraGesture,
                 onMapInteraction = onMapInteraction,
                 initialCameraCommand = initialCameraCommand,

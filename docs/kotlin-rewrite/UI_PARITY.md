@@ -37,6 +37,10 @@ Flutter `MainActivity` remains the sole launcher. The shell establishes
 edge-to-edge Compose hosting and exact light/dark Nostr Violet/Bitcoin Orange
 color tokens, including legacy stored-theme aliases. It also embeds a real
 MapLibre Native raster view with the Flutter initial camera and texture mode.
+The host also packages the old `mapEngine=osm` behavior as a typed top-down
+raster profile with its exact zoom-6 start and 2–19 limits; both choices share
+the validated custom tile source and overlay stack. The shell still selects
+`maplibre` explicitly and does not read the migrated preference.
 Only an explicit internal invocation can start its admitted HTTPS OSM tile
 requests; it does not read legacy/native storage or request location. The shell
 also installs the Flutter-compatible active/ZTL/completed route sources and

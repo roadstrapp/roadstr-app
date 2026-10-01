@@ -19,6 +19,9 @@ Flutter is still the only launcher and production UI.
   MapLibre Native OpenGL `13.5.2` artifact already selected by the Flutter
   plugin. It reuses the validated raster JSON and Flutter initial camera,
   retains texture mode for Compose overlays, and owns no location component.
+  `NativeMapEngineCompatibility.kt` preserves the exact `maplibre`/`osm`
+  values and implements the old renderer as a top-down zoom-6/2–19 profile
+  over that same host, with an explicit admitted custom-tile input.
   `NativeMapLifecycle.kt` makes Activity callbacks, Compose disposal, restart
   and low-memory forwarding deterministic and idempotent.
   `NativeRouteOverlay.kt` and `NativeMapRouteRenderer.kt` add bounded,
