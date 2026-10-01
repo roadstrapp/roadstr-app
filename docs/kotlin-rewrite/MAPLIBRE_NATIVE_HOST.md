@@ -298,7 +298,7 @@ debug-host selection check.
   and ownership by the private shell, plus the Flutter camera oracle
   and MapLibre command wiring, cursor geometry, point-overlay/transit parity and
   dormant ownership.
-- The complete verification run passes 749 Flutter tests, 520 Kotlin tests,
+- The complete verification run passes 753 Flutter tests, 532 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 

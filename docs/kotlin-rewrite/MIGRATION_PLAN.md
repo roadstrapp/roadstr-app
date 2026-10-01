@@ -635,7 +635,9 @@ broader cross-language coverage and a native store are still required.
   `feature/activity/NativeActivityInboxPresentation.kt` and
   `NativeActivityInboxPanel.kt`, plus
   `feature/route/NativeRoutePlanningPresentation.kt` and
-  `NativeRoutePlanningPanel.kt`.
+  `NativeRoutePlanningPanel.kt`, plus profile, settings and
+  `feature/onboarding/NativeOnboardingPresentation.kt` with
+  `NativeOnboardingFlow.kt`.
 - **Current implementation:** The private shell packages a hidden
   public-transport itinerary panel with loading, ready, no-service and failure
   states, up to eight selectable cards, boarding/walking/line/timetable detail,
@@ -696,6 +698,13 @@ broader cross-language coverage and a native store are still required.
   conditions and revision-safe card/MapLibre selection. Twenty-two values are
   generated for all 27 locales. Geocoding, routing, GPS, weather, road-event
   feeds, settings and production start-navigation ownership remain detached.
+  Later bounded slices package profile and the complete settings hierarchy.
+  A twelfth hidden onboarding slice preserves the four swipeable pages,
+  optional identity, location and voice states, exact versioned-disclosure gate
+  and three completion writes. Protected storage and migration failures take
+  precedence and show the current fail-closed recovery copy. Fifty-five values
+  are generated for all 27 locales. Storage, migration, Amber/nsec, permission,
+  voice-download and startup ownership remain detached.
 - **Dependencies:** Compose Material 3 and AndroidX only after license review.
 - **Migration impact:** Settings names/defaults and onboarding/disclosure keys must map exactly.
 - **User-visible impact:** Must feel like an update, not a redesign.
@@ -731,11 +740,17 @@ broader cross-language coverage and a native store are still required.
   stops, request fencing, avoidance state, map/card selection, preview commit,
   unit reprojection, 22-value/27-locale resources, accessible presentation and
   dormant shell ownership.
+  Fifteen profile JVM cases plus four Dart contracts and fifteen settings JVM
+  cases plus four Dart contracts cover the tenth and eleventh slices. Twelve
+  onboarding JVM cases plus four Dart contracts lock strict gate precedence,
+  exact completion writes, bounded revision-safe state, 55-value/27-locale
+  resources, undismissable consent, accessible swipeable presentation and
+  dormant shell ownership.
   Compose screenshot comparisons, drag behavior, font-scale/TalkBack and
   compact-device layouts remain.
 - **Parity evidence:** public-transport, active-search, place-detail,
   navigation-HUD, saved-place/parking, Wikipedia-reader, road-event,
-  activity-inbox and route-planning states
+  activity-inbox, route-planning, profile, settings and onboarding/startup-gate states
   have their first headless and packaged Compose evidence in `UI_PARITY.md`;
   every other state and visual/orientation evidence remain open.
 - **Security/privacy impact:** preserve privacy disclosure wording and task-switcher handling.

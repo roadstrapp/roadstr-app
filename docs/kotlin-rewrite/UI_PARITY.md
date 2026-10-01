@@ -99,10 +99,17 @@ seven cursor styles and colors, search, Lightning/NWC, saved-place/sync, voice
 and information actions. Scalar mutations are typed and revision-safe, text and
 sliders are bounded, and secrets are represented only by configured booleans.
 Its 118 values are generated for all 27 locale sets with the same English
-fallback used by Flutter for newer missing ARB entries. The shell keeps all
+fallback used by Flutter for newer missing ARB entries. A twelfth slice packages
+the four swipeable onboarding pages, optional identity state, location and voice
+setup, an undismissable current privacy disclosure, migration-in-progress and
+protected-data recovery states. Its strict gate ignores legacy completion flags,
+requires the exact `privacy_disclosure_v2 == true` value and emits the same three
+completion writes as Flutter. Its 55 values are generated for all 27 locale
+sets; the two recovery strings preserve Flutter's existing English-only text.
+The shell keeps all
 panels hidden and has no transit, search, place, route-planning, navigation,
-saved-place, Wikipedia, road-event, activity, profile or settings provider/
-history/identity/signer/wallet/preferences/secure-storage owner, so it cannot
+saved-place, Wikipedia, road-event, activity, profile, settings or onboarding provider/
+history/identity/signer/wallet/preferences/secure-storage/migration owner, so it cannot
 initiate provider traffic, launch an external intent, read user data or start
 location. No live place selection, route progress, navigation telemetry,
 remote image, drag gesture or long-press product handler is connected. This
@@ -320,6 +327,25 @@ Settings screenshot/golden, font-scale, TalkBack, secure-value dialogs, native
 persistence/migration writeback, provider verification, saved-place file/sync,
 voice model/download, external-link and physical-device evidence remain
 required.
+
+## Native onboarding and startup-gate evidence
+
+- `generate_android_onboarding_strings.dart` projects 53 Flutter ARB values
+  plus the exact two English-only protected-storage recovery strings into all
+  27 Android resource sets with deterministic no-drift checking.
+- `NativeOnboardingPresenter` gives protected-storage and migration failure
+  precedence over every other state, accepts only the exact current disclosure
+  boolean and emits Flutter's three compatibility writes only after consent.
+- `NativeOnboardingSession` fences pages, identity, visibility, permission,
+  voice progress and disclosure acceptance by revision without retaining an
+  nsec or owning persistence.
+- `NativeOnboardingFlow` packages four swipeable bounded pages, system insets,
+  accessibility semantics and a disclosure that cannot be dismissed by back or
+  outside tap. Amber, nsec, location and model operations are typed callbacks.
+
+Onboarding credential dialogs, production storage/migration ownership, Amber,
+permission and download wiring, process recreation, screenshot/golden,
+font-scale, TalkBack and physical-device evidence remain required.
 
 ## Non-negotiable UX invariants
 

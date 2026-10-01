@@ -45,6 +45,8 @@ import app.roadstr.feature.map.NativeRouteOverlaySession
 import app.roadstr.feature.map.NativeTransitOverlaySession
 import app.roadstr.feature.navigation.NativeNavigationHud
 import app.roadstr.feature.navigation.NativeNavigationHudSession
+import app.roadstr.feature.onboarding.NativeOnboardingFlow
+import app.roadstr.feature.onboarding.NativeOnboardingSession
 import app.roadstr.feature.place.NativePlaceDetailsPanel
 import app.roadstr.feature.place.NativePlaceSession
 import app.roadstr.feature.profile.NativeProfilePanel
@@ -140,6 +142,8 @@ fun NativeRoadstrShell() {
         val roadEventState by roadEventSession.state.collectAsState()
         val navigationHudSession = remember { NativeNavigationHudSession() }
         val navigationHudState by navigationHudSession.state.collectAsState()
+        val onboardingSession = remember { NativeOnboardingSession() }
+        val onboardingState by onboardingSession.state.collectAsState()
         val wikipediaSession = remember { NativeWikipediaSession() }
         val wikipediaState by wikipediaSession.state.collectAsState()
         LaunchedEffect(cameraSession, cameraState.frameActive) {
@@ -446,6 +450,25 @@ fun NativeRoadstrShell() {
                     onStop = {},
                     onToggleVoice = {},
                     onOpenSettings = {},
+                )
+                NativeOnboardingFlow(
+                    snapshot = onboardingState,
+                    onPageSelected = { revision, page ->
+                        onboardingSession.selectPage(revision, page)
+                    },
+                    onAmberLogin = {},
+                    onNsecLogin = {},
+                    onProfileVisibilityChanged = { revision, value ->
+                        onboardingSession.updateProfileVisibility(revision, value)
+                    },
+                    onRequestLocation = {},
+                    onDownloadVoice = {},
+                    onOpenDisclosure = { revision ->
+                        onboardingSession.openDisclosure(revision)
+                    },
+                    onAcceptDisclosure = { revision ->
+                        onboardingSession.acceptDisclosure(revision)
+                    },
                 )
             }
         }
