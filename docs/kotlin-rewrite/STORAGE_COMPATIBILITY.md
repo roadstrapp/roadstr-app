@@ -250,7 +250,13 @@ timeout disposal. Nothing invokes this launcher from current app startup.
 The voice manifest contains the current 18 reusable paths: Kokoro's model,
 tokenizer and every catalogued voice, both Piper files and the eSpeak sentinel.
 The manifest is tested directly against the production Kokoro/Piper catalogues;
-missing optional downloads are valid and are skipped.
+missing optional downloads are valid and are skipped. The dormant native voice
+catalogue now pins the exact remote revision, byte length and SHA-256 of all 17
+downloadable files. Its asset store reuses only exact regular-file matches and
+its unowned downloader installs invalid or missing files through a verified,
+fsynced same-directory `.part` followed by atomic replacement where supported.
+Signed-install and physical-device evidence is still required before this code
+may own migration or downloads.
 
 The normalized v1 envelope, its bounds and its exact evidence boundary are
 specified in `LEGACY_SNAPSHOT_ENVELOPE.md`. Its committed fixture covers every
