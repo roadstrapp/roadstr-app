@@ -36,10 +36,10 @@ integration work, while Flutter remains the sole launcher.
 | `feature.report` | `road_event.dart`, `road_event_sheets.dart`, map screens, 27 ARB files | bounded detail/privacy/composer projection for all 14 wire categories, exact expiry/age/comment/speed/unit rules, owner edit suggestions, revision-safe single-flight submission state and accessible dormant Compose surfaces with generated locale resources |
 | `feature.activity` | `activity_notification.dart`, `activity_notification_service.dart`, `notifications_screen.dart`, 27 ARB files | bounded normalized-Hive map codec, exact per-pubkey inbox/cursor keys, newest-first 100-row dedupe/read state, monotonic cursor policy and an accessible deliberately silent dormant Compose inbox with generated locale resources |
 | `feature.route` | `route_panels.dart`, routing response/avoidance models, 27 ARB files | bounded planner/loading/alternatives/preview state, one-to-five stable ordered stops, four modes, Flutter duration/unit and avoidance-badge projection, revision-safe card/MapLibre selection and accessible dormant Compose panels with generated locale resources |
-| `feature.settings` | `settings_screen.dart`, storage keys/defaults, 27 ARB files | exact scalar preference keys/defaults and choice catalogues, bounded text/sliders, safe secret-configuration summaries, revision-safe typed writes and an accessible dormant Compose settings surface with generated locale resources; persistence and effects remain external |
+| `feature.settings` | `settings_screen.dart`, storage keys/defaults, 27 ARB files | exact scalar preference keys/defaults and choice catalogues, bounded text/sliders, safe secret-configuration summaries, revision-safe typed writes and an accessible dormant Compose settings surface with generated locale resources; its non-secret writes now have atomic native persistence while ownership/effects remain external |
 | `feature.voice` | Kokoro/Piper services, eSpeak phonemization and navigation speech | exact eight-language/13-voice registry, pinned size/SHA-256 asset reuse and atomic installation, bounded Kokoro/Piper input and PCM16 WAV policies, deterministic navigation-speech scheduling and dormant Android audio focus; ONNX/eSpeak/playback ownership remains external |
 | `core.ui` / `feature.home` | `app_theme.dart`, Flutter Android embedding | exact four-palette colors and stored ordinal aliases, edge-to-edge private Compose/MapLibre canary, non-exported/no-intent-filter shell contract; no production startup or storage access |
-| `storage` | encrypted Hive search history | canonical encrypted history file, serialized prepend/clear/import, atomic recovery, Keystore boundary and migration-marker ciphertext binding |
+| `storage` | encrypted Hive settings/search history and secure aliases | canonical encrypted history, deterministic 35-key non-secret preference file, atomic recovery/reopen, Keystore boundary, migration-marker ciphertext binding and protected promotion of three historical secret aliases |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
 | `core.protocol.lightning` | `bolt11_invoice.dart`, `lightning_protocol.dart`, `lnurl_protocol.dart`, `zap_service.dart` | BOLT-11 parsing, LNURL-pay source/metadata/callback/invoice binding, NIP-47 URI/info negotiation/request/response and NIP-57 draft/receipt bindings |
 | `core.protocol.nostr` | `nostr_protocol_codec.dart`, `nostr_pending_report_queue.dart`, `nostr_relay_message.dart`, `nostr_relay_ingress.dart`, `nostr_nip19.dart`, `nostr_schnorr.dart`, `nip04.dart`, `nip44.dart`, `favorites_sync_protocol.dart`, Nostr/favourites/Lightning services | canonical JSON/ID, Roadstr 1315-1318/profile tags, geohash, outbound frames, offline FIFO/TTL/retry policy, bounded inbound envelopes, pre-verification routing/budgets, strict NIP-19 keys, x-only derivation/BIP-340, legacy NIP-04, NIP-44 v2 and deterministic NIP-78 policy |
@@ -391,7 +391,7 @@ detached from secure storage and startup. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 757 Flutter tests passed, including the native shell,
+- `flutter test`: 761 Flutter tests passed, including the native shell,
   private MapLibre host, route-overlay, route-session, transit-overlay/session, camera-session and
   user-cursor, point-overlay/interaction and route-traffic Gradle/source contracts, the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
@@ -431,8 +431,10 @@ detached from secure storage and startup. See
   the Flutter gate/write oracle, undismissable accessible Compose structure and
   dormant shell ownership. Four home contracts additionally lock
   10-value/27-locale generation, both Flutter visibility oracles, bounded
-  accessible Compose structure and value-only dormant shell ownership.
-- `./gradlew :app:testDebugUnitTest`: 541 Kotlin tests passed, including the
+  accessible Compose structure and value-only dormant shell ownership. Four
+  preference-store contracts lock Flutter's legacy-secret precedence, the
+  closed non-secret schema, atomic/digest framing and dormant ownership.
+- `./gradlew :app:testDebugUnitTest`: 553 Kotlin tests passed, including the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
   GeoJSON, Flutter-compatible route and per-leg transit metrics/colors,
@@ -452,7 +454,8 @@ detached from secure storage and startup. See
   configuration, orchestration and re-timing, search planning/ranking/
   orchestration/history, native persistence/migration and bounded headless
   transport reader, encrypted/atomic search-history persistence and migration
-  binding, native bounded-HTTP integration and headless routing/search service
+  binding, strict scalar-preference import/typed writes/recovery and legacy
+  secret-alias promotion, native bounded-HTTP integration and headless routing/search service
   suites, including Valhalla avoidance and OSRM re-timing execution, plus the
   Transitous request/parser/Berlin fixture, bounded service retry/cancellation,
   parsed-plan map projection, transit card formatting and revision-safe

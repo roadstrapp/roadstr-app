@@ -146,7 +146,10 @@ Flutter is still the only launcher and production UI.
   bounded codec. Ordinary values, public identity and asset metadata are
   persisted with per-key secret commitments; raw secure values are handed only
   to the `NativeSecretStore` adapter. Privacy-sensitive `searchHistory` is
-  excluded from this public record and handed to its encrypted store.
+  excluded from this public record and handed to its encrypted store. The
+  legacy Hive aliases `graphhopperApiKey`, `nwcUri` and `fav_sync_pass` are now
+  likewise excluded and promoted to protected values only under Flutter's
+  secure-value-absent/non-empty fallback rule.
   `CompositeNativeSnapshotWriter` makes public, protected and history
   staging/commit/verification retryable while leaving the migration marker as
   the final step.
@@ -175,6 +178,13 @@ Flutter is still the only launcher and production UI.
   Normal loads degrade damaged optional history to empty; mutations fail closed
   so unreadable ciphertext is not silently overwritten. Explicit transactional
   migration can repair it from the retained legacy source.
+- `storage/NativePreferenceStore.kt` adds a deterministic, digest-bound and
+  recoverable atomic file for the closed 35-key non-secret scalar catalogue.
+  It strictly imports the public migration snapshot once, projects the exact
+  Settings defaults/catalogues, accepts only typed Settings writes and fences
+  stale callbacks per process. Unknown, compound, dynamic and protected keys
+  cannot enter the file; every replacement is decoded and compared after
+  reopen. It remains unconstructed by the launcher and private shell.
 - `storage/NativeStoragePaths.kt` fixes the future native root at
   `context.noBackupFilesDir/roadstr-native-v1`, preserving state across an
   in-place update while keeping it outside backup/restore. `migration/
