@@ -3,10 +3,12 @@ package app.roadstr.migration
 import android.content.Context
 import app.roadstr.storage.AndroidKeystoreNativeSecretStore
 import app.roadstr.storage.FileNativePublicSnapshotStore
+import app.roadstr.storage.FileNativeSavedPlacesStore
 import app.roadstr.storage.FileNativeSearchHistoryStore
 import app.roadstr.storage.FileSnapshotBoundMigrationMarker
 import app.roadstr.storage.NativeSecretCommitmentVerifier
 import app.roadstr.storage.NativeSecretStore
+import app.roadstr.storage.NativeSavedPlacesMigrationStore
 import app.roadstr.storage.NativeSearchHistoryMigrationStore
 import app.roadstr.storage.NativeStoragePaths
 
@@ -31,6 +33,7 @@ class NativeMigrationRuntime private constructor(
             val paths = NativeStoragePaths.from(context)
             val secretStore = AndroidKeystoreNativeSecretStore(paths.rootDirectory)
             val searchHistoryStore = FileNativeSearchHistoryStore(paths)
+            val savedPlacesStore = FileNativeSavedPlacesStore(paths)
             return create(
                 paths,
                 reader,
@@ -38,6 +41,7 @@ class NativeMigrationRuntime private constructor(
                 secretStore,
                 secretStore,
                 searchHistoryStore,
+                savedPlacesStore,
             )
         }
 
@@ -64,6 +68,7 @@ class NativeMigrationRuntime private constructor(
             secretStore: NativeSecretStore,
             secretVerifier: NativeSecretCommitmentVerifier,
             searchHistoryStore: NativeSearchHistoryMigrationStore? = null,
+            savedPlacesStore: NativeSavedPlacesMigrationStore? = null,
         ): NativeMigrationRuntime {
             val publicStore = FileNativePublicSnapshotStore(paths.rootDirectory)
             val marker = FileSnapshotBoundMigrationMarker(
@@ -71,6 +76,7 @@ class NativeMigrationRuntime private constructor(
                 publicStore = publicStore,
                 secretVerifier = secretVerifier,
                 searchHistoryVerifier = searchHistoryStore,
+                savedPlacesVerifier = savedPlacesStore,
             )
             return NativeMigrationRuntime(
                 paths = paths,
@@ -80,6 +86,7 @@ class NativeMigrationRuntime private constructor(
                         publicStore = publicStore,
                         secretStore = secretStore,
                         searchHistoryStore = searchHistoryStore,
+                        savedPlacesStore = savedPlacesStore,
                     ),
                     marker = marker,
                     identityVerifier = identityVerifier,

@@ -178,6 +178,13 @@ Flutter is still the only launcher and production UI.
   Normal loads degrade damaged optional history to empty; mutations fail closed
   so unreadable ciphertext is not silently overwritten. Explicit transactional
   migration can repair it from the retained legacy source.
+- `storage/NativeSavedPlacesStore.kt` extracts the normalized Flutter
+  list-of-JSON-strings favorites and parking JSON from the public snapshot into
+  a separately keyed AES-256-GCM file. It preserves the 1,000-row bounds,
+  exact validation and label-merge policy, supports typed revision-fenced
+  mutations and refuses runtime mutation before explicit initialization. Its
+  validated ciphertext digest is part of migration marker v3, so missing,
+  changed or wrong-key saved data prevents completion.
 - `storage/NativePreferenceStore.kt` adds a deterministic, digest-bound and
   recoverable atomic file for the closed 35-key non-secret scalar catalogue.
   It strictly imports the public migration snapshot once, projects the exact
