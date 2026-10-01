@@ -4,9 +4,10 @@ Status: forensic inventory, bounded transactional migration core, a
 reproducible encrypted Hive 2.2.3 fixture, a strict read-only Dart collector
 and a copy-before-open bridge plus isolated headless transport are implemented
 and tested through the Dart-to-Kotlin envelope. The native side now also has a
-versioned public-record/secret-store boundary with redacted commitments and a
-separate encrypted search-history store. Controlled signed-install reads,
-real Android Keystore evidence and production startup wiring remain open.
+versioned public-record/secret-store boundary with redacted commitments, a
+separate encrypted search-history store and an atomic native store for the 35
+non-secret scalar preferences. Controlled signed-install reads, real Android
+Keystore evidence and production startup wiring remain open.
 
 The existing app uses one Hive box named `settings` in the application
 documents directory. `lib/main.dart` obtains a 32-byte key from
@@ -135,11 +136,22 @@ dedupe/read behavior and zap/confirmation cursors; durable encrypted native
 storage and migration writeback remain open.
 
 The dormant native settings slice now contract-locks the scalar keys above,
-their Flutter defaults and their persisted wire shapes. Mutations produce typed
-write intents only: the shell supplies no Hive/native-preference owner, and API
-keys, NWC URIs and sync passphrases never enter the presentation model. Native
-durable writeback, secure-value dialogs and installed-app migration evidence
-therefore remain open gates.
+their Flutter defaults and their persisted wire shapes. Its 35 non-secret
+scalar keys have a closed typed schema and a recoverable atomic native file;
+the store imports the immutable migration snapshot once, persists revision-safe
+Settings writes and reopens every replacement before accepting it. The shell
+still supplies no preference owner, so production writeback remains dormant.
+API keys, NWC URIs and sync passphrases never enter this store or the
+presentation model; secure-value dialogs and installed-app migration evidence
+remain open gates.
+
+The three historical Hive aliases `graphhopperApiKey`, `nwcUri` and
+`fav_sync_pass` are treated as protected input during snapshot conversion.
+They are excluded from the public record and promoted to `routing_api_key`,
+`nwc_uri` and `favorites_sync_passphrase` only when the corresponding secure
+value is absent and the legacy string is non-empty, matching Flutter's
+secure-store precedence. Their raw values are staged only through the protected
+store and are represented publicly by per-key commitments.
 
 The production routing-time resolver now fixture-locks precedence between
 secure `routing_api_key` and legacy Hive `graphhopperApiKey`, including
@@ -203,6 +215,17 @@ legacy malformed-row tolerance, reopen, plaintext absence, concurrency,
 interrupted replacement, corruption, wrong/lost keys and marker invalidation/
 retry. Real Android Keystore behavior and UI ownership remain device/startup
 gates.
+
+`FileNativePreferenceStore` owns `native_preferences_v1.bin`, a deterministic
+versioned binary map for the closed 35-key non-secret scalar catalogue. The
+payload is sorted, size-bounded, strictly typed and followed by a SHA-256
+digest; malformed UTF-8, unknown keys, wrong types, non-finite numbers,
+corruption and trailing bytes fail closed. Writes reuse the recoverable
+stage/active/backup protocol, then decode and compare the reopened record.
+Snapshot import is one-shot and later Settings mutations use a monotonic disk
+sequence plus process-local UI-revision fencing. Compound records, dynamic
+inbox keys, search history and every protected/legacy-secret key are excluded.
+No launcher or shell currently constructs this store.
 
 `NativeStoragePaths` reserves `noBackupFilesDir/roadstr-native-v1` as the future
 native root. `NativeMigrationRuntime` composes the exact reader, identity

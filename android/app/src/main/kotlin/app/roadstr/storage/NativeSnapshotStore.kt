@@ -8,6 +8,7 @@ import app.roadstr.migration.LegacyStorageContract
 import app.roadstr.migration.LegacyStorageSnapshot
 import app.roadstr.migration.NativeSnapshotWriter
 import java.security.MessageDigest
+import java.util.Collections
 
 /** Public/native representation of one migrated snapshot.
  *
@@ -29,9 +30,12 @@ data class NativeSnapshotRecord(
             NativeSnapshotRecord(
                 schemaVersion = CURRENT_SCHEMA_VERSION,
                 ordinaryValues = snapshot.ordinaryValues
-                    .filterKeys { it != SearchHistoryProtocol.STORAGE_KEY }
+                    .filterKeys {
+                        it != SearchHistoryProtocol.STORAGE_KEY &&
+                            it !in NativeLegacySecretAliases.legacyKeys
+                    }
                     .toSortedMap(),
-                secureValueDigests = snapshot.secureValues
+                secureValueDigests = NativeLegacySecretAliases.protectedValues(snapshot)
                     .toSortedMap()
                     .mapValues { (key, value) -> NativeSecretDigest.sha256(key, value) },
                 identity = LegacyIdentity(
@@ -43,6 +47,32 @@ data class NativeSnapshotRecord(
                     compareBy(LegacyAsset::relativePath, LegacyAsset::sizeBytes, LegacyAsset::sha256),
                 ),
             )
+    }
+}
+
+/** Exact legacy-Hive-to-protected-storage fallback used by Flutter Settings. */
+object NativeLegacySecretAliases {
+    val aliases: Map<String, String> = Collections.unmodifiableMap(
+        linkedMapOf(
+            "graphhopperApiKey" to "routing_api_key",
+            "nwcUri" to "nwc_uri",
+            "fav_sync_pass" to "favorites_sync_passphrase",
+        ),
+    )
+    val legacyKeys: Set<String> = Collections.unmodifiableSet(aliases.keys)
+
+    fun protectedValues(snapshot: LegacyStorageSnapshot): Map<String, String> {
+        val protected = snapshot.secureValues.toMutableMap()
+        for ((legacyKey, protectedKey) in aliases) {
+            // Flutter falls back only when secure storage returned null and
+            // only promotes a non-empty legacy string.
+            if (protectedKey !in protected) {
+                snapshot.ordinaryValues[legacyKey]
+                    ?.takeIf(String::isNotEmpty)
+                    ?.let { protected[protectedKey] = it }
+            }
+        }
+        return Collections.unmodifiableMap(protected.toSortedMap())
     }
 }
 
@@ -201,6 +231,7 @@ class CompositeNativeSnapshotWriter(
             throw IllegalStateException("Native search-history store is unavailable")
         }
         val record = NativeSnapshotRecord.fromLegacy(snapshot)
+        val protectedValues = NativeLegacySecretAliases.protectedValues(snapshot)
         val encoded = NativeSnapshotRecordCodec.encode(record)
         try {
             publicStore.stage(encoded)
@@ -208,7 +239,7 @@ class CompositeNativeSnapshotWriter(
             throw IllegalStateException("Native public snapshot staging failed")
         }
         try {
-            secretStore.stage(snapshot.secureValues.toMap())
+            secretStore.stage(protectedValues)
         } catch (_: RuntimeException) {
             throw IllegalStateException("Native protected store staging failed")
         }
@@ -218,7 +249,7 @@ class CompositeNativeSnapshotWriter(
             throw IllegalStateException("Native search-history staging failed")
         }
         stagedRecord = record
-        stagedSecrets = snapshot.secureValues.toMap()
+        stagedSecrets = protectedValues
     }
 
     override fun commit() {
@@ -248,6 +279,7 @@ class CompositeNativeSnapshotWriter(
             throw IllegalStateException("Native search-history store is unavailable")
         }
         val expected = NativeSnapshotRecord.fromLegacy(snapshot)
+        val protectedValues = NativeLegacySecretAliases.protectedValues(snapshot)
         val actual = try {
             publicStore.read()?.let(NativeSnapshotRecordCodec::decode)
         } catch (_: RuntimeException) {
@@ -255,7 +287,7 @@ class CompositeNativeSnapshotWriter(
         }
         check(actual == expected) { "Native public snapshot verification failed" }
         try {
-            secretStore.verify(snapshot.secureValues)
+            secretStore.verify(protectedValues)
         } catch (_: RuntimeException) {
             throw IllegalStateException("Native protected store verification failed")
         }

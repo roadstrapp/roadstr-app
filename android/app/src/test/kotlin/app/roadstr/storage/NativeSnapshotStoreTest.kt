@@ -136,6 +136,49 @@ class NativeSnapshotStoreTest {
         }
     }
 
+    @Test
+    fun `legacy Hive secret aliases are promoted and excluded from public record`() {
+        val calls = mutableListOf<String>()
+        val publicStore = FakePublicStore(calls)
+        val secretStore = FakeSecretStore(calls)
+        val writer = CompositeNativeSnapshotWriter(publicStore, secretStore)
+        val legacy = snapshot().copy(
+            ordinaryValues = snapshot().ordinaryValues + mapOf(
+                "graphhopperApiKey" to "legacy-routing-secret",
+                "nwcUri" to "legacy-nwc-secret",
+                "fav_sync_pass" to "legacy-sync-secret",
+            ),
+            secureValues = snapshot().secureValues - "nwc_uri",
+        )
+
+        writer.stage(legacy)
+        writer.commit()
+        writer.verify(legacy)
+
+        val record = NativeSnapshotRecordCodec.decode(requireNotNull(publicStore.read()))
+        assertFalse(record.ordinaryValues.keys.any { it in NativeLegacySecretAliases.legacyKeys })
+        val publicText = String(requireNotNull(publicStore.read()), StandardCharsets.ISO_8859_1)
+        assertFalse(publicText.contains("legacy-routing-secret"))
+        assertFalse(publicText.contains("legacy-nwc-secret"))
+        assertFalse(publicText.contains("legacy-sync-secret"))
+        assertEquals("legacy-routing-secret", secretStore.committed?.get("routing_api_key"))
+        assertEquals("legacy-nwc-secret", secretStore.committed?.get("nwc_uri"))
+        assertEquals("legacy-sync-secret", secretStore.committed?.get("favorites_sync_passphrase"))
+    }
+
+    @Test
+    fun `protected value wins over a conflicting legacy Hive alias`() {
+        val protected = NativeLegacySecretAliases.protectedValues(
+            snapshot().copy(
+                ordinaryValues = mapOf("nwcUri" to "legacy-nwc-secret"),
+                secureValues = snapshot().secureValues + ("nwc_uri" to "protected-nwc-secret"),
+            ),
+        )
+
+        assertEquals("protected-nwc-secret", protected["nwc_uri"])
+        assertFalse(protected.values.contains("legacy-nwc-secret"))
+    }
+
     private fun snapshot() = LegacyStorageSnapshot(
         schemaVersion = 1,
         ordinaryValues = mapOf("language" to "it", "themeId" to "2"),
