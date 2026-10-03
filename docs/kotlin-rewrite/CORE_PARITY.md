@@ -382,9 +382,12 @@ detached from secure storage and startup. See
   HUD, manoeuvre step, remaining summary, active/completed route and navigation
   camera, while Stop/back clears the route and restores free drive. Neither
   path owns a production transit/place/saved-place/Wikipedia/road-event/activity
-  feed. Rerouting, TTS output, arrival automation, background ownership,
-  remaining product handlers, screenshots and physical-device evidence remain
-  open.
+  feed. The road-test path now applies the existing off-route trend detector,
+  moving segment window, direction-aware bounded OSRM reroute/fallback and
+  true-destination arrival radii/closest-approach cleanup with a localized
+  transient banner. TTS output, building-footprint arrival, repeated-deviation
+  alternatives, background ownership, remaining product handlers, screenshots
+  and physical-device evidence remain open.
 - Native navigation lifecycle and notification policies are now deterministic,
   and the Android location foreground-service adapter is registered with an
   opt-in `MainActivity` start/stop/state/notification channel and
@@ -456,7 +459,7 @@ detached from secure storage and startup. See
   launcher, Flutter-free Gradle graph, narrowly bounded AOSP location ownership,
   foreground permission/lifecycle/cursor-camera wiring, bounded live search/
   OSRM composition and unchanged production launcher.
-- `./gradlew :app:testDebugUnitTest`: 583 Kotlin tests passed, including the
+- `./gradlew :app:testDebugUnitTest`: 586 Kotlin tests passed, including the
   validated foreground GPS snapshot model and the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
@@ -491,13 +494,15 @@ detached from secure storage and startup. See
   UI/map selection, plus bounded search row projection, nearby catalogue,
   partial/final generation fencing, editable Compose search state and the
   provider-neutral search-to-route coordinator (including a complete fake
-  gateway/MapLibre flow and transit rejection), plus the
+  gateway/MapLibre flow, exact-destination handoff, motion-context rerouting
+  and transit rejection), plus the
   bounded localized OSM place parser, safe contact/URL admission, contextual
   place fields, opening-hours presentation and revision-safe dormant place
   sheet state, plus navigation-HUD manoeuvre/roundabout projection, live and
   fallback summaries, five speedometer styles and revision/step fencing, plus
   foreground GPS-to-route progress, synchronized HUD/overlay updates, stale-fix
-  fencing, voice state and stop cleanup, plus
+  fencing, voice state, true-distance/closest-approach arrival, off-route
+  requests, route replacement and stop cleanup, plus
   bounded favourite legacy/import parsing, exact label merge, parking codec/
   marker projection and revision-safe saved-place mutations, plus exact
   Wikipedia article admission, main-frame navigation and revision-safe page/
@@ -535,7 +540,7 @@ detached from secure storage and startup. See
   confirms SDK 24/36, the direct Compose launcher, Internet and foreground
   coarse/fine location plus the AndroidX package-scoped receiver permission,
   with no background location. The current artifact SHA-256 is
-  `ccfbdfe5cb94be1a21508cf777bad0e49a0017743b4122aa10ce2184837013f4`.
+  `2a1b8adcb255b277387556c7dae26eb629bf172f7fa8172c3006db5fa33d6407`.
 - `MainActivity` registers the opt-in native-navigation channel. Both map
   renderers own it only in builds compiled with
   `ROADSTR_NATIVE_NAVIGATION=true`; ordinary builds retain the existing

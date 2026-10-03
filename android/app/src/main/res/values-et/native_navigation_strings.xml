@@ -14,4 +14,6 @@
     <string name="native_nav_voice">Häälejuhendamine</string>
     <string name="native_nav_speed_limit">Kiiruspiirang</string>
     <string name="native_nav_altitude">Näita kõrgust</string>
+    <string name="native_nav_arrived">🎉 Olete kohal!</string>
+    <string name="native_nav_close">Sulge</string>
 </resources>

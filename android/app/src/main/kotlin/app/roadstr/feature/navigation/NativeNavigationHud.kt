@@ -103,6 +103,65 @@ fun NativeNavigationHud(
     }
 }
 
+/** Six-second, dismissible counterpart of Flutter's post-arrival banner. */
+@Composable
+fun NativeNavigationArrivalBanner(
+    visible: Boolean,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (!visible) return
+    val title = stringResource(R.string.native_nav_arrived)
+    val close = stringResource(R.string.native_nav_close)
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .semantics {
+                paneTitle = title
+                liveRegion = LiveRegionMode.Polite
+            },
+    ) {
+        Surface(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .statusBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            color = Color(0xFF22_C55E),
+            contentColor = Color.White,
+            shape = RoundedCornerShape(14.dp),
+            shadowElevation = 8.dp,
+        ) {
+            Row(
+                modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = title,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Surface(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                        .semantics {
+                            role = Role.Button
+                            contentDescription = close
+                        },
+                    color = Color.Transparent,
+                    contentColor = Color.White,
+                    shape = CircleShape,
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text("×", style = MaterialTheme.typography.headlineSmall)
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun NavigationInstructionCard(
     current: NativeNavigationStepPresentation,

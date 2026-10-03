@@ -43,11 +43,13 @@ import app.roadstr.feature.map.NativeMapCursorSession
 import app.roadstr.feature.map.NativeMapEngine
 import app.roadstr.feature.map.NativeMapInteraction
 import app.roadstr.feature.map.NativeMapLibreHost
+import app.roadstr.feature.map.NativeMapPoint
 import app.roadstr.feature.map.NativeMapPointOverlaySession
 import app.roadstr.feature.map.NativeMapStyle
 import app.roadstr.feature.map.NativeRouteOverlaySession
 import app.roadstr.feature.map.NativeTransitOverlaySession
 import app.roadstr.feature.navigation.NativeActiveNavigationSession
+import app.roadstr.feature.navigation.NativeNavigationArrivalBanner
 import app.roadstr.feature.navigation.NativeNavigationHud
 import app.roadstr.feature.navigation.NativeNavigationHudSession
 import app.roadstr.feature.onboarding.NativeOnboardingFlow
@@ -80,6 +82,8 @@ enum class NativeShellMode {
     Canary,
     RoadTest,
 }
+
+private const val ARRIVAL_BANNER_MILLIS = 6_000L
 
 /**
  * Dormant native UI boundary used to prove Compose and MapLibre packaging.
@@ -213,7 +217,37 @@ fun NativeRoadstrShell(
                 point = fix.point,
                 speedMetersPerSecond = fix.speedMetersPerSecond,
                 altitudeMeters = fix.altitudeMeters,
+                accuracyMeters = fix.accuracyMeters,
+                headingDegrees = fix.headingDegrees,
             )
+        }
+        LaunchedEffect(activeNavigationState.rerouteRequest?.sequence) {
+            val request = activeNavigationState.rerouteRequest ?: return@LaunchedEffect
+            val accepted = journeyCoordinator?.reroute(
+                request = request,
+                onSuccess = { sequence, route ->
+                    activeNavigationSession.completeReroute(sequence, route)
+                    routePlanningSession.synchronizeNavigationRevision(
+                        activeNavigationSession.state.value.revision,
+                    )
+                },
+                onFailure = activeNavigationSession::failReroute,
+            ) ?: false
+            if (!accepted) activeNavigationSession.failReroute(request.sequence)
+        }
+        LaunchedEffect(activeNavigationState.arrived, activeNavigationState.revision) {
+            if (!activeNavigationState.arrived) return@LaunchedEffect
+            journeyCoordinator?.cancelReroute()
+            cameraSession.configure(
+                headingUp = true,
+                navigating = false,
+                zoom = NativeMapCameraSession.DEFAULT_ZOOM,
+                pitchDegrees = NativeMapCameraSession.FREE_DRIVE_PITCH,
+                screenHeightPixels = NativeMapCameraSession.DEFAULT_SCREEN_HEIGHT_PIXELS,
+            )
+            cameraSession.recenter(SystemClock.elapsedRealtime())
+            delay(ARRIVAL_BANNER_MILLIS)
+            activeNavigationSession.dismissArrival(activeNavigationState.revision)
         }
         val onboardingSession = remember { NativeOnboardingSession() }
         val onboardingState by onboardingSession.state.collectAsState()
@@ -262,6 +296,7 @@ fun NativeRoadstrShell(
                 }
                 activeNavigationState.active -> {
                     if (activeNavigationSession.stop(activeNavigationState.revision)) {
+                        journeyCoordinator?.cancelReroute()
                         cameraSession.configure(
                             headingUp = true,
                             navigating = false,
@@ -553,10 +588,18 @@ fun NativeRoadstrShell(
                             .selectedNavigationRoute(routePlanningState.revision)
                             ?.let { route ->
                                 val revision = routePlanningState.revision
+                                val destination = journeyCoordinator
+                                    ?.navigationDestination(revision)
+                                    ?: return@let
                                 if (
                                     activeNavigationSession.start(
                                         revision = revision,
                                         route = route,
+                                        destination = NativeMapPoint(
+                                            destination.latitude,
+                                            destination.longitude,
+                                        ),
+                                        mode = routePlanningState.mode,
                                         nowLabel = navigationNowLabel,
                                     )
                                 ) {
@@ -687,6 +730,7 @@ fun NativeRoadstrShell(
                     snapshot = navigationHudState,
                     onStop = {
                         if (activeNavigationSession.stop(activeNavigationState.revision)) {
+                            journeyCoordinator?.cancelReroute()
                             cameraSession.configure(
                                 headingUp = true,
                                 navigating = false,
@@ -701,6 +745,12 @@ fun NativeRoadstrShell(
                         activeNavigationSession.toggleVoice(activeNavigationState.revision)
                     },
                     onOpenSettings = {},
+                )
+                NativeNavigationArrivalBanner(
+                    visible = activeNavigationState.arrived,
+                    onDismiss = {
+                        activeNavigationSession.dismissArrival(activeNavigationState.revision)
+                    },
                 )
                 NativeOnboardingFlow(
                     snapshot = onboardingState,

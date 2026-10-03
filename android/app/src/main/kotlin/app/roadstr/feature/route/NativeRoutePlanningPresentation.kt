@@ -471,6 +471,22 @@ class NativeRoutePlanningSession(
         true
     }
 
+    /**
+     * Advances the hidden planner fence after an in-navigation route
+     * replacement without clearing the route owned by the map/navigation pair.
+     */
+    fun synchronizeNavigationRevision(revision: Long): Boolean = synchronized(lock) {
+        if (
+            revision <= this.revision ||
+            _state.value.status != NativeRoutePlanningStatus.Hidden
+        ) {
+            return false
+        }
+        this.revision = revision
+        _state.value = NativeRoutePlanningSnapshot.hidden(revision)
+        true
+    }
+
     fun updateUnits(imperial: Boolean): Boolean = synchronized(lock) {
         if (this.imperial == imperial) return false
         this.imperial = imperial

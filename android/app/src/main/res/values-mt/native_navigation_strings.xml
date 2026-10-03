@@ -14,4 +14,6 @@
     <string name="native_nav_voice">Gwida bil-vuċi</string>
     <string name="native_nav_speed_limit">Limitu tal-veloċità</string>
     <string name="native_nav_altitude">Uri l-għoli</string>
+    <string name="native_nav_arrived">🎉 Wasalt!</string>
+    <string name="native_nav_close">Agħlaq</string>
 </resources>

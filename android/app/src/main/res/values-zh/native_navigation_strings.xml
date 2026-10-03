@@ -14,4 +14,6 @@
     <string name="native_nav_voice">语音引导</string>
     <string name="native_nav_speed_limit">限速</string>
     <string name="native_nav_altitude">显示海拔</string>
+    <string name="native_nav_arrived">🎉 您已到达！</string>
+    <string name="native_nav_close">关闭</string>
 </resources>

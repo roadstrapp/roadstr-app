@@ -19,6 +19,8 @@ const _resourceKeys = <String, String>{
   'native_nav_voice': 'voiceGuidance',
   'native_nav_speed_limit': 'speedLimitHint',
   'native_nav_altitude': 'showAltitude',
+  'native_nav_arrived': 'arrivedTitle',
+  'native_nav_close': 'close',
 };
 
 const _placeholders = <String, List<(String, String)>>{
