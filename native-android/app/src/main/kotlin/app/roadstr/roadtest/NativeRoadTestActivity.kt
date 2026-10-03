@@ -18,6 +18,9 @@ import app.roadstr.feature.home.NativeShellMode
 /** Standalone Compose launcher for the side-by-side Kotlin road-test APK. */
 class NativeRoadTestActivity : ComponentActivity() {
     private lateinit var locationController: NativeRoadTestLocationController
+    private val journeyGateway by lazy(LazyThreadSafetyMode.NONE) {
+        NativeRoadTestJourneyGateway()
+    }
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { grants ->
@@ -36,6 +39,7 @@ class NativeRoadTestActivity : ComponentActivity() {
             NativeRoadstrShell(
                 mode = NativeShellMode.RoadTest,
                 gpsSnapshot = gpsSnapshot,
+                journeyGateway = journeyGateway,
                 onGpsAction = ::handleGpsAction,
             )
         }
