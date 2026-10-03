@@ -25,9 +25,15 @@ off-route trend or a deviation beyond 55 metres triggers a direction-aware,
 single-flight OSRM reroute and atomically replaces the HUD/map route. Arrival
 uses true GPS distance to the selected destination plus Flutter's accuracy and
 closest-approach fallback, then clears guidance and shows the localized
-six-second banner. One cancellable,
+six-second banner. The same foreground route progress emits Flutter-equivalent
+speed/mode-aware far and point-of-action speech cues. The APK owns verified
+Kokoro/Piper model reuse/download, bounded eSpeak JNI phonemization, ONNX
+Runtime inference, a memory-only phrase cache and cancellable `AudioTrack`
+playback with navigation audio focus; start/arrival phrases and the HUD mute,
+stop and settings/download controls are connected without Flutter. One cancellable,
 deadline- and response-bounded OkHttp transport is reused by both services.
-The runtime does not persist queries or coordinates. Spoken TTS output,
+The runtime does not persist queries, coordinates or synthesized place-name
+audio. Fixed-phrase prewarming, physical-device voice/Bluetooth evidence,
 building-footprint arrival, repeated-deviation alternative choice, background
 navigation, transit and production storage remain outside this harness.
 

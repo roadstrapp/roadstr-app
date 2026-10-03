@@ -89,12 +89,16 @@ void main() {
     expect(source, isNot(contains('Clipboard')));
   });
 
-  test('private shell packages settings without opening or feeding them', () {
+  test('private shell feeds only the road-test voice settings owner', () {
     final source = shell.readAsStringSync();
 
     expect(source, contains('NativeSettingsSession()'));
     expect(source, contains('NativeSettingsPanel('));
-    expect(source, isNot(contains('settingsSession.show(')));
-    expect(source, isNot(contains('settingsSession.refresh(')));
+    expect(source, contains('settingsSession.show('));
+    expect(source, contains('settingsSession.refresh('));
+    expect(source, contains('voiceGateway?.downloadAssets()'));
+    expect(source, contains('voiceModelStatus = when'));
+    expect(source, isNot(contains('FlutterSecureStorage')));
+    expect(source, isNot(contains("Hive.box('settings')")));
   });
 }

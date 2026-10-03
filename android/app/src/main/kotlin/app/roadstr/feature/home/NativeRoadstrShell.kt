@@ -71,11 +71,19 @@ import app.roadstr.feature.search.NativeSearchUiStatus
 import app.roadstr.feature.settings.NativeSettingsPanel
 import app.roadstr.feature.settings.NativeSettingsSession
 import app.roadstr.feature.settings.NativeSettingsUiAction
+import app.roadstr.feature.settings.NativeSettingsStatus
+import app.roadstr.feature.settings.NativeSettingsVoiceGender
+import app.roadstr.feature.settings.NativeSettingsVoiceModelStatus
 import app.roadstr.feature.transit.NativeTransitItinerariesPanel
 import app.roadstr.feature.transit.NativeTransitJourneySession
 import app.roadstr.feature.transit.NativeTransitTransportMode
 import app.roadstr.feature.wikipedia.NativeWikipediaReader
 import app.roadstr.feature.wikipedia.NativeWikipediaSession
+import app.roadstr.feature.voice.NativeVoiceCatalog
+import app.roadstr.feature.voice.NativeVoiceGateway
+import app.roadstr.feature.voice.NativeVoiceGender
+import app.roadstr.feature.voice.NativeVoiceRuntimeStatus
+import java.util.Locale
 import kotlinx.coroutines.delay
 
 enum class NativeShellMode {
@@ -100,6 +108,7 @@ fun NativeRoadstrShell(
     mode: NativeShellMode = NativeShellMode.Canary,
     gpsSnapshot: NativeShellGpsSnapshot = NativeShellGpsSnapshot.Disabled,
     journeyGateway: NativeShellJourneyGateway? = null,
+    voiceGateway: NativeVoiceGateway? = null,
     onGpsAction: () -> Unit = {},
 ) {
     val themeId = if (isSystemInDarkTheme()) {
@@ -192,6 +201,68 @@ fun NativeRoadstrShell(
         }
         val settingsSession = remember { NativeSettingsSession() }
         val settingsState by settingsSession.state.collectAsState()
+        val voiceRuntimeState = voiceGateway?.state?.collectAsState()?.value
+        val voiceLanguage = settingsState.values.languageCode ?: Locale.getDefault().language
+        LaunchedEffect(
+            voiceGateway,
+            voiceLanguage,
+            settingsState.values.voiceGender,
+            settingsState.values.voiceSpeedStage,
+            settingsState.values.voiceVolume,
+        ) {
+            voiceGateway?.configure(
+                languageCode = voiceLanguage,
+                gender = when (settingsState.values.voiceGender) {
+                    NativeSettingsVoiceGender.Female -> NativeVoiceGender.Female
+                    NativeSettingsVoiceGender.Male -> NativeVoiceGender.Male
+                },
+                speed = NativeVoiceCatalog.speedForStage(settingsState.values.voiceSpeedStage),
+                volume = settingsState.values.voiceVolume,
+            )
+        }
+        LaunchedEffect(voiceRuntimeState) {
+            if (settingsState.status != NativeSettingsStatus.Ready) return@LaunchedEffect
+            val voiceState = voiceRuntimeState ?: return@LaunchedEffect
+            settingsSession.refresh(
+                settingsState.revision,
+                settingsState.values.copy(
+                    voiceModelStatus = when (voiceState.status) {
+                        NativeVoiceRuntimeStatus.MissingAssets,
+                        NativeVoiceRuntimeStatus.Failed,
+                        -> NativeSettingsVoiceModelStatus.NotDownloaded
+                        NativeVoiceRuntimeStatus.Downloading -> NativeSettingsVoiceModelStatus.Downloading
+                        NativeVoiceRuntimeStatus.Ready,
+                        NativeVoiceRuntimeStatus.Speaking,
+                        -> NativeSettingsVoiceModelStatus.Ready
+                    },
+                    voiceDownloadProgress = voiceState.downloadFraction,
+                    voiceGenderChoiceAvailable = NativeVoiceCatalog.selection(
+                        voiceLanguage,
+                        NativeVoiceGender.Male,
+                    )?.genderChoiceAvailable ?: false,
+                ),
+            )
+        }
+        val showSettings = {
+            val voiceState = voiceRuntimeState
+            settingsSession.show(
+                revision = settingsState.revision + 1L,
+                input = settingsState.values.copy(
+                    voiceModelStatus = when (voiceState?.status) {
+                        NativeVoiceRuntimeStatus.Downloading -> NativeSettingsVoiceModelStatus.Downloading
+                        NativeVoiceRuntimeStatus.Ready,
+                        NativeVoiceRuntimeStatus.Speaking,
+                        -> NativeSettingsVoiceModelStatus.Ready
+                        NativeVoiceRuntimeStatus.MissingAssets,
+                        NativeVoiceRuntimeStatus.Failed,
+                        null,
+                        -> NativeSettingsVoiceModelStatus.NotDownloaded
+                    },
+                    voiceDownloadProgress = voiceState?.downloadFraction ?: 0.0,
+                ),
+            )
+            Unit
+        }
         val placeSession = remember { NativePlaceSession() }
         val placeState by placeSession.state.collectAsState()
         val profileSession = remember { NativeProfileSession() }
@@ -235,9 +306,18 @@ fun NativeRoadstrShell(
             ) ?: false
             if (!accepted) activeNavigationSession.failReroute(request.sequence)
         }
+        LaunchedEffect(activeNavigationState.voiceCue?.sequence) {
+            val cue = activeNavigationState.voiceCue ?: return@LaunchedEffect
+            voiceGateway?.announceManeuver(
+                instruction = cue.instruction,
+                distanceMeters = cue.distanceMeters,
+                nowMillis = SystemClock.elapsedRealtime(),
+            )
+        }
         LaunchedEffect(activeNavigationState.arrived, activeNavigationState.revision) {
             if (!activeNavigationState.arrived) return@LaunchedEffect
             journeyCoordinator?.cancelReroute()
+            voiceGateway?.announceArrival()
             cameraSession.configure(
                 headingUp = true,
                 navigating = false,
@@ -297,6 +377,7 @@ fun NativeRoadstrShell(
                 activeNavigationState.active -> {
                     if (activeNavigationSession.stop(activeNavigationState.revision)) {
                         journeyCoordinator?.cancelReroute()
+                        voiceGateway?.stop()
                         cameraSession.configure(
                             headingUp = true,
                             navigating = false,
@@ -403,12 +484,12 @@ fun NativeRoadstrShell(
                                     onGpsAction()
                                 }
                             }
+                            NativeHomeAction.Menu -> showSettings()
                             NativeHomeAction.Parking,
                             NativeHomeAction.Activity,
                             NativeHomeAction.Events,
                             NativeHomeAction.Notifications,
                             NativeHomeAction.Profile,
-                            NativeHomeAction.Menu,
                             null,
                             -> Unit
                         }
@@ -471,6 +552,9 @@ fun NativeRoadstrShell(
                             NativeSettingsUiAction.Close -> settingsSession.hide(revision)
                             is NativeSettingsUiAction.BooleanChanged -> {
                                 settingsSession.updateBoolean(revision, action.key, action.value)
+                                if (action.key.storageKey == "voiceEnabled") {
+                                    voiceGateway?.setMuted(!action.value)
+                                }
                             }
                             is NativeSettingsUiAction.ThemeChanged -> {
                                 settingsSession.updateTheme(revision, action.value)
@@ -524,11 +608,11 @@ fun NativeRoadstrShell(
                             NativeSettingsUiAction.SyncPull,
                             NativeSettingsUiAction.EditSyncPassphrase,
                             NativeSettingsUiAction.EditSyncRelay,
-                            NativeSettingsUiAction.DownloadVoiceModel,
                             NativeSettingsUiAction.OpenMapsAttribution,
                             NativeSettingsUiAction.OpenSource,
                             NativeSettingsUiAction.SupportRoadstr,
                             -> Unit
+                            NativeSettingsUiAction.DownloadVoiceModel -> voiceGateway?.downloadAssets()
                         }
                     },
                     modifier = Modifier.align(Alignment.BottomCenter),
@@ -604,6 +688,10 @@ fun NativeRoadstrShell(
                                     )
                                 ) {
                                     if (routePlanningSession.beginNavigation(revision)) {
+                                        voiceGateway?.setMuted(!settingsState.values.voiceEnabled)
+                                        if (settingsState.values.voiceEnabled) {
+                                            voiceGateway?.announceStart()
+                                        }
                                         cameraSession.configure(
                                             headingUp = true,
                                             navigating = true,
@@ -731,6 +819,7 @@ fun NativeRoadstrShell(
                     onStop = {
                         if (activeNavigationSession.stop(activeNavigationState.revision)) {
                             journeyCoordinator?.cancelReroute()
+                            voiceGateway?.stop()
                             cameraSession.configure(
                                 headingUp = true,
                                 navigating = false,
@@ -742,9 +831,11 @@ fun NativeRoadstrShell(
                         }
                     },
                     onToggleVoice = {
-                        activeNavigationSession.toggleVoice(activeNavigationState.revision)
+                        if (activeNavigationSession.toggleVoice(activeNavigationState.revision)) {
+                            voiceGateway?.setMuted(activeNavigationSession.state.value.voiceMuted)
+                        }
                     },
-                    onOpenSettings = {},
+                    onOpenSettings = showSettings,
                 )
                 NativeNavigationArrivalBanner(
                     visible = activeNavigationState.arrived,
@@ -763,7 +854,7 @@ fun NativeRoadstrShell(
                         onboardingSession.updateProfileVisibility(revision, value)
                     },
                     onRequestLocation = onGpsAction,
-                    onDownloadVoice = {},
+                    onDownloadVoice = { voiceGateway?.downloadAssets() },
                     onOpenDisclosure = { revision ->
                         onboardingSession.openDisclosure(revision)
                     },

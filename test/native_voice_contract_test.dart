@@ -23,6 +23,15 @@ void main() {
     'android/app/src/main/kotlin/app/roadstr/feature/voice/'
     'NativeVoiceAudioFocusController.kt',
   ).readAsStringSync();
+  final runtime = File(
+    'native-android/app/src/main/kotlin/app/roadstr/roadtest/'
+    'NativeRoadTestVoiceGateway.kt',
+  ).readAsStringSync();
+  final nativeBridge = File(
+    'native-android/app/src/main/cpp/native_voice_phonemizer.cpp',
+  ).readAsStringSync();
+  final nativeBuild =
+      File('native-android/app/build.gradle.kts').readAsStringSync();
 
   test('native voice catalogue matches every reusable Flutter asset', () {
     final nativePaths = RegExp(r'relativePath = "([^"]+)"')
@@ -73,7 +82,7 @@ void main() {
     expect(guidance, contains('MAX_PENDING = 2'));
   });
 
-  test('audio focus is native navigation guidance and remains dormant', () {
+  test('road-test runtime owns native inference playback and focus', () {
     final shell = File(
       'android/app/src/main/kotlin/app/roadstr/feature/home/'
       'NativeRoadstrShell.kt',
@@ -87,5 +96,19 @@ void main() {
     expect(shell, isNot(contains('NativeVoiceAudioFocusController')));
     expect(shell, isNot(contains('NativeVoiceAssetDownloader')));
     expect(shell, isNot(contains('NativeVoiceGuidanceSession')));
+    expect(shell, contains('NativeVoiceGateway?'));
+    expect(runtime, contains('OrtEnvironment.getEnvironment()'));
+    expect(runtime, contains('NativeVoiceInferencePolicy.kokoroInputs('));
+    expect(runtime, contains('NativeVoiceInferencePolicy.piperInputs('));
+    expect(runtime, contains('AudioTrack.Builder()'));
+    expect(runtime, contains('NativeVoiceAudioFocusController(context)'));
+    expect(runtime, contains('NativeVoiceAssetDownloader('));
+    expect(runtime, contains('app_flutter'));
+    expect(nativeBuild, contains('onnxruntime-android:1.23.0'));
+    expect(nativeBuild, contains('jniLibs.directories.add'));
+    expect(nativeBuild, contains('assets.directories.add'));
+    expect(nativeBridge, contains('dlopen("libespeak-ng.so"'));
+    expect(nativeBridge, contains('kMaxIterations = 2048'));
+    expect(nativeBridge, contains('kMaxOutputBytes = 16000'));
   });
 }
