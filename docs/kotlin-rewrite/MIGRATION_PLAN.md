@@ -605,9 +605,11 @@ broader cross-language coverage and a native store are still required.
   per-leg MapLibre rendering;
   `NativeMapInteraction.kt` provides projected road-event hit testing, typed
   click/long-click values and exact 60 m alternative selection. Product
-  fix/route feeds and remaining overlay UI layers remain. The first dormant
-  `feature/navigation` HUD slice is packaged under KOTLIN-013 but remains
-  detached from this MapLibre host and every live navigation feed.
+  production fix/route feeds and remaining overlay UI layers remain. The
+  `feature/navigation` HUD slice is packaged under KOTLIN-013 and the separate
+  road-test composition now connects it to the selected OSRM route, foreground
+  GPS progress and MapLibre route/camera sessions; the production canary stays
+  inert.
 - **Dependencies:** MapLibre Native Android OpenGL `13.5.2` is strictly pinned
   to the same artifact used by `maplibre_android 0.3.6`; its POM declares
   BSD-2-Clause and the resolved runtime graph contains no Google Play Services.
@@ -732,12 +734,15 @@ broader cross-language coverage and a native store are still required.
   surface is deliberately silent and exposes typed close/mark-read callbacks.
   Twelve values are generated for all 27 locales. Encrypted native persistence,
   migration writeback and live verified relay ownership remain detached.
-  A ninth hidden route-planning slice preserves planner/loading/alternative/
+  A ninth route-planning slice preserves planner/loading/alternative/
   preview states, one to five ordered stops, four transport modes, Flutter
   duration/unit formatting, all avoidance badge outcomes, bounded route
   conditions and revision-safe card/MapLibre selection. Twenty-two values are
-  generated for all 27 locales. Geocoding, routing, GPS, weather, road-event
-  feeds, settings and production start-navigation ownership remain detached.
+  generated for all 27 locales. In the road-test composition, live geocoding
+  and routing feed these states and preview Start transfers a defensive route
+  value into foreground GPS-driven HUD/overlay/camera progress. Weather,
+  road-event feeds, settings, rerouting/TTS/background behavior and production
+  start-navigation ownership remain detached.
   Later bounded slices package profile and the complete settings hierarchy.
   A twelfth hidden onboarding slice preserves the four swipeable pages,
   optional identity, location and voice states, exact versioned-disclosure gate
@@ -748,9 +753,10 @@ broader cross-language coverage and a native store are still required.
   A thirteenth home-chrome slice preserves both map renderers' idle visibility
   gates, collapsed/expanded dashboard, five-visible-favourite ceiling, unread
   `99+` badge and Notifications/Profile/Menu hierarchy. Ten values are generated
-  for all 27 locales. The private shell supplies no identity, favourite,
-  activity, parking, GPS, route or panel-owner data; actions remain typed and
-  side-effect free.
+  for all 27 locales. The production canary supplies no identity, favourite,
+  activity, parking, GPS, route or panel-owner data; the road-test composition
+  supplies foreground GPS and bounded journey values while actions remain
+  typed and provider-neutral.
 - **Dependencies:** Compose Material 3 and AndroidX only after license review.
 - **Migration impact:** Settings names/defaults and onboarding/disclosure keys must map exactly.
 - **User-visible impact:** Must feel like an update, not a redesign.
@@ -764,7 +770,9 @@ broader cross-language coverage and a native store are still required.
   title/article/opening projections and revision fencing. Twelve navigation-HUD
   JVM cases lock manoeuvre mapping, roundabout topology, sentence casing,
   live/fallback projection, arrival cues, units, limits, ETA, speedometer
-  storage and revision/step fencing. Twelve saved-place JVM cases lock legacy/
+  storage and revision/step fencing; two active-navigation cases lock GPS-fed
+  route/HUD progress, stale fixes, voice state and stop cleanup. Twelve
+  saved-place JVM cases lock legacy/
   import shapes, item/text/file bounds, encrypted-envelope admission, exact
   merge, parking codec/marker projection and revision-safe mutations. Twenty
   Dart contracts verify the first five 27-locale resource sets, Flutter formatter/
@@ -781,11 +789,14 @@ broader cross-language coverage and a native store are still required.
   map decoding, per-pubkey storage/cursor keys, ordering/dedupe/read state,
   cursor monotonicity, revision fencing, 12-value/27-locale resources, silent
   accessible presentation and dormant shell ownership.
-  Sixteen route-planning JVM cases plus four Dart contracts lock travel-mode
+  Seventeen route-planning JVM cases plus four Dart contracts lock travel-mode
   vocabulary, formatter/badge parity, malformed-route bounds, stable ordered
   stops, request fencing, avoidance state, map/card selection, preview commit,
-  unit reprojection, 22-value/27-locale resources, accessible presentation and
-  dormant shell ownership.
+  navigation handoff, unit reprojection, 22-value/27-locale resources and
+  accessible presentation. Two active-navigation JVM cases plus the HUD source
+  contract lock monotonic GPS progress, HUD/overlay synchronization, stale-fix
+  fencing, voice-state toggling and stop cleanup without adding sensor/service
+  ownership to the shell.
   Fifteen profile JVM cases plus four Dart contracts and fifteen settings JVM
   cases plus four Dart contracts cover the tenth and eleventh slices. Twelve
   onboarding JVM cases plus four Dart contracts lock strict gate precedence,

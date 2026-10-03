@@ -40,8 +40,10 @@ Gradle graph or APK. It owns no user data, but now owns a narrowly scoped
 foreground AOSP GPS feed plus a credential-free, bounded live journey gateway:
 Nominatim/Photon/Overpass search feeds destination selection, and OSRM driving,
 cycling or walking alternatives feed the shared MapLibre route overlay. Queries
-and coordinates remain memory-only. It remains an integration harness rather
-than a production fork.
+and coordinates remain memory-only. Starting a previewed route now activates a
+foreground, value-only guidance owner that projects GPS progress into the HUD,
+active/completed route geometry and navigation camera; stop/back returns to
+free drive. It remains an integration harness rather than a production fork.
 The shell establishes
 edge-to-edge Compose hosting and exact light/dark Nostr Violet/Bitcoin Orange
 color tokens, including legacy stored-theme aliases. It also embeds a real
@@ -123,15 +125,16 @@ The thirteenth slice packages Flutter's map-first idle dashboard and persistent
 Notifications/Profile/Menu bar. It preserves every workflow replacement gate,
 the collapsed/expanded hierarchy, the five-visible-favourite ceiling, unread
 `99+` badge and typed quick actions. Its ten values are generated for all 27
-locale sets. The shell renders only the empty value projection and does not
-feed it identity, favourites, activity, parking or route state. The road-test
-composition supplies GPS only. The shell keeps all
-panels hidden and has no transit, search, place, route-planning, navigation,
-saved-place, Wikipedia, road-event, activity, profile, settings or onboarding provider/
-history/identity/signer/wallet/preferences/secure-storage/migration owner, so it cannot
-initiate product-provider traffic, launch an external product intent or read
-user data. No live place selection, route progress, navigation telemetry,
-remote image, drag gesture or long-press product handler is connected. This
+locale sets. The production canary renders only empty value projections and
+does not feed identity, favourites, activity, parking or route state. The
+road-test composition supplies foreground GPS plus the bounded search/routing
+gateway; its selected route is the only live navigation input. The shared shell
+still has no transit, saved-place, Wikipedia, road-event, activity, profile,
+settings or onboarding provider/history/identity/signer/wallet/preferences/
+secure-storage/migration owner, so it cannot launch an external product intent
+or read user data. No rerouting, spoken output, arrival automation, background
+navigation, remote image, drag gesture or long-press product handler is
+connected. This
 proves bounded UI integration slices, not visual route, marker, cursor,
 full-screen, live-overlay or screenshot/device parity.
 
@@ -194,14 +197,17 @@ remain required.
   distance, duration and ETA, plus all five persisted speedometer styles.
 - `NativeNavigationHudSession` fences stale revisions and backward step
   progression without owning location, route, settings or storage adapters.
+- `NativeActiveNavigationSession` maps each increasing foreground GPS fix onto
+  monotonic route/step progress and updates the HUD plus active/completed
+  MapLibre geometry as one revision-fenced operation.
 - `NativeManeuverSymbol` and `NativeNavigationHud` retain vector manoeuvres,
   current/next instruction hierarchy, summary/stop/settings/voice controls,
   portrait/landscape adaptation, system insets and explicit accessibility
   semantics.
 
 Navigation screenshot/golden, font-scale, TalkBack, compact portrait/landscape,
-real route/GPS/settings integration into the HUD, interaction safety, performance and
-physical-device rendering evidence remain required.
+settings integration, rerouting, real speech/arrival behavior, interaction
+safety, performance and physical-device rendering evidence remain required.
 
 ## Native saved-place and parking evidence
 

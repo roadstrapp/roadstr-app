@@ -442,6 +442,35 @@ class NativeRoutePlanningSession(
         true
     }
 
+    fun selectedNavigationRoute(revision: Long): RoutingParsedRoute? = synchronized(lock) {
+        val current = _state.value
+        if (revision != this.revision || current.status != NativeRoutePlanningStatus.Preview) {
+            return null
+        }
+        candidates.singleOrNull()?.route?.let { route ->
+            route.copy(
+                polyline = route.polyline.toList(),
+                steps = route.steps.toList(),
+                speedLimits = route.speedLimits.toList(),
+            )
+        }
+    }
+
+    /** Hides the preview while deliberately retaining its committed map route. */
+    fun beginNavigation(revision: Long): Boolean = synchronized(lock) {
+        val current = _state.value
+        if (
+            revision != this.revision ||
+            current.status != NativeRoutePlanningStatus.Preview ||
+            candidates.size != 1
+        ) {
+            return false
+        }
+        candidates = emptyList()
+        _state.value = NativeRoutePlanningSnapshot.hidden(revision)
+        true
+    }
+
     fun updateUnits(imperial: Boolean): Boolean = synchronized(lock) {
         if (this.imperial == imperial) return false
         this.imperial = imperial

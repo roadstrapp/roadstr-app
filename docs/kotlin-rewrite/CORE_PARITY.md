@@ -9,7 +9,8 @@ in-place native navigation-notification mirror after Activity or renderer
 recreation. A separate non-exported Compose shell is packaged for native UI
 integration work, while Flutter remains the sole launcher of the production
 package. A separate Flutter-free `app.roadstr.roadtest` APK now launches the
-same provider-free shell directly for side-by-side integration work.
+same provider-neutral shell directly for side-by-side integration work and
+wires foreground GPS/search/routing into an in-memory journey flow.
 
 ## Implemented slices
 
@@ -32,7 +33,7 @@ same provider-free shell directly for side-by-side integration work.
 | `feature.search` | `search_panel.dart`, search/history/favorite models, 27 ARB files | bounded result/favorite/history projection, metric/imperial distances, exact 11-category nearby catalogue, revision-safe loading/partial/final/empty states and an accessible dormant Compose overlay with generated locale resources |
 | `feature.place` | `place_info_panel.dart`, `poi_search_service.dart`, `opening_hours.dart`, 27 ARB files | bounded localized OSM detail parsing, safe contacts/URLs, contextual parking/charging/fuel/lodging/food fields, opening-hours projection, revision-safe loading/ready/hidden state and an accessible dormant Compose sheet with generated locale resources |
 | `feature.transit` | `transit_itinerary_widget.dart`, `transit_itinerary.dart`, `units.dart`, 27 ARB files | bounded card projection, metric/imperial formatting, boarding/line/timetable details, revision-safe UI/map selection, loading/ready/no-service/failure states and an accessible dormant Compose panel with generated locale resources |
-| `feature.navigation` | `lib/widgets/nav`, `speedometer_widget.dart`, `units.dart`, 27 ARB files | bounded live/fallback HUD projection, all 21 manoeuvre families, vector symbols, five persisted speedometer styles, speed/limit/altitude/distance/duration/ETA summaries, revision-safe step progression and an adaptive accessible dormant Compose overlay with generated locale resources |
+| `feature.navigation` | `lib/widgets/nav`, `speedometer_widget.dart`, `units.dart`, 27 ARB files | bounded live/fallback HUD projection, all 21 manoeuvre families, vector symbols, five persisted speedometer styles, speed/limit/altitude/distance/duration/ETA summaries and revision-safe step progression; the adaptive Compose HUD is GPS/route-driven in the road-test APK but remains inert in the production canary |
 | `feature.saved` | `favorite_place.dart`, map/settings screens, 27 ARB files | exact bounded legacy/import favourite shapes, label-based merge, parking decode/encode and marker projection, revision-safe add/edit/delete/import/parking state, encrypted atomic persistence/migration and an accessible dormant Compose sheet with generated locale resources |
 | `feature.wikipedia` | `wikipedia_webview_screen.dart`, 27 ARB files | exact HTTPS language-host/article-path admission, main-frame-only navigation, revision-safe progress/failure/retry state and a dormant restricted native WebView reader with generated locale resources and ephemeral browser state |
 | `feature.report` | `road_event.dart`, `road_event_sheets.dart`, map screens, 27 ARB files | bounded detail/privacy/composer projection for all 14 wire categories, exact expiry/age/comment/speed/unit rules, owner edit suggestions, revision-safe single-flight submission state and accessible dormant Compose surfaces with generated locale resources |
@@ -376,10 +377,14 @@ detached from secure storage and startup. See
   cursor and point feeds. The separate road-test composition now injects
   foreground GPS into camera/cursor and a provider-neutral live journey gateway
   into search/planning: Nominatim/Photon/Overpass results can become OSRM road
-  alternatives on MapLibre. Neither path owns a production transit/place/
-  navigation/saved-place/Wikipedia/road-event/activity feed. Active guidance,
-  remaining product handlers, external intents, screenshots and physical-device
-  evidence remain open.
+  alternatives on MapLibre. Start now hands the committed route to a
+  revision-safe foreground navigation owner; increasing GPS fixes update the
+  HUD, manoeuvre step, remaining summary, active/completed route and navigation
+  camera, while Stop/back clears the route and restores free drive. Neither
+  path owns a production transit/place/saved-place/Wikipedia/road-event/activity
+  feed. Rerouting, TTS output, arrival automation, background ownership,
+  remaining product handlers, screenshots and physical-device evidence remain
+  open.
 - Native navigation lifecycle and notification policies are now deterministic,
   and the Android location foreground-service adapter is registered with an
   opt-in `MainActivity` start/stop/state/notification channel and
@@ -411,14 +416,14 @@ detached from secure storage and startup. See
   compile-time rollout, best-effort retry, serialized ownership lifecycle and
   service reconciliation, plus the bounded notification bridge and
   native-before-Flutter update/cancel ordering, and the navigation-HUD locale,
-  manoeuvre, accessibility/vector and dormant-ownership contracts, plus the
+  manoeuvre, accessibility/vector and GPS-fed value-owner contracts, plus the
   saved-place locale, legacy/import shape, accessibility and dormant-ownership
   contracts, plus the Wikipedia locale, URI-policy, restricted-WebView and
   dormant-ownership contracts, plus the road-event locale, Flutter-oracle,
   accessible-panel and dormant-ownership contracts, plus the activity-inbox
   locale, storage/cursor oracle, silent-panel and dormant-ownership contracts.
   The route-planning contracts additionally lock the 22-value locale catalogue,
-  Flutter route-panel vocabulary, accessibility bounds and dormant ownership;
+  Flutter route-panel vocabulary, accessibility bounds and navigation handoff;
   the profile contracts lock its 30-value locale catalogue, Flutter identity/
   reputation oracle, accessibility bounds, callback-only effects and dormant
   ownership. The settings contracts lock all 118 values in 27 resource sets,
@@ -451,7 +456,7 @@ detached from secure storage and startup. See
   launcher, Flutter-free Gradle graph, narrowly bounded AOSP location ownership,
   foreground permission/lifecycle/cursor-camera wiring, bounded live search/
   OSRM composition and unchanged production launcher.
-- `./gradlew :app:testDebugUnitTest`: 580 Kotlin tests passed, including the
+- `./gradlew :app:testDebugUnitTest`: 583 Kotlin tests passed, including the
   validated foreground GPS snapshot model and the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
@@ -464,7 +469,8 @@ detached from secure storage and startup. See
   bounded point-overlay ordering/zoom/catalogue policy, projected road-event
   hit priority and strict 60 m alternative tap selection,
   route-planning formatting, badge priority, ordered-stop bounds, request
-  fencing, synchronized card/map selection and preview commit,
+  fencing, synchronized card/map selection, preview commit and defensive
+  navigation handoff,
   dead reckoning, recenter and gesture-detachment behavior,
   and the
   Nostr byte/queue/inbound/ingress/NIP-19/BIP-340/NIP-04/NIP-44/NIP-78,
@@ -490,6 +496,8 @@ detached from secure storage and startup. See
   place fields, opening-hours presentation and revision-safe dormant place
   sheet state, plus navigation-HUD manoeuvre/roundabout projection, live and
   fallback summaries, five speedometer styles and revision/step fencing, plus
+  foreground GPS-to-route progress, synchronized HUD/overlay updates, stale-fix
+  fencing, voice state and stop cleanup, plus
   bounded favourite legacy/import parsing, exact label merge, parking codec/
   marker projection and revision-safe saved-place mutations, plus exact
   Wikipedia article admission, main-frame navigation and revision-safe page/
@@ -520,12 +528,14 @@ detached from secure storage and startup. See
   canary or adding a second launcher.
 - `ANDROID_HOME=... native-android/gradlew -p native-android :app:assembleDebug`: the
   independent roughly 60 MB `app.roadstr.roadtest` APK builds from only the
-  shared Kotlin `core/feature` trees and narrowly scoped `service/location`.
+  shared Kotlin `core/feature` trees and narrowly scoped location/network/
+  search/routing services.
   Artifact, DEX and runtime-dependency
   inspection finds no Flutter/Dart entry, engine, bundle or class; `aapt`
   confirms SDK 24/36, the direct Compose launcher, Internet and foreground
   coarse/fine location plus the AndroidX package-scoped receiver permission,
-  with no background location.
+  with no background location. The current artifact SHA-256 is
+  `ccfbdfe5cb94be1a21508cf777bad0e49a0017743b4122aa10ce2184837013f4`.
 - `MainActivity` registers the opt-in native-navigation channel. Both map
   renderers own it only in builds compiled with
   `ROADSTR_NATIVE_NAVIGATION=true`; ordinary builds retain the existing

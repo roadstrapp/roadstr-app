@@ -233,6 +233,22 @@ class NativeRoutePlanningPresentationTest {
     }
 
     @Test
+    fun `preview hands one defensive route to navigation without clearing geometry`() {
+        val overlay = NativeRouteOverlaySession(0xFF71_58E2L)
+        val session = session(overlay)
+        readyAlternatives(session)
+        assertTrue(session.confirmSelection(2))
+
+        val selected = session.selectedNavigationRoute(2)
+        assertEquals(2, selected?.polyline?.size)
+        assertTrue(session.beginNavigation(2))
+        assertEquals(NativeRoutePlanningStatus.Hidden, session.state.value.status)
+        assertFalse(overlay.state.value.snapshot.activeRuns.isEmpty())
+        assertNull(session.selectedNavigationRoute(2))
+        assertFalse(session.beginNavigation(2))
+    }
+
+    @Test
     fun `unit changes reproject cards without replacing route geometry`() {
         val overlay = NativeRouteOverlaySession(0xFF71_58E2L)
         val session = session(overlay)

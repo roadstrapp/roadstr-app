@@ -49,7 +49,7 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-/** Dormant, provider-free Compose counterpart of Flutter's turn-by-turn HUD. */
+/** Provider-free Compose counterpart of Flutter's turn-by-turn HUD. */
 @Composable
 fun NativeNavigationHud(
     snapshot: NativeNavigationHudSnapshot,

@@ -47,6 +47,7 @@ import app.roadstr.feature.map.NativeMapPointOverlaySession
 import app.roadstr.feature.map.NativeMapStyle
 import app.roadstr.feature.map.NativeRouteOverlaySession
 import app.roadstr.feature.map.NativeTransitOverlaySession
+import app.roadstr.feature.navigation.NativeActiveNavigationSession
 import app.roadstr.feature.navigation.NativeNavigationHud
 import app.roadstr.feature.navigation.NativeNavigationHudSession
 import app.roadstr.feature.onboarding.NativeOnboardingFlow
@@ -199,16 +200,36 @@ fun NativeRoadstrShell(
         val roadEventState by roadEventSession.state.collectAsState()
         val navigationHudSession = remember { NativeNavigationHudSession() }
         val navigationHudState by navigationHudSession.state.collectAsState()
+        val activeNavigationSession = remember(navigationHudSession, routeSession) {
+            NativeActiveNavigationSession(navigationHudSession, routeSession)
+        }
+        val activeNavigationState by activeNavigationSession.state.collectAsState()
+        val navigationNowLabel = stringResource(R.string.native_nav_now)
+        LaunchedEffect(gpsSnapshot.fix?.sequence, activeNavigationState.active) {
+            if (!activeNavigationState.active) return@LaunchedEffect
+            val fix = gpsSnapshot.fix ?: return@LaunchedEffect
+            activeNavigationSession.submitFix(
+                sequence = fix.sequence,
+                point = fix.point,
+                speedMetersPerSecond = fix.speedMetersPerSecond,
+                altitudeMeters = fix.altitudeMeters,
+            )
+        }
         val onboardingSession = remember { NativeOnboardingSession() }
         val onboardingState by onboardingSession.state.collectAsState()
         val homeSession = remember { NativeHomeSession() }
         val homeState by homeSession.state.collectAsState()
         val wikipediaSession = remember { NativeWikipediaSession() }
         val wikipediaState by wikipediaSession.state.collectAsState()
-        LaunchedEffect(searchState.status, routePlanningState.status) {
+        LaunchedEffect(
+            searchState.status,
+            routePlanningState.status,
+            activeNavigationState.active,
+        ) {
             homeSession.replace(
                 revision = homeSession.state.value.revision + 1L,
                 input = NativeHomeInput(
+                    navigating = activeNavigationState.active,
                     searchVisible = searchState.status != NativeSearchUiStatus.Hidden,
                     plannerVisible = routePlanningState.status == NativeRoutePlanningStatus.Planner,
                     previewVisible = routePlanningState.status == NativeRoutePlanningStatus.Preview,
@@ -228,13 +249,29 @@ fun NativeRoadstrShell(
         BackHandler(
             enabled = journeyCoordinator != null && (
                 searchState.status != NativeSearchUiStatus.Hidden ||
-                    routePlanningState.status != NativeRoutePlanningStatus.Hidden
+                    routePlanningState.status != NativeRoutePlanningStatus.Hidden ||
+                    activeNavigationState.active
                 ),
         ) {
-            if (searchState.status != NativeSearchUiStatus.Hidden) {
-                journeyCoordinator?.dismissSearch()
-            } else {
-                journeyCoordinator?.cancelRoute()
+            when {
+                searchState.status != NativeSearchUiStatus.Hidden -> {
+                    journeyCoordinator?.dismissSearch()
+                }
+                routePlanningState.status != NativeRoutePlanningStatus.Hidden -> {
+                    journeyCoordinator?.cancelRoute()
+                }
+                activeNavigationState.active -> {
+                    if (activeNavigationSession.stop(activeNavigationState.revision)) {
+                        cameraSession.configure(
+                            headingUp = true,
+                            navigating = false,
+                            zoom = NativeMapCameraSession.DEFAULT_ZOOM,
+                            pitchDegrees = NativeMapCameraSession.FREE_DRIVE_PITCH,
+                            screenHeightPixels = NativeMapCameraSession.DEFAULT_SCREEN_HEIGHT_PIXELS,
+                        )
+                        cameraSession.recenter(SystemClock.elapsedRealtime())
+                    }
+                }
             }
         }
         Scaffold(
@@ -278,7 +315,8 @@ fun NativeRoadstrShell(
                 if (
                     mode == NativeShellMode.RoadTest &&
                     searchState.status == NativeSearchUiStatus.Hidden &&
-                    routePlanningState.status == NativeRoutePlanningStatus.Hidden
+                    routePlanningState.status == NativeRoutePlanningStatus.Hidden &&
+                    !activeNavigationState.active
                 ) {
                     NativeShellGpsPanel(
                         snapshot = gpsSnapshot,
@@ -510,7 +548,33 @@ fun NativeRoadstrShell(
                     onConfirm = {
                         routePlanningSession.confirmSelection(routePlanningState.revision)
                     },
-                    onStart = {},
+                    onStart = {
+                        routePlanningSession
+                            .selectedNavigationRoute(routePlanningState.revision)
+                            ?.let { route ->
+                                val revision = routePlanningState.revision
+                                if (
+                                    activeNavigationSession.start(
+                                        revision = revision,
+                                        route = route,
+                                        nowLabel = navigationNowLabel,
+                                    )
+                                ) {
+                                    if (routePlanningSession.beginNavigation(revision)) {
+                                        cameraSession.configure(
+                                            headingUp = true,
+                                            navigating = true,
+                                            zoom = NativeMapCameraSession.DEFAULT_ZOOM,
+                                            pitchDegrees = NativeMapCameraSession.NAVIGATION_PITCH,
+                                            screenHeightPixels = NativeMapCameraSession.DEFAULT_SCREEN_HEIGHT_PIXELS,
+                                        )
+                                        cameraSession.recenter(SystemClock.elapsedRealtime())
+                                    } else {
+                                        activeNavigationSession.stop(revision)
+                                    }
+                                }
+                            }
+                    },
                     onCancel = {
                         journeyCoordinator?.cancelRoute()
                     },
@@ -621,8 +685,21 @@ fun NativeRoadstrShell(
                 )
                 NativeNavigationHud(
                     snapshot = navigationHudState,
-                    onStop = {},
-                    onToggleVoice = {},
+                    onStop = {
+                        if (activeNavigationSession.stop(activeNavigationState.revision)) {
+                            cameraSession.configure(
+                                headingUp = true,
+                                navigating = false,
+                                zoom = NativeMapCameraSession.DEFAULT_ZOOM,
+                                pitchDegrees = NativeMapCameraSession.FREE_DRIVE_PITCH,
+                                screenHeightPixels = NativeMapCameraSession.DEFAULT_SCREEN_HEIGHT_PIXELS,
+                            )
+                            cameraSession.recenter(SystemClock.elapsedRealtime())
+                        }
+                    },
+                    onToggleVoice = {
+                        activeNavigationSession.toggleVoice(activeNavigationState.revision)
+                    },
                     onOpenSettings = {},
                 )
                 NativeOnboardingFlow(

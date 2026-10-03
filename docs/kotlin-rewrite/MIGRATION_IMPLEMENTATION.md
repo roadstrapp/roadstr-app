@@ -323,7 +323,10 @@ estimate from being mistaken for release readiness.
   open.
 - The existing Flutter Activity and production Flutter runtime remain the
   active path. The separately registered `NativeCanaryActivity` is private and
-  dormant; it has no production navigation path. A non-exported foreground
+  dormant; it has no production navigation path. The separate Flutter-free
+  road-test application now exercises an in-memory foreground GPS → route →
+  HUD/overlay/camera path without changing that production boundary. A
+  non-exported foreground
   service and an opt-in native
   navigation `MethodChannel` are registered. The channel exposes explicit
   start, stop and process-local running-state operations. The isolated Dart

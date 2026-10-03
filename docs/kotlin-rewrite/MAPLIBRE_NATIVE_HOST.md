@@ -257,9 +257,11 @@ debug-host selection check.
   sets, sheet semantics and side-effect-free dormant shell ownership.
 - Twelve navigation-HUD JVM cases lock manoeuvre families and roundabout
   topology, sentence casing, live/fallback summaries, arrival cues, unit/limit/
-  ETA formatting, all five speedometer styles and revision/step fencing. Four
+  ETA formatting, all five speedometer styles and revision/step fencing. Two
+  active-navigation JVM cases lock GPS-fed route/HUD progress, stale fixes,
+  voice state and stop cleanup. Four
   Dart UI contracts lock its 13-value/27-locale resources, adaptive accessible
-  vector HUD structure and side-effect-free dormant shell ownership.
+  vector HUD structure and provider-neutral road-test ownership.
 - Twelve saved-place JVM cases lock Flutter's favourite legacy/import shapes,
   bounds, encrypted-envelope admission, exact merge, parking codec/marker and
   revision-safe mutations. Four Dart UI contracts lock its 9-value/27-locale
@@ -276,11 +278,11 @@ debug-host selection check.
   per-pubkey inbox/cursor names, ordering/dedupe/read state, monotonic cursors
   and revision fencing. Four Dart UI contracts lock its 12-value/27-locale
   resources, silent accessible panel and dormant ownership.
-- Sixteen route-planning JVM cases lock four modes, one-to-five ordered stops,
+- Seventeen route-planning JVM cases lock four modes, one-to-five ordered stops,
   Flutter duration/unit and avoidance-badge projection, request fencing,
-  strict-60-metre map/card selection and preview commit. Four Dart UI contracts
-  lock its 22-value/27-locale resources, accessible panels and dormant shell
-  ownership.
+  strict-60-metre map/card selection, preview commit and defensive navigation
+  handoff. Four Dart UI contracts lock its 22-value/27-locale resources,
+  accessible panels and provider-neutral shell ownership.
 - Fifteen settings JVM cases lock exact Flutter keys/defaults, theme/language/
   provider/cursor catalogues, bounded text and sliders, configured-secret
   summaries, typed persistence writes and revision fencing. Four Dart UI
@@ -302,7 +304,7 @@ debug-host selection check.
   and ownership by the private shell, plus the Flutter camera oracle
   and MapLibre command wiring, cursor geometry, point-overlay/transit parity and
   dormant ownership.
-- The complete verification run passes 757 Flutter tests, 541 Kotlin tests,
+- The complete verification run passes 779 Flutter tests, 583 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 
@@ -312,8 +314,11 @@ debug-host selection check.
 - screenshot/golden comparison in light/dark themes and compact/landscape UI;
 - migrated `osm`/custom-tile ownership, process recreation and physical-device
   comparison of top-down zoom, rotation, overlays and attribution;
-- live route/route-planning/traffic/transit/search/place/navigation/saved-place/Wikipedia/road-event/activity/profile/settings/source/point update,
-  navigation telemetry/settings, search storage, native preference persistence,
+- production live route/route-planning/traffic/transit/search/place/navigation/saved-place/Wikipedia/road-event/activity/profile/settings/source/point update;
+  the road-test APK now covers foreground GPS, search, OSRM alternatives and
+  monotonic route/HUD/camera progress, but rerouting, speech, arrival automation,
+  background ownership and navigation settings remain open; search storage and
+  native preference persistence,
   secure-value dialogs, routing verification, native ONNX session/eSpeak JNI/
   audio playback and live voice route/settings/beep/Bluetooth wiring, and settings
   import/export/sync/link effects,
