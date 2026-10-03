@@ -87,6 +87,9 @@ void main() {
     expect(source, contains('journeyCoordinator?.calculateRoute('));
     expect(source, contains('journeyCoordinator?.cancelRoute()'));
     expect(source, contains('routePlanningSession.useMyLocation('));
+    expect(source, contains('.selectedNavigationRoute('));
+    expect(source, contains('routePlanningSession.beginNavigation('));
+    expect(source, contains('activeNavigationSession.start('));
     expect(source, isNot(contains('NativeRoutingService')));
   });
 }

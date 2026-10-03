@@ -112,17 +112,19 @@ void main() {
     expect(vector, isNot(contains('painterResource')));
   });
 
-  test('private shell packages HUD without activating GPS routing or storage',
-      () {
+  test('private shell drives HUD through GPS-fed value-only navigation', () {
     final source = shell.readAsStringSync();
 
     expect(source, contains('NativeNavigationHudSession()'));
+    expect(source, contains('NativeActiveNavigationSession('));
     expect(source, contains('NativeNavigationHud('));
-    expect(source, contains('onStop = {}'));
-    expect(source, contains('onToggleVoice = {}'));
+    expect(source, contains('activeNavigationSession.start('));
+    expect(source, contains('activeNavigationSession.submitFix('));
+    expect(source, contains('activeNavigationSession.stop('));
+    expect(source, contains('activeNavigationSession.toggleVoice('));
+    expect(source, contains('.selectedNavigationRoute('));
+    expect(source, contains('routePlanningSession.beginNavigation('));
     expect(source, contains('onOpenSettings = {}'));
-    expect(source, isNot(contains('navigationHudSession.show(')));
-    expect(source, isNot(contains('navigationHudSession.update(')));
     expect(source, isNot(contains('NativeLocationService')));
     expect(source, isNot(contains('NativeRoutingService')));
     expect(source, isNot(contains("Hive.box('settings')")));
