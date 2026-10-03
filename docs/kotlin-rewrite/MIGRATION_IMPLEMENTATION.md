@@ -17,12 +17,19 @@ estimate from being mistaken for release readiness.
 
 - `native-android/` is an independent Android application module with its own
   settings/build graph, `ComponentActivity` launcher and `MAIN`/`LAUNCHER`
-  manifest. It compiles the shared Kotlin `core/` and `feature/` trees directly,
-  applies no Flutter plugin and packages no Dart bundle, Flutter embedding or
-  migration/service source. Its distinct `app.roadstr.roadtest` identity
+  manifest. It compiles the shared Kotlin `core/` and `feature/` trees plus only
+  `service/location/` directly, applies no Flutter plugin and packages no Dart
+  bundle, Flutter embedding, migration, storage or navigation-service source.
+  Its distinct `app.roadstr.roadtest` identity
   prevents the incomplete harness from reading or replacing production data;
-  the first debug APK is roughly 60 MB and requests only Internet plus
-  AndroidX's package-scoped receiver permission. It is not an update candidate.
+  the debug APK is roughly 60 MB and requests Internet plus foreground
+  coarse/fine location (and AndroidX's package-scoped receiver permission), but
+  never background location. It is not an update candidate.
+- `NativeRoadTestLocationController.kt` owns one foreground-only AOSP
+  `LocationManager` feed, permission/provider/retry states, a safe last-known
+  seed and Activity start/stop cleanup. Its value-only snapshots drive the
+  existing MapLibre cursor and follow-camera sessions without logging or
+  persisting coordinates. Fused location and Google Play Services are absent.
 - `feature/home/NativeCanaryActivity.kt` is a non-exported, recents-excluded
   activity with no intent filter. It hosts an edge-to-edge Compose shell and a
   MapLibre Native raster canary, opens no storage and does not invoke migration.

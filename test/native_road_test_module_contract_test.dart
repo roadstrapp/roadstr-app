@@ -12,6 +12,18 @@ void main() {
     'native-android/app/src/main/kotlin/app/roadstr/roadtest/'
     'NativeRoadTestActivity.kt',
   );
+  final locationController = File(
+    'native-android/app/src/main/kotlin/app/roadstr/roadtest/'
+    'NativeRoadTestLocationController.kt',
+  );
+  final shell = File(
+    'android/app/src/main/kotlin/app/roadstr/feature/home/'
+    'NativeRoadstrShell.kt',
+  );
+  final aospSource = File(
+    'android/app/src/main/kotlin/app/roadstr/service/location/'
+    'AndroidLocationManagerSource.kt',
+  );
 
   test('road-test build is a separate native Android application', () {
     final build = appBuild.readAsStringSync();
@@ -39,8 +51,12 @@ void main() {
     expect(xml, contains('android:allowBackup="false"'));
     expect(xml, contains('android:usesCleartextTraffic="false"'));
     expect(xml, contains('android.permission.INTERNET'));
+    expect(xml, contains('android.permission.ACCESS_COARSE_LOCATION'));
+    expect(xml, contains('android.permission.ACCESS_FINE_LOCATION'));
+    expect(xml, isNot(contains('android.permission.ACCESS_BACKGROUND_LOCATION')));
+    expect(xml, contains('android.hardware.location.gps'));
     expect(
-      RegExp(r'ACCESS_(?:COARSE|FINE)_LOCATION[\s\S]*?tools:node="remove"')
+      RegExp(r'android\.hardware\.location(?:\.gps)?[\s\S]*?required="false"')
           .allMatches(xml),
       hasLength(2),
     );
@@ -63,11 +79,17 @@ void main() {
     );
     expect(
       appBuild.readAsStringSync(),
+      contains(
+        '"../../android/app/src/main/kotlin/app/roadstr/service/location"',
+      ),
+    );
+    expect(
+      appBuild.readAsStringSync(),
       isNot(contains('"app/roadstr/migration/**"')),
     );
     expect(
       appBuild.readAsStringSync(),
-      isNot(contains('"app/roadstr/service/**"')),
+      isNot(contains('app/roadstr/service/navigation')),
     );
   });
 
@@ -76,13 +98,37 @@ void main() {
 
     expect(source, contains('class NativeRoadTestActivity : ComponentActivity()'));
     expect(source, contains('setContent {'));
-    expect(
-      source,
-      contains('NativeRoadstrShell(mode = NativeShellMode.RoadTest)'),
-    );
+    expect(source, contains('NativeRoadstrShell('));
+    expect(source, contains('mode = NativeShellMode.RoadTest'));
     expect(source, isNot(contains('FlutterActivity')));
     expect(source, isNot(contains('FlutterEngine')));
     expect(source, isNot(contains('MethodChannel')));
+  });
+
+  test('road-test GPS owner drives the native cursor and camera in foreground', () {
+    final activitySource = activity.readAsStringSync();
+    final controllerSource = locationController.readAsStringSync();
+    final shellSource = shell.readAsStringSync();
+    final aospSourceCode = aospSource.readAsStringSync();
+
+    expect(
+      activitySource,
+      contains('ActivityResultContracts.RequestMultiplePermissions()'),
+    );
+    expect(activitySource, contains('locationController.onHostStart()'));
+    expect(activitySource, contains('locationController.onHostStop()'));
+    expect(activitySource, contains('Settings.ACTION_LOCATION_SOURCE_SETTINGS'));
+    expect(controllerSource, contains('AndroidLocationManagerSource(context)'));
+    expect(controllerSource, contains('NativeLocationService('));
+    expect(controllerSource, contains('service.lastKnown()'));
+    expect(controllerSource, contains('service.stop()'));
+    expect(controllerSource, isNot(contains('FusedLocationProvider')));
+    expect(controllerSource, isNot(contains('GoogleApi')));
+    expect(controllerSource, isNot(contains('Log.')));
+    expect(aospSourceCode, contains('catch (_: IllegalArgumentException)'));
+    expect(shellSource, contains('cursorSession.submitPosition'));
+    expect(shellSource, contains('cameraSession.submitFix'));
+    expect(shellSource, contains('cameraSession.recenter'));
   });
 
   test('ordinary Roadstr launcher remains unchanged', () {

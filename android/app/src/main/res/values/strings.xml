@@ -7,4 +7,16 @@
     <string name="native_road_test_app_name" translatable="false">Roadstr Kotlin</string>
     <string name="native_road_test_description" translatable="false">Standalone Roadstr Kotlin road-test shell</string>
     <string name="native_road_test_status" translatable="false">Standalone Kotlin road-test runtime</string>
+    <string name="native_gps_permission_required" translatable="false">Location permission is required for live map testing</string>
+    <string name="native_gps_permission_denied" translatable="false">Location permission was denied</string>
+    <string name="native_gps_provider_disabled" translatable="false">Device location is switched off</string>
+    <string name="native_gps_starting" translatable="false">Starting native GPS…</string>
+    <string name="native_gps_waiting" translatable="false">Waiting for a GPS fix…</string>
+    <string name="native_gps_active" translatable="false">GPS fix · ±%1$d m · %2$d km/h</string>
+    <string name="native_gps_paused" translatable="false">GPS paused while Roadstr is in the background</string>
+    <string name="native_gps_failed" translatable="false">Native GPS could not be started</string>
+    <string name="native_gps_allow" translatable="false">Allow location</string>
+    <string name="native_gps_open_settings" translatable="false">Open location settings</string>
+    <string name="native_gps_recenter" translatable="false">Recenter</string>
+    <string name="native_gps_retry" translatable="false">Retry</string>
 </resources>

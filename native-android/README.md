@@ -5,10 +5,12 @@ rewrite into a directly launchable runtime before the production cutover. It
 has application ID `app.roadstr.roadtest`, so it cannot replace, migrate or
 modify an installed `app.roadstr` application.
 
-The module compiles the shared Kotlin `core/` and `feature/` sources and Android
-resources directly. It does not apply the Flutter Gradle plugin, package a Dart
-bundle or reference Flutter embedding classes. At this stage it intentionally
-has only network permission and exposes the still-provider-free Compose shell.
+The module compiles the shared Kotlin `core/`, `feature/` and narrowly scoped
+`service/location/` sources plus Android resources directly. It does not apply
+the Flutter Gradle plugin, package a Dart bundle or reference Flutter embedding
+classes. The Activity owns foreground coarse/fine location permission and an
+AOSP `LocationManager` feed that drives the Compose map cursor and camera; it
+requests no background location and includes no fused/Google location runtime.
 
 Build from the repository root with this project's Gradle wrapper and an
 Android SDK environment:

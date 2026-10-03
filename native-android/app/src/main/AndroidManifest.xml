@@ -3,22 +3,22 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- MapLibre declares these transitively. The current road-test slice owns
-         no connectivity observer or location source, so keep its permission
-         surface honest until those adapters are connected deliberately. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-feature
+        android:name="android.hardware.location.gps"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.location"
+        android:required="false" />
+    <!-- MapLibre declares connectivity observation transitively. The current
+         road-test owner does not use it, so keep that permission removed. -->
     <uses-permission
         android:name="android.permission.ACCESS_NETWORK_STATE"
         tools:node="remove" />
     <uses-permission
         android:name="android.permission.ACCESS_WIFI_STATE"
         tools:node="remove" />
-    <uses-permission
-        android:name="android.permission.ACCESS_COARSE_LOCATION"
-        tools:node="remove" />
-    <uses-permission
-        android:name="android.permission.ACCESS_FINE_LOCATION"
-        tools:node="remove" />
-
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"

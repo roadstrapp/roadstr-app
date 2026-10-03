@@ -77,14 +77,19 @@ enum class NativeShellMode {
 /**
  * Dormant native UI boundary used to prove Compose and MapLibre packaging.
  *
- * It owns no storage, location or migration state. The production package does
- * not launch it; the separate road-test APK can host it directly without
- * Flutter. Only the admitted OSM raster source may perform network I/O.
+ * It owns no storage, sensor or migration adapter. The production package does
+ * not launch it; the separate road-test APK can inject a value-only GPS feed
+ * and host it directly without Flutter. Only the admitted OSM raster source
+ * may perform network I/O.
  * Product screens replace this boundary incrementally after their parity gates
  * are green.
  */
 @Composable
-fun NativeRoadstrShell(mode: NativeShellMode = NativeShellMode.Canary) {
+fun NativeRoadstrShell(
+    mode: NativeShellMode = NativeShellMode.Canary,
+    gpsSnapshot: NativeShellGpsSnapshot = NativeShellGpsSnapshot.Disabled,
+    onGpsAction: () -> Unit = {},
+) {
     val themeId = if (isSystemInDarkTheme()) {
         RoadstrThemeId.DarkNostr
     } else {
@@ -135,6 +140,17 @@ fun NativeRoadstrShell(mode: NativeShellMode = NativeShellMode.Canary) {
         val cameraState by cameraSession.state.collectAsState()
         val cursorSession = remember { NativeMapCursorSession() }
         val cursorState by cursorSession.state.collectAsState()
+        LaunchedEffect(gpsSnapshot.fix?.sequence) {
+            val fix = gpsSnapshot.fix ?: return@LaunchedEffect
+            cursorSession.submitPosition(fix.sequence, fix.point)
+            cameraSession.submitFix(
+                sequence = fix.sequence,
+                point = fix.point,
+                headingDegrees = fix.headingDegrees ?: 0.0,
+                speedMetersPerSecond = fix.speedMetersPerSecond,
+                receivedAtMillis = fix.receivedAtElapsedRealtimeMillis,
+            )
+        }
         val pointOverlaySession = remember { NativeMapPointOverlaySession() }
         val pointOverlayState by pointOverlaySession.state.collectAsState()
         val searchSession = remember { NativeSearchSession(initialImperial = false) }
@@ -203,31 +219,40 @@ fun NativeRoadstrShell(mode: NativeShellMode = NativeShellMode.Canary) {
                     },
                     modifier = Modifier.fillMaxSize(),
                 )
-                Surface(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .wrapContentSize(),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    shape = RoundedCornerShape(20.dp),
-                    tonalElevation = 4.dp,
-                ) {
-                    Column(modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp)) {
-                        Text(
-                            text = stringResource(R.string.app_name),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(
-                                when (mode) {
-                                    NativeShellMode.Canary -> R.string.native_map_canary_status
-                                    NativeShellMode.RoadTest -> R.string.native_road_test_status
-                                },
-                            ),
-                            style = MaterialTheme.typography.labelLarge,
-                        )
+                if (mode == NativeShellMode.RoadTest) {
+                    NativeShellGpsPanel(
+                        snapshot = gpsSnapshot,
+                        onAction = {
+                            if (gpsSnapshot.phase == NativeShellGpsPhase.Active) {
+                                cameraSession.recenter(SystemClock.elapsedRealtime())
+                            } else {
+                                onGpsAction()
+                            }
+                        },
+                        modifier = Modifier.padding(16.dp),
+                    )
+                } else {
+                    Surface(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .wrapContentSize(),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        shape = RoundedCornerShape(20.dp),
+                        tonalElevation = 4.dp,
+                    ) {
+                        Column(modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp)) {
+                            Text(
+                                text = stringResource(R.string.app_name),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(R.string.native_map_canary_status),
+                                style = MaterialTheme.typography.labelLarge,
+                            )
+                        }
                     }
                 }
                 NativeHomeChrome(
@@ -489,7 +514,7 @@ fun NativeRoadstrShell(mode: NativeShellMode = NativeShellMode.Canary) {
                     onProfileVisibilityChanged = { revision, value ->
                         onboardingSession.updateProfileVisibility(revision, value)
                     },
-                    onRequestLocation = {},
+                    onRequestLocation = onGpsAction,
                     onDownloadVoice = {},
                     onOpenDisclosure = { revision ->
                         onboardingSession.openDisclosure(revision)
