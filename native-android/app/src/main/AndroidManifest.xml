@@ -11,11 +11,9 @@
     <uses-feature
         android:name="android.hardware.location"
         android:required="false" />
-    <!-- MapLibre declares connectivity observation transitively. The current
-         road-test owner does not use it, so keep that permission removed. -->
-    <uses-permission
-        android:name="android.permission.ACCESS_NETWORK_STATE"
-        tools:node="remove" />
+    <!-- MapLibre's ConnectivityReceiver queries ConnectivityManager when the
+         system sends CONNECTIVITY_CHANGE. This is a normal permission. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission
         android:name="android.permission.ACCESS_WIFI_STATE"
         tools:node="remove" />
