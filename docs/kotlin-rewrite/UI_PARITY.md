@@ -209,7 +209,7 @@ remain required.
   semantics.
 
 Navigation screenshot/golden, font-scale, TalkBack, compact portrait/landscape,
-settings integration, real speech, building-footprint arrival, repeated-reroute
+persisted settings integration, building-footprint arrival, repeated-reroute
 alternative choice, interaction safety, performance and physical-device
 rendering evidence remain required.
 

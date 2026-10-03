@@ -131,7 +131,10 @@ void main() {
     expect(source, contains('journeyCoordinator?.reroute('));
     expect(source, contains('.selectedNavigationRoute('));
     expect(source, contains('routePlanningSession.beginNavigation('));
-    expect(source, contains('onOpenSettings = {}'));
+    expect(source, contains('onOpenSettings = showSettings'));
+    expect(source, contains('settingsSession.show('));
+    expect(source, contains('voiceGateway?.announceManeuver('));
+    expect(source, contains('voiceGateway?.announceArrival()'));
     expect(source, isNot(contains('NativeLocationService')));
     expect(source, isNot(contains('NativeRoutingService')));
     expect(source, isNot(contains("Hive.box('settings')")));

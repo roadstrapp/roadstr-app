@@ -40,7 +40,7 @@ wires foreground GPS/search/routing into an in-memory journey flow.
 | `feature.activity` | `activity_notification.dart`, `activity_notification_service.dart`, `notifications_screen.dart`, 27 ARB files | bounded normalized-Hive map codec, exact per-pubkey inbox/cursor keys, newest-first 100-row dedupe/read state, monotonic cursor policy, encrypted atomic persistence/migration and an accessible deliberately silent dormant Compose inbox with generated locale resources |
 | `feature.route` | `route_panels.dart`, routing response/avoidance models, 27 ARB files | bounded planner/loading/alternatives/preview state, one-to-five stable ordered stops, four modes, Flutter duration/unit and avoidance-badge projection, revision-safe card/MapLibre selection and accessible dormant Compose panels with generated locale resources |
 | `feature.settings` | `settings_screen.dart`, storage keys/defaults, 27 ARB files | exact scalar preference keys/defaults and choice catalogues, bounded text/sliders, safe secret-configuration summaries, revision-safe typed writes and an accessible dormant Compose settings surface with generated locale resources; its non-secret writes now have atomic native persistence while ownership/effects remain external |
-| `feature.voice` | Kokoro/Piper services, eSpeak phonemization and navigation speech | exact eight-language/13-voice registry, pinned size/SHA-256 asset reuse and atomic installation, bounded Kokoro/Piper input and PCM16 WAV policies, deterministic navigation-speech scheduling and dormant Android audio focus; ONNX/eSpeak/playback ownership remains external |
+| `feature.voice` | Kokoro/Piper services, eSpeak phonemization and navigation speech | exact eight-language/13-voice registry, pinned size/SHA-256 asset reuse and atomic installation, bounded tensor/phoneme policies and deterministic scheduling; the road-test APK owns eSpeak JNI, ONNX Kokoro/Piper inference, memory-only cache, `AudioTrack` cancellation/focus and live route/start/arrival cues while production-package/device evidence remains external |
 | `core.ui` / `feature.home` | `app_theme.dart`, Flutter Android embedding | exact four-palette colors and stored ordinal aliases, edge-to-edge private Compose/MapLibre canary, non-exported production-package boundary and separate Flutter-free road-test launcher; no production startup or storage access |
 | `storage` | encrypted Hive settings/search history/favorites/parking/activity/pending reports and secure aliases | canonical encrypted history, saved-places, multi-identity activity and offline-report files, deterministic 35-key non-secret preference file, atomic recovery/reopen, Keystore boundaries, migration-marker ciphertext binding and protected promotion of three historical secret aliases |
 | `core.time` | `sun_calc.dart`, `opening_hours.dart` | NOAA rise/set and conservative common OSM opening-hours subset |
@@ -406,7 +406,7 @@ detached from secure storage and startup. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 779 Flutter tests passed, including the native shell,
+- `flutter test`: 780 Flutter tests passed, including the native shell,
   private MapLibre host, route-overlay, route-session, transit-overlay/session, camera-session and
   user-cursor, point-overlay/interaction and route-traffic Gradle/source contracts, the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
@@ -454,12 +454,13 @@ detached from secure storage and startup. See
   contracts additionally lock Flutter's dynamic inbox/cursor shapes, encrypted
   framing, marker-v4 migration binding and dormant ownership. Four pending-
   report-store contracts lock the Hive/FIFO oracle, encrypted framing,
-  marker-v5 binding and dormant ownership. Six native-road-test contracts
+  marker-v5 binding and dormant ownership. Seven native-road-test contracts
   additionally lock the separate application identity, direct Compose
   launcher, Flutter-free Gradle graph, narrowly bounded AOSP location ownership,
   foreground permission/lifecycle/cursor-camera wiring, bounded live search/
-  OSRM composition and unchanged production launcher.
-- `./gradlew :app:testDebugUnitTest`: 586 Kotlin tests passed, including the
+  OSRM composition, Kotlin ONNX/JNI/AudioTrack voice ownership and unchanged
+  production launcher.
+- `./gradlew :app:testDebugUnitTest`: 590 Kotlin tests passed, including the
   validated foreground GPS snapshot model and the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
@@ -532,15 +533,17 @@ detached from secure storage and startup. See
   dormant Compose/MapLibre shell successfully without enabling the navigation
   canary or adding a second launcher.
 - `ANDROID_HOME=... native-android/gradlew -p native-android :app:assembleDebug`: the
-  independent roughly 60 MB `app.roadstr.roadtest` APK builds from only the
+  independent roughly 112 MB `app.roadstr.roadtest` APK builds from only the
   shared Kotlin `core/feature` trees and narrowly scoped location/network/
-  search/routing services.
+  search/routing services plus the pinned three-ABI native voice runtime.
   Artifact, DEX and runtime-dependency
   inspection finds no Flutter/Dart entry, engine, bundle or class; `aapt`
   confirms SDK 24/36, the direct Compose launcher, Internet and foreground
   coarse/fine location plus the AndroidX package-scoped receiver permission,
-  with no background location. The current artifact SHA-256 is
-  `2a1b8adcb255b277387556c7dae26eb629bf172f7fa8172c3006db5fa33d6407`.
+  with no background location. ZIP inspection additionally confirms matching
+  ONNX Runtime, eSpeak and Roadstr JNI libraries for arm64-v8a, armeabi-v7a and
+  x86_64 plus the eSpeak data asset. The current artifact SHA-256 is
+  `58937f8ef9dff966024e1f9bd9ba8cbcf9fa374ac99e89708a368d8a7b1d85d4`.
 - `MainActivity` registers the opt-in native-navigation channel. Both map
   renderers own it only in builds compiled with
   `ROADSTR_NATIVE_NAVIGATION=true`; ordinary builds retain the existing

@@ -741,18 +741,22 @@ broader cross-language coverage and a native store are still required.
   generated for all 27 locales. In the road-test composition, live geocoding
   and routing feed these states and preview Start transfers a defensive route
   value into foreground GPS-driven HUD/overlay/camera progress. Weather,
-  road-event feeds, settings, TTS/background behavior and production
+  road-event feeds, persisted settings/background behavior and production
   start-navigation ownership remain detached. The road-test composition now
   reuses the core off-route policy, performs direction-aware OSRM rerouting and
   ends guidance through true-distance/closest-approach arrival; building
-  footprints and repeated-deviation alternative choice remain detached.
+  footprints and repeated-deviation alternative choice remain detached. The
+  road-test owner now consumes speed/mode-aware maneuver cues and runs verified
+  Kokoro/Piper downloads, bounded eSpeak JNI, ONNX inference and cancellable
+  native PCM playback without Flutter.
   Later bounded slices package profile and the complete settings hierarchy.
   A twelfth hidden onboarding slice preserves the four swipeable pages,
   optional identity, location and voice states, exact versioned-disclosure gate
   and three completion writes. Protected storage and migration failures take
   precedence and show the current fail-closed recovery copy. Fifty-five values
   are generated for all 27 locales. Storage, migration, Amber/nsec, permission,
-  voice-download and startup ownership remain detached.
+  production voice preference persistence and startup ownership remain detached;
+  the road-test onboarding/settings callbacks now own verified model download.
   A thirteenth home-chrome slice preserves both map renderers' idle visibility
   gates, collapsed/expanded dashboard, five-visible-favourite ceiling, unread
   `99+` badge and Notifications/Profile/Menu hierarchy. Ten values are generated
@@ -829,7 +833,12 @@ broader cross-language coverage and a native store are still required.
 
 - **Objective:** Keep Kokoro/Piper/eSpeak coverage, scheduling, audio focus and model files.
 - **Current Dart/Flutter source:** `lib/services/kokoro`, `lib/services/piper`, `voice_model_download.dart`, committed eSpeak artifacts.
-- **New Kotlin files/modules:** `service/voice`, ONNX runner, JNI/eSpeak bridge and asset verifier.
+- **Progress:** the side-by-side Kotlin APK now owns verified model reuse/download,
+  an eSpeak JNI bridge, Kokoro/Piper ONNX sessions, bounded memory cache,
+  `AudioTrack` playback/focus/cancellation and live route/start/arrival cues.
+  Production-package ownership and physical-device evidence remain gated.
+- **New Kotlin files/modules:** shared `feature/voice` policy/gateway, standalone
+  ONNX/audio owner, JNI/eSpeak bridge and asset verifier.
 - **Dependencies:** ONNX Runtime Android and existing reproducible eSpeak NDK build; license review.
 - **Migration impact:** Discover and reuse existing `kokoro/`, `piper/`, `espeak-ng-data/` directories.
 - **User-visible impact:** No unnecessary 100+ MB download; same language/voice/gender/speed behavior.

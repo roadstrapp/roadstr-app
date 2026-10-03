@@ -159,6 +159,60 @@ class NativeActiveNavigationSessionTest {
         assertFalse(overlay.state.value.snapshot.activeRuns.isEmpty())
     }
 
+    @Test
+    fun `gps progress emits one far and one imminent voice cue per maneuver`() {
+        val points = listOf(point(0.0), point(50.0), point(100.0), point(150.0), point(200.0))
+        val route = RoutingParsedRoute(
+            polyline = points,
+            steps = listOf(
+                step("Depart", "depart", points[0]),
+                step("Turn right", "turn", points[2]),
+                step("Arrive", "arrive", points[4]),
+            ),
+            totalDistanceM = 200.0,
+            totalDurationS = 40.0,
+            speedLimits = emptyList(),
+        )
+        val overlay = preparedOverlay(route, revision = 20)
+        val session = NativeActiveNavigationSession(NativeNavigationHudSession(), overlay)
+        assertTrue(session.startNavigation(20, route))
+
+        assertTrue(
+            session.submitFix(
+                sequence = 1,
+                point = points[0].toMapPoint(),
+                speedMetersPerSecond = 10.0,
+                altitudeMeters = 0.0,
+            ),
+        )
+        val far = requireNotNull(session.state.value.voiceCue)
+        assertEquals("Turn right", far.instruction)
+        assertEquals(100, far.distanceMeters)
+
+        assertTrue(
+            session.submitFix(
+                sequence = 2,
+                point = points[1].toMapPoint(),
+                speedMetersPerSecond = 10.0,
+                altitudeMeters = 0.0,
+            ),
+        )
+        val near = requireNotNull(session.state.value.voiceCue)
+        assertTrue(near.sequence > far.sequence)
+        assertEquals("Turn right", near.instruction)
+        assertEquals(0, near.distanceMeters)
+
+        assertTrue(
+            session.submitFix(
+                sequence = 3,
+                point = points[1].toMapPoint(),
+                speedMetersPerSecond = 10.0,
+                altitudeMeters = 0.0,
+            ),
+        )
+        assertEquals(near, session.state.value.voiceCue)
+    }
+
     private fun NativeActiveNavigationSession.startNavigation(
         revision: Long,
         route: RoutingParsedRoute,

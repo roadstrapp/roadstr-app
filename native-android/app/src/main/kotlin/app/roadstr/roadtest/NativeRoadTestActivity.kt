@@ -21,6 +21,9 @@ class NativeRoadTestActivity : ComponentActivity() {
     private val journeyGateway by lazy(LazyThreadSafetyMode.NONE) {
         NativeRoadTestJourneyGateway()
     }
+    private val voiceGateway by lazy(LazyThreadSafetyMode.NONE) {
+        NativeRoadTestVoiceGateway(applicationContext)
+    }
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { grants ->
@@ -40,6 +43,7 @@ class NativeRoadTestActivity : ComponentActivity() {
                 mode = NativeShellMode.RoadTest,
                 gpsSnapshot = gpsSnapshot,
                 journeyGateway = journeyGateway,
+                voiceGateway = voiceGateway,
                 onGpsAction = ::handleGpsAction,
             )
         }
@@ -51,12 +55,14 @@ class NativeRoadTestActivity : ComponentActivity() {
     }
 
     override fun onStop() {
+        voiceGateway.stop()
         locationController.onHostStop()
         super.onStop()
     }
 
     override fun onDestroy() {
         locationController.close()
+        voiceGateway.close()
         super.onDestroy()
     }
 

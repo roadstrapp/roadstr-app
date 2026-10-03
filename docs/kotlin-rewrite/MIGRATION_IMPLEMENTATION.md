@@ -17,12 +17,13 @@ estimate from being mistaken for release readiness.
 
 - `native-android/` is an independent Android application module with its own
   settings/build graph, `ComponentActivity` launcher and `MAIN`/`LAUNCHER`
-  manifest. It compiles the shared Kotlin `core/` and `feature/` trees plus only
-  `service/location/` directly, applies no Flutter plugin and packages no Dart
+  manifest. It compiles the shared Kotlin `core/` and `feature/` trees plus the
+  scoped location/network/search/routing services directly, applies no Flutter plugin and packages no Dart
   bundle, Flutter embedding, migration, storage or navigation-service source.
   Its distinct `app.roadstr.roadtest` identity
   prevents the incomplete harness from reading or replacing production data;
-  the debug APK is roughly 60 MB and requests Internet plus foreground
+  the debug APK is roughly 112 MB after adding three-ABI ONNX/eSpeak/JNI voice
+  runtime packaging and requests Internet plus foreground
   coarse/fine location (and AndroidX's package-scoped receiver permission), but
   never background location. It is not an update candidate.
 - `NativeRoadTestLocationController.kt` owns one foreground-only AOSP
@@ -276,10 +277,11 @@ estimate from being mistaken for release readiness.
   `LEGACY_HEADLESS_BRIDGE.md` records its threading, lifecycle and evidence
   boundary.
 - The explicit voice manifest tracks 18 Kokoro/Piper/eSpeak paths and is locked
-  to the production voice catalogues by tests. The dormant native catalogue
-  additionally pins all 17 downloadable files by revision, exact byte length
-  and SHA-256; its verifier reuses only exact regular files and its unowned
-  downloader uses bounded `.part`/fsync/atomic replacement semantics.
+  to the production voice catalogues by tests. The native catalogue pins all
+  17 downloadable files by revision, exact byte length and SHA-256; its
+  verifier reuses only exact regular files and its road-test owner exposes a
+  bounded `.part`/fsync/atomic downloader, eSpeak JNI, ONNX inference and
+  cancellable PCM playback through settings/onboarding and live navigation.
 - `TransactionalMigration.kt` defines the reader/writer/marker interfaces and
   enforces the order `read → validate → stage → commit → verify → mark complete`.
 - No interface exposes a legacy-delete operation. Cleanup remains a separate,

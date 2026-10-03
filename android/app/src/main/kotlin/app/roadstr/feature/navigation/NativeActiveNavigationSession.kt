@@ -8,6 +8,7 @@ import app.roadstr.core.network.RoutingParsedRoute
 import app.roadstr.feature.map.NativeMapPoint
 import app.roadstr.feature.map.NativeRouteOverlaySession
 import app.roadstr.feature.route.NativeRouteTransportMode
+import app.roadstr.feature.voice.NativeNavigationGuidance
 import kotlin.math.max
 import kotlin.math.min
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +25,7 @@ data class NativeActiveNavigationSnapshot(
     val displayedStepIndex: Int?,
     val voiceMuted: Boolean,
     val rerouteRequest: NativeNavigationRerouteRequest?,
+    val voiceCue: NativeNavigationVoiceCue?,
 ) {
     companion object {
         const val NO_NAVIGATION_REVISION = -1L
@@ -39,6 +41,7 @@ data class NativeActiveNavigationSnapshot(
                 displayedStepIndex = null,
                 voiceMuted = false,
                 rerouteRequest = null,
+                voiceCue = null,
             )
     }
 }
@@ -52,6 +55,12 @@ data class NativeNavigationRerouteRequest(
     val speedKilometresPerHour: Double,
     val headingDegrees: Double?,
     val straightLineDistanceMeters: Double,
+)
+
+data class NativeNavigationVoiceCue(
+    val sequence: Long,
+    val instruction: String,
+    val distanceMeters: Int,
 )
 
 /**
@@ -89,6 +98,10 @@ class NativeActiveNavigationSession(
     private var minimumDestinationDistanceMeters = Double.POSITIVE_INFINITY
     private var rerouteSequence = 0L
     private var pendingReroute: NativeNavigationRerouteRequest? = null
+    private var voiceCueSequence = 0L
+    private var voiceCue: NativeNavigationVoiceCue? = null
+    private val farAnnouncedSteps = mutableSetOf<Int>()
+    private val nearAnnouncedSteps = mutableSetOf<Int>()
     private val offRouteDetector = OffRouteDetector()
 
     val state: StateFlow<NativeActiveNavigationSnapshot> = _state.asStateFlow()
@@ -139,6 +152,7 @@ class NativeActiveNavigationSession(
         this.nowLabel = nowLabel.take(MAX_NOW_LABEL_CHARS)
         minimumDestinationDistanceMeters = Double.POSITIVE_INFINITY
         pendingReroute = null
+        resetVoiceCues()
         offRouteDetector.reset()
         publish()
         true
@@ -201,6 +215,7 @@ class NativeActiveNavigationSession(
             finishArrival()
             return true
         }
+        maybePublishVoiceCue(currentRoute)
         if (pendingReroute == null) {
             maybeRequestReroute(
                 point = point,
@@ -258,6 +273,7 @@ class NativeActiveNavigationSession(
         progressMeters = 0.0
         lastFixSequence = NO_FIX_SEQUENCE
         pendingReroute = null
+        resetVoiceCues()
         minimumDestinationDistanceMeters = GeoMath.distanceMeters(
             GeoPoint(request.origin.latitude, request.origin.longitude),
             GeoPoint(request.destination.latitude, request.destination.longitude),
@@ -452,6 +468,7 @@ class NativeActiveNavigationSession(
             displayedStepIndex = null,
             voiceMuted = false,
             rerouteRequest = null,
+            voiceCue = null,
         )
     }
 
@@ -479,7 +496,39 @@ class NativeActiveNavigationSession(
         nowLabel = ""
         minimumDestinationDistanceMeters = Double.POSITIVE_INFINITY
         pendingReroute = null
+        resetVoiceCues()
         offRouteDetector.reset()
+    }
+
+    private fun maybePublishVoiceCue(currentRoute: RoutingParsedRoute) {
+        if (voiceMuted) return
+        val stepIndex = passedStepIndex + 1
+        val step = currentRoute.steps.getOrNull(stepIndex) ?: return
+        val maneuverProgress = stepCumulative.getOrNull(stepIndex) ?: return
+        val remaining = (maneuverProgress - progressMeters).coerceAtLeast(0.0)
+        val thresholds = NativeNavigationGuidance.thresholds(speedKilometresPerHour, mode)
+        val distance = when {
+            remaining < thresholds.nearMeters + NEAR_TRIGGER_MARGIN_METERS &&
+                nearAnnouncedSteps.add(stepIndex) -> 0
+
+            remaining < thresholds.farMeters + FAR_TRIGGER_MARGIN_METERS &&
+                remaining >= thresholds.nearMeters + FAR_NEAR_GAP_METERS &&
+                farAnnouncedSteps.add(stepIndex) -> NativeNavigationGuidance.spokenDistanceMeters(
+                remainingMeters = remaining,
+                imminentBelowMeters = thresholds.nearMeters,
+            )
+
+            else -> return
+        }
+        val instruction = step.instruction.trim().take(MAX_VOICE_INSTRUCTION_CHARS)
+        if (instruction.isEmpty()) return
+        voiceCue = NativeNavigationVoiceCue(++voiceCueSequence, instruction, distance)
+    }
+
+    private fun resetVoiceCues() {
+        voiceCue = null
+        farAnnouncedSteps.clear()
+        nearAnnouncedSteps.clear()
     }
 
     private fun input(
@@ -533,6 +582,7 @@ class NativeActiveNavigationSession(
             displayedStepIndex = hudSession.state.value.current?.index,
             voiceMuted = voiceMuted,
             rerouteRequest = pendingReroute,
+            voiceCue = voiceCue,
         )
     }
 
@@ -569,6 +619,10 @@ class NativeActiveNavigationSession(
         const val ROUTE_SEGMENT_BACK_WINDOW = 100
         const val ROUTE_SEGMENT_AHEAD_WINDOW = 500
         const val ROUTE_SEGMENT_RECOVERY_METERS = 100.0
+        const val FAR_TRIGGER_MARGIN_METERS = 20.0
+        const val NEAR_TRIGGER_MARGIN_METERS = 30.0
+        const val FAR_NEAR_GAP_METERS = 20.0
+        const val MAX_VOICE_INSTRUCTION_CHARS = 1_000
         private const val MAX_SPEED_KMH = 1_000.0
         private const val NO_FIX_SEQUENCE = -1L
     }
