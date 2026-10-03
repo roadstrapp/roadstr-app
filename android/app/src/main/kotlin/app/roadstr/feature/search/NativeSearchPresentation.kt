@@ -20,18 +20,18 @@ enum class NativeSearchUiStatus {
 }
 
 /** Order and symbols mirror NearbyCategory in the Flutter search panel. */
-enum class NativeSearchNearbyCategory(val emoji: String) {
-    Fuel("⛽"),
-    Restaurant("🍽️"),
-    Supermarket("🛒"),
-    Atm("🏧"),
-    Pharmacy("💊"),
-    Hospital("🏥"),
-    Police("👮"),
-    PostOffice("📮"),
-    Parking("🅿️"),
-    Hotel("🏨"),
-    Charging("🔌"),
+enum class NativeSearchNearbyCategory(val emoji: String, val wireQuery: String) {
+    Fuel("⛽", "fuel"),
+    Restaurant("🍽️", "restaurant"),
+    Supermarket("🛒", "supermarket"),
+    Atm("🏧", "atm"),
+    Pharmacy("💊", "pharmacy"),
+    Hospital("🏥", "hospital"),
+    Police("👮", "police"),
+    PostOffice("📮", "post office"),
+    Parking("🅿️", "parking"),
+    Hotel("🏨", "hotel"),
+    Charging("🔌", "ev charging"),
 }
 
 data class NativeSearchFavorite(
@@ -218,6 +218,22 @@ class NativeSearchSession(initialImperial: Boolean = false) {
                 NativeSearchUiStatus.Loading
             },
             query = normalized,
+            selectedNearby = null,
+            nearbyEnabled = _state.value.nearbyEnabled,
+        )
+        true
+    }
+
+    fun updateQuery(revision: Long, query: String): Boolean = synchronized(lock) {
+        require(revision >= 0) { "Search revision must be non-negative" }
+        if (revision <= this.revision || _state.value.status == NativeSearchUiStatus.Hidden) {
+            return false
+        }
+        this.revision = revision
+        rawResults = emptyList()
+        publish(
+            status = NativeSearchUiStatus.Browsing,
+            query = query.trimStart().take(SearchRankingProtocol.MAX_QUERY_LENGTH),
             selectedNearby = null,
             nearbyEnabled = _state.value.nearbyEnabled,
         )

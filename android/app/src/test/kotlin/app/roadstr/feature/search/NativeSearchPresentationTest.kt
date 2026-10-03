@@ -149,6 +149,19 @@ class NativeSearchPresentationTest {
     }
 
     @Test
+    fun `query editing stays idle and fences an obsolete provider generation`() {
+        val session = NativeSearchSession()
+        assertTrue(session.show(1, nearbyEnabled = true))
+        assertTrue(session.beginQuery(2, "old query"))
+
+        assertTrue(session.updateQuery(3, "  new query"))
+        assertEquals(NativeSearchUiStatus.Browsing, session.state.value.status)
+        assertEquals("new query", session.state.value.query)
+        assertTrue(session.state.value.nearbyEnabled)
+        assertFalse(session.submitResults(2, listOf(result(title = "Late"))))
+    }
+
+    @Test
     fun `nearby requires a fix and accepts one terminal result set`() {
         val session = NativeSearchSession()
         assertTrue(session.show(1, nearbyEnabled = false))

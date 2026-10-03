@@ -358,7 +358,8 @@ detached from secure storage and startup. See
   transitions, one to five stable ordered stops, four transport modes, exact
   duration/unit and avoidance-badge projection, bounded route conditions and
   revision-safe card/MapLibre selection. Its 22 values are generated for all
-  27 locales, while geocoding, routing, GPS, weather and event feeds remain
+  27 locales. The road-test composition now supplies live GPS, geocoding and
+  OSRM route alternatives; production ownership, weather and event feeds remain
   detached.
   A twelfth onboarding slice preserves strict disclosure, protected-storage and
   migration precedence, exact completion writes, four swipeable pages and
@@ -367,16 +368,18 @@ detached from secure storage and startup. See
   A thirteenth home slice preserves both Flutter map renderers' idle replacement
   gates, collapsed/expanded dashboard, five visible favourites, unread `99+`
   badge and typed quick/bottom-bar actions. Its ten values are generated for all
-  27 locales while identity, favourites, activity, parking, location, routes
-  and panel coordination remain detached.
+  27 locales. The road-test Navigate and Locate actions now coordinate live
+  location/search/routes; identity, favourites, activity and parking remain
+  detached.
   The production canary supplies empty route, route-planning, transit, search,
   place, navigation, saved-place, Wikipedia, road-event, activity, camera,
-  cursor and point feeds. The separate road-test composition now injects only
-  foreground GPS into camera/cursor; neither path owns a production route/transit/search/place/
-  navigation/saved-place/Wikipedia/road-event/activity feed; native provider
-  services are intentionally not invoked and all product panels therefore
-  remain hidden. Live data/product handlers, external intents, screenshots and
-  physical-device evidence remain open.
+  cursor and point feeds. The separate road-test composition now injects
+  foreground GPS into camera/cursor and a provider-neutral live journey gateway
+  into search/planning: Nominatim/Photon/Overpass results can become OSRM road
+  alternatives on MapLibre. Neither path owns a production transit/place/
+  navigation/saved-place/Wikipedia/road-event/activity feed. Active guidance,
+  remaining product handlers, external intents, screenshots and physical-device
+  evidence remain open.
 - Native navigation lifecycle and notification policies are now deterministic,
   and the Android location foreground-service adapter is registered with an
   opt-in `MainActivity` start/stop/state/notification channel and
@@ -395,7 +398,7 @@ detached from secure storage and startup. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 778 Flutter tests passed, including the native shell,
+- `flutter test`: 779 Flutter tests passed, including the native shell,
   private MapLibre host, route-overlay, route-session, transit-overlay/session, camera-session and
   user-cursor, point-overlay/interaction and route-traffic Gradle/source contracts, the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
@@ -443,12 +446,12 @@ detached from secure storage and startup. See
   contracts additionally lock Flutter's dynamic inbox/cursor shapes, encrypted
   framing, marker-v4 migration binding and dormant ownership. Four pending-
   report-store contracts lock the Hive/FIFO oracle, encrypted framing,
-  marker-v5 binding and dormant ownership. Five native-road-test contracts
+  marker-v5 binding and dormant ownership. Six native-road-test contracts
   additionally lock the separate application identity, direct Compose
   launcher, Flutter-free Gradle graph, narrowly bounded AOSP location ownership,
-  foreground permission/lifecycle/cursor-camera wiring and unchanged production
-  launcher.
-- `./gradlew :app:testDebugUnitTest`: 577 Kotlin tests passed, including the
+  foreground permission/lifecycle/cursor-camera wiring, bounded live search/
+  OSRM composition and unchanged production launcher.
+- `./gradlew :app:testDebugUnitTest`: 580 Kotlin tests passed, including the
   validated foreground GPS snapshot model and the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
@@ -480,7 +483,9 @@ detached from secure storage and startup. See
   Transitous request/parser/Berlin fixture, bounded service retry/cancellation,
   parsed-plan map projection, transit card formatting and revision-safe
   UI/map selection, plus bounded search row projection, nearby catalogue,
-  partial/final generation fencing and dormant Compose search state, plus the
+  partial/final generation fencing, editable Compose search state and the
+  provider-neutral search-to-route coordinator (including a complete fake
+  gateway/MapLibre flow and transit rejection), plus the
   bounded localized OSM place parser, safe contact/URL admission, contextual
   place fields, opening-hours presentation and revision-safe dormant place
   sheet state, plus navigation-HUD manoeuvre/roundabout projection, live and

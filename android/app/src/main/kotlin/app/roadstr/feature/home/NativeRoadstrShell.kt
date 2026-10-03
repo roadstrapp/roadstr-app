@@ -1,6 +1,7 @@
 package app.roadstr.feature.home
 
 import android.os.SystemClock
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,11 +16,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +32,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.roadstr.R
+import app.roadstr.core.network.SearchResponsePoint
 import app.roadstr.core.ui.theme.RoadstrTheme
 import app.roadstr.core.ui.theme.RoadstrThemeId
 import app.roadstr.core.ui.theme.RoadstrThemeTokens
@@ -55,10 +59,12 @@ import app.roadstr.feature.report.NativeRoadEventPanels
 import app.roadstr.feature.report.NativeRoadEventSession
 import app.roadstr.feature.route.NativeRoutePlanningPanel
 import app.roadstr.feature.route.NativeRoutePlanningSession
+import app.roadstr.feature.route.NativeRoutePlanningStatus
 import app.roadstr.feature.saved.NativeSavedPlacesPanel
 import app.roadstr.feature.saved.NativeSavedPlacesSession
 import app.roadstr.feature.search.NativeSearchOverlay
 import app.roadstr.feature.search.NativeSearchSession
+import app.roadstr.feature.search.NativeSearchUiStatus
 import app.roadstr.feature.settings.NativeSettingsPanel
 import app.roadstr.feature.settings.NativeSettingsSession
 import app.roadstr.feature.settings.NativeSettingsUiAction
@@ -79,8 +85,8 @@ enum class NativeShellMode {
  *
  * It owns no storage, sensor or migration adapter. The production package does
  * not launch it; the separate road-test APK can inject a value-only GPS feed
- * and host it directly without Flutter. Only the admitted OSM raster source
- * may perform network I/O.
+ * and host it directly without Flutter. Live journey providers can only enter
+ * through the explicit value-only gateway; the production canary injects none.
  * Product screens replace this boundary incrementally after their parity gates
  * are green.
  */
@@ -88,6 +94,7 @@ enum class NativeShellMode {
 fun NativeRoadstrShell(
     mode: NativeShellMode = NativeShellMode.Canary,
     gpsSnapshot: NativeShellGpsSnapshot = NativeShellGpsSnapshot.Disabled,
+    journeyGateway: NativeShellJourneyGateway? = null,
     onGpsAction: () -> Unit = {},
 ) {
     val themeId = if (isSystemInDarkTheme()) {
@@ -155,6 +162,29 @@ fun NativeRoadstrShell(
         val pointOverlayState by pointOverlaySession.state.collectAsState()
         val searchSession = remember { NativeSearchSession(initialImperial = false) }
         val searchState by searchSession.state.collectAsState()
+        val journeyScope = rememberCoroutineScope()
+        val journeyCoordinator = remember(
+            journeyGateway,
+            journeyScope,
+            searchSession,
+            routePlanningSession,
+        ) {
+            journeyGateway?.let { gateway ->
+                NativeShellJourneyCoordinator(
+                    gateway = gateway,
+                    scope = journeyScope,
+                    searchSession = searchSession,
+                    routeSession = routePlanningSession,
+                )
+            }
+        }
+        DisposableEffect(journeyCoordinator) {
+            onDispose { journeyCoordinator?.close() }
+        }
+        val myLocationLabel = stringResource(R.string.native_route_my_location)
+        val gpsSearchPoint = gpsSnapshot.fix?.point?.let { point ->
+            SearchResponsePoint(point.latitude, point.longitude)
+        }
         val settingsSession = remember { NativeSettingsSession() }
         val settingsState by settingsSession.state.collectAsState()
         val placeSession = remember { NativePlaceSession() }
@@ -175,10 +205,36 @@ fun NativeRoadstrShell(
         val homeState by homeSession.state.collectAsState()
         val wikipediaSession = remember { NativeWikipediaSession() }
         val wikipediaState by wikipediaSession.state.collectAsState()
+        LaunchedEffect(searchState.status, routePlanningState.status) {
+            homeSession.replace(
+                revision = homeSession.state.value.revision + 1L,
+                input = NativeHomeInput(
+                    searchVisible = searchState.status != NativeSearchUiStatus.Hidden,
+                    plannerVisible = routePlanningState.status == NativeRoutePlanningStatus.Planner,
+                    previewVisible = routePlanningState.status == NativeRoutePlanningStatus.Preview,
+                    alternativesVisible = routePlanningState.status == NativeRoutePlanningStatus.Alternatives,
+                    calculating = routePlanningState.status == NativeRoutePlanningStatus.Loading,
+                    hasRoute = routePlanningState.status == NativeRoutePlanningStatus.Alternatives ||
+                        routePlanningState.status == NativeRoutePlanningStatus.Preview,
+                ),
+            )
+        }
         LaunchedEffect(cameraSession, cameraState.frameActive) {
             while (cameraSession.state.value.frameActive) {
                 delay(NativeMapCameraSession.FOLLOW_FRAME_MILLIS)
                 cameraSession.advanceFrame(SystemClock.elapsedRealtime())
+            }
+        }
+        BackHandler(
+            enabled = journeyCoordinator != null && (
+                searchState.status != NativeSearchUiStatus.Hidden ||
+                    routePlanningState.status != NativeRoutePlanningStatus.Hidden
+                ),
+        ) {
+            if (searchState.status != NativeSearchUiStatus.Hidden) {
+                journeyCoordinator?.dismissSearch()
+            } else {
+                journeyCoordinator?.cancelRoute()
             }
         }
         Scaffold(
@@ -219,7 +275,11 @@ fun NativeRoadstrShell(
                     },
                     modifier = Modifier.fillMaxSize(),
                 )
-                if (mode == NativeShellMode.RoadTest) {
+                if (
+                    mode == NativeShellMode.RoadTest &&
+                    searchState.status == NativeSearchUiStatus.Hidden &&
+                    routePlanningState.status == NativeRoutePlanningStatus.Hidden
+                ) {
                     NativeShellGpsPanel(
                         snapshot = gpsSnapshot,
                         onAction = {
@@ -259,7 +319,26 @@ fun NativeRoadstrShell(
                     snapshot = homeState,
                     onToggleExpanded = homeSession::toggleExpanded,
                     onAction = { revision, action ->
-                        homeSession.action(revision, action)
+                        when (homeSession.action(revision, action)) {
+                            NativeHomeAction.Navigate -> {
+                                journeyCoordinator?.openSearch(gpsSearchPoint != null)
+                            }
+                            NativeHomeAction.Locate -> {
+                                if (gpsSnapshot.phase == NativeShellGpsPhase.Active) {
+                                    cameraSession.recenter(SystemClock.elapsedRealtime())
+                                } else {
+                                    onGpsAction()
+                                }
+                            }
+                            NativeHomeAction.Parking,
+                            NativeHomeAction.Activity,
+                            NativeHomeAction.Events,
+                            NativeHomeAction.Notifications,
+                            NativeHomeAction.Profile,
+                            NativeHomeAction.Menu,
+                            null,
+                            -> Unit
+                        }
                     },
                     onFavorite = { revision, id ->
                         homeSession.selectFavorite(revision, id)
@@ -267,14 +346,47 @@ fun NativeRoadstrShell(
                 )
                 NativeSearchOverlay(
                     snapshot = searchState,
-                    onQueryChanged = {},
-                    onSubmit = {},
-                    onClearQuery = {},
-                    onNearby = {},
-                    onSelectResult = {},
-                    onSelectFavorite = {},
-                    onSelectHistory = {},
-                    onClearHistory = {},
+                    onQueryChanged = { query ->
+                        journeyCoordinator?.updateSearchQuery(query)
+                    },
+                    onSubmit = { query ->
+                        journeyCoordinator?.submitSearch(query, gpsSearchPoint)
+                    },
+                    onClearQuery = {
+                        journeyCoordinator?.updateSearchQuery("")
+                    },
+                    onDismiss = {
+                        journeyCoordinator?.dismissSearch()
+                    },
+                    onNearby = { category ->
+                        journeyCoordinator?.submitNearby(category, gpsSearchPoint)
+                    },
+                    onSelectResult = { result ->
+                        journeyCoordinator?.selectDestination(
+                            result = result,
+                            gpsPoint = gpsSearchPoint,
+                            myLocationLabel = myLocationLabel,
+                        )
+                    },
+                    onSelectFavorite = { favorite ->
+                        journeyCoordinator?.selectDestination(
+                            label = favorite.label,
+                            point = favorite.position,
+                            gpsPoint = gpsSearchPoint,
+                            myLocationLabel = myLocationLabel,
+                        )
+                    },
+                    onSelectHistory = { history ->
+                        journeyCoordinator?.selectDestination(
+                            label = history.fullLabel,
+                            point = history.position,
+                            gpsPoint = gpsSearchPoint,
+                            myLocationLabel = myLocationLabel,
+                        )
+                    },
+                    onClearHistory = {
+                        searchSession.clearHistory(searchState.revision)
+                    },
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .padding(12.dp),
@@ -353,7 +465,12 @@ fun NativeRoadstrShell(
                     onOriginChanged = { value ->
                         routePlanningSession.updateOrigin(routePlanningState.revision, value)
                     },
-                    onUseMyLocation = {},
+                    onUseMyLocation = {
+                        routePlanningSession.useMyLocation(
+                            routePlanningState.revision,
+                            myLocationLabel,
+                        )
+                    },
                     onStopChanged = { index, value ->
                         routePlanningSession.updateStop(routePlanningState.revision, index, value)
                     },
@@ -373,7 +490,13 @@ fun NativeRoadstrShell(
                     onModeChanged = { mode ->
                         routePlanningSession.selectMode(routePlanningState.revision, mode)
                     },
-                    onCalculate = {},
+                    onCalculate = {
+                        journeyCoordinator?.calculateRoute(
+                            snapshot = routePlanningState,
+                            gpsPoint = gpsSearchPoint,
+                            myLocationLabel = myLocationLabel,
+                        )
+                    },
                     onSelectAlternative = { index ->
                         routePlanningSession.selectAlternative(routePlanningState.revision, index)
                     },
@@ -389,9 +512,7 @@ fun NativeRoadstrShell(
                     },
                     onStart = {},
                     onCancel = {
-                        if (routePlanningState.revision >= 0) {
-                            routePlanningSession.hide(routePlanningState.revision)
-                        }
+                        journeyCoordinator?.cancelRoute()
                     },
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )

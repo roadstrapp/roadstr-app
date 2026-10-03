@@ -6,11 +6,20 @@ has application ID `app.roadstr.roadtest`, so it cannot replace, migrate or
 modify an installed `app.roadstr` application.
 
 The module compiles the shared Kotlin `core/`, `feature/` and narrowly scoped
-`service/location/` sources plus Android resources directly. It does not apply
-the Flutter Gradle plugin, package a Dart bundle or reference Flutter embedding
-classes. The Activity owns foreground coarse/fine location permission and an
-AOSP `LocationManager` feed that drives the Compose map cursor and camera; it
-requests no background location and includes no fused/Google location runtime.
+location/network/search/routing service sources plus Android resources
+directly. It does not apply the Flutter Gradle plugin, package a Dart bundle or
+reference Flutter embedding classes. The Activity owns foreground coarse/fine
+location permission and an AOSP `LocationManager` feed that drives the Compose
+map cursor and camera; it requests no background location and includes no
+fused/Google location runtime.
+
+The Navigate action now opens live Nominatim/Photon/Overpass search. Selecting
+a destination opens the native planner and resolves driving, cycling or
+walking routes through the credential-free public OSRM profiles; returned
+alternatives are rendered by the shared MapLibre overlay. One cancellable,
+deadline- and response-bounded OkHttp transport is reused by both services.
+The runtime does not persist queries or coordinates, and transit, guidance,
+background navigation and production storage remain outside this harness.
 
 Build from the repository root with this project's Gradle wrapper and an
 Android SDK environment:

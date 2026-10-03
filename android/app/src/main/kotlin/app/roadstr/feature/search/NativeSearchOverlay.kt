@@ -55,6 +55,7 @@ fun NativeSearchOverlay(
     onQueryChanged: (String) -> Unit,
     onSubmit: (String) -> Unit,
     onClearQuery: () -> Unit,
+    onDismiss: () -> Unit,
     onNearby: (NativeSearchNearbyCategory) -> Unit,
     onSelectResult: (NativeSearchResultPresentation) -> Unit,
     onSelectFavorite: (NativeSearchFavoritePresentation) -> Unit,
@@ -83,6 +84,7 @@ fun NativeSearchOverlay(
                 onQueryChanged = onQueryChanged,
                 onSubmit = onSubmit,
                 onClearQuery = onClearQuery,
+                onDismiss = onDismiss,
             )
             LazyColumn(
                 modifier = Modifier
@@ -171,6 +173,7 @@ private fun SearchField(
     onQueryChanged: (String) -> Unit,
     onSubmit: (String) -> Unit,
     onClearQuery: () -> Unit,
+    onDismiss: () -> Unit,
 ) {
     val close = androidx.compose.ui.res.stringResource(R.string.native_search_close)
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -205,6 +208,14 @@ private fun SearchField(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { onSubmit(query) }),
         )
+        TextButton(
+            onClick = onDismiss,
+            modifier = Modifier
+                .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                .semantics { contentDescription = close },
+        ) {
+            Text("×", style = MaterialTheme.typography.titleLarge)
+        }
     }
 }
 
