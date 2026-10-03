@@ -14,4 +14,6 @@
     <string name="native_nav_voice">音声案内</string>
     <string name="native_nav_speed_limit">制限速度</string>
     <string name="native_nav_altitude">標高を表示</string>
+    <string name="native_nav_arrived">🎉 到着しました！</string>
+    <string name="native_nav_close">閉じる</string>
 </resources>

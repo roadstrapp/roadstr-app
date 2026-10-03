@@ -3,6 +3,7 @@ package app.roadstr.feature.home
 import app.roadstr.core.network.RoutingParsedRoute
 import app.roadstr.core.network.SearchResponsePoint
 import app.roadstr.core.network.SearchResult
+import app.roadstr.feature.navigation.NativeNavigationRerouteRequest
 import app.roadstr.feature.route.NativeRoutePlanningCandidate
 import app.roadstr.feature.route.NativeRoutePlanningSession
 import app.roadstr.feature.route.NativeRoutePlanningSnapshot
@@ -37,6 +38,22 @@ interface NativeShellJourneyGateway {
         mode: NativeRouteTransportMode,
         languageCode: String,
     ): List<RoutingParsedRoute>
+
+    suspend fun reroute(
+        origin: SearchResponsePoint,
+        destination: SearchResponsePoint,
+        mode: NativeRouteTransportMode,
+        languageCode: String,
+        speedKilometresPerHour: Double,
+        headingDegrees: Double?,
+        straightLineDistanceMeters: Double,
+    ): List<RoutingParsedRoute> = routes(
+        origin = origin,
+        destination = destination,
+        via = emptyList(),
+        mode = mode,
+        languageCode = languageCode,
+    )
 }
 
 /**
@@ -57,17 +74,22 @@ class NativeShellJourneyCoordinator(
     private var routeRevision = routeSession.state.value.revision.coerceAtLeast(0L)
     private var searchJob: Job? = null
     private var routeJob: Job? = null
+    private var rerouteJob: Job? = null
     private var selectedDestination: SelectedDestination? = null
+    private var navigationDestination: SearchResponsePoint? = null
+    private var navigationDestinationRevision = NO_REVISION
 
     fun openSearch(nearbyEnabled: Boolean): Boolean {
         cancelSearchWork()
         selectedDestination = null
+        clearNavigationDestination()
         return searchSession.show(nextSearchRevision(), nearbyEnabled = nearbyEnabled)
     }
 
     fun updateSearchQuery(query: String): Boolean {
         cancelSearchWork()
         selectedDestination = null
+        clearNavigationDestination()
         return searchSession.updateQuery(nextSearchRevision(), query)
     }
 
@@ -160,7 +182,12 @@ class NativeShellJourneyCoordinator(
                     values = routes.map(::NativeRoutePlanningCandidate),
                     destinationLabel = snapshot.stops.lastOrNull()?.query,
                 )
-                if (!accepted) failRoute(revision)
+                if (!accepted) {
+                    failRoute(revision)
+                } else {
+                    navigationDestination = destination
+                    navigationDestinationRevision = revision
+                }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
@@ -173,19 +200,78 @@ class NativeShellJourneyCoordinator(
     fun dismissSearch(): Boolean {
         cancelSearchWork()
         selectedDestination = null
+        clearNavigationDestination()
         return searchSession.hide(nextSearchRevision())
     }
 
     fun cancelRoute(): Boolean {
         cancelRouteWork()
         selectedDestination = null
+        clearNavigationDestination()
         return routeSession.hide(nextRouteRevision())
+    }
+
+    fun navigationDestination(revision: Long): SearchResponsePoint? {
+        val current = routeSession.state.value
+        if (
+            revision != navigationDestinationRevision ||
+            current.revision != revision ||
+            current.status != app.roadstr.feature.route.NativeRoutePlanningStatus.Preview
+        ) {
+            return null
+        }
+        return navigationDestination
+    }
+
+    fun reroute(
+        request: NativeNavigationRerouteRequest,
+        onSuccess: (Long, RoutingParsedRoute) -> Unit,
+        onFailure: (Long) -> Unit,
+    ): Boolean {
+        if (rerouteJob?.isActive == true) return false
+        rerouteJob = scope.launch {
+            try {
+                val routes = gateway.reroute(
+                    origin = SearchResponsePoint(
+                        request.origin.latitude,
+                        request.origin.longitude,
+                    ),
+                    destination = SearchResponsePoint(
+                        request.destination.latitude,
+                        request.destination.longitude,
+                    ),
+                    mode = request.mode,
+                    languageCode = normalizedLanguageCode(),
+                    speedKilometresPerHour = request.speedKilometresPerHour,
+                    headingDegrees = request.headingDegrees,
+                    straightLineDistanceMeters = request.straightLineDistanceMeters,
+                )
+                val route = routes.firstOrNull()
+                if (route == null) {
+                    onFailure(request.sequence)
+                } else {
+                    onSuccess(request.sequence, route)
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                onFailure(request.sequence)
+            }
+        }
+        return true
+    }
+
+    fun cancelReroute() {
+        rerouteJob?.cancel()
+        rerouteJob = null
     }
 
     fun close() {
         cancelSearchWork()
         cancelRouteWork()
+        cancelReroute()
         selectedDestination = null
+        clearNavigationDestination()
     }
 
     private fun launchSearch(
@@ -249,6 +335,11 @@ class NativeShellJourneyCoordinator(
         routeJob = null
     }
 
+    private fun clearNavigationDestination() {
+        navigationDestination = null
+        navigationDestinationRevision = NO_REVISION
+    }
+
     private fun normalizedLanguageCode(): String = languageCode
         .trim()
         .lowercase(Locale.ROOT)
@@ -259,4 +350,8 @@ class NativeShellJourneyCoordinator(
         val label: String,
         val point: SearchResponsePoint,
     )
+
+    private companion object {
+        const val NO_REVISION = -1L
+    }
 }

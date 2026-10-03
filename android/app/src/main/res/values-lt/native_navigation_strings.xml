@@ -14,4 +14,6 @@
     <string name="native_nav_voice">Balso nukreipimas</string>
     <string name="native_nav_speed_limit">Greičio apribojimas</string>
     <string name="native_nav_altitude">Rodyti aukštį</string>
+    <string name="native_nav_arrived">🎉 Atvykote!</string>
+    <string name="native_nav_close">Uždaryti</string>
 </resources>

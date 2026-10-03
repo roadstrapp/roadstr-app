@@ -14,4 +14,6 @@
     <string name="native_nav_voice">Stemmevejledning</string>
     <string name="native_nav_speed_limit">Hastighedsgrænse</string>
     <string name="native_nav_altitude">Vis højde</string>
+    <string name="native_nav_arrived">🎉 Du er fremme!</string>
+    <string name="native_nav_close">Luk</string>
 </resources>

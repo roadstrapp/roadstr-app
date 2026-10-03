@@ -7,6 +7,7 @@ import app.roadstr.core.network.RoutingSpeedLimitEntry
 import app.roadstr.feature.map.NativeMapPoint
 import app.roadstr.feature.map.NativeRouteCandidate
 import app.roadstr.feature.map.NativeRouteOverlaySession
+import app.roadstr.feature.route.NativeRouteTransportMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -20,7 +21,7 @@ class NativeActiveNavigationSessionTest {
         val hud = NativeNavigationHudSession()
         val session = NativeActiveNavigationSession(hud, overlay)
 
-        assertTrue(session.start(4, route, "Now"))
+        assertTrue(session.startNavigation(4, route))
         assertEquals(NativeNavigationHudStatus.Active, hud.state.value.status)
         assertEquals(1, hud.state.value.current?.index)
 
@@ -60,7 +61,7 @@ class NativeActiveNavigationSessionTest {
         val hud = NativeNavigationHudSession()
         val session = NativeActiveNavigationSession(hud, overlay)
 
-        assertTrue(session.start(7, route, "Now"))
+        assertTrue(session.startNavigation(7, route))
         assertTrue(session.toggleVoice(7))
         assertTrue(hud.state.value.voiceMuted)
         assertFalse(session.toggleVoice(6))
@@ -87,6 +88,88 @@ class NativeActiveNavigationSessionTest {
         assertTrue(overlay.state.value.snapshot.activeRuns.isEmpty())
         assertFalse(session.stop(7))
     }
+
+    @Test
+    fun `arrival uses true destination distance and clears guidance atomically`() {
+        val route = route()
+        val overlay = preparedOverlay(route, revision = 11)
+        val hud = NativeNavigationHudSession()
+        val session = NativeActiveNavigationSession(hud, overlay)
+        val destination = point(250.0).toMapPoint()
+
+        assertTrue(session.startNavigation(11, route, destination))
+        assertTrue(
+            session.submitFix(
+                sequence = 1,
+                point = point(205.0).toMapPoint(),
+                speedMetersPerSecond = 2.0,
+                altitudeMeters = 0.0,
+                accuracyMeters = 5.0,
+            ),
+        )
+        assertTrue(session.state.value.active)
+        assertFalse(session.state.value.arrived)
+
+        assertTrue(
+            session.submitFix(
+                sequence = 2,
+                point = point(325.0).toMapPoint(),
+                speedMetersPerSecond = 2.0,
+                altitudeMeters = 0.0,
+                accuracyMeters = 5.0,
+            ),
+        )
+        assertFalse(session.state.value.active)
+        assertTrue(session.state.value.arrived)
+        assertEquals(NativeNavigationHudStatus.Hidden, hud.state.value.status)
+        assertTrue(overlay.state.value.snapshot.activeRuns.isEmpty())
+        assertTrue(session.dismissArrival(11))
+        assertFalse(session.state.value.arrived)
+    }
+
+    @Test
+    fun `hard route deviation emits one bounded reroute and accepts its replacement`() {
+        val route = route()
+        val overlay = preparedOverlay(route, revision = 15)
+        val hud = NativeNavigationHudSession()
+        val session = NativeActiveNavigationSession(hud, overlay)
+        val destination = point(1_000.0).toMapPoint()
+
+        assertTrue(session.startNavigation(15, route, destination))
+        assertTrue(
+            session.submitFix(
+                sequence = 1,
+                point = NativeMapPoint(0.0, 70.0 / 111_320.0),
+                speedMetersPerSecond = 10.0,
+                altitudeMeters = 100.0,
+                accuracyMeters = 5.0,
+                headingDegrees = 725.0,
+            ),
+        )
+        val request = requireNotNull(session.state.value.rerouteRequest)
+        assertTrue(session.state.value.rerouting)
+        assertEquals(36.0, request.speedKilometresPerHour, 0.000001)
+        assertEquals(5.0, request.headingDegrees!!, 0.000001)
+        assertFalse(session.failReroute(request.sequence + 1))
+
+        assertTrue(session.completeReroute(request.sequence, route))
+        assertEquals(16, session.state.value.revision)
+        assertFalse(session.state.value.rerouting)
+        assertEquals(NativeNavigationHudStatus.Active, hud.state.value.status)
+        assertFalse(overlay.state.value.snapshot.activeRuns.isEmpty())
+    }
+
+    private fun NativeActiveNavigationSession.startNavigation(
+        revision: Long,
+        route: RoutingParsedRoute,
+        destination: NativeMapPoint = route.polyline.last().toMapPoint(),
+    ) = start(
+        revision = revision,
+        route = route,
+        destination = destination,
+        mode = NativeRouteTransportMode.Driving,
+        nowLabel = "Now",
+    )
 
     private fun preparedOverlay(
         route: RoutingParsedRoute,

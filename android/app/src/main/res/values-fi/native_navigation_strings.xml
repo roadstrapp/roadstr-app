@@ -14,4 +14,6 @@
     <string name="native_nav_voice">Ääniopastus</string>
     <string name="native_nav_speed_limit">Nopeusrajoitus</string>
     <string name="native_nav_altitude">Näytä korkeus</string>
+    <string name="native_nav_arrived">🎉 Olet perillä!</string>
+    <string name="native_nav_close">Sulje</string>
 </resources>

@@ -57,7 +57,8 @@ void main() {
     expect(xml, contains('android.permission.INTERNET'));
     expect(xml, contains('android.permission.ACCESS_COARSE_LOCATION'));
     expect(xml, contains('android.permission.ACCESS_FINE_LOCATION'));
-    expect(xml, isNot(contains('android.permission.ACCESS_BACKGROUND_LOCATION')));
+    expect(
+        xml, isNot(contains('android.permission.ACCESS_BACKGROUND_LOCATION')));
     expect(xml, contains('android.hardware.location.gps'));
     expect(
       RegExp(r'android\.hardware\.location(?:\.gps)?[\s\S]*?required="false"')
@@ -67,7 +68,8 @@ void main() {
   });
 
   test('road-test Gradle graph has no Flutter runtime or plugin', () {
-    final graph = '${settings.readAsStringSync()}\n${appBuild.readAsStringSync()}';
+    final graph =
+        '${settings.readAsStringSync()}\n${appBuild.readAsStringSync()}';
 
     expect(graph, isNot(contains('dev.flutter')));
     expect(graph, isNot(contains('io.flutter')));
@@ -108,7 +110,8 @@ void main() {
   test('road-test launcher enters Compose directly', () {
     final source = activity.readAsStringSync();
 
-    expect(source, contains('class NativeRoadTestActivity : ComponentActivity()'));
+    expect(
+        source, contains('class NativeRoadTestActivity : ComponentActivity()'));
     expect(source, contains('setContent {'));
     expect(source, contains('NativeRoadstrShell('));
     expect(source, contains('mode = NativeShellMode.RoadTest'));
@@ -127,11 +130,15 @@ void main() {
     expect(source, contains('providerKey = "osrm"'));
     expect(source, contains('deferCredentialReadForOsrm = true'));
     expect(source, contains('mode != NativeRouteTransportMode.Transit'));
+    expect(source, contains('routingService.getRerouteRoutes('));
+    expect(source, contains('originBearingDegrees = headingDegrees'));
+    expect(source, contains('requestAlternatives = false'));
     expect(source, isNot(contains('apiKey = "')));
     expect(source, isNot(contains('Log.')));
   });
 
-  test('road-test GPS owner drives the native cursor and camera in foreground', () {
+  test('road-test GPS owner drives the native cursor and camera in foreground',
+      () {
     final activitySource = activity.readAsStringSync();
     final controllerSource = locationController.readAsStringSync();
     final shellSource = shell.readAsStringSync();
@@ -143,7 +150,8 @@ void main() {
     );
     expect(activitySource, contains('locationController.onHostStart()'));
     expect(activitySource, contains('locationController.onHostStop()'));
-    expect(activitySource, contains('Settings.ACTION_LOCATION_SOURCE_SETTINGS'));
+    expect(
+        activitySource, contains('Settings.ACTION_LOCATION_SOURCE_SETTINGS'));
     expect(controllerSource, contains('AndroidLocationManagerSource(context)'));
     expect(controllerSource, contains('NativeLocationService('));
     expect(controllerSource, contains('service.lastKnown()'));

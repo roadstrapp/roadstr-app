@@ -66,6 +66,33 @@ class NativeRoadTestJourneyGateway(
         )
     }
 
+    override suspend fun reroute(
+        origin: SearchResponsePoint,
+        destination: SearchResponsePoint,
+        mode: NativeRouteTransportMode,
+        languageCode: String,
+        speedKilometresPerHour: Double,
+        headingDegrees: Double?,
+        straightLineDistanceMeters: Double,
+    ): List<RoutingParsedRoute> {
+        require(mode != NativeRouteTransportMode.Transit) {
+            "Public transport is not available in the road-test routing gateway"
+        }
+        return routingService.getRerouteRoutes(
+            query = NativeRoutingQuery(
+                origin = origin.toRoutingPoint(),
+                destination = destination.toRoutingPoint(),
+                configuration = routingConfiguration,
+                languageCode = languageCode,
+                vehicle = mode.wireValue,
+                requestAlternatives = false,
+                originBearingDegrees = headingDegrees,
+            ),
+            speedKilometresPerHour = speedKilometresPerHour,
+            straightLineDistanceMeters = straightLineDistanceMeters,
+        )
+    }
+
     private fun SearchResponsePoint.toRoutingPoint() = RoutingRequestPoint(
         latitude = latitude,
         longitude = longitude,

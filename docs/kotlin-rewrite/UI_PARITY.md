@@ -85,7 +85,7 @@ sections and fixed cancel/navigation actions. Its 52 values are generated from
 the same 27 ARB files. A fourth slice packages the full-screen navigation HUD:
 all 21 manoeuvre families are drawn as native vectors, while five speedometer
 styles and bounded speed, limit, altitude, distance, duration and ETA summaries
-adapt between portrait and landscape. Its 13 values are generated from the
+adapt between portrait and landscape. Its 15 values are generated from the
 same 27 ARB files. A fifth slice packages saved places and parking: bounded
 legacy/import parsing, exact label merge, revision-safe list mutations, the
 existing blue parking-marker projection and a settings-like sheet with add,
@@ -132,9 +132,10 @@ gateway; its selected route is the only live navigation input. The shared shell
 still has no transit, saved-place, Wikipedia, road-event, activity, profile,
 settings or onboarding provider/history/identity/signer/wallet/preferences/
 secure-storage/migration owner, so it cannot launch an external product intent
-or read user data. No rerouting, spoken output, arrival automation, background
-navigation, remote image, drag gesture or long-press product handler is
-connected. This
+or read user data. The road-test owner now performs bounded direction-aware
+rerouting and true-distance/closest-approach arrival cleanup. No spoken output,
+building-footprint arrival, repeated-deviation alternative panel, background
+navigation, remote image, drag gesture or long-press product handler is connected. This
 proves bounded UI integration slices, not visual route, marker, cursor,
 full-screen, live-overlay or screenshot/device parity.
 
@@ -189,7 +190,7 @@ remain required.
 
 ## Native navigation-HUD evidence
 
-- `generate_android_navigation_strings.dart` projects 13 existing ARB values
+- `generate_android_navigation_strings.dart` projects 15 existing ARB values
   into 27 Android resource sets and supports deterministic no-drift checks.
 - `NativeNavigationHudPresenter` preserves live/fallback distance selection,
   the long-straight gate, all 21 manoeuvre families, bounded roundabout
@@ -199,15 +200,18 @@ remain required.
   progression without owning location, route, settings or storage adapters.
 - `NativeActiveNavigationSession` maps each increasing foreground GPS fix onto
   monotonic route/step progress and updates the HUD plus active/completed
-  MapLibre geometry as one revision-fenced operation.
+  MapLibre geometry as one revision-fenced operation. It also reuses the core
+  off-route trend policy, emits one bounded reroute request, atomically adopts
+  its replacement and ends on true destination distance/closest approach.
 - `NativeManeuverSymbol` and `NativeNavigationHud` retain vector manoeuvres,
   current/next instruction hierarchy, summary/stop/settings/voice controls,
   portrait/landscape adaptation, system insets and explicit accessibility
   semantics.
 
 Navigation screenshot/golden, font-scale, TalkBack, compact portrait/landscape,
-settings integration, rerouting, real speech/arrival behavior, interaction
-safety, performance and physical-device rendering evidence remain required.
+settings integration, real speech, building-footprint arrival, repeated-reroute
+alternative choice, interaction safety, performance and physical-device
+rendering evidence remain required.
 
 ## Native saved-place and parking evidence
 

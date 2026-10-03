@@ -14,4 +14,6 @@
     <string name="native_nav_voice">Glasovno vođenje</string>
     <string name="native_nav_speed_limit">Ograničenje brzine</string>
     <string name="native_nav_altitude">Prikaži nadmorsku visinu</string>
+    <string name="native_nav_arrived">🎉 Stigli ste!</string>
+    <string name="native_nav_close">Zatvori</string>
 </resources>

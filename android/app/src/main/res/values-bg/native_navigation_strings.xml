@@ -14,4 +14,6 @@
     <string name="native_nav_voice">Гласово упътване</string>
     <string name="native_nav_speed_limit">Ограничение на скоростта</string>
     <string name="native_nav_altitude">Показвай надморска височина</string>
+    <string name="native_nav_arrived">🎉 Пристигнахте!</string>
+    <string name="native_nav_close">Затвори</string>
 </resources>

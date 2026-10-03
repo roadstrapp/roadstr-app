@@ -14,4 +14,6 @@
     <string name="native_nav_voice">Röstvägledning</string>
     <string name="native_nav_speed_limit">Hastighetsgräns</string>
     <string name="native_nav_altitude">Visa höjd</string>
+    <string name="native_nav_arrived">🎉 Du är framme!</string>
+    <string name="native_nav_close">Stäng</string>
 </resources>

@@ -5,6 +5,8 @@ import app.roadstr.core.network.RoutingResponsePoint
 import app.roadstr.core.network.SearchResponsePoint
 import app.roadstr.core.network.SearchResult
 import app.roadstr.feature.map.NativeRouteOverlaySession
+import app.roadstr.feature.map.NativeMapPoint
+import app.roadstr.feature.navigation.NativeNavigationRerouteRequest
 import app.roadstr.feature.route.NativeRoutePlanningSession
 import app.roadstr.feature.route.NativeRoutePlanningStatus
 import app.roadstr.feature.route.NativeRouteTransportMode
@@ -15,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -51,6 +54,12 @@ class NativeShellJourneyCoordinatorTest {
         assertEquals(2, overlay.state.value.snapshot.activeRuns.single().points.size)
         assertEquals(NativeRouteTransportMode.Driving, gateway.lastMode)
         assertEquals("it", gateway.lastLanguage)
+        val routeRevision = planner.state.value.revision
+        assertTrue(planner.confirmSelection(routeRevision))
+        assertEquals(
+            SearchResponsePoint(45.0703, 7.6869),
+            coordinator.navigationDestination(routeRevision),
+        )
         coordinator.close()
     }
 
@@ -78,10 +87,60 @@ class NativeShellJourneyCoordinatorTest {
         coordinator.close()
     }
 
+    @Test
+    fun `active reroute forwards motion context and returns one parsed route`() {
+        val gateway = FakeGateway()
+        val coordinator = NativeShellJourneyCoordinator(
+            gateway = gateway,
+            scope = CoroutineScope(Dispatchers.Unconfined + Job()),
+            searchSession = NativeSearchSession(),
+            routeSession = NativeRoutePlanningSession(
+                NativeRouteOverlaySession(0xFF71_58E2L),
+            ),
+            languageCode = "IT",
+        )
+        var acceptedSequence: Long? = null
+        var acceptedRoute: RoutingParsedRoute? = null
+        var failedSequence: Long? = null
+        val request = NativeNavigationRerouteRequest(
+            sequence = 9,
+            revision = 4,
+            origin = NativeMapPoint(45.0, 7.0),
+            destination = NativeMapPoint(46.0, 8.0),
+            mode = NativeRouteTransportMode.Driving,
+            speedKilometresPerHour = 42.0,
+            headingDegrees = 181.0,
+            straightLineDistanceMeters = 2_000.0,
+        )
+
+        assertTrue(
+            coordinator.reroute(
+                request = request,
+                onSuccess = { sequence, route ->
+                    acceptedSequence = sequence
+                    acceptedRoute = route
+                },
+                onFailure = { failedSequence = it },
+            ),
+        )
+
+        assertEquals(9L, acceptedSequence)
+        assertTrue(acceptedRoute != null)
+        assertNull(failedSequence)
+        assertEquals(1, gateway.rerouteCalls)
+        assertEquals(42.0, gateway.lastSpeed, 0.0)
+        assertEquals(181.0, gateway.lastHeading!!, 0.0)
+        assertEquals("it", gateway.lastLanguage)
+        coordinator.close()
+    }
+
     private class FakeGateway : NativeShellJourneyGateway {
         var routeCalls = 0
+        var rerouteCalls = 0
         var lastMode: NativeRouteTransportMode? = null
         var lastLanguage: String? = null
+        var lastSpeed = 0.0
+        var lastHeading: Double? = null
 
         override suspend fun search(
             query: String,
@@ -117,6 +176,23 @@ class NativeShellJourneyCoordinatorTest {
                     totalDurationS = 900.0,
                 ),
             )
+        }
+
+        override suspend fun reroute(
+            origin: SearchResponsePoint,
+            destination: SearchResponsePoint,
+            mode: NativeRouteTransportMode,
+            languageCode: String,
+            speedKilometresPerHour: Double,
+            headingDegrees: Double?,
+            straightLineDistanceMeters: Double,
+        ): List<RoutingParsedRoute> {
+            rerouteCalls += 1
+            lastMode = mode
+            lastLanguage = languageCode
+            lastSpeed = speedKilometresPerHour
+            lastHeading = headingDegrees
+            return routes(origin, destination, emptyList(), mode, languageCode)
         }
     }
 }

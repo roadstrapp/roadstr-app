@@ -14,4 +14,6 @@
     <string name="native_nav_voice">Prowadzenie głosowe</string>
     <string name="native_nav_speed_limit">Ograniczenie prędkości</string>
     <string name="native_nav_altitude">Pokaż wysokość</string>
+    <string name="native_nav_arrived">🎉 Dotarłeś!</string>
+    <string name="native_nav_close">Zamknij</string>
 </resources>

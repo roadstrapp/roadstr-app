@@ -14,4 +14,6 @@
     <string name="native_nav_voice">Spraakbegeleiding</string>
     <string name="native_nav_speed_limit">Snelheidslimiet</string>
     <string name="native_nav_altitude">Hoogte tonen</string>
+    <string name="native_nav_arrived">🎉 Je bent er!</string>
+    <string name="native_nav_close">Sluiten</string>
 </resources>

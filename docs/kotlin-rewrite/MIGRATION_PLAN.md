@@ -702,7 +702,7 @@ broader cross-language coverage and a native store are still required.
   projects all 21 manoeuvre families through native vector symbols, preserves
   five persisted speedometer styles, speed/limit/altitude/distance/duration/ETA
   summaries and revision-safe monotonic step progression, and adapts between
-  portrait and landscape with explicit accessibility semantics. Its 13 values
+  portrait and landscape with explicit accessibility semantics. Its 15 values
   are independently generated for all 27 locales; it owns no GPS, routing
   provider, settings storage or production action. A fifth hidden saved-place
   slice decodes Flutter's exact bounded favourite and parking storage shapes,
@@ -741,8 +741,11 @@ broader cross-language coverage and a native store are still required.
   generated for all 27 locales. In the road-test composition, live geocoding
   and routing feed these states and preview Start transfers a defensive route
   value into foreground GPS-driven HUD/overlay/camera progress. Weather,
-  road-event feeds, settings, rerouting/TTS/background behavior and production
-  start-navigation ownership remain detached.
+  road-event feeds, settings, TTS/background behavior and production
+  start-navigation ownership remain detached. The road-test composition now
+  reuses the core off-route policy, performs direction-aware OSRM rerouting and
+  ends guidance through true-distance/closest-approach arrival; building
+  footprints and repeated-deviation alternative choice remain detached.
   Later bounded slices package profile and the complete settings hierarchy.
   A twelfth hidden onboarding slice preserves the four swipeable pages,
   optional identity, location and voice states, exact versioned-disclosure gate
@@ -770,8 +773,9 @@ broader cross-language coverage and a native store are still required.
   title/article/opening projections and revision fencing. Twelve navigation-HUD
   JVM cases lock manoeuvre mapping, roundabout topology, sentence casing,
   live/fallback projection, arrival cues, units, limits, ETA, speedometer
-  storage and revision/step fencing; two active-navigation cases lock GPS-fed
-  route/HUD progress, stale fixes, voice state and stop cleanup. Twelve
+  storage and revision/step fencing; four active-navigation cases lock GPS-fed
+  route/HUD progress, stale fixes, voice state, arrival, off-route requests,
+  route replacement and stop cleanup. Twelve
   saved-place JVM cases lock legacy/
   import shapes, item/text/file bounds, encrypted-envelope admission, exact
   merge, parking codec/marker projection and revision-safe mutations. Twenty
@@ -793,10 +797,12 @@ broader cross-language coverage and a native store are still required.
   vocabulary, formatter/badge parity, malformed-route bounds, stable ordered
   stops, request fencing, avoidance state, map/card selection, preview commit,
   navigation handoff, unit reprojection, 22-value/27-locale resources and
-  accessible presentation. Two active-navigation JVM cases plus the HUD source
+  accessible presentation. Four active-navigation JVM cases plus the HUD source
   contract lock monotonic GPS progress, HUD/overlay synchronization, stale-fix
-  fencing, voice-state toggling and stop cleanup without adding sensor/service
-  ownership to the shell.
+  fencing, voice-state toggling, true-distance/closest-approach arrival,
+  off-route reroute requests, route replacement and stop cleanup without adding
+  sensor/service ownership to the shell. The journey coordinator suite also
+  locks exact-destination handoff and bounded motion-context forwarding.
   Fifteen profile JVM cases plus four Dart contracts and fifteen settings JVM
   cases plus four Dart contracts cover the tenth and eleventh slices. Twelve
   onboarding JVM cases plus four Dart contracts lock strict gate precedence,

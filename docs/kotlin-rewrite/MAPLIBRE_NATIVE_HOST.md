@@ -257,10 +257,10 @@ debug-host selection check.
   sets, sheet semantics and side-effect-free dormant shell ownership.
 - Twelve navigation-HUD JVM cases lock manoeuvre families and roundabout
   topology, sentence casing, live/fallback summaries, arrival cues, unit/limit/
-  ETA formatting, all five speedometer styles and revision/step fencing. Two
+  ETA formatting, all five speedometer styles and revision/step fencing. Four
   active-navigation JVM cases lock GPS-fed route/HUD progress, stale fixes,
-  voice state and stop cleanup. Four
-  Dart UI contracts lock its 13-value/27-locale resources, adaptive accessible
+  voice state, arrival, off-route requests, route replacement and stop cleanup. Four
+  Dart UI contracts lock its 15-value/27-locale resources, adaptive accessible
   vector HUD structure and provider-neutral road-test ownership.
 - Twelve saved-place JVM cases lock Flutter's favourite legacy/import shapes,
   bounds, encrypted-envelope admission, exact merge, parking codec/marker and
@@ -304,7 +304,7 @@ debug-host selection check.
   and ownership by the private shell, plus the Flutter camera oracle
   and MapLibre command wiring, cursor geometry, point-overlay/transit parity and
   dormant ownership.
-- The complete verification run passes 779 Flutter tests, 583 Kotlin tests,
+- The complete verification run passes 779 Flutter tests, 586 Kotlin tests,
   `flutter analyze`, strict MapLibre/no-GMS dependency insight and default
   debug APK packaging.
 
@@ -316,8 +316,9 @@ debug-host selection check.
   comparison of top-down zoom, rotation, overlays and attribution;
 - production live route/route-planning/traffic/transit/search/place/navigation/saved-place/Wikipedia/road-event/activity/profile/settings/source/point update;
   the road-test APK now covers foreground GPS, search, OSRM alternatives and
-  monotonic route/HUD/camera progress, but rerouting, speech, arrival automation,
-  background ownership and navigation settings remain open; search storage and
+  monotonic route/HUD/camera progress, direction-aware bounded rerouting and
+  true-distance/closest-approach arrival; speech, building-footprint arrival,
+  repeated-reroute alternatives, background ownership and navigation settings remain open; search storage and
   native preference persistence,
   secure-value dialogs, routing verification, native ONNX session/eSpeak JNI/
   audio playback and live voice route/settings/beep/Bluetooth wiring, and settings

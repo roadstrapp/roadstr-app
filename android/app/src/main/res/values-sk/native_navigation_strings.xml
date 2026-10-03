@@ -14,4 +14,6 @@
     <string name="native_nav_voice">Hlasové navádzanie</string>
     <string name="native_nav_speed_limit">Rýchlostný limit</string>
     <string name="native_nav_altitude">Zobraziť nadmorskú výšku</string>
+    <string name="native_nav_arrived">🎉 Dorazili ste!</string>
+    <string name="native_nav_close">Zavrieť</string>
 </resources>

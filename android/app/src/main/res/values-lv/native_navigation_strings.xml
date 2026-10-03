@@ -14,4 +14,6 @@
     <string name="native_nav_voice">Balss vadība</string>
     <string name="native_nav_speed_limit">Ātruma ierobežojums</string>
     <string name="native_nav_altitude">Rādīt augstumu</string>
+    <string name="native_nav_arrived">🎉 Esat ieradušies!</string>
+    <string name="native_nav_close">Aizvērt</string>
 </resources>

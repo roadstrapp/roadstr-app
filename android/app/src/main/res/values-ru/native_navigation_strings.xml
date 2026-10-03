@@ -14,4 +14,6 @@
     <string name="native_nav_voice">Голосовое сопровождение</string>
     <string name="native_nav_speed_limit">Ограничение скорости</string>
     <string name="native_nav_altitude">Показывать высоту</string>
+    <string name="native_nav_arrived">🎉 Вы прибыли!</string>
+    <string name="native_nav_close">Закрыть</string>
 </resources>
