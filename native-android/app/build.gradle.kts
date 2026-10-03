@@ -42,6 +42,7 @@ android {
                     "src/main/kotlin",
                     "../../android/app/src/main/kotlin/app/roadstr/core",
                     "../../android/app/src/main/kotlin/app/roadstr/feature",
+                    "../../android/app/src/main/kotlin/app/roadstr/service/location",
                 ),
             )
             res.directories.add("../../android/app/src/main/res")
@@ -60,6 +61,7 @@ dependencies {
     implementation("org.bouncycastle:bcprov-jdk18on:1.86")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 
     val composeBom = platform("androidx.compose:compose-bom:2026.06.01")
     implementation(composeBom)
