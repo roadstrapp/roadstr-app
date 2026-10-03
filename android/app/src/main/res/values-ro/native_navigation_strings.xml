@@ -14,4 +14,6 @@
     <string name="native_nav_voice">Ghidare vocală</string>
     <string name="native_nav_speed_limit">Limită de viteză</string>
     <string name="native_nav_altitude">Afișează altitudinea</string>
+    <string name="native_nav_arrived">🎉 Ați ajuns!</string>
+    <string name="native_nav_close">Închide</string>
 </resources>

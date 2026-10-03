@@ -20,11 +20,16 @@ alternatives are rendered by the shared MapLibre overlay. Starting the selected
 route enters foreground guidance: new GPS fixes advance route progress
 monotonically, update the active/completed geometry, manoeuvre HUD, speed,
 limit, remaining distance/duration and the navigation camera. Stop or system
-back clears that route and restores free-drive camera behavior. One cancellable,
+back clears that route and restores free-drive camera behavior. A persistent
+off-route trend or a deviation beyond 55 metres triggers a direction-aware,
+single-flight OSRM reroute and atomically replaces the HUD/map route. Arrival
+uses true GPS distance to the selected destination plus Flutter's accuracy and
+closest-approach fallback, then clears guidance and shows the localized
+six-second banner. One cancellable,
 deadline- and response-bounded OkHttp transport is reused by both services.
-The runtime does not persist queries or coordinates. Automatic rerouting,
-spoken TTS output, arrival automation, background navigation, transit and
-production storage remain outside this harness.
+The runtime does not persist queries or coordinates. Spoken TTS output,
+building-footprint arrival, repeated-deviation alternative choice, background
+navigation, transit and production storage remain outside this harness.
 
 Build from the repository root with this project's Gradle wrapper and an
 Android SDK environment:

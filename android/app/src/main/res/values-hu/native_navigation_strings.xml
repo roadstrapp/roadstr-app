@@ -14,4 +14,6 @@
     <string name="native_nav_voice">Hangos útmutatás</string>
     <string name="native_nav_speed_limit">Sebességkorlát</string>
     <string name="native_nav_altitude">Magasság megjelenítése</string>
+    <string name="native_nav_arrived">🎉 Megérkezett!</string>
+    <string name="native_nav_close">Bezárás</string>
 </resources>

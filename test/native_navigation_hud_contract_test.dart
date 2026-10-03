@@ -38,8 +38,8 @@ void main() {
       final strings = RegExp(
         r'<string name="([^"]+)">([\s\S]*?)</string>',
       ).allMatches(entry.value).toList();
-      expect(strings, hasLength(13), reason: entry.key);
-      expect(strings.map((match) => match.group(1)).toSet(), hasLength(13));
+      expect(strings, hasLength(15), reason: entry.key);
+      expect(strings.map((match) => match.group(1)).toSet(), hasLength(15));
       expect(_value(strings, 'native_nav_then'), contains(r'%1$s'));
       expect(_value(strings, 'native_nav_eta'), contains(r'%1$s'));
       expect(_value(strings, 'native_nav_duration_min'), contains(r'%1$d'));
@@ -47,6 +47,8 @@ void main() {
         _value(strings, 'native_nav_duration_hour_min'),
         allOf(contains(r'%1$d'), contains(r'%2$d')),
       );
+      expect(_value(strings, 'native_nav_arrived'), isNotEmpty);
+      expect(_value(strings, 'native_nav_close'), isNotEmpty);
     }
   });
 
@@ -101,6 +103,7 @@ void main() {
     expect(source, contains('liveRegion = LiveRegionMode.Polite'));
     expect(source, contains('.sizeIn(minWidth = 48.dp, minHeight = 48.dp)'));
     expect(source, contains('NativeSpeedometerStyle.Sport'));
+    expect(source, contains('fun NativeNavigationArrivalBanner('));
     expect(source, isNot(contains('NativeLocationService')));
     expect(source, isNot(contains('NativeRoutingService')));
     expect(source, isNot(contains('Intent(')));
@@ -122,6 +125,10 @@ void main() {
     expect(source, contains('activeNavigationSession.submitFix('));
     expect(source, contains('activeNavigationSession.stop('));
     expect(source, contains('activeNavigationSession.toggleVoice('));
+    expect(source, contains('activeNavigationSession.completeReroute'));
+    expect(source, contains('activeNavigationSession.failReroute'));
+    expect(source, contains('NativeNavigationArrivalBanner('));
+    expect(source, contains('journeyCoordinator?.reroute('));
     expect(source, contains('.selectedNavigationRoute('));
     expect(source, contains('routePlanningSession.beginNavigation('));
     expect(source, contains('onOpenSettings = {}'));

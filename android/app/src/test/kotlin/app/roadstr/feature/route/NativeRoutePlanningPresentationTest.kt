@@ -246,6 +246,10 @@ class NativeRoutePlanningPresentationTest {
         assertFalse(overlay.state.value.snapshot.activeRuns.isEmpty())
         assertNull(session.selectedNavigationRoute(2))
         assertFalse(session.beginNavigation(2))
+        assertTrue(session.synchronizeNavigationRevision(3))
+        assertEquals(3, session.state.value.revision)
+        assertFalse(overlay.state.value.snapshot.activeRuns.isEmpty())
+        assertFalse(session.synchronizeNavigationRevision(3))
     }
 
     @Test

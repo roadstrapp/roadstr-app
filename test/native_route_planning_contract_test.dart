@@ -89,6 +89,8 @@ void main() {
     expect(source, contains('routePlanningSession.useMyLocation('));
     expect(source, contains('.selectedNavigationRoute('));
     expect(source, contains('routePlanningSession.beginNavigation('));
+    expect(source,
+        contains('routePlanningSession.synchronizeNavigationRevision('));
     expect(source, contains('activeNavigationSession.start('));
     expect(source, isNot(contains('NativeRoutingService')));
   });
