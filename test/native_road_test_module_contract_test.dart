@@ -20,6 +20,10 @@ void main() {
     'native-android/app/src/main/kotlin/app/roadstr/roadtest/'
     'NativeRoadTestJourneyGateway.kt',
   );
+  final voiceGateway = File(
+    'native-android/app/src/main/kotlin/app/roadstr/roadtest/'
+    'NativeRoadTestVoiceGateway.kt',
+  );
   final shell = File(
     'android/app/src/main/kotlin/app/roadstr/feature/home/'
     'NativeRoadstrShell.kt',
@@ -116,8 +120,25 @@ void main() {
     expect(source, contains('NativeRoadstrShell('));
     expect(source, contains('mode = NativeShellMode.RoadTest'));
     expect(source, contains('journeyGateway = journeyGateway'));
+    expect(source, contains('voiceGateway = voiceGateway'));
     expect(source, isNot(contains('FlutterActivity')));
     expect(source, isNot(contains('FlutterEngine')));
+    expect(source, isNot(contains('MethodChannel')));
+  });
+
+  test('road-test voice owner is Kotlin ONNX JNI and AudioTrack only', () {
+    final source = voiceGateway.readAsStringSync();
+    final build = appBuild.readAsStringSync();
+
+    expect(source, contains('class NativeRoadTestVoiceGateway'));
+    expect(source, contains('NativeVoiceAssetDownloader'));
+    expect(source, contains('OrtEnvironment'));
+    expect(source, contains('NativeEspeakBridge'));
+    expect(source, contains('AudioTrack.Builder()'));
+    expect(source, contains('USAGE_ASSISTANCE_NAVIGATION_GUIDANCE'));
+    expect(build,
+        contains('com.microsoft.onnxruntime:onnxruntime-android:1.23.0'));
+    expect(source, isNot(contains('io.flutter')));
     expect(source, isNot(contains('MethodChannel')));
   });
 

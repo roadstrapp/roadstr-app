@@ -1,8 +1,8 @@
 # Native voice core parity
 
-This increment adds a dormant Kotlin voice core without changing the Flutter
-launcher, navigation owner or current speech playback. It is a verified
-cutover boundary, not a production voice-engine switch.
+The shared Kotlin voice core now has a live owner in the independent road-test
+APK. The ordinary Flutter launcher and production speech owner are unchanged;
+this is executable cutover evidence, not a production-package switch.
 
 ## Implemented boundary
 
@@ -30,27 +30,46 @@ cutover boundary, not a production voice-engine switch.
   overlapping external cues.
 - `NativeVoiceAudioFocusController` packages the Android navigation-guidance
   speech focus contract, including delayed gain and pre-Android 8 fallback.
-  No production component constructs it.
+- `NativeRoadTestVoiceGateway` verifies or downloads the existing files under
+  the legacy-compatible `app_flutter` documents root, extracts the checksummed
+  eSpeak data archive with tar-slip and size bounds, and invokes the pinned
+  `libespeak-ng.so` through a small UTF-8 JNI bridge.
+- Kokoro and Piper execute through pinned ONNX Runtime Android 1.23.0 sessions
+  and the existing tensor policies. A bounded 24-entry memory-only cache avoids
+  repeating inference without persisting spoken street or place names.
+- Mono PCM is converted in memory and played through `AudioTrack` with native
+  navigation-guidance attributes, transient/delayed audio focus, cancellation,
+  mute, stop and Activity lifecycle cleanup.
+- The standalone route owner emits speed/mode-aware far and point-of-action
+  cues, plus localized start and arrival announcements. The settings and
+  onboarding download actions expose verified model installation progress.
+- The standalone build admits only arm64-v8a, armeabi-v7a and x86_64, verifies
+  all committed eSpeak binaries/data before packaging and includes matching
+  ONNX/eSpeak/JNI libraries for every admitted ABI.
 
 ## Evidence
 
-- 28 JVM cases cover the catalogue, hashes/sizes, language and gender matrix,
+- 31 JVM cases cover the catalogue, hashes/sizes, language and gender matrix,
   asset reuse and installation, partial cleanup, unsafe files, input bounds,
-  WAV output, IPA correction, scheduling, interruption, deduplication, focus
-  leases and reinitialization timing.
-- Four Flutter contracts compare the native registry and policies with the
-  production Dart sources and prove that the downloader, scheduler and audio
-  focus controller have no shell or startup owner.
+  WAV output, IPA correction, speed/mode cue thresholds, scheduling,
+  interruption, deduplication, focus leases and reinitialization timing.
+- Flutter contracts compare the registry/policies with production Dart and
+  lock the standalone ONNX/JNI/AudioTrack owner, model download wiring,
+  ABI/assets and absence of any Flutter runtime dependency.
+- Kotlin, CMake and APK assembly are green. Direct ZIP inspection confirms all
+  three copies of `libonnxruntime.so`, `libespeak-ng.so` and
+  `libroadstr_voice_jni.so`, the packaged eSpeak data and no Flutter engine or
+  bundle.
 
 ## Still open
 
-- create and lifecycle-manage real ONNX Runtime Kokoro/Piper sessions;
-- connect the packaged eSpeak libraries through a bounded JNI phonemizer;
-- add phrase cache/prewarm ownership and real audio playback/cancellation;
-- connect route instructions, settings, beeps and Bluetooth behavior;
+- add fixed-phrase prewarm and privacy-bounded disk-cache ownership;
+- connect speed-camera beeps/external-cue leases and persisted production
+  settings; the road-test owner currently uses in-memory settings;
 - verify downloads, focus transitions, interruption and output on physical
   devices, including process recreation and adverse networks;
 - gather latency, memory, thermal, battery and accessibility evidence.
 
-Until those gates are complete, Flutter remains the only production voice
-owner and the native classes remain dormant.
+Until those gates are complete, Flutter remains the production-package voice
+owner. The Kotlin implementation is active only in the side-by-side road-test
+APK.
