@@ -16,10 +16,15 @@ fused/Google location runtime.
 The Navigate action now opens live Nominatim/Photon/Overpass search. Selecting
 a destination opens the native planner and resolves driving, cycling or
 walking routes through the credential-free public OSRM profiles; returned
-alternatives are rendered by the shared MapLibre overlay. One cancellable,
+alternatives are rendered by the shared MapLibre overlay. Starting the selected
+route enters foreground guidance: new GPS fixes advance route progress
+monotonically, update the active/completed geometry, manoeuvre HUD, speed,
+limit, remaining distance/duration and the navigation camera. Stop or system
+back clears that route and restores free-drive camera behavior. One cancellable,
 deadline- and response-bounded OkHttp transport is reused by both services.
-The runtime does not persist queries or coordinates, and transit, guidance,
-background navigation and production storage remain outside this harness.
+The runtime does not persist queries or coordinates. Automatic rerouting,
+spoken TTS output, arrival automation, background navigation, transit and
+production storage remain outside this harness.
 
 Build from the repository root with this project's Gradle wrapper and an
 Android SDK environment:
