@@ -26,6 +26,9 @@ class AndroidLocationManagerSource(
         locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
     } catch (_: SecurityException) {
         false
+    } catch (_: IllegalArgumentException) {
+        // Some location-less Android builds do not register the GPS provider.
+        false
     }
 
     override suspend fun start(onLocation: (NativeRawLocation) -> Unit): Boolean {
@@ -53,6 +56,8 @@ class AndroidLocationManagerSource(
             true
         } catch (_: SecurityException) {
             false
+        } catch (_: IllegalArgumentException) {
+            false
         }
     }
 
@@ -72,6 +77,8 @@ class AndroidLocationManagerSource(
             locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
                 ?.toNativeRawLocation()
         } catch (_: SecurityException) {
+            null
+        } catch (_: IllegalArgumentException) {
             null
         }
     }

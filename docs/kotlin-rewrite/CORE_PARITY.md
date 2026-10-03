@@ -24,7 +24,7 @@ same provider-free shell directly for side-by-side integration work.
 | `service.network` | `bounded_http.dart` | shared OkHttp pool, exact GET/POST adaptation, whole-call deadline, declared/streamed body caps, redirect/retry refusal, value-free failures and physical coroutine cancellation |
 | `service.routing` | `routing_service.dart` | resolved OSRM/ORS/GraphHopper dispatch, provider-specific deadlines, 32 MiB journey-route bound, normalized responses, value-free failures, cancellable one-retry bearing fallback, Valhalla hard/soft/track avoidance and best-effort OSRM re-timing |
 | `service.transit` | `transit_service.dart` | bounded Transitous plan dispatch, 20-second/2-MiB limits, transient-only interactive retry with bounded Retry-After, value-free failures and physical cancellation; production UI ownership remains detached |
-| `service.location` | `gps_service.dart` | AOSP `LocationManager` source, 500 ms sampling boundary, safe fix normalization, last-known fix, 20/45-second dead-stream watchdog and cancellable lifecycle ownership; both Flutter renderers have a disabled-by-default foreground canary with init/resume reconciliation and an observed native-fix shadow stream, while full startup/UI cutover remains |
+| `service.location` | `gps_service.dart` | AOSP `LocationManager` source, 500 ms sampling boundary, safe fix normalization, last-known fix, 20/45-second dead-stream watchdog and cancellable lifecycle ownership; both Flutter renderers have a disabled-by-default canary, while the independent road-test APK owns foreground permission/provider UX and injects live fixes into its MapLibre cursor/camera; production/background cutover remains |
 | `service.navigation` | map-screen lifecycle/navigation state | 30-second background grace, generation-safe pause/resume, GPS retention during navigation, detach cleanup, foreground-only wakelock policy, AOSP foreground-service adapter, opt-in `MainActivity` method/event bridges, process-local running-state query and fix fan-out, isolated Dart wrappers, serialized ownership coordinator and disabled-by-default start/stop/dispose/reconcile wiring in both renderers |
 | `service.notifications` | `navigation_notification_service.dart` | 3-second distance-only throttle, immediate maneuver changes, reset semantics and private ongoing notification metadata; the disabled-by-default canary now mirrors bounded updates through the service `NotificationManager` adapter using the existing channel/ID, with Flutter completing last and remaining authoritative |
 | `feature.map` | `maplibre_map_screen.dart`, `map_screen.dart`, map services/widgets | raster MapLibre style JSON, dark recoloring, tile URL admission/escaping, exact `maplibre`/`osm` selection and top-down legacy zoom profile, ZTL/traffic route-run segmentation and zoom/viewport marker culling; a lifecycle-safe MapLibre Native 13.5.2 AndroidView now installs bounded selected/completed/muted-alternative/traffic route and per-leg transit layers, consumes revision-safe route/transit/camera/cursor/point sessions and emits typed marker/map gestures with Flutter-parity 60 m alternative selection only in the private Compose shell, while product data/UI remain unwired |
@@ -273,8 +273,9 @@ detached from secure storage and startup. See
   builds of either renderer can own and reconcile the foreground service and
   consume its normalized fixes through a shadow `EventChannel`. The shadow
   feed is never persisted or logged and does not drive map/navigation state.
-  Android permission UX, full cutover and de-Googled physical-device evidence
-  remain open.
+  The road-test APK now supplies Android foreground permission/provider UX and
+  a live cursor/camera feed; production permission/background cutover and
+  de-Googled physical-device evidence remain open.
 - The native map foundation now matches the Flutter raster style and overlay
   decisions headlessly. The private Compose shell now owns a real MapLibre
   Native `13.5.2` raster host with deterministic initial camera, texture mode,
@@ -368,9 +369,10 @@ detached from secure storage and startup. See
   badge and typed quick/bottom-bar actions. Its ten values are generated for all
   27 locales while identity, favourites, activity, parking, location, routes
   and panel coordination remain detached.
-  The shell supplies empty route, route-planning, transit, search, place, navigation,
-  saved-place, Wikipedia, road-event, activity, camera, cursor and point feeds and
-  has no location component or production route/transit/search/place/
+  The production canary supplies empty route, route-planning, transit, search,
+  place, navigation, saved-place, Wikipedia, road-event, activity, camera,
+  cursor and point feeds. The separate road-test composition now injects only
+  foreground GPS into camera/cursor; neither path owns a production route/transit/search/place/
   navigation/saved-place/Wikipedia/road-event/activity feed; native provider
   services are intentionally not invoked and all product panels therefore
   remain hidden. Live data/product handlers, external intents, screenshots and
@@ -393,7 +395,7 @@ detached from secure storage and startup. See
 ## Verification for this increment
 
 - `flutter analyze`: no issues.
-- `flutter test`: 777 Flutter tests passed, including the native shell,
+- `flutter test`: 778 Flutter tests passed, including the native shell,
   private MapLibre host, route-overlay, route-session, transit-overlay/session, camera-session and
   user-cursor, point-overlay/interaction and route-traffic Gradle/source contracts, the Nostr/`nostr_tools` and
   official BIP-340 cross-check, pending-queue, bounded-inbound, ingress,
@@ -441,11 +443,13 @@ detached from secure storage and startup. See
   contracts additionally lock Flutter's dynamic inbox/cursor shapes, encrypted
   framing, marker-v4 migration binding and dormant ownership. Four pending-
   report-store contracts lock the Hive/FIFO oracle, encrypted framing,
-  marker-v5 binding and dormant ownership. Four native-road-test contracts
+  marker-v5 binding and dormant ownership. Five native-road-test contracts
   additionally lock the separate application identity, direct Compose
-  launcher, Flutter-free Gradle graph, bounded source ownership and unchanged
-  production launcher.
-- `./gradlew :app:testDebugUnitTest`: 574 Kotlin tests passed, including the
+  launcher, Flutter-free Gradle graph, narrowly bounded AOSP location ownership,
+  foreground permission/lifecycle/cursor-camera wiring and unchanged production
+  launcher.
+- `./gradlew :app:testDebugUnitTest`: 577 Kotlin tests passed, including the
+  validated foreground GPS snapshot model and the
   exact native theme palette/stored-ordinal contract, MapLibre version/camera
   baseline, imperative lifecycle/disposal/low-memory ordering, bounded route
   GeoJSON, Flutter-compatible route and per-leg transit metrics/colors,
@@ -509,12 +513,14 @@ detached from secure storage and startup. See
 - `flutter build apk --debug`: the default Flutter-launcher APK packages the
   dormant Compose/MapLibre shell successfully without enabling the navigation
   canary or adding a second launcher.
-- `ANDROID_HOME=... android/gradlew -p native-android :app:assembleDebug`: the
+- `ANDROID_HOME=... native-android/gradlew -p native-android :app:assembleDebug`: the
   independent roughly 60 MB `app.roadstr.roadtest` APK builds from only the
-  shared Kotlin `core/feature` trees. Artifact, DEX and runtime-dependency
+  shared Kotlin `core/feature` trees and narrowly scoped `service/location`.
+  Artifact, DEX and runtime-dependency
   inspection finds no Flutter/Dart entry, engine, bundle or class; `aapt`
-  confirms SDK 24/36, the direct Compose launcher and only Internet plus the
-  AndroidX package-scoped receiver permission.
+  confirms SDK 24/36, the direct Compose launcher, Internet and foreground
+  coarse/fine location plus the AndroidX package-scoped receiver permission,
+  with no background location.
 - `MainActivity` registers the opt-in native-navigation channel. Both map
   renderers own it only in builds compiled with
   `ROADSTR_NATIVE_NAVIGATION=true`; ordinary builds retain the existing

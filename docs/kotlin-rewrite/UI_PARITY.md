@@ -36,8 +36,9 @@ activity is non-exported, excluded from recents and has no intent filter;
 Flutter `MainActivity` remains the sole launcher of the production package.
 The separate `native-android/` road-test build gives the same shell a direct
 Compose launcher under `app.roadstr.roadtest`, with no Flutter runtime in its
-Gradle graph or APK. It currently owns no data, GPS or product services and is
-therefore a launchable integration harness rather than a functional fork.
+Gradle graph or APK. It owns no user data or product provider services, but now
+owns a narrowly scoped foreground AOSP GPS feed for road testing; it remains an
+integration harness rather than a functional fork.
 The shell establishes
 edge-to-edge Compose hosting and exact light/dark Nostr Violet/Bitcoin Orange
 color tokens, including legacy stored-theme aliases. It also embeds a real
@@ -47,15 +48,18 @@ raster profile with its exact zoom-6 start and 2–19 limits; both choices share
 the validated custom tile source and overlay stack. The shell still selects
 `maplibre` explicitly and does not read the migrated preference.
 Only an explicit internal invocation can start its admitted HTTPS OSM tile
-requests; it does not read legacy/native storage or request location. The shell
+requests. The shared shell does not read legacy/native storage or instantiate
+location APIs; the separate road-test Activity requests foreground coarse/fine
+permission and injects value-only fixes. The shell
 also installs the Flutter-compatible active/ZTL/completed route sources and
 layers plus muted route-choice alternatives and a bright-red 400 m traffic
 layer through a revision-safe StateFlow
-route session with an intentionally empty snapshot. A dormant camera session can also issue sequence-safe
-move/ease commands and detach follow on MapLibre gestures, but receives no GPS
-fixes. A separate dormant cursor session can project the generic 48x76 Flutter
-MapLibre arrow, including its pitch-aware shadow, but receives no position and
-therefore draws nothing. A bounded dormant point-overlay session also preserves
+route session with an intentionally empty snapshot. The camera session issues
+sequence-safe move/ease commands, detaches follow on MapLibre gestures and, in
+the road-test APK, follows injected live GPS with explicit recentering. The
+cursor session projects those fixes as the generic 48x76 Flutter MapLibre arrow,
+including its pitch-aware shadow. The production canary still injects no fix.
+A bounded dormant point-overlay session also preserves
 the Flutter marker catalogue, billboard sizes, ordering and zoom gates without
 connecting service caches. Native click and long-click listeners now emit typed
 map interactions, projected road-event hit tests match the Flutter marker
@@ -116,12 +120,13 @@ Notifications/Profile/Menu bar. It preserves every workflow replacement gate,
 the collapsed/expanded hierarchy, the five-visible-favourite ceiling, unread
 `99+` badge and typed quick actions. Its ten values are generated for all 27
 locale sets. The shell renders only the empty value projection and does not
-feed it identity, favourites, activity, parking, GPS or route state. The shell keeps all
+feed it identity, favourites, activity, parking or route state. The road-test
+composition supplies GPS only. The shell keeps all
 panels hidden and has no transit, search, place, route-planning, navigation,
 saved-place, Wikipedia, road-event, activity, profile, settings or onboarding provider/
 history/identity/signer/wallet/preferences/secure-storage/migration owner, so it cannot
-initiate provider traffic, launch an external intent, read user data or start
-location. No live place selection, route progress, navigation telemetry,
+initiate product-provider traffic, launch an external product intent or read
+user data. No live place selection, route progress, navigation telemetry,
 remote image, drag gesture or long-press product handler is connected. This
 proves bounded UI integration slices, not visual route, marker, cursor,
 full-screen, live-overlay or screenshot/device parity.
@@ -191,7 +196,7 @@ remain required.
   semantics.
 
 Navigation screenshot/golden, font-scale, TalkBack, compact portrait/landscape,
-real route/GPS/settings integration, interaction safety, performance and
+real route/GPS/settings integration into the HUD, interaction safety, performance and
 physical-device rendering evidence remain required.
 
 ## Native saved-place and parking evidence

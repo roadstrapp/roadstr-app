@@ -124,8 +124,10 @@ The first native increment is intentionally isolated from production startup:
   cancellable lifecycle ownership. Both Flutter map renderers now have a
   disabled-by-default canary owning the foreground start/stop/dispose boundary
   and reconciling native service state on init/resume. They also observe a
-  value-only native-fix shadow feed that does not drive UI state; permission UX,
-  complete startup cutover and device lifecycle evidence remain open.
+  value-only native-fix shadow feed that does not drive UI state. The separate
+  Flutter-free road-test APK now owns foreground permission/provider UX and
+  drives its cursor/follow camera from last-known and live fixes; production
+  startup/background cutover and device lifecycle evidence remain open.
 - `feature/map/NativeMapStyle.kt` and
   `feature/map/NativeMapOverlayPolicy.kt` now provide a headless MapLibre
   foundation: raster style JSON, dark recoloring, tile URL admission and
@@ -255,24 +257,27 @@ broader cross-language coverage and a native store are still required.
 - **New Kotlin files/modules:** `core/ui/theme/RoadstrTheme.kt`,
   `feature/home/NativeCanaryActivity.kt`, `NativeRoadstrShell.kt` and
   `NativeShellContract.kt`; `native-android/` adds a separate pure-Android
-  road-test graph and direct `ComponentActivity` launcher.
+  road-test graph, direct `ComponentActivity` launcher and foreground-only
+  `NativeRoadTestLocationController` composition root.
 - **Dependencies:** Compose BOM `2026.06.01`, Activity Compose `1.13.0`,
   Material 3 and the Kotlin `2.2.10` Compose compiler plugin. The BOM is pinned
   to the last stable line compatible with the existing compile SDK 36; the
   resolved Google Play Services audit is empty.
 - **Migration impact:** Must not open or delete legacy storage yet.
 - **User-visible impact:** The production package is unchanged. The separately
-  installable `app.roadstr.roadtest` harness exposes the internal shell only.
-- **Tests:** JVM palette/ordinal tests, Dart Gradle/manifest contract tests,
+  installable `app.roadstr.roadtest` harness exposes the internal shell and an
+  explicit foreground GPS permission/provider/fix status surface.
+- **Tests:** JVM palette/ordinal/GPS-snapshot tests, Dart Gradle/manifest contract tests,
   merged-manifest inspection, ordinary debug packaging and independent native
   APK/dependency/permission inspection.
-- **Parity evidence:** Same package/label/icon/permissions and backup/cleartext
-  policy; exact light/dark Nostr/Bitcoin colors; edge-to-edge placeholder with
-  a documented private boundary.
+- **Parity evidence:** Separate package/label with shared icons, explicit
+  foreground-only location permissions and matching backup/cleartext policy;
+  exact light/dark Nostr/Bitcoin colors; edge-to-edge host, live AOSP cursor and
+  follow camera behind a documented private boundary.
 - **Security/privacy impact:** Preserve backup, cleartext and recents/privacy settings.
 - **Battery/performance impact:** Cold/warm start and idle frame baseline.
 - **Acceptance criteria:** The native shell builds both inside the unchanged
-  Flutter package and as a 59.7-MB Flutter-free side-by-side APK. Physical-
+  Flutter package and as a roughly 60-MB Flutter-free side-by-side APK. Physical-
   device launch, cold/warm start and idle-frame measurements remain before
   this card is done.
 - **Rollback notes:** Remove the shell module; Flutter build remains available.
@@ -558,12 +563,12 @@ broader cross-language coverage and a native store are still required.
 
 - **Objective:** Match LocationManager cadence, watchdog, assistance, heading, foreground and background behavior.
 - **Current Dart/Flutter source:** `lib/services/gps_service.dart`, map screen lifecycle/camera policies, notification service.
-- **New Kotlin files/modules:** `service/location` contains the headless AOSP `LocationManager` adapter and watchdog; `service/navigation/NativeNavigationLifecycle.kt` and `service/notifications/NativeNavigationNotificationPolicy.kt` contain the lifecycle/foreground policy and notification throttle; `service/navigation/NativeNavigationForegroundService.kt` owns the AOSP `startForeground` and `NotificationManager` adapters, `NativeNavigationServiceState.kt` exposes its process-local state, `NativeNavigationFixDispatcher.kt` provides listener-isolated fix encoding/fan-out and `NativeNavigationNotificationRuntime.kt` provides replacement-safe notification command dispatch; `service/navigation/NativeNavigationBridge.kt` plus `MainActivity` provide the opt-in start/stop/state/notification `MethodChannel` and fix `EventChannel`; `lib/services/native_navigation_bridge.dart`, `native_navigation_ownership.dart` and `native_navigation_fix_feed.dart` mirror, serialize, reconcile and observe it; `MaplibreMapScreen` and legacy `MapScreen` own start/stop/dispose/reconcile plus non-driving fix and notification shadows only behind the disabled-by-default compile-time canary, while full ViewModel ownership remains.
+- **New Kotlin files/modules:** `service/location` contains the headless AOSP `LocationManager` adapter and watchdog; `native-android/.../NativeRoadTestLocationController.kt` owns the standalone Activity's foreground permission/provider/start/stop path and injects fixes into the shared cursor/camera sessions; `service/navigation/NativeNavigationLifecycle.kt` and `service/notifications/NativeNavigationNotificationPolicy.kt` contain the lifecycle/foreground policy and notification throttle; `service/navigation/NativeNavigationForegroundService.kt` owns the AOSP `startForeground` and `NotificationManager` adapters, `NativeNavigationServiceState.kt` exposes its process-local state, `NativeNavigationFixDispatcher.kt` provides listener-isolated fix encoding/fan-out and `NativeNavigationNotificationRuntime.kt` provides replacement-safe notification command dispatch; `service/navigation/NativeNavigationBridge.kt` plus `MainActivity` provide the opt-in start/stop/state/notification `MethodChannel` and fix `EventChannel`; `lib/services/native_navigation_bridge.dart`, `native_navigation_ownership.dart` and `native_navigation_fix_feed.dart` mirror, serialize, reconcile and observe it; `MaplibreMapScreen` and legacy `MapScreen` own start/stop/dispose/reconcile plus non-driving fix and notification shadows only behind the disabled-by-default compile-time canary, while production-package ViewModel ownership remains.
 - **Dependencies:** Android platform LocationManager/sensors/foreground APIs only; no fused location or Play Services.
 - **Migration impact:** Active navigation state and notification actions must not be lost on recreation.
 - **User-visible impact:** Same permissions, fix cadence, background grace, guidance and notification lifecycle.
-- **Tests:** 28 deterministic JVM tests cover fix normalization, last-known speed, fake streams, watchdog/dead stream, disabled-provider behavior, callback isolation, cancellation, disposal, lifecycle grace/generation/wakelock, notification throttle/privacy, replacement-safe notification dispatch, bounded update parsing, service runtime state, fix encoding/fan-out and the bridge command/state/event contracts; rotation/process/lifecycle tests and de-Googled manual test remain.
-- **Parity evidence:** headless AOSP source/policy, lifecycle transitions, watchdog traces, notification decisions, Android foreground-service and `NotificationManager` compilation, manifest checks, fix EventChannel and disabled-by-default ownership/reconciliation/fix-and-notification shadow wiring in both renderers are green; enabled-build physical-device traces remain.
+- **Tests:** 31 deterministic JVM tests cover fix normalization, last-known speed, fake streams, watchdog/dead stream, disabled-provider behavior, callback isolation, cancellation, disposal, validated UI snapshots, lifecycle grace/generation/wakelock, notification throttle/privacy, replacement-safe notification dispatch, bounded update parsing, service runtime state, fix encoding/fan-out and the bridge command/state/event contracts; source/manifest contracts lock the standalone permission/lifecycle/cursor-camera composition; rotation/process/lifecycle tests and de-Googled manual test remain.
+- **Parity evidence:** headless AOSP source/policy, lifecycle transitions, watchdog traces, notification decisions, Android foreground-service and `NotificationManager` compilation, manifest checks, fix EventChannel and disabled-by-default ownership/reconciliation/fix-and-notification shadow wiring in both Flutter renderers are green; the independent APK additionally compiles a direct foreground permission/provider/last-known/live-fix path into MapLibre; physical-device traces remain.
 - **Security/privacy impact:** Preserve permission scope, no coordinate logs and notification privacy.
 - **Battery/performance impact:** CPU/wakeups/GPS duration/map camera updates measured in comparable sessions.
 - **Acceptance criteria:** No obvious battery/navigation regression and same background behavior.
