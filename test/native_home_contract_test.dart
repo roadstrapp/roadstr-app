@@ -89,7 +89,7 @@ void main() {
     expect(source, isNot(contains('Image.network')));
   });
 
-  test('private shell packages home chrome without feeding product data', () {
+  test('private shell updates home visibility from in-memory journey state', () {
     final source = shell.readAsStringSync();
 
     expect(source, contains('NativeHomeSession()'));
@@ -97,6 +97,8 @@ void main() {
     expect(source, contains('homeSession::toggleExpanded'));
     expect(source, contains('homeSession.action(revision, action)'));
     expect(source, contains('homeSession.selectFavorite(revision, id)'));
-    expect(source, isNot(contains('homeSession.replace(')));
+    expect(source, contains('homeSession.replace('));
+    expect(source, contains('NativeHomeAction.Navigate'));
+    expect(source, contains('journeyCoordinator?.openSearch('));
   });
 }

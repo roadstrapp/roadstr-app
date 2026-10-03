@@ -78,15 +78,16 @@ void main() {
     expect(source, isNot(contains('Hive')));
   });
 
-  test('private shell packages planning state without opening or feeding it',
+  test('private shell feeds planning through the provider-neutral coordinator',
       () {
     final source = shell.readAsStringSync();
 
     expect(source, contains('NativeRoutePlanningSession('));
     expect(source, contains('NativeRoutePlanningPanel('));
-    expect(source, isNot(contains('routePlanningSession.showPlanner(')));
-    expect(source, isNot(contains('routePlanningSession.beginRouteRequest(')));
-    expect(source, isNot(contains('routePlanningSession.submitAlternatives(')));
+    expect(source, contains('journeyCoordinator?.calculateRoute('));
+    expect(source, contains('journeyCoordinator?.cancelRoute()'));
+    expect(source, contains('routePlanningSession.useMyLocation('));
+    expect(source, isNot(contains('NativeRoutingService')));
   });
 }
 

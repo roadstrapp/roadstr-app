@@ -43,6 +43,9 @@ android {
                     "../../android/app/src/main/kotlin/app/roadstr/core",
                     "../../android/app/src/main/kotlin/app/roadstr/feature",
                     "../../android/app/src/main/kotlin/app/roadstr/service/location",
+                    "../../android/app/src/main/kotlin/app/roadstr/service/network",
+                    "../../android/app/src/main/kotlin/app/roadstr/service/routing",
+                    "../../android/app/src/main/kotlin/app/roadstr/service/search",
                 ),
             )
             res.directories.add("../../android/app/src/main/res")

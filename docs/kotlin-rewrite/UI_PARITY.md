@@ -36,9 +36,12 @@ activity is non-exported, excluded from recents and has no intent filter;
 Flutter `MainActivity` remains the sole launcher of the production package.
 The separate `native-android/` road-test build gives the same shell a direct
 Compose launcher under `app.roadstr.roadtest`, with no Flutter runtime in its
-Gradle graph or APK. It owns no user data or product provider services, but now
-owns a narrowly scoped foreground AOSP GPS feed for road testing; it remains an
-integration harness rather than a functional fork.
+Gradle graph or APK. It owns no user data, but now owns a narrowly scoped
+foreground AOSP GPS feed plus a credential-free, bounded live journey gateway:
+Nominatim/Photon/Overpass search feeds destination selection, and OSRM driving,
+cycling or walking alternatives feed the shared MapLibre route overlay. Queries
+and coordinates remain memory-only. It remains an integration harness rather
+than a production fork.
 The shell establishes
 edge-to-edge Compose hosting and exact light/dark Nostr Violet/Bitcoin Orange
 color tokens, including legacy stored-theme aliases. It also embeds a real
@@ -47,10 +50,11 @@ The host also packages the old `mapEngine=osm` behavior as a typed top-down
 raster profile with its exact zoom-6 start and 2–19 limits; both choices share
 the validated custom tile source and overlay stack. The shell still selects
 `maplibre` explicitly and does not read the migrated preference.
-Only an explicit internal invocation can start its admitted HTTPS OSM tile
-requests. The shared shell does not read legacy/native storage or instantiate
-location APIs; the separate road-test Activity requests foreground coarse/fine
-permission and injects value-only fixes. The shell
+Only an explicit road-test interaction can start its admitted HTTPS OSM tile,
+search or routing requests. The shared shell does not select endpoints, read
+legacy/native storage or instantiate location APIs; the separate road-test
+Activity requests foreground coarse/fine permission, injects value-only fixes
+and supplies the provider-neutral journey gateway. The shell
 also installs the Flutter-compatible active/ZTL/completed route sources and
 layers plus muted route-choice alternatives and a bright-red 400 m traffic
 layer through a revision-safe StateFlow

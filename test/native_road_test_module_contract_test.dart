@@ -16,6 +16,10 @@ void main() {
     'native-android/app/src/main/kotlin/app/roadstr/roadtest/'
     'NativeRoadTestLocationController.kt',
   );
+  final journeyGateway = File(
+    'native-android/app/src/main/kotlin/app/roadstr/roadtest/'
+    'NativeRoadTestJourneyGateway.kt',
+  );
   final shell = File(
     'android/app/src/main/kotlin/app/roadstr/feature/home/'
     'NativeRoadstrShell.kt',
@@ -83,6 +87,14 @@ void main() {
         '"../../android/app/src/main/kotlin/app/roadstr/service/location"',
       ),
     );
+    for (final service in ['network', 'routing', 'search']) {
+      expect(
+        appBuild.readAsStringSync(),
+        contains(
+          '"../../android/app/src/main/kotlin/app/roadstr/service/$service"',
+        ),
+      );
+    }
     expect(
       appBuild.readAsStringSync(),
       isNot(contains('"app/roadstr/migration/**"')),
@@ -100,9 +112,23 @@ void main() {
     expect(source, contains('setContent {'));
     expect(source, contains('NativeRoadstrShell('));
     expect(source, contains('mode = NativeShellMode.RoadTest'));
+    expect(source, contains('journeyGateway = journeyGateway'));
     expect(source, isNot(contains('FlutterActivity')));
     expect(source, isNot(contains('FlutterEngine')));
     expect(source, isNot(contains('MethodChannel')));
+  });
+
+  test('road-test journey gateway admits only bounded public OSM routing', () {
+    final source = journeyGateway.readAsStringSync();
+
+    expect(source, contains('NativeBoundedHttpClient()'));
+    expect(source, contains('NativeSearchService(transport)'));
+    expect(source, contains('NativeRoutingService(transport)'));
+    expect(source, contains('providerKey = "osrm"'));
+    expect(source, contains('deferCredentialReadForOsrm = true'));
+    expect(source, contains('mode != NativeRouteTransportMode.Transit'));
+    expect(source, isNot(contains('apiKey = "')));
+    expect(source, isNot(contains('Log.')));
   });
 
   test('road-test GPS owner drives the native cursor and camera in foreground', () {

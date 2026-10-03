@@ -111,8 +111,9 @@ The first native increment is intentionally isolated from production startup:
   merge to pure Dart boundaries. It also delegates out-of-order completion,
   first-nonempty partial delivery, provider failure fallback and one relaxed
   batch to a production-used state machine. Kotlin matches 53 ranking and 32
-  orchestration outcomes; physical cancellation, UI request generations and
-  native provider execution remain unwired.
+  orchestration outcomes; the side-by-side road-test app now owns cancellable,
+  revision-fenced live provider execution, while production startup/cache
+  ownership remains unwired.
 - Both production map implementations now delegate search-history decode,
   validation, recency/deduplication and serialization to a pure Dart boundary.
   Kotlin matches 31 shared outcomes; encrypted Hive remains the live owner and
@@ -258,15 +259,17 @@ broader cross-language coverage and a native store are still required.
   `feature/home/NativeCanaryActivity.kt`, `NativeRoadstrShell.kt` and
   `NativeShellContract.kt`; `native-android/` adds a separate pure-Android
   road-test graph, direct `ComponentActivity` launcher and foreground-only
-  `NativeRoadTestLocationController` composition root.
+  `NativeRoadTestLocationController` plus a credential-free
+  `NativeRoadTestJourneyGateway` composition root.
 - **Dependencies:** Compose BOM `2026.06.01`, Activity Compose `1.13.0`,
   Material 3 and the Kotlin `2.2.10` Compose compiler plugin. The BOM is pinned
   to the last stable line compatible with the existing compile SDK 36; the
   resolved Google Play Services audit is empty.
 - **Migration impact:** Must not open or delete legacy storage yet.
 - **User-visible impact:** The production package is unchanged. The separately
-  installable `app.roadstr.roadtest` harness exposes the internal shell and an
-  explicit foreground GPS permission/provider/fix status surface.
+  installable `app.roadstr.roadtest` harness exposes the internal shell, an
+  explicit foreground GPS permission/provider/fix status surface and a live
+  search-to-OSRM-route MapLibre journey flow.
 - **Tests:** JVM palette/ordinal/GPS-snapshot tests, Dart Gradle/manifest contract tests,
   merged-manifest inspection, ordinary debug packaging and independent native
   APK/dependency/permission inspection.
@@ -488,9 +491,10 @@ broader cross-language coverage and a native store are still required.
   `storage/NativeSearchHistoryStore.kt` now supplies encrypted atomic history
   persistence and transactional legacy extraction without opening Hive. The
   production Dart bounded client, provider clients and map screens use the
-  extracted request/response/ranking/history oracles. Native search-provider
-  startup/UI ownership, request generations and caching remain unwired;
-  headless native search execution and the detached history backend are green.
+  extracted request/response/ranking/history oracles. The side-by-side APK now
+  owns native search request generations, live destination handoff and live
+  OSRM route alternatives; production startup/cache/history ownership remains
+  unwired, while headless execution and the detached history backend are green.
 - **Dependencies:** OkHttp 4.12.0 and kotlinx-coroutines 1.10.2 are pinned to
   the versions already selected by MapLibre/AndroidX; no Google/Firebase/
   telemetry SDK.
