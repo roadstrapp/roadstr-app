@@ -36,7 +36,7 @@ migration or count as signing/update evidence.
 - Gradle enables ABI splits for `arm64-v8a`, `armeabi-v7a`, `x86_64` and a
   universal APK. The Flutter split-per-ABI command may apply version-code
   offsets; F-Droid intentionally builds the universal APK without that flag.
-- `metadata/app.roadstr.yml` is F-Droid metadata for `app.roadstr`, GPL-3.0,
+- `metadata/app.roadstr.yml` is F-Droid metadata for `app.roadstr`, MIT,
   version 0.5.11/code 2050, pinned to a full commit.
 - `zapstore.yaml` points at the GitHub repository; Fastlane metadata/changelogs
   are present.

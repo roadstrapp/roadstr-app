@@ -87,14 +87,14 @@ commit 2026-08-14.
 
 **Licensing — two different answers, and the second is the problem.**
 
-| Component | Licence | Compatible with Roadstr (GPL-3.0-only)? |
+| Component | Licence | Compatible with Roadstr (MIT)? |
 |---|---|---|
-| `OsmAnd-core` (C++ engine) | GPL-3.0-**or-later** | ✅ Yes |
+| `OsmAnd-core` (C++ engine) | GPL-3.0-**or-later** | ⚠️ Only if the distributed app is then GPL as a whole |
 | OsmAnd artwork, incl. map styles and icons | **CC-BY-NC-ND 4.0** | ❌ No |
 | Some artwork | "proprietary" (their own wording) | ❌ No |
 
 The engine code is cleanly usable. **The styles and icons are not.** `NC` forbids
-commercial use and `ND` forbids derivatives — both incompatible with GPL-3.0, and both
+commercial use and `ND` forbids derivatives — both incompatible with a free licence, and both
 disqualified from F-Droid as non-free.
 
 This matters more than it first appears: **a rendering engine without a style renders a

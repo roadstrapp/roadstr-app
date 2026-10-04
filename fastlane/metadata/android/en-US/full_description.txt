@@ -16,7 +16,7 @@ No account required. No tracking. No analytics SDKs. No first-party servers — 
 Log in with your existing Nostr private key (nsec) or via Amber (NIP-55 external signer). Your keypair is stored encrypted on-device.
 
 🌍 OPEN SOURCE
-Roadstr is fully open source (GPL-3.0). Source code: https://github.com/roadstrapp/roadstr-app
+Roadstr is fully open source (MIT). Source code: https://github.com/roadstrapp/roadstr-app
 
 FEATURES
 • Turn-by-turn voice navigation (27 languages)

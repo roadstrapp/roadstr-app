@@ -411,11 +411,13 @@ Code style:
 
 ## Licence
 
-[GNU GPL v3.0](LICENSE) — copyleft: free to use, study, modify and redistribute,
-verbatim or modified, provided that any distributed version (including forks
-and modified copies) remains licensed under the GPL and its complete
-corresponding source code is made available to recipients. Attribution
-appreciated.
+[MIT](LICENSE) — free to use, study, modify, redistribute and sell, as long as the
+copyright and licence notice stay with the copies. Roadstr is fully open source.
+
+Third-party components keep their own licences, listed in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). In particular the on-device voice
+bundles eSpeak NG (GPL-3.0-or-later), so an APK that includes it has to honour the
+GPL for that component.
 
 ---
 

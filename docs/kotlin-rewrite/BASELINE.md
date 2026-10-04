@@ -40,7 +40,7 @@ merge is authorized by this audit.
 | Gradle wrapper | 9.1.0 |
 | NDK | `27.1.12297006` is forced for subprojects; Flutter's default is overridden |
 | Flutter/Dart lock floor | Flutter >=3.44.0, Dart >=3.12.0 |
-| License | GPL-3.0-only |
+| License | GPL-3.0-only on `main`; MIT from the `kotlin-native` branch on |
 | Locales | 27 ARB sets and 27 generated localization classes |
 
 The Android module currently applies the Flutter Gradle plugin. A future native
