@@ -94,6 +94,5 @@ void main() {
     expect(source, contains('onRetry = null'));
     expect(source, isNot(contains('NativeTransitService')));
     expect(source, isNot(contains('.submitPlan(')));
-    expect(source, isNot(contains('.begin(')));
   });
 }

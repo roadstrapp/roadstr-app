@@ -63,6 +63,31 @@ data class NativeRouteConditionPresentation(
     val comment: String?,
 )
 
+data class NativeRouteWeatherPresentation(
+    val temperatureCelsius: Double,
+    val weatherCode: Int,
+    val windKilometresPerHour: Double,
+) {
+    init {
+        require(temperatureCelsius.isFinite() && temperatureCelsius in -100.0..100.0)
+        require(weatherCode in 0..99)
+        require(windKilometresPerHour.isFinite() && windKilometresPerHour in 0.0..500.0)
+    }
+
+    val emoji: String
+        get() = when {
+            weatherCode == 0 -> "☀️"
+            weatherCode <= 2 -> "🌤️"
+            weatherCode == 3 -> "☁️"
+            weatherCode <= 48 -> "🌫️"
+            weatherCode <= 55 -> "🌦️"
+            weatherCode <= 65 -> "🌧️"
+            weatherCode <= 77 -> "🌨️"
+            weatherCode <= 82 -> "🌦️"
+            else -> "⛈️"
+        }
+}
+
 data class NativeRoutePlanningSnapshot(
     val revision: Long,
     val status: NativeRoutePlanningStatus,
@@ -78,8 +103,10 @@ data class NativeRoutePlanningSnapshot(
     val arrivalLabel: String?,
     val conditions: List<NativeRouteConditionPresentation>,
     val trafficStatus: String?,
+    val weather: NativeRouteWeatherPresentation?,
     val avoidanceEnabled: Boolean,
     val avoidanceLoading: Boolean,
+    val imperialUnits: Boolean,
 ) {
     val canCalculate: Boolean
         get() = originQuery.isNotBlank() && stops.isNotEmpty() && stops.all { it.query.isNotBlank() }
@@ -102,8 +129,10 @@ data class NativeRoutePlanningSnapshot(
             arrivalLabel = null,
             conditions = emptyList(),
             trafficStatus = null,
+            weather = null,
             avoidanceEnabled = false,
             avoidanceLoading = false,
+            imperialUnits = false,
         )
     }
 }
@@ -259,6 +288,7 @@ class NativeRoutePlanningSession(
             stops = listOf(NativeRoutePlannerStop(nextStopId++, query(destinationQuery))),
             hasGps = hasGps,
             mode = mode,
+            imperialUnits = imperial,
         )
         true
     }
@@ -406,6 +436,19 @@ class NativeRoutePlanningSession(
         true
     }
 
+    fun updateWeather(revision: Long, weather: NativeRouteWeatherPresentation?): Boolean = synchronized(lock) {
+        val current = _state.value
+        if (
+            revision != this.revision ||
+            current.status != NativeRoutePlanningStatus.Alternatives ||
+            current.weather == weather
+        ) {
+            return false
+        }
+        _state.value = current.copy(weather = weather)
+        true
+    }
+
     fun confirmSelection(
         revision: Long,
         metadata: NativeRoutePreviewMetadata = NativeRoutePreviewMetadata(),
@@ -490,11 +533,14 @@ class NativeRoutePlanningSession(
     fun updateUnits(imperial: Boolean): Boolean = synchronized(lock) {
         if (this.imperial == imperial) return false
         this.imperial = imperial
-        if (candidates.isNotEmpty()) {
-            _state.value = _state.value.copy(
-                alternatives = NativeRoutePlanningPresenter.alternatives(candidates, imperial),
-            )
-        }
+        _state.value = _state.value.copy(
+            alternatives = if (candidates.isEmpty()) {
+                _state.value.alternatives
+            } else {
+                NativeRoutePlanningPresenter.alternatives(candidates, imperial)
+            },
+            imperialUnits = imperial,
+        )
         true
     }
 

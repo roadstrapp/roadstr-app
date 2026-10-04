@@ -17,6 +17,7 @@ import app.roadstr.feature.voice.NativeVoiceDirective
 import app.roadstr.feature.voice.NativeVoiceEngine
 import app.roadstr.feature.voice.NativeVoiceGateway
 import app.roadstr.feature.voice.NativeVoiceGender
+import app.roadstr.feature.voice.NativeVoiceFixedPhrase
 import app.roadstr.feature.voice.NativeVoiceGuidanceSession
 import app.roadstr.feature.voice.NativeVoiceInferencePolicy
 import app.roadstr.feature.voice.NativeVoiceRuntimeSnapshot
@@ -131,6 +132,25 @@ class NativeRoadTestVoiceGateway(context: Context) : NativeVoiceGateway {
         }
     }
 
+    override fun prewarmStart() {
+        if (muted || _state.value.status != NativeVoiceRuntimeStatus.Ready) return
+        scope.launch {
+            val configuration = synchronized(configurationLock) {
+                VoiceConfiguration(languageCode, gender, speed, volume)
+            }
+            val selection = NativeVoiceCatalog.selection(
+                configuration.languageCode,
+                configuration.gender,
+            ) ?: return@launch
+            if (engine.bundledPhrase(configuration.languageCode, configuration.gender, true) != null) {
+                return@launch
+            }
+            runCatching {
+                engine.synthesize(fixedPhrase(start = true), selection, configuration.speed)
+            }
+        }
+    }
+
     override fun announceStart() = submitPriority(fixedPhrase(start = true))
 
     override fun announceManeuver(instruction: String, distanceMeters: Int, nowMillis: Long) {
@@ -210,7 +230,14 @@ class NativeRoadTestVoiceGateway(context: Context) : NativeVoiceGateway {
                 configuration.gender,
             ) ?: return
             _state.value = NativeVoiceRuntimeSnapshot(NativeVoiceRuntimeStatus.Speaking, 1.0)
-            val audio = withTimeout(NativeVoiceGuidanceSession.MAX_UTTERANCE_WAIT_MILLIS) {
+            val fixed = when (text) {
+                fixedPhrase(start = true) -> true
+                fixedPhrase(start = false) -> false
+                else -> null
+            }
+            val audio = fixed?.let {
+                engine.bundledPhrase(configuration.languageCode, configuration.gender, it)
+            } ?: withTimeout(NativeVoiceGuidanceSession.MAX_UTTERANCE_WAIT_MILLIS) {
                 engine.synthesize(text, selection, configuration.speed)
             }
             player.play(audio, configuration.volume)
@@ -246,7 +273,7 @@ class NativeRoadTestVoiceGateway(context: Context) : NativeVoiceGateway {
         val language = synchronized(configurationLock) { languageCode }
         return if (start) {
             when (language) {
-                "it" -> "Partenza"
+                "it" -> "Partiamo!"
                 "es" -> "¡Vamos!"
                 "fr" -> "C'est parti !"
                 "ja" -> "出発します！"
@@ -288,13 +315,15 @@ private class NativeRoadTestNeuralVoiceEngine(
     context: Context,
     private val documentsDirectory: File,
 ) : Closeable {
+    private val applicationContext = context.applicationContext
     private val environment = OrtEnvironment.getEnvironment()
     private val phonemizer = NativeRoadTestEspeakPhonemizer(context, documentsDirectory)
     private val mutex = Mutex()
     private var session: OrtSession? = null
     private var sessionPath: String? = null
     private var kokoroVocabulary: Map<String, Int>? = null
-    private var piperPhonemeIds: Map<String, List<Int>>? = null
+    private var kokoroStyles: Pair<String, ByteArray>? = null
+    private var piperPhonemeIds: Pair<String, Map<String, List<Int>>>? = null
     private val validatedAssetPaths = mutableSetOf<String>()
     private val assetStore = NativeVoiceAssetStore(documentsDirectory)
     private val memoryCache = object : LinkedHashMap<String, NativePcmAudio>(32, 0.75f, true) {
@@ -302,6 +331,68 @@ private class NativeRoadTestNeuralVoiceEngine(
             eldest: MutableMap.MutableEntry<String, NativePcmAudio>?,
         ): Boolean = size > MAX_MEMORY_CACHE_ENTRIES
     }
+
+    fun bundledPhrase(
+        languageCode: String,
+        gender: NativeVoiceGender,
+        start: Boolean,
+    ): NativePcmAudio? {
+        val path = NativeVoiceCatalog.bundledPhrasePath(
+            languageCode = languageCode,
+            requestedGender = gender,
+            phrase = if (start) NativeVoiceFixedPhrase.LetsGo else NativeVoiceFixedPhrase.Arrived,
+        ) ?: return null
+        return runCatching {
+            applicationContext.assets.open(path.removePrefix("assets/")).use { input ->
+                decodePcm16Wave(input.readBytes())
+            }
+        }.getOrNull()
+    }
+
+    private fun decodePcm16Wave(bytes: ByteArray): NativePcmAudio {
+        require(bytes.size in 44..MAX_BUNDLED_WAVE_BYTES)
+        require(bytes.copyOfRange(0, 4).toString(Charsets.US_ASCII) == "RIFF")
+        require(bytes.copyOfRange(8, 12).toString(Charsets.US_ASCII) == "WAVE")
+        var offset = 12
+        var channels = 0
+        var sampleRate = 0
+        var bitsPerSample = 0
+        var dataOffset = -1
+        var dataLength = 0
+        while (offset + 8 <= bytes.size) {
+            val name = bytes.copyOfRange(offset, offset + 4).toString(Charsets.US_ASCII)
+            val length = littleEndianInt(bytes, offset + 4)
+            require(length >= 0 && offset + 8L + length <= bytes.size.toLong())
+            if (name == "fmt " && length >= 16) {
+                require(littleEndianShort(bytes, offset + 8) == 1)
+                channels = littleEndianShort(bytes, offset + 10)
+                sampleRate = littleEndianInt(bytes, offset + 12)
+                bitsPerSample = littleEndianShort(bytes, offset + 22)
+            } else if (name == "data") {
+                dataOffset = offset + 8
+                dataLength = length
+                break
+            }
+            offset += 8 + length + (length and 1)
+        }
+        require(channels == 1 && sampleRate in 8_000..96_000 && bitsPerSample == 16)
+        require(dataOffset >= 0 && dataLength > 0 && dataLength % 2 == 0)
+        val samples = FloatArray(dataLength / 2) { index ->
+            val byteOffset = dataOffset + index * 2
+            val value = (bytes[byteOffset].toInt() and 0xff) or (bytes[byteOffset + 1].toInt() shl 8)
+            value.toShort().toFloat() / 32768f
+        }
+        return NativePcmAudio(samples, sampleRate)
+    }
+
+    private fun littleEndianShort(bytes: ByteArray, offset: Int): Int =
+        (bytes[offset].toInt() and 0xff) or ((bytes[offset + 1].toInt() and 0xff) shl 8)
+
+    private fun littleEndianInt(bytes: ByteArray, offset: Int): Int =
+        (bytes[offset].toInt() and 0xff) or
+            ((bytes[offset + 1].toInt() and 0xff) shl 8) or
+            ((bytes[offset + 2].toInt() and 0xff) shl 16) or
+            ((bytes[offset + 3].toInt() and 0xff) shl 24)
 
     suspend fun synthesize(
         text: String,
@@ -345,7 +436,11 @@ private class NativeRoadTestNeuralVoiceEngine(
         val vocabulary = kokoroVocabulary ?: parseKokoroVocabulary(tokenizer).also {
             kokoroVocabulary = it
         }
-        val voiceBytes = voice.readBytes()
+        // ~0.5 MB per voice: read once per selected voice, not per phrase.
+        val voiceBytes = kokoroStyles
+            ?.takeIf { (path, _) -> path == voice.path }
+            ?.second
+            ?: voice.readBytes().also { bytes -> kokoroStyles = voice.path to bytes }
         require(voiceBytes.size % Float.SIZE_BYTES == 0)
         val inputs = NativeVoiceInferencePolicy.kokoroInputs(
             ipa = ipa,
@@ -395,9 +490,11 @@ private class NativeRoadTestNeuralVoiceEngine(
     ): NativePcmAudio {
         val model = requiredFile("piper/${selection.voiceName}.onnx")
         val config = requiredFile("piper/${selection.voiceName}.onnx.json")
-        val idMap = piperPhonemeIds ?: parsePiperPhonemeIds(config).also {
-            piperPhonemeIds = it
-        }
+        // Keyed by config path: each Piper voice ships its own phoneme map.
+        val idMap = piperPhonemeIds
+            ?.takeIf { (path, _) -> path == config.path }
+            ?.second
+            ?: parsePiperPhonemeIds(config).also { piperPhonemeIds = config.path to it }
         val inputs = NativeVoiceInferencePolicy.piperInputs(ipa, idMap, speed)
         val activeSession = session(model)
         OnnxTensor.createTensor(
@@ -484,11 +581,14 @@ private class NativeRoadTestNeuralVoiceEngine(
         session?.close()
         session = null
         sessionPath = null
+        kokoroStyles = null
+        piperPhonemeIds = null
         phonemizer.close()
         memoryCache.clear()
     }
 
     private companion object {
+        const val MAX_BUNDLED_WAVE_BYTES = 4 * 1024 * 1024
         const val MAX_MEMORY_CACHE_ENTRIES = 24
     }
 }
@@ -703,6 +803,13 @@ private class NativeRoadTestPcmPlayer(context: Context) : Closeable {
                     offset += count
                 }
             }
+            // The head must reach the last written frame. If it stops moving
+            // while the track is meant to be playing (an underrun the HAL never
+            // recovers from, a device-specific start threshold), give up on
+            // this phrase: without a bound the wait held playbackLock forever
+            // and every later instruction queued silently behind it.
+            var lastHead = -1L
+            var stalledMillis = 0L
             while (activeTrack.playbackHeadPosition.toLong() < samples.size.toLong()) {
                 when (focus.state.value) {
                     NativeVoiceAudioFocusState.LostTransiently -> activeTrack.pause()
@@ -714,6 +821,11 @@ private class NativeRoadTestPcmPlayer(context: Context) : Closeable {
                     -> return
                     NativeVoiceAudioFocusState.Pending -> Unit
                 }
+                val head = activeTrack.playbackHeadPosition.toLong()
+                val paused = focus.state.value == NativeVoiceAudioFocusState.LostTransiently
+                stalledMillis = if (head != lastHead || paused) 0L else stalledMillis + PLAYBACK_POLL_MILLIS
+                lastHead = head
+                if (stalledMillis >= PLAYBACK_STALL_MILLIS) return
                 delay(PLAYBACK_POLL_MILLIS)
             }
         } finally {
@@ -744,5 +856,6 @@ private class NativeRoadTestPcmPlayer(context: Context) : Closeable {
         const val FOCUS_WAIT_MILLIS = 3_000L
         const val PLAYBACK_CHUNK_SAMPLES = 8_192
         const val PLAYBACK_POLL_MILLIS = 20L
+        const val PLAYBACK_STALL_MILLIS = 2_000L
     }
 }

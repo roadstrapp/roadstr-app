@@ -26,6 +26,7 @@ interface NativeVoiceGateway : Closeable {
     )
 
     fun downloadAssets()
+    fun prewarmStart() = Unit
     fun announceStart()
     fun announceManeuver(instruction: String, distanceMeters: Int, nowMillis: Long)
     fun announceArrival()

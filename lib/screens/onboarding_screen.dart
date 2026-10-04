@@ -12,7 +12,6 @@
 import 'dart:async';
 import 'package:amberflutter/amberflutter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:nostr_tools/nostr_tools.dart' show KeyApi;
@@ -26,6 +25,7 @@ import '../services/nostr_relay_service.dart';
 import '../services/profile_visibility_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/design/roadstr_glass.dart';
+import '../services/app_secure_storage.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback onComplete;
@@ -40,7 +40,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _page = 0;
 
   // ── Nostr identity state ────────────────────────────────────────────────────
-  static const _st = FlutterSecureStorage();
+  static const _st = appSecureStorage;
   static const _kPriv = 'nostr_priv_hex';
   static const _kPub = 'nostr_pub_hex';
   static const _kFlavor = 'nostr_flavor';

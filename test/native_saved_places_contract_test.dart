@@ -89,17 +89,14 @@ void main() {
     expect(state, isNot(contains('FavoritesSyncService')));
   });
 
-  test('private shell packages saved places without reading or activating data',
-      () {
+  test('private shell wires saved places to the host, not to storage', () {
     final source = shell.readAsStringSync();
 
     expect(source, contains('NativeSavedPlacesSession()'));
     expect(source, contains('NativeSavedPlacesPanel('));
-    expect(source, contains('onExport = {}'));
-    expect(source, contains('onImport = {}'));
-    expect(source, contains('onNavigateParking = {}'));
-    expect(source, isNot(contains('savedPlacesSession.show(')));
-    expect(source, isNot(contains('savedPlacesSession.mergeImported(')));
+    expect(source, contains('onExport = { nostrHost?.exportFavorites() }'));
+    expect(source, contains('onImport = { nostrHost?.requestImport() }'));
+    expect(source, contains('onNavigateParking = { parking ->'));
     expect(source, isNot(contains("Hive.box('settings')")));
     expect(source, isNot(contains('FilePicker')));
   });

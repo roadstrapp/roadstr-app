@@ -76,4 +76,40 @@ void main() {
         greaterThanOrEqualTo(2));
     expect(gps.contains('forceAndroidLocationManager: true'), isTrue);
   });
+
+  test('the separate native road-test build refuses Google groups too', () {
+    // native-android is its own Gradle build: the root exclusions above do
+    // not apply to it, so it carries its own.
+    final gradle = File('native-android/build.gradle.kts').readAsStringSync();
+    for (final group in [
+      'com.google.android.gms',
+      'com.google.android.play',
+      'com.google.firebase',
+      'com.google.mlkit',
+    ]) {
+      expect(gradle.contains('exclude(group = "$group")'), isTrue,
+          reason: '$group must stay excluded from the native build');
+    }
+  });
+
+  test('no Kotlin source or manifest names a Google service', () {
+    final banned = RegExp(
+        r'com\.google\.(android\.(gms|play)|firebase|mlkit)|FusedLocation|'
+        r'play-services|SafetyNet|com\.android\.vending');
+    final offenders = <String>[];
+    for (final root in ['android/app/src/main', 'native-android/app/src/main']) {
+      for (final entity in Directory(root).listSync(recursive: true)) {
+        if (entity is! File) continue;
+        final path = entity.path;
+        if (!(path.endsWith('.kt') ||
+            path.endsWith('.java') ||
+            path.endsWith('.xml') ||
+            path.endsWith('.cpp'))) {
+          continue;
+        }
+        if (banned.hasMatch(entity.readAsStringSync())) offenders.add(path);
+      }
+    }
+    expect(offenders, isEmpty);
+  });
 }

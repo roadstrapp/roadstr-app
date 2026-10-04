@@ -73,7 +73,7 @@ void main() {
     expect(shellSource, contains('NativeMapPointOverlaySession'));
     expect(shellSource, contains('pointOverlay = pointOverlayState'));
     expect(shellSource, isNot(contains('cachedCameras')));
-    expect(shellSource, isNot(contains('pointOverlaySession.replace(')));
+    expect(shellSource, contains('pointOverlaySession.replace('));
   });
 
   test('native alternative tap keeps Flutter strict 60 metre oracle', () {

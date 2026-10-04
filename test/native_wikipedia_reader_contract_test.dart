@@ -77,14 +77,12 @@ void main() {
     expect(source, isNot(contains('Intent(')));
   });
 
-  test('private shell packages the reader without opening it or the browser',
-      () {
+  test('private shell hands links to the host instead of a browser', () {
     final source = shell.readAsStringSync();
 
     expect(source, contains('NativeWikipediaSession()'));
     expect(source, contains('NativeWikipediaReader('));
-    expect(source, contains('onOpenExternal = {}'));
-    expect(source, isNot(contains('wikipediaSession.open(')));
+    expect(source, contains('onOpenExternal = { uri -> onOpenExternal(uri.toString()) }'));
     expect(source, isNot(contains('Intent(')));
     expect(source, isNot(contains('startActivity(')));
   });

@@ -38,7 +38,6 @@ import '../services/speed_camera_service.dart';
 import '../services/traffic_light_service.dart';
 import '../services/ztl_service.dart';
 import 'package:amberflutter/amberflutter.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../l10n/app_localizations.dart';
 import '../models/favorite_place.dart';
 import '../models/activity_notification.dart';
@@ -80,9 +79,11 @@ import '../theme/theme_provider.dart';
 import '../utils/geo.dart';
 import '../utils/heading_filter.dart';
 import '../utils/off_route_detector.dart';
+import '../utils/reroute_backoff.dart';
 import '../utils/settings_listenable.dart';
 import '../utils/ui_language.dart';
 import '../utils/units.dart';
+import '../services/app_secure_storage.dart';
 
 /// Warning red for limited-traffic zones. Deliberately not the theme accent:
 /// this must mean the same thing whichever accent colour the user picked, and
@@ -1479,7 +1480,12 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
         final capturedStepIdx = _currentStepIdx;
         final distAtAdvance = distToNext;
         _missedTurnTimer = Timer(const Duration(milliseconds: 5000), () {
-          if (!mounted || !_isNavigating || _isRerouting) return;
+          if (!mounted ||
+              !_isNavigating ||
+              _isRerouting ||
+              !_rerouteBackoff.allowsAttempt) {
+            return;
+          }
           if (_currentStepIdx != capturedStepIdx) return; // naturally advanced
           if (_route == null || newNextIdx >= _route!.steps.length) return;
           final currentDist = NavigationGuidance.remainingToManeuver(
@@ -1766,8 +1772,15 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// right now — see [OffRouteDetector] for the field report that needed it.
   final _offRoute = OffRouteDetector();
 
+  /// Spaces out automatic reroutes after a failed one — see [RerouteBackoff].
+  final _rerouteBackoff = RerouteBackoff();
+
   void _checkOffRoute() {
-    if (_route == null || !_isNavigating || !_hasRealFix || _isRerouting) {
+    if (_route == null ||
+        !_isNavigating ||
+        !_hasRealFix ||
+        _isRerouting ||
+        !_rerouteBackoff.allowsAttempt) {
       return;
     }
     if (_speed < 1) return; // truly stationary (red light etc.) — skip
@@ -2153,13 +2166,16 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       }
       routes = await _withRoundaboutTopology(routes);
     } catch (_) {
+      _rerouteBackoff.recordFailure();
       if (mounted) setState(() => _isRerouting = false);
       return;
     }
     if (!mounted || routes.isEmpty) {
+      _rerouteBackoff.recordFailure();
       if (mounted) setState(() => _isRerouting = false);
       return;
     }
+    _rerouteBackoff.reset();
 
     if (wantAlternatives && routes.length > 1) {
       // Third+ consecutive reroute: show alternatives panel and reset counter
@@ -2393,6 +2409,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
       if (!_gpsRequested) _requestGps();
       return;
     }
+    if (!silent) _rerouteBackoff.reset();
     // Only save to history on explicit user-initiated navigation, not reroutes.
     if (!silent && _destination != null) {
       final label =
@@ -4431,7 +4448,7 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
     Hive.box('settings').delete(SearchHistoryProtocol.storageKey);
   }
 
-  static const _secStorage = FlutterSecureStorage();
+  static const _secStorage = appSecureStorage;
 
   Future<void> _showRoadEventDetail(RoadEvent event) async {
     final c = RoadstrColors.of(context);

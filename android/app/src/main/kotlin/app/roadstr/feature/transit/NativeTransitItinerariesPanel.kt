@@ -63,7 +63,6 @@ fun NativeTransitItinerariesPanel(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .navigationBarsPadding()
             .semantics { paneTitle = snapshot.destinationLabel ?: transitTitle },
         color = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
@@ -72,7 +71,11 @@ fun NativeTransitItinerariesPanel(
         tonalElevation = 6.dp,
         shadowElevation = 8.dp,
     ) {
-        Column(modifier = Modifier.padding(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 12.dp)) {
+        Column(
+            modifier = Modifier
+                .navigationBarsPadding()
+                .padding(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 12.dp),
+        ) {
             TransitPanelHeader(
                 title = snapshot.destinationLabel ?: transitTitle,
                 onCancel = onCancel,

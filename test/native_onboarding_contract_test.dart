@@ -94,16 +94,13 @@ void main() {
     expect(source, isNot(contains('Hive.')));
   });
 
-  test('private shell packages onboarding without owning startup or user data',
-      () {
+  test('private shell packages onboarding without owning user data', () {
     final source = shell.readAsStringSync();
 
     expect(source, contains('NativeOnboardingSession()'));
     expect(source, contains('NativeOnboardingFlow('));
-    expect(source, isNot(contains('onboardingSession.begin(')));
-    expect(source, isNot(contains('onboardingSession.updateIdentity(')));
-    expect(source, isNot(contains('onboardingSession.updateLocation(')));
-    expect(source, isNot(contains('onboardingSession.updateVoice(')));
+    expect(source, isNot(contains('Hive.')));
+    expect(source, isNot(contains('FlutterSecureStorage')));
   });
 }
 

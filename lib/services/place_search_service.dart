@@ -205,9 +205,9 @@ class PlaceSearchService {
   /// query, distance decides — not a finer textual-quality difference that a
   /// franchise's own branches routinely produce just by how each one happens
   /// to be worded on the sign ("Mercatino dell'Usato" vs "Mercatino Usato -
-  /// Faenza" score noticeably differently as plain text despite being the
+  /// Sintra" score noticeably differently as plain text despite being the
   /// exact same chain a driver searched for). A trailing city name in the
-  /// query — "mercatino usato faenza" — outranks plain distance: it is a
+  /// query — "mercatino usato sintra" — outranks plain distance: it is a
   /// stronger, explicit signal of intent than "closer to where I am now".
   /// Caps the list at a scannable length.
   static List<NominatimResult> rankResults(

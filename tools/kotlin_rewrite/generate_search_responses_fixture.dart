@@ -130,12 +130,12 @@ Iterable<_Case> _cases() sync* {
       },
     ),
     _nominatim(
-      lat: '44.285',
-      lon: '11.882',
-      display: 'Usato Faenza, Faenza, Italia',
+      lat: '38.798',
+      lon: '-9.388',
+      display: 'Usato Sintra, Sintra, Portugal',
       cls: 'shop',
       type: 'second_hand',
-      address: const {'town': 'Faenza'},
+      address: const {'town': 'Sintra'},
       extra: const {'brand': " Mercatino dell'Usato "},
     ),
     _nominatim(

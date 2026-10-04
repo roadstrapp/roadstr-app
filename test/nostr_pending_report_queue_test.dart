@@ -181,4 +181,27 @@ void main() {
       [PendingReportDisposition.expired, PendingReportDisposition.invalid],
     );
   });
+
+  test('a report queued while the flush awaited the relay survives the '
+      'final write', () {
+    Map<String, dynamic> entry(String id) => {
+          'event': {'id': id},
+          'expiresAt': 500,
+        };
+    final snapshot = [entry('published'), entry('retry')];
+    // Hive as it stands when the flush finishes: the snapshot, plus one
+    // report the driver filed while the relay was being awaited.
+    final current = [...snapshot, entry('filed-during-flush')];
+
+    final persisted = pendingReportsAfterFlush(
+      snapshot: snapshot,
+      current: current,
+      remaining: [entry('retry')],
+    );
+
+    expect(
+      persisted.map((e) => (e['event'] as Map)['id']),
+      ['retry', 'filed-during-flush'],
+    );
+  });
 }

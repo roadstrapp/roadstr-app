@@ -4,6 +4,7 @@ import app.roadstr.core.geo.GeoPoint
 import app.roadstr.core.geo.GeoMath
 import app.roadstr.core.geo.RouteProgress
 import app.roadstr.core.navigation.OffRouteDetector
+import app.roadstr.core.navigation.RouteLocalBearing
 import app.roadstr.core.network.RoutingParsedRoute
 import app.roadstr.feature.map.NativeMapPoint
 import app.roadstr.feature.map.NativeRouteOverlaySession
@@ -23,6 +24,7 @@ data class NativeActiveNavigationSnapshot(
     val progressMeters: Double,
     val routePointIndex: Int,
     val displayedStepIndex: Int?,
+    val mode: NativeRouteTransportMode?,
     val voiceMuted: Boolean,
     val rerouteRequest: NativeNavigationRerouteRequest?,
     val voiceCue: NativeNavigationVoiceCue?,
@@ -39,6 +41,7 @@ data class NativeActiveNavigationSnapshot(
                 progressMeters = 0.0,
                 routePointIndex = 0,
                 displayedStepIndex = null,
+                mode = null,
                 voiceMuted = false,
                 rerouteRequest = null,
                 voiceCue = null,
@@ -94,6 +97,10 @@ class NativeActiveNavigationSession(
     private var speedKilometresPerHour = 0.0
     private var altitudeMeters: Double? = null
     private var voiceMuted = false
+    private var showAltitude = false
+    private var imperialUnits = false
+    private var speedometerStyle = NativeSpeedometerStyle.Classic
+    private var externalSpeedLimitKmh: Int? = null
     private var nowLabel = ""
     private var minimumDestinationDistanceMeters = Double.POSITIVE_INFINITY
     private var rerouteSequence = 0L
@@ -105,6 +112,60 @@ class NativeActiveNavigationSession(
     private val offRouteDetector = OffRouteDetector()
 
     val state: StateFlow<NativeActiveNavigationSnapshot> = _state.asStateFlow()
+
+    /** Applies the live appearance choices to the HUD without restarting navigation. */
+    fun updatePresentationSettings(
+        revision: Long,
+        showAltitude: Boolean,
+        imperialUnits: Boolean,
+        speedometerStyle: NativeSpeedometerStyle,
+    ): Boolean = synchronized(lock) {
+        if (revision != this.revision && route != null) return false
+        val changed = this.showAltitude != showAltitude ||
+            this.imperialUnits != imperialUnits ||
+            this.speedometerStyle != speedometerStyle
+        this.showAltitude = showAltitude
+        this.imperialUnits = imperialUnits
+        this.speedometerStyle = speedometerStyle
+        val currentRoute = route ?: return changed
+        hudSession.update(
+            revision = this.revision,
+            input = input(
+                route = currentRoute,
+                stepCumulative = stepCumulative,
+                geometryTotalMeters = cumulative.lastOrNull() ?: currentRoute.totalDistanceM,
+                progressMeters = progressMeters,
+                passedStepIndex = passedStepIndex,
+                speedKilometresPerHour = speedKilometresPerHour,
+                altitudeMeters = altitudeMeters,
+                voiceMuted = voiceMuted,
+            ),
+            nowLabel = nowLabel,
+        ) || changed
+    }
+
+    /** Refreshes the Overpass fallback used when the route carries no maxspeed annotation. */
+    fun updateExternalSpeedLimit(revision: Long, speedLimitKmh: Int?): Boolean = synchronized(lock) {
+        if (revision != this.revision || route == null) return false
+        require(speedLimitKmh == null || speedLimitKmh in 5..300)
+        if (externalSpeedLimitKmh == speedLimitKmh) return false
+        externalSpeedLimitKmh = speedLimitKmh
+        val currentRoute = route ?: return false
+        hudSession.update(
+            revision = revision,
+            input = input(
+                route = currentRoute,
+                stepCumulative = stepCumulative,
+                geometryTotalMeters = cumulative.lastOrNull() ?: currentRoute.totalDistanceM,
+                progressMeters = progressMeters,
+                passedStepIndex = passedStepIndex,
+                speedKilometresPerHour = speedKilometresPerHour,
+                altitudeMeters = altitudeMeters,
+                voiceMuted = voiceMuted,
+            ),
+            nowLabel = nowLabel,
+        )
+    }
 
     fun start(
         revision: Long,
@@ -147,6 +208,7 @@ class NativeActiveNavigationSession(
         progressMeters = 0.0
         lastFixSequence = NO_FIX_SEQUENCE
         speedKilometresPerHour = 0.0
+        externalSpeedLimitKmh = null
         altitudeMeters = null
         voiceMuted = false
         this.nowLabel = nowLabel.take(MAX_NOW_LABEL_CHARS)
@@ -419,6 +481,37 @@ class NativeActiveNavigationSession(
         )
     }
 
+    /**
+     * The route's own direction under [point], for the heading filter's
+     * route-snap easing. Same rule as the Flutter screen: among nearby segments
+     * that are as close as the nearest one (with slack), take the one whose
+     * start lies nearest to how far along the route the driver already is, so
+     * a route that doubles back over itself yields the leg being driven.
+     */
+    fun routeLocalBearingAt(point: GeoPoint): RouteLocalBearing? = synchronized(lock) {
+        if (route == null) return null
+        val distance = nearestActiveRouteDistance(point) ?: return null
+        val tolerance = max(distance * SEGMENT_TOLERANCE_FACTOR, MIN_SEGMENT_TOLERANCE_METERS)
+        val lastSegment = points.size - 2
+        var bestIndex = routeSegmentIndex
+        var bestGap = Double.POSITIVE_INFINITY
+        for (index in max(0, routeSegmentIndex - LOCAL_BEARING_WINDOW)..
+            min(lastSegment, routeSegmentIndex + LOCAL_BEARING_WINDOW)) {
+            if (GeoMath.distanceToSegmentMeters(point, points[index], points[index + 1]) > tolerance) {
+                continue
+            }
+            val gap = kotlin.math.abs(cumulative[index] - progressMeters)
+            if (gap < bestGap) {
+                bestGap = gap
+                bestIndex = index
+            }
+        }
+        RouteLocalBearing(
+            distanceMeters = distance,
+            bearingDegrees = GeoMath.bearingBetween(points[bestIndex], points[bestIndex + 1]),
+        )
+    }
+
     private fun nearestActiveRouteDistance(point: GeoPoint): Double? {
         if (points.size < 2) return null
         val lastSegment = points.size - 2
@@ -466,6 +559,7 @@ class NativeActiveNavigationSession(
             progressMeters = 0.0,
             routePointIndex = 0,
             displayedStepIndex = null,
+            mode = null,
             voiceMuted = false,
             rerouteRequest = null,
             voiceCue = null,
@@ -491,6 +585,7 @@ class NativeActiveNavigationSession(
         progressMeters = 0.0
         lastFixSequence = NO_FIX_SEQUENCE
         speedKilometresPerHour = 0.0
+        externalSpeedLimitKmh = null
         altitudeMeters = null
         voiceMuted = false
         nowLabel = ""
@@ -556,7 +651,7 @@ class NativeActiveNavigationSession(
         val remainingFraction = 1.0 - fraction
         val speedLimit = route.speedLimits
             .lastOrNull { value -> value.distFromStartM <= providerProgress }
-            ?.speedKmh
+            ?.speedKmh ?: externalSpeedLimitKmh
         return NativeNavigationHudInput(
             route = route,
             stepIndex = displayedStepIndex,
@@ -566,8 +661,10 @@ class NativeActiveNavigationSession(
             speedKmh = speedKilometresPerHour,
             speedLimitKmh = speedLimit,
             altitudeM = altitudeMeters,
-            showAltitude = false,
+            showAltitude = showAltitude,
             voiceMuted = voiceMuted,
+            speedometerStyle = speedometerStyle,
+            imperial = imperialUnits,
         )
     }
 
@@ -580,6 +677,7 @@ class NativeActiveNavigationSession(
             progressMeters = progressMeters,
             routePointIndex = routePointIndex,
             displayedStepIndex = hudSession.state.value.current?.index,
+            mode = mode,
             voiceMuted = voiceMuted,
             rerouteRequest = pendingReroute,
             voiceCue = voiceCue,
@@ -619,6 +717,9 @@ class NativeActiveNavigationSession(
         const val ROUTE_SEGMENT_BACK_WINDOW = 100
         const val ROUTE_SEGMENT_AHEAD_WINDOW = 500
         const val ROUTE_SEGMENT_RECOVERY_METERS = 100.0
+        private const val LOCAL_BEARING_WINDOW = 120
+        private const val SEGMENT_TOLERANCE_FACTOR = 1.6
+        private const val MIN_SEGMENT_TOLERANCE_METERS = 20.0
         const val FAR_TRIGGER_MARGIN_METERS = 20.0
         const val NEAR_TRIGGER_MARGIN_METERS = 30.0
         const val FAR_NEAR_GAP_METERS = 20.0

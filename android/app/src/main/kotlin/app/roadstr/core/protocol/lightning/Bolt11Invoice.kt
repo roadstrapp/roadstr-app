@@ -1,5 +1,6 @@
 package app.roadstr.core.protocol.lightning
 
+import app.roadstr.core.protocol.nostr.asciiHexDigit
 import java.math.BigInteger
 import java.security.MessageDigest
 
@@ -167,11 +168,11 @@ class Bolt11Invoice private constructor(
 
         private fun hexBytes(raw: String): ByteArray? {
             val value = raw.trim().lowercase()
-            if (value.isEmpty() || value.length % 2 != 0 || value.any { it.digitToIntOrNull(16) == null }) {
+            if (value.isEmpty() || value.length % 2 != 0 || value.any { asciiHexDigit(it) < 0 }) {
                 return null
             }
             return ByteArray(value.length / 2) { index ->
-                value.substring(index * 2, index * 2 + 2).toInt(16).toByte()
+                ((asciiHexDigit(value[index * 2]) shl 4) or asciiHexDigit(value[index * 2 + 1])).toByte()
             }
         }
 

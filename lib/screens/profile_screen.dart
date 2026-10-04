@@ -24,7 +24,6 @@ import 'dart:convert';
 import 'package:amberflutter/amberflutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:nostr_tools/nostr_tools.dart' show KeyApi;
 import '../l10n/app_localizations.dart';
@@ -38,6 +37,7 @@ import '../theme/app_theme.dart';
 import '../utils/units.dart';
 import '../widgets/design/roadstr_glass.dart';
 import '../widgets/sheets/road_event_sheets.dart' show SpeedLimitDialog;
+import '../services/app_secure_storage.dart';
 
 class ProfileScreen extends StatefulWidget {
   /// When set, this is a public profile opened from another user's report.
@@ -51,7 +51,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   /// Secure storage backed by the Android Keystore (EncryptedSharedPreferences).
   /// Used for all Nostr key material — never stored in plain SharedPreferences.
-  static const _st = FlutterSecureStorage();
+  static const _st = appSecureStorage;
   static const _kPriv = 'nostr_priv_hex';
   static const _kPub = 'nostr_pub_hex';
 

@@ -240,7 +240,10 @@ private class NativeWikipediaWebViewHost private constructor(
                 settings.setGeolocationEnabled(false)
                 settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
                 settings.mediaPlaybackRequiresUserGesture = true
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) settings.safeBrowsingEnabled = true
+                // Off: navigation is already confined to Wikipedia articles,
+                // so Safe Browsing would only report every visited URL's hash
+                // prefix to Google's service and protect nothing.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) settings.safeBrowsingEnabled = false
                 cookies.setAcceptThirdPartyCookies(this, false)
                 clearCache(true)
                 clearHistory()

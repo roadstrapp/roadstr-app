@@ -58,6 +58,10 @@ object RoadstrThemeTokens {
     const val DARK_TEXT_PRIMARY_ARGB = 0xFFEEEEF8
     const val DARK_TEXT_SECONDARY_ARGB = 0xFF8888A8
 
+    /** Main's raised tone (RoadstrColors.surface3); `surfaceVariant` in Compose. */
+    const val LIGHT_SURFACE3_ARGB = 0xFFF0F0F0
+    const val DARK_SURFACE3_ARGB = 0xFF22223A
+
     fun palette(themeId: RoadstrThemeId): RoadstrThemePalette =
         if (themeId.dark) {
             RoadstrThemePalette(
@@ -91,6 +95,11 @@ fun roadstrColorScheme(themeId: RoadstrThemeId): ColorScheme {
             surface = Color(palette.surfaceArgb),
             onSurface = Color(palette.textPrimaryArgb),
             outline = Color(palette.borderArgb),
+            // Without these Material falls back to its own baseline greys and
+            // purples, which are not Roadstr's.
+            surfaceVariant = Color(RoadstrThemeTokens.DARK_SURFACE3_ARGB),
+            onSurfaceVariant = Color(palette.textSecondaryArgb),
+            outlineVariant = Color(palette.borderArgb),
             primaryContainer = accent.copy(alpha = 0.20f),
             onPrimaryContainer = accent,
         )
@@ -102,6 +111,9 @@ fun roadstrColorScheme(themeId: RoadstrThemeId): ColorScheme {
             surface = Color(palette.surfaceArgb),
             onSurface = Color(palette.textPrimaryArgb),
             outline = Color(palette.borderArgb),
+            surfaceVariant = Color(RoadstrThemeTokens.LIGHT_SURFACE3_ARGB),
+            onSurfaceVariant = Color(palette.textSecondaryArgb),
+            outlineVariant = Color(palette.borderArgb),
             primaryContainer = accent.copy(alpha = 0.12f),
             onPrimaryContainer = accent,
         )

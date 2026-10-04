@@ -290,3 +290,56 @@ class NativeLocationServiceTest {
         override suspend fun lastKnown(): NativeRawLocation? = null
     }
 }
+
+class NativeLocationCachedFixTest {
+    private fun fix(
+        time: Long,
+        accuracy: Double,
+        provider: String?,
+    ) = NativeRawLocation(
+        latitude = 38.7,
+        longitude = -9.1,
+        speedMetersPerSecond = 0.0,
+        accuracyMeters = accuracy,
+        bearingDegrees = -1.0,
+        altitudeMeters = 0.0,
+        timestampMillis = time,
+        provider = provider,
+    )
+
+    @Test
+    fun `any fix beats nothing`() {
+        org.junit.Assert.assertTrue(
+            NativeLocationPolicy.isBetterCachedFix(fix(1_000, 900.0, "network"), null),
+        )
+    }
+
+    @Test
+    fun `a fix over two minutes newer wins even when much less accurate`() {
+        val gps = fix(0, 5.0, "gps")
+        val network = fix(3 * 60_000L, 900.0, "network")
+        org.junit.Assert.assertTrue(NativeLocationPolicy.isBetterCachedFix(network, gps))
+        org.junit.Assert.assertFalse(NativeLocationPolicy.isBetterCachedFix(gps, network))
+    }
+
+    @Test
+    fun `within two minutes the more accurate fix wins`() {
+        val gps = fix(0, 8.0, "gps")
+        val network = fix(30_000L, 800.0, "network")
+        org.junit.Assert.assertFalse(NativeLocationPolicy.isBetterCachedFix(network, gps))
+        org.junit.Assert.assertTrue(
+            NativeLocationPolicy.isBetterCachedFix(fix(0, 8.0, "gps"), network),
+        )
+    }
+
+    @Test
+    fun `a newer fix from the same provider survives modest accuracy loss`() {
+        val older = fix(0, 20.0, "gps")
+        org.junit.Assert.assertTrue(
+            NativeLocationPolicy.isBetterCachedFix(fix(10_000L, 150.0, "gps"), older),
+        )
+        org.junit.Assert.assertFalse(
+            NativeLocationPolicy.isBetterCachedFix(fix(10_000L, 150.0, "network"), older),
+        )
+    }
+}

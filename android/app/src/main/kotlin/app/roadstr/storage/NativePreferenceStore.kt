@@ -211,6 +211,7 @@ object NativePreferenceSchema {
             input = base.copy(
                 themeId = RoadstrThemeId.fromStoredOrdinal(integer("themeId") ?: 0),
                 autoDarkEnabled = bool(NativeSettingsBooleanKey.AutoDark),
+                darkMapEnabled = bool(NativeSettingsBooleanKey.DarkMap),
                 languageCode = language,
                 profilePublic = bool(NativeSettingsBooleanKey.ProfilePublic),
                 avoidUnpavedRoads = bool(NativeSettingsBooleanKey.AvoidUnpavedRoads),

@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+private const val DEFAULT_ROUTE_FIT_PADDING_PX = 96
+
 enum class NativeMapCameraMotion {
     Move,
     Ease,
@@ -20,6 +22,20 @@ data class NativeMapCameraCommand(
     val pitchDegrees: Double,
     val motion: NativeMapCameraMotion,
     val durationMillis: Int,
+    val bounds: NativeMapCameraBounds? = null,
+    val paddingLeftPixels: Double = 0.0,
+    val paddingTopPixels: Double = 0.0,
+    val paddingRightPixels: Double = 0.0,
+    val paddingBottomPixels: Double = 0.0,
+)
+
+data class NativeMapCameraBounds(
+    val southWest: NativeMapPoint,
+    val northEast: NativeMapPoint,
+    val paddingLeftPixels: Int = DEFAULT_ROUTE_FIT_PADDING_PX,
+    val paddingTopPixels: Int = DEFAULT_ROUTE_FIT_PADDING_PX,
+    val paddingRightPixels: Int = DEFAULT_ROUTE_FIT_PADDING_PX,
+    val paddingBottomPixels: Int = DEFAULT_ROUTE_FIT_PADDING_PX,
 )
 
 data class NativeMapCameraSessionState(
@@ -182,6 +198,104 @@ class NativeMapCameraSession {
         true
     }
 
+    /**
+     * Legacy cursor-centred snap retained for tests and non-HUD callers.
+     * Turn-by-turn navigation must use [recenter], whose forward camera target
+     * keeps the vehicle clear of the bottom navigation panel.
+     */
+    fun recenterOnCursor(nowMillis: Long): Boolean = synchronized(lock) {
+        require(nowMillis >= 0) { "Camera frame time must be non-negative" }
+        val currentFix = fix ?: return false
+        followEnabled = true
+        val target = CameraFollowState(
+            latitude = currentFix.point.latitude,
+            longitude = currentFix.point.longitude,
+            zoom = zoom,
+            rotationDegrees = if (headingUp) currentFix.headingDegrees else 0.0,
+        )
+        current = target
+        lastFrameMillis = nowMillis
+        frameGate.reset()
+        frameGate.markSent(target, gateTime(nowMillis))
+        command = target.toCommand(
+            motion = NativeMapCameraMotion.Ease,
+            durationMillis = RECENTER_DURATION_MILLIS,
+        )
+        forceNextCommand = false
+        frameActive = navigating
+        publish()
+        true
+    }
+
+    /** Explicit destination focus used by the route planner's “Naviga qui”. */
+    fun focus(point: NativeMapPoint, nowMillis: Long, zoom: Double = DESTINATION_ZOOM): Boolean =
+        synchronized(lock) {
+            require(nowMillis >= 0) { "Camera frame time must be non-negative" }
+            requireValidPoint(point)
+            require(zoom.isFinite() && zoom in MIN_ZOOM..MAX_ZOOM) {
+                "Camera zoom is outside the supported range"
+            }
+            followEnabled = false
+            frameActive = false
+            current = null
+            lastFrameMillis = null
+            frameGate.reset()
+            commandSequence += 1
+            command = NativeMapCameraCommand(
+                sequence = commandSequence,
+                center = point,
+                zoom = zoom,
+                bearingDegrees = 0.0,
+                pitchDegrees = FREE_DRIVE_PITCH,
+                motion = NativeMapCameraMotion.Ease,
+                durationMillis = DESTINATION_FOCUS_DURATION_MILLIS,
+            )
+            publish()
+            true
+        }
+
+    /** Fits every visible route vertex after “Calcola percorso”. */
+    fun fitRoute(
+        points: List<NativeMapPoint>,
+        nowMillis: Long,
+        bottomInsetPixels: Int = ROUTE_FIT_PADDING_PX,
+        topInsetPixels: Int = ROUTE_FIT_PADDING_PX,
+    ): Boolean = synchronized(lock) {
+        require(nowMillis >= 0) { "Camera frame time must be non-negative" }
+        require(bottomInsetPixels >= 0 && topInsetPixels >= 0) {
+            "Camera fit insets must be non-negative"
+        }
+        if (points.isEmpty()) return false
+        points.forEach(::requireValidPoint)
+        val south = points.minOf { it.latitude }
+        val west = points.minOf { it.longitude }
+        val north = points.maxOf { it.latitude }
+        val east = points.maxOf { it.longitude }
+        followEnabled = false
+        frameActive = false
+        current = null
+        lastFrameMillis = null
+        frameGate.reset()
+        commandSequence += 1
+        command = NativeMapCameraCommand(
+            sequence = commandSequence,
+            center = NativeMapPoint((south + north) / 2.0, (west + east) / 2.0),
+            zoom = FIT_FALLBACK_ZOOM,
+            bearingDegrees = 0.0,
+            pitchDegrees = 0.0,
+            motion = NativeMapCameraMotion.Ease,
+            durationMillis = ROUTE_FIT_DURATION_MILLIS,
+            bounds = NativeMapCameraBounds(
+                southWest = NativeMapPoint(south, west),
+                northEast = NativeMapPoint(north, east),
+                paddingTopPixels = topInsetPixels,
+                paddingBottomPixels = bottomInsetPixels,
+            ),
+        )
+        publish()
+        true
+    }
+
     /** Called only for MapLibre's API_GESTURE reason. */
     fun onUserGesture(): Boolean = synchronized(lock) {
         if (!followEnabled) return false
@@ -207,25 +321,11 @@ class NativeMapCameraSession {
             app.roadstr.core.map.CameraCenter(fix.point.latitude, fix.point.longitude)
         }
         val bearing = if (headingUp) fix.headingDegrees else 0.0
-        val center = if (navigating && headingUp) {
-            measuredForwardShiftMeters?.let { shiftMeters ->
-                CameraFollowEasing.shiftByMeters(
-                    latitude = predicted.latitude,
-                    longitude = predicted.longitude,
-                    headingDegrees = bearing,
-                    shiftMeters = shiftMeters,
-                )
-            } ?: CameraFollowEasing.navigationCameraCenter(
-                latitude = predicted.latitude,
-                longitude = predicted.longitude,
-                headingDegrees = bearing,
-                zoom = zoom,
-                screenHeightPixels = screenHeightPixels,
-                pitchDegrees = pitchDegrees,
-            )
-        } else {
-            predicted
-        }
+        // MapLibre can place its target inside a padded viewport. Keep the
+        // target on the real GPS point and let renderer padding move it below
+        // centre, leaving road ahead visible without an error-prone geographic
+        // estimate that could project the cursor completely off-screen.
+        val center = predicted
         return CameraFollowState(
             latitude = center.latitude,
             longitude = center.longitude,
@@ -247,6 +347,11 @@ class NativeMapCameraSession {
             pitchDegrees = pitchDegrees,
             motion = motion,
             durationMillis = durationMillis,
+            paddingTopPixels = if (navigating) {
+                screenHeightPixels * NAVIGATION_TOP_PADDING_FRACTION
+            } else {
+                0.0
+            },
         )
     }
 
@@ -287,6 +392,17 @@ class NativeMapCameraSession {
         private const val MIN_PITCH = 0.0
         private const val MAX_PITCH = 60.0
         private const val NO_FIX_SEQUENCE = -1L
+        private const val DESTINATION_ZOOM = 16.5
+        private const val FIT_FALLBACK_ZOOM = 12.0
+        private const val DESTINATION_FOCUS_DURATION_MILLIS = 350
+        private const val ROUTE_FIT_DURATION_MILLIS = 500
+        // Places the GPS target at ~64% of the physical screen height. This
+        // matches main's road-ahead framing while keeping the cursor clear of
+        // the bottom navigation panel.
+        // A 20% top inset puts the GPS target at 60% of screen height: 2/5
+        // up from the bottom, just below centre without colliding with HUD.
+        private const val NAVIGATION_TOP_PADDING_FRACTION = 0.20
+        const val ROUTE_FIT_PADDING_PX = DEFAULT_ROUTE_FIT_PADDING_PX
 
         private fun initialState() = NativeMapCameraSessionState(
             followEnabled = true,

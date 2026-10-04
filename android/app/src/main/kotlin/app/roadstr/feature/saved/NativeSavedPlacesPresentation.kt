@@ -21,6 +21,16 @@ data class NativeParkingPosition(
     val savedAtEpochMillis: Long? = null,
 )
 
+/** Encrypted Nostr snapshot boundary; implementations never expose key material to Compose. */
+interface NativeFavoritesSyncGateway {
+    val available: Boolean
+
+    suspend fun push(favorites: List<NativeSavedPlace>): Boolean
+
+    /** Null means no usable remote snapshot; an empty list is a valid synced snapshot. */
+    suspend fun pull(): List<NativeSavedPlace>?
+}
+
 data class NativeFavoritesImportEnvelope(
     val encrypted: Boolean,
     val plaintext: String?,

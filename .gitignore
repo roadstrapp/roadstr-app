@@ -66,3 +66,7 @@ github-recovery-codes.txt
 # and symbol assets. The shipped versions live in assets/; these are 13 MB of
 # intermediates that nothing builds against.
 design_previews/
+
+# Local NDK/SDK paths and native build intermediates of the road-test module
+native-android/local.properties
+native-android/app/.cxx/

@@ -19,6 +19,8 @@ data class NativeRawLocation(
     val bearingDegrees: Double,
     val altitudeMeters: Double,
     val timestampMillis: Long,
+    /** Android provider name; only used to choose between cached fixes. */
+    val provider: String? = null,
 )
 
 /** Stable location value delivered to the native navigation owner. */
@@ -57,6 +59,33 @@ fun interface NativeLocationClock {
 
 /** Pure normalization shared by stream and last-known fixes. */
 object NativeLocationPolicy {
+    /**
+     * Whether [candidate] should replace [best] as the cached starting fix.
+     *
+     * Same rule as the vendored geolocator's LocationManagerClient, so the
+     * native map seeds from exactly the position the Flutter map does: a fix
+     * more than two minutes newer wins, one more than two minutes older loses,
+     * and in between the more accurate wins, or the newer one unless it is
+     * less accurate (or much less accurate and from another provider).
+     */
+    fun isBetterCachedFix(candidate: NativeRawLocation, best: NativeRawLocation?): Boolean {
+        if (best == null) return true
+        val timeDelta = candidate.timestampMillis - best.timestampMillis
+        if (timeDelta > TWO_MINUTES_MILLIS) return true
+        if (timeDelta < -TWO_MINUTES_MILLIS) return false
+        val isNewer = timeDelta > 0
+        // The reference truncates the difference to an int before comparing.
+        val accuracyDelta = (candidate.accuracyMeters - best.accuracyMeters).toInt()
+        val isLessAccurate = accuracyDelta > 0
+        val isSignificantlyLessAccurate = accuracyDelta > 200
+        val sameProvider = candidate.provider != null && candidate.provider == best.provider
+        if (accuracyDelta < 0) return true
+        if (isNewer && !isLessAccurate) return true
+        return isNewer && !isSignificantlyLessAccurate && sameProvider
+    }
+
+    private const val TWO_MINUTES_MILLIS = 2 * 60 * 1000L
+
     fun normalize(raw: NativeRawLocation, useReportedSpeed: Boolean = true): NativeLocationFix? {
         if (
             !raw.latitude.isFinite() ||

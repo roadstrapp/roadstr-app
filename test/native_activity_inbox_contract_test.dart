@@ -95,14 +95,12 @@ void main() {
     );
   });
 
-  test('private shell packages the inbox without opening or feeding it', () {
+  test('private shell packages the inbox without owning notifications', () {
     final source = shell.readAsStringSync();
 
     expect(source, contains('NativeActivityInboxSession()'));
     expect(source, contains('NativeActivityInboxPanel('));
     expect(source, contains('activityInboxSession.markAllRead(revision)'));
-    expect(source, isNot(contains('activityInboxSession.show(')));
-    expect(source, isNot(contains('activityInboxSession.showLoggedOut(')));
     expect(source, isNot(contains('activityInboxSession.record(')));
     expect(source, isNot(contains('enableActivityNotifications(')));
     expect(source, isNot(contains('NotificationManager')));

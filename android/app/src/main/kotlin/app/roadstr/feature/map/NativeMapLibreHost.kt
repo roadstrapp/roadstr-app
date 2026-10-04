@@ -220,6 +220,12 @@ private class NativeMapLibreViewHost private constructor(
             readyMap.setMinPitchPreference(0.0)
             readyMap.setMaxPitchPreference(engineProfile.maximumPitchDegrees)
             readyMap.uiSettings.setTiltGesturesEnabled(engineProfile.tiltGesturesEnabled)
+            // The map is embedded in Roadstr's own chrome. MapLibre's logo and
+            // attribution affordances otherwise remain visible in the corner
+            // and overlap the native controls.
+            readyMap.uiSettings.setLogoEnabled(false)
+            readyMap.uiSettings.setAttributionEnabled(false)
+            readyMap.uiSettings.setCompassEnabled(false)
             readyMap.addOnCameraMoveStartedListener(cameraMoveStartedListener)
             readyMap.addOnCameraMoveListener(cameraMoveListener)
             readyMap.addOnMapClickListener(mapClickListener)
