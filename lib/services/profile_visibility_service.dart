@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:amberflutter/amberflutter.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'nostr_nip19.dart';
 import 'nostr_relay_service.dart';
+import 'app_secure_storage.dart';
 
 /// Persists and publishes the Roadstr profile-visibility preference.
 ///
@@ -13,7 +13,7 @@ import 'nostr_relay_service.dart';
 /// Roadstr clients can make the same pseudonymous/clear presentation choice.
 class ProfileVisibilityService {
   static const storageKey = 'roadstr_profile_public';
-  static const _st = FlutterSecureStorage();
+  static const _st = appSecureStorage;
 
   static Future<void> publish({required bool isPublic}) async {
     final pub = await _st.read(key: 'nostr_pub_hex');

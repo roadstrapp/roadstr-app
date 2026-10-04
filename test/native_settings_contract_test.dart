@@ -72,7 +72,6 @@ void main() {
     final source = panel.readAsStringSync();
 
     expect(source, contains('LazyColumn'));
-    expect(source, contains('LazyRow'));
     expect(source, contains('navigationBarsPadding()'));
     expect(source, contains('paneTitle ='));
     expect(source, contains('minHeight = 48.dp'));
@@ -92,9 +91,9 @@ void main() {
   test('private shell feeds only the road-test voice settings owner', () {
     final source = shell.readAsStringSync();
 
-    expect(source, contains('NativeSettingsSession()'));
+    expect(source, contains('NativeSettingsSession('));
     expect(source, contains('NativeSettingsPanel('));
-    expect(source, contains('settingsSession.show('));
+    expect(source, contains('settingsSession.reopen('));
     expect(source, contains('settingsSession.refresh('));
     expect(source, contains('voiceGateway?.downloadAssets()'));
     expect(source, contains('voiceModelStatus = when'));

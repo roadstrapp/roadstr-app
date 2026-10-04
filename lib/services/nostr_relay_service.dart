@@ -381,7 +381,15 @@ class NostrRelayService {
   /// [connect]. A report published hours after the hazard was actually
   /// observed would mislead whoever sees it, so a stale one is discarded
   /// silently rather than sent late.
-  Future<void> flushPendingReports() async {
+  Future<void> flushPendingReports() =>
+      // Single flight: two overlapping passes would publish the same events
+      // twice, and the later final write would undo the earlier one's.
+      _pendingFlush ??=
+          _flushPendingReportsOnce().whenComplete(() => _pendingFlush = null);
+
+  Future<void>? _pendingFlush;
+
+  Future<void> _flushPendingReportsOnce() async {
     if (_disposed) return;
     final pending = _pendingReports;
     if (pending.isEmpty) return;
@@ -392,7 +400,11 @@ class NostrRelayService {
       verify: verifyEventJson,
       publish: _publishEvent,
     );
-    _setPendingReports(result.remaining);
+    _setPendingReports(pendingReportsAfterFlush(
+      snapshot: pending,
+      current: _pendingReports,
+      remaining: result.remaining,
+    ));
   }
 
   /// Test-only window onto the queue, so its Hive round-trip and the TTL

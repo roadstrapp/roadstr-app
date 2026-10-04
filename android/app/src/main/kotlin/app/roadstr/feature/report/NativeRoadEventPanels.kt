@@ -153,7 +153,6 @@ private fun RoadEventDetailPanel(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = maxHeight * 0.84f)
-                .navigationBarsPadding()
                 .semantics { paneTitle = title },
             color = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
@@ -162,7 +161,7 @@ private fun RoadEventDetailPanel(
             tonalElevation = 6.dp,
             shadowElevation = 8.dp,
         ) {
-            Column {
+            Column(modifier = Modifier.navigationBarsPadding()) {
                 PanelHandle()
                 Column(
                     modifier = Modifier
@@ -449,7 +448,6 @@ private fun RoadEventComposer(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = maxHeight * 0.9f)
-                .navigationBarsPadding()
                 .semantics { paneTitle = title },
             color = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
@@ -458,7 +456,7 @@ private fun RoadEventComposer(
             tonalElevation = 6.dp,
             shadowElevation = 8.dp,
         ) {
-            Column {
+            Column(modifier = Modifier.navigationBarsPadding()) {
                 PanelHandle()
                 Column(
                     modifier = Modifier

@@ -8,7 +8,10 @@ enum class NostrNip19Kind(val hrp: String) {
 data class NostrNip19Key(
     val kind: NostrNip19Kind,
     val hex: String,
-)
+) {
+    // An nsec decodes to this type; its string form must not carry the key.
+    override fun toString(): String = "NostrNip19Key(kind=$kind, hex=<redacted>)"
+}
 
 /** Strict dependency-free NIP-19 codec for Roadstr's fixed-size key formats. */
 object NostrNip19 {

@@ -96,18 +96,16 @@ void main() {
     expect(source, isNot(contains('AsyncImage')));
   });
 
-  test('private shell packages place details without activating providers', () {
+  test('private shell wires place details to the host, not to providers', () {
     final source = shell.readAsStringSync();
 
     expect(source, contains('NativePlaceSession()'));
     expect(source, contains('NativePlaceDetailsPanel('));
-    expect(source, contains('onNavigate = {}'));
-    expect(source, contains('onOpenWebsite = {}'));
-    expect(source, contains('onOpenArticle = {}'));
-    expect(source, contains('onSearchWeb = {}'));
+    expect(source, contains('onNavigate = {'));
+    expect(source, contains('onOpenWebsite = { uri -> onOpenExternal(uri.toString()) }'));
+    expect(source, contains('onOpenArticle = { article ->'));
+    expect(source, contains('onSearchWeb = { query ->'));
     expect(source, isNot(contains('OsmPlaceDetailsProtocol')));
     expect(source, isNot(contains('NativePlaceService')));
-    expect(source, isNot(contains('placeSession.begin(')));
-    expect(source, isNot(contains('placeSession.submit(')));
   });
 }

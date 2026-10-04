@@ -1,5 +1,6 @@
 package app.roadstr.feature.navigation
 
+import app.roadstr.core.geo.GeoPoint
 import app.roadstr.core.network.RoutingParsedRoute
 import app.roadstr.core.network.RoutingResponsePoint
 import app.roadstr.core.network.RoutingResponseStep
@@ -242,6 +243,39 @@ class NativeActiveNavigationSessionTest {
             ),
         )
         assertTrue(overlay.commitSelectedAlternative(revision))
+    }
+
+    @Test
+    fun `route local bearing follows the leg being driven on a route that doubles back`() {
+        // North for 1 km, then back south along the same road: a point on the
+        // shared road is equally close to both legs; the driver's progress
+        // along the route has to pick the one actually being driven.
+        val points = listOf(point(0.0), point(500.0), point(1_000.0), point(500.0), point(0.0))
+        val route = RoutingParsedRoute(
+            polyline = points,
+            steps = listOf(
+                step("Depart", "depart", points[0]),
+                step("U-turn", "uturn", points[2]),
+                step("Arrive", "arrive", points[4]),
+            ),
+            totalDistanceM = 2_000.0,
+            totalDurationS = 200.0,
+        )
+        val overlay = preparedOverlay(route, revision = 11)
+        val session = NativeActiveNavigationSession(NativeNavigationHudSession(), overlay)
+        assertTrue(session.startNavigation(11, route))
+
+        // Outbound at 250 m: heading north.
+        session.submitFix(1, point(250.0).toMapPoint(), 10.0, 0.0)
+        val outbound = session.routeLocalBearingAt(GeoPoint(250.0 / 111_320.0, 0.0))!!
+        assertEquals(0.0, outbound.bearingDegrees, 1.0)
+
+        // Past the turn, returning at 750 m: the same road, heading south.
+        session.submitFix(2, point(1_000.0).toMapPoint(), 10.0, 0.0)
+        session.submitFix(3, point(750.0).toMapPoint(), 10.0, 0.0)
+        val inbound = session.routeLocalBearingAt(GeoPoint(750.0 / 111_320.0, 0.0))!!
+        assertEquals(180.0, inbound.bearingDegrees, 1.0)
+        assertTrue(inbound.distanceMeters < 2.0)
     }
 
     private fun route(): RoutingParsedRoute {

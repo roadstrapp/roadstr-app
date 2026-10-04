@@ -4,9 +4,6 @@ import java.io.Closeable
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
-import java.nio.file.AtomicMoveNotSupportedException
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 import okhttp3.Call
@@ -22,7 +19,12 @@ data class NativeVoiceAssetInspection(
     val actualBytes: Long?,
 )
 
-/** Read-only validation of reusable Flutter voice files in app documents. */
+/**
+ * Read-only validation of reusable Flutter voice files in app documents.
+ *
+ * Uses java.io.File only: java.nio.file appears in API 26 and core library
+ * desugaring does not provide it, while both APKs still support API 24.
+ */
 class NativeVoiceAssetStore(private val documentsDirectory: File) {
     private val canonicalRoot = documentsDirectory.canonicalFile
 
@@ -64,7 +66,7 @@ class NativeVoiceAssetStore(private val documentsDirectory: File) {
     }
 
     private fun candidate(asset: NativeVoiceAsset): File {
-        val candidate = File(canonicalRoot, asset.relativePath).absoluteFile.toPath().normalize().toFile()
+        val candidate = File(canonicalRoot, asset.relativePath).absoluteFile.normalize()
         require(candidate.path.startsWith(canonicalRoot.path + File.separator)) {
             "Voice asset escaped the documents directory"
         }
@@ -72,14 +74,13 @@ class NativeVoiceAssetStore(private val documentsDirectory: File) {
     }
 
     private fun hasUnsafePath(file: File): Boolean {
-        var cursor: File? = file
-        while (cursor != null && cursor != canonicalRoot) {
-            if (Files.isSymbolicLink(cursor.toPath())) return true
-            cursor = cursor.parentFile
-        }
-        if (cursor == null || (file.exists() && !file.isFile)) return true
+        if (file.exists() && !file.isFile) return true
+        // The candidate is built from the canonical root with `..` already
+        // normalized away, so any symbolic link between the root and the file
+        // (or the file itself) is exactly what makes its canonical path differ.
         val canonicalCandidate = runCatching { file.canonicalFile }.getOrNull() ?: return true
-        return !canonicalCandidate.path.startsWith(canonicalRoot.path + File.separator)
+        return canonicalCandidate.path != file.path ||
+            !canonicalCandidate.path.startsWith(canonicalRoot.path + File.separator)
     }
 
     private fun sha256(input: InputStream): String {
@@ -249,15 +250,10 @@ class NativeVoiceAssetDownloader(
     }
 
     private fun replaceAtomically(partial: File, target: File) {
-        try {
-            Files.move(
-                partial.toPath(),
-                target.toPath(),
-                StandardCopyOption.ATOMIC_MOVE,
-                StandardCopyOption.REPLACE_EXISTING,
-            )
-        } catch (_: AtomicMoveNotSupportedException) {
-            Files.move(partial.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        // Same directory, same filesystem: rename(2) atomically replaces the
+        // target, which is what File.renameTo calls on Android.
+        if (!partial.renameTo(target)) {
+            throw NativeVoiceDownloadException("Could not install verified voice asset")
         }
     }
 }

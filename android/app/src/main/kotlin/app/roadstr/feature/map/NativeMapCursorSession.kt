@@ -6,15 +6,30 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlin.math.cos
 import kotlin.math.roundToInt
 
+enum class NativeMapCursorStyle {
+    Arrow,
+    Formula1,
+    Suv,
+    Racing,
+    Electric,
+    City,
+    Classic500,
+    Ostrich,
+}
+
 data class NativeMapCursorSnapshot(
     val sequence: Long,
     val point: NativeMapPoint?,
     val colorArgb: Long,
+    val style: NativeMapCursorStyle = NativeMapCursorStyle.Arrow,
+    val walkingMode: Boolean = false,
+    val speedKilometresPerHour: Double = 0.0,
 )
 
 /** Value-only, revision-safe boundary for the future native location cursor. */
 class NativeMapCursorSession(
     initialColorArgb: Long = NativeMapCursorVisualPolicy.DEFAULT_COLOR_ARGB,
+    initialStyle: NativeMapCursorStyle = NativeMapCursorStyle.Arrow,
 ) {
     private val lock = Any()
     private val _state = MutableStateFlow(
@@ -22,6 +37,7 @@ class NativeMapCursorSession(
             sequence = NO_CURSOR_SEQUENCE,
             point = null,
             colorArgb = validateColor(initialColorArgb),
+            style = initialStyle,
         ),
     )
 
@@ -47,6 +63,29 @@ class NativeMapCursorSession(
         val validated = validateColor(colorArgb)
         if (_state.value.colorArgb == validated) return false
         _state.value = _state.value.copy(colorArgb = validated)
+        true
+    }
+
+    fun updateStyle(style: NativeMapCursorStyle): Boolean = synchronized(lock) {
+        if (_state.value.style == style) return false
+        _state.value = _state.value.copy(style = style)
+        true
+    }
+
+    /** Walking temporarily overrides the saved vehicle without destroying it. */
+    fun updateMotion(walkingMode: Boolean, speedMetersPerSecond: Double): Boolean = synchronized(lock) {
+        require(speedMetersPerSecond.isFinite() && speedMetersPerSecond >= 0.0)
+        val speedKmh = (speedMetersPerSecond * 3.6).coerceAtMost(40.0)
+        if (
+            _state.value.walkingMode == walkingMode &&
+            kotlin.math.abs(_state.value.speedKilometresPerHour - speedKmh) < 0.05
+        ) {
+            return false
+        }
+        _state.value = _state.value.copy(
+            walkingMode = walkingMode,
+            speedKilometresPerHour = speedKmh,
+        )
         true
     }
 

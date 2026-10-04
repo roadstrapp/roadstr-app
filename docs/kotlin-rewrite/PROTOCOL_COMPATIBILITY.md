@@ -24,9 +24,12 @@ are exported.
 
 NIP-04 must remain as the backward-compatible NWC path because an absent
 NIP-47 `encryption` tag in a verified info event means NIP-04. Current
-negotiation prefers NIP-44 v2 when advertised, rejects an authentic unsupported
-mode, and fails closed when info discovery is missing or forged so relay
-suppression cannot silently force a downgrade.
+negotiation prefers NIP-44 v2 when advertised and rejects an authentic
+unsupported mode. Forged info events are ignored. When the relay holds no info
+event at all (EOSE or a 5-second timeout), the wallet predates discovery and
+NIP-04 is used, as before negotiation existed: failing closed there broke every
+such wallet, while a relay that suppresses the event gains nothing, since the
+request is signed and NIP-04 still hides its content from the relay.
 NIP-44's current padding and favourites-sync envelope are also compatibility
 boundaries.
 

@@ -72,6 +72,10 @@ android {
             // This module is an internal road-test harness, never an official
             // update artifact. Release hardening stays owned by android/app.
             isMinifyEnabled = false
+            // Signed with the local debug key so a release build installs on a
+            // test phone. The real release key is never read here, and this
+            // package (app.roadstr.roadtest) cannot replace the real app.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
@@ -82,8 +86,10 @@ android {
                     "src/main/kotlin",
                     "../../android/app/src/main/kotlin/app/roadstr/core",
                     "../../android/app/src/main/kotlin/app/roadstr/feature",
+                    "../../android/app/src/main/kotlin/app/roadstr/service/hazards",
                     "../../android/app/src/main/kotlin/app/roadstr/service/location",
                     "../../android/app/src/main/kotlin/app/roadstr/service/network",
+                    "../../android/app/src/main/kotlin/app/roadstr/service/nostr",
                     "../../android/app/src/main/kotlin/app/roadstr/service/routing",
                     "../../android/app/src/main/kotlin/app/roadstr/service/search",
                 ),
@@ -119,6 +125,7 @@ dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2026.06.01")
     implementation(composeBom)
     implementation("androidx.activity:activity-compose:1.13.0")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.10.0")

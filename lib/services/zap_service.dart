@@ -16,7 +16,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:nostr_tools/nostr_tools.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -444,7 +443,10 @@ class ZapService {
             } else if (message is NostrRelayEoseMessage &&
                 message.subscriptionId == infoSubId &&
                 !infoCompleter.isCompleted) {
-              infoCompleter.complete(null);
+              // No info event on this relay: the wallet predates NIP-47
+              // capability discovery, and every such wallet speaks NIP-04.
+              infoCompleter
+                  .complete(const NwcEncryptionSelection.legacyNip04());
             }
           } catch (_) {}
         },
@@ -462,17 +464,20 @@ class ZapService {
         },
       );
 
-      // Step 3: Discover the wallet's authenticated capabilities. Only a
-      // verified info event with an absent encryption tag selects legacy
-      // NIP-04; missing, forged or incompatible info fails closed so a relay
-      // cannot suppress NIP-44 support and force a downgrade.
+      // Step 3: Discover the wallet's authenticated capabilities. A verified
+      // info event selects NIP-44 when advertised, and one that lacks
+      // pay_invoice fails the payment. A missing info event (EOSE or timeout)
+      // falls back to NIP-04, which is what every wallet answered before
+      // discovery existed. A relay suppressing the info event to force that
+      // downgrade gains nothing: the request is signed, so it cannot alter it,
+      // and NIP-04 still keeps the content confidential from it.
       ws.sink.add(jsonEncode(NwcProtocol.infoRequest(
         subscriptionId: infoSubId,
         walletPubkey: walletPub,
       )));
       encryption = await infoCompleter.future.timeout(
         const Duration(seconds: 5),
-        onTimeout: () => null,
+        onTimeout: () => const NwcEncryptionSelection.legacyNip04(),
       );
       ws.sink.add(jsonEncode(['CLOSE', infoSubId]));
       final selectedEncryption = encryption;
@@ -712,17 +717,41 @@ class ZapService {
     Uri uri, {
     required Duration timeout,
   }) async {
-    if (!await _isSafeHttpsTarget(uri)) return null;
-    final client = http.Client();
+    if (!LnurlProtocol.isSafeHttpsUri(uri)) return null;
+    final client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 4)
+      ..idleTimeout = timeout
+      ..findProxy = (_) => 'DIRECT';
+    // Bind DNS validation to the socket that carries the request. Resolving
+    // once here and then letting a conventional HTTP client resolve the host
+    // again leaves a DNS-rebinding window between the SSRF check and connect.
+    client.connectionFactory = (target, proxyHost, proxyPort) async {
+      if (proxyHost != null || proxyPort != null) {
+        throw const HttpException('Proxies are disabled for LNURL requests');
+      }
+      if (!LnurlProtocol.isSafeHttpsUri(target)) {
+        throw const HttpException('Unsafe LNURL target');
+      }
+      final addresses = await InternetAddress.lookup(target.host)
+          .timeout(const Duration(seconds: 4));
+      if (addresses.isEmpty || !addresses.every(_isPublicAddress)) {
+        throw const HttpException('LNURL target resolves to a private address');
+      }
+
+      final rawTask = await Socket.startConnect(addresses.first, target.port);
+      final secureSocket = rawTask.socket.then<Socket>(
+        (socket) => SecureSocket.secure(socket, host: target.host),
+      );
+      return ConnectionTask.fromSocket<Socket>(secureSocket, rawTask.cancel);
+    };
     try {
-      final request = http.Request('GET', uri)
+      final request = await client.getUrl(uri).timeout(timeout)
         ..followRedirects = false
-        ..headers['User-Agent'] = 'Roadstr/1.0'
-        ..headers['Accept'] = 'application/json';
-      final response = await client.send(request).timeout(timeout);
+        ..headers.set(HttpHeaders.userAgentHeader, 'Roadstr/1.0')
+        ..headers.set(HttpHeaders.acceptHeader, 'application/json');
+      final response = await request.close().timeout(timeout);
       const maxBytes = 1024 * 1024;
-      if (response.statusCode != 200 ||
-          (response.contentLength ?? 0) > maxBytes) {
+      if (response.statusCode != 200 || response.contentLength > maxBytes) {
         return null;
       }
       final bytes = <int>[];
@@ -731,7 +760,7 @@ class ZapService {
       // each expiry would hold the request open indefinitely. Same rule as
       // [BoundedHttp].
       await (() async {
-        await for (final chunk in response.stream) {
+        await for (final chunk in response) {
           if (bytes.length + chunk.length > maxBytes) {
             throw const HttpException('LNURL response is too large');
           }
@@ -746,18 +775,7 @@ class ZapService {
     } catch (_) {
       return null;
     } finally {
-      client.close();
-    }
-  }
-
-  static Future<bool> _isSafeHttpsTarget(Uri uri) async {
-    if (!LnurlProtocol.isSafeHttpsUri(uri)) return false;
-    try {
-      final addresses = await InternetAddress.lookup(uri.host)
-          .timeout(const Duration(seconds: 4));
-      return addresses.isNotEmpty && addresses.every(_isPublicAddress);
-    } catch (_) {
-      return false;
+      client.close(force: true);
     }
   }
 
@@ -779,23 +797,36 @@ class ZapService {
     // same through NAT64. Judge those by their embedded v4 address, otherwise
     // the whole private-range test below simply never looks at the bytes that
     // decide where the packet goes.
-    final v4Mapped =
-        b.take(10).every((v) => v == 0) && b[10] == 0xff && b[11] == 0xff;
-    final v4Compatible = b.take(12).every((v) => v == 0) && !(b[12] == 0);
+    final firstEightZero = b.take(8).every((v) => v == 0);
+    final firstTenZero = firstEightZero && b[8] == 0 && b[9] == 0;
+    final v4Mapped = firstTenZero && b[10] == 0xff && b[11] == 0xff;
+    final v4Translated = firstEightZero &&
+        b[8] == 0xff &&
+        b[9] == 0xff &&
+        b[10] == 0 &&
+        b[11] == 0;
+    final v4Compatible = b.take(12).every((v) => v == 0);
     final nat64 = b[0] == 0x00 &&
         b[1] == 0x64 &&
         b[2] == 0xff &&
         b[3] == 0x9b &&
         b.skip(4).take(8).every((v) => v == 0);
-    if (v4Mapped || v4Compatible || nat64) {
+    if (v4Mapped || v4Translated || v4Compatible || nat64) {
       return _isPublicV4(b.sublist(12));
     }
+    final sixToFour = b[0] == 0x20 && b[1] == 0x02;
+    if (sixToFour && !_isPublicV4(b.sublist(2, 6))) return false;
     final unspecifiedOrLoopback =
         b.take(15).every((v) => v == 0) && (b[15] == 0 || b[15] == 1);
     final linkLocal = b[0] == 0xfe && (b[1] & 0xc0) == 0x80;
+    final siteLocal = b[0] == 0xfe && (b[1] & 0xc0) == 0xc0;
     final uniqueLocal = (b[0] & 0xfe) == 0xfc;
     final multicast = b[0] == 0xff;
-    return !(unspecifiedOrLoopback || linkLocal || uniqueLocal || multicast);
+    return !(unspecifiedOrLoopback ||
+        linkLocal ||
+        siteLocal ||
+        uniqueLocal ||
+        multicast);
   }
 
   static bool _isPublicV4(List<int> b) {
@@ -807,7 +838,12 @@ class ZapService {
         (b[0] == 169 && b[1] == 254) ||
         (b[0] == 172 && b[1] >= 16 && b[1] <= 31) ||
         (b[0] == 192 && b[1] == 168) ||
+        (b[0] == 192 && b[1] == 0 && b[2] == 0) ||
+        (b[0] == 192 && b[1] == 0 && b[2] == 2) ||
+        (b[0] == 192 && b[1] == 88 && b[2] == 99) ||
         (b[0] == 198 && (b[1] == 18 || b[1] == 19)) ||
+        (b[0] == 198 && b[1] == 51 && b[2] == 100) ||
+        (b[0] == 203 && b[1] == 0 && b[2] == 113) ||
         b[0] >= 224);
   }
 }

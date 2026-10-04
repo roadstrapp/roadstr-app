@@ -71,6 +71,15 @@ class MainActivity : FlutterFragmentActivity() {
                 "Android rejected the native GPS foreground service",
                 error.message,
             )
+        } catch (error: IllegalStateException) {
+            // ForegroundServiceStartNotAllowedException (Android 12+) extends
+            // IllegalStateException: a start that races the app leaving the
+            // foreground must fail the call, not crash the Activity.
+            result.error(
+                NativeNavigationBridge.ERROR_START_FAILED,
+                "Android rejected the native GPS foreground service",
+                error.message,
+            )
         }
     }
 

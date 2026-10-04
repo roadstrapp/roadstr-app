@@ -1,7 +1,6 @@
 // Bottom sheets for community road events: reporting a new one, inspecting an
 // existing one, and zapping its author.
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -14,6 +13,7 @@ import '../../services/zap_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/units.dart';
 import '../nav/speed_limit_sign.dart';
+import '../../services/app_secure_storage.dart';
 
 /// Bottom sheet that drives the full NIP-57 + LNURL-pay zap flow.
 ///
@@ -41,7 +41,7 @@ class ZapSheet extends StatefulWidget {
 
 class _ZapSheetState extends State<ZapSheet> {
   static const _presets = [21, 100, 500, 1000, 5000, 21000];
-  static const _st = FlutterSecureStorage();
+  static const _st = appSecureStorage;
 
   int? _selected;
   final _customCtrl = TextEditingController();

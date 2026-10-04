@@ -828,9 +828,9 @@ void main() {
   group('NominatimResult.fromJson', () {
     test('parses the brand extratag when present', () {
       final r = NominatimResult.fromJson({
-        'lat': '44.285',
-        'lon': '11.882',
-        'display_name': "Usato Faenza, Faenza, Italy",
+        'lat': '38.720',
+        'lon': '-9.140',
+        'display_name': "Usato Sintra, Sintra, Portugal",
         'class': 'shop',
         'type': 'second_hand',
         'extratags': {'brand': "Mercatino dell'Usato"},
@@ -840,9 +840,9 @@ void main() {
 
     test('brand is null when extratags is absent or has no brand key', () {
       final r = NominatimResult.fromJson({
-        'lat': '44.285',
-        'lon': '11.882',
-        'display_name': 'Some place, Faenza, Italy',
+        'lat': '38.720',
+        'lon': '-9.140',
+        'display_name': 'Some place, Sintra, Portugal',
         'class': 'shop',
         'type': 'convenience',
       });
@@ -851,7 +851,7 @@ void main() {
   });
 
   group('RoutingService.rankByBrandThenDistance', () {
-    const near = LatLng(44.285, 11.882); // Faenza
+    const near = LatLng(38.720, -9.140); // Sintra
 
     NominatimResult result(
             {required String name, required LatLng at, String? brand}) =>
@@ -872,12 +872,12 @@ void main() {
       // of "these are different businesses that share generic wording".
       final closerButUnrelated = result(
         name: 'Mercatino delle pulci',
-        at: const LatLng(44.286, 11.883), // ~150 m away
+        at: const LatLng(38.721, -9.139), // ~150 m away
       );
       final fartherButBranded = result(
-        name: 'Usato Faenza',
+        name: 'Usato Sintra',
         brand: "Mercatino dell'Usato",
-        at: const LatLng(44.29, 11.89), // ~800 m away
+        at: const LatLng(38.725, -9.1326), // ~800 m away
       );
       final results = [closerButUnrelated, fartherButBranded];
       RoutingService.rankByBrandThenDistance(
@@ -887,8 +887,8 @@ void main() {
 
     test('distance still decides when neither or both results have a brand',
         () {
-      final closer = result(name: 'A', at: const LatLng(44.286, 11.883));
-      final farther = result(name: 'B', at: const LatLng(44.29, 11.89));
+      final closer = result(name: 'A', at: const LatLng(38.721, -9.139));
+      final farther = result(name: 'B', at: const LatLng(38.725, -9.1326));
       final results = [farther, closer];
       RoutingService.rankByBrandThenDistance(results, 'something else', near);
       expect(results.first, same(closer));
@@ -896,8 +896,8 @@ void main() {
 
     test('a weak/unrelated brand tag does not override distance', () {
       final closer =
-          result(name: 'A', brand: 'Totally Different Co', at: const LatLng(44.286, 11.883));
-      final farther = result(name: 'B', at: const LatLng(44.29, 11.89));
+          result(name: 'A', brand: 'Totally Different Co', at: const LatLng(38.721, -9.139));
+      final farther = result(name: 'B', at: const LatLng(38.725, -9.1326));
       final results = [farther, closer];
       RoutingService.rankByBrandThenDistance(
           results, "mercatino dell'usato", near);
@@ -906,20 +906,20 @@ void main() {
   });
 
   group('RoutingService.passesNear', () {
-    // A short north-south line through Faenza, ~300 m long.
-    const a = LatLng(44.2860, 11.8830);
-    const b = LatLng(44.2887, 11.8830);
+    // A short north-south line through Sintra, ~300 m long.
+    const a = LatLng(38.7210, -9.1390);
+    const b = LatLng(38.7237, -9.1390);
     const line = [a, b];
 
     test('a point on the line is on the route', () {
-      expect(RoutingService.passesNear(line, const LatLng(44.2870, 11.8830)),
+      expect(RoutingService.passesNear(line, const LatLng(38.7220, -9.1390)),
           isTrue);
     });
 
     test('a point beside the line, inside the radius, still counts — the '
         'other carriageway is the same jam', () {
       // ~30 m east of the line.
-      expect(RoutingService.passesNear(line, const LatLng(44.2870, 11.88338)),
+      expect(RoutingService.passesNear(line, const LatLng(38.7220, -9.13865)),
           isTrue);
     });
 
@@ -927,19 +927,19 @@ void main() {
         'same road', () {
       // ~150 m east: further than jamAvoidanceRadiusM, so a route running
       // here counts as having avoided the jam.
-      expect(RoutingService.passesNear(line, const LatLng(44.2870, 11.88489)),
+      expect(RoutingService.passesNear(line, const LatLng(38.7220, -9.13727)),
           isFalse);
     });
 
     test('a point past the end of the line is measured to the endpoint, not '
         'to an infinite line', () {
       // Due north of b by ~400 m — beyond the segment entirely.
-      expect(RoutingService.passesNear(line, const LatLng(44.2923, 11.8830)),
+      expect(RoutingService.passesNear(line, const LatLng(38.7273, -9.1390)),
           isFalse);
     });
 
     test('the radius is adjustable for callers that need a wider sweep', () {
-      const far = LatLng(44.2870, 11.88489);
+      const far = LatLng(38.7220, -9.13727);
       expect(RoutingService.passesNear(line, far), isFalse);
       expect(RoutingService.passesNear(line, far, radiusM: 400), isTrue);
     });

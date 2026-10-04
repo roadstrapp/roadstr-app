@@ -1,6 +1,7 @@
 package app.roadstr.service.search
 
 import app.roadstr.core.network.NetworkResponseLimit
+import app.roadstr.core.network.NominatimReverseDetail
 import app.roadstr.core.network.SearchProviderProtocol
 import app.roadstr.core.network.SearchProviderRequest
 import app.roadstr.core.network.SearchResponsePoint
@@ -117,6 +118,20 @@ class NativeSearchService(
             @Suppress("UNREACHABLE_CODE")
             emptyList()
         }
+    }
+
+    /** Bounded reverse lookup used by a map tap and the Wikipedia context. */
+    suspend fun reverseGeocode(
+        point: SearchResponsePoint,
+    ): NominatimReverseDetail? {
+        require(point.latitude.isFinite() && point.latitude in -90.0..90.0)
+        require(point.longitude.isFinite() && point.longitude in -180.0..180.0)
+        val response = transport.execute(
+            SearchProviderProtocol.nominatimReverse(point.latitude, point.longitude),
+            NOMINATIM_LIMITS,
+        )
+        if (response.statusCode != HTTP_OK) return null
+        return SearchResponseProtocol.parseNominatimReverse(response.bodyUtf8)
     }
 
     private suspend fun searchNominatim(

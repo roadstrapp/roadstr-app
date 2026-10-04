@@ -22,7 +22,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -36,6 +35,7 @@ import 'screens/maplibre_map_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/voice_engine_languages.dart';
 import 'utils/settings_listenable.dart';
+import 'services/app_secure_storage.dart';
 
 /// Secondary entrypoint used only by the isolated native migration bridge.
 /// Production Flutter startup continues to use [main].
@@ -125,7 +125,7 @@ Future<void> main() async {
 /// history, parking position and the optional sync passphrase must never be
 /// silently opened in plaintext or erased after a transient Keystore error.
 Future<void> _openEncryptedSettingsBox() async {
-  const st = FlutterSecureStorage();
+  const st = appSecureStorage;
   List<int>? key;
   try {
     final stored = await st.read(key: 'hive_settings_key');

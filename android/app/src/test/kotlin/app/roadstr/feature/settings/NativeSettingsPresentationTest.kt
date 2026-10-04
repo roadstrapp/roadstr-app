@@ -136,8 +136,9 @@ class NativeSettingsPresentationTest {
 
     @Test
     fun `boolean keys preserve exact storage names and defaults`() {
-        assertEquals(12, NativeSettingsBooleanKey.entries.size)
+        assertEquals(13, NativeSettingsBooleanKey.entries.size)
         assertEquals("autoDark", NativeSettingsBooleanKey.AutoDark.storageKey)
+        assertEquals("darkMapEnabled", NativeSettingsBooleanKey.DarkMap.storageKey)
         assertEquals("roadstr_profile_public", NativeSettingsBooleanKey.ProfilePublic.storageKey)
         assertEquals("favoritesSyncAutoEnabled", NativeSettingsBooleanKey.FavoritesSyncAuto.storageKey)
         assertTrue(NativeSettingsBooleanKey.KeepScreenOn.defaultValue)
@@ -263,8 +264,14 @@ class NativeSettingsPresentationTest {
         assertEquals(NativeSettingsStatus.Hidden, session.state.value.status)
         assertFalse(session.state.value.values.nwcConfigured)
         assertFalse(session.state.value.values.routingApiKeyConfigured)
+        assertFalse(session.state.value.values.syncPassphraseConfigured)
         assertNull(session.updateBoolean(1, NativeSettingsBooleanKey.VoiceEnabled, false))
         assertFalse(session.hide(1))
+
+        assertTrue(session.reopen(2))
+        assertTrue(session.state.value.values.nwcConfigured)
+        assertTrue(session.state.value.values.routingApiKeyConfigured)
+        assertTrue(session.state.value.values.syncPassphraseConfigured)
     }
 
     private fun openSession(input: NativeSettingsInput = NativeSettingsInput()): NativeSettingsSession =

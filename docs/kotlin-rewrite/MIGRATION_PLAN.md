@@ -87,7 +87,8 @@ The first native increment is intentionally isolated from production startup:
   official/hostile shared cases; signing, key isolation, persistence and
   sockets remain unwired.
 - The production NWC path verifies kind-13194 wallet capabilities, prefers
-  NIP-44 v2 and retains tagless NIP-04 only for verified legacy peers. Kotlin
+  NIP-44 v2 and retains tagless NIP-04 for verified legacy peers and for
+  wallets that publish no info event on their relay. Kotlin
   matches the 89-case negotiation/wire fixture; its NIP-44 and NIP-04 cores
   separately match 77 and 64 valid/hostile cases. Native signing, secret
   storage, crypto dispatch and sockets remain unwired.

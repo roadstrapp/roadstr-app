@@ -293,8 +293,8 @@ object Nip04Cipher {
             "$name must contain ${expectedBytes * 2} hexadecimal characters"
         }
         return ByteArray(expectedBytes) { index ->
-            val high = Character.digit(value[index * 2], 16)
-            val low = Character.digit(value[index * 2 + 1], 16)
+            val high = asciiHexDigit(value[index * 2])
+            val low = asciiHexDigit(value[index * 2 + 1])
             require(high >= 0 && low >= 0) { "$name contains non-hexadecimal characters" }
             ((high shl 4) or low).toByte()
         }
