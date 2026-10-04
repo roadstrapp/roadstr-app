@@ -76,7 +76,7 @@ class NativeTransitServiceTest {
         assertNotNull(recorded)
         assertEquals("GET", recorded!!.method)
         assertFalse(recorded.path!!.contains("stale=1"))
-        assertTrue(recorded.path!!.contains("fromPlace=44.4184%2C12.1966"))
+        assertTrue(recorded.path!!.contains("fromPlace=52.5186%2C13.4081"))
         assertEquals("Roadstr/1.0 (navigation app)", recorded.getHeader("User-Agent"))
     }
 
@@ -166,7 +166,7 @@ class NativeTransitServiceTest {
         assertTrue(timeout.transient)
         assertEquals("request timed out", timeout.message)
         assertEquals(3, calls)
-        assertFalse(timeout.toString().contains("44.4184"))
+        assertFalse(timeout.toString().contains("52.5186"))
     }
 
     @Test
@@ -236,8 +236,8 @@ class NativeTransitServiceTest {
     }
 
     companion object {
-        private val origin = TransitRequestPoint(44.4184, 12.1966)
-        private val destination = TransitRequestPoint(44.5058, 11.3428)
+        private val origin = TransitRequestPoint(52.5186, 13.4081)
+        private val destination = TransitRequestPoint(48.1372, 11.5756)
         private val departure = Instant.parse("2026-08-19T06:00:00Z")
     }
 }

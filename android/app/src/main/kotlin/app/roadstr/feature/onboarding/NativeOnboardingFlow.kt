@@ -1,6 +1,8 @@
 package app.roadstr.feature.onboarding
 
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +29,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -35,6 +36,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -48,6 +51,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import app.roadstr.R
+import app.roadstr.core.ui.RoadstrAccentButton
+import app.roadstr.core.ui.RoadstrSwitch
+import app.roadstr.core.ui.RoadstrGlassBox
+import app.roadstr.core.ui.RoadstrGlassLevel
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 /** Full-screen but dormant first-launch surface. All effects leave through typed callbacks. */
@@ -213,16 +220,7 @@ private fun OnboardingPages(
 private fun OnboardingHeader(page: NativeOnboardingPage) {
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Surface(
-                modifier = Modifier.size(48.dp),
-                shape = RoundedCornerShape(14.dp),
-                color = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.primary,
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text("➤", style = MaterialTheme.typography.titleLarge)
-                }
-            }
+            OnboardingBrandMark()
             Spacer(modifier = Modifier.width(12.dp))
             Column {
                 Text("Roadstr", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -250,6 +248,30 @@ private fun OnboardingHeader(page: NativeOnboardingPage) {
                         MaterialTheme.colorScheme.outlineVariant
                     },
                 ) {}
+            }
+        }
+    }
+}
+
+@Composable
+private fun OnboardingBrandMark() {
+    val context = LocalContext.current
+    val bitmap = androidx.compose.runtime.remember {
+        runCatching {
+            context.assets.open("icons/app_icon.png").use { BitmapFactory.decodeStream(it) }
+        }.getOrNull()?.asImageBitmap()
+    }
+    RoadstrGlassBox(
+        modifier = Modifier.size(48.dp),
+        level = RoadstrGlassLevel.Medium,
+        shape = RoundedCornerShape(14.dp),
+        padding = 0.dp,
+    ) {
+        if (bitmap != null) {
+            Image(bitmap, contentDescription = "Roadstr", modifier = Modifier.fillMaxSize())
+        } else {
+            Box(contentAlignment = Alignment.Center) {
+                Text("➤", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge)
             }
         }
     }
@@ -354,7 +376,7 @@ private fun IdentityPage(
             },
             modifier = Modifier.weight(1f),
         )
-        Switch(
+        RoadstrSwitch(
             checked = snapshot.profilePublic,
             onCheckedChange = { onProfileVisibilityChanged(snapshot.revision, it) },
         )
@@ -521,13 +543,13 @@ private fun FeatureRow(symbol: String, text: String) {
 
 @Composable
 private fun InfoCard(text: String) {
-    Surface(
+    RoadstrGlassBox(
         modifier = Modifier.fillMaxWidth(),
+        level = RoadstrGlassLevel.Light,
         shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        padding = 14.dp,
     ) {
-        Text(text, modifier = Modifier.padding(14.dp), style = MaterialTheme.typography.bodySmall)
+        Text(text, style = MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -563,15 +585,14 @@ private fun ChoiceCard(
     enabled: Boolean,
     onClick: () -> Unit,
 ) {
-    Surface(
-        onClick = onClick,
-        enabled = enabled,
+    RoadstrGlassBox(
         modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 64.dp).semantics { role = Role.Button },
+        level = RoadstrGlassLevel.Medium,
         shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+        padding = 14.dp,
+        onClick = if (enabled) onClick else null,
     ) {
-        Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(symbol, style = MaterialTheme.typography.headlineSmall)
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -589,12 +610,13 @@ private fun SetupCard(
     action: Pair<String, () -> Unit>?,
     progress: Double? = null,
 ) {
-    Surface(
+    RoadstrGlassBox(
         modifier = Modifier.fillMaxWidth(),
+        level = RoadstrGlassLevel.Medium,
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+        padding = 16.dp,
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(title, fontWeight = FontWeight.SemiBold)
@@ -620,10 +642,12 @@ private fun SetupCard(
 
 @Composable
 private fun PrimaryAction(label: String, onClick: () -> Unit) {
-    Button(
+    RoadstrAccentButton(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 52.dp),
     ) {
-        Text(label, fontWeight = FontWeight.Bold)
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Text(label, fontWeight = FontWeight.Bold)
+        }
     }
 }

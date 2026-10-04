@@ -84,7 +84,10 @@ Java_app_roadstr_roadtest_NativeEspeakBridge_nativePhonemize(
     }
     const auto text = bytes(env, input_text);
     const auto voice = bytes(env, input_voice);
-    if (espeak_set_voice(voice.data()) < 0) {
+    // espeak_ERROR: EE_OK = 0, EE_INTERNAL_ERROR = -1, EE_NOT_FOUND = 2. A
+    // missing voice is the positive code; `< 0` would keep the previous
+    // language's rules and phonemize this text with them, silently.
+    if (espeak_set_voice(voice.data()) != 0) {
         throw_illegal_state(env, "Requested eSpeak voice is unavailable");
         return nullptr;
     }

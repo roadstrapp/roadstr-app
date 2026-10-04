@@ -83,14 +83,14 @@ void main() {
     );
   });
 
-  test('private shell packages road events without opening or publishing', () {
+  test('private shell sends road-event actions to the Nostr host only', () {
     final source = shell.readAsStringSync();
 
     expect(source, contains('NativeRoadEventSession()'));
     expect(source, contains('NativeRoadEventPanels('));
-    expect(source, contains('onSubmit = {}'));
-    expect(source, contains('onVote = { _, _ -> }'));
-    expect(source, contains('onZap = {}'));
+    expect(source, contains('onSubmit = { revision -> nostrHost?.reports?.submit(revision) }'));
+    expect(source, contains('onVote = { _, stillThere ->'));
+    expect(source, contains('onZap = {'));
     expect(source, isNot(contains('roadEventSession.showDetail(')));
     expect(source, isNot(contains('roadEventSession.showComposer(')));
     expect(source, isNot(contains('roadEventSession.beginSubmission(')));

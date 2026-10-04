@@ -13,7 +13,7 @@ Fixed
   franchise's own branches no longer get shuffled by minor wording
   differences outranking real distance.
 • Typing a city name at the end of a search ("mercatino usato
-  faenza") now prioritises results actually in that city over merely
+  sintra") now prioritises results actually in that city over merely
   closer ones elsewhere.
 • The two-point route planner ("Da" field) now works even without a
   GPS fix yet, falling back to the current map view.

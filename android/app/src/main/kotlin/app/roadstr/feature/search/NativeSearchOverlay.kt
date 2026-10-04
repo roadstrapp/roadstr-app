@@ -1,5 +1,11 @@
 package app.roadstr.feature.search
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -63,10 +69,15 @@ fun NativeSearchOverlay(
     onClearHistory: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (snapshot.status == NativeSearchUiStatus.Hidden) return
     val hint = androidx.compose.ui.res.stringResource(R.string.native_search_hint)
+    AnimatedVisibility(
+        visible = snapshot.status != NativeSearchUiStatus.Hidden,
+        modifier = modifier,
+        enter = fadeIn(tween(220)) + slideInVertically(tween(340)) { -it / 5 },
+        exit = fadeOut(tween(160)) + slideOutVertically(tween(260)) { -it / 6 },
+    ) {
     Surface(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .imePadding()
             .semantics { paneTitle = hint },
@@ -163,6 +174,7 @@ fun NativeSearchOverlay(
                 }
             }
         }
+    }
     }
 }
 

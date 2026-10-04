@@ -207,8 +207,8 @@ void main() {
       late Uri seen;
       const service = TransitService(endpoint: 'https://example.test/plan');
       seen = service.debugBuildUri(
-        from: const LatLng(44.4184, 12.1966),
-        to: const LatLng(44.5058, 11.3428),
+        from: const LatLng(52.5186, 13.4081),
+        to: const LatLng(48.1372, 11.5756),
         departure: DateTime.utc(2026, 8, 19, 6),
       );
       return seen;
@@ -227,8 +227,8 @@ void main() {
 
     test('sends the endpoints and a UTC departure', () {
       final q = capture().queryParameters;
-      expect(q['fromPlace'], '44.4184,12.1966');
-      expect(q['toPlace'], '44.5058,11.3428');
+      expect(q['fromPlace'], '52.5186,13.4081');
+      expect(q['toPlace'], '48.1372,11.5756');
       expect(q['time'], endsWith('Z'), reason: 'the router expects UTC');
       expect(q['numItineraries'], '3');
     });

@@ -14,15 +14,15 @@ class TransitProtocolTest {
     @Test
     fun `request preserves Flutter endpoints UTC and access walking budget`() {
         val request = TransitProtocol.planRequest(
-            from = TransitRequestPoint(44.4184, 12.1966),
-            to = TransitRequestPoint(44.5058, 11.3428),
+            from = TransitRequestPoint(52.5186, 13.4081),
+            to = TransitRequestPoint(48.1372, 11.5756),
             departure = Instant.parse("2026-08-19T06:00:00Z"),
             endpoint = "https://example.test/plan?stale=1",
         )
 
         assertEquals(
             "https://example.test/plan?" +
-                "fromPlace=44.4184%2C12.1966&toPlace=44.5058%2C11.3428&" +
+                "fromPlace=52.5186%2C13.4081&toPlace=48.1372%2C11.5756&" +
                 "time=2026-08-19T06%3A00%3A00.000Z&numItineraries=3&" +
                 "maxPreTransitTime=1800&maxPostTransitTime=1800",
             request.uri,

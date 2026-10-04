@@ -1,16 +1,20 @@
 package app.roadstr.feature.home
 
 import app.roadstr.core.network.RoutingParsedRoute
+import app.roadstr.core.network.NominatimReverseDetail
 import app.roadstr.core.network.SearchResponsePoint
 import app.roadstr.core.network.SearchResult
 import app.roadstr.feature.navigation.NativeNavigationRerouteRequest
+import app.roadstr.feature.place.NativePlaceArticleInput
 import app.roadstr.feature.route.NativeRoutePlanningCandidate
 import app.roadstr.feature.route.NativeRoutePlanningSession
 import app.roadstr.feature.route.NativeRoutePlanningSnapshot
 import app.roadstr.feature.route.NativeRouteTransportMode
+import app.roadstr.feature.route.NativeRouteWeatherPresentation
 import app.roadstr.feature.search.NativeSearchNearbyCategory
 import app.roadstr.feature.search.NativeSearchResultPresentation
 import app.roadstr.feature.search.NativeSearchSession
+import app.roadstr.core.search.SearchHistoryEntry
 import java.util.Locale
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -37,6 +41,8 @@ interface NativeShellJourneyGateway {
         via: List<SearchResponsePoint>,
         mode: NativeRouteTransportMode,
         languageCode: String,
+        avoidHighwaysAndTolls: Boolean = false,
+        avoidUnpavedRoads: Boolean = false,
     ): List<RoutingParsedRoute>
 
     suspend fun reroute(
@@ -47,13 +53,37 @@ interface NativeShellJourneyGateway {
         speedKilometresPerHour: Double,
         headingDegrees: Double?,
         straightLineDistanceMeters: Double,
+        avoidUnpavedRoads: Boolean = false,
     ): List<RoutingParsedRoute> = routes(
         origin = origin,
         destination = destination,
         via = emptyList(),
         mode = mode,
         languageCode = languageCode,
+        avoidUnpavedRoads = avoidUnpavedRoads,
     )
+
+    suspend fun reverseGeocode(
+        point: SearchResponsePoint,
+        languageCode: String,
+    ): NominatimReverseDetail? = null
+
+    /** Wikipedia preview resolved from a place label; precise coordinates are not disclosed. */
+    suspend fun wikipediaArticle(
+        query: String,
+        languageCode: String,
+    ): NativePlaceArticleInput? = null
+
+    suspend fun weather(destination: SearchResponsePoint): NativeRouteWeatherPresentation? = null
+
+    /** Explicit posted limit of the geometrically nearest road, when known. */
+    suspend fun speedLimit(point: SearchResponsePoint): Int? = null
+
+    suspend fun loadSearchHistory(): List<SearchHistoryEntry> = emptyList()
+
+    suspend fun saveSearchHistory(entry: SearchHistoryEntry): List<SearchHistoryEntry> = emptyList()
+
+    suspend fun clearSearchHistory() = Unit
 }
 
 /**
@@ -83,7 +113,15 @@ class NativeShellJourneyCoordinator(
         cancelSearchWork()
         selectedDestination = null
         clearNavigationDestination()
-        return searchSession.show(nextSearchRevision(), nearbyEnabled = nearbyEnabled)
+        val revision = nextSearchRevision()
+        val opened = searchSession.show(revision, nearbyEnabled = nearbyEnabled)
+        if (opened) {
+            scope.launch {
+                val history = runCatching { gateway.loadSearchHistory() }.getOrDefault(emptyList())
+                searchSession.replaceHistory(revision, history)
+            }
+        }
+        return opened
     }
 
     fun updateSearchQuery(query: String): Boolean {
@@ -122,6 +160,17 @@ class NativeShellJourneyCoordinator(
     ): Boolean {
         cancelSearchWork()
         selectedDestination = SelectedDestination(label, point)
+        scope.launch {
+            runCatching {
+                gateway.saveSearchHistory(
+                    SearchHistoryEntry(
+                        label = label,
+                        latitude = point.latitude,
+                        longitude = point.longitude,
+                    ),
+                )
+            }
+        }
         searchSession.hide(nextSearchRevision())
         return routeSession.showPlanner(
             revision = nextRouteRevision(),
@@ -142,10 +191,32 @@ class NativeShellJourneyCoordinator(
         myLocationLabel = myLocationLabel,
     )
 
+    /**
+     * Information-sheet shortcut used by “Navigate here”. It seeds the same
+     * planner state as the manual flow and immediately advances to route
+     * calculation, so the redundant from/to sheet never flashes on screen.
+     */
+    fun selectDestinationAndCalculate(
+        label: String,
+        point: SearchResponsePoint,
+        gpsPoint: SearchResponsePoint?,
+        myLocationLabel: String,
+        avoidUnpavedRoads: Boolean = false,
+    ): Boolean {
+        if (!selectDestination(label, point, gpsPoint, myLocationLabel)) return false
+        return calculateRoute(
+            routeSession.state.value,
+            gpsPoint,
+            myLocationLabel,
+            avoidUnpavedRoads,
+        )
+    }
+
     fun calculateRoute(
         snapshot: NativeRoutePlanningSnapshot,
         gpsPoint: SearchResponsePoint?,
         myLocationLabel: String,
+        avoidUnpavedRoads: Boolean = false,
     ): Boolean {
         cancelRouteWork()
         val revision = nextRouteRevision()
@@ -175,6 +246,8 @@ class NativeShellJourneyCoordinator(
                     via = stops.dropLast(1),
                     mode = snapshot.mode,
                     languageCode = normalizedLanguageCode(),
+                    avoidHighwaysAndTolls = snapshot.avoidanceEnabled,
+                    avoidUnpavedRoads = avoidUnpavedRoads,
                 )
                 if (routes.isEmpty()) return@launch failRoute(revision)
                 val accepted = routeSession.submitAlternatives(
@@ -187,6 +260,8 @@ class NativeShellJourneyCoordinator(
                 } else {
                     navigationDestination = destination
                     navigationDestinationRevision = revision
+                    val weather = runCatching { gateway.weather(destination) }.getOrNull()
+                    routeSession.updateWeather(revision, weather)
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled
@@ -202,6 +277,19 @@ class NativeShellJourneyCoordinator(
         selectedDestination = null
         clearNavigationDestination()
         return searchSession.hide(nextSearchRevision())
+    }
+
+    /** Closes search for the information-first place sheet without touching an active trip. */
+    fun closeSearchForPlace(): Boolean {
+        cancelSearchWork()
+        selectedDestination = null
+        return searchSession.hide(nextSearchRevision())
+    }
+
+    fun clearSearchHistory(): Boolean {
+        val cleared = searchSession.clearHistory(searchSession.state.value.revision)
+        scope.launch { runCatching { gateway.clearSearchHistory() } }
+        return cleared
     }
 
     fun cancelRoute(): Boolean {
@@ -225,6 +313,7 @@ class NativeShellJourneyCoordinator(
 
     fun reroute(
         request: NativeNavigationRerouteRequest,
+        avoidUnpavedRoads: Boolean = false,
         onSuccess: (Long, RoutingParsedRoute) -> Unit,
         onFailure: (Long) -> Unit,
     ): Boolean {
@@ -245,6 +334,7 @@ class NativeShellJourneyCoordinator(
                     speedKilometresPerHour = request.speedKilometresPerHour,
                     headingDegrees = request.headingDegrees,
                     straightLineDistanceMeters = request.straightLineDistanceMeters,
+                    avoidUnpavedRoads = avoidUnpavedRoads,
                 )
                 val route = routes.firstOrNull()
                 if (route == null) {

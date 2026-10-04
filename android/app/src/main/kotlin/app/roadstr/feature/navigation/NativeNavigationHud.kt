@@ -3,6 +3,7 @@ package app.roadstr.feature.navigation
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -23,14 +24,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.VolumeOff
+import androidx.compose.material.icons.outlined.VolumeUp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -43,8 +52,15 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import app.roadstr.R
+import app.roadstr.core.ui.RoadstrGlassBox
+import app.roadstr.core.ui.RoadstrGlassLevel
+import app.roadstr.core.ui.RoadstrIconButton
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -74,7 +90,8 @@ fun NativeNavigationHud(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .statusBarsPadding()
-                .padding(horizontal = 10.dp, vertical = 10.dp),
+                .padding(horizontal = 10.dp)
+                .padding(top = 4.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             NavigationInstructionCard(current, instruction, landscape)
@@ -94,6 +111,23 @@ fun NativeNavigationHud(
                     .padding(end = 14.dp),
             )
         }
+        snapshot.currentStreetName?.let { roadName ->
+            CurrentStreetLabel(
+                name = roadName,
+                maxWidth = maxWidth * 0.52f,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(bottom = 136.dp),
+            )
+        }
+        SpeedLimitSign(
+            limit = snapshot.speedLimit,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .navigationBarsPadding()
+                .padding(start = 16.dp, bottom = 150.dp),
+        )
         NavigationSummaryPanel(
             snapshot = snapshot,
             onStop = onStop,
@@ -168,14 +202,11 @@ private fun NavigationInstructionCard(
     instruction: String,
     landscape: Boolean,
 ) {
-    Surface(
+    RoadstrGlassBox(
         modifier = Modifier.fillMaxWidth(),
+        level = RoadstrGlassLevel.Strong,
         shape = RoundedCornerShape(22.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f),
-        contentColor = MaterialTheme.colorScheme.onSurface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        tonalElevation = 5.dp,
-        shadowElevation = 8.dp,
+        padding = 0.dp,
     ) {
         Row(
             modifier = Modifier.padding(
@@ -304,26 +335,17 @@ private fun HudAction(
     onClick: () -> Unit,
     subdued: Boolean = false,
 ) {
-    Surface(
+    RoadstrIconButton(
+        contentDescription = description,
         onClick = onClick,
-        modifier = Modifier
-            .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
-            .semantics {
-                role = Role.Button
-                contentDescription = description
-            },
-        shape = CircleShape,
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            Text(
-                text = symbol,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (subdued) 0.45f else 1f),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-            )
-        }
+        val icon = if (symbol == "⚙") Icons.Outlined.Settings
+        else if (subdued) Icons.Outlined.VolumeOff else Icons.Outlined.VolumeUp
+        Icon(
+            imageVector = icon,
+            contentDescription = description,
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (subdued) 0.45f else 1f),
+        )
     }
 }
 
@@ -355,30 +377,25 @@ private fun NavigationSummaryPanel(
     modifier: Modifier,
 ) {
     val stopDescription = stringResource(R.string.native_nav_exit)
-    Surface(
+    RoadstrGlassBox(
         modifier = modifier
-            .fillMaxWidth()
-            .navigationBarsPadding(),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f),
+            .fillMaxWidth(),
+        level = RoadstrGlassLevel.Strong,
         shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        tonalElevation = 5.dp,
-        shadowElevation = 9.dp,
+        padding = 0.dp,
     ) {
         Row(
-            modifier = Modifier.padding(
-                start = 16.dp,
-                end = 14.dp,
-                top = if (landscape) 6.dp else 12.dp,
-                bottom = if (landscape) 7.dp else 12.dp,
-            ),
+            modifier = Modifier
+                .navigationBarsPadding()
+                .padding(
+                    start = 16.dp,
+                    end = 14.dp,
+                    top = if (landscape) 6.dp else 12.dp,
+                    bottom = if (landscape) 7.dp else 12.dp,
+                ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             NativeSpeedometer(snapshot, if (landscape) 66.dp else 88.dp)
-            snapshot.speedLimit?.let { limit ->
-                Spacer(modifier = Modifier.width(8.dp))
-                SpeedLimitSign(limit)
-            }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -413,7 +430,10 @@ private fun NavigationSummaryPanel(
                 border = BorderStroke(1.dp, Color(0xFFFF_4444).copy(alpha = 0.55f)),
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text("×", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                    androidx.compose.material3.Icon(
+                        imageVector = Icons.Outlined.Close,
+                        contentDescription = stopDescription,
+                    )
                 }
             }
         }
@@ -442,23 +462,23 @@ private fun currentInstruction(current: NativeNavigationStepPresentation): Strin
     }
 
 @Composable
-private fun SpeedLimitSign(limit: Int) {
+private fun SpeedLimitSign(limit: Int?, modifier: Modifier = Modifier) {
     val description = stringResource(R.string.native_nav_speed_limit)
     Surface(
-        modifier = Modifier
-            .size(62.dp)
+        modifier = modifier
+            .size(78.dp)
             .semantics {
                 contentDescription = description
             },
         shape = CircleShape,
         color = Color.White,
         contentColor = Color.Black,
-        border = BorderStroke(5.dp, Color.Red),
+        border = BorderStroke(6.dp, Color.Red),
         shadowElevation = 4.dp,
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(
-                text = limit.toString(),
+                text = limit?.toString() ?: "–",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
@@ -468,71 +488,195 @@ private fun SpeedLimitSign(limit: Int) {
 }
 
 @Composable
+private fun CurrentStreetLabel(
+    name: String,
+    maxWidth: androidx.compose.ui.unit.Dp,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.widthIn(max = maxWidth),
+        shape = RoundedCornerShape(10.dp),
+        color = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
+        shadowElevation = 6.dp,
+    ) {
+        Text(
+            text = name,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
+    }
+}
+
+@Composable
 private fun NativeSpeedometer(snapshot: NativeNavigationHudSnapshot, dimension: androidx.compose.ui.unit.Dp) {
     val accent = if (snapshot.overSpeedLimit) Color(0xFFEF_5350) else MaterialTheme.colorScheme.primary
-    val inactive = MaterialTheme.colorScheme.surfaceVariant
+    // Main's tokens: surface2 is `surface`, surface3 is `surfaceVariant`,
+    // the hairline colour is `outline` and secondary text `onSurfaceVariant`.
+    val surface2 = MaterialTheme.colorScheme.surface
+    val surface3 = MaterialTheme.colorScheme.surfaceVariant
+    val outline = MaterialTheme.colorScheme.outline
+    val secondaryText = MaterialTheme.colorScheme.onSurfaceVariant
+    val darkSurface = surface2.luminance() < 0.5f
     val maxSpeed = if (snapshot.speedUnit == "mph") 130f else 200f
     val progress = (snapshot.speed / maxSpeed).coerceIn(0f, 1f)
+    val shape = if (snapshot.speedometerStyle == NativeSpeedometerStyle.Digital) {
+        RoundedCornerShape(dimension * .24f)
+    } else {
+        CircleShape
+    }
+    val background = when (snapshot.speedometerStyle) {
+        NativeSpeedometerStyle.Digital -> surface2
+        NativeSpeedometerStyle.Sport -> Color(0xFF11_1522).copy(alpha = if (darkSurface) .94f else .9f)
+        NativeSpeedometerStyle.Minimal -> surface2.copy(alpha = .86f)
+        NativeSpeedometerStyle.Analog -> surface2.copy(alpha = .96f)
+        else -> surface2.copy(alpha = .92f)
+    }
+    val digitalBrush = Brush.linearGradient(listOf(surface3, surface2, accent.copy(alpha = .12f)))
     Box(
         modifier = Modifier
             .size(dimension)
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.94f), CircleShape)
+            .shadow(
+                elevation = if (snapshot.speedometerStyle == NativeSpeedometerStyle.Minimal) 0.dp else 12.dp,
+                shape = shape,
+                // Sport glows in the accent colour instead of casting a grey shadow.
+                ambientColor = if (snapshot.speedometerStyle == NativeSpeedometerStyle.Sport) accent else Color.Black,
+                spotColor = if (snapshot.speedometerStyle == NativeSpeedometerStyle.Sport) accent else Color.Black,
+            )
+            .then(
+                if (snapshot.speedometerStyle == NativeSpeedometerStyle.Digital) {
+                    Modifier.background(digitalBrush, shape)
+                } else {
+                    Modifier.background(background, shape)
+                },
+            )
+            .border(
+                width = when (snapshot.speedometerStyle) {
+                    NativeSpeedometerStyle.Digital -> 1.4.dp
+                    NativeSpeedometerStyle.Sport, NativeSpeedometerStyle.Analog -> 1.2.dp
+                    NativeSpeedometerStyle.Classic -> if (snapshot.overSpeedLimit) 1.5.dp else .5.dp
+                    NativeSpeedometerStyle.Minimal -> .6.dp
+                },
+                color = when (snapshot.speedometerStyle) {
+                    NativeSpeedometerStyle.Digital -> accent.copy(alpha = .8f)
+                    NativeSpeedometerStyle.Sport -> accent.copy(alpha = .75f)
+                    NativeSpeedometerStyle.Analog, NativeSpeedometerStyle.Classic ->
+                        if (snapshot.overSpeedLimit) accent else outline
+                    NativeSpeedometerStyle.Minimal -> outline.copy(alpha = .7f)
+                },
+                shape = shape,
+            )
             .semantics { contentDescription = "${snapshot.speed} ${snapshot.speedUnit}" },
         contentAlignment = Alignment.Center,
     ) {
-        Canvas(modifier = Modifier.fillMaxSize().padding(7.dp)) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
             when (snapshot.speedometerStyle) {
                 NativeSpeedometerStyle.Classic -> {
-                    drawArc(inactive, 135f, 270f, false, style = Stroke(7.dp.toPx(), cap = StrokeCap.Round))
-                    drawArc(accent, 135f, 270f * progress, false, style = Stroke(7.dp.toPx(), cap = StrokeCap.Round))
+                    val inset = 12.dp.toPx()
+                    val arcSize = Size(size.width - inset * 2f, size.height - inset * 2f)
+                    drawArc(surface3, 135f, 270f, false, Offset(inset, inset), arcSize, style = Stroke(8.dp.toPx(), cap = StrokeCap.Round))
+                    if (progress > 0f) drawArc(accent, 135f, 270f * progress, false, Offset(inset, inset), arcSize, style = Stroke(8.dp.toPx(), cap = StrokeCap.Round))
                 }
                 NativeSpeedometerStyle.Digital -> {
-                    drawLine(inactive, Offset(size.width * .15f, size.height * .25f), Offset(size.width * .85f, size.height * .25f), 1.dp.toPx())
-                    drawLine(inactive, Offset(size.width * .15f, size.height * .75f), Offset(size.width * .85f, size.height * .75f), 1.dp.toPx())
-                    drawLine(accent, Offset(size.width * .15f, size.height * .86f), Offset(size.width * (.15f + .7f * progress), size.height * .86f), 3.dp.toPx(), StrokeCap.Round)
+                    val grid = outline.copy(alpha = .45f)
+                    val thin = maxOf(1f, size.width * .008f)
+                    drawLine(grid, Offset(size.width * .14f, size.height * .28f), Offset(size.width * .86f, size.height * .28f), thin)
+                    drawLine(grid, Offset(size.width * .14f, size.height * .72f), Offset(size.width * .86f, size.height * .72f), thin)
+                    val barTop = size.height * .82f
+                    val barHeight = size.height * .035f
+                    drawRoundRect(grid.copy(alpha = .4f), Offset(size.width * .14f, barTop), Size(size.width * .72f, barHeight), androidx.compose.ui.geometry.CornerRadius(barHeight * .5f))
+                    if (progress > 0f) drawRoundRect(accent, Offset(size.width * .14f, barTop), Size(size.width * .72f * progress, barHeight), androidx.compose.ui.geometry.CornerRadius(barHeight * .5f))
                 }
                 NativeSpeedometerStyle.Analog -> {
                     val center = this.center
-                    val radius = size.minDimension * .40f
+                    val radius = size.minDimension * .39f
                     for (index in 0..20) {
                         val angle = (135.0 + 270.0 * index / 20.0) * PI / 180.0
                         val outer = Offset((center.x + radius * cos(angle)).toFloat(), (center.y + radius * sin(angle)).toFloat())
-                        val innerRadius = radius * if (index % 5 == 0) .78f else .86f
+                        val innerRadius = radius - size.minDimension * if (index % 5 == 0) .095f else .055f
                         val inner = Offset((center.x + innerRadius * cos(angle)).toFloat(), (center.y + innerRadius * sin(angle)).toFloat())
-                        drawLine(if (index / 20f <= progress) accent else inactive, inner, outer, if (index % 5 == 0) 2.dp.toPx() else 1.dp.toPx(), StrokeCap.Round)
+                        drawLine(if (index / 20f <= progress) accent else secondaryText.copy(alpha = .5f), inner, outer, size.minDimension * if (index % 5 == 0) .024f else .012f, StrokeCap.Round)
                     }
                     val needle = (135.0 + 270.0 * progress) * PI / 180.0
-                    drawLine(accent, center, Offset((center.x + radius * .68f * cos(needle)).toFloat(), (center.y + radius * .68f * sin(needle)).toFloat()), 2.dp.toPx(), StrokeCap.Round)
+                    drawLine(accent, center, Offset((center.x + radius * .7f * cos(needle)).toFloat(), (center.y + radius * .7f * sin(needle)).toFloat()), size.minDimension * .035f, StrokeCap.Round)
+                    drawCircle(surface3, size.minDimension * .075f, center)
+                    drawCircle(accent, size.minDimension * .035f, center)
                 }
                 NativeSpeedometerStyle.Sport -> {
                     for (index in 0 until 28) {
                         drawArc(
-                            if ((index + 1) / 28f <= progress) accent else inactive,
-                            130f + 280f * index / 28f,
-                            7f,
+                            if ((index + 1) / 28f <= progress) accent else Color(0xFF31_394C),
+                            129.6f + 280.8f * index / 28f,
+                            280.8f / 28f - 1.432f,
                             false,
-                            style = Stroke(4.dp.toPx()),
+                            topLeft = Offset(size.width * .1f, size.height * .1f),
+                            size = Size(size.width * .8f, size.height * .8f),
+                            style = Stroke(size.minDimension * .065f, cap = StrokeCap.Butt),
                         )
                     }
                 }
                 NativeSpeedometerStyle.Minimal -> {
-                    drawArc(inactive, 117f, 306f, false, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
-                    drawArc(accent, 117f, 306f * progress, false, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
+                    val inset = size.minDimension * .07f
+                    val arcSize = Size(size.width - inset * 2f, size.height - inset * 2f)
+                    val stroke = size.minDimension * .025f
+                    drawArc(secondaryText.copy(alpha = .18f), 117f, 306f, false, Offset(inset, inset), arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
+                    if (progress > 0f) {
+                        drawArc(accent, 117f, 306f * progress, false, Offset(inset, inset), arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
+                        val angle = (117.0 + 306.0 * progress) * PI / 180.0
+                        val radius = size.minDimension * .43f
+                        drawCircle(accent, size.minDimension * .035f, Offset((center.x + radius * cos(angle)).toFloat(), (center.y + radius * sin(angle)).toFloat()))
+                    }
                 }
             }
         }
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = snapshot.speed.toString(),
-                color = accent,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = snapshot.speedUnit,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.labelSmall,
-            )
+        if (snapshot.speedometerStyle == NativeSpeedometerStyle.Analog) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = dimension * .18f),
+                shape = RoundedCornerShape(dimension * .06f),
+                color = surface3,
+                border = BorderStroke(.5.dp, outline),
+            ) {
+                Text(
+                    text = snapshot.speed.toString(),
+                    modifier = Modifier.padding(horizontal = dimension * .085f, vertical = dimension * .025f),
+                    color = accent,
+                    fontSize = (dimension.value * .16f).sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    lineHeight = (dimension.value * .16f).sp,
+                )
+            }
+        } else {
+            val speedColor = if (snapshot.speedometerStyle == NativeSpeedometerStyle.Minimal && !snapshot.overSpeedLimit) {
+                MaterialTheme.colorScheme.onSurface
+            } else accent
+            val fontFactor = when (snapshot.speedometerStyle) {
+                NativeSpeedometerStyle.Classic -> .27f
+                NativeSpeedometerStyle.Digital -> .31f
+                NativeSpeedometerStyle.Sport -> .28f
+                NativeSpeedometerStyle.Minimal -> .30f
+                NativeSpeedometerStyle.Analog -> .16f
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = snapshot.speed.toString(),
+                    color = speedColor,
+                    fontSize = (dimension.value * fontFactor).sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = (dimension.value * fontFactor).sp,
+                    letterSpacing = if (snapshot.speedometerStyle == NativeSpeedometerStyle.Digital) 1.2.sp else TextUnit.Unspecified,
+                    style = TextStyle(fontFeatureSettings = "tnum"),
+                )
+                Text(
+                    text = snapshot.speedUnit,
+                    color = if (snapshot.speedometerStyle == NativeSpeedometerStyle.Sport) Color(0xFF9A_A6BF) else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = (dimension.value * fontFactor * .29f).sp,
+                )
+            }
         }
     }
 }

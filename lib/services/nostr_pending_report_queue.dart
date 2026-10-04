@@ -118,6 +118,25 @@ Future<PendingReportFlushResult> flushPendingRoadReports({
   );
 }
 
+/// The queue to persist after a flush of [snapshot].
+///
+/// The flush awaits the relay for every entry, and a report filed during that
+/// wait is appended to Hive behind the snapshot's back. Writing only
+/// [remaining] would silently drop it, so every stored entry the snapshot did
+/// not contain is carried over.
+List<Map<String, dynamic>> pendingReportsAfterFlush({
+  required Iterable<Map<String, dynamic>> snapshot,
+  required Iterable<Map<String, dynamic>> current,
+  required List<Map<String, dynamic>> remaining,
+}) {
+  final flushed = {for (final entry in snapshot) _debugId(entry)};
+  return [
+    ...remaining,
+    for (final entry in current)
+      if (!flushed.contains(_debugId(entry))) entry,
+  ];
+}
+
 String _debugId(Map<String, dynamic> entry) {
   final event = entry['event'];
   if (event is Map && event['id'] is String) return event['id'] as String;

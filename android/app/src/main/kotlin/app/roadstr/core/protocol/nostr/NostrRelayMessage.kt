@@ -297,7 +297,7 @@ internal class BoundedJsonParser(
         if (position + 4 > input.length) fail()
         var value = 0
         repeat(4) {
-            val digit = input[position++].digitToIntOrNull(16) ?: fail()
+            val digit = asciiHexDigit(input[position++]).takeIf { it >= 0 } ?: fail()
             value = value * 16 + digit
         }
         return value.toChar()

@@ -67,7 +67,6 @@ fun NativeActivityInboxPanel(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = maxHeight * 0.9f)
-                .navigationBarsPadding()
                 .semantics { paneTitle = title },
             shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
             color = MaterialTheme.colorScheme.surface,
@@ -76,7 +75,7 @@ fun NativeActivityInboxPanel(
             tonalElevation = 6.dp,
             shadowElevation = 8.dp,
         ) {
-            Column {
+            Column(modifier = Modifier.navigationBarsPadding()) {
                 ActivityHeader(title, snapshot.unreadCount) { onClose(snapshot.revision) }
                 when (snapshot.status) {
                     NativeActivityInboxStatus.LoggedOut -> ActivityEmptyState(
@@ -176,7 +175,7 @@ private fun ActivityEmptyState(symbol: String, title: String, body: String) {
 @Composable
 private fun ColumnScope.ActivityRows(items: List<NativeActivityNotification>) {
     val configuration = LocalConfiguration.current
-    val locale = configuration.locales[0] ?: Locale.getDefault()
+    val locale = configuration.locales[0]
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()

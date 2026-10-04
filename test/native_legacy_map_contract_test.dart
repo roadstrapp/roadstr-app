@@ -77,7 +77,8 @@ void main() {
   test('private shell defaults safely without opening persisted settings', () {
     final source = shell.readAsStringSync();
 
-    expect(source, contains('mapEngine = NativeMapEngine.MapLibre'));
+    expect(source, contains('mapEngine = when (settingsState.values.mapEngine)'));
+    expect(source, contains('NativeMapEngine.MapLibre'));
     expect(source, contains('tileUrl = NativeMapStyle.DEFAULT_TILE_URL'));
     expect(source, isNot(contains('Hive')));
     expect(source, isNot(contains('FlutterSecureStorage')));

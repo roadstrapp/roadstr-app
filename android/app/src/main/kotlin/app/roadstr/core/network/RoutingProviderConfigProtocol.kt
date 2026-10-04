@@ -14,7 +14,12 @@ data class RoutingProviderConfiguration(
     val issue: RoutingProviderConfigurationIssue,
     val readsCredentials: Boolean,
     val legacyApiKeyMigration: String?,
-)
+) {
+    // apiKey and the legacy key are credentials.
+    override fun toString(): String =
+        "RoutingProviderConfiguration(provider=$provider, issue=$issue, " +
+            "hasApiKey=${apiKey != null})"
+}
 
 /** Pure persisted provider/key/server resolution mirrored from production Dart. */
 object RoutingProviderConfigProtocol {

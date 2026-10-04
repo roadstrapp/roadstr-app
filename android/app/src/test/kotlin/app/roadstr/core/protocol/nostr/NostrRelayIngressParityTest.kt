@@ -72,6 +72,24 @@ class NostrRelayIngressParityTest {
     }
 
     @Test
+    fun `an empty subscription id never reaches a dormant rule`() {
+        val ingress = NostrRelayIngress(
+            listOf(
+                NostrIngressRule(
+                    name = "confirmations",
+                    subscriptionId = "",
+                    routes = mapOf(1316 to NostrIngressRoute.CONFIRMATION),
+                ),
+            ),
+        )
+
+        val decision = ingress.inspect("", 1316)
+
+        assertEquals(NostrIngressVerdict.IGNORE, decision.verdict)
+        assertEquals(0, ingress.observedFor("confirmations"))
+    }
+
+    @Test
     fun `rules validate configuration and isolate caller maps`() {
         assertThrows(IllegalArgumentException::class.java) {
             NostrIngressRule(name = "", subscriptionId = "sub")

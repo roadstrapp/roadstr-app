@@ -26,7 +26,11 @@ data class RoutingProviderRequest(
     val uri: String,
     val headers: Map<String, String>,
     val body: String? = null,
-)
+) {
+    // The URI carries the provider key and the user's coordinates; headers
+    // may carry an Authorization value.
+    override fun toString(): String = "RoutingProviderRequest(method=$method)"
+}
 
 /** Exact, socket-free request composition for Roadstr's routing providers. */
 object RoutingRequestProtocol {

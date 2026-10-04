@@ -26,7 +26,11 @@ data class LegacyIdentity(
     val publicKeyHex: String?,
     val flavor: String?,
     val privateKeyHex: String?,
-)
+) {
+    // The generated toString would print the private key into any log line,
+    // exception message or crash report that interpolates this object.
+    override fun toString(): String = "LegacyIdentity(<redacted>)"
+}
 
 data class LegacyAsset(
     /** Relative path below the app's documents directory. */
@@ -41,7 +45,14 @@ data class LegacyStorageSnapshot(
     val secureValues: Map<String, String>,
     val identity: LegacyIdentity,
     val assets: List<LegacyAsset>,
-)
+) {
+    // Secure values include the Nostr key, the NWC secret and the sync
+    // passphrase; never render the maps themselves.
+    override fun toString(): String =
+        "LegacyStorageSnapshot(schemaVersion=$schemaVersion, " +
+            "ordinary=${ordinaryValues.size}, secure=${secureValues.size}, " +
+            "assets=${assets.size})"
+}
 
 data class SnapshotValidation(
     val valid: Boolean,

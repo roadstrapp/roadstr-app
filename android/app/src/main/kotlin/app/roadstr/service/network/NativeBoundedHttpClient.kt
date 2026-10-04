@@ -33,7 +33,10 @@ data class NativeHttpRequest(
     val uri: String,
     val headers: Map<String, String> = emptyMap(),
     val body: String? = null,
-)
+) {
+    // URI, headers and body can hold API keys and exact coordinates.
+    override fun toString(): String = "NativeHttpRequest(method=$method)"
+}
 
 data class NativeHttpResponse(
     val statusCode: Int,
@@ -268,9 +271,12 @@ class NativeBoundedHttpClient private constructor(
         }
 
         val budget = BoundedHttpBodyBudget(maxBytes)
+        // A declared length is only the server's claim. Preallocating it let
+        // any endpoint make the client reserve up to the full 32 MiB budget
+        // by sending one header and no body; the buffer grows as bytes arrive.
         val initialCapacity = when {
             responseBody == null -> 0
-            declaredLength != null -> declaredLength.coerceAtMost(maxBytes).toInt()
+            declaredLength != null -> declaredLength.coerceAtMost(MAX_PREALLOCATED_BYTES).toInt()
             else -> minOf(DEFAULT_INITIAL_CAPACITY, maxBytes.toInt())
         }
         val output = ByteArrayOutputStream(initialCapacity)
@@ -326,6 +332,7 @@ class NativeBoundedHttpClient private constructor(
     companion object {
         private const val STREAM_CHUNK_BYTES = 8 * 1024
         private const val DEFAULT_INITIAL_CAPACITY = 8 * 1024
+        private const val MAX_PREALLOCATED_BYTES = 256L * 1024
 
         private fun defaultClient(): OkHttpClient = OkHttpClient.Builder()
             .followRedirects(BoundedHttpPolicy.followRedirects)

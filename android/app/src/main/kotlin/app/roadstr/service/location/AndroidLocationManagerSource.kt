@@ -4,7 +4,7 @@ import android.content.Context
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
-import android.os.Build
+import android.os.Bundle
 import android.os.Looper
 
 /**
@@ -40,9 +40,21 @@ class AndroidLocationManagerSource(
                 onLocation(location.toNativeRawLocation())
             }
 
-            override fun onProviderDisabled(provider: String) {
-                if (provider == LocationManager.GPS_PROVIDER) listener = null
-            }
+            // These three only gained default bodies in API 30. On Android
+            // 7-10 the platform calls them as abstract methods, so a listener
+            // that omits them can fail with AbstractMethodError.
+            @Deprecated("Called only below API 29")
+            override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) = Unit
+
+            override fun onProviderEnabled(provider: String) = Unit
+
+            // The registration deliberately survives the provider being
+            // switched off: LocationManager resumes delivery when it comes
+            // back. Forgetting the listener here without removeUpdates left
+            // the registration orphaned, so a watchdog restart added a second
+            // one and stop() could never remove the first — GPS stayed on
+            // after the host stopped.
+            override fun onProviderDisabled(provider: String) = Unit
         }
         return try {
             locationManager.requestLocationUpdates(
@@ -73,14 +85,27 @@ class AndroidLocationManagerSource(
 
     override suspend fun lastKnown(): NativeRawLocation? {
         if (!isLocationEnabled()) return null
-        return try {
-            locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-                ?.toNativeRawLocation()
+        // Every enabled provider, not only GPS: on a cold start the satellite
+        // provider has nothing cached, while the network or passive one often
+        // holds a recent fix. Starting from nothing left the cursor and the
+        // camera without a position until the first satellite fix.
+        val providers = try {
+            locationManager.getProviders(true)
         } catch (_: SecurityException) {
-            null
-        } catch (_: IllegalArgumentException) {
-            null
+            return null
         }
+        var best: NativeRawLocation? = null
+        for (provider in providers) {
+            val candidate = try {
+                locationManager.getLastKnownLocation(provider)?.toNativeRawLocation()
+            } catch (_: SecurityException) {
+                null
+            } catch (_: IllegalArgumentException) {
+                null
+            } ?: continue
+            if (NativeLocationPolicy.isBetterCachedFix(candidate, best)) best = candidate
+        }
+        return best
     }
 
     private fun Location.toNativeRawLocation(): NativeRawLocation = NativeRawLocation(
@@ -88,16 +113,12 @@ class AndroidLocationManagerSource(
         longitude = longitude,
         speedMetersPerSecond = speed.toDouble(),
         accuracyMeters = accuracy.toDouble(),
-        bearingDegrees = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && hasBearing()) {
-            bearing.toDouble()
-        } else {
-            -1.0
-        },
-        altitudeMeters = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && hasAltitude()) {
-            altitude
-        } else {
-            0.0
-        },
+        // hasBearing/hasAltitude exist since API 1; only the *Accuracy variants
+        // need API 26. Gating these on O dropped the provider course on the
+        // Android 7 devices this app still supports.
+        bearingDegrees = if (hasBearing()) bearing.toDouble() else -1.0,
+        altitudeMeters = if (hasAltitude()) altitude else 0.0,
         timestampMillis = time,
+        provider = provider,
     )
 }

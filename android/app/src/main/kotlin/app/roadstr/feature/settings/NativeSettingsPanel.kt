@@ -1,25 +1,36 @@
 package app.roadstr.feature.settings
 
+import android.graphics.BitmapFactory
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,9 +42,12 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,11 +55,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.paneTitle
@@ -56,8 +83,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.roadstr.R
+import app.roadstr.core.ui.RoadstrSwitch
 import app.roadstr.core.ui.theme.RoadstrThemeId
 import app.roadstr.feature.navigation.NativeSpeedometerStyle
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
 sealed interface NativeSettingsUiAction {
     data object Close : NativeSettingsUiAction
@@ -106,42 +137,34 @@ fun NativeSettingsPanel(
     val revision = snapshot.revision
     val values = snapshot.values
     var overlaysExpanded by remember(revision) { mutableStateOf(false) }
-    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = maxHeight * 0.96f)
-                .navigationBarsPadding()
-                .semantics { paneTitle = title },
-            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-            color = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-            tonalElevation = 6.dp,
-            shadowElevation = 8.dp,
-        ) {
-            LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                item { SettingsHeader(title) { onAction(revision, NativeSettingsUiAction.Close) } }
-                item {
-                    ThemeSection(values) { onAction(revision, it) }
-                    LanguageSection(values) { onAction(revision, it) }
-                    VisibilitySection(values) { onAction(revision, it) }
-                    MapSection(
-                        values = values,
-                        overlaysExpanded = overlaysExpanded,
-                        onToggleOverlays = { overlaysExpanded = !overlaysExpanded },
-                        onAction = { onAction(revision, it) },
-                    )
-                    AppearanceSection(values) { onAction(revision, it) }
-                    SearchSection(values) { onAction(revision, it) }
-                    LightningSection(values) { onAction(revision, it) }
-                    FavoritesSection(values) { onAction(revision, it) }
-                    SyncSection(values) { onAction(revision, it) }
-                    VoiceSection(values) { onAction(revision, it) }
-                    InfoSection(values) { onAction(revision, it) }
-                    Spacer(modifier = Modifier.height(18.dp))
-                }
+    Surface(
+        modifier = modifier
+            .fillMaxSize()
+            .semantics { paneTitle = title },
+        color = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+    ) {
+        LazyColumn(modifier = Modifier.fillMaxWidth().navigationBarsPadding()) {
+            item { SettingsHeader(title) { onAction(revision, NativeSettingsUiAction.Close) } }
+            item { ThemeSection(values) { onAction(revision, it) } }
+            item { LanguageSection(values) { onAction(revision, it) } }
+            item { VisibilitySection(values) { onAction(revision, it) } }
+            item {
+                MapSection(
+                    values = values,
+                    overlaysExpanded = overlaysExpanded,
+                    onToggleOverlays = { overlaysExpanded = !overlaysExpanded },
+                    onAction = { onAction(revision, it) },
+                )
             }
+            item { AppearanceSection(values) { onAction(revision, it) } }
+            item { SearchSection(values) { onAction(revision, it) } }
+            item { LightningSection(values) { onAction(revision, it) } }
+            item { FavoritesSection(values) { onAction(revision, it) } }
+            item { SyncSection(values) { onAction(revision, it) } }
+            item { VoiceSection(values) { onAction(revision, it) } }
+            item { InfoSection(values) { onAction(revision, it) } }
+            item { Spacer(modifier = Modifier.height(18.dp)) }
         }
     }
 }
@@ -149,29 +172,33 @@ fun NativeSettingsPanel(
 @Composable
 private fun SettingsHeader(title: String, onClose: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 10.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(start = 16.dp, end = 8.dp, top = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        IconButton(onClick = onClose) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                contentDescription = stringResource(R.string.native_settings_close),
+            )
+        }
         Text(
             title,
             modifier = Modifier.weight(1f).semantics { heading() },
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
         )
-        TextButton(onClick = onClose, modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)) {
-            Text(stringResource(R.string.native_settings_close))
-        }
+        Spacer(modifier = Modifier.width(48.dp))
     }
 }
 
 @Composable
 private fun ThemeSection(values: NativeSettingsInput, onAction: (NativeSettingsUiAction) -> Unit) {
     SettingsSection(R.string.native_settings_theme_section) {
-        ChoiceRow(
-            label = stringResource(R.string.native_settings_theme_section),
-            values = RoadstrThemeId.entries,
+        ThemeChoiceRow(
             selected = values.themeId,
-            labelFor = { themeLabel(it) },
             onSelected = { onAction(NativeSettingsUiAction.ThemeChanged(it)) },
         )
         ToggleRow(
@@ -179,7 +206,88 @@ private fun ThemeSection(values: NativeSettingsInput, onAction: (NativeSettingsU
             R.string.native_settings_auto_dark_desc,
             values.autoDarkEnabled,
         ) { onAction(NativeSettingsUiAction.BooleanChanged(NativeSettingsBooleanKey.AutoDark, it)) }
+        ToggleRow(
+            R.string.native_settings_dark_map,
+            R.string.native_settings_dark_map_desc,
+            values.darkMapEnabled,
+        ) { onAction(NativeSettingsUiAction.BooleanChanged(NativeSettingsBooleanKey.DarkMap, it)) }
     }
+}
+
+@Composable
+private fun ThemeChoiceRow(
+    selected: RoadstrThemeId,
+    onSelected: (RoadstrThemeId) -> Unit,
+) {
+    var expanded by remember(selected) { mutableStateOf(false) }
+    SettingsCard(
+        modifier = Modifier
+            .clickable { expanded = !expanded }
+            .semantics { role = Role.Button },
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 42.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                stringResource(R.string.native_settings_theme_section),
+                modifier = Modifier.weight(1f),
+                fontWeight = FontWeight.SemiBold,
+            )
+            ThemeDot(selected)
+            Text(
+                themeLabel(selected),
+                modifier = Modifier.padding(start = 10.dp),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(if (expanded) "⌃" else "⌄", color = MaterialTheme.colorScheme.primary)
+        }
+        ExpandSection(expanded) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                RoadstrThemeId.entries.forEach { value ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onSelected(value)
+                                expanded = false
+                            }
+                            .sizeIn(minHeight = 48.dp)
+                            .padding(horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        ThemeDot(value)
+                        Text(
+                            themeLabel(value),
+                            modifier = Modifier.padding(start = 12.dp).weight(1f),
+                        )
+                        if (value == selected) {
+                            Text("✓", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThemeDot(value: RoadstrThemeId) {
+    val label = themeLabel(value)
+    Surface(
+        modifier = Modifier
+            .size(20.dp)
+            .semantics { contentDescription = label },
+        shape = CircleShape,
+        color = if (value.dark) Color(0xFF161B22) else Color.White,
+        border = BorderStroke(3.dp, Color(value.accentArgb.toInt())),
+    ) {}
 }
 
 @Composable
@@ -234,7 +342,7 @@ private fun MapSection(
             values.avoidUnpavedRoads,
         ) { onAction(NativeSettingsUiAction.BooleanChanged(NativeSettingsBooleanKey.AvoidUnpavedRoads, it)) }
         ChoiceRow(
-            label = stringResource(R.string.native_settings_map_section),
+            label = stringResource(R.string.native_settings_map_engine),
             values = NativeSettingsMapEngine.entries,
             selected = values.mapEngine,
             labelFor = { if (it == NativeSettingsMapEngine.MapLibre) "MapLibre" else "OpenStreetMap" },
@@ -335,6 +443,7 @@ private fun AppearanceSection(values: NativeSettingsInput, onAction: (NativeSett
             values = NativeSpeedometerStyle.entries,
             selected = values.speedometerStyle,
             labelFor = { speedometerLabel(it) },
+            preview = { SpeedometerChoicePreview(it) },
             onSelected = { onAction(NativeSettingsUiAction.SpeedometerChanged(it)) },
         )
         ChoiceRow(
@@ -342,6 +451,7 @@ private fun AppearanceSection(values: NativeSettingsInput, onAction: (NativeSett
             values = NativeSettingsCursorStyle.entries,
             selected = values.cursorStyle,
             labelFor = { cursorStyleLabel(it) },
+            preview = { CursorChoicePreview(it, cursorChoiceColor(values.cursorColor)) },
             onSelected = { onAction(NativeSettingsUiAction.CursorStyleChanged(it)) },
         )
         ChoiceRow(
@@ -349,6 +459,7 @@ private fun AppearanceSection(values: NativeSettingsInput, onAction: (NativeSett
             values = NativeSettingsCursorColor.entries,
             selected = values.cursorColor,
             labelFor = { cursorColorLabel(it) },
+            preview = { CursorColorPreview(cursorChoiceColor(it)) },
             onSelected = { onAction(NativeSettingsUiAction.CursorColorChanged(it)) },
         )
     }
@@ -387,17 +498,17 @@ private fun LightningSection(values: NativeSettingsInput, onAction: (NativeSetti
 @Composable
 private fun FavoritesSection(values: NativeSettingsInput, onAction: (NativeSettingsUiAction) -> Unit) {
     SettingsSection(R.string.native_settings_favorites_section) {
-        ActionRow(
-            title = stringResource(R.string.native_settings_favorites_section),
-            value = values.favoritesCount.toString(),
-        ) { onAction(NativeSettingsUiAction.OpenSavedPlaces) }
         ActionButton(stringResource(R.string.native_settings_add_favorite)) {
             onAction(NativeSettingsUiAction.OpenSavedPlaces)
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.padding(top = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             OutlinedButton(
                 onClick = { onAction(NativeSettingsUiAction.ExportFavorites) },
                 enabled = values.favoritesCount > 0,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 modifier = Modifier.weight(1f).sizeIn(minHeight = 48.dp),
             ) { Text(stringResource(R.string.native_settings_export_favorites)) }
             OutlinedButton(
@@ -491,7 +602,9 @@ private fun VoiceSection(values: NativeSettingsInput, onAction: (NativeSettingsU
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            if (values.voiceModelStatus == NativeSettingsVoiceModelStatus.NotDownloaded) {
+            if (values.voiceModelStatus != NativeSettingsVoiceModelStatus.Downloading &&
+                values.voiceModelStatus != NativeSettingsVoiceModelStatus.Ready
+            ) {
                 ActionButton(stringResource(R.string.native_settings_voice_download)) {
                     onAction(NativeSettingsUiAction.DownloadVoiceModel)
                 }
@@ -555,22 +668,32 @@ private fun InfoSection(values: NativeSettingsInput, onAction: (NativeSettingsUi
         InfoRow(stringResource(R.string.native_settings_info_source), "github.com/roadstrapp/roadstr-app") {
             onAction(NativeSettingsUiAction.OpenSource)
         }
-        ActionButton(stringResource(R.string.native_settings_support)) {
+        ActionButton(
+            text = stringResource(R.string.native_settings_support),
+            modifier = Modifier.padding(top = 16.dp, bottom = 24.dp),
+        ) {
             onAction(NativeSettingsUiAction.SupportRoadstr)
         }
     }
 }
 
 @Composable
-private fun SettingsSection(@StringRes title: Int, content: @Composable () -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)) {
+private fun SettingsSection(
+    @StringRes title: Int,
+    content: @Composable () -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 7.dp)) {
         Text(
-            stringResource(title).uppercase(),
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp).semantics { heading() },
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            text = stringResource(title),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 8.dp)
+                .semantics { heading() },
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
         )
+        Spacer(modifier = Modifier.height(4.dp))
         content()
     }
 }
@@ -592,7 +715,7 @@ private fun ToggleRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Switch(checked = checked, onCheckedChange = onChanged)
+            RoadstrSwitch(checked = checked, onCheckedChange = onChanged)
         }
     }
 }
@@ -603,30 +726,223 @@ private fun <T> ChoiceRow(
     values: List<T>,
     selected: T?,
     labelFor: @Composable (T) -> String,
+    preview: (@Composable (T) -> Unit)? = null,
     onSelected: (T) -> Unit,
     keyFor: (T) -> String = { it.toString() },
     selectedWhen: (T) -> Boolean = { it == selected },
 ) {
-    Text(
-        label,
-        modifier = Modifier.padding(start = 4.dp, top = 8.dp),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    LazyRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    var expanded by remember(label, selected) { mutableStateOf(false) }
+    val selectedValue = values.firstOrNull(selectedWhen)
+    val selectedLabel = if (selectedValue != null) labelFor(selectedValue) else label
+    SettingsCard(
+        modifier = Modifier
+            .clickable { expanded = !expanded }
+            .semantics { role = Role.Button },
     ) {
-        items(values, key = keyFor) { value ->
-            FilterChip(
-                selected = selectedWhen(value),
-                onClick = { onSelected(value) },
-                label = { Text(labelFor(value)) },
-                modifier = Modifier.sizeIn(minHeight = 48.dp),
+        Row(
+            modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 42.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(label, modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
+            selectedValue?.let { value ->
+                preview?.invoke(value)
+                if (preview != null) Spacer(modifier = Modifier.width(8.dp))
+            }
+            Text(
+                selectedLabel,
+                modifier = Modifier.weight(1f, fill = false),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(if (expanded) "⌃" else "⌄", color = MaterialTheme.colorScheme.primary)
+        }
+        ExpandSection(expanded) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                values.forEach { value ->
+                    FilterChip(
+                        selected = selectedWhen(value),
+                        onClick = { onSelected(value); expanded = false },
+                        label = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                preview?.invoke(value)
+                                if (preview != null) Spacer(modifier = Modifier.width(10.dp))
+                                Text(labelFor(value))
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 44.dp),
+                    )
+                }
+            }
         }
     }
 }
+
+@Composable
+private fun SpeedometerChoicePreview(style: NativeSpeedometerStyle) {
+    val accent = MaterialTheme.colorScheme.primary
+    val inactive = MaterialTheme.colorScheme.outlineVariant
+    Surface(
+        modifier = Modifier.size(38.dp),
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Canvas(modifier = Modifier.fillMaxSize().padding(5.dp)) {
+                val progress = .42f
+                when (style) {
+                    NativeSpeedometerStyle.Classic -> {
+                        drawArc(inactive, 135f, 270f, false, style = Stroke(3.dp.toPx(), cap = StrokeCap.Round))
+                        drawArc(accent, 135f, 270f * progress, false, style = Stroke(3.dp.toPx(), cap = StrokeCap.Round))
+                    }
+                    NativeSpeedometerStyle.Digital -> {
+                        drawLine(inactive, Offset(size.width * .16f, size.height * .25f), Offset(size.width * .84f, size.height * .25f), 1.dp.toPx())
+                        drawLine(accent, Offset(size.width * .16f, size.height * .82f), Offset(size.width * .46f, size.height * .82f), 2.dp.toPx(), StrokeCap.Round)
+                    }
+                    NativeSpeedometerStyle.Analog -> {
+                        val radius = size.minDimension * .42f
+                        for (index in 0..10) {
+                            val angle = (135.0 + 270.0 * index / 10.0) * PI / 180.0
+                            val outer = Offset(
+                                (center.x + radius * cos(angle)).toFloat(),
+                                (center.y + radius * sin(angle)).toFloat(),
+                            )
+                            val inner = Offset(
+                                (center.x + radius * .77f * cos(angle)).toFloat(),
+                                (center.y + radius * .77f * sin(angle)).toFloat(),
+                            )
+                            drawLine(if (index <= 4) accent else inactive, inner, outer, 1.dp.toPx())
+                        }
+                        val needle = (135.0 + 270.0 * progress) * PI / 180.0
+                        drawLine(
+                            accent,
+                            center,
+                            Offset(
+                                (center.x + radius * .65f * cos(needle)).toFloat(),
+                                (center.y + radius * .65f * sin(needle)).toFloat(),
+                            ),
+                            1.5.dp.toPx(),
+                            StrokeCap.Round,
+                        )
+                    }
+                    NativeSpeedometerStyle.Sport -> repeat(14) { index ->
+                        drawArc(
+                            if (index < 6) accent else inactive,
+                            130f + 280f * index / 14f,
+                            10f,
+                            false,
+                            style = Stroke(2.dp.toPx()),
+                        )
+                    }
+                    NativeSpeedometerStyle.Minimal -> {
+                        drawArc(inactive, 117f, 306f, false, style = Stroke(1.dp.toPx()))
+                        drawArc(accent, 117f, 306f * progress, false, style = Stroke(1.dp.toPx()))
+                    }
+                }
+            }
+            Text("42", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun CursorChoicePreview(style: NativeSettingsCursorStyle, color: Color) {
+    if (style != NativeSettingsCursorStyle.Arrow) {
+        val context = LocalContext.current
+        val bitmap = remember(style) {
+            runCatching {
+                context.assets.open("cursors/${style.assetFileName()}").use(BitmapFactory::decodeStream)
+                    ?.asImageBitmap()
+            }.getOrNull()
+        }
+        if (bitmap != null) {
+            Image(
+                bitmap = bitmap,
+                contentDescription = null,
+                modifier = Modifier.size(38.dp),
+                contentScale = ContentScale.Fit,
+                colorFilter = cursorHueFilter(color),
+            )
+        }
+        return
+    }
+    Canvas(modifier = Modifier.size(width = 30.dp, height = 38.dp)) {
+        when (style) {
+            NativeSettingsCursorStyle.Arrow -> {
+                val path = Path().apply {
+                    moveTo(size.width / 2, size.height * .08f)
+                    lineTo(size.width * .82f, size.height * .78f)
+                    lineTo(size.width / 2, size.height * .62f)
+                    lineTo(size.width * .18f, size.height * .78f)
+                    close()
+                }
+                drawPath(path, color)
+            }
+            else -> Unit
+        }
+    }
+}
+
+private fun NativeSettingsCursorStyle.assetFileName(): String = when (this) {
+    NativeSettingsCursorStyle.Formula1 -> "formula1.png"
+    NativeSettingsCursorStyle.Suv -> "suv.png"
+    NativeSettingsCursorStyle.Racing -> "racing.png"
+    NativeSettingsCursorStyle.Electric -> "electric.png"
+    NativeSettingsCursorStyle.City -> "city.png"
+    NativeSettingsCursorStyle.Classic500 -> "classic500.png"
+    NativeSettingsCursorStyle.Arrow -> error("The arrow preview is vector-backed")
+}
+
+private fun cursorHueFilter(color: Color): ColorFilter? {
+    val degrees = when (color) {
+        Color(0xFF5856D6) -> 8.0
+        Color(0xFF0A84FF) -> -30.0
+        Color(0xFF34C759) -> -150.0
+        Color(0xFFFFCC00) -> 150.0
+        Color(0xFFFF9500) -> 120.0
+        Color(0xFFFF3B30) -> 90.0
+        else -> return null
+    }
+    val radians = degrees * PI / 180.0
+    val c = cos(radians).toFloat()
+    val s = sin(radians).toFloat()
+    return ColorFilter.colorMatrix(
+        ColorMatrix(
+            floatArrayOf(
+                .213f + c * .787f - s * .213f, .715f - c * .715f - s * .715f, .072f - c * .072f + s * .928f, 0f, 0f,
+                .213f - c * .213f + s * .143f, .715f + c * .285f + s * .140f, .072f - c * .072f - s * .283f, 0f, 0f,
+                .213f - c * .213f - s * .787f, .715f - c * .715f + s * .715f, .072f + c * .928f + s * .072f, 0f, 0f,
+                0f, 0f, 0f, 1f, 0f,
+            ),
+        ),
+    )
+}
+
+@Composable
+private fun CursorColorPreview(color: Color) {
+    Surface(
+        modifier = Modifier.size(24.dp),
+        shape = CircleShape,
+        color = color,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    ) {}
+}
+
+private fun cursorChoiceColor(value: NativeSettingsCursorColor): Color = Color(
+    when (value) {
+        NativeSettingsCursorColor.Violet -> 0xFF8B3DFF
+        NativeSettingsCursorColor.Indigo -> 0xFF5856D6
+        NativeSettingsCursorColor.Blue -> 0xFF0A84FF
+        NativeSettingsCursorColor.Green -> 0xFF34C759
+        NativeSettingsCursorColor.Yellow -> 0xFFFFCC00
+        NativeSettingsCursorColor.Orange -> 0xFFFF9500
+        NativeSettingsCursorColor.Red -> 0xFFFF3B30
+    },
+)
 
 @Composable
 private fun SliderRow(
@@ -721,7 +1037,7 @@ private fun ExpandableCard(
             Text(title, modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
             Text(if (expanded) "⌃" else "⌄")
         }
-        if (expanded) content()
+        ExpandSection(expanded, content)
     }
 }
 
@@ -778,13 +1094,35 @@ private fun InfoRow(label: String, value: String, onClick: (() -> Unit)? = null)
     HorizontalDivider()
 }
 
+/**
+ * Reveals a collapsed block with a short expand-and-fade instead of letting it
+ * pop in: the card around it follows the height frame by frame.
+ */
+@Composable
+private fun ExpandSection(visible: Boolean, content: @Composable () -> Unit) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = expandVertically(tween(durationMillis = 280)) + fadeIn(tween(durationMillis = 280)),
+        exit = shrinkVertically(tween(durationMillis = 220)) + fadeOut(tween(durationMillis = 160)),
+    ) { content() }
+}
+
 @Composable
 private fun SettingsCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    val dark = MaterialTheme.colorScheme.onSurface.luminance() >
+        MaterialTheme.colorScheme.surface.luminance()
     Surface(
-        modifier = modifier.fillMaxWidth().padding(vertical = 4.dp),
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = modifier
+            .fillMaxWidth()
+            .animateContentSize(animationSpec = tween(durationMillis = 280))
+            .padding(vertical = 4.dp),
+        shape = RoundedCornerShape(18.dp),
+        color = if (dark) Color(0xFF1A1A2E) else Color(0xFFE8E8ED),
+        border = BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outline.copy(alpha = if (dark) 0.8f else 0.9f),
+        ),
+        shadowElevation = 2.dp,
     ) {
         Column(modifier = Modifier.padding(14.dp)) { content() }
     }

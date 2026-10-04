@@ -18,7 +18,6 @@ import 'dart:ui' as ui;
 import 'package:amberflutter/amberflutter.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:latlong2/latlong.dart';
@@ -65,6 +64,7 @@ import '../theme/theme_provider.dart';
 import '../utils/geo.dart';
 import '../utils/heading_filter.dart';
 import '../utils/off_route_detector.dart';
+import '../utils/reroute_backoff.dart';
 import '../utils/settings_listenable.dart';
 import '../utils/ui_language.dart';
 import '../utils/units.dart';
@@ -83,6 +83,7 @@ import '../widgets/speedometer_widget.dart';
 import '../widgets/transit_itinerary_widget.dart';
 import 'notifications_screen.dart';
 import 'settings_screen.dart';
+import '../services/app_secure_storage.dart';
 
 const _roadstrTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
@@ -781,7 +782,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   // (NostrRelayService._requireConnected has no auto-connect fallback), so
   // hazard reporting was silently broken until initState calls it.
   final _nostr = NostrRelayService();
-  static const _secStorage = FlutterSecureStorage();
+  static const _secStorage = appSecureStorage;
 
   /// Other users' (and the driver's own) road reports — same MapScreen
   /// fields: a live geohash-area subscription, pruned of expired events on
@@ -2817,6 +2818,9 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// right now — see [OffRouteDetector] for the field report that needed it.
   final _offRoute = OffRouteDetector();
 
+  /// Spaces out automatic reroutes after a failed one — see [RerouteBackoff].
+  final _rerouteBackoff = RerouteBackoff();
+
   /// Off-route check, called from [_onGps] while navigating.
   void _checkOffRoute(GpsData data) {
     final route = _route;
@@ -2825,7 +2829,8 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
         dest == null ||
         !_isNavigating ||
         _isRerouting ||
-        _arrived) {
+        _arrived ||
+        !_rerouteBackoff.allowsAttempt) {
       return;
     }
     if (data.speedKmh < 1) return; // stationary — a red light, not off-route
@@ -2882,9 +2887,11 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     if (fetched == null ||
         fetched.route.steps.isEmpty ||
         fetched.route.polyline.isEmpty) {
+      _rerouteBackoff.recordFailure();
       setState(() => _isRerouting = false);
       return;
     }
+    _rerouteBackoff.reset();
     _cumDist = RouteProgress.cumulativeDistances(fetched.route.polyline);
     final stepIdx = RouteProgress.nearestIndicesAlong(fetched.route.polyline,
         [for (final step in fetched.route.steps) step.location]);
@@ -2920,6 +2927,7 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     _ttsAnnouncedFarIdx = -1;
     _ttsAnnouncedNearIdx = -1;
     _headingFilter.reset();
+    _rerouteBackoff.reset();
     _nearestRouteSegmentIdx = 0;
     _routeProgressM = 0;
     _progressIdx = 0;
@@ -3232,7 +3240,12 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
     final capturedStepIdx = _currentStepIdx;
     final dest = _destination;
     _missedTurnTimer = Timer(const Duration(milliseconds: 5000), () {
-      if (!mounted || !_isNavigating || _isRerouting) return;
+      if (!mounted ||
+          !_isNavigating ||
+          _isRerouting ||
+          !_rerouteBackoff.allowsAttempt) {
+        return;
+      }
       if (_currentStepIdx != capturedStepIdx) return; // naturally advanced
       final route = _route;
       if (route == null || dest == null || newNextIdx >= route.steps.length) {

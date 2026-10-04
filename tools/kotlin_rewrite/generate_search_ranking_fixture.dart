@@ -128,17 +128,17 @@ Map<String, Object?> _resultJson(NominatimResult result) => {
     };
 
 Iterable<_Case> _cases() sync* {
-  const ravenna = LatLng(44.4184, 12.2035);
+  const lisboa = LatLng(38.7223, -9.1393);
   const torino = LatLng(45.0703, 7.6869);
 
-  yield _case('plan', 'empty-query', '   ', settled: true, near: ravenna);
+  yield _case('plan', 'empty-query', '   ', settled: true, near: lisboa);
   yield _case('plan', 'settled-near-trims', '  farmacia roma  ',
-      settled: true, near: ravenna);
-  yield _case('plan', 'typeahead-near', 'farm', settled: false, near: ravenna);
+      settled: true, near: lisboa);
+  yield _case('plan', 'typeahead-near', 'farm', settled: false, near: lisboa);
   yield _case('plan', 'settled-without-fix', 'Via Roma', settled: true);
   yield _case('plan', 'typeahead-without-fix', 'Via Ro', settled: false);
   yield _case('plan', 'caps-query-at-200', 'q' * 205,
-      settled: true, near: ravenna);
+      settled: true, near: lisboa);
   yield _case('plan', 'unicode-trim', '\u00a0\u2003Museo Torino\u3000',
       settled: true, near: torino);
 
@@ -173,7 +173,7 @@ Iterable<_Case> _cases() sync* {
   ]);
   yield _case('dedupe', 'far-apart', '', primary: [
     _r('torino', 'Via Ricci, Torino', lat: 45.07, lon: 7.68),
-    _r('cesena', 'Via Ricci, Cesena', lat: 44.14, lon: 12.24),
+    _r('porto', 'Via Ricci, Porto', lat: 41.15, lon: -8.61),
   ]);
   yield _case('dedupe', 'rounded-under-threshold', '', primary: [
     _r('origin', 'Origin', lat: 45, lon: 9),
@@ -203,41 +203,41 @@ Iterable<_Case> _cases() sync* {
     _r('torino', 'Via Roma, Torino', lat: 45.08, lon: 7.68),
   ]);
   yield _case('rank', 'brand-confidence', 'mercatino usato',
-      near: ravenna,
+      near: lisboa,
       primary: [
-        _r('generic', 'Mercatino delle Pulci', lat: 44.41, lon: 12.21),
+        _r('generic', 'Mercatino delle Pulci', lat: 38.73, lon: -9.14),
         _r('brand', 'Il Mercatino di Paolo',
-            lat: 44.30, lon: 11.90, brand: "Mercatino dell'Usato"),
+            lat: 38.80, lon: -9.38, brand: "Mercatino dell'Usato"),
       ]);
-  yield _case('rank', 'named-city-one-word', 'mercatino usato faenza',
-      near: ravenna,
+  yield _case('rank', 'named-city-one-word', 'mercatino usato sintra',
+      near: lisboa,
       primary: [
-        _r('near', 'Mercatino Usato Ravenna',
-            lat: 44.41, lon: 12.20, city: 'Ravenna'),
-        _r('city', 'Mercatino Usato Faenza',
-            lat: 44.29, lon: 11.88, city: 'Faenza'),
+        _r('near', 'Mercatino Usato Lisboa',
+            lat: 38.73, lon: -9.14, city: 'Lisboa'),
+        _r('city', 'Mercatino Usato Sintra',
+            lat: 38.80, lon: -9.38, city: 'Sintra'),
       ]);
-  yield _case('rank', 'named-city-two-words', 'libreria reggio emilia',
-      near: ravenna,
+  yield _case('rank', 'named-city-two-words', 'libreria castelo branco',
+      near: lisboa,
       primary: [
-        _r('near', 'Libreria Ravenna', lat: 44.42, lon: 12.20, city: 'Ravenna'),
+        _r('near', 'Libreria Lisboa', lat: 38.72, lon: -9.14, city: 'Lisboa'),
         _r('city', 'Libreria Ariosto',
-            lat: 44.70, lon: 10.63, city: 'Reggio Emilia'),
+            lat: 39.82, lon: -7.49, city: 'Castelo Branco'),
       ]);
   yield _case('rank', 'named-city-three-words', 'hotel citta di castello',
-      near: ravenna,
+      near: lisboa,
       primary: [
-        _r('near', 'Hotel Ravenna', lat: 44.42, lon: 12.20, city: 'Ravenna'),
+        _r('near', 'Hotel Lisboa', lat: 38.72, lon: -9.14, city: 'Lisboa'),
         _r('city', 'Hotel Tiferno',
             lat: 43.46, lon: 12.24, city: 'Città di Castello'),
       ]);
   yield _case(
       'rank', 'unknown-city-not-invented', 'mercatino usato nowhereville',
-      near: ravenna,
+      near: lisboa,
       primary: [
         _r('near', 'Mercatino Usato A',
-            lat: 44.41, lon: 12.20, city: 'Ravenna'),
-        _r('far', 'Mercatino Usato B', lat: 44.29, lon: 11.88, city: 'Faenza'),
+            lat: 38.73, lon: -9.14, city: 'Lisboa'),
+        _r('far', 'Mercatino Usato B', lat: 38.80, lon: -9.38, city: 'Sintra'),
       ]);
   yield _case('rank', 'confident-before-closer-weak', 'farmacia',
       near: torino,
@@ -257,11 +257,11 @@ Iterable<_Case> _cases() sync* {
         _r('far', 'Centro Congressi', lat: 45.15, lon: 7.75),
         _r('near', 'Centro Sportivo', lat: 45.071, lon: 7.687),
       ]);
-  yield _case('rank', 'city-only-effective-query', 'faenza',
-      near: ravenna,
+  yield _case('rank', 'city-only-effective-query', 'sintra',
+      near: lisboa,
       primary: [
-        _r('near', 'Ravenna', lat: 44.42, lon: 12.20, city: 'Ravenna'),
-        _r('city', 'Faenza', lat: 44.29, lon: 11.88, city: 'Faenza'),
+        _r('near', 'Lisboa', lat: 38.72, lon: -9.14, city: 'Lisboa'),
+        _r('city', 'Sintra', lat: 38.80, lon: -9.38, city: 'Sintra'),
       ]);
   yield _case('rank', 'single-untouched', 'anything',
       primary: [_r('one', 'Via Roma')]);
@@ -361,8 +361,8 @@ NominatimResult _r(
   String id,
   String shortName, {
   String? display,
-  double lat = 44.4,
-  double lon = 12.2,
+  double lat = 38.72,
+  double lon = -9.14,
   String? cls,
   String? type,
   String? city,

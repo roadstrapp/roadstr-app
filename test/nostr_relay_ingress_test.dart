@@ -56,6 +56,22 @@ void main() {
     expect(exhausted.route, isNull);
   });
 
+  test('an empty subscription id never reaches a dormant rule', () {
+    // Live rules exist before their REQ is sent, holding '' as the id. A relay
+    // pushing ["EVENT","",...] must not be routed to them.
+    final ingress = NostrRelayIngress([
+      NostrIngressRule(
+        name: 'confirmations',
+        subscriptionId: '',
+        routes: const {1316: NostrIngressRoute.confirmation},
+      ),
+    ]);
+
+    final decision = ingress.inspect(subscriptionId: '', claimedKind: 1316);
+    expect(decision.verdict, NostrIngressVerdict.ignore);
+    expect(ingress.observedFor('confirmations'), 0);
+  });
+
   test('subscription collisions preserve rule and route precedence', () {
     final ingress = NostrRelayIngress([
       NostrIngressRule(

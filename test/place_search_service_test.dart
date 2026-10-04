@@ -53,7 +53,7 @@ void main() {
     test('keeps genuinely different places', () {
       final list = PlaceSearchService.dedupeByProximity([
         r('Via Ricci, Torino', lat: 45.0700, lon: 7.6800),
-        r('Via Ricci, Cesena', lat: 44.1400, lon: 12.2400),
+        r('Via Ricci, Porto', lat: 41.1500, lon: -8.6100),
       ]);
       expect(list, hasLength(2));
     });
@@ -117,14 +117,14 @@ void main() {
     test(
         'a generic/franchise query lists confident matches nearest first, '
         'even when they score slightly differently as plain text', () {
-      final near = LatLng(44.4, 12.2); // Ravenna-ish
+      final near = LatLng(38.72, -9.14); // Lisbon-ish
       final ranked = PlaceSearchService.rankResults(
         'mercatino usato',
         [
-          r('Mercatino Usato - Faenza (Via Emilia)',
-              lat: 44.29, lon: 11.88, city: 'Faenza'), // ~35 km, worded oddly
+          r('Mercatino Usato - Sintra (Via Nova)',
+              lat: 38.80, lon: -9.38, city: 'Sintra'), // ~22 km, worded oddly
           r('Mercatino dell\'Usato',
-              lat: 44.42, lon: 12.21), // ~2 km, plain name
+              lat: 38.73, lon: -9.14), // ~1 km, plain name
         ],
         near,
       );
@@ -134,15 +134,15 @@ void main() {
     test(
         'a brand match ranks with the confident tier even when its own '
         'name text scores lower than a same-worded unrelated shop', () {
-      final near = LatLng(44.4, 12.2);
+      final near = LatLng(38.72, -9.14);
       final ranked = PlaceSearchService.rankResults(
         'mercatino usato',
         [
           // Closer, shares generic wording, NOT the franchise.
-          r('Mercatino delle Pulci', lat: 44.41, lon: 12.21),
+          r('Mercatino delle Pulci', lat: 38.73, lon: -9.13),
           // Farther, but tagged as the real franchise via `brand`.
           r('Il Mercatino di Paolo',
-              lat: 44.30, lon: 11.90, brand: "Mercatino dell'Usato"),
+              lat: 38.80, lon: -9.36, brand: "Mercatino dell'Usato"),
         ],
         near,
       );
@@ -150,18 +150,18 @@ void main() {
     });
 
     test('a city named in the query outranks plain distance', () {
-      final near = LatLng(44.4, 12.2); // near Ravenna
+      final near = LatLng(38.72, -9.14); // near Lisbon
       final ranked = PlaceSearchService.rankResults(
-        'mercatino usato faenza',
+        'mercatino usato sintra',
         [
-          // Closer to the user, but not in Faenza.
-          r('Mercatino Usato Ravenna', lat: 44.41, lon: 12.20, city: 'Ravenna'),
-          // Farther from the user, but actually in Faenza — the named city.
-          r('Mercatino Usato Faenza', lat: 44.29, lon: 11.88, city: 'Faenza'),
+          // Closer to the user, but not in Sintra.
+          r('Mercatino Usato Lisboa', lat: 38.73, lon: -9.14, city: 'Lisboa'),
+          // Farther from the user, but actually in Sintra — the named city.
+          r('Mercatino Usato Sintra', lat: 38.80, lon: -9.38, city: 'Sintra'),
         ],
         near,
       );
-      expect(ranked.first.shortName, 'Mercatino Usato Faenza');
+      expect(ranked.first.shortName, 'Mercatino Usato Sintra');
     });
 
     test(
@@ -171,8 +171,8 @@ void main() {
       final ranked = PlaceSearchService.rankResults(
         'mercatino usato nowhereville',
         [
-          r('Mercatino Usato A', lat: 44.41, lon: 12.20, city: 'Ravenna'),
-          r('Mercatino Usato B', lat: 44.29, lon: 11.88, city: 'Faenza'),
+          r('Mercatino Usato A', lat: 38.73, lon: -9.14, city: 'Lisboa'),
+          r('Mercatino Usato B', lat: 38.80, lon: -9.38, city: 'Sintra'),
         ],
         near,
       );
@@ -185,14 +185,14 @@ void main() {
         'query actually names, not every city-tagged result', () {
       final near = LatLng(44.4, 12.2);
       final ranked = PlaceSearchService.rankResults(
-        'mercatino usato faenza',
+        'mercatino usato sintra',
         [
-          r('Mercatino Usato Lugo', lat: 44.42, lon: 12.22, city: 'Lugo'),
-          r('Mercatino Usato Faenza', lat: 44.29, lon: 11.88, city: 'Faenza'),
+          r('Mercatino Usato Cascais', lat: 38.70, lon: -9.42, city: 'Cascais'),
+          r('Mercatino Usato Sintra', lat: 38.80, lon: -9.38, city: 'Sintra'),
         ],
         near,
       );
-      expect(ranked.first.shortName, 'Mercatino Usato Faenza');
+      expect(ranked.first.shortName, 'Mercatino Usato Sintra');
     });
   });
 

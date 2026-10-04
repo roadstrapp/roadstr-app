@@ -98,9 +98,13 @@ class NostrRelayIngress {
     required String subscriptionId,
     required Object? claimedKind,
   }) {
+    // A rule whose REQ has not been sent yet carries an empty id. Without this
+    // guard a relay could push ["EVENT","",...] and have it routed to that
+    // dormant subscription as if it had been requested.
     final matching = <NostrIngressRule>[
-      for (final rule in _rules)
-        if (rule.subscriptionId == subscriptionId) rule,
+      if (subscriptionId.isNotEmpty)
+        for (final rule in _rules)
+          if (rule.subscriptionId == subscriptionId) rule,
     ];
     if (matching.isEmpty) {
       return const NostrIngressDecision(

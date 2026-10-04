@@ -290,6 +290,18 @@ class NativeSearchSession(initialImperial: Boolean = false) {
         true
     }
 
+    fun replaceHistory(revision: Long, history: List<SearchHistoryEntry>): Boolean =
+        synchronized(lock) {
+            if (revision != this.revision || _state.value.status == NativeSearchUiStatus.Hidden) {
+                return false
+            }
+            rawHistory = history.take(SearchHistoryProtocol.MAX_STORED_ITEMS)
+            _state.value = _state.value.copy(
+                history = NativeSearchPresenter.history(rawHistory),
+            )
+            true
+        }
+
     fun updateUnits(imperial: Boolean): Boolean = synchronized(lock) {
         if (this.imperial == imperial) return false
         this.imperial = imperial

@@ -60,7 +60,6 @@ fun NativeSavedPlacesPanel(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = maxHeight * 0.82f)
-                .navigationBarsPadding()
                 .semantics { paneTitle = title },
             shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
             color = androidx.compose.material3.MaterialTheme.colorScheme.surface,
@@ -72,7 +71,7 @@ fun NativeSavedPlacesPanel(
             tonalElevation = 6.dp,
             shadowElevation = 8.dp,
         ) {
-            LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            LazyColumn(modifier = Modifier.fillMaxWidth().navigationBarsPadding()) {
                 item {
                     SavedPlacesHeader(title = title, onClose = onClose)
                 }

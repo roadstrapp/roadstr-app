@@ -99,6 +99,7 @@ data class NativeNavigationHudSnapshot(
     val status: NativeNavigationHudStatus,
     val current: NativeNavigationStepPresentation?,
     val next: NativeNavigationStepPresentation?,
+    val currentStreetName: String?,
     val speed: Int,
     val speedUnit: String,
     val overSpeedLimit: Boolean,
@@ -120,6 +121,7 @@ data class NativeNavigationHudSnapshot(
             status = NativeNavigationHudStatus.Hidden,
             current = null,
             next = null,
+            currentStreetName = null,
             speed = 0,
             speedUnit = "km/h",
             overSpeedLimit = false,
@@ -191,6 +193,10 @@ object NativeNavigationHudPresenter {
             status = NativeNavigationHudStatus.Active,
             current = current,
             next = next,
+            currentStreetName = currentStep.roadName
+                .takeIf { currentStep.isUrbanStreet }
+                ?.let { clean(it, 200) }
+                ?.takeIf(String::isNotEmpty),
             speed = dartRound(displaySpeed),
             speedUnit = formatter.speedUnit,
             overSpeedLimit = input.speedLimitKmh?.let { input.speedKmh > it } ?: false,

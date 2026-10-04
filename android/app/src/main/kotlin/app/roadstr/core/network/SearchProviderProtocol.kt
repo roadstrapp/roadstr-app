@@ -13,7 +13,10 @@ data class SearchProviderRequest(
     val uri: String,
     val headers: Map<String, String>,
     val body: String? = null,
-)
+) {
+    // The URI and body carry the typed query and the user's coordinates.
+    override fun toString(): String = "SearchProviderRequest(method=$method)"
+}
 
 /**
  * Socket-free request composition for Nominatim, Photon and Overpass.

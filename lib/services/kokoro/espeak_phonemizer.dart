@@ -122,7 +122,11 @@ class EspeakPhonemizer {
       final voicePtr = voice.toNativeUtf8();
       try {
         final result = _setVoice(voicePtr);
-        if (result < 0) {
+        // espeak_ERROR: EE_OK = 0, EE_INTERNAL_ERROR = -1, EE_NOT_FOUND = 2.
+        // A missing voice is the positive code; checking only for a negative
+        // result kept the previous language's rules and phonemized this text
+        // with them, silently.
+        if (result != 0) {
           throw StateError('eSpeak voice is unavailable: $voice');
         }
       } finally {

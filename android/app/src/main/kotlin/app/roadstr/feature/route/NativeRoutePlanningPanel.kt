@@ -1,8 +1,17 @@
 package app.roadstr.feature.route
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -12,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
@@ -30,12 +40,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -49,8 +63,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import app.roadstr.R
+import app.roadstr.core.ui.RoadstrSwitch
+import kotlin.math.roundToInt
 
 /** Dormant Compose counterpart of Flutter's planner, alternatives and preview sheets. */
 @Composable
@@ -71,11 +89,21 @@ fun NativeRoutePlanningPanel(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    when (snapshot.status) {
-        NativeRoutePlanningStatus.Hidden -> Unit
-        NativeRoutePlanningStatus.Planner,
-        NativeRoutePlanningStatus.Loading,
-        -> PlannerPanel(
+    AnimatedContent(
+        targetState = snapshot.status,
+        modifier = modifier,
+        transitionSpec = {
+            (fadeIn(tween(260)) + slideInVertically(tween(360)) { height -> height / 5 })
+                .togetherWith(
+                    fadeOut(tween(180)) + slideOutVertically(tween(300)) { height -> -height / 10 },
+                )
+                .using(SizeTransform(clip = false, sizeAnimationSpec = { _, _ -> tween(360) }))
+        },
+        label = "route-panel-transition",
+    ) { status ->
+        when (status) {
+        NativeRoutePlanningStatus.Hidden -> Box(Modifier)
+        NativeRoutePlanningStatus.Planner -> PlannerPanel(
             snapshot = snapshot,
             onOriginChanged = onOriginChanged,
             onUseMyLocation = onUseMyLocation,
@@ -86,7 +114,11 @@ fun NativeRoutePlanningPanel(
             onModeChanged = onModeChanged,
             onCalculate = onCalculate,
             onCancel = onCancel,
-            modifier = modifier,
+            modifier = Modifier,
+        )
+        NativeRoutePlanningStatus.Loading -> RouteLoadingPanel(
+            onCancel = onCancel,
+            modifier = Modifier,
         )
         NativeRoutePlanningStatus.Alternatives -> AlternativesPanel(
             snapshot = snapshot,
@@ -95,15 +127,16 @@ fun NativeRoutePlanningPanel(
             onAvoidanceChanged = onAvoidanceChanged,
             onConfirm = onConfirm,
             onCancel = onCancel,
-            modifier = modifier,
+            modifier = Modifier,
         )
         NativeRoutePlanningStatus.Preview -> PreviewPanel(
             snapshot = snapshot,
             onModeChanged = onModeChanged,
             onStart = onStart,
             onCancel = onCancel,
-            modifier = modifier,
+            modifier = Modifier,
         )
+        }
     }
 }
 
@@ -129,39 +162,61 @@ private fun PlannerPanel(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = maxHeight * 0.9f)
-                .padding(12.dp)
                 .semantics { paneTitle = pane },
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
             tonalElevation = 6.dp,
             shadowElevation = 8.dp,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         ) {
             Column(
                 modifier = Modifier
+                    .navigationBarsPadding()
                     .verticalScroll(rememberScrollState())
                     .padding(14.dp),
             ) {
-            OutlinedTextField(
-                value = snapshot.originQuery,
-                onValueChange = onOriginChanged,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !loading,
-                singleLine = true,
-                label = { Text(stringResource(R.string.native_route_from_hint)) },
-                trailingIcon = if (snapshot.hasGps) {
-                    {
+            val myLocation = stringResource(R.string.native_route_my_location)
+            if (snapshot.hasGps && snapshot.originQuery.trim() == myLocation.trim()) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(start = 16.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = myLocation,
+                            modifier = Modifier.weight(1f),
+                            fontWeight = FontWeight.SemiBold,
+                        )
                         TextButton(
-                            onClick = onUseMyLocation,
+                            onClick = { onOriginChanged("") },
                             enabled = !loading,
                             modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp),
-                        ) {
-                            Text(stringResource(R.string.native_route_my_location))
-                        }
+                        ) { Text("×") }
                     }
-                } else {
-                    null
-                },
-            )
+                }
+            } else {
+                OutlinedTextField(
+                    value = snapshot.originQuery,
+                    onValueChange = onOriginChanged,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !loading,
+                    singleLine = true,
+                    label = { Text(stringResource(R.string.native_route_from_hint)) },
+                    trailingIcon = if (snapshot.hasGps) {
+                        {
+                            TextButton(
+                                onClick = onUseMyLocation,
+                                enabled = !loading,
+                                modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp),
+                            ) { Text("⌖") }
+                        }
+                    } else null,
+                )
+            }
             snapshot.stops.forEachIndexed { index, stop ->
                 val last = index == snapshot.stops.lastIndex
                 Row(
@@ -258,7 +313,7 @@ private fun AlternativesPanel(
     modifier: Modifier,
 ) {
     val title = stringResource(R.string.native_route_choose)
-    RouteBottomSheet(title, modifier) {
+    RouteBottomSheet(title, modifier, onCancel) {
         RouteModeRow(snapshot.mode, true, onModeChanged)
         if (snapshot.mode == NativeRouteTransportMode.Driving) {
             Row(
@@ -287,13 +342,40 @@ private fun AlternativesPanel(
                 if (snapshot.avoidanceLoading) {
                     CircularProgressIndicator(modifier = Modifier.sizeIn(maxWidth = 32.dp, maxHeight = 32.dp))
                 } else {
-                    Switch(
+                    RoadstrSwitch(
                         checked = snapshot.avoidanceEnabled,
                         onCheckedChange = onAvoidanceChanged,
                     )
                 }
             }
         }
+        snapshot.weather?.let { weather ->
+            val temperature = if (snapshot.imperialUnits) {
+                "${(weather.temperatureCelsius * 9.0 / 5.0 + 32.0).roundToInt()}°F"
+            } else {
+                "${weather.temperatureCelsius.roundToInt()}°C"
+            }
+            val wind = if (snapshot.imperialUnits) {
+                "${(weather.windKilometresPerHour * 0.621371).roundToInt()} mph"
+            } else {
+                "${weather.windKilometresPerHour.roundToInt()} km/h"
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(weather.emoji, style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.width(7.dp))
+                Text(
+                    text = "$temperature  ·  $wind",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(6.dp))
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -322,7 +404,7 @@ private fun PreviewPanel(
     onCancel: () -> Unit,
     modifier: Modifier,
 ) {
-    RouteBottomSheet(snapshot.destinationLabel, modifier) {
+    RouteBottomSheet(snapshot.destinationLabel, modifier, onCancel) {
         val route = snapshot.alternatives.firstOrNull()
         if (route != null) {
             Surface(
@@ -393,36 +475,61 @@ private fun PreviewPanel(
 private fun RouteBottomSheet(
     title: String?,
     modifier: Modifier,
+    onDismiss: () -> Unit,
     content: @Composable () -> Unit,
 ) {
     val pane = title ?: stringResource(R.string.native_route_choose)
+    var dragOffset by remember { mutableFloatStateOf(0f) }
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = maxHeight * 0.82f)
-                .navigationBarsPadding()
+                .offset { IntOffset(0, dragOffset.roundToInt()) }
                 .semantics { paneTitle = pane },
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
             tonalElevation = 8.dp,
             shadowElevation = 10.dp,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         ) {
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                Surface(
+            Column(
+                modifier = Modifier
+                    .navigationBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+            ) {
+                Box(
                     modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .width(40.dp)
-                        .height(4.dp),
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.42f),
-                ) {}
+                        .fillMaxWidth()
+                        .height(24.dp)
+                        .pointerInput(onDismiss) {
+                            detectVerticalDragGestures(
+                                onVerticalDrag = { change, amount ->
+                                    change.consume()
+                                    dragOffset = (dragOffset + amount).coerceAtLeast(0f)
+                                },
+                                onDragEnd = {
+                                    if (dragOffset >= 120.dp.toPx()) onDismiss()
+                                    dragOffset = 0f
+                                },
+                                onDragCancel = { dragOffset = 0f },
+                            )
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Surface(
+                        modifier = Modifier.width(40.dp).height(4.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.42f),
+                    ) {}
+                }
                 if (!title.isNullOrBlank()) {
                     Text(
                         text = title,
                         modifier = Modifier
+                            .fillMaxWidth()
                             .padding(top = 10.dp, bottom = 8.dp)
                             .semantics { heading() },
+                        textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
@@ -438,54 +545,51 @@ private fun RouteBottomSheet(
 }
 
 @Composable
+private fun RouteLoadingPanel(
+    onCancel: () -> Unit,
+    modifier: Modifier,
+) {
+    RouteBottomSheet(
+        title = stringResource(R.string.native_route_choose),
+        modifier = modifier,
+        onDismiss = onCancel,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 28.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            CircularProgressIndicator()
+            Spacer(Modifier.width(12.dp))
+            Text(stringResource(R.string.native_route_loading))
+        }
+    }
+}
+
+@Composable
 private fun RouteModeRow(
     selectedMode: NativeRouteTransportMode,
     enabled: Boolean,
     onModeChanged: (NativeRouteTransportMode) -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            listOf(
-                NativeRouteTransportMode.Driving,
-                NativeRouteTransportMode.Cycling,
-                NativeRouteTransportMode.Walking,
-            ).forEach { mode ->
-                RouteModeChip(
-                    mode = mode,
-                    selected = mode == selectedMode ||
-                        (mode == NativeRouteTransportMode.Walking && selectedMode == NativeRouteTransportMode.Transit),
-                    enabled = enabled,
-                    onModeChanged = onModeChanged,
-                )
-            }
-        }
-        if (selectedMode == NativeRouteTransportMode.Walking || selectedMode == NativeRouteTransportMode.Transit) {
-            Row(
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text("↳", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                RouteModeChip(
-                    mode = NativeRouteTransportMode.Walking,
-                    selected = selectedMode == NativeRouteTransportMode.Walking,
-                    enabled = enabled,
-                    onModeChanged = onModeChanged,
-                )
-                RouteModeChip(
-                    mode = NativeRouteTransportMode.Transit,
-                    selected = selectedMode == NativeRouteTransportMode.Transit,
-                    enabled = enabled,
-                    onModeChanged = onModeChanged,
-                )
-            }
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        listOf(
+            NativeRouteTransportMode.Driving,
+            NativeRouteTransportMode.Cycling,
+            NativeRouteTransportMode.Walking,
+        ).forEach { mode ->
+            RouteModeChip(
+                mode = mode,
+                selected = mode == selectedMode,
+                enabled = enabled,
+                onModeChanged = onModeChanged,
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }
@@ -496,6 +600,7 @@ private fun RouteModeChip(
     selected: Boolean,
     enabled: Boolean,
     onModeChanged: (NativeRouteTransportMode) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val label = when (mode) {
         NativeRouteTransportMode.Driving -> stringResource(R.string.native_route_mode_car)
@@ -504,7 +609,7 @@ private fun RouteModeChip(
         NativeRouteTransportMode.Transit -> stringResource(R.string.native_route_mode_transit)
     }
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .sizeIn(minHeight = 48.dp)
             .clickable(enabled = enabled) { onModeChanged(mode) }
             .semantics {
@@ -523,7 +628,12 @@ private fun RouteModeChip(
         ),
     ) {
         Text(
-            text = label,
+            text = when (mode) {
+                NativeRouteTransportMode.Driving -> "🚗  $label"
+                NativeRouteTransportMode.Cycling -> "🚲  $label"
+                NativeRouteTransportMode.Walking -> "🚶  $label"
+                NativeRouteTransportMode.Transit -> label
+            },
             modifier = Modifier.padding(horizontal = 13.dp, vertical = 8.dp),
             color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,

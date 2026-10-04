@@ -100,6 +100,7 @@ enum class NativeSettingsBooleanKey(
     val defaultValue: Boolean,
 ) {
     AutoDark("autoDark", false),
+    DarkMap("darkMapEnabled", false),
     ProfilePublic("roadstr_profile_public", false),
     AvoidUnpavedRoads("avoidUnpavedRoads", false),
     KeepScreenOn("keepScreenOn", true),
@@ -130,6 +131,7 @@ data class NativeSettingsWrite(
 data class NativeSettingsInput(
     val themeId: RoadstrThemeId = RoadstrThemeId.LightNostr,
     val autoDarkEnabled: Boolean = false,
+    val darkMapEnabled: Boolean = false,
     val languageCode: String? = null,
     val profilePublic: Boolean = false,
     val avoidUnpavedRoads: Boolean = false,
@@ -289,10 +291,15 @@ object NativeSettingsPresenter {
  * Every mutation returns a typed write for an external persistence owner. It
  * never reads Hive/DataStore/Keystore and never receives secret contents.
  */
-class NativeSettingsSession {
+class NativeSettingsSession(
+    initialValues: NativeSettingsInput = NativeSettingsInput(),
+) {
     private val lock = Any()
-    private val _state = MutableStateFlow(NativeSettingsSnapshot.hidden())
+    private val _state = MutableStateFlow(
+        NativeSettingsSnapshot.hidden().copy(values = initialValues),
+    )
     private var revision = NativeSettingsSnapshot.NO_REVISION
+    private var retainedValues = initialValues
 
     val state: StateFlow<NativeSettingsSnapshot> = _state.asStateFlow()
 
@@ -300,13 +307,28 @@ class NativeSettingsSession {
         require(revision >= 0) { "Settings revision must be non-negative" }
         if (revision <= this.revision) return false
         this.revision = revision
-        _state.value = NativeSettingsPresenter.present(revision, input)
+        val presented = NativeSettingsPresenter.present(revision, input)
+        retainedValues = presented.values
+        _state.value = presented
+        true
+    }
+
+    /** Reopens the panel without rehydrating redacted summaries from hidden UI state. */
+    fun reopen(revision: Long): Boolean = synchronized(lock) {
+        require(revision >= 0) { "Settings revision must be non-negative" }
+        if (revision <= this.revision) return false
+        this.revision = revision
+        val presented = NativeSettingsPresenter.present(revision, retainedValues)
+        retainedValues = presented.values
+        _state.value = presented
         true
     }
 
     fun refresh(revision: Long, input: NativeSettingsInput): Boolean = synchronized(lock) {
         if (revision != this.revision || _state.value.status != NativeSettingsStatus.Ready) return false
-        _state.value = NativeSettingsPresenter.present(revision, input)
+        val presented = NativeSettingsPresenter.present(revision, input)
+        retainedValues = presented.values
+        _state.value = presented
         true
     }
 
@@ -317,6 +339,7 @@ class NativeSettingsSession {
     ): NativeSettingsWrite? = mutate(revision) { current ->
         val updated = when (key) {
             NativeSettingsBooleanKey.AutoDark -> current.copy(autoDarkEnabled = value)
+            NativeSettingsBooleanKey.DarkMap -> current.copy(darkMapEnabled = value)
             NativeSettingsBooleanKey.ProfilePublic -> current.copy(profilePublic = value)
             NativeSettingsBooleanKey.AvoidUnpavedRoads -> current.copy(avoidUnpavedRoads = value)
             NativeSettingsBooleanKey.KeepScreenOn -> current.copy(keepScreenOn = value)
@@ -441,7 +464,24 @@ class NativeSettingsSession {
 
     fun hide(revision: Long): Boolean = synchronized(lock) {
         if (revision != this.revision || _state.value.status == NativeSettingsStatus.Hidden) return false
-        _state.value = NativeSettingsSnapshot.hidden(revision)
+        retainedValues = _state.value.values
+        // Operational preferences remain projected while hidden because the
+        // map, theme and voice runtime consume them. Account/key-presence and
+        // sync summaries do not: clear those from observable UI state while
+        // retaining them privately for the next explicit reopen.
+        _state.value = NativeSettingsSnapshot.hidden(revision).copy(
+            values = retainedValues.copy(
+                routingApiKeyConfigured = false,
+                nwcConfigured = false,
+                favoritesCount = 0,
+                syncIdentityAvailable = false,
+                syncBusy = false,
+                syncPassphraseConfigured = false,
+                customSyncRelay = null,
+                lastSyncMillis = null,
+                voicePreviewing = false,
+            ),
+        )
         true
     }
 
@@ -498,7 +538,9 @@ class NativeSettingsSession {
         val current = _state.value
         if (revision != this.revision || current.status != NativeSettingsStatus.Ready) return null
         val (values, write) = block(current.values)
-        _state.value = NativeSettingsPresenter.present(revision, values)
+        val presented = NativeSettingsPresenter.present(revision, values)
+        retainedValues = presented.values
+        _state.value = presented
         write
     }
 }

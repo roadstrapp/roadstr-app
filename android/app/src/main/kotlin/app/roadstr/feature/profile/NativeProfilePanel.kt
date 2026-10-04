@@ -4,17 +4,20 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,13 +29,22 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -47,7 +59,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.roadstr.R
+import app.roadstr.core.network.PublicAddressPolicy
 import app.roadstr.core.protocol.nostr.RoadCategoryWire
+import app.roadstr.core.ui.RoadstrSwitch
+import java.io.ByteArrayOutputStream
+import java.net.UnknownHostException
+import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.Dns
+import okhttp3.HttpUrl
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import app.roadstr.feature.report.NativeRoadEventAge
 import app.roadstr.feature.report.NativeRoadEventAgeUnit
 
@@ -66,21 +90,19 @@ fun NativeProfilePanel(
 ) {
     if (snapshot.status == NativeProfileStatus.Hidden) return
     val title = stringResource(R.string.native_profile_title)
-    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
-        Surface(
+    Surface(
+        modifier = modifier
+            .fillMaxSize()
+            .semantics { paneTitle = title },
+        color = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+    ) {
+        LazyColumn(
             modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = maxHeight * 0.94f)
-                .navigationBarsPadding()
-                .semantics { paneTitle = title },
-            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-            color = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-            tonalElevation = 6.dp,
-            shadowElevation = 8.dp,
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding(),
         ) {
-            LazyColumn(modifier = Modifier.fillMaxWidth()) {
                 item { ProfileHeader(title) { onClose(snapshot.revision) } }
                 when (snapshot.status) {
                     NativeProfileStatus.Loading -> item { ProfileLoading() }
@@ -133,7 +155,6 @@ fun NativeProfilePanel(
                     NativeProfileStatus.Hidden -> Unit
                 }
                 item { Spacer(modifier = Modifier.height(12.dp)) }
-            }
         }
     }
 }
@@ -146,18 +167,19 @@ private fun ProfileHeader(title: String, onClose: () -> Unit) {
             .padding(start = 16.dp, end = 8.dp, top = 10.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        IconButton(onClick = onClose) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                contentDescription = stringResource(R.string.native_profile_close),
+            )
+        }
         Text(
             text = title,
             modifier = Modifier.weight(1f).semantics { heading() },
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
         )
-        TextButton(
-            onClick = onClose,
-            modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp),
-        ) {
-            Text(stringResource(R.string.native_profile_close))
-        }
+        Spacer(modifier = Modifier.width(48.dp))
     }
 }
 
@@ -281,7 +303,10 @@ private fun ProfileIdentity(
         if (!snapshot.showPublicProfile) {
             InfoCard(stringResource(R.string.native_profile_hidden_notice))
         }
-        ProfileAvatar(public = snapshot.showPublicProfile)
+                ProfileAvatar(
+                    public = snapshot.showPublicProfile,
+                    pictureUrl = snapshot.pictureUrl,
+                )
         snapshot.displayName?.let { name ->
             Text(
                 text = name,
@@ -360,7 +385,7 @@ private fun ProfileIdentity(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                Switch(
+                RoadstrSwitch(
                     checked = snapshot.profilePublic,
                     onCheckedChange = onVisibilityChanged,
                 )
@@ -370,8 +395,16 @@ private fun ProfileIdentity(
 }
 
 @Composable
-private fun ProfileAvatar(public: Boolean) {
+private fun ProfileAvatar(public: Boolean, pictureUrl: String? = null) {
     val description = stringResource(R.string.native_profile_title)
+    var bitmap by remember(pictureUrl) { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+    LaunchedEffect(pictureUrl) {
+        bitmap = if (pictureUrl == null) {
+            null
+        } else {
+            NativeProfilePictureLoader.load(pictureUrl)
+        }
+    }
     Surface(
         modifier = Modifier
             .size(92.dp)
@@ -383,12 +416,127 @@ private fun ProfileAvatar(public: Boolean) {
         contentColor = MaterialTheme.colorScheme.primary,
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Text(if (public) "♟" else "♙", style = MaterialTheme.typography.displaySmall)
+        if (bitmap != null) {
+            Image(
+                bitmap = bitmap!!,
+                contentDescription = description,
+                modifier = Modifier.size(92.dp),
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+            )
+        } else {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(if (public) "♟" else "♙", style = MaterialTheme.typography.displaySmall)
+            }
         }
+    }
+}
+
+internal object NativeProfilePictureLoader {
+    private val publicDns = object : Dns {
+        override fun lookup(hostname: String) = Dns.SYSTEM.lookup(hostname).also { addresses ->
+            if (addresses.isEmpty() || addresses.any { !PublicAddressPolicy.isPublic(it.address) }) {
+                throw UnknownHostException("Profile image host is not public")
+            }
+        }
+    }
+    private val client = OkHttpClient.Builder()
+        .dns(publicDns)
+        .followRedirects(false)
+        .followSslRedirects(false)
+        .callTimeout(8, TimeUnit.SECONDS)
+        .build()
+    private const val MAX_BYTES = 4 * 1024 * 1024
+    private const val MAX_DIMENSION = 4_096
+    private const val MAX_PIXELS = 16_777_216L
+    private const val TARGET_DIMENSION = 512
+    private const val MAX_REDIRECTS = 3
+
+    suspend fun load(url: String): androidx.compose.ui.graphics.ImageBitmap? = withContext(Dispatchers.IO) {
+        runCatching {
+            val bytes = downloadFollowingSafeRedirects(url) ?: return@runCatching null
+            decodeBounded(bytes)?.asImageBitmap()
+        }.getOrNull()
+    }
+
+    /**
+     * Nostr profile pictures commonly use a CDN redirect. Follow it manually
+     * so every hop is forced through the public-address DNS policy instead of
+     * either rejecting valid avatars or weakening SSRF protection globally.
+     */
+    private fun downloadFollowingSafeRedirects(value: String): ByteArray? {
+        var current = safeHttpsUrl(value) ?: return null
+        repeat(MAX_REDIRECTS + 1) { hop ->
+            var redirected: HttpUrl? = null
+            val request = Request.Builder().url(current).get().build()
+            client.newCall(request).execute().use { response ->
+                if (response.code in setOf(301, 302, 303, 307, 308)) {
+                    if (hop == MAX_REDIRECTS) return null
+                    val location = response.header("Location") ?: return null
+                    redirected = response.request.url.resolve(location)?.let(::safeHttpsUrl)
+                        ?: return null
+                } else {
+                    if (!response.isSuccessful) return null
+                    val body = response.body ?: return null
+                    val declared = body.contentLength()
+                    if (declared > MAX_BYTES) return null
+                    val initialCapacity = declared
+                        .takeIf { it in 0..MAX_BYTES.toLong() }
+                        ?.toInt()
+                        ?: 8 * 1024
+                    return ByteArrayOutputStream(initialCapacity).use { output ->
+                        val input = body.byteStream()
+                        val buffer = ByteArray(8 * 1024)
+                        var received = 0
+                        while (true) {
+                            val count = input.read(buffer)
+                            if (count < 0) break
+                            if (count == 0) continue
+                            if (received > MAX_BYTES - count) return null
+                            received += count
+                            output.write(buffer, 0, count)
+                        }
+                        output.toByteArray()
+                    }
+                }
+            }
+            current = requireNotNull(redirected)
+        }
+        return null
+    }
+
+    private fun safeHttpsUrl(value: String): HttpUrl? = value.toHttpUrlOrNull()?.takeIf { url ->
+        url.isHttps && url.username.isEmpty() && url.password.isEmpty()
+    }
+
+    private fun safeHttpsUrl(value: HttpUrl): HttpUrl? = value.takeIf { url ->
+        url.isHttps && url.username.isEmpty() && url.password.isEmpty()
+    }
+
+    private fun decodeBounded(bytes: ByteArray): android.graphics.Bitmap? {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+        val width = bounds.outWidth
+        val height = bounds.outHeight
+        if (
+            width <= 0 || height <= 0 ||
+            width > MAX_DIMENSION || height > MAX_DIMENSION ||
+            width.toLong() * height.toLong() > MAX_PIXELS
+        ) {
+            return null
+        }
+        var sampleSize = 1
+        while (width / sampleSize > TARGET_DIMENSION || height / sampleSize > TARGET_DIMENSION) {
+            sampleSize = sampleSize shl 1
+        }
+        return BitmapFactory.decodeByteArray(
+            bytes,
+            0,
+            bytes.size,
+            BitmapFactory.Options().apply { inSampleSize = sampleSize },
+        )
     }
 }
 

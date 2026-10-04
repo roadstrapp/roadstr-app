@@ -2,6 +2,7 @@ package app.roadstr.core.protocol.lightning
 
 import app.roadstr.core.protocol.nostr.NostrEventDraft
 import app.roadstr.core.protocol.nostr.NostrJson
+import app.roadstr.core.protocol.nostr.asciiHexDigit
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
@@ -48,8 +49,10 @@ class NwcConnection private constructor(
                 val separator = component.indexOf('=')
                 val rawKey = if (separator < 0) component else component.substring(0, separator)
                 val rawValue = if (separator < 0) "" else component.substring(separator + 1)
-                val key = URLDecoder.decode(rawKey, StandardCharsets.UTF_8)
-                val value = URLDecoder.decode(rawValue, StandardCharsets.UTF_8)
+                // Charset overload is API 33; the charset-name overload is
+                // available across Roadstr's full minSdk 24 range.
+                val key = URLDecoder.decode(rawKey, StandardCharsets.UTF_8.name())
+                val value = URLDecoder.decode(rawValue, StandardCharsets.UTF_8.name())
                 values.getOrPut(key) { mutableListOf() } += value
             }
             return values
@@ -410,7 +413,7 @@ object Nip57Protocol {
 }
 
 private fun String.isHex32(): Boolean =
-    length == 64 && all { character -> character.digitToIntOrNull(16) != null }
+    length == 64 && all { character -> asciiHexDigit(character) >= 0 }
 
 private fun String.spaceSeparated(): Set<String> =
     trim().split(Regex("\\s+")).filter { part -> part.isNotEmpty() }.toSet()

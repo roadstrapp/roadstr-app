@@ -81,7 +81,7 @@ class NativeMapCameraSessionTest {
     }
 
     @Test
-    fun `heading-up navigation shifts center ahead and keeps frames active`() {
+    fun `heading-up navigation keeps fix visible with viewport padding and active frames`() {
         val session = NativeMapCameraSession()
         assertTrue(
             session.configure(
@@ -98,9 +98,11 @@ class NativeMapCameraSessionTest {
 
         val state = session.state.value
         val command = requireNotNull(state.command)
-        assertTrue(command.center.latitude > point.latitude)
+        assertEquals(point.latitude, command.center.latitude, 0.0000001)
         assertEquals(point.longitude, command.center.longitude, 0.0000001)
         assertEquals(55.0, command.pitchDegrees, 0.0)
+        assertEquals(160.0, command.paddingTopPixels, 0.0)
+        assertEquals(0.0, command.paddingBottomPixels, 0.0)
         assertTrue(state.frameActive)
     }
 

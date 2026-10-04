@@ -80,7 +80,14 @@ class NostrRelayIngress(rules: Iterable<NostrIngressRule>) {
      * matching kind route wins. This mirrors the current Dart dispatch order.
      */
     fun inspect(subscriptionId: String, claimedKind: Any?): NostrIngressDecision {
-        val matching = rules.filter { rule -> rule.subscriptionId == subscriptionId }
+        // A rule whose REQ has not been sent yet carries an empty id. Without
+        // this guard a relay could push ["EVENT","",...] and have it routed to
+        // that dormant subscription as if it had been requested.
+        val matching = if (subscriptionId.isEmpty()) {
+            emptyList()
+        } else {
+            rules.filter { rule -> rule.subscriptionId == subscriptionId }
+        }
         if (matching.isEmpty()) {
             return NostrIngressDecision(NostrIngressVerdict.IGNORE)
         }

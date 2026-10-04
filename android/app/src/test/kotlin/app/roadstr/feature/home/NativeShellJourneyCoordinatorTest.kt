@@ -161,6 +161,8 @@ class NativeShellJourneyCoordinatorTest {
             via: List<SearchResponsePoint>,
             mode: NativeRouteTransportMode,
             languageCode: String,
+            avoidHighwaysAndTolls: Boolean,
+            avoidUnpavedRoads: Boolean,
         ): List<RoutingParsedRoute> {
             routeCalls += 1
             lastMode = mode
@@ -186,13 +188,22 @@ class NativeShellJourneyCoordinatorTest {
             speedKilometresPerHour: Double,
             headingDegrees: Double?,
             straightLineDistanceMeters: Double,
+            avoidUnpavedRoads: Boolean,
         ): List<RoutingParsedRoute> {
             rerouteCalls += 1
             lastMode = mode
             lastLanguage = languageCode
             lastSpeed = speedKilometresPerHour
             lastHeading = headingDegrees
-            return routes(origin, destination, emptyList(), mode, languageCode)
+            return routes(
+                origin,
+                destination,
+                emptyList(),
+                mode,
+                languageCode,
+                avoidHighwaysAndTolls = false,
+                avoidUnpavedRoads = avoidUnpavedRoads,
+            )
         }
     }
 }

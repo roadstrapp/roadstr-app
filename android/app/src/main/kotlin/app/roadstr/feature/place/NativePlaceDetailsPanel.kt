@@ -1,7 +1,14 @@
 package app.roadstr.feature.place
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -14,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
@@ -30,8 +38,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -44,6 +57,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntOffset
 import app.roadstr.R
 import app.roadstr.core.search.OsmEvConnector
 import app.roadstr.core.search.OsmPlaceDetails
@@ -63,15 +77,21 @@ fun NativePlaceDetailsPanel(
     modifier: Modifier = Modifier,
     searchEngineName: String = "Qwant",
 ) {
-    if (snapshot.status == NativePlaceUiStatus.Hidden) return
+    var dragOffset by remember { mutableFloatStateOf(0f) }
     val paneTitle = snapshot.title
         ?: androidx.compose.ui.res.stringResource(R.string.native_place_loading)
-    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+    AnimatedVisibility(
+        visible = snapshot.status != NativePlaceUiStatus.Hidden,
+        modifier = modifier,
+        enter = fadeIn(tween(240)) + slideInVertically(tween(360)) { it / 4 },
+        exit = fadeOut(tween(180)) + slideOutVertically(tween(300)) { it / 5 },
+    ) {
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = maxHeight * 0.8f)
-                .navigationBarsPadding()
+                .offset { IntOffset(0, dragOffset.toInt()) }
                 .semantics { this.paneTitle = paneTitle },
             color = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
@@ -80,8 +100,22 @@ fun NativePlaceDetailsPanel(
             tonalElevation = 6.dp,
             shadowElevation = 8.dp,
         ) {
-            Column {
-                PlaceDragHandle()
+            Column(modifier = Modifier.navigationBarsPadding()) {
+                PlaceDragHandle(
+                    modifier = Modifier.pointerInput(onCancel) {
+                        detectVerticalDragGestures(
+                            onVerticalDrag = { change, amount ->
+                                change.consume()
+                                dragOffset = (dragOffset + amount).coerceAtLeast(0f)
+                            },
+                            onDragEnd = {
+                                if (dragOffset >= 120.dp.toPx()) onCancel()
+                                dragOffset = 0f
+                            },
+                            onDragCancel = { dragOffset = 0f },
+                        )
+                    },
+                )
                 Column(
                     modifier = Modifier
                         .weight(1f, fill = false)
@@ -124,12 +158,13 @@ fun NativePlaceDetailsPanel(
             }
         }
     }
+    }
 }
 
 @Composable
-private fun PlaceDragHandle() {
+private fun PlaceDragHandle(modifier: Modifier = Modifier) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(26.dp),
         contentAlignment = Alignment.Center,

@@ -4,7 +4,6 @@ import 'dart:isolate';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:latlong2/latlong.dart';
@@ -27,6 +26,7 @@ import '../services/voice_engine_languages.dart';
 import '../services/voice_model_download.dart';
 import '../widgets/cursor_painter.dart';
 import '../widgets/speedometer_widget.dart';
+import '../services/app_secure_storage.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -75,7 +75,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   StreamSubscription<double>? _piperProgressSub;
   StreamSubscription<String>? _piperErrorSub;
 
-  static const _st = FlutterSecureStorage();
+  static const _st = appSecureStorage;
   final _apiKeyCtrl = TextEditingController();
   final _nwcCtrl = TextEditingController();
 

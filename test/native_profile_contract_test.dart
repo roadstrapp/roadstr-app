@@ -79,15 +79,13 @@ void main() {
     expect(source, isNot(contains('Clipboard')));
   });
 
-  test('private shell packages profile state without opening or feeding it',
-      () {
+  test('private shell packages profile state without owning identity', () {
     final source = shell.readAsStringSync();
 
     expect(source, contains('NativeProfileSession()'));
     expect(source, contains('NativeProfilePanel('));
-    expect(source, isNot(contains('profileSession.begin(')));
-    expect(source, isNot(contains('profileSession.showProfile(')));
-    expect(source, isNot(contains('profileSession.showLoggedOut(')));
+    expect(source, isNot(contains('NostrRelayService')));
+    expect(source, isNot(contains('Amberflutter')));
   });
 }
 

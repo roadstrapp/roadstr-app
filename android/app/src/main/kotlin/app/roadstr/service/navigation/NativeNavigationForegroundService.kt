@@ -93,6 +93,11 @@ class NativeNavigationForegroundService : Service() {
             NativeNavigationServiceState.markForegroundGpsStopped()
             stopSelf()
             return
+        } catch (_: IllegalStateException) {
+            // ForegroundServiceStartNotAllowedException on Android 12+.
+            NativeNavigationServiceState.markForegroundGpsStopped()
+            stopSelf()
+            return
         }
 
         val coordinator = locationService ?: return stopLocation()
@@ -105,7 +110,10 @@ class NativeNavigationForegroundService : Service() {
         NativeNavigationServiceState.markForegroundGpsStopped()
         navigationNotificationPolicy.reset()
         serviceScope.launch {
-            locationService?.dispose()
+            // stop(), not dispose(): a START can reach this same instance
+            // before onDestroy (stop then immediate restart), and a disposed
+            // coordinator would refuse it. onDestroy owns disposal.
+            locationService?.stop()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 stopForeground(STOP_FOREGROUND_REMOVE)
             } else {
