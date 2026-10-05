@@ -39,7 +39,13 @@ void main() {
   });
 
   test('keeps exactly the worldwide Overpass mirrors and request headers', () {
-    expect(SearchProviderProtocol.overpassMirrors, hasLength(2));
+    expect(SearchProviderProtocol.overpassMirrors, hasLength(3));
+    // overpass.openstreetmap.fr answers apps with 403 "white-listed usages only".
+    expect(
+      SearchProviderProtocol.overpassMirrors
+          .any((m) => m.contains('openstreetmap.fr')),
+      isFalse,
+    );
     expect(
       SearchProviderProtocol.overpassMirrors.any((m) => m.contains('osm.ch')),
       isFalse,

@@ -57,7 +57,8 @@ class SearchProviderProtocolParityTest {
     fun `provider constants and incomplete coordinate pairs stay closed`() {
         assertEquals(200, SearchProviderProtocol.photonMaxQueryLength)
         assertEquals(setOf("en", "de", "fr"), SearchProviderProtocol.photonSupportedLanguages)
-        assertEquals(2, SearchProviderProtocol.overpassMirrors.size)
+        assertEquals(3, SearchProviderProtocol.overpassMirrors.size)
+        assertFalse(SearchProviderProtocol.overpassMirrors.any { it.contains("openstreetmap.fr") })
         assertFalse(SearchProviderProtocol.overpassMirrors.any { it.contains("osm.ch") })
         assertThrows(IllegalArgumentException::class.java) {
             SearchProviderProtocol.nominatimSearch("x", latitude = 45.0)

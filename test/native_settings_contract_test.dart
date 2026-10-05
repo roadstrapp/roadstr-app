@@ -72,6 +72,9 @@ void main() {
     final source = panel.readAsStringSync();
 
     expect(source, contains('LazyColumn'));
+    // An expanded section stacks its rows: AnimatedVisibility alone would draw
+    // the crosswalk and traffic-light switches on top of each other.
+    expect(source, contains('Column { content() }'));
     expect(source, contains('navigationBarsPadding()'));
     expect(source, contains('paneTitle ='));
     expect(source, contains('minHeight = 48.dp'));

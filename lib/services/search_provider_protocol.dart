@@ -29,9 +29,16 @@ class SearchProviderProtocol {
 
   /// overpass.osm.ch is intentionally absent: it contains Switzerland only
   /// and reports an empty success for queries elsewhere instead of failing.
+  ///
+  /// overpass.openstreetmap.fr is absent too: it now answers every request
+  /// from an app with 403 "only available to white-listed usages". The two
+  /// extra instances are run by the same operator as the main one, so adding
+  /// them widens the fallback without adding another party that sees where
+  /// the driver is.
   static const overpassMirrors = [
     'https://overpass-api.de/api/interpreter',
-    'https://overpass.openstreetmap.fr/api/interpreter',
+    'https://lz4.overpass-api.de/api/interpreter',
+    'https://z.overpass-api.de/api/interpreter',
   ];
 
   static const photonMaxQueryLength = 200;

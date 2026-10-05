@@ -16,6 +16,9 @@ class NativeOsmHazardServiceTest {
         val bodies = mutableListOf<String>()
         val mirrors = mutableListOf<String>()
 
+        /** Indexes of requests, in order, that answer 403 whatever the responder says. */
+        val mirrorsRefusing = mutableSetOf<Int>()
+
         override suspend fun execute(
             request: app.roadstr.core.network.SearchProviderRequest,
             limits: NativeHttpRequestLimits,
@@ -23,6 +26,9 @@ class NativeOsmHazardServiceTest {
             val body = request.body.orEmpty()
             bodies += java.net.URLDecoder.decode(body.removePrefix("data="), "UTF-8")
             mirrors += request.uri
+            if ((mirrors.size - 1) in mirrorsRefusing) {
+                return NativeHttpResponse(403, "", emptyMap(), ByteArray(0))
+            }
             val (status, text) = responder(body)
             return NativeHttpResponse(status, "", emptyMap(), text.toByteArray())
         }
@@ -103,7 +109,7 @@ class NativeOsmHazardServiceTest {
     }
 
     @Test
-    fun `a failure rotates the mirror, keeps the old data and waits before retrying`() = runBlocking {
+    fun `a round in which every mirror fails keeps the old data and waits before the next round`() = runBlocking {
         var calls = 0
         val transport = FakeTransport {
             if (calls++ == 0) {
@@ -116,21 +122,36 @@ class NativeOsmHazardServiceTest {
         assertEquals(1, subject.trafficLights(point).size)
 
         val farAway = GeoPoint(point.latitude + 0.05, point.longitude)
-        // Fails: the previous answer stays on the map.
+        // Every mirror is tried once, all refuse: the previous answer stays on the map.
         assertEquals(1, subject.trafficLights(farAway).size)
-        assertEquals(2, transport.bodies.size)
-        assertTrue(transport.mirrors[0] != transport.mirrors[1] || transport.mirrors.size == 2)
+        assertEquals(1 + 3, transport.bodies.size)
+        assertEquals(3, transport.mirrors.drop(1).toSet().size)
 
         // Inside the back-off nothing is sent. A 503 is a throttle: 15 s * 4.
         now = now.plus(Duration.ofSeconds(30))
         subject.trafficLights(farAway)
-        assertEquals(2, transport.bodies.size)
+        assertEquals(1 + 3, transport.bodies.size)
 
         now = now.plus(Duration.ofSeconds(40))
         subject.trafficLights(farAway)
-        assertEquals(3, transport.bodies.size)
-        // The retry used the other mirror.
-        assertTrue(transport.mirrors[2] != transport.mirrors[1])
+        assertEquals(1 + 3 + 3, transport.bodies.size)
+    }
+
+    @Test
+    fun `a mirror that refuses falls through to the next one in the same fetch`() = runBlocking {
+        val transport = FakeTransport { 200 to """{"elements":[{"type":"node","id":7,"lat":38.7,"lon":-9.1}]}""" }
+        val refusing = transport.mirrorsRefusing
+        refusing += 0
+        val subject = service(transport)
+
+        // The first mirror answers 403 (it is white-listed only), the second works.
+        assertEquals(listOf(7L), subject.crossingsAndBumps(point).map { it.id })
+        assertEquals(2, transport.bodies.size)
+        assertTrue(transport.mirrors[0] != transport.mirrors[1])
+
+        // The data is cached, so nothing more is asked for the same spot.
+        subject.crossingsAndBumps(point)
+        assertEquals(2, transport.bodies.size)
     }
 
     @Test

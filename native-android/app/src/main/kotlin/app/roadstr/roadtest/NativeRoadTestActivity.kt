@@ -52,7 +52,7 @@ class NativeRoadTestActivity : ComponentActivity() {
         )
     }
     private val hazardService by lazy(LazyThreadSafetyMode.NONE) {
-        NativeOsmHazardService(httpClient)
+        NativeOsmHazardService(httpClient, diagnostics = { Log.d("RoadstrHazards", it) })
     }
     private val voiceGateway by lazy(LazyThreadSafetyMode.NONE) {
         NativeRoadTestVoiceGateway(applicationContext)
