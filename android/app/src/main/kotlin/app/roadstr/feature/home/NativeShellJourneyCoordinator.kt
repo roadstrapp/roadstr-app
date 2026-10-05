@@ -13,6 +13,7 @@ import app.roadstr.feature.route.NativeRouteTransportMode
 import app.roadstr.feature.route.NativeRouteWeatherPresentation
 import app.roadstr.feature.search.NativeSearchNearbyCategory
 import app.roadstr.feature.search.NativeSearchResultPresentation
+import app.roadstr.feature.search.NativeSearchFavorite
 import app.roadstr.feature.search.NativeSearchSession
 import app.roadstr.core.search.SearchHistoryEntry
 import java.util.Locale
@@ -102,6 +103,8 @@ class NativeShellJourneyCoordinator(
     private val searchSession: NativeSearchSession,
     private val routeSession: NativeRoutePlanningSession,
     private val languageCode: String = Locale.getDefault().language,
+    /** The saved places, read each time the search opens so the list is never stale. */
+    private val favorites: () -> List<NativeSearchFavorite> = { emptyList() },
 ) {
     private var searchRevision = searchSession.state.value.revision.coerceAtLeast(0L)
     private var routeRevision = routeSession.state.value.revision.coerceAtLeast(0L)
@@ -117,7 +120,11 @@ class NativeShellJourneyCoordinator(
         selectedDestination = null
         clearNavigationDestination()
         val revision = nextSearchRevision()
-        val opened = searchSession.show(revision, nearbyEnabled = nearbyEnabled)
+        val opened = searchSession.show(
+            revision,
+            favorites = runCatching(favorites).getOrDefault(emptyList()),
+            nearbyEnabled = nearbyEnabled,
+        )
         if (opened) {
             scope.launch {
                 val history = runCatching { gateway.loadSearchHistory() }.getOrDefault(emptyList())

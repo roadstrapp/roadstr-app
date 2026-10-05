@@ -115,6 +115,8 @@ import app.roadstr.feature.saved.NativeSavedPlace
 import app.roadstr.feature.saved.NativeParkingPosition
 import app.roadstr.feature.saved.NativeSavedPlacesProtocol
 import app.roadstr.feature.saved.NativeSavedPlacesSession
+import app.roadstr.feature.search.NativeSearchFavorite
+import app.roadstr.feature.search.NativeSearchPresenter
 import app.roadstr.feature.search.NativeSearchOverlay
 import app.roadstr.feature.search.NativeSearchSession
 import app.roadstr.feature.search.NativeSearchUiStatus
@@ -446,6 +448,16 @@ fun NativeRoadstrShell(
                     searchSession = searchSession,
                     routeSession = routePlanningSession,
                     languageCode = journeyLanguage,
+                    // Saved places are listed in the search menu, as on the Flutter map.
+                    favorites = {
+                        favorites.map { place ->
+                            NativeSearchFavorite(
+                                label = place.label,
+                                address = place.address,
+                                position = SearchResponsePoint(place.point.latitude, place.point.longitude),
+                            )
+                        }
+                    },
                 )
             }
         }
@@ -1398,13 +1410,40 @@ fun NativeRoadstrShell(
                             .padding(end = 12.dp, bottom = 190.dp),
                     )
                 }
+                val chooseFavorite: (String, String, SearchResponsePoint) -> Unit = { label, address, position ->
+                    if (activeNavigationState.active) {
+                        journeyCoordinator?.selectDestination(label, position, gpsSearchPoint, myLocationLabel)
+                    } else {
+                        showSearchPlace(label, address, position)
+                    }
+                }
                 NativeSearchOverlay(
                     snapshot = searchState,
                     onQueryChanged = { query ->
                         journeyCoordinator?.updateSearchQuery(query)
                     },
                     onSubmit = { query ->
-                        journeyCoordinator?.submitSearch(query, gpsSearchPoint)
+                        // A saved place that matches what was typed wins over a web
+                        // search, as on the Flutter map.
+                        val saved = if (query.isBlank()) {
+                            null
+                        } else {
+                            NativeSearchPresenter.favorites(
+                                favorites.map { place ->
+                                    NativeSearchFavorite(
+                                        place.label,
+                                        place.address,
+                                        SearchResponsePoint(place.point.latitude, place.point.longitude),
+                                    )
+                                },
+                                query.trim(),
+                            ).firstOrNull()
+                        }
+                        if (saved != null) {
+                            chooseFavorite(saved.label, saved.address, saved.position)
+                        } else {
+                            journeyCoordinator?.submitSearch(query, gpsSearchPoint)
+                        }
                     },
                     onClearQuery = {
                         journeyCoordinator?.updateSearchQuery("")
@@ -1427,13 +1466,7 @@ fun NativeRoadstrShell(
                         }
                     },
                     onSelectFavorite = { favorite ->
-                        if (activeNavigationState.active) {
-                            journeyCoordinator?.selectDestination(
-                                favorite.label, favorite.position, gpsSearchPoint, myLocationLabel,
-                            )
-                        } else {
-                            showSearchPlace(favorite.label, favorite.address, favorite.position)
-                        }
+                        chooseFavorite(favorite.label, favorite.address, favorite.position)
                     },
                     onSelectHistory = { history ->
                         if (activeNavigationState.active) {

@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Пароль</string>
     <string name="native_nostr_relay_desc">Добавьте релей, который вы держите или оплачиваете, — избранное будет публиковаться и туда. Публичные релеи ничего не обещают о сроках хранения данных, а ваш обещает. Оставьте пустым, чтобы использовать только встроенные релеи.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Неверный адрес релея. Он должен начинаться с wss://</string>
+    <string name="native_nostr_relay_invalid">Недопустимый адрес релея. Используйте wss://relay.example.com или ws://192.168.x.x:порт для релея в домашней сети</string>
     <string name="native_nostr_relay_title">Свой релей (необязательно)</string>
     <string name="native_nostr_report_published">Отчёт опубликован ✓</string>
     <string name="native_nostr_report_queued">Сохранено — будет опубликовано, как только появится связь ⏳</string>

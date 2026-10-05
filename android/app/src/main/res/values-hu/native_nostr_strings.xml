@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Jelszó</string>
     <string name="native_nostr_relay_desc">Adj hozzá egy relayt, amelyet te üzemeltetsz vagy fizetsz, és a kedvenceid oda is közzé lesznek téve. A nyilvános relayek semmit sem ígérnek arról, meddig őrzik meg az adatokat; a sajátod igen. Hagyd üresen, ha csak a beépített relayeket szeretnéd használni.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Érvénytelen relay-cím. wss:// előtaggal kell kezdődnie</string>
+    <string name="native_nostr_relay_invalid">Érvénytelen relay-cím. Használd a wss://relay.example.com címet, vagy a ws://192.168.x.x:port címet az otthoni hálózat relayéhez</string>
     <string name="native_nostr_relay_title">Saját relay (opcionális)</string>
     <string name="native_nostr_report_published">Jelentés közzétéve ✓</string>
     <string name="native_nostr_report_queued">Mentve — közzétesszük, amint újra online leszel ⏳</string>
