@@ -11,6 +11,8 @@ data class DiscoveryRequest(
     val destination: GeoPoint?,
     val languageCode: String,
     val now: LocalDateTime,
+    /** The route being driven, for "along my route"; empty when there is none. */
+    val route: List<GeoPoint> = emptyList(),
 ) {
     // Positions and the typed text stay out of logs.
     override fun toString(): String = "DiscoveryRequest(intent=${query.intent})"

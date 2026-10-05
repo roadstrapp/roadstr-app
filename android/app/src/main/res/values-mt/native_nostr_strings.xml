@@ -75,6 +75,7 @@
     <string name="native_search_notice_area_fallback">Dak il-post ma setax jiġi ddelimitat eżattament, għalhekk infittxet iż-żona madwaru.</string>
     <string name="native_search_notice_few_tagged">Ftit postijiet hawn huma ttikkettati għal dan f\'OpenStreetMap, għalhekk il-lista tista\' ma tkunx kompluta.</string>
     <string name="native_search_notice_open_hours_unknown">Xi postijiet ma jindikawx il-ħinijiet tal-ftuħ, għalhekk jistgħu jkunu magħluqin.</string>
+    <string name="native_search_notice_route_ahead">Postijiet tul is-silta tar-rotta tiegħek li għad fadlilek.</string>
     <string name="native_search_notice_route_unsupported">Il-fittxija tul ir-rotta għadha mhix disponibbli; qed nuru postijiet madwarek.</string>
     <string name="native_search_notice_widened">Xejn qrib, għalhekk il-fittxija twessgħet.</string>
     <string name="native_search_web_consent">Tibgħat “%1$s” lil %2$s?</string>

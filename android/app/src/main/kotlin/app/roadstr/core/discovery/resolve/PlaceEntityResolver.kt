@@ -15,6 +15,7 @@ fun SearchArea.reachMeters(): Double = when (this) {
     is SearchArea.Circle -> radiusMeters.toDouble()
     is SearchArea.Box -> diagonalMeters / 2
     is SearchArea.AdminArea -> maxOf(fallback.reachMeters(), ADMIN_REACH_METERS)
+    is SearchArea.Corridor -> lengthMeters / 2 + bufferMeters
 }
 
 private const val ADMIN_REACH_METERS = 10_000.0

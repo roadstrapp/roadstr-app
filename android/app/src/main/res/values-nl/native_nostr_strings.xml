@@ -75,6 +75,7 @@
     <string name="native_search_notice_area_fallback">Die plek kon niet precies worden afgebakend, daarom is het gebied eromheen doorzocht.</string>
     <string name="native_search_notice_few_tagged">Weinig plaatsen hier zijn hiervoor getagd in OpenStreetMap, dus de lijst kan onvolledig zijn.</string>
     <string name="native_search_notice_open_hours_unknown">Sommige plaatsen vermelden geen openingstijden, dus ze kunnen gesloten zijn.</string>
+    <string name="native_search_notice_route_ahead">Plaatsen langs het deel van je route dat nog voor je ligt.</string>
     <string name="native_search_notice_route_unsupported">Zoeken langs de route is nog niet beschikbaar; plaatsen om je heen worden getoond.</string>
     <string name="native_search_notice_widened">Niets in de buurt, daarom is de zoekopdracht verbreed.</string>
     <string name="native_search_web_consent">“%1$s” naar %2$s sturen?</string>

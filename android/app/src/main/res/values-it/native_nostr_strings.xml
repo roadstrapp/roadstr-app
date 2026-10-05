@@ -75,6 +75,7 @@
     <string name="native_search_notice_area_fallback">Non è stato possibile delimitare esattamente quel luogo, quindi ho cercato nell\'area intorno.</string>
     <string name="native_search_notice_few_tagged">Pochi luoghi qui sono etichettati per questo su OpenStreetMap, quindi l\'elenco potrebbe essere incompleto.</string>
     <string name="native_search_notice_open_hours_unknown">Alcuni luoghi non indicano gli orari di apertura, quindi potrebbero essere chiusi.</string>
+    <string name="native_search_notice_route_ahead">Luoghi lungo il tratto di percorso che ti resta da fare.</string>
     <string name="native_search_notice_route_unsupported">La ricerca lungo il percorso non è ancora disponibile; mostro i luoghi intorno a te.</string>
     <string name="native_search_notice_widened">Niente nelle vicinanze, quindi la ricerca è stata allargata.</string>
     <string name="native_search_web_consent">Inviare “%1$s” a %2$s?</string>

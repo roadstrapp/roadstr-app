@@ -19,6 +19,7 @@ enum class DiscoveryNotice {
 
     /** Along-the-route search is not available; the search ran around the position instead. */
     ROUTE_UNSUPPORTED,
+    ROUTE_AHEAD,
 
     /** "Open now" was asked but some places give no usable hours. */
     OPEN_HOURS_UNKNOWN,
@@ -52,8 +53,10 @@ object DiscoveryRanking {
         device: GeoPoint?,
         now: LocalDateTime,
         limit: Int = 25,
+        /** For an "along my route" search: places are judged by the detour they cost, not by distance. */
+        route: List<GeoPoint>? = null,
     ): List<RankedPlace> {
-        val scored = places.mapNotNull { place -> score(place, query, anchor, device, now) }
+        val scored = places.mapNotNull { place -> score(place, query, anchor, device, now, route) }
         return scored
             .sortedWith(
                 compareByDescending<RankedPlace> { it.score }
@@ -69,17 +72,21 @@ object DiscoveryRanking {
         anchor: GeoPoint?,
         device: GeoPoint?,
         now: LocalDateTime,
+        route: List<GeoPoint>?,
     ): RankedPlace? {
         if (hasNegativeAttribute(place, query)) return null
         val deviceDistance = device?.let { GeoMath.distanceMeters(it, place.position) }
         val open = OpenNowPolicy.state(place.openingHours, now, deviceDistance)
         if (query.openNow && open == OpenState.CLOSED) return null
-        val distance = anchor?.let { GeoMath.distanceMeters(it, place.position) }
+        val onRoute = route?.let { RouteCorridor.position(place.position, it) }
+        val distance = onRoute?.detourMeters ?: anchor?.let { GeoMath.distanceMeters(it, place.position) }
         val score = DISTANCE_WEIGHT * nearness(distance) +
             OPEN_WEIGHT * openness(open) +
             COMPLETE_WEIGHT * completeness(place) +
             TERM_WEIGHT * termMatch(place, query.residualTerms)
-        return RankedPlace(place.copy(distanceMeters = deviceDistance ?: distance), score, open)
+        // Along a route what matters to the driver is how far ahead a place is.
+        val shown = onRoute?.alongMeters ?: deviceDistance ?: distance
+        return RankedPlace(place.copy(distanceMeters = shown), score, open)
     }
 
     private fun hasNegativeAttribute(place: RoadstrPlace, query: NaturalPlaceQuery): Boolean =

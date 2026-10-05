@@ -76,6 +76,7 @@ enum class NativeSearchNotice {
     FewTagged,
     Widened,
     RouteUnsupported,
+    RouteAhead,
     AreaFallback,
     OpenHoursUnknown,
 }

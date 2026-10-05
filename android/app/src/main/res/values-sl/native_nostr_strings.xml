@@ -75,6 +75,7 @@
     <string name="native_search_notice_area_fallback">Tega kraja ni bilo mogoče natančno omejiti, zato je bila preiskana njegova okolica.</string>
     <string name="native_search_notice_few_tagged">Malo krajev je tu za to označenih v OpenStreetMap, zato je seznam lahko nepopoln.</string>
     <string name="native_search_notice_open_hours_unknown">Nekateri kraji ne navajajo delovnega časa, zato so lahko zaprti.</string>
+    <string name="native_search_notice_route_ahead">Kraji vzdolž dela poti, ki je še pred vami.</string>
     <string name="native_search_notice_route_unsupported">Iskanje vzdolž poti še ni na voljo; prikazani so kraji okoli vas.</string>
     <string name="native_search_notice_widened">V bližini ni nič, zato je bilo iskanje razširjeno.</string>
     <string name="native_search_web_consent">Pošlji „%1$s“ na %2$s?</string>
