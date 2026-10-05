@@ -136,6 +136,10 @@ fun NativeSearchOverlay(
                     }
                 }
 
+                snapshot.notice?.let { notice ->
+                    item(key = "notice") { SearchNoticeRow(notice) }
+                }
+
                 if (snapshot.status == NativeSearchUiStatus.Loading) {
                     item(key = "loading") { SearchLoadingState() }
                 } else if (snapshot.status == NativeSearchUiStatus.Results) {
@@ -386,6 +390,34 @@ private fun SearchLoadingState() {
     ) {
         CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
     }
+}
+
+@Composable
+private fun SearchNoticeRow(notice: NativeSearchNotice) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp, vertical = 8.dp)
+            .semantics { liveRegion = LiveRegionMode.Polite },
+        verticalAlignment = Alignment.Top,
+    ) {
+        Text("ⓘ", color = MaterialTheme.colorScheme.primary)
+        Spacer(modifier = Modifier.width(10.dp))
+        Text(
+            text = androidx.compose.ui.res.stringResource(notice.textResource()),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall,
+        )
+    }
+}
+
+@StringRes
+private fun NativeSearchNotice.textResource(): Int = when (this) {
+    NativeSearchNotice.FewTagged -> R.string.native_search_notice_few_tagged
+    NativeSearchNotice.Widened -> R.string.native_search_notice_widened
+    NativeSearchNotice.RouteUnsupported -> R.string.native_search_notice_route_unsupported
+    NativeSearchNotice.AreaFallback -> R.string.native_search_notice_area_fallback
+    NativeSearchNotice.OpenHoursUnknown -> R.string.native_search_notice_open_hours_unknown
 }
 
 @Composable

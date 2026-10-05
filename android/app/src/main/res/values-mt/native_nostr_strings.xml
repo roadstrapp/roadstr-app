@@ -54,6 +54,11 @@
     <string name="native_roadtest_no_app">Ma hemm l-ebda app biex tiftaħ din il-link</string>
     <string name="native_saved_geocoding_error">Indirizz ma nstabx. Ipprova indirizz aktar speċifiku.</string>
     <string name="native_saved_label">Isem (eż. Dar, Uffiċċju)</string>
+    <string name="native_search_notice_area_fallback">Dak il-post ma setax jiġi ddelimitat eżattament, għalhekk infittxet iż-żona madwaru.</string>
+    <string name="native_search_notice_few_tagged">Ftit postijiet hawn huma ttikkettati għal dan f\'OpenStreetMap, għalhekk il-lista tista\' ma tkunx kompluta.</string>
+    <string name="native_search_notice_open_hours_unknown">Xi postijiet ma jindikawx il-ħinijiet tal-ftuħ, għalhekk jistgħu jkunu magħluqin.</string>
+    <string name="native_search_notice_route_unsupported">Il-fittxija tul ir-rotta għadha mhix disponibbli; qed nuru postijiet madwarek.</string>
+    <string name="native_search_notice_widened">Xejn qrib, għalhekk il-fittxija twessgħet.</string>
     <string name="native_settings_dark_map">Mappa skura</string>
     <string name="native_settings_dark_map_desc">Uża t-tiles skuri tal-mappa indipendentement mit-tema tal-menu</string>
     <string name="native_settings_gh_reachable">Is-server GraphHopper huwa aċċessibbli</string>

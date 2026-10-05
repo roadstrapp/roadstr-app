@@ -54,6 +54,11 @@
     <string name="native_roadtest_no_app">Ninguna aplicación puede abrir este enlace</string>
     <string name="native_saved_geocoding_error">Dirección no encontrada. Intenta con una más específica.</string>
     <string name="native_saved_label">Nombre (p. ej. Casa, Oficina)</string>
+    <string name="native_search_notice_area_fallback">No se pudo delimitar ese lugar con exactitud, así que se buscó en su entorno.</string>
+    <string name="native_search_notice_few_tagged">Pocos lugares de aquí están etiquetados para esto en OpenStreetMap, así que la lista puede estar incompleta.</string>
+    <string name="native_search_notice_open_hours_unknown">Algunos lugares no indican su horario, así que podrían estar cerrados.</string>
+    <string name="native_search_notice_route_unsupported">La búsqueda a lo largo de la ruta aún no está disponible; se muestran lugares a tu alrededor.</string>
+    <string name="native_search_notice_widened">No hay nada cerca, así que se amplió la búsqueda.</string>
     <string name="native_settings_dark_map">Mapa oscuro</string>
     <string name="native_settings_dark_map_desc">Usar teselas de mapa oscuras independientemente del tema del menú</string>
     <string name="native_settings_gh_reachable">Servidor GraphHopper accesible</string>

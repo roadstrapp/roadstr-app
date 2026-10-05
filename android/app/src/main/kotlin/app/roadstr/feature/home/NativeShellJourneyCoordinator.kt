@@ -1,6 +1,16 @@
 package app.roadstr.feature.home
 
+import app.roadstr.core.discovery.DiscoveryOutcome
+import app.roadstr.core.discovery.DiscoveryRequest
+import app.roadstr.core.discovery.NaturalPlaceQuery
+import app.roadstr.core.discovery.NaturalQueryParser
+import app.roadstr.core.discovery.QueryInterpreter
+import app.roadstr.core.discovery.RankedPlace
+import app.roadstr.core.geo.GeoPoint
 import app.roadstr.core.network.RoutingParsedRoute
+import app.roadstr.feature.discovery.DiscoveryPresentation
+import app.roadstr.feature.search.NativeSearchNotice
+import java.time.LocalDateTime
 import app.roadstr.core.network.NominatimReverseDetail
 import app.roadstr.core.network.SearchResponsePoint
 import app.roadstr.core.network.SearchResult
@@ -83,6 +93,9 @@ interface NativeShellJourneyGateway {
     /** Explicit posted limit of the geometrically nearest road, when known. */
     suspend fun speedLimit(point: SearchResponsePoint): Int? = null
 
+    /** Natural-language place search over open data; the default leaves it to the classic search. */
+    suspend fun discover(request: DiscoveryRequest): DiscoveryOutcome = DiscoveryOutcome.NotApplicable
+
     suspend fun loadSearchHistory(): List<SearchHistoryEntry> = emptyList()
 
     suspend fun saveSearchHistory(entry: SearchHistoryEntry): List<SearchHistoryEntry> = emptyList()
@@ -105,6 +118,13 @@ class NativeShellJourneyCoordinator(
     private val languageCode: String = Locale.getDefault().language,
     /** The saved places, read each time the search opens so the list is never stale. */
     private val favorites: () -> List<NativeSearchFavorite> = { emptyList() },
+    /** Understands "vegan near me" style queries; anything it does not understand stays classic. */
+    private val interpreter: QueryInterpreter = NaturalQueryParser(),
+    /** Where the current trip ends, for "near my destination". */
+    private val destination: () -> SearchResponsePoint? = { null },
+    private val clock: () -> LocalDateTime = { LocalDateTime.now() },
+    /** Told which places the latest search found, or none, so the map can pin them. */
+    private val onDiscovery: (revision: Long, places: List<RankedPlace>) -> Unit = { _, _ -> },
 ) {
     private var searchRevision = searchSession.state.value.revision.coerceAtLeast(0L)
     private var routeRevision = routeSession.state.value.revision.coerceAtLeast(0L)
@@ -117,6 +137,7 @@ class NativeShellJourneyCoordinator(
 
     fun openSearch(nearbyEnabled: Boolean): Boolean {
         cancelSearchWork()
+        onDiscovery(searchSession.state.value.revision, emptyList())
         selectedDestination = null
         clearNavigationDestination()
         val revision = nextSearchRevision()
@@ -379,21 +400,79 @@ class NativeShellJourneyCoordinator(
         query: String,
         near: SearchResponsePoint?,
     ) {
+        onDiscovery(revision, emptyList())
         searchJob = scope.launch {
             try {
-                val results = gateway.search(
-                    query = query,
-                    near = near,
-                    languageCode = normalizedLanguageCode(),
-                    onPartial = { partial -> searchSession.submitPartial(revision, partial) },
-                )
-                searchSession.submitResults(revision, results)
+                val parsed = interpreter.interpret(query, normalizedLanguageCode())
+                val emptyNotice = when (val attempt = discover(revision, parsed, near)) {
+                    DiscoveryAttempt.Shown -> return@launch
+                    is DiscoveryAttempt.Fallback -> attempt.notice
+                }
+                classicSearch(revision, parsed.classicQuery, near, emptyNotice)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
                 searchSession.submitResults(revision, emptyList())
             }
         }
+    }
+
+    private sealed interface DiscoveryAttempt {
+        data object Shown : DiscoveryAttempt
+
+        /** Discovery did not answer; [notice] explains an empty answer if the classic search is empty too. */
+        data class Fallback(val notice: NativeSearchNotice?) : DiscoveryAttempt
+    }
+
+    private suspend fun discover(
+        revision: Long,
+        parsed: NaturalPlaceQuery,
+        near: SearchResponsePoint?,
+    ): DiscoveryAttempt {
+        val request = DiscoveryRequest(
+            query = parsed,
+            device = near?.let { GeoPoint(it.latitude, it.longitude) },
+            mapCenter = null,
+            destination = destination()?.let { GeoPoint(it.latitude, it.longitude) },
+            languageCode = normalizedLanguageCode(),
+            now = clock(),
+        )
+        val outcome = try {
+            gateway.discover(request)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            DiscoveryOutcome.NotApplicable
+        }
+        return when (outcome) {
+            is DiscoveryOutcome.Found -> show(revision, outcome)
+            is DiscoveryOutcome.Empty -> DiscoveryAttempt.Fallback(DiscoveryPresentation.notice(outcome.notices))
+            DiscoveryOutcome.NotApplicable -> DiscoveryAttempt.Fallback(null)
+        }
+    }
+
+    private fun show(revision: Long, found: DiscoveryOutcome.Found): DiscoveryAttempt {
+        val language = normalizedLanguageCode()
+        val results = found.places.map { DiscoveryPresentation.searchResult(it, language) }
+        val notice = DiscoveryPresentation.notice(found.notices)
+        if (!searchSession.submitResults(revision, results, notice)) return DiscoveryAttempt.Shown
+        onDiscovery(revision, found.places)
+        return DiscoveryAttempt.Shown
+    }
+
+    private suspend fun classicSearch(
+        revision: Long,
+        query: String,
+        near: SearchResponsePoint?,
+        emptyNotice: NativeSearchNotice?,
+    ) {
+        val results = gateway.search(
+            query = query,
+            near = near,
+            languageCode = normalizedLanguageCode(),
+            onPartial = { partial -> searchSession.submitPartial(revision, partial) },
+        )
+        searchSession.submitResults(revision, results, if (results.isEmpty()) emptyNotice else null)
     }
 
     private suspend fun resolvePoint(
