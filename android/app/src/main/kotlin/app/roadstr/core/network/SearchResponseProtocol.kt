@@ -198,6 +198,12 @@ data class NominatimReverseDetail(
     val wikiQuery: String?,
     val openingHours: String?,
     val label: String,
+    /**
+     * The name of an actual place at the point (a shop, a monument, a park), as
+     * opposed to the neighbourhood [wikiQuery] falls back to. Native-only: the
+     * Flutter parity fields above are untouched.
+     */
+    val poiName: String? = null,
 )
 
 /** Exact socket-free normalization of Roadstr's search-provider responses. */
@@ -235,6 +241,13 @@ object SearchResponseProtocol {
             nullableString(address["quarter"]),
             nullableString(address["neighbourhood"]),
         ).firstOrNull { value -> value != null && value.isNotEmpty() && !isNumber(value) }
+        val placeName = listOf(
+            nullableString(data["name"]),
+            nullableString(address["tourism"]),
+            nullableString(address["amenity"]),
+            nullableString(address["historic"]),
+            nullableString(address["leisure"]),
+        ).firstOrNull { value -> value != null && value.isNotEmpty() && !isNumber(value) }
         val city = listOf(
             nullableString(address["city"]),
             nullableString(address["town"]),
@@ -256,6 +269,7 @@ object SearchResponseProtocol {
                 address = address,
                 name = nullableString(data["name"]),
             ),
+            poiName = placeName,
         )
     } catch (_: Exception) {
         null

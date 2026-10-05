@@ -113,6 +113,11 @@ import app.roadstr.feature.route.NativeRoutePlanningSession
 import app.roadstr.feature.route.NativeRoutePlanningStatus
 import app.roadstr.feature.saved.NativeSavedPlacesPanel
 import app.roadstr.feature.saved.NativeSavedPlace
+import app.roadstr.feature.history.NativeRouteHistoryEntry
+import app.roadstr.feature.history.NativeRouteHistoryPanel
+import app.roadstr.feature.history.NativeRouteHistoryProtocol
+import app.roadstr.feature.saved.NativeMapContextMenu
+import app.roadstr.feature.saved.NativeParkingPanel
 import app.roadstr.feature.saved.NativeParkingPosition
 import app.roadstr.feature.saved.NativeSavedPlacesProtocol
 import app.roadstr.feature.saved.NativeSavedPlacesSession
@@ -247,6 +252,8 @@ fun NativeRoadstrShell(
     onOnboardingCompleted: () -> Unit = {},
     initialParking: NativeParkingPosition? = null,
     onParkingChanged: (NativeParkingPosition?) -> Unit = {},
+    initialRouteHistory: List<NativeRouteHistoryEntry> = emptyList(),
+    onRouteHistoryChanged: (List<NativeRouteHistoryEntry>) -> Unit = {},
     initialFavorites: List<NativeSavedPlace> = emptyList(),
     onFavoritesChanged: (List<NativeSavedPlace>) -> Unit = {},
     initialSettings: NativeSettingsInput = NativeSettingsInput(),
@@ -579,6 +586,57 @@ fun NativeRoadstrShell(
                     )
                 }
             }
+        }
+        // A point on the map, from a tap or from "What's here?": the address and
+        // opening hours from the reverse lookup, then a short Wikipedia
+        // description found by the place's name, so the exact spot is never sent
+        // to Wikipedia.
+        val inspectPlace: (NativeMapPoint) -> Unit = { mapPoint ->
+            val revision = placeSession.state.value.revision.coerceAtLeast(0L) + 1L
+            val point = SearchResponsePoint(mapPoint.latitude, mapPoint.longitude)
+            if (placeSession.begin(revision, point)) {
+                journeyScope.launch {
+                    val detail = runCatching {
+                        journeyGateway?.reverseGeocode(point = point, languageCode = voiceLanguage)
+                    }.getOrNull()
+                    // Only a real place gets a description: for a plain address the
+                    // query is the neighbourhood, and its article would mislead.
+                    val article = detail?.wikiQuery?.takeIf { detail.poiName != null }?.let { query ->
+                        runCatching { journeyGateway?.wikipediaArticle(query, voiceLanguage) }.getOrNull()
+                    }
+                    placeSession.submit(
+                        revision = revision,
+                        article = article,
+                        address = detail?.display,
+                        wikiQuery = detail?.wikiQuery,
+                        openingHours = detail?.openingHours,
+                    )
+                }
+            }
+        }
+        var parkingPanelVisible by remember { mutableStateOf(false) }
+        // The routes the driver started, kept by the host encrypted on the device.
+        var routeHistory by remember { mutableStateOf(initialRouteHistory) }
+        var historyVisible by remember { mutableStateOf(false) }
+        val updateRouteHistory: (List<NativeRouteHistoryEntry>) -> Unit = { next ->
+            routeHistory = next
+            onRouteHistoryChanged(next)
+        }
+        var contextMenuPoint by remember { mutableStateOf<NativeMapPoint?>(null) }
+        val parkingLabel = stringResource(R.string.native_saved_parking_title)
+        val navigateToParking: (NativeParkingPosition) -> Unit = { parking ->
+            journeyCoordinator?.selectDestination(
+                label = parkingLabel,
+                point = SearchResponsePoint(parking.point.latitude, parking.point.longitude),
+                gpsPoint = gpsSearchPoint,
+                myLocationLabel = myLocationLabel,
+            )
+        }
+        val saveParking: (NativeMapPoint) -> Unit = { point ->
+            val next = NativeParkingPosition(point = point, savedAtEpochMillis = System.currentTimeMillis())
+            parkingPosition = next
+            onParkingChanged(next)
+            Toast.makeText(context, R.string.native_parking_saved, Toast.LENGTH_SHORT).show()
         }
         val profileSession = remember { NativeProfileSession() }
         val profileState by profileSession.state.collectAsState()
@@ -1114,7 +1172,10 @@ fun NativeRoadstrShell(
         }
         BackHandler(
             enabled = (
-                settingsState.status != NativeSettingsStatus.Hidden ||
+                parkingPanelVisible ||
+                    historyVisible ||
+                    contextMenuPoint != null ||
+                    settingsState.status != NativeSettingsStatus.Hidden ||
                     profileState.status != app.roadstr.feature.profile.NativeProfileStatus.Hidden ||
                     placeState.status != app.roadstr.feature.place.NativePlaceUiStatus.Hidden ||
                     savedPlacesState.status != app.roadstr.feature.saved.NativeSavedPlacesStatus.Hidden ||
@@ -1128,6 +1189,9 @@ fun NativeRoadstrShell(
                 ),
         ) {
             when {
+                contextMenuPoint != null -> contextMenuPoint = null
+                parkingPanelVisible -> parkingPanelVisible = false
+                historyVisible -> historyVisible = false
                 wikipediaState.status != app.roadstr.feature.wikipedia.NativeWikipediaStatus.Hidden -> {
                     wikipediaSession.hide(wikipediaState.revision)
                 }
@@ -1166,6 +1230,7 @@ fun NativeRoadstrShell(
         val startSelectedRoute: () -> Unit = {
             val revision = routePlanningSession.state.value.revision
             val mode = routePlanningSession.state.value.mode
+            val destinationLabel = routePlanningSession.state.value.destinationLabel
             routePlanningSession.selectedNavigationRoute(revision)?.let { route ->
                 val destination = journeyCoordinator?.navigationDestination(revision) ?: return@let
                 if (
@@ -1178,6 +1243,19 @@ fun NativeRoadstrShell(
                     )
                 ) {
                     if (routePlanningSession.beginNavigation(revision)) {
+                        val target = NativeMapPoint(destination.latitude, destination.longitude)
+                        updateRouteHistory(
+                            NativeRouteHistoryProtocol.record(
+                                routeHistory,
+                                NativeRouteHistoryEntry(
+                                    label = destinationLabel
+                                        ?.takeIf(String::isNotBlank)
+                                        ?: String.format(Locale.ROOT, "%.5f, %.5f", target.latitude, target.longitude),
+                                    point = target,
+                                    startedAtEpochMillis = System.currentTimeMillis(),
+                                ),
+                            ),
+                        )
                         voiceGateway?.setMuted(!settingsState.values.voiceEnabled)
                         if (settingsState.values.voiceEnabled) voiceGateway?.announceStart()
                         cameraSession.configure(
@@ -1241,40 +1319,14 @@ fun NativeRoadstrShell(
                                     tap = interaction.point,
                                 )
                                 if (!selectedAlternative && !activeNavigationState.active) {
-                                    val revision = placeState.revision.coerceAtLeast(0L) + 1L
-                                    if (placeSession.begin(
-                                            revision = revision,
-                                            point = SearchResponsePoint(
-                                                interaction.point.latitude,
-                                                interaction.point.longitude,
-                                            ),
-                                        )
-                                    ) {
-                                        journeyScope.launch {
-                                            val detail = journeyGateway?.reverseGeocode(
-                                                point = SearchResponsePoint(
-                                                    interaction.point.latitude,
-                                                    interaction.point.longitude,
-                                                ),
-                                                languageCode = voiceLanguage,
-                                            )
-                                            placeSession.submit(
-                                                revision = revision,
-                                                address = detail?.display,
-                                                wikiQuery = detail?.wikiQuery,
-                                                openingHours = detail?.openingHours,
-                                            )
-                                        }
-                                    }
+                                    inspectPlace(interaction.point)
                                 }
                             }
                             is NativeMapInteraction.MapLongPress -> {
-                                val nextParking = NativeParkingPosition(
-                                    point = interaction.point,
-                                    savedAtEpochMillis = System.currentTimeMillis(),
-                                )
-                                parkingPosition = nextParking
-                                onParkingChanged(nextParking)
+                                // A long press asks what to do there rather than
+                                // guessing: park here, or find out what is there.
+                                parkingPanelVisible = false
+                                contextMenuPoint = interaction.point
                             }
                             is NativeMapInteraction.RoadEventTap -> {
                                 nostrHost?.eventForMarker(interaction.markerId)?.let { event ->
@@ -1310,12 +1362,16 @@ fun NativeRoadstrShell(
                             }
                             NativeHomeAction.Menu -> showSettings()
                             NativeHomeAction.Parking -> {
-                                val nextRevision = savedPlacesState.revision.coerceAtLeast(0L) + 1L
-                                savedPlacesSession.show(nextRevision, favorites, parkingPosition)
+                                // Only the parking spot: saved places have their own panel.
+                                contextMenuPoint = null
+                                parkingPanelVisible = true
                             }
-                            NativeHomeAction.Activity,
-                            NativeHomeAction.Notifications,
-                            -> {
+                            NativeHomeAction.Activity -> {
+                                contextMenuPoint = null
+                                parkingPanelVisible = false
+                                historyVisible = true
+                            }
+                            NativeHomeAction.Notifications -> {
                                 val nextRevision = activityInboxState.revision.coerceAtLeast(0L) + 1L
                                 val pubkey = identityState.pubkeyHex
                                 if (pubkey == null) {
@@ -1812,6 +1868,63 @@ fun NativeRoadstrShell(
                     },
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
+                if (historyVisible) {
+                    NativeRouteHistoryPanel(
+                        entries = routeHistory,
+                        onSelect = { entry ->
+                            // The same as tapping that place on the map: focus it and
+                            // show the place sheet with "navigate here" and the preview.
+                            historyVisible = false
+                            journeyScope.launch {
+                                cameraSession.focus(entry.point, SystemClock.elapsedRealtime())
+                            }
+                            inspectPlace(entry.point)
+                        },
+                        onRemove = { entry ->
+                            updateRouteHistory(NativeRouteHistoryProtocol.remove(routeHistory, entry))
+                        },
+                        onClear = { updateRouteHistory(emptyList()) },
+                        onClose = { historyVisible = false },
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                    )
+                }
+                if (parkingPanelVisible) {
+                    NativeParkingPanel(
+                        parking = parkingPosition,
+                        canSaveHere = gpsSnapshot.fix != null,
+                        onSaveHere = {
+                            gpsSnapshot.fix?.point?.let(saveParking)
+                            parkingPanelVisible = false
+                        },
+                        onNavigate = {
+                            parkingPosition?.let(navigateToParking)
+                            parkingPanelVisible = false
+                        },
+                        onRemove = {
+                            parkingPosition = null
+                            onParkingChanged(null)
+                            Toast.makeText(context, R.string.native_parking_removed, Toast.LENGTH_SHORT).show()
+                            parkingPanelVisible = false
+                        },
+                        onClose = { parkingPanelVisible = false },
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                    )
+                }
+                contextMenuPoint?.let { point ->
+                    NativeMapContextMenu(
+                        point = point,
+                        onSaveParking = {
+                            saveParking(point)
+                            contextMenuPoint = null
+                        },
+                        onWhatsHere = {
+                            contextMenuPoint = null
+                            inspectPlace(point)
+                        },
+                        onClose = { contextMenuPoint = null },
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                    )
+                }
                 NativeSavedPlacesPanel(
                     snapshot = savedPlacesState,
                     onAdd = {
@@ -1839,17 +1952,7 @@ fun NativeRoadstrShell(
                     },
                     onExport = { nostrHost?.exportFavorites() },
                     onImport = { nostrHost?.requestImport() },
-                    onNavigateParking = { parking ->
-                        journeyCoordinator?.selectDestination(
-                            label = "Parking",
-                            point = SearchResponsePoint(
-                                parking.point.latitude,
-                                parking.point.longitude,
-                            ),
-                            gpsPoint = gpsSearchPoint,
-                            myLocationLabel = myLocationLabel,
-                        )
-                    },
+                    onNavigateParking = navigateToParking,
                     onRemoveParking = {
                         parkingPosition = null
                         onParkingChanged(null)

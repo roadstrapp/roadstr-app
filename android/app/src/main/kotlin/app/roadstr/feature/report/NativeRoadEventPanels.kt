@@ -53,6 +53,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.roadstr.R
 import app.roadstr.core.protocol.nostr.RoadCategoryWire
+import app.roadstr.core.ui.SheetGrabHandle
+import app.roadstr.core.ui.rememberSheetDragState
 import java.util.Locale
 
 /** Dormant bounded road-event detail, privacy and report-composer surfaces. */
@@ -148,11 +150,13 @@ private fun RoadEventDetailPanel(
     modifier: Modifier,
 ) {
     val title = categoryLabel(detail.category)
+    val drag = rememberSheetDragState { onClose(revision) }
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = maxHeight * 0.84f)
+                .then(drag.sheet)
                 .semantics { paneTitle = title },
             color = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
@@ -162,7 +166,7 @@ private fun RoadEventDetailPanel(
             shadowElevation = 8.dp,
         ) {
             Column(modifier = Modifier.navigationBarsPadding()) {
-                PanelHandle()
+                SheetGrabHandle(drag.handle)
                 Column(
                     modifier = Modifier
                         .weight(1f, fill = false)
@@ -443,11 +447,13 @@ private fun RoadEventComposer(
     modifier: Modifier,
 ) {
     val title = stringResource(R.string.native_road_event_report_title)
+    val drag = rememberSheetDragState { onClose(revision) }
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = maxHeight * 0.9f)
+                .then(drag.sheet)
                 .semantics { paneTitle = title },
             color = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
@@ -457,7 +463,7 @@ private fun RoadEventComposer(
             shadowElevation = 8.dp,
         ) {
             Column(modifier = Modifier.navigationBarsPadding()) {
-                PanelHandle()
+                SheetGrabHandle(drag.handle)
                 Column(
                     modifier = Modifier
                         .weight(1f, fill = false)
@@ -599,20 +605,6 @@ private fun CategoryGrid(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun PanelHandle() {
-    Box(
-        modifier = Modifier.fillMaxWidth().height(26.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Surface(
-            modifier = Modifier.size(width = 40.dp, height = 4.dp),
-            color = MaterialTheme.colorScheme.outline,
-            shape = RoundedCornerShape(2.dp),
-        ) {}
     }
 }
 

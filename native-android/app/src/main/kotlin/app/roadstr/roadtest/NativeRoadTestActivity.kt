@@ -23,6 +23,7 @@ import app.roadstr.feature.home.NativeShellGpsPhase
 import app.roadstr.feature.home.NativeShellMode
 import app.roadstr.feature.home.NativeShellNostr
 import app.roadstr.feature.saved.NativeParkingPosition
+import app.roadstr.feature.history.NativeRouteHistoryProtocol
 import app.roadstr.feature.saved.NativeSavedPlacesProtocol
 import app.roadstr.service.hazards.NativeOsmHazardService
 import app.roadstr.service.network.NativeBoundedHttpClient
@@ -105,6 +106,14 @@ class NativeRoadTestActivity : ComponentActivity() {
             keyAlias = "app.roadstr.roadtest.parking.v1",
         )
     }
+    // Where the driver went is sensitive: AES-256-GCM under a non-exportable Keystore key.
+    private val historyPreferences by lazy(LazyThreadSafetyMode.NONE) {
+        NativeRoadTestProtectedPreferences(
+            context = applicationContext,
+            preferencesName = "roadtest_route_history",
+            keyAlias = "app.roadstr.roadtest.route-history.v1",
+        )
+    }
     private val uiPreferences by lazy(LazyThreadSafetyMode.NONE) {
         NativeRoadTestUiPreferences(applicationContext)
     }
@@ -177,6 +186,16 @@ class NativeRoadTestActivity : ComponentActivity() {
                             "parking",
                             NativeSavedPlacesProtocol.encodeParking(parking),
                         )
+                    }
+                },
+                initialRouteHistory = runCatching {
+                    NativeRouteHistoryProtocol.decode(historyPreferences.read("routes"))
+                }.getOrDefault(emptyList()),
+                onRouteHistoryChanged = { history ->
+                    if (history.isEmpty()) {
+                        historyPreferences.remove("routes")
+                    } else {
+                        historyPreferences.write("routes", NativeRouteHistoryProtocol.encode(history))
                     }
                 },
                 initialFavorites = initialFavorites,
