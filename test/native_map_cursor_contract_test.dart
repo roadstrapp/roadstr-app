@@ -55,7 +55,8 @@ void main() {
     expect(overlaySource, contains('projection.toScreenLocation'));
     expect(overlaySource, contains('IMPORTANT_FOR_ACCESSIBILITY_NO'));
     expect(shellSource, contains('NativeMapCursorSession'));
-    expect(shellSource, contains('cursorSnapshot = cursorState'));
+    // The vehicle is drawn where the camera frame says, not only at each fix.
+    expect(shellSource, contains('cursorSnapshot = remember(cursorState, cameraState.displaySequence)'));
     expect(shellSource, isNot(contains('NativeLocation')));
     expect(shellSource, isNot(contains('lastKnownLocation')));
   });

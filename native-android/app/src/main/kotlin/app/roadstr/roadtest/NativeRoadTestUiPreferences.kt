@@ -6,6 +6,9 @@ import app.roadstr.feature.navigation.NativeSpeedometerStyle
 import app.roadstr.feature.settings.NativeSettingsCursorColor
 import app.roadstr.feature.settings.NativeSettingsCursorStyle
 import app.roadstr.feature.settings.NativeSettingsInput
+import app.roadstr.feature.settings.NativeSettingsRoutingProvider
+import app.roadstr.feature.settings.NativeSettingsSearchEngine
+import app.roadstr.feature.settings.NativeSettingsVoiceGender
 
 /** Small scalar bridge for the standalone harness; secrets never enter it. */
 class NativeRoadTestUiPreferences(context: Context) {
@@ -15,6 +18,28 @@ class NativeRoadTestUiPreferences(context: Context) {
         themeId = RoadstrThemeId.fromStoredOrdinal(preferences.getInt("theme", 0)),
         autoDarkEnabled = preferences.getBoolean("auto_dark", false),
         darkMapEnabled = preferences.getBoolean("dark_map", false),
+        languageCode = preferences.getString("language", null),
+        keepScreenOn = preferences.getBoolean("keep_screen_on", true),
+        keepScreenOnAlways = preferences.getBoolean("keep_screen_on_always", false),
+        minimumBrightness = preferences.getFloat("min_brightness", 0f).toDouble(),
+        autoCenterOnLaunch = preferences.getBoolean("auto_center", true),
+        mapTileUrl = preferences.getString("tile_url", null) ?: NativeSettingsInput().mapTileUrl,
+        routingProvider = NativeSettingsRoutingProvider.fromStorage(
+            preferences.getString("routing_provider", null),
+        ),
+        graphHopperServer = preferences.getString("graphhopper_server", null).orEmpty(),
+        searchEngine = NativeSettingsSearchEngine.fromStorage(
+            preferences.getString("search_engine", null),
+        ),
+        voiceEnabled = preferences.getBoolean("voice_enabled", true),
+        voiceGender = NativeSettingsVoiceGender.fromStorage(
+            preferences.getString("voice_gender", null),
+        ),
+        voiceSpeedStage = preferences.getInt(
+            "voice_speed_stage",
+            NativeSettingsInput.DEFAULT_VOICE_SPEED_STAGE,
+        ),
+        voiceVolume = preferences.getFloat("voice_volume", 1f).toDouble(),
         profilePublic = preferences.getBoolean("profile_public", false),
         avoidUnpavedRoads = preferences.getBoolean("avoid_unpaved", false),
         mapEngine = app.roadstr.feature.settings.NativeSettingsMapEngine.fromStorage(
@@ -41,6 +66,19 @@ class NativeRoadTestUiPreferences(context: Context) {
             .putInt("theme", value.themeId.storedOrdinal)
             .putBoolean("auto_dark", value.autoDarkEnabled)
             .putBoolean("dark_map", value.darkMapEnabled)
+            .putString("language", value.languageCode)
+            .putBoolean("keep_screen_on", value.keepScreenOn)
+            .putBoolean("keep_screen_on_always", value.keepScreenOnAlways)
+            .putFloat("min_brightness", value.minimumBrightness.toFloat())
+            .putBoolean("auto_center", value.autoCenterOnLaunch)
+            .putString("tile_url", value.mapTileUrl)
+            .putString("routing_provider", value.routingProvider.storageValue)
+            .putString("graphhopper_server", value.graphHopperServer)
+            .putString("search_engine", value.searchEngine.storageValue)
+            .putBoolean("voice_enabled", value.voiceEnabled)
+            .putString("voice_gender", value.voiceGender.storageValue)
+            .putInt("voice_speed_stage", value.voiceSpeedStage)
+            .putFloat("voice_volume", value.voiceVolume.toFloat())
             .putBoolean("profile_public", value.profilePublic)
             .putBoolean("avoid_unpaved", value.avoidUnpavedRoads)
             .putString("map_engine", value.mapEngine.storageValue)

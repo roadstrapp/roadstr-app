@@ -21,6 +21,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import app.roadstr.R
 import app.roadstr.core.protocol.nostr.FavoritesSyncProtocol
 import app.roadstr.core.ui.RoadstrSwitch
@@ -85,6 +87,10 @@ class NativeShellNostrHost internal constructor(
     val events: List<NativeRoadEvent>,
     val reports: NativeShellReportController,
     val favorites: NativeShellFavoritesController,
+    val zap: NativeShellZapController,
+    private val activity: NativeShellActivityController,
+    /** Unread entries of the activity inbox, for the badge on the home bar. */
+    val activityUnread: Int,
     private val promptState: androidx.compose.runtime.MutableState<NativeShellPrompt?>,
     private val toast: (NativeShellMessage, Int) -> Unit,
     private val publishVisibility: (Boolean) -> Unit,
@@ -109,6 +115,12 @@ class NativeShellNostrHost internal constructor(
         }
 
     fun message(message: NativeShellMessage, count: Int = 0) = toast(message, count)
+
+    /** The stored inbox the activity panel opens with. */
+    fun inboxFor(pubkey: String): String? = activity.stored(pubkey)
+
+    /** The inbox panel changed the inbox (marked all read): keep it and the badge in step. */
+    fun inboxChanged(write: app.roadstr.feature.activity.NativeActivityInboxWrite) = activity.persist(write)
 
     /** The user flipped the pseudonymous/clear switch (settings or profile). */
     fun visibilityChanged(isPublic: Boolean) = publishVisibility(isPublic)
@@ -205,6 +217,8 @@ class NativeShellNostrHost internal constructor(
 private fun messageText(message: NativeShellMessage): Int = when (message) {
     NativeShellMessage.SyncSuccess -> R.string.native_nostr_sync_success
     NativeShellMessage.SyncFailed -> R.string.native_nostr_sync_failed
+    NativeShellMessage.SyncNotFound -> R.string.native_nostr_sync_not_found
+    NativeShellMessage.SyncNothingToPublish -> R.string.native_nostr_sync_empty
     NativeShellMessage.ExportSuccess -> R.string.native_nostr_export_success
     NativeShellMessage.ExportFailed -> R.string.native_nostr_export_failed
     NativeShellMessage.ImportSuccess -> R.string.native_nostr_import_success
@@ -216,6 +230,7 @@ private fun messageText(message: NativeShellMessage): Int = when (message) {
     NativeShellMessage.VisibilityFailed -> R.string.native_nostr_visibility_error
     NativeShellMessage.SpeedUpdateSent -> R.string.native_nostr_speed_saved
     NativeShellMessage.EditRequestSent -> R.string.native_nostr_edit_request_sent
+    NativeShellMessage.ZapSent -> R.string.native_zap_sent
     NativeShellMessage.ReportFailed,
     NativeShellMessage.SigningFailed,
     NativeShellMessage.VoteFailed,
@@ -311,6 +326,18 @@ fun rememberNativeShellNostrHost(
             message = toast,
         )
     }
+    val zapController = remember(nostr, reportController) {
+        NativeShellZapController(
+            nostr = nostr,
+            scope = scope,
+            onPaid = reportController::zapPaid,
+            message = toast,
+        )
+    }
+    var activityUnread by remember(nostr) { mutableIntStateOf(0) }
+    val activityController = remember(nostr) {
+        NativeShellActivityController(nostr) { unread -> activityUnread = unread }
+    }
 
     // Open the area connection only while the app is on screen.
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -342,6 +369,19 @@ fun rememberNativeShellNostrHost(
     LaunchedEffect(nostr) {
         nostr.files.imports.collect { text -> favoritesController.import(text) }
     }
+    // The inbox is silent, so a check at launch and every few minutes while the
+    // map is on screen is as good as a standing subscription, and keeps no
+    // socket open.
+    LaunchedEffect(nostr, identityPubkey, lifecycleOwner) {
+        activityController.load(identityPubkey)
+        if (identityPubkey == null) return@LaunchedEffect
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            while (true) {
+                activityController.poll()
+                delay(ACTIVITY_POLL_MILLIS)
+            }
+        }
+    }
     // Restore at launch when the user opted in; never removes a local place.
     LaunchedEffect(nostr, identityPubkey) {
         if (identityPubkey != null && settingsSession.state.value.values.favoritesSyncAutoEnabled) {
@@ -350,12 +390,15 @@ fun rememberNativeShellNostrHost(
     }
 
     val events by nostr.roadEvents.events.collectAsState()
-    return remember(nostr, events, favoritesController, reportController) {
+    return remember(nostr, events, favoritesController, reportController, zapController, activityUnread) {
         NativeShellNostrHost(
             nostr = nostr,
             events = events,
             reports = reportController,
             favorites = favoritesController,
+            zap = zapController,
+            activity = activityController,
+            activityUnread = activityUnread,
             promptState = promptState,
             toast = toast,
             publishVisibility = { isPublic ->
@@ -372,11 +415,24 @@ fun rememberNativeShellNostrHost(
 }
 
 private const val AREA_POLL_MILLIS = 5_000L
+private const val ACTIVITY_POLL_MILLIS = 180_000L
 
 /** Renders the pending [NativeShellPrompt], if any. */
 @Composable
 fun NativeShellNostrDialogs(host: NativeShellNostrHost?) {
-    val prompt = host?.prompt ?: return
+    host ?: return
+    host.zap.state.value?.let { NativeShellZapDialog(host.zap, it) }
+    val prompt = host.prompt ?: return
+    NativeShellPromptDialog(prompt, onConfirm = host::confirmPrompt, onDismiss = host::dismissPrompt)
+}
+
+/** The one-field question dialog, usable by any part of the shell. */
+@Composable
+fun NativeShellPromptDialog(
+    prompt: NativeShellPrompt,
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
     var text by remember(prompt) { mutableStateOf(prompt.initial) }
     var encrypt by remember(prompt) { mutableStateOf(true) }
     val asksForText = prompt.toggleLabel == null || encrypt
@@ -386,7 +442,7 @@ fun NativeShellNostrDialogs(host: NativeShellNostrHost?) {
         true
     }
     AlertDialog(
-        onDismissRequest = host::dismissPrompt,
+        onDismissRequest = onDismiss,
         title = { Text(stringResource(prompt.title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -439,16 +495,16 @@ fun NativeShellNostrDialogs(host: NativeShellNostrHost?) {
         },
         confirmButton = {
             Button(
-                onClick = { host.confirmPrompt(if (asksForText) text.trim() else "") },
+                onClick = { onConfirm(if (asksForText) text.trim() else "") },
                 enabled = valid,
             ) { Text(stringResource(prompt.confirmLabel)) }
         },
         dismissButton = {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 prompt.removeLabel?.let { label ->
-                    TextButton(onClick = { host.confirmPrompt("") }) { Text(stringResource(label)) }
+                    TextButton(onClick = { onConfirm("") }) { Text(stringResource(label)) }
                 }
-                TextButton(onClick = host::dismissPrompt) { Text(stringResource(R.string.native_nostr_cancel)) }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.native_nostr_cancel)) }
             }
         },
         modifier = Modifier.padding(horizontal = 4.dp),
@@ -456,3 +512,89 @@ fun NativeShellNostrDialogs(host: NativeShellNostrHost?) {
 }
 
 private const val MAX_PROMPT_CHARS = 256
+
+private val ZAP_PRESETS = listOf(21, 100, 500, 1_000, 5_000, 21_000)
+private val ZAP_ORANGE = androidx.compose.ui.graphics.Color(0xFFF7931A)
+private const val MAX_ZAP_SATS = 100_000_000
+
+/** Amount picker and progress of one zap, as in the Flutter sheet. */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+fun NativeShellZapDialog(controller: NativeShellZapController, ui: NativeShellZapUi) {
+    var selected by remember(ui.event.id) { mutableStateOf<Int?>(null) }
+    var custom by remember(ui.event.id) { mutableStateOf("") }
+    val amount = selected ?: custom.toIntOrNull()?.takeIf { it in 1..MAX_ZAP_SATS } ?: 0
+    AlertDialog(
+        onDismissRequest = controller::dismiss,
+        title = { Text("⚡ " + stringResource(R.string.native_zap_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    stringResource(R.string.native_zap_choose_amount),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                androidx.compose.foundation.layout.FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    ZAP_PRESETS.forEach { sats ->
+                        val on = selected == sats
+                        androidx.compose.material3.FilterChip(
+                            selected = on,
+                            onClick = {
+                                selected = if (on) null else sats
+                                if (!on) custom = ""
+                            },
+                            enabled = !ui.sending,
+                            label = { Text("$sats ⚡") },
+                            colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = ZAP_ORANGE.copy(alpha = 0.18f),
+                                selectedLabelColor = ZAP_ORANGE,
+                            ),
+                        )
+                    }
+                }
+                OutlinedTextField(
+                    value = custom,
+                    onValueChange = { value ->
+                        custom = value.filter(Char::isDigit).take(9)
+                        selected = null
+                    },
+                    label = { Text(stringResource(R.string.native_zap_custom_amount)) },
+                    suffix = { Text("sat") },
+                    singleLine = true,
+                    enabled = !ui.sending,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                )
+                ui.status?.let { status ->
+                    Text(
+                        stringResource(status.text),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { controller.send(amount) },
+                enabled = !ui.sending && amount > 0,
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = ZAP_ORANGE),
+            ) {
+                Text(
+                    if (ui.sending) {
+                        stringResource(R.string.native_zap_sending)
+                    } else {
+                        stringResource(R.string.native_zap_send_button, amount)
+                    },
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = controller::dismiss, enabled = !ui.sending) {
+                Text(stringResource(R.string.native_nostr_cancel))
+            }
+        },
+    )
+}

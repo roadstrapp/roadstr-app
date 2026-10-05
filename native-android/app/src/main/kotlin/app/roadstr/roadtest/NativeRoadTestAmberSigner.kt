@@ -1,7 +1,9 @@
 package app.roadstr.roadtest
 
+import android.content.ContentResolver
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import app.roadstr.core.protocol.nostr.BoundedJsonParser
 import app.roadstr.core.protocol.nostr.NostrEventDraft
 import app.roadstr.core.protocol.nostr.NostrJson
@@ -17,14 +19,25 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 
+/** What a signer app answered; any field can be missing. */
+internal class NativeAmberReply(
+    val signature: String?,
+    val result: String?,
+    val event: String?,
+)
+
 /**
- * One NIP-55 round trip at a time with the Android signer app (Amber).
+ * One NIP-55 request at a time to the Android signer app (Amber).
  *
- * The signer answers through the Activity's result callback, which can be
- * re-created (rotation) while the signer is in front, so the pending request
- * lives in the companion rather than in the instance.
+ * The signer's content provider answers silently once the user has chosen
+ * "remember my choice", exactly like the Flutter plugin does, and an Intent
+ * round trip with the signer's UI is the fallback. The Intent result arrives
+ * through the Activity's result callback, which can be re-created (rotation)
+ * while the signer is in front, so the pending request lives in the companion
+ * rather than in the instance.
  */
 internal class NativeRoadTestAmberBridge(
+    private val resolver: () -> ContentResolver,
     private val launch: (Intent) -> Unit,
     private val signerPackage: () -> String?,
 ) {
@@ -35,20 +48,28 @@ internal class NativeRoadTestAmberBridge(
         currentUser: String,
         id: String,
         peerPubkey: String? = null,
-    ): Intent? = gate.withLock {
-        val reply = CompletableDeferred<Intent?>()
+    ): NativeAmberReply? = gate.withLock {
+        silentReply(type, payload, currentUser, peerPubkey)?.let {
+            Log.d(TAG, "$type answered silently")
+            return@withLock it
+        }
+        val reply = CompletableDeferred<NativeAmberReply?>()
         pending = reply
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("nostrsigner:$payload"))
             .putExtra("type", type)
             .putExtra("id", id)
             .putExtra("current_user", currentUser)
-            .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        peerPubkey?.let { intent.putExtra("pubKey", it) }
+            .putExtra("pubKey", peerPubkey.orEmpty())
         signerPackage()?.let { intent.setPackage(it) }
         try {
             val launched = runCatching { withContext(Dispatchers.Main) { launch(intent) } }.isSuccess
-            if (!launched) return@withLock null
-            withTimeoutOrNull(REPLY_TIMEOUT_MILLIS) { reply.await() }
+            if (!launched) {
+                Log.d(TAG, "$type: the signer app could not be opened")
+                return@withLock null
+            }
+            withTimeoutOrNull(REPLY_TIMEOUT_MILLIS) { reply.await() }.also {
+                Log.d(TAG, "$type: ${if (it == null) "declined, closed or timed out" else "answered by the signer UI"}")
+            }
         } finally {
             if (pending === reply) pending = null
         }
@@ -56,15 +77,51 @@ internal class NativeRoadTestAmberBridge(
 
     /** Called from the Activity's result callback. */
     fun deliver(resultOk: Boolean, data: Intent?) {
-        pending?.complete(if (resultOk) data else null)
+        val reply = if (resultOk && data != null) {
+            NativeAmberReply(
+                signature = data.getStringExtra("signature"),
+                result = data.getStringExtra("result"),
+                event = data.getStringExtra("event"),
+            )
+        } else {
+            null
+        }
+        pending?.complete(reply)
+    }
+
+    private suspend fun silentReply(
+        type: String,
+        payload: String,
+        currentUser: String,
+        peerPubkey: String?,
+    ): NativeAmberReply? = withContext(Dispatchers.IO) {
+        val authority = "${signerPackage() ?: DEFAULT_SIGNER_PACKAGE}.${type.uppercase()}"
+        runCatching {
+            resolver().query(
+                Uri.parse("content://$authority"),
+                arrayOf(payload, peerPubkey.orEmpty(), currentUser),
+                null,
+                null,
+                null,
+            )?.use { cursor ->
+                if (!cursor.moveToFirst()) return@use null
+                fun column(name: String): String? =
+                    cursor.getColumnIndex(name).takeIf { it >= 0 }?.let(cursor::getString)
+                // A "rejected" column means the user denied it permanently.
+                if (cursor.getColumnIndex("rejected") >= 0) return@use null
+                NativeAmberReply(column("signature"), column("result"), column("event"))
+            }
+        }.getOrNull()
     }
 
     private companion object {
+        const val TAG = "RoadstrAmber"
         const val REPLY_TIMEOUT_MILLIS = 120_000L
+        const val DEFAULT_SIGNER_PACKAGE = "com.greenart7c3.nostrsigner"
         val gate = Mutex()
 
         @Volatile
-        var pending: CompletableDeferred<Intent?>? = null
+        var pending: CompletableDeferred<NativeAmberReply?>? = null
     }
 }
 
@@ -110,14 +167,14 @@ internal class NativeAmberSigner(
             id = NativeNostrWire.randomSubscriptionId(),
             peerPubkey = peer,
         ) ?: return null
-        return listOfNotNull(reply.getStringExtra("result"), reply.getStringExtra("signature"))
+        return listOfNotNull(reply.result, reply.signature)
             .map(String::trim)
             .firstOrNull { it.isNotEmpty() && it.length <= MAX_REPLY_CHARS }
     }
 
-    private fun signatureOf(reply: Intent): String? {
-        reply.getStringExtra("signature")?.trim()?.takeIf(SIGNATURE::matches)?.let { return it }
-        val eventJson = reply.getStringExtra("event")?.takeIf { it.length <= MAX_REPLY_CHARS } ?: return null
+    private fun signatureOf(reply: NativeAmberReply): String? {
+        reply.signature?.trim()?.takeIf(SIGNATURE::matches)?.let { return it }
+        val eventJson = reply.event?.takeIf { it.length <= MAX_REPLY_CHARS } ?: return null
         val event = runCatching { BoundedJsonParser(eventJson).parse() as? Map<*, *> }.getOrNull()
         return (event?.get("sig") as? String)?.trim()?.takeIf(SIGNATURE::matches)
     }

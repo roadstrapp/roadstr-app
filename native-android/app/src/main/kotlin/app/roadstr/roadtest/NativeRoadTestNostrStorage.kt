@@ -5,6 +5,7 @@ import app.roadstr.core.protocol.nostr.BoundedJsonParser
 import app.roadstr.core.protocol.nostr.FavoritesSyncProtocol
 import app.roadstr.core.protocol.nostr.NostrJson
 import app.roadstr.feature.home.NativeShellSyncSecrets
+import app.roadstr.service.nostr.NativeActivityStore
 import app.roadstr.service.nostr.NativeFavoritesSyncStore
 import app.roadstr.service.nostr.NativePendingReportStorage
 
@@ -105,4 +106,31 @@ internal class NativeRoadTestPendingReports(context: Context) : NativePendingRep
         const val KEY = "rows"
         const val MAX_BYTES = 120 * 1024
     }
+}
+
+/**
+ * The activity inbox says who zapped or confirmed which report, so it is kept
+ * encrypted; the two cursors are only timestamps and stay in plain preferences.
+ */
+internal class NativeRoadTestActivityStore(context: Context) : NativeActivityStore {
+    private val inbox = NativeRoadTestProtectedPreferences(
+        context = context,
+        preferencesName = "roadtest_activity_inbox",
+        keyAlias = "app.roadstr.roadtest.activity.v1",
+    )
+    private val cursors = context.applicationContext.getSharedPreferences("roadtest_activity_cursors", Context.MODE_PRIVATE)
+
+    override fun readInbox(pubkey: String): String? = runCatching { inbox.read(inboxKey(pubkey)) }.getOrNull()
+
+    override fun writeInbox(pubkey: String, normalized: String) {
+        inbox.write(inboxKey(pubkey), normalized)
+    }
+
+    override fun readCursor(key: String): String? = cursors.getString(key, null)
+
+    override fun writeCursor(key: String, value: String) {
+        cursors.edit().putString(key, value).apply()
+    }
+
+    private fun inboxKey(pubkey: String) = "inbox_$pubkey"
 }

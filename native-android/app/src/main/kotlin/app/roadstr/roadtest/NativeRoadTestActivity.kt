@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -15,6 +16,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.roadstr.R
+import app.roadstr.core.network.RoutingProviderConfigProtocol
+import app.roadstr.core.network.RoutingProviderConfiguration
 import app.roadstr.feature.home.NativeRoadstrShell
 import app.roadstr.feature.home.NativeShellGpsPhase
 import app.roadstr.feature.home.NativeShellMode
@@ -24,11 +27,14 @@ import app.roadstr.feature.saved.NativeSavedPlacesProtocol
 import app.roadstr.service.hazards.NativeOsmHazardService
 import app.roadstr.service.network.NativeBoundedHttpClient
 import app.roadstr.service.nostr.ExecutorNativeScheduler
+import app.roadstr.service.nostr.NativeActivityService
 import app.roadstr.service.nostr.NativeFavoritesSyncService
 import app.roadstr.service.nostr.NativeProfileVisibilityService
 import app.roadstr.service.nostr.NativeRelayFetcher
 import app.roadstr.service.nostr.NativeRelayPublisher
 import app.roadstr.service.nostr.NativeRoadEventService
+import app.roadstr.service.nostr.NativeUserReportsService
+import app.roadstr.service.nostr.NativeZapService
 import app.roadstr.service.nostr.OkHttpRelayConnector
 
 /** Standalone Compose launcher for the side-by-side Kotlin road-test APK. */
@@ -38,7 +44,11 @@ class NativeRoadTestActivity : ComponentActivity() {
     // the same deadline and response-size policy for all of them.
     private val httpClient by lazy(LazyThreadSafetyMode.NONE) { NativeBoundedHttpClient() }
     private val journeyGateway by lazy(LazyThreadSafetyMode.NONE) {
-        NativeRoadTestJourneyGateway(applicationContext, httpClient)
+        NativeRoadTestJourneyGateway(
+            context = applicationContext,
+            transport = httpClient,
+            routingConfiguration = ::routingConfiguration,
+        )
     }
     private val hazardService by lazy(LazyThreadSafetyMode.NONE) {
         NativeOsmHazardService(httpClient)
@@ -77,6 +87,7 @@ class NativeRoadTestActivity : ComponentActivity() {
         getSharedPreferences("roadtest_amber", MODE_PRIVATE)
     }
     private val amberBridge: NativeRoadTestAmberBridge = NativeRoadTestAmberBridge(
+        resolver = { contentResolver },
         launch = { intent -> amberSignerLauncher.launch(intent) },
         signerPackage = { amberPreferences.getString("package", null)?.takeIf(SIGNER_PACKAGE::matches) },
     )
@@ -106,6 +117,16 @@ class NativeRoadTestActivity : ComponentActivity() {
             keyAlias = "app.roadstr.roadtest.nwc.v1",
         )
     }
+    private val routingKeyPreferences by lazy(LazyThreadSafetyMode.NONE) {
+        NativeRoadTestProtectedPreferences(
+            context = applicationContext,
+            preferencesName = "roadtest_routing",
+            keyAlias = "app.roadstr.roadtest.routing.v1",
+        )
+    }
+    // The key is decrypted once; routes are requested often and each read is a Keystore call.
+    private var routingKeyCache: String? = null
+    private var routingKeyLoaded = false
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { grants ->
@@ -123,6 +144,9 @@ class NativeRoadTestActivity : ComponentActivity() {
         val initialFavorites = favoritesStore.load()
         val initialSettings = uiPreferences.load().copy(
             nwcConfigured = nwcPreferences.read("uri") != null,
+            routingApiKeyConfigured = runCatching { routingKeyPreferences.read("api_key") }.getOrNull() != null,
+            appVersion = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }
+                .getOrNull().orEmpty().ifBlank { "—" },
             favoritesCount = initialFavorites.size,
             syncIdentityAvailable = identityGateway.privateKeyHex() != null,
         )
@@ -159,6 +183,7 @@ class NativeRoadTestActivity : ComponentActivity() {
                 initialSettings = initialSettings,
                 onSettingsChanged = uiPreferences::save,
                 onNwcChanged = ::saveNwc,
+                onRoutingKeyChanged = ::saveRoutingKey,
                 hazardService = hazardService,
                 nostr = nostrBridge,
             )
@@ -192,6 +217,9 @@ class NativeRoadTestActivity : ComponentActivity() {
         val signer = NativeRoadTestSigner(identityGateway, identityGateway::privateKeyHex, amberBridge)
         val syncStorage = NativeRoadTestSyncStorage(applicationContext)
         val profiles = NativeRoadTestNostrProfileService()
+        val zaps = NativeZapService(connector, relays = relays) { Log.d("RoadstrZap", it) }
+        val userReports = NativeUserReportsService(connector, relays)
+        val activityStore = NativeRoadTestActivityStore(applicationContext)
         return NativeShellNostr(
             signer = signer,
             roadEvents = NativeRoadEventService(
@@ -207,6 +235,11 @@ class NativeRoadTestActivity : ComponentActivity() {
                 store = syncStorage,
                 passphrase = syncStorage::passphrase,
                 customRelay = syncStorage::customRelay,
+                fetcher = NativeRelayFetcher(connector) { Log.d("RoadstrSync", it) },
+                publisherFactory = { relayUrls ->
+                    NativeRelayPublisher(connector, relayUrls) { Log.d("RoadstrSync", it) }
+                },
+                diagnostics = { Log.d("RoadstrSync", it) },
             ),
             visibility = NativeProfileVisibilityService(
                 signer = signer,
@@ -221,6 +254,12 @@ class NativeRoadTestActivity : ComponentActivity() {
             acknowledgeReportPrivacy = {
                 onboardingPreferences.edit().putBoolean("report_privacy_ack", true).apply()
             },
+            zaps = zaps,
+            userReports = userReports,
+            activity = NativeActivityService(zaps, userReports, connector, activityStore, relays),
+            activityStore = activityStore,
+            nwcUri = { runCatching { nwcPreferences.read("uri") }.getOrNull() },
+            openWallet = ::openExternal,
         )
     }
 
@@ -275,6 +314,30 @@ class NativeRoadTestActivity : ComponentActivity() {
         } else {
             Toast.makeText(this, R.string.native_roadtest_no_app, Toast.LENGTH_LONG).show()
         }
+    }
+
+    /** Provider, GraphHopper server and key as the user configured them. */
+    private fun routingConfiguration(): RoutingProviderConfiguration {
+        val settings = uiPreferences.load()
+        if (!routingKeyLoaded) {
+            routingKeyCache = runCatching { routingKeyPreferences.read("api_key") }.getOrNull()
+            routingKeyLoaded = true
+        }
+        return RoutingProviderConfigProtocol.resolve(
+            providerKey = settings.routingProvider.storageValue,
+            secureApiKey = routingKeyCache,
+            legacyApiKey = "",
+            graphHopperServer = settings.graphHopperServer,
+            deferCredentialReadForOsrm = false,
+        )
+    }
+
+    private fun saveRoutingKey(raw: String): Boolean {
+        val value = raw.trim()
+        if (value.length > 256 || value.any { it.code < 0x20 || it.code == 0x7f }) return false
+        val stored = if (value.isEmpty()) routingKeyPreferences.remove("api_key") else routingKeyPreferences.write("api_key", value)
+        if (stored) routingKeyCache = value.ifEmpty { null }.also { routingKeyLoaded = true }
+        return stored
     }
 
     private fun saveNwc(raw: String): Boolean {
