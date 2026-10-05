@@ -132,6 +132,9 @@ import app.roadstr.feature.search.NativeSearchOverlay
 import app.roadstr.feature.search.NativeSearchSession
 import app.roadstr.feature.search.NativeSearchUiStatus
 import app.roadstr.feature.settings.NativeSettingsPanel
+import app.roadstr.feature.web.NativeWebBrowserScreen
+import app.roadstr.feature.web.WebBrowserHost
+import app.roadstr.feature.web.WebBrowserState
 import app.roadstr.feature.settings.NativeWebSearchEditor
 import app.roadstr.feature.settings.NativeWebSearchPanel
 import app.roadstr.feature.settings.NativeWebSearchStatus
@@ -265,6 +268,8 @@ fun NativeRoadstrShell(
     onRouteHistoryChanged: (List<NativeRouteHistoryEntry>) -> Unit = {},
     initialWebSearch: WebDiscoverySettings = WebDiscoverySettings(),
     onWebSearchChanged: (WebDiscoverySettings) -> Unit = {},
+    /** Where web pages open: the user's browser, or the optional in-app browser. */
+    webBrowser: WebBrowserHost? = null,
     initialFavorites: List<NativeSavedPlace> = emptyList(),
     onFavoritesChanged: (List<NativeSavedPlace>) -> Unit = {},
     initialSettings: NativeSettingsInput = NativeSettingsInput(),
@@ -462,6 +467,7 @@ fun NativeRoadstrShell(
         var webPanelVisible by remember { mutableStateOf(false) }
         var webStatus by remember { mutableStateOf<NativeWebSearchStatus>(NativeWebSearchStatus.Idle) }
         var webEditCount by remember { mutableIntStateOf(0) }
+        val browserState = webBrowser?.state?.collectAsState()?.value ?: WebBrowserState()
         val updateWebSettings: (WebDiscoverySettings) -> Unit = { next ->
             webSettings = next
             // A result about the old address must not stay on screen next to the new one.
@@ -507,6 +513,19 @@ fun NativeRoadstrShell(
         val myLocationLabel = stringResource(R.string.native_route_my_location)
         val gpsSearchPoint = gpsSnapshot.fix?.point?.let { point ->
             SearchResponsePoint(point.latitude, point.longitude)
+        }
+        // A map link the user confirmed inside a page becomes the destination, as a tap on the map would.
+        DisposableEffect(webBrowser, journeyCoordinator, gpsSearchPoint, myLocationLabel) {
+            webBrowser?.onDestination = { latitude, longitude ->
+                webBrowser.close()
+                journeyCoordinator?.selectDestination(
+                    label = String.format(java.util.Locale.ROOT, "%.5f, %.5f", latitude, longitude),
+                    point = SearchResponsePoint(latitude, longitude),
+                    gpsPoint = gpsSearchPoint,
+                    myLocationLabel = myLocationLabel,
+                )
+            }
+            onDispose { webBrowser?.onDestination = null }
         }
         val voiceRuntimeState = voiceGateway?.state?.collectAsState()?.value
         val voiceLanguage = journeyLanguage
@@ -1239,7 +1258,8 @@ fun NativeRoadstrShell(
         }
         BackHandler(
             enabled = (
-                webPanelVisible ||
+                browserState.open ||
+                    webPanelVisible ||
                     parkingPanelVisible ||
                     historyVisible ||
                     contextMenuPoint != null ||
@@ -1257,6 +1277,7 @@ fun NativeRoadstrShell(
                 ),
         ) {
             when {
+                browserState.open -> webBrowser?.close()
                 webPanelVisible -> webPanelVisible = false
                 contextMenuPoint != null -> contextMenuPoint = null
                 parkingPanelVisible -> parkingPanelVisible = false
@@ -1612,7 +1633,11 @@ fun NativeRoadstrShell(
                     onSearchWeb = { journeyCoordinator?.searchWeb() },
                     onConfirmWeb = { journeyCoordinator?.confirmWeb() },
                     onDeclineWeb = { journeyCoordinator?.declineWeb() },
-                    onOpenWebResult = { url -> onOpenExternal(url) },
+                    onOpenWebResult = { url ->
+                        // The host applies the navigation policy; an address it refuses is not
+                        // handed to another browser behind its back.
+                        if (webBrowser != null) webBrowser.open(url) else onOpenExternal(url)
+                    },
                     onOpenWebPlace = { id -> journeyCoordinator?.webPlace(id)?.let(showDiscoveryPlace) },
                     onSelectResult = { result ->
                         val discovered = DiscoveryPresentation.placeAt(
@@ -1784,6 +1809,20 @@ fun NativeRoadstrShell(
                     modifier = Modifier.align(Alignment.BottomCenter),
                     webSearchActive = NativeWebSearchEditor.isActive(webSettings),
                 )
+                if (webBrowser != null && webBrowser.inApp && browserState.open) {
+                    NativeWebBrowserScreen(
+                        state = browserState,
+                        onBack = webBrowser::goBack,
+                        onForward = webBrowser::goForward,
+                        onReload = webBrowser::reload,
+                        onClose = webBrowser::close,
+                        onOpenExternal = onOpenExternal,
+                        onConfirmAction = webBrowser::confirmAction,
+                        onDismissAction = webBrowser::dismissAction,
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                        content = { pageModifier -> webBrowser.Content(pageModifier) },
+                    )
+                }
                 if (webPanelVisible) {
                     NativeWebSearchPanel(
                         settings = webSettings,

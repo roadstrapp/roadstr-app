@@ -395,6 +395,8 @@ Format: **objective · current code affected · new code · dependencies · netw
 **WORLD-041** Candidate selection + provenance UI. · overlay/place sheet · — · 040 · — · — · presenter tests · green.
 
 ### Phase 5 — GeckoView (opt-in variant)
+*Status: built and compiled against the real 157 AAR; **not run on a device**. Measured (debug builds): default APK 119.4 MiB (3 ABIs, minSdk 24), variant 248.1 MiB (arm64 only, minSdk 26, package `app.roadstr.roadtest.gecko`); every native library of the arm64 AAR has 16 KB aligned segments (`0x4000`). Not measured, left to the owner: RAM, CPU, cold start, battery, page load on a real device, whether the engine preferences take effect (traffic capture and settings dump), WebAuthn off without a crash, the Kotlin stdlib alignment at runtime. Decisions D-29…D-34; D-30 replaces the idle shutdown of §28.*
+
 **WORLD-050** Build variant `-Pgeckoview=true`: dependency, minSdk 26, single ABI, gms exclusion + stubs, Kotlin stdlib alignment, exported provider removal, size budget check. · `native-android/app/build.gradle.kts` only · `src/gecko/…` source set · — · build-time download only · +86 MiB per ABI · variant builds; `apkanalyzer` shows no `gms`; merged manifest audit · acceptance: default build byte-identical in behaviour · drop the property.
 **WORLD-051** Runtime manager, session lifecycle, idle shutdown. · — · `feature/web/GeckoRuntimeManager.kt` (variant only) · 050 · — · lazy; shutdown on idle/memory · fake-session lifecycle tests · green.
 **WORLD-052** Navigation/permission/prompt/download policies. · — · `WebNavigationPolicy.kt` (core, pure), `GeckoPolicyDelegates.kt` (variant) · 050 · — · — · URL/intent tables, permission delegate tests · green.
