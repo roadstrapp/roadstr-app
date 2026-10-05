@@ -25,12 +25,16 @@ data class SearchResult(
     val openingHours: String? = null,
     val distanceM: Double? = null,
     val brand: String? = null,
+    /** Native-only: a discovery result brings its own symbol and its localised category line. */
+    val emojiOverride: String? = null,
+    val categoryLabelOverride: String? = null,
 ) {
     val emoji: String
-        get() = categoryEmoji(featureClass, type)
+        get() = emojiOverride ?: categoryEmoji(featureClass, type)
 
     val categoryLabel: String
         get() {
+            categoryLabelOverride?.let { return it }
             if (featureClass == "highway") {
                 return displayName.split(',')
                     .drop(2)

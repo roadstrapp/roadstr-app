@@ -54,6 +54,11 @@
     <string name="native_roadtest_no_app">Няма приложение, което да отвори тази връзка</string>
     <string name="native_saved_geocoding_error">Адресът не е намерен. Опитай по-точен адрес.</string>
     <string name="native_saved_label">Име (напр. Вкъщи, Офис)</string>
+    <string name="native_search_notice_area_fallback">Мястото не можа да бъде очертано точно, затова беше претърсена околността.</string>
+    <string name="native_search_notice_few_tagged">Малко места тук са отбелязани за това в OpenStreetMap, затова списъкът може да е непълен.</string>
+    <string name="native_search_notice_open_hours_unknown">Някои места не посочват работно време, затова може да са затворени.</string>
+    <string name="native_search_notice_route_unsupported">Търсенето по маршрута още не е налично; показват се места около вас.</string>
+    <string name="native_search_notice_widened">Няма нищо наблизо, затова търсенето беше разширено.</string>
     <string name="native_settings_dark_map">Тъмна карта</string>
     <string name="native_settings_dark_map_desc">Използвай тъмни карти независимо от темата на менюто</string>
     <string name="native_settings_gh_reachable">Сървърът GraphHopper е достъпен</string>

@@ -54,6 +54,11 @@
     <string name="native_roadtest_no_app">Mikään sovellus ei voi avata tätä linkkiä</string>
     <string name="native_saved_geocoding_error">Osoitetta ei löydy. Kokeile tarkempaa osoitetta.</string>
     <string name="native_saved_label">Nimi (esim. Koti, Toimisto)</string>
+    <string name="native_search_notice_area_fallback">Paikkaa ei voitu rajata tarkasti, joten sen ympäristöstä haettiin.</string>
+    <string name="native_search_notice_few_tagged">Täällä vain harvat paikat on merkitty tähän OpenStreetMapissa, joten luettelo voi olla vajaa.</string>
+    <string name="native_search_notice_open_hours_unknown">Osa paikoista ei ilmoita aukioloaikoja, joten ne voivat olla kiinni.</string>
+    <string name="native_search_notice_route_unsupported">Haku reitin varrelta ei ole vielä käytettävissä; näytetään paikkoja ympärilläsi.</string>
+    <string name="native_search_notice_widened">Lähistöllä ei ole mitään, joten hakua laajennettiin.</string>
     <string name="native_settings_dark_map">Tumma kartta</string>
     <string name="native_settings_dark_map_desc">Käytä tummia karttaruutuja valikon teemasta riippumatta</string>
     <string name="native_settings_gh_reachable">GraphHopper-palvelin tavoitettavissa</string>

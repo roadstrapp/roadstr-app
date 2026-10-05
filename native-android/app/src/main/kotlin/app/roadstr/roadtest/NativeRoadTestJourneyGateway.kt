@@ -24,7 +24,10 @@ import app.roadstr.service.network.NativeHttpRequest
 import app.roadstr.service.routing.NativeRoutingQuery
 import app.roadstr.service.routing.NativeAvoidanceRoutingQuery
 import app.roadstr.service.routing.NativeRoutingService
+import app.roadstr.service.discovery.NativeDiscoveryService
 import app.roadstr.service.search.NativeSearchPhase
+import app.roadstr.core.discovery.DiscoveryOutcome
+import app.roadstr.core.discovery.DiscoveryRequest
 import app.roadstr.service.search.NativeSearchQuery
 import app.roadstr.service.search.NativeSearchService
 import java.util.Locale
@@ -106,6 +109,11 @@ class NativeRoadTestJourneyGateway(
         }.getOrNull() ?: return standard
         return listOf(avoided) + standard
     }
+
+    private val discovery = NativeDiscoveryService(transport)
+
+    override suspend fun discover(request: DiscoveryRequest): DiscoveryOutcome =
+        discovery.discover(request)
 
     override suspend fun reverseGeocode(
         point: SearchResponsePoint,

@@ -113,6 +113,9 @@ import app.roadstr.feature.route.NativeRoutePlanningSession
 import app.roadstr.feature.route.NativeRoutePlanningStatus
 import app.roadstr.feature.saved.NativeSavedPlacesPanel
 import app.roadstr.feature.saved.NativeSavedPlace
+import app.roadstr.core.discovery.RoadstrPlace
+import app.roadstr.feature.discovery.DiscoveryPresentation
+import app.roadstr.feature.discovery.NativeDiscoverySnapshot
 import app.roadstr.feature.history.NativeRouteHistoryEntry
 import app.roadstr.feature.history.NativeRouteHistoryPanel
 import app.roadstr.feature.history.NativeRouteHistoryProtocol
@@ -442,6 +445,10 @@ fun NativeRoadstrShell(
         }
         val journeyLanguage = settingsState.values.languageCode
             ?: configuration.locales[0].language
+        // The places the latest natural-language search found, pinned on the map, and the
+        // end of the current trip for "near my destination".
+        var discovery by remember { mutableStateOf(NativeDiscoverySnapshot.Empty) }
+        var tripDestination by remember { mutableStateOf<SearchResponsePoint?>(null) }
         val journeyCoordinator = remember(
             journeyGateway,
             journeyScope,
@@ -465,6 +472,10 @@ fun NativeRoadstrShell(
                                 position = SearchResponsePoint(place.point.latitude, place.point.longitude),
                             )
                         }
+                    },
+                    destination = { tripDestination },
+                    onDiscovery = { revision, places ->
+                        discovery = NativeDiscoverySnapshot(revision, places)
                     },
                 )
             }
@@ -612,6 +623,27 @@ fun NativeRoadstrShell(
                         openingHours = detail?.openingHours,
                     )
                 }
+            }
+        }
+        // Results of a natural-language search open a sheet with the facts OpenStreetMap
+        // already gave (hours, phone, website, cuisine), not a second lookup.
+        var fittedDiscoveryRevision by remember { mutableStateOf(-1L) }
+        val showDiscoveryPlace: (RoadstrPlace) -> Unit = { place ->
+            fittedDiscoveryRevision = discovery.revision
+            val revision = placeSession.state.value.revision.coerceAtLeast(0L) + 1L
+            val point = SearchResponsePoint(place.position.latitude, place.position.longitude)
+            val title = DiscoveryPresentation.title(place, voiceLanguage)
+            if (placeSession.begin(revision, point, address = place.address ?: title)) {
+                journeyCoordinator?.closeSearchForPlace()
+                journeyScope.launch {
+                    cameraSession.focus(NativeMapPoint(point.latitude, point.longitude), SystemClock.elapsedRealtime())
+                }
+                placeSession.submit(
+                    revision = revision,
+                    details = DiscoveryPresentation.details(place, voiceLanguage),
+                    address = place.address ?: title,
+                    openingHours = place.openingHours,
+                )
             }
         }
         var parkingPanelVisible by remember { mutableStateOf(false) }
@@ -763,7 +795,7 @@ fun NativeRoadstrShell(
         // One composition of everything drawn as a point: parking, OSM hazards
         // and community road reports replace each other in a single overlay.
         val roadMarkers = nostrHost?.markers.orEmpty()
-        LaunchedEffect(parkingPosition, trafficLights, crossingHazards, roadMarkers) {
+        LaunchedEffect(parkingPosition, trafficLights, crossingHazards, roadMarkers, discovery) {
             pointOverlaySession.replace(
                 revision = pointOverlayState.revision + 1L,
                 markers = buildList {
@@ -771,8 +803,21 @@ fun NativeRoadstrShell(
                     trafficLights.forEach { add(hazardMarker(it)) }
                     crossingHazards.forEach { add(hazardMarker(it)) }
                     addAll(roadMarkers)
+                    addAll(DiscoveryPresentation.pins(discovery.places))
                 },
             )
+        }
+        // Once the search list is closed, show every place it found.
+        val searchClosed = searchState.status == NativeSearchUiStatus.Hidden
+        LaunchedEffect(discovery.revision, searchClosed) {
+            val places = discovery.places
+            if (!searchClosed || places.isEmpty() || fittedDiscoveryRevision == discovery.revision) {
+                return@LaunchedEffect
+            }
+            fittedDiscoveryRevision = discovery.revision
+            val points = places.map { NativeMapPoint(it.place.position.latitude, it.place.position.longitude) } +
+                listOfNotNull(gpsSnapshot.fix?.point)
+            cameraSession.fitRoute(points, SystemClock.elapsedRealtime(), routePanelBottomInsetPixels)
         }
         val navigationHudSession = remember { NativeNavigationHudSession() }
         val navigationHudState by navigationHudSession.state.collectAsState()
@@ -965,6 +1010,7 @@ fun NativeRoadstrShell(
             if (!activeNavigationState.active) {
                 speedLimitJob?.cancel()
                 speedLimitJob = null
+                tripDestination = null
             }
         }
         LaunchedEffect(activeNavigationState.active) {
@@ -1243,6 +1289,8 @@ fun NativeRoadstrShell(
                     )
                 ) {
                     if (routePlanningSession.beginNavigation(revision)) {
+                        discovery = NativeDiscoverySnapshot.Empty
+                        tripDestination = destination
                         val target = NativeMapPoint(destination.latitude, destination.longitude)
                         updateRouteHistory(
                             NativeRouteHistoryProtocol.record(
@@ -1327,6 +1375,10 @@ fun NativeRoadstrShell(
                                 // guessing: park here, or find out what is there.
                                 parkingPanelVisible = false
                                 contextMenuPoint = interaction.point
+                            }
+                            is NativeMapInteraction.PlaceMarkerTap -> {
+                                DiscoveryPresentation.placeForPin(interaction.markerId, discovery.places)
+                                    ?.let(showDiscoveryPlace)
                             }
                             is NativeMapInteraction.RoadEventTap -> {
                                 nostrHost?.eventForMarker(interaction.markerId)?.let { event ->
@@ -1535,7 +1587,12 @@ fun NativeRoadstrShell(
                         journeyCoordinator?.submitNearby(category, gpsSearchPoint)
                     },
                     onSelectResult = { result ->
-                        if (activeNavigationState.active) {
+                        val discovered = DiscoveryPresentation.placeAt(
+                            result.position.latitude, result.position.longitude, discovery.places,
+                        )
+                        if (discovered != null && !activeNavigationState.active) {
+                            showDiscoveryPlace(discovered)
+                        } else if (activeNavigationState.active) {
                             cameraSession.focus(
                                 point = NativeMapPoint(result.position.latitude, result.position.longitude),
                                 nowMillis = SystemClock.elapsedRealtime(),

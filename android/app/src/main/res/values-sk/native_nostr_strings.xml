@@ -54,6 +54,11 @@
     <string name="native_roadtest_no_app">Žiadna aplikácia nedokáže otvoriť tento odkaz</string>
     <string name="native_saved_geocoding_error">Adresa sa nenašla. Skús presnejšiu adresu.</string>
     <string name="native_saved_label">Názov (napr. Domov, Kancelária)</string>
+    <string name="native_search_notice_area_fallback">Toto miesto sa nepodarilo presne vymedziť, preto sa prehľadalo jeho okolie.</string>
+    <string name="native_search_notice_few_tagged">Len málo miest je tu pre toto označených v OpenStreetMap, zoznam preto môže byť neúplný.</string>
+    <string name="native_search_notice_open_hours_unknown">Niektoré miesta neuvádzajú otváracie hodiny, takže môžu byť zatvorené.</string>
+    <string name="native_search_notice_route_unsupported">Hľadanie pozdĺž trasy zatiaľ nie je dostupné; zobrazujem miesta okolo vás.</string>
+    <string name="native_search_notice_widened">Nič v blízkosti, preto bolo hľadanie rozšírené.</string>
     <string name="native_settings_dark_map">Tmavá mapa</string>
     <string name="native_settings_dark_map_desc">Používať tmavé mapové dlaždice nezávisle od témy ponuky</string>
     <string name="native_settings_gh_reachable">Server GraphHopper je dostupný</string>
