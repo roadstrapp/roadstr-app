@@ -379,6 +379,8 @@ Format: **objective · current code affected · new code · dependencies · netw
 **WORLD-026** UI: pins, notice line, place sheet fed with OSM details and provenance, provenance labels, strings ×27. · overlay session (one kind), search presentation (optional fields), shell, generator · `feature/discovery/*` · 025 · one Overpass call per place opened (by OSM id, cached) · ≤25 views · presenter tests, contract tests · pins + notice + details visible (device check by owner) · revert UI commit; list-only remains.
 
 ### Phase 3 — web discovery
+*Status: implemented and unit-tested (WORLD-030…035). WORLD-033 differs from the text below: there is no coarse-location switch (D-21). On-device check pending (D-17).*
+
 **WORLD-030** SearXNG protocol: request builder, response parser, endpoint policy, source policy. · — · `core/discovery/SearxngProtocol.kt` · — · text only · none · URL tables, engine policy, response corpus (JSON, malformed, huge, HTML) · green · delete file.
 **WORLD-031** Capability probe classifier. · — · `SearxngCapability.kt` · 030 · one `/config` + one probe search on user action · — · classification table · green.
 **WORLD-032** `NativeSearxngProvider` (+ LAN HTTP transport for the explicit own-instance case). · `NativeBoundedHttpClient` reused · `service/discovery/NativeSearxngProvider.kt`, `NativeLanHttpTransport.kt` · 030, 031 · text only to the chosen host · single-flight, circuit breaker · fake transport: 403, 429+Retry-After, redirect, timeout, cancellation, no cookies/Referer · green · provider returns `Disabled`.

@@ -116,6 +116,7 @@ sealed interface NativeSettingsUiAction {
     data class SearchEngineChanged(val value: NativeSettingsSearchEngine) : NativeSettingsUiAction
     data object ConfigureNwc : NativeSettingsUiAction
     data object OpenSavedPlaces : NativeSettingsUiAction
+    data object OpenWebSearch : NativeSettingsUiAction
     data object ExportFavorites : NativeSettingsUiAction
     data object ImportFavorites : NativeSettingsUiAction
     data object SyncPush : NativeSettingsUiAction
@@ -137,6 +138,8 @@ fun NativeSettingsPanel(
     snapshot: NativeSettingsSnapshot,
     onAction: (Long, NativeSettingsUiAction) -> Unit,
     modifier: Modifier = Modifier,
+    /** Whether web results are switched on and pointed at an instance; the web screen holds the rest. */
+    webSearchActive: Boolean = false,
 ) {
     if (snapshot.status == NativeSettingsStatus.Hidden) return
     val title = stringResource(R.string.native_settings_title)
@@ -171,7 +174,7 @@ fun NativeSettingsPanel(
                 )
             }
             item { AppearanceSection(values) { onAction(revision, it) } }
-            item { SearchSection(values) { onAction(revision, it) } }
+            item { SearchSection(values, webSearchActive) { onAction(revision, it) } }
             item { LightningSection(values) { onAction(revision, it) } }
             item { FavoritesSection(values) { onAction(revision, it) } }
             item { SyncSection(values) { onAction(revision, it) } }
@@ -183,7 +186,7 @@ fun NativeSettingsPanel(
 }
 
 @Composable
-private fun SettingsHeader(title: String, onClose: () -> Unit) {
+internal fun SettingsHeader(title: String, onClose: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -479,7 +482,11 @@ private fun AppearanceSection(values: NativeSettingsInput, onAction: (NativeSett
 }
 
 @Composable
-private fun SearchSection(values: NativeSettingsInput, onAction: (NativeSettingsUiAction) -> Unit) {
+private fun SearchSection(
+    values: NativeSettingsInput,
+    webSearchActive: Boolean,
+    onAction: (NativeSettingsUiAction) -> Unit,
+) {
     SettingsSection(R.string.native_settings_web_search_section) {
         ChoiceRow(
             label = stringResource(R.string.native_settings_web_search_section),
@@ -494,6 +501,11 @@ private fun SearchSection(values: NativeSettingsInput, onAction: (NativeSettings
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        SecureConfigurationRow(
+            title = stringResource(R.string.native_settings_web_results),
+            configured = webSearchActive,
+            description = stringResource(R.string.native_settings_web_results_desc),
+        ) { onAction(NativeSettingsUiAction.OpenWebSearch) }
     }
 }
 
@@ -691,7 +703,7 @@ private fun InfoSection(values: NativeSettingsInput, onAction: (NativeSettingsUi
 }
 
 @Composable
-private fun SettingsSection(
+internal fun SettingsSection(
     @StringRes title: Int,
     content: @Composable () -> Unit,
 ) {
@@ -712,7 +724,7 @@ private fun SettingsSection(
 }
 
 @Composable
-private fun ToggleRow(
+internal fun ToggleRow(
     @StringRes title: Int,
     @StringRes subtitle: Int,
     checked: Boolean,
@@ -734,7 +746,7 @@ private fun ToggleRow(
 }
 
 @Composable
-private fun <T> ChoiceRow(
+internal fun <T> ChoiceRow(
     label: String,
     values: List<T>,
     selected: T?,
@@ -1035,7 +1047,7 @@ private fun SettingsTextField(revisionValue: String, label: String, onSubmit: (S
 }
 
 @Composable
-private fun SecureConfigurationRow(
+internal fun SecureConfigurationRow(
     title: String,
     configured: Boolean,
     description: String? = null,
@@ -1105,7 +1117,7 @@ private fun ActionRow(title: String, value: String?, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ActionButton(
+internal fun ActionButton(
     text: String,
     enabled: Boolean = true,
     modifier: Modifier = Modifier,
@@ -1157,7 +1169,7 @@ private fun ExpandSection(visible: Boolean, content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun SettingsCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+internal fun SettingsCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val dark = MaterialTheme.colorScheme.onSurface.luminance() >
         MaterialTheme.colorScheme.surface.luminance()
     Surface(
