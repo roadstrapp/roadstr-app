@@ -32,6 +32,9 @@ class NativeOverpassClient(
         require(mirrors.isNotEmpty()) { "At least one Overpass mirror is required" }
     }
 
+    /** How many different mirrors one fetch may go through before it gives up. */
+    val mirrorCount: Int get() = mirrors.size
+
     /**
      * Formats a latitude or longitude for an `around:` clause. Plain
      * `toString()` can print 5.0E-7, which Overpass rejects as a syntax error.

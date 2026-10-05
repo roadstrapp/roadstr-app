@@ -29,9 +29,12 @@ data class NativeOsmHazard(
  */
 class NativeOsmHazardService(
     transport: app.roadstr.service.network.NativeSearchHttpTransport,
+    /** What each fetch did (counts and failure kinds), never coordinates. */
+    private val diagnostics: (String) -> Unit = {},
     private val clock: () -> Instant = Instant::now,
 ) {
     private val trafficLights = Source(
+        label = "traffic lights",
         overpass = NativeOverpassClient(transport),
         query = { client, point ->
             // "out skel" is id + coordinates only: all a plain icon needs.
@@ -43,6 +46,7 @@ class NativeOsmHazardService(
         classify = { NativeOsmHazardKind.TrafficLight },
     )
     private val crossings = Source(
+        label = "crossings",
         overpass = NativeOverpassClient(transport),
         query = { client, point ->
             // "out body": tags are needed to tell a crosswalk from a bump, and
@@ -71,6 +75,7 @@ class NativeOsmHazardService(
     }
 
     private inner class Source(
+        private val label: String,
         private val overpass: NativeOverpassClient,
         private val query: (NativeOverpassClient, GeoPoint) -> String,
         private val classify: (Map<*, *>) -> NativeOsmHazardKind,
@@ -93,31 +98,52 @@ class NativeOsmHazardService(
         suspend fun update(point: GeoPoint): List<NativeOsmHazard> {
             if (!beginIfDue(point)) return snapshot()
             try {
-                val elements = overpass.fetchElements(
-                    query = query(overpass, point),
-                    maxBytes = MAX_BYTES,
-                    timeoutMillis = TIMEOUT_MILLIS,
-                )
-                val parsed = parse(elements)
-                synchronized(this) {
-                    cached = parsed
-                    lastQueryPosition = point
-                    lastSuccessAt = clock()
-                    nextRetryAt = null
-                }
-                overpass.noteSuccess()
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (error: Exception) {
-                overpass.rotate()
-                overpass.noteFailure(error)
-                synchronized(this) {
-                    nextRetryAt = clock().plus(overpass.failureBackoff(RETRY_BASE))
+                if (!fetchThroughMirrors(point)) {
+                    synchronized(this) {
+                        nextRetryAt = clock().plus(overpass.failureBackoff(RETRY_BASE))
+                    }
                 }
             } finally {
                 synchronized(this) { fetching = false }
             }
             return snapshot()
+        }
+
+        /**
+         * One mirror after another until one answers: a mirror that is slow or
+         * refuses must not leave the map empty for a whole back-off period
+         * while a healthy one sits next in line. Only a round in which every
+         * mirror failed counts as a failure and starts the back-off.
+         */
+        private suspend fun fetchThroughMirrors(point: GeoPoint): Boolean {
+            var lastError: Exception? = null
+            repeat(overpass.mirrorCount) {
+                try {
+                    val elements = overpass.fetchElements(
+                        query = query(overpass, point),
+                        maxBytes = MAX_BYTES,
+                        timeoutMillis = TIMEOUT_MILLIS,
+                    )
+                    val parsed = parse(elements)
+                    diagnostics("$label: ${elements.size} elements, ${parsed.size} kept")
+                    synchronized(this) {
+                        cached = parsed
+                        lastQueryPosition = point
+                        lastSuccessAt = clock()
+                        nextRetryAt = null
+                    }
+                    overpass.noteSuccess()
+                    return true
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    lastError = error
+                    diagnostics("$label: mirror failed (${(error as? NativeOverpassException)?.statusCode ?: error.javaClass.simpleName})")
+                    overpass.rotate()
+                }
+            }
+            overpass.noteFailure(lastError)
+            return false
         }
 
         @Synchronized

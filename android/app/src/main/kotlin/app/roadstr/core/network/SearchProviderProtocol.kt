@@ -36,7 +36,8 @@ object SearchProviderProtocol {
     /** Switzerland-only overpass.osm.ch must not be added to this list. */
     val overpassMirrors: List<String> = listOf(
         "https://overpass-api.de/api/interpreter",
-        "https://overpass.openstreetmap.fr/api/interpreter",
+        "https://lz4.overpass-api.de/api/interpreter",
+        "https://z.overpass-api.de/api/interpreter",
     )
 
     private val roadstrHeaders = mapOf("User-Agent" to "Roadstr/1.0")

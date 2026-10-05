@@ -153,14 +153,14 @@ class NativeRoadTestVoiceGateway(context: Context) : NativeVoiceGateway {
 
     override fun announceStart() = submitPriority(fixedPhrase(start = true))
 
-    override fun announceManeuver(instruction: String, distanceMeters: Int, nowMillis: Long) {
+    override fun announceManeuver(instruction: String, distanceMeters: Int, nowMillis: Long, imperial: Boolean) {
         if (muted) return
         handle(
             guidance.submitManeuver(
                 instruction = instruction,
                 distanceMetres = distanceMeters,
                 languageCode = synchronized(configurationLock) { languageCode },
-                imperial = false,
+                imperial = imperial,
                 nowMillis = nowMillis,
             ),
         )
