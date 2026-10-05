@@ -19,6 +19,7 @@ import app.roadstr.R
 import app.roadstr.core.discovery.web.WebDiscoverySettings
 import app.roadstr.core.discovery.web.WebDiscoverySettingsCodec
 import app.roadstr.core.network.RoutingProviderConfigProtocol
+import app.roadstr.feature.web.WebBrowserHost
 import app.roadstr.core.network.RoutingProviderConfiguration
 import app.roadstr.feature.home.NativeRoadstrShell
 import app.roadstr.feature.home.NativeShellGpsPhase
@@ -54,6 +55,11 @@ class NativeRoadTestActivity : ComponentActivity() {
             routingConfiguration = ::routingConfiguration,
             webSettings = ::loadWebSearch,
         )
+    }
+    // Where web pages open. The default build hands them to the user's browser; the optional
+    // GeckoView build (-Pgeckoview=true) draws them inside the app. Both go through the same policy.
+    private val webBrowser: WebBrowserHost by lazy(LazyThreadSafetyMode.NONE) {
+        WebBrowserHostFactory.create(this, ::openExternal)
     }
     private val hazardService by lazy(LazyThreadSafetyMode.NONE) {
         NativeOsmHazardService(httpClient, diagnostics = { Log.d("RoadstrHazards", it) })
@@ -216,6 +222,7 @@ class NativeRoadTestActivity : ComponentActivity() {
                 },
                 initialWebSearch = loadWebSearch(),
                 onWebSearchChanged = ::saveWebSearch,
+                webBrowser = webBrowser,
                 initialFavorites = initialFavorites,
                 onFavoritesChanged = favoritesStore::save,
                 initialSettings = initialSettings,
@@ -230,16 +237,24 @@ class NativeRoadTestActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
+        webBrowser.onHostStart()
         locationController.onHostStart()
     }
 
     override fun onStop() {
+        webBrowser.onHostStop()
         voiceGateway.stop()
         locationController.onHostStop()
         super.onStop()
     }
 
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        webBrowser.onTrimMemory(level)
+    }
+
     override fun onDestroy() {
+        webBrowser.release()
         nostr?.roadEvents?.close()
         scheduler.shutdown()
         locationController.close()

@@ -46,6 +46,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- Only the optional GeckoView build has this component. It is exported so other apps can
+             read what the browser copied; Roadstr does not offer that, so it is removed. -->
+        <provider
+            android:name="org.mozilla.gecko.GeckoClipboardContentProvider"
+            tools:node="remove" />
     </application>
 
 </manifest>

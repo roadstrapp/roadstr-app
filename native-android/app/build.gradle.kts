@@ -5,6 +5,13 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+// Optional in-app browser (see docs/world-discovery, D-11): `-Pgeckoview=true` builds a variant
+// with GeckoView, one ABI and minSdk 26. Without the property nothing here changes.
+val geckoView = providers.gradleProperty("geckoview").orNull == "true"
+val geckoViewVersion = "157.0.20260924084938"
+// Keep in step with the Kotlin plugin version in settings.gradle.kts.
+val projectKotlin = "2.2.10"
+
 val bundledVoiceChecksums = mapOf(
     "../../android/app/src/main/jniLibs/arm64-v8a/libespeak-ng.so" to
         "a53a8ce4a9f815f393d10a220772701c077a3773aad6e8c0256341671f7b6955",
@@ -95,6 +102,7 @@ android {
                     "../../android/app/src/main/kotlin/app/roadstr/service/search",
                 ),
             )
+            kotlin.directories.add("src/system/kotlin")
             res.directories.add("../../android/app/src/main/res")
             assets.directories.add("../../assets")
             jniLibs.directories.add("../../android/app/src/main/jniLibs")
@@ -109,13 +117,51 @@ android {
     }
 }
 
+// The in-app browser variant, built with ./gradlew-geckoview. Everything it changes is here, so the
+// default build above reads exactly as before.
+if (geckoView) {
+    android {
+        // GeckoView 157 pulls androidx.core 1.19, which needs compileSdk 37; its AAR needs minSdk 26.
+        compileSdk = 37
+        defaultConfig {
+            // A different package, so the variant and the default build can be installed side by side.
+            applicationId = "app.roadstr.roadtest.gecko"
+            minSdk = 26
+            ndk {
+                // One ABI keeps the variant near 250 MiB instead of 500.
+                abiFilters.clear()
+                abiFilters += "arm64-v8a"
+            }
+        }
+        sourceSets {
+            getByName("main") {
+                kotlin.directories.remove("src/system/kotlin")
+                kotlin.directories.add("src/gecko/kotlin")
+            }
+        }
+    }
+}
+
 kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 
+if (geckoView) {
+    configurations.configureEach {
+        // Roadstr ships no Google Play Services class. GeckoView's POM pulls play-services-fido
+        // for WebAuthn, which the browser keeps switched off.
+        exclude(group = "com.google.android.gms")
+        // GeckoView's POM asks for a newer Kotlin standard library than this project's compiler reads.
+        resolutionStrategy.force("org.jetbrains.kotlin:kotlin-stdlib:$projectKotlin")
+    }
+}
+
 dependencies {
+    if (geckoView) {
+        implementation("org.mozilla.geckoview:geckoview-arm64-v8a:$geckoViewVersion")
+    }
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     implementation("org.bouncycastle:bcprov-jdk18on:1.86")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
