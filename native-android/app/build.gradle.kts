@@ -1,4 +1,5 @@
 import java.security.MessageDigest
+import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -140,6 +141,37 @@ if (geckoView) {
                 // The bundled page extension (see docs/world-discovery, Phase 6).
                 assets.directories.add("src/gecko/assets")
             }
+        }
+    }
+}
+
+// Update-path candidate (docs/kotlin-rewrite/RELEASE_COMPATIBILITY.md): `-Pcandidate=true` builds this
+// app under the production identity, signed with the official release key read from
+// ../android/key.properties at build time (the key and its passwords are never in the repository),
+// so that Android's in-place update of the shipped app can be tested. Without the property nothing here applies.
+val candidate = providers.gradleProperty("candidate").orNull == "true"
+if (candidate) {
+    check(!geckoView) { "The update candidate and the GeckoView variant are separate builds" }
+    val keyProperties = Properties().apply {
+        file("../../android/key.properties").inputStream().use { load(it) }
+    }
+    val storePath = keyProperties.getProperty("storeFile")
+    android {
+        signingConfigs {
+            create("candidate") {
+                storeFile = if (storePath.startsWith("/")) file(storePath) else file("../../android/$storePath")
+                storePassword = keyProperties.getProperty("storePassword")
+                keyAlias = keyProperties.getProperty("keyAlias")
+                keyPassword = keyProperties.getProperty("keyPassword")
+            }
+        }
+        defaultConfig {
+            applicationId = "app.roadstr"
+            versionCode = 2051
+            versionName = "0.5.12-kotlin-candidate"
+        }
+        buildTypes {
+            getByName("release") { signingConfig = signingConfigs.getByName("candidate") }
         }
     }
 }
