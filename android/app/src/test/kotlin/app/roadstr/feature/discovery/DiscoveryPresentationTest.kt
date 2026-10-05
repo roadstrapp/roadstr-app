@@ -72,6 +72,19 @@ class DiscoveryPresentationTest {
     }
 
     @Test
+    fun `the route notice informs and gives way to the ones that change what to do`() {
+        assertEquals(NativeSearchNotice.RouteAhead, DiscoveryPresentation.notice(setOf(DiscoveryNotice.ROUTE_AHEAD)))
+        assertEquals(
+            NativeSearchNotice.FewTagged,
+            DiscoveryPresentation.notice(setOf(DiscoveryNotice.ROUTE_AHEAD, DiscoveryNotice.FEW_TAGGED)),
+        )
+        assertEquals(
+            NativeSearchNotice.RouteUnsupported,
+            DiscoveryPresentation.notice(setOf(DiscoveryNotice.ROUTE_UNSUPPORTED)),
+        )
+    }
+
+    @Test
     fun `pins are discovery markers with ids that find the place again`() {
         val first = place("osm:n:1")
         val second = place("osm:w:2", name = "Other")

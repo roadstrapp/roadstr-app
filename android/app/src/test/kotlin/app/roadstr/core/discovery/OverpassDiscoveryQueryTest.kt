@@ -25,6 +25,34 @@ class OverpassDiscoveryQueryTest {
     }
 
     @Test
+    fun `a route corridor is one polyline with a buffer`() {
+        val corridor = SearchArea.Corridor(
+            listOf(GeoPoint(52.5163, 13.3777), GeoPoint(52.517, 13.3889), GeoPoint(52.5219, 13.4132)),
+            bufferMeters = 300,
+        )
+        val query = OverpassDiscoveryQuery.build(
+            listOf(PlaceCategory.RESTAURANT), emptySet(), emptySet(), corridor, limit = 3,
+        )
+        // The shape checked on a live mirror on 2026-10-05.
+        assertEquals(
+            "[out:json][timeout:12];(nwr[\"amenity\"=\"restaurant\"]" +
+                "(around:300,52.516300,13.377700,52.517000,13.388900,52.521900,13.413200););out tags center 3;",
+            query,
+        )
+    }
+
+    @Test
+    fun `a corridor needs two to twenty four points and a sane buffer`() {
+        val a = GeoPoint(45.0, 9.0)
+        val b = GeoPoint(45.1, 9.1)
+        for (bad in listOf({ SearchArea.Corridor(listOf(a), 500) }, { SearchArea.Corridor(List(25) { a }, 500) },
+            { SearchArea.Corridor(listOf(a, b), 50) }, { SearchArea.Corridor(listOf(a, b), 9_000) })) {
+            assertTrue(runCatching { bad() }.isFailure)
+        }
+        assertTrue(runCatching { SearchArea.Corridor(listOf(a, b), 500) }.isSuccess)
+    }
+
+    @Test
     fun `an eat group becomes one statement per category`() {
         val query = OverpassDiscoveryQuery.build(
             PlaceCategory.members(CategoryGroup.EAT), setOf(PlaceAttribute.GLUTEN_FREE), emptySet(),

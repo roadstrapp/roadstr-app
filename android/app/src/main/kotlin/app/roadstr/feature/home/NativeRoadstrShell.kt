@@ -504,6 +504,11 @@ fun NativeRoadstrShell(
                         discovery = NativeDiscoverySnapshot(revision, places)
                     },
                     webSettings = { webSettings },
+                    routeAhead = {
+                        routeState.snapshot.activeRuns.flatMap { run ->
+                            run.points.map { GeoPoint(it.latitude, it.longitude) }
+                        }
+                    },
                 )
             }
         }

@@ -75,6 +75,7 @@
     <string name="native_search_notice_area_fallback">无法准确划定该地点范围，因此搜索了其周边区域。</string>
     <string name="native_search_notice_few_tagged">此处在 OpenStreetMap 中标注相关信息的地点很少，列表可能不完整。</string>
     <string name="native_search_notice_open_hours_unknown">部分地点未提供营业时间，可能已关门。</string>
+    <string name="native_search_notice_route_ahead">显示路线前方剩余路段沿途的地点。</string>
     <string name="native_search_notice_route_unsupported">暂不支持沿路线搜索；正在显示你周围的地点。</string>
     <string name="native_search_notice_widened">附近没有结果，已扩大搜索范围。</string>
     <string name="native_search_web_consent">将“%1$s”发送到 %2$s？</string>

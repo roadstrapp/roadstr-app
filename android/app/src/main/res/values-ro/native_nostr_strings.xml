@@ -75,6 +75,7 @@
     <string name="native_search_notice_area_fallback">Locul nu a putut fi delimitat exact, așa că s-a căutat în zona din jur.</string>
     <string name="native_search_notice_few_tagged">Puține locuri de aici sunt etichetate pentru asta în OpenStreetMap, deci lista poate fi incompletă.</string>
     <string name="native_search_notice_open_hours_unknown">Unele locuri nu indică programul, deci ar putea fi închise.</string>
+    <string name="native_search_notice_route_ahead">Locuri de-a lungul porțiunii de traseu care îți mai rămâne.</string>
     <string name="native_search_notice_route_unsupported">Căutarea de-a lungul traseului nu este încă disponibilă; se afișează locuri din jurul tău.</string>
     <string name="native_search_notice_widened">Nimic în apropiere, așa că s-a lărgit căutarea.</string>
     <string name="native_search_web_consent">Trimiți „%1$s” către %2$s?</string>

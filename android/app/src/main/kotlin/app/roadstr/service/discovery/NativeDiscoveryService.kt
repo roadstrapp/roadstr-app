@@ -13,6 +13,7 @@ import app.roadstr.core.discovery.OverpassPlaceParser
 import app.roadstr.core.discovery.PlaceDiscovery
 import app.roadstr.core.discovery.QueryIntent
 import app.roadstr.core.discovery.RoadstrPlace
+import app.roadstr.core.discovery.RouteCorridor
 import app.roadstr.core.discovery.SearchArea
 import app.roadstr.core.discovery.TextNormalizer
 import app.roadstr.core.geo.GeoPoint
@@ -76,7 +77,8 @@ class NativeDiscoveryService(
         notices: MutableSet<DiscoveryNotice>,
     ): DiscoveryOutcome {
         val query = request.query
-        val ranked = DiscoveryRanking.rank(places, query, area.center, request.device, request.now)
+        val route = (area as? SearchArea.Corridor)?.points
+        val ranked = DiscoveryRanking.rank(places, query, area.center, request.device, request.now, route = route)
         if (query.attributes.isNotEmpty() && ranked.size < FEW_TAGGED_BELOW) {
             notices += DiscoveryNotice.FEW_TAGGED
         }
@@ -103,14 +105,23 @@ class NativeDiscoveryService(
             LocationConstraint.CurrentLocation -> around(request.device ?: request.mapCenter)
             LocationConstraint.MapCenter -> around(request.mapCenter ?: request.device)
             LocationConstraint.Destination -> around(request.destination ?: request.device)
-            LocationConstraint.RouteCorridor -> {
-                notices += DiscoveryNotice.ROUTE_UNSUPPORTED
-                around(request.device ?: request.mapCenter)
-            }
+            LocationConstraint.RouteCorridor -> routeArea(request, notices)
             is LocationConstraint.NamedPlace ->
                 geocodeNamed(request, location.text, location.alternatives, strict = false)
             is LocationConstraint.NearReference -> referenceArea(request, location)
         }
+    }
+
+    /** The stretch of the route still ahead; without a usable route the search stays around the user and says so. */
+    private fun routeArea(request: DiscoveryRequest, notices: MutableSet<DiscoveryNotice>): SearchArea? {
+        val from = request.device ?: request.mapCenter
+        val corridor = from?.let { RouteCorridor.ahead(request.route, it) }
+        if (corridor != null) {
+            notices += DiscoveryNotice.ROUTE_AHEAD
+            return corridor
+        }
+        notices += DiscoveryNotice.ROUTE_UNSUPPORTED
+        return around(from)
     }
 
     private fun around(point: GeoPoint?): SearchArea? =

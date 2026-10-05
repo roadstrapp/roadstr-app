@@ -54,6 +54,7 @@ object DiscoveryPresentation {
         DiscoveryNotice.ROUTE_UNSUPPORTED in notices -> NativeSearchNotice.RouteUnsupported
         DiscoveryNotice.AREA_FALLBACK in notices -> NativeSearchNotice.AreaFallback
         DiscoveryNotice.OPEN_HOURS_UNKNOWN in notices -> NativeSearchNotice.OpenHoursUnknown
+        DiscoveryNotice.ROUTE_AHEAD in notices -> NativeSearchNotice.RouteAhead
         else -> null
     }
 

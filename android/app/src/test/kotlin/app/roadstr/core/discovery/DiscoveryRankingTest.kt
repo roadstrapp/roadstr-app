@@ -40,6 +40,24 @@ class DiscoveryRankingTest {
         DiscoveryRanking.rank(places, query, anchor = device, device = device, now = now)
 
     @Test
+    fun `along a route the place that costs the smaller detour comes first and shows how far ahead it is`() {
+        // The road runs north from the device along the meridian; one place is far ahead on the road,
+        // the other is close to the device but 3 km to the side.
+        val road = (0..20).map { GeoPoint(45.0 + it * 0.01, 9.0) }
+        val onRoad = place("ahead", dLat = 0.15)
+        val aside = place("aside").copy(position = GeoPoint(45.0, 9.04))
+        val ranked = DiscoveryRanking.rank(listOf(aside, onRoad), query(), anchor = road[10], device = device, now = noon, route = road)
+        assertEquals(listOf("ahead", "aside"), ranked.map { it.place.id })
+        assertEquals(16_700.0, ranked.first().place.distanceMeters!!, 100.0)
+    }
+
+    @Test
+    fun `without a route nothing changes`() {
+        val ranked = DiscoveryRanking.rank(listOf(place("far", 0.05), place("near", 0.001)), query(), device, device, noon, route = null)
+        assertEquals(listOf("near", "far"), ranked.map { it.place.id })
+    }
+
+    @Test
     fun `nearer places come first`() {
         val ranked = rank(listOf(place("far", 0.05), place("near", 0.001), place("mid", 0.01)), query())
         assertEquals(listOf("near", "mid", "far"), ranked.map { it.place.id })

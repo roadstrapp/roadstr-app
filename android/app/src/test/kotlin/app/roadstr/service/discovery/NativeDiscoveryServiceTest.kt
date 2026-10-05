@@ -59,7 +59,8 @@ class NativeDiscoveryServiceTest {
         locale: String = "en",
         device: GeoPoint? = here,
         destination: GeoPoint? = null,
-    ) = DiscoveryRequest(parser.interpret(text, locale), device, null, destination, locale, now)
+        route: List<GeoPoint> = emptyList(),
+    ) = DiscoveryRequest(parser.interpret(text, locale), device, null, destination, locale, now, route)
 
     private fun service(transport: FakeTransport, mirrors: List<String> = listOf("https://m1/api", "https://m2/api")) =
         NativeDiscoveryService(
@@ -231,9 +232,34 @@ class NativeDiscoveryServiceTest {
     }
 
     @Test
-    fun `along the route is not available yet and says so`() = runBlocking {
+    fun `along the route without a route says so and stays around the user`() = runBlocking {
         val transport = FakeTransport { ok(elements(node(1, 45.0, "A"), node(2, 45.01, "B"), node(3, 45.02, "C"))) }
         val outcome = found(service(transport).discover(request("restaurant along the route")))
+        assertTrue(DiscoveryNotice.ROUTE_UNSUPPORTED in outcome.notices)
+        assertTrue(outcome.area is SearchArea.Circle)
+    }
+
+    @Test
+    fun `along the route with a route is one polyline query ahead of the user`() = runBlocking {
+        val road = (0..300).map { GeoPoint(45.0 + it * 0.001, 9.0) }
+        val transport = FakeTransport { ok(elements(node(1, 45.05, "Near"), node(2, 45.1, "Far"), node(3, 45.2, "Farther"))) }
+        val outcome = found(service(transport).discover(request("restaurant along the route", route = road)))
+        assertTrue(DiscoveryNotice.ROUTE_AHEAD in outcome.notices)
+        assertTrue(DiscoveryNotice.ROUTE_UNSUPPORTED !in outcome.notices)
+        val corridor = outcome.area as SearchArea.Corridor
+        assertTrue(corridor.points.size <= SearchArea.MAX_CORRIDOR_VERTICES)
+        val body = java.net.URLDecoder.decode(transport.overpass.single().body!!.removePrefix("data="), "UTF-8")
+        assertTrue(body, body.contains("(around:1000,45.000000,9.000000,"))
+        assertTrue(body, body.endsWith(");out tags center 80;"))
+        assertEquals(listOf("Near", "Far", "Farther"), outcome.places.map { it.place.name })
+        assertTrue(outcome.places.first().place.distanceMeters!! < outcome.places.last().place.distanceMeters!!)
+    }
+
+    @Test
+    fun `a route the user is far from is not searched`() = runBlocking {
+        val road = (0..300).map { GeoPoint(47.0 + it * 0.001, 12.0) }
+        val transport = FakeTransport { ok(elements(node(1, 45.0, "A"), node(2, 45.01, "B"), node(3, 45.02, "C"))) }
+        val outcome = found(service(transport).discover(request("restaurant along the route", route = road)))
         assertTrue(DiscoveryNotice.ROUTE_UNSUPPORTED in outcome.notices)
     }
 

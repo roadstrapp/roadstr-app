@@ -75,6 +75,7 @@
     <string name="native_search_notice_area_fallback">Seda kohta ei saanud täpselt piiritleda, seega otsiti selle ümbrusest.</string>
     <string name="native_search_notice_few_tagged">Siin on vähe kohti selle jaoks OpenStreetMapis märgitud, seega võib loend olla puudulik.</string>
     <string name="native_search_notice_open_hours_unknown">Mõni koht ei näita lahtiolekuaegu, seega võib see olla suletud.</string>
+    <string name="native_search_notice_route_ahead">Kohad mööda sinu marsruudi veel läbimata lõiku.</string>
     <string name="native_search_notice_route_unsupported">Otsing marsruudi ääres pole veel saadaval; näidatakse kohti sinu ümber.</string>
     <string name="native_search_notice_widened">Läheduses pole midagi, seega laiendati otsingut.</string>
     <string name="native_search_web_consent">Kas saata „%1$s“ serverisse %2$s?</string>

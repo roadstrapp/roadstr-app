@@ -168,6 +168,8 @@ class NativeShellJourneyCoordinator(
     private val onDiscovery: (revision: Long, places: List<RankedPlace>) -> Unit = { _, _ -> },
     /** What the user chose about web search; read each time, so a change applies at once. */
     private val webSettings: () -> WebDiscoverySettings = { WebDiscoverySettings() },
+    /** The part of the route still to drive, for "along my route"; empty when there is no route. */
+    private val routeAhead: () -> List<GeoPoint> = { emptyList() },
 ) {
     private var searchRevision = searchSession.state.value.revision.coerceAtLeast(0L)
     private var routeRevision = routeSession.state.value.revision.coerceAtLeast(0L)
@@ -499,6 +501,7 @@ class NativeShellJourneyCoordinator(
             destination = destination()?.let { GeoPoint(it.latitude, it.longitude) },
             languageCode = normalizedLanguageCode(),
             now = clock(),
+            route = routeAhead(),
         )
         val outcome = try {
             gateway.discover(request)

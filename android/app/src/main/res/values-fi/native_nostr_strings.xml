@@ -75,6 +75,7 @@
     <string name="native_search_notice_area_fallback">Paikkaa ei voitu rajata tarkasti, joten sen ympäristöstä haettiin.</string>
     <string name="native_search_notice_few_tagged">Täällä vain harvat paikat on merkitty tähän OpenStreetMapissa, joten luettelo voi olla vajaa.</string>
     <string name="native_search_notice_open_hours_unknown">Osa paikoista ei ilmoita aukioloaikoja, joten ne voivat olla kiinni.</string>
+    <string name="native_search_notice_route_ahead">Paikat reitin vielä edessä olevan osuuden varrella.</string>
     <string name="native_search_notice_route_unsupported">Haku reitin varrelta ei ole vielä käytettävissä; näytetään paikkoja ympärilläsi.</string>
     <string name="native_search_notice_widened">Lähistöllä ei ole mitään, joten hakua laajennettiin.</string>
     <string name="native_search_web_consent">Lähetetäänkö ”%1$s” palvelimelle %2$s?</string>

@@ -75,6 +75,7 @@
     <string name="native_search_notice_area_fallback">Šo vietu neizdevās precīzi norobežot, tāpēc tika meklēts tās apkārtnē.</string>
     <string name="native_search_notice_few_tagged">Šeit tikai dažas vietas ir atzīmētas šim nolūkam OpenStreetMap, tāpēc saraksts var būt nepilnīgs.</string>
     <string name="native_search_notice_open_hours_unknown">Dažas vietas nenorāda darba laiku, tāpēc tās var būt slēgtas.</string>
+    <string name="native_search_notice_route_ahead">Vietas pa jūsu maršruta posmu, kas vēl priekšā.</string>
     <string name="native_search_notice_route_unsupported">Meklēšana gar maršrutu vēl nav pieejama; tiek rādītas vietas ap jums.</string>
     <string name="native_search_notice_widened">Tuvumā nekā nav, tāpēc meklēšana tika paplašināta.</string>
     <string name="native_search_web_consent">Vai sūtīt „%1$s“ uz %2$s?</string>

@@ -568,6 +568,7 @@ private fun NativeSearchNotice.textResource(): Int = when (this) {
     NativeSearchNotice.FewTagged -> R.string.native_search_notice_few_tagged
     NativeSearchNotice.Widened -> R.string.native_search_notice_widened
     NativeSearchNotice.RouteUnsupported -> R.string.native_search_notice_route_unsupported
+    NativeSearchNotice.RouteAhead -> R.string.native_search_notice_route_ahead
     NativeSearchNotice.AreaFallback -> R.string.native_search_notice_area_fallback
     NativeSearchNotice.OpenHoursUnknown -> R.string.native_search_notice_open_hours_unknown
 }

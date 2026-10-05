@@ -75,6 +75,7 @@
     <string name="native_search_notice_area_fallback">Níorbh fhéidir an áit sin a theorannú go beacht, mar sin cuardaíodh an ceantar máguaird.</string>
     <string name="native_search_notice_few_tagged">Is beag na háiteanna anseo atá clibeáilte don seo in OpenStreetMap, mar sin d\'fhéadfadh an liosta a bheith neamhiomlán.</string>
     <string name="native_search_notice_open_hours_unknown">Ní chuireann roinnt áiteanna a n-uaireanta oscailte in iúl, mar sin d\'fhéadfadh siad a bheith dúnta.</string>
+    <string name="native_search_notice_route_ahead">Áiteanna feadh an chuid de do bhealach atá fós romhat.</string>
     <string name="native_search_notice_route_unsupported">Níl cuardach feadh an bhealaigh ar fáil go fóill; ag taispeáint áiteanna timpeall ort.</string>
     <string name="native_search_notice_widened">Faic in aice láimhe, mar sin leathnaíodh an cuardach.</string>
     <string name="native_search_web_consent">Seol “%1$s” chuig %2$s?</string>
