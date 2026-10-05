@@ -13,6 +13,7 @@
     <string name="native_browser_failed">Această pagină nu a putut fi încărcată.</string>
     <string name="native_browser_forward">Înainte</string>
     <string name="native_browser_insecure">Conexiune nesigură</string>
+    <string name="native_browser_navigate_here">Navighează aici</string>
     <string name="native_browser_open_external">Deschide în browser</string>
     <string name="native_browser_reload">Reîncarcă</string>
     <string name="native_browser_secure">Conexiune sigură</string>

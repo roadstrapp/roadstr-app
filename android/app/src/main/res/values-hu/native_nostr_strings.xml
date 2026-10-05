@@ -13,6 +13,7 @@
     <string name="native_browser_failed">Az oldalt nem sikerült betölteni.</string>
     <string name="native_browser_forward">Előre</string>
     <string name="native_browser_insecure">A kapcsolat nem biztonságos</string>
+    <string name="native_browser_navigate_here">Navigálás ide</string>
     <string name="native_browser_open_external">Megnyitás a böngészőben</string>
     <string name="native_browser_reload">Újratöltés</string>
     <string name="native_browser_secure">Biztonságos kapcsolat</string>

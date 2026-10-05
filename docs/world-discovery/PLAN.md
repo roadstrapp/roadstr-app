@@ -404,6 +404,8 @@ Format: **objective · current code affected · new code · dependencies · netw
 **WORLD-054** Privacy profile + traffic-capture checklist. · — · `GeckoPrivacyProfile.kt` · 050 · none expected · — · settings-object unit test, capture by owner · profile matches §29.
 
 ### Phase 6 — structured web data
+*Status: JSON-LD parser, page message schema, page matcher, the bundled extension (scripts tested in Node against a fake page), the host bridge and the "navigate here" bar are implemented and compiled in the variant; the messaging path is not run on a device (D-38). Decisions D-35…D-38.*
+
 **WORLD-060** Bundled extension + native message schema. · — · `assets/web/place-extractor/*`, `WebPageMessageSchema.kt` · 051 · none · small · schema/caps tests, device spike (owner) · green.
 **WORLD-061** `JsonLdPlaceParser`. · — · `core/discovery/JsonLdPlaceParser.kt` · — · none · — · corpus incl. malformed/malicious · green.
 **WORLD-062** Resolver integration + "Navigate here" from a page. · — · — · 040, 060, 061 · — · — · evidence tests · green.

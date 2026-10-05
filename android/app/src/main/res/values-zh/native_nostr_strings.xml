@@ -13,6 +13,7 @@
     <string name="native_browser_failed">无法加载此页面。</string>
     <string name="native_browser_forward">前进</string>
     <string name="native_browser_insecure">连接不安全</string>
+    <string name="native_browser_navigate_here">导航到这里</string>
     <string name="native_browser_open_external">在浏览器中打开</string>
     <string name="native_browser_reload">重新加载</string>
     <string name="native_browser_secure">安全连接</string>

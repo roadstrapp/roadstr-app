@@ -13,7 +13,7 @@ import org.mozilla.geckoview.StorageController
  * for good, and starting it again in the same process is not something the library supports.
  * Memory is given back by closing the session and clearing what the engine stored.
  */
-internal class GeckoRuntimeHolder(context: Context) {
+internal class GeckoRuntimeHolder(context: Context, private val onPageMessage: (String) -> Unit) {
     private val appContext = context.applicationContext
     private var runtime: GeckoRuntime? = null
 
@@ -34,6 +34,8 @@ internal class GeckoRuntimeHolder(context: Context) {
         // Under no-backup storage: the file is regenerated at each start and is not user data.
         val file = File(appContext.noBackupFilesDir, "gecko/preferences.yaml")
         GeckoPrivacyProfile.writePreferences(file)
-        return GeckoRuntime.create(appContext, GeckoPrivacyProfile.runtimeSettings(file))
+        val created = GeckoRuntime.create(appContext, GeckoPrivacyProfile.runtimeSettings(file))
+        GeckoPagePlaceExtractor(onPageMessage).install(created)
+        return created
     }
 }

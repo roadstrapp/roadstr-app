@@ -144,4 +144,66 @@ void main() {
       expect(prefs, contains(line), reason: line);
     }
   });
+
+  group('page place extraction', () {
+    const extension = 'native-android/app/src/gecko/assets/web/place-extractor';
+
+    test('the bundled extension can only read the page and tell Roadstr', () {
+      final manifest = _read('$extension/manifest.json');
+      expect(manifest, contains('"permissions": ["nativeMessaging"]'));
+      expect(manifest, contains('"matches": ["https://*/*"]'));
+      expect(manifest, contains('"all_frames": false'));
+      for (final broad in ['<all_urls>', 'http://', '"tabs"', '"webRequest"', '"cookies"', '"storage"', '"downloads"']) {
+        expect(manifest, isNot(contains(broad)), reason: broad);
+      }
+      for (final file in ['extractor.js', 'background.js']) {
+        final script = _code(_read('$extension/$file'));
+        for (final forbidden in ['eval(', 'Function(', 'fetch(', 'XMLHttpRequest', 'WebSocket', 'innerHTML', 'document.write', 'importScripts', 'localStorage']) {
+          expect(script, isNot(contains(forbidden)), reason: '$file $forbidden');
+        }
+      }
+      // The background script drops anything that did not come from the extension's own content script.
+      expect(_read('$extension/background.js'), contains('sender.id !== browser.runtime.id'));
+      expect(_read('$extension/background.js'), contains('sendNativeMessage("roadstrExtractor"'));
+    });
+
+    test('the extension reads exactly the meta tags the Kotlin schema accepts', () {
+      final js = _read('$extension/extractor.js');
+      final jsKeys = RegExp(r'"((?:og|place):[a-z_:\-]+)"').allMatches(js.substring(js.indexOf('META_KEYS'), js.indexOf('];'))).map((m) => m.group(1)!).toSet();
+      final kotlin = _read('$_root/core/discovery/structured/WebPageMessage.kt');
+      final block = kotlin.substring(kotlin.indexOf('val metaKeys'), kotlin.indexOf(')', kotlin.indexOf('val metaKeys')));
+      final kotlinKeys = RegExp(r'"((?:og|place):[a-z_:\-]+)"').allMatches(block).map((m) => m.group(1)!).toSet();
+      expect(jsKeys, isNotEmpty);
+      expect(jsKeys, kotlinKeys);
+      expect(js, contains('var MAX_BLOCKS = 8;'));
+      expect(js, contains('var MAX_CHARS = 65536;'));
+      expect(kotlin, contains('const val MAX_BYTES = 64 * 1024'));
+      expect(_read('$_root/core/discovery/structured/JsonLdPlaceParser.kt'), contains('const val MAX_BLOCKS = 8'));
+      expect(_read('$_root/core/discovery/structured/JsonLdPlaceParser.kt'), contains('const val MAX_BLOCK_CHARS = 65_536'));
+    });
+
+    test('the extension is shipped only in the variant and the host trusts only the page on screen', () {
+      expect(_read('native-android/app/build.gradle.kts'), contains('assets.directories.add("src/gecko/assets")'));
+      final host = _read('$_gecko/GeckoWebBrowserHost.kt');
+      expect(host, contains('WebPageMessageSchema.parse(raw) ?: return'));
+      expect(host, contains('HostMatching.registrableDomain(page.url.host) != HostMatching.registrableDomain(current.host)'));
+      expect(host, contains('pagePlace = if (loading) null else current.pagePlace'));
+      final extractor = _read('$_gecko/GeckoPagePlaceExtractor.kt');
+      expect(extractor, contains('ensureBuiltIn(LOCATION, ID)'));
+      expect(extractor, contains('setAllowedInPrivateBrowsing(extension, true)'));
+      expect(extractor, isNot(contains('ALLOW_CONTENT_MESSAGING')));
+    });
+
+    test('a page can never put a pin on the map or move the destination without a confirmation', () {
+      final matcher = _read('$_root/core/discovery/resolve/PageMatcher.kt');
+      expect(matcher, contains('sources = setOf(PlaceSource.WEBSITE)'));
+      expect(matcher, contains('if (GeoMath.distanceMeters(context.center, position) > reach) return null'));
+      final host = _read('$_gecko/GeckoWebBrowserHost.kt');
+      expect(host, contains('ExternalAction.UseAsDestination(place.latitude, place.longitude)'));
+      // Navigating from a page goes through the same confirmation dialog as any map link.
+      final screen = _read('$_root/feature/web/NativeWebBrowserScreen.kt');
+      expect(screen, contains('ConfirmActionDialog('));
+    });
+  });
 }
+

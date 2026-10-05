@@ -13,6 +13,7 @@
     <string name="native_browser_failed">Sivua ei voitu ladata.</string>
     <string name="native_browser_forward">Eteenpäin</string>
     <string name="native_browser_insecure">Yhteys ei ole suojattu</string>
+    <string name="native_browser_navigate_here">Navigoi tänne</string>
     <string name="native_browser_open_external">Avaa selaimessa</string>
     <string name="native_browser_reload">Lataa uudelleen</string>
     <string name="native_browser_secure">Suojattu yhteys</string>

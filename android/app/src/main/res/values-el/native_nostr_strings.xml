@@ -13,6 +13,7 @@
     <string name="native_browser_failed">Δεν ήταν δυνατή η φόρτωση αυτής της σελίδας.</string>
     <string name="native_browser_forward">Μπροστά</string>
     <string name="native_browser_insecure">Η σύνδεση δεν είναι ασφαλής</string>
+    <string name="native_browser_navigate_here">Πλοήγηση εδώ</string>
     <string name="native_browser_open_external">Άνοιγμα στο πρόγραμμα περιήγησης</string>
     <string name="native_browser_reload">Επαναφόρτωση</string>
     <string name="native_browser_secure">Ασφαλής σύνδεση</string>

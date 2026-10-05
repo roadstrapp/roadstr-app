@@ -9,6 +9,9 @@ import app.roadstr.core.discovery.PlaceSource
 import app.roadstr.core.discovery.RankedPlace
 import app.roadstr.core.discovery.RoadstrPlace
 import app.roadstr.core.discovery.SearchArea
+import app.roadstr.core.discovery.resolve.MatchClass
+import app.roadstr.core.discovery.structured.JsonLdPlaceParser
+import app.roadstr.core.discovery.structured.WebPageMessage
 import app.roadstr.core.discovery.web.EndpointRejection
 import app.roadstr.core.discovery.web.SearxngCapability
 import app.roadstr.core.discovery.web.WebDiscoveryMode
@@ -35,6 +38,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -340,6 +344,37 @@ class NativeShellWebFlowTest {
         h.gateway.discovery = DiscoveryOutcome.NotApplicable
         h.coordinator.submitSearch("altro", gps)
         assertEquals(null, h.coordinator.webPlace("osm:n:5"))
+    }
+
+    private fun pageAbout(name: String, latitude: Double, longitude: Double) = WebPageMessage(
+        URI("https://www.trattoriaverde.it/menu"),
+        listOf("""{"@type":"Restaurant","name":"$name","geo":{"latitude":$latitude,"longitude":$longitude}}"""),
+        emptyMap(),
+    )
+
+    private fun structuredOf(page: WebPageMessage) = JsonLdPlaceParser.parse(page.jsonLd)
+
+    @Test
+    fun `a page is judged against the current search`() {
+        val verde = placeWithSite(5, "Trattoria Verde", "https://www.trattoriaverde.it")
+        val h = Harness(own)
+        h.gateway.discovery = foundWith(verde)
+        searched(h, steaks)
+
+        val here = pageAbout("Trattoria Verde", 45.001, 9.001)
+        val match = h.coordinator.pagePlace(here, structuredOf(here))!!
+        assertEquals(verde, match.place)
+        assertEquals(MatchClass.LINKED, match.matchClass)
+
+        val far = pageAbout("Trattoria Verde", 48.85, 2.35)
+        assertNull(h.coordinator.pagePlace(far, structuredOf(far)))
+    }
+
+    @Test
+    fun `without a search there is nothing to judge a page by`() {
+        val h = Harness(own)
+        val page = pageAbout("Trattoria Verde", 45.001, 9.001)
+        assertNull(h.coordinator.pagePlace(page, structuredOf(page)))
     }
 
     @Test

@@ -47,6 +47,7 @@ fun NativeWebBrowserScreen(
     onReload: () -> Unit,
     onClose: () -> Unit,
     onOpenExternal: (String) -> Unit,
+    onNavigateHere: () -> Unit,
     onConfirmAction: () -> Unit,
     onDismissAction: () -> Unit,
     modifier: Modifier = Modifier,
@@ -63,6 +64,7 @@ fun NativeWebBrowserScreen(
             if (state.loading) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             content(Modifier.weight(1f).fillMaxWidth())
             if (state.failed) FailedNote()
+            state.pagePlace?.let { PagePlaceBar(it, onNavigateHere) }
             Toolbar(state, onBack, onForward, onReload, onOpenExternal)
         }
     }
@@ -99,6 +101,26 @@ private fun Header(state: WebBrowserState, onClose: () -> Unit) {
         }
         TextButton(onClick = onClose, modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)) {
             Text(stringResource(R.string.native_browser_close))
+        }
+    }
+}
+
+/** The place the page is about, with the way to get there. */
+@Composable
+private fun PagePlaceBar(place: BrowserPagePlace, onNavigateHere: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = "📍 " + place.name,
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        TextButton(onClick = onNavigateHere, modifier = Modifier.sizeIn(minHeight = 48.dp)) {
+            Text(stringResource(R.string.native_browser_navigate_here))
         }
     }
 }

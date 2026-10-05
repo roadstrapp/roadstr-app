@@ -13,6 +13,7 @@
     <string name="native_browser_failed">Не удалось загрузить эту страницу.</string>
     <string name="native_browser_forward">Вперёд</string>
     <string name="native_browser_insecure">Соединение не защищено</string>
+    <string name="native_browser_navigate_here">Проложить маршрут сюда</string>
     <string name="native_browser_open_external">Открыть в браузере</string>
     <string name="native_browser_reload">Обновить</string>
     <string name="native_browser_secure">Безопасное соединение</string>

@@ -13,6 +13,7 @@
     <string name="native_browser_failed">Din il-paġna ma setgħetx titgħabba.</string>
     <string name="native_browser_forward">\'L quddiem</string>
     <string name="native_browser_insecure">Il-konnessjoni mhijiex sigura</string>
+    <string name="native_browser_navigate_here">Navigaw hawn</string>
     <string name="native_browser_open_external">Iftaħ fil-browser tiegħek</string>
     <string name="native_browser_reload">Erġa\' tella\'</string>
     <string name="native_browser_secure">Konnessjoni sigura</string>

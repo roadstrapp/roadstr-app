@@ -13,6 +13,7 @@
     <string name="native_browser_failed">Níorbh fhéidir an leathanach seo a luchtú.</string>
     <string name="native_browser_forward">Ar aghaidh</string>
     <string name="native_browser_insecure">Níl an nasc slán</string>
+    <string name="native_browser_navigate_here">Nasclean anseo</string>
     <string name="native_browser_open_external">Oscail i do bhrabhsálaí</string>
     <string name="native_browser_reload">Athlódáil</string>
     <string name="native_browser_secure">Nasc slán</string>

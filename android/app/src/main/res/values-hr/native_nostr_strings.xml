@@ -13,6 +13,7 @@
     <string name="native_browser_failed">Ova se stranica nije mogla učitati.</string>
     <string name="native_browser_forward">Naprijed</string>
     <string name="native_browser_insecure">Veza nije sigurna</string>
+    <string name="native_browser_navigate_here">Navigiraj ovamo</string>
     <string name="native_browser_open_external">Otvori u pregledniku</string>
     <string name="native_browser_reload">Osvježi</string>
     <string name="native_browser_secure">Sigurna veza</string>
