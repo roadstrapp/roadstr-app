@@ -24,10 +24,21 @@ import app.roadstr.service.network.NativeHttpRequest
 import app.roadstr.service.routing.NativeRoutingQuery
 import app.roadstr.service.routing.NativeAvoidanceRoutingQuery
 import app.roadstr.service.routing.NativeRoutingService
+import app.roadstr.service.discovery.CoarseLocality
+import app.roadstr.service.discovery.HostPacer
 import app.roadstr.service.discovery.NativeDiscoveryService
+import app.roadstr.service.discovery.NativeLanHttpTransport
+import app.roadstr.service.discovery.NativeSearxngProvider
 import app.roadstr.service.search.NativeSearchPhase
 import app.roadstr.core.discovery.DiscoveryOutcome
 import app.roadstr.core.discovery.DiscoveryRequest
+import app.roadstr.core.discovery.web.ConnectionTest
+import app.roadstr.core.discovery.web.WebDiscoveryMode
+import app.roadstr.core.discovery.web.WebDiscoveryOutcome
+import app.roadstr.core.discovery.web.WebDiscoveryRequest
+import app.roadstr.core.discovery.web.WebDiscoverySettings
+import app.roadstr.core.discovery.web.WebQueryBuilder
+import app.roadstr.core.discovery.web.WebSearchContext
 import app.roadstr.service.search.NativeSearchQuery
 import app.roadstr.service.search.NativeSearchService
 import java.util.Locale
@@ -40,6 +51,8 @@ class NativeRoadTestJourneyGateway(
     private val transport: NativeBoundedHttpClient = NativeBoundedHttpClient(),
     /** The provider, key and server the user picked in settings, read per request. */
     private val routingConfiguration: () -> RoutingProviderConfiguration = { OSRM_CONFIGURATION },
+    /** What the user chose about web results, read per request so a change applies at once. */
+    private val webSettings: () -> WebDiscoverySettings = { WebDiscoverySettings() },
 ) : NativeShellJourneyGateway {
     private val historyPreferences = NativeRoadTestProtectedPreferences(
         context = context,
@@ -110,10 +123,25 @@ class NativeRoadTestJourneyGateway(
         return listOf(avoided) + standard
     }
 
-    private val discovery = NativeDiscoveryService(transport)
+    // One pacer for every Nominatim call, so the place search and the town lookup behind a
+    // web query together stay under the service's one request per second.
+    private val nominatimPacer = HostPacer(NativeDiscoveryService.NOMINATIM_SPACING_MILLIS)
+    private val discovery = NativeDiscoveryService(transport, nominatimPacer = nominatimPacer)
+    private val locality = CoarseLocality(transport, nominatimPacer)
+    private val webProvider = NativeSearxngProvider(webSettings, transport, NativeLanHttpTransport())
 
     override suspend fun discover(request: DiscoveryRequest): DiscoveryOutcome =
         discovery.discover(request)
+
+    override suspend fun webSearch(context: WebSearchContext): WebDiscoveryOutcome {
+        // Settings can change between the question and the answer; nothing is looked up when off.
+        if (webSettings().mode == WebDiscoveryMode.OFF) return WebDiscoveryOutcome.Disabled
+        val town = WebQueryBuilder.localityPoint(context)?.let { locality.nameOf(it, context.languageCode) }
+        val text = WebQueryBuilder.build(context.parsed, town)
+        return webProvider.discover(WebDiscoveryRequest(text, context.languageCode))
+    }
+
+    override suspend fun testWebSearch(): ConnectionTest = webProvider.testConnection()
 
     override suspend fun reverseGeocode(
         point: SearchResponsePoint,

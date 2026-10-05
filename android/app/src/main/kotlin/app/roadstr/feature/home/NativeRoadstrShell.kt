@@ -114,6 +114,8 @@ import app.roadstr.feature.route.NativeRoutePlanningStatus
 import app.roadstr.feature.saved.NativeSavedPlacesPanel
 import app.roadstr.feature.saved.NativeSavedPlace
 import app.roadstr.core.discovery.RoadstrPlace
+import app.roadstr.core.discovery.web.ConnectionTest
+import app.roadstr.core.discovery.web.WebDiscoverySettings
 import app.roadstr.feature.discovery.DiscoveryPresentation
 import app.roadstr.feature.discovery.NativeDiscoverySnapshot
 import app.roadstr.feature.history.NativeRouteHistoryEntry
@@ -130,6 +132,10 @@ import app.roadstr.feature.search.NativeSearchOverlay
 import app.roadstr.feature.search.NativeSearchSession
 import app.roadstr.feature.search.NativeSearchUiStatus
 import app.roadstr.feature.settings.NativeSettingsPanel
+import app.roadstr.feature.settings.NativeWebSearchEditor
+import app.roadstr.feature.settings.NativeWebSearchPanel
+import app.roadstr.feature.settings.NativeWebSearchStatus
+import app.roadstr.feature.settings.runWebConnectionTest
 import app.roadstr.feature.settings.NativeSettingsSession
 import app.roadstr.feature.settings.NativeSettingsUiAction
 import app.roadstr.feature.settings.NativeSettingsStatus
@@ -257,6 +263,8 @@ fun NativeRoadstrShell(
     onParkingChanged: (NativeParkingPosition?) -> Unit = {},
     initialRouteHistory: List<NativeRouteHistoryEntry> = emptyList(),
     onRouteHistoryChanged: (List<NativeRouteHistoryEntry>) -> Unit = {},
+    initialWebSearch: WebDiscoverySettings = WebDiscoverySettings(),
+    onWebSearchChanged: (WebDiscoverySettings) -> Unit = {},
     initialFavorites: List<NativeSavedPlace> = emptyList(),
     onFavoritesChanged: (List<NativeSavedPlace>) -> Unit = {},
     initialSettings: NativeSettingsInput = NativeSettingsInput(),
@@ -449,6 +457,18 @@ fun NativeRoadstrShell(
         // end of the current trip for "near my destination".
         var discovery by remember { mutableStateOf(NativeDiscoverySnapshot.Empty) }
         var tripDestination by remember { mutableStateOf<SearchResponsePoint?>(null) }
+        // What the user chose about web results; the host keeps it (the address, encrypted).
+        var webSettings by remember { mutableStateOf(initialWebSearch) }
+        var webPanelVisible by remember { mutableStateOf(false) }
+        var webStatus by remember { mutableStateOf<NativeWebSearchStatus>(NativeWebSearchStatus.Idle) }
+        var webEditCount by remember { mutableIntStateOf(0) }
+        val updateWebSettings: (WebDiscoverySettings) -> Unit = { next ->
+            webSettings = next
+            // A result about the old address must not stay on screen next to the new one.
+            webEditCount += 1
+            webStatus = NativeWebSearchStatus.Idle
+            onWebSearchChanged(next)
+        }
         val journeyCoordinator = remember(
             journeyGateway,
             journeyScope,
@@ -477,6 +497,7 @@ fun NativeRoadstrShell(
                     onDiscovery = { revision, places ->
                         discovery = NativeDiscoverySnapshot(revision, places)
                     },
+                    webSettings = { webSettings },
                 )
             }
         }
@@ -1218,7 +1239,8 @@ fun NativeRoadstrShell(
         }
         BackHandler(
             enabled = (
-                parkingPanelVisible ||
+                webPanelVisible ||
+                    parkingPanelVisible ||
                     historyVisible ||
                     contextMenuPoint != null ||
                     settingsState.status != NativeSettingsStatus.Hidden ||
@@ -1235,6 +1257,7 @@ fun NativeRoadstrShell(
                 ),
         ) {
             when {
+                webPanelVisible -> webPanelVisible = false
                 contextMenuPoint != null -> contextMenuPoint = null
                 parkingPanelVisible -> parkingPanelVisible = false
                 historyVisible -> historyVisible = false
@@ -1586,6 +1609,10 @@ fun NativeRoadstrShell(
                     onNearby = { category ->
                         journeyCoordinator?.submitNearby(category, gpsSearchPoint)
                     },
+                    onSearchWeb = { journeyCoordinator?.searchWeb() },
+                    onConfirmWeb = { journeyCoordinator?.confirmWeb() },
+                    onDeclineWeb = { journeyCoordinator?.declineWeb() },
+                    onOpenWebResult = { url -> onOpenExternal(url) },
                     onSelectResult = { result ->
                         val discovered = DiscoveryPresentation.placeAt(
                             result.position.latitude, result.position.longitude, discovery.places,
@@ -1749,11 +1776,40 @@ fun NativeRoadstrShell(
                                 savedPlacesSession.show(nextRevision, favorites, parkingPosition)
                                 settingsSession.hide(revision)
                             }
+                            NativeSettingsUiAction.OpenWebSearch -> webPanelVisible = true
                             NativeSettingsUiAction.DownloadVoiceModel -> voiceGateway?.downloadAssets()
                         }
                     },
                     modifier = Modifier.align(Alignment.BottomCenter),
+                    webSearchActive = NativeWebSearchEditor.isActive(webSettings),
                 )
+                if (webPanelVisible) {
+                    NativeWebSearchPanel(
+                        settings = webSettings,
+                        status = webStatus,
+                        onClose = { webPanelVisible = false },
+                        onModeChanged = { updateWebSettings(NativeWebSearchEditor.setMode(webSettings, it)) },
+                        onEndpointSubmitted = { text ->
+                            val edit = NativeWebSearchEditor.setEndpoint(webSettings, text)
+                            if (edit.settings != webSettings) updateWebSettings(edit.settings)
+                            edit.rejection
+                        },
+                        onOwnInstanceChanged = { updateWebSettings(NativeWebSearchEditor.setOwnInstance(webSettings, it)) },
+                        onStrictChanged = { updateWebSettings(webSettings.copy(strictSources = it)) },
+                        onSafeSearchChanged = { updateWebSettings(webSettings.copy(safeSearch = it)) },
+                        onTest = {
+                            val edits = webEditCount
+                            webStatus = NativeWebSearchStatus.Testing
+                            journeyScope.launch {
+                                val result = runWebConnectionTest {
+                                    journeyGateway?.testWebSearch() ?: ConnectionTest.NotConfigured
+                                }
+                                if (edits == webEditCount) webStatus = result
+                            }
+                        },
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                    )
+                }
                 NativeRoutePlanningPanel(
                     snapshot = routePlanningState,
                     onOriginChanged = { value ->

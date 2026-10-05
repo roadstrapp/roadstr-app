@@ -6,7 +6,19 @@ import app.roadstr.core.discovery.NaturalPlaceQuery
 import app.roadstr.core.discovery.NaturalQueryParser
 import app.roadstr.core.discovery.QueryInterpreter
 import app.roadstr.core.discovery.RankedPlace
+import app.roadstr.core.discovery.web.ConnectionTest
+import app.roadstr.core.discovery.web.EndpointCheck
+import app.roadstr.core.discovery.web.SearxngEndpointPolicy
+import app.roadstr.core.discovery.web.WebDiscoveryMode
+import app.roadstr.core.discovery.web.WebDiscoveryOutcome
+import app.roadstr.core.discovery.web.WebDiscoverySettings
+import app.roadstr.core.discovery.web.WebQueryBuilder
+import app.roadstr.core.discovery.web.WebSearchContext
 import app.roadstr.core.geo.GeoPoint
+import app.roadstr.feature.search.NativeSearchWeb
+import app.roadstr.feature.search.NativeWebProblem
+import app.roadstr.feature.search.toWebProblem
+import app.roadstr.feature.search.NativeWebResultPresentation
 import app.roadstr.core.network.RoutingParsedRoute
 import app.roadstr.feature.discovery.DiscoveryPresentation
 import app.roadstr.feature.search.NativeSearchNotice
@@ -96,6 +108,12 @@ interface NativeShellJourneyGateway {
     /** Natural-language place search over open data; the default leaves it to the classic search. */
     suspend fun discover(request: DiscoveryRequest): DiscoveryOutcome = DiscoveryOutcome.NotApplicable
 
+    /** Web results for the typed words; the default has no web provider. */
+    suspend fun webSearch(context: WebSearchContext): WebDiscoveryOutcome = WebDiscoveryOutcome.Disabled
+
+    /** The "test connection" button of the web search settings. */
+    suspend fun testWebSearch(): ConnectionTest = ConnectionTest.NotConfigured
+
     suspend fun loadSearchHistory(): List<SearchHistoryEntry> = emptyList()
 
     suspend fun saveSearchHistory(entry: SearchHistoryEntry): List<SearchHistoryEntry> = emptyList()
@@ -125,10 +143,14 @@ class NativeShellJourneyCoordinator(
     private val clock: () -> LocalDateTime = { LocalDateTime.now() },
     /** Told which places the latest search found, or none, so the map can pin them. */
     private val onDiscovery: (revision: Long, places: List<RankedPlace>) -> Unit = { _, _ -> },
+    /** What the user chose about web search; read each time, so a change applies at once. */
+    private val webSettings: () -> WebDiscoverySettings = { WebDiscoverySettings() },
 ) {
     private var searchRevision = searchSession.state.value.revision.coerceAtLeast(0L)
     private var routeRevision = routeSession.state.value.revision.coerceAtLeast(0L)
     private var searchJob: Job? = null
+    private var webJob: Job? = null
+    private var pendingWeb: PendingWeb? = null
     private var routeJob: Job? = null
     private var rerouteJob: Job? = null
     private var selectedDestination: SelectedDestination? = null
@@ -405,10 +427,14 @@ class NativeShellJourneyCoordinator(
             try {
                 val parsed = interpreter.interpret(query, normalizedLanguageCode())
                 val emptyNotice = when (val attempt = discover(revision, parsed, near)) {
-                    DiscoveryAttempt.Shown -> return@launch
+                    DiscoveryAttempt.Shown -> {
+                        offerWeb(revision, parsed, near, sparse = lastNoticeWasSparse)
+                        return@launch
+                    }
                     is DiscoveryAttempt.Fallback -> attempt.notice
                 }
                 classicSearch(revision, parsed.classicQuery, near, emptyNotice)
+                offerWeb(revision, parsed, near, sparse = emptyNotice == NativeSearchNotice.FewTagged)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
@@ -451,10 +477,13 @@ class NativeShellJourneyCoordinator(
         }
     }
 
+    private var lastNoticeWasSparse = false
+
     private fun show(revision: Long, found: DiscoveryOutcome.Found): DiscoveryAttempt {
         val language = normalizedLanguageCode()
         val results = found.places.map { DiscoveryPresentation.searchResult(it, language) }
         val notice = DiscoveryPresentation.notice(found.notices)
+        lastNoticeWasSparse = notice == NativeSearchNotice.FewTagged
         if (!searchSession.submitResults(revision, results, notice)) return DiscoveryAttempt.Shown
         onDiscovery(revision, found.places)
         return DiscoveryAttempt.Shown
@@ -473,6 +502,107 @@ class NativeShellJourneyCoordinator(
             onPartial = { partial -> searchSession.submitPartial(revision, partial) },
         )
         searchSession.submitResults(revision, results, if (results.isEmpty()) emptyNotice else null)
+    }
+
+    private class PendingWeb(
+        val revision: Long,
+        val parsed: NaturalPlaceQuery,
+        val near: SearchResponsePoint?,
+        val host: String,
+        /** The town name is added to the words, so the question has to say so. */
+        val addsTown: Boolean,
+    )
+
+    /**
+     * After the places are shown, the web part of the list: nothing when web search is off or
+     * has no instance, a row offering a search otherwise, and the search itself (or the
+     * question before it) when the leftover words or the sparse tags suggest the web may know more.
+     */
+    private fun offerWeb(
+        revision: Long,
+        parsed: NaturalPlaceQuery,
+        near: SearchResponsePoint?,
+        sparse: Boolean,
+    ) {
+        val settings = webSettings()
+        if (settings.mode == WebDiscoveryMode.OFF || parsed.rawText.isBlank()) return
+        val host = (SearxngEndpointPolicy.check(settings.endpointText, settings.ownInstanceConfirmed) as? EndpointCheck.Accepted)
+            ?.endpoint?.host ?: return
+        val addsTown = WebQueryBuilder.localityPoint(
+            WebSearchContext(
+                parsed = parsed,
+                device = near?.let { GeoPoint(it.latitude, it.longitude) },
+                destination = destination()?.let { GeoPoint(it.latitude, it.longitude) },
+                languageCode = normalizedLanguageCode(),
+            ),
+        ) != null
+        val pending = PendingWeb(revision, parsed, near, host, addsTown)
+        pendingWeb = pending
+        val text = WebQueryBuilder.build(parsed, null)
+        val automatic = parsed.webHint || sparse
+        when {
+            automatic && settings.mode == WebDiscoveryMode.ON -> runWeb(revision)
+            automatic -> searchSession.updateWeb(revision, NativeSearchWeb.Consent(text, host, addsTown))
+            else -> searchSession.updateWeb(revision, NativeSearchWeb.Offer(text))
+        }
+    }
+
+    /** The user tapped the offer: search now, or ask first when web search is set to "ask". */
+    fun searchWeb(): Boolean {
+        val pending = pendingWeb ?: return false
+        if (webSettings().mode == WebDiscoveryMode.ASK) {
+            val text = WebQueryBuilder.build(pending.parsed, null)
+            val consent = NativeSearchWeb.Consent(text, pending.host, pending.addsTown)
+            return searchSession.updateWeb(pending.revision, consent)
+        }
+        return runWeb(pending.revision)
+    }
+
+    fun confirmWeb(): Boolean = pendingWeb?.let { runWeb(it.revision) } ?: false
+
+    fun declineWeb(): Boolean {
+        val pending = pendingWeb ?: return false
+        val text = WebQueryBuilder.build(pending.parsed, null)
+        return searchSession.updateWeb(pending.revision, NativeSearchWeb.Offer(text))
+    }
+
+    private fun runWeb(revision: Long): Boolean {
+        val pending = pendingWeb?.takeIf { it.revision == revision } ?: return false
+        if (!searchSession.updateWeb(revision, NativeSearchWeb.Loading)) return false
+        webJob?.cancel()
+        webJob = scope.launch {
+            val context = WebSearchContext(
+                parsed = pending.parsed,
+                device = pending.near?.let { GeoPoint(it.latitude, it.longitude) },
+                destination = destination()?.let { GeoPoint(it.latitude, it.longitude) },
+                languageCode = normalizedLanguageCode(),
+            )
+            val outcome = try {
+                gateway.webSearch(context)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                WebDiscoveryOutcome.Failed
+            }
+            searchSession.updateWeb(revision, webState(outcome))
+        }
+        return true
+    }
+
+    private fun webState(outcome: WebDiscoveryOutcome): NativeSearchWeb = when (outcome) {
+        is WebDiscoveryOutcome.Results -> NativeSearchWeb.Results(
+            outcome.host,
+            outcome.results.map {
+                NativeWebResultPresentation(it.title, it.host, it.snippet, it.url.toString())
+            },
+        )
+        WebDiscoveryOutcome.Disabled -> NativeSearchWeb.Hidden
+        is WebDiscoveryOutcome.Rejected -> NativeSearchWeb.Unavailable(NativeWebProblem.Rejected)
+        is WebDiscoveryOutcome.RateLimited -> NativeSearchWeb.Unavailable(NativeWebProblem.RateLimited)
+        WebDiscoveryOutcome.Failed -> NativeSearchWeb.Unavailable(NativeWebProblem.Unreachable)
+        is WebDiscoveryOutcome.Incompatible -> NativeSearchWeb.Unavailable(
+            outcome.capability.toWebProblem() ?: NativeWebProblem.Unreachable,
+        )
     }
 
     private suspend fun resolvePoint(
@@ -507,6 +637,9 @@ class NativeShellJourneyCoordinator(
     private fun cancelSearchWork() {
         searchJob?.cancel()
         searchJob = null
+        webJob?.cancel()
+        webJob = null
+        pendingWeb = null
     }
 
     private fun cancelRouteWork() {

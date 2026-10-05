@@ -16,6 +16,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.roadstr.R
+import app.roadstr.core.discovery.web.WebDiscoverySettings
+import app.roadstr.core.discovery.web.WebDiscoverySettingsCodec
 import app.roadstr.core.network.RoutingProviderConfigProtocol
 import app.roadstr.core.network.RoutingProviderConfiguration
 import app.roadstr.feature.home.NativeRoadstrShell
@@ -50,6 +52,7 @@ class NativeRoadTestActivity : ComponentActivity() {
             context = applicationContext,
             transport = httpClient,
             routingConfiguration = ::routingConfiguration,
+            webSettings = ::loadWebSearch,
         )
     }
     private val hazardService by lazy(LazyThreadSafetyMode.NONE) {
@@ -134,6 +137,19 @@ class NativeRoadTestActivity : ComponentActivity() {
             keyAlias = "app.roadstr.roadtest.routing.v1",
         )
     }
+    // Which SearXNG instance the user picked says something about their network, and whether
+    // they use web search at all is their business: the whole choice is kept as one encrypted value.
+    private val webSearchPreferences by lazy(LazyThreadSafetyMode.NONE) {
+        NativeRoadTestProtectedPreferences(
+            context = applicationContext,
+            preferencesName = "roadtest_web_search",
+            keyAlias = "app.roadstr.roadtest.web-search.v1",
+        )
+    }
+    // Read once and then kept; the journey gateway asks on every search.
+    private var webSearchSettings: WebDiscoverySettings = WebDiscoverySettings()
+    private var webSearchLoaded = false
+
     // The key is decrypted once; routes are requested often and each read is a Keystore call.
     private var routingKeyCache: String? = null
     private var routingKeyLoaded = false
@@ -198,6 +214,8 @@ class NativeRoadTestActivity : ComponentActivity() {
                         historyPreferences.write("routes", NativeRouteHistoryProtocol.encode(history))
                     }
                 },
+                initialWebSearch = loadWebSearch(),
+                onWebSearchChanged = ::saveWebSearch,
                 initialFavorites = initialFavorites,
                 onFavoritesChanged = favoritesStore::save,
                 initialSettings = initialSettings,
@@ -353,6 +371,30 @@ class NativeRoadTestActivity : ComponentActivity() {
         )
     }
 
+    /** The web search settings, decrypted once; unreadable means off with no instance. */
+    @Synchronized
+    private fun loadWebSearch(): WebDiscoverySettings {
+        if (!webSearchLoaded) {
+            webSearchSettings = runCatching {
+                WebDiscoverySettingsCodec.decode(webSearchPreferences.read(WEB_SEARCH_KEY))
+            }.getOrDefault(WebDiscoverySettings())
+            webSearchLoaded = true
+        }
+        return webSearchSettings
+    }
+
+    @Synchronized
+    private fun saveWebSearch(settings: WebDiscoverySettings) {
+        // The choice applies at once; a failed write only means it is not remembered next time.
+        webSearchSettings = settings
+        webSearchLoaded = true
+        if (settings == WebDiscoverySettings()) {
+            webSearchPreferences.remove(WEB_SEARCH_KEY)
+        } else {
+            webSearchPreferences.write(WEB_SEARCH_KEY, WebDiscoverySettingsCodec.encode(settings))
+        }
+    }
+
     private fun saveRoutingKey(raw: String): Boolean {
         val value = raw.trim()
         if (value.length > 256 || value.any { it.code < 0x20 || it.code == 0x7f }) return false
@@ -381,6 +423,8 @@ class NativeRoadTestActivity : ComponentActivity() {
     }
 
     private companion object {
+        const val WEB_SEARCH_KEY = "settings"
+
         /** An Android package name, as reported by the signer app. */
         val SIGNER_PACKAGE = Regex("[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+")
     }
