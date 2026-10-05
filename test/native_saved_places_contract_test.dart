@@ -96,7 +96,7 @@ void main() {
     expect(source, contains('NativeSavedPlacesPanel('));
     expect(source, contains('onExport = { nostrHost?.exportFavorites() }'));
     expect(source, contains('onImport = { nostrHost?.requestImport() }'));
-    expect(source, contains('onNavigateParking = { parking ->'));
+    expect(source, contains('onNavigateParking = navigateToParking'));
     expect(source, isNot(contains("Hive.box('settings')")));
     expect(source, isNot(contains('FilePicker')));
   });
