@@ -344,10 +344,10 @@ fun NativeRoadstrShell(
                 initialAccentArgb = palette.accentArgb,
             )
         }
-        LaunchedEffect(transitJourneySession, palette.accentArgb) {
+        LaunchedEffect(transitJourneySession, palette.accentArgb, settingsState.values.imperialUnits) {
             transitJourneySession.updatePresentation(
                 accentArgb = palette.accentArgb,
-                imperial = false,
+                imperial = settingsState.values.imperialUnits,
             )
         }
         val transitUiState by transitJourneySession.state.collectAsState()
@@ -398,7 +398,7 @@ fun NativeRoadstrShell(
                 delay(HAZARD_POLL_MILLIS)
             }
         }
-        val searchSession = remember { NativeSearchSession(initialImperial = false) }
+        val searchSession = remember { NativeSearchSession(initialImperial = settingsState.values.imperialUnits) }
         val searchState by searchSession.state.collectAsState()
         val journeyScope = rememberCoroutineScope()
         var speedLimitJob by remember { mutableStateOf<Job?>(null) }
@@ -693,6 +693,14 @@ fun NativeRoadstrShell(
                 System.currentTimeMillis() / 1_000L,
             )
         }
+        // Every panel that prints a distance or a speed follows the units switch:
+        // each session was created metric and only ever told otherwise here.
+        LaunchedEffect(settingsState.values.imperialUnits) {
+            val imperial = settingsState.values.imperialUnits
+            routePlanningSession.updateUnits(imperial)
+            searchSession.updateUnits(imperial)
+            roadEventSession.updateUnits(imperial)
+        }
         // One composition of everything drawn as a point: parking, OSM hazards
         // and community road reports replace each other in a single overlay.
         val roadMarkers = nostrHost?.markers.orEmpty()
@@ -923,6 +931,7 @@ fun NativeRoadstrShell(
                 instruction = cue.instruction,
                 distanceMeters = cue.distanceMeters,
                 nowMillis = SystemClock.elapsedRealtime(),
+                imperial = settingsState.values.imperialUnits,
             )
         }
         LaunchedEffect(activeNavigationState.arrived, activeNavigationState.revision) {

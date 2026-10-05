@@ -1148,7 +1148,12 @@ private fun ExpandSection(visible: Boolean, content: @Composable () -> Unit) {
             fadeIn(tween(durationMillis = 180)),
         exit = shrinkVertically(tween(durationMillis = 200, easing = FastOutSlowInEasing)) +
             fadeOut(tween(durationMillis = 120)),
-    ) { content() }
+    ) {
+        // AnimatedVisibility stacks its children on top of each other, so a
+        // section with several rows (the road overlays: crosswalks and traffic
+        // lights) drew them all in the same place and only the last one showed.
+        Column { content() }
+    }
 }
 
 @Composable
