@@ -13,6 +13,7 @@
     <string name="native_browser_failed">Siden kunne ikke indlæses.</string>
     <string name="native_browser_forward">Frem</string>
     <string name="native_browser_insecure">Forbindelsen er ikke sikker</string>
+    <string name="native_browser_navigate_here">Naviger hertil</string>
     <string name="native_browser_open_external">Åbn i din browser</string>
     <string name="native_browser_reload">Genindlæs</string>
     <string name="native_browser_secure">Sikker forbindelse</string>

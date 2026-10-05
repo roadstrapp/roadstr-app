@@ -6,9 +6,17 @@ import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
+import app.roadstr.core.discovery.resolve.HostMatching
+import app.roadstr.core.discovery.resolve.MatchClass
+import app.roadstr.core.discovery.resolve.PagePlace
+import app.roadstr.core.discovery.structured.JsonLdPlaceParser
+import app.roadstr.core.discovery.structured.StructuredPlace
+import app.roadstr.core.discovery.structured.WebPageMessage
+import app.roadstr.core.discovery.structured.WebPageMessageSchema
 import app.roadstr.core.web.ExternalAction
 import app.roadstr.core.web.NavigationDecision
 import app.roadstr.core.web.WebNavigationPolicy
+import app.roadstr.feature.web.BrowserPagePlace
 import app.roadstr.feature.web.WebBrowserHost
 import app.roadstr.feature.web.WebBrowserState
 import java.net.URI
@@ -28,7 +36,7 @@ internal class GeckoWebBrowserHost(
     private val activity: ComponentActivity,
     private val openExternal: (String) -> Unit,
 ) : WebBrowserHost, GeckoPageEvents {
-    private val runtime = GeckoRuntimeHolder(activity)
+    private val runtime = GeckoRuntimeHolder(activity, ::onPageMessage)
     private val mutable = MutableStateFlow(WebBrowserState())
     private var session: GeckoSession? = null
     private var view: GeckoView? = null
@@ -36,6 +44,7 @@ internal class GeckoWebBrowserHost(
     override val inApp: Boolean = true
     override val state: StateFlow<WebBrowserState> = mutable.asStateFlow()
     override var onDestination: ((latitude: Double, longitude: Double) -> Unit)? = null
+    override var pageResolver: ((WebPageMessage, List<StructuredPlace>) -> PagePlace?)? = null
 
     override fun open(url: String): Boolean {
         val target = when (val decision = WebNavigationPolicy.decide(url)) {
@@ -76,6 +85,11 @@ internal class GeckoWebBrowserHost(
     override fun reload() {
         mutable.value = mutable.value.copy(failed = false)
         session?.reload()
+    }
+
+    override fun navigateToPagePlace() {
+        val place = mutable.value.pagePlace ?: return
+        mutable.value = mutable.value.copy(pendingAction = ExternalAction.UseAsDestination(place.latitude, place.longitude))
     }
 
     override fun confirmAction() {
@@ -125,7 +139,34 @@ internal class GeckoWebBrowserHost(
         } catch (_: Exception) {
             ""
         }
-        mutable.value = mutable.value.copy(url = url, host = host.ifEmpty { mutable.value.host })
+        val current = mutable.value
+        val moved = host.isNotEmpty() && host != current.host
+        mutable.value = current.copy(
+            url = url,
+            host = host.ifEmpty { current.host },
+            pagePlace = if (moved) null else current.pagePlace,
+        )
+    }
+
+    /**
+     * What the page extension reported. Only the page on screen can speak for itself: a message
+     * about another site is dropped, whatever it says, and so is anything the schema refuses.
+     */
+    private fun onPageMessage(raw: String) {
+        val current = mutable.value
+        if (!current.open) return
+        val page = WebPageMessageSchema.parse(raw) ?: return
+        if (HostMatching.registrableDomain(page.url.host) != HostMatching.registrableDomain(current.host)) return
+        val resolved = pageResolver?.invoke(page, JsonLdPlaceParser.parse(page.jsonLd)) ?: return
+        val name = resolved.place.name.ifEmpty { current.title.ifEmpty { current.host } }
+        mutable.value = current.copy(
+            pagePlace = BrowserPagePlace(
+                latitude = resolved.place.position.latitude,
+                longitude = resolved.place.position.longitude,
+                name = name,
+                linked = resolved.matchClass == MatchClass.LINKED,
+            ),
+        )
     }
 
     override fun onHistory(canGoBack: Boolean, canGoForward: Boolean) {
@@ -137,7 +178,13 @@ internal class GeckoWebBrowserHost(
     }
 
     override fun onLoading(loading: Boolean, failed: Boolean) {
-        mutable.value = mutable.value.copy(loading = loading, failed = failed)
+        val current = mutable.value
+        // A new load starts from nothing: what the last page said is not about this one.
+        mutable.value = current.copy(
+            loading = loading,
+            failed = failed,
+            pagePlace = if (loading) null else current.pagePlace,
+        )
     }
 
     override fun onSecurity(secure: Boolean) {

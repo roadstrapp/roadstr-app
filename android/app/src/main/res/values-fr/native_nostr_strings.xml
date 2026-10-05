@@ -13,6 +13,7 @@
     <string name="native_browser_failed">Cette page n\'a pas pu être chargée.</string>
     <string name="native_browser_forward">Avancer</string>
     <string name="native_browser_insecure">Connexion non sécurisée</string>
+    <string name="native_browser_navigate_here">Naviguer ici</string>
     <string name="native_browser_open_external">Ouvrir dans votre navigateur</string>
     <string name="native_browser_reload">Actualiser</string>
     <string name="native_browser_secure">Connexion sécurisée</string>

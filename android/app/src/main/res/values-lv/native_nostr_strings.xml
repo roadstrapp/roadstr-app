@@ -13,6 +13,7 @@
     <string name="native_browser_failed">Šo lapu neizdevās ielādēt.</string>
     <string name="native_browser_forward">Uz priekšu</string>
     <string name="native_browser_insecure">Savienojums nav drošs</string>
+    <string name="native_browser_navigate_here">Navigēt šurp</string>
     <string name="native_browser_open_external">Atvērt pārlūkprogrammā</string>
     <string name="native_browser_reload">Pārlādēt</string>
     <string name="native_browser_secure">Drošs savienojums</string>

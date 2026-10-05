@@ -137,6 +137,8 @@ if (geckoView) {
             getByName("main") {
                 kotlin.directories.remove("src/system/kotlin")
                 kotlin.directories.add("src/gecko/kotlin")
+                // The bundled page extension (see docs/world-discovery, Phase 6).
+                assets.directories.add("src/gecko/assets")
             }
         }
     }

@@ -527,6 +527,11 @@ fun NativeRoadstrShell(
             }
             onDispose { webBrowser?.onDestination = null }
         }
+        // What a page says about its own place is judged against the current search.
+        DisposableEffect(webBrowser, journeyCoordinator) {
+            webBrowser?.pageResolver = { page, structured -> journeyCoordinator?.pagePlace(page, structured) }
+            onDispose { webBrowser?.pageResolver = null }
+        }
         val voiceRuntimeState = voiceGateway?.state?.collectAsState()?.value
         val voiceLanguage = journeyLanguage
         LaunchedEffect(
@@ -1817,6 +1822,7 @@ fun NativeRoadstrShell(
                         onReload = webBrowser::reload,
                         onClose = webBrowser::close,
                         onOpenExternal = onOpenExternal,
+                        onNavigateHere = webBrowser::navigateToPagePlace,
                         onConfirmAction = webBrowser::confirmAction,
                         onDismissAction = webBrowser::dismissAction,
                         modifier = Modifier.align(Alignment.BottomCenter),
