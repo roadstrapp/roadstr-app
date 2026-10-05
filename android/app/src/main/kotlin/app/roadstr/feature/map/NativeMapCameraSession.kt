@@ -88,6 +88,7 @@ class NativeMapCameraSession {
     private var displayPoint: NativeMapPoint? = null
     private var displaySequence = 0L
     private var compassHeading: Double? = null
+    private var navigationTopPaddingPixels: Double? = null
 
     val state: StateFlow<NativeMapCameraSessionState> = _state.asStateFlow()
 
@@ -159,6 +160,24 @@ class NativeMapCameraSession {
         displayPoint = point
         displaySequence += 1
         frameActive = followEnabled
+        publish()
+        true
+    }
+
+    /**
+     * Where the vehicle sits on screen while navigating heading-up, as the
+     * camera's top padding: the camera target appears at the middle of what the
+     * padding leaves, so a padding of P puts it at (P + H) / 2 from the top.
+     * null falls back to a fixed fraction until the panel has been measured.
+     */
+    fun setNavigationTopPadding(pixels: Double?): Boolean = synchronized(lock) {
+        val validated = pixels?.takeIf { it.isFinite() && it >= 0.0 }
+        if (navigationTopPaddingPixels == validated) return false
+        navigationTopPaddingPixels = validated
+        if (followEnabled && fix != null && navigating) {
+            forceNextCommand = true
+            frameActive = true
+        }
         publish()
         true
     }
@@ -396,8 +415,9 @@ class NativeMapCameraSession {
             pitchDegrees = pitchDegrees,
             motion = motion,
             durationMillis = durationMillis,
-            paddingTopPixels = if (navigating) {
-                screenHeightPixels * NAVIGATION_TOP_PADDING_FRACTION
+            // Only heading-up: a north-up map keeps the vehicle in the middle.
+            paddingTopPixels = if (navigating && headingUp) {
+                navigationTopPaddingPixels ?: (screenHeightPixels * NAVIGATION_TOP_PADDING_FRACTION)
             } else {
                 0.0
             },
@@ -450,9 +470,10 @@ class NativeMapCameraSession {
         // Places the GPS target at ~64% of the physical screen height. This
         // matches main's road-ahead framing while keeping the cursor clear of
         // the bottom navigation panel.
-        // A 20% top inset puts the GPS target at 60% of screen height: 2/5
-        // up from the bottom, just below centre without colliding with HUD.
-        private const val NAVIGATION_TOP_PADDING_FRACTION = 0.20
+        // Fallback before the bottom panel is measured: a 45% top inset puts the
+        // vehicle at 72.5% of the screen height, about where the Flutter map
+        // keeps it on a phone of this shape.
+        private const val NAVIGATION_TOP_PADDING_FRACTION = 0.45
         const val ROUTE_FIT_PADDING_PX = DEFAULT_ROUTE_FIT_PADDING_PX
 
         private fun initialState() = NativeMapCameraSessionState(

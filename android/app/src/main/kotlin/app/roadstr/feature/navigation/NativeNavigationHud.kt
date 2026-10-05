@@ -48,6 +48,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -73,6 +74,8 @@ fun NativeNavigationHud(
     onToggleVoice: () -> Unit,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Height in pixels of the bottom panel, so the map can keep the vehicle clear above it. */
+    onBottomPanelHeight: (Int) -> Unit = {},
 ) {
     if (snapshot.status == NativeNavigationHudStatus.Hidden) return
     val current = snapshot.current ?: return
@@ -132,7 +135,9 @@ fun NativeNavigationHud(
             snapshot = snapshot,
             onStop = onStop,
             landscape = landscape,
-            modifier = Modifier.align(Alignment.BottomCenter),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .onSizeChanged { onBottomPanelHeight(it.height) },
         )
     }
 }
