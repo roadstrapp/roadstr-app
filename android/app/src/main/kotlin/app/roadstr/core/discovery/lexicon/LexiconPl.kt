@@ -3,21 +3,21 @@ package app.roadstr.core.discovery.lexicon
 /** Search vocabulary: Polish. Written from general knowledge; a native speaker should review it. */
 internal object LexiconPl {
     const val TEXT = """
-c RESTAURANT: restaurac*, restauracje
+c RESTAURANT: restauracja, restaurac*, restauracje
 c FAST_FOOD: fast food, fastfood, bar szybkiej obsługi
 c CAFE: kawiarnia, kawiarnie, kawiarni, kawiarn*
 c BAR: bar, bary, barze
 c PUB: pub, puby
-c SUPERMARKET: supermarket*, hipermarket*
+c SUPERMARKET: supermarket, supermarket*, hipermarket*
 c CONVENIENCE: sklep spożywczy, sklep osiedlowy
 c PHARMACY: apteka, apteki, aptece, aptek*
 c FUEL: stacja benzynowa, stacje benzynowe, stacji benzynowej, benzyna, stacja paliw, stacje paliw, stacji paliw
 c CHARGING_STATION: stacja ładowania, stacje ładowania, ładowarka, ładowarki, punkt ładowania
-c PARKING: parking*, miejsce parkingowe
-c HOTEL: hotel*, hostel*, pensjonat*, motel*, nocleg*
-c HOSPITAL: szpital*, pogotowie, izba przyjęć, sor
-c ATM: bankomat*
-c BANK: bank*, banki
+c PARKING: parking, parking*, miejsce parkingowe
+c HOTEL: hotel, hotel*, hostel*, pensjonat*, motel*, nocleg*
+c HOSPITAL: szpital, szpital*, pogotowie, izba przyjęć, sor
+c ATM: bankomat, bankomat*
+c BANK: bank, bank*, banki
 c POST_OFFICE: poczta, poczty, urząd pocztowy, placówka pocztowa
 c POLICE: policja, policji, komisariat*, posterunek policji
 c CINEMA: kino, kina, kinie

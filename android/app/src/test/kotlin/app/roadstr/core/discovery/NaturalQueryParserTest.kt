@@ -89,13 +89,13 @@ class NaturalQueryParserTest {
     fun `near a reference place keeps its category`() {
         val query = parse("it", "parcheggio vicino alla stazione")
         assertEquals(listOf(PlaceCategory.PARKING), query.categories)
-        assertEquals(LocationConstraint.NearReference("stazione", PlaceCategory.TRAIN_STATION), query.location)
+        assertEquals(LocationConstraint.NearReference("stazione", PlaceCategory.TRAIN_STATION, generic = true), query.location)
     }
 
     @Test
     fun `a reference place with a name`() {
         val query = parse("en", "pharmacy near Central Park")
-        assertEquals(LocationConstraint.NearReference("Central Park", PlaceCategory.PARK), query.location)
+        assertEquals(LocationConstraint.NearReference("Central Park", PlaceCategory.PARK, generic = false), query.location)
     }
 
     @Test
@@ -261,7 +261,7 @@ class NaturalQueryParserTest {
         assertTrue(near.locationExplicit)
         val station = parse("ja", "駅の近くの駐車場")
         assertEquals(listOf(PlaceCategory.PARKING), station.categories)
-        assertEquals(LocationConstraint.NearReference("駅", PlaceCategory.TRAIN_STATION), station.location)
+        assertEquals(LocationConstraint.NearReference("駅", PlaceCategory.TRAIN_STATION, generic = true), station.location)
     }
 
     @Test
@@ -274,7 +274,7 @@ class NaturalQueryParserTest {
         assertEquals(LocationConstraint.CurrentLocation, near.location)
         assertTrue(near.locationExplicit)
         val reference = parse("zh", "火车站附近的酒店")
-        assertEquals(LocationConstraint.NearReference("火车站", PlaceCategory.TRAIN_STATION), reference.location)
+        assertEquals(LocationConstraint.NearReference("火车站", PlaceCategory.TRAIN_STATION, generic = true), reference.location)
     }
 
     // English and edge cases.

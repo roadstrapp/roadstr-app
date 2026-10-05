@@ -6,25 +6,25 @@ package app.roadstr.core.discovery.lexicon
  */
 internal object LexiconLv {
     const val TEXT = """
-c RESTAURANT: restorān*, ēstuve
+c RESTAURANT: restorāns, restorān*, ēstuve
 c FAST_FOOD: ātrā ēdināšana, ātrās ēdināšanas, fast food
-c CAFE: kafejnīc*, kafija
+c CAFE: kafejnīca, kafejnīc*, kafija
 c BAR: bārs, bāri, bar
 c PUB: pubs, pubi, pub
-c SUPERMARKET: lielveikal*, supermarket*
+c SUPERMARKET: lielveikals, lielveikal*, supermarket*
 c CONVENIENCE: veikal*
-c PHARMACY: aptiek*
+c PHARMACY: aptieka, aptiek*
 c FUEL: degvielas uzpildes stacija, uzpildes stacija, degviela*, benzīn*, uzpilde
 c CHARGING_STATION: uzlādes stacija, uzlādes punkts, elektroauto uzlāde, uzlāde*, lādētājs
-c PARKING: autostāvvieta*, stāvvieta*, parking*, stāvlaukums
-c HOTEL: viesnīc*, hostel*, motel*, naktsmītn*, viesu nams
-c HOSPITAL: slimnīc*, neatliekamā palīdzība, uzņemšanas nodaļa
-c ATM: bankomāt*
-c BANK: bank*, bankas
-c POST_OFFICE: pasts*, pasta nodaļa
-c POLICE: policij*, policijas iecirknis
-c CINEMA: kinoteātr*, kino
-c TRAIN_STATION: dzelzceļa stacij*, vilcienu stacija, stacija
+c PARKING: autostāvvieta, autostāvvieta*, stāvvieta*, parking*, stāvlaukums
+c HOTEL: viesnīca, viesnīc*, hostel*, motel*, naktsmītn*, viesu nams
+c HOSPITAL: slimnīca, slimnīc*, neatliekamā palīdzība, uzņemšanas nodaļa
+c ATM: bankomāts, bankomāt*
+c BANK: banka, bank*, bankas
+c POST_OFFICE: pasts, pasts*, pasta nodaļa
+c POLICE: policija, policij*, policijas iecirknis
+c CINEMA: kinoteātris, kinoteātr*, kino
+c TRAIN_STATION: dzelzceļa stacija, dzelzceļa stacij*, vilcienu stacija, stacija
 a VEGAN: vegānisk*, vegan*
 a VEGETARIAN: veģetār*, veģetāri
 a GLUTEN_FREE: bez glutēna, bezglutēna*

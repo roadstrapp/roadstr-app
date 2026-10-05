@@ -6,24 +6,24 @@ package app.roadstr.core.discovery.lexicon
  */
 internal object LexiconLt {
     const val TEXT = """
-c RESTAURANT: restoran*, valgykla*
+c RESTAURANT: restoranas, restoran*, valgykla*
 c FAST_FOOD: greitas maistas, greito maisto, fast food
-c CAFE: kavinė*, kavinės, kavos
+c CAFE: kavinė, kavinė*, kavinės, kavos
 c BAR: bar, baras, barai
 c PUB: pub, pubas, alinė
-c SUPERMARKET: supermarket*
+c SUPERMARKET: supermarketas, supermarket*
 c CONVENIENCE: parduotuv*
-c PHARMACY: vaistin*
+c PHARMACY: vaistinė, vaistin*
 c FUEL: degalinė, degalin*, kuro stotis, benzin*, degalai
 c CHARGING_STATION: įkrovimo stotelė, įkrovimo stotis, elektromobilių įkrovimas, įkrovimas, įkroviklis
 c PARKING: stovėjimo aikštelė, automobilių aikštelė, parkavimas, parkingas
-c HOTEL: viešbut*, hostel*, nakvynė*, svečių namai, motel*
-c HOSPITAL: ligonin*, greitoji pagalba, skubios pagalbos
-c ATM: bankomat*
-c BANK: bank*, bankai
+c HOTEL: viešbutis, viešbut*, hostel*, nakvynė*, svečių namai, motel*
+c HOSPITAL: ligoninė, ligonin*, greitoji pagalba, skubios pagalbos
+c ATM: bankomatas, bankomat*
+c BANK: bankas, bank*, bankai
 c POST_OFFICE: paštas, pašto skyrius, pašt*
-c POLICE: polici*, policijos komisariatas
-c CINEMA: kino teatr*, kinas, kino
+c POLICE: policija, polici*, policijos komisariatas
+c CINEMA: kino teatras, kino teatr*, kinas, kino
 c TRAIN_STATION: geležinkelio stotis, traukinių stotis, stotis
 a VEGAN: veganišk*, vegan*
 a VEGETARIAN: vegetariš*, vegetar*

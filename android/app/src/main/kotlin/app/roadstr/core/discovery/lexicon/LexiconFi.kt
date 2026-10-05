@@ -6,25 +6,25 @@ package app.roadstr.core.discovery.lexicon
  */
 internal object LexiconFi {
     const val TEXT = """
-c RESTAURANT: ravintola*
+c RESTAURANT: ravintola, ravintola*
 c FAST_FOOD: pikaruoka*, pikaruokaravintola, pikaruoka
-c CAFE: kahvila*, kahvi
+c CAFE: kahvila, kahvila*, kahvi
 c BAR: baari*
 c PUB: pubi*, pubit
-c SUPERMARKET: supermarket*, ruokakauppa
+c SUPERMARKET: supermarket, supermarket*, ruokakauppa
 c CONVENIENCE: lähikauppa, kioski, kauppa
-c PHARMACY: apteekki*, apteekit
-c FUEL: huoltoasema*, bensa*, tankkaus, polttoaine*
-c CHARGING_STATION: latauspiste*, latausasema*, sähköauton lataus, latauspisteet
-c PARKING: parkki*, pysäköinti*, pysäköintialue, parkkipaikka, parkkihalli
-c HOTEL: hotelli*, hostelli*, motelli*, majoitus*, majatalo
-c HOSPITAL: sairaala*, päivystys*, ensiapu
-c ATM: pankkiautomaatti*, nostoautomaatti
-c BANK: pankki*, pankit
-c POST_OFFICE: postitoimisto*, posti
-c POLICE: poliisi*, poliisiasema
-c CINEMA: elokuvateatteri*, leffa, leffateatteri
-c TRAIN_STATION: rautatieasema*, juna asema
+c PHARMACY: apteekki, apteekki*, apteekit
+c FUEL: huoltoasema, huoltoasema*, bensa*, tankkaus, polttoaine*
+c CHARGING_STATION: latauspiste, latauspiste*, latausasema*, sähköauton lataus, latauspisteet
+c PARKING: parkkipaikka, parkki*, pysäköinti*, pysäköintialue, parkkihalli
+c HOTEL: hotelli, hotelli*, hostelli*, motelli*, majoitus*, majatalo
+c HOSPITAL: sairaala, sairaala*, päivystys*, ensiapu
+c ATM: pankkiautomaatti, pankkiautomaatti*, nostoautomaatti
+c BANK: pankki, pankki*, pankit
+c POST_OFFICE: postitoimisto, postitoimisto*, posti
+c POLICE: poliisiasema, poliisi*
+c CINEMA: elokuvateatteri, elokuvateatteri*, leffa, leffateatteri
+c TRAIN_STATION: rautatieasema, rautatieasema*, juna asema
 a VEGAN: vegaani*, vegaaninen
 a VEGETARIAN: kasvisruoka*, kasvis*, vegetaari*
 a GLUTEN_FREE: gluteeniton*, ilman gluteenia

@@ -148,3 +148,19 @@ enum class Cuisine(val values: Set<String>) {
     GERMAN(setOf("german")),
     LEBANESE(setOf("lebanese")),
 }
+
+/** Reads OSM tags through the catalogue. */
+object PlaceCatalog {
+    /** The first category whose tags a place satisfies, or null for an unknown kind of place. */
+    fun categorize(tags: Map<String, String>): PlaceCategory? =
+        PlaceCategory.entries.firstOrNull { category ->
+            category.alternatives.any { alternative -> alternative.all { matches(it, tags) } }
+        }
+
+    fun matches(match: TagMatch, tags: Map<String, String>): Boolean {
+        val value = tags[match.key] ?: return false
+        match.values?.let { return value in it }
+        match.regex?.let { return Regex(it).containsMatchIn(value) }
+        return true
+    }
+}
