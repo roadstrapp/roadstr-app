@@ -142,9 +142,10 @@ fun NativeSettingsPanel(
     val title = stringResource(R.string.native_settings_title)
     val revision = snapshot.revision
     val values = snapshot.values
-    // Not keyed by the revision: every toggle bumps it, and the card used to fold
-    // itself shut under the driver's finger right after a switch was flipped.
-    var overlaysExpanded by remember { mutableStateOf(false) }
+    // Open from the start: the crosswalk and traffic-light switches sit behind
+    // this card, and a closed card is just a row titled "Road element overlays"
+    // that nobody connects with them.
+    var overlaysExpanded by remember { mutableStateOf(true) }
     // Decode the cursor thumbnails while the panel opens, off the main thread,
     // so expanding the cursor menu later never stalls its own animation.
     val appContext = LocalContext.current.applicationContext

@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Parolă</string>
     <string name="native_nostr_relay_desc">Adaugă un releu pe care îl administrezi sau îl plătești, iar favoritele vor fi publicate și acolo. Releele publice nu promit nimic despre cât timp păstrează datele; al tău da. Lasă gol pentru a folosi doar releele implicite.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Adresă de releu nevalidă. Trebuie să înceapă cu wss://</string>
+    <string name="native_nostr_relay_invalid">Adresă de relay invalidă. Folosește wss://relay.example.com sau ws://192.168.x.x:port pentru un relay din rețeaua de acasă</string>
     <string name="native_nostr_relay_title">Releul tău (opțional)</string>
     <string name="native_nostr_report_published">Raport publicat ✓</string>
     <string name="native_nostr_report_queued">Salvat — va fi publicat imediat ce revii online ⏳</string>

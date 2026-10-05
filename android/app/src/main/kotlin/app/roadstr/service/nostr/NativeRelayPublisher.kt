@@ -38,7 +38,7 @@ class NativeRelayPublisher(
     }
 
     private suspend fun publishOne(url: String, eventId: String, frame: String): Boolean {
-        val host = url.removePrefix("wss://").substringBefore('/')
+        val host = url.substringAfter("://").substringBefore('/')
         val socketRef = AtomicReference<NativeRelaySocket?>(null)
         val outcome = withTimeoutOrNull(timeoutMillis) {
             suspendCancellableCoroutine<Boolean> { continuation ->

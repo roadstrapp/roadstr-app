@@ -1,6 +1,7 @@
 package app.roadstr.service.nostr
 
 import app.roadstr.core.protocol.nostr.BoundedJsonParser
+import app.roadstr.core.protocol.nostr.CustomRelayPolicy
 import app.roadstr.core.protocol.nostr.FavoritesSyncProtocol
 import app.roadstr.core.protocol.nostr.NostrIngressRoute
 import kotlinx.coroutines.Dispatchers
@@ -63,10 +64,14 @@ class NativeFavoritesSyncService(
 ) {
     private val pushLock = Mutex()
 
-    /** Defaults plus the user's own relay, if it is a valid wss:// address. */
+    /**
+     * The defaults plus the user's own relay: a wss:// address, or a ws://
+     * one on the home network. A custom relay that is also a default is not
+     * asked twice.
+     */
     fun relays(): List<String> {
-        val extra = customRelay()?.let(FavoritesSyncProtocol::normaliseRelayUrl)
-        return FavoritesSyncProtocol.defaultRelays + listOfNotNull(extra)
+        val extra = customRelay()?.let(CustomRelayPolicy::normalise)
+        return (FavoritesSyncProtocol.defaultRelays + listOfNotNull(extra)).distinct()
     }
 
     /**

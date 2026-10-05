@@ -10,6 +10,7 @@ import app.roadstr.feature.navigation.NativeNavigationRerouteRequest
 import app.roadstr.feature.route.NativeRoutePlanningSession
 import app.roadstr.feature.route.NativeRoutePlanningStatus
 import app.roadstr.feature.route.NativeRouteTransportMode
+import app.roadstr.feature.search.NativeSearchFavorite
 import app.roadstr.feature.search.NativeSearchSession
 import app.roadstr.feature.search.NativeSearchUiStatus
 import kotlinx.coroutines.CoroutineScope
@@ -60,6 +61,53 @@ class NativeShellJourneyCoordinatorTest {
             SearchResponsePoint(45.0703, 7.6869),
             coordinator.navigationDestination(routeRevision),
         )
+        coordinator.close()
+    }
+
+    @Test
+    fun `saved places are listed when the search opens and narrowed by what is typed`() {
+        val search = NativeSearchSession()
+        val planner = NativeRoutePlanningSession(NativeRouteOverlaySession(0xFF71_58E2L))
+        val saved = listOf(
+            NativeSearchFavorite("Casa", "Via Roma 1, Torino", SearchResponsePoint(45.0, 7.0)),
+            NativeSearchFavorite("Lavoro", "Corso Francia 9, Torino", SearchResponsePoint(45.1, 7.1)),
+        )
+        val coordinator = NativeShellJourneyCoordinator(
+            gateway = FakeGateway(),
+            scope = CoroutineScope(Dispatchers.Unconfined + Job()),
+            searchSession = search,
+            routeSession = planner,
+            languageCode = "it",
+            favorites = { saved },
+        )
+
+        assertTrue(coordinator.openSearch(nearbyEnabled = false))
+        assertEquals(listOf("Casa", "Lavoro"), search.state.value.favorites.map { it.label })
+
+        // Label or address, any case.
+        coordinator.updateSearchQuery("francia")
+        assertEquals(listOf("Lavoro"), search.state.value.favorites.map { it.label })
+        coordinator.updateSearchQuery("torino")
+        assertEquals(2, search.state.value.favorites.size)
+        coordinator.updateSearchQuery("nessuno")
+        assertTrue(search.state.value.favorites.isEmpty())
+        coordinator.close()
+    }
+
+    @Test
+    fun `a failing saved-places read never keeps the search from opening`() {
+        val search = NativeSearchSession()
+        val coordinator = NativeShellJourneyCoordinator(
+            gateway = FakeGateway(),
+            scope = CoroutineScope(Dispatchers.Unconfined + Job()),
+            searchSession = search,
+            routeSession = NativeRoutePlanningSession(NativeRouteOverlaySession(0xFF71_58E2L)),
+            languageCode = "it",
+            favorites = { error("storage unavailable") },
+        )
+
+        assertTrue(coordinator.openSearch(nearbyEnabled = false))
+        assertTrue(search.state.value.favorites.isEmpty())
         coordinator.close()
     }
 

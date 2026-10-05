@@ -35,6 +35,7 @@ import app.roadstr.service.nostr.NativeRelayPublisher
 import app.roadstr.service.nostr.NativeRoadEventService
 import app.roadstr.service.nostr.NativeUserReportsService
 import app.roadstr.service.nostr.NativeZapService
+import app.roadstr.service.nostr.NativeRelayConnectorSelector
 import app.roadstr.service.nostr.OkHttpRelayConnector
 
 /** Standalone Compose launcher for the side-by-side Kotlin road-test APK. */
@@ -211,7 +212,8 @@ class NativeRoadTestActivity : ComponentActivity() {
 
     /** One transport and one signer for every Nostr feature of the shell. */
     private fun buildNostr(): NativeShellNostr {
-        val connector = OkHttpRelayConnector()
+        // wss:// through OkHttp; a ws:// relay on the home network through the local connector.
+        val connector = NativeRelayConnectorSelector(OkHttpRelayConnector())
         val relays = NativeRoadEventService.DEFAULT_RELAYS
         val publisher = NativeRelayPublisher(connector, relays)
         val signer = NativeRoadTestSigner(identityGateway, identityGateway::privateKeyHex, amberBridge)
