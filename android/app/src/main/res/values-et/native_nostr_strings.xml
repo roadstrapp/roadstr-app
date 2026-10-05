@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Parool</string>
     <string name="native_nostr_relay_desc">Lisa relee, mida ise majutad või mille eest maksad — lemmikud avaldatakse ka sinna. Avalikud releed ei luba midagi selle kohta, kui kaua nad andmeid hoiavad; sinu oma lubab. Jäta tühjaks, et kasutada ainult sisseehitatud releesid.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Vigane relee aadress. See peab algama wss://</string>
+    <string name="native_nostr_relay_invalid">Kehtetu releeaadress. Kasuta wss://relay.example.com või ws://192.168.x.x:port koduvõrgu releele</string>
     <string name="native_nostr_relay_title">Sinu enda relee (valikuline)</string>
     <string name="native_nostr_report_published">Aruanne avaldatud ✓</string>
     <string name="native_nostr_report_queued">Salvestatud — avaldatakse niipea, kui oled taas võrgus ⏳</string>

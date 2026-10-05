@@ -40,7 +40,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import app.roadstr.R
-import app.roadstr.core.protocol.nostr.FavoritesSyncProtocol
+import app.roadstr.core.protocol.nostr.CustomRelayPolicy
 import app.roadstr.core.ui.RoadstrSwitch
 import app.roadstr.feature.map.NativeMapPointOverlayKind
 import app.roadstr.feature.map.NativeMapPointOverlayMarker
@@ -205,7 +205,7 @@ class NativeShellNostrHost internal constructor(
             initial = current.orEmpty(),
             confirmLabel = R.string.native_nostr_ok,
             removeLabel = if (current != null) R.string.native_settings_nwc_remove else null,
-            validate = { FavoritesSyncProtocol.normaliseRelayUrl(it) != null },
+            validate = { CustomRelayPolicy.normalise(it) != null },
             invalidText = R.string.native_nostr_relay_invalid,
             onResult = { result ->
                 if (result != null && nostr.syncSecrets.setCustomRelay(result)) refreshSettings()

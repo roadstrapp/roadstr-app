@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Salasana</string>
     <string name="native_nostr_relay_desc">Lisää relee, jota ylläpidät tai josta maksat, niin suosikkisi julkaistaan myös sinne. Julkiset releet eivät lupaa mitään siitä, kuinka kauan ne säilyttävät tietoja; omasi lupaa. Jätä tyhjäksi, jos haluat käyttää vain sisäänrakennettuja releitä.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Virheellinen releen osoite. Sen on alettava wss://</string>
+    <string name="native_nostr_relay_invalid">Virheellinen relay-osoite. Käytä wss://relay.example.com tai ws://192.168.x.x:portti kotiverkon relaylle</string>
     <string name="native_nostr_relay_title">Oma releesi (valinnainen)</string>
     <string name="native_nostr_report_published">Raportti julkaistu ✓</string>
     <string name="native_nostr_report_queued">Tallennettu — julkaistaan heti, kun olet taas verkossa ⏳</string>

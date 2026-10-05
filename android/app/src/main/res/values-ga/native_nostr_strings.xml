@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Pasfhocal</string>
     <string name="native_nostr_relay_desc">Cuir athsheachadán leis a ritheann tú nó a íocann tú as, agus foilseofar do cheanáin ann freisin. Ní gheallann athsheachadáin phoiblí aon rud faoi cé chomh fada a choinníonn siad sonraí; geallann do cheann féin. Fág folamh chun na cinn ionsuite a úsáid.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Seoladh athsheachadáin neamhbhailí. Caithfidh sé tosú le wss://</string>
+    <string name="native_nostr_relay_invalid">Seoladh athsheachadáin neamhbhailí. Úsáid wss://relay.example.com, nó ws://192.168.x.x:port d\'athsheachadán ar do líonra baile</string>
     <string name="native_nostr_relay_title">Do athsheachadán féin (roghnach)</string>
     <string name="native_nostr_report_published">Tuarascáil foilsithe ✓</string>
     <string name="native_nostr_report_queued">Sábháilte — foilseofar é a luaithe a bheidh tú ar líne arís ⏳</string>

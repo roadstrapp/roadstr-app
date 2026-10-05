@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Mot de passe</string>
     <string name="native_nostr_relay_desc">Ajoutez un relais que vous hébergez ou payez : vos favoris y seront aussi publiés. Les relais publics ne promettent rien quant à la durée de conservation des données ; le vôtre, si. Laissez vide pour n\'utiliser que les relais intégrés.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Adresse de relais invalide. Elle doit commencer par wss://</string>
+    <string name="native_nostr_relay_invalid">Adresse de relais invalide. Utilise wss://relay.example.com, ou ws://192.168.x.x:port pour un relais de ton réseau local</string>
     <string name="native_nostr_relay_title">Votre propre relais (facultatif)</string>
     <string name="native_nostr_report_published">Rapport publié ✓</string>
     <string name="native_nostr_report_queued">Enregistré — sera publié dès que vous serez de nouveau en ligne ⏳</string>

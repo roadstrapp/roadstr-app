@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Parole</string>
     <string name="native_nostr_relay_desc">Pievienojiet releju, ko uzturat vai apmaksājat, un izlase tiks publicēta arī tur. Publiskie releji neko nesola par to, cik ilgi glabā datus; jūsu relejs sola. Atstājiet tukšu, lai izmantotu tikai iebūvētos relejus.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Nederīga releja adrese. Tai jāsākas ar wss://</string>
+    <string name="native_nostr_relay_invalid">Nederīga relay adrese. Izmantojiet wss://relay.example.com vai ws://192.168.x.x:ports mājas tīkla relay</string>
     <string name="native_nostr_relay_title">Jūsu paša relejs (neobligāti)</string>
     <string name="native_nostr_report_published">Ziņojums publicēts ✓</string>
     <string name="native_nostr_report_queued">Saglabāts — tiks publicēts, tiklīdz atkal būsiet tiešsaistē ⏳</string>

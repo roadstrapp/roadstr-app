@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Lozinka</string>
     <string name="native_nostr_relay_desc">Dodajte relej koji sami održavate ili plaćate i favoriti će se objavljivati i ondje. Javni releji ne obećavaju ništa o tome koliko dugo čuvaju podatke; vaš obećava. Ostavite prazno za korištenje samo ugrađenih releja.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Nevaljana adresa releja. Mora počinjati s wss://</string>
+    <string name="native_nostr_relay_invalid">Nevažeća adresa releja. Koristi wss://relay.example.com ili ws://192.168.x.x:port za relej u kućnoj mreži</string>
     <string name="native_nostr_relay_title">Vlastiti relej (neobavezno)</string>
     <string name="native_nostr_report_published">Izvješće objavljeno ✓</string>
     <string name="native_nostr_report_queued">Spremljeno — bit će objavljeno čim se ponovno spojite na internet ⏳</string>

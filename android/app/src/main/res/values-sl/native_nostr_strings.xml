@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Geslo</string>
     <string name="native_nostr_relay_desc">Dodajte rele, ki ga sami gostite ali plačujete, in priljubljene se bodo objavljale tudi tam. Javni releji ne obljubljajo ničesar o tem, kako dolgo hranijo podatke; vaš pa. Pustite prazno za uporabo le vgrajenih relejev.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Neveljaven naslov releja. Začeti se mora z wss://</string>
+    <string name="native_nostr_relay_invalid">Neveljaven naslov releja. Uporabi wss://relay.example.com ali ws://192.168.x.x:vrata za rele v domačem omrežju</string>
     <string name="native_nostr_relay_title">Lasten rele (izbirno)</string>
     <string name="native_nostr_report_published">Poročilo objavljeno ✓</string>
     <string name="native_nostr_report_queued">Shranjeno — objavljeno bo takoj, ko boste spet povezani ⏳</string>

@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Password</string>
     <string name="native_nostr_relay_desc">Żid relay li tmexxi jew tħallas għalih, u l-favoriti tiegħek jiġu ppubblikati hemm ukoll. Ir-relays pubbliċi ma jwiegħdu xejn dwar kemm iżommu d-data; tiegħek iwiegħed. Ħalli vojt biex tuża biss ir-relays inkorporati.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Indirizz tar-relay mhux validu. Irid jibda bi wss://</string>
+    <string name="native_nostr_relay_invalid">Indirizz tar-relay mhux validu. Uża wss://relay.example.com, jew ws://192.168.x.x:port għal relay fin-netwerk tad-dar</string>
     <string name="native_nostr_relay_title">Ir-relay tiegħek (mhux obbligatorju)</string>
     <string name="native_nostr_report_published">Rapport ippubblikat ✓</string>
     <string name="native_nostr_report_queued">Issejvjat — jiġi ppubblikat hekk kif terġa\' tkun online ⏳</string>

@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Adgangskode</string>
     <string name="native_nostr_relay_desc">Tilføj et relæ, du selv driver eller betaler for, så udgives dine favoritter også der. Offentlige relæer lover intet om, hvor længe de gemmer data; det gør dit eget. Lad feltet stå tomt for kun at bruge de indbyggede relæer.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Ugyldig relæadresse. Den skal begynde med wss://</string>
+    <string name="native_nostr_relay_invalid">Ugyldig relay-adresse. Brug wss://relay.example.com eller ws://192.168.x.x:port til et relay på dit hjemmenetværk</string>
     <string name="native_nostr_relay_title">Dit eget relæ (valgfrit)</string>
     <string name="native_nostr_report_published">Rapport publiceret ✓</string>
     <string name="native_nostr_report_queued">Gemt — publiceres, så snart du er online igen ⏳</string>

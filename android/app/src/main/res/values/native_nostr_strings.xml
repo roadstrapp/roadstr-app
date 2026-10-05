@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Password</string>
     <string name="native_nostr_relay_desc">Add a relay you run or pay for, and your favourites are published there too. Public relays promise nothing about how long they keep data; your own does. Leave empty to use only the built-in relays.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Not a valid relay address. It must start with wss://</string>
+    <string name="native_nostr_relay_invalid">Not a valid relay address. Use wss://relay.example.com, or ws://192.168.x.x:port for a relay on your home network</string>
     <string name="native_nostr_relay_title">Your own relay (optional)</string>
     <string name="native_nostr_report_published">Report published ✓</string>
     <string name="native_nostr_report_queued">Saved — will publish once you\'re back online ⏳</string>

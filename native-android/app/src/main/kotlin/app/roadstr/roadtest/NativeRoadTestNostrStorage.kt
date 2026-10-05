@@ -2,7 +2,7 @@ package app.roadstr.roadtest
 
 import android.content.Context
 import app.roadstr.core.protocol.nostr.BoundedJsonParser
-import app.roadstr.core.protocol.nostr.FavoritesSyncProtocol
+import app.roadstr.core.protocol.nostr.CustomRelayPolicy
 import app.roadstr.core.protocol.nostr.NostrJson
 import app.roadstr.feature.home.NativeShellSyncSecrets
 import app.roadstr.service.nostr.NativeActivityStore
@@ -45,11 +45,11 @@ internal class NativeRoadTestSyncStorage(context: Context) : NativeFavoritesSync
         if (value.isEmpty()) secrets.remove(PASSPHRASE) else secrets.write(PASSPHRASE, value)
 
     override fun customRelay(): String? = runCatching { secrets.read(RELAY) }.getOrNull()
-        ?.let(FavoritesSyncProtocol::normaliseRelayUrl)
+        ?.let(CustomRelayPolicy::normalise)
 
     override fun setCustomRelay(value: String): Boolean {
         if (value.isBlank()) return secrets.remove(RELAY)
-        val normalized = FavoritesSyncProtocol.normaliseRelayUrl(value) ?: return false
+        val normalized = CustomRelayPolicy.normalise(value) ?: return false
         return secrets.write(RELAY, normalized)
     }
 

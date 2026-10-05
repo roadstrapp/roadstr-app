@@ -51,7 +51,7 @@ class NativeRelayFetcher(
         accept: (Map<String, Any?>) -> Boolean,
     ): List<Map<String, Any?>> {
         val collected = ArrayList<Map<String, Any?>>()
-        val host = url.removePrefix("wss://").substringBefore('/')
+        val host = url.substringAfter("://").substringBefore('/')
         var seen = 0
         val everOpened = AtomicBoolean(false)
         val frame = NostrRelayWire.encode(listOf("REQ", subscriptionId, filter))

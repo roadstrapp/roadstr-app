@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Lösenord</string>
     <string name="native_nostr_relay_desc">Lägg till ett relä som du driver eller betalar för, så publiceras dina favoriter även där. Publika reläer lovar ingenting om hur länge de sparar data; ditt eget gör det. Lämna tomt för att bara använda de inbyggda reläerna.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Ogiltig reläadress. Den måste börja med wss://</string>
+    <string name="native_nostr_relay_invalid">Ogiltig relay-adress. Använd wss://relay.example.com, eller ws://192.168.x.x:port för ett relay i hemnätverket</string>
     <string name="native_nostr_relay_title">Ditt eget relä (valfritt)</string>
     <string name="native_nostr_report_published">Rapport publicerad ✓</string>
     <string name="native_nostr_report_queued">Sparad — publiceras så snart du är online igen ⏳</string>

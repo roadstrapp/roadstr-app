@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">パスワード</string>
     <string name="native_nostr_relay_desc">自分で運用している、または料金を払っているリレーを追加すると、お気に入りがそこにも公開されます。公開リレーはデータをどれだけ保持するか何も約束しませんが、自分のリレーなら約束できます。空欄のままにすると、内蔵のリレーだけを使用します。</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">リレーのアドレスが正しくありません。wss:// で始まる必要があります</string>
+    <string name="native_nostr_relay_invalid">リレーのアドレスが正しくありません。wss://relay.example.com か、自宅ネットワークのリレーには ws://192.168.x.x:ポート を使用してください</string>
     <string name="native_nostr_relay_title">自分のリレー（任意）</string>
     <string name="native_nostr_report_published">レポートが公開されました ✓</string>
     <string name="native_nostr_report_queued">保存しました — オンラインに戻り次第公開されます ⏳</string>

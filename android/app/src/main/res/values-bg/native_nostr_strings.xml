@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Парола</string>
     <string name="native_nostr_relay_desc">Добавете реле, което поддържате или плащате, и любимите ви ще се публикуват и там. Публичните релета не обещават нищо за това колко дълго пазят данни; вашето обещава. Оставете празно, за да използвате само вградените релета.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Невалиден адрес на реле. Трябва да започва с wss://</string>
+    <string name="native_nostr_relay_invalid">Невалиден адрес на реле. Използвайте wss://relay.example.com или ws://192.168.x.x:порт за реле в домашната мрежа</string>
     <string name="native_nostr_relay_title">Ваше собствено реле (по избор)</string>
     <string name="native_nostr_report_published">Докладът е публикуван ✓</string>
     <string name="native_nostr_report_queued">Запазено — ще бъде публикувано, щом връзката се възстанови ⏳</string>

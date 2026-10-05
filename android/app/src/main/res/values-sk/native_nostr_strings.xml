@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Heslo</string>
     <string name="native_nostr_relay_desc">Pridajte relay, ktorý prevádzkujete alebo platíte, a obľúbené miesta sa budú publikovať aj tam. Verejné relaye nič nesľubujú o tom, ako dlho uchovávajú dáta; ten váš áno. Nechajte prázdne, ak chcete používať len vstavané relaye.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Neplatná adresa relayu. Musí začínať wss://</string>
+    <string name="native_nostr_relay_invalid">Neplatná adresa relay. Použite wss://relay.example.com alebo ws://192.168.x.x:port pre relay v domácej sieti</string>
     <string name="native_nostr_relay_title">Vlastný relay (voliteľné)</string>
     <string name="native_nostr_report_published">Správa zverejnená ✓</string>
     <string name="native_nostr_report_queued">Uložené — bude zverejnené, hneď ako budete opäť online ⏳</string>

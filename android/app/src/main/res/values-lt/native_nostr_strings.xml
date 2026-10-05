@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Slaptažodis</string>
     <string name="native_nostr_relay_desc">Pridėkite relę, kurią patys prižiūrite ar už kurią mokate, ir mėgstamiausios vietos bus skelbiamos ir ten. Viešosios relės nieko nežada apie tai, kiek ilgai saugo duomenis; jūsų žada. Palikite tuščią, kad būtų naudojamos tik integruotos relės.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Netinkamas relės adresas. Jis turi prasidėti wss://</string>
+    <string name="native_nostr_relay_invalid">Netinkamas relay adresas. Naudokite wss://relay.example.com arba ws://192.168.x.x:prievadas namų tinklo relay</string>
     <string name="native_nostr_relay_title">Jūsų pačių relė (nebūtina)</string>
     <string name="native_nostr_report_published">Ataskaita paskelbta ✓</string>
     <string name="native_nostr_report_queued">Išsaugota — bus paskelbta, kai tik vėl prisijungsite prie interneto ⏳</string>

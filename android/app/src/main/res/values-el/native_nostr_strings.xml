@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Κωδικός πρόσβασης</string>
     <string name="native_nostr_relay_desc">Προσθέστε έναν αναμεταδότη που διαχειρίζεστε ή πληρώνετε και τα αγαπημένα σας θα δημοσιεύονται και εκεί. Οι δημόσιοι αναμεταδότες δεν υπόσχονται τίποτα για το πόσο κρατούν τα δεδομένα· ο δικός σας ναι. Αφήστε το κενό για να χρησιμοποιηθούν μόνο οι ενσωματωμένοι.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Μη έγκυρη διεύθυνση αναμεταδότη. Πρέπει να ξεκινά με wss://</string>
+    <string name="native_nostr_relay_invalid">Μη έγκυρη διεύθυνση relay. Χρησιμοποιήστε wss://relay.example.com ή ws://192.168.x.x:θύρα για relay στο οικιακό δίκτυο</string>
     <string name="native_nostr_relay_title">Δικός σας αναμεταδότης (προαιρετικό)</string>
     <string name="native_nostr_report_published">Αναφορά δημοσιεύτηκε ✓</string>
     <string name="native_nostr_report_queued">Αποθηκεύτηκε — θα δημοσιευτεί μόλις επανασυνδεθείτε στο διαδίκτυο ⏳</string>

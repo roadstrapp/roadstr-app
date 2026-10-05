@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Wachtwoord</string>
     <string name="native_nostr_relay_desc">Voeg een relay toe die je zelf beheert of betaalt; je favorieten worden dan ook daar gepubliceerd. Publieke relays beloven niets over hoe lang ze gegevens bewaren, die van jou wel. Laat leeg om alleen de ingebouwde relays te gebruiken.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Geen geldig relay-adres. Het moet beginnen met wss://</string>
+    <string name="native_nostr_relay_invalid">Geen geldig relay-adres. Gebruik wss://relay.example.com, of ws://192.168.x.x:poort voor een relay op je thuisnetwerk</string>
     <string name="native_nostr_relay_title">Je eigen relay (optioneel)</string>
     <string name="native_nostr_report_published">Rapport gepubliceerd ✓</string>
     <string name="native_nostr_report_queued">Opgeslagen — wordt gepubliceerd zodra je weer online bent ⏳</string>

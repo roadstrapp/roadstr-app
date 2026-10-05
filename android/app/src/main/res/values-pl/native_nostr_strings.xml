@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Hasło</string>
     <string name="native_nostr_relay_desc">Dodaj przekaźnik, który prowadzisz lub opłacasz — ulubione będą publikowane także tam. Publiczne przekaźniki niczego nie obiecują co do czasu przechowywania danych, twój tak. Pozostaw puste, aby używać tylko wbudowanych przekaźników.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Nieprawidłowy adres przekaźnika. Musi zaczynać się od wss://</string>
+    <string name="native_nostr_relay_invalid">Nieprawidłowy adres relaya. Użyj wss://relay.example.com lub ws://192.168.x.x:port dla relaya w sieci domowej</string>
     <string name="native_nostr_relay_title">Twój własny przekaźnik (opcjonalnie)</string>
     <string name="native_nostr_report_published">Raport opublikowany ✓</string>
     <string name="native_nostr_report_queued">Zapisano — zostanie opublikowane, gdy tylko wrócisz do sieci ⏳</string>

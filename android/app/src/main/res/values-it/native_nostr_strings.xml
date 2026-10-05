@@ -27,7 +27,7 @@
     <string name="native_nostr_password_hint">Password</string>
     <string name="native_nostr_relay_desc">Aggiungi un relay che gestisci tu o che paghi: i preferiti verranno pubblicati anche lì. I relay pubblici non promettono nulla su quanto a lungo conservano i dati, il tuo sì. Lascia vuoto per usare solo i relay predefiniti.</string>
     <string name="native_nostr_relay_hint">wss://relay.example.com</string>
-    <string name="native_nostr_relay_invalid">Indirizzo relay non valido. Deve iniziare con wss://</string>
+    <string name="native_nostr_relay_invalid">Indirizzo relay non valido. Usa wss://relay.example.com, oppure ws://192.168.x.x:porta per un relay nella tua rete di casa</string>
     <string name="native_nostr_relay_title">Un tuo relay (opzionale)</string>
     <string name="native_nostr_report_published">Segnalazione pubblicata ✓</string>
     <string name="native_nostr_report_queued">Salvata — sarà pubblicata al ritorno della connessione ⏳</string>

@@ -25,7 +25,6 @@ const _arbKeys = <String, String>{
   'native_nostr_sync_passphrase_desc': 'syncPassphraseDesc',
   'native_nostr_relay_title': 'syncCustomRelayTitle',
   'native_nostr_relay_desc': 'syncCustomRelayDesc',
-  'native_nostr_relay_invalid': 'syncCustomRelayInvalid',
   'native_nostr_export_title': 'exportFavoritesTitle',
   'native_nostr_export_desc': 'exportFavoritesDesc',
   'native_nostr_export_encrypt': 'exportEncryptToggle',
@@ -560,6 +559,61 @@ const _explicit = <String, Map<String, String>>{
     'sl': 'Kompas',
     'sv': 'Kompass',
     'zh': '指南针',
+  },
+  'native_nostr_relay_invalid': {
+    'bg':
+        'Невалиден адрес на реле. Използвайте wss://relay.example.com или ws://192.168.x.x:порт за реле в домашната мрежа',
+    'cs':
+        'Neplatná adresa relay. Použijte wss://relay.example.com nebo ws://192.168.x.x:port pro relay v domácí síti',
+    'da':
+        'Ugyldig relay-adresse. Brug wss://relay.example.com eller ws://192.168.x.x:port til et relay på dit hjemmenetværk',
+    'de':
+        'Keine gültige Relay-Adresse. Nutze wss://relay.example.com oder ws://192.168.x.x:Port für ein Relay im Heimnetz',
+    'el':
+        'Μη έγκυρη διεύθυνση relay. Χρησιμοποιήστε wss://relay.example.com ή ws://192.168.x.x:θύρα για relay στο οικιακό δίκτυο',
+    'en':
+        'Not a valid relay address. Use wss://relay.example.com, or ws://192.168.x.x:port for a relay on your home network',
+    'es':
+        'Dirección de relay no válida. Usa wss://relay.example.com o ws://192.168.x.x:puerto para un relay de tu red doméstica',
+    'et':
+        'Kehtetu releeaadress. Kasuta wss://relay.example.com või ws://192.168.x.x:port koduvõrgu releele',
+    'fi':
+        'Virheellinen relay-osoite. Käytä wss://relay.example.com tai ws://192.168.x.x:portti kotiverkon relaylle',
+    'fr':
+        'Adresse de relais invalide. Utilise wss://relay.example.com, ou ws://192.168.x.x:port pour un relais de ton réseau local',
+    'ga':
+        "Seoladh athsheachadáin neamhbhailí. Úsáid wss://relay.example.com, nó ws://192.168.x.x:port d'athsheachadán ar do líonra baile",
+    'hr':
+        'Nevažeća adresa releja. Koristi wss://relay.example.com ili ws://192.168.x.x:port za relej u kućnoj mreži',
+    'hu':
+        'Érvénytelen relay-cím. Használd a wss://relay.example.com címet, vagy a ws://192.168.x.x:port címet az otthoni hálózat relayéhez',
+    'it':
+        'Indirizzo relay non valido. Usa wss://relay.example.com, oppure ws://192.168.x.x:porta per un relay nella tua rete di casa',
+    'ja':
+        'リレーのアドレスが正しくありません。wss://relay.example.com か、自宅ネットワークのリレーには ws://192.168.x.x:ポート を使用してください',
+    'lt':
+        'Netinkamas relay adresas. Naudokite wss://relay.example.com arba ws://192.168.x.x:prievadas namų tinklo relay',
+    'lv':
+        'Nederīga relay adrese. Izmantojiet wss://relay.example.com vai ws://192.168.x.x:ports mājas tīkla relay',
+    'mt':
+        'Indirizz tar-relay mhux validu. Uża wss://relay.example.com, jew ws://192.168.x.x:port għal relay fin-netwerk tad-dar',
+    'nl':
+        'Geen geldig relay-adres. Gebruik wss://relay.example.com, of ws://192.168.x.x:poort voor een relay op je thuisnetwerk',
+    'pl':
+        'Nieprawidłowy adres relaya. Użyj wss://relay.example.com lub ws://192.168.x.x:port dla relaya w sieci domowej',
+    'pt':
+        'Endereço de relay inválido. Usa wss://relay.example.com ou ws://192.168.x.x:porta para um relay na tua rede doméstica',
+    'ro':
+        'Adresă de relay invalidă. Folosește wss://relay.example.com sau ws://192.168.x.x:port pentru un relay din rețeaua de acasă',
+    'ru':
+        'Недопустимый адрес релея. Используйте wss://relay.example.com или ws://192.168.x.x:порт для релея в домашней сети',
+    'sk':
+        'Neplatná adresa relay. Použite wss://relay.example.com alebo ws://192.168.x.x:port pre relay v domácej sieti',
+    'sl':
+        'Neveljaven naslov releja. Uporabi wss://relay.example.com ali ws://192.168.x.x:vrata za rele v domačem omrežju',
+    'sv':
+        'Ogiltig relay-adress. Använd wss://relay.example.com, eller ws://192.168.x.x:port för ett relay i hemnätverket',
+    'zh': '中继地址无效。请使用 wss://relay.example.com，家庭网络中的中继请使用 ws://192.168.x.x:端口',
   },
 };
 
