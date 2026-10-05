@@ -75,6 +75,7 @@
     <string name="native_search_notice_area_fallback">Platsen kunde inte avgränsas exakt, så området runt den söktes.</string>
     <string name="native_search_notice_few_tagged">Få platser här är taggade för detta i OpenStreetMap, så listan kan vara ofullständig.</string>
     <string name="native_search_notice_open_hours_unknown">Vissa platser anger inga öppettider, så de kan vara stängda.</string>
+    <string name="native_search_notice_route_ahead">Platser längs den del av din rutt som återstår.</string>
     <string name="native_search_notice_route_unsupported">Sökning längs rutten är inte tillgänglig ännu; visar platser runt dig.</string>
     <string name="native_search_notice_widened">Inget i närheten, så sökningen vidgades.</string>
     <string name="native_search_web_consent">Skicka ”%1$s” till %2$s?</string>

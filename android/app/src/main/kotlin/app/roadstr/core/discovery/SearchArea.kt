@@ -43,7 +43,28 @@ sealed interface SearchArea {
         }
     }
 
+    /**
+     * The stretch of a route still ahead, as a polyline of at most [MAX_CORRIDOR_VERTICES] points and
+     * a buffer on each side. The [center] is the point half way along it.
+     */
+    data class Corridor(val points: List<GeoPoint>, val bufferMeters: Int) : SearchArea {
+        init {
+            require(points.size in 2..MAX_CORRIDOR_VERTICES) { "A corridor has 2 to $MAX_CORRIDOR_VERTICES points" }
+            require(bufferMeters in MIN_BUFFER_METERS..MAX_BUFFER_METERS) { "Corridor buffer out of range" }
+        }
+
+        val lengthMeters: Double get() = RouteCorridor.lengthMeters(points)
+
+        override val center: GeoPoint get() = RouteCorridor.pointAlong(points, lengthMeters / 2)
+
+        // The route is where the user is going.
+        override fun toString(): String = "Corridor(points=${points.size})"
+    }
+
     companion object {
+        const val MAX_CORRIDOR_VERTICES = 24
+        const val MIN_BUFFER_METERS = 100
+        const val MAX_BUFFER_METERS = 5_000
         const val MAX_RADIUS_METERS = 50_000
         const val MAX_RELATION_ID = 3_599_999_999L
     }

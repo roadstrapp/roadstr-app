@@ -75,6 +75,7 @@
     <string name="native_search_notice_area_fallback">Toto místo se nepodařilo přesně vymezit, proto bylo prohledáno jeho okolí.</string>
     <string name="native_search_notice_few_tagged">Jen málo míst je zde pro toto označeno v OpenStreetMap, seznam proto může být neúplný.</string>
     <string name="native_search_notice_open_hours_unknown">Některá místa neuvádějí otevírací dobu, takže mohou být zavřená.</string>
+    <string name="native_search_notice_route_ahead">Místa podél úseku trasy, který máte ještě před sebou.</string>
     <string name="native_search_notice_route_unsupported">Hledání podél trasy zatím není k dispozici; zobrazuji místa kolem vás.</string>
     <string name="native_search_notice_widened">Nic poblíž, proto bylo hledání rozšířeno.</string>
     <string name="native_search_web_consent">Odeslat „%1$s“ na %2$s?</string>

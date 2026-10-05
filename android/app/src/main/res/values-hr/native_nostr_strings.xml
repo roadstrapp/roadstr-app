@@ -75,6 +75,7 @@
     <string name="native_search_notice_area_fallback">To mjesto nije bilo moguće točno omeđiti, pa je pretraženo njegovo okruženje.</string>
     <string name="native_search_notice_few_tagged">Malo je mjesta ovdje označeno za to u OpenStreetMapu, pa popis može biti nepotpun.</string>
     <string name="native_search_notice_open_hours_unknown">Neka mjesta ne navode radno vrijeme, pa mogu biti zatvorena.</string>
+    <string name="native_search_notice_route_ahead">Mjesta uz dionicu rute koja je još pred vama.</string>
     <string name="native_search_notice_route_unsupported">Pretraga uz rutu još nije dostupna; prikazana su mjesta oko vas.</string>
     <string name="native_search_notice_widened">Nema ničega u blizini, pa je pretraga proširena.</string>
     <string name="native_search_web_consent">Poslati „%1$s“ na %2$s?</string>

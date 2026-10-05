@@ -99,6 +99,7 @@ void main() {
       'native_search_notice_route_unsupported',
       'native_search_notice_area_fallback',
       'native_search_notice_open_hours_unknown',
+      'native_search_notice_route_ahead',
     ];
     for (final locale in _locales) {
       final dir = locale == 'en' ? 'values' : 'values-$locale';
@@ -214,6 +215,25 @@ void main() {
         expect(xml, contains('name="$key"'), reason: '$dir $key');
       }
     }
+  });
+
+  test('along my route is one bounded polyline request ahead of the driver', () {
+    final area = _read('$_root/core/discovery/SearchArea.kt');
+    expect(area, contains('const val MAX_CORRIDOR_VERTICES = 24'));
+    expect(area, contains('const val MAX_BUFFER_METERS = 5_000'));
+    final corridor = _read('$_root/core/discovery/RouteCorridor.kt');
+    expect(corridor, contains('const val DEFAULT_AHEAD_METERS = 30_000.0'));
+    expect(corridor, contains('const val MAX_OFF_ROUTE_METERS = 3_000.0'));
+    // Pure geometry: no network, no clock, no logging.
+    for (final forbidden in ['http', 'Log.', 'System.currentTimeMillis', 'NativeHttp']) {
+      expect(corridor, isNot(contains(forbidden)), reason: forbidden);
+    }
+    expect(_read('$_root/core/discovery/OverpassDiscoveryQuery.kt'), contains('is SearchArea.Corridor -> "(around:\${area.bufferMeters},"'));
+    final service = _read('$_root/service/discovery/NativeDiscoveryService.kt');
+    expect(service, contains('RouteCorridor.ahead(request.route, it)'));
+    expect(service, contains('notices += DiscoveryNotice.ROUTE_UNSUPPORTED'));
+    // The route is a value passed in; discovery never reads the navigation state itself.
+    expect(_read('$_root/feature/home/NativeShellJourneyCoordinator.kt'), contains('route = routeAhead()'));
   });
 
   test('the road-test build compiles the discovery service', () {

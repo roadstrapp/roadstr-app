@@ -59,6 +59,9 @@ object OverpassDiscoveryQuery {
         is SearchArea.Box ->
             "(${number(area.south)},${number(area.west)},${number(area.north)},${number(area.east)})"
         is SearchArea.AdminArea -> "(area.a)"
+        // One polyline: around:<buffer>,lat,lon,lat,lon,... matches everything within the buffer of the line.
+        is SearchArea.Corridor -> "(around:${area.bufferMeters}," +
+            area.points.joinToString(",") { "${number(it.latitude)},${number(it.longitude)}" } + ")"
     }
 
     private fun number(value: Double): String {

@@ -70,6 +70,7 @@ class NativeShellDiscoveryFlowTest {
         val gateway: Gateway = Gateway(),
         languageCode: String = "en",
         destination: SearchResponsePoint? = null,
+        route: List<GeoPoint> = emptyList(),
     ) {
         val search = NativeSearchSession()
         val pins = mutableListOf<Pair<Long, List<RankedPlace>>>()
@@ -81,6 +82,7 @@ class NativeShellDiscoveryFlowTest {
             languageCode = languageCode,
             destination = { destination },
             onDiscovery = { revision, places -> pins += revision to places },
+            routeAhead = { route },
         )
     }
 
@@ -129,6 +131,15 @@ class NativeShellDiscoveryFlowTest {
         assertTrue(request.query.openNow)
         assertEquals(GeoPoint(45.0, 9.0), request.device)
         assertEquals(GeoPoint(46.0, 10.0), request.destination)
+    }
+
+    @Test
+    fun `the route still ahead goes along with the request`() {
+        val route = listOf(GeoPoint(45.0, 9.0), GeoPoint(45.1, 9.0))
+        val h = Harness(languageCode = "en", route = route)
+        h.coordinator.openSearch(nearbyEnabled = true)
+        h.coordinator.submitSearch("restaurant along the route", gps)
+        assertEquals(route, h.gateway.lastRequest!!.route)
     }
 
     @Test

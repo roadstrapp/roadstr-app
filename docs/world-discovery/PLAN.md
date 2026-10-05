@@ -411,6 +411,8 @@ Format: **objective · current code affected · new code · dependencies · netw
 **WORLD-062** Resolver integration + "Navigate here" from a page. · — · — · 040, 060, 061 · — · — · evidence tests · green.
 
 ### Phase 7 — route-aware
+*Status: corridor, simplification with an error bound, polyline query (verified on a live mirror, D-40), detour ranking, the request carrying the route and the route-ahead notice are implemented and unit-tested (decisions D-39…D-41). Not done: an OSRM detour for the top results on selection, and caching by progress bucket.*
+
 **WORLD-070** `SearchArea.Corridor`, polyline simplification, polyline Overpass builder, batching/caching policy. · — · `core/discovery/RouteCorridor.kt` · 022 · one request per action · bounded · goldens, simplification error bound · green; verify polyline `around` on a live mirror.
 **WORLD-071** Detour ranking, cache, UI hooks (deferred until Phase 2 is proven on device). · coordinator, planner · — · 070 · — · — · ranking tests · green.
 
