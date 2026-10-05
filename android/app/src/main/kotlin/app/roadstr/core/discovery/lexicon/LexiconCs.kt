@@ -3,20 +3,20 @@ package app.roadstr.core.discovery.lexicon
 /** Search vocabulary: Czech. Written from general knowledge; a native speaker should review it. */
 internal object LexiconCs {
     const val TEXT = """
-c RESTAURANT: restaurac*, hospoda, hospody, hostinec*
+c RESTAURANT: restaurace, restaurac*, hospoda, hospody, hostinec*
 c FAST_FOOD: fast food, fastfood, rychlé občerstvení, občerstvení
 c CAFE: kavárna, kavárny, kavárně, kafe
 c BAR: bar, bary
 c PUB: pub, puby
-c SUPERMARKET: supermarket*, hypermarket*, potraviny, samoobsluha
+c SUPERMARKET: supermarket, supermarket*, hypermarket*, potraviny, samoobsluha
 c PHARMACY: lékárna, lékárny, lékárně, lékárn*
 c FUEL: čerpací stanice, benzina, benzinka, pumpa, čerpačka, benzín, benzin, tankovat
 c CHARGING_STATION: nabíjecí stanice, nabíječka, nabíječky, nabíjení, dobíjecí stanice, elektronabíječka
 c PARKING: parkoviště, parkovišti, parking, parkování, parkovací dům
-c HOTEL: hotel*, hostel*, penzion*, motel*, ubytování, ubytovna
-c HOSPITAL: nemocnic*, pohotovost, pohotovosti, urgentní příjem
-c ATM: bankomat*
-c BANK: bank*, banky
+c HOTEL: hotel, hotel*, hostel*, penzion*, motel*, ubytování, ubytovna
+c HOSPITAL: nemocnice, nemocnic*, pohotovost, pohotovosti, urgentní příjem
+c ATM: bankomat, bankomat*
+c BANK: banka, bank*, banky
 c POST_OFFICE: pošta, pošty, poště, poštovní úřad
 c POLICE: policie, policejní stanice, policii
 c CINEMA: kino, kina, kině

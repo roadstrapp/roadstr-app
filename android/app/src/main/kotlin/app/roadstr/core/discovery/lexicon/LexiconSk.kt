@@ -3,20 +3,20 @@ package app.roadstr.core.discovery.lexicon
 /** Search vocabulary: Slovak. Written from general knowledge; a native speaker should review it. */
 internal object LexiconSk {
     const val TEXT = """
-c RESTAURANT: reštaurác*, restaurác*, reštaurácia
+c RESTAURANT: reštaurácia, reštaurác*, restaurác*
 c FAST_FOOD: fast food, fastfood, rýchle občerstvenie
 c CAFE: kaviareň, kaviarne, kaviarni, kaviare*
 c BAR: bar, bary
 c PUB: pub, puby
-c SUPERMARKET: supermarket*, hypermarket*, potraviny
+c SUPERMARKET: supermarket, supermarket*, hypermarket*, potraviny
 c PHARMACY: lekáreň, lekárne, lekárni, lekáre*
 c FUEL: čerpacia stanica, benzínka, benzinka, pumpa, benzín, benzin
 c CHARGING_STATION: nabíjacia stanica, nabíjačka, nabíjanie, dobíjacia stanica
-c PARKING: parkovisko*, parkovanie, parking
-c HOTEL: hotel*, hostel*, penzión*, motel*, ubytovanie
-c HOSPITAL: nemocnic*, pohotovosť, urgentný príjem
-c ATM: bankomat*
-c BANK: bank*, banky
+c PARKING: parkovisko, parkovisko*, parkovanie, parking
+c HOTEL: hotel, hotel*, hostel*, penzión*, motel*, ubytovanie
+c HOSPITAL: nemocnica, nemocnic*, pohotovosť, urgentný príjem
+c ATM: bankomat, bankomat*
+c BANK: banka, bank*, banky
 c POST_OFFICE: pošta, pošty, poštový úrad
 c POLICE: polícia, policajn*, policajná stanica
 c CINEMA: kino, kina

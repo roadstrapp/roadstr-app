@@ -3,23 +3,23 @@ package app.roadstr.core.discovery.lexicon
 /** Search vocabulary: Slovenian. Written from general knowledge; a native speaker should review it. */
 internal object LexiconSl {
     const val TEXT = """
-c RESTAURANT: restavracij*, gostilna*, gostilne
+c RESTAURANT: restavracija, restavracij*, gostilna*, gostilne
 c FAST_FOOD: hitra prehrana, fast food
-c CAFE: kavarna*, kavarne, kavarn*
+c CAFE: kavarna, kavarna*, kavarne, kavarn*
 c BAR: bar, bari
 c PUB: pub, pubi
-c SUPERMARKET: supermarket*, hipermarket*
+c SUPERMARKET: supermarket, supermarket*, hipermarket*
 c CONVENIENCE: trgovina z živili
-c PHARMACY: lekarna*, lekarne
+c PHARMACY: lekarna, lekarna*, lekarne
 c FUEL: bencinska črpalka, bencinske črpalke, črpalka, bencin, bencinski servis
-c CHARGING_STATION: polnilnica*, polnilna postaja, električna polnilnica, polnjenje, polnilnice
-c PARKING: parkirišče*, parkirišču, parking, parkiranje, garažna hiša
-c HOTEL: hotel*, hostel*, prenočišče*, nastanitev, motel*, penzion
-c HOSPITAL: bolnišnic*, urgenca, nujna pomoč
-c ATM: bankomat*
-c BANK: bank*, banke
+c CHARGING_STATION: polnilnica, polnilnica*, polnilna postaja, električna polnilnica, polnjenje, polnilnice
+c PARKING: parkirišče, parkirišče*, parkirišču, parking, parkiranje, garažna hiša
+c HOTEL: hotel, hotel*, hostel*, prenočišče*, nastanitev, motel*, penzion
+c HOSPITAL: bolnišnica, bolnišnic*, urgenca, nujna pomoč
+c ATM: bankomat, bankomat*
+c BANK: banka, bank*, banke
 c POST_OFFICE: pošta, pošte, poštni urad
-c POLICE: policij*, policijska postaja
+c POLICE: policija, policij*, policijska postaja
 c CINEMA: kino, kina, kinu
 c TRAIN_STATION: železniška postaja, železnica, vlak postaja
 a VEGAN: vegan*, veganski*

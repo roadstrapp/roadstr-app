@@ -3,21 +3,21 @@ package app.roadstr.core.discovery.lexicon
 /** Search vocabulary: Maltese. Written from general knowledge; a native speaker should review it. */
 internal object LexiconMt {
     const val TEXT = """
-c RESTAURANT: ristorant*, ristoranti
+c RESTAURANT: ristorant, ristorant*, ristoranti
 c FAST_FOOD: fast food, ikel mgħaġġel
-c CAFE: kafe*, kafeterija
+c CAFE: kafe, kafe*, kafeterija
 c BAR: bar, bars
 c PUB: pub, pubs
-c SUPERMARKET: supermarket*, supermarkit
+c SUPERMARKET: supermarket, supermarket*, supermarkit
 c CONVENIENCE: ħanut, grocery
 c PHARMACY: spiżerija, spizerija
 c FUEL: stazzjon tal petrol, petrol, stazzjon tal fjuwil, pompa tal petrol
 c CHARGING_STATION: stazzjon tal iċċarġjar, iċċarġjar, punt tal iċċarġjar
 c PARKING: parking, park tal karozzi, karparks
-c HOTEL: hotel*, lukanda
-c HOSPITAL: sptar*, emerġenza
+c HOTEL: hotel, hotel*, lukanda
+c HOSPITAL: sptar, sptar*, emerġenza
 c ATM: magna tal flus
-c BANK: bank*
+c BANK: bank, bank*
 c POST_OFFICE: ufficcju postali, maltapost, posta
 c POLICE: pulizija, għassa tal pulizija
 c CINEMA: ċinema, sinema

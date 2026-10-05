@@ -3,23 +3,23 @@ package app.roadstr.core.discovery.lexicon
 /** Search vocabulary: Croatian. Written from general knowledge; a native speaker should review it. */
 internal object LexiconHr {
     const val TEXT = """
-c RESTAURANT: restoran*, konoba*, gostionic*
+c RESTAURANT: restoran, restoran*, konoba*, gostionic*
 c FAST_FOOD: fast food, brza hrana
-c CAFE: kafić*, kavana*, kafe, kafići
+c CAFE: kafić, kafić*, kavana*, kafe, kafići
 c BAR: bar, barovi
 c PUB: pub, pubovi
-c SUPERMARKET: supermarket*, hipermarket*
+c SUPERMARKET: supermarket, supermarket*, hipermarket*
 c CONVENIENCE: trgovina, dućan, prehrambena trgovina
-c PHARMACY: ljekarn*, ljekarna, ljekarne, apoteka*
+c PHARMACY: ljekarna, ljekarn*, ljekarne, apoteka*
 c FUEL: benzinska postaja, benzinska pumpa, benzinska, benzin, pumpa
-c CHARGING_STATION: punionica*, punjač, električna punionica, stanica za punjenje, punjenje
-c PARKING: parkiralište*, parking, parkirno mjesto, garaža
-c HOTEL: hotel*, hostel*, smještaj, motel*, pansion*, prenoćište
-c HOSPITAL: bolnic*, hitna, hitna pomoć
-c ATM: bankomat*
-c BANK: bank*, banke
+c CHARGING_STATION: punionica, punionica*, punjač, električna punionica, stanica za punjenje, punjenje
+c PARKING: parkiralište, parkiralište*, parking, parkirno mjesto, garaža
+c HOTEL: hotel, hotel*, hostel*, smještaj, motel*, pansion*, prenoćište
+c HOSPITAL: bolnica, bolnic*, hitna, hitna pomoć
+c ATM: bankomat, bankomat*
+c BANK: banka, bank*, banke
 c POST_OFFICE: pošta, pošte, poštanski ured
-c POLICE: policij*, policijska postaja
+c POLICE: policija, policij*, policijska postaja
 c CINEMA: kino, kina
 c TRAIN_STATION: željeznički kolodvor, kolodvor*
 a VEGAN: vegan*, veganski*

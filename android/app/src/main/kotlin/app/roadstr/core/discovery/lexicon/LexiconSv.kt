@@ -3,24 +3,24 @@ package app.roadstr.core.discovery.lexicon
 /** Search vocabulary: Swedish. Written from general knowledge; a native speaker should review it. */
 internal object LexiconSv {
     const val TEXT = """
-c RESTAURANT: restaurang*, restauranger, matställe, krog*
+c RESTAURANT: restaurang, restaurang*, restauranger, matställe, krog*
 c FAST_FOOD: snabbmat, snabbmatsrestaurang, fast food
 c CAFE: kafé, kafe, fik, fikaställe, konditori
 c BAR: bar, barer
 c PUB: pub, pubar
-c SUPERMARKET: stormarknad*, snabbköp, livsmedelsbutik*, mataffär, supermarket
-c PHARMACY: apotek*
-c FUEL: bensinstation*, bensinmack, mack, tankstation*, bensin, tanka
-c CHARGING_STATION: laddstation*, laddplats, laddare, elbilsladdare, laddpunkt, laddstolpe*
-c PARKING: parkering*, p plats, parkeringsplats*, parkeringshus
-c HOTEL: hotell*, vandrarhem*, pensionat, motell*, logi, boende
-c HOSPITAL: sjukhus*, akuten, akutmottagning
-c ATM: bankomat*, uttagsautomat, kontantautomat
-c BANK: bank*, banker
-c POST_OFFICE: postkontor*, postombud
-c POLICE: polis*, polisstation*
+c SUPERMARKET: stormarknad, stormarknad*, snabbköp, livsmedelsbutik*, mataffär, supermarket
+c PHARMACY: apotek, apotek*
+c FUEL: bensinstation, bensinstation*, bensinmack, mack, tankstation*, bensin, tanka
+c CHARGING_STATION: laddstation, laddstation*, laddplats, laddare, elbilsladdare, laddpunkt, laddstolpe*
+c PARKING: parkering, parkering*, p plats, parkeringsplats*, parkeringshus
+c HOTEL: hotell, hotell*, vandrarhem*, pensionat, motell*, logi, boende
+c HOSPITAL: sjukhus, sjukhus*, akuten, akutmottagning
+c ATM: bankomat, bankomat*, uttagsautomat, kontantautomat
+c BANK: bank, bank*, banker
+c POST_OFFICE: postkontor, postkontor*, postombud
+c POLICE: polisstation, polis*, polisstation*
 c CINEMA: bio, biograf*, biografer
-c TRAIN_STATION: tågstation*, järnvägsstation, centralstation
+c TRAIN_STATION: tågstation, tågstation*, järnvägsstation, centralstation
 a VEGAN: vegan*, veganskt
 a VEGETARIAN: vegetarisk*, vegetarian
 a GLUTEN_FREE: glutenfri*, utan gluten

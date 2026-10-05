@@ -20,8 +20,16 @@ sealed interface LocationConstraint {
         val alternatives: List<String> = emptyList(),
     ) : LocationConstraint
 
-    /** "Near the station": a reference place, optionally of a known category. */
-    data class NearReference(val text: String, val category: PlaceCategory?) : LocationConstraint
+    /**
+     * "Near the station": a reference place, optionally of a known category.
+     * [generic] means the words name only a kind of place ("the station"), so the
+     * nearest one will do; otherwise they name a particular place ("Central Park").
+     */
+    data class NearReference(
+        val text: String,
+        val category: PlaceCategory?,
+        val generic: Boolean = false,
+    ) : LocationConstraint
 
     data object RouteCorridor : LocationConstraint
 }
