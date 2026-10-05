@@ -13,6 +13,7 @@
     <string name="native_browser_failed">このページを読み込めませんでした。</string>
     <string name="native_browser_forward">進む</string>
     <string name="native_browser_insecure">安全でない接続</string>
+    <string name="native_browser_navigate_here">ここへナビゲート</string>
     <string name="native_browser_open_external">ブラウザーで開く</string>
     <string name="native_browser_reload">再読み込み</string>
     <string name="native_browser_secure">安全な接続</string>

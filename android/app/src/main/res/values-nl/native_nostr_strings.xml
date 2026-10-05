@@ -13,6 +13,7 @@
     <string name="native_browser_failed">Deze pagina kon niet worden geladen.</string>
     <string name="native_browser_forward">Vooruit</string>
     <string name="native_browser_insecure">Verbinding niet beveiligd</string>
+    <string name="native_browser_navigate_here">Hierheen navigeren</string>
     <string name="native_browser_open_external">Openen in je browser</string>
     <string name="native_browser_reload">Vernieuwen</string>
     <string name="native_browser_secure">Beveiligde verbinding</string>

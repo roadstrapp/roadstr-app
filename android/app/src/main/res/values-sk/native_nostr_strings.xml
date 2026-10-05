@@ -13,6 +13,7 @@
     <string name="native_browser_failed">Túto stránku sa nepodarilo načítať.</string>
     <string name="native_browser_forward">Dopredu</string>
     <string name="native_browser_insecure">Pripojenie nie je zabezpečené</string>
+    <string name="native_browser_navigate_here">Navigovať sem</string>
     <string name="native_browser_open_external">Otvoriť v prehliadači</string>
     <string name="native_browser_reload">Načítať znova</string>
     <string name="native_browser_secure">Zabezpečené pripojenie</string>

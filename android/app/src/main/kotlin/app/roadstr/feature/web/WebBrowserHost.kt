@@ -2,12 +2,27 @@ package app.roadstr.feature.web
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import app.roadstr.core.discovery.resolve.PagePlace
+import app.roadstr.core.discovery.structured.StructuredPlace
+import app.roadstr.core.discovery.structured.WebPageMessage
 import app.roadstr.core.web.ExternalAction
 import app.roadstr.core.web.NavigationDecision
 import app.roadstr.core.web.WebNavigationPolicy
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+
+/** The place the page on screen is about, offered as "navigate here". */
+data class BrowserPagePlace(
+    val latitude: Double,
+    val longitude: Double,
+    val name: String,
+    /** True when it matched a place from the map; false when it comes from the page alone. */
+    val linked: Boolean,
+) {
+    // A name and a position are where the user may be going.
+    override fun toString(): String = "BrowserPagePlace(linked=)"
+}
 
 /** What the in-app browser shows about the page it has open. */
 data class WebBrowserState(
@@ -22,6 +37,7 @@ data class WebBrowserState(
     val failed: Boolean = false,
     /** A phone, mail or map link the page asked for; nothing happens until the user confirms it. */
     val pendingAction: ExternalAction? = null,
+    val pagePlace: BrowserPagePlace? = null,
 ) {
     // The address of the page is what the user is reading.
     override fun toString(): String = "WebBrowserState(open=$open)"
@@ -53,6 +69,14 @@ interface WebBrowserHost {
     fun confirmAction() = Unit
 
     fun dismissAction() = Unit
+
+    /** Asked what a page's own place data amounts to; it sees the page only through the extension. */
+    var pageResolver: ((WebPageMessage, List<StructuredPlace>) -> PagePlace?)?
+        get() = null
+        set(_) = Unit
+
+    /** The user tapped "navigate here" for the place the page is about; the app confirms it first. */
+    fun navigateToPagePlace() = Unit
 
     /** Told when the user asks for a map link to become a destination. */
     var onDestination: ((latitude: Double, longitude: Double) -> Unit)?

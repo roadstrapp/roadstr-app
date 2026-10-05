@@ -13,6 +13,7 @@
     <string name="native_browser_failed">Seda lehte ei õnnestunud laadida.</string>
     <string name="native_browser_forward">Edasi</string>
     <string name="native_browser_insecure">Ühendus pole turvaline</string>
+    <string name="native_browser_navigate_here">Navigeeri siia</string>
     <string name="native_browser_open_external">Ava brauseris</string>
     <string name="native_browser_reload">Laadi uuesti</string>
     <string name="native_browser_secure">Turvaline ühendus</string>

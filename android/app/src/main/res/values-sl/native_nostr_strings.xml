@@ -13,6 +13,7 @@
     <string name="native_browser_failed">Te strani ni bilo mogoče naložiti.</string>
     <string name="native_browser_forward">Naprej</string>
     <string name="native_browser_insecure">Povezava ni varna</string>
+    <string name="native_browser_navigate_here">Navigiraj sem</string>
     <string name="native_browser_open_external">Odpri v brskalniku</string>
     <string name="native_browser_reload">Osveži</string>
     <string name="native_browser_secure">Varna povezava</string>

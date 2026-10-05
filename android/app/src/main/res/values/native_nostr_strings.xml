@@ -13,6 +13,7 @@
     <string name="native_browser_failed">This page could not be loaded.</string>
     <string name="native_browser_forward">Forward</string>
     <string name="native_browser_insecure">Connection not secure</string>
+    <string name="native_browser_navigate_here">Navigate here</string>
     <string name="native_browser_open_external">Open in your browser</string>
     <string name="native_browser_reload">Reload</string>
     <string name="native_browser_secure">Secure connection</string>

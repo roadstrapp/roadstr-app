@@ -10,11 +10,15 @@ import app.roadstr.core.discovery.RankedPlace
 import app.roadstr.core.discovery.RoadstrPlace
 import app.roadstr.core.discovery.SearchArea
 import app.roadstr.core.discovery.resolve.MatchClass
+import app.roadstr.core.discovery.resolve.PageMatcher
+import app.roadstr.core.discovery.resolve.PagePlace
 import app.roadstr.core.discovery.resolve.PlaceEntityResolver
 import app.roadstr.core.discovery.resolve.PlaceLookup
 import app.roadstr.core.discovery.resolve.ResolveContext
 import app.roadstr.core.discovery.resolve.ResolvedWebResult
 import app.roadstr.core.discovery.resolve.reachMeters
+import app.roadstr.core.discovery.structured.StructuredPlace
+import app.roadstr.core.discovery.structured.WebPageMessage
 import app.roadstr.core.discovery.web.ConnectionTest
 import app.roadstr.core.discovery.web.EndpointCheck
 import app.roadstr.core.discovery.web.SearxngEndpointPolicy
@@ -171,6 +175,8 @@ class NativeShellJourneyCoordinator(
     private var webJob: Job? = null
     private var lastPlaces: List<RankedPlace> = emptyList()
     private var lastArea: SearchArea? = null
+    private var lastParsed: NaturalPlaceQuery? = null
+    private var lastNear: SearchResponsePoint? = null
     private var webPlaces: Map<String, RoadstrPlace> = emptyMap()
     private val resolver = PlaceEntityResolver(
         PlaceLookup { name, locality, near, language -> gateway.lookupPlaces(name, locality, near, language) },
@@ -450,10 +456,13 @@ class NativeShellJourneyCoordinator(
         onDiscovery(revision, emptyList())
         lastPlaces = emptyList()
         lastArea = null
+        lastParsed = null
+        lastNear = near
         webPlaces = emptyMap()
         searchJob = scope.launch {
             try {
                 val parsed = interpreter.interpret(query, normalizedLanguageCode())
+                lastParsed = parsed
                 val emptyNotice = when (val attempt = discover(revision, parsed, near)) {
                     DiscoveryAttempt.Shown -> {
                         offerWeb(revision, parsed, near, sparse = lastNoticeWasSparse)
@@ -627,6 +636,30 @@ class NativeShellJourneyCoordinator(
     /** The place the user was shown for a web result, from the latest search; null once it is gone. */
     fun webPlace(id: String): RoadstrPlace? = webPlaces[id]
 
+    /** Where "in the area" is judged from, or null when there is neither a search area nor a position. */
+    private fun resolveContext(parsed: NaturalPlaceQuery, near: SearchResponsePoint?, locality: String?): ResolveContext? {
+        val area = lastArea
+        val centre = area?.center ?: near?.let { GeoPoint(it.latitude, it.longitude) } ?: return null
+        val named = (parsed.location as? LocationConstraint.NamedPlace)?.text
+        return ResolveContext(
+            center = centre,
+            radiusMeters = area?.reachMeters() ?: 0.0,
+            locality = named ?: locality,
+            languageCode = normalizedLanguageCode(),
+            categories = parsed.categories.toSet(),
+        )
+    }
+
+    /**
+     * What a page the user is reading says about a place, judged against the current search:
+     * null without a search to judge by, or when the page puts the place outside its area.
+     */
+    fun pagePlace(page: WebPageMessage, structured: List<StructuredPlace>): PagePlace? {
+        val parsed = lastParsed ?: return null
+        val context = resolveContext(parsed, lastNear, null) ?: return null
+        return PageMatcher.match(page, structured, lastPlaces.map { it.place }, context)
+    }
+
     /** The web part of the list, and the places that were found only through it. */
     private class LinkedResults(val state: NativeSearchWeb, val fresh: List<RankedPlace>)
 
@@ -637,16 +670,7 @@ class NativeShellJourneyCoordinator(
      */
     private suspend fun linked(pending: PendingWeb, found: WebDiscoveryOutcome.Results): LinkedResults {
         val plain = LinkedResults(webState(found), emptyList())
-        val area = lastArea
-        val centre = area?.center ?: pending.near?.let { GeoPoint(it.latitude, it.longitude) } ?: return plain
-        val named = (pending.parsed.location as? LocationConstraint.NamedPlace)?.text
-        val context = ResolveContext(
-            center = centre,
-            radiusMeters = area?.reachMeters() ?: 0.0,
-            locality = named ?: found.locality,
-            languageCode = normalizedLanguageCode(),
-            categories = pending.parsed.categories.toSet(),
-        )
+        val context = resolveContext(pending.parsed, pending.near, found.locality) ?: return plain
         val rows = try {
             resolver.resolve(found.results, lastPlaces.map { it.place }, context)
         } catch (cancelled: CancellationException) {

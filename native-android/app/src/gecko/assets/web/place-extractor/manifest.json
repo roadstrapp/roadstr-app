@@ -1,0 +1,19 @@
+{
+  "manifest_version": 2,
+  "name": "Roadstr place extractor",
+  "version": "1.0",
+  "description": "Reads the place data a page already contains and hands it to Roadstr. It sends nothing anywhere else.",
+  "browser_specific_settings": {
+    "gecko": { "id": "place-extractor@roadstr.app" }
+  },
+  "permissions": ["nativeMessaging"],
+  "background": { "scripts": ["background.js"] },
+  "content_scripts": [
+    {
+      "matches": ["https://*/*"],
+      "js": ["extractor.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
+}
