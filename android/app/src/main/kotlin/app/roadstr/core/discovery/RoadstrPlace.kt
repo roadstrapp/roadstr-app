@@ -77,10 +77,18 @@ object PlaceTagPolicy {
     private val prefixes = listOf("addr:", "diet:", "fuel:", "socket:", "name:", "description:")
     private val control = Regex("[\\u0000-\\u001f]")
 
+    /**
+     * Characters with no visible form that can scramble or disguise text on screen: DEL and the C1
+     * controls, the zero width space, the word joiner, the byte order mark and the bidirectional
+     * embeddings, overrides and isolates (U+202E can make a line read backwards). The joiners and
+     * the left-to-right and right-to-left marks stay: scripts and mixed text need them.
+     */
+    private val invisible = Regex("[\\u007f-\\u009f\\u200b\\u2060\\u202a-\\u202e\\u2066-\\u2069\\ufeff]")
+
     fun keeps(key: String): Boolean = key in exact || prefixes.any { key.startsWith(it) }
 
     fun clamp(value: String): String? {
-        val clean = value.replace(control, " ").trim().take(MAX_VALUE_CHARS)
+        val clean = value.replace(control, " ").replace(invisible, "").trim().take(MAX_VALUE_CHARS)
         return clean.ifEmpty { null }
     }
 

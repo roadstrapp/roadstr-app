@@ -351,6 +351,26 @@ To connect a wallet, paste a `nostr+walletconnect://…` URI from a compatible w
 
 ---
 
+## Place search in plain language (native Kotlin build)
+
+The native build understands searches such as "vegan restaurants near me", "pharmacy open now",
+"petrol stations along the route" or "restaurants in <town>". The words are
+read by a deterministic parser with one word list per language, with no model and no server of ours.
+Seven languages (English, Italian, German, French, Spanish, Portuguese, Dutch) have a full word list;
+the other twenty have a core of about nineteen categories, and English words work everywhere. None has
+had a native-speaker review yet
+([docs/world-discovery/LOCALIZATION_REVIEW.md](docs/world-discovery/LOCALIZATION_REVIEW.md)); when
+nothing is recognised the ordinary search runs.
+
+- **Where places come from.** OpenStreetMap, through Nominatim (the town, with a pause of 1.1 s between calls and no autocomplete) and Overpass (the places, one query plus at most one widening). Some searches find few places because few are tagged for them; the list says so.
+- **Along the route.** "Along the route" searches the stretch still ahead, as one request. Places are ranked by the detour they cost and show how far ahead they are.
+- **Web results (optional, off by default).** You can point Roadstr at a [SearXNG](https://docs.searxng.org/) instance you choose (*Settings → Search → Web results in search*); none is built in. It receives your search words, the name of your town for "near me" searches, your language and the safe-search level, never your coordinates, and it is asked only when you agree. Roadstr never asks for Google engines, but an instance you do not control may still use them behind the scenes. Results that match a place on the map are linked to it; a name that matches only by name is offered as "could this be…?" and never merged.
+- **In-app browser (optional build variant).** By default a web result opens in your own browser. `native-android/gradlew-geckoview :app:assembleDebug` builds a variant that draws pages inside the app with [GeckoView](https://geckoview.dev/) in a private session that keeps nothing, denies every permission and pop-up, and can offer "navigate here" when a page states where a place is. It is about 130 MiB bigger (debug builds, one ABI), needs Android 8, has not been run on a device yet ([measurements](docs/world-discovery/MEASUREMENTS.md)), and `native-android/verify-geckoview-variant.sh` checks what must stay true of both builds.
+
+The plan, the audit and every decision taken are in [docs/world-discovery/](docs/world-discovery/).
+
+---
+
 ## Privacy
 
 - **No accounts, no central servers, no telemetry/analytics SDKs** — the app talks directly to public Nostr relays, OSM tile/Overpass servers, and the chosen routing provider. Nothing is collected or sent to Roadstr itself.
@@ -358,6 +378,7 @@ To connect a wallet, paste a `nostr+walletconnect://…` URI from a compatible w
 - **Road events are pseudonymous** — published under the user's Nostr public key with no additional personal metadata, and every event received from a relay is signature-verified before being trusted (relays cannot forge reports under someone else's identity).
 - **Favourites sync is end-to-end encrypted** (NIP-44) to the user's own key — relays storing the synced snapshot see only ciphertext.
 - **Nostr private keys (nsec) never leave Android's encrypted secure storage** — not copyable, not exportable, not logged.
+- **Web results are opt-in.** Off by default, with no instance built in. When you switch them on, the instance you chose receives your search words, the name of your town for "near me" searches, your language and the safe-search level, and the search engines it uses may see them too. Names found in the results may then be looked up on OpenStreetMap (a name and a town, at most three per search). The optional in-app browser runs pages in a private session, stores nothing after it closes, and asks for no permission on a page's behalf.
 - **Road reports are public and linkable** — publishing a report sends its exact coordinates, timestamp, content and Nostr public key to public relays. This is pseudonymous, not anonymous, and relay retention cannot be guaranteed.
 
 ---
@@ -432,6 +453,8 @@ GPL for that component.
 - [Piper](https://github.com/OHF-Voice/piper1-gpl) and [Thorsten-Voice](https://www.thorsten-voice.de/) for the German on-device voice
 - [MapLibre](https://maplibre.org/) for the vector rendering engine
 - [Photon](https://photon.komoot.io/) for typo-tolerant geocoding
+- [SearXNG](https://docs.searxng.org/) for the optional, self-chosen web results
+- [GeckoView](https://geckoview.dev/) by Mozilla for the optional in-app browser
 - [eSpeak NG](https://github.com/espeak-ng/espeak-ng) for phonemisation
 - [Nostr protocol](https://nostr.com/) and all NIP authors
 - [flutter_map](https://pub.dev/packages/flutter_map) for the Flutter map widget
