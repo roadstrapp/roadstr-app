@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -807,6 +808,20 @@ fun NativeRoadstrShell(
         }
         val navigationNowLabel = stringResource(R.string.native_nav_now)
         val headingTracker = remember { NativeShellHeadingTracker() }
+        // The vehicle sits just above the bottom panel, as on the Flutter map:
+        // that panel's height, a 24dp gap and a tenth of the screen, measured on
+        // the real window instead of guessed. (A camera padding of P puts the
+        // target at (P + H) / 2, hence the 2x.)
+        var navPanelHeightPixels by remember { mutableIntStateOf(0) }
+        val windowHeightPixels = LocalWindowInfo.current.containerSize.height
+        val navigationDensity = LocalDensity.current
+        LaunchedEffect(navPanelHeightPixels, windowHeightPixels) {
+            if (navPanelHeightPixels <= 0 || windowHeightPixels <= 0) return@LaunchedEffect
+            val height = windowHeightPixels.toDouble()
+            val gap = with(navigationDensity) { 24.dp.toPx() } + height * 0.10
+            val target = height - navPanelHeightPixels - gap
+            cameraSession.setNavigationTopPadding((2.0 * target - height).coerceIn(0.0, height * 0.7))
+        }
         // At a standstill outside navigation the heading-up map turns with the
         // phone's compass, as on the Flutter screen; in motion it follows the
         // GPS course and the route instead.
@@ -1932,6 +1947,7 @@ fun NativeRoadstrShell(
                         }
                     },
                     onOpenSettings = showSettings,
+                    onBottomPanelHeight = { navPanelHeightPixels = it },
                 )
                 NativeNavigationArrivalBanner(
                     visible = activeNavigationState.arrived,
