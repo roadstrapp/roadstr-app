@@ -157,6 +157,32 @@ class SearxngProtocolTest {
     }
 
     @Test
+    fun `hostile result text cannot disguise or inject anything`() {
+        val body = """{"results":[
+          {"url":"https://evil.example/x","title":"\u202eerom ot kcilC\u202c <script>alert(1)</script> Menu\u200b",
+           "content":"<img src=x onerror=alert(1)> &lt;b&gt;bold&lt;/b&gt;\u0000\u2066hidden\u2069 text"}
+        ]}"""
+        val row = SearxngResponseParser.parseSearch(body)!!.results.single()
+        for (text in listOf(row.title, row.snippet)) {
+            assertTrue(text, text.none { it in "\u202a\u202b\u202c\u202d\u202e\u2066\u2067\u2068\u2069\u200b\u0000" })
+            assertTrue(text, !text.contains("<script") && !text.contains("<img"))
+        }
+        assertEquals("evil.example", row.host)
+        assertTrue(row.snippet.contains("hidden"))
+    }
+
+    @Test
+    fun `an address inside the local network is kept as data and refused when it is opened`() {
+        val body = """{"results":[{"url":"https://192.168.1.1/admin","title":"Router"}]}"""
+        val row = SearxngResponseParser.parseSearch(body)!!.results.single()
+        assertEquals("192.168.1.1", row.host)
+        assertEquals(
+            app.roadstr.core.web.NavigationDecision.Block(app.roadstr.core.web.BlockReason.LOCAL_HOST),
+            app.roadstr.core.web.WebNavigationPolicy.decide(row.url.toString()),
+        )
+    }
+
+    @Test
     fun `the number of results is capped`() {
         val rows = (1..50).joinToString(",") { """{"url":"https://h$it.example","title":"t$it"}""" }
         val parsed = SearxngResponseParser.parseSearch("""{"results":[$rows]}""")!!

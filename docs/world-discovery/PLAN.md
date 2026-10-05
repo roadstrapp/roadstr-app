@@ -417,4 +417,6 @@ Format: **objective · current code affected · new code · dependencies · netw
 **WORLD-071** Detour ranking, cache, UI hooks (deferred until Phase 2 is proven on device). · coordinator, planner · — · 070 · — · — · ranking tests · green.
 
 ### Phase 8 — hardening
+*Status: done for everything that does not need a device or a native speaker. WORLD-080 security tests added or confirmed across §34 (text hygiene D-42, hostile result text, local-network results refused when opened, no script bridge, one extension channel, crash handling D-43, the variant check script D-44); WORLD-081 is a protocol in `MEASUREMENTS.md` with the sizes measured so far; WORLD-082 is `LOCALIZATION_REVIEW.md` (D-45); WORLD-083: `THIRD_PARTY_NOTICES.md`, README section, privacy text; WORLD-084: Dart contract tests (`native_world_discovery_contract_test.dart`, `native_web_browser_contract_test.dart`, `native_world_discovery_hardening_test.dart`).*
+
 **WORLD-080** Security tests across §34. **WORLD-081** Perf/battery/memory/size protocol and results (owner device). **WORLD-082** Localization completeness + native review list. **WORLD-083** `THIRD_PARTY_NOTICES.md`, Settings privacy text, README section. **WORLD-084** Dart contract tests for the guard rails in §38.

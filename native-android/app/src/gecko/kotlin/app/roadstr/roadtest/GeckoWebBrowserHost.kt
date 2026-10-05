@@ -19,6 +19,7 @@ import app.roadstr.core.web.WebNavigationPolicy
 import app.roadstr.feature.web.BrowserPagePlace
 import app.roadstr.feature.web.WebBrowserHost
 import app.roadstr.feature.web.WebBrowserState
+import app.roadstr.feature.web.WebBrowserStateReducer
 import java.net.URI
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -52,19 +53,18 @@ internal class GeckoWebBrowserHost(
             is NavigationDecision.Upgrade -> decision.https
             is NavigationDecision.Confirm, is NavigationDecision.Block -> return false
         }
+        mutable.value = WebBrowserStateReducer.opened(target)
+        load(target.toString())
+        return true
+    }
+
+    /** Starts a fresh private session on [url]; the engine is created here the first time. */
+    private fun load(url: String) {
         endSession()
         val fresh = newSession()
         session = fresh
-        mutable.value = WebBrowserState(
-            open = true,
-            url = target.toString(),
-            host = target.host.orEmpty(),
-            loading = true,
-            secure = target.scheme.equals("https", ignoreCase = true),
-        )
         fresh.open(runtime.get())
-        fresh.loadUri(target.toString())
-        return true
+        fresh.loadUri(url)
     }
 
     override fun close() {
@@ -83,18 +83,25 @@ internal class GeckoWebBrowserHost(
     }
 
     override fun reload() {
-        mutable.value = mutable.value.copy(failed = false)
-        session?.reload()
+        val current = mutable.value
+        if (!current.open) return
+        mutable.value = WebBrowserStateReducer.reloading(current)
+        // After the engine died there is no session: reloading starts a new one on the same address.
+        val live = session
+        if (live != null) live.reload() else load(current.url)
     }
 
     override fun navigateToPagePlace() {
         val place = mutable.value.pagePlace ?: return
-        mutable.value = mutable.value.copy(pendingAction = ExternalAction.UseAsDestination(place.latitude, place.longitude))
+        mutable.value = WebBrowserStateReducer.asking(
+            mutable.value,
+            ExternalAction.UseAsDestination(place.latitude, place.longitude),
+        )
     }
 
     override fun confirmAction() {
         val action = mutable.value.pendingAction ?: return
-        mutable.value = mutable.value.copy(pendingAction = null)
+        mutable.value = WebBrowserStateReducer.answered(mutable.value)
         when (action) {
             is ExternalAction.Dial -> start(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", action.number, null)))
             is ExternalAction.Mail -> start(Intent(Intent.ACTION_SENDTO, Uri.fromParts("mailto", action.address, null)))
@@ -103,7 +110,7 @@ internal class GeckoWebBrowserHost(
     }
 
     override fun dismissAction() {
-        mutable.value = mutable.value.copy(pendingAction = null)
+        mutable.value = WebBrowserStateReducer.answered(mutable.value)
     }
 
     @Composable
@@ -139,13 +146,7 @@ internal class GeckoWebBrowserHost(
         } catch (_: Exception) {
             ""
         }
-        val current = mutable.value
-        val moved = host.isNotEmpty() && host != current.host
-        mutable.value = current.copy(
-            url = url,
-            host = host.ifEmpty { current.host },
-            pagePlace = if (moved) null else current.pagePlace,
-        )
+        mutable.value = WebBrowserStateReducer.location(mutable.value, url, host)
     }
 
     /**
@@ -159,8 +160,9 @@ internal class GeckoWebBrowserHost(
         if (HostMatching.registrableDomain(page.url.host) != HostMatching.registrableDomain(current.host)) return
         val resolved = pageResolver?.invoke(page, JsonLdPlaceParser.parse(page.jsonLd)) ?: return
         val name = resolved.place.name.ifEmpty { current.title.ifEmpty { current.host } }
-        mutable.value = current.copy(
-            pagePlace = BrowserPagePlace(
+        mutable.value = WebBrowserStateReducer.pagePlace(
+            current,
+            BrowserPagePlace(
                 latitude = resolved.place.position.latitude,
                 longitude = resolved.place.position.longitude,
                 name = name,
@@ -170,29 +172,23 @@ internal class GeckoWebBrowserHost(
     }
 
     override fun onHistory(canGoBack: Boolean, canGoForward: Boolean) {
-        mutable.value = mutable.value.copy(canGoBack = canGoBack, canGoForward = canGoForward)
+        mutable.value = WebBrowserStateReducer.history(mutable.value, canGoBack, canGoForward)
     }
 
     override fun onTitle(title: String) {
-        mutable.value = mutable.value.copy(title = title)
+        mutable.value = WebBrowserStateReducer.title(mutable.value, title)
     }
 
     override fun onLoading(loading: Boolean, failed: Boolean) {
-        val current = mutable.value
-        // A new load starts from nothing: what the last page said is not about this one.
-        mutable.value = current.copy(
-            loading = loading,
-            failed = failed,
-            pagePlace = if (loading) null else current.pagePlace,
-        )
+        mutable.value = WebBrowserStateReducer.loading(mutable.value, loading, failed)
     }
 
     override fun onSecurity(secure: Boolean) {
-        mutable.value = mutable.value.copy(secure = secure)
+        mutable.value = WebBrowserStateReducer.security(mutable.value, secure)
     }
 
     override fun onExternalAction(action: ExternalAction) {
-        mutable.value = mutable.value.copy(pendingAction = action)
+        mutable.value = WebBrowserStateReducer.asking(mutable.value, action)
     }
 
     override fun onNewWindow(url: String) {
@@ -209,7 +205,7 @@ internal class GeckoWebBrowserHost(
     /** The engine crashed or was killed: the page is gone, the app is not, and a retry is offered. */
     override fun onEngineGone() {
         endSession()
-        mutable.value = mutable.value.copy(loading = false, failed = true, canGoBack = false, canGoForward = false)
+        mutable.value = WebBrowserStateReducer.engineGone(mutable.value)
     }
 
     // --- internals -----------------------------------------------------------------------
