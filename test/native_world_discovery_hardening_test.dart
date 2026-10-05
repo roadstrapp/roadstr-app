@@ -93,9 +93,23 @@ void main() {
       expect(File('docs/world-discovery/$doc').existsSync(), isTrue, reason: doc);
     }
     final decisions = _read('docs/world-discovery/DECISIONS.md');
-    for (var n = 1; n <= 45; n++) {
+    for (var n = 1; n <= 49; n++) {
       expect(decisions, contains('| D-${n.toString().padLeft(2, '0')} |'), reason: 'D-$n');
     }
+  });
+
+  test('the measurements keep the device results apart from what was only read off the builds', () {
+    final measurements = _read('docs/world-discovery/MEASUREMENTS.md');
+    for (final heading in ['## 1. Known from the builds', '## 3. Results on a device', '### In-place update, signed with the release key']) {
+      expect(measurements, contains(heading), reason: heading);
+    }
+  });
+
+  test('the update candidate is opt-in and leaves the default build identity alone', () {
+    final gradle = _read('native-android/app/build.gradle.kts');
+    expect(gradle, contains('providers.gradleProperty("candidate")'));
+    expect(gradle, contains('The update candidate and the GeckoView variant are separate builds'));
+    expect(gradle, contains('applicationId = "app.roadstr.roadtest"'));
   });
 
   test('the localisation review tells the truth about which languages have a full vocabulary', () {
