@@ -33,6 +33,32 @@ requirement.
 | AndroidX / Jetpack Compose | Apache-2.0 |
 | Flutter and its plugins (production app) | BSD-3-Clause and the licences listed by `flutter pub deps` |
 
+## Optional build variant: in-app browser
+
+Only the variant built with `native-android/gradlew-geckoview` contains these; the default build and
+the Flutter app do not.
+
+| Component | Where | Licence |
+|---|---|---|
+| [GeckoView](https://geckoview.dev/) 157 (Mozilla), unmodified binary from `https://maven.mozilla.org/maven2` | `org.mozilla.geckoview:geckoview-arm64-v8a:157.0.20260924084938`, source at the revision named in its POM (`hg.mozilla.org/releases/mozilla-release`) | **MPL-2.0** — file-level copyleft; Roadstr's own files stay MIT |
+| kotlin-stdlib, AndroidX (core, lifecycle, annotation, collection), snakeyaml | pulled in by GeckoView | Apache-2.0 |
+
+GeckoView's POM also depends on `com.google.android.gms:play-services-fido` (Google's proprietary
+terms). The variant excludes it, and the APK defines no `com.google.android.gms` class; four
+references to its types remain inside GeckoView's WebAuthn code, which never loads because WebAuthn
+is switched off. `native-android/verify-geckoview-variant.sh` checks this. GeckoView's exported
+clipboard provider is removed from the merged manifest.
+
+The bundled page extension (`native-android/app/src/gecko/assets/web/place-extractor/`) is Roadstr's
+own work, MIT.
+
+## Services Roadstr can talk to
+
+| Service | Use | Note |
+|---|---|---|
+| [SearXNG](https://docs.searxng.org/) (AGPL-3.0, server software) | optional web results, through an instance **the user chooses** | HTTP API only: no SearXNG code is linked, embedded or shipped, and no instance is built in |
+| [Nominatim](https://nominatim.org/) and [Overpass](https://overpass-api.de/) | place search | ODbL data; the Nominatim usage policy is followed (1.1 s between calls, identifying user agent, no autocomplete) |
+
 ## Data and models downloaded at run time
 
 | Asset | Licence |

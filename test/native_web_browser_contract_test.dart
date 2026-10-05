@@ -187,7 +187,12 @@ void main() {
       final host = _read('$_gecko/GeckoWebBrowserHost.kt');
       expect(host, contains('WebPageMessageSchema.parse(raw) ?: return'));
       expect(host, contains('HostMatching.registrableDomain(page.url.host) != HostMatching.registrableDomain(current.host)'));
-      expect(host, contains('pagePlace = if (loading) null else current.pagePlace'));
+      // What a page said about its place is dropped when a new load starts; the rules live in the reducer.
+      expect(host, contains('WebBrowserStateReducer.loading(mutable.value, loading, failed)'));
+      expect(host, contains('WebBrowserStateReducer.engineGone(mutable.value)'));
+      final reducer = _read('$_root/feature/web/WebBrowserStateReducer.kt');
+      expect(reducer, contains('pagePlace = if (loading) null else state.pagePlace'));
+      expect(reducer, contains('pagePlace = if (moved) null else state.pagePlace'));
       final extractor = _read('$_gecko/GeckoPagePlaceExtractor.kt');
       expect(extractor, contains('ensureBuiltIn(LOCATION, ID)'));
       expect(extractor, contains('setAllowedInPrivateBrowsing(extension, true)'));

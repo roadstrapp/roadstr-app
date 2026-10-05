@@ -21,7 +21,7 @@ data class BrowserPagePlace(
     val linked: Boolean,
 ) {
     // A name and a position are where the user may be going.
-    override fun toString(): String = "BrowserPagePlace(linked=)"
+    override fun toString(): String = "BrowserPagePlace(linked=$linked)"
 }
 
 /** What the in-app browser shows about the page it has open. */
