@@ -45,6 +45,16 @@ data class NativeMapCameraSessionState(
     val frameActive: Boolean,
     val lastFixSequence: Long,
     val command: NativeMapCameraCommand?,
+    /**
+     * Where the vehicle is drawn: the last fix, advanced along its heading by
+     * dead reckoning on every frame that moves the camera. Published together
+     * with [command] so the cursor and the map move in the same step; a cursor
+     * that waits for the next fix while the camera glides ahead creeps back
+     * against the map and then jumps.
+     */
+    val displayPoint: NativeMapPoint? = null,
+    /** Changes with every new [displayPoint], for consumers that need an ordering. */
+    val displaySequence: Long = 0L,
 )
 
 /**
@@ -75,6 +85,9 @@ class NativeMapCameraSession {
     private var command: NativeMapCameraCommand? = null
     private var frameActive = false
     private var forceNextCommand = false
+    private var displayPoint: NativeMapPoint? = null
+    private var displaySequence = 0L
+    private var compassHeading: Double? = null
 
     val state: StateFlow<NativeMapCameraSessionState> = _state.asStateFlow()
 
@@ -141,7 +154,24 @@ class NativeMapCameraSession {
             speedMetersPerSecond = speedMetersPerSecond,
             receivedAtMillis = receivedAtMillis,
         )
+        // A real fix corrects the drawn position at once, whether or not the
+        // camera is following.
+        displayPoint = point
+        displaySequence += 1
         frameActive = followEnabled
+        publish()
+        true
+    }
+
+    /**
+     * While the vehicle stands still outside navigation the heading-up map
+     * turns with the phone's compass; null hands the bearing back to the fix.
+     */
+    fun setCompassHeading(degrees: Double?): Boolean = synchronized(lock) {
+        val normalized = degrees?.takeIf { it.isFinite() }?.let(::normalizeBearing)
+        if (compassHeading == normalized) return false
+        compassHeading = normalized
+        if (followEnabled && fix != null) frameActive = true
         publish()
         true
     }
@@ -172,6 +202,12 @@ class NativeMapCameraSession {
                 durationMillis = 0,
             )
             forceNextCommand = false
+            // Same step as the camera: the vehicle advances only on a frame
+            // that actually moved the map.
+            deadReckoned(currentFix, nowMillis)?.let {
+                displayPoint = it
+                displaySequence += 1
+            }
         }
         if (settled) frameActive = false
         publish()
@@ -308,6 +344,19 @@ class NativeMapCameraSession {
         true
     }
 
+    /** The fix advanced along its heading, or null while it is not moving. */
+    private fun deadReckoned(fix: CameraFix, nowMillis: Long): NativeMapPoint? {
+        val elapsedMillis = (nowMillis - fix.receivedAtMillis).coerceIn(0, DEAD_RECKONING_CAP_MILLIS)
+        if (fix.speedMetersPerSecond <= 0.0 || elapsedMillis <= 0L) return null
+        val shifted = CameraFollowEasing.shiftByMeters(
+            latitude = fix.point.latitude,
+            longitude = fix.point.longitude,
+            headingDegrees = fix.headingDegrees,
+            shiftMeters = fix.speedMetersPerSecond * elapsedMillis / 1000.0,
+        )
+        return NativeMapPoint(shifted.latitude, shifted.longitude)
+    }
+
     private fun targetFor(fix: CameraFix, nowMillis: Long): CameraFollowState {
         val elapsedMillis = (nowMillis - fix.receivedAtMillis).coerceIn(0, DEAD_RECKONING_CAP_MILLIS)
         val predicted = if (fix.speedMetersPerSecond > 0.0 && elapsedMillis > 0L) {
@@ -320,7 +369,7 @@ class NativeMapCameraSession {
         } else {
             app.roadstr.core.map.CameraCenter(fix.point.latitude, fix.point.longitude)
         }
-        val bearing = if (headingUp) fix.headingDegrees else 0.0
+        val bearing = if (headingUp) (compassHeading ?: fix.headingDegrees) else 0.0
         // MapLibre can place its target inside a padded viewport. Keep the
         // target on the real GPS point and let renderer padding move it below
         // centre, leaving road ahead visible without an error-prone geographic
@@ -368,6 +417,8 @@ class NativeMapCameraSession {
             frameActive = frameActive,
             lastFixSequence = fix?.sequence ?: NO_FIX_SEQUENCE,
             command = command,
+            displayPoint = displayPoint,
+            displaySequence = displaySequence,
         )
     }
 

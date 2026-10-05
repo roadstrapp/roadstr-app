@@ -79,7 +79,9 @@ void main() {
 
     expect(source, contains('mapEngine = when (settingsState.values.mapEngine)'));
     expect(source, contains('NativeMapEngine.MapLibre'));
-    expect(source, contains('tileUrl = NativeMapStyle.DEFAULT_TILE_URL'));
+    // A custom source is used only if the policy accepts it; otherwise the default.
+    expect(source, contains('NativeTileUrlPolicy.requireAccepted(settingsState.values.mapTileUrl)'));
+    expect(source, contains('getOrDefault(NativeMapStyle.DEFAULT_TILE_URL)'));
     expect(source, isNot(contains('Hive')));
     expect(source, isNot(contains('FlutterSecureStorage')));
   });

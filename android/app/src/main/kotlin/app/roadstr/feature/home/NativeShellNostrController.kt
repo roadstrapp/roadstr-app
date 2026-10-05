@@ -4,7 +4,9 @@ import app.roadstr.core.protocol.nostr.BoundedJsonParser
 import app.roadstr.core.protocol.nostr.NostrJson
 import app.roadstr.core.protocol.nostr.RoadstrNostrEvents
 import app.roadstr.feature.map.NativeMapPoint
+import app.roadstr.feature.report.NativeRoadEventEditRequestInput
 import app.roadstr.feature.report.NativeRoadEventInput
+import app.roadstr.feature.report.NativeRoadEventPresenter
 import app.roadstr.feature.report.NativeRoadEventSession
 import app.roadstr.feature.saved.NativeSavedPlace
 import app.roadstr.feature.saved.NativeSavedPlacesProtocol
@@ -23,6 +25,8 @@ import kotlinx.coroutines.withContext
 enum class NativeShellMessage {
     SyncSuccess,
     SyncFailed,
+    SyncNotFound,
+    SyncNothingToPublish,
     ExportSuccess,
     ExportFailed,
     ImportSuccess,
@@ -38,6 +42,7 @@ enum class NativeShellMessage {
     SpeedUpdateSent,
     EditRequestSent,
     SpeedUpdateFailed,
+    ZapSent,
 }
 
 /**
@@ -61,6 +66,12 @@ class NativeShellFavoritesController(
 
     fun push() {
         if (busy || nostr.signer.pubkeyHex == null) return
+        // The snapshot is authoritative: publishing an empty list from a device
+        // that simply has not pulled yet would wipe the one stored on the relays.
+        if (favorites().isEmpty()) {
+            message(NativeShellMessage.SyncNothingToPublish, 0)
+            return
+        }
         busy = true
         setBusy(true)
         scope.launch {
@@ -93,8 +104,10 @@ class NativeShellFavoritesController(
         busy = true
         setBusy(true)
         scope.launch {
+            var found = true
             val merged = try {
                 var result = nostr.favoritesSync.pull()
+                found = result != NativeFavoritesPull.NotFound
                 if (result == NativeFavoritesPull.Locked) {
                     // Sealed with a passphrase this device does not have (new
                     // device, or changed elsewhere): ask once and retry.
@@ -111,7 +124,7 @@ class NativeShellFavoritesController(
                 setBusy(false)
             }
             if (merged == null) {
-                message(NativeShellMessage.SyncFailed, 0)
+                message(if (found) NativeShellMessage.SyncFailed else NativeShellMessage.SyncNotFound, 0)
                 return@launch
             }
             mergeFavorites(merged)
@@ -318,28 +331,88 @@ class NativeShellReportController(
         }
     }
 
-    /** Shows [event], then upgrades the reporter line if they chose to be public. */
+    /** The report on screen, so a zap or an edit acts on exactly what the driver sees. */
+    @Volatile
+    var currentEvent: NativeRoadEvent? = null
+        private set
+
+    /** Re-renders the open report with one more fact; null when no report is open. */
+    private var updateDetail: ((EventView.() -> Unit) -> Unit)? = null
+
+    /** What the panel knows about a report beyond the report itself. */
+    class EventView(
+        var public: Boolean = false,
+        var label: String? = null,
+        var editRequests: List<NativeRoadEventEditRequestInput> = emptyList(),
+        var zapSats: Long = 0,
+    )
+
+    /**
+     * Shows [event], then fills in what needs the network: the reporter's name
+     * if they chose to be public, the zaps it earned, and for its owner the
+     * speed-limit suggestions waiting on it.
+     */
     fun showEvent(event: NativeRoadEvent) {
         val viewer = nostr.signer.pubkeyHex
-        val revision = session.state.value.revision.coerceAtLeast(0L) + 1L
-        if (!session.showDetail(revision, input(event, viewer, public = false, label = null), nowSeconds())) return
-        scope.launch {
-            val public = nostr.visibility.fetch(event.pubkey) == true
-            if (!public) return@launch
-            val label = nostr.profileLookup(event.pubkey)?.let { it.displayName ?: it.name }
-            // Only if the driver is still looking at this very report.
+        val view = EventView()
+        var shown = session.state.value.revision.coerceAtLeast(0L) + 1L
+        if (!session.showDetail(shown, input(event, viewer, view), nowSeconds())) return
+        currentEvent = event
+        val update: (EventView.() -> Unit) -> Unit = { change ->
             val current = session.state.value
-            if (current.revision != revision || current.detail?.id != event.id) return@launch
-            session.showDetail(revision + 1, input(event, viewer, public = true, label = label), nowSeconds())
+            // Only while the driver is still looking at this very report.
+            if (current.revision == shown && current.detail?.id == event.id) {
+                view.change()
+                if (session.showDetail(shown + 1, input(event, viewer, view), nowSeconds())) shown += 1
+            }
+        }
+        updateDetail = update
+
+        scope.launch {
+            if (nostr.visibility.fetch(event.pubkey) != true) return@launch
+            val label = nostr.profileLookup(event.pubkey)?.let { it.displayName ?: it.name }
+            update { public = true; this.label = label }
+        }
+        nostr.zaps?.let { zaps ->
+            scope.launch {
+                val sats = (zaps.zapTotalMsat(event.id, event.pubkey) / MSAT_PER_SAT)
+                    .coerceIn(0L, NativeRoadEventPresenter.MAX_COUNTER.toLong())
+                if (sats > 0) update { zapSats = sats }
+            }
+        }
+        if (viewer != null && viewer == event.pubkey) {
+            nostr.userReports?.let { reports ->
+                scope.launch {
+                    val requests = reports.editRequests(event.id)
+                        .take(NativeRoadEventPresenter.MAX_EDIT_REQUESTS)
+                        .map {
+                            NativeRoadEventEditRequestInput(
+                                id = it.id,
+                                eventId = it.eventId,
+                                requesterPubkey = it.requesterPubkey,
+                                speedLimitKmh = it.speedLimitKmh,
+                                comment = it.comment,
+                                createdAtSeconds = it.createdAt,
+                            )
+                        }
+                    if (requests.isNotEmpty()) update { editRequests = requests }
+                }
+            }
         }
     }
 
-    private fun input(
-        event: NativeRoadEvent,
-        viewer: String?,
-        public: Boolean,
-        label: String?,
-    ) = NativeRoadEventInput(
+    /** A zap of [sats] was confirmed: show it on the report without asking the relays again. */
+    fun zapPaid(sats: Int) {
+        updateDetail?.invoke { zapSats = (zapSats + sats).coerceAtMost(NativeRoadEventPresenter.MAX_COUNTER.toLong()) }
+    }
+
+    /** The owner accepts a suggested limit: it becomes a signed update of their report. */
+    fun acceptEditRequest(event: NativeRoadEvent, requestId: String) {
+        val request = session.state.value.detail?.editRequests?.firstOrNull { it.id == requestId } ?: return
+        editSpeedLimit(event, request.speedLimitKmh)
+    }
+
+    private fun input(event: NativeRoadEvent, viewer: String?, view: EventView) = NativeRoadEventInput(
         id = event.id,
         pubkey = event.pubkey,
         category = event.category,
@@ -351,8 +424,14 @@ class NativeShellReportController(
         speedLimitKmh = event.speedLimit,
         confirmations = event.confirmations,
         denials = event.denials,
+        zapSats = view.zapSats,
         viewerPubkey = viewer,
-        reporterPublic = public,
-        reporterLabel = label,
+        reporterPublic = view.public,
+        reporterLabel = view.label,
+        editRequests = view.editRequests,
     )
+
+    private companion object {
+        const val MSAT_PER_SAT = 1_000L
+    }
 }

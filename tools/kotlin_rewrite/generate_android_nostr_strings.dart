@@ -35,6 +35,25 @@ const _arbKeys = <String, String>{
   'native_nostr_edit_speed_title': 'editSpeedLimit',
   'native_nostr_request_speed_title': 'requestSpeedLimit',
   'native_nostr_speed_hint': 'speedLimitHint',
+  'native_settings_gh_url_required': 'graphhopperServerUrlRequired',
+  'native_settings_gh_reachable': 'graphhopperServerReachable',
+  'native_zap_title': 'sendZap',
+  'native_zap_choose_amount': 'chooseAmountSats',
+  'native_zap_custom_amount': 'customAmount',
+  'native_zap_sending': 'zapSending',
+  'native_zap_send_button': 'zapAmountButton',
+  'native_zap_sent': 'zapSent',
+  'native_zap_status_fetching_address': 'fetchingLightningAddress',
+  'native_zap_status_no_address': 'noLightningAddress',
+  'native_zap_status_requesting_invoice': 'requestingInvoice',
+  'native_zap_status_lnurl_unavailable': 'lnurlUnavailable',
+  'native_zap_status_invoice_failed': 'invoiceFailed',
+  'native_zap_status_opening_wallet': 'openingWallet',
+  'native_zap_status_paying_nwc': 'payingViaNwc',
+  'native_zap_status_no_wallet': 'noLightningWallet',
+  'native_map_my_location': 'myLocation',
+  'native_map_report_event': 'reportAnEvent',
+  'native_map_add_stop': 'plannerAddStop',
   'native_nostr_cancel': 'cancel',
   'native_nostr_ok': 'ok',
   // Previously hand-written in the settings, navigation and saved-places
@@ -408,6 +427,140 @@ const _explicit = <String, Map<String, String>>{
     'sv': 'Ingen app kan öppna den här länken',
     'zh': '没有可打开此链接的应用',
   },
+  'native_nostr_sync_not_found': {
+    'bg': 'Все още няма любими места в релетата ти',
+    'cs': 'Ve tvých relay zatím nejsou žádná oblíbená místa',
+    'da': 'Ingen favoritter fundet på dine relays endnu',
+    'de': 'Auf deinen Relays wurden noch keine Favoriten gefunden',
+    'el': 'Δεν βρέθηκαν ακόμη αγαπημένα στα relay σου',
+    'en': 'No favorites found on your relays yet',
+    'es': 'Todavía no hay favoritos en tus relays',
+    'et': 'Sinu releedest ei leitud veel lemmikuid',
+    'fi': 'Releistäsi ei löytynyt vielä suosikkeja',
+    'fr': "Aucun favori trouvé sur tes relais pour l'instant",
+    'ga': 'Níor aimsíodh aon ceann is fearr leat ar do athsheachadáin go fóill',
+    'hr': 'Na tvojim relayima još nema favorita',
+    'hu': 'A relayeken még nincsenek kedvencek',
+    'it': 'Nessun preferito trovato sui tuoi relay',
+    'ja': 'リレーにお気に入りはまだありません',
+    'lt': 'Tavo relay dar nerasta mėgstamų vietų',
+    'lv': 'Tavos relay vēl nav atrasta neviena izlase',
+    'mt': 'Għadu ma nstab l-ebda favorit fir-relays tiegħek',
+    'nl': 'Nog geen favorieten gevonden op je relays',
+    'pl': 'Na twoich relayach nie ma jeszcze ulubionych',
+    'pt': 'Ainda não há favoritos nos teus relays',
+    'ro': 'Încă nu s-au găsit favorite pe relay-urile tale',
+    'ru': 'На твоих релеях пока нет избранного',
+    'sk': 'Na tvojich relay zatiaľ nie sú žiadne obľúbené',
+    'sl': 'Na tvojih relayih še ni priljubljenih',
+    'sv': 'Inga favoriter hittades på dina relays ännu',
+    'zh': '你的中继上还没有找到收藏',
+  },
+  'native_nostr_sync_empty': {
+    'bg': 'Няма какво да се публикува. Добави място или първо изтегли от Nostr',
+    'cs': 'Zatím není co publikovat. Přidej místo nebo nejdřív stáhni z Nostru',
+    'da': 'Intet at udgive endnu. Tilføj et sted, eller hent først fra Nostr',
+    'de':
+        'Noch nichts zu veröffentlichen. Füge einen Ort hinzu oder hole zuerst von Nostr',
+    'el':
+        'Δεν υπάρχει ακόμη τίποτα για δημοσίευση. Πρόσθεσε μια τοποθεσία ή ανάκτησε πρώτα από το Nostr',
+    'en': 'Nothing to publish yet. Add a place, or pull from Nostr first',
+    'es':
+        'Aún no hay nada que publicar. Añade un lugar o recupera primero desde Nostr',
+    'et': 'Pole veel midagi avaldada. Lisa koht või too esmalt Nostrist',
+    'fi': 'Ei vielä mitään julkaistavaa. Lisää paikka tai hae ensin Nostrista',
+    'fr':
+        "Rien à publier pour l'instant. Ajoute un lieu ou récupère d'abord depuis Nostr",
+    'ga':
+        'Níl aon rud le foilsiú go fóill. Cuir áit leis nó tarraing ó Nostr ar dtús',
+    'hr': 'Još nema ničega za objavu. Dodaj mjesto ili prvo preuzmi s Nostra',
+    'hu':
+        'Még nincs mit közzétenni. Adj hozzá egy helyet, vagy előbb töltsd le a Nostrról',
+    'it':
+        'Niente da pubblicare per ora. Aggiungi un luogo o recupera prima da Nostr',
+    'ja': '公開するものがありません。場所を追加するか、先にNostrから取得してください',
+    'lt':
+        'Kol kas nėra ką skelbti. Pridėk vietą arba pirmiausia atsisiųsk iš Nostr',
+    'lv':
+        'Pagaidām nav ko publicēt. Pievieno vietu vai vispirms ielādē no Nostr',
+    'mt': "Għad m'hemm xejn x'tippubblika. Żid post jew ġib minn Nostr l-ewwel",
+    'nl':
+        'Nog niets om te publiceren. Voeg een plek toe of haal eerst op van Nostr',
+    'pl':
+        'Na razie nie ma czego opublikować. Dodaj miejsce lub najpierw pobierz z Nostr',
+    'pt':
+        'Ainda não há nada para publicar. Adiciona um local ou recupera primeiro do Nostr',
+    'ro':
+        'Încă nu e nimic de publicat. Adaugă un loc sau recuperează mai întâi de pe Nostr',
+    'ru': 'Пока нечего публиковать. Добавь место или сначала загрузи из Nostr',
+    'sk':
+        'Zatiaľ nie je čo publikovať. Pridaj miesto alebo najprv stiahni z Nostru',
+    'sl': 'Še ni ničesar za objavo. Dodaj mesto ali najprej prenesi iz Nostra',
+    'sv':
+        'Inget att publicera ännu. Lägg till en plats eller hämta först från Nostr',
+    'zh': '暂无可发布的内容。请先添加地点，或先从 Nostr 拉取',
+  },
+  'native_settings_gh_unreachable': {
+    'bg': 'Не може да се стигне до GraphHopper сървър на този адрес',
+    'cs': 'Na této adrese se nepodařilo najít server GraphHopper',
+    'da': 'Kunne ikke nå en GraphHopper-server på den adresse',
+    'de': 'Unter dieser Adresse ist kein GraphHopper-Server erreichbar',
+    'el':
+        'Δεν ήταν δυνατή η σύνδεση με διακομιστή GraphHopper σε αυτή τη διεύθυνση',
+    'en': "Couldn't reach a GraphHopper server at that address",
+    'es': 'No se pudo conectar con un servidor GraphHopper en esa dirección',
+    'et':
+        'Sellel aadressil ei õnnestunud GraphHopperi serveriga ühendust saada',
+    'fi': 'GraphHopper-palvelinta ei tavoitettu tuosta osoitteesta',
+    'fr': 'Impossible de joindre un serveur GraphHopper à cette adresse',
+    'ga':
+        'Níorbh fhéidir freastalaí GraphHopper a bhaint amach ag an seoladh sin',
+    'hr': 'Na toj adresi nije moguće doći do GraphHopper poslužitelja',
+    'hu': 'Ezen a címen nem érhető el GraphHopper-szerver',
+    'it': 'Impossibile raggiungere un server GraphHopper a questo indirizzo',
+    'ja': 'そのアドレスのGraphHopperサーバーに接続できませんでした',
+    'lt': 'Nepavyko pasiekti GraphHopper serverio šiuo adresu',
+    'lv': 'Šajā adresē neizdevās sasniegt GraphHopper serveri',
+    'mt': "Ma setax jintlaħaq server GraphHopper f'dak l-indirizz",
+    'nl': 'Geen GraphHopper-server bereikbaar op dat adres',
+    'pl': 'Nie udało się połączyć z serwerem GraphHopper pod tym adresem',
+    'pt': 'Não foi possível alcançar um servidor GraphHopper nesse endereço',
+    'ro': 'Nu s-a putut ajunge la un server GraphHopper la această adresă',
+    'ru': 'Не удалось подключиться к серверу GraphHopper по этому адресу',
+    'sk': 'Na tejto adrese sa nepodarilo nájsť server GraphHopper',
+    'sl': 'Na tem naslovu ni mogoče doseči strežnika GraphHopper',
+    'sv': 'Det gick inte att nå en GraphHopper-server på den adressen',
+    'zh': '无法连接到该地址的 GraphHopper 服务器',
+  },
+  'native_map_compass': {
+    'bg': 'Компас',
+    'cs': 'Kompas',
+    'da': 'Kompas',
+    'de': 'Kompass',
+    'el': 'Πυξίδα',
+    'en': 'Compass',
+    'es': 'Brújula',
+    'et': 'Kompass',
+    'fi': 'Kompassi',
+    'fr': 'Boussole',
+    'ga': 'Compás',
+    'hr': 'Kompas',
+    'hu': 'Iránytű',
+    'it': 'Bussola',
+    'ja': 'コンパス',
+    'lt': 'Kompasas',
+    'lv': 'Kompass',
+    'mt': 'Kumpass',
+    'nl': 'Kompas',
+    'pl': 'Kompas',
+    'pt': 'Bússola',
+    'ro': 'Busolă',
+    'ru': 'Компас',
+    'sk': 'Kompas',
+    'sl': 'Kompas',
+    'sv': 'Kompass',
+    'zh': '指南针',
+  },
 };
 
 /// Identical in every language: an example address, not prose.
@@ -419,8 +572,10 @@ String _resourceFolder(String language) =>
     language == 'en' ? 'values' : 'values-$language';
 
 String _androidText(String source, String sourceKey) {
-  // The only placeholder in this catalogue: how many favourites were imported.
-  final withPlaceholder = source.replaceAll('{n}', '\u0000N\u0000');
+  // The only placeholders in this catalogue are counts: places imported, sats.
+  final withPlaceholder = source
+      .replaceAll('{n}', '\u0000N\u0000')
+      .replaceAll('{sats}', '\u0000N\u0000');
   if (RegExp(r'\{[^}]+\}').hasMatch(withPlaceholder)) {
     throw FormatException('Unsupported placeholder in $sourceKey: $source');
   }

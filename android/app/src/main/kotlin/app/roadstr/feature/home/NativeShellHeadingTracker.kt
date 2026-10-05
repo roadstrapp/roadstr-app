@@ -21,7 +21,19 @@ class NativeShellHeadingTracker(
     var headingDegrees: Double = 0.0
         private set
 
+    /** Above walking pace with hysteresis: the only time the map is dead-reckoned. */
+    val isMoving: Boolean get() = filter.isMoving
+
     private var origin: GeoPoint? = null
+
+    /**
+     * The map was turned by the compass at a standstill: that is now the
+     * bearing the next fix measures from, as the Flutter screen reads it back
+     * from the camera.
+     */
+    fun adopt(degrees: Double) {
+        if (degrees.isFinite()) headingDegrees = degrees
+    }
 
     /** New navigation session: forget any half-confirmed reversal. */
     fun resetReversal() = filter.reset()

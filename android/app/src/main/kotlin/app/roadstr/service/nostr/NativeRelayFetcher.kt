@@ -3,7 +3,9 @@ package app.roadstr.service.nostr
 import app.roadstr.core.protocol.nostr.NostrIngressRoute
 import app.roadstr.core.protocol.nostr.NostrIngressRule
 import app.roadstr.core.protocol.nostr.NostrRelayEoseMessage
+import app.roadstr.core.protocol.nostr.NostrRelayClosedMessage
 import app.roadstr.core.protocol.nostr.NostrRelayEventMessage
+import app.roadstr.core.protocol.nostr.NostrRelayNoticeMessage
 import app.roadstr.core.protocol.nostr.NostrRelayIngress
 import app.roadstr.core.protocol.nostr.NostrRelayMessageDecoder
 import app.roadstr.core.protocol.nostr.NostrRelayWire
@@ -25,6 +27,8 @@ import kotlinx.coroutines.withTimeoutOrNull
 class NativeRelayFetcher(
     private val connector: NativeRelayConnector,
     private val timeoutMillis: Long = DEFAULT_TIMEOUT_MILLIS,
+    /** Host-level notes on how each relay behaved; never event content. */
+    private val diagnostics: (String) -> Unit = {},
 ) {
     suspend fun fetch(
         url: String,
@@ -34,8 +38,22 @@ class NativeRelayFetcher(
         route: NostrIngressRoute,
         maxEvents: Int,
         accept: (Map<String, Any?>) -> Boolean,
+    ): List<Map<String, Any?>> =
+        fetch(url, subscriptionId, filter, mapOf(kind to route), maxEvents, accept)
+
+    /** Same query for a filter that asks for several kinds, each routed on its own. */
+    suspend fun fetch(
+        url: String,
+        subscriptionId: String,
+        filter: Map<String, Any?>,
+        routes: Map<Int, NostrIngressRoute>,
+        maxEvents: Int,
+        accept: (Map<String, Any?>) -> Boolean,
     ): List<Map<String, Any?>> {
         val collected = ArrayList<Map<String, Any?>>()
+        val host = url.removePrefix("wss://").substringBefore('/')
+        var seen = 0
+        val everOpened = AtomicBoolean(false)
         val frame = NostrRelayWire.encode(listOf("REQ", subscriptionId, filter))
         val socketRef = AtomicReference<NativeRelaySocket?>(null)
         val ingress = NostrRelayIngress(
@@ -43,7 +61,7 @@ class NativeRelayFetcher(
                 NostrIngressRule(
                     name = "fetch",
                     subscriptionId = subscriptionId,
-                    routes = mapOf(kind to route),
+                    routes = routes,
                     maxEvents = maxEvents,
                 ),
             ),
@@ -67,6 +85,7 @@ class NativeRelayFetcher(
                         url,
                         object : NativeRelayEvents {
                             override fun onOpen() {
+                                everOpened.set(true)
                                 opened.set(true)
                                 trySend()
                             }
@@ -75,9 +94,22 @@ class NativeRelayFetcher(
                                 if (done.get()) return
                                 when (val message = NostrRelayMessageDecoder.decode(text).message) {
                                     is NostrRelayEoseMessage ->
-                                        if (message.subscriptionId == subscriptionId) finish()
+                                        if (message.subscriptionId == subscriptionId) {
+                                            diagnostics("fetch $host: EOSE, $seen events seen, ${collected.size} accepted")
+                                            finish()
+                                        }
+
+                                    is NostrRelayClosedMessage ->
+                                        if (message.subscriptionId == subscriptionId) {
+                                            diagnostics("fetch $host: CLOSED ${message.detail.toString().take(80)}")
+                                            finish()
+                                        }
+
+                                    is NostrRelayNoticeMessage ->
+                                        diagnostics("fetch $host: NOTICE ${message.detail.toString().take(80)}")
 
                                     is NostrRelayEventMessage -> {
+                                        seen++
                                         val decision = ingress.inspect(
                                             message.subscriptionId,
                                             message.event["kind"],
@@ -93,10 +125,14 @@ class NativeRelayFetcher(
                                 }
                             }
 
-                            override fun onEnded() = finish()
+                            override fun onEnded() {
+                                diagnostics("fetch $host: connection ended ($seen events seen)")
+                                finish()
+                            }
                         },
                     )
-                } catch (_: Exception) {
+                } catch (error: Exception) {
+                    diagnostics("fetch $host: could not connect (${error.javaClass.simpleName})")
                     finish()
                     return@suspendCancellableCoroutine
                 }
@@ -106,6 +142,7 @@ class NativeRelayFetcher(
             }
         }
         socketRef.get()?.close()
+        if (!everOpened.get()) diagnostics("fetch $host: never opened")
         return synchronized(collected) { collected.toList() }
     }
 

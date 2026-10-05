@@ -8,6 +8,7 @@ import android.widget.FrameLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -135,10 +136,16 @@ fun NativeMapLibreHost(
         }
     }
 
-    AndroidView(
-        factory = { host.rootView },
-        modifier = modifier.semantics { contentDescription = mapDescription },
-    )
+    // A new engine builds a new host, and AndroidView only calls its factory
+    // once per node. Keyed by the host, the old view is dropped with its
+    // disposed MapView and the new one is attached; without the key the screen
+    // kept showing the destroyed map and every camera call hit a dead MapView.
+    key(host) {
+        AndroidView(
+            factory = { host.rootView },
+            modifier = modifier.semantics { contentDescription = mapDescription },
+        )
+    }
 }
 
 private class NativeMapLibreViewHost private constructor(

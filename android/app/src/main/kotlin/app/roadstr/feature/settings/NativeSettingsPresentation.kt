@@ -36,12 +36,24 @@ enum class NativeSettingsRoutingProvider(val storageValue: String) {
     }
 }
 
-enum class NativeSettingsSearchEngine(val storageValue: String) {
-    Qwant("qwant"),
-    Brave("brave"),
-    DuckDuckGo("ddg"),
-    Startpage("startpage"),
-    Google("google");
+enum class NativeSettingsSearchEngine(val storageValue: String, val displayName: String) {
+    Qwant("qwant", "Qwant"),
+    Brave("brave", "Brave"),
+    DuckDuckGo("ddg", "DuckDuckGo"),
+    Startpage("startpage", "Startpage"),
+    Google("google", "Google");
+
+    /** The results page of this engine for [query], as Flutter's place panel builds it. */
+    fun searchUrl(query: String): String {
+        val q = java.net.URLEncoder.encode(query, Charsets.UTF_8.name()).replace("+", "%20")
+        return when (this) {
+            Qwant -> "https://www.qwant.com/?q=$q"
+            Brave -> "https://search.brave.com/search?q=$q"
+            DuckDuckGo -> "https://duckduckgo.com/?q=$q"
+            Startpage -> "https://www.startpage.com/search?query=$q"
+            Google -> "https://www.google.com/search?q=$q"
+        }
+    }
 
     companion object {
         fun fromStorage(value: Any?): NativeSettingsSearchEngine = entries.firstOrNull {

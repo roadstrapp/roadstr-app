@@ -31,6 +31,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.remember
@@ -49,6 +50,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import android.widget.Toast
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import app.roadstr.R
 import app.roadstr.core.geo.GeoPoint
 import app.roadstr.core.network.SearchResponsePoint
@@ -70,6 +75,8 @@ import app.roadstr.feature.map.NativeMapEngine
 import app.roadstr.feature.map.NativeMapInteraction
 import app.roadstr.feature.map.NativeMapLibreHost
 import app.roadstr.feature.map.NativeMapPoint
+import app.roadstr.feature.map.NativeCompassSensor
+import app.roadstr.feature.map.NativeMapFreeDriveControls
 import app.roadstr.feature.map.NativeMapNavigationControls
 import app.roadstr.feature.map.NativeMapPointOverlayKind
 import app.roadstr.feature.map.NativeMapPointOverlayMarker
@@ -77,6 +84,7 @@ import app.roadstr.feature.map.NativeMapPointOverlaySession
 import app.roadstr.feature.map.NativeMapSearchButton
 import app.roadstr.feature.map.NativeMapAltitudeBadge
 import app.roadstr.feature.map.NativeMapStyle
+import app.roadstr.feature.map.NativeTileUrlPolicy
 import app.roadstr.feature.map.NativeRouteOverlaySession
 import app.roadstr.feature.map.NativeTransitOverlaySession
 import app.roadstr.feature.navigation.NativeActiveNavigationSession
@@ -125,10 +133,13 @@ import app.roadstr.feature.transit.NativeTransitTransportMode
 import app.roadstr.feature.wikipedia.NativeWikipediaReader
 import app.roadstr.feature.wikipedia.NativeWikipediaSession
 import app.roadstr.feature.voice.NativeVoiceCatalog
+import app.roadstr.service.nostr.NativeRoadEvent
 import app.roadstr.feature.voice.NativeVoiceGateway
 import app.roadstr.feature.voice.NativeVoiceGender
 import app.roadstr.feature.voice.NativeVoiceRuntimeStatus
 import java.util.Locale
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -238,6 +249,8 @@ fun NativeRoadstrShell(
     initialSettings: NativeSettingsInput = NativeSettingsInput(),
     onSettingsChanged: (NativeSettingsInput) -> Unit = {},
     onNwcChanged: (String) -> Boolean = { false },
+    /** Stores the routing API key protected; an empty value removes it. False if it could not be stored. */
+    onRoutingKeyChanged: (String) -> Boolean = { false },
     hazardService: NativeOsmHazardService? = null,
     nostr: NativeShellNostr? = null,
 ) {
@@ -399,6 +412,7 @@ fun NativeRoadstrShell(
         var nsecDialogVisible by remember { mutableStateOf(false) }
         var nsecInput by remember { mutableStateOf("") }
         var nsecError by remember { mutableStateOf(false) }
+        var routingKeyPrompt by remember { mutableStateOf<NativeShellPrompt?>(null) }
         var nwcDialogVisible by remember { mutableStateOf(false) }
         var nwcInput by remember { mutableStateOf("") }
         var nwcError by remember { mutableStateOf(false) }
@@ -613,6 +627,60 @@ fun NativeRoadstrShell(
             },
             currentPoint = { latestFix?.point },
         )
+        // The account's own reports and zap balance come from the relays after the
+        // profile is up, so the screen opens at once and fills in.
+        var myReports by remember { mutableStateOf<List<NativeRoadEvent>>(emptyList()) }
+        var reportsLoadedFor by remember { mutableLongStateOf(-1L) }
+        LaunchedEffect(profileState.revision, profileState.status, identityState.pubkeyHex) {
+            val ownerPubkey = identityState.pubkeyHex ?: return@LaunchedEffect
+            val bridge = nostrHost?.nostr ?: return@LaunchedEffect
+            val reportsService = bridge.userReports ?: return@LaunchedEffect
+            val snapshot = profileState
+            if (snapshot.status != app.roadstr.feature.profile.NativeProfileStatus.Ready ||
+                !snapshot.ownProfile ||
+                reportsLoadedFor == snapshot.revision
+            ) {
+                return@LaunchedEffect
+            }
+            reportsLoadedFor = snapshot.revision
+            val flavor = snapshot.flavor ?: return@LaunchedEffect
+            fun input(
+                reports: List<NativeRoadEvent>,
+                loading: Boolean,
+                balanceMsat: Long?,
+            ) = app.roadstr.feature.profile.NativeProfileInput(
+                pubkeyHex = ownerPubkey,
+                ownProfile = true,
+                profilePublic = snapshot.profilePublic,
+                flavor = flavor,
+                displayName = snapshot.displayName,
+                pictureUrl = snapshot.pictureUrl,
+                reports = reports.map { event ->
+                    app.roadstr.feature.profile.NativeProfileReportInput(
+                        id = event.id,
+                        category = event.category,
+                        createdAtSeconds = event.createdAt,
+                        comment = event.comment,
+                        confirmations = event.confirmations,
+                        denials = event.denials,
+                    )
+                },
+                reportsLoading = loading,
+                balanceMsat = balanceMsat,
+            )
+            profileSession.showProfile(snapshot.revision, input(emptyList(), true, null), System.currentTimeMillis() / 1_000L)
+            val (events, balance) = coroutineScope {
+                val reports = async { reportsService.userEvents(ownerPubkey) }
+                val zapped = async { bridge.zaps?.balanceMsat(ownerPubkey) }
+                reports.await() to zapped.await()
+            }
+            myReports = events
+            profileSession.showProfile(
+                snapshot.revision,
+                input(events, false, balance),
+                System.currentTimeMillis() / 1_000L,
+            )
+        }
         // One composition of everything drawn as a point: parking, OSM hazards
         // and community road reports replace each other in a single overlay.
         val roadMarkers = nostrHost?.markers.orEmpty()
@@ -633,6 +701,38 @@ fun NativeRoadstrShell(
             NativeActiveNavigationSession(navigationHudSession, routeSession)
         }
         val activeNavigationState by activeNavigationSession.state.collectAsState()
+        // Screen-wake and brightness-floor policy, same as the Flutter map screens.
+        val wantsScreenOn = settingsState.values.keepScreenOnAlways ||
+            (activeNavigationState.active && settingsState.values.keepScreenOn)
+        val brightnessFloor = settingsState.values.minimumBrightness
+        DisposableEffect(wantsScreenOn, brightnessFloor) {
+            val window = (context as? Activity)?.window
+            if (window != null) {
+                if (wantsScreenOn) {
+                    window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                } else {
+                    window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+                window.attributes = window.attributes.also {
+                    it.screenBrightness = if (brightnessFloor > 0.0) {
+                        brightnessFloor.toFloat()
+                    } else {
+                        android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+                    }
+                }
+            }
+            onDispose {
+                window?.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                window?.attributes = window?.attributes?.also {
+                    it.screenBrightness = android.view.WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+                }
+            }
+        }
+        // "Center on my position at launch" off: leave the map where it is until
+        // the driver asks for the GPS button.
+        LaunchedEffect(Unit) {
+            if (!initialSettings.autoCenterOnLaunch) cameraSession.onUserGesture()
+        }
         var exitNavigationDialogVisible by remember { mutableStateOf(false) }
         val stopNavigation: () -> Unit = {
             if (activeNavigationSession.stop(activeNavigationState.revision)) {
@@ -687,6 +787,42 @@ fun NativeRoadstrShell(
         }
         val navigationNowLabel = stringResource(R.string.native_nav_now)
         val headingTracker = remember { NativeShellHeadingTracker() }
+        // At a standstill outside navigation the heading-up map turns with the
+        // phone's compass, as on the Flutter screen; in motion it follows the
+        // GPS course and the route instead.
+        val compassWanted = !activeNavigationState.active && headingMode && cameraState.followEnabled
+        val compassLifecycle = LocalLifecycleOwner.current
+        DisposableEffect(compassWanted, compassLifecycle) {
+            if (!compassWanted) {
+                cameraSession.setCompassHeading(null)
+                return@DisposableEffect onDispose {}
+            }
+            val sensor = NativeCompassSensor(context) { azimuth ->
+                if (headingTracker.isMoving) {
+                    cameraSession.setCompassHeading(null)
+                } else {
+                    headingTracker.adopt(azimuth)
+                    cameraSession.setCompassHeading(azimuth)
+                }
+            }
+            val observer = LifecycleEventObserver { _, event ->
+                when (event) {
+                    Lifecycle.Event.ON_START -> sensor.start()
+                    Lifecycle.Event.ON_STOP -> {
+                        sensor.stop()
+                        cameraSession.setCompassHeading(null)
+                    }
+                    else -> Unit
+                }
+            }
+            compassLifecycle.lifecycle.addObserver(observer)
+            if (compassLifecycle.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) sensor.start()
+            onDispose {
+                compassLifecycle.lifecycle.removeObserver(observer)
+                sensor.stop()
+                cameraSession.setCompassHeading(null)
+            }
+        }
         val rerouteBackoff = remember { NativeRerouteBackoff() }
         // One owner per fix, in the Flutter screen's order: route progress and
         // off-route checks see the previous heading, then the filter resolves
@@ -720,14 +856,17 @@ fun NativeRoadstrShell(
                     null
                 },
             )
-            cursorSession.submitPosition(fix.sequence, fix.point)
             cameraSession.submitFix(
                 sequence = fix.sequence,
                 point = fix.point,
                 headingDegrees = heading,
-                speedMetersPerSecond = fix.speedMetersPerSecond,
+                // Dead reckoning runs only while really moving: a stopped phone
+                // still reports a fraction of a metre per second, which would
+                // otherwise creep the map and the cursor along the old heading.
+                speedMetersPerSecond = if (headingTracker.isMoving) fix.speedMetersPerSecond else 0.0,
                 receivedAtMillis = fix.receivedAtElapsedRealtimeMillis,
             )
+            cursorSession.submitPosition(fix.sequence, fix.point)
         }
         LaunchedEffect(activeNavigationState.active) {
             if (!activeNavigationState.active) {
@@ -868,6 +1007,7 @@ fun NativeRoadstrShell(
             routePlanningState.status,
             placeState.status,
             activeNavigationState.active,
+            nostrHost?.activityUnread,
         ) {
             homeSession.replace(
                 revision = homeSession.state.value.revision + 1L,
@@ -881,8 +1021,20 @@ fun NativeRoadstrShell(
                     calculating = routePlanningState.status == NativeRoutePlanningStatus.Loading,
                     hasRoute = routePlanningState.status == NativeRoutePlanningStatus.Alternatives ||
                         routePlanningState.status == NativeRoutePlanningStatus.Preview,
+                    unreadActivityCount = nostrHost?.activityUnread ?: 0,
                 ),
             )
+        }
+        // A new map engine starts from its own default view: bring it back to
+        // the driver instead of leaving it on the engine's initial position.
+        val selectedMapEngine = settingsState.values.mapEngine
+        var shownMapEngine by remember { mutableStateOf(selectedMapEngine) }
+        LaunchedEffect(selectedMapEngine) {
+            if (shownMapEngine == selectedMapEngine) return@LaunchedEffect
+            shownMapEngine = selectedMapEngine
+            gpsSnapshot.fix?.point?.let { point ->
+                cameraSession.focus(point, SystemClock.elapsedRealtime())
+            }
         }
         LaunchedEffect(cameraSession, cameraState.frameActive) {
             while (cameraSession.state.value.frameActive) {
@@ -1026,11 +1178,20 @@ fun NativeRoadstrShell(
                         app.roadstr.feature.settings.NativeSettingsMapEngine.MapLibre -> NativeMapEngine.MapLibre
                         app.roadstr.feature.settings.NativeSettingsMapEngine.Osm -> NativeMapEngine.LegacyRaster
                     },
-                    tileUrl = NativeMapStyle.DEFAULT_TILE_URL,
+                    tileUrl = remember(settingsState.values.mapTileUrl) {
+                        // A custom source the policy refuses falls back to the default
+                        // instead of leaving the map blank.
+                        runCatching { NativeTileUrlPolicy.requireAccepted(settingsState.values.mapTileUrl) }
+                            .getOrDefault(NativeMapStyle.DEFAULT_TILE_URL)
+                    },
                     routeOverlay = routeState.snapshot,
                     transitOverlay = transitState,
                     cameraCommand = cameraState.command,
-                    cursorSnapshot = cursorState,
+                    // The vehicle is drawn where the camera frame says it is.
+                    cursorSnapshot = remember(cursorState, cameraState.displaySequence) {
+                        val drawn = cameraState.displayPoint
+                        if (drawn == null || cursorState.point == null) cursorState else cursorState.copy(point = drawn)
+                    },
                     pointOverlay = pointOverlayState,
                     onCameraGesture = cameraSession::onUserGesture,
                     onMapInteraction = { interaction ->
@@ -1124,7 +1285,7 @@ fun NativeRoadstrShell(
                                 if (pubkey == null) {
                                     activityInboxSession.showLoggedOut(nextRevision)
                                 } else {
-                                    activityInboxSession.show(nextRevision, pubkey, null)
+                                    activityInboxSession.show(nextRevision, pubkey, nostrHost?.inboxFor(pubkey))
                                 }
                             }
                             // The road-event panel remains packaging-only until
@@ -1181,6 +1342,7 @@ fun NativeRoadstrShell(
                 ) {
                     NativeMapNavigationControls(
                         headingActive = headingMode,
+                        bearingDegrees = (cameraState.command?.bearingDegrees ?: 0.0).toFloat(),
                         onToggleHeading = {
                             headingMode = !headingMode
                             cameraSession.configure(
@@ -1200,6 +1362,40 @@ fun NativeRoadstrShell(
                             .align(Alignment.BottomEnd)
                             .navigationBarsPadding()
                             .padding(end = 12.dp, bottom = 154.dp),
+                    )
+                }
+                if (
+                    !activeNavigationState.active &&
+                    !homeState.expanded &&
+                    searchState.status == NativeSearchUiStatus.Hidden &&
+                    placeState.status == app.roadstr.feature.place.NativePlaceUiStatus.Hidden &&
+                    routePlanningState.status == NativeRoutePlanningStatus.Hidden &&
+                    wikipediaState.status == app.roadstr.feature.wikipedia.NativeWikipediaStatus.Hidden &&
+                    settingsState.status == NativeSettingsStatus.Hidden &&
+                    profileState.status == app.roadstr.feature.profile.NativeProfileStatus.Hidden &&
+                    savedPlacesState.status == NativeSavedPlacesStatus.Hidden &&
+                    activityInboxState.status == app.roadstr.feature.activity.NativeActivityInboxStatus.Hidden &&
+                    roadEventState.surface == app.roadstr.feature.report.NativeRoadEventSurface.Hidden
+                ) {
+                    NativeMapFreeDriveControls(
+                        headingActive = headingMode,
+                        bearingDegrees = (cameraState.command?.bearingDegrees ?: 0.0).toFloat(),
+                        showRecenter = !cameraState.followEnabled,
+                        onToggleHeading = {
+                            headingMode = !headingMode
+                            cameraSession.configure(
+                                headingUp = headingMode,
+                                navigating = false,
+                                zoom = NativeMapCameraSession.DEFAULT_ZOOM,
+                                pitchDegrees = NativeMapCameraSession.FREE_DRIVE_PITCH,
+                                screenHeightPixels = screenHeightPixels,
+                            )
+                        },
+                        onRecenter = { cameraSession.recenter(SystemClock.elapsedRealtime()) },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .navigationBarsPadding()
+                            .padding(end = 12.dp, bottom = 190.dp),
                     )
                 }
                 NativeSearchOverlay(
@@ -1331,9 +1527,44 @@ fun NativeRoadstrShell(
                             NativeSettingsUiAction.SyncPull -> nostrHost?.pull()
                             NativeSettingsUiAction.EditSyncPassphrase -> nostrHost?.editSyncPassphrase()
                             NativeSettingsUiAction.EditSyncRelay -> nostrHost?.editSyncRelay()
-                            NativeSettingsUiAction.ConfigureRoutingKey,
-                            NativeSettingsUiAction.TestGraphHopper,
-                            -> Unit
+                            NativeSettingsUiAction.ConfigureRoutingKey -> {
+                                routingKeyPrompt = NativeShellPrompt(
+                                    title = R.string.native_settings_api_key_hint,
+                                    hint = R.string.native_settings_api_key_hint,
+                                    secret = true,
+                                    confirmLabel = R.string.native_settings_nwc_save,
+                                    removeLabel = if (settingsState.values.routingApiKeyConfigured) {
+                                        R.string.native_settings_nwc_remove
+                                    } else {
+                                        null
+                                    },
+                                    onResult = { result ->
+                                        if (result != null && onRoutingKeyChanged(result)) {
+                                            settingsSession.refresh(
+                                                settingsSession.state.value.revision,
+                                                settingsSession.state.value.values.copy(
+                                                    routingApiKeyConfigured = result.isNotEmpty(),
+                                                ),
+                                            )
+                                        }
+                                    },
+                                )
+                            }
+                            NativeSettingsUiAction.TestGraphHopper -> {
+                                val server = settingsState.values.graphHopperServer.trim()
+                                if (server.isEmpty()) {
+                                    Toast.makeText(context, R.string.native_settings_gh_url_required, Toast.LENGTH_SHORT).show()
+                                } else {
+                                    journeyScope.launch {
+                                        val reachable = journeyGateway?.probeRoutingServer(server, null) == true
+                                        Toast.makeText(
+                                            context,
+                                            if (reachable) R.string.native_settings_gh_reachable else R.string.native_settings_gh_unreachable,
+                                            Toast.LENGTH_LONG,
+                                        ).show()
+                                    }
+                                }
+                            }
                             NativeSettingsUiAction.ConfigureNwc -> {
                                 nwcInput = ""
                                 nwcError = false
@@ -1476,14 +1707,9 @@ fun NativeRoadstrShell(
                         val revision = wikipediaState.revision.coerceAtLeast(0L) + 1L
                         wikipediaSession.open(revision, article.toString(), placeState.title ?: "Wikipedia")
                     },
+                    searchEngineName = settingsState.values.searchEngine.displayName,
                     onSearchWeb = { query ->
-                        val language = voiceLanguage
-                            .lowercase(Locale.ROOT)
-                            .takeIf { it.matches(Regex("[a-z]{2,12}")) }
-                            ?: "en"
-                        val url = "https://$language.wikipedia.org/wiki/Special:Search?search=${Uri.encode(query)}"
-                        val revision = wikipediaState.revision.coerceAtLeast(0L) + 1L
-                        wikipediaSession.open(revision, url, query)
+                        onOpenExternal(settingsState.values.searchEngine.searchUrl(query))
                     },
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
@@ -1513,7 +1739,16 @@ fun NativeRoadstrShell(
                         )
                         nostrHost?.visibilityChanged(profilePublic)
                     },
-                    onReportSelected = {},
+                    onReportSelected = { id ->
+                        myReports.firstOrNull { it.id == id }?.let { event ->
+                            profileSession.hide(profileState.revision)
+                            cameraSession.focus(
+                                NativeMapPoint(event.latitude, event.longitude),
+                                SystemClock.elapsedRealtime(),
+                            )
+                            nostrHost?.reports?.showEvent(event)
+                        }
+                    },
                     onLogout = { revision ->
                         identityGateway?.logout()
                         profileSession.showLoggedOut(revision)
@@ -1569,7 +1804,7 @@ fun NativeRoadstrShell(
                     snapshot = activityInboxState,
                     onClose = activityInboxSession::hide,
                     onViewed = { revision ->
-                        activityInboxSession.markAllRead(revision)
+                        activityInboxSession.markAllRead(revision)?.let { write -> nostrHost?.inboxChanged(write) }
                     },
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
@@ -1590,14 +1825,20 @@ fun NativeRoadstrShell(
                     onVote = { _, stillThere ->
                         roadEventState.detail?.id?.let { id -> nostrHost?.reports?.vote(id, stillThere) }
                     },
-                    onEditSpeedLimit = { _, _ ->
-                        val id = roadEventState.detail?.id
-                        val event = nostrHost?.events?.firstOrNull { it.id == id }
-                        if (event != null) {
-                            nostrHost.promptSpeedLimit(event, settingsState.values.imperialUnits)
+                    onEditSpeedLimit = { _, requestId ->
+                        val event = nostrHost?.reports?.currentEvent
+                        if (event != null && event.id == roadEventState.detail?.id) {
+                            if (requestId != null) {
+                                nostrHost.reports.acceptEditRequest(event, requestId)
+                            } else {
+                                nostrHost.promptSpeedLimit(event, settingsState.values.imperialUnits)
+                            }
                         }
                     },
-                    onZap = {},
+                    onZap = {
+                        val event = nostrHost?.reports?.currentEvent
+                        if (event != null && event.id == roadEventState.detail?.id) nostrHost.zap.open(event)
+                    },
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
                 NativeWikipediaReader(
@@ -1810,6 +2051,16 @@ fun NativeRoadstrShell(
                     },
                 )
                 NativeShellNostrDialogs(nostrHost)
+                routingKeyPrompt?.let { prompt ->
+                    NativeShellPromptDialog(
+                        prompt = prompt,
+                        onConfirm = { value ->
+                            routingKeyPrompt = null
+                            prompt.onResult(value)
+                        },
+                        onDismiss = { routingKeyPrompt = null },
+                    )
+                }
                 if (nsecDialogVisible) {
                     val dismissNsecDialog = {
                         nsecInput = ""
