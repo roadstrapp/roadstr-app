@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">Ei asetettu</string>
     <string name="native_websearch_instance_title">SearXNG-palvelimen osoite</string>
     <string name="native_websearch_intro">Roadstr voi pyytää valitsemaltasi SearXNG-palvelimelta verkkotuloksia paikoista, kuten ruokalistoja. Oletuksena pois päältä, eikä sisäänrakennettua palvelinta ole.</string>
+    <string name="native_websearch_link_candidate">Voisiko tämä olla %1$s?</string>
+    <string name="native_websearch_link_match">Kartalla: %1$s</string>
+    <string name="native_websearch_link_note">Roadstr voi sen jälkeen hakea tuloksissa olevien paikkojen nimiä OpenStreetMapista, jotta tulokset voidaan yhdistää kartan paikkoihin.</string>
     <string name="native_websearch_mode">Milloin hakea verkosta</string>
     <string name="native_websearch_mode_ask">Kysy joka kerta</string>
     <string name="native_websearch_mode_off">Pois</string>

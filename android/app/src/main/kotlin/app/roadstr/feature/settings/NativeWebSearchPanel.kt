@@ -82,6 +82,7 @@ private fun Disclosure() {
         Note(R.string.native_websearch_intro)
         Note(R.string.native_websearch_privacy)
         Note(R.string.native_websearch_google)
+        Note(R.string.native_websearch_link_note)
     }
 }
 

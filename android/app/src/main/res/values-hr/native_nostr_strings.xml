@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">Nije postavljeno</string>
     <string name="native_websearch_instance_title">Adresa instance SearXNG</string>
     <string name="native_websearch_intro">Roadstr može pitati instancu SearXNG po vašem izboru za rezultate s weba o mjestima, primjerice jelovnike. Zadano je isključeno i nijedna instanca nije ugrađena.</string>
+    <string name="native_websearch_link_candidate">Je li ovo možda %1$s?</string>
+    <string name="native_websearch_link_match">Na karti: %1$s</string>
+    <string name="native_websearch_link_note">Roadstr zatim može potražiti na OpenStreetMapu nazive mjesta iz rezultata kako bi rezultate povezao s mjestima na karti.</string>
     <string name="native_websearch_mode">Kada pretraživati web</string>
     <string name="native_websearch_mode_ask">Pitaj svaki put</string>
     <string name="native_websearch_mode_off">Isključeno</string>

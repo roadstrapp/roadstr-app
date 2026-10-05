@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">Não definida</string>
     <string name="native_websearch_instance_title">Endereço da instância SearXNG</string>
     <string name="native_websearch_intro">O Roadstr pode pedir a uma instância SearXNG à tua escolha resultados da web sobre locais, como ementas. Está desativado por predefinição e não há nenhuma instância incluída.</string>
+    <string name="native_websearch_link_candidate">Poderá ser %1$s?</string>
+    <string name="native_websearch_link_match">No mapa: %1$s</string>
+    <string name="native_websearch_link_note">O Roadstr pode depois procurar no OpenStreetMap os nomes de locais dos resultados, para os associar a locais no mapa.</string>
     <string name="native_websearch_mode">Quando pesquisar na web</string>
     <string name="native_websearch_mode_ask">Perguntar de cada vez</string>
     <string name="native_websearch_mode_off">Desativada</string>

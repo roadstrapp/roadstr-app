@@ -2,6 +2,8 @@ package app.roadstr.feature.home
 
 import app.roadstr.core.discovery.DiscoveryNotice
 import app.roadstr.core.discovery.DiscoveryOutcome
+import app.roadstr.core.discovery.OsmElementType
+import app.roadstr.core.discovery.OsmRef
 import app.roadstr.core.discovery.PlaceCategory
 import app.roadstr.core.discovery.PlaceSource
 import app.roadstr.core.discovery.RankedPlace
@@ -23,6 +25,7 @@ import app.roadstr.feature.map.NativeRouteOverlaySession
 import app.roadstr.feature.route.NativeRoutePlanningSession
 import app.roadstr.feature.route.NativeRouteTransportMode
 import app.roadstr.feature.search.NativeSearchSession
+import app.roadstr.feature.search.NativeWebPlaceLink
 import app.roadstr.feature.search.NativeSearchWeb
 import app.roadstr.feature.search.NativeWebProblem
 import java.io.IOException
@@ -46,6 +49,20 @@ class NativeShellWebFlowTest {
         var web: WebDiscoveryOutcome = WebDiscoveryOutcome.Disabled
         var webFails = false
         val webContexts = mutableListOf<WebSearchContext>()
+        var lookup: (String) -> List<RoadstrPlace> = { emptyList() }
+        var lookupFails = false
+        val lookups = mutableListOf<String>()
+
+        override suspend fun lookupPlaces(
+            name: String,
+            locality: String?,
+            near: GeoPoint,
+            languageCode: String,
+        ): List<RoadstrPlace> {
+            lookups += name
+            if (lookupFails) throw IOException("down")
+            return lookup(name)
+        }
 
         override suspend fun search(
             query: String,
@@ -76,6 +93,7 @@ class NativeShellWebFlowTest {
     private class Harness(var settings: WebDiscoverySettings) {
         val gateway = Gateway()
         val search = NativeSearchSession()
+        val pinned = mutableListOf<List<RankedPlace>>()
         val coordinator = NativeShellJourneyCoordinator(
             gateway = gateway,
             scope = CoroutineScope(Dispatchers.Unconfined + Job()),
@@ -83,6 +101,7 @@ class NativeShellWebFlowTest {
             routeSession = NativeRoutePlanningSession(NativeRouteOverlaySession(0xFF71_58E2L)),
             languageCode = "it",
             webSettings = { settings },
+            onDiscovery = { _, places -> pinned += places },
         )
         val web get() = search.state.value.web
     }
@@ -102,6 +121,21 @@ class NativeShellWebFlowTest {
         h.coordinator.openSearch(nearbyEnabled = true)
         h.coordinator.submitSearch(text, gps)
     }
+
+    private fun placeWithSite(id: Long, name: String, site: String?) = RoadstrPlace(
+        id = "osm:n:$id", osm = OsmRef(OsmElementType.NODE, id), name = name, category = PlaceCategory.RESTAURANT,
+        position = GeoPoint(45.001, 9.001), address = null, distanceMeters = 100.0, openingHours = null,
+        phone = null, website = site?.let(::URI), cuisine = null, tags = mapOf("name" to name),
+        sources = setOf(PlaceSource.OPEN_STREET_MAP),
+    )
+
+    private fun foundWith(place: RoadstrPlace) = DiscoveryOutcome.Found(
+        listOf(RankedPlace(place, 0.9, OpenState.UNKNOWN)),
+        emptySet(),
+        SearchArea.Circle(GeoPoint(45.0, 9.0), 5_000),
+    )
+
+    private fun rowsOf(h: Harness) = (h.web as NativeSearchWeb.Results).rows
 
     private fun sparseFound() = DiscoveryOutcome.Found(
         listOf(
@@ -204,6 +238,108 @@ class NativeShellWebFlowTest {
         val context = h.gateway.webContexts.single()
         assertEquals("it", context.languageCode)
         assertEquals(GeoPoint(45.0, 9.0), context.device)
+    }
+
+    @Test
+    fun `a result on the place's own website is linked to it and opens it`() {
+        val verde = placeWithSite(5, "Trattoria Verde", "https://www.trattoriaverde.it")
+        val h = Harness(own.copy(mode = WebDiscoveryMode.ON))
+        h.gateway.discovery = foundWith(verde)
+        h.gateway.web = WebDiscoveryOutcome.Results(
+            listOf(
+                WebResult("Trattoria Verde - Menu", URI("https://trattoriaverde.it/menu"), "trattoriaverde.it", "Bistecche", emptyList(), 1),
+                WebResult("Ricetta della bistecca", URI("https://ricette.example.org/b"), "ricette.example.org", "", emptyList(), 2),
+            ),
+            "search.example.org",
+            emptyList(),
+        )
+        searched(h, steaks)
+        val rows = rowsOf(h)
+        assertEquals(NativeWebPlaceLink.Linked("osm:n:5", "Trattoria Verde"), rows[0].link)
+        assertEquals(NativeWebPlaceLink.None, rows[1].link)
+        assertEquals(verde, h.coordinator.webPlace("osm:n:5"))
+        assertTrue("a place the search already pinned gets no second pin", h.pinned.last().size == 1)
+        assertTrue(h.gateway.lookups.size <= 1)
+    }
+
+    @Test
+    fun `a name on an unrelated page is only a candidate`() {
+        val verde = placeWithSite(5, "Trattoria Verde", "https://www.trattoriaverde.it")
+        val h = Harness(own.copy(mode = WebDiscoveryMode.ON))
+        h.gateway.discovery = foundWith(verde)
+        h.gateway.web = WebDiscoveryOutcome.Results(
+            listOf(WebResult("Trattoria Verde, Verona - recensioni", URI("https://blog.example.org/v"), "blog.example.org", "", emptyList(), 1)),
+            "search.example.org",
+            emptyList(),
+        )
+        searched(h, steaks)
+        assertEquals(NativeWebPlaceLink.Candidate("osm:n:5", "Trattoria Verde"), rowsOf(h).single().link)
+    }
+
+    @Test
+    fun `a place found only by name is pinned when its website agrees`() {
+        val verde = placeWithSite(5, "Trattoria Verde", "https://www.trattoriaverde.it")
+        val blu = placeWithSite(77, "Osteria Blu", "https://www.osteriablu.it")
+        val h = Harness(own.copy(mode = WebDiscoveryMode.ON))
+        h.gateway.discovery = foundWith(verde)
+        h.gateway.lookup = { listOf(blu) }
+        h.gateway.web = WebDiscoveryOutcome.Results(
+            listOf(WebResult("Osteria Blu - Menu", URI("https://osteriablu.it/menu"), "osteriablu.it", "", emptyList(), 1)),
+            "search.example.org",
+            emptyList(),
+            locality = "Trieste",
+        )
+        searched(h, steaks)
+        assertEquals(listOf("Osteria Blu"), h.gateway.lookups)
+        assertEquals(NativeWebPlaceLink.Linked("osm:n:77", "Osteria Blu"), rowsOf(h).single().link)
+        assertEquals(listOf("osm:n:5", "osm:n:77"), h.pinned.last().map { it.place.id })
+        assertEquals(blu.copy(confidence = h.pinned.last().last().place.confidence), h.pinned.last().last().place)
+    }
+
+    @Test
+    fun `a failing name lookup leaves plain web results and no extra pin`() {
+        val h = Harness(own.copy(mode = WebDiscoveryMode.ON))
+        h.gateway.discovery = foundWith(placeWithSite(5, "Trattoria Verde", null))
+        h.gateway.lookupFails = true
+        h.gateway.web = WebDiscoveryOutcome.Results(
+            listOf(WebResult("Osteria Blu - Menu", URI("https://osteriablu.it/menu"), "osteriablu.it", "", emptyList(), 1)),
+            "search.example.org",
+            emptyList(),
+        )
+        searched(h, steaks)
+        assertEquals(NativeWebPlaceLink.None, rowsOf(h).single().link)
+        assertEquals(1, h.pinned.last().size)
+    }
+
+    @Test
+    fun `results are plain when there is nowhere to judge the area from`() {
+        val h = Harness(own.copy(mode = WebDiscoveryMode.ON))
+        h.gateway.web = WebDiscoveryOutcome.Results(
+            listOf(WebResult("Osteria Blu - Menu", URI("https://osteriablu.it/menu"), "osteriablu.it", "", emptyList(), 1)),
+            "search.example.org",
+            emptyList(),
+        )
+        h.coordinator.openSearch(nearbyEnabled = false)
+        h.coordinator.submitSearch(steaks, null)
+        assertEquals(NativeWebPlaceLink.None, rowsOf(h).single().link)
+        assertTrue(h.gateway.lookups.isEmpty())
+    }
+
+    @Test
+    fun `a new search forgets the places tied to the old one`() {
+        val verde = placeWithSite(5, "Trattoria Verde", "https://www.trattoriaverde.it")
+        val h = Harness(own.copy(mode = WebDiscoveryMode.ON))
+        h.gateway.discovery = foundWith(verde)
+        h.gateway.web = WebDiscoveryOutcome.Results(
+            listOf(WebResult("Trattoria Verde - Menu", URI("https://trattoriaverde.it/menu"), "trattoriaverde.it", "", emptyList(), 1)),
+            "search.example.org",
+            emptyList(),
+        )
+        searched(h, steaks)
+        assertEquals(verde, h.coordinator.webPlace("osm:n:5"))
+        h.gateway.discovery = DiscoveryOutcome.NotApplicable
+        h.coordinator.submitSearch("altro", gps)
+        assertEquals(null, h.coordinator.webPlace("osm:n:5"))
     }
 
     @Test

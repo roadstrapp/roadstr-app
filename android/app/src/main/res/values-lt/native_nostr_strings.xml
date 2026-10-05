@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">Nenustatyta</string>
     <string name="native_websearch_instance_title">SearXNG instancijos adresas</string>
     <string name="native_websearch_intro">Roadstr gali prašyti jūsų pasirinktos SearXNG instancijos žiniatinklio rezultatų apie vietas, pavyzdžiui, meniu. Pagal numatytuosius nustatymus išjungta ir jokia instancija nėra įtaisyta.</string>
+    <string name="native_websearch_link_candidate">Gal tai %1$s?</string>
+    <string name="native_websearch_link_match">Žemėlapyje: %1$s</string>
+    <string name="native_websearch_link_note">Tada „Roadstr“ gali OpenStreetMap paieškoti rezultatuose esančių vietų pavadinimų, kad rezultatus susietų su vietomis žemėlapyje.</string>
     <string name="native_websearch_mode">Kada ieškoti žiniatinklyje</string>
     <string name="native_websearch_mode_ask">Klausti kaskart</string>
     <string name="native_websearch_mode_off">Išjungta</string>

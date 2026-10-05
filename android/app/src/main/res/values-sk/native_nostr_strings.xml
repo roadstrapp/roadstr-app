@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">Nenastavené</string>
     <string name="native_websearch_instance_title">Adresa inštancie SearXNG</string>
     <string name="native_websearch_intro">Roadstr sa môže pýtať vami zvolenej inštancie SearXNG na výsledky z webu o miestach, napríklad jedálne lístky. Predvolene je vypnuté a žiadna inštancia nie je zabudovaná.</string>
+    <string name="native_websearch_link_candidate">Mohlo by to byť %1$s?</string>
+    <string name="native_websearch_link_match">Na mape: %1$s</string>
+    <string name="native_websearch_link_note">Roadstr potom môže v OpenStreetMap vyhľadať názvy miest z výsledkov, aby výsledky prepojil s miestami na mape.</string>
     <string name="native_websearch_mode">Kedy hľadať na webe</string>
     <string name="native_websearch_mode_ask">Vždy sa opýtať</string>
     <string name="native_websearch_mode_off">Vypnuté</string>
