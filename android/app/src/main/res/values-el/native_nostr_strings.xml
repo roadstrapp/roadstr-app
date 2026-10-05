@@ -54,6 +54,11 @@
     <string name="native_roadtest_no_app">Καμία εφαρμογή δεν μπορεί να ανοίξει αυτόν τον σύνδεσμο</string>
     <string name="native_saved_geocoding_error">Η διεύθυνση δεν βρέθηκε. Δοκίμασε πιο συγκεκριμένη.</string>
     <string name="native_saved_label">Όνομα (π.χ. Σπίτι, Γραφείο)</string>
+    <string name="native_search_notice_area_fallback">Δεν ήταν δυνατό να οριοθετηθεί ακριβώς το μέρος, οπότε αναζητήθηκε η γύρω περιοχή.</string>
+    <string name="native_search_notice_few_tagged">Λίγα μέρη εδώ έχουν επισημανθεί γι\' αυτό στο OpenStreetMap, οπότε η λίστα μπορεί να είναι ελλιπής.</string>
+    <string name="native_search_notice_open_hours_unknown">Ορισμένα μέρη δεν αναφέρουν ωράριο, οπότε μπορεί να είναι κλειστά.</string>
+    <string name="native_search_notice_route_unsupported">Η αναζήτηση κατά μήκος της διαδρομής δεν είναι ακόμη διαθέσιμη· εμφανίζονται μέρη γύρω σας.</string>
+    <string name="native_search_notice_widened">Τίποτα κοντά, οπότε η αναζήτηση διευρύνθηκε.</string>
     <string name="native_settings_dark_map">Σκούρος χάρτης</string>
     <string name="native_settings_dark_map_desc">Χρήση σκούρων πλακιδίων χάρτη ανεξάρτητα από το θέμα του μενού</string>
     <string name="native_settings_gh_reachable">Ο διακομιστής GraphHopper είναι προσβάσιμος</string>

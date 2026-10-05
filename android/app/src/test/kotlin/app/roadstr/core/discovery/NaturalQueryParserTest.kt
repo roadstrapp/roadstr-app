@@ -107,16 +107,16 @@ class NaturalQueryParserTest {
 
     @Test
     fun `a trailing word may be a place`() {
-        val query = parse("en", "cinema Bologna")
+        val query = parse("en", "cinema Verona")
         assertEquals(listOf(PlaceCategory.CINEMA), query.categories)
-        assertEquals("Bologna", query.residualPlaceGuess)
+        assertEquals("Verona", query.residualPlaceGuess)
         assertFalse(query.locationExplicit)
     }
 
     @Test
     fun `a leading word may be a place`() {
-        val query = parse("en", "Bologna cinema")
-        assertEquals("Bologna", query.residualPlaceGuess)
+        val query = parse("en", "Verona cinema")
+        assertEquals("Verona", query.residualPlaceGuess)
     }
 
     @Test

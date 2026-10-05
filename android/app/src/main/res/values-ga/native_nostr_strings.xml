@@ -54,6 +54,11 @@
     <string name="native_roadtest_no_app">Níl aon aip ar fáil chun an nasc seo a oscailt</string>
     <string name="native_saved_geocoding_error">Seoladh gan aimsiú. Bain triail as seoladh níos sonraí.</string>
     <string name="native_saved_label">Ainm (m.sh. Baile, Oifig)</string>
+    <string name="native_search_notice_area_fallback">Níorbh fhéidir an áit sin a theorannú go beacht, mar sin cuardaíodh an ceantar máguaird.</string>
+    <string name="native_search_notice_few_tagged">Is beag na háiteanna anseo atá clibeáilte don seo in OpenStreetMap, mar sin d\'fhéadfadh an liosta a bheith neamhiomlán.</string>
+    <string name="native_search_notice_open_hours_unknown">Ní chuireann roinnt áiteanna a n-uaireanta oscailte in iúl, mar sin d\'fhéadfadh siad a bheith dúnta.</string>
+    <string name="native_search_notice_route_unsupported">Níl cuardach feadh an bhealaigh ar fáil go fóill; ag taispeáint áiteanna timpeall ort.</string>
+    <string name="native_search_notice_widened">Faic in aice láimhe, mar sin leathnaíodh an cuardach.</string>
     <string name="native_settings_dark_map">Léarscáil dhorcha</string>
     <string name="native_settings_dark_map_desc">Úsáid tíleanna léarscáile dorcha gan spleáchas ar théama an roghchláir</string>
     <string name="native_settings_gh_reachable">Tá freastalaí GraphHopper inrochtana</string>

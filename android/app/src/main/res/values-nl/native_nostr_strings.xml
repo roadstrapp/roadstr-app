@@ -54,6 +54,11 @@
     <string name="native_roadtest_no_app">Geen app beschikbaar om deze link te openen</string>
     <string name="native_saved_geocoding_error">Adres niet gevonden. Probeer een specifieker adres.</string>
     <string name="native_saved_label">Naam (bijv. Thuis, Kantoor)</string>
+    <string name="native_search_notice_area_fallback">Die plek kon niet precies worden afgebakend, daarom is het gebied eromheen doorzocht.</string>
+    <string name="native_search_notice_few_tagged">Weinig plaatsen hier zijn hiervoor getagd in OpenStreetMap, dus de lijst kan onvolledig zijn.</string>
+    <string name="native_search_notice_open_hours_unknown">Sommige plaatsen vermelden geen openingstijden, dus ze kunnen gesloten zijn.</string>
+    <string name="native_search_notice_route_unsupported">Zoeken langs de route is nog niet beschikbaar; plaatsen om je heen worden getoond.</string>
+    <string name="native_search_notice_widened">Niets in de buurt, daarom is de zoekopdracht verbreed.</string>
     <string name="native_settings_dark_map">Donkere kaart</string>
     <string name="native_settings_dark_map_desc">Gebruik donkere kaarttegels onafhankelijk van het menuthema</string>
     <string name="native_settings_gh_reachable">GraphHopper-server bereikbaar</string>

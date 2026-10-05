@@ -9,6 +9,11 @@ sealed interface NativeMapInteraction {
         val markerRevision: Long,
     ) : NativeMapInteraction
 
+    data class PlaceMarkerTap(
+        val markerId: String,
+        val markerRevision: Long,
+    ) : NativeMapInteraction
+
     data class MapTap(val point: NativeMapPoint) : NativeMapInteraction
 
     data class MapLongPress(val point: NativeMapPoint) : NativeMapInteraction
@@ -27,11 +32,16 @@ internal object NativeMapInteractionPolicy {
     ): NativeMapInteraction {
         requireValidPoint(point)
         if (marker != null) {
-            require(marker.kind.opensRoadEventDetail) { "Only road events accept marker taps" }
+            require(marker.kind.opensRoadEventDetail || marker.kind.opensPlaceDetail) {
+                "Only road events and discovery results accept marker taps"
+            }
             require(marker.id.isNotBlank() && marker.id.length <= NativeMapPointOverlayPolicy.MAX_ID_LENGTH) {
                 "Marker tap id is invalid"
             }
             require(markerRevision >= 0) { "Marker tap revision must be non-negative" }
+            if (marker.kind.opensPlaceDetail) {
+                return NativeMapInteraction.PlaceMarkerTap(marker.id, markerRevision)
+            }
             return NativeMapInteraction.RoadEventTap(marker.id, markerRevision)
         }
         return NativeMapInteraction.MapTap(point)
@@ -58,7 +68,9 @@ internal object NativeMapInteractionPolicy {
         return NativeMapPointOverlayPolicy.visibleAtZoom(snapshot, zoom)
             .asReversed()
             .firstOrNull { marker ->
-                if (!marker.kind.opensRoadEventDetail) return@firstOrNull false
+                if (!marker.kind.opensRoadEventDetail && !marker.kind.opensPlaceDetail) {
+                    return@firstOrNull false
+                }
                 val center = project(marker.point) ?: return@firstOrNull false
                 if (!center.x.isFinite() || !center.y.isFinite()) return@firstOrNull false
                 val halfSize = marker.kind.sizeDp * density / 2.0

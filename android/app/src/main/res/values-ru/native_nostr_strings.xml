@@ -54,6 +54,11 @@
     <string name="native_roadtest_no_app">Нет приложения, способного открыть эту ссылку</string>
     <string name="native_saved_geocoding_error">Адрес не найден. Попробуйте указать точнее.</string>
     <string name="native_saved_label">Название (напр. Дом, Работа)</string>
+    <string name="native_search_notice_area_fallback">Не удалось точно очертить это место, поэтому искали в окрестности.</string>
+    <string name="native_search_notice_few_tagged">Мало мест здесь отмечено для этого в OpenStreetMap, поэтому список может быть неполным.</string>
+    <string name="native_search_notice_open_hours_unknown">Некоторые места не указывают часы работы, поэтому могут быть закрыты.</string>
+    <string name="native_search_notice_route_unsupported">Поиск вдоль маршрута пока недоступен; показаны места вокруг вас.</string>
+    <string name="native_search_notice_widened">Рядом ничего не найдено, поэтому поиск расширен.</string>
     <string name="native_settings_dark_map">Тёмная карта</string>
     <string name="native_settings_dark_map_desc">Использовать тёмные тайлы карты независимо от темы меню</string>
     <string name="native_settings_gh_reachable">Сервер GraphHopper доступен</string>

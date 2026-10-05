@@ -54,6 +54,11 @@
     <string name="native_roadtest_no_app">Nav lietotnes, kas varētu atvērt šo saiti</string>
     <string name="native_saved_geocoding_error">Adrese nav atrasta. Mēģini precīzāku adresi.</string>
     <string name="native_saved_label">Nosaukums (piem. Mājas, Birojs)</string>
+    <string name="native_search_notice_area_fallback">Šo vietu neizdevās precīzi norobežot, tāpēc tika meklēts tās apkārtnē.</string>
+    <string name="native_search_notice_few_tagged">Šeit tikai dažas vietas ir atzīmētas šim nolūkam OpenStreetMap, tāpēc saraksts var būt nepilnīgs.</string>
+    <string name="native_search_notice_open_hours_unknown">Dažas vietas nenorāda darba laiku, tāpēc tās var būt slēgtas.</string>
+    <string name="native_search_notice_route_unsupported">Meklēšana gar maršrutu vēl nav pieejama; tiek rādītas vietas ap jums.</string>
+    <string name="native_search_notice_widened">Tuvumā nekā nav, tāpēc meklēšana tika paplašināta.</string>
     <string name="native_settings_dark_map">Tumša karte</string>
     <string name="native_settings_dark_map_desc">Izmantot tumšas kartes flīzes neatkarīgi no izvēlnes motīva</string>
     <string name="native_settings_gh_reachable">GraphHopper serveris ir pieejams</string>

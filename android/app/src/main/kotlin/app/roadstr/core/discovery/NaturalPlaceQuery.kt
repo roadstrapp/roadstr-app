@@ -51,7 +51,7 @@ data class NaturalPlaceQuery(
     val locationExplicit: Boolean,
     val openNow: Boolean,
     val residualTerms: List<String>,
-    /** Trailing residual words that might be a place name ("cinema Bologna"). */
+    /** Trailing residual words that might be a place name ("cinema Verona"). */
     val residualPlaceGuess: String?,
     val classicQuery: String,
 ) {

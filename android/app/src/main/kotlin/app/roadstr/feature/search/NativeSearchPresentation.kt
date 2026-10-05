@@ -11,6 +11,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+/** One line about how complete a natural-language search is. */
+enum class NativeSearchNotice {
+    FewTagged,
+    Widened,
+    RouteUnsupported,
+    AreaFallback,
+    OpenHoursUnknown,
+}
+
 enum class NativeSearchUiStatus {
     Hidden,
     Browsing,
@@ -70,6 +79,7 @@ data class NativeSearchUiSnapshot(
     val history: List<NativeSearchHistoryPresentation>,
     val selectedNearby: NativeSearchNearbyCategory?,
     val nearbyEnabled: Boolean,
+    val notice: NativeSearchNotice? = null,
 ) {
     companion object {
         const val NO_SEARCH_REVISION = -1L
@@ -264,7 +274,11 @@ class NativeSearchSession(initialImperial: Boolean = false) {
         true
     }
 
-    fun submitResults(revision: Long, results: List<SearchResult>): Boolean = synchronized(lock) {
+    fun submitResults(
+        revision: Long,
+        results: List<SearchResult>,
+        notice: NativeSearchNotice? = null,
+    ): Boolean = synchronized(lock) {
         if (!acceptsOutcome(revision)) return false
         rawResults = results.take(NativeSearchPresenter.MAX_NEARBY_RESULTS)
         val projected = NativeSearchPresenter.results(rawResults, imperial)
@@ -276,6 +290,7 @@ class NativeSearchSession(initialImperial: Boolean = false) {
                 else -> NativeSearchUiStatus.Browsing
             },
             results = projected,
+            notice = notice,
         )
         true
     }

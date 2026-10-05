@@ -54,6 +54,11 @@
     <string name="native_roadtest_no_app">Nobena aplikacija ne more odpreti te povezave</string>
     <string name="native_saved_geocoding_error">Naslov ni bil najden. Poskusi z natančnejšim naslovom.</string>
     <string name="native_saved_label">Ime (npr. Dom, Pisarna)</string>
+    <string name="native_search_notice_area_fallback">Tega kraja ni bilo mogoče natančno omejiti, zato je bila preiskana njegova okolica.</string>
+    <string name="native_search_notice_few_tagged">Malo krajev je tu za to označenih v OpenStreetMap, zato je seznam lahko nepopoln.</string>
+    <string name="native_search_notice_open_hours_unknown">Nekateri kraji ne navajajo delovnega časa, zato so lahko zaprti.</string>
+    <string name="native_search_notice_route_unsupported">Iskanje vzdolž poti še ni na voljo; prikazani so kraji okoli vas.</string>
+    <string name="native_search_notice_widened">V bližini ni nič, zato je bilo iskanje razširjeno.</string>
     <string name="native_settings_dark_map">Temen zemljevid</string>
     <string name="native_settings_dark_map_desc">Uporabi temne ploščice zemljevida neodvisno od teme menija</string>
     <string name="native_settings_gh_reachable">Strežnik GraphHopper je dosegljiv</string>

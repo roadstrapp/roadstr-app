@@ -54,6 +54,11 @@
     <string name="native_roadtest_no_app">No app available to open this link</string>
     <string name="native_saved_geocoding_error">Address not found. Try a more specific address.</string>
     <string name="native_saved_label">Name (e.g. Home, Office)</string>
+    <string name="native_search_notice_area_fallback">That place could not be outlined exactly, so the area around it was searched.</string>
+    <string name="native_search_notice_few_tagged">Few places here are tagged for this in OpenStreetMap, so the list may be incomplete.</string>
+    <string name="native_search_notice_open_hours_unknown">Some places don\'t list their opening hours, so they may be closed.</string>
+    <string name="native_search_notice_route_unsupported">Searching along the route is not available yet; showing places around you.</string>
+    <string name="native_search_notice_widened">Nothing close by, so the search was widened.</string>
     <string name="native_settings_dark_map">Dark map</string>
     <string name="native_settings_dark_map_desc">Use dark map tiles independently from the menu theme</string>
     <string name="native_settings_gh_reachable">GraphHopper server reachable</string>
