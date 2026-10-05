@@ -74,6 +74,39 @@ object AreaGeocoding {
             ?.first
     }
 
+    /**
+     * The town a point is in, for a web query: coordinates rounded to two decimals (about a
+     * kilometre) and a town-level zoom, so a web search never sees where exactly the user is.
+     */
+    fun localityRequest(point: GeoPoint, languageCode: String): SearchProviderRequest {
+        val language = languageCode.lowercase(Locale.ROOT).takeIf { it.matches(Regex("[a-z]{2,3}")) } ?: "en"
+        return SearchProviderRequest(
+            method = SearchProviderHttpMethod.Get,
+            uri = "https://nominatim.openstreetmap.org/reverse?lat=${rounded(point.latitude)}" +
+                "&lon=${rounded(point.longitude)}&format=jsonv2&zoom=10&addressdetails=1" +
+                "&accept-language=$language",
+            headers = mapOf("User-Agent" to USER_AGENT),
+        )
+    }
+
+    fun parseLocality(body: String): String? {
+        val root = try {
+            BoundedJsonParser(body).parse() as? Map<*, *>
+        } catch (_: RuntimeException) {
+            null
+        } ?: return null
+        val address = root["address"] as? Map<*, *> ?: return null
+        val keys = listOf("city", "town", "village", "municipality", "hamlet", "county")
+        val name = keys.firstNotNullOfOrNull { key -> (address[key] as? String)?.takeIf { it.isNotBlank() } }
+        return name?.let { PlaceTagPolicy.clamp(it) }
+    }
+
+    /** The cache key for a point: the same grid cell the request is rounded to. */
+    fun localityCell(point: GeoPoint): String = "${rounded(point.latitude)},${rounded(point.longitude)}"
+
+    private fun rounded(value: Double): String =
+        java.math.BigDecimal(value).setScale(2, java.math.RoundingMode.HALF_UP).toPlainString()
+
     /** For a reference place such as a park or a landmark: any result that resembles the text. */
     fun chooseAny(areas: List<GeocodedArea>, typed: String): GeocodedArea? =
         areas

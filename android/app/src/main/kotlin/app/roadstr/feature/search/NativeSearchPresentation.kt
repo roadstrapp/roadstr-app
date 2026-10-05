@@ -1,5 +1,6 @@
 package app.roadstr.feature.search
 
+import app.roadstr.core.discovery.web.SearxngCapability
 import app.roadstr.core.format.UnitFormatter
 import app.roadstr.core.network.SearchResponsePoint
 import app.roadstr.core.network.SearchResult
@@ -10,6 +11,53 @@ import java.util.Locale
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+
+/** Why the web part of a search could not be shown. */
+enum class NativeWebProblem {
+    JsonDisabled,
+    RateLimited,
+    NotSearxng,
+    NoEngineList,
+    Unreachable,
+    Rejected,
+}
+
+/** The problem a failed instance check amounts to, or null when the instance works. */
+fun SearxngCapability.toWebProblem(): NativeWebProblem? = when (this) {
+    SearxngCapability.JsonDisabled -> NativeWebProblem.JsonDisabled
+    is SearxngCapability.RateLimited -> NativeWebProblem.RateLimited
+    SearxngCapability.NotSearxng -> NativeWebProblem.NotSearxng
+    SearxngCapability.NoEngineList -> NativeWebProblem.NoEngineList
+    SearxngCapability.Unreachable -> NativeWebProblem.Unreachable
+    is SearxngCapability.Compatible -> null
+}
+
+data class NativeWebResultPresentation(
+    val title: String,
+    val host: String,
+    val snippet: String,
+    val url: String,
+)
+
+/** The optional web part of the search list: offered, asked about, running, shown or failed. */
+sealed interface NativeSearchWeb {
+    data object Hidden : NativeSearchWeb
+
+    /** A row offering to search the web for [text]. */
+    data class Offer(val text: String) : NativeSearchWeb
+
+    /**
+     * The inline question before anything is sent: send [text] to [host]? [addsTown] says that
+     * the name of the user's town goes along, which a "near me" search needs and the words do not show.
+     */
+    data class Consent(val text: String, val host: String, val addsTown: Boolean = false) : NativeSearchWeb
+
+    data object Loading : NativeSearchWeb
+
+    data class Results(val host: String, val rows: List<NativeWebResultPresentation>) : NativeSearchWeb
+
+    data class Unavailable(val problem: NativeWebProblem) : NativeSearchWeb
+}
 
 /** One line about how complete a natural-language search is. */
 enum class NativeSearchNotice {
@@ -80,6 +128,7 @@ data class NativeSearchUiSnapshot(
     val selectedNearby: NativeSearchNearbyCategory?,
     val nearbyEnabled: Boolean,
     val notice: NativeSearchNotice? = null,
+    val web: NativeSearchWeb = NativeSearchWeb.Hidden,
 ) {
     companion object {
         const val NO_SEARCH_REVISION = -1L
@@ -292,6 +341,13 @@ class NativeSearchSession(initialImperial: Boolean = false) {
             results = projected,
             notice = notice,
         )
+        true
+    }
+
+    /** Sets the web part of the list; ignored if the search has moved on. */
+    fun updateWeb(revision: Long, web: NativeSearchWeb): Boolean = synchronized(lock) {
+        if (revision != this.revision || _state.value.status == NativeSearchUiStatus.Hidden) return false
+        _state.value = _state.value.copy(web = web)
         true
     }
 

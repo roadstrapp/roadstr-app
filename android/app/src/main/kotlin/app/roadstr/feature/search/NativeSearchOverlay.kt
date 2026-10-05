@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -68,6 +69,10 @@ fun NativeSearchOverlay(
     onSelectHistory: (NativeSearchHistoryPresentation) -> Unit,
     onClearHistory: () -> Unit,
     modifier: Modifier = Modifier,
+    onSearchWeb: () -> Unit = {},
+    onConfirmWeb: () -> Unit = {},
+    onDeclineWeb: () -> Unit = {},
+    onOpenWebResult: (String) -> Unit = {},
 ) {
     val hint = androidx.compose.ui.res.stringResource(R.string.native_search_hint)
     AnimatedVisibility(
@@ -158,6 +163,8 @@ fun NativeSearchOverlay(
                 } else if (snapshot.status == NativeSearchUiStatus.EmptyNearby) {
                     item(key = "empty-nearby") { SearchEmptyNearbyState() }
                 }
+
+                webItems(snapshot.web, onSearchWeb, onConfirmWeb, onDeclineWeb, onOpenWebResult)
 
                 if (snapshot.query.isEmpty() && snapshot.history.isNotEmpty()) {
                     item(key = "history-heading") {
@@ -390,6 +397,128 @@ private fun SearchLoadingState() {
     ) {
         CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
     }
+}
+
+private fun LazyListScope.webItems(
+    web: NativeSearchWeb,
+    onSearchWeb: () -> Unit,
+    onConfirmWeb: () -> Unit,
+    onDeclineWeb: () -> Unit,
+    onOpenWebResult: (String) -> Unit,
+) {
+    when (web) {
+        NativeSearchWeb.Hidden -> Unit
+        is NativeSearchWeb.Offer -> item(key = "web-offer") {
+            SearchRow(
+                symbol = "🌐",
+                title = androidx.compose.ui.res.stringResource(R.string.native_search_web_offer, web.text),
+                subtitle = "",
+                trailing = null,
+                onClick = onSearchWeb,
+            )
+        }
+        is NativeSearchWeb.Consent -> item(key = "web-consent") {
+            WebConsentRow(web, onConfirmWeb, onDeclineWeb)
+        }
+        NativeSearchWeb.Loading -> item(key = "web-loading") { WebLoadingRow() }
+        is NativeSearchWeb.Results -> {
+            item(key = "web-heading") {
+                SearchSectionHeading(
+                    symbol = "🌐",
+                    text = androidx.compose.ui.res.stringResource(R.string.native_search_web_heading, web.host),
+                )
+            }
+            if (web.rows.isEmpty()) item(key = "web-empty") { WebTextRow(R.string.native_search_web_empty) }
+            items(items = web.rows, key = { "web:${it.url}" }) { row ->
+                SearchRow(
+                    symbol = "🌐",
+                    title = row.title,
+                    subtitle = listOf(row.host, row.snippet).filter { it.isNotEmpty() }.joinToString(" · "),
+                    trailing = null,
+                    onClick = { onOpenWebResult(row.url) },
+                )
+            }
+        }
+        is NativeSearchWeb.Unavailable -> item(key = "web-unavailable") {
+            WebTextRow(web.problem.textResource())
+        }
+    }
+}
+
+@Composable
+private fun WebConsentRow(
+    web: NativeSearchWeb.Consent,
+    onConfirm: () -> Unit,
+    onDecline: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp, vertical = 8.dp)
+            .semantics { liveRegion = LiveRegionMode.Polite },
+    ) {
+        Text(
+            text = androidx.compose.ui.res.stringResource(R.string.native_search_web_consent, web.text, web.host),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        if (web.addsTown) {
+            Text(
+                text = androidx.compose.ui.res.stringResource(R.string.native_search_web_consent_town),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TextButton(onClick = onConfirm, modifier = Modifier.sizeIn(minHeight = 48.dp)) {
+                Text(androidx.compose.ui.res.stringResource(R.string.native_search_web_consent_yes))
+            }
+            TextButton(onClick = onDecline, modifier = Modifier.sizeIn(minHeight = 48.dp)) {
+                Text(androidx.compose.ui.res.stringResource(R.string.native_search_web_consent_no))
+            }
+        }
+    }
+}
+
+@Composable
+private fun WebLoadingRow() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp, vertical = 12.dp)
+            .semantics { liveRegion = LiveRegionMode.Polite },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+        Spacer(modifier = Modifier.width(10.dp))
+        Text(
+            text = androidx.compose.ui.res.stringResource(R.string.native_search_web_loading),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall,
+        )
+    }
+}
+
+@Composable
+private fun WebTextRow(@StringRes text: Int) {
+    Text(
+        text = androidx.compose.ui.res.stringResource(text),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp, vertical = 10.dp)
+            .semantics { liveRegion = LiveRegionMode.Polite },
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = MaterialTheme.typography.bodySmall,
+    )
+}
+
+@StringRes
+internal fun NativeWebProblem.textResource(): Int = when (this) {
+    NativeWebProblem.JsonDisabled -> R.string.native_websearch_result_json_disabled
+    NativeWebProblem.RateLimited -> R.string.native_websearch_result_rate_limited
+    NativeWebProblem.NotSearxng -> R.string.native_websearch_result_not_searxng
+    NativeWebProblem.NoEngineList -> R.string.native_websearch_result_no_engine_list
+    NativeWebProblem.Unreachable -> R.string.native_websearch_result_unreachable
+    NativeWebProblem.Rejected -> R.string.native_websearch_result_rejected
 }
 
 @Composable
