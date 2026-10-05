@@ -101,7 +101,8 @@ class NativeMapCameraSessionTest {
         assertEquals(point.latitude, command.center.latitude, 0.0000001)
         assertEquals(point.longitude, command.center.longitude, 0.0000001)
         assertEquals(55.0, command.pitchDegrees, 0.0)
-        assertEquals(160.0, command.paddingTopPixels, 0.0)
+        // 45% of the 800 px screen: the vehicle at 72.5% of the height, like the Flutter map.
+        assertEquals(360.0, command.paddingTopPixels, 0.0)
         assertEquals(0.0, command.paddingBottomPixels, 0.0)
         assertTrue(state.frameActive)
     }
@@ -251,5 +252,43 @@ class NativeMapCameraSessionTest {
         session.recenter(1_000)
 
         assertEquals(0.0, requireNotNull(session.state.value.command).bearingDegrees, 0.0)
+    }
+
+    @Test
+    fun `navigation keeps the vehicle low using the measured padding, and only heading-up`() {
+        val session = NativeMapCameraSession()
+        session.configure(true, true, 17.0, 55.0, 2_000.0)
+        session.submitFix(1, point, 0.0, 0.0, 1_000)
+        session.recenter(1_000)
+        // Before the bottom panel is measured: the fixed fallback of 45% of the height.
+        assertEquals(900.0, requireNotNull(session.state.value.command).paddingTopPixels, 0.0)
+
+        // Measured: the padding is exactly what the shell worked out.
+        assertTrue(session.setNavigationTopPadding(1_100.0))
+        assertFalse(session.setNavigationTopPadding(1_100.0))
+        session.advanceFrame(1_100)
+        assertEquals(1_100.0, requireNotNull(session.state.value.command).paddingTopPixels, 0.0)
+
+        // North-up in navigation keeps the vehicle in the middle, as Flutter does.
+        session.configure(false, true, 17.0, 55.0, 2_000.0)
+        session.recenter(2_000)
+        assertEquals(0.0, requireNotNull(session.state.value.command).paddingTopPixels, 0.0)
+    }
+
+    @Test
+    fun `a free-drive map never pads the vehicle off centre`() {
+        val session = NativeMapCameraSession()
+        session.setNavigationTopPadding(1_100.0)
+        session.submitFix(1, point, 0.0, 0.0, 1_000)
+        session.recenter(1_000)
+
+        assertEquals(0.0, requireNotNull(session.state.value.command).paddingTopPixels, 0.0)
+    }
+
+    @Test
+    fun `an invalid padding is ignored`() {
+        val session = NativeMapCameraSession()
+        assertFalse(session.setNavigationTopPadding(Double.NaN))
+        assertFalse(session.setNavigationTopPadding(-5.0))
     }
 }
