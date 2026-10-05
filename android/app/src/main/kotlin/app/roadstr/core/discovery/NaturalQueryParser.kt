@@ -169,7 +169,7 @@ private class QueryAnalysis(
         }
         val placeText = spanText(range)
         clause = if (reference) {
-            LocationConstraint.NearReference(placeText, referenceCategory(range))
+            LocationConstraint.NearReference(placeText, referenceCategory(range), isGeneric(range))
         } else {
             LocationConstraint.NamedPlace(placeText, alternativeReadings(mark, range))
         }
@@ -256,6 +256,12 @@ private class QueryAnalysis(
     }
 
     private fun isFiller(index: Int): Boolean = cover[index]?.kind == LexiconKind.FILLER
+
+    /** True when every word of the range is a category or filler word. */
+    private fun isGeneric(range: IntRange): Boolean = range.all { index ->
+        val kind = cover[index]?.kind
+        kind == LexiconKind.CATEGORY || kind == LexiconKind.FILLER
+    }
 
     private fun referenceCategory(range: IntRange): PlaceCategory? {
         for (i in range) {

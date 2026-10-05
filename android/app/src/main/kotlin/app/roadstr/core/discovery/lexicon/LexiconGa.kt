@@ -3,24 +3,24 @@ package app.roadstr.core.discovery.lexicon
 /** Search vocabulary: Irish. Written from general knowledge; a native speaker should review it. */
 internal object LexiconGa {
     const val TEXT = """
-c RESTAURANT: bialann*, bialanna, teach bia
+c RESTAURANT: bialann, bialann*, bialanna, teach bia
 c FAST_FOOD: bia tapa, bia mear, fast food
 c CAFE: caifé, caifeanna, siopa caifé
 c BAR: beár
 c PUB: tábhairne*, teach tábhairne
-c SUPERMARKET: ollmhargadh*
+c SUPERMARKET: ollmhargadh, ollmhargadh*
 c CONVENIENCE: siopa grósaera, siopa bia
-c PHARMACY: cógaslann*
+c PHARMACY: cógaslann, cógaslann*
 c FUEL: stáisiún peitril, peitreal, stáisiún breosla, peitril
 c CHARGING_STATION: pointe luchtaithe, stáisiún luchtaithe, luchtú carranna leictreacha, luchtaitheoir
-c PARKING: carrchlós*, páirceáil, spás páirceála
-c HOTEL: óstán*, teach ósta, brú óige, lóistín
-c HOSPITAL: ospidéal*, roinn éigeandála
+c PARKING: carrchlós, carrchlós*, páirceáil, spás páirceála
+c HOTEL: óstán, óstán*, teach ósta, brú óige, lóistín
+c HOSPITAL: ospidéal, ospidéal*, roinn éigeandála
 c ATM: meaisín airgid, airgead tirim, meaisín tarraingthe
-c BANK: banc*
+c BANK: banc, banc*
 c POST_OFFICE: oifig an phoist, oifig poist, an post
 c POLICE: gardaí, garda, stáisiún gardaí, an garda síochána
-c CINEMA: pictiúrlann*, cineama
+c CINEMA: pictiúrlann, pictiúrlann*, cineama
 c TRAIN_STATION: stáisiún traenach, stáisiún iarnróid, stáisiún
 a VEGAN: vegan*, véagánach
 a VEGETARIAN: vegetarian*, vegetarianach, veigeatóra

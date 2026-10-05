@@ -3,12 +3,12 @@ package app.roadstr.core.discovery.lexicon
 /** Search vocabulary: Romanian. Written from general knowledge; a native speaker should review it. */
 internal object LexiconRo {
     const val TEXT = """
-c RESTAURANT: restaurant*, restaurante, crâșmă
+c RESTAURANT: restaurant, restaurant*, restaurante, crâșmă
 c FAST_FOOD: fast food, fastfood
 c CAFE: cafenea, cafenele, cafeneaua, cafe
 c BAR: bar, baruri
 c PUB: pub, puburi
-c SUPERMARKET: supermarket*, hipermarket*
+c SUPERMARKET: supermarket, supermarket*, hipermarket*
 c CONVENIENCE: magazin alimentar, magazin non stop
 c PHARMACY: farmacie, farmacii
 c FUEL: benzinărie, benzinării, stație de benzină, stație peco, pompă de benzină, stație de alimentare, benzină

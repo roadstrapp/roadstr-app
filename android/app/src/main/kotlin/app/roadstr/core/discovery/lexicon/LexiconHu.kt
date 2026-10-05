@@ -6,24 +6,24 @@ package app.roadstr.core.discovery.lexicon
  */
 internal object LexiconHu {
     const val TEXT = """
-c RESTAURANT: étterem*, vendéglő*, étkezde
+c RESTAURANT: étterem, étterem*, vendéglő*, étkezde
 c FAST_FOOD: gyorsétterem*, gyors kaja, gyorsétkezde, fast food
-c CAFE: kávézó*, kávé, kávéház
+c CAFE: kávézó, kávézó*, kávé, kávéház
 c BAR: bár, bárok
 c PUB: kocsma*, pub, pubok
-c SUPERMARKET: szupermarket*, élelmiszerbolt, közért
-c PHARMACY: gyógyszertár*, patika*
-c FUEL: benzinkút*, töltőállomás, benzin, üzemanyag
+c SUPERMARKET: szupermarket, szupermarket*, élelmiszerbolt, közért
+c PHARMACY: gyógyszertár, gyógyszertár*, patika*
+c FUEL: benzinkút, benzinkút*, töltőállomás, benzin, üzemanyag
 c CHARGING_STATION: elektromos töltő, töltőpont, autótöltő, villanyautó töltő
-c PARKING: parkoló*, parkolóház, parkolás, parkolóhely
-c HOTEL: szálloda*, hotel*, hostel*, panzió*, motel*, szállás
-c HOSPITAL: kórház*, sürgősségi, ügyelet
-c ATM: bankautomata*, pénzkiadó automata
-c BANK: bank*, bankfiók
-c POST_OFFICE: posta*, postahivatal
-c POLICE: rendőrség*, rendőrőrs
-c CINEMA: mozi*, filmszínház
-c TRAIN_STATION: vasútállomás*, pályaudvar*, vonatállomás
+c PARKING: parkoló, parkoló*, parkolóház, parkolás, parkolóhely
+c HOTEL: szálloda, szálloda*, hotel*, hostel*, panzió*, motel*, szállás
+c HOSPITAL: kórház, kórház*, sürgősségi, ügyelet
+c ATM: bankautomata, bankautomata*, pénzkiadó automata
+c BANK: bank, bank*, bankfiók
+c POST_OFFICE: posta, posta*, postahivatal
+c POLICE: rendőrség, rendőrség*, rendőrőrs
+c CINEMA: mozi, mozi*, filmszínház
+c TRAIN_STATION: vasútállomás, vasútállomás*, pályaudvar*, vonatállomás
 a VEGAN: vegán*, vegan*
 a VEGETARIAN: vegetáriánus*, vega
 a GLUTEN_FREE: gluténmentes*, glutenmentes*, gluten mentes

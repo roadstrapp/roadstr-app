@@ -86,6 +86,7 @@ android {
                     "src/main/kotlin",
                     "../../android/app/src/main/kotlin/app/roadstr/core",
                     "../../android/app/src/main/kotlin/app/roadstr/feature",
+                    "../../android/app/src/main/kotlin/app/roadstr/service/discovery",
                     "../../android/app/src/main/kotlin/app/roadstr/service/hazards",
                     "../../android/app/src/main/kotlin/app/roadstr/service/location",
                     "../../android/app/src/main/kotlin/app/roadstr/service/network",

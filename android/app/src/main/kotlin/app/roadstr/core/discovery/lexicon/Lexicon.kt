@@ -50,6 +50,8 @@ data class LexiconEntry(
     val tokens: List<String>,
     /** The last token is a prefix ("restaurac*" matches "restaurace", "restauraci"). */
     val prefix: Boolean,
+    /** The phrase as written, with its accents, for showing a category name. */
+    val text: String = tokens.joinToString(" "),
 )
 
 data class LexiconMatch(val entry: LexiconEntry, val length: Int)
@@ -150,7 +152,7 @@ object LexiconParser {
         if (prefix) {
             require(tokens.last().length >= MIN_PREFIX_CHARS) { "prefix too short in '$phrase'" }
         }
-        return LexiconEntry(kind, id, tokens, prefix)
+        return LexiconEntry(kind, id, tokens, prefix, body.trim())
     }
 
     private fun requireKnownId(kind: LexiconKind, id: String) {
