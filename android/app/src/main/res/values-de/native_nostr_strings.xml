@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">Nicht festgelegt</string>
     <string name="native_websearch_instance_title">Adresse der SearXNG-Instanz</string>
     <string name="native_websearch_intro">Roadstr kann eine SearXNG-Instanz deiner Wahl nach Webergebnissen zu Orten fragen, etwa Speisekarten. Standardmäßig ist das aus, und es ist keine Instanz eingebaut.</string>
+    <string name="native_websearch_link_candidate">Könnte das %1$s sein?</string>
+    <string name="native_websearch_link_match">Auf der Karte: %1$s</string>
+    <string name="native_websearch_link_note">Roadstr kann anschließend Ortsnamen aus den Ergebnissen bei OpenStreetMap nachschlagen, um Ergebnisse mit Orten auf der Karte zu verknüpfen.</string>
     <string name="native_websearch_mode">Wann im Web suchen</string>
     <string name="native_websearch_mode_ask">Jedes Mal fragen</string>
     <string name="native_websearch_mode_off">Aus</string>

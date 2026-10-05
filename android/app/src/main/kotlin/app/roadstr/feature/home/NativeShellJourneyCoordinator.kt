@@ -2,10 +2,19 @@ package app.roadstr.feature.home
 
 import app.roadstr.core.discovery.DiscoveryOutcome
 import app.roadstr.core.discovery.DiscoveryRequest
+import app.roadstr.core.discovery.LocationConstraint
 import app.roadstr.core.discovery.NaturalPlaceQuery
 import app.roadstr.core.discovery.NaturalQueryParser
 import app.roadstr.core.discovery.QueryInterpreter
 import app.roadstr.core.discovery.RankedPlace
+import app.roadstr.core.discovery.RoadstrPlace
+import app.roadstr.core.discovery.SearchArea
+import app.roadstr.core.discovery.resolve.MatchClass
+import app.roadstr.core.discovery.resolve.PlaceEntityResolver
+import app.roadstr.core.discovery.resolve.PlaceLookup
+import app.roadstr.core.discovery.resolve.ResolveContext
+import app.roadstr.core.discovery.resolve.ResolvedWebResult
+import app.roadstr.core.discovery.resolve.reachMeters
 import app.roadstr.core.discovery.web.ConnectionTest
 import app.roadstr.core.discovery.web.EndpointCheck
 import app.roadstr.core.discovery.web.SearxngEndpointPolicy
@@ -15,7 +24,9 @@ import app.roadstr.core.discovery.web.WebDiscoverySettings
 import app.roadstr.core.discovery.web.WebQueryBuilder
 import app.roadstr.core.discovery.web.WebSearchContext
 import app.roadstr.core.geo.GeoPoint
+import app.roadstr.core.time.OpenState
 import app.roadstr.feature.search.NativeSearchWeb
+import app.roadstr.feature.search.NativeWebPlaceLink
 import app.roadstr.feature.search.NativeWebProblem
 import app.roadstr.feature.search.toWebProblem
 import app.roadstr.feature.search.NativeWebResultPresentation
@@ -111,6 +122,14 @@ interface NativeShellJourneyGateway {
     /** Web results for the typed words; the default has no web provider. */
     suspend fun webSearch(context: WebSearchContext): WebDiscoveryOutcome = WebDiscoveryOutcome.Disabled
 
+    /** Places a name might refer to near a town, for tying a web result to the map; none by default. */
+    suspend fun lookupPlaces(
+        name: String,
+        locality: String?,
+        near: GeoPoint,
+        languageCode: String,
+    ): List<RoadstrPlace> = emptyList()
+
     /** The "test connection" button of the web search settings. */
     suspend fun testWebSearch(): ConnectionTest = ConnectionTest.NotConfigured
 
@@ -150,6 +169,12 @@ class NativeShellJourneyCoordinator(
     private var routeRevision = routeSession.state.value.revision.coerceAtLeast(0L)
     private var searchJob: Job? = null
     private var webJob: Job? = null
+    private var lastPlaces: List<RankedPlace> = emptyList()
+    private var lastArea: SearchArea? = null
+    private var webPlaces: Map<String, RoadstrPlace> = emptyMap()
+    private val resolver = PlaceEntityResolver(
+        PlaceLookup { name, locality, near, language -> gateway.lookupPlaces(name, locality, near, language) },
+    )
     private var pendingWeb: PendingWeb? = null
     private var routeJob: Job? = null
     private var rerouteJob: Job? = null
@@ -423,6 +448,9 @@ class NativeShellJourneyCoordinator(
         near: SearchResponsePoint?,
     ) {
         onDiscovery(revision, emptyList())
+        lastPlaces = emptyList()
+        lastArea = null
+        webPlaces = emptyMap()
         searchJob = scope.launch {
             try {
                 val parsed = interpreter.interpret(query, normalizedLanguageCode())
@@ -485,6 +513,8 @@ class NativeShellJourneyCoordinator(
         val notice = DiscoveryPresentation.notice(found.notices)
         lastNoticeWasSparse = notice == NativeSearchNotice.FewTagged
         if (!searchSession.submitResults(revision, results, notice)) return DiscoveryAttempt.Shown
+        lastPlaces = found.places
+        lastArea = found.area
         onDiscovery(revision, found.places)
         return DiscoveryAttempt.Shown
     }
@@ -584,9 +614,70 @@ class NativeShellJourneyCoordinator(
             } catch (_: Exception) {
                 WebDiscoveryOutcome.Failed
             }
-            searchSession.updateWeb(revision, webState(outcome))
+            val shown = if (outcome is WebDiscoveryOutcome.Results) {
+                linked(pending, outcome)
+            } else {
+                LinkedResults(webState(outcome), emptyList())
+            }
+            if (searchSession.updateWeb(revision, shown.state)) pinNewMatches(revision, shown.fresh)
         }
         return true
+    }
+
+    /** The place the user was shown for a web result, from the latest search; null once it is gone. */
+    fun webPlace(id: String): RoadstrPlace? = webPlaces[id]
+
+    /** The web part of the list, and the places that were found only through it. */
+    private class LinkedResults(val state: NativeSearchWeb, val fresh: List<RankedPlace>)
+
+    /**
+     * The results with each one tied to a place when the evidence allows it. Resolution is an
+     * extra: any failure leaves the plain list, and nothing is linked without a centre to judge
+     * "in the area" against.
+     */
+    private suspend fun linked(pending: PendingWeb, found: WebDiscoveryOutcome.Results): LinkedResults {
+        val plain = LinkedResults(webState(found), emptyList())
+        val area = lastArea
+        val centre = area?.center ?: pending.near?.let { GeoPoint(it.latitude, it.longitude) } ?: return plain
+        val named = (pending.parsed.location as? LocationConstraint.NamedPlace)?.text
+        val context = ResolveContext(
+            center = centre,
+            radiusMeters = area?.reachMeters() ?: 0.0,
+            locality = named ?: found.locality,
+            languageCode = normalizedLanguageCode(),
+            categories = pending.parsed.categories.toSet(),
+        )
+        val rows = try {
+            resolver.resolve(found.results, lastPlaces.map { it.place }, context)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            return plain
+        }
+        webPlaces = rows.mapNotNull { it.match?.place }.associateBy { it.id }
+        val fresh = rows.mapNotNull { row -> row.match?.takeIf { it.isNew && it.matchClass == MatchClass.LINKED } }
+            .map { match -> RankedPlace(match.place.copy(confidence = match.confidence), match.confidence, OpenState.UNKNOWN) }
+        return LinkedResults(NativeSearchWeb.Results(found.host, rows.map(::presentation)), fresh)
+    }
+
+    private fun presentation(row: ResolvedWebResult): NativeWebResultPresentation {
+        val result = row.result
+        val match = row.match
+        val link = when {
+            match == null -> NativeWebPlaceLink.None
+            row.matchClass == MatchClass.LINKED -> NativeWebPlaceLink.Linked(match.place.id, match.place.name)
+            row.matchClass == MatchClass.CANDIDATE -> NativeWebPlaceLink.Candidate(match.place.id, match.place.name)
+            else -> NativeWebPlaceLink.None
+        }
+        return NativeWebResultPresentation(result.title, result.host, result.snippet, result.url.toString(), link)
+    }
+
+    /** A place found only through a web result gets a pin once it is confidently linked, never before. */
+    private fun pinNewMatches(revision: Long, matches: List<RankedPlace>) {
+        val fresh = matches.filter { added -> lastPlaces.none { it.place.id == added.place.id } }
+        if (fresh.isEmpty()) return
+        lastPlaces = lastPlaces + fresh
+        onDiscovery(revision, lastPlaces)
     }
 
     private fun webState(outcome: WebDiscoveryOutcome): NativeSearchWeb = when (outcome) {

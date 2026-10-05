@@ -48,8 +48,12 @@ void main() {
       'github.com',
     };
     for (final file in discoverySources) {
-      // Lexicons are words, and the web package has its own, stricter test below.
-      if (file.path.contains('/lexicon/') || file.path.contains('/discovery/web/')) continue;
+      // Lexicons are words; the web package and the host list have their own, stricter tests below.
+      if (file.path.contains('/lexicon/') ||
+          file.path.contains('/discovery/web/') ||
+          file.path.endsWith('/resolve/HostMatching.kt')) {
+        continue;
+      }
       final source = file.readAsStringSync();
       expect(source.toLowerCase(), isNot(contains('google')), reason: file.path);
       for (final match in hosts.allMatches(_code(source))) {
@@ -121,6 +125,31 @@ void main() {
     }
     final policy = _read('$_root/core/discovery/web/SearchSourcePolicy.kt');
     expect(policy, contains('val DEFAULT_BLOCKED = listOf("google", "startpage")'));
+  });
+
+  test('linking results to places never trusts a listing site and talks only to Nominatim', () {
+    final hostMatching = _read('$_root/core/discovery/resolve/HostMatching.kt');
+    // Google is named here only as a listing site that identifies no business.
+    for (final label in ['facebook', 'tripadvisor', 'yelp', 'google']) {
+      expect(hostMatching, contains('"$label"'), reason: label);
+    }
+    expect(RegExp(r'https?://').hasMatch(_code(hostMatching)), isFalse);
+    final hosts = RegExp(r'https?://([A-Za-z0-9.\-]+)');
+    for (final file in _kotlinFiles('core/discovery/resolve')) {
+      for (final match in hosts.allMatches(_code(file.readAsStringSync()))) {
+        expect(match.group(1), 'nominatim.openstreetmap.org', reason: file.path);
+      }
+    }
+    final resolver = _read('$_root/core/discovery/resolve/PlaceEntityResolver.kt');
+    expect(resolver, contains('const val MAX_LOOKUPS = 3'));
+    final evidence = _read('$_root/core/discovery/resolve/Evidence.kt');
+    expect(evidence, contains('const val LINK_THRESHOLD = 0.8'));
+    expect(evidence, contains('const val CANDIDATE_THRESHOLD = 0.5'));
+    // Lookups go through the shared pacer and carry a name taken from a page title, not typed text.
+    final lookup = _read('$_root/service/discovery/NativePlaceLookup.kt');
+    expect(lookup, contains('pacer.paced'));
+    expect(_read('native-android/app/src/main/kotlin/app/roadstr/roadtest/NativeRoadTestJourneyGateway.kt'),
+        contains('NativePlaceLookup(transport, nominatimPacer)'));
   });
 
   test('web requests carry words and a language, never a position', () {

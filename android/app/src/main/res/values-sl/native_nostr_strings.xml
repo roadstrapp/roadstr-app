@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">Ni nastavljeno</string>
     <string name="native_websearch_instance_title">Naslov primerka SearXNG</string>
     <string name="native_websearch_intro">Roadstr lahko vpraša primerek SearXNG po vaši izbiri za spletne rezultate o krajih, na primer jedilnike. Privzeto je izklopljeno in noben primerek ni vgrajen.</string>
+    <string name="native_websearch_link_candidate">Ali je to morda %1$s?</string>
+    <string name="native_websearch_link_match">Na zemljevidu: %1$s</string>
+    <string name="native_websearch_link_note">Roadstr lahko nato v OpenStreetMap poišče imena krajev iz rezultatov, da rezultate poveže s kraji na zemljevidu.</string>
     <string name="native_websearch_mode">Kdaj iskati po spletu</string>
     <string name="native_websearch_mode_ask">Vprašaj vsakič</string>
     <string name="native_websearch_mode_off">Izklopljeno</string>

@@ -1613,6 +1613,7 @@ fun NativeRoadstrShell(
                     onConfirmWeb = { journeyCoordinator?.confirmWeb() },
                     onDeclineWeb = { journeyCoordinator?.declineWeb() },
                     onOpenWebResult = { url -> onOpenExternal(url) },
+                    onOpenWebPlace = { id -> journeyCoordinator?.webPlace(id)?.let(showDiscoveryPlace) },
                     onSelectResult = { result ->
                         val discovered = DiscoveryPresentation.placeAt(
                             result.position.latitude, result.position.longitude, discovery.places,

@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">Nenastaveno</string>
     <string name="native_websearch_instance_title">Adresa instance SearXNG</string>
     <string name="native_websearch_intro">Roadstr se může ptát vámi zvolené instance SearXNG na výsledky z webu o místech, například jídelní lístky. Ve výchozím stavu je vypnuto a žádná instance není zabudována.</string>
+    <string name="native_websearch_link_candidate">Mohlo by to být %1$s?</string>
+    <string name="native_websearch_link_match">Na mapě: %1$s</string>
+    <string name="native_websearch_link_note">Roadstr pak může v OpenStreetMap vyhledat názvy míst z výsledků, aby výsledky propojil s místy na mapě.</string>
     <string name="native_websearch_mode">Kdy hledat na webu</string>
     <string name="native_websearch_mode_ask">Pokaždé se zeptat</string>
     <string name="native_websearch_mode_off">Vypnuto</string>

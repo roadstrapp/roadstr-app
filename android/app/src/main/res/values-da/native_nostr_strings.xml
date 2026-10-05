@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">Ikke angivet</string>
     <string name="native_websearch_instance_title">Adresse på SearXNG-instansen</string>
     <string name="native_websearch_intro">Roadstr kan bede en SearXNG-instans efter dit valg om webresultater om steder, f.eks. menuer. Det er slået fra som standard, og ingen instans er indbygget.</string>
+    <string name="native_websearch_link_candidate">Kan det være %1$s?</string>
+    <string name="native_websearch_link_match">På kortet: %1$s</string>
+    <string name="native_websearch_link_note">Roadstr kan derefter slå stednavne fra resultaterne op hos OpenStreetMap, så resultater kan knyttes til steder på kortet.</string>
     <string name="native_websearch_mode">Hvornår skal nettet søges</string>
     <string name="native_websearch_mode_ask">Spørg hver gang</string>
     <string name="native_websearch_mode_off">Fra</string>

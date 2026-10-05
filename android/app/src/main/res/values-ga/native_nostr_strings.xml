@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">Gan socrú</string>
     <string name="native_websearch_instance_title">Seoladh an ásc SearXNG</string>
     <string name="native_websearch_intro">Is féidir le Roadstr torthaí gréasáin faoi áiteanna, mar roghchláir, a iarraidh ar ásc SearXNG a roghnaíonn tú. Tá sé as de réir réamhshocraithe agus níl aon ásc ionsuite ann.</string>
+    <string name="native_websearch_link_candidate">An é %1$s é seo?</string>
+    <string name="native_websearch_link_match">Ar an léarscáil: %1$s</string>
+    <string name="native_websearch_link_note">Féadfaidh Roadstr ainmneacha áiteanna ó na torthaí a lorg ar OpenStreetMap ansin, chun torthaí a cheangal le háiteanna ar an léarscáil.</string>
     <string name="native_websearch_mode">Cathain a chuardaítear an gréasán</string>
     <string name="native_websearch_mode_ask">Fiafraigh gach uair</string>
     <string name="native_websearch_mode_off">As</string>

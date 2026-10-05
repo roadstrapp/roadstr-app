@@ -73,6 +73,7 @@ fun NativeSearchOverlay(
     onConfirmWeb: () -> Unit = {},
     onDeclineWeb: () -> Unit = {},
     onOpenWebResult: (String) -> Unit = {},
+    onOpenWebPlace: (String) -> Unit = {},
 ) {
     val hint = androidx.compose.ui.res.stringResource(R.string.native_search_hint)
     AnimatedVisibility(
@@ -164,7 +165,7 @@ fun NativeSearchOverlay(
                     item(key = "empty-nearby") { SearchEmptyNearbyState() }
                 }
 
-                webItems(snapshot.web, onSearchWeb, onConfirmWeb, onDeclineWeb, onOpenWebResult)
+                webItems(snapshot.web, onSearchWeb, onConfirmWeb, onDeclineWeb, onOpenWebResult, onOpenWebPlace)
 
                 if (snapshot.query.isEmpty() && snapshot.history.isNotEmpty()) {
                     item(key = "history-heading") {
@@ -405,6 +406,7 @@ private fun LazyListScope.webItems(
     onConfirmWeb: () -> Unit,
     onDeclineWeb: () -> Unit,
     onOpenWebResult: (String) -> Unit,
+    onOpenWebPlace: (String) -> Unit,
 ) {
     when (web) {
         NativeSearchWeb.Hidden -> Unit
@@ -430,18 +432,39 @@ private fun LazyListScope.webItems(
             }
             if (web.rows.isEmpty()) item(key = "web-empty") { WebTextRow(R.string.native_search_web_empty) }
             items(items = web.rows, key = { "web:${it.url}" }) { row ->
-                SearchRow(
-                    symbol = "🌐",
-                    title = row.title,
-                    subtitle = listOf(row.host, row.snippet).filter { it.isNotEmpty() }.joinToString(" · "),
-                    trailing = null,
-                    onClick = { onOpenWebResult(row.url) },
-                )
+                Column {
+                    SearchRow(
+                        symbol = "🌐",
+                        title = row.title,
+                        subtitle = listOf(row.host, row.snippet).filter { it.isNotEmpty() }.joinToString(" · "),
+                        trailing = null,
+                        onClick = { onOpenWebResult(row.url) },
+                    )
+                    WebPlaceLinkRow(row.link, onOpenWebPlace)
+                }
             }
         }
         is NativeSearchWeb.Unavailable -> item(key = "web-unavailable") {
             WebTextRow(web.problem.textResource())
         }
+    }
+}
+
+/** Under a web result: the place it was tied to, or the question whether it could be one. */
+@Composable
+private fun WebPlaceLinkRow(link: NativeWebPlaceLink, onOpen: (String) -> Unit) {
+    val (placeId, text) = when (link) {
+        NativeWebPlaceLink.None -> return
+        is NativeWebPlaceLink.Linked ->
+            link.placeId to androidx.compose.ui.res.stringResource(R.string.native_websearch_link_match, link.name)
+        is NativeWebPlaceLink.Candidate ->
+            link.placeId to androidx.compose.ui.res.stringResource(R.string.native_websearch_link_candidate, link.name)
+    }
+    TextButton(
+        onClick = { onOpen(placeId) },
+        modifier = Modifier.padding(start = 40.dp).sizeIn(minHeight = 48.dp),
+    ) {
+        Text("📍 $text", maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }
 

@@ -32,11 +32,23 @@ fun SearxngCapability.toWebProblem(): NativeWebProblem? = when (this) {
     is SearxngCapability.Compatible -> null
 }
 
+/** What a web result is known to be about, when it could be tied to a place. */
+sealed interface NativeWebPlaceLink {
+    data object None : NativeWebPlaceLink
+
+    /** Confidently the place [placeId]: the link under the result opens it on the map. */
+    data class Linked(val placeId: String, val name: String) : NativeWebPlaceLink
+
+    /** Possibly [placeId]: offered as a question and never merged with the result. */
+    data class Candidate(val placeId: String, val name: String) : NativeWebPlaceLink
+}
+
 data class NativeWebResultPresentation(
     val title: String,
     val host: String,
     val snippet: String,
     val url: String,
+    val link: NativeWebPlaceLink = NativeWebPlaceLink.None,
 )
 
 /** The optional web part of the search list: offered, asked about, running, shown or failed. */

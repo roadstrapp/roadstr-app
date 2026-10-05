@@ -28,10 +28,13 @@ import app.roadstr.service.discovery.CoarseLocality
 import app.roadstr.service.discovery.HostPacer
 import app.roadstr.service.discovery.NativeDiscoveryService
 import app.roadstr.service.discovery.NativeLanHttpTransport
+import app.roadstr.service.discovery.NativePlaceLookup
 import app.roadstr.service.discovery.NativeSearxngProvider
 import app.roadstr.service.search.NativeSearchPhase
 import app.roadstr.core.discovery.DiscoveryOutcome
 import app.roadstr.core.discovery.DiscoveryRequest
+import app.roadstr.core.discovery.RoadstrPlace
+import app.roadstr.core.geo.GeoPoint
 import app.roadstr.core.discovery.web.ConnectionTest
 import app.roadstr.core.discovery.web.WebDiscoveryMode
 import app.roadstr.core.discovery.web.WebDiscoveryOutcome
@@ -129,6 +132,7 @@ class NativeRoadTestJourneyGateway(
     private val discovery = NativeDiscoveryService(transport, nominatimPacer = nominatimPacer)
     private val locality = CoarseLocality(transport, nominatimPacer)
     private val webProvider = NativeSearxngProvider(webSettings, transport, NativeLanHttpTransport())
+    private val placeLookup = NativePlaceLookup(transport, nominatimPacer)
 
     override suspend fun discover(request: DiscoveryRequest): DiscoveryOutcome =
         discovery.discover(request)
@@ -138,8 +142,17 @@ class NativeRoadTestJourneyGateway(
         if (webSettings().mode == WebDiscoveryMode.OFF) return WebDiscoveryOutcome.Disabled
         val town = WebQueryBuilder.localityPoint(context)?.let { locality.nameOf(it, context.languageCode) }
         val text = WebQueryBuilder.build(context.parsed, town)
-        return webProvider.discover(WebDiscoveryRequest(text, context.languageCode))
+        val outcome = webProvider.discover(WebDiscoveryRequest(text, context.languageCode))
+        // The town travels with the results so that a name can be looked up in the right place.
+        return if (outcome is WebDiscoveryOutcome.Results) outcome.copy(locality = town) else outcome
     }
+
+    override suspend fun lookupPlaces(
+        name: String,
+        locality: String?,
+        near: GeoPoint,
+        languageCode: String,
+    ): List<RoadstrPlace> = placeLookup.find(name, locality, near, languageCode)
 
     override suspend fun testWebSearch(): ConnectionTest = webProvider.testConnection()
 

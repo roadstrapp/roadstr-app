@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">Pole seadistatud</string>
     <string name="native_websearch_instance_title">SearXNG-serveri aadress</string>
     <string name="native_websearch_intro">Roadstr võib sinu valitud SearXNG-serverilt küsida veebitulemusi kohtade kohta, näiteks menüüd. Vaikimisi on see väljas ja sisseehitatud serverit pole.</string>
+    <string name="native_websearch_link_candidate">Kas see võiks olla %1$s?</string>
+    <string name="native_websearch_link_match">Kaardil: %1$s</string>
+    <string name="native_websearch_link_note">Seejärel võib Roadstr otsida OpenStreetMapist tulemustes olevate kohtade nimesid, et siduda tulemused kaardil olevate kohtadega.</string>
     <string name="native_websearch_mode">Millal veebist otsida</string>
     <string name="native_websearch_mode_ask">Küsi iga kord</string>
     <string name="native_websearch_mode_off">Väljas</string>

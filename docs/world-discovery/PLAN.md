@@ -389,6 +389,8 @@ Format: **objective · current code affected · new code · dependencies · netw
 **WORLD-035** Web rows + ask dialog in the search overlay. · overlay/presentation · optional fields · 032–034 · — · — · presenter tests · green.
 
 ### Phase 4 — entity resolution
+*Status: resolver, name lookup, link rows and pins implemented and unit-tested (WORLD-040, WORLD-041 in a first form: the link line under a result; the place sheet does not yet list its web evidence). Decisions D-25…D-28.*
+
 **WORLD-040** `PlaceEntityResolver` + evidence/confidence + merge. · — · `PlaceEntityResolver.kt` · 020, 030 · ≤3 lookups per search through the pacer · — · domain match, name+locality, chain non-merge, low confidence stays web · green.
 **WORLD-041** Candidate selection + provenance UI. · overlay/place sheet · — · 040 · — · — · presenter tests · green.
 

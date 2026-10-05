@@ -25,6 +25,8 @@ sealed interface WebDiscoveryOutcome {
         val results: List<WebResult>,
         val host: String,
         val unresponsiveEngines: List<String>,
+        /** The town the search was made in, when the words did not name one; used to look names up. */
+        val locality: String? = null,
     ) : WebDiscoveryOutcome
 
     /** Web search is off, or no instance is configured. */
