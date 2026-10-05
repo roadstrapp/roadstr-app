@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">Nesetată</string>
     <string name="native_websearch_instance_title">Adresa instanței SearXNG</string>
     <string name="native_websearch_intro">Roadstr poate cere unei instanțe SearXNG alese de tine rezultate web despre locuri, precum meniurile. Este dezactivat implicit și nu există nicio instanță încorporată.</string>
+    <string name="native_websearch_link_candidate">Ar putea fi %1$s?</string>
+    <string name="native_websearch_link_match">Pe hartă: %1$s</string>
+    <string name="native_websearch_link_note">Roadstr poate apoi să caute în OpenStreetMap numele locurilor din rezultate, ca să le lege de locuri de pe hartă.</string>
     <string name="native_websearch_mode">Când se caută pe web</string>
     <string name="native_websearch_mode_ask">Întreabă de fiecare dată</string>
     <string name="native_websearch_mode_off">Dezactivat</string>

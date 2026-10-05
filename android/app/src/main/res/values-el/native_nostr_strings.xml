@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">Δεν έχει οριστεί</string>
     <string name="native_websearch_instance_title">Διεύθυνση της εγκατάστασης SearXNG</string>
     <string name="native_websearch_intro">Το Roadstr μπορεί να ζητά από μια εγκατάσταση SearXNG της επιλογής σας αποτελέσματα ιστού για μέρη, όπως μενού. Είναι απενεργοποιημένο από προεπιλογή και δεν υπάρχει ενσωματωμένη εγκατάσταση.</string>
+    <string name="native_websearch_link_candidate">Θα μπορούσε να είναι το %1$s;</string>
+    <string name="native_websearch_link_match">Στον χάρτη: %1$s</string>
+    <string name="native_websearch_link_note">Στη συνέχεια το Roadstr μπορεί να αναζητήσει στο OpenStreetMap ονόματα τόπων από τα αποτελέσματα, ώστε να τα συνδέσει με τόπους στον χάρτη.</string>
     <string name="native_websearch_mode">Πότε να γίνεται αναζήτηση στον ιστό</string>
     <string name="native_websearch_mode_ask">Ερώτηση κάθε φορά</string>
     <string name="native_websearch_mode_off">Ανενεργή</string>

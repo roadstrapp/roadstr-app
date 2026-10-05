@@ -180,7 +180,7 @@ object AreaGeocoding {
         return runCatching { SearchArea.Box(south, west, north, east) }.getOrNull()
     }
 
-    private fun viewbox(near: GeoPoint): String {
+    internal fun viewbox(near: GeoPoint): String {
         val west = near.longitude - 0.5
         val east = near.longitude + 0.5
         val north = near.latitude + 0.5

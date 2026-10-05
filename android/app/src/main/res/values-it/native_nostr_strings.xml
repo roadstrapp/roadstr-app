@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">Non impostata</string>
     <string name="native_websearch_instance_title">Indirizzo dell\'istanza SearXNG</string>
     <string name="native_websearch_intro">Roadstr può chiedere a un\'istanza SearXNG scelta da te risultati web sui luoghi, come i menu. È disattivato di default e non c\'è nessuna istanza integrata.</string>
+    <string name="native_websearch_link_candidate">Potrebbe essere %1$s?</string>
+    <string name="native_websearch_link_match">Sulla mappa: %1$s</string>
+    <string name="native_websearch_link_note">Roadstr può poi cercare su OpenStreetMap i nomi dei luoghi presenti nei risultati, per collegarli ai luoghi sulla mappa.</string>
     <string name="native_websearch_mode">Quando cercare sul web</string>
     <string name="native_websearch_mode_ask">Chiedi ogni volta</string>
     <string name="native_websearch_mode_off">Disattivata</string>

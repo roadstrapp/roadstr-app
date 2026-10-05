@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">Nincs beállítva</string>
     <string name="native_websearch_instance_title">A SearXNG-példány címe</string>
     <string name="native_websearch_intro">A Roadstr egy általad választott SearXNG-példánytól kérhet webes találatokat helyekről, például étlapokat. Alapból ki van kapcsolva, és nincs beépített példány.</string>
+    <string name="native_websearch_link_candidate">Lehet, hogy ez a(z) %1$s?</string>
+    <string name="native_websearch_link_match">A térképen: %1$s</string>
+    <string name="native_websearch_link_note">A Roadstr ezután az OpenStreetMapen megkeresheti az eredményekben szereplő helyek nevét, hogy az eredményeket a térkép helyeihez kapcsolja.</string>
     <string name="native_websearch_mode">Mikor keressen a weben</string>
     <string name="native_websearch_mode_ask">Kérdezzen minden alkalommal</string>
     <string name="native_websearch_mode_off">Ki</string>

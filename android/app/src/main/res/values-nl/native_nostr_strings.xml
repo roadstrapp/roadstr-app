@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">Niet ingesteld</string>
     <string name="native_websearch_instance_title">Adres van de SearXNG-instantie</string>
     <string name="native_websearch_intro">Roadstr kan een SearXNG-instantie naar keuze om webresultaten over plaatsen vragen, zoals menu\'s. Standaard staat dit uit en er is geen instantie ingebouwd.</string>
+    <string name="native_websearch_link_candidate">Zou dit %1$s kunnen zijn?</string>
+    <string name="native_websearch_link_match">Op de kaart: %1$s</string>
+    <string name="native_websearch_link_note">Roadstr kan daarna plaatsnamen uit de resultaten opzoeken bij OpenStreetMap, zodat resultaten aan plekken op de kaart kunnen worden gekoppeld.</string>
     <string name="native_websearch_mode">Wanneer op het web zoeken</string>
     <string name="native_websearch_mode_ask">Elke keer vragen</string>
     <string name="native_websearch_mode_off">Uit</string>

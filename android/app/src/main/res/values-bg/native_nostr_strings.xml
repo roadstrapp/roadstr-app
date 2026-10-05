@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">Не е зададен</string>
     <string name="native_websearch_instance_title">Адрес на екземпляра на SearXNG</string>
     <string name="native_websearch_intro">Roadstr може да пита избран от вас екземпляр на SearXNG за резултати от мрежата за места, например менюта. По подразбиране е изключено и няма вграден екземпляр.</string>
+    <string name="native_websearch_link_candidate">Може ли това да е %1$s?</string>
+    <string name="native_websearch_link_match">На картата: %1$s</string>
+    <string name="native_websearch_link_note">След това Roadstr може да търси в OpenStreetMap имена на места от резултатите, за да ги свърже с места на картата.</string>
     <string name="native_websearch_mode">Кога да се търси в мрежата</string>
     <string name="native_websearch_mode_ask">Питай всеки път</string>
     <string name="native_websearch_mode_off">Изкл.</string>

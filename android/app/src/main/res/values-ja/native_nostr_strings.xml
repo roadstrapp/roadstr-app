@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">未設定</string>
     <string name="native_websearch_instance_title">SearXNGインスタンスのアドレス</string>
     <string name="native_websearch_intro">Roadstrは、あなたが選んだSearXNGインスタンスに、メニューなど場所に関するウェブ結果を問い合わせることができます。初期設定ではオフで、内蔵のインスタンスはありません。</string>
+    <string name="native_websearch_link_candidate">%1$s でしょうか？</string>
+    <string name="native_websearch_link_match">地図上: %1$s</string>
+    <string name="native_websearch_link_note">その後、Roadstrは結果に含まれる場所の名前をOpenStreetMapで検索し、結果を地図上の場所に結び付けることがあります。</string>
     <string name="native_websearch_mode">ウェブ検索を行うタイミング</string>
     <string name="native_websearch_mode_ask">毎回確認</string>
     <string name="native_websearch_mode_off">オフ</string>

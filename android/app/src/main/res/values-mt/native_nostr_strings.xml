@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">Mhux issettjat</string>
     <string name="native_websearch_instance_title">Indirizz tal-istanza SearXNG</string>
     <string name="native_websearch_intro">Roadstr jista\' jitlob lil istanza SearXNG li tagħżel int riżultati tal-web dwar postijiet, bħal menus. Awtomatikament huwa mitfi u ma hemm l-ebda istanza inkorporata.</string>
+    <string name="native_websearch_link_candidate">Jista\' jkun %1$s?</string>
+    <string name="native_websearch_link_match">Fuq il-mappa: %1$s</string>
+    <string name="native_websearch_link_note">Roadstr jista\' mbagħad ifittex f\'OpenStreetMap l-ismijiet tal-postijiet mir-riżultati, biex jorbot ir-riżultati ma\' postijiet fuq il-mappa.</string>
     <string name="native_websearch_mode">Meta tfittex fuq il-web</string>
     <string name="native_websearch_mode_ask">Staqsi kull darba</string>
     <string name="native_websearch_mode_off">Mitfi</string>

@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">未设置</string>
     <string name="native_websearch_instance_title">SearXNG 实例地址</string>
     <string name="native_websearch_intro">Roadstr 可以向你选择的 SearXNG 实例请求有关地点的网络结果，例如菜单。默认关闭，且没有内置实例。</string>
+    <string name="native_websearch_link_candidate">这可能是 %1$s 吗？</string>
+    <string name="native_websearch_link_match">地图上：%1$s</string>
+    <string name="native_websearch_link_note">之后，Roadstr 可能会在 OpenStreetMap 上查找结果中的地名，以便把结果与地图上的地点关联起来。</string>
     <string name="native_websearch_mode">何时搜索网络</string>
     <string name="native_websearch_mode_ask">每次询问</string>
     <string name="native_websearch_mode_off">关闭</string>

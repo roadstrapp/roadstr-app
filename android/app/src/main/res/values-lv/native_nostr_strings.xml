@@ -83,6 +83,9 @@
     <string name="native_websearch_instance_none">Nav iestatīts</string>
     <string name="native_websearch_instance_title">SearXNG instances adrese</string>
     <string name="native_websearch_intro">Roadstr var lūgt jūsu izvēlētai SearXNG instancei tīmekļa rezultātus par vietām, piemēram, ēdienkartes. Pēc noklusējuma izslēgts, un iebūvētas instances nav.</string>
+    <string name="native_websearch_link_candidate">Vai tas varētu būt %1$s?</string>
+    <string name="native_websearch_link_match">Kartē: %1$s</string>
+    <string name="native_websearch_link_note">Pēc tam Roadstr var meklēt OpenStreetMap rezultātos minēto vietu nosaukumus, lai saistītu rezultātus ar vietām kartē.</string>
     <string name="native_websearch_mode">Kad meklēt tīmeklī</string>
     <string name="native_websearch_mode_ask">Jautāt katru reizi</string>
     <string name="native_websearch_mode_off">Izslēgts</string>
