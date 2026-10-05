@@ -111,7 +111,7 @@ class NativeFavoritesSyncServiceTest {
         ).toMutableMap().also { it["sig"] = "0".repeat(128) }
         network.stored.getOrPut(FavoritesSyncProtocol.defaultRelays[1]) { mutableListOf() } += forged
 
-        assertEquals(NativeFavoritesPull.None, service().pull())
+        assertEquals(NativeFavoritesPull.NotFound, service().pull())
     }
 
     @Test
@@ -191,5 +191,10 @@ class NativeFavoritesSyncServiceTest {
         }
         assertFalse(service().push(huge))
         assertTrue(network.stored.isEmpty())
+    }
+
+    @Test
+    fun `an account that never published reads as not found, not as a failure`() = runBlocking {
+        assertEquals(NativeFavoritesPull.NotFound, service().pull())
     }
 }

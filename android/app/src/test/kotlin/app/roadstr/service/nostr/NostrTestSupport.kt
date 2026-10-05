@@ -136,10 +136,19 @@ class FakeRelayNetwork : NativeRelayConnector {
                         val kinds = (filter["kinds"] as? List<*>)?.map { (it as Number).toInt() }
                         val authors = filter["authors"] as? List<*>
                         val dTags = filter["#d"] as? List<*>
+                        val eTags = filter["#e"] as? List<*>
+                        val pTags = filter["#p"] as? List<*>
+                        val since = (filter["since"] as? Number)?.toLong()
+                        fun tagged(event: Map<String, Any?>, name: String, wanted: List<*>) =
+                            NativeNostrWire.tags(event["tags"]).orEmpty()
+                                .any { it.size >= 2 && it[0] == name && it[1] in wanted }
                         store.filter { event ->
                             (kinds == null || (event["kind"] as Number).toInt() in kinds) &&
                                 (authors == null || event["pubkey"] in authors) &&
-                                (dTags == null || NativeNostrWire.tagValue(event, "d") in dTags)
+                                (dTags == null || NativeNostrWire.tagValue(event, "d") in dTags) &&
+                                (eTags == null || tagged(event, "e", eTags)) &&
+                                (pTags == null || tagged(event, "p", pTags)) &&
+                                (since == null || (event["created_at"] as Number).toLong() >= since)
                         }.forEach { events.onMessage(NostrJson.encode(listOf("EVENT", sub, it))) }
                         events.onMessage(NostrJson.encode(listOf("EOSE", sub)))
                     }

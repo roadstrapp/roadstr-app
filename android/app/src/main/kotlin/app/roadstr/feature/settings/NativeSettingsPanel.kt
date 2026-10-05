@@ -1,13 +1,14 @@
 package app.roadstr.feature.settings
 
 import android.graphics.BitmapFactory
+import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
@@ -49,6 +50,8 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,6 +70,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
@@ -83,6 +87,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.roadstr.R
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 import app.roadstr.core.ui.RoadstrSwitch
 import app.roadstr.core.ui.theme.RoadstrThemeId
 import app.roadstr.feature.navigation.NativeSpeedometerStyle
@@ -137,6 +143,10 @@ fun NativeSettingsPanel(
     val revision = snapshot.revision
     val values = snapshot.values
     var overlaysExpanded by remember(revision) { mutableStateOf(false) }
+    // Decode the cursor thumbnails while the panel opens, off the main thread,
+    // so expanding the cursor menu later never stalls its own animation.
+    val appContext = LocalContext.current.applicationContext
+    LaunchedEffect(Unit) { CursorPreviewCache.preload(appContext) }
     Surface(
         modifier = modifier
             .fillMaxSize()
@@ -852,16 +862,13 @@ private fun SpeedometerChoicePreview(style: NativeSpeedometerStyle) {
 @Composable
 private fun CursorChoicePreview(style: NativeSettingsCursorStyle, color: Color) {
     if (style != NativeSettingsCursorStyle.Arrow) {
-        val context = LocalContext.current
-        val bitmap = remember(style) {
-            runCatching {
-                context.assets.open("cursors/${style.assetFileName()}").use(BitmapFactory::decodeStream)
-                    ?.asImageBitmap()
-            }.getOrNull()
+        val context = LocalContext.current.applicationContext
+        val bitmap by produceState(CursorPreviewCache.peek(style), style) {
+            value = CursorPreviewCache.load(context, style)
         }
         if (bitmap != null) {
             Image(
-                bitmap = bitmap,
+                bitmap = bitmap!!,
                 contentDescription = null,
                 modifier = Modifier.size(38.dp),
                 contentScale = ContentScale.Fit,
@@ -885,6 +892,37 @@ private fun CursorChoicePreview(style: NativeSettingsCursorStyle, color: Color) 
             else -> Unit
         }
     }
+}
+
+/** Thumbnails of the cursor skins, decoded once per process and kept small. */
+private object CursorPreviewCache {
+    private const val TARGET_EDGE_PIXELS = 160
+    private val cache = java.util.concurrent.ConcurrentHashMap<NativeSettingsCursorStyle, ImageBitmap>()
+
+    fun peek(style: NativeSettingsCursorStyle): ImageBitmap? = cache[style]
+
+    suspend fun load(context: Context, style: NativeSettingsCursorStyle): ImageBitmap? {
+        cache[style]?.let { return it }
+        val decoded = withContext(Dispatchers.IO) { decode(context, style) } ?: return null
+        cache[style] = decoded
+        return decoded
+    }
+
+    suspend fun preload(context: Context) {
+        NativeSettingsCursorStyle.entries
+            .filter { it != NativeSettingsCursorStyle.Arrow }
+            .forEach { load(context, it) }
+    }
+
+    private fun decode(context: Context, style: NativeSettingsCursorStyle): ImageBitmap? = runCatching {
+        val name = "cursors/${style.assetFileName()}"
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        context.assets.open(name).use { BitmapFactory.decodeStream(it, null, bounds) }
+        var sample = 1
+        while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= TARGET_EDGE_PIXELS) sample *= 2
+        val options = BitmapFactory.Options().apply { inSampleSize = sample }
+        context.assets.open(name).use { BitmapFactory.decodeStream(it, null, options) }?.asImageBitmap()
+    }.getOrNull()
 }
 
 private fun NativeSettingsCursorStyle.assetFileName(): String = when (this) {
@@ -1096,14 +1134,17 @@ private fun InfoRow(label: String, value: String, onClick: (() -> Unit)? = null)
 
 /**
  * Reveals a collapsed block with a short expand-and-fade instead of letting it
- * pop in: the card around it follows the height frame by frame.
+ * pop in. It is the only thing animating the card's height: stacking a second
+ * size animation on the card made the two fight and the section stutter.
  */
 @Composable
 private fun ExpandSection(visible: Boolean, content: @Composable () -> Unit) {
     AnimatedVisibility(
         visible = visible,
-        enter = expandVertically(tween(durationMillis = 280)) + fadeIn(tween(durationMillis = 280)),
-        exit = shrinkVertically(tween(durationMillis = 220)) + fadeOut(tween(durationMillis = 160)),
+        enter = expandVertically(tween(durationMillis = 240, easing = FastOutSlowInEasing)) +
+            fadeIn(tween(durationMillis = 180)),
+        exit = shrinkVertically(tween(durationMillis = 200, easing = FastOutSlowInEasing)) +
+            fadeOut(tween(durationMillis = 120)),
     ) { content() }
 }
 
@@ -1114,7 +1155,6 @@ private fun SettingsCard(modifier: Modifier = Modifier, content: @Composable () 
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .animateContentSize(animationSpec = tween(durationMillis = 280))
             .padding(vertical = 4.dp),
         shape = RoundedCornerShape(18.dp),
         color = if (dark) Color(0xFF1A1A2E) else Color(0xFFE8E8ED),

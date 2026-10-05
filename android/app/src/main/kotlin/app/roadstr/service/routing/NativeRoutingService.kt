@@ -131,6 +131,31 @@ class NativeRoutingService internal constructor(
         }
     }
 
+    /**
+     * Whether [server] is a reachable, routing-capable GraphHopper instance,
+     * checked the way the Flutter settings screen does: the probe route runs
+     * between two points of Null Island, which no map covers, so a healthy
+     * server answers HTTP 400 "cannot find point". That answer proves it is
+     * GraphHopper; only unreachable hosts, rejected keys or other kinds of
+     * server fail the check.
+     */
+    suspend fun probeGraphHopper(server: String, apiKey: String?): Boolean {
+        val endpoint = RoutingRequestProtocol.graphHopperEndpoint(server)
+        if (RoutingEndpointPolicy.graphHopperDecision(endpoint) != RoutingEndpointDecision.Accepted) {
+            return false
+        }
+        val response = try {
+            execute(RoutingRequestProtocol.graphHopperProbe(endpoint, apiKey), RoutingProvider.GRAPH_HOPPER)
+        } catch (_: NativeRoutingException) {
+            return false
+        }
+        val body = response.bodyUtf8
+        if (response.statusCode == 400 && PROBE_REACHABLE_MARKERS.any(body::contains)) return true
+        if (response.statusCode != HTTP_OK) return false
+        val parsed = runCatching { app.roadstr.core.protocol.nostr.BoundedJsonParser(body).parse() }.getOrNull()
+        return (parsed as? Map<*, *>)?.get("paths") != null
+    }
+
     suspend fun getRerouteRoutes(
         query: NativeRoutingQuery,
         speedKilometresPerHour: Double,
@@ -383,5 +408,10 @@ class NativeRoutingService internal constructor(
         const val VALHALLA_TIMEOUT_MILLIS = 25_000L
         const val OSRM_RETIME_TIMEOUT_MILLIS = 30_000L
         private const val HTTP_OK = 200
+        private val PROBE_REACHABLE_MARKERS = listOf(
+            "Cannot find point",
+            "PointNotFoundException",
+            "PointOutOfBoundsException",
+        )
     }
 }

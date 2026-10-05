@@ -8,6 +8,7 @@ import app.roadstr.core.network.NetworkResponseLimit
 import app.roadstr.core.network.NetworkTimeoutBudget
 import app.roadstr.core.network.RoutingParsedRoute
 import app.roadstr.core.network.RoutingProviderConfigProtocol
+import app.roadstr.core.network.RoutingProviderConfiguration
 import app.roadstr.core.network.RoutingRequestPoint
 import app.roadstr.core.network.SearchResponsePoint
 import app.roadstr.core.network.SearchResult
@@ -34,6 +35,8 @@ import java.nio.charset.StandardCharsets
 class NativeRoadTestJourneyGateway(
     context: Context,
     private val transport: NativeBoundedHttpClient = NativeBoundedHttpClient(),
+    /** The provider, key and server the user picked in settings, read per request. */
+    private val routingConfiguration: () -> RoutingProviderConfiguration = { OSRM_CONFIGURATION },
 ) : NativeShellJourneyGateway {
     private val historyPreferences = NativeRoadTestProtectedPreferences(
         context = context,
@@ -43,13 +46,9 @@ class NativeRoadTestJourneyGateway(
     private val searchService = NativeSearchService(transport)
     private val routingService = NativeRoutingService(transport)
     private val speedLimitResolver = NativeRoadTestSpeedLimitResolver(transport)
-    private val routingConfiguration = RoutingProviderConfigProtocol.resolve(
-        providerKey = "osrm",
-        secureApiKey = null,
-        legacyApiKey = "",
-        graphHopperServer = "",
-        deferCredentialReadForOsrm = true,
-    )
+
+    override suspend fun probeRoutingServer(server: String, apiKey: String?): Boolean =
+        runCatching { routingService.probeGraphHopper(server, apiKey) }.getOrDefault(false)
 
     override suspend fun search(
         query: String,
@@ -82,7 +81,7 @@ class NativeRoadTestJourneyGateway(
             NativeRoutingQuery(
                 origin = origin.toRoutingPoint(),
                 destination = destination.toRoutingPoint(),
-                configuration = routingConfiguration,
+                configuration = routingConfiguration(),
                 languageCode = languageCode,
                 vehicle = mode.wireValue,
                 via = via.map { point -> point.toRoutingPoint() },
@@ -194,7 +193,7 @@ class NativeRoadTestJourneyGateway(
             query = NativeRoutingQuery(
                 origin = origin.toRoutingPoint(),
                 destination = destination.toRoutingPoint(),
-                configuration = routingConfiguration,
+                configuration = routingConfiguration(),
                 languageCode = languageCode,
                 vehicle = mode.wireValue,
                 requestAlternatives = false,
@@ -255,6 +254,14 @@ class NativeRoadTestJourneyGateway(
     )
 
     private companion object {
+        val OSRM_CONFIGURATION: RoutingProviderConfiguration = RoutingProviderConfigProtocol.resolve(
+            providerKey = "osrm",
+            secureApiKey = null,
+            legacyApiKey = "",
+            graphHopperServer = "",
+            deferCredentialReadForOsrm = true,
+        )
+
         const val HISTORY_PREFERENCES = "roadtest_search_history"
         const val HISTORY_KEY = "entries"
         const val HISTORY_KEY_ALIAS = "app.roadstr.roadtest.search-history.v1"

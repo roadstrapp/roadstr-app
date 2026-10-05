@@ -24,7 +24,10 @@ sealed interface NativeFavoritesPull {
     /** A verified, decrypted snapshot. Entries are raw maps for the caller to validate. */
     data class Ok(val favorites: List<Map<String, Any?>>) : NativeFavoritesPull
 
-    /** No usable snapshot: none published, stale, unreadable or not ours. */
+    /** No relay holds a snapshot for this account at all. */
+    data object NotFound : NativeFavoritesPull
+
+    /** A snapshot exists but cannot be used: stale, unreadable or not ours. */
     data object None : NativeFavoritesPull
 
     /** The snapshot is passphrase-protected and the passphrase is missing or wrong. */
@@ -55,6 +58,8 @@ class NativeFavoritesSyncService(
     private val publisherFactory: (List<String>) -> NativeRelayPublisher = {
         NativeRelayPublisher(connector, it)
     },
+    /** Why a sync step ended; never carries keys, favourites or relay payloads. */
+    private val diagnostics: (String) -> Unit = {},
 ) {
     private val pushLock = Mutex()
 
@@ -73,7 +78,7 @@ class NativeFavoritesSyncService(
     }
 
     private suspend fun pushLocked(favorites: List<Map<String, Any?>>): Boolean {
-        val pubkey = signer.pubkeyHex ?: return false
+        val pubkey = signer.pubkeyHex ?: return failed("push: no logged-in account")
         var plaintext = FavoritesSyncProtocol.encodeFavorites(favorites)
         val secret = passphrase()
         if (!secret.isNullOrEmpty()) {
@@ -82,14 +87,19 @@ class NativeFavoritesSyncService(
             val sealed = withContext(Dispatchers.Default) { NativeFavoritesCrypto.encrypt(plaintext, secret) }
             plaintext = FavoritesSyncProtocol.wrapPassphraseEnvelope(sealed)
         }
-        if (plaintext.toByteArray(Charsets.UTF_8).size > FavoritesSyncProtocol.MAX_PLAINTEXT_BYTES) return false
-        val encrypted = signer.nip44Encrypt(pubkey, FavoritesSyncProtocol.padToBucket(plaintext)) ?: return false
+        if (plaintext.toByteArray(Charsets.UTF_8).size > FavoritesSyncProtocol.MAX_PLAINTEXT_BYTES) {
+            return failed("push: the list is too large")
+        }
+        val encrypted = signer.nip44Encrypt(pubkey, FavoritesSyncProtocol.padToBucket(plaintext))
+            ?: return failed("push: the signer could not encrypt")
 
         val createdAt = FavoritesSyncProtocol.nextCreatedAt(nowSeconds(), store.lastCreatedAt ?: 0L)
-        val signed = signer.sign(FavoritesSyncProtocol.snapshotDraft(pubkey, createdAt, encrypted)) ?: return false
+        val signed = signer.sign(FavoritesSyncProtocol.snapshotDraft(pubkey, createdAt, encrypted))
+            ?: return failed("push: the signer did not sign")
 
         val published = publisherFactory(relays()).publish(signed)
-        if (!published) return false
+        if (!published) return failed("push: no relay accepted the snapshot")
+        diagnostics("push: published ${favorites.size} places at $createdAt")
         store.lastCreatedAt = createdAt
         // One-time hygiene: wipe and ask relays to delete the old fingerprintable
         // fixed-tag snapshot. Only when signing is silent: on an external signer
@@ -119,22 +129,23 @@ class NativeFavoritesSyncService(
      * or a deliberate replay of an outdated, validly signed snapshot.
      */
     suspend fun pull(passphraseOverride: String? = null): NativeFavoritesPull {
-        val pubkey = signer.pubkeyHex ?: return NativeFavoritesPull.None
+        val pubkey = signer.pubkeyHex ?: return none("no logged-in account")
         val best = fetchNewest(pubkey, FavoritesSyncProtocol.hashedDTag(pubkey))
             // Snapshots pushed by versions that still used the fixed tag.
             ?: fetchNewest(pubkey, FavoritesSyncProtocol.LEGACY_D_TAG)
-            ?: return NativeFavoritesPull.None
+            ?: return notFound()
 
         val fetchedAt = NativeNostrWire.integral(best["created_at"]) ?: 0L
         if (!FavoritesSyncProtocol.passesRollbackGuard(fetchedAt, store.lastCreatedAt)) {
-            return NativeFavoritesPull.None
+            return none("snapshot $fetchedAt is older than the local mark ${store.lastCreatedAt}")
         }
         val content = best["content"] as? String
-        if (content.isNullOrEmpty()) return NativeFavoritesPull.None
-        val plaintext = signer.nip44Decrypt(pubkey, content) ?: return NativeFavoritesPull.None
+        if (content.isNullOrEmpty()) return none("snapshot has no content")
+        val plaintext = signer.nip44Decrypt(pubkey, content)
+            ?: return none("the signer could not decrypt the snapshot (${content.length} chars)")
 
         val decoded = runCatching { BoundedJsonParser(plaintext.trim()).parse() }.getOrNull()
-            ?: return NativeFavoritesPull.None
+            ?: return none("the decrypted snapshot is not JSON (${plaintext.length} chars)")
         val list: List<*> = when {
             decoded is Map<*, *> && decoded["encrypted"] == true -> {
                 val secret = passphraseOverride ?: passphrase()
@@ -145,16 +156,32 @@ class NativeFavoritesSyncService(
                     return NativeFavoritesPull.Locked // wrong passphrase: ask again
                 }
                 runCatching { BoundedJsonParser(inner).parse() }.getOrNull() as? List<*>
-                    ?: return NativeFavoritesPull.None
+                    ?: return none("the passphrase layer did not hold a list")
             }
 
             decoded is List<*> -> decoded
-            else -> return NativeFavoritesPull.None
+            else -> return none("the decrypted snapshot is neither a list nor an envelope")
         }
         store.lastCreatedAt = fetchedAt
         @Suppress("UNCHECKED_CAST")
         val entries = list.filterIsInstance<Map<*, *>>().map { it as Map<String, Any?> }
+        diagnostics("pulled ${entries.size} places (snapshot $fetchedAt)")
         return NativeFavoritesPull.Ok(entries)
+    }
+
+    private fun failed(reason: String): Boolean {
+        diagnostics(reason)
+        return false
+    }
+
+    private fun notFound(): NativeFavoritesPull {
+        diagnostics("pull: no relay returned a valid snapshot")
+        return NativeFavoritesPull.NotFound
+    }
+
+    private fun none(reason: String): NativeFavoritesPull {
+        diagnostics("pull: $reason")
+        return NativeFavoritesPull.None
     }
 
     private suspend fun fetchNewest(pubkey: String, dTag: String): Map<String, Any?>? {
@@ -179,6 +206,7 @@ class NativeFavoritesSyncService(
                 }
             }.awaitAll()
         }
+        diagnostics("tag ${dTag.take(8)}: relays answered ${results.map { if (it == null) 0 else 1 }}")
         return FavoritesSyncProtocol.newestSnapshot(results)
     }
 

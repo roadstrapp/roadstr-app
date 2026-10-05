@@ -193,4 +193,63 @@ class NativeMapCameraSessionTest {
 
         assertEquals(9.0, requireNotNull(session.state.value.command).bearingDegrees, 0.0001)
     }
+
+    @Test
+    fun `the vehicle is drawn at the fix and then advances with each camera frame`() {
+        val session = NativeMapCameraSession()
+        session.configure(true, true, 17.0, 55.0, 2_400.0)
+        // Heading due north at 20 m/s.
+        assertTrue(session.submitFix(1, point, 0.0, 20.0, 1_000))
+        assertEquals(point, session.state.value.displayPoint)
+        val first = session.state.value.displaySequence
+
+        assertTrue(session.advanceFrame(1_000))
+        assertEquals(point, session.state.value.displayPoint)
+
+        // Half a second later the camera glides ahead, and the cursor with it.
+        assertTrue(session.advanceFrame(1_500))
+        val drawn = requireNotNull(session.state.value.displayPoint)
+        assertTrue(drawn.latitude > point.latitude)
+        assertEquals(point.longitude, drawn.longitude, 1e-6)
+        assertTrue(session.state.value.displaySequence > first)
+    }
+
+    @Test
+    fun `a stopped vehicle is never advanced`() {
+        val session = NativeMapCameraSession()
+        assertTrue(session.submitFix(1, point, 90.0, 0.0, 1_000))
+        session.advanceFrame(1_000)
+        session.advanceFrame(3_000)
+
+        assertEquals(point, session.state.value.displayPoint)
+    }
+
+    @Test
+    fun `the compass turns a standing heading-up map and null gives the bearing back to the fix`() {
+        val session = NativeMapCameraSession()
+        assertTrue(session.submitFix(1, point, 90.0, 0.0, 1_000))
+        session.advanceFrame(1_000)
+        assertEquals(90.0, requireNotNull(session.state.value.command).bearingDegrees, 0.0)
+
+        assertTrue(session.setCompassHeading(200.0))
+        assertFalse(session.setCompassHeading(200.0))
+        assertTrue(session.state.value.frameActive)
+        session.recenter(2_000)
+        assertEquals(200.0, requireNotNull(session.state.value.command).bearingDegrees, 0.0)
+
+        assertTrue(session.setCompassHeading(null))
+        session.recenter(3_000)
+        assertEquals(90.0, requireNotNull(session.state.value.command).bearingDegrees, 0.0)
+    }
+
+    @Test
+    fun `north-up ignores the compass`() {
+        val session = NativeMapCameraSession()
+        session.configure(false, false, 17.0, 40.0, 2_400.0)
+        session.submitFix(1, point, 90.0, 0.0, 1_000)
+        session.setCompassHeading(123.0)
+        session.recenter(1_000)
+
+        assertEquals(0.0, requireNotNull(session.state.value.command).bearingDegrees, 0.0)
+    }
 }

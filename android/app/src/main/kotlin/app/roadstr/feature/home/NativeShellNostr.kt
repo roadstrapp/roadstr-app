@@ -1,10 +1,14 @@
 package app.roadstr.feature.home
 
 import app.roadstr.feature.profile.NativeProfileMetadata
+import app.roadstr.service.nostr.NativeActivityService
+import app.roadstr.service.nostr.NativeActivityStore
 import app.roadstr.service.nostr.NativeFavoritesSyncService
 import app.roadstr.service.nostr.NativeNostrSigner
 import app.roadstr.service.nostr.NativeProfileVisibilityService
 import app.roadstr.service.nostr.NativeRoadEventService
+import app.roadstr.service.nostr.NativeUserReportsService
+import app.roadstr.service.nostr.NativeZapPayments
 import kotlinx.coroutines.flow.Flow
 
 /** Secrets of favourites sync; they live in protected storage, never in the UI model. */
@@ -50,4 +54,15 @@ class NativeShellNostr(
     val profileLookup: suspend (String) -> NativeProfileMetadata?,
     val reportPrivacyAcknowledged: () -> Boolean,
     val acknowledgeReportPrivacy: () -> Unit,
+    /** Zaps, zap totals and the profile balance; without it those controls stay hidden. */
+    val zaps: NativeZapPayments? = null,
+    /** The account's own reports and the edit requests waiting on them. */
+    val userReports: NativeUserReportsService? = null,
+    /** Polls the account's own activity into the inbox. */
+    val activity: NativeActivityService? = null,
+    val activityStore: NativeActivityStore? = null,
+    /** The saved `nostr+walletconnect://` URI, read when a zap is paid. */
+    val nwcUri: () -> String? = { null },
+    /** Hands a `lightning:` link to a wallet app. */
+    val openWallet: (String) -> Unit = {},
 )

@@ -25,6 +25,8 @@ class NativeRelayPublisher(
     private val connector: NativeRelayConnector,
     private val relays: List<String>,
     private val timeoutMillis: Long = DEFAULT_TIMEOUT_MILLIS,
+    /** Host-level notes on how each relay answered; never event content. */
+    private val diagnostics: (String) -> Unit = {},
 ) {
     suspend fun publish(event: Map<String, Any?>): Boolean {
         val id = event["id"] as? String ?: return false
@@ -36,6 +38,7 @@ class NativeRelayPublisher(
     }
 
     private suspend fun publishOne(url: String, eventId: String, frame: String): Boolean {
+        val host = url.removePrefix("wss://").substringBefore('/')
         val socketRef = AtomicReference<NativeRelaySocket?>(null)
         val outcome = withTimeoutOrNull(timeoutMillis) {
             suspendCancellableCoroutine<Boolean> { continuation ->
@@ -68,6 +71,7 @@ class NativeRelayPublisher(
                             override fun onMessage(text: String) {
                                 val message = NostrRelayMessageDecoder.decode(text).message
                                 if (message is NostrRelayOkMessage && message.eventId == eventId) {
+                                    diagnostics("publish $host: OK accepted=${message.accepted} ${message.reason.toString().take(80)}")
                                     finish(message.accepted == true)
                                 }
                             }
@@ -75,7 +79,8 @@ class NativeRelayPublisher(
                             override fun onEnded() = finish(false)
                         },
                     )
-                } catch (_: Exception) {
+                } catch (error: Exception) {
+                    diagnostics("publish $host: could not connect (${error.javaClass.simpleName})")
                     finish(false)
                     return@suspendCancellableCoroutine
                 }
@@ -84,6 +89,7 @@ class NativeRelayPublisher(
                 continuation.invokeOnCancellation { connected.close() }
             }
         } ?: false
+        if (!outcome) diagnostics("publish $host: not accepted")
         socketRef.get()?.close()
         return outcome
     }

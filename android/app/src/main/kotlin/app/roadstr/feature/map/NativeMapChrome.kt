@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -102,7 +103,7 @@ fun NativeMapNavigationControls(
         horizontalAlignment = Alignment.End,
     ) {
         MapControlButton(
-            description = "Bussola",
+            description = stringResource(R.string.native_map_compass),
             onClick = onToggleHeading,
         ) {
             Icon(
@@ -113,14 +114,50 @@ fun NativeMapNavigationControls(
                 modifier = Modifier.graphicsLayer(rotationZ = -bearingDegrees),
             )
         }
-        MapControlButton(description = "La mia posizione", onClick = onRecenter) {
+        MapControlButton(description = stringResource(R.string.native_map_my_location), onClick = onRecenter) {
             Icon(Icons.Outlined.MyLocation, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         }
-        MapControlButton(description = "Segnala un evento", onClick = onReport) {
+        MapControlButton(description = stringResource(R.string.native_map_report_event), onClick = onReport) {
             Icon(Icons.Outlined.ReportProblem, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         }
-        MapControlButton(description = "Aggiungi tappa", onClick = onAddWaypoint) {
+        MapControlButton(description = stringResource(R.string.native_map_add_stop), onClick = onAddWaypoint) {
             Icon(Icons.Outlined.AddLocationAlt, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        }
+    }
+}
+
+/**
+ * Compass and recentre outside navigation, as on the Flutter map: the compass
+ * is always there and turns the map between heading-up and north-up, the
+ * recentre button appears once the driver has panned away from their position.
+ */
+@Composable
+fun NativeMapFreeDriveControls(
+    headingActive: Boolean,
+    bearingDegrees: Float,
+    showRecenter: Boolean,
+    onToggleHeading: () -> Unit,
+    onRecenter: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.End,
+    ) {
+        MapControlButton(description = stringResource(R.string.native_map_compass), onClick = onToggleHeading) {
+            Icon(
+                Icons.Outlined.CompassCalibration,
+                contentDescription = null,
+                tint = if (headingActive) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.graphicsLayer(rotationZ = -bearingDegrees),
+            )
+        }
+        if (showRecenter) {
+            MapControlButton(description = stringResource(R.string.native_map_my_location), onClick = onRecenter) {
+                Icon(Icons.Outlined.MyLocation, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            }
         }
     }
 }

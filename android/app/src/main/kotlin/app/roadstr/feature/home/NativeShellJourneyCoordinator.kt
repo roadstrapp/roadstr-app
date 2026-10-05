@@ -68,6 +68,9 @@ interface NativeShellJourneyGateway {
         languageCode: String,
     ): NominatimReverseDetail? = null
 
+    /** Whether [server] answers like a GraphHopper instance; false without a routing backend. */
+    suspend fun probeRoutingServer(server: String, apiKey: String?): Boolean = false
+
     /** Wikipedia preview resolved from a place label; precise coordinates are not disclosed. */
     suspend fun wikipediaArticle(
         query: String,
