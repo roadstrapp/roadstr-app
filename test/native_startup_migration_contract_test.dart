@@ -94,6 +94,12 @@ void main() {
   test('the legacy reader runs off the main thread with the exact old reader and no deletion', () {
     final owner = _read('$_startup/NativeStartupMigration.kt');
     expect(owner, contains('createLegacyHeadlessSnapshotReader(context, READER_TIMEOUT_MILLIS)'));
+    // Keys the new app does not know are left behind instead of refusing the update; every other
+    // check of the strict validator still applies to what is imported.
+    expect(owner, contains('TolerantLegacySnapshotReader('));
+    final tolerant = _read('$_startup/TolerantLegacySnapshotReader.kt');
+    expect(tolerant, contains('snapshot.ordinaryValues.filterKeys(::isKnownOrdinary)'));
+    expect(tolerant, contains('LegacyStorageContract.secureKeys'));
     expect(owner, contains('executor.execute(::run)'));
     final dart = _read('lib/migration/legacy_secure_storage_source.dart');
     expect(dart, contains('resetOnError: false'));

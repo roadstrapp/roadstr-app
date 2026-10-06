@@ -85,7 +85,9 @@ class NativeStartupMigration(
             val flag = AndroidProfileImportFlag(context, names)
             return NativeStartupMigration(
                 migration = TransactionalMigration(
-                    reader = createLegacyHeadlessSnapshotReader(context, READER_TIMEOUT_MILLIS),
+                    reader = TolerantLegacySnapshotReader(
+                        createLegacyHeadlessSnapshotReader(context, READER_TIMEOUT_MILLIS),
+                    ),
                     writer = LiveProfileSnapshotWriter(AndroidProfileImportTargets(context, names)),
                     marker = LiveMigrationMarker(flag),
                     identityVerifier = IdentityVerifier { NostrSchnorr.publicKey(it) },
