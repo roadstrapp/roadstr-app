@@ -167,6 +167,7 @@ import kotlinx.coroutines.launch
 enum class NativeShellMode {
     Canary,
     RoadTest,
+    App,
 }
 
 private const val ARRIVAL_BANNER_MILLIS = 6_000L
@@ -340,6 +341,7 @@ fun NativeRoadstrShell(
             when (mode) {
                 NativeShellMode.Canary -> R.string.native_shell_description
                 NativeShellMode.RoadTest -> R.string.native_road_test_description
+                NativeShellMode.App -> R.string.native_app_description
             },
         )
         val palette = RoadstrThemeTokens.palette(themeId)

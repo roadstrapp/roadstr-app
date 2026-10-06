@@ -5,11 +5,14 @@ import app.roadstr.feature.saved.NativeSavedPlace
 import app.roadstr.feature.saved.NativeSavedPlacesProtocol
 
 /** Keystore-backed local persistence for privacy-sensitive saved addresses. */
-class NativeRoadTestFavoritesStore(context: Context) {
+class NativeRoadTestFavoritesStore(
+    context: Context,
+    names: NativeLiveStoreNames = NativeLiveStoreNames(),
+) {
     private val preferences = NativeRoadTestProtectedPreferences(
         context = context,
-        preferencesName = "roadtest_favorites",
-        keyAlias = "app.roadstr.roadtest.favorites.v1",
+        preferencesName = names.prefs("favorites"),
+        keyAlias = names.alias("favorites"),
     )
 
     fun load(): List<NativeSavedPlace> = runCatching {

@@ -13,11 +13,20 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- MapLibre's ConnectivityReceiver asks ConnectivityManager when the system reports a change.
+         Normal-level permission: no runtime prompt. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.location" android:required="false" />
 
     <queries>
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="nostrsigner" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="lightning" />
         </intent>
     </queries>
 
@@ -32,6 +41,7 @@
         android:networkSecurityConfig="@xml/network_security_config">
         <activity
             android:name=".MainActivity"
+            android:enabled="${flutterLauncherEnabled}"
             android:exported="true"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"
@@ -52,6 +62,20 @@
                  returns results via startActivityForResult/onActivityResult,
                  not a deep-link callback, so an exported BROWSABLE filter would
                  be unused attack surface any website could trigger. -->
+        </activity>
+        <!-- The Kotlin app. Only one of the two launchers is enabled in a given build (see
+             `native_launcher` in app/build.gradle.kts); this one imports the Flutter app's data
+             before it shows the map. -->
+        <activity
+            android:name=".startup.NativeAppActivity"
+            android:enabled="${nativeLauncherEnabled}"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/NativeCanaryTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <!-- Dormant Compose packaging canary. It has no external intent filter
              and no production code launches it; MainActivity remains the sole
