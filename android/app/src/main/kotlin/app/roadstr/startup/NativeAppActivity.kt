@@ -1,5 +1,10 @@
 package app.roadstr.startup
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -13,8 +18,15 @@ import app.roadstr.feature.onboarding.NativeOnboardingFlow
 import app.roadstr.feature.onboarding.NativeOnboardingInput
 import app.roadstr.feature.onboarding.NativeOnboardingPresenter
 import app.roadstr.roadtest.NativeLiveStoreNames
+import app.roadstr.roadtest.NativeNavigationRuntime
 import app.roadstr.roadtest.NativeRoadTestActivity
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import java.util.concurrent.Executors
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 /**
  * The launcher of the Kotlin app. It is the road-test shell with its own set of store names, and
@@ -27,8 +39,35 @@ class NativeAppActivity : NativeRoadTestActivity() {
 
     override val shellMode: NativeShellMode = NativeShellMode.App
 
+    // One runtime for the whole process: a trip goes on with the screen off and across a rotation.
+    override fun obtainRuntime(): NativeNavigationRuntime =
+        NativeGuidanceRuntimeHolder.obtain(applicationContext, storeNames)
+
+    override fun releaseRuntime(runtime: NativeNavigationRuntime) = NativeGuidanceRuntimeHolder.release(runtime)
+
     private val startup by lazy(LazyThreadSafetyMode.NONE) {
         NativeStartupMigration.create(applicationContext, storeNames, Executors.newSingleThreadExecutor())
+    }
+
+    // Android 13+ shows the trip's notification only if the person allowed notifications. Asked once, when
+    // the first trip starts; a refusal leaves the trip running, only without the line in the shade.
+    private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
+    private var notificationsAsked = false
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        lifecycleScope.launch {
+            NativeGuidanceRuntimeHolder.obtain(applicationContext, storeNames).host.session.state
+                .map { it.active }.distinctUntilChanged().filter { it }.collect { askForNotifications() }
+        }
+    }
+
+    private fun askForNotifications() {
+        if (notificationsAsked || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        notificationsAsked = true
+        val granted = ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED
+        if (!granted) notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 
     @Composable

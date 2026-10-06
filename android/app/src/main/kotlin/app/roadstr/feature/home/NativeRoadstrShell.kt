@@ -89,6 +89,7 @@ import app.roadstr.feature.map.NativeTileUrlPolicy
 import app.roadstr.feature.map.NativeRouteOverlaySession
 import app.roadstr.feature.map.NativeTransitOverlaySession
 import app.roadstr.feature.navigation.NativeActiveNavigationSession
+import app.roadstr.feature.navigation.NativeNavigationHost
 import app.roadstr.feature.navigation.NativeNavigationArrivalBanner
 import app.roadstr.feature.navigation.NativeNavigationHud
 import app.roadstr.feature.navigation.NativeNavigationHudSession
@@ -280,6 +281,11 @@ fun NativeRoadstrShell(
     onRoutingKeyChanged: (String) -> Boolean = { false },
     hazardService: NativeOsmHazardService? = null,
     nostr: NativeShellNostr? = null,
+    /**
+     * Owner of the trip sessions. When the host passes one, a trip is moved along, spoken and rerouted
+     * by it, with or without this screen; without one the shell keeps its own sessions and does that itself.
+     */
+    navigationHost: NativeNavigationHost? = null,
 ) {
     val settingsSession = remember(initialSettings) { NativeSettingsSession(initialSettings) }
     val settingsState by settingsSession.state.collectAsState()
@@ -345,7 +351,7 @@ fun NativeRoadstrShell(
             },
         )
         val palette = RoadstrThemeTokens.palette(themeId)
-        val routeSession = remember { NativeRouteOverlaySession(themeId.accentArgb) }
+        val routeSession = navigationHost?.routeSession ?: remember { NativeRouteOverlaySession(themeId.accentArgb) }
         val routePlanningSession = remember(routeSession) {
             NativeRoutePlanningSession(routeSession)
         }
@@ -871,9 +877,9 @@ fun NativeRoadstrShell(
                 listOfNotNull(gpsSnapshot.fix?.point)
             cameraSession.fitRoute(points, SystemClock.elapsedRealtime(), routePanelBottomInsetPixels)
         }
-        val navigationHudSession = remember { NativeNavigationHudSession() }
+        val navigationHudSession = navigationHost?.hudSession ?: remember { NativeNavigationHudSession() }
         val navigationHudState by navigationHudSession.state.collectAsState()
-        val activeNavigationSession = remember(navigationHudSession, routeSession) {
+        val activeNavigationSession = navigationHost?.session ?: remember(navigationHudSession, routeSession) {
             NativeActiveNavigationSession(navigationHudSession, routeSession)
         }
         val activeNavigationState by activeNavigationSession.state.collectAsState()
@@ -1021,7 +1027,7 @@ fun NativeRoadstrShell(
         LaunchedEffect(gpsSnapshot.fix?.sequence) {
             val fix = gpsSnapshot.fix ?: return@LaunchedEffect
             val navigating = activeNavigationSession.state.value.active
-            if (navigating) {
+            if (navigating && navigationHost == null) {
                 submitNavigationFix(activeNavigationSession, fix, headingTracker.headingDegrees)
                 if (speedLimitJob?.isActive != true && journeyGateway != null) {
                     val point = SearchResponsePoint(fix.point.latitude, fix.point.longitude)
@@ -1068,11 +1074,20 @@ fun NativeRoadstrShell(
         LaunchedEffect(activeNavigationState.active) {
             if (!activeNavigationState.active) return@LaunchedEffect
             headingTracker.resetReversal()
+            if (navigationHost != null) return@LaunchedEffect
             rerouteBackoff.reset()
             val fix = gpsSnapshot.fix ?: return@LaunchedEffect
             submitNavigationFix(activeNavigationSession, fix, headingTracker.headingDegrees)
         }
+        // The host answers an off-route request while the screen is off; the planning session only has
+        // to follow the trip to its new revision, as it did right after a reroute here.
+        LaunchedEffect(activeNavigationState.revision, activeNavigationState.active) {
+            if (navigationHost != null && activeNavigationState.active) {
+                routePlanningSession.synchronizeNavigationRevision(activeNavigationState.revision)
+            }
+        }
         LaunchedEffect(activeNavigationState.rerouteRequest?.sequence) {
+            if (navigationHost != null) return@LaunchedEffect
             val request = activeNavigationState.rerouteRequest ?: return@LaunchedEffect
             val accepted = journeyCoordinator?.reroute(
                 request = request,
@@ -1097,6 +1112,7 @@ fun NativeRoadstrShell(
             if (!accepted) activeNavigationSession.failReroute(request.sequence)
         }
         LaunchedEffect(activeNavigationState.voiceCue?.sequence) {
+            if (navigationHost != null) return@LaunchedEffect
             val cue = activeNavigationState.voiceCue ?: return@LaunchedEffect
             voiceGateway?.announceManeuver(
                 instruction = cue.instruction,
@@ -1108,7 +1124,7 @@ fun NativeRoadstrShell(
         LaunchedEffect(activeNavigationState.arrived, activeNavigationState.revision) {
             if (!activeNavigationState.arrived) return@LaunchedEffect
             journeyCoordinator?.cancelReroute()
-            voiceGateway?.announceArrival()
+            if (navigationHost == null) voiceGateway?.announceArrival()
             cameraSession.configure(
                 headingUp = true,
                 navigating = false,
