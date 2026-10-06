@@ -85,6 +85,8 @@ tar --sort=name --mtime='@0' --owner=0 --group=0 --numeric-owner \
 install -m 0644 "$work_dir/espeak-ng-data.tar.gz" \
   "$repo_dir/assets/espeak-ng-data.tar.gz"
 
+# Android 15+ devices with 16 KiB pages refuse (or warn about) libraries whose segments are aligned
+# to 4 KiB, so every ABI is linked with a 16 KiB maximum page size.
 strip_tool="$ndk_root/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip"
 for abi in "${ABIS[@]}"; do
   build_dir="$work_dir/android-$abi"
@@ -95,7 +97,8 @@ for abi in "${ABIS[@]}"; do
     "-DANDROID_ABI=$abi" \
     "-DANDROID_PLATFORM=android-21" \
     "-DBUILD_SHARED_LIBS=ON" \
-    "-DCMAKE_C_FLAGS_RELEASE=$prefix_flags"
+    "-DCMAKE_C_FLAGS_RELEASE=$prefix_flags" \
+    "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=16384"
   cmake --build "$build_dir" --target espeak-ng --parallel
   library="$build_dir/src/libespeak-ng/libespeak-ng.so"
   "$strip_tool" --strip-unneeded "$library"
