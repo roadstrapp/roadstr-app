@@ -74,6 +74,9 @@ fun NativeOnboardingFlow(
     onOpenDisclosure: (Long) -> Unit,
     onAcceptDisclosure: (Long) -> Unit,
     modifier: Modifier = Modifier,
+    /** Offered on the recovery screen only by a host that can try the import again or go on without it. */
+    onRetryMigration: (() -> Unit)? = null,
+    onSkipMigration: (() -> Unit)? = null,
 ) {
     when (snapshot.status) {
         NativeStartupGateStatus.Hidden,
@@ -87,12 +90,16 @@ fun NativeOnboardingFlow(
             modifier = modifier,
         )
 
-        NativeStartupGateStatus.RecoveryRequired -> StartupMessage(
-            title = stringResource(R.string.native_onboarding_recovery_title),
-            body = stringResource(R.string.native_onboarding_recovery_body),
-            loading = false,
-            modifier = modifier,
-        )
+        NativeStartupGateStatus.RecoveryRequired -> if (onRetryMigration != null && onSkipMigration != null) {
+            MigrationFailedMessage(onRetryMigration, onSkipMigration, modifier)
+        } else {
+            StartupMessage(
+                title = stringResource(R.string.native_onboarding_recovery_title),
+                body = stringResource(R.string.native_onboarding_recovery_body),
+                loading = false,
+                modifier = modifier,
+            )
+        }
 
         NativeStartupGateStatus.Onboarding -> OnboardingPages(
             snapshot = snapshot,
@@ -111,12 +118,35 @@ fun NativeOnboardingFlow(
     }
 }
 
+/** The old data could not be brought over: nothing was touched, and the person chooses what happens next. */
+@Composable
+private fun MigrationFailedMessage(
+    onRetry: () -> Unit,
+    onSkip: () -> Unit,
+    modifier: Modifier,
+) {
+    StartupMessage(
+        title = stringResource(R.string.native_onboarding_migration_failed_title),
+        body = stringResource(R.string.native_onboarding_migration_failed_body),
+        loading = false,
+        modifier = modifier,
+    ) {
+        PrimaryAction(stringResource(R.string.native_onboarding_migration_retry), onRetry)
+        ActionButton(
+            text = stringResource(R.string.native_onboarding_migration_skip),
+            modifier = Modifier.padding(top = 12.dp),
+            onClick = onSkip,
+        )
+    }
+}
+
 @Composable
 private fun StartupMessage(
     title: String,
     body: String?,
     loading: Boolean,
     modifier: Modifier,
+    actions: (@Composable () -> Unit)? = null,
 ) {
     Surface(
         modifier = modifier
@@ -145,6 +175,10 @@ private fun StartupMessage(
             body?.let {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(it, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            actions?.let {
+                Spacer(modifier = Modifier.height(28.dp))
+                it()
             }
         }
     }

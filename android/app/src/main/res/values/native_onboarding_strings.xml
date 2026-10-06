@@ -56,4 +56,8 @@
     <string name="native_onboarding_loading">Loading…</string>
     <string name="native_onboarding_recovery_title">Protected data unavailable</string>
     <string name="native_onboarding_recovery_body">Roadstr did not open or erase your saved locations. Restart the device and try again. If the problem persists, export the app data before reinstalling.</string>
+    <string name="native_onboarding_migration_failed_title">Could not bring your data over</string>
+    <string name="native_onboarding_migration_failed_body">Roadstr could not read what the previous version saved on this phone. Nothing was erased or changed. You can try again, or continue without it; your old data stays on the phone.</string>
+    <string name="native_onboarding_migration_retry">Try again</string>
+    <string name="native_onboarding_migration_skip">Continue without importing</string>
 </resources>

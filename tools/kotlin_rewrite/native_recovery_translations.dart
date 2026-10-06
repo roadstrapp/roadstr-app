@@ -1,0 +1,242 @@
+// Strings of the two startup screens that show when the old app's data could not be brought over or
+// the protected storage could not be opened. They are not in the Flutter ARB files (the Flutter app
+// has no such screen), so the 27 translations live here and the onboarding generator writes them.
+//
+// Order of each list:
+//   0 recovery title   (protected storage unavailable)
+//   1 recovery body
+//   2 import failed title
+//   3 import failed body
+//   4 retry button
+//   5 continue-without-importing button
+//
+// Confidence is recorded per language in docs/world-discovery/LOCALIZATION_REVIEW.md: Irish and
+// Maltese are the least reliable and want a native speaker's glance.
+
+const nativeRecoveryKeys = <String>[
+  'native_onboarding_recovery_title',
+  'native_onboarding_recovery_body',
+  'native_onboarding_migration_failed_title',
+  'native_onboarding_migration_failed_body',
+  'native_onboarding_migration_retry',
+  'native_onboarding_migration_skip',
+];
+
+const nativeRecoveryTranslations = <String, List<String>>{
+  'en': [
+    'Protected data unavailable',
+    'Roadstr did not open or erase your saved locations. Restart the device and try again. If the problem persists, export the app data before reinstalling.',
+    'Could not bring your data over',
+    'Roadstr could not read what the previous version saved on this phone. Nothing was erased or changed. You can try again, or continue without it; your old data stays on the phone.',
+    'Try again',
+    'Continue without importing',
+  ],
+  'it': [
+    'Dati protetti non disponibili',
+    "Roadstr non ha aperto né cancellato i tuoi luoghi salvati. Riavvia il dispositivo e riprova. Se il problema persiste, esporta i dati dell'app prima di reinstallare.",
+    'Impossibile importare i tuoi dati',
+    'Roadstr non è riuscito a leggere ciò che la versione precedente aveva salvato su questo telefono. Niente è stato cancellato o modificato. Puoi riprovare oppure continuare senza; i vecchi dati restano sul telefono.',
+    'Riprova',
+    'Continua senza importare',
+  ],
+  'de': [
+    'Geschützte Daten nicht verfügbar',
+    'Roadstr hat deine gespeicherten Orte weder geöffnet noch gelöscht. Starte das Gerät neu und versuche es erneut. Wenn das Problem weiter besteht, exportiere die App-Daten, bevor du neu installierst.',
+    'Daten konnten nicht übernommen werden',
+    'Roadstr konnte nicht lesen, was die vorherige Version auf diesem Telefon gespeichert hat. Nichts wurde gelöscht oder geändert. Du kannst es erneut versuchen oder ohne die Daten fortfahren; deine alten Daten bleiben auf dem Telefon.',
+    'Erneut versuchen',
+    'Ohne Import fortfahren',
+  ],
+  'fr': [
+    'Données protégées indisponibles',
+    "Roadstr n'a ni ouvert ni effacé vos lieux enregistrés. Redémarrez l'appareil et réessayez. Si le problème persiste, exportez les données de l'application avant de réinstaller.",
+    'Impossible de reprendre vos données',
+    "Roadstr n'a pas pu lire ce que la version précédente avait enregistré sur ce téléphone. Rien n'a été effacé ni modifié. Vous pouvez réessayer ou continuer sans ; vos anciennes données restent sur le téléphone.",
+    'Réessayer',
+    'Continuer sans importer',
+  ],
+  'es': [
+    'Datos protegidos no disponibles',
+    'Roadstr no abrió ni borró tus lugares guardados. Reinicia el dispositivo e inténtalo de nuevo. Si el problema continúa, exporta los datos de la app antes de reinstalar.',
+    'No se pudieron traer tus datos',
+    'Roadstr no pudo leer lo que la versión anterior guardó en este teléfono. No se borró ni cambió nada. Puedes volver a intentarlo o continuar sin ellos; tus datos antiguos siguen en el teléfono.',
+    'Reintentar',
+    'Continuar sin importar',
+  ],
+  'pt': [
+    'Dados protegidos indisponíveis',
+    'O Roadstr não abriu nem apagou os seus locais guardados. Reinicie o dispositivo e tente novamente. Se o problema persistir, exporte os dados da app antes de reinstalar.',
+    'Não foi possível trazer os seus dados',
+    'O Roadstr não conseguiu ler o que a versão anterior guardou neste telemóvel. Nada foi apagado nem alterado. Pode tentar novamente ou continuar sem eles; os seus dados antigos permanecem no telemóvel.',
+    'Tentar novamente',
+    'Continuar sem importar',
+  ],
+  'nl': [
+    'Beveiligde gegevens niet beschikbaar',
+    'Roadstr heeft je opgeslagen locaties niet geopend of gewist. Start het apparaat opnieuw op en probeer het nog eens. Blijft het probleem bestaan, exporteer dan de app-gegevens voordat je opnieuw installeert.',
+    'Je gegevens konden niet worden overgenomen',
+    'Roadstr kon niet lezen wat de vorige versie op deze telefoon had opgeslagen. Er is niets gewist of gewijzigd. Je kunt het opnieuw proberen of zonder doorgaan; je oude gegevens blijven op de telefoon.',
+    'Opnieuw proberen',
+    'Doorgaan zonder importeren',
+  ],
+  'sv': [
+    'Skyddade data är inte tillgängliga',
+    'Roadstr öppnade eller raderade inte dina sparade platser. Starta om enheten och försök igen. Om problemet kvarstår, exportera appdata innan du installerar om.',
+    'Dina data kunde inte föras över',
+    'Roadstr kunde inte läsa det som den tidigare versionen sparade på den här telefonen. Inget har raderats eller ändrats. Du kan försöka igen eller fortsätta utan dem; dina gamla data finns kvar på telefonen.',
+    'Försök igen',
+    'Fortsätt utan att importera',
+  ],
+  'da': [
+    'Beskyttede data er ikke tilgængelige',
+    'Roadstr åbnede eller slettede ikke dine gemte steder. Genstart enheden, og prøv igen. Hvis problemet fortsætter, skal du eksportere appens data, før du geninstallerer.',
+    'Dine data kunne ikke overføres',
+    'Roadstr kunne ikke læse det, som den tidligere version gemte på denne telefon. Intet er slettet eller ændret. Du kan prøve igen eller fortsætte uden; dine gamle data forbliver på telefonen.',
+    'Prøv igen',
+    'Fortsæt uden at importere',
+  ],
+  'fi': [
+    'Suojatut tiedot eivät ole käytettävissä',
+    'Roadstr ei avannut eikä poistanut tallennettuja paikkojasi. Käynnistä laite uudelleen ja yritä uudelleen. Jos ongelma jatkuu, vie sovelluksen tiedot ennen uudelleenasennusta.',
+    'Tietojasi ei voitu tuoda',
+    'Roadstr ei pystynyt lukemaan sitä, mitä edellinen versio tallensi tähän puhelimeen. Mitään ei poistettu tai muutettu. Voit yrittää uudelleen tai jatkaa ilman niitä; vanhat tietosi säilyvät puhelimessa.',
+    'Yritä uudelleen',
+    'Jatka tuomatta',
+  ],
+  'pl': [
+    'Chronione dane niedostępne',
+    'Roadstr nie otworzył ani nie usunął Twoich zapisanych miejsc. Uruchom urządzenie ponownie i spróbuj jeszcze raz. Jeśli problem się powtarza, wyeksportuj dane aplikacji przed ponowną instalacją.',
+    'Nie udało się przenieść Twoich danych',
+    'Roadstr nie mógł odczytać tego, co poprzednia wersja zapisała na tym telefonie. Nic nie zostało usunięte ani zmienione. Możesz spróbować ponownie lub kontynuować bez nich; Twoje stare dane pozostają na telefonie.',
+    'Spróbuj ponownie',
+    'Kontynuuj bez importu',
+  ],
+  'cs': [
+    'Chráněná data nejsou dostupná',
+    'Roadstr neotevřel ani nesmazal vaše uložená místa. Restartujte zařízení a zkuste to znovu. Pokud problém přetrvává, exportujte data aplikace před přeinstalováním.',
+    'Vaše data se nepodařilo převzít',
+    'Roadstr nedokázal přečíst, co předchozí verze uložila v tomto telefonu. Nic nebylo smazáno ani změněno. Můžete to zkusit znovu nebo pokračovat bez nich; vaše stará data zůstávají v telefonu.',
+    'Zkusit znovu',
+    'Pokračovat bez importu',
+  ],
+  'sk': [
+    'Chránené údaje nie sú dostupné',
+    'Roadstr neotvoril ani nevymazal vaše uložené miesta. Reštartujte zariadenie a skúste to znova. Ak problém pretrváva, exportujte údaje aplikácie pred preinštalovaním.',
+    'Vaše údaje sa nepodarilo prevziať',
+    'Roadstr nedokázal prečítať, čo predchádzajúca verzia uložila v tomto telefóne. Nič sa nevymazalo ani nezmenilo. Môžete to skúsiť znova alebo pokračovať bez nich; vaše staré údaje zostávajú v telefóne.',
+    'Skúsiť znova',
+    'Pokračovať bez importu',
+  ],
+  'sl': [
+    'Zaščiteni podatki niso na voljo',
+    'Roadstr ni odprl ali izbrisal vaših shranjenih krajev. Znova zaženite napravo in poskusite znova. Če težava ostane, izvozite podatke aplikacije pred ponovno namestitvijo.',
+    'Podatkov ni bilo mogoče prenesti',
+    'Roadstr ni mogel prebrati tega, kar je prejšnja različica shranila v tem telefonu. Nič ni bilo izbrisano ali spremenjeno. Poskusite znova ali nadaljujte brez njih; vaši stari podatki ostanejo v telefonu.',
+    'Poskusi znova',
+    'Nadaljuj brez uvoza',
+  ],
+  'hr': [
+    'Zaštićeni podaci nisu dostupni',
+    'Roadstr nije otvorio niti izbrisao vaša spremljena mjesta. Ponovno pokrenite uređaj i pokušajte opet. Ako se problem nastavi, izvezite podatke aplikacije prije ponovne instalacije.',
+    'Vaše podatke nije bilo moguće prenijeti',
+    'Roadstr nije mogao pročitati ono što je prethodna verzija spremila na ovaj telefon. Ništa nije izbrisano ni promijenjeno. Možete pokušati ponovno ili nastaviti bez njih; vaši stari podaci ostaju na telefonu.',
+    'Pokušaj ponovno',
+    'Nastavi bez uvoza',
+  ],
+  'hu': [
+    'A védett adatok nem érhetők el',
+    'A Roadstr nem nyitotta meg és nem törölte a mentett helyeidet. Indítsd újra az eszközt, és próbáld újra. Ha a probléma megmarad, exportáld az alkalmazás adatait az újratelepítés előtt.',
+    'Nem sikerült átvenni az adataidat',
+    'A Roadstr nem tudta beolvasni, amit az előző verzió ezen a telefonon elmentett. Semmi sem törlődött vagy változott. Megpróbálhatod újra, vagy folytathatod nélkülük; a régi adataid a telefonon maradnak.',
+    'Próbáld újra',
+    'Folytatás importálás nélkül',
+  ],
+  'ro': [
+    'Date protejate indisponibile',
+    'Roadstr nu ți-a deschis și nici nu ți-a șters locurile salvate. Repornește dispozitivul și încearcă din nou. Dacă problema persistă, exportă datele aplicației înainte de reinstalare.',
+    'Datele tale nu au putut fi preluate',
+    'Roadstr nu a putut citi ce salvase versiunea anterioară pe acest telefon. Nimic nu a fost șters sau modificat. Poți încerca din nou sau poți continua fără ele; datele vechi rămân pe telefon.',
+    'Încearcă din nou',
+    'Continuă fără import',
+  ],
+  'bg': [
+    'Защитените данни не са налични',
+    'Roadstr не отвори и не изтри запазените ви места. Рестартирайте устройството и опитайте отново. Ако проблемът продължава, експортирайте данните на приложението преди повторна инсталация.',
+    'Данните ви не можаха да бъдат пренесени',
+    'Roadstr не успя да прочете онова, което предишната версия е запазила на този телефон. Нищо не е изтрито или променено. Можете да опитате отново или да продължите без тях; старите ви данни остават в телефона.',
+    'Опитайте отново',
+    'Продължи без импортиране',
+  ],
+  'el': [
+    'Τα προστατευμένα δεδομένα δεν είναι διαθέσιμα',
+    'Το Roadstr δεν άνοιξε ούτε διέγραψε τις αποθηκευμένες τοποθεσίες σας. Επανεκκινήστε τη συσκευή και δοκιμάστε ξανά. Αν το πρόβλημα παραμένει, εξαγάγετε τα δεδομένα της εφαρμογής πριν την επανεγκατάσταση.',
+    'Δεν ήταν δυνατή η μεταφορά των δεδομένων σας',
+    'Το Roadstr δεν μπόρεσε να διαβάσει ό,τι είχε αποθηκεύσει η προηγούμενη έκδοση σε αυτό το τηλέφωνο. Τίποτα δεν διαγράφηκε ή άλλαξε. Μπορείτε να δοκιμάσετε ξανά ή να συνεχίσετε χωρίς αυτά· τα παλιά δεδομένα σας παραμένουν στο τηλέφωνο.',
+    'Δοκιμάστε ξανά',
+    'Συνέχεια χωρίς εισαγωγή',
+  ],
+  'et': [
+    'Kaitstud andmed pole saadaval',
+    'Roadstr ei avanud ega kustutanud sinu salvestatud kohti. Taaskäivita seade ja proovi uuesti. Kui probleem püsib, ekspordi rakenduse andmed enne uuesti installimist.',
+    'Sinu andmeid ei õnnestunud üle tuua',
+    'Roadstr ei suutnud lugeda, mida eelmine versioon sellesse telefoni salvestas. Midagi ei kustutatud ega muudetud. Võid uuesti proovida või jätkata ilma nendeta; sinu vanad andmed jäävad telefoni.',
+    'Proovi uuesti',
+    'Jätka importimata',
+  ],
+  'lv': [
+    'Aizsargātie dati nav pieejami',
+    'Roadstr neatvēra un neizdzēsa jūsu saglabātās vietas. Restartējiet ierīci un mēģiniet vēlreiz. Ja problēma saglabājas, eksportējiet lietotnes datus pirms atkārtotas instalēšanas.',
+    'Jūsu datus neizdevās pārnest',
+    'Roadstr nevarēja nolasīt to, ko iepriekšējā versija saglabāja šajā tālrunī. Nekas netika dzēsts vai mainīts. Varat mēģināt vēlreiz vai turpināt bez tiem; jūsu vecie dati paliek tālrunī.',
+    'Mēģināt vēlreiz',
+    'Turpināt bez importēšanas',
+  ],
+  'lt': [
+    'Apsaugoti duomenys nepasiekiami',
+    '„Roadstr“ neatidarė ir neištrynė jūsų išsaugotų vietų. Iš naujo paleiskite įrenginį ir bandykite dar kartą. Jei problema išlieka, eksportuokite programos duomenis prieš įdiegdami iš naujo.',
+    'Nepavyko perkelti jūsų duomenų',
+    '„Roadstr“ nepavyko perskaityti to, ką ankstesnė versija išsaugojo šiame telefone. Niekas nebuvo ištrinta ar pakeista. Galite bandyti dar kartą arba tęsti be jų; jūsų seni duomenys lieka telefone.',
+    'Bandyti dar kartą',
+    'Tęsti neimportuojant',
+  ],
+  'ga': [
+    'Níl sonraí cosanta ar fáil',
+    'Níor oscail ná níor scrios Roadstr do shuímh shábháilte. Atosaigh an gléas agus bain triail eile as. Má leanann an fhadhb, easpórtáil sonraí na haipe sula ndéanann tú athshuiteáil.',
+    'Níorbh fhéidir do chuid sonraí a thabhairt isteach',
+    'Níorbh fhéidir le Roadstr an méid a shábháil an leagan roimhe seo ar an bhfón seo a léamh. Ní scriosadh ná ní athraíodh aon rud. Is féidir leat triail eile a bhaint as nó leanúint ar aghaidh gan iad; fanann do shean-sonraí ar an bhfón.',
+    'Bain triail eile as',
+    'Lean ar aghaidh gan iompórtáil',
+  ],
+  'mt': [
+    'Dejta protetta mhix disponibbli',
+    "Roadstr ma fetaħx u ma neħħiex il-postijiet maħżuna tiegħek. Erġa' ibda l-apparat u pprova mill-ġdid. Jekk il-problema tippersisti, esporta d-dejta tal-app qabel terġa' tinstalla.",
+    'Ma setgħux jinġiebu d-dejta tiegħek',
+    "Roadstr ma setax jaqra dak li l-verżjoni preċedenti ħafset f'dan it-telefon. Ma tneħħa u ma nbidel xejn. Tista' terġa' tipprova jew tkompli mingħajrha; id-dejta l-qadima tiegħek tibqa' fuq it-telefon.",
+    "Erġa' pprova",
+    'Kompli mingħajr importazzjoni',
+  ],
+  'ja': [
+    '保護されたデータを利用できません',
+    'Roadstrは保存した場所を開いたり削除したりしていません。端末を再起動してもう一度お試しください。問題が続く場合は、再インストールの前にアプリのデータをエクスポートしてください。',
+    'データを引き継げませんでした',
+    'Roadstrは、以前のバージョンがこの端末に保存した内容を読み取れませんでした。削除や変更は一切行われていません。もう一度試すか、引き継がずに続行できます。以前のデータは端末に残ります。',
+    '再試行',
+    '引き継がずに続行',
+  ],
+  'zh': [
+    '受保护的数据不可用',
+    'Roadstr 没有打开或删除你保存的地点。请重启设备后重试。如果问题仍然存在，请在重新安装之前导出应用数据。',
+    '无法导入你的数据',
+    'Roadstr 无法读取上一个版本保存在这部手机上的内容。没有任何内容被删除或更改。你可以重试，或不导入直接继续；旧数据仍保留在手机上。',
+    '重试',
+    '不导入，继续',
+  ],
+  'ru': [
+    'Защищённые данные недоступны',
+    'Roadstr не открывал и не удалял ваши сохранённые места. Перезапустите устройство и повторите попытку. Если проблема не исчезнет, экспортируйте данные приложения перед переустановкой.',
+    'Не удалось перенести ваши данные',
+    'Roadstr не смог прочитать то, что предыдущая версия сохранила на этом телефоне. Ничего не удалено и не изменено. Вы можете повторить попытку или продолжить без них; ваши старые данные остаются на телефоне.',
+    'Повторить',
+    'Продолжить без импорта',
+  ],
+};

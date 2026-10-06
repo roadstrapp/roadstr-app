@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../tools/kotlin_rewrite/generate_android_onboarding_strings.dart';
+import '../tools/kotlin_rewrite/native_recovery_translations.dart';
 
 void main() {
   final presentation = File(
@@ -33,17 +34,60 @@ void main() {
       final strings = RegExp(
         r'<string name="([^"]+)">([\s\S]*?)</string>',
       ).allMatches(entry.value).toList();
-      expect(strings, hasLength(55), reason: entry.key);
-      expect(strings.map((match) => match.group(1)).toSet(), hasLength(55));
-      expect(
-        _value(strings, 'native_onboarding_recovery_title'),
-        'Protected data unavailable',
-      );
-      expect(
-        _value(strings, 'native_onboarding_recovery_body'),
-        contains('did not open or erase your saved locations'),
-      );
+      expect(strings, hasLength(59), reason: entry.key);
+      expect(strings.map((match) => match.group(1)).toSet(), hasLength(59));
     }
+  });
+
+  test(
+      'the startup screens are translated, not left in English, in all 27 languages',
+      () {
+    final english = buildAndroidOnboardingResources()
+        .entries
+        .firstWhere((entry) => entry.key.contains('/values/'))
+        .value;
+    final englishStrings = RegExp(r'<string name="([^"]+)">([\s\S]*?)</string>')
+        .allMatches(english)
+        .toList();
+    expect(_value(englishStrings, 'native_onboarding_recovery_title'),
+        'Protected data unavailable');
+    expect(_value(englishStrings, 'native_onboarding_recovery_body'),
+        contains('did not open or erase your saved locations'));
+    expect(_value(englishStrings, 'native_onboarding_migration_retry'),
+        'Try again');
+    expect(_value(englishStrings, 'native_onboarding_migration_skip'),
+        'Continue without importing');
+
+    for (final entry in buildAndroidOnboardingResources().entries) {
+      if (entry.key.contains('/values/')) continue;
+      final strings = RegExp(r'<string name="([^"]+)">([\s\S]*?)</string>')
+          .allMatches(entry.value)
+          .toList();
+      for (final key in nativeRecoveryKeys) {
+        expect(_value(strings, key), isNot(_value(englishStrings, key)),
+            reason: '${entry.key} $key is still English');
+      }
+    }
+  });
+
+  test(
+      'the recovery screen offers a retry and a way on, and the flow only shows them when asked',
+      () {
+    final source = flow.readAsStringSync();
+
+    expect(source, contains('onRetryMigration: (() -> Unit)? = null'));
+    expect(source, contains('onSkipMigration: (() -> Unit)? = null'));
+    expect(source,
+        contains('if (onRetryMigration != null && onSkipMigration != null)'));
+    expect(source, contains('R.string.native_onboarding_migration_retry'));
+    expect(source, contains('R.string.native_onboarding_migration_skip'));
+    // Without the callbacks the original recovery message is unchanged.
+    expect(source, contains('R.string.native_onboarding_recovery_title'));
+    final activity = File(
+      'android/app/src/main/kotlin/app/roadstr/startup/NativeAppActivity.kt',
+    ).readAsStringSync();
+    expect(activity, contains('onRetryMigration = startup::retry'));
+    expect(activity, contains('onSkipMigration = startup::skip'));
   });
 
   test('native startup gate preserves the versioned Flutter disclosure oracle',
@@ -94,13 +138,21 @@ void main() {
     expect(source, isNot(contains('Hive.')));
   });
 
-  test('onboarding is drawn with the same cards, sections and buttons as the settings', () {
+  test(
+      'onboarding is drawn with the same cards, sections and buttons as the settings',
+      () {
     final source = flow.readAsStringSync();
 
-    expect(source, contains('import app.roadstr.feature.settings.SettingsCard'));
-    expect(source, contains('import app.roadstr.feature.settings.SettingsSection'));
-    expect(source, contains('import app.roadstr.feature.settings.ActionButton'));
-    expect(source, contains('SettingsSection(R.string.native_onboarding_profile_visibility_title)'));
+    expect(
+        source, contains('import app.roadstr.feature.settings.SettingsCard'));
+    expect(source,
+        contains('import app.roadstr.feature.settings.SettingsSection'));
+    expect(
+        source, contains('import app.roadstr.feature.settings.ActionButton'));
+    expect(
+        source,
+        contains(
+            'SettingsSection(R.string.native_onboarding_profile_visibility_title)'));
     // The blocks the pages are made of are settings cards, not a second look.
     for (final block in ['InfoCard', 'ChoiceCard', 'SetupCard']) {
       final start = source.indexOf('private fun $block(');

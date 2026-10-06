@@ -65,6 +65,8 @@ class NativeAppActivity : NativeRoadTestActivity() {
             onDownloadVoice = {},
             onOpenDisclosure = {},
             onAcceptDisclosure = {},
+            onRetryMigration = startup::retry,
+            onSkipMigration = startup::skip,
         )
     }
 }

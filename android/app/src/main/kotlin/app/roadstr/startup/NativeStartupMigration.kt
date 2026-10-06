@@ -60,6 +60,23 @@ class NativeStartupMigration(
         }
     }
 
+    /** Tries again after a failure. Nothing was written to the old files, so a second try starts clean. */
+    fun retry() {
+        if (mutableReadiness.value != NativeMigrationReadiness.Failed) return
+        started.set(false)
+        mutableReadiness.value = NativeMigrationReadiness.Checking
+        start()
+    }
+
+    /**
+     * Goes on without the old data, after a failure and only on the person's own choice. The old files
+     * stay exactly where they are; the import is recorded as done so it is not attempted behind their back.
+     */
+    fun skip() {
+        if (mutableReadiness.value != NativeMigrationReadiness.Failed) return
+        mutableReadiness.value = freshInstall()
+    }
+
     private fun run() {
         mutableReadiness.value = try {
             if (legacyPresent()) after(migration.run()) else freshInstall()
