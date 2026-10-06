@@ -13,6 +13,45 @@ the signed-install, physical-device, UI, lifecycle, network and release gates
 listed below are evidenced. This distinction prevents a high code-completion
 estimate from being mistaken for release readiness.
 
+## Cutover candidate (2026-10-06)
+
+The branch now contains a Kotlin launcher that brings the Flutter app's data over, so the Kotlin app can
+replace the Flutter app as an ordinary update. It is **opt-in at build time** and Flutter is still the
+default launcher until the owner approves the switch (decisions D-51 to D-54 in
+`docs/world-discovery/DECISIONS.md`).
+
+**How it works.** `android/app` (package `app.roadstr`, the release key) compiles the shared Kotlin trees, the
+road-test module's stores and gateways, its JNI voice bridge and ONNX Runtime. `-Pnative_launcher=true` enables
+`startup.NativeAppActivity` instead of `MainActivity` (two manifest placeholders). On the first start it:
+
+1. returns at once if the import was already recorded, or if the old app left neither `app_flutter/settings.hive`
+   nor its secure-storage file (a fresh install never starts the Flutter engine);
+2. otherwise reads the old data on a worker thread through the existing headless Flutter reader (exact Hive and
+   `flutter_secure_storage` code, `resetOnError: false`, a temporary copy of the settings box, no deletion);
+3. drops the keys the new app does not know (`TolerantLegacySnapshotReader`) and validates the rest with the strict
+   validator, including that the private key derives the stored public key;
+4. maps the snapshot (`NativeProfileMapper`): identity, onboarding consent (the privacy disclosure alone decides),
+   settings, favourites, parking, search history, wallet and routing secrets, sync state, queued reports, activity
+   inbox and cursors;
+5. writes every part into the live stores under their own names (`live_*`, never `roadtest_*`), reads every part
+   back, and only then records the import as done. A failure leaves the flag unset;
+6. shows the progress screen meanwhile and, after a failure, the explanation with "Try again" and "Continue without
+   importing" (both the person's choice; the old files are never written or deleted either way).
+
+**Tests.** 21 JVM tests (mapping, fallbacks, secrets staying out of text, the writer, every startup state including
+retry and skip), 4 round-trip tests (the live stores' encoding is a fixed point for real-looking and extreme
+values), a Dart contract test of the guarantees, and the existing contract tests updated to the new facts.
+What no JVM test can show is Android Keystore, the secure-storage formats of real installs and the Flutter engine
+starting inside the Kotlin launcher; those are the device test below.
+
+**Device test (the update of a real install).** 1) Build the way back first: a Flutter build of `main` with a higher
+version code (`git archive` of `main` into a scratch folder, `versionCode` raised, `android/key.properties` copied
+in, `flutter build apk --release`), signed with the same key. 2) Build the candidate:
+`cd android && ./gradlew :app:assembleRelease -Pnative_launcher=true -Ptarget-platform=android-arm64
+-ProadstrVersionCode=<n> -ProadstrVersionName=<name>`. 3) `adb install -r` the candidate over the Flutter app (never
+uninstall). 4) Check that the profile, favourites, settings and voice are there and that no onboarding appears. 5) If
+anything is wrong, install the way back with `adb install -r`; the Flutter data was never touched.
+
 ## Implemented
 
 - `native-android/` is an independent Android application module with its own
