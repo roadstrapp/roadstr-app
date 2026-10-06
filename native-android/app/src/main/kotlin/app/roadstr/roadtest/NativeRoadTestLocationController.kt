@@ -23,11 +23,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * Foreground-only owner for the road-test GPS feed.
+ * Owner of the GPS feed for the Kotlin app.
  *
  * Permission prompting stays in the Activity, while this class owns one AOSP
- * listener and publishes value-only snapshots to Compose. It never logs or
- * persists coordinates and stops callbacks whenever the host is not visible.
+ * listener and publishes value-only snapshots. It never logs or persists
+ * coordinates and stops callbacks whenever the host is not visible, except
+ * while a trip is under way: [holdForNavigation] keeps the listener running
+ * (the foreground service keeps the process alive) so guidance continues with
+ * the screen off or another app in front.
  */
 internal class NativeRoadTestLocationController(
     context: Context,
@@ -53,7 +56,10 @@ internal class NativeRoadTestLocationController(
         onFix = ::publishFix,
         scope = scope,
     )
+    // True while the feed is wanted: the host is visible, or a trip holds it.
     private var hostStarted = false
+    private var visible = false
+    private var held = false
     private var permissionDenied = false
     private var generation = 0L
     private var nextFixSequence = 0L
@@ -61,12 +67,36 @@ internal class NativeRoadTestLocationController(
     val state: StateFlow<NativeShellGpsSnapshot> = mutableState.asStateFlow()
 
     fun onHostStart() {
-        hostStarted = true
-        val requestedGeneration = ++generation
-        scope.launch { start(requestedGeneration) }
+        visible = true
+        refresh()
     }
 
     fun onHostStop() {
+        visible = false
+        refresh()
+    }
+
+    /** Keeps the feed running while a trip lasts, whatever the host's visibility; releases it afterwards. */
+    fun holdForNavigation(hold: Boolean) {
+        held = hold
+        refresh()
+    }
+
+    // The feed is started or stopped only when "wanted" changes: a stop and start of the screen during a
+    // trip leaves the running listener alone.
+    private fun refresh() {
+        val wanted = visible || held
+        if (wanted == hostStarted) return
+        if (wanted) {
+            hostStarted = true
+            val requestedGeneration = ++generation
+            scope.launch { start(requestedGeneration) }
+        } else {
+            stopFeed()
+        }
+    }
+
+    private fun stopFeed() {
         hostStarted = false
         val stoppedGeneration = ++generation
         scope.launch {

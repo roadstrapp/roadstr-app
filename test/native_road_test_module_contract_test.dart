@@ -119,8 +119,10 @@ void main() {
     expect(source, contains('setContent { StartupGate { RoadstrContent() } }'));
     expect(source, contains('NativeRoadstrShell('));
     expect(source, contains('mode = shellMode'));
-    expect(source,
-        contains('protected open val shellMode: NativeShellMode = NativeShellMode.RoadTest'));
+    expect(
+        source,
+        contains(
+            'protected open val shellMode: NativeShellMode = NativeShellMode.RoadTest'));
     expect(source, contains('journeyGateway = journeyGateway'));
     expect(source, contains('voiceGateway = voiceGateway'));
     expect(source, isNot(contains('FlutterActivity')));
@@ -160,7 +162,8 @@ void main() {
     expect(source, isNot(contains('Log.')));
   });
 
-  test('road-test GPS owner drives the native cursor and camera in foreground',
+  test(
+      'the GPS owner drives the native cursor and camera, and holds the feed for a trip',
       () {
     final activitySource = activity.readAsStringSync();
     final controllerSource = locationController.readAsStringSync();
@@ -171,8 +174,16 @@ void main() {
       activitySource,
       contains('ActivityResultContracts.RequestMultiplePermissions()'),
     );
-    expect(activitySource, contains('locationController.onHostStart()'));
-    expect(activitySource, contains('locationController.onHostStop()'));
+    // The Activity only reports its visibility; the runtime starts and stops the feed (and, during a
+    // trip, leaves it running).
+    final runtimeSource = File(
+      'native-android/app/src/main/kotlin/app/roadstr/roadtest/'
+      'NativeNavigationRuntime.kt',
+    ).readAsStringSync();
+    expect(activitySource, contains('runtime.onActivityStart()'));
+    expect(activitySource, contains('runtime.onActivityStop()'));
+    expect(runtimeSource, contains('location.onHostStart()'));
+    expect(runtimeSource, contains('location.onHostStop()'));
     expect(
         activitySource, contains('Settings.ACTION_LOCATION_SOURCE_SETTINGS'));
     expect(controllerSource, contains('AndroidLocationManagerSource(context)'));

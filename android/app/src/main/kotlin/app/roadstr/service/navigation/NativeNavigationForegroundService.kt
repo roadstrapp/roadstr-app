@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -203,6 +204,7 @@ class NativeNavigationForegroundService : Service() {
             .setOnlyAlertOnce(update.onlyAlertOnce)
             .setAutoCancel(update.autoCancel)
             .setVisibility(Notification.VISIBILITY_PRIVATE)
+            .setContentIntent(contentIntent())
             .build()
     }
 
@@ -221,7 +223,20 @@ class NativeNavigationForegroundService : Service() {
             .setOnlyAlertOnce(true)
             .setAutoCancel(false)
             .setVisibility(Notification.VISIBILITY_PRIVATE)
+            .setContentIntent(contentIntent())
             .build()
+    }
+
+    /** Tapping either notification brings the app back to the front, on whichever launcher the build enables. */
+    private fun contentIntent(): PendingIntent? {
+        val launch = packageManager.getLaunchIntentForPackage(packageName) ?: return null
+        launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+        return PendingIntent.getActivity(
+            this,
+            0,
+            launch,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
     }
 
     companion object {
