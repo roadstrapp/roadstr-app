@@ -55,9 +55,9 @@
     <string name="native_onboarding_disclosure_accept">Olen lugenud ja nõustun</string>
     <string name="native_onboarding_loading">Laadimine…</string>
     <string name="native_onboarding_recovery_title">Kaitstud andmed pole saadaval</string>
-    <string name="native_onboarding_recovery_body">Roadstr ei avanud ega kustutanud sinu salvestatud kohti. Taaskäivita seade ja proovi uuesti. Kui probleem püsib, ekspordi rakenduse andmed enne uuesti installimist.</string>
-    <string name="native_onboarding_migration_failed_title">Sinu andmeid ei õnnestunud üle tuua</string>
-    <string name="native_onboarding_migration_failed_body">Roadstr ei suutnud lugeda, mida eelmine versioon sellesse telefoni salvestas. Midagi ei kustutatud ega muudetud. Võid uuesti proovida või jätkata ilma nendeta; sinu vanad andmed jäävad telefoni.</string>
-    <string name="native_onboarding_migration_retry">Proovi uuesti</string>
+    <string name="native_onboarding_recovery_body">Roadstr ei avanud ega kustutanud teie salvestatud kohti. Taaskäivitage seade ja proovige uuesti. Kui probleem püsib, eksportige rakenduse andmed enne uuesti installimist.</string>
+    <string name="native_onboarding_migration_failed_title">Teie andmeid ei õnnestunud üle tuua</string>
+    <string name="native_onboarding_migration_failed_body">Roadstr ei suutnud lugeda, mida eelmine versioon sellesse telefoni salvestas. Midagi ei kustutatud ega muudetud. Võite uuesti proovida või jätkata ilma nendeta; teie vanad andmed jäävad telefoni.</string>
+    <string name="native_onboarding_migration_retry">Proovige uuesti</string>
     <string name="native_onboarding_migration_skip">Jätka importimata</string>
 </resources>

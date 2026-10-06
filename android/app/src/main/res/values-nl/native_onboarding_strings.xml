@@ -55,9 +55,9 @@
     <string name="native_onboarding_disclosure_accept">Ik heb gelezen en accepteer</string>
     <string name="native_onboarding_loading">Laden…</string>
     <string name="native_onboarding_recovery_title">Beveiligde gegevens niet beschikbaar</string>
-    <string name="native_onboarding_recovery_body">Roadstr heeft je opgeslagen locaties niet geopend of gewist. Start het apparaat opnieuw op en probeer het nog eens. Blijft het probleem bestaan, exporteer dan de app-gegevens voordat je opnieuw installeert.</string>
-    <string name="native_onboarding_migration_failed_title">Je gegevens konden niet worden overgenomen</string>
-    <string name="native_onboarding_migration_failed_body">Roadstr kon niet lezen wat de vorige versie op deze telefoon had opgeslagen. Er is niets gewist of gewijzigd. Je kunt het opnieuw proberen of zonder doorgaan; je oude gegevens blijven op de telefoon.</string>
+    <string name="native_onboarding_recovery_body">Roadstr heeft uw opgeslagen locaties niet geopend of gewist. Start het apparaat opnieuw op en probeer het nog eens. Blijft het probleem bestaan, exporteer dan de app-gegevens voordat u opnieuw installeert.</string>
+    <string name="native_onboarding_migration_failed_title">Uw gegevens konden niet worden overgenomen</string>
+    <string name="native_onboarding_migration_failed_body">Roadstr kon niet lezen wat de vorige versie op deze telefoon had opgeslagen. Er is niets gewist of gewijzigd. U kunt het opnieuw proberen of zonder doorgaan; uw oude gegevens blijven op de telefoon.</string>
     <string name="native_onboarding_migration_retry">Opnieuw proberen</string>
     <string name="native_onboarding_migration_skip">Doorgaan zonder importeren</string>
 </resources>
