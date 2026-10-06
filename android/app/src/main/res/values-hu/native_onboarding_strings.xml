@@ -55,9 +55,9 @@
     <string name="native_onboarding_disclosure_accept">Elolvastam és elfogadom</string>
     <string name="native_onboarding_loading">Betöltés…</string>
     <string name="native_onboarding_recovery_title">A védett adatok nem érhetők el</string>
-    <string name="native_onboarding_recovery_body">A Roadstr nem nyitotta meg és nem törölte a mentett helyeidet. Indítsd újra az eszközt, és próbáld újra. Ha a probléma megmarad, exportáld az alkalmazás adatait az újratelepítés előtt.</string>
-    <string name="native_onboarding_migration_failed_title">Nem sikerült átvenni az adataidat</string>
-    <string name="native_onboarding_migration_failed_body">A Roadstr nem tudta beolvasni, amit az előző verzió ezen a telefonon elmentett. Semmi sem törlődött vagy változott. Megpróbálhatod újra, vagy folytathatod nélkülük; a régi adataid a telefonon maradnak.</string>
-    <string name="native_onboarding_migration_retry">Próbáld újra</string>
+    <string name="native_onboarding_recovery_body">A Roadstr nem nyitotta meg és nem törölte a mentett helyeit. Indítsa újra az eszközt, és próbálja újra. Ha a probléma megmarad, exportálja az alkalmazás adatait az újratelepítés előtt.</string>
+    <string name="native_onboarding_migration_failed_title">Nem sikerült átvenni az adatait</string>
+    <string name="native_onboarding_migration_failed_body">A Roadstr nem tudta beolvasni, amit az előző verzió ezen a telefonon elmentett. Semmi sem törlődött vagy változott. Megpróbálhatja újra, vagy folytathatja nélkülük; a régi adatai a telefonon maradnak.</string>
+    <string name="native_onboarding_migration_retry">Próbálja újra</string>
     <string name="native_onboarding_migration_skip">Folytatás importálás nélkül</string>
 </resources>

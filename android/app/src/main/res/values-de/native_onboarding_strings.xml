@@ -55,9 +55,9 @@
     <string name="native_onboarding_disclosure_accept">Ich habe gelesen und akzeptiere</string>
     <string name="native_onboarding_loading">Lädt…</string>
     <string name="native_onboarding_recovery_title">Geschützte Daten nicht verfügbar</string>
-    <string name="native_onboarding_recovery_body">Roadstr hat deine gespeicherten Orte weder geöffnet noch gelöscht. Starte das Gerät neu und versuche es erneut. Wenn das Problem weiter besteht, exportiere die App-Daten, bevor du neu installierst.</string>
+    <string name="native_onboarding_recovery_body">Roadstr hat Ihre gespeicherten Orte weder geöffnet noch gelöscht. Starten Sie das Gerät neu und versuchen Sie es erneut. Wenn das Problem weiter besteht, exportieren Sie die App-Daten, bevor Sie neu installieren.</string>
     <string name="native_onboarding_migration_failed_title">Daten konnten nicht übernommen werden</string>
-    <string name="native_onboarding_migration_failed_body">Roadstr konnte nicht lesen, was die vorherige Version auf diesem Telefon gespeichert hat. Nichts wurde gelöscht oder geändert. Du kannst es erneut versuchen oder ohne die Daten fortfahren; deine alten Daten bleiben auf dem Telefon.</string>
+    <string name="native_onboarding_migration_failed_body">Roadstr konnte nicht lesen, was die vorherige Version auf diesem Telefon gespeichert hat. Nichts wurde gelöscht oder geändert. Sie können es erneut versuchen oder ohne die Daten fortfahren; Ihre alten Daten bleiben auf dem Telefon.</string>
     <string name="native_onboarding_migration_retry">Erneut versuchen</string>
     <string name="native_onboarding_migration_skip">Ohne Import fortfahren</string>
 </resources>

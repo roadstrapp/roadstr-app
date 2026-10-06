@@ -55,9 +55,9 @@
     <string name="native_onboarding_disclosure_accept">我已阅读并接受</string>
     <string name="native_onboarding_loading">加载中…</string>
     <string name="native_onboarding_recovery_title">受保护的数据不可用</string>
-    <string name="native_onboarding_recovery_body">Roadstr 没有打开或删除你保存的地点。请重启设备后重试。如果问题仍然存在，请在重新安装之前导出应用数据。</string>
-    <string name="native_onboarding_migration_failed_title">无法导入你的数据</string>
-    <string name="native_onboarding_migration_failed_body">Roadstr 无法读取上一个版本保存在这部手机上的内容。没有任何内容被删除或更改。你可以重试，或不导入直接继续；旧数据仍保留在手机上。</string>
+    <string name="native_onboarding_recovery_body">Roadstr 没有打开或删除您保存的地点。请重启设备后重试。如果问题仍然存在，请在重新安装之前导出应用数据。</string>
+    <string name="native_onboarding_migration_failed_title">无法导入您的数据</string>
+    <string name="native_onboarding_migration_failed_body">Roadstr 无法读取上一个版本保存在这部手机上的内容。没有任何内容被删除或更改。您可以重试，或不导入直接继续；旧数据仍保留在手机上。</string>
     <string name="native_onboarding_migration_retry">重试</string>
     <string name="native_onboarding_migration_skip">不导入，继续</string>
 </resources>

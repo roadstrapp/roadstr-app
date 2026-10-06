@@ -69,7 +69,7 @@ Six strings per language, written for the update from the Flutter app and kept i
 Confidence, in the same order as the vocabularies: the full-tier languages (it, de, fr, es, pt, nl) and
 sv, da, fi, pl, cs, sk, sl, hr, hu, ro, bg, el, ru, ja, zh are plain sentences of the kind the app already uses and are
 likely fine; et, lv, lt carry the inflection risk; **ga and mt are the least reliable** and most want a native
-speaker's eye. Register: informal in it, de, es, nl, sv, da, fi, pl, hu, ro, et and zh (你); formal in fr, pt, cs, sk, sl, hr, bg, el, lv, lt and ru; polite form in ja; ga and mt as a native speaker would settle it.
+speaker's eye. Register follows the app's existing strings of each language (checked against `searchHint` and `noRouteFound` in the ARB files): informal in it, es, da, sv, fi, pl, ro, ga and mt; formal in de (Sie), nl (u), fr, pt, cs, sk, sl, hr, hu, et, bg, el, lv, lt, ru and zh (您); polite form in ja.
 
 ## 3. Known gaps, stated plainly
 
