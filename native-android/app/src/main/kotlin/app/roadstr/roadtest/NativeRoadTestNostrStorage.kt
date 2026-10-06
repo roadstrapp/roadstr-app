@@ -14,13 +14,16 @@ import app.roadstr.service.nostr.NativePendingReportStorage
  * custom relay are protected like the other secrets; the three scalars are
  * not sensitive and stay in plain preferences.
  */
-internal class NativeRoadTestSyncStorage(context: Context) : NativeFavoritesSyncStore, NativeShellSyncSecrets {
+internal class NativeRoadTestSyncStorage(
+    context: Context,
+    names: NativeLiveStoreNames = NativeLiveStoreNames(),
+) : NativeFavoritesSyncStore, NativeShellSyncSecrets {
     private val secrets = NativeRoadTestProtectedPreferences(
         context = context,
-        preferencesName = "roadtest_sync_secrets",
-        keyAlias = "app.roadstr.roadtest.sync.v1",
+        preferencesName = names.prefs("sync_secrets"),
+        keyAlias = names.alias("sync"),
     )
-    private val state = context.applicationContext.getSharedPreferences(STATE, Context.MODE_PRIVATE)
+    private val state = context.applicationContext.getSharedPreferences(names.prefs("sync_state"), Context.MODE_PRIVATE)
 
     override var lastCreatedAt: Long?
         get() = state.getLong(LAST_CREATED_AT, -1L).takeIf { it >= 0L }
@@ -55,12 +58,19 @@ internal class NativeRoadTestSyncStorage(context: Context) : NativeFavoritesSync
 
     override fun lastSyncMillis(): Long? = state.getLong(LAST_SYNC, -1L).takeIf { it >= 0L }
 
+    /** The three scalars, written together and returned only once they are on disk. */
+    fun importState(lastCreatedAt: Long?, legacyCleaned: Boolean, lastSyncMillis: Long?): Boolean =
+        state.edit().apply {
+            if (lastCreatedAt == null) remove(LAST_CREATED_AT) else putLong(LAST_CREATED_AT, lastCreatedAt)
+            putBoolean(LEGACY_CLEANED, legacyCleaned)
+            if (lastSyncMillis == null) remove(LAST_SYNC) else putLong(LAST_SYNC, lastSyncMillis)
+        }.commit()
+
     override fun markSynced(epochMillis: Long) {
         state.edit().putLong(LAST_SYNC, epochMillis).apply()
     }
 
     private companion object {
-        const val STATE = "roadtest_sync_state"
         const val LAST_CREATED_AT = "last_created_at"
         const val LEGACY_CLEANED = "legacy_cleaned"
         const val LAST_SYNC = "last_sync_millis"
@@ -73,11 +83,14 @@ internal class NativeRoadTestSyncStorage(context: Context) : NativeFavoritesSync
  * Signed reports waiting for a relay. They carry the place the driver was at,
  * so they are kept encrypted like the saved places.
  */
-internal class NativeRoadTestPendingReports(context: Context) : NativePendingReportStorage {
+internal class NativeRoadTestPendingReports(
+    context: Context,
+    names: NativeLiveStoreNames = NativeLiveStoreNames(),
+) : NativePendingReportStorage {
     private val storage = NativeRoadTestProtectedPreferences(
         context = context,
-        preferencesName = "roadtest_pending_reports",
-        keyAlias = "app.roadstr.roadtest.pending.v1",
+        preferencesName = names.prefs("pending_reports"),
+        keyAlias = names.alias("pending"),
     )
 
     override fun read(): List<String> {
@@ -112,19 +125,27 @@ internal class NativeRoadTestPendingReports(context: Context) : NativePendingRep
  * The activity inbox says who zapped or confirmed which report, so it is kept
  * encrypted; the two cursors are only timestamps and stay in plain preferences.
  */
-internal class NativeRoadTestActivityStore(context: Context) : NativeActivityStore {
+internal class NativeRoadTestActivityStore(
+    context: Context,
+    names: NativeLiveStoreNames = NativeLiveStoreNames(),
+) : NativeActivityStore {
     private val inbox = NativeRoadTestProtectedPreferences(
         context = context,
-        preferencesName = "roadtest_activity_inbox",
-        keyAlias = "app.roadstr.roadtest.activity.v1",
+        preferencesName = names.prefs("activity_inbox"),
+        keyAlias = names.alias("activity"),
     )
-    private val cursors = context.applicationContext.getSharedPreferences("roadtest_activity_cursors", Context.MODE_PRIVATE)
+    private val cursors = context.applicationContext.getSharedPreferences(names.prefs("activity_cursors"), Context.MODE_PRIVATE)
 
     override fun readInbox(pubkey: String): String? = runCatching { inbox.read(inboxKey(pubkey)) }.getOrNull()
 
     override fun writeInbox(pubkey: String, normalized: String) {
         inbox.write(inboxKey(pubkey), normalized)
     }
+
+    /** Like [writeInbox], but says whether the value was stored. */
+    fun importInbox(pubkey: String, normalized: String): Boolean = inbox.write(inboxKey(pubkey), normalized)
+
+    fun importCursor(key: String, value: String): Boolean = cursors.edit().putString(key, value).commit()
 
     override fun readCursor(key: String): String? = cursors.getString(key, null)
 

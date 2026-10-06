@@ -11,8 +11,11 @@ import app.roadstr.feature.settings.NativeSettingsSearchEngine
 import app.roadstr.feature.settings.NativeSettingsVoiceGender
 
 /** Small scalar bridge for the standalone harness; secrets never enter it. */
-class NativeRoadTestUiPreferences(context: Context) {
-    private val preferences = context.getSharedPreferences(NAME, Context.MODE_PRIVATE)
+class NativeRoadTestUiPreferences(
+    context: Context,
+    names: NativeLiveStoreNames = NativeLiveStoreNames(),
+) {
+    private val preferences = context.getSharedPreferences(names.prefs("ui_preferences"), Context.MODE_PRIVATE)
 
     fun load(): NativeSettingsInput = NativeSettingsInput(
         themeId = RoadstrThemeId.fromStoredOrdinal(preferences.getInt("theme", 0)),
@@ -62,6 +65,13 @@ class NativeRoadTestUiPreferences(context: Context) {
     )
 
     fun save(value: NativeSettingsInput) {
+        edit(value).apply()
+    }
+
+    /** Like [save], but returns only once the values are on disk; the profile import needs that. */
+    fun saveNow(value: NativeSettingsInput): Boolean = edit(value).commit()
+
+    private fun edit(value: NativeSettingsInput) =
         preferences.edit()
             .putInt("theme", value.themeId.storedOrdinal)
             .putBoolean("auto_dark", value.autoDarkEnabled)
@@ -90,10 +100,5 @@ class NativeRoadTestUiPreferences(context: Context) {
             .putString("speedometer", value.speedometerStyle.storageValue)
             .putString("cursor_style", value.cursorStyle.storageValue)
             .putString("cursor_color", value.cursorColor.storageValue)
-            .apply()
-    }
 
-    private companion object {
-        const val NAME = "roadtest_ui_preferences"
-    }
 }

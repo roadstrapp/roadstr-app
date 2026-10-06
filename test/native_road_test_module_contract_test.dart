@@ -114,11 +114,13 @@ void main() {
   test('road-test launcher enters Compose directly', () {
     final source = activity.readAsStringSync();
 
-    expect(
-        source, contains('class NativeRoadTestActivity : ComponentActivity()'));
-    expect(source, contains('setContent {'));
+    expect(source,
+        contains('open class NativeRoadTestActivity : ComponentActivity()'));
+    expect(source, contains('setContent { StartupGate { RoadstrContent() } }'));
     expect(source, contains('NativeRoadstrShell('));
-    expect(source, contains('mode = NativeShellMode.RoadTest'));
+    expect(source, contains('mode = shellMode'));
+    expect(source,
+        contains('protected open val shellMode: NativeShellMode = NativeShellMode.RoadTest'));
     expect(source, contains('journeyGateway = journeyGateway'));
     expect(source, contains('voiceGateway = voiceGateway'));
     expect(source, isNot(contains('FlutterActivity')));

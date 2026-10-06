@@ -107,7 +107,8 @@ void main() {
     ).readAsStringSync();
     final protocol = _read('feature/history/NativeRouteHistory.kt');
 
-    expect(host, contains('"roadtest_route_history"'));
+    expect(host, contains('storeNames.prefs("route_history")'));
+    expect(host, contains('storeNames.alias("route-history")'));
     expect(host, contains('NativeRoadTestProtectedPreferences('));
     expect(host, contains('historyPreferences.write("routes"'));
     expect(host, isNot(contains('putString("routes"')));

@@ -24,11 +24,15 @@ void main() {
     );
   });
 
-  test('Flutter stays the only launcher and native shell is private', () {
+  test('Flutter is the default launcher and the Kotlin launcher is an explicit build choice', () {
     final xml = manifest.readAsStringSync();
     final launcher = RegExp(
       r'<activity\s+android:name="\.MainActivity"[\s\S]*?</activity>',
     ).firstMatch(xml);
+    final nativeLauncher = RegExp(
+      r'<activity\s+android:name="\.startup\.NativeAppActivity"[\s\S]*?</activity>',
+    ).firstMatch(xml);
+    final gradle = File('android/app/build.gradle.kts').readAsStringSync();
     final canary = RegExp(
       r'<activity\s+android:name="\.feature\.home\.NativeCanaryActivity"'
       r'[\s\S]*?/>',
@@ -37,10 +41,20 @@ void main() {
     expect(launcher, isNotNull);
     expect(launcher!.group(0), contains('android.intent.action.MAIN'));
     expect(launcher.group(0), contains('android.intent.category.LAUNCHER'));
+    expect(launcher.group(0), contains('android:enabled="\${flutterLauncherEnabled}"'));
+    expect(nativeLauncher, isNotNull);
+    expect(nativeLauncher!.group(0), contains('android.intent.action.MAIN'));
+    expect(nativeLauncher.group(0), contains('android.intent.category.LAUNCHER'));
+    expect(nativeLauncher.group(0), contains('android:enabled="\${nativeLauncherEnabled}"'));
+    // Two launchers are declared, and a given build enables exactly one: Flutter unless
+    // `-Pnative_launcher=true` is passed.
     expect(
       RegExp(r'android.intent.action.MAIN').allMatches(xml),
-      hasLength(1),
+      hasLength(2),
     );
+    expect(gradle, contains('providers.gradleProperty("native_launcher").orNull == "true"'));
+    expect(gradle, contains('manifestPlaceholders["flutterLauncherEnabled"] = (!nativeLauncher).toString()'));
+    expect(gradle, contains('manifestPlaceholders["nativeLauncherEnabled"] = nativeLauncher.toString()'));
     expect(canary, isNotNull);
     expect(canary!.group(0), contains('android:exported="false"'));
     expect(canary.group(0), contains('android:excludeFromRecents="true"'));

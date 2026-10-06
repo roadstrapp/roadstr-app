@@ -194,7 +194,7 @@ void main() {
     expect(shell, contains('NativeSettingsUiAction.OpenWebSearch -> webPanelVisible = true'));
     expect(shell, contains('webSettings = { webSettings }'));
     final activity = _read('native-android/app/src/main/kotlin/app/roadstr/roadtest/NativeRoadTestActivity.kt');
-    expect(activity, contains('keyAlias = "app.roadstr.roadtest.web-search.v1"'));
+    expect(activity, contains('keyAlias = storeNames.alias("web-search")'));
     expect(activity, contains('WebDiscoverySettingsCodec.encode(settings)'));
     // The Flutter-compatible settings store stays closed; web search has its own model.
     final store = _read('$_root/feature/settings/NativeSettingsPresentation.kt');

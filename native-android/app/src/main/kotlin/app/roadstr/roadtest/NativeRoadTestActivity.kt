@@ -13,7 +13,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.roadstr.R
 import app.roadstr.core.discovery.web.WebDiscoverySettings
@@ -42,8 +44,13 @@ import app.roadstr.service.nostr.NativeZapService
 import app.roadstr.service.nostr.NativeRelayConnectorSelector
 import app.roadstr.service.nostr.OkHttpRelayConnector
 
-/** Standalone Compose launcher for the side-by-side Kotlin road-test APK. */
-class NativeRoadTestActivity : ComponentActivity() {
+/**
+ * Compose launcher for the Kotlin app. As the road-test APK it stands alone with its own stores; the
+ * real app subclasses it with the `live` store names and a startup gate that imports the old profile.
+ */
+open class NativeRoadTestActivity : ComponentActivity() {
+    /** Only read from lazy members and from `onCreate`, never while this class is being constructed. */
+    protected open val storeNames: NativeLiveStoreNames = NativeLiveStoreNames()
     private lateinit var locationController: NativeRoadTestLocationController
     // One transport for every network service: a single connection pool and
     // the same deadline and response-size policy for all of them.
@@ -54,6 +61,7 @@ class NativeRoadTestActivity : ComponentActivity() {
             transport = httpClient,
             routingConfiguration = ::routingConfiguration,
             webSettings = ::loadWebSearch,
+            names = storeNames,
         )
     }
     // Where web pages open. The default build hands them to the user's browser; the optional
@@ -68,7 +76,7 @@ class NativeRoadTestActivity : ComponentActivity() {
         NativeRoadTestVoiceGateway(applicationContext)
     }
     private val identityGateway by lazy(LazyThreadSafetyMode.NONE) {
-        NativeRoadTestIdentityGateway(applicationContext)
+        NativeRoadTestIdentityGateway(applicationContext, storeNames)
     }
     private var amberRequestRevision = -1L
     private val amberLauncher = registerForActivityResult(
@@ -95,7 +103,7 @@ class NativeRoadTestActivity : ComponentActivity() {
         ActivityResultContracts.StartActivityForResult(),
     ) { result -> amberBridge.deliver(result.resultCode == RESULT_OK, result.data) }
     private val amberPreferences by lazy(LazyThreadSafetyMode.NONE) {
-        getSharedPreferences("roadtest_amber", MODE_PRIVATE)
+        getSharedPreferences(storeNames.prefs("amber"), MODE_PRIVATE)
     }
     private val amberBridge: NativeRoadTestAmberBridge = NativeRoadTestAmberBridge(
         resolver = { contentResolver },
@@ -106,41 +114,41 @@ class NativeRoadTestActivity : ComponentActivity() {
     private val scheduler = ExecutorNativeScheduler()
     private var nostr: NativeShellNostr? = null
     private val onboardingPreferences by lazy(LazyThreadSafetyMode.NONE) {
-        getSharedPreferences("roadtest_onboarding", MODE_PRIVATE)
+        getSharedPreferences(storeNames.prefs("onboarding"), MODE_PRIVATE)
     }
     private val parkingPreferences by lazy(LazyThreadSafetyMode.NONE) {
         NativeRoadTestProtectedPreferences(
             context = applicationContext,
-            preferencesName = "roadtest_parking",
-            keyAlias = "app.roadstr.roadtest.parking.v1",
+            preferencesName = storeNames.prefs("parking"),
+            keyAlias = storeNames.alias("parking"),
         )
     }
     // Where the driver went is sensitive: AES-256-GCM under a non-exportable Keystore key.
     private val historyPreferences by lazy(LazyThreadSafetyMode.NONE) {
         NativeRoadTestProtectedPreferences(
             context = applicationContext,
-            preferencesName = "roadtest_route_history",
-            keyAlias = "app.roadstr.roadtest.route-history.v1",
+            preferencesName = storeNames.prefs("route_history"),
+            keyAlias = storeNames.alias("route-history"),
         )
     }
     private val uiPreferences by lazy(LazyThreadSafetyMode.NONE) {
-        NativeRoadTestUiPreferences(applicationContext)
+        NativeRoadTestUiPreferences(applicationContext, storeNames)
     }
     private val favoritesStore by lazy(LazyThreadSafetyMode.NONE) {
-        NativeRoadTestFavoritesStore(applicationContext)
+        NativeRoadTestFavoritesStore(applicationContext, storeNames)
     }
     private val nwcPreferences by lazy(LazyThreadSafetyMode.NONE) {
         NativeRoadTestProtectedPreferences(
             context = applicationContext,
-            preferencesName = "roadtest_nwc",
-            keyAlias = "app.roadstr.roadtest.nwc.v1",
+            preferencesName = storeNames.prefs("nwc"),
+            keyAlias = storeNames.alias("nwc"),
         )
     }
     private val routingKeyPreferences by lazy(LazyThreadSafetyMode.NONE) {
         NativeRoadTestProtectedPreferences(
             context = applicationContext,
-            preferencesName = "roadtest_routing",
-            keyAlias = "app.roadstr.roadtest.routing.v1",
+            preferencesName = storeNames.prefs("routing"),
+            keyAlias = storeNames.alias("routing"),
         )
     }
     // Which SearXNG instance the user picked says something about their network, and whether
@@ -148,8 +156,8 @@ class NativeRoadTestActivity : ComponentActivity() {
     private val webSearchPreferences by lazy(LazyThreadSafetyMode.NONE) {
         NativeRoadTestProtectedPreferences(
             context = applicationContext,
-            preferencesName = "roadtest_web_search",
-            keyAlias = "app.roadstr.roadtest.web-search.v1",
+            preferencesName = storeNames.prefs("web_search"),
+            keyAlias = storeNames.alias("web-search"),
         )
     }
     // Read once and then kept; the journey gateway asks on every search.
@@ -172,67 +180,84 @@ class NativeRoadTestActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             setRecentsScreenshotEnabled(false)
         }
-        val nostrBridge = buildNostr().also { nostr = it }
-        val initialFavorites = favoritesStore.load()
-        val initialSettings = uiPreferences.load().copy(
-            nwcConfigured = nwcPreferences.read("uri") != null,
-            routingApiKeyConfigured = runCatching { routingKeyPreferences.read("api_key") }.getOrNull() != null,
-            appVersion = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }
-                .getOrNull().orEmpty().ifBlank { "—" },
-            favoritesCount = initialFavorites.size,
-            syncIdentityAvailable = identityGateway.privateKeyHex() != null,
-        )
-        setContent {
-            val gpsSnapshot by locationController.state.collectAsStateWithLifecycle()
-            NativeRoadstrShell(
-                mode = NativeShellMode.RoadTest,
-                gpsSnapshot = gpsSnapshot,
-                journeyGateway = journeyGateway,
-                voiceGateway = voiceGateway,
-                onGpsAction = ::handleGpsAction,
-                identityGateway = identityGateway,
-                onAmberLogin = { revision -> launchAmber(revision) },
-                onOpenExternal = ::openExternal,
-                onboardingCompleted = onboardingPreferences.getBoolean("completed", false),
-                onOnboardingCompleted = {
-                    onboardingPreferences.edit().putBoolean("completed", true).apply()
-                },
-                initialParking = runCatching {
-                    parkingPreferences.read("parking")?.let(NativeSavedPlacesProtocol::decodeParking)
-                }.getOrNull(),
-                onParkingChanged = { parking ->
-                    if (parking == null) {
-                        parkingPreferences.remove("parking")
-                    } else {
-                        parkingPreferences.write(
-                            "parking",
-                            NativeSavedPlacesProtocol.encodeParking(parking),
-                        )
-                    }
-                },
-                initialRouteHistory = runCatching {
-                    NativeRouteHistoryProtocol.decode(historyPreferences.read("routes"))
-                }.getOrDefault(emptyList()),
-                onRouteHistoryChanged = { history ->
-                    if (history.isEmpty()) {
-                        historyPreferences.remove("routes")
-                    } else {
-                        historyPreferences.write("routes", NativeRouteHistoryProtocol.encode(history))
-                    }
-                },
-                initialWebSearch = loadWebSearch(),
-                onWebSearchChanged = ::saveWebSearch,
-                webBrowser = webBrowser,
-                initialFavorites = initialFavorites,
-                onFavoritesChanged = favoritesStore::save,
-                initialSettings = initialSettings,
-                onSettingsChanged = uiPreferences::save,
-                onNwcChanged = ::saveNwc,
-                onRoutingKeyChanged = ::saveRoutingKey,
-                hazardService = hazardService,
-                nostr = nostrBridge,
+        setContent { StartupGate { RoadstrContent() } }
+    }
+
+    /**
+     * The road-test APK has nothing to wait for. The real app holds the map back here until the old
+     * app's profile has been imported, so the first frame shows what the person already had.
+     */
+    @Composable
+    protected open fun StartupGate(content: @Composable () -> Unit) {
+        content()
+    }
+
+    protected open val shellMode: NativeShellMode = NativeShellMode.RoadTest
+
+    @Composable
+    private fun RoadstrContent() {
+        // Read once, after the gate has opened: what an import wrote is what the first frame shows.
+        val nostrBridge = remember { buildNostr().also { nostr = it } }
+        val initialFavorites = remember { favoritesStore.load() }
+        val initialSettings = remember {
+            uiPreferences.load().copy(
+                nwcConfigured = nwcPreferences.read("uri") != null,
+                routingApiKeyConfigured = runCatching { routingKeyPreferences.read("api_key") }.getOrNull() != null,
+                appVersion = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }
+                    .getOrNull().orEmpty().ifBlank { "—" },
+                favoritesCount = initialFavorites.size,
+                syncIdentityAvailable = identityGateway.privateKeyHex() != null,
             )
         }
+        val gpsSnapshot by locationController.state.collectAsStateWithLifecycle()
+        NativeRoadstrShell(
+            mode = shellMode,
+            gpsSnapshot = gpsSnapshot,
+            journeyGateway = journeyGateway,
+            voiceGateway = voiceGateway,
+            onGpsAction = ::handleGpsAction,
+            identityGateway = identityGateway,
+            onAmberLogin = { revision -> launchAmber(revision) },
+            onOpenExternal = ::openExternal,
+            onboardingCompleted = onboardingPreferences.getBoolean("completed", false),
+            onOnboardingCompleted = {
+                onboardingPreferences.edit().putBoolean("completed", true).apply()
+            },
+            initialParking = runCatching {
+                parkingPreferences.read("parking")?.let(NativeSavedPlacesProtocol::decodeParking)
+            }.getOrNull(),
+            onParkingChanged = { parking ->
+                if (parking == null) {
+                    parkingPreferences.remove("parking")
+                } else {
+                    parkingPreferences.write(
+                        "parking",
+                        NativeSavedPlacesProtocol.encodeParking(parking),
+                    )
+                }
+            },
+            initialRouteHistory = runCatching {
+                NativeRouteHistoryProtocol.decode(historyPreferences.read("routes"))
+            }.getOrDefault(emptyList()),
+            onRouteHistoryChanged = { history ->
+                if (history.isEmpty()) {
+                    historyPreferences.remove("routes")
+                } else {
+                    historyPreferences.write("routes", NativeRouteHistoryProtocol.encode(history))
+                }
+            },
+            initialWebSearch = loadWebSearch(),
+            onWebSearchChanged = ::saveWebSearch,
+            webBrowser = webBrowser,
+            initialFavorites = initialFavorites,
+            onFavoritesChanged = favoritesStore::save,
+            initialSettings = initialSettings,
+            onSettingsChanged = uiPreferences::save,
+            onNwcChanged = ::saveNwc,
+            onRoutingKeyChanged = ::saveRoutingKey,
+            hazardService = hazardService,
+            nostr = nostrBridge,
+        )
     }
 
     override fun onStart() {
@@ -269,11 +294,11 @@ class NativeRoadTestActivity : ComponentActivity() {
         val relays = NativeRoadEventService.DEFAULT_RELAYS
         val publisher = NativeRelayPublisher(connector, relays)
         val signer = NativeRoadTestSigner(identityGateway, identityGateway::privateKeyHex, amberBridge)
-        val syncStorage = NativeRoadTestSyncStorage(applicationContext)
+        val syncStorage = NativeRoadTestSyncStorage(applicationContext, storeNames)
         val profiles = NativeRoadTestNostrProfileService()
         val zaps = NativeZapService(connector, relays = relays) { Log.d("RoadstrZap", it) }
         val userReports = NativeUserReportsService(connector, relays)
-        val activityStore = NativeRoadTestActivityStore(applicationContext)
+        val activityStore = NativeRoadTestActivityStore(applicationContext, storeNames)
         return NativeShellNostr(
             signer = signer,
             roadEvents = NativeRoadEventService(
@@ -281,7 +306,7 @@ class NativeRoadTestActivity : ComponentActivity() {
                 publisher = publisher,
                 scheduler = scheduler,
                 relays = relays,
-                pendingStorage = NativeRoadTestPendingReports(applicationContext),
+                pendingStorage = NativeRoadTestPendingReports(applicationContext, storeNames),
             ),
             favoritesSync = NativeFavoritesSyncService(
                 signer = signer,
