@@ -94,6 +94,26 @@ void main() {
     expect(source, isNot(contains('Hive.')));
   });
 
+  test('onboarding is drawn with the same cards, sections and buttons as the settings', () {
+    final source = flow.readAsStringSync();
+
+    expect(source, contains('import app.roadstr.feature.settings.SettingsCard'));
+    expect(source, contains('import app.roadstr.feature.settings.SettingsSection'));
+    expect(source, contains('import app.roadstr.feature.settings.ActionButton'));
+    expect(source, contains('SettingsSection(R.string.native_onboarding_profile_visibility_title)'));
+    // The blocks the pages are made of are settings cards, not a second look.
+    for (final block in ['InfoCard', 'ChoiceCard', 'SetupCard']) {
+      final start = source.indexOf('private fun $block(');
+      expect(start, greaterThan(0), reason: block);
+      final body = source.substring(start, source.indexOf('\n}\n', start));
+      expect(body, contains('SettingsCard'), reason: block);
+      expect(body, isNot(contains('RoadstrGlassBox')), reason: block);
+    }
+    // The same edges as the settings sections: 12 dp around the cards.
+    expect(source, contains('start = 12.dp'));
+    expect(source, contains('end = 12.dp'));
+  });
+
   test('private shell packages onboarding without owning user data', () {
     final source = shell.readAsStringSync();
 
