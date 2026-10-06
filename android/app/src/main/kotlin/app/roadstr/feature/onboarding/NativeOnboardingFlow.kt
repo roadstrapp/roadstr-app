@@ -3,6 +3,7 @@ package app.roadstr.feature.onboarding
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,11 +31,11 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -55,6 +56,9 @@ import app.roadstr.core.ui.RoadstrAccentButton
 import app.roadstr.core.ui.RoadstrSwitch
 import app.roadstr.core.ui.RoadstrGlassBox
 import app.roadstr.core.ui.RoadstrGlassLevel
+import app.roadstr.feature.settings.ActionButton
+import app.roadstr.feature.settings.SettingsCard
+import app.roadstr.feature.settings.SettingsSection
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 /** Full-screen but dormant first-launch surface. All effects leave through typed callbacks. */
@@ -218,7 +222,7 @@ private fun OnboardingPages(
 
 @Composable
 private fun OnboardingHeader(page: NativeOnboardingPage) {
-    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 12.dp)) {
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             OnboardingBrandMark()
             Spacer(modifier = Modifier.width(12.dp))
@@ -282,15 +286,15 @@ private fun PageColumn(content: @Composable () -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(
-            start = 28.dp,
-            end = 28.dp,
-            top = 12.dp,
-            bottom = 28.dp,
+            start = 12.dp,
+            end = 12.dp,
+            top = 8.dp,
+            bottom = 24.dp,
         ),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 content()
             }
         }
@@ -311,7 +315,11 @@ private fun WelcomePage(onContinue: () -> Unit) = PageColumn {
         "◖" to stringResource(R.string.native_onboarding_feature_voice),
         "◇" to stringResource(R.string.native_onboarding_feature_privacy),
     )
-    features.forEach { (symbol, text) -> FeatureRow(symbol, text) }
+    SettingsCard {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            features.forEach { (symbol, text) -> FeatureRow(symbol, text) }
+        }
+    }
     InfoCard(stringResource(R.string.native_onboarding_vpn_notice))
     PrimaryAction(stringResource(R.string.native_onboarding_get_started), onContinue)
 }
@@ -358,28 +366,32 @@ private fun IdentityPage(
         onClick = onNsecLogin,
     )
     InfoCard(stringResource(R.string.native_onboarding_favorites_sync_notice))
-    Text(
-        stringResource(R.string.native_onboarding_profile_visibility_title),
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.SemiBold,
-    )
-    Text(
-        stringResource(R.string.native_onboarding_profile_visibility_description),
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            if (snapshot.profilePublic) {
-                stringResource(R.string.native_onboarding_profile_visibility_clear)
-            } else {
-                stringResource(R.string.native_onboarding_profile_visibility_pseudonymous)
-            },
-            modifier = Modifier.weight(1f),
-        )
-        RoadstrSwitch(
-            checked = snapshot.profilePublic,
-            onCheckedChange = { onProfileVisibilityChanged(snapshot.revision, it) },
-        )
+    SettingsSection(R.string.native_onboarding_profile_visibility_title) {
+        SettingsCard {
+            Text(
+                stringResource(R.string.native_onboarding_profile_visibility_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(
+                modifier = Modifier.padding(top = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    if (snapshot.profilePublic) {
+                        stringResource(R.string.native_onboarding_profile_visibility_clear)
+                    } else {
+                        stringResource(R.string.native_onboarding_profile_visibility_pseudonymous)
+                    },
+                    modifier = Modifier.weight(1f),
+                    fontWeight = FontWeight.SemiBold,
+                )
+                RoadstrSwitch(
+                    checked = snapshot.profilePublic,
+                    onCheckedChange = { onProfileVisibilityChanged(snapshot.revision, it) },
+                )
+            }
+        }
     }
     InfoCard(stringResource(R.string.native_onboarding_profile_visibility_notice))
     PrimaryAction(
@@ -512,14 +524,14 @@ private fun DisclosureDialog(revision: Long, onAccept: (Long) -> Unit) {
 private fun PageTitle(title: String, body: String, centered: Boolean = false) {
     Text(
         title,
-        modifier = Modifier.fillMaxWidth().semantics { heading() },
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp).semantics { heading() },
         style = MaterialTheme.typography.headlineSmall,
         fontWeight = FontWeight.Bold,
         textAlign = if (centered) TextAlign.Center else TextAlign.Start,
     )
     Text(
         body,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = if (centered) TextAlign.Center else TextAlign.Start,
     )
@@ -543,21 +555,20 @@ private fun FeatureRow(symbol: String, text: String) {
 
 @Composable
 private fun InfoCard(text: String) {
-    RoadstrGlassBox(
-        modifier = Modifier.fillMaxWidth(),
-        level = RoadstrGlassLevel.Light,
-        shape = RoundedCornerShape(14.dp),
-        padding = 14.dp,
-    ) {
-        Text(text, style = MaterialTheme.typography.bodySmall)
+    SettingsCard {
+        Text(
+            text,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
 @Composable
 private fun ErrorCard(text: String) {
     Surface(
-        modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Assertive },
-        shape = RoundedCornerShape(14.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).semantics { liveRegion = LiveRegionMode.Assertive },
+        shape = RoundedCornerShape(18.dp),
         color = MaterialTheme.colorScheme.errorContainer,
         contentColor = MaterialTheme.colorScheme.onErrorContainer,
     ) {
@@ -585,19 +596,23 @@ private fun ChoiceCard(
     enabled: Boolean,
     onClick: () -> Unit,
 ) {
-    RoadstrGlassBox(
-        modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 64.dp).semantics { role = Role.Button },
-        level = RoadstrGlassLevel.Medium,
-        shape = RoundedCornerShape(16.dp),
-        padding = 14.dp,
-        onClick = if (enabled) onClick else null,
+    SettingsCard(
+        modifier = Modifier
+            .clip(RoundedCornerShape(18.dp))
+            .clickable(enabled = enabled, onClick = onClick)
+            .sizeIn(minHeight = 64.dp)
+            .semantics { role = Role.Button },
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(symbol, style = MaterialTheme.typography.headlineSmall)
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(title, fontWeight = FontWeight.SemiBold)
-                Text(body, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    body,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
@@ -610,24 +625,20 @@ private fun SetupCard(
     action: Pair<String, () -> Unit>?,
     progress: Double? = null,
 ) {
-    RoadstrGlassBox(
-        modifier = Modifier.fillMaxWidth(),
-        level = RoadstrGlassLevel.Medium,
-        shape = RoundedCornerShape(16.dp),
-        padding = 16.dp,
-    ) {
+    SettingsCard {
         Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(title, fontWeight = FontWeight.SemiBold)
-                    Text(status, style = MaterialTheme.typography.bodySmall)
-                }
-                action?.let { (label, callback) ->
-                    TextButton(
-                        onClick = callback,
-                        modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp),
-                    ) { Text(label) }
-                }
+            Text(title, fontWeight = FontWeight.SemiBold)
+            Text(
+                status,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            action?.let { (label, callback) ->
+                ActionButton(
+                    text = label,
+                    modifier = Modifier.padding(top = 10.dp),
+                    onClick = callback,
+                )
             }
             progress?.let {
                 LinearProgressIndicator(
