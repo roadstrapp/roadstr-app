@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'native_recovery_translations.dart';
+
 const _sourceDirectory = 'lib/l10n';
 const _resourceDirectory = 'android/app/src/main/res';
 const _outputName = 'native_onboarding_strings.xml';
@@ -62,14 +64,6 @@ const onboardingResourceKeys = <String, String>{
   'native_onboarding_loading': 'loadingLabel',
 };
 
-const _fixedEnglishValues = <String, String>{
-  'native_onboarding_recovery_title': 'Protected data unavailable',
-  'native_onboarding_recovery_body':
-      'Roadstr did not open or erase your saved locations. Restart the device '
-          'and try again. If the problem persists, export the app data before '
-          'reinstalling.',
-};
-
 String _resourceFolder(String language) =>
     language == 'en' ? 'values' : 'values-$language';
 
@@ -110,9 +104,16 @@ String _buildResource(
       '    <string name="${entry.key}">${_androidText(source)}</string>',
     );
   }
-  for (final entry in _fixedEnglishValues.entries) {
+  // The startup screens are not in the Flutter ARB files; their 27 translations live in
+  // native_recovery_translations.dart and every language must have all of them.
+  final recovery = nativeRecoveryTranslations[language];
+  if (recovery == null || recovery.length != nativeRecoveryKeys.length) {
+    throw FormatException('Missing startup screen strings for $language');
+  }
+  for (var index = 0; index < nativeRecoveryKeys.length; index++) {
     output.writeln(
-      '    <string name="${entry.key}">${_androidText(entry.value)}</string>',
+      '    <string name="${nativeRecoveryKeys[index]}">'
+      '${_androidText(recovery[index])}</string>',
     );
   }
   output.writeln('</resources>');
