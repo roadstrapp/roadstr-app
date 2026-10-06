@@ -84,3 +84,25 @@ Run on 2026-10-05 on a Pixel 10, this proved acceptance in both directions and s
 see `docs/world-discovery/MEASUREMENTS.md`. The candidate does not migrate data: it starts as a first launch. After such a test the
 device is at the higher code, so the next real release must use a code above it.
 
+## Navigation with the screen off (a device test)
+
+The Kotlin app keeps a trip going with the screen off or another app in front: the trip's sessions and
+the work that moves it along live in `NativeNavigationHost`, the GPS and the voice are held by the
+runtime while a trip lasts, and the foreground service holds the process. To test it without driving:
+
+1. Install a candidate built with `-Pnative_launcher=true` (see the update-path procedure above).
+2. Fetch a short route from an OSRM server as GeoJSON
+   (`/route/v1/driving/LON,LAT;LON,LAT?overview=full&geometries=geojson&steps=true`).
+3. `tools/kotlin_rewrite/simulate_drive.py on LAT LNG`, then `hold LAT LNG 600` in the background, start a
+   navigation to a destination in the app, stop the hold and run `drive ROUTE.json 13 40`.
+4. Send the app to the background, then turn the screen off, and read the state with the system tools:
+   `adb shell dumpsys location` (the app still has its GPS requests), `adb shell dumpsys activity services
+   app.roadstr` (a foreground service), `adb shell dumpsys notification --noredact` (the instruction in the
+   notification changes as the trip goes), `adb shell dumpsys audio` (an AudioTrack with the navigation
+   guidance usage while a cue is spoken).
+5. **Always** finish with `simulate_drive.py off`: while the test provider exists, every app on the phone
+   believes it is where the script says.
+
+`uiautomator dump` cannot reach an idle state on the map screen (it redraws continuously), so use
+screenshots there.
+
