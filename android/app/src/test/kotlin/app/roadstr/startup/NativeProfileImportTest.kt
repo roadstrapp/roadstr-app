@@ -254,6 +254,30 @@ class NativeProfileImportTest {
         assertEquals(NativeMigrationReadiness.Ready, startup.readiness.value)
     }
 
+    @Test
+    fun `keys the new app does not know are left behind and never refuse the update`() {
+        val odd = snapshot(
+            ordinary = ORDINARY + mapOf("last_seen_tip_v0" to "x", "nostr_priv_hex" to PRIVATE_KEY, "activity_inbox_not-a-key" to "[]"),
+            secure = SECURE + ("flutter_plugin_leftover" to "y"),
+        )
+
+        val tolerant = TolerantLegacySnapshotReader { odd }.read()!!
+
+        assertEquals(ORDINARY.keys, tolerant.ordinaryValues.keys)
+        assertEquals(SECURE.keys, tolerant.secureValues.keys)
+        assertNull(TolerantLegacySnapshotReader { null }.read())
+        // The strict validator refuses the raw snapshot and accepts the filtered one.
+        val flag = MemoryFlag()
+        val targets = FakeTargets()
+        val refused = startup(flag, legacyPresent = true, reader = { odd }, targets = targets)
+        refused.start()
+        assertEquals(NativeMigrationReadiness.Failed, refused.readiness.value)
+        val accepted = startup(flag, legacyPresent = true, reader = TolerantLegacySnapshotReader { odd }, targets = targets)
+        accepted.start()
+        assertEquals(NativeMigrationReadiness.Ready, accepted.readiness.value)
+        assertTrue(flag.isSet())
+    }
+
     private fun startup(
         flag: MemoryFlag,
         legacyPresent: Boolean,
