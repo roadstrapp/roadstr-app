@@ -54,6 +54,23 @@ is translated as "instance" in most languages and left as the product name where
 confuse; informal versus formal address ("tu"/"vous", "du"/"Sie") follows the existing app strings
 where they exist and the informal form elsewhere.
 
+### Startup screens (2026-10-06)
+
+Six strings per language, written for the update from the Flutter app and kept in
+`tools/kotlin_rewrite/native_recovery_translations.dart` (the Flutter ARB files have no such screen);
+`generate_android_onboarding_strings.dart` writes them into `native_onboarding_strings.xml`.
+
+| String | Where it shows |
+|---|---|
+| `native_onboarding_recovery_title` / `_body` | The protected storage could not be opened (before, these two were English in every language) |
+| `native_onboarding_migration_failed_title` / `_body` | The old app's data could not be brought over: nothing was erased or changed, the old data stays on the phone |
+| `native_onboarding_migration_retry` / `_skip` | "Try again" and "Continue without importing" |
+
+Confidence, in the same order as the vocabularies: the full-tier languages (it, de, fr, es, pt, nl) and
+sv, da, fi, pl, cs, sk, sl, hr, hu, ro, bg, el, ru, ja, zh are plain sentences of the kind the app already uses and are
+likely fine; et, lv, lt carry the inflection risk; **ga and mt are the least reliable** and most want a native
+speaker's eye. Register: informal in it, de, es, nl, sv, da, fi, pl, hu, ro, et and zh (你); formal in fr, pt, cs, sk, sl, hr, bg, el, lv, lt and ru; polite form in ja; ga and mt as a native speaker would settle it.
+
 ## 3. Known gaps, stated plainly
 
 - No language was reviewed by a native speaker.

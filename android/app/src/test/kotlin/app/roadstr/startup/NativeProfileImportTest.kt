@@ -278,6 +278,57 @@ class NativeProfileImportTest {
         assertTrue(flag.isSet())
     }
 
+    @Test
+    fun `after a failure the person can try again and the second try imports`() {
+        val flag = MemoryFlag()
+        val targets = FakeTargets()
+        var broken = true
+        val startup = startup(flag, legacyPresent = true, reader = { if (broken) error("bridge down") else snapshot() }, targets = targets)
+        startup.start()
+        assertEquals(NativeMigrationReadiness.Failed, startup.readiness.value)
+
+        broken = false
+        startup.retry()
+
+        assertEquals(NativeMigrationReadiness.Ready, startup.readiness.value)
+        assertEquals(1, targets.writes.size)
+        assertTrue(flag.isSet())
+    }
+
+    @Test
+    fun `going on without the old data records it and writes nothing`() {
+        val flag = MemoryFlag()
+        val targets = FakeTargets()
+        val startup = startup(flag, legacyPresent = true, reader = { error("bridge down") }, targets = targets)
+        startup.start()
+
+        startup.skip()
+
+        assertEquals(NativeMigrationReadiness.Ready, startup.readiness.value)
+        assertTrue(targets.writes.isEmpty())
+        assertTrue(flag.isSet())
+    }
+
+    @Test
+    fun `retry and skip do nothing unless the import failed`() {
+        val flag = MemoryFlag()
+        val queued = mutableListOf<Runnable>()
+        val running = startup(flag, legacyPresent = true, reader = { snapshot() }, executor = Executor { queued += it })
+        running.start()
+
+        running.skip()
+        running.retry()
+
+        assertEquals(NativeMigrationReadiness.Checking, running.readiness.value)
+        assertFalse(flag.isSet())
+        assertEquals(1, queued.size)
+        queued.single().run()
+        assertEquals(NativeMigrationReadiness.Ready, running.readiness.value)
+        running.skip()
+        running.retry()
+        assertEquals(NativeMigrationReadiness.Ready, running.readiness.value)
+    }
+
     private fun startup(
         flag: MemoryFlag,
         legacyPresent: Boolean,
