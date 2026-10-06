@@ -15,8 +15,21 @@ ship until every item below is verified with a signed APK.
 | Launcher assets | Existing mipmap/adaptive resources | Preserve unless explicitly approved |
 | Backup/privacy policy | Backup disabled; cleartext narrowly scoped | Preserve or document an approved improvement |
 
+**Update on 2026-10-06 — the first answer on a real phone: yes for the profile of one
+install, not yet for background navigation.** A Kotlin candidate (`app.roadstr`, code
+2053, built from this branch with `-Pnative_launcher=true`, signed with the official
+certificate) was installed with `adb install -r` over the Flutter 0.5.11 on a Pixel 10
+(Android 17) and Android accepted it as an update. At its first start it brought the
+profile over (Amber identity with its name and picture, the accepted consent so no
+onboarding, the favourite, the voice model in place) and reached the map; a second
+start did not import again. A Flutter build with code 2054 installed over it as an
+update, started normally and still had all its data. What it did not show, and what is
+tracked in `RISKS.md` (R-17, R-25): the specification's matrix (older releases, nsec,
+NWC, queues, corruption), and that the Kotlin app stops GPS and guidance as soon as it
+is in the background. The analysis that follows is the state before this test.
+
 The answer to the required question — whether a branch APK can install directly
-over a current Flutter install and preserve all data — is currently **not yet
+over a current Flutter install and preserve all data — was **not yet
 demonstrably yes**. The private native shell is packaged in the debug APK, but
 no candidate has been signed with the official certificate or installed over a
 supported production build. Signing material remains external to the checkout.

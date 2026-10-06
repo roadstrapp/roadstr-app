@@ -3,6 +3,9 @@ package app.roadstr.startup
 import app.roadstr.core.protocol.nostr.NostrJson
 import app.roadstr.core.search.SearchHistoryEntry
 import app.roadstr.core.search.SearchHistoryProtocol
+import app.roadstr.feature.activity.NativeActivityInboxProtocol
+import app.roadstr.feature.activity.NativeActivityNotification
+import app.roadstr.feature.activity.NativeActivityNotificationType
 import app.roadstr.feature.map.NativeMapPoint
 import app.roadstr.feature.onboarding.NativeMigrationReadiness
 import app.roadstr.feature.profile.NativeProfileIdentityFlavor
@@ -129,6 +132,22 @@ class NativeProfileImportTest {
         )
         val bad = snapshot(ordinary = ORDINARY + ("activity_zap_cursor_$PUBLIC_KEY" to "soon"))
         assertEquals("activity", assertThrows(ProfileImportException::class.java) { NativeProfileMapper.map(bad) }.part)
+    }
+
+    @Test
+    fun `an inbox keeps which notifications were already read`() {
+        val inbox = NativeActivityInboxProtocol.encodeNormalized(
+            listOf(
+                NativeActivityNotification(id = "a".repeat(64), type = NativeActivityNotificationType.Zap, createdAtSeconds = 200, amountSat = 22, isRead = true),
+                NativeActivityNotification(id = "b".repeat(64), type = NativeActivityNotificationType.Zap, createdAtSeconds = 100, amountSat = 9, isRead = false),
+            ),
+        )
+
+        val imported = NativeProfileMapper.map(snapshot(ordinary = ORDINARY + ("activity_inbox_$PUBLIC_KEY" to inbox)))
+        val items = NativeActivityInboxProtocol.decodeNormalized(imported.activityInboxes.getValue(PUBLIC_KEY))
+
+        assertEquals(listOf(true, false), items.map { it.isRead })
+        assertEquals(1, NativeActivityInboxProtocol.unreadCount(items))
     }
 
     @Test
