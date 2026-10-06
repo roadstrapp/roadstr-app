@@ -51,7 +51,15 @@ import app.roadstr.service.nostr.OkHttpRelayConnector
 open class NativeRoadTestActivity : ComponentActivity() {
     /** Only read from lazy members and from `onCreate`, never while this class is being constructed. */
     protected open val storeNames: NativeLiveStoreNames = NativeLiveStoreNames()
-    private lateinit var locationController: NativeRoadTestLocationController
+    // The GPS feed, the voice and the trip's host. Road-test makes them per Activity; the app keeps
+    // them for the whole process so a trip does not end with the screen.
+    private val runtime: NativeNavigationRuntime by lazy(LazyThreadSafetyMode.NONE) { obtainRuntime() }
+    private val locationController: NativeRoadTestLocationController get() = runtime.location
+
+    internal open fun obtainRuntime(): NativeNavigationRuntime = NativeNavigationRuntime(applicationContext, storeNames)
+
+    /** Called when the Activity goes; the app keeps the runtime while a trip is under way. */
+    internal open fun releaseRuntime(runtime: NativeNavigationRuntime) = runtime.release()
     // One transport for every network service: a single connection pool and
     // the same deadline and response-size policy for all of them.
     private val httpClient by lazy(LazyThreadSafetyMode.NONE) { NativeBoundedHttpClient() }
@@ -72,9 +80,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
     private val hazardService by lazy(LazyThreadSafetyMode.NONE) {
         NativeOsmHazardService(httpClient, diagnostics = { Log.d("RoadstrHazards", it) })
     }
-    private val voiceGateway by lazy(LazyThreadSafetyMode.NONE) {
-        NativeRoadTestVoiceGateway(applicationContext)
-    }
+    private val voiceGateway: NativeRoadTestVoiceGateway get() = runtime.voice
     private val identityGateway by lazy(LazyThreadSafetyMode.NONE) {
         NativeRoadTestIdentityGateway(applicationContext, storeNames)
     }
@@ -175,7 +181,6 @@ open class NativeRoadTestActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        locationController = NativeRoadTestLocationController(applicationContext)
         enableEdgeToEdge()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             setRecentsScreenshotEnabled(false)
@@ -257,19 +262,19 @@ open class NativeRoadTestActivity : ComponentActivity() {
             onRoutingKeyChanged = ::saveRoutingKey,
             hazardService = hazardService,
             nostr = nostrBridge,
+            navigationHost = runtime.host,
         )
     }
 
     override fun onStart() {
         super.onStart()
         webBrowser.onHostStart()
-        locationController.onHostStart()
+        runtime.onActivityStart()
     }
 
     override fun onStop() {
         webBrowser.onHostStop()
-        voiceGateway.stop()
-        locationController.onHostStop()
+        runtime.onActivityStop()
         super.onStop()
     }
 
@@ -282,8 +287,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
         webBrowser.release()
         nostr?.roadEvents?.close()
         scheduler.shutdown()
-        locationController.close()
-        voiceGateway.close()
+        releaseRuntime(runtime)
         super.onDestroy()
     }
 
