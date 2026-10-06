@@ -15,11 +15,11 @@ val projectKotlin = "2.2.10"
 
 val bundledVoiceChecksums = mapOf(
     "../../android/app/src/main/jniLibs/arm64-v8a/libespeak-ng.so" to
-        "a53a8ce4a9f815f393d10a220772701c077a3773aad6e8c0256341671f7b6955",
+        "92882558288c48340e73947f80b01f62dae25911e30ebb1b3942b9bec4054cbf",
     "../../android/app/src/main/jniLibs/armeabi-v7a/libespeak-ng.so" to
-        "8097f3faf64b01ef5f76e693f1d58ea0ae518945e49a6dd555d9efabb38e582d",
+        "ee42b95d2e91dc8be72df2711007a6fb711c0cde3dc25e88ec2b300e38d6c65b",
     "../../android/app/src/main/jniLibs/x86_64/libespeak-ng.so" to
-        "eaa1991e55b9194a1e97eac745d4a3d9dbab64b0382a54004fe800a1416daa5e",
+        "0078c57e5a0e15b5fcde9235f84a93ed9e4e49348851d07dadb157eee0edffef",
     "../../assets/espeak-ng-data.tar.gz" to
         "ecf9859bd233a19830c0cb048dc2c2f5162a2e4ab2de637cd2f2fabeb63ad84b",
 )

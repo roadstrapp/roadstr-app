@@ -62,6 +62,7 @@ Readings of these numbers:
 Checked on the APKs (stored uncompressed, data offset, ELF `LOAD` alignment): every library of GeckoView, MapLibre and ONNX Runtime is fine
 (stored, offset multiple of 16 KiB, `p_align` 0x4000). Two are not, in both builds: `libespeak-ng.so` and `libroadstr_voice_jni.so`
 (`p_align` 0x1000). The Flutter production app 0.5.11 has the same problem with `libespeak-ng.so`, so it is not new. See D-46.
+**Fixed on 2026-10-06** (D-46): both libraries are now linked with `-Wl,-z,max-page-size=16384`; a release build of the Kotlin app shows 9 of 9 libraries aligned on arm64-v8a and 7 of 7 on x86_64.
 
 **Permissions.** On `permission.site`, requests for notifications, location, camera and microphone showed no system permission
 dialog and the app kept the focus. With location temporarily granted to the test package, the page's request produced no location
