@@ -19,8 +19,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /** Nsec login for road-test: the private key is always encrypted at rest. */
-class NativeRoadTestIdentityGateway(context: Context) : NativeIdentityGateway {
-    private val preferences = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+class NativeRoadTestIdentityGateway(
+    context: Context,
+    names: NativeLiveStoreNames = NativeLiveStoreNames(),
+) : NativeIdentityGateway {
+    private val keyAlias = names.identityAlias
+    private val preferences = context.getSharedPreferences(names.prefs("identity"), Context.MODE_PRIVATE)
     private val profileService = NativeRoadTestNostrProfileService()
     private val _state = MutableStateFlow(
         NativeIdentitySnapshot(
@@ -58,6 +62,43 @@ class NativeRoadTestIdentityGateway(context: Context) : NativeIdentityGateway {
             .commit()) { "Unable to persist the identity" }
         _state.value = NativeIdentitySnapshot(publicHex, NativeProfileIdentityFlavor.Amber)
     }.isSuccess
+
+    /**
+     * Brings the identity the old app kept over, under this app's own protection. The caller has
+     * already checked that the private key belongs to the public key. The in-memory state is not
+     * touched: the activity creates this gateway after the import, and reads the store then.
+     */
+    fun importIdentity(
+        publicKeyHex: String,
+        flavor: NativeProfileIdentityFlavor,
+        privateKeyHex: String?,
+        name: String?,
+        pictureUrl: String?,
+    ): Boolean = runCatching {
+        require(publicKeyHex.matches(HEX_64))
+        val edit = preferences.edit()
+            .putString(PUBLIC_KEY, publicKeyHex)
+            .putString(FLAVOR, flavor.wireValue)
+        if (privateKeyHex != null) {
+            require(flavor == NativeProfileIdentityFlavor.Nsec && privateKeyHex.matches(HEX_64))
+            edit.putString(PRIVATE_KEY, encrypt(privateKeyHex))
+        } else {
+            edit.remove(PRIVATE_KEY)
+        }
+        if (name != null || pictureUrl != null) {
+            edit.putString(PROFILE_PUBKEY, publicKeyHex)
+                .putString(PROFILE_NAME, name)
+                .remove(PROFILE_DISPLAY_NAME)
+                .putString(PROFILE_PICTURE, pictureUrl)
+        }
+        check(edit.commit()) { "Unable to persist the imported identity" }
+    }.isSuccess
+
+    /** Whether the stored identity is exactly this one; the private key is compared decrypted, never shown. */
+    fun holds(publicKeyHex: String, flavor: NativeProfileIdentityFlavor, privateKeyHex: String?): Boolean =
+        preferences.getString(PUBLIC_KEY, null) == publicKeyHex &&
+            preferences.getString(FLAVOR, null) == flavor.wireValue &&
+            privateKeyHex() == privateKeyHex
 
     override suspend fun fetchProfileMetadata(pubkeyHex: String): NativeProfileMetadata? {
         val normalized = pubkeyHex.trim().lowercase()
@@ -102,11 +143,11 @@ class NativeRoadTestIdentityGateway(context: Context) : NativeIdentityGateway {
 
     private fun key(): SecretKey {
         val store = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
-        val existing = store.getKey(KEY_ALIAS, null) as? SecretKey
+        val existing = store.getKey(keyAlias, null) as? SecretKey
         if (existing != null) return existing
         val generator = KeyGenerator.getInstance("AES", ANDROID_KEYSTORE)
         generator.init(android.security.keystore.KeyGenParameterSpec.Builder(
-            KEY_ALIAS,
+            keyAlias,
             android.security.keystore.KeyProperties.PURPOSE_ENCRYPT or
                 android.security.keystore.KeyProperties.PURPOSE_DECRYPT,
         ).setBlockModes(android.security.keystore.KeyProperties.BLOCK_MODE_GCM)
@@ -138,7 +179,6 @@ class NativeRoadTestIdentityGateway(context: Context) : NativeIdentityGateway {
     }
 
     private companion object {
-        const val PREFERENCES = "roadtest_identity"
         const val PUBLIC_KEY = "pubkey_hex"
         const val FLAVOR = "flavor"
         const val PRIVATE_KEY = "private_key_gcm"
@@ -147,7 +187,6 @@ class NativeRoadTestIdentityGateway(context: Context) : NativeIdentityGateway {
         const val PROFILE_DISPLAY_NAME = "profile_display_name"
         const val PROFILE_PICTURE = "profile_picture"
         val HEX_64 = Regex("[0-9a-f]{64}")
-        const val KEY_ALIAS = "roadtest_nostr_nsec"
         const val ANDROID_KEYSTORE = "AndroidKeyStore"
         const val TRANSFORMATION = "AES/GCM/NoPadding"
         const val IV_BYTES = 12

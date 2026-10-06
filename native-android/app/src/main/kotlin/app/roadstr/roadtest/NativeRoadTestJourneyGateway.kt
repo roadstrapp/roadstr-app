@@ -1,7 +1,6 @@
 package app.roadstr.roadtest
 
 import android.content.Context
-import org.json.JSONArray
 import app.roadstr.core.search.SearchHistoryEntry
 import app.roadstr.core.search.SearchHistoryProtocol
 import app.roadstr.core.network.NetworkResponseLimit
@@ -56,12 +55,9 @@ class NativeRoadTestJourneyGateway(
     private val routingConfiguration: () -> RoutingProviderConfiguration = { OSRM_CONFIGURATION },
     /** What the user chose about web results, read per request so a change applies at once. */
     private val webSettings: () -> WebDiscoverySettings = { WebDiscoverySettings() },
+    names: NativeLiveStoreNames = NativeLiveStoreNames(),
 ) : NativeShellJourneyGateway {
-    private val historyPreferences = NativeRoadTestProtectedPreferences(
-        context = context,
-        preferencesName = HISTORY_PREFERENCES,
-        keyAlias = HISTORY_KEY_ALIAS,
-    )
+    private val history = NativeRoadTestSearchHistoryStore(context, names)
     private val searchService = NativeSearchService(transport)
     private val routingService = NativeRoutingService(transport)
     private val speedLimitResolver = NativeRoadTestSpeedLimitResolver(transport)
@@ -265,36 +261,21 @@ class NativeRoadTestJourneyGateway(
         return if (avoided == null) standard else listOf(avoided)
     }
 
-    private fun readSearchHistory(): List<SearchHistoryEntry> {
-        val stored = historyPreferences.read(HISTORY_KEY) ?: return emptyList()
-        val encoded = JSONArray(stored).let { array ->
-            buildList(array.length()) {
-                for (index in 0 until array.length()) {
-                    array.optString(index, null)?.let(::add)
-                }
-            }
-        }
-        return SearchHistoryProtocol.decodeStored(encoded)
-            .take(SearchHistoryProtocol.MAX_STORED_ITEMS)
-    }
-
     override suspend fun loadSearchHistory(): List<SearchHistoryEntry> =
-        runCatching(::readSearchHistory).getOrDefault(emptyList())
+        runCatching(history::read).getOrDefault(emptyList())
 
     override suspend fun saveSearchHistory(entry: SearchHistoryEntry): List<SearchHistoryEntry> =
         runCatching {
             // Mutations do not turn an authentication/corruption failure into
             // an empty history: preserve the ciphertext for recovery instead
             // of silently overwriting it with one new row.
-            val updated = SearchHistoryProtocol.prepend(entry, readSearchHistory())
-            val array = JSONArray()
-            SearchHistoryProtocol.encodeStored(updated).forEach(array::put)
-            check(historyPreferences.write(HISTORY_KEY, array.toString()))
+            val updated = SearchHistoryProtocol.prepend(entry, history.read())
+            check(history.write(updated))
             updated
         }.getOrDefault(emptyList())
 
     override suspend fun clearSearchHistory() {
-        check(historyPreferences.remove(HISTORY_KEY))
+        check(history.clear())
     }
 
     private fun SearchResponsePoint.toRoutingPoint() = RoutingRequestPoint(
@@ -310,9 +291,5 @@ class NativeRoadTestJourneyGateway(
             graphHopperServer = "",
             deferCredentialReadForOsrm = true,
         )
-
-        const val HISTORY_PREFERENCES = "roadtest_search_history"
-        const val HISTORY_KEY = "entries"
-        const val HISTORY_KEY_ALIAS = "app.roadstr.roadtest.search-history.v1"
     }
 }

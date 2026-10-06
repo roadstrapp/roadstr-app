@@ -71,6 +71,39 @@ android {
         // any real 0.5.x release. This has to clear 2036, not just increment.
         versionCode = 2050
         versionName = "0.5.11"
+
+        // Which activity answers the launcher. The Flutter one stays the default until the Kotlin
+        // app is approved as the product; `-Pnative_launcher=true` builds the Kotlin one, which
+        // imports the Flutter app's data on first start.
+        val nativeLauncher = providers.gradleProperty("native_launcher").orNull == "true"
+        manifestPlaceholders["flutterLauncherEnabled"] = (!nativeLauncher).toString()
+        manifestPlaceholders["nativeLauncherEnabled"] = nativeLauncher.toString()
+
+        externalNativeBuild {
+            cmake {
+                cppFlags += "-std=c++17"
+            }
+        }
+    }
+
+    // The Kotlin app is compiled from the shared trees above plus the stores, gateways and launcher
+    // of the road-test module, so the road-test APK and the real app run the same code.
+    sourceSets {
+        getByName("main") {
+            kotlin.directories.addAll(
+                listOf(
+                    "../../native-android/app/src/main/kotlin",
+                    "../../native-android/app/src/system/kotlin",
+                ),
+            )
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path = file("../../native-android/app/src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
     }
 
     buildFeatures {
@@ -140,6 +173,14 @@ android {
     }
 }
 
+// A test build can carry another version without touching the literals above.
+android {
+    defaultConfig {
+        providers.gradleProperty("roadstrVersionCode").orNull?.let { versionCode = it.toInt() }
+        providers.gradleProperty("roadstrVersionName").orNull?.let { versionName = it }
+    }
+}
+
 kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
@@ -154,6 +195,9 @@ dependencies {
     // existing Flutter runtime's network or coroutine stack.
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    // The Kotlin app's own voice runtime (the Flutter plugin brings its copy for the legacy engine).
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.23.0")
 
     // 2026.06.01 is the last stable BOM line whose Compose UI artifacts keep
     // minCompileSdk <= 36. Compose 1.12 requires compileSdk 37, while Roadstr's
