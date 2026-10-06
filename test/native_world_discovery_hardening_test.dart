@@ -83,13 +83,13 @@ void main() {
     expect(notices, contains('no SearXNG code is linked, embedded or shipped'));
     expect(notices, contains('no instance is built in'));
     final readme = _read('README.md');
-    for (final section in ['Place search in plain language', 'Web results are opt-in', 'gradlew-geckoview', 'verify-geckoview-variant.sh']) {
+    for (final section in ['Place search in plain language', 'Web results are opt-in', 'gradlew-geckoview', 'verify-geckoview-variant.sh', 'SELF_HOSTING.md']) {
       expect(readme, contains(section), reason: section);
     }
   });
 
   test('the documents the README points to exist', () {
-    for (final doc in ['PLAN.md', 'DECISIONS.md', 'LOCALIZATION_REVIEW.md', 'MEASUREMENTS.md']) {
+    for (final doc in ['PLAN.md', 'DECISIONS.md', 'LOCALIZATION_REVIEW.md', 'MEASUREMENTS.md', 'SELF_HOSTING.md']) {
       expect(File('docs/world-discovery/$doc').existsSync(), isTrue, reason: doc);
     }
     final decisions = _read('docs/world-discovery/DECISIONS.md');
