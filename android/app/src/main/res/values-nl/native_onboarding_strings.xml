@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">Verbonden</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55 (aanbevolen)</string>
     <string name="native_onboarding_amber_subtitle">Verbinding met de Amber signer-app. Uw privésleutel verlaat Amber nooit.</string>
-    <string name="native_onboarding_nsec_title">nsec-sleutel</string>
-    <string name="native_onboarding_nsec_subtitle">Plak uw privésleutel. Opgeslagen in de Android Keystore.</string>
-    <string name="native_onboarding_nsec_error">Ongeldige nsec-sleutel — controleer en probeer opnieuw.</string>
-    <string name="native_onboarding_enter_nsec">Voer nsec-sleutel in</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">U staat op het punt uw Nostr-privésleutel rechtstreeks in een app in te voeren. Iedereen met fysieke of externe toegang tot uw apparaat kan deze lezen en permanent de controle over uw Nostr-identiteit overnemen.</string>
     <string name="native_onboarding_amber_secure_hint">✦  De veilige methode is Amber (NIP-55): de nsec verlaat nooit de app-ondertekenaarkluis.</string>
     <string name="native_onboarding_login">Inloggen</string>
     <string name="native_onboarding_favorites_sync_notice">Optioneel: je opgeslagen favorieten kunnen synchroniseren tussen je apparaten via de Nostr-relays, end-to-end versleuteld (NIP-44) met je eigen sleutel — relays zien alleen versleutelde tekst en niemand behalve jij kan de inhoud lezen. Schakel het op elk moment in via Instellingen.</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">Roadstr kon niet lezen wat de vorige versie op deze telefoon had opgeslagen. Er is niets gewist of gewijzigd. U kunt het opnieuw proberen of zonder doorgaan; uw oude gegevens blijven op de telefoon.</string>
     <string name="native_onboarding_migration_retry">Opnieuw proberen</string>
     <string name="native_onboarding_migration_skip">Doorgaan zonder importeren</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">Meld u aan met een externe ondertekenaar. Plak de bunker://-link ervan. Uw privésleutel blijft bij de ondertekenaar.</string>
+    <string name="native_bunker_connected">Verbonden via bunker</string>
+    <string name="native_bunker_dialog_title">Een bunker koppelen</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">Dit is geen geldige bunker-link. Hij begint met bunker:// en noemt minstens één wss://-relay.</string>
+    <string name="native_bunker_failed">De bunker heeft niet gereageerd of heeft geweigerd. Controleer de link en keur het verzoek goed in uw ondertekenapp.</string>
+    <string name="native_bunker_waiting">Wachten op de bunker. Keur het verzoek goed in uw ondertekenapp.</string>
+    <string name="native_bunker_connect">Koppelen</string>
+    <string name="native_login_changed_title">Opnieuw aanmelden</string>
+    <string name="native_login_changed_body">Dit account was aangemeld met een privésleutel, die Roadstr niet meer accepteert. Uw plaatsen en instellingen blijven bewaard. Meld u via uw profiel opnieuw aan met Amber of een bunker.</string>
 </resources>

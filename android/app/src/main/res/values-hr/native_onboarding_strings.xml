@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">Spojeno</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55 (preporučeno)</string>
     <string name="native_onboarding_amber_subtitle">Povežite se s aplikacijom za potpisivanje Amber. Vaš privatni ključ nikad ne napušta Amber.</string>
-    <string name="native_onboarding_nsec_title">nsec ključ</string>
-    <string name="native_onboarding_nsec_subtitle">Zalijepite svoj privatni ključ. Sprema se u Android Keystore.</string>
-    <string name="native_onboarding_nsec_error">Nevažeći nsec ključ — provjerite i pokušajte ponovo.</string>
-    <string name="native_onboarding_enter_nsec">Unesite nsec ključ</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">Spremate se unijeti svoj Nostr privatni ključ izravno u aplikaciju. Svatko s fizičkim ili udaljenim pristupom vašem uređaju može ga pročitati i trajno preuzeti kontrolu nad vašim Nostr identitetom.</string>
     <string name="native_onboarding_amber_secure_hint">✦  Sigurna metoda je Amber (NIP-55): nsec nikada ne napušta sef potpisnika aplikacije.</string>
     <string name="native_onboarding_login">Prijava</string>
     <string name="native_onboarding_favorites_sync_notice">Neobavezno: spremljeni favoriti mogu se sinkronizirati između vaših uređaja putem Nostr releja, end-to-end šifrirani (NIP-44) vašim vlastitim ključem — releji vide samo šifrirani tekst i nitko osim vas ne može čitati sadržaj. Omogućite bilo kada u Postavkama.</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">Roadstr nije mogao pročitati ono što je prethodna verzija spremila na ovaj telefon. Ništa nije izbrisano ni promijenjeno. Možete pokušati ponovno ili nastaviti bez njih; vaši stari podaci ostaju na telefonu.</string>
     <string name="native_onboarding_migration_retry">Pokušaj ponovno</string>
     <string name="native_onboarding_migration_skip">Nastavi bez uvoza</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">Prijavite se putem udaljenog potpisnika. Zalijepite njegovu poveznicu bunker://. Vaš privatni ključ ostaje kod potpisnika.</string>
+    <string name="native_bunker_connected">Povezano putem bunkera</string>
+    <string name="native_bunker_dialog_title">Poveži bunker</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">Ovo nije valjana poveznica bunker. Počinje s bunker:// i navodi barem jedan relej wss://.</string>
+    <string name="native_bunker_failed">Bunker nije odgovorio ili je odbio. Provjerite poveznicu i odobrite zahtjev u svojoj aplikaciji za potpisivanje.</string>
+    <string name="native_bunker_waiting">Čekam bunker. Odobrite zahtjev u svojoj aplikaciji za potpisivanje.</string>
+    <string name="native_bunker_connect">Poveži</string>
+    <string name="native_login_changed_title">Prijavite se ponovno</string>
+    <string name="native_login_changed_body">Ovaj je račun bio prijavljen privatnim ključem koji Roadstr više ne prihvaća. Vaše lokacije i postavke su sačuvane. U profilu se ponovno prijavite putem Ambera ili bunkera.</string>
 </resources>

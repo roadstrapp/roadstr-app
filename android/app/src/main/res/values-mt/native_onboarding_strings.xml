@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">Konness</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55 (rakkomandat)</string>
     <string name="native_onboarding_amber_subtitle">Qabbad mal-app tal-firma Amber. Iċ-ċavetta privata tiegħek qatt ma titlaq minn Amber.</string>
-    <string name="native_onboarding_nsec_title">Ċavetta nsec</string>
-    <string name="native_onboarding_nsec_subtitle">Waħħal iċ-ċavetta privata tiegħek. Maħżuna fl-Android Keystore.</string>
-    <string name="native_onboarding_nsec_error">Ċavetta nsec mhux valida — iċċekkja u erġa\' pprova.</string>
-    <string name="native_onboarding_enter_nsec">Daħħal iċ-ċavetta nsec</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">Inti wasal biex tixħet iċ-ċavetta privata Nostr tiegħek direttament fl-app mingħajr protezzjoni. Kwalunkwe persuna b\'aċċess fiżiku jew remot għall-apparat tiegħek tista\' taqraha u tieħu kontroll permanenti tal-identità Nostr tiegħek.</string>
     <string name="native_onboarding_amber_secure_hint">✦  Il-metodu sikur huwa Amber (NIP-55): l-nsec qatt ma jħalli l-vault tal-firma tal-app.</string>
     <string name="native_onboarding_login">Idħol</string>
     <string name="native_onboarding_favorites_sync_notice">Fakultattiv: il-favoriti salvati jistgħu jiġu sinkronizzati bejn l-apparati tiegħek permezz tar-relays Nostr, kriptati end-to-end (NIP-44) biċ-ċavetta tiegħek stess — ir-relays jaraw biss test kriptat, u ħadd ħliefek ma jista’ jaqra l-kontenut. Attivah meta trid mis-Settings.</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">Roadstr ma setax jaqra dak li l-verżjoni preċedenti ħafset f\'dan it-telefon. Ma tneħħa u ma nbidel xejn. Tista\' terġa\' tipprova jew tkompli mingħajrha; id-dejta l-qadima tiegħek tibqa\' fuq it-telefon.</string>
     <string name="native_onboarding_migration_retry">Erġa\' pprova</string>
     <string name="native_onboarding_migration_skip">Kompli mingħajr importazzjoni</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">Idħol b\'sinjatur remot. Waħħal il-link bunker:// tiegħu. Iċ-ċavetta privata tiegħek tibqa\' għand is-sinjatur.</string>
+    <string name="native_bunker_connected">Mqabbad permezz ta\' bunker</string>
+    <string name="native_bunker_dialog_title">Qabbad bunker</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">Dan mhuwiex link bunker validu. Jibda b\'bunker:// u jsemmi mill-inqas relay wieħed wss://.</string>
+    <string name="native_bunker_failed">Il-bunker ma weġibx jew irrifjuta. Iċċekkja l-link u approva t-talba fl-app tas-sinjatur tiegħek.</string>
+    <string name="native_bunker_waiting">Qed nistenna lill-bunker. Approva t-talba fl-app tas-sinjatur tiegħek.</string>
+    <string name="native_bunker_connect">Qabbad</string>
+    <string name="native_login_changed_title">Idħol mill-ġdid</string>
+    <string name="native_login_changed_body">Dan il-kont kien mdaħħal b\'ċavetta privata, li Roadstr ma jaċċettahiex aktar. Postijietek u s-settings tiegħek inżammu. Idħol mill-ġdid b\'Amber jew b\'bunker mill-profil tiegħek.</string>
 </resources>

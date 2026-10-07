@@ -12,10 +12,7 @@
     <string name="native_profile_login_title">CONECTARE CU NOSTR</string>
     <string name="native_profile_amber_title">Amber / NIP-55</string>
     <string name="native_profile_amber_description">Cheia privată nu părăsește niciodată dispozitivul · Recomandat</string>
-    <string name="native_profile_nsec_title">Introduceți nsec</string>
-    <string name="native_profile_nsec_description">Cheia privată stocată local · Mai puțin sigur</string>
     <string name="native_profile_connected_amber">Conectat prin Amber (NIP-55)</string>
-    <string name="native_profile_connected_nsec">Conectat prin nsec</string>
     <string name="native_profile_public_key">CHEIE PUBLICĂ</string>
     <string name="native_profile_npub_copied">npub copiat în clipboard</string>
     <string name="native_profile_logout">Deconectare</string>

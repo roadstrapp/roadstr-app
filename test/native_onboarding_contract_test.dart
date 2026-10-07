@@ -34,8 +34,8 @@ void main() {
       final strings = RegExp(
         r'<string name="([^"]+)">([\s\S]*?)</string>',
       ).allMatches(entry.value).toList();
-      expect(strings, hasLength(59), reason: entry.key);
-      expect(strings.map((match) => match.group(1)).toSet(), hasLength(59));
+      expect(strings, hasLength(64), reason: entry.key);
+      expect(strings.map((match) => match.group(1)).toSet(), hasLength(64));
     }
   });
 
@@ -64,6 +64,8 @@ void main() {
           .allMatches(entry.value)
           .toList();
       for (final key in nativeRecoveryKeys) {
+        // The product name and the link prefix read the same in every language.
+        if (key == 'native_bunker_title' || key == 'native_bunker_hint') continue;
         expect(_value(strings, key), isNot(_value(englishStrings, key)),
             reason: '${entry.key} $key is still English');
       }
@@ -127,7 +129,7 @@ void main() {
     expect(source, contains('dismissOnClickOutside = false'));
     expect(source, contains('onDismissRequest = {}'));
     expect(source, contains('onAmberLogin'));
-    expect(source, contains('onNsecLogin'));
+    expect(source, contains('onBunkerLogin'));
     expect(source, contains('onRequestLocation'));
     expect(source, contains('onDownloadVoice'));
     expect(source, isNot(contains('FlutterSecureStorage')));

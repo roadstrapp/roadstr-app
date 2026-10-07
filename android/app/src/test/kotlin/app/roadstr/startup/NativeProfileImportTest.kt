@@ -43,11 +43,9 @@ class NativeProfileImportTest {
             ImportedSync("a passphrase", "wss://relay.example.org", 1_700_000_000L, true, 1_700_000_001_000L),
             profile.sync,
         )
-        val identity = profile.identity!!
-        assertEquals(PUBLIC_KEY, identity.publicKeyHex)
-        assertEquals(NativeProfileIdentityFlavor.Nsec, identity.flavor)
-        assertEquals(PRIVATE_KEY, identity.privateKeyHex)
-        assertEquals("Verona Driver", identity.name)
+        // The fixture was logged in with a private key: that login is dropped, the key is not carried over.
+        assertNull(profile.identity)
+        assertTrue(profile.loginDropped)
         assertEquals(NWC, profile.nwcUri)
         assertEquals("routing-key", profile.routingApiKey)
     }
@@ -62,7 +60,7 @@ class NativeProfileImportTest {
     }
 
     @Test
-    fun `an amber identity carries no private key and no identity means none is written`() {
+    fun `an amber identity is carried over and no identity means none is written`() {
         val amber = snapshot(
             secure = SECURE - "nostr_priv_hex" + ("nostr_flavor" to "amber"),
             identity = LegacyIdentity(PUBLIC_KEY, "amber", null),
@@ -70,8 +68,22 @@ class NativeProfileImportTest {
 
         val identity = NativeProfileMapper.map(amber).identity!!
         assertEquals(NativeProfileIdentityFlavor.Amber, identity.flavor)
-        assertNull(identity.privateKeyHex)
+        assertEquals(PUBLIC_KEY, identity.publicKeyHex)
+        assertFalse(NativeProfileMapper.map(amber).loginDropped)
         assertNull(NativeProfileMapper.map(snapshot(secure = emptyMap(), identity = LegacyIdentity(null, null, null))).identity)
+    }
+
+    @Test
+    fun `a login by private key is dropped without touching the key`() {
+        val withKey = snapshot(identity = LegacyIdentity(PUBLIC_KEY, "nsec", PRIVATE_KEY))
+
+        val profile = NativeProfileMapper.map(withKey)
+
+        assertNull(profile.identity)
+        assertTrue(profile.loginDropped)
+        // Everything else of the profile still comes over.
+        assertEquals(FAVORITES, profile.favorites)
+        assertFalse(NativeProfileMapper.map(snapshot(identity = LegacyIdentity(null, null, null))).loginDropped)
     }
 
     @Test

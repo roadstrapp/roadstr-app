@@ -67,7 +67,7 @@ fun NativeOnboardingFlow(
     snapshot: NativeOnboardingSnapshot,
     onPageSelected: (Long, NativeOnboardingPage) -> Unit,
     onAmberLogin: () -> Unit,
-    onNsecLogin: () -> Unit,
+    onBunkerLogin: () -> Unit,
     onProfileVisibilityChanged: (Long, Boolean) -> Unit,
     onRequestLocation: () -> Unit,
     onDownloadVoice: () -> Unit,
@@ -105,7 +105,7 @@ fun NativeOnboardingFlow(
             snapshot = snapshot,
             onPageSelected = onPageSelected,
             onAmberLogin = onAmberLogin,
-            onNsecLogin = onNsecLogin,
+            onBunkerLogin = onBunkerLogin,
             onProfileVisibilityChanged = onProfileVisibilityChanged,
             onRequestLocation = onRequestLocation,
             onDownloadVoice = onDownloadVoice,
@@ -189,7 +189,7 @@ private fun OnboardingPages(
     snapshot: NativeOnboardingSnapshot,
     onPageSelected: (Long, NativeOnboardingPage) -> Unit,
     onAmberLogin: () -> Unit,
-    onNsecLogin: () -> Unit,
+    onBunkerLogin: () -> Unit,
     onProfileVisibilityChanged: (Long, Boolean) -> Unit,
     onRequestLocation: () -> Unit,
     onDownloadVoice: () -> Unit,
@@ -231,7 +231,7 @@ private fun OnboardingPages(
                     NativeOnboardingPage.Identity -> IdentityPage(
                         snapshot = snapshot,
                         onAmberLogin = onAmberLogin,
-                        onNsecLogin = onNsecLogin,
+                        onBunkerLogin = onBunkerLogin,
                         onProfileVisibilityChanged = onProfileVisibilityChanged,
                         onContinue = {
                             onPageSelected(snapshot.revision, NativeOnboardingPage.Setup)
@@ -362,7 +362,7 @@ private fun WelcomePage(onContinue: () -> Unit) = PageColumn {
 private fun IdentityPage(
     snapshot: NativeOnboardingSnapshot,
     onAmberLogin: () -> Unit,
-    onNsecLogin: () -> Unit,
+    onBunkerLogin: () -> Unit,
     onProfileVisibilityChanged: (Long, Boolean) -> Unit,
     onContinue: () -> Unit,
 ) = PageColumn {
@@ -380,9 +380,6 @@ private fun IdentityPage(
         NativeOnboardingIdentityStatus.WaitingAmber -> LoadingRow(
             stringResource(R.string.native_onboarding_loading),
         )
-        NativeOnboardingIdentityStatus.InvalidNsec -> ErrorCard(
-            stringResource(R.string.native_onboarding_nsec_error),
-        )
         NativeOnboardingIdentityStatus.Disconnected -> Unit
     }
     ChoiceCard(
@@ -394,10 +391,10 @@ private fun IdentityPage(
     )
     ChoiceCard(
         symbol = "⚿",
-        title = stringResource(R.string.native_onboarding_nsec_title),
-        body = stringResource(R.string.native_onboarding_nsec_subtitle),
+        title = stringResource(R.string.native_bunker_title),
+        body = stringResource(R.string.native_bunker_subtitle),
         enabled = snapshot.identityStatus != NativeOnboardingIdentityStatus.WaitingAmber,
-        onClick = onNsecLogin,
+        onClick = onBunkerLogin,
     )
     InfoCard(stringResource(R.string.native_onboarding_favorites_sync_notice))
     SettingsSection(R.string.native_onboarding_profile_visibility_title) {
@@ -595,18 +592,6 @@ private fun InfoCard(text: String) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-    }
-}
-
-@Composable
-private fun ErrorCard(text: String) {
-    Surface(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).semantics { liveRegion = LiveRegionMode.Assertive },
-        shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.errorContainer,
-        contentColor = MaterialTheme.colorScheme.onErrorContainer,
-    ) {
-        Text(text, modifier = Modifier.padding(14.dp))
     }
 }
 

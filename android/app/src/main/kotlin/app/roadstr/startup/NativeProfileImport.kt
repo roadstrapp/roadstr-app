@@ -20,14 +20,13 @@ import app.roadstr.storage.NativePreferenceSchema
 /** Why a legacy snapshot could not be turned into a profile; never carries a value. */
 class ProfileImportException(val part: String) : IllegalStateException("Profile import failed: $part")
 
+/** The account of an Amber login; a login by private key is not carried over (see [ImportedProfile.loginDropped]). */
 data class ImportedIdentity(
     val publicKeyHex: String,
     val flavor: NativeProfileIdentityFlavor,
-    val privateKeyHex: String?,
     val name: String?,
     val pictureUrl: String?,
 ) {
-    // The generated toString would print the private key into any log line that interpolates this.
     override fun toString(): String = "ImportedIdentity(<redacted>)"
 }
 
@@ -52,6 +51,8 @@ data class ImportedProfile(
     val favorites: List<NativeSavedPlace>,
     val parking: NativeParkingPosition?,
     val identity: ImportedIdentity?,
+    /** The old app was logged in with a private key, which this app does not take: the person logs in again. */
+    val loginDropped: Boolean,
     val nwcUri: String?,
     val routingApiKey: String?,
     val sync: ImportedSync,
@@ -79,6 +80,7 @@ object NativeProfileMapper {
             favorites = guarded("favorites") { NativeSavedPlacesProtocol.decodeStoredFavorites(ordinary["favorites"]) },
             parking = guarded("parking") { NativeSavedPlacesProtocol.decodeParking(ordinary["parking_position"]) },
             identity = identity(snapshot),
+            loginDropped = snapshot.identity.publicKeyHex != null && snapshot.identity.flavor?.trim()?.lowercase() == "nsec",
             nwcUri = secure["nwc_uri"].orPlaintext(ordinary["nwcUri"]),
             routingApiKey = secure["routing_api_key"].orPlaintext(ordinary["graphhopperApiKey"]),
             sync = ImportedSync(
@@ -117,11 +119,13 @@ object NativeProfileMapper {
     private fun identity(snapshot: LegacyStorageSnapshot): ImportedIdentity? {
         val legacy = snapshot.identity
         val publicKey = legacy.publicKeyHex ?: return null
+        // A private key is never copied into this app: that login is dropped, not imported.
+        if (legacy.flavor?.trim()?.lowercase() == "nsec") return null
         val flavor = NativeProfileIdentityFlavor.fromWire(legacy.flavor) ?: throw ProfileImportException("identity")
+        if (flavor != NativeProfileIdentityFlavor.Amber) throw ProfileImportException("identity")
         return ImportedIdentity(
             publicKeyHex = publicKey.lowercase(),
             flavor = flavor,
-            privateKeyHex = legacy.privateKeyHex?.lowercase(),
             name = snapshot.secureValues["nostr_name"]?.takeIf(String::isNotBlank),
             pictureUrl = snapshot.secureValues["nostr_picture"]?.takeIf(String::isNotBlank),
         )

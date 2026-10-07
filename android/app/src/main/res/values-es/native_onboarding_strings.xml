@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">Conectado</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55 (recomendado)</string>
     <string name="native_onboarding_amber_subtitle">Conéctate con la app firmante Amber. Tu clave privada nunca sale de Amber.</string>
-    <string name="native_onboarding_nsec_title">Clave nsec</string>
-    <string name="native_onboarding_nsec_subtitle">Pega tu clave privada. Almacenada en el Android Keystore.</string>
-    <string name="native_onboarding_nsec_error">Clave nsec inválida — comprueba e inténtalo de nuevo.</string>
-    <string name="native_onboarding_enter_nsec">Ingresa la clave nsec</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">Estás a punto de introducir tu clave privada de Nostr directamente en una app. Cualquier persona con acceso físico o remoto a tu dispositivo podría leerla y tomar el control permanente de tu identidad Nostr.</string>
     <string name="native_onboarding_amber_secure_hint">✦  El método seguro es Amber (NIP-55): el nsec nunca sale del almacén del firmante de la app.</string>
     <string name="native_onboarding_login">Iniciar sesión</string>
     <string name="native_onboarding_favorites_sync_notice">Opcional: tus favoritos guardados pueden sincronizarse entre tus dispositivos a través de los relés Nostr, cifrados de extremo a extremo (NIP-44) con tu propia clave — los relés solo ven texto cifrado y nadie más que tú puede leer el contenido. Actívalo cuando quieras desde Ajustes.</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">Roadstr no pudo leer lo que la versión anterior guardó en este teléfono. No se borró ni cambió nada. Puedes volver a intentarlo o continuar sin ellos; tus datos antiguos siguen en el teléfono.</string>
     <string name="native_onboarding_migration_retry">Reintentar</string>
     <string name="native_onboarding_migration_skip">Continuar sin importar</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">Inicia sesión con un firmante remoto. Pega su enlace bunker://. Tu clave privada se queda en el firmante.</string>
+    <string name="native_bunker_connected">Conectado mediante bunker</string>
+    <string name="native_bunker_dialog_title">Conectar un bunker</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">Este enlace bunker no es válido. Empieza por bunker:// e indica al menos un relé wss://.</string>
+    <string name="native_bunker_failed">El bunker no respondió o lo rechazó. Revisa el enlace y aprueba la solicitud en tu app de firma.</string>
+    <string name="native_bunker_waiting">Esperando al bunker. Aprueba la solicitud en tu app de firma.</string>
+    <string name="native_bunker_connect">Conectar</string>
+    <string name="native_login_changed_title">Inicia sesión de nuevo</string>
+    <string name="native_login_changed_body">Esta cuenta estaba conectada con una clave privada, que Roadstr ya no acepta. Tus lugares y ajustes se conservan. Vuelve a iniciar sesión con Amber o con un bunker desde tu perfil.</string>
 </resources>

@@ -12,10 +12,7 @@
     <string name="native_profile_login_title">LOG IND MED NOSTR</string>
     <string name="native_profile_amber_title">Amber / NIP-55</string>
     <string name="native_profile_amber_description">Privat nøgle forlader aldrig din enhed · Anbefalet</string>
-    <string name="native_profile_nsec_title">Indsæt nsec</string>
-    <string name="native_profile_nsec_description">Privat nøgle gemt lokalt · Mindre sikkert</string>
     <string name="native_profile_connected_amber">Forbundet via Amber (NIP-55)</string>
-    <string name="native_profile_connected_nsec">Forbundet via nsec</string>
     <string name="native_profile_public_key">OFFENTLIG NØGLE</string>
     <string name="native_profile_npub_copied">npub kopieret til udklipsholder</string>
     <string name="native_profile_logout">Afbryd forbindelsen</string>

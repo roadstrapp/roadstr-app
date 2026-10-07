@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">Yhdistetty</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55 (suositeltu)</string>
     <string name="native_onboarding_amber_subtitle">Yhdistä Amber-allekirjoitussovellukseen. Yksityinen avaimesi ei koskaan poistu Amberista.</string>
-    <string name="native_onboarding_nsec_title">nsec-avain</string>
-    <string name="native_onboarding_nsec_subtitle">Liitä yksityinen avaimesi. Tallennetaan Android Keystoreen.</string>
-    <string name="native_onboarding_nsec_error">Virheellinen nsec-avain — tarkista ja yritä uudelleen.</string>
-    <string name="native_onboarding_enter_nsec">Syötä nsec-avain</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">Olet aikeissa syöttää Nostr-yksityisen avaimesi suoraan sovellukseen. Kuka tahansa, jolla on fyysinen tai etäkäyttö laitteeseesi, voi lukea sen ja ottaa pysyvän hallinnan Nostr-identiteetistäsi.</string>
     <string name="native_onboarding_amber_secure_hint">✦  Turvallinen menetelmä on Amber (NIP-55): nsec ei koskaan poistu sovelluksen allekirjoittajan holvista.</string>
     <string name="native_onboarding_login">Kirjaudu</string>
     <string name="native_onboarding_favorites_sync_notice">Valinnainen: tallennetut suosikkisi voivat synkronoitua laitteidesi välillä Nostr-releiden kautta, päästä päähän salattuna (NIP-44) omalla avaimellasi — releet näkevät vain salattua tekstiä, eikä kukaan muu kuin sinä voi lukea sisältöä. Ota käyttöön milloin tahansa Asetuksista.</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">Roadstr ei pystynyt lukemaan sitä, mitä edellinen versio tallensi tähän puhelimeen. Mitään ei poistettu tai muutettu. Voit yrittää uudelleen tai jatkaa ilman niitä; vanhat tietosi säilyvät puhelimessa.</string>
     <string name="native_onboarding_migration_retry">Yritä uudelleen</string>
     <string name="native_onboarding_migration_skip">Jatka tuomatta</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">Kirjaudu etäallekirjoittajalla. Liitä sen bunker://-linkki. Yksityinen avaimesi pysyy allekirjoittajalla.</string>
+    <string name="native_bunker_connected">Yhdistetty bunkerin kautta</string>
+    <string name="native_bunker_dialog_title">Yhdistä bunker</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">Tämä ei ole kelvollinen bunker-linkki. Se alkaa merkinnällä bunker:// ja sisältää vähintään yhden wss://-releen.</string>
+    <string name="native_bunker_failed">Bunker ei vastannut tai kieltäytyi. Tarkista linkki ja hyväksy pyyntö allekirjoitussovelluksessasi.</string>
+    <string name="native_bunker_waiting">Odotetaan bunkeria. Hyväksy pyyntö allekirjoitussovelluksessasi.</string>
+    <string name="native_bunker_connect">Yhdistä</string>
+    <string name="native_login_changed_title">Kirjaudu uudelleen</string>
+    <string name="native_login_changed_body">Tämä tili oli kirjautunut yksityisellä avaimella, jota Roadstr ei enää hyväksy. Paikkasi ja asetuksesi säilyvät. Kirjaudu uudelleen Amberilla tai bunkerilla profiilistasi.</string>
 </resources>

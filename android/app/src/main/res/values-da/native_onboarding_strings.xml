@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">Forbundet</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55 (anbefalet)</string>
     <string name="native_onboarding_amber_subtitle">Forbind med signeringsappen Amber. Din private nøgle forlader aldrig Amber.</string>
-    <string name="native_onboarding_nsec_title">nsec-nøgle</string>
-    <string name="native_onboarding_nsec_subtitle">Indsæt din private nøgle. Gemmes i Android Keystore.</string>
-    <string name="native_onboarding_nsec_error">Ugyldig nsec-nøgle — kontroller og prøv igen.</string>
-    <string name="native_onboarding_enter_nsec">Indtast nsec-nøgle</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">Du er ved at skrive din Nostr-private nøgle direkte ind i en app. Enhver med fysisk eller fjern adgang til din enhed kan læse den og permanent overtage kontrollen over din Nostr-identitet.</string>
     <string name="native_onboarding_amber_secure_hint">✦  Den sikre metode er Amber (NIP-55): nsec forlader aldrig app-underskriverens boks.</string>
     <string name="native_onboarding_login">Log ind</string>
     <string name="native_onboarding_favorites_sync_notice">Valgfrit: dine gemte favoritter kan synkroniseres mellem dine enheder via Nostr-relæerne, end-to-end-krypteret (NIP-44) med din egen nøgle — relæerne ser kun krypteret tekst, og ingen andre end dig kan læse indholdet. Aktivér når som helst i Indstillinger.</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">Roadstr kunne ikke læse det, som den tidligere version gemte på denne telefon. Intet er slettet eller ændret. Du kan prøve igen eller fortsætte uden; dine gamle data forbliver på telefonen.</string>
     <string name="native_onboarding_migration_retry">Prøv igen</string>
     <string name="native_onboarding_migration_skip">Fortsæt uden at importere</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">Log ind med en ekstern signerer. Indsæt dens bunker://-link. Din private nøgle bliver hos signereren.</string>
+    <string name="native_bunker_connected">Forbundet via bunker</string>
+    <string name="native_bunker_dialog_title">Tilslut en bunker</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">Det er ikke et gyldigt bunker-link. Det starter med bunker:// og angiver mindst ét wss://-relæ.</string>
+    <string name="native_bunker_failed">Bunkeren svarede ikke eller afviste. Tjek linket, og godkend anmodningen i din signeringsapp.</string>
+    <string name="native_bunker_waiting">Venter på bunkeren. Godkend anmodningen i din signeringsapp.</string>
+    <string name="native_bunker_connect">Tilslut</string>
+    <string name="native_login_changed_title">Log ind igen</string>
+    <string name="native_login_changed_body">Denne konto var logget ind med en privat nøgle, som Roadstr ikke længere accepterer. Dine steder og indstillinger er bevaret. Log ind igen med Amber eller en bunker fra din profil.</string>
 </resources>

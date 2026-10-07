@@ -12,10 +12,7 @@
     <string name="native_profile_login_title">ВОЙТИ ЧЕРЕЗ NOSTR</string>
     <string name="native_profile_amber_title">Amber / NIP-55</string>
     <string name="native_profile_amber_description">Приватный ключ никогда не покидает ваше устройство · Рекомендуется</string>
-    <string name="native_profile_nsec_title">Ввести nsec</string>
-    <string name="native_profile_nsec_description">Приватный ключ хранится локально · Менее безопасно</string>
     <string name="native_profile_connected_amber">Подключено через Amber (NIP-55)</string>
-    <string name="native_profile_connected_nsec">Подключено через nsec</string>
     <string name="native_profile_public_key">ПУБЛИЧНЫЙ КЛЮЧ</string>
     <string name="native_profile_npub_copied">npub скопирован в буфер обмена</string>
     <string name="native_profile_logout">Отключиться</string>

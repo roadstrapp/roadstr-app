@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">Подключено</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55 (рекомендуется)</string>
     <string name="native_onboarding_amber_subtitle">Подключитесь через приложение-подписант Amber. Ваш закрытый ключ никогда не покидает Amber.</string>
-    <string name="native_onboarding_nsec_title">Ключ nsec</string>
-    <string name="native_onboarding_nsec_subtitle">Вставьте ваш закрытый ключ. Хранится в Android Keystore.</string>
-    <string name="native_onboarding_nsec_error">Недействительный ключ nsec — проверьте и попробуйте снова.</string>
-    <string name="native_onboarding_enter_nsec">Введите ключ nsec</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">Вы собираетесь напрямую вбить ваш приватный ключ Nostr прямо в приложение. Любой, кто имеет физический или удалённый доступ к вашему устройству, сможет прочитать его и навсегда захватить контроль над вашей идентификацией Nostr.</string>
     <string name="native_onboarding_amber_secure_hint">✦  Безопасный метод — Amber (NIP-55): nsec никогда не покидает хранилище подписчика.</string>
     <string name="native_onboarding_login">Войти</string>
     <string name="native_onboarding_favorites_sync_notice">Необязательно: сохранённое избранное может синхронизироваться между вашими устройствами через реле Nostr со сквозным шифрованием (NIP-44) вашим собственным ключом — реле видят только шифртекст, и никто, кроме вас, не может прочитать содержимое. Включите в любой момент в Настройках.</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">Roadstr не смог прочитать то, что предыдущая версия сохранила на этом телефоне. Ничего не удалено и не изменено. Вы можете повторить попытку или продолжить без них; ваши старые данные остаются на телефоне.</string>
     <string name="native_onboarding_migration_retry">Повторить</string>
     <string name="native_onboarding_migration_skip">Продолжить без импорта</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">Войдите через удалённого подписанта. Вставьте его ссылку bunker://. Ваш закрытый ключ остаётся у подписанта.</string>
+    <string name="native_bunker_connected">Подключено через bunker</string>
+    <string name="native_bunker_dialog_title">Подключить bunker</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">Это недействительная ссылка bunker. Она начинается с bunker:// и указывает хотя бы один релей wss://.</string>
+    <string name="native_bunker_failed">Bunker не ответил или отказал. Проверьте ссылку и подтвердите запрос в приложении для подписи.</string>
+    <string name="native_bunker_waiting">Ожидание bunker. Подтвердите запрос в приложении для подписи.</string>
+    <string name="native_bunker_connect">Подключить</string>
+    <string name="native_login_changed_title">Войдите снова</string>
+    <string name="native_login_changed_body">Этот аккаунт был подключён закрытым ключом, который Roadstr больше не принимает. Ваши места и настройки сохранены. Войдите снова через Amber или bunker в профиле.</string>
 </resources>

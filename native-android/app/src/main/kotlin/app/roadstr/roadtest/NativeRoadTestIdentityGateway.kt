@@ -2,14 +2,20 @@ package app.roadstr.roadtest
 
 import android.content.Context
 import android.util.Base64
+import app.roadstr.core.protocol.nostr.NostrBunkerUri
 import app.roadstr.core.protocol.nostr.NostrNip19
 import app.roadstr.core.protocol.nostr.NostrSchnorr
+import app.roadstr.feature.profile.NativeBunkerLoginResult
 import app.roadstr.feature.profile.NativeIdentityGateway
 import app.roadstr.feature.profile.NativeIdentitySnapshot
 import app.roadstr.feature.profile.NativeProfileIdentityFlavor
 import app.roadstr.feature.profile.NativeProfileMetadata
+import app.roadstr.service.nostr.NativeBunkerClient
+import app.roadstr.service.nostr.NativeRelayConnector
+import app.roadstr.service.nostr.OkHttpRelayConnector
 import java.nio.charset.StandardCharsets
 import java.security.KeyStore
+import java.security.SecureRandom
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -18,14 +24,35 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/** Nsec login for road-test: the private key is always encrypted at rest. */
+/** What it takes to talk to the remote signer of a bunker login; the key is this app's own, not the account's. */
+class NativeBunkerSession(
+    val clientKeyHex: String,
+    val remotePubkeyHex: String,
+    val relays: List<String>,
+)
+
+/**
+ * Who is logged in: through the Amber signer app or through a remote signer (a "bunker"). The account's
+ * private key never reaches this phone; the only key kept is the one that identifies this app to a bunker,
+ * encrypted at rest. A private-key login of an earlier build is dropped on the first start.
+ */
 class NativeRoadTestIdentityGateway(
     context: Context,
     names: NativeLiveStoreNames = NativeLiveStoreNames(),
+    private val connector: NativeRelayConnector = OkHttpRelayConnector(),
 ) : NativeIdentityGateway {
     private val keyAlias = names.identityAlias
     private val preferences = context.getSharedPreferences(names.prefs("identity"), Context.MODE_PRIVATE)
     private val profileService = NativeRoadTestNostrProfileService()
+
+    /** The signer wants the person to approve in a browser; the Activity opens the address. */
+    @Volatile
+    var openUrl: (String) -> Unit = {}
+
+    init {
+        dropPrivateKeyLogin()
+    }
+
     private val _state = MutableStateFlow(
         NativeIdentitySnapshot(
             pubkeyHex = preferences.getString(PUBLIC_KEY, null),
@@ -35,17 +62,89 @@ class NativeRoadTestIdentityGateway(
 
     override val state: StateFlow<NativeIdentitySnapshot> = _state.asStateFlow()
 
-    override suspend fun loginNsec(encodedNsec: String): Boolean = runCatching {
-        val privateHex = NostrNip19.decodePrivateKey(encodedNsec.trim())
-        val publicHex = NostrSchnorr.publicKey(privateHex)
-        val encrypted = encrypt(privateHex)
-        check(preferences.edit()
-            .putString(PUBLIC_KEY, publicHex)
-            .putString(FLAVOR, NativeProfileIdentityFlavor.Nsec.wireValue)
-            .putString(PRIVATE_KEY, encrypted)
-            .commit()) { "Unable to persist the protected identity" }
-        _state.value = NativeIdentitySnapshot(publicHex, NativeProfileIdentityFlavor.Nsec)
-    }.isSuccess
+    override suspend fun loginBunker(link: String): NativeBunkerLoginResult {
+        val uri = NostrBunkerUri.parse(link) ?: return NativeBunkerLoginResult.InvalidLink
+        val clientKey = newClientKey()
+        val client = NativeBunkerClient(
+            connector = connector,
+            clientKeyHex = clientKey,
+            remotePubkeyHex = uri.remotePubkeyHex,
+            relays = uri.relays,
+            onAuthUrl = { url -> openUrl(url) },
+        )
+        val params = if (uri.secret == null) {
+            listOf(uri.remotePubkeyHex)
+        } else {
+            listOf(uri.remotePubkeyHex, uri.secret, REQUESTED_PERMISSIONS)
+        }
+        val connect = client.call("connect", params, NativeBunkerClient.CONNECT_TIMEOUT_MILLIS)
+        if (!connect.ok) return failure(connect.error)
+        if (connect.result != "ack" && connect.result != uri.secret) return NativeBunkerLoginResult.Refused
+        val account = client.call("get_public_key", emptyList())
+        val publicHex = account.result?.trim()?.lowercase()?.takeIf { account.ok && HEX_64.matches(it) }
+            ?: return failure(account.error)
+        val saved = runCatching {
+            check(preferences.edit()
+                .putString(PUBLIC_KEY, publicHex)
+                .putString(FLAVOR, NativeProfileIdentityFlavor.Bunker.wireValue)
+                .putString(BUNKER_CLIENT_KEY, encrypt(clientKey))
+                .putString(BUNKER_REMOTE, uri.remotePubkeyHex)
+                .putString(BUNKER_RELAYS, uri.relays.joinToString("\n"))
+                .remove(PRIVATE_KEY)
+                .commit()) { "Unable to persist the identity" }
+        }.isSuccess
+        if (!saved) return NativeBunkerLoginResult.NoAnswer
+        _state.value = NativeIdentitySnapshot(publicHex, NativeProfileIdentityFlavor.Bunker)
+        return NativeBunkerLoginResult.Connected
+    }
+
+    private fun failure(error: String?) =
+        if (error != null) NativeBunkerLoginResult.Refused else NativeBunkerLoginResult.NoAnswer
+
+    /** The pairing with the remote signer, or null when the login is not a bunker one. */
+    fun bunkerSession(): NativeBunkerSession? = runCatching {
+        if (preferences.getString(FLAVOR, null) != NativeProfileIdentityFlavor.Bunker.wireValue) return null
+        NativeBunkerSession(
+            clientKeyHex = decrypt(preferences.getString(BUNKER_CLIENT_KEY, null) ?: return null),
+            remotePubkeyHex = preferences.getString(BUNKER_REMOTE, null)?.takeIf(HEX_64::matches) ?: return null,
+            relays = (preferences.getString(BUNKER_RELAYS, null) ?: return null).split('\n')
+                .filter(NostrBunkerUri::isRelay),
+        ).takeIf { it.relays.isNotEmpty() }
+    }.getOrNull()
+
+    private fun newClientKey(): String {
+        val random = SecureRandom()
+        while (true) {
+            val candidate = ByteArray(32).also(random::nextBytes).joinToString("") { "%02x".format(it) }
+            if (runCatching { NostrSchnorr.publicKey(candidate) }.isSuccess) return candidate
+        }
+    }
+
+    /**
+     * An earlier build could hold the account's own private key. This one never does: the key is erased, the
+     * person is logged out, and a notice is left so the next start says why.
+     */
+    private fun dropPrivateKeyLogin() {
+        val legacy = preferences.contains(PRIVATE_KEY) ||
+            preferences.getString(FLAVOR, null) == LEGACY_NSEC_FLAVOR
+        if (!legacy) return
+        preferences.edit()
+            .remove(PUBLIC_KEY).remove(FLAVOR).remove(PRIVATE_KEY)
+            .remove(PROFILE_PUBKEY).remove(PROFILE_NAME).remove(PROFILE_DISPLAY_NAME).remove(PROFILE_PICTURE)
+            .putBoolean(LOGIN_NOTICE, true)
+            .commit()
+    }
+
+    override fun consumeLoginNotice(): Boolean {
+        if (!preferences.getBoolean(LOGIN_NOTICE, false)) return false
+        preferences.edit().remove(LOGIN_NOTICE).apply()
+        return true
+    }
+
+    /** Leaves a notice that a private-key login was not carried over from the old app. */
+    fun noteLoginReset() {
+        preferences.edit().putBoolean(LOGIN_NOTICE, true).commit()
+    }
 
     override fun loginAmberPublicKey(encodedOrHex: String): Boolean = runCatching {
         val candidate = encodedOrHex.trim()
@@ -58,33 +157,27 @@ class NativeRoadTestIdentityGateway(
         check(preferences.edit()
             .putString(PUBLIC_KEY, publicHex)
             .putString(FLAVOR, NativeProfileIdentityFlavor.Amber.wireValue)
-            .remove(PRIVATE_KEY)
+            .remove(PRIVATE_KEY).remove(BUNKER_CLIENT_KEY).remove(BUNKER_REMOTE).remove(BUNKER_RELAYS)
             .commit()) { "Unable to persist the identity" }
         _state.value = NativeIdentitySnapshot(publicHex, NativeProfileIdentityFlavor.Amber)
     }.isSuccess
 
     /**
-     * Brings the identity the old app kept over, under this app's own protection. The caller has
-     * already checked that the private key belongs to the public key. The in-memory state is not
-     * touched: the activity creates this gateway after the import, and reads the store then.
+     * Brings the identity the old app kept over, for an Amber login: there is no key to carry, only who it is.
+     * The in-memory state is not touched: the activity creates this gateway after the import, and reads the
+     * store then.
      */
     fun importIdentity(
         publicKeyHex: String,
         flavor: NativeProfileIdentityFlavor,
-        privateKeyHex: String?,
         name: String?,
         pictureUrl: String?,
     ): Boolean = runCatching {
-        require(publicKeyHex.matches(HEX_64))
+        require(publicKeyHex.matches(HEX_64) && flavor == NativeProfileIdentityFlavor.Amber)
         val edit = preferences.edit()
             .putString(PUBLIC_KEY, publicKeyHex)
             .putString(FLAVOR, flavor.wireValue)
-        if (privateKeyHex != null) {
-            require(flavor == NativeProfileIdentityFlavor.Nsec && privateKeyHex.matches(HEX_64))
-            edit.putString(PRIVATE_KEY, encrypt(privateKeyHex))
-        } else {
-            edit.remove(PRIVATE_KEY)
-        }
+            .remove(PRIVATE_KEY)
         if (name != null || pictureUrl != null) {
             edit.putString(PROFILE_PUBKEY, publicKeyHex)
                 .putString(PROFILE_NAME, name)
@@ -94,11 +187,10 @@ class NativeRoadTestIdentityGateway(
         check(edit.commit()) { "Unable to persist the imported identity" }
     }.isSuccess
 
-    /** Whether the stored identity is exactly this one; the private key is compared decrypted, never shown. */
-    fun holds(publicKeyHex: String, flavor: NativeProfileIdentityFlavor, privateKeyHex: String?): Boolean =
+    /** Whether the stored identity is exactly this one. */
+    fun holds(publicKeyHex: String, flavor: NativeProfileIdentityFlavor): Boolean =
         preferences.getString(PUBLIC_KEY, null) == publicKeyHex &&
-            preferences.getString(FLAVOR, null) == flavor.wireValue &&
-            privateKeyHex() == privateKeyHex
+            preferences.getString(FLAVOR, null) == flavor.wireValue
 
     override suspend fun fetchProfileMetadata(pubkeyHex: String): NativeProfileMetadata? {
         val normalized = pubkeyHex.trim().lowercase()
@@ -126,6 +218,7 @@ class NativeRoadTestIdentityGateway(
             .remove(PUBLIC_KEY)
             .remove(FLAVOR)
             .remove(PRIVATE_KEY)
+            .remove(BUNKER_CLIENT_KEY).remove(BUNKER_REMOTE).remove(BUNKER_RELAYS)
             .remove(PROFILE_PUBKEY)
             .remove(PROFILE_NAME)
             .remove(PROFILE_DISPLAY_NAME)
@@ -134,12 +227,6 @@ class NativeRoadTestIdentityGateway(
         if (!cleared) return
         _state.value = NativeIdentitySnapshot()
     }
-
-    /** Reserved for the signer adapter; it never exposes plaintext to preferences. */
-    fun privateKeyHex(): String? = runCatching {
-        val encoded = preferences.getString(PRIVATE_KEY, null) ?: return null
-        decrypt(encoded)
-    }.getOrNull()
 
     private fun key(): SecretKey {
         val store = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
@@ -182,6 +269,12 @@ class NativeRoadTestIdentityGateway(
         const val PUBLIC_KEY = "pubkey_hex"
         const val FLAVOR = "flavor"
         const val PRIVATE_KEY = "private_key_gcm"
+        const val BUNKER_CLIENT_KEY = "bunker_client_key_gcm"
+        const val BUNKER_REMOTE = "bunker_remote_pubkey"
+        const val BUNKER_RELAYS = "bunker_relays"
+        const val LOGIN_NOTICE = "login_notice"
+        const val LEGACY_NSEC_FLAVOR = "nsec"
+        const val REQUESTED_PERMISSIONS = "get_public_key,sign_event,nip44_encrypt,nip44_decrypt"
         const val PROFILE_PUBKEY = "profile_pubkey"
         const val PROFILE_NAME = "profile_name"
         const val PROFILE_DISPLAY_NAME = "profile_display_name"

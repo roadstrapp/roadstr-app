@@ -12,10 +12,7 @@
     <string name="native_profile_login_title">IDĦOL BL-NOSTR</string>
     <string name="native_profile_amber_title">Amber / NIP-55</string>
     <string name="native_profile_amber_description">Iċ-ċavetta privata qatt ma titlaq mill-apparat tiegħek · Rakkomandat</string>
-    <string name="native_profile_nsec_title">Daħħal nsec</string>
-    <string name="native_profile_nsec_description">Iċ-ċavetta privata maħżuna lokalment · Inqas sigur</string>
     <string name="native_profile_connected_amber">Konness permezz ta\' Amber (NIP-55)</string>
-    <string name="native_profile_connected_nsec">Konness permezz ta\' nsec</string>
     <string name="native_profile_public_key">ĊAVETTA PUBBLIKA</string>
     <string name="native_profile_npub_copied">npub ikkupjat fil-clipboard</string>
     <string name="native_profile_logout">Aqta\' l-konnessjoni</string>

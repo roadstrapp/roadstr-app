@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">Csatlakozva</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55 (ajánlott)</string>
     <string name="native_onboarding_amber_subtitle">Csatlakozz az Amber aláíró alkalmazással. A privát kulcsod soha nem hagyja el az Ambert.</string>
-    <string name="native_onboarding_nsec_title">nsec kulcs</string>
-    <string name="native_onboarding_nsec_subtitle">Illeszd be a privát kulcsodat. Az Android Keystore-ban tárolódik.</string>
-    <string name="native_onboarding_nsec_error">Érvénytelen nsec kulcs — ellenőrizze és próbálja újra.</string>
-    <string name="native_onboarding_enter_nsec">Adja meg az nsec kulcsot</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">Az Ön Nostr privát kulcsát közvetlenül egy alkalmazásba készül beírni. Bárki, aki fizikailag vagy távolról hozzáfér az eszközéhez, elolvashatja, és véglegesen átveheti az irányítást Nostr identitása felett.</string>
     <string name="native_onboarding_amber_secure_hint">✦  A biztonságos módszer az Amber (NIP-55): az nsec soha nem hagyja el az alkalmazás aláírói széfet.</string>
     <string name="native_onboarding_login">Bejelentkezés</string>
     <string name="native_onboarding_favorites_sync_notice">Nem kötelező: a mentett kedvenceid szinkronizálódhatnak az eszközeid között a Nostr relék segítségével, végponttól végpontig titkosítva (NIP-44) a saját kulcsoddal — a relék csak titkosított szöveget látnak, és rajtad kívül senki sem olvashatja a tartalmat. Bármikor bekapcsolhatod a Beállításokban.</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">A Roadstr nem tudta beolvasni, amit az előző verzió ezen a telefonon elmentett. Semmi sem törlődött vagy változott. Megpróbálhatja újra, vagy folytathatja nélkülük; a régi adatai a telefonon maradnak.</string>
     <string name="native_onboarding_migration_retry">Próbálja újra</string>
     <string name="native_onboarding_migration_skip">Folytatás importálás nélkül</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">Jelentkezz be távoli aláíróval. Illeszd be a bunker:// hivatkozását. A privát kulcsod az aláírónál marad.</string>
+    <string name="native_bunker_connected">Bunkeren keresztül csatlakoztatva</string>
+    <string name="native_bunker_dialog_title">Bunker csatlakoztatása</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">Ez nem érvényes bunker-hivatkozás. A bunker:// előtaggal kezdődik, és legalább egy wss:// relét tartalmaz.</string>
+    <string name="native_bunker_failed">A bunker nem válaszolt, vagy elutasította. Ellenőrizd a hivatkozást, és hagyd jóvá a kérést az aláíró alkalmazásodban.</string>
+    <string name="native_bunker_waiting">Várakozás a bunkerre. Hagyd jóvá a kérést az aláíró alkalmazásodban.</string>
+    <string name="native_bunker_connect">Csatlakozás</string>
+    <string name="native_login_changed_title">Jelentkezz be újra</string>
+    <string name="native_login_changed_body">Ez a fiók privát kulccsal volt bejelentkezve, amelyet a Roadstr már nem fogad el. A helyeid és a beállításaid megmaradtak. Jelentkezz be újra az Amberrel vagy egy bunkerrel a profilodban.</string>
 </resources>

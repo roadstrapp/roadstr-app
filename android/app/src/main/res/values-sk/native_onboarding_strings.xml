@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">Pripojené</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55 (odporúčané)</string>
     <string name="native_onboarding_amber_subtitle">Pripojte sa pomocou podpisovej aplikácie Amber. Váš súkromný kľúč Amber nikdy neopustí.</string>
-    <string name="native_onboarding_nsec_title">Kľúč nsec</string>
-    <string name="native_onboarding_nsec_subtitle">Vložte svoj súkromný kľúč. Ukladá sa v Android Keystore.</string>
-    <string name="native_onboarding_nsec_error">Neplatný kľúč nsec — skontrolujte a skúste znova.</string>
-    <string name="native_onboarding_enter_nsec">Zadajte kľúč nsec</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">Chystáte sa zadať svoj súkromný kľúč Nostr priamo do aplikácie. Ktokoľvek s fyzickým alebo vzdialeným prístupom k vášmu zariadeniu ho môže prečítať a trvalo prevziať kontrolu nad vašou identitou Nostr.</string>
     <string name="native_onboarding_amber_secure_hint">✦  Bezpečnou metódou je Amber (NIP-55): nsec nikdy neopustí trezor podpisujúceho aplikácie.</string>
     <string name="native_onboarding_login">Prihlásiť</string>
     <string name="native_onboarding_favorites_sync_notice">Voliteľné: uložené obľúbené sa môžu synchronizovať medzi vašimi zariadeniami cez Nostr relé, šifrované end-to-end (NIP-44) vaším vlastným kľúčom — relé vidia iba šifrovaný text a nikto okrem vás nemôže obsah čítať. Aktivujte kedykoľvek v Nastaveniach.</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">Roadstr nedokázal prečítať, čo predchádzajúca verzia uložila v tomto telefóne. Nič sa nevymazalo ani nezmenilo. Môžete to skúsiť znova alebo pokračovať bez nich; vaše staré údaje zostávajú v telefóne.</string>
     <string name="native_onboarding_migration_retry">Skúsiť znova</string>
     <string name="native_onboarding_migration_skip">Pokračovať bez importu</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">Prihláste sa pomocou vzdialeného podpisovateľa. Vložte jeho odkaz bunker://. Váš súkromný kľúč zostáva u podpisovateľa.</string>
+    <string name="native_bunker_connected">Pripojené cez bunker</string>
+    <string name="native_bunker_dialog_title">Pripojiť bunker</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">Toto nie je platný odkaz bunker. Začína na bunker:// a uvádza aspoň jedno relé wss://.</string>
+    <string name="native_bunker_failed">Bunker neodpovedal alebo odmietol. Skontrolujte odkaz a schváľte žiadosť vo svojej podpisovej aplikácii.</string>
+    <string name="native_bunker_waiting">Čakám na bunker. Schváľte žiadosť vo svojej podpisovej aplikácii.</string>
+    <string name="native_bunker_connect">Pripojiť</string>
+    <string name="native_login_changed_title">Prihláste sa znova</string>
+    <string name="native_login_changed_body">Tento účet bol prihlásený súkromným kľúčom, ktorý Roadstr už neprijíma. Vaše miesta a nastavenia zostávajú. Prihláste sa znova cez Amber alebo bunker vo svojom profile.</string>
 </resources>

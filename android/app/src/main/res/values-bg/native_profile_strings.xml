@@ -12,10 +12,7 @@
     <string name="native_profile_login_title">ВЛЕЗТЕ С NOSTR</string>
     <string name="native_profile_amber_title">Amber / NIP-55</string>
     <string name="native_profile_amber_description">Личният ключ никога не напуска устройството ви · Препоръчително</string>
-    <string name="native_profile_nsec_title">Вмъкнете nsec</string>
-    <string name="native_profile_nsec_description">Личният ключ се съхранява локално · По-малко сигурно</string>
     <string name="native_profile_connected_amber">Свързан чрез Amber (NIP-55)</string>
-    <string name="native_profile_connected_nsec">Свързан чрез nsec</string>
     <string name="native_profile_public_key">ПУБЛИЧЕН КЛЮЧ</string>
     <string name="native_profile_npub_copied">npub копиран в клипборда</string>
     <string name="native_profile_logout">Изключване</string>

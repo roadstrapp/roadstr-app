@@ -9,9 +9,11 @@ import app.roadstr.core.protocol.nostr.NostrEventDraft
 import app.roadstr.core.protocol.nostr.NostrJson
 import app.roadstr.feature.profile.NativeIdentityGateway
 import app.roadstr.feature.profile.NativeProfileIdentityFlavor
-import app.roadstr.service.nostr.NativeLocalKeySigner
+import app.roadstr.service.nostr.NativeBunkerClient
+import app.roadstr.service.nostr.NativeBunkerSigner
 import app.roadstr.service.nostr.NativeNostrSigner
 import app.roadstr.service.nostr.NativeNostrWire
+import app.roadstr.service.nostr.NativeRelayConnector
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -188,15 +190,32 @@ internal class NativeAmberSigner(
 /** Picks the signer that matches how the user logged in. */
 internal class NativeRoadTestSigner(
     private val identity: NativeIdentityGateway,
-    privateKey: () -> String?,
     amber: NativeRoadTestAmberBridge,
+    private val bunkerSession: () -> NativeBunkerSession?,
+    private val connector: NativeRelayConnector,
+    private val openUrl: (String) -> Unit,
 ) : NativeNostrSigner {
-    private val local = NativeLocalKeySigner(privateKey)
     private val external = NativeAmberSigner(amber) { identity.state.value.pubkeyHex }
 
+    // Built when the pairing with the remote signer is known, and again if it changes (a new login).
+    private var bunker: Pair<NativeBunkerSession, NativeNostrSigner>? = null
+
+    private fun bunkerSigner(): NativeNostrSigner? {
+        val session = bunkerSession() ?: return null
+        bunker?.takeIf { it.first.clientKeyHex == session.clientKeyHex }?.let { return it.second }
+        val client = NativeBunkerClient(
+            connector = connector,
+            clientKeyHex = session.clientKeyHex,
+            remotePubkeyHex = session.remotePubkeyHex,
+            relays = session.relays,
+            onAuthUrl = openUrl,
+        )
+        return NativeBunkerSigner(client) { identity.state.value.pubkeyHex }.also { bunker = session to it }
+    }
+
     private fun active(): NativeNostrSigner? = when (identity.state.value.flavor) {
-        NativeProfileIdentityFlavor.Nsec -> local
         NativeProfileIdentityFlavor.Amber -> external
+        NativeProfileIdentityFlavor.Bunker -> bunkerSigner()
         null -> null
     }
 

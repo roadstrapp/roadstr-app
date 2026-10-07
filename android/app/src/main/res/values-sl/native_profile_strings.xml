@@ -12,10 +12,7 @@
     <string name="native_profile_login_title">PRIJAVA Z NOSTROM</string>
     <string name="native_profile_amber_title">Amber / NIP-55</string>
     <string name="native_profile_amber_description">Zasebni ključ nikoli ne zapusti vaše naprave · Priporočeno</string>
-    <string name="native_profile_nsec_title">Vnesi nsec</string>
-    <string name="native_profile_nsec_description">Zasebni ključ shranjen lokalno · Manj varno</string>
     <string name="native_profile_connected_amber">Povezano prek Amber (NIP-55)</string>
-    <string name="native_profile_connected_nsec">Povezano prek nsec</string>
     <string name="native_profile_public_key">JAVNI KLJUČ</string>
     <string name="native_profile_npub_copied">npub kopiran v odložišče</string>
     <string name="native_profile_logout">Prekini povezavo</string>

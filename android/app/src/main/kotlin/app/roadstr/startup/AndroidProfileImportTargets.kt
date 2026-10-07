@@ -49,6 +49,7 @@ internal class AndroidProfileImportTargets(
         writeActivity(profile)
         check(history.write(profile.searchHistory)) { "history" }
         writeIdentity(profile.identity)
+        if (profile.loginDropped) identity.noteLoginReset()
     }
 
     override fun mismatches(profile: ImportedProfile): List<String> = buildList {
@@ -74,7 +75,6 @@ internal class AndroidProfileImportTargets(
         val stored = identity.importIdentity(
             imported.publicKeyHex,
             imported.flavor,
-            imported.privateKeyHex,
             imported.name,
             imported.pictureUrl,
         )
@@ -82,7 +82,7 @@ internal class AndroidProfileImportTargets(
     }
 
     private fun identityMatches(imported: ImportedIdentity?): Boolean =
-        imported == null || identity.holds(imported.publicKeyHex, imported.flavor, imported.privateKeyHex)
+        imported == null || identity.holds(imported.publicKeyHex, imported.flavor)
 
     private fun writeSync(value: ImportedSync) {
         check(sync.setPassphrase(value.passphrase.orEmpty())) { "sync" }

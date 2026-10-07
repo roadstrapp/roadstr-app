@@ -12,10 +12,7 @@
     <string name="native_profile_login_title">ENTRAR COM NOSTR</string>
     <string name="native_profile_amber_title">Amber / NIP-55</string>
     <string name="native_profile_amber_description">A chave privada nunca sai do seu dispositivo · Recomendado</string>
-    <string name="native_profile_nsec_title">Inserir nsec</string>
-    <string name="native_profile_nsec_description">Chave privada armazenada localmente · Menos seguro</string>
     <string name="native_profile_connected_amber">Conectado via Amber (NIP-55)</string>
-    <string name="native_profile_connected_nsec">Conectado via nsec</string>
     <string name="native_profile_public_key">CHAVE PÚBLICA</string>
     <string name="native_profile_npub_copied">npub copiado para a área de transferência</string>
     <string name="native_profile_logout">Desconectar</string>

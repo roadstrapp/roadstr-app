@@ -98,7 +98,7 @@ class NativeAppActivity : NativeRoadTestActivity() {
             snapshot = snapshot,
             onPageSelected = { _, _ -> Unit },
             onAmberLogin = {},
-            onNsecLogin = {},
+            onBunkerLogin = {},
             onProfileVisibilityChanged = { _, _ -> Unit },
             onRequestLocation = {},
             onDownloadVoice = {},

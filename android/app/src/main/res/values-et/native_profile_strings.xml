@@ -12,10 +12,7 @@
     <string name="native_profile_login_title">LOGI SISSE NOSTRIGA</string>
     <string name="native_profile_amber_title">Amber / NIP-55</string>
     <string name="native_profile_amber_description">Privaatvõti ei lahku kunagi seadmest · Soovitatav</string>
-    <string name="native_profile_nsec_title">Sisesta nsec</string>
-    <string name="native_profile_nsec_description">Privaatvõti salvestatakse kohapeal · Vähem turvaline</string>
     <string name="native_profile_connected_amber">Ühendatud Amberi kaudu (NIP-55)</string>
-    <string name="native_profile_connected_nsec">Ühendatud nsec kaudu</string>
     <string name="native_profile_public_key">AVALIK VÕTI</string>
     <string name="native_profile_npub_copied">npub kopeeriti lõikelauale</string>
     <string name="native_profile_logout">Katkesta ühendus</string>

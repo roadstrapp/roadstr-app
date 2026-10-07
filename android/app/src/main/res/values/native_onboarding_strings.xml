@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">Connected</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55 (recommended)</string>
     <string name="native_onboarding_amber_subtitle">Connect with the Amber signer app. Your private key never leaves Amber.</string>
-    <string name="native_onboarding_nsec_title">nsec key</string>
-    <string name="native_onboarding_nsec_subtitle">Paste your private key. Stored in the Android Keystore.</string>
-    <string name="native_onboarding_nsec_error">Invalid nsec key — please check and try again.</string>
-    <string name="native_onboarding_enter_nsec">Enter nsec key</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">You are about to rawdog your Nostr private key directly into an app. Anyone with physical or remote access to your device could read it and permanently take control of your Nostr identity.</string>
     <string name="native_onboarding_amber_secure_hint">✦  The safe method is Amber (NIP-55): the nsec never leaves the app signer vault.</string>
     <string name="native_onboarding_login">Login</string>
     <string name="native_onboarding_favorites_sync_notice">Optional: your saved favorites can sync across your devices through the Nostr relays, end-to-end encrypted (NIP-44) with your own key — relays only ever see ciphertext, and nobody but you can read the contents. Enable it anytime from Settings.</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">Roadstr could not read what the previous version saved on this phone. Nothing was erased or changed. You can try again, or continue without it; your old data stays on the phone.</string>
     <string name="native_onboarding_migration_retry">Try again</string>
     <string name="native_onboarding_migration_skip">Continue without importing</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">Sign in with a remote signer. Paste its bunker:// link. Your private key stays with the signer.</string>
+    <string name="native_bunker_connected">Connected via bunker</string>
+    <string name="native_bunker_dialog_title">Connect a bunker</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">This is not a valid bunker link. It starts with bunker:// and names at least one wss:// relay.</string>
+    <string name="native_bunker_failed">The bunker did not answer or refused. Check the link and approve the request in your signer app.</string>
+    <string name="native_bunker_waiting">Waiting for the bunker. Approve the request in your signer app.</string>
+    <string name="native_bunker_connect">Connect</string>
+    <string name="native_login_changed_title">Sign in again</string>
+    <string name="native_login_changed_body">This account was signed in with a private key, which Roadstr no longer accepts. Your places and settings are kept. Sign in again with Amber or a bunker from your profile.</string>
 </resources>

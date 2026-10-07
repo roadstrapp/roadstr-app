@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">Verbunden</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55 (empfohlen)</string>
     <string name="native_onboarding_amber_subtitle">Mit der Amber-Signer-App verbinden. Ihr privater Schlüssel verlässt Amber nie.</string>
-    <string name="native_onboarding_nsec_title">nsec-Schlüssel</string>
-    <string name="native_onboarding_nsec_subtitle">Privaten Schlüssel einfügen. Im Android Keystore gespeichert.</string>
-    <string name="native_onboarding_nsec_error">Ungültiger nsec-Schlüssel — bitte prüfen und erneut versuchen.</string>
-    <string name="native_onboarding_enter_nsec">nsec-Schlüssel eingeben</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">Sie sind dabei, Ihren privaten Nostr-Schlüssel direkt in eine App einzugeben. Jeder mit physischem oder Remote-Zugriff auf Ihr Gerät könnte ihn lesen und dauerhaft die Kontrolle über Ihre Nostr-Identität übernehmen.</string>
     <string name="native_onboarding_amber_secure_hint">✦  Die sichere Methode ist Amber (NIP-55): der nsec verlässt nie den App-Signer-Tresor.</string>
     <string name="native_onboarding_login">Anmelden</string>
     <string name="native_onboarding_favorites_sync_notice">Optional: Deine gespeicherten Favoriten können über die Nostr-Relays zwischen deinen Geräten synchronisiert werden, Ende-zu-Ende-verschlüsselt (NIP-44) mit deinem eigenen Schlüssel — Relays sehen nur Chiffretext, und niemand außer dir kann die Inhalte lesen. Jederzeit in den Einstellungen aktivierbar.</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">Roadstr konnte nicht lesen, was die vorherige Version auf diesem Telefon gespeichert hat. Nichts wurde gelöscht oder geändert. Sie können es erneut versuchen oder ohne die Daten fortfahren; Ihre alten Daten bleiben auf dem Telefon.</string>
     <string name="native_onboarding_migration_retry">Erneut versuchen</string>
     <string name="native_onboarding_migration_skip">Ohne Import fortfahren</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">Melden Sie sich mit einem entfernten Signierer an. Fügen Sie dessen bunker://-Link ein. Ihr privater Schlüssel bleibt beim Signierer.</string>
+    <string name="native_bunker_connected">Über Bunker verbunden</string>
+    <string name="native_bunker_dialog_title">Bunker verbinden</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">Das ist kein gültiger Bunker-Link. Er beginnt mit bunker:// und nennt mindestens ein wss://-Relay.</string>
+    <string name="native_bunker_failed">Der Bunker hat nicht geantwortet oder abgelehnt. Prüfen Sie den Link und bestätigen Sie die Anfrage in Ihrer Signierer-App.</string>
+    <string name="native_bunker_waiting">Warte auf den Bunker. Bestätigen Sie die Anfrage in Ihrer Signierer-App.</string>
+    <string name="native_bunker_connect">Verbinden</string>
+    <string name="native_login_changed_title">Erneut anmelden</string>
+    <string name="native_login_changed_body">Dieses Konto war mit einem privaten Schlüssel angemeldet, den Roadstr nicht mehr akzeptiert. Ihre Orte und Einstellungen bleiben erhalten. Melden Sie sich im Profil erneut mit Amber oder einem Bunker an.</string>
 </resources>

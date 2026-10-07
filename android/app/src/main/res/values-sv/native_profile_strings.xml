@@ -12,10 +12,7 @@
     <string name="native_profile_login_title">LOGGA IN MED NOSTR</string>
     <string name="native_profile_amber_title">Amber / NIP-55</string>
     <string name="native_profile_amber_description">Privat nyckel lämnar aldrig din enhet · Rekommenderas</string>
-    <string name="native_profile_nsec_title">Infoga nsec</string>
-    <string name="native_profile_nsec_description">Privat nyckel lagras lokalt · Mindre säkert</string>
     <string name="native_profile_connected_amber">Ansluten via Amber (NIP-55)</string>
-    <string name="native_profile_connected_nsec">Ansluten via nsec</string>
     <string name="native_profile_public_key">OFFENTLIG NYCKEL</string>
     <string name="native_profile_npub_copied">npub kopierad till urklipp</string>
     <string name="native_profile_logout">Koppla från</string>

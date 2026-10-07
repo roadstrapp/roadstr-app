@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">Connesso</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55 (consigliato)</string>
     <string name="native_onboarding_amber_subtitle">Collegati con l\'app firmataria Amber. La tua chiave privata non lascia mai Amber.</string>
-    <string name="native_onboarding_nsec_title">Chiave nsec</string>
-    <string name="native_onboarding_nsec_subtitle">Incolla la tua chiave privata. Salvata nell\'Android Keystore.</string>
-    <string name="native_onboarding_nsec_error">Chiave nsec non valida — controlla e riprova.</string>
-    <string name="native_onboarding_enter_nsec">Inserisci la chiave nsec</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">Stai per rawdoggare la tua chiave privata Nostr direttamente in un\'app. Chiunque abbia accesso fisico o remoto al tuo dispositivo potrebbe leggerla e prendere il controllo permanente della tua identità Nostr.</string>
     <string name="native_onboarding_amber_secure_hint">✦  Il metodo sicuro è Amber (NIP-55): la nsec non lascia mai il vault dell\'app signer.</string>
     <string name="native_onboarding_login">Accedi</string>
     <string name="native_onboarding_favorites_sync_notice">Opzionale: i tuoi luoghi preferiti possono essere sincronizzati tra i tuoi dispositivi tramite i relay Nostr, cifrati end-to-end (NIP-44) con la tua chiave — i relay vedono solo dati cifrati, nessuno tranne te può leggerne il contenuto. Puoi attivarla in qualsiasi momento dalle Impostazioni.</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">Roadstr non è riuscito a leggere ciò che la versione precedente aveva salvato su questo telefono. Niente è stato cancellato o modificato. Puoi riprovare oppure continuare senza; i vecchi dati restano sul telefono.</string>
     <string name="native_onboarding_migration_retry">Riprova</string>
     <string name="native_onboarding_migration_skip">Continua senza importare</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">Accedi con un firmatario remoto. Incolla il suo link bunker://. La tua chiave privata resta al firmatario.</string>
+    <string name="native_bunker_connected">Connesso tramite bunker</string>
+    <string name="native_bunker_dialog_title">Collega un bunker</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">Questo non è un link bunker valido. Inizia con bunker:// e indica almeno un relay wss://.</string>
+    <string name="native_bunker_failed">Il bunker non ha risposto o ha rifiutato. Controlla il link e approva la richiesta nella tua app di firma.</string>
+    <string name="native_bunker_waiting">In attesa del bunker. Approva la richiesta nella tua app di firma.</string>
+    <string name="native_bunker_connect">Collega</string>
+    <string name="native_login_changed_title">Accedi di nuovo</string>
+    <string name="native_login_changed_body">Questo account era collegato con una chiave privata, che Roadstr non accetta più. I tuoi luoghi e le tue impostazioni sono rimasti. Accedi di nuovo con Amber o con un bunker dal profilo.</string>
 </resources>

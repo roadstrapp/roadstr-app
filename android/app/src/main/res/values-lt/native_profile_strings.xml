@@ -12,10 +12,7 @@
     <string name="native_profile_login_title">PRISIJUNGTI SU NOSTR</string>
     <string name="native_profile_amber_title">Amber / NIP-55</string>
     <string name="native_profile_amber_description">Privatus raktas niekada nepalieka jūsų įrenginio · Rekomenduojama</string>
-    <string name="native_profile_nsec_title">Įvesti nsec</string>
-    <string name="native_profile_nsec_description">Privatus raktas saugomas vietoje · Mažiau saugi</string>
     <string name="native_profile_connected_amber">Prisijungta per Amber (NIP-55)</string>
-    <string name="native_profile_connected_nsec">Prisijungta per nsec</string>
     <string name="native_profile_public_key">VIEŠASIS RAKTAS</string>
     <string name="native_profile_npub_copied">npub nukopijuotas į iškarpinę</string>
     <string name="native_profile_logout">Atjungti</string>

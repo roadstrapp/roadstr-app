@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">Ühendatud</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55 (soovitatav)</string>
     <string name="native_onboarding_amber_subtitle">Ühenda allkirjastamisrakendusega Amber. Sinu privaatvõti ei lahku kunagi Amberist.</string>
-    <string name="native_onboarding_nsec_title">nsec võti</string>
-    <string name="native_onboarding_nsec_subtitle">Kleebi oma privaatvõti. Salvestatakse Androidi Keystore\'i.</string>
-    <string name="native_onboarding_nsec_error">Vigane nsec võti — kontrollige ja proovige uuesti.</string>
-    <string name="native_onboarding_enter_nsec">Sisestage nsec võti</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">Olete sellest lahkumas, et visata oma Nostri privaatvõti otse rakendusse. Igaüks, kellel on füüsiline või kaugjuurdepääs teie seadmele, saab selle lugeda ja teie Nostri identiteedi üle kontrolli jäädavalt üle võtta.</string>
     <string name="native_onboarding_amber_secure_hint">✦  Turvaline meetod on Amber (NIP-55): nsec ei lahku kunagi rakenduse allkirjastamishoidlast.</string>
     <string name="native_onboarding_login">Logi sisse</string>
     <string name="native_onboarding_favorites_sync_notice">Valikuline: salvestatud lemmikud saavad sünkroonida sinu seadmete vahel Nostr releede kaudu, otspunktkrüpteeritult (NIP-44) sinu enda võtmega — releed näevad ainult šifreeritud teksti ja keegi peale sinu ei saa sisu lugeda. Luba igal ajal Seadetest.</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">Roadstr ei suutnud lugeda, mida eelmine versioon sellesse telefoni salvestas. Midagi ei kustutatud ega muudetud. Võite uuesti proovida või jätkata ilma nendeta; teie vanad andmed jäävad telefoni.</string>
     <string name="native_onboarding_migration_retry">Proovige uuesti</string>
     <string name="native_onboarding_migration_skip">Jätka importimata</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">Logi sisse kaugallkirjastajaga. Kleebi selle bunker://-link. Sinu privaatvõti jääb allkirjastaja juurde.</string>
+    <string name="native_bunker_connected">Ühendatud bunkri kaudu</string>
+    <string name="native_bunker_dialog_title">Ühenda bunker</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">See pole kehtiv bunker-link. See algab tähisega bunker:// ja nimetab vähemalt ühe wss://-relee.</string>
+    <string name="native_bunker_failed">Bunker ei vastanud või keeldus. Kontrolli linki ja kinnita taotlus oma allkirjastamisrakenduses.</string>
+    <string name="native_bunker_waiting">Ootan bunkrit. Kinnita taotlus oma allkirjastamisrakenduses.</string>
+    <string name="native_bunker_connect">Ühenda</string>
+    <string name="native_login_changed_title">Logi uuesti sisse</string>
+    <string name="native_login_changed_body">See konto oli sisse logitud privaatvõtmega, mida Roadstr enam ei aktsepteeri. Sinu kohad ja seaded on alles. Logi profiilis uuesti sisse Amberi või bunkriga.</string>
 </resources>
