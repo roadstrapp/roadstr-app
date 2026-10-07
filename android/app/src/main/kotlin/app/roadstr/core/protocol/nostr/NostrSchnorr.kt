@@ -15,6 +15,7 @@ object NostrSchnorr {
     private val secureRandom = SecureRandom()
     private const val scalarLength = 32
     private const val signatureLength = 64
+    private const val BLIND_BITS = 64
 
     /** Derives the 32-byte x-only BIP-340 public key. */
     fun publicKey(privateKeyHex: String): String {
@@ -119,7 +120,7 @@ object NostrSchnorr {
             1,
             taggedHash("BIP0340/challenge", r + publicKey + message),
         ).mod(curveOrder)
-        val s = k.add(challenge.multiply(d)).mod(curveOrder)
+        val s = blindedSum(k, challenge, d)
         val signature = (r + s.toFixedBytes()).toHex()
         check(verify(publicKey.toHex(), message, signature)) {
             "generated BIP-340 signature did not verify"
@@ -154,6 +155,21 @@ object NostrSchnorr {
             false
         }
     }
+
+    /**
+     * k + e·d mod n, computed on operands offset by random multiples of n. BigInteger's multiply and
+     * division take time that follows the value and length of what they are given, so the nonce and the
+     * private scalar are never given as they are: the result is the same, the operands are not.
+     */
+    private fun blindedSum(k: BigInteger, e: BigInteger, d: BigInteger): BigInteger {
+        val blindedK = k.add(curveOrder.multiply(randomBlind()))
+        val blindedD = d.add(curveOrder.multiply(randomBlind()))
+        return blindedK.add(e.multiply(blindedD)).mod(curveOrder)
+    }
+
+    /** A random factor of fixed bit length, so the blinded operands also have a fixed length. */
+    private fun randomBlind(): BigInteger =
+        BigInteger(BLIND_BITS, secureRandom).setBit(BLIND_BITS - 1)
 
     private fun privateScalar(privateKeyHex: String): BigInteger {
         val scalar = BigInteger(

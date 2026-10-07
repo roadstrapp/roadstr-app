@@ -19,6 +19,23 @@ class NostrSchnorrParityTest {
     }
 
     @Test
+    fun `blinding the scalar arithmetic never changes a signature`() {
+        val random = java.util.Random(340)
+        repeat(200) {
+            val key = ByteArray(32).also { random.nextBytes(it) }.also { it[0] = (it[0].toInt() and 0x7f).toByte() }
+                .joinToString("") { "%02x".format(it) }
+            val message = ByteArray(32).also { random.nextBytes(it) }.joinToString("") { "%02x".format(it) }
+            val aux = ByteArray(32).also { random.nextBytes(it) }.joinToString("") { "%02x".format(it) }
+
+            val first = NostrSchnorr.signHashWithAux(key, message, aux)
+            val second = NostrSchnorr.signHashWithAux(key, message, aux)
+
+            assertEquals(first, second)
+            assertTrue(NostrSchnorr.verifyHash(NostrSchnorr.publicKey(key), message, first))
+        }
+    }
+
+    @Test
     fun `native BIP-340 reproduces official and Roadstr vectors`() {
         assertEquals(43, rows.size)
         for (fields in rows) {
