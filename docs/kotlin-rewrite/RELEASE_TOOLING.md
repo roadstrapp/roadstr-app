@@ -16,8 +16,8 @@ literal Gradle/pubspec/F-Droid version agreement, R8/resource shrinking, the
 three ABI splits plus universal output, and F-Droid/ZapStore metadata paths.
 
 Adding `--require-upgrade` requires a code greater than the shipped baseline
-2050. It intentionally fails while the checkout remains at `0.5.11+2050`; a
-release candidate must bump all version declarations first.
+2050. It fails while the checkout is still at the shipped `0.5.11+2050`, so a
+release must bump all version declarations first; the checkout is at `0.6.0+2057`.
 
 ## Artifact gates
 

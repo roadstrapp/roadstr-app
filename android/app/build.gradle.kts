@@ -69,13 +69,13 @@ android {
         // every real release since — so ZapStore's "highest version_code
         // wins" update logic kept treating that phantom 0.4.27 as newer than
         // any real 0.5.x release. This has to clear 2036, not just increment.
-        versionCode = 2050
-        versionName = "0.5.11"
+        versionCode = 2057
+        versionName = "0.6.0"
 
-        // Which activity answers the launcher. The Flutter one stays the default until the Kotlin
-        // app is approved as the product; `-Pnative_launcher=true` builds the Kotlin one, which
-        // imports the Flutter app's data on first start.
-        val nativeLauncher = providers.gradleProperty("native_launcher").orNull == "true"
+        // Which activity answers the launcher. Since 0.6.0 the Kotlin app is the product: it answers
+        // the launcher and imports the Flutter app's data on first start. `-Pnative_launcher=false`
+        // builds the old Flutter launcher instead, for comparing the two.
+        val nativeLauncher = providers.gradleProperty("native_launcher").orNull != "false"
         manifestPlaceholders["flutterLauncherEnabled"] = (!nativeLauncher).toString()
         manifestPlaceholders["nativeLauncherEnabled"] = nativeLauncher.toString()
 

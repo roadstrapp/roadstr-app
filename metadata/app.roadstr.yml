@@ -45,8 +45,40 @@ Builds:
       - $$flutter$$/bin/flutter build apk --release
     ndk: 27.1.12297006
 
+  - versionName: 0.6.0
+    versionCode: 2057
+    commit: 06bc1fe39db65457fba7a51298b1aa3f9b5f5c40
+    sudo:
+      - apt-get update
+      - apt-get install -y build-essential cmake
+    output: build/app/outputs/flutter-apk/app-release.apk
+    srclibs:
+      - flutter@3.44.3
+    rm:
+      - android/app/src/main/jniLibs/arm64-v8a/libespeak-ng.so
+      - android/app/src/main/jniLibs/armeabi-v7a/libespeak-ng.so
+      - android/app/src/main/jniLibs/x86_64/libespeak-ng.so
+      - assets/espeak-ng-data.tar.gz
+    prebuild:
+      - export PUB_CACHE=$(pwd)/.pub-cache
+      - ROADSTR_ANDROID_NDK=$$NDK$$ bash tools/build_espeak_android.sh
+      - $$flutter$$/bin/flutter config --no-analytics
+      - $$flutter$$/bin/flutter precache --no-web --no-linux --no-windows --no-macos
+        --no-fuchsia --android
+      - $$flutter$$/bin/flutter pub get --enforce-lockfile
+    scanignore:
+      - android/app/src/main/jniLibs/arm64-v8a/libespeak-ng.so
+      - android/app/src/main/jniLibs/armeabi-v7a/libespeak-ng.so
+      - android/app/src/main/jniLibs/x86_64/libespeak-ng.so
+      - assets/espeak-ng-data.tar.gz
+    scandelete:
+      - .pub-cache
+    build:
+      - export PUB_CACHE=$(pwd)/.pub-cache
+      - $$flutter$$/bin/flutter build apk --release
+    ndk: 27.1.12297006
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$
 UpdateCheckData: pubspec.yaml|version:\s.+\+(\d+)|.|version:\s(.+)\+
-CurrentVersion: 0.5.11
-CurrentVersionCode: 2050
+CurrentVersion: 0.6.0
+CurrentVersionCode: 2057
