@@ -70,31 +70,31 @@ class AppLocalizationsHu extends AppLocalizations {
   String get bottomBarMenu => 'Menü';
 
   @override
-  String get homeGoodMorning => 'Good morning';
+  String get homeGoodMorning => 'Jó reggelt';
 
   @override
-  String get homeGoodAfternoon => 'Good afternoon';
+  String get homeGoodAfternoon => 'Jó napot';
 
   @override
-  String get homeGoodEvening => 'Good evening';
+  String get homeGoodEvening => 'Jó estét';
 
   @override
-  String get homeReadyToGo => 'Ready to go?';
+  String get homeReadyToGo => 'Indulásra kész?';
 
   @override
-  String get homeNavigate => 'Navigate';
+  String get homeNavigate => 'Navigálás';
 
   @override
-  String get homeParking => 'Parking';
+  String get homeParking => 'Parkoló';
 
   @override
-  String get homeActivity => 'Activity';
+  String get homeActivity => 'Tevékenység';
 
   @override
-  String get homeEvents => 'Events';
+  String get homeEvents => 'Események';
 
   @override
-  String get homeSavedPlaces => 'Saved places';
+  String get homeSavedPlaces => 'Mentett helyek';
 
   @override
   String get notificationsTitle => 'Értesítések';
@@ -123,28 +123,28 @@ class AppLocalizationsHu extends AppLocalizations {
   String get sectionMap => 'Térkép';
 
   @override
-  String get sectionNavigationAppearance => 'Navigation appearance';
+  String get sectionNavigationAppearance => 'Navigáció megjelenése';
 
   @override
-  String get speedometerStyleLabel => 'Speedometer';
+  String get speedometerStyleLabel => 'Sebességmérő';
 
   @override
-  String get speedometerClassic => 'Classic (default)';
+  String get speedometerClassic => 'Klasszikus (alapértelmezett)';
 
   @override
-  String get speedometerDigital => 'Digital';
+  String get speedometerDigital => 'Digitális';
 
   @override
-  String get speedometerAnalog => 'Analog';
+  String get speedometerAnalog => 'Analóg';
 
   @override
   String get speedometerSport => 'Sport';
 
   @override
-  String get speedometerMinimal => 'Minimal';
+  String get speedometerMinimal => 'Minimál';
 
   @override
-  String get movementCursorStyleLabel => 'Movement cursor';
+  String get movementCursorStyleLabel => 'Mozgáskurzor';
 
   @override
   String get cursorVehicleLabel => 'Jármű';
@@ -153,22 +153,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get cursorColorLabel => 'Szín';
 
   @override
-  String get cursorStandard => 'Standard (default)';
+  String get cursorStandard => 'Normál (alapértelmezett)';
 
   @override
-  String get cursorFormula1 => 'Formula 1';
+  String get cursorFormula1 => 'Forma-1';
 
   @override
   String get cursorSuv => 'SUV';
 
   @override
-  String get cursorRacing => 'Racing car';
+  String get cursorRacing => 'Versenyautó';
 
   @override
-  String get cursorElectric => 'Electric car';
+  String get cursorElectric => 'Elektromos autó';
 
   @override
-  String get cursorCity => 'City car';
+  String get cursorCity => 'Városi autó';
 
   @override
   String get cursorClassic500 => 'Klasszikus Fiat 500';
@@ -223,21 +223,22 @@ class AppLocalizationsHu extends AppLocalizations {
       'Megakadályozza az alvó módot navigáció közben';
 
   @override
-  String get keepScreenOnAlways => 'Keep screen on outside navigation too';
+  String get keepScreenOnAlways =>
+      'Képernyő bekapcsolva tartása a navigáción kívül is';
 
   @override
   String get keepScreenOnAlwaysDescription =>
-      'Also applies while browsing the map without an active route';
+      'A térkép böngészésére is vonatkozik aktív útvonal nélkül';
 
   @override
-  String get minBrightness => 'Minimum screen brightness';
+  String get minBrightness => 'Minimális képernyőfényerő';
 
   @override
   String get minBrightnessDescription =>
-      'Stops the screen dimming below this level while the app is open — useful on OLED screens that dim further than the map stays readable at';
+      'Megakadályozza, hogy a képernyő ennél a szintnél jobban elsötétüljön, amíg az alkalmazás nyitva van — hasznos az OLED kijelzőkön, amelyek jobban elsötétülnek, mint ameddig a térkép olvasható marad';
 
   @override
-  String get minBrightnessOff => 'Off';
+  String get minBrightnessOff => 'Ki';
 
   @override
   String get showAltitude => 'Magasság megjelenítése';
@@ -1147,26 +1148,26 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get onboardingWelcomeBody =>
-      'Everything your navigation app needs — without giving up your privacy.';
+      'Minden, amire a navigációs appodnak szüksége van — az adatvédelmed feladása nélkül.';
 
   @override
-  String get onboardingFeatureNav => 'Turn-by-turn GPS navigation';
+  String get onboardingFeatureNav => 'Részletes GPS-navigáció';
 
   @override
   String get onboardingFeatureNostr =>
-      'Nostr road events (speed cameras, hazards, traffic)';
+      'Nostr közlekedési események (traffipaxok, veszélyek, forgalom)';
 
   @override
   String get onboardingFeatureLightning =>
-      'Lightning Network tips for event reporters';
+      'Lightning Network borravaló az eseményt jelentőknek';
 
   @override
   String get onboardingFeatureVoice =>
-      'On-device AI voice guidance (Kokoro-82M)';
+      'Eszközön futó MI-hangnavigáció (Kokoro-82M)';
 
   @override
   String get onboardingFeaturePrivacy =>
-      'No account required — no tracking, ever';
+      'Nem kell fiók — soha semmilyen nyomkövetés';
 
   @override
   String get onboardingGetStarted => 'Kezdés';
@@ -1176,7 +1177,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get onboardingNostrSubtitle =>
-      'Optional — connect to report road events, confirm alerts and earn Lightning tips.';
+      'Opcionális — csatlakozz, hogy közlekedési eseményeket jelents, riasztásokat erősíts meg és Lightning borravalót keress.';
 
   @override
   String get onboardingNostrConnected => 'Csatlakozva';
@@ -1186,14 +1187,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get onboardingAmberSubtitle =>
-      'Connect with the Amber signer app. Your private key never leaves Amber.';
+      'Csatlakozz az Amber aláíró alkalmazással. A privát kulcsod soha nem hagyja el az Ambert.';
 
   @override
   String get onboardingNsecTitle => 'nsec kulcs';
 
   @override
   String get onboardingNsecSubtitle =>
-      'Paste your private key. Stored in the Android Keystore.';
+      'Illeszd be a privát kulcsodat. Az Android Keystore-ban tárolódik.';
 
   @override
   String get onboardingNsecError =>
@@ -1213,7 +1214,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get onboardingSetupSubtitle =>
-      'Configure location access and optional voice guidance.';
+      'Állítsd be a helyadatok elérését és az opcionális hangnavigációt.';
 
   @override
   String get onboardingLocationTitle => 'Helyszín';
@@ -1232,7 +1233,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
+      'Engedélyezd a Pontos helymeghatározást (nem a Hozzávetőlegest) a Roadstr használata közben itt:\nBeállítások → Alkalmazások → Roadstr → Engedélyek → Helyadatok\n\nA Roadstr előtérben futó navigációs szolgáltatást használ, és nem igényel állandó háttérbeli helyadat-hozzáférést.';
 
   @override
   String get onboardingVoiceTitle => 'AI hangvezetés (opcionális)';
@@ -1245,24 +1246,24 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get onboardingVoiceNotDownloaded =>
-      'Download the 82 MB Kokoro AI model for on-device voice';
+      'Töltsd le a 82 MB-os Kokoro MI-modellt az eszközön futó hanghoz';
 
   @override
-  String get onboardingVoiceChecking => 'Checking model status…';
+  String get onboardingVoiceChecking => 'A modell állapotának ellenőrzése…';
 
   @override
   String get onboardingDownloadButton => 'Letöltés';
 
   @override
   String get onboardingVoiceLaterHint =>
-      'You can also download the voice model later from\nSettings → Navigation voice.';
+      'A hangmodellt később is letöltheted itt:\nBeállítások → Navigációs hang.';
 
   @override
   String get onboardingReadyTitle => 'Készen áll a navigálásra!';
 
   @override
   String get onboardingReadyBody =>
-      'Roadstr will now open the map.\nYou can configure everything else in Settings.';
+      'A Roadstr most megnyitja a térképet.\nMindent mást a Beállításokban állíthatsz be.';
 
   @override
   String get onboardingLetsGo => 'Induljunk!';

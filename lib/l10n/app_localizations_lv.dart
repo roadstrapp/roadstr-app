@@ -69,31 +69,31 @@ class AppLocalizationsLv extends AppLocalizations {
   String get bottomBarMenu => 'Izvēlne';
 
   @override
-  String get homeGoodMorning => 'Good morning';
+  String get homeGoodMorning => 'Labrīt';
 
   @override
-  String get homeGoodAfternoon => 'Good afternoon';
+  String get homeGoodAfternoon => 'Labdien';
 
   @override
-  String get homeGoodEvening => 'Good evening';
+  String get homeGoodEvening => 'Labvakar';
 
   @override
-  String get homeReadyToGo => 'Ready to go?';
+  String get homeReadyToGo => 'Gatavi doties ceļā?';
 
   @override
-  String get homeNavigate => 'Navigate';
+  String get homeNavigate => 'Navigēt';
 
   @override
-  String get homeParking => 'Parking';
+  String get homeParking => 'Autostāvvieta';
 
   @override
-  String get homeActivity => 'Activity';
+  String get homeActivity => 'Aktivitāte';
 
   @override
-  String get homeEvents => 'Events';
+  String get homeEvents => 'Notikumi';
 
   @override
-  String get homeSavedPlaces => 'Saved places';
+  String get homeSavedPlaces => 'Saglabātās vietas';
 
   @override
   String get notificationsTitle => 'Paziņojumi';
@@ -122,28 +122,28 @@ class AppLocalizationsLv extends AppLocalizations {
   String get sectionMap => 'Karte';
 
   @override
-  String get sectionNavigationAppearance => 'Navigation appearance';
+  String get sectionNavigationAppearance => 'Navigācijas izskats';
 
   @override
-  String get speedometerStyleLabel => 'Speedometer';
+  String get speedometerStyleLabel => 'Ātruma mērītājs';
 
   @override
-  String get speedometerClassic => 'Classic (default)';
+  String get speedometerClassic => 'Klasisks (noklusējums)';
 
   @override
-  String get speedometerDigital => 'Digital';
+  String get speedometerDigital => 'Digitāls';
 
   @override
-  String get speedometerAnalog => 'Analog';
+  String get speedometerAnalog => 'Analogs';
 
   @override
-  String get speedometerSport => 'Sport';
+  String get speedometerSport => 'Sporta';
 
   @override
-  String get speedometerMinimal => 'Minimal';
+  String get speedometerMinimal => 'Minimāls';
 
   @override
-  String get movementCursorStyleLabel => 'Movement cursor';
+  String get movementCursorStyleLabel => 'Kustības kursors';
 
   @override
   String get cursorVehicleLabel => 'Transportlīdzeklis';
@@ -152,7 +152,7 @@ class AppLocalizationsLv extends AppLocalizations {
   String get cursorColorLabel => 'Krāsa';
 
   @override
-  String get cursorStandard => 'Standard (default)';
+  String get cursorStandard => 'Standarta (noklusējums)';
 
   @override
   String get cursorFormula1 => 'Formula 1';
@@ -161,13 +161,13 @@ class AppLocalizationsLv extends AppLocalizations {
   String get cursorSuv => 'SUV';
 
   @override
-  String get cursorRacing => 'Racing car';
+  String get cursorRacing => 'Sacīkšu auto';
 
   @override
-  String get cursorElectric => 'Electric car';
+  String get cursorElectric => 'Elektroauto';
 
   @override
-  String get cursorCity => 'City car';
+  String get cursorCity => 'Pilsētas auto';
 
   @override
   String get cursorClassic500 => 'Klasisks Fiat 500';
@@ -221,21 +221,22 @@ class AppLocalizationsLv extends AppLocalizations {
   String get keepScreenOnDescription => 'Novērš miega režīmu navigācijas laikā';
 
   @override
-  String get keepScreenOnAlways => 'Keep screen on outside navigation too';
+  String get keepScreenOnAlways =>
+      'Paturēt ekrānu ieslēgtu arī ārpus navigācijas';
 
   @override
   String get keepScreenOnAlwaysDescription =>
-      'Also applies while browsing the map without an active route';
+      'Attiecas arī uz kartes pārlūkošanu bez aktīva maršruta';
 
   @override
-  String get minBrightness => 'Minimum screen brightness';
+  String get minBrightness => 'Minimālais ekrāna spilgtums';
 
   @override
   String get minBrightnessDescription =>
-      'Stops the screen dimming below this level while the app is open — useful on OLED screens that dim further than the map stays readable at';
+      'Neļauj ekrānam kļūt tumšākam par šo līmeni, kamēr lietotne ir atvērta — noderīgi OLED ekrāniem, kas aptumšojas vairāk, nekā karte paliek salasāma';
 
   @override
-  String get minBrightnessOff => 'Off';
+  String get minBrightnessOff => 'Izslēgts';
 
   @override
   String get showAltitude => 'Rādīt augstumu';
@@ -1142,26 +1143,27 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get onboardingWelcomeBody =>
-      'Everything your navigation app needs — without giving up your privacy.';
+      'Viss, kas nepieciešams jūsu navigācijas lietotnei — neatsakoties no privātuma.';
 
   @override
-  String get onboardingFeatureNav => 'Turn-by-turn GPS navigation';
+  String get onboardingFeatureNav =>
+      'GPS navigācija pagrieziens pa pagriezienam';
 
   @override
   String get onboardingFeatureNostr =>
-      'Nostr road events (speed cameras, hazards, traffic)';
+      'Nostr ceļu notikumi (ātruma kameras, apdraudējumi, satiksme)';
 
   @override
   String get onboardingFeatureLightning =>
-      'Lightning Network tips for event reporters';
+      'Lightning Network dzeramnauda notikumu ziņotājiem';
 
   @override
   String get onboardingFeatureVoice =>
-      'On-device AI voice guidance (Kokoro-82M)';
+      'Mākslīgā intelekta balss norādes ierīcē (Kokoro-82M)';
 
   @override
   String get onboardingFeaturePrivacy =>
-      'No account required — no tracking, ever';
+      'Konts nav nepieciešams — nekādas izsekošanas, nekad';
 
   @override
   String get onboardingGetStarted => 'Sākt';
@@ -1171,7 +1173,7 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get onboardingNostrSubtitle =>
-      'Optional — connect to report road events, confirm alerts and earn Lightning tips.';
+      'Neobligāti — pieslēdzieties, lai ziņotu par ceļu notikumiem, apstiprinātu brīdinājumus un pelnītu Lightning dzeramnaudu.';
 
   @override
   String get onboardingNostrConnected => 'Savienots';
@@ -1181,14 +1183,14 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get onboardingAmberSubtitle =>
-      'Connect with the Amber signer app. Your private key never leaves Amber.';
+      'Pieslēdzieties ar parakstīšanas lietotni Amber. Jūsu privātā atslēga nekad neatstāj Amber.';
 
   @override
   String get onboardingNsecTitle => 'nsec atslēga';
 
   @override
   String get onboardingNsecSubtitle =>
-      'Paste your private key. Stored in the Android Keystore.';
+      'Ielīmējiet savu privāto atslēgu. Tiek glabāta Android Keystore.';
 
   @override
   String get onboardingNsecError =>
@@ -1208,7 +1210,7 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get onboardingSetupSubtitle =>
-      'Configure location access and optional voice guidance.';
+      'Iestatiet piekļuvi atrašanās vietai un neobligātās balss norādes.';
 
   @override
   String get onboardingLocationTitle => 'Atrašanās vieta';
@@ -1227,7 +1229,7 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
+      'Atļaujiet Precīzu atrašanās vietu (nevis Aptuvenu), kamēr izmantojat Roadstr, šeit:\nIestatījumi → Lietotnes → Roadstr → Atļaujas → Atrašanās vieta\n\nRoadstr izmanto priekšplāna navigācijas pakalpojumu un neprasa pastāvīgu piekļuvi atrašanās vietai fonā.';
 
   @override
   String get onboardingVoiceTitle => 'AI balss vadīšana (neobligāta)';
@@ -1240,24 +1242,24 @@ class AppLocalizationsLv extends AppLocalizations {
 
   @override
   String get onboardingVoiceNotDownloaded =>
-      'Download the 82 MB Kokoro AI model for on-device voice';
+      'Lejupielādējiet Kokoro MI modeli (82 MB) balsij ierīcē';
 
   @override
-  String get onboardingVoiceChecking => 'Checking model status…';
+  String get onboardingVoiceChecking => 'Notiek modeļa stāvokļa pārbaude…';
 
   @override
   String get onboardingDownloadButton => 'Lejupielādēt';
 
   @override
   String get onboardingVoiceLaterHint =>
-      'You can also download the voice model later from\nSettings → Navigation voice.';
+      'Balss modeli varat lejupielādēt arī vēlāk šeit:\nIestatījumi → Navigācijas balss.';
 
   @override
   String get onboardingReadyTitle => 'Esat gatavs navigācijai!';
 
   @override
   String get onboardingReadyBody =>
-      'Roadstr will now open the map.\nYou can configure everything else in Settings.';
+      'Roadstr tagad atvērs karti.\nPārējo varat iestatīt sadaļā Iestatījumi.';
 
   @override
   String get onboardingLetsGo => 'Braucam!';

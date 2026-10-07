@@ -69,31 +69,31 @@ class AppLocalizationsFi extends AppLocalizations {
   String get bottomBarMenu => 'Valikko';
 
   @override
-  String get homeGoodMorning => 'Good morning';
+  String get homeGoodMorning => 'Hyvää huomenta';
 
   @override
-  String get homeGoodAfternoon => 'Good afternoon';
+  String get homeGoodAfternoon => 'Hyvää päivää';
 
   @override
-  String get homeGoodEvening => 'Good evening';
+  String get homeGoodEvening => 'Hyvää iltaa';
 
   @override
-  String get homeReadyToGo => 'Ready to go?';
+  String get homeReadyToGo => 'Valmiina lähtöön?';
 
   @override
-  String get homeNavigate => 'Navigate';
+  String get homeNavigate => 'Navigoi';
 
   @override
-  String get homeParking => 'Parking';
+  String get homeParking => 'Pysäköinti';
 
   @override
-  String get homeActivity => 'Activity';
+  String get homeActivity => 'Toiminta';
 
   @override
-  String get homeEvents => 'Events';
+  String get homeEvents => 'Tapahtumat';
 
   @override
-  String get homeSavedPlaces => 'Saved places';
+  String get homeSavedPlaces => 'Tallennetut paikat';
 
   @override
   String get notificationsTitle => 'Ilmoitukset';
@@ -122,28 +122,28 @@ class AppLocalizationsFi extends AppLocalizations {
   String get sectionMap => 'Kartta';
 
   @override
-  String get sectionNavigationAppearance => 'Navigation appearance';
+  String get sectionNavigationAppearance => 'Navigoinnin ulkoasu';
 
   @override
-  String get speedometerStyleLabel => 'Speedometer';
+  String get speedometerStyleLabel => 'Nopeusmittari';
 
   @override
-  String get speedometerClassic => 'Classic (default)';
+  String get speedometerClassic => 'Klassinen (oletus)';
 
   @override
-  String get speedometerDigital => 'Digital';
+  String get speedometerDigital => 'Digitaalinen';
 
   @override
-  String get speedometerAnalog => 'Analog';
+  String get speedometerAnalog => 'Analoginen';
 
   @override
-  String get speedometerSport => 'Sport';
+  String get speedometerSport => 'Urheilullinen';
 
   @override
-  String get speedometerMinimal => 'Minimal';
+  String get speedometerMinimal => 'Minimalistinen';
 
   @override
-  String get movementCursorStyleLabel => 'Movement cursor';
+  String get movementCursorStyleLabel => 'Liikkeen kohdistin';
 
   @override
   String get cursorVehicleLabel => 'Ajoneuvo';
@@ -152,7 +152,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get cursorColorLabel => 'Väri';
 
   @override
-  String get cursorStandard => 'Standard (default)';
+  String get cursorStandard => 'Vakio (oletus)';
 
   @override
   String get cursorFormula1 => 'Formula 1';
@@ -161,13 +161,13 @@ class AppLocalizationsFi extends AppLocalizations {
   String get cursorSuv => 'SUV';
 
   @override
-  String get cursorRacing => 'Racing car';
+  String get cursorRacing => 'Kilpa-auto';
 
   @override
-  String get cursorElectric => 'Electric car';
+  String get cursorElectric => 'Sähköauto';
 
   @override
-  String get cursorCity => 'City car';
+  String get cursorCity => 'Kaupunkiauto';
 
   @override
   String get cursorClassic500 => 'Klassinen Fiat 500';
@@ -222,21 +222,22 @@ class AppLocalizationsFi extends AppLocalizations {
       'Estää laitteen siirtymisen lepotilaan navigoinnin aikana';
 
   @override
-  String get keepScreenOnAlways => 'Keep screen on outside navigation too';
+  String get keepScreenOnAlways =>
+      'Pidä näyttö päällä myös navigoinnin ulkopuolella';
 
   @override
   String get keepScreenOnAlwaysDescription =>
-      'Also applies while browsing the map without an active route';
+      'Koskee myös kartan selaamista ilman aktiivista reittiä';
 
   @override
-  String get minBrightness => 'Minimum screen brightness';
+  String get minBrightness => 'Näytön vähimmäiskirkkaus';
 
   @override
   String get minBrightnessDescription =>
-      'Stops the screen dimming below this level while the app is open — useful on OLED screens that dim further than the map stays readable at';
+      'Estää näyttöä himmenemästä tämän tason alle sovelluksen ollessa auki — hyödyllinen OLED-näytöillä, jotka himmenevät enemmän kuin kartta pysyy luettavana';
 
   @override
-  String get minBrightnessOff => 'Off';
+  String get minBrightnessOff => 'Pois';
 
   @override
   String get showAltitude => 'Näytä korkeus';
@@ -1143,26 +1144,26 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get onboardingWelcomeBody =>
-      'Everything your navigation app needs — without giving up your privacy.';
+      'Kaikki mitä navigointisovelluksesi tarvitsee — luopumatta yksityisyydestäsi.';
 
   @override
-  String get onboardingFeatureNav => 'Turn-by-turn GPS navigation';
+  String get onboardingFeatureNav => 'GPS-navigointi käänne käänteeltä';
 
   @override
   String get onboardingFeatureNostr =>
-      'Nostr road events (speed cameras, hazards, traffic)';
+      'Nostr-tieliikennetapahtumat (nopeuskamerat, vaarat, liikenne)';
 
   @override
   String get onboardingFeatureLightning =>
-      'Lightning Network tips for event reporters';
+      'Lightning Network -tippejä tapahtumien ilmoittajille';
 
   @override
   String get onboardingFeatureVoice =>
-      'On-device AI voice guidance (Kokoro-82M)';
+      'Laitteella toimiva tekoälyääniopastus (Kokoro-82M)';
 
   @override
   String get onboardingFeaturePrivacy =>
-      'No account required — no tracking, ever';
+      'Tiliä ei tarvita — ei seurantaa, koskaan';
 
   @override
   String get onboardingGetStarted => 'Aloita';
@@ -1172,7 +1173,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get onboardingNostrSubtitle =>
-      'Optional — connect to report road events, confirm alerts and earn Lightning tips.';
+      'Valinnainen — yhdistä ilmoittaaksesi tapahtumista, vahvistaaksesi varoituksia ja ansaitaksesi Lightning-tippejä.';
 
   @override
   String get onboardingNostrConnected => 'Yhdistetty';
@@ -1182,14 +1183,14 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get onboardingAmberSubtitle =>
-      'Connect with the Amber signer app. Your private key never leaves Amber.';
+      'Yhdistä Amber-allekirjoitussovellukseen. Yksityinen avaimesi ei koskaan poistu Amberista.';
 
   @override
   String get onboardingNsecTitle => 'nsec-avain';
 
   @override
   String get onboardingNsecSubtitle =>
-      'Paste your private key. Stored in the Android Keystore.';
+      'Liitä yksityinen avaimesi. Tallennetaan Android Keystoreen.';
 
   @override
   String get onboardingNsecError =>
@@ -1209,7 +1210,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get onboardingSetupSubtitle =>
-      'Configure location access and optional voice guidance.';
+      'Määritä sijaintiin pääsy ja valinnainen ääniopastus.';
 
   @override
   String get onboardingLocationTitle => 'Sijainti';
@@ -1228,7 +1229,7 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
+      'Myönnä Tarkka sijainti (ei Likimääräinen) Roadstria käyttäessäsi kohdassa:\nAsetukset → Sovellukset → Roadstr → Käyttöoikeudet → Sijainti\n\nRoadstr käyttää etualalla toimivaa navigointipalvelua eikä vaadi jatkuvaa sijainnin käyttöä taustalla.';
 
   @override
   String get onboardingVoiceTitle => 'AI-ääniohjelma (valinnainen)';
@@ -1241,24 +1242,24 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get onboardingVoiceNotDownloaded =>
-      'Download the 82 MB Kokoro AI model for on-device voice';
+      'Lataa 82 Mt:n Kokoro-tekoälymalli laitteella toimivaa ääntä varten';
 
   @override
-  String get onboardingVoiceChecking => 'Checking model status…';
+  String get onboardingVoiceChecking => 'Tarkistetaan mallin tilaa…';
 
   @override
   String get onboardingDownloadButton => 'Lataa';
 
   @override
   String get onboardingVoiceLaterHint =>
-      'You can also download the voice model later from\nSettings → Navigation voice.';
+      'Voit ladata äänimallin myös myöhemmin kohdasta\nAsetukset → Navigoinnin ääni.';
 
   @override
   String get onboardingReadyTitle => 'Olet valmis navigoimaan!';
 
   @override
   String get onboardingReadyBody =>
-      'Roadstr will now open the map.\nYou can configure everything else in Settings.';
+      'Roadstr avaa nyt kartan.\nKaiken muun voit määrittää Asetuksissa.';
 
   @override
   String get onboardingLetsGo => 'Mennään!';

@@ -70,31 +70,31 @@ class AppLocalizationsDe extends AppLocalizations {
   String get bottomBarMenu => 'Menü';
 
   @override
-  String get homeGoodMorning => 'Good morning';
+  String get homeGoodMorning => 'Guten Morgen';
 
   @override
-  String get homeGoodAfternoon => 'Good afternoon';
+  String get homeGoodAfternoon => 'Guten Tag';
 
   @override
-  String get homeGoodEvening => 'Good evening';
+  String get homeGoodEvening => 'Guten Abend';
 
   @override
-  String get homeReadyToGo => 'Ready to go?';
+  String get homeReadyToGo => 'Startklar?';
 
   @override
-  String get homeNavigate => 'Navigate';
+  String get homeNavigate => 'Navigieren';
 
   @override
-  String get homeParking => 'Parking';
+  String get homeParking => 'Parkplatz';
 
   @override
-  String get homeActivity => 'Activity';
+  String get homeActivity => 'Aktivität';
 
   @override
-  String get homeEvents => 'Events';
+  String get homeEvents => 'Ereignisse';
 
   @override
-  String get homeSavedPlaces => 'Saved places';
+  String get homeSavedPlaces => 'Gespeicherte Orte';
 
   @override
   String get notificationsTitle => 'Benachrichtigungen';
@@ -123,13 +123,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sectionMap => 'Karte';
 
   @override
-  String get sectionNavigationAppearance => 'Navigation appearance';
+  String get sectionNavigationAppearance => 'Navigationsdarstellung';
 
   @override
-  String get speedometerStyleLabel => 'Speedometer';
+  String get speedometerStyleLabel => 'Tachometer';
 
   @override
-  String get speedometerClassic => 'Classic (default)';
+  String get speedometerClassic => 'Klassisch (Standard)';
 
   @override
   String get speedometerDigital => 'Digital';
@@ -144,7 +144,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get speedometerMinimal => 'Minimal';
 
   @override
-  String get movementCursorStyleLabel => 'Movement cursor';
+  String get movementCursorStyleLabel => 'Bewegungscursor';
 
   @override
   String get cursorVehicleLabel => 'Fahrzeug';
@@ -153,22 +153,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get cursorColorLabel => 'Farbe';
 
   @override
-  String get cursorStandard => 'Standard (default)';
+  String get cursorStandard => 'Standard (Voreinstellung)';
 
   @override
-  String get cursorFormula1 => 'Formula 1';
+  String get cursorFormula1 => 'Formel 1';
 
   @override
   String get cursorSuv => 'SUV';
 
   @override
-  String get cursorRacing => 'Racing car';
+  String get cursorRacing => 'Rennwagen';
 
   @override
-  String get cursorElectric => 'Electric car';
+  String get cursorElectric => 'Elektroauto';
 
   @override
-  String get cursorCity => 'City car';
+  String get cursorCity => 'Stadtauto';
 
   @override
   String get cursorClassic500 => 'Klassischer Fiat 500';
@@ -223,21 +223,22 @@ class AppLocalizationsDe extends AppLocalizations {
       'Verhindert den Ruhezustand während der Navigation';
 
   @override
-  String get keepScreenOnAlways => 'Keep screen on outside navigation too';
+  String get keepScreenOnAlways =>
+      'Bildschirm auch außerhalb der Navigation eingeschaltet lassen';
 
   @override
   String get keepScreenOnAlwaysDescription =>
-      'Also applies while browsing the map without an active route';
+      'Gilt auch beim Durchsuchen der Karte ohne aktive Route';
 
   @override
-  String get minBrightness => 'Minimum screen brightness';
+  String get minBrightness => 'Minimale Bildschirmhelligkeit';
 
   @override
   String get minBrightnessDescription =>
-      'Stops the screen dimming below this level while the app is open — useful on OLED screens that dim further than the map stays readable at';
+      'Verhindert, dass der Bildschirm unter diese Stufe abdunkelt, solange die App geöffnet ist — nützlich bei OLED-Displays, die stärker abdunkeln, als die Karte lesbar bleibt';
 
   @override
-  String get minBrightnessOff => 'Off';
+  String get minBrightnessOff => 'Aus';
 
   @override
   String get showAltitude => 'Höhe anzeigen';
@@ -1236,7 +1237,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
+      'Erteilen Sie die Berechtigung „Genauer Standort“ (nicht „Ungefähr“), während Sie Roadstr verwenden, unter:\nEinstellungen → Apps → Roadstr → Berechtigungen → Standort\n\nRoadstr nutzt einen Navigationsdienst im Vordergrund und benötigt keinen dauerhaften Standortzugriff im Hintergrund.';
 
   @override
   String get onboardingVoiceTitle => 'KI-Sprachführung (optional)';

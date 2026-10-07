@@ -70,31 +70,31 @@ class AppLocalizationsMt extends AppLocalizations {
   String get bottomBarMenu => 'Menu';
 
   @override
-  String get homeGoodMorning => 'Good morning';
+  String get homeGoodMorning => 'Għodwa t-tajba';
 
   @override
-  String get homeGoodAfternoon => 'Good afternoon';
+  String get homeGoodAfternoon => 'Wara nofsinhar it-tajjeb';
 
   @override
-  String get homeGoodEvening => 'Good evening';
+  String get homeGoodEvening => 'Għaxija t-tajba';
 
   @override
-  String get homeReadyToGo => 'Ready to go?';
+  String get homeReadyToGo => 'Lest biex titlaq?';
 
   @override
-  String get homeNavigate => 'Navigate';
+  String get homeNavigate => 'Naviga';
 
   @override
-  String get homeParking => 'Parking';
+  String get homeParking => 'Parkeġġ';
 
   @override
-  String get homeActivity => 'Activity';
+  String get homeActivity => 'Attività';
 
   @override
-  String get homeEvents => 'Events';
+  String get homeEvents => 'Avvenimenti';
 
   @override
-  String get homeSavedPlaces => 'Saved places';
+  String get homeSavedPlaces => 'Postijiet salvati';
 
   @override
   String get notificationsTitle => 'Notifiki';
@@ -123,28 +123,28 @@ class AppLocalizationsMt extends AppLocalizations {
   String get sectionMap => 'Mappa';
 
   @override
-  String get sectionNavigationAppearance => 'Navigation appearance';
+  String get sectionNavigationAppearance => 'Dehra tan-navigazzjoni';
 
   @override
-  String get speedometerStyleLabel => 'Speedometer';
+  String get speedometerStyleLabel => 'Ispidometru';
 
   @override
-  String get speedometerClassic => 'Classic (default)';
+  String get speedometerClassic => 'Klassiku (predefinit)';
 
   @override
-  String get speedometerDigital => 'Digital';
+  String get speedometerDigital => 'Diġitali';
 
   @override
-  String get speedometerAnalog => 'Analog';
+  String get speedometerAnalog => 'Analogu';
 
   @override
   String get speedometerSport => 'Sport';
 
   @override
-  String get speedometerMinimal => 'Minimal';
+  String get speedometerMinimal => 'Minimu';
 
   @override
-  String get movementCursorStyleLabel => 'Movement cursor';
+  String get movementCursorStyleLabel => 'Kursur tal-moviment';
 
   @override
   String get cursorVehicleLabel => 'Vettura';
@@ -153,7 +153,7 @@ class AppLocalizationsMt extends AppLocalizations {
   String get cursorColorLabel => 'Kulur';
 
   @override
-  String get cursorStandard => 'Standard (default)';
+  String get cursorStandard => 'Standard (predefinit)';
 
   @override
   String get cursorFormula1 => 'Formula 1';
@@ -162,13 +162,13 @@ class AppLocalizationsMt extends AppLocalizations {
   String get cursorSuv => 'SUV';
 
   @override
-  String get cursorRacing => 'Racing car';
+  String get cursorRacing => 'Karozza tat-tlielaq';
 
   @override
-  String get cursorElectric => 'Electric car';
+  String get cursorElectric => 'Karozza elettrika';
 
   @override
-  String get cursorCity => 'City car';
+  String get cursorCity => 'Karozza tal-belt';
 
   @override
   String get cursorClassic500 => 'Fiat 500 klassika';
@@ -223,21 +223,22 @@ class AppLocalizationsMt extends AppLocalizations {
       'Jimpedixxi l-irqad waqt in-navigazzjoni';
 
   @override
-  String get keepScreenOnAlways => 'Keep screen on outside navigation too';
+  String get keepScreenOnAlways =>
+      'Żomm l-iskrin mixgħul anke barra n-navigazzjoni';
 
   @override
   String get keepScreenOnAlwaysDescription =>
-      'Also applies while browsing the map without an active route';
+      'Japplika wkoll waqt li tbexbex il-mappa mingħajr rotta attiva';
 
   @override
-  String get minBrightness => 'Minimum screen brightness';
+  String get minBrightness => 'Luminożità minima tal-iskrin';
 
   @override
   String get minBrightnessDescription =>
-      'Stops the screen dimming below this level while the app is open — useful on OLED screens that dim further than the map stays readable at';
+      'Iżomm l-iskrin milli jidlam taħt dan il-livell sakemm l-app tkun miftuħa — utli fuq skrins OLED li jidlmu aktar milli l-mappa tibqa\' leġġibbli';
 
   @override
-  String get minBrightnessOff => 'Off';
+  String get minBrightnessOff => 'Mitfi';
 
   @override
   String get showAltitude => 'Uri l-għoli';
@@ -765,7 +766,7 @@ class AppLocalizationsMt extends AppLocalizations {
   }
 
   @override
-  String get sectionFavorites => 'Postijiet miftuħin';
+  String get sectionFavorites => 'Postijiet salvati';
 
   @override
   String get addFavorite => 'Żid post';
@@ -1152,26 +1153,26 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get onboardingWelcomeBody =>
-      'Everything your navigation app needs — without giving up your privacy.';
+      'Dak kollu li teħtieġ l-app tan-navigazzjoni tiegħek — mingħajr ma tċedi l-privatezza tiegħek.';
 
   @override
-  String get onboardingFeatureNav => 'Turn-by-turn GPS navigation';
+  String get onboardingFeatureNav => 'Navigazzjoni GPS pass pass';
 
   @override
   String get onboardingFeatureNostr =>
-      'Nostr road events (speed cameras, hazards, traffic)';
+      'Avvenimenti tat-triq ta\' Nostr (kameras tal-veloċità, perikli, traffiku)';
 
   @override
   String get onboardingFeatureLightning =>
-      'Lightning Network tips for event reporters';
+      'Tips tal-Lightning Network għal dawk li jirrapportaw l-avvenimenti';
 
   @override
   String get onboardingFeatureVoice =>
-      'On-device AI voice guidance (Kokoro-82M)';
+      'Gwida bil-vuċi bl-AI fuq l-apparat (Kokoro-82M)';
 
   @override
   String get onboardingFeaturePrivacy =>
-      'No account required — no tracking, ever';
+      'Ma jinħtieġx kont — l-ebda traċċar, qatt';
 
   @override
   String get onboardingGetStarted => 'Ibda';
@@ -1181,7 +1182,7 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get onboardingNostrSubtitle =>
-      'Optional — connect to report road events, confirm alerts and earn Lightning tips.';
+      'Fakultattiv — qabbad biex tirrapporta avvenimenti tat-triq, tikkonferma twissijiet u tikseb tips tal-Lightning.';
 
   @override
   String get onboardingNostrConnected => 'Konness';
@@ -1191,14 +1192,14 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get onboardingAmberSubtitle =>
-      'Connect with the Amber signer app. Your private key never leaves Amber.';
+      'Qabbad mal-app tal-firma Amber. Iċ-ċavetta privata tiegħek qatt ma titlaq minn Amber.';
 
   @override
   String get onboardingNsecTitle => 'Ċavetta nsec';
 
   @override
   String get onboardingNsecSubtitle =>
-      'Paste your private key. Stored in the Android Keystore.';
+      'Waħħal iċ-ċavetta privata tiegħek. Maħżuna fl-Android Keystore.';
 
   @override
   String get onboardingNsecError =>
@@ -1218,7 +1219,7 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get onboardingSetupSubtitle =>
-      'Configure location access and optional voice guidance.';
+      'Ikkonfigura l-aċċess għall-pożizzjoni u l-gwida bil-vuċi fakultattiva.';
 
   @override
   String get onboardingLocationTitle => 'Post';
@@ -1237,7 +1238,7 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
+      'Agħti Pożizzjoni Preċiża (mhux Approssimata) waqt li tuża Roadstr f\':\nSettings → Apps → Roadstr → Permessi → Pożizzjoni\n\nRoadstr juża servizz tan-navigazzjoni fuq quddiem u ma jeħtieġx aċċess permanenti għall-pożizzjoni fl-isfond.';
 
   @override
   String get onboardingVoiceTitle => 'Gwida bil-vuċi AI (mhux obbligatorja)';
@@ -1250,24 +1251,25 @@ class AppLocalizationsMt extends AppLocalizations {
 
   @override
   String get onboardingVoiceNotDownloaded =>
-      'Download the 82 MB Kokoro AI model for on-device voice';
+      'Niżżel il-mudell AI Kokoro ta\' 82 MB għall-vuċi fuq l-apparat';
 
   @override
-  String get onboardingVoiceChecking => 'Checking model status…';
+  String get onboardingVoiceChecking =>
+      'Qed jiġi ċċekkjat l-istatus tal-mudell…';
 
   @override
   String get onboardingDownloadButton => 'Niżżel';
 
   @override
   String get onboardingVoiceLaterHint =>
-      'You can also download the voice model later from\nSettings → Navigation voice.';
+      'Tista\' tniżżel il-mudell tal-vuċi aktar tard minn\nSettings → Vuċi tan-navigazzjoni.';
 
   @override
   String get onboardingReadyTitle => 'Int lest biex tinnawiga!';
 
   @override
   String get onboardingReadyBody =>
-      'Roadstr will now open the map.\nYou can configure everything else in Settings.';
+      'Roadstr issa se jiftaħ il-mappa.\nIl-bqija kollu tista\' tikkonfigurah fis-Settings.';
 
   @override
   String get onboardingLetsGo => 'Ejja mmorru!';

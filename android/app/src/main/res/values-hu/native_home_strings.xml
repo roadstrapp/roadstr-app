@@ -4,11 +4,11 @@
     <string name="native_home_notifications">Értesítések</string>
     <string name="native_home_profile">Profil</string>
     <string name="native_home_menu">Menü</string>
-    <string name="native_home_ready">Ready to go?</string>
-    <string name="native_home_navigate">Navigate</string>
-    <string name="native_home_parking">Parking</string>
-    <string name="native_home_activity">Activity</string>
-    <string name="native_home_events">Events</string>
-    <string name="native_home_saved_places">Saved places</string>
+    <string name="native_home_ready">Indulásra kész?</string>
+    <string name="native_home_navigate">Navigálás</string>
+    <string name="native_home_parking">Parkoló</string>
+    <string name="native_home_activity">Tevékenység</string>
+    <string name="native_home_events">Események</string>
+    <string name="native_home_saved_places">Mentett helyek</string>
     <string name="native_home_my_location">Saját helyzetm</string>
 </resources>

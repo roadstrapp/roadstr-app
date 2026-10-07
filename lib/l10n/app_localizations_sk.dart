@@ -69,31 +69,31 @@ class AppLocalizationsSk extends AppLocalizations {
   String get bottomBarMenu => 'Ponuka';
 
   @override
-  String get homeGoodMorning => 'Good morning';
+  String get homeGoodMorning => 'Dobré ráno';
 
   @override
-  String get homeGoodAfternoon => 'Good afternoon';
+  String get homeGoodAfternoon => 'Dobrý deň';
 
   @override
-  String get homeGoodEvening => 'Good evening';
+  String get homeGoodEvening => 'Dobrý večer';
 
   @override
-  String get homeReadyToGo => 'Ready to go?';
+  String get homeReadyToGo => 'Pripravení vyraziť?';
 
   @override
-  String get homeNavigate => 'Navigate';
+  String get homeNavigate => 'Navigovať';
 
   @override
-  String get homeParking => 'Parking';
+  String get homeParking => 'Parkovisko';
 
   @override
-  String get homeActivity => 'Activity';
+  String get homeActivity => 'Aktivita';
 
   @override
-  String get homeEvents => 'Events';
+  String get homeEvents => 'Udalosti';
 
   @override
-  String get homeSavedPlaces => 'Saved places';
+  String get homeSavedPlaces => 'Uložené miesta';
 
   @override
   String get notificationsTitle => 'Upozornenia';
@@ -122,28 +122,28 @@ class AppLocalizationsSk extends AppLocalizations {
   String get sectionMap => 'Mapa';
 
   @override
-  String get sectionNavigationAppearance => 'Navigation appearance';
+  String get sectionNavigationAppearance => 'Vzhľad navigácie';
 
   @override
-  String get speedometerStyleLabel => 'Speedometer';
+  String get speedometerStyleLabel => 'Rýchlomer';
 
   @override
-  String get speedometerClassic => 'Classic (default)';
+  String get speedometerClassic => 'Klasický (predvolený)';
 
   @override
-  String get speedometerDigital => 'Digital';
+  String get speedometerDigital => 'Digitálny';
 
   @override
-  String get speedometerAnalog => 'Analog';
+  String get speedometerAnalog => 'Analógový';
 
   @override
-  String get speedometerSport => 'Sport';
+  String get speedometerSport => 'Športový';
 
   @override
-  String get speedometerMinimal => 'Minimal';
+  String get speedometerMinimal => 'Minimalistický';
 
   @override
-  String get movementCursorStyleLabel => 'Movement cursor';
+  String get movementCursorStyleLabel => 'Kurzor pohybu';
 
   @override
   String get cursorVehicleLabel => 'Vozidlo';
@@ -152,7 +152,7 @@ class AppLocalizationsSk extends AppLocalizations {
   String get cursorColorLabel => 'Farba';
 
   @override
-  String get cursorStandard => 'Standard (default)';
+  String get cursorStandard => 'Štandardný (predvolený)';
 
   @override
   String get cursorFormula1 => 'Formula 1';
@@ -161,13 +161,13 @@ class AppLocalizationsSk extends AppLocalizations {
   String get cursorSuv => 'SUV';
 
   @override
-  String get cursorRacing => 'Racing car';
+  String get cursorRacing => 'Pretekárske auto';
 
   @override
-  String get cursorElectric => 'Electric car';
+  String get cursorElectric => 'Elektromobil';
 
   @override
-  String get cursorCity => 'City car';
+  String get cursorCity => 'Mestské auto';
 
   @override
   String get cursorClassic500 => 'Klasický Fiat 500';
@@ -222,21 +222,21 @@ class AppLocalizationsSk extends AppLocalizations {
       'Zabraňuje prechodu do spánku počas navigácie';
 
   @override
-  String get keepScreenOnAlways => 'Keep screen on outside navigation too';
+  String get keepScreenOnAlways => 'Nechať obrazovku zapnutú aj mimo navigácie';
 
   @override
   String get keepScreenOnAlwaysDescription =>
-      'Also applies while browsing the map without an active route';
+      'Platí aj pri prehliadaní mapy bez aktívnej trasy';
 
   @override
-  String get minBrightness => 'Minimum screen brightness';
+  String get minBrightness => 'Minimálny jas obrazovky';
 
   @override
   String get minBrightnessDescription =>
-      'Stops the screen dimming below this level while the app is open — useful on OLED screens that dim further than the map stays readable at';
+      'Zabraňuje stmavnutiu obrazovky pod túto úroveň, kým je aplikácia otvorená — užitočné na OLED displejoch, ktoré stmavnú viac, než je mapa čitateľná';
 
   @override
-  String get minBrightnessOff => 'Off';
+  String get minBrightnessOff => 'Vypnuté';
 
   @override
   String get showAltitude => 'Zobraziť nadmorskú výšku';
@@ -1143,26 +1143,26 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get onboardingWelcomeBody =>
-      'Everything your navigation app needs — without giving up your privacy.';
+      'Všetko, čo vaša navigačná aplikácia potrebuje — bez straty súkromia.';
 
   @override
-  String get onboardingFeatureNav => 'Turn-by-turn GPS navigation';
+  String get onboardingFeatureNav => 'GPS navigácia krok za krokom';
 
   @override
   String get onboardingFeatureNostr =>
-      'Nostr road events (speed cameras, hazards, traffic)';
+      'Cestné udalosti z Nostr (radary, nebezpečenstvá, doprava)';
 
   @override
   String get onboardingFeatureLightning =>
-      'Lightning Network tips for event reporters';
+      'Sprepitné cez Lightning Network pre tých, ktorí hlásia udalosti';
 
   @override
   String get onboardingFeatureVoice =>
-      'On-device AI voice guidance (Kokoro-82M)';
+      'Hlasové navádzanie pomocou AI priamo v zariadení (Kokoro-82M)';
 
   @override
   String get onboardingFeaturePrivacy =>
-      'No account required — no tracking, ever';
+      'Bez nutnosti účtu — žiadne sledovanie, nikdy';
 
   @override
   String get onboardingGetStarted => 'Začať';
@@ -1172,7 +1172,7 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get onboardingNostrSubtitle =>
-      'Optional — connect to report road events, confirm alerts and earn Lightning tips.';
+      'Voliteľné — pripojte sa, aby ste mohli hlásiť cestné udalosti, potvrdzovať upozornenia a získavať sprepitné cez Lightning.';
 
   @override
   String get onboardingNostrConnected => 'Pripojené';
@@ -1182,14 +1182,14 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get onboardingAmberSubtitle =>
-      'Connect with the Amber signer app. Your private key never leaves Amber.';
+      'Pripojte sa pomocou podpisovej aplikácie Amber. Váš súkromný kľúč Amber nikdy neopustí.';
 
   @override
   String get onboardingNsecTitle => 'Kľúč nsec';
 
   @override
   String get onboardingNsecSubtitle =>
-      'Paste your private key. Stored in the Android Keystore.';
+      'Vložte svoj súkromný kľúč. Ukladá sa v Android Keystore.';
 
   @override
   String get onboardingNsecError =>
@@ -1209,7 +1209,7 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get onboardingSetupSubtitle =>
-      'Configure location access and optional voice guidance.';
+      'Nastavte prístup k polohe a voliteľné hlasové navádzanie.';
 
   @override
   String get onboardingLocationTitle => 'Poloha';
@@ -1228,7 +1228,7 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
+      'Povoľte Presnú polohu (nie Približnú) pri používaní Roadstr v:\nNastavenia → Aplikácie → Roadstr → Povolenia → Poloha\n\nRoadstr používa navigačnú službu v popredí a nevyžaduje trvalý prístup k polohe na pozadí.';
 
   @override
   String get onboardingVoiceTitle => 'Hlasové navádzanie AI (voliteľné)';
@@ -1241,24 +1241,24 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get onboardingVoiceNotDownloaded =>
-      'Download the 82 MB Kokoro AI model for on-device voice';
+      'Stiahnite si AI model Kokoro (82 MB) pre hlas priamo v zariadení';
 
   @override
-  String get onboardingVoiceChecking => 'Checking model status…';
+  String get onboardingVoiceChecking => 'Kontrola stavu modelu…';
 
   @override
   String get onboardingDownloadButton => 'Stiahnuť';
 
   @override
   String get onboardingVoiceLaterHint =>
-      'You can also download the voice model later from\nSettings → Navigation voice.';
+      'Hlasový model si môžete stiahnuť aj neskôr v\nNastavenia → Hlas navigácie.';
 
   @override
   String get onboardingReadyTitle => 'Ste pripravení navigovať!';
 
   @override
   String get onboardingReadyBody =>
-      'Roadstr will now open the map.\nYou can configure everything else in Settings.';
+      'Roadstr teraz otvorí mapu.\nVšetko ostatné môžete nastaviť v Nastaveniach.';
 
   @override
   String get onboardingLetsGo => 'Poďme!';

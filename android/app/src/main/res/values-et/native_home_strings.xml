@@ -4,11 +4,11 @@
     <string name="native_home_notifications">Teavitused</string>
     <string name="native_home_profile">Profiil</string>
     <string name="native_home_menu">Menüü</string>
-    <string name="native_home_ready">Ready to go?</string>
-    <string name="native_home_navigate">Navigate</string>
-    <string name="native_home_parking">Parking</string>
-    <string name="native_home_activity">Activity</string>
-    <string name="native_home_events">Events</string>
-    <string name="native_home_saved_places">Saved places</string>
+    <string name="native_home_ready">Valmis minema?</string>
+    <string name="native_home_navigate">Navigeeri</string>
+    <string name="native_home_parking">Parkimine</string>
+    <string name="native_home_activity">Tegevus</string>
+    <string name="native_home_events">Sündmused</string>
+    <string name="native_home_saved_places">Salvestatud kohad</string>
     <string name="native_home_my_location">Minu asukoht</string>
 </resources>

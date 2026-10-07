@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Generated from lib/l10n/app_mt.arb. Do not edit. -->
 <resources>
-    <string name="native_saved_title">Postijiet miftuħin</string>
+    <string name="native_saved_title">Postijiet salvati</string>
     <string name="native_saved_add">Żid post</string>
     <string name="native_saved_export">Esporta l-favoriti</string>
     <string name="native_saved_import">Importa l-favoriti</string>

@@ -4,11 +4,11 @@
     <string name="native_home_notifications">Pranešimai</string>
     <string name="native_home_profile">Profilis</string>
     <string name="native_home_menu">Meniu</string>
-    <string name="native_home_ready">Ready to go?</string>
-    <string name="native_home_navigate">Navigate</string>
-    <string name="native_home_parking">Parking</string>
-    <string name="native_home_activity">Activity</string>
-    <string name="native_home_events">Events</string>
-    <string name="native_home_saved_places">Saved places</string>
+    <string name="native_home_ready">Pasiruošę vykti?</string>
+    <string name="native_home_navigate">Naviguoti</string>
+    <string name="native_home_parking">Stovėjimo aikštelė</string>
+    <string name="native_home_activity">Veikla</string>
+    <string name="native_home_events">Įvykiai</string>
+    <string name="native_home_saved_places">Išsaugotos vietos</string>
     <string name="native_home_my_location">Mano vieta</string>
 </resources>

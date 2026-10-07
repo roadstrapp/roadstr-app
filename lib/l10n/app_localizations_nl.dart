@@ -69,31 +69,31 @@ class AppLocalizationsNl extends AppLocalizations {
   String get bottomBarMenu => 'Menu';
 
   @override
-  String get homeGoodMorning => 'Good morning';
+  String get homeGoodMorning => 'Goedemorgen';
 
   @override
-  String get homeGoodAfternoon => 'Good afternoon';
+  String get homeGoodAfternoon => 'Goedemiddag';
 
   @override
-  String get homeGoodEvening => 'Good evening';
+  String get homeGoodEvening => 'Goedenavond';
 
   @override
-  String get homeReadyToGo => 'Ready to go?';
+  String get homeReadyToGo => 'Klaar om te gaan?';
 
   @override
-  String get homeNavigate => 'Navigate';
+  String get homeNavigate => 'Navigeren';
 
   @override
-  String get homeParking => 'Parking';
+  String get homeParking => 'Parkeren';
 
   @override
-  String get homeActivity => 'Activity';
+  String get homeActivity => 'Activiteit';
 
   @override
-  String get homeEvents => 'Events';
+  String get homeEvents => 'Gebeurtenissen';
 
   @override
-  String get homeSavedPlaces => 'Saved places';
+  String get homeSavedPlaces => 'Opgeslagen plaatsen';
 
   @override
   String get notificationsTitle => 'Meldingen';
@@ -122,28 +122,28 @@ class AppLocalizationsNl extends AppLocalizations {
   String get sectionMap => 'Kaart';
 
   @override
-  String get sectionNavigationAppearance => 'Navigation appearance';
+  String get sectionNavigationAppearance => 'Weergave van navigatie';
 
   @override
-  String get speedometerStyleLabel => 'Speedometer';
+  String get speedometerStyleLabel => 'Snelheidsmeter';
 
   @override
-  String get speedometerClassic => 'Classic (default)';
+  String get speedometerClassic => 'Klassiek (standaard)';
 
   @override
-  String get speedometerDigital => 'Digital';
+  String get speedometerDigital => 'Digitaal';
 
   @override
-  String get speedometerAnalog => 'Analog';
+  String get speedometerAnalog => 'Analoog';
 
   @override
   String get speedometerSport => 'Sport';
 
   @override
-  String get speedometerMinimal => 'Minimal';
+  String get speedometerMinimal => 'Minimaal';
 
   @override
-  String get movementCursorStyleLabel => 'Movement cursor';
+  String get movementCursorStyleLabel => 'Bewegingscursor';
 
   @override
   String get cursorVehicleLabel => 'Voertuig';
@@ -152,22 +152,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get cursorColorLabel => 'Kleur';
 
   @override
-  String get cursorStandard => 'Standard (default)';
+  String get cursorStandard => 'Basis (standaard)';
 
   @override
-  String get cursorFormula1 => 'Formula 1';
+  String get cursorFormula1 => 'Formule 1';
 
   @override
   String get cursorSuv => 'SUV';
 
   @override
-  String get cursorRacing => 'Racing car';
+  String get cursorRacing => 'Raceauto';
 
   @override
-  String get cursorElectric => 'Electric car';
+  String get cursorElectric => 'Elektrische auto';
 
   @override
-  String get cursorCity => 'City car';
+  String get cursorCity => 'Stadsauto';
 
   @override
   String get cursorClassic500 => 'Klassieke Fiat 500';
@@ -221,21 +221,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get keepScreenOnDescription => 'Voorkomt slaapstand tijdens navigatie';
 
   @override
-  String get keepScreenOnAlways => 'Keep screen on outside navigation too';
+  String get keepScreenOnAlways =>
+      'Scherm ook buiten navigatie ingeschakeld houden';
 
   @override
   String get keepScreenOnAlwaysDescription =>
-      'Also applies while browsing the map without an active route';
+      'Geldt ook tijdens het bekijken van de kaart zonder actieve route';
 
   @override
-  String get minBrightness => 'Minimum screen brightness';
+  String get minBrightness => 'Minimale schermhelderheid';
 
   @override
   String get minBrightnessDescription =>
-      'Stops the screen dimming below this level while the app is open — useful on OLED screens that dim further than the map stays readable at';
+      'Voorkomt dat het scherm onder dit niveau dimt zolang de app open is — handig op OLED-schermen die verder dimmen dan de kaart leesbaar blijft';
 
   @override
-  String get minBrightnessOff => 'Off';
+  String get minBrightnessOff => 'Uit';
 
   @override
   String get showAltitude => 'Hoogte tonen';
@@ -1230,7 +1231,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
+      'Geef Nauwkeurige locatie (niet Geschatte) toestemming terwijl u Roadstr gebruikt, via:\nInstellingen → Apps → Roadstr → Rechten → Locatie\n\nRoadstr gebruikt een navigatieservice op de voorgrond en heeft geen permanente locatietoegang op de achtergrond nodig.';
 
   @override
   String get onboardingVoiceTitle => 'AI-stemgeleiding (optioneel)';

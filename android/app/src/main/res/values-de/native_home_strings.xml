@@ -4,11 +4,11 @@
     <string name="native_home_notifications">Benachrichtigungen</string>
     <string name="native_home_profile">Profil</string>
     <string name="native_home_menu">Menü</string>
-    <string name="native_home_ready">Ready to go?</string>
-    <string name="native_home_navigate">Navigate</string>
-    <string name="native_home_parking">Parking</string>
-    <string name="native_home_activity">Activity</string>
-    <string name="native_home_events">Events</string>
-    <string name="native_home_saved_places">Saved places</string>
+    <string name="native_home_ready">Startklar?</string>
+    <string name="native_home_navigate">Navigieren</string>
+    <string name="native_home_parking">Parkplatz</string>
+    <string name="native_home_activity">Aktivität</string>
+    <string name="native_home_events">Ereignisse</string>
+    <string name="native_home_saved_places">Gespeicherte Orte</string>
     <string name="native_home_my_location">Mein Standort</string>
 </resources>

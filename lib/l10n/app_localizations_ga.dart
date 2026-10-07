@@ -69,31 +69,31 @@ class AppLocalizationsGa extends AppLocalizations {
   String get bottomBarMenu => 'Roghchlár';
 
   @override
-  String get homeGoodMorning => 'Good morning';
+  String get homeGoodMorning => 'Maidin mhaith';
 
   @override
-  String get homeGoodAfternoon => 'Good afternoon';
+  String get homeGoodAfternoon => 'Iarnóin mhaith';
 
   @override
-  String get homeGoodEvening => 'Good evening';
+  String get homeGoodEvening => 'Tráthnóna maith';
 
   @override
-  String get homeReadyToGo => 'Ready to go?';
+  String get homeReadyToGo => 'Réidh le himeacht?';
 
   @override
-  String get homeNavigate => 'Navigate';
+  String get homeNavigate => 'Nasclean';
 
   @override
-  String get homeParking => 'Parking';
+  String get homeParking => 'Páirceáil';
 
   @override
-  String get homeActivity => 'Activity';
+  String get homeActivity => 'Gníomhaíocht';
 
   @override
-  String get homeEvents => 'Events';
+  String get homeEvents => 'Imeachtaí';
 
   @override
-  String get homeSavedPlaces => 'Saved places';
+  String get homeSavedPlaces => 'Áiteanna sábháilte';
 
   @override
   String get notificationsTitle => 'Fógraí';
@@ -122,28 +122,28 @@ class AppLocalizationsGa extends AppLocalizations {
   String get sectionMap => 'Léarscáil';
 
   @override
-  String get sectionNavigationAppearance => 'Navigation appearance';
+  String get sectionNavigationAppearance => 'Cuma na nascleanúna';
 
   @override
-  String get speedometerStyleLabel => 'Speedometer';
+  String get speedometerStyleLabel => 'Luasmhéadar';
 
   @override
-  String get speedometerClassic => 'Classic (default)';
+  String get speedometerClassic => 'Clasaiceach (réamhshocrú)';
 
   @override
-  String get speedometerDigital => 'Digital';
+  String get speedometerDigital => 'Digiteach';
 
   @override
-  String get speedometerAnalog => 'Analog';
+  String get speedometerAnalog => 'Analógach';
 
   @override
-  String get speedometerSport => 'Sport';
+  String get speedometerSport => 'Spóirt';
 
   @override
-  String get speedometerMinimal => 'Minimal';
+  String get speedometerMinimal => 'Íosta';
 
   @override
-  String get movementCursorStyleLabel => 'Movement cursor';
+  String get movementCursorStyleLabel => 'Cúrsóir gluaisne';
 
   @override
   String get cursorVehicleLabel => 'Feithicil';
@@ -152,22 +152,22 @@ class AppLocalizationsGa extends AppLocalizations {
   String get cursorColorLabel => 'Dath';
 
   @override
-  String get cursorStandard => 'Standard (default)';
+  String get cursorStandard => 'Caighdeánach (réamhshocrú)';
 
   @override
-  String get cursorFormula1 => 'Formula 1';
+  String get cursorFormula1 => 'Foirmle 1';
 
   @override
   String get cursorSuv => 'SUV';
 
   @override
-  String get cursorRacing => 'Racing car';
+  String get cursorRacing => 'Carr rásaíochta';
 
   @override
-  String get cursorElectric => 'Electric car';
+  String get cursorElectric => 'Carr leictreach';
 
   @override
-  String get cursorCity => 'City car';
+  String get cursorCity => 'Carr cathrach';
 
   @override
   String get cursorClassic500 => 'Fiat 500 clasaiceach';
@@ -222,21 +222,22 @@ class AppLocalizationsGa extends AppLocalizations {
       'Cuireann cosc ar chodladh le linn nascleanúna';
 
   @override
-  String get keepScreenOnAlways => 'Keep screen on outside navigation too';
+  String get keepScreenOnAlways =>
+      'Coinnigh an scáileán ar siúl taobh amuigh de nascleanúint freisin';
 
   @override
   String get keepScreenOnAlwaysDescription =>
-      'Also applies while browsing the map without an active route';
+      'Baineann sé freisin agus tú ag brabhsáil an léarscáil gan bealach gníomhach';
 
   @override
-  String get minBrightness => 'Minimum screen brightness';
+  String get minBrightness => 'Íosghile an scáileáin';
 
   @override
   String get minBrightnessDescription =>
-      'Stops the screen dimming below this level while the app is open — useful on OLED screens that dim further than the map stays readable at';
+      'Cuireann sé cosc ar an scáileán maolú faoin leibhéal seo agus an aip ar oscailt — úsáideach ar scáileáin OLED a mhaolaíonn níos mó ná mar is féidir leis an léarscáil fanacht inléite';
 
   @override
-  String get minBrightnessOff => 'Off';
+  String get minBrightnessOff => 'As';
 
   @override
   String get showAltitude => 'Taispeáin airde';
@@ -1146,26 +1147,26 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get onboardingWelcomeBody =>
-      'Everything your navigation app needs — without giving up your privacy.';
+      'Gach rud a theastaíonn óna aip nascleanúna — gan do phríobháideachas a thabhairt suas.';
 
   @override
-  String get onboardingFeatureNav => 'Turn-by-turn GPS navigation';
+  String get onboardingFeatureNav => 'Nascleanúint GPS céim ar chéim';
 
   @override
   String get onboardingFeatureNostr =>
-      'Nostr road events (speed cameras, hazards, traffic)';
+      'Imeachtaí bóthair Nostr (ceamaraí luais, contúirtí, trácht)';
 
   @override
   String get onboardingFeatureLightning =>
-      'Lightning Network tips for event reporters';
+      'Leideanna Lightning Network do thuairisceoirí imeachtaí';
 
   @override
   String get onboardingFeatureVoice =>
-      'On-device AI voice guidance (Kokoro-82M)';
+      'Treoir ghutha AI ar an ngléas (Kokoro-82M)';
 
   @override
   String get onboardingFeaturePrivacy =>
-      'No account required — no tracking, ever';
+      'Níl cuntas ag teastáil — gan rianú, riamh';
 
   @override
   String get onboardingGetStarted => 'Tosaigh';
@@ -1175,7 +1176,7 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get onboardingNostrSubtitle =>
-      'Optional — connect to report road events, confirm alerts and earn Lightning tips.';
+      'Roghnach — ceangail chun imeachtaí bóthair a thuairisciú, foláirimh a dhearbhú agus leideanna Lightning a thuilleamh.';
 
   @override
   String get onboardingNostrConnected => 'Ceangailte';
@@ -1185,14 +1186,14 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get onboardingAmberSubtitle =>
-      'Connect with the Amber signer app. Your private key never leaves Amber.';
+      'Ceangail leis an aip sínithe Amber. Ní fhágann d\'eochair phríobháideach Amber riamh.';
 
   @override
   String get onboardingNsecTitle => 'Eochair nsec';
 
   @override
   String get onboardingNsecSubtitle =>
-      'Paste your private key. Stored in the Android Keystore.';
+      'Greamaigh d\'eochair phríobháideach. Stóráilte in Android Keystore.';
 
   @override
   String get onboardingNsecError =>
@@ -1212,7 +1213,7 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get onboardingSetupSubtitle =>
-      'Configure location access and optional voice guidance.';
+      'Cumraigh rochtain suímh agus treoir ghutha roghnach.';
 
   @override
   String get onboardingLocationTitle => 'Suíomh';
@@ -1231,7 +1232,7 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
+      'Tabhair cead Suíomh Beacht (ní Garbh) agus Roadstr in úsáid agat in:\nSocruithe → Aipeanna → Roadstr → Ceadanna → Suíomh\n\nÚsáideann Roadstr seirbhís nascleanúna tulra agus ní éilíonn sé rochtain bhuan ar an suíomh sa chúlra.';
 
   @override
   String get onboardingVoiceTitle => 'Treoir gutha AI (roghnach)';
@@ -1244,24 +1245,24 @@ class AppLocalizationsGa extends AppLocalizations {
 
   @override
   String get onboardingVoiceNotDownloaded =>
-      'Download the 82 MB Kokoro AI model for on-device voice';
+      'Íoslódáil an tsamhail AI Kokoro 82 MB le haghaidh guth ar an ngléas';
 
   @override
-  String get onboardingVoiceChecking => 'Checking model status…';
+  String get onboardingVoiceChecking => 'Stádas na samhla á sheiceáil…';
 
   @override
   String get onboardingDownloadButton => 'Íoslódáil';
 
   @override
   String get onboardingVoiceLaterHint =>
-      'You can also download the voice model later from\nSettings → Navigation voice.';
+      'Is féidir leat an tsamhail ghutha a íoslódáil níos déanaí freisin ó\nSocruithe → Guth nascleanúna.';
 
   @override
   String get onboardingReadyTitle => 'Tá tú réidh le nascleanúint!';
 
   @override
   String get onboardingReadyBody =>
-      'Roadstr will now open the map.\nYou can configure everything else in Settings.';
+      'Osclóidh Roadstr an léarscáil anois.\nIs féidir leat gach rud eile a chumrú sna Socruithe.';
 
   @override
   String get onboardingLetsGo => 'Ar aghaidh linn!';

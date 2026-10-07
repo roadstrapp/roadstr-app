@@ -4,11 +4,11 @@
     <string name="native_home_notifications">Ειδοποιήσεις</string>
     <string name="native_home_profile">Προφίλ</string>
     <string name="native_home_menu">Μενού</string>
-    <string name="native_home_ready">Ready to go?</string>
-    <string name="native_home_navigate">Navigate</string>
-    <string name="native_home_parking">Parking</string>
-    <string name="native_home_activity">Activity</string>
-    <string name="native_home_events">Events</string>
-    <string name="native_home_saved_places">Saved places</string>
+    <string name="native_home_ready">Έτοιμοι για αναχώρηση;</string>
+    <string name="native_home_navigate">Πλοήγηση</string>
+    <string name="native_home_parking">Πάρκινγκ</string>
+    <string name="native_home_activity">Δραστηριότητα</string>
+    <string name="native_home_events">Συμβάντα</string>
+    <string name="native_home_saved_places">Αποθηκευμένα μέρη</string>
     <string name="native_home_my_location">Η τοποθεσία μου</string>
 </resources>
