@@ -63,7 +63,7 @@ class AreaGeocodingTest {
     @Test
     fun `a street or a person is not taken for a city`() {
         assertNull(AreaGeocoding.choose(areas.drop(1).take(1), "Via Firenze", strict = false))
-        assertNull(AreaGeocoding.choose(areas, "Luigi", strict = true))
+        assertNull(AreaGeocoding.choose(areas, "Marco", strict = true))
     }
 
     @Test
