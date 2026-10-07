@@ -140,8 +140,8 @@ class NativeShellNostrHost internal constructor(
     }
 
     /** A local favourite changed: push in the background if the user opted in. */
-    fun favoritesChangedLocally() {
-        if (autoSyncEnabled()) favorites.autoPush()
+    fun favoritesChangedLocally(current: List<NativeSavedPlace>) {
+        if (autoSyncEnabled()) favorites.autoPush(current)
     }
 
     fun push() = favorites.push()

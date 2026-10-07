@@ -1878,7 +1878,7 @@ fun NativeRoadstrShell(
                                     if (savedPlacesSession.delete(nextRevision, action.index)) {
                                         favorites = savedPlacesSession.state.value.favorites
                                         onFavoritesChanged(favorites)
-                                        nostrHost?.favoritesChangedLocally()
+                                        nostrHost?.favoritesChangedLocally(favorites)
                                     }
                                     savedPlacesSession.hide(nextRevision)
                                 }
@@ -2186,7 +2186,7 @@ fun NativeRoadstrShell(
                         if (savedPlacesSession.delete(savedPlacesState.revision, index)) {
                             favorites = savedPlacesSession.state.value.favorites
                             onFavoritesChanged(favorites)
-                            nostrHost?.favoritesChangedLocally()
+                            nostrHost?.favoritesChangedLocally(favorites)
                         }
                     },
                     onExport = { nostrHost?.exportFavorites() },
@@ -2402,7 +2402,7 @@ fun NativeRoadstrShell(
                                             if (savedPlacesSession.upsert(savedPlacesState.revision, place, index)) {
                                                 favorites = savedPlacesSession.state.value.favorites
                                                 onFavoritesChanged(favorites)
-                                                nostrHost?.favoritesChangedLocally()
+                                                nostrHost?.favoritesChangedLocally(favorites)
                                                 favoriteEditorVisible = false
                                             } else {
                                                 favoriteEditorError = true
