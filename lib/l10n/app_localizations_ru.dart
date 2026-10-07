@@ -69,31 +69,31 @@ class AppLocalizationsRu extends AppLocalizations {
   String get bottomBarMenu => 'Меню';
 
   @override
-  String get homeGoodMorning => 'Good morning';
+  String get homeGoodMorning => 'Доброе утро';
 
   @override
-  String get homeGoodAfternoon => 'Good afternoon';
+  String get homeGoodAfternoon => 'Добрый день';
 
   @override
-  String get homeGoodEvening => 'Good evening';
+  String get homeGoodEvening => 'Добрый вечер';
 
   @override
-  String get homeReadyToGo => 'Ready to go?';
+  String get homeReadyToGo => 'Готовы ехать?';
 
   @override
-  String get homeNavigate => 'Navigate';
+  String get homeNavigate => 'Маршрут';
 
   @override
-  String get homeParking => 'Parking';
+  String get homeParking => 'Парковка';
 
   @override
-  String get homeActivity => 'Activity';
+  String get homeActivity => 'Активность';
 
   @override
-  String get homeEvents => 'Events';
+  String get homeEvents => 'События';
 
   @override
-  String get homeSavedPlaces => 'Saved places';
+  String get homeSavedPlaces => 'Сохранённые места';
 
   @override
   String get notificationsTitle => 'Уведомления';
@@ -122,28 +122,28 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sectionMap => 'Карта';
 
   @override
-  String get sectionNavigationAppearance => 'Navigation appearance';
+  String get sectionNavigationAppearance => 'Вид навигации';
 
   @override
-  String get speedometerStyleLabel => 'Speedometer';
+  String get speedometerStyleLabel => 'Спидометр';
 
   @override
-  String get speedometerClassic => 'Classic (default)';
+  String get speedometerClassic => 'Классический (по умолчанию)';
 
   @override
-  String get speedometerDigital => 'Digital';
+  String get speedometerDigital => 'Цифровой';
 
   @override
-  String get speedometerAnalog => 'Analog';
+  String get speedometerAnalog => 'Аналоговый';
 
   @override
-  String get speedometerSport => 'Sport';
+  String get speedometerSport => 'Спортивный';
 
   @override
-  String get speedometerMinimal => 'Minimal';
+  String get speedometerMinimal => 'Минимальный';
 
   @override
-  String get movementCursorStyleLabel => 'Movement cursor';
+  String get movementCursorStyleLabel => 'Курсор движения';
 
   @override
   String get cursorVehicleLabel => 'Автомобиль';
@@ -152,22 +152,22 @@ class AppLocalizationsRu extends AppLocalizations {
   String get cursorColorLabel => 'Цвет';
 
   @override
-  String get cursorStandard => 'Standard (default)';
+  String get cursorStandard => 'Стандартный (по умолчанию)';
 
   @override
-  String get cursorFormula1 => 'Formula 1';
+  String get cursorFormula1 => 'Формула 1';
 
   @override
-  String get cursorSuv => 'SUV';
+  String get cursorSuv => 'Внедорожник';
 
   @override
-  String get cursorRacing => 'Racing car';
+  String get cursorRacing => 'Гоночный автомобиль';
 
   @override
-  String get cursorElectric => 'Electric car';
+  String get cursorElectric => 'Электромобиль';
 
   @override
-  String get cursorCity => 'City car';
+  String get cursorCity => 'Городской автомобиль';
 
   @override
   String get cursorClassic500 => 'Классический Fiat 500';
@@ -221,21 +221,21 @@ class AppLocalizationsRu extends AppLocalizations {
   String get keepScreenOnDescription => 'Предотвращает сон во время навигации';
 
   @override
-  String get keepScreenOnAlways => 'Keep screen on outside navigation too';
+  String get keepScreenOnAlways => 'Не выключать экран и вне навигации';
 
   @override
   String get keepScreenOnAlwaysDescription =>
-      'Also applies while browsing the map without an active route';
+      'Действует и при просмотре карты без активного маршрута';
 
   @override
-  String get minBrightness => 'Minimum screen brightness';
+  String get minBrightness => 'Минимальная яркость экрана';
 
   @override
   String get minBrightnessDescription =>
-      'Stops the screen dimming below this level while the app is open — useful on OLED screens that dim further than the map stays readable at';
+      'Не даёт экрану затемняться ниже этого уровня, пока приложение открыто — полезно на OLED-экранах, которые затемняются сильнее, чем карта остаётся читаемой';
 
   @override
-  String get minBrightnessOff => 'Off';
+  String get minBrightnessOff => 'Выкл.';
 
   @override
   String get showAltitude => 'Показывать высоту';
@@ -1231,7 +1231,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
+      'Предоставьте Точное местоположение (не Приблизительное) при использовании Roadstr в:\nНастройки → Приложения → Roadstr → Разрешения → Геоданные\n\nRoadstr использует службу навигации на переднем плане и не требует постоянного доступа к геоданным в фоновом режиме.';
 
   @override
   String get onboardingVoiceTitle => 'Голосовое ведение ИИ (опционально)';

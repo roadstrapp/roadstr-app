@@ -126,7 +126,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sectionNavigationAppearance => 'Aspetto navigazione';
 
   @override
-  String get speedometerStyleLabel => 'Tachigrafo';
+  String get speedometerStyleLabel => 'Tachimetro';
 
   @override
   String get speedometerClassic => 'Classico (predefinito)';

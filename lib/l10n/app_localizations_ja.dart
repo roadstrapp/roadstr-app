@@ -69,31 +69,31 @@ class AppLocalizationsJa extends AppLocalizations {
   String get bottomBarMenu => 'メニュー';
 
   @override
-  String get homeGoodMorning => 'Good morning';
+  String get homeGoodMorning => 'おはようございます';
 
   @override
-  String get homeGoodAfternoon => 'Good afternoon';
+  String get homeGoodAfternoon => 'こんにちは';
 
   @override
-  String get homeGoodEvening => 'Good evening';
+  String get homeGoodEvening => 'こんばんは';
 
   @override
-  String get homeReadyToGo => 'Ready to go?';
+  String get homeReadyToGo => '出発の準備はできましたか？';
 
   @override
-  String get homeNavigate => 'Navigate';
+  String get homeNavigate => 'ナビゲート';
 
   @override
-  String get homeParking => 'Parking';
+  String get homeParking => '駐車場';
 
   @override
-  String get homeActivity => 'Activity';
+  String get homeActivity => 'アクティビティ';
 
   @override
-  String get homeEvents => 'Events';
+  String get homeEvents => 'イベント';
 
   @override
-  String get homeSavedPlaces => 'Saved places';
+  String get homeSavedPlaces => '保存した場所';
 
   @override
   String get notificationsTitle => '通知';
@@ -121,28 +121,28 @@ class AppLocalizationsJa extends AppLocalizations {
   String get sectionMap => 'マップ';
 
   @override
-  String get sectionNavigationAppearance => 'Navigation appearance';
+  String get sectionNavigationAppearance => 'ナビゲーションの外観';
 
   @override
-  String get speedometerStyleLabel => 'Speedometer';
+  String get speedometerStyleLabel => 'スピードメーター';
 
   @override
-  String get speedometerClassic => 'Classic (default)';
+  String get speedometerClassic => 'クラシック（デフォルト）';
 
   @override
-  String get speedometerDigital => 'Digital';
+  String get speedometerDigital => 'デジタル';
 
   @override
-  String get speedometerAnalog => 'Analog';
+  String get speedometerAnalog => 'アナログ';
 
   @override
-  String get speedometerSport => 'Sport';
+  String get speedometerSport => 'スポーツ';
 
   @override
-  String get speedometerMinimal => 'Minimal';
+  String get speedometerMinimal => 'ミニマル';
 
   @override
-  String get movementCursorStyleLabel => 'Movement cursor';
+  String get movementCursorStyleLabel => '移動カーソル';
 
   @override
   String get cursorVehicleLabel => '車両';
@@ -151,22 +151,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get cursorColorLabel => '色';
 
   @override
-  String get cursorStandard => 'Standard (default)';
+  String get cursorStandard => '標準（デフォルト）';
 
   @override
-  String get cursorFormula1 => 'Formula 1';
+  String get cursorFormula1 => 'フォーミュラ1';
 
   @override
   String get cursorSuv => 'SUV';
 
   @override
-  String get cursorRacing => 'Racing car';
+  String get cursorRacing => 'レーシングカー';
 
   @override
-  String get cursorElectric => 'Electric car';
+  String get cursorElectric => '電気自動車';
 
   @override
-  String get cursorCity => 'City car';
+  String get cursorCity => 'コンパクトカー';
 
   @override
   String get cursorClassic500 => 'クラシック Fiat 500';
@@ -220,21 +220,20 @@ class AppLocalizationsJa extends AppLocalizations {
   String get keepScreenOnDescription => 'ナビゲーション中にスリープを防止';
 
   @override
-  String get keepScreenOnAlways => 'Keep screen on outside navigation too';
+  String get keepScreenOnAlways => 'ナビゲーション以外でも画面をオンのままにする';
 
   @override
-  String get keepScreenOnAlwaysDescription =>
-      'Also applies while browsing the map without an active route';
+  String get keepScreenOnAlwaysDescription => '有効なルートがない状態で地図を見ているときにも適用されます';
 
   @override
-  String get minBrightness => 'Minimum screen brightness';
+  String get minBrightness => '画面の最低輝度';
 
   @override
   String get minBrightnessDescription =>
-      'Stops the screen dimming below this level while the app is open — useful on OLED screens that dim further than the map stays readable at';
+      'アプリを開いている間、画面がこのレベルより暗くならないようにします。地図が読めなくなるほど暗くなる OLED 画面で便利です';
 
   @override
-  String get minBrightnessOff => 'Off';
+  String get minBrightnessOff => 'オフ';
 
   @override
   String get showAltitude => '標高を表示';
@@ -1121,27 +1120,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingWelcomeTitle => 'ようこそ';
 
   @override
-  String get onboardingWelcomeBody =>
-      'Everything your navigation app needs — without giving up your privacy.';
+  String get onboardingWelcomeBody => 'ナビアプリに必要なすべてを、プライバシーを手放すことなく。';
 
   @override
-  String get onboardingFeatureNav => 'Turn-by-turn GPS navigation';
+  String get onboardingFeatureNav => 'GPS ターンバイターン ナビゲーション';
 
   @override
-  String get onboardingFeatureNostr =>
-      'Nostr road events (speed cameras, hazards, traffic)';
+  String get onboardingFeatureNostr => 'Nostr の道路イベント（速度取締り、危険箇所、渋滞）';
 
   @override
-  String get onboardingFeatureLightning =>
-      'Lightning Network tips for event reporters';
+  String get onboardingFeatureLightning => 'イベントを報告した人への Lightning Network チップ';
 
   @override
-  String get onboardingFeatureVoice =>
-      'On-device AI voice guidance (Kokoro-82M)';
+  String get onboardingFeatureVoice => 'デバイス上の AI 音声案内（Kokoro-82M）';
 
   @override
-  String get onboardingFeaturePrivacy =>
-      'No account required — no tracking, ever';
+  String get onboardingFeaturePrivacy => 'アカウント不要 — トラッキングは一切なし';
 
   @override
   String get onboardingGetStarted => 'はじめる';
@@ -1151,7 +1145,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get onboardingNostrSubtitle =>
-      'Optional — connect to report road events, confirm alerts and earn Lightning tips.';
+      '任意 — 接続すると、道路イベントの報告、アラートの確認、Lightning チップの獲得ができます。';
 
   @override
   String get onboardingNostrConnected => '接続済み';
@@ -1161,14 +1155,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get onboardingAmberSubtitle =>
-      'Connect with the Amber signer app. Your private key never leaves Amber.';
+      '署名アプリ Amber と接続します。秘密鍵が Amber の外に出ることはありません。';
 
   @override
   String get onboardingNsecTitle => 'nsec キー';
 
   @override
   String get onboardingNsecSubtitle =>
-      'Paste your private key. Stored in the Android Keystore.';
+      '秘密鍵を貼り付けてください。Android Keystore に保存されます。';
 
   @override
   String get onboardingNsecError => 'nsec キーが無効です — 確認して再試行してください。';
@@ -1186,8 +1180,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get onboardingSetupTitle => 'Roadstr を設定';
 
   @override
-  String get onboardingSetupSubtitle =>
-      'Configure location access and optional voice guidance.';
+  String get onboardingSetupSubtitle => '位置情報へのアクセスと、任意の音声案内を設定します。';
 
   @override
   String get onboardingLocationTitle => '位置情報';
@@ -1206,7 +1199,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
+      'Roadstr の使用中は、次の場所で「正確」な位置情報（「おおよそ」ではなく）を許可してください:\n設定 → アプリ → Roadstr → 権限 → 位置情報\n\nRoadstr はフォアグラウンドのナビゲーションサービスを使用し、バックグラウンドでの常時の位置情報アクセスは必要としません。';
 
   @override
   String get onboardingVoiceTitle => 'AI 音声ガイダンス（オプション）';
@@ -1219,24 +1212,23 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get onboardingVoiceNotDownloaded =>
-      'Download the 82 MB Kokoro AI model for on-device voice';
+      'デバイス上の音声用に Kokoro AI モデル（82 MB）をダウンロードします';
 
   @override
-  String get onboardingVoiceChecking => 'Checking model status…';
+  String get onboardingVoiceChecking => 'モデルの状態を確認中…';
 
   @override
   String get onboardingDownloadButton => 'ダウンロード';
 
   @override
   String get onboardingVoiceLaterHint =>
-      'You can also download the voice model later from\nSettings → Navigation voice.';
+      '音声モデルは後からでもダウンロードできます:\n設定 → ナビゲーション音声。';
 
   @override
   String get onboardingReadyTitle => 'ナビゲーションの準備ができました！';
 
   @override
-  String get onboardingReadyBody =>
-      'Roadstr will now open the map.\nYou can configure everything else in Settings.';
+  String get onboardingReadyBody => 'Roadstr が地図を開きます。\nそのほかの設定はすべて「設定」から行えます。';
 
   @override
   String get onboardingLetsGo => 'さあ出発！';

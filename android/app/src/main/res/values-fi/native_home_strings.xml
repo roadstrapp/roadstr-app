@@ -4,11 +4,11 @@
     <string name="native_home_notifications">Ilmoitukset</string>
     <string name="native_home_profile">Profiili</string>
     <string name="native_home_menu">Valikko</string>
-    <string name="native_home_ready">Ready to go?</string>
-    <string name="native_home_navigate">Navigate</string>
-    <string name="native_home_parking">Parking</string>
-    <string name="native_home_activity">Activity</string>
-    <string name="native_home_events">Events</string>
-    <string name="native_home_saved_places">Saved places</string>
+    <string name="native_home_ready">Valmiina lähtöön?</string>
+    <string name="native_home_navigate">Navigoi</string>
+    <string name="native_home_parking">Pysäköinti</string>
+    <string name="native_home_activity">Toiminta</string>
+    <string name="native_home_events">Tapahtumat</string>
+    <string name="native_home_saved_places">Tallennetut paikat</string>
     <string name="native_home_my_location">Sijaintini</string>
 </resources>

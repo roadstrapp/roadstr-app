@@ -69,31 +69,31 @@ class AppLocalizationsEl extends AppLocalizations {
   String get bottomBarMenu => 'Μενού';
 
   @override
-  String get homeGoodMorning => 'Good morning';
+  String get homeGoodMorning => 'Καλημέρα';
 
   @override
-  String get homeGoodAfternoon => 'Good afternoon';
+  String get homeGoodAfternoon => 'Καλό απόγευμα';
 
   @override
-  String get homeGoodEvening => 'Good evening';
+  String get homeGoodEvening => 'Καλησπέρα';
 
   @override
-  String get homeReadyToGo => 'Ready to go?';
+  String get homeReadyToGo => 'Έτοιμοι για αναχώρηση;';
 
   @override
-  String get homeNavigate => 'Navigate';
+  String get homeNavigate => 'Πλοήγηση';
 
   @override
-  String get homeParking => 'Parking';
+  String get homeParking => 'Πάρκινγκ';
 
   @override
-  String get homeActivity => 'Activity';
+  String get homeActivity => 'Δραστηριότητα';
 
   @override
-  String get homeEvents => 'Events';
+  String get homeEvents => 'Συμβάντα';
 
   @override
-  String get homeSavedPlaces => 'Saved places';
+  String get homeSavedPlaces => 'Αποθηκευμένα μέρη';
 
   @override
   String get notificationsTitle => 'Ειδοποιήσεις';
@@ -122,28 +122,28 @@ class AppLocalizationsEl extends AppLocalizations {
   String get sectionMap => 'Χάρτης';
 
   @override
-  String get sectionNavigationAppearance => 'Navigation appearance';
+  String get sectionNavigationAppearance => 'Εμφάνιση πλοήγησης';
 
   @override
-  String get speedometerStyleLabel => 'Speedometer';
+  String get speedometerStyleLabel => 'Ταχύμετρο';
 
   @override
-  String get speedometerClassic => 'Classic (default)';
+  String get speedometerClassic => 'Κλασικό (προεπιλογή)';
 
   @override
-  String get speedometerDigital => 'Digital';
+  String get speedometerDigital => 'Ψηφιακό';
 
   @override
-  String get speedometerAnalog => 'Analog';
+  String get speedometerAnalog => 'Αναλογικό';
 
   @override
-  String get speedometerSport => 'Sport';
+  String get speedometerSport => 'Σπορ';
 
   @override
-  String get speedometerMinimal => 'Minimal';
+  String get speedometerMinimal => 'Μινιμαλιστικό';
 
   @override
-  String get movementCursorStyleLabel => 'Movement cursor';
+  String get movementCursorStyleLabel => 'Δείκτης κίνησης';
 
   @override
   String get cursorVehicleLabel => 'Όχημα';
@@ -152,7 +152,7 @@ class AppLocalizationsEl extends AppLocalizations {
   String get cursorColorLabel => 'Χρώμα';
 
   @override
-  String get cursorStandard => 'Standard (default)';
+  String get cursorStandard => 'Στάνταρ (προεπιλογή)';
 
   @override
   String get cursorFormula1 => 'Formula 1';
@@ -161,13 +161,13 @@ class AppLocalizationsEl extends AppLocalizations {
   String get cursorSuv => 'SUV';
 
   @override
-  String get cursorRacing => 'Racing car';
+  String get cursorRacing => 'Αγωνιστικό αυτοκίνητο';
 
   @override
-  String get cursorElectric => 'Electric car';
+  String get cursorElectric => 'Ηλεκτρικό αυτοκίνητο';
 
   @override
-  String get cursorCity => 'City car';
+  String get cursorCity => 'Αυτοκίνητο πόλης';
 
   @override
   String get cursorClassic500 => 'Κλασικό Fiat 500';
@@ -222,21 +222,22 @@ class AppLocalizationsEl extends AppLocalizations {
       'Αποτρέπει την αδράνεια κατά την πλοήγηση';
 
   @override
-  String get keepScreenOnAlways => 'Keep screen on outside navigation too';
+  String get keepScreenOnAlways =>
+      'Διατήρηση οθόνης ενεργής και εκτός πλοήγησης';
 
   @override
   String get keepScreenOnAlwaysDescription =>
-      'Also applies while browsing the map without an active route';
+      'Ισχύει και κατά την περιήγηση στον χάρτη χωρίς ενεργή διαδρομή';
 
   @override
-  String get minBrightness => 'Minimum screen brightness';
+  String get minBrightness => 'Ελάχιστη φωτεινότητα οθόνης';
 
   @override
   String get minBrightnessDescription =>
-      'Stops the screen dimming below this level while the app is open — useful on OLED screens that dim further than the map stays readable at';
+      'Εμποδίζει την οθόνη να μειώσει τη φωτεινότητα κάτω από αυτό το επίπεδο όσο η εφαρμογή είναι ανοιχτή — χρήσιμο σε οθόνες OLED που σκουραίνουν περισσότερο απ\' όσο ο χάρτης παραμένει ευανάγνωστος';
 
   @override
-  String get minBrightnessOff => 'Off';
+  String get minBrightnessOff => 'Απενεργοποιημένο';
 
   @override
   String get showAltitude => 'Εμφάνιση υψομέτρου';
@@ -1152,26 +1153,26 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get onboardingWelcomeBody =>
-      'Everything your navigation app needs — without giving up your privacy.';
+      'Ό,τι χρειάζεται η εφαρμογή πλοήγησής σας — χωρίς να θυσιάσετε το απόρρητό σας.';
 
   @override
-  String get onboardingFeatureNav => 'Turn-by-turn GPS navigation';
+  String get onboardingFeatureNav => 'Πλοήγηση GPS βήμα προς βήμα';
 
   @override
   String get onboardingFeatureNostr =>
-      'Nostr road events (speed cameras, hazards, traffic)';
+      'Οδικά συμβάντα Nostr (κάμερες ταχύτητας, κίνδυνοι, κυκλοφορία)';
 
   @override
   String get onboardingFeatureLightning =>
-      'Lightning Network tips for event reporters';
+      'Φιλοδωρήματα Lightning Network για όσους αναφέρουν συμβάντα';
 
   @override
   String get onboardingFeatureVoice =>
-      'On-device AI voice guidance (Kokoro-82M)';
+      'Φωνητική καθοδήγηση AI στη συσκευή (Kokoro-82M)';
 
   @override
   String get onboardingFeaturePrivacy =>
-      'No account required — no tracking, ever';
+      'Δεν απαιτείται λογαριασμός — καμία παρακολούθηση, ποτέ';
 
   @override
   String get onboardingGetStarted => 'Ξεκινήστε';
@@ -1181,7 +1182,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get onboardingNostrSubtitle =>
-      'Optional — connect to report road events, confirm alerts and earn Lightning tips.';
+      'Προαιρετικό — συνδεθείτε για να αναφέρετε οδικά συμβάντα, να επιβεβαιώνετε ειδοποιήσεις και να κερδίζετε φιλοδωρήματα Lightning.';
 
   @override
   String get onboardingNostrConnected => 'Συνδεδεμένο';
@@ -1191,14 +1192,14 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get onboardingAmberSubtitle =>
-      'Connect with the Amber signer app. Your private key never leaves Amber.';
+      'Συνδεθείτε με την εφαρμογή υπογραφής Amber. Το ιδιωτικό σας κλειδί δεν φεύγει ποτέ από το Amber.';
 
   @override
   String get onboardingNsecTitle => 'Κλειδί nsec';
 
   @override
   String get onboardingNsecSubtitle =>
-      'Paste your private key. Stored in the Android Keystore.';
+      'Επικολλήστε το ιδιωτικό σας κλειδί. Αποθηκεύεται στο Android Keystore.';
 
   @override
   String get onboardingNsecError =>
@@ -1218,7 +1219,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get onboardingSetupSubtitle =>
-      'Configure location access and optional voice guidance.';
+      'Ρυθμίστε την πρόσβαση στην τοποθεσία και την προαιρετική φωνητική καθοδήγηση.';
 
   @override
   String get onboardingLocationTitle => 'Τοποθεσία';
@@ -1237,7 +1238,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
+      'Παραχωρήστε Ακριβή τοποθεσία (όχι Κατά προσέγγιση) κατά τη χρήση του Roadstr στο:\nΡυθμίσεις → Εφαρμογές → Roadstr → Άδειες → Τοποθεσία\n\nΤο Roadstr χρησιμοποιεί υπηρεσία πλοήγησης στο προσκήνιο και δεν απαιτεί μόνιμη πρόσβαση στην τοποθεσία στο παρασκήνιο.';
 
   @override
   String get onboardingVoiceTitle => 'Φωνητική καθοδήγηση ΤΝ (προαιρετικό)';
@@ -1250,24 +1251,24 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get onboardingVoiceNotDownloaded =>
-      'Download the 82 MB Kokoro AI model for on-device voice';
+      'Κατεβάστε το μοντέλο AI Kokoro (82 MB) για φωνή στη συσκευή';
 
   @override
-  String get onboardingVoiceChecking => 'Checking model status…';
+  String get onboardingVoiceChecking => 'Έλεγχος κατάστασης μοντέλου…';
 
   @override
   String get onboardingDownloadButton => 'Λήψη';
 
   @override
   String get onboardingVoiceLaterHint =>
-      'You can also download the voice model later from\nSettings → Navigation voice.';
+      'Μπορείτε επίσης να κατεβάσετε το φωνητικό μοντέλο αργότερα από\nΡυθμίσεις → Φωνή πλοήγησης.';
 
   @override
   String get onboardingReadyTitle => 'Είστε έτοιμοι να πλοηγηθείτε!';
 
   @override
   String get onboardingReadyBody =>
-      'Roadstr will now open the map.\nYou can configure everything else in Settings.';
+      'Το Roadstr θα ανοίξει τώρα τον χάρτη.\nΤα υπόλοιπα μπορείτε να τα ρυθμίσετε στις Ρυθμίσεις.';
 
   @override
   String get onboardingLetsGo => 'Πάμε!';

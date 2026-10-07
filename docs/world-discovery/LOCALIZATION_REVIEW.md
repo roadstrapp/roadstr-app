@@ -71,6 +71,29 @@ sv, da, fi, pl, cs, sk, sl, hr, hu, ro, bg, el, ru, ja, zh are plain sentences o
 likely fine; et, lv, lt carry the inflection risk; **ga and mt are the least reliable** and most want a native
 speaker's eye. Register follows the app's existing strings of each language (checked against `searchHint` and `noRouteFound` in the ARB files): informal in it, es, da, sv, fi, pl, ro, ga and mt; formal in de (Sie), nl (u), fr, pt, cs, sk, sl, hr, hu, et, bg, el, lv, lt, ru and zh (您); polite form in ja.
 
+### Home, settings and onboarding strings (2026-10-07)
+
+These live in the app's own ARB files, so the Flutter app and the Kotlin app both read them.
+
+- **28 keys were missing from 25 languages** (everything but en and it): the greeting and the quick actions of the
+  home screen, the speedometer styles, the movement-cursor styles, "keep the screen on outside navigation" and the
+  minimum brightness. They showed in English. Each now has a translation.
+- **Onboarding text that was English in 18 languages** (bg, cs, da, el, et, fi, ga, hr, hu, ja, lt, lv, mt, ro, sk, sl,
+  sv, zh): fifteen strings each, from the welcome line to the "ready" line, so the first screens a new person sees are
+  in their language. The permission instructions (`onboardingGrapheneBody`) were English in seven more (de, es, fr, nl,
+  pl, pt, ru) and are translated too. The Android settings path in them uses the wording of each language's Android.
+- Two wrong words fixed on the way: Italian "Tachigrafo" (a tachograph) is now "Tachimetro", and Maltese
+  "Postijiet miftuħin" ("open places") for the saved places is now "Postijiet salvati".
+- What is still the same as English is meant to be: product and protocol names (OSRM, Lightning, CCS, CHAdeMO, nsec1…),
+  units written the same way (`{m} min`) and words that are the same in that language ("Menu", "Hotel", "Sport",
+  "Analog" in da/de/sv).
+
+Register follows the existing strings of each language: formal in de, nl, bg, cs, el, hr, lt, lv, sk, sl, fr, ru;
+informal in the others. Confidence is as for the vocabularies above: the sentences are short and plain, **ga and mt are
+the least reliable** (for ga the word for "foreground" in the permission text and the greetings; for mt the greetings and
+"predefinit") and most want a native speaker's eye; et, lv and lt carry the inflection risk. The labels that must stay
+short (speedometer and cursor styles) were kept to one or two words.
+
 ## 3. Known gaps, stated plainly
 
 - No language was reviewed by a native speaker.

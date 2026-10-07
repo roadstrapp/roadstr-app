@@ -5,7 +5,7 @@
     <string name="native_search_close">Agħlaq</string>
     <string name="native_search_history">Storja</string>
     <string name="native_search_clear_history">Ħassar</string>
-    <string name="native_search_favorites">Postijiet miftuħin</string>
+    <string name="native_search_favorites">Postijiet salvati</string>
     <string name="native_search_nearby">Fil-qrib</string>
     <string name="native_search_nearby_needs_gps">Qed jistenna l-GPS</string>
     <string name="native_search_nearby_empty">Ma nstab xejn f\'raġġ ta\' 5 km</string>

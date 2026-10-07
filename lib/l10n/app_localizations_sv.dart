@@ -69,31 +69,31 @@ class AppLocalizationsSv extends AppLocalizations {
   String get bottomBarMenu => 'Meny';
 
   @override
-  String get homeGoodMorning => 'Good morning';
+  String get homeGoodMorning => 'God morgon';
 
   @override
-  String get homeGoodAfternoon => 'Good afternoon';
+  String get homeGoodAfternoon => 'God eftermiddag';
 
   @override
-  String get homeGoodEvening => 'Good evening';
+  String get homeGoodEvening => 'God kväll';
 
   @override
-  String get homeReadyToGo => 'Ready to go?';
+  String get homeReadyToGo => 'Redo att köra?';
 
   @override
-  String get homeNavigate => 'Navigate';
+  String get homeNavigate => 'Navigera';
 
   @override
-  String get homeParking => 'Parking';
+  String get homeParking => 'Parkering';
 
   @override
-  String get homeActivity => 'Activity';
+  String get homeActivity => 'Aktivitet';
 
   @override
-  String get homeEvents => 'Events';
+  String get homeEvents => 'Händelser';
 
   @override
-  String get homeSavedPlaces => 'Saved places';
+  String get homeSavedPlaces => 'Sparade platser';
 
   @override
   String get notificationsTitle => 'Aviseringar';
@@ -122,13 +122,13 @@ class AppLocalizationsSv extends AppLocalizations {
   String get sectionMap => 'Karta';
 
   @override
-  String get sectionNavigationAppearance => 'Navigation appearance';
+  String get sectionNavigationAppearance => 'Navigeringens utseende';
 
   @override
-  String get speedometerStyleLabel => 'Speedometer';
+  String get speedometerStyleLabel => 'Hastighetsmätare';
 
   @override
-  String get speedometerClassic => 'Classic (default)';
+  String get speedometerClassic => 'Klassisk (förval)';
 
   @override
   String get speedometerDigital => 'Digital';
@@ -143,7 +143,7 @@ class AppLocalizationsSv extends AppLocalizations {
   String get speedometerMinimal => 'Minimal';
 
   @override
-  String get movementCursorStyleLabel => 'Movement cursor';
+  String get movementCursorStyleLabel => 'Rörelsemarkör';
 
   @override
   String get cursorVehicleLabel => 'Fordon';
@@ -152,22 +152,22 @@ class AppLocalizationsSv extends AppLocalizations {
   String get cursorColorLabel => 'Färg';
 
   @override
-  String get cursorStandard => 'Standard (default)';
+  String get cursorStandard => 'Standard (förval)';
 
   @override
-  String get cursorFormula1 => 'Formula 1';
+  String get cursorFormula1 => 'Formel 1';
 
   @override
   String get cursorSuv => 'SUV';
 
   @override
-  String get cursorRacing => 'Racing car';
+  String get cursorRacing => 'Racerbil';
 
   @override
-  String get cursorElectric => 'Electric car';
+  String get cursorElectric => 'Elbil';
 
   @override
-  String get cursorCity => 'City car';
+  String get cursorCity => 'Stadsbil';
 
   @override
   String get cursorClassic500 => 'Klassisk Fiat 500';
@@ -221,21 +221,21 @@ class AppLocalizationsSv extends AppLocalizations {
   String get keepScreenOnDescription => 'Förhindrar viloläge under navigering';
 
   @override
-  String get keepScreenOnAlways => 'Keep screen on outside navigation too';
+  String get keepScreenOnAlways => 'Håll skärmen på även utanför navigering';
 
   @override
   String get keepScreenOnAlwaysDescription =>
-      'Also applies while browsing the map without an active route';
+      'Gäller även när du bläddrar i kartan utan aktiv rutt';
 
   @override
-  String get minBrightness => 'Minimum screen brightness';
+  String get minBrightness => 'Lägsta skärmljusstyrka';
 
   @override
   String get minBrightnessDescription =>
-      'Stops the screen dimming below this level while the app is open — useful on OLED screens that dim further than the map stays readable at';
+      'Hindrar skärmen från att dimmas under den här nivån medan appen är öppen — användbart på OLED-skärmar som dimmas mer än kartan förblir läsbar';
 
   @override
-  String get minBrightnessOff => 'Off';
+  String get minBrightnessOff => 'Av';
 
   @override
   String get showAltitude => 'Visa höjd';
@@ -1146,26 +1146,26 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get onboardingWelcomeBody =>
-      'Everything your navigation app needs — without giving up your privacy.';
+      'Allt din navigeringsapp behöver — utan att ge upp din integritet.';
 
   @override
-  String get onboardingFeatureNav => 'Turn-by-turn GPS navigation';
+  String get onboardingFeatureNav => 'GPS-navigering sväng för sväng';
 
   @override
   String get onboardingFeatureNostr =>
-      'Nostr road events (speed cameras, hazards, traffic)';
+      'Nostr-trafikhändelser (fartkameror, faror, trafik)';
 
   @override
   String get onboardingFeatureLightning =>
-      'Lightning Network tips for event reporters';
+      'Lightning Network-dricks till de som rapporterar händelser';
 
   @override
   String get onboardingFeatureVoice =>
-      'On-device AI voice guidance (Kokoro-82M)';
+      'AI-röstguidning på enheten (Kokoro-82M)';
 
   @override
   String get onboardingFeaturePrivacy =>
-      'No account required — no tracking, ever';
+      'Inget konto krävs — ingen spårning, någonsin';
 
   @override
   String get onboardingGetStarted => 'Kom igång';
@@ -1175,7 +1175,7 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get onboardingNostrSubtitle =>
-      'Optional — connect to report road events, confirm alerts and earn Lightning tips.';
+      'Valfritt — anslut för att rapportera trafikhändelser, bekräfta varningar och tjäna Lightning-dricks.';
 
   @override
   String get onboardingNostrConnected => 'Ansluten';
@@ -1185,14 +1185,14 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get onboardingAmberSubtitle =>
-      'Connect with the Amber signer app. Your private key never leaves Amber.';
+      'Anslut med signeringsappen Amber. Din privata nyckel lämnar aldrig Amber.';
 
   @override
   String get onboardingNsecTitle => 'nsec-nyckel';
 
   @override
   String get onboardingNsecSubtitle =>
-      'Paste your private key. Stored in the Android Keystore.';
+      'Klistra in din privata nyckel. Lagras i Android Keystore.';
 
   @override
   String get onboardingNsecError =>
@@ -1212,7 +1212,7 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get onboardingSetupSubtitle =>
-      'Configure location access and optional voice guidance.';
+      'Konfigurera platsåtkomst och valfri röstguidning.';
 
   @override
   String get onboardingLocationTitle => 'Plats';
@@ -1231,7 +1231,7 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
+      'Ge Exakt plats (inte Ungefärlig) medan du använder Roadstr, under:\nInställningar → Appar → Roadstr → Behörigheter → Plats\n\nRoadstr använder en navigeringstjänst i förgrunden och kräver inte permanent platsåtkomst i bakgrunden.';
 
   @override
   String get onboardingVoiceTitle => 'AI-röststyrning (valfritt)';
@@ -1244,24 +1244,24 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get onboardingVoiceNotDownloaded =>
-      'Download the 82 MB Kokoro AI model for on-device voice';
+      'Ladda ner AI-modellen Kokoro (82 MB) för röst på enheten';
 
   @override
-  String get onboardingVoiceChecking => 'Checking model status…';
+  String get onboardingVoiceChecking => 'Kontrollerar modellens status…';
 
   @override
   String get onboardingDownloadButton => 'Ladda ned';
 
   @override
   String get onboardingVoiceLaterHint =>
-      'You can also download the voice model later from\nSettings → Navigation voice.';
+      'Du kan också ladda ner röstmodellen senare under\nInställningar → Navigeringsröst.';
 
   @override
   String get onboardingReadyTitle => 'Du är redo att navigera!';
 
   @override
   String get onboardingReadyBody =>
-      'Roadstr will now open the map.\nYou can configure everything else in Settings.';
+      'Roadstr öppnar nu kartan.\nAllt annat kan du konfigurera i Inställningar.';
 
   @override
   String get onboardingLetsGo => 'Kör!';
