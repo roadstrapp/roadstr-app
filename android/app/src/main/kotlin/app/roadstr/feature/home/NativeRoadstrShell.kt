@@ -145,6 +145,7 @@ import app.roadstr.feature.settings.NativeSettingsUiAction
 import app.roadstr.feature.settings.NativeSettingsStatus
 import app.roadstr.feature.settings.NativeSettingsCursorColor
 import app.roadstr.feature.settings.NativeSettingsCursorStyle
+import app.roadstr.feature.settings.NativeSettingsFavorite
 import app.roadstr.feature.settings.NativeSettingsInput
 import app.roadstr.feature.settings.NativeSettingsVoiceGender
 import app.roadstr.feature.settings.NativeSettingsVoiceModelStatus
@@ -603,6 +604,7 @@ fun NativeRoadstrShell(
                     revision = revision,
                     input = settingsSession.state.value.values.copy(
                         favoritesCount = favorites.size,
+                        favoritePlaces = favorites.map { NativeSettingsFavorite(it.label, it.address) },
                         syncIdentityAvailable = identityGateway?.let { identityState.loggedIn } == true,
                         voiceModelStatus = when (voiceState?.status) {
                             NativeVoiceRuntimeStatus.Downloading -> NativeSettingsVoiceModelStatus.Downloading
@@ -765,6 +767,23 @@ fun NativeRoadstrShell(
         var favoriteEditorOriginalAddress by remember { mutableStateOf("") }
         var favoriteEditorError by remember { mutableStateOf(false) }
         var favoriteEditorBusy by remember { mutableStateOf(false) }
+        // The editor was opened from the settings list: the saved-places sheet stays out of sight meanwhile.
+        var favoriteEditorFromSettings by remember { mutableStateOf(false) }
+        LaunchedEffect(favorites) {
+            if (settingsState.status != NativeSettingsStatus.Ready) return@LaunchedEffect
+            settingsSession.refresh(
+                settingsState.revision,
+                settingsState.values.copy(
+                    favoritesCount = favorites.size,
+                    favoritePlaces = favorites.map { NativeSettingsFavorite(it.label, it.address) },
+                ),
+            )
+        }
+        LaunchedEffect(favoriteEditorVisible) {
+            if (favoriteEditorVisible || !favoriteEditorFromSettings) return@LaunchedEffect
+            favoriteEditorFromSettings = false
+            savedPlacesSession.hide(savedPlacesState.revision)
+        }
         val activityInboxSession = remember { NativeActivityInboxSession() }
         val activityInboxState by activityInboxSession.state.collectAsState()
         val roadEventSession = remember { NativeRoadEventSession() }
@@ -975,6 +994,7 @@ fun NativeRoadstrShell(
         // target at (P + H) / 2, hence the 2x.)
         var navPanelHeightPixels by remember { mutableIntStateOf(0) }
         val windowHeightPixels = LocalWindowInfo.current.containerSize.height
+        val landscapeLayout = LocalWindowInfo.current.containerSize.let { it.width > it.height }
         val navigationDensity = LocalDensity.current
         LaunchedEffect(navPanelHeightPixels, windowHeightPixels) {
             if (navPanelHeightPixels <= 0 || windowHeightPixels <= 0) return@LaunchedEffect
@@ -1574,10 +1594,19 @@ fun NativeRoadstrShell(
                             gpsSnapshot.fix?.point?.let { point -> nostrHost?.openReport(point) }
                         },
                         onAddWaypoint = { journeyCoordinator?.openSearch(gpsSearchPoint != null) },
+                        horizontal = landscapeLayout,
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
-                            .navigationBarsPadding()
-                            .padding(end = 12.dp, bottom = 154.dp),
+                            .then(if (landscapeLayout) Modifier else Modifier.navigationBarsPadding())
+                            .padding(
+                                end = 12.dp,
+                                // Landscape: just above the summary panel, whose height is measured.
+                                bottom = if (landscapeLayout) {
+                                    with(density) { navPanelHeightPixels.toDp() } + 10.dp
+                                } else {
+                                    154.dp
+                                },
+                            ),
                     )
                 }
                 if (
@@ -1829,6 +1858,30 @@ fun NativeRoadstrShell(
                                 val nextRevision = savedPlacesState.revision.coerceAtLeast(0L) + 1L
                                 savedPlacesSession.show(nextRevision, favorites, parkingPosition)
                                 settingsSession.hide(revision)
+                            }
+                            is NativeSettingsUiAction.EditFavorite -> {
+                                val place = favorites.getOrNull(action.index)
+                                val nextRevision = savedPlacesState.revision.coerceAtLeast(0L) + 1L
+                                if (place != null && savedPlacesSession.show(nextRevision, favorites, parkingPosition)) {
+                                    favoriteEditorFromSettings = true
+                                    favoriteEditorIndex = action.index
+                                    favoriteEditorLabel = place.label
+                                    favoriteEditorAddress = place.address
+                                    favoriteEditorOriginalAddress = place.address
+                                    favoriteEditorError = false
+                                    favoriteEditorVisible = true
+                                }
+                            }
+                            is NativeSettingsUiAction.DeleteFavorite -> {
+                                val nextRevision = savedPlacesState.revision.coerceAtLeast(0L) + 1L
+                                if (savedPlacesSession.show(nextRevision, favorites, parkingPosition)) {
+                                    if (savedPlacesSession.delete(nextRevision, action.index)) {
+                                        favorites = savedPlacesSession.state.value.favorites
+                                        onFavoritesChanged(favorites)
+                                        nostrHost?.favoritesChangedLocally()
+                                    }
+                                    savedPlacesSession.hide(nextRevision)
+                                }
                             }
                             NativeSettingsUiAction.OpenWebSearch -> webPanelVisible = true
                             NativeSettingsUiAction.DownloadVoiceModel -> voiceGateway?.downloadAssets()
@@ -2108,7 +2161,11 @@ fun NativeRoadstrShell(
                     )
                 }
                 NativeSavedPlacesPanel(
-                    snapshot = savedPlacesState,
+                    snapshot = if (favoriteEditorFromSettings) {
+                        app.roadstr.feature.saved.NativeSavedPlacesSnapshot.hidden()
+                    } else {
+                        savedPlacesState
+                    },
                     onAdd = {
                         favoriteEditorIndex = null
                         favoriteEditorLabel = ""
