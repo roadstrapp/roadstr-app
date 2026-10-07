@@ -33,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -106,6 +107,7 @@ import app.roadstr.feature.profile.NativeProfilePanel
 import app.roadstr.feature.profile.NativeProfileSession
 import app.roadstr.feature.profile.NativeIdentityGateway
 import app.roadstr.feature.profile.NativeIdentitySnapshot
+import app.roadstr.feature.profile.NativeBunkerLoginResult
 import app.roadstr.feature.profile.NativeProfileMetadata
 import app.roadstr.feature.report.NativeRoadEventPanels
 import app.roadstr.feature.report.NativeRoadEventSession
@@ -444,14 +446,17 @@ fun NativeRoadstrShell(
                 identityGateway?.fetchProfileMetadata(pubkey)
             }
         }
-        var nsecDialogVisible by remember { mutableStateOf(false) }
-        var nsecInput by remember { mutableStateOf("") }
-        var nsecError by remember { mutableStateOf(false) }
+        var bunkerDialogVisible by remember { mutableStateOf(false) }
+        var bunkerInput by remember { mutableStateOf("") }
+        var bunkerBusy by remember { mutableStateOf(false) }
+        var bunkerMessage by remember { mutableStateOf<Int?>(null) }
+        // Read once, and kept across a rotation: the notice that a private-key login was not carried over.
+        var loginNoticeVisible by rememberSaveable { mutableStateOf(identityGateway?.consumeLoginNotice() == true) }
         var routingKeyPrompt by remember { mutableStateOf<NativeShellPrompt?>(null) }
         var nwcDialogVisible by remember { mutableStateOf(false) }
         var nwcInput by remember { mutableStateOf("") }
         var nwcError by remember { mutableStateOf(false) }
-        val sensitiveDialogVisible = nsecDialogVisible || nwcDialogVisible
+        val sensitiveDialogVisible = bunkerDialogVisible || nwcDialogVisible
         DisposableEffect(sensitiveDialogVisible, context) {
             val activity = context as? Activity
             val secureFlag = WindowManager.LayoutParams.FLAG_SECURE
@@ -2065,10 +2070,10 @@ fun NativeRoadstrShell(
                     snapshot = profileState,
                     onClose = profileSession::hide,
                     onAmberLogin = { revision -> onAmberLogin(revision) },
-                    onNsecLogin = {
-                        nsecError = false
-                        nsecInput = ""
-                        nsecDialogVisible = true
+                    onBunkerLogin = {
+                        bunkerMessage = null
+                        bunkerInput = ""
+                        bunkerDialogVisible = true
                     },
                     onCopyNpub = {
                         identityState.pubkeyHex?.let { pubkey ->
@@ -2097,9 +2102,11 @@ fun NativeRoadstrShell(
                             nostrHost?.reports?.showEvent(event)
                         }
                     },
-                    onLogout = { revision ->
+                    onLogout = { _ ->
                         identityGateway?.logout()
-                        profileSession.showLoggedOut(revision)
+                        // A ready profile cannot become "not connected" in place: start a new one, which
+                        // finds nobody logged in and shows the choice of login methods.
+                        profileSession.begin(profileState.revision.coerceAtLeast(0L) + 1L, ownProfile = true)
                     },
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
@@ -2431,10 +2438,10 @@ fun NativeRoadstrShell(
                         onboardingSession.selectPage(revision, page)
                     },
                     onAmberLogin = { onAmberLogin(onboardingState.revision) },
-                    onNsecLogin = {
-                        nsecError = false
-                        nsecInput = ""
-                        nsecDialogVisible = true
+                    onBunkerLogin = {
+                        bunkerMessage = null
+                        bunkerInput = ""
+                        bunkerDialogVisible = true
                     },
                     onProfileVisibilityChanged = { revision, value ->
                         onboardingSession.updateProfileVisibility(revision, value)
@@ -2461,31 +2468,41 @@ fun NativeRoadstrShell(
                         onDismiss = { routingKeyPrompt = null },
                     )
                 }
-                if (nsecDialogVisible) {
-                    val dismissNsecDialog = {
-                        nsecInput = ""
-                        nsecError = false
-                        nsecDialogVisible = false
+                if (bunkerDialogVisible) {
+                    val dismissBunkerDialog = {
+                        if (!bunkerBusy) {
+                            bunkerInput = ""
+                            bunkerMessage = null
+                            bunkerDialogVisible = false
+                        }
                     }
                     AlertDialog(
-                        onDismissRequest = dismissNsecDialog,
-                        title = { androidx.compose.material3.Text("Accedi con nsec") },
+                        onDismissRequest = dismissBunkerDialog,
+                        title = { androidx.compose.material3.Text(stringResource(R.string.native_bunker_dialog_title)) },
                         text = {
                             androidx.compose.foundation.layout.Column {
                                 OutlinedTextField(
-                                    value = nsecInput,
-                                    onValueChange = { nsecInput = it.take(120); nsecError = false },
-                                    label = { androidx.compose.material3.Text("nsec") },
+                                    value = bunkerInput,
+                                    onValueChange = { bunkerInput = it.take(2_048); bunkerMessage = null },
+                                    label = { androidx.compose.material3.Text(stringResource(R.string.native_bunker_hint)) },
                                     singleLine = true,
-                                    visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                                    enabled = !bunkerBusy,
                                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                                         autoCorrectEnabled = false,
-                                        keyboardType = KeyboardType.Password,
+                                        keyboardType = KeyboardType.Uri,
                                     ),
                                 )
-                                if (nsecError) {
+                                if (bunkerBusy) {
                                     androidx.compose.material3.Text(
-                                        "Chiave nsec non valida",
+                                        stringResource(R.string.native_bunker_waiting),
+                                        modifier = Modifier.padding(top = 8.dp),
+                                        style = MaterialTheme.typography.bodySmall,
+                                    )
+                                }
+                                bunkerMessage?.let { message ->
+                                    androidx.compose.material3.Text(
+                                        stringResource(message),
+                                        modifier = Modifier.padding(top = 8.dp),
                                         color = MaterialTheme.colorScheme.error,
                                         style = MaterialTheme.typography.bodySmall,
                                     )
@@ -2495,22 +2512,43 @@ fun NativeRoadstrShell(
                         confirmButton = {
                             Button(
                                 onClick = {
+                                    bunkerBusy = true
+                                    bunkerMessage = null
                                     journeyScope.launch {
-                                        val accepted = identityGateway?.loginNsec(nsecInput) == true
-                                        if (accepted) {
-                                            nsecDialogVisible = false
-                                            nsecInput = ""
-                                        } else {
-                                            nsecError = true
+                                        val result = identityGateway?.loginBunker(bunkerInput)
+                                            ?: NativeBunkerLoginResult.InvalidLink
+                                        bunkerBusy = false
+                                        when (result) {
+                                            NativeBunkerLoginResult.Connected -> {
+                                                bunkerDialogVisible = false
+                                                bunkerInput = ""
+                                            }
+                                            NativeBunkerLoginResult.InvalidLink ->
+                                                bunkerMessage = R.string.native_bunker_invalid
+                                            NativeBunkerLoginResult.Refused,
+                                            NativeBunkerLoginResult.NoAnswer,
+                                            -> bunkerMessage = R.string.native_bunker_failed
                                         }
                                     }
                                 },
-                                enabled = nsecInput.isNotBlank() && identityGateway != null,
-                            ) { androidx.compose.material3.Text("Accedi") }
+                                enabled = bunkerInput.isNotBlank() && !bunkerBusy && identityGateway != null,
+                            ) { androidx.compose.material3.Text(stringResource(R.string.native_bunker_connect)) }
                         },
                         dismissButton = {
-                            TextButton(onClick = dismissNsecDialog) {
-                                androidx.compose.material3.Text("Annulla")
+                            TextButton(onClick = dismissBunkerDialog, enabled = !bunkerBusy) {
+                                androidx.compose.material3.Text(stringResource(R.string.native_route_cancel))
+                            }
+                        },
+                    )
+                }
+                if (loginNoticeVisible) {
+                    AlertDialog(
+                        onDismissRequest = { loginNoticeVisible = false },
+                        title = { androidx.compose.material3.Text(stringResource(R.string.native_login_changed_title)) },
+                        text = { androidx.compose.material3.Text(stringResource(R.string.native_login_changed_body)) },
+                        confirmButton = {
+                            TextButton(onClick = { loginNoticeVisible = false }) {
+                                androidx.compose.material3.Text(stringResource(android.R.string.ok))
                             }
                         },
                     )

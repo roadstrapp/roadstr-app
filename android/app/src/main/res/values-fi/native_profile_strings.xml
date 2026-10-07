@@ -12,10 +12,7 @@
     <string name="native_profile_login_title">KIRJAUDU NOSTR-TILILLÄ</string>
     <string name="native_profile_amber_title">Amber / NIP-55</string>
     <string name="native_profile_amber_description">Yksityinen avain ei koskaan poistu laitteeltasi · Suositeltu</string>
-    <string name="native_profile_nsec_title">Lisää nsec</string>
-    <string name="native_profile_nsec_description">Yksityinen avain tallennettu paikallisesti · Vähemmän turvallinen</string>
     <string name="native_profile_connected_amber">Yhdistetty Amberin kautta (NIP-55)</string>
-    <string name="native_profile_connected_nsec">Yhdistetty nseciä käyttäen</string>
     <string name="native_profile_public_key">JULKINEN AVAIN</string>
     <string name="native_profile_npub_copied">npub kopioitu leikepöydälle</string>
     <string name="native_profile_logout">Katkaise yhteys</string>

@@ -12,10 +12,7 @@
     <string name="native_profile_login_title">使用NOSTR登录</string>
     <string name="native_profile_amber_title">Amber / NIP-55</string>
     <string name="native_profile_amber_description">私钥永不离开您的设备 · 推荐</string>
-    <string name="native_profile_nsec_title">输入nsec</string>
-    <string name="native_profile_nsec_description">私钥存储在本地 · 安全性较低</string>
     <string name="native_profile_connected_amber">通过Amber（NIP-55）连接</string>
-    <string name="native_profile_connected_nsec">通过nsec连接</string>
     <string name="native_profile_public_key">公钥</string>
     <string name="native_profile_npub_copied">npub已复制到剪贴板</string>
     <string name="native_profile_logout">断开连接</string>

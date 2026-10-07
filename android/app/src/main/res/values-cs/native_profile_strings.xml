@@ -12,10 +12,7 @@
     <string name="native_profile_login_title">PŘIHLÁSIT S NOSTR</string>
     <string name="native_profile_amber_title">Amber / NIP-55</string>
     <string name="native_profile_amber_description">Soukromý klíč nikdy neopustí vaše zařízení · Doporučeno</string>
-    <string name="native_profile_nsec_title">Vložit nsec</string>
-    <string name="native_profile_nsec_description">Soukromý klíč uložen lokálně · Méně bezpečné</string>
     <string name="native_profile_connected_amber">Připojeno přes Amber (NIP-55)</string>
-    <string name="native_profile_connected_nsec">Připojeno přes nsec</string>
     <string name="native_profile_public_key">VEŘEJNÝ KLÍČ</string>
     <string name="native_profile_npub_copied">npub zkopírován do schránky</string>
     <string name="native_profile_logout">Odpojit</string>

@@ -12,10 +12,7 @@
     <string name="native_profile_login_title">PIETEIKTIES AR NOSTR</string>
     <string name="native_profile_amber_title">Amber / NIP-55</string>
     <string name="native_profile_amber_description">Privātā atslēga nekad neatstāj jūsu ierīci · Ieteicams</string>
-    <string name="native_profile_nsec_title">Ievietot nsec</string>
-    <string name="native_profile_nsec_description">Privātā atslēga tiek glabāta lokāli · Mazāk droši</string>
     <string name="native_profile_connected_amber">Savienots, izmantojot Amber (NIP-55)</string>
-    <string name="native_profile_connected_nsec">Savienots, izmantojot nsec</string>
     <string name="native_profile_public_key">PUBLISKĀ ATSLĒGA</string>
     <string name="native_profile_npub_copied">npub nokopēts starpliktuvē</string>
     <string name="native_profile_logout">Atvienot</string>

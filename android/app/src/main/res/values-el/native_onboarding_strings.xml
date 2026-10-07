@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">Συνδεδεμένο</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55 (συνιστάται)</string>
     <string name="native_onboarding_amber_subtitle">Συνδεθείτε με την εφαρμογή υπογραφής Amber. Το ιδιωτικό σας κλειδί δεν φεύγει ποτέ από το Amber.</string>
-    <string name="native_onboarding_nsec_title">Κλειδί nsec</string>
-    <string name="native_onboarding_nsec_subtitle">Επικολλήστε το ιδιωτικό σας κλειδί. Αποθηκεύεται στο Android Keystore.</string>
-    <string name="native_onboarding_nsec_error">Μη έγκυρο κλειδί nsec — ελέγξτε και δοκιμάστε ξανά.</string>
-    <string name="native_onboarding_enter_nsec">Εισαγάγετε το κλειδί nsec</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">Πρόκειται να εισαγάγετε το ιδιωτικό κλειδί Nostr απευθείας σε μια εφαρμογή. Οποιοσδήποτε με φυσική ή απομακρυσμένη πρόσβαση στη συσκευή σας θα μπορούσε να το διαβάσει και να αναλάβει μόνιμα τον έλεγχο της Nostr ταυτότητάς σας.</string>
     <string name="native_onboarding_amber_secure_hint">✦  Η ασφαλής μέθοδος είναι το Amber (NIP-55): το nsec δεν φεύγει ποτέ από το θησαυροφυλάκιο του υπογράφοντος της εφαρμογής.</string>
     <string name="native_onboarding_login">Σύνδεση</string>
     <string name="native_onboarding_favorites_sync_notice">Προαιρετικό: τα αποθηκευμένα αγαπημένα σας μπορούν να συγχρονίζονται μεταξύ των συσκευών σας μέσω των Nostr relays, με κρυπτογράφηση από άκρο σε άκρο (NIP-44) με το δικό σας κλειδί — τα relays βλέπουν μόνο κρυπτογραφημένο κείμενο και κανείς εκτός από εσάς δεν μπορεί να διαβάσει το περιεχόμενο. Ενεργοποιήστε το οποτεδήποτε από τις Ρυθμίσεις.</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">Το Roadstr δεν μπόρεσε να διαβάσει ό,τι είχε αποθηκεύσει η προηγούμενη έκδοση σε αυτό το τηλέφωνο. Τίποτα δεν διαγράφηκε ή άλλαξε. Μπορείτε να δοκιμάσετε ξανά ή να συνεχίσετε χωρίς αυτά· τα παλιά δεδομένα σας παραμένουν στο τηλέφωνο.</string>
     <string name="native_onboarding_migration_retry">Δοκιμάστε ξανά</string>
     <string name="native_onboarding_migration_skip">Συνέχεια χωρίς εισαγωγή</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">Συνδεθείτε με απομακρυσμένο υπογράφοντα. Επικολλήστε τον σύνδεσμο bunker:// του. Το ιδιωτικό σας κλειδί μένει στον υπογράφοντα.</string>
+    <string name="native_bunker_connected">Συνδεδεμένο μέσω bunker</string>
+    <string name="native_bunker_dialog_title">Σύνδεση bunker</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">Αυτός δεν είναι έγκυρος σύνδεσμος bunker. Ξεκινά με bunker:// και αναφέρει τουλάχιστον έναν ρελέ wss://.</string>
+    <string name="native_bunker_failed">Το bunker δεν απάντησε ή αρνήθηκε. Ελέγξτε τον σύνδεσμο και εγκρίνετε το αίτημα στην εφαρμογή υπογραφής σας.</string>
+    <string name="native_bunker_waiting">Αναμονή για το bunker. Εγκρίνετε το αίτημα στην εφαρμογή υπογραφής σας.</string>
+    <string name="native_bunker_connect">Σύνδεση</string>
+    <string name="native_login_changed_title">Συνδεθείτε ξανά</string>
+    <string name="native_login_changed_body">Αυτός ο λογαριασμός είχε συνδεθεί με ιδιωτικό κλειδί, το οποίο το Roadstr δεν δέχεται πλέον. Τα μέρη και οι ρυθμίσεις σας διατηρούνται. Συνδεθείτε ξανά με το Amber ή με bunker από το προφίλ σας.</string>
 </resources>

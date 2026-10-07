@@ -70,8 +70,10 @@ For each supported ABI and the universal fallback, the user should manually:
 5. Exercise the migration matrix in `MIGRATION_PLAN.md`.
 6. Kill/restart during migration in a controlled fixture run and verify rollback.
 7. Verify voice files are reused and no new permission/onboarding prompt appears.
-8. Verify notification, background navigation, Amber, nsec, NWC, search,
-   routing, maps and all user-visible settings.
+8. Verify notification, background navigation, Amber, a bunker login, NWC, search,
+   routing, maps and all user-visible settings. An install that was logged in
+   with a private key (nsec) comes over logged out, by decision D-55, and says so
+   once.
 9. Capture `apksigner` certificate output, APK version data and checksums for
    the release record.
 

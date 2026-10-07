@@ -12,10 +12,7 @@
     <string name="native_profile_login_title">LOGIN WITH NOSTR</string>
     <string name="native_profile_amber_title">Amber / NIP-55</string>
     <string name="native_profile_amber_description">Private key never leaves your device · Recommended</string>
-    <string name="native_profile_nsec_title">Insert nsec</string>
-    <string name="native_profile_nsec_description">Private key stored locally · Less secure</string>
     <string name="native_profile_connected_amber">Connected via Amber (NIP-55)</string>
-    <string name="native_profile_connected_nsec">Connected via nsec</string>
     <string name="native_profile_public_key">PUBLIC KEY</string>
     <string name="native_profile_npub_copied">npub copied to clipboard</string>
     <string name="native_profile_logout">Disconnect</string>

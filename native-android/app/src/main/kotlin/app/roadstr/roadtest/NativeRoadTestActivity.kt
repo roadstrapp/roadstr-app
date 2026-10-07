@@ -82,7 +82,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
     }
     private val voiceGateway: NativeRoadTestVoiceGateway get() = runtime.voice
     private val identityGateway by lazy(LazyThreadSafetyMode.NONE) {
-        NativeRoadTestIdentityGateway(applicationContext, storeNames)
+        NativeRoadTestIdentityGateway(applicationContext, storeNames).also { it.openUrl = ::openApprovalPage }
     }
     private var amberRequestRevision = -1L
     private val amberLauncher = registerForActivityResult(
@@ -211,7 +211,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
                 appVersion = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }
                     .getOrNull().orEmpty().ifBlank { "—" },
                 favoritesCount = initialFavorites.size,
-                syncIdentityAvailable = identityGateway.privateKeyHex() != null,
+                syncIdentityAvailable = identityGateway.state.value.loggedIn,
             )
         }
         val gpsSnapshot by locationController.state.collectAsStateWithLifecycle()
@@ -297,7 +297,13 @@ open class NativeRoadTestActivity : ComponentActivity() {
         val connector = NativeRelayConnectorSelector(OkHttpRelayConnector())
         val relays = NativeRoadEventService.DEFAULT_RELAYS
         val publisher = NativeRelayPublisher(connector, relays)
-        val signer = NativeRoadTestSigner(identityGateway, identityGateway::privateKeyHex, amberBridge)
+        val signer = NativeRoadTestSigner(
+            identity = identityGateway,
+            amber = amberBridge,
+            bunkerSession = identityGateway::bunkerSession,
+            connector = connector,
+            openUrl = ::openApprovalPage,
+        )
         val syncStorage = NativeRoadTestSyncStorage(applicationContext, storeNames)
         val profiles = NativeRoadTestNostrProfileService()
         val zaps = NativeZapService(connector, relays = relays) { Log.d("RoadstrZap", it) }
@@ -368,6 +374,12 @@ open class NativeRoadTestActivity : ComponentActivity() {
             NativeShellGpsPhase.Active,
             -> Unit
         }
+    }
+
+    /** A remote signer asked for the person's approval on a web page: only a secure address is opened. */
+    private fun openApprovalPage(url: String) {
+        if (!url.startsWith("https://")) return
+        runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
     }
 
     private fun launchAmber(revision: Long) {

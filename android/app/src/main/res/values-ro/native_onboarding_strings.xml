@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">Conectat</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55 (recomandat)</string>
     <string name="native_onboarding_amber_subtitle">Conectează-te cu aplicația de semnare Amber. Cheia ta privată nu părăsește niciodată Amber.</string>
-    <string name="native_onboarding_nsec_title">Cheie nsec</string>
-    <string name="native_onboarding_nsec_subtitle">Lipește cheia ta privată. Este stocată în Android Keystore.</string>
-    <string name="native_onboarding_nsec_error">Cheie nsec invalidă — verificați și încercați din nou.</string>
-    <string name="native_onboarding_enter_nsec">Introduceți cheia nsec</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">Urmează să introduceți cheia privată Nostr direct într-o aplicație. Oricine cu acces fizic sau de la distanță la dispozitivul dvs. ar putea-o citi și prelua permanent controlul asupra identității dvs. Nostr.</string>
     <string name="native_onboarding_amber_secure_hint">✦  Metoda sigură este Amber (NIP-55): nsec nu părăsește niciodată seiful semnatarului aplicației.</string>
     <string name="native_onboarding_login">Conectare</string>
     <string name="native_onboarding_favorites_sync_notice">Opțional: favoritele salvate se pot sincroniza între dispozitivele tale prin releele Nostr, criptate end-to-end (NIP-44) cu propria ta cheie — releele văd doar text cifrat și nimeni în afară de tine nu poate citi conținutul. Activează oricând din Setări.</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">Roadstr nu a putut citi ce salvase versiunea anterioară pe acest telefon. Nimic nu a fost șters sau modificat. Poți încerca din nou sau poți continua fără ele; datele vechi rămân pe telefon.</string>
     <string name="native_onboarding_migration_retry">Încearcă din nou</string>
     <string name="native_onboarding_migration_skip">Continuă fără import</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">Autentifică-te cu un semnatar la distanță. Lipește linkul lui bunker://. Cheia ta privată rămâne la semnatar.</string>
+    <string name="native_bunker_connected">Conectat prin bunker</string>
+    <string name="native_bunker_dialog_title">Conectează un bunker</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">Acesta nu este un link bunker valid. Începe cu bunker:// și indică cel puțin un releu wss://.</string>
+    <string name="native_bunker_failed">Bunkerul nu a răspuns sau a refuzat. Verifică linkul și aprobă cererea în aplicația ta de semnare.</string>
+    <string name="native_bunker_waiting">Se așteaptă bunkerul. Aprobă cererea în aplicația ta de semnare.</string>
+    <string name="native_bunker_connect">Conectează</string>
+    <string name="native_login_changed_title">Autentifică-te din nou</string>
+    <string name="native_login_changed_body">Acest cont era conectat cu o cheie privată, pe care Roadstr nu o mai acceptă. Locurile și setările tale au fost păstrate. Autentifică-te din nou cu Amber sau cu un bunker din profil.</string>
 </resources>
