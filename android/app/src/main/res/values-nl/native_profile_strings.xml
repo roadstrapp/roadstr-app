@@ -12,10 +12,7 @@
     <string name="native_profile_login_title">INLOGGEN MET NOSTR</string>
     <string name="native_profile_amber_title">Amber / NIP-55</string>
     <string name="native_profile_amber_description">Privésleutel verlaat nooit uw apparaat · Aanbevolen</string>
-    <string name="native_profile_nsec_title">nsec invoeren</string>
-    <string name="native_profile_nsec_description">Privésleutel lokaal opgeslagen · Minder veilig</string>
     <string name="native_profile_connected_amber">Verbonden via Amber (NIP-55)</string>
-    <string name="native_profile_connected_nsec">Verbonden via nsec</string>
     <string name="native_profile_public_key">PUBLIEKE SLEUTEL</string>
     <string name="native_profile_npub_copied">npub naar klembord gekopieerd</string>
     <string name="native_profile_logout">Verbinding verbreken</string>

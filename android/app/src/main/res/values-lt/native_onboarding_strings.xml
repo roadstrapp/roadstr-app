@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">Prisijungta</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55 (rekomenduojama)</string>
     <string name="native_onboarding_amber_subtitle">Prisijunkite per pasirašymo programėlę Amber. Jūsų privatusis raktas niekada nepalieka Amber.</string>
-    <string name="native_onboarding_nsec_title">nsec raktas</string>
-    <string name="native_onboarding_nsec_subtitle">Įklijuokite savo privatųjį raktą. Saugomas Android Keystore.</string>
-    <string name="native_onboarding_nsec_error">Neteisingas nsec raktas — patikrinkite ir bandykite dar kartą.</string>
-    <string name="native_onboarding_enter_nsec">Įveskite nsec raktą</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">Ketinate įvesti savo Nostr privatų raktą tiesiai į programą. Bet kas, turintis fizinę ar nuotolinę prieigą prie jūsų įrenginio, galėtų jį perskaityti ir visam laikui perimti jūsų Nostr tapatybės kontrolę.</string>
     <string name="native_onboarding_amber_secure_hint">✦  Saugus metodas yra Amber (NIP-55): nsec niekada nepalieka programos pasirašytojo saugyklos.</string>
     <string name="native_onboarding_login">Prisijungti</string>
     <string name="native_onboarding_favorites_sync_notice">Neprivaloma: išsaugoti mėgstamiausi gali būti sinchronizuojami tarp jūsų įrenginių per Nostr reles, šifruojant nuo galo iki galo (NIP-44) jūsų pačių raktu — relės mato tik šifruotą tekstą ir niekas, išskyrus jus, negali skaityti turinio. Įjunkite bet kada Nustatymuose.</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">„Roadstr“ nepavyko perskaityti to, ką ankstesnė versija išsaugojo šiame telefone. Niekas nebuvo ištrinta ar pakeista. Galite bandyti dar kartą arba tęsti be jų; jūsų seni duomenys lieka telefone.</string>
     <string name="native_onboarding_migration_retry">Bandyti dar kartą</string>
     <string name="native_onboarding_migration_skip">Tęsti neimportuojant</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">Prisijunkite per nuotolinį pasirašytoją. Įklijuokite jo nuorodą bunker://. Jūsų privatusis raktas lieka pas pasirašytoją.</string>
+    <string name="native_bunker_connected">Prisijungta per bunker</string>
+    <string name="native_bunker_dialog_title">Prijungti bunker</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">Tai nėra tinkama bunker nuoroda. Ji prasideda bunker:// ir nurodo bent vieną wss:// relę.</string>
+    <string name="native_bunker_failed">Bunker neatsakė arba atsisakė. Patikrinkite nuorodą ir patvirtinkite užklausą savo pasirašymo programėlėje.</string>
+    <string name="native_bunker_waiting">Laukiama bunker. Patvirtinkite užklausą savo pasirašymo programėlėje.</string>
+    <string name="native_bunker_connect">Prijungti</string>
+    <string name="native_login_changed_title">Prisijunkite iš naujo</string>
+    <string name="native_login_changed_body">Ši paskyra buvo prisijungusi privačiuoju raktu, kurio Roadstr nebepriima. Jūsų vietos ir nustatymai išsaugoti. Profilyje prisijunkite iš naujo per Amber arba bunker.</string>
 </resources>

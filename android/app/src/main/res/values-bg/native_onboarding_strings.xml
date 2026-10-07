@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">Свързан</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55 (препоръчително)</string>
     <string name="native_onboarding_amber_subtitle">Свържете се с приложението за подписване Amber. Личният ви ключ никога не напуска Amber.</string>
-    <string name="native_onboarding_nsec_title">nsec ключ</string>
-    <string name="native_onboarding_nsec_subtitle">Поставете личния си ключ. Съхранява се в Android Keystore.</string>
-    <string name="native_onboarding_nsec_error">Невалиден nsec ключ — проверете и опитайте отново.</string>
-    <string name="native_onboarding_enter_nsec">Въведете nsec ключ</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">Предстои да въведете личния си ключ на Nostr директно в приложение. Всеки с физически или отдалечен достъп до устройството ви може да го прочете и трайно да поеме контрол над вашата Nostr самоличност.</string>
     <string name="native_onboarding_amber_secure_hint">✦  Безопасният метод е Amber (NIP-55): nsec никога не напуска трезора на подписвача на приложението.</string>
     <string name="native_onboarding_login">Вход</string>
     <string name="native_onboarding_favorites_sync_notice">По избор: запазените любими могат да се синхронизират между устройствата ви чрез Nostr релетата, шифровани от край до край (NIP-44) с вашия собствен ключ — релетата виждат само шифрован текст и никой освен вас не може да чете съдържанието. Активирайте по всяко време от Настройки.</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">Roadstr не успя да прочете онова, което предишната версия е запазила на този телефон. Нищо не е изтрито или променено. Можете да опитате отново или да продължите без тях; старите ви данни остават в телефона.</string>
     <string name="native_onboarding_migration_retry">Опитайте отново</string>
     <string name="native_onboarding_migration_skip">Продължи без импортиране</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">Влезте чрез отдалечен подписващ. Поставете неговата връзка bunker://. Личният ви ключ остава при подписващия.</string>
+    <string name="native_bunker_connected">Свързано чрез bunker</string>
+    <string name="native_bunker_dialog_title">Свързване на bunker</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">Това не е валидна връзка bunker. Започва с bunker:// и посочва поне един релей wss://.</string>
+    <string name="native_bunker_failed">Bunker не отговори или отказа. Проверете връзката и одобрете заявката в приложението си за подписване.</string>
+    <string name="native_bunker_waiting">Изчакване на bunker. Одобрете заявката в приложението си за подписване.</string>
+    <string name="native_bunker_connect">Свързване</string>
+    <string name="native_login_changed_title">Влезте отново</string>
+    <string name="native_login_changed_body">Този акаунт беше влязъл с личен ключ, който Roadstr вече не приема. Вашите места и настройки са запазени. Влезте отново с Amber или с bunker от профила си.</string>
 </resources>

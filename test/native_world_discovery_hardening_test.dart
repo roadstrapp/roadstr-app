@@ -93,7 +93,7 @@ void main() {
       expect(File('docs/world-discovery/$doc').existsSync(), isTrue, reason: doc);
     }
     final decisions = _read('docs/world-discovery/DECISIONS.md');
-    for (var n = 1; n <= 54; n++) {
+    for (var n = 1; n <= 55; n++) {
       expect(decisions, contains('| D-${n.toString().padLeft(2, '0')} |'), reason: 'D-$n');
     }
   });

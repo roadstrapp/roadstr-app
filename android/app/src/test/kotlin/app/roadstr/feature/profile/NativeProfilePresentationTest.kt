@@ -14,7 +14,9 @@ class NativeProfilePresentationTest {
     @Test
     fun `identity flavors accept only the two persisted wire values`() {
         assertEquals(NativeProfileIdentityFlavor.Amber, NativeProfileIdentityFlavor.fromWire(" AMBER "))
-        assertEquals(NativeProfileIdentityFlavor.Nsec, NativeProfileIdentityFlavor.fromWire("nsec"))
+        assertEquals(NativeProfileIdentityFlavor.Bunker, NativeProfileIdentityFlavor.fromWire("bunker"))
+        // A private-key login is no longer a way to be logged in.
+        assertNull(NativeProfileIdentityFlavor.fromWire("nsec"))
         assertNull(NativeProfileIdentityFlavor.fromWire("extension"))
         assertNull(NativeProfileIdentityFlavor.fromWire(null))
     }
@@ -161,7 +163,7 @@ class NativeProfilePresentationTest {
                     pubkeyHex = PUBKEY,
                     ownProfile = false,
                     profilePublic = true,
-                    flavor = NativeProfileIdentityFlavor.Nsec,
+                    flavor = NativeProfileIdentityFlavor.Bunker,
                 ),
             )
         }

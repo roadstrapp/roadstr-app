@@ -19,7 +19,6 @@ enum class NativeOnboardingIdentityStatus {
     Disconnected,
     WaitingAmber,
     Connected,
-    InvalidNsec,
 }
 
 enum class NativeOnboardingLocationStatus { Checking, Required, Granted }

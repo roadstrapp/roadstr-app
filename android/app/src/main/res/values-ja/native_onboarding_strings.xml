@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">接続済み</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55（推奨）</string>
     <string name="native_onboarding_amber_subtitle">署名アプリ Amber と接続します。秘密鍵が Amber の外に出ることはありません。</string>
-    <string name="native_onboarding_nsec_title">nsec キー</string>
-    <string name="native_onboarding_nsec_subtitle">秘密鍵を貼り付けてください。Android Keystore に保存されます。</string>
-    <string name="native_onboarding_nsec_error">nsec キーが無効です — 確認して再試行してください。</string>
-    <string name="native_onboarding_enter_nsec">nsec キーを入力</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">あなたはNostrの秘密鍵をアプリに直接ぶち込もうとしています。デバイスへの物理的またはリモートアクセスができる人は誰でもそれを読み取り、あなたのNostrアイデンティティを永久に乗っ取ることができます。</string>
     <string name="native_onboarding_amber_secure_hint">✦  安全な方法はAmber（NIP-55）です：nsecはアプリの署名ボールトから出ることはありません。</string>
     <string name="native_onboarding_login">ログイン</string>
     <string name="native_onboarding_favorites_sync_notice">任意: 保存したお気に入りは、Nostrリレーを通じて端末間で同期できます。自分の鍵でエンドツーエンド暗号化（NIP-44）されるため、リレーには暗号文しか見えず、あなた以外は内容を読めません。設定からいつでも有効にできます。</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">Roadstrは、以前のバージョンがこの端末に保存した内容を読み取れませんでした。削除や変更は一切行われていません。もう一度試すか、引き継がずに続行できます。以前のデータは端末に残ります。</string>
     <string name="native_onboarding_migration_retry">再試行</string>
     <string name="native_onboarding_migration_skip">引き継がずに続行</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">リモート署名者でログインします。その bunker:// リンクを貼り付けてください。秘密鍵は署名者側に残ります。</string>
+    <string name="native_bunker_connected">bunker 経由で接続済み</string>
+    <string name="native_bunker_dialog_title">bunker を接続</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">有効な bunker リンクではありません。bunker:// で始まり、wss:// のリレーを少なくとも 1 つ含む必要があります。</string>
+    <string name="native_bunker_failed">bunker が応答しなかったか、拒否しました。リンクを確認し、署名アプリでリクエストを承認してください。</string>
+    <string name="native_bunker_waiting">bunker の応答を待っています。署名アプリでリクエストを承認してください。</string>
+    <string name="native_bunker_connect">接続</string>
+    <string name="native_login_changed_title">もう一度ログインしてください</string>
+    <string name="native_login_changed_body">このアカウントは秘密鍵でログインしていましたが、Roadstr はもう秘密鍵を受け付けません。保存した場所と設定はそのままです。プロフィールから Amber または bunker で再度ログインしてください。</string>
 </resources>

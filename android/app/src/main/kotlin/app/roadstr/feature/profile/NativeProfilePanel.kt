@@ -81,7 +81,7 @@ fun NativeProfilePanel(
     snapshot: NativeProfileSnapshot,
     onClose: (Long) -> Unit,
     onAmberLogin: (Long) -> Unit,
-    onNsecLogin: (Long) -> Unit,
+    onBunkerLogin: (Long) -> Unit,
     onCopyNpub: (String) -> Unit,
     onVisibilityChanged: (Long, Boolean) -> Unit,
     onReportSelected: (String) -> Unit,
@@ -110,7 +110,7 @@ fun NativeProfilePanel(
                         LoggedOutProfile(
                             waitingAmber = snapshot.waitingAmber,
                             onAmberLogin = { onAmberLogin(snapshot.revision) },
-                            onNsecLogin = { onNsecLogin(snapshot.revision) },
+                            onBunkerLogin = { onBunkerLogin(snapshot.revision) },
                         )
                     }
 
@@ -203,7 +203,7 @@ private fun ProfileLoading() {
 private fun LoggedOutProfile(
     waitingAmber: Boolean,
     onAmberLogin: () -> Unit,
-    onNsecLogin: () -> Unit,
+    onBunkerLogin: () -> Unit,
 ) {
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         ProfileAvatar(public = false)
@@ -242,11 +242,11 @@ private fun LoggedOutProfile(
         Spacer(modifier = Modifier.height(8.dp))
         LoginChoice(
             symbol = "⚿",
-            title = stringResource(R.string.native_profile_nsec_title),
-            description = stringResource(R.string.native_profile_nsec_description),
+            title = stringResource(R.string.native_bunker_title),
+            description = stringResource(R.string.native_bunker_subtitle),
             enabled = !waitingAmber,
-            warning = true,
-            onClick = onNsecLogin,
+            warning = false,
+            onClick = onBunkerLogin,
         )
         InfoCard(stringResource(R.string.native_profile_identity_info))
     }
@@ -548,7 +548,7 @@ private fun connectionLabel(snapshot: NativeProfileSnapshot): String = when {
         stringResource(R.string.native_profile_connected_amber)
     }
 
-    else -> stringResource(R.string.native_profile_connected_nsec)
+    else -> stringResource(R.string.native_bunker_connected)
 }
 
 @Composable

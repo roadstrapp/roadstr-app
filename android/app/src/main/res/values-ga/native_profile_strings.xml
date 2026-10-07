@@ -12,10 +12,7 @@
     <string name="native_profile_login_title">LOGÁIL ISTEACH LE NOSTR</string>
     <string name="native_profile_amber_title">Amber / NIP-55</string>
     <string name="native_profile_amber_description">Ní fhágann an eochair phríobháideach do ghléas riamh · Molta</string>
-    <string name="native_profile_nsec_title">Cuir isteach nsec</string>
-    <string name="native_profile_nsec_description">Eochair phríobháideach stóráilte go háitiúil · Níos lú slándála</string>
     <string name="native_profile_connected_amber">Ceangailte trí Amber (NIP-55)</string>
-    <string name="native_profile_connected_nsec">Ceangailte trí nsec</string>
     <string name="native_profile_public_key">EOCHAIR PHOIBLÍ</string>
     <string name="native_profile_npub_copied">npub cóipeáilte go gearrthaisce</string>
     <string name="native_profile_logout">Dícheangail</string>

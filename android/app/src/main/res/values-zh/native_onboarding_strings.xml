@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">已连接</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55（推荐）</string>
     <string name="native_onboarding_amber_subtitle">通过 Amber 签名应用连接。你的私钥永远不会离开 Amber。</string>
-    <string name="native_onboarding_nsec_title">nsec 密钥</string>
-    <string name="native_onboarding_nsec_subtitle">粘贴你的私钥。保存在 Android Keystore 中。</string>
-    <string name="native_onboarding_nsec_error">nsec 密钥无效 — 请检查后重试。</string>
-    <string name="native_onboarding_enter_nsec">输入 nsec 密钥</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">您即将把您的Nostr私钥直接硬塞进应用程序。任何能够物理或远程访问您设备的人都可以读取它，并永久夺取您Nostr身份的控制权。</string>
     <string name="native_onboarding_amber_secure_hint">✦  安全方法是Amber（NIP-55）：nsec永远不会离开应用签名保险库。</string>
     <string name="native_onboarding_login">登录</string>
     <string name="native_onboarding_favorites_sync_notice">可选：您保存的收藏可以通过Nostr中继在您的设备之间同步，使用您自己的密钥进行端到端加密（NIP-44）— 中继只能看到密文，除您之外没有人能读取内容。可随时在设置中启用。</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">Roadstr 无法读取上一个版本保存在这部手机上的内容。没有任何内容被删除或更改。您可以重试，或不导入直接继续；旧数据仍保留在手机上。</string>
     <string name="native_onboarding_migration_retry">重试</string>
     <string name="native_onboarding_migration_skip">不导入，继续</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">使用远程签名器登录。粘贴它的 bunker:// 链接。你的私钥保留在签名器中。</string>
+    <string name="native_bunker_connected">已通过 bunker 连接</string>
+    <string name="native_bunker_dialog_title">连接 bunker</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">这不是有效的 bunker 链接。它以 bunker:// 开头，并至少包含一个 wss:// 中继。</string>
+    <string name="native_bunker_failed">bunker 没有响应或已拒绝。请检查链接，并在签名应用中批准请求。</string>
+    <string name="native_bunker_waiting">正在等待 bunker。请在签名应用中批准请求。</string>
+    <string name="native_bunker_connect">连接</string>
+    <string name="native_login_changed_title">请重新登录</string>
+    <string name="native_login_changed_body">此账户之前使用私钥登录，Roadstr 已不再接受私钥。你保存的地点和设置都已保留。请在个人资料中使用 Amber 或 bunker 重新登录。</string>
 </resources>

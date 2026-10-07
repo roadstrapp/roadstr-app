@@ -12,10 +12,7 @@
     <string name="native_profile_login_title">ΣΥΝΔΕΣΗ ΜΕ NOSTR</string>
     <string name="native_profile_amber_title">Amber / NIP-55</string>
     <string name="native_profile_amber_description">Το ιδιωτικό κλειδί δεν φεύγει ποτέ από τη συσκευή σας · Συνιστάται</string>
-    <string name="native_profile_nsec_title">Εισαγωγή nsec</string>
-    <string name="native_profile_nsec_description">Το ιδιωτικό κλειδί αποθηκεύεται τοπικά · Λιγότερο ασφαλές</string>
     <string name="native_profile_connected_amber">Συνδεδεμένο μέσω Amber (NIP-55)</string>
-    <string name="native_profile_connected_nsec">Συνδεδεμένο μέσω nsec</string>
     <string name="native_profile_public_key">ΔΗΜΟΣΙΟ ΚΛΕΙΔΙ</string>
     <string name="native_profile_npub_copied">Το npub αντιγράφηκε στο πρόχειρο</string>
     <string name="native_profile_logout">Αποσύνδεση</string>

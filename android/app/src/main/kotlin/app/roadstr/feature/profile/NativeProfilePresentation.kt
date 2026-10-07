@@ -20,7 +20,7 @@ enum class NativeProfileStatus {
 
 enum class NativeProfileIdentityFlavor(val wireValue: String) {
     Amber("amber"),
-    Nsec("nsec");
+    Bunker("bunker");
 
     companion object {
         fun fromWire(value: String?): NativeProfileIdentityFlavor? = entries.firstOrNull {

@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">Ceangailte</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55 (molta)</string>
     <string name="native_onboarding_amber_subtitle">Ceangail leis an aip sínithe Amber. Ní fhágann d\'eochair phríobháideach Amber riamh.</string>
-    <string name="native_onboarding_nsec_title">Eochair nsec</string>
-    <string name="native_onboarding_nsec_subtitle">Greamaigh d\'eochair phríobháideach. Stóráilte in Android Keystore.</string>
-    <string name="native_onboarding_nsec_error">Eochair nsec neamhbhailí — seiceáil agus déan arís.</string>
-    <string name="native_onboarding_enter_nsec">Cuir isteach an eochair nsec</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">Tá tú ar tí do eochair phríobháideach Nostr a chaitheamh go díreach isteach in aip gan cosaint ar bith. D\'fhéadfadh duine ar bith a bhfuil rochtain fhisiciúil nó iargúlta aige ar do ghléas é a léamh agus smacht buan a ghlacadh ar d\'aitheantas Nostr.</string>
     <string name="native_onboarding_amber_secure_hint">✦  Is é an modh sábháilte Amber (NIP-55): ní fhágann an nsec bosca taisceáin an sínitheora riamh.</string>
     <string name="native_onboarding_login">Logáil isteach</string>
     <string name="native_onboarding_favorites_sync_notice">Roghnach: is féidir do cheanáin shábháilte a shioncronú idir do ghléasanna trí na hathsheachadáin Nostr, criptithe ó cheann go ceann (NIP-44) le d’eochair féin — ní fheiceann na hathsheachadáin ach téacs criptithe, agus ní féidir le duine ar bith seachas tú féin an t-ábhar a léamh. Cumasaigh am ar bith ó na Socruithe.</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">Níorbh fhéidir le Roadstr an méid a shábháil an leagan roimhe seo ar an bhfón seo a léamh. Ní scriosadh ná ní athraíodh aon rud. Is féidir leat triail eile a bhaint as nó leanúint ar aghaidh gan iad; fanann do shean-sonraí ar an bhfón.</string>
     <string name="native_onboarding_migration_retry">Bain triail eile as</string>
     <string name="native_onboarding_migration_skip">Lean ar aghaidh gan iompórtáil</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">Sínigh isteach le síniú cianda. Greamaigh a nasc bunker://. Fanann d\'eochair phríobháideach ag an sínitheoir.</string>
+    <string name="native_bunker_connected">Ceangailte trí bunker</string>
+    <string name="native_bunker_dialog_title">Ceangail bunker</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">Ní nasc bunker bailí é seo. Tosaíonn sé le bunker:// agus ainmníonn sé athsheachadán wss:// amháin ar a laghad.</string>
+    <string name="native_bunker_failed">Níor fhreagair an bunker nó dhiúltaigh sé. Seiceáil an nasc agus ceadaigh an iarratas i d\'aip sínithe.</string>
+    <string name="native_bunker_waiting">Ag fanacht leis an mbunker. Ceadaigh an iarratas i d\'aip sínithe.</string>
+    <string name="native_bunker_connect">Ceangail</string>
+    <string name="native_login_changed_title">Sínigh isteach arís</string>
+    <string name="native_login_changed_body">Bhí an cuntas seo sínithe isteach le heochair phríobháideach, nach nglacann Roadstr leis a thuilleadh. Coinníodh d\'áiteanna agus do shocruithe. Sínigh isteach arís le Amber nó le bunker ó do phróifíl.</string>
 </resources>

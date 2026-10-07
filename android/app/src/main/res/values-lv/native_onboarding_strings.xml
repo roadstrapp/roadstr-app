@@ -16,12 +16,6 @@
     <string name="native_onboarding_identity_connected">Savienots</string>
     <string name="native_onboarding_amber_title">Amber — NIP-55 (ieteicams)</string>
     <string name="native_onboarding_amber_subtitle">Pieslēdzieties ar parakstīšanas lietotni Amber. Jūsu privātā atslēga nekad neatstāj Amber.</string>
-    <string name="native_onboarding_nsec_title">nsec atslēga</string>
-    <string name="native_onboarding_nsec_subtitle">Ielīmējiet savu privāto atslēgu. Tiek glabāta Android Keystore.</string>
-    <string name="native_onboarding_nsec_error">Nederīga nsec atslēga — pārbaudiet un mēģiniet vēlreiz.</string>
-    <string name="native_onboarding_enter_nsec">Ievadiet nsec atslēgu</string>
-    <string name="native_onboarding_nsec_hint">nsec1…</string>
-    <string name="native_onboarding_nsec_warning">Jūs gatavojaties ievadīt savu Nostr privāto atslēgu tieši lietotnē. Ikviens, kam ir fiziska vai attālināta piekļuve jūsu ierīcei, var to nolasīt un pastāvīgi pārņemt kontroli pār jūsu Nostr identitāti.</string>
     <string name="native_onboarding_amber_secure_hint">✦  Drošā metode ir Amber (NIP-55): nsec nekad neatstāj lietotnes parakstītāja glabātuvi.</string>
     <string name="native_onboarding_login">Pieteikties</string>
     <string name="native_onboarding_favorites_sync_notice">Pēc izvēles: saglabātā izlase var sinhronizēties starp jūsu ierīcēm caur Nostr relejiem, pilnībā šifrēta (NIP-44) ar jūsu paša atslēgu — releji redz tikai šifrētu tekstu, un neviens cits kā jūs nevar lasīt saturu. Iespējojiet jebkurā laikā Iestatījumos.</string>
@@ -60,4 +54,15 @@
     <string name="native_onboarding_migration_failed_body">Roadstr nevarēja nolasīt to, ko iepriekšējā versija saglabāja šajā tālrunī. Nekas netika dzēsts vai mainīts. Varat mēģināt vēlreiz vai turpināt bez tiem; jūsu vecie dati paliek tālrunī.</string>
     <string name="native_onboarding_migration_retry">Mēģināt vēlreiz</string>
     <string name="native_onboarding_migration_skip">Turpināt bez importēšanas</string>
+    <string name="native_bunker_title">Bunker (NIP-46)</string>
+    <string name="native_bunker_subtitle">Pierakstieties ar attālo parakstītāju. Ielīmējiet tā saiti bunker://. Jūsu privātā atslēga paliek pie parakstītāja.</string>
+    <string name="native_bunker_connected">Savienots, izmantojot bunker</string>
+    <string name="native_bunker_dialog_title">Savienot bunker</string>
+    <string name="native_bunker_hint">bunker://…</string>
+    <string name="native_bunker_invalid">Šī nav derīga bunker saite. Tā sākas ar bunker:// un norāda vismaz vienu releju wss://.</string>
+    <string name="native_bunker_failed">Bunker neatbildēja vai atteica. Pārbaudiet saiti un apstipriniet pieprasījumu savā parakstīšanas lietotnē.</string>
+    <string name="native_bunker_waiting">Gaida bunker. Apstipriniet pieprasījumu savā parakstīšanas lietotnē.</string>
+    <string name="native_bunker_connect">Savienot</string>
+    <string name="native_login_changed_title">Pierakstieties vēlreiz</string>
+    <string name="native_login_changed_body">Šis konts bija pieteicies ar privāto atslēgu, ko Roadstr vairs nepieņem. Jūsu vietas un iestatījumi ir saglabāti. Profilā pierakstieties vēlreiz ar Amber vai bunker.</string>
 </resources>

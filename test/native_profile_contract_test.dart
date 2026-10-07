@@ -33,8 +33,8 @@ void main() {
       final strings = RegExp(
         r'<string name="([^"]+)">([\s\S]*?)</string>',
       ).allMatches(entry.value).toList();
-      expect(strings, hasLength(30), reason: entry.key);
-      expect(strings.map((match) => match.group(1)).toSet(), hasLength(30));
+      expect(strings, hasLength(27), reason: entry.key);
+      expect(strings.map((match) => match.group(1)).toSet(), hasLength(27));
       expect(_value(strings, 'native_profile_reputation'), contains(r'%1$s'));
     }
   });
@@ -69,7 +69,7 @@ void main() {
     expect(source, contains('Role.Button'));
     expect(source, contains('LiveRegionMode.Polite'));
     expect(source, contains('onAmberLogin'));
-    expect(source, contains('onNsecLogin'));
+    expect(source, contains('onBunkerLogin'));
     expect(source, contains('onReportSelected'));
     expect(source, isNot(contains('FlutterSecureStorage')));
     expect(source, isNot(contains('Amberflutter')));

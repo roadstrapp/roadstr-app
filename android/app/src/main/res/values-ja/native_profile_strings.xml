@@ -12,10 +12,7 @@
     <string name="native_profile_login_title">NOSTRでログイン</string>
     <string name="native_profile_amber_title">Amber / NIP-55</string>
     <string name="native_profile_amber_description">秘密鍵がデバイスから外に出ることはありません · 推奨</string>
-    <string name="native_profile_nsec_title">nsecを入力</string>
-    <string name="native_profile_nsec_description">秘密鍵はローカルに保存 · セキュリティが低い</string>
     <string name="native_profile_connected_amber">Amber（NIP-55）経由で接続</string>
-    <string name="native_profile_connected_nsec">nsec経由で接続</string>
     <string name="native_profile_public_key">公開鍵</string>
     <string name="native_profile_npub_copied">npubをクリップボードにコピーしました</string>
     <string name="native_profile_logout">切断</string>
