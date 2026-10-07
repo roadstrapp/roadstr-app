@@ -96,12 +96,10 @@ fun NativeMapNavigationControls(
     onReport: () -> Unit,
     onAddWaypoint: () -> Unit,
     modifier: Modifier = Modifier,
+    // In landscape there is no room for a column between the guidance buttons and the summary panel.
+    horizontal: Boolean = false,
 ) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalAlignment = Alignment.End,
-    ) {
+    val buttons: @Composable () -> Unit = {
         MapControlButton(
             description = stringResource(R.string.native_map_compass),
             onClick = onToggleHeading,
@@ -123,6 +121,15 @@ fun NativeMapNavigationControls(
         MapControlButton(description = stringResource(R.string.native_map_add_stop), onClick = onAddWaypoint) {
             Icon(Icons.Outlined.AddLocationAlt, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         }
+    }
+    if (horizontal) {
+        Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) { buttons() }
+    } else {
+        Column(
+            modifier = modifier,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalAlignment = Alignment.End,
+        ) { buttons() }
     }
 }
 

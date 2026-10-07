@@ -31,6 +31,10 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.VolumeOff
 import androidx.compose.material.icons.outlined.VolumeUp
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -49,6 +53,7 @@ import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -89,6 +94,10 @@ fun NativeNavigationHud(
             },
     ) {
         val landscape = maxWidth > maxHeight
+        // In landscape the summary panel is low, so what sits above it follows its measured height;
+        // the fixed offsets are the portrait ones, where the panel is tall.
+        var panelHeightPx by remember { mutableIntStateOf(0) }
+        val aboveSummary = with(LocalDensity.current) { panelHeightPx.toDp() } + 10.dp
         Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -120,16 +129,16 @@ fun NativeNavigationHud(
                 maxWidth = maxWidth * 0.52f,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .navigationBarsPadding()
-                    .padding(bottom = 136.dp),
+                    .then(if (landscape) Modifier else Modifier.navigationBarsPadding())
+                    .padding(bottom = if (landscape) aboveSummary else 136.dp),
             )
         }
         SpeedLimitSign(
             limit = snapshot.speedLimit,
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .navigationBarsPadding()
-                .padding(start = 16.dp, bottom = 150.dp),
+                .then(if (landscape) Modifier else Modifier.navigationBarsPadding())
+                .padding(start = 16.dp, bottom = if (landscape) aboveSummary else 150.dp),
         )
         NavigationSummaryPanel(
             snapshot = snapshot,
@@ -137,7 +146,10 @@ fun NativeNavigationHud(
             landscape = landscape,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .onSizeChanged { onBottomPanelHeight(it.height) },
+                .onSizeChanged {
+                    panelHeightPx = it.height
+                    onBottomPanelHeight(it.height)
+                },
         )
     }
 }

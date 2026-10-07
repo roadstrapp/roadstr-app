@@ -116,6 +116,8 @@ sealed interface NativeSettingsUiAction {
     data class SearchEngineChanged(val value: NativeSettingsSearchEngine) : NativeSettingsUiAction
     data object ConfigureNwc : NativeSettingsUiAction
     data object OpenSavedPlaces : NativeSettingsUiAction
+    data class EditFavorite(val index: Int) : NativeSettingsUiAction
+    data class DeleteFavorite(val index: Int) : NativeSettingsUiAction
     data object OpenWebSearch : NativeSettingsUiAction
     data object ExportFavorites : NativeSettingsUiAction
     data object ImportFavorites : NativeSettingsUiAction
@@ -523,6 +525,13 @@ private fun LightningSection(values: NativeSettingsInput, onAction: (NativeSetti
 @Composable
 private fun FavoritesSection(values: NativeSettingsInput, onAction: (NativeSettingsUiAction) -> Unit) {
     SettingsSection(R.string.native_settings_favorites_section) {
+        values.favoritePlaces.forEachIndexed { index, place ->
+            FavoriteRow(
+                place = place,
+                onEdit = { onAction(NativeSettingsUiAction.EditFavorite(index)) },
+                onDelete = { onAction(NativeSettingsUiAction.DeleteFavorite(index)) },
+            )
+        }
         ActionButton(stringResource(R.string.native_settings_add_favorite)) {
             onAction(NativeSettingsUiAction.OpenSavedPlaces)
         }
@@ -540,6 +549,49 @@ private fun FavoritesSection(values: NativeSettingsInput, onAction: (NativeSetti
                 onClick = { onAction(NativeSettingsUiAction.ImportFavorites) },
                 modifier = Modifier.weight(1f).sizeIn(minHeight = 48.dp),
             ) { Text(stringResource(R.string.native_settings_import_favorites)) }
+        }
+    }
+}
+
+@Composable
+private fun FavoriteRow(place: NativeSettingsFavorite, onEdit: () -> Unit, onDelete: () -> Unit) {
+    val description = listOf(place.label, place.address).filter(String::isNotEmpty).joinToString(", ")
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onEdit)
+            .semantics {
+                contentDescription = description
+                role = Role.Button
+            }
+            .padding(start = 14.dp, end = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f).padding(vertical = 8.dp)) {
+            Text(
+                text = place.label,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            if (place.address.isNotEmpty()) {
+                Text(
+                    text = place.address,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+        TextButton(
+            onClick = onDelete,
+            modifier = Modifier
+                .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                .semantics { contentDescription = place.label },
+        ) {
+            Text("×", style = MaterialTheme.typography.titleLarge)
         }
     }
 }
