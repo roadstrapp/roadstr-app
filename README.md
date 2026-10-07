@@ -3,7 +3,47 @@
 **Roadstr** is an open-source, decentralised navigation app for Android, built on the [Nostr protocol](https://nostr.com/).  
 It combines real-time GPS turn-by-turn navigation with community-sourced traffic alerts published as Nostr events, on-device AI voice guidance, Lightning Network tips for contributors, and privacy-first map data powered by OpenStreetMap.
 
-> **Version 0.6.0** — Android only.
+> **Version 0.6.0** — Android only. The app is now written in **Kotlin** (Jetpack Compose and MapLibre Native).
+> The Flutter app of the 0.5.x line lives on the branch [`flutter-maintenance`](https://github.com/roadstrapp/roadstr-app/tree/flutter-maintenance).
+
+---
+
+## What 0.6.0 is
+
+0.6.0 replaces the Flutter app with a native Kotlin app that has the same package name (`app.roadstr`) and is signed with
+the same key, so Android installs it **over** an existing 0.5.x without losing anything:
+
+- **Your data comes over once, on the first start.** A short-lived reader opens the old app's storage and brings the identity
+  (when it was an Amber login), saved places, parking spot, settings, search history, queued reports, the Lightning wallet
+  string, routing keys and the favourites-sync settings. Nothing in the old files is changed or deleted. If something cannot be
+  read, the app says so and offers *Try again* or *Continue without importing*; it never starts with a silently empty profile.
+- **Sign-in is Amber or a bunker, never a private key.** The Android signer app Amber (NIP-55) and remote signers (NIP-46,
+  a `bunker://` link) keep your key outside Roadstr. The login with a pasted `nsec` was removed on purpose: an app that holds
+  the key can leak it, and the JVM can neither wipe it from memory nor sign in constant time. An install that was logged in with
+  an `nsec` comes over logged out, with a one-time notice; everything else still imports. The Flutter branch keeps the old login.
+- **Navigation goes on with the screen off.** The trip, the voice and the GPS live outside the screen, held by a foreground
+  service, so locking the phone, rotating it or swiping the app away does not end a trip.
+- **Update path and way back.** If a release ever has to be undone, Android cannot go to a lower version code, so a rollback
+  build with a higher code is prepared first (see [docs/kotlin-rewrite/RELEASE_TOOLING.md](docs/kotlin-rewrite/RELEASE_TOOLING.md)).
+
+### How far it has been checked
+
+This is a rewrite, and the project keeps a written account of what was and was not proven on a phone:
+
+- Checked on a Pixel 10 (Android 17): the in-place update from 0.5.11 with the profile intact and a rollback, the first start
+  and the import, navigation in the background, with the screen off and after the task is swept away, rotation and landscape,
+  search and place cards, OSRM routes, saved places and their sync between two apps over live relays, settings and language
+  switching, Amber login and logout, and the voice model.
+- Code and automated tests exist, but a phone check is still open: public transport, GraphHopper and OpenRouteService with a key,
+  Nostr Wallet Connect and zaps, publishing road reports (and corrections and the offline queue), the old raster map engine,
+  and logging in with a real bunker.
+- Not in 0.6.0 yet, though 0.5.x has it: the speed cameras taken from OpenStreetMap data and the ZTL warnings (road events
+  reported by people are there).
+- Known limits: a trip is held in memory, so if Android kills the process the trip is not restored; translations have not been
+  reviewed by native speakers (Irish and Maltese are the least reliable).
+
+The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rewrite/RISKS.md) and
+[docs/kotlin-rewrite/FEATURE_PARITY.md](docs/kotlin-rewrite/FEATURE_PARITY.md).
 
 ---
 
@@ -11,185 +51,90 @@ It combines real-time GPS turn-by-turn navigation with community-sourced traffic
 
 | Feature | Status |
 |---|---|
-| OpenStreetMap tile rendering (light & dark) | ✅ |
-| Real-time GPS navigation — turn-by-turn | ✅ |
-| OSRM driving + walking routes | ✅ |
-| GraphHopper (self-hosted + cloud) routing | ✅ |
-| OpenRouteService routing | ✅ |
+| OpenStreetMap rendering (light & dark) with MapLibre Native — 3D tilt, rotation, native styling | ✅ |
+| Real-time GPS navigation — turn-by-turn, also with the screen off | ✅ |
+| OSRM driving, walking and cycling routes | ✅ |
+| GraphHopper (self-hosted + cloud) routing | ✅ code and tests |
+| OpenRouteService routing | ✅ code and tests |
 | Multi-route alternatives with traffic preview | ✅ |
 | Route planner (A → B with freeform waypoints) | ✅ |
 | Speed-adaptive zoom | ✅ |
-| Tilt-compensated compass heading | ✅ |
 | Live speed-limit display (explicit OSM `maxspeed` data; unknown stays unknown) | ✅ |
-| Speed-camera alerts — OSM baseline data + community reports | ✅ |
+| Speed cameras reported by the community (kind 1315) | ✅ |
+| Speed cameras from OpenStreetMap data, and ZTL (limited-traffic zone) warnings | 0.5.x only for now — not in the Kotlin app yet |
 | Road-element overlays — traffic lights, pedestrian crossings, speed bumps (OSM) | ✅ |
-| ZTL (limited-traffic zone) proximity warnings | ✅ |
-| On-device AI voice guidance (Kokoro-82M) — male/female voice, adjustable speed | ✅ |
-| German voice guidance via a second on-device engine (Piper / Thorsten-Voice) | ✅ |
+| On-device AI voice guidance (Kokoro-82M; Piper / Thorsten-Voice for German) | ✅ |
 | Nostr road events — kind 1315 (reports) / 1316 (confirmations) | ✅ |
-| Traffic alerts on-route with rerouting prompt | ✅ |
-| Nostr identity login (Amber NIP-55 / nsec) | ✅ |
-| Lightning Network zaps for road-event contributors | ✅ |
-| Nostr Wallet Connect (NIP-47) | ✅ |
+| Nostr login — Amber (NIP-55) or a remote signer (NIP-46 bunker); no private key in the app | ✅ |
+| Lightning Network zaps for road-event contributors | ✅ code and tests |
+| Nostr Wallet Connect (NIP-47) | ✅ code and tests |
 | Address & POI search (Nominatim, position-biased) | ✅ |
 | Category / brand POI search near current position (Overpass) | ✅ |
+| Place search in plain language, along the route, optional web results | ✅ |
 | Place info with native OSM details + restricted in-app Wikipedia reader | ✅ |
 | Contextual POI details — Lightning/Bitcoin, parking, EV connectors, access and amenities | ✅ |
 | Weather conditions along the route (Open-Meteo) | ✅ |
-| Saved favourite places | ✅ |
-| Saved parking spot (local-only) | ✅ |
+| Saved places — list, edit and delete in Settings, plus a saved parking spot (local-only) | ✅ |
 | Encrypted favourites export (JSON, optional password) | ✅ |
 | Encrypted cross-device favourites sync (Nostr, NIP-44) | ✅ |
 | Search history | ✅ |
-| Speedometer HUD | ✅ |
-| Light + Dark themes — Nostr Violet & Bitcoin Orange | ✅ |
-| Auto dark mode (sunset / sunrise via GPS position) | ✅ |
+| Speedometer HUD with five styles | ✅ |
+| Light + Dark themes — Nostr Violet & Bitcoin Orange, auto dark mode | ✅ |
 | 27 languages (all EU official languages + RU, JA, ZH) | ✅ |
-| Navigation notification in Android shade | ✅ |
-| Collaborative report corrections — owner-signed updates + third-party edit requests | ✅ |
+| Navigation notification in the Android shade | ✅ |
+| Collaborative report corrections — owner-signed updates + third-party edit requests | ✅ code and tests |
 | Activity inbox — zaps and confirmations received on your own reports | ✅ |
-| Public transport routing — bus, tram, metro, rail, coach, ferry (worldwide open timetables) | ✅ |
-| Cycling routes | ✅ |
-| Customisable vehicle cursor — 7 colours, animated walking mode | ✅ |
-| Vector map rendering engine (MapLibre) — 3D tilt, native styling | ✅ Default, switchable in Settings |
+| Customisable vehicle cursor — styles, colours, animated walking mode | ✅ |
 | Offline maps (MBTiles) | 🔜 Next major change |
 
+"✅ code and tests" marks what has not yet had a check on a phone (see [How far it has been checked](#how-far-it-has-been-checked)).
 
 ---
 
 ## Roadmap
 
-### Shipped in 0.5.0 — a vector rendering engine
-
-The blocker recorded here used to be simple: MapLibre's Flutter plugin touches Google
-Play Services in places, which this app does not ship. It turned out not to be a real
-blocker — Roadstr already excludes the `com.google.android.gms` and
-`com.google.android.play` dependency groups outright at the Gradle level (the same
-exclusion that keeps the de-Googled GPS stack clean), and the new engine never calls
-MapLibre's own location APIs in the first place, so the exclusion applies here for free.
-Built from scratch on its own branch over the following month, merged once it reached
-parity with the existing renderer: native 3D tilt and rotation, its own styling for light
-and dark themes, and the full navigation feature set — search, multi-stop planning, route
-alternatives with highway/toll avoidance, public transport, ZTL-aware routing, hazard and
-speed-camera alerts, voice guidance. It shipped as an equal option at first — the "Motore
-mappa: MapLibre" toggle in Settings switches between it and the original flutter_map-based
-renderer at will — and became the default from 0.5.1 once the road-tested rough edges
-(camera smoothness, battery draw) were fixed; the original renderer stays reachable from
-the same toggle for anyone who prefers it. See
-[`docs/rendering-engine-decision.md`](docs/rendering-engine-decision.md) for how the
-earlier evaluation reached the opposite conclusion, and what changed.
-
 ### Next major change — offline maps
 
-With vector rendering in place, offline maps are next: vector data is small enough to
-carry a region on the device, which raster tiles fetched over the network never allowed.
-That work happens on its own branch and only merges once it matches what online maps
-already do — the app on `main` stays shippable throughout.
+Vector data is small enough to carry a region on the device, which raster tiles fetched over the network never allowed.
+That work happens on its own branch and only merges once it matches what online maps already do — `main` stays shippable
+throughout.
 
 ### Also planned
 
-- Wider public-transport coverage, by getting more operators' timetables into the open
-  data ecosystem the routing already reads
+- The OpenStreetMap speed cameras and the ZTL warnings of 0.5.x, brought over to the Kotlin app
+- Wider public-transport coverage, by getting more operators' timetables into the open data ecosystem the routing already reads
+- Logging in with a bunker offered as a `nostrconnect://` link (the form Amber offers to other apps), next to the `bunker://` link
+- A persistent relay connection for the remote signer, instead of one connection per request
 
 ---
 
-## Architecture
+## What is in this repository
 
 ```
-lib/
-├── main.dart                          # Entry point, provider tree, first-launch gate
-├── l10n/                              # ARB files (27 locales) + generated Dart classes
-├── config/
-│   └── network_config.dart            # Request deadlines, response caps, relay limits
-├── models/
-│   ├── activity_notification.dart     # Zap / confirmation notifications for own reports
-│   ├── favorite_place.dart            # Saved places data model (Hive-backed)
-│   ├── road_event.dart                # Nostr kind-1315/1316 model + TTLs
-│   ├── search_history_item.dart       # Recent destinations
-│   ├── transit_itinerary.dart         # Public-transport journey + legs
-│   ├── transit_mode.dart              # Transport modes (worldwide, wire-name mapped)
-│   └── way_point.dart                 # A named point in the multi-stop planner
-├── providers/
-│   └── locale_provider.dart           # Language override (Hive-backed)
-├── screens/
-│   ├── maplibre_map_screen.dart       # Default engine — vector rendering, 3D tilt
-│   ├── map_screen.dart                # Original flutter_map engine, still switchable
-│   ├── notifications_screen.dart      # Zaps and confirmations on your own reports
-│   ├── onboarding_screen.dart         # First-launch flow — identity, permissions, voice
-│   ├── profile_screen.dart            # Nostr identity, reports history, zap balance
-│   ├── settings_screen.dart           # Theme, routing, voice, language, NWC, favourites
-│   └── wikipedia_webview_screen.dart  # Restricted in-app Wikipedia article reader
-├── services/
-│   ├── activity_notification_service.dart # Android notifications for zaps/confirmations
-│   ├── bolt11_invoice.dart            # Lightning invoice parsing and validation
-│   ├── bounded_http.dart              # Streaming HTTP limits and redirect blocking
-│   ├── camera_follow.dart             # Pure camera-easing policy, engine-agnostic
-│   ├── crossing_hazard_service.dart   # Pedestrian crossings + speed bumps (Overpass)
-│   ├── favorites_crypto.dart          # PBKDF2 + AES-256-GCM for favourites export
-│   ├── favorites_sync_service.dart    # Encrypted cross-device sync (kind 30078)
-│   ├── gps_service.dart               # Android foreground GPS stream
-│   ├── navigation_guidance.dart       # When to speak, and at what distance
-│   ├── navigation_notification_service.dart # Android turn-by-turn notification
-│   ├── nav_phrases.dart               # Manoeuvre wording per language
-│   ├── nip04.dart                     # Legacy NWC encryption (ECDH + AES-256-CBC)
-│   ├── nip44.dart                     # NIP-44 v2 encryption (ECDH + ChaCha20 + HMAC)
-│   ├── nostr_event_verify.dart        # Signature verification for incoming events
-│   ├── nostr_schnorr.dart             # Strict Nostr BIP-340 key/signature boundary
-│   ├── nostr_relay_service.dart       # WebSocket relay, geohash area subscriptions
-│   ├── opening_hours.dart             # OSM opening_hours parser (open/closed badge)
-│   ├── overpass_client.dart           # Shared mirror rotation, backoff, response caps
-│   ├── photon_geocoder.dart           # Typo-tolerant prefix search
-│   ├── place_search_service.dart      # Merges + ranks the search providers
-│   ├── poi_search_service.dart        # Category / brand POI search (Overpass)
-│   ├── profile_visibility_service.dart # Opt-in public profile flag
-│   ├── roundabout_topology_service.dart # Real OSM roundabout arm counts
-│   ├── route_progress.dart            # Pure progress-along-polyline geometry
-│   ├── routing_service.dart           # OSRM / GraphHopper / ORS routing
-│   ├── speed_camera_service.dart      # OSM-sourced speed cameras (Overpass)
-│   ├── speed_limit_service.dart       # Posted speed limit lookup (Overpass)
-│   ├── sun_calc.dart                  # NOAA solar position — sunrise/sunset times
-│   ├── traffic_light_service.dart     # OSM traffic signals (Overpass)
-│   ├── transit_service.dart           # Public-transport routing (open timetables)
-│   ├── voice_engine_languages.dart    # Which engine covers which language
-│   ├── voice_model_download.dart      # Combined Kokoro + Piper download status
-│   ├── weather_service.dart           # Open-Meteo current conditions
-│   ├── zap_service.dart               # LNURL-pay + NIP-57 zaps + NWC (NIP-47)
-│   ├── ztl_service.dart               # ZTL (limited-traffic zone) lookup
-│   ├── kokoro/                        # On-device TTS for 7 languages
-│   │   ├── espeak_phonemizer.dart     # Dart FFI bridge to eSpeak NG (shared)
-│   │   ├── kokoro_engine.dart         # ONNX Runtime inference wrapper
-│   │   ├── kokoro_model_manager.dart  # Model download + file management
-│   │   ├── kokoro_tts_service.dart    # TTS orchestration + audio playback
-│   │   └── kokoro_voices.dart         # Voice / language registry
-│   └── piper/                         # On-device TTS for German
-│       ├── piper_engine.dart          # VITS ONNX inference (own tensor contract)
-│       ├── piper_model_manager.dart   # Model download + verification
-│       └── piper_voices.dart          # Pinned model revision and checksums
-├── theme/
-│   ├── app_theme.dart                 # Material 3 themes + RoadstrColors extension
-│   └── theme_provider.dart            # Theme state, auto dark mode, Hive persistence
-├── utils/
-│   ├── fuzzy_match.dart               # Tolerant text matching for search ranking
-│   ├── geo.dart                       # Distances, bearings, point-to-segment maths
-│   ├── heading_filter.dart            # Which way the map faces, from consecutive fixes
-│   ├── off_route_detector.dart        # Whether the driver has actually left the route
-│   ├── polyline.dart                  # Encoded-polyline decoding
-│   ├── retry.dart                     # Typed network failures + backoff
-│   ├── settings_listenable.dart       # Rebuild on specific Hive setting changes
-│   └── units.dart                     # Metric/imperial formatting helpers
-└── widgets/
-    ├── cursor_painter.dart            # Map cursor — vehicle styles, colours, walking
-    ├── speedometer_widget.dart        # Circular analogue speedometer
-    ├── transit_itinerary_widget.dart  # Public-transport itinerary cards and panel
-    ├── design/roadstr_glass.dart      # Shared glass surfaces, spacing/motion tokens
-    ├── home/home_dashboard.dart       # Collapsible home panel on the map
-    ├── map/                           # Bottom bar, FABs, banners, map markers
-    ├── nav/                           # Turn-by-turn HUD, manoeuvre symbols, limit sign
-    ├── place/place_info_panel.dart    # Tapped-place details sheet
-    ├── route/route_panels.dart        # Route preview and alternatives panels
-    ├── search/search_panel.dart       # Search field, results, nearby categories
-    └── sheets/road_event_sheets.dart  # Report and event-detail bottom sheets
+android/app/src/main/kotlin/app/roadstr/   # the app (Kotlin, Jetpack Compose)
+├── core/          # pure logic with no Android dependency: Nostr protocol (NIP-01/04/19/44/46/47/57/78, BIP-340),
+│                  # routing and search protocols, navigation phrases, discovery (plain-language place search)
+├── feature/       # one package per screen or flow: home, map, navigation (HUD, host), onboarding, place, profile,
+│                  # report, route, saved, search, settings, transit, voice, web, wikipedia, activity
+├── service/       # I/O: Nostr relays, remote signer (bunker), zaps and NWC, routing, search, location, hazards,
+│                  # notifications and the navigation foreground service
+├── storage/       # preferences, secrets, saved places, history, pending reports
+├── migration/     # the reader of the old (Flutter) app's data, transactional and fail-closed
+└── startup/       # the launcher activity, the one-time profile import, the guidance runtime holder
+android/app/src/test/                      # JVM tests of all of the above (over 1,100 cases)
+native-android/                            # the road-test app (same shell, own stores) and the optional GeckoView variant
+lib/                                       # the Flutter code of 0.5.x, kept on this branch (see below)
+test/                                      # Dart contract tests that pin the generated resources, the build and the docs
+tools/kotlin_rewrite/                      # generators for the Android string resources and test fixtures, release audit
+docs/                                      # plans, decisions, risks and release notes of the rewrite
 ```
+
+**Why GitHub shows roughly half Dart and half Kotlin.** GitHub's language bar counts the bytes of every tracked source file
+by language; it does not know which code ships. In 0.6.0 the app is Kotlin, but the repository still holds the whole Flutter
+app (`lib/`, about 1.9 MB) because the old code is what reads the previous version's data on the first start, and it shares the
+translation files; on top of that come 1.35 MB of generated Dart localisation classes, the Dart test suite and the Dart tools
+that generate the Android resources and test fixtures. The Kotlin share is the app itself (about 2.2 MB) plus its tests (about 1
+MB). Moving the Flutter app out of `main` would flip the bar; it stays for now because the update from 0.5.x needs it.
 
 ---
 
@@ -198,9 +143,10 @@ lib/
 | NIP | Purpose |
 |---|---|
 | NIP-01 | Base relay protocol (REQ / EVENT / EOSE / CLOSE) |
-| NIP-04 | Legacy symmetric encryption for NWC pay requests |
-| NIP-19 | Bech32 key encoding (npub / nsec) |
-| NIP-44 | Versioned encryption (v2) — favourites sync and negotiated NWC |
+| NIP-04 | Legacy symmetric encryption for NWC pay requests, and for signers that only speak it |
+| NIP-19 | Bech32 key encoding (npub) |
+| NIP-44 | Versioned encryption (v2) — favourites sync, negotiated NWC and the remote-signer channel |
+| NIP-46 | Nostr Connect — sign in with a remote signer (`bunker://` link) |
 | NIP-47 | Nostr Wallet Connect — pay Lightning invoices from any compatible wallet |
 | NIP-55 | Android Signer Application — Amber integration |
 | NIP-57 | Zap receipts — Lightning tips attached to kind-1315 road events |
@@ -212,42 +158,42 @@ lib/
 
 ---
 
-## Prerequisites
+## Building
 
-1. **Flutter SDK** — install from <https://docs.flutter.dev/get-started/install>.  
-   Select *Android* as the target platform. Android Studio is required for the toolchain.
-
-2. **Android device** supported by the current Flutter Android toolchain.
-   The emulator works for UI development; GPS behaviour is unreliable on emulators.
-
-3. **VS Code** with the Flutter and Dart extensions (recommended), or Android Studio.
-
----
-
-## Getting started
+You need a JDK 17, the Android SDK (platform 36, build tools), the Android NDK `27.1.12297006` and the
+[Flutter SDK](https://docs.flutter.dev/get-started/install): the build goes through Flutter because the APK carries the Flutter
+engine that reads the old app's data once.
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/roadstrapp/roadstr-app.git
 cd roadstr-app
-
-# 2. Install dependencies
 flutter pub get
+flutter gen-l10n                 # the ARB files are the source of every translation
 
-# 3. Generate localisation classes
+flutter build apk --release      # debug: flutter run
+# or, only the Kotlin side and one ABI:
+cd android && ./gradlew :app:assembleRelease -Ptarget-platform=android-arm64
+```
+
+The Kotlin launcher is the default. `-Pnative_launcher=false` builds the old Flutter launcher instead, to compare the two.
+
+A signed release uses `android/key.properties` (copy `android/key.properties.template` and fill in the keystore); it is never
+committed. `./build_release.sh` builds the four APKs (universal, arm64-v8a, armeabi-v7a, x86_64), checks package, version,
+certificate, ABIs and 16 KB alignment, and writes the SHA-256 sums; it publishes nothing.
+
+Tests:
+
+```bash
+flutter test                                   # Dart contract tests (resources, build, docs)
+cd android && ./gradlew :app:testDebugUnitTest # Kotlin JVM tests
+tools/kotlin_rewrite/audit_android_release.sh --source-only
+```
+
+After editing a translation, regenerate both the Dart classes and the Android resources:
+
+```bash
 flutter gen-l10n
-
-# 4. Connect an Android device via USB and enable USB debugging
-#    Settings → About phone → tap "Build number" 7× → Developer options → USB debugging
-
-# 5. Verify Flutter detects your device
-flutter devices
-
-# 6. Run (debug)
-flutter run
-
-# 7. Build a release APK
-flutter build apk --release
+for g in tools/kotlin_rewrite/generate_android_*_strings.dart; do dart run "$g"; done
 ```
 
 ---
@@ -276,31 +222,19 @@ published, the app reports that plainly rather than implying no service exists.
 
 ## Voice guidance — on-device AI
 
-Roadstr ships optional on-device text-to-speech. Nothing is sent to a cloud API and no
-audio leaves the phone. Two engines are used, because no single open model covers every
-language the app is translated into:
+Roadstr ships optional on-device text-to-speech. Nothing is sent to a cloud API and no audio leaves the phone. Two engines are
+used, because no single open model covers every language the app is translated into:
 
 | Engine | Languages | Model |
 |---|---|---|
 | [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) | Italian, English, Spanish, French, Japanese, Chinese, Portuguese | ~82 MB, shared across all seven |
 | [Piper](https://github.com/OHF-Voice/piper1-gpl) — Thorsten-Voice "Martin" | German | ~63 MB |
 
-German needs the second engine because Kokoro-82M has no German voice at all: its
-shipped voice packs cover nine locales, none of them German. Piper is a different
-architecture (VITS) with its own tensor contract and its own model file, so it gets its
-own engine rather than another entry in Kokoro's voice table — but it reuses the same
-eSpeak NG phonemiser, and the download appears as one combined progress bar in Settings.
-
-- **Phonemisation** via eSpeak NG through a Dart FFI bridge compiled as an Android
-  native library, shared by both engines.
-- **Male or female voice** and a 6-stage speech-speed control for the Kokoro languages,
-  both previewable in Settings before committing. French has no male voice in the
-  upstream Kokoro-82M model, so it always uses the female one; German has the single
-  Martin voice.
-- Models are downloaded on demand from **Settings → Navigation voice → Voice model**.
-
-For languages neither engine covers, navigation instructions remain available as text on
-screen; no voice engine is started.
+Both run with ONNX Runtime; phonemisation uses eSpeak NG through a JNI bridge compiled as an Android native library. The model
+is downloaded on demand from **Settings → Navigation voice → Voice model**, checked against its size and SHA-256, and reused if
+it is already on the phone (an update from 0.5.x keeps it). Kokoro offers a male or female voice and a 6-stage speed control;
+French has only the female voice, German only Martin. Instructions are spoken as navigation guidance, so they are not drowned by
+music, and a phrase in progress is finished when the trip ends. For languages neither engine covers, instructions stay as text.
 
 The committed eSpeak libraries are reproducible from pinned upstream commits:
 
@@ -308,9 +242,8 @@ The committed eSpeak libraries are reproducible from pinned upstream commits:
 tools/build_espeak_android.sh
 ```
 
-The script requires Android NDK `27.1.12297006`, removes host paths and debug
-symbols, and rebuilds all three supported ABIs plus the compact language-data
-archive. Every Android build verifies their SHA-256 digests before `preBuild`.
+The script requires Android NDK `27.1.12297006`, removes host paths and debug symbols, and rebuilds all three supported ABIs plus
+the compact language-data archive. Every Android build verifies their SHA-256 digests before `preBuild`.
 
 ---
 
@@ -340,17 +273,15 @@ kind of third-party dependency this app avoids elsewhere.
 Users can tip road-event reporters with Bitcoin over the Lightning Network:
 
 1. Roadstr fetches the reporter's Lightning address (`lud16`) from their Nostr kind-0 profile.
-2. It resolves the LNURL-pay endpoint and attaches a signed NIP-57 zap request (kind-9734) if the user is logged in with nsec.
+2. It resolves the LNURL-pay endpoint and attaches a NIP-57 zap request (kind-9734) signed by the user's signer (Amber or bunker) if the user is logged in.
 3. Payment is sent via **NWC (NIP-47)** if a wallet URI is configured: Roadstr verifies the wallet info event, prefers NIP-44 v2 and retains NIP-04 only for a verified legacy advertisement. Otherwise it falls back to a `lightning:` deep link that opens any installed Lightning wallet.
 4. The LNURL server publishes a kind-9735 zap receipt to Nostr relays once the invoice is settled.
 
 To connect a wallet, paste a `nostr+walletconnect://…` URI from a compatible wallet (Alby Hub, Mutiny, Cashu NWC) in **Settings → Lightning → Nostr Wallet Connect**.
 
----
+## Place search in plain language
 
-## Place search in plain language (native Kotlin build)
-
-The native build understands searches such as "vegan restaurants near me", "pharmacy open now",
+Roadstr understands searches such as "vegan restaurants near me", "pharmacy open now",
 "petrol stations along the route" or "restaurants in <town>". The words are
 read by a deterministic parser with one word list per language, with no model and no server of ours.
 Seven languages (English, Italian, German, French, Spanish, Portuguese, Dutch) have a full word list;
@@ -374,7 +305,7 @@ The plan, the audit and every decision taken are in [docs/world-discovery/](docs
 - **GPS coordinates are read locally but are sent to third-party services as part of normal operation**: the routing provider (origin/destination), Overpass (periodic position pings during navigation, for live speed limits, speed cameras, traffic lights, pedestrian crossings, speed bumps, restricted zones and POI search), and Open-Meteo (for the weather row). None of these requests carry an account or persistent identifier — but if your threat model requires hiding your IP-linked location from those services, use a VPN (the onboarding flow suggests one). Saved favourites and the parking spot never leave the device unless you explicitly export or sync them.
 - **Road events are pseudonymous** — published under the user's Nostr public key with no additional personal metadata, and every event received from a relay is signature-verified before being trusted (relays cannot forge reports under someone else's identity).
 - **Favourites sync is end-to-end encrypted** (NIP-44) to the user's own key — relays storing the synced snapshot see only ciphertext.
-- **Nostr private keys (nsec) never leave Android's encrypted secure storage** — not copyable, not exportable, not logged.
+- **The app never holds your Nostr private key.** You sign in with Amber or a remote signer (bunker), and signing happens there. The only secret Roadstr keeps for a bunker is its own pairing key, encrypted with the Android Keystore; a private key left by an earlier build is erased on the first start.
 - **Web results are opt-in.** Off by default, with no instance built in. When you switch them on, the instance you chose receives your search words, the name of your town for "near me" searches, your language and the safe-search level, and the search engines it uses may see them too. Names found in the results may then be looked up on OpenStreetMap (a name and a town, at most three per search). The optional in-app browser runs pages in a private session, stores nothing after it closes, and asks for no permission on a page's behalf. To run your own instance, see [docs/world-discovery/SELF_HOSTING.md](docs/world-discovery/SELF_HOSTING.md).
 - **Road reports are public and linkable** — publishing a report sends its exact coordinates, timestamp, content and Nostr public key to public relays. This is pseudonymous, not anonymous, and relay retention cannot be guaranteed.
 
@@ -386,33 +317,37 @@ Roadstr is fully localised in 27 languages covering all EU official languages pl
 
 `bg` `cs` `da` `de` `el` `en` `es` `et` `fi` `fr` `ga` `hr` `hu` `it` `ja` `lt` `lv` `mt` `nl` `pl` `pt` `ro` `ru` `sk` `sl` `sv` `zh`
 
-Translations live in `lib/l10n/app_<locale>.arb`. To regenerate the Dart classes after editing an ARB file:
-
-```bash
-flutter gen-l10n
-```
+Translations live in `lib/l10n/app_<locale>.arb` and feed both the Dart classes and the Android string resources (see [Building](#building) for the commands). A test fails if any language lacks a key of the English template or changes its placeholders. Texts that exist only in the Kotlin app (the start-up screens, the bunker login) live in `tools/kotlin_rewrite/native_recovery_translations.dart`.
 
 ---
 
 ## Troubleshooting
 
-**`flutter: command not found`**  
-Flutter is not in your `PATH`. Add `flutter/bin` to your shell profile (`~/.bashrc`, `~/.zshrc`).
-
-**`No devices found`**  
-Enable USB debugging on the phone. Some devices require accepting a "Trust this computer" prompt after connecting.
+**The update says "protected data unavailable" or "could not bring your data over"**  
+Nothing was erased. Restart the phone and choose *Try again*; *Continue without importing* starts empty and leaves the old
+data on the phone untouched.
 
 **GPS unavailable**  
-The app requests location permission on first launch. If denied, go to *Settings → Apps → Roadstr → Permissions → Location*.
+The app requests location permission on first launch. If denied, go to *Settings → Apps → Roadstr → Permissions → Location* and
+grant **Precise** location. Roadstr uses a foreground navigation service and does not need permanent background-location access.
+
+**Navigation stops when the screen turns off**  
+It should not. Allow notifications for Roadstr (the trip is held by a foreground service with a notification), and check that
+battery optimisation is not set to restrict the app.
 
 **Map tiles don't load**  
 Check your internet connection. Tiles are fetched at runtime from OpenStreetMap; the dark themes recolour those same tiles on the device.
 
 **Amber shows "invalid request"**  
-Ensure your version of Amber supports NIP-55. Roadstr uses the `get_public_key` and `sign_event` methods via `startActivityForResult`.
+Ensure your version of Amber supports NIP-55. Roadstr uses the `get_public_key`, `sign_event` and NIP-44 methods.
+
+**A bunker login says the bunker did not answer**  
+Check that the link starts with `bunker://` and names at least one `wss://` relay, that the signer is online, and approve the
+request in the signer app. Public relays may rate-limit; use the relays the bunker's own link names.
 
 **Voice guidance not working**  
-Download the voice models from *Settings → Navigation voice → Voice model*. Voice is currently available for Italian, English, Spanish, French, Japanese, Chinese, Portuguese and German; other languages keep text instructions on screen.
+Download the voice models from *Settings → Navigation voice → Voice model*. Voice is available for Italian, English, Spanish,
+French, Japanese, Chinese, Portuguese and German; other languages keep text instructions on screen.
 
 ---
 
@@ -421,9 +356,10 @@ Download the voice models from *Settings → Navigation voice → Voice model*. 
 Pull requests are welcome. For significant changes please open an issue first to discuss the proposal.
 
 Code style:
-- All `///` doc-comments and `// inline comments` in **English**.
+- All doc-comments and inline comments in **English**.
 - Complex algorithms should have numbered step comments.
 - Nostr protocol references should cite the relevant NIP.
+- Fixes for the Flutter 0.5.x line go to `flutter-maintenance`.
 
 ---
 
@@ -448,11 +384,12 @@ GPL for that component.
 - [Open-Meteo](https://open-meteo.com/) for weather data, free and API-key-free
 - [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) for the on-device TTS model
 - [Piper](https://github.com/OHF-Voice/piper1-gpl) and [Thorsten-Voice](https://www.thorsten-voice.de/) for the German on-device voice
-- [MapLibre](https://maplibre.org/) for the vector rendering engine
+- [MapLibre](https://maplibre.org/) for the vector rendering engine (MapLibre Native on Android)
 - [Photon](https://photon.komoot.io/) for typo-tolerant geocoding
 - [SearXNG](https://docs.searxng.org/) for the optional, self-chosen web results
 - [GeckoView](https://geckoview.dev/) by Mozilla for the optional in-app browser
 - [eSpeak NG](https://github.com/espeak-ng/espeak-ng) for phonemisation
 - [Nostr protocol](https://nostr.com/) and all NIP authors
-- [flutter_map](https://pub.dev/packages/flutter_map) for the Flutter map widget
+- [Jetpack Compose](https://developer.android.com/jetpack/compose), [OkHttp](https://square.github.io/okhttp/), [ONNX Runtime](https://onnxruntime.ai/) and [Bouncy Castle](https://www.bouncycastle.org/) for the native app
+- [flutter_map](https://pub.dev/packages/flutter_map) and Flutter, for the 0.5.x line
 - [Amber](https://github.com/greenart7c3/Amber) for the Android Nostr signer
