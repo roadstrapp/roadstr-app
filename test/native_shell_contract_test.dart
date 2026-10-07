@@ -24,7 +24,7 @@ void main() {
     );
   });
 
-  test('Flutter is the default launcher and the Kotlin launcher is an explicit build choice', () {
+  test('the Kotlin launcher is the default and the Flutter one is an explicit build choice', () {
     final xml = manifest.readAsStringSync();
     final launcher = RegExp(
       r'<activity\s+android:name="\.MainActivity"[\s\S]*?</activity>',
@@ -46,13 +46,13 @@ void main() {
     expect(nativeLauncher!.group(0), contains('android.intent.action.MAIN'));
     expect(nativeLauncher.group(0), contains('android.intent.category.LAUNCHER'));
     expect(nativeLauncher.group(0), contains('android:enabled="\${nativeLauncherEnabled}"'));
-    // Two launchers are declared, and a given build enables exactly one: Flutter unless
-    // `-Pnative_launcher=true` is passed.
+    // Two launchers are declared, and a given build enables exactly one: Kotlin unless
+    // `-Pnative_launcher=false` is passed.
     expect(
       RegExp(r'android.intent.action.MAIN').allMatches(xml),
       hasLength(2),
     );
-    expect(gradle, contains('providers.gradleProperty("native_launcher").orNull == "true"'));
+    expect(gradle, contains('providers.gradleProperty("native_launcher").orNull != "false"'));
     expect(gradle, contains('manifestPlaceholders["flutterLauncherEnabled"] = (!nativeLauncher).toString()'));
     expect(gradle, contains('manifestPlaceholders["nativeLauncherEnabled"] = nativeLauncher.toString()'));
     expect(canary, isNotNull);

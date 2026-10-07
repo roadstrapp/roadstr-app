@@ -10,7 +10,7 @@ ship until every item below is verified with a signed APK.
 | Package/application ID | `app.roadstr` | Exact match |
 | Namespace | `app.roadstr` | Keep package-level identity stable |
 | Label | `Roadstr` | Exact match |
-| Version | `0.5.11`, code `2050` | Higher monotonically increasing code; no final value chosen yet |
+| Version | `0.5.11`, code `2050` | `0.6.0`, code `2057` (above 2056, the highest ever installed on the owner's phone, by the rollback build and the candidates); chosen 2026-10-07 |
 | Signing certificate | Official key external to checkout | Must be the same certificate as current official APKs |
 | Launcher assets | Existing mipmap/adaptive resources | Preserve unless explicitly approved |
 | Backup/privacy policy | Backup disabled; cleartext narrowly scoped | Preserve or document an approved improvement |
