@@ -39,7 +39,7 @@
     <string name="native_onboarding_location_required">Necessário para navegação GPS</string>
     <string name="native_onboarding_grant">Conceder</string>
     <string name="native_onboarding_graphene_title">Usuários do GrapheneOS</string>
-    <string name="native_onboarding_graphene_body">Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.</string>
+    <string name="native_onboarding_graphene_body">Conceda a localização Precisa (não Aproximada) enquanto usa o Roadstr em:\nConfigurações → Apps → Roadstr → Permissões → Localização\n\nO Roadstr usa um serviço de navegação em primeiro plano e não exige acesso permanente à localização em segundo plano.</string>
     <string name="native_onboarding_voice_title">Orientação de voz IA (opcional)</string>
     <string name="native_onboarding_voice_ready">Modelo de voz Kokoro pronto</string>
     <string name="native_onboarding_voice_downloading">Baixando modelo de voz…</string>

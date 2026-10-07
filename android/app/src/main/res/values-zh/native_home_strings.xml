@@ -4,11 +4,11 @@
     <string name="native_home_notifications">通知</string>
     <string name="native_home_profile">个人资料</string>
     <string name="native_home_menu">菜单</string>
-    <string name="native_home_ready">Ready to go?</string>
-    <string name="native_home_navigate">Navigate</string>
-    <string name="native_home_parking">Parking</string>
-    <string name="native_home_activity">Activity</string>
-    <string name="native_home_events">Events</string>
-    <string name="native_home_saved_places">Saved places</string>
+    <string name="native_home_ready">准备出发了吗？</string>
+    <string name="native_home_navigate">导航</string>
+    <string name="native_home_parking">停车场</string>
+    <string name="native_home_activity">动态</string>
+    <string name="native_home_events">事件</string>
+    <string name="native_home_saved_places">已保存的地点</string>
     <string name="native_home_my_location">我的位置</string>
 </resources>

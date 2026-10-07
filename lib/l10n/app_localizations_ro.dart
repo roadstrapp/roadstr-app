@@ -69,31 +69,31 @@ class AppLocalizationsRo extends AppLocalizations {
   String get bottomBarMenu => 'Meniu';
 
   @override
-  String get homeGoodMorning => 'Good morning';
+  String get homeGoodMorning => 'Bună dimineața';
 
   @override
-  String get homeGoodAfternoon => 'Good afternoon';
+  String get homeGoodAfternoon => 'Bună ziua';
 
   @override
-  String get homeGoodEvening => 'Good evening';
+  String get homeGoodEvening => 'Bună seara';
 
   @override
-  String get homeReadyToGo => 'Ready to go?';
+  String get homeReadyToGo => 'Gata de drum?';
 
   @override
-  String get homeNavigate => 'Navigate';
+  String get homeNavigate => 'Navigare';
 
   @override
-  String get homeParking => 'Parking';
+  String get homeParking => 'Parcare';
 
   @override
-  String get homeActivity => 'Activity';
+  String get homeActivity => 'Activitate';
 
   @override
-  String get homeEvents => 'Events';
+  String get homeEvents => 'Evenimente';
 
   @override
-  String get homeSavedPlaces => 'Saved places';
+  String get homeSavedPlaces => 'Locuri salvate';
 
   @override
   String get notificationsTitle => 'Notificări';
@@ -122,19 +122,19 @@ class AppLocalizationsRo extends AppLocalizations {
   String get sectionMap => 'Hartă';
 
   @override
-  String get sectionNavigationAppearance => 'Navigation appearance';
+  String get sectionNavigationAppearance => 'Aspectul navigării';
 
   @override
-  String get speedometerStyleLabel => 'Speedometer';
+  String get speedometerStyleLabel => 'Vitezometru';
 
   @override
-  String get speedometerClassic => 'Classic (default)';
+  String get speedometerClassic => 'Clasic (implicit)';
 
   @override
   String get speedometerDigital => 'Digital';
 
   @override
-  String get speedometerAnalog => 'Analog';
+  String get speedometerAnalog => 'Analogic';
 
   @override
   String get speedometerSport => 'Sport';
@@ -143,7 +143,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get speedometerMinimal => 'Minimal';
 
   @override
-  String get movementCursorStyleLabel => 'Movement cursor';
+  String get movementCursorStyleLabel => 'Cursor de mișcare';
 
   @override
   String get cursorVehicleLabel => 'Vehicul';
@@ -152,7 +152,7 @@ class AppLocalizationsRo extends AppLocalizations {
   String get cursorColorLabel => 'Culoare';
 
   @override
-  String get cursorStandard => 'Standard (default)';
+  String get cursorStandard => 'Standard (implicit)';
 
   @override
   String get cursorFormula1 => 'Formula 1';
@@ -161,13 +161,13 @@ class AppLocalizationsRo extends AppLocalizations {
   String get cursorSuv => 'SUV';
 
   @override
-  String get cursorRacing => 'Racing car';
+  String get cursorRacing => 'Mașină de curse';
 
   @override
-  String get cursorElectric => 'Electric car';
+  String get cursorElectric => 'Mașină electrică';
 
   @override
-  String get cursorCity => 'City car';
+  String get cursorCity => 'Mașină de oraș';
 
   @override
   String get cursorClassic500 => 'Fiat 500 clasic';
@@ -221,21 +221,22 @@ class AppLocalizationsRo extends AppLocalizations {
   String get keepScreenOnDescription => 'Previne repausul în timpul navigării';
 
   @override
-  String get keepScreenOnAlways => 'Keep screen on outside navigation too';
+  String get keepScreenOnAlways =>
+      'Menține ecranul activ și în afara navigării';
 
   @override
   String get keepScreenOnAlwaysDescription =>
-      'Also applies while browsing the map without an active route';
+      'Se aplică și când explorezi harta fără un traseu activ';
 
   @override
-  String get minBrightness => 'Minimum screen brightness';
+  String get minBrightness => 'Luminozitate minimă a ecranului';
 
   @override
   String get minBrightnessDescription =>
-      'Stops the screen dimming below this level while the app is open — useful on OLED screens that dim further than the map stays readable at';
+      'Împiedică ecranul să se întunece sub acest nivel cât timp aplicația este deschisă — util pe ecranele OLED care se întunecă mai mult decât rămâne harta lizibilă';
 
   @override
-  String get minBrightnessOff => 'Off';
+  String get minBrightnessOff => 'Dezactivat';
 
   @override
   String get showAltitude => 'Afișează altitudinea';
@@ -1145,26 +1146,26 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get onboardingWelcomeBody =>
-      'Everything your navigation app needs — without giving up your privacy.';
+      'Tot ce are nevoie aplicația ta de navigare — fără să renunți la confidențialitate.';
 
   @override
-  String get onboardingFeatureNav => 'Turn-by-turn GPS navigation';
+  String get onboardingFeatureNav => 'Navigare GPS pas cu pas';
 
   @override
   String get onboardingFeatureNostr =>
-      'Nostr road events (speed cameras, hazards, traffic)';
+      'Evenimente rutiere Nostr (radare, pericole, trafic)';
 
   @override
   String get onboardingFeatureLightning =>
-      'Lightning Network tips for event reporters';
+      'Bacșișuri Lightning Network pentru cei care raportează evenimente';
 
   @override
   String get onboardingFeatureVoice =>
-      'On-device AI voice guidance (Kokoro-82M)';
+      'Ghidare vocală AI pe dispozitiv (Kokoro-82M)';
 
   @override
   String get onboardingFeaturePrivacy =>
-      'No account required — no tracking, ever';
+      'Nu e nevoie de cont — fără urmărire, niciodată';
 
   @override
   String get onboardingGetStarted => 'Începeți';
@@ -1174,7 +1175,7 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get onboardingNostrSubtitle =>
-      'Optional — connect to report road events, confirm alerts and earn Lightning tips.';
+      'Opțional — conectează-te pentru a raporta evenimente rutiere, a confirma alerte și a câștiga bacșișuri Lightning.';
 
   @override
   String get onboardingNostrConnected => 'Conectat';
@@ -1184,14 +1185,14 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get onboardingAmberSubtitle =>
-      'Connect with the Amber signer app. Your private key never leaves Amber.';
+      'Conectează-te cu aplicația de semnare Amber. Cheia ta privată nu părăsește niciodată Amber.';
 
   @override
   String get onboardingNsecTitle => 'Cheie nsec';
 
   @override
   String get onboardingNsecSubtitle =>
-      'Paste your private key. Stored in the Android Keystore.';
+      'Lipește cheia ta privată. Este stocată în Android Keystore.';
 
   @override
   String get onboardingNsecError =>
@@ -1211,7 +1212,7 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get onboardingSetupSubtitle =>
-      'Configure location access and optional voice guidance.';
+      'Configurează accesul la locație și ghidarea vocală opțională.';
 
   @override
   String get onboardingLocationTitle => 'Locație';
@@ -1230,7 +1231,7 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
+      'Acordă Locație precisă (nu Aproximativă) cât timp folosești Roadstr, în:\nSetări → Aplicații → Roadstr → Permisiuni → Locație\n\nRoadstr folosește un serviciu de navigare în prim-plan și nu necesită acces permanent la locație în fundal.';
 
   @override
   String get onboardingVoiceTitle => 'Ghidare vocală AI (opțional)';
@@ -1243,24 +1244,24 @@ class AppLocalizationsRo extends AppLocalizations {
 
   @override
   String get onboardingVoiceNotDownloaded =>
-      'Download the 82 MB Kokoro AI model for on-device voice';
+      'Descarcă modelul AI Kokoro de 82 MB pentru voce pe dispozitiv';
 
   @override
-  String get onboardingVoiceChecking => 'Checking model status…';
+  String get onboardingVoiceChecking => 'Se verifică starea modelului…';
 
   @override
   String get onboardingDownloadButton => 'Descărcați';
 
   @override
   String get onboardingVoiceLaterHint =>
-      'You can also download the voice model later from\nSettings → Navigation voice.';
+      'Poți descărca modelul vocal și mai târziu din\nSetări → Voce de navigare.';
 
   @override
   String get onboardingReadyTitle => 'Ești gata să navighezi!';
 
   @override
   String get onboardingReadyBody =>
-      'Roadstr will now open the map.\nYou can configure everything else in Settings.';
+      'Roadstr va deschide acum harta.\nRestul îl poți configura în Setări.';
 
   @override
   String get onboardingLetsGo => 'Haideți!';

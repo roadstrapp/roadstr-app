@@ -4,11 +4,11 @@
     <string name="native_home_notifications">Aviseringar</string>
     <string name="native_home_profile">Profil</string>
     <string name="native_home_menu">Meny</string>
-    <string name="native_home_ready">Ready to go?</string>
-    <string name="native_home_navigate">Navigate</string>
-    <string name="native_home_parking">Parking</string>
-    <string name="native_home_activity">Activity</string>
-    <string name="native_home_events">Events</string>
-    <string name="native_home_saved_places">Saved places</string>
+    <string name="native_home_ready">Redo att köra?</string>
+    <string name="native_home_navigate">Navigera</string>
+    <string name="native_home_parking">Parkering</string>
+    <string name="native_home_activity">Aktivitet</string>
+    <string name="native_home_events">Händelser</string>
+    <string name="native_home_saved_places">Sparade platser</string>
     <string name="native_home_my_location">Min plats</string>
 </resources>

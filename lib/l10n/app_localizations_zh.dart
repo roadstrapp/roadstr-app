@@ -67,31 +67,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get bottomBarMenu => '菜单';
 
   @override
-  String get homeGoodMorning => 'Good morning';
+  String get homeGoodMorning => '早上好';
 
   @override
-  String get homeGoodAfternoon => 'Good afternoon';
+  String get homeGoodAfternoon => '下午好';
 
   @override
-  String get homeGoodEvening => 'Good evening';
+  String get homeGoodEvening => '晚上好';
 
   @override
-  String get homeReadyToGo => 'Ready to go?';
+  String get homeReadyToGo => '准备出发了吗？';
 
   @override
-  String get homeNavigate => 'Navigate';
+  String get homeNavigate => '导航';
 
   @override
-  String get homeParking => 'Parking';
+  String get homeParking => '停车场';
 
   @override
-  String get homeActivity => 'Activity';
+  String get homeActivity => '动态';
 
   @override
-  String get homeEvents => 'Events';
+  String get homeEvents => '事件';
 
   @override
-  String get homeSavedPlaces => 'Saved places';
+  String get homeSavedPlaces => '已保存的地点';
 
   @override
   String get notificationsTitle => '通知';
@@ -118,28 +118,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sectionMap => '地图';
 
   @override
-  String get sectionNavigationAppearance => 'Navigation appearance';
+  String get sectionNavigationAppearance => '导航外观';
 
   @override
-  String get speedometerStyleLabel => 'Speedometer';
+  String get speedometerStyleLabel => '速度表';
 
   @override
-  String get speedometerClassic => 'Classic (default)';
+  String get speedometerClassic => '经典（默认）';
 
   @override
-  String get speedometerDigital => 'Digital';
+  String get speedometerDigital => '数字';
 
   @override
-  String get speedometerAnalog => 'Analog';
+  String get speedometerAnalog => '模拟';
 
   @override
-  String get speedometerSport => 'Sport';
+  String get speedometerSport => '运动';
 
   @override
-  String get speedometerMinimal => 'Minimal';
+  String get speedometerMinimal => '极简';
 
   @override
-  String get movementCursorStyleLabel => 'Movement cursor';
+  String get movementCursorStyleLabel => '移动光标';
 
   @override
   String get cursorVehicleLabel => '车辆';
@@ -148,22 +148,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cursorColorLabel => '颜色';
 
   @override
-  String get cursorStandard => 'Standard (default)';
+  String get cursorStandard => '标准（默认）';
 
   @override
-  String get cursorFormula1 => 'Formula 1';
+  String get cursorFormula1 => '一级方程式';
 
   @override
   String get cursorSuv => 'SUV';
 
   @override
-  String get cursorRacing => 'Racing car';
+  String get cursorRacing => '赛车';
 
   @override
-  String get cursorElectric => 'Electric car';
+  String get cursorElectric => '电动汽车';
 
   @override
-  String get cursorCity => 'City car';
+  String get cursorCity => '城市小型车';
 
   @override
   String get cursorClassic500 => '经典菲亚特 500';
@@ -217,21 +217,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get keepScreenOnDescription => '导航期间防止屏幕休眠';
 
   @override
-  String get keepScreenOnAlways => 'Keep screen on outside navigation too';
+  String get keepScreenOnAlways => '在导航之外也保持屏幕常亮';
 
   @override
-  String get keepScreenOnAlwaysDescription =>
-      'Also applies while browsing the map without an active route';
+  String get keepScreenOnAlwaysDescription => '在没有活动路线时浏览地图也同样适用';
 
   @override
-  String get minBrightness => 'Minimum screen brightness';
+  String get minBrightness => '屏幕最低亮度';
 
   @override
   String get minBrightnessDescription =>
-      'Stops the screen dimming below this level while the app is open — useful on OLED screens that dim further than the map stays readable at';
+      '应用打开期间，屏幕亮度不会低于此级别——适用于变暗幅度超过地图可读范围的 OLED 屏幕';
 
   @override
-  String get minBrightnessOff => 'Off';
+  String get minBrightnessOff => '关闭';
 
   @override
   String get showAltitude => '显示海拔';
@@ -1112,27 +1111,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get onboardingWelcomeTitle => '欢迎';
 
   @override
-  String get onboardingWelcomeBody =>
-      'Everything your navigation app needs — without giving up your privacy.';
+  String get onboardingWelcomeBody => '导航应用所需的一切——无需牺牲你的隐私。';
 
   @override
-  String get onboardingFeatureNav => 'Turn-by-turn GPS navigation';
+  String get onboardingFeatureNav => 'GPS 逐向导航';
 
   @override
-  String get onboardingFeatureNostr =>
-      'Nostr road events (speed cameras, hazards, traffic)';
+  String get onboardingFeatureNostr => 'Nostr 路况事件（测速摄像头、危险、交通）';
 
   @override
-  String get onboardingFeatureLightning =>
-      'Lightning Network tips for event reporters';
+  String get onboardingFeatureLightning => '为事件上报者提供 Lightning Network 打赏';
 
   @override
-  String get onboardingFeatureVoice =>
-      'On-device AI voice guidance (Kokoro-82M)';
+  String get onboardingFeatureVoice => '设备端 AI 语音引导（Kokoro-82M）';
 
   @override
-  String get onboardingFeaturePrivacy =>
-      'No account required — no tracking, ever';
+  String get onboardingFeaturePrivacy => '无需账户——永不追踪';
 
   @override
   String get onboardingGetStarted => '开始';
@@ -1141,8 +1135,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get onboardingNostrTitle => 'Nostr 身份';
 
   @override
-  String get onboardingNostrSubtitle =>
-      'Optional — connect to report road events, confirm alerts and earn Lightning tips.';
+  String get onboardingNostrSubtitle => '可选——连接后可上报路况事件、确认警报并赚取 Lightning 打赏。';
 
   @override
   String get onboardingNostrConnected => '已连接';
@@ -1151,15 +1144,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get onboardingAmberTitle => 'Amber — NIP-55（推荐）';
 
   @override
-  String get onboardingAmberSubtitle =>
-      'Connect with the Amber signer app. Your private key never leaves Amber.';
+  String get onboardingAmberSubtitle => '通过 Amber 签名应用连接。你的私钥永远不会离开 Amber。';
 
   @override
   String get onboardingNsecTitle => 'nsec 密钥';
 
   @override
-  String get onboardingNsecSubtitle =>
-      'Paste your private key. Stored in the Android Keystore.';
+  String get onboardingNsecSubtitle => '粘贴你的私钥。保存在 Android Keystore 中。';
 
   @override
   String get onboardingNsecError => 'nsec 密钥无效 — 请检查后重试。';
@@ -1177,8 +1168,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get onboardingSetupTitle => '设置 Roadstr';
 
   @override
-  String get onboardingSetupSubtitle =>
-      'Configure location access and optional voice guidance.';
+  String get onboardingSetupSubtitle => '配置位置访问权限和可选的语音引导。';
 
   @override
   String get onboardingLocationTitle => '位置';
@@ -1197,7 +1187,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get onboardingGrapheneBody =>
-      'Grant Precise location (not Approximate) while using Roadstr in:\nSettings → Apps → Roadstr → Permissions → Location\n\nRoadstr uses a foreground navigation service and does not require permanent background-location access.';
+      '使用 Roadstr 时，请在以下位置授予“精确位置”（而非“大致位置”）：\n设置 → 应用 → Roadstr → 权限 → 位置信息\n\nRoadstr 使用前台导航服务，不需要持续的后台位置访问权限。';
 
   @override
   String get onboardingVoiceTitle => 'AI 语音导航（可选）';
@@ -1209,25 +1199,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get onboardingVoiceDownloading => '正在下载语音模型…';
 
   @override
-  String get onboardingVoiceNotDownloaded =>
-      'Download the 82 MB Kokoro AI model for on-device voice';
+  String get onboardingVoiceNotDownloaded => '下载 82 MB 的 Kokoro AI 模型以使用设备端语音';
 
   @override
-  String get onboardingVoiceChecking => 'Checking model status…';
+  String get onboardingVoiceChecking => '正在检查模型状态…';
 
   @override
   String get onboardingDownloadButton => '下载';
 
   @override
-  String get onboardingVoiceLaterHint =>
-      'You can also download the voice model later from\nSettings → Navigation voice.';
+  String get onboardingVoiceLaterHint => '你也可以稍后在\n设置 → 导航语音中下载语音模型。';
 
   @override
   String get onboardingReadyTitle => '您已准备好导航！';
 
   @override
-  String get onboardingReadyBody =>
-      'Roadstr will now open the map.\nYou can configure everything else in Settings.';
+  String get onboardingReadyBody => 'Roadstr 现在将打开地图。\n其余所有内容都可以在“设置”中配置。';
 
   @override
   String get onboardingLetsGo => '出发！';

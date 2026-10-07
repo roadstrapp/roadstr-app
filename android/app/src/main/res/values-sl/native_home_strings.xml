@@ -4,11 +4,11 @@
     <string name="native_home_notifications">Obvestila</string>
     <string name="native_home_profile">Profil</string>
     <string name="native_home_menu">Meni</string>
-    <string name="native_home_ready">Ready to go?</string>
-    <string name="native_home_navigate">Navigate</string>
-    <string name="native_home_parking">Parking</string>
-    <string name="native_home_activity">Activity</string>
-    <string name="native_home_events">Events</string>
-    <string name="native_home_saved_places">Saved places</string>
+    <string name="native_home_ready">Pripravljeni na pot?</string>
+    <string name="native_home_navigate">Navigiraj</string>
+    <string name="native_home_parking">Parkirišče</string>
+    <string name="native_home_activity">Dejavnost</string>
+    <string name="native_home_events">Dogodki</string>
+    <string name="native_home_saved_places">Shranjene lokacije</string>
     <string name="native_home_my_location">Moja lokacija</string>
 </resources>

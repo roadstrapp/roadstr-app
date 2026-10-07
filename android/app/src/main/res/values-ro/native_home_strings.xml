@@ -4,11 +4,11 @@
     <string name="native_home_notifications">Notificări</string>
     <string name="native_home_profile">Profil</string>
     <string name="native_home_menu">Meniu</string>
-    <string name="native_home_ready">Ready to go?</string>
-    <string name="native_home_navigate">Navigate</string>
-    <string name="native_home_parking">Parking</string>
-    <string name="native_home_activity">Activity</string>
-    <string name="native_home_events">Events</string>
-    <string name="native_home_saved_places">Saved places</string>
+    <string name="native_home_ready">Gata de drum?</string>
+    <string name="native_home_navigate">Navigare</string>
+    <string name="native_home_parking">Parcare</string>
+    <string name="native_home_activity">Activitate</string>
+    <string name="native_home_events">Evenimente</string>
+    <string name="native_home_saved_places">Locuri salvate</string>
     <string name="native_home_my_location">Locația mea</string>
 </resources>

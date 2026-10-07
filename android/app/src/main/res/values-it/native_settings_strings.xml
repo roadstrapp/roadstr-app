@@ -47,7 +47,7 @@
     <string name="native_settings_api_key_hint">GraphHopper API key (opzionale)</string>
     <string name="native_settings_verify">Verifica</string>
     <string name="native_settings_appearance_section">Aspetto navigazione</string>
-    <string name="native_settings_speedometer">Tachigrafo</string>
+    <string name="native_settings_speedometer">Tachimetro</string>
     <string name="native_settings_speedometer_classic">Classico (predefinito)</string>
     <string name="native_settings_speedometer_digital">Digitale</string>
     <string name="native_settings_speedometer_analog">Analogico</string>
