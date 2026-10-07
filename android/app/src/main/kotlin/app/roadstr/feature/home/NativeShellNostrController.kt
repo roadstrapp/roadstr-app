@@ -92,10 +92,13 @@ class NativeShellFavoritesController(
      * deleting the last favourite must replace the stored one rather than leave
      * it for the next reinstall to restore.
      */
-    fun autoPush() {
+    fun autoPush(current: List<NativeSavedPlace>) {
         if (nostr.signer.pubkeyHex == null) return
+        // The list is handed over by the caller: the screen's own copy is only refreshed at the next redraw,
+        // so reading it here published the list as it was before the change.
+        val snapshot = maps(current)
         scope.launch {
-            if (nostr.favoritesSync.push(maps(favorites()))) nostr.syncSecrets.markSynced(nowMillis())
+            if (nostr.favoritesSync.push(snapshot)) nostr.syncSecrets.markSynced(nowMillis())
         }
     }
 

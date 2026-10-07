@@ -23,6 +23,8 @@ import app.roadstr.service.nostr.TestKeys
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -136,6 +138,22 @@ class NativeShellNostrControllerTest {
         assertEquals(listOf("Casa", "Extra", "Lavoro"), local.map { it.label }.sorted())
         assertEquals("Rua Augusta 1", local.single { it.label == "Casa" }.address)
         assertEquals(NativeShellMessage.SyncSuccess, messages.single().first)
+    }
+
+    @Test
+    fun `an automatic push publishes the list it is handed, not the stale copy of the screen`() = runBlocking {
+        // The screen's own copy still holds the list from before the change.
+        val before = local
+        val changed = before + NativeSavedPlace("Nuovo", "Via Roma 1", NativeMapPoint(5.0, 6.0))
+
+        favorites(nostr()).autoPush(changed)
+        // The push runs on the controller's scope; wait for it to land.
+        withTimeout(5_000) { while (lastSync == null) delay(20) }
+
+        local = emptyList()
+        favorites(nostr()).pull()
+        assertEquals((before + changed).map { it.label }.toSet(), local.map { it.label }.toSet())
+        assertTrue(local.any { it.label == "Nuovo" })
     }
 
     @Test
