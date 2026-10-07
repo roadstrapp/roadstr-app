@@ -159,6 +159,31 @@ class NativeSettingsPresentationTest {
     }
 
     @Test
+    fun `the saved places list follows a refresh and is gone while the screen is hidden`() {
+        val session = NativeSettingsSession()
+        val places = listOf(NativeSettingsFavorite("Home", "1 Example Street"), NativeSettingsFavorite("Work", ""))
+
+        assertTrue(session.show(5, NativeSettingsInput(favoritesCount = 2, favoritePlaces = places)))
+        assertEquals(places, session.state.value.values.favoritePlaces)
+
+        assertTrue(session.refresh(5, session.state.value.values.copy(favoritesCount = 1, favoritePlaces = places.take(1))))
+        assertEquals(places.take(1), session.state.value.values.favoritePlaces)
+
+        assertTrue(session.hide(5))
+        assertEquals(emptyList<NativeSettingsFavorite>(), session.state.value.values.favoritePlaces)
+        assertEquals(0, session.state.value.values.favoritesCount)
+    }
+
+    @Test
+    fun `a saved places list longer than the stored maximum is refused`() {
+        val tooMany = List(NativeSettingsPresenter.MAX_FAVORITES + 1) { NativeSettingsFavorite("Place $it", "") }
+
+        assertThrows(IllegalArgumentException::class.java) {
+            NativeSettingsPresenter.present(1, NativeSettingsInput(favoritePlaces = tooMany))
+        }
+    }
+
+    @Test
     fun `boolean mutation returns typed persistence write and updates snapshot`() {
         val session = openSession()
 

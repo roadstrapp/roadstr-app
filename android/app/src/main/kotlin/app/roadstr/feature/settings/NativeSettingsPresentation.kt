@@ -140,6 +140,12 @@ data class NativeSettingsWrite(
     val value: NativeSettingsStoredValue,
 )
 
+/** One saved place as the settings list shows it; the list is cleared while the screen is hidden. */
+data class NativeSettingsFavorite(
+    val label: String,
+    val address: String,
+)
+
 data class NativeSettingsInput(
     val themeId: RoadstrThemeId = RoadstrThemeId.LightNostr,
     val autoDarkEnabled: Boolean = false,
@@ -166,6 +172,7 @@ data class NativeSettingsInput(
     val searchEngine: NativeSettingsSearchEngine = NativeSettingsSearchEngine.Qwant,
     val nwcConfigured: Boolean = false,
     val favoritesCount: Int = 0,
+    val favoritePlaces: List<NativeSettingsFavorite> = emptyList(),
     val favoritesSyncAutoEnabled: Boolean = false,
     val syncIdentityAvailable: Boolean = false,
     val syncBusy: Boolean = false,
@@ -232,6 +239,7 @@ object NativeSettingsPresenter {
             "Minimum brightness must be between zero and one"
         }
         require(input.favoritesCount in 0..MAX_FAVORITES) { "Invalid favorite count" }
+        require(input.favoritePlaces.size <= MAX_FAVORITES) { "Invalid favorite list" }
         input.lastSyncMillis?.let {
             require(it in 0..MAX_SYNC_MILLIS) { "Invalid last-sync timestamp" }
         }
@@ -486,6 +494,7 @@ class NativeSettingsSession(
                 routingApiKeyConfigured = false,
                 nwcConfigured = false,
                 favoritesCount = 0,
+                favoritePlaces = emptyList(),
                 syncIdentityAvailable = false,
                 syncBusy = false,
                 syncPassphraseConfigured = false,

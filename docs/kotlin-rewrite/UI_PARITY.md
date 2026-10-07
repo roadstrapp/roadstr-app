@@ -85,11 +85,16 @@ sections and fixed cancel/navigation actions. Its 52 values are generated from
 the same 27 ARB files. A fourth slice packages the full-screen navigation HUD:
 all 21 manoeuvre families are drawn as native vectors, while five speedometer
 styles and bounded speed, limit, altitude, distance, duration and ETA summaries
-adapt between portrait and landscape. Its 15 values are generated from the
+adapt between portrait and landscape. In landscape the speed-limit sign, the
+street label and the four map buttons (compass, my location, report, add stop; a
+row instead of a column) are placed from the measured height of the summary panel,
+so nothing overlaps the next-step card or the guidance buttons; this was checked
+on a Pixel 10 in both orientations (2026-10-07). Its 15 values are generated from the
 same 27 ARB files. A fifth slice packages saved places and parking: bounded
 legacy/import parsing, exact label merge, revision-safe list mutations, the
 existing blue parking-marker projection and a settings-like sheet with add,
-edit, delete, import/export and parking actions. Its nine values are generated
+edit, delete, import/export and parking actions; the settings screen also lists the
+saved places (tap to edit, × to delete) as the Flutter settings do. Its nine values are generated
 from the same 27 ARB files. A sixth slice packages the restricted Wikipedia
 reader with exact article-host/path admission, main-frame-only navigation,
 progress/back/error/retry state and ephemeral browser data. Its four values are
