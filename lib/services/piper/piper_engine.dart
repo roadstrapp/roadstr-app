@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_onnxruntime/flutter_onnxruntime.dart';
+import '../../utils/debug_log.dart';
 import 'piper_model_manager.dart';
 import 'piper_voices.dart';
 
@@ -75,12 +76,12 @@ class PiperEngine {
         providers: [OrtProvider.XNNPACK, OrtProvider.CPU],
       ),
     );
-    debugPrint('[PiperEngine] loaded  inputs=${_session!.inputNames}');
+    debugLog('[PiperEngine] loaded  inputs=${_session!.inputNames}');
   }
 
   List<int> _phonemesToIds(String ipa) =>
       phonemesToIds(ipa, _phonemeIdMap!, onMissing: (ch) {
-        debugPrint('[PiperEngine] missing phoneme from id map: "$ch"');
+        debugLog('[PiperEngine] missing phoneme from id map: "$ch"');
       });
 
   /// Maps [ipa] to Piper's BOS/PAD/id.../PAD/EOS sequence. Unknown characters
@@ -137,7 +138,7 @@ class PiperEngine {
       // Just BOS/PAD/EOS — no recognised phoneme in the whole utterance.
       throw const FormatException('No supported phonemes to synthesize');
     }
-    debugPrint('[PiperEngine] IPA: "$ipa"  ids(${ids.length})');
+    debugLog('[PiperEngine] IPA: "$ipa"  ids(${ids.length})');
 
     final inputTensor =
         await OrtValue.fromList(Int64List.fromList(ids), [1, ids.length]);
@@ -157,7 +158,7 @@ class PiperEngine {
 
       final audioValue = outputs.values.first;
       final audioFlat = await audioValue.asFlattenedList();
-      debugPrint('[PiperEngine] audio samples: ${audioFlat.length}  '
+      debugLog('[PiperEngine] audio samples: ${audioFlat.length}  '
           '(${audioFlat.length / kPiperSampleRate}s @ ${kPiperSampleRate}Hz)');
 
       return Float32List.fromList(

@@ -725,10 +725,10 @@ class _MaplibreMapScreenState extends State<MaplibreMapScreen>
   /// regardless, so a toggle flipped in Settings and returned from takes
   /// effect within the next fix rather than needing its own change listener.
   bool get _showTrafficLights =>
-      Hive.box('settings').get('showTrafficLights', defaultValue: true)
+      Hive.box('settings').get('showTrafficLights', defaultValue: false)
           as bool;
   bool get _showCrosswalks =>
-      Hive.box('settings').get('showCrosswalks', defaultValue: true) as bool;
+      Hive.box('settings').get('showCrosswalks', defaultValue: false) as bool;
 
   /// Read fresh for the same reason as [_showTrafficLights] — a route
   /// already being driven does not react to a setting flipped mid-journey,

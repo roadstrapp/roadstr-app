@@ -451,15 +451,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               )),
     );
+    final password = ctrl.text;
+    ctrl.dispose();
     if (go != true || !mounted) return;
 
     final plaintext = jsonEncode(_favorites.map((f) => f.toMap()).toList());
     final Map<String, dynamic> envelope;
-    if (encryptIt && ctrl.text.isNotEmpty) {
+    if (encryptIt && password.isNotEmpty) {
       envelope = {
         'v': 1,
         'encrypted': true,
-        ...await FavoritesCrypto.encryptAsync(plaintext, ctrl.text)
+        ...await FavoritesCrypto.encryptAsync(plaintext, password)
       };
     } else {
       envelope = {'v': 1, 'encrypted': false, 'data': plaintext};
@@ -529,10 +531,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<String?> _promptPassword(String title) {
+  Future<String?> _promptPassword(String title) async {
     final ctrl = TextEditingController();
     final c = RoadstrColors.of(context);
-    return showDialog<String>(
+    final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: c.surface2,
@@ -570,6 +572,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
+    ctrl.dispose();
+    return result;
   }
 
   // ── Nostr sync (NIP-44, kind 30078) ──────────────────────────────────────
@@ -691,14 +695,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
+    final passphrase = ctrl.text;
+    ctrl.dispose();
     if (saved != true || !mounted) return;
     // Empty input = disable the extra layer; next push publishes unwrapped.
-    if (ctrl.text.isEmpty) {
+    if (passphrase.isEmpty) {
       await _st.delete(key: 'favorites_sync_passphrase');
       _syncPassphrase = null;
     } else {
-      await _st.write(key: 'favorites_sync_passphrase', value: ctrl.text);
-      _syncPassphrase = ctrl.text;
+      await _st.write(key: 'favorites_sync_passphrase', value: passphrase);
+      _syncPassphrase = passphrase;
     }
     // The secure-storage write above is awaited: the screen can be gone by now.
     if (!mounted) return;
@@ -762,8 +768,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
-    if (saved != true || !mounted) return;
     final typed = ctrl.text.trim();
+    ctrl.dispose();
+    if (saved != true || !mounted) return;
     if (typed.isEmpty) {
       await _box.delete(FavoritesSyncService.kCustomRelayKey);
       if (!mounted) return;
@@ -995,6 +1002,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
     debounce?.cancel();
+    labelCtrl.dispose();
+    addressCtrl.dispose();
   }
 
   bool _getBool(String key, bool def) =>
@@ -1276,14 +1285,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _SwitchTile(
                 title: l.showCrosswalks,
                 subtitle: l.showCrosswalksDescription,
-                value: _getBool('showCrosswalks', true),
+                value: _getBool('showCrosswalks', false),
                 onChanged: (v) => _setBool('showCrosswalks', v),
                 colors: c,
               ),
               _SwitchTile(
                 title: l.showTrafficLights,
                 subtitle: l.showTrafficLightsDescription,
-                value: _getBool('showTrafficLights', true),
+                value: _getBool('showTrafficLights', false),
                 onChanged: (v) => _setBool('showTrafficLights', v),
                 colors: c,
               ),

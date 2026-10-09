@@ -35,19 +35,22 @@ chunks	large-over	1048576	2147483647	rejected:0:0
 endpoint	https-public	aHR0cHM6Ly9ncmFwaGhvcHBlci5leGFtcGxlLmNvbS9yb3V0ZQ	-	accepted
 endpoint	https-port-query	aHR0cHM6Ly9ncmFwaGhvcHBlci5leGFtcGxlLmNvbTo4NDQzL3JvdXRlP3g9MQ	-	accepted
 endpoint	https-lan-ip	aHR0cHM6Ly8xOTIuMTY4LjEuNTA6ODk4OS9yb3V0ZQ	-	accepted
+endpoint	https-zero-port	aHR0cHM6Ly9ncmFwaGhvcHBlci5leGFtcGxlLmNvbTowL3JvdXRl	-	invalid
+endpoint	https-out-of-range-port	aHR0cHM6Ly9ncmFwaGhvcHBlci5leGFtcGxlLmNvbTo3MDAwMC9yb3V0ZQ	-	invalid
+endpoint	https-fragment	aHR0cHM6Ly9ncmFwaGhvcHBlci5leGFtcGxlLmNvbS9yb3V0ZSNpZ25vcmVk	-	invalid
 endpoint	http-localhost	aHR0cDovL2xvY2FsaG9zdDo4OTg5L3JvdXRl	-	accepted
 endpoint	http-localhost-case	SFRUUDovL0xPQ0FMSE9TVDo4OTg5L3JvdXRl	-	accepted
 endpoint	http-loopback	aHR0cDovLzEyNy4wLjAuMTo4OTg5L3JvdXRl	-	accepted
 endpoint	http-emulator	aHR0cDovLzEwLjAuMi4yOjg5ODkvcm91dGU	-	accepted
-endpoint	empty-userinfo-compatible	aHR0cHM6Ly9AZ3JhcGhob3BwZXIuZXhhbXBsZS5jb20vcm91dGU	-	accepted
+endpoint	empty-userinfo-rejected	aHR0cHM6Ly9AZ3JhcGhob3BwZXIuZXhhbXBsZS5jb20vcm91dGU	-	invalid
 endpoint	http-public	aHR0cDovL2dyYXBoaG9wcGVyLmV4YW1wbGUuY29tL3JvdXRl	-	cleartext_rejected
 endpoint	http-lan	aHR0cDovLzE5Mi4xNjguMS41MDo4OTg5L3JvdXRl	-	cleartext_rejected
 endpoint	http-ipv6-loopback	aHR0cDovL1s6OjFdOjg5ODkvcm91dGU	-	cleartext_rejected
 endpoint	http-localhost-subdomain	aHR0cDovL3JvdXRlLmxvY2FsaG9zdDo4OTg5L3JvdXRl	-	cleartext_rejected
 endpoint	http-localhost-trailing-dot	aHR0cDovL2xvY2FsaG9zdC46ODk4OS9yb3V0ZQ	-	cleartext_rejected
-endpoint	userinfo-current-policy	aHR0cHM6Ly91c2VyQGdyYXBoaG9wcGVyLmV4YW1wbGUuY29tL3JvdXRl	-	accepted
-endpoint	ftp-current-policy	ZnRwOi8vZ3JhcGhob3BwZXIuZXhhbXBsZS5jb20vcm91dGU	-	accepted
+endpoint	userinfo-rejected	aHR0cHM6Ly91c2VyQGdyYXBoaG9wcGVyLmV4YW1wbGUuY29tL3JvdXRl	-	invalid
+endpoint	ftp-rejected	ZnRwOi8vZ3JhcGhob3BwZXIuZXhhbXBsZS5jb20vcm91dGU	-	invalid
 endpoint	hostless	aHR0cHM6Ly8vcm91dGU	-	invalid
-endpoint	relative	Ly9ncmFwaGhvcHBlci5leGFtcGxlLmNvbS9yb3V0ZQ	-	accepted
+endpoint	relative	Ly9ncmFwaGhvcHBlci5leGFtcGxlLmNvbS9yb3V0ZQ	-	invalid
 endpoint	plain-text	bm90IGEgdXJs	-	invalid
 endpoint	empty		-	invalid

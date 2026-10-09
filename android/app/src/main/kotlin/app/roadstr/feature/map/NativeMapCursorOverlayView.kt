@@ -31,6 +31,7 @@ internal class NativeMapCursorOverlayView(context: Context) : View(context) {
         point = null,
         colorArgb = NativeMapCursorVisualPolicy.DEFAULT_COLOR_ARGB,
     )
+    private var mapCoordinate: LatLng? = null
 
     private val arrowPath = Path().apply {
         moveTo(24f, 5.5f)
@@ -93,6 +94,7 @@ internal class NativeMapCursorOverlayView(context: Context) : View(context) {
         val previous = this.snapshot
         val wasRunning = lastOstrichRunning
         this.snapshot = snapshot
+        mapCoordinate = snapshot.point?.let { LatLng(it.latitude, it.longitude) }
         val styleChanged = effectiveStyle(previous) != effectiveStyle(snapshot) ||
             previous.colorArgb != snapshot.colorArgb
         if (styleChanged && previous.point != null) {
@@ -126,8 +128,8 @@ internal class NativeMapCursorOverlayView(context: Context) : View(context) {
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         val liveMap = map ?: return
-        val point = snapshot.point ?: return
-        val screen = liveMap.projection.toScreenLocation(LatLng(point.latitude, point.longitude))
+        val coordinate = mapCoordinate ?: return
+        val screen = liveMap.projection.toScreenLocation(coordinate)
         val visual = NativeMapCursorVisualPolicy.frame(liveMap.cameraPosition.tilt)
         val from = transitionFrom
         if (from != null) {

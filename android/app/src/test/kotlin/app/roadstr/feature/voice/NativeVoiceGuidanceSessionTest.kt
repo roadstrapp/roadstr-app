@@ -46,6 +46,18 @@ class NativeVoiceGuidanceSessionTest {
     }
 
     @Test
+    fun `departure completes before the first maneuver`() {
+        val session = NativeVoiceGuidanceSession()
+        val departure = session.submitDeparture("Partenza", 0) as NativeVoiceDirective.Start
+
+        val maneuver = session.submitManeuver("Svolta a destra", 0, "it", false, 2_000)
+
+        assertTrue(maneuver is NativeVoiceDirective.Queued)
+        val next = session.finish(departure.utterance.id) as NativeVoiceDirective.Start
+        assertEquals("Svolta a destra", next.utterance.text)
+    }
+
+    @Test
     fun `advance maneuver never cuts another advance maneuver`() {
         val session = NativeVoiceGuidanceSession()
         session.submitPriority("first turn", maneuver = true, nowMillis = 0)

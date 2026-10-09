@@ -10,6 +10,7 @@ data class NativeVoiceUtterance(
     val text: String,
     val priority: Boolean,
     val maneuver: Boolean,
+    val departure: Boolean = false,
     val submittedAtMillis: Long,
 )
 
@@ -69,6 +70,20 @@ class NativeVoiceGuidanceSession {
         submitLocked(cleanText(text), priority = true, maneuver = maneuver, nowMillis = nowMillis)
     }
 
+    /**
+     * Announces the beginning of navigation. The first route maneuver waits
+     * its turn, even if it is published after the usual interrupt window.
+     */
+    fun submitDeparture(text: String, nowMillis: Long): NativeVoiceDirective = synchronized(lock) {
+        submitLocked(
+            text = cleanText(text),
+            priority = true,
+            maneuver = false,
+            departure = true,
+            nowMillis = nowMillis,
+        )
+    }
+
     fun submitManeuver(
         instruction: String,
         distanceMetres: Int,
@@ -93,6 +108,7 @@ class NativeVoiceGuidanceSession {
             text = if (prefix.isEmpty()) clean else "$prefix$clean",
             priority = true,
             maneuver = !imminent,
+            forceQueue = current?.departure == true || pending.any { it.departure },
             nowMillis = nowMillis,
         )
     }
@@ -141,15 +157,17 @@ class NativeVoiceGuidanceSession {
         text: String,
         priority: Boolean,
         maneuver: Boolean,
+        departure: Boolean = false,
+        forceQueue: Boolean = false,
         nowMillis: Long,
     ): NativeVoiceDirective {
-        val utterance = NativeVoiceUtterance(++nextId, text, priority, maneuver, nowMillis)
+        val utterance = NativeVoiceUtterance(++nextId, text, priority, maneuver, departure, nowMillis)
         val active = current
         if (active == null) {
             current = utterance
             return NativeVoiceDirective.Start(utterance, interruptCurrent = false)
         }
-        if (!priority || elapsed(nowMillis, active.submittedAtMillis) < MIN_AUDIBLE_MILLIS) {
+        if (forceQueue || !priority || elapsed(nowMillis, active.submittedAtMillis) < MIN_AUDIBLE_MILLIS) {
             return enqueue(utterance)
         }
         if (maneuver && active.maneuver) {

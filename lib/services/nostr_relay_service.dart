@@ -12,7 +12,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' show Random;
 
-import 'package:flutter/foundation.dart' show debugPrint, visibleForTesting;
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:hive/hive.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nostr_tools/nostr_tools.dart';
@@ -20,6 +20,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../models/activity_notification.dart';
 import '../models/road_event.dart';
+import '../utils/debug_log.dart';
 import 'nostr_event_verify.dart';
 import 'nostr_pending_report_queue.dart';
 import 'nostr_protocol_codec.dart';
@@ -94,6 +95,7 @@ class RoadReportQueuedException implements Exception {
 class NostrRelayService {
   final _eventApi = EventApi();
   static const _maxCachedEvents = 1000;
+  static const _maxIngressEventsPerSubscription = 4096;
 
   /// Ceiling on kind-1317 updates held waiting for a report that has not
   /// arrived, and how long one may wait. See [_pendingRoadUpdates].
@@ -875,11 +877,10 @@ class NostrRelayService {
             ack.complete(accepted == true);
           }
           if (accepted == false) {
-            debugPrint(
-                '[Nostr] Relay rejected event $eventId: ${reason ?? ""}');
+            debugLog('[Nostr] Relay rejected event $eventId: ${reason ?? ""}');
           }
         case NostrRelayNoticeMessage(:final detail):
-          debugPrint('[Nostr] NOTICE from relay: $detail');
+          debugLog('[Nostr] NOTICE from relay: $detail');
         case NostrRelayEventMessage(
             :final subscriptionId,
             event: final json,
@@ -905,27 +906,37 @@ class NostrRelayService {
                 1315: NostrIngressRoute.roadEvent,
                 1317: NostrIngressRoute.roadUpdate,
               },
+              maxEvents: _maxIngressEventsPerSubscription,
             ),
             NostrIngressRule(
               name: 'confirmations',
               subscriptionId: _confSubId,
               routes: const {1316: NostrIngressRoute.confirmation},
+              maxEvents: _maxIngressEventsPerSubscription,
             ),
             NostrIngressRule(
               name: 'own-confirmations',
               subscriptionId: _myConfSubId,
               routes: const {1316: NostrIngressRoute.ownConfirmation},
+              maxEvents: _maxIngressEventsPerSubscription,
             ),
             NostrIngressRule(
               name: 'zaps',
               subscriptionId: _zapSubId,
               routes: const {9735: NostrIngressRoute.zapReceipt},
+              maxEvents: _maxIngressEventsPerSubscription,
             ),
           ]);
           final decision = ingress.inspect(
             subscriptionId: subId,
             claimedKind: kind,
           );
+          if (decision.limitReached) {
+            // Let onDone rotate away from a relay that is spending an
+            // unreasonable amount of CPU on one live subscription.
+            _ws?.sink.close().catchError((_) {});
+            return;
+          }
           if (!decision.shouldVerify) return;
           // Relays are untrusted: drop events whose id doesn't match the
           // canonical hash or whose Schnorr signature is invalid. Without

@@ -38,8 +38,8 @@ class NativeSettingsPresentationTest {
         assertFalse(value.keepScreenOnAlways)
         assertEquals(0.0, value.minimumBrightness, 0.0)
         assertFalse(value.showAltitude)
-        assertTrue(value.showCrosswalks)
-        assertTrue(value.showTrafficLights)
+        assertFalse(value.showCrosswalks)
+        assertFalse(value.showTrafficLights)
         assertTrue(value.autoCenterOnLaunch)
         assertFalse(value.imperialUnits)
         assertEquals(NativeSettingsRoutingProvider.Osrm, value.routingProvider)
@@ -142,7 +142,8 @@ class NativeSettingsPresentationTest {
         assertEquals("roadstr_profile_public", NativeSettingsBooleanKey.ProfilePublic.storageKey)
         assertEquals("favoritesSyncAutoEnabled", NativeSettingsBooleanKey.FavoritesSyncAuto.storageKey)
         assertTrue(NativeSettingsBooleanKey.KeepScreenOn.defaultValue)
-        assertTrue(NativeSettingsBooleanKey.ShowCrosswalks.defaultValue)
+        assertFalse(NativeSettingsBooleanKey.ShowCrosswalks.defaultValue)
+        assertFalse(NativeSettingsBooleanKey.ShowTrafficLights.defaultValue)
         assertFalse(NativeSettingsBooleanKey.AvoidUnpavedRoads.defaultValue)
     }
 

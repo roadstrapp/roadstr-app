@@ -1,5 +1,6 @@
 import 'package:latlong2/latlong.dart';
-import 'package:flutter/foundation.dart';
+
+import '../utils/debug_log.dart';
 import 'overpass_client.dart';
 import 'refetch_policy.dart';
 
@@ -68,14 +69,14 @@ class CrossingHazardService {
       _lastSuccessAt = DateTime.now();
       _nextRetryAt = null;
       _overpass.noteSuccess();
-      debugPrint(
+      debugLog(
           '[CrossingHazard] Overpass → ${_cached.length} crossings/bumps nearby');
     } catch (e) {
-      debugPrint('[CrossingHazard] Overpass error: $e');
+      debugLog('[CrossingHazard] Overpass error: $e');
       _overpass.rotate();
       _overpass.noteFailure(e);
-      _nextRetryAt = DateTime.now().add(_overpass
-          .failureBackoff(base: const Duration(milliseconds: _retryMs)));
+      _nextRetryAt = DateTime.now().add(_overpass.failureBackoff(
+          base: const Duration(milliseconds: _retryMs)));
     } finally {
       _fetching = false;
     }
@@ -119,7 +120,8 @@ class CrossingHazardService {
       final kind = tags.containsKey('traffic_calming')
           ? CrossingHazardKind.speedBump
           : CrossingHazardKind.crosswalk;
-      out.add(OsmCrossingHazard(id: id, position: LatLng(lat, lon), kind: kind));
+      out.add(
+          OsmCrossingHazard(id: id, position: LatLng(lat, lon), kind: kind));
     }
     return out;
   }

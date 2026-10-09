@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
+
+import '../utils/debug_log.dart';
 import 'overpass_client.dart';
 import '../utils/geo.dart';
 
@@ -58,7 +60,6 @@ class ZtlService {
   /// Returns the list of ZTL zones currently loaded (may be empty).
   List<ZtlZone> get zones => _zones;
 
-
   /// If the user has moved >2 km from the last query point, re-fetches
   /// ZTL data from Overpass. Call on each GPS update; silently no-ops
   /// when already fetching, inside the failure back-off window, or when
@@ -81,17 +82,17 @@ class ZtlService {
       _lastQueryPos = pos;
       _nextRetryAt = null;
       _overpass.noteSuccess();
-      debugPrint(
+      debugLog(
           '[ZTL] loaded ${zones.length} zones, ${ways.length} restricted ways');
     } catch (e) {
-      debugPrint('[ZTL] fetch failed: $e');
+      debugLog('[ZTL] fetch failed: $e');
       // ...and the back-off grows with each consecutive failure, so a mirror
       // that is down for the whole drive is asked a handful of times, not
       // every 15 s. See [OverpassClient.failureBackoff].
       _overpass.rotate();
       _overpass.noteFailure(e);
-      _nextRetryAt = DateTime.now().add(_overpass
-          .failureBackoff(base: const Duration(milliseconds: _retryMs)));
+      _nextRetryAt = DateTime.now().add(_overpass.failureBackoff(
+          base: const Duration(milliseconds: _retryMs)));
     } finally {
       _fetching = false;
     }
@@ -179,8 +180,9 @@ class ZtlService {
       // hundreds of metres between vertices, so testing only its own points
       // would drive straight through a short restricted street without ever
       // sampling near it.
-      final onRoute = way.points.any((p) => _nearPolyline(p, route, transitedM)) ||
-          route.any((p) => _nearPolyline(p, way.points, transitedM));
+      final onRoute =
+          way.points.any((p) => _nearPolyline(p, route, transitedM)) ||
+              route.any((p) => _nearPolyline(p, way.points, transitedM));
       if (onRoute) {
         transited.add(way);
         continue;
@@ -389,5 +391,4 @@ out geom;
   }
 
   // ── Ray-casting polygon containment ──────────────────────────────────────
-
 }

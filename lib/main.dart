@@ -34,6 +34,7 @@ import 'screens/map_screen.dart';
 import 'screens/maplibre_map_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/voice_engine_languages.dart';
+import 'utils/debug_log.dart';
 import 'utils/settings_listenable.dart';
 import 'services/app_secure_storage.dart';
 
@@ -62,10 +63,10 @@ Future<void> main() async {
   // than they need a stack trace.
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
-    debugPrint('[FlutterError] ${details.exceptionAsString()}');
+    debugLog('[FlutterError] ${details.exceptionAsString()}');
   };
   PlatformDispatcher.instance.onError = (error, stack) {
-    debugPrint('[UncaughtError] $error\n$stack');
+    debugLog('[UncaughtError] $error\n$stack');
     return true;
   };
 
@@ -77,7 +78,7 @@ Future<void> main() async {
   try {
     await _openEncryptedSettingsBox();
   } catch (error) {
-    debugPrint('[Storage] Protected settings unavailable: $error');
+    debugLog('[Storage] Protected settings unavailable: $error');
     runApp(const _StorageUnavailableApp());
     return;
   }
@@ -187,7 +188,7 @@ Future<void> _openEncryptedSettingsBox() async {
         await enc.putAll(data);
         await enc.flush();
         await backup.delete();
-        debugPrint('[Hive] settings box migrated to encrypted storage');
+        debugLog('[Hive] settings box migrated to encrypted storage');
       } catch (_) {
         if (Hive.isBoxOpen('settings')) await Hive.box('settings').close();
         await Hive.deleteBoxFromDisk('settings');

@@ -84,9 +84,9 @@ object RoutingEndpointPolicy {
     )
 
     /**
-     * Mirrors the shipped Dart validator: require a host and restrict explicit
-     * HTTP to Android's loopback exceptions. Other schemes and user-info remain
-     * recorded compatibility behavior until a separately approved tightening.
+     * Accepts only absolute HTTP(S) endpoints without embedded credentials or
+     * fragments. Explicit HTTP remains limited to Android's loopback
+     * exceptions, so coordinates and API keys cannot leave over cleartext.
      */
     fun graphHopperDecision(server: String): RoutingEndpointDecision {
         val uri = try {
@@ -96,7 +96,13 @@ object RoutingEndpointPolicy {
         }
         val scheme = uri.scheme?.lowercase()
         val host = uri.host?.lowercase()
-        if (host.isNullOrEmpty()) {
+        if (
+            host.isNullOrEmpty() ||
+            (scheme != "http" && scheme != "https") ||
+            uri.rawUserInfo != null ||
+            uri.rawFragment != null ||
+            (uri.port != -1 && uri.port !in 1..65_535)
+        ) {
             return RoutingEndpointDecision.Invalid
         }
         if (scheme == "http" && host !in cleartextAllowedHosts) {
