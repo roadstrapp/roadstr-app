@@ -72,6 +72,16 @@
     <string name="native_roadtest_no_app">Ingen app kan öppna den här länken</string>
     <string name="native_saved_geocoding_error">Adressen hittades inte. Försök med en mer specifik adress.</string>
     <string name="native_saved_label">Namn (t.ex. Hem, Kontor)</string>
+    <string name="native_saved_routes_delete">Ta bort</string>
+    <string name="native_saved_routes_edit">Redigera</string>
+    <string name="native_saved_routes_empty">Inga sparade rutter</string>
+    <string name="native_saved_routes_name">Ruttnamn</string>
+    <string name="native_saved_routes_online_reroute">Den sparade rutten fungerar utan nätverk; avvikelser kräver nätverk.</string>
+    <string name="native_saved_routes_recalculate">Beräkna om</string>
+    <string name="native_saved_routes_rename">Byt namn</string>
+    <string name="native_saved_routes_save">Spara rutt</string>
+    <string name="native_saved_routes_start">Starta</string>
+    <string name="native_saved_routes_title">Sparade rutter</string>
     <string name="native_search_notice_area_fallback">Platsen kunde inte avgränsas exakt, så området runt den söktes.</string>
     <string name="native_search_notice_few_tagged">Få platser här är taggade för detta i OpenStreetMap, så listan kan vara ofullständig.</string>
     <string name="native_search_notice_open_hours_unknown">Vissa platser anger inga öppettider, så de kan vara stängda.</string>

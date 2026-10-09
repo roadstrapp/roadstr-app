@@ -72,6 +72,16 @@
     <string name="native_roadtest_no_app">Nijedna aplikacija ne može otvoriti ovu poveznicu</string>
     <string name="native_saved_geocoding_error">Adresa nije pronađena. Pokušaj s preciznijom adresom.</string>
     <string name="native_saved_label">Naziv (npr. Dom, Ured)</string>
+    <string name="native_saved_routes_delete">Izbriši</string>
+    <string name="native_saved_routes_edit">Uredi</string>
+    <string name="native_saved_routes_empty">Nema spremljenih ruta</string>
+    <string name="native_saved_routes_name">Naziv rute</string>
+    <string name="native_saved_routes_online_reroute">Spremljena ruta radi bez mreže; odstupanja zahtijevaju mrežu.</string>
+    <string name="native_saved_routes_recalculate">Ponovno izračunaj</string>
+    <string name="native_saved_routes_rename">Preimenuj</string>
+    <string name="native_saved_routes_save">Spremi rutu</string>
+    <string name="native_saved_routes_start">Pokreni</string>
+    <string name="native_saved_routes_title">Spremljene rute</string>
     <string name="native_search_notice_area_fallback">To mjesto nije bilo moguće točno omeđiti, pa je pretraženo njegovo okruženje.</string>
     <string name="native_search_notice_few_tagged">Malo je mjesta ovdje označeno za to u OpenStreetMapu, pa popis može biti nepotpun.</string>
     <string name="native_search_notice_open_hours_unknown">Neka mjesta ne navode radno vrijeme, pa mogu biti zatvorena.</string>

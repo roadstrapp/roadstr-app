@@ -21,7 +21,12 @@ internal class NativeRoadTestProtectedPreferences(
     context: Context,
     private val preferencesName: String,
     private val keyAlias: String,
+    private val maxPlaintextBytes: Int = DEFAULT_MAX_PLAINTEXT_BYTES,
 ) {
+    init {
+        require(maxPlaintextBytes in 1..ABSOLUTE_MAX_PLAINTEXT_BYTES)
+    }
+
     private val preferences = context.applicationContext.getSharedPreferences(
         preferencesName,
         Context.MODE_PRIVATE,
@@ -65,7 +70,7 @@ internal class NativeRoadTestProtectedPreferences(
                 .put(nonce)
                 .put(ciphertext)
                 .array()
-            check(envelope.size <= MAX_ENVELOPE_BYTES)
+            check(envelope.size <= maxEnvelopeBytes)
             return Base64.encodeToString(envelope, Base64.NO_WRAP)
         } finally {
             plaintext.fill(0)
@@ -73,9 +78,9 @@ internal class NativeRoadTestProtectedPreferences(
     }
 
     private fun decrypt(key: String, encoded: String): String {
-        if (encoded.length > MAX_BASE64_CHARS) error("Protected value is too large")
+        if (encoded.length > maxBase64Chars) error("Protected value is too large")
         val envelope = Base64.decode(encoded, Base64.NO_WRAP)
-        if (envelope.size !in MIN_ENVELOPE_BYTES..MAX_ENVELOPE_BYTES) {
+        if (envelope.size !in MIN_ENVELOPE_BYTES..maxEnvelopeBytes) {
             error("Protected value has invalid framing")
         }
         val buffer = ByteBuffer.wrap(envelope)
@@ -91,7 +96,7 @@ internal class NativeRoadTestProtectedPreferences(
         cipher.updateAAD(associatedData(key))
         val plaintext = cipher.doFinal(ciphertext)
         return try {
-            if (plaintext.size > MAX_PLAINTEXT_BYTES) error("Protected value is too large")
+            if (plaintext.size > maxPlaintextBytes) error("Protected value is too large")
             Charsets.UTF_8.newDecoder()
                 .onMalformedInput(CodingErrorAction.REPORT)
                 .onUnmappableCharacter(CodingErrorAction.REPORT)
@@ -136,7 +141,13 @@ internal class NativeRoadTestProtectedPreferences(
     }
 
     private fun validPlaintextSize(value: String): Boolean =
-        value.toByteArray(Charsets.UTF_8).size <= MAX_PLAINTEXT_BYTES
+        value.toByteArray(Charsets.UTF_8).size <= maxPlaintextBytes
+
+    private val maxEnvelopeBytes: Int
+        get() = maxPlaintextBytes + NONCE_BYTES + 32
+
+    private val maxBase64Chars: Int
+        get() = (maxEnvelopeBytes * 4 / 3) + 8
 
     private companion object {
         const val ANDROID_KEYSTORE = "AndroidKeyStore"
@@ -146,10 +157,9 @@ internal class NativeRoadTestProtectedPreferences(
         const val FORMAT_VERSION: Byte = 1
         const val NONCE_BYTES = 12
         const val TAG_BITS = 128
-        const val MAX_PLAINTEXT_BYTES = 128 * 1024
-        const val MAX_ENVELOPE_BYTES = MAX_PLAINTEXT_BYTES + NONCE_BYTES + 32
+        const val DEFAULT_MAX_PLAINTEXT_BYTES = 128 * 1024
+        const val ABSOLUTE_MAX_PLAINTEXT_BYTES = 4 * 1024 * 1024
         const val MIN_ENVELOPE_BYTES = 1 + NONCE_BYTES + TAG_BITS / 8
-        const val MAX_BASE64_CHARS = (MAX_ENVELOPE_BYTES * 4 / 3) + 8
         val KEY_PATTERN = Regex("^[A-Za-z0-9._-]{1,128}$")
         val KEYSTORE_LOCK = Any()
     }

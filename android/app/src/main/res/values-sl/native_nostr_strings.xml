@@ -72,6 +72,16 @@
     <string name="native_roadtest_no_app">Nobena aplikacija ne more odpreti te povezave</string>
     <string name="native_saved_geocoding_error">Naslov ni bil najden. Poskusi z natančnejšim naslovom.</string>
     <string name="native_saved_label">Ime (npr. Dom, Pisarna)</string>
+    <string name="native_saved_routes_delete">Izbriši</string>
+    <string name="native_saved_routes_edit">Uredi</string>
+    <string name="native_saved_routes_empty">Ni shranjenih poti</string>
+    <string name="native_saved_routes_name">Ime poti</string>
+    <string name="native_saved_routes_online_reroute">Shranjena pot deluje brez omrežja; odkloni zahtevajo omrežje.</string>
+    <string name="native_saved_routes_recalculate">Preračunaj</string>
+    <string name="native_saved_routes_rename">Preimenuj</string>
+    <string name="native_saved_routes_save">Shrani pot</string>
+    <string name="native_saved_routes_start">Začni</string>
+    <string name="native_saved_routes_title">Shranjene poti</string>
     <string name="native_search_notice_area_fallback">Tega kraja ni bilo mogoče natančno omejiti, zato je bila preiskana njegova okolica.</string>
     <string name="native_search_notice_few_tagged">Malo krajev je tu za to označenih v OpenStreetMap, zato je seznam lahko nepopoln.</string>
     <string name="native_search_notice_open_hours_unknown">Nekateri kraji ne navajajo delovnega časa, zato so lahko zaprti.</string>

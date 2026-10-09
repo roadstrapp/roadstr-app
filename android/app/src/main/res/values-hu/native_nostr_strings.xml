@@ -72,6 +72,16 @@
     <string name="native_roadtest_no_app">Nincs alkalmazás a hivatkozás megnyitásához</string>
     <string name="native_saved_geocoding_error">A cím nem található. Próbálj pontosabb címet.</string>
     <string name="native_saved_label">Név (pl. Otthon, Iroda)</string>
+    <string name="native_saved_routes_delete">Törlés</string>
+    <string name="native_saved_routes_edit">Szerkesztés</string>
+    <string name="native_saved_routes_empty">Nincsenek mentett útvonalak</string>
+    <string name="native_saved_routes_name">Útvonal neve</string>
+    <string name="native_saved_routes_online_reroute">A mentett útvonal hálózat nélkül működik; az eltérésekhez hálózat kell.</string>
+    <string name="native_saved_routes_recalculate">Újratervezés</string>
+    <string name="native_saved_routes_rename">Átnevezés</string>
+    <string name="native_saved_routes_save">Útvonal mentése</string>
+    <string name="native_saved_routes_start">Indítás</string>
+    <string name="native_saved_routes_title">Mentett útvonalak</string>
     <string name="native_search_notice_area_fallback">Ezt a helyet nem sikerült pontosan körülhatárolni, ezért a környékét kerestük át.</string>
     <string name="native_search_notice_few_tagged">Itt kevés helyet jelöltek meg erre az OpenStreetMapben, ezért a lista hiányos lehet.</string>
     <string name="native_search_notice_open_hours_unknown">Néhány hely nem adja meg a nyitvatartást, ezért zárva lehet.</string>

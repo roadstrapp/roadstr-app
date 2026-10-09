@@ -131,6 +131,9 @@ import app.roadstr.feature.saved.NativeParkingPanel
 import app.roadstr.feature.saved.NativeParkingPosition
 import app.roadstr.feature.saved.NativeSavedPlacesProtocol
 import app.roadstr.feature.saved.NativeSavedPlacesSession
+import app.roadstr.feature.savedroute.NativeSavedRoute
+import app.roadstr.feature.savedroute.NativeSavedRouteProtocol
+import app.roadstr.feature.savedroute.NativeSavedRoutesPanel
 import app.roadstr.feature.search.NativeSearchFavorite
 import app.roadstr.feature.search.NativeSearchPresenter
 import app.roadstr.feature.search.NativeSearchOverlay
@@ -280,6 +283,8 @@ fun NativeRoadstrShell(
     onParkingChanged: (NativeParkingPosition?) -> Unit = {},
     initialRouteHistory: List<NativeRouteHistoryEntry> = emptyList(),
     onRouteHistoryChanged: (List<NativeRouteHistoryEntry>) -> Unit = {},
+    initialSavedRoutes: List<NativeSavedRoute> = emptyList(),
+    onSavedRoutesChanged: (List<NativeSavedRoute>) -> Boolean = { true },
     initialWebSearch: WebDiscoverySettings = WebDiscoverySettings(),
     onWebSearchChanged: (WebDiscoverySettings) -> Unit = {},
     /** Where web pages open: the user's browser, or the optional in-app browser. */
@@ -746,6 +751,18 @@ fun NativeRoadstrShell(
         val updateRouteHistory: (List<NativeRouteHistoryEntry>) -> Unit = { next ->
             routeHistory = next
             onRouteHistoryChanged(next)
+        }
+        var savedRoutes by remember(initialSavedRoutes) { mutableStateOf(initialSavedRoutes) }
+        var savedRoutesVisible by remember { mutableStateOf(false) }
+        var editingSavedRoute by remember { mutableStateOf<NativeSavedRoute?>(null) }
+        var saveRouteDialogVisible by remember { mutableStateOf(false) }
+        var renameSavedRoute by remember { mutableStateOf<NativeSavedRoute?>(null) }
+        var savedRouteName by remember { mutableStateOf("") }
+        var startingSavedRoute by remember { mutableStateOf(false) }
+        val updateSavedRoutes: (List<NativeSavedRoute>) -> Boolean = { next ->
+            val stored = onSavedRoutesChanged(next)
+            if (stored) savedRoutes = next
+            stored
         }
         var contextMenuPoint by remember { mutableStateOf<NativeMapPoint?>(null) }
         val parkingLabel = stringResource(R.string.native_saved_parking_title)
@@ -1344,6 +1361,7 @@ fun NativeRoadstrShell(
                     webPanelVisible ||
                     parkingPanelVisible ||
                     historyVisible ||
+                    savedRoutesVisible ||
                     contextMenuPoint != null ||
                     settingsState.status != NativeSettingsStatus.Hidden ||
                     profileState.status != app.roadstr.feature.profile.NativeProfileStatus.Hidden ||
@@ -1363,6 +1381,7 @@ fun NativeRoadstrShell(
                 webPanelVisible -> webPanelVisible = false
                 contextMenuPoint != null -> contextMenuPoint = null
                 parkingPanelVisible -> parkingPanelVisible = false
+                savedRoutesVisible -> savedRoutesVisible = false
                 historyVisible -> historyVisible = false
                 wikipediaState.status != app.roadstr.feature.wikipedia.NativeWikipediaStatus.Hidden -> {
                     wikipediaSession.hide(wikipediaState.revision)
@@ -1415,6 +1434,14 @@ fun NativeRoadstrShell(
                     )
                 ) {
                     if (routePlanningSession.beginNavigation(revision)) {
+                        if (startingSavedRoute) {
+                            Toast.makeText(
+                                context,
+                                R.string.native_saved_routes_online_reroute,
+                                Toast.LENGTH_LONG,
+                            ).show()
+                        }
+                        startingSavedRoute = false
                         voiceGateway?.setMuted(!settingsState.values.voiceEnabled)
                         if (settingsState.values.voiceEnabled) voiceGateway?.announceStart()
                         discovery = NativeDiscoverySnapshot.Empty
@@ -1441,6 +1468,7 @@ fun NativeRoadstrShell(
                         )
                         cameraSession.recenter(SystemClock.elapsedRealtime())
                     } else {
+                        startingSavedRoute = false
                         activeNavigationSession.stop(revision)
                     }
                 }
@@ -2029,6 +2057,11 @@ fun NativeRoadstrShell(
                             )
                         }
                     },
+                    onSave = {
+                        savedRouteName = editingSavedRoute?.name
+                            ?: routePlanningState.destinationLabel.orEmpty()
+                        saveRouteDialogVisible = true
+                    },
                     onConfirm = {
                         // Commit and start in the same tap. The Preview state is
                         // retained internally for the atomic hand-off only; it
@@ -2155,7 +2188,48 @@ fun NativeRoadstrShell(
                             updateRouteHistory(NativeRouteHistoryProtocol.remove(routeHistory, entry))
                         },
                         onClear = { updateRouteHistory(emptyList()) },
+                        onOpenSavedRoutes = {
+                            historyVisible = false
+                            savedRoutesVisible = true
+                        },
                         onClose = { historyVisible = false },
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                    )
+                }
+                if (savedRoutesVisible) {
+                    NativeSavedRoutesPanel(
+                        routes = savedRoutes,
+                        onStart = { saved ->
+                            savedRoutesVisible = false
+                            editingSavedRoute = null
+                            startingSavedRoute = journeyCoordinator?.openSavedRoute(saved) == true
+                            if (startingSavedRoute) startSelectedRoute()
+                        },
+                        onRecalculate = { saved ->
+                            savedRoutesVisible = false
+                            editingSavedRoute = saved
+                            if (journeyCoordinator?.editSavedRoute(saved, gpsSnapshot.fix != null) == true) {
+                                journeyCoordinator.calculateRoute(
+                                    routePlanningSession.state.value,
+                                    gpsSearchPoint,
+                                    myLocationLabel,
+                                    saved.preferences.avoidUnpavedRoads,
+                                )
+                            }
+                        },
+                        onEdit = { saved ->
+                            savedRoutesVisible = false
+                            editingSavedRoute = saved
+                            journeyCoordinator?.editSavedRoute(saved, gpsSnapshot.fix != null)
+                        },
+                        onRename = { saved ->
+                            renameSavedRoute = saved
+                            savedRouteName = saved.name
+                        },
+                        onDelete = { saved ->
+                            updateSavedRoutes(NativeSavedRouteProtocol.remove(savedRoutes, saved.id))
+                        },
+                        onClose = { savedRoutesVisible = false },
                         modifier = Modifier.align(Alignment.BottomCenter),
                     )
                 }
@@ -2337,6 +2411,86 @@ fun NativeRoadstrShell(
                         activeNavigationSession.dismissArrival(activeNavigationState.revision)
                     },
                 )
+                if (saveRouteDialogVisible || renameSavedRoute != null) {
+                    val renaming = renameSavedRoute
+                    AlertDialog(
+                        onDismissRequest = {
+                            saveRouteDialogVisible = false
+                            renameSavedRoute = null
+                        },
+                        title = {
+                            androidx.compose.material3.Text(
+                                stringResource(
+                                    if (renaming == null) {
+                                        R.string.native_saved_routes_save
+                                    } else {
+                                        R.string.native_saved_routes_rename
+                                    },
+                                ),
+                            )
+                        },
+                        text = {
+                            OutlinedTextField(
+                                value = savedRouteName,
+                                onValueChange = {
+                                    savedRouteName = it.take(NativeSavedRouteProtocol.MAX_NAME_CHARS)
+                                },
+                                label = {
+                                    androidx.compose.material3.Text(
+                                        stringResource(R.string.native_saved_routes_name),
+                                    )
+                                },
+                                singleLine = true,
+                            )
+                        },
+                        confirmButton = {
+                            Button(
+                                enabled = savedRouteName.isNotBlank(),
+                                onClick = {
+                                    val now = System.currentTimeMillis()
+                                    val updated = if (renaming != null) {
+                                        runCatching {
+                                            NativeSavedRouteProtocol.rename(renaming, savedRouteName, now)
+                                        }.getOrNull()
+                                    } else {
+                                        journeyCoordinator?.buildSavedRoute(
+                                            name = savedRouteName,
+                                            providerId = journeyGateway?.routingProviderId()
+                                                ?: settingsState.values.routingProvider.storageValue,
+                                            engineId = journeyGateway?.routingProviderId()
+                                                ?: settingsState.values.routingProvider.storageValue,
+                                            avoidUnpavedRoads = settingsState.values.avoidUnpavedRoads,
+                                            nowEpochMillis = now,
+                                            existing = editingSavedRoute,
+                                        )
+                                    }
+                                    if (updated != null) {
+                                        val next = NativeSavedRouteProtocol.upsert(savedRoutes, updated)
+                                        if (updateSavedRoutes(next)) {
+                                            saveRouteDialogVisible = false
+                                            renameSavedRoute = null
+                                            editingSavedRoute = null
+                                        }
+                                    }
+                                },
+                            ) {
+                                androidx.compose.material3.Text(
+                                    stringResource(R.string.native_saved_routes_save),
+                                )
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = {
+                                    saveRouteDialogVisible = false
+                                    renameSavedRoute = null
+                                },
+                            ) {
+                                androidx.compose.material3.Text(stringResource(R.string.native_nostr_cancel))
+                            }
+                        },
+                    )
+                }
                 if (exitNavigationDialogVisible) {
                     AlertDialog(
                         onDismissRequest = { exitNavigationDialogVisible = false },

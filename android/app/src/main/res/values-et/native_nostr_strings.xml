@@ -72,6 +72,16 @@
     <string name="native_roadtest_no_app">Ükski rakendus ei saa seda linki avada</string>
     <string name="native_saved_geocoding_error">Aadressi ei leitud. Proovi täpsemat aadressi.</string>
     <string name="native_saved_label">Nimi (nt Kodu, Kontor)</string>
+    <string name="native_saved_routes_delete">Kustuta</string>
+    <string name="native_saved_routes_edit">Muuda</string>
+    <string name="native_saved_routes_empty">Salvestatud marsruute pole</string>
+    <string name="native_saved_routes_name">Marsruudi nimi</string>
+    <string name="native_saved_routes_online_reroute">Salvestatud marsruut töötab võrguta; kõrvalekalded vajavad võrku.</string>
+    <string name="native_saved_routes_recalculate">Arvuta uuesti</string>
+    <string name="native_saved_routes_rename">Nimeta ümber</string>
+    <string name="native_saved_routes_save">Salvesta marsruut</string>
+    <string name="native_saved_routes_start">Alusta</string>
+    <string name="native_saved_routes_title">Salvestatud marsruudid</string>
     <string name="native_search_notice_area_fallback">Seda kohta ei saanud täpselt piiritleda, seega otsiti selle ümbrusest.</string>
     <string name="native_search_notice_few_tagged">Siin on vähe kohti selle jaoks OpenStreetMapis märgitud, seega võib loend olla puudulik.</string>
     <string name="native_search_notice_open_hours_unknown">Mõni koht ei näita lahtiolekuaegu, seega võib see olla suletud.</string>

@@ -59,6 +59,7 @@ fun NativeRouteHistoryPanel(
     onSelect: (NativeRouteHistoryEntry) -> Unit,
     onRemove: (NativeRouteHistoryEntry) -> Unit,
     onClear: () -> Unit,
+    onOpenSavedRoutes: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -88,6 +89,10 @@ fun NativeRouteHistoryPanel(
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f).semantics { heading() },
                 )
+                TextButton(
+                    onClick = onOpenSavedRoutes,
+                    modifier = Modifier.sizeIn(minHeight = 48.dp),
+                ) { Text(stringResource(R.string.native_saved_routes_title)) }
                 TextButton(
                     onClick = onClear,
                     enabled = entries.isNotEmpty(),

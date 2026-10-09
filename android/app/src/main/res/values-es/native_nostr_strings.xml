@@ -72,6 +72,16 @@
     <string name="native_roadtest_no_app">Ninguna aplicación puede abrir este enlace</string>
     <string name="native_saved_geocoding_error">Dirección no encontrada. Intenta con una más específica.</string>
     <string name="native_saved_label">Nombre (p. ej. Casa, Oficina)</string>
+    <string name="native_saved_routes_delete">Eliminar</string>
+    <string name="native_saved_routes_edit">Editar</string>
+    <string name="native_saved_routes_empty">No hay rutas guardadas</string>
+    <string name="native_saved_routes_name">Nombre de la ruta</string>
+    <string name="native_saved_routes_online_reroute">La ruta guardada funciona sin red; los desvíos requieren conexión.</string>
+    <string name="native_saved_routes_recalculate">Recalcular</string>
+    <string name="native_saved_routes_rename">Renombrar</string>
+    <string name="native_saved_routes_save">Guardar ruta</string>
+    <string name="native_saved_routes_start">Iniciar</string>
+    <string name="native_saved_routes_title">Rutas guardadas</string>
     <string name="native_search_notice_area_fallback">No se pudo delimitar ese lugar con exactitud, así que se buscó en su entorno.</string>
     <string name="native_search_notice_few_tagged">Pocos lugares de aquí están etiquetados para esto en OpenStreetMap, así que la lista puede estar incompleta.</string>
     <string name="native_search_notice_open_hours_unknown">Algunos lugares no indican su horario, así que podrían estar cerrados.</string>

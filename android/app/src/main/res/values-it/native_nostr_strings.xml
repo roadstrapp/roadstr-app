@@ -72,6 +72,16 @@
     <string name="native_roadtest_no_app">Nessuna app disponibile per aprire questo collegamento</string>
     <string name="native_saved_geocoding_error">Indirizzo non trovato. Prova con un indirizzo più preciso.</string>
     <string name="native_saved_label">Nome (es. Casa, Ufficio)</string>
+    <string name="native_saved_routes_delete">Elimina</string>
+    <string name="native_saved_routes_edit">Modifica</string>
+    <string name="native_saved_routes_empty">Nessun itinerario salvato</string>
+    <string name="native_saved_routes_name">Nome itinerario</string>
+    <string name="native_saved_routes_online_reroute">L’itinerario salvato funziona senza rete; per ricalcolare una deviazione serve la rete.</string>
+    <string name="native_saved_routes_recalculate">Ricalcola</string>
+    <string name="native_saved_routes_rename">Rinomina</string>
+    <string name="native_saved_routes_save">Salva itinerario</string>
+    <string name="native_saved_routes_start">Avvia</string>
+    <string name="native_saved_routes_title">Itinerari salvati</string>
     <string name="native_search_notice_area_fallback">Non è stato possibile delimitare esattamente quel luogo, quindi ho cercato nell\'area intorno.</string>
     <string name="native_search_notice_few_tagged">Pochi luoghi qui sono etichettati per questo su OpenStreetMap, quindi l\'elenco potrebbe essere incompleto.</string>
     <string name="native_search_notice_open_hours_unknown">Alcuni luoghi non indicano gli orari di apertura, quindi potrebbero essere chiusi.</string>
