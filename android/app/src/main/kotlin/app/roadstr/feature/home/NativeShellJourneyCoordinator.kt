@@ -48,6 +48,10 @@ import app.roadstr.feature.route.NativeRoutePlanningSession
 import app.roadstr.feature.route.NativeRoutePlanningSnapshot
 import app.roadstr.feature.route.NativeRouteTransportMode
 import app.roadstr.feature.route.NativeRouteWeatherPresentation
+import app.roadstr.feature.savedroute.NativeSavedRoute
+import app.roadstr.feature.savedroute.NativeSavedRoutePreferences
+import app.roadstr.feature.savedroute.NativeSavedRouteProtocol
+import app.roadstr.feature.savedroute.NativeSavedRouteStop
 import app.roadstr.feature.search.NativeSearchNearbyCategory
 import app.roadstr.feature.search.NativeSearchResultPresentation
 import app.roadstr.feature.search.NativeSearchFavorite
@@ -66,6 +70,9 @@ import kotlinx.coroutines.launch
  * root. This interface deliberately exposes only bounded, parsed values.
  */
 interface NativeShellJourneyGateway {
+    /** Actual online engine after configuration fallback, never a credential or endpoint. */
+    fun routingProviderId(): String = "unknown"
+
     suspend fun search(
         query: String,
         near: SearchResponsePoint?,
@@ -189,6 +196,7 @@ class NativeShellJourneyCoordinator(
     private var selectedDestination: SelectedDestination? = null
     private var navigationDestination: SearchResponsePoint? = null
     private var navigationDestinationRevision = NO_REVISION
+    private var resolvedRouteStops: List<NativeSavedRouteStop> = emptyList()
 
     fun openSearch(nearbyEnabled: Boolean): Boolean {
         cancelSearchWork()
@@ -314,11 +322,14 @@ class NativeShellJourneyCoordinator(
 
         routeJob = scope.launch {
             try {
-                val origin = resolvePoint(snapshot.originQuery, gpsPoint, myLocationLabel, gpsPoint)
+                val savedStops = resolvedRouteStops.takeIf { pointsMatchSnapshot(it, snapshot) }
+                val origin = savedStops?.firstOrNull()?.point?.toSearchPoint()
+                    ?: resolvePoint(snapshot.originQuery, gpsPoint, myLocationLabel, gpsPoint)
                     ?: return@launch failRoute(revision)
                 val stops = ArrayList<SearchResponsePoint>(snapshot.stops.size)
-                for (stop in snapshot.stops) {
-                    val point = selectedDestination
+                for ((index, stop) in snapshot.stops.withIndex()) {
+                    val point = savedStops?.getOrNull(index + 1)?.point?.toSearchPoint()
+                        ?: selectedDestination
                         ?.takeIf { it.label == stop.query }
                         ?.point
                         ?: resolvePoint(stop.query, null, myLocationLabel, gpsPoint)
@@ -344,6 +355,11 @@ class NativeShellJourneyCoordinator(
                 if (!accepted) {
                     failRoute(revision)
                 } else {
+                    resolvedRouteStops = listOf(
+                        NativeSavedRouteStop(snapshot.originQuery, origin.toRoutingPoint()),
+                    ) + snapshot.stops.zip(stops) { stop, point ->
+                        NativeSavedRouteStop(stop.query, point.toRoutingPoint())
+                    }
                     navigationDestination = destination
                     navigationDestinationRevision = revision
                     val weather = runCatching { gateway.weather(destination) }.getOrNull()
@@ -356,6 +372,68 @@ class NativeShellJourneyCoordinator(
             }
         }
         return true
+    }
+
+    fun openSavedRoute(route: NativeSavedRoute): Boolean {
+        val parsed = route.parsedRoute() ?: return false
+        cancelRouteWork()
+        val revision = nextRouteRevision()
+        val accepted = routeSession.showCalculatedRoute(
+            revision = revision,
+            route = parsed,
+            destinationLabel = route.stops.last().label,
+            mode = NativeRouteTransportMode.fromWire(route.preferences.profile),
+        )
+        if (!accepted) return false
+        resolvedRouteStops = route.stops.toList()
+        navigationDestination = route.stops.last().point.toSearchPoint()
+        navigationDestinationRevision = revision
+        return true
+    }
+
+    fun editSavedRoute(route: NativeSavedRoute, hasGps: Boolean): Boolean {
+        cancelRouteWork()
+        clearNavigationDestination()
+        val accepted = routeSession.showPlanner(
+            revision = nextRouteRevision(),
+            originQuery = route.stops.first().label,
+            stopQueries = route.stops.drop(1).map(NativeSavedRouteStop::label),
+            hasGps = hasGps,
+            mode = NativeRouteTransportMode.fromWire(route.preferences.profile),
+            avoidanceEnabled = route.preferences.avoidance != app.roadstr.core.network.RoutingRouteAvoidance.None,
+        )
+        if (accepted) resolvedRouteStops = route.stops.toList()
+        return accepted
+    }
+
+    fun buildSavedRoute(
+        name: String,
+        providerId: String,
+        engineId: String,
+        avoidUnpavedRoads: Boolean,
+        nowEpochMillis: Long,
+        existing: NativeSavedRoute? = null,
+    ): NativeSavedRoute? {
+        val snapshot = routeSession.state.value
+        val route = routeSession.selectedRoute(snapshot.revision) ?: return null
+        if (!pointsMatchSnapshot(resolvedRouteStops, snapshot)) return null
+        return runCatching {
+            NativeSavedRouteProtocol.create(
+                id = existing?.id ?: java.util.UUID.randomUUID().toString(),
+                name = name,
+                createdAtEpochMillis = existing?.createdAtEpochMillis ?: nowEpochMillis,
+                nowEpochMillis = nowEpochMillis,
+                stops = resolvedRouteStops,
+                preferences = NativeSavedRoutePreferences(
+                    profile = snapshot.mode.wireValue,
+                    avoidance = route.avoidance,
+                    avoidUnpavedRoads = avoidUnpavedRoads,
+                ),
+                providerId = if (route.fromAvoidanceRouter) "valhalla+osrm" else providerId,
+                engineId = if (route.fromAvoidanceRouter) "valhalla-online" else engineId,
+                route = route,
+            )
+        }.getOrNull()
     }
 
     fun dismissSearch(): Boolean {
@@ -738,6 +816,19 @@ class NativeShellJourneyCoordinator(
         ).firstOrNull()?.position
     }
 
+    private fun pointsMatchSnapshot(
+        points: List<NativeSavedRouteStop>,
+        snapshot: NativeRoutePlanningSnapshot,
+    ): Boolean = points.size == snapshot.stops.size + 1 &&
+        points.firstOrNull()?.label == snapshot.originQuery &&
+        points.drop(1).map(NativeSavedRouteStop::label) == snapshot.stops.map { it.query }
+
+    private fun app.roadstr.core.network.RoutingResponsePoint.toSearchPoint() =
+        SearchResponsePoint(latitude, longitude)
+
+    private fun SearchResponsePoint.toRoutingPoint() =
+        app.roadstr.core.network.RoutingResponsePoint(latitude, longitude)
+
     private fun failRoute(revision: Long) {
         routeSession.failRouteRequest(revision)
     }
@@ -768,6 +859,7 @@ class NativeShellJourneyCoordinator(
     private fun clearNavigationDestination() {
         navigationDestination = null
         navigationDestinationRevision = NO_REVISION
+        resolvedRouteStops = emptyList()
     }
 
     private fun normalizedLanguageCode(): String = languageCode
