@@ -72,6 +72,16 @@
     <string name="native_roadtest_no_app">Nėra programos šiai nuorodai atidaryti</string>
     <string name="native_saved_geocoding_error">Adresas nerastas. Bandyk tikslesnį adresą.</string>
     <string name="native_saved_label">Pavadinimas (pvz. Namai, Biuras)</string>
+    <string name="native_saved_routes_delete">Ištrinti</string>
+    <string name="native_saved_routes_edit">Redaguoti</string>
+    <string name="native_saved_routes_empty">Išsaugotų maršrutų nėra</string>
+    <string name="native_saved_routes_name">Maršruto pavadinimas</string>
+    <string name="native_saved_routes_online_reroute">Išsaugotas maršrutas veikia be tinklo; nukrypimams reikia tinklo.</string>
+    <string name="native_saved_routes_recalculate">Perskaičiuoti</string>
+    <string name="native_saved_routes_rename">Pervadinti</string>
+    <string name="native_saved_routes_save">Išsaugoti maršrutą</string>
+    <string name="native_saved_routes_start">Pradėti</string>
+    <string name="native_saved_routes_title">Išsaugoti maršrutai</string>
     <string name="native_search_notice_area_fallback">Šios vietos nepavyko tiksliai apibrėžti, todėl ieškota jos apylinkėse.</string>
     <string name="native_search_notice_few_tagged">Čia tik nedaug vietų yra pažymėtos tam OpenStreetMap, todėl sąrašas gali būti neišsamus.</string>
     <string name="native_search_notice_open_hours_unknown">Kai kurios vietos nenurodo darbo laiko, todėl gali būti uždarytos.</string>

@@ -72,6 +72,16 @@
     <string name="native_roadtest_no_app">Žiadna aplikácia nedokáže otvoriť tento odkaz</string>
     <string name="native_saved_geocoding_error">Adresa sa nenašla. Skús presnejšiu adresu.</string>
     <string name="native_saved_label">Názov (napr. Domov, Kancelária)</string>
+    <string name="native_saved_routes_delete">Odstrániť</string>
+    <string name="native_saved_routes_edit">Upraviť</string>
+    <string name="native_saved_routes_empty">Žiadne uložené trasy</string>
+    <string name="native_saved_routes_name">Názov trasy</string>
+    <string name="native_saved_routes_online_reroute">Uložená trasa funguje bez siete; odchýlky vyžadujú sieť.</string>
+    <string name="native_saved_routes_recalculate">Prepočítať</string>
+    <string name="native_saved_routes_rename">Premenovať</string>
+    <string name="native_saved_routes_save">Uložiť trasu</string>
+    <string name="native_saved_routes_start">Spustiť</string>
+    <string name="native_saved_routes_title">Uložené trasy</string>
     <string name="native_search_notice_area_fallback">Toto miesto sa nepodarilo presne vymedziť, preto sa prehľadalo jeho okolie.</string>
     <string name="native_search_notice_few_tagged">Len málo miest je tu pre toto označených v OpenStreetMap, zoznam preto môže byť neúplný.</string>
     <string name="native_search_notice_open_hours_unknown">Niektoré miesta neuvádzajú otváracie hodiny, takže môžu byť zatvorené.</string>

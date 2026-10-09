@@ -62,6 +62,9 @@ class NativeRoadTestJourneyGateway(
     private val routingService = NativeRoutingService(transport)
     private val speedLimitResolver = NativeRoadTestSpeedLimitResolver(transport)
 
+    override fun routingProviderId(): String =
+        routingConfiguration().provider.name.lowercase(java.util.Locale.ROOT)
+
     override suspend fun probeRoutingServer(server: String, apiKey: String?): Boolean =
         runCatching { routingService.probeGraphHopper(server, apiKey) }.getOrDefault(false)
 

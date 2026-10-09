@@ -72,6 +72,16 @@
     <string name="native_roadtest_no_app">Ingen app kan åbne dette link</string>
     <string name="native_saved_geocoding_error">Adressen blev ikke fundet. Prøv en mere præcis adresse.</string>
     <string name="native_saved_label">Navn (f.eks. Hjem, Kontor)</string>
+    <string name="native_saved_routes_delete">Slet</string>
+    <string name="native_saved_routes_edit">Rediger</string>
+    <string name="native_saved_routes_empty">Ingen gemte ruter</string>
+    <string name="native_saved_routes_name">Rutenavn</string>
+    <string name="native_saved_routes_online_reroute">Den gemte rute virker uden netværk; afvigelser kræver netværk.</string>
+    <string name="native_saved_routes_recalculate">Genberegn</string>
+    <string name="native_saved_routes_rename">Omdøb</string>
+    <string name="native_saved_routes_save">Gem rute</string>
+    <string name="native_saved_routes_start">Start</string>
+    <string name="native_saved_routes_title">Gemte ruter</string>
     <string name="native_search_notice_area_fallback">Stedet kunne ikke afgrænses nøjagtigt, så området omkring det blev søgt.</string>
     <string name="native_search_notice_few_tagged">Få steder her er mærket til dette i OpenStreetMap, så listen kan være ufuldstændig.</string>
     <string name="native_search_notice_open_hours_unknown">Nogle steder oplyser ikke åbningstider, så de kan være lukkede.</string>

@@ -31,6 +31,8 @@ import app.roadstr.feature.home.NativeShellNostr
 import app.roadstr.feature.saved.NativeParkingPosition
 import app.roadstr.feature.history.NativeRouteHistoryProtocol
 import app.roadstr.feature.saved.NativeSavedPlacesProtocol
+import app.roadstr.feature.savedroute.NativeSavedRouteProtocol
+import app.roadstr.feature.savedroute.NativeSavedRoutesStore
 import app.roadstr.service.hazards.NativeOsmHazardService
 import app.roadstr.service.hazards.NativeOsmSpeedCameraService
 import app.roadstr.service.network.NativeBoundedHttpClient
@@ -141,6 +143,21 @@ open class NativeRoadTestActivity : ComponentActivity() {
             context = applicationContext,
             preferencesName = storeNames.prefs("route_history"),
             keyAlias = storeNames.alias("route-history"),
+        )
+    }
+    private val savedRoutesPreferences by lazy(LazyThreadSafetyMode.NONE) {
+        NativeRoadTestProtectedPreferences(
+            context = applicationContext,
+            preferencesName = storeNames.prefs("saved_routes"),
+            keyAlias = storeNames.alias("saved-routes"),
+            maxPlaintextBytes = NativeSavedRouteProtocol.MAX_STORED_BYTES,
+        )
+    }
+    private val savedRoutesStore by lazy(LazyThreadSafetyMode.NONE) {
+        NativeSavedRoutesStore(
+            readEncryptedValue = { savedRoutesPreferences.read("routes") },
+            writeEncryptedValue = { savedRoutesPreferences.write("routes", it) },
+            removeEncryptedValue = { savedRoutesPreferences.remove("routes") },
         )
     }
     private val uiPreferences by lazy(LazyThreadSafetyMode.NONE) {
@@ -257,6 +274,8 @@ open class NativeRoadTestActivity : ComponentActivity() {
                     historyPreferences.write("routes", NativeRouteHistoryProtocol.encode(history))
                 }
             },
+            initialSavedRoutes = runCatching(savedRoutesStore::load).getOrDefault(emptyList()),
+            onSavedRoutesChanged = savedRoutesStore::save,
             initialWebSearch = loadWebSearch(),
             onWebSearchChanged = ::saveWebSearch,
             webBrowser = webBrowser,
