@@ -274,20 +274,58 @@ class NativeRoutePlanningSession(
         revision: Long,
         originQuery: String = "",
         destinationQuery: String = "",
+        stopQueries: List<String>? = null,
         hasGps: Boolean = false,
         mode: NativeRouteTransportMode = NativeRouteTransportMode.Driving,
+        avoidanceEnabled: Boolean = false,
     ): Boolean = synchronized(lock) {
         require(revision >= 0) { "Route planner revision must be non-negative" }
         if (revision <= this.revision) return false
         if (!overlaySession.clearRoute(revision)) return false
         this.revision = revision
         candidates = emptyList()
+        val queries = (stopQueries ?: listOf(destinationQuery)).take(MAX_STOPS)
+        if (queries.isEmpty()) return false
         _state.value = NativeRoutePlanningSnapshot.hidden(revision).copy(
             status = NativeRoutePlanningStatus.Planner,
             originQuery = query(originQuery),
-            stops = listOf(NativeRoutePlannerStop(nextStopId++, query(destinationQuery))),
+            stops = queries.map { NativeRoutePlannerStop(nextStopId++, query(it)) },
             hasGps = hasGps,
             mode = mode,
+            avoidanceEnabled = avoidanceEnabled && mode == NativeRouteTransportMode.Driving,
+            imperialUnits = imperial,
+        )
+        true
+    }
+
+    /** Restores a persisted calculated route without asking a routing provider. */
+    fun showCalculatedRoute(
+        revision: Long,
+        route: RoutingParsedRoute,
+        destinationLabel: String,
+        mode: NativeRouteTransportMode,
+    ): Boolean = synchronized(lock) {
+        require(revision >= 0) { "Saved route revision must be non-negative" }
+        if (revision <= this.revision) return false
+        val candidate = NativeRoutePlanningCandidate(route)
+        val cards = NativeRoutePlanningPresenter.alternatives(listOf(candidate), imperial)
+        if (!overlaySession.submitAlternatives(revision, listOf(candidate.overlay()), 0)) return false
+        if (!overlaySession.commitSelectedAlternative(revision)) return false
+        val (departure, arrival) = NativeRoutePlanningPresenter.departureAndArrival(
+            route,
+            LocalDateTime.now(),
+        )
+        this.revision = revision
+        candidates = listOf(candidate)
+        _state.value = NativeRoutePlanningSnapshot.hidden(revision).copy(
+            status = NativeRoutePlanningStatus.Preview,
+            mode = mode,
+            alternatives = cards,
+            selectedIndex = 0,
+            destinationLabel = NativeRoutePlanningPresenter.normalizedLabel(destinationLabel),
+            departureLabel = departure,
+            arrivalLabel = arrival,
+            avoidanceEnabled = route.avoidance != RoutingRouteAvoidance.None,
             imperialUnits = imperial,
         )
         true
@@ -497,6 +535,23 @@ class NativeRoutePlanningSession(
                 speedLimits = route.speedLimits.toList(),
             )
         }
+    }
+
+    fun selectedRoute(revision: Long): RoutingParsedRoute? = synchronized(lock) {
+        val current = _state.value
+        if (revision != this.revision) return null
+        val selected = current.selectedIndex ?: return null
+        if (current.status != NativeRoutePlanningStatus.Alternatives &&
+            current.status != NativeRoutePlanningStatus.Preview
+        ) {
+            return null
+        }
+        val route = candidates.getOrNull(selected)?.route ?: return null
+        route.copy(
+            polyline = route.polyline.toList(),
+            steps = route.steps.toList(),
+            speedLimits = route.speedLimits.toList(),
+        )
     }
 
     /** Hides the preview while deliberately retaining its committed map route. */
