@@ -4,6 +4,7 @@ import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
+import '../../utils/debug_log.dart';
 import '../../utils/units.dart';
 import '../piper/piper_engine.dart';
 import '../piper/piper_voices.dart';
@@ -30,6 +31,7 @@ class KokoroTtsService {
   final _engine = KokoroEngine.instance;
   final _piperEngine = PiperEngine.instance;
   final _manager = KokoroModelManager.instance;
+
   /// Audio focus is ours to manage, never just_audio's — see [_acquireFocus]
   /// and [_releaseFocus]. Left on the default, `play()` calls
   /// `setActive(true)` itself and then *refuses to play at all* if it comes
@@ -135,7 +137,7 @@ class KokoroTtsService {
     // (setGender() clears _ready when the gender actually changed, so this
     // guard alone is enough to also catch gender switches.)
     if (_ready && _lang == languageCode) {
-      debugPrint('[KokoroTTS] init: already ready for $languageCode/$_gender');
+      debugLog('[KokoroTTS] init: already ready for $languageCode/$_gender');
       return;
     }
 
@@ -143,30 +145,30 @@ class KokoroTtsService {
     _ready = false;
 
     if (!_langSupported) {
-      debugPrint('[KokoroTTS] init: $languageCode not supported');
+      debugLog('[KokoroTTS] init: $languageCode not supported');
       return;
     }
 
     final t0 = DateTime.now();
     int ms() => DateTime.now().difference(t0).inMilliseconds;
-    debugPrint('[KokoroTTS] init start: $languageCode/$_gender');
+    debugLog('[KokoroTTS] init start: $languageCode/$_gender');
 
     try {
       await _phonemizer.init();
-      debugPrint('[KokoroTTS]   phonemizer: ${ms()}ms');
+      debugLog('[KokoroTTS]   phonemizer: ${ms()}ms');
       if (_usesPiper) {
         await _piperEngine.init();
-        debugPrint('[KokoroTTS]   piper engine: ${ms()}ms');
+        debugLog('[KokoroTTS]   piper engine: ${ms()}ms');
         _voiceData = null;
       } else {
         await _engine.init();
-        debugPrint('[KokoroTTS]   engine: ${ms()}ms');
+        debugLog('[KokoroTTS]   engine: ${ms()}ms');
         _voiceData = await _loadVoiceEmbedding(languageCode, _gender);
-        debugPrint('[KokoroTTS]   voice: ${ms()}ms');
+        debugLog('[KokoroTTS]   voice: ${ms()}ms');
       }
       _ready = true;
       _lastInitFailedAt = null;
-      debugPrint(
+      debugLog(
           '[KokoroTTS] init OK: ${ms()}ms total  voiceData=${_voiceData!.length} floats');
       unawaited(_configureAudioSession());
       // Before repopulating it: clears clips a previous build kept for ever,
@@ -184,7 +186,7 @@ class KokoroTtsService {
       // retry later in the SAME drive instead of making the driver start a
       // new one to get their voice back.
       _lastInitFailedAt = DateTime.now();
-      debugPrint('[KokoroTTS] init failed: $e');
+      debugLog('[KokoroTTS] init failed: $e');
     }
   }
 
@@ -279,9 +281,9 @@ class KokoroTtsService {
         androidAudioFocusGainType: AndroidAudioFocusGainType.gainTransient,
         androidWillPauseWhenDucked: false,
       ));
-      debugPrint('[KokoroTTS] audio session configured');
+      debugLog('[KokoroTTS] audio session configured');
     } catch (e) {
-      debugPrint('[KokoroTTS] audio session config failed: $e');
+      debugLog('[KokoroTTS] audio session config failed: $e');
     }
   }
 
@@ -405,7 +407,7 @@ class KokoroTtsService {
     while (_pending.length > _maxPending) {
       _pending.removeAt(0);
     }
-    debugPrint('[KokoroTTS] queued (${_pending.length}): "$text"');
+    debugLog('[KokoroTTS] queued (${_pending.length}): "$text"');
   }
 
   Future<void> _speakNow(String text) async {
@@ -494,10 +496,10 @@ class KokoroTtsService {
         // alert. Starting playback and returning lets the listener catch the
         // completion while audio is still playing.
         unawaited(_player.play());
-        debugPrint('[KokoroTTS] bundled: "$text"');
+        debugLog('[KokoroTTS] bundled: "$text"');
         return true;
       } catch (e) {
-        debugPrint('[KokoroTTS] bundled not found, synthesising: $e');
+        debugLog('[KokoroTTS] bundled not found, synthesising: $e');
       }
     }
 
@@ -511,23 +513,23 @@ class KokoroTtsService {
       await init(_lang);
     }
     if (!_ready) {
-      debugPrint('[KokoroTTS] speak("$text") skipped — not ready');
+      debugLog('[KokoroTTS] speak("$text") skipped — not ready');
       return false;
     }
 
     final t0 = DateTime.now();
     int ms() => DateTime.now().difference(t0).inMilliseconds;
     try {
-      debugPrint('[KokoroTTS] speak start: "$text"');
+      debugLog('[KokoroTTS] speak start: "$text"');
       await _player.stop();
-      debugPrint('[KokoroTTS]   stop: ${ms()}ms');
+      debugLog('[KokoroTTS]   stop: ${ms()}ms');
 
       final wavFile = await _diskCacheFile(_lang, _gender, _speed, text);
 
       if (_synthCompleter != null) {
-        debugPrint('[KokoroTTS]   waiting for prewarm synth…');
+        debugLog('[KokoroTTS]   waiting for prewarm synth…');
         await _synthCompleter!.future;
-        debugPrint('[KokoroTTS]   prewarm done: ${ms()}ms');
+        debugLog('[KokoroTTS]   prewarm done: ${ms()}ms');
       }
 
       if (!await wavFile.exists()) {
@@ -537,12 +539,13 @@ class KokoroTtsService {
 
         if (_synthCache.containsKey(cacheKey)) {
           audio = _synthCache[cacheKey]!;
-          debugPrint('[KokoroTTS] mem cache: "$text"');
+          debugLog('[KokoroTTS] mem cache: "$text"');
         } else {
-          debugPrint(
+          debugLog(
               '[KokoroTTS] speak: "$text"  lang=$_lang/$_gender speed=$_speed');
-          final ipa = _correctIpa(await _phonemizer.phonemize(text, _lang), _lang);
-          debugPrint(
+          final ipa =
+              _correctIpa(await _phonemizer.phonemize(text, _lang), _lang);
+          debugLog(
               '[KokoroTTS] IPA: "$ipa"  (${DateTime.now().difference(t0).inMilliseconds}ms)');
           if (id != _utteranceId) return false;
 
@@ -554,7 +557,7 @@ class KokoroTtsService {
             _synthCompleter = null;
             completer.complete();
           }
-          debugPrint(
+          debugLog(
               '[KokoroTTS] synth done: ${audio.length} samples  (${DateTime.now().difference(t0).inMilliseconds}ms total)');
           if (id != _utteranceId) return false;
           _cacheAudio(cacheKey, audio);
@@ -563,24 +566,24 @@ class KokoroTtsService {
         // Persist to disk so future speak() calls (even after restart) are instant.
         await _writeWav(wavFile, audio, sampleRate: _sampleRateHz);
       } else {
-        debugPrint('[KokoroTTS]   disk hit: ${ms()}ms');
+        debugLog('[KokoroTTS]   disk hit: ${ms()}ms');
       }
 
       if (id != _utteranceId) return false;
       await _acquireFocus();
-      debugPrint('[KokoroTTS]   setAudioSource start: ${ms()}ms');
+      debugLog('[KokoroTTS]   setAudioSource start: ${ms()}ms');
       await _player.setAudioSource(AudioSource.uri(Uri.file(wavFile.path)));
       // Synthesised at _speed already — undo any rate left by the asset path.
       await _player.setSpeed(1.0);
-      debugPrint('[KokoroTTS]   setAudioSource done: ${ms()}ms');
+      debugLog('[KokoroTTS]   setAudioSource done: ${ms()}ms');
       await _player.seek(Duration.zero);
       // Fire-and-forget — see the bundled path above for why play() must not
       // be awaited here (it resolves on completion, breaking the listener).
       unawaited(_player.play());
-      debugPrint('[KokoroTTS]   play() called: ${ms()}ms');
+      debugLog('[KokoroTTS]   play() called: ${ms()}ms');
       return true;
     } catch (e) {
-      debugPrint('[KokoroTTS] speak error: $e');
+      debugLog('[KokoroTTS] speak error: $e');
       return false;
     }
   }
@@ -602,7 +605,8 @@ class KokoroTtsService {
         if (await wavFile.exists()) continue; // speak() already wrote the file
       }
       try {
-        final ipa = _correctIpa(await _phonemizer.phonemize(phrase, _lang), _lang);
+        final ipa =
+            _correctIpa(await _phonemizer.phonemize(phrase, _lang), _lang);
         if (_synthCompleter != null) {
           continue; // speak() started after phonemize
         }
@@ -619,9 +623,9 @@ class KokoroTtsService {
             '$_lang:$_gender:${_speed.toStringAsFixed(2)}:$phrase', audio);
         await _writeWav(wavFile, audio, sampleRate: _sampleRateHz);
         _prewarmedPaths.add(wavFile.path);
-        debugPrint('[KokoroTTS] prewarm saved: "$phrase"');
+        debugLog('[KokoroTTS] prewarm saved: "$phrase"');
       } catch (e) {
-        debugPrint('[KokoroTTS] prewarm failed for "$phrase": $e');
+        debugLog('[KokoroTTS] prewarm failed for "$phrase": $e');
       }
     }
   }
@@ -648,15 +652,15 @@ class KokoroTtsService {
         final wavFile =
             await _diskCacheFile(languageCode, gender, speed, phrase);
         if (await wavFile.exists()) continue;
-        final ipa =
-            _correctIpa(await phonemizer.phonemize(phrase, languageCode), languageCode);
+        final ipa = _correctIpa(
+            await phonemizer.phonemize(phrase, languageCode), languageCode);
         final audio = await engine.synthesize(ipa, voiceData, speed: speed);
         await _writeWav(wavFile, audio, sampleRate: 24000);
-        debugPrint(
+        debugLog(
             '[KokoroTTS] warmUpLanguage: saved "$phrase" ($languageCode/$gender)');
       }
     } catch (e) {
-      debugPrint('[KokoroTTS] warmUpLanguage failed: $e');
+      debugLog('[KokoroTTS] warmUpLanguage failed: $e');
     }
   }
 
@@ -677,11 +681,11 @@ class KokoroTtsService {
             await phonemizer.phonemize(phrase, languageCode), languageCode);
         final audio = await engine.synthesize(ipa, speed: speed);
         await _writeWav(wavFile, audio, sampleRate: kPiperSampleRate);
-        debugPrint(
+        debugLog(
             '[KokoroTTS] warmUpLanguage (Piper): saved "$phrase" ($languageCode)');
       }
     } catch (e) {
-      debugPrint('[KokoroTTS] warmUpLanguage (Piper) failed: $e');
+      debugLog('[KokoroTTS] warmUpLanguage (Piper) failed: $e');
     }
   }
 
@@ -920,7 +924,8 @@ class KokoroTtsService {
           // The persistent directory may still hold street-name clips written
           // by an older build; only the fixed phrases belong there, and those
           // are cheap to regenerate, so clearing both is the safe reading.
-          if (name == _persistentCacheDir && _prewarmedPaths.contains(entity.path)) {
+          if (name == _persistentCacheDir &&
+              _prewarmedPaths.contains(entity.path)) {
             continue;
           }
           await entity.delete();

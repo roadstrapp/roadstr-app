@@ -17,6 +17,7 @@ internal class NativeMapPointOverlayView(context: Context) : View(context) {
     private val density = resources.displayMetrics.density
     private var map: MapLibreMap? = null
     private var snapshot = NativeMapPointOverlaySnapshot.Empty
+    private var mapCoordinates: Map<String, LatLng> = emptyMap()
     private val outerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val innerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = MAP_OVERLAY_DARK_ARGB.toInt()
@@ -50,6 +51,9 @@ internal class NativeMapPointOverlayView(context: Context) : View(context) {
 
     fun update(snapshot: NativeMapPointOverlaySnapshot) {
         this.snapshot = snapshot
+        mapCoordinates = snapshot.markers.associate { marker ->
+            marker.id to LatLng(marker.point.latitude, marker.point.longitude)
+        }
         invalidate()
     }
 
@@ -84,14 +88,11 @@ internal class NativeMapPointOverlayView(context: Context) : View(context) {
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         val liveMap = map ?: return
-        val markers = NativeMapPointOverlayPolicy.visibleAtZoom(
-            snapshot = snapshot,
-            zoom = liveMap.cameraPosition.zoom,
-        )
-        markers.forEach { marker ->
-            val screen = liveMap.projection.toScreenLocation(
-                LatLng(marker.point.latitude, marker.point.longitude),
-            )
+        val zoom = liveMap.cameraPosition.zoom
+        snapshot.markers.forEach { marker ->
+            if (zoom < marker.kind.minimumZoom) return@forEach
+            val coordinate = mapCoordinates[marker.id] ?: return@forEach
+            val screen = liveMap.projection.toScreenLocation(coordinate)
             val radius = marker.kind.sizeDp.toFloat() * density / 2f
             if (screen.x < -radius || screen.x > width + radius ||
                 screen.y < -radius || screen.y > height + radius

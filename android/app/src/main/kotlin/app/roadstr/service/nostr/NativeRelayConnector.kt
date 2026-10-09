@@ -1,5 +1,6 @@
 package app.roadstr.service.nostr
 
+import app.roadstr.core.protocol.nostr.NostrRelayMessageDecoder
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -48,7 +49,18 @@ class OkHttpRelayConnector(
             object : WebSocketListener() {
                 override fun onOpen(webSocket: WebSocket, response: Response) = events.onOpen()
 
-                override fun onMessage(webSocket: WebSocket, text: String) = events.onMessage(text)
+                override fun onMessage(webSocket: WebSocket, text: String) {
+                    if (text.length > NostrRelayMessageDecoder.MAX_FRAME_UTF16_CODE_UNITS) {
+                        // Reject at the transport boundary: keeping a hostile
+                        // socket open would let it allocate and deliver
+                        // oversized frames forever even though the decoder
+                        // correctly ignores each one.
+                        webSocket.cancel()
+                        end()
+                        return
+                    }
+                    events.onMessage(text)
+                }
 
                 override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
                     webSocket.close(1000, null)

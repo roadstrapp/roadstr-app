@@ -65,6 +65,8 @@ import app.roadstr.core.protocol.nostr.NostrNip19
 import app.roadstr.service.hazards.NativeOsmHazard
 import app.roadstr.service.hazards.NativeOsmHazardKind
 import app.roadstr.service.hazards.NativeOsmHazardService
+import app.roadstr.service.hazards.NativeOsmSpeedCamera
+import app.roadstr.service.hazards.NativeOsmSpeedCameraService
 import app.roadstr.core.ui.theme.RoadstrTheme
 import app.roadstr.core.ui.theme.RoadstrThemeId
 import app.roadstr.core.ui.theme.RoadstrThemeTokens
@@ -192,6 +194,13 @@ private fun hazardMarker(hazard: NativeOsmHazard): NativeMapPointOverlayMarker =
         },
     )
 
+private fun speedCameraMarker(camera: NativeOsmSpeedCamera): NativeMapPointOverlayMarker =
+    NativeMapPointOverlayMarker(
+        id = "osm-camera-${camera.id}",
+        point = NativeMapPoint(camera.latitude, camera.longitude),
+        kind = NativeMapPointOverlayKind.OsmSpeedCamera,
+    )
+
 private fun effectiveThemeId(
     selected: RoadstrThemeId,
     autoDarkEnabled: Boolean,
@@ -283,6 +292,7 @@ fun NativeRoadstrShell(
     /** Stores the routing API key protected; an empty value removes it. False if it could not be stored. */
     onRoutingKeyChanged: (String) -> Boolean = { false },
     hazardService: NativeOsmHazardService? = null,
+    speedCameraService: NativeOsmSpeedCameraService? = null,
     nostr: NativeShellNostr? = null,
     /**
      * Owner of the trip sessions. When the host passes one, a trip is moved along, spoken and rerouted
@@ -303,12 +313,13 @@ fun NativeRoadstrShell(
         systemDark = isSystemInDarkTheme(),
     )
     val baseContext = LocalContext.current
-    val localizedContext = remember(baseContext, settingsState.values.languageCode) {
+    val baseConfiguration = LocalConfiguration.current
+    val localizedContext = remember(baseContext, baseConfiguration, settingsState.values.languageCode) {
         val language = settingsState.values.languageCode
         if (language == null) {
             baseContext
         } else {
-            val localizedConfiguration = Configuration(baseContext.resources.configuration).apply {
+            val localizedConfiguration = Configuration(baseConfiguration).apply {
                 setLocale(Locale.forLanguageTag(language))
             }
             baseContext.createConfigurationContext(localizedConfiguration)
@@ -323,9 +334,7 @@ fun NativeRoadstrShell(
         val context = LocalContext.current
         val configuration = LocalConfiguration.current
         val density = LocalDensity.current
-        val screenHeightPixels = with(density) {
-            configuration.screenHeightDp.dp.toPx().toDouble()
-        }
+        val screenHeightPixels = LocalWindowInfo.current.containerSize.height.toDouble()
         val routePanelBottomInsetPixels = with(density) { 390.dp.roundToPx() }
             .coerceAtMost((screenHeightPixels * 0.55).toInt())
         // The route sheet changes height (stops, alternatives, avoidance), so
@@ -398,6 +407,7 @@ fun NativeRoadstrShell(
         var favorites by remember(initialFavorites) { mutableStateOf(initialFavorites) }
         var trafficLights by remember { mutableStateOf<List<NativeOsmHazard>>(emptyList()) }
         var crossingHazards by remember { mutableStateOf<List<NativeOsmHazard>>(emptyList()) }
+        var speedCameras by remember { mutableStateOf<List<NativeOsmSpeedCamera>>(emptyList()) }
         val latestFix by rememberUpdatedState(gpsSnapshot.fix)
         // The service decides whether a refetch is due (moved far enough, or
         // data too old), so this only has to ask now and then. A plain effect
@@ -427,6 +437,24 @@ fun NativeRoadstrShell(
             while (true) {
                 latestFix?.let { fix ->
                     crossingHazards = service.crossingsAndBumps(
+                        GeoPoint(fix.point.latitude, fix.point.longitude),
+                    )
+                }
+                delay(HAZARD_POLL_MILLIS)
+            }
+        }
+        // Speed cameras are the OSM baseline already present in the Flutter
+        // line. They are independent of the denser crossing overlays and are
+        // therefore fetched with their own bounded cache.
+        LaunchedEffect(speedCameraService) {
+            val service = speedCameraService
+            if (service == null) {
+                speedCameras = emptyList()
+                return@LaunchedEffect
+            }
+            while (true) {
+                latestFix?.let { fix ->
+                    speedCameras = service.update(
                         GeoPoint(fix.point.latitude, fix.point.longitude),
                     )
                 }
@@ -877,13 +905,14 @@ fun NativeRoadstrShell(
         // One composition of everything drawn as a point: parking, OSM hazards
         // and community road reports replace each other in a single overlay.
         val roadMarkers = nostrHost?.markers.orEmpty()
-        LaunchedEffect(parkingPosition, trafficLights, crossingHazards, roadMarkers, discovery) {
+        LaunchedEffect(parkingPosition, trafficLights, crossingHazards, speedCameras, roadMarkers, discovery) {
             pointOverlaySession.replace(
                 revision = pointOverlayState.revision + 1L,
                 markers = buildList {
                     parkingPosition?.let { add(NativeSavedPlacesProtocol.parkingMarker(it)) }
                     trafficLights.forEach { add(hazardMarker(it)) }
                     crossingHazards.forEach { add(hazardMarker(it)) }
+                    speedCameras.forEach { add(speedCameraMarker(it)) }
                     addAll(roadMarkers)
                     addAll(DiscoveryPresentation.pins(discovery.places))
                 },
@@ -1386,6 +1415,8 @@ fun NativeRoadstrShell(
                     )
                 ) {
                     if (routePlanningSession.beginNavigation(revision)) {
+                        voiceGateway?.setMuted(!settingsState.values.voiceEnabled)
+                        if (settingsState.values.voiceEnabled) voiceGateway?.announceStart()
                         discovery = NativeDiscoverySnapshot.Empty
                         tripDestination = destination
                         val target = NativeMapPoint(destination.latitude, destination.longitude)
@@ -1401,8 +1432,6 @@ fun NativeRoadstrShell(
                                 ),
                             ),
                         )
-                        voiceGateway?.setMuted(!settingsState.values.voiceEnabled)
-                        if (settingsState.values.voiceEnabled) voiceGateway?.announceStart()
                         cameraSession.configure(
                             headingUp = true,
                             navigating = true,
@@ -2158,6 +2187,10 @@ fun NativeRoadstrShell(
                         onSaveParking = {
                             saveParking(point)
                             contextMenuPoint = null
+                        },
+                        onReportEvent = {
+                            contextMenuPoint = null
+                            nostrHost?.openReport(point)
                         },
                         onWhatsHere = {
                             contextMenuPoint = null

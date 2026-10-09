@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
 import 'package:flutter_onnxruntime/flutter_onnxruntime.dart';
+import '../../utils/debug_log.dart';
 import 'kokoro_model_manager.dart';
 
 /// Kokoro-82M ONNX inference engine.
@@ -59,7 +60,7 @@ class KokoroEngine {
         providers: [OrtProvider.XNNPACK, OrtProvider.CPU],
       ),
     );
-    debugPrint('[KokoroEngine] loaded  inputs=${_session!.inputNames}');
+    debugLog('[KokoroEngine] loaded  inputs=${_session!.inputNames}');
   }
 
   /// Map each character of [ipa] to its vocab ID, skipping unknown characters.
@@ -116,7 +117,7 @@ class KokoroEngine {
     if (!speed.isFinite || speed < 0.5 || speed > 2.0) {
       throw ArgumentError.value(speed, 'speed', 'must be between 0.5 and 2.0');
     }
-    debugPrint('[KokoroEngine] IPA: "$ipa"  tokens(${tokens.length}): $tokens');
+    debugLog('[KokoroEngine] IPA: "$ipa"  tokens(${tokens.length}): $tokens');
 
     // Wrap with BOS/EOS token (ID 0) as expected by the Kokoro model.
     final seqTokens = Int64List(tokens.length + 2);
@@ -149,7 +150,7 @@ class KokoroEngine {
       // First output is the audio waveform.
       final audioValue = outputs.values.first;
       final audioFlat = await audioValue.asFlattenedList();
-      debugPrint(
+      debugLog(
           '[KokoroEngine] audio samples: ${audioFlat.length}  (${audioFlat.length / 24000.0}s @ 24kHz)');
 
       return Float32List.fromList(

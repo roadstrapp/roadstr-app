@@ -96,6 +96,12 @@ android {
                     "../../native-android/app/src/system/kotlin",
                 ),
             )
+            // The Kotlin launcher reads Roadstr's icon, cursor skins, bundled
+            // phrases and eSpeak data directly through AssetManager. Flutter
+            // also packages these below flutter_assets/, but that private
+            // prefix is not where the native runtime looks (and AAPT must
+            // expand the eSpeak .gz entry to the .tar name it opens).
+            assets.directories.add("../../assets")
         }
     }
 
@@ -108,6 +114,15 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    // The app changes language at runtime. Keep every locale in app bundles;
+    // otherwise a language selected in Settings may have been split out by
+    // the store and silently fall back to English.
+    bundle {
+        language {
+            enableSplit = false
+        }
     }
 
     // ── Signing ───────────────────────────────────────────────────────────────

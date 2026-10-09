@@ -5,10 +5,12 @@
 // is active so that the OS does not kill the location listener when the app is
 // in the background during active navigation.
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+
+import '../utils/debug_log.dart';
 
 /// A snapshot of the device's GPS state at a given instant.
 class GpsData {
@@ -293,7 +295,7 @@ class GpsService {
   }
 
   void _onError(Object error) {
-    debugPrint('[GPS] error: $error');
+    debugLog('[GPS] error: $error');
   }
 
   /// Solicits a fresh one-shot fix from the GPS hardware and emits it on
@@ -316,7 +318,7 @@ class GpsService {
       );
       _onPosition(pos);
     } catch (e) {
-      debugPrint('[GPS] refresh failed: $e');
+      debugLog('[GPS] refresh failed: $e');
     }
   }
 

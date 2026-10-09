@@ -53,19 +53,41 @@ class RoutingEndpointPolicy {
     '10.0.2.2',
   };
 
-  /// Mirrors the shipped GraphHopper validator exactly: URLs need a host, and
-  /// explicit `http` is admitted only for the loopback names carved out by
-  /// Android's network security configuration. Other schemes and user-info are
-  /// currently left to the HTTP client and are fixture-locked for compatibility
-  /// until a separately approved tightening changes that behavior.
+  /// Accepts only absolute HTTP(S) URLs without embedded credentials or
+  /// fragments. Explicit `http` is admitted only for the loopback names carved
+  /// out by Android's network security configuration.
   static RoutingEndpointDecision graphHopperDecision(String server) {
-    final uri = Uri.tryParse(server);
-    if (uri == null || uri.host.isEmpty) {
+    try {
+      final uri = Uri.parse(server);
+      final scheme = uri.scheme.toLowerCase();
+      final host = uri.host.toLowerCase();
+      final schemeDelimiter = server.indexOf('://');
+      var hasRawUserInfo = false;
+      if (schemeDelimiter >= 0) {
+        final authorityStart = schemeDelimiter + 3;
+        var authorityEnd = server.length;
+        for (final separator in const ['/', '?', '#']) {
+          final index = server.indexOf(separator, authorityStart);
+          if (index >= authorityStart && index < authorityEnd) {
+            authorityEnd = index;
+          }
+        }
+        hasRawUserInfo =
+            server.substring(authorityStart, authorityEnd).contains('@');
+      }
+      if (host.isEmpty ||
+          (scheme != 'http' && scheme != 'https') ||
+          hasRawUserInfo ||
+          uri.hasFragment ||
+          (uri.hasPort && (uri.port < 1 || uri.port > 65535))) {
+        return RoutingEndpointDecision.invalid;
+      }
+      if (scheme == 'http' && !cleartextAllowedHosts.contains(host)) {
+        return RoutingEndpointDecision.cleartextRejected;
+      }
+      return RoutingEndpointDecision.accepted;
+    } on FormatException {
       return RoutingEndpointDecision.invalid;
     }
-    if (uri.scheme == 'http' && !cleartextAllowedHosts.contains(uri.host)) {
-      return RoutingEndpointDecision.cleartextRejected;
-    }
-    return RoutingEndpointDecision.accepted;
   }
 }

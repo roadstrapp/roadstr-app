@@ -3,7 +3,6 @@ package app.roadstr.roadtest
 import android.content.ContentResolver
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import app.roadstr.core.protocol.nostr.BoundedJsonParser
 import app.roadstr.core.protocol.nostr.NostrEventDraft
 import app.roadstr.core.protocol.nostr.NostrJson
@@ -42,6 +41,7 @@ internal class NativeRoadTestAmberBridge(
     private val resolver: () -> ContentResolver,
     private val launch: (Intent) -> Unit,
     private val signerPackage: () -> String?,
+    private val diagnostics: (String) -> Unit = {},
 ) {
     /** The signer's reply, or null if it was declined, closed, missing or too slow. */
     suspend fun request(
@@ -52,7 +52,7 @@ internal class NativeRoadTestAmberBridge(
         peerPubkey: String? = null,
     ): NativeAmberReply? = gate.withLock {
         silentReply(type, payload, currentUser, peerPubkey)?.let {
-            Log.d(TAG, "$type answered silently")
+            diagnostics("$type answered silently")
             return@withLock it
         }
         val reply = CompletableDeferred<NativeAmberReply?>()
@@ -66,11 +66,11 @@ internal class NativeRoadTestAmberBridge(
         try {
             val launched = runCatching { withContext(Dispatchers.Main) { launch(intent) } }.isSuccess
             if (!launched) {
-                Log.d(TAG, "$type: the signer app could not be opened")
+                diagnostics("$type: the signer app could not be opened")
                 return@withLock null
             }
             withTimeoutOrNull(REPLY_TIMEOUT_MILLIS) { reply.await() }.also {
-                Log.d(TAG, "$type: ${if (it == null) "declined, closed or timed out" else "answered by the signer UI"}")
+                diagnostics("$type: ${if (it == null) "declined, closed or timed out" else "answered by the signer UI"}")
             }
         } finally {
             if (pending === reply) pending = null
@@ -117,7 +117,6 @@ internal class NativeRoadTestAmberBridge(
     }
 
     private companion object {
-        const val TAG = "RoadstrAmber"
         const val REPLY_TIMEOUT_MILLIS = 120_000L
         const val DEFAULT_SIGNER_PACKAGE = "com.greenart7c3.nostrsigner"
         val gate = Mutex()

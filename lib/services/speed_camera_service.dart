@@ -1,6 +1,7 @@
 import 'dart:math' as math;
-import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
+
+import '../utils/debug_log.dart';
 import 'overpass_client.dart';
 import 'refetch_policy.dart';
 
@@ -8,6 +9,7 @@ import 'refetch_policy.dart';
 class OsmSpeedCamera {
   final int id;
   final LatLng position;
+
   /// OSM's optional maxspeed tag, normalized to km/h.  Null means that the
   /// camera is known but its limit is not mapped.
   final int? speedLimitKmh;
@@ -65,16 +67,16 @@ class SpeedCameraService {
       _lastSuccessAt = DateTime.now();
       _nextRetryAt = null;
       _overpass.noteSuccess();
-      debugPrint('[SpeedCamera] Overpass → ${_cached.length} cameras nearby');
+      debugLog('[SpeedCamera] Overpass → ${_cached.length} cameras nearby');
     } catch (e) {
-      debugPrint('[SpeedCamera] Overpass error: $e');
+      debugLog('[SpeedCamera] Overpass error: $e');
       // Growing back-off: see [OverpassClient.failureBackoff]. Three services
       // poll these mirrors during a drive; none of them may keep a fixed rate
       // against a mirror that is failing.
       _overpass.rotate();
       _overpass.noteFailure(e);
-      _nextRetryAt = DateTime.now().add(_overpass
-          .failureBackoff(base: const Duration(milliseconds: _retryMs)));
+      _nextRetryAt = DateTime.now().add(_overpass.failureBackoff(
+          base: const Duration(milliseconds: _retryMs)));
     } finally {
       _fetching = false;
     }
@@ -186,7 +188,8 @@ class SpeedCameraService {
   static double _distanceToPolyline(LatLng p, List<LatLng> polyline) {
     var best = double.infinity;
     for (var i = 0; i < polyline.length - 1; i++) {
-      best = math.min(best, _distanceToSegment(p, polyline[i], polyline[i + 1]));
+      best =
+          math.min(best, _distanceToSegment(p, polyline[i], polyline[i + 1]));
     }
     return best;
   }

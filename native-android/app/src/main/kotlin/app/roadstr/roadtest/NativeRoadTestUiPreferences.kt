@@ -49,8 +49,8 @@ class NativeRoadTestUiPreferences(
             preferences.getString("map_engine", null),
         ),
         showAltitude = preferences.getBoolean("show_altitude", false),
-        showCrosswalks = preferences.getBoolean("show_crosswalks", true),
-        showTrafficLights = preferences.getBoolean("show_traffic_lights", true),
+        showCrosswalks = preferences.getBoolean("show_crosswalks", false),
+        showTrafficLights = preferences.getBoolean("show_traffic_lights", false),
         favoritesSyncAutoEnabled = preferences.getBoolean("favorites_sync_auto", false),
         imperialUnits = preferences.getBoolean("imperial", false),
         speedometerStyle = NativeSpeedometerStyle.fromStorage(
