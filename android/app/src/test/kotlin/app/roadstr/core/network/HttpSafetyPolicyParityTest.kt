@@ -21,7 +21,7 @@ class HttpSafetyPolicyParityTest {
 
     @Test
     fun `native HTTP safety policy reproduces every Dart case`() {
-        assertEquals(51, rows.size)
+        assertEquals(54, rows.size)
         for (fields in rows) {
             val actual = when (fields[0]) {
                 "timeout" -> NetworkTimeoutBudget.entries

@@ -106,14 +106,16 @@ fun NativeParkingPanel(
 }
 
 /**
- * What a long press on the map offers: park here, or find out what is there.
- * The second one opens the same place sheet a tap does, with the address, the
- * opening hours, a short Wikipedia description and "navigate here".
+ * What a long press on the map offers: park here, report a road event, or find
+ * out what is there. The last one opens the same place sheet a tap does, with
+ * the address, the opening hours, a short Wikipedia description and
+ * "navigate here".
  */
 @Composable
 fun NativeMapContextMenu(
     point: NativeMapPoint,
     onSaveParking: () -> Unit,
+    onReportEvent: () -> Unit,
     onWhatsHere: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
@@ -137,6 +139,12 @@ fun NativeMapContextMenu(
             modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 48.dp),
             shape = RoundedCornerShape(12.dp),
         ) { Text(stringResource(R.string.native_parking_save_here)) }
+        Spacer(modifier = Modifier.height(10.dp))
+        OutlinedButton(
+            onClick = onReportEvent,
+            modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 48.dp),
+            shape = RoundedCornerShape(12.dp),
+        ) { Text(stringResource(R.string.native_road_event_report_title)) }
         Spacer(modifier = Modifier.height(10.dp))
         OutlinedButton(
             onClick = onWhatsHere,

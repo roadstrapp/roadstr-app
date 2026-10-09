@@ -32,6 +32,7 @@ void main() {
   ).readAsStringSync();
   final nativeBuild =
       File('native-android/app/build.gradle.kts').readAsStringSync();
+  final appBuild = File('android/app/build.gradle.kts').readAsStringSync();
 
   test('native voice catalogue matches every reusable Flutter asset', () {
     final nativePaths = RegExp(r'relativePath = "([^"]+)"')
@@ -80,6 +81,8 @@ void main() {
     expect(guidance, contains('MANEUVER_DEDUP_MILLIS = 12_000L'));
     expect(guidance, contains('AMBIENT_DEDUP_MILLIS = 8_000L'));
     expect(guidance, contains('MAX_PENDING = 2'));
+    expect(guidance, contains('fun submitDeparture('));
+    expect(runtime, contains('guidance.submitDeparture('));
   });
 
   test('road-test runtime owns native inference playback and focus', () {
@@ -107,6 +110,7 @@ void main() {
     expect(nativeBuild, contains('onnxruntime-android:1.23.0'));
     expect(nativeBuild, contains('jniLibs.directories.add'));
     expect(nativeBuild, contains('assets.directories.add'));
+    expect(appBuild, contains('assets.directories.add("../../assets")'));
     expect(nativeBridge, contains('dlopen("libespeak-ng.so"'));
     expect(nativeBridge, contains('kMaxIterations = 2048'));
     expect(nativeBridge, contains('kMaxOutputBytes = 16000'));

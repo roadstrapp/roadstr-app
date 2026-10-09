@@ -115,12 +115,7 @@ class NativeNavigationForegroundService : Service() {
             // before onDestroy (stop then immediate restart), and a disposed
             // coordinator would refuse it. onDestroy owns disposal.
             locationService?.stop()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                stopForeground(STOP_FOREGROUND_REMOVE)
-            } else {
-                @Suppress("DEPRECATION")
-                stopForeground(true)
-            }
+            stopForeground(STOP_FOREGROUND_REMOVE)
             foregroundStarted = false
             stopSelf()
         }

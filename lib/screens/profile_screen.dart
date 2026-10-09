@@ -249,7 +249,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // read that way — so publishing it again on every single login would
       // just tie this pubkey to "uses Roadstr" for no benefit.
       final wasPublic = Hive.box('settings')
-          .get(ProfileVisibilityService.storageKey, defaultValue: false) as bool;
+              .get(ProfileVisibilityService.storageKey, defaultValue: false)
+          as bool;
       if (wasPublic) {
         unawaited(ProfileVisibilityService.publish(isPublic: wasPublic));
       }
@@ -264,7 +265,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _startAmberFlow() {
     final l = AppLocalizations.of(context);
     final c = RoadstrColors.of(context);
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: c.surface2,
@@ -306,7 +307,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // ── nsec ──────────────────────────────────────────────────────────────────
 
   void _startNsecFlow() {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (_) => _WarningDialog(
         colors: RoadstrColors.of(context),
@@ -320,7 +321,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final l = AppLocalizations.of(context);
     final c = RoadstrColors.of(context);
     final ctrl = TextEditingController();
-    showDialog(
+    unawaited(showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: c.surface2,
@@ -368,7 +369,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-    );
+    ).whenComplete(ctrl.dispose));
   }
 
   Future<void> _loginWithNsec(String nsec) async {
@@ -389,7 +390,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // See the Amber login above: only publish a prior explicit public
       // choice, never the unchanged pseudonymous default.
       final wasPublic = Hive.box('settings')
-          .get(ProfileVisibilityService.storageKey, defaultValue: false) as bool;
+              .get(ProfileVisibilityService.storageKey, defaultValue: false)
+          as bool;
       if (wasPublic) {
         unawaited(ProfileVisibilityService.publish(isPublic: wasPublic));
       }

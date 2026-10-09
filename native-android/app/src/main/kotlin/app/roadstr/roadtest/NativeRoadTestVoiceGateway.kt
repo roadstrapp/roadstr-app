@@ -151,7 +151,15 @@ class NativeRoadTestVoiceGateway(context: Context) : NativeVoiceGateway {
         }
     }
 
-    override fun announceStart() = submitPriority(fixedPhrase(start = true))
+    override fun announceStart() {
+        if (muted) return
+        handle(
+            guidance.submitDeparture(
+                text = fixedPhrase(start = true),
+                nowMillis = android.os.SystemClock.elapsedRealtime(),
+            ),
+        )
+    }
 
     override fun announceManeuver(instruction: String, distanceMeters: Int, nowMillis: Long, imperial: Boolean) {
         if (muted) return

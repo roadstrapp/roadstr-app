@@ -37,8 +37,8 @@ This is a rewrite, and the project keeps a written account of what was and was n
 - Code and automated tests exist, but a phone check is still open: public transport, GraphHopper and OpenRouteService with a key,
   Nostr Wallet Connect and zaps, publishing road reports (and corrections and the offline queue), the old raster map engine,
   and logging in with a real bunker.
-- Not in 0.6.0 yet, though 0.5.x has it: the speed cameras taken from OpenStreetMap data and the ZTL warnings (road events
-  reported by people are there).
+- The OpenStreetMap speed cameras are now in the Kotlin app too; the ZTL warnings remain a 0.5.x-only feature for now
+  (road events reported by people are there).
 - Known limits: a trip is held in memory, so if Android kills the process the trip is not restored; translations have not been
   reviewed by native speakers (Irish and Maltese are the least reliable).
 
@@ -61,7 +61,8 @@ The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rew
 | Speed-adaptive zoom | ✅ |
 | Live speed-limit display (explicit OSM `maxspeed` data; unknown stays unknown) | ✅ |
 | Speed cameras reported by the community (kind 1315) | ✅ |
-| Speed cameras from OpenStreetMap data, and ZTL (limited-traffic zone) warnings | 0.5.x only for now — not in the Kotlin app yet |
+| Speed cameras from OpenStreetMap data | ✅ Kotlin app (bounded Overpass cache; baseline, not a community report) |
+| ZTL (limited-traffic zone) warnings | 0.5.x only for now — not in the Kotlin app yet |
 | Road-element overlays — traffic lights, pedestrian crossings, speed bumps (OSM) | ✅ |
 | On-device AI voice guidance (Kokoro-82M; Piper / Thorsten-Voice for German) | ✅ |
 | Nostr road events — kind 1315 (reports) / 1316 (confirmations) | ✅ |
@@ -101,7 +102,7 @@ throughout.
 
 ### Also planned
 
-- The OpenStreetMap speed cameras and the ZTL warnings of 0.5.x, brought over to the Kotlin app
+- The ZTL warnings of 0.5.x, brought over to the Kotlin app
 - Wider public-transport coverage, by getting more operators' timetables into the open data ecosystem the routing already reads
 - Logging in with a bunker offered as a `nostrconnect://` link (the form Amber offers to other apps), next to the `bunker://` link
 - A persistent relay connection for the remote signer, instead of one connection per request

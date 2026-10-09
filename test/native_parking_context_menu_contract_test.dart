@@ -23,7 +23,7 @@ void main() {
     expect(parking, contains('native_saved_parking_remove'));
   });
 
-  test('a long press asks what to do instead of silently parking', () {
+  test('a long press offers parking, a road event report, or place details', () {
     final longPress = RegExp(
       r'is NativeMapInteraction\.MapLongPress -> \{(.*?)\n\s*\}',
       dotAll: true,
@@ -33,6 +33,9 @@ void main() {
     expect(longPress, isNot(contains('onParkingChanged')));
     expect(parking, contains('fun NativeMapContextMenu'));
     expect(parking, contains('native_map_whats_here'));
+    expect(parking, contains('native_road_event_report_title'));
+    expect(shell, contains('onReportEvent'));
+    expect(shell, contains('nostrHost?.openReport(point)'));
     expect(shell, contains('onWhatsHere'));
   });
 

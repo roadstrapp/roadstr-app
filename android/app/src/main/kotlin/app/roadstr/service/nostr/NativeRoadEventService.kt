@@ -65,6 +65,7 @@ class NativeRoadEventService(
     private val random: Random = SecureRandom(),
     private val newSubscriptionId: () -> String = NativeNostrWire::randomSubscriptionId,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+    private val maxIngressEventsPerSubscription: Int = MAX_INGRESS_EVENTS_PER_SUBSCRIPTION,
 ) {
     private val lock = Any()
     private val cache = LinkedHashMap<String, NativeRoadEvent>()
@@ -91,6 +92,10 @@ class NativeRoadEventService(
     private var cleanupTask: NativeScheduledTask? = null
     private var handshakeTask: NativeScheduledTask? = null
     private var flushing = false
+
+    init {
+        require(maxIngressEventsPerSubscription > 0) { "Ingress event budget must be positive" }
+    }
 
     /** Non-expired reports currently known, refreshed on every change. */
     val events: StateFlow<List<NativeRoadEvent>> = _events.asStateFlow()
@@ -286,11 +291,13 @@ class NativeRoadEventService(
                     1315 to NostrIngressRoute.ROAD_EVENT,
                     1317 to NostrIngressRoute.ROAD_UPDATE,
                 ),
+                maxEvents = maxIngressEventsPerSubscription,
             ),
             NostrIngressRule(
                 name = "confirmations",
                 subscriptionId = confSubId,
                 routes = mapOf(1316 to NostrIngressRoute.CONFIRMATION),
+                maxEvents = maxIngressEventsPerSubscription,
             ),
         ),
     ).also { ingress = it }
@@ -305,6 +312,14 @@ class NativeRoadEventService(
                     // one) flooding validly signed events for a subscription or
                     // kind we never asked for must not cost a signature check.
                     val decision = liveIngress().inspect(message.subscriptionId, message.event["kind"])
+                    if (decision.limitReached) {
+                        // A relay exhausting a subscription's CPU budget is
+                        // treated as unhealthy. Rotate instead of accepting an
+                        // unbounded signature-verification workload or leaving
+                        // this area permanently starved.
+                        handleEnded(attempt)
+                        return
+                    }
                     if (!decision.shouldVerify) return
                     if (!NativeNostrWire.verify(message.event)) return
                     when (decision.route) {
@@ -579,6 +594,7 @@ class NativeRoadEventService(
         private const val MAX_UPDATE_MARKS = 2_000
         private const val MAX_VOTES_PER_EVENT = 200
         private const val MAX_QUEUED_REPORTS = 200
+        private const val MAX_INGRESS_EVENTS_PER_SUBSCRIPTION = 4_096
         private const val PENDING_UPDATE_TTL_SECONDS = 15L * 60L
         private const val FAR_METERS = 100_000.0
         private const val CLEANUP_INTERVAL_MILLIS = 2L * 60L * 1000L

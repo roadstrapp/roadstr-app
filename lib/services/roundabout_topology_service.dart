@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../utils/debug_log.dart';
 import 'overpass_client.dart';
 
 /// Reads the real road topology of roundabouts from OpenStreetMap.
@@ -60,7 +61,7 @@ class RoundaboutTopologyService {
       if (elements == null) return List<int?>.filled(roundabouts.length, null);
       return parseArmCounts(elements, roundabouts);
     } catch (error) {
-      debugPrint('[Roundabout] topology lookup failed: $error');
+      debugLog('[Roundabout] topology lookup failed: $error');
       return List<int?>.filled(roundabouts.length, null);
     }
   }

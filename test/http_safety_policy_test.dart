@@ -39,7 +39,7 @@ void main() {
     );
   });
 
-  test('GraphHopper policy preserves the shipped cleartext decision', () {
+  test('GraphHopper policy accepts only safe HTTP endpoints', () {
     expect(
       RoutingEndpointPolicy.graphHopperDecision(
         'https://graphhopper.example.com/route',
@@ -62,7 +62,19 @@ void main() {
       RoutingEndpointPolicy.graphHopperDecision(
         'https://user@graphhopper.example.com/route',
       ),
-      RoutingEndpointDecision.accepted,
+      RoutingEndpointDecision.invalid,
+    );
+    expect(
+      RoutingEndpointPolicy.graphHopperDecision(
+        'ftp://graphhopper.example.com/route',
+      ),
+      RoutingEndpointDecision.invalid,
+    );
+    expect(
+      RoutingEndpointPolicy.graphHopperDecision(
+        '//graphhopper.example.com/route',
+      ),
+      RoutingEndpointDecision.invalid,
     );
   });
 }

@@ -1,5 +1,6 @@
 import 'package:latlong2/latlong.dart';
-import 'package:flutter/foundation.dart';
+
+import '../utils/debug_log.dart';
 import 'overpass_client.dart';
 import 'refetch_policy.dart';
 
@@ -58,13 +59,13 @@ class TrafficLightService {
       _lastSuccessAt = DateTime.now();
       _nextRetryAt = null;
       _overpass.noteSuccess();
-      debugPrint('[TrafficLight] Overpass → ${_cached.length} signals nearby');
+      debugLog('[TrafficLight] Overpass → ${_cached.length} signals nearby');
     } catch (e) {
-      debugPrint('[TrafficLight] Overpass error: $e');
+      debugLog('[TrafficLight] Overpass error: $e');
       _overpass.rotate();
       _overpass.noteFailure(e);
-      _nextRetryAt = DateTime.now().add(_overpass
-          .failureBackoff(base: const Duration(milliseconds: _retryMs)));
+      _nextRetryAt = DateTime.now().add(_overpass.failureBackoff(
+          base: const Duration(milliseconds: _retryMs)));
     } finally {
       _fetching = false;
     }

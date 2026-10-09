@@ -32,6 +32,7 @@ class NativeRoadEventServiceTest {
     private fun service(
         relays: List<String> = listOf("wss://a.example", "wss://b.example"),
         publisherRelays: List<String> = emptyList(),
+        maxIngressEventsPerSubscription: Int = 4_096,
     ): NativeRoadEventService = NativeRoadEventService(
         connector = connector,
         publisher = NativeRelayPublisher(connector, publisherRelays, timeoutMillis = 200),
@@ -42,6 +43,7 @@ class NativeRoadEventServiceTest {
         random = Random(1),
         newSubscriptionId = { "sub${subCounter++}" },
         scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
+        maxIngressEventsPerSubscription = maxIngressEventsPerSubscription,
     )
 
     private fun report(
@@ -102,6 +104,24 @@ class NativeRoadEventServiceTest {
         subject.eventFrame("sub0", TestKeys.sign(NostrEventDraft(TestKeys.PUBLIC_A, now, 1, emptyList(), "hi")))
 
         assertEquals(1, subject.events.value.size)
+    }
+
+    @Test
+    fun `a relay exhausting the ingress budget is closed and rotated`() {
+        val subject = service(maxIngressEventsPerSubscription = 2)
+        subject.connect()
+        connector.last.open()
+        subject.subscribeArea(latitude, longitude)
+
+        repeat(2) {
+            connector.last.receive(listOf("EVENT", "sub0", mapOf("kind" to 1)))
+        }
+        assertFalse(connector.last.closed)
+
+        connector.last.receive(listOf("EVENT", "sub0", mapOf("kind" to 1)))
+
+        assertTrue(connector.last.closed)
+        assertTrue(scheduler.pendingCount > 0)
     }
 
     @Test

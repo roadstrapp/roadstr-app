@@ -193,7 +193,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final ctrl = TextEditingController();
     final c = RoadstrColors.of(context);
     final l = AppLocalizations.of(context);
-    showDialog<void>(
+    unawaited(showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: c.surface2,
@@ -267,7 +267,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ],
       ),
-    );
+    ).whenComplete(ctrl.dispose));
   }
 
   Future<void> _acceptDisclaimerAndComplete() async {

@@ -1,6 +1,7 @@
 package app.roadstr.service.nostr
 
 import app.roadstr.core.protocol.nostr.CustomRelayPolicy
+import app.roadstr.core.protocol.nostr.NostrRelayMessageDecoder
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.io.EOFException
@@ -261,7 +262,9 @@ class NativeLanRelayConnector(
         const val DEFAULT_PORT = 80
         const val CONNECT_TIMEOUT_MILLIS = 4_000
         const val MAX_HEAD_BYTES = 8 * 1024
-        const val MAX_MESSAGE_BYTES = 1024 * 1024
+        // UTF-8 bytes are capped at the decoder's UTF-16 ceiling. This is
+        // intentionally at least as strict for non-ASCII relay payloads.
+        const val MAX_MESSAGE_BYTES = NostrRelayMessageDecoder.MAX_FRAME_UTF16_CODE_UNITS
         const val CRLF_CRLF = 0x0d0a0d0a
         const val OP_CONTINUATION = 0x0
         const val OP_TEXT = 0x1

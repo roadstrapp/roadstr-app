@@ -16,6 +16,7 @@ import 'package:latlong2/latlong.dart';
 import '../config/network_config.dart';
 import '../utils/fuzzy_match.dart';
 import '../utils/geo.dart';
+import '../utils/debug_log.dart';
 import '../utils/units.dart';
 import 'bounded_http.dart';
 import 'http_safety_policy.dart';
@@ -429,8 +430,7 @@ class RoutingService {
           res.body,
           fallbackOrigin: origin,
         );
-        debugPrint(
-            '[Routing] GH speedLimits: ${route.speedLimits.length} entries'
+        debugLog('[Routing] GH speedLimits: ${route.speedLimits.length} entries'
             ' (non-null: ${route.speedLimits.where((entry) => entry.speedKmh != null).length})');
         return route;
       }

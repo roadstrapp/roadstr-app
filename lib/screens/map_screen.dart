@@ -345,10 +345,10 @@ class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   /// Settings → "Road element overlays" toggles — same read-fresh-from-Hive
   /// reasoning as MapLibreMapScreen's equivalent getters.
   bool get _showTrafficLights =>
-      Hive.box('settings').get('showTrafficLights', defaultValue: true)
+      Hive.box('settings').get('showTrafficLights', defaultValue: false)
           as bool;
   bool get _showCrosswalks =>
-      Hive.box('settings').get('showCrosswalks', defaultValue: true) as bool;
+      Hive.box('settings').get('showCrosswalks', defaultValue: false) as bool;
 
   /// Read fresh for the same reason as [_showTrafficLights] — a route
   /// already being driven does not react to a setting flipped mid-journey,

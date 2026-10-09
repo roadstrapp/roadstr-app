@@ -2,6 +2,7 @@ package app.roadstr.roadtest
 
 import android.Manifest
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -31,6 +32,7 @@ import app.roadstr.feature.saved.NativeParkingPosition
 import app.roadstr.feature.history.NativeRouteHistoryProtocol
 import app.roadstr.feature.saved.NativeSavedPlacesProtocol
 import app.roadstr.service.hazards.NativeOsmHazardService
+import app.roadstr.service.hazards.NativeOsmSpeedCameraService
 import app.roadstr.service.network.NativeBoundedHttpClient
 import app.roadstr.service.nostr.ExecutorNativeScheduler
 import app.roadstr.service.nostr.NativeActivityService
@@ -78,7 +80,10 @@ open class NativeRoadTestActivity : ComponentActivity() {
         WebBrowserHostFactory.create(this, ::openExternal)
     }
     private val hazardService by lazy(LazyThreadSafetyMode.NONE) {
-        NativeOsmHazardService(httpClient, diagnostics = { Log.d("RoadstrHazards", it) })
+        NativeOsmHazardService(httpClient, diagnostics = { debugDiagnostic("RoadstrHazards", it) })
+    }
+    private val speedCameraService by lazy(LazyThreadSafetyMode.NONE) {
+        NativeOsmSpeedCameraService(httpClient, diagnostics = { debugDiagnostic("RoadstrCameras", it) })
     }
     private val voiceGateway: NativeRoadTestVoiceGateway get() = runtime.voice
     private val identityGateway by lazy(LazyThreadSafetyMode.NONE) {
@@ -115,6 +120,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
         resolver = { contentResolver },
         launch = { intent -> amberSignerLauncher.launch(intent) },
         signerPackage = { amberPreferences.getString("package", null)?.takeIf(SIGNER_PACKAGE::matches) },
+        diagnostics = { debugDiagnostic("RoadstrSigner", it) },
     )
     private val favoriteFiles = NativeRoadTestFavoriteFiles(this)
     private val scheduler = ExecutorNativeScheduler()
@@ -261,6 +267,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
             onNwcChanged = ::saveNwc,
             onRoutingKeyChanged = ::saveRoutingKey,
             hazardService = hazardService,
+            speedCameraService = speedCameraService,
             nostr = nostrBridge,
             navigationHost = runtime.host,
         )
@@ -306,7 +313,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
         )
         val syncStorage = NativeRoadTestSyncStorage(applicationContext, storeNames)
         val profiles = NativeRoadTestNostrProfileService()
-        val zaps = NativeZapService(connector, relays = relays) { Log.d("RoadstrZap", it) }
+        val zaps = NativeZapService(connector, relays = relays) { debugDiagnostic("RoadstrZap", it) }
         val userReports = NativeUserReportsService(connector, relays)
         val activityStore = NativeRoadTestActivityStore(applicationContext, storeNames)
         return NativeShellNostr(
@@ -324,11 +331,11 @@ open class NativeRoadTestActivity : ComponentActivity() {
                 store = syncStorage,
                 passphrase = syncStorage::passphrase,
                 customRelay = syncStorage::customRelay,
-                fetcher = NativeRelayFetcher(connector) { Log.d("RoadstrSync", it) },
+                fetcher = NativeRelayFetcher(connector) { debugDiagnostic("RoadstrSync", it) },
                 publisherFactory = { relayUrls ->
-                    NativeRelayPublisher(connector, relayUrls) { Log.d("RoadstrSync", it) }
+                    NativeRelayPublisher(connector, relayUrls) { debugDiagnostic("RoadstrSync", it) }
                 },
-                diagnostics = { Log.d("RoadstrSync", it) },
+                diagnostics = { debugDiagnostic("RoadstrSync", it) },
             ),
             visibility = NativeProfileVisibilityService(
                 signer = signer,
@@ -350,6 +357,12 @@ open class NativeRoadTestActivity : ComponentActivity() {
             nwcUri = { runCatching { nwcPreferences.read("uri") }.getOrNull() },
             openWallet = ::openExternal,
         )
+    }
+
+    private fun debugDiagnostic(tag: String, message: String) {
+        if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) {
+            Log.d(tag, message)
+        }
     }
 
     private fun handleGpsAction() {
