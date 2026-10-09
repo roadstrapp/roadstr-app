@@ -72,6 +72,16 @@
     <string name="native_roadtest_no_app">Geen app beschikbaar om deze link te openen</string>
     <string name="native_saved_geocoding_error">Adres niet gevonden. Probeer een specifieker adres.</string>
     <string name="native_saved_label">Naam (bijv. Thuis, Kantoor)</string>
+    <string name="native_saved_routes_delete">Verwijderen</string>
+    <string name="native_saved_routes_edit">Bewerken</string>
+    <string name="native_saved_routes_empty">Geen opgeslagen routes</string>
+    <string name="native_saved_routes_name">Routenaam</string>
+    <string name="native_saved_routes_online_reroute">De opgeslagen route werkt zonder netwerk; voor afwijkingen is een netwerk nodig.</string>
+    <string name="native_saved_routes_recalculate">Herberekenen</string>
+    <string name="native_saved_routes_rename">Hernoemen</string>
+    <string name="native_saved_routes_save">Route opslaan</string>
+    <string name="native_saved_routes_start">Starten</string>
+    <string name="native_saved_routes_title">Opgeslagen routes</string>
     <string name="native_search_notice_area_fallback">Die plek kon niet precies worden afgebakend, daarom is het gebied eromheen doorzocht.</string>
     <string name="native_search_notice_few_tagged">Weinig plaatsen hier zijn hiervoor getagd in OpenStreetMap, dus de lijst kan onvolledig zijn.</string>
     <string name="native_search_notice_open_hours_unknown">Sommige plaatsen vermelden geen openingstijden, dus ze kunnen gesloten zijn.</string>

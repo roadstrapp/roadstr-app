@@ -72,6 +72,16 @@
     <string name="native_roadtest_no_app">Níl aon aip ar fáil chun an nasc seo a oscailt</string>
     <string name="native_saved_geocoding_error">Seoladh gan aimsiú. Bain triail as seoladh níos sonraí.</string>
     <string name="native_saved_label">Ainm (m.sh. Baile, Oifig)</string>
+    <string name="native_saved_routes_delete">Scrios</string>
+    <string name="native_saved_routes_edit">Cuir in eagar</string>
+    <string name="native_saved_routes_empty">Níl aon bhealaí sábháilte</string>
+    <string name="native_saved_routes_name">Ainm an bhealaigh</string>
+    <string name="native_saved_routes_online_reroute">Oibríonn an bealach sábháilte gan líonra; teastaíonn líonra le haghaidh claontaí.</string>
+    <string name="native_saved_routes_recalculate">Athríomh</string>
+    <string name="native_saved_routes_rename">Athainmnigh</string>
+    <string name="native_saved_routes_save">Sábháil bealach</string>
+    <string name="native_saved_routes_start">Tosaigh</string>
+    <string name="native_saved_routes_title">Bealaí sábháilte</string>
     <string name="native_search_notice_area_fallback">Níorbh fhéidir an áit sin a theorannú go beacht, mar sin cuardaíodh an ceantar máguaird.</string>
     <string name="native_search_notice_few_tagged">Is beag na háiteanna anseo atá clibeáilte don seo in OpenStreetMap, mar sin d\'fhéadfadh an liosta a bheith neamhiomlán.</string>
     <string name="native_search_notice_open_hours_unknown">Ní chuireann roinnt áiteanna a n-uaireanta oscailte in iúl, mar sin d\'fhéadfadh siad a bheith dúnta.</string>

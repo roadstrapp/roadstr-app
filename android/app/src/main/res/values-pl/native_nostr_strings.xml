@@ -72,6 +72,16 @@
     <string name="native_roadtest_no_app">Brak aplikacji, która mogłaby otworzyć ten link</string>
     <string name="native_saved_geocoding_error">Nie znaleziono adresu. Spróbuj bardziej szczegółowego.</string>
     <string name="native_saved_label">Nazwa (np. Dom, Biuro)</string>
+    <string name="native_saved_routes_delete">Usuń</string>
+    <string name="native_saved_routes_edit">Edytuj</string>
+    <string name="native_saved_routes_empty">Brak zapisanych tras</string>
+    <string name="native_saved_routes_name">Nazwa trasy</string>
+    <string name="native_saved_routes_online_reroute">Zapisana trasa działa bez sieci; objazdy wymagają połączenia.</string>
+    <string name="native_saved_routes_recalculate">Przelicz</string>
+    <string name="native_saved_routes_rename">Zmień nazwę</string>
+    <string name="native_saved_routes_save">Zapisz trasę</string>
+    <string name="native_saved_routes_start">Rozpocznij</string>
+    <string name="native_saved_routes_title">Zapisane trasy</string>
     <string name="native_search_notice_area_fallback">Nie udało się dokładnie wyznaczyć tego miejsca, więc przeszukano jego okolicę.</string>
     <string name="native_search_notice_few_tagged">Niewiele miejsc tutaj jest oznaczonych w OpenStreetMap pod tym kątem, więc lista może być niepełna.</string>
     <string name="native_search_notice_open_hours_unknown">Niektóre miejsca nie podają godzin otwarcia, więc mogą być zamknięte.</string>

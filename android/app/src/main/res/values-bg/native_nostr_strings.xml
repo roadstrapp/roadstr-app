@@ -72,6 +72,16 @@
     <string name="native_roadtest_no_app">Няма приложение, което да отвори тази връзка</string>
     <string name="native_saved_geocoding_error">Адресът не е намерен. Опитай по-точен адрес.</string>
     <string name="native_saved_label">Име (напр. Вкъщи, Офис)</string>
+    <string name="native_saved_routes_delete">Изтрий</string>
+    <string name="native_saved_routes_edit">Редактирай</string>
+    <string name="native_saved_routes_empty">Няма запазени маршрути</string>
+    <string name="native_saved_routes_name">Име на маршрута</string>
+    <string name="native_saved_routes_online_reroute">Запазеният маршрут работи без мрежа; отклоненията изискват мрежа.</string>
+    <string name="native_saved_routes_recalculate">Преизчисли</string>
+    <string name="native_saved_routes_rename">Преименувай</string>
+    <string name="native_saved_routes_save">Запази маршрут</string>
+    <string name="native_saved_routes_start">Старт</string>
+    <string name="native_saved_routes_title">Запазени маршрути</string>
     <string name="native_search_notice_area_fallback">Мястото не можа да бъде очертано точно, затова беше претърсена околността.</string>
     <string name="native_search_notice_few_tagged">Малко места тук са отбелязани за това в OpenStreetMap, затова списъкът може да е непълен.</string>
     <string name="native_search_notice_open_hours_unknown">Някои места не посочват работно време, затова може да са затворени.</string>

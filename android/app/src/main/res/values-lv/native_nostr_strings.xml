@@ -72,6 +72,16 @@
     <string name="native_roadtest_no_app">Nav lietotnes, kas varētu atvērt šo saiti</string>
     <string name="native_saved_geocoding_error">Adrese nav atrasta. Mēģini precīzāku adresi.</string>
     <string name="native_saved_label">Nosaukums (piem. Mājas, Birojs)</string>
+    <string name="native_saved_routes_delete">Dzēst</string>
+    <string name="native_saved_routes_edit">Rediģēt</string>
+    <string name="native_saved_routes_empty">Nav saglabātu maršrutu</string>
+    <string name="native_saved_routes_name">Maršruta nosaukums</string>
+    <string name="native_saved_routes_online_reroute">Saglabātais maršruts darbojas bez tīkla; novirzēm vajadzīgs tīkls.</string>
+    <string name="native_saved_routes_recalculate">Pārrēķināt</string>
+    <string name="native_saved_routes_rename">Pārdēvēt</string>
+    <string name="native_saved_routes_save">Saglabāt maršrutu</string>
+    <string name="native_saved_routes_start">Sākt</string>
+    <string name="native_saved_routes_title">Saglabātie maršruti</string>
     <string name="native_search_notice_area_fallback">Šo vietu neizdevās precīzi norobežot, tāpēc tika meklēts tās apkārtnē.</string>
     <string name="native_search_notice_few_tagged">Šeit tikai dažas vietas ir atzīmētas šim nolūkam OpenStreetMap, tāpēc saraksts var būt nepilnīgs.</string>
     <string name="native_search_notice_open_hours_unknown">Dažas vietas nenorāda darba laiku, tāpēc tās var būt slēgtas.</string>

@@ -72,6 +72,16 @@
     <string name="native_roadtest_no_app">Καμία εφαρμογή δεν μπορεί να ανοίξει αυτόν τον σύνδεσμο</string>
     <string name="native_saved_geocoding_error">Η διεύθυνση δεν βρέθηκε. Δοκίμασε πιο συγκεκριμένη.</string>
     <string name="native_saved_label">Όνομα (π.χ. Σπίτι, Γραφείο)</string>
+    <string name="native_saved_routes_delete">Διαγραφή</string>
+    <string name="native_saved_routes_edit">Επεξεργασία</string>
+    <string name="native_saved_routes_empty">Δεν υπάρχουν αποθηκευμένες διαδρομές</string>
+    <string name="native_saved_routes_name">Όνομα διαδρομής</string>
+    <string name="native_saved_routes_online_reroute">Η αποθηκευμένη διαδρομή λειτουργεί χωρίς δίκτυο· οι αποκλίσεις απαιτούν δίκτυο.</string>
+    <string name="native_saved_routes_recalculate">Επανυπολογισμός</string>
+    <string name="native_saved_routes_rename">Μετονομασία</string>
+    <string name="native_saved_routes_save">Αποθήκευση διαδρομής</string>
+    <string name="native_saved_routes_start">Έναρξη</string>
+    <string name="native_saved_routes_title">Αποθηκευμένες διαδρομές</string>
     <string name="native_search_notice_area_fallback">Δεν ήταν δυνατό να οριοθετηθεί ακριβώς το μέρος, οπότε αναζητήθηκε η γύρω περιοχή.</string>
     <string name="native_search_notice_few_tagged">Λίγα μέρη εδώ έχουν επισημανθεί γι\' αυτό στο OpenStreetMap, οπότε η λίστα μπορεί να είναι ελλιπής.</string>
     <string name="native_search_notice_open_hours_unknown">Ορισμένα μέρη δεν αναφέρουν ωράριο, οπότε μπορεί να είναι κλειστά.</string>

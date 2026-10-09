@@ -72,6 +72,16 @@
     <string name="native_roadtest_no_app">Nicio aplicație nu poate deschide acest link</string>
     <string name="native_saved_geocoding_error">Adresa nu a fost găsită. Încearcă o adresă mai specifică.</string>
     <string name="native_saved_label">Nume (ex. Acasă, Birou)</string>
+    <string name="native_saved_routes_delete">Șterge</string>
+    <string name="native_saved_routes_edit">Editează</string>
+    <string name="native_saved_routes_empty">Niciun traseu salvat</string>
+    <string name="native_saved_routes_name">Numele traseului</string>
+    <string name="native_saved_routes_online_reroute">Traseul salvat funcționează fără rețea; abaterile necesită rețea.</string>
+    <string name="native_saved_routes_recalculate">Recalculează</string>
+    <string name="native_saved_routes_rename">Redenumește</string>
+    <string name="native_saved_routes_save">Salvează traseul</string>
+    <string name="native_saved_routes_start">Pornește</string>
+    <string name="native_saved_routes_title">Trasee salvate</string>
     <string name="native_search_notice_area_fallback">Locul nu a putut fi delimitat exact, așa că s-a căutat în zona din jur.</string>
     <string name="native_search_notice_few_tagged">Puține locuri de aici sunt etichetate pentru asta în OpenStreetMap, deci lista poate fi incompletă.</string>
     <string name="native_search_notice_open_hours_unknown">Unele locuri nu indică programul, deci ar putea fi închise.</string>

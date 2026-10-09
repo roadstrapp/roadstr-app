@@ -2824,6 +2824,45 @@ const _explicit = <String, Map<String, String>>{
   },
 };
 
+const _savedRouteKeys = <String>[
+  'native_saved_routes_title', 'native_saved_routes_empty',
+  'native_saved_routes_start', 'native_saved_routes_recalculate',
+  'native_saved_routes_edit', 'native_saved_routes_rename',
+  'native_saved_routes_delete', 'native_saved_routes_save',
+  'native_saved_routes_name', 'native_saved_routes_online_reroute',
+];
+
+/// title, empty, start, recalculate, edit, rename, delete, save, name, offline notice.
+const _savedRouteRows = <String, List<String>>{
+  'bg': ['Запазени маршрути', 'Няма запазени маршрути', 'Старт', 'Преизчисли', 'Редактирай', 'Преименувай', 'Изтрий', 'Запази маршрут', 'Име на маршрута', 'Запазеният маршрут работи без мрежа; отклоненията изискват мрежа.'],
+  'cs': ['Uložené trasy', 'Žádné uložené trasy', 'Spustit', 'Přepočítat', 'Upravit', 'Přejmenovat', 'Smazat', 'Uložit trasu', 'Název trasy', 'Uložená trasa funguje bez sítě; odchylky vyžadují síť.'],
+  'da': ['Gemte ruter', 'Ingen gemte ruter', 'Start', 'Genberegn', 'Rediger', 'Omdøb', 'Slet', 'Gem rute', 'Rutenavn', 'Den gemte rute virker uden netværk; afvigelser kræver netværk.'],
+  'de': ['Gespeicherte Routen', 'Keine gespeicherten Routen', 'Starten', 'Neu berechnen', 'Bearbeiten', 'Umbenennen', 'Löschen', 'Route speichern', 'Routenname', 'Die gespeicherte Route funktioniert offline; Abweichungen benötigen eine Netzwerkverbindung.'],
+  'el': ['Αποθηκευμένες διαδρομές', 'Δεν υπάρχουν αποθηκευμένες διαδρομές', 'Έναρξη', 'Επανυπολογισμός', 'Επεξεργασία', 'Μετονομασία', 'Διαγραφή', 'Αποθήκευση διαδρομής', 'Όνομα διαδρομής', 'Η αποθηκευμένη διαδρομή λειτουργεί χωρίς δίκτυο· οι αποκλίσεις απαιτούν δίκτυο.'],
+  'en': ['Saved routes', 'No saved routes', 'Start', 'Recalculate', 'Edit', 'Rename', 'Delete', 'Save route', 'Route name', 'The saved route works without a network; deviations require a network connection.'],
+  'es': ['Rutas guardadas', 'No hay rutas guardadas', 'Iniciar', 'Recalcular', 'Editar', 'Renombrar', 'Eliminar', 'Guardar ruta', 'Nombre de la ruta', 'La ruta guardada funciona sin red; los desvíos requieren conexión.'],
+  'et': ['Salvestatud marsruudid', 'Salvestatud marsruute pole', 'Alusta', 'Arvuta uuesti', 'Muuda', 'Nimeta ümber', 'Kustuta', 'Salvesta marsruut', 'Marsruudi nimi', 'Salvestatud marsruut töötab võrguta; kõrvalekalded vajavad võrku.'],
+  'fi': ['Tallennetut reitit', 'Ei tallennettuja reittejä', 'Aloita', 'Laske uudelleen', 'Muokkaa', 'Nimeä uudelleen', 'Poista', 'Tallenna reitti', 'Reitin nimi', 'Tallennettu reitti toimii ilman verkkoa; poikkeamat vaativat verkkoyhteyden.'],
+  'fr': ['Itinéraires enregistrés', 'Aucun itinéraire enregistré', 'Démarrer', 'Recalculer', 'Modifier', 'Renommer', 'Supprimer', 'Enregistrer l’itinéraire', 'Nom de l’itinéraire', 'L’itinéraire enregistré fonctionne sans réseau ; les écarts nécessitent une connexion.'],
+  'ga': ['Bealaí sábháilte', 'Níl aon bhealaí sábháilte', 'Tosaigh', 'Athríomh', 'Cuir in eagar', 'Athainmnigh', 'Scrios', 'Sábháil bealach', 'Ainm an bhealaigh', 'Oibríonn an bealach sábháilte gan líonra; teastaíonn líonra le haghaidh claontaí.'],
+  'hr': ['Spremljene rute', 'Nema spremljenih ruta', 'Pokreni', 'Ponovno izračunaj', 'Uredi', 'Preimenuj', 'Izbriši', 'Spremi rutu', 'Naziv rute', 'Spremljena ruta radi bez mreže; odstupanja zahtijevaju mrežu.'],
+  'hu': ['Mentett útvonalak', 'Nincsenek mentett útvonalak', 'Indítás', 'Újratervezés', 'Szerkesztés', 'Átnevezés', 'Törlés', 'Útvonal mentése', 'Útvonal neve', 'A mentett útvonal hálózat nélkül működik; az eltérésekhez hálózat kell.'],
+  'it': ['Itinerari salvati', 'Nessun itinerario salvato', 'Avvia', 'Ricalcola', 'Modifica', 'Rinomina', 'Elimina', 'Salva itinerario', 'Nome itinerario', 'L’itinerario salvato funziona senza rete; per ricalcolare una deviazione serve la rete.'],
+  'ja': ['保存済みルート', '保存済みルートはありません', '開始', '再計算', '編集', '名前を変更', '削除', 'ルートを保存', 'ルート名', '保存済みルートはオフラインで使えますが、逸脱時の再計算には通信が必要です。'],
+  'lt': ['Išsaugoti maršrutai', 'Išsaugotų maršrutų nėra', 'Pradėti', 'Perskaičiuoti', 'Redaguoti', 'Pervadinti', 'Ištrinti', 'Išsaugoti maršrutą', 'Maršruto pavadinimas', 'Išsaugotas maršrutas veikia be tinklo; nukrypimams reikia tinklo.'],
+  'lv': ['Saglabātie maršruti', 'Nav saglabātu maršrutu', 'Sākt', 'Pārrēķināt', 'Rediģēt', 'Pārdēvēt', 'Dzēst', 'Saglabāt maršrutu', 'Maršruta nosaukums', 'Saglabātais maršruts darbojas bez tīkla; novirzēm vajadzīgs tīkls.'],
+  'mt': ['Rotot salvati', 'Ebda rotta salvata', 'Ibda', 'Erġa’ kkalkula', 'Editja', 'Semmi mill-ġdid', 'Ħassar', 'Salva r-rotta', 'Isem tar-rotta', 'Ir-rotta salvata taħdem mingħajr netwerk; devjazzjonijiet jeħtieġu netwerk.'],
+  'nl': ['Opgeslagen routes', 'Geen opgeslagen routes', 'Starten', 'Herberekenen', 'Bewerken', 'Hernoemen', 'Verwijderen', 'Route opslaan', 'Routenaam', 'De opgeslagen route werkt zonder netwerk; voor afwijkingen is een netwerk nodig.'],
+  'pl': ['Zapisane trasy', 'Brak zapisanych tras', 'Rozpocznij', 'Przelicz', 'Edytuj', 'Zmień nazwę', 'Usuń', 'Zapisz trasę', 'Nazwa trasy', 'Zapisana trasa działa bez sieci; objazdy wymagają połączenia.'],
+  'pt': ['Rotas guardadas', 'Sem rotas guardadas', 'Iniciar', 'Recalcular', 'Editar', 'Mudar nome', 'Eliminar', 'Guardar rota', 'Nome da rota', 'A rota guardada funciona sem rede; os desvios exigem ligação.'],
+  'ro': ['Trasee salvate', 'Niciun traseu salvat', 'Pornește', 'Recalculează', 'Editează', 'Redenumește', 'Șterge', 'Salvează traseul', 'Numele traseului', 'Traseul salvat funcționează fără rețea; abaterile necesită rețea.'],
+  'ru': ['Сохранённые маршруты', 'Нет сохранённых маршрутов', 'Начать', 'Пересчитать', 'Изменить', 'Переименовать', 'Удалить', 'Сохранить маршрут', 'Название маршрута', 'Сохранённый маршрут работает без сети; для отклонений нужна сеть.'],
+  'sk': ['Uložené trasy', 'Žiadne uložené trasy', 'Spustiť', 'Prepočítať', 'Upraviť', 'Premenovať', 'Odstrániť', 'Uložiť trasu', 'Názov trasy', 'Uložená trasa funguje bez siete; odchýlky vyžadujú sieť.'],
+  'sl': ['Shranjene poti', 'Ni shranjenih poti', 'Začni', 'Preračunaj', 'Uredi', 'Preimenuj', 'Izbriši', 'Shrani pot', 'Ime poti', 'Shranjena pot deluje brez omrežja; odkloni zahtevajo omrežje.'],
+  'sv': ['Sparade rutter', 'Inga sparade rutter', 'Starta', 'Beräkna om', 'Redigera', 'Byt namn', 'Ta bort', 'Spara rutt', 'Ruttnamn', 'Den sparade rutten fungerar utan nätverk; avvikelser kräver nätverk.'],
+  'zh': ['已保存路线', '没有已保存路线', '开始', '重新计算', '编辑', '重命名', '删除', '保存路线', '路线名称', '已保存路线可离线使用；偏离路线后重新计算需要网络。'],
+};
+
 /// Identical in every language: an example address, not prose.
 const _verbatim = <String, String>{
   'native_nostr_relay_hint': 'wss://relay.example.com',
@@ -2875,6 +2914,14 @@ String _buildResource(String language, Map<String, dynamic> arb) {
       throw FormatException('Missing $language translation of ${entry.key}');
     }
     entries[entry.key] = _androidText(source, entry.key);
+  }
+  final savedRouteRow = _savedRouteRows[language];
+  if (savedRouteRow == null || savedRouteRow.length != _savedRouteKeys.length) {
+    throw FormatException('Missing saved-route translations for $language');
+  }
+  for (var index = 0; index < _savedRouteKeys.length; index += 1) {
+    entries[_savedRouteKeys[index]] =
+        _androidText(savedRouteRow[index], _savedRouteKeys[index]);
   }
   _verbatim.forEach((key, value) => entries[key] = _androidText(value, key));
 

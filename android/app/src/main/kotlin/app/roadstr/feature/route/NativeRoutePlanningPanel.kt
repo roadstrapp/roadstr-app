@@ -84,6 +84,7 @@ fun NativeRoutePlanningPanel(
     onCalculate: () -> Unit,
     onSelectAlternative: (Int) -> Unit,
     onAvoidanceChanged: (Boolean) -> Unit,
+    onSave: () -> Unit,
     onConfirm: () -> Unit,
     onStart: () -> Unit,
     onCancel: () -> Unit,
@@ -125,6 +126,7 @@ fun NativeRoutePlanningPanel(
             onModeChanged = onModeChanged,
             onSelectAlternative = onSelectAlternative,
             onAvoidanceChanged = onAvoidanceChanged,
+            onSave = onSave,
             onConfirm = onConfirm,
             onCancel = onCancel,
             modifier = Modifier,
@@ -308,6 +310,7 @@ private fun AlternativesPanel(
     onModeChanged: (NativeRouteTransportMode) -> Unit,
     onSelectAlternative: (Int) -> Unit,
     onAvoidanceChanged: (Boolean) -> Unit,
+    onSave: () -> Unit,
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier,
@@ -392,6 +395,10 @@ private fun AlternativesPanel(
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
+        TextButton(
+            onClick = onSave,
+            modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 48.dp),
+        ) { Text(stringResource(R.string.native_saved_routes_save)) }
         RouteActions(onCancel = onCancel, onPrimary = onConfirm)
     }
 }

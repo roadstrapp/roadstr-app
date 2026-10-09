@@ -72,6 +72,16 @@
     <string name="native_roadtest_no_app">このリンクを開けるアプリがありません</string>
     <string name="native_saved_geocoding_error">住所が見つかりません。より具体的な住所をお試しください。</string>
     <string name="native_saved_label">名前（例：自宅、職場）</string>
+    <string name="native_saved_routes_delete">削除</string>
+    <string name="native_saved_routes_edit">編集</string>
+    <string name="native_saved_routes_empty">保存済みルートはありません</string>
+    <string name="native_saved_routes_name">ルート名</string>
+    <string name="native_saved_routes_online_reroute">保存済みルートはオフラインで使えますが、逸脱時の再計算には通信が必要です。</string>
+    <string name="native_saved_routes_recalculate">再計算</string>
+    <string name="native_saved_routes_rename">名前を変更</string>
+    <string name="native_saved_routes_save">ルートを保存</string>
+    <string name="native_saved_routes_start">開始</string>
+    <string name="native_saved_routes_title">保存済みルート</string>
     <string name="native_search_notice_area_fallback">その場所の範囲を正確に特定できなかったため、周辺を検索しました。</string>
     <string name="native_search_notice_few_tagged">この付近でOpenStreetMapに登録されている該当の場所は少ないため、一覧が不完全な可能性があります。</string>
     <string name="native_search_notice_open_hours_unknown">営業時間が載っていない場所があり、閉まっている可能性があります。</string>

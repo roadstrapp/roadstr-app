@@ -72,6 +72,16 @@
     <string name="native_roadtest_no_app">Ma hemm l-ebda app biex tiftaħ din il-link</string>
     <string name="native_saved_geocoding_error">Indirizz ma nstabx. Ipprova indirizz aktar speċifiku.</string>
     <string name="native_saved_label">Isem (eż. Dar, Uffiċċju)</string>
+    <string name="native_saved_routes_delete">Ħassar</string>
+    <string name="native_saved_routes_edit">Editja</string>
+    <string name="native_saved_routes_empty">Ebda rotta salvata</string>
+    <string name="native_saved_routes_name">Isem tar-rotta</string>
+    <string name="native_saved_routes_online_reroute">Ir-rotta salvata taħdem mingħajr netwerk; devjazzjonijiet jeħtieġu netwerk.</string>
+    <string name="native_saved_routes_recalculate">Erġa’ kkalkula</string>
+    <string name="native_saved_routes_rename">Semmi mill-ġdid</string>
+    <string name="native_saved_routes_save">Salva r-rotta</string>
+    <string name="native_saved_routes_start">Ibda</string>
+    <string name="native_saved_routes_title">Rotot salvati</string>
     <string name="native_search_notice_area_fallback">Dak il-post ma setax jiġi ddelimitat eżattament, għalhekk infittxet iż-żona madwaru.</string>
     <string name="native_search_notice_few_tagged">Ftit postijiet hawn huma ttikkettati għal dan f\'OpenStreetMap, għalhekk il-lista tista\' ma tkunx kompluta.</string>
     <string name="native_search_notice_open_hours_unknown">Xi postijiet ma jindikawx il-ħinijiet tal-ftuħ, għalhekk jistgħu jkunu magħluqin.</string>
