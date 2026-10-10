@@ -1,6 +1,6 @@
 package app.roadstr.feature.map
 
-import app.roadstr.feature.settings.NativeSettingsMapEngine
+import app.roadstr.feature.performance.NativePerformanceProfile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -16,10 +16,10 @@ class NativeMapEngineCompatibilityTest {
     }
 
     @Test
-    fun `native settings and renderer storage values cannot drift`() {
+    fun `performance profiles cover both renderer modes`() {
         assertEquals(
-            NativeSettingsMapEngine.entries.map { it.storageValue },
-            NativeMapEngine.entries.map { it.storageValue },
+            NativeMapEngine.entries.toSet(),
+            NativePerformanceProfile.entries.map { it.mapEngine }.toSet(),
         )
     }
 

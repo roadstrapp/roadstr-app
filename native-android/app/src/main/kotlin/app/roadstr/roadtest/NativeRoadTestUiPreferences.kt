@@ -3,6 +3,7 @@ package app.roadstr.roadtest
 import android.content.Context
 import app.roadstr.core.ui.theme.RoadstrThemeId
 import app.roadstr.feature.navigation.NativeSpeedometerStyle
+import app.roadstr.feature.performance.NativePerformanceProfile
 import app.roadstr.feature.settings.NativeSettingsCursorColor
 import app.roadstr.feature.settings.NativeSettingsCursorStyle
 import app.roadstr.feature.settings.NativeSettingsInput
@@ -47,8 +48,9 @@ class NativeRoadTestUiPreferences(
         voiceVolume = preferences.getFloat("voice_volume", 1f).toDouble(),
         profilePublic = preferences.getBoolean("profile_public", false),
         avoidUnpavedRoads = preferences.getBoolean("avoid_unpaved", false),
-        mapEngine = app.roadstr.feature.settings.NativeSettingsMapEngine.fromStorage(
-            preferences.getString("map_engine", null),
+        performanceProfile = NativePerformanceProfile.fromStorage(
+            value = preferences.getString("performance_profile", null),
+            legacyMapEngine = preferences.getString("map_engine", null),
         ),
         showAltitude = preferences.getBoolean("show_altitude", false),
         showCrosswalks = preferences.getBoolean("show_crosswalks", false),
@@ -95,7 +97,8 @@ class NativeRoadTestUiPreferences(
             .putFloat("voice_volume", value.voiceVolume.toFloat())
             .putBoolean("profile_public", value.profilePublic)
             .putBoolean("avoid_unpaved", value.avoidUnpavedRoads)
-            .putString("map_engine", value.mapEngine.storageValue)
+            .putString("performance_profile", value.performanceProfile.storageValue)
+            .remove("map_engine")
             .putBoolean("show_altitude", value.showAltitude)
             .putBoolean("show_crosswalks", value.showCrosswalks)
             .putBoolean("show_traffic_lights", value.showTrafficLights)

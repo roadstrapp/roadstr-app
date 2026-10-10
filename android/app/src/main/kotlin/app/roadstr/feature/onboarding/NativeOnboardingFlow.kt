@@ -59,6 +59,8 @@ import app.roadstr.core.ui.RoadstrGlassLevel
 import app.roadstr.feature.settings.ActionButton
 import app.roadstr.feature.settings.SettingsCard
 import app.roadstr.feature.settings.SettingsSection
+import app.roadstr.feature.performance.NativePerformanceProfile
+import app.roadstr.feature.performance.PerformanceProfileSelector
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 /** Full-screen but dormant first-launch surface. All effects leave through typed callbacks. */
@@ -73,6 +75,8 @@ fun NativeOnboardingFlow(
     onDownloadVoice: () -> Unit,
     onOpenDisclosure: (Long) -> Unit,
     onAcceptDisclosure: (Long) -> Unit,
+    performanceProfile: NativePerformanceProfile = NativePerformanceProfile.Default,
+    onPerformanceProfileChanged: (NativePerformanceProfile) -> Unit = {},
     modifier: Modifier = Modifier,
     /** Offered on the recovery screen only by a host that can try the import again or go on without it. */
     onRetryMigration: (() -> Unit)? = null,
@@ -110,6 +114,8 @@ fun NativeOnboardingFlow(
             onRequestLocation = onRequestLocation,
             onDownloadVoice = onDownloadVoice,
             onOpenDisclosure = onOpenDisclosure,
+            performanceProfile = performanceProfile,
+            onPerformanceProfileChanged = onPerformanceProfileChanged,
             modifier = modifier,
         )
     }
@@ -194,6 +200,8 @@ private fun OnboardingPages(
     onRequestLocation: () -> Unit,
     onDownloadVoice: () -> Unit,
     onOpenDisclosure: (Long) -> Unit,
+    performanceProfile: NativePerformanceProfile,
+    onPerformanceProfileChanged: (NativePerformanceProfile) -> Unit,
     modifier: Modifier,
 ) {
     val title = stringResource(R.string.app_name)
@@ -239,6 +247,8 @@ private fun OnboardingPages(
                     )
                     NativeOnboardingPage.Setup -> SetupPage(
                         snapshot = snapshot,
+                        performanceProfile = performanceProfile,
+                        onPerformanceProfileChanged = onPerformanceProfileChanged,
                         onRequestLocation = onRequestLocation,
                         onDownloadVoice = onDownloadVoice,
                         onContinue = {
@@ -438,13 +448,19 @@ private fun IdentityPage(
 @Composable
 private fun SetupPage(
     snapshot: NativeOnboardingSnapshot,
+    performanceProfile: NativePerformanceProfile,
+    onPerformanceProfileChanged: (NativePerformanceProfile) -> Unit,
     onRequestLocation: () -> Unit,
     onDownloadVoice: () -> Unit,
     onContinue: () -> Unit,
 ) = PageColumn {
     PageTitle(
-        stringResource(R.string.native_onboarding_setup_title),
-        stringResource(R.string.native_onboarding_setup_subtitle),
+        stringResource(R.string.native_performance_onboarding_title),
+        stringResource(R.string.native_performance_onboarding_desc),
+    )
+    PerformanceProfileSelector(
+        profile = performanceProfile,
+        onProfileCommitted = onPerformanceProfileChanged,
     )
     SetupCard(
         title = stringResource(R.string.native_onboarding_location_title),

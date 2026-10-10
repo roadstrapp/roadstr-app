@@ -1,5 +1,6 @@
 package app.roadstr.service.location
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
 import android.location.LocationListener
@@ -15,12 +16,17 @@ import android.os.Looper
 class AndroidLocationManagerSource(
     context: Context,
     private val looper: Looper = Looper.getMainLooper(),
-    private val minTimeMillis: Long = 1_000L,
+    initialMinTimeMillis: Long = 1_000L,
     private val minDistanceMeters: Float = 0f,
 ) : NativeLocationSource {
     private val locationManager =
         context.applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
     private var listener: LocationListener? = null
+    private var minTimeMillis: Long = initialMinTimeMillis
+
+    init {
+        require(initialMinTimeMillis in 250L..60_000L) { "Invalid initial location interval" }
+    }
 
     override suspend fun isLocationEnabled(): Boolean = try {
         locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
@@ -80,6 +86,48 @@ class AndroidLocationManagerSource(
             locationManager.removeUpdates(activeListener)
         } catch (_: SecurityException) {
             // Permission may have been revoked while navigation was stopping.
+        }
+    }
+
+    override suspend fun updateIntervalMillis(intervalMillis: Long): Boolean {
+        require(intervalMillis in 250L..60_000L) { "Invalid location interval" }
+        if (intervalMillis == minTimeMillis) return true
+        val activeListener = listener
+        if (activeListener == null) {
+            minTimeMillis = intervalMillis
+            return true
+        }
+        val previous = minTimeMillis
+        return try {
+            locationManager.removeUpdates(activeListener)
+            locationManager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER,
+                intervalMillis,
+                minDistanceMeters,
+                activeListener,
+                looper,
+            )
+            minTimeMillis = intervalMillis
+            true
+        } catch (_: SecurityException) {
+            restoreListener(activeListener, previous)
+            false
+        } catch (_: IllegalArgumentException) {
+            restoreListener(activeListener, previous)
+            false
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun restoreListener(activeListener: LocationListener, intervalMillis: Long) {
+        runCatching {
+            locationManager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER,
+                intervalMillis,
+                minDistanceMeters,
+                activeListener,
+                looper,
+            )
         }
     }
 

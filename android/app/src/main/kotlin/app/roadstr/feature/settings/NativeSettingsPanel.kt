@@ -92,6 +92,8 @@ import kotlinx.coroutines.Dispatchers
 import app.roadstr.core.ui.RoadstrSwitch
 import app.roadstr.core.ui.theme.RoadstrThemeId
 import app.roadstr.feature.navigation.NativeSpeedometerStyle
+import app.roadstr.feature.performance.NativePerformanceProfile
+import app.roadstr.feature.performance.PerformanceProfileSelector
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -102,7 +104,7 @@ sealed interface NativeSettingsUiAction {
         NativeSettingsUiAction
     data class ThemeChanged(val value: RoadstrThemeId) : NativeSettingsUiAction
     data class LanguageChanged(val value: String?) : NativeSettingsUiAction
-    data class MapEngineChanged(val value: NativeSettingsMapEngine) : NativeSettingsUiAction
+    data class PerformanceProfileChanged(val value: NativePerformanceProfile) : NativeSettingsUiAction
     data class BrightnessChanged(val value: Double) : NativeSettingsUiAction
     data class TileUrlChanged(val value: String) : NativeSettingsUiAction
     data class RoutingProviderChanged(val value: NativeSettingsRoutingProvider) :
@@ -150,7 +152,9 @@ fun NativeSettingsPanel(
     val values = snapshot.values
     // Closed until the user opens it: the card groups the optional map elements
     // (altitude, crosswalks, traffic lights) so the settings list stays short.
-    var overlaysExpanded by remember { mutableStateOf(false) }
+    var overlaysExpanded by remember(snapshot.revision) { mutableStateOf(false) }
+    // Deliberately reset whenever Settings opens, while still showing the active profile.
+    var performanceExpanded by remember(snapshot.revision) { mutableStateOf(false) }
     // Decode the cursor thumbnails while the panel opens, off the main thread,
     // so expanding the cursor menu later never stalls its own animation.
     val appContext = LocalContext.current.applicationContext
@@ -168,6 +172,14 @@ fun NativeSettingsPanel(
             item { LanguageSection(values) { onAction(revision, it) } }
             item { VisibilitySection(values) { onAction(revision, it) } }
             item {
+                PerformanceSection(
+                    values = values,
+                    expanded = performanceExpanded,
+                    onToggle = { performanceExpanded = !performanceExpanded },
+                    onAction = { onAction(revision, it) },
+                )
+            }
+            item {
                 MapSection(
                     values = values,
                     overlaysExpanded = overlaysExpanded,
@@ -183,6 +195,31 @@ fun NativeSettingsPanel(
             item { VoiceSection(values) { onAction(revision, it) } }
             item { InfoSection(values) { onAction(revision, it) } }
             item { Spacer(modifier = Modifier.height(18.dp)) }
+        }
+    }
+}
+
+@Composable
+private fun PerformanceSection(
+    values: NativeSettingsInput,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    onAction: (NativeSettingsUiAction) -> Unit,
+) {
+    val profileName = stringResource(values.performanceProfile.nameResource)
+    SettingsSection(R.string.native_performance_section) {
+        ExpandableCard(
+            title = stringResource(R.string.native_performance_current, profileName),
+            subtitle = stringResource(R.string.native_performance_section_desc),
+            expanded = expanded,
+            onClick = onToggle,
+        ) {
+            PerformanceProfileSelector(
+                profile = values.performanceProfile,
+                onProfileCommitted = {
+                    onAction(NativeSettingsUiAction.PerformanceProfileChanged(it))
+                },
+            )
         }
     }
 }
@@ -359,13 +396,6 @@ private fun MapSection(
             R.string.native_settings_avoid_unpaved_desc,
             values.avoidUnpavedRoads,
         ) { onAction(NativeSettingsUiAction.BooleanChanged(NativeSettingsBooleanKey.AvoidUnpavedRoads, it)) }
-        ChoiceRow(
-            label = stringResource(R.string.native_settings_map_engine),
-            values = NativeSettingsMapEngine.entries,
-            selected = values.mapEngine,
-            labelFor = { if (it == NativeSettingsMapEngine.MapLibre) "MapLibre" else "OpenStreetMap" },
-            onSelected = { onAction(NativeSettingsUiAction.MapEngineChanged(it)) },
-        )
         ToggleRow(
             R.string.native_settings_keep_screen_on,
             R.string.native_settings_keep_screen_on_desc,
@@ -1155,6 +1185,7 @@ internal fun SecureConfigurationRow(
 @Composable
 private fun ExpandableCard(
     title: String,
+    subtitle: String? = null,
     expanded: Boolean,
     onClick: () -> Unit,
     content: @Composable () -> Unit,
@@ -1165,7 +1196,16 @@ private fun ExpandableCard(
                 .sizeIn(minHeight = 48.dp).semantics { role = Role.Button },
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(title, modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, fontWeight = FontWeight.SemiBold)
+                subtitle?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
             Text(if (expanded) "⌃" else "⌄")
         }
         ExpandSection(expanded, content)
