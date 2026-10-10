@@ -45,9 +45,9 @@ Builds:
       - $$flutter$$/bin/flutter build apk --release
     ndk: 27.1.12297006
 
-  - versionName: 0.6.0
-    versionCode: 2057
-    commit: 06bc1fe39db65457fba7a51298b1aa3f9b5f5c40
+  - versionName: 1.0.0
+    versionCode: 2060
+    commit: 0000000000000000000000000000000000000000
     sudo:
       - apt-get update
       - apt-get install -y build-essential cmake
@@ -80,5 +80,5 @@ Builds:
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$
 UpdateCheckData: pubspec.yaml|version:\s.+\+(\d+)|.|version:\s(.+)\+
-CurrentVersion: 0.6.0
-CurrentVersionCode: 2057
+CurrentVersion: 1.0.0
+CurrentVersionCode: 2060

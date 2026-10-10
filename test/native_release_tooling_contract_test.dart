@@ -13,7 +13,7 @@ void main() {
     expect(result.exitCode, 0, reason: '${result.stderr}');
     expect(
       result.stdout,
-      contains('release source contract valid: app.roadstr 0.6.0+2057'),
+      contains('release source contract valid: app.roadstr 1.0.0+2060'),
     );
   });
 
@@ -63,8 +63,8 @@ void main() {
       expect(result.exitCode, 0, reason: '${result.stderr}');
       final contents = manifest.readAsStringSync();
       expect(contents, contains('application_id\tapp.roadstr'));
-      expect(contents, contains('version_name\t0.6.0'));
-      expect(contents, contains('version_code\t2057'));
+      expect(contents, contains('version_name\t1.0.0'));
+      expect(contents, contains('version_code\t2060'));
       expect(
         RegExp(r'^artifact\t(?!variant).+$', multiLine: true)
             .allMatches(contents),
@@ -166,7 +166,7 @@ esac
 if [ "${ROADSTR_FAKE_BAD_ABI:-}" = 1 ] && [ "$apk" = app-arm64-v8a-release.apk ]; then
   abis="x86_64"
 fi
-printf "package: name='app.roadstr' versionCode='2057' versionName='0.6.0'\n"
+printf "package: name='app.roadstr' versionCode='2060' versionName='1.0.0'\n"
 printf "application-label:'Roadstr'\n"
 printf 'native-code:'
 for abi in $abis; do printf " '%s'" "$abi"; done
