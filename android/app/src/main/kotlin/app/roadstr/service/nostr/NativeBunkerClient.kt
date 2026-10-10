@@ -26,9 +26,9 @@ class NativeBunkerReply(val result: String?, val error: String?) {
  * its answer. The signer's key never reaches this phone; the key held here, [clientKeyHex], only identifies
  * this app to the signer and encrypts the conversation.
  *
- * One call opens a connection to each relay, sends the request on all of them, and returns the first valid
- * answer. Only events signed by the signer, addressed to the client and carrying the id of the request are
- * taken for an answer.
+ * One call obtains a logical connection to each relay, sends the request on all of them, and returns the
+ * first valid answer. A persistent connector can keep the physical sockets warm between calls. Only events
+ * signed by the signer, addressed to the client and carrying the id of the request are taken for an answer.
  */
 class NativeBunkerClient(
     private val connector: NativeRelayConnector,
@@ -62,6 +62,7 @@ class NativeBunkerClient(
             "since" to nowSeconds() - SINCE_SLACK_SECONDS,
         )
         val subscribeFrame = NostrRelayWire.encode(listOf("REQ", subscription, filter))
+        val closeFrame = NostrRelayWire.encode(listOf("CLOSE", subscription))
         val sockets = ArrayList<NativeRelaySocket>()
         val targets = relays.take(NostrBunkerUri.MAX_RELAYS)
 
@@ -121,10 +122,22 @@ class NativeBunkerClient(
                     synchronized(sockets) { sockets += socket }
                     trySend()
                 }
-                continuation.invokeOnCancellation { synchronized(sockets) { sockets.forEach(NativeRelaySocket::close) } }
+                continuation.invokeOnCancellation {
+                    synchronized(sockets) {
+                        sockets.forEach { socket ->
+                            socket.send(closeFrame)
+                            socket.close()
+                        }
+                    }
+                }
             }
         }
-        synchronized(sockets) { sockets.forEach(NativeRelaySocket::close) }
+        synchronized(sockets) {
+            sockets.forEach { socket ->
+                socket.send(closeFrame)
+                socket.close()
+            }
+        }
         return reply ?: NativeBunkerReply(null, null)
     }
 
@@ -156,5 +169,111 @@ class NativeBunkerClient(
             val bytes = ByteArray(12).also(SecureRandom()::nextBytes)
             return bytes.joinToString("") { (it.toInt() and 0xff).toString(16).padStart(2, '0') }
         }
+    }
+}
+
+/** Listens for the signer-initiated response to a `nostrconnect://` offer. */
+class NativeNostrConnectReceiver(
+    private val connector: NativeRelayConnector,
+    private val clientKeyHex: String,
+    private val relays: List<String>,
+    private val nowSeconds: () -> Long = NativeNostrWire::nowSeconds,
+) {
+    private val clientPubkeyHex = NostrSchnorr.publicKey(clientKeyHex)
+
+    init {
+        require(relays.any(NostrBunkerUri::isRelay)) { "At least one secure relay is required" }
+    }
+
+    suspend fun awaitSigner(
+        secret: String,
+        timeoutMillis: Long = NativeBunkerClient.CONNECT_TIMEOUT_MILLIS,
+        onOfferReady: () -> Unit,
+    ): String? {
+        val subscription = NativeNostrWire.randomSubscriptionId()
+        val filter = linkedMapOf<String, Any?>(
+            "kinds" to listOf(Nip46.KIND),
+            "#p" to listOf(clientPubkeyHex),
+            "since" to nowSeconds() - SINCE_SLACK_SECONDS,
+        )
+        val subscribeFrame = NostrRelayWire.encode(listOf("REQ", subscription, filter))
+        val closeFrame = NostrRelayWire.encode(listOf("CLOSE", subscription))
+        val sockets = ArrayList<NativeRelaySocket>()
+        val targets = relays.distinct().take(NostrBunkerUri.MAX_RELAYS)
+        val remote = withTimeoutOrNull(timeoutMillis) {
+            suspendCancellableCoroutine<String?> { continuation ->
+                val done = AtomicBoolean(false)
+                val ended = java.util.concurrent.atomic.AtomicInteger(0)
+                fun finish(value: String?) {
+                    if (done.compareAndSet(false, true) && continuation.isActive) continuation.resume(value)
+                }
+                for (relay in targets) {
+                    val socketRef = AtomicReference<NativeRelaySocket?>(null)
+                    val opened = AtomicBoolean(false)
+                    var seen = 0
+                    val events = object : NativeRelayEvents {
+                        override fun onOpen() {
+                            opened.set(true)
+                            socketRef.get()?.send(subscribeFrame)
+                        }
+
+                        override fun onMessage(text: String) {
+                            if (done.get() || ++seen > MAX_EVENTS_PER_RELAY) return
+                            val message = NostrRelayMessageDecoder.decode(text).message
+                            if (message !is NostrRelayEventMessage || message.subscriptionId != subscription) return
+                            val event = message.event
+                            if (!NativeNostrWire.verify(event)) return
+                            if (NativeNostrWire.integral(event["kind"]) != Nip46.KIND.toLong()) return
+                            if (NativeNostrWire.tagValue(event, "p") != clientPubkeyHex) return
+                            val signer = (event["pubkey"] as? String)?.takeIf(NativeNostrWire::isHex32) ?: return
+                            val content = event["content"] as? String ?: return
+                            val plain = runCatching {
+                                if (content.contains("?iv=")) {
+                                    Nip04Cipher.decrypt(clientKeyHex, signer, content)
+                                } else {
+                                    Nip44V2.decrypt(clientKeyHex, signer, content)
+                                }
+                            }.getOrNull() ?: return
+                            val response = Nip46.parseResponse(plain) ?: return
+                            if (response.error == null && response.result == secret) finish(signer)
+                        }
+
+                        override fun onEnded() {
+                            if (ended.incrementAndGet() >= targets.size) finish(null)
+                        }
+                    }
+                    val socket = try {
+                        connector.connect(relay, events)
+                    } catch (_: Exception) {
+                        events.onEnded()
+                        continue
+                    }
+                    socketRef.set(socket)
+                    synchronized(sockets) { sockets += socket }
+                    if (opened.get()) socket.send(subscribeFrame)
+                }
+                onOfferReady()
+                continuation.invokeOnCancellation {
+                    synchronized(sockets) {
+                        sockets.forEach { socket ->
+                            socket.send(closeFrame)
+                            socket.close()
+                        }
+                    }
+                }
+            }
+        }
+        synchronized(sockets) {
+            sockets.forEach { socket ->
+                socket.send(closeFrame)
+                socket.close()
+            }
+        }
+        return remote
+    }
+
+    private companion object {
+        const val SINCE_SLACK_SECONDS = 10L
+        const val MAX_EVENTS_PER_RELAY = 64
     }
 }

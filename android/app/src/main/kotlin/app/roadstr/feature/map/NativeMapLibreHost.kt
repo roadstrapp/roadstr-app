@@ -42,6 +42,7 @@ internal object NativeMapHostContract {
     const val INITIAL_ZOOM = 17.0
     const val INITIAL_TILT = 40.0
     const val MAXIMUM_RENDER_FPS = 30
+    const val USE_TEXTURE_RENDERER = false
 }
 
 /** MapLibre Native host used only by the private native canary Activity. */
@@ -360,7 +361,10 @@ private class NativeMapLibreViewHost private constructor(
                 .camera(camera)
                 .minZoomPreference(engineProfile.minimumZoom)
                 .maxZoomPreference(engineProfile.maximumZoom)
-                .textureMode(true)
+                // RenderingRefreshMode.WHEN_DIRTY is supported only by MapLibre's
+                // SurfaceView renderer. Keeping this explicit also prevents a future
+                // theme attribute from silently switching back to TextureView.
+                .textureMode(NativeMapHostContract.USE_TEXTURE_RENDERER)
                 .foregroundLoadColor(
                     RoadstrThemeTokens.palette(
                         if (dark) {

@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">Höhe anzeigen</string>
     <string name="native_nav_arrived">🎉 Angekommen!</string>
     <string name="native_nav_close">Schließen</string>
+    <string name="native_ztl_inside">Eingeschränkte Verkehrszone</string>
+    <string name="native_ztl_nearby_named">Achtung: %1$s ist eine Zone mit Zufahrtsbeschränkung</string>
 </resources>

@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">Zobrazit nadmořskou výšku</string>
     <string name="native_nav_arrived">🎉 Dorazili jste!</string>
     <string name="native_nav_close">Zavřít</string>
+    <string name="native_ztl_inside">Omezená dopravní zóna</string>
+    <string name="native_ztl_nearby_named">Pozor: %1$s je zóna s omezeným provozem</string>
 </resources>

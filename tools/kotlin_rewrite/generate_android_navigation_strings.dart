@@ -21,6 +21,8 @@ const _resourceKeys = <String, String>{
   'native_nav_altitude': 'showAltitude',
   'native_nav_arrived': 'arrivedTitle',
   'native_nav_close': 'close',
+  'native_ztl_inside': 'ztlInsideWarning',
+  'native_ztl_nearby_named': 'ztlNearRouteWarning',
 };
 
 const _placeholders = <String, List<(String, String)>>{
@@ -28,6 +30,7 @@ const _placeholders = <String, List<(String, String)>>{
   'etaArrivalLabel': [('time', 's')],
   'durationMin': [('m', 'd')],
   'durationHourMin': [('h', 'd'), ('m', 'd')],
+  'ztlNearRouteWarning': [('street', 's')],
 };
 
 String _resourceFolder(String language) =>

@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">Показывать высоту</string>
     <string name="native_nav_arrived">🎉 Вы прибыли!</string>
     <string name="native_nav_close">Закрыть</string>
+    <string name="native_ztl_inside">Зона ограниченного движения</string>
+    <string name="native_ztl_nearby_named">Внимание: %1$s — зона ограниченного движения</string>
 </resources>

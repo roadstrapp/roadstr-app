@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">Taispeáin airde</string>
     <string name="native_nav_arrived">🎉 Tháinig tú!</string>
     <string name="native_nav_close">Dún</string>
+    <string name="native_ztl_inside">Crios tráchta srianta</string>
+    <string name="native_ztl_nearby_named">Aire: is crios tráchta srianta é %1$s</string>
 </resources>

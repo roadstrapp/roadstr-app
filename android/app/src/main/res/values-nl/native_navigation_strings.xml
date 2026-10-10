@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">Hoogte tonen</string>
     <string name="native_nav_arrived">🎉 Je bent er!</string>
     <string name="native_nav_close">Sluiten</string>
+    <string name="native_ztl_inside">Verkeersbeperkte zone</string>
+    <string name="native_ztl_nearby_named">Let op: %1$s is een zone met beperkt verkeer</string>
 </resources>
