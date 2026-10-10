@@ -18,6 +18,29 @@ class OfflinePackageManifestTest {
     }
 
     @Test
+    fun `manifest carries visual map label and tile schema`() {
+        val manifest = OfflinePackageManifestProtocol.decode(
+            manifest()
+                .replace("\"id\":\"routing-example\"", "\"id\":\"umbria-map\",\"label\":\"Umbria\"")
+                .replace("\"datasetType\":\"valhalla-routing\"", "\"datasetType\":\"pmtiles-map\",\"mapFormat\":\"shortbread-vector\"")
+                .replace("\"levels\":[0,1,2]", "\"levels\":[0,6,14]")
+                .toByteArray(),
+        )
+
+        assertEquals("Umbria", manifest.artifacts.single().label)
+        assertEquals(OfflineMapFormat.ShortbreadVector, manifest.artifacts.single().mapFormat)
+    }
+
+    @Test
+    fun `manifest carries stable catalog area id`() {
+        val manifest = OfflinePackageManifestProtocol.decode(
+            manifest().replace("\"id\":\"routing-example\"", "\"id\":\"emilia-map\",\"catalogAreaId\":\"it-emilia-romagna\"").toByteArray(),
+        )
+
+        assertEquals("it-emilia-romagna", manifest.artifacts.single().catalogAreaId)
+    }
+
+    @Test
     fun `manifest rejects insecure urls credentials duplicate ids and excessive bytes`() {
         assertThrows(OfflineManifestException::class.java) {
             OfflinePackageManifestProtocol.decode(manifest().replace("https://", "http://").toByteArray())

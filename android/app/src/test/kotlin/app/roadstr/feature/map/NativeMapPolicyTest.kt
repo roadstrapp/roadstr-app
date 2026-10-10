@@ -1,6 +1,13 @@
 package app.roadstr.feature.map
 
 import app.roadstr.core.map.ViewportWindow
+import app.roadstr.service.offline.InstalledOfflinePackage
+import app.roadstr.service.offline.OfflineCoverageArea
+import app.roadstr.service.offline.OfflineCoveragePoint
+import app.roadstr.service.offline.OfflineDatasetType
+import app.roadstr.service.offline.OfflineMapFormat
+import app.roadstr.service.offline.OfflinePackageArtifact
+import app.roadstr.service.offline.OfflinePackageBuild
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -135,4 +142,59 @@ class NativeMapPolicyTest {
                 .map { it.id },
         )
     }
+
+    @Test
+    fun `offline style maps each installed PMTiles archive to a local source`() {
+        val style = NativeMapStyle.offlineMapStyle(
+            dark = false,
+            packages = listOf(
+                installed("umbria", OfflineMapFormat.ShortbreadVector, "/data/umbria.pmtiles"),
+                installed("algarve", OfflineMapFormat.Raster, "/data/algarve.pmtiles"),
+            ),
+        )
+
+        assertTrue(style.contains("pmtiles://file:///data/umbria.pmtiles"))
+        assertTrue(style.contains("\"source-layer\":\"streets\""))
+        assertTrue(style.contains("\"id\":\"offline-raster-1\""))
+    }
+
+    @Test
+    fun `offline style maps MBTiles through MapLibre local source protocol`() {
+        val packageValue = installed("centro", OfflineMapFormat.ShortbreadVector, "/data/centro.mbtiles")
+            .let { it.copy(artifact = it.artifact.copy(datasetType = OfflineDatasetType.MbTilesMap)) }
+
+        val style = NativeMapStyle.offlineMapStyle(false, listOf(packageValue))
+
+        assertTrue(style.contains("\"url\":\"mbtiles:///data/centro.mbtiles\""))
+    }
+
+    private fun installed(id: String, format: OfflineMapFormat, path: String) = InstalledOfflinePackage(
+        artifact = OfflinePackageArtifact(
+            id = id,
+            version = 1,
+            datasetType = OfflineDatasetType.PmTilesMap,
+            area = OfflineCoverageArea.Polygon(
+                listOf(
+                    listOf(
+                        OfflineCoveragePoint(0.0, 0.0),
+                        OfflineCoveragePoint(0.0, 1.0),
+                        OfflineCoveragePoint(1.0, 1.0),
+                        OfflineCoveragePoint(1.0, 0.0),
+                        OfflineCoveragePoint(0.0, 0.0),
+                    ),
+                ),
+            ),
+            levels = setOf(0, 14),
+            sizeBytes = 127,
+            installedSizeBytes = 127,
+            sha256 = "a".repeat(64),
+            url = "https://packages.example/$id.pmtiles",
+            license = "ODbL-1.0",
+            attribution = "OpenStreetMap contributors",
+            build = OfflinePackageBuild("versatiles", "test", "test", "shortbread-1"),
+            mapFormat = format,
+        ),
+        filePath = path,
+        installedAtEpochMillis = 1L,
+    )
 }

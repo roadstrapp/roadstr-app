@@ -32,7 +32,9 @@ void main() {
     expect(dart, contains('_deadReckoningCapMs = 3000'));
     expect(dart, contains('event.reason == CameraChangeReason.apiGesture'));
     expect(dart, contains('pitch: _isNavigating ? 55.0 : 40.0'));
-    expect(kotlin, contains('FOLLOW_FRAME_MILLIS = 50L'));
+    // Camera cadence is selected by the active energy profile in the shell;
+    // the session remains a value-only consumer and owns no fixed timer.
+    expect(kotlin, contains('private val frameGate = CameraFrameGate()'));
     expect(kotlin, contains('DEAD_RECKONING_CAP_MILLIS = 3_000L'));
     expect(kotlin, contains('FREE_DRIVE_PITCH = 40.0'));
     expect(kotlin, contains('NAVIGATION_PITCH = 55.0'));

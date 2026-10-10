@@ -101,6 +101,7 @@ android {
             // also packages these below flutter_assets/, but that private
             // prefix is not where the native runtime looks (and AAPT must
             // expand the eSpeak .gz entry to the .tar name it opens).
+            assets.directories.add("src/main/assets")
             assets.directories.add("../../assets")
         }
     }
@@ -261,6 +262,8 @@ val bundledNativeChecksums = mapOf(
         "0078c57e5a0e15b5fcde9235f84a93ed9e4e49348851d07dadb157eee0edffef",
     "../../assets/espeak-ng-data.tar.gz" to
         "ecf9859bd233a19830c0cb048dc2c2f5162a2e4ab2de637cd2f2fabeb63ad84b",
+    "src/main/assets/offline_catalog/geonames-cities15000.tsv.gz" to
+        "0507efa5d7f3e4abd0f72d645b64b25194a33dfaa468c198da59509b2cb8b665",
 )
 
 val verifyBundledNativeAssets by tasks.registering {

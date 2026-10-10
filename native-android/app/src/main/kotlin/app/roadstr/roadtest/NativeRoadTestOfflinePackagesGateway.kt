@@ -4,6 +4,9 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import app.roadstr.feature.offline.NativeOfflinePackagesGateway
+import app.roadstr.feature.offline.OfflineMapProvider
+import app.roadstr.feature.offline.OfflineMapProviderClient
+import app.roadstr.feature.offline.OfflineProviderCatalog
 import app.roadstr.service.offline.InstalledOfflinePackage
 import app.roadstr.service.offline.OfflineInstallOutcome
 import app.roadstr.service.offline.OfflineManifestClient
@@ -16,6 +19,7 @@ class NativeRoadTestOfflinePackagesGateway(
     context: Context,
     private val manager: OfflinePackageManager,
     private val manifestClient: OfflineManifestClient,
+    private val providerClient: OfflineMapProviderClient,
 ) : NativeOfflinePackagesGateway {
     private val connectivity = context.getSystemService(ConnectivityManager::class.java)
 
@@ -25,12 +29,17 @@ class NativeRoadTestOfflinePackagesGateway(
 
     override suspend fun loadManifest(url: String): OfflinePackageManifest = manifestClient.load(url)
 
+    override suspend fun loadProvider(provider: OfflineMapProvider): OfflineProviderCatalog = when (provider) {
+        OfflineMapProvider.Geofabrik -> providerClient.loadGeofabrik()
+        else -> throw IllegalArgumentException("Provider does not expose directly installable packages")
+    }
+
     override suspend fun install(
         artifact: OfflinePackageArtifact,
         allowMobileDataOnce: Boolean,
         onProgress: (Long, Long) -> Unit,
     ): OfflineInstallOutcome = manager.install(
-        artifact = artifact,
+        artifact = providerClient.prepareForInstall(artifact),
         network = networkState(),
         allowMobileDataOnce = allowMobileDataOnce,
         onProgress = onProgress,

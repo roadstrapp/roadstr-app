@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import app.roadstr.R
 import app.roadstr.core.ui.theme.RoadstrThemeId
 import app.roadstr.core.ui.theme.RoadstrThemeTokens
+import app.roadstr.service.offline.InstalledOfflinePackage
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
@@ -51,6 +52,7 @@ fun NativeMapLibreHost(
     mapEngine: NativeMapEngine,
     maximumFps: Int,
     tileUrl: String,
+    offlineMapPackages: List<InstalledOfflinePackage> = emptyList(),
     routeOverlay: NativeRouteOverlaySnapshot,
     transitOverlay: NativeTransitOverlaySnapshot,
     cameraCommand: NativeMapCameraCommand?,
@@ -63,8 +65,12 @@ fun NativeMapLibreHost(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val engineProfile = remember(mapEngine) { NativeMapEngineCompatibility.profile(mapEngine) }
-    val styleJson = remember(dark, mapEngine, tileUrl) {
-        NativeMapEngineCompatibility.rasterStyle(mapEngine, dark, tileUrl)
+    val styleJson = remember(dark, mapEngine, tileUrl, offlineMapPackages) {
+        if (offlineMapPackages.isEmpty()) {
+            NativeMapEngineCompatibility.rasterStyle(mapEngine, dark, tileUrl)
+        } else {
+            NativeMapStyle.offlineMapStyle(dark, offlineMapPackages)
+        }
     }
     val mapDescription = stringResource(R.string.native_map_description)
     val currentCameraGesture = rememberUpdatedState(onCameraGesture)

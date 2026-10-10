@@ -93,16 +93,19 @@ The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rew
 | Collaborative report corrections — owner-signed updates + third-party edit requests | ✅ |
 | Activity inbox — zaps and confirmations received on your own reports | ✅ |
 | Customisable vehicle cursor — styles, colours, animated walking mode | ✅ |
-| Offline map rendering (MBTiles) | 🔜 Follow-up: routing packages are stable, full map rendering is next |
+| Downloadable offline maps — worldwide Geofabrik/Shortbread MBTiles catalog, 34k+ local city index, resumable verified downloads and local MapLibre rendering | ✅ |
 
 ---
 
 ## Roadmap
 
-### Next major change — complete offline maps
+### Offline map evolution
 
-The 1.0.0 release already supports verified offline routing packages and saved routes. The next step is rendering downloaded
-vector/MBTiles regions on-device with the same MapLibre experience as the online map; `main` stays shippable throughout.
+Roadstr now browses the live Geofabrik hierarchy, enriches it locally with GeoNames administrative areas and 34,000+ cities,
+downloads official Shortbread MBTiles extracts, and renders installed archives without a network connection. VersaTiles,
+OpenMapTiles and custom Roadstr HTTPS manifests remain visible provider choices; regional VersaTiles builds and self-hosted
+OpenMapTiles catalogs can be imported through the advanced manifest flow. A future package revision can add fully local
+glyph/sprite bundles for richer offline labels without changing the download format.
 
 ### Public-transport coverage
 
@@ -306,7 +309,7 @@ The plan, the audit and every decision taken are in [docs/world-discovery/](docs
 
 ## Privacy
 
-- **No accounts, no central servers, no telemetry/analytics SDKs** — the app talks directly to public Nostr relays, OSM tile/Overpass servers, and the chosen routing provider. Nothing is collected or sent to Roadstr itself.
+- **No accounts, no central servers, no telemetry/analytics SDKs** — the app talks directly to public Nostr relays, OSM tile/Overpass servers, the chosen routing provider and, when Offline areas is opened, the selected map provider. Nothing is collected or sent to Roadstr itself.
 - **GPS coordinates are read locally but are sent to third-party services as part of normal operation**: the routing provider (origin/destination), Overpass (periodic position pings during navigation, for live speed limits, speed cameras, traffic lights, pedestrian crossings, speed bumps, restricted zones and POI search), and Open-Meteo (for the weather row). None of these requests carry an account or persistent identifier — but if your threat model requires hiding your IP-linked location from those services, use a VPN (the onboarding flow suggests one). Saved favourites and the parking spot never leave the device unless you explicitly export or sync them.
 - **Road events are pseudonymous** — published under the user's Nostr public key with no additional personal metadata, and every event received from a relay is signature-verified before being trusted (relays cannot forge reports under someone else's identity).
 - **Favourites sync is end-to-end encrypted** (NIP-44) to the user's own key — relays storing the synced snapshot see only ciphertext.

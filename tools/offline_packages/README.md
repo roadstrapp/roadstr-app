@@ -10,7 +10,8 @@ hashes and the Valhalla choices for default speeds, time zones and elevation.
 Typical order:
 
 1. `fetch_extract.sh` downloads one explicit HTTPS PBF and records attribution.
-2. `build_pmtiles.sh` makes an OpenMapTiles-compatible PMTiles archive.
+2. `build_shortbread_pmtiles.sh` converts a VersaTiles Shortbread extract to
+   PMTiles (use `build_pmtiles.sh` only for the legacy OpenMapTiles experiment).
 3. `build_valhalla.sh` makes the full auto-only graph and `tiles.tar`.
 4. `build_routing_skeleton.sh`, `build_routing_region.sh` or
    `build_routing_corridor.sh` select a distributable routing package.
@@ -22,4 +23,15 @@ All shell entry points support `--help`; build entry points also support
 Valhalla needs more than 3.5 GiB RAM; the successful measured setup had 9 GiB.
 
 The scripts require Bash, Python 3, `sha256sum`, and, depending on the command,
-Java, `curl`, `jq`, Planetiler, or Valhalla's command-line programs.
+the `versatiles` CLI, Java, `curl`, `jq`, Planetiler, or Valhalla's command-line
+programs.  `build_shortbread_pmtiles.sh` accepts the public VersaTiles source
+only when the caller supplies its explicit HTTPS URL; it never chooses a
+catalogue or package host on behalf of Roadstr.
+
+`build_geonames_catalog.sh` refreshes the compact, bundled world place index
+from the official GeoNames `cities15000` and `admin1CodesASCII` exports. It is
+build-time catalog data only: the app does not contact the GeoNames web API.
+
+Manifest artifact specs may include `catalogAreaId` (a stable id such as
+`it-emilia-romagna`) and `label`. The former connects a verified package to the
+in-app geographic catalog; it is never inferred from a translated display name.

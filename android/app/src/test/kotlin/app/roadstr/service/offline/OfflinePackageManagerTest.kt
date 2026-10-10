@@ -20,6 +20,26 @@ class OfflinePackageManagerTest {
     @get:Rule val temporary = TemporaryFolder()
 
     @Test
+    fun `pmtiles validator requires the v3 header`() {
+        val valid = ByteArray(127)
+        "PMTiles".toByteArray(Charsets.UTF_8).copyInto(valid)
+        valid[7] = 3
+        val validFile = temporary.newFile("map.pmtiles").apply { writeBytes(valid) }
+        val mapArtifact = artifact(1, valid).copy(
+            id = "map-example",
+            datasetType = OfflineDatasetType.PmTilesMap,
+            url = "https://packages.example/map.pmtiles",
+            mapFormat = OfflineMapFormat.ShortbreadVector,
+        )
+        val validator = BasicOfflineArtifactValidator()
+
+        assertTrue(validator.validate(validFile, mapArtifact))
+        valid[7] = 2
+        val invalidFile = temporary.newFile("map-v2.pmtiles").apply { writeBytes(valid) }
+        assertFalse(validator.validate(invalidFile, mapArtifact))
+    }
+
+    @Test
     fun `explicit wifi download verifies installs and reloads atomically`() = runBlocking {
         val bytes = packageBytes(7)
         val transport = QueueTransport(response(200, bytes, etag = "v1"))
@@ -140,6 +160,27 @@ class OfflinePackageManagerTest {
 
         assertEquals(OfflineInstallOutcome.Rejected(OfflineDownloadRejection.IntegrityFailure), result)
         assertEquals(1, manager.installed().single().artifact.version)
+    }
+
+    @Test
+    fun `provider mbtiles is pinned to local sha after validator-protected download`() = runBlocking {
+        val bytes = ByteArray(1_024).also {
+            "SQLite format 3\u0000".toByteArray(Charsets.US_ASCII).copyInto(it)
+        }
+        val providerArtifact = artifact(1, bytes).copy(
+            datasetType = OfflineDatasetType.MbTilesMap,
+            levels = setOf(0, 14),
+            sha256 = null,
+            sourceValidator = "tiles-v1",
+            url = "https://packages.example/map.mbtiles",
+        )
+        val manager = manager(QueueTransport(response(200, bytes, "tiles-v1")))
+
+        val result = manager.install(providerArtifact, WIFI)
+
+        assertTrue(result is OfflineInstallOutcome.Installed)
+        assertEquals(sha256(bytes), manager.installed().single().artifact.sha256)
+        assertEquals(null, manager.installed().single().artifact.sourceValidator)
     }
 
     @Test

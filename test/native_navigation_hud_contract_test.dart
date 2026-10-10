@@ -38,8 +38,8 @@ void main() {
       final strings = RegExp(
         r'<string name="([^"]+)">([\s\S]*?)</string>',
       ).allMatches(entry.value).toList();
-      expect(strings, hasLength(15), reason: entry.key);
-      expect(strings.map((match) => match.group(1)).toSet(), hasLength(15));
+      expect(strings, hasLength(17), reason: entry.key);
+      expect(strings.map((match) => match.group(1)).toSet(), hasLength(17));
       expect(_value(strings, 'native_nav_then'), contains(r'%1$s'));
       expect(_value(strings, 'native_nav_eta'), contains(r'%1$s'));
       expect(_value(strings, 'native_nav_duration_min'), contains(r'%1$d'));
@@ -49,6 +49,8 @@ void main() {
       );
       expect(_value(strings, 'native_nav_arrived'), isNotEmpty);
       expect(_value(strings, 'native_nav_close'), isNotEmpty);
+      expect(_value(strings, 'native_ztl_inside'), isNotEmpty);
+      expect(_value(strings, 'native_ztl_nearby_named'), contains(r'%1$s'));
     }
   });
 

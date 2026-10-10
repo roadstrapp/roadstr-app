@@ -10,12 +10,29 @@ import kotlin.math.floor
 enum class OfflineDatasetType(val wireValue: String) {
     ValhallaRouting("valhalla-routing"),
     PmTilesMap("pmtiles-map"),
+    MbTilesMap("mbtiles-map"),
     SearchIndex("search-index");
 
     companion object {
         fun fromWire(value: String): OfflineDatasetType = entries.firstOrNull {
             it.wireValue == value
         } ?: throw OfflineManifestException("Unsupported dataset type")
+    }
+}
+
+/**
+ * The tile schema is part of the package contract.  A PMTiles container only
+ * describes how bytes are addressed; it does not tell MapLibre whether those
+ * bytes are raster images or vector features.
+ */
+enum class OfflineMapFormat(val wireValue: String) {
+    ShortbreadVector("shortbread-vector"),
+    Raster("raster");
+
+    companion object {
+        fun fromWire(value: String): OfflineMapFormat = entries.firstOrNull {
+            it.wireValue == value
+        } ?: throw OfflineManifestException("Unsupported map format")
     }
 }
 
@@ -45,11 +62,21 @@ data class OfflinePackageArtifact(
     val levels: Set<Int>,
     val sizeBytes: Long,
     val installedSizeBytes: Long,
-    val sha256: String,
+    val sha256: String?,
     val url: String,
     val license: String,
     val attribution: String,
     val build: OfflinePackageBuild,
+    /** Human-readable catalogue label; IDs remain the stable storage key. */
+    val label: String? = null,
+    /** Required for PMTiles artifacts; omitted by old non-map manifests. */
+    val mapFormat: OfflineMapFormat? = null,
+    /** Stable geographic catalog id; absent in legacy manifests. */
+    val catalogAreaId: String? = null,
+    /** HTTP entity validator used for provider packages whose publisher does
+     * not expose a checksum. It is replaced by the locally computed SHA-256
+     * when the package is activated. */
+    val sourceValidator: String? = null,
 )
 
 data class OfflinePackageManifest(
@@ -113,13 +140,26 @@ object OfflinePackageManifestProtocol {
         val version = integer(value["version"], "artifact version")
         if (version <= 0) throw OfflineManifestException("Invalid artifact version")
         val type = OfflineDatasetType.fromWire(text(value["datasetType"], "dataset type"))
+        val mapFormat = value["mapFormat"]?.let { OfflineMapFormat.fromWire(text(it, "map format")) }
+            ?: type.takeIf { it == OfflineDatasetType.PmTilesMap || it == OfflineDatasetType.MbTilesMap }
+                ?.let { OfflineMapFormat.ShortbreadVector }
+        if (type != OfflineDatasetType.PmTilesMap && type != OfflineDatasetType.MbTilesMap && mapFormat != null) {
+            throw OfflineManifestException("Map format is only valid for map artifacts")
+        }
         val levels = integerList(value["levels"], "levels").toSet()
-        if (levels.isEmpty() || levels.any { it !in 0..2 }) throw OfflineManifestException("Invalid levels")
+        val maximumLevel = if (type == OfflineDatasetType.PmTilesMap || type == OfflineDatasetType.MbTilesMap) 24 else 2
+        if (levels.isEmpty() || levels.any { it !in 0..maximumLevel }) {
+            throw OfflineManifestException("Invalid levels")
+        }
         val size = long(value["sizeBytes"], "download size")
         val installed = (value["installedSizeBytes"] as? Number)?.toLong() ?: size
         if (size <= 0 || installed <= 0) throw OfflineManifestException("Invalid artifact size")
-        val hash = text(value["sha256"], "sha256").lowercase(Locale.ROOT)
-        if (!SHA256.matches(hash)) throw OfflineManifestException("Invalid sha256")
+        val hash = optionalText(value["sha256"], "sha256")?.lowercase(Locale.ROOT)
+        if (hash != null && !SHA256.matches(hash)) throw OfflineManifestException("Invalid sha256")
+        val sourceValidator = optionalText(value["sourceValidator"], "source validator")
+        if (hash == null && sourceValidator == null) {
+            throw OfflineManifestException("Artifact integrity metadata is missing")
+        }
         val url = validateUrl(text(value["url"], "artifact URL")).toASCIIString()
         val build = build(value["build"] as? Map<*, *>)
         return OfflinePackageArtifact(
@@ -135,6 +175,10 @@ object OfflinePackageManifestProtocol {
             license = text(value["license"], "license"),
             attribution = text(value["attribution"], "attribution"),
             build = build,
+            label = optionalText(value["label"], "artifact label"),
+            mapFormat = mapFormat,
+            catalogAreaId = optionalId(value["catalogAreaId"], "catalog area id"),
+            sourceValidator = sourceValidator,
         )
     }
 
@@ -219,6 +263,18 @@ object OfflinePackageManifestProtocol {
         return text
     }
 
+    private fun optionalText(value: Any?, label: String): String? = when (value) {
+        null -> null
+        else -> text(value, label)
+    }
+
+    private fun optionalId(value: Any?, label: String): String? = when (value) {
+        null -> null
+        else -> text(value, label).lowercase(Locale.ROOT).also {
+            if (!ID.matches(it)) throw OfflineManifestException("Invalid $label")
+        }
+    }
+
     private fun integer(value: Any?, label: String): Int {
         val number = value as? Number ?: throw OfflineManifestException("Invalid $label")
         val long = number.toLong()
@@ -267,12 +323,30 @@ object OfflinePackageManifestProtocol {
         appendJson(value.id)
         append(",\"version\":${value.version},\"datasetType\":")
         appendJson(value.datasetType.wireValue)
+        value.label?.let {
+            append(",\"label\":")
+            appendJson(it)
+        }
+        value.catalogAreaId?.let {
+            append(",\"catalogAreaId\":")
+            appendJson(it)
+        }
+        value.mapFormat?.let {
+            append(",\"mapFormat\":")
+            appendJson(it.wireValue)
+        }
         append(",\"area\":")
         appendArea(value.area)
         append(",\"levels\":[${value.levels.sorted().joinToString(",")}]")
         append(",\"sizeBytes\":${value.sizeBytes},\"installedSizeBytes\":${value.installedSizeBytes}")
-        append(",\"sha256\":")
-        appendJson(value.sha256)
+        value.sha256?.let {
+            append(",\"sha256\":")
+            appendJson(it)
+        }
+        value.sourceValidator?.let {
+            append(",\"sourceValidator\":")
+            appendJson(it)
+        }
         append(",\"url\":")
         appendJson(value.url)
         append(",\"license\":")

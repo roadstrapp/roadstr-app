@@ -33,6 +33,7 @@ import app.roadstr.feature.home.NativeShellMode
 import app.roadstr.feature.home.NativeShellNostr
 import app.roadstr.feature.saved.NativeParkingPosition
 import app.roadstr.feature.history.NativeRouteHistoryProtocol
+import app.roadstr.feature.offline.OfflineMapProviderClient
 import app.roadstr.feature.saved.NativeSavedPlacesProtocol
 import app.roadstr.feature.savedroute.NativeSavedRouteProtocol
 import app.roadstr.feature.savedroute.NativeSavedRoutesStore
@@ -119,10 +120,17 @@ open class NativeRoadTestActivity : ComponentActivity() {
         )
     }
     private val offlinePackagesGateway by lazy(LazyThreadSafetyMode.NONE) {
+        val providerClient = OfflineMapProviderClient(
+            File(filesDir, "offline-provider-catalogs"),
+            offlineTransport,
+            // AAPT expands .gz assets and exposes them without the suffix.
+            bundledPlaces = { assets.open("offline_catalog/geonames-cities15000.tsv") },
+        )
         NativeRoadTestOfflinePackagesGateway(
             applicationContext,
             offlinePackageManager,
             OfflineManifestClient(offlineTransport),
+            providerClient,
         )
     }
     private val journeyGateway by lazy(LazyThreadSafetyMode.NONE) {
