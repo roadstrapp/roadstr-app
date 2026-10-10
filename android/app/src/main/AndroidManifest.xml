@@ -76,6 +76,8 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Tankful sends its bounded destination JSON to this launcher explicitly. Keep
+                 ACTION_SEND out of an intent-filter: Roadstr must not become a global share target. -->
         </activity>
         <!-- Dormant Compose packaging canary. It has no external intent filter
              and no production code launches it; MainActivity remains the sole
