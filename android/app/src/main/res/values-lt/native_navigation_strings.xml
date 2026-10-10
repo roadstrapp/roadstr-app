@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">Rodyti aukštį</string>
     <string name="native_nav_arrived">🎉 Atvykote!</string>
     <string name="native_nav_close">Uždaryti</string>
+    <string name="native_ztl_inside">Riboto eismo zona</string>
+    <string name="native_ztl_nearby_named">Dėmesio: %1$s yra riboto eismo zona</string>
 </resources>

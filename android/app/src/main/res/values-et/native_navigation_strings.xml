@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">Näita kõrgust</string>
     <string name="native_nav_arrived">🎉 Olete kohal!</string>
     <string name="native_nav_close">Sulge</string>
+    <string name="native_ztl_inside">Piiratud liikluse tsoon</string>
+    <string name="native_ztl_nearby_named">Tähelepanu: %1$s on piiratud liiklusega ala</string>
 </resources>

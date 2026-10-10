@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">標高を表示</string>
     <string name="native_nav_arrived">🎉 到着しました！</string>
     <string name="native_nav_close">閉じる</string>
+    <string name="native_ztl_inside">交通制限区域</string>
+    <string name="native_ztl_nearby_named">注意：%1$s は交通制限区域です</string>
 </resources>

@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">Uri l-għoli</string>
     <string name="native_nav_arrived">🎉 Wasalt!</string>
     <string name="native_nav_close">Agħlaq</string>
+    <string name="native_ztl_inside">Żona ta\' traffiku ristrett</string>
+    <string name="native_ztl_nearby_named">Attenzjoni: %1$s hija żona ta\' traffiku ristrett</string>
 </resources>

@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">Rādīt augstumu</string>
     <string name="native_nav_arrived">🎉 Esat ieradušies!</string>
     <string name="native_nav_close">Aizvērt</string>
+    <string name="native_ztl_inside">Ierobežotas satiksmes zona</string>
+    <string name="native_ztl_nearby_named">Uzmanību: %1$s ir ierobežotas satiksmes zona</string>
 </resources>

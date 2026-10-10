@@ -12,6 +12,7 @@ class NativeMapLifecycleTest {
         assertEquals(17.0, NativeMapHostContract.INITIAL_ZOOM, 0.0)
         assertEquals(40.0, NativeMapHostContract.INITIAL_TILT, 0.0)
         assertEquals(30, NativeMapHostContract.MAXIMUM_RENDER_FPS)
+        assertEquals(false, NativeMapHostContract.USE_TEXTURE_RENDERER)
     }
 
     @Test

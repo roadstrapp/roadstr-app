@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">Vis højde</string>
     <string name="native_nav_arrived">🎉 Du er fremme!</string>
     <string name="native_nav_close">Luk</string>
+    <string name="native_ztl_inside">Begrænset trafikzone</string>
+    <string name="native_ztl_nearby_named">Bemærk: %1$s er en zone med begrænset trafik</string>
 </resources>

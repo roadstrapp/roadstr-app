@@ -38,8 +38,8 @@ production update path, migration, navigation and the surrounding integrations:
   saved places, cross-device sync, settings, language switching, Amber login/logout and the voice model were exercised.
 - The native routing stack, offline packages, saved routes, Tankful JSON destinations, road-event flows, Nostr integrations,
   release identity and signed update path were validated with device checks plus the automated suites.
-- The OpenStreetMap speed cameras are now in the Kotlin app too; the ZTL warnings remain a 0.5.x-only feature for now
-  (road events reported by people are there).
+- OpenStreetMap speed cameras and ZTL/ZAC/limited-traffic warnings are in the Kotlin app, including restricted route colouring,
+  live inside/nearby notices and bounded Overpass caching (road events reported by people are there too).
 - Known limits are product behavior rather than missing validation: a trip is held in memory, so if Android kills the process
   the trip is not restored; translations have not been reviewed by native speakers (Irish and Maltese are the least reliable).
 
@@ -66,11 +66,12 @@ The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rew
 | Live speed-limit display (explicit OSM `maxspeed` data; unknown stays unknown) | ✅ |
 | Speed cameras reported by the community (kind 1315) | ✅ |
 | Speed cameras from OpenStreetMap data | ✅ Kotlin app (bounded Overpass cache; baseline, not a community report) |
-| ZTL (limited-traffic zone) warnings | 0.5.x only for now — not in the Kotlin app yet |
+| ZTL / ZAC / limited-traffic-zone warnings and restricted route colouring (OSM/Overpass) | ✅ |
 | Road-element overlays — traffic lights, pedestrian crossings, speed bumps (OSM) | ✅ |
 | On-device AI voice guidance (Kokoro-82M; Piper / Thorsten-Voice for German) | ✅ |
 | Nostr road events — kind 1315 (reports) / 1316 (confirmations) | ✅ |
-| Nostr login — Amber (NIP-55) or a remote signer (NIP-46 bunker); no private key in the app | ✅ |
+| Nostr login — Amber (NIP-55) or a remote signer (NIP-46 via `nostrconnect://` or `bunker://`); no private key in the app | ✅ |
+| Public-transport itineraries through Transitous (bus, tram, metro, rail, coach and ferry where open feeds exist) | ✅ |
 | Lightning Network zaps for road-event contributors | ✅ |
 | Nostr Wallet Connect (NIP-47) | ✅ |
 | Address & POI search (Nominatim, position-biased) | ✅ |
@@ -101,12 +102,12 @@ The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rew
 The 1.0.0 release already supports verified offline routing packages and saved routes. The next step is rendering downloaded
 vector/MBTiles regions on-device with the same MapLibre experience as the online map; `main` stays shippable throughout.
 
-### Also planned
+### Public-transport coverage
 
-- The ZTL warnings of 0.5.x, brought over to the Kotlin app
-- Wider public-transport coverage, by getting more operators' timetables into the open data ecosystem the routing already reads
-- Logging in with a bunker offered as a `nostrconnect://` link (the form Amber offers to other apps), next to the `bunker://` link
-- A persistent relay connection for the remote signer, instead of one connection per request
+Roadstr reads Transitous rather than maintaining a private timetable silo, so every compatible operator feed added upstream
+becomes available to Roadstr without an app release. The practical contribution path — finding a stable GTFS/NeTEx URL,
+adding the regional source, attaching realtime data and validating the pull request — is documented in
+[Adding public-transport coverage](docs/TRANSIT_DATA.md).
 
 ---
 
@@ -148,7 +149,7 @@ MB). Moving the Flutter app out of `main` would flip the bar; it stays for now b
 | NIP-04 | Legacy symmetric encryption for NWC pay requests, and for signers that only speak it |
 | NIP-19 | Bech32 key encoding (npub) |
 | NIP-44 | Versioned encryption (v2) — favourites sync, negotiated NWC and the remote-signer channel |
-| NIP-46 | Nostr Connect — sign in with a remote signer (`bunker://` link) |
+| NIP-46 | Nostr Connect — signer-initiated `bunker://` and client-initiated `nostrconnect://`, over persistent relay sockets |
 | NIP-47 | Nostr Wallet Connect — pay Lightning invoices from any compatible wallet |
 | NIP-55 | Android Signer Application — Amber integration |
 | NIP-57 | Zap receipts — Lightning tips attached to kind-1315 road events |
@@ -344,8 +345,9 @@ Check your internet connection. Tiles are fetched at runtime from OpenStreetMap;
 Ensure your version of Amber supports NIP-55. Roadstr uses the `get_public_key`, `sign_event` and NIP-44 methods.
 
 **A bunker login says the bunker did not answer**  
-Check that the link starts with `bunker://` and names at least one `wss://` relay, that the signer is online, and approve the
-request in the signer app. Public relays may rate-limit; use the relays the bunker's own link names.
+For a pasted link, check that it starts with `bunker://` and names at least one `wss://` relay. Alternatively choose
+*Open signer app* and approve Roadstr's `nostrconnect://` offer. Ensure the signer is online and approve the request there;
+public relays can still rate-limit or be temporarily unavailable.
 
 **Voice guidance not working**  
 Download the voice models from *Settings → Navigation voice → Voice model*. Voice is available for Italian, English, Spanish,

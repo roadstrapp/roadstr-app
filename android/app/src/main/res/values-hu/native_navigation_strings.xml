@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">Magasság megjelenítése</string>
     <string name="native_nav_arrived">🎉 Megérkezett!</string>
     <string name="native_nav_close">Bezárás</string>
+    <string name="native_ztl_inside">Korlátozott forgalmú zóna</string>
+    <string name="native_ztl_nearby_named">Figyelem: %1$s korlátozott forgalmú övezet</string>
 </resources>

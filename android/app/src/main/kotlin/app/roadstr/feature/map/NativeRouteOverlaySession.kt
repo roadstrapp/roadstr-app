@@ -48,6 +48,11 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
 
     val state: StateFlow<NativeRouteOverlaySessionState> = _state.asStateFlow()
 
+    /** Full selected geometry retained for policies such as ZTL classification. */
+    fun classificationTarget(): Pair<Long, List<NativeMapPoint>>? = synchronized(lock) {
+        route?.let { currentRevision to it.points }
+    }
+
     /**
      * Accepts a complete normalized route only if [revision] is newer than
      * the currently visible route. The caller owns request-generation values.

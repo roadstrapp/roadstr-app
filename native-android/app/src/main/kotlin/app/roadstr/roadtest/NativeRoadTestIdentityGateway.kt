@@ -3,6 +3,7 @@ package app.roadstr.roadtest
 import android.content.Context
 import android.util.Base64
 import app.roadstr.core.protocol.nostr.NostrBunkerUri
+import app.roadstr.core.protocol.nostr.NostrConnectUri
 import app.roadstr.core.protocol.nostr.NostrNip19
 import app.roadstr.core.protocol.nostr.NostrSchnorr
 import app.roadstr.feature.profile.NativeBunkerLoginResult
@@ -11,7 +12,9 @@ import app.roadstr.feature.profile.NativeIdentitySnapshot
 import app.roadstr.feature.profile.NativeProfileIdentityFlavor
 import app.roadstr.feature.profile.NativeProfileMetadata
 import app.roadstr.service.nostr.NativeBunkerClient
+import app.roadstr.service.nostr.NativeNostrConnectReceiver
 import app.roadstr.service.nostr.NativeRelayConnector
+import app.roadstr.service.nostr.NativeRoadEventService
 import app.roadstr.service.nostr.OkHttpRelayConnector
 import java.nio.charset.StandardCharsets
 import java.security.KeyStore
@@ -83,13 +86,52 @@ class NativeRoadTestIdentityGateway(
         val account = client.call("get_public_key", emptyList())
         val publicHex = account.result?.trim()?.lowercase()?.takeIf { account.ok && HEX_64.matches(it) }
             ?: return failure(account.error)
+        return saveBunker(publicHex, clientKey, uri.remotePubkeyHex, uri.relays)
+    }
+
+    override suspend fun loginNostrConnect(openOffer: (String) -> Unit): NativeBunkerLoginResult {
+        val clientKey = newClientKey()
+        val clientPubkey = NostrSchnorr.publicKey(clientKey)
+        val secret = NativeBunkerClient.randomRequestId()
+        val relays = NativeRoadEventService.DEFAULT_RELAYS.take(NostrBunkerUri.MAX_RELAYS)
+        val offer = NostrConnectUri.build(
+            clientPubkeyHex = clientPubkey,
+            relays = relays,
+            secret = secret,
+            permissions = REQUESTED_PERMISSIONS,
+            name = "Roadstr",
+            url = "https://github.com/roadstrapp/roadstr-app",
+        )
+        val remote = NativeNostrConnectReceiver(connector, clientKey, relays).awaitSigner(
+            secret = secret,
+            onOfferReady = { openOffer(offer) },
+        ) ?: return NativeBunkerLoginResult.NoAnswer
+        val client = NativeBunkerClient(
+            connector = connector,
+            clientKeyHex = clientKey,
+            remotePubkeyHex = remote,
+            relays = relays,
+            onAuthUrl = { url -> openUrl(url) },
+        )
+        val account = client.call("get_public_key", emptyList())
+        val publicHex = account.result?.trim()?.lowercase()?.takeIf { account.ok && HEX_64.matches(it) }
+            ?: return failure(account.error)
+        return saveBunker(publicHex, clientKey, remote, relays)
+    }
+
+    private fun saveBunker(
+        publicHex: String,
+        clientKey: String,
+        remotePubkeyHex: String,
+        relays: List<String>,
+    ): NativeBunkerLoginResult {
         val saved = runCatching {
             check(preferences.edit()
                 .putString(PUBLIC_KEY, publicHex)
                 .putString(FLAVOR, NativeProfileIdentityFlavor.Bunker.wireValue)
                 .putString(BUNKER_CLIENT_KEY, encrypt(clientKey))
-                .putString(BUNKER_REMOTE, uri.remotePubkeyHex)
-                .putString(BUNKER_RELAYS, uri.relays.joinToString("\n"))
+                .putString(BUNKER_REMOTE, remotePubkeyHex)
+                .putString(BUNKER_RELAYS, relays.joinToString("\n"))
                 .remove(PRIVATE_KEY)
                 .commit()) { "Unable to persist the identity" }
         }.isSuccess
