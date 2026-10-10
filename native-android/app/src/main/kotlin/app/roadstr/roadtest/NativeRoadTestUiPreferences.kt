@@ -30,6 +30,8 @@ class NativeRoadTestUiPreferences(
         routingProvider = NativeSettingsRoutingProvider.fromStorage(
             preferences.getString("routing_provider", null),
         ),
+        offlineRoutingEnabled = preferences.getBoolean("offline_routing", false),
+        offlineOnlineFallbackAllowed = preferences.getBoolean("offline_online_fallback", false),
         graphHopperServer = preferences.getString("graphhopper_server", null).orEmpty(),
         searchEngine = NativeSettingsSearchEngine.fromStorage(
             preferences.getString("search_engine", null),
@@ -83,6 +85,8 @@ class NativeRoadTestUiPreferences(
             .putBoolean("auto_center", value.autoCenterOnLaunch)
             .putString("tile_url", value.mapTileUrl)
             .putString("routing_provider", value.routingProvider.storageValue)
+            .putBoolean("offline_routing", value.offlineRoutingEnabled)
+            .putBoolean("offline_online_fallback", value.offlineOnlineFallbackAllowed)
             .putString("graphhopper_server", value.graphHopperServer)
             .putString("search_engine", value.searchEngine.storageValue)
             .putBoolean("voice_enabled", value.voiceEnabled)

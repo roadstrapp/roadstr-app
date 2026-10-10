@@ -110,6 +110,7 @@ sealed interface NativeSettingsUiAction {
     data class GraphHopperServerChanged(val value: String) : NativeSettingsUiAction
     data object ConfigureRoutingKey : NativeSettingsUiAction
     data object TestGraphHopper : NativeSettingsUiAction
+    data object OpenOfflinePackages : NativeSettingsUiAction
     data class SpeedometerChanged(val value: NativeSpeedometerStyle) : NativeSettingsUiAction
     data class CursorStyleChanged(val value: NativeSettingsCursorStyle) : NativeSettingsUiAction
     data class CursorColorChanged(val value: NativeSettingsCursorColor) : NativeSettingsUiAction
@@ -431,6 +432,32 @@ private fun MapSection(
             labelFor = { routingProviderLabel(it) },
             onSelected = { onAction(NativeSettingsUiAction.RoutingProviderChanged(it)) },
         )
+        ToggleRow(
+            R.string.native_offline_routing,
+            R.string.native_offline_routing_desc,
+            values.offlineRoutingEnabled,
+        ) {
+            onAction(NativeSettingsUiAction.BooleanChanged(NativeSettingsBooleanKey.OfflineRouting, it))
+        }
+        if (values.offlineRoutingEnabled) {
+            ToggleRow(
+                R.string.native_offline_fallback,
+                R.string.native_offline_fallback_desc,
+                values.offlineOnlineFallbackAllowed,
+            ) {
+                onAction(
+                    NativeSettingsUiAction.BooleanChanged(
+                        NativeSettingsBooleanKey.OfflineOnlineFallback,
+                        it,
+                    ),
+                )
+            }
+        }
+        SecureConfigurationRow(
+            title = stringResource(R.string.native_offline_downloaded_areas),
+            configured = false,
+            description = stringResource(R.string.native_offline_downloaded_areas_desc),
+        ) { onAction(NativeSettingsUiAction.OpenOfflinePackages) }
         if (values.routingProvider == NativeSettingsRoutingProvider.GraphHopperSelfHosted) {
             SettingsTextField(
                 revisionValue = values.graphHopperServer,

@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.net.Uri
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -47,6 +49,17 @@ import app.roadstr.service.nostr.NativeUserReportsService
 import app.roadstr.service.nostr.NativeZapService
 import app.roadstr.service.nostr.NativeRelayConnectorSelector
 import app.roadstr.service.nostr.OkHttpRelayConnector
+import app.roadstr.service.offline.BasicOfflineArtifactValidator
+import app.roadstr.service.offline.OfflineArtifactValidator
+import app.roadstr.service.offline.OfflineDatasetType
+import app.roadstr.service.offline.OfflineManifestClient
+import app.roadstr.service.offline.OfflinePackageManager
+import app.roadstr.service.offline.OkHttpOfflinePackageDownloadTransport
+import app.roadstr.service.routing.AndroidLocalValhallaSessionFactory
+import app.roadstr.service.routing.LocalRoutingDataset
+import app.roadstr.service.routing.OfflineRoutingPreferences
+import app.roadstr.service.routing.ValhallaLocalRoutingEngine
+import java.io.File
 
 /**
  * Compose launcher for the Kotlin app. As the road-test APK it stands alone with its own stores; the
@@ -67,12 +80,64 @@ open class NativeRoadTestActivity : ComponentActivity() {
     // One transport for every network service: a single connection pool and
     // the same deadline and response-size policy for all of them.
     private val httpClient by lazy(LazyThreadSafetyMode.NONE) { NativeBoundedHttpClient() }
+    private val localValhallaFactory by lazy(LazyThreadSafetyMode.NONE) {
+        AndroidLocalValhallaSessionFactory(applicationContext)
+    }
+    private val localRoutingEngine by lazy(LazyThreadSafetyMode.NONE) {
+        ValhallaLocalRoutingEngine(localValhallaFactory)
+    }
+    private val offlineTransport by lazy(LazyThreadSafetyMode.NONE) {
+        OkHttpOfflinePackageDownloadTransport()
+    }
+    private val offlinePackageManager by lazy(LazyThreadSafetyMode.NONE) {
+        val basic = BasicOfflineArtifactValidator()
+        OfflinePackageManager(
+            rootDirectory = File(filesDir, "offline-packages"),
+            transport = offlineTransport,
+            validator = OfflineArtifactValidator { file, artifact ->
+                if (!basic.validate(file, artifact)) return@OfflineArtifactValidator false
+                if (artifact.datasetType != OfflineDatasetType.ValhallaRouting) {
+                    return@OfflineArtifactValidator true
+                }
+                runCatching {
+                    localValhallaFactory.open(
+                        LocalRoutingDataset(
+                            id = artifact.id,
+                            version = artifact.version,
+                            tileExtractPath = file.absolutePath,
+                            buildId = artifact.build.compatibilityId,
+                        ),
+                    ).use { }
+                    true
+                }.getOrDefault(false)
+            },
+            closeEngine = localRoutingEngine::closeDataset,
+        )
+    }
+    private val offlinePackagesGateway by lazy(LazyThreadSafetyMode.NONE) {
+        NativeRoadTestOfflinePackagesGateway(
+            applicationContext,
+            offlinePackageManager,
+            OfflineManifestClient(offlineTransport),
+        )
+    }
     private val journeyGateway by lazy(LazyThreadSafetyMode.NONE) {
         NativeRoadTestJourneyGateway(
             context = applicationContext,
             transport = httpClient,
             routingConfiguration = ::routingConfiguration,
             webSettings = ::loadWebSearch,
+            offlineSettings = {
+                uiPreferences.load().let {
+                    OfflineRoutingPreferences(
+                        enabled = it.offlineRoutingEnabled,
+                        onlineFallbackAllowed = it.offlineOnlineFallbackAllowed,
+                    )
+                }
+            },
+            installedPackages = offlinePackageManager::installed,
+            networkAvailable = ::networkAvailable,
+            localRoutingEngine = localRoutingEngine,
             names = storeNames,
         )
     }
@@ -283,6 +348,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
             onFavoritesChanged = favoritesStore::save,
             initialSettings = initialSettings,
             onSettingsChanged = uiPreferences::save,
+            offlinePackagesGateway = offlinePackagesGateway,
             onNwcChanged = ::saveNwc,
             onRoutingKeyChanged = ::saveRoutingKey,
             hazardService = hazardService,
@@ -313,6 +379,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
         webBrowser.release()
         nostr?.roadEvents?.close()
         scheduler.shutdown()
+        localRoutingEngine.close()
         releaseRuntime(runtime)
         super.onDestroy()
     }
@@ -457,6 +524,13 @@ open class NativeRoadTestActivity : ComponentActivity() {
             graphHopperServer = settings.graphHopperServer,
             deferCredentialReadForOsrm = false,
         )
+    }
+
+    private fun networkAvailable(): Boolean {
+        val connectivity = getSystemService(ConnectivityManager::class.java)
+        val active = connectivity.activeNetwork ?: return false
+        val capabilities = connectivity.getNetworkCapabilities(active) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
     /** The web search settings, decrypted once; unreadable means off with no instance. */
