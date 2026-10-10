@@ -6,6 +6,8 @@ It combines real-time GPS turn-by-turn navigation with community-sourced traffic
 > **Version 1.0.0** — Android only. The first stable Kotlin release (Jetpack Compose and MapLibre Native) is here.
 > The Flutter app of the 0.5.x line lives on the branch [`flutter-maintenance`](https://github.com/roadstrapp/roadstr-app/tree/flutter-maintenance).
 
+See the complete migration and release history in [CHANGELOG.md](CHANGELOG.md).
+
 ---
 
 ## What 1.0.0 is
@@ -58,6 +60,9 @@ The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rew
 | OpenRouteService routing | ✅ code and tests |
 | Multi-route alternatives with traffic preview | ✅ |
 | Route planner (A → B with freeform waypoints) | ✅ |
+| Saved routes — encrypted plans, destinations and waypoints | ✅ |
+| Offline routing — verified packages and on-device Valhalla engine | ✅ |
+| External JSON destinations — Tankful handoff into route planning | ✅ |
 | Speed-adaptive zoom | ✅ |
 | Live speed-limit display (explicit OSM `maxspeed` data; unknown stays unknown) | ✅ |
 | Speed cameras reported by the community (kind 1315) | ✅ |
@@ -86,7 +91,7 @@ The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rew
 | Collaborative report corrections — owner-signed updates + third-party edit requests | ✅ code and tests |
 | Activity inbox — zaps and confirmations received on your own reports | ✅ |
 | Customisable vehicle cursor — styles, colours, animated walking mode | ✅ |
-| Offline maps (MBTiles) | 🔜 Next major change |
+| Offline map rendering (MBTiles) | 🔜 Follow-up: routing packages are stable, full map rendering is next |
 
 "✅ code and tests" marks what has not yet had a check on a phone (see [How far it has been checked](#how-far-it-has-been-checked)).
 
@@ -94,11 +99,10 @@ The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rew
 
 ## Roadmap
 
-### Next major change — offline maps
+### Next major change — complete offline maps
 
-Vector data is small enough to carry a region on the device, which raster tiles fetched over the network never allowed.
-That work happens on its own branch and only merges once it matches what online maps already do — `main` stays shippable
-throughout.
+The 1.0.0 release already supports verified offline routing packages and saved routes. The next step is rendering downloaded
+vector/MBTiles regions on-device with the same MapLibre experience as the online map; `main` stays shippable throughout.
 
 ### Also planned
 
