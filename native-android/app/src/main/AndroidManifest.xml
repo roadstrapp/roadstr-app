@@ -45,6 +45,8 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- The road-test accepts the same explicit JSON Intent as production, without
+                 advertising an implicit ACTION_SEND share target. -->
         </activity>
         <!-- Only the optional GeckoView build has this component. It is exported so other apps can
              read what the browser copied; Roadstr does not offer that, so it is removed. -->

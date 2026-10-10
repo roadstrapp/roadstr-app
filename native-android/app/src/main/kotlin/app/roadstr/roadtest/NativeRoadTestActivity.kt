@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.roadstr.R
+import app.roadstr.core.intent.NativeExternalDestinationInbox
 import app.roadstr.core.discovery.web.WebDiscoverySettings
 import app.roadstr.core.discovery.web.WebDiscoverySettingsCodec
 import app.roadstr.core.network.RoutingProviderConfigProtocol
@@ -72,6 +73,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
     // them for the whole process so a trip does not end with the screen.
     private val runtime: NativeNavigationRuntime by lazy(LazyThreadSafetyMode.NONE) { obtainRuntime() }
     private val locationController: NativeRoadTestLocationController get() = runtime.location
+    private val externalDestinationInbox = NativeExternalDestinationInbox()
 
     internal open fun obtainRuntime(): NativeNavigationRuntime = NativeNavigationRuntime(applicationContext, storeNames)
 
@@ -269,11 +271,33 @@ open class NativeRoadTestActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        acceptExternalDestination(intent)
         enableEdgeToEdge()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             setRecentsScreenshotEnabled(false)
         }
         setContent { StartupGate { RoadstrContent() } }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        acceptExternalDestination(intent)
+    }
+
+    private fun acceptExternalDestination(intent: Intent?) {
+        intent ?: return
+        val payload = intent.getStringExtra(Intent.EXTRA_TEXT)
+        val accepted = externalDestinationInbox.offer(
+            action = intent.action,
+            mimeType = intent.type,
+            payload = payload,
+        )
+        debugDiagnostic(
+            "RoadstrDestination",
+            "explicit JSON destination ${if (accepted) "accepted" else "rejected"}; " +
+                "payloadBytes=${payload?.toByteArray(Charsets.UTF_8)?.size ?: 0}",
+        )
     }
 
     /**
@@ -303,6 +327,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
             )
         }
         val gpsSnapshot by locationController.state.collectAsStateWithLifecycle()
+        val externalDestinationRequest by externalDestinationInbox.requests.collectAsStateWithLifecycle()
         NativeRoadstrShell(
             mode = shellMode,
             gpsSnapshot = gpsSnapshot,
@@ -355,6 +380,11 @@ open class NativeRoadTestActivity : ComponentActivity() {
             speedCameraService = speedCameraService,
             nostr = nostrBridge,
             navigationHost = runtime.host,
+            externalDestinationRequest = externalDestinationRequest,
+            onExternalDestinationConsumed = {
+                val consumed = externalDestinationInbox.consume(it)
+                debugDiagnostic("RoadstrDestination", "destination delivered to planner; consumed=$consumed")
+            },
         )
     }
 

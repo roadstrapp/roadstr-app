@@ -57,6 +57,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import app.roadstr.R
+import app.roadstr.core.intent.NativeExternalDestinationRequest
 import app.roadstr.core.geo.GeoPoint
 import app.roadstr.core.network.SearchResponsePoint
 import app.roadstr.feature.saved.NativeSavedPlacesStatus
@@ -310,6 +311,9 @@ fun NativeRoadstrShell(
      * by it, with or without this screen; without one the shell keeps its own sessions and does that itself.
      */
     navigationHost: NativeNavigationHost? = null,
+    /** Latest explicit JSON destination delivered by the Android launcher. */
+    externalDestinationRequest: NativeExternalDestinationRequest? = null,
+    onExternalDestinationConsumed: (Long) -> Unit = {},
 ) {
     val settingsSession = remember(initialSettings) { NativeSettingsSession(initialSettings) }
     val settingsState by settingsSession.state.collectAsState()
@@ -974,6 +978,50 @@ fun NativeRoadstrShell(
             NativeActiveNavigationSession(navigationHudSession, routeSession)
         }
         val activeNavigationState by activeNavigationSession.state.collectAsState()
+        LaunchedEffect(externalDestinationRequest?.revision, journeyCoordinator) {
+            val request = externalDestinationRequest ?: return@LaunchedEffect
+            val coordinator = journeyCoordinator ?: return@LaunchedEffect
+
+            // An explicit hand-off means “take me here”. Close transient surfaces so the route
+            // planner is visible even when Roadstr was already alive under singleTop.
+            offlinePackagesVisible = false
+            webPanelVisible = false
+            if (browserState.open) webBrowser?.close()
+            parkingPanelVisible = false
+            historyVisible = false
+            savedRoutesVisible = false
+            contextMenuPoint = null
+            bunkerDialogVisible = false
+            nwcDialogVisible = false
+            routingKeyPrompt = null
+            if (settingsState.status != NativeSettingsStatus.Hidden) {
+                settingsSession.hide(settingsState.revision)
+            }
+            if (profileState.status != app.roadstr.feature.profile.NativeProfileStatus.Hidden) {
+                profileSession.hide(profileState.revision)
+            }
+            if (placeState.status != app.roadstr.feature.place.NativePlaceUiStatus.Hidden) {
+                placeSession.hide(placeState.revision)
+            }
+            if (savedPlacesState.status != app.roadstr.feature.saved.NativeSavedPlacesStatus.Hidden) {
+                savedPlacesSession.hide(savedPlacesState.revision)
+            }
+
+            val destination = request.destination
+            val point = SearchResponsePoint(destination.latitude, destination.longitude)
+            val accepted = if (gpsSearchPoint == null) {
+                coordinator.selectDestination(destination.label, point, null, myLocationLabel)
+            } else {
+                coordinator.selectDestinationAndCalculate(
+                    label = destination.label,
+                    point = point,
+                    gpsPoint = gpsSearchPoint,
+                    myLocationLabel = myLocationLabel,
+                    avoidUnpavedRoads = settingsState.values.avoidUnpavedRoads,
+                )
+            }
+            if (accepted) onExternalDestinationConsumed(request.revision)
+        }
         // Screen-wake and brightness-floor policy, same as the Flutter map screens.
         val wantsScreenOn = settingsState.values.keepScreenOnAlways ||
             (activeNavigationState.active && settingsState.values.keepScreenOn)
