@@ -81,6 +81,9 @@
     <string name="native_offline_dataset_invalid">Offline data is invalid</string>
     <string name="native_offline_download">Download</string>
     <string name="native_offline_download_failed">The download did not complete</string>
+    <string name="native_offline_download_preparing">Preparing download and checking the source…</string>
+    <string name="native_offline_download_progress">%1$d%% · %2$s of %3$s</string>
+    <string name="native_offline_download_progress_title">Downloading offline map</string>
     <string name="native_offline_downloaded_areas">Downloaded areas</string>
     <string name="native_offline_downloaded_areas_desc">Manage offline routing data. Nothing downloads automatically.</string>
     <string name="native_offline_fallback">Online fallback</string>
@@ -93,6 +96,9 @@
     <string name="native_offline_manifest_example">https://maps.example.org/roadstr/manifest.json</string>
     <string name="native_offline_manifest_hint">Use the full HTTPS URL of a Roadstr JSON manifest, not a map or city address.</string>
     <string name="native_offline_manifest_invalid">Enter a complete HTTPS address for the JSON manifest.</string>
+    <string name="native_offline_manifest_no_results">No manifest packages match this search.</string>
+    <string name="native_offline_manifest_search">Filter manifest packages</string>
+    <string name="native_offline_manifest_search_hint">Country, region, city or package name</string>
     <string name="native_offline_manifest_url">Manifest HTTPS address</string>
     <string name="native_offline_map_raster">Raster PMTiles map</string>
     <string name="native_offline_map_shortbread">Shortbread vector map</string>

@@ -4,6 +4,12 @@ All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stab
 
 ## Unreleased
 
+- Added a live offline-map download progress card with determinate byte/percentage progress, an indeterminate preparation state,
+  throttled UI updates and a visible cancel action for every provider and manifest package.
+- Reworked Roadstr JSON manifest packages into geographic groups derived from coverage geometry, with case-insensitive search across
+  country, region, city, package name, id and URL; large catalogues are rendered lazily and accept up to 2,000 bounded artifacts.
+- Fixed localized download-progress format placeholders across all 27 Android resource sets and kept the manifest generator aligned
+  with the Android parser limit.
 - Settings: the card of optional map elements is now called *Map element overlays* (27 languages), starts closed, and also holds
   the altitude readout switch; the altitude readout stays off by default.
 - Added a destination pin on the map and lighter navigation rendering: the vehicle cursor animation is drawn at its 30 fps

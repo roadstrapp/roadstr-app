@@ -1,6 +1,7 @@
 package app.roadstr.feature.offline
 
 import app.roadstr.service.offline.InstalledOfflinePackage
+import app.roadstr.service.offline.OfflineCoverageArea
 import app.roadstr.service.offline.OfflineDatasetType
 import app.roadstr.service.offline.OfflinePackageArtifact
 
@@ -36,8 +37,72 @@ data class OfflineCatalogDownloadPlan(
     val installedBytes: Long,
 )
 
+data class OfflineManifestArtifactGroup(
+    val title: String,
+    val artifacts: List<OfflinePackageArtifact>,
+)
+
 /** Curated navigation nodes are merged with the live provider hierarchy. */
 object OfflineGeographicCatalog {
+    /**
+     * External manifests do not have to use Roadstr's curated catalogue ids.
+     * Their coverage geometry is still part of the manifest contract, so use
+     * its centroid to provide a useful geographic grouping and fall back to a
+     * stable alphabetical bucket for malformed/unknown coverage.
+     */
+    fun groupManifestArtifacts(
+        artifacts: List<OfflinePackageArtifact>,
+        query: String = "",
+    ): List<OfflineManifestArtifactGroup> {
+        val needle = query.trim().lowercase()
+        val filtered = artifacts.filter { artifact ->
+            needle.isBlank() || listOfNotNull(
+                artifact.label,
+                artifact.id,
+                artifact.url,
+                artifact.catalogAreaId,
+            ).joinToString(" ").lowercase().contains(needle)
+        }
+        val grouped = filtered.groupBy(::manifestGeographicGroup)
+        return grouped.entries
+            .sortedWith(compareBy({ manifestGroupOrder(it.key) }, { it.key }))
+            .map { (title, values) ->
+                OfflineManifestArtifactGroup(
+                    title = title,
+                    artifacts = values.sortedWith(
+                        compareBy(
+                            { it.label?.takeIf(String::isNotBlank) ?: it.id },
+                            { it.id },
+                        ),
+                    ),
+                )
+            }
+    }
+
+    private fun manifestGeographicGroup(artifact: OfflinePackageArtifact): String {
+        val points = when (val coverage = artifact.area) {
+            is OfflineCoverageArea.Polygon -> coverage.rings.flatten()
+            is OfflineCoverageArea.Corridor -> coverage.centreline
+        }
+        if (points.isEmpty()) return "Other"
+        val latitude = points.sumOf { it.latitude } / points.size
+        val longitude = points.sumOf { it.longitude } / points.size
+        return when {
+            latitude < -55.0 -> "Antarctica"
+            latitude in -56.0..13.0 && longitude in -90.0..-30.0 -> "South America"
+            latitude in 5.0..84.0 && longitude in -180.0..-20.0 -> "North America"
+            latitude in -50.0..5.0 && longitude in 95.0..180.0 -> "Oceania"
+            latitude in -35.0..37.0 && longitude in -20.0..55.0 -> "Africa"
+            latitude in 35.0..82.0 && longitude in -25.0..45.0 -> "Europe"
+            latitude in 5.0..82.0 && longitude in 25.0..180.0 -> "Asia"
+            else -> "Other"
+        }
+    }
+
+    private fun manifestGroupOrder(title: String): Int = listOf(
+        "Europe", "Asia", "Africa", "North America", "South America", "Oceania", "Antarctica", "Other",
+    ).indexOf(title).takeIf { it >= 0 } ?: Int.MAX_VALUE
+
     fun world(): OfflineCatalogNode = OfflineCatalogNode(
         id = "world",
         name = "World",

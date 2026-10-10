@@ -182,6 +182,7 @@ import app.roadstr.feature.voice.NativeVoiceGateway
 import app.roadstr.feature.voice.NativeVoiceGender
 import app.roadstr.feature.voice.NativeVoiceRuntimeStatus
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -528,6 +529,9 @@ fun NativeRoadstrShell(
                 offlinePackagesState = offlinePackagesState.copy(
                     busyPackageId = null,
                     progress = 0.0,
+                    progressReceivedBytes = 0L,
+                    progressTotalBytes = 0L,
+                    activeArtifactLabel = null,
                 )
             } else if (offlinePackagesState.provider == OfflineMapProvider.Geofabrik) {
                 val gateway = offlinePackagesGateway ?: return@LaunchedEffect
@@ -2164,15 +2168,27 @@ fun NativeRoadstrShell(
                             offlinePackagesState = offlinePackagesState.copy(
                                 busyPackageId = artifact.id,
                                 progress = 0.0,
+                                progressReceivedBytes = 0L,
+                                progressTotalBytes = artifact.sizeBytes,
+                                activeArtifactLabel = artifact.label?.takeIf(String::isNotBlank) ?: artifact.id,
                                 messageResource = null,
                                 mobileConfirmation = null,
                             )
+                            val lastProgressUpdate = AtomicLong(0L)
                             val result = runCatching {
                                 gateway.install(artifact, allowMobileDataOnce) { received, total ->
-                                    journeyScope.launch {
-                                        offlinePackagesState = offlinePackagesState.copy(
-                                            progress = if (total == 0L) 0.0 else received.toDouble() / total,
-                                        )
+                                    val now = SystemClock.elapsedRealtime()
+                                    if (received >= total || now - lastProgressUpdate.get() >= 100L) {
+                                        lastProgressUpdate.set(now)
+                                        journeyScope.launch {
+                                            if (offlinePackagesState.busyPackageId == artifact.id) {
+                                                offlinePackagesState = offlinePackagesState.copy(
+                                                    progress = if (total == 0L) 0.0 else received.toDouble() / total,
+                                                    progressReceivedBytes = received,
+                                                    progressTotalBytes = total,
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }.getOrNull()
@@ -2183,6 +2199,9 @@ fun NativeRoadstrShell(
                                 availableBytes = gateway.availableBytes(),
                                 busyPackageId = null,
                                 progress = 0.0,
+                                progressReceivedBytes = 0L,
+                                progressTotalBytes = 0L,
+                                activeArtifactLabel = null,
                                 mobileConfirmation = if (rejected == OfflineDownloadRejection.MobileDataConfirmationRequired) artifact else null,
                                 messageResource = when {
                                     result is OfflineInstallOutcome.Installed -> R.string.native_offline_installed
@@ -2261,6 +2280,9 @@ fun NativeRoadstrShell(
                             offlinePackagesState = offlinePackagesState.copy(
                                 busyPackageId = null,
                                 progress = 0.0,
+                                progressReceivedBytes = 0L,
+                                progressTotalBytes = 0L,
+                                activeArtifactLabel = null,
                             )
                         },
                         onDelete = { id ->

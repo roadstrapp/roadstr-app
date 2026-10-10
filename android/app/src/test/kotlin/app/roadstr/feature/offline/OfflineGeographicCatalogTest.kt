@@ -54,6 +54,38 @@ class OfflineGeographicCatalogTest {
         assertEquals(300L, selection.downloadBytes)
     }
 
+    @Test
+    fun `external manifest artifacts are grouped geographically and searchable`() {
+        val europe = artifact("europe-map", "external-europe", 100L).copy(
+            label = "Italy",
+            area = polygon(45.0, 10.0),
+        )
+        val asia = artifact("asia-map", "external-asia", 100L).copy(
+            label = "Japan",
+            area = polygon(35.0, 139.0),
+        )
+
+        val groups = OfflineGeographicCatalog.groupManifestArtifacts(listOf(asia, europe))
+
+        assertEquals(listOf("Europe", "Asia"), groups.map { it.title })
+        assertEquals(listOf("europe-map"), groups.first().artifacts.map { it.id })
+        assertEquals(
+            listOf("asia-map"),
+            OfflineGeographicCatalog.groupManifestArtifacts(listOf(asia, europe), "Japan")
+                .single().artifacts.map { it.id },
+        )
+    }
+
+    private fun polygon(latitude: Double, longitude: Double): OfflineCoverageArea = OfflineCoverageArea.Polygon(
+        listOf(listOf(
+            OfflineCoveragePoint(latitude, longitude),
+            OfflineCoveragePoint(latitude, longitude + 1.0),
+            OfflineCoveragePoint(latitude + 1.0, longitude + 1.0),
+            OfflineCoveragePoint(latitude + 1.0, longitude),
+            OfflineCoveragePoint(latitude, longitude),
+        )),
+    )
+
     private fun artifact(id: String, areaId: String, size: Long) = OfflinePackageArtifact(
         id = id,
         version = 1,

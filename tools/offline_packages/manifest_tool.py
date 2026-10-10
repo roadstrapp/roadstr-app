@@ -31,7 +31,7 @@ def main() -> None:
             artifacts.append(item)
         manifest = {"schemaVersion": 1, "generatedAt": args.generated_at, "artifacts": artifacts}
     encoded = compact(manifest).encode("utf-8")
-    if len(encoded) > 512 * 1024 or len(manifest.get("artifacts", [])) > 200:
+    if len(encoded) > 512 * 1024 or len(manifest.get("artifacts", [])) > 2_000:
         raise ValueError("manifest exceeds app bounds")
     if manifest.get("schemaVersion") != 1:
         raise ValueError("unsupported schema")

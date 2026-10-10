@@ -29,6 +29,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -76,6 +77,9 @@ data class NativeOfflinePackagesSnapshot(
     val manifestUrl: String = "",
     val busyPackageId: String? = null,
     val progress: Double = 0.0,
+    val progressReceivedBytes: Long = 0L,
+    val progressTotalBytes: Long = 0L,
+    val activeArtifactLabel: String? = null,
     val messageResource: Int? = null,
     val mobileConfirmation: OfflinePackageArtifact? = null,
     val availableBytes: Long = 0L,
@@ -100,6 +104,7 @@ fun NativeOfflinePackagesPanel(
     val catalog = snapshot.catalogRoot
     var pathIds by rememberSaveable { mutableStateOf(emptyList<String>()) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
+    var manifestSearchQuery by rememberSaveable { mutableStateOf("") }
     var selectedIds by remember { mutableStateOf<Set<String>>(emptySet()) }
     var advancedVisible by rememberSaveable { mutableStateOf(false) }
     val availableArtifacts = snapshot.manifest?.artifacts.orEmpty().filter {
@@ -111,6 +116,7 @@ fun NativeOfflinePackagesPanel(
     val currentNode = currentPath.lastOrNull() ?: catalog
     val searchResults = OfflineGeographicCatalog.search(catalog, searchQuery)
     val selection = OfflineGeographicCatalog.selection(catalog, selectedIds, availableArtifacts, snapshot.installed)
+    val manifestGroups = OfflineGeographicCatalog.groupManifestArtifacts(availableArtifacts, manifestSearchQuery)
 
     Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         LazyColumn(
@@ -159,6 +165,11 @@ fun NativeOfflinePackagesPanel(
                             Text(stringResource(R.string.native_offline_provider_loading), Modifier.padding(start = 10.dp))
                         }
                     }
+                }
+            }
+            if (snapshot.busyPackageId != null && snapshot.busyPackageId != PROVIDER_BUSY_ID && snapshot.busyPackageId != "manifest") {
+                item {
+                    OfflineDownloadProgressCard(snapshot, onCancelDownload)
                 }
             }
             item {
@@ -253,11 +264,33 @@ fun NativeOfflinePackagesPanel(
                             Text(stringResource(R.string.native_offline_how_it_works_body), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                             OutlinedTextField(value = snapshot.manifestUrl, onValueChange = onManifestUrlChanged, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.native_offline_manifest_url)) }, placeholder = { Text(stringResource(R.string.native_offline_manifest_example)) }, supportingText = { Text(stringResource(R.string.native_offline_manifest_hint)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri), singleLine = true)
                             Button(onClick = onLoadCatalog, enabled = snapshot.busyPackageId == null && snapshot.manifestUrl.isNotBlank(), modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 48.dp)) { Text(stringResource(R.string.native_offline_load_catalog)) }
-                            availableArtifacts.forEach { artifact ->
+                            if (availableArtifacts.isNotEmpty()) {
+                                OutlinedTextField(
+                                    value = manifestSearchQuery,
+                                    onValueChange = { manifestSearchQuery = it.take(120) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text(stringResource(R.string.native_offline_manifest_search)) },
+                                    placeholder = { Text(stringResource(R.string.native_offline_manifest_search_hint)) },
+                                    singleLine = true,
+                                )
+                            } else {
+                                Text(stringResource(R.string.native_offline_catalog_unavailable))
+                            }
+                        }
+                    }
+                }
+                if (availableArtifacts.isNotEmpty()) {
+                    if (manifestGroups.isEmpty()) {
+                        item { Text(stringResource(R.string.native_offline_manifest_no_results), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    } else {
+                        manifestGroups.forEach { group ->
+                            item(key = "manifest-group:${group.title}") {
+                                Text(group.title, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+                            }
+                            items(group.artifacts, key = { "manifest:${it.id}" }) { artifact ->
                                 val progress = snapshot.progress.takeIf { snapshot.busyPackageId == artifact.id }
                                 PackageCard(artifact, false, progress) { if (progress == null) onDownload(artifact, false) else onCancelDownload() }
                             }
-                            if (availableArtifacts.isEmpty()) Text(stringResource(R.string.native_offline_catalog_unavailable))
                         }
                     }
                 }
@@ -310,6 +343,56 @@ private fun CatalogAreaCard(
                 else if (plan.artifacts.isNotEmpty()) Text(stringResource(R.string.native_offline_size_checked_before_download), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             }
             TextButton(onClick = { onDownload(plan) }, enabled = !busy && selectable, modifier = Modifier.sizeIn(minWidth = 48.dp)) { Text("↓") }
+        }
+    }
+}
+
+@Composable
+private fun OfflineDownloadProgressCard(
+    snapshot: NativeOfflinePackagesSnapshot,
+    onCancel: () -> Unit,
+) {
+    val total = snapshot.progressTotalBytes
+    val received = snapshot.progressReceivedBytes.coerceAtLeast(0L)
+    val determinate = total > 0L
+    val fraction = if (determinate) (received.toDouble() / total).coerceIn(0.0, 1.0) else 0.0
+    Surface(
+        Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                snapshot.activeArtifactLabel ?: stringResource(R.string.native_offline_download_progress_title),
+                fontWeight = FontWeight.SemiBold,
+            )
+            if (determinate) {
+                LinearProgressIndicator(
+                    progress = { fraction.toFloat() },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text(
+                    stringResource(
+                        R.string.native_offline_download_progress,
+                        (fraction * 100.0).toInt(),
+                        formatBytes(received),
+                        formatBytes(total),
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            } else {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                Text(
+                    stringResource(R.string.native_offline_download_preparing),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            OutlinedButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.native_offline_cancel_download))
+            }
         }
     }
 }

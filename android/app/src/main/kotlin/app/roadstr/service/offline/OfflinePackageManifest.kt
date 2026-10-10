@@ -90,7 +90,8 @@ class OfflineManifestException(message: String) : IllegalArgumentException(messa
 object OfflinePackageManifestProtocol {
     const val CURRENT_SCHEMA_VERSION = 1
     const val MAX_MANIFEST_BYTES = 512 * 1024
-    const val MAX_ARTIFACTS = 200
+    /** Keep large worldwide catalogs usable while retaining a hard input bound. */
+    const val MAX_ARTIFACTS = 2_000
     const val MAX_POINTS_PER_ARTIFACT = 20_000
     const val MAX_STRING_CHARS = 2_048
     private const val MAX_NESTING = 24
