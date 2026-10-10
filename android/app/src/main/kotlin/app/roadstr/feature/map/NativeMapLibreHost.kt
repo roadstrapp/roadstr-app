@@ -41,7 +41,6 @@ internal object NativeMapHostContract {
     const val INITIAL_LONGITUDE = 12.5
     const val INITIAL_ZOOM = 17.0
     const val INITIAL_TILT = 40.0
-    const val MAXIMUM_RENDER_FPS = 30
     const val USE_TEXTURE_RENDERER = false
 }
 
@@ -50,6 +49,7 @@ internal object NativeMapHostContract {
 fun NativeMapLibreHost(
     dark: Boolean,
     mapEngine: NativeMapEngine,
+    maximumFps: Int,
     tileUrl: String,
     routeOverlay: NativeRouteOverlaySnapshot,
     transitOverlay: NativeTransitOverlaySnapshot,
@@ -69,11 +69,13 @@ fun NativeMapLibreHost(
     val mapDescription = stringResource(R.string.native_map_description)
     val currentCameraGesture = rememberUpdatedState(onCameraGesture)
     val currentMapInteraction = rememberUpdatedState(onMapInteraction)
+    require(maximumFps in 15..120) { "Map frame cap must be between 15 and 120 FPS" }
     val host = remember(context, lifecycleOwner, engineProfile) {
         NativeMapLibreViewHost.create(
             context = context,
             dark = dark,
             engineProfile = engineProfile,
+            maximumFps = maximumFps,
             initialStyleJson = styleJson,
             initialRouteOverlay = routeOverlay,
             initialTransitOverlay = transitOverlay,
@@ -87,6 +89,9 @@ fun NativeMapLibreHost(
 
     LaunchedEffect(host, styleJson) {
         host.updateStyle(styleJson)
+    }
+    LaunchedEffect(host, maximumFps) {
+        host.updateMaximumFps(maximumFps)
     }
     LaunchedEffect(host, routeOverlay) {
         host.updateRouteOverlay(routeOverlay)
@@ -263,6 +268,12 @@ private class NativeMapLibreViewHost private constructor(
         applyStyleIfNeeded()
     }
 
+    fun updateMaximumFps(maximumFps: Int) {
+        if (!active) return
+        require(maximumFps in 15..120) { "Map frame cap must be between 15 and 120 FPS" }
+        mapView.setMaximumFps(maximumFps)
+    }
+
     fun updateRouteOverlay(snapshot: NativeRouteOverlaySnapshot) {
         if (!active) return
         routeRenderer.update(snapshot)
@@ -337,6 +348,7 @@ private class NativeMapLibreViewHost private constructor(
             context: Context,
             dark: Boolean,
             engineProfile: NativeMapEngineProfile,
+            maximumFps: Int,
             initialStyleJson: String,
             initialRouteOverlay: NativeRouteOverlaySnapshot,
             initialTransitOverlay: NativeTransitOverlaySnapshot,
@@ -375,7 +387,7 @@ private class NativeMapLibreViewHost private constructor(
                     ).backgroundArgb.toInt(),
                 )
             val mapView = MapView(context, options)
-            mapView.setMaximumFps(NativeMapHostContract.MAXIMUM_RENDER_FPS)
+            mapView.setMaximumFps(maximumFps)
             mapView.setRenderingRefreshMode(MapRenderer.RenderingRefreshMode.WHEN_DIRTY)
             val pointOverlay = NativeMapPointOverlayView(context)
             val destinationOverlay = NativeMapDestinationOverlayView(context)

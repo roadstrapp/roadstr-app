@@ -63,6 +63,7 @@ internal class NativeRoadTestLocationController(
     private var permissionDenied = false
     private var generation = 0L
     private var nextFixSequence = 0L
+    private var requestedIntervalMillis = 1_000L
 
     val state: StateFlow<NativeShellGpsSnapshot> = mutableState.asStateFlow()
 
@@ -126,6 +127,14 @@ internal class NativeRoadTestLocationController(
         if (!hostStarted) return
         val requestedGeneration = ++generation
         scope.launch { start(requestedGeneration) }
+    }
+
+    /** Safe to call repeatedly; the active AOSP listener is reconfigured only when the value changes. */
+    fun setUpdateIntervalMillis(intervalMillis: Long) {
+        require(intervalMillis in 250L..60_000L) { "Invalid location interval" }
+        if (intervalMillis == requestedIntervalMillis) return
+        requestedIntervalMillis = intervalMillis
+        scope.launch { service.updateIntervalMillis(intervalMillis) }
     }
 
     fun close() {

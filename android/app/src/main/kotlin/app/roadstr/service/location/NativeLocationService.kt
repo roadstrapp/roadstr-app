@@ -51,6 +51,9 @@ interface NativeLocationSource {
     suspend fun stop()
 
     suspend fun lastKnown(): NativeRawLocation?
+
+    /** Updates the platform request cadence without creating a second listener. */
+    suspend fun updateIntervalMillis(intervalMillis: Long): Boolean = false
 }
 
 fun interface NativeLocationClock {
@@ -180,6 +183,12 @@ class NativeLocationService(
 
     suspend fun stop() = lifecycleMutex.withLock {
         stopLocked()
+    }
+
+    suspend fun updateIntervalMillis(intervalMillis: Long): Boolean = lifecycleMutex.withLock {
+        require(intervalMillis in 250L..60_000L) { "Invalid location interval" }
+        if (disposed) return@withLock false
+        source.updateIntervalMillis(intervalMillis)
     }
 
     suspend fun lastKnown(): NativeLocationFix? {

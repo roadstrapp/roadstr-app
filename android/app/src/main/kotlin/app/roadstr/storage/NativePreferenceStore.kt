@@ -6,7 +6,7 @@ import app.roadstr.feature.settings.NativeSettingsBooleanKey
 import app.roadstr.feature.settings.NativeSettingsCursorColor
 import app.roadstr.feature.settings.NativeSettingsCursorStyle
 import app.roadstr.feature.settings.NativeSettingsInput
-import app.roadstr.feature.settings.NativeSettingsMapEngine
+import app.roadstr.feature.performance.NativePerformanceProfile
 import app.roadstr.feature.settings.NativeSettingsPresenter
 import app.roadstr.feature.settings.NativeSettingsRoutingProvider
 import app.roadstr.feature.settings.NativeSettingsSearchEngine
@@ -91,6 +91,7 @@ object NativePreferenceSchema {
         "kokoroVoiceGender",
         "language",
         "mapEngine",
+        "performanceProfile",
         "mapTileUrl",
         "movementCursorColor",
         "movementCursorStyle",
@@ -215,7 +216,10 @@ object NativePreferenceSchema {
                 languageCode = language,
                 profilePublic = bool(NativeSettingsBooleanKey.ProfilePublic),
                 avoidUnpavedRoads = bool(NativeSettingsBooleanKey.AvoidUnpavedRoads),
-                mapEngine = NativeSettingsMapEngine.fromStorage(text("mapEngine")),
+                performanceProfile = NativePerformanceProfile.fromStorage(
+                    value = text("performanceProfile"),
+                    legacyMapEngine = text("mapEngine"),
+                ),
                 keepScreenOn = bool(NativeSettingsBooleanKey.KeepScreenOn),
                 keepScreenOnAlways = bool(NativeSettingsBooleanKey.KeepScreenOnAlways),
                 minimumBrightness = brightness,

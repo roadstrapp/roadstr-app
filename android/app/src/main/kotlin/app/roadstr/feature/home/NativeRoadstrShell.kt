@@ -78,7 +78,6 @@ import app.roadstr.feature.activity.NativeActivityInboxSession
 import app.roadstr.feature.map.NativeMapCameraSession
 import app.roadstr.feature.map.NativeMapCursorSession
 import app.roadstr.feature.map.NativeMapCursorStyle
-import app.roadstr.feature.map.NativeMapEngine
 import app.roadstr.feature.map.NativeMapInteraction
 import app.roadstr.feature.map.NativeMapLibreHost
 import app.roadstr.feature.map.NativeMapPoint
@@ -107,6 +106,8 @@ import app.roadstr.feature.onboarding.NativeOnboardingLocationStatus
 import app.roadstr.feature.onboarding.NativeOnboardingSession
 import app.roadstr.feature.onboarding.NativeOnboardingVoiceStatus
 import app.roadstr.feature.onboarding.NativeMigrationReadiness
+import app.roadstr.feature.performance.NativePerformanceRuntimePolicy
+import app.roadstr.feature.performance.NativePerformanceDiagnostics
 import app.roadstr.feature.offline.NativeOfflinePackagesGateway
 import app.roadstr.feature.offline.NativeOfflinePackagesPanel
 import app.roadstr.feature.offline.NativeOfflinePackagesSnapshot
@@ -285,6 +286,9 @@ fun NativeRoadstrShell(
     journeyGateway: NativeShellJourneyGateway? = null,
     voiceGateway: NativeVoiceGateway? = null,
     onGpsAction: () -> Unit = {},
+    onLocationIntervalChanged: (Long) -> Unit = {},
+    performanceDiagnosticsEnabled: Boolean = false,
+    onPerformanceDiagnostic: (String) -> Unit = {},
     identityGateway: NativeIdentityGateway? = null,
     onAmberLogin: (Long) -> Unit = {},
     onOpenExternal: (String) -> Unit = {},
@@ -323,6 +327,8 @@ fun NativeRoadstrShell(
 ) {
     val settingsSession = remember(initialSettings) { NativeSettingsSession(initialSettings) }
     val settingsState by settingsSession.state.collectAsState()
+    val performanceProfile = settingsState.values.performanceProfile
+    val performanceDiagnostics = remember { NativePerformanceDiagnostics() }
     LaunchedEffect(settingsState.status, settingsState.values) {
         if (settingsState.status == NativeSettingsStatus.Ready) {
             onSettingsChanged(settingsState.values)
@@ -1175,12 +1181,15 @@ fun NativeRoadstrShell(
         // GPS course and the route instead.
         val compassWanted = !activeNavigationState.active && headingMode && cameraState.followEnabled
         val compassLifecycle = LocalLifecycleOwner.current
-        DisposableEffect(compassWanted, compassLifecycle) {
+        DisposableEffect(compassWanted, compassLifecycle, performanceProfile) {
             if (!compassWanted) {
                 cameraSession.setCompassHeading(null)
                 return@DisposableEffect onDispose {}
             }
-            val sensor = NativeCompassSensor(context) { azimuth ->
+            val sensor = NativeCompassSensor(
+                context = context,
+                samplingPeriodMicros = performanceProfile.orientationIntervalMicros,
+            ) { azimuth ->
                 if (headingTracker.isMoving) {
                     cameraSession.setCompassHeading(null)
                 } else {
@@ -1422,7 +1431,7 @@ fun NativeRoadstrShell(
         }
         // A new map engine starts from its own default view: bring it back to
         // the driver instead of leaving it on the engine's initial position.
-        val selectedMapEngine = settingsState.values.mapEngine
+        val selectedMapEngine = performanceProfile.mapEngine
         var shownMapEngine by remember { mutableStateOf(selectedMapEngine) }
         LaunchedEffect(selectedMapEngine) {
             if (shownMapEngine == selectedMapEngine) return@LaunchedEffect
@@ -1431,11 +1440,47 @@ fun NativeRoadstrShell(
                 cameraSession.focus(point, SystemClock.elapsedRealtime())
             }
         }
-        LaunchedEffect(cameraSession, cameraState.frameActive) {
+        LaunchedEffect(cameraSession, cameraState.frameActive, performanceProfile) {
             while (cameraSession.state.value.frameActive) {
-                delay(NativeMapCameraSession.FOLLOW_FRAME_MILLIS)
-                cameraSession.advanceFrame(SystemClock.elapsedRealtime())
+                delay(performanceProfile.trackingIntervalMillis)
+                if (performanceDiagnosticsEnabled) performanceDiagnostics.recordTrackingTick()
+                if (cameraSession.advanceFrame(SystemClock.elapsedRealtime()) && performanceDiagnosticsEnabled) {
+                    performanceDiagnostics.recordCameraUpdate()
+                }
             }
+        }
+        LaunchedEffect(performanceDiagnosticsEnabled, gpsSnapshot.fix?.sequence) {
+            if (performanceDiagnosticsEnabled && gpsSnapshot.fix != null) {
+                performanceDiagnostics.recordGpsFix()
+            }
+        }
+        LaunchedEffect(performanceDiagnosticsEnabled, routeState.revision, transitState) {
+            if (performanceDiagnosticsEnabled) performanceDiagnostics.recordLayerUpdate()
+        }
+        LaunchedEffect(performanceDiagnosticsEnabled, performanceProfile) {
+            if (!performanceDiagnosticsEnabled) return@LaunchedEffect
+            performanceDiagnostics.reset()
+            while (true) {
+                delay(10_000L)
+                onPerformanceDiagnostic(performanceDiagnostics.sample(performanceProfile).asLogLine())
+            }
+        }
+        var adaptiveGpsBoosted by remember { mutableStateOf(false) }
+        LaunchedEffect(
+            performanceProfile,
+            activeNavigationState.active,
+            gpsSnapshot.fix?.sequence,
+        ) {
+            val fix = gpsSnapshot.fix
+            val interval = NativePerformanceRuntimePolicy.gpsIntervalMillis(
+                profile = performanceProfile,
+                navigating = activeNavigationState.active,
+                speedMetersPerSecond = fix?.speedMetersPerSecond ?: 0.0,
+                accuracyMeters = fix?.accuracyMeters ?: 0.0,
+                wasBoosted = adaptiveGpsBoosted,
+            )
+            adaptiveGpsBoosted = interval == NativePerformanceRuntimePolicy.TWO_HERTZ_MILLIS
+            onLocationIntervalChanged(interval)
         }
         LaunchedEffect(
             routePlanningState.status,
@@ -1606,10 +1651,8 @@ fun NativeRoadstrShell(
                     // Theme darkness belongs to app chrome. Keep the map in its
                     // normal daytime style, matching the stable Flutter shell.
                     dark = settingsState.values.darkMapEnabled,
-                    mapEngine = when (settingsState.values.mapEngine) {
-                        app.roadstr.feature.settings.NativeSettingsMapEngine.MapLibre -> NativeMapEngine.MapLibre
-                        app.roadstr.feature.settings.NativeSettingsMapEngine.Osm -> NativeMapEngine.LegacyRaster
-                    },
+                    mapEngine = performanceProfile.mapEngine,
+                    maximumFps = performanceProfile.maximumFps,
                     tileUrl = remember(settingsState.values.mapTileUrl) {
                         // A custom source the policy refuses falls back to the default
                         // instead of leaving the map blank.
@@ -1931,8 +1974,8 @@ fun NativeRoadstrShell(
                             is NativeSettingsUiAction.LanguageChanged -> {
                                 settingsSession.updateLanguage(revision, action.value)
                             }
-                            is NativeSettingsUiAction.MapEngineChanged -> {
-                                settingsSession.updateMapEngine(revision, action.value)
+                            is NativeSettingsUiAction.PerformanceProfileChanged -> {
+                                settingsSession.updatePerformanceProfile(revision, action.value)
                             }
                             is NativeSettingsUiAction.BrightnessChanged -> {
                                 settingsSession.updateBrightness(revision, action.value)
@@ -2859,6 +2902,10 @@ fun NativeRoadstrShell(
                 }
                 NativeOnboardingFlow(
                     snapshot = onboardingState,
+                    performanceProfile = performanceProfile,
+                    onPerformanceProfileChanged = { value ->
+                        settingsSession.adoptPerformanceProfile(value)?.let(onSettingsChanged)
+                    },
                     onPageSelected = { revision, page ->
                         onboardingSession.selectPage(revision, page)
                     },

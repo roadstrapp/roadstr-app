@@ -2,6 +2,7 @@ package app.roadstr.feature.settings
 
 import app.roadstr.core.ui.theme.RoadstrThemeId
 import app.roadstr.feature.navigation.NativeSpeedometerStyle
+import app.roadstr.feature.performance.NativePerformanceProfile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -12,8 +13,6 @@ import org.junit.Test
 class NativeSettingsPresentationTest {
     @Test
     fun `persisted choice enums retain Flutter values and safe defaults`() {
-        assertEquals(NativeSettingsMapEngine.MapLibre, NativeSettingsMapEngine.fromStorage("unknown"))
-        assertEquals(NativeSettingsMapEngine.Osm, NativeSettingsMapEngine.fromStorage("osm"))
         assertEquals(
             NativeSettingsRoutingProvider.GraphHopperCloud,
             NativeSettingsRoutingProvider.fromStorage("graphhopper_public"),
@@ -33,7 +32,7 @@ class NativeSettingsPresentationTest {
         assertFalse(value.autoDarkEnabled)
         assertNull(value.languageCode)
         assertFalse(value.avoidUnpavedRoads)
-        assertEquals(NativeSettingsMapEngine.MapLibre, value.mapEngine)
+        assertEquals(NativePerformanceProfile.ThreeDEco, value.performanceProfile)
         assertTrue(value.keepScreenOn)
         assertFalse(value.keepScreenOnAlways)
         assertEquals(0.0, value.minimumBrightness, 0.0)
@@ -162,6 +161,19 @@ class NativeSettingsPresentationTest {
     }
 
     @Test
+    fun `onboarding profile is retained while settings is hidden`() {
+        val session = NativeSettingsSession()
+
+        val updated = session.adoptPerformanceProfile(NativePerformanceProfile.Eco)
+
+        assertEquals(NativePerformanceProfile.Eco, updated?.performanceProfile)
+        assertEquals(NativePerformanceProfile.Eco, session.state.value.values.performanceProfile)
+        assertNull(session.adoptPerformanceProfile(NativePerformanceProfile.Eco))
+        assertTrue(session.reopen(1))
+        assertEquals(NativePerformanceProfile.Eco, session.state.value.values.performanceProfile)
+    }
+
+    @Test
     fun `the saved places list follows a refresh and is gone while the screen is hidden`() {
         val session = NativeSettingsSession()
         val places = listOf(NativeSettingsFavorite("Home", "1 Example Street"), NativeSettingsFavorite("Work", ""))
@@ -219,7 +231,11 @@ class NativeSettingsPresentationTest {
     fun `all choice mutations emit exact legacy wire values`() {
         val session = openSession()
 
-        assertWrite(session.updateMapEngine(1, NativeSettingsMapEngine.Osm), "mapEngine", "osm")
+        assertWrite(
+            session.updatePerformanceProfile(1, NativePerformanceProfile.Eco),
+            "performanceProfile",
+            "eco",
+        )
         assertWrite(
             session.updateRoutingProvider(1, NativeSettingsRoutingProvider.OpenRouteService),
             "routingProvider",

@@ -3,7 +3,7 @@ package app.roadstr.storage
 import app.roadstr.core.ui.theme.RoadstrThemeId
 import app.roadstr.feature.settings.NativeSettingsBooleanKey
 import app.roadstr.feature.settings.NativeSettingsInput
-import app.roadstr.feature.settings.NativeSettingsMapEngine
+import app.roadstr.feature.performance.NativePerformanceProfile
 import app.roadstr.feature.settings.NativeSettingsStoredValue
 import app.roadstr.feature.settings.NativeSettingsWrite
 import app.roadstr.migration.LegacyIdentity
@@ -21,7 +21,7 @@ import org.junit.Test
 class NativePreferenceStoreTest {
     @Test
     fun `schema covers every non-secret scalar legacy key only`() {
-        assertEquals(38, NativePreferenceSchema.keys.size)
+        assertEquals(39, NativePreferenceSchema.keys.size)
         assertTrue(NativePreferenceSchema.keys.containsAll(NativeSettingsBooleanKey.entries.map { it.storageKey }))
         assertFalse(NativePreferenceSchema.keys.contains("graphhopperApiKey"))
         assertFalse(NativePreferenceSchema.keys.contains("nwcUri"))
@@ -151,7 +151,7 @@ class NativePreferenceStoreTest {
         assertTrue(projected.autoDarkEnabled)
         assertNull(projected.languageCode)
         assertTrue(projected.profilePublic)
-        assertEquals(NativeSettingsMapEngine.Osm, projected.mapEngine)
+        assertEquals(NativePerformanceProfile.Balanced, projected.performanceProfile)
         assertEquals(0.3, projected.minimumBrightness, 0.0)
         assertEquals(1_700_000_000_123L, projected.lastSyncMillis)
         assertEquals(2, projected.voiceSpeedStage)

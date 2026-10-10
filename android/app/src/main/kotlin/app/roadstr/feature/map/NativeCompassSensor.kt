@@ -20,8 +20,13 @@ import kotlin.math.sqrt
  */
 class NativeCompassSensor(
     context: Context,
+    private val samplingPeriodMicros: Int,
     private val onAzimuth: (Double) -> Unit,
 ) : SensorEventListener {
+    init {
+        require(samplingPeriodMicros in 1..1_000_000) { "Invalid compass sampling period" }
+    }
+
     private val manager = context.applicationContext.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
     private var gravity: FloatArray? = null
     private var heading = 0.0
@@ -34,8 +39,8 @@ class NativeCompassSensor(
         val accelerometer = sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) ?: return false
         val magnetometer = sensors.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) ?: return false
         if (started) return true
-        started = sensors.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI) &&
-            sensors.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI)
+        started = sensors.registerListener(this, accelerometer, samplingPeriodMicros) &&
+            sensors.registerListener(this, magnetometer, samplingPeriodMicros)
         return started
     }
 
@@ -61,10 +66,8 @@ class NativeCompassSensor(
                 // Exponential low-pass with wrap-around: slow enough to hide
                 // sensor noise, fast enough to feel responsive.
                 heading = ((heading + difference * LOW_PASS_ALPHA) % 360.0 + 360.0) % 360.0
-                // About 10 Hz: the raw stream would swamp the camera with more
-                // moves than it can settle.
                 val now = SystemClock.elapsedRealtime()
-                if (now - lastEmitMillis >= EMIT_INTERVAL_MILLIS) {
+                if (now - lastEmitMillis >= samplingPeriodMicros / 1_000L) {
                     lastEmitMillis = now
                     onAzimuth(heading)
                 }
@@ -105,7 +108,6 @@ class NativeCompassSensor(
 
     private companion object {
         const val LOW_PASS_ALPHA = 0.15
-        const val EMIT_INTERVAL_MILLIS = 100L
         const val MIN_NORM = 0.1
     }
 }

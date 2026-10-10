@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="native_performance_section">Performance and energy saving</string>
+    <string name="native_performance_section_desc">Choose the balance between map fluidity and battery life.</string>
+    <string name="native_performance_current">Current profile: %1$s</string>
+    <string name="native_performance_onboarding_title">How do you want to use Roadstr?</string>
+    <string name="native_performance_onboarding_desc">Choose the performance level that best suits your device and preferences. You can change it at any time in Settings.</string>
+    <string name="native_performance_eco">Eco</string>
+    <string name="native_performance_balanced">Balanced</string>
+    <string name="native_performance_3d_eco">3D Eco</string>
+    <string name="native_performance_performance">Performance</string>
+    <string name="native_performance_eco_desc">Maximum battery life. Uses the 2D map at up to 30 FPS, reducing animations and unnecessary updates. Ideal for long trips and less powerful devices.</string>
+    <string name="native_performance_balanced_desc">Smooth navigation with contained energy use. Uses the 2D map at up to 60 FPS. Ideal for mid-range phones.</string>
+    <string name="native_performance_3d_eco_desc">Optimized 3D navigation. Uses MapLibre at up to 45 FPS with more frequent lightweight updates. Ideal for 3D without sustained maximum performance.</string>
+    <string name="native_performance_performance_desc">Maximum fluidity. Uses MapLibre at up to 60 FPS and high-frequency lightweight updates. Ideal for more powerful devices.</string>
+    <string name="native_performance_engine_2d">Engine: 2D</string>
+    <string name="native_performance_engine_3d">Engine: MapLibre 3D</string>
+    <string name="native_performance_fps">Maximum frame rate: %1$d FPS</string>
+    <string name="native_performance_gps_1hz">GPS: 1 Hz while navigating</string>
+    <string name="native_performance_gps_adaptive">GPS: 1 Hz, adaptively up to 2 Hz</string>
+    <string name="native_performance_gps_2hz">GPS: up to 2 Hz while navigating</string>
+</resources>

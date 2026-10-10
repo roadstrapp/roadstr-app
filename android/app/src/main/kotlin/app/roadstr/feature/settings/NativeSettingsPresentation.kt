@@ -2,6 +2,7 @@ package app.roadstr.feature.settings
 
 import app.roadstr.core.ui.theme.RoadstrThemeId
 import app.roadstr.feature.navigation.NativeSpeedometerStyle
+import app.roadstr.feature.performance.NativePerformanceProfile
 import java.net.URI
 import java.util.Collections
 import java.util.Locale
@@ -11,17 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 enum class NativeSettingsStatus { Hidden, Ready }
-
-enum class NativeSettingsMapEngine(val storageValue: String) {
-    MapLibre("maplibre"),
-    Osm("osm");
-
-    companion object {
-        fun fromStorage(value: Any?): NativeSettingsMapEngine = entries.firstOrNull {
-            it.storageValue == value?.toString()
-        } ?: MapLibre
-    }
-}
 
 enum class NativeSettingsRoutingProvider(val storageValue: String) {
     Osrm("osrm"),
@@ -155,7 +145,7 @@ data class NativeSettingsInput(
     val languageCode: String? = null,
     val profilePublic: Boolean = false,
     val avoidUnpavedRoads: Boolean = false,
-    val mapEngine: NativeSettingsMapEngine = NativeSettingsMapEngine.MapLibre,
+    val performanceProfile: NativePerformanceProfile = NativePerformanceProfile.Default,
     val keepScreenOn: Boolean = true,
     val keepScreenOnAlways: Boolean = false,
     val minimumBrightness: Double = 0.0,
@@ -407,8 +397,24 @@ class NativeSettingsSession(
             )
         }
 
-    fun updateMapEngine(revision: Long, value: NativeSettingsMapEngine): NativeSettingsWrite? =
-        stringMutation(revision, "mapEngine", value.storageValue) { copy(mapEngine = value) }
+    fun updatePerformanceProfile(
+        revision: Long,
+        value: NativePerformanceProfile,
+    ): NativeSettingsWrite? = stringMutation(
+        revision,
+        "performanceProfile",
+        value.storageValue,
+    ) { copy(performanceProfile = value) }
+
+    /** Updates the retained value while Settings is hidden, as required by onboarding. */
+    fun adoptPerformanceProfile(value: NativePerformanceProfile): NativeSettingsInput? = synchronized(lock) {
+        val current = _state.value
+        if (current.values.performanceProfile == value) return null
+        val updated = current.values.copy(performanceProfile = value)
+        retainedValues = updated
+        _state.value = current.copy(values = updated)
+        updated
+    }
 
     fun updateRoutingProvider(
         revision: Long,

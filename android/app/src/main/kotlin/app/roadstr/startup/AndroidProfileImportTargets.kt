@@ -143,7 +143,7 @@ internal class AndroidProfileImportTargets(
         value.keepScreenOnAlways, value.minimumBrightness.toFloat(), value.autoCenterOnLaunch, value.mapTileUrl,
         value.routingProvider, value.graphHopperServer, value.searchEngine, value.voiceEnabled, value.voiceGender,
         value.voiceSpeedStage, value.voiceVolume.toFloat(), value.profilePublic, value.avoidUnpavedRoads,
-        value.mapEngine, value.showAltitude, value.showCrosswalks, value.showTrafficLights,
+        value.performanceProfile, value.showAltitude, value.showCrosswalks, value.showTrafficLights,
         value.favoritesSyncAutoEnabled, value.imperialUnits, value.speedometerStyle, value.cursorStyle,
         value.cursorColor,
     )

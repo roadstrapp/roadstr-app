@@ -90,6 +90,19 @@ class NativeLocationServiceTest {
     }
 
     @Test
+    fun `location interval is forwarded without restarting the source`() = runBlocking {
+        val source = FakeLocationSource()
+        val service = service(source)
+        assertTrue(service.start())
+
+        assertTrue(service.updateIntervalMillis(500L))
+
+        assertEquals(listOf(500L), source.intervals)
+        assertEquals(1, source.startCalls)
+        assertEquals(0, source.stopCalls)
+    }
+
+    @Test
     fun `last known fix is safe and never reports stale speed`() = runBlocking {
         val source = FakeLocationSource(
             lastKnownValue = raw(
@@ -251,6 +264,7 @@ class NativeLocationServiceTest {
     ) : NativeLocationSource {
         var startCalls = 0
         var stopCalls = 0
+        val intervals = mutableListOf<Long>()
         private var listener: ((NativeRawLocation) -> Unit)? = null
 
         override suspend fun isLocationEnabled(): Boolean = enabled
@@ -267,6 +281,11 @@ class NativeLocationServiceTest {
         }
 
         override suspend fun lastKnown(): NativeRawLocation? = lastKnownValue
+
+        override suspend fun updateIntervalMillis(intervalMillis: Long): Boolean {
+            intervals += intervalMillis
+            return true
+        }
 
         fun emit(value: NativeRawLocation) {
             listener?.invoke(value)
