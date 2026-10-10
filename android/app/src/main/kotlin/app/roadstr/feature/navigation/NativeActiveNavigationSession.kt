@@ -549,7 +549,7 @@ class NativeActiveNavigationSession(
     private fun finishArrival() {
         val completedRevision = revision
         hudSession.hide(completedRevision)
-        overlaySession.clearRoute(completedRevision)
+        overlaySession.completeAtDestination(completedRevision)
         clearRuntime()
         _state.value = NativeActiveNavigationSnapshot(
             revision = completedRevision,

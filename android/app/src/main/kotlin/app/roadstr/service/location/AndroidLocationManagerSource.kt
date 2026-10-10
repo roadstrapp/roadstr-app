@@ -15,7 +15,7 @@ import android.os.Looper
 class AndroidLocationManagerSource(
     context: Context,
     private val looper: Looper = Looper.getMainLooper(),
-    private val minTimeMillis: Long = 500L,
+    private val minTimeMillis: Long = 1_000L,
     private val minDistanceMeters: Float = 0f,
 ) : NativeLocationSource {
     private val locationManager =

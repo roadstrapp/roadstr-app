@@ -44,6 +44,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
     private var trafficRevision = NO_TRAFFIC_REVISION
     private var trafficJamPoints: List<NativeMapPoint> = emptyList()
     private var trafficSegments: List<List<NativeMapPoint>> = emptyList()
+    private var destinationPoint: NativeMapPoint? = null
 
     val state: StateFlow<NativeRouteOverlaySessionState> = _state.asStateFlow()
 
@@ -62,6 +63,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
         val nextTrafficSegments = projectTraffic(prepared)
         currentRevision = revision
         route = prepared
+        destinationPoint = prepared.points.last()
         alternatives = emptyList()
         selectedAlternativeIndex = null
         progressMeters = 0.0
@@ -96,6 +98,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
         alternatives = prepared
         selectedAlternativeIndex = selectedIndex
         route = prepared[selectedIndex]
+        destinationPoint = prepared[selectedIndex].points.last()
         progressMeters = 0.0
         cursorRestricted = false
         trafficSegments = nextTrafficSegments
@@ -128,6 +131,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
         val nextTrafficSegments = projectTraffic(selectedRoute)
         selectedAlternativeIndex = selectedIndex
         route = selectedRoute
+        destinationPoint = selectedRoute.points.last()
         progressMeters = 0.0
         cursorRestricted = false
         trafficSegments = nextTrafficSegments
@@ -214,6 +218,23 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
         require(revision >= 0) { "Route revision must be non-negative" }
         if (revision < currentRevision) return false
         currentRevision = revision
+        route = null
+        destinationPoint = null
+        alternatives = emptyList()
+        selectedAlternativeIndex = null
+        progressMeters = 0.0
+        cursorRestricted = false
+        trafficSegments = emptyList()
+        publish(emptySnapshot())
+        true
+    }
+
+    /**
+     * Clears journey geometry at arrival while retaining the destination pin.
+     * A subsequent route, explicit cancellation or replacement owns clearing it.
+     */
+    fun completeAtDestination(revision: Long): Boolean = synchronized(lock) {
+        if (revision != currentRevision || destinationPoint == null) return false
         route = null
         alternatives = emptyList()
         selectedAlternativeIndex = null
@@ -319,7 +340,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
     }
 
     private fun emptySnapshot(): NativeRouteOverlaySnapshot =
-        NativeRouteOverlaySnapshot.empty(accentArgb)
+        NativeRouteOverlaySnapshot.empty(accentArgb, destinationPoint)
 
     private fun initialState(accentArgb: Long): NativeRouteOverlaySessionState {
         validateAccent(accentArgb)
@@ -365,6 +386,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
                     accentArgb = accentArgb,
                     alternativeRoutes = alternativeRoutes,
                     trafficSegments = trafficSegments,
+                    destinationPoint = points.last(),
                 )
             }
             if (totalDistanceMeters <= 0.0 || progressMeters >= totalDistanceMeters) {
@@ -374,6 +396,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
                     accentArgb = accentArgb,
                     alternativeRoutes = alternativeRoutes,
                     trafficSegments = trafficSegments,
+                    destinationPoint = points.last(),
                 )
             }
 
@@ -420,6 +443,7 @@ class NativeRouteOverlaySession(initialAccentArgb: Long) {
                 accentArgb = accentArgb,
                 alternativeRoutes = alternativeRoutes,
                 trafficSegments = trafficSegments,
+                destinationPoint = points.last(),
             )
         }
     }

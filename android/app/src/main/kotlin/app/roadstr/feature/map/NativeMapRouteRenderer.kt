@@ -38,15 +38,17 @@ internal class NativeMapRouteRenderer(
 
     fun update(snapshot: NativeRouteOverlaySnapshot) {
         val next = NativeRouteOverlayCompiler.compile(snapshot)
+        if (next == payload) return
+        val previous = payload
         payload = next
-        style?.let(::applyPayload)
+        style?.let { applyPayload(it, previous) }
     }
 
     fun attach(style: Style) {
         this.style = style
         ensureSources(style)
         ensureLayers(style)
-        applyPayload(style)
+        applyPayload(style, previous = null)
     }
 
     fun detach() {
@@ -122,7 +124,7 @@ internal class NativeMapRouteRenderer(
         }
     }
 
-    private fun applyPayload(style: Style) {
+    private fun applyPayload(style: Style, previous: NativeRouteOverlayPayload?) {
         val alternativesSource = style.getSource(ALTERNATIVES_SOURCE_ID) as? GeoJsonSource
             ?: error("Native alternative-route source has an unexpected type")
         val activeSource = style.getSource(ACTIVE_SOURCE_ID) as? GeoJsonSource
@@ -131,17 +133,27 @@ internal class NativeMapRouteRenderer(
             ?: error("Native completed-route source has an unexpected type")
         val trafficSource = style.getSource(TRAFFIC_SOURCE_ID) as? GeoJsonSource
             ?: error("Native traffic-route source has an unexpected type")
-        alternativesSource.setGeoJson(payload.alternativesGeoJson)
-        activeSource.setGeoJson(payload.activeGeoJson)
-        completedSource.setGeoJson(payload.completedGeoJson)
-        trafficSource.setGeoJson(payload.trafficGeoJson)
+        if (previous?.alternativesGeoJson != payload.alternativesGeoJson) {
+            alternativesSource.setGeoJson(payload.alternativesGeoJson)
+        }
+        if (previous?.activeGeoJson != payload.activeGeoJson) {
+            activeSource.setGeoJson(payload.activeGeoJson)
+        }
+        if (previous?.completedGeoJson != payload.completedGeoJson) {
+            completedSource.setGeoJson(payload.completedGeoJson)
+        }
+        if (previous?.trafficGeoJson != payload.trafficGeoJson) {
+            trafficSource.setGeoJson(payload.trafficGeoJson)
+        }
 
-        (style.getLayer(ACTIVE_HALO_LAYER_ID) as? LineLayer)?.setProperties(
-            PropertyFactory.lineColor(routeColorExpression(payload.accentArgb, HALO_ALPHA)),
-        )
-        (style.getLayer(ACTIVE_CORE_LAYER_ID) as? LineLayer)?.setProperties(
-            PropertyFactory.lineColor(routeColorExpression(payload.accentArgb, 1.0)),
-        )
+        if (previous?.accentArgb != payload.accentArgb) {
+            (style.getLayer(ACTIVE_HALO_LAYER_ID) as? LineLayer)?.setProperties(
+                PropertyFactory.lineColor(routeColorExpression(payload.accentArgb, HALO_ALPHA)),
+            )
+            (style.getLayer(ACTIVE_CORE_LAYER_ID) as? LineLayer)?.setProperties(
+                PropertyFactory.lineColor(routeColorExpression(payload.accentArgb, 1.0)),
+            )
+        }
     }
 
     private fun routeColorExpression(accentArgb: Long, alpha: Double): Expression =

@@ -60,6 +60,9 @@ internal class NativeMapCursorOverlayView(context: Context) : View(context) {
     }
     private val ostrichFrames = mutableMapOf<Boolean, List<Bitmap>>()
     private val vehicleBitmaps = mutableMapOf<NativeMapCursorStyle, Bitmap>()
+    private val arrowGradients = mutableMapOf<Long, LinearGradient>()
+    private val shadowGradients = mutableMapOf<Int, RadialGradient>()
+    private val colorFilters = mutableMapOf<Long, ColorMatrixColorFilter?>()
     private val loadingVehicles = mutableSetOf<NativeMapCursorStyle>()
     private val loadingSequences = mutableSetOf<Boolean>()
     private var animationStartNanos = 0L
@@ -167,17 +170,22 @@ internal class NativeMapCursorOverlayView(context: Context) : View(context) {
         iconScale: Float,
     ) {
         canvas.save()
+        val layer = if (alpha < 0.999f) {
+            val margin = CURSOR_LAYER_MARGIN_DP * density
+            canvas.saveLayerAlpha(
+                screenX - margin,
+                screenY - margin,
+                screenX + margin,
+                screenY + margin,
+                (alpha.coerceIn(0f, 1f) * 255).roundToInt(),
+            )
+        } else {
+            null
+        }
         canvas.scale(iconScale, iconScale, screenX, screenY)
-        val layer = canvas.saveLayerAlpha(
-            0f,
-            0f,
-            width.toFloat(),
-            height.toFloat(),
-            (alpha.coerceIn(0f, 1f) * 255).roundToInt(),
-        )
         if (usesOstrich(value)) {
             drawOstrich(canvas, screenX, screenY, value)
-            canvas.restoreToCount(layer)
+            layer?.let(canvas::restoreToCount)
             canvas.restore()
             return
         }
@@ -199,26 +207,27 @@ internal class NativeMapCursorOverlayView(context: Context) : View(context) {
         } else {
             drawAssetCursor(canvas, style, value.colorArgb)
         }
-        canvas.restoreToCount(layer)
+        layer?.let(canvas::restoreToCount)
         canvas.restore()
     }
 
     private fun drawShadow(canvas: Canvas, visual: NativeMapCursorVisualFrame) {
         val alpha = (visual.shadowAlpha * 255.0).roundToInt().coerceIn(0, 255)
-        shadowPaint.shader = RadialGradient(
-            0f,
-            0f,
-            18f,
-            intArrayOf(Color.argb(alpha, 0, 0, 0), Color.TRANSPARENT),
-            null,
-            Shader.TileMode.CLAMP,
-        )
+        shadowPaint.shader = shadowGradients.getOrPut(alpha) {
+            RadialGradient(
+                0f,
+                0f,
+                18f,
+                intArrayOf(Color.argb(alpha, 0, 0, 0), Color.TRANSPARENT),
+                null,
+                Shader.TileMode.CLAMP,
+            )
+        }
         canvas.save()
         canvas.translate(24f, visual.shadowCenterY.toFloat())
         canvas.scale(visual.shadowScaleX.toFloat(), visual.shadowScaleY.toFloat())
         canvas.drawCircle(0f, 0f, 18f, shadowPaint)
         canvas.restore()
-        shadowPaint.shader = null
     }
 
     private fun drawArrow(canvas: Canvas, color: Long) {
@@ -229,15 +238,17 @@ internal class NativeMapCursorOverlayView(context: Context) : View(context) {
         outlinePaint.alpha = 255
         outlinePaint.strokeWidth = 1.5f
         highlightPaint.alpha = 128
-        fillPaint.shader = LinearGradient(
-            0f,
-            5.5f,
-            0f,
-            34.1f,
-            NativeMapCursorVisualPolicy.adjustLightness(color, 0.18),
-            NativeMapCursorVisualPolicy.adjustLightness(color, -0.10),
-            Shader.TileMode.CLAMP,
-        )
+        fillPaint.shader = arrowGradients.getOrPut(color) {
+            LinearGradient(
+                0f,
+                5.5f,
+                0f,
+                34.1f,
+                NativeMapCursorVisualPolicy.adjustLightness(color, 0.18),
+                NativeMapCursorVisualPolicy.adjustLightness(color, -0.10),
+                Shader.TileMode.CLAMP,
+            )
+        }
         outlinePaint.color = NativeMapCursorVisualPolicy.adjustLightness(color, -0.30)
         canvas.drawPath(arrowPath, fillPaint)
         canvas.drawPath(arrowPath, outlinePaint)
@@ -346,22 +357,14 @@ internal class NativeMapCursorOverlayView(context: Context) : View(context) {
         val elapsed = (animationFrameNanos - animationStartNanos).coerceAtLeast(0L)
         val exactFrame = (elapsed % durationNanos).toDouble() / durationNanos * frames.size
         val frameIndex = exactFrame.toInt().coerceIn(0, frames.lastIndex)
-        val nextIndex = (frameIndex + 1) % frames.size
-        val blend = (exactFrame - frameIndex).toFloat().coerceIn(0f, 1f)
         val size = OSTRICH_SIZE_DP * density
         val destination = RectF(x - size / 2f, y - size / 2f, x + size / 2f, y + size / 2f)
 
-        // Source frames are authored at 30 fps. Cross-fading adjacent frames
-        // on every display VSYNC provides a genuinely smooth 60/90/120 Hz
-        // presentation without doubling the animation's authored speed.
-        bitmapPaint.alpha = ((1f - blend) * 255).roundToInt()
+        // Source frames are authored at 30 fps. Drawing exactly at that cadence
+        // avoids waking the UI/GPU at a 90/120 Hz display refresh rate.
+        bitmapPaint.alpha = 255
         bitmapPaint.colorFilter = colorFilter(value.colorArgb)
         canvas.drawBitmap(frames[frameIndex], null, destination, bitmapPaint)
-        if (blend > 0f) {
-            bitmapPaint.alpha = (blend * 255).roundToInt()
-            canvas.drawBitmap(frames[nextIndex], null, destination, bitmapPaint)
-        }
-        bitmapPaint.alpha = 255
         bitmapPaint.colorFilter = null
     }
 
@@ -408,7 +411,10 @@ internal class NativeMapCursorOverlayView(context: Context) : View(context) {
     private fun scheduleAnimationFrame() {
         if (frameScheduled || !isAttachedToWindow) return
         frameScheduled = true
-        Choreographer.getInstance().postFrameCallback(frameCallback)
+        Choreographer.getInstance().postFrameCallbackDelayed(
+            frameCallback,
+            ANIMATION_FRAME_DELAY_MILLIS,
+        )
     }
 
     private fun drawPuffCloud(canvas: Canvas, x: Float, y: Float, t: Float) {
@@ -449,6 +455,11 @@ internal class NativeMapCursorOverlayView(context: Context) : View(context) {
     }
 
     private fun colorFilter(argb: Long): ColorMatrixColorFilter? {
+        if (colorFilters.containsKey(argb)) return colorFilters[argb]
+        return buildColorFilter(argb).also { colorFilters[argb] = it }
+    }
+
+    private fun buildColorFilter(argb: Long): ColorMatrixColorFilter? {
         val degrees = when (argb) {
             0xFF5856D6 -> 8.0
             0xFF0A84FF -> -30.0
@@ -477,7 +488,9 @@ internal class NativeMapCursorOverlayView(context: Context) : View(context) {
         const val OSTRICH_CYCLE_NANOS = 5_000_000_000L
         const val OSTRICH_SIZE_DP = 68f
         const val CURSOR_ASSET_TOP_DP = 14f
+        const val CURSOR_LAYER_MARGIN_DP = 64f
         const val POOF_DURATION_NANOS = 420_000_000L
+        const val ANIMATION_FRAME_DELAY_MILLIS = 33L
         val POOF_PUFFS = arrayOf(
             floatArrayOf(0f, 0f, .34f),
             floatArrayOf(-.28f, -.12f, .22f),

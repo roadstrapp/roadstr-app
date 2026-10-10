@@ -30,6 +30,7 @@ import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapLibreMapOptions
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
+import org.maplibre.android.maps.renderer.MapRenderer
 
 internal object NativeMapHostContract {
     const val MAPLIBRE_VERSION = "13.5.2"
@@ -40,6 +41,7 @@ internal object NativeMapHostContract {
     const val INITIAL_LONGITUDE = 12.5
     const val INITIAL_ZOOM = 17.0
     const val INITIAL_TILT = 40.0
+    const val MAXIMUM_RENDER_FPS = 30
 }
 
 /** MapLibre Native host used only by the private native canary Activity. */
@@ -157,18 +159,23 @@ private class NativeMapLibreViewHost private constructor(
     private val cameraRenderer: NativeMapCameraRenderer,
     private val cursorOverlay: NativeMapCursorOverlayView,
     private val pointOverlay: NativeMapPointOverlayView,
+    private val destinationOverlay: NativeMapDestinationOverlayView,
     private val engineProfile: NativeMapEngineProfile,
     private val onCameraGesture: () -> Unit,
     private val onMapInteraction: (NativeMapInteraction) -> Unit,
     initialCameraCommand: NativeMapCameraCommand?,
     initialCursorSnapshot: NativeMapCursorSnapshot,
     initialPointOverlay: NativeMapPointOverlaySnapshot,
+    initialDestinationPoint: NativeMapPoint?,
+    initialDestinationColorArgb: Long,
     initialStyleJson: String,
 ) {
     private var active = true
     private var map: MapLibreMap? = null
     private var desiredStyleJson = initialStyleJson
     private var requestedStyleJson: String? = null
+    private var destinationPoint = initialDestinationPoint
+    private var destinationColorArgb = initialDestinationColorArgb
     private val styleGeneration = NativeMapStyleGenerationGate()
     private val cameraMoveStartedListener = MapLibreMap.OnCameraMoveStartedListener { reason ->
         if (active && reason == MapLibreMap.OnCameraMoveStartedListener.REASON_API_GESTURE) {
@@ -178,6 +185,7 @@ private class NativeMapLibreViewHost private constructor(
     private val cameraMoveListener = MapLibreMap.OnCameraMoveListener {
         if (active) {
             pointOverlay.refreshProjection()
+            destinationOverlay.refreshProjection()
             cursorOverlay.refreshProjection()
         }
     }
@@ -219,6 +227,9 @@ private class NativeMapLibreViewHost private constructor(
         cameraRenderer.update(initialCameraCommand)
         cursorOverlay.update(initialCursorSnapshot)
         pointOverlay.update(initialPointOverlay)
+        destinationOverlay.update(
+            NativeMapDestinationPinSnapshot(initialDestinationPoint, initialDestinationColorArgb),
+        )
         mapView.getMapAsync { readyMap ->
             if (!active) return@getMapAsync
             map = readyMap
@@ -239,6 +250,7 @@ private class NativeMapLibreViewHost private constructor(
             readyMap.addOnMapLongClickListener(mapLongClickListener)
             cameraRenderer.attach(readyMap)
             pointOverlay.attach(readyMap)
+            destinationOverlay.attach(readyMap)
             cursorOverlay.attach(readyMap)
             applyStyleIfNeeded()
         }
@@ -253,6 +265,10 @@ private class NativeMapLibreViewHost private constructor(
     fun updateRouteOverlay(snapshot: NativeRouteOverlaySnapshot) {
         if (!active) return
         routeRenderer.update(snapshot)
+        destinationPoint = snapshot.destinationPoint
+        destinationOverlay.update(
+            NativeMapDestinationPinSnapshot(destinationPoint, destinationColorArgb),
+        )
     }
 
     fun updateTransitOverlay(snapshot: NativeTransitOverlaySnapshot) {
@@ -268,6 +284,12 @@ private class NativeMapLibreViewHost private constructor(
     fun updateCursor(snapshot: NativeMapCursorSnapshot) {
         if (!active) return
         cursorOverlay.update(snapshot)
+        if (destinationColorArgb != snapshot.colorArgb) {
+            destinationColorArgb = snapshot.colorArgb
+            destinationOverlay.update(
+                NativeMapDestinationPinSnapshot(destinationPoint, destinationColorArgb),
+            )
+        }
     }
 
     fun updatePointOverlay(snapshot: NativeMapPointOverlaySnapshot) {
@@ -284,6 +306,7 @@ private class NativeMapLibreViewHost private constructor(
         map?.removeOnMapLongClickListener(mapLongClickListener)
         cameraRenderer.detach()
         pointOverlay.detach()
+        destinationOverlay.detach()
         cursorOverlay.detach()
         map = null
         routeRenderer.detach()
@@ -348,7 +371,10 @@ private class NativeMapLibreViewHost private constructor(
                     ).backgroundArgb.toInt(),
                 )
             val mapView = MapView(context, options)
+            mapView.setMaximumFps(NativeMapHostContract.MAXIMUM_RENDER_FPS)
+            mapView.setRenderingRefreshMode(MapRenderer.RenderingRefreshMode.WHEN_DIRTY)
             val pointOverlay = NativeMapPointOverlayView(context)
+            val destinationOverlay = NativeMapDestinationOverlayView(context)
             val cursorOverlay = NativeMapCursorOverlayView(context)
             val matchParent = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -358,6 +384,13 @@ private class NativeMapLibreViewHost private constructor(
                 addView(mapView, matchParent)
                 addView(
                     pointOverlay,
+                    FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                    ),
+                )
+                addView(
+                    destinationOverlay,
                     FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT,
@@ -400,12 +433,15 @@ private class NativeMapLibreViewHost private constructor(
                 cameraRenderer = cameraRenderer,
                 cursorOverlay = cursorOverlay,
                 pointOverlay = pointOverlay,
+                destinationOverlay = destinationOverlay,
                 engineProfile = engineProfile,
                 onCameraGesture = onCameraGesture,
                 onMapInteraction = onMapInteraction,
                 initialCameraCommand = initialCameraCommand,
                 initialCursorSnapshot = initialCursorSnapshot,
                 initialPointOverlay = initialPointOverlay,
+                initialDestinationPoint = initialRouteOverlay.destinationPoint,
+                initialDestinationColorArgb = initialCursorSnapshot.colorArgb,
                 initialStyleJson = initialStyleJson,
             )
         }
