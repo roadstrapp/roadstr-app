@@ -99,6 +99,7 @@ android {
                     "../../android/app/src/main/kotlin/app/roadstr/service/location",
                     "../../android/app/src/main/kotlin/app/roadstr/service/network",
                     "../../android/app/src/main/kotlin/app/roadstr/service/nostr",
+                    "../../android/app/src/main/kotlin/app/roadstr/service/offline",
                     "../../android/app/src/main/kotlin/app/roadstr/service/routing",
                     "../../android/app/src/main/kotlin/app/roadstr/service/search",
                 ),
@@ -201,6 +202,10 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    implementation("io.github.rallista:valhalla-mobile:0.6.4")
+    implementation("io.github.rallista:valhalla-models-config:0.6.0")
+    implementation("io.github.rallista:valhalla-models:0.6.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.1")
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.23.0")
 
     val composeBom = platform("androidx.compose:compose-bom:2026.06.01")
