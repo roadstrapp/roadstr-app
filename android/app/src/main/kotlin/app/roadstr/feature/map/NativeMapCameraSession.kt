@@ -229,7 +229,10 @@ class NativeMapCameraSession {
             }
         }
         if (settled) frameActive = false
-        publish()
+        // The easing state may advance more often than MapLibre needs a new
+        // command. Avoid waking every StateFlow/Compose consumer for frames
+        // intentionally rejected by CameraFrameGate.
+        if (shouldSend || settled) publish()
         shouldSend
     }
 
@@ -451,7 +454,7 @@ class NativeMapCameraSession {
     )
 
     companion object {
-        const val FOLLOW_FRAME_MILLIS = 33L
+        const val FOLLOW_FRAME_MILLIS = 50L
         const val DEAD_RECKONING_CAP_MILLIS = 3_000L
         const val RECENTER_DURATION_MILLIS = 300
         const val DEFAULT_ZOOM = 17.0

@@ -9,13 +9,18 @@ data class NativeRouteOverlaySnapshot(
     val accentArgb: Long,
     val alternativeRoutes: List<List<NativeMapPoint>> = emptyList(),
     val trafficSegments: List<List<NativeMapPoint>> = emptyList(),
+    val destinationPoint: NativeMapPoint? = null,
 ) {
     companion object {
-        fun empty(accentArgb: Long): NativeRouteOverlaySnapshot =
+        fun empty(
+            accentArgb: Long,
+            destinationPoint: NativeMapPoint? = null,
+        ): NativeRouteOverlaySnapshot =
             NativeRouteOverlaySnapshot(
                 activeRuns = emptyList(),
                 completedPoints = emptyList(),
                 accentArgb = accentArgb,
+                destinationPoint = destinationPoint,
             )
     }
 }
