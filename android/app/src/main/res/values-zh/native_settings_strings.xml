@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">关闭</string>
     <string name="native_settings_show_altitude">显示海拔</string>
     <string name="native_settings_show_altitude_desc">在地图控件附近显示的小型实时海拔读数</string>
-    <string name="native_settings_road_overlays">道路元素</string>
+    <string name="native_settings_road_overlays">地图元素</string>
     <string name="native_settings_crosswalks">人行横道</string>
     <string name="native_settings_crosswalks_desc">在地图上显示来自OpenStreetMap的人行横道</string>
     <string name="native_settings_traffic_lights">交通信号灯</string>

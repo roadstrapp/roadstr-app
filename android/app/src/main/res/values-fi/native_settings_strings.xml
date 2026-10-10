@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">Pois</string>
     <string name="native_settings_show_altitude">Näytä korkeus</string>
     <string name="native_settings_show_altitude_desc">Pieni reaaliaikainen korkeuslukema karttatoimintojen lähellä</string>
-    <string name="native_settings_road_overlays">Tien elementit</string>
+    <string name="native_settings_road_overlays">Kartan elementit</string>
     <string name="native_settings_crosswalks">Suojatiet</string>
     <string name="native_settings_crosswalks_desc">Näyttää kartalla OpenStreetMapista löytyvät suojatiet</string>
     <string name="native_settings_traffic_lights">Liikennevalot</string>

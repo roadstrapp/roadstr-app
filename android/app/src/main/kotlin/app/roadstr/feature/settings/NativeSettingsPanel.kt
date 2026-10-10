@@ -148,10 +148,9 @@ fun NativeSettingsPanel(
     val title = stringResource(R.string.native_settings_title)
     val revision = snapshot.revision
     val values = snapshot.values
-    // Open from the start: the crosswalk and traffic-light switches sit behind
-    // this card, and a closed card is just a row titled "Road element overlays"
-    // that nobody connects with them.
-    var overlaysExpanded by remember { mutableStateOf(true) }
+    // Closed until the user opens it: the card groups the optional map elements
+    // (altitude, crosswalks, traffic lights) so the settings list stays short.
+    var overlaysExpanded by remember { mutableStateOf(false) }
     // Decode the cursor thumbnails while the panel opens, off the main thread,
     // so expanding the cursor menu later never stalls its own animation.
     val appContext = LocalContext.current.applicationContext
@@ -389,16 +388,16 @@ private fun MapSection(
             range = 0f..1f,
             steps = 9,
         ) { onAction(NativeSettingsUiAction.BrightnessChanged(it.toDouble())) }
-        ToggleRow(
-            R.string.native_settings_show_altitude,
-            R.string.native_settings_show_altitude_desc,
-            values.showAltitude,
-        ) { onAction(NativeSettingsUiAction.BooleanChanged(NativeSettingsBooleanKey.ShowAltitude, it)) }
         ExpandableCard(
             title = stringResource(R.string.native_settings_road_overlays),
             expanded = overlaysExpanded,
             onClick = onToggleOverlays,
         ) {
+            ToggleRow(
+                R.string.native_settings_show_altitude,
+                R.string.native_settings_show_altitude_desc,
+                values.showAltitude,
+            ) { onAction(NativeSettingsUiAction.BooleanChanged(NativeSettingsBooleanKey.ShowAltitude, it)) }
             ToggleRow(
                 R.string.native_settings_crosswalks,
                 R.string.native_settings_crosswalks_desc,

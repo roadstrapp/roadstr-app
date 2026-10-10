@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">Off</string>
     <string name="native_settings_show_altitude">Show altitude</string>
     <string name="native_settings_show_altitude_desc">A small real-time elevation readout near the map controls</string>
-    <string name="native_settings_road_overlays">Road element overlays</string>
+    <string name="native_settings_road_overlays">Map element overlays</string>
     <string name="native_settings_crosswalks">Pedestrian crossings</string>
     <string name="native_settings_crosswalks_desc">Shows OSM-mapped pedestrian crossings on the map</string>
     <string name="native_settings_traffic_lights">Traffic lights</string>

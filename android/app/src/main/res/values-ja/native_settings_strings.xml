@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">オフ</string>
     <string name="native_settings_show_altitude">標高を表示</string>
     <string name="native_settings_show_altitude_desc">地図の操作ボタン付近に表示されるリアルタイムの標高表示</string>
-    <string name="native_settings_road_overlays">道路要素</string>
+    <string name="native_settings_road_overlays">地図要素</string>
     <string name="native_settings_crosswalks">横断歩道</string>
     <string name="native_settings_crosswalks_desc">OpenStreetMapに登録された横断歩道を地図に表示します</string>
     <string name="native_settings_traffic_lights">信号機</string>
