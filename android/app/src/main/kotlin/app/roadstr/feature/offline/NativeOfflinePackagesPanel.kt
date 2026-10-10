@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.roadstr.R
 import app.roadstr.service.offline.InstalledOfflinePackage
+import app.roadstr.service.offline.OfflineDatasetType
 import app.roadstr.service.offline.OfflinePackageArtifact
 import app.roadstr.service.offline.OfflinePackageManifest
 import app.roadstr.service.offline.OfflineInstallOutcome
@@ -135,7 +136,9 @@ fun NativeOfflinePackagesPanel(
                 }
             }
             item { HorizontalDivider(); Spacer(Modifier.height(2.dp)) }
-            val available = snapshot.manifest?.artifacts.orEmpty()
+            val available = snapshot.manifest?.artifacts.orEmpty().filter {
+                it.datasetType == OfflineDatasetType.ValhallaRouting
+            }
             if (available.isEmpty()) {
                 item { Text(stringResource(R.string.native_offline_catalog_unavailable)) }
             } else {
