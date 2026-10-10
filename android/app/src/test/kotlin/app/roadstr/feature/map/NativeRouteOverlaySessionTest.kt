@@ -39,6 +39,7 @@ class NativeRouteOverlaySessionTest {
         assertEquals(2, state.snapshot.payload().activeFeatureCount)
         assertEquals(0, state.snapshot.completedPoints.size)
         assertEquals(accent, state.snapshot.accentArgb)
+        assertEquals(points.last(), state.snapshot.destinationPoint)
     }
 
     @Test
@@ -61,6 +62,7 @@ class NativeRouteOverlaySessionTest {
         assertTrue(payload.activeGeoJson.contains("[10.0,45.0]"))
         assertTrue(payload.activeGeoJson.contains("\"restricted\":true"))
         assertFalse(payload.alternativesGeoJson.contains("[10.0,45.0]"))
+        assertEquals(candidates[1].points.last(), state.snapshot.destinationPoint)
     }
 
     @Test
@@ -80,6 +82,7 @@ class NativeRouteOverlaySessionTest {
         assertEquals(1, state.selectedAlternativeIndex)
         assertTrue(state.snapshot.activeGeoJson().contains("[10.0,45.0]"))
         assertTrue(state.snapshot.alternativesGeoJson().contains("[9.0,45.0]"))
+        assertEquals(candidates[1].points.last(), state.snapshot.destinationPoint)
     }
 
     @Test
@@ -198,6 +201,24 @@ class NativeRouteOverlaySessionTest {
         assertTrue(session.clearRoute(7))
         assertFalse(session.submitRoute(7, points, listOf(false, false, false)))
         assertEquals(0, session.state.value.snapshot.payload().pointCount)
+        assertEquals(null, session.state.value.snapshot.destinationPoint)
+    }
+
+    @Test
+    fun `arrival clears route geometry but keeps destination until explicit clear`() {
+        val session = NativeRouteOverlaySession(accent)
+        assertTrue(session.submitRoute(9, points, listOf(false, false, false)))
+
+        assertTrue(session.completeAtDestination(9))
+
+        val arrived = session.state.value
+        assertEquals(0, arrived.snapshot.payload().pointCount)
+        assertEquals(points.last(), arrived.snapshot.destinationPoint)
+        assertEquals(0.0, arrived.totalDistanceMeters, 0.0)
+        assertFalse(session.completeAtDestination(8))
+
+        assertTrue(session.clearRoute(9))
+        assertEquals(null, session.state.value.snapshot.destinationPoint)
     }
 
     @Test

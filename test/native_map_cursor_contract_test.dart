@@ -13,6 +13,10 @@ void main() {
     'android/app/src/main/kotlin/app/roadstr/feature/map/'
     'NativeMapCursorOverlayView.kt',
   );
+  final destinationOverlay = File(
+    'android/app/src/main/kotlin/app/roadstr/feature/map/'
+    'NativeMapDestinationOverlayView.kt',
+  );
   final host = File(
     'android/app/src/main/kotlin/app/roadstr/feature/map/'
     'NativeMapLibreHost.kt',
@@ -59,5 +63,17 @@ void main() {
     expect(shellSource, contains('cursorSnapshot = remember(cursorState, cameraState.displaySequence)'));
     expect(shellSource, isNot(contains('NativeLocation')));
     expect(shellSource, isNot(contains('lastKnownLocation')));
+  });
+
+  test('native map caps rendering and anchors a themed destination pin', () {
+    final hostSource = host.readAsStringSync();
+    final destinationSource = destinationOverlay.readAsStringSync();
+
+    expect(hostSource, contains('MAXIMUM_RENDER_FPS = 30'));
+    expect(hostSource, contains('RenderingRefreshMode.WHEN_DIRTY'));
+    expect(hostSource, contains('destinationOverlay.refreshProjection()'));
+    expect(destinationSource, contains('NativeMapDestinationPinSnapshot'));
+    expect(destinationSource, contains('projection.toScreenLocation'));
+    expect(destinationSource, contains('value.colorArgb'));
   });
 }

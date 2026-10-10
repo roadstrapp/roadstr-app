@@ -124,6 +124,7 @@ class NativeActiveNavigationSessionTest {
         assertTrue(session.state.value.arrived)
         assertEquals(NativeNavigationHudStatus.Hidden, hud.state.value.status)
         assertTrue(overlay.state.value.snapshot.activeRuns.isEmpty())
+        assertEquals(route.polyline.last().toMapPoint(), overlay.state.value.snapshot.destinationPoint)
         assertTrue(session.dismissArrival(11))
         assertFalse(session.state.value.arrived)
     }
