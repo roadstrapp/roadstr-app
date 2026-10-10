@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">Выкл.</string>
     <string name="native_settings_show_altitude">Показывать высоту</string>
     <string name="native_settings_show_altitude_desc">Небольшой индикатор высоты в реальном времени рядом с элементами управления картой</string>
-    <string name="native_settings_road_overlays">Элементы дороги</string>
+    <string name="native_settings_road_overlays">Элементы карты</string>
     <string name="native_settings_crosswalks">Пешеходные переходы</string>
     <string name="native_settings_crosswalks_desc">Показывает на карте пешеходные переходы из OpenStreetMap</string>
     <string name="native_settings_traffic_lights">Светофоры</string>

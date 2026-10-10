@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">Ki</string>
     <string name="native_settings_show_altitude">Magasság megjelenítése</string>
     <string name="native_settings_show_altitude_desc">Kis valós idejű magasságkijelzés a térkép vezérlői mellett</string>
-    <string name="native_settings_road_overlays">Útelemek</string>
+    <string name="native_settings_road_overlays">Térképelemek</string>
     <string name="native_settings_crosswalks">Gyalogátkelőhelyek</string>
     <string name="native_settings_crosswalks_desc">Megjeleníti a térképen az OpenStreetMap gyalogátkelőhelyeit</string>
     <string name="native_settings_traffic_lights">Közlekedési lámpák</string>

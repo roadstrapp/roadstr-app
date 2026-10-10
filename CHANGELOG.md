@@ -4,6 +4,10 @@ All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stab
 
 ## Unreleased
 
+- Settings: the card of optional map elements is now called *Map element overlays* (27 languages), starts closed, and also holds
+  the altitude readout switch; the altitude readout stays off by default.
+- Added a destination pin on the map and lighter navigation rendering: the vehicle cursor animation is drawn at its 30 fps
+  source cadence instead of waking the UI at a 90/120 Hz refresh rate.
 - Restored native ZTL/ZAC/limited-traffic warnings from the 0.5.x line: bounded Overpass loading, restricted-route colouring,
   live inside/nearby notices, official local acronyms where established, dismissal and navigation-progress integration.
 - Added client-initiated NIP-46 login with a generated `nostrconnect://` offer for Amber and compatible signers, alongside the

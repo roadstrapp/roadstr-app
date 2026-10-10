@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">Uit</string>
     <string name="native_settings_show_altitude">Hoogte tonen</string>
     <string name="native_settings_show_altitude_desc">Een kleine real-time hoogteweergave bij de kaartbediening</string>
-    <string name="native_settings_road_overlays">Wegelementen</string>
+    <string name="native_settings_road_overlays">Kaartelementen</string>
     <string name="native_settings_crosswalks">Zebrapaden</string>
     <string name="native_settings_crosswalks_desc">Toont OpenStreetMap-zebrapaden op de kaart</string>
     <string name="native_settings_traffic_lights">Verkeerslichten</string>

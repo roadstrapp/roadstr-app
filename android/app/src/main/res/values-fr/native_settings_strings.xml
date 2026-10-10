@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">Désactivée</string>
     <string name="native_settings_show_altitude">Afficher l\'altitude</string>
     <string name="native_settings_show_altitude_desc">Un petit indicateur d\'altitude en temps réel près des commandes de la carte</string>
-    <string name="native_settings_road_overlays">Éléments routiers</string>
+    <string name="native_settings_road_overlays">Éléments de la carte</string>
     <string name="native_settings_crosswalks">Passages piétons</string>
     <string name="native_settings_crosswalks_desc">Affiche sur la carte les passages piétons issus d\'OpenStreetMap</string>
     <string name="native_settings_traffic_lights">Feux de circulation</string>

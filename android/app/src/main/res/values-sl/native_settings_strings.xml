@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">Izklopljeno</string>
     <string name="native_settings_show_altitude">Prikaži nadmorsko višino</string>
     <string name="native_settings_show_altitude_desc">Majhen prikaz nadmorske višine v realnem času ob kontrolnikih zemljevida</string>
-    <string name="native_settings_road_overlays">Elementi ceste</string>
+    <string name="native_settings_road_overlays">Elementi zemljevida</string>
     <string name="native_settings_crosswalks">Prehodi za pešce</string>
     <string name="native_settings_crosswalks_desc">Na zemljevidu prikaže prehode za pešce iz OpenStreetMap</string>
     <string name="native_settings_traffic_lights">Semaforji</string>

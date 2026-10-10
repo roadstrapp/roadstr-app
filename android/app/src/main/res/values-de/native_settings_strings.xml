@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">Aus</string>
     <string name="native_settings_show_altitude">Höhe anzeigen</string>
     <string name="native_settings_show_altitude_desc">Eine kleine Echtzeit-Höhenanzeige neben den Kartensteuerelementen</string>
-    <string name="native_settings_road_overlays">Straßenelemente</string>
+    <string name="native_settings_road_overlays">Kartenelemente</string>
     <string name="native_settings_crosswalks">Fußgängerüberwege</string>
     <string name="native_settings_crosswalks_desc">Zeigt auf OpenStreetMap kartierte Fußgängerüberwege auf der Karte</string>
     <string name="native_settings_traffic_lights">Ampeln</string>

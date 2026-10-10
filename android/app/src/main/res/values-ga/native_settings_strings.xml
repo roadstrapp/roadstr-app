@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">As</string>
     <string name="native_settings_show_altitude">Taispeáin airde</string>
     <string name="native_settings_show_altitude_desc">Léamh beag airde fíor-ama in aice le rialtáin na léarscáile</string>
-    <string name="native_settings_road_overlays">Eilimintí bóthair</string>
+    <string name="native_settings_road_overlays">Eilimintí léarscáile</string>
     <string name="native_settings_crosswalks">Trasrianta coisithe</string>
     <string name="native_settings_crosswalks_desc">Taispeánann sé trasrianta coisithe ó OpenStreetMap ar an léarscáil</string>
     <string name="native_settings_traffic_lights">Soilse tráchta</string>

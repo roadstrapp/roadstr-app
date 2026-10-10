@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">Fra</string>
     <string name="native_settings_show_altitude">Vis højde</string>
     <string name="native_settings_show_altitude_desc">En lille visning af højden i realtid ved kortkontrollerne</string>
-    <string name="native_settings_road_overlays">Vejelementer</string>
+    <string name="native_settings_road_overlays">Kortelementer</string>
     <string name="native_settings_crosswalks">Fodgængerfelter</string>
     <string name="native_settings_crosswalks_desc">Viser fodgængerfelter fra OpenStreetMap på kortet</string>
     <string name="native_settings_traffic_lights">Trafiklys</string>

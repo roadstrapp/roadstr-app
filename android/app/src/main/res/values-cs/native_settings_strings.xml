@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">Vypnuto</string>
     <string name="native_settings_show_altitude">Zobrazit nadmořskou výšku</string>
     <string name="native_settings_show_altitude_desc">Malý ukazatel nadmořské výšky v reálném čase u ovládacích prvků mapy</string>
-    <string name="native_settings_road_overlays">Silniční prvky</string>
+    <string name="native_settings_road_overlays">Prvky mapy</string>
     <string name="native_settings_crosswalks">Přechody pro chodce</string>
     <string name="native_settings_crosswalks_desc">Zobrazí na mapě přechody pro chodce z OpenStreetMap</string>
     <string name="native_settings_traffic_lights">Semafory</string>

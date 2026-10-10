@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">Изключено</string>
     <string name="native_settings_show_altitude">Показвай надморска височина</string>
     <string name="native_settings_show_altitude_desc">Малко показание на надморската височина в реално време до бутоните на картата</string>
-    <string name="native_settings_road_overlays">Пътни елементи</string>
+    <string name="native_settings_road_overlays">Елементи на картата</string>
     <string name="native_settings_crosswalks">Пешеходни пътеки</string>
     <string name="native_settings_crosswalks_desc">Показва на картата пешеходните пътеки от OpenStreetMap</string>
     <string name="native_settings_traffic_lights">Светофари</string>
