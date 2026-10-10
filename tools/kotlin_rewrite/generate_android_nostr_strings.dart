@@ -2975,6 +2975,12 @@ const _offlineHelpKeys = <String>[
   'native_offline_provider_loading',
   'native_offline_provider_cached',
   'native_offline_size_checked_before_download',
+  'native_offline_download_progress_title',
+  'native_offline_download_progress',
+  'native_offline_download_preparing',
+  'native_offline_manifest_search',
+  'native_offline_manifest_search_hint',
+  'native_offline_manifest_no_results',
 ];
 
 const _offlineHelpRows = <String, List<String>>{
@@ -3007,6 +3013,12 @@ const _offlineHelpRows = <String, List<String>>{
     'Updating the worldwide catalog…',
     'Showing the last saved catalog because the live source was unavailable.',
     'Exact size is checked before download.',
+    'Downloading offline map',
+    '{n}% · {s1} of {s2}',
+    'Preparing download and checking the source…',
+    'Filter manifest packages',
+    'Country, region, city or package name',
+    'No manifest packages match this search.',
   ],
   'it': [
     'Come funzionano le aree offline',
@@ -3037,6 +3049,12 @@ const _offlineHelpRows = <String, List<String>>{
     'Aggiornamento del catalogo mondiale…',
     'È mostrato l’ultimo catalogo salvato perché la sorgente live non era disponibile.',
     'La dimensione esatta viene verificata prima del download.',
+    'Download della mappa offline',
+    '{n}% · {s1} di {s2}',
+    'Preparazione del download e verifica della sorgente…',
+    'Filtra i pacchetti del manifest',
+    'Paese, regione, città o nome del pacchetto',
+    'Nessun pacchetto del manifest corrisponde alla ricerca.',
   ],
 };
 
@@ -3050,6 +3068,7 @@ String _resourceFolder(String language) =>
 
 String _androidText(String source, String sourceKey) {
   // Placeholders: counts ({n}, {sats}) and up to two texts ({s1}, {s2}).
+  final hasCount = source.contains('{n}') || source.contains('{sats}');
   final withPlaceholder = source
       .replaceAll('{n}', '\u0000N\u0000')
       .replaceAll('{sats}', '\u0000N\u0000')
@@ -3070,8 +3089,8 @@ String _androidText(String source, String sourceKey) {
       .replaceAll('\r', r'\r')
       .replaceAll('\t', r'\t')
       .replaceAll('\u0000N\u0000', r'%1$d')
-      .replaceAll('\u0000S1\u0000', r'%1$s')
-      .replaceAll('\u0000S2\u0000', r'%2$s');
+      .replaceAll('\u0000S1\u0000', hasCount ? r'%2$s' : r'%1$s')
+      .replaceAll('\u0000S2\u0000', hasCount ? r'%3$s' : r'%2$s');
   // aapt reads a leading ? or @ as a reference to another resource or theme attribute.
   return escaped.startsWith('?') || escaped.startsWith('@') ? '\\$escaped' : escaped;
 }

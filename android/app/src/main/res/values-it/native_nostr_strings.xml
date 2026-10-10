@@ -81,6 +81,9 @@
     <string name="native_offline_dataset_invalid">I dati offline non sono validi</string>
     <string name="native_offline_download">Scarica</string>
     <string name="native_offline_download_failed">Il download non è stato completato</string>
+    <string name="native_offline_download_preparing">Preparazione del download e verifica della sorgente…</string>
+    <string name="native_offline_download_progress">%1$d%% · %2$s di %3$s</string>
+    <string name="native_offline_download_progress_title">Download della mappa offline</string>
     <string name="native_offline_downloaded_areas">Aree scaricate</string>
     <string name="native_offline_downloaded_areas_desc">Gestisci i dati di routing offline. Nessun download parte automaticamente.</string>
     <string name="native_offline_fallback">Ripiego online</string>
@@ -93,6 +96,9 @@
     <string name="native_offline_manifest_example">https://maps.example.org/roadstr/manifest.json</string>
     <string name="native_offline_manifest_hint">Usa l’URL HTTPS completo di un manifest JSON Roadstr, non l’indirizzo di una mappa o di una città.</string>
     <string name="native_offline_manifest_invalid">Inserisci un indirizzo HTTPS completo che punti al manifest JSON.</string>
+    <string name="native_offline_manifest_no_results">Nessun pacchetto del manifest corrisponde alla ricerca.</string>
+    <string name="native_offline_manifest_search">Filtra i pacchetti del manifest</string>
+    <string name="native_offline_manifest_search_hint">Paese, regione, città o nome del pacchetto</string>
     <string name="native_offline_manifest_url">Indirizzo HTTPS del manifest</string>
     <string name="native_offline_map_raster">Mappa PMTiles raster</string>
     <string name="native_offline_map_shortbread">Mappa vettoriale Shortbread</string>
