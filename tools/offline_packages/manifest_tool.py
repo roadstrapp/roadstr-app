@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import json
 import pathlib
+import re
 
 
 def compact(value) -> str:
@@ -29,7 +30,6 @@ def main() -> None:
             item["sha256"] = hashlib.sha256(payload).hexdigest()
             artifacts.append(item)
         manifest = {"schemaVersion": 1, "generatedAt": args.generated_at, "artifacts": artifacts}
-        args.output.write_text(compact(manifest), encoding="utf-8")
     encoded = compact(manifest).encode("utf-8")
     if len(encoded) > 512 * 1024 or len(manifest.get("artifacts", [])) > 200:
         raise ValueError("manifest exceeds app bounds")
@@ -40,6 +40,19 @@ def main() -> None:
             raise ValueError("artifact URL must use HTTPS")
         if len(item.get("sha256", "")) != 64:
             raise ValueError("artifact checksum is invalid")
+        if item.get("datasetType") == "pmtiles-map":
+            item.setdefault("mapFormat", "shortbread-vector")
+            if item["mapFormat"] not in {"shortbread-vector", "raster"}:
+                raise ValueError("unsupported PMTiles map format")
+            if "label" in item and (not isinstance(item["label"], str) or not item["label"].strip()):
+                raise ValueError("map label must be a non-empty string")
+        if "catalogAreaId" in item and (
+            not isinstance(item["catalogAreaId"], str)
+            or not re.fullmatch(r"[a-z0-9][a-z0-9._-]{0,95}", item["catalogAreaId"])
+        ):
+            raise ValueError("catalog area id is invalid")
+    if not args.verify_only:
+        args.output.write_text(compact(manifest), encoding="utf-8")
 
 
 if __name__ == "__main__":

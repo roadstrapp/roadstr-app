@@ -141,6 +141,21 @@ fun interface OfflineArtifactValidator {
 class BasicOfflineArtifactValidator : OfflineArtifactValidator {
     override fun validate(file: File, artifact: OfflinePackageArtifact): Boolean {
         if (!file.isFile || file.length() != artifact.sizeBytes) return false
+        if (artifact.datasetType == OfflineDatasetType.PmTilesMap) {
+            // PMTiles v3 has a fixed 127-byte header.  Checking the magic and
+            // version here catches an HTML/error response that nevertheless
+            // has the expected byte count before MapLibre sees it.
+            if (file.length() < PMTILES_HEADER_BYTES) return false
+            val header = ByteArray(8)
+            file.inputStream().use { input -> if (input.read(header) != header.size) return false }
+            return header.copyOfRange(0, 7).contentEquals(PMTILES_MAGIC) && header[7].toInt() == 3
+        }
+        if (artifact.datasetType == OfflineDatasetType.MbTilesMap) {
+            if (file.length() < SQLITE_HEADER.size) return false
+            val header = ByteArray(SQLITE_HEADER.size)
+            file.inputStream().use { input -> if (input.read(header) != header.size) return false }
+            return header.contentEquals(SQLITE_HEADER)
+        }
         if (artifact.datasetType != OfflineDatasetType.ValhallaRouting) return true
         if (file.length() < TAR_BLOCK_BYTES || file.length() % TAR_BLOCK_BYTES != 0L) return false
         val header = ByteArray(TAR_BLOCK_BYTES.toInt())
@@ -150,6 +165,9 @@ class BasicOfflineArtifactValidator : OfflineArtifactValidator {
 
     private companion object {
         const val TAR_BLOCK_BYTES = 512L
+        const val PMTILES_HEADER_BYTES = 127L
+        val PMTILES_MAGIC = "PMTiles".toByteArray(Charsets.UTF_8)
+        val SQLITE_HEADER = "SQLite format 3\u0000".toByteArray(Charsets.US_ASCII)
     }
 }
 
@@ -241,6 +259,7 @@ class OfflinePackageManager(
                 return rejected(OfflineDownloadRejection.InvalidServerResponse)
             }
             val newValidator = response.etag ?: response.lastModified ?: validatorValue
+            validatorValue = newValidator
             val journalValue = DownloadJournal(artifact.id, artifact.version, artifact.sizeBytes, received, newValidator)
             writeJournal(files.journal, journalValue)
             try {
@@ -251,7 +270,13 @@ class OfflinePackageManager(
                 return rejected(OfflineDownloadRejection.TransportFailure)
             }
         }
-        if (files.part.length() != artifact.sizeBytes || sha256(files.part) != artifact.sha256) {
+        val actualSha256 = sha256(files.part)
+        val expectedValidator = artifact.sourceValidator
+        if (
+            files.part.length() != artifact.sizeBytes ||
+            (artifact.sha256 != null && actualSha256 != artifact.sha256) ||
+            (artifact.sha256 == null && (expectedValidator == null || validatorValue != expectedValidator))
+        ) {
             discardPartial(artifact)
             return rejected(OfflineDownloadRejection.IntegrityFailure)
         }
@@ -260,7 +285,7 @@ class OfflinePackageManager(
             return rejected(OfflineDownloadRejection.ArtifactInvalid)
         }
         if (!hasSpace(artifact)) return rejected(OfflineDownloadRejection.InsufficientSpace)
-        return activate(files, artifact)
+        return activate(files, artifact.copy(sha256 = actualSha256, sourceValidator = null))
     }
 
     private suspend fun stream(
@@ -291,7 +316,12 @@ class OfflinePackageManager(
     }
 
     private fun activate(files: DownloadFiles, artifact: OfflinePackageArtifact): OfflineInstallOutcome {
-        val extension = if (artifact.datasetType == OfflineDatasetType.ValhallaRouting) "tar" else "bin"
+        val extension = when (artifact.datasetType) {
+            OfflineDatasetType.ValhallaRouting -> "tar"
+            OfflineDatasetType.PmTilesMap -> "pmtiles"
+            OfflineDatasetType.MbTilesMap -> "mbtiles"
+            OfflineDatasetType.SearchIndex -> "bin"
+        }
         val finalFile = File(packages, "${artifact.id}-${artifact.version}.$extension")
         val metadataFile = File(metadata, "${artifact.id}-${artifact.version}.json")
         if (!atomicWrite(metadataFile, OfflinePackageManifestProtocol.encodeArtifact(artifact))) {

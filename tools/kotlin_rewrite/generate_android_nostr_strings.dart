@@ -2943,6 +2943,103 @@ const _offlineTransferRows = <String, List<String>>{
   'zh': ['可用空间：{s1}', '下载 {s1} · 安装后 {s2}', '取消下载'],
 };
 
+/// Explanatory copy for the package screen. Italian is the primary product
+/// locale; other locales intentionally use the English fallback until the
+/// copy is translated, rather than silently omitting the guidance.
+const _offlineHelpKeys = <String>[
+  'native_offline_how_it_works_title',
+  'native_offline_how_it_works_body',
+  'native_offline_manifest_example',
+  'native_offline_manifest_hint',
+  'native_offline_manifest_invalid',
+  'native_offline_visual_maps_title',
+  'native_offline_visual_maps_body',
+  'native_offline_map_shortbread',
+  'native_offline_map_raster',
+  'native_offline_catalog_search',
+  'native_offline_catalog_search_hint',
+  'native_offline_catalog_root',
+  'native_offline_catalog_back',
+  'native_offline_catalog_selected',
+  'native_offline_catalog_download_selected',
+  'native_offline_catalog_partial',
+  'native_offline_catalog_available',
+  'native_offline_catalog_not_available',
+  'native_offline_catalog_advanced',
+  'native_offline_catalog_no_results',
+  'native_offline_provider_title',
+  'native_offline_provider_geofabrik',
+  'native_offline_provider_versatiles',
+  'native_offline_provider_openmaptiles',
+  'native_offline_provider_manifest',
+  'native_offline_provider_loading',
+  'native_offline_provider_cached',
+  'native_offline_size_checked_before_download',
+];
+
+const _offlineHelpRows = <String, List<String>>{
+  'en': [
+    'How offline areas work',
+    'Roadstr downloads explicit routing and visual-map packages. They are independent and nothing downloads automatically. Geofabrik is configured by default. Advanced users can import a Roadstr JSON manifest published by another package provider.',
+    'https://maps.example.org/roadstr/manifest.json',
+    'Use the full HTTPS URL of a Roadstr JSON manifest, not a map or city address.',
+    'Enter a complete HTTPS address for the JSON manifest.',
+    'Visual offline maps',
+    'Map packages draw the visible map without a network connection. They are separate from offline routing and may be installed independently. VersaTiles Shortbread packages include vector data; the catalogue must also identify a compatible Roadstr style and its offline assets.',
+    'Shortbread vector map',
+    'Raster PMTiles map',
+    'Search world areas',
+    'Country, region, city or macroregion',
+    'World',
+    'Back to continents',
+    '{n} area(s) selected',
+    'Download selected areas',
+    'Partially available',
+    'Available',
+    'Not available yet',
+    'Advanced: import a manifest URL',
+    'No matching areas',
+    'Download provider',
+    'Worldwide country and region catalog. Roadstr checks each official Shortbread MBTiles extract before downloading it.',
+    'VersaTiles publishes a worldwide dataset; regional extracts must currently be generated with its desktop CLI before importing a Roadstr manifest.',
+    'OpenMapTiles is available for self-hosted catalogs. Choose Roadstr JSON to import your server manifest.',
+    'Import a preconfigured or self-hosted Roadstr HTTPS manifest below.',
+    'Updating the worldwide catalog…',
+    'Showing the last saved catalog because the live source was unavailable.',
+    'Exact size is checked before download.',
+  ],
+  'it': [
+    'Come funzionano le aree offline',
+    'Roadstr scarica pacchetti espliciti di routing e cartografia. Sono indipendenti e nulla viene scaricato automaticamente. Geofabrik è configurato in modo predefinito. Gli utenti esperti possono importare un manifest JSON Roadstr pubblicato da un altro provider.',
+    'https://maps.example.org/roadstr/manifest.json',
+    'Usa l’URL HTTPS completo di un manifest JSON Roadstr, non l’indirizzo di una mappa o di una città.',
+    'Inserisci un indirizzo HTTPS completo che punti al manifest JSON.',
+    'Mappe visive offline',
+    'I pacchetti mappa mostrano la cartografia senza connessione. Sono separati dal routing offline e si possono installare indipendentemente. I pacchetti VersaTiles Shortbread contengono dati vettoriali: il catalogo deve indicare anche uno stile Roadstr compatibile e i relativi asset offline.',
+    'Mappa vettoriale Shortbread',
+    'Mappa PMTiles raster',
+    'Cerca aree del mondo',
+    'Paese, regione, città o macroarea',
+    'Mondo',
+    'Torna ai continenti',
+    '{n} area/e selezionata/e',
+    'Scarica aree selezionate',
+    'Disponibilità parziale',
+    'Disponibile',
+    'Non ancora disponibile',
+    'Avanzate: importa un manifest URL',
+    'Nessuna area corrispondente',
+    'Provider di download',
+    'Catalogo mondiale di nazioni e regioni. Roadstr verifica ogni estratto Shortbread MBTiles ufficiale prima di scaricarlo.',
+    'VersaTiles pubblica un dataset mondiale; per ora gli estratti regionali vanno generati con la sua CLI desktop e importati con un manifest Roadstr.',
+    'OpenMapTiles è disponibile per cataloghi self-hosted. Scegli Roadstr JSON per importare il manifest del tuo server.',
+    'Importa qui sotto un manifest HTTPS Roadstr preconfigurato o self-hosted.',
+    'Aggiornamento del catalogo mondiale…',
+    'È mostrato l’ultimo catalogo salvato perché la sorgente live non era disponibile.',
+    'La dimensione esatta viene verificata prima del download.',
+  ],
+};
+
 /// Identical in every language: an example address, not prose.
 const _verbatim = <String, String>{
   'native_nostr_relay_hint': 'wss://relay.example.com',
@@ -3010,6 +3107,11 @@ String _buildResource(String language, Map<String, dynamic> arb) {
   for (var index = 0; index < _offlineKeys.length; index += 1) {
     entries[_offlineKeys[index]] =
         _androidText(offlineRow[index], _offlineKeys[index]);
+  }
+  final helpRow = _offlineHelpRows[language] ?? _offlineHelpRows['en']!;
+  for (var index = 0; index < _offlineHelpKeys.length; index += 1) {
+    entries[_offlineHelpKeys[index]] =
+        _androidText(helpRow[index], _offlineHelpKeys[index]);
   }
   final transferRow = _offlineTransferRows[language];
   if (transferRow == null || transferRow.length != _offlineTransferKeys.length) {

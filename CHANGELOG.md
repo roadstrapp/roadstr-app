@@ -53,6 +53,18 @@ to update an existing 0.5.x installation in place.
 - Added a verified offline package pipeline and opt-in on-device Valhalla routing engine, including package/catalogue checks and
   routing-data-only package selection.
 
+### Offline maps
+
+- Added a hierarchical worldwide map catalogue backed by the live [Geofabrik index](https://download.geofabrik.de/index-v1.json),
+  with bundled GeoNames coverage for 34,156 cities and 3,865 administrative areas.
+- Added provider presets for Geofabrik, VersaTiles, OpenMapTiles and Roadstr JSON, with the custom HTTPS manifest field moved into
+  an explained advanced section for self-hosted catalogues.
+- Added verified Shortbread MBTiles downloads with size, validator and checksum checks, persistent installation, attribution and
+  local MapLibre rendering through `mbtiles://` sources.
+- Added soft directional catalogue transitions: forward navigation slides right and backward navigation slides left.
+- Fixed replacement of stale catalogue caches and Android asset packaging so the live catalogue and bundled geographic data work
+  reliably in release builds.
+
 ### External destinations
 
 - Added a strict JSON destination contract for Tankful and other trusted callers:
@@ -72,9 +84,8 @@ to update an existing 0.5.x installation in place.
 
 ### Known follow-ups
 
-- Full offline map rendering from downloaded MBTiles remains a follow-up to this release.
-- Public transport, some provider integrations, real bunker/NWC signing exercises and native-speaker translation review remain
-  documented in the risk and feature-parity reports.
+- Public transport, some additional provider integrations, real bunker/NWC signing exercises and native-speaker translation review
+  remain documented in the risk and feature-parity reports.
 
 ## 0.6.0 — Kotlin rewrite milestone
 

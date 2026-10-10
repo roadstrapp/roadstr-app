@@ -29,7 +29,8 @@ void main() {
         source, contains('MapLibre.getInstance(context.applicationContext)'));
     expect(source, contains('MAPLIBRE_VERSION = "13.5.2"'));
     expect(source, contains('MapView(context, options)'));
-    expect(source, contains('.textureMode(true)'));
+    expect(source, contains('USE_TEXTURE_RENDERER = false'));
+    expect(source, contains('.textureMode(NativeMapHostContract.USE_TEXTURE_RENDERER)'));
     expect(source, contains('Style.Builder().fromJson(requestedJson)'));
     expect(source, contains('styleGeneration.accepts(generation)'));
     expect(source, contains('NativeMapLifecycleEvent.Destroy'));

@@ -69,7 +69,8 @@ void main() {
     final hostSource = host.readAsStringSync();
     final destinationSource = destinationOverlay.readAsStringSync();
 
-    expect(hostSource, contains('MAXIMUM_RENDER_FPS = 30'));
+    expect(hostSource, contains('maximumFps: Int'));
+    expect(hostSource, contains('mapView.setMaximumFps(maximumFps)'));
     expect(hostSource, contains('RenderingRefreshMode.WHEN_DIRTY'));
     expect(hostSource, contains('destinationOverlay.refreshProjection()'));
     expect(destinationSource, contains('NativeMapDestinationPinSnapshot'));

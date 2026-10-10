@@ -19,7 +19,7 @@ Lavori sul repository `roadstr` (branch di partenza `kotlin-native`). Il progett
   - **Nessuna richiesta di rete verso l'host dei pacchetti finché l'utente non apre la schermata dei pacchetti o avvia un download.** Niente controlli di aggiornamento all'avvio. Chi non attiva la funzione non contatta mai quell'host.
   - Il motore locale, anche quando è attivo, si usa solo se la copertura installata contiene il percorso; altrimenti l'app usa il provider online scelto come adesso, o dice chiaramente che non c'è copertura. Mai un ripiego silenzioso che cambi il comportamento o la privacy senza che l'utente lo sappia.
   - La scelta di **come** scaricare (solo Wi-Fi, avviso sui dati mobili) è un dettaglio da proporre nel progetto, con il valore di default più prudente.
-- **Mappe offline: PMTiles** (MapLibre Android 13.5.2 supporta `pmtiles://file://`), generati con Planetiler (Apache-2.0, profilo OpenMapTiles). Niente `OfflineManager` per interi paesi.
+- **Mappe offline: PMTiles** (MapLibre Android 13.5.2 supporta `pmtiles://file://`), distribuite come archivi statici VersaTiles/Shortbread convertiti dal tool `build_shortbread_pmtiles.sh`. Niente `OfflineManager` per interi paesi: il manager Roadstr possiede download, checksum e attivazione.
 - **Ricerca offline: SQLite con FTS5** tramite `androidx.sqlite:sqlite-bundled` (verificato: FTS5 incluso). Fase successiva.
 - **Niente Overture Maps**, niente LLM locale per il "cervello" di ricerca (evoluzione dei lessici deterministici in `core/discovery`).
 
@@ -39,7 +39,7 @@ Lavori sul repository `roadstr` (branch di partenza `kotlin-native`). Il progett
 - **Privacy, repo pubblico:** nessuna identità né città dell'utente in codice, commenti, test, documenti. Niente nomi di città dell'Emilia-Romagna nei test. Usa città pubbliche a caso lontane da lì.
 - **Nessuna traccia di AI** nei commit, nei changelog, nei commenti, nelle note di rilascio. Messaggi di commit senza trailer; l'identità è quella già configurata in git.
 - **Niente Google:** nessuna dipendenza `com.google.android.gms`, `play`, `firebase`, `mlkit` (c'è già un'esclusione Gradle e un test anti-regressione: non toccarli).
-- **Licenze:** il repo è MIT. Aggiorna `THIRD_PARTY_NOTICES.md` per ogni nuova dipendenza e per i dati (OSM sotto ODbL, OpenMapTiles).
+- **Licenze:** il repo è MIT. Aggiorna `THIRD_PARTY_NOTICES.md` per ogni nuova dipendenza e per i dati (OSM sotto ODbL, VersaTiles/Shortbread secondo il dataset scelto).
 - **Le funzioni esistenti non si rompono:** segnalazioni Nostr, GPS, voce, POI, preferiti, ZTL, privacy, 27 lingue, routing online. Niente refactoring invasivo non giustificato.
 - **Test di contratto Dart:** molti `test/native_*_contract_test.dart` leggono i sorgenti Kotlin come testo. Rinominare in Kotlin può romperli. **Non eseguire mai `dart format` su tutto il repo.**
 - **Regola dell'indentazione:** massimo 3 livelli. Se servono di più, spezza la funzione o inverti la condizione (early return, funzione estratta).

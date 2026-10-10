@@ -8,6 +8,7 @@ Everything below is third-party material that keeps **its own** licence.
 | Component | Where | Licence |
 |---|---|---|
 | [eSpeak NG](https://github.com/espeak-ng/espeak-ng) — phonemizer used by the on-device voice | `android/app/src/main/jniLibs/*/libespeak-ng.so`, `assets/espeak-ng-data.tar.gz`, built by `tools/build_espeak_android.sh` | **GPL-3.0-or-later** — full text in [third_party/licenses/GPL-3.0.txt](third_party/licenses/GPL-3.0.txt) |
+| [GeoNames](https://www.geonames.org/) cities and administrative names | `android/app/src/main/assets/offline_catalog/geonames-cities15000.tsv.gz`, rebuilt by `tools/offline_packages/build_geonames_catalog.sh` | **CC BY 4.0** — © GeoNames contributors |
 
 The same library contains [Sonic](https://github.com/waywardgeek/sonic) (speech-rate
 change, Apache-2.0).
@@ -29,6 +30,7 @@ requirement.
 | [Valhalla](https://github.com/valhalla/valhalla) and [valhalla-mobile](https://github.com/Rallista/valhalla-mobile) | MIT |
 | [Moshi](https://github.com/square/moshi) | Apache-2.0 |
 | [Planetiler](https://github.com/onthegomap/planetiler) — build-time package generator, not shipped in the APK | Apache-2.0 |
+| [VersaTiles](https://github.com/versatiles-org/versatiles) CLI — optional build-time Shortbread/PMTiles converter, not shipped in the APK | Unlicense |
 | [OkHttp](https://github.com/square/okhttp) | Apache-2.0 |
 | [kotlinx.coroutines](https://github.com/Kotlin/kotlinx.coroutines) | Apache-2.0 |
 | [Bouncy Castle](https://www.bouncycastle.org/) | MIT |
@@ -67,6 +69,8 @@ own work, MIT.
 | Asset | Licence |
 |---|---|
 | Map data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors | ODbL |
+| [Geofabrik](https://download.geofabrik.de/) Shortbread MBTiles extracts and worldwide index | OSM data under ODbL; provider attribution retained in each installed package |
+| [VersaTiles](https://docs.versatiles.org/) Shortbread schema used by optional visual PMTiles packages | Shortbread/tileset terms as published by the selected dataset; generated OSM data remains subject to ODbL attribution |
 | [OpenMapTiles](https://openmaptiles.org/) schema used by optional PMTiles packages | BSD-3-Clause; generated map data remains subject to ODbL attribution |
 | [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) voice model | Apache-2.0 |
 | Piper voice "Thorsten-Voice" (German), see [Thorsten-Voice](https://www.thorsten-voice.de/) | MIT |
