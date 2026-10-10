@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">Izslēgts</string>
     <string name="native_settings_show_altitude">Rādīt augstumu</string>
     <string name="native_settings_show_altitude_desc">Neliels reāllaika augstuma rādījums pie kartes vadīklām</string>
-    <string name="native_settings_road_overlays">Ceļa elementi</string>
+    <string name="native_settings_road_overlays">Kartes elementi</string>
     <string name="native_settings_crosswalks">Gājēju pārejas</string>
     <string name="native_settings_crosswalks_desc">Kartē rāda OpenStreetMap gājēju pārejas</string>
     <string name="native_settings_traffic_lights">Luksofori</string>

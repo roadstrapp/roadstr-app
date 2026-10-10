@@ -146,6 +146,38 @@ String _androidText(String source, String sourceKey) {
       .replaceAll('\t', r'\t');
 }
 
+// The overlays card holds the map's own elements (crosswalks, traffic lights,
+// altitude), not only road ones: Kotlin-only wording, the Flutter .arb keeps the old text.
+const _mapOverlaysTitle = <String, String>{
+  'bg': 'Елементи на картата',
+  'cs': 'Prvky mapy',
+  'da': 'Kortelementer',
+  'de': 'Kartenelemente',
+  'el': 'Στοιχεία χάρτη',
+  'en': 'Map element overlays',
+  'es': 'Elementos del mapa',
+  'et': 'Kaardi elemendid',
+  'fi': 'Kartan elementit',
+  'fr': 'Éléments de la carte',
+  'ga': 'Eilimintí léarscáile',
+  'hr': 'Elementi karte',
+  'hu': 'Térképelemek',
+  'it': 'Overlay di elementi della mappa',
+  'ja': '地図要素',
+  'lt': 'Žemėlapio elementai',
+  'lv': 'Kartes elementi',
+  'mt': 'Elementi tal-mappa',
+  'nl': 'Kaartelementen',
+  'pl': 'Elementy mapy',
+  'pt': 'Elementos do mapa',
+  'ro': 'Elemente de hartă',
+  'ru': 'Элементы карты',
+  'sk': 'Prvky mapy',
+  'sl': 'Elementi zemljevida',
+  'sv': 'Kartelement',
+  'zh': '地图元素',
+};
+
 String _buildResource(
   String language,
   Map<String, dynamic> arb,
@@ -158,7 +190,9 @@ String _buildResource(
     )
     ..writeln('<resources>');
   for (final entry in _resourceKeys.entries) {
-    final source = arb[entry.value] ?? fallback[entry.value];
+    final source = entry.key == 'native_settings_road_overlays'
+        ? (_mapOverlaysTitle[language] ?? fallback[entry.value])
+        : (arb[entry.value] ?? fallback[entry.value]);
     if (source is! String || source.isEmpty) {
       throw FormatException('Missing ${entry.value} in app_$language.arb');
     }

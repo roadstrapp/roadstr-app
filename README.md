@@ -67,7 +67,9 @@ The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rew
 | Speed cameras reported by the community (kind 1315) | ✅ |
 | Speed cameras from OpenStreetMap data | ✅ Kotlin app (bounded Overpass cache; baseline, not a community report) |
 | ZTL / ZAC / limited-traffic-zone warnings and restricted route colouring (OSM/Overpass) | ✅ |
-| Road-element overlays — traffic lights, pedestrian crossings, speed bumps (OSM) | ✅ |
+| Map-element overlays — traffic lights, pedestrian crossings, speed bumps (OSM) and the altitude readout; the *Map element overlays* card in Settings is closed by default and the altitude readout is off by default | ✅ |
+| Destination pin on the map while a route is planned or followed | ✅ |
+| Lighter navigation rendering — the vehicle cursor animation is drawn at its 30 fps source cadence instead of the display's refresh rate, to save battery | ✅ |
 | On-device AI voice guidance (Kokoro-82M; Piper / Thorsten-Voice for German) | ✅ |
 | Nostr road events — kind 1315 (reports) / 1316 (confirmations) | ✅ |
 | Nostr login — Amber (NIP-55) or a remote signer (NIP-46 via `nostrconnect://` or `bunker://`); no private key in the app | ✅ |

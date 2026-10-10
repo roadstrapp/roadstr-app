@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">Išjungta</string>
     <string name="native_settings_show_altitude">Rodyti aukštį</string>
     <string name="native_settings_show_altitude_desc">Nedidelis realaus laiko aukščio rodmuo šalia žemėlapio valdiklių</string>
-    <string name="native_settings_road_overlays">Kelio elementai</string>
+    <string name="native_settings_road_overlays">Žemėlapio elementai</string>
     <string name="native_settings_crosswalks">Pėsčiųjų perėjos</string>
     <string name="native_settings_crosswalks_desc">Žemėlapyje rodo OpenStreetMap pėsčiųjų perėjas</string>
     <string name="native_settings_traffic_lights">Šviesoforai</string>

@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">Av</string>
     <string name="native_settings_show_altitude">Visa höjd</string>
     <string name="native_settings_show_altitude_desc">En liten höjdvisning i realtid nära kartkontrollerna</string>
-    <string name="native_settings_road_overlays">Vägelement</string>
+    <string name="native_settings_road_overlays">Kartelement</string>
     <string name="native_settings_crosswalks">Övergångsställen</string>
     <string name="native_settings_crosswalks_desc">Visar övergångsställen från OpenStreetMap på kartan</string>
     <string name="native_settings_traffic_lights">Trafikljus</string>

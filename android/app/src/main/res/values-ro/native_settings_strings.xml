@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">Dezactivat</string>
     <string name="native_settings_show_altitude">Afișează altitudinea</string>
     <string name="native_settings_show_altitude_desc">O mică indicație a altitudinii în timp real lângă comenzile hărții</string>
-    <string name="native_settings_road_overlays">Elemente de drum</string>
+    <string name="native_settings_road_overlays">Elemente de hartă</string>
     <string name="native_settings_crosswalks">Treceri de pietoni</string>
     <string name="native_settings_crosswalks_desc">Afișează pe hartă trecerile de pietoni din OpenStreetMap</string>
     <string name="native_settings_traffic_lights">Semafoare</string>

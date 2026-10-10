@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">Mitfi</string>
     <string name="native_settings_show_altitude">Uri l-għoli</string>
     <string name="native_settings_show_altitude_desc">Qari żgħir tal-għoli f\'ħin reali ħdejn il-kontrolli tal-mappa</string>
-    <string name="native_settings_road_overlays">Elementi tat-triq</string>
+    <string name="native_settings_road_overlays">Elementi tal-mappa</string>
     <string name="native_settings_crosswalks">Qsim tal-mixi</string>
     <string name="native_settings_crosswalks_desc">Turi fuq il-mappa l-qsim tal-mixi minn OpenStreetMap</string>
     <string name="native_settings_traffic_lights">Semafori</string>

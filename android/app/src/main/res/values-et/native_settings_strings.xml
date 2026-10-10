@@ -28,7 +28,7 @@
     <string name="native_settings_min_brightness_off">Väljas</string>
     <string name="native_settings_show_altitude">Näita kõrgust</string>
     <string name="native_settings_show_altitude_desc">Väike reaalajas kõrgusnäit kaardi juhtnuppude lähedal</string>
-    <string name="native_settings_road_overlays">Tee elemendid</string>
+    <string name="native_settings_road_overlays">Kaardi elemendid</string>
     <string name="native_settings_crosswalks">Ülekäigurajad</string>
     <string name="native_settings_crosswalks_desc">Kuvab kaardil OpenStreetMapi ülekäigurajad</string>
     <string name="native_settings_traffic_lights">Foorid</string>
