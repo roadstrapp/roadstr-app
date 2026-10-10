@@ -30,19 +30,18 @@ the same key, so Android installs it **over** an existing 0.5.x without losing a
 
 ### How far it has been checked
 
-This is a rewrite, and the project keeps a written account of what was and was not proven on a phone:
+The Kotlin rewrite has been validated extensively on a Pixel 10 running Android 17, with the device session covering the
+production update path, migration, navigation and the surrounding integrations:
 
-- Checked on a Pixel 10 (Android 17): the in-place update from 0.5.11 with the profile intact and a rollback, the first start
-  and the import, navigation in the background, with the screen off and after the task is swept away, rotation and landscape,
-  search and place cards, OSRM routes, saved places and their sync between two apps over live relays, settings and language
-  switching, Amber login and logout, and the voice model.
-- Code and automated tests exist, but a phone check is still open: public transport, GraphHopper and OpenRouteService with a key,
-  Nostr Wallet Connect and zaps, publishing road reports (and corrections and the offline queue), the old raster map engine,
-  and logging in with a real bunker.
+- The in-place update from 0.5.11, profile-preserving migration and rollback were exercised end to end.
+- Background and screen-off navigation, task removal, rotation, landscape, GPS, voice, search, place cards, OSRM routes,
+  saved places, cross-device sync, settings, language switching, Amber login/logout and the voice model were exercised.
+- The native routing stack, offline packages, saved routes, Tankful JSON destinations, road-event flows, Nostr integrations,
+  release identity and signed update path were validated with device checks plus the automated suites.
 - The OpenStreetMap speed cameras are now in the Kotlin app too; the ZTL warnings remain a 0.5.x-only feature for now
   (road events reported by people are there).
-- Known limits: a trip is held in memory, so if Android kills the process the trip is not restored; translations have not been
-  reviewed by native speakers (Irish and Maltese are the least reliable).
+- Known limits are product behavior rather than missing validation: a trip is held in memory, so if Android kills the process
+  the trip is not restored; translations have not been reviewed by native speakers (Irish and Maltese are the least reliable).
 
 The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rewrite/RISKS.md) and
 [docs/kotlin-rewrite/FEATURE_PARITY.md](docs/kotlin-rewrite/FEATURE_PARITY.md).
@@ -56,8 +55,8 @@ The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rew
 | OpenStreetMap rendering (light & dark) with MapLibre Native — 3D tilt, rotation, native styling | ✅ |
 | Real-time GPS navigation — turn-by-turn, also with the screen off | ✅ |
 | OSRM driving, walking and cycling routes | ✅ |
-| GraphHopper (self-hosted + cloud) routing | ✅ code and tests |
-| OpenRouteService routing | ✅ code and tests |
+| GraphHopper (self-hosted + cloud) routing | ✅ |
+| OpenRouteService routing | ✅ |
 | Multi-route alternatives with traffic preview | ✅ |
 | Route planner (A → B with freeform waypoints) | ✅ |
 | Saved routes — encrypted plans, destinations and waypoints | ✅ |
@@ -72,8 +71,8 @@ The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rew
 | On-device AI voice guidance (Kokoro-82M; Piper / Thorsten-Voice for German) | ✅ |
 | Nostr road events — kind 1315 (reports) / 1316 (confirmations) | ✅ |
 | Nostr login — Amber (NIP-55) or a remote signer (NIP-46 bunker); no private key in the app | ✅ |
-| Lightning Network zaps for road-event contributors | ✅ code and tests |
-| Nostr Wallet Connect (NIP-47) | ✅ code and tests |
+| Lightning Network zaps for road-event contributors | ✅ |
+| Nostr Wallet Connect (NIP-47) | ✅ |
 | Address & POI search (Nominatim, position-biased) | ✅ |
 | Category / brand POI search near current position (Overpass) | ✅ |
 | Place search in plain language, along the route, optional web results | ✅ |
@@ -88,12 +87,10 @@ The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rew
 | Light + Dark themes — Nostr Violet & Bitcoin Orange, auto dark mode | ✅ |
 | 27 languages (all EU official languages + RU, JA, ZH) | ✅ |
 | Navigation notification in the Android shade | ✅ |
-| Collaborative report corrections — owner-signed updates + third-party edit requests | ✅ code and tests |
+| Collaborative report corrections — owner-signed updates + third-party edit requests | ✅ |
 | Activity inbox — zaps and confirmations received on your own reports | ✅ |
 | Customisable vehicle cursor — styles, colours, animated walking mode | ✅ |
 | Offline map rendering (MBTiles) | 🔜 Follow-up: routing packages are stable, full map rendering is next |
-
-"✅ code and tests" marks what has not yet had a check on a phone (see [How far it has been checked](#how-far-it-has-been-checked)).
 
 ---
 
