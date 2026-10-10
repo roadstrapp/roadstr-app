@@ -48,6 +48,25 @@ class Nip46Test {
     }
 
     @Test
+    fun `nostrconnect offer contains encoded relays secret permissions and client metadata`() {
+        val offer = NostrConnectUri.build(
+            clientPubkeyHex = signer,
+            relays = listOf("wss://relay.example.com/path", "wss://nos.lol"),
+            secret = "one use",
+            permissions = "get_public_key,sign_event",
+            name = "Roadstr app",
+            url = "https://github.com/roadstrapp/roadstr-app",
+        )
+
+        assertTrue(offer.startsWith("nostrconnect://$signer?"))
+        assertTrue(offer.contains("relay=wss%3A%2F%2Frelay.example.com%2Fpath"))
+        assertTrue(offer.contains("relay=wss%3A%2F%2Fnos.lol"))
+        assertTrue(offer.contains("secret=one%20use"))
+        assertTrue(offer.contains("perms=get_public_key%2Csign_event"))
+        assertTrue(offer.contains("name=Roadstr%20app"))
+    }
+
+    @Test
     fun `requests and answers are plain JSON-RPC`() {
         assertEquals(
             """{"id":"1","method":"sign_event","params":["x"]}""",

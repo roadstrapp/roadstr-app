@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">Visa höjd</string>
     <string name="native_nav_arrived">🎉 Du är framme!</string>
     <string name="native_nav_close">Stäng</string>
+    <string name="native_ztl_inside">Begränsat trafikområde</string>
+    <string name="native_ztl_nearby_named">Varning: %1$s är en zon med begränsad trafik</string>
 </resources>

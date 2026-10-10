@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">Afișează altitudinea</string>
     <string name="native_nav_arrived">🎉 Ați ajuns!</string>
     <string name="native_nav_close">Închide</string>
+    <string name="native_ztl_inside">Zonă cu trafic restricționat</string>
+    <string name="native_ztl_nearby_named">Atenție: %1$s este o zonă cu trafic limitat</string>
 </resources>

@@ -2,6 +2,7 @@ package app.roadstr.core.protocol.nostr
 
 import java.net.URI
 import java.net.URLDecoder
+import java.net.URLEncoder
 import java.util.Locale
 
 /**
@@ -46,6 +47,38 @@ class NostrBunkerUri(
         fun isRelay(value: String): Boolean = value.startsWith("wss://") && value.length <= 256 &&
             value.none { it.isWhitespace() }
     }
+}
+
+/** Builds the client-initiated NIP-46 offer consumed by Amber and other remote signers. */
+object NostrConnectUri {
+    private const val MAX_SECRET_LENGTH = 256
+
+    fun build(
+        clientPubkeyHex: String,
+        relays: List<String>,
+        secret: String,
+        permissions: String? = null,
+        name: String? = null,
+        url: String? = null,
+        image: String? = null,
+    ): String {
+        require(clientPubkeyHex.matches(Regex("[0-9a-f]{64}")))
+        require(secret.isNotEmpty() && secret.length <= MAX_SECRET_LENGTH)
+        val safeRelays = relays.distinct().take(NostrBunkerUri.MAX_RELAYS)
+        require(safeRelays.isNotEmpty() && safeRelays.all(NostrBunkerUri::isRelay))
+        val query = buildList {
+            safeRelays.forEach { add("relay" to it) }
+            add("secret" to secret)
+            permissions?.takeIf(String::isNotBlank)?.let { add("perms" to it) }
+            name?.takeIf(String::isNotBlank)?.let { add("name" to it) }
+            url?.takeIf(String::isNotBlank)?.let { add("url" to it) }
+            image?.takeIf(String::isNotBlank)?.let { add("image" to it) }
+        }.joinToString("&") { (key, value) -> "${encode(key)}=${encode(value)}" }
+        return "nostrconnect://$clientPubkeyHex?$query"
+    }
+
+    private fun encode(value: String): String =
+        URLEncoder.encode(value, "UTF-8").replace("+", "%20")
 }
 
 /** A decoded NIP-46 answer. [authUrl] is set when the signer wants the person to approve in a browser first. */

@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">Näytä korkeus</string>
     <string name="native_nav_arrived">🎉 Olet perillä!</string>
     <string name="native_nav_close">Sulje</string>
+    <string name="native_ztl_inside">Rajoitettu liikennealue</string>
+    <string name="native_ztl_nearby_named">Huomio: %1$s on rajoitetun liikenteen alue</string>
 </resources>

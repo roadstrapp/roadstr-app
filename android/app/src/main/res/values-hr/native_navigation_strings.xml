@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">Prikaži nadmorsku visinu</string>
     <string name="native_nav_arrived">🎉 Stigli ste!</string>
     <string name="native_nav_close">Zatvori</string>
+    <string name="native_ztl_inside">Ograničena prometna zona</string>
+    <string name="native_ztl_nearby_named">Pozor: %1$s je zona ograničenog prometa</string>
 </resources>

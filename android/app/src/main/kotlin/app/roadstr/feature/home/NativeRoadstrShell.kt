@@ -68,6 +68,8 @@ import app.roadstr.service.hazards.NativeOsmHazardKind
 import app.roadstr.service.hazards.NativeOsmHazardService
 import app.roadstr.service.hazards.NativeOsmSpeedCamera
 import app.roadstr.service.hazards.NativeOsmSpeedCameraService
+import app.roadstr.service.hazards.NativeZtlService
+import app.roadstr.service.hazards.NativeZtlSnapshot
 import app.roadstr.core.ui.theme.RoadstrTheme
 import app.roadstr.core.ui.theme.RoadstrThemeId
 import app.roadstr.core.ui.theme.RoadstrThemeTokens
@@ -95,6 +97,7 @@ import app.roadstr.feature.map.NativeTransitOverlaySession
 import app.roadstr.feature.navigation.NativeActiveNavigationSession
 import app.roadstr.feature.navigation.NativeNavigationHost
 import app.roadstr.feature.navigation.NativeNavigationArrivalBanner
+import app.roadstr.feature.navigation.NativeZtlWarningBanner
 import app.roadstr.feature.navigation.NativeNavigationHud
 import app.roadstr.feature.navigation.NativeNavigationHudSession
 import app.roadstr.feature.navigation.NativeRerouteBackoff
@@ -177,7 +180,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 enum class NativeShellMode {
     Canary,
@@ -305,6 +310,7 @@ fun NativeRoadstrShell(
     onRoutingKeyChanged: (String) -> Boolean = { false },
     hazardService: NativeOsmHazardService? = null,
     speedCameraService: NativeOsmSpeedCameraService? = null,
+    ztlService: NativeZtlService? = null,
     nostr: NativeShellNostr? = null,
     /**
      * Owner of the trip sessions. When the host passes one, a trip is moved along, spoken and rerouted
@@ -423,6 +429,7 @@ fun NativeRoadstrShell(
         var trafficLights by remember { mutableStateOf<List<NativeOsmHazard>>(emptyList()) }
         var crossingHazards by remember { mutableStateOf<List<NativeOsmHazard>>(emptyList()) }
         var speedCameras by remember { mutableStateOf<List<NativeOsmSpeedCamera>>(emptyList()) }
+        var ztlSnapshot by remember { mutableStateOf(NativeZtlSnapshot()) }
         val latestFix by rememberUpdatedState(gpsSnapshot.fix)
         // The service decides whether a refetch is due (moved far enough, or
         // data too old), so this only has to ask now and then. A plain effect
@@ -472,6 +479,19 @@ fun NativeRoadstrShell(
                     speedCameras = service.update(
                         GeoPoint(fix.point.latitude, fix.point.longitude),
                     )
+                }
+                delay(HAZARD_POLL_MILLIS)
+            }
+        }
+        LaunchedEffect(ztlService) {
+            val service = ztlService
+            if (service == null) {
+                ztlSnapshot = NativeZtlSnapshot()
+                return@LaunchedEffect
+            }
+            while (true) {
+                latestFix?.let { fix ->
+                    ztlSnapshot = service.update(GeoPoint(fix.point.latitude, fix.point.longitude))
                 }
                 delay(HAZARD_POLL_MILLIS)
             }
@@ -978,6 +998,33 @@ fun NativeRoadstrShell(
             NativeActiveNavigationSession(navigationHudSession, routeSession)
         }
         val activeNavigationState by activeNavigationSession.state.collectAsState()
+        LaunchedEffect(
+            ztlSnapshot.revision,
+            routeState.revision,
+            routeState.selectedAlternativeIndex,
+            activeNavigationState.revision,
+        ) {
+            val (revision, points) = routeSession.classificationTarget() ?: return@LaunchedEffect
+            val restricted = withContext(Dispatchers.Default) { ztlSnapshot.classify(points) }
+            if (activeNavigationState.active && activeNavigationState.revision == revision) {
+                activeNavigationSession.updateRestrictions(revision, restricted)
+            } else {
+                routeSession.updateRestrictions(revision, restricted, cursorRestricted = false)
+            }
+        }
+        val currentZtlPoint = gpsSnapshot.fix?.point?.let { GeoPoint(it.latitude, it.longitude) }
+        val insideZtl = currentZtlPoint?.let(ztlSnapshot::isInside) == true
+        val nearbyZtl = currentZtlPoint?.let { point ->
+            if (insideZtl) null else ztlSnapshot.nearestRestrictedWay(point)
+        }
+        val ztlName = currentZtlPoint?.let(ztlSnapshot::nameAt) ?: nearbyZtl?.name
+        val ztlAcronym = currentZtlPoint?.let { NativeZtlSnapshot.officialAcronym(it) }
+        val ztlWarningKey = if (insideZtl || nearbyZtl != null) {
+            "${if (insideZtl) "inside" else "near"}:${ztlName.orEmpty()}:${ztlSnapshot.revision}"
+        } else {
+            null
+        }
+        var dismissedZtlWarning by rememberSaveable { mutableStateOf<String?>(null) }
         LaunchedEffect(externalDestinationRequest?.revision, journeyCoordinator) {
             val request = externalDestinationRequest ?: return@LaunchedEffect
             val coordinator = journeyCoordinator ?: return@LaunchedEffect
@@ -2593,6 +2640,15 @@ fun NativeRoadstrShell(
                         activeNavigationSession.dismissArrival(activeNavigationState.revision)
                     },
                 )
+                NativeZtlWarningBanner(
+                    visible = ztlWarningKey != null && dismissedZtlWarning != ztlWarningKey &&
+                        !activeNavigationState.arrived,
+                    inside = insideZtl,
+                    name = ztlName,
+                    acronym = ztlAcronym,
+                    navigating = activeNavigationState.active,
+                    onDismiss = { dismissedZtlWarning = ztlWarningKey },
+                )
                 if (saveRouteDialogVisible || renameSavedRoute != null) {
                     val renaming = renameSavedRoute
                     AlertDialog(
@@ -2861,6 +2917,33 @@ fun NativeRoadstrShell(
                                         keyboardType = KeyboardType.Uri,
                                     ),
                                 )
+                                androidx.compose.material3.OutlinedButton(
+                                    onClick = {
+                                        bunkerBusy = true
+                                        bunkerMessage = null
+                                        journeyScope.launch {
+                                            val result = identityGateway?.loginNostrConnect(onOpenExternal)
+                                                ?: NativeBunkerLoginResult.InvalidLink
+                                            bunkerBusy = false
+                                            when (result) {
+                                                NativeBunkerLoginResult.Connected -> {
+                                                    bunkerDialogVisible = false
+                                                    bunkerInput = ""
+                                                }
+                                                NativeBunkerLoginResult.InvalidLink,
+                                                NativeBunkerLoginResult.Refused,
+                                                NativeBunkerLoginResult.NoAnswer,
+                                                -> bunkerMessage = R.string.native_bunker_failed
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier.padding(top = 8.dp),
+                                    enabled = !bunkerBusy && identityGateway != null,
+                                ) {
+                                    androidx.compose.material3.Text(
+                                        stringResource(R.string.native_nostrconnect_open),
+                                    )
+                                }
                                 if (bunkerBusy) {
                                     androidx.compose.material3.Text(
                                         stringResource(R.string.native_bunker_waiting),

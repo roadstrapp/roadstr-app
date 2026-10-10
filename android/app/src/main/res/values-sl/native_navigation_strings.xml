@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">Prikaži nadmorsko višino</string>
     <string name="native_nav_arrived">🎉 Ste prispeli!</string>
     <string name="native_nav_close">Zapri</string>
+    <string name="native_ztl_inside">Omejena prometna cona</string>
+    <string name="native_ztl_nearby_named">Pozor: %1$s je območje omejenega prometa</string>
 </resources>

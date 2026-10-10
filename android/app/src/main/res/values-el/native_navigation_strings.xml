@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">Εμφάνιση υψομέτρου</string>
     <string name="native_nav_arrived">🎉 Φτάσατε!</string>
     <string name="native_nav_close">Κλείσιμο</string>
+    <string name="native_ztl_inside">Περιορισμένη κυκλοφοριακή ζώνη</string>
+    <string name="native_ztl_nearby_named">Προσοχή: %1$s είναι ζώνη περιορισμένης κυκλοφορίας</string>
 </resources>

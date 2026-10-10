@@ -2,6 +2,17 @@
 
 All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stable release of the Kotlin rewrite.
 
+## Unreleased
+
+- Restored native ZTL/ZAC/limited-traffic warnings from the 0.5.x line: bounded Overpass loading, restricted-route colouring,
+  live inside/nearby notices, official local acronyms where established, dismissal and navigation-progress integration.
+- Added client-initiated NIP-46 login with a generated `nostrconnect://` offer for Amber and compatible signers, alongside the
+  existing pasted `bunker://` flow.
+- Kept NIP-46 relay WebSockets warm and multiplexed across signer requests, while closing each logical Nostr subscription and
+  retaining signature, recipient, request-id and one-time-secret validation.
+- Documented the upstream GTFS/NeTEx/GTFS-RT contribution path that expands Roadstr coverage through Transitous without an APK
+  release.
+
 ## [1.0.0] — 2026-10-10
 
 🎉 **The Kotlin rewrite is stable!** 🎉

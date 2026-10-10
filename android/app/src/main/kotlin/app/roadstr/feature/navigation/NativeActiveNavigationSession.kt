@@ -87,6 +87,7 @@ class NativeActiveNavigationSession(
     private var destination: NativeMapPoint? = null
     private var mode = NativeRouteTransportMode.Driving
     private var points = emptyList<GeoPoint>()
+    private var restrictedPoints = emptyList<Boolean>()
     private var cumulative = emptyList<Double>()
     private var stepCumulative = emptyList<Double>()
     private var routePointIndex = 0
@@ -200,6 +201,7 @@ class NativeActiveNavigationSession(
         this.destination = destination
         this.mode = mode
         points = prepared.points
+        restrictedPoints = List(prepared.points.size) { false }
         cumulative = prepared.cumulative
         stepCumulative = prepared.stepCumulative
         routePointIndex = 0
@@ -271,7 +273,7 @@ class NativeActiveNavigationSession(
         val overlayUpdated = overlaySession.updateProgress(
             revision = revision,
             progressMeters = progressMeters,
-            cursorRestricted = false,
+            cursorRestricted = restrictedPoints.getOrElse(routePointIndex) { false },
         )
         if (hasArrived(point, accuracyMeters)) {
             finishArrival()
@@ -327,6 +329,7 @@ class NativeActiveNavigationSession(
         revision = nextRevision
         this.route = route
         points = prepared.points
+        restrictedPoints = List(prepared.points.size) { false }
         cumulative = prepared.cumulative
         stepCumulative = prepared.stepCumulative
         routePointIndex = 0
@@ -343,6 +346,17 @@ class NativeActiveNavigationSession(
         offRouteDetector.reset()
         publish()
         true
+    }
+
+    /** Applies the current OSM restricted-road classification to preview and live progress. */
+    fun updateRestrictions(revision: Long, restricted: List<Boolean>): Boolean = synchronized(lock) {
+        if (revision != this.revision || route == null || restricted.size != points.size) return false
+        restrictedPoints = restricted.toList()
+        overlaySession.updateRestrictions(
+            revision = revision,
+            restricted = restrictedPoints,
+            cursorRestricted = restrictedPoints.getOrElse(routePointIndex) { false },
+        )
     }
 
     fun failReroute(requestSequence: Long): Boolean = synchronized(lock) {

@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">显示海拔</string>
     <string name="native_nav_arrived">🎉 您已到达！</string>
     <string name="native_nav_close">关闭</string>
+    <string name="native_ztl_inside">限行区</string>
+    <string name="native_ztl_nearby_named">注意：%1$s 是限制交通区</string>
 </resources>

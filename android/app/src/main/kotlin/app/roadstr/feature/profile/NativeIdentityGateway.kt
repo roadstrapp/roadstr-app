@@ -36,6 +36,10 @@ interface NativeIdentityGateway {
 
     suspend fun loginBunker(link: String): NativeBunkerLoginResult = NativeBunkerLoginResult.InvalidLink
 
+    /** Offers a client-generated `nostrconnect://` link to an installed signer and waits for it. */
+    suspend fun loginNostrConnect(openOffer: (String) -> Unit): NativeBunkerLoginResult =
+        NativeBunkerLoginResult.InvalidLink
+
     /** True once after an update that dropped a private-key login; reading it clears it. */
     fun consumeLoginNotice(): Boolean = false
 

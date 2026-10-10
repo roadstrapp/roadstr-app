@@ -213,6 +213,71 @@ fun NativeNavigationArrivalBanner(
     }
 }
 
+/** Dismissible foreground warning for an OSM restricted street or zone. */
+@Composable
+fun NativeZtlWarningBanner(
+    visible: Boolean,
+    inside: Boolean,
+    name: String?,
+    acronym: String?,
+    navigating: Boolean,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (!visible) return
+    val label = name?.takeIf(String::isNotBlank) ?: acronym
+    val insideText = stringResource(R.string.native_ztl_inside)
+    val text = when {
+        inside && label != null -> "⚠ $label — $insideText"
+        inside -> insideText
+        label != null -> stringResource(R.string.native_ztl_nearby_named, label)
+        else -> insideText
+    }
+    val close = stringResource(R.string.native_nav_close)
+    Box(modifier = modifier.fillMaxSize()) {
+        Surface(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = if (navigating) 176.dp else 104.dp)
+                .semantics {
+                    liveRegion = LiveRegionMode.Assertive
+                    contentDescription = text
+                },
+            color = if (inside) Color(0xFFE5_3935) else Color(0xFFF5_9E0B),
+            contentColor = Color.White,
+            shape = RoundedCornerShape(14.dp),
+            shadowElevation = 8.dp,
+        ) {
+            Row(
+                modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = text,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+                Surface(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                        .semantics { role = Role.Button; contentDescription = close },
+                    color = Color.Transparent,
+                    contentColor = Color.White,
+                    shape = CircleShape,
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text("×", style = MaterialTheme.typography.headlineSmall)
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun NavigationInstructionCard(
     current: NativeNavigationStepPresentation,

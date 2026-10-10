@@ -16,4 +16,6 @@
     <string name="native_nav_altitude">Mostra altitudine</string>
     <string name="native_nav_arrived">🎉 Sei arrivato!</string>
     <string name="native_nav_close">Chiudi</string>
+    <string name="native_ztl_inside">Zona a Traffico Limitato</string>
+    <string name="native_ztl_nearby_named">Attenzione: %1$s è una via a traffico limitato</string>
 </resources>

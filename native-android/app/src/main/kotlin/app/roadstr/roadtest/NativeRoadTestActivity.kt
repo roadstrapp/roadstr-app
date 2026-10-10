@@ -38,6 +38,7 @@ import app.roadstr.feature.savedroute.NativeSavedRouteProtocol
 import app.roadstr.feature.savedroute.NativeSavedRoutesStore
 import app.roadstr.service.hazards.NativeOsmHazardService
 import app.roadstr.service.hazards.NativeOsmSpeedCameraService
+import app.roadstr.service.hazards.NativeZtlService
 import app.roadstr.service.network.NativeBoundedHttpClient
 import app.roadstr.service.nostr.ExecutorNativeScheduler
 import app.roadstr.service.nostr.NativeActivityService
@@ -49,6 +50,7 @@ import app.roadstr.service.nostr.NativeRoadEventService
 import app.roadstr.service.nostr.NativeUserReportsService
 import app.roadstr.service.nostr.NativeZapService
 import app.roadstr.service.nostr.NativeRelayConnectorSelector
+import app.roadstr.service.nostr.NativePersistentRelayConnector
 import app.roadstr.service.nostr.OkHttpRelayConnector
 import app.roadstr.service.offline.BasicOfflineArtifactValidator
 import app.roadstr.service.offline.OfflineArtifactValidator
@@ -154,9 +156,16 @@ open class NativeRoadTestActivity : ComponentActivity() {
     private val speedCameraService by lazy(LazyThreadSafetyMode.NONE) {
         NativeOsmSpeedCameraService(httpClient, diagnostics = { debugDiagnostic("RoadstrCameras", it) })
     }
+    private val ztlService by lazy(LazyThreadSafetyMode.NONE) {
+        NativeZtlService(httpClient, diagnostics = { debugDiagnostic("RoadstrZtl", it) })
+    }
+    private val bunkerRelayConnector by lazy(LazyThreadSafetyMode.NONE) {
+        NativePersistentRelayConnector(OkHttpRelayConnector())
+    }
     private val voiceGateway: NativeRoadTestVoiceGateway get() = runtime.voice
     private val identityGateway by lazy(LazyThreadSafetyMode.NONE) {
-        NativeRoadTestIdentityGateway(applicationContext, storeNames).also { it.openUrl = ::openApprovalPage }
+        NativeRoadTestIdentityGateway(applicationContext, storeNames, bunkerRelayConnector)
+            .also { it.openUrl = ::openApprovalPage }
     }
     private var amberRequestRevision = -1L
     private val amberLauncher = registerForActivityResult(
@@ -378,6 +387,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
             onRoutingKeyChanged = ::saveRoutingKey,
             hazardService = hazardService,
             speedCameraService = speedCameraService,
+            ztlService = ztlService,
             nostr = nostrBridge,
             navigationHost = runtime.host,
             externalDestinationRequest = externalDestinationRequest,
@@ -410,6 +420,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
         nostr?.roadEvents?.close()
         scheduler.shutdown()
         localRoutingEngine.close()
+        bunkerRelayConnector.close()
         releaseRuntime(runtime)
         super.onDestroy()
     }
@@ -424,7 +435,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
             identity = identityGateway,
             amber = amberBridge,
             bunkerSession = identityGateway::bunkerSession,
-            connector = connector,
+            connector = bunkerRelayConnector,
             openUrl = ::openApprovalPage,
         )
         val syncStorage = NativeRoadTestSyncStorage(applicationContext, storeNames)
