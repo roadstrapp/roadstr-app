@@ -46,6 +46,7 @@ import app.roadstr.feature.place.NativePlaceArticleInput
 import app.roadstr.feature.route.NativeRoutePlanningCandidate
 import app.roadstr.feature.route.NativeRoutePlanningSession
 import app.roadstr.feature.route.NativeRoutePlanningSnapshot
+import app.roadstr.feature.route.NativeRoutePlanningFailure
 import app.roadstr.feature.route.NativeRouteTransportMode
 import app.roadstr.feature.route.NativeRouteWeatherPresentation
 import app.roadstr.feature.savedroute.NativeSavedRoute
@@ -62,6 +63,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import app.roadstr.service.routing.NativeRoutingSelectionException
+import app.roadstr.service.routing.RoutingEngineUnavailableReason
 
 /**
  * Provider-neutral network boundary consumed by the shared Compose shell.
@@ -72,6 +75,9 @@ import kotlinx.coroutines.launch
 interface NativeShellJourneyGateway {
     /** Actual online engine after configuration fallback, never a credential or endpoint. */
     fun routingProviderId(): String = "unknown"
+
+    /** Engine that produced the latest accepted route; local routing reports valhalla-local. */
+    fun routingEngineId(): String = routingProviderId()
 
     suspend fun search(
         query: String,
@@ -367,6 +373,19 @@ class NativeShellJourneyCoordinator(
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled
+            } catch (failure: NativeRoutingSelectionException) {
+                failRoute(
+                    revision,
+                    when (failure.reason) {
+                        RoutingEngineUnavailableReason.AreaNotDownloaded,
+                        RoutingEngineUnavailableReason.DatasetMissing,
+                        -> NativeRoutePlanningFailure.AreaNotDownloaded
+                        RoutingEngineUnavailableReason.DatasetInvalid -> NativeRoutePlanningFailure.DatasetInvalid
+                        RoutingEngineUnavailableReason.ModeUnsupported,
+                        RoutingEngineUnavailableReason.NetworkUnavailable,
+                        -> NativeRoutePlanningFailure.Generic
+                    },
+                )
             } catch (_: Exception) {
                 failRoute(revision)
             }
@@ -829,8 +848,11 @@ class NativeShellJourneyCoordinator(
     private fun SearchResponsePoint.toRoutingPoint() =
         app.roadstr.core.network.RoutingResponsePoint(latitude, longitude)
 
-    private fun failRoute(revision: Long) {
-        routeSession.failRouteRequest(revision)
+    private fun failRoute(
+        revision: Long,
+        failure: NativeRoutePlanningFailure = NativeRoutePlanningFailure.Generic,
+    ) {
+        routeSession.failRouteRequest(revision, failure)
     }
 
     private fun nextSearchRevision(): Long = maxOf(

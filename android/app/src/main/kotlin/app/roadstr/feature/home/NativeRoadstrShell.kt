@@ -103,6 +103,9 @@ import app.roadstr.feature.onboarding.NativeOnboardingLocationStatus
 import app.roadstr.feature.onboarding.NativeOnboardingSession
 import app.roadstr.feature.onboarding.NativeOnboardingVoiceStatus
 import app.roadstr.feature.onboarding.NativeMigrationReadiness
+import app.roadstr.feature.offline.NativeOfflinePackagesGateway
+import app.roadstr.feature.offline.NativeOfflinePackagesPanel
+import app.roadstr.feature.offline.NativeOfflinePackagesSnapshot
 import app.roadstr.feature.place.NativePlaceDetailsPanel
 import app.roadstr.feature.place.NativePlaceSession
 import app.roadstr.feature.profile.NativeProfilePanel
@@ -163,6 +166,8 @@ import app.roadstr.feature.wikipedia.NativeWikipediaReader
 import app.roadstr.feature.wikipedia.NativeWikipediaSession
 import app.roadstr.feature.voice.NativeVoiceCatalog
 import app.roadstr.service.nostr.NativeRoadEvent
+import app.roadstr.service.offline.OfflineDownloadRejection
+import app.roadstr.service.offline.OfflineInstallOutcome
 import app.roadstr.feature.voice.NativeVoiceGateway
 import app.roadstr.feature.voice.NativeVoiceGender
 import app.roadstr.feature.voice.NativeVoiceRuntimeStatus
@@ -293,6 +298,7 @@ fun NativeRoadstrShell(
     onFavoritesChanged: (List<NativeSavedPlace>) -> Unit = {},
     initialSettings: NativeSettingsInput = NativeSettingsInput(),
     onSettingsChanged: (NativeSettingsInput) -> Unit = {},
+    offlinePackagesGateway: NativeOfflinePackagesGateway? = null,
     onNwcChanged: (String) -> Boolean = { false },
     /** Stores the routing API key protected; an empty value removes it. False if it could not be stored. */
     onRoutingKeyChanged: (String) -> Boolean = { false },
@@ -469,6 +475,21 @@ fun NativeRoadstrShell(
         val searchSession = remember { NativeSearchSession(initialImperial = settingsState.values.imperialUnits) }
         val searchState by searchSession.state.collectAsState()
         val journeyScope = rememberCoroutineScope()
+        var offlinePackagesVisible by remember { mutableStateOf(false) }
+        var offlinePackagesState by remember(offlinePackagesGateway) {
+            mutableStateOf(NativeOfflinePackagesSnapshot())
+        }
+        var offlineDownloadJob by remember { mutableStateOf<Job?>(null) }
+        LaunchedEffect(offlinePackagesVisible) {
+            if (!offlinePackagesVisible) {
+                offlineDownloadJob?.cancel()
+                offlineDownloadJob = null
+                offlinePackagesState = offlinePackagesState.copy(
+                    busyPackageId = null,
+                    progress = 0.0,
+                )
+            }
+        }
         var speedLimitJob by remember { mutableStateOf<Job?>(null) }
         val identityState = identityGateway?.state?.collectAsState()?.value ?: NativeIdentitySnapshot()
         var profileMetadata by remember(identityState.pubkeyHex) {
@@ -1853,6 +1874,15 @@ fun NativeRoadstrShell(
                             }
                             NativeSettingsUiAction.OpenMapsAttribution ->
                                 onOpenExternal("https://www.openstreetmap.org/copyright")
+                            NativeSettingsUiAction.OpenOfflinePackages -> {
+                                offlinePackagesState = offlinePackagesState.copy(
+                                    installed = offlinePackagesGateway?.installed().orEmpty(),
+                                    availableBytes = offlinePackagesGateway?.availableBytes() ?: 0L,
+                                    messageResource = null,
+                                )
+                                offlinePackagesVisible = true
+                                settingsSession.hide(revision)
+                            }
                             NativeSettingsUiAction.ExportFavorites ->
                                 nostrHost?.exportFavorites() ?: run {
                                     val nextRevision = savedPlacesState.revision.coerceAtLeast(0L) + 1L
@@ -1952,6 +1982,110 @@ fun NativeRoadstrShell(
                     modifier = Modifier.align(Alignment.BottomCenter),
                     webSearchActive = NativeWebSearchEditor.isActive(webSettings),
                 )
+                if (offlinePackagesVisible) {
+                    BackHandler { offlinePackagesVisible = false }
+                    NativeOfflinePackagesPanel(
+                        snapshot = offlinePackagesState,
+                        onManifestUrlChanged = { value ->
+                            offlinePackagesState = offlinePackagesState.copy(
+                                manifestUrl = value.take(2_048),
+                                messageResource = null,
+                            )
+                        },
+                        onLoadCatalog = {
+                            val gateway = offlinePackagesGateway
+                            if (gateway == null) {
+                                offlinePackagesState = offlinePackagesState.copy(
+                                    messageResource = R.string.native_offline_catalog_unavailable,
+                                )
+                            } else {
+                                offlinePackagesState = offlinePackagesState.copy(
+                                    busyPackageId = "manifest",
+                                    messageResource = null,
+                                )
+                                journeyScope.launch {
+                                    val result = runCatching {
+                                        gateway.loadManifest(offlinePackagesState.manifestUrl)
+                                    }
+                                    offlinePackagesState = offlinePackagesState.copy(
+                                        manifest = result.getOrNull(),
+                                        busyPackageId = null,
+                                        messageResource = if (result.isFailure) {
+                                            R.string.native_offline_download_failed
+                                        } else {
+                                            null
+                                        },
+                                    )
+                                }
+                            }
+                        },
+                        onDownload = { artifact, allowMobile ->
+                            val gateway = offlinePackagesGateway
+                            if (gateway != null) {
+                                offlinePackagesState = offlinePackagesState.copy(
+                                    busyPackageId = artifact.id,
+                                    progress = 0.0,
+                                    messageResource = null,
+                                    mobileConfirmation = null,
+                                )
+                                offlineDownloadJob?.cancel()
+                                offlineDownloadJob = journeyScope.launch {
+                                    val result = runCatching {
+                                        gateway.install(artifact, allowMobile) { received, total ->
+                                            journeyScope.launch {
+                                                offlinePackagesState = offlinePackagesState.copy(
+                                                    progress = if (total == 0L) {
+                                                        0.0
+                                                    } else {
+                                                        received.toDouble() / total
+                                                    },
+                                                )
+                                            }
+                                        }
+                                    }.getOrNull()
+                                    if (!offlinePackagesVisible) return@launch
+                                    val rejected = (result as? OfflineInstallOutcome.Rejected)?.reason
+                                    offlinePackagesState = offlinePackagesState.copy(
+                                        installed = gateway.installed(),
+                                        availableBytes = gateway.availableBytes(),
+                                        busyPackageId = null,
+                                        progress = 0.0,
+                                        mobileConfirmation = if (
+                                            rejected == OfflineDownloadRejection.MobileDataConfirmationRequired
+                                        ) artifact else null,
+                                        messageResource = when {
+                                            result is OfflineInstallOutcome.Installed ->
+                                                R.string.native_offline_installed
+                                            rejected == OfflineDownloadRejection.MobileDataConfirmationRequired -> null
+                                            rejected == OfflineDownloadRejection.ArtifactInvalid ||
+                                                rejected == OfflineDownloadRejection.IntegrityFailure ->
+                                                R.string.native_offline_dataset_invalid
+                                            else -> R.string.native_offline_download_failed
+                                        },
+                                    )
+                                    offlineDownloadJob = null
+                                }
+                            }
+                        },
+                        onCancelDownload = {
+                            offlineDownloadJob?.cancel()
+                            offlineDownloadJob = null
+                            offlinePackagesState = offlinePackagesState.copy(
+                                busyPackageId = null,
+                                progress = 0.0,
+                            )
+                        },
+                        onDelete = { id ->
+                            offlinePackagesGateway?.delete(id)
+                            offlinePackagesState = offlinePackagesState.copy(
+                                installed = offlinePackagesGateway?.installed().orEmpty(),
+                                availableBytes = offlinePackagesGateway?.availableBytes() ?: 0L,
+                            )
+                        },
+                        onClose = { offlinePackagesVisible = false },
+                        modifier = Modifier.align(Alignment.TopCenter),
+                    )
+                }
                 if (webBrowser != null && webBrowser.inApp && browserState.open) {
                     NativeWebBrowserScreen(
                         state = browserState,
@@ -2457,7 +2591,7 @@ fun NativeRoadstrShell(
                                             name = savedRouteName,
                                             providerId = journeyGateway?.routingProviderId()
                                                 ?: settingsState.values.routingProvider.storageValue,
-                                            engineId = journeyGateway?.routingProviderId()
+                                            engineId = journeyGateway?.routingEngineId()
                                                 ?: settingsState.values.routingProvider.storageValue,
                                             avoidUnpavedRoads = settingsState.values.avoidUnpavedRoads,
                                             nowEpochMillis = now,

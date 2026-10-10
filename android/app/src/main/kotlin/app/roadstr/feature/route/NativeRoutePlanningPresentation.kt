@@ -44,6 +44,8 @@ enum class NativeRouteBadge {
     AvoidUnpavedRoads,
 }
 
+enum class NativeRoutePlanningFailure { Generic, AreaNotDownloaded, DatasetInvalid }
+
 data class NativeRoutePlannerStop(
     val id: Long,
     val query: String,
@@ -107,6 +109,7 @@ data class NativeRoutePlanningSnapshot(
     val avoidanceEnabled: Boolean,
     val avoidanceLoading: Boolean,
     val imperialUnits: Boolean,
+    val failure: NativeRoutePlanningFailure? = null,
 ) {
     val canCalculate: Boolean
         get() = originQuery.isNotBlank() && stops.isNotEmpty() && stops.all { it.query.isNotBlank() }
@@ -331,15 +334,18 @@ class NativeRoutePlanningSession(
         true
     }
 
-    fun failRouteRequest(revision: Long): Boolean = synchronized(lock) {
+    fun failRouteRequest(
+        revision: Long,
+        failure: NativeRoutePlanningFailure = NativeRoutePlanningFailure.Generic,
+    ): Boolean = synchronized(lock) {
         val current = _state.value
         if (revision != this.revision || current.status != NativeRoutePlanningStatus.Loading) return false
-        _state.value = current.copy(status = NativeRoutePlanningStatus.Planner)
+        _state.value = current.copy(status = NativeRoutePlanningStatus.Planner, failure = failure)
         true
     }
 
     fun updateOrigin(revision: Long, value: String): Boolean = mutatePlanner(revision) { current ->
-        current.copy(originQuery = query(value))
+        current.copy(originQuery = query(value), failure = null)
     }
 
     fun useMyLocation(revision: Long, localizedLabel: String): Boolean = mutatePlanner(revision) { current ->
