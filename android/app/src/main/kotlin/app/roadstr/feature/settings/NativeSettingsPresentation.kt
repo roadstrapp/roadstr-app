@@ -124,6 +124,8 @@ enum class NativeSettingsBooleanKey(
     ImperialUnits("imperialUnits", false),
     FavoritesSyncAuto("favoritesSyncAutoEnabled", false),
     VoiceEnabled("voiceEnabled", true),
+    OfflineRouting("offlineRoutingEnabled", false),
+    OfflineOnlineFallback("offlineOnlineFallbackAllowed", false),
 }
 
 sealed interface NativeSettingsStoredValue {
@@ -164,6 +166,8 @@ data class NativeSettingsInput(
     val imperialUnits: Boolean = false,
     val mapTileUrl: String = DEFAULT_TILE_URL,
     val routingProvider: NativeSettingsRoutingProvider = NativeSettingsRoutingProvider.Osrm,
+    val offlineRoutingEnabled: Boolean = false,
+    val offlineOnlineFallbackAllowed: Boolean = false,
     val graphHopperServer: String = "",
     val routingApiKeyConfigured: Boolean = false,
     val speedometerStyle: NativeSpeedometerStyle = NativeSpeedometerStyle.Classic,
@@ -371,6 +375,8 @@ class NativeSettingsSession(
             NativeSettingsBooleanKey.ImperialUnits -> current.copy(imperialUnits = value)
             NativeSettingsBooleanKey.FavoritesSyncAuto -> current.copy(favoritesSyncAutoEnabled = value)
             NativeSettingsBooleanKey.VoiceEnabled -> current.copy(voiceEnabled = value)
+            NativeSettingsBooleanKey.OfflineRouting -> current.copy(offlineRoutingEnabled = value)
+            NativeSettingsBooleanKey.OfflineOnlineFallback -> current.copy(offlineOnlineFallbackAllowed = value)
         }
         updated to NativeSettingsWrite(
             revision,

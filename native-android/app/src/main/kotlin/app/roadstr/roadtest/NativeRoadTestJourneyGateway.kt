@@ -23,6 +23,18 @@ import app.roadstr.service.network.NativeHttpRequest
 import app.roadstr.service.routing.NativeRoutingQuery
 import app.roadstr.service.routing.NativeAvoidanceRoutingQuery
 import app.roadstr.service.routing.NativeRoutingService
+import app.roadstr.service.routing.LocalRoutingDataset
+import app.roadstr.service.routing.OfflineRoutingPreferences
+import app.roadstr.service.routing.RoutingEngine
+import app.roadstr.service.routing.RoutingEngineFailureKind
+import app.roadstr.service.routing.RoutingEngineOutcome
+import app.roadstr.service.routing.RoutingEngineRequest
+import app.roadstr.service.routing.RoutingEngineSelection
+import app.roadstr.service.routing.RoutingEngineSelectionInput
+import app.roadstr.service.routing.RoutingEngineSelector
+import app.roadstr.service.routing.NativeRoutingSelectionException
+import app.roadstr.service.offline.InstalledOfflinePackage
+import app.roadstr.service.offline.OfflineCoverageIndex
 import app.roadstr.service.discovery.CoarseLocality
 import app.roadstr.service.discovery.HostPacer
 import app.roadstr.service.discovery.NativeDiscoveryService
@@ -55,15 +67,22 @@ class NativeRoadTestJourneyGateway(
     private val routingConfiguration: () -> RoutingProviderConfiguration = { OSRM_CONFIGURATION },
     /** What the user chose about web results, read per request so a change applies at once. */
     private val webSettings: () -> WebDiscoverySettings = { WebDiscoverySettings() },
+    private val offlineSettings: () -> OfflineRoutingPreferences = { OfflineRoutingPreferences() },
+    private val installedPackages: () -> List<InstalledOfflinePackage> = { emptyList() },
+    private val networkAvailable: () -> Boolean = { true },
+    private val localRoutingEngine: RoutingEngine? = null,
     names: NativeLiveStoreNames = NativeLiveStoreNames(),
 ) : NativeShellJourneyGateway {
     private val history = NativeRoadTestSearchHistoryStore(context, names)
     private val searchService = NativeSearchService(transport)
     private val routingService = NativeRoutingService(transport)
     private val speedLimitResolver = NativeRoadTestSpeedLimitResolver(transport)
+    @Volatile private var lastEngineId = routingConfiguration().provider.name.lowercase(Locale.ROOT)
+    @Volatile private var lastProviderId = lastEngineId
 
-    override fun routingProviderId(): String =
-        routingConfiguration().provider.name.lowercase(java.util.Locale.ROOT)
+    override fun routingProviderId(): String = lastProviderId
+
+    override fun routingEngineId(): String = lastEngineId
 
     override suspend fun probeRoutingServer(server: String, apiKey: String?): Boolean =
         runCatching { routingService.probeGraphHopper(server, apiKey) }.getOrDefault(false)
@@ -95,17 +114,71 @@ class NativeRoadTestJourneyGateway(
         require(mode != NativeRouteTransportMode.Transit) {
             "Public transport is not available in the road-test routing gateway"
         }
+        val points = listOf(origin) + via + destination
+        val preferences = offlineSettings()
+        if (preferences.enabled) {
+            val installed = installedPackages()
+            val coverage = OfflineCoverageIndex(installed)
+            val covering = coverage.coveringPackages(points.map { it.toRoutingPoint() })
+            val selected = installed.firstOrNull { it.artifact.id in covering }
+            val selection = RoutingEngineSelector.select(
+                RoutingEngineSelectionInput(
+                    offlineRoutingEnabled = true,
+                    coverage = coverage.coversRoute(points.map { it.toRoutingPoint() }),
+                    networkAvailable = networkAvailable(),
+                    onlineFallbackAllowed = preferences.onlineFallbackAllowed,
+                    mode = mode,
+                ),
+            )
+            when (selection) {
+                RoutingEngineSelection.Local -> return localRoutes(
+                    origin,
+                    destination,
+                    via,
+                    mode,
+                    languageCode,
+                    avoidHighwaysAndTolls,
+                    avoidUnpavedRoads,
+                    selected,
+                )
+                RoutingEngineSelection.Online -> Unit
+                is RoutingEngineSelection.Unavailable -> throw NativeRoutingSelectionException(selection.reason)
+            }
+        }
+        return onlineRoutes(
+            origin,
+            destination,
+            via,
+            mode,
+            languageCode,
+            avoidHighwaysAndTolls,
+            avoidUnpavedRoads,
+        )
+    }
+
+    private suspend fun onlineRoutes(
+        origin: SearchResponsePoint,
+        destination: SearchResponsePoint,
+        via: List<SearchResponsePoint>,
+        mode: NativeRouteTransportMode,
+        languageCode: String,
+        avoidHighwaysAndTolls: Boolean,
+        avoidUnpavedRoads: Boolean,
+    ): List<RoutingParsedRoute> {
+        val configuration = routingConfiguration()
         val standard = routingService.getRoutes(
             NativeRoutingQuery(
                 origin = origin.toRoutingPoint(),
                 destination = destination.toRoutingPoint(),
-                configuration = routingConfiguration(),
+                configuration = configuration,
                 languageCode = languageCode,
                 vehicle = mode.wireValue,
                 via = via.map { point -> point.toRoutingPoint() },
                 requestAlternatives = via.isEmpty(),
             ),
         )
+        lastProviderId = configuration.provider.name.lowercase(Locale.ROOT)
+        lastEngineId = lastProviderId
         if (mode != NativeRouteTransportMode.Driving || via.isNotEmpty()) return standard
         val avoidanceMode = when {
             avoidHighwaysAndTolls -> RoutingAvoidanceMode.HIGHWAYS_AND_TOLLS
@@ -123,6 +196,59 @@ class NativeRoadTestJourneyGateway(
             )
         }.getOrNull() ?: return standard
         return listOf(avoided) + standard
+    }
+
+    private suspend fun localRoutes(
+        origin: SearchResponsePoint,
+        destination: SearchResponsePoint,
+        via: List<SearchResponsePoint>,
+        mode: NativeRouteTransportMode,
+        languageCode: String,
+        avoidHighwaysAndTolls: Boolean,
+        avoidUnpavedRoads: Boolean,
+        installed: InstalledOfflinePackage?,
+    ): List<RoutingParsedRoute> {
+        val engine = localRoutingEngine
+            ?: throw NativeRoutingSelectionException(app.roadstr.service.routing.RoutingEngineUnavailableReason.DatasetMissing)
+        val value = installed
+            ?: throw NativeRoutingSelectionException(app.roadstr.service.routing.RoutingEngineUnavailableReason.AreaNotDownloaded)
+        val avoidance = when {
+            avoidHighwaysAndTolls -> app.roadstr.core.network.RoutingRouteAvoidance.HighwayAndTollFree
+            avoidUnpavedRoads -> app.roadstr.core.network.RoutingRouteAvoidance.OffRoadAvoided
+            else -> app.roadstr.core.network.RoutingRouteAvoidance.None
+        }
+        val outcome = engine.route(
+            RoutingEngineRequest(
+                origin = origin.toRoutingPoint(),
+                destination = destination.toRoutingPoint(),
+                via = via.map { it.toRoutingPoint() },
+                mode = mode,
+                languageCode = languageCode,
+                avoidance = avoidance,
+                requestAlternatives = false,
+                localDataset = LocalRoutingDataset(
+                    id = value.artifact.id,
+                    version = value.artifact.version,
+                    tileExtractPath = value.filePath,
+                    buildId = value.artifact.build.compatibilityId,
+                ),
+            ),
+        )
+        return when (outcome) {
+            is RoutingEngineOutcome.Success -> {
+                lastProviderId = "local"
+                lastEngineId = engine.id
+                outcome.routes
+            }
+            is RoutingEngineOutcome.Unavailable -> throw NativeRoutingSelectionException(outcome.reason)
+            is RoutingEngineOutcome.Failed -> throw app.roadstr.service.routing.NativeRoutingException(
+                if (outcome.kind == RoutingEngineFailureKind.InvalidRequest) {
+                    app.roadstr.service.routing.NativeRoutingFailureKind.InvalidConfiguration
+                } else {
+                    app.roadstr.service.routing.NativeRoutingFailureKind.InvalidResponse
+                },
+            )
+        }
     }
 
     // One pacer for every Nominatim call, so the place search and the town lookup behind a
@@ -236,6 +362,16 @@ class NativeRoadTestJourneyGateway(
     ): List<RoutingParsedRoute> {
         require(mode != NativeRouteTransportMode.Transit) {
             "Public transport is not available in the road-test routing gateway"
+        }
+        if (offlineSettings().enabled) {
+            return routes(
+                origin = origin,
+                destination = destination,
+                via = emptyList(),
+                mode = mode,
+                languageCode = languageCode,
+                avoidUnpavedRoads = avoidUnpavedRoads,
+            )
         }
         val standard = routingService.getRerouteRoutes(
             query = NativeRoutingQuery(

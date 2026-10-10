@@ -8,12 +8,15 @@ import app.roadstr.feature.map.NativeRouteOverlaySession
 import app.roadstr.feature.map.NativeMapPoint
 import app.roadstr.feature.navigation.NativeNavigationRerouteRequest
 import app.roadstr.feature.route.NativeRoutePlanningSession
+import app.roadstr.feature.route.NativeRoutePlanningFailure
 import app.roadstr.feature.route.NativeRoutePlanningStatus
 import app.roadstr.feature.route.NativeRouteTransportMode
 import app.roadstr.feature.search.NativeSearchFavorite
 import app.roadstr.feature.search.NativeSearchSession
 import app.roadstr.feature.search.NativeSearchUiStatus
 import app.roadstr.feature.savedroute.NativeSavedRouteProtocol
+import app.roadstr.service.routing.NativeRoutingSelectionException
+import app.roadstr.service.routing.RoutingEngineUnavailableReason
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -229,6 +232,30 @@ class NativeShellJourneyCoordinatorTest {
     }
 
     @Test
+    fun `missing local coverage remains a specific visible route failure`() {
+        val gateway = FakeGateway().apply {
+            routeFailure = NativeRoutingSelectionException(
+                RoutingEngineUnavailableReason.AreaNotDownloaded,
+            )
+        }
+        val planner = NativeRoutePlanningSession(NativeRouteOverlaySession(0xFF71_58E2L))
+        val coordinator = NativeShellJourneyCoordinator(
+            gateway = gateway,
+            scope = CoroutineScope(Dispatchers.Unconfined + Job()),
+            searchSession = NativeSearchSession(),
+            routeSession = planner,
+        )
+        val gps = SearchResponsePoint(51.5074, -0.1278)
+        assertTrue(coordinator.selectDestination("Edinburgh", SearchResponsePoint(55.9533, -3.1883), gps, "Here"))
+
+        assertTrue(coordinator.calculateRoute(planner.state.value, gps, "Here"))
+
+        assertEquals(NativeRoutePlanningFailure.AreaNotDownloaded, planner.state.value.failure)
+        assertEquals(NativeRoutePlanningStatus.Planner, planner.state.value.status)
+        coordinator.close()
+    }
+
+    @Test
     fun `active reroute forwards motion context and returns one parsed route`() {
         val gateway = FakeGateway()
         val coordinator = NativeShellJourneyCoordinator(
@@ -285,6 +312,7 @@ class NativeShellJourneyCoordinatorTest {
         var lastHeading: Double? = null
         var lastOrigin: SearchResponsePoint? = null
         var lastDestination: SearchResponsePoint? = null
+        var routeFailure: Exception? = null
 
         override suspend fun search(
             query: String,
@@ -312,6 +340,7 @@ class NativeShellJourneyCoordinatorTest {
             avoidUnpavedRoads: Boolean,
         ): List<RoutingParsedRoute> {
             routeCalls += 1
+            routeFailure?.let { throw it }
             lastOrigin = origin
             lastDestination = destination
             lastMode = mode

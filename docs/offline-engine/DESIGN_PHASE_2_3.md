@@ -1,6 +1,15 @@
 # Design: local routing contract and routing packages (Phases 2–3)
 
-Status: design only. No Phase 2 or Phase 3 implementation or dependency is added by this document.
+Status: Phases 2 and 3 implemented on the feature branch. Phone acceptance,
+production package hosting and manifest signing remain release gates.
+
+Implemented in Phase 2: the common selector and engine contract, the
+`valhalla-mobile` adapter with one reusable instance per dataset, code-171
+mapping, opt-in settings, explicit online fallback and the existing response
+protocol. Implemented in Phase 3: bounded manifest parsing, public-HTTPS-only
+transport, resumable foreground/UI-scoped downloads, SHA-256 and artifact-open
+validation, atomic version activation, conservative coverage, package UI and
+reproducible tools under `tools/offline_packages/`.
 
 ## Scope and invariants
 
@@ -141,7 +150,9 @@ and polygon vertices before allocation. Unknown schema/type is rejected.
 The first release may pin a manifest signing public key and verify a detached
 Ed25519 signature. SHA-256 protects artifact integrity; the signature protects
 the manifest's URL and metadata. If signing is deferred, HTTPS origin pinning and
-the residual supply-chain risk must be accepted explicitly before release.
+the residual supply-chain risk must be accepted explicitly before release. The
+current implementation is HTTPS plus artifact SHA-256 and is not release-ready
+until the owner chooses one of those two authenticity policies.
 
 ### Download and atomic installation
 
@@ -180,19 +191,22 @@ geometry remains navigable.
 ### Overlapping and adjacent areas
 
 Store artifacts independently by id/version and build a read-only coverage index
-from installed metadata. Do not merge tar files on the phone. Coverage union is
-allowed only when artifacts declare the same Valhalla build/configuration id and
-compatible skeleton version. Adjacent polygons that merely touch are not enough:
-the route corridor must intersect covered level-2 tiles continuously, with the
-national level 0–1 skeleton available. Overlap is deduplicated logically in the
-index; disk usage still reflects each artifact and is shown before download.
+from installed metadata. Do not merge tar files on the phone. The integrated
+wrapper opens one `tile_extract`; therefore the current selector requires one
+installed artifact to cover the complete request. It deliberately does not form
+an on-device union of adjacent or overlapping archives, even when their build ids
+match. A catalogue may publish a prebuilt combined archive when that behavior is
+required. This conservative rule prevents endpoints in two packages from being
+reported as routable when no single Valhalla instance has the continuous graph.
 
 Queries exposed to the selector:
 
 - `coversPoint(point, datasetType): CoverageResult`;
 - `coversRoute(points, marginMeters, datasetType): CoverageResult`;
 - `coveringPackages(request): Set<PackageId>`;
-- `missingSegments(route): List<RouteInterval>` for UI explanation.
+- `missingSegments(route): List<RouteInterval>` remains a later UI refinement;
+  the implemented boundary reports covered/not-covered/unknown and the ids of
+  packages that individually cover the complete sampled request.
 
 The conservative result is `Unknown/NotCovered`. False negatives can use the
 online path after disclosure; false positives reach Valhalla 171 and must still
@@ -200,7 +214,7 @@ be mapped to “area not downloaded”.
 
 ## 3. Reproducible build tools
 
-Add scripts under `tools/offline_packages/`, each with pinned versions/checksums,
+Scripts now live under `tools/offline_packages/`, with pinned versions/checksums,
 `--help`, deterministic output paths, a machine-readable recipe and a verify-only
 mode. Scripts never modify app source.
 

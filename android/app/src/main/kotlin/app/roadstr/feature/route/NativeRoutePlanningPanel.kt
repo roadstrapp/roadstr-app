@@ -273,6 +273,19 @@ private fun PlannerPanel(
                 }
             }
             RouteModeRow(snapshot.mode, !loading, onModeChanged)
+            snapshot.failure?.let { failure ->
+                Text(
+                    text = stringResource(
+                        when (failure) {
+                            NativeRoutePlanningFailure.AreaNotDownloaded -> R.string.native_offline_area_missing
+                            NativeRoutePlanningFailure.DatasetInvalid -> R.string.native_offline_dataset_invalid
+                            NativeRoutePlanningFailure.Generic -> R.string.native_offline_download_failed
+                        },
+                    ),
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
             Spacer(modifier = Modifier.height(10.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),

@@ -2863,6 +2863,86 @@ const _savedRouteRows = <String, List<String>>{
   'zh': ['已保存路线', '没有已保存路线', '开始', '重新计算', '编辑', '重命名', '删除', '保存路线', '路线名称', '已保存路线可离线使用；偏离路线后重新计算需要网络。'],
 };
 
+const _offlineKeys = <String>[
+  'native_offline_routing', 'native_offline_routing_desc',
+  'native_offline_fallback', 'native_offline_fallback_desc',
+  'native_offline_downloaded_areas', 'native_offline_downloaded_areas_desc',
+  'native_offline_packages_title', 'native_offline_manifest_url',
+  'native_offline_load_catalog', 'native_offline_catalog_unavailable',
+  'native_offline_download', 'native_offline_installed',
+  'native_offline_no_installed', 'native_offline_mobile_once',
+  'native_offline_area_missing', 'native_offline_dataset_invalid',
+  'native_offline_download_failed',
+];
+
+/// Offline routing, disclosures and package-manager actions.
+const _offlineRows = <String, List<String>>{
+  'bg': ['Офлайн маршрутизиране', 'Изчислява маршрутите на устройството с отделно изтеглени данни. Изключено е по подразбиране.', 'Онлайн резервен вариант', 'Използвай избрания онлайн доставчик извън изтеглените области.', 'Изтеглени области', 'Управление на офлайн данните за маршрутизиране. Нищо не се изтегля автоматично.', 'Офлайн области', 'HTTPS адрес на манифеста', 'Зареди каталога', 'Източникът на каталога още не е конфигуриран.', 'Изтегли', 'Инсталирано', 'Няма инсталирани области', 'Използвай мобилни данни този път', 'Областта не е изтеглена', 'Офлайн данните са невалидни', 'Изтеглянето не бе завършено'],
+  'cs': ['Offline trasování', 'Počítá trasy v zařízení ze samostatně stažených dat. Ve výchozím stavu je vypnuto.', 'Online záloha', 'Mimo stažené oblasti použít vybraného online poskytovatele.', 'Stažené oblasti', 'Správa offline dat trasování. Nic se nestahuje automaticky.', 'Offline oblasti', 'HTTPS adresa manifestu', 'Načíst katalog', 'Zdroj katalogu zatím není nastaven.', 'Stáhnout', 'Nainstalováno', 'Nejsou nainstalované žádné oblasti', 'Tentokrát použít mobilní data', 'Oblast není stažena', 'Offline data jsou neplatná', 'Stahování nebylo dokončeno'],
+  'da': ['Offline-rutevejledning', 'Beregner ruter på enheden med særskilt downloadede data. Er slået fra som standard.', 'Online reserve', 'Brug den valgte onlineudbyder uden for downloadede områder.', 'Downloadede områder', 'Administrer offline-rutedata. Intet downloades automatisk.', 'Offlineområder', 'Manifestets HTTPS-adresse', 'Indlæs katalog', 'Katalogkilden er endnu ikke konfigureret.', 'Download', 'Installeret', 'Ingen installerede områder', 'Brug mobildata denne gang', 'Området er ikke downloadet', 'Offline-dataene er ugyldige', 'Downloaden blev ikke fuldført'],
+  'de': ['Offline-Routing', 'Berechnet Routen auf dem Gerät mit separat heruntergeladenen Daten. Standardmäßig aus.', 'Online-Ausweichlösung', 'Außerhalb heruntergeladener Gebiete den gewählten Online-Anbieter verwenden.', 'Heruntergeladene Gebiete', 'Offline-Routingdaten verwalten. Es wird nichts automatisch heruntergeladen.', 'Offline-Gebiete', 'HTTPS-Adresse des Manifests', 'Katalog laden', 'Die Katalogquelle ist noch nicht eingerichtet.', 'Herunterladen', 'Installiert', 'Keine Gebiete installiert', 'Diesmal mobile Daten verwenden', 'Gebiet nicht heruntergeladen', 'Offline-Daten sind ungültig', 'Download wurde nicht abgeschlossen'],
+  'el': ['Δρομολόγηση εκτός σύνδεσης', 'Υπολογίζει διαδρομές στη συσκευή με δεδομένα που λαμβάνονται ξεχωριστά. Είναι απενεργοποιημένη από προεπιλογή.', 'Εφεδρική σύνδεση', 'Χρήση του επιλεγμένου διαδικτυακού παρόχου εκτός ληφθεισών περιοχών.', 'Ληφθείσες περιοχές', 'Διαχείριση δεδομένων δρομολόγησης εκτός σύνδεσης. Καμία αυτόματη λήψη.', 'Περιοχές εκτός σύνδεσης', 'Διεύθυνση HTTPS του manifest', 'Φόρτωση καταλόγου', 'Η πηγή καταλόγου δεν έχει ρυθμιστεί ακόμη.', 'Λήψη', 'Εγκαταστάθηκε', 'Δεν υπάρχουν εγκατεστημένες περιοχές', 'Χρήση δεδομένων κινητής αυτή τη φορά', 'Η περιοχή δεν έχει ληφθεί', 'Τα δεδομένα εκτός σύνδεσης δεν είναι έγκυρα', 'Η λήψη δεν ολοκληρώθηκε'],
+  'en': ['Offline routing', 'Calculates routes on this device using separately downloaded data. Off by default.', 'Online fallback', 'Use the selected online provider outside downloaded areas.', 'Downloaded areas', 'Manage offline routing data. Nothing downloads automatically.', 'Offline areas', 'Manifest HTTPS address', 'Load catalog', 'The catalog source is not configured yet.', 'Download', 'Installed', 'No installed areas', 'Use mobile data this time', 'Area not downloaded', 'Offline data is invalid', 'The download did not complete'],
+  'es': ['Rutas sin conexión', 'Calcula rutas en el dispositivo con datos descargados por separado. Desactivado por defecto.', 'Alternativa en línea', 'Usar el proveedor en línea elegido fuera de las áreas descargadas.', 'Áreas descargadas', 'Gestiona los datos de rutas sin conexión. Nada se descarga automáticamente.', 'Áreas sin conexión', 'Dirección HTTPS del manifiesto', 'Cargar catálogo', 'La fuente del catálogo aún no está configurada.', 'Descargar', 'Instalado', 'No hay áreas instaladas', 'Usar datos móviles esta vez', 'Área no descargada', 'Los datos sin conexión no son válidos', 'La descarga no se completó'],
+  'et': ['Võrguühenduseta marsruutimine', 'Arvutab marsruudid seadmes eraldi allalaaditud andmetega. Vaikimisi väljas.', 'Võrgupõhine varuvariant', 'Kasuta allalaaditud aladest väljaspool valitud võrguteenust.', 'Allalaaditud alad', 'Halda võrguühenduseta marsruudiandmeid. Midagi ei laadita automaatselt alla.', 'Võrguühenduseta alad', 'Manifesti HTTPS-aadress', 'Laadi kataloog', 'Kataloogi allikas pole veel seadistatud.', 'Laadi alla', 'Paigaldatud', 'Paigaldatud alasid pole', 'Kasuta seekord mobiilset andmesidet', 'Ala pole alla laaditud', 'Võrguühenduseta andmed on vigased', 'Allalaadimine ei lõppenud'],
+  'fi': ['Offline-reititys', 'Laskee reitit laitteessa erikseen ladatuilla tiedoilla. Oletuksena pois käytöstä.', 'Verkkovara', 'Käytä valittua verkkopalvelua ladattujen alueiden ulkopuolella.', 'Ladatut alueet', 'Hallitse offline-reititystietoja. Mitään ei ladata automaattisesti.', 'Offline-alueet', 'Luettelon HTTPS-osoite', 'Lataa luettelo', 'Luettelon lähdettä ei ole vielä määritetty.', 'Lataa', 'Asennettu', 'Ei asennettuja alueita', 'Käytä mobiilidataa tällä kertaa', 'Aluetta ei ole ladattu', 'Offline-tiedot ovat virheelliset', 'Lataus ei valmistunut'],
+  'fr': ['Itinéraires hors ligne', 'Calcule les itinéraires sur l’appareil avec des données téléchargées séparément. Désactivé par défaut.', 'Repli en ligne', 'Utiliser le fournisseur en ligne choisi hors des zones téléchargées.', 'Zones téléchargées', 'Gérer les données d’itinéraire hors ligne. Aucun téléchargement automatique.', 'Zones hors ligne', 'Adresse HTTPS du manifeste', 'Charger le catalogue', 'La source du catalogue n’est pas encore configurée.', 'Télécharger', 'Installé', 'Aucune zone installée', 'Utiliser les données mobiles cette fois', 'Zone non téléchargée', 'Les données hors ligne sont invalides', 'Le téléchargement n’a pas abouti'],
+  'ga': ['Ródú as líne', 'Ríomhann sé bealaí ar an ngléas le sonraí a íoslódáladh ar leith. Múchta de réir réamhshocraithe.', 'Cúltaca ar líne', 'Úsáid an soláthraí ar líne roghnaithe lasmuigh de limistéir íoslódáilte.', 'Limistéir íoslódáilte', 'Bainistigh sonraí ródaithe as líne. Ní íoslódáiltear aon rud go huathoibríoch.', 'Limistéir as líne', 'Seoladh HTTPS an léirithe', 'Luchtaigh catalóg', 'Níl foinse na catalóige cumraithe fós.', 'Íoslódáil', 'Suiteáilte', 'Níl aon limistéir suiteáilte', 'Úsáid sonraí móibíleacha an uair seo', 'Níl an limistéar íoslódáilte', 'Tá na sonraí as líne neamhbhailí', 'Níor críochnaíodh an íoslódáil'],
+  'hr': ['Izvanmrežno usmjeravanje', 'Izračunava rute na uređaju zasebno preuzetim podacima. Zadano je isključeno.', 'Mrežna pričuva', 'Izvan preuzetih područja koristi odabranog mrežnog pružatelja.', 'Preuzeta područja', 'Upravljaj podacima za izvanmrežno usmjeravanje. Ništa se ne preuzima automatski.', 'Izvanmrežna područja', 'HTTPS adresa manifesta', 'Učitaj katalog', 'Izvor kataloga još nije postavljen.', 'Preuzmi', 'Instalirano', 'Nema instaliranih područja', 'Ovaj put koristi mobilne podatke', 'Područje nije preuzeto', 'Izvanmrežni podaci nisu valjani', 'Preuzimanje nije dovršeno'],
+  'hu': ['Offline útvonaltervezés', 'Külön letöltött adatokkal az eszközön számol útvonalat. Alapból ki van kapcsolva.', 'Online tartalék', 'A letöltött területeken kívül a kiválasztott online szolgáltató használata.', 'Letöltött területek', 'Offline útvonaladatok kezelése. Semmi sem töltődik le automatikusan.', 'Offline területek', 'A jegyzék HTTPS-címe', 'Katalógus betöltése', 'A katalógus forrása még nincs beállítva.', 'Letöltés', 'Telepítve', 'Nincs telepített terület', 'Mobiladat használata most', 'A terület nincs letöltve', 'Az offline adatok érvénytelenek', 'A letöltés nem fejeződött be'],
+  'it': ['Routing offline', 'Calcola gli itinerari sul dispositivo usando dati scaricati separatamente. È disattivato in modo predefinito.', 'Ripiego online', 'Fuori dalle aree scaricate usa il provider online scelto.', 'Aree scaricate', 'Gestisci i dati di routing offline. Nessun download parte automaticamente.', 'Aree offline', 'Indirizzo HTTPS del manifest', 'Carica catalogo', 'La sorgente del catalogo non è ancora configurata.', 'Scarica', 'Installato', 'Nessuna area installata', 'Usa i dati mobili questa volta', 'Area non scaricata', 'I dati offline non sono validi', 'Il download non è stato completato'],
+  'ja': ['オフラインルーティング', '別途ダウンロードしたデータを使って端末上でルートを計算します。初期設定ではオフです。', 'オンライン代替', 'ダウンロード済みエリア外では選択中のオンラインプロバイダーを使用します。', 'ダウンロード済みエリア', 'オフラインルーティングデータを管理します。自動ダウンロードは行いません。', 'オフラインエリア', 'マニフェストの HTTPS アドレス', 'カタログを読み込む', 'カタログの提供元はまだ設定されていません。', 'ダウンロード', 'インストール済み', 'インストール済みエリアはありません', '今回だけモバイルデータを使用', 'エリアがダウンロードされていません', 'オフラインデータが無効です', 'ダウンロードが完了しませんでした'],
+  'lt': ['Maršrutai neprisijungus', 'Maršrutus skaičiuoja įrenginyje su atskirai atsisiųstais duomenimis. Numatyta išjungta.', 'Internetinis atsarginis būdas', 'Už atsisiųstų sričių naudoti pasirinktą internetinį teikėją.', 'Atsisiųstos sritys', 'Tvarkyti maršrutų neprisijungus duomenis. Niekas neatsisiunčiama automatiškai.', 'Sritys neprisijungus', 'Manifesto HTTPS adresas', 'Įkelti katalogą', 'Katalogo šaltinis dar nenustatytas.', 'Atsisiųsti', 'Įdiegta', 'Nėra įdiegtų sričių', 'Šį kartą naudoti mobiliuosius duomenis', 'Sritis neatsisiųsta', 'Duomenys neprisijungus netinkami', 'Atsisiuntimas nebaigtas'],
+  'lv': ['Maršrutēšana bezsaistē', 'Aprēķina maršrutus ierīcē ar atsevišķi lejupielādētiem datiem. Pēc noklusējuma izslēgta.', 'Tiešsaistes rezerve', 'Ārpus lejupielādētajiem apgabaliem izmantot izvēlēto tiešsaistes pakalpojumu.', 'Lejupielādētie apgabali', 'Pārvaldi bezsaistes maršrutēšanas datus. Nekas netiek lejupielādēts automātiski.', 'Bezsaistes apgabali', 'Manifesta HTTPS adrese', 'Ielādēt katalogu', 'Kataloga avots vēl nav iestatīts.', 'Lejupielādēt', 'Instalēts', 'Nav instalētu apgabalu', 'Šoreiz izmantot mobilos datus', 'Apgabals nav lejupielādēts', 'Bezsaistes dati nav derīgi', 'Lejupielāde netika pabeigta'],
+  'mt': ['Rotot offline', 'Jikkalkula r-rotot fuq l-apparat b’dejta mniżżla separatament. Mitfi b’mod awtomatiku.', 'Riżerva online', 'Uża l-fornitur online magħżul barra ż-żoni mniżżla.', 'Żoni mniżżla', 'Immaniġġja d-dejta tar-rotot offline. Xejn ma jitniżżel awtomatikament.', 'Żoni offline', 'Indirizz HTTPS tal-manifest', 'Tella’ l-katalgu', 'Is-sors tal-katalgu għadu mhux issettjat.', 'Niżżel', 'Installat', 'Ebda żona installata', 'Uża d-dejta mobbli din id-darba', 'Iż-żona mhix imniżżla', 'Id-dejta offline mhix valida', 'It-tniżżil ma tlestiex'],
+  'nl': ['Offline routering', 'Berekent routes op het apparaat met apart gedownloade gegevens. Standaard uit.', 'Online terugval', 'Gebruik de gekozen onlineprovider buiten gedownloade gebieden.', 'Gedownloade gebieden', 'Beheer offline routegegevens. Er wordt niets automatisch gedownload.', 'Offlinegebieden', 'HTTPS-adres van het manifest', 'Catalogus laden', 'De catalogusbron is nog niet ingesteld.', 'Downloaden', 'Geïnstalleerd', 'Geen gebieden geïnstalleerd', 'Deze keer mobiele data gebruiken', 'Gebied niet gedownload', 'Offlinegegevens zijn ongeldig', 'De download is niet voltooid'],
+  'pl': ['Wyznaczanie tras offline', 'Oblicza trasy na urządzeniu z osobno pobranych danych. Domyślnie wyłączone.', 'Tryb awaryjny online', 'Poza pobranymi obszarami używaj wybranego dostawcy online.', 'Pobrane obszary', 'Zarządzaj danymi tras offline. Nic nie jest pobierane automatycznie.', 'Obszary offline', 'Adres HTTPS manifestu', 'Wczytaj katalog', 'Źródło katalogu nie jest jeszcze skonfigurowane.', 'Pobierz', 'Zainstalowano', 'Brak zainstalowanych obszarów', 'Tym razem użyj danych komórkowych', 'Obszar nie został pobrany', 'Dane offline są nieprawidłowe', 'Pobieranie nie zostało ukończone'],
+  'pt': ['Rotas offline', 'Calcula rotas no dispositivo com dados transferidos separadamente. Desativado por predefinição.', 'Alternativa online', 'Usar o fornecedor online escolhido fora das áreas transferidas.', 'Áreas transferidas', 'Gerir dados de rotas offline. Nada é transferido automaticamente.', 'Áreas offline', 'Endereço HTTPS do manifesto', 'Carregar catálogo', 'A origem do catálogo ainda não está configurada.', 'Transferir', 'Instalado', 'Sem áreas instaladas', 'Usar dados móveis desta vez', 'Área não transferida', 'Os dados offline são inválidos', 'A transferência não foi concluída'],
+  'ro': ['Rutare offline', 'Calculează traseele pe dispozitiv cu date descărcate separat. Dezactivată implicit.', 'Rezervă online', 'Folosește furnizorul online ales în afara zonelor descărcate.', 'Zone descărcate', 'Gestionează datele de rutare offline. Nimic nu se descarcă automat.', 'Zone offline', 'Adresa HTTPS a manifestului', 'Încarcă catalogul', 'Sursa catalogului nu este încă configurată.', 'Descarcă', 'Instalat', 'Nicio zonă instalată', 'Folosește date mobile de data aceasta', 'Zona nu este descărcată', 'Datele offline nu sunt valide', 'Descărcarea nu s-a încheiat'],
+  'ru': ['Офлайн-маршрутизация', 'Рассчитывает маршруты на устройстве по отдельно загруженным данным. По умолчанию выключена.', 'Резерв через интернет', 'Вне загруженных областей использовать выбранного онлайн-провайдера.', 'Загруженные области', 'Управление данными офлайн-маршрутов. Ничего не загружается автоматически.', 'Офлайн-области', 'HTTPS-адрес манифеста', 'Загрузить каталог', 'Источник каталога пока не настроен.', 'Скачать', 'Установлено', 'Нет установленных областей', 'Использовать мобильные данные сейчас', 'Область не загружена', 'Офлайн-данные повреждены', 'Загрузка не завершена'],
+  'sk': ['Offline trasovanie', 'Počíta trasy v zariadení zo samostatne stiahnutých údajov. Predvolene je vypnuté.', 'Online záloha', 'Mimo stiahnutých oblastí použiť vybraného online poskytovateľa.', 'Stiahnuté oblasti', 'Spravovať offline údaje trasovania. Nič sa nesťahuje automaticky.', 'Offline oblasti', 'HTTPS adresa manifestu', 'Načítať katalóg', 'Zdroj katalógu ešte nie je nastavený.', 'Stiahnuť', 'Nainštalované', 'Žiadne nainštalované oblasti', 'Tentoraz použiť mobilné dáta', 'Oblasť nie je stiahnutá', 'Offline údaje sú neplatné', 'Sťahovanie nebolo dokončené'],
+  'sl': ['Usmerjanje brez povezave', 'Izračuna poti v napravi z ločeno prenesenimi podatki. Privzeto izklopljeno.', 'Spletna rezerva', 'Zunaj prenesenih območij uporabi izbranega spletnega ponudnika.', 'Prenesena območja', 'Upravljaj podatke za usmerjanje brez povezave. Nič se ne prenese samodejno.', 'Območja brez povezave', 'Naslov HTTPS manifesta', 'Naloži katalog', 'Vir kataloga še ni nastavljen.', 'Prenesi', 'Nameščeno', 'Ni nameščenih območij', 'Tokrat uporabi mobilne podatke', 'Območje ni preneseno', 'Podatki brez povezave niso veljavni', 'Prenos se ni dokončal'],
+  'sv': ['Offlineruttning', 'Beräknar rutter på enheten med separat hämtade data. Av som standard.', 'Onlinereserv', 'Använd vald onlineleverantör utanför hämtade områden.', 'Hämtade områden', 'Hantera ruttdata offline. Inget hämtas automatiskt.', 'Offlineområden', 'Manifestets HTTPS-adress', 'Läs in katalog', 'Katalogkällan är inte konfigurerad ännu.', 'Hämta', 'Installerat', 'Inga områden installerade', 'Använd mobildata den här gången', 'Området är inte hämtat', 'Offlinedata är ogiltiga', 'Hämtningen slutfördes inte'],
+  'zh': ['离线路线规划', '使用另行下载的数据在设备上计算路线。默认关闭。', '在线备用', '在已下载区域外使用所选在线服务。', '已下载区域', '管理离线路线数据。不会自动下载任何内容。', '离线区域', '清单 HTTPS 地址', '加载目录', '目录来源尚未配置。', '下载', '已安装', '没有已安装区域', '本次使用移动数据', '区域未下载', '离线数据无效', '下载未完成'],
+};
+
+const _offlineTransferKeys = <String>[
+  'native_offline_free_space',
+  'native_offline_package_size',
+  'native_offline_cancel_download',
+];
+
+/// Free space, download/installed sizes, cancel.
+const _offlineTransferRows = <String, List<String>>{
+  'bg': ['Свободно място: {s1}', 'Изтегляне {s1} · инсталирано {s2}', 'Отмени изтеглянето'],
+  'cs': ['Volné místo: {s1}', 'Stažení {s1} · po instalaci {s2}', 'Zrušit stahování'],
+  'da': ['Ledig plads: {s1}', 'Download {s1} · installeret {s2}', 'Annuller download'],
+  'de': ['Freier Speicher: {s1}', 'Download {s1} · installiert {s2}', 'Download abbrechen'],
+  'el': ['Ελεύθερος χώρος: {s1}', 'Λήψη {s1} · εγκατεστημένο {s2}', 'Ακύρωση λήψης'],
+  'en': ['Free space: {s1}', 'Download {s1} · installed {s2}', 'Cancel download'],
+  'es': ['Espacio libre: {s1}', 'Descarga {s1} · instalado {s2}', 'Cancelar descarga'],
+  'et': ['Vaba ruum: {s1}', 'Allalaadimine {s1} · paigaldatud {s2}', 'Tühista allalaadimine'],
+  'fi': ['Vapaata tilaa: {s1}', 'Lataus {s1} · asennettuna {s2}', 'Peruuta lataus'],
+  'fr': ['Espace libre : {s1}', 'Téléchargement {s1} · installé {s2}', 'Annuler le téléchargement'],
+  'ga': ['Spás saor: {s1}', 'Íoslódáil {s1} · suiteáilte {s2}', 'Cealaigh an íoslódáil'],
+  'hr': ['Slobodan prostor: {s1}', 'Preuzimanje {s1} · instalirano {s2}', 'Otkaži preuzimanje'],
+  'hu': ['Szabad hely: {s1}', 'Letöltés {s1} · telepítve {s2}', 'Letöltés megszakítása'],
+  'it': ['Spazio libero: {s1}', 'Download {s1} · installato {s2}', 'Annulla download'],
+  'ja': ['空き容量: {s1}', 'ダウンロード {s1} · インストール後 {s2}', 'ダウンロードをキャンセル'],
+  'lt': ['Laisva vieta: {s1}', 'Atsisiuntimas {s1} · įdiegta {s2}', 'Atšaukti atsisiuntimą'],
+  'lv': ['Brīva vieta: {s1}', 'Lejupielāde {s1} · instalēts {s2}', 'Atcelt lejupielādi'],
+  'mt': ['Spazju ħieles: {s1}', 'Tniżżil {s1} · installat {s2}', 'Ikkanċella t-tniżżil'],
+  'nl': ['Vrije ruimte: {s1}', 'Download {s1} · geïnstalleerd {s2}', 'Download annuleren'],
+  'pl': ['Wolne miejsce: {s1}', 'Pobieranie {s1} · po instalacji {s2}', 'Anuluj pobieranie'],
+  'pt': ['Espaço livre: {s1}', 'Transferência {s1} · instalado {s2}', 'Cancelar transferência'],
+  'ro': ['Spațiu liber: {s1}', 'Descărcare {s1} · instalat {s2}', 'Anulează descărcarea'],
+  'ru': ['Свободно: {s1}', 'Загрузка {s1} · установлено {s2}', 'Отменить загрузку'],
+  'sk': ['Voľné miesto: {s1}', 'Stiahnutie {s1} · po inštalácii {s2}', 'Zrušiť sťahovanie'],
+  'sl': ['Prostor na voljo: {s1}', 'Prenos {s1} · nameščeno {s2}', 'Prekliči prenos'],
+  'sv': ['Ledigt utrymme: {s1}', 'Hämtning {s1} · installerat {s2}', 'Avbryt hämtning'],
+  'zh': ['可用空间：{s1}', '下载 {s1} · 安装后 {s2}', '取消下载'],
+};
+
 /// Identical in every language: an example address, not prose.
 const _verbatim = <String, String>{
   'native_nostr_relay_hint': 'wss://relay.example.com',
@@ -2922,6 +3002,22 @@ String _buildResource(String language, Map<String, dynamic> arb) {
   for (var index = 0; index < _savedRouteKeys.length; index += 1) {
     entries[_savedRouteKeys[index]] =
         _androidText(savedRouteRow[index], _savedRouteKeys[index]);
+  }
+  final offlineRow = _offlineRows[language];
+  if (offlineRow == null || offlineRow.length != _offlineKeys.length) {
+    throw FormatException('Missing offline translations for $language');
+  }
+  for (var index = 0; index < _offlineKeys.length; index += 1) {
+    entries[_offlineKeys[index]] =
+        _androidText(offlineRow[index], _offlineKeys[index]);
+  }
+  final transferRow = _offlineTransferRows[language];
+  if (transferRow == null || transferRow.length != _offlineTransferKeys.length) {
+    throw StateError('Missing offline transfer strings for $language');
+  }
+  for (var index = 0; index < _offlineTransferKeys.length; index += 1) {
+    entries[_offlineTransferKeys[index]] =
+        _androidText(transferRow[index], _offlineTransferKeys[index]);
   }
   _verbatim.forEach((key, value) => entries[key] = _androidText(value, key));
 

@@ -21,7 +21,7 @@ import org.junit.Test
 class NativePreferenceStoreTest {
     @Test
     fun `schema covers every non-secret scalar legacy key only`() {
-        assertEquals(36, NativePreferenceSchema.keys.size)
+        assertEquals(38, NativePreferenceSchema.keys.size)
         assertTrue(NativePreferenceSchema.keys.containsAll(NativeSettingsBooleanKey.entries.map { it.storageKey }))
         assertFalse(NativePreferenceSchema.keys.contains("graphhopperApiKey"))
         assertFalse(NativePreferenceSchema.keys.contains("nwcUri"))
