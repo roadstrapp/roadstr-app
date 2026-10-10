@@ -1,0 +1,429 @@
+Implement standard external geographic destination handling in the POST-REWRITE native Kotlin version of Roadstr.
+
+Repository:
+https://github.com/roadstrapp/roadstr-app
+
+CRITICAL CONTEXT
+
+This task must be performed ONLY after the Flutter -> native Kotlin rewrite has reached feature parity and the Kotlin architecture is stable.
+
+Do not assume the old Flutter file layout is still valid.
+
+FIRST inspect the actual current Kotlin repository resulting from the rewrite.
+
+Identify:
+- application architecture
+- MainActivity/navigation host
+- MapLibre integration
+- place/search models
+- destination model
+- route planner
+- routing service
+- current-location service
+- navigation state
+- Compose navigation
+- lifecycle handling
+- AndroidManifest.xml
+- existing tests
+
+Reuse the existing Kotlin destination/routing pipeline.
+
+Do NOT create a second routing implementation just for external intents.
+
+Roadstr package/applicationId MUST remain:
+
+  app.roadstr
+
+Do not change signing identity, package identity, update path or migrated user data.
+
+--------------------------------------------------
+GOAL
+--------------------------------------------------
+
+Roadstr should behave as a proper Android navigation/map application and accept Android's standard geographic Intent contract.
+
+Support:
+
+  Intent.ACTION_VIEW
+  geo:
+
+according to the Android standard.
+
+Primary integration scenario:
+
+Astraea has already geocoded a calendar event and sends Roadstr:
+
+  geo:0,0?q=<latitude>,<longitude>(<label>)
+
+Example conceptually:
+
+  geo:0,0?q=45.0703,7.6869(Bianchini%20SRL)
+
+Roadstr should:
+
+1. parse and validate the destination
+2. convert it into Roadstr's existing internal Place/Destination model
+3. display the destination on the map
+4. use the current device position as origin when available
+5. immediately calculate/show the normal Roadstr route preview
+6. let the user explicitly press Start to begin turn-by-turn navigation
+
+Do NOT automatically begin spoken turn-by-turn navigation merely because another application sent an Intent.
+
+The desired UX is:
+
+Astraea
+   ↓ tap Navigate
+Roadstr
+   ↓
+route already calculated / preview visible
+   ↓
+user taps Start
+
+--------------------------------------------------
+1. STANDARD ANDROID CONTRACT
+--------------------------------------------------
+
+Do NOT create a proprietary roadstr:// BROWSABLE scheme for this feature.
+
+Support the standard Android geo: URI.
+
+At minimum support:
+
+  geo:<lat>,<lon>
+
+  geo:<lat>,<lon>?z=<zoom>
+
+  geo:0,0?q=<lat>,<lon>(<label>)
+
+Also support, where reasonable:
+
+  geo:0,0?q=<address>
+
+For coordinate-based URIs:
+DO NOT geocode again.
+The coordinates are already authoritative input.
+
+For address-only geo queries:
+feed the textual query into Roadstr's EXISTING place-search/geocoding pipeline.
+
+Do not create another Nominatim client for Intent handling.
+
+Roadstr already has/previously had Nominatim + Photon + place-search infrastructure.
+Use whatever equivalent architecture exists after the Kotlin rewrite.
+
+--------------------------------------------------
+2. ANDROID MANIFEST
+--------------------------------------------------
+
+Register the narrow standard map intent filter:
+
+  ACTION_VIEW
+  category DEFAULT
+  scheme geo
+
+Do not add BROWSABLE unless there is a concrete requirement and a security review justifies it.
+
+The intent handler must accept only the formats Roadstr understands.
+
+Avoid broad HTTP/HTTPS intent filters.
+
+Do not introduce an exported generic command interface.
+
+--------------------------------------------------
+3. INTENT BOUNDARY
+--------------------------------------------------
+
+Treat every incoming Intent as untrusted input.
+
+Implement a small dedicated parser/domain boundary, for example:
+
+  GeoIntentParser
+  ExternalDestination
+
+Exact names should follow the Kotlin architecture.
+
+The parser must be pure/testable where possible.
+
+Validate:
+
+latitude:
+  -90 <= lat <= 90
+
+longitude:
+  -180 <= lon <= 180
+
+Reject:
+- NaN
+- Infinity
+- malformed coordinates
+- absurdly long labels/query strings
+- unexpected URI schemes
+- unsupported actions
+- malformed percent encoding where relevant
+
+Cap incoming text length.
+
+Never interpret the label as HTML/markup.
+
+Never open URLs contained in the label.
+
+Never execute arbitrary Intent extras supplied by another application.
+
+Do not deserialize arbitrary Java/Kotlin objects from incoming intents.
+
+--------------------------------------------------
+4. ROUTING INTEGRATION
+--------------------------------------------------
+
+After parsing a coordinate destination:
+
+ExternalDestination
+       ↓
+existing Roadstr destination/place model
+       ↓
+existing route planner
+       ↓
+existing routing provider
+       ↓
+existing route preview UI
+
+There must be ONE routing pipeline.
+
+Do not duplicate:
+- OSRM logic
+- GraphHopper logic
+- ORS logic
+- route alternatives
+- avoidances
+- current-location handling
+- navigation state
+
+External destinations are simply another source of the same internal destination object used by Roadstr search results/favourites/map taps.
+
+Preserve the received label, e.g.:
+
+  Bianchini SRL
+
+as the display label when appropriate.
+
+If no label is provided, use the best existing coordinate/address display behaviour.
+
+Do not require Nostr login.
+
+Do not require network access merely to accept coordinates.
+
+Network may of course be required by the user's selected routing provider to calculate the route.
+
+--------------------------------------------------
+5. LIFECYCLE
+--------------------------------------------------
+
+Roadstr may receive an external geo Intent when:
+
+- process is dead
+- app is cold-starting
+- app already exists in background
+- app is currently visible
+- navigation is already active
+
+Handle both:
+- initial Intent
+- onNewIntent / equivalent lifecycle path
+
+Do not process the same Intent twice because Compose/navigation state was recreated.
+
+If Roadstr is already actively navigating and another app sends a new destination:
+
+DO NOT silently replace the current route.
+
+Show a confirmation such as:
+
+  "Replace current destination with Bianchini SRL?"
+
+Only replace it after explicit user confirmation.
+
+--------------------------------------------------
+6. ASTRAEA INTEROPERABILITY
+--------------------------------------------------
+
+No hard dependency on Astraea.
+
+Roadstr MUST NOT check that the caller is Astraea before accepting a standard geo Intent.
+
+Astraea is merely the first integration consumer.
+
+This should also work with any Android application correctly sending:
+
+  ACTION_VIEW + geo:
+
+Examples could include:
+- another calendar
+- contacts
+- messaging apps
+- browsers/apps that deliberately invoke geo handlers
+- future apps in the ecosystem
+
+Roadstr must remain independently useful.
+
+Do not import Astraea code or models.
+
+The shared semantic contract is simply:
+
+  latitude
+  longitude
+  optional human-readable label
+
+Roadstr does not need the complete Astraea EventPlace JSON.
+
+--------------------------------------------------
+7. PRIVACY
+--------------------------------------------------
+
+Receiving a geo Intent must not:
+- publish anything to Nostr
+- add anything to favourites automatically
+- add anything to search history unless that matches Roadstr's existing explicit history semantics
+- contact a geocoder when coordinates are already supplied
+- transmit the originating application's identity
+- log the destination in production logs
+
+Route calculation follows Roadstr's existing privacy model/provider behaviour.
+
+--------------------------------------------------
+8. SECURITY
+--------------------------------------------------
+
+The old Flutter manifest intentionally avoided a roadstr:// BROWSABLE deep link because it would expose unnecessary browser-triggerable attack surface.
+
+Preserve the spirit of that decision.
+
+This task adds only the standard Android geo map contract.
+
+Review exported components after implementation.
+
+Do not broaden any existing component unnecessarily.
+
+External Intent parsing must happen before mutating navigation state.
+
+Malformed input must fail closed and leave Roadstr in its previous state.
+
+--------------------------------------------------
+9. TESTS
+--------------------------------------------------
+
+Add unit tests for at least:
+
+Valid:
+  geo:45.0703,7.6869
+  geo:45.0703,7.6869?z=16
+  geo:0,0?q=45.0703,7.6869(Bianchini%20SRL)
+
+Invalid:
+  latitude > 90
+  latitude < -90
+  longitude > 180
+  longitude < -180
+  NaN
+  Infinity
+  malformed q
+  unsupported scheme
+  extremely long label
+  empty intent
+
+Test:
+- label decoding
+- coordinate precision
+- cold-start handling
+- warm/onNewIntent handling
+- deduplication
+- conversion into existing destination model
+- route preview invocation
+- active-navigation replacement confirmation
+- coordinates do NOT trigger geocoding
+- address-only geo query DOES use the existing search pipeline
+- malformed intent never changes current route
+
+Where practical add an Android instrumentation test that launches Roadstr with:
+
+  adb shell am start \
+    -a android.intent.action.VIEW \
+    -d "geo:0,0?q=45.0703,7.6869(Bianchini%20SRL)" \
+    app.roadstr
+
+and verifies that the route-preview destination is populated.
+
+Do not rely on a live geocoding/routing service in unit tests.
+
+--------------------------------------------------
+10. DOCUMENTATION
+--------------------------------------------------
+
+Add:
+
+  docs/EXTERNAL_GEO_INTENTS.md
+
+Document:
+- supported geo URI forms
+- validation rules
+- lifecycle behaviour
+- route-preview behaviour
+- security considerations
+- example invocation
+- Astraea as one example consumer, not a dependency
+
+Also document the contract in the appropriate architecture documentation.
+
+--------------------------------------------------
+ACCEPTANCE SCENARIO
+--------------------------------------------------
+
+Astraea contains:
+
+Dentist
+Bianchini SRL
+Via Roma 1, Torino
+
+Astraea has already resolved the place to:
+
+lat = X
+lon = Y
+
+User taps the location.
+
+Android sends Roadstr an explicit/package-targeted:
+
+  ACTION_VIEW
+  geo:0,0?q=X,Y(Bianchini SRL)
+
+Roadstr opens.
+
+It does NOT call Nominatim again.
+
+It converts X/Y into the same internal destination type used by a normal Roadstr search result.
+
+Current GPS position becomes origin.
+
+The existing routing engine calculates the route.
+
+The normal Roadstr route preview appears with:
+
+  Current position
+       ↓
+  Bianchini SRL
+
+The user can press Start.
+
+If Roadstr was already navigating, ask before replacing the active destination.
+
+No Nostr login or ecosystem account is required.
+
+--------------------------------------------------
+IMPLEMENTATION RULE
+--------------------------------------------------
+
+Do not stop after proposing an architecture.
+
+Inspect the completed Kotlin rewrite first, adapt these requirements to the architecture that actually exists, implement the feature, tests and documentation, and run the project's complete Kotlin/Android quality gates.
+
+Do not regress the Flutter -> Kotlin migration guarantees, package identity, release signing, user data migration, MapLibre, routing, GPS, Nostr, voice guidance or existing navigation behaviour.

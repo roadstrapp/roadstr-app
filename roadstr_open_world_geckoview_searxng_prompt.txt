@@ -1,0 +1,1503 @@
+ROADSTR — OPEN WORLD DISCOVERY + GECKOVIEW + SEARXNG
+POST-FLUTTER→KOTLIN FEATURE PROMPT
+
+TARGET REPOSITORY
+https://github.com/roadstrapp/roadstr-app
+
+TIMING
+Use this prompt ONLY AFTER the Flutter → native Kotlin migration has reached a stable,
+feature-parity state and the in-place update/migration path has been proven.
+
+VISION
+Roadstr must evolve from:
+
+    "a TomTom-like navigator"
+
+into:
+
+    "an open, privacy-respecting hub from which the user can interact with the world."
+
+The search bar must stop being limited to addresses and known POIs.
+
+Examples of desired user queries:
+
+    "vegano nei dintorni"
+    "gluten free a Firenze"
+    "bistecche di manzo a Trieste"
+    "farmacia aperta vicino a me"
+    "parcheggio vicino alla stazione"
+    "cinema a Bologna"
+    "ristorante siciliano a Ravenna"
+    "negozio di elettronica aperto ora"
+    "bar con terrazza vicino alla destinazione"
+
+Roadstr should understand the intent, search the best available OPEN/FOSS-compatible
+sources, place useful candidates on the map, let the user inspect them, and turn any
+resolved place into a normal Roadstr destination/navigation target.
+
+When a place has a website or the user wants richer web information, Roadstr should be
+able to open and interact with that content INSIDE Roadstr through Mozilla GeckoView,
+rather than depending on Google/Chrome/WebView behavior.
+
+For broader web discovery that cannot be satisfied from OpenStreetMap data alone,
+integrate SearXNG as an OPTIONAL provider.
+
+Roadstr's existing FOSS / privacy / no-unnecessary-central-server philosophy remains
+non-negotiable.
+
+==============================================================================
+0. REPOSITORY-FIRST RULE
+==============================================================================
+
+DO NOT assume that the repository still looks like the old Flutter version.
+
+Before changing anything:
+
+1. Inspect CURRENT main/current Kotlin branch.
+2. Verify that the Flutter → Kotlin migration is complete enough for this feature.
+3. Read:
+   - README
+   - architecture docs
+   - Gradle files
+   - AndroidManifest
+   - networking code
+   - search code
+   - MapLibre code
+   - routing/navigation code
+   - settings/privacy code
+   - localization resources
+   - tests
+4. Identify the CURRENT equivalents of the old services:
+   - PlaceSearchService
+   - PoiSearchService
+   - Photon integration
+   - Nominatim integration
+   - Overpass integration
+   - place details
+   - search history
+   - MapLibre result pins
+   - route destination selection
+   - Wikipedia/in-app web view if still present
+5. CURRENT CODE WINS over any file/class name used in this prompt.
+
+Do NOT create parallel duplicate search stacks if the Kotlin rewrite already has a
+clean search abstraction.
+
+==============================================================================
+1. DO NOT REPLACE THE GOOD PARTS OF ROADSTR SEARCH
+==============================================================================
+
+Roadstr already had a strong open geographic stack before the Kotlin rewrite:
+
+    Photon
+    Nominatim
+    Overpass
+    OpenStreetMap
+    MapLibre
+
+The new feature must EXTEND this stack rather than replace it.
+
+Conceptually:
+
+                         USER QUERY
+                             |
+                             v
+                    Query Understanding
+                             |
+                  +----------+----------+
+                  |                     |
+                  v                     v
+          Structured geo/POI       Open-web discovery
+                  |                     |
+       +----------+----------+          |
+       |          |          |          |
+       v          v          v          v
+    Photon    Nominatim   Overpass   SearXNG
+       |          |          |          |
+       +----------+----------+----------+
+                             |
+                             v
+                   Candidate Normalizer
+                             |
+                             v
+                  Place Entity Resolver
+                             |
+                             v
+                      RoadstrPlace
+                             |
+              +--------------+--------------+
+              |              |              |
+              v              v              v
+             PIN          DETAILS        NAVIGATE
+                                            |
+                                            v
+                                    existing routing
+
+The exact class names must fit the current Kotlin architecture.
+
+Do NOT make SearXNG mandatory for ordinary address/category search.
+
+OSM-based sources should remain the primary source whenever they can answer accurately.
+
+==============================================================================
+2. SEARCH STRATEGY: CHEAP / STRUCTURED FIRST, WEB SECOND
+==============================================================================
+
+Use a staged search pipeline.
+
+STAGE A — LOCAL QUERY PARSING
+
+Parse the query into structured intent where possible.
+
+Example:
+
+    "vegano nei dintorni"
+
+becomes conceptually:
+
+    intent = FIND_PLACE
+    category = restaurant
+    attributes = diet:vegan=yes
+    spatialIntent = NEAR_ME
+
+Example:
+
+    "gluten free a Firenze"
+
+becomes:
+
+    intent = FIND_PLACE
+    category = restaurant
+    attributes = diet:gluten_free=yes
+    spatialIntent = IN_PLACE
+    placeText = Firenze
+
+Example:
+
+    "parcheggio vicino alla stazione"
+
+becomes:
+
+    intent = FIND_PLACE
+    category = parking
+    spatialRelation = NEAR_REFERENCE_PLACE
+    referenceText = station
+
+Do not use a mandatory cloud LLM merely to parse queries.
+
+Start with deterministic/local parsing:
+- normalized text;
+- locale-aware synonyms;
+- known place categories;
+- OSM-tag mappings;
+- diet attributes;
+- "near me" expressions;
+- "open now" expressions;
+- "in <city>" expressions;
+- "near destination";
+- brand/name detection where current search already supports it.
+
+Design the parser so a future OPTIONAL local model/semantic parser can be plugged in,
+but do not make that a dependency of this project.
+
+STAGE B — STRUCTURED OPEN DATA
+
+Try the existing Roadstr geographic providers.
+
+Examples:
+- address/place/name -> Photon/Nominatim;
+- category/brand/OSM attributes -> Overpass;
+- current position/location bias -> existing location state;
+- "in Firenze" -> resolve geographic area first, then query inside it;
+- "near destination" -> use the current route destination as spatial context.
+
+STAGE C — WEB DISCOVERY
+
+Only when:
+- structured sources are insufficient;
+- the query is clearly about information that OSM typically does not model well;
+- or the user explicitly asks for web results;
+
+invoke an optional WebDiscoveryProvider backed by SearXNG.
+
+Example:
+
+    "bistecche di manzo a Trieste"
+
+OSM may know:
+    restaurant
+    cuisine=steak_house
+
+but it may not know:
+    current menu
+    specific dishes
+    website/menu text
+
+In that case:
+1. query structured OSM data first;
+2. optionally query SearXNG;
+3. resolve web results back to real places;
+4. only pin a result after sufficient geographic/entity confidence.
+
+Never put arbitrary search-result URLs on the map as if their location were known.
+
+==============================================================================
+3. NATURAL PLACE QUERY MODEL
+==============================================================================
+
+Create a typed representation of user intent.
+
+Conceptual example only:
+
+NaturalPlaceQuery {
+    rawText
+    locale
+    intent
+    category
+    subcategory
+    attributes
+    nameOrBrand
+    locationConstraint
+    referencePlace
+    openNow
+    webDiscoveryNeeded
+}
+
+Possible location constraints:
+
+CURRENT_LOCATION
+CURRENT_MAP_CENTER
+CURRENT_DESTINATION
+NAMED_PLACE
+ROUTE_CORRIDOR
+NONE
+
+Possible source attributes may map to OSM concepts such as:
+
+amenity
+shop
+tourism
+leisure
+cuisine
+diet:vegan
+diet:vegetarian
+diet:gluten_free
+opening_hours
+outdoor_seating
+wheelchair
+fuel:*
+etc.
+
+Do not create an uncontrolled giant hard-coded switch.
+
+Use data-driven synonym/category mappings per locale where practical.
+
+Preserve all 27 Roadstr locales.
+
+==============================================================================
+4. "OPEN NOW" MUST BE REAL, NOT GUESSED
+==============================================================================
+
+If the query contains:
+
+    open now
+    aperto ora
+    ouvert maintenant
+    etc.
+
+use existing OSM `opening_hours` parsing when reliable.
+
+If data is missing or ambiguous:
+- do not invent opening status;
+- show "opening hours unavailable";
+- web discovery may enrich the result if structured public metadata is available;
+- make the provenance visible.
+
+Never claim a business is open based only on stale snippets.
+
+==============================================================================
+5. SEARXNG ROLE
+==============================================================================
+
+Integrate SearXNG as an OPTIONAL open-source METASEARCH provider.
+
+Important distinction:
+
+SearXNG itself is open-source.
+The upstream engines configured by a SearXNG instance may be proprietary services.
+
+Roadstr must not falsely label every result as "open-source data".
+
+Roadstr's existing "no Google" philosophy must remain explicit.
+
+Therefore design:
+
+Web discovery:
+    Off
+    Ask when needed
+    On
+
+SearXNG instance:
+    user-configurable base URL
+
+Optional advanced controls:
+    - allowed engines/categories
+    - language
+    - safe-search setting
+    - test instance
+    - show instance capabilities
+
+Do not hard-code a dependency on one Roadstr-operated SearXNG server.
+
+Roadstr should continue working if:
+- SearXNG is disabled;
+- the configured instance is offline;
+- JSON output is disabled;
+- rate limits occur;
+- an upstream engine fails.
+
+NO mandatory Roadstr backend.
+
+==============================================================================
+6. SEARXNG API CAPABILITY DETECTION
+==============================================================================
+
+Current SearXNG supports `/` and `/search` and can return JSON when the instance enables
+the `json` format. Many public instances disable JSON.
+
+Therefore DO NOT assume:
+
+    GET /search?q=...&format=json
+
+always works.
+
+At configuration/test time:
+
+1. normalize/validate base URL;
+2. use HTTPS by default;
+3. inspect `/config` when available;
+4. determine enabled categories/engines;
+5. test whether JSON search is enabled;
+6. handle 403 for disabled output formats;
+7. handle 429/rate-limit behavior;
+8. use bounded response sizes;
+9. use strict timeouts;
+10. never silently switch to a random third-party instance.
+
+If JSON is unavailable:
+- either mark the instance incompatible for structured Roadstr discovery;
+- or propose a carefully justified alternative.
+
+Do not build a fragile HTML scraper as the default solution.
+
+==============================================================================
+7. NO-GOOGLE / SOURCE POLICY
+==============================================================================
+
+Roadstr must not silently route its discovery through Google merely because a chosen
+SearXNG instance happens to expose a Google engine.
+
+Research how current SearXNG allows engine selection and capability discovery.
+
+Create a source policy abstraction.
+
+Conceptually:
+
+SearchSourcePolicy {
+    allowedEngines
+    blockedEngines
+    allowUnknownEngines
+}
+
+Default Roadstr policy should preserve the project's philosophy.
+
+At minimum:
+- do not explicitly request Google engines;
+- do not call Google APIs directly;
+- make SearXNG instance provenance transparent;
+- if strict "no Google-backed upstreams" can be guaranteed only with a user-controlled
+  SearXNG configuration, explain that clearly in Settings instead of making a false claim.
+
+Do not conflate:
+"Roadstr does not directly call Google"
+with:
+"no upstream SearXNG engine ever talks to Google."
+
+==============================================================================
+8. PRIVACY-FIRST WEB DISCOVERY
+==============================================================================
+
+Web discovery has more privacy exposure than Photon/Nominatim/Overpass.
+
+Do not automatically append exact GPS coordinates to every SearXNG query.
+
+For:
+
+    "vegano nei dintorni"
+
+Roadstr may know the exact coordinate locally.
+
+Default privacy strategy should be:
+
+1. satisfy it using OSM/Overpass first;
+2. if web discovery is needed, derive the minimum useful geographic context;
+3. prefer city/neighbourhood/coarse area text over exact latitude/longitude;
+4. only send exact coordinates if technically necessary and explicitly justified.
+
+Example:
+
+Instead of:
+
+    vegan restaurant 44.4183591 12.2035298
+
+prefer:
+
+    vegan restaurant Ravenna
+
+when that is sufficient.
+
+Document all data sent to a SearXNG instance.
+
+Add Settings text explaining:
+- the selected instance receives search queries;
+- enabled upstream engines may receive them from the instance;
+- Roadstr itself should not operate hidden telemetry around these searches.
+
+==============================================================================
+9. WEB RESULT -> REAL PLACE RESOLUTION
+==============================================================================
+
+This is a critical subsystem.
+
+A SearXNG result is a WEB RESULT, not automatically a ROADSTR PLACE.
+
+Create a PlaceEntityResolver.
+
+Inputs may include:
+- title;
+- URL;
+- snippet;
+- detected business name;
+- address;
+- locality;
+- structured page metadata;
+- OSM candidates;
+- Photon/Nominatim candidates;
+- current search geography.
+
+Output concept:
+
+ResolvedPlaceCandidate {
+    place
+    confidence
+    evidence
+    sources
+    ambiguity
+}
+
+Confidence should be based on explicit evidence:
+- exact address match;
+- same name + locality;
+- phone/domain match if available;
+- coordinates from structured metadata;
+- OSM ID;
+- proximity;
+- category agreement.
+
+NEVER invent coordinates.
+
+If confidence is low:
+- show the result as a web result;
+- allow the user to open it;
+- do not drop a misleading pin.
+
+If several real-world places match:
+- present candidates for user selection.
+
+==============================================================================
+10. NORMALIZED ROADSTR PLACE MODEL
+==============================================================================
+
+Extend/reuse the existing Kotlin place model rather than creating a parallel model.
+
+A useful normalized place should be able to hold:
+
+- stable internal ID;
+- OSM ID/type if available;
+- name;
+- category;
+- latitude;
+- longitude;
+- address;
+- distance;
+- opening hours;
+- phone;
+- website;
+- cuisine;
+- selected OSM tags;
+- source provenance;
+- optional web evidence;
+- optional thumbnail/favicon if policy allows;
+- confidence;
+- last-updated/fetched metadata where useful.
+
+Do not pollute core domain objects with raw provider JSON.
+
+==============================================================================
+11. RESULT PROVENANCE
+==============================================================================
+
+Roadstr must be honest about where information comes from.
+
+A place card should be able to distinguish:
+
+OpenStreetMap
+Website
+SearXNG result
+Multiple sources
+
+Examples:
+
+    Address · OpenStreetMap
+    Menu mention · Website
+    Website result · via SearXNG
+
+Do not present a search-engine snippet as authoritative business information.
+
+==============================================================================
+12. MAP EXPERIENCE
+==============================================================================
+
+Natural/world search must feel native to Roadstr.
+
+When the user searches:
+
+    "gluten free a Firenze"
+
+desired flow:
+
+    Search field
+        |
+        v
+    Parse intent
+        |
+        v
+    resolve Firenze
+        |
+        v
+    structured POI search
+        |
+        +-- optional web enrichment
+        |
+        v
+    candidates
+        |
+        v
+    pins appear on MapLibre
+        |
+        v
+    tap pin
+        |
+        v
+    Roadstr place card
+        |
+        +-- Navigate
+        +-- Website
+        +-- Call if available
+        +-- Share
+        +-- Details
+        |
+        v
+    existing route preview/navigation
+
+Do not create a second routing system.
+
+A resolved result must feed the existing Roadstr destination model.
+
+==============================================================================
+13. ROUTE-CONTEXT SEARCH
+==============================================================================
+
+Design the architecture to support queries such as:
+
+    "benzina GPL lungo il percorso"
+    "ristorante tra 20 km"
+    "parcheggio vicino alla destinazione"
+    "farmacia senza deviare troppo"
+
+Do not necessarily implement every advanced expression in v1.
+
+But the query model and search geography should support:
+
+- current location;
+- map viewport;
+- destination;
+- route corridor;
+- distance-ahead window;
+- maximum detour.
+
+Do not solve route-corridor search by firing dozens of uncontrolled Overpass requests.
+
+Design batching/spatial-query policies carefully.
+
+==============================================================================
+14. GECKOVIEW: WHY IT EXISTS
+==============================================================================
+
+GeckoView is NOT the search engine.
+
+GeckoView is Roadstr's embedded open web engine.
+
+Use it for:
+- opening a place website;
+- reading menu/details;
+- following a web discovery result;
+- viewing rich public information without leaving Roadstr;
+- future safe web-interaction capabilities.
+
+Do not use GeckoView merely to render SearXNG search-result HTML.
+
+Search results should be structured data in Roadstr UI.
+GeckoView opens the selected web content.
+
+==============================================================================
+15. GECKOVIEW INTEGRATION
+==============================================================================
+
+Use Mozilla GeckoView directly in the native Kotlin app.
+
+Research CURRENT stable GeckoView documentation/version before coding.
+
+Do not hard-code a version from this prompt.
+
+Important architecture facts to verify:
+- GeckoView is an embeddable Android View;
+- GeckoRuntime should be managed centrally and initialized according to current API rules;
+- GeckoSession owns page sessions;
+- GeckoView displays a session;
+- Mozilla recommends WebExtensions for interaction with web content.
+
+Create a clean Roadstr web module, conceptually:
+
+web/
+    GeckoRuntimeManager
+    BrowserSession
+    RoadstrBrowserScreen
+    BrowserState
+    NavigationPolicy
+    PermissionPolicy
+    DownloadPolicy
+    ExternalIntentPolicy
+    StructuredDataBridge
+
+Names are illustrative.
+
+Do not put browser logic inside MainActivity.
+
+==============================================================================
+16. GECKOVIEW LIFECYCLE / BATTERY / MEMORY
+==============================================================================
+
+Roadstr is a navigation app and battery usage already matters.
+
+Do NOT keep a full Gecko session actively rendering in the background for no reason.
+
+Investigate:
+- lazy initialization;
+- runtime initialization cost;
+- single GeckoRuntime per process;
+- session lifetime;
+- tab/session reuse;
+- memory-pressure handling;
+- pause/background behavior;
+- destruction when unused;
+- whether prewarming is worth the RAM cost.
+
+Measure:
+- APK size increase;
+- cold browser-open time;
+- warm browser-open time;
+- RAM;
+- CPU;
+- background behavior.
+
+Do not sacrifice navigation stability just to keep browser opening instant.
+
+==============================================================================
+17. ROADSTR BROWSER UX
+==============================================================================
+
+This is not intended to become a clone of Firefox.
+
+Build the minimum browser chrome that serves Roadstr's vision:
+
+- title/domain;
+- TLS/security indication where current GeckoView APIs support it;
+- back;
+- forward;
+- reload/stop;
+- open externally;
+- share;
+- copy URL;
+- "Navigate here" when a page resolves to a known place;
+- close/back to Roadstr;
+- progress indicator.
+
+Potential later features may include:
+- find in page;
+- tabs;
+- downloads;
+- reader mode.
+
+Do NOT implement a general browser feature arms race in v1.
+
+==============================================================================
+18. WEB PERMISSIONS
+==============================================================================
+
+Website permissions must be conservative.
+
+Default policy:
+- geolocation: DENY until explicit user approval;
+- camera: DENY until explicit user approval;
+- microphone: DENY until explicit user approval;
+- notifications: DENY by default;
+- persistent storage: controlled;
+- popups/new windows: controlled;
+- external protocols: explicit handling.
+
+Do not let a restaurant website inherit Roadstr's precise GPS permission automatically.
+
+If a website requests location:
+- show a Roadstr-specific consent dialog;
+- explain that the WEBSITE will receive location;
+- consider offering approximate/current city instead of direct precise geolocation where
+  technically feasible.
+
+==============================================================================
+19. BROWSER PRIVACY PROFILE
+==============================================================================
+
+Define a Roadstr-specific Gecko privacy configuration.
+
+Research CURRENT GeckoView APIs for:
+- tracking protection/content blocking;
+- third-party cookies;
+- cookie behavior;
+- storage;
+- Safe Browsing implications/dependencies;
+- history;
+- cache;
+- private browsing sessions;
+- WebRTC/IP exposure;
+- telemetry/crash reporting.
+
+Do not assume Firefox defaults automatically apply to an embedded GeckoView.
+
+Roadstr must intentionally configure the runtime/session.
+
+At minimum decide and document:
+- whether browsing is ephemeral by default;
+- whether cookies persist;
+- whether browsing history persists;
+- whether third-party tracking protection is enabled;
+- whether Mozilla telemetry/crash reporting exists and whether it is disabled/configured;
+- what data survives app restart.
+
+Roadstr's "no tracking" claim must remain truthful.
+
+==============================================================================
+20. GECKOVIEW WEBEXTENSION / STRUCTURED DATA BRIDGE
+==============================================================================
+
+Research using a bundled GeckoView WebExtension as the preferred controlled way to
+interact with web content.
+
+Goal:
+extract PUBLIC STRUCTURED DATA from the CURRENT PAGE when useful.
+
+Examples:
+- schema.org LocalBusiness;
+- Restaurant;
+- PostalAddress;
+- GeoCoordinates;
+- openingHours;
+- telephone;
+- URL;
+- servesCuisine;
+- menu URL;
+- JSON-LD;
+- OpenGraph metadata where useful.
+
+Flow:
+
+selected web result
+    |
+    v
+GeckoView loads page
+    |
+    v
+Roadstr bundled WebExtension / content bridge
+    |
+    v
+extract structured metadata
+    |
+    v
+sanitize + validate
+    |
+    v
+PlaceEntityResolver
+    |
+    v
+Roadstr place candidate
+
+Rules:
+- no arbitrary remote-code injection;
+- extension bundled with Roadstr;
+- strict message schema;
+- never expose Nostr keys/secrets to page JavaScript;
+- never expose internal Roadstr APIs broadly to web pages;
+- page content is UNTRUSTED input;
+- cap payload sizes;
+- validate URLs/types;
+- do not execute page-provided code in native context.
+
+==============================================================================
+21. NO SECRET BRIDGE INTO THE WEB
+==============================================================================
+
+ABSOLUTELY DO NOT expose:
+- nsec;
+- NWC secrets;
+- app database contents;
+- signing APIs;
+- Amber signing intents;
+- exact location without consent;
+- Roadstr internal files;
+- arbitrary Android intents;
+- unrestricted file chooser;
+- unrestricted localhost access
+
+to GeckoView page content.
+
+If Roadstr later supports Nostr login on websites, design it separately with an explicit
+permission boundary. It is OUT OF SCOPE for v1.
+
+==============================================================================
+22. URL / INTENT SECURITY
+==============================================================================
+
+Treat page URLs and external intents as hostile input.
+
+Handle explicitly:
+- http
+- https
+- tel
+- mailto
+- geo
+- intent:
+- market:
+- custom schemes
+
+Do not blindly `startActivity()` on arbitrary URI schemes.
+
+Create an allow/confirm/block policy.
+
+For `tel:`:
+- user confirms;
+- open dialer;
+- never place a call silently.
+
+For geographic links:
+- parse coordinates carefully;
+- offer "Use as Roadstr destination";
+- do not start navigation without user action.
+
+==============================================================================
+23. WEB CONTENT -> DESTINATION
+==============================================================================
+
+A core part of the vision is:
+
+    WORLD INFORMATION -> ROADSTR DESTINATION
+
+When a page or web result describes a real place, Roadstr should be able to produce:
+
+    [ Navigate ]
+
+only when a location has been resolved with adequate confidence.
+
+Resolution sources can include:
+- schema.org GeoCoordinates;
+- postal address -> Photon/Nominatim;
+- OSM match;
+- explicit geo link;
+- trusted structured search result.
+
+Never infer coordinates from vague text with false precision.
+
+==============================================================================
+24. SEARCH RESULT MERGING / DEDUPLICATION
+==============================================================================
+
+The same restaurant may arrive from:
+- Photon;
+- Nominatim;
+- Overpass;
+- SearXNG;
+- website structured data.
+
+Do not show five pins.
+
+Build a deterministic entity merge policy.
+
+Evidence may include:
+- OSM ID;
+- coordinate proximity;
+- normalized name;
+- address;
+- phone;
+- website host;
+- category.
+
+Keep provenance from all merged sources.
+
+Do not merge two separate chain locations merely because they share the same brand name.
+
+==============================================================================
+25. RANKING
+==============================================================================
+
+Do NOT let web SEO ranking dominate Roadstr place ranking.
+
+Roadstr ranking should be place-oriented.
+
+Possible factors:
+- text relevance;
+- distance;
+- explicit query attributes;
+- open-now confidence;
+- category match;
+- geographic constraint;
+- OSM/structured-data confidence;
+- route-detour cost when route context is requested;
+- current map viewport;
+- user-selected source preferences.
+
+Do not rank a far-away SEO page above a nearby exact OSM match merely because SearXNG
+listed it first.
+
+Keep ranking deterministic/testable where practical.
+
+==============================================================================
+26. SEARCH HISTORY / PRIVACY
+==============================================================================
+
+Integrate with Roadstr's existing search history.
+
+Clearly distinguish:
+- local search text;
+- web discovery queries;
+- website history if any.
+
+Do not create hidden long-term browser history if current Roadstr privacy semantics do not
+call for it.
+
+If browser history is added:
+- make it explicit;
+- allow clearing;
+- document retention;
+- do not mix it silently with place-search history.
+
+==============================================================================
+27. CACHING
+==============================================================================
+
+Cache carefully.
+
+Potential caches:
+- parsed query;
+- Photon/Nominatim/Overpass result;
+- resolved place entity;
+- SearXNG result;
+- structured metadata extracted from a site.
+
+Every cache needs:
+- key;
+- TTL;
+- maximum size;
+- eviction;
+- privacy classification.
+
+Do not persist entire web pages.
+
+Do not let cache grow unbounded.
+
+==============================================================================
+28. NETWORK / BATTERY PROTECTION
+==============================================================================
+
+Roadstr has already spent significant work reducing battery usage.
+
+This feature must not reintroduce continuous network/CPU churn.
+
+Rules:
+- debounce typeahead;
+- SearXNG MUST NOT run on every keystroke;
+- web discovery should run only on settled query / explicit request;
+- cancel obsolete searches;
+- single-flight identical requests;
+- bound concurrency;
+- cache stable results;
+- cap HTTP bodies;
+- strict deadlines;
+- respect 429/Retry-After where available;
+- do not background-refresh web searches;
+- do not keep Gecko rendering while screen is gone;
+- do not prefetch every search result website.
+
+Profile battery/memory after integration.
+
+==============================================================================
+29. FAILURE DEGRADATION
+==============================================================================
+
+Roadstr must still be useful when the web layer fails.
+
+If:
+- SearXNG is offline;
+- instance blocks JSON;
+- all SearXNG engines fail;
+- GeckoView crashes;
+- a website refuses to load;
+- structured extraction fails;
+
+then:
+- OSM/Photon/Nominatim/Overpass search continues;
+- routing continues;
+- active navigation is NEVER interrupted;
+- Roadstr does not crash;
+- user gets a concise error/fallback.
+
+The new feature is additive, not a new single point of failure.
+
+==============================================================================
+30. SOURCE / LICENSE AUDIT
+==============================================================================
+
+Roadstr is GPL-3.0.
+
+Before adding dependencies, create a license table for:
+- GeckoView;
+- Mozilla Android Components if considered;
+- SearXNG protocol/API use;
+- any structured-data parser;
+- any new HTML/JSON-LD parser;
+- any NLP/tokenization library.
+
+Use FOSS-compatible dependencies only.
+
+Do not embed SearXNG server code inside the Android APK unless there is a compelling,
+technically sound reason. SearXNG is fundamentally server software.
+
+==============================================================================
+31. NO ROADSTR CENTRAL SERVER
+==============================================================================
+
+Do not introduce:
+
+    api.roadstr.app/search
+    search.roadstr.app
+    mandatory Roadstr proxy
+
+as an architectural shortcut.
+
+The user should be able to point Roadstr at:
+- a self-hosted SearXNG instance;
+- a compatible public instance;
+- no SearXNG at all.
+
+If later the project operates a convenience public instance, it must remain optional and
+replaceable.
+
+==============================================================================
+32. SETTINGS UX
+==============================================================================
+
+Design Settings conceptually like:
+
+SEARCH & WEB
+
+OpenStreetMap place search
+    Enabled
+
+Web discovery
+    Off / Ask / On
+
+SearXNG instance
+    https://...
+
+[Test connection]
+
+Search privacy
+    Prefer coarse location for web searches   ON
+
+Web browser
+    Open websites inside Roadstr              ON
+
+Website data
+    Extract public structured place data      ON
+
+Browser data
+    [Clear website data]
+
+Advanced
+    Search source diagnostics
+    Allowed SearXNG engines
+    Safe Search
+
+Exact wording must be localized and reviewed.
+
+Do not overwhelm normal users with engine internals by default.
+
+==============================================================================
+33. SEARCH UX EXAMPLES THAT MUST BE TESTED
+==============================================================================
+
+TEST QUERY 1
+    "vegano nei dintorni"
+
+Expected:
+- understand near-me;
+- search OSM first;
+- vegan restaurant candidates;
+- pins;
+- cards;
+- navigate.
+
+TEST QUERY 2
+    "gluten free a Firenze"
+
+Expected:
+- resolve Firenze;
+- search correct geographic area;
+- use `diet:gluten_free` where data exists;
+- optional web discovery if OSM coverage is sparse;
+- never fabricate dietary support.
+
+TEST QUERY 3
+    "bistecche di manzo a Trieste"
+
+Expected:
+- try steak/restaurant structured interpretation;
+- use optional web discovery for dish/menu evidence;
+- resolve web results to real places;
+- evidence/provenance visible;
+- only confident candidates become pins.
+
+TEST QUERY 4
+    "farmacia aperta vicino a me"
+
+Expected:
+- pharmacy category;
+- current location;
+- opening_hours evaluation;
+- unknown remains unknown.
+
+TEST QUERY 5
+    "parcheggio vicino alla destinazione"
+
+Expected:
+- current destination as reference;
+- parking POIs around destination;
+- not current GPS point.
+
+TEST QUERY 6
+    "benzina GPL lungo il percorso"
+
+Expected:
+- architecture supports route corridor;
+- actual implementation can be phased;
+- no hundreds of network calls.
+
+TEST QUERY 7
+    exact address
+
+Expected:
+- existing fast place search still works;
+- SearXNG should not slow it down.
+
+TEST QUERY 8
+    known business name
+
+Expected:
+- existing OSM/Photon matching remains primary;
+- web result can enrich rather than replace it.
+
+==============================================================================
+34. SECURITY TESTS
+==============================================================================
+
+Add tests for:
+
+- malicious SearXNG base URL;
+- HTTP SearXNG URL rejected/warned according to policy;
+- huge JSON response;
+- malformed JSON;
+- 403 JSON disabled;
+- 429 rate limit;
+- redirect loops;
+- SSRF-like/localhost URLs where inappropriate;
+- malicious search-result URL;
+- `javascript:` URL;
+- `intent:` URL;
+- page trying to request camera/mic/location;
+- page trying to open popups;
+- oversized WebExtension message;
+- malformed JSON-LD;
+- malicious JSON-LD URLs;
+- page content never gains access to Nostr/NWC secrets;
+- no exact GPS leakage to web search by default;
+- browser crash does not kill active navigation state.
+
+==============================================================================
+35. PERFORMANCE TESTS
+==============================================================================
+
+Measure before/after:
+
+SEARCH
+- first result latency;
+- settled-query latency;
+- OSM-only latency;
+- OSM + SearXNG latency;
+- cancellation behavior;
+- memory.
+
+GECKOVIEW
+- APK size increase;
+- cold start;
+- warm start;
+- RAM idle;
+- RAM browsing;
+- CPU;
+- background memory;
+- session close/reclaim behavior.
+
+NAVIGATION
+- verify active MapLibre FPS/jank does not materially regress with browser module present;
+- verify no additional continuous background wakeups;
+- verify browser process/session does not remain active needlessly.
+
+==============================================================================
+36. IMPLEMENTATION PHASES
+==============================================================================
+
+PHASE 0 — CURRENT KOTLIN REPO AUDIT
+Map current search, place, map, routing, settings and network architecture.
+
+PHASE 1 — QUERY MODEL
+NaturalPlaceQuery + locale-aware parser + OSM mapping.
+No web yet.
+
+PHASE 2 — STRUCTURED SEARCH ORCHESTRATION
+Reuse Photon + Nominatim + Overpass.
+Pins/details/navigation.
+Prove example queries that OSM can answer.
+
+PHASE 3 — WEB DISCOVERY API
+WebDiscoveryProvider abstraction.
+SearXNG implementation.
+Instance config/capability test.
+Privacy settings.
+No GeckoView yet.
+
+PHASE 4 — ENTITY RESOLUTION
+SearXNG WebSearchResult -> real-world candidate.
+Dedupe/merge/confidence/provenance.
+
+PHASE 5 — GECKOVIEW
+Runtime manager.
+Browser screen.
+Navigation controls.
+Permissions.
+Privacy config.
+Lifecycle.
+
+PHASE 6 — STRUCTURED WEB DATA
+Bundled WebExtension/content bridge.
+JSON-LD/schema.org parser.
+Place enrichment.
+Navigate-here flow.
+
+PHASE 7 — ROUTE-AWARE DISCOVERY
+Destination/route-corridor search primitives.
+Implement only after normal search is solid.
+
+PHASE 8 — HARDENING
+Security.
+Privacy.
+Battery.
+Performance.
+Localization.
+Regression tests.
+
+==============================================================================
+37. ARCHITECTURE BOUNDARIES
+==============================================================================
+
+Keep these concepts separate:
+
+QueryUnderstanding
+    understands what the user asked.
+
+PlaceSearchProvider
+    returns structured geographic places.
+
+WebDiscoveryProvider
+    returns web search results.
+
+PlaceEntityResolver
+    resolves/merges a real-world entity.
+
+MapPresentation
+    draws pins/cards.
+
+Routing
+    turns place coordinate into route.
+
+WebBrowser
+    renders selected websites.
+
+StructuredWebExtractor
+    reads public structured metadata from a page.
+
+Do NOT make GeckoView responsible for search.
+Do NOT make SearXNG responsible for routing.
+Do NOT make raw HTML parsing responsible for geographic truth.
+
+==============================================================================
+38. FIRST RESPONSE / STOP CONDITION
+==============================================================================
+
+DO NOT IMPLEMENT PRODUCTION CODE YET.
+
+First inspect the POST-MIGRATION Kotlin repository and produce:
+
+1. current Kotlin module/package architecture;
+2. current search architecture;
+3. current Photon integration;
+4. current Nominatim integration;
+5. current Overpass integration;
+6. current place model;
+7. current MapLibre pin/result architecture;
+8. current route-destination interface;
+9. current search history/storage;
+10. current web/Wikipedia implementation, if still present;
+11. current network/security utilities;
+12. current localization system;
+13. current battery-sensitive search/map behavior;
+14. exact gaps between current search and this vision;
+15. proposed NaturalPlaceQuery;
+16. locale/category/OSM-tag mapping strategy;
+17. proposed search orchestration;
+18. proposed SearXNG provider;
+19. SearXNG instance compatibility/capability strategy;
+20. strict no-Google/source-policy analysis;
+21. web-search privacy model;
+22. result normalization;
+23. entity-resolution algorithm;
+24. confidence/provenance model;
+25. map/pin UX;
+26. route-context design;
+27. exact current GeckoView stable integration approach;
+28. proposed GeckoRuntime lifecycle;
+29. browser privacy configuration;
+30. browser permission policy;
+31. URL/external-intent policy;
+32. WebExtension structured-data bridge;
+33. JSON-LD/schema.org extraction strategy;
+34. security threat model;
+35. battery/memory impact;
+36. dependency/license matrix;
+37. localization impact;
+38. test plan;
+39. implementation roadmap;
+40. exact files/modules that would be added/modified.
+
+For every major conclusion classify it:
+
+CONFIRMED
+LIKELY
+EXPERIMENTAL
+BLOCKED
+
+Use CURRENT upstream documentation for GeckoView and SearXNG.
+
+For GeckoView, verify the current APIs rather than relying on old examples.
+For SearXNG, verify the current Search API and `/config` behavior.
+
+Then create granular tasks:
+
+WORLD-001
+WORLD-002
+WORLD-003
+...
+
+Each task must include:
+- objective;
+- current code affected;
+- new code;
+- dependencies;
+- network/privacy impact;
+- battery/memory impact;
+- tests;
+- acceptance criteria;
+- rollback strategy.
+
+STOP AFTER THE REPOSITORY AUDIT + ARCHITECTURE + TASK PLAN.
+
+Do not modify production code until the plan has been reviewed.
+
+==============================================================================
+39. PRODUCT PRINCIPLE
+==============================================================================
+
+The feature is successful when Roadstr can move naturally through this chain:
+
+    "I want something in the real world"
+                  |
+                  v
+         Roadstr understands it
+                  |
+                  v
+       finds trustworthy candidates
+                  |
+                  v
+        shows them on the map
+                  |
+                  v
+          lets me inspect them
+                  |
+                  v
+        lets me interact with them
+                  |
+                  v
+          takes me there
+
+without turning Roadstr into:
+- a Google Maps clone;
+- a generic web browser;
+- a centralized search service;
+- an ad/tracking platform.
+
+The objective is not "put a browser in Roadstr".
+
+The objective is:
+
+    MAKE THE OPEN WEB + OPEN GEOGRAPHIC DATA ACTIONABLE FROM THE MAP.
+
+Preserve Roadstr's identity:
+open-source, Android-native, privacy-conscious, Nostr-friendly, no Google
+dependency, no hidden central backend, and navigation always remains the core reliable
+function even when the discovery/web layer is unavailable.
