@@ -4,6 +4,10 @@ All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stab
 
 ## Unreleased
 
+No changes yet.
+
+## [1.0.1] — 2026-10-11
+
 - Added a live offline-map download progress card with determinate byte/percentage progress, an indeterminate preparation state,
   throttled UI updates and a visible cancel action for every provider and manifest package.
 - Reworked Roadstr JSON manifest packages into geographic groups derived from coverage geometry, with case-insensitive search across
@@ -22,6 +26,15 @@ All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stab
   retaining signature, recipient, request-id and one-time-secret validation.
 - Documented the upstream GTFS/NeTEx/GTFS-RT contribution path that expands Roadstr coverage through Transitous without an APK
   release.
+- Restored public-transport routing in the Kotlin planner through the stable Transitous/MOTIS v6 API.
+- Added provider-scoped transit identifiers, scheduled versus realtime times, platforms, intermediate stops, accessibility,
+  cancellations and service alerts without fabricating missing values.
+- Added capability-aware provider routing with bounded retries, visible Transitous attribution and a live standalone Kotlin
+  journey gateway.
+- Added expanded transit itinerary cards and MapLibre boarding/alighting markers, keeping walking, bus, tram, metro, rail,
+  ferry and other provider-supported modes in one multimodal model.
+- Added deterministic Kotlin/Dart coverage for transit parsing, realtime metadata, midnight/timezone handling, provider fallback,
+  planner handoff and map projection; verified one controlled live Milan journey against Transitous.
 
 ## [1.0.0] — 2026-10-10
 

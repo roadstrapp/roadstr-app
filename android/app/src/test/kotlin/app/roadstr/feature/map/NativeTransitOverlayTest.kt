@@ -23,14 +23,44 @@ class NativeTransitOverlayTest {
 
     @Test
     fun `mode catalogue preserves every Flutter wire name and street classification`() {
-        assertEquals(21, NativeTransitMode.entries.size)
+        assertEquals(28, NativeTransitMode.entries.size)
         assertEquals(NativeTransitMode.RegionalFastRail, NativeTransitMode.fromWire(" regional_fast_rail "))
         assertEquals(NativeTransitMode.Other, NativeTransitMode.fromWire("future-mode"))
         assertEquals(NativeTransitMode.Other, NativeTransitMode.fromWire(null))
         assertEquals(
-            setOf(NativeTransitMode.Walk, NativeTransitMode.Bike, NativeTransitMode.Car),
+            setOf(
+                NativeTransitMode.Walk,
+                NativeTransitMode.Bike,
+                NativeTransitMode.Rental,
+                NativeTransitMode.Car,
+                NativeTransitMode.HeavyGoodsVehicle,
+                NativeTransitMode.CarParking,
+                NativeTransitMode.CarDropoff,
+            ),
             NativeTransitMode.entries.filterNot { it.isTransit }.toSet(),
         )
+    }
+
+    @Test
+    fun `compiler emits distinct boarding and alighting point features`() {
+        val payload = NativeTransitOverlayCompiler.compile(
+            snapshot(
+                listOf(
+                    NativeTransitLeg(
+                        NativeTransitMode.Bus,
+                        line,
+                        boardingPoint = line.first(),
+                        alightingPoint = line.last(),
+                    ),
+                ),
+            ),
+        )
+
+        assertEquals(3, payload.featureCount)
+        assertTrue(payload.geoJson.contains("\"markerKind\":\"boarding\""))
+        assertTrue(payload.geoJson.contains("\"markerColor\":\"rgba(22,163,74,1)\""))
+        assertTrue(payload.geoJson.contains("\"markerKind\":\"alighting\""))
+        assertTrue(payload.geoJson.contains("\"markerColor\":\"rgba(220,38,38,1)\""))
     }
 
     @Test
@@ -143,5 +173,6 @@ class NativeTransitOverlayTest {
         assertEquals(1f, NativeTransitLayerMetrics.widthPixels(4.0, 3f), 0f)
         assertEquals("roadstr-transit-source", NativeMapTransitRenderer.SOURCE_ID)
         assertEquals("roadstr-transit-legs", NativeMapTransitRenderer.LAYER_ID)
+        assertEquals("roadstr-transit-stops", NativeMapTransitRenderer.MARKER_LAYER_ID)
     }
 }

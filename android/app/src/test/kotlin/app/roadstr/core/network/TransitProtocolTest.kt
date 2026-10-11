@@ -24,10 +24,11 @@ class TransitProtocolTest {
             "https://example.test/plan?" +
                 "fromPlace=52.5186%2C13.4081&toPlace=48.1372%2C11.5756&" +
                 "time=2026-08-19T06%3A00%3A00.000Z&numItineraries=3&" +
-                "maxPreTransitTime=1800&maxPostTransitTime=1800",
+                "maxPreTransitTime=1800&maxPostTransitTime=1800&" +
+                "realtimeMode=REALTIME&detailedTransfers=true",
             request.uri,
         )
-        assertEquals("Roadstr/1.0 (navigation app)", request.headers["User-Agent"])
+        assertEquals(TransitProtocol.USER_AGENT, request.headers["User-Agent"])
         assertFalse(request.uri.contains("stale=1"))
     }
 
@@ -59,15 +60,49 @@ class TransitProtocolTest {
     }
 
     @Test
-    fun `mode catalogue is total and preserves the three street modes`() {
-        assertEquals(21, TransitMode.entries.size)
+    fun `mode catalogue covers current MOTIS v6 modes and preserves street modes`() {
+        assertEquals(28, TransitMode.entries.size)
         assertEquals(TransitMode.RegionalRail, TransitMode.fromWire(" regional_rail "))
+        assertEquals(TransitMode.AerialLift, TransitMode.fromWire("AREAL_LIFT"))
+        assertEquals(TransitMode.Rental, TransitMode.fromWire("RENTAL"))
         assertEquals(TransitMode.Other, TransitMode.fromWire("TELEPORT"))
         assertEquals(TransitMode.Other, TransitMode.fromWire(42))
         assertEquals(
-            setOf(TransitMode.Walk, TransitMode.Bike, TransitMode.Car),
+            setOf(
+                TransitMode.Walk,
+                TransitMode.Bike,
+                TransitMode.Rental,
+                TransitMode.Car,
+                TransitMode.HeavyGoodsVehicle,
+                TransitMode.CarParking,
+                TransitMode.CarDropoff,
+            ),
             TransitMode.entries.filterNot(TransitMode::isTransit).toSet(),
         )
+    }
+
+    @Test
+    fun `v6 response preserves realtime schedule platforms scoped IDs stops alerts and provider order`() {
+        val provider = TransitProtocol.TRANSITOUS_PROVIDER
+        val result = TransitProtocol.parsePlan(
+            """{"itineraries":[{"id":"journey-later","duration":900,"startTime":"2026-10-12T00:01:00+02:00","endTime":"2026-10-12T00:16:00+02:00","transfers":0,"legs":[{"mode":"BUS","duration":780,"startTime":"2026-10-12T00:01:00+02:00","endTime":"2026-10-12T00:14:00+02:00","scheduledStartTime":"2026-10-11T23:59:00+02:00","scheduledEndTime":"2026-10-12T00:12:00+02:00","realTime":true,"scheduled":true,"routeId":"route-10","tripId":"trip-10","agencyId":"agency","displayName":"10","agencyName":"Night Bus","headsign":"Central Station","cancelled":false,"source":"feed.zip:42","wheelchairAccessible":"ACCESSIBLE","from":{"name":"Old Town","stopId":"stop-a","lat":45.0,"lon":9.0,"tz":"Europe/Rome","scheduledDeparture":"2026-10-11T23:59:00+02:00","departure":"2026-10-12T00:01:00+02:00","scheduledTrack":"1","track":"2"},"to":{"name":"Central Station","stopId":"stop-c","lat":45.2,"lon":9.2,"scheduledArrival":"2026-10-12T00:12:00+02:00","arrival":"2026-10-12T00:14:00+02:00"},"intermediateStops":[{"name":"Market","stopId":"stop-b","lat":45.1,"lon":9.1,"cancelled":true}],"alerts":[{"code":"delay","headerText":"Diversion","descriptionText":"Use temporary stops","severityLevel":"WARNING","effect":"DETOUR","url":"https://example.test/alert"}],"legGeometry":{"precision":6,"points":""}}]},{"id":"journey-first","duration":1200,"startTime":"2026-10-12T00:05:00+02:00","endTime":"2026-10-12T00:25:00+02:00","legs":[{"mode":"TRAM","duration":1200,"startTime":"2026-10-12T00:05:00+02:00","endTime":"2026-10-12T00:25:00+02:00","scheduledStartTime":"2026-10-12T00:05:00+02:00","scheduledEndTime":"2026-10-12T00:25:00+02:00","realTime":false,"scheduled":true,"from":{"name":"A","lat":45.0,"lon":9.0},"to":{"name":"B","lat":45.2,"lon":9.2},"legGeometry":{"precision":6,"points":""}}]}]}""",
+            provider = provider,
+            searchedAt = Instant.parse("2026-10-11T21:50:00Z"),
+        ) as TransitParsedPlan
+
+        assertEquals(listOf("journey-later", "journey-first"), result.itineraries.map { it.id!!.value })
+        assertEquals(provider, result.provider)
+        val ride = result.itineraries.first().transitLegs.single()
+        assertEquals(120L, ride.departureDelaySeconds)
+        assertEquals("2", ride.from!!.expectedPlatform)
+        assertEquals("1", ride.from!!.scheduledPlatform)
+        assertEquals("transitous", ride.tripId!!.providerId)
+        assertEquals("Market", ride.intermediateStops.single().name)
+        assertTrue(ride.intermediateStops.single().cancelled)
+        assertEquals(TransitAccessibility.Accessible, ride.accessibility)
+        assertEquals("Diversion", ride.alerts.single().header)
+        assertEquals(TransitRealtimeState.Realtime, result.itineraries.first().realtimeState)
+        assertEquals(Instant.parse("2026-10-11T22:01:00Z"), ride.startTime)
     }
 
     @Test

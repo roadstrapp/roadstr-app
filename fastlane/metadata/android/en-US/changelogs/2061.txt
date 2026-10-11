@@ -1,0 +1,15 @@
+Public transport is back in the Kotlin planner.
+
+Added
+
+• Real multimodal itineraries from Transitous/MOTIS v6, including walking, bus, tram, metro, rail and ferry legs when data is available
+• Provider-supplied alternatives with line direction, operators, platforms, intermediate stops and scheduled/realtime times
+• Delay, cancellation, accessibility and service-alert details without presenting scheduled data as realtime
+• Expanded itinerary cards and MapLibre boarding/alighting markers
+
+Improved
+
+• Added a capability-aware transit provider boundary with bounded retries and provider-scoped identifiers
+• Added visible provider attribution and updated the legacy Flutter request to the current stable MOTIS contract
+
+Note: active transit guidance, saved transit journeys, stop/departure search and offline transit routing are planned follow-ups.

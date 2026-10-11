@@ -35,6 +35,19 @@ data class NativeTransitLegPresentation(
     val durationMinutes: Long,
     val backgroundArgb: Long?,
     val foregroundArgb: Long?,
+    val fromName: String?,
+    val toName: String?,
+    val direction: String?,
+    val operatorName: String?,
+    val startTimeLabel: String,
+    val endTimeLabel: String,
+    val platform: String?,
+    val scheduledPlatform: String?,
+    val delayMinutes: Long?,
+    val cancelled: Boolean,
+    val realtime: Boolean,
+    val intermediateStopNames: List<String>,
+    val alertTitles: List<String>,
 )
 
 data class NativeTransitItineraryPresentation(
@@ -56,6 +69,8 @@ data class NativeTransitUiSnapshot(
     val destinationLabel: String?,
     val itineraries: List<NativeTransitItineraryPresentation>,
     val selectedIndex: Int?,
+    val providerName: String?,
+    val attributionUrl: String?,
 ) {
     companion object {
         fun hidden() = NativeTransitUiSnapshot(
@@ -64,6 +79,8 @@ data class NativeTransitUiSnapshot(
             destinationLabel = null,
             itineraries = emptyList(),
             selectedIndex = null,
+            providerName = null,
+            attributionUrl = null,
         )
     }
 }
@@ -116,6 +133,21 @@ object NativeTransitPresenter {
                         durationMinutes = leg.durationSeconds / 60,
                         backgroundArgb = null,
                         foregroundArgb = null,
+                        fromName = leg.fromName,
+                        toName = leg.toName,
+                        direction = leg.headsign,
+                        operatorName = leg.agencyName,
+                        startTimeLabel = formatClock(leg.startTime, zoneId),
+                        endTimeLabel = formatClock(leg.endTime, zoneId),
+                        platform = leg.from?.expectedPlatform,
+                        scheduledPlatform = leg.from?.scheduledPlatform,
+                        delayMinutes = leg.departureDelaySeconds?.div(60),
+                        cancelled = leg.cancelled || leg.from?.cancelled == true,
+                        realtime = leg.realTime,
+                        intermediateStopNames = leg.intermediateStops.mapNotNull { it.name },
+                        alertTitles = (leg.alerts + leg.from?.alerts.orEmpty() + leg.to?.alerts.orEmpty())
+                            .map { it.header }
+                            .distinct(),
                     )
                 } else {
                     val background = leg.routeColorArgb ?: accentArgb
@@ -128,6 +160,21 @@ object NativeTransitPresenter {
                         durationMinutes = leg.durationSeconds / 60,
                         backgroundArgb = background,
                         foregroundArgb = foreground,
+                        fromName = leg.fromName,
+                        toName = leg.toName,
+                        direction = leg.headsign,
+                        operatorName = leg.agencyName,
+                        startTimeLabel = formatClock(leg.startTime, zoneId),
+                        endTimeLabel = formatClock(leg.endTime, zoneId),
+                        platform = leg.from?.expectedPlatform,
+                        scheduledPlatform = leg.from?.scheduledPlatform,
+                        delayMinutes = leg.departureDelaySeconds?.div(60),
+                        cancelled = leg.cancelled || leg.from?.cancelled == true,
+                        realtime = leg.realTime,
+                        intermediateStopNames = leg.intermediateStops.mapNotNull { it.name },
+                        alertTitles = (leg.alerts + leg.from?.alerts.orEmpty() + leg.to?.alerts.orEmpty())
+                            .map { it.header }
+                            .distinct(),
                     )
                 }
             },
@@ -173,10 +220,10 @@ object NativeTransitPresenter {
 }
 
 /**
- * Revision-safe in-memory owner for the dormant itinerary panel.
+ * Revision-safe in-memory owner for the live itinerary panel.
  *
- * It coordinates selection with the map overlay but owns no service, storage,
- * coordinates or provider errors. A future ViewModel may feed typed outcomes.
+ * The journey coordinator feeds typed provider outcomes; this owner coordinates
+ * selection with the map overlay without retaining coordinates or raw errors.
  */
 class NativeTransitJourneySession(
     private val overlaySession: NativeTransitOverlaySession,
@@ -233,6 +280,8 @@ class NativeTransitJourneySession(
             destinationLabel = normalizedLabel(destinationLabel),
             itineraries = itineraries,
             selectedIndex = selectedIndex,
+            providerName = plan.provider.displayName,
+            attributionUrl = plan.provider.attributionUrl,
         )
         true
     }
@@ -315,6 +364,8 @@ class NativeTransitJourneySession(
             destinationLabel = destinationLabel,
             itineraries = emptyList(),
             selectedIndex = null,
+            providerName = null,
+            attributionUrl = null,
         )
     }
 

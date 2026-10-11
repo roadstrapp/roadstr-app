@@ -96,7 +96,7 @@ void main() {
     );
   });
 
-  test('private shell owns a bounded dormant transit renderer', () {
+  test('private shell owns a bounded transit renderer', () {
     final nativeSession = session.readAsStringSync();
     final nativeRenderer = renderer.readAsStringSync();
     final hostSource = host.readAsStringSync();
@@ -121,7 +121,7 @@ void main() {
     final kotlin = protocol.readAsStringSync();
     final service = nativeService.readAsStringSync();
 
-    expect(dart, contains("'https://api.transitous.org/api/v1/plan'"));
+    expect(dart, contains("'https://api.transitous.org/api/v6/plan'"));
     expect(dart, contains('static const _itineraryCount = 3'));
     expect(dart, contains('static const _maxAccessWalkSeconds = 1800'));
     expect(dart, contains('maxBytes: NetworkLimits.transitPlan'));
@@ -147,10 +147,10 @@ void main() {
         contains('fun decodePolyline(encoded: String, precision: Int)'));
     expect(kotlin, contains('if (shift > 30) return null'));
     expect(kotlin, contains('filterNot(TransitItinerary::isWalkOnly)'));
-    expect(kotlin, contains('.sortedBy(TransitItinerary::durationSeconds)'));
+    expect(kotlin, contains('mapIndexedNotNull'));
   });
 
-  test('native transit execution remains cancellable private and dormant', () {
+  test('native transit execution remains cancellable and private', () {
     final service = nativeService.readAsStringSync();
     final nativeOverlay = overlay.readAsStringSync();
     final nativeSession = session.readAsStringSync();
@@ -165,5 +165,6 @@ void main() {
     expect(nativeSession, contains('fun submitPlan('));
     expect(shellSource, contains('NativeTransitOverlaySession'));
     expect(shellSource, isNot(contains('NativeTransitService')));
+    expect(shellSource, contains('transitSession = transitJourneySession'));
   });
 }

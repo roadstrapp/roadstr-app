@@ -134,7 +134,7 @@ locale sets. The production canary renders only empty value projections and
 does not feed identity, favourites, activity, parking or route state. The
 road-test composition supplies foreground GPS plus the bounded search/routing
 gateway; its selected route is the only live navigation input. The shared shell
-still has no transit, saved-place, Wikipedia, road-event, activity, profile,
+still has no active transit guidance, saved-place, Wikipedia, road-event, activity, profile,
 settings or onboarding provider/history/identity/signer/wallet/preferences/
 secure-storage/migration owner, so it cannot launch an external product intent
 or read user data. The road-test owner now performs bounded direction-aware

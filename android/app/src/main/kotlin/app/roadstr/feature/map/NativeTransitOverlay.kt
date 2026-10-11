@@ -11,6 +11,8 @@ data class NativeTransitLeg(
     val mode: NativeTransitMode,
     val points: List<NativeMapPoint>,
     val routeColorArgb: Long? = null,
+    val boardingPoint: NativeMapPoint? = null,
+    val alightingPoint: NativeMapPoint? = null,
 )
 
 data class NativeTransitItinerary(val legs: List<NativeTransitLeg>)
@@ -27,6 +29,12 @@ object NativeTransitOverlayProjection {
                             NativeMapPoint(point.latitude, point.longitude)
                         },
                         routeColorArgb = leg.routeColorArgb,
+                        boardingPoint = leg.from?.position?.let { point ->
+                            NativeMapPoint(point.latitude, point.longitude)
+                        },
+                        alightingPoint = leg.to?.position?.let { point ->
+                            NativeMapPoint(point.latitude, point.longitude)
+                        },
                     )
                 },
             )
@@ -100,16 +108,25 @@ object NativeTransitOverlayCompiler {
                 "Transit overlay has too many points"
             }
             leg.points.forEach(::requireValidPoint)
+            leg.boardingPoint?.let(::requireValidPoint)
+            leg.alightingPoint?.let(::requireValidPoint)
         }
 
         val drawable = snapshot.legs.filter { it.points.size >= 2 }
-        if (drawable.isEmpty()) {
+        val markers = snapshot.legs.flatMap { leg ->
+            buildList {
+                leg.boardingPoint?.let { add(Triple(it, "boarding", BOARDING_MARKER_ARGB)) }
+                leg.alightingPoint?.let { add(Triple(it, "alighting", ALIGHTING_MARKER_ARGB)) }
+            }
+        }
+        if (drawable.isEmpty() && markers.isEmpty()) {
             return NativeTransitOverlayPayload(EMPTY_FEATURE_COLLECTION, 0, pointCount.toInt())
         }
         val geoJson = buildString {
             append("{\"type\":\"FeatureCollection\",\"features\":[")
+            var featureIndex = 0
             drawable.forEachIndexed { index, leg ->
-                if (index > 0) append(',')
+                if (featureIndex++ > 0) append(',')
                 append("{\"type\":\"Feature\",\"properties\":{\"color\":\"")
                 append(colorCss(colorFor(leg, snapshot), alphaMultiplier(leg)))
                 append("\",\"transit\":")
@@ -118,11 +135,23 @@ object NativeTransitOverlayCompiler {
                 appendCoordinates(leg.points)
                 append("]}}")
             }
+            markers.forEach { (point, kind, color) ->
+                if (featureIndex++ > 0) append(',')
+                append("{\"type\":\"Feature\",\"properties\":{\"marker\":true,\"markerKind\":\"")
+                append(kind)
+                append("\",\"markerColor\":\"")
+                append(colorCss(color, 1.0))
+                append("\"},\"geometry\":{\"type\":\"Point\",\"coordinates\":[")
+                append(canonicalNumber(point.longitude))
+                append(',')
+                append(canonicalNumber(point.latitude))
+                append("]}}")
+            }
             append("]}")
         }
         return NativeTransitOverlayPayload(
             geoJson = geoJson,
-            featureCount = drawable.size,
+            featureCount = drawable.size + markers.size,
             pointCount = pointCount.toInt(),
         )
     }
@@ -177,6 +206,9 @@ object NativeTransitOverlayCompiler {
     internal fun requireArgb(value: Long, label: String) {
         require(value in 0L..0xFFFF_FFFFL) { "$label must be a 32-bit ARGB value" }
     }
+
+    const val BOARDING_MARKER_ARGB = 0xFF16A34AL
+    const val ALIGHTING_MARKER_ARGB = 0xFFDC2626L
 }
 
 /** Flutter MapLibre uses physical-pixel correction for transit strokes too. */

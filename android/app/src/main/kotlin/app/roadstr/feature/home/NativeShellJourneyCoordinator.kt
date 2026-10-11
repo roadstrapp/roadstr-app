@@ -41,6 +41,10 @@ import java.time.LocalDateTime
 import app.roadstr.core.network.NominatimReverseDetail
 import app.roadstr.core.network.SearchResponsePoint
 import app.roadstr.core.network.SearchResult
+import app.roadstr.service.transit.NativeTransitFailure
+import app.roadstr.service.transit.NativeTransitPlan
+import app.roadstr.service.transit.NativeTransitResult
+import app.roadstr.service.transit.NativeTransitUnavailable
 import app.roadstr.feature.navigation.NativeNavigationRerouteRequest
 import app.roadstr.feature.place.NativePlaceArticleInput
 import app.roadstr.feature.route.NativeRoutePlanningCandidate
@@ -49,6 +53,7 @@ import app.roadstr.feature.route.NativeRoutePlanningSnapshot
 import app.roadstr.feature.route.NativeRoutePlanningFailure
 import app.roadstr.feature.route.NativeRouteTransportMode
 import app.roadstr.feature.route.NativeRouteWeatherPresentation
+import app.roadstr.feature.transit.NativeTransitJourneySession
 import app.roadstr.feature.savedroute.NativeSavedRoute
 import app.roadstr.feature.savedroute.NativeSavedRoutePreferences
 import app.roadstr.feature.savedroute.NativeSavedRouteProtocol
@@ -95,6 +100,13 @@ interface NativeShellJourneyGateway {
         avoidHighwaysAndTolls: Boolean = false,
         avoidUnpavedRoads: Boolean = false,
     ): List<RoutingParsedRoute>
+
+    /** Provider-neutral public-transport plan; unavailable when no provider is configured. */
+    suspend fun transitPlan(
+        origin: SearchResponsePoint,
+        destination: SearchResponsePoint,
+        languageCode: String,
+    ): NativeTransitResult = NativeTransitUnavailable
 
     suspend fun reroute(
         origin: SearchResponsePoint,
@@ -169,6 +181,7 @@ class NativeShellJourneyCoordinator(
     private val scope: CoroutineScope,
     private val searchSession: NativeSearchSession,
     private val routeSession: NativeRoutePlanningSession,
+    private val transitSession: NativeTransitJourneySession? = null,
     private val languageCode: String = Locale.getDefault().language,
     /** The saved places, read each time the search opens so the list is never stale. */
     private val favorites: () -> List<NativeSearchFavorite> = { emptyList() },
@@ -322,9 +335,53 @@ class NativeShellJourneyCoordinator(
         val revision = nextRouteRevision()
         if (!routeSession.beginRouteRequest(revision)) return false
         if (snapshot.mode == NativeRouteTransportMode.Transit) {
-            routeSession.failRouteRequest(revision)
-            return false
+            val session = transitSession
+            if (session == null || snapshot.stops.size != 1) {
+                routeSession.failRouteRequest(revision)
+                return false
+            }
+            val destinationLabel = snapshot.stops.single().query
+            session.begin(revision, destinationLabel)
+            routeJob = scope.launch {
+                try {
+                    val savedStops = resolvedRouteStops.takeIf { pointsMatchSnapshot(it, snapshot) }
+                    val origin = savedStops?.firstOrNull()?.point?.toSearchPoint()
+                        ?: resolvePoint(snapshot.originQuery, gpsPoint, myLocationLabel, gpsPoint)
+                        ?: return@launch failTransitRoute(revision, destinationLabel)
+                    val destination = savedStops?.lastOrNull()?.point?.toSearchPoint()
+                        ?: selectedDestination
+                            ?.takeIf { it.label == destinationLabel }
+                            ?.point
+                        ?: resolvePoint(destinationLabel, null, myLocationLabel, gpsPoint)
+                        ?: return@launch failTransitRoute(revision, destinationLabel)
+                    when (
+                        val result = gateway.transitPlan(
+                            origin = origin,
+                            destination = destination,
+                            languageCode = normalizedLanguageCode(),
+                        )
+                    ) {
+                        is NativeTransitPlan -> session.submitPlan(
+                            revision = revision,
+                            plan = result.plan,
+                            destinationLabel = destinationLabel,
+                        )
+                        NativeTransitUnavailable -> session.submitUnavailable(revision, destinationLabel)
+                        is NativeTransitFailure -> session.submitFailure(revision, destinationLabel)
+                    }
+                    // The transit sheet owns the bottom surface. Keep the planner's
+                    // values ready underneath so closing it returns to an editable query.
+                    routeSession.failRouteRequest(revision)
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    failTransitRoute(revision, destinationLabel)
+                }
+            }
+            return true
         }
+
+        transitSession?.clear(revision)
 
         routeJob = scope.launch {
             try {
@@ -479,7 +536,10 @@ class NativeShellJourneyCoordinator(
         cancelRouteWork()
         selectedDestination = null
         clearNavigationDestination()
-        return routeSession.hide(nextRouteRevision())
+        val revision = nextRouteRevision()
+        val routeHidden = routeSession.hide(revision)
+        val transitHidden = transitSession?.clear(revision) ?: false
+        return routeHidden || transitHidden
     }
 
     fun navigationDestination(revision: Long): SearchResponsePoint? {
@@ -853,6 +913,11 @@ class NativeShellJourneyCoordinator(
         failure: NativeRoutePlanningFailure = NativeRoutePlanningFailure.Generic,
     ) {
         routeSession.failRouteRequest(revision, failure)
+    }
+
+    private fun failTransitRoute(revision: Long, destinationLabel: String) {
+        transitSession?.submitFailure(revision, destinationLabel)
+        routeSession.failRouteRequest(revision)
     }
 
     private fun nextSearchRevision(): Long = maxOf(
