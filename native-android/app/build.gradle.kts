@@ -102,6 +102,7 @@ android {
                     "../../android/app/src/main/kotlin/app/roadstr/service/offline",
                     "../../android/app/src/main/kotlin/app/roadstr/service/routing",
                     "../../android/app/src/main/kotlin/app/roadstr/service/search",
+                    "../../android/app/src/main/kotlin/app/roadstr/service/transit",
                 ),
             )
             kotlin.directories.add("src/system/kotlin")
@@ -168,8 +169,8 @@ if (candidate) {
         }
         defaultConfig {
             applicationId = "app.roadstr"
-            versionCode = 2060
-            versionName = "1.0.0-kotlin-candidate"
+            versionCode = 2061
+            versionName = "1.0.1-kotlin-candidate"
         }
         buildTypes {
             getByName("release") { signingConfig = signingConfigs.getByName("candidate") }

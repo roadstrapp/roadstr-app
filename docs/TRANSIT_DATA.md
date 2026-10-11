@@ -1,8 +1,20 @@
-# Adding public-transport coverage
+# Public-transport data and service policy
 
 Roadstr obtains public-transport itineraries from [Transitous](https://transitous.org/), a community-run, provider-neutral
 routing service built from open timetable feeds. Roadstr does not keep a separate operator allow-list: once a compatible feed
 is accepted and imported by Transitous, it is available to Roadstr without a new APK.
+
+The client uses the stable MOTIS v6 plan contract at `https://api.transitous.org/api/v6/plan`. The public endpoint is a
+best-effort community service for light, FLOSS, non-commercial use—not infrastructure Roadstr may assume is unlimited.
+Every request identifies the app/version/contact, and the itinerary panel links visibly to the data sources. Before enabling
+routing for a broad production audience, maintainers must contact Transitous as required for resource-intensive routing or
+many users. Staging and internal load-balancer hosts are never application endpoints. See the current
+[API usage policy](https://transitous.org/api/) and [privacy policy](https://transitous.org/privacy/): journey coordinates,
+time, options, IP address and User-Agent can occur in short-lived server logs, so the product must disclose remote routing.
+
+For self-hosting, [MOTIS](https://github.com/motis-project/motis) can consume regional OSM plus GTFS/NeTEx and supported
+realtime feeds behind the same versioned API family. Hosting a router does not grant rights to redistribute its input feeds;
+licence, attribution, validity, monitoring and update obligations remain per dataset.
 
 ## Add an operator or region
 

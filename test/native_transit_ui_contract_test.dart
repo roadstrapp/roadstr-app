@@ -78,7 +78,7 @@ void main() {
     ]) {
       expect(source, contains(state));
     }
-    expect(source, contains('.heightIn(max = 300.dp)'));
+    expect(source, contains('.heightIn(max = 420.dp)'));
     expect(source, contains('navigationBarsPadding()'));
     expect(source, contains('paneTitle ='));
     expect(source, contains('contentDescription ='));
@@ -86,13 +86,13 @@ void main() {
     expect(source, isNot(contains('NativeTransitService')));
   });
 
-  test('private shell packages the panel without activating Transitous', () {
+  test('private shell connects transit session without owning the provider', () {
     final source = shell.readAsStringSync();
 
     expect(source, contains('NativeTransitJourneySession('));
     expect(source, contains('NativeTransitItinerariesPanel('));
-    expect(source, contains('onRetry = null'));
+    expect(source, contains('onRetry = {'));
     expect(source, isNot(contains('NativeTransitService')));
-    expect(source, isNot(contains('.submitPlan(')));
+    expect(source, contains('transitSession = transitJourneySession'));
   });
 }

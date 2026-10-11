@@ -55,11 +55,17 @@ import app.roadstr.core.discovery.web.WebQueryBuilder
 import app.roadstr.core.discovery.web.WebSearchContext
 import app.roadstr.service.search.NativeSearchQuery
 import app.roadstr.service.search.NativeSearchService
+import app.roadstr.service.transit.NativeTransitResult
+import app.roadstr.service.transit.NativeTransitProviderRouter
+import app.roadstr.service.transit.NativeTransitQuery
+import app.roadstr.service.transit.NativeTransitService
+import app.roadstr.core.network.TransitRequestPoint
+import java.time.Instant
 import java.util.Locale
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
-/** Live, credential-free OSM/OSRM composition used only by the road-test APK. */
+/** Live, credential-free OSM/search/routing/transit composition for the road-test APK. */
 class NativeRoadTestJourneyGateway(
     context: Context,
     private val transport: NativeBoundedHttpClient = NativeBoundedHttpClient(),
@@ -76,6 +82,9 @@ class NativeRoadTestJourneyGateway(
     private val history = NativeRoadTestSearchHistoryStore(context, names)
     private val searchService = NativeSearchService(transport)
     private val routingService = NativeRoutingService(transport)
+    private val transitRouter = NativeTransitProviderRouter(
+        listOf(NativeTransitService(transport)),
+    )
     private val speedLimitResolver = NativeRoadTestSpeedLimitResolver(transport)
     @Volatile private var lastEngineId = routingConfiguration().provider.name.lowercase(Locale.ROOT)
     @Volatile private var lastProviderId = lastEngineId
@@ -155,6 +164,19 @@ class NativeRoadTestJourneyGateway(
             avoidUnpavedRoads,
         )
     }
+
+    override suspend fun transitPlan(
+        origin: SearchResponsePoint,
+        destination: SearchResponsePoint,
+        languageCode: String,
+    ): NativeTransitResult = transitRouter.plan(
+        NativeTransitQuery(
+            from = TransitRequestPoint(origin.latitude, origin.longitude),
+            to = TransitRequestPoint(destination.latitude, destination.longitude),
+            departure = Instant.now(),
+            languageCode = languageCode,
+        ),
+    )
 
     private suspend fun onlineRoutes(
         origin: SearchResponsePoint,

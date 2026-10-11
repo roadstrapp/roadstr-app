@@ -69,7 +69,9 @@ class TransitService {
 
   const TransitService({this.endpoint = defaultEndpoint});
 
-  static const defaultEndpoint = 'https://api.transitous.org/api/v1/plan';
+  static const defaultEndpoint = 'https://api.transitous.org/api/v6/plan';
+  static const _userAgent =
+      'Roadstr/1.0.0 (+https://github.com/roadstrapp/roadstr-app)';
 
   /// Journeys to request. Three gives a traveller a real choice — fastest,
   /// fewest changes, least walking — without turning the sheet into a list to
@@ -137,13 +139,15 @@ class TransitService {
       'numItineraries': '$_itineraryCount',
       'maxPreTransitTime': '$_maxAccessWalkSeconds',
       'maxPostTransitTime': '$_maxAccessWalkSeconds',
+      'realtimeMode': 'REALTIME',
+      'detailedTransfers': 'true',
     });
   }
 
   Future<String> _fetch(Uri uri) async {
     final response = await BoundedHttp.get(
       uri,
-      headers: const {'User-Agent': 'Roadstr/1.0 (navigation app)'},
+      headers: const {'User-Agent': _userAgent},
       maxBytes: NetworkLimits.transitPlan,
       timeout: NetworkTimeouts.transit,
     );

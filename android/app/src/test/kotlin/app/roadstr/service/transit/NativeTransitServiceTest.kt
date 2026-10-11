@@ -3,6 +3,8 @@ package app.roadstr.service.transit
 import app.roadstr.core.network.NetworkResponseLimit
 import app.roadstr.core.network.NetworkTimeoutBudget
 import app.roadstr.core.network.TransitRequestPoint
+import app.roadstr.core.network.TransitProtocol
+import app.roadstr.core.network.TransitProvider
 import app.roadstr.service.network.NativeBoundedHttpClient
 import app.roadstr.service.network.NativeHttpException
 import app.roadstr.service.network.NativeHttpFailureKind
@@ -53,9 +55,12 @@ class NativeTransitServiceTest {
         val result = service.plan(origin, destination, departure) as NativeTransitPlan
 
         assertEquals(2, result.itineraries.size)
+        assertEquals(origin, result.plan.origin)
+        assertEquals(destination, result.plan.destination)
+        assertEquals(departure, result.plan.requestedDeparture)
         assertTrue(requestUri!!.contains("numItineraries=3"))
         assertTrue(requestUri!!.contains("maxPreTransitTime=1800"))
-        assertEquals("Roadstr/1.0 (navigation app)", userAgent)
+        assertEquals(TransitProtocol.USER_AGENT, userAgent)
         assertEquals(NetworkTimeoutBudget.Transit.milliseconds, limits!!.timeoutMillis)
         assertEquals(NetworkResponseLimit.TransitPlan.bytes, limits!!.maxResponseBytes)
     }
@@ -77,7 +82,7 @@ class NativeTransitServiceTest {
         assertEquals("GET", recorded!!.method)
         assertFalse(recorded.path!!.contains("stale=1"))
         assertTrue(recorded.path!!.contains("fromPlace=52.5186%2C13.4081"))
-        assertEquals("Roadstr/1.0 (navigation app)", recorded.getHeader("User-Agent"))
+        assertEquals(TransitProtocol.USER_AGENT, recorded.getHeader("User-Agent"))
     }
 
     @Test
@@ -208,9 +213,65 @@ class NativeTransitServiceTest {
         assertEquals(listOf(400L, 800L), waits)
     }
 
+    @Test
+    fun `provider router honors coverage priority and transient-only fallback`() = runBlocking {
+        val plan = NativeTransitPlan(
+            TransitProtocol.parsePlan(
+                fixture(),
+                provider = TransitProtocol.TRANSITOUS_PROVIDER,
+            ) as app.roadstr.core.network.TransitParsedPlan,
+        )
+        val regional = FakeProvider(
+            descriptor = descriptor(
+                id = "regional",
+                priority = 200,
+                coverage = NativeTransitCoverage.BoundingBox(40.0, 5.0, 55.0, 16.0),
+            ),
+            result = NativeTransitFailure("temporary", transient = true),
+        )
+        val global = FakeProvider(
+            descriptor = descriptor("global", 100, NativeTransitCoverage.Worldwide),
+            result = plan,
+        )
+        val query = NativeTransitQuery(
+            from = TransitRequestPoint(45.4642, 9.1900),
+            to = TransitRequestPoint(45.4855, 9.2043),
+            departure = departure,
+            languageCode = "it",
+        )
+
+        assertEquals(plan, NativeTransitProviderRouter(listOf(global, regional)).plan(query))
+        assertEquals(1, regional.calls)
+        assertEquals(1, global.calls)
+
+        regional.result = NativeTransitFailure("configuration", transient = false)
+        regional.calls = 0
+        global.calls = 0
+        assertEquals(regional.result, NativeTransitProviderRouter(listOf(global, regional)).plan(query))
+        assertEquals(1, regional.calls)
+        assertEquals(0, global.calls)
+    }
+
+    /** Opt-in smoke probe: one identified, bounded request; never part of the default test run. */
+    @Test
+    fun `live Transitous v6 probe parses a real Milan journey`() = runBlocking {
+        if (System.getenv("ROADSTR_TRANSIT_LIVE_PROBE") != "1") return@runBlocking
+        val result = NativeTransitService().plan(
+            from = TransitRequestPoint(45.4642, 9.1900),
+            to = TransitRequestPoint(45.4855, 9.2043),
+            departure = Instant.now().plusSeconds(300),
+            languageCode = "it",
+        ) as NativeTransitPlan
+
+        assertEquals(TransitProtocol.TRANSITOUS_PROVIDER, result.plan.provider)
+        assertTrue(result.itineraries.isNotEmpty())
+        assertTrue(result.itineraries.first().transitLegs.isNotEmpty())
+        assertTrue(result.itineraries.first().legs.any { it.geometry.isNotEmpty() })
+    }
+
     private fun service(
         transport: NativeTransitHttpTransport,
-        endpoint: String = "https://example.test/api/v1/plan",
+        endpoint: String = "https://example.test/api/v6/plan",
         sleep: suspend (Long) -> Unit = {},
     ) = NativeTransitService(transport, endpoint, sleep)
 
@@ -233,6 +294,29 @@ class NativeTransitServiceTest {
             current = current.parentFile
         }
         error("Unable to locate transit_plan_berlin.json")
+    }
+
+    private fun descriptor(
+        id: String,
+        priority: Int,
+        coverage: NativeTransitCoverage,
+    ) = NativeTransitProviderDescriptor(
+        provider = TransitProvider(id, id, null),
+        capabilities = setOf(NativeTransitCapability.DoorToDoorRouting),
+        coverage = coverage,
+        priority = priority,
+    )
+
+    private class FakeProvider(
+        override val descriptor: NativeTransitProviderDescriptor,
+        var result: NativeTransitResult,
+    ) : NativeTransitProvider {
+        var calls = 0
+
+        override suspend fun plan(query: NativeTransitQuery): NativeTransitResult {
+            calls += 1
+            return result
+        }
     }
 
     companion object {

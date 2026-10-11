@@ -17,7 +17,7 @@ three ABI splits plus universal output, and F-Droid/ZapStore metadata paths.
 
 Adding `--require-upgrade` requires a code greater than the shipped baseline
 2050. It fails while the checkout is still at the shipped `0.5.11+2050`, so a
-release must bump all version declarations first; the checkout is at `0.6.0+2057`.
+release must bump all version declarations first; the checkout is at `1.0.1+2061`.
 
 ## Artifact gates
 
@@ -68,7 +68,7 @@ cd native-android
 # build/native-roadtest/app/outputs/apk/release/app-release.apk
 ```
 
-`-Pcandidate=true` sets `applicationId = app.roadstr`, code 2051 and name `0.5.12-kotlin-candidate`, and signs with the
+`-Pcandidate=true` sets `applicationId = app.roadstr`, code 2061 and name `1.0.1-kotlin-candidate`, and signs with the
 keystore named in `android/key.properties`, read at build time (the key and its passwords are never in the repository). Without
 the property nothing changes. It cannot be combined with `-Pgeckoview=true`.
 
@@ -105,4 +105,3 @@ runtime while a trip lasts, and the foreground service holds the process. To tes
 
 `uiautomator dump` cannot reach an idle state on the map screen (it redraws continuously), so use
 screenshots there.
-

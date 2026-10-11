@@ -2,6 +2,7 @@ package app.roadstr.feature.map
 
 import org.maplibre.android.maps.Style
 import org.maplibre.android.style.expressions.Expression
+import org.maplibre.android.style.layers.CircleLayer
 import org.maplibre.android.style.layers.LineLayer
 import org.maplibre.android.style.layers.Property
 import org.maplibre.android.style.layers.PropertyFactory
@@ -49,6 +50,16 @@ internal class NativeMapTransitRenderer(
                 ),
             )
         }
+        if (style.getLayer(MARKER_LAYER_ID) == null) {
+            style.addLayer(
+                CircleLayer(MARKER_LAYER_ID, SOURCE_ID).withProperties(
+                    PropertyFactory.circleColor(Expression.toColor(Expression.get(MARKER_COLOR_PROPERTY))),
+                    PropertyFactory.circleRadius(6f),
+                    PropertyFactory.circleStrokeColor("#FFFFFFFF"),
+                    PropertyFactory.circleStrokeWidth(2f),
+                ),
+            )
+        }
         applyPayload(style)
     }
 
@@ -65,7 +76,9 @@ internal class NativeMapTransitRenderer(
     companion object {
         const val SOURCE_ID = "roadstr-transit-source"
         const val LAYER_ID = "roadstr-transit-legs"
+        const val MARKER_LAYER_ID = "roadstr-transit-stops"
         const val COLOR_PROPERTY = "color"
+        const val MARKER_COLOR_PROPERTY = "markerColor"
         const val TRANSIT_PROPERTY = "transit"
         const val STREET_ALPHA = 0.7
     }

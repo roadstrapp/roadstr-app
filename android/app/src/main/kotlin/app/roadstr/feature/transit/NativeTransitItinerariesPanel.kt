@@ -56,6 +56,7 @@ fun NativeTransitItinerariesPanel(
     onCancel: () -> Unit,
     onRetry: (() -> Unit)?,
     onModeChanged: (NativeTransitTransportMode) -> Unit,
+    onOpenAttribution: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (snapshot.status == NativeTransitUiStatus.Hidden) return
@@ -86,6 +87,16 @@ fun NativeTransitItinerariesPanel(
                 NativeTransitUiStatus.Unavailable -> TransitEmptyState(failed = false, onRetry = null)
                 NativeTransitUiStatus.Failure -> TransitEmptyState(failed = true, onRetry = onRetry)
                 NativeTransitUiStatus.Ready -> TransitReadyState(snapshot, onSelect)
+            }
+            val attributionUrl = snapshot.attributionUrl
+            val providerName = snapshot.providerName
+            if (attributionUrl != null && providerName != null) {
+                TextButton(
+                    onClick = { onOpenAttribution(attributionUrl) },
+                    modifier = Modifier.align(Alignment.End),
+                ) {
+                    Text("$providerName · sources ↗", style = MaterialTheme.typography.labelSmall)
+                }
             }
             Spacer(modifier = Modifier.height(10.dp))
             TransitModeChoices(transportMode, onModeChanged)
@@ -167,7 +178,7 @@ private fun TransitReadyState(snapshot: NativeTransitUiSnapshot, onSelect: (Int)
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(max = 300.dp),
+            .heightIn(max = 420.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         itemsIndexed(
@@ -306,6 +317,89 @@ private fun TransitItineraryCard(
                 )
             }
         }
+        if (selected) {
+            Spacer(modifier = Modifier.height(10.dp))
+            itinerary.legs.forEachIndexed { index, leg ->
+                if (index > 0) Spacer(modifier = Modifier.height(8.dp))
+                TransitLegDetail(leg)
+            }
+        }
+    }
+}
+
+@Composable
+private fun TransitLegDetail(leg: NativeTransitLegPresentation) {
+    val walk = androidx.compose.ui.res.stringResource(R.string.native_transit_walk_leg)
+    val title = if (leg.mode.isTransit) {
+        buildString {
+            append(leg.line ?: modeMark(leg.mode))
+            leg.direction?.let { append("  →  ").append(it) }
+        }
+    } else {
+        "$walk · ${leg.durationMinutes} min"
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                MaterialTheme.colorScheme.surface.copy(alpha = 0.55f),
+                RoundedCornerShape(8.dp),
+            )
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(modeMark(leg.mode), color = MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                title,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+            if (leg.cancelled) {
+                Text("⚠", color = MaterialTheme.colorScheme.error)
+            }
+        }
+        val endpoints = listOfNotNull(leg.fromName, leg.toName).joinToString("  →  ")
+        if (endpoints.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(3.dp))
+            Text(endpoints, style = MaterialTheme.typography.bodySmall)
+        }
+        val timing = buildString {
+            append(leg.startTimeLabel).append(" – ").append(leg.endTimeLabel)
+            leg.platform?.let { append("  ·  ◉ ").append(it) }
+            leg.delayMinutes?.takeIf { it != 0L }?.let {
+                append("  ·  ").append(if (it > 0) "+" else "").append(it).append(" min")
+            }
+            if (leg.realtime) append("  ·  LIVE")
+        }
+        Spacer(modifier = Modifier.height(3.dp))
+        Text(
+            timing,
+            color = if (leg.cancelled) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.labelSmall,
+        )
+        leg.operatorName?.let {
+            Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+        }
+        if (leg.intermediateStopNames.isNotEmpty()) {
+            Text(
+                leg.intermediateStopNames.take(4).joinToString("  ·  "),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelSmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        leg.alertTitles.forEach { alert ->
+            Text(
+                "⚠ $alert",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.labelSmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 
@@ -400,7 +494,13 @@ private fun ModeChip(label: String, selected: Boolean, onClick: () -> Unit) {
 private fun modeMark(mode: TransitMode): String = when (mode) {
     TransitMode.Walk -> "W"
     TransitMode.Bike -> "B"
+    TransitMode.Rental -> "↗"
     TransitMode.Car -> "C"
+    TransitMode.HeavyGoodsVehicle -> "H"
+    TransitMode.CarParking -> "P"
+    TransitMode.CarDropoff -> "D"
+    TransitMode.RideSharing -> "R"
+    TransitMode.Flex -> "F"
     TransitMode.Tram -> "T"
     TransitMode.Subway, TransitMode.Metro -> "M"
     TransitMode.Suburban -> "S"
@@ -410,7 +510,7 @@ private fun modeMark(mode: TransitMode): String = when (mode) {
     TransitMode.Coach -> "C"
     TransitMode.Ferry -> "F"
     TransitMode.Airplane -> "A"
-    TransitMode.Funicular, TransitMode.AerialLift -> "L"
+    TransitMode.Funicular, TransitMode.AerialLift, TransitMode.CableCar -> "L"
     TransitMode.OnDemand -> "D"
     TransitMode.Other -> "•"
 }

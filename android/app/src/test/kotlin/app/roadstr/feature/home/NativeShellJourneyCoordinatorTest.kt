@@ -4,6 +4,9 @@ import app.roadstr.core.network.RoutingParsedRoute
 import app.roadstr.core.network.RoutingResponsePoint
 import app.roadstr.core.network.SearchResponsePoint
 import app.roadstr.core.network.SearchResult
+import app.roadstr.core.network.TransitParsedPlan
+import app.roadstr.core.network.TransitProtocol
+import app.roadstr.feature.map.NativeTransitOverlaySession
 import app.roadstr.feature.map.NativeRouteOverlaySession
 import app.roadstr.feature.map.NativeMapPoint
 import app.roadstr.feature.navigation.NativeNavigationRerouteRequest
@@ -14,9 +17,13 @@ import app.roadstr.feature.route.NativeRouteTransportMode
 import app.roadstr.feature.search.NativeSearchFavorite
 import app.roadstr.feature.search.NativeSearchSession
 import app.roadstr.feature.search.NativeSearchUiStatus
+import app.roadstr.feature.transit.NativeTransitJourneySession
+import app.roadstr.feature.transit.NativeTransitUiStatus
 import app.roadstr.feature.savedroute.NativeSavedRouteProtocol
 import app.roadstr.service.routing.NativeRoutingSelectionException
 import app.roadstr.service.routing.RoutingEngineUnavailableReason
+import app.roadstr.service.transit.NativeTransitPlan
+import app.roadstr.service.transit.NativeTransitResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -232,6 +239,48 @@ class NativeShellJourneyCoordinatorTest {
     }
 
     @Test
+    fun `transit mode reaches provider session alternatives and selected map geometry`() {
+        val gateway = FakeGateway().apply {
+            transitResult = NativeTransitPlan(
+                TransitProtocol.parsePlan(
+                    """{"itineraries":[{"duration":600,"startTime":"2026-10-11T08:00:00Z","endTime":"2026-10-11T08:10:00Z","transfers":0,"legs":[{"mode":"BUS","duration":600,"startTime":"2026-10-11T08:00:00Z","endTime":"2026-10-11T08:10:00Z","scheduledStartTime":"2026-10-11T07:59:00Z","scheduledEndTime":"2026-10-11T08:09:00Z","realTime":true,"scheduled":true,"routeShortName":"4","from":{"name":"Porta Nuova","lat":45.061,"lon":7.678,"track":"A"},"to":{"name":"Mole","lat":45.069,"lon":7.693},"legGeometry":{"precision":5,"points":"_p~iF~ps|U_ulLnnqC_mqNvxq`@"}}]}]}""",
+                    provider = TransitProtocol.TRANSITOUS_PROVIDER,
+                ) as TransitParsedPlan,
+            )
+        }
+        val planner = NativeRoutePlanningSession(NativeRouteOverlaySession(0xFF71_58E2L))
+        val transitOverlay = NativeTransitOverlaySession(0xFF71_58E2L, 0xFF75_7575L)
+        val transit = NativeTransitJourneySession(transitOverlay, 0xFF71_58E2L)
+        val search = NativeSearchSession()
+        val coordinator = NativeShellJourneyCoordinator(
+            gateway = gateway,
+            scope = CoroutineScope(Dispatchers.Unconfined + Job()),
+            searchSession = search,
+            routeSession = planner,
+            transitSession = transit,
+            languageCode = "it",
+        )
+        val gps = SearchResponsePoint(45.0, 7.0)
+        coordinator.openSearch(true)
+        coordinator.submitSearch("Torino", gps)
+        coordinator.selectDestination(search.state.value.results.single(), gps, "La mia posizione")
+        planner.selectMode(planner.state.value.revision, NativeRouteTransportMode.Transit)
+
+        assertTrue(coordinator.calculateRoute(planner.state.value, gps, "La mia posizione"))
+
+        assertEquals(1, gateway.transitCalls)
+        assertEquals(0, gateway.routeCalls)
+        assertEquals("it", gateway.lastLanguage)
+        assertEquals(NativeTransitUiStatus.Ready, transit.state.value.status)
+        assertEquals("Transitous", transit.state.value.providerName)
+        assertEquals(1, transit.state.value.itineraries.size)
+        assertEquals(1, transitOverlay.state.value.itineraryCount)
+        assertEquals(3, transitOverlay.state.value.legs.single().points.size)
+        assertEquals(NativeRoutePlanningStatus.Planner, planner.state.value.status)
+        coordinator.close()
+    }
+
+    @Test
     fun `missing local coverage remains a specific visible route failure`() {
         val gateway = FakeGateway().apply {
             routeFailure = NativeRoutingSelectionException(
@@ -305,6 +354,7 @@ class NativeShellJourneyCoordinatorTest {
     private class FakeGateway : NativeShellJourneyGateway {
         var searchCalls = 0
         var routeCalls = 0
+        var transitCalls = 0
         var rerouteCalls = 0
         var lastMode: NativeRouteTransportMode? = null
         var lastLanguage: String? = null
@@ -313,6 +363,7 @@ class NativeShellJourneyCoordinatorTest {
         var lastOrigin: SearchResponsePoint? = null
         var lastDestination: SearchResponsePoint? = null
         var routeFailure: Exception? = null
+        var transitResult: NativeTransitResult = app.roadstr.service.transit.NativeTransitUnavailable
 
         override suspend fun search(
             query: String,
@@ -356,6 +407,18 @@ class NativeShellJourneyCoordinatorTest {
                     totalDurationS = 900.0,
                 ),
             )
+        }
+
+        override suspend fun transitPlan(
+            origin: SearchResponsePoint,
+            destination: SearchResponsePoint,
+            languageCode: String,
+        ): NativeTransitResult {
+            transitCalls += 1
+            lastOrigin = origin
+            lastDestination = destination
+            lastLanguage = languageCode
+            return transitResult
         }
 
         override suspend fun reroute(

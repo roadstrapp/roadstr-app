@@ -611,6 +611,7 @@ fun NativeRoadstrShell(
             journeyScope,
             searchSession,
             routePlanningSession,
+            transitJourneySession,
             journeyLanguage,
         ) {
             journeyGateway?.let { gateway ->
@@ -619,6 +620,7 @@ fun NativeRoadstrShell(
                     scope = journeyScope,
                     searchSession = searchSession,
                     routeSession = routePlanningSession,
+                    transitSession = transitJourneySession,
                     languageCode = journeyLanguage,
                     // Saved places are listed in the search menu, as on the Flutter map.
                     favorites = {
@@ -2338,7 +2340,8 @@ fun NativeRoadstrShell(
                         modifier = Modifier.align(Alignment.BottomCenter),
                     )
                 }
-                NativeRoutePlanningPanel(
+                if (transitUiState.status == app.roadstr.feature.transit.NativeTransitUiStatus.Hidden) {
+                    NativeRoutePlanningPanel(
                     snapshot = routePlanningState,
                     onOriginChanged = { value ->
                         routePlanningSession.updateOrigin(routePlanningState.revision, value)
@@ -2421,7 +2424,8 @@ fun NativeRoadstrShell(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .onSizeChanged { routePanelHeightPixels = it.height },
-                )
+                    )
+                }
                 NativeTransitItinerariesPanel(
                     snapshot = transitUiState,
                     transportMode = transitMode,
@@ -2433,8 +2437,35 @@ fun NativeRoadstrShell(
                             transitJourneySession.clear(transitUiState.revision)
                         }
                     },
-                    onRetry = null,
-                    onModeChanged = { transitMode = it },
+                    onRetry = {
+                        journeyCoordinator?.calculateRoute(
+                            snapshot = routePlanningSession.state.value,
+                            gpsPoint = gpsSearchPoint,
+                            myLocationLabel = myLocationLabel,
+                            avoidUnpavedRoads = settingsState.values.avoidUnpavedRoads,
+                        )
+                    },
+                    onModeChanged = { selected ->
+                        transitMode = selected
+                        if (selected != NativeTransitTransportMode.Transit) {
+                            transitJourneySession.clear(transitUiState.revision)
+                            val routeMode = when (selected) {
+                                NativeTransitTransportMode.Driving -> app.roadstr.feature.route.NativeRouteTransportMode.Driving
+                                NativeTransitTransportMode.Cycling -> app.roadstr.feature.route.NativeRouteTransportMode.Cycling
+                                NativeTransitTransportMode.Walking -> app.roadstr.feature.route.NativeRouteTransportMode.Walking
+                                NativeTransitTransportMode.Transit -> app.roadstr.feature.route.NativeRouteTransportMode.Transit
+                            }
+                            if (routePlanningSession.selectMode(routePlanningState.revision, routeMode)) {
+                                journeyCoordinator?.calculateRoute(
+                                    snapshot = routePlanningSession.state.value,
+                                    gpsPoint = gpsSearchPoint,
+                                    myLocationLabel = myLocationLabel,
+                                    avoidUnpavedRoads = settingsState.values.avoidUnpavedRoads,
+                                )
+                            }
+                        }
+                    },
+                    onOpenAttribution = onOpenExternal,
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
                 NativePlaceDetailsPanel(
