@@ -80,7 +80,7 @@ Builds:
 
   - versionName: 1.0.1
     versionCode: 2061
-    commit: 1d628e8429bfe72c80c463e389bdaaab5896b3a9
+    commit: 02b8c1b2f4f505372db7dfddbd4c516f6f21a71d
     sudo:
       - apt-get update
       - apt-get install -y build-essential cmake
