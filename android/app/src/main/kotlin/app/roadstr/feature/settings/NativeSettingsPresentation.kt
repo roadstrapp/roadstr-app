@@ -116,7 +116,66 @@ enum class NativeSettingsBooleanKey(
     VoiceEnabled("voiceEnabled", true),
     OfflineRouting("offlineRoutingEnabled", false),
     OfflineOnlineFallback("offlineOnlineFallbackAllowed", false),
+
+    /** Show reports written in the jooray/roadstr layout. On by default: they were already shown. */
+    InteropShow("interopShowEnabled", true),
+
+    /** Also send each report in the jooray/roadstr layout. Off: it doubles what is published. */
+    InteropPublish("interopPublishEnabled", false),
+
+    /** Sign those copies with a throw-away key. Off: the account's own key, so twins merge. */
+    InteropEphemeralKey("interopEphemeralKey", false),
+
+    /** Read road reports from a paired MeshCore radio. */
+    MeshReceive("meshReceiveEnabled", false),
+
+    /** Put this device's own compatible reports and votes on the radio. */
+    MeshSend("meshSendEnabled", false),
+
+    /** Republish what is heard on the radio to the Nostr relays. */
+    MeshBridgeToNostr("meshBridgeToNostr", false),
+
+    /** Put compatible reports seen on the relays onto the radio. */
+    MeshBridgeToRadio("meshBridgeToRadio", false),
 }
+
+/** Why a radio is not working, in terms the settings screen can explain. */
+enum class NativeSettingsMeshProblem {
+    BluetoothOff,
+    PermissionMissing,
+    DeviceNotFound,
+    ConnectionLost,
+    Timeout,
+    ServiceMissing,
+    IncompatibleFirmware,
+    ProtocolError,
+}
+
+enum class NativeSettingsMeshState {
+    /** Nothing paired, or the platform has no Bluetooth LE. */
+    NotPaired,
+
+    /** Paired but not in use (all radio features are off, or the screen is not showing). */
+    Idle,
+    Connecting,
+
+    /** The radio works but does not have the Roadstr channel yet. */
+    ChannelMissing,
+    Ready,
+    Problem,
+}
+
+/** The radio as the settings screen shows it. Display only: nothing here changes behaviour. */
+data class NativeSettingsMeshStatus(
+    val supported: Boolean = false,
+    val deviceName: String? = null,
+    val state: NativeSettingsMeshState = NativeSettingsMeshState.NotPaired,
+    val problem: NativeSettingsMeshProblem? = null,
+    val firmware: String? = null,
+    val batteryMillivolts: Int? = null,
+    val waitingForRelays: Int = 0,
+    val scanning: Boolean = false,
+)
 
 sealed interface NativeSettingsStoredValue {
     data class BooleanValue(val value: Boolean) : NativeSettingsStoredValue
@@ -168,6 +227,14 @@ data class NativeSettingsInput(
     val favoritesCount: Int = 0,
     val favoritePlaces: List<NativeSettingsFavorite> = emptyList(),
     val favoritesSyncAutoEnabled: Boolean = false,
+    val interopShowEnabled: Boolean = true,
+    val interopPublishEnabled: Boolean = false,
+    val interopEphemeralKey: Boolean = false,
+    val meshReceiveEnabled: Boolean = false,
+    val meshSendEnabled: Boolean = false,
+    val meshBridgeToNostr: Boolean = false,
+    val meshBridgeToRadio: Boolean = false,
+    val mesh: NativeSettingsMeshStatus = NativeSettingsMeshStatus(),
     val syncIdentityAvailable: Boolean = false,
     val syncBusy: Boolean = false,
     val syncPassphraseConfigured: Boolean = false,
@@ -367,6 +434,13 @@ class NativeSettingsSession(
             NativeSettingsBooleanKey.VoiceEnabled -> current.copy(voiceEnabled = value)
             NativeSettingsBooleanKey.OfflineRouting -> current.copy(offlineRoutingEnabled = value)
             NativeSettingsBooleanKey.OfflineOnlineFallback -> current.copy(offlineOnlineFallbackAllowed = value)
+            NativeSettingsBooleanKey.InteropShow -> current.copy(interopShowEnabled = value)
+            NativeSettingsBooleanKey.InteropPublish -> current.copy(interopPublishEnabled = value)
+            NativeSettingsBooleanKey.InteropEphemeralKey -> current.copy(interopEphemeralKey = value)
+            NativeSettingsBooleanKey.MeshReceive -> current.copy(meshReceiveEnabled = value)
+            NativeSettingsBooleanKey.MeshSend -> current.copy(meshSendEnabled = value)
+            NativeSettingsBooleanKey.MeshBridgeToNostr -> current.copy(meshBridgeToNostr = value)
+            NativeSettingsBooleanKey.MeshBridgeToRadio -> current.copy(meshBridgeToRadio = value)
         }
         updated to NativeSettingsWrite(
             revision,

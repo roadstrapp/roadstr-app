@@ -311,6 +311,16 @@ class NativeTransitJourneySession(
         true
     }
 
+    fun selectedItinerary(revision: Long): TransitItinerary? = synchronized(lock) {
+        val selected = _state.value.selectedIndex
+        if (revision != this.revision || selected == null) return null
+        plan?.itineraries?.getOrNull(selected)
+    }
+
+    fun currentPlan(revision: Long): TransitParsedPlan? = synchronized(lock) {
+        if (revision != this.revision) null else plan
+    }
+
     fun clear(revision: Long): Boolean = synchronized(lock) {
         require(revision >= 0) { "Transit UI revision must be non-negative" }
         if (revision < this.revision) return false

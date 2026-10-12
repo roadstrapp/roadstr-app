@@ -2,6 +2,18 @@ package app.roadstr.service.nostr
 
 import app.roadstr.core.geo.GeoMath
 import app.roadstr.core.geo.GeoPoint
+import app.roadstr.core.protocol.interop.CompactCoordinates
+import app.roadstr.core.protocol.interop.CompactOutcome
+import app.roadstr.core.protocol.interop.CompactRoadType
+import app.roadstr.core.protocol.interop.ExternalRoadReport
+import app.roadstr.core.protocol.interop.ExternalRoadReportAdapter
+import app.roadstr.core.protocol.interop.IncidentKey
+import app.roadstr.core.protocol.interop.InteropLifetime
+import app.roadstr.core.protocol.interop.InteropVote
+import app.roadstr.core.protocol.interop.RoadEventEquivalence
+import app.roadstr.core.protocol.interop.RoadEventLayout
+import app.roadstr.core.protocol.interop.RoadEventLedger
+import app.roadstr.core.protocol.interop.RoadEventTransport
 import app.roadstr.core.protocol.nostr.BoundedJsonParser
 import app.roadstr.core.protocol.nostr.NostrIngressRoute
 import app.roadstr.core.protocol.nostr.NostrIngressRule
@@ -30,6 +42,8 @@ interface NativePendingReportStorage {
     fun write(rows: List<String>)
 }
 
+enum class NativeInteropPublishOutcome { Published, Queued, Failed }
+
 sealed interface NativeReportOutcome {
     /** At least one relay acknowledged the report. */
     data class Published(val event: NativeRoadEvent) : NativeReportOutcome
@@ -38,6 +52,15 @@ sealed interface NativeReportOutcome {
     data class Queued(val event: NativeRoadEvent) : NativeReportOutcome
 
     data object Failed : NativeReportOutcome
+}
+
+/**
+ * Told about every interoperable event the service accepted, so a bridge can offer it to another
+ * transport. Called with the service's lock held: implementations must only hand the event over
+ * (queue it) and never call back into the service.
+ */
+fun interface NativeInteropListener {
+    fun onInteropEvent(event: Map<String, Any?>, via: RoadEventTransport, newOnTransport: Boolean)
 }
 
 /**
@@ -66,7 +89,13 @@ class NativeRoadEventService(
     private val newSubscriptionId: () -> String = NativeNostrWire::randomSubscriptionId,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
     private val maxIngressEventsPerSubscription: Int = MAX_INGRESS_EVENTS_PER_SUBSCRIPTION,
+    interopEnabled: () -> Boolean = { true },
+    /** What has been seen on which transport; shared with the bridge so both agree. */
+    val ledger: RoadEventLedger = RoadEventLedger(),
 ) {
+    /** Whether reports in the jooray/roadstr layout are shown. Read on every event; see [refresh]. */
+    @Volatile
+    var interopEnabled: () -> Boolean = interopEnabled
     private val lock = Any()
     private val cache = LinkedHashMap<String, NativeRoadEvent>()
     private val pendingUpdates = LinkedHashMap<String, Map<String, Any?>>()
@@ -74,6 +103,11 @@ class NativeRoadEventService(
     private val countedVotes = HashSet<String>()
     private val voteCountByEvent = HashMap<String, Int>()
     private val pendingIds = LinkedHashSet<String>()
+    private val interopVotes = HashMap<String, LinkedHashMap<String, InteropVote>>()
+
+    /** Event id of an equivalent report -> id of the one shown, so its votes still land on it. */
+    private val aliasOf = LinkedHashMap<String, String>()
+    private var interopListener: NativeInteropListener? = null
     private val _events = MutableStateFlow<List<NativeRoadEvent>>(emptyList())
 
     private var socket: NativeRelaySocket? = null
@@ -350,6 +384,10 @@ class NativeRoadEventService(
     }
 
     private fun handleRoadEvent(json: Map<String, Any?>) {
+        if (ExternalRoadReportAdapter.layoutOf(json) == RoadEventLayout.COMPACT_CANONICAL) {
+            if (interopEnabled()) acceptInteropReport(json, RoadEventTransport.RELAY)
+            return
+        }
         val event = NativeRoadEventCodec.parse(json, nowSeconds()) ?: return
         val hashes = NativeNostrWire.tags(json["tags"])
             ?.filter { it.size >= 2 && it[0] == "g" }
@@ -361,6 +399,7 @@ class NativeRoadEventService(
             if (RoadstrNostrEvents.geohash(event.latitude, event.longitude, precision) !in hashes) return
         }
         cache[event.id] = event
+        foldInteropReportsInto(event)
         pendingUpdates.remove(event.id)?.let { applyUpdate(it, event.id) }
         if (cache.size > MAX_CACHED_EVENTS) {
             cache.values.minByOrNull { it.createdAt }?.let { cache.remove(it.id) }
@@ -410,26 +449,233 @@ class NativeRoadEventService(
     }
 
     private fun handleConfirmation(json: Map<String, Any?>) {
-        val tags = NativeNostrWire.tags(json["tags"]) ?: return
-        val targets = tags.filter { it.size >= 2 && it[0] == "e" }.map { it[1] }
-        val statuses = tags.filter { it.size >= 2 && it[0] == "status" }.map { it[1] }
-        if (targets.size != 1 || statuses.size != 1) return
-        val targetId = targets.single()
-        val status = statuses.single()
-        if (status != STILL_THERE && status != NO_LONGER_THERE) return
+        val vote = parseVote(json) ?: return
+        val targetId = aliasOf[vote.targetId] ?: vote.targetId
         val event = cache[targetId] ?: return
+        if (event.protocol == NativeRoadEventProtocol.Interop) {
+            applyInteropVote(event, vote, json)
+            return
+        }
         // Capped per event: minting throwaway identities is free, and a report
         // can stay cached for up to 30 days.
         if ((voteCountByEvent[targetId] ?: 0) >= MAX_VOTES_PER_EVENT) return
         // One vote per identity per event; re-fetching is idempotent.
-        if (!countedVotes.add("$targetId:${json["pubkey"]}")) return
+        if (!countedVotes.add("$targetId:${vote.pubkey}")) return
         voteCountByEvent[targetId] = (voteCountByEvent[targetId] ?: 0) + 1
-        cache[targetId] = if (status == STILL_THERE) {
+        cache[targetId] = if (vote.stillThere) {
             event.copy(confirmations = event.confirmations + 1)
         } else {
             event.copy(denials = event.denials + 1)
         }
         publishState()
+    }
+
+    private class ParsedVote(
+        val targetId: String,
+        val pubkey: String,
+        val createdAt: Long,
+        val stillThere: Boolean,
+    )
+
+    /** Exactly one `e` and one valid `status`; anything else is not a vote. */
+    private fun parseVote(json: Map<String, Any?>): ParsedVote? {
+        val tags = NativeNostrWire.tags(json["tags"]) ?: return null
+        val targets = tags.filter { it.size >= 2 && it[0] == "e" }.map { it[1] }
+        val statuses = tags.filter { it.size >= 2 && it[0] == "status" }.map { it[1] }
+        if (targets.size != 1 || statuses.size != 1) return null
+        if (statuses.single() != STILL_THERE && statuses.single() != NO_LONGER_THERE) return null
+        val pubkey = json["pubkey"] as? String ?: return null
+        val createdAt = NativeNostrWire.integral(json["created_at"]) ?: return null
+        return ParsedVote(targets.single(), pubkey, createdAt, statuses.single() == STILL_THERE)
+    }
+
+    // ── interoperable reports (jooray/roadstr layout) ───────────────────────────────────────────
+
+    /**
+     * Receives a kind 1315/1316 event in the jooray/roadstr layout that arrived on [via]. The
+     * relay path has its own entry; this is for the radio bridge. The ID and signature are checked
+     * here unless the caller already did so ([alreadyVerified], e.g. the compact codec, which
+     * only ever returns verified events). Returns true when the event is part of what the map shows.
+     */
+    fun acceptInteropEvent(
+        event: Map<String, Any?>,
+        via: RoadEventTransport,
+        alreadyVerified: Boolean = false,
+    ): Boolean = synchronized(lock) {
+        if (disposed || !interopEnabled()) return@synchronized false
+        if (!alreadyVerified && !NativeNostrWire.verify(event)) return@synchronized false
+        when (NativeNostrWire.integral(event["kind"])) {
+            1315L -> acceptInteropReport(event, via)
+            1316L -> acceptInteropVoteEvent(event, via)
+            else -> false
+        }
+    }
+
+    fun setInteropListener(listener: NativeInteropListener?) = synchronized(lock) { interopListener = listener }
+
+    /** Re-evaluates what is shown, e.g. right after the interoperability switch changed. */
+    fun refresh() = synchronized(lock) { publishState() }
+
+    private fun acceptInteropReport(
+        json: Map<String, Any?>,
+        via: RoadEventTransport,
+        twinOf: String? = null,
+    ): Boolean {
+        val report = (ExternalRoadReportAdapter.adaptReport(json) as? CompactOutcome.Ok)?.value ?: return false
+        val now = nowSeconds()
+        if (report.createdAt > now + MAX_FUTURE_SKEW_SECONDS) return false
+        val votes = interopVotes[report.eventId]?.values.orEmpty()
+        if (!InteropLifetime.isVisible(report.createdAt, report.type, votes, now)) return false
+        val observation = ledger.observe(report.eventId, via)
+
+        val known = cache[report.eventId]
+        if (known != null) {
+            if (via !in known.transports) cache[known.id] = known.copy(transports = known.transports + via)
+        } else if (twinOf != null && cache.containsKey(twinOf)) {
+            // We just made both ourselves: no need to guess that they are one report.
+            aliasOf[report.eventId] = twinOf
+            trimAliases()
+            if (pendingIds.size < MAX_PENDING_IDS) pendingIds += report.eventId
+        } else if (!alsoShownAsNative(report, via)) {
+            insertInterop(interopEvent(report, via, now))
+        }
+        publishState()
+        interopListener?.onInteropEvent(json, via, observation.newOnThisTransport)
+        return true
+    }
+
+    /** The compatible twin of a report Roadstr already shows: one marker, with the twin's votes. */
+    private fun alsoShownAsNative(report: ExternalRoadReport, via: RoadEventTransport): Boolean {
+        val incoming = IncidentKey(
+            report.pubkey, report.type.nativeCategory, report.createdAt,
+            CompactCoordinates.degrees(report.latitudeE7), CompactCoordinates.degrees(report.longitudeE7),
+        )
+        val native = cache.values.firstOrNull {
+            it.protocol == NativeRoadEventProtocol.Roadstr && RoadEventEquivalence.sameIncident(incidentOf(it), incoming)
+        } ?: return false
+        aliasOf[report.eventId] = native.id
+        trimAliases()
+        // The twin has its own id: its confirmations are published against that id.
+        if (pendingIds.size < MAX_PENDING_IDS) pendingIds += report.eventId
+        if (via !in native.transports) cache[native.id] = native.copy(transports = native.transports + via)
+        return true
+    }
+
+    /** A native report just arrived: any compatible twin already on the map is folded into it. */
+    private fun foldInteropReportsInto(native: NativeRoadEvent) {
+        val key = incidentOf(native)
+        val twins = cache.values.filter {
+            it.protocol == NativeRoadEventProtocol.Interop && RoadEventEquivalence.sameIncident(incidentOf(it), key)
+        }
+        var merged = native
+        for (twin in twins) {
+            cache.remove(twin.id)
+            aliasOf[twin.id] = native.id
+            merged = merged.copy(
+                confirmations = merged.confirmations + twin.confirmations,
+                denials = merged.denials + twin.denials,
+            )
+        }
+        if (twins.isEmpty()) return
+        trimAliases()
+        cache[native.id] = merged
+    }
+
+    private fun incidentOf(event: NativeRoadEvent) = IncidentKey(
+        event.pubkey, event.category, event.createdAt, event.latitude, event.longitude,
+    )
+
+    private fun interopEvent(report: ExternalRoadReport, via: RoadEventTransport, now: Long): NativeRoadEvent {
+        val votes = InteropLifetime.admissible(
+            interopVotes[report.eventId]?.values.orEmpty(), report.createdAt, now,
+        )
+        return NativeRoadEvent(
+            id = report.eventId,
+            pubkey = report.pubkey,
+            category = report.type.nativeCategory,
+            latitude = CompactCoordinates.degrees(report.latitudeE7),
+            longitude = CompactCoordinates.degrees(report.longitudeE7),
+            comment = report.comment,
+            createdAt = report.createdAt,
+            expiresAt = report.relayExpiration,
+            confirmations = votes.count { it.stillThere },
+            denials = votes.count { !it.stillThere },
+            protocol = NativeRoadEventProtocol.Interop,
+            transports = setOf(via),
+            lifetimeEndsAt = InteropLifetime.effectiveExpiry(report.createdAt, report.type, votes),
+        )
+    }
+
+    private fun insertInterop(event: NativeRoadEvent) {
+        cache[event.id] = event
+        if (cache.size > MAX_CACHED_EVENTS) {
+            cache.values.minByOrNull { it.createdAt }?.let { cache.remove(it.id) }
+            pruneDerivedState()
+        }
+        if (pendingIds.size < MAX_PENDING_IDS) pendingIds += event.id
+    }
+
+    private fun acceptInteropVoteEvent(json: Map<String, Any?>, via: RoadEventTransport): Boolean {
+        val vote = parseVote(json) ?: return false
+        val targetId = aliasOf[vote.targetId] ?: vote.targetId
+        val event = cache[targetId] ?: return false
+        val id = json["id"] as? String ?: return false
+        val observation = ledger.observe(id, via)
+        if (event.protocol == NativeRoadEventProtocol.Interop) {
+            if (!applyInteropVote(event, vote, json)) return false
+        } else {
+            handleConfirmation(json)
+        }
+        interopListener?.onInteropEvent(json, via, observation.newOnThisTransport)
+        return true
+    }
+
+    /** Records [vote] on an interoperable report and recomputes how long it is shown. */
+    private fun applyInteropVote(event: NativeRoadEvent, vote: ParsedVote, json: Map<String, Any?>): Boolean {
+        // A confirmation repeats the coordinates of its report (NIP: MUST match); a mismatch is a
+        // vote planted on the wrong report.
+        val adapted = (ExternalRoadReportAdapter.adaptConfirmation(json) as? CompactOutcome.Ok)?.value
+        if (adapted != null && !repeatsLocationOf(event, adapted.latitudeE7, adapted.longitudeE7)) return false
+        val votes = interopVotes.getOrPut(event.id) { LinkedHashMap() }
+        if (votes.size >= MAX_VOTES_PER_EVENT && vote.pubkey !in votes) return false
+        val incoming = InteropVote(vote.pubkey, vote.createdAt, vote.stillThere)
+        val known = votes[vote.pubkey]
+        val newer = known == null || incoming.createdAt > known.createdAt ||
+            (incoming.createdAt == known.createdAt && incoming.stillThere && !known.stillThere)
+        if (newer) votes[vote.pubkey] = incoming
+        refreshInteropEvent(event.id)
+        publishState()
+        return true
+    }
+
+    private fun repeatsLocationOf(event: NativeRoadEvent, latitudeE7: Int, longitudeE7: Int): Boolean =
+        CompactCoordinates.latitudeE7(event.latitude) == latitudeE7 &&
+            CompactCoordinates.longitudeE7(event.longitude) == longitudeE7
+
+    private fun refreshInteropEvent(eventId: String) {
+        val event = cache[eventId] ?: return
+        val type = CompactRoadType.fromNative(event.category) ?: return
+        val votes = InteropLifetime.admissible(
+            interopVotes[eventId]?.values.orEmpty(), event.createdAt, nowSeconds(),
+        )
+        cache[eventId] = event.copy(
+            confirmations = votes.count { it.stillThere },
+            denials = votes.count { !it.stillThere },
+            lifetimeEndsAt = InteropLifetime.effectiveExpiry(event.createdAt, type, votes),
+        )
+    }
+
+    /** Shown now: not expired, and not out-voted by the last five minutes of denials. */
+    private fun isLive(event: NativeRoadEvent, now: Long): Boolean {
+        if (event.isExpired(now)) return false
+        if (event.protocol != NativeRoadEventProtocol.Interop) return true
+        if (!interopEnabled()) return false
+        val votes = InteropLifetime.admissible(interopVotes[event.id]?.values.orEmpty(), event.createdAt, now)
+        return !InteropLifetime.deniedByRecentMajority(votes, now)
+    }
+
+    private fun trimAliases() {
+        while (aliasOf.size > MAX_ALIASES) aliasOf.remove(aliasOf.keys.first())
     }
 
     // ── publishing ───────────────────────────────────────────────────────────
@@ -449,6 +695,24 @@ class NativeRoadEventService(
             NativeReportOutcome.Failed
         }
     }
+
+    /**
+     * Sends a signed compatible report (the jooray/roadstr layout) next to the native one it mirrors.
+     * [twinOf] is the native event it was made with, so the two are shown as one marker whoever
+     * signed them. A failed send is queued like a native report, and drops out when it would be stale.
+     */
+    suspend fun publishInteropReport(signed: Map<String, Any?>, twinOf: String? = null): NativeInteropPublishOutcome {
+        val report = (ExternalRoadReportAdapter.adaptReport(signed) as? CompactOutcome.Ok)?.value
+            ?: return NativeInteropPublishOutcome.Failed
+        val accepted = publisher.publish(signed)
+        synchronized(lock) { if (!disposed) acceptInteropReport(signed, RoadEventTransport.RELAY, twinOf) }
+        if (accepted) return NativeInteropPublishOutcome.Published
+        val queued = queue(signed, report.createdAt + report.type.effectiveTtlSeconds)
+        return if (queued) NativeInteropPublishOutcome.Queued else NativeInteropPublishOutcome.Failed
+    }
+
+    /** The marker currently shown for [eventId] (or for the report it is the twin of). */
+    fun find(eventId: String): NativeRoadEvent? = synchronized(lock) { cache[aliasOf[eventId] ?: eventId] }
 
     /** Publishes a signed vote (kind 1316) and counts it locally on success. */
     suspend fun publishVote(signed: Map<String, Any?>): Boolean {
@@ -562,12 +826,14 @@ class NativeRoadEventService(
             separator <= 0 || !cache.containsKey(vote.substring(0, separator))
         }
         voteCountByEvent.keys.removeAll { !cache.containsKey(it) }
+        interopVotes.keys.removeAll { !cache.containsKey(it) }
+        aliasOf.entries.removeAll { !cache.containsKey(it.value) }
         prunePendingUpdates()
     }
 
     private fun publishState() {
         val now = nowSeconds()
-        _events.value = cache.values.filter { !it.isExpired(now) }
+        _events.value = cache.values.filter { isLive(it, now) }
     }
 
     companion object {
@@ -593,6 +859,8 @@ class NativeRoadEventService(
         private const val MAX_PENDING_UPDATES = 200
         private const val MAX_UPDATE_MARKS = 2_000
         private const val MAX_VOTES_PER_EVENT = 200
+        private const val MAX_ALIASES = 1_000
+        private const val MAX_FUTURE_SKEW_SECONDS = 300L
         private const val MAX_QUEUED_REPORTS = 200
         private const val MAX_INGRESS_EVENTS_PER_SUBSCRIPTION = 4_096
         private const val PENDING_UPDATE_TTL_SECONDS = 15L * 60L

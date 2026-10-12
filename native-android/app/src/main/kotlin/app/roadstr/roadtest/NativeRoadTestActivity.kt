@@ -37,6 +37,8 @@ import app.roadstr.feature.offline.OfflineMapProviderClient
 import app.roadstr.feature.saved.NativeSavedPlacesProtocol
 import app.roadstr.feature.savedroute.NativeSavedRouteProtocol
 import app.roadstr.feature.savedroute.NativeSavedRoutesStore
+import app.roadstr.feature.savedtransit.NativeSavedTransitProtocol
+import app.roadstr.feature.savedtransit.NativeSavedTransitStore
 import app.roadstr.service.hazards.NativeOsmHazardService
 import app.roadstr.service.hazards.NativeOsmSpeedCameraService
 import app.roadstr.service.hazards.NativeZtlService
@@ -64,6 +66,16 @@ import app.roadstr.service.routing.LocalRoutingDataset
 import app.roadstr.service.routing.OfflineRoutingPreferences
 import app.roadstr.service.routing.ValhallaLocalRoutingEngine
 import java.io.File
+import android.content.pm.PackageManager
+import app.roadstr.feature.home.NativeShellMesh
+import app.roadstr.service.meshcore.AndroidMeshCoreBleLink
+import app.roadstr.service.meshcore.AndroidMeshCoreScanner
+import app.roadstr.service.meshcore.MeshCoreBlePermissions
+import app.roadstr.service.meshcore.MeshRuntime
+import app.roadstr.service.nostr.NativeNostrWire
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 /**
  * Compose launcher for the Kotlin app. As the road-test APK it stands alone with its own stores; the
@@ -211,6 +223,8 @@ open class NativeRoadTestActivity : ComponentActivity() {
     private val favoriteFiles = NativeRoadTestFavoriteFiles(this)
     private val scheduler = ExecutorNativeScheduler()
     private var nostr: NativeShellNostr? = null
+    private var mesh: NativeShellMesh? = null
+    private var meshPermissionCallback: ((Boolean) -> Unit)? = null
     private val onboardingPreferences by lazy(LazyThreadSafetyMode.NONE) {
         getSharedPreferences(storeNames.prefs("onboarding"), MODE_PRIVATE)
     }
@@ -242,6 +256,21 @@ open class NativeRoadTestActivity : ComponentActivity() {
             readEncryptedValue = { savedRoutesPreferences.read("routes") },
             writeEncryptedValue = { savedRoutesPreferences.write("routes", it) },
             removeEncryptedValue = { savedRoutesPreferences.remove("routes") },
+        )
+    }
+    private val savedTransitPreferences by lazy(LazyThreadSafetyMode.NONE) {
+        NativeRoadTestProtectedPreferences(
+            context = applicationContext,
+            preferencesName = storeNames.prefs("saved_transit"),
+            keyAlias = storeNames.alias("saved-transit"),
+            maxPlaintextBytes = NativeSavedTransitProtocol.MAX_STORED_BYTES * 2,
+        )
+    }
+    private val savedTransitStore by lazy(LazyThreadSafetyMode.NONE) {
+        NativeSavedTransitStore(
+            readEncryptedValue = { savedTransitPreferences.read("journeys") },
+            writeEncryptedValue = { savedTransitPreferences.write("journeys", it) },
+            removeEncryptedValue = { savedTransitPreferences.remove("journeys") },
         )
     }
     private val uiPreferences by lazy(LazyThreadSafetyMode.NONE) {
@@ -280,6 +309,14 @@ open class NativeRoadTestActivity : ComponentActivity() {
     // The key is decrypted once; routes are requested often and each read is a Keystore call.
     private var routingKeyCache: String? = null
     private var routingKeyLoaded = false
+    // Nearby-devices permission for the optional MeshCore radio; asked only when the user pairs one.
+    private val bluetoothPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { grants ->
+        val granted = MeshCoreBlePermissions.required().all { grants[it] == true }
+        meshPermissionCallback?.invoke(granted)
+        meshPermissionCallback = null
+    }
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { grants ->
@@ -332,6 +369,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
     private fun RoadstrContent() {
         // Read once, after the gate has opened: what an import wrote is what the first frame shows.
         val nostrBridge = remember { buildNostr().also { nostr = it } }
+        val meshBridge = remember { buildMesh(nostrBridge).also { mesh = it } }
         val initialFavorites = remember { favoritesStore.load() }
         val initialSettings = remember {
             uiPreferences.load().copy(
@@ -386,6 +424,8 @@ open class NativeRoadTestActivity : ComponentActivity() {
             },
             initialSavedRoutes = runCatching(savedRoutesStore::load).getOrDefault(emptyList()),
             onSavedRoutesChanged = savedRoutesStore::save,
+            initialSavedTransitJourneys = runCatching(savedTransitStore::load).getOrDefault(emptyList()),
+            onSavedTransitJourneysChanged = savedTransitStore::save,
             initialWebSearch = loadWebSearch(),
             onWebSearchChanged = ::saveWebSearch,
             webBrowser = webBrowser,
@@ -400,6 +440,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
             speedCameraService = speedCameraService,
             ztlService = ztlService,
             nostr = nostrBridge,
+            mesh = meshBridge,
             navigationHost = runtime.host,
             externalDestinationRequest = externalDestinationRequest,
             onExternalDestinationConsumed = {
@@ -428,6 +469,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
 
     override fun onDestroy() {
         webBrowser.release()
+        mesh?.runtime?.close()
         nostr?.roadEvents?.close()
         scheduler.shutdown()
         localRoutingEngine.close()
@@ -494,6 +536,34 @@ open class NativeRoadTestActivity : ComponentActivity() {
             activityStore = activityStore,
             nwcUri = { runCatching { nwcPreferences.read("uri") }.getOrNull() },
             openWallet = ::openExternal,
+        )
+    }
+
+    /** The optional MeshCore radio support. Idle, and asking for nothing, until the user pairs a radio. */
+    private fun buildMesh(nostr: NativeShellNostr): NativeShellMesh {
+        val storage = NativeRoadTestMeshStorage(applicationContext, storeNames)
+        val scanner = AndroidMeshCoreScanner(applicationContext)
+        val runtime = MeshRuntime(
+            link = AndroidMeshCoreBleLink(applicationContext) { storage.device()?.address },
+            scheduler = scheduler,
+            roads = nostr.roadEvents,
+            republishStorage = NativeRoadTestMeshRepublishQueue(applicationContext, storeNames),
+            ledgerStorage = NativeRoadTestMeshLedgerStorage(applicationContext, storeNames),
+            channelName = storage::channelName,
+            nowSeconds = NativeNostrWire::nowSeconds,
+            scope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
+        )
+        return NativeShellMesh(
+            runtime = runtime,
+            storage = storage,
+            supported = packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE),
+            permissionGranted = { MeshCoreBlePermissions.granted(this) },
+            requestPermission = { callback ->
+                meshPermissionCallback = callback
+                bluetoothPermissionLauncher.launch(MeshCoreBlePermissions.required())
+            },
+            startScan = scanner::start,
+            stopScan = scanner::stop,
         )
     }
 

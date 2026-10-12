@@ -16,6 +16,7 @@ class NativeSearchPresentationTest {
     fun `nearby catalogue preserves Flutter order and symbols`() {
         assertEquals(
             listOf(
+                NativeSearchNearbyCategory.Transit,
                 NativeSearchNearbyCategory.Fuel,
                 NativeSearchNearbyCategory.Restaurant,
                 NativeSearchNearbyCategory.Supermarket,
@@ -30,6 +31,7 @@ class NativeSearchPresentationTest {
             ),
             NativeSearchNearbyCategory.entries,
         )
+        assertEquals("◉", NativeSearchNearbyCategory.Transit.emoji)
         assertEquals("⛽", NativeSearchNearbyCategory.Fuel.emoji)
         assertEquals("🔌", NativeSearchNearbyCategory.Charging.emoji)
     }

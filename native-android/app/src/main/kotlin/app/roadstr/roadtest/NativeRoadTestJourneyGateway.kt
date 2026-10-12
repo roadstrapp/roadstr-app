@@ -58,12 +58,25 @@ import app.roadstr.service.search.NativeSearchService
 import app.roadstr.service.transit.NativeTransitResult
 import app.roadstr.service.transit.NativeTransitProviderRouter
 import app.roadstr.service.transit.NativeTransitQuery
+import app.roadstr.service.transit.NativeEnturTransitService
 import app.roadstr.service.transit.NativeTransitService
+import app.roadstr.service.transit.NativeUnavailableTransitProvider
+import app.roadstr.service.transit.NativeTransitData
+import app.roadstr.service.transit.NativeTransitDataResult
+import app.roadstr.service.transit.NativeTransitDeparturesQuery
+import app.roadstr.service.transit.NativeTransitStopSearchQuery
+import app.roadstr.service.transit.NativeTransitReferenceQuery
+import app.roadstr.core.network.TransitStopBoard
+import app.roadstr.core.network.TransitStopReference
 import app.roadstr.core.network.TransitRequestPoint
+import app.roadstr.core.network.TransitItinerary
+import app.roadstr.core.network.TransitScopedId
 import java.time.Instant
 import java.util.Locale
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 /** Live, credential-free OSM/search/routing/transit composition for the road-test APK. */
 class NativeRoadTestJourneyGateway(
@@ -82,9 +95,8 @@ class NativeRoadTestJourneyGateway(
     private val history = NativeRoadTestSearchHistoryStore(context, names)
     private val searchService = NativeSearchService(transport)
     private val routingService = NativeRoutingService(transport)
-    private val transitRouter = NativeTransitProviderRouter(
-        listOf(NativeTransitService(transport)),
-    )
+    private val enturTransit = NativeEnturTransitService(transport)
+    private val transitous = NativeTransitService(transport)
     private val speedLimitResolver = NativeRoadTestSpeedLimitResolver(transport)
     @Volatile private var lastEngineId = routingConfiguration().provider.name.lowercase(Locale.ROOT)
     @Volatile private var lastProviderId = lastEngineId
@@ -101,15 +113,89 @@ class NativeRoadTestJourneyGateway(
         near: SearchResponsePoint?,
         languageCode: String,
         onPartial: (List<SearchResult>) -> Unit,
-    ): List<SearchResult> = searchService.search(
-        query = NativeSearchQuery(
-            query = query,
-            near = near,
-            languageCode = languageCode,
-            phase = NativeSearchPhase.SETTLED,
-        ),
-        onPartial = onPartial,
+    ): List<SearchResult> = coroutineScope {
+        val places = async {
+            searchService.search(
+                query = NativeSearchQuery(
+                    query = query,
+                    near = near,
+                    languageCode = languageCode,
+                    phase = NativeSearchPhase.SETTLED,
+                ),
+                onPartial = onPartial,
+            )
+        }
+        val stops = async {
+            transitRouter().searchStops(
+                NativeTransitStopSearchQuery(
+                    query = query,
+                    location = near?.let { TransitRequestPoint(it.latitude, it.longitude) },
+                    languageCode = languageCode,
+                ),
+            )
+        }
+        val geographical = places.await()
+        val operational = (stops.await() as? NativeTransitData)?.value.orEmpty().mapNotNull(::transitSearchResult)
+        (operational + geographical).distinctBy { value ->
+            value.transitStop?.id ?: "${value.position.latitude}:${value.position.longitude}:${value.shortName}"
+        }
+    }
+
+    override suspend fun transitDepartures(
+        stop: TransitStopReference,
+        at: Instant,
+        languageCode: String,
+    ): NativeTransitDataResult<TransitStopBoard> = transitRouter().departures(
+        NativeTransitDeparturesQuery(stop, at, languageCode),
     )
+
+    override suspend fun nearbyTransitStops(
+        near: SearchResponsePoint,
+        languageCode: String,
+    ): List<SearchResult> = (transitRouter().nearbyStops(
+        TransitRequestPoint(near.latitude, near.longitude),
+        languageCode,
+    ) as? NativeTransitData)?.value.orEmpty().mapNotNull(::transitSearchResult)
+
+    override suspend fun transitRefresh(
+        reference: TransitScopedId,
+        languageCode: String,
+    ): NativeTransitDataResult<TransitItinerary> = transitRouter().refreshItinerary(
+        NativeTransitReferenceQuery(reference, languageCode),
+    )
+
+    override suspend fun transitReplan(
+        origin: SearchResponsePoint,
+        destination: SearchResponsePoint,
+        earliestDeparture: Instant,
+        providerId: String,
+        languageCode: String,
+    ): NativeTransitResult = transitRouter().replan(
+        NativeTransitQuery(
+            from = TransitRequestPoint(origin.latitude, origin.longitude),
+            to = TransitRequestPoint(destination.latitude, destination.longitude),
+            departure = earliestDeparture,
+            languageCode = languageCode,
+        ),
+        providerId = providerId,
+    )
+
+    private fun transitSearchResult(
+        result: app.roadstr.core.network.TransitStopSearchResult,
+    ): SearchResult? {
+        val point = result.stop.position ?: return null
+        return SearchResult(
+            displayName = listOfNotNull(result.stop.name, result.locality).joinToString(", "),
+            shortName = result.stop.name,
+            position = SearchResponsePoint(point.latitude, point.longitude),
+            featureClass = "public_transport",
+            type = "stop",
+            city = result.locality,
+            emojiOverride = "◉",
+            categoryLabelOverride = result.modes.joinToString(" · ") { it.wireName.lowercase(Locale.ROOT) },
+            transitStop = result.stop,
+        )
+    }
 
     override suspend fun routes(
         origin: SearchResponsePoint,
@@ -169,7 +255,7 @@ class NativeRoadTestJourneyGateway(
         origin: SearchResponsePoint,
         destination: SearchResponsePoint,
         languageCode: String,
-    ): NativeTransitResult = transitRouter.plan(
+    ): NativeTransitResult = transitRouter().plan(
         NativeTransitQuery(
             from = TransitRequestPoint(origin.latitude, origin.longitude),
             to = TransitRequestPoint(destination.latitude, destination.longitude),
@@ -177,6 +263,12 @@ class NativeRoadTestJourneyGateway(
             languageCode = languageCode,
         ),
     )
+
+    /** Avoids accidental provider calls when Android reports that the network is unavailable. */
+    private fun transitRouter(): NativeTransitProviderRouter {
+        val providers = if (networkAvailable()) listOf(enturTransit, transitous) else listOf(NativeUnavailableTransitProvider)
+        return NativeTransitProviderRouter(providers)
+    }
 
     private suspend fun onlineRoutes(
         origin: SearchResponsePoint,

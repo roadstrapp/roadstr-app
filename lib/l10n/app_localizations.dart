@@ -2902,6 +2902,30 @@ abstract class AppLocalizations {
   /// **'Times come from published timetables'**
   String get transitScheduledTimes;
 
+  /// No description provided for @transitDepartures.
+  ///
+  /// In en, this message translates to:
+  /// **'Departures'**
+  String get transitDepartures;
+
+  /// No description provided for @transitUpdatedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated at {time}'**
+  String transitUpdatedAt(Object time);
+
+  /// No description provided for @transitNoDepartures.
+  ///
+  /// In en, this message translates to:
+  /// **'No departure information is currently available'**
+  String get transitNoDepartures;
+
+  /// No description provided for @transitCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get transitCancelled;
+
   /// No description provided for @transitDirect.
   ///
   /// In en, this message translates to:
@@ -2913,6 +2937,294 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} changes'**
   String transitTransfers(int count);
+
+  /// No description provided for @transitNavApproachStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk to the boarding stop'**
+  String get transitNavApproachStop;
+
+  /// No description provided for @transitNavWaitingToBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting to board'**
+  String get transitNavWaitingToBoard;
+
+  /// No description provided for @transitNavOnBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'On board'**
+  String get transitNavOnBoard;
+
+  /// No description provided for @transitNavApproachingAlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Get ready to get off'**
+  String get transitNavApproachingAlight;
+
+  /// No description provided for @transitNavTransferWalk.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk to the connection'**
+  String get transitNavTransferWalk;
+
+  /// No description provided for @transitNavWaitingConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the connection'**
+  String get transitNavWaitingConnection;
+
+  /// No description provided for @transitNavFinalWalk.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to the destination on foot'**
+  String get transitNavFinalWalk;
+
+  /// No description provided for @transitNavArrived.
+  ///
+  /// In en, this message translates to:
+  /// **'You have arrived'**
+  String get transitNavArrived;
+
+  /// No description provided for @transitNavSuspended.
+  ///
+  /// In en, this message translates to:
+  /// **'Journey guidance paused'**
+  String get transitNavSuspended;
+
+  /// No description provided for @transitNavDataUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Live journey data is temporarily unavailable'**
+  String get transitNavDataUnavailable;
+
+  /// No description provided for @transitNavMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip missed — choose an alternative before replacing this journey'**
+  String get transitNavMissed;
+
+  /// No description provided for @transitNavDirection.
+  ///
+  /// In en, this message translates to:
+  /// **'Direction: {direction}'**
+  String transitNavDirection(Object direction);
+
+  /// No description provided for @transitNavNextStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Next stop: {stop}'**
+  String transitNavNextStop(Object stop);
+
+  /// No description provided for @transitNavAlightAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Get off at: {stop}'**
+  String transitNavAlightAt(Object stop);
+
+  /// No description provided for @transitNavStopsRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} stops remaining'**
+  String transitNavStopsRemaining(Object count);
+
+  /// No description provided for @transitNavExpectedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected at {time}'**
+  String transitNavExpectedAt(Object time);
+
+  /// No description provided for @transitNavPlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform {platform}'**
+  String transitNavPlatform(Object platform);
+
+  /// No description provided for @transitNavNextLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Next line: {line}'**
+  String transitNavNextLine(Object line);
+
+  /// No description provided for @transitConnectionFeasible.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection feasible'**
+  String get transitConnectionFeasible;
+
+  /// No description provided for @transitConnectionAtRisk.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection at risk'**
+  String get transitConnectionAtRisk;
+
+  /// No description provided for @transitConnectionMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection missed'**
+  String get transitConnectionMissed;
+
+  /// No description provided for @transitConnectionUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection status unknown'**
+  String get transitConnectionUnknown;
+
+  /// No description provided for @transitNavBoarded.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m on board'**
+  String get transitNavBoarded;
+
+  /// No description provided for @transitNavAlighted.
+  ///
+  /// In en, this message translates to:
+  /// **'I got off'**
+  String get transitNavAlighted;
+
+  /// No description provided for @transitNavReachedStop.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve reached the stop'**
+  String get transitNavReachedStop;
+
+  /// No description provided for @transitNavMissedAction.
+  ///
+  /// In en, this message translates to:
+  /// **'I missed it'**
+  String get transitNavMissedAction;
+
+  /// No description provided for @transitNavVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Check journey'**
+  String get transitNavVerify;
+
+  /// No description provided for @transitNavEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'End navigation'**
+  String get transitNavEnd;
+
+  /// No description provided for @transitVoiceApproachStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Reach the boarding stop'**
+  String get transitVoiceApproachStop;
+
+  /// No description provided for @transitVoicePrepareBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare to board'**
+  String get transitVoicePrepareBoard;
+
+  /// No description provided for @transitVoiceTakeLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Take line {line}'**
+  String transitVoiceTakeLine(Object line);
+
+  /// No description provided for @transitVoiceAlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Get off at the next stop, {stop}'**
+  String transitVoiceAlight(Object stop);
+
+  /// No description provided for @transitVoiceConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare for the connection'**
+  String get transitVoiceConnection;
+
+  /// No description provided for @transitVoiceContinueWalk.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue on foot'**
+  String get transitVoiceContinueWalk;
+
+  /// No description provided for @transitVoiceArrived.
+  ///
+  /// In en, this message translates to:
+  /// **'You have arrived'**
+  String get transitVoiceArrived;
+
+  /// No description provided for @savedTransitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved transit journeys'**
+  String get savedTransitTitle;
+
+  /// No description provided for @savedTransitEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved transit journey'**
+  String get savedTransitEmpty;
+
+  /// No description provided for @savedTransitSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save journey'**
+  String get savedTransitSave;
+
+  /// No description provided for @savedTransitOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Original snapshot'**
+  String get savedTransitOriginal;
+
+  /// No description provided for @savedTransitUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated journey'**
+  String get savedTransitUpdated;
+
+  /// No description provided for @savedTransitNeedsVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs verification'**
+  String get savedTransitNeedsVerification;
+
+  /// No description provided for @savedTransitUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No updated journey is available'**
+  String get savedTransitUnavailable;
+
+  /// No description provided for @savedTransitOfflineWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline snapshot — times may no longer be valid'**
+  String get savedTransitOfflineWarning;
+
+  /// No description provided for @savedTransitVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get savedTransitVerify;
+
+  /// No description provided for @savedTransitView.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get savedTransitView;
+
+  /// No description provided for @savedTransitDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get savedTransitDelete;
+
+  /// No description provided for @savedTransitDifferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes: {count}'**
+  String savedTransitDifferences(Object count);
+
+  /// No description provided for @savedTransitOpenList.
+  ///
+  /// In en, this message translates to:
+  /// **'Transit journeys'**
+  String get savedTransitOpenList;
 
   /// No description provided for @ztlNearRouteWarning.
   ///

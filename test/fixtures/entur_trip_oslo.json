@@ -1,0 +1,61 @@
+{
+  "data": {
+    "trip": {
+      "tripPatterns": [
+        {
+          "duration": 1140,
+          "expectedStartTime": "2026-10-12T08:00:00Z",
+          "expectedEndTime": "2026-10-12T08:19:00Z",
+          "legs": [
+            {
+              "mode": "foot",
+              "distance": 280.0,
+              "duration": 240,
+              "aimedStartTime": "2026-10-12T08:00:00Z",
+              "expectedStartTime": "2026-10-12T08:00:00Z",
+              "aimedEndTime": "2026-10-12T08:04:00Z",
+              "expectedEndTime": "2026-10-12T08:04:00Z",
+              "fromPlace": {"name":"Oslo S","latitude":59.9111,"longitude":10.7528,"quay":null},
+              "toPlace": {"name":"Jernbanetorget","latitude":59.9119,"longitude":10.7508,"quay":{"id":"NSR:Quay:1","publicCode":"A","stopPlace":{"id":"NSR:StopPlace:1"}}},
+              "fromEstimatedCall": null,
+              "line": null,
+              "serviceJourney": null,
+              "pointsOnLink": {"points":"_p~iF~ps|U_ulLnnqC"},
+              "intermediateEstimatedCalls": [],
+              "situations": []
+            },
+            {
+              "mode": "bus",
+              "distance": 5200.0,
+              "duration": 900,
+              "aimedStartTime": "2026-10-12T08:04:00Z",
+              "expectedStartTime": "2026-10-12T08:06:00Z",
+              "aimedEndTime": "2026-10-12T08:17:00Z",
+              "expectedEndTime": "2026-10-12T08:19:00Z",
+              "fromPlace": {"name":"Jernbanetorget","latitude":59.9119,"longitude":10.7508,"quay":{"id":"NSR:Quay:1","publicCode":"A","stopPlace":{"id":"NSR:StopPlace:1"}}},
+              "toPlace": {"name":"Majorstuen","latitude":59.9290,"longitude":10.7148,"quay":{"id":"NSR:Quay:2","publicCode":"3","stopPlace":{"id":"NSR:StopPlace:2"}}},
+              "fromEstimatedCall": {"realtime":true,"destinationDisplay":{"frontText":"Majorstuen"}},
+              "line": {"id":"RUT:Line:31","publicCode":"31","name":"Snaroya - Majorstuen","transportMode":"bus","presentation":{"colour":"E60000","textColour":"FFFFFF"}},
+              "serviceJourney": {"id":"RUT:ServiceJourney:31-1001"},
+              "pointsOnLink": {"points":"_p~iF~ps|U_ulLnnqC_mqNvxq`@"},
+              "intermediateEstimatedCalls": [
+                {
+                  "aimedArrivalTime":"2026-10-12T08:10:00Z",
+                  "expectedArrivalTime":"2026-10-12T08:12:00Z",
+                  "aimedDepartureTime":"2026-10-12T08:10:30Z",
+                  "expectedDepartureTime":"2026-10-12T08:12:30Z",
+                  "cancellation":false,
+                  "realtime":true,
+                  "quay":{"id":"NSR:Quay:middle","name":"Nationaltheatret","latitude":59.9148,"longitude":10.7345,"publicCode":"B","stopPlace":{"id":"NSR:StopPlace:middle"}}
+                }
+              ],
+              "situations": [
+                {"situationNumber":"RUT:Situation:7","severity":"warning","summary":[{"value":"Minor delay"}],"description":[{"value":"Two minutes late"}]}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
