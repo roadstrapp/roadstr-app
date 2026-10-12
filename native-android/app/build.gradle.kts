@@ -97,6 +97,7 @@ android {
                     "../../android/app/src/main/kotlin/app/roadstr/service/discovery",
                     "../../android/app/src/main/kotlin/app/roadstr/service/hazards",
                     "../../android/app/src/main/kotlin/app/roadstr/service/location",
+                    "../../android/app/src/main/kotlin/app/roadstr/service/meshcore",
                     "../../android/app/src/main/kotlin/app/roadstr/service/network",
                     "../../android/app/src/main/kotlin/app/roadstr/service/nostr",
                     "../../android/app/src/main/kotlin/app/roadstr/service/offline",

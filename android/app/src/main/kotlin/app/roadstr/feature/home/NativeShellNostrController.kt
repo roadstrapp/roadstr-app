@@ -1,21 +1,35 @@
 package app.roadstr.feature.home
 
+import app.roadstr.core.protocol.interop.CompactCoordinates
+import app.roadstr.core.protocol.interop.CompactReportLocation
+import app.roadstr.core.protocol.interop.CompactRoadCodec
+import app.roadstr.core.protocol.interop.CompatPlan
+import app.roadstr.core.protocol.interop.CompatReportPlanner
+import app.roadstr.core.protocol.interop.InteropPublishPolicy
+import app.roadstr.core.protocol.interop.OneTimeKey
+import app.roadstr.core.protocol.interop.RoadEventTransport
 import app.roadstr.core.protocol.nostr.BoundedJsonParser
+import app.roadstr.core.protocol.nostr.NostrEventDraft
+import app.roadstr.core.protocol.nostr.NostrSchnorr
 import app.roadstr.core.protocol.nostr.NostrJson
 import app.roadstr.core.protocol.nostr.RoadstrNostrEvents
 import app.roadstr.feature.map.NativeMapPoint
 import app.roadstr.feature.report.NativeRoadEventEditRequestInput
 import app.roadstr.feature.report.NativeRoadEventInput
 import app.roadstr.feature.report.NativeRoadEventPresenter
+import app.roadstr.feature.report.NativeRoadEventSubmission
+import app.roadstr.feature.report.NativeRoadEventSource
 import app.roadstr.feature.report.NativeRoadEventSession
 import app.roadstr.feature.saved.NativeSavedPlace
 import app.roadstr.feature.saved.NativeSavedPlacesProtocol
 import app.roadstr.service.nostr.NativeFavoritesCrypto
 import app.roadstr.service.nostr.NativeFavoritesPull
 import app.roadstr.service.nostr.NativeNostrWire
+import app.roadstr.service.nostr.NativeInteropPublishOutcome
 import app.roadstr.service.nostr.NativeReportOutcome
 import app.roadstr.service.nostr.NativeRoadEvent
 import app.roadstr.service.nostr.NativeRoadEventCodec
+import app.roadstr.service.nostr.NativeRoadEventProtocol
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -43,6 +57,9 @@ enum class NativeShellMessage {
     EditRequestSent,
     SpeedUpdateFailed,
     ZapSent,
+
+    /** The report went out, but its compatible copy could not be sent. */
+    InteropPublishFailed,
 }
 
 /**
@@ -219,7 +236,17 @@ class NativeShellReportController(
     private val session: NativeRoadEventSession,
     private val nowSeconds: () -> Long = NativeNostrWire::nowSeconds,
     private val message: (NativeShellMessage, Int) -> Unit,
+    /** Read at the moment a report is sent, so the switch in settings applies to the very next one. */
+    private val interopPolicy: () -> InteropPublishPolicy = { InteropPublishPolicy.OFF },
 ) {
+    /**
+     * Told about every signed event of the compatible layout this device created (a report, or a
+     * vote on a compatible report), so a radio bridge can offer it to MeshCore. Never called for
+     * native events.
+     */
+    @Volatile
+    var onCompatibleEvent: ((Map<String, Any?>) -> Unit)? = null
+
     /** Opens the report composer at [point], after the one-time privacy notice. */
     fun openComposer(point: NativeMapPoint) {
         if (nostr.signer.pubkeyHex == null) {
@@ -269,11 +296,13 @@ class NativeShellReportController(
                 is NativeReportOutcome.Published -> {
                     session.submissionAccepted(revision)
                     message(NativeShellMessage.ReportPublished, 0)
+                    publishCompatibleTwin(submission, pubkey, event.id, now)
                 }
 
                 is NativeReportOutcome.Queued -> {
                     session.submissionAccepted(revision)
                     message(NativeShellMessage.ReportQueued, 0)
+                    publishCompatibleTwin(submission, pubkey, event.id, now)
                 }
 
                 NativeReportOutcome.Failed -> {
@@ -284,6 +313,55 @@ class NativeShellReportController(
         }
     }
 
+    /**
+     * When the user asked for it, also sends the same report in the jooray/roadstr layout. The
+     * native event above is already out and is never touched: this is a separate event, built from
+     * the same facts and signed on its own. A problem here costs only the extra copy.
+     */
+    private suspend fun publishCompatibleTwin(
+        submission: NativeRoadEventSubmission,
+        accountPubkey: String,
+        nativeId: String,
+        now: Long,
+    ) {
+        val policy = interopPolicy()
+        if (!policy.enabled) return
+        val plan = CompatReportPlanner.plan(
+            submission.category, submission.latitude, submission.longitude, submission.comment,
+        )
+        // A category the format lacks is simply not mirrored; that is expected, not an error.
+        val eligible = plan as? CompatPlan.Eligible ?: return
+        val signed = signCompatibleReport(eligible, accountPubkey, now, policy.ephemeralKey)
+        if (signed == null) {
+            message(NativeShellMessage.InteropPublishFailed, 0)
+            return
+        }
+        if (nostr.roadEvents.publishInteropReport(signed, twinOf = nativeId) == NativeInteropPublishOutcome.Failed) {
+            message(NativeShellMessage.InteropPublishFailed, 0)
+        }
+        onCompatibleEvent?.invoke(signed)
+    }
+
+    private suspend fun signCompatibleReport(
+        plan: CompatPlan.Eligible,
+        accountPubkey: String,
+        now: Long,
+        ephemeral: Boolean,
+    ): Map<String, Any?>? {
+        if (!ephemeral) {
+            val draft = CompactRoadCodec.reportDraft(
+                accountPubkey, now, plan.latitudeE7, plan.longitudeE7, plan.type, plan.comment,
+            )
+            return nostr.signer.sign(draft)
+        }
+        // Signed here, in this process, with a key that exists only for this call.
+        val key = OneTimeKey.generate()
+        val draft = CompactRoadCodec.reportDraft(
+            key.publicKeyHex, now, plan.latitudeE7, plan.longitudeE7, plan.type, plan.comment,
+        )
+        return runCatching { NostrSchnorr.signEvent(draft, key.privateKeyHex) }.getOrNull()
+    }
+
     fun vote(eventId: String, stillThere: Boolean) {
         scope.launch {
             val pubkey = nostr.signer.pubkeyHex
@@ -291,11 +369,36 @@ class NativeShellReportController(
                 message(NativeShellMessage.VoteLoginRequired, 0)
                 return@launch
             }
-            val signed = nostr.signer.sign(RoadstrNostrEvents.vote(pubkey, nowSeconds(), eventId, stillThere))
+            val now = nowSeconds()
+            val draft = voteDraft(pubkey, now, eventId, stillThere)
+            val signed = nostr.signer.sign(draft.first)
             if (signed == null || !nostr.roadEvents.publishVote(signed)) {
                 message(NativeShellMessage.VoteFailed, 0)
+                return@launch
             }
+            if (draft.second) onCompatibleEvent?.invoke(signed)
         }
+    }
+
+    /**
+     * A vote on a report in the jooray/roadstr layout is written in that layout too (it must repeat
+     * the report's coordinates, which is how clients of that format find confirmations by area);
+     * a vote on a Roadstr report stays Roadstr's two-tag vote. The flag says which one it is.
+     */
+    private fun voteDraft(
+        pubkey: String,
+        now: Long,
+        eventId: String,
+        stillThere: Boolean,
+    ): kotlin.Pair<NostrEventDraft, Boolean> {
+        val target = nostr.roadEvents.find(eventId)
+        val latitude = target?.let { CompactCoordinates.latitudeE7(it.latitude) }
+        val longitude = target?.let { CompactCoordinates.longitudeE7(it.longitude) }
+        if (target?.protocol != NativeRoadEventProtocol.Interop || latitude == null || longitude == null) {
+            return RoadstrNostrEvents.vote(pubkey, now, eventId, stillThere) to false
+        }
+        val place = CompactReportLocation(target.id, latitude, longitude)
+        return CompactRoadCodec.confirmationDraft(pubkey, now, place, stillThere) to true
     }
 
     /**
@@ -424,6 +527,8 @@ class NativeShellReportController(
         comment = event.comment,
         createdAtSeconds = event.createdAt,
         expiresAtSeconds = event.expiresAt,
+        lifetimeEndsAtSeconds = event.lifetimeEndsAt,
+        source = sourceOf(event),
         speedLimitKmh = event.speedLimit,
         confirmations = event.confirmations,
         denials = event.denials,
@@ -433,6 +538,17 @@ class NativeShellReportController(
         reporterLabel = view.label,
         editRequests = view.editRequests,
     )
+
+    private fun sourceOf(event: NativeRoadEvent): NativeRoadEventSource {
+        if (event.protocol != NativeRoadEventProtocol.Interop) return NativeRoadEventSource.Roadstr
+        val relay = RoadEventTransport.RELAY in event.transports
+        val mesh = RoadEventTransport.MESH in event.transports
+        return when {
+            relay && mesh -> NativeRoadEventSource.InteropRelayAndMesh
+            mesh -> NativeRoadEventSource.InteropMesh
+            else -> NativeRoadEventSource.InteropRelay
+        }
+    }
 
     private companion object {
         const val MSAT_PER_SAT = 1_000L

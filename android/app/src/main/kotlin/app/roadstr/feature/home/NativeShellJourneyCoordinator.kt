@@ -45,6 +45,13 @@ import app.roadstr.service.transit.NativeTransitFailure
 import app.roadstr.service.transit.NativeTransitPlan
 import app.roadstr.service.transit.NativeTransitResult
 import app.roadstr.service.transit.NativeTransitUnavailable
+import app.roadstr.service.transit.NativeTransitDataResult
+import app.roadstr.service.transit.NativeTransitDataUnsupported
+import app.roadstr.service.transit.NativeTransitDeparturesQuery
+import app.roadstr.core.network.TransitStopBoard
+import app.roadstr.core.network.TransitStopReference
+import app.roadstr.core.network.TransitItinerary
+import app.roadstr.core.network.TransitScopedId
 import app.roadstr.feature.navigation.NativeNavigationRerouteRequest
 import app.roadstr.feature.place.NativePlaceArticleInput
 import app.roadstr.feature.route.NativeRoutePlanningCandidate
@@ -105,6 +112,33 @@ interface NativeShellJourneyGateway {
     suspend fun transitPlan(
         origin: SearchResponsePoint,
         destination: SearchResponsePoint,
+        languageCode: String,
+    ): NativeTransitResult = NativeTransitUnavailable
+
+    /** Operational board for a provider-scoped stop selected from search. */
+    suspend fun transitDepartures(
+        stop: TransitStopReference,
+        at: java.time.Instant,
+        languageCode: String,
+    ): NativeTransitDataResult<TransitStopBoard> = NativeTransitDataUnsupported
+
+    suspend fun nearbyTransitStops(
+        near: SearchResponsePoint,
+        languageCode: String,
+    ): List<SearchResult> = emptyList()
+
+    /** Refreshes the same provider-scoped itinerary; it does not search alternatives. */
+    suspend fun transitRefresh(
+        reference: TransitScopedId,
+        languageCode: String,
+    ): NativeTransitDataResult<TransitItinerary> = NativeTransitDataUnsupported
+
+    /** Searches alternatives only in the provider that owns the active journey. */
+    suspend fun transitReplan(
+        origin: SearchResponsePoint,
+        destination: SearchResponsePoint,
+        earliestDeparture: java.time.Instant,
+        providerId: String,
         languageCode: String,
     ): NativeTransitResult = NativeTransitUnavailable
 
@@ -261,8 +295,25 @@ class NativeShellJourneyCoordinator(
         cancelSearchWork()
         val revision = nextSearchRevision()
         if (!searchSession.beginNearby(revision, category)) return false
-        launchSearch(revision, category.wireQuery, near)
+        if (category == NativeSearchNearbyCategory.Transit) {
+            launchNearbyTransit(revision, near)
+        } else {
+            launchSearch(revision, category.wireQuery, near)
+        }
         return true
+    }
+
+    private fun launchNearbyTransit(revision: Long, near: SearchResponsePoint) {
+        searchJob = scope.launch {
+            try {
+                val results = gateway.nearbyTransitStops(near, normalizedLanguageCode())
+                searchSession.submitResults(revision, results)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                searchSession.submitResults(revision, emptyList())
+            }
+        }
     }
 
     fun selectDestination(

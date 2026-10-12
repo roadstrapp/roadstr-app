@@ -4,6 +4,7 @@ import app.roadstr.core.discovery.web.SearxngCapability
 import app.roadstr.core.format.UnitFormatter
 import app.roadstr.core.network.SearchResponsePoint
 import app.roadstr.core.network.SearchResult
+import app.roadstr.core.network.TransitStopReference
 import app.roadstr.core.search.SearchHistoryEntry
 import app.roadstr.core.search.SearchHistoryProtocol
 import app.roadstr.core.search.SearchRankingProtocol
@@ -91,6 +92,7 @@ enum class NativeSearchUiStatus {
 
 /** Order and symbols mirror NearbyCategory in the Flutter search panel. */
 enum class NativeSearchNearbyCategory(val emoji: String, val wireQuery: String) {
+    Transit("◉", "transit"),
     Fuel("⛽", "fuel"),
     Restaurant("🍽️", "restaurant"),
     Supermarket("🛒", "supermarket"),
@@ -116,6 +118,7 @@ data class NativeSearchResultPresentation(
     val emoji: String,
     val distanceLabel: String?,
     val position: SearchResponsePoint,
+    val transitStop: TransitStopReference? = null,
 )
 
 data class NativeSearchFavoritePresentation(
@@ -217,6 +220,7 @@ object NativeSearchPresenter {
             emoji = value.emoji,
             distanceLabel = distance,
             position = value.position,
+            transitStop = value.transitStop,
         )
     }
 
