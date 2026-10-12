@@ -8,6 +8,8 @@ All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stab
   panel, so a report can be published again while navigating.
 - Navigation: the speed figure is centred on the speedometer dial in every style (it sat above the centre); the unit
   now hangs below it.
+- Route planner: public transport can be chosen again. *On foot* now shows *On foot* and *Transit* underneath; the
+  Transit choice had gone missing from the planner, so no public-transport itinerary could be requested.
 
 ## [1.0.1] — 2026-10-11
 
