@@ -10,6 +10,29 @@ All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stab
   now hangs below it.
 - Route planner: public transport can be chosen again. *On foot* now shows *On foot* and *Transit* underneath; the
   Transit choice had gone missing from the planner, so no public-transport itinerary could be requested.
+- Public-transport navigation now follows walking, boarding, onboard, interchange and final-walk stages with a dedicated HUD,
+  deduplicated voice guidance, manual boarded/alighted/missed-service actions and restorable session checkpoints.
+- Transit search now includes nearby stops and operational departure boards; missed connections can be assessed, refreshed and
+  replanned without replacing the active journey until the user confirms. Transit journeys have a separate encrypted saved format
+  with original-versus-updated comparison.
+- Added Entur as a coverage-aware second online provider for Norway, including parameterized GraphQL requests, scoped IDs,
+  partial-error handling and controlled live probes.
+- Interoperability with the open *jooray/roadstr* road-report format (Nostr kinds 1315/1316). Reports in that layout are now
+  recognised by their tags instead of being read as Roadstr's own: they keep the lifetime that format gives each type (the
+  14-day `expiration` is only what relays keep), confirmations extend and denials cut short their life, and the details sheet says
+  where a report came from. Roadstr's own reports and their lifetimes are unchanged. *Settings → Interoperability*.
+- A compact 110/134-byte frame codec that rebuilds the exact signed event (same ID, key and signature) or refuses to encode:
+  integer-only coordinates, no locale, golden vectors from an independent Python implementation, cross-checked with a third
+  library. It tolerates (reads, never writes) the two defects found in the reference client's output: truncated coordinates and
+  decimal commas.
+- Optional *Also publish in the compatible format*: each report is also sent as a second, separately signed event in the
+  *jooray/roadstr* layout (account key or a one-time key) and shown as one marker with the native report. Off by default; older
+  Roadstr versions will show both markers.
+- Experimental MeshCore support (off by default, Bluetooth permission only when a radio is paired): companion-protocol client,
+  Android BLE link, receive/send over a shared `#roadstr` channel with a development `data_type`, and optional bridges between
+  the radio and the relays with a duplicate ledger, rate limits, an area limit, a bounded persistent queue and explicit consent.
+  Verified against a simulated radio only; not yet tested on real hardware.
+- Specification: [docs/interoperability/MESHCORE_NOSTR.md](docs/interoperability/MESHCORE_NOSTR.md).
 
 ## [1.0.1] — 2026-10-11
 

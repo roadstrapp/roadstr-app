@@ -104,6 +104,11 @@ android {
             assets.directories.add("src/main/assets")
             assets.directories.add("../../assets")
         }
+        // The interoperability golden vectors are published in docs/ for other implementers; the
+        // unit tests read that very file, so there is no second copy to drift.
+        getByName("test") {
+            resources.directories.add("../../docs/interoperability/vectors")
+        }
     }
 
     externalNativeBuild {

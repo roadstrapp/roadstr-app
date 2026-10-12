@@ -174,6 +174,7 @@ private fun RoadEventDetailPanel(
                         .padding(horizontal = 18.dp),
                 ) {
                     DetailHeader(detail, title)
+                    SourceCaption(detail.source)
                     detail.speedLimit?.let { speed ->
                         Spacer(modifier = Modifier.height(12.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -258,6 +259,23 @@ private fun RoadEventDetailPanel(
             }
         }
     }
+}
+
+/** One quiet line saying a report did not come from Roadstr itself; nothing for Roadstr's own. */
+@Composable
+private fun SourceCaption(source: NativeRoadEventSource) {
+    val label = when (source) {
+        NativeRoadEventSource.Roadstr -> return
+        NativeRoadEventSource.InteropRelay -> R.string.native_interop_source_relay
+        NativeRoadEventSource.InteropMesh -> R.string.native_interop_source_mesh
+        NativeRoadEventSource.InteropRelayAndMesh -> R.string.native_interop_source_both
+    }
+    Spacer(modifier = Modifier.height(8.dp))
+    Text(
+        stringResource(label),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = MaterialTheme.typography.labelMedium,
+    )
 }
 
 @Composable

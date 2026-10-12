@@ -57,6 +57,9 @@ fun NativeTransitItinerariesPanel(
     onRetry: (() -> Unit)?,
     onModeChanged: (NativeTransitTransportMode) -> Unit,
     onOpenAttribution: (String) -> Unit,
+    onStart: (() -> Unit)? = null,
+    onSave: (() -> Unit)? = null,
+    showModeChoices: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     if (snapshot.status == NativeTransitUiStatus.Hidden) return
@@ -86,7 +89,21 @@ fun NativeTransitItinerariesPanel(
                 NativeTransitUiStatus.Loading -> TransitLoadingState()
                 NativeTransitUiStatus.Unavailable -> TransitEmptyState(failed = false, onRetry = null)
                 NativeTransitUiStatus.Failure -> TransitEmptyState(failed = true, onRetry = onRetry)
-                NativeTransitUiStatus.Ready -> TransitReadyState(snapshot, onSelect)
+                NativeTransitUiStatus.Ready -> {
+                    TransitReadyState(snapshot, onSelect)
+                    if (snapshot.selectedIndex != null && onStart != null) {
+                        Row(modifier = Modifier.align(Alignment.End)) {
+                            if (onSave != null) {
+                                TextButton(onClick = onSave) {
+                                    Text(androidx.compose.ui.res.stringResource(R.string.native_saved_transit_save))
+                                }
+                            }
+                            TextButton(onClick = onStart) {
+                                Text(androidx.compose.ui.res.stringResource(R.string.native_route_start))
+                            }
+                        }
+                    }
+                }
             }
             val attributionUrl = snapshot.attributionUrl
             val providerName = snapshot.providerName
@@ -98,8 +115,10 @@ fun NativeTransitItinerariesPanel(
                     Text("$providerName · sources ↗", style = MaterialTheme.typography.labelSmall)
                 }
             }
-            Spacer(modifier = Modifier.height(10.dp))
-            TransitModeChoices(transportMode, onModeChanged)
+            if (showModeChoices) {
+                Spacer(modifier = Modifier.height(10.dp))
+                TransitModeChoices(transportMode, onModeChanged)
+            }
         }
     }
 }

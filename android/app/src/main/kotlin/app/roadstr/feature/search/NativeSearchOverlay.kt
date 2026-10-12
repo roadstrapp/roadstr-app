@@ -594,6 +594,7 @@ private fun SearchEmptyNearbyState() {
 
 @StringRes
 private fun NativeSearchNearbyCategory.labelResource(): Int = when (this) {
+    NativeSearchNearbyCategory.Transit -> R.string.native_transport_mode_transit
     NativeSearchNearbyCategory.Fuel -> R.string.native_search_nearby_fuel
     NativeSearchNearbyCategory.Restaurant -> R.string.native_search_nearby_restaurant
     NativeSearchNearbyCategory.Supermarket -> R.string.native_search_nearby_supermarket

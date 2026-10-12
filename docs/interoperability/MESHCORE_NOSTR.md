@@ -1,0 +1,527 @@
+# Road reports over Nostr and MeshCore — interoperability specification
+
+Status: **draft, implemented in Roadstr on the `feature/meshcore-nostr-interop` branch.**
+Everything in this document is reproducible from the repository; where something was **not** verified,
+it says so in [Implementation status](#13-implementation-status-and-what-is-not-proven).
+
+This document is meant to let someone who has never seen Roadstr build a compatible client or bridge
+without talking to anyone. It describes:
+
+1. which Nostr events are read and written (kinds 1315 and 1316 of the *jooray/roadstr* format);
+2. how those events are packed into 110- and 134-byte frames and rebuilt **bit for bit**;
+3. how reports are de-duplicated across relays, radio and Roadstr's own format;
+4. how a MeshCore radio is used as a second transport, and how a bridge between the two behaves.
+
+Roadstr and *jooray/roadstr* are independent projects. Roadstr reads and writes the other's format;
+it does not depend on its code, its developers or its servers.
+
+---
+
+## 1. Sources and where they disagree
+
+| Source | What it is |
+|---|---|
+| [`nips/roadstr.md`](https://github.com/jooray/roadstr/blob/main/nips/roadstr.md) | Draft NIP, the closest thing to a normative text. |
+| [`SPECIFICATION.md`](https://github.com/jooray/roadstr/blob/main/SPECIFICATION.md) | Longer design document, older in places. |
+| `roadstr-android/.../BinaryCodec.kt`, `EventSigner.kt` | The reference client. |
+| `roadstr-web/js/roadstr.js` | The web client. |
+| MeshCore [`docs/companion_protocol.md`](https://github.com/meshcore-dev/MeshCore/blob/main/docs/companion_protocol.md), `number_allocations.md`, `examples/companion_radio/MyMesh.cpp` | The radio side. |
+| Public relays (read-only probe, 2026-10-11) | 138 real kind 1315/1316 events: 103 in Roadstr's own layout, 20 in the *jooray* layout, 15 confirmations. |
+
+**Rule used here: the NIP, the reference client and what is actually on the relays win over
+`SPECIFICATION.md`.** They agree with each other; the long document does not.
+
+| Topic | `SPECIFICATION.md` | NIP + clients + relays | Followed |
+|---|---|---|---|
+| Kind 1316 tags | `e, status, expiration, alt` (§3.3) | `e, g, g, g, status, lat, lon, expiration, alt` | NIP |
+| `expiration` of a report | `created_at + type TTL` in the §3.2 example, `+14 d` in §5.1 | always `+1209600` | `+14 d` (all 20 real reports) |
+| Report binary size | heading "109 bytes", table sums to 110 | 110 | 110 |
+| Flags bit 2 | "privacy mode (ephemeral key)" | "reserved" | accepted as an **unsigned hint** only |
+| `alt` text | `Roadstr: police report at 48.856614, 2.352222` (§13.3) | `Roadstr: <type> report` | NIP |
+| Worked example (§15) | hex values and geohashes (`u09tu`, `u09tun`) | — | **wrong**, see below |
+| Confirmation frame | "reconstruct without coordinates" (§4.4) | needs the referenced report's coordinates | NIP |
+
+Errors in the §15 example, checked by recomputing them: latitude `48.8566140` is `0x1D1EED7C` (not
+`0x1D1D8E7C` / `0x1D1D8E8C`), longitude `2.3522219` is `0x0166EBAB` (not `0x016720AB`), `1700000000`
+is `0x6553F100` (not `0x65543B80`), `1700003600` is `0x6553FF10` (not `0x65544DA0`), and the geohashes
+of that point are `u09t`, `u09tv`, `u09tvw`. The vectors in
+[`vectors/`](vectors/roadstr-nostr-meshcore-v1.json) are generated, signed and verified; use those, not the
+worked example.
+
+### Findings about the reference client that change the design
+
+These were **measured**, not assumed:
+
+* **Its encoder truncates.** `(lat * 1e7).toLong()` rounds toward zero, and in IEEE-754 about
+  **6.2 % of 7-decimal coordinates** land one unit short (e.g. `35.1976312 * 1e7 = 351976311.99999994`).
+  A report has two coordinates, so roughly **12 % of the frames its encoder produces cannot be verified**
+  by anyone. Roadstr's encoder uses integer arithmetic only. Its decoder can optionally *recover* such
+  frames (§3.7).
+* **Its formatter follows the device locale.** `"%.7f".format(x)` writes a comma on many phones.
+  Public relays hold such events: **3 of the 20** real *jooray*-layout reports have `"lat":"49,0765652"`.
+  They are genuine, correctly signed events, but they are not the canonical text and can never be rebuilt
+  from a frame. Roadstr **reads** them (§2.5.1) and never encodes them.
+* **Its codec test uses fake keys and signatures** (`"b".repeat(64)`, `"c".repeat(128)`). The
+  `event → frame → event` property with a real signature had never been demonstrated before this work.
+
+---
+
+## 2. Events
+
+### 2.1 Kinds
+
+| Kind | Name | NIP-01 class |
+|---|---|---|
+| 1315 | Road event report | regular |
+| 1316 | Road event confirmation / denial | regular |
+
+Roadstr's own reports also use kinds 1315/1316 (and 1317/1318 for speed-limit edits), with a **different
+tag layout** (§6). A reader tells them apart by the tags alone.
+
+### 2.2 Report (kind 1315), canonical form
+
+Tags **must** appear in exactly this order:
+
+| # | Tag | Value |
+|---|---|---|
+| 1 | `t` | type string (§2.4) |
+| 2–4 | `g` | geohash of the position at 4, 5 and 6 characters |
+| 5 | `lat` | latitude, seven decimals, no locale (`-?D{1,2}.DDDDDDD`) |
+| 6 | `lon` | longitude, seven decimals (`-?D{1,3}.DDDDDDD`) |
+| 7 | `expiration` | `created_at + 1209600` |
+| 8 | `alt` | `Roadstr: <type> report` (optional on the wire) |
+
+`content` is a plain-text comment, usually empty. **A report with a non-empty `content`, or without
+`alt`, is a valid event but cannot be represented as a frame.**
+
+### 2.3 Confirmation (kind 1316), canonical form
+
+| # | Tag | Value |
+|---|---|---|
+| 1 | `e` | ID of the report |
+| 2–4 | `g` | geohashes **of the referenced report** |
+| 5 | `status` | `still_there` or `no_longer_there` |
+| 6 | `lat` | latitude **of the referenced report** |
+| 7 | `lon` | longitude of the referenced report |
+| 8 | `expiration` | `created_at + 1209600` |
+| 9 | `alt` | `Roadstr: event confirmed` / `Roadstr: event denied` |
+
+A confirmation does not carry the confirmer's own position: it repeats the report's, so one `#g` query
+finds both. A receiver **must** drop a confirmation whose coordinates differ from its report's.
+
+### 2.4 Types
+
+| Value | `t` | Effective lifetime |
+|---|---|---|
+| 0 | `police` | 2 h |
+| 1 | `speed_camera` | 30 d |
+| 2 | `traffic_jam` | 1 h |
+| 3 | `accident` | 3 h |
+| 4 | `road_closure` | 7 d |
+| 5 | `construction` | 7 d |
+| 6 | `hazard` | 4 h |
+| 7 | `road_condition` | 6 h |
+| 8 | `pothole` | 7 d |
+| 9 | `fog` | 3 h |
+| 10 | `ice` | 6 h |
+| 11 | `animal` | 1 h |
+| 12–254 | reserved — **never mapped to `other`**: that would change the signed `t` tag | — |
+| 255 | `other` | 2 h (frame only if `content` is empty) |
+
+Roadstr's category *police station* has no equivalent and is never exported. Nothing is approximated.
+
+### 2.5 Expiration and effective lifetime
+
+`expiration` (NIP-40) is a fixed 14 days and only tells relays when they may delete the event. It is **not**
+how long a marker is shown. The marker lives for the type's lifetime, pushed forward by confirmations and
+cut short by denials (specification §5.2):
+
+```
+expiry = created_at + ttl(type)
+for vote in votes ordered by (created_at, denial before confirmation):
+    still_there     → expiry = max(expiry, vote.created_at + ttl)
+    no_longer_there → expiry = min(expiry, vote.created_at)
+```
+
+and a report is hidden while the **last five minutes** contain more denials than confirmations (§5.3, ties
+stay visible). Choices the specification leaves open, made once and tested:
+
+* one voice per key: only the latest vote of a key counts;
+* a vote older than its report, or more than 5 minutes in the future, is ignored;
+* votes with the same timestamp are applied denials first, so a tie keeps the report alive;
+* nothing is shown past `created_at + 14 d`, whatever the votes say.
+
+### 2.5.1 Comma variant (tolerated reading)
+
+A relay event whose **only** deviation is a decimal comma in `lat`/`lon` (seven digits) is accepted for
+*display*, flagged as such, and treated as not representable. Every other tag — including the geohashes,
+recomputed from the coordinates — must still match. It is never encoded and never put on the radio.
+
+---
+
+## 3. Compact binary frame
+
+Integers are **big-endian**. (MeshCore's own companion frames are little-endian; the payload carried
+inside a channel datagram is opaque to the radio.)
+
+### 3.1 Report — 110 bytes
+
+```
+offset size field
+0      1    flags
+1      32   public key (x-only)
+33     4    created_at   uint32
+37     4    latitude     int32, degrees × 10^7
+41     4    longitude    int32, degrees × 10^7
+45     1    type         (§2.4)
+46     64   Schnorr signature (BIP-340)
+```
+
+### 3.2 Confirmation — 134 bytes
+
+```
+0      1    flags (bit 3 set)
+1      32   public key
+33     4    created_at   uint32
+37     32   ID of the referenced report
+69     1    status       0 = no_longer_there, 1 = still_there
+70     64   Schnorr signature
+```
+
+### 3.3 Flags
+
+```
+bits 7-4  version      0 = v1; anything else is refused
+bit  3    class        0 report, 1 confirmation
+bit  2    ephemeral    an UNSIGNED hint from the sender; never evidence
+bits 1-0  reserved     must be zero; otherwise refused
+```
+
+The flags byte is **not covered by the signature**: anyone relaying a frame can change it. Treat bit 2 as
+a hint at most.
+
+### 3.4 Rebuilding the event
+
+1. Take the key, `created_at`, position and type from the frame. A confirmation also needs the position of the
+   report it names: the receiver must look the report up (relay or cache); the frame alone cannot be rebuilt.
+2. Coordinates: `degrees = raw / 1e7` as an IEEE double (correctly rounded division); text = integer part,
+   `.`, and the seven digits of `|raw| mod 10^7`, with `-` if `raw < 0`. **Integer arithmetic, no locale, no
+   `printf`.** `0` prints as `0.0000000`; `-0.0000000` never occurs.
+3. Geohash (precision 4, 5, 6) by the usual interleaving of longitude/latitude bisections with `>=` on the
+   midpoint, base-32 alphabet `0123456789bcdefghjkmnpqrstuvwxyz`, on the double from step 2.
+4. `expiration = created_at + 1209600`; `alt` as in §2.2/§2.3; tags in canonical order; `content = ""`.
+5. ID = SHA-256 of the NIP-01 serialisation `[0,"<pubkey>",<created_at>,<kind>,<tags>,""]` (no whitespace).
+6. Verify the BIP-340 signature of the ID under the key. **Without a valid signature the frame is not an
+   event.**
+
+### 3.5 Encoding, and the property that matters
+
+```
+event ── encode ──► frame ── decode ──► event'      with  event'.id == event.id,
+                                                          event'.pubkey == event.pubkey,
+                                                          event'.sig == event.sig
+```
+
+An encoder **must** check this and refuse otherwise; being "semantically equivalent" is not enough, because
+one different tag order, one decimal more or a comma changes the ID. Roadstr's encoder rebuilds the event
+from the frame fields and compares tags and ID, then verifies the signature, and only then emits the frame.
+
+Refusal reasons (stable names, used by the test vectors):
+
+| Code | Meaning |
+|---|---|
+| `WRONG_KIND`, `MALFORMED_EVENT` | not a well-formed 1315/1316 event |
+| `NON_EMPTY_CONTENT` | has a comment |
+| `NON_CANONICAL` | tag order, spelling, `alt`, `expiration`, geohash or coordinate text differs from §2 |
+| `UNKNOWN_TYPE` | `t` not in §2.4 |
+| `COORDINATE_RANGE` | outside ±90° / ±180° |
+| `TIMESTAMP_RANGE` | `created_at` does not fit in 32 bits |
+| `REFERENCE_MISMATCH` | confirmation repeats other coordinates than its report |
+| `SIGNATURE_INVALID` | the ID or signature does not verify |
+
+### 3.6 Decoding
+
+Checks run in this order, cheapest first, so malformed input never costs a signature check:
+
+`BAD_LENGTH` (not exactly 110/134, or the class bit disagrees with the length) → `BAD_VERSION` →
+`RESERVED_BITS` → `UNKNOWN_TYPE` → `COORDINATE_RANGE` → `BAD_STATUS` → `REFERENCE_MISMATCH` →
+`SIGNATURE_INVALID`.
+
+### 3.7 Recovering frames from the truncating encoder (optional)
+
+With `RECOVER_REFERENCE_TRUNCATION`, a report frame that fails verification is retried with each coordinate
+moved one unit *away from zero* (zero tries both ways): at most 8 further signature checks. A recovered event
+is still a fully verified signature over exactly that event, so recovery cannot forge anything; it is reported
+as recovered, counted, and rate limited (10 per minute in the bridge). It is off unless the caller asks.
+
+---
+
+## 4. Test vectors
+
+[`vectors/roadstr-nostr-meshcore-v1.json`](vectors/roadstr-nostr-meshcore-v1.json) — generated by
+[`tools/interop/generate_vectors.py`](../../tools/interop/generate_vectors.py), a stdlib-only Python program that
+**shares no code with the Kotlin app**: BIP-340 transcribed from the reference in `bitcoin/bips`, self-tested
+against the official vectors 0 and 1 on every run; geohash, NIP-01 serialisation and the frame layout written
+independently. `python3 tools/interop/generate_vectors.py --check` fails if the committed file is stale.
+
+| Group | Count | What a conforming implementation must do |
+|---|---|---|
+| `valid` | 21 | decode `binaryHex` (+ `reference` for confirmations) to exactly `event`; encode `event` to exactly `binaryHex` (flags byte aside) |
+| `invalid` | 33 | decode fails with `expectStrict` |
+| `nonRepresentable` | 12 | encode is refused with `expectEncode` |
+| `tolerated` | 1 | readable on a relay path, never encodable (`NON_CANONICAL`) |
+| `referenceTruncation` | 5 | frames from the truncating encoder: strict decode fails, tolerant decode returns `expectedEventId` |
+
+Coverage includes: negative coordinates, `-90/-180` and `90/180`, `0.0000000`, `-0.0000005`, one-unit
+magnitudes, created_at above 2³¹ and at 2³²−1, all 13 types, geohash cell boundaries, the flags byte, tampering
+of each field, reserved bits, unknown types, out-of-range coordinates, wrong lengths, the confirmation
+mismatches, and the §3.2 / §13.3 / §15 examples of `SPECIFICATION.md` as *non-canonical* cases.
+
+Two implementations in this repository run them (Python generator/verifier and the Kotlin codec through
+Bouncy Castle), and the signatures and IDs of all 33 events were additionally checked with
+`@noble/curves 1.9.7`.
+
+Worked example (key and signature are throw-away test material):
+
+```
+key       aae4c1c999347e693cec59489bba9c70a0f3a3e1096d2cb99e811dfa857e2c0a   (TEST KEY)
+frame     0096cadb55d2b283776471521f22d5ef9e78c2dc816db69fb6cf70eaa08231b453
+          6553f100 1d1eed7c 0166ebab 00
+          a10bc13575ef963531acc54afc13445f198fe8b507d07d0fd4f2710e358bae17
+          c1962feca23cc7022d31e5b813430e6ad74e3e8cc7df126d7bce45798bd0ee05
+event id  c4fc8b221dea97c31b73423abafde550d64d06e3b4df771c1d41ee328b3e251a
+tags      t=police  g=u09t,u09tv,u09tvw  lat=48.8566140  lon=2.3522219
+          expiration=1701209600  alt="Roadstr: police report"
+```
+
+---
+
+## 5. Identity, duplicates and loops
+
+### 5.1 Two levels
+
+**Cryptographic identity.** Two events with the same Nostr ID are the same event, whatever carried them.
+A ledger (bounded, 2048 IDs, LRU) records, per ID, on which transports it was **seen**
+and to which it was **forwarded**. The part that involves the radio is persisted (relays resend their recent events at
+every connection, so what came from a relay is relearned; what the radio carried is not, and forgetting it would put
+the same events on the air at every launch).
+
+**Logical equivalence.** Roadstr publishes its native report and, if asked, a second event in the *jooray*
+layout for the same incident. These are *different* signed events (a different layout is a different ID) and
+are shown as **one marker** when:
+
+* they were signed by **the same key**,
+* have the same category, are within 5 minutes of each other, and
+* within one micro-degree (~11 cm; the native event prints six decimals, the other seven).
+
+**Events of different authors are never merged**, however close: two drivers reporting the same police car
+are two voices, and merging them would let anyone suppress or inflate a report by posting next to it. When
+the copy was made by the same device, the link is recorded directly instead of guessed, so a copy signed with
+a one-time key (different key) is still one marker *on that device*; other Roadstr users will see two.
+
+### 5.2 Loop prevention
+
+The bridge offers an event to a transport only if that transport has not seen it **and** the bridge has not
+already sent it there. A radio event published to the relays comes back through the relay subscription
+(`seen on relay`), so it is never sent back to the radio, and vice versa. On top of this every outgoing
+direction has a rate limit, a cooldown and an area (§8), so a mistake in one place cannot become a storm.
+
+---
+
+## 6. Roadstr's own format and how both coexist
+
+Roadstr's native report is `lat, lon, g, g, g, t, expiration[, maxspeed]` with six-decimal coordinates, no
+`alt`, and its own category set; its vote is `e, status`. It is unchanged by this work. Differences that matter:
+
+* Roadstr's categories include *police station* and per-category lifetimes that differ from §2.4 (police 4 h,
+  road closure 24 h…). Native reports keep theirs. **Reports in the *jooray* layout use §2.4.** Before this
+  work they were silently shown with Roadstr's lifetimes and no indication of their origin.
+* Roadstr counts votes; for *jooray*-layout reports it applies §2.5 (extend / cut short).
+* A vote on a *jooray*-layout report is written in the *jooray* confirmation layout; a vote on a Roadstr
+  report stays Roadstr's two-tag vote.
+* **Older Roadstr versions will show both markers** when "Also publish in the compatible format" is on: they
+  accept any kind 1315 with `lat/lon/t`, and cannot merge. The setting warns about it; it is off by default.
+
+---
+
+## 7. MeshCore transport
+
+### 7.1 Companion protocol subset
+
+BLE, Nordic UART service `6E400001-B5A3-F393-E0A9-E50E24DCCA9E` (app→radio `…0002` write, radio→app `…0003`
+notify), one protocol frame per write/notification, MeshCore integers little-endian. Used commands:
+
+| Command | Frame |
+|---|---|
+| App start | `01 00×7 "Roadstr"` → `SELF_INFO (05)` |
+| Device query | `16 03` → `DEVICE_INFO (0D)` (firmware code, max channels, model, version) |
+| Get channel | `1F idx` → `CHANNEL_INFO (12)` / error |
+| Set channel | `20 idx name[32] secret[16]` → `OK` (only when the user asks) |
+| **Send channel data** | `3E idx FF dtype_lo dtype_hi payload` → `OK` / `ERROR` |
+| Sync next message | `0A` → channel data `1B …` / text / `NO_MORE_MSGS (0A)`; triggered by push `83` |
+| Battery | `14` → `0C mv_lo mv_hi …` |
+
+`3E` is the **channel data datagram**: opaque binary payload, **no sender identity and no timestamp** (which
+is why the frame carries the key and `created_at`). Payload limit `MAX_CHANNEL_DATA_LENGTH = MAX_FRAME_SIZE − 9
+= 163` bytes; 110 and 134 fit. Receive frame: `1B snr×4 r r channel path_len dtype(2,LE) len payload`.
+Errors: 1 unsupported command, 2 not found, 3 table full (retry), 4 bad state, 6 illegal argument.
+
+Command exchange is strictly one in flight with a 5 s timeout; a radio answering "queue full" is tried up to three
+times in all, 2 s apart, then reported busy.
+
+**Firmware.** The documentation is for companion firmware ≥ 1.12.0 (current: 1.17.1). There is no
+capability query: a radio whose firmware predates channel datagrams answers `ERROR 1` to `3E`; Roadstr then
+reports "firmware too old", stops, and does not retry in a loop.
+
+### 7.2 Shared channel
+
+MeshCore's *hashtag channels* derive the key from the name: the first 16 bytes of `SHA-256("#name")`
+(verified: `#test` → `9cd8fcf22a47333b591d96a2b848b73f`). Roadstr uses **`#roadstr`**
+(`b7f4317db7b03aeb563b2c4bdc476d6a`). This is a convention of this project, not an official assignment, and
+anyone can guess the name, so **the channel is shared and public**: radio encryption is not a privacy
+feature here. The radio is configured only on explicit request, into the first empty slot (1–7).
+
+### 7.3 `data_type`
+
+`data_type` identifies an *application*, not a payload format. Roadstr currently sends **`0xFF52`**, inside
+the development range `0xFF00–0xFFFE` that MeshCore reserves for testing and needs no registration. It is not
+an assignment. To obtain a stable one (procedure from `docs/number_allocations.md`): once a working
+application can be demonstrated on real hardware, open a pull request against `meshcore-dev/MeshCore` adding a
+row to that table (range inside `0100–FEFF`, app name, contact). Until then, interoperating implementations
+must agree on the value out of band, and it must be configurable.
+
+### 7.4 Payload
+
+The payload is exactly the 110- or 134-byte frame of §3, nothing added. A receiver tells them apart by length
+and flags bit 3. The datagram's own `data_type`, channel and length are checked first: other applications'
+datagrams and other channels are ignored.
+
+### 7.5 Android
+
+Platform Bluetooth LE APIs only (no Play services). Permissions are declared only for this feature:
+`BLUETOOTH_SCAN` (flagged `neverForLocation`) and `BLUETOOTH_CONNECT` at runtime on Android 12+; the legacy
+`BLUETOOTH`/`BLUETOOTH_ADMIN` for ≤ 30 with `maxSdkVersion="30"`; before 12 a scan needs the location
+permission Roadstr already holds. They are requested **only when the user chooses to pair a radio**, never at
+onboarding. The `bluetooth_le` feature is optional. The link lives while the app is in view and a radio
+feature is on (it is closed on `onStop`); a radio keeps queuing datagrams while the app is away and they are
+read on the next connection. Pairing/bonding is handled by Android when the radio asks for it.
+
+---
+
+## 8. Bridge
+
+All of it is **off by default**, and each direction is its own switch.
+
+| Switch | Effect |
+|---|---|
+| *Show compatible reports* (on) | read *jooray*-layout reports from relays |
+| *Also publish in the compatible format* | each report is also sent as a separate, separately signed kind 1315 event (optionally with a one-time key) |
+| *Receive reports from the radio* | decode, verify and show what is heard |
+| *Send my reports by radio* | the device's own compatible reports and votes go on the radio (needs consent) |
+| *Bridge: radio → Nostr* | republish what is heard to the relays, with the original author (needs consent) |
+| *Bridge: Nostr → radio* | broadcast nearby compatible reports from the relays (needs consent and *send*) |
+
+**Radio → Nostr.** A datagram is rebuilt and verified (§3.4), its timestamp and age checked, shown, and — if
+enabled and the relays do not already have it — queued for the relays. The event is published **unchanged**:
+the bridge never signs and never changes author, ID or signature. Offline, it waits in a queue that is
+bounded (100), encrypted at rest, persistent, cleared from Settings, and drops anything past its useful life.
+If the user switches the bridge off the queue is not published.
+
+**Nostr → radio.** An event is put on the radio only if it is representable exactly (§3.5), live with at
+least 5 minutes left, within 40 km of the driver, new to the radio, and inside the limits below. A confirmation
+is sent only if its report is already known on the radio (otherwise a receiver cannot rebuild it).
+
+| Limit | Default |
+|---|---|
+| frames taken from the radio per minute | 60 (the rest dropped unread) |
+| coordinate recoveries per minute | 10 |
+| other people's events put on the radio, per hour / per author per hour / gap | 20 / 4 / 20 s |
+| this device's own events per minute | 6 |
+| radius around the driver: putting a relay event on the radio / republishing a radio event to relays | 40 km / 250 km |
+| waiting republish queue | 100 |
+
+A refusal by one limit spends none of the others' quota. Identical frames (SHA-256) are processed once.
+Confirmations that arrive before their report are held for 15 minutes (64 at most) and applied when it appears.
+
+---
+
+## 9. Privacy and security
+
+* **The radio is not private or anonymous.** Anyone in range receives position, time and the public key that
+  signed a report, with or without internet. Enabling *send* or either bridge asks for explicit consent once,
+  and says so.
+* A one-time key (*Sign the compatible copy with a one-time key*) removes the link to the account and the extra
+  signer prompt. It is generated in memory, used for one signature and discarded; the app still never stores
+  any private key. It is **not** anonymity — location and time are still public — and other Roadstr users then
+  see two markers.
+* A valid signature proves control of a key, not the truth of the report. There is no reputation: the
+  trust-all model of the format is unchanged. No emergency/violence categories were added.
+* Untrusted input at every boundary: frames are length/version/range-checked before any signature work;
+  relay events are routed by subscription and kind, with a per-subscription budget, before verification;
+  every cache and queue is bounded; timestamps more than 5 minutes ahead and frames older than their type's
+  life are dropped.
+* No private key is ever sent to a radio, a gateway or a relay; nothing sensitive is logged.
+* Radio events are republished with their original author. A bridge operator can therefore be *seen* to
+  relay somebody's report, but cannot make it look like their own.
+
+---
+
+## 10. Settings and display
+
+Settings → *Interoperability (experimental)* and *MeshCore — Experimental* (English and Italian; other
+languages fall back to English). Nothing is required at onboarding; Roadstr is fully usable without a radio.
+Report details show a single line when a report is not Roadstr's own — *from the Nostr network*, *received
+over MeshCore radio*, or both — and nothing for Roadstr's own. The map is unchanged.
+
+## 11. Real-relay validation
+
+On 2026-10-11 a **read-only** query (`kinds [1315,1316]`, last 60 days, `limit 200`) was sent to
+`relay.primal.net`, `nos.lol`, `nostr.oxtr.dev`, `relay.damus.io`; nothing was published. The 138 unique events
+were run through the implementation: all 138 had valid IDs and signatures; 103 classified as Roadstr-native,
+20 as *jooray* layout (16 representable, 1 with a comment, 3 with a decimal comma), and the 15 confirmations
+as 4 *jooray*-style and 11 Roadstr two-tag votes; every *jooray*-layout report had `expiration = created_at +
+1209600`. Subscribing by `#g` (4 characters) reaches *jooray*-layout reports because they carry all three
+precisions; confirmations are found by `#e` (the reports' IDs), or by `#g` for those that repeat the
+geohashes. **Publishing** the compatible layout to relays and reading it back was *not* done on public relays
+(it would publish a 14-day event); it is covered by tests against a simulated relay.
+
+## 12. Hardware validation
+
+**No MeshCore hardware was available.** The radio code is covered by tests against a simulated radio written
+from `companion_protocol.md` and checked against `MyMesh.cpp`; a simulation is not a radio, and no
+end-to-end radio claim is made. To close the gap, on at least one radio per supported chipset:
+
+1. Pair an Android device with a companion-firmware radio (record model and firmware version).
+2. Create the `#roadstr` channel from the settings button; confirm on the radio's own UI the slot and name.
+3. With two radios in range: send a compatible report from device A; confirm device B (receive on) shows it
+   with *received over MeshCore radio* and the same event ID.
+4. Confirm the 110-byte frame is accepted at the firmware's current limits and arrives intact (compare IDs).
+5. Disconnect Bluetooth during a send: confirm the report is not marked sent, the link reconnects, and the
+   next send works.
+6. With radio → Nostr on and no internet, hear a report, restore internet, confirm one relay copy with the
+   original author and signature, and none on the radio again.
+7. Record airtime/duty-cycle behaviour with the default limits on a busy channel.
+
+## 13. Implementation status and what is not proven
+
+| Part | Status |
+|---|---|
+| Frame codec, event rebuild, vectors | implemented; 21+33+12+1+5 vectors pass in Kotlin; generator independent; IDs/signatures cross-checked with noble-curves |
+| Relay reading of the *jooray* layout, provenance, lifetime/votes, dedupe | implemented, tested, and validated read-only on public relays |
+| Compatible publishing (optional), one-time key | implemented, tested against a simulated relay; **not** published to public relays |
+| Companion protocol client | implemented; tested against a simulated radio |
+| Android BLE link and scanner | implemented, compiled; **not run on any device** |
+| Bridge, queue, limits, loop prevention | implemented, tested with simulated radio and relays |
+| Real radio, real firmware, real airtime | **not tested** |
+
+### Residual risks
+
+* **Older Roadstr clients show duplicates** when the compatible copy is published (§6). Off by default.
+* **A reference-client bug is tolerated, not fixed**: frames from its truncating encoder are recoverable only
+  while the bridge's recovery budget lasts.
+* The stable `data_type` is not registered; implementations must agree on `0xFF52` or a configured value.
+* A public hashtag channel is open to anyone; the limits bound what a flooder can make Roadstr do, not what
+  they can do to the channel. LoRa duty cycle is regional; the defaults are conservative but unproven.
+* The Android BLE link has not met real hardware (MTU negotiation, bonding prompts and vendor quirks are the
+  usual surprises).
+* Locale-formatted coordinates from third-party clients are read but not rewritten.

@@ -19,6 +19,23 @@
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
     <uses-feature android:name="android.hardware.location" android:required="false" />
 
+    <!-- MeshCore radio (optional feature, off until the user pairs a radio). Android 12+ asks for
+         scan and connect at runtime; scan declares it never derives location from it. Before
+         Android 12 the legacy pair is install-time only and a scan needs the location permission
+         that is already declared above. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="false" />
     <queries>
         <intent>
             <action android:name="android.intent.action.VIEW" />

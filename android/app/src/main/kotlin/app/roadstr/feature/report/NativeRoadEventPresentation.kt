@@ -15,6 +15,21 @@ enum class NativeRoadEventSurface { Hidden, Detail, PrivacyNotice, Composer }
 
 enum class NativeRoadEventAgeUnit { Minutes, Hours, Days }
 
+/** Where a report came from, for the details sheet only: the map itself shows no difference. */
+enum class NativeRoadEventSource {
+    /** Roadstr's own report. Shown without any label. */
+    Roadstr,
+
+    /** The jooray/roadstr layout, received from a Nostr relay. */
+    InteropRelay,
+
+    /** The jooray/roadstr layout, received over a MeshCore radio. */
+    InteropMesh,
+
+    /** The jooray/roadstr layout, seen on both. */
+    InteropRelayAndMesh,
+}
+
 data class NativeRoadEventAge(
     val value: Long,
     val unit: NativeRoadEventAgeUnit,
@@ -54,6 +69,9 @@ data class NativeRoadEventInput(
     val reporterPublic: Boolean = false,
     val reporterLabel: String? = null,
     val editRequests: List<NativeRoadEventEditRequestInput> = emptyList(),
+    /** Interoperable reports: when the marker stops being shown. Replaces the category lifetime. */
+    val lifetimeEndsAtSeconds: Long? = null,
+    val source: NativeRoadEventSource = NativeRoadEventSource.Roadstr,
 )
 
 data class NativeRoadEventDetail(
@@ -66,6 +84,7 @@ data class NativeRoadEventDetail(
     val longitude: Double,
     val comment: String,
     val age: NativeRoadEventAge,
+    val source: NativeRoadEventSource,
     val speedLimitKmh: Int?,
     val speedLimit: Int?,
     val speedUnit: String,
@@ -176,6 +195,7 @@ object NativeRoadEventPresenter {
             longitude = input.longitude,
             comment = truncateReceivedComment(input.comment),
             age = age(input.createdAtSeconds, nowSeconds),
+            source = input.source,
             speedLimitKmh = input.speedLimitKmh,
             speedLimit = input.speedLimitKmh?.let {
                 formatter.toDisplaySpeed(it.toDouble()).roundToInt()
@@ -282,9 +302,11 @@ object NativeRoadEventPresenter {
         )
     }
 
-    private fun expired(input: NativeRoadEventInput, nowSeconds: Long): Boolean =
-        nowSeconds >= safeClientExpiration(input.createdAtSeconds, input.category.ttlSeconds) ||
+    private fun expired(input: NativeRoadEventInput, nowSeconds: Long): Boolean {
+        if (input.lifetimeEndsAtSeconds != null) return nowSeconds >= input.lifetimeEndsAtSeconds
+        return nowSeconds >= safeClientExpiration(input.createdAtSeconds, input.category.ttlSeconds) ||
             (input.expiresAtSeconds != null && nowSeconds >= input.expiresAtSeconds)
+    }
 
     private fun safeClientExpiration(createdAtSeconds: Long, ttlSeconds: Int): Long =
         if (createdAtSeconds > Long.MAX_VALUE - ttlSeconds) {
