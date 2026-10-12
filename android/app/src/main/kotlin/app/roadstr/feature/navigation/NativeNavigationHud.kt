@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
@@ -60,6 +61,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -743,22 +745,30 @@ private fun NativeSpeedometer(snapshot: NativeNavigationHudSnapshot, dimension: 
                 NativeSpeedometerStyle.Minimal -> .30f
                 NativeSpeedometerStyle.Analog -> .16f
             }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = snapshot.speed.toString(),
-                    color = speedColor,
-                    fontSize = (dimension.value * fontFactor).sp,
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = (dimension.value * fontFactor).sp,
-                    letterSpacing = if (snapshot.speedometerStyle == NativeSpeedometerStyle.Digital) 1.2.sp else TextUnit.Unspecified,
-                    style = TextStyle(fontFeatureSettings = "tnum"),
-                )
-                Text(
-                    text = snapshot.speedUnit,
-                    color = if (snapshot.speedometerStyle == NativeSpeedometerStyle.Sport) Color(0xFF9A_A6BF) else MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = (dimension.value * fontFactor * .29f).sp,
-                )
-            }
+            // The figure sits on the exact centre of the dial and the unit hangs below it: stacking
+            // both in one centred Column pushed the figure up by half the unit's height.
+            val figureSize = dimension.value * fontFactor
+            val unitSize = figureSize * .29f
+            val tightLine = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.Both)
+            Text(
+                text = snapshot.speed.toString(),
+                color = speedColor,
+                fontSize = figureSize.sp,
+                fontWeight = FontWeight.Bold,
+                lineHeight = figureSize.sp,
+                letterSpacing = if (snapshot.speedometerStyle == NativeSpeedometerStyle.Digital) 1.2.sp else TextUnit.Unspecified,
+                style = TextStyle(fontFeatureSettings = "tnum", lineHeightStyle = tightLine),
+            )
+            Text(
+                text = snapshot.speedUnit,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(y = (figureSize * .54f).dp),
+                color = if (snapshot.speedometerStyle == NativeSpeedometerStyle.Sport) Color(0xFF9A_A6BF) else MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = unitSize.sp,
+                lineHeight = unitSize.sp,
+                style = TextStyle(lineHeightStyle = tightLine),
+            )
         }
     }
 }

@@ -78,6 +78,23 @@ void main() {
     expect(source, isNot(contains('Hive')));
   });
 
+  test('the planner offers public transport as a choice, not only walking', () {
+    final source = panel.readAsStringSync();
+    final modeRow = RegExp(
+      r'private fun RouteModeRow\([\s\S]*?\n\}\n',
+    ).firstMatch(source)!.group(0)!;
+    final subRow = RegExp(
+      r'private fun WalkingOrTransitRow\([\s\S]*?\n\}\n',
+    ).firstMatch(source)!.group(0)!;
+
+    // The row shows the choice once "On foot" (or transit itself) is selected...
+    expect(modeRow, contains('WalkingOrTransitRow('));
+    expect(modeRow, contains('selectedMode == NativeRouteTransportMode.Transit'));
+    // ...and that choice contains the transit chip, wired to the mode change.
+    expect(subRow, contains('NativeRouteTransportMode.Transit'));
+    expect(subRow, contains('onModeChanged = onModeChanged'));
+  });
+
   test('private shell feeds planning through the provider-neutral coordinator',
       () {
     final source = shell.readAsStringSync();

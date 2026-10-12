@@ -2696,39 +2696,6 @@ fun NativeRoadstrShell(
                     },
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
-                NativeRoadEventPanels(
-                    snapshot = roadEventState,
-                    onClose = roadEventSession::hide,
-                    onAcceptPrivacy = { revision ->
-                        nostrHost?.reports?.acceptPrivacy(revision)
-                            ?: roadEventSession.acceptPrivacy(revision)
-                    },
-                    onSelectCategory = roadEventSession::selectCategory,
-                    onCommentChanged = roadEventSession::updateComment,
-                    onSpeedChanged = roadEventSession::updateSpeed,
-                    onSubmit = { revision -> nostrHost?.reports?.submit(revision) },
-                    onOpenReporter = {
-                        roadEventState.detail?.reporterNpub?.let { npub -> onOpenExternal("nostr:$npub") }
-                    },
-                    onVote = { _, stillThere ->
-                        roadEventState.detail?.id?.let { id -> nostrHost?.reports?.vote(id, stillThere) }
-                    },
-                    onEditSpeedLimit = { _, requestId ->
-                        val event = nostrHost?.reports?.currentEvent
-                        if (event != null && event.id == roadEventState.detail?.id) {
-                            if (requestId != null) {
-                                nostrHost.reports.acceptEditRequest(event, requestId)
-                            } else {
-                                nostrHost.promptSpeedLimit(event, settingsState.values.imperialUnits)
-                            }
-                        }
-                    },
-                    onZap = {
-                        val event = nostrHost?.reports?.currentEvent
-                        if (event != null && event.id == roadEventState.detail?.id) nostrHost.zap.open(event)
-                    },
-                    modifier = Modifier.align(Alignment.BottomCenter),
-                )
                 NativeWikipediaReader(
                     snapshot = wikipediaState,
                     onClose = {
@@ -2779,6 +2746,39 @@ fun NativeRoadstrShell(
                     },
                     onOpenSettings = showSettings,
                     onBottomPanelHeight = { navPanelHeightPixels = it },
+                )
+                NativeRoadEventPanels(
+                    snapshot = roadEventState,
+                    onClose = roadEventSession::hide,
+                    onAcceptPrivacy = { revision ->
+                        nostrHost?.reports?.acceptPrivacy(revision)
+                            ?: roadEventSession.acceptPrivacy(revision)
+                    },
+                    onSelectCategory = roadEventSession::selectCategory,
+                    onCommentChanged = roadEventSession::updateComment,
+                    onSpeedChanged = roadEventSession::updateSpeed,
+                    onSubmit = { revision -> nostrHost?.reports?.submit(revision) },
+                    onOpenReporter = {
+                        roadEventState.detail?.reporterNpub?.let { npub -> onOpenExternal("nostr:$npub") }
+                    },
+                    onVote = { _, stillThere ->
+                        roadEventState.detail?.id?.let { id -> nostrHost?.reports?.vote(id, stillThere) }
+                    },
+                    onEditSpeedLimit = { _, requestId ->
+                        val event = nostrHost?.reports?.currentEvent
+                        if (event != null && event.id == roadEventState.detail?.id) {
+                            if (requestId != null) {
+                                nostrHost.reports.acceptEditRequest(event, requestId)
+                            } else {
+                                nostrHost.promptSpeedLimit(event, settingsState.values.imperialUnits)
+                            }
+                        }
+                    },
+                    onZap = {
+                        val event = nostrHost?.reports?.currentEvent
+                        if (event != null && event.id == roadEventState.detail?.id) nostrHost.zap.open(event)
+                    },
+                    modifier = Modifier.align(Alignment.BottomCenter),
                 )
                 NativeNavigationArrivalBanner(
                     visible = activeNavigationState.arrived,
