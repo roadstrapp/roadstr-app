@@ -1,6 +1,15 @@
 package app.roadstr.service.nostr
 
+import app.roadstr.core.protocol.interop.RoadEventTransport
 import app.roadstr.core.protocol.nostr.RoadCategoryWire
+
+/** Whose event layout a report arrived in. Roadstr's own reports are never relabelled. */
+enum class NativeRoadEventProtocol {
+    Roadstr,
+
+    /** The jooray/roadstr layout (kinds 1315/1316), read through the interoperability adapter. */
+    Interop,
+}
 
 /** A community road report (Nostr kind 1315) with its vote tally. */
 data class NativeRoadEvent(
@@ -15,10 +24,21 @@ data class NativeRoadEvent(
     val speedLimit: Int? = null,
     val confirmations: Int = 0,
     val denials: Int = 0,
+    val protocol: NativeRoadEventProtocol = NativeRoadEventProtocol.Roadstr,
+    /** Where this event has been seen. Empty for events the native reader parsed without a transport. */
+    val transports: Set<RoadEventTransport> = emptySet(),
+    /**
+     * Interoperable reports only: when the marker stops being shown, from the report type's own
+     * lifetime and its votes. For them [expiresAt] is just the 14 days relays keep the event, so
+     * it must not decide how long the marker lives.
+     */
+    val lifetimeEndsAt: Long? = null,
 ) {
-    fun isExpired(nowSeconds: Long): Boolean =
-        nowSeconds >= createdAt + category.ttlSeconds ||
+    fun isExpired(nowSeconds: Long): Boolean {
+        if (lifetimeEndsAt != null) return nowSeconds >= lifetimeEndsAt
+        return nowSeconds >= createdAt + category.ttlSeconds ||
             (expiresAt != null && nowSeconds >= expiresAt)
+    }
 }
 
 /** Strict reader for relay-supplied kind-1315 events. */

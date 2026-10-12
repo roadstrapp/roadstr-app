@@ -8,12 +8,20 @@ import app.roadstr.core.network.PermanentFailure
 import app.roadstr.core.network.RetryPolicy
 import app.roadstr.core.network.TransientFailure
 import app.roadstr.core.network.TransitItinerary
+import app.roadstr.core.network.TransitDeparture
+import app.roadstr.core.network.TransitLine
+import app.roadstr.core.network.TransitOperationalProtocol
 import app.roadstr.core.network.TransitParsedPlan
 import app.roadstr.core.network.TransitParsedUnavailable
 import app.roadstr.core.network.TransitProvider
 import app.roadstr.core.network.TransitProtocol
 import app.roadstr.core.network.TransitRequestPoint
 import app.roadstr.core.network.TransitResponseException
+import app.roadstr.core.network.TransitScopedId
+import app.roadstr.core.network.TransitStopBoard
+import app.roadstr.core.network.TransitStopReference
+import app.roadstr.core.network.TransitStopSearchResult
+import app.roadstr.core.network.TransitTripDetails
 import app.roadstr.service.network.NativeBoundedHttpClient
 import app.roadstr.service.network.NativeHttpException
 import app.roadstr.service.network.NativeHttpFailureKind
@@ -22,6 +30,7 @@ import app.roadstr.service.network.NativeHttpRequest
 import app.roadstr.service.network.NativeHttpRequestLimits
 import app.roadstr.service.network.NativeTransitHttpTransport
 import java.time.Instant
+import java.time.Duration
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 
@@ -39,6 +48,19 @@ data class NativeTransitFailure(
     val transient: Boolean,
 ) : NativeTransitResult
 
+sealed interface NativeTransitDataResult<out T>
+
+data class NativeTransitData<T>(val value: T) : NativeTransitDataResult<T>
+
+data object NativeTransitDataUnavailable : NativeTransitDataResult<Nothing>
+
+data object NativeTransitDataUnsupported : NativeTransitDataResult<Nothing>
+
+data class NativeTransitDataFailure(
+    val message: String,
+    val transient: Boolean,
+) : NativeTransitDataResult<Nothing>
+
 enum class NativeTransitCapability {
     DoorToDoorRouting,
     MultipleAlternatives,
@@ -49,6 +71,12 @@ enum class NativeTransitCapability {
     IntermediateStops,
     Accessibility,
     RefreshableItinerary,
+    StopSearch,
+    NearbyStops,
+    Departures,
+    StopLines,
+    TripDetails,
+    Replanning,
 }
 
 sealed interface NativeTransitCoverage {
@@ -81,10 +109,74 @@ data class NativeTransitQuery(
     val languageCode: String?,
 )
 
+data class NativeTransitStopSearchQuery(
+    val query: String,
+    val location: TransitRequestPoint?,
+    val languageCode: String?,
+)
+
+data class NativeTransitDeparturesQuery(
+    val stop: TransitStopReference,
+    val time: Instant,
+    val languageCode: String?,
+)
+
+data class NativeTransitStopQuery(
+    val stop: TransitStopReference,
+    val languageCode: String?,
+)
+
+data class NativeTransitReferenceQuery(
+    val reference: TransitScopedId,
+    val languageCode: String?,
+)
+
 interface NativeTransitProvider {
     val descriptor: NativeTransitProviderDescriptor
 
     suspend fun plan(query: NativeTransitQuery): NativeTransitResult
+
+    suspend fun searchStops(query: NativeTransitStopSearchQuery): NativeTransitDataResult<List<TransitStopSearchResult>> =
+        NativeTransitDataUnsupported
+
+    suspend fun nearbyStops(
+        location: TransitRequestPoint,
+        languageCode: String?,
+    ): NativeTransitDataResult<List<TransitStopSearchResult>> = NativeTransitDataUnsupported
+
+    suspend fun departures(query: NativeTransitDeparturesQuery): NativeTransitDataResult<TransitStopBoard> =
+        NativeTransitDataUnsupported
+
+    suspend fun lines(query: NativeTransitStopQuery): NativeTransitDataResult<List<TransitLine>> =
+        NativeTransitDataUnsupported
+
+    suspend fun trip(query: NativeTransitReferenceQuery): NativeTransitDataResult<TransitTripDetails> =
+        NativeTransitDataUnsupported
+
+    suspend fun refreshItinerary(query: NativeTransitReferenceQuery): NativeTransitDataResult<TransitItinerary> =
+        NativeTransitDataUnsupported
+
+    suspend fun replan(query: NativeTransitQuery): NativeTransitResult = plan(query)
+
+    suspend fun serviceAlerts(query: NativeTransitDeparturesQuery): NativeTransitDataResult<List<app.roadstr.core.network.TransitAlert>> =
+        when (val board = departures(query)) {
+            is NativeTransitData -> NativeTransitData(board.value.departures.flatMap(TransitDeparture::alerts).distinct())
+            is NativeTransitDataFailure -> board
+            NativeTransitDataUnavailable -> NativeTransitDataUnavailable
+            NativeTransitDataUnsupported -> NativeTransitDataUnsupported
+        }
+}
+
+/** Socket-free sentinel used when policy forbids every installed/online provider. */
+object NativeUnavailableTransitProvider : NativeTransitProvider {
+    override val descriptor = NativeTransitProviderDescriptor(
+        provider = TransitProvider("unavailable", "Unavailable", null),
+        capabilities = setOf(NativeTransitCapability.DoorToDoorRouting),
+        coverage = NativeTransitCoverage.Worldwide,
+        priority = Int.MIN_VALUE,
+    )
+
+    override suspend fun plan(query: NativeTransitQuery): NativeTransitResult = NativeTransitUnavailable
 }
 
 /** Chooses one capable provider and only falls back after a transient failure. */
@@ -116,6 +208,79 @@ class NativeTransitProviderRouter(
         return lastTransient ?: NativeTransitUnavailable
     }
 
+    suspend fun searchStops(
+        query: NativeTransitStopSearchQuery,
+    ): NativeTransitDataResult<List<TransitStopSearchResult>> = routeData(
+        capability = NativeTransitCapability.StopSearch,
+        point = query.location,
+    ) { searchStops(query) }
+
+    suspend fun nearbyStops(
+        location: TransitRequestPoint,
+        languageCode: String?,
+    ): NativeTransitDataResult<List<TransitStopSearchResult>> = routeData(
+        capability = NativeTransitCapability.NearbyStops,
+        point = location,
+    ) { nearbyStops(location, languageCode) }
+
+    suspend fun departures(query: NativeTransitDeparturesQuery): NativeTransitDataResult<TransitStopBoard> =
+        routeScoped(NativeTransitCapability.Departures, query.stop.id.providerId) { departures(query) }
+
+    suspend fun lines(query: NativeTransitStopQuery): NativeTransitDataResult<List<TransitLine>> =
+        routeScoped(NativeTransitCapability.StopLines, query.stop.id.providerId) { lines(query) }
+
+    suspend fun trip(query: NativeTransitReferenceQuery): NativeTransitDataResult<TransitTripDetails> =
+        routeScoped(NativeTransitCapability.TripDetails, query.reference.providerId) { trip(query) }
+
+    suspend fun refreshItinerary(query: NativeTransitReferenceQuery): NativeTransitDataResult<TransitItinerary> =
+        routeScoped(NativeTransitCapability.RefreshableItinerary, query.reference.providerId) {
+            refreshItinerary(query)
+        }
+
+    /** Replanning stays inside the original provider so legs are never spliced across datasets. */
+    suspend fun replan(query: NativeTransitQuery, providerId: String): NativeTransitResult {
+        val provider = providers.firstOrNull {
+            it.descriptor.provider.id == providerId &&
+                NativeTransitCapability.Replanning in it.descriptor.capabilities &&
+                it.covers(query.from) && it.covers(query.to)
+        } ?: return NativeTransitUnavailable
+        return provider.replan(query)
+    }
+
+    private suspend fun <T> routeScoped(
+        capability: NativeTransitCapability,
+        providerId: String,
+        call: suspend NativeTransitProvider.() -> NativeTransitDataResult<T>,
+    ): NativeTransitDataResult<T> {
+        val provider = providers.firstOrNull {
+            it.descriptor.provider.id == providerId && capability in it.descriptor.capabilities
+        } ?: return NativeTransitDataUnsupported
+        return provider.call()
+    }
+
+    private suspend fun <T> routeData(
+        capability: NativeTransitCapability,
+        point: TransitRequestPoint?,
+        call: suspend NativeTransitProvider.() -> NativeTransitDataResult<T>,
+    ): NativeTransitDataResult<T> {
+        val candidates = providers.filter {
+            capability in it.descriptor.capabilities && (point == null || it.covers(point))
+        }
+        if (candidates.isEmpty()) return NativeTransitDataUnsupported
+        var lastTransient: NativeTransitDataFailure? = null
+        for (provider in candidates) {
+            when (val result = provider.call()) {
+                is NativeTransitDataFailure -> {
+                    if (!result.transient) return result
+                    lastTransient = result
+                }
+                NativeTransitDataUnsupported -> Unit
+                else -> return result
+            }
+        }
+        return lastTransient ?: NativeTransitDataUnavailable
+    }
+
     private fun NativeTransitProvider.covers(point: TransitRequestPoint): Boolean = when (
         val coverage = descriptor.coverage
     ) {
@@ -139,7 +304,14 @@ class NativeTransitService internal constructor(
     private val endpoint: String,
     private val sleep: suspend (Long) -> Unit,
     override val descriptor: NativeTransitProviderDescriptor = TRANSITOUS_DESCRIPTOR,
+    private val clock: () -> Instant = Instant::now,
 ) : NativeTransitProvider {
+    private data class CachedOperationalResponse(val body: String, val storedAt: Instant)
+    private val cacheLock = Any()
+    private val operationalCache = object : LinkedHashMap<String, CachedOperationalResponse>(32, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, CachedOperationalResponse>?): Boolean =
+            size > MAX_OPERATIONAL_CACHE_ENTRIES
+    }
     constructor(transport: NativeTransitHttpTransport) : this(
         transport = transport,
         endpoint = TransitProtocol.DEFAULT_ENDPOINT,
@@ -212,6 +384,111 @@ class NativeTransitService internal constructor(
         error("Transit retry loop terminated without a result")
     }
 
+    override suspend fun searchStops(
+        query: NativeTransitStopSearchQuery,
+    ): NativeTransitDataResult<List<TransitStopSearchResult>> {
+        val request = runCatching {
+            TransitOperationalProtocol.searchStopsRequest(endpoint, query.query, query.location, query.languageCode)
+        }.getOrElse { return NativeTransitDataFailure("invalid transit stop request", transient = false) }
+        return executeOperational(request, SEARCH_CACHE_MILLIS) { body ->
+            TransitOperationalProtocol.parseStopSearch(body, descriptor.provider)
+        }
+    }
+
+    override suspend fun nearbyStops(
+        location: TransitRequestPoint,
+        languageCode: String?,
+    ): NativeTransitDataResult<List<TransitStopSearchResult>> {
+        val request = runCatching {
+            TransitOperationalProtocol.nearbyStopsRequest(endpoint, location)
+        }.getOrElse { return NativeTransitDataFailure("invalid nearby stop request", transient = false) }
+        return executeOperational(request, NEARBY_CACHE_MILLIS) { body ->
+            TransitOperationalProtocol.parseStopSearch(body, descriptor.provider)
+        }
+    }
+
+    override suspend fun departures(query: NativeTransitDeparturesQuery): NativeTransitDataResult<TransitStopBoard> {
+        if (query.stop.id.providerId != descriptor.provider.id) return NativeTransitDataUnsupported
+        val request = TransitOperationalProtocol.departuresRequest(endpoint, query.stop, query.time, query.languageCode)
+        return executeOperational(request, BOARD_CACHE_MILLIS) { body ->
+            TransitOperationalProtocol.parseStopBoard(body, descriptor.provider, clock())
+        }
+    }
+
+    override suspend fun lines(query: NativeTransitStopQuery): NativeTransitDataResult<List<TransitLine>> {
+        if (query.stop.id.providerId != descriptor.provider.id) return NativeTransitDataUnsupported
+        val request = TransitOperationalProtocol.linesRequest(endpoint, query.stop, query.languageCode)
+        return executeOperational(request, LINES_CACHE_MILLIS) { body ->
+            TransitOperationalProtocol.parseLines(body, descriptor.provider)
+        }
+    }
+
+    override suspend fun trip(query: NativeTransitReferenceQuery): NativeTransitDataResult<TransitTripDetails> {
+        if (query.reference.providerId != descriptor.provider.id) return NativeTransitDataUnsupported
+        val request = TransitOperationalProtocol.tripRequest(endpoint, query.reference, query.languageCode)
+        return executeOperational(request) { body ->
+            TransitTripDetails(TransitProtocol.parseItinerary(body, descriptor.provider), clock())
+        }
+    }
+
+    override suspend fun refreshItinerary(
+        query: NativeTransitReferenceQuery,
+    ): NativeTransitDataResult<TransitItinerary> {
+        if (query.reference.providerId != descriptor.provider.id) return NativeTransitDataUnsupported
+        val request = TransitOperationalProtocol.refreshRequest(endpoint, query.reference, query.languageCode)
+        return executeOperational(request) { body -> TransitProtocol.parseItinerary(body, descriptor.provider) }
+    }
+
+    private suspend fun <T> executeOperational(
+        providerRequest: app.roadstr.core.network.TransitProviderRequest,
+        cacheTtlMillis: Long = 0,
+        parse: (String) -> T,
+    ): NativeTransitDataResult<T> {
+        if (cacheTtlMillis > 0) {
+            val cached = synchronized(cacheLock) {
+                operationalCache[providerRequest.uri]?.takeIf {
+                    Duration.between(it.storedAt, clock()).toMillis() in 0 until cacheTtlMillis
+                }
+            }
+            if (cached != null) {
+                return runCatching { NativeTransitData(parse(cached.body)) }
+                    .getOrElse { NativeTransitDataFailure("malformed transit response", transient = false) }
+            }
+        }
+        val request = NativeHttpRequest(
+            method = NativeHttpMethod.Get,
+            uri = providerRequest.uri,
+            headers = providerRequest.headers,
+        )
+        val retryPolicy = RetryPolicy.Interactive
+        for (attempt in 1..retryPolicy.attempts) {
+            try {
+                val response = transport.execute(request, REQUEST_LIMITS)
+                if (response.statusCode == 404) return NativeTransitDataUnavailable
+                val statusFailure = NetworkFailureClassifier.classifyStatus(
+                    status = response.statusCode,
+                    retryAfterHeader = response.headers["retry-after"],
+                )
+                if (statusFailure != null) throw statusFailure
+                val parsed = parse(response.bodyUtf8)
+                if (cacheTtlMillis > 0) synchronized(cacheLock) {
+                    operationalCache[providerRequest.uri] = CachedOperationalResponse(response.bodyUtf8, clock())
+                }
+                return NativeTransitData(parsed)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                val failure = classify(error)
+                if (failure is TransientFailure && attempt < retryPolicy.attempts) {
+                    sleep(retryPolicy.delayBefore(attempt + 1, failure.retryAfter).toMillis())
+                    continue
+                }
+                return NativeTransitDataFailure(failure.message, failure is TransientFailure)
+            }
+        }
+        error("Transit operational retry loop terminated without a result")
+    }
+
     private fun classify(error: Throwable): NetworkFailure = when (error) {
         is NetworkFailure -> error
         is TransitResponseException -> PermanentFailure("malformed transit response")
@@ -238,6 +515,12 @@ class NativeTransitService internal constructor(
                 NativeTransitCapability.IntermediateStops,
                 NativeTransitCapability.Accessibility,
                 NativeTransitCapability.RefreshableItinerary,
+                NativeTransitCapability.StopSearch,
+                NativeTransitCapability.NearbyStops,
+                NativeTransitCapability.Departures,
+                NativeTransitCapability.StopLines,
+                NativeTransitCapability.TripDetails,
+                NativeTransitCapability.Replanning,
             ),
             coverage = NativeTransitCoverage.Worldwide,
             priority = 100,
@@ -247,5 +530,10 @@ class NativeTransitService internal constructor(
             timeoutMillis = NetworkTimeoutBudget.Transit.milliseconds,
             maxResponseBytes = NetworkResponseLimit.TransitPlan.bytes,
         )
+        private const val MAX_OPERATIONAL_CACHE_ENTRIES = 64
+        private const val SEARCH_CACHE_MILLIS = 30_000L
+        private const val NEARBY_CACHE_MILLIS = 20_000L
+        private const val BOARD_CACHE_MILLIS = 15_000L
+        private const val LINES_CACHE_MILLIS = 60_000L
     }
 }

@@ -38,6 +38,7 @@ fun NativeSavedRoutesPanel(
     onRename: (NativeSavedRoute) -> Unit,
     onDelete: (NativeSavedRoute) -> Unit,
     onClose: () -> Unit,
+    onOpenTransitJourneys: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val title = stringResource(R.string.native_saved_routes_title)
@@ -63,6 +64,14 @@ fun NativeSavedRoutesPanel(
                     fontWeight = FontWeight.SemiBold,
                 )
                 TextButton(onClick = onClose) { Text(stringResource(R.string.native_nostr_cancel)) }
+            }
+            if (onOpenTransitJourneys != null) {
+                TextButton(
+                    onClick = onOpenTransitJourneys,
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                ) {
+                    Text(stringResource(R.string.native_saved_transit_open_list))
+                }
             }
             if (routes.isEmpty()) {
                 Text(

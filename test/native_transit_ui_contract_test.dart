@@ -32,8 +32,8 @@ void main() {
       final strings = RegExp(
         r'<string name="([^"]+)">([\s\S]*?)</string>',
       ).allMatches(entry.value).toList();
-      expect(strings, hasLength(15), reason: entry.key);
-      expect(strings.map((match) => match.group(1)).toSet(), hasLength(15));
+      expect(strings, hasLength(67), reason: entry.key);
+      expect(strings.map((match) => match.group(1)).toSet(), hasLength(67));
       expect(
         strings
             .singleWhere(

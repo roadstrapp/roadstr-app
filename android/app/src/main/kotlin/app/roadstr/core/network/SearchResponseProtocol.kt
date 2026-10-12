@@ -28,6 +28,8 @@ data class SearchResult(
     /** Native-only: a discovery result brings its own symbol and its localised category line. */
     val emojiOverride: String? = null,
     val categoryLabelOverride: String? = null,
+    /** Operational transit result. Null for ordinary geocoder/POI rows. */
+    val transitStop: TransitStopReference? = null,
 ) {
     val emoji: String
         get() = emojiOverride ?: categoryEmoji(featureClass, type)

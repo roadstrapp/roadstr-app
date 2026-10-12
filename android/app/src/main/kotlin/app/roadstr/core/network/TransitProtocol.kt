@@ -20,6 +20,7 @@ data class TransitRequestPoint(
 data class TransitProviderRequest(
     val uri: String,
     val headers: Map<String, String>,
+    val body: String? = null,
 )
 
 /** Provider identity kept with every result so foreign identifiers never collide. */
@@ -355,6 +356,17 @@ object TransitProtocol {
                 requestedDeparture = requestedDeparture,
             )
         }
+    }
+
+    /** Parses the bare itinerary returned by MOTIS trip/refresh endpoints. */
+    fun parseItinerary(
+        body: String,
+        provider: TransitProvider = MOTIS_PROVIDER,
+    ): TransitItinerary = wrapErrors {
+        val decoded = BoundedJsonParser(body).parse() as? Map<*, *>
+            ?: fail("Unexpected transit itinerary shape")
+        parseItinerary(decoded, provider, providerRank = 0)
+            ?: fail("Transit itinerary is incomplete")
     }
 
     /** Google encoded-polyline decoder with the same partial-on-truncation behavior as Dart. */

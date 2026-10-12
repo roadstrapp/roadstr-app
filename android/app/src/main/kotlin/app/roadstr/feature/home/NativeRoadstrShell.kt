@@ -145,6 +145,9 @@ import app.roadstr.feature.saved.NativeSavedPlacesSession
 import app.roadstr.feature.savedroute.NativeSavedRoute
 import app.roadstr.feature.savedroute.NativeSavedRouteProtocol
 import app.roadstr.feature.savedroute.NativeSavedRoutesPanel
+import app.roadstr.feature.savedtransit.NativeSavedTransitJourney
+import app.roadstr.feature.savedtransit.NativeSavedTransitJourneysPanel
+import app.roadstr.feature.savedtransit.NativeSavedTransitProtocol
 import app.roadstr.feature.search.NativeSearchFavorite
 import app.roadstr.feature.search.NativeSearchPresenter
 import app.roadstr.feature.search.NativeSearchOverlay
@@ -169,6 +172,13 @@ import app.roadstr.feature.settings.NativeSettingsVoiceGender
 import app.roadstr.feature.settings.NativeSettingsVoiceModelStatus
 import app.roadstr.feature.transit.NativeTransitItinerariesPanel
 import app.roadstr.feature.transit.NativeTransitJourneySession
+import app.roadstr.feature.transit.NativeTransitNavigationHud
+import app.roadstr.feature.transit.NativeTransitNavigationSession
+import app.roadstr.feature.transit.NativeTransitNavigationStage
+import app.roadstr.feature.transit.NativeTransitVoiceCueKind
+import app.roadstr.feature.transit.NativeTransitStopBoardPanel
+import app.roadstr.feature.transit.NativeTransitStopBoardSession
+import app.roadstr.feature.transit.NativeTransitStopBoardStatus
 import app.roadstr.feature.transit.NativeTransitTransportMode
 import app.roadstr.feature.wikipedia.NativeWikipediaReader
 import app.roadstr.feature.wikipedia.NativeWikipediaSession
@@ -181,6 +191,13 @@ import app.roadstr.service.offline.OfflinePackageManifestProtocol
 import app.roadstr.feature.voice.NativeVoiceGateway
 import app.roadstr.feature.voice.NativeVoiceGender
 import app.roadstr.feature.voice.NativeVoiceRuntimeStatus
+import app.roadstr.service.transit.NativeTransitData
+import app.roadstr.service.transit.NativeTransitDataFailure
+import app.roadstr.service.transit.NativeTransitDataUnavailable
+import app.roadstr.service.transit.NativeTransitDataUnsupported
+import app.roadstr.service.transit.NativeTransitPlan
+import app.roadstr.service.transit.NativeTransitFailure
+import app.roadstr.service.transit.NativeTransitUnavailable
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.async
@@ -306,6 +323,8 @@ fun NativeRoadstrShell(
     onRouteHistoryChanged: (List<NativeRouteHistoryEntry>) -> Unit = {},
     initialSavedRoutes: List<NativeSavedRoute> = emptyList(),
     onSavedRoutesChanged: (List<NativeSavedRoute>) -> Boolean = { true },
+    initialSavedTransitJourneys: List<NativeSavedTransitJourney> = emptyList(),
+    onSavedTransitJourneysChanged: (List<NativeSavedTransitJourney>) -> Boolean = { true },
     initialWebSearch: WebDiscoverySettings = WebDiscoverySettings(),
     onWebSearchChanged: (WebDiscoverySettings) -> Unit = {},
     /** Where web pages open: the user's browser, or the optional in-app browser. */
@@ -322,6 +341,8 @@ fun NativeRoadstrShell(
     speedCameraService: NativeOsmSpeedCameraService? = null,
     ztlService: NativeZtlService? = null,
     nostr: NativeShellNostr? = null,
+    /** The optional MeshCore radio support; null where the build has none. */
+    mesh: NativeShellMesh? = null,
     /**
      * Owner of the trip sessions. When the host passes one, a trip is moved along, spoken and rerouted
      * by it, with or without this screen; without one the shell keeps its own sessions and does that itself.
@@ -428,6 +449,32 @@ fun NativeRoadstrShell(
             )
         }
         val transitUiState by transitJourneySession.state.collectAsState()
+        val transitNavigationSession = remember { NativeTransitNavigationSession() }
+        val transitNavigationState by transitNavigationSession.state.collectAsState()
+        val transitAlternativeOverlay = remember {
+            NativeTransitOverlaySession(
+                initialAccentArgb = palette.accentArgb,
+                initialTextSecondaryArgb = palette.textSecondaryArgb,
+            )
+        }
+        val transitAlternativeSession = remember(transitAlternativeOverlay) {
+            NativeTransitJourneySession(
+                overlaySession = transitAlternativeOverlay,
+                initialAccentArgb = palette.accentArgb,
+            )
+        }
+        val transitAlternativeState by transitAlternativeSession.state.collectAsState()
+        var transitReplanRevision by remember { mutableLongStateOf(-1L) }
+        var transitUpdateJob by remember { mutableStateOf<Job?>(null) }
+        LaunchedEffect(transitAlternativeSession, palette.accentArgb, settingsState.values.imperialUnits) {
+            transitAlternativeSession.updatePresentation(
+                accentArgb = palette.accentArgb,
+                imperial = settingsState.values.imperialUnits,
+            )
+        }
+        DisposableEffect(transitNavigationSession) {
+            onDispose { transitUpdateJob?.cancel() }
+        }
         var transitMode by remember { mutableStateOf(NativeTransitTransportMode.Transit) }
         var headingMode by remember { mutableStateOf(true) }
         val cameraSession = remember { NativeMapCameraSession() }
@@ -511,6 +558,26 @@ fun NativeRoadstrShell(
         val searchSession = remember { NativeSearchSession(initialImperial = settingsState.values.imperialUnits) }
         val searchState by searchSession.state.collectAsState()
         val journeyScope = rememberCoroutineScope()
+        val transitStopBoardSession = remember { NativeTransitStopBoardSession() }
+        val transitStopBoardState by transitStopBoardSession.state.collectAsState()
+        var transitStopBoardJob by remember { mutableStateOf<Job?>(null) }
+        val loadTransitStopBoard: (app.roadstr.core.network.TransitStopReference) -> Unit = loadBoard@{ stop ->
+            val gateway = journeyGateway ?: return@loadBoard
+            transitStopBoardJob?.cancel()
+            val revision = transitStopBoardState.revision.coerceAtLeast(0L) + 1L
+            if (!transitStopBoardSession.begin(revision, stop)) return@loadBoard
+            transitStopBoardJob = journeyScope.launch {
+                val result = gateway.transitDepartures(
+                    stop = stop,
+                    at = java.time.Instant.now(),
+                    languageCode = settingsState.values.languageCode ?: Locale.getDefault().language,
+                )
+                transitStopBoardSession.submit(revision, result)
+            }
+        }
+        DisposableEffect(transitStopBoardSession) {
+            onDispose { transitStopBoardJob?.cancel() }
+        }
         var offlinePackagesVisible by remember { mutableStateOf(false) }
         var offlinePackagesState by remember(offlinePackagesGateway) {
             mutableStateOf(
@@ -672,6 +739,20 @@ fun NativeRoadstrShell(
         }
         val voiceRuntimeState = voiceGateway?.state?.collectAsState()?.value
         val voiceLanguage = journeyLanguage
+        val transitVoiceApproachStop = stringResource(R.string.native_transit_voice_approach_stop)
+        val transitVoicePrepareBoard = stringResource(R.string.native_transit_voice_prepare_board)
+        val transitVoiceConnection = stringResource(R.string.native_transit_voice_connection)
+        val transitVoiceContinueWalk = stringResource(R.string.native_transit_voice_continue_walk)
+        val transitVoiceArrived = stringResource(R.string.native_transit_voice_arrived)
+        val transitDestinationFallback = stringResource(R.string.native_transit_destination)
+        val transitVoiceTakeLine = stringResource(
+            R.string.native_transit_voice_take_line,
+            transitNavigationState.voiceCue?.line.orEmpty(),
+        )
+        val transitVoiceAlight = stringResource(
+            R.string.native_transit_voice_alight,
+            transitNavigationState.voiceCue?.stopName.orEmpty(),
+        )
         LaunchedEffect(
             voiceGateway,
             voiceLanguage,
@@ -840,6 +921,12 @@ fun NativeRoadstrShell(
         }
         var savedRoutes by remember(initialSavedRoutes) { mutableStateOf(initialSavedRoutes) }
         var savedRoutesVisible by remember { mutableStateOf(false) }
+        var savedTransitJourneys by remember(initialSavedTransitJourneys) {
+            mutableStateOf(initialSavedTransitJourneys)
+        }
+        var savedTransitVisible by remember { mutableStateOf(false) }
+        var selectedSavedTransit by remember { mutableStateOf<NativeSavedTransitJourney?>(null) }
+        var savedTransitVerifyJob by remember { mutableStateOf<Job?>(null) }
         var editingSavedRoute by remember { mutableStateOf<NativeSavedRoute?>(null) }
         var saveRouteDialogVisible by remember { mutableStateOf(false) }
         var renameSavedRoute by remember { mutableStateOf<NativeSavedRoute?>(null) }
@@ -848,6 +935,11 @@ fun NativeRoadstrShell(
         val updateSavedRoutes: (List<NativeSavedRoute>) -> Boolean = { next ->
             val stored = onSavedRoutesChanged(next)
             if (stored) savedRoutes = next
+            stored
+        }
+        val updateSavedTransit: (List<NativeSavedTransitJourney>) -> Boolean = { next ->
+            val stored = onSavedTransitJourneysChanged(next)
+            if (stored) savedTransitJourneys = next
             stored
         }
         var contextMenuPoint by remember { mutableStateOf<NativeMapPoint?>(null) }
@@ -941,6 +1033,12 @@ fun NativeRoadstrShell(
                     )
                 }
             },
+            currentPoint = { latestFix?.point },
+        )
+        val meshHost = rememberNativeShellMeshHost(
+            mesh = mesh,
+            settingsSession = settingsSession,
+            nostrHost = nostrHost,
             currentPoint = { latestFix?.point },
         )
         // The account's own reports and zap balance come from the relays after the
@@ -1112,7 +1210,7 @@ fun NativeRoadstrShell(
         }
         // Screen-wake and brightness-floor policy, same as the Flutter map screens.
         val wantsScreenOn = settingsState.values.keepScreenOnAlways ||
-            (activeNavigationState.active && settingsState.values.keepScreenOn)
+            ((activeNavigationState.active || transitNavigationState.active) && settingsState.values.keepScreenOn)
         val brightnessFloor = settingsState.values.minimumBrightness
         DisposableEffect(wantsScreenOn, brightnessFloor) {
             val window = (context as? Activity)?.window
@@ -1144,9 +1242,18 @@ fun NativeRoadstrShell(
         }
         var exitNavigationDialogVisible by remember { mutableStateOf(false) }
         val stopNavigation: () -> Unit = {
-            if (activeNavigationSession.stop(activeNavigationState.revision)) {
+            val roadStopped = activeNavigationSession.stop(activeNavigationState.revision)
+            val transitStopped = transitNavigationSession.stop()
+            if (roadStopped || transitStopped) {
                 journeyCoordinator?.cancelReroute()
                 voiceGateway?.stop()
+                if (transitStopped && transitUiState.revision >= 0) {
+                    transitJourneySession.clear(transitUiState.revision)
+                }
+                if (transitAlternativeState.revision >= 0) {
+                    transitAlternativeSession.clear(transitAlternativeState.revision)
+                    transitReplanRevision = -1L
+                }
                 cameraSession.configure(
                     headingUp = true,
                     navigating = false,
@@ -1257,6 +1364,15 @@ fun NativeRoadstrShell(
         // navigating) for the cursor and the camera.
         LaunchedEffect(gpsSnapshot.fix?.sequence) {
             val fix = gpsSnapshot.fix ?: return@LaunchedEffect
+            if (transitNavigationSession.state.value.active) {
+                transitNavigationSession.submitLocation(
+                    point = app.roadstr.core.network.TransitResponsePoint(
+                        fix.point.latitude,
+                        fix.point.longitude,
+                    ),
+                    now = java.time.Instant.now(),
+                )
+            }
             val navigating = activeNavigationSession.state.value.active
             if (navigating && navigationHost == null) {
                 submitNavigationFix(activeNavigationSession, fix, headingTracker.headingDegrees)
@@ -1351,6 +1467,121 @@ fun NativeRoadstrShell(
                 nowMillis = SystemClock.elapsedRealtime(),
                 imperial = settingsState.values.imperialUnits,
             )
+        }
+        LaunchedEffect(transitNavigationState.voiceCue?.sequence) {
+            val cue = transitNavigationState.voiceCue ?: return@LaunchedEffect
+            if (!settingsState.values.voiceEnabled) return@LaunchedEffect
+            val instruction = when (cue.kind) {
+                NativeTransitVoiceCueKind.ApproachStop -> transitVoiceApproachStop
+                NativeTransitVoiceCueKind.PrepareToBoard -> transitVoicePrepareBoard
+                NativeTransitVoiceCueKind.BoardLine -> transitVoiceTakeLine
+                NativeTransitVoiceCueKind.PrepareToAlight -> transitVoiceAlight
+                NativeTransitVoiceCueKind.PrepareConnection -> transitVoiceConnection
+                NativeTransitVoiceCueKind.ContinueOnFoot -> transitVoiceContinueWalk
+                NativeTransitVoiceCueKind.Arrived -> transitVoiceArrived
+            }
+            if (cue.kind == NativeTransitVoiceCueKind.Arrived) {
+                voiceGateway?.announceArrival()
+            } else {
+                voiceGateway?.announceManeuver(
+                    instruction = instruction,
+                    distanceMeters = 0,
+                    nowMillis = SystemClock.elapsedRealtime(),
+                    imperial = settingsState.values.imperialUnits,
+                )
+            }
+        }
+        LaunchedEffect(transitNavigationSession, transitNavigationState.active) {
+            while (transitNavigationSession.state.value.active) {
+                delay(30_000L)
+                transitNavigationSession.tick(java.time.Instant.now())
+            }
+        }
+        LaunchedEffect(transitNavigationState.verifySequence) {
+            if (transitNavigationState.verifySequence <= 0L) return@LaunchedEffect
+            val gateway = journeyGateway ?: return@LaunchedEffect
+            val reference = transitNavigationSession.itineraryReference()
+            transitUpdateJob?.cancel()
+            transitUpdateJob = journeyScope.launch {
+                val result = reference?.let {
+                    gateway.transitRefresh(
+                        reference = it,
+                        languageCode = settingsState.values.languageCode ?: Locale.getDefault().language,
+                    )
+                } ?: NativeTransitDataUnsupported
+                when (result) {
+                    is NativeTransitData -> {
+                        transitNavigationSession.dataRestored()
+                        transitNavigationSession.refreshSameItinerary(result.value)
+                    }
+                    is NativeTransitDataFailure,
+                    NativeTransitDataUnavailable,
+                    -> transitNavigationSession.dataUnavailable()
+                    NativeTransitDataUnsupported -> Unit
+                }
+                val assessment = transitNavigationSession.assessUpcomingConnection(java.time.Instant.now())
+                if (assessment.status == app.roadstr.feature.transit.NativeTransitConnectionStatus.Missed) {
+                    transitNavigationSession.markMissed()
+                }
+            }
+        }
+        LaunchedEffect(transitNavigationState.replanSequence) {
+            if (transitNavigationState.replanSequence <= 0L) return@LaunchedEffect
+            val gateway = journeyGateway ?: return@LaunchedEffect
+            val gps = gpsSnapshot.fix?.point
+            val context = transitNavigationSession.replanContext(
+                currentPosition = gps?.let {
+                    app.roadstr.core.network.TransitResponsePoint(it.latitude, it.longitude)
+                },
+                now = java.time.Instant.now(),
+            ) ?: return@LaunchedEffect
+            transitUpdateJob?.cancel()
+            val revision = maxOf(
+                transitUiState.revision,
+                transitAlternativeState.revision,
+                transitReplanRevision,
+                0L,
+            ) + 1L
+            transitReplanRevision = revision
+            transitAlternativeSession.begin(revision, transitUiState.destinationLabel)
+            transitUpdateJob = journeyScope.launch {
+                when (
+                    val result = gateway.transitReplan(
+                        origin = SearchResponsePoint(context.origin.latitude, context.origin.longitude),
+                        destination = SearchResponsePoint(
+                            context.destination.latitude,
+                            context.destination.longitude,
+                        ),
+                        earliestDeparture = context.earliestDeparture,
+                        providerId = context.providerId,
+                        languageCode = settingsState.values.languageCode ?: Locale.getDefault().language,
+                    )
+                ) {
+                    is NativeTransitPlan -> transitAlternativeSession.submitPlan(
+                        revision = revision,
+                        plan = result.plan,
+                        destinationLabel = transitUiState.destinationLabel,
+                    )
+                    is NativeTransitFailure -> transitAlternativeSession.submitFailure(revision)
+                    NativeTransitUnavailable -> transitAlternativeSession.submitUnavailable(revision)
+                }
+            }
+        }
+        val transitNavigationLifecycle = LocalLifecycleOwner.current
+        DisposableEffect(transitNavigationLifecycle, transitNavigationSession) {
+            val observer = LifecycleEventObserver { _, event ->
+                when (event) {
+                    Lifecycle.Event.ON_START -> {
+                        if (transitNavigationSession.resume()) {
+                            transitNavigationSession.requestVerification()
+                        }
+                    }
+                    Lifecycle.Event.ON_STOP -> transitNavigationSession.suspend()
+                    else -> Unit
+                }
+            }
+            transitNavigationLifecycle.lifecycle.addObserver(observer)
+            onDispose { transitNavigationLifecycle.lifecycle.removeObserver(observer) }
         }
         LaunchedEffect(activeNavigationState.arrived, activeNavigationState.revision) {
             if (!activeNavigationState.arrived) return@LaunchedEffect
@@ -1558,6 +1789,7 @@ fun NativeRoadstrShell(
                     parkingPanelVisible ||
                     historyVisible ||
                     savedRoutesVisible ||
+                    savedTransitVisible ||
                     contextMenuPoint != null ||
                     settingsState.status != NativeSettingsStatus.Hidden ||
                     profileState.status != app.roadstr.feature.profile.NativeProfileStatus.Hidden ||
@@ -1567,6 +1799,9 @@ fun NativeRoadstrShell(
                     roadEventState.surface != app.roadstr.feature.report.NativeRoadEventSurface.Hidden ||
                     wikipediaState.status != app.roadstr.feature.wikipedia.NativeWikipediaStatus.Hidden ||
                     transitUiState.status != app.roadstr.feature.transit.NativeTransitUiStatus.Hidden ||
+                    transitAlternativeState.status != app.roadstr.feature.transit.NativeTransitUiStatus.Hidden ||
+                    transitStopBoardState.status != NativeTransitStopBoardStatus.Hidden ||
+                    transitNavigationState.stage != NativeTransitNavigationStage.Ended ||
                     searchState.status != NativeSearchUiStatus.Hidden ||
                     routePlanningState.status != NativeRoutePlanningStatus.Hidden ||
                     activeNavigationState.active
@@ -1577,6 +1812,11 @@ fun NativeRoadstrShell(
                 webPanelVisible -> webPanelVisible = false
                 contextMenuPoint != null -> contextMenuPoint = null
                 parkingPanelVisible -> parkingPanelVisible = false
+                savedTransitVisible -> {
+                    savedTransitVerifyJob?.cancel()
+                    savedTransitVisible = false
+                    selectedSavedTransit = null
+                }
                 savedRoutesVisible -> savedRoutesVisible = false
                 historyVisible -> historyVisible = false
                 wikipediaState.status != app.roadstr.feature.wikipedia.NativeWikipediaStatus.Hidden -> {
@@ -1597,8 +1837,20 @@ fun NativeRoadstrShell(
                 placeState.status != app.roadstr.feature.place.NativePlaceUiStatus.Hidden -> {
                     placeSession.hide(placeState.revision)
                 }
+                transitAlternativeState.status != app.roadstr.feature.transit.NativeTransitUiStatus.Hidden -> {
+                    transitUpdateJob?.cancel()
+                    transitAlternativeSession.clear(transitAlternativeState.revision)
+                    transitReplanRevision = -1L
+                }
+                transitNavigationState.stage != NativeTransitNavigationStage.Ended -> {
+                    exitNavigationDialogVisible = true
+                }
                 transitUiState.status != app.roadstr.feature.transit.NativeTransitUiStatus.Hidden -> {
                     transitJourneySession.clear(transitUiState.revision)
+                }
+                transitStopBoardState.status != NativeTransitStopBoardStatus.Hidden -> {
+                    transitStopBoardJob?.cancel()
+                    transitStopBoardSession.hide(transitStopBoardState.revision)
                 }
                 settingsState.status != NativeSettingsStatus.Hidden -> {
                     settingsSession.hide(settingsState.revision)
@@ -1957,6 +2209,11 @@ fun NativeRoadstrShell(
                     },
                     onOpenWebPlace = { id -> journeyCoordinator?.webPlace(id)?.let(showDiscoveryPlace) },
                     onSelectResult = { result ->
+                        if (result.transitStop != null && !activeNavigationState.active) {
+                            journeyCoordinator?.closeSearchForPlace()
+                            loadTransitStopBoard(result.transitStop)
+                            return@NativeSearchOverlay
+                        }
                         val discovered = DiscoveryPresentation.placeAt(
                             result.position.latitude, result.position.longitude, discovery.places,
                         )
@@ -1999,6 +2256,10 @@ fun NativeRoadstrShell(
                         when (action) {
                             NativeSettingsUiAction.Close -> settingsSession.hide(revision)
                             is NativeSettingsUiAction.BooleanChanged -> {
+                                if (action.key.isMeshRadioFeature() && meshHost != null) {
+                                    meshHost.toggle(action.key, action.value)
+                                    return@NativeSettingsPanel
+                                }
                                 settingsSession.updateBoolean(revision, action.key, action.value)
                                 if (action.key.storageKey == "voiceEnabled") {
                                     voiceGateway?.setMuted(!action.value)
@@ -2072,6 +2333,10 @@ fun NativeRoadstrShell(
                                     savedPlacesSession.show(nextRevision, favorites, parkingPosition)
                                     settingsSession.hide(revision)
                                 }
+                            NativeSettingsUiAction.MeshPickDevice -> meshHost?.pickDevice()
+                            NativeSettingsUiAction.MeshForgetDevice -> meshHost?.forgetDevice()
+                            NativeSettingsUiAction.MeshConfigureChannel -> meshHost?.configureChannel()
+                            NativeSettingsUiAction.MeshClearQueue -> meshHost?.clearQueue()
                             NativeSettingsUiAction.SyncPush -> nostrHost?.push()
                             NativeSettingsUiAction.SyncPull -> nostrHost?.pull()
                             NativeSettingsUiAction.EditSyncPassphrase -> nostrHost?.editSyncPassphrase()
@@ -2426,48 +2691,161 @@ fun NativeRoadstrShell(
                         .onSizeChanged { routePanelHeightPixels = it.height },
                     )
                 }
-                NativeTransitItinerariesPanel(
-                    snapshot = transitUiState,
-                    transportMode = transitMode,
-                    onSelect = { index ->
-                        transitJourneySession.select(transitUiState.revision, index)
-                    },
-                    onCancel = {
-                        if (transitUiState.revision >= 0) {
-                            transitJourneySession.clear(transitUiState.revision)
-                        }
-                    },
-                    onRetry = {
-                        journeyCoordinator?.calculateRoute(
-                            snapshot = routePlanningSession.state.value,
-                            gpsPoint = gpsSearchPoint,
-                            myLocationLabel = myLocationLabel,
-                            avoidUnpavedRoads = settingsState.values.avoidUnpavedRoads,
-                        )
-                    },
-                    onModeChanged = { selected ->
-                        transitMode = selected
-                        if (selected != NativeTransitTransportMode.Transit) {
-                            transitJourneySession.clear(transitUiState.revision)
-                            val routeMode = when (selected) {
-                                NativeTransitTransportMode.Driving -> app.roadstr.feature.route.NativeRouteTransportMode.Driving
-                                NativeTransitTransportMode.Cycling -> app.roadstr.feature.route.NativeRouteTransportMode.Cycling
-                                NativeTransitTransportMode.Walking -> app.roadstr.feature.route.NativeRouteTransportMode.Walking
-                                NativeTransitTransportMode.Transit -> app.roadstr.feature.route.NativeRouteTransportMode.Transit
+                if (transitNavigationState.stage == NativeTransitNavigationStage.Ended) {
+                    NativeTransitItinerariesPanel(
+                        snapshot = transitUiState,
+                        transportMode = transitMode,
+                        onSelect = { index ->
+                            transitJourneySession.select(transitUiState.revision, index)
+                        },
+                        onCancel = {
+                            if (transitUiState.revision >= 0) {
+                                transitJourneySession.clear(transitUiState.revision)
                             }
-                            if (routePlanningSession.selectMode(routePlanningState.revision, routeMode)) {
-                                journeyCoordinator?.calculateRoute(
-                                    snapshot = routePlanningSession.state.value,
-                                    gpsPoint = gpsSearchPoint,
-                                    myLocationLabel = myLocationLabel,
-                                    avoidUnpavedRoads = settingsState.values.avoidUnpavedRoads,
+                        },
+                        onRetry = {
+                            journeyCoordinator?.calculateRoute(
+                                snapshot = routePlanningSession.state.value,
+                                gpsPoint = gpsSearchPoint,
+                                myLocationLabel = myLocationLabel,
+                                avoidUnpavedRoads = settingsState.values.avoidUnpavedRoads,
+                            )
+                        },
+                        onModeChanged = { selected ->
+                            transitMode = selected
+                            if (selected != NativeTransitTransportMode.Transit) {
+                                transitJourneySession.clear(transitUiState.revision)
+                                val routeMode = when (selected) {
+                                    NativeTransitTransportMode.Driving -> app.roadstr.feature.route.NativeRouteTransportMode.Driving
+                                    NativeTransitTransportMode.Cycling -> app.roadstr.feature.route.NativeRouteTransportMode.Cycling
+                                    NativeTransitTransportMode.Walking -> app.roadstr.feature.route.NativeRouteTransportMode.Walking
+                                    NativeTransitTransportMode.Transit -> app.roadstr.feature.route.NativeRouteTransportMode.Transit
+                                }
+                                if (routePlanningSession.selectMode(routePlanningState.revision, routeMode)) {
+                                    journeyCoordinator?.calculateRoute(
+                                        snapshot = routePlanningSession.state.value,
+                                        gpsPoint = gpsSearchPoint,
+                                        myLocationLabel = myLocationLabel,
+                                        avoidUnpavedRoads = settingsState.values.avoidUnpavedRoads,
+                                    )
+                                }
+                            }
+                        },
+                        onOpenAttribution = onOpenExternal,
+                        onSave = {
+                            val revision = transitUiState.revision
+                            val plan = transitJourneySession.currentPlan(revision)
+                            val itinerary = transitJourneySession.selectedItinerary(revision)
+                            if (plan != null && itinerary != null) {
+                                val destinationLabel = transitUiState.destinationLabel
+                                    ?: transitDestinationFallback
+                                val saved = runCatching {
+                                    NativeSavedTransitProtocol.create(
+                                        name = destinationLabel,
+                                        originLabel = myLocationLabel,
+                                        destinationLabel = destinationLabel,
+                                        plan = plan,
+                                        itinerary = itinerary,
+                                        timezone = java.time.ZoneId.systemDefault(),
+                                        now = java.time.Instant.now(),
+                                    )
+                                }.getOrNull()
+                                if (saved != null) {
+                                    updateSavedTransit(
+                                        NativeSavedTransitProtocol.upsert(savedTransitJourneys, saved),
+                                    )
+                                }
+                            }
+                        },
+                        onStart = {
+                            val revision = transitUiState.revision
+                            val itinerary = transitJourneySession.selectedItinerary(revision)
+                            if (itinerary != null && !activeNavigationState.active &&
+                                transitNavigationSession.start(revision, itinerary)
+                            ) {
+                                transitStopBoardJob?.cancel()
+                                if (transitStopBoardState.status != NativeTransitStopBoardStatus.Hidden) {
+                                    transitStopBoardSession.hide(transitStopBoardState.revision)
+                                }
+                                voiceGateway?.setMuted(!settingsState.values.voiceEnabled)
+                                cameraSession.configure(
+                                    headingUp = true,
+                                    navigating = true,
+                                    zoom = NativeMapCameraSession.DEFAULT_ZOOM,
+                                    pitchDegrees = NativeMapCameraSession.NAVIGATION_PITCH,
+                                    screenHeightPixels = screenHeightPixels,
                                 )
                             }
+                        },
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                    )
+                }
+                NativeTransitItinerariesPanel(
+                    snapshot = transitAlternativeState,
+                    transportMode = NativeTransitTransportMode.Transit,
+                    onSelect = { index ->
+                        transitAlternativeSession.select(transitAlternativeState.revision, index)
+                    },
+                    onCancel = {
+                        transitUpdateJob?.cancel()
+                        if (transitAlternativeState.revision >= 0) {
+                            transitAlternativeSession.clear(transitAlternativeState.revision)
+                        }
+                        transitReplanRevision = -1L
+                    },
+                    onRetry = { transitNavigationSession.markMissed() },
+                    onModeChanged = {},
+                    onOpenAttribution = onOpenExternal,
+                    onStart = {
+                        val revision = transitAlternativeState.revision
+                        val replacement = transitAlternativeSession.selectedItinerary(revision)
+                        val plan = transitAlternativeSession.currentPlan(revision)
+                        val selectedIndex = transitAlternativeState.selectedIndex
+                        if (replacement != null && plan != null && selectedIndex != null &&
+                            transitNavigationSession.replaceAfterConfirmation(revision, replacement)
+                        ) {
+                            val label = transitAlternativeState.destinationLabel
+                            if (transitJourneySession.begin(revision, label)) {
+                                transitJourneySession.submitPlan(revision, plan, label, selectedIndex)
+                            }
+                            transitAlternativeSession.clear(revision)
+                            transitReplanRevision = -1L
                         }
                     },
-                    onOpenAttribution = onOpenExternal,
+                    showModeChoices = false,
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
+                NativeTransitStopBoardPanel(
+                    snapshot = transitStopBoardState,
+                    onClose = {
+                        transitStopBoardJob?.cancel()
+                        transitStopBoardSession.hide(transitStopBoardState.revision)
+                    },
+                    onRefresh = {
+                        transitStopBoardState.stop?.let(loadTransitStopBoard)
+                    },
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+                if (transitAlternativeState.status == app.roadstr.feature.transit.NativeTransitUiStatus.Hidden) {
+                    NativeTransitNavigationHud(
+                        snapshot = transitNavigationState,
+                        onBoarded = transitNavigationSession::confirmBoarded,
+                        onAlighted = {
+                            if (transitNavigationSession.confirmAlighted()) {
+                                transitNavigationSession.requestVerification()
+                            }
+                        },
+                        onWalkCompleted = {
+                            if (transitNavigationSession.confirmWalkComplete()) {
+                                transitNavigationSession.requestVerification()
+                            }
+                        },
+                        onMissed = transitNavigationSession::markMissed,
+                        onVerify = transitNavigationSession::requestVerification,
+                        onEnd = { exitNavigationDialogVisible = true },
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                    )
+                }
                 NativePlaceDetailsPanel(
                     snapshot = placeState,
                     onCancel = {
@@ -2605,6 +2983,87 @@ fun NativeRoadstrShell(
                             updateSavedRoutes(NativeSavedRouteProtocol.remove(savedRoutes, saved.id))
                         },
                         onClose = { savedRoutesVisible = false },
+                        onOpenTransitJourneys = {
+                            savedRoutesVisible = false
+                            savedTransitVisible = true
+                        },
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                    )
+                }
+                if (savedTransitVisible) {
+                    NativeSavedTransitJourneysPanel(
+                        journeys = savedTransitJourneys,
+                        selected = selectedSavedTransit,
+                        onSelect = { selectedSavedTransit = it },
+                        onView = { saved, useUpdated ->
+                            val itinerary = saved.updated.takeIf { useUpdated } ?: saved.original
+                            val plan = app.roadstr.core.network.TransitParsedPlan(
+                                itineraries = listOf(itinerary),
+                                provider = saved.provider,
+                                searchedAt = saved.lastVerifiedAt ?: saved.savedAt,
+                                origin = saved.query.origin,
+                                destination = saved.query.destination,
+                                requestedDeparture = saved.query.requestedDeparture,
+                            )
+                            val revision = maxOf(transitUiState.revision, 0L) + 1L
+                            if (transitJourneySession.begin(revision, saved.query.destinationLabel)) {
+                                transitJourneySession.submitPlan(
+                                    revision,
+                                    plan,
+                                    saved.query.destinationLabel,
+                                )
+                                transitMode = NativeTransitTransportMode.Transit
+                                savedTransitVisible = false
+                                selectedSavedTransit = null
+                            }
+                        },
+                        onVerify = { saved ->
+                            val gateway = journeyGateway
+                            if (gateway != null) {
+                                savedTransitVerifyJob?.cancel()
+                                savedTransitVerifyJob = journeyScope.launch {
+                                    val updated = saved.original.id?.let { reference ->
+                                        (gateway.transitRefresh(
+                                            reference,
+                                            settingsState.values.languageCode ?: Locale.getDefault().language,
+                                        ) as? NativeTransitData)?.value
+                                    } ?: (gateway.transitReplan(
+                                        origin = SearchResponsePoint(
+                                            saved.query.origin.latitude,
+                                            saved.query.origin.longitude,
+                                        ),
+                                        destination = SearchResponsePoint(
+                                            saved.query.destination.latitude,
+                                            saved.query.destination.longitude,
+                                        ),
+                                        earliestDeparture = saved.query.requestedDeparture,
+                                        providerId = saved.provider.id,
+                                        languageCode = settingsState.values.languageCode ?: Locale.getDefault().language,
+                                    ) as? NativeTransitPlan)?.itineraries?.firstOrNull()
+                                    val verified = NativeSavedTransitProtocol.withUpdate(
+                                        saved,
+                                        updated,
+                                        java.time.Instant.now(),
+                                    )
+                                    if (updateSavedTransit(
+                                        NativeSavedTransitProtocol.upsert(savedTransitJourneys, verified),
+                                    )) {
+                                        selectedSavedTransit = verified
+                                    }
+                                }
+                            }
+                        },
+                        onDelete = { saved ->
+                            val next = savedTransitJourneys.filterNot { it.id == saved.id }
+                            if (updateSavedTransit(next) && selectedSavedTransit?.id == saved.id) {
+                                selectedSavedTransit = null
+                            }
+                        },
+                        onClose = {
+                            savedTransitVerifyJob?.cancel()
+                            savedTransitVisible = false
+                            selectedSavedTransit = null
+                        },
                         modifier = Modifier.align(Alignment.BottomCenter),
                     )
                 }
@@ -3033,6 +3492,7 @@ fun NativeRoadstrShell(
                     },
                 )
                 NativeShellNostrDialogs(nostrHost)
+                NativeShellMeshDialogs(meshHost)
                 routingKeyPrompt?.let { prompt ->
                     NativeShellPromptDialog(
                         prompt = prompt,

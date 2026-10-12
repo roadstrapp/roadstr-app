@@ -3,6 +3,9 @@ package app.roadstr.service.transit
 import app.roadstr.core.network.NetworkResponseLimit
 import app.roadstr.core.network.NetworkTimeoutBudget
 import app.roadstr.core.network.TransitRequestPoint
+import app.roadstr.core.network.TransitResponsePoint
+import app.roadstr.core.network.TransitScopedId
+import app.roadstr.core.network.TransitStopReference
 import app.roadstr.core.network.TransitProtocol
 import app.roadstr.core.network.TransitProvider
 import app.roadstr.service.network.NativeBoundedHttpClient
@@ -252,6 +255,79 @@ class NativeTransitServiceTest {
         assertEquals(0, global.calls)
     }
 
+    @Test
+    fun `Transitous operational stop search and board use bounded documented endpoints`() = runBlocking {
+        val requests = mutableListOf<String>()
+        val service = service(
+            transport = NativeTransitHttpTransport { request, limits ->
+                requests += request.uri
+                assertEquals(NativeTransitService.REQUEST_LIMITS, limits)
+                if (request.uri.contains("/api/v1/geocode")) {
+                    response("""[{"type":"STOP","name":"Central","id":"station","lat":45.0,"lon":9.0,"modes":["RAIL"]}]""")
+                } else {
+                    response("""{"place":{"name":"Central","stopId":"station","lat":45.0,"lon":9.0},"previousPageCursor":null,"nextPageCursor":null,"stopTimes":[{"place":{"name":"Central","stopId":"station","lat":45.0,"lon":9.0,"scheduledDeparture":"2026-10-11T10:00:00Z"},"mode":"RAIL","realTime":false,"headsign":"Airport","tripId":"trip","routeId":"route","routeShortName":"R1","cancelled":false,"tripCancelled":false}]}""")
+                }
+            },
+        )
+
+        val stops = service.searchStops(
+            NativeTransitStopSearchQuery("Central", TransitRequestPoint(45.0, 9.0), "en"),
+        ) as NativeTransitData
+        val stop = stops.value.single().stop
+        val board = service.departures(
+            NativeTransitDeparturesQuery(stop, departure, "en"),
+        ) as NativeTransitData
+
+        assertEquals("station", board.value.stop.id.value)
+        assertEquals("trip", board.value.departures.single().tripId.value)
+        assertTrue(requests[0].contains("/api/v1/geocode?"))
+        assertTrue(requests[1].contains("/api/v6/stoptimes?"))
+        assertTrue(requests[1].contains("stopId=station"))
+    }
+
+    @Test
+    fun `operational stop cache is short bounded and expires`() = runBlocking {
+        var calls = 0
+        var now = Instant.parse("2026-10-11T09:00:00Z")
+        val service = service(
+            transport = NativeTransitHttpTransport { _, _ ->
+                calls++
+                response("""[{"type":"STOP","name":"Central","id":"station","lat":45.0,"lon":9.0,"modes":["RAIL"]}]""")
+            },
+            clock = { now },
+        )
+        val query = NativeTransitStopSearchQuery("Central", TransitRequestPoint(45.0, 9.0), "en")
+
+        assertTrue(service.searchStops(query) is NativeTransitData)
+        assertTrue(service.searchStops(query) is NativeTransitData)
+        assertEquals(1, calls)
+        now = now.plusSeconds(31)
+        assertTrue(service.searchStops(query) is NativeTransitData)
+        assertEquals(2, calls)
+    }
+
+    @Test
+    fun `provider router never sends scoped stop ids to another provider`() = runBlocking {
+        val global = FakeProvider(
+            descriptor = descriptor("global", 100, NativeTransitCoverage.Worldwide).copy(
+                capabilities = setOf(NativeTransitCapability.Departures),
+            ),
+            result = NativeTransitUnavailable,
+        )
+        val stop = TransitStopReference(
+            id = TransitScopedId("foreign", "station"),
+            name = "Central",
+            position = TransitResponsePoint(45.0, 9.0),
+        )
+
+        val result = NativeTransitProviderRouter(listOf(global)).departures(
+            NativeTransitDeparturesQuery(stop, departure, "en"),
+        )
+
+        assertEquals(NativeTransitDataUnsupported, result)
+        assertEquals(0, global.calls)
+    }
+
     /** Opt-in smoke probe: one identified, bounded request; never part of the default test run. */
     @Test
     fun `live Transitous v6 probe parses a real Milan journey`() = runBlocking {
@@ -269,11 +345,35 @@ class NativeTransitServiceTest {
         assertTrue(result.itineraries.first().legs.any { it.geometry.isNotEmpty() })
     }
 
+    /** Opt-in operational probe: one stop lookup followed by one bounded board request. */
+    @Test
+    fun `live Transitous probe returns operational Milan departures`() = runBlocking {
+        if (System.getenv("ROADSTR_TRANSIT_LIVE_PROBE") != "1") return@runBlocking
+        val service = NativeTransitService()
+        val stops = service.searchStops(
+            NativeTransitStopSearchQuery(
+                query = "Milano Centrale",
+                location = TransitRequestPoint(45.4842, 9.2042),
+                languageCode = "it",
+            ),
+        ) as NativeTransitData
+        val stop = stops.value.first { it.stop.position != null }.stop
+
+        val board = service.departures(
+            NativeTransitDeparturesQuery(stop, Instant.now(), "it"),
+        ) as NativeTransitData
+
+        assertEquals("transitous", board.value.stop.id.providerId)
+        assertTrue(board.value.departures.isNotEmpty())
+        assertTrue(board.value.departures.all { it.tripId.providerId == "transitous" })
+    }
+
     private fun service(
         transport: NativeTransitHttpTransport,
         endpoint: String = "https://example.test/api/v6/plan",
         sleep: suspend (Long) -> Unit = {},
-    ) = NativeTransitService(transport, endpoint, sleep)
+        clock: () -> Instant = Instant::now,
+    ) = NativeTransitService(transport, endpoint, sleep, clock = clock)
 
     private fun response(
         body: String,

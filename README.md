@@ -72,8 +72,10 @@ The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rew
 | Lighter navigation rendering — the vehicle cursor animation is drawn at its 30 fps source cadence instead of the display's refresh rate, to save battery | ✅ |
 | On-device AI voice guidance (Kokoro-82M; Piper / Thorsten-Voice for German) | ✅ |
 | Nostr road events — kind 1315 (reports) / 1316 (confirmations) | ✅ |
+| Interoperability with the open *jooray/roadstr* road-report format — reads its kind 1315/1316 reports with their own lifetimes and shows where each came from; optionally publishes a second, separately signed copy in that format (experimental, [spec](docs/interoperability/MESHCORE_NOSTR.md)) | ✅ |
+| MeshCore LoRa radio — receive and send road reports over a paired MeshCore radio, with or without internet, and optional bridges to the Nostr relays that never change a report's author (experimental, off by default, **not yet tested on real radios**) | 🧪 |
 | Nostr login — Amber (NIP-55) or a remote signer (NIP-46 via `nostrconnect://` or `bunker://`); no private key in the app | ✅ |
-| Public-transport itineraries through Transitous (bus, tram, metro, rail, coach and ferry where open feeds exist) | ✅ |
+| Public transport — Transitous and Entur planning, live departure boards, active multimodal guidance and saved journey comparison | ✅ |
 | Lightning Network zaps for road-event contributors | ✅ |
 | Nostr Wallet Connect (NIP-47) | ✅ |
 | Address & POI search (Nominatim, position-biased) | ✅ |
@@ -121,11 +123,12 @@ adding the regional source, attaching realtime data and validating the pull requ
 ```
 android/app/src/main/kotlin/app/roadstr/   # the app (Kotlin, Jetpack Compose)
 ├── core/          # pure logic with no Android dependency: Nostr protocol (NIP-01/04/19/44/46/47/57/78, BIP-340),
-│                  # routing and search protocols, navigation phrases, discovery (plain-language place search)
+│                  # the road-report interoperability codec and MeshCore companion protocol (core/protocol/interop,
+│                  # core/protocol/meshcore), routing and search protocols, navigation phrases, discovery
 ├── feature/       # one package per screen or flow: home, map, navigation (HUD, host), onboarding, place, profile,
 │                  # report, route, saved, search, settings, transit, voice, web, wikipedia, activity
-├── service/       # I/O: Nostr relays, remote signer (bunker), zaps and NWC, routing, search, location, hazards,
-│                  # notifications and the navigation foreground service
+├── service/       # I/O: Nostr relays, remote signer (bunker), zaps and NWC, MeshCore radio and bridge, routing, search,
+│                  # location, hazards, notifications and the navigation foreground service
 ├── storage/       # preferences, secrets, saved places, history, pending reports
 ├── migration/     # the reader of the old (Flutter) app's data, transactional and fail-closed
 └── startup/       # the launcher activity, the one-time profile import, the guidance runtime holder
@@ -316,6 +319,7 @@ The plan, the audit and every decision taken are in [docs/world-discovery/](docs
 - **The app never holds your Nostr private key.** You sign in with Amber or a remote signer (bunker), and signing happens there. The only secret Roadstr keeps for a bunker is its own pairing key, encrypted with the Android Keystore; a private key left by an earlier build is erased on the first start.
 - **Web results are opt-in.** Off by default, with no instance built in. When you switch them on, the instance you chose receives your search words, the name of your town for "near me" searches, your language and the safe-search level, and the search engines it uses may see them too. Names found in the results may then be looked up on OpenStreetMap (a name and a town, at most three per search). The optional in-app browser runs pages in a private session, stores nothing after it closes, and asks for no permission on a page's behalf. To run your own instance, see [docs/world-discovery/SELF_HOSTING.md](docs/world-discovery/SELF_HOSTING.md).
 - **Road reports are public and linkable** — publishing a report sends its exact coordinates, timestamp, content and Nostr public key to public relays. This is pseudonymous, not anonymous, and relay retention cannot be guaranteed.
+- **The optional MeshCore radio is public too, and not anonymous.** Anything sent over it can be read by anyone in radio range, with or without internet: position, time and the public key that signed the report. Roadstr asks once, in plain words, before it transmits or bridges anything; every radio feature is off until you turn it on, and the Bluetooth permission is only requested when you pair a radio. A one-time key (never stored) can sign the compatible copy so it is not linked to your account — that hides who, not where or when. See [the interoperability specification](docs/interoperability/MESHCORE_NOSTR.md).
 
 ---
 

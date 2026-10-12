@@ -135,6 +135,12 @@ sealed interface NativeSettingsUiAction {
     data object OpenMapsAttribution : NativeSettingsUiAction
     data object OpenSource : NativeSettingsUiAction
     data object SupportRoadstr : NativeSettingsUiAction
+
+    // MeshCore radio (experimental)
+    data object MeshPickDevice : NativeSettingsUiAction
+    data object MeshForgetDevice : NativeSettingsUiAction
+    data object MeshConfigureChannel : NativeSettingsUiAction
+    data object MeshClearQueue : NativeSettingsUiAction
 }
 
 /** Complete dormant settings catalogue; storage, secrets, network and intents remain external. */
@@ -192,6 +198,8 @@ fun NativeSettingsPanel(
             item { LightningSection(values) { onAction(revision, it) } }
             item { FavoritesSection(values) { onAction(revision, it) } }
             item { SyncSection(values) { onAction(revision, it) } }
+            item { InteropSection(values) { onAction(revision, it) } }
+            item { MeshSection(values) { onAction(revision, it) } }
             item { VoiceSection(values) { onAction(revision, it) } }
             item { InfoSection(values) { onAction(revision, it) } }
             item { Spacer(modifier = Modifier.height(18.dp)) }
@@ -705,6 +713,147 @@ private fun SyncSection(values: NativeSettingsInput, onAction: (NativeSettingsUi
             }
         }
     }
+}
+
+@Composable
+private fun InteropSection(values: NativeSettingsInput, onAction: (NativeSettingsUiAction) -> Unit) {
+    SettingsSection(R.string.native_interop_section) {
+        Text(
+            stringResource(R.string.native_interop_desc),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        ToggleRow(
+            R.string.native_interop_show,
+            R.string.native_interop_show_desc,
+            values.interopShowEnabled,
+        ) { onAction(NativeSettingsUiAction.BooleanChanged(NativeSettingsBooleanKey.InteropShow, it)) }
+        ToggleRow(
+            R.string.native_interop_publish,
+            R.string.native_interop_publish_desc,
+            values.interopPublishEnabled,
+        ) { onAction(NativeSettingsUiAction.BooleanChanged(NativeSettingsBooleanKey.InteropPublish, it)) }
+        if (values.interopPublishEnabled) {
+            ToggleRow(
+                R.string.native_interop_ephemeral,
+                R.string.native_interop_ephemeral_desc,
+                values.interopEphemeralKey,
+            ) { onAction(NativeSettingsUiAction.BooleanChanged(NativeSettingsBooleanKey.InteropEphemeralKey, it)) }
+        }
+    }
+}
+
+@Composable
+private fun MeshSection(values: NativeSettingsInput, onAction: (NativeSettingsUiAction) -> Unit) {
+    val mesh = values.mesh
+    SettingsSection(R.string.native_mesh_section) {
+        Text(
+            stringResource(R.string.native_mesh_desc),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (!mesh.supported) {
+            Text(
+                stringResource(R.string.native_mesh_unsupported),
+                modifier = Modifier.padding(14.dp),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            return@SettingsSection
+        }
+        ActionRow(
+            title = stringResource(R.string.native_mesh_radio),
+            value = mesh.deviceName ?: stringResource(R.string.native_mesh_not_paired),
+        ) { onAction(NativeSettingsUiAction.MeshPickDevice) }
+        MeshStatusLine(mesh)
+        MeshToggles(values, onAction)
+        MeshActions(mesh, onAction)
+    }
+}
+
+@Composable
+private fun MeshStatusLine(mesh: NativeSettingsMeshStatus) {
+    if (mesh.state == NativeSettingsMeshState.NotPaired) return
+    val text = when (mesh.state) {
+        NativeSettingsMeshState.Problem -> stringResource(meshProblemText(mesh.problem))
+        NativeSettingsMeshState.Connecting -> stringResource(R.string.native_mesh_status_connecting)
+        NativeSettingsMeshState.ChannelMissing -> stringResource(R.string.native_mesh_status_channel_missing)
+        NativeSettingsMeshState.Ready -> stringResource(R.string.native_mesh_status_ready)
+        else -> stringResource(R.string.native_mesh_status_idle)
+    }
+    Text(
+        text,
+        modifier = Modifier.padding(horizontal = 14.dp, vertical = 2.dp).semantics { liveRegion = LiveRegionMode.Polite },
+        style = MaterialTheme.typography.bodySmall,
+        color = if (mesh.state == NativeSettingsMeshState.Problem) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    val details = listOfNotNull(
+        mesh.firmware?.let { stringResource(R.string.native_mesh_firmware, it) },
+        mesh.batteryMillivolts?.let { stringResource(R.string.native_mesh_battery, it / 1000.0) },
+    )
+    if (details.isNotEmpty()) {
+        Text(
+            details.joinToString("  ·  "),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 2.dp),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun MeshToggles(values: NativeSettingsInput, onAction: (NativeSettingsUiAction) -> Unit) {
+    fun change(key: NativeSettingsBooleanKey): (Boolean) -> Unit =
+        { onAction(NativeSettingsUiAction.BooleanChanged(key, it)) }
+    ToggleRow(
+        R.string.native_mesh_receive, R.string.native_mesh_receive_desc,
+        values.meshReceiveEnabled, change(NativeSettingsBooleanKey.MeshReceive),
+    )
+    ToggleRow(
+        R.string.native_mesh_send, R.string.native_mesh_send_desc,
+        values.meshSendEnabled, change(NativeSettingsBooleanKey.MeshSend),
+    )
+    ToggleRow(
+        R.string.native_mesh_bridge_nostr, R.string.native_mesh_bridge_nostr_desc,
+        values.meshBridgeToNostr, change(NativeSettingsBooleanKey.MeshBridgeToNostr),
+    )
+    ToggleRow(
+        R.string.native_mesh_bridge_radio, R.string.native_mesh_bridge_radio_desc,
+        values.meshBridgeToRadio, change(NativeSettingsBooleanKey.MeshBridgeToRadio),
+    )
+}
+
+@Composable
+private fun MeshActions(mesh: NativeSettingsMeshStatus, onAction: (NativeSettingsUiAction) -> Unit) {
+    if (mesh.state == NativeSettingsMeshState.ChannelMissing) {
+        ActionButton(text = stringResource(R.string.native_mesh_setup_channel)) {
+            onAction(NativeSettingsUiAction.MeshConfigureChannel)
+        }
+    }
+    if (mesh.waitingForRelays > 0) {
+        ActionButton(text = stringResource(R.string.native_mesh_clear_queue, mesh.waitingForRelays)) {
+            onAction(NativeSettingsUiAction.MeshClearQueue)
+        }
+    }
+    if (mesh.deviceName != null) {
+        ActionButton(text = stringResource(R.string.native_mesh_forget)) {
+            onAction(NativeSettingsUiAction.MeshForgetDevice)
+        }
+    }
+}
+
+@StringRes
+private fun meshProblemText(problem: NativeSettingsMeshProblem?): Int = when (problem) {
+    NativeSettingsMeshProblem.BluetoothOff -> R.string.native_mesh_problem_bluetooth_off
+    NativeSettingsMeshProblem.PermissionMissing -> R.string.native_mesh_problem_permission
+    NativeSettingsMeshProblem.DeviceNotFound -> R.string.native_mesh_problem_not_found
+    NativeSettingsMeshProblem.ConnectionLost -> R.string.native_mesh_problem_lost
+    NativeSettingsMeshProblem.Timeout -> R.string.native_mesh_problem_timeout
+    NativeSettingsMeshProblem.ServiceMissing -> R.string.native_mesh_problem_service
+    NativeSettingsMeshProblem.IncompatibleFirmware -> R.string.native_mesh_problem_firmware
+    NativeSettingsMeshProblem.ProtocolError, null -> R.string.native_mesh_problem_protocol
 }
 
 @Composable

@@ -1513,12 +1513,194 @@ class AppLocalizationsEt extends AppLocalizations {
       'Ajad pärinevad avaldatud sõiduplaanidest';
 
   @override
+  String get transitDepartures => 'Departures';
+
+  @override
+  String transitUpdatedAt(Object time) {
+    return 'Updated at $time';
+  }
+
+  @override
+  String get transitNoDepartures =>
+      'No departure information is currently available';
+
+  @override
+  String get transitCancelled => 'Cancelled';
+
+  @override
   String get transitDirect => 'Otse';
 
   @override
   String transitTransfers(int count) {
     return '$count ümberistumist';
   }
+
+  @override
+  String get transitNavApproachStop => 'Walk to the boarding stop';
+
+  @override
+  String get transitNavWaitingToBoard => 'Waiting to board';
+
+  @override
+  String get transitNavOnBoard => 'On board';
+
+  @override
+  String get transitNavApproachingAlight => 'Get ready to get off';
+
+  @override
+  String get transitNavTransferWalk => 'Walk to the connection';
+
+  @override
+  String get transitNavWaitingConnection => 'Waiting for the connection';
+
+  @override
+  String get transitNavFinalWalk => 'Continue to the destination on foot';
+
+  @override
+  String get transitNavArrived => 'You have arrived';
+
+  @override
+  String get transitNavSuspended => 'Journey guidance paused';
+
+  @override
+  String get transitNavDataUnavailable =>
+      'Live journey data is temporarily unavailable';
+
+  @override
+  String get transitNavMissed =>
+      'Trip missed — choose an alternative before replacing this journey';
+
+  @override
+  String transitNavDirection(Object direction) {
+    return 'Direction: $direction';
+  }
+
+  @override
+  String transitNavNextStop(Object stop) {
+    return 'Next stop: $stop';
+  }
+
+  @override
+  String transitNavAlightAt(Object stop) {
+    return 'Get off at: $stop';
+  }
+
+  @override
+  String transitNavStopsRemaining(Object count) {
+    return '$count stops remaining';
+  }
+
+  @override
+  String transitNavExpectedAt(Object time) {
+    return 'Expected at $time';
+  }
+
+  @override
+  String transitNavPlatform(Object platform) {
+    return 'Platform $platform';
+  }
+
+  @override
+  String transitNavNextLine(Object line) {
+    return 'Next line: $line';
+  }
+
+  @override
+  String get transitConnectionFeasible => 'Connection feasible';
+
+  @override
+  String get transitConnectionAtRisk => 'Connection at risk';
+
+  @override
+  String get transitConnectionMissed => 'Connection missed';
+
+  @override
+  String get transitConnectionUnknown => 'Connection status unknown';
+
+  @override
+  String get transitNavBoarded => 'I\'m on board';
+
+  @override
+  String get transitNavAlighted => 'I got off';
+
+  @override
+  String get transitNavReachedStop => 'I\'ve reached the stop';
+
+  @override
+  String get transitNavMissedAction => 'I missed it';
+
+  @override
+  String get transitNavVerify => 'Check journey';
+
+  @override
+  String get transitNavEnd => 'End navigation';
+
+  @override
+  String get transitVoiceApproachStop => 'Reach the boarding stop';
+
+  @override
+  String get transitVoicePrepareBoard => 'Prepare to board';
+
+  @override
+  String transitVoiceTakeLine(Object line) {
+    return 'Take line $line';
+  }
+
+  @override
+  String transitVoiceAlight(Object stop) {
+    return 'Get off at the next stop, $stop';
+  }
+
+  @override
+  String get transitVoiceConnection => 'Prepare for the connection';
+
+  @override
+  String get transitVoiceContinueWalk => 'Continue on foot';
+
+  @override
+  String get transitVoiceArrived => 'You have arrived';
+
+  @override
+  String get savedTransitTitle => 'Saved transit journeys';
+
+  @override
+  String get savedTransitEmpty => 'No saved transit journey';
+
+  @override
+  String get savedTransitSave => 'Save journey';
+
+  @override
+  String get savedTransitOriginal => 'Original snapshot';
+
+  @override
+  String get savedTransitUpdated => 'Updated journey';
+
+  @override
+  String get savedTransitNeedsVerification => 'Needs verification';
+
+  @override
+  String get savedTransitUnavailable => 'No updated journey is available';
+
+  @override
+  String get savedTransitOfflineWarning =>
+      'Offline snapshot — times may no longer be valid';
+
+  @override
+  String get savedTransitVerify => 'Verify';
+
+  @override
+  String get savedTransitView => 'View';
+
+  @override
+  String get savedTransitDelete => 'Delete';
+
+  @override
+  String savedTransitDifferences(Object count) {
+    return 'Changes: $count';
+  }
+
+  @override
+  String get savedTransitOpenList => 'Transit journeys';
 
   @override
   String ztlNearRouteWarning(String street) {
