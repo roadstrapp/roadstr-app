@@ -6,6 +6,8 @@ All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stab
 
 - Navigation: the report sheet opened from the *Report* button is no longer drawn underneath the speed and route
   panel, so a report can be published again while navigating.
+- Navigation: the speed figure is centred on the speedometer dial in every style (it sat above the centre); the unit
+  now hangs below it.
 
 ## [1.0.1] — 2026-10-11
 
