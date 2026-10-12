@@ -594,15 +594,49 @@ private fun RouteModeRow(
     enabled: Boolean,
     onModeChanged: (NativeRouteTransportMode) -> Unit,
 ) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            listOf(
+                NativeRouteTransportMode.Driving,
+                NativeRouteTransportMode.Cycling,
+                NativeRouteTransportMode.Walking,
+            ).forEach { mode ->
+                RouteModeChip(
+                    mode = mode,
+                    // Public transport is a way of getting there on foot and by vehicle: it lives under "On foot".
+                    selected = mode == selectedMode ||
+                        (mode == NativeRouteTransportMode.Walking && selectedMode == NativeRouteTransportMode.Transit),
+                    enabled = enabled,
+                    onModeChanged = onModeChanged,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+        if (selectedMode == NativeRouteTransportMode.Walking || selectedMode == NativeRouteTransportMode.Transit) {
+            WalkingOrTransitRow(selectedMode, enabled, onModeChanged)
+        }
+    }
+}
+
+/** The second choice under "On foot": walk all the way, or use public transport. */
+@Composable
+private fun WalkingOrTransitRow(
+    selectedMode: NativeRouteTransportMode,
+    enabled: Boolean,
+    onModeChanged: (NativeRouteTransportMode) -> Unit,
+) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        listOf(
-            NativeRouteTransportMode.Driving,
-            NativeRouteTransportMode.Cycling,
-            NativeRouteTransportMode.Walking,
-        ).forEach { mode ->
+        Text("↳", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        listOf(NativeRouteTransportMode.Walking, NativeRouteTransportMode.Transit).forEach { mode ->
             RouteModeChip(
                 mode = mode,
                 selected = mode == selectedMode,
@@ -652,7 +686,7 @@ private fun RouteModeChip(
                 NativeRouteTransportMode.Driving -> "🚗  $label"
                 NativeRouteTransportMode.Cycling -> "🚲  $label"
                 NativeRouteTransportMode.Walking -> "🚶  $label"
-                NativeRouteTransportMode.Transit -> label
+                NativeRouteTransportMode.Transit -> "🚌  $label"
             },
             modifier = Modifier.padding(horizontal = 13.dp, vertical = 8.dp),
             color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
