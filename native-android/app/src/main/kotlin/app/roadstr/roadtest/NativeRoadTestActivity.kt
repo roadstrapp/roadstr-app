@@ -442,6 +442,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
             nostr = nostrBridge,
             mesh = meshBridge,
             navigationHost = runtime.host,
+            transitNavigationHostSession = runtime.transitSession,
             externalDestinationRequest = externalDestinationRequest,
             onExternalDestinationConsumed = {
                 val consumed = externalDestinationInbox.consume(it)

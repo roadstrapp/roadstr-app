@@ -39,6 +39,8 @@ fun NativeTransitStopBoardPanel(
     snapshot: NativeTransitStopBoardSnapshot,
     onClose: () -> Unit,
     onRefresh: () -> Unit,
+    onShowLines: () -> Unit,
+    onDepartureSelected: (NativeTransitDeparturePresentation) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (snapshot.status == NativeTransitStopBoardStatus.Hidden) return
@@ -68,6 +70,9 @@ fun NativeTransitStopBoardPanel(
                     }
                 }
                 TextButton(onClick = onRefresh) { Text("↻") }
+                TextButton(onClick = onShowLines) {
+                    Text(androidx.compose.ui.res.stringResource(R.string.native_transit_lines))
+                }
                 TextButton(onClick = onClose, modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)) { Text("×") }
             }
             when (snapshot.status) {
@@ -87,7 +92,7 @@ fun NativeTransitStopBoardPanel(
                     modifier = Modifier.fillMaxWidth().heightIn(max = 440.dp),
                 ) {
                     items(snapshot.departures, key = NativeTransitDeparturePresentation::stableId) { row ->
-                        DepartureRow(row)
+                        DepartureRow(row, onDepartureSelected)
                         HorizontalDivider()
                     }
                 }
@@ -107,7 +112,8 @@ private fun BoardMessage(resource: Int) {
 }
 
 @Composable
-private fun DepartureRow(row: NativeTransitDeparturePresentation) {
+private fun DepartureRow(row: NativeTransitDeparturePresentation, onClick: (NativeTransitDeparturePresentation) -> Unit) {
+    Surface(onClick = { onClick(row) }, color = androidx.compose.ui.graphics.Color.Transparent) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 10.dp),
         verticalAlignment = Alignment.Top,
@@ -148,5 +154,6 @@ private fun DepartureRow(row: NativeTransitDeparturePresentation) {
                 Text("⚠ $alert", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
             }
         }
+    }
     }
 }

@@ -552,6 +552,10 @@ private fun DisclosureDialog(revision: Long, onAccept: (Long) -> Unit) {
                 item { Text(stringResource(R.string.native_onboarding_disclosure_body)) }
                 item {
                     HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp))
+                    Text(stringResource(R.string.native_transit_privacy_notice))
+                }
+                item {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp))
                     Text(stringResource(R.string.native_onboarding_profile_visibility_notice))
                 }
             }

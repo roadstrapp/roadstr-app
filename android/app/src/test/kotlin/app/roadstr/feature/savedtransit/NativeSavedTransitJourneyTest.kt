@@ -16,6 +16,8 @@ import java.util.Base64
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.roadstr.feature.transit.NativeTransitNavigationSession
+import app.roadstr.feature.transit.NativeTransitNavigationStage
 
 class NativeSavedTransitJourneyTest {
     @Test
@@ -85,6 +87,23 @@ class NativeSavedTransitJourneyTest {
         )
         requireNotNull(store.upsert(values, updated))
         assertEquals(NativeSavedTransitState.Updated, store.load().single().state)
+    }
+
+    @Test
+    fun `active guidance checkpoint round trips and corrupt state fails closed`() {
+        val itinerary = savedJourney().original
+        val session = NativeTransitNavigationSession()
+        assertTrue(session.start(9, itinerary))
+        assertTrue(session.confirmBoarded())
+        val active = NativeActiveTransitJourney(itinerary, requireNotNull(session.checkpoint()))
+
+        val encoded = NativeActiveTransitProtocol.encode(active)
+        val decoded = requireNotNull(NativeActiveTransitProtocol.decode(encoded))
+        val restored = NativeTransitNavigationSession()
+
+        assertTrue(restored.restore(decoded.checkpoint, decoded.itinerary))
+        assertEquals(NativeTransitNavigationStage.OnBoard, restored.state.value.stage)
+        assertEquals(null, NativeActiveTransitProtocol.decode(encoded.dropLast(3) + "bad"))
     }
 
     private fun savedJourney(): NativeSavedTransitJourney {

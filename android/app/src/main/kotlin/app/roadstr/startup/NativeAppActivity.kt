@@ -60,6 +60,10 @@ class NativeAppActivity : NativeRoadTestActivity() {
             NativeGuidanceRuntimeHolder.obtain(applicationContext, storeNames).host.session.state
                 .map { it.active }.distinctUntilChanged().filter { it }.collect { askForNotifications() }
         }
+        lifecycleScope.launch {
+            NativeGuidanceRuntimeHolder.obtain(applicationContext, storeNames).transitSession.state
+                .map { it.active }.distinctUntilChanged().filter { it }.collect { askForNotifications() }
+        }
     }
 
     private fun askForNotifications() {

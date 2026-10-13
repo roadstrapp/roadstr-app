@@ -11,11 +11,26 @@ import app.roadstr.feature.navigation.NativeNavigationPlatform
 import app.roadstr.feature.navigation.NativeNavigationRerouteRequest
 import app.roadstr.feature.navigation.NativeNavigationSettings
 import app.roadstr.feature.navigation.NoNativeNavigationPlatform
+import app.roadstr.feature.savedtransit.NativeActiveTransitJourney
+import app.roadstr.feature.savedtransit.NativeActiveTransitStore
+import app.roadstr.feature.transit.NativeTransitNavigationSession
+import app.roadstr.feature.transit.NativeTransitNavigationStage
+import app.roadstr.feature.transit.NativeTransitVoiceCueKind
+import app.roadstr.feature.voice.NativeVoiceCatalog
+import app.roadstr.feature.voice.NativeVoiceGender
+import app.roadstr.feature.settings.NativeSettingsVoiceGender
+import app.roadstr.core.network.TransitResponsePoint
 import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 /**
  * Everything a trip needs in order to outlive the screen: the GPS feed, the voice, and the host that
@@ -29,11 +44,14 @@ import kotlinx.coroutines.cancel
 internal class NativeNavigationRuntime(
     context: Context,
     names: NativeLiveStoreNames,
-    innerPlatform: NativeNavigationPlatform = NoNativeNavigationPlatform,
+    private val innerPlatform: NativeNavigationPlatform = NoNativeNavigationPlatform,
 ) {
     private val appContext = context.applicationContext
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var visible = false
+    private var roadGuidanceActive = false
+    private var transitGuidanceActive = false
+    private var platformGuidanceActive = false
 
     val location = NativeRoadTestLocationController(appContext)
     val voice: NativeRoadTestVoiceGateway by lazy(LazyThreadSafetyMode.NONE) {
@@ -46,6 +64,17 @@ internal class NativeNavigationRuntime(
         preferencesName = names.prefs("routing"),
         keyAlias = names.alias("routing"),
     )
+    private val activeTransitPreferences = NativeRoadTestProtectedPreferences(
+        context = appContext,
+        preferencesName = names.prefs("active_transit"),
+        keyAlias = names.alias("active-transit"),
+        maxPlaintextBytes = app.roadstr.feature.savedtransit.NativeSavedTransitProtocol.MAX_STORED_BYTES * 2,
+    )
+    private val activeTransitStore = NativeActiveTransitStore(
+        readEncryptedValue = { activeTransitPreferences.read("journey") },
+        writeEncryptedValue = { activeTransitPreferences.write("journey", it) },
+        removeEncryptedValue = { activeTransitPreferences.remove("journey") },
+    )
 
     // A gateway of its own, only for what a trip asks for while nobody is looking: a new route and the
     // speed limit. Search and the rest stay with the Activity's gateway.
@@ -53,16 +82,15 @@ internal class NativeNavigationRuntime(
         NativeRoadTestJourneyGateway(appContext, routingConfiguration = ::routingConfiguration, names = names)
     }
 
-    private val platform = object : NativeNavigationPlatform {
+    private val roadPlatform = object : NativeNavigationPlatform {
         override fun guidanceStarted() {
-            location.holdForNavigation(true)
-            innerPlatform.guidanceStarted()
+            roadGuidanceActive = true
+            syncPlatformGuidance()
         }
 
         override fun guidanceStopped() {
-            innerPlatform.guidanceStopped()
-            location.holdForNavigation(false)
-            if (!visible) voice.stop()
+            roadGuidanceActive = false
+            syncPlatformGuidance()
         }
 
         override fun showInstruction(instruction: String, distance: String) =
@@ -78,12 +106,97 @@ internal class NativeNavigationRuntime(
         reroute = ::reroute,
         speedLimit = { point -> gateway.speedLimit(point) },
         settings = ::settings,
-        platform = platform,
+        platform = roadPlatform,
         scope = scope,
         elapsedRealtimeMillis = SystemClock::elapsedRealtime,
     )
 
-    val navigating: Boolean get() = host.navigating
+    val transitSession = NativeTransitNavigationSession()
+
+    val navigating: Boolean get() = host.navigating || transitSession.state.value.active
+
+    init {
+        runCatching { activeTransitStore.load() }.getOrNull()?.let { active ->
+            if (transitSession.restore(active.checkpoint, active.itinerary) &&
+                transitSession.state.value.stage == NativeTransitNavigationStage.Suspended
+            ) {
+                transitSession.resume()
+            }
+        }
+        scope.launch {
+            location.state.collect { snapshot ->
+                snapshot.fix?.point?.let { point ->
+                    transitSession.submitLocation(
+                        TransitResponsePoint(point.latitude, point.longitude),
+                        java.time.Instant.now(),
+                    )
+                }
+            }
+        }
+        scope.launch {
+            transitSession.state.map { it.active }.distinctUntilChanged().collect { active ->
+                transitGuidanceActive = active
+                syncPlatformGuidance()
+            }
+        }
+        scope.launch {
+            transitSession.state.distinctUntilChangedBy {
+                listOf(it.active, it.stage, it.line, it.nextStop, it.alightingStop, it.platform)
+            }.collect { snapshot ->
+                if (!snapshot.active) return@collect
+                val title = snapshot.line?.takeIf(String::isNotBlank)
+                    ?: appContext.getString(app.roadstr.R.string.native_transport_mode_transit)
+                val detail = listOfNotNull(snapshot.nextStop, snapshot.alightingStop, snapshot.platform)
+                    .distinct().joinToString(" · ").ifBlank {
+                        transitStageText(snapshot.stage)
+                    }
+                innerPlatform.showInstruction(title.take(200), detail.take(200))
+            }
+        }
+        scope.launch(Dispatchers.IO) {
+            transitSession.state.collect { snapshot ->
+                val persisted = if (snapshot.active) {
+                    val checkpoint = transitSession.checkpoint()
+                    val itinerary = transitSession.itinerarySnapshot()
+                    if (checkpoint != null && itinerary != null) NativeActiveTransitJourney(itinerary, checkpoint) else null
+                } else null
+                activeTransitStore.save(persisted)
+            }
+        }
+        scope.launch {
+            transitSession.state.map { it.voiceCue }.filterNotNull()
+                .distinctUntilChangedBy { it.sequence }.collect { cue ->
+                    val stored = ui.load()
+                    voice.setMuted(!stored.voiceEnabled)
+                    if (!stored.voiceEnabled) return@collect
+                    val language = (stored.languageCode ?: Locale.getDefault().language).trim().ifBlank { "en" }
+                    voice.configure(
+                        languageCode = language,
+                        gender = when (stored.voiceGender) {
+                            NativeSettingsVoiceGender.Male -> NativeVoiceGender.Male
+                            NativeSettingsVoiceGender.Female -> NativeVoiceGender.Female
+                        },
+                        speed = NativeVoiceCatalog.speedForStage(stored.voiceSpeedStage),
+                        volume = stored.voiceVolume,
+                    )
+                    when (cue.kind) {
+                        NativeTransitVoiceCueKind.Arrived -> voice.announceArrival()
+                        else -> voice.announceManeuver(
+                            instruction = transitVoiceInstruction(cue.kind, cue.line, cue.stopName),
+                            distanceMeters = 0,
+                            nowMillis = SystemClock.elapsedRealtime(),
+                            imperial = settings().imperialUnits,
+                        )
+                    }
+                }
+        }
+        scope.launch {
+            while (true) {
+                delay(30_000L)
+                if (transitSession.state.value.active) transitSession.tick(java.time.Instant.now())
+            }
+        }
+    }
 
     fun onActivityStart() {
         visible = true
@@ -92,7 +205,7 @@ internal class NativeNavigationRuntime(
 
     fun onActivityStop() {
         visible = false
-        if (!host.navigating) voice.stop()
+        if (!navigating) voice.stop()
         location.onHostStop()
     }
 
@@ -103,6 +216,51 @@ internal class NativeNavigationRuntime(
         voice.close()
         scope.cancel()
     }
+
+    private fun syncPlatformGuidance() {
+        val active = roadGuidanceActive || transitGuidanceActive
+        if (active == platformGuidanceActive) return
+        platformGuidanceActive = active
+        location.holdForNavigation(active)
+        if (active) {
+            innerPlatform.guidanceStarted()
+        } else {
+            innerPlatform.clearInstruction()
+            innerPlatform.guidanceStopped()
+            if (!visible) voice.stop()
+        }
+    }
+
+    private fun transitVoiceInstruction(
+        kind: NativeTransitVoiceCueKind,
+        line: String?,
+        stopName: String?,
+    ): String = when (kind) {
+        NativeTransitVoiceCueKind.ApproachStop -> appContext.getString(app.roadstr.R.string.native_transit_voice_approach_stop)
+        NativeTransitVoiceCueKind.PrepareToBoard -> appContext.getString(app.roadstr.R.string.native_transit_voice_prepare_board)
+        NativeTransitVoiceCueKind.BoardLine -> appContext.getString(app.roadstr.R.string.native_transit_voice_take_line, line.orEmpty())
+        NativeTransitVoiceCueKind.PrepareToAlight -> appContext.getString(app.roadstr.R.string.native_transit_voice_alight, stopName.orEmpty())
+        NativeTransitVoiceCueKind.PrepareConnection -> appContext.getString(app.roadstr.R.string.native_transit_voice_connection)
+        NativeTransitVoiceCueKind.ContinueOnFoot -> appContext.getString(app.roadstr.R.string.native_transit_voice_continue_walk)
+        NativeTransitVoiceCueKind.Arrived -> appContext.getString(app.roadstr.R.string.native_transit_voice_arrived)
+    }
+
+    private fun transitStageText(stage: NativeTransitNavigationStage): String = appContext.getString(
+        when (stage) {
+            NativeTransitNavigationStage.ApproachStop -> app.roadstr.R.string.native_transit_nav_approach_stop
+            NativeTransitNavigationStage.WaitingToBoard -> app.roadstr.R.string.native_transit_nav_waiting_to_board
+            NativeTransitNavigationStage.OnBoard -> app.roadstr.R.string.native_transit_nav_on_board
+            NativeTransitNavigationStage.ApproachingAlightingStop -> app.roadstr.R.string.native_transit_nav_approaching_alight
+            NativeTransitNavigationStage.TransferWalk -> app.roadstr.R.string.native_transit_nav_transfer_walk
+            NativeTransitNavigationStage.WaitingForConnection -> app.roadstr.R.string.native_transit_nav_waiting_connection
+            NativeTransitNavigationStage.FinalWalk -> app.roadstr.R.string.native_transit_nav_final_walk
+            NativeTransitNavigationStage.Arrived -> app.roadstr.R.string.native_transit_nav_arrived
+            NativeTransitNavigationStage.Suspended -> app.roadstr.R.string.native_transit_nav_suspended
+            NativeTransitNavigationStage.DataUnavailable -> app.roadstr.R.string.native_transit_nav_data_unavailable
+            NativeTransitNavigationStage.MissedTrip -> app.roadstr.R.string.native_transit_nav_missed
+            NativeTransitNavigationStage.Ended -> app.roadstr.R.string.native_transit_nav_end
+        },
+    )
 
     private suspend fun reroute(
         request: NativeNavigationRerouteRequest,

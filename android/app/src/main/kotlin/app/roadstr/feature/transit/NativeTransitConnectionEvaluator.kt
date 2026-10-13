@@ -91,16 +91,46 @@ object NativeTransitConnectionEvaluator {
             .takeIf(List<*>::isNotEmpty)
             ?.sumOf { it.durationSeconds }
             ?.let(Duration::ofSeconds)
+        val minimumTransfer = inferredMinimumTransfer(completed, next, walking)
         return evaluate(
             expectedArrival = completed.to?.expectedArrival ?: completed.endTime,
             expectedDeparture = next.from?.expectedDeparture ?: next.startTime,
             walkingTransfer = walking,
-            minimumTransfer = null,
+            minimumTransfer = minimumTransfer,
             safetyMargin = safetyMargin,
             nextServiceCancelled = next.cancelled || next.from?.cancelled == true,
             realtime = completed.realTime || next.realTime,
             now = now,
         )
+    }
+
+    /**
+     * Providers do not consistently publish station transfer rules. When both legs identify the
+     * same interchange, use a deliberately conservative platform-based floor; unrelated or
+     * unidentified stops remain unknown and therefore only raise a risk warning.
+     */
+    private fun inferredMinimumTransfer(
+        completed: app.roadstr.core.network.TransitLeg,
+        next: app.roadstr.core.network.TransitLeg,
+        walking: Duration?,
+    ): Duration? {
+        if (walking != null) return walking
+        val arrival = completed.to ?: return null
+        val departure = next.from ?: return null
+        val sameStation = when {
+            arrival.id != null && departure.id != null -> arrival.id == departure.id
+            !arrival.name.isNullOrBlank() && !departure.name.isNullOrBlank() ->
+                arrival.name.trim().equals(departure.name.trim(), ignoreCase = true)
+            else -> false
+        }
+        if (!sameStation) return null
+        val fromPlatform = arrival.expectedPlatform ?: arrival.scheduledPlatform
+        val toPlatform = departure.expectedPlatform ?: departure.scheduledPlatform
+        return when {
+            fromPlatform != null && toPlatform != null && fromPlatform == toPlatform -> Duration.ofSeconds(60)
+            fromPlatform != null && toPlatform != null -> Duration.ofMinutes(3)
+            else -> Duration.ofMinutes(2)
+        }
     }
 
     private fun unknown() = NativeTransitConnectionAssessment(

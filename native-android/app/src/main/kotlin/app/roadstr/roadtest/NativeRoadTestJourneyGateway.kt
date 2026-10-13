@@ -13,6 +13,8 @@ import app.roadstr.core.network.SearchResponsePoint
 import app.roadstr.core.network.SearchResult
 import app.roadstr.core.network.RoutingAvoidanceMode
 import app.roadstr.feature.home.NativeShellJourneyGateway
+import app.roadstr.feature.transit.humanCategory
+import app.roadstr.feature.transit.stringResourceId
 import app.roadstr.feature.place.NativePlaceArticleInput
 import app.roadstr.feature.route.NativeRouteTransportMode
 import app.roadstr.feature.route.NativeRouteWeatherPresentation
@@ -92,6 +94,7 @@ class NativeRoadTestJourneyGateway(
     private val localRoutingEngine: RoutingEngine? = null,
     names: NativeLiveStoreNames = NativeLiveStoreNames(),
 ) : NativeShellJourneyGateway {
+    private val context = context.applicationContext
     private val history = NativeRoadTestSearchHistoryStore(context, names)
     private val searchService = NativeSearchService(transport)
     private val routingService = NativeRoutingService(transport)
@@ -136,9 +139,7 @@ class NativeRoadTestJourneyGateway(
         }
         val geographical = places.await()
         val operational = (stops.await() as? NativeTransitData)?.value.orEmpty().mapNotNull(::transitSearchResult)
-        (operational + geographical).distinctBy { value ->
-            value.transitStop?.id ?: "${value.position.latitude}:${value.position.longitude}:${value.shortName}"
-        }
+        mergeGenericSearchResults(geographical, operational)
     }
 
     override suspend fun transitDepartures(
@@ -147,6 +148,20 @@ class NativeRoadTestJourneyGateway(
         languageCode: String,
     ): NativeTransitDataResult<TransitStopBoard> = transitRouter().departures(
         NativeTransitDeparturesQuery(stop, at, languageCode),
+    )
+
+    override suspend fun transitLines(
+        stop: TransitStopReference,
+        languageCode: String,
+    ) = transitRouter().lines(
+        app.roadstr.service.transit.NativeTransitStopQuery(stop, languageCode),
+    )
+
+    override suspend fun transitTrip(
+        reference: TransitScopedId,
+        languageCode: String,
+    ) = transitRouter().trip(
+        NativeTransitReferenceQuery(reference, languageCode),
     )
 
     override suspend fun nearbyTransitStops(
@@ -192,7 +207,10 @@ class NativeRoadTestJourneyGateway(
             type = "stop",
             city = result.locality,
             emojiOverride = "◉",
-            categoryLabelOverride = result.modes.joinToString(" · ") { it.wireName.lowercase(Locale.ROOT) },
+            categoryLabelOverride = result.modes
+                .map { context.getString(it.humanCategory().stringResourceId()) }
+                .distinct()
+                .joinToString(" · "),
             transitStop = result.stop,
         )
     }
@@ -546,3 +564,32 @@ class NativeRoadTestJourneyGateway(
         )
     }
 }
+
+/**
+ * Keeps ordinary addresses and POIs as the primary generic-search results while
+ * still reserving room for operational stops. Nearby > Transit has its own
+ * dedicated path and is intentionally not merged here.
+ */
+internal fun mergeGenericSearchResults(
+    geographical: List<SearchResult>,
+    operational: List<SearchResult>,
+): List<SearchResult> {
+    val uniquePlaces = geographical.distinctBy(::genericSearchResultKey)
+    val knownKeys = uniquePlaces.mapTo(mutableSetOf(), ::genericSearchResultKey)
+    val uniqueStops = operational
+        .distinctBy(::genericSearchResultKey)
+        .filter { knownKeys.add(genericSearchResultKey(it)) }
+    return buildList(uniquePlaces.size + uniqueStops.size) {
+        addAll(uniquePlaces.take(GENERIC_SEARCH_PLACE_SLOTS))
+        addAll(uniqueStops.take(GENERIC_SEARCH_TRANSIT_SLOTS))
+        addAll(uniquePlaces.drop(GENERIC_SEARCH_PLACE_SLOTS))
+        addAll(uniqueStops.drop(GENERIC_SEARCH_TRANSIT_SLOTS))
+    }
+}
+
+private fun genericSearchResultKey(value: SearchResult): Any =
+    value.transitStop?.id
+        ?: "${value.position.latitude}:${value.position.longitude}:${value.shortName.lowercase(Locale.ROOT)}"
+
+private const val GENERIC_SEARCH_PLACE_SLOTS = 20
+private const val GENERIC_SEARCH_TRANSIT_SLOTS = 5

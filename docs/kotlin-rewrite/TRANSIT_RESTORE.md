@@ -1,6 +1,6 @@
 # Public transport restoration and evolution
 
-Status: implemented and JVM-tested on 2026-10-11; the public Transitous endpoint was checked once with an opt-in live probe. Production-wide use of that community endpoint still requires prior coordination with Transitous.
+Status: implemented and JVM-tested on 2026-10-12. Transitous was exercised on a physical device and Entur passed its opt-in live Oslo probe on 2026-10-12 in addition to deterministic fixtures. Production-wide use of the public Transitous endpoint still requires prior coordination with Transitous.
 
 ## Audit: Flutter 0.5.x versus Kotlin 1.0
 
@@ -17,9 +17,9 @@ The transit feature entered the Flutter tree in commit `8f5865e` and is present 
 | Platforms and intermediate stops | No | No | Scheduled/expected platform and intermediate stops are parsed and presented when supplied |
 | Timetable and realtime | Leg times and one realtime boolean | Same core fields | Scheduled/current times are distinct; delay, cancellation, alerts and realtime state are represented |
 | Map rendering | Line geometry on both Flutter renderers; walking distinguished | MapLibre compiler/renderer existed but was detached | Selected itinerary plus boarding/alighting markers are live in the native MapLibre host |
-| Active transit guidance | Not implemented | Not implemented | Not implemented; planned with explicit/manual boarding confirmation |
-| Saved transit journey | Not implemented; road routes only | Road-only saved-route schema | Still deferred; must be a time-valid transit schema, not a frozen road route |
-| Stop/departure search | General OSM search only | General native search | Still deferred; OSM infrastructure must not be presented as timetable data |
+| Active transit guidance | Not implemented | Not implemented | Process-owned multimodal state machine with GPS assistance, voice, foreground notification, encrypted recovery and explicit boarding/alighting confirmations |
+| Saved transit journey | Not implemented; road routes only | Road-only saved-route schema | Separate encrypted, versioned transit snapshots with provider-scoped refresh and an original/updated per-leg comparison |
+| Stop/departure search | General OSM search only | General native search | Provider-backed stop search, nearby stops, departure boards, lines serving a stop and provider-scoped trip details |
 
 The legacy Flutter launcher remains buildable. Its Transitous URL and request headers were updated to the same v6/contact policy, but Kotlin is the maintained implementation.
 
@@ -40,7 +40,7 @@ The planner accepts exactly one destination and no intermediate user waypoint fo
 | Transitous | Implemented and live-verified | Broad open-feed coverage and current MOTIS v6 contract. Public service is best-effort, FLOSS/non-commercial/light-use only; coordinate production rollout before routing load or many users. |
 | Self-hosted MOTIS | Protocol-compatible and architecturally prepared | MIT engine; same versioned REST/OpenAPI family. Deployment, regional OSM/timetables/realtime feeds, monitoring and data licences remain operator responsibilities. |
 | OpenTripPlanner 2 | Studied, not implemented | Useful independent regional engine, but current APIs are GraphQL. A real adapter needs schema/capability negotiation and an actual target deployment; a removed legacy REST adapter would be misleading. |
-| Entur | Studied, not implemented | Strong Norway-specific GraphQL/realtime option with mandatory client identification. Add only with regional routing tests and current usage agreement. |
+| Entur | Implemented for Norway | Real GraphQL planning/replanning adapter with mandatory client identification, bounded transport, partial-error handling, regional coverage and deterministic fixtures. Live probing remains explicit and opt-in. |
 | transport.rest | Studied, not implemented | Regional community instances vary in upstream stability and limits; no instance is assumed free or unlimited. |
 | MobilityDatabase, GTFS/GTFS-RT, NeTEx, GBFS | Dataset discovery/input only | These are catalogues or exchange formats, not universal journey planners. They belong behind MOTIS/OTP or a future offline router. |
 
@@ -54,18 +54,16 @@ The opt-in live test `ROADSTR_TRANSIT_LIVE_PROBE=1` queried central Milan once t
 
 The Kotlin performance profiles currently resolve to one MapLibre native host; the `osm` value is a compatibility preference, not a second native 2D renderer. The shared itinerary model therefore survives that preference change, but claiming two independently rendered native engines would be false. The legacy Flutter application still has separate raster and MapLibre adapters and uses the same provider contract.
 
-Not yet implemented:
+Deliberate boundaries and remaining operational work:
 
-- active transit progress, voice prompts, missed-connection refresh and manual boarding/alighting confirmations;
-- persisted transit itineraries and stale/original/updated comparison;
-- stop/line/departure search and evidence-based OSM-to-schedule identity matching;
-- a second production adapter, custom-backend settings UI, vehicle positions, GBFS and park-and-ride;
-- on-device transit routing and physical-device accessibility/screenshot/performance evidence.
+- transit routing is online-only by product decision; saved snapshots remain readable offline, but no GTFS/NeTEx package or local transit router is shipped;
+- custom-backend settings, vehicle positions, GBFS and park-and-ride are possible later additions, not completion requirements for the current transit mode;
+- production traffic on the public Transitous endpoint requires coordination with its operators;
+- TalkBack, large-font, landscape, screen-off voice and process-recovery checks remain part of the physical-device release matrix.
 
 ## Next phases
 
 1. Coordinate expected load and release terms with Transitous before making its public endpoint the default for a broad production audience; expose the coordinate/logging disclosure in product privacy UI.
-2. Add a configurable self-hosted MOTIS endpoint and health/capability negotiation, then a genuinely tested OTP GraphQL adapter for one maintained regional instance.
-3. Build a transit navigation state machine around leg boundaries. GPS may estimate approach/progress, but boarding and alighting remain unknown until provider evidence or user confirmation says otherwise. Refresh only near relevant departure/transfer boundaries with lifecycle-aware throttling and backoff.
-4. Add a versioned encrypted saved-transit schema storing query, provider IDs, schedule validity, selected legs/geometries and last verification. On reopen, label the saved snapshot as stale until a fresh provider result is compared.
-5. Define signed regional offline manifests separate from map tiles: OSM extract, static GTFS/NeTEx artifact, licence/provenance, checksum, service-date range, timezone database version and router compatibility. Realtime remains network-dependent and must never be inferred from static data.
+2. Optionally add a configurable self-hosted MOTIS endpoint and health/capability negotiation for deployments that do not use the public service.
+3. Add vehicle positions, GBFS and park-and-ride only where a provider publishes authoritative data and licences permit redistribution.
+4. Re-run the physical-device transit matrix for each release and record provider/date/region without storing a user's coordinates.

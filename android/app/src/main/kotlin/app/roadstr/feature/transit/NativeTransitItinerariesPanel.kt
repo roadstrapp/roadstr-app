@@ -91,6 +91,12 @@ fun NativeTransitItinerariesPanel(
                 NativeTransitUiStatus.Failure -> TransitEmptyState(failed = true, onRetry = onRetry)
                 NativeTransitUiStatus.Ready -> {
                     TransitReadyState(snapshot, onSelect)
+                    Text(
+                        androidx.compose.ui.res.stringResource(R.string.native_transit_privacy_notice),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
                     if (snapshot.selectedIndex != null && onStart != null) {
                         Row(modifier = Modifier.align(Alignment.End)) {
                             if (onSave != null) {
@@ -348,14 +354,14 @@ private fun TransitItineraryCard(
 
 @Composable
 private fun TransitLegDetail(leg: NativeTransitLegPresentation) {
-    val walk = androidx.compose.ui.res.stringResource(R.string.native_transit_walk_leg)
+    val category = transitCategoryLabel(leg.category)
     val title = if (leg.mode.isTransit) {
         buildString {
-            append(leg.line ?: modeMark(leg.mode))
-            leg.direction?.let { append("  →  ").append(it) }
+            append(category)
+            leg.line?.let { append("  ·  ").append(it) }
         }
     } else {
-        "$walk · ${leg.durationMinutes} min"
+        "$category · ${leg.durationMinutes} min"
     }
     Column(
         modifier = Modifier
@@ -383,6 +389,24 @@ private fun TransitLegDetail(leg: NativeTransitLegPresentation) {
         if (endpoints.isNotEmpty()) {
             Spacer(modifier = Modifier.height(3.dp))
             Text(endpoints, style = MaterialTheme.typography.bodySmall)
+        }
+        leg.serviceName?.let { service ->
+            Text(
+                service,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        leg.direction?.let { direction ->
+            Text(
+                "→ $direction",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
         val timing = buildString {
             append(leg.startTimeLabel).append(" – ").append(leg.endTimeLabel)
@@ -423,6 +447,34 @@ private fun TransitLegDetail(leg: NativeTransitLegPresentation) {
 }
 
 @Composable
+private fun transitCategoryLabel(category: NativeTransitModeCategory): String =
+    androidx.compose.ui.res.stringResource(category.stringResourceId())
+
+internal fun NativeTransitModeCategory.stringResourceId(): Int = when (this) {
+    NativeTransitModeCategory.Walk -> R.string.native_transit_category_walk
+    NativeTransitModeCategory.Bike -> R.string.native_transit_category_bike
+    NativeTransitModeCategory.Car -> R.string.native_transit_category_car
+    NativeTransitModeCategory.SharedRide -> R.string.native_transit_category_shared_ride
+    NativeTransitModeCategory.Tram -> R.string.native_transit_category_tram
+    NativeTransitModeCategory.Metro -> R.string.native_transit_category_metro
+    NativeTransitModeCategory.SuburbanRail -> R.string.native_transit_category_suburban_rail
+    NativeTransitModeCategory.RegionalRail -> R.string.native_transit_category_regional_rail
+    NativeTransitModeCategory.RegionalFastRail -> R.string.native_transit_category_regional_fast_rail
+    NativeTransitModeCategory.LongDistanceRail -> R.string.native_transit_category_long_distance_rail
+    NativeTransitModeCategory.HighSpeedRail -> R.string.native_transit_category_high_speed_rail
+    NativeTransitModeCategory.NightRail -> R.string.native_transit_category_night_rail
+    NativeTransitModeCategory.Rail -> R.string.native_transit_category_rail
+    NativeTransitModeCategory.Bus -> R.string.native_transit_category_bus
+    NativeTransitModeCategory.Coach -> R.string.native_transit_category_coach
+    NativeTransitModeCategory.Ferry -> R.string.native_transit_category_ferry
+    NativeTransitModeCategory.Air -> R.string.native_transit_category_air
+    NativeTransitModeCategory.Funicular -> R.string.native_transit_category_funicular
+    NativeTransitModeCategory.CableTransport -> R.string.native_transit_category_cable
+    NativeTransitModeCategory.OnDemand -> R.string.native_transit_category_on_demand
+    NativeTransitModeCategory.Other -> R.string.native_transit_category_other
+}
+
+@Composable
 private fun TransitLegBadge(leg: NativeTransitLegPresentation) {
     val line = leg.line
     if (line == null || leg.backgroundArgb == null || leg.foregroundArgb == null) {
@@ -453,57 +505,56 @@ private fun TransitModeChoices(
     transportMode: NativeTransitTransportMode,
     onModeChanged: (NativeTransitTransportMode) -> Unit,
 ) {
-    val walkingFamily = transportMode == NativeTransitTransportMode.Walking ||
-        transportMode == NativeTransitTransportMode.Transit
-    Row(
-        modifier = Modifier.horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        ModeChip(
-            label = androidx.compose.ui.res.stringResource(R.string.native_mode_car),
-            selected = transportMode == NativeTransitTransportMode.Driving,
-            onClick = { onModeChanged(NativeTransitTransportMode.Driving) },
-        )
-        ModeChip(
-            label = androidx.compose.ui.res.stringResource(R.string.native_mode_bike),
-            selected = transportMode == NativeTransitTransportMode.Cycling,
-            onClick = { onModeChanged(NativeTransitTransportMode.Cycling) },
-        )
-        ModeChip(
-            label = androidx.compose.ui.res.stringResource(R.string.native_mode_walk),
-            selected = walkingFamily,
-            onClick = { onModeChanged(NativeTransitTransportMode.Walking) },
-        )
-    }
-    if (walkingFamily) {
-        Spacer(modifier = Modifier.height(8.dp))
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(
-            modifier = Modifier.horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Text("↳", color = MaterialTheme.colorScheme.onSurfaceVariant)
             ModeChip(
-                label = androidx.compose.ui.res.stringResource(R.string.native_transport_mode_walk),
+                label = androidx.compose.ui.res.stringResource(R.string.native_mode_car),
+                selected = transportMode == NativeTransitTransportMode.Driving,
+                onClick = { onModeChanged(NativeTransitTransportMode.Driving) },
+                modifier = Modifier.weight(1f),
+            )
+            ModeChip(
+                label = androidx.compose.ui.res.stringResource(R.string.native_mode_bike),
+                selected = transportMode == NativeTransitTransportMode.Cycling,
+                onClick = { onModeChanged(NativeTransitTransportMode.Cycling) },
+                modifier = Modifier.weight(1f),
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            ModeChip(
+                label = androidx.compose.ui.res.stringResource(R.string.native_mode_walk),
                 selected = transportMode == NativeTransitTransportMode.Walking,
                 onClick = { onModeChanged(NativeTransitTransportMode.Walking) },
+                modifier = Modifier.weight(1f),
             )
             ModeChip(
                 label = androidx.compose.ui.res.stringResource(R.string.native_transport_mode_transit),
                 selected = transportMode == NativeTransitTransportMode.Transit,
                 onClick = { onModeChanged(NativeTransitTransportMode.Transit) },
+                modifier = Modifier.weight(1f),
             )
         }
     }
 }
 
 @Composable
-private fun ModeChip(label: String, selected: Boolean, onClick: () -> Unit) {
+private fun ModeChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     FilterChip(
         selected = selected,
         onClick = onClick,
         label = { Text(label) },
-        modifier = Modifier.semantics {
+        modifier = modifier.semantics {
             this.selected = selected
             role = Role.Button
         },

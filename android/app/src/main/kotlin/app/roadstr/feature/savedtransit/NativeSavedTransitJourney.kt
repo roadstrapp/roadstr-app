@@ -13,6 +13,8 @@ import app.roadstr.core.network.TransitRequestPoint
 import app.roadstr.core.network.TransitParsedPlan
 import app.roadstr.core.network.RoutingResponsePoint
 import app.roadstr.feature.savedroute.NativeSavedRouteProtocol
+import app.roadstr.feature.transit.NativeTransitNavigationCheckpoint
+import app.roadstr.feature.transit.NativeTransitNavigationStage
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
@@ -599,4 +601,125 @@ class NativeSavedTransitStore(
         current: List<NativeSavedTransitJourney>,
         value: NativeSavedTransitJourney,
     ): List<NativeSavedTransitJourney>? = NativeSavedTransitProtocol.upsert(current, value).takeIf(::save)
+}
+
+data class NativeActiveTransitJourney(
+    val itinerary: TransitItinerary,
+    val checkpoint: NativeTransitNavigationCheckpoint,
+)
+
+/**
+ * Small, checksummed payload stored inside protected preferences while transit guidance is active.
+ * It intentionally has a different magic/version from the user's saved-journey collection so a
+ * corrupt or future payload fails closed without affecting saved trips.
+ */
+object NativeActiveTransitProtocol {
+    private const val MAGIC = 0x52535441 // RSTA
+    private const val VERSION = 1
+    private const val MAX_BYTES = NativeSavedTransitProtocol.MAX_STORED_BYTES + 1024 * 1024
+
+    fun encode(value: NativeActiveTransitJourney): String {
+        val holder = NativeSavedTransitJourney(
+            id = "active",
+            name = "Active transit guidance",
+            query = NativeSavedTransitQuery(
+                originLabel = "",
+                destinationLabel = "",
+                origin = value.itinerary.legs.first().geometry.firstOrNull()?.let {
+                    TransitRequestPoint(it.latitude, it.longitude)
+                } ?: TransitRequestPoint(0.0, 0.0),
+                destination = value.itinerary.legs.last().geometry.lastOrNull()?.let {
+                    TransitRequestPoint(it.latitude, it.longitude)
+                } ?: TransitRequestPoint(0.0, 0.0),
+                requestedDeparture = value.itinerary.startTime,
+            ),
+            provider = TransitProvider(
+                value.itinerary.id?.providerId
+                    ?: value.itinerary.transitLegs.firstNotNullOfOrNull { it.tripId?.providerId }
+                    ?: "unknown",
+                "Active transit provider",
+                null,
+            ),
+            serviceDay = value.itinerary.startTime.atZone(ZoneId.of("UTC")).toLocalDate(),
+            timezone = "UTC",
+            original = value.itinerary,
+            updated = null,
+            state = NativeSavedTransitState.SavedSnapshot,
+            savedAt = value.itinerary.startTime,
+            lastVerifiedAt = null,
+        )
+        val itineraryPayload = NativeSavedTransitProtocol.encode(listOf(holder)).toByteArray(Charsets.UTF_8)
+        val bytes = ByteArrayOutputStream().also { raw ->
+            DataOutputStream(raw).use { output ->
+                output.writeInt(MAGIC)
+                output.writeInt(VERSION)
+                output.writeInt(itineraryPayload.size)
+                output.write(itineraryPayload)
+                val checkpoint = value.checkpoint
+                output.writeBoolean(checkpoint.itineraryId != null)
+                checkpoint.itineraryId?.take(8_192)?.let(output::writeUTF)
+                output.writeLong(checkpoint.revision)
+                output.writeInt(checkpoint.stage.ordinal)
+                output.writeInt(checkpoint.legIndex)
+                output.writeInt(checkpoint.suspendedFrom?.ordinal ?: -1)
+                output.writeLong(checkpoint.verifySequence)
+                output.writeLong(checkpoint.replanSequence)
+                output.writeInt(checkpoint.intermediateStopIndex)
+            }
+        }.toByteArray()
+        require(bytes.size <= MAX_BYTES)
+        val digest = MessageDigest.getInstance("SHA-256").digest(bytes)
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes + digest)
+    }
+
+    fun decode(encoded: String?): NativeActiveTransitJourney? {
+        if (encoded.isNullOrBlank() || encoded.length > MAX_BYTES * 2) return null
+        return runCatching {
+            val framed = Base64.getUrlDecoder().decode(encoded)
+            if (framed.size <= 32 || framed.size > MAX_BYTES + 32) return null
+            val payload = framed.copyOfRange(0, framed.size - 32)
+            val digest = framed.copyOfRange(framed.size - 32, framed.size)
+            if (!MessageDigest.isEqual(MessageDigest.getInstance("SHA-256").digest(payload), digest)) return null
+            DataInputStream(ByteArrayInputStream(payload)).use { input ->
+                if (input.readInt() != MAGIC || input.readInt() != VERSION) return null
+                val size = input.readInt()
+                if (size !in 1..MAX_BYTES || size > input.available()) return null
+                val itineraryEncoded = ByteArray(size).also(input::readFully).toString(Charsets.UTF_8)
+                val itinerary = NativeSavedTransitProtocol.decode(itineraryEncoded).singleOrNull()?.original ?: return null
+                val itineraryId = if (input.readBoolean()) input.readUTF().take(8_192) else null
+                val revision = input.readLong()
+                val stage = NativeTransitNavigationStage.entries.getOrNull(input.readInt()) ?: return null
+                val legIndex = input.readInt()
+                val suspendedOrdinal = input.readInt()
+                val suspended = if (suspendedOrdinal < 0) null else
+                    NativeTransitNavigationStage.entries.getOrNull(suspendedOrdinal) ?: return null
+                val checkpoint = NativeTransitNavigationCheckpoint(
+                    itineraryId = itineraryId,
+                    revision = revision,
+                    stage = stage,
+                    legIndex = legIndex,
+                    suspendedFrom = suspended,
+                    verifySequence = input.readLong(),
+                    replanSequence = input.readLong(),
+                    intermediateStopIndex = input.readInt(),
+                )
+                if (input.available() != 0) return null
+                NativeActiveTransitJourney(itinerary, checkpoint)
+            }
+        }.getOrNull()
+    }
+}
+
+class NativeActiveTransitStore(
+    private val readEncryptedValue: () -> String?,
+    private val writeEncryptedValue: (String) -> Boolean,
+    private val removeEncryptedValue: () -> Boolean,
+) {
+    fun load(): NativeActiveTransitJourney? = NativeActiveTransitProtocol.decode(readEncryptedValue())
+
+    fun save(value: NativeActiveTransitJourney?): Boolean = if (value == null) {
+        removeEncryptedValue()
+    } else {
+        runCatching { writeEncryptedValue(NativeActiveTransitProtocol.encode(value)) }.getOrDefault(false)
+    }
 }

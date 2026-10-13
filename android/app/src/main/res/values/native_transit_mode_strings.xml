@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_transit_category_walk">Walk</string>
+    <string name="native_transit_category_bike">Bike</string>
+    <string name="native_transit_category_car">Car</string>
+    <string name="native_transit_category_shared_ride">Shared ride</string>
+    <string name="native_transit_category_tram">Tram</string>
+    <string name="native_transit_category_metro">Metro</string>
+    <string name="native_transit_category_suburban_rail">Suburban train</string>
+    <string name="native_transit_category_regional_rail">Regional train</string>
+    <string name="native_transit_category_regional_fast_rail">Fast regional train</string>
+    <string name="native_transit_category_long_distance_rail">Long-distance train</string>
+    <string name="native_transit_category_high_speed_rail">High-speed train</string>
+    <string name="native_transit_category_night_rail">Night train</string>
+    <string name="native_transit_category_rail">Train</string>
+    <string name="native_transit_category_bus">City or local bus</string>
+    <string name="native_transit_category_coach">Intercity coach</string>
+    <string name="native_transit_category_ferry">Ferry</string>
+    <string name="native_transit_category_air">Flight</string>
+    <string name="native_transit_category_funicular">Funicular</string>
+    <string name="native_transit_category_cable">Cable transport</string>
+    <string name="native_transit_category_on_demand">On-demand transport</string>
+    <string name="native_transit_category_other">Public transport</string>
+</resources>

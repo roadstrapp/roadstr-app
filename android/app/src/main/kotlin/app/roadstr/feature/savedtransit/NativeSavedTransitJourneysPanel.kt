@@ -125,8 +125,11 @@ private fun SavedTransitRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 journey.updated?.let { updated ->
-                    val count = NativeSavedTransitComparator.compare(journey.original, updated).size
-                    Text(stringResource(R.string.native_saved_transit_differences, count))
+                    val differences = NativeSavedTransitComparator.compare(journey.original, updated)
+                    Text(stringResource(R.string.native_saved_transit_differences, differences.size))
+                    differences.forEach { difference ->
+                        SavedTransitDifferenceRow(journey, difference)
+                    }
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     TextButton(onClick = { onView(journey, false) }) {
@@ -151,4 +154,42 @@ private fun SavedTransitRow(
             }
         }
     }
+}
+
+@Composable
+private fun SavedTransitDifferenceRow(
+    journey: NativeSavedTransitJourney,
+    difference: NativeSavedTransitDifference,
+) {
+    val before = journey.original.legs.getOrNull(difference.legIndex)
+    val after = journey.updated?.legs?.getOrNull(difference.legIndex)
+    val formatter = DateTimeFormatter.ofPattern("HH:mm")
+        .withZone(runCatching { ZoneId.of(journey.timezone) }.getOrDefault(ZoneId.systemDefault()))
+    val detail = when (difference.kind) {
+        NativeSavedTransitDifferenceKind.DelayChanged -> stringResource(
+            R.string.native_saved_transit_delay_changed,
+            before?.startTime?.let(formatter::format) ?: "—",
+            after?.startTime?.let(formatter::format) ?: "—",
+        )
+        NativeSavedTransitDifferenceKind.PlatformChanged -> stringResource(
+            R.string.native_saved_transit_platform_changed,
+            before?.from?.expectedPlatform ?: before?.from?.scheduledPlatform ?: "—",
+            after?.from?.expectedPlatform ?: after?.from?.scheduledPlatform ?: "—",
+        )
+        NativeSavedTransitDifferenceKind.CancellationChanged ->
+            stringResource(R.string.native_saved_transit_cancellation_changed)
+        NativeSavedTransitDifferenceKind.TripChanged -> stringResource(R.string.native_saved_transit_trip_changed)
+        NativeSavedTransitDifferenceKind.StopsChanged -> stringResource(R.string.native_saved_transit_stops_changed)
+        NativeSavedTransitDifferenceKind.GeometryChanged -> stringResource(R.string.native_saved_transit_geometry_changed)
+        NativeSavedTransitDifferenceKind.UncertainIdentity -> stringResource(R.string.native_saved_transit_identity_uncertain)
+    }
+    Text(
+        stringResource(R.string.native_saved_transit_leg_change, difference.legIndex + 1, detail),
+        style = MaterialTheme.typography.bodySmall,
+        color = if (difference.kind == NativeSavedTransitDifferenceKind.CancellationChanged) {
+            MaterialTheme.colorScheme.error
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        },
+    )
 }
