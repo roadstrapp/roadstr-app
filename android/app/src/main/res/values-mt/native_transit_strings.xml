@@ -68,4 +68,14 @@
     <string name="native_saved_transit_delete">Delete</string>
     <string name="native_saved_transit_differences">Changes: %1$d</string>
     <string name="native_saved_transit_open_list">Transit journeys</string>
+    <string name="native_transit_lines">Lines</string>
+    <string name="native_saved_transit_leg_change">Leg %1$d · %2$s</string>
+    <string name="native_saved_transit_delay_changed">Time changed: %1$s → %2$s</string>
+    <string name="native_saved_transit_platform_changed">Platform changed: %1$s → %2$s</string>
+    <string name="native_saved_transit_trip_changed">Service changed</string>
+    <string name="native_saved_transit_stops_changed">Stops changed</string>
+    <string name="native_saved_transit_cancellation_changed">Cancellation status changed</string>
+    <string name="native_saved_transit_geometry_changed">Route geometry changed</string>
+    <string name="native_saved_transit_identity_uncertain">The provider could not confirm that this is the same service</string>
+    <string name="native_transit_privacy_notice">Transit searches, journey planning and live checks send the query, coordinates and travel time to Transitous or Entur. Their servers also receive your IP address.</string>
 </resources>

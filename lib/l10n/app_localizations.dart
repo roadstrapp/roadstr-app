@@ -3226,6 +3226,66 @@ abstract class AppLocalizations {
   /// **'Transit journeys'**
   String get savedTransitOpenList;
 
+  /// No description provided for @transitLines.
+  ///
+  /// In en, this message translates to:
+  /// **'Lines'**
+  String get transitLines;
+
+  /// No description provided for @savedTransitLegChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Leg {number} · {change}'**
+  String savedTransitLegChange(Object change, Object number);
+
+  /// No description provided for @savedTransitDelayChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Time changed: {before} → {after}'**
+  String savedTransitDelayChanged(Object after, Object before);
+
+  /// No description provided for @savedTransitPlatformChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform changed: {before} → {after}'**
+  String savedTransitPlatformChanged(Object after, Object before);
+
+  /// No description provided for @savedTransitTripChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Service changed'**
+  String get savedTransitTripChanged;
+
+  /// No description provided for @savedTransitStopsChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Stops changed'**
+  String get savedTransitStopsChanged;
+
+  /// No description provided for @savedTransitCancellationChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancellation status changed'**
+  String get savedTransitCancellationChanged;
+
+  /// No description provided for @savedTransitGeometryChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Route geometry changed'**
+  String get savedTransitGeometryChanged;
+
+  /// No description provided for @savedTransitIdentityUncertain.
+  ///
+  /// In en, this message translates to:
+  /// **'The provider could not confirm that this is the same service'**
+  String get savedTransitIdentityUncertain;
+
+  /// No description provided for @transitPrivacyNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Transit searches, journey planning and live checks send the query, coordinates and travel time to Transitous or Entur. Their servers also receive your IP address.'**
+  String get transitPrivacyNotice;
+
   /// No description provided for @ztlNearRouteWarning.
   ///
   /// In en, this message translates to:

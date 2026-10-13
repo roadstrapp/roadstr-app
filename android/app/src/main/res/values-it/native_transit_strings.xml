@@ -68,4 +68,14 @@
     <string name="native_saved_transit_delete">Elimina</string>
     <string name="native_saved_transit_differences">Modifiche: %1$d</string>
     <string name="native_saved_transit_open_list">Viaggi con mezzi</string>
+    <string name="native_transit_lines">Linee</string>
+    <string name="native_saved_transit_leg_change">Tratta %1$d · %2$s</string>
+    <string name="native_saved_transit_delay_changed">Orario modificato: %1$s → %2$s</string>
+    <string name="native_saved_transit_platform_changed">Binario modificato: %1$s → %2$s</string>
+    <string name="native_saved_transit_trip_changed">Corsa modificata</string>
+    <string name="native_saved_transit_stops_changed">Fermate modificate</string>
+    <string name="native_saved_transit_cancellation_changed">Stato della cancellazione modificato</string>
+    <string name="native_saved_transit_geometry_changed">Percorso modificato</string>
+    <string name="native_saved_transit_identity_uncertain">Il provider non ha potuto confermare che si tratti della stessa corsa</string>
+    <string name="native_transit_privacy_notice">Le ricerche, la pianificazione e le verifiche live dei mezzi inviano query, coordinate e orario di viaggio a Transitous o Entur. I loro server ricevono anche l’indirizzo IP.</string>
 </resources>

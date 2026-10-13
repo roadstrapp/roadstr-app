@@ -11,6 +11,15 @@ routing for a broad production audience, maintainers must contact Transitous as 
 many users. Staging and internal load-balancer hosts are never application endpoints. See the current
 [API usage policy](https://transitous.org/api/) and [privacy policy](https://transitous.org/privacy/): journey coordinates,
 time, options, IP address and User-Agent can occur in short-lived server logs, so the product must disclose remote routing.
+The onboarding disclosure and every live itinerary panel now state that transit search, planning and verification send the
+query, coordinates and travel time to Transitous or Entur and that the provider sees the requesting IP address.
+
+Entur is the second production adapter for journeys wholly inside its Norway coverage. It uses Entur's GraphQL Journey
+Planner with the required identified client header, bounded responses and provider-scoped IDs. It is not used as a worldwide
+fallback and does not currently provide Roadstr's stop search or departure-board surface.
+
+Offline public-transport routing is intentionally not shipped. An encrypted saved itinerary is readable without a network,
+but its times are labelled as a snapshot until an explicit online verification succeeds.
 
 For self-hosting, [MOTIS](https://github.com/motis-project/motis) can consume regional OSM plus GTFS/NeTEx and supported
 realtime feeds behind the same versioned API family. Hosting a router does not grant rights to redistribute its input feeds;

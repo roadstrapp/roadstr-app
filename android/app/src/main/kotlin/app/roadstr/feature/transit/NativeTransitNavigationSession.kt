@@ -181,6 +181,9 @@ class NativeTransitNavigationSession {
         itinerary?.id
     }
 
+    /** Immutable model currently owned by this session, used by the process runtime for recovery. */
+    fun itinerarySnapshot(): TransitItinerary? = synchronized(lock) { itinerary }
+
     fun replanContext(
         currentPosition: TransitResponsePoint?,
         now: Instant,

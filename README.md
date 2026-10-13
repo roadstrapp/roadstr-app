@@ -40,8 +40,9 @@ production update path, migration, navigation and the surrounding integrations:
   release identity and signed update path were validated with device checks plus the automated suites.
 - OpenStreetMap speed cameras and ZTL/ZAC/limited-traffic warnings are in the Kotlin app, including restricted route colouring,
   live inside/nearby notices and bounded Overpass caching (road events reported by people are there too).
-- Known limits are product behavior rather than missing validation: a trip is held in memory, so if Android kills the process
-  the trip is not restored; translations have not been reviewed by native speakers (Irish and Maltese are the least reliable).
+- Known limits are product behavior rather than missing validation: road guidance is held in memory if Android kills the
+  process, while active transit guidance has encrypted recovery; translations have not been reviewed by native speakers
+  (Irish and Maltese are the least reliable).
 
 The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rewrite/RISKS.md) and
 [docs/kotlin-rewrite/FEATURE_PARITY.md](docs/kotlin-rewrite/FEATURE_PARITY.md).

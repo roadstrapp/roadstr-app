@@ -32,8 +32,8 @@ void main() {
       final strings = RegExp(
         r'<string name="([^"]+)">([\s\S]*?)</string>',
       ).allMatches(entry.value).toList();
-      expect(strings, hasLength(67), reason: entry.key);
-      expect(strings.map((match) => match.group(1)).toSet(), hasLength(67));
+      expect(strings, hasLength(77), reason: entry.key);
+      expect(strings.map((match) => match.group(1)).toSet(), hasLength(77));
       expect(
         strings
             .singleWhere(
@@ -83,10 +83,14 @@ void main() {
     expect(source, contains('paneTitle ='));
     expect(source, contains('contentDescription ='));
     expect(source, contains('this.selected = selected'));
+    expect(source, contains('NativeTransitModeCategory.HighSpeedRail'));
+    expect(source, contains('native_transit_category_regional_rail'));
+    expect(source, isNot(contains('walkingFamily')));
     expect(source, isNot(contains('NativeTransitService')));
   });
 
-  test('private shell connects transit session without owning the provider', () {
+  test('private shell connects transit session without owning the provider',
+      () {
     final source = shell.readAsStringSync();
 
     expect(source, contains('NativeTransitJourneySession('));

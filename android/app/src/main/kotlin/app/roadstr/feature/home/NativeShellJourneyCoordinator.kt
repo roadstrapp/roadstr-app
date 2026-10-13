@@ -52,6 +52,8 @@ import app.roadstr.core.network.TransitStopBoard
 import app.roadstr.core.network.TransitStopReference
 import app.roadstr.core.network.TransitItinerary
 import app.roadstr.core.network.TransitScopedId
+import app.roadstr.core.network.TransitLine
+import app.roadstr.core.network.TransitTripDetails
 import app.roadstr.feature.navigation.NativeNavigationRerouteRequest
 import app.roadstr.feature.place.NativePlaceArticleInput
 import app.roadstr.feature.route.NativeRoutePlanningCandidate
@@ -121,6 +123,18 @@ interface NativeShellJourneyGateway {
         at: java.time.Instant,
         languageCode: String,
     ): NativeTransitDataResult<TransitStopBoard> = NativeTransitDataUnsupported
+
+    /** Lines serving a provider-scoped stop. */
+    suspend fun transitLines(
+        stop: TransitStopReference,
+        languageCode: String,
+    ): NativeTransitDataResult<List<TransitLine>> = NativeTransitDataUnsupported
+
+    /** Stop sequence and current values for a provider-scoped trip. */
+    suspend fun transitTrip(
+        reference: TransitScopedId,
+        languageCode: String,
+    ): NativeTransitDataResult<TransitTripDetails> = NativeTransitDataUnsupported
 
     suspend fun nearbyTransitStops(
         near: SearchResponsePoint,
@@ -368,6 +382,10 @@ class NativeShellJourneyCoordinator(
         avoidUnpavedRoads: Boolean = false,
     ): Boolean {
         if (!selectDestination(label, point, gpsPoint, myLocationLabel)) return false
+        // With no location fix, leave the destination in the normal planner so
+        // the user can enter an origin. The place sheet must not remain stacked
+        // above that planner just because an immediate calculation is impossible.
+        if (gpsPoint == null) return true
         return calculateRoute(
             routeSession.state.value,
             gpsPoint,

@@ -70,10 +70,25 @@ class NativeTransitPresentationTest {
         assertEquals("327 m", card.walkingDistanceLabel)
         assertTrue(card.scheduledTimes)
         assertEquals(listOf(TransitMode.Walk, TransitMode.Bus), card.legs.map { it.mode })
+        assertEquals(NativeTransitModeCategory.Walk, card.legs.first().category)
+        assertEquals(NativeTransitModeCategory.Bus, card.legs.last().category)
         assertNull(card.legs.first().line)
         assertEquals("42", card.legs.last().line)
         assertEquals(0xFFFF_FF00, card.legs.last().backgroundArgb)
         assertEquals(0xFF00_0000, card.legs.last().foregroundArgb)
+    }
+
+    @Test
+    fun `worldwide provider modes map to human transport categories`() {
+        assertEquals(NativeTransitModeCategory.Bus, TransitMode.Bus.humanCategory())
+        assertEquals(NativeTransitModeCategory.Coach, TransitMode.Coach.humanCategory())
+        assertEquals(NativeTransitModeCategory.Metro, TransitMode.Subway.humanCategory())
+        assertEquals(NativeTransitModeCategory.RegionalRail, TransitMode.RegionalRail.humanCategory())
+        assertEquals(NativeTransitModeCategory.HighSpeedRail, TransitMode.HighspeedRail.humanCategory())
+        assertEquals(NativeTransitModeCategory.Tram, TransitMode.Tram.humanCategory())
+        assertEquals(NativeTransitModeCategory.Ferry, TransitMode.Ferry.humanCategory())
+        assertEquals(NativeTransitModeCategory.OnDemand, TransitMode.Flex.humanCategory())
+        assertEquals(TransitMode.entries.size, TransitMode.entries.map { it.humanCategory() }.size)
     }
 
     @Test

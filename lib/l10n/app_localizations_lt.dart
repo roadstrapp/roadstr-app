@@ -1704,6 +1704,44 @@ class AppLocalizationsLt extends AppLocalizations {
   String get savedTransitOpenList => 'Transit journeys';
 
   @override
+  String get transitLines => 'Lines';
+
+  @override
+  String savedTransitLegChange(Object change, Object number) {
+    return 'Leg $number · $change';
+  }
+
+  @override
+  String savedTransitDelayChanged(Object after, Object before) {
+    return 'Time changed: $before → $after';
+  }
+
+  @override
+  String savedTransitPlatformChanged(Object after, Object before) {
+    return 'Platform changed: $before → $after';
+  }
+
+  @override
+  String get savedTransitTripChanged => 'Service changed';
+
+  @override
+  String get savedTransitStopsChanged => 'Stops changed';
+
+  @override
+  String get savedTransitCancellationChanged => 'Cancellation status changed';
+
+  @override
+  String get savedTransitGeometryChanged => 'Route geometry changed';
+
+  @override
+  String get savedTransitIdentityUncertain =>
+      'The provider could not confirm that this is the same service';
+
+  @override
+  String get transitPrivacyNotice =>
+      'Transit searches, journey planning and live checks send the query, coordinates and travel time to Transitous or Entur. Their servers also receive your IP address.';
+
+  @override
   String ztlNearRouteWarning(String street) {
     return 'Dėmesio: $street yra riboto eismo zona';
   }

@@ -83,16 +83,10 @@ void main() {
     final modeRow = RegExp(
       r'private fun RouteModeRow\([\s\S]*?\n\}\n',
     ).firstMatch(source)!.group(0)!;
-    final subRow = RegExp(
-      r'private fun WalkingOrTransitRow\([\s\S]*?\n\}\n',
-    ).firstMatch(source)!.group(0)!;
 
-    // The row shows the choice once "On foot" (or transit itself) is selected...
-    expect(modeRow, contains('WalkingOrTransitRow('));
-    expect(modeRow, contains('selectedMode == NativeRouteTransportMode.Transit'));
-    // ...and that choice contains the transit chip, wired to the mode change.
-    expect(subRow, contains('NativeRouteTransportMode.Transit'));
-    expect(subRow, contains('onModeChanged = onModeChanged'));
+    expect(modeRow, contains('NativeRouteTransportMode.Transit'));
+    expect(modeRow, contains('selected = mode == selectedMode'));
+    expect(modeRow, isNot(contains('WalkingOrTransitRow(')));
   });
 
   test('private shell feeds planning through the provider-neutral coordinator',

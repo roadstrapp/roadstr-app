@@ -1711,6 +1711,45 @@ class AppLocalizationsIt extends AppLocalizations {
   String get savedTransitOpenList => 'Viaggi con mezzi';
 
   @override
+  String get transitLines => 'Linee';
+
+  @override
+  String savedTransitLegChange(Object change, Object number) {
+    return 'Tratta $number · $change';
+  }
+
+  @override
+  String savedTransitDelayChanged(Object after, Object before) {
+    return 'Orario modificato: $before → $after';
+  }
+
+  @override
+  String savedTransitPlatformChanged(Object after, Object before) {
+    return 'Binario modificato: $before → $after';
+  }
+
+  @override
+  String get savedTransitTripChanged => 'Corsa modificata';
+
+  @override
+  String get savedTransitStopsChanged => 'Fermate modificate';
+
+  @override
+  String get savedTransitCancellationChanged =>
+      'Stato della cancellazione modificato';
+
+  @override
+  String get savedTransitGeometryChanged => 'Percorso modificato';
+
+  @override
+  String get savedTransitIdentityUncertain =>
+      'Il provider non ha potuto confermare che si tratti della stessa corsa';
+
+  @override
+  String get transitPrivacyNotice =>
+      'Le ricerche, la pianificazione e le verifiche live dei mezzi inviano query, coordinate e orario di viaggio a Transitous o Entur. I loro server ricevono anche l’indirizzo IP.';
+
+  @override
   String ztlNearRouteWarning(String street) {
     return 'Attenzione: $street è una via a traffico limitato';
   }

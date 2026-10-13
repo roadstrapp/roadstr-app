@@ -35,6 +35,32 @@ import org.junit.Test
 
 class NativeShellJourneyCoordinatorTest {
     @Test
+    fun `navigate here without GPS opens the editable multimodal planner`() {
+        val gateway = FakeGateway()
+        val planner = NativeRoutePlanningSession(NativeRouteOverlaySession(0xFF71_58E2L))
+        val coordinator = NativeShellJourneyCoordinator(
+            gateway = gateway,
+            scope = CoroutineScope(Dispatchers.Unconfined + Job()),
+            searchSession = NativeSearchSession(),
+            routeSession = planner,
+        )
+
+        assertTrue(
+            coordinator.selectDestinationAndCalculate(
+                label = "Torino Porta Nuova",
+                point = SearchResponsePoint(45.061, 7.678),
+                gpsPoint = null,
+                myLocationLabel = "My location",
+            ),
+        )
+        assertEquals(NativeRoutePlanningStatus.Planner, planner.state.value.status)
+        assertEquals("", planner.state.value.originQuery)
+        assertEquals("Torino Porta Nuova", planner.state.value.stops.single().query)
+        assertEquals(0, gateway.routeCalls)
+        coordinator.close()
+    }
+
+    @Test
     fun `save reopen and start uses stored geometry without a routing call`() {
         val gateway = FakeGateway()
         val firstPlanner = NativeRoutePlanningSession(NativeRouteOverlaySession(0xFF71_58E2L))

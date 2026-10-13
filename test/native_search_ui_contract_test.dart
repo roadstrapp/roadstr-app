@@ -83,16 +83,22 @@ void main() {
     expect(source, isNot(contains('NativeSearchHistoryStore')));
   });
 
-  test('private shell drives search through an injected provider-neutral gateway',
+  test(
+      'private shell drives search through an injected provider-neutral gateway',
       () {
     final source = shell.readAsStringSync();
 
     expect(source, contains('NativeSearchSession('));
     expect(source, contains('NativeSearchOverlay('));
-    expect(source, contains('journeyGateway: NativeShellJourneyGateway? = null'));
+    expect(
+        source, contains('journeyGateway: NativeShellJourneyGateway? = null'));
     expect(source, contains('journeyCoordinator?.updateSearchQuery(query)'));
-    expect(source, contains('journeyCoordinator?.submitSearch(query, gpsSearchPoint)'));
-    expect(source, contains('journeyCoordinator?.submitNearby(category, gpsSearchPoint)'));
+    expect(source,
+        contains('journeyCoordinator?.submitSearch(query, gpsSearchPoint)'));
+    expect(source,
+        contains('journeyCoordinator?.submitNearby(category, gpsSearchPoint)'));
+    expect(source, contains('explicitTransitBrowse'));
+    expect(source, contains('searchState.selectedNearby'));
     expect(source, isNot(contains('NativeSearchService')));
     expect(source, isNot(contains('NativeSearchHistoryStore')));
   });

@@ -5,6 +5,7 @@ import app.roadstr.core.network.TransitMode
 import app.roadstr.core.network.TransitServiceState
 import app.roadstr.core.network.TransitStopBoard
 import app.roadstr.core.network.TransitStopReference
+import app.roadstr.core.network.TransitScopedId
 import app.roadstr.service.transit.NativeTransitData
 import app.roadstr.service.transit.NativeTransitDataFailure
 import app.roadstr.service.transit.NativeTransitDataResult
@@ -29,6 +30,7 @@ enum class NativeTransitStopBoardStatus {
 
 data class NativeTransitDeparturePresentation(
     val stableId: String,
+    val tripId: TransitScopedId,
     val mode: TransitMode,
     val line: String,
     val direction: String,
@@ -84,6 +86,7 @@ object NativeTransitStopBoardPresenter {
         formatter: DateTimeFormatter,
     ) = NativeTransitDeparturePresentation(
         stableId = "${value.tripId.providerId}:${value.tripId.value}:${value.scheduledTime}",
+        tripId = value.tripId,
         mode = value.line?.mode ?: TransitMode.Other,
         line = value.line?.shortName ?: value.line?.longName ?: "—",
         direction = value.direction ?: "—",

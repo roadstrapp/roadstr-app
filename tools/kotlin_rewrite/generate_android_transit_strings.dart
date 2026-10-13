@@ -73,6 +73,16 @@ const _resourceKeys = <String, String>{
   'native_saved_transit_delete': 'savedTransitDelete',
   'native_saved_transit_differences': 'savedTransitDifferences',
   'native_saved_transit_open_list': 'savedTransitOpenList',
+  'native_transit_lines': 'transitLines',
+  'native_saved_transit_leg_change': 'savedTransitLegChange',
+  'native_saved_transit_delay_changed': 'savedTransitDelayChanged',
+  'native_saved_transit_platform_changed': 'savedTransitPlatformChanged',
+  'native_saved_transit_trip_changed': 'savedTransitTripChanged',
+  'native_saved_transit_stops_changed': 'savedTransitStopsChanged',
+  'native_saved_transit_cancellation_changed': 'savedTransitCancellationChanged',
+  'native_saved_transit_geometry_changed': 'savedTransitGeometryChanged',
+  'native_saved_transit_identity_uncertain': 'savedTransitIdentityUncertain',
+  'native_transit_privacy_notice': 'transitPrivacyNotice',
 };
 
 String _resourceFolder(String language) =>
@@ -103,7 +113,7 @@ String _androidText(String source, String sourceKey) {
         (match) => '%${match.group(1)}\$s',
       );
   if (sourceKey == 'transitTransfers' || sourceKey == 'transitNavStopsRemaining' ||
-      sourceKey == 'savedTransitDifferences') {
+      sourceKey == 'savedTransitDifferences' || sourceKey == 'savedTransitLegChange') {
     value = value.replaceFirst(r'%1$s', r'%1$d');
   }
   return value;

@@ -29,9 +29,61 @@ enum class NativeTransitTransportMode {
     Transit,
 }
 
+/** Human-scale categories: the provider still supplies the public line/service name. */
+enum class NativeTransitModeCategory {
+    Walk,
+    Bike,
+    Car,
+    SharedRide,
+    Tram,
+    Metro,
+    SuburbanRail,
+    RegionalRail,
+    RegionalFastRail,
+    LongDistanceRail,
+    HighSpeedRail,
+    NightRail,
+    Rail,
+    Bus,
+    Coach,
+    Ferry,
+    Air,
+    Funicular,
+    CableTransport,
+    OnDemand,
+    Other,
+}
+
+internal fun TransitMode.humanCategory(): NativeTransitModeCategory = when (this) {
+    TransitMode.Walk -> NativeTransitModeCategory.Walk
+    TransitMode.Bike, TransitMode.Rental -> NativeTransitModeCategory.Bike
+    TransitMode.Car, TransitMode.HeavyGoodsVehicle, TransitMode.CarParking, TransitMode.CarDropoff ->
+        NativeTransitModeCategory.Car
+    TransitMode.RideSharing -> NativeTransitModeCategory.SharedRide
+    TransitMode.Flex, TransitMode.OnDemand -> NativeTransitModeCategory.OnDemand
+    TransitMode.Tram -> NativeTransitModeCategory.Tram
+    TransitMode.Subway, TransitMode.Metro -> NativeTransitModeCategory.Metro
+    TransitMode.Suburban -> NativeTransitModeCategory.SuburbanRail
+    TransitMode.RegionalRail -> NativeTransitModeCategory.RegionalRail
+    TransitMode.RegionalFastRail -> NativeTransitModeCategory.RegionalFastRail
+    TransitMode.LongDistance -> NativeTransitModeCategory.LongDistanceRail
+    TransitMode.HighspeedRail -> NativeTransitModeCategory.HighSpeedRail
+    TransitMode.NightRail -> NativeTransitModeCategory.NightRail
+    TransitMode.Rail -> NativeTransitModeCategory.Rail
+    TransitMode.Bus -> NativeTransitModeCategory.Bus
+    TransitMode.Coach -> NativeTransitModeCategory.Coach
+    TransitMode.Ferry -> NativeTransitModeCategory.Ferry
+    TransitMode.Airplane -> NativeTransitModeCategory.Air
+    TransitMode.Funicular -> NativeTransitModeCategory.Funicular
+    TransitMode.AerialLift, TransitMode.CableCar -> NativeTransitModeCategory.CableTransport
+    TransitMode.Other -> NativeTransitModeCategory.Other
+}
+
 data class NativeTransitLegPresentation(
     val mode: TransitMode,
+    val category: NativeTransitModeCategory,
     val line: String?,
+    val serviceName: String?,
     val durationMinutes: Long,
     val backgroundArgb: Long?,
     val foregroundArgb: Long?,
@@ -129,7 +181,9 @@ object NativeTransitPresenter {
                 if (!leg.mode.isTransit || line == null) {
                     NativeTransitLegPresentation(
                         mode = leg.mode,
+                        category = leg.mode.humanCategory(),
                         line = null,
+                        serviceName = leg.routeLongName ?: leg.displayName,
                         durationMinutes = leg.durationSeconds / 60,
                         backgroundArgb = null,
                         foregroundArgb = null,
@@ -156,7 +210,9 @@ object NativeTransitPresenter {
                     NativeTransitOverlayCompiler.requireArgb(foreground, "Transit UI line text color")
                     NativeTransitLegPresentation(
                         mode = leg.mode,
+                        category = leg.mode.humanCategory(),
                         line = line,
+                        serviceName = (leg.routeLongName ?: leg.displayName)?.takeUnless { it == line },
                         durationMinutes = leg.durationSeconds / 60,
                         backgroundArgb = background,
                         foregroundArgb = foreground,

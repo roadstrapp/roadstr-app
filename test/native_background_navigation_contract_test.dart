@@ -76,9 +76,14 @@ void main() {
 
     expect(controller, contains('fun holdForNavigation(hold: Boolean)'));
     expect(controller, contains('val wanted = visible || held'));
-    expect(runtime, contains('location.holdForNavigation(true)'));
-    expect(runtime, contains('location.holdForNavigation(false)'));
-    expect(runtime, contains('if (!host.navigating) voice.stop()'));
+    // Road and transit guidance share one arbiter, so one mode cannot release
+    // the GPS/foreground service while the other is still active.
+    expect(runtime,
+        contains('val active = roadGuidanceActive || transitGuidanceActive'));
+    expect(runtime, contains('location.holdForNavigation(active)'));
+    expect(runtime,
+        contains('val navigating: Boolean get() = host.navigating || transitSession.state.value.active'));
+    expect(runtime, contains('if (!navigating) voice.stop()'));
     expect(runtime, contains('if (!visible) voice.stop()'));
     // The Activity no longer stops the voice or the GPS on its own.
     final onStop = activity.substring(activity.indexOf('override fun onStop()'),
@@ -138,5 +143,15 @@ void main() {
         app,
         contains(
             '.map { it.active }.distinctUntilChanged().filter { it }.collect { askForNotifications() }'));
+  });
+
+  test('ending a transit-only trip never sends the road sentinel revision', () {
+    final shell = _read('$_main/feature/home/NativeRoadstrShell.kt');
+
+    expect(
+      shell,
+      contains(
+          'val roadStopped = activeNavigationState.active &&\n                activeNavigationSession.stop(activeNavigationState.revision)'),
+    );
   });
 }

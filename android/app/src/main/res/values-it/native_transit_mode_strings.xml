@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_transit_category_walk">A piedi</string>
+    <string name="native_transit_category_bike">Bicicletta</string>
+    <string name="native_transit_category_car">Auto</string>
+    <string name="native_transit_category_shared_ride">Viaggio condiviso</string>
+    <string name="native_transit_category_tram">Tram</string>
+    <string name="native_transit_category_metro">Metropolitana</string>
+    <string name="native_transit_category_suburban_rail">Treno suburbano</string>
+    <string name="native_transit_category_regional_rail">Treno regionale</string>
+    <string name="native_transit_category_regional_fast_rail">Treno regionale veloce</string>
+    <string name="native_transit_category_long_distance_rail">Treno a lunga percorrenza</string>
+    <string name="native_transit_category_high_speed_rail">Treno ad alta velocità</string>
+    <string name="native_transit_category_night_rail">Treno notturno</string>
+    <string name="native_transit_category_rail">Treno</string>
+    <string name="native_transit_category_bus">Autobus urbano o locale</string>
+    <string name="native_transit_category_coach">Autobus interurbano</string>
+    <string name="native_transit_category_ferry">Traghetto</string>
+    <string name="native_transit_category_air">Aereo</string>
+    <string name="native_transit_category_funicular">Funicolare</string>
+    <string name="native_transit_category_cable">Trasporto a fune</string>
+    <string name="native_transit_category_on_demand">Trasporto a chiamata</string>
+    <string name="native_transit_category_other">Trasporto pubblico</string>
+</resources>
