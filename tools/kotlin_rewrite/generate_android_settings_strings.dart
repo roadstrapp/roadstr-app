@@ -4,6 +4,7 @@ import 'dart:io';
 const _sourceDirectory = 'lib/l10n';
 const _resourceDirectory = 'android/app/src/main/res';
 const _outputName = 'native_settings_strings.xml';
+const _featureStrings = 'tools/kotlin_rewrite/native_feature_strings.json';
 
 const _resourceKeys = <String, String>{
   'native_settings_title': 'settingsTitle',
@@ -97,6 +98,13 @@ const _resourceKeys = <String, String>{
   'native_settings_sync_passphrase': 'syncPassphraseTitle',
   'native_settings_sync_relay': 'syncCustomRelayTitle',
   'native_settings_sync_no_identity': 'syncNoIdentity',
+  'native_journey_settings_section': 'journeySettingsSection',
+  'native_journey_settings_desc': 'journeySettingsDescription',
+  'native_journey_enable': 'journeyEnable',
+  'native_journey_enable_desc': 'journeyEnableDescription',
+  'native_journey_sync_enable': 'journeySyncEnable',
+  'native_journey_sync_enable_desc': 'journeySyncEnableDescription',
+  'native_journey_open': 'journeyOpen',
   'native_settings_voice_section': 'sectionNavigationVoice',
   'native_settings_voice_guidance': 'voiceGuidance',
   'native_settings_voice_guidance_desc': 'voiceGuidanceDesc',
@@ -220,6 +228,15 @@ Map<String, String> buildAndroidSettingsResources() {
   if (fallbackDecoded is! Map<String, dynamic>) {
     throw const FormatException('app_en.arb is not a JSON object');
   }
+  final featureDecoded = jsonDecode(File(_featureStrings).readAsStringSync());
+  if (featureDecoded is! Map<String, dynamic> ||
+      featureDecoded['en'] is! Map<String, dynamic>) {
+    throw const FormatException('Invalid native feature string catalogue');
+  }
+  final fallback = <String, dynamic>{
+    ...fallbackDecoded,
+    ...(featureDecoded['en'] as Map<String, dynamic>),
+  };
 
   final outputs = <String, String>{};
   for (final source in sources) {
@@ -229,9 +246,14 @@ Map<String, String> buildAndroidSettingsResources() {
     if (decoded is! Map<String, dynamic>) {
       throw FormatException('${source.path} is not a JSON object');
     }
+    final localizedFeatures = featureDecoded[language];
+    final localized = <String, dynamic>{
+      ...decoded,
+      if (localizedFeatures is Map<String, dynamic>) ...localizedFeatures,
+    };
     final path =
         '$_resourceDirectory/${_resourceFolder(language)}/$_outputName';
-    outputs[path] = _buildResource(language, decoded, fallbackDecoded);
+    outputs[path] = _buildResource(language, localized, fallback);
   }
   return outputs;
 }
