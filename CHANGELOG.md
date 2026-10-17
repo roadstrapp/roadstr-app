@@ -8,35 +8,71 @@ No changes yet.
 
 ## [1.1.0] — 2026-10-13
 
-- Navigation: the report sheet opened from the *Report* button is no longer drawn underneath the speed and route
-  panel, so a report can be published again while navigating.
-- Navigation: the speed figure is centred on the speedometer dial in every style (it sat above the centre); the unit
-  now hangs below it.
-- Route planner: public transport can be chosen again. *On foot* now shows *On foot* and *Transit* underneath; the
-  Transit choice had gone missing from the planner, so no public-transport itinerary could be requested.
-- Public-transport navigation now follows walking, boarding, onboard, interchange and final-walk stages with a dedicated HUD,
-  deduplicated voice guidance, manual boarded/alighted/missed-service actions and restorable session checkpoints.
-- Transit search now includes nearby stops and operational departure boards; missed connections can be assessed, refreshed and
-  replanned without replacing the active journey until the user confirms. Transit journeys have a separate encrypted saved format
-  with original-versus-updated comparison.
-- Added Entur as a coverage-aware second online provider for Norway, including parameterized GraphQL requests, scoped IDs,
-  partial-error handling and controlled live probes.
-- Interoperability with the open *jooray/roadstr* road-report format (Nostr kinds 1315/1316). Reports in that layout are now
-  recognised by their tags instead of being read as Roadstr's own: they keep the lifetime that format gives each type (the
-  14-day `expiration` is only what relays keep), confirmations extend and denials cut short their life, and the details sheet says
-  where a report came from. Roadstr's own reports and their lifetimes are unchanged. *Settings → Interoperability*.
-- A compact 110/134-byte frame codec that rebuilds the exact signed event (same ID, key and signature) or refuses to encode:
-  integer-only coordinates, no locale, golden vectors from an independent Python implementation, cross-checked with a third
-  library. It tolerates (reads, never writes) the two defects found in the reference client's output: truncated coordinates and
-  decimal commas.
-- Optional *Also publish in the compatible format*: each report is also sent as a second, separately signed event in the
-  *jooray/roadstr* layout (account key or a one-time key) and shown as one marker with the native report. Off by default; older
-  Roadstr versions will show both markers.
-- Experimental MeshCore support (off by default, Bluetooth permission only when a radio is paired): companion-protocol client,
-  Android BLE link, receive/send over a shared `#roadstr` channel with a development `data_type`, and optional bridges between
-  the radio and the relays with a duplicate ledger, rate limits, an area limit, a bounded persistent queue and explicit consent.
-  Verified against a simulated radio only; not yet tested on real hardware.
-- Specification: [docs/interoperability/MESHCORE_NOSTR.md](docs/interoperability/MESHCORE_NOSTR.md).
+Public-transport guidance, road-report interoperability with the open *jooray/roadstr* format, and an experimental MeshCore
+radio.
+
+### Public transport
+
+- Public transport is a choice in the route planner again: *Transit* now sits next to car, bike and walking. It had gone missing
+  from the planner, so no public-transport itinerary could be requested from it.
+- Added active public-transport guidance through walking, boarding, onboard, interchange and final-walk stages, with a dedicated
+  HUD, de-duplicated voice cues, GPS assistance, manual boarded / alighted / missed-service actions, a foreground notification and
+  encrypted recovery of the session if Android kills the process.
+- Added provider-backed stop search, nearby stops, live departure boards, the lines serving a stop and trip details. A missed
+  connection can be assessed, refreshed and replanned, and the active journey is replaced only after the user confirms.
+- Added saved public-transport journeys in their own encrypted, versioned format, with a per-leg comparison of the original and
+  the updated plan. A saved journey stays readable offline, labelled as a snapshot until it is verified online; offline transit
+  routing itself is deliberately not part of Roadstr.
+- Added Entur as a second, coverage-aware online provider for journeys wholly inside Norway (parameterised GraphQL requests,
+  provider-scoped IDs, partial-error handling). It is not a worldwide fallback and offers neither stop search nor departure boards.
+- Added readable names for the vehicle categories providers report (tram, metro, regional and high-speed trains, coach, ferry…).
+- The onboarding disclosure and every live itinerary panel now say that transit searches, planning and live checks send the query,
+  coordinates and travel time to Transitous or Entur, which also see the requesting IP address.
+
+### Interoperability with the *jooray/roadstr* road-report format
+
+- Reports in that layout (Nostr kinds 1315/1316) are now recognised by their tags instead of being read as Roadstr's own. They keep
+  the lifetime that format gives each type (the 14-day `expiration` is only what relays keep), confirmations extend it and denials
+  cut it short, and the details sheet says where a report came from. Roadstr's own reports and their lifetimes are unchanged.
+  *Settings → Interoperability* can hide the compatible reports.
+- Added a codec for the compact 110/134-byte form of those events. It rebuilds the exact signed event (same ID, key and signature)
+  or refuses to encode: integer-only coordinates, no locale, golden vectors generated by an independent Python implementation
+  (`tools/interop/generate_vectors.py`) and cross-checked with a third library.
+- Reads, but never writes, the two defects found in the reference client's output: coordinates truncated by one unit and a decimal
+  comma written by the device locale.
+- Optional *Also publish in the compatible format*: each report is also sent as a second, separately signed event in that layout
+  (account key or a one-time key) and shown as one marker with the native report. A vote on a report in that layout is written in
+  that layout too. Off by default.
+
+### MeshCore radio (experimental)
+
+- Added MeshCore LoRa support, off by default: a companion-protocol client, an Android Bluetooth LE link, receive and send over a
+  shared `#roadstr` channel with a development `data_type`, and optional bridges between the radio and the Nostr relays that never
+  change a report's author. The bridges have a duplicate ledger, rate limits, an area limit and a bounded, encrypted, persistent
+  queue; transmitting or bridging asks for explicit consent first.
+- The Bluetooth permissions are requested only when the user pairs a radio, never at onboarding.
+- Specification, test vectors and the hardware checklist: [docs/interoperability/MESHCORE_NOSTR.md](docs/interoperability/MESHCORE_NOSTR.md).
+
+### Navigation fixes
+
+- The report sheet opened from the *Report* button is no longer drawn underneath the speed and route panel, so a report can be
+  published again while navigating.
+- The speed figure is centred on the speedometer dial in every style (it sat above the centre); the unit now hangs below it.
+
+### Known limits
+
+- MeshCore has been verified against a simulated radio only. The Android Bluetooth layer has not run on a device and no real
+  MeshCore radio has been tested.
+- Anything sent over the radio can be read by anyone in range: position, time and the public key that signed it. It is not
+  anonymous.
+- Older Roadstr versions show two markers when *Also publish in the compatible format* is on, because they cannot tell that the two
+  copies are one report.
+- Publishing the compatible copy to public relays has been tested against a simulated relay only; reading it was checked against
+  real relays.
+- The newest texts (interoperability, MeshCore and the latest transit additions) exist in English and Italian; the other 25 languages
+  fall back to English until they are translated.
+- Production-wide use of the public Transitous endpoint still needs coordination with its operators, and the TalkBack, large-font,
+  landscape, screen-off voice and process-recovery checks of the transit flows remain part of the device matrix.
 
 ## [1.0.1] — 2026-10-11
 

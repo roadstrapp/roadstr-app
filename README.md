@@ -1,18 +1,18 @@
 # Roadstr
 
 **Roadstr** is an open-source, decentralised navigation app for Android, built on the [Nostr protocol](https://nostr.com/).  
-It combines real-time GPS turn-by-turn navigation with community-sourced traffic alerts published as Nostr events, on-device AI voice guidance, Lightning Network tips for contributors, and privacy-first map data powered by OpenStreetMap.
+It combines real-time GPS turn-by-turn navigation with community-sourced traffic alerts published as Nostr events, public-transport journeys, on-device AI voice guidance, Lightning Network tips for contributors, and privacy-first map data powered by OpenStreetMap. Road reports can also be exchanged with other apps that use the open *jooray/roadstr* format and, experimentally, over a MeshCore LoRa radio.
 
-> **Version 1.0.1** — Android only. The first stable Kotlin release (Jetpack Compose and MapLibre Native) is here.
+> **Version 1.1.0** — Android only. A native Kotlin app (Jetpack Compose and MapLibre Native) since 1.0; 1.1 adds public-transport guidance, road-report interoperability and the experimental MeshCore radio.
 > The Flutter app of the 0.5.x line lives on the branch [`flutter-maintenance`](https://github.com/roadstrapp/roadstr-app/tree/flutter-maintenance).
 
 See the complete migration and release history in [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
-## What 1.0.0 is
+## What 1.0 changed
 
-1.0.0 replaces the Flutter app with a native Kotlin app that has the same package name (`app.roadstr`) and is signed with
+1.0 replaced the Flutter app with a native Kotlin app that has the same package name (`app.roadstr`) and is signed with
 the same key, so Android installs it **over** an existing 0.5.x without losing anything:
 
 - **Your data comes over once, on the first start.** A short-lived reader opens the old app's storage and brings the identity
@@ -30,7 +30,7 @@ the same key, so Android installs it **over** an existing 0.5.x without losing a
 
 ### How far it has been checked
 
-The Kotlin rewrite has been validated extensively on a Pixel 10 running Android 17, with the device session covering the
+**Roadstr 1.0.** The Kotlin rewrite was validated extensively on a Pixel 10 running Android 17, with the device session covering the
 production update path, migration, navigation and the surrounding integrations:
 
 - The in-place update from 0.5.11, profile-preserving migration and rollback were exercised end to end.
@@ -44,12 +44,27 @@ production update path, migration, navigation and the surrounding integrations:
   process, while active transit guidance has encrypted recovery; translations have not been reviewed by native speakers
   (Irish and Maltese are the least reliable).
 
+**Roadstr 1.1.** About 1,400 JVM tests and about 940 Dart tests pass. Beyond that, what has and has not met the real world:
+
+- *Public transport.* Transitous planning, a live departure board, a Ravenna–Bologna journey, manual guidance with replanning and a
+  saved snapshot were exercised on a physical device on 2026-10-12; Entur passed an opt-in live probe in Oslo the same day. The
+  TalkBack, large-font, landscape, screen-off voice and process-recovery checks are still to be run, and production-wide use of the
+  public Transitous endpoint needs coordination with its operators
+  ([docs/kotlin-rewrite/TRANSIT_RESTORE.md](docs/kotlin-rewrite/TRANSIT_RESTORE.md)).
+- *Interoperability.* Reading the *jooray/roadstr* format was checked read-only against four public relays (138 real events, all
+  signatures valid). Publishing the compatible copy has only been tested against a simulated relay.
+- *MeshCore.* **Not tested on real hardware.** The protocol client and the bridge are covered by tests against a simulated radio
+  written from MeshCore's documentation; the Android Bluetooth layer has never run on a device. The checklist for real radios is in
+  [docs/interoperability/MESHCORE_NOSTR.md](docs/interoperability/MESHCORE_NOSTR.md).
+
 The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rewrite/RISKS.md) and
 [docs/kotlin-rewrite/FEATURE_PARITY.md](docs/kotlin-rewrite/FEATURE_PARITY.md).
 
 ---
 
 ## Features
+
+✅ shipped · 🧪 experimental, off by default
 
 | Feature | Status |
 |---|---|
@@ -73,10 +88,10 @@ The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rew
 | Lighter navigation rendering — the vehicle cursor animation is drawn at its 30 fps source cadence instead of the display's refresh rate, to save battery | ✅ |
 | On-device AI voice guidance (Kokoro-82M; Piper / Thorsten-Voice for German) | ✅ |
 | Nostr road events — kind 1315 (reports) / 1316 (confirmations) | ✅ |
-| Interoperability with the open *jooray/roadstr* road-report format — reads its kind 1315/1316 reports with their own lifetimes and shows where each came from; optionally publishes a second, separately signed copy in that format (experimental, [spec](docs/interoperability/MESHCORE_NOSTR.md)) | ✅ |
+| Interoperability with the open *jooray/roadstr* road-report format — reads its kind 1315/1316 reports with their own lifetimes and shows where each came from; optionally publishes a second, separately signed copy in that format ([spec](docs/interoperability/MESHCORE_NOSTR.md)) | ✅ |
 | MeshCore LoRa radio — receive and send road reports over a paired MeshCore radio, with or without internet, and optional bridges to the Nostr relays that never change a report's author (experimental, off by default, **not yet tested on real radios**) | 🧪 |
 | Nostr login — Amber (NIP-55) or a remote signer (NIP-46 via `nostrconnect://` or `bunker://`); no private key in the app | ✅ |
-| Public transport — Transitous and Entur planning, live departure boards, active multimodal guidance and saved journey comparison | ✅ |
+| Public transport — Transitous (worldwide) and Entur (Norway) planning, stop search and live departure boards (Transitous), active multimodal guidance and saved-journey comparison; online only | ✅ |
 | Lightning Network zaps for road-event contributors | ✅ |
 | Nostr Wallet Connect (NIP-47) | ✅ |
 | Address & POI search (Nominatim, position-biased) | ✅ |
@@ -115,7 +130,16 @@ glyph/sprite bundles for richer offline labels without changing the download for
 Roadstr reads Transitous rather than maintaining a private timetable silo, so every compatible operator feed added upstream
 becomes available to Roadstr without an app release. The practical contribution path — finding a stable GTFS/NeTEx URL,
 adding the regional source, attaching realtime data and validating the pull request — is documented in
-[Adding public-transport coverage](docs/TRANSIT_DATA.md).
+[Adding public-transport coverage](docs/TRANSIT_DATA.md). Next: agree expected load and terms with the Transitous operators before
+broad use of their public endpoint, an optional self-hosted MOTIS endpoint, and the remaining device checks. Offline transit
+routing is deliberately out of scope ([plan](docs/kotlin-rewrite/TRANSIT_RESTORE.md)).
+
+### Road reports beyond the internet
+
+MeshCore support exists but has only met a simulated radio. Next, in this order: run the hardware checklist on real radios,
+validate publishing the compatible copy on public relays, request a stable MeshCore application `data_type` (Roadstr uses a
+development value until then), and translate the newest texts, which exist in English and Italian only
+([specification](docs/interoperability/MESHCORE_NOSTR.md)).
 
 ---
 
@@ -127,25 +151,29 @@ android/app/src/main/kotlin/app/roadstr/   # the app (Kotlin, Jetpack Compose)
 │                  # the road-report interoperability codec and MeshCore companion protocol (core/protocol/interop,
 │                  # core/protocol/meshcore), routing and search protocols, navigation phrases, discovery
 ├── feature/       # one package per screen or flow: home, map, navigation (HUD, host), onboarding, place, profile,
-│                  # report, route, saved, search, settings, transit, voice, web, wikipedia, activity
+│                  # report, route, saved, savedroute, savedtransit, offline, search, settings, transit, performance,
+│                  # voice, web, wikipedia, activity, history, discovery
 ├── service/       # I/O: Nostr relays, remote signer (bunker), zaps and NWC, MeshCore radio and bridge, routing, search,
-│                  # location, hazards, notifications and the navigation foreground service
+│                  # public transport (Transitous, Entur), offline packages, location, hazards, notifications and the
+│                  # navigation foreground service
 ├── storage/       # preferences, secrets, saved places, history, pending reports
 ├── migration/     # the reader of the old (Flutter) app's data, transactional and fail-closed
 └── startup/       # the launcher activity, the one-time profile import, the guidance runtime holder
-android/app/src/test/                      # JVM tests of all of the above (over 1,100 cases)
+android/app/src/test/                      # JVM tests of all of the above (about 1,400 cases)
 native-android/                            # the road-test app (same shell, own stores) and the optional GeckoView variant
 lib/                                       # the Flutter code of 0.5.x, kept on this branch (see below)
 test/                                      # Dart contract tests that pin the generated resources, the build and the docs
 tools/kotlin_rewrite/                      # generators for the Android string resources and test fixtures, release audit
+tools/interop/                             # independent generator of the road-report test vectors (stdlib-only Python)
 docs/                                      # plans, decisions, risks and release notes of the rewrite
+docs/interoperability/                     # the road-report / MeshCore specification and its golden test vectors
 ```
 
 **Why GitHub shows roughly half Dart and half Kotlin.** GitHub's language bar counts the bytes of every tracked source file
-by language; it does not know which code ships. In 0.6.0 the app is Kotlin, but the repository still holds the whole Flutter
+by language; it does not know which code ships. Since 0.6.0 the app is Kotlin, but the repository still holds the whole Flutter
 app (`lib/`, about 1.9 MB) because the old code is what reads the previous version's data on the first start, and it shares the
-translation files; on top of that come 1.35 MB of generated Dart localisation classes, the Dart test suite and the Dart tools
-that generate the Android resources and test fixtures. The Kotlin share is the app itself (about 2.2 MB) plus its tests (about 1
+translation files; on top of that come about 1.5 MB of generated Dart localisation classes, the Dart test suite and the Dart tools
+that generate the Android resources and test fixtures. The Kotlin share is the app itself (about 3 MB) plus its tests (about 1.3
 MB). Moving the Flutter app out of `main` would flip the bar; it stays for now because the update from 0.5.x needs it.
 
 ---
@@ -157,14 +185,16 @@ MB). Moving the Flutter app out of `main` would flip the bar; it stays for now b
 | NIP-01 | Base relay protocol (REQ / EVENT / EOSE / CLOSE) |
 | NIP-04 | Legacy symmetric encryption for NWC pay requests, and for signers that only speak it |
 | NIP-19 | Bech32 key encoding (npub) |
+| NIP-31 | `alt` text on events that carry a kind other clients may not know (the *jooray/roadstr* layout) |
+| NIP-40 | `expiration` on road events — when relays may drop them; not how long a marker is shown |
 | NIP-44 | Versioned encryption (v2) — favourites sync, negotiated NWC and the remote-signer channel |
 | NIP-46 | Nostr Connect — signer-initiated `bunker://` and client-initiated `nostrconnect://`, over persistent relay sockets |
 | NIP-47 | Nostr Wallet Connect — pay Lightning invoices from any compatible wallet |
 | NIP-55 | Android Signer Application — Amber integration |
 | NIP-57 | Zap receipts — Lightning tips attached to kind-1315 road events |
 | NIP-78 | Arbitrary app data (kind 30078) — encrypted favourites snapshot |
-| kind-1315 | Road event report (police, speed camera, traffic jam, accident, hazard…) |
-| kind-1316 | Road event confirmation / dismissal |
+| kind-1315 | Road event report (police, speed camera, traffic jam, accident, hazard…). Roadstr's own layout, plus the open *jooray/roadstr* layout (read; written only if enabled) |
+| kind-1316 | Road event confirmation / dismissal, in either layout |
 | kind-1317 | Correction to a report, signed by its original author — the only edit that is authoritative |
 | kind-1318 | Correction *requested* by someone else; takes effect only once the author answers with a 1317 |
 
@@ -199,6 +229,7 @@ Tests:
 flutter test                                   # Dart contract tests (resources, build, docs)
 cd android && ./gradlew :app:testDebugUnitTest # Kotlin JVM tests
 tools/kotlin_rewrite/audit_android_release.sh --source-only
+python3 tools/interop/generate_vectors.py --check   # the published road-report test vectors are current
 ```
 
 After editing a translation, regenerate both the Dart classes and the Android resources:
@@ -224,11 +255,12 @@ Selectable from **Settings → Routing provider**:
 OSRM is the default and requires no configuration. All providers support car, cycling
 and walking profiles.
 
-**Public transport** is routed separately, against a community-run service that
-aggregates openly published timetables worldwide. It needs no account and no API key,
-and it is queried only when the user explicitly asks for a public-transport journey.
-Coverage depends on which operators publish open data for an area; where none is
-published, the app reports that plainly rather than implying no service exists.
+**Public transport** is routed separately: by [Transitous](https://transitous.org/), a community-run service that
+aggregates openly published timetables worldwide, and, for journeys wholly inside Norway, by Entur's national journey planner.
+Neither needs an account or an API key. They are queried for public-transport journeys, for stop and departure
+information, and for transit stops that match a place search (see [Privacy](#privacy)). Coverage depends on which operators
+publish open data for an area; where none is published, the app reports that plainly rather than implying no service exists.
+Public-transport routing is online only; a saved journey stays readable offline as a labelled snapshot.
 
 ---
 
@@ -315,6 +347,7 @@ The plan, the audit and every decision taken are in [docs/world-discovery/](docs
 
 - **No accounts, no central servers, no telemetry/analytics SDKs** — the app talks directly to public Nostr relays, OSM tile/Overpass servers, the chosen routing provider and, when Offline areas is opened, the selected map provider. Nothing is collected or sent to Roadstr itself.
 - **GPS coordinates are read locally but are sent to third-party services as part of normal operation**: the routing provider (origin/destination), Overpass (periodic position pings during navigation, for live speed limits, speed cameras, traffic lights, pedestrian crossings, speed bumps, restricted zones and POI search), and Open-Meteo (for the weather row). None of these requests carry an account or persistent identifier — but if your threat model requires hiding your IP-linked location from those services, use a VPN (the onboarding flow suggests one). Saved favourites and the parking spot never leave the device unless you explicitly export or sync them.
+- **Public-transport services see what you ask them.** A journey, a stop search, a departure board or a live check sends the query, the coordinates and the travel time to Transitous, or to Entur inside Norway, and those servers also see your IP address. **A normal place search also asks Transitous for matching transit stops**, sending the words you searched and the position the search is biased towards, so that stops can be listed with the other results. The onboarding screen and every itinerary panel say so.
 - **Road events are pseudonymous** — published under the user's Nostr public key with no additional personal metadata, and every event received from a relay is signature-verified before being trusted (relays cannot forge reports under someone else's identity).
 - **Favourites sync is end-to-end encrypted** (NIP-44) to the user's own key — relays storing the synced snapshot see only ciphertext.
 - **The app never holds your Nostr private key.** You sign in with Amber or a remote signer (bunker), and signing happens there. The only secret Roadstr keeps for a bunker is its own pairing key, encrypted with the Android Keystore; a private key left by an earlier build is erased on the first start.
@@ -331,6 +364,8 @@ Roadstr is fully localised in 27 languages covering all EU official languages pl
 `bg` `cs` `da` `de` `el` `en` `es` `et` `fi` `fr` `ga` `hr` `hu` `it` `ja` `lt` `lv` `mt` `nl` `pl` `pt` `ro` `ru` `sk` `sl` `sv` `zh`
 
 Translations live in `lib/l10n/app_<locale>.arb` and feed both the Dart classes and the Android string resources (see [Building](#building) for the commands). A test fails if any language lacks a key of the English template or changes its placeholders. Texts that exist only in the Kotlin app (the start-up screens, the bunker login) live in `tools/kotlin_rewrite/native_recovery_translations.dart`.
+
+The newest texts — the interoperability and MeshCore settings, and the latest public-transport additions — exist in English and Italian; the other 25 languages show the English text until they are translated. No language has had a full native-speaker review.
 
 ---
 
@@ -358,6 +393,15 @@ Ensure your version of Amber supports NIP-55. Roadstr uses the `get_public_key`,
 For a pasted link, check that it starts with `bunker://` and names at least one `wss://` relay. Alternatively choose
 *Open signer app* and approve Roadstr's `nostrconnect://` offer. Ensure the signer is online and approve the request there;
 public relays can still rate-limit or be temporarily unavailable.
+
+**A MeshCore radio is not found or will not connect**  
+MeshCore is experimental and has not been tested on real radios. Check that the radio runs companion firmware (version 1.12 or
+later), is on, close to the phone and not connected to another app, and that Roadstr has the *Nearby devices* permission. Roadstr
+reports "firmware too old" when the radio does not know channel datagrams. The steps are in
+[docs/interoperability/MESHCORE_NOSTR.md](docs/interoperability/MESHCORE_NOSTR.md).
+
+**Two markers for one report**  
+Older Roadstr versions cannot tell that a report and its *jooray/roadstr* copy are the same report. Turn *Also publish in the compatible format* off, or update the other phone.
 
 **Voice guidance not working**  
 Download the voice models from *Settings → Navigation voice → Voice model*. Voice is available for Italian, English, Spanish,
