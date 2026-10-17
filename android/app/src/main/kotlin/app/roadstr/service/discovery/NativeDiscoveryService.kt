@@ -292,7 +292,9 @@ class NativeDiscoveryService(
             maxResponseBytes = NetworkResponseLimit.Route.bytes,
         )
         val OVERPASS_LIMITS = NativeHttpRequestLimits(
-            timeoutMillis = 12_000L,
+            // The Overpass QL timeout is 12 s; leave time for the server to
+            // return that answer instead of cutting the socket off first.
+            timeoutMillis = 15_000L,
             maxResponseBytes = NetworkResponseLimit.AreaQuery.bytes,
         )
     }
