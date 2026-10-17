@@ -49,6 +49,7 @@ import app.roadstr.service.nostr.ExecutorNativeScheduler
 import app.roadstr.service.nostr.NativeActivityService
 import app.roadstr.service.nostr.NativeFavoritesSyncService
 import app.roadstr.service.nostr.NativeJourneySyncService
+import app.roadstr.service.nostr.NativeNip58Service
 import app.roadstr.service.nostr.NativeProfileVisibilityService
 import app.roadstr.service.nostr.NativeRelayFetcher
 import app.roadstr.service.nostr.NativeRelayPublisher
@@ -564,6 +565,12 @@ open class NativeRoadTestActivity : ComponentActivity() {
                     NativeRelayPublisher(connector, relayUrls) { debugDiagnostic("RoadstrJourneySync", it) }
                 },
                 diagnostics = { debugDiagnostic("RoadstrJourneySync", it) },
+            ),
+            badges = NativeNip58Service(
+                signer = signer,
+                fetcher = NativeRelayFetcher(connector) { debugDiagnostic("RoadstrBadges", it) },
+                publisher = publisher,
+                relays = relays,
             ),
             visibility = NativeProfileVisibilityService(
                 signer = signer,

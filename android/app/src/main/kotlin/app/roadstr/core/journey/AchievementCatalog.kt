@@ -6,6 +6,8 @@ data class JourneyAchievement(
     val name: String,
     val thresholdMeters: Long,
     val iconKey: String,
+    /** Stable NIP-58 `d` identifier; the issuer pubkey and hosted assets are deployment configuration. */
+    val nip58Identifier: String,
     val descriptionEn: String,
     val descriptionIt: String,
     val catalogVersion: Int = AchievementCatalog.VERSION,
@@ -109,8 +111,8 @@ object AchievementCatalog {
         name = name,
         thresholdMeters = Math.multiplyExact(thresholdKilometers, 1_000L),
         iconKey = iconKey,
+        nip58Identifier = "roadstr.journey.$id.v1",
         descriptionEn = en,
         descriptionIt = it,
     )
 }
-
