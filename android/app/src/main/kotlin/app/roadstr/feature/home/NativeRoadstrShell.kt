@@ -131,6 +131,7 @@ import app.roadstr.feature.saved.NativeSavedPlacesPanel
 import app.roadstr.feature.saved.NativeSavedPlace
 import app.roadstr.core.discovery.RoadstrPlace
 import app.roadstr.core.journey.JourneySnapshot
+import app.roadstr.core.journey.JourneySyncSnapshot
 import app.roadstr.core.discovery.web.ConnectionTest
 import app.roadstr.core.discovery.web.WebDiscoverySettings
 import app.roadstr.feature.discovery.DiscoveryPresentation
@@ -340,8 +341,10 @@ fun NativeRoadstrShell(
     initialSettings: NativeSettingsInput = NativeSettingsInput(),
     onSettingsChanged: (NativeSettingsInput) -> Unit = {},
     journeySnapshot: JourneySnapshot? = null,
+    journeySyncSnapshot: JourneySyncSnapshot? = null,
     onJourneyClear: () -> Unit = {},
     onJourneyUnlocksSeen: () -> Unit = {},
+    onJourneySync: () -> Unit = {},
     offlinePackagesGateway: NativeOfflinePackagesGateway? = null,
     onNwcChanged: (String) -> Boolean = { false },
     /** Stores the routing API key protected; an empty value removes it. False if it could not be stored. */
@@ -2516,6 +2519,9 @@ fun NativeRoadstrShell(
                             onShowCatalog = { journeyCatalogVisible = true },
                             onHideCatalog = { journeyCatalogVisible = false },
                             onClear = onJourneyClear,
+                            syncSnapshot = journeySyncSnapshot,
+                            syncEnabled = settingsState.values.journeySyncEnabled,
+                            onSync = onJourneySync,
                             onClose = {
                                 journeyCatalogVisible = false
                                 journeyVisible = false

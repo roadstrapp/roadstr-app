@@ -17,8 +17,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.roadstr.R
 import app.roadstr.core.intent.NativeExternalDestinationInbox
@@ -46,6 +48,7 @@ import app.roadstr.service.network.NativeBoundedHttpClient
 import app.roadstr.service.nostr.ExecutorNativeScheduler
 import app.roadstr.service.nostr.NativeActivityService
 import app.roadstr.service.nostr.NativeFavoritesSyncService
+import app.roadstr.service.nostr.NativeJourneySyncService
 import app.roadstr.service.nostr.NativeProfileVisibilityService
 import app.roadstr.service.nostr.NativeRelayFetcher
 import app.roadstr.service.nostr.NativeRelayPublisher
@@ -76,6 +79,7 @@ import app.roadstr.service.nostr.NativeNostrWire
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 /**
  * Compose launcher for the Kotlin app. As the road-test APK it stands alone with its own stores; the
@@ -383,6 +387,25 @@ open class NativeRoadTestActivity : ComponentActivity() {
         }
         val gpsSnapshot by locationController.state.collectAsStateWithLifecycle()
         val journeySnapshot by runtime.journey.state.collectAsStateWithLifecycle()
+        val journeySync = nostrBridge.journeySync
+        val journeySyncSnapshot by requireNotNull(journeySync).state.collectAsStateWithLifecycle()
+        val contentScope = rememberCoroutineScope()
+        val synchronizeJourney: () -> Unit = {
+            journeySync.markLocalChangesPending()
+            contentScope.launch {
+                when (val result = journeySync.synchronize(runtime.journey.state.value.record)) {
+                    is app.roadstr.core.journey.JourneySyncResult.Ok ->
+                        runtime.journey.reconcileSyncedDevices(result.record, result.completeDeviceIds)
+                    else -> Unit
+                }
+            }
+        }
+        LaunchedEffect(journeySnapshot.activeSession?.id, journeySnapshot.record.sessions.size) {
+            val settings = uiPreferences.load()
+            if (settings.journeyEnabled && settings.journeySyncEnabled && journeySnapshot.activeSession == null) {
+                synchronizeJourney()
+            }
+        }
         val externalDestinationRequest by externalDestinationInbox.requests.collectAsStateWithLifecycle()
         NativeRoadstrShell(
             mode = shellMode,
@@ -434,10 +457,14 @@ open class NativeRoadTestActivity : ComponentActivity() {
             onFavoritesChanged = favoritesStore::save,
             initialSettings = initialSettings,
             onSettingsChanged = { settings ->
+                val wasSyncEnabled = uiPreferences.load().journeySyncEnabled
                 uiPreferences.save(settings)
                 runtime.setJourneyEnabled(settings.journeyEnabled)
+                if (!wasSyncEnabled && settings.journeySyncEnabled) synchronizeJourney()
             },
             journeySnapshot = journeySnapshot,
+            journeySyncSnapshot = journeySyncSnapshot,
+            onJourneySync = synchronizeJourney,
             onJourneyClear = runtime.journey::clear,
             onJourneyUnlocksSeen = runtime.journey::acknowledgeUnlocks,
             offlinePackagesGateway = offlinePackagesGateway,
@@ -500,6 +527,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
             openUrl = ::openApprovalPage,
         )
         val syncStorage = NativeRoadTestSyncStorage(applicationContext, storeNames)
+        val journeySyncStorage = NativeRoadTestJourneySyncStorage(applicationContext, storeNames)
         val profiles = NativeRoadTestNostrProfileService()
         val zaps = NativeZapService(connector, relays = relays) { debugDiagnostic("RoadstrZap", it) }
         val userReports = NativeUserReportsService(connector, relays)
@@ -524,6 +552,18 @@ open class NativeRoadTestActivity : ComponentActivity() {
                     NativeRelayPublisher(connector, relayUrls) { debugDiagnostic("RoadstrSync", it) }
                 },
                 diagnostics = { debugDiagnostic("RoadstrSync", it) },
+            ),
+            journeySync = NativeJourneySyncService(
+                signer = signer,
+                connector = connector,
+                store = journeySyncStorage,
+                deviceId = runtime.journeyDeviceId,
+                customRelay = syncStorage::customRelay,
+                fetcher = NativeRelayFetcher(connector) { debugDiagnostic("RoadstrJourneySync", it) },
+                publisherFactory = { relayUrls ->
+                    NativeRelayPublisher(connector, relayUrls) { debugDiagnostic("RoadstrJourneySync", it) }
+                },
+                diagnostics = { debugDiagnostic("RoadstrJourneySync", it) },
             ),
             visibility = NativeProfileVisibilityService(
                 signer = signer,
