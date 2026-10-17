@@ -135,4 +135,38 @@ class DiscoveryRankingTest {
         val ranked = rank(listOf(place("p", 0.0, "Mo-Su 18:00-23:00")), query(), night)
         assertEquals(OpenState.CLOSED, ranked.single().open)
     }
+
+    @Test
+    fun `an external semantic match never outranks a local result`() {
+        val local = place("local", dLat = 0.04, name = "Generic instruments")
+        val external = place("external", dLat = 0.001, name = "Perfect piano shop")
+        val ranked = DiscoveryRanking.rank(
+            places = listOf(external, local),
+            query = query(terms = listOf("piano")),
+            anchor = device,
+            device = device,
+            now = noon,
+            localIds = setOf(local.id),
+        )
+        assertEquals(listOf("local", "external"), ranked.map { it.place.id })
+        assertEquals(DiscoveryBand.EXTERNAL, ranked.last().band)
+    }
+
+    @Test
+    fun `distance and alphabetical sorting remain inside geographic bands`() {
+        val alpha = place("z-local", dLat = 0.02, name = "Alpha")
+        val near = place("b-local", dLat = 0.001, name = "Beta")
+        val external = place("a-external", name = "Aardvark")
+        val localIds = setOf(alpha.id, near.id)
+        val byDistance = DiscoveryRanking.rank(
+            listOf(external, alpha, near), query(), device, device, noon,
+            localIds = localIds, sort = DiscoverySort.DISTANCE,
+        )
+        assertEquals(listOf("b-local", "z-local", "a-external"), byDistance.map { it.place.id })
+        val byName = DiscoveryRanking.rank(
+            listOf(external, alpha, near), query(), device, device, noon,
+            localIds = localIds, sort = DiscoverySort.ALPHABETICAL,
+        )
+        assertEquals(listOf("z-local", "b-local", "a-external"), byName.map { it.place.id })
+    }
 }

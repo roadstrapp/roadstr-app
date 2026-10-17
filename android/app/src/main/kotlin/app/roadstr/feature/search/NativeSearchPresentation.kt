@@ -1,6 +1,7 @@
 package app.roadstr.feature.search
 
 import app.roadstr.core.discovery.web.SearxngCapability
+import app.roadstr.core.discovery.ExploreCategory
 import app.roadstr.core.format.UnitFormatter
 import app.roadstr.core.network.SearchResponsePoint
 import app.roadstr.core.network.SearchResult
@@ -142,6 +143,7 @@ data class NativeSearchUiSnapshot(
     val favorites: List<NativeSearchFavoritePresentation>,
     val history: List<NativeSearchHistoryPresentation>,
     val selectedNearby: NativeSearchNearbyCategory?,
+    val selectedExplore: ExploreCategory? = null,
     val nearbyEnabled: Boolean,
     val notice: NativeSearchNotice? = null,
     val web: NativeSearchWeb = NativeSearchWeb.Hidden,
@@ -157,6 +159,7 @@ data class NativeSearchUiSnapshot(
             favorites = emptyList(),
             history = emptyList(),
             selectedNearby = null,
+            selectedExplore = null,
             nearbyEnabled = false,
         )
     }
@@ -276,6 +279,7 @@ class NativeSearchSession(initialImperial: Boolean = false) {
             status = NativeSearchUiStatus.Browsing,
             query = "",
             selectedNearby = null,
+            selectedExplore = null,
             nearbyEnabled = nearbyEnabled,
         )
         true
@@ -295,6 +299,7 @@ class NativeSearchSession(initialImperial: Boolean = false) {
             },
             query = normalized,
             selectedNearby = null,
+            selectedExplore = null,
             nearbyEnabled = _state.value.nearbyEnabled,
         )
         true
@@ -311,6 +316,7 @@ class NativeSearchSession(initialImperial: Boolean = false) {
             status = NativeSearchUiStatus.Browsing,
             query = query.trimStart().take(SearchRankingProtocol.MAX_QUERY_LENGTH),
             selectedNearby = null,
+            selectedExplore = null,
             nearbyEnabled = _state.value.nearbyEnabled,
         )
         true
@@ -326,10 +332,26 @@ class NativeSearchSession(initialImperial: Boolean = false) {
                 status = NativeSearchUiStatus.Loading,
                 query = "",
                 selectedNearby = category,
+                selectedExplore = null,
                 nearbyEnabled = true,
             )
             true
         }
+
+    fun beginExplore(revision: Long, category: ExploreCategory): Boolean = synchronized(lock) {
+        require(revision >= 0) { "Search revision must be non-negative" }
+        if (revision <= this.revision || _state.value.status == NativeSearchUiStatus.Hidden) return false
+        this.revision = revision
+        rawResults = emptyList()
+        publish(
+            status = NativeSearchUiStatus.Loading,
+            query = "",
+            selectedNearby = null,
+            selectedExplore = category,
+            nearbyEnabled = false,
+        )
+        true
+    }
 
     fun submitPartial(revision: Long, results: List<SearchResult>): Boolean = synchronized(lock) {
         if (!acceptsOutcome(revision)) return false
@@ -352,7 +374,7 @@ class NativeSearchSession(initialImperial: Boolean = false) {
         _state.value = current.copy(
             status = when {
                 projected.isNotEmpty() -> NativeSearchUiStatus.Results
-                current.selectedNearby != null -> NativeSearchUiStatus.EmptyNearby
+                current.selectedNearby != null || current.selectedExplore != null -> NativeSearchUiStatus.EmptyNearby
                 else -> NativeSearchUiStatus.Browsing
             },
             results = projected,
@@ -417,6 +439,7 @@ class NativeSearchSession(initialImperial: Boolean = false) {
         status: NativeSearchUiStatus,
         query: String,
         selectedNearby: NativeSearchNearbyCategory?,
+        selectedExplore: ExploreCategory? = null,
         nearbyEnabled: Boolean,
     ) {
         _state.value = NativeSearchUiSnapshot(
@@ -427,6 +450,7 @@ class NativeSearchSession(initialImperial: Boolean = false) {
             favorites = NativeSearchPresenter.favorites(rawFavorites, query),
             history = NativeSearchPresenter.history(rawHistory),
             selectedNearby = selectedNearby,
+            selectedExplore = selectedExplore,
             nearbyEnabled = nearbyEnabled,
         )
     }

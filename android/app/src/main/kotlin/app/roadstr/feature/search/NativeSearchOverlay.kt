@@ -54,6 +54,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.roadstr.R
+import app.roadstr.core.discovery.ExploreCategory
 
 /** Flutter-parity place-search overlay packaged only in the private shell. */
 @Composable
@@ -64,6 +65,7 @@ fun NativeSearchOverlay(
     onClearQuery: () -> Unit,
     onDismiss: () -> Unit,
     onNearby: (NativeSearchNearbyCategory) -> Unit,
+    onExplore: (ExploreCategory) -> Unit = {},
     onSelectResult: (NativeSearchResultPresentation) -> Unit,
     onSelectFavorite: (NativeSearchFavoritePresentation) -> Unit,
     onSelectHistory: (NativeSearchHistoryPresentation) -> Unit,
@@ -116,6 +118,12 @@ fun NativeSearchOverlay(
                             selected = snapshot.selectedNearby,
                             onNearby = onNearby,
                         )
+                    }
+                }
+
+                snapshot.selectedExplore?.let { selected ->
+                    item(key = "explore-categories") {
+                        ExploreChoices(selected = selected, onExplore = onExplore)
                     }
                 }
 
@@ -188,6 +196,48 @@ fun NativeSearchOverlay(
         }
     }
     }
+}
+
+@Composable
+private fun ExploreChoices(selected: ExploreCategory, onExplore: (ExploreCategory) -> Unit) {
+    Column(modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)) {
+        SearchSectionHeading(
+            symbol = "⌖",
+            text = androidx.compose.ui.res.stringResource(R.string.native_explore_categories),
+        )
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ExploreCategory.entries.forEach { category ->
+                val label = androidx.compose.ui.res.stringResource(category.labelResource())
+                FilterChip(
+                    selected = selected == category,
+                    onClick = { onExplore(category) },
+                    label = { Text(label) },
+                    modifier = Modifier.semantics {
+                        this.selected = selected == category
+                        role = Role.Button
+                        contentDescription = label
+                    },
+                )
+            }
+        }
+    }
+}
+
+@StringRes
+private fun ExploreCategory.labelResource(): Int = when (this) {
+    ExploreCategory.ALL -> R.string.native_explore_all
+    ExploreCategory.FOOD_AND_DRINK -> R.string.native_explore_food
+    ExploreCategory.ATTRACTIONS_AND_CULTURE -> R.string.native_explore_culture
+    ExploreCategory.SHOPPING -> R.string.native_explore_shopping
+    ExploreCategory.NATURE_AND_OUTDOOR -> R.string.native_explore_outdoor
+    ExploreCategory.SERVICES -> R.string.native_explore_services
+    ExploreCategory.TRANSPORT -> R.string.native_explore_transport
+    ExploreCategory.HEALTH -> R.string.native_explore_health
+    ExploreCategory.SPORT_AND_LEISURE -> R.string.native_explore_sport
+    ExploreCategory.LODGING -> R.string.native_explore_lodging
 }
 
 @Composable

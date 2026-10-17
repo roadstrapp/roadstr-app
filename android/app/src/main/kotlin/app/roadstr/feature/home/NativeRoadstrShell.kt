@@ -2249,6 +2249,7 @@ fun NativeRoadstrShell(
                     onNearby = { category ->
                         journeyCoordinator?.submitNearby(category, gpsSearchPoint)
                     },
+                    onExplore = { category -> journeyCoordinator?.changeExploreCategory(category) },
                     onSearchWeb = { journeyCoordinator?.searchWeb() },
                     onConfirmWeb = { journeyCoordinator?.confirmWeb() },
                     onDeclineWeb = { journeyCoordinator?.declineWeb() },
@@ -3230,6 +3231,12 @@ fun NativeRoadstrShell(
                         onWhatsHere = {
                             contextMenuPoint = null
                             inspectPlace(point)
+                        },
+                        onExplore = {
+                            contextMenuPoint = null
+                            journeyCoordinator?.exploreArea(
+                                SearchResponsePoint(point.latitude, point.longitude),
+                            )
                         },
                         onClose = { contextMenuPoint = null },
                         modifier = Modifier.align(Alignment.BottomCenter),
