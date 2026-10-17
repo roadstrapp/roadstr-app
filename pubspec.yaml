@@ -29,7 +29,9 @@ dependencies:
   amberflutter: ^0.0.9
   flutter_local_notifications: ^22.0.1
   sensors_plus: ^7.1.0
-  flutter_onnxruntime: ^1.8.0
+  # 1.8.5 is the first release with AGP 9 Built-in Kotlin support. Keep this
+  # narrow until the 1.9 runtime upgrade is audited against Roadstr's models.
+  flutter_onnxruntime: 1.8.5
   just_audio: ^0.10.6
   audio_session: ^0.2.4
   path_provider: ^2.1.6
@@ -65,6 +67,10 @@ dependencies:
 # through Android's own LocationManager on every path, so the proprietary
 # library upstream links was dead weight in the APK.
 dependency_overrides:
+  # Upstream 0.0.9 predates AGP 9 and applies KGP twice. This fork keeps its
+  # API/source unchanged and only makes the Gradle plugin Built-in-Kotlin aware.
+  amberflutter:
+    path: third_party/amberflutter
   geolocator_android:
     path: third_party/geolocator_android
 
