@@ -138,7 +138,10 @@
     <string name="native_saved_routes_title">Saglabātie maršruti</string>
     <string name="native_search_notice_area_fallback">Šo vietu neizdevās precīzi norobežot, tāpēc tika meklēts tās apkārtnē.</string>
     <string name="native_search_notice_few_tagged">Šeit tikai dažas vietas ir atzīmētas šim nolūkam OpenStreetMap, tāpēc saraksts var būt nepilnīgs.</string>
+    <string name="native_search_notice_network_error">Izpētes laikā pārtrūka tīkla savienojums. Rezultāti netika izdomāti.</string>
+    <string name="native_search_notice_offline_no_index">Šo apgabalu nevar izpētīt bezsaistē, jo nav pieejams vietējais interešu punktu indekss.</string>
     <string name="native_search_notice_open_hours_unknown">Dažas vietas nenorāda darba laiku, tāpēc tās var būt slēgtas.</string>
+    <string name="native_search_notice_provider_unavailable">Ģeogrāfisko datu nodrošinātāji īslaicīgi nav pieejami. Drīzumā mēģiniet vēlreiz.</string>
     <string name="native_search_notice_route_ahead">Vietas pa jūsu maršruta posmu, kas vēl priekšā.</string>
     <string name="native_search_notice_route_unsupported">Meklēšana gar maršrutu vēl nav pieejama; tiek rādītas vietas ap jums.</string>
     <string name="native_search_notice_widened">Tuvumā nekā nav, tāpēc meklēšana tika paplašināta.</string>

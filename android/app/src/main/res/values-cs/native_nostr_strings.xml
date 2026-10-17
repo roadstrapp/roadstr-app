@@ -138,7 +138,10 @@
     <string name="native_saved_routes_title">Uložené trasy</string>
     <string name="native_search_notice_area_fallback">Toto místo se nepodařilo přesně vymezit, proto bylo prohledáno jeho okolí.</string>
     <string name="native_search_notice_few_tagged">Jen málo míst je zde pro toto označeno v OpenStreetMap, seznam proto může být neúplný.</string>
+    <string name="native_search_notice_network_error">Během průzkumu se přerušilo síťové připojení. Žádné výsledky nebyly vymyšleny.</string>
+    <string name="native_search_notice_offline_no_index">Tuto oblast nelze prozkoumat offline, protože není k dispozici místní index bodů zájmu.</string>
     <string name="native_search_notice_open_hours_unknown">Některá místa neuvádějí otevírací dobu, takže mohou být zavřená.</string>
+    <string name="native_search_notice_provider_unavailable">Poskytovatelé geografických dat jsou dočasně nedostupní. Zkuste to za chvíli znovu.</string>
     <string name="native_search_notice_route_ahead">Místa podél úseku trasy, který máte ještě před sebou.</string>
     <string name="native_search_notice_route_unsupported">Hledání podél trasy zatím není k dispozici; zobrazuji místa kolem vás.</string>
     <string name="native_search_notice_widened">Nic poblíž, proto bylo hledání rozšířeno.</string>

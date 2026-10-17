@@ -138,7 +138,10 @@
     <string name="native_saved_routes_title">Gemte ruter</string>
     <string name="native_search_notice_area_fallback">Stedet kunne ikke afgrænses nøjagtigt, så området omkring det blev søgt.</string>
     <string name="native_search_notice_few_tagged">Få steder her er mærket til dette i OpenStreetMap, så listen kan være ufuldstændig.</string>
+    <string name="native_search_notice_network_error">Netværksforbindelsen blev afbrudt under udforskningen. Der blev ikke opfundet resultater.</string>
+    <string name="native_search_notice_offline_no_index">Området kan ikke udforskes offline, fordi der ikke findes et lokalt POI-indeks.</string>
     <string name="native_search_notice_open_hours_unknown">Nogle steder oplyser ikke åbningstider, så de kan være lukkede.</string>
+    <string name="native_search_notice_provider_unavailable">Udbyderne af geografiske data er midlertidigt utilgængelige. Prøv igen om lidt.</string>
     <string name="native_search_notice_route_ahead">Steder langs den del af din rute, der ligger foran dig.</string>
     <string name="native_search_notice_route_unsupported">Søgning langs ruten er ikke tilgængelig endnu; viser steder omkring dig.</string>
     <string name="native_search_notice_widened">Intet i nærheden, så søgningen blev udvidet.</string>

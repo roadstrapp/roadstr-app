@@ -138,7 +138,10 @@
     <string name="native_saved_routes_title">已保存路线</string>
     <string name="native_search_notice_area_fallback">无法准确划定该地点范围，因此搜索了其周边区域。</string>
     <string name="native_search_notice_few_tagged">此处在 OpenStreetMap 中标注相关信息的地点很少，列表可能不完整。</string>
+    <string name="native_search_notice_network_error">探索过程中网络连接中断，没有虚构任何结果。</string>
+    <string name="native_search_notice_offline_no_index">没有可用的本地点位索引，因此无法离线探索此区域。</string>
     <string name="native_search_notice_open_hours_unknown">部分地点未提供营业时间，可能已关门。</string>
+    <string name="native_search_notice_provider_unavailable">地理数据提供方暂时不可用，请稍后重试。</string>
     <string name="native_search_notice_route_ahead">显示路线前方剩余路段沿途的地点。</string>
     <string name="native_search_notice_route_unsupported">暂不支持沿路线搜索；正在显示你周围的地点。</string>
     <string name="native_search_notice_widened">附近没有结果，已扩大搜索范围。</string>
