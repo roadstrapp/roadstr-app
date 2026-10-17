@@ -6,6 +6,7 @@ import app.roadstr.core.discovery.DiscoveryOutcome
 import app.roadstr.core.discovery.DiscoveryDeduplicator
 import app.roadstr.core.discovery.DiscoveryRanking
 import app.roadstr.core.discovery.DiscoveryRequest
+import app.roadstr.core.discovery.DiscoveryUnavailableReason
 import app.roadstr.core.discovery.GeocodedArea
 import app.roadstr.core.discovery.LocationConstraint
 import app.roadstr.core.discovery.NaturalPlaceQuery
@@ -28,10 +29,11 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * Answers "vegan restaurants in Florence" style searches from OpenStreetMap: at most
  * one Nominatim lookup for the place, one Overpass query, and one widening. Every
- * failure becomes [DiscoveryOutcome.NotApplicable] so the existing search still runs.
+ * Failures become explicit unavailable outcomes so the UI never disguises them as empty data.
  */
 class NativeDiscoveryService(
     private val transport: NativeSearchHttpTransport,
+    private val networkAvailable: () -> Boolean = { true },
     private val overpassMirrors: List<String> = SearchProviderProtocol.overpassMirrors,
     private val nominatimPacer: HostPacer = HostPacer(NOMINATIM_SPACING_MILLIS),
     private val areaCache: TtlCache<String, List<GeocodedArea>> = TtlCache(32, AREA_TTL_MILLIS),
@@ -45,9 +47,20 @@ class NativeDiscoveryService(
 
     override suspend fun discover(request: DiscoveryRequest): DiscoveryOutcome {
         if (request.query.intent != QueryIntent.FIND_PLACE) return DiscoveryOutcome.NotApplicable
-        val notices = LinkedHashSet<DiscoveryNotice>()
-        val area = resolveArea(request, notices) ?: return DiscoveryOutcome.NotApplicable
-        return search(request, area, notices)
+        if (!networkAvailable()) {
+            return DiscoveryOutcome.Unavailable(DiscoveryUnavailableReason.OFFLINE_NO_INDEX)
+        }
+        return try {
+            val notices = LinkedHashSet<DiscoveryNotice>()
+            val area = resolveArea(request, notices) ?: return DiscoveryOutcome.NotApplicable
+            search(request, area, notices)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (unavailable: DiscoveryProviderUnavailable) {
+            DiscoveryOutcome.Unavailable(unavailable.reason)
+        } catch (_: Exception) {
+            DiscoveryOutcome.Unavailable(DiscoveryUnavailableReason.NETWORK_ERROR)
+        }
     }
 
     private suspend fun search(
@@ -55,10 +68,10 @@ class NativeDiscoveryService(
         start: SearchArea,
         notices: MutableSet<DiscoveryNotice>,
     ): DiscoveryOutcome {
-        val exactLocal = fetch(request, start, constrained = true) ?: return DiscoveryOutcome.NotApplicable
+        val exactLocal = fetch(request, start, constrained = true)
         val needsLoosePass = request.query.attributes.isNotEmpty() || request.query.cuisines.isNotEmpty()
         val looseLocal = if (needsLoosePass) {
-            fetch(request, start, constrained = false) ?: return DiscoveryOutcome.NotApplicable
+            fetch(request, start, constrained = false)
         } else {
             exactLocal
         }
@@ -68,7 +81,7 @@ class NativeDiscoveryService(
         // proven by Overpass. A bounded fallback pass supplies a clearly
         // separated external band; it never replaces or outranks local POIs.
         val external = if (start is SearchArea.AdminArea && local.size < EXTERNAL_LOOKUP_BELOW) {
-            fetch(request, start.fallback, constrained = false).orEmpty()
+            optionalFetch(request, start.fallback, constrained = false)
         } else {
             emptyList()
         }
@@ -90,7 +103,7 @@ class NativeDiscoveryService(
             area = SearchArea.Circle(circle.center, WIDE_RADIUS_METERS)
             notices += DiscoveryNotice.WIDENED
             combined = DiscoveryDeduplicator.merge(
-                combined + fetch(request, area, constrained = false).orEmpty(),
+                combined + optionalFetch(request, area, constrained = false),
             )
         }
         if (local.isEmpty() && external.isNotEmpty()) notices += DiscoveryNotice.AREA_FALLBACK
@@ -209,7 +222,7 @@ class NativeDiscoveryService(
                 listOf(category), emptySet(), emptySet(),
                 SearchArea.Circle(origin, DEFAULT_RADIUS_METERS), limit = REFERENCE_LIMIT,
             ),
-        ) ?: return null
+        )
         val places = OverpassPlaceParser.parse(body, origin, request.languageCode)
         return places.minByOrNull { it.distanceMeters ?: Double.MAX_VALUE }?.position
     }
@@ -222,7 +235,10 @@ class NativeDiscoveryService(
         val response = guarded {
             nominatimPacer.paced { transport.execute(call, NOMINATIM_LIMITS) }
         }
-        if (response == null || response.statusCode != HTTP_OK) return emptyList()
+        if (response == null) throw unavailableNow()
+        if (response.statusCode != HTTP_OK) {
+            throw DiscoveryProviderUnavailable(DiscoveryUnavailableReason.PROVIDER_UNAVAILABLE)
+        }
         return AreaGeocoding.parse(response.bodyUtf8).also { areaCache.put(key, it) }
     }
 
@@ -230,7 +246,7 @@ class NativeDiscoveryService(
         request: DiscoveryRequest,
         area: SearchArea,
         constrained: Boolean,
-    ): List<RoadstrPlace>? {
+    ): List<RoadstrPlace> {
         val query = request.query
         val text = OverpassDiscoveryQuery.build(
             categories = query.categories,
@@ -238,13 +254,26 @@ class NativeDiscoveryService(
             cuisines = if (constrained) query.cuisines else emptySet(),
             area = area,
         )
-        val body = overpass(text) ?: return null
+        val body = overpass(text)
         val origin = request.device ?: area.center
         return OverpassPlaceParser.parse(body, origin, request.languageCode)
     }
 
+    /** A widening/fallback pass may fail without hiding already verified local results. */
+    private suspend fun optionalFetch(
+        request: DiscoveryRequest,
+        area: SearchArea,
+        constrained: Boolean,
+    ): List<RoadstrPlace> = try {
+        fetch(request, area, constrained)
+    } catch (cancelled: CancellationException) {
+        throw cancelled
+    } catch (_: DiscoveryProviderUnavailable) {
+        emptyList()
+    }
+
     /** One Overpass query through the mirrors, trying the next one when a mirror fails. */
-    private suspend fun overpass(query: String): String? {
+    private suspend fun overpass(query: String): String {
         overpassCache.get(query)?.let { return it }
         val first = Math.floorMod(preferredMirror.get(), overpassMirrors.size)
         for (offset in overpassMirrors.indices) {
@@ -259,8 +288,13 @@ class NativeDiscoveryService(
             }
             preferredMirror.compareAndSet(index, (index + 1) % overpassMirrors.size)
         }
-        return null
+        throw unavailableNow()
     }
+
+    private fun unavailableNow() = DiscoveryProviderUnavailable(
+        if (networkAvailable()) DiscoveryUnavailableReason.PROVIDER_UNAVAILABLE
+        else DiscoveryUnavailableReason.NETWORK_ERROR,
+    )
 
     /** Overpass reports a busy or timed-out server inside a 200 answer with a remark. */
     private fun isRuntimeError(body: String): Boolean =
@@ -299,3 +333,5 @@ class NativeDiscoveryService(
         )
     }
 }
+
+private class DiscoveryProviderUnavailable(val reason: DiscoveryUnavailableReason) : RuntimeException()

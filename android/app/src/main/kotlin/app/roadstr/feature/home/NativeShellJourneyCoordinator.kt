@@ -394,6 +394,11 @@ class NativeShellJourneyCoordinator(
                     emptyList(),
                     DiscoveryPresentation.notice(outcome.notices),
                 )
+                is DiscoveryOutcome.Unavailable -> searchSession.submitResults(
+                    revision,
+                    emptyList(),
+                    DiscoveryPresentation.unavailable(outcome.reason),
+                )
                 DiscoveryOutcome.NotApplicable -> searchSession.submitResults(revision, emptyList())
             }
         }
@@ -822,6 +827,9 @@ class NativeShellJourneyCoordinator(
         return when (outcome) {
             is DiscoveryOutcome.Found -> show(revision, outcome)
             is DiscoveryOutcome.Empty -> DiscoveryAttempt.Fallback(DiscoveryPresentation.notice(outcome.notices))
+            is DiscoveryOutcome.Unavailable -> DiscoveryAttempt.Fallback(
+                DiscoveryPresentation.unavailable(outcome.reason),
+            )
             DiscoveryOutcome.NotApplicable -> DiscoveryAttempt.Fallback(null)
         }
     }

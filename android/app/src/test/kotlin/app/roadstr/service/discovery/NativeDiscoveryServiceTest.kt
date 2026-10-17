@@ -3,6 +3,7 @@ package app.roadstr.service.discovery
 import app.roadstr.core.discovery.DiscoveryNotice
 import app.roadstr.core.discovery.DiscoveryOutcome
 import app.roadstr.core.discovery.DiscoveryRequest
+import app.roadstr.core.discovery.DiscoveryUnavailableReason
 import app.roadstr.core.discovery.NaturalQueryParser
 import app.roadstr.core.discovery.SearchArea
 import app.roadstr.core.geo.GeoPoint
@@ -63,9 +64,14 @@ class NativeDiscoveryServiceTest {
         route: List<GeoPoint> = emptyList(),
     ) = DiscoveryRequest(parser.interpret(text, locale), device, null, destination, locale, now, route)
 
-    private fun service(transport: FakeTransport, mirrors: List<String> = listOf("https://m1/api", "https://m2/api")) =
+    private fun service(
+        transport: FakeTransport,
+        mirrors: List<String> = listOf("https://m1/api", "https://m2/api"),
+        networkAvailable: () -> Boolean = { true },
+    ) =
         NativeDiscoveryService(
             transport = transport,
+            networkAvailable = networkAvailable,
             overpassMirrors = mirrors,
             nominatimPacer = HostPacer(0, now = { 0L }, pause = { }),
         )
@@ -179,14 +185,47 @@ class NativeDiscoveryServiceTest {
     @Test
     fun `when every mirror fails the classic search takes over`() = runBlocking {
         val transport = FakeTransport { status(503) }
-        assertEquals(DiscoveryOutcome.NotApplicable, service(transport).discover(request("restaurant near me")))
+        assertEquals(
+            DiscoveryOutcome.Unavailable(DiscoveryUnavailableReason.PROVIDER_UNAVAILABLE),
+            service(transport).discover(request("restaurant near me")),
+        )
         assertEquals(2, transport.overpass.size)
     }
 
     @Test
     fun `a network exception is treated like a failed mirror`() = runBlocking {
         val transport = FakeTransport { throw IOException("down") }
-        assertEquals(DiscoveryOutcome.NotApplicable, service(transport).discover(request("restaurant near me")))
+        assertEquals(
+            DiscoveryOutcome.Unavailable(DiscoveryUnavailableReason.PROVIDER_UNAVAILABLE),
+            service(transport).discover(request("restaurant near me")),
+        )
+    }
+
+    @Test
+    fun `offline discovery reports missing local poi coverage without networking`() = runBlocking {
+        val transport = FakeTransport { error("network must not be called") }
+        val outcome = service(transport, networkAvailable = { false })
+            .discover(request("restaurant near me"))
+
+        assertEquals(
+            DiscoveryOutcome.Unavailable(DiscoveryUnavailableReason.OFFLINE_NO_INDEX),
+            outcome,
+        )
+        assertTrue(transport.requests.isEmpty())
+    }
+
+    @Test
+    fun `connectivity loss during discovery is distinct from provider failure`() = runBlocking {
+        var online = true
+        val transport = FakeTransport {
+            online = false
+            throw IOException("connection lost")
+        }
+
+        assertEquals(
+            DiscoveryOutcome.Unavailable(DiscoveryUnavailableReason.NETWORK_ERROR),
+            service(transport, networkAvailable = { online }).discover(request("restaurant near me")),
+        )
     }
 
     @Test

@@ -81,6 +81,9 @@ enum class NativeSearchNotice {
     RouteAhead,
     AreaFallback,
     OpenHoursUnknown,
+    OfflineNoIndex,
+    ProviderUnavailable,
+    NetworkError,
 }
 
 enum class NativeSearchUiStatus {

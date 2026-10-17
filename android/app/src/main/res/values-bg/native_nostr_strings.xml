@@ -138,7 +138,10 @@
     <string name="native_saved_routes_title">Запазени маршрути</string>
     <string name="native_search_notice_area_fallback">Мястото не можа да бъде очертано точно, затова беше претърсена околността.</string>
     <string name="native_search_notice_few_tagged">Малко места тук са отбелязани за това в OpenStreetMap, затова списъкът може да е непълен.</string>
+    <string name="native_search_notice_network_error">Връзката прекъсна по време на изследването. Не са измислени резултати.</string>
+    <string name="native_search_notice_offline_no_index">Тази област не може да се изследва офлайн, защото няма локален индекс на обектите.</string>
     <string name="native_search_notice_open_hours_unknown">Някои места не посочват работно време, затова може да са затворени.</string>
+    <string name="native_search_notice_provider_unavailable">Доставчиците на географски данни временно не са достъпни. Опитайте отново след малко.</string>
     <string name="native_search_notice_route_ahead">Места по оставащия участък от маршрута ви.</string>
     <string name="native_search_notice_route_unsupported">Търсенето по маршрута още не е налично; показват се места около вас.</string>
     <string name="native_search_notice_widened">Няма нищо наблизо, затова търсенето беше разширено.</string>

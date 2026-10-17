@@ -138,7 +138,10 @@
     <string name="native_saved_routes_title">Spremljene rute</string>
     <string name="native_search_notice_area_fallback">To mjesto nije bilo moguće točno omeđiti, pa je pretraženo njegovo okruženje.</string>
     <string name="native_search_notice_few_tagged">Malo je mjesta ovdje označeno za to u OpenStreetMapu, pa popis može biti nepotpun.</string>
+    <string name="native_search_notice_network_error">Mrežna veza prekinuta je tijekom istraživanja. Rezultati nisu izmišljeni.</string>
+    <string name="native_search_notice_offline_no_index">Ovo područje nije moguće istraživati izvan mreže jer lokalni indeks lokacija nije dostupan.</string>
     <string name="native_search_notice_open_hours_unknown">Neka mjesta ne navode radno vrijeme, pa mogu biti zatvorena.</string>
+    <string name="native_search_notice_provider_unavailable">Pružatelji geografskih podataka privremeno nisu dostupni. Pokušajte ponovno uskoro.</string>
     <string name="native_search_notice_route_ahead">Mjesta uz dionicu rute koja je još pred vama.</string>
     <string name="native_search_notice_route_unsupported">Pretraga uz rutu još nije dostupna; prikazana su mjesta oko vas.</string>
     <string name="native_search_notice_widened">Nema ničega u blizini, pa je pretraga proširena.</string>

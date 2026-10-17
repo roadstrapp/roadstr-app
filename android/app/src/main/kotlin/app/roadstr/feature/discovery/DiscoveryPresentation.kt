@@ -1,6 +1,7 @@
 package app.roadstr.feature.discovery
 
 import app.roadstr.core.discovery.DiscoveryNotice
+import app.roadstr.core.discovery.DiscoveryUnavailableReason
 import app.roadstr.core.discovery.DiscoveryBand
 import app.roadstr.core.discovery.PlaceCategoryNames
 import app.roadstr.core.discovery.RankedPlace
@@ -62,6 +63,12 @@ object DiscoveryPresentation {
         DiscoveryNotice.OPEN_HOURS_UNKNOWN in notices -> NativeSearchNotice.OpenHoursUnknown
         DiscoveryNotice.ROUTE_AHEAD in notices -> NativeSearchNotice.RouteAhead
         else -> null
+    }
+
+    fun unavailable(reason: DiscoveryUnavailableReason): NativeSearchNotice = when (reason) {
+        DiscoveryUnavailableReason.OFFLINE_NO_INDEX -> NativeSearchNotice.OfflineNoIndex
+        DiscoveryUnavailableReason.PROVIDER_UNAVAILABLE -> NativeSearchNotice.ProviderUnavailable
+        DiscoveryUnavailableReason.NETWORK_ERROR -> NativeSearchNotice.NetworkError
     }
 
     fun pins(places: List<RankedPlace>): List<NativeMapPointOverlayMarker> =

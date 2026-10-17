@@ -621,6 +621,9 @@ private fun NativeSearchNotice.textResource(): Int = when (this) {
     NativeSearchNotice.RouteAhead -> R.string.native_search_notice_route_ahead
     NativeSearchNotice.AreaFallback -> R.string.native_search_notice_area_fallback
     NativeSearchNotice.OpenHoursUnknown -> R.string.native_search_notice_open_hours_unknown
+    NativeSearchNotice.OfflineNoIndex -> R.string.native_search_notice_offline_no_index
+    NativeSearchNotice.ProviderUnavailable -> R.string.native_search_notice_provider_unavailable
+    NativeSearchNotice.NetworkError -> R.string.native_search_notice_network_error
 }
 
 @Composable

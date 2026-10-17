@@ -386,7 +386,11 @@ class NativeRoadTestJourneyGateway(
     // One pacer for every Nominatim call, so the place search and the town lookup behind a
     // web query together stay under the service's one request per second.
     private val nominatimPacer = HostPacer(NativeDiscoveryService.NOMINATIM_SPACING_MILLIS)
-    private val discovery = NativeDiscoveryService(transport, nominatimPacer = nominatimPacer)
+    private val discovery = NativeDiscoveryService(
+        transport,
+        networkAvailable = networkAvailable,
+        nominatimPacer = nominatimPacer,
+    )
     private val locality = CoarseLocality(transport, nominatimPacer)
     private val webProvider = NativeSearxngProvider(webSettings, transport, NativeLanHttpTransport())
     private val placeLookup = NativePlaceLookup(transport, nominatimPacer)

@@ -19,8 +19,11 @@ data class DiscoveryRequest(
 }
 
 sealed interface DiscoveryOutcome {
-    /** Not a place search, or it could not be answered: run the existing search instead. */
+    /** Not a place search: run the existing search instead. */
     data object NotApplicable : DiscoveryOutcome
+
+    /** Discovery was applicable, but its data source could not answer. */
+    data class Unavailable(val reason: DiscoveryUnavailableReason) : DiscoveryOutcome
 
     /** The search worked and nothing matched. */
     data class Empty(val notices: Set<DiscoveryNotice>) : DiscoveryOutcome
@@ -30,6 +33,17 @@ sealed interface DiscoveryOutcome {
         val notices: Set<DiscoveryNotice>,
         val area: SearchArea,
     ) : DiscoveryOutcome
+}
+
+enum class DiscoveryUnavailableReason {
+    /** No network is available and this checkout has no offline POI index. */
+    OFFLINE_NO_INDEX,
+
+    /** The device is online, but every applicable geographic provider failed. */
+    PROVIDER_UNAVAILABLE,
+
+    /** Connectivity disappeared or the request failed before a provider answer was received. */
+    NETWORK_ERROR,
 }
 
 fun interface PlaceDiscovery {
