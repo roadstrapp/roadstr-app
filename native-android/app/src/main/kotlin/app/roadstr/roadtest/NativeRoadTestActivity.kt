@@ -382,6 +382,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
             )
         }
         val gpsSnapshot by locationController.state.collectAsStateWithLifecycle()
+        val journeySnapshot by runtime.journey.state.collectAsStateWithLifecycle()
         val externalDestinationRequest by externalDestinationInbox.requests.collectAsStateWithLifecycle()
         NativeRoadstrShell(
             mode = shellMode,
@@ -432,7 +433,13 @@ open class NativeRoadTestActivity : ComponentActivity() {
             initialFavorites = initialFavorites,
             onFavoritesChanged = favoritesStore::save,
             initialSettings = initialSettings,
-            onSettingsChanged = uiPreferences::save,
+            onSettingsChanged = { settings ->
+                uiPreferences.save(settings)
+                runtime.setJourneyEnabled(settings.journeyEnabled)
+            },
+            journeySnapshot = journeySnapshot,
+            onJourneyClear = runtime.journey::clear,
+            onJourneyUnlocksSeen = runtime.journey::acknowledgeUnlocks,
             offlinePackagesGateway = offlinePackagesGateway,
             onNwcChanged = ::saveNwc,
             onRoutingKeyChanged = ::saveRoutingKey,

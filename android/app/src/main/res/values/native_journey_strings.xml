@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_journey_title">Roadstr Journey</string>
+    <string name="native_journey_achievements">Achievements</string>
+    <string name="native_journey_back">Back</string>
+    <string name="native_journey_travelled">validated distance travelled</string>
+    <string name="native_journey_next_badge">Next badge: %1$s</string>
+    <string name="native_journey_all_unlocked">The Impossible Road is yours</string>
+    <string name="native_journey_trips">Trips</string>
+    <string name="native_journey_month">This month</string>
+    <string name="native_journey_year">This year</string>
+    <string name="native_journey_by_mode">Distance by transport mode</string>
+    <string name="native_journey_badges_count">Achievements %1$d / %2$d</string>
+    <string name="native_journey_clear">Delete local Journey history</string>
+    <string name="native_journey_unlocked">Unlocked</string>
+    <string name="native_journey_locked">Locked</string>
+    <string name="native_journey_unlocked_message">Achievement unlocked: %1$s</string>
+    <string name="native_journey_mode_car">Car</string>
+    <string name="native_journey_mode_motorcycle">Motorcycle</string>
+    <string name="native_journey_mode_bicycle">Bicycle</string>
+    <string name="native_journey_mode_walking">Walking</string>
+    <string name="native_journey_mode_transit">Public transport</string>
+    <string name="native_journey_mode_other">Other</string>
+</resources>
