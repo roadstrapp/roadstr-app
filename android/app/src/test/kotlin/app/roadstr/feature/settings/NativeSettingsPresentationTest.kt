@@ -135,11 +135,15 @@ class NativeSettingsPresentationTest {
 
     @Test
     fun `boolean keys preserve exact storage names and defaults`() {
-        assertEquals(22, NativeSettingsBooleanKey.entries.size)
+        assertEquals(24, NativeSettingsBooleanKey.entries.size)
         assertEquals("autoDark", NativeSettingsBooleanKey.AutoDark.storageKey)
         assertEquals("darkMapEnabled", NativeSettingsBooleanKey.DarkMap.storageKey)
         assertEquals("roadstr_profile_public", NativeSettingsBooleanKey.ProfilePublic.storageKey)
         assertEquals("favoritesSyncAutoEnabled", NativeSettingsBooleanKey.FavoritesSyncAuto.storageKey)
+        assertEquals("journeyEnabled", NativeSettingsBooleanKey.JourneyEnabled.storageKey)
+        assertEquals("journeySyncEnabled", NativeSettingsBooleanKey.JourneySyncEnabled.storageKey)
+        assertFalse("Journey is explicitly opt-in", NativeSettingsBooleanKey.JourneyEnabled.defaultValue)
+        assertFalse("Journey sync is separately opt-in", NativeSettingsBooleanKey.JourneySyncEnabled.defaultValue)
         assertTrue(NativeSettingsBooleanKey.KeepScreenOn.defaultValue)
         assertFalse(NativeSettingsBooleanKey.ShowCrosswalks.defaultValue)
         assertFalse(NativeSettingsBooleanKey.ShowTrafficLights.defaultValue)

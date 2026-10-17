@@ -20,7 +20,14 @@ import app.roadstr.feature.voice.NativeVoiceCatalog
 import app.roadstr.feature.voice.NativeVoiceGender
 import app.roadstr.feature.settings.NativeSettingsVoiceGender
 import app.roadstr.core.network.TransitResponsePoint
+import app.roadstr.core.journey.JourneyController
+import app.roadstr.core.journey.JourneyLocationSample
+import app.roadstr.core.journey.JourneyMode
+import app.roadstr.core.journey.JourneyRecordCodec
+import app.roadstr.core.journey.JourneyStore
+import app.roadstr.feature.route.NativeRouteTransportMode
 import java.util.Locale
+import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -59,6 +66,35 @@ internal class NativeNavigationRuntime(
     }
 
     private val ui = NativeRoadTestUiPreferences(appContext, names)
+    private val journeyPreferences = NativeRoadTestProtectedPreferences(
+        context = appContext,
+        preferencesName = names.prefs("journey"),
+        keyAlias = names.alias("journey"),
+        maxPlaintextBytes = 3 * 1024 * 1024,
+    )
+    private val journeyStore = object : JourneyStore {
+        override fun load() = JourneyRecordCodec.decode(journeyPreferences.read("record"))
+
+        override fun save(record: app.roadstr.core.journey.JourneyRecord) {
+            check(journeyPreferences.write("record", JourneyRecordCodec.encode(record)))
+        }
+
+        override fun clear() {
+            journeyPreferences.remove("record")
+        }
+    }
+    private val journeyDeviceId: String = journeyPreferences.read("device_id")
+        ?.takeIf { it.matches(Regex("^[A-Za-z0-9._:-]{8,96}$")) }
+        ?: UUID.randomUUID().toString().also { id ->
+            check(journeyPreferences.write("device_id", id))
+        }
+
+    val journey = JourneyController(
+        initialRecord = runCatching(journeyStore::load).getOrDefault(app.roadstr.core.journey.JourneyRecord()),
+        deviceId = journeyDeviceId,
+        enabled = ui.load().journeyEnabled,
+        persist = journeyStore::save,
+    )
     private val routingKey = NativeRoadTestProtectedPreferences(
         context = appContext,
         preferencesName = names.prefs("routing"),
@@ -125,6 +161,17 @@ internal class NativeNavigationRuntime(
         }
         scope.launch {
             location.state.collect { snapshot ->
+                snapshot.fix?.let { fix ->
+                    journey.submit(
+                        JourneyLocationSample(
+                            latitude = fix.point.latitude,
+                            longitude = fix.point.longitude,
+                            elapsedRealtimeMillis = fix.receivedAtElapsedRealtimeMillis,
+                            accuracyMeters = fix.accuracyMeters,
+                            reportedSpeedMetersPerSecond = fix.speedMetersPerSecond,
+                        ),
+                    )
+                }
                 snapshot.fix?.point?.let { point ->
                     transitSession.submitLocation(
                         TransitResponsePoint(point.latitude, point.longitude),
@@ -134,9 +181,23 @@ internal class NativeNavigationRuntime(
             }
         }
         scope.launch {
+            host.session.state.map { it.active to it.mode }.distinctUntilChanged().collect { (active, mode) ->
+                if (active) {
+                    journey.start(mode.toJourneyMode())
+                } else if (journey.state.value.activeSession?.mode != JourneyMode.TRANSIT) {
+                    journey.complete()
+                }
+            }
+        }
+        scope.launch {
             transitSession.state.map { it.active }.distinctUntilChanged().collect { active ->
                 transitGuidanceActive = active
                 syncPlatformGuidance()
+                if (active) {
+                    journey.start(JourneyMode.TRANSIT)
+                } else if (journey.state.value.activeSession?.mode == JourneyMode.TRANSIT) {
+                    journey.complete()
+                }
             }
         }
         scope.launch {
@@ -207,6 +268,16 @@ internal class NativeNavigationRuntime(
         visible = false
         if (!navigating) voice.stop()
         location.onHostStop()
+    }
+
+    fun setJourneyEnabled(enabled: Boolean) {
+        journey.setEnabled(enabled)
+        if (!enabled || journey.state.value.activeSession != null) return
+        val road = host.session.state.value
+        when {
+            road.active -> journey.start(road.mode.toJourneyMode())
+            transitSession.state.value.active -> journey.start(JourneyMode.TRANSIT)
+        }
     }
 
     /** Ends everything; the caller decides whether a trip may still be running. */
@@ -304,4 +375,12 @@ internal class NativeNavigationRuntime(
         const val DEFAULT_ACCENT_ARGB = 0xFF71_58E2L
         const val MAX_LANGUAGE_CHARS = 8
     }
+}
+
+private fun NativeRouteTransportMode?.toJourneyMode(): JourneyMode = when (this) {
+    NativeRouteTransportMode.Driving -> JourneyMode.CAR
+    NativeRouteTransportMode.Cycling -> JourneyMode.BICYCLE
+    NativeRouteTransportMode.Walking -> JourneyMode.WALKING
+    NativeRouteTransportMode.Transit -> JourneyMode.TRANSIT
+    null -> JourneyMode.OTHER
 }

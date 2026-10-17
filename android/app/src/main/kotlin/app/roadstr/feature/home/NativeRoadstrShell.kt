@@ -130,6 +130,7 @@ import app.roadstr.feature.route.NativeRoutePlanningStatus
 import app.roadstr.feature.saved.NativeSavedPlacesPanel
 import app.roadstr.feature.saved.NativeSavedPlace
 import app.roadstr.core.discovery.RoadstrPlace
+import app.roadstr.core.journey.JourneySnapshot
 import app.roadstr.core.discovery.web.ConnectionTest
 import app.roadstr.core.discovery.web.WebDiscoverySettings
 import app.roadstr.feature.discovery.DiscoveryPresentation
@@ -137,6 +138,7 @@ import app.roadstr.feature.discovery.NativeDiscoverySnapshot
 import app.roadstr.feature.history.NativeRouteHistoryEntry
 import app.roadstr.feature.history.NativeRouteHistoryPanel
 import app.roadstr.feature.history.NativeRouteHistoryProtocol
+import app.roadstr.feature.journey.NativeJourneyPanel
 import app.roadstr.feature.saved.NativeMapContextMenu
 import app.roadstr.feature.saved.NativeParkingPanel
 import app.roadstr.feature.saved.NativeParkingPosition
@@ -337,6 +339,9 @@ fun NativeRoadstrShell(
     onFavoritesChanged: (List<NativeSavedPlace>) -> Unit = {},
     initialSettings: NativeSettingsInput = NativeSettingsInput(),
     onSettingsChanged: (NativeSettingsInput) -> Unit = {},
+    journeySnapshot: JourneySnapshot? = null,
+    onJourneyClear: () -> Unit = {},
+    onJourneyUnlocksSeen: () -> Unit = {},
     offlinePackagesGateway: NativeOfflinePackagesGateway? = null,
     onNwcChanged: (String) -> Boolean = { false },
     /** Stores the routing API key protected; an empty value removes it. False if it could not be stored. */
@@ -614,6 +619,8 @@ fun NativeRoadstrShell(
             }
         }
         var offlinePackagesVisible by remember { mutableStateOf(false) }
+        var journeyVisible by remember { mutableStateOf(false) }
+        var journeyCatalogVisible by remember { mutableStateOf(false) }
         var offlinePackagesState by remember(offlinePackagesGateway) {
             mutableStateOf(
                 NativeOfflinePackagesSnapshot(
@@ -1172,6 +1179,17 @@ fun NativeRoadstrShell(
             NativeActiveNavigationSession(navigationHudSession, routeSession)
         }
         val activeNavigationState by activeNavigationSession.state.collectAsState()
+        LaunchedEffect(journeySnapshot?.newlyUnlocked) {
+            val unlocked = journeySnapshot?.newlyUnlocked.orEmpty()
+            if (unlocked.isNotEmpty()) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.native_journey_unlocked_message, unlocked.last().name),
+                    Toast.LENGTH_LONG,
+                ).show()
+                onJourneyUnlocksSeen()
+            }
+        }
         LaunchedEffect(
             ztlSnapshot.revision,
             routeState.revision,
@@ -1830,6 +1848,7 @@ fun NativeRoadstrShell(
         BackHandler(
             enabled = (
                 browserState.open ||
+                    journeyVisible ||
                     webPanelVisible ||
                     parkingPanelVisible ||
                     historyVisible ||
@@ -1855,6 +1874,9 @@ fun NativeRoadstrShell(
         ) {
             when {
                 browserState.open -> webBrowser?.close()
+                journeyVisible -> {
+                    if (journeyCatalogVisible) journeyCatalogVisible = false else journeyVisible = false
+                }
                 webPanelVisible -> webPanelVisible = false
                 contextMenuPoint != null -> contextMenuPoint = null
                 parkingPanelVisible -> parkingPanelVisible = false
@@ -2446,6 +2468,13 @@ fun NativeRoadstrShell(
                                 savedPlacesSession.show(nextRevision, favorites, parkingPosition)
                                 settingsSession.hide(revision)
                             }
+                            NativeSettingsUiAction.OpenJourney -> {
+                                if (journeySnapshot != null) {
+                                    journeyCatalogVisible = false
+                                    journeyVisible = true
+                                    settingsSession.hide(revision)
+                                }
+                            }
                             is NativeSettingsUiAction.EditFavorite -> {
                                 val place = favorites.getOrNull(action.index)
                                 val nextRevision = savedPlacesState.revision.coerceAtLeast(0L) + 1L
@@ -2477,6 +2506,24 @@ fun NativeRoadstrShell(
                     modifier = Modifier.align(Alignment.BottomCenter),
                     webSearchActive = NativeWebSearchEditor.isActive(webSettings),
                 )
+                if (journeyVisible) {
+                    journeySnapshot?.let { snapshot ->
+                        NativeJourneyPanel(
+                            snapshot = snapshot,
+                            languageCode = settingsState.values.languageCode ?: Locale.getDefault().language,
+                            imperial = settingsState.values.imperialUnits,
+                            showCatalog = journeyCatalogVisible,
+                            onShowCatalog = { journeyCatalogVisible = true },
+                            onHideCatalog = { journeyCatalogVisible = false },
+                            onClear = onJourneyClear,
+                            onClose = {
+                                journeyCatalogVisible = false
+                                journeyVisible = false
+                            },
+                            modifier = Modifier.align(Alignment.Center),
+                        )
+                    }
+                }
                 fun startOfflineDownloads(artifacts: List<OfflinePackageArtifact>, allowMobileDataOnce: Boolean) {
                     val gateway = offlinePackagesGateway ?: return
                     val queue = artifacts.distinctBy { it.id }

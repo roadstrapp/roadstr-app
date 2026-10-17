@@ -113,6 +113,8 @@ enum class NativeSettingsBooleanKey(
     AutoCenterOnLaunch("autoCenterOnLaunch", true),
     ImperialUnits("imperialUnits", false),
     FavoritesSyncAuto("favoritesSyncAutoEnabled", false),
+    JourneyEnabled("journeyEnabled", false),
+    JourneySyncEnabled("journeySyncEnabled", false),
     VoiceEnabled("voiceEnabled", true),
     OfflineRouting("offlineRoutingEnabled", false),
     OfflineOnlineFallback("offlineOnlineFallbackAllowed", false),
@@ -227,6 +229,9 @@ data class NativeSettingsInput(
     val favoritesCount: Int = 0,
     val favoritePlaces: List<NativeSettingsFavorite> = emptyList(),
     val favoritesSyncAutoEnabled: Boolean = false,
+    /** Journey, distance tracking and rewards are explicitly opt-in. */
+    val journeyEnabled: Boolean = false,
+    val journeySyncEnabled: Boolean = false,
     val interopShowEnabled: Boolean = true,
     val interopPublishEnabled: Boolean = false,
     val interopEphemeralKey: Boolean = false,
@@ -328,6 +333,7 @@ object NativeSettingsPresenter {
                 mapTileUrl = cleanRequired(input.mapTileUrl, MAX_URL_CHARS, "Map tile URL"),
                 graphHopperServer = clean(input.graphHopperServer, MAX_URL_CHARS) ?: "",
                 customSyncRelay = safeRelay(input.customSyncRelay),
+                journeySyncEnabled = input.journeyEnabled && input.journeySyncEnabled,
                 voiceDownloadProgress = progress,
                 voiceVolume = tenth(input.voiceVolume),
                 appVersion = cleanRequired(input.appVersion, MAX_VERSION_CHARS, "App version"),
@@ -431,6 +437,13 @@ class NativeSettingsSession(
             NativeSettingsBooleanKey.AutoCenterOnLaunch -> current.copy(autoCenterOnLaunch = value)
             NativeSettingsBooleanKey.ImperialUnits -> current.copy(imperialUnits = value)
             NativeSettingsBooleanKey.FavoritesSyncAuto -> current.copy(favoritesSyncAutoEnabled = value)
+            NativeSettingsBooleanKey.JourneyEnabled -> current.copy(
+                journeyEnabled = value,
+                journeySyncEnabled = if (value) current.journeySyncEnabled else false,
+            )
+            NativeSettingsBooleanKey.JourneySyncEnabled -> current.copy(
+                journeySyncEnabled = value && current.journeyEnabled,
+            )
             NativeSettingsBooleanKey.VoiceEnabled -> current.copy(voiceEnabled = value)
             NativeSettingsBooleanKey.OfflineRouting -> current.copy(offlineRoutingEnabled = value)
             NativeSettingsBooleanKey.OfflineOnlineFallback -> current.copy(offlineOnlineFallbackAllowed = value)

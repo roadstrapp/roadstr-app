@@ -56,6 +56,8 @@ class NativeRoadTestUiPreferences(
         showCrosswalks = preferences.getBoolean("show_crosswalks", false),
         showTrafficLights = preferences.getBoolean("show_traffic_lights", false),
         favoritesSyncAutoEnabled = preferences.getBoolean("favorites_sync_auto", false),
+        journeyEnabled = preferences.getBoolean("journey_enabled", false),
+        journeySyncEnabled = preferences.getBoolean("journey_sync_enabled", false),
         imperialUnits = preferences.getBoolean("imperial", false),
         speedometerStyle = NativeSpeedometerStyle.fromStorage(
             preferences.getString("speedometer", null),
@@ -103,6 +105,8 @@ class NativeRoadTestUiPreferences(
             .putBoolean("show_crosswalks", value.showCrosswalks)
             .putBoolean("show_traffic_lights", value.showTrafficLights)
             .putBoolean("favorites_sync_auto", value.favoritesSyncAutoEnabled)
+            .putBoolean("journey_enabled", value.journeyEnabled)
+            .putBoolean("journey_sync_enabled", value.journeySyncEnabled && value.journeyEnabled)
             .putBoolean("imperial", value.imperialUnits)
             .putString("speedometer", value.speedometerStyle.storageValue)
             .putString("cursor_style", value.cursorStyle.storageValue)

@@ -141,6 +141,7 @@ sealed interface NativeSettingsUiAction {
     data object MeshForgetDevice : NativeSettingsUiAction
     data object MeshConfigureChannel : NativeSettingsUiAction
     data object MeshClearQueue : NativeSettingsUiAction
+    data object OpenJourney : NativeSettingsUiAction
 }
 
 /** Complete dormant settings catalogue; storage, secrets, network and intents remain external. */
@@ -198,11 +199,40 @@ fun NativeSettingsPanel(
             item { LightningSection(values) { onAction(revision, it) } }
             item { FavoritesSection(values) { onAction(revision, it) } }
             item { SyncSection(values) { onAction(revision, it) } }
+            item { JourneySection(values) { onAction(revision, it) } }
             item { InteropSection(values) { onAction(revision, it) } }
             item { MeshSection(values) { onAction(revision, it) } }
             item { VoiceSection(values) { onAction(revision, it) } }
             item { InfoSection(values) { onAction(revision, it) } }
             item { Spacer(modifier = Modifier.height(18.dp)) }
+        }
+    }
+}
+
+@Composable
+private fun JourneySection(values: NativeSettingsInput, onAction: (NativeSettingsUiAction) -> Unit) {
+    SettingsSection(R.string.native_journey_settings_section) {
+        Text(
+            stringResource(R.string.native_journey_settings_desc),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        ToggleRow(
+            R.string.native_journey_enable,
+            R.string.native_journey_enable_desc,
+            values.journeyEnabled,
+        ) { onAction(NativeSettingsUiAction.BooleanChanged(NativeSettingsBooleanKey.JourneyEnabled, it)) }
+        if (values.journeyEnabled) {
+            ToggleRow(
+                R.string.native_journey_sync_enable,
+                R.string.native_journey_sync_enable_desc,
+                values.journeySyncEnabled,
+            ) { onAction(NativeSettingsUiAction.BooleanChanged(NativeSettingsBooleanKey.JourneySyncEnabled, it)) }
+            ActionButton(
+                text = stringResource(R.string.native_journey_open),
+                modifier = Modifier.fillMaxWidth(),
+            ) { onAction(NativeSettingsUiAction.OpenJourney) }
         }
     }
 }
