@@ -6,6 +6,7 @@ import app.roadstr.service.nostr.NativeActivityStore
 import app.roadstr.service.nostr.NativeFavoritesSyncService
 import app.roadstr.service.nostr.NativeJourneySyncService
 import app.roadstr.service.nostr.NativeNostrSigner
+import app.roadstr.service.nostr.NativeNip58Service
 import app.roadstr.service.nostr.NativeProfileVisibilityService
 import app.roadstr.service.nostr.NativeRoadEventService
 import app.roadstr.service.nostr.NativeUserReportsService
@@ -49,6 +50,7 @@ class NativeShellNostr(
     val roadEvents: NativeRoadEventService,
     val favoritesSync: NativeFavoritesSyncService,
     val journeySync: NativeJourneySyncService? = null,
+    val badges: NativeNip58Service? = null,
     val visibility: NativeProfileVisibilityService,
     val syncSecrets: NativeShellSyncSecrets,
     val files: NativeShellFavoriteFiles,
