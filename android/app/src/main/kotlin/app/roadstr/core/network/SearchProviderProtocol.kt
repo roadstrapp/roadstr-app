@@ -33,11 +33,14 @@ object SearchProviderProtocol {
 
     val photonSupportedLanguages: Set<String> = setOf("en", "de", "fr")
 
-    /** Switzerland-only overpass.osm.ch must not be added to this list. */
+    /**
+     * Independent global instances from the OSM public-instance catalogue.
+     * Regional instances such as Switzerland-only overpass.osm.ch do not belong here.
+     */
     val overpassMirrors: List<String> = listOf(
         "https://overpass-api.de/api/interpreter",
-        "https://lz4.overpass-api.de/api/interpreter",
-        "https://z.overpass-api.de/api/interpreter",
+        "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+        "https://overpass.private.coffee/api/interpreter",
     )
 
     private val roadstrHeaders = mapOf("User-Agent" to "Roadstr/1.0")
