@@ -15,6 +15,7 @@ import java.time.LocalDateTime
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
@@ -97,7 +98,13 @@ class NativeDiscoveryServiceTest {
         }
         val outcome = found(service(transport).discover(request("vegan restaurant in Florence")))
         assertEquals(1, transport.nominatim.size)
-        assertTrue(transport.overpass.single().body!!.contains("area%283600041485%29") || transport.overpass.single().body!!.contains("area(3600041485)") || transport.overpass.single().body!!.contains("3600041485"))
+        assertEquals(3, transport.overpass.size)
+        assertTrue(transport.overpass.take(2).all { call ->
+            call.body!!.contains("area%283600041485%29") ||
+                call.body!!.contains("area(3600041485)") ||
+                call.body!!.contains("3600041485")
+        })
+        assertFalse(transport.overpass.last().body!!.contains("3600041485"))
         assertEquals(3, outcome.places.size)
         assertTrue(outcome.area is SearchArea.AdminArea)
     }

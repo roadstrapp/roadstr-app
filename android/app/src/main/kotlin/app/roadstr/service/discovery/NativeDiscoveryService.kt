@@ -81,7 +81,10 @@ class NativeDiscoveryService(
         if (
             combined.size < MIN_RESULTS &&
             circle != null &&
-            !request.query.locationExplicit &&
+            (
+                !request.query.locationExplicit ||
+                    request.query.location == LocationConstraint.CurrentLocation
+            ) &&
             circle.radiusMeters < WIDE_RADIUS_METERS
         ) {
             area = SearchArea.Circle(circle.center, WIDE_RADIUS_METERS)

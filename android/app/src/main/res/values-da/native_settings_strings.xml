@@ -92,6 +92,13 @@
     <string name="native_settings_sync_passphrase">Synkroniserings-adgangssætning (valgfri)</string>
     <string name="native_settings_sync_relay">Dit eget relæ (valgfrit)</string>
     <string name="native_settings_sync_no_identity">Log ind med Nostr (Indstillinger → Profil) for at aktivere synkronisering</string>
+    <string name="native_journey_settings_section">Roadstr Journey &amp; rewards</string>
+    <string name="native_journey_settings_desc">Optional private travel statistics and progressive achievements. Off by default.</string>
+    <string name="native_journey_enable">Enable Journey and rewards</string>
+    <string name="native_journey_enable_desc">Count validated distance only while Roadstr navigation is active</string>
+    <string name="native_journey_sync_enable">Sync Journey with Nostr</string>
+    <string name="native_journey_sync_enable_desc">Optional encrypted synchronization; never publishes routes or coordinates</string>
+    <string name="native_journey_open">Open Journey dashboard</string>
     <string name="native_settings_voice_section">Navigationsstemme</string>
     <string name="native_settings_voice_guidance">Stemmevejledning</string>
     <string name="native_settings_voice_guidance_desc">Læs sving-instruktioner højt under navigation</string>
