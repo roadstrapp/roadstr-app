@@ -11,7 +11,7 @@ plugins {
 val geckoView = providers.gradleProperty("geckoview").orNull == "true"
 val geckoViewVersion = "157.0.20260924084938"
 // Keep in step with the Kotlin plugin version in settings.gradle.kts.
-val projectKotlin = "2.2.10"
+val projectKotlin = "2.2.20"
 
 val bundledVoiceChecksums = mapOf(
     "../../android/app/src/main/jniLibs/arm64-v8a/libespeak-ng.so" to
