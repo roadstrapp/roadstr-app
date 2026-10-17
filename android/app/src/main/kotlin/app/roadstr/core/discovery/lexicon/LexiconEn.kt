@@ -16,6 +16,8 @@ c GREENGROCER: greengrocer, greengrocers, vegetable shop, fruit shop, produce st
 c BUTCHER: butcher, butchers, butcher shop
 c PHARMACY: pharmacy, pharmacies, chemist, chemists, drugstore, drug store
 c CLOTHES: clothes shop, clothing store, clothes store, clothing shop, boutique
+c SHOES: shoe shop, shoe store, shoes, footwear shop
+c MUSICAL_INSTRUMENTS: musical instrument shop, musical instrument store, music shop, piano shop, piano store, pianos
 c ELECTRONICS: electronics store, electronics shop, computer shop, phone shop, electronics
 c HARDWARE: hardware store, diy store, home improvement store, hardware shop
 c BOOKS: bookshop, bookstore, book shop, book store
@@ -45,9 +47,15 @@ c CAMPING: camping, campsite, camp site, caravan park
 c CINEMA: cinema, cinemas, movie theater, movie theatre, movie theaters
 c THEATRE: theatre, theatres, theater, theaters
 c MUSEUM: museum, museums
+c ART_GALLERY: art gallery, art galleries, gallery
+c ATTRACTION: attraction, attractions, tourist attraction, sightseeing
+c MONUMENT: monument, monuments, memorial, historic monument
+c VIEWPOINT: viewpoint, viewpoints, scenic viewpoint, lookout
 c PARK: park, parks, garden, gardens
+c NATURE_RESERVE: nature reserve, nature reserves, protected area
 c SWIMMING_POOL: swimming pool, swimming pools, pool
 c GYM: gym, gyms, fitness centre, fitness center
+c SPORTS_CENTRE: sports centre, sports center, stadium, leisure centre
 c LIBRARY: library, libraries
 c PLACE_OF_WORSHIP: church, churches, mosque, synagogue, temple, place of worship, cathedral
 c TOILETS: toilet, toilets, restroom, restrooms, wc, public toilet, bathroom
@@ -59,6 +67,13 @@ c UNIVERSITY: university, universities, college
 g EAT: eat, food, place to eat, somewhere to eat, dining, lunch, dinner, breakfast, meal
 g DRINK: drink, drinks, somewhere to drink
 g LODGING: place to stay, somewhere to sleep, accommodation, lodging
+g SHOPPING: shopping, shops, stores
+g CULTURE: culture, cultural places, things to see
+g OUTDOOR: outdoors, nature, outdoor places
+g SERVICES: services, useful services
+g TRANSPORT: transport, transportation
+g HEALTH: health, healthcare, medical care
+g SPORT: sport, sports, leisure
 a VEGAN: vegan, vegan friendly, plant based
 a VEGETARIAN: vegetarian, veggie
 a GLUTEN_FREE: gluten free, glutenfree, coeliac, celiac

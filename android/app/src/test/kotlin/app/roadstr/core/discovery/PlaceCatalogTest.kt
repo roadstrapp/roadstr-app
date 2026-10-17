@@ -59,4 +59,15 @@ class PlaceCatalogTest {
         assertEquals(PlaceCategory.FUEL, PlaceAttribute.LPG.impliedCategory)
         assertEquals(CategoryGroup.EAT, PlaceAttribute.GLUTEN_FREE.impliedGroup)
     }
+
+    @Test
+    fun `explore catalogue is stable complete and maps shopping subcategories`() {
+        assertEquals(1, ExploreCatalog.VERSION)
+        assertEquals(ExploreCategory.entries.toSet(), ExploreCategory.entries.mapNotNull {
+            ExploreCategory.fromStableId(it.stableId)
+        }.toSet())
+        assertTrue(PlaceCategory.MUSICAL_INSTRUMENTS in ExploreCategory.SHOPPING.categories)
+        assertTrue(PlaceCategory.SHOES in ExploreCategory.SHOPPING.categories)
+        assertEquals(PlaceCategory.entries.toSet(), ExploreCategory.ALL.categories)
+    }
 }

@@ -3,6 +3,7 @@ package app.roadstr.service.discovery
 import app.roadstr.core.discovery.AreaGeocoding
 import app.roadstr.core.discovery.DiscoveryNotice
 import app.roadstr.core.discovery.DiscoveryOutcome
+import app.roadstr.core.discovery.DiscoveryDeduplicator
 import app.roadstr.core.discovery.DiscoveryRanking
 import app.roadstr.core.discovery.DiscoveryRequest
 import app.roadstr.core.discovery.GeocodedArea
@@ -54,20 +55,50 @@ class NativeDiscoveryService(
         start: SearchArea,
         notices: MutableSet<DiscoveryNotice>,
     ): DiscoveryOutcome {
-        var area = start
-        var places = fetch(request, area) ?: return DiscoveryOutcome.NotApplicable
-        if (places.isEmpty() && area is SearchArea.AdminArea) {
-            area = area.fallback
-            notices += DiscoveryNotice.AREA_FALLBACK
-            places = fetch(request, area) ?: return DiscoveryOutcome.NotApplicable
+        val exactLocal = fetch(request, start, constrained = true) ?: return DiscoveryOutcome.NotApplicable
+        val needsLoosePass = request.query.attributes.isNotEmpty() || request.query.cuisines.isNotEmpty()
+        val looseLocal = if (needsLoosePass) {
+            fetch(request, start, constrained = false) ?: return DiscoveryOutcome.NotApplicable
+        } else {
+            exactLocal
         }
-        val circle = area as? SearchArea.Circle
-        if (places.size < MIN_RESULTS && circle != null && circle.radiusMeters < WIDE_RADIUS_METERS) {
+        val local = DiscoveryDeduplicator.merge(exactLocal + looseLocal)
+
+        // An administrative relation is the one area type whose membership is
+        // proven by Overpass. A bounded fallback pass supplies a clearly
+        // separated external band; it never replaces or outranks local POIs.
+        val external = if (start is SearchArea.AdminArea && local.size < EXTERNAL_LOOKUP_BELOW) {
+            fetch(request, start.fallback, constrained = false).orEmpty()
+        } else {
+            emptyList()
+        }
+        var area = start
+        var combined = DiscoveryDeduplicator.merge(local + external)
+
+        // Automatic widening remains only for implicit proximity searches.
+        // Explicit map/city contexts keep the exact area the person selected.
+        val circle = start as? SearchArea.Circle
+        if (
+            combined.size < MIN_RESULTS &&
+            circle != null &&
+            !request.query.locationExplicit &&
+            circle.radiusMeters < WIDE_RADIUS_METERS
+        ) {
             area = SearchArea.Circle(circle.center, WIDE_RADIUS_METERS)
             notices += DiscoveryNotice.WIDENED
-            places = fetch(request, area) ?: return DiscoveryOutcome.NotApplicable
+            combined = DiscoveryDeduplicator.merge(
+                combined + fetch(request, area, constrained = false).orEmpty(),
+            )
         }
-        return outcome(request, area, places, notices)
+        if (local.isEmpty() && external.isNotEmpty()) notices += DiscoveryNotice.AREA_FALLBACK
+        return outcome(
+            request = request,
+            area = area,
+            places = combined,
+            notices = notices,
+            localIds = local.mapTo(hashSetOf()) { it.id },
+            exactIds = exactLocal.mapTo(hashSetOf()) { it.id }.takeIf { needsLoosePass },
+        )
     }
 
     private fun outcome(
@@ -75,10 +106,21 @@ class NativeDiscoveryService(
         area: SearchArea,
         places: List<RoadstrPlace>,
         notices: MutableSet<DiscoveryNotice>,
+        localIds: Set<String>?,
+        exactIds: Set<String>?,
     ): DiscoveryOutcome {
         val query = request.query
         val route = (area as? SearchArea.Corridor)?.points
-        val ranked = DiscoveryRanking.rank(places, query, area.center, request.device, request.now, route = route)
+        val ranked = DiscoveryRanking.rank(
+            places = places,
+            query = query,
+            anchor = area.center,
+            device = request.device,
+            now = request.now,
+            route = route,
+            localIds = localIds,
+            exactIds = exactIds,
+        )
         if (query.attributes.isNotEmpty() && ranked.size < FEW_TAGGED_BELOW) {
             notices += DiscoveryNotice.FEW_TAGGED
         }
@@ -181,9 +223,18 @@ class NativeDiscoveryService(
         return AreaGeocoding.parse(response.bodyUtf8).also { areaCache.put(key, it) }
     }
 
-    private suspend fun fetch(request: DiscoveryRequest, area: SearchArea): List<RoadstrPlace>? {
+    private suspend fun fetch(
+        request: DiscoveryRequest,
+        area: SearchArea,
+        constrained: Boolean,
+    ): List<RoadstrPlace>? {
         val query = request.query
-        val text = OverpassDiscoveryQuery.build(query.categories, query.attributes, query.cuisines, area)
+        val text = OverpassDiscoveryQuery.build(
+            categories = query.categories,
+            attributes = if (constrained) query.attributes else emptySet(),
+            cuisines = if (constrained) query.cuisines else emptySet(),
+            area = area,
+        )
         val body = overpass(text) ?: return null
         val origin = request.device ?: area.center
         return OverpassPlaceParser.parse(body, origin, request.languageCode)
@@ -229,6 +280,7 @@ class NativeDiscoveryService(
         const val REFERENCE_RADIUS_METERS = 1_500
         const val REFERENCE_LIMIT = 20
         const val MIN_RESULTS = 3
+        const val EXTERNAL_LOOKUP_BELOW = 10
         const val FEW_TAGGED_BELOW = 3
         private const val HTTP_OK = 200
 

@@ -2,6 +2,7 @@ package app.roadstr.feature.home
 
 import app.roadstr.core.discovery.DiscoveryOutcome
 import app.roadstr.core.discovery.DiscoveryRequest
+import app.roadstr.core.discovery.ExploreCategory
 import app.roadstr.core.discovery.LocationConstraint
 import app.roadstr.core.discovery.NaturalPlaceQuery
 import app.roadstr.core.discovery.NaturalQueryParser
@@ -253,6 +254,7 @@ class NativeShellJourneyCoordinator(
     private var lastArea: SearchArea? = null
     private var lastParsed: NaturalPlaceQuery? = null
     private var lastNear: SearchResponsePoint? = null
+    private var exploreAnchor: GeoPoint? = null
     private var webPlaces: Map<String, RoadstrPlace> = emptyMap()
     private val resolver = PlaceEntityResolver(
         PlaceLookup { name, locality, near, language -> gateway.lookupPlaces(name, locality, near, language) },
@@ -315,6 +317,86 @@ class NativeShellJourneyCoordinator(
             launchSearch(revision, category.wireQuery, near)
         }
         return true
+    }
+
+    /** Explicit map exploration. The selected point is never substituted with the device GPS. */
+    fun exploreArea(
+        point: SearchResponsePoint,
+        category: ExploreCategory = ExploreCategory.ALL,
+    ): Boolean {
+        require(point.latitude.isFinite() && point.latitude in -90.0..90.0)
+        require(point.longitude.isFinite() && point.longitude in -180.0..180.0)
+        cancelSearchWork()
+        onDiscovery(searchSession.state.value.revision, emptyList())
+        if (searchSession.state.value.status == app.roadstr.feature.search.NativeSearchUiStatus.Hidden) {
+            if (!searchSession.show(nextSearchRevision(), favorites = runCatching(favorites).getOrDefault(emptyList()))) {
+                return false
+            }
+        }
+        val revision = nextSearchRevision()
+        if (!searchSession.beginExplore(revision, category)) return false
+        val anchor = GeoPoint(point.latitude, point.longitude)
+        exploreAnchor = anchor
+        launchExplore(revision, anchor, category)
+        return true
+    }
+
+    fun changeExploreCategory(category: ExploreCategory): Boolean {
+        val anchor = exploreAnchor ?: return false
+        cancelSearchWork()
+        val revision = nextSearchRevision()
+        if (!searchSession.beginExplore(revision, category)) return false
+        launchExplore(revision, anchor, category)
+        return true
+    }
+
+    private fun launchExplore(revision: Long, anchor: GeoPoint, category: ExploreCategory) {
+        lastNear = null
+        lastPlaces = emptyList()
+        lastArea = null
+        webPlaces = emptyMap()
+        val parsed = NaturalPlaceQuery(
+            rawText = "",
+            locale = normalizedLanguageCode(),
+            intent = app.roadstr.core.discovery.QueryIntent.FIND_PLACE,
+            categories = category.categories.toList(),
+            attributes = emptySet(),
+            cuisines = emptySet(),
+            location = LocationConstraint.MapCenter,
+            locationExplicit = true,
+            openNow = false,
+            residualTerms = emptyList(),
+            residualPlaceGuess = null,
+            classicQuery = "",
+        )
+        lastParsed = parsed
+        searchJob = scope.launch {
+            val request = DiscoveryRequest(
+                query = parsed,
+                device = null,
+                mapCenter = anchor,
+                destination = destination()?.let { GeoPoint(it.latitude, it.longitude) },
+                languageCode = normalizedLanguageCode(),
+                now = clock(),
+                route = emptyList(),
+            )
+            val outcome = try {
+                gateway.discover(request)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                DiscoveryOutcome.NotApplicable
+            }
+            when (outcome) {
+                is DiscoveryOutcome.Found -> show(revision, outcome)
+                is DiscoveryOutcome.Empty -> searchSession.submitResults(
+                    revision,
+                    emptyList(),
+                    DiscoveryPresentation.notice(outcome.notices),
+                )
+                DiscoveryOutcome.NotApplicable -> searchSession.submitResults(revision, emptyList())
+            }
+        }
     }
 
     private fun launchNearbyTransit(revision: Long, near: SearchResponsePoint) {
@@ -674,6 +756,7 @@ class NativeShellJourneyCoordinator(
         cancelReroute()
         selectedDestination = null
         clearNavigationDestination()
+        exploreAnchor = null
     }
 
     private fun launchSearch(

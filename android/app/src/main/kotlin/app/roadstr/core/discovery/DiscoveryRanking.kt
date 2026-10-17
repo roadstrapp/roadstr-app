@@ -39,7 +39,25 @@ object OpenNowPolicy {
     }
 }
 
-data class RankedPlace(val place: RoadstrPlace, val score: Double, val open: OpenState)
+enum class DiscoveryBand {
+    BEST_LOCAL,
+    OTHER_LOCAL,
+    EXTERNAL,
+}
+
+enum class DiscoverySort {
+    RELEVANCE,
+    DISTANCE,
+    ALPHABETICAL,
+}
+
+data class RankedPlace(
+    val place: RoadstrPlace,
+    val score: Double,
+    val open: OpenState,
+    val band: DiscoveryBand = DiscoveryBand.BEST_LOCAL,
+    val verifiedAttributes: Boolean = false,
+)
 
 /** Deterministic, testable ranking: near, open, well described and matching the leftover words. */
 object DiscoveryRanking {
@@ -55,14 +73,30 @@ object DiscoveryRanking {
         limit: Int = 25,
         /** For an "along my route" search: places are judged by the detour they cost, not by distance. */
         route: List<GeoPoint>? = null,
+        /** IDs returned by the strict geographic query. Null means every result is local. */
+        localIds: Set<String>? = null,
+        /** IDs returned by the fully constrained query. Null means no loose second pass ran. */
+        exactIds: Set<String>? = null,
+        sort: DiscoverySort = DiscoverySort.RELEVANCE,
     ): List<RankedPlace> {
-        val scored = places.mapNotNull { place -> score(place, query, anchor, device, now, route) }
+        val scored = places.mapNotNull { place ->
+            score(place, query, anchor, device, now, route, localIds, exactIds)
+        }
+        val withinBand = when (sort) {
+            DiscoverySort.RELEVANCE -> compareByDescending<RankedPlace> { it.score }
+                .thenBy { it.place.distanceMeters ?: Double.MAX_VALUE }
+                .thenBy { it.place.id }
+            DiscoverySort.DISTANCE -> compareBy<RankedPlace> { it.place.distanceMeters ?: Double.MAX_VALUE }
+                .thenByDescending { it.score }
+                .thenBy { it.place.id }
+            DiscoverySort.ALPHABETICAL -> compareBy<RankedPlace> {
+                TextNormalizer.normalize(it.place.name)
+            }.thenBy { it.place.id }
+        }
         return scored
-            .sortedWith(
-                compareByDescending<RankedPlace> { it.score }
-                    .thenBy { it.place.distanceMeters ?: Double.MAX_VALUE }
-                    .thenBy { it.place.id },
-            )
+            // Geography is deliberately compared before semantics: an excellent
+            // result outside an explicit city never jumps above a local result.
+            .sortedWith(compareBy<RankedPlace> { it.band.ordinal }.then(withinBand))
             .take(limit)
     }
 
@@ -73,6 +107,8 @@ object DiscoveryRanking {
         device: GeoPoint?,
         now: LocalDateTime,
         route: List<GeoPoint>?,
+        localIds: Set<String>?,
+        exactIds: Set<String>?,
     ): RankedPlace? {
         if (hasNegativeAttribute(place, query)) return null
         val deviceDistance = device?.let { GeoMath.distanceMeters(it, place.position) }
@@ -80,13 +116,41 @@ object DiscoveryRanking {
         if (query.openNow && open == OpenState.CLOSED) return null
         val onRoute = route?.let { RouteCorridor.position(place.position, it) }
         val distance = onRoute?.detourMeters ?: anchor?.let { GeoMath.distanceMeters(it, place.position) }
-        val score = DISTANCE_WEIGHT * nearness(distance) +
+        val category = categoryMatch(place, query)
+        val attributes = attributeMatch(place, query)
+        val score = CATEGORY_WEIGHT * category +
+            ATTRIBUTE_WEIGHT * attributes +
+            DISTANCE_WEIGHT * nearness(distance) +
             OPEN_WEIGHT * openness(open) +
             COMPLETE_WEIGHT * completeness(place) +
             TERM_WEIGHT * termMatch(place, query.residualTerms)
         // Along a route what matters to the driver is how far ahead a place is.
         val shown = onRoute?.alongMeters ?: deviceDistance ?: distance
-        return RankedPlace(place.copy(distanceMeters = shown), score, open)
+        val band = when {
+            localIds != null && place.id !in localIds -> DiscoveryBand.EXTERNAL
+            exactIds != null && place.id !in exactIds -> DiscoveryBand.OTHER_LOCAL
+            else -> DiscoveryBand.BEST_LOCAL
+        }
+        return RankedPlace(
+            place = place.copy(distanceMeters = shown),
+            score = score,
+            open = open,
+            band = band,
+            verifiedAttributes = query.attributes.isNotEmpty() && attributes == 1.0,
+        )
+    }
+
+    private fun categoryMatch(place: RoadstrPlace, query: NaturalPlaceQuery): Double = when {
+        place.category == null -> 0.0
+        place.category in query.categories -> 1.0
+        else -> 0.25
+    }
+
+    private fun attributeMatch(place: RoadstrPlace, query: NaturalPlaceQuery): Double {
+        if (query.attributes.isEmpty()) return NEUTRAL
+        return query.attributes.count { attribute ->
+            place.tags[attribute.key] in attribute.values
+        }.toDouble() / query.attributes.size
     }
 
     private fun hasNegativeAttribute(place: RoadstrPlace, query: NaturalPlaceQuery): Boolean =
@@ -123,8 +187,10 @@ object DiscoveryRanking {
     }
 
     private const val NEUTRAL = 0.5
-    private const val DISTANCE_WEIGHT = 0.55
-    private const val OPEN_WEIGHT = 0.15
-    private const val COMPLETE_WEIGHT = 0.15
-    private const val TERM_WEIGHT = 0.15
+    private const val CATEGORY_WEIGHT = 0.25
+    private const val ATTRIBUTE_WEIGHT = 0.20
+    private const val DISTANCE_WEIGHT = 0.30
+    private const val OPEN_WEIGHT = 0.10
+    private const val COMPLETE_WEIGHT = 0.05
+    private const val TERM_WEIGHT = 0.10
 }

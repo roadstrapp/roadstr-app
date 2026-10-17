@@ -1,6 +1,7 @@
 package app.roadstr.feature.discovery
 
 import app.roadstr.core.discovery.DiscoveryNotice
+import app.roadstr.core.discovery.DiscoveryBand
 import app.roadstr.core.discovery.PlaceCategoryNames
 import app.roadstr.core.discovery.RankedPlace
 import app.roadstr.core.discovery.RoadstrPlace
@@ -36,7 +37,12 @@ object DiscoveryPresentation {
         val place = ranked.place
         val title = title(place, locale)
         val category = categoryName(place, locale)
-        val detail = listOfNotNull(category.ifEmpty { null }, place.address).joinToString(" · ")
+        val confidence = when (ranked.band) {
+            DiscoveryBand.BEST_LOCAL -> null
+            DiscoveryBand.OTHER_LOCAL -> if (locale.startsWith("it")) "Possibile corrispondenza" else "Possible match"
+            DiscoveryBand.EXTERNAL -> if (locale.startsWith("it")) "Fuori dall'area" else "Outside selected area"
+        }
+        val detail = listOfNotNull(confidence, category.ifEmpty { null }, place.address).joinToString(" · ")
         return SearchResult(
             displayName = listOfNotNull(title, detail.ifEmpty { null }).joinToString(", "),
             shortName = title,

@@ -117,6 +117,7 @@ fun NativeMapContextMenu(
     onSaveParking: () -> Unit,
     onReportEvent: () -> Unit,
     onWhatsHere: () -> Unit,
+    onExplore: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -145,6 +146,12 @@ fun NativeMapContextMenu(
             modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 48.dp),
             shape = RoundedCornerShape(12.dp),
         ) { Text(stringResource(R.string.native_road_event_report_title)) }
+        Spacer(modifier = Modifier.height(10.dp))
+        OutlinedButton(
+            onClick = onExplore,
+            modifier = Modifier.fillMaxWidth().sizeIn(minHeight = 48.dp),
+            shape = RoundedCornerShape(12.dp),
+        ) { Text(stringResource(R.string.native_explore_area)) }
         Spacer(modifier = Modifier.height(10.dp))
         OutlinedButton(
             onClick = onWhatsHere,
