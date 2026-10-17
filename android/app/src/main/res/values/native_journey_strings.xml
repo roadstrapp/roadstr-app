@@ -29,6 +29,16 @@
     <string name="native_journey_unlocked">Unlocked</string>
     <string name="native_journey_locked">Locked</string>
     <string name="native_journey_unlocked_message">Achievement unlocked: %1$s</string>
+    <string name="native_journey_public_badges_ready">Official Nostr badges are optional. An unlocked badge is added to your profile only after you request it and a valid issuer award is found.</string>
+    <string name="native_journey_public_badges_unavailable">Official Nostr badges are not configured in this build. Local achievements remain fully available.</string>
+    <string name="native_journey_public_badge_show">Show on Nostr profile</string>
+    <string name="native_journey_public_badge_checking">Checking issuer award…</string>
+    <string name="native_journey_public_badge_publishing">Updating Nostr profile…</string>
+    <string name="native_journey_public_badge_published">Shown on Nostr profile</string>
+    <string name="native_journey_public_badge_not_issued">Award not issued yet</string>
+    <string name="native_journey_public_badge_retry">Retry public badge</string>
+    <string name="native_journey_public_badge_signer">Connect a Nostr identity before publishing a badge.</string>
+    <string name="roadstr_badge_issuer_pubkey" translatable="false"></string>
     <string name="native_journey_mode_car">Car</string>
     <string name="native_journey_mode_motorcycle">Motorcycle</string>
     <string name="native_journey_mode_bicycle">Bicycle</string>

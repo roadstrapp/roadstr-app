@@ -17,6 +17,7 @@ class NativeNip58Service(
     private val nowSeconds: () -> Long = NativeNostrWire::nowSeconds,
 ) {
     suspend fun findAward(reference: Nip58BadgeReference, recipient: String): Nip58BadgeAward? {
+        if (!hasValidDefinition(reference)) return null
         val events = coroutineScope {
             relays.map { relay ->
                 async {
@@ -42,6 +43,31 @@ class NativeNip58Service(
                 val event = events.firstOrNull { it["id"] == award.eventId }
                 NativeNostrWire.integral(event?.get("created_at")) ?: 0L
             }
+    }
+
+    /** An award is usable only when its signed, HTTPS-backed definition can also be resolved. */
+    private suspend fun hasValidDefinition(reference: Nip58BadgeReference): Boolean {
+        val events = coroutineScope {
+            relays.map { relay ->
+                async {
+                    val subscription = NativeNostrWire.randomSubscriptionId()
+                    @Suppress("UNCHECKED_CAST")
+                    val filter = Nip58Protocol.definitionRequest(subscription, reference)[2] as Map<String, Any?>
+                    fetcher.fetch(
+                        relay,
+                        subscription,
+                        filter,
+                        Nip58Protocol.BADGE_DEFINITION_KIND,
+                        NostrIngressRoute.BADGE_DEFINITION,
+                        4,
+                    ) { NativeNostrWire.verify(it) }
+                }
+            }.awaitAll().flatten()
+        }
+        return events.distinctBy { it["id"] }.any { event ->
+            val definition = Nip58Protocol.parseDefinition(event) { NativeNostrWire.verify(event) }
+            definition?.reference == reference && definition.imageUrl != null
+        }
     }
 
     /** Explicitly accepts one verified award while preserving the account's existing NIP-58 list. */

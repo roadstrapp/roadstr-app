@@ -26,6 +26,17 @@ class NativeNip58ServiceTest {
 
     @Test
     fun `verified issuer award can be found and added without dropping prior badges`() = runBlocking {
+        val definitionEvent = TestKeys.sign(
+            Nip58Protocol.definitionDraft(
+                TestKeys.PUBLIC_B,
+                900,
+                reference.identifier,
+                "Ignition",
+                "Every journey starts somewhere.",
+                "https://assets.roadstr.example/ignition.png",
+            ),
+            TestKeys.PRIVATE_B,
+        )
         val awardEvent = TestKeys.sign(
             Nip58Protocol.awardDraft(TestKeys.PUBLIC_B, 1_000, reference, listOf(TestKeys.PUBLIC_A)),
             TestKeys.PRIVATE_B,
@@ -39,6 +50,7 @@ class NativeNip58ServiceTest {
         )
         relays.forEach { relay ->
             network.stored.getOrPut(relay) { mutableListOf() }.apply {
+                add(definitionEvent)
                 add(awardEvent)
                 add(priorProfile)
             }
@@ -52,6 +64,17 @@ class NativeNip58ServiceTest {
         assertEquals(priorTags, tags.take(priorTags.size))
         assertTrue(tags.any { it == listOf("a", reference.address) })
         assertTrue(NativeNostrWire.verify(newest))
+    }
+
+    @Test
+    fun `an award without its signed definition is not exposed`() = runBlocking {
+        val awardEvent = TestKeys.sign(
+            Nip58Protocol.awardDraft(TestKeys.PUBLIC_B, 1_000, reference, listOf(TestKeys.PUBLIC_A)),
+            TestKeys.PRIVATE_B,
+        )
+        relays.forEach { relay -> network.stored.getOrPut(relay) { mutableListOf() }.add(awardEvent) }
+
+        assertEquals(null, service().findAward(reference, TestKeys.PUBLIC_A))
     }
 
     @Test

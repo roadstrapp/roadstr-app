@@ -26,3 +26,16 @@ Each catalog achievement exposes a stable NIP-58 `d` identifier. Local achieveme
 Official awards are intentionally not emitted by the APK. A future Roadstr issuer service must hold the issuer private key outside the app, validate an explicit award policy, and publish kind 30009 definitions and kind 8 awards. GPS-derived distance is client evidence, not an antifraud proof, and official/public wording must not imply otherwise.
 
 No production issuer pubkey or stable HTTPS badge asset host exists in this checkout. Consequently the client does not fabricate definition events or asset URLs. Once those deployment inputs exist, the existing NIP-58 client can verify an award and, only after an explicit user action, append its `a`/`e` pair to kind 10008 without overwriting badges from other projects.
+
+The local catalogue uses seventeen distinct code-native vector marks. These are deliberately independent from the public NIP-58 image URLs: an issuer deployment must publish stable raster or vector exports over HTTPS and reference those exact assets from the signed kind 30009 definitions.
+
+## Enabling an official issuer in a build
+
+The default `roadstr_badge_issuer_pubkey` Android resource is empty, so public-badge controls stay visibly unavailable and local achievements continue to work. A controlled distribution may override that resource with the 64-character lowercase hex public key of the Roadstr issuer. The private key must never be added to the repository, resource files, Gradle properties, or APK.
+
+When configured, the catalogue still does not publish automatically. For each unlocked achievement the user must choose **Show on Nostr profile**. The client then:
+
+1. fetches and verifies the issuer's kind 30009 definition, including a stable HTTPS image;
+2. fetches and verifies a matching kind 8 award for the active account;
+3. asks the active signer to update kind 10008;
+4. preserves every existing profile-badge tag from Roadstr and other issuers.

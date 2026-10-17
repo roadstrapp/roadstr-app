@@ -10,6 +10,7 @@ class AchievementCatalogTest {
     @Test
     fun `all seventeen thresholds unlock one meter before exact and above correctly`() {
         assertEquals(17, AchievementCatalog.achievements.size)
+        assertEquals(17, AchievementCatalog.achievements.map { it.iconKey }.distinct().size)
         for (achievement in AchievementCatalog.achievements) {
             assertFalse(
                 achievement.name,
@@ -49,4 +50,3 @@ class AchievementCatalogTest {
         assertTrue(corrected.isEmpty())
     }
 }
-
