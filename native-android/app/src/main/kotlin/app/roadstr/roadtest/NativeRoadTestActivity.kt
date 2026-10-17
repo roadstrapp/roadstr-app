@@ -572,6 +572,10 @@ open class NativeRoadTestActivity : ComponentActivity() {
                 publisher = publisher,
                 relays = relays,
             ),
+            badgeIssuerPubkey = getString(R.string.roadstr_badge_issuer_pubkey)
+                .trim()
+                .lowercase()
+                .takeIf { it.matches(Regex("^[0-9a-f]{64}$")) },
             visibility = NativeProfileVisibilityService(
                 signer = signer,
                 publisher = publisher,

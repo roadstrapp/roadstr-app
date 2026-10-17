@@ -134,12 +134,15 @@ import app.roadstr.core.journey.JourneySnapshot
 import app.roadstr.core.journey.JourneySyncSnapshot
 import app.roadstr.core.discovery.web.ConnectionTest
 import app.roadstr.core.discovery.web.WebDiscoverySettings
+import app.roadstr.core.protocol.nostr.Nip58BadgeReference
 import app.roadstr.feature.discovery.DiscoveryPresentation
 import app.roadstr.feature.discovery.NativeDiscoverySnapshot
 import app.roadstr.feature.history.NativeRouteHistoryEntry
 import app.roadstr.feature.history.NativeRouteHistoryPanel
 import app.roadstr.feature.history.NativeRouteHistoryProtocol
 import app.roadstr.feature.journey.NativeJourneyPanel
+import app.roadstr.feature.journey.JourneyPublicBadgePhase
+import app.roadstr.feature.journey.JourneyPublicBadgeState
 import app.roadstr.feature.saved.NativeMapContextMenu
 import app.roadstr.feature.saved.NativeParkingPanel
 import app.roadstr.feature.saved.NativeParkingPosition
@@ -624,6 +627,9 @@ fun NativeRoadstrShell(
         var offlinePackagesVisible by remember { mutableStateOf(false) }
         var journeyVisible by remember { mutableStateOf(false) }
         var journeyCatalogVisible by remember { mutableStateOf(false) }
+        var publicBadgeStates by remember(nostr?.badgeIssuerPubkey) {
+            mutableStateOf<Map<String, JourneyPublicBadgeState>>(emptyMap())
+        }
         var offlinePackagesState by remember(offlinePackagesGateway) {
             mutableStateOf(
                 NativeOfflinePackagesSnapshot(
@@ -2522,6 +2528,59 @@ fun NativeRoadstrShell(
                             syncSnapshot = journeySyncSnapshot,
                             syncEnabled = settingsState.values.journeySyncEnabled,
                             onSync = onJourneySync,
+                            publicBadgesConfigured = nostr?.badges != null && nostr.badgeIssuerPubkey != null,
+                            publicBadgeStates = publicBadgeStates,
+                            onShowPublicBadge = showPublicBadge@{ achievement ->
+                                val bridge = nostr ?: return@showPublicBadge
+                                val issuer = bridge.badgeIssuerPubkey ?: return@showPublicBadge
+                                val service = bridge.badges ?: return@showPublicBadge
+                                val recipient = bridge.signer.pubkeyHex
+                                if (recipient == null) {
+                                    publicBadgeStates = publicBadgeStates + (
+                                        achievement.id to JourneyPublicBadgeState(JourneyPublicBadgePhase.ERROR)
+                                    )
+                                    Toast.makeText(
+                                        context,
+                                        R.string.native_journey_public_badge_signer,
+                                        Toast.LENGTH_LONG,
+                                    ).show()
+                                    return@showPublicBadge
+                                }
+                                val current = publicBadgeStates[achievement.id]?.phase
+                                if (current == JourneyPublicBadgePhase.CHECKING ||
+                                    current == JourneyPublicBadgePhase.PUBLISHING ||
+                                    current == JourneyPublicBadgePhase.PUBLISHED
+                                ) {
+                                    return@showPublicBadge
+                                }
+                                publicBadgeStates = publicBadgeStates + (
+                                    achievement.id to JourneyPublicBadgeState(JourneyPublicBadgePhase.CHECKING)
+                                )
+                                journeyScope.launch {
+                                    val award = runCatching {
+                                        service.findAward(
+                                            Nip58BadgeReference(issuer, achievement.nip58Identifier),
+                                            recipient,
+                                        )
+                                    }.getOrNull()
+                                    if (award == null) {
+                                        publicBadgeStates = publicBadgeStates + (
+                                            achievement.id to JourneyPublicBadgeState(JourneyPublicBadgePhase.NOT_ISSUED)
+                                        )
+                                        return@launch
+                                    }
+                                    publicBadgeStates = publicBadgeStates + (
+                                        achievement.id to JourneyPublicBadgeState(JourneyPublicBadgePhase.PUBLISHING)
+                                    )
+                                    val published = runCatching { service.addToProfile(award) }.getOrDefault(false)
+                                    publicBadgeStates = publicBadgeStates + (
+                                        achievement.id to JourneyPublicBadgeState(
+                                            if (published) JourneyPublicBadgePhase.PUBLISHED
+                                            else JourneyPublicBadgePhase.ERROR,
+                                        )
+                                    )
+                                }
+                            },
                             onClose = {
                                 journeyCatalogVisible = false
                                 journeyVisible = false

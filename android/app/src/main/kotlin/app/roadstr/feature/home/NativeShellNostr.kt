@@ -51,6 +51,8 @@ class NativeShellNostr(
     val favoritesSync: NativeFavoritesSyncService,
     val journeySync: NativeJourneySyncService? = null,
     val badges: NativeNip58Service? = null,
+    /** Official issuer key supplied by deployment; null keeps public badges dormant. */
+    val badgeIssuerPubkey: String? = null,
     val visibility: NativeProfileVisibilityService,
     val syncSecrets: NativeShellSyncSecrets,
     val files: NativeShellFavoriteFiles,

@@ -153,6 +153,15 @@ object Nip58Protocol {
         ),
     )
 
+    fun definitionRequest(subscriptionId: String, reference: Nip58BadgeReference): List<Any?> = listOf(
+        "REQ", subscriptionId, linkedMapOf(
+            "kinds" to listOf(BADGE_DEFINITION_KIND),
+            "authors" to listOf(reference.issuerPubkey),
+            "#d" to listOf(reference.identifier),
+            "limit" to 4,
+        ),
+    )
+
     fun profileRequest(subscriptionId: String, owner: String): List<Any?> = listOf(
         "REQ", subscriptionId, linkedMapOf(
             "kinds" to listOf(PROFILE_BADGES_KIND),

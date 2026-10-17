@@ -61,4 +61,14 @@ class Nip58ProtocolTest {
         assertNull(Nip58Protocol.parseAward(missingRecipient) { true })
         assertFalse(Nip58Protocol.parseAddress("30009:not-a-key:badge") != null)
     }
+
+    @Test
+    fun `definition lookup is bound to issuer and stable identifier`() {
+        @Suppress("UNCHECKED_CAST")
+        val filter = Nip58Protocol.definitionRequest("sub", reference)[2] as Map<String, Any?>
+
+        assertEquals(listOf(Nip58Protocol.BADGE_DEFINITION_KIND), filter["kinds"])
+        assertEquals(listOf(issuer), filter["authors"])
+        assertEquals(listOf(reference.identifier), filter["#d"])
+    }
 }

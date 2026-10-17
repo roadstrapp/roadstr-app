@@ -29,6 +29,15 @@
     <string name="native_journey_unlocked">Ottenuto</string>
     <string name="native_journey_locked">Bloccato</string>
     <string name="native_journey_unlocked_message">Achievement sbloccato: %1$s</string>
+    <string name="native_journey_public_badges_ready">I badge Nostr ufficiali sono facoltativi. Un badge sbloccato viene aggiunto al profilo solo su tua richiesta e dopo aver trovato un award valido dell’issuer.</string>
+    <string name="native_journey_public_badges_unavailable">I badge Nostr ufficiali non sono configurati in questa build. Gli achievement locali restano completamente disponibili.</string>
+    <string name="native_journey_public_badge_show">Mostra sul profilo Nostr</string>
+    <string name="native_journey_public_badge_checking">Verifica dell’award issuer…</string>
+    <string name="native_journey_public_badge_publishing">Aggiornamento del profilo Nostr…</string>
+    <string name="native_journey_public_badge_published">Visibile sul profilo Nostr</string>
+    <string name="native_journey_public_badge_not_issued">Award non ancora emesso</string>
+    <string name="native_journey_public_badge_retry">Riprova badge pubblico</string>
+    <string name="native_journey_public_badge_signer">Collega un’identità Nostr prima di pubblicare un badge.</string>
     <string name="native_journey_mode_car">Automobile</string>
     <string name="native_journey_mode_motorcycle">Motocicletta</string>
     <string name="native_journey_mode_bicycle">Bicicletta</string>
