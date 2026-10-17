@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -30,7 +31,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -50,6 +56,10 @@ import app.roadstr.core.format.UnitFormatter
 import app.roadstr.core.journey.JourneyAchievementState
 import app.roadstr.core.journey.JourneyMode
 import app.roadstr.core.journey.JourneySnapshot
+import app.roadstr.core.journey.JourneySyncPhase
+import app.roadstr.core.journey.JourneySyncSnapshot
+import java.text.DateFormat
+import java.util.Date
 import java.util.Locale
 
 @Composable
@@ -61,6 +71,9 @@ fun NativeJourneyPanel(
     onShowCatalog: () -> Unit,
     onHideCatalog: () -> Unit,
     onClear: () -> Unit,
+    syncSnapshot: JourneySyncSnapshot? = null,
+    syncEnabled: Boolean = false,
+    onSync: () -> Unit = {},
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -72,7 +85,7 @@ fun NativeJourneyPanel(
         if (showCatalog) {
             AchievementCatalogContent(snapshot, languageCode, onHideCatalog)
         } else {
-            JourneyDashboardContent(snapshot, imperial, onShowCatalog, onClear, onClose)
+            JourneyDashboardContent(snapshot, imperial, onShowCatalog, onClear, syncSnapshot, syncEnabled, onSync, onClose)
         }
     }
 }
@@ -83,9 +96,13 @@ private fun JourneyDashboardContent(
     imperial: Boolean,
     onShowCatalog: () -> Unit,
     onClear: () -> Unit,
+    syncSnapshot: JourneySyncSnapshot?,
+    syncEnabled: Boolean,
+    onSync: () -> Unit,
     onClose: () -> Unit,
 ) {
     val formatter = UnitFormatter(imperial)
+    var confirmClear by remember { mutableStateOf(false) }
     LazyColumn(modifier = Modifier.fillMaxWidth().navigationBarsPadding()) {
         item { JourneyHeader(stringResource(R.string.native_journey_title), onClose) }
         item {
@@ -117,6 +134,54 @@ private fun JourneyDashboardContent(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp),
                     )
+                }
+            }
+        }
+        snapshot.statistics.lastSession?.let { last ->
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 6.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                ) {
+                    Column(Modifier.padding(14.dp)) {
+                        Text(stringResource(R.string.native_journey_last_session), fontWeight = FontWeight.Bold)
+                        Text(
+                            "${modeLabel(last.mode)} · ${formatter.formatDistance(last.validatedMeters.toDouble())}",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Text(
+                            DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(
+                                Date(last.endedAtEpochMillis ?: last.startedAtEpochMillis),
+                            ),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+        }
+        if (syncEnabled && syncSnapshot != null) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                ) {
+                    Column(Modifier.padding(14.dp)) {
+                        Text(stringResource(R.string.native_journey_sync_title), fontWeight = FontWeight.Bold)
+                        Text(syncStatus(syncSnapshot), style = MaterialTheme.typography.bodySmall)
+                        if (syncSnapshot.potentialOverlaps > 0) {
+                            Text(
+                                stringResource(R.string.native_journey_sync_overlap, syncSnapshot.potentialOverlaps),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                        OutlinedButton(
+                            onClick = onSync,
+                            enabled = syncSnapshot.phase != JourneySyncPhase.SYNCING,
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        ) { Text(stringResource(R.string.native_journey_sync_now)) }
+                    }
                 }
             }
         }
@@ -160,12 +225,48 @@ private fun JourneyDashboardContent(
                 Text(stringResource(R.string.native_journey_badges_count, unlocked, snapshot.achievements.size))
             }
             OutlinedButton(
-                onClick = onClear,
+                onClick = { confirmClear = true },
                 enabled = snapshot.activeSession == null && snapshot.record.sessions.isNotEmpty(),
                 modifier = Modifier.fillMaxWidth().padding(18.dp).sizeIn(minHeight = 48.dp),
             ) { Text(stringResource(R.string.native_journey_clear)) }
         }
     }
+    if (confirmClear) {
+        AlertDialog(
+            onDismissRequest = { confirmClear = false },
+            title = { Text(stringResource(R.string.native_journey_clear_confirm_title)) },
+            text = { Text(stringResource(R.string.native_journey_clear_confirm_body)) },
+            confirmButton = {
+                TextButton(onClick = { confirmClear = false; onClear() }) {
+                    Text(stringResource(R.string.native_journey_clear_confirm_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmClear = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun syncStatus(snapshot: JourneySyncSnapshot): String = when (snapshot.phase) {
+    JourneySyncPhase.IDLE -> if (snapshot.localChangesPending) {
+        stringResource(R.string.native_journey_sync_pending)
+    } else {
+        stringResource(R.string.native_journey_sync_idle)
+    }
+    JourneySyncPhase.SYNCING -> stringResource(R.string.native_journey_syncing)
+    JourneySyncPhase.SYNCED -> snapshot.lastSuccessfulSyncEpochMillis?.let {
+        stringResource(
+            R.string.native_journey_sync_success,
+            DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(it)),
+        )
+    } ?: stringResource(R.string.native_journey_sync_idle)
+    JourneySyncPhase.SIGNER_REQUIRED -> stringResource(R.string.native_journey_sync_signer)
+    JourneySyncPhase.CRYPTO_UNAVAILABLE -> stringResource(R.string.native_journey_sync_crypto)
+    JourneySyncPhase.ERROR -> snapshot.detail ?: stringResource(R.string.native_journey_sync_error)
 }
 
 @Composable
@@ -270,4 +371,3 @@ private fun modeLabel(mode: JourneyMode): String = stringResource(
         JourneyMode.OTHER -> R.string.native_journey_mode_other
     },
 )
-

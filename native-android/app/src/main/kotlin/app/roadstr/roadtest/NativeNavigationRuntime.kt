@@ -83,7 +83,7 @@ internal class NativeNavigationRuntime(
             journeyPreferences.remove("record")
         }
     }
-    private val journeyDeviceId: String = journeyPreferences.read("device_id")
+    val journeyDeviceId: String = journeyPreferences.read("device_id")
         ?.takeIf { it.matches(Regex("^[A-Za-z0-9._:-]{8,96}$")) }
         ?: UUID.randomUUID().toString().also { id ->
             check(journeyPreferences.write("device_id", id))

@@ -137,6 +137,19 @@ class JourneyController(
         true
     }
 
+    /** Replaces only complete remote device shards; this device's unsynced history always wins locally. */
+    fun reconcileSyncedDevices(imported: JourneyRecord, completeDeviceIds: Set<String>): Boolean = synchronized(lock) {
+        val remoteDevices = completeDeviceIds - deviceId
+        if (remoteDevices.isEmpty()) return false
+        val replacements = imported.sessions.filter { it.deviceId in remoteDevices }
+        val nextSessions = record.sessions.filterNot { it.deviceId in remoteDevices } + replacements
+        val next = reconcile(record.copy(sessions = nextSessions.distinctBy { it.id }), nowEpochMillis())
+        if (next == record) return false
+        record = next
+        publish(persistNow = true)
+        true
+    }
+
     fun replaceAfterCorrection(sessions: List<JourneySession>): Boolean = synchronized(lock) {
         if (sessions.any { it.status == JourneySessionStatus.ACTIVE || it.status == JourneySessionStatus.PAUSED }) {
             return false
@@ -224,4 +237,3 @@ class JourneyController(
         const val CHECKPOINT_MILLIS = 60_000L
     }
 }
-
