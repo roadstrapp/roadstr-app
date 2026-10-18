@@ -1,6 +1,22 @@
 package app.roadstr.feature.journey
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,13 +59,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -99,17 +119,31 @@ fun NativeJourneyPanel(
         modifier = modifier.fillMaxSize().semantics { paneTitle = title },
         color = MaterialTheme.colorScheme.background,
     ) {
-        if (showCatalog) {
-            AchievementCatalogContent(
-                snapshot,
-                languageCode,
-                publicBadgesConfigured,
-                publicBadgeStates,
-                onShowPublicBadge,
-                onHideCatalog,
-            )
-        } else {
-            JourneyDashboardContent(snapshot, imperial, onShowCatalog, onClear, syncSnapshot, syncEnabled, onSync, onClose)
+        AnimatedContent(
+            targetState = showCatalog,
+            transitionSpec = {
+                if (targetState) {
+                    (slideInHorizontally(tween(420)) { it / 4 } + fadeIn(tween(260)) + scaleIn(tween(420), .985f))
+                        .togetherWith(slideOutHorizontally(tween(300)) { -it / 7 } + fadeOut(tween(180)))
+                } else {
+                    (slideInHorizontally(tween(420)) { -it / 4 } + fadeIn(tween(260)) + scaleIn(tween(420), .985f))
+                        .togetherWith(slideOutHorizontally(tween(300)) { it / 7 } + fadeOut(tween(180)))
+                }.using(SizeTransform(clip = false))
+            },
+            label = "journey-screen",
+        ) { catalogVisible ->
+            if (catalogVisible) {
+                AchievementCatalogContent(
+                    snapshot,
+                    languageCode,
+                    publicBadgesConfigured,
+                    publicBadgeStates,
+                    onShowPublicBadge,
+                    onHideCatalog,
+                )
+            } else {
+                JourneyDashboardContent(snapshot, imperial, onShowCatalog, onClear, syncSnapshot, syncEnabled, onSync, onClose)
+            }
         }
     }
 }
@@ -302,6 +336,7 @@ private fun AchievementCatalogContent(
     onShowPublicBadge: (JourneyAchievement) -> Unit,
     onClose: () -> Unit,
 ) {
+    var selectedAchievement by remember { mutableStateOf<JourneyAchievementState?>(null) }
     LazyColumn(modifier = Modifier.fillMaxWidth().statusBarsPadding().navigationBarsPadding()) {
         item { JourneyHeader(stringResource(R.string.native_journey_achievements), onClose) }
         item {
@@ -322,9 +357,17 @@ private fun AchievementCatalogContent(
                 publicBadgesConfigured,
                 publicBadgeStates[state.definition.id],
                 onShowPublicBadge,
+                onBadgeClick = { selectedAchievement = state },
             )
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         }
+    }
+    selectedAchievement?.let { state ->
+        AchievementDetailDialog(
+            state = state,
+            languageCode = languageCode,
+            onDismiss = { selectedAchievement = null },
+        )
     }
 }
 
@@ -348,10 +391,15 @@ private fun AchievementRow(
     publicBadgesConfigured: Boolean,
     publicBadgeState: JourneyPublicBadgeState?,
     onShowPublicBadge: (JourneyAchievement) -> Unit,
+    onBadgeClick: () -> Unit,
 ) {
     val definition = state.definition
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onBadgeClick)
+            .semantics { role = Role.Button }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         JourneyBadgeIcon(definition.iconKey, definition.level, state.unlocked, Modifier.size(58.dp))
@@ -401,20 +449,125 @@ private fun AchievementRow(
     }
 }
 
-/** Seventeen compact vector marks; no raster payload and no emoji stand-ins. */
+/** Gold reward coins with seventeen code-native, individually coloured marks. */
 @Composable
 private fun JourneyBadgeIcon(iconKey: String, level: Int, unlocked: Boolean, modifier: Modifier = Modifier) {
-    val primary = if (unlocked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-    val secondary = if (unlocked) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant
+    val lockedEdge = MaterialTheme.colorScheme.outline
+    val lockedFace = MaterialTheme.colorScheme.surfaceVariant
+    val glyphPalette = listOf(
+        Color(0xFF7C3AED), Color(0xFF0284C7), Color(0xFF059669), Color(0xFFDC2626),
+        Color(0xFFE11D48), Color(0xFF2563EB), Color(0xFF9333EA), Color(0xFFEA580C),
+    )
+    val glyphColor = glyphPalette[(level - 1).coerceAtLeast(0) % glyphPalette.size]
     Canvas(modifier) {
         val stroke = size.minDimension * 0.055f
-        drawCircle(secondary, radius = size.minDimension * 0.48f)
-        drawCircle(primary, radius = size.minDimension * 0.42f, style = Stroke(stroke))
-        if (level >= 8) {
-            drawCircle(primary.copy(alpha = 0.45f), radius = size.minDimension * 0.34f, style = Stroke(stroke / 2f))
+        if (!unlocked) {
+            drawCircle(lockedFace, radius = size.minDimension * .47f)
+            drawCircle(lockedEdge.copy(alpha = .72f), radius = size.minDimension * .42f, style = Stroke(stroke))
+            drawJourneyGlyph(iconKey, lockedEdge, lockedEdge.copy(alpha = .65f), stroke)
+            return@Canvas
         }
-        drawJourneyGlyph(iconKey, primary, if (unlocked && level >= 12) Color.White else primary, stroke)
+
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color(0xFFFFF4A3), Color(0xFFFFCC3D), Color(0xFFD78A00)),
+                center = Offset(size.width * .35f, size.height * .27f),
+                radius = size.minDimension * .64f,
+            ),
+            radius = size.minDimension * .49f,
+        )
+        drawCircle(Color(0xFFFFE173), radius = size.minDimension * .42f)
+        drawCircle(Color(0xFFF5B51B), radius = size.minDimension * .42f, style = Stroke(stroke * .75f))
+        drawCircle(Color(0xFFFFF8D1), radius = size.minDimension * .335f)
+        drawCircle(glyphColor.copy(alpha = .12f), radius = size.minDimension * .315f)
+        drawJourneyGlyph(iconKey, glyphColor, Color.White, stroke * .92f)
+
+        // A tiny specular glint makes the medal read as metal even at list size.
+        drawArc(
+            color = Color.White.copy(alpha = .86f),
+            startAngle = 205f,
+            sweepAngle = 72f,
+            useCenter = false,
+            topLeft = Offset(size.width * .08f, size.height * .08f),
+            size = Size(size.width * .84f, size.height * .84f),
+            style = Stroke(stroke * .52f, cap = StrokeCap.Round),
+        )
+        drawCircle(Color.White.copy(alpha = .92f), radius = stroke * .48f, center = Offset(size.width * .72f, size.height * .18f))
     }
+}
+
+@Composable
+private fun AchievementDetailDialog(
+    state: JourneyAchievementState,
+    languageCode: String,
+    onDismiss: () -> Unit,
+) {
+    val spin = rememberInfiniteTransition(label = "achievement-coin")
+    val rotation by spin.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 7_000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "achievement-coin-spin",
+    )
+    val sparkle by spin.animateFloat(
+        initialValue = .22f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1_350),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "achievement-sparkle",
+    )
+    val definition = state.definition
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(132.dp)) {
+                if (state.unlocked) {
+                    Text("✦", color = Color(0xFFFFC107).copy(alpha = sparkle), modifier = Modifier.align(Alignment.TopStart))
+                    Text("✧", color = Color.White.copy(alpha = sparkle), modifier = Modifier.align(Alignment.CenterEnd))
+                    Text("✦", color = Color(0xFFFFD54F).copy(alpha = 1f - sparkle / 2f), modifier = Modifier.align(Alignment.BottomStart))
+                }
+                JourneyBadgeIcon(
+                    iconKey = definition.iconKey,
+                    level = definition.level,
+                    unlocked = state.unlocked,
+                    modifier = Modifier
+                        .size(108.dp)
+                        .graphicsLayer {
+                            rotationY = if (state.unlocked) rotation else 0f
+                            cameraDistance = 18f * density
+                        },
+                )
+            }
+        },
+        title = { Text(definition.name, fontWeight = FontWeight.Black) },
+        text = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(definition.description(languageCode), style = MaterialTheme.typography.bodyLarge)
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    String.format(Locale.ROOT, "%,d km", definition.thresholdMeters / 1_000L),
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                )
+                state.unlockedAtEpochMillis?.let { unlockedAt ->
+                    Text(
+                        "${stringResource(R.string.native_journey_unlocked)} · " +
+                            DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(unlockedAt)),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.ok)) }
+        },
+    )
 }
 
 private fun DrawScope.drawJourneyGlyph(iconKey: String, color: Color, highlight: Color, stroke: Float) {

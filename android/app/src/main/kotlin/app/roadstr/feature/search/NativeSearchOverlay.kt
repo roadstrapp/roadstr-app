@@ -37,6 +37,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Mic
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,6 +70,7 @@ fun NativeSearchOverlay(
     onQueryChanged: (String) -> Unit,
     onSubmit: (String) -> Unit,
     onClearQuery: () -> Unit,
+    onVoiceInput: () -> Unit = {},
     onDismiss: () -> Unit,
     onNearby: (NativeSearchNearbyCategory) -> Unit,
     onExplore: (ExploreCategory) -> Unit = {},
@@ -103,6 +111,7 @@ fun NativeSearchOverlay(
                 onQueryChanged = onQueryChanged,
                 onSubmit = onSubmit,
                 onClearQuery = onClearQuery,
+                onVoiceInput = onVoiceInput,
                 onDismiss = onDismiss,
             )
             LazyColumn(
@@ -247,9 +256,12 @@ private fun SearchField(
     onQueryChanged: (String) -> Unit,
     onSubmit: (String) -> Unit,
     onClearQuery: () -> Unit,
+    onVoiceInput: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val close = androidx.compose.ui.res.stringResource(R.string.native_search_close)
+    val clear = androidx.compose.ui.res.stringResource(R.string.native_search_clear_history)
+    val voice = androidx.compose.ui.res.stringResource(android.R.string.search_go)
     Row(verticalAlignment = Alignment.CenterVertically) {
         OutlinedTextField(
             value = query,
@@ -257,23 +269,29 @@ private fun SearchField(
             modifier = Modifier.weight(1f),
             placeholder = { Text(hint) },
             leadingIcon = {
-                Text(
-                    text = "⌕",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.titleLarge,
-                )
+                if (query.isEmpty()) {
+                    IconButton(onClick = onVoiceInput) {
+                        Icon(
+                            imageVector = Icons.Outlined.Mic,
+                            contentDescription = voice,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                } else {
+                    Icon(Icons.Outlined.Search, contentDescription = null)
+                }
             },
             trailingIcon = if (query.isEmpty()) {
                 null
             } else {
                 {
-                    TextButton(
+                    IconButton(
                         onClick = onClearQuery,
                         modifier = Modifier
                             .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
-                            .semantics { contentDescription = close },
+                            .semantics { contentDescription = clear },
                     ) {
-                        Text("×", style = MaterialTheme.typography.titleLarge)
+                        Icon(Icons.Outlined.Clear, contentDescription = null)
                     }
                 }
             },
@@ -282,13 +300,13 @@ private fun SearchField(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { onSubmit(query) }),
         )
-        TextButton(
+        IconButton(
             onClick = onDismiss,
             modifier = Modifier
                 .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
                 .semantics { contentDescription = close },
         ) {
-            Text("×", style = MaterialTheme.typography.titleLarge)
+            Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = null)
         }
     }
 }
