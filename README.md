@@ -111,6 +111,11 @@ The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rew
 | Collaborative report corrections — owner-signed updates + third-party edit requests | ✅ |
 | Activity inbox — zaps and confirmations received on your own reports | ✅ |
 | Customisable vehicle cursor — styles, colours, animated walking mode | ✅ |
+| Explore — browse the places around an area you choose, by category, with provider fallback and visible failures | ✅ |
+| Journey — opt-in tracking of validated distance per mode of transport, with seventeen achievements; stays on the phone | ✅ |
+| Journey sync — encrypted (NIP-44) history shards across your devices over Nostr, a separate opt-in | 🧪 |
+| NIP-58 badges — a client for definitions, awards and profile badges; Roadstr issues no official badges yet | 🧪 |
+| Offline voice search — speech recognised on the phone (Parakeet TDT 0.6B v3, 25 languages), after an optional 485 MB model download; falls back to the phone's recogniser (**not yet tried on a phone**) | 🧪 |
 | Downloadable offline maps — worldwide Geofabrik/Shortbread MBTiles catalog, 34k+ local city index, resumable verified downloads and local MapLibre rendering | ✅ |
 
 ---
@@ -291,6 +296,21 @@ the compact language-data archive. Every Android build verifies their SHA-256 di
 
 ---
 
+## Voice search — on-device speech recognition
+
+The microphone button in search turns speech into a query. With the optional model installed
+(*Settings → Voice search → Download the model*, 485 MB, once) Roadstr recognises it **itself, on the phone**, using
+NVIDIA's Parakeet TDT 0.6B v3 (25 European languages, CC-BY-4.0) through an embedded engine; no audio leaves the device.
+Without the model, on a phone the engine cannot run on (it needs 64-bit Arm and 3 GB of RAM), for a language it does not
+know, or if anything fails, the button uses the speech recogniser your phone provides, as it always did.
+
+The engine is a separate, reusable project: [`roadstrapp/offline-speech-to-text`](https://github.com/roadstrapp/offline-speech-to-text),
+`engine/`. Roadstr vendors its source and the binaries built from it, with a script that rebuilds them byte for byte
+([third_party/offline-stt-engine](third_party/offline-stt-engine/README.md)). How it works, what it asks of the phone, and what has
+and has not been measured: [docs/offline-voice-search.md](docs/offline-voice-search.md).
+
+---
+
 ## Themes
 
 Four built-in themes, selectable from **Settings → Theme**:
@@ -348,6 +368,8 @@ The plan, the audit and every decision taken are in [docs/world-discovery/](docs
 - **No accounts, no central servers, no telemetry/analytics SDKs** — the app talks directly to public Nostr relays, OSM tile/Overpass servers, the chosen routing provider and, when Offline areas is opened, the selected map provider. Nothing is collected or sent to Roadstr itself.
 - **GPS coordinates are read locally but are sent to third-party services as part of normal operation**: the routing provider (origin/destination), Overpass (periodic position pings during navigation, for live speed limits, speed cameras, traffic lights, pedestrian crossings, speed bumps, restricted zones and POI search), and Open-Meteo (for the weather row). None of these requests carry an account or persistent identifier — but if your threat model requires hiding your IP-linked location from those services, use a VPN (the onboarding flow suggests one). Saved favourites and the parking spot never leave the device unless you explicitly export or sync them.
 - **Public-transport services see what you ask them.** A journey, a stop search, a departure board or a live check sends the query, the coordinates and the travel time to Transitous, or to Entur inside Norway, and those servers also see your IP address. **A normal place search also asks Transitous for matching transit stops**, sending the words you searched and the position the search is biased towards, so that stops can be listed with the other results. The onboarding screen and every itinerary panel say so.
+- **Journey stays on your phone unless you ask otherwise.** Tracking and Journey sync are two separate switches, both off by default. Sync publishes encrypted shards (NIP-44, to your own key) that reveal your public key, the time and the approximate size, not routes or places; relays may keep them after you delete your local history. See [docs/journey-nostr.md](docs/journey-nostr.md).
+- **Offline voice search sends no audio anywhere.** Speech is recognised on the phone by an embedded engine. The one network request is the model download, once, from `huggingface.co` (which sees your IP address, nothing you say). The microphone permission is asked for the first time you use it and the microphone is open only while the listening card is shown. Without the model, the microphone button hands over to your phone's own recogniser, which is whatever your phone's vendor provides. See [docs/offline-voice-search.md](docs/offline-voice-search.md).
 - **Road events are pseudonymous** — published under the user's Nostr public key with no additional personal metadata, and every event received from a relay is signature-verified before being trusted (relays cannot forge reports under someone else's identity).
 - **Favourites sync is end-to-end encrypted** (NIP-44) to the user's own key — relays storing the synced snapshot see only ciphertext.
 - **The app never holds your Nostr private key.** You sign in with Amber or a remote signer (bunker), and signing happens there. The only secret Roadstr keeps for a bunker is its own pairing key, encrypted with the Android Keystore; a private key left by an earlier build is erased on the first start.
