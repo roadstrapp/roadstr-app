@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Meklēšana ar balsi</string>
+    <string name="native_speech_title">Meklēšana ar balsi bez interneta</string>
+    <string name="native_speech_desc">Nosauciet vietu ar meklēšanas mikrofona pogu. Runa tiek atpazīta šajā tālrunī – bez interneta savienojuma un bez Google vai cita runas atpazīšanas pakalpojuma.</string>
+    <string name="native_speech_checking">Notiek pārbaude…</string>
+    <string name="native_speech_not_downloaded">Nav instalēts. Kamēr tas nav instalēts, mikrofona poga izmanto jūsu tālruņa runas atpazīšanu, ja tāda ir.</string>
+    <string name="native_speech_downloading">Notiek runas modeļa lejupielāde…</string>
+    <string name="native_speech_ready">Instalēts. Mikrofona poga darbojas bez interneta.</string>
+    <string name="native_speech_unavailable">Instalēts, bet šis tālrunis to nevar palaist. Mikrofona poga izmanto paša tālruņa runas atpazīšanu.</string>
+    <string name="native_speech_download">Lejupielādēt modeli (%1$d MB)</string>
+    <string name="native_speech_cancel">Atcelt lejupielādi</string>
+    <string name="native_speech_delete">Dzēst modeli</string>
+    <string name="native_speech_privacy">Jūsu balss nekad neizej no šī tālruņa. Modeļa fails tiek lejupielādēts vienu reizi no huggingface.co, kas redz jūsu IP adresi un lejupielādi, bet neko no tā, ko sakāt. Mikrofons tiek izmantots tikai tad, kamēr ir atvērts klausīšanās ekrāns.</string>
+    <string name="native_speech_problem_network">Lejupielāde tika pārtraukta. Lai turpinātu, vēlreiz pieskarieties pogai “Lejupielādēt modeli”.</string>
+    <string name="native_speech_problem_storage">Modelim nepietiek brīvas vietas.</string>
+    <string name="native_speech_problem_integrity">Lejupielādētais fails neatbilda savai kontrolsummai, un tas tika izmests.</string>
+    <string name="native_speech_problem_engine">Runas dzinējs nevarēja ielādēt modeli šajā tālrunī.</string>
+    <string name="native_speech_listening">Klausos…</string>
+    <string name="native_speech_transcribing">Atpazīst…</string>
+    <string name="native_speech_done">Gatavs</string>
+    <string name="native_speech_stop">Atcelt</string>
+    <string name="native_speech_nothing_heard">Es neko nedzirdēju.</string>
+</resources>

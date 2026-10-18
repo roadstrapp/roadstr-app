@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Wyszukiwanie głosowe</string>
+    <string name="native_speech_title">Wyszukiwanie głosowe offline</string>
+    <string name="native_speech_desc">Powiedz miejsce, używając przycisku mikrofonu w wyszukiwarce. Mowa jest rozpoznawana na tym telefonie – bez połączenia z internetem i bez Google ani innej usługi rozpoznawania mowy.</string>
+    <string name="native_speech_checking">Sprawdzanie…</string>
+    <string name="native_speech_not_downloaded">Niezainstalowany. Dopóki go nie zainstalujesz, przycisk mikrofonu korzysta z rozpoznawania mowy w Twoim telefonie, jeśli je ma.</string>
+    <string name="native_speech_downloading">Pobieranie modelu mowy…</string>
+    <string name="native_speech_ready">Zainstalowany. Przycisk mikrofonu działa offline.</string>
+    <string name="native_speech_unavailable">Zainstalowany, ale ten telefon nie może go uruchomić. Przycisk mikrofonu korzysta z własnego rozpoznawania mowy telefonu.</string>
+    <string name="native_speech_download">Pobierz model (%1$d MB)</string>
+    <string name="native_speech_cancel">Anuluj pobieranie</string>
+    <string name="native_speech_delete">Usuń model</string>
+    <string name="native_speech_privacy">Twój głos nigdy nie opuszcza tego telefonu. Plik modelu jest pobierany raz z huggingface.co, który widzi Twój adres IP i pobranie, ale nic z tego, co mówisz. Mikrofon jest używany tylko wtedy, gdy ekran nasłuchu jest otwarty.</string>
+    <string name="native_speech_problem_network">Pobieranie zostało przerwane. Stuknij ponownie „Pobierz model”, aby je wznowić.</string>
+    <string name="native_speech_problem_storage">Za mało wolnego miejsca na model.</string>
+    <string name="native_speech_problem_integrity">Pobrany plik nie zgadzał się z sumą kontrolną i został odrzucony.</string>
+    <string name="native_speech_problem_engine">Silnik mowy nie zdołał załadować modelu na tym telefonie.</string>
+    <string name="native_speech_listening">Słucham…</string>
+    <string name="native_speech_transcribing">Rozpoznaję…</string>
+    <string name="native_speech_done">Gotowe</string>
+    <string name="native_speech_stop">Anuluj</string>
+    <string name="native_speech_nothing_heard">Nic nie słychać.</string>
+</resources>

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
 <resources>
     <string name="native_speech_section">Ricerca vocale</string>
     <string name="native_speech_title">Ricerca vocale offline</string>

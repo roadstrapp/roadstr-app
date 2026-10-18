@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">语音搜索</string>
+    <string name="native_speech_title">离线语音搜索</string>
+    <string name="native_speech_desc">在搜索中点按麦克风按钮，说出地点。语音在本手机上识别，无需联网，也不使用 Google 或其他语音服务。</string>
+    <string name="native_speech_checking">正在检查…</string>
+    <string name="native_speech_not_downloaded">未安装。在您安装之前，麦克风按钮会使用您手机自带的语音识别（如果有）。</string>
+    <string name="native_speech_downloading">正在下载语音模型…</string>
+    <string name="native_speech_ready">已安装。麦克风按钮可离线使用。</string>
+    <string name="native_speech_unavailable">已安装，但本手机无法运行。麦克风按钮会使用手机自带的语音识别。</string>
+    <string name="native_speech_download">下载模型（%1$d MB）</string>
+    <string name="native_speech_cancel">取消下载</string>
+    <string name="native_speech_delete">删除模型</string>
+    <string name="native_speech_privacy">您的声音绝不会离开这部手机。模型文件仅从 huggingface.co 下载一次，该网站只能看到您的 IP 地址和下载行为，看不到您说的任何内容。仅在聆听界面打开时才会使用麦克风。</string>
+    <string name="native_speech_problem_network">下载已中断。再次点按“下载模型”即可继续。</string>
+    <string name="native_speech_problem_storage">可用存储空间不足，无法存放模型。</string>
+    <string name="native_speech_problem_integrity">下载的文件与其校验和不符，已被丢弃。</string>
+    <string name="native_speech_problem_engine">语音引擎无法在本手机上加载该模型。</string>
+    <string name="native_speech_listening">正在聆听…</string>
+    <string name="native_speech_transcribing">正在识别…</string>
+    <string name="native_speech_done">完成</string>
+    <string name="native_speech_stop">取消</string>
+    <string name="native_speech_nothing_heard">没有听到任何内容。</string>
+</resources>

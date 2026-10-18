@@ -94,6 +94,29 @@ the least reliable** (for ga the word for "foreground" in the permission text an
 "predefinit") and most want a native speaker's eye; et, lv and lt carry the inflection risk. The labels that must stay
 short (speedometer and cursor styles) were kept to one or two words.
 
+### Voice search (2026-10-18)
+
+Twenty-one strings for the offline speech recogniser — the Settings card (what it is, its states, the download, delete and
+the four problems), the privacy sentence, and the listening card — in all 27 languages. They live in
+`tools/kotlin_rewrite/native_speech_translations.json`; `generate_android_speech_strings.dart` writes
+`native_speech_strings.xml` for each language and `test/native_speech_strings_test.dart` fails if a language lacks a key,
+loses the `%1$d` of the model size, leaves a sentence in English, or if a resource file differs from the catalogue. The
+licence line (`native_speech_attribution`) is English everywhere on purpose.
+
+Vocabulary follows what each language already uses for the navigation voice: "download" is `Stáhnout`, `Herunterladen`,
+`Télécharger`, `Baixar` (Brazilian Portuguese, as in the rest of the app), `Pobierz`, and so on; "model" is the local word
+for it. Where the app addresses the user it keeps the language's existing register (formal in de, nl, fr, pt, cs, sk, sl,
+hr, hu, et, bg, el, lv, lt, ru, zh; informal in it, es, da, sv, pl, ro, ga, mt; polite in ja). Finnish uses impersonal
+sentences, because the app's Finnish is formal and a formal imperative reads stiffly. Slavic first-person sentences ("I did
+not hear anything") use impersonal wording (`Nic nebylo slyšet`, `Ничего не слышно`, `Nic nie słychać`) to avoid
+guessing the user's grammatical gender.
+
+Confidence: de, fr, es, it, pt, nl, sv, da, pl, cs, sk, sl, hr, hu, ro, bg, el, ru, ja, zh, fi are plain sentences of the
+kind the app already uses and are likely fine; et, lv, lt carry the inflection risk; **ga and mt are the least reliable**
+and most want a native speaker's eye (in mt, `diskors` was chosen for "speech" and `rikonoxximent` for "recognition").
+Things a reviewer should check in particular: the privacy sentence says that the model comes from `huggingface.co`, that
+it sees the IP address and the download, and that nothing said leaves the phone.
+
 ## 3. Known gaps, stated plainly
 
 - No language was reviewed by a native speaker.

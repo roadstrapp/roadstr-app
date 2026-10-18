@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Hangalapú keresés</string>
+    <string name="native_speech_title">Hangalapú keresés internet nélkül</string>
+    <string name="native_speech_desc">Mondjon egy helyet a keresés mikrofongombjával. A beszédet ez a telefon ismeri fel, internetkapcsolat nélkül, Google vagy más beszédfelismerő szolgáltatás nélkül.</string>
+    <string name="native_speech_checking">Ellenőrzés…</string>
+    <string name="native_speech_not_downloaded">Nincs telepítve. Amíg nem telepíti, a mikrofongomb a telefon saját beszédfelismerését használja, ha van ilyen.</string>
+    <string name="native_speech_downloading">Beszédmodell letöltése…</string>
+    <string name="native_speech_ready">Telepítve. A mikrofongomb internet nélkül is működik.</string>
+    <string name="native_speech_unavailable">Telepítve, de ez a telefon nem tudja futtatni. A mikrofongomb a telefon saját beszédfelismerését használja.</string>
+    <string name="native_speech_download">Modell letöltése (%1$d MB)</string>
+    <string name="native_speech_cancel">Letöltés megszakítása</string>
+    <string name="native_speech_delete">Modell törlése</string>
+    <string name="native_speech_privacy">A hangja soha nem hagyja el ezt a telefont. A modellfájl egyszer töltődik le a huggingface.co-ról, amely látja az IP-címét és a letöltést, de semmit abból, amit mond. A mikrofont csak addig használja az alkalmazás, amíg a hallgatási képernyő nyitva van.</string>
+    <string name="native_speech_problem_network">A letöltés megszakadt. A folytatáshoz koppintson újra a „Modell letöltése” gombra.</string>
+    <string name="native_speech_problem_storage">Nincs elég szabad hely a modellnek.</string>
+    <string name="native_speech_problem_integrity">A letöltött fájl nem egyezett az ellenőrző összegével, ezért eldobtuk.</string>
+    <string name="native_speech_problem_engine">A beszédmotor nem tudta betölteni a modellt ezen a telefonon.</string>
+    <string name="native_speech_listening">Hallgatom…</string>
+    <string name="native_speech_transcribing">Felismerés…</string>
+    <string name="native_speech_done">Kész</string>
+    <string name="native_speech_stop">Mégse</string>
+    <string name="native_speech_nothing_heard">Nem hallottam semmit.</string>
+</resources>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Recherche vocale</string>
+    <string name="native_speech_title">Recherche vocale hors ligne</string>
+    <string name="native_speech_desc">Dites un lieu avec le bouton micro de la recherche. La voix est reconnue sur ce téléphone, sans connexion internet et sans Google ni autre service vocal.</string>
+    <string name="native_speech_checking">Vérification…</string>
+    <string name="native_speech_not_downloaded">Non installé. Tant qu’il ne l’est pas, le bouton micro utilise la reconnaissance vocale de votre téléphone, s’il en a une.</string>
+    <string name="native_speech_downloading">Téléchargement du modèle vocal…</string>
+    <string name="native_speech_ready">Installé. Le bouton micro fonctionne hors ligne.</string>
+    <string name="native_speech_unavailable">Installé, mais ce téléphone ne peut pas l’exécuter. Le bouton micro utilise la reconnaissance vocale propre au téléphone.</string>
+    <string name="native_speech_download">Télécharger le modèle (%1$d Mo)</string>
+    <string name="native_speech_cancel">Annuler le téléchargement</string>
+    <string name="native_speech_delete">Supprimer le modèle</string>
+    <string name="native_speech_privacy">Votre voix ne quitte jamais ce téléphone. Le fichier du modèle est téléchargé une seule fois depuis huggingface.co, qui voit votre adresse IP et le téléchargement, mais rien de ce que vous dites. Le micro n’est utilisé que lorsque l’écran d’écoute est ouvert.</string>
+    <string name="native_speech_problem_network">Le téléchargement a été interrompu. Touchez de nouveau « Télécharger le modèle » pour le reprendre.</string>
+    <string name="native_speech_problem_storage">Pas assez d’espace libre pour le modèle.</string>
+    <string name="native_speech_problem_integrity">Le fichier téléchargé ne correspondait pas à sa somme de contrôle et a été supprimé.</string>
+    <string name="native_speech_problem_engine">Le moteur vocal n’a pas pu charger le modèle sur ce téléphone.</string>
+    <string name="native_speech_listening">J’écoute…</string>
+    <string name="native_speech_transcribing">Reconnaissance…</string>
+    <string name="native_speech_done">Terminé</string>
+    <string name="native_speech_stop">Annuler</string>
+    <string name="native_speech_nothing_heard">Je n’ai rien entendu.</string>
+</resources>

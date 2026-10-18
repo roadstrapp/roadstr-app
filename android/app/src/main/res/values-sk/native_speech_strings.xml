@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Hlasové vyhľadávanie</string>
+    <string name="native_speech_title">Hlasové vyhľadávanie offline</string>
+    <string name="native_speech_desc">Povedzte miesto tlačidlom mikrofónu vo vyhľadávaní. Reč sa rozpoznáva v tomto telefóne, bez pripojenia na internet a bez Googlu alebo inej služby na rozpoznávanie reči.</string>
+    <string name="native_speech_checking">Kontrola…</string>
+    <string name="native_speech_not_downloaded">Nenainštalované. Kým model nenainštalujete, tlačidlo mikrofónu používa rozpoznávanie reči vášho telefónu, ak nejaké má.</string>
+    <string name="native_speech_downloading">Sťahuje sa model reči…</string>
+    <string name="native_speech_ready">Nainštalované. Tlačidlo mikrofónu funguje offline.</string>
+    <string name="native_speech_unavailable">Nainštalované, ale tento telefón ho nevie spustiť. Tlačidlo mikrofónu používa vlastné rozpoznávanie reči telefónu.</string>
+    <string name="native_speech_download">Stiahnuť model (%1$d MB)</string>
+    <string name="native_speech_cancel">Zrušiť sťahovanie</string>
+    <string name="native_speech_delete">Odstrániť model</string>
+    <string name="native_speech_privacy">Váš hlas tento telefón nikdy neopustí. Súbor modelu sa raz stiahne z huggingface.co, ktorý vidí vašu IP adresu a sťahovanie, ale nič z toho, čo poviete. Mikrofón sa používa, len kým je otvorená obrazovka počúvania.</string>
+    <string name="native_speech_problem_network">Sťahovanie sa prerušilo. Ak chcete pokračovať, znova ťuknite na „Stiahnuť model“.</string>
+    <string name="native_speech_problem_storage">Pre model nie je dosť voľného miesta.</string>
+    <string name="native_speech_problem_integrity">Stiahnutý súbor nezodpovedal svojmu kontrolnému súčtu a bol zahodený.</string>
+    <string name="native_speech_problem_engine">Rečový nástroj nedokázal v tomto telefóne načítať model.</string>
+    <string name="native_speech_listening">Počúvam…</string>
+    <string name="native_speech_transcribing">Rozpoznávam…</string>
+    <string name="native_speech_done">Hotovo</string>
+    <string name="native_speech_stop">Zrušiť</string>
+    <string name="native_speech_nothing_heard">Nič nebolo počuť.</string>
+</resources>

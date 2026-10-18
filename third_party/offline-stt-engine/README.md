@@ -36,10 +36,6 @@ the same values plus the Kotlin sources.
 `SHA256SUMS`. The build is reproducible: building from a different directory gave byte-identical
 libraries. Run it after changing anything here.
 
-For F-Droid, which does not accept prebuilt binaries, the same libraries can be built from source inside the
-recipe: `engine/scripts/build-android.sh` needs only Rust, `cargo-ndk`, CMake and the NDK. Until that recipe exists they
-count with eSpeak NG among the committed binaries.
-
 ## The model
 
 No model ships in the APK. It is downloaded once, on request, from Settings.

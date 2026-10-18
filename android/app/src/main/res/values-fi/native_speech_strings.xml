@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Äänihaku</string>
+    <string name="native_speech_title">Äänihaku ilman verkkoyhteyttä</string>
+    <string name="native_speech_desc">Paikan voi sanoa haun mikrofonipainikkeella. Puhe tunnistetaan tässä puhelimessa – ilman internetyhteyttä ja ilman Googlea tai muuta puheentunnistuspalvelua.</string>
+    <string name="native_speech_checking">Tarkistetaan…</string>
+    <string name="native_speech_not_downloaded">Ei asennettu. Kunnes malli on asennettu, mikrofonipainike käyttää puhelimen omaa puheentunnistusta, jos sellainen on.</string>
+    <string name="native_speech_downloading">Ladataan puhemallia…</string>
+    <string name="native_speech_ready">Asennettu. Mikrofonipainike toimii ilman verkkoyhteyttä.</string>
+    <string name="native_speech_unavailable">Asennettu, mutta tämä puhelin ei voi ajaa sitä. Mikrofonipainike käyttää puhelimen omaa puheentunnistusta.</string>
+    <string name="native_speech_download">Lataa malli (%1$d MB)</string>
+    <string name="native_speech_cancel">Peruuta lataus</string>
+    <string name="native_speech_delete">Poista malli</string>
+    <string name="native_speech_privacy">Ääni ei koskaan poistu tästä puhelimesta. Mallitiedosto ladataan kerran osoitteesta huggingface.co, joka näkee IP-osoitteen ja latauksen mutta ei mitään sanotusta. Mikrofonia käytetään vain, kun kuunteluruutu on auki.</string>
+    <string name="native_speech_problem_network">Lataus keskeytyi. Se jatkuu, kun ”Lataa malli” valitaan uudelleen.</string>
+    <string name="native_speech_problem_storage">Mallille ei ole tarpeeksi vapaata tilaa.</string>
+    <string name="native_speech_problem_integrity">Ladattu tiedosto ei vastannut tarkistussummaansa, ja se hylättiin.</string>
+    <string name="native_speech_problem_engine">Puhemoottori ei pystynyt lataamaan mallia tässä puhelimessa.</string>
+    <string name="native_speech_listening">Kuunnellaan…</string>
+    <string name="native_speech_transcribing">Tunnistetaan…</string>
+    <string name="native_speech_done">Valmis</string>
+    <string name="native_speech_stop">Peruuta</string>
+    <string name="native_speech_nothing_heard">En kuullut mitään.</string>
+</resources>
