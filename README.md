@@ -3,7 +3,7 @@
 **Roadstr** is an open-source, decentralised navigation app for Android, built on the [Nostr protocol](https://nostr.com/).  
 It combines real-time GPS turn-by-turn navigation with community-sourced traffic alerts published as Nostr events, public-transport journeys, on-device AI voice guidance, Lightning Network tips for contributors, and privacy-first map data powered by OpenStreetMap. Road reports can also be exchanged with other apps that use the open *jooray/roadstr* format and, experimentally, over a MeshCore LoRa radio.
 
-> **Version 1.1.0** — Android only. A native Kotlin app (Jetpack Compose and MapLibre Native) since 1.0; 1.1 adds public-transport guidance, road-report interoperability and the experimental MeshCore radio.
+> **Version 1.2.0** — Android only. A native Kotlin app (Jetpack Compose and MapLibre Native) since 1.0; 1.2 adds Explore, optional Journey achievements and private offline voice search.
 > The Flutter app of the 0.5.x line lives on the branch [`flutter-maintenance`](https://github.com/roadstrapp/roadstr-app/tree/flutter-maintenance).
 
 See the complete migration and release history in [CHANGELOG.md](CHANGELOG.md).

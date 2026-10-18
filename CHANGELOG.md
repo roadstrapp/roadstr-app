@@ -2,9 +2,9 @@
 
 All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stable release of the Kotlin rewrite.
 
-## Unreleased
+## [1.2.0] — 2026-10-18
 
-Explore, Journey with achievements, and an offline speech recogniser for voice search. Nothing here is released yet.
+Explore, opt-in Journey achievements, and an offline speech recogniser for voice search.
 
 ### Explore
 
@@ -17,6 +17,8 @@ Explore, Journey with achievements, and an offline speech recogniser for voice s
 - Added **Journey**, off by default: with tracking switched on, Roadstr records the distance you travel by each mode of transport,
   counts only distance it can defend (fixes with poor accuracy, jumps the chosen mode of transport could not make, gaps in the
   signal and standing still are left out), and keeps trips, monthly and yearly totals and the last session on the phone. Seventeen achievements unlock from the validated distance.
+- Replaced the placeholder vector achievement marks with seventeen individually illustrated gold reward coins. Locked rewards stay
+  muted; tapping a reward opens its details, while unlocked coins rotate in 3D with animated highlights.
 - **Journey sync** is a second, separate opt-in. It stores your history as encrypted NIP-78 events (NIP-44, to your own key), one
   shard per device, with a signed manifest of exact chunk hashes so that one phone cannot overwrite another and a partial relay
   answer is never taken for a complete one. If the signer cannot do NIP-44, sync stops and keeps the local data; there is no
@@ -57,6 +59,16 @@ Explore, Journey with achievements, and an offline speech recogniser for voice s
 - Kotlin 2.2.20, and the plugins prepared for Android's built-in Kotlin.
 - The 3 GB RAM / arm64 gate, the `RECORD_AUDIO` permission (optional hardware, declared by the app only) and the engine's checksums
   are guarded by `test/native_offline_speech_contract_test.dart`.
+- Added the reusable engine fork as a pinned submodule. Its pristine upstream mirror is refreshed automatically, while engine
+  updates remain reviewable pull requests and must pass the Rust test suite.
+
+### Interface polish
+
+- Restored notification overlays to the bottom safe area and kept Journey sheets clear of the system status bar.
+- Made actions use the selected Nostr-purple or Bitcoin-orange theme accent consistently, including support, saved-place and Nostr
+  actions, and gave the Journey launch action a distinct animated reward treatment.
+- Clarified the two different search clear actions, added the microphone entry point, and replaced flat screen flashes with softer
+  slide, scale and fade transitions.
 
 ## [1.1.0] — 2026-10-13
 
