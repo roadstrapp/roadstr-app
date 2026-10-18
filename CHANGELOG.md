@@ -4,7 +4,52 @@ All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stab
 
 ## Unreleased
 
-No changes yet.
+Explore, Journey with achievements, and an offline speech recogniser for voice search. Nothing here is released yet.
+
+### Explore
+
+- Added **Explore**: browse the places around an area you choose, by category (food and drink, culture, shopping, outdoors,
+  services, transport, health, sport, lodging). Results from the different providers are de-duplicated, a failing provider falls
+  back to the next one, and being offline or having every provider fail is reported instead of showing an empty list.
+
+### Journey and achievements
+
+- Added **Journey**, off by default: with tracking switched on, Roadstr records the distance you travel by each mode of transport,
+  counts only distance it can defend (fixes with poor accuracy, jumps the chosen mode of transport could not make, gaps in the
+  signal and standing still are left out), and keeps trips, monthly and yearly totals and the last session on the phone. Seventeen achievements unlock from the validated distance.
+- **Journey sync** is a second, separate opt-in. It stores your history as encrypted NIP-78 events (NIP-44, to your own key), one
+  shard per device, with a signed manifest of exact chunk hashes so that one phone cannot overwrite another and a partial relay
+  answer is never taken for a complete one. If the signer cannot do NIP-44, sync stops and keeps the local data; there is no
+  cleartext fallback. Deleting local history cannot delete what relays already hold, and the screen says so.
+- Added a **NIP-58 client**: strict parsing and building of badge definitions (30009), awards (8), profile badges (10008) and badge
+  sets (30008). Roadstr does **not** issue official badges: no issuer key or badge host exists, so *Show on Nostr profile* stays
+  unavailable until a build configures one, and local achievements work regardless. See [docs/journey-nostr.md](docs/journey-nostr.md).
+
+### Offline voice search
+
+- The microphone button in search can now recognise speech **on the phone** with NVIDIA Parakeet TDT 0.6B v3, run by an
+  embedded engine (transcribe.cpp / ggml): 25 European languages including Italian, no internet and no Google or other speech
+  service while you talk. It is off until you tap **Download the model** in *Settings → Voice search* (485 MB, from
+  `huggingface.co`, resumable, size and SHA-256 checked before the file is accepted, deletable at any time).
+- Until the model is installed, on devices that cannot run it (anything but 64-bit Arm with at least 3 GB of RAM), for languages it
+  does not know, or if anything goes wrong while listening, the microphone button uses the phone's own recogniser exactly as before.
+- Roadstr listens until you stop talking (or you tap *Done*), loads the model while you speak so there is no wait afterwards, and
+  frees its memory (about a gigabyte) a minute after the last use or when Android runs short. The microphone permission is asked
+  the first time, only for this, and the microphone is open only while the listening card is on screen.
+- The engine lives in its own repository, [`roadstrapp/offline-speech-to-text`](https://github.com/roadstrapp/offline-speech-to-text)
+  (a copy of *Offline Speech to Text* by Noah Mühl, MIT, with `engine/` added), and is vendored here as source plus binaries that
+  can be rebuilt byte for byte (`third_party/offline-stt-engine/rebuild.sh`); the Gradle build refuses to start if any of them
+  differs from its recorded SHA-256. The model is CC-BY-4.0 and its attribution is shown in Settings.
+- **Not yet verified on a phone:** speed, memory and battery are unmeasured, and recognition quality was only checked on synthetic
+  speech (it got street names such as *Via Giuseppe Garibaldi* and *Corso Vittorio Emanuele II* right, and slipped on common words:
+  *benzina* came out as *benzena*, *portami a casa* as *porta-me a casa*). The new texts exist in English and Italian only.
+  See [docs/offline-voice-search.md](docs/offline-voice-search.md).
+
+### Build
+
+- Kotlin 2.2.20, and the plugins prepared for Android's built-in Kotlin.
+- The 3 GB RAM / arm64 gate, the `RECORD_AUDIO` permission (optional hardware, declared by the app only) and the engine's checksums
+  are guarded by `test/native_offline_speech_contract_test.dart`.
 
 ## [1.1.0] — 2026-10-13
 
