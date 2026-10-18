@@ -394,9 +394,8 @@ class NativeShellJourneyCoordinator(
                     emptyList(),
                     DiscoveryPresentation.notice(outcome.notices),
                 )
-                is DiscoveryOutcome.Unavailable -> searchSession.submitResults(
+                is DiscoveryOutcome.Unavailable -> searchSession.submitUnavailable(
                     revision,
-                    emptyList(),
                     DiscoveryPresentation.unavailable(outcome.reason),
                 )
                 DiscoveryOutcome.NotApplicable -> searchSession.submitResults(revision, emptyList())
@@ -779,15 +778,21 @@ class NativeShellJourneyCoordinator(
             try {
                 val parsed = interpreter.interpret(query, normalizedLanguageCode())
                 lastParsed = parsed
-                val emptyNotice = when (val attempt = discover(revision, parsed, near)) {
+                val fallback = when (val attempt = discover(revision, parsed, near)) {
                     DiscoveryAttempt.Shown -> {
                         offerWeb(revision, parsed, near, sparse = lastNoticeWasSparse)
                         return@launch
                     }
-                    is DiscoveryAttempt.Fallback -> attempt.notice
+                    is DiscoveryAttempt.Fallback -> attempt
                 }
-                classicSearch(revision, parsed.classicQuery, near, emptyNotice)
-                offerWeb(revision, parsed, near, sparse = emptyNotice == NativeSearchNotice.FewTagged)
+                classicSearch(
+                    revision,
+                    parsed.classicQuery,
+                    near,
+                    fallback.notice,
+                    unavailable = fallback.unavailable,
+                )
+                offerWeb(revision, parsed, near, sparse = fallback.notice == NativeSearchNotice.FewTagged)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
@@ -800,7 +805,10 @@ class NativeShellJourneyCoordinator(
         data object Shown : DiscoveryAttempt
 
         /** Discovery did not answer; [notice] explains an empty answer if the classic search is empty too. */
-        data class Fallback(val notice: NativeSearchNotice?) : DiscoveryAttempt
+        data class Fallback(
+            val notice: NativeSearchNotice?,
+            val unavailable: Boolean = false,
+        ) : DiscoveryAttempt
     }
 
     private suspend fun discover(
@@ -829,6 +837,7 @@ class NativeShellJourneyCoordinator(
             is DiscoveryOutcome.Empty -> DiscoveryAttempt.Fallback(DiscoveryPresentation.notice(outcome.notices))
             is DiscoveryOutcome.Unavailable -> DiscoveryAttempt.Fallback(
                 DiscoveryPresentation.unavailable(outcome.reason),
+                unavailable = true,
             )
             DiscoveryOutcome.NotApplicable -> DiscoveryAttempt.Fallback(null)
         }
@@ -853,6 +862,7 @@ class NativeShellJourneyCoordinator(
         query: String,
         near: SearchResponsePoint?,
         emptyNotice: NativeSearchNotice?,
+        unavailable: Boolean,
     ) {
         val results = gateway.search(
             query = query,
@@ -860,7 +870,11 @@ class NativeShellJourneyCoordinator(
             languageCode = normalizedLanguageCode(),
             onPartial = { partial -> searchSession.submitPartial(revision, partial) },
         )
-        searchSession.submitResults(revision, results, if (results.isEmpty()) emptyNotice else null)
+        if (results.isEmpty() && unavailable && emptyNotice != null) {
+            searchSession.submitUnavailable(revision, emptyNotice)
+        } else {
+            searchSession.submitResults(revision, results, if (results.isEmpty()) emptyNotice else null)
+        }
     }
 
     private class PendingWeb(

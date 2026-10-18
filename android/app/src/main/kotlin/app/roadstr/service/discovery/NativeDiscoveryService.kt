@@ -28,8 +28,8 @@ import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Answers "vegan restaurants in Florence" style searches from OpenStreetMap: at most
- * one Nominatim lookup for the place, one Overpass query, and one widening. Every
- * Failures become explicit unavailable outcomes so the UI never disguises them as empty data.
+ * one Nominatim lookup for the place, one Overpass query, and one widening. Failures become
+ * explicit unavailable outcomes so the UI never disguises them as empty data.
  */
 class NativeDiscoveryService(
     private val transport: NativeSearchHttpTransport,

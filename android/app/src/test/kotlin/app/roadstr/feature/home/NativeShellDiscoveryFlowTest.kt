@@ -183,11 +183,23 @@ class NativeShellDiscoveryFlowTest {
         h.gateway.outcome = DiscoveryOutcome.Unavailable(DiscoveryUnavailableReason.OFFLINE_NO_INDEX)
 
         assertTrue(h.coordinator.exploreArea(gps))
-        assertEquals(NativeSearchUiStatus.EmptyNearby, h.search.state.value.status)
+        assertEquals(NativeSearchUiStatus.Unavailable, h.search.state.value.status)
         assertEquals(NativeSearchNotice.OfflineNoIndex, h.search.state.value.notice)
 
         h.gateway.outcome = DiscoveryOutcome.Unavailable(DiscoveryUnavailableReason.PROVIDER_UNAVAILABLE)
         assertTrue(h.coordinator.changeExploreCategory(app.roadstr.core.discovery.ExploreCategory.SHOPPING))
+        assertEquals(NativeSearchUiStatus.Unavailable, h.search.state.value.status)
+        assertEquals(NativeSearchNotice.ProviderUnavailable, h.search.state.value.notice)
+    }
+
+    @Test
+    fun `a natural discovery outage stays distinct when classic search is empty`() {
+        val h = Harness()
+        h.gateway.outcome = DiscoveryOutcome.Unavailable(DiscoveryUnavailableReason.PROVIDER_UNAVAILABLE)
+        h.coordinator.openSearch(nearbyEnabled = false)
+        h.coordinator.submitSearch("restaurant near me", gps)
+
+        assertEquals(NativeSearchUiStatus.Unavailable, h.search.state.value.status)
         assertEquals(NativeSearchNotice.ProviderUnavailable, h.search.state.value.notice)
     }
 

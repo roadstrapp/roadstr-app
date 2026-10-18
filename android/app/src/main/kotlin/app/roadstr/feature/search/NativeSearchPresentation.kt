@@ -92,6 +92,7 @@ enum class NativeSearchUiStatus {
     Loading,
     Results,
     EmptyNearby,
+    Unavailable,
 }
 
 /** Order and symbols mirror NearbyCategory in the Flutter search panel. */
@@ -381,6 +382,23 @@ class NativeSearchSession(initialImperial: Boolean = false) {
                 else -> NativeSearchUiStatus.Browsing
             },
             results = projected,
+            notice = notice,
+        )
+        true
+    }
+
+    /** Completes a search that could not be answered, without presenting it as an empty area. */
+    fun submitUnavailable(revision: Long, notice: NativeSearchNotice): Boolean = synchronized(lock) {
+        require(
+            notice == NativeSearchNotice.OfflineNoIndex ||
+                notice == NativeSearchNotice.ProviderUnavailable ||
+                notice == NativeSearchNotice.NetworkError,
+        ) { "Unavailable status needs an availability notice" }
+        if (!acceptsOutcome(revision)) return false
+        rawResults = emptyList()
+        _state.value = _state.value.copy(
+            status = NativeSearchUiStatus.Unavailable,
+            results = emptyList(),
             notice = notice,
         )
         true
