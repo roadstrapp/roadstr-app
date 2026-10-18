@@ -13,10 +13,14 @@ String _code(String source) => source
     .where((line) => !line.trimLeft().startsWith('//'))
     .join('\n');
 
-Iterable<File> _files(String dir, {String? extension}) => Directory(dir)
-    .listSync(recursive: true)
-    .whereType<File>()
-    .where((file) => extension == null || file.path.endsWith(extension));
+Iterable<File> _files(String dir, {String? extension}) {
+  final directory = Directory(dir);
+  if (!directory.existsSync()) return const Iterable<File>.empty();
+  return directory
+      .listSync(recursive: true)
+      .whereType<File>()
+      .where((file) => extension == null || file.path.endsWith(extension));
+}
 
 void main() {
   test('GeckoView exists only in the variant source set and the variant dependency', () {
