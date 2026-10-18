@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -126,7 +127,7 @@ private fun JourneyDashboardContent(
 ) {
     val formatter = UnitFormatter(imperial)
     var confirmClear by remember { mutableStateOf(false) }
-    LazyColumn(modifier = Modifier.fillMaxWidth().navigationBarsPadding()) {
+    LazyColumn(modifier = Modifier.fillMaxWidth().statusBarsPadding().navigationBarsPadding()) {
         item { JourneyHeader(stringResource(R.string.native_journey_title), onClose) }
         item {
             Column(modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp)) {
@@ -301,7 +302,7 @@ private fun AchievementCatalogContent(
     onShowPublicBadge: (JourneyAchievement) -> Unit,
     onClose: () -> Unit,
 ) {
-    LazyColumn(modifier = Modifier.fillMaxWidth().navigationBarsPadding()) {
+    LazyColumn(modifier = Modifier.fillMaxWidth().statusBarsPadding().navigationBarsPadding()) {
         item { JourneyHeader(stringResource(R.string.native_journey_achievements), onClose) }
         item {
             Text(

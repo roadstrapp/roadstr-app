@@ -65,6 +65,30 @@ class SearchProviderProtocolParityTest {
         )
         assertFalse(SearchProviderProtocol.overpassMirrors.any { it.contains("openstreetmap.fr") })
         assertFalse(SearchProviderProtocol.overpassMirrors.any { it.contains("osm.ch") })
+        assertEquals(
+            "overpass.roadstr.example",
+            URI(
+                SearchProviderProtocol.overpassMirrors(
+                    "https://overpass.roadstr.example/api/interpreter",
+                ).first(),
+            ).host,
+        )
+        assertEquals(
+            SearchProviderProtocol.overpassPreferredMirror,
+            SearchProviderProtocol.overpassMirrors("http://insecure.example/api/interpreter").first(),
+        )
+        for (invalid in listOf(
+            "https://user:secret@example.com/api/interpreter",
+            "https://example.com/api/interpreter?token=secret",
+            "https://example.com/api/interpreter#fragment",
+            "https://example.com:99999/api/interpreter",
+        )) {
+            assertEquals(
+                invalid,
+                SearchProviderProtocol.overpassPreferredMirror,
+                SearchProviderProtocol.overpassMirrors(invalid).first(),
+            )
+        }
         assertThrows(IllegalArgumentException::class.java) {
             SearchProviderProtocol.nominatimSearch("x", latitude = 45.0)
         }

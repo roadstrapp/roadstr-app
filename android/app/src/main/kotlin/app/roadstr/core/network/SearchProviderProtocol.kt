@@ -2,6 +2,7 @@ package app.roadstr.core.network
 
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.net.URI
 
 enum class SearchProviderHttpMethod(val fixtureName: String) {
     Get("get"),
@@ -33,6 +34,8 @@ object SearchProviderProtocol {
 
     val photonSupportedLanguages: Set<String> = setOf("en", "de", "fr")
 
+    const val overpassPreferredMirror = "https://overpass.private.coffee/api/interpreter"
+
     /**
      * Independent global instances from the OSM public-instance catalogue.
      * Regional instances such as Switzerland-only overpass.osm.ch do not belong here.
@@ -40,8 +43,15 @@ object SearchProviderProtocol {
     val overpassMirrors: List<String> = listOf(
         "https://overpass-api.de/api/interpreter",
         "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-        "https://overpass.private.coffee/api/interpreter",
+        overpassPreferredMirror,
     )
+
+    /** A deployment-controlled HTTPS primary followed by the currently responsive public mirror. */
+    fun overpassMirrors(primary: String?): List<String> = buildList {
+        primary?.trim()?.takeIf(::isSecureOverpassEndpoint)?.let(::add)
+        add(overpassPreferredMirror)
+        addAll(overpassMirrors)
+    }.distinct()
 
     private val roadstrHeaders = mapOf("User-Agent" to "Roadstr/1.0")
     private val overpassHeaders = mapOf(
@@ -121,6 +131,17 @@ object SearchProviderProtocol {
             headers = overpassHeaders,
             body = "data=${encodeQueryComponent(query)}",
         )
+
+    private fun isSecureOverpassEndpoint(value: String): Boolean = runCatching {
+        val uri = URI(value)
+        uri.scheme.equals("https", ignoreCase = true) &&
+            !uri.host.isNullOrBlank() &&
+            uri.userInfo == null &&
+            uri.rawQuery == null &&
+            uri.rawFragment == null &&
+            (uri.port == -1 || uri.port in 1..65_535) &&
+            uri.path.isNotBlank()
+    }.getOrDefault(false)
 
     private fun encodeComponent(value: String): String = percentEncode(
         value = value,

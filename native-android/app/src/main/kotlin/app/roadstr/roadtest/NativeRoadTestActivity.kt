@@ -167,6 +167,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
             installedPackages = offlinePackageManager::installed,
             networkAvailable = ::networkAvailable,
             localRoutingEngine = localRoutingEngine,
+            overpassEndpoint = getString(R.string.roadstr_overpass_endpoint),
             names = storeNames,
         )
     }

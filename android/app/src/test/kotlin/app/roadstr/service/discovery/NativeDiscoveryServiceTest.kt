@@ -8,6 +8,7 @@ import app.roadstr.core.discovery.NaturalQueryParser
 import app.roadstr.core.discovery.SearchArea
 import app.roadstr.core.geo.GeoPoint
 import app.roadstr.core.network.SearchProviderRequest
+import app.roadstr.core.network.SearchProviderProtocol
 import app.roadstr.service.network.NativeHttpRequestLimits
 import app.roadstr.service.network.NativeHttpResponse
 import app.roadstr.service.network.NativeSearchHttpTransport
@@ -172,6 +173,24 @@ class NativeDiscoveryServiceTest {
         val outcome = found(service(transport).discover(request("restaurant near me")))
         assertEquals(3, outcome.places.size)
         assertEquals(listOf("https://m1/api", "https://m2/api"), transport.overpass.map { it.uri })
+    }
+
+    @Test
+    fun `the preferred Private coffee mirror keeps the form encoded protocol`() = runBlocking {
+        val transport = FakeTransport {
+            ok(elements(node(1, 45.0, "A"), node(2, 45.01, "B"), node(3, 45.02, "C")))
+        }
+        found(
+            service(
+                transport,
+                mirrors = listOf(SearchProviderProtocol.overpassPreferredMirror),
+            ).discover(request("restaurant near me")),
+        )
+
+        val call = transport.requests.single()
+        assertEquals(SearchProviderProtocol.overpassPreferredMirror, call.uri)
+        assertTrue(call.body!!.startsWith("data="))
+        assertTrue(call.body!!.length < 2_000)
     }
 
     @Test

@@ -74,6 +74,9 @@ void main() {
     ]) {
       expect(source, contains(value));
     }
+    expect(presentation.readAsStringSync(),
+        contains('NativeSearchUiStatus.Unavailable'));
+    expect(presentation.readAsStringSync(), contains('submitUnavailable'));
     expect(source, contains('.heightIn(max = 460.dp)'));
     expect(source, contains('.imePadding()'));
     expect(source, contains('paneTitle ='));

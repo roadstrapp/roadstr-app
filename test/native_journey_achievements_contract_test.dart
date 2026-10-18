@@ -43,6 +43,7 @@ void main() {
       expect(source, contains('"$key" ->'), reason: key);
     }
     expect(source, contains('Canvas(modifier)'));
+    expect(RegExp(r'statusBarsPadding\(\)').allMatches(source), hasLength(2));
     expect(source, isNot(contains('emoji:')));
   });
 
