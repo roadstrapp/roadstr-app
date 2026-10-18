@@ -11,6 +11,7 @@ import app.roadstr.core.network.RoutingProviderConfiguration
 import app.roadstr.core.network.RoutingRequestPoint
 import app.roadstr.core.network.SearchResponsePoint
 import app.roadstr.core.network.SearchResult
+import app.roadstr.core.network.SearchProviderProtocol
 import app.roadstr.core.network.RoutingAvoidanceMode
 import app.roadstr.feature.home.NativeShellJourneyGateway
 import app.roadstr.feature.transit.humanCategory
@@ -92,6 +93,7 @@ class NativeRoadTestJourneyGateway(
     private val installedPackages: () -> List<InstalledOfflinePackage> = { emptyList() },
     private val networkAvailable: () -> Boolean = { true },
     private val localRoutingEngine: RoutingEngine? = null,
+    private val overpassEndpoint: String? = null,
     names: NativeLiveStoreNames = NativeLiveStoreNames(),
 ) : NativeShellJourneyGateway {
     private val context = context.applicationContext
@@ -386,7 +388,12 @@ class NativeRoadTestJourneyGateway(
     // One pacer for every Nominatim call, so the place search and the town lookup behind a
     // web query together stay under the service's one request per second.
     private val nominatimPacer = HostPacer(NativeDiscoveryService.NOMINATIM_SPACING_MILLIS)
-    private val discovery = NativeDiscoveryService(transport, nominatimPacer = nominatimPacer)
+    private val discovery = NativeDiscoveryService(
+        transport,
+        networkAvailable = networkAvailable,
+        overpassMirrors = SearchProviderProtocol.overpassMirrors(overpassEndpoint),
+        nominatimPacer = nominatimPacer,
+    )
     private val locality = CoarseLocality(transport, nominatimPacer)
     private val webProvider = NativeSearxngProvider(webSettings, transport, NativeLanHttpTransport())
     private val placeLookup = NativePlaceLookup(transport, nominatimPacer)

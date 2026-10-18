@@ -69,8 +69,8 @@ android {
         // every real release since — so ZapStore's "highest version_code
         // wins" update logic kept treating that phantom 0.4.27 as newer than
         // any real 0.5.x release. This has to clear 2036, not just increment.
-        versionCode = 2062
-        versionName = "1.1.0"
+        versionCode = 2063
+        versionName = "1.2.0"
 
         // Which activity answers the launcher. Since 0.6.0 the Kotlin app is the product: it answers
         // the launcher and imports the Flutter app's data on first start. `-Pnative_launcher=false`
@@ -265,6 +265,16 @@ val bundledNativeChecksums = mapOf(
         "ee42b95d2e91dc8be72df2711007a6fb711c0cde3dc25e88ec2b300e38d6c65b",
     "src/main/jniLibs/x86_64/libespeak-ng.so" to
         "0078c57e5a0e15b5fcde9235f84a93ed9e4e49348851d07dadb157eee0edffef",
+    // The offline speech engine (arm64 only), rebuilt byte for byte by
+    // third_party/offline-stt-engine/rebuild.sh from the pinned source commit.
+    "src/main/jniLibs/arm64-v8a/libc++_shared.so" to
+        "e69496a4aeb51ebe61d0775ae9fefc76eee640f12317aa5174da67e5d4ec8fd6",
+    "src/main/jniLibs/arm64-v8a/libofflinestt_armv8.so" to
+        "dda2250ae4b23541b0081a0db90d65fa1b208ed1d8a3195ec7a4dfdb43924e69",
+    "src/main/jniLibs/arm64-v8a/libofflinestt_dotprod.so" to
+        "91fa13dc428599a18d13858ebbd69d2237e205d026cf336baa8dcb25ac802888",
+    "src/main/jniLibs/arm64-v8a/libofflinestt_cpu_probe.so" to
+        "d69225d765cf9ffffe8cad25b6d27805e679ee4623707003ccd299eddfbf5984",
     "../../assets/espeak-ng-data.tar.gz" to
         "ecf9859bd233a19830c0cb048dc2c2f5162a2e4ab2de637cd2f2fabeb63ad84b",
     "src/main/assets/offline_catalog/geonames-cities15000.tsv.gz" to

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_journey_title">Roadstr Journey</string>
+    <string name="native_journey_achievements">Achievements</string>
+    <string name="native_journey_back">Back</string>
+    <string name="native_journey_travelled">validated distance travelled</string>
+    <string name="native_journey_next_badge">Next badge: %1$s</string>
+    <string name="native_journey_all_unlocked">The Impossible Road is yours</string>
+    <string name="native_journey_trips">Trips</string>
+    <string name="native_journey_month">This month</string>
+    <string name="native_journey_year">This year</string>
+    <string name="native_journey_by_mode">Distance by transport mode</string>
+    <string name="native_journey_last_session">Last session</string>
+    <string name="native_journey_badges_count">Achievements %1$d / %2$d</string>
+    <string name="native_journey_clear">Delete local Journey history</string>
+    <string name="native_journey_clear_confirm_title">Delete local Journey history?</string>
+    <string name="native_journey_clear_confirm_body">This resets local statistics and achievements. Previously replicated Nostr events may remain on relays.</string>
+    <string name="native_journey_clear_confirm_action">Delete local data</string>
+    <string name="native_journey_sync_title">Private Nostr sync</string>
+    <string name="native_journey_sync_now">Sync now</string>
+    <string name="native_journey_sync_idle">Ready to sync</string>
+    <string name="native_journey_sync_pending">Local changes are waiting to sync</string>
+    <string name="native_journey_syncing">Syncing encrypted device records…</string>
+    <string name="native_journey_sync_success">Last successful sync: %1$s</string>
+    <string name="native_journey_sync_signer">Connect a Nostr identity to sync.</string>
+    <string name="native_journey_sync_crypto">The active signer cannot use NIP-44. Nothing was published.</string>
+    <string name="native_journey_sync_error">Journey sync failed. Local data is safe.</string>
+    <string name="native_journey_sync_overlap">%1$d overlapping cross-device session(s) need review; they were not silently merged.</string>
+    <string name="native_journey_unlocked">Unlocked</string>
+    <string name="native_journey_locked">Locked</string>
+    <string name="native_journey_unlocked_message">Achievement unlocked: %1$s</string>
+    <string name="native_journey_public_badges_ready">Official Nostr badges are optional. An unlocked badge is added to your profile only after you request it and a valid issuer award is found.</string>
+    <string name="native_journey_public_badges_unavailable">Official Nostr badges are not configured in this build. Local achievements remain fully available.</string>
+    <string name="native_journey_public_badge_show">Show on Nostr profile</string>
+    <string name="native_journey_public_badge_checking">Checking issuer award…</string>
+    <string name="native_journey_public_badge_publishing">Updating Nostr profile…</string>
+    <string name="native_journey_public_badge_published">Shown on Nostr profile</string>
+    <string name="native_journey_public_badge_not_issued">Award not issued yet</string>
+    <string name="native_journey_public_badge_retry">Retry public badge</string>
+    <string name="native_journey_public_badge_signer">Connect a Nostr identity before publishing a badge.</string>
+    <string name="roadstr_badge_issuer_pubkey" translatable="false"></string>
+    <string name="native_journey_mode_car">Car</string>
+    <string name="native_journey_mode_motorcycle">Motorcycle</string>
+    <string name="native_journey_mode_bicycle">Bicycle</string>
+    <string name="native_journey_mode_walking">Walking</string>
+    <string name="native_journey_mode_transit">Public transport</string>
+    <string name="native_journey_mode_other">Other</string>
+</resources>

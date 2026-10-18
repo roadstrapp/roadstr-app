@@ -4,6 +4,7 @@ import 'dart:io';
 const _sourceDirectory = 'lib/l10n';
 const _resourceDirectory = 'android/app/src/main/res';
 const _outputName = 'native_search_strings.xml';
+const _featureStrings = 'tools/kotlin_rewrite/native_feature_strings.json';
 
 const _resourceKeys = <String, String>{
   'native_search_hint': 'searchHint',
@@ -25,6 +26,18 @@ const _resourceKeys = <String, String>{
   'native_search_nearby_parking': 'nearbyParking',
   'native_search_nearby_hotel': 'nearbyHotel',
   'native_search_nearby_charging': 'nearbyCharging',
+  'native_explore_area': 'exploreArea',
+  'native_explore_categories': 'exploreCategories',
+  'native_explore_all': 'exploreAll',
+  'native_explore_food': 'exploreFood',
+  'native_explore_culture': 'exploreCulture',
+  'native_explore_shopping': 'exploreShopping',
+  'native_explore_outdoor': 'exploreOutdoor',
+  'native_explore_services': 'exploreServices',
+  'native_explore_transport': 'exploreTransport',
+  'native_explore_health': 'exploreHealth',
+  'native_explore_sport': 'exploreSport',
+  'native_explore_lodging': 'exploreLodging',
 };
 
 String _resourceFolder(String language) =>
@@ -47,7 +60,11 @@ String _androidText(String source, String sourceKey) {
       .replaceAll('\t', r'\t');
 }
 
-String _buildResource(String language, Map<String, dynamic> arb) {
+String _buildResource(
+  String language,
+  Map<String, dynamic> arb,
+  Map<String, dynamic> fallback,
+) {
   final output = StringBuffer()
     ..writeln('<?xml version="1.0" encoding="utf-8"?>')
     ..writeln(
@@ -55,7 +72,7 @@ String _buildResource(String language, Map<String, dynamic> arb) {
     )
     ..writeln('<resources>');
   for (final entry in _resourceKeys.entries) {
-    final source = arb[entry.value];
+    final source = arb[entry.value] ?? fallback[entry.value];
     if (source is! String || source.isEmpty) {
       throw FormatException('Missing ${entry.value} in app_$language.arb');
     }
@@ -77,6 +94,21 @@ Map<String, String> buildAndroidSearchResources() {
   if (sources.length != 27) {
     throw StateError('Expected 27 ARB locale files, found ${sources.length}');
   }
+  final fallbackDecoded = jsonDecode(
+    File('$_sourceDirectory/app_en.arb').readAsStringSync(),
+  );
+  if (fallbackDecoded is! Map<String, dynamic>) {
+    throw const FormatException('app_en.arb is not a JSON object');
+  }
+  final featureDecoded = jsonDecode(File(_featureStrings).readAsStringSync());
+  if (featureDecoded is! Map<String, dynamic> ||
+      featureDecoded['en'] is! Map<String, dynamic>) {
+    throw const FormatException('Invalid native feature string catalogue');
+  }
+  final fallback = <String, dynamic>{
+    ...fallbackDecoded,
+    ...(featureDecoded['en'] as Map<String, dynamic>),
+  };
 
   final outputs = <String, String>{};
   for (final source in sources) {
@@ -86,9 +118,14 @@ Map<String, String> buildAndroidSearchResources() {
     if (decoded is! Map<String, dynamic>) {
       throw FormatException('${source.path} is not a JSON object');
     }
+    final localizedFeatures = featureDecoded[language];
+    final localized = <String, dynamic>{
+      ...decoded,
+      if (localizedFeatures is Map<String, dynamic>) ...localizedFeatures,
+    };
     final path =
         '$_resourceDirectory/${_resourceFolder(language)}/$_outputName';
-    outputs[path] = _buildResource(language, decoded);
+    outputs[path] = _buildResource(language, localized, fallback);
   }
   return outputs;
 }

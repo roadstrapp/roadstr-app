@@ -2,6 +2,7 @@ package app.roadstr.feature.home
 
 import app.roadstr.core.discovery.DiscoveryOutcome
 import app.roadstr.core.discovery.DiscoveryRequest
+import app.roadstr.core.discovery.ExploreCategory
 import app.roadstr.core.discovery.LocationConstraint
 import app.roadstr.core.discovery.NaturalPlaceQuery
 import app.roadstr.core.discovery.NaturalQueryParser
@@ -253,6 +254,7 @@ class NativeShellJourneyCoordinator(
     private var lastArea: SearchArea? = null
     private var lastParsed: NaturalPlaceQuery? = null
     private var lastNear: SearchResponsePoint? = null
+    private var exploreAnchor: GeoPoint? = null
     private var webPlaces: Map<String, RoadstrPlace> = emptyMap()
     private val resolver = PlaceEntityResolver(
         PlaceLookup { name, locality, near, language -> gateway.lookupPlaces(name, locality, near, language) },
@@ -315,6 +317,90 @@ class NativeShellJourneyCoordinator(
             launchSearch(revision, category.wireQuery, near)
         }
         return true
+    }
+
+    /** Explicit map exploration. The selected point is never substituted with the device GPS. */
+    fun exploreArea(
+        point: SearchResponsePoint,
+        category: ExploreCategory = ExploreCategory.ALL,
+    ): Boolean {
+        require(point.latitude.isFinite() && point.latitude in -90.0..90.0)
+        require(point.longitude.isFinite() && point.longitude in -180.0..180.0)
+        cancelSearchWork()
+        onDiscovery(searchSession.state.value.revision, emptyList())
+        if (searchSession.state.value.status == app.roadstr.feature.search.NativeSearchUiStatus.Hidden) {
+            if (!searchSession.show(nextSearchRevision(), favorites = runCatching(favorites).getOrDefault(emptyList()))) {
+                return false
+            }
+        }
+        val revision = nextSearchRevision()
+        if (!searchSession.beginExplore(revision, category)) return false
+        val anchor = GeoPoint(point.latitude, point.longitude)
+        exploreAnchor = anchor
+        launchExplore(revision, anchor, category)
+        return true
+    }
+
+    fun changeExploreCategory(category: ExploreCategory): Boolean {
+        val anchor = exploreAnchor ?: return false
+        cancelSearchWork()
+        val revision = nextSearchRevision()
+        if (!searchSession.beginExplore(revision, category)) return false
+        launchExplore(revision, anchor, category)
+        return true
+    }
+
+    private fun launchExplore(revision: Long, anchor: GeoPoint, category: ExploreCategory) {
+        lastNear = null
+        lastPlaces = emptyList()
+        lastArea = null
+        webPlaces = emptyMap()
+        val parsed = NaturalPlaceQuery(
+            rawText = "",
+            locale = normalizedLanguageCode(),
+            intent = app.roadstr.core.discovery.QueryIntent.FIND_PLACE,
+            categories = category.categories.toList(),
+            attributes = emptySet(),
+            cuisines = emptySet(),
+            location = LocationConstraint.MapCenter,
+            locationExplicit = true,
+            openNow = false,
+            residualTerms = emptyList(),
+            residualPlaceGuess = null,
+            classicQuery = "",
+        )
+        lastParsed = parsed
+        searchJob = scope.launch {
+            val request = DiscoveryRequest(
+                query = parsed,
+                device = null,
+                mapCenter = anchor,
+                destination = destination()?.let { GeoPoint(it.latitude, it.longitude) },
+                languageCode = normalizedLanguageCode(),
+                now = clock(),
+                route = emptyList(),
+            )
+            val outcome = try {
+                gateway.discover(request)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                DiscoveryOutcome.NotApplicable
+            }
+            when (outcome) {
+                is DiscoveryOutcome.Found -> show(revision, outcome)
+                is DiscoveryOutcome.Empty -> searchSession.submitResults(
+                    revision,
+                    emptyList(),
+                    DiscoveryPresentation.notice(outcome.notices),
+                )
+                is DiscoveryOutcome.Unavailable -> searchSession.submitUnavailable(
+                    revision,
+                    DiscoveryPresentation.unavailable(outcome.reason),
+                )
+                DiscoveryOutcome.NotApplicable -> searchSession.submitResults(revision, emptyList())
+            }
+        }
     }
 
     private fun launchNearbyTransit(revision: Long, near: SearchResponsePoint) {
@@ -674,6 +760,7 @@ class NativeShellJourneyCoordinator(
         cancelReroute()
         selectedDestination = null
         clearNavigationDestination()
+        exploreAnchor = null
     }
 
     private fun launchSearch(
@@ -691,15 +778,21 @@ class NativeShellJourneyCoordinator(
             try {
                 val parsed = interpreter.interpret(query, normalizedLanguageCode())
                 lastParsed = parsed
-                val emptyNotice = when (val attempt = discover(revision, parsed, near)) {
+                val fallback = when (val attempt = discover(revision, parsed, near)) {
                     DiscoveryAttempt.Shown -> {
                         offerWeb(revision, parsed, near, sparse = lastNoticeWasSparse)
                         return@launch
                     }
-                    is DiscoveryAttempt.Fallback -> attempt.notice
+                    is DiscoveryAttempt.Fallback -> attempt
                 }
-                classicSearch(revision, parsed.classicQuery, near, emptyNotice)
-                offerWeb(revision, parsed, near, sparse = emptyNotice == NativeSearchNotice.FewTagged)
+                classicSearch(
+                    revision,
+                    parsed.classicQuery,
+                    near,
+                    fallback.notice,
+                    unavailable = fallback.unavailable,
+                )
+                offerWeb(revision, parsed, near, sparse = fallback.notice == NativeSearchNotice.FewTagged)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
@@ -712,7 +805,10 @@ class NativeShellJourneyCoordinator(
         data object Shown : DiscoveryAttempt
 
         /** Discovery did not answer; [notice] explains an empty answer if the classic search is empty too. */
-        data class Fallback(val notice: NativeSearchNotice?) : DiscoveryAttempt
+        data class Fallback(
+            val notice: NativeSearchNotice?,
+            val unavailable: Boolean = false,
+        ) : DiscoveryAttempt
     }
 
     private suspend fun discover(
@@ -739,6 +835,10 @@ class NativeShellJourneyCoordinator(
         return when (outcome) {
             is DiscoveryOutcome.Found -> show(revision, outcome)
             is DiscoveryOutcome.Empty -> DiscoveryAttempt.Fallback(DiscoveryPresentation.notice(outcome.notices))
+            is DiscoveryOutcome.Unavailable -> DiscoveryAttempt.Fallback(
+                DiscoveryPresentation.unavailable(outcome.reason),
+                unavailable = true,
+            )
             DiscoveryOutcome.NotApplicable -> DiscoveryAttempt.Fallback(null)
         }
     }
@@ -762,6 +862,7 @@ class NativeShellJourneyCoordinator(
         query: String,
         near: SearchResponsePoint?,
         emptyNotice: NativeSearchNotice?,
+        unavailable: Boolean,
     ) {
         val results = gateway.search(
             query = query,
@@ -769,7 +870,11 @@ class NativeShellJourneyCoordinator(
             languageCode = normalizedLanguageCode(),
             onPartial = { partial -> searchSession.submitPartial(revision, partial) },
         )
-        searchSession.submitResults(revision, results, if (results.isEmpty()) emptyNotice else null)
+        if (results.isEmpty() && unavailable && emptyNotice != null) {
+            searchSession.submitUnavailable(revision, emptyNotice)
+        } else {
+            searchSession.submitResults(revision, results, if (results.isEmpty()) emptyNotice else null)
+        }
     }
 
     private class PendingWeb(

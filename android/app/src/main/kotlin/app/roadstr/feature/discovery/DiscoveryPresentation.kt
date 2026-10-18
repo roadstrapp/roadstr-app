@@ -1,6 +1,8 @@
 package app.roadstr.feature.discovery
 
 import app.roadstr.core.discovery.DiscoveryNotice
+import app.roadstr.core.discovery.DiscoveryUnavailableReason
+import app.roadstr.core.discovery.DiscoveryBand
 import app.roadstr.core.discovery.PlaceCategoryNames
 import app.roadstr.core.discovery.RankedPlace
 import app.roadstr.core.discovery.RoadstrPlace
@@ -36,7 +38,12 @@ object DiscoveryPresentation {
         val place = ranked.place
         val title = title(place, locale)
         val category = categoryName(place, locale)
-        val detail = listOfNotNull(category.ifEmpty { null }, place.address).joinToString(" · ")
+        val confidence = when (ranked.band) {
+            DiscoveryBand.BEST_LOCAL -> null
+            DiscoveryBand.OTHER_LOCAL -> if (locale.startsWith("it")) "Possibile corrispondenza" else "Possible match"
+            DiscoveryBand.EXTERNAL -> if (locale.startsWith("it")) "Fuori dall'area" else "Outside selected area"
+        }
+        val detail = listOfNotNull(confidence, category.ifEmpty { null }, place.address).joinToString(" · ")
         return SearchResult(
             displayName = listOfNotNull(title, detail.ifEmpty { null }).joinToString(", "),
             shortName = title,
@@ -56,6 +63,12 @@ object DiscoveryPresentation {
         DiscoveryNotice.OPEN_HOURS_UNKNOWN in notices -> NativeSearchNotice.OpenHoursUnknown
         DiscoveryNotice.ROUTE_AHEAD in notices -> NativeSearchNotice.RouteAhead
         else -> null
+    }
+
+    fun unavailable(reason: DiscoveryUnavailableReason): NativeSearchNotice = when (reason) {
+        DiscoveryUnavailableReason.OFFLINE_NO_INDEX -> NativeSearchNotice.OfflineNoIndex
+        DiscoveryUnavailableReason.PROVIDER_UNAVAILABLE -> NativeSearchNotice.ProviderUnavailable
+        DiscoveryUnavailableReason.NETWORK_ERROR -> NativeSearchNotice.NetworkError
     }
 
     fun pins(places: List<RankedPlace>): List<NativeMapPointOverlayMarker> =

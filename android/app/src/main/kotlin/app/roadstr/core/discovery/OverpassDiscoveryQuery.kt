@@ -28,10 +28,37 @@ object OverpassDiscoveryQuery {
             .orEmpty()
         val extra = attributes.joinToString("") { attributeFilter(it) } + cuisineFilter(cuisines)
         val where = areaFilter(area)
-        val statements = categories.flatMap { it.alternatives }.joinToString("") { alternative ->
+        val statements = compactAlternatives(categories).joinToString("") { alternative ->
             "nwr" + alternative.joinToString("") { tagFilter(it) } + extra + where + ";"
         }
         return "[out:json][timeout:$timeoutSeconds];$prefix($statements);out tags center $limit;"
+    }
+
+    /**
+     * A top-level exploration used to emit one Overpass statement per category. Single-tag
+     * alternatives with the same key are equivalent to one value union, which is substantially
+     * smaller and cheaper for public instances while preserving compound and regex alternatives.
+     */
+    private fun compactAlternatives(categories: List<PlaceCategory>): List<List<TagMatch>> {
+        val result = ArrayList<List<TagMatch>>()
+        val valueIndexes = LinkedHashMap<String, Int>()
+        for (alternative in categories.flatMap { it.alternatives }) {
+            val match = alternative.singleOrNull()
+            val values = match?.values
+            if (match == null || values == null) {
+                result += alternative
+                continue
+            }
+            val index = valueIndexes[match.key]
+            if (index == null) {
+                valueIndexes[match.key] = result.size
+                result += listOf(match)
+            } else {
+                val existing = result[index].single()
+                result[index] = listOf(existing.copy(values = requireNotNull(existing.values) + values))
+            }
+        }
+        return result
     }
 
     private fun tagFilter(match: TagMatch): String {

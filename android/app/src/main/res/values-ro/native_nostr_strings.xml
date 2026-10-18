@@ -138,7 +138,10 @@
     <string name="native_saved_routes_title">Trasee salvate</string>
     <string name="native_search_notice_area_fallback">Locul nu a putut fi delimitat exact, așa că s-a căutat în zona din jur.</string>
     <string name="native_search_notice_few_tagged">Puține locuri de aici sunt etichetate pentru asta în OpenStreetMap, deci lista poate fi incompletă.</string>
+    <string name="native_search_notice_network_error">Conexiunea la rețea s-a întrerupt în timpul explorării. Nu au fost inventate rezultate.</string>
+    <string name="native_search_notice_offline_no_index">Această zonă nu poate fi explorată offline deoarece nu există un index local de puncte de interes.</string>
     <string name="native_search_notice_open_hours_unknown">Unele locuri nu indică programul, deci ar putea fi închise.</string>
+    <string name="native_search_notice_provider_unavailable">Furnizorii de date geografice sunt temporar indisponibili. Încercați din nou în curând.</string>
     <string name="native_search_notice_route_ahead">Locuri de-a lungul porțiunii de traseu care îți mai rămâne.</string>
     <string name="native_search_notice_route_unsupported">Căutarea de-a lungul traseului nu este încă disponibilă; se afișează locuri din jurul tău.</string>
     <string name="native_search_notice_widened">Nimic în apropiere, așa că s-a lărgit căutarea.</string>

@@ -34,8 +34,8 @@ void main() {
           .allMatches(entry.value)
           .map((match) => match.group(1))
           .toList();
-      expect(names, hasLength(118), reason: entry.key);
-      expect(names.toSet(), hasLength(118), reason: entry.key);
+      expect(names, hasLength(125), reason: entry.key);
+      expect(names.toSet(), hasLength(125), reason: entry.key);
     }
   });
 

@@ -138,7 +138,10 @@
     <string name="native_saved_routes_title">Αποθηκευμένες διαδρομές</string>
     <string name="native_search_notice_area_fallback">Δεν ήταν δυνατό να οριοθετηθεί ακριβώς το μέρος, οπότε αναζητήθηκε η γύρω περιοχή.</string>
     <string name="native_search_notice_few_tagged">Λίγα μέρη εδώ έχουν επισημανθεί γι\' αυτό στο OpenStreetMap, οπότε η λίστα μπορεί να είναι ελλιπής.</string>
+    <string name="native_search_notice_network_error">Η σύνδεση δικτύου διακόπηκε κατά την εξερεύνηση. Δεν επινοήθηκαν αποτελέσματα.</string>
+    <string name="native_search_notice_offline_no_index">Δεν είναι δυνατή η εξερεύνηση αυτής της περιοχής εκτός σύνδεσης, επειδή δεν υπάρχει τοπικό ευρετήριο σημείων ενδιαφέροντος.</string>
     <string name="native_search_notice_open_hours_unknown">Ορισμένα μέρη δεν αναφέρουν ωράριο, οπότε μπορεί να είναι κλειστά.</string>
+    <string name="native_search_notice_provider_unavailable">Οι πάροχοι γεωγραφικών δεδομένων δεν είναι προσωρινά διαθέσιμοι. Δοκιμάστε ξανά σύντομα.</string>
     <string name="native_search_notice_route_ahead">Μέρη κατά μήκος του τμήματος της διαδρομής που απομένει.</string>
     <string name="native_search_notice_route_unsupported">Η αναζήτηση κατά μήκος της διαδρομής δεν είναι ακόμη διαθέσιμη· εμφανίζονται μέρη γύρω σας.</string>
     <string name="native_search_notice_widened">Τίποτα κοντά, οπότε η αναζήτηση διευρύνθηκε.</string>

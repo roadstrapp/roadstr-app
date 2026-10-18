@@ -1,5 +1,6 @@
 package app.roadstr.feature.search
 
+import app.roadstr.core.discovery.ExploreCategory
 import app.roadstr.core.network.SearchResponsePoint
 import app.roadstr.core.network.SearchResult
 import app.roadstr.core.search.SearchHistoryEntry
@@ -192,6 +193,17 @@ class NativeSearchPresentationTest {
         assertTrue(session.submitResults(3, emptyList()))
         assertEquals(NativeSearchUiStatus.Browsing, session.state.value.status)
         assertEquals("nothing", session.state.value.query)
+    }
+
+    @Test
+    fun `an unavailable provider is not presented as an empty nearby area`() {
+        val session = NativeSearchSession()
+        assertTrue(session.show(1, nearbyEnabled = true))
+        assertTrue(session.beginExplore(2, ExploreCategory.ALL))
+        assertTrue(session.submitUnavailable(2, NativeSearchNotice.ProviderUnavailable))
+        assertEquals(NativeSearchUiStatus.Unavailable, session.state.value.status)
+        assertTrue(session.state.value.results.isEmpty())
+        assertEquals(NativeSearchNotice.ProviderUnavailable, session.state.value.notice)
     }
 
     @Test

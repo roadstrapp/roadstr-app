@@ -20,4 +20,16 @@
     <string name="native_search_nearby_parking">Πάρκινγκ</string>
     <string name="native_search_nearby_hotel">Ξενοδοχείο</string>
     <string name="native_search_nearby_charging">Φόρτιση</string>
+    <string name="native_explore_area">Explore around here</string>
+    <string name="native_explore_categories">Explore this area</string>
+    <string name="native_explore_all">All</string>
+    <string name="native_explore_food">Food &amp; drink</string>
+    <string name="native_explore_culture">Attractions &amp; culture</string>
+    <string name="native_explore_shopping">Shopping</string>
+    <string name="native_explore_outdoor">Nature &amp; outdoors</string>
+    <string name="native_explore_services">Services</string>
+    <string name="native_explore_transport">Transport</string>
+    <string name="native_explore_health">Health</string>
+    <string name="native_explore_sport">Sport &amp; leisure</string>
+    <string name="native_explore_lodging">Lodging</string>
 </resources>

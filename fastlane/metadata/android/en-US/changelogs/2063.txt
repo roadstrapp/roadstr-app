@@ -1,0 +1,7 @@
+Explore nearby places with resilient provider fallback.
+
+Journey is an optional, private travel log with 17 illustrated achievement coins and optional encrypted Nostr sync.
+
+Voice search can now run entirely on-device in 25 European languages after an optional model download. Spoken addresses receive privacy-preserving number and street-name corrections before search.
+
+This release also improves themed actions, safe-area handling and screen transitions.

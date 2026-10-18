@@ -263,7 +263,7 @@ broader cross-language coverage and a native store are still required.
   `NativeRoadTestLocationController` plus a credential-free
   `NativeRoadTestJourneyGateway` composition root.
 - **Dependencies:** Compose BOM `2026.06.01`, Activity Compose `1.13.0`,
-  Material 3 and the Kotlin `2.2.10` Compose compiler plugin. The BOM is pinned
+  Material 3 and the Kotlin `2.2.20` Compose compiler plugin. The BOM is pinned
   to the last stable line compatible with the existing compile SDK 36; the
   resolved Google Play Services audit is empty.
 - **Migration impact:** Must not open or delete legacy storage yet.

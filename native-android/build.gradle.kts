@@ -1,3 +1,14 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        // Keep the compiler above Flutter's supported floor in both builds.
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.20")
+    }
+}
+
 val nativeBuildDirectory = rootProject.layout.projectDirectory.dir("../build/native-roadtest")
 rootProject.layout.buildDirectory.value(nativeBuildDirectory)
 

@@ -11,7 +11,7 @@ plugins {
 val geckoView = providers.gradleProperty("geckoview").orNull == "true"
 val geckoViewVersion = "157.0.20260924084938"
 // Keep in step with the Kotlin plugin version in settings.gradle.kts.
-val projectKotlin = "2.2.10"
+val projectKotlin = "2.2.20"
 
 val bundledVoiceChecksums = mapOf(
     "../../android/app/src/main/jniLibs/arm64-v8a/libespeak-ng.so" to
@@ -93,6 +93,7 @@ android {
                 listOf(
                     "src/main/kotlin",
                     "../../android/app/src/main/kotlin/app/roadstr/core",
+                    "../../android/app/src/main/kotlin/app/roadstr/offlinestt",
                     "../../android/app/src/main/kotlin/app/roadstr/feature",
                     "../../android/app/src/main/kotlin/app/roadstr/service/discovery",
                     "../../android/app/src/main/kotlin/app/roadstr/service/hazards",
@@ -103,6 +104,7 @@ android {
                     "../../android/app/src/main/kotlin/app/roadstr/service/offline",
                     "../../android/app/src/main/kotlin/app/roadstr/service/routing",
                     "../../android/app/src/main/kotlin/app/roadstr/service/search",
+                    "../../android/app/src/main/kotlin/app/roadstr/service/speech",
                     "../../android/app/src/main/kotlin/app/roadstr/service/transit",
                 ),
             )
@@ -170,8 +172,8 @@ if (candidate) {
         }
         defaultConfig {
             applicationId = "app.roadstr"
-            versionCode = 2062
-            versionName = "1.1.0-kotlin-candidate"
+            versionCode = 2063
+            versionName = "1.2.0-kotlin-candidate"
         }
         buildTypes {
             getByName("release") { signingConfig = signingConfigs.getByName("candidate") }

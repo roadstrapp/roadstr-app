@@ -7,6 +7,7 @@ import app.roadstr.core.protocol.nostr.NostrJson
 import app.roadstr.feature.home.NativeShellSyncSecrets
 import app.roadstr.service.nostr.NativeActivityStore
 import app.roadstr.service.nostr.NativeFavoritesSyncStore
+import app.roadstr.service.nostr.NativeJourneySyncStore
 import app.roadstr.service.nostr.NativePendingReportStorage
 
 /**
@@ -76,6 +77,48 @@ internal class NativeRoadTestSyncStorage(
         const val LAST_SYNC = "last_sync_millis"
         const val PASSPHRASE = "passphrase"
         const val RELAY = "custom_relay"
+    }
+}
+
+internal class NativeRoadTestJourneySyncStorage(
+    context: Context,
+    names: NativeLiveStoreNames = NativeLiveStoreNames(),
+) : NativeJourneySyncStore {
+    private val state = context.applicationContext.getSharedPreferences(
+        names.prefs("journey_sync_state"),
+        Context.MODE_PRIVATE,
+    )
+
+    override var lastCreatedAt: Long?
+        get() = state.getLong(LAST_CREATED_AT, -1L).takeIf { it >= 0L }
+        set(value) {
+            state.edit().apply {
+                if (value == null) remove(LAST_CREATED_AT) else putLong(LAST_CREATED_AT, value)
+            }.apply()
+        }
+
+    override var lastSuccessfulSyncMillis: Long?
+        get() = state.getLong(LAST_SUCCESS, -1L).takeIf { it >= 0L }
+        set(value) {
+            state.edit().apply {
+                if (value == null) remove(LAST_SUCCESS) else putLong(LAST_SUCCESS, value)
+            }.apply()
+        }
+
+    override fun publishedFingerprint(address: String): String? =
+        state.getString("fingerprint_${address.sha256()}", null)
+
+    override fun setPublishedFingerprint(address: String, fingerprint: String) {
+        state.edit().putString("fingerprint_${address.sha256()}", fingerprint).apply()
+    }
+
+    private fun String.sha256(): String = java.security.MessageDigest.getInstance("SHA-256")
+        .digest(toByteArray(Charsets.UTF_8))
+        .joinToString("") { byte -> (byte.toInt() and 0xff).toString(16).padStart(2, '0') }
+
+    private companion object {
+        const val LAST_CREATED_AT = "last_created_at"
+        const val LAST_SUCCESS = "last_success_millis"
     }
 }
 

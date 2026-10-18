@@ -35,8 +35,20 @@ requirement.
 | [kotlinx.coroutines](https://github.com/Kotlin/kotlinx.coroutines) | Apache-2.0 |
 | [Bouncy Castle](https://www.bouncycastle.org/) | MIT |
 | [ONNX Runtime](https://github.com/microsoft/onnxruntime) | MIT |
+| [transcribe.cpp](https://github.com/handy-computer/transcribe.cpp) and the ggml it contains — the offline speech engine, built as `libofflinestt_*.so` ([third_party/offline-stt-engine](third_party/offline-stt-engine/README.md)) | MIT |
+| Rust crates compiled into that engine (`jni`, `android_logger`, `log`, `once_cell`, `thiserror`, `regex` and their dependencies) | MIT and/or Apache-2.0 |
+| LLVM libc++ (`libc++_shared.so`, from the Android NDK) | Apache-2.0 with LLVM exception |
 | AndroidX / Jetpack Compose | Apache-2.0 |
 | Flutter and its plugins (production app) | BSD-3-Clause and the licences listed by `flutter pub deps` |
+
+## Downloaded on request, not shipped in the APK
+
+| Component | Where | Licence |
+|---|---|---|
+| NVIDIA Parakeet TDT 0.6B v3 speech model, converted and quantised to GGUF Q4_K_M by [handy-computer](https://huggingface.co/handy-computer/parakeet-tdt-0.6b-v3-gguf); Roadstr uses the converted file unmodified | `parakeet-tdt-0.6b-v3-Q4_K_M.gguf`, fetched once from `huggingface.co` when the user taps *Download the model* in Settings, size and SHA-256 checked first | **CC-BY-4.0** — © NVIDIA; <https://creativecommons.org/licenses/by/4.0/>. The conversion to GGUF/Q4_K_M is a change made by handy-computer. The attribution is also shown in Settings. |
+
+Nothing the user says is sent anywhere: recognition runs on the phone. See
+[docs/offline-voice-search.md](docs/offline-voice-search.md).
 
 ## Optional build variant: in-app browser
 

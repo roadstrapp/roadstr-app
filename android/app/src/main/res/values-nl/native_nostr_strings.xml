@@ -138,7 +138,10 @@
     <string name="native_saved_routes_title">Opgeslagen routes</string>
     <string name="native_search_notice_area_fallback">Die plek kon niet precies worden afgebakend, daarom is het gebied eromheen doorzocht.</string>
     <string name="native_search_notice_few_tagged">Weinig plaatsen hier zijn hiervoor getagd in OpenStreetMap, dus de lijst kan onvolledig zijn.</string>
+    <string name="native_search_notice_network_error">De netwerkverbinding viel weg tijdens het verkennen. Er zijn geen resultaten verzonnen.</string>
+    <string name="native_search_notice_offline_no_index">Dit gebied kan niet offline worden verkend omdat er geen lokale POI-index beschikbaar is.</string>
     <string name="native_search_notice_open_hours_unknown">Sommige plaatsen vermelden geen openingstijden, dus ze kunnen gesloten zijn.</string>
+    <string name="native_search_notice_provider_unavailable">De aanbieders van geografische gegevens zijn tijdelijk niet beschikbaar. Probeer het zo opnieuw.</string>
     <string name="native_search_notice_route_ahead">Plaatsen langs het deel van je route dat nog voor je ligt.</string>
     <string name="native_search_notice_route_unsupported">Zoeken langs de route is nog niet beschikbaar; plaatsen om je heen worden getoond.</string>
     <string name="native_search_notice_widened">Niets in de buurt, daarom is de zoekopdracht verbreed.</string>

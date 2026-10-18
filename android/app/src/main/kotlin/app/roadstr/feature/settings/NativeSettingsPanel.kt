@@ -7,12 +7,22 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
@@ -30,11 +40,14 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
@@ -62,11 +75,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalContext
@@ -129,6 +144,9 @@ sealed interface NativeSettingsUiAction {
     data object EditSyncPassphrase : NativeSettingsUiAction
     data object EditSyncRelay : NativeSettingsUiAction
     data object DownloadVoiceModel : NativeSettingsUiAction
+    data object DownloadSpeechModel : NativeSettingsUiAction
+    data object CancelSpeechDownload : NativeSettingsUiAction
+    data object DeleteSpeechModel : NativeSettingsUiAction
     data class VoiceGenderChanged(val value: NativeSettingsVoiceGender) : NativeSettingsUiAction
     data class VoiceSpeedChanged(val stage: Int) : NativeSettingsUiAction
     data class VoiceVolumeChanged(val value: Double) : NativeSettingsUiAction
@@ -141,6 +159,7 @@ sealed interface NativeSettingsUiAction {
     data object MeshForgetDevice : NativeSettingsUiAction
     data object MeshConfigureChannel : NativeSettingsUiAction
     data object MeshClearQueue : NativeSettingsUiAction
+    data object OpenJourney : NativeSettingsUiAction
 }
 
 /** Complete dormant settings catalogue; storage, secrets, network and intents remain external. */
@@ -152,7 +171,6 @@ fun NativeSettingsPanel(
     /** Whether web results are switched on and pointed at an instance; the web screen holds the rest. */
     webSearchActive: Boolean = false,
 ) {
-    if (snapshot.status == NativeSettingsStatus.Hidden) return
     val title = stringResource(R.string.native_settings_title)
     val revision = snapshot.revision
     val values = snapshot.values
@@ -165,44 +183,85 @@ fun NativeSettingsPanel(
     // so expanding the cursor menu later never stalls its own animation.
     val appContext = LocalContext.current.applicationContext
     LaunchedEffect(Unit) { CursorPreviewCache.preload(appContext) }
-    Surface(
-        modifier = modifier
+    AnimatedVisibility(
+        visible = snapshot.status != NativeSettingsStatus.Hidden,
+        modifier = modifier.fillMaxSize(),
+        enter = fadeIn(tween(260)) + slideInHorizontally(tween(420)) { it / 5 } +
+            scaleIn(tween(420), initialScale = .985f),
+        exit = fadeOut(tween(180)) + slideOutHorizontally(tween(300)) { it / 7 } +
+            scaleOut(tween(260), targetScale = .99f),
+    ) {
+        Surface(
+            modifier = Modifier
             .fillMaxSize()
             .semantics { paneTitle = title },
-        color = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-    ) {
-        LazyColumn(modifier = Modifier.fillMaxWidth().navigationBarsPadding()) {
-            item { SettingsHeader(title) { onAction(revision, NativeSettingsUiAction.Close) } }
-            item { ThemeSection(values) { onAction(revision, it) } }
-            item { LanguageSection(values) { onAction(revision, it) } }
-            item { VisibilitySection(values) { onAction(revision, it) } }
-            item {
-                PerformanceSection(
-                    values = values,
-                    expanded = performanceExpanded,
-                    onToggle = { performanceExpanded = !performanceExpanded },
-                    onAction = { onAction(revision, it) },
-                )
+            color = MaterialTheme.colorScheme.background,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ) {
+            LazyColumn(modifier = Modifier.fillMaxWidth().navigationBarsPadding()) {
+                item { SettingsHeader(title) { onAction(revision, NativeSettingsUiAction.Close) } }
+                item { ThemeSection(values) { onAction(revision, it) } }
+                item { LanguageSection(values) { onAction(revision, it) } }
+                item { VisibilitySection(values) { onAction(revision, it) } }
+                item {
+                    PerformanceSection(
+                        values = values,
+                        expanded = performanceExpanded,
+                        onToggle = { performanceExpanded = !performanceExpanded },
+                        onAction = { onAction(revision, it) },
+                    )
+                }
+                item {
+                    MapSection(
+                        values = values,
+                        overlaysExpanded = overlaysExpanded,
+                        onToggleOverlays = { overlaysExpanded = !overlaysExpanded },
+                        onAction = { onAction(revision, it) },
+                    )
+                }
+                item { AppearanceSection(values) { onAction(revision, it) } }
+                item { SearchSection(values, webSearchActive) { onAction(revision, it) } }
+                item { LightningSection(values) { onAction(revision, it) } }
+                item { FavoritesSection(values) { onAction(revision, it) } }
+                item { SyncSection(values) { onAction(revision, it) } }
+                item { JourneySection(values) { onAction(revision, it) } }
+                item { InteropSection(values) { onAction(revision, it) } }
+                item { MeshSection(values) { onAction(revision, it) } }
+                item { VoiceSection(values) { onAction(revision, it) } }
+                if (values.speechStatus != NativeSettingsSpeechStatus.Hidden) {
+                    item { SpeechSection(values) { onAction(revision, it) } }
+                }
+                item { InfoSection(values) { onAction(revision, it) } }
+                item { Spacer(modifier = Modifier.height(18.dp)) }
             }
-            item {
-                MapSection(
-                    values = values,
-                    overlaysExpanded = overlaysExpanded,
-                    onToggleOverlays = { overlaysExpanded = !overlaysExpanded },
-                    onAction = { onAction(revision, it) },
-                )
-            }
-            item { AppearanceSection(values) { onAction(revision, it) } }
-            item { SearchSection(values, webSearchActive) { onAction(revision, it) } }
-            item { LightningSection(values) { onAction(revision, it) } }
-            item { FavoritesSection(values) { onAction(revision, it) } }
-            item { SyncSection(values) { onAction(revision, it) } }
-            item { InteropSection(values) { onAction(revision, it) } }
-            item { MeshSection(values) { onAction(revision, it) } }
-            item { VoiceSection(values) { onAction(revision, it) } }
-            item { InfoSection(values) { onAction(revision, it) } }
-            item { Spacer(modifier = Modifier.height(18.dp)) }
+        }
+    }
+}
+
+@Composable
+private fun JourneySection(values: NativeSettingsInput, onAction: (NativeSettingsUiAction) -> Unit) {
+    SettingsSection(R.string.native_journey_settings_section) {
+        Text(
+            stringResource(R.string.native_journey_settings_desc),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        ToggleRow(
+            R.string.native_journey_enable,
+            R.string.native_journey_enable_desc,
+            values.journeyEnabled,
+        ) { onAction(NativeSettingsUiAction.BooleanChanged(NativeSettingsBooleanKey.JourneyEnabled, it)) }
+        if (values.journeyEnabled) {
+            ToggleRow(
+                R.string.native_journey_sync_enable,
+                R.string.native_journey_sync_enable_desc,
+                values.journeySyncEnabled,
+            ) { onAction(NativeSettingsUiAction.BooleanChanged(NativeSettingsBooleanKey.JourneySyncEnabled, it)) }
+            JourneyLaunchButton(
+                text = stringResource(R.string.native_journey_open),
+                modifier = Modifier.fillMaxWidth(),
+            ) { onAction(NativeSettingsUiAction.OpenJourney) }
         }
     }
 }
@@ -596,23 +655,29 @@ private fun FavoritesSection(values: NativeSettingsInput, onAction: (NativeSetti
                 onDelete = { onAction(NativeSettingsUiAction.DeleteFavorite(index)) },
             )
         }
-        ActionButton(stringResource(R.string.native_settings_add_favorite)) {
+        ActionButton(
+            stringResource(R.string.native_settings_add_favorite),
+            accent = ActionAccent.Theme,
+        ) {
             onAction(NativeSettingsUiAction.OpenSavedPlaces)
         }
         Row(
             modifier = Modifier.padding(top = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            OutlinedButton(
+            ActionButton(
+                text = stringResource(R.string.native_settings_export_favorites),
                 onClick = { onAction(NativeSettingsUiAction.ExportFavorites) },
                 enabled = values.favoritesCount > 0,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                modifier = Modifier.weight(1f).sizeIn(minHeight = 48.dp),
-            ) { Text(stringResource(R.string.native_settings_export_favorites)) }
-            OutlinedButton(
+                accent = ActionAccent.Theme,
+                modifier = Modifier.weight(1f),
+            )
+            ActionButton(
+                text = stringResource(R.string.native_settings_import_favorites),
                 onClick = { onAction(NativeSettingsUiAction.ImportFavorites) },
-                modifier = Modifier.weight(1f).sizeIn(minHeight = 48.dp),
-            ) { Text(stringResource(R.string.native_settings_import_favorites)) }
+                accent = ActionAccent.Theme,
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }
@@ -686,11 +751,13 @@ private fun SyncSection(values: NativeSettingsInput, onAction: (NativeSettingsUi
                 ActionButton(
                     text = stringResource(R.string.native_settings_sync_push),
                     enabled = !values.syncBusy,
+                    accent = ActionAccent.Theme,
                     modifier = Modifier.weight(1f),
                 ) { onAction(NativeSettingsUiAction.SyncPush) }
                 ActionButton(
                     text = stringResource(R.string.native_settings_sync_pull),
                     enabled = !values.syncBusy,
+                    accent = ActionAccent.Theme,
                     modifier = Modifier.weight(1f),
                 ) { onAction(NativeSettingsUiAction.SyncPull) }
             }
@@ -936,6 +1003,106 @@ private fun VoiceSection(values: NativeSettingsInput, onAction: (NativeSettingsU
 }
 
 @Composable
+private fun SpeechSection(values: NativeSettingsInput, onAction: (NativeSettingsUiAction) -> Unit) {
+    SettingsSection(R.string.native_speech_section) {
+        SettingsCard {
+            Text(stringResource(R.string.native_speech_title), fontWeight = FontWeight.SemiBold)
+            Text(
+                stringResource(R.string.native_speech_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                speechStatusLabel(values),
+                modifier = Modifier.padding(top = 6.dp),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            if (values.speechStatus == NativeSettingsSpeechStatus.Downloading) {
+                LinearProgressIndicator(
+                    progress = { values.speechDownloadProgress.toFloat() },
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                )
+                Text("${(values.speechDownloadProgress * 100).toInt()}%")
+            }
+            SpeechProblemText(values.speechProblem)
+            SpeechActions(values, onAction)
+            Text(
+                stringResource(R.string.native_speech_privacy),
+                modifier = Modifier.padding(top = 8.dp),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                stringResource(R.string.native_speech_streets_privacy),
+                modifier = Modifier.padding(top = 4.dp),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                stringResource(R.string.native_speech_attribution),
+                modifier = Modifier.padding(top = 4.dp),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SpeechProblemText(problem: NativeSettingsSpeechProblem?) {
+    if (problem == null) return
+    Text(
+        stringResource(
+            when (problem) {
+                NativeSettingsSpeechProblem.Network -> R.string.native_speech_problem_network
+                NativeSettingsSpeechProblem.Storage -> R.string.native_speech_problem_storage
+                NativeSettingsSpeechProblem.Integrity -> R.string.native_speech_problem_integrity
+                NativeSettingsSpeechProblem.EngineUnavailable -> R.string.native_speech_problem_engine
+            },
+        ),
+        modifier = Modifier.padding(top = 4.dp),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.error,
+    )
+}
+
+@Composable
+private fun SpeechActions(values: NativeSettingsInput, onAction: (NativeSettingsUiAction) -> Unit) {
+    when (values.speechStatus) {
+        NativeSettingsSpeechStatus.NotDownloaded -> ActionButton(
+            stringResource(R.string.native_speech_download, values.speechModelMegabytes),
+        ) { onAction(NativeSettingsUiAction.DownloadSpeechModel) }
+
+        NativeSettingsSpeechStatus.Downloading -> ActionButton(stringResource(R.string.native_speech_cancel)) {
+            onAction(NativeSettingsUiAction.CancelSpeechDownload)
+        }
+
+        NativeSettingsSpeechStatus.Ready,
+        NativeSettingsSpeechStatus.Unavailable,
+        -> ActionButton(stringResource(R.string.native_speech_delete)) {
+            onAction(NativeSettingsUiAction.DeleteSpeechModel)
+        }
+
+        NativeSettingsSpeechStatus.Hidden,
+        NativeSettingsSpeechStatus.Checking,
+        -> Unit
+    }
+}
+
+@Composable
+private fun speechStatusLabel(values: NativeSettingsInput): String = stringResource(
+    when (values.speechStatus) {
+        NativeSettingsSpeechStatus.Ready -> R.string.native_speech_ready
+        NativeSettingsSpeechStatus.Downloading -> R.string.native_speech_downloading
+        NativeSettingsSpeechStatus.Unavailable -> R.string.native_speech_unavailable
+        NativeSettingsSpeechStatus.Checking -> R.string.native_speech_checking
+        NativeSettingsSpeechStatus.Hidden,
+        NativeSettingsSpeechStatus.NotDownloaded,
+        -> R.string.native_speech_not_downloaded
+    },
+)
+
+@Composable
 private fun InfoSection(values: NativeSettingsInput, onAction: (NativeSettingsUiAction) -> Unit) {
     SettingsSection(R.string.native_settings_info_section) {
         InfoRow(stringResource(R.string.native_settings_info_version), values.appVersion)
@@ -952,6 +1119,7 @@ private fun InfoSection(values: NativeSettingsInput, onAction: (NativeSettingsUi
         }
         ActionButton(
             text = stringResource(R.string.native_settings_support),
+            accent = ActionAccent.Theme,
             modifier = Modifier.padding(top = 16.dp, bottom = 24.dp),
         ) {
             onAction(NativeSettingsUiAction.SupportRoadstr)
@@ -1387,14 +1555,80 @@ private fun ActionRow(title: String, value: String?, onClick: () -> Unit) {
 internal fun ActionButton(
     text: String,
     enabled: Boolean = true,
+    accent: ActionAccent = ActionAccent.None,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    OutlinedButton(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = modifier.fillMaxWidth().sizeIn(minHeight = 48.dp),
-    ) { Text(text) }
+    if (accent == ActionAccent.None) {
+        OutlinedButton(
+            onClick = onClick,
+            enabled = enabled,
+            modifier = modifier.fillMaxWidth().sizeIn(minHeight = 48.dp),
+        ) { Text(text) }
+    } else {
+        val accentColor = MaterialTheme.colorScheme.primary
+        val accentContentColor = if (accentColor.luminance() > 0.35f) Color(0xFF211400) else Color.White
+        Button(
+            onClick = onClick,
+            enabled = enabled,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = accentColor,
+                contentColor = accentContentColor,
+                disabledContainerColor = accentColor.copy(alpha = 0.28f),
+                disabledContentColor = accentContentColor.copy(alpha = 0.62f),
+            ),
+            modifier = modifier.fillMaxWidth().sizeIn(minHeight = 48.dp),
+        ) { Text(text, fontWeight = FontWeight.Bold) }
+    }
+}
+
+internal enum class ActionAccent { None, Theme }
+
+/** The Journey CTA is intentionally more celebratory than ordinary settings actions. */
+@Composable
+private fun JourneyLaunchButton(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val motion = rememberInfiniteTransition(label = "journey-launch")
+    val shimmer by motion.animateFloat(
+        initialValue = -0.25f,
+        targetValue = 1.25f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2_800, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "journey-launch-shimmer",
+    )
+    val accent = MaterialTheme.colorScheme.primary
+    val accentContentColor = if (accent.luminance() > 0.35f) Color(0xFF211400) else Color.White
+    val accentDark = lerp(accent, Color.Black, 0.18f)
+    val accentLight = lerp(accent, Color.White, 0.18f)
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .sizeIn(minHeight = 54.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .background(Brush.horizontalGradient(listOf(accentDark, accent, accentLight)))
+            .clickable(onClick = onClick)
+            .semantics { role = Role.Button },
+        contentAlignment = Alignment.Center,
+    ) {
+        Canvas(Modifier.matchParentSize()) {
+            val x = size.width * shimmer
+            drawCircle(Color.White.copy(alpha = 0.30f), radius = 5.dp.toPx(), center = Offset(x, size.height * .28f))
+            drawCircle(Color.White.copy(alpha = 0.65f), radius = 2.dp.toPx(), center = Offset(x + size.width * .12f, size.height * .68f))
+            drawCircle(Color(0xFFFFE082).copy(alpha = 0.85f), radius = 2.5.dp.toPx(), center = Offset(x - size.width * .16f, size.height * .52f))
+        }
+        Row(
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Text("✦", color = Color(0xFFFFE082), fontWeight = FontWeight.Black)
+            Spacer(Modifier.width(9.dp))
+            Text(text, color = accentContentColor, fontWeight = FontWeight.Black)
+            Spacer(Modifier.width(9.dp))
+            Text("›", color = accentContentColor, style = MaterialTheme.typography.titleLarge)
+        }
+    }
 }
 
 @Composable

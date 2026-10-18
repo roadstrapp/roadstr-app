@@ -1,0 +1,21 @@
+name: amberflutter
+description: Flutter wrapper for Amber (Nostr Signer), vendored for Roadstr AGP 9 compatibility.
+version: 0.0.9
+repository: https://github.com/sebdeveloper6952/amberflutter/
+issue_tracker: https://github.com/sebdeveloper6952/amberflutter/issues/
+
+environment:
+  sdk: ">=3.2.1 <4.0.0"
+  flutter: ">=3.3.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.0.2
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.sebdeveloper6952.amberflutter.amberflutter
+        pluginClass: AmberflutterPlugin

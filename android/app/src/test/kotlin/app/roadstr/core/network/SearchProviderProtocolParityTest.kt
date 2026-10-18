@@ -1,5 +1,6 @@
 package app.roadstr.core.network
 
+import java.net.URI
 import java.util.Base64
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -58,8 +59,36 @@ class SearchProviderProtocolParityTest {
         assertEquals(200, SearchProviderProtocol.photonMaxQueryLength)
         assertEquals(setOf("en", "de", "fr"), SearchProviderProtocol.photonSupportedLanguages)
         assertEquals(3, SearchProviderProtocol.overpassMirrors.size)
+        assertEquals(
+            setOf("overpass-api.de", "maps.mail.ru", "overpass.private.coffee"),
+            SearchProviderProtocol.overpassMirrors.map { URI(it).host }.toSet(),
+        )
         assertFalse(SearchProviderProtocol.overpassMirrors.any { it.contains("openstreetmap.fr") })
         assertFalse(SearchProviderProtocol.overpassMirrors.any { it.contains("osm.ch") })
+        assertEquals(
+            "overpass.roadstr.example",
+            URI(
+                SearchProviderProtocol.overpassMirrors(
+                    "https://overpass.roadstr.example/api/interpreter",
+                ).first(),
+            ).host,
+        )
+        assertEquals(
+            SearchProviderProtocol.overpassPreferredMirror,
+            SearchProviderProtocol.overpassMirrors("http://insecure.example/api/interpreter").first(),
+        )
+        for (invalid in listOf(
+            "https://user:secret@example.com/api/interpreter",
+            "https://example.com/api/interpreter?token=secret",
+            "https://example.com/api/interpreter#fragment",
+            "https://example.com:99999/api/interpreter",
+        )) {
+            assertEquals(
+                invalid,
+                SearchProviderProtocol.overpassPreferredMirror,
+                SearchProviderProtocol.overpassMirrors(invalid).first(),
+            )
+        }
         assertThrows(IllegalArgumentException::class.java) {
             SearchProviderProtocol.nominatimSearch("x", latitude = 45.0)
         }

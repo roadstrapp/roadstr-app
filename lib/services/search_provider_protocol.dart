@@ -31,14 +31,15 @@ class SearchProviderProtocol {
   /// and reports an empty success for queries elsewhere instead of failing.
   ///
   /// overpass.openstreetmap.fr is absent too: it now answers every request
-  /// from an app with 403 "only available to white-listed usages". The two
-  /// extra instances are run by the same operator as the main one, so adding
-  /// them widens the fallback without adding another party that sees where
-  /// the driver is.
+  /// from an app with 403 "only available to white-listed usages". These are
+  /// independent, global instances from the OpenStreetMap public-instance
+  /// catalogue, so one operator outage does not disable place discovery.
+  /// A failover or hedged request can disclose the same area to another
+  /// operator, but only after an explicit user search; there is no polling.
   static const overpassMirrors = [
     'https://overpass-api.de/api/interpreter',
-    'https://lz4.overpass-api.de/api/interpreter',
-    'https://z.overpass-api.de/api/interpreter',
+    'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+    'https://overpass.private.coffee/api/interpreter',
   ];
 
   static const photonMaxQueryLength = 200;

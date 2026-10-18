@@ -20,4 +20,16 @@
     <string name="native_search_nearby_parking">Parcheggio</string>
     <string name="native_search_nearby_hotel">Hotel</string>
     <string name="native_search_nearby_charging">Ricarica</string>
+    <string name="native_explore_area">Esplora i dintorni</string>
+    <string name="native_explore_categories">Esplora quest’area</string>
+    <string name="native_explore_all">Tutto</string>
+    <string name="native_explore_food">Mangiare e bere</string>
+    <string name="native_explore_culture">Attrazioni e cultura</string>
+    <string name="native_explore_shopping">Shopping</string>
+    <string name="native_explore_outdoor">Natura e outdoor</string>
+    <string name="native_explore_services">Servizi</string>
+    <string name="native_explore_transport">Trasporti</string>
+    <string name="native_explore_health">Salute</string>
+    <string name="native_explore_sport">Sport e tempo libero</string>
+    <string name="native_explore_lodging">Alloggi</string>
 </resources>

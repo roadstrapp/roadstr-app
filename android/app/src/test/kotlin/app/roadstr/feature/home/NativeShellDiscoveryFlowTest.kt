@@ -3,6 +3,7 @@ package app.roadstr.feature.home
 import app.roadstr.core.discovery.DiscoveryNotice
 import app.roadstr.core.discovery.DiscoveryOutcome
 import app.roadstr.core.discovery.DiscoveryRequest
+import app.roadstr.core.discovery.DiscoveryUnavailableReason
 import app.roadstr.core.discovery.PlaceCategory
 import app.roadstr.core.discovery.PlaceSource
 import app.roadstr.core.discovery.RankedPlace
@@ -174,6 +175,32 @@ class NativeShellDiscoveryFlowTest {
 
         assertTrue(h.search.state.value.results.isEmpty())
         assertEquals(NativeSearchNotice.FewTagged, h.search.state.value.notice)
+    }
+
+    @Test
+    fun `explicit exploration keeps offline and provider failures visible`() {
+        val h = Harness()
+        h.gateway.outcome = DiscoveryOutcome.Unavailable(DiscoveryUnavailableReason.OFFLINE_NO_INDEX)
+
+        assertTrue(h.coordinator.exploreArea(gps))
+        assertEquals(NativeSearchUiStatus.Unavailable, h.search.state.value.status)
+        assertEquals(NativeSearchNotice.OfflineNoIndex, h.search.state.value.notice)
+
+        h.gateway.outcome = DiscoveryOutcome.Unavailable(DiscoveryUnavailableReason.PROVIDER_UNAVAILABLE)
+        assertTrue(h.coordinator.changeExploreCategory(app.roadstr.core.discovery.ExploreCategory.SHOPPING))
+        assertEquals(NativeSearchUiStatus.Unavailable, h.search.state.value.status)
+        assertEquals(NativeSearchNotice.ProviderUnavailable, h.search.state.value.notice)
+    }
+
+    @Test
+    fun `a natural discovery outage stays distinct when classic search is empty`() {
+        val h = Harness()
+        h.gateway.outcome = DiscoveryOutcome.Unavailable(DiscoveryUnavailableReason.PROVIDER_UNAVAILABLE)
+        h.coordinator.openSearch(nearbyEnabled = false)
+        h.coordinator.submitSearch("restaurant near me", gps)
+
+        assertEquals(NativeSearchUiStatus.Unavailable, h.search.state.value.status)
+        assertEquals(NativeSearchNotice.ProviderUnavailable, h.search.state.value.notice)
     }
 
     @Test

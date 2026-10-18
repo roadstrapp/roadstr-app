@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Cuardach gutha</string>
+    <string name="native_speech_title">Cuardach gutha as líne</string>
+    <string name="native_speech_desc">Abair áit leis an gcnaipe micreafóin sa chuardach. Aithnítear an chaint ar an bhfón seo, gan nasc idirlín agus gan Google ná seirbhís eile aitheantais cainte.</string>
+    <string name="native_speech_checking">Ag seiceáil…</string>
+    <string name="native_speech_not_downloaded">Gan suiteáil. Go dtí go suiteálfaidh tú é, úsáideann an cnaipe micreafóin aitheantas cainte do ghutháin, má tá ceann aige.</string>
+    <string name="native_speech_downloading">Ag íoslódáil an tsamhla cainte…</string>
+    <string name="native_speech_ready">Suiteáilte. Oibríonn an cnaipe micreafóin as líne.</string>
+    <string name="native_speech_unavailable">Suiteáilte, ach ní féidir leis an bhfón seo é a rith. Úsáideann an cnaipe micreafóin aitheantas cainte an ghutháin féin.</string>
+    <string name="native_speech_download">Íoslódáil an samhail (%1$d MB)</string>
+    <string name="native_speech_cancel">Cealaigh an íoslódáil</string>
+    <string name="native_speech_delete">Scrios an samhail</string>
+    <string name="native_speech_privacy">Ní fhágann do ghlór an fón seo go deo. Íoslódáiltear comhad an tsamhla uair amháin ó huggingface.co, a fheiceann do sheoladh IP agus an íoslódáil, ach rud ar bith a deir tú. Ní úsáidtear an micreafón ach fad atá an scáileán éisteachta oscailte.</string>
+    <string name="native_speech_streets_privacy">Chun ainmneacha sráideanna a scríobh mar a scríobhann an léarscáil iad, iarrann an cuardach gutha ar fhreastalaithe léarscáile Overpass freisin ainmneacha na sráideanna timpeall ort, uair sa mhí in aghaidh gach ceantair. Luann an iarraidh lár limistéir thart ar 5 km ar leithead, ní an áit a bhfuil tú, agus ní bhíonn aon rud a dúirt tú inti riamh.</string>
+    <string name="native_speech_problem_network">Cuireadh isteach ar an íoslódáil. Tapáil “Íoslódáil an samhail” arís chun leanúint ar aghaidh.</string>
+    <string name="native_speech_problem_storage">Níl go leor spáis saor ann don samhail.</string>
+    <string name="native_speech_problem_integrity">Níor mheaitseáil an comhad íoslódáilte lena shuim sheiceála agus caitheadh uaidh é.</string>
+    <string name="native_speech_problem_engine">Níor éirigh leis an inneall cainte an samhail a luchtú ar an bhfón seo.</string>
+    <string name="native_speech_listening">Ag éisteacht…</string>
+    <string name="native_speech_transcribing">Ag aithint…</string>
+    <string name="native_speech_done">Déanta</string>
+    <string name="native_speech_stop">Cealaigh</string>
+    <string name="native_speech_nothing_heard">Níor chuala mé rud ar bith.</string>
+</resources>
