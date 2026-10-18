@@ -113,7 +113,7 @@ Builds:
 
   - versionName: 1.2.0
     versionCode: 2063
-    commit: 7205efd100d44d83fd88b33b9562d85a44fadbdb
+    commit: ce19d85284221df176e99ddfc347bf0a94c8ed67
     sudo:
       - apt-get update
       - apt-get install -y build-essential cmake
