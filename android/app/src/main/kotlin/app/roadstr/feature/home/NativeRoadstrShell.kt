@@ -20,6 +20,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -237,16 +238,17 @@ enum class NativeShellMode {
 @Composable
 private fun RoadstrScreenReveal(
     visible: Boolean,
-    content: @Composable () -> Unit,
+    content: @Composable BoxScope.() -> Unit,
 ) {
     AnimatedVisibility(
         visible = visible,
+        modifier = Modifier.fillMaxSize(),
         enter = fadeIn(tween(250)) + slideInHorizontally(tween(420)) { it / 5 } +
             scaleIn(tween(420), initialScale = .985f),
         exit = fadeOut(tween(170)) + slideOutHorizontally(tween(290)) { it / 8 } +
             scaleOut(tween(260), targetScale = .99f),
     ) {
-        content()
+        Box(modifier = Modifier.fillMaxSize(), content = content)
     }
 }
 

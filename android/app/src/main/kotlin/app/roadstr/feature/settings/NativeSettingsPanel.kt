@@ -81,6 +81,7 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalContext
@@ -105,7 +106,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 import app.roadstr.core.ui.RoadstrSwitch
 import app.roadstr.core.ui.theme.RoadstrThemeId
-import app.roadstr.core.ui.theme.RoadstrThemeTokens
 import app.roadstr.feature.navigation.NativeSpeedometerStyle
 import app.roadstr.feature.performance.NativePerformanceProfile
 import app.roadstr.feature.performance.PerformanceProfileSelector
@@ -651,7 +651,7 @@ private fun FavoritesSection(values: NativeSettingsInput, onAction: (NativeSetti
         }
         ActionButton(
             stringResource(R.string.native_settings_add_favorite),
-            accent = ActionAccent.Nostr,
+            accent = ActionAccent.Theme,
         ) {
             onAction(NativeSettingsUiAction.OpenSavedPlaces)
         }
@@ -663,13 +663,13 @@ private fun FavoritesSection(values: NativeSettingsInput, onAction: (NativeSetti
                 text = stringResource(R.string.native_settings_export_favorites),
                 onClick = { onAction(NativeSettingsUiAction.ExportFavorites) },
                 enabled = values.favoritesCount > 0,
-                accent = ActionAccent.Nostr,
+                accent = ActionAccent.Theme,
                 modifier = Modifier.weight(1f),
             )
             ActionButton(
                 text = stringResource(R.string.native_settings_import_favorites),
                 onClick = { onAction(NativeSettingsUiAction.ImportFavorites) },
-                accent = ActionAccent.Nostr,
+                accent = ActionAccent.Theme,
                 modifier = Modifier.weight(1f),
             )
         }
@@ -745,13 +745,13 @@ private fun SyncSection(values: NativeSettingsInput, onAction: (NativeSettingsUi
                 ActionButton(
                     text = stringResource(R.string.native_settings_sync_push),
                     enabled = !values.syncBusy,
-                    accent = ActionAccent.Nostr,
+                    accent = ActionAccent.Theme,
                     modifier = Modifier.weight(1f),
                 ) { onAction(NativeSettingsUiAction.SyncPush) }
                 ActionButton(
                     text = stringResource(R.string.native_settings_sync_pull),
                     enabled = !values.syncBusy,
-                    accent = ActionAccent.Nostr,
+                    accent = ActionAccent.Theme,
                     modifier = Modifier.weight(1f),
                 ) { onAction(NativeSettingsUiAction.SyncPull) }
             }
@@ -1013,7 +1013,7 @@ private fun InfoSection(values: NativeSettingsInput, onAction: (NativeSettingsUi
         }
         ActionButton(
             text = stringResource(R.string.native_settings_support),
-            accent = ActionAccent.Bitcoin,
+            accent = ActionAccent.Theme,
             modifier = Modifier.padding(top = 16.dp, bottom = 24.dp),
         ) {
             onAction(NativeSettingsUiAction.SupportRoadstr)
@@ -1460,25 +1460,23 @@ internal fun ActionButton(
             modifier = modifier.fillMaxWidth().sizeIn(minHeight = 48.dp),
         ) { Text(text) }
     } else {
-        val accentColor = Color(
-            if (accent == ActionAccent.Nostr) RoadstrThemeTokens.NOSTR_PURPLE_ARGB
-            else RoadstrThemeTokens.BITCOIN_ORANGE_ARGB,
-        )
+        val accentColor = MaterialTheme.colorScheme.primary
+        val accentContentColor = if (accentColor.luminance() > 0.35f) Color(0xFF211400) else Color.White
         Button(
             onClick = onClick,
             enabled = enabled,
             colors = ButtonDefaults.buttonColors(
                 containerColor = accentColor,
-                contentColor = Color.White,
+                contentColor = accentContentColor,
                 disabledContainerColor = accentColor.copy(alpha = 0.28f),
-                disabledContentColor = Color.White.copy(alpha = 0.62f),
+                disabledContentColor = accentContentColor.copy(alpha = 0.62f),
             ),
             modifier = modifier.fillMaxWidth().sizeIn(minHeight = 48.dp),
         ) { Text(text, fontWeight = FontWeight.Bold) }
     }
 }
 
-internal enum class ActionAccent { None, Nostr, Bitcoin }
+internal enum class ActionAccent { None, Theme }
 
 /** The Journey CTA is intentionally more celebratory than ordinary settings actions. */
 @Composable
@@ -1493,14 +1491,16 @@ private fun JourneyLaunchButton(text: String, modifier: Modifier = Modifier, onC
         ),
         label = "journey-launch-shimmer",
     )
-    val purple = Color(RoadstrThemeTokens.NOSTR_PURPLE_ARGB)
-    val orange = Color(RoadstrThemeTokens.BITCOIN_ORANGE_ARGB)
+    val accent = MaterialTheme.colorScheme.primary
+    val accentContentColor = if (accent.luminance() > 0.35f) Color(0xFF211400) else Color.White
+    val accentDark = lerp(accent, Color.Black, 0.18f)
+    val accentLight = lerp(accent, Color.White, 0.18f)
     Box(
         modifier = modifier
             .fillMaxWidth()
             .sizeIn(minHeight = 54.dp)
             .clip(RoundedCornerShape(28.dp))
-            .background(Brush.horizontalGradient(listOf(purple, purple.copy(red = 0.72f), orange)))
+            .background(Brush.horizontalGradient(listOf(accentDark, accent, accentLight)))
             .clickable(onClick = onClick)
             .semantics { role = Role.Button },
         contentAlignment = Alignment.Center,
@@ -1518,9 +1518,9 @@ private fun JourneyLaunchButton(text: String, modifier: Modifier = Modifier, onC
         ) {
             Text("✦", color = Color(0xFFFFE082), fontWeight = FontWeight.Black)
             Spacer(Modifier.width(9.dp))
-            Text(text, color = Color.White, fontWeight = FontWeight.Black)
+            Text(text, color = accentContentColor, fontWeight = FontWeight.Black)
             Spacer(Modifier.width(9.dp))
-            Text("›", color = Color.White, style = MaterialTheme.typography.titleLarge)
+            Text("›", color = accentContentColor, style = MaterialTheme.typography.titleLarge)
         }
     }
 }
