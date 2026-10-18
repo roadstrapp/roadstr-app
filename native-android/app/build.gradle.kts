@@ -93,6 +93,7 @@ android {
                 listOf(
                     "src/main/kotlin",
                     "../../android/app/src/main/kotlin/app/roadstr/core",
+                    "../../android/app/src/main/kotlin/app/roadstr/offlinestt",
                     "../../android/app/src/main/kotlin/app/roadstr/feature",
                     "../../android/app/src/main/kotlin/app/roadstr/service/discovery",
                     "../../android/app/src/main/kotlin/app/roadstr/service/hazards",
@@ -103,6 +104,7 @@ android {
                     "../../android/app/src/main/kotlin/app/roadstr/service/offline",
                     "../../android/app/src/main/kotlin/app/roadstr/service/routing",
                     "../../android/app/src/main/kotlin/app/roadstr/service/search",
+                    "../../android/app/src/main/kotlin/app/roadstr/service/speech",
                     "../../android/app/src/main/kotlin/app/roadstr/service/transit",
                 ),
             )

@@ -144,6 +144,9 @@ sealed interface NativeSettingsUiAction {
     data object EditSyncPassphrase : NativeSettingsUiAction
     data object EditSyncRelay : NativeSettingsUiAction
     data object DownloadVoiceModel : NativeSettingsUiAction
+    data object DownloadSpeechModel : NativeSettingsUiAction
+    data object CancelSpeechDownload : NativeSettingsUiAction
+    data object DeleteSpeechModel : NativeSettingsUiAction
     data class VoiceGenderChanged(val value: NativeSettingsVoiceGender) : NativeSettingsUiAction
     data class VoiceSpeedChanged(val stage: Int) : NativeSettingsUiAction
     data class VoiceVolumeChanged(val value: Double) : NativeSettingsUiAction
@@ -225,6 +228,9 @@ fun NativeSettingsPanel(
                 item { InteropSection(values) { onAction(revision, it) } }
                 item { MeshSection(values) { onAction(revision, it) } }
                 item { VoiceSection(values) { onAction(revision, it) } }
+                if (values.speechStatus != NativeSettingsSpeechStatus.Hidden) {
+                    item { SpeechSection(values) { onAction(revision, it) } }
+                }
                 item { InfoSection(values) { onAction(revision, it) } }
                 item { Spacer(modifier = Modifier.height(18.dp)) }
             }
@@ -995,6 +1001,100 @@ private fun VoiceSection(values: NativeSettingsInput, onAction: (NativeSettingsU
         }
     }
 }
+
+@Composable
+private fun SpeechSection(values: NativeSettingsInput, onAction: (NativeSettingsUiAction) -> Unit) {
+    SettingsSection(R.string.native_speech_section) {
+        SettingsCard {
+            Text(stringResource(R.string.native_speech_title), fontWeight = FontWeight.SemiBold)
+            Text(
+                stringResource(R.string.native_speech_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                speechStatusLabel(values),
+                modifier = Modifier.padding(top = 6.dp),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            if (values.speechStatus == NativeSettingsSpeechStatus.Downloading) {
+                LinearProgressIndicator(
+                    progress = { values.speechDownloadProgress.toFloat() },
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                )
+                Text("${(values.speechDownloadProgress * 100).toInt()}%")
+            }
+            SpeechProblemText(values.speechProblem)
+            SpeechActions(values, onAction)
+            Text(
+                stringResource(R.string.native_speech_privacy),
+                modifier = Modifier.padding(top = 8.dp),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                stringResource(R.string.native_speech_attribution),
+                modifier = Modifier.padding(top = 4.dp),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SpeechProblemText(problem: NativeSettingsSpeechProblem?) {
+    if (problem == null) return
+    Text(
+        stringResource(
+            when (problem) {
+                NativeSettingsSpeechProblem.Network -> R.string.native_speech_problem_network
+                NativeSettingsSpeechProblem.Storage -> R.string.native_speech_problem_storage
+                NativeSettingsSpeechProblem.Integrity -> R.string.native_speech_problem_integrity
+                NativeSettingsSpeechProblem.EngineUnavailable -> R.string.native_speech_problem_engine
+            },
+        ),
+        modifier = Modifier.padding(top = 4.dp),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.error,
+    )
+}
+
+@Composable
+private fun SpeechActions(values: NativeSettingsInput, onAction: (NativeSettingsUiAction) -> Unit) {
+    when (values.speechStatus) {
+        NativeSettingsSpeechStatus.NotDownloaded -> ActionButton(
+            stringResource(R.string.native_speech_download, values.speechModelMegabytes),
+        ) { onAction(NativeSettingsUiAction.DownloadSpeechModel) }
+
+        NativeSettingsSpeechStatus.Downloading -> ActionButton(stringResource(R.string.native_speech_cancel)) {
+            onAction(NativeSettingsUiAction.CancelSpeechDownload)
+        }
+
+        NativeSettingsSpeechStatus.Ready,
+        NativeSettingsSpeechStatus.Unavailable,
+        -> ActionButton(stringResource(R.string.native_speech_delete)) {
+            onAction(NativeSettingsUiAction.DeleteSpeechModel)
+        }
+
+        NativeSettingsSpeechStatus.Hidden,
+        NativeSettingsSpeechStatus.Checking,
+        -> Unit
+    }
+}
+
+@Composable
+private fun speechStatusLabel(values: NativeSettingsInput): String = stringResource(
+    when (values.speechStatus) {
+        NativeSettingsSpeechStatus.Ready -> R.string.native_speech_ready
+        NativeSettingsSpeechStatus.Downloading -> R.string.native_speech_downloading
+        NativeSettingsSpeechStatus.Unavailable -> R.string.native_speech_unavailable
+        NativeSettingsSpeechStatus.Checking -> R.string.native_speech_checking
+        NativeSettingsSpeechStatus.Hidden,
+        NativeSettingsSpeechStatus.NotDownloaded,
+        -> R.string.native_speech_not_downloaded
+    },
+)
 
 @Composable
 private fun InfoSection(values: NativeSettingsInput, onAction: (NativeSettingsUiAction) -> Unit) {

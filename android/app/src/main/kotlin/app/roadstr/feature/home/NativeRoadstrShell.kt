@@ -187,6 +187,8 @@ import app.roadstr.feature.settings.NativeSettingsFavorite
 import app.roadstr.feature.settings.NativeSettingsInput
 import app.roadstr.feature.settings.NativeSettingsVoiceGender
 import app.roadstr.feature.settings.NativeSettingsVoiceModelStatus
+import app.roadstr.feature.speech.NativeSpeechGateway
+import app.roadstr.feature.speech.withSpeech
 import app.roadstr.feature.transit.NativeTransitItinerariesPanel
 import app.roadstr.feature.transit.NativeTransitJourneySession
 import app.roadstr.feature.transit.NativeTransitNavigationHud
@@ -355,6 +357,7 @@ fun NativeRoadstrShell(
     onOpenExternal: (String) -> Unit = {},
     searchSpeechTranscript: NativeSearchSpeechTranscript? = null,
     onSearchSpeechRequested: () -> Unit = {},
+    speechGateway: NativeSpeechGateway? = null,
     onboardingCompleted: Boolean = false,
     onOnboardingCompleted: () -> Unit = {},
     initialParking: NativeParkingPosition? = null,
@@ -825,6 +828,7 @@ fun NativeRoadstrShell(
             onDispose { webBrowser?.pageResolver = null }
         }
         val voiceRuntimeState = voiceGateway?.state?.collectAsState()?.value
+        val speechRuntimeState = speechGateway?.state?.collectAsState()?.value
         val voiceLanguage = journeyLanguage
         val transitVoiceApproachStop = stringResource(R.string.native_transit_voice_approach_stop)
         val transitVoicePrepareBoard = stringResource(R.string.native_transit_voice_prepare_board)
@@ -865,12 +869,19 @@ fun NativeRoadstrShell(
                 voiceGateway?.prewarmStart()
             }
         }
+        LaunchedEffect(speechRuntimeState) {
+            // Read the session, not the composed copy: the voice effect below may have just
+            // refreshed it in this same frame, and this one must not undo that.
+            val current = settingsSession.state.value
+            if (current.status != NativeSettingsStatus.Ready) return@LaunchedEffect
+            settingsSession.refresh(current.revision, current.values.withSpeech(speechRuntimeState))
+        }
         LaunchedEffect(voiceRuntimeState) {
             if (settingsState.status != NativeSettingsStatus.Ready) return@LaunchedEffect
             val voiceState = voiceRuntimeState ?: return@LaunchedEffect
             settingsSession.refresh(
-                settingsState.revision,
-                settingsState.values.copy(
+                settingsSession.state.value.revision,
+                settingsSession.state.value.values.copy(
                     voiceModelStatus = when (voiceState.status) {
                         NativeVoiceRuntimeStatus.MissingAssets,
                         NativeVoiceRuntimeStatus.Failed,
@@ -909,7 +920,7 @@ fun NativeRoadstrShell(
                             -> NativeSettingsVoiceModelStatus.NotDownloaded
                         },
                         voiceDownloadProgress = voiceState?.downloadFraction ?: 0.0,
-                    ),
+                    ).withSpeech(speechRuntimeState),
                 )
             }
             Unit
@@ -2547,6 +2558,9 @@ fun NativeRoadstrShell(
                             }
                             NativeSettingsUiAction.OpenWebSearch -> webPanelVisible = true
                             NativeSettingsUiAction.DownloadVoiceModel -> voiceGateway?.downloadAssets()
+                            NativeSettingsUiAction.DownloadSpeechModel -> speechGateway?.downloadModel()
+                            NativeSettingsUiAction.CancelSpeechDownload -> speechGateway?.cancelDownload()
+                            NativeSettingsUiAction.DeleteSpeechModel -> speechGateway?.deleteModel()
                         }
                     },
                     modifier = Modifier.align(Alignment.BottomCenter),

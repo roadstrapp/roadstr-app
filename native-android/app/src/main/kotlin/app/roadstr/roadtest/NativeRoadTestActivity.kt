@@ -24,6 +24,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.roadstr.R
+import app.roadstr.core.speech.SpeechOutcome
+import app.roadstr.feature.speech.NativeSpeechOverlay
+import app.roadstr.service.speech.AndroidSpeechGateway
 import app.roadstr.core.intent.NativeExternalDestinationInbox
 import app.roadstr.core.discovery.web.WebDiscoverySettings
 import app.roadstr.core.discovery.web.WebDiscoverySettingsCodec
@@ -111,6 +114,19 @@ open class NativeRoadTestActivity : ComponentActivity() {
             ?: return@registerForActivityResult
         searchSpeechRevision += 1L
         searchSpeechTranscript.value = NativeSearchSpeechTranscript(searchSpeechRevision, text)
+    }
+
+    // The offline recogniser. Created on first use, so a phone that never taps the microphone pays
+    // nothing for it; closed with the Activity.
+    private val speechLazy = lazy(LazyThreadSafetyMode.NONE) { AndroidSpeechGateway(applicationContext) }
+    private val speechGateway: AndroidSpeechGateway get() = speechLazy.value
+    private var pendingSpeechLanguage: String? = null
+    private val microphonePermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        val language = pendingSpeechLanguage ?: return@registerForActivityResult
+        pendingSpeechLanguage = null
+        if (granted) startOfflineListening(language) else launchSystemSpeech()
     }
 
     internal open fun obtainRuntime(): NativeNavigationRuntime = NativeNavigationRuntime(applicationContext, storeNames)
@@ -442,6 +458,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
             onOpenExternal = ::openExternal,
             searchSpeechTranscript = speechTranscript,
             onSearchSpeechRequested = ::launchSearchSpeech,
+            speechGateway = speechGateway,
             onboardingCompleted = onboardingPreferences.getBoolean("completed", false),
             onOnboardingCompleted = {
                 onboardingPreferences.edit().putBoolean("completed", true).apply()
@@ -506,13 +523,66 @@ open class NativeRoadTestActivity : ComponentActivity() {
                 debugDiagnostic("RoadstrDestination", "destination delivered to planner; consumed=$consumed")
             },
         )
+        // Drawn after the shell, so it sits on top of it.
+        SpeechOverlayHost()
+    }
+
+    /** The listening card, drawn over the whole shell while the offline recogniser is working. */
+    @Composable
+    private fun SpeechOverlayHost() {
+        if (!speechLazy.isInitialized()) return
+        val snapshot by speechGateway.state.collectAsStateWithLifecycle()
+        NativeSpeechOverlay(
+            snapshot = snapshot,
+            onDone = speechGateway::finishListening,
+            onCancel = speechGateway::cancelListening,
+        )
+    }
+
+    /**
+     * The microphone button of the search bar. When the offline model is installed and knows the
+     * language, Roadstr listens by itself; in every other case, and whenever the offline path is not
+     * usable, it hands over to whichever recogniser the phone provides.
+     */
+    private fun launchSearchSpeech() {
+        val languageTag = resources.configuration.locales[0].toLanguageTag()
+        if (!speechGateway.canRecognize(languageTag)) {
+            launchSystemSpeech()
+            return
+        }
+        val granted = checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+        if (granted) {
+            startOfflineListening(languageTag)
+        } else {
+            pendingSpeechLanguage = languageTag
+            microphonePermission.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
+    private fun startOfflineListening(languageTag: String) {
+        // A spoken instruction in progress would be heard as the search.
+        runCatching { voiceGateway.stop() }
+        speechGateway.listen(languageTag, ::onOfflineSpeechOutcome)
+    }
+
+    private fun onOfflineSpeechOutcome(outcome: SpeechOutcome) {
+        when (outcome) {
+            is SpeechOutcome.Text -> {
+                searchSpeechRevision += 1L
+                searchSpeechTranscript.value = NativeSearchSpeechTranscript(searchSpeechRevision, outcome.text)
+            }
+            SpeechOutcome.NothingHeard ->
+                Toast.makeText(this, R.string.native_speech_nothing_heard, Toast.LENGTH_SHORT).show()
+            SpeechOutcome.Cancelled -> Unit
+            is SpeechOutcome.Unavailable -> launchSystemSpeech()
+        }
     }
 
     /**
      * Keeps Roadstr independent from one engine. Android routes this offline-preferred request to
      * the configured provider, including the MIT Offline Speech to Text RecognitionService.
      */
-    private fun launchSearchSpeech() {
+    private fun launchSystemSpeech() {
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
             .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             .putExtra(RecognizerIntent.EXTRA_LANGUAGE, resources.configuration.locales[0].toLanguageTag())
@@ -546,9 +616,11 @@ open class NativeRoadTestActivity : ComponentActivity() {
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
         webBrowser.onTrimMemory(level)
+        if (level >= android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW && speechLazy.isInitialized()) speechGateway.trimMemory()
     }
 
     override fun onDestroy() {
+        if (speechLazy.isInitialized()) speechGateway.close()
         webBrowser.release()
         mesh?.runtime?.close()
         nostr?.roadEvents?.close()
