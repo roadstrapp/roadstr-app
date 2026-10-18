@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
 <resources>
     <string name="native_speech_section">Voice search</string>
     <string name="native_speech_title">Offline voice search</string>
@@ -16,11 +17,11 @@
     <string name="native_speech_problem_storage">Not enough free storage for the model.</string>
     <string name="native_speech_problem_integrity">The downloaded file did not match its checksum and was discarded.</string>
     <string name="native_speech_problem_engine">The speech engine could not load the model on this phone.</string>
-    <!-- Licence text, deliberately not translated. -->
-    <string name="native_speech_attribution" translatable="false">Speech model: NVIDIA Parakeet TDT 0.6B v3, GGUF conversion by handy-computer, licensed CC-BY-4.0 (creativecommons.org/licenses/by/4.0). Engine: transcribe.cpp and ggml, MIT.</string>
     <string name="native_speech_listening">Listening…</string>
     <string name="native_speech_transcribing">Recognising…</string>
     <string name="native_speech_done">Done</string>
     <string name="native_speech_stop">Cancel</string>
     <string name="native_speech_nothing_heard">I did not hear anything.</string>
+    <!-- Licence text, deliberately not translated. -->
+    <string name="native_speech_attribution" translatable="false">Speech model: NVIDIA Parakeet TDT 0.6B v3, GGUF conversion by handy-computer, licensed CC-BY-4.0 (creativecommons.org/licenses/by/4.0). Engine: transcribe.cpp and ggml, MIT.</string>
 </resources>

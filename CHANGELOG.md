@@ -42,7 +42,8 @@ Explore, Journey with achievements, and an offline speech recogniser for voice s
   differs from its recorded SHA-256. The model is CC-BY-4.0 and its attribution is shown in Settings.
 - **Not yet verified on a phone:** speed, memory and battery are unmeasured, and recognition quality was only checked on synthetic
   speech (it got street names such as *Via Giuseppe Garibaldi* and *Corso Vittorio Emanuele II* right, and slipped on common words:
-  *benzina* came out as *benzena*, *portami a casa* as *porta-me a casa*). The new texts exist in English and Italian only.
+  *benzina* came out as *benzena*, *portami a casa* as *porta-me a casa*). The voice-search texts are translated into all 27 languages
+  (Irish and Maltese want a native speaker's review).
   See [docs/offline-voice-search.md](docs/offline-voice-search.md).
 
 ### Build

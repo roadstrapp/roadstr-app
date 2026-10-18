@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Гласово търсене</string>
+    <string name="native_speech_title">Гласово търсене без интернет</string>
+    <string name="native_speech_desc">Кажете място с бутона на микрофона в търсенето. Речта се разпознава на този телефон – без интернет връзка и без Google или друга услуга за разпознаване на реч.</string>
+    <string name="native_speech_checking">Проверка…</string>
+    <string name="native_speech_not_downloaded">Не е инсталиран. Дотогава бутонът на микрофона използва разпознаването на реч на вашия телефон, ако има такова.</string>
+    <string name="native_speech_downloading">Изтегляне на модела за реч…</string>
+    <string name="native_speech_ready">Инсталиран. Бутонът на микрофона работи без интернет.</string>
+    <string name="native_speech_unavailable">Инсталиран, но този телефон не може да го стартира. Бутонът на микрофона използва собственото разпознаване на реч на телефона.</string>
+    <string name="native_speech_download">Изтегли модела (%1$d МБ)</string>
+    <string name="native_speech_cancel">Откажи изтеглянето</string>
+    <string name="native_speech_delete">Изтрий модела</string>
+    <string name="native_speech_privacy">Гласът ви никога не напуска този телефон. Файлът на модела се изтегля веднъж от huggingface.co, който вижда вашия IP адрес и изтеглянето, но не и нищо от казаното от вас. Микрофонът се използва само докато екранът за слушане е отворен.</string>
+    <string name="native_speech_problem_network">Изтеглянето беше прекъснато. Натиснете отново „Изтегли модела“, за да продължите.</string>
+    <string name="native_speech_problem_storage">Няма достатъчно свободна памет за модела.</string>
+    <string name="native_speech_problem_integrity">Изтегленият файл не съответстваше на контролната си сума и беше изхвърлен.</string>
+    <string name="native_speech_problem_engine">Системата за реч не успя да зареди модела на този телефон.</string>
+    <string name="native_speech_listening">Слушам…</string>
+    <string name="native_speech_transcribing">Разпознаване…</string>
+    <string name="native_speech_done">Готово</string>
+    <string name="native_speech_stop">Отказ</string>
+    <string name="native_speech_nothing_heard">Не чух нищо.</string>
+</resources>

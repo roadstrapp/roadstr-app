@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Búsqueda por voz</string>
+    <string name="native_speech_title">Búsqueda por voz sin conexión</string>
+    <string name="native_speech_desc">Di un lugar con el botón del micrófono en la búsqueda. La voz se reconoce en este teléfono, sin conexión a internet y sin Google ni otro servicio de voz.</string>
+    <string name="native_speech_checking">Comprobando…</string>
+    <string name="native_speech_not_downloaded">No instalado. Mientras tanto, el botón del micrófono usa el reconocimiento de voz de tu teléfono, si tiene uno.</string>
+    <string name="native_speech_downloading">Descargando el modelo de voz…</string>
+    <string name="native_speech_ready">Instalado. El botón del micrófono funciona sin conexión.</string>
+    <string name="native_speech_unavailable">Instalado, pero este teléfono no puede ejecutarlo. El botón del micrófono usa el reconocimiento de voz de tu teléfono.</string>
+    <string name="native_speech_download">Descargar el modelo (%1$d MB)</string>
+    <string name="native_speech_cancel">Cancelar la descarga</string>
+    <string name="native_speech_delete">Eliminar el modelo</string>
+    <string name="native_speech_privacy">Tu voz nunca sale de este teléfono. El archivo del modelo se descarga una sola vez desde huggingface.co, que ve tu dirección IP y la descarga, pero nada de lo que dices. El micrófono solo se usa mientras la pantalla de escucha está abierta.</string>
+    <string name="native_speech_problem_network">La descarga se interrumpió. Toca de nuevo «Descargar el modelo» para reanudarla.</string>
+    <string name="native_speech_problem_storage">No hay espacio libre suficiente para el modelo.</string>
+    <string name="native_speech_problem_integrity">El archivo descargado no coincidía con su suma de comprobación y se descartó.</string>
+    <string name="native_speech_problem_engine">El motor de voz no pudo cargar el modelo en este teléfono.</string>
+    <string name="native_speech_listening">Escuchando…</string>
+    <string name="native_speech_transcribing">Reconociendo…</string>
+    <string name="native_speech_done">Listo</string>
+    <string name="native_speech_stop">Cancelar</string>
+    <string name="native_speech_nothing_heard">No he oído nada.</string>
+</resources>

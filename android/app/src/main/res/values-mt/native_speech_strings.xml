@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Tiftix bil-vuċi</string>
+    <string name="native_speech_title">Tiftix bil-vuċi mingħajr konnessjoni</string>
+    <string name="native_speech_desc">Għid post bil-buttuna tal-mikrofonu fit-tiftix. Id-diskors jiġi rikonoxxut fuq dan it-telefon, mingħajr konnessjoni mal-internet u mingħajr Google jew servizz ieħor ta’ rikonoxximent tad-diskors.</string>
+    <string name="native_speech_checking">Qed jiġi vverifikat…</string>
+    <string name="native_speech_not_downloaded">Mhux installat. Sakemm ma tinstallahx, il-buttuna tal-mikrofonu tuża r-rikonoxximent tad-diskors tat-telefon tiegħek, jekk għandu.</string>
+    <string name="native_speech_downloading">Qed jitniżżel il-mudell tad-diskors…</string>
+    <string name="native_speech_ready">Installat. Il-buttuna tal-mikrofonu taħdem mingħajr konnessjoni.</string>
+    <string name="native_speech_unavailable">Installat, imma dan it-telefon ma jistax iħaddmu. Il-buttuna tal-mikrofonu tuża r-rikonoxximent tad-diskors tat-telefon stess.</string>
+    <string name="native_speech_download">Niżżel il-mudell (%1$d MB)</string>
+    <string name="native_speech_cancel">Ikkanċella t-tniżżil</string>
+    <string name="native_speech_delete">Ħassar il-mudell</string>
+    <string name="native_speech_privacy">Il-vuċi tiegħek qatt ma titlaq minn dan it-telefon. Il-fajl tal-mudell jitniżżel darba waħda minn huggingface.co, li jara l-indirizz IP tiegħek u t-tniżżil, imma xejn minn dak li tgħid. Il-mikrofonu jintuża biss waqt li l-iskrin tal-ismigħ ikun miftuħ.</string>
+    <string name="native_speech_problem_network">It-tniżżil twaqqaf. Agħfas “Niżżel il-mudell” mill-ġdid biex tkompli.</string>
+    <string name="native_speech_problem_storage">M’hemmx biżżejjed spazju ħieles għall-mudell.</string>
+    <string name="native_speech_problem_integrity">Il-fajl imniżżel ma qabilx mas-somma ta’ verifika tiegħu u ġie skartat.</string>
+    <string name="native_speech_problem_engine">Il-magna tad-diskors ma setgħetx tgħabbi l-mudell fuq dan it-telefon.</string>
+    <string name="native_speech_listening">Qed nisma’…</string>
+    <string name="native_speech_transcribing">Qed nagħraf…</string>
+    <string name="native_speech_done">Lest</string>
+    <string name="native_speech_stop">Ikkanċella</string>
+    <string name="native_speech_nothing_heard">Ma smajt xejn.</string>
+</resources>

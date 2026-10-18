@@ -387,7 +387,7 @@ Roadstr is fully localised in 27 languages covering all EU official languages pl
 
 Translations live in `lib/l10n/app_<locale>.arb` and feed both the Dart classes and the Android string resources (see [Building](#building) for the commands). A test fails if any language lacks a key of the English template or changes its placeholders. Texts that exist only in the Kotlin app (the start-up screens, the bunker login) live in `tools/kotlin_rewrite/native_recovery_translations.dart`.
 
-The newest texts — the interoperability and MeshCore settings, and the latest public-transport additions — exist in English and Italian; the other 25 languages show the English text until they are translated. No language has had a full native-speaker review.
+The voice-search texts exist in all 27 languages (`tools/kotlin_rewrite/native_speech_translations.json`). The newest texts of the other features — the interoperability and MeshCore settings, Explore, Journey, the performance profile and the latest public-transport additions — exist in English and Italian; the other 25 languages show the English text until they are translated. No language has had a full native-speaker review.
 
 ---
 

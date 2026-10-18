@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Busca por voz</string>
+    <string name="native_speech_title">Busca por voz off-line</string>
+    <string name="native_speech_desc">Diga um lugar com o botão do microfone na busca. A fala é reconhecida neste telefone, sem conexão com a internet e sem o Google ou outro serviço de voz.</string>
+    <string name="native_speech_checking">Verificando…</string>
+    <string name="native_speech_not_downloaded">Não instalado. Enquanto você não o instalar, o botão do microfone usa o reconhecimento de voz do seu telefone, se ele tiver um.</string>
+    <string name="native_speech_downloading">Baixando o modelo de fala…</string>
+    <string name="native_speech_ready">Instalado. O botão do microfone funciona off-line.</string>
+    <string name="native_speech_unavailable">Instalado, mas este telefone não consegue executá-lo. O botão do microfone usa o reconhecimento de voz do próprio telefone.</string>
+    <string name="native_speech_download">Baixar o modelo (%1$d MB)</string>
+    <string name="native_speech_cancel">Cancelar o download</string>
+    <string name="native_speech_delete">Excluir o modelo</string>
+    <string name="native_speech_privacy">Sua voz nunca sai deste telefone. O arquivo do modelo é baixado uma única vez de huggingface.co, que vê seu endereço IP e o download, mas nada do que você diz. O microfone só é usado enquanto a tela de escuta está aberta.</string>
+    <string name="native_speech_problem_network">O download foi interrompido. Toque de novo em “Baixar o modelo” para retomar.</string>
+    <string name="native_speech_problem_storage">Não há espaço livre suficiente para o modelo.</string>
+    <string name="native_speech_problem_integrity">O arquivo baixado não correspondia à sua soma de verificação e foi descartado.</string>
+    <string name="native_speech_problem_engine">O mecanismo de voz não conseguiu carregar o modelo neste telefone.</string>
+    <string name="native_speech_listening">Ouvindo…</string>
+    <string name="native_speech_transcribing">Reconhecendo…</string>
+    <string name="native_speech_done">Concluir</string>
+    <string name="native_speech_stop">Cancelar</string>
+    <string name="native_speech_nothing_heard">Não ouvi nada.</string>
+</resources>

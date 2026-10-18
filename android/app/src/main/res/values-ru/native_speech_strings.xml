@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Голосовой поиск</string>
+    <string name="native_speech_title">Голосовой поиск без интернета</string>
+    <string name="native_speech_desc">Назовите место кнопкой микрофона в поиске. Речь распознаётся на этом телефоне – без подключения к интернету и без Google или другого сервиса распознавания речи.</string>
+    <string name="native_speech_checking">Проверка…</string>
+    <string name="native_speech_not_downloaded">Не установлено. Пока модель не установлена, кнопка микрофона использует средство распознавания речи вашего телефона, если оно есть.</string>
+    <string name="native_speech_downloading">Загрузка речевой модели…</string>
+    <string name="native_speech_ready">Установлено. Кнопка микрофона работает без интернета.</string>
+    <string name="native_speech_unavailable">Установлено, но этот телефон не может её запустить. Кнопка микрофона использует собственное распознавание речи телефона.</string>
+    <string name="native_speech_download">Загрузить модель (%1$d МБ)</string>
+    <string name="native_speech_cancel">Отменить загрузку</string>
+    <string name="native_speech_delete">Удалить модель</string>
+    <string name="native_speech_privacy">Ваш голос никогда не покидает этот телефон. Файл модели загружается один раз с huggingface.co, который видит ваш IP-адрес и сам факт загрузки, но ничего из того, что вы говорите. Микрофон используется только пока открыт экран прослушивания.</string>
+    <string name="native_speech_problem_network">Загрузка прервана. Нажмите «Загрузить модель» ещё раз, чтобы продолжить.</string>
+    <string name="native_speech_problem_storage">Недостаточно свободного места для модели.</string>
+    <string name="native_speech_problem_integrity">Загруженный файл не совпал со своей контрольной суммой и был удалён.</string>
+    <string name="native_speech_problem_engine">Речевому движку не удалось загрузить модель на этом телефоне.</string>
+    <string name="native_speech_listening">Слушаю…</string>
+    <string name="native_speech_transcribing">Распознаю…</string>
+    <string name="native_speech_done">Готово</string>
+    <string name="native_speech_stop">Отмена</string>
+    <string name="native_speech_nothing_heard">Ничего не слышно.</string>
+</resources>

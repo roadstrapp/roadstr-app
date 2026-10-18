@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Glasovno pretraživanje</string>
+    <string name="native_speech_title">Glasovno pretraživanje izvan mreže</string>
+    <string name="native_speech_desc">Recite mjesto gumbom mikrofona u pretraživanju. Govor se prepoznaje na ovom telefonu, bez internetske veze i bez Googlea ili druge usluge za prepoznavanje govora.</string>
+    <string name="native_speech_checking">Provjera…</string>
+    <string name="native_speech_not_downloaded">Nije instalirano. Dok ga ne instalirate, gumb mikrofona koristi prepoznavanje govora vašeg telefona, ako ga ima.</string>
+    <string name="native_speech_downloading">Preuzimanje govornog modela…</string>
+    <string name="native_speech_ready">Instalirano. Gumb mikrofona radi izvan mreže.</string>
+    <string name="native_speech_unavailable">Instalirano, ali ga ovaj telefon ne može pokrenuti. Gumb mikrofona koristi vlastito prepoznavanje govora telefona.</string>
+    <string name="native_speech_download">Preuzmi model (%1$d MB)</string>
+    <string name="native_speech_cancel">Otkaži preuzimanje</string>
+    <string name="native_speech_delete">Izbriši model</string>
+    <string name="native_speech_privacy">Vaš glas nikada ne napušta ovaj telefon. Datoteka modela preuzima se jednom s huggingface.co, koji vidi vašu IP adresu i preuzimanje, ali ništa od onoga što kažete. Mikrofon se koristi samo dok je zaslon slušanja otvoren.</string>
+    <string name="native_speech_problem_network">Preuzimanje je prekinuto. Dodirnite ponovno »Preuzmi model« za nastavak.</string>
+    <string name="native_speech_problem_storage">Nema dovoljno slobodnog prostora za model.</string>
+    <string name="native_speech_problem_integrity">Preuzeta datoteka nije odgovarala svojem kontrolnom zbroju i odbačena je.</string>
+    <string name="native_speech_problem_engine">Govorni mehanizam nije uspio učitati model na ovom telefonu.</string>
+    <string name="native_speech_listening">Slušam…</string>
+    <string name="native_speech_transcribing">Prepoznajem…</string>
+    <string name="native_speech_done">Gotovo</string>
+    <string name="native_speech_stop">Odustani</string>
+    <string name="native_speech_nothing_heard">Ništa se nije čulo.</string>
+</resources>
