@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.provider.Settings
+import android.speech.RecognizerIntent
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -33,6 +34,7 @@ import app.roadstr.feature.home.NativeRoadstrShell
 import app.roadstr.feature.home.NativeShellGpsPhase
 import app.roadstr.feature.home.NativeShellMode
 import app.roadstr.feature.home.NativeShellNostr
+import app.roadstr.feature.search.NativeSearchSpeechTranscript
 import app.roadstr.feature.saved.NativeParkingPosition
 import app.roadstr.feature.history.NativeRouteHistoryProtocol
 import app.roadstr.feature.offline.OfflineMapProviderClient
@@ -80,6 +82,7 @@ import app.roadstr.service.nostr.NativeNostrWire
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 /**
@@ -94,6 +97,21 @@ open class NativeRoadTestActivity : ComponentActivity() {
     private val runtime: NativeNavigationRuntime by lazy(LazyThreadSafetyMode.NONE) { obtainRuntime() }
     private val locationController: NativeRoadTestLocationController get() = runtime.location
     private val externalDestinationInbox = NativeExternalDestinationInbox()
+    private val searchSpeechTranscript = MutableStateFlow<NativeSearchSpeechTranscript?>(null)
+    private var searchSpeechRevision = 0L
+    private val searchSpeechLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode != RESULT_OK) return@registerForActivityResult
+        val text = result.data
+            ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            ?.firstOrNull()
+            ?.trim()
+            ?.takeIf(String::isNotEmpty)
+            ?: return@registerForActivityResult
+        searchSpeechRevision += 1L
+        searchSpeechTranscript.value = NativeSearchSpeechTranscript(searchSpeechRevision, text)
+    }
 
     internal open fun obtainRuntime(): NativeNavigationRuntime = NativeNavigationRuntime(applicationContext, storeNames)
 
@@ -409,6 +427,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
             }
         }
         val externalDestinationRequest by externalDestinationInbox.requests.collectAsStateWithLifecycle()
+        val speechTranscript by searchSpeechTranscript.collectAsStateWithLifecycle()
         NativeRoadstrShell(
             mode = shellMode,
             gpsSnapshot = gpsSnapshot,
@@ -421,6 +440,8 @@ open class NativeRoadTestActivity : ComponentActivity() {
             identityGateway = identityGateway,
             onAmberLogin = { revision -> launchAmber(revision) },
             onOpenExternal = ::openExternal,
+            searchSpeechTranscript = speechTranscript,
+            onSearchSpeechRequested = ::launchSearchSpeech,
             onboardingCompleted = onboardingPreferences.getBoolean("completed", false),
             onOnboardingCompleted = {
                 onboardingPreferences.edit().putBoolean("completed", true).apply()
@@ -485,6 +506,29 @@ open class NativeRoadTestActivity : ComponentActivity() {
                 debugDiagnostic("RoadstrDestination", "destination delivered to planner; consumed=$consumed")
             },
         )
+    }
+
+    /**
+     * Keeps Roadstr independent from one engine. Android routes this offline-preferred request to
+     * the configured provider, including the MIT Offline Speech to Text RecognitionService.
+     */
+    private fun launchSearchSpeech() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            .putExtra(RecognizerIntent.EXTRA_LANGUAGE, resources.configuration.locales[0].toLanguageTag())
+            .putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+            .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
+            .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        val offlineIntent = Intent(intent).setPackage(OFFLINE_SPEECH_PACKAGE)
+        val request = if (packageManager.resolveActivity(offlineIntent, PackageManager.MATCH_DEFAULT_ONLY) != null) {
+            offlineIntent
+        } else {
+            intent
+        }
+        runCatching { searchSpeechLauncher.launch(request) }
+            .onFailure {
+                Toast.makeText(this, R.string.native_roadtest_no_app, Toast.LENGTH_LONG).show()
+            }
     }
 
     override fun onStart() {
@@ -768,6 +812,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
 
     private companion object {
         const val WEB_SEARCH_KEY = "settings"
+        const val OFFLINE_SPEECH_PACKAGE = "app.offlinespeechtotext"
 
         /** An Android package name, as reported by the signer app. */
         val SIGNER_PACKAGE = Regex("[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+")

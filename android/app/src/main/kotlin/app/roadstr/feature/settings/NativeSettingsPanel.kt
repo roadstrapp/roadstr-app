@@ -7,12 +7,22 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
@@ -30,11 +40,14 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
@@ -62,6 +75,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Path
@@ -91,6 +105,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 import app.roadstr.core.ui.RoadstrSwitch
 import app.roadstr.core.ui.theme.RoadstrThemeId
+import app.roadstr.core.ui.theme.RoadstrThemeTokens
 import app.roadstr.feature.navigation.NativeSpeedometerStyle
 import app.roadstr.feature.performance.NativePerformanceProfile
 import app.roadstr.feature.performance.PerformanceProfileSelector
@@ -153,7 +168,6 @@ fun NativeSettingsPanel(
     /** Whether web results are switched on and pointed at an instance; the web screen holds the rest. */
     webSearchActive: Boolean = false,
 ) {
-    if (snapshot.status == NativeSettingsStatus.Hidden) return
     val title = stringResource(R.string.native_settings_title)
     val revision = snapshot.revision
     val values = snapshot.values
@@ -166,45 +180,54 @@ fun NativeSettingsPanel(
     // so expanding the cursor menu later never stalls its own animation.
     val appContext = LocalContext.current.applicationContext
     LaunchedEffect(Unit) { CursorPreviewCache.preload(appContext) }
-    Surface(
-        modifier = modifier
+    AnimatedVisibility(
+        visible = snapshot.status != NativeSettingsStatus.Hidden,
+        modifier = modifier.fillMaxSize(),
+        enter = fadeIn(tween(260)) + slideInHorizontally(tween(420)) { it / 5 } +
+            scaleIn(tween(420), initialScale = .985f),
+        exit = fadeOut(tween(180)) + slideOutHorizontally(tween(300)) { it / 7 } +
+            scaleOut(tween(260), targetScale = .99f),
+    ) {
+        Surface(
+            modifier = Modifier
             .fillMaxSize()
             .semantics { paneTitle = title },
-        color = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-    ) {
-        LazyColumn(modifier = Modifier.fillMaxWidth().navigationBarsPadding()) {
-            item { SettingsHeader(title) { onAction(revision, NativeSettingsUiAction.Close) } }
-            item { ThemeSection(values) { onAction(revision, it) } }
-            item { LanguageSection(values) { onAction(revision, it) } }
-            item { VisibilitySection(values) { onAction(revision, it) } }
-            item {
-                PerformanceSection(
-                    values = values,
-                    expanded = performanceExpanded,
-                    onToggle = { performanceExpanded = !performanceExpanded },
-                    onAction = { onAction(revision, it) },
-                )
+            color = MaterialTheme.colorScheme.background,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ) {
+            LazyColumn(modifier = Modifier.fillMaxWidth().navigationBarsPadding()) {
+                item { SettingsHeader(title) { onAction(revision, NativeSettingsUiAction.Close) } }
+                item { ThemeSection(values) { onAction(revision, it) } }
+                item { LanguageSection(values) { onAction(revision, it) } }
+                item { VisibilitySection(values) { onAction(revision, it) } }
+                item {
+                    PerformanceSection(
+                        values = values,
+                        expanded = performanceExpanded,
+                        onToggle = { performanceExpanded = !performanceExpanded },
+                        onAction = { onAction(revision, it) },
+                    )
+                }
+                item {
+                    MapSection(
+                        values = values,
+                        overlaysExpanded = overlaysExpanded,
+                        onToggleOverlays = { overlaysExpanded = !overlaysExpanded },
+                        onAction = { onAction(revision, it) },
+                    )
+                }
+                item { AppearanceSection(values) { onAction(revision, it) } }
+                item { SearchSection(values, webSearchActive) { onAction(revision, it) } }
+                item { LightningSection(values) { onAction(revision, it) } }
+                item { FavoritesSection(values) { onAction(revision, it) } }
+                item { SyncSection(values) { onAction(revision, it) } }
+                item { JourneySection(values) { onAction(revision, it) } }
+                item { InteropSection(values) { onAction(revision, it) } }
+                item { MeshSection(values) { onAction(revision, it) } }
+                item { VoiceSection(values) { onAction(revision, it) } }
+                item { InfoSection(values) { onAction(revision, it) } }
+                item { Spacer(modifier = Modifier.height(18.dp)) }
             }
-            item {
-                MapSection(
-                    values = values,
-                    overlaysExpanded = overlaysExpanded,
-                    onToggleOverlays = { overlaysExpanded = !overlaysExpanded },
-                    onAction = { onAction(revision, it) },
-                )
-            }
-            item { AppearanceSection(values) { onAction(revision, it) } }
-            item { SearchSection(values, webSearchActive) { onAction(revision, it) } }
-            item { LightningSection(values) { onAction(revision, it) } }
-            item { FavoritesSection(values) { onAction(revision, it) } }
-            item { SyncSection(values) { onAction(revision, it) } }
-            item { JourneySection(values) { onAction(revision, it) } }
-            item { InteropSection(values) { onAction(revision, it) } }
-            item { MeshSection(values) { onAction(revision, it) } }
-            item { VoiceSection(values) { onAction(revision, it) } }
-            item { InfoSection(values) { onAction(revision, it) } }
-            item { Spacer(modifier = Modifier.height(18.dp)) }
         }
     }
 }
@@ -229,7 +252,7 @@ private fun JourneySection(values: NativeSettingsInput, onAction: (NativeSetting
                 R.string.native_journey_sync_enable_desc,
                 values.journeySyncEnabled,
             ) { onAction(NativeSettingsUiAction.BooleanChanged(NativeSettingsBooleanKey.JourneySyncEnabled, it)) }
-            ActionButton(
+            JourneyLaunchButton(
                 text = stringResource(R.string.native_journey_open),
                 modifier = Modifier.fillMaxWidth(),
             ) { onAction(NativeSettingsUiAction.OpenJourney) }
@@ -626,23 +649,29 @@ private fun FavoritesSection(values: NativeSettingsInput, onAction: (NativeSetti
                 onDelete = { onAction(NativeSettingsUiAction.DeleteFavorite(index)) },
             )
         }
-        ActionButton(stringResource(R.string.native_settings_add_favorite)) {
+        ActionButton(
+            stringResource(R.string.native_settings_add_favorite),
+            accent = ActionAccent.Nostr,
+        ) {
             onAction(NativeSettingsUiAction.OpenSavedPlaces)
         }
         Row(
             modifier = Modifier.padding(top = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            OutlinedButton(
+            ActionButton(
+                text = stringResource(R.string.native_settings_export_favorites),
                 onClick = { onAction(NativeSettingsUiAction.ExportFavorites) },
                 enabled = values.favoritesCount > 0,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                modifier = Modifier.weight(1f).sizeIn(minHeight = 48.dp),
-            ) { Text(stringResource(R.string.native_settings_export_favorites)) }
-            OutlinedButton(
+                accent = ActionAccent.Nostr,
+                modifier = Modifier.weight(1f),
+            )
+            ActionButton(
+                text = stringResource(R.string.native_settings_import_favorites),
                 onClick = { onAction(NativeSettingsUiAction.ImportFavorites) },
-                modifier = Modifier.weight(1f).sizeIn(minHeight = 48.dp),
-            ) { Text(stringResource(R.string.native_settings_import_favorites)) }
+                accent = ActionAccent.Nostr,
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }
@@ -716,11 +745,13 @@ private fun SyncSection(values: NativeSettingsInput, onAction: (NativeSettingsUi
                 ActionButton(
                     text = stringResource(R.string.native_settings_sync_push),
                     enabled = !values.syncBusy,
+                    accent = ActionAccent.Nostr,
                     modifier = Modifier.weight(1f),
                 ) { onAction(NativeSettingsUiAction.SyncPush) }
                 ActionButton(
                     text = stringResource(R.string.native_settings_sync_pull),
                     enabled = !values.syncBusy,
+                    accent = ActionAccent.Nostr,
                     modifier = Modifier.weight(1f),
                 ) { onAction(NativeSettingsUiAction.SyncPull) }
             }
@@ -982,6 +1013,7 @@ private fun InfoSection(values: NativeSettingsInput, onAction: (NativeSettingsUi
         }
         ActionButton(
             text = stringResource(R.string.native_settings_support),
+            accent = ActionAccent.Bitcoin,
             modifier = Modifier.padding(top = 16.dp, bottom = 24.dp),
         ) {
             onAction(NativeSettingsUiAction.SupportRoadstr)
@@ -1417,14 +1449,80 @@ private fun ActionRow(title: String, value: String?, onClick: () -> Unit) {
 internal fun ActionButton(
     text: String,
     enabled: Boolean = true,
+    accent: ActionAccent = ActionAccent.None,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    OutlinedButton(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = modifier.fillMaxWidth().sizeIn(minHeight = 48.dp),
-    ) { Text(text) }
+    if (accent == ActionAccent.None) {
+        OutlinedButton(
+            onClick = onClick,
+            enabled = enabled,
+            modifier = modifier.fillMaxWidth().sizeIn(minHeight = 48.dp),
+        ) { Text(text) }
+    } else {
+        val accentColor = Color(
+            if (accent == ActionAccent.Nostr) RoadstrThemeTokens.NOSTR_PURPLE_ARGB
+            else RoadstrThemeTokens.BITCOIN_ORANGE_ARGB,
+        )
+        Button(
+            onClick = onClick,
+            enabled = enabled,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = accentColor,
+                contentColor = Color.White,
+                disabledContainerColor = accentColor.copy(alpha = 0.28f),
+                disabledContentColor = Color.White.copy(alpha = 0.62f),
+            ),
+            modifier = modifier.fillMaxWidth().sizeIn(minHeight = 48.dp),
+        ) { Text(text, fontWeight = FontWeight.Bold) }
+    }
+}
+
+internal enum class ActionAccent { None, Nostr, Bitcoin }
+
+/** The Journey CTA is intentionally more celebratory than ordinary settings actions. */
+@Composable
+private fun JourneyLaunchButton(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val motion = rememberInfiniteTransition(label = "journey-launch")
+    val shimmer by motion.animateFloat(
+        initialValue = -0.25f,
+        targetValue = 1.25f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2_800, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "journey-launch-shimmer",
+    )
+    val purple = Color(RoadstrThemeTokens.NOSTR_PURPLE_ARGB)
+    val orange = Color(RoadstrThemeTokens.BITCOIN_ORANGE_ARGB)
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .sizeIn(minHeight = 54.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .background(Brush.horizontalGradient(listOf(purple, purple.copy(red = 0.72f), orange)))
+            .clickable(onClick = onClick)
+            .semantics { role = Role.Button },
+        contentAlignment = Alignment.Center,
+    ) {
+        Canvas(Modifier.matchParentSize()) {
+            val x = size.width * shimmer
+            drawCircle(Color.White.copy(alpha = 0.30f), radius = 5.dp.toPx(), center = Offset(x, size.height * .28f))
+            drawCircle(Color.White.copy(alpha = 0.65f), radius = 2.dp.toPx(), center = Offset(x + size.width * .12f, size.height * .68f))
+            drawCircle(Color(0xFFFFE082).copy(alpha = 0.85f), radius = 2.5.dp.toPx(), center = Offset(x - size.width * .16f, size.height * .52f))
+        }
+        Row(
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Text("✦", color = Color(0xFFFFE082), fontWeight = FontWeight.Black)
+            Spacer(Modifier.width(9.dp))
+            Text(text, color = Color.White, fontWeight = FontWeight.Black)
+            Spacer(Modifier.width(9.dp))
+            Text("›", color = Color.White, style = MaterialTheme.typography.titleLarge)
+        }
+    }
 }
 
 @Composable
