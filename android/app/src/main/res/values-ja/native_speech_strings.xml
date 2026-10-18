@@ -13,6 +13,7 @@
     <string name="native_speech_cancel">ダウンロードをキャンセル</string>
     <string name="native_speech_delete">モデルを削除</string>
     <string name="native_speech_privacy">音声がこのスマートフォンの外に出ることはありません。モデルファイルは huggingface.co から1回だけダウンロードされ、同サイトにはIPアドレスとダウンロードの事実だけが見え、話した内容は見えません。マイクは、聞き取り画面が開いている間だけ使われます。</string>
+    <string name="native_speech_streets_privacy">通りの名前を地図と同じ表記にするため、音声検索は Overpass 地図サーバーにも周辺の通りの名前を問い合わせます（地域ごとに月に1回）。リクエストに含まれるのは約5 km四方の範囲の中心であり、現在地ではなく、話した内容が含まれることもありません。</string>
     <string name="native_speech_problem_network">ダウンロードが中断されました。「モデルをダウンロード」をもう一度タップすると再開します。</string>
     <string name="native_speech_problem_storage">モデル用の空き容量が足りません。</string>
     <string name="native_speech_problem_integrity">ダウンロードしたファイルがチェックサムと一致しなかったため、破棄しました。</string>

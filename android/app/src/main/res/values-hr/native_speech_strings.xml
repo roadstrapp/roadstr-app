@@ -13,6 +13,7 @@
     <string name="native_speech_cancel">Otkaži preuzimanje</string>
     <string name="native_speech_delete">Izbriši model</string>
     <string name="native_speech_privacy">Vaš glas nikada ne napušta ovaj telefon. Datoteka modela preuzima se jednom s huggingface.co, koji vidi vašu IP adresu i preuzimanje, ali ništa od onoga što kažete. Mikrofon se koristi samo dok je zaslon slušanja otvoren.</string>
+    <string name="native_speech_streets_privacy">Kako bi nazivi ulica bili napisani onako kako ih piše karta, glasovno pretraživanje pita i Overpass poslužitelje karata za nazive ulica oko vas, jednom mjesečno po području. Zahtjev navodi središte područja od otprilike 5 km, a ne gdje se nalazite, i nikada ne sadrži ništa od onoga što ste rekli.</string>
     <string name="native_speech_problem_network">Preuzimanje je prekinuto. Dodirnite ponovno »Preuzmi model« za nastavak.</string>
     <string name="native_speech_problem_storage">Nema dovoljno slobodnog prostora za model.</string>
     <string name="native_speech_problem_integrity">Preuzeta datoteka nije odgovarala svojem kontrolnom zbroju i odbačena je.</string>

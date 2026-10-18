@@ -140,12 +140,32 @@ class SpeechEngineProvider(
     }
 }
 
+/**
+ * Last stage of recognition: turns what the model wrote into what a search wants (digits for house
+ * numbers, street names as the map spells them). It never fails the recognition: if it throws, the
+ * text goes through unchanged.
+ */
+interface SpeechTextRefiner {
+    /**
+     * Called when listening starts, to get whatever [refine] will need under way. Must return at once:
+     * the user is already talking.
+     */
+    suspend fun prepare(languageTag: String) = Unit
+
+    suspend fun refine(text: String, languageTag: String): String = text
+
+    companion object {
+        val None: SpeechTextRefiner = object : SpeechTextRefiner {}
+    }
+}
+
 /** Records one utterance from [newSource], ends it by itself, and has the engine transcribe it. */
 class SpeechRecognitionRunner(
     private val store: SpeechModelStore,
     private val engines: SpeechEngineProvider,
     private val newSource: () -> PcmSource,
     private val endpointerConfig: UtteranceEndpointer.Config = UtteranceEndpointer.Config(),
+    private val refiner: SpeechTextRefiner = SpeechTextRefiner.None,
 ) {
     private val spec: SpeechModelSpec get() = store.spec
 
@@ -169,8 +189,9 @@ class SpeechRecognitionRunner(
             val loadState = LoadState()
             val loading = async(Dispatchers.Default) { preload(hint, loadState) }
             listener.onPhase(SpeechPhase.Listening)
+            prepareRefiner(languageTag)
             when (val captured = capture(listener, loadState)) {
-                is Captured.Audio -> transcribe(captured.pcm, hint, loading, loadState, listener)
+                is Captured.Audio -> transcribe(captured.pcm, hint, loading, loadState, listener, languageTag)
                 Captured.NothingHeard -> SpeechOutcome.NothingHeard
                 Captured.Cancelled -> SpeechOutcome.Cancelled
                 is Captured.Unavailable -> SpeechOutcome.Unavailable(captured.reason)
@@ -240,6 +261,7 @@ class SpeechRecognitionRunner(
         loading: Deferred<Unit>,
         loadState: LoadState,
         listener: SpeechListener,
+        languageTag: String,
     ): SpeechOutcome {
         listener.onPhase(SpeechPhase.Transcribing)
         loading.await()
@@ -250,9 +272,30 @@ class SpeechRecognitionRunner(
         } catch (error: SpeechUnavailable) {
             return SpeechOutcome.Unavailable(error.reason)
         }
-        val query = SpokenQuery.normalize(text)
+        val query = refined(SpokenQuery.normalize(text), languageTag)
         if (query.isEmpty()) return SpeechOutcome.NothingHeard
         return SpeechOutcome.Text(query, (System.nanoTime() - started) / 1_000_000L)
+    }
+
+    private suspend fun prepareRefiner(languageTag: String) {
+        try {
+            refiner.prepare(languageTag)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            // Refining is a nicety; recognition goes on without it.
+        }
+    }
+
+    private suspend fun refined(query: String, languageTag: String): String {
+        if (query.isEmpty()) return query
+        return try {
+            refiner.refine(query, languageTag).trim().ifEmpty { query }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            query
+        }
     }
 
     /** Native decoding cannot be interrupted by a coroutine, so cancellation is relayed to the engine. */

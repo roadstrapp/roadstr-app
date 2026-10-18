@@ -13,6 +13,7 @@
     <string name="native_speech_cancel">Atšaukti atsisiuntimą</string>
     <string name="native_speech_delete">Ištrinti modelį</string>
     <string name="native_speech_privacy">Jūsų balsas niekada nepalieka šio telefono. Modelio failas vieną kartą atsisiunčiamas iš huggingface.co, kuris mato jūsų IP adresą ir atsisiuntimą, bet nieko, ką sakote. Mikrofonas naudojamas tik tol, kol atidarytas klausymo ekranas.</string>
+    <string name="native_speech_streets_privacy">Kad gatvių pavadinimai būtų rašomi taip, kaip žemėlapyje, paieška balsu taip pat klausia „Overpass“ žemėlapių serverių apie aplinkinių gatvių pavadinimus – kartą per mėnesį kiekvienai vietovei. Užklausoje nurodomas maždaug 5 km dydžio teritorijos centras, o ne jūsų buvimo vieta, ir joje niekada nėra nieko iš to, ką pasakėte.</string>
     <string name="native_speech_problem_network">Atsisiuntimas nutrūko. Norėdami tęsti, dar kartą palieskite „Atsisiųsti modelį“.</string>
     <string name="native_speech_problem_storage">Modeliui nepakanka laisvos vietos.</string>
     <string name="native_speech_problem_integrity">Atsisiųstas failas neatitiko savo kontrolinės sumos ir buvo išmestas.</string>

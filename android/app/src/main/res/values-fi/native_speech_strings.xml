@@ -13,6 +13,7 @@
     <string name="native_speech_cancel">Peruuta lataus</string>
     <string name="native_speech_delete">Poista malli</string>
     <string name="native_speech_privacy">Ääni ei koskaan poistu tästä puhelimesta. Mallitiedosto ladataan kerran osoitteesta huggingface.co, joka näkee IP-osoitteen ja latauksen mutta ei mitään sanotusta. Mikrofonia käytetään vain, kun kuunteluruutu on auki.</string>
+    <string name="native_speech_streets_privacy">Jotta kadunnimet kirjoitetaan kuten kartassa, äänihaku kysyy myös Overpass-karttapalvelimilta ympäristön kadunnimiä, kerran kuussa aluetta kohti. Pyyntö ilmoittaa noin 5 km:n alueen keskipisteen, ei sijaintia, eikä sisällä koskaan mitään sanotusta.</string>
     <string name="native_speech_problem_network">Lataus keskeytyi. Se jatkuu, kun ”Lataa malli” valitaan uudelleen.</string>
     <string name="native_speech_problem_storage">Mallille ei ole tarpeeksi vapaata tilaa.</string>
     <string name="native_speech_problem_integrity">Ladattu tiedosto ei vastannut tarkistussummaansa, ja se hylättiin.</string>

@@ -1033,6 +1033,12 @@ private fun SpeechSection(values: NativeSettingsInput, onAction: (NativeSettings
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
+                stringResource(R.string.native_speech_streets_privacy),
+                modifier = Modifier.padding(top = 4.dp),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
                 stringResource(R.string.native_speech_attribution),
                 modifier = Modifier.padding(top = 4.dp),
                 style = MaterialTheme.typography.labelSmall,

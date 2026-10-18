@@ -279,6 +279,60 @@ class SpeechRecognitionTest {
         assertTrue(source.closed.get())
     }
 
+    // ── refiner ───────────────────────────────────────────────────────────────
+
+    private class RecordingRefiner(
+        val failPrepare: Boolean = false,
+        val failRefine: Boolean = false,
+        val answer: (String) -> String = { it },
+    ) : SpeechTextRefiner {
+        val events = java.util.Collections.synchronizedList(mutableListOf<String>())
+
+        override suspend fun prepare(languageTag: String) {
+            events += "prepare:$languageTag"
+            if (failPrepare) throw IllegalStateException("prepare failed")
+        }
+
+        override suspend fun refine(text: String, languageTag: String): String {
+            events += "refine:$text"
+            if (failRefine) throw IllegalStateException("refine failed")
+            return answer(text)
+        }
+    }
+
+    private fun runnerWith(refiner: SpeechTextRefiner, factory: FakeFactory = FakeFactory()) =
+        SpeechRecognitionRunner(readyStore(), provider(factory), { FakeSource(utterance()) }, refiner = refiner)
+
+    @Test
+    fun theRefinerIsPreparedBeforeTheUserFinishesAndShapesTheQuery() = runBlocking {
+        val refiner = RecordingRefiner(answer = { "$it [refined]" })
+        val outcome = runnerWith(refiner).recognize("it-IT", RecordingListener())
+        assertEquals("Via Giuseppe Garibaldi, Bologna [refined]", (outcome as SpeechOutcome.Text).text)
+        assertEquals(listOf("prepare:it-IT", "refine:Via Giuseppe Garibaldi, Bologna"), refiner.events)
+    }
+
+    @Test
+    fun aRefinerThatFailsNeverFailsTheRecognition() = runBlocking {
+        for (refiner in listOf(RecordingRefiner(failPrepare = true), RecordingRefiner(failRefine = true))) {
+            val outcome = runnerWith(refiner).recognize("it", RecordingListener())
+            assertEquals("Via Giuseppe Garibaldi, Bologna", (outcome as SpeechOutcome.Text).text)
+        }
+    }
+
+    @Test
+    fun aRefinerThatReturnsNothingKeepsTheOriginalText() = runBlocking {
+        val outcome = runnerWith(RecordingRefiner(answer = { "  " })).recognize("it", RecordingListener())
+        assertEquals("Via Giuseppe Garibaldi, Bologna", (outcome as SpeechOutcome.Text).text)
+    }
+
+    @Test
+    fun silenceNeverReachesTheRefiner() = runBlocking {
+        val refiner = RecordingRefiner()
+        val runner = SpeechRecognitionRunner(readyStore(), provider(FakeFactory()), { FakeSource(noise(9_000)) }, refiner = refiner)
+        assertEquals(SpeechOutcome.NothingHeard, runner.recognize("it", RecordingListener()))
+        assertTrue(refiner.events.none { it.startsWith("refine") })
+    }
+
     // ── provider ──────────────────────────────────────────────────────────────
 
     @Test

@@ -26,7 +26,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.roadstr.R
 import app.roadstr.core.speech.SpeechOutcome
 import app.roadstr.feature.speech.NativeSpeechOverlay
+import app.roadstr.core.geo.GeoPoint
+import app.roadstr.service.hazards.NativeOverpassClient
+import app.roadstr.service.speech.AddressSpeechRefiner
 import app.roadstr.service.speech.AndroidSpeechGateway
+import app.roadstr.service.speech.StreetGazetteer
 import app.roadstr.core.intent.NativeExternalDestinationInbox
 import app.roadstr.core.discovery.web.WebDiscoverySettings
 import app.roadstr.core.discovery.web.WebDiscoverySettingsCodec
@@ -85,6 +89,7 @@ import app.roadstr.service.nostr.NativeNostrWire
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
@@ -118,7 +123,20 @@ open class NativeRoadTestActivity : ComponentActivity() {
 
     // The offline recogniser. Created on first use, so a phone that never taps the microphone pays
     // nothing for it; closed with the Activity.
-    private val speechLazy = lazy(LazyThreadSafetyMode.NONE) { AndroidSpeechGateway(applicationContext) }
+    private val speechScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val speechLazy = lazy(LazyThreadSafetyMode.NONE) {
+        AndroidSpeechGateway(
+            applicationContext,
+            refiner = AddressSpeechRefiner(
+                gazetteer = StreetGazetteer(
+                    overpass = NativeOverpassClient(httpClient),
+                    cacheDirectory = File(noBackupFilesDir, "street-names"),
+                ),
+                position = { locationController.state.value.fix?.point?.let { GeoPoint(it.latitude, it.longitude) } },
+                scope = speechScope,
+            ),
+        )
+    }
     private val speechGateway: AndroidSpeechGateway get() = speechLazy.value
     private var pendingSpeechLanguage: String? = null
     private val microphonePermission = registerForActivityResult(
@@ -621,6 +639,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
 
     override fun onDestroy() {
         if (speechLazy.isInitialized()) speechGateway.close()
+        speechScope.cancel()
         webBrowser.release()
         mesh?.runtime?.close()
         nostr?.roadEvents?.close()

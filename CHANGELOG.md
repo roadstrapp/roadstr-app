@@ -33,6 +33,12 @@ Explore, Journey with achievements, and an offline speech recogniser for voice s
   `huggingface.co`, resumable, size and SHA-256 checked before the file is accepted, deletable at any time).
 - Until the model is installed, on devices that cannot run it (anything but 64-bit Arm with at least 3 GB of RAM), for languages it
   does not know, or if anything goes wrong while listening, the microphone button uses the phone's own recogniser exactly as before.
+- **Addresses spoken aloud are repaired before they are searched.** Italian number words left in an address become digits
+  (*via d'arsena diciassette* → *Via Darsena 17*), and street names spelled by sound are matched, without regard to spaces,
+  apostrophes or doubled letters, against the streets around you and replaced by the map's spelling when one is clearly closest
+  (*via chiavi caromea* → *Via Chiavica Romea*). Names that hold a number (*Piazza dei Tre Martiri*, *Via Venti Settembre*) are not
+  touched. The street list comes from Overpass, once a month per area, asked for the centre of a cell about 5 km across and
+  never for your position or your words; without it, only the numbers are fixed. Settings says so, in all 27 languages.
 - Roadstr listens until you stop talking (or you tap *Done*), loads the model while you speak so there is no wait afterwards, and
   frees its memory (about a gigabyte) a minute after the last use or when Android runs short. The microphone permission is asked
   the first time, only for this, and the microphone is open only while the listening card is on screen.

@@ -13,6 +13,7 @@
     <string name="native_speech_cancel">Avbryt nedladdningen</string>
     <string name="native_speech_delete">Ta bort modellen</string>
     <string name="native_speech_privacy">Din röst lämnar aldrig den här telefonen. Modellfilen laddas ner en gång från huggingface.co, som ser din IP-adress och nedladdningen men inget av det du säger. Mikrofonen används bara medan lyssningsvyn är öppen.</string>
+    <string name="native_speech_streets_privacy">För att skriva gatunamn som kartan gör frågar röstsökningen också Overpass kartservrar efter gatunamnen runt dig, en gång i månaden per område. Förfrågan anger mitten av ett område på cirka 5 km, inte var du är, och innehåller aldrig något av det du har sagt.</string>
     <string name="native_speech_problem_network">Nedladdningen avbröts. Tryck på ”Ladda ner modellen” igen för att fortsätta.</string>
     <string name="native_speech_problem_storage">Det finns inte tillräckligt med ledigt utrymme för modellen.</string>
     <string name="native_speech_problem_integrity">Den nedladdade filen stämde inte med sin kontrollsumma och kasserades.</string>

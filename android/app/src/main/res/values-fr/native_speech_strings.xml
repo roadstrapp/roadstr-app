@@ -13,6 +13,7 @@
     <string name="native_speech_cancel">Annuler le téléchargement</string>
     <string name="native_speech_delete">Supprimer le modèle</string>
     <string name="native_speech_privacy">Votre voix ne quitte jamais ce téléphone. Le fichier du modèle est téléchargé une seule fois depuis huggingface.co, qui voit votre adresse IP et le téléchargement, mais rien de ce que vous dites. Le micro n’est utilisé que lorsque l’écran d’écoute est ouvert.</string>
+    <string name="native_speech_streets_privacy">Pour écrire les noms de rues comme le fait la carte, la recherche vocale interroge aussi les serveurs de cartes Overpass sur les noms de rues autour de vous, une fois par mois et par zone. La requête indique le centre d’une zone d’environ 5 km, pas l’endroit où vous êtes, et ne contient jamais rien de ce que vous avez dit.</string>
     <string name="native_speech_problem_network">Le téléchargement a été interrompu. Touchez de nouveau « Télécharger le modèle » pour le reprendre.</string>
     <string name="native_speech_problem_storage">Pas assez d’espace libre pour le modèle.</string>
     <string name="native_speech_problem_integrity">Le fichier téléchargé ne correspondait pas à sa somme de contrôle et a été supprimé.</string>

@@ -13,6 +13,7 @@
     <string name="native_speech_cancel">Anuluj pobieranie</string>
     <string name="native_speech_delete">Usuń model</string>
     <string name="native_speech_privacy">Twój głos nigdy nie opuszcza tego telefonu. Plik modelu jest pobierany raz z huggingface.co, który widzi Twój adres IP i pobranie, ale nic z tego, co mówisz. Mikrofon jest używany tylko wtedy, gdy ekran nasłuchu jest otwarty.</string>
+    <string name="native_speech_streets_privacy">Aby nazwy ulic były zapisane tak jak na mapie, wyszukiwanie głosowe pyta też serwery map Overpass o nazwy ulic w Twojej okolicy, raz w miesiącu dla każdego obszaru. Zapytanie podaje środek obszaru o szerokości około 5 km, a nie to, gdzie jesteś, i nigdy nie zawiera niczego z tego, co zostało powiedziane.</string>
     <string name="native_speech_problem_network">Pobieranie zostało przerwane. Stuknij ponownie „Pobierz model”, aby je wznowić.</string>
     <string name="native_speech_problem_storage">Za mało wolnego miejsca na model.</string>
     <string name="native_speech_problem_integrity">Pobrany plik nie zgadzał się z sumą kontrolną i został odrzucony.</string>

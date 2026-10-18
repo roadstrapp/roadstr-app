@@ -19,6 +19,7 @@ const speechStringKeys = <String>[
   'cancel',
   'delete',
   'privacy',
+  'streets_privacy',
   'problem_network',
   'problem_storage',
   'problem_integrity',

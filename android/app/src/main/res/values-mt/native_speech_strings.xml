@@ -13,6 +13,7 @@
     <string name="native_speech_cancel">Ikkanċella t-tniżżil</string>
     <string name="native_speech_delete">Ħassar il-mudell</string>
     <string name="native_speech_privacy">Il-vuċi tiegħek qatt ma titlaq minn dan it-telefon. Il-fajl tal-mudell jitniżżel darba waħda minn huggingface.co, li jara l-indirizz IP tiegħek u t-tniżżil, imma xejn minn dak li tgħid. Il-mikrofonu jintuża biss waqt li l-iskrin tal-ismigħ ikun miftuħ.</string>
+    <string name="native_speech_streets_privacy">Biex l-ismijiet tat-toroq jinkitbu kif jinkitbu fuq il-mappa, it-tiftix bil-vuċi jistaqsi wkoll lis-servers tal-mapep Overpass dwar l-ismijiet tat-toroq madwarek, darba fix-xahar għal kull żona. It-talba tiddikjara ċ-ċentru ta’ żona ta’ madwar 5 km, mhux fejn int, u qatt ma jkun fiha xejn minn dak li għedt.</string>
     <string name="native_speech_problem_network">It-tniżżil twaqqaf. Agħfas “Niżżel il-mudell” mill-ġdid biex tkompli.</string>
     <string name="native_speech_problem_storage">M’hemmx biżżejjed spazju ħieles għall-mudell.</string>
     <string name="native_speech_problem_integrity">Il-fajl imniżżel ma qabilx mas-somma ta’ verifika tiegħu u ġie skartat.</string>
