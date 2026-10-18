@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_speech_section">Voice search</string>
+    <string name="native_speech_title">Offline voice search</string>
+    <string name="native_speech_desc">Say a place with the microphone button in search. The speech is recognised on this phone, with no internet connection and no Google or other speech service.</string>
+    <string name="native_speech_checking">Checking…</string>
+    <string name="native_speech_not_downloaded">Not installed. Until you install it, the microphone button uses the speech recogniser of your phone, if it has one.</string>
+    <string name="native_speech_downloading">Downloading the speech model…</string>
+    <string name="native_speech_ready">Installed. The microphone button works offline.</string>
+    <string name="native_speech_unavailable">Installed, but this phone cannot run it. The microphone button uses your phone\'s own recogniser.</string>
+    <string name="native_speech_download">Download the model (%1$d MB)</string>
+    <string name="native_speech_cancel">Cancel download</string>
+    <string name="native_speech_delete">Delete the model</string>
+    <string name="native_speech_privacy">Your voice never leaves this phone. The model file is downloaded once from huggingface.co, which sees your IP address and the download, nothing you say. The microphone is used only while the listening screen is open.</string>
+    <string name="native_speech_problem_network">The download was interrupted. Tap download again to resume.</string>
+    <string name="native_speech_problem_storage">Not enough free storage for the model.</string>
+    <string name="native_speech_problem_integrity">The downloaded file did not match its checksum and was discarded.</string>
+    <string name="native_speech_problem_engine">The speech engine could not load the model on this phone.</string>
+    <!-- Licence text, deliberately not translated. -->
+    <string name="native_speech_attribution" translatable="false">Speech model: NVIDIA Parakeet TDT 0.6B v3, GGUF conversion by handy-computer, licensed CC-BY-4.0 (creativecommons.org/licenses/by/4.0). Engine: transcribe.cpp and ggml, MIT.</string>
+    <string name="native_speech_listening">Listening…</string>
+    <string name="native_speech_transcribing">Recognising…</string>
+    <string name="native_speech_done">Done</string>
+    <string name="native_speech_stop">Cancel</string>
+    <string name="native_speech_nothing_heard">I did not hear anything.</string>
+</resources>

@@ -86,6 +86,11 @@ enum class NativeSettingsCursorColor(val storageValue: String) {
 
 enum class NativeSettingsVoiceModelStatus { Unknown, NotDownloaded, Downloading, Ready }
 
+/** The offline speech-recognition model (dictation for search), independent of the spoken guidance. */
+enum class NativeSettingsSpeechStatus { Hidden, Checking, NotDownloaded, Downloading, Ready, Unavailable }
+
+enum class NativeSettingsSpeechProblem { Network, Storage, Integrity, EngineUnavailable }
+
 enum class NativeSettingsVoiceGender(val storageValue: String) {
     Female("f"),
     Male("m");
@@ -253,6 +258,11 @@ data class NativeSettingsInput(
     val voiceSpeedStage: Int = DEFAULT_VOICE_SPEED_STAGE,
     val voiceVolume: Double = 1.0,
     val voicePreviewing: Boolean = false,
+    val speechStatus: NativeSettingsSpeechStatus = NativeSettingsSpeechStatus.Hidden,
+    val speechDownloadProgress: Double = 0.0,
+    val speechProblem: NativeSettingsSpeechProblem? = null,
+    /** Size of the speech model in megabytes, for the download button. */
+    val speechModelMegabytes: Int = 0,
     val appVersion: String = "—",
 ) {
     companion object {
@@ -281,6 +291,7 @@ data class NativeSettingsSnapshot(
 object NativeSettingsPresenter {
     const val MAX_URL_CHARS = 2_048
     const val MAX_VERSION_CHARS = 64
+    const val MAX_SPEECH_MODEL_MEGABYTES = 4_096
     const val MAX_FAVORITES = 1_000
     const val MAX_SYNC_MILLIS = 253_402_300_799_999L
     val SUPPORTED_LANGUAGE_CODES: Set<String> = Collections.unmodifiableSet(
@@ -312,6 +323,10 @@ object NativeSettingsPresenter {
         require(input.voiceDownloadProgress.isFinite() && input.voiceDownloadProgress in 0.0..1.0) {
             "Voice progress must be between zero and one"
         }
+        require(input.speechDownloadProgress.isFinite() && input.speechDownloadProgress in 0.0..1.0) {
+            "Speech progress must be between zero and one"
+        }
+        require(input.speechModelMegabytes in 0..MAX_SPEECH_MODEL_MEGABYTES) { "Invalid speech model size" }
         require(input.voiceSpeedStage in VOICE_SPEED_STAGES.indices) { "Invalid voice speed stage" }
         require(input.voiceVolume.isFinite() && input.voiceVolume in 0.2..1.0) {
             "Voice volume must be between 0.2 and one"
