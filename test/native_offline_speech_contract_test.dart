@@ -100,7 +100,7 @@ void main() {
   });
 
   test('the microphone is only opened by the speech source, never by feature code', () {
-    final users = Directory('$_kotlin')
+    final users = Directory(_kotlin)
         .listSync(recursive: true)
         .whereType<File>()
         .where((f) => f.path.endsWith('.kt') && f.readAsStringSync().contains('AudioRecord('))
