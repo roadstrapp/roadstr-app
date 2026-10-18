@@ -1,5 +1,6 @@
 package app.roadstr.feature.journey
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.LinearEasing
@@ -15,7 +16,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,15 +57,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.paneTitle
@@ -402,7 +399,7 @@ private fun AchievementRow(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        JourneyBadgeIcon(definition.iconKey, definition.level, state.unlocked, Modifier.size(58.dp))
+        JourneyBadgeIcon(definition.iconKey, state.unlocked, Modifier.size(58.dp))
         Spacer(Modifier.size(12.dp))
         Column(Modifier.weight(1f)) {
             Text(definition.name, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -449,51 +446,40 @@ private fun AchievementRow(
     }
 }
 
-/** Gold reward coins with seventeen code-native, individually coloured marks. */
+/** ImageGen-authored reward coins; locked rewards reuse the silhouette in muted grayscale. */
 @Composable
-private fun JourneyBadgeIcon(iconKey: String, level: Int, unlocked: Boolean, modifier: Modifier = Modifier) {
-    val lockedEdge = MaterialTheme.colorScheme.outline
-    val lockedFace = MaterialTheme.colorScheme.surfaceVariant
-    val glyphPalette = listOf(
-        Color(0xFF7C3AED), Color(0xFF0284C7), Color(0xFF059669), Color(0xFFDC2626),
-        Color(0xFFE11D48), Color(0xFF2563EB), Color(0xFF9333EA), Color(0xFFEA580C),
-    )
-    val glyphColor = glyphPalette[(level - 1).coerceAtLeast(0) % glyphPalette.size]
-    Canvas(modifier) {
-        val stroke = size.minDimension * 0.055f
-        if (!unlocked) {
-            drawCircle(lockedFace, radius = size.minDimension * .47f)
-            drawCircle(lockedEdge.copy(alpha = .72f), radius = size.minDimension * .42f, style = Stroke(stroke))
-            drawJourneyGlyph(iconKey, lockedEdge, lockedEdge.copy(alpha = .65f), stroke)
-            return@Canvas
-        }
-
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(Color(0xFFFFF4A3), Color(0xFFFFCC3D), Color(0xFFD78A00)),
-                center = Offset(size.width * .35f, size.height * .27f),
-                radius = size.minDimension * .64f,
-            ),
-            radius = size.minDimension * .49f,
-        )
-        drawCircle(Color(0xFFFFE173), radius = size.minDimension * .42f)
-        drawCircle(Color(0xFFF5B51B), radius = size.minDimension * .42f, style = Stroke(stroke * .75f))
-        drawCircle(Color(0xFFFFF8D1), radius = size.minDimension * .335f)
-        drawCircle(glyphColor.copy(alpha = .12f), radius = size.minDimension * .315f)
-        drawJourneyGlyph(iconKey, glyphColor, Color.White, stroke * .92f)
-
-        // A tiny specular glint makes the medal read as metal even at list size.
-        drawArc(
-            color = Color.White.copy(alpha = .86f),
-            startAngle = 205f,
-            sweepAngle = 72f,
-            useCenter = false,
-            topLeft = Offset(size.width * .08f, size.height * .08f),
-            size = Size(size.width * .84f, size.height * .84f),
-            style = Stroke(stroke * .52f, cap = StrokeCap.Round),
-        )
-        drawCircle(Color.White.copy(alpha = .92f), radius = stroke * .48f, center = Offset(size.width * .72f, size.height * .18f))
+private fun JourneyBadgeIcon(iconKey: String, unlocked: Boolean, modifier: Modifier = Modifier) {
+    val lockedMatrix = remember {
+        ColorMatrix().apply { setToSaturation(0f) }
     }
+    Image(
+        painter = painterResource(journeyBadgeDrawable(iconKey)),
+        contentDescription = null,
+        colorFilter = if (unlocked) null else ColorFilter.colorMatrix(lockedMatrix),
+        modifier = modifier.graphicsLayer { alpha = if (unlocked) 1f else 0.38f },
+    )
+}
+
+@DrawableRes
+private fun journeyBadgeDrawable(iconKey: String): Int = when (iconKey) {
+    "ignition" -> R.drawable.journey_badge_ignition
+    "street_rookie" -> R.drawable.journey_badge_street_rookie
+    "detour_hunter" -> R.drawable.journey_badge_detour_hunter
+    "wanderlust" -> R.drawable.journey_badge_wanderlust
+    "wayfinder" -> R.drawable.journey_badge_wayfinder
+    "road_rebel" -> R.drawable.journey_badge_road_rebel
+    "asphalt_nomad" -> R.drawable.journey_badge_asphalt_nomad
+    "horizon_chaser" -> R.drawable.journey_badge_horizon_chaser
+    "long_hauler" -> R.drawable.journey_badge_long_hauler
+    "borderless" -> R.drawable.journey_badge_borderless
+    "road_warrior" -> R.drawable.journey_badge_road_warrior
+    "atlas_runner" -> R.drawable.journey_badge_atlas_runner
+    "continental_drifter" -> R.drawable.journey_badge_continental_drifter
+    "planet_roamer" -> R.drawable.journey_badge_planet_roamer
+    "earthshaker" -> R.drawable.journey_badge_earthshaker
+    "roadstr_myth" -> R.drawable.journey_badge_roadstr_myth
+    "impossible_road" -> R.drawable.journey_badge_impossible_road
+    else -> R.drawable.journey_badge_ignition
 }
 
 @Composable
@@ -533,7 +519,6 @@ private fun AchievementDetailDialog(
                 }
                 JourneyBadgeIcon(
                     iconKey = definition.iconKey,
-                    level = definition.level,
                     unlocked = state.unlocked,
                     modifier = Modifier
                         .size(108.dp)
@@ -568,136 +553,6 @@ private fun AchievementDetailDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.ok)) }
         },
     )
-}
-
-private fun DrawScope.drawJourneyGlyph(iconKey: String, color: Color, highlight: Color, stroke: Float) {
-    fun point(x: Float, y: Float) = Offset(size.width * x, size.height * y)
-    fun line(x1: Float, y1: Float, x2: Float, y2: Float, width: Float = stroke) =
-        drawLine(color, point(x1, y1), point(x2, y2), width, StrokeCap.Round)
-    fun path(vararg points: Pair<Float, Float>, closePath: Boolean = false, fill: Boolean = false) {
-        val value = Path().apply {
-            moveTo(size.width * points.first().first, size.height * points.first().second)
-            points.drop(1).forEach { lineTo(size.width * it.first, size.height * it.second) }
-            if (closePath) close()
-        }
-        drawPath(value, color, style = if (fill) androidx.compose.ui.graphics.drawscope.Fill else Stroke(stroke, cap = StrokeCap.Round))
-    }
-
-    when (iconKey) {
-        "ignition" -> {
-            drawCircle(color, size.minDimension * 0.09f, point(.5f, .5f))
-            listOf(.24f to .5f, .76f to .5f, .5f to .24f, .5f to .76f).forEach { (x, y) ->
-                line(.5f + (x - .5f) * .52f, .5f + (y - .5f) * .52f, x, y)
-            }
-        }
-        "street_rookie" -> {
-            line(.37f, .76f, .45f, .24f)
-            line(.63f, .76f, .55f, .24f)
-            line(.5f, .7f, .5f, .6f, stroke * .65f)
-            line(.5f, .5f, .5f, .4f, stroke * .65f)
-            line(.5f, .32f, .5f, .25f, stroke * .65f)
-        }
-        "detour_hunter" -> {
-            line(.5f, .78f, .5f, .51f)
-            line(.5f, .54f, .3f, .34f)
-            line(.5f, .54f, .7f, .31f)
-            path(.64f to .32f, .72f to .29f, .7f to .38f)
-        }
-        "wanderlust" -> {
-            val road = Path().apply {
-                moveTo(size.width * .32f, size.height * .77f)
-                cubicTo(size.width * .72f, size.height * .66f, size.width * .25f, size.height * .43f, size.width * .65f, size.height * .22f)
-            }
-            drawPath(road, color, style = Stroke(stroke, cap = StrokeCap.Round))
-            drawCircle(color, stroke * .72f, point(.65f, .22f))
-        }
-        "wayfinder" -> {
-            path(.5f to .18f, .68f to .5f, .5f to .82f, .32f to .5f, closePath = true)
-            path(.5f to .27f, .56f to .5f, .43f to .58f, closePath = true, fill = true)
-        }
-        "road_rebel" -> path(
-            .58f to .18f, .34f to .53f, .49f to .53f, .4f to .82f,
-            .69f to .42f, .53f to .42f, closePath = true, fill = true,
-        )
-        "asphalt_nomad" -> {
-            line(.22f, .68f, .78f, .68f, stroke * .65f)
-            path(.32f to .68f, .5f to .35f, .68f to .68f, closePath = true)
-            line(.5f, .35f, .5f, .68f, stroke * .65f)
-            line(.43f, .82f, .48f, .7f, stroke * .7f)
-            line(.57f, .82f, .52f, .7f, stroke * .7f)
-        }
-        "horizon_chaser" -> {
-            drawArc(color, 180f, 180f, false, point(.31f, .38f), Size(size.width * .38f, size.height * .38f), style = Stroke(stroke))
-            line(.2f, .69f, .8f, .69f, stroke * .7f)
-            listOf(.3f, .4f, .5f, .6f, .7f).forEach { x -> line(x, .55f, x, .47f, stroke * .55f) }
-        }
-        "long_hauler" -> {
-            drawRect(color, point(.25f, .4f), Size(size.width * .34f, size.height * .25f), style = Stroke(stroke))
-            path(.59f to .48f, .7f to .48f, .77f to .58f, .77f to .65f, .59f to .65f)
-            drawCircle(color, stroke, point(.36f, .7f))
-            drawCircle(color, stroke, point(.68f, .7f))
-        }
-        "borderless" -> {
-            path(.25f to .38f, .25f to .25f, .39f to .25f)
-            path(.61f to .25f, .75f to .25f, .75f to .39f)
-            path(.75f to .61f, .75f to .75f, .61f to .75f)
-            path(.39f to .75f, .25f to .75f, .25f to .61f)
-            val route = Path().apply {
-                moveTo(size.width * .18f, size.height * .61f)
-                cubicTo(size.width * .35f, size.height * .38f, size.width * .59f, size.height * .7f, size.width * .82f, size.height * .36f)
-            }
-            drawPath(route, highlight, style = Stroke(stroke * .75f, cap = StrokeCap.Round))
-        }
-        "road_warrior" -> {
-            path(.5f to .18f, .72f to .29f, .68f to .63f, .5f to .8f, .32f to .63f, .28f to .29f, closePath = true)
-            line(.42f, .62f, .47f, .34f, stroke * .7f)
-            line(.58f, .62f, .53f, .34f, stroke * .7f)
-        }
-        "atlas_runner" -> {
-            path(.2f to .3f, .4f to .22f, .6f to .3f, .8f to .22f, .8f to .7f, .6f to .78f, .4f to .7f, .2f to .78f, closePath = true)
-            line(.4f, .22f, .4f, .7f, stroke * .55f)
-            line(.6f, .3f, .6f, .78f, stroke * .55f)
-            line(.28f, .59f, .7f, .4f, stroke * .65f)
-        }
-        "continental_drifter" -> {
-            path(.31f to .25f, .5f to .2f, .62f to .32f, .74f to .36f, .65f to .49f, .68f to .64f, .53f to .76f, .42f to .63f, .29f to .57f, .34f to .43f, closePath = true)
-            listOf(point(.34f, .69f), point(.5f, .55f), point(.67f, .42f)).forEach { drawCircle(highlight, stroke * .6f, it) }
-        }
-        "planet_roamer" -> {
-            drawCircle(color, size.minDimension * .29f, point(.5f, .5f), style = Stroke(stroke))
-            drawOval(color, point(.38f, .21f), Size(size.width * .24f, size.height * .58f), style = Stroke(stroke * .55f))
-            line(.22f, .5f, .78f, .5f, stroke * .55f)
-            drawArc(highlight, 202f, 136f, false, point(.16f, .31f), Size(size.width * .68f, size.height * .38f), style = Stroke(stroke * .55f))
-        }
-        "earthshaker" -> {
-            drawCircle(color, size.minDimension * .28f, point(.5f, .5f), style = Stroke(stroke))
-            path(.5f to .2f, .44f to .42f, .54f to .47f, .42f to .59f, .51f to .8f)
-            path(.31f to .33f, .43f to .44f, .32f to .53f, .25f to .66f)
-            path(.69f to .3f, .57f to .45f, .7f to .56f, .75f to .7f)
-        }
-        "roadstr_myth" -> {
-            path(.25f to .68f, .3f to .34f, .43f to .48f, .5f to .22f, .58f to .48f, .72f to .34f, .76f to .68f, closePath = true)
-            line(.29f, .72f, .72f, .72f, stroke * 1.2f)
-            drawCircle(highlight, stroke * .72f, point(.5f, .22f))
-            drawCircle(highlight, stroke * .55f, point(.3f, .34f))
-            drawCircle(highlight, stroke * .55f, point(.72f, .34f))
-        }
-        "impossible_road" -> {
-            val infinity = Path().apply {
-                moveTo(size.width * .2f, size.height * .5f)
-                cubicTo(size.width * .31f, size.height * .25f, size.width * .43f, size.height * .27f, size.width * .5f, size.height * .5f)
-                cubicTo(size.width * .58f, size.height * .73f, size.width * .7f, size.height * .75f, size.width * .8f, size.height * .5f)
-                cubicTo(size.width * .7f, size.height * .25f, size.width * .58f, size.height * .27f, size.width * .5f, size.height * .5f)
-                cubicTo(size.width * .43f, size.height * .73f, size.width * .31f, size.height * .75f, size.width * .2f, size.height * .5f)
-            }
-            drawPath(infinity, highlight, style = Stroke(stroke, cap = StrokeCap.Round))
-            drawArc(color, 205f, 130f, false, point(.1f, .1f), Size(size.width * .8f, size.height * .8f), style = Stroke(stroke * .55f))
-        }
-        else -> {
-            line(.37f, .76f, .46f, .24f)
-            line(.63f, .76f, .54f, .24f)
-        }
-    }
 }
 
 @Composable

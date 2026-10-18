@@ -19,7 +19,8 @@ void main() {
     'android/app/src/main/res/values/native_journey_strings.xml',
   );
 
-  test('achievement catalogue uses distinct vector marks instead of emoji', () {
+  test('achievement catalogue uses seventeen distinct ImageGen coin assets',
+      () {
     final source = panel.readAsStringSync();
     for (final key in <String>[
       'ignition',
@@ -41,13 +42,34 @@ void main() {
       'impossible_road',
     ]) {
       expect(source, contains('"$key" ->'), reason: key);
+      final badge = File(
+        'android/app/src/main/res/drawable-nodpi/journey_badge_$key.png',
+      );
+      expect(badge.existsSync(), isTrue, reason: key);
+      final bytes = badge.readAsBytesSync();
+      expect(
+        bytes.take(8),
+        orderedEquals(<int>[137, 80, 78, 71, 13, 10, 26, 10]),
+        reason: '$key must be a PNG',
+      );
+      final width =
+          (bytes[16] << 24) | (bytes[17] << 16) | (bytes[18] << 8) | bytes[19];
+      final height =
+          (bytes[20] << 24) | (bytes[21] << 16) | (bytes[22] << 8) | bytes[23];
+      expect((width, height), (512, 512), reason: key);
+      expect(bytes.length, greaterThan(100000),
+          reason: '$key is unexpectedly empty');
     }
-    expect(source, contains('Canvas(modifier)'));
+    expect(source, contains('painterResource(journeyBadgeDrawable(iconKey))'));
+    expect(source, contains('ColorFilter.colorMatrix(lockedMatrix)'));
+    expect(source, isNot(contains('Canvas(modifier)')));
     expect(RegExp(r'statusBarsPadding\(\)').allMatches(source), hasLength(2));
     expect(source, isNot(contains('emoji:')));
   });
 
-  test('public badges require configured issuer, verified definition and user action', () {
+  test(
+      'public badges require configured issuer, verified definition and user action',
+      () {
     final ui = panel.readAsStringSync();
     final orchestration = shell.readAsStringSync();
     final protocol = service.readAsStringSync();
@@ -59,7 +81,8 @@ void main() {
     expect(orchestration, contains('onShowPublicBadge = showPublicBadge@'));
     expect(orchestration, contains('service.findAward('));
     expect(orchestration, contains('service.addToProfile(award)'));
-    expect(protocol, contains('if (!hasValidDefinition(reference)) return null'));
+    expect(
+        protocol, contains('if (!hasValidDefinition(reference)) return null'));
     expect(protocol, contains('definition?.reference == reference'));
   });
 }

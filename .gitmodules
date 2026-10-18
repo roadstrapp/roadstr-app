@@ -1,0 +1,3 @@
+[submodule "third_party/offline-speech-to-text"]
+	path = third_party/offline-speech-to-text
+	url = git@github-roadstr:roadstrapp/offline-speech-to-text.git
