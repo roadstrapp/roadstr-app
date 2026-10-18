@@ -12,7 +12,7 @@ owns every production request and all user-visible orchestration.
 
 - Nominatim forward search and reverse geocoding;
 - Photon fuzzy/autocomplete search;
-- Overpass interpreter POSTs on the two vetted worldwide mirrors.
+- Overpass interpreter POSTs on three vetted worldwide instances operated independently.
 
 `RoutingService`, `PhotonGeocoder` and `OverpassClient` call this boundary in
 the shipped Dart path. The fixture generator therefore exercises the same
@@ -59,7 +59,7 @@ may be emitted, and an admitted relaxed query starts one Nominatim/Photon batch.
 The nearby category supplement retains the production 4 km radius, 12-element
 Overpass cap, seven-decimal coordinates, exact/fuzzy category admission and
 compound tag clauses. Non-category text opens no Overpass socket. Status,
-transport and malformed-envelope failures advance through the two vetted
+transport and malformed-envelope failures advance through the three vetted
 mirrors, successful results become the next preference and are ordered by
 distance. A provider failure cannot hide peer results, while caller
 cancellation is never converted to an empty completion or hidden retry.
@@ -96,7 +96,7 @@ The extraction preserves these provider-specific details:
 The cases cover empty and maximum-length input, ASCII and Unicode whitespace,
 UTF-8 text, the different punctuation/space encodings, normal/extreme/tiny and
 negative-zero coordinates, viewboxes, Photon rounding, supported and omitted
-languages, both mirrors, multiline Overpass QL and exact headers/body bytes.
+languages, all mirrors, multiline Overpass QL and exact headers/body bytes.
 
 Regenerate or verify it with:
 

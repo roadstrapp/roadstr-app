@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Stemmesøgning</string>
+    <string name="native_speech_title">Stemmesøgning offline</string>
+    <string name="native_speech_desc">Sig et sted med mikrofonknappen i søgningen. Talen genkendes på denne telefon – uden internetforbindelse og uden Google eller anden talegenkendelsestjeneste.</string>
+    <string name="native_speech_checking">Kontrollerer…</string>
+    <string name="native_speech_not_downloaded">Ikke installeret. Indtil du installerer den, bruger mikrofonknappen din telefons egen talegenkendelse, hvis den har en.</string>
+    <string name="native_speech_downloading">Downloader talemodellen…</string>
+    <string name="native_speech_ready">Installeret. Mikrofonknappen virker offline.</string>
+    <string name="native_speech_unavailable">Installeret, men denne telefon kan ikke køre den. Mikrofonknappen bruger telefonens egen talegenkendelse.</string>
+    <string name="native_speech_download">Download modellen (%1$d MB)</string>
+    <string name="native_speech_cancel">Annuller download</string>
+    <string name="native_speech_delete">Slet modellen</string>
+    <string name="native_speech_privacy">Din stemme forlader aldrig denne telefon. Modelfilen downloades én gang fra huggingface.co, som ser din IP-adresse og downloadet, men intet af det, du siger. Mikrofonen bruges kun, mens lyttevisningen er åben.</string>
+    <string name="native_speech_streets_privacy">For at stave gadenavne, som kortet gør, spørger stemmesøgningen også Overpass-kortserverne om gadenavnene omkring dig, én gang om måneden pr. område. Forespørgslen angiver midten af et område på cirka 5 km, ikke hvor du er, og indeholder aldrig noget af det, du har sagt.</string>
+    <string name="native_speech_problem_network">Downloadet blev afbrudt. Tryk på »Download modellen« igen for at fortsætte.</string>
+    <string name="native_speech_problem_storage">Der er ikke nok ledig lagerplads til modellen.</string>
+    <string name="native_speech_problem_integrity">Den downloadede fil matchede ikke sin kontrolsum og blev kasseret.</string>
+    <string name="native_speech_problem_engine">Talemotoren kunne ikke indlæse modellen på denne telefon.</string>
+    <string name="native_speech_listening">Lytter…</string>
+    <string name="native_speech_transcribing">Genkender…</string>
+    <string name="native_speech_done">Færdig</string>
+    <string name="native_speech_stop">Annuller</string>
+    <string name="native_speech_nothing_heard">Jeg hørte ingenting.</string>
+</resources>

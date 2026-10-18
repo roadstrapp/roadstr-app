@@ -53,13 +53,24 @@ class OverpassDiscoveryQueryTest {
     }
 
     @Test
-    fun `an eat group becomes one statement per category`() {
+    fun `categories sharing one tag key become one value-union statement`() {
         val query = OverpassDiscoveryQuery.build(
             PlaceCategory.members(CategoryGroup.EAT), setOf(PlaceAttribute.GLUTEN_FREE), emptySet(),
             SearchArea.Circle(center, 2_000),
         )
-        assertEquals(3, Regex("nwr\\[").findAll(query).count())
+        assertEquals(1, Regex("nwr\\[").findAll(query).count())
+        assertTrue(query.contains("\"amenity\"~\"^(cafe|fast_food|restaurant)$"))
         assertTrue(query.contains("\"diet:gluten_free\""))
+    }
+
+    @Test
+    fun `explore all keeps the form body and provider work bounded`() {
+        val query = OverpassDiscoveryQuery.build(
+            ExploreCategory.ALL.categories.toList(), emptySet(), emptySet(),
+            SearchArea.Circle(center, 5_000),
+        )
+        assertTrue(query.length < 2_000)
+        assertTrue(Regex("nwr\\[").findAll(query).count() <= 7)
     }
 
     @Test

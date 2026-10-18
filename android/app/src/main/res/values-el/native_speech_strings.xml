@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Φωνητική αναζήτηση</string>
+    <string name="native_speech_title">Φωνητική αναζήτηση εκτός σύνδεσης</string>
+    <string name="native_speech_desc">Πείτε ένα μέρος με το κουμπί μικροφώνου στην αναζήτηση. Η ομιλία αναγνωρίζεται σε αυτό το τηλέφωνο, χωρίς σύνδεση στο διαδίκτυο και χωρίς Google ή άλλη υπηρεσία αναγνώρισης ομιλίας.</string>
+    <string name="native_speech_checking">Έλεγχος…</string>
+    <string name="native_speech_not_downloaded">Δεν έχει εγκατασταθεί. Μέχρι να το εγκαταστήσετε, το κουμπί μικροφώνου χρησιμοποιεί την αναγνώριση ομιλίας του τηλεφώνου σας, αν διαθέτει.</string>
+    <string name="native_speech_downloading">Λήψη του μοντέλου ομιλίας…</string>
+    <string name="native_speech_ready">Εγκαταστάθηκε. Το κουμπί μικροφώνου λειτουργεί χωρίς σύνδεση.</string>
+    <string name="native_speech_unavailable">Εγκαταστάθηκε, αλλά αυτό το τηλέφωνο δεν μπορεί να το εκτελέσει. Το κουμπί μικροφώνου χρησιμοποιεί τη δική του αναγνώριση ομιλίας του τηλεφώνου.</string>
+    <string name="native_speech_download">Λήψη του μοντέλου (%1$d MB)</string>
+    <string name="native_speech_cancel">Ακύρωση λήψης</string>
+    <string name="native_speech_delete">Διαγραφή του μοντέλου</string>
+    <string name="native_speech_privacy">Η φωνή σας δεν φεύγει ποτέ από αυτό το τηλέφωνο. Το αρχείο του μοντέλου λαμβάνεται μία φορά από το huggingface.co, το οποίο βλέπει τη διεύθυνση IP σας και τη λήψη, αλλά τίποτα από όσα λέτε. Το μικρόφωνο χρησιμοποιείται μόνο όσο είναι ανοιχτή η οθόνη ακρόασης.</string>
+    <string name="native_speech_streets_privacy">Για να γράφει τα ονόματα των οδών όπως ο χάρτης, η φωνητική αναζήτηση ρωτά επίσης τους διακομιστές χαρτών Overpass για τα ονόματα των οδών γύρω σας, μία φορά τον μήνα ανά περιοχή. Το αίτημα δηλώνει το κέντρο μιας περιοχής περίπου 5 km, όχι πού βρίσκεστε, και δεν περιέχει ποτέ κάτι από όσα είπατε.</string>
+    <string name="native_speech_problem_network">Η λήψη διακόπηκε. Πατήστε ξανά «Λήψη του μοντέλου» για να συνεχίσετε.</string>
+    <string name="native_speech_problem_storage">Δεν υπάρχει αρκετός ελεύθερος χώρος για το μοντέλο.</string>
+    <string name="native_speech_problem_integrity">Το αρχείο που λήφθηκε δεν ταίριαζε με το άθροισμα ελέγχου του και απορρίφθηκε.</string>
+    <string name="native_speech_problem_engine">Η μηχανή ομιλίας δεν μπόρεσε να φορτώσει το μοντέλο σε αυτό το τηλέφωνο.</string>
+    <string name="native_speech_listening">Ακούω…</string>
+    <string name="native_speech_transcribing">Αναγνώριση…</string>
+    <string name="native_speech_done">Έτοιμο</string>
+    <string name="native_speech_stop">Ακύρωση</string>
+    <string name="native_speech_nothing_heard">Δεν άκουσα τίποτα.</string>
+</resources>

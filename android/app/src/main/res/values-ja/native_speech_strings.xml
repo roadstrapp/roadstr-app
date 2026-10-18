@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">音声検索</string>
+    <string name="native_speech_title">オフライン音声検索</string>
+    <string name="native_speech_desc">検索のマイクボタンで場所を話してください。音声はこのスマートフォン上で認識され、インターネット接続も、Googleやその他の音声認識サービスも使いません。</string>
+    <string name="native_speech_checking">確認中…</string>
+    <string name="native_speech_not_downloaded">未インストール。インストールするまで、マイクボタンはお使いのスマートフォンの音声認識を使用します（搭載されている場合）。</string>
+    <string name="native_speech_downloading">音声モデルをダウンロード中…</string>
+    <string name="native_speech_ready">インストール済み。マイクボタンはオフラインで動作します。</string>
+    <string name="native_speech_unavailable">インストール済みですが、このスマートフォンでは実行できません。マイクボタンはスマートフォン標準の音声認識を使用します。</string>
+    <string name="native_speech_download">モデルをダウンロード（%1$d MB）</string>
+    <string name="native_speech_cancel">ダウンロードをキャンセル</string>
+    <string name="native_speech_delete">モデルを削除</string>
+    <string name="native_speech_privacy">音声がこのスマートフォンの外に出ることはありません。モデルファイルは huggingface.co から1回だけダウンロードされ、同サイトにはIPアドレスとダウンロードの事実だけが見え、話した内容は見えません。マイクは、聞き取り画面が開いている間だけ使われます。</string>
+    <string name="native_speech_streets_privacy">通りの名前を地図と同じ表記にするため、音声検索は Overpass 地図サーバーにも周辺の通りの名前を問い合わせます（地域ごとに月に1回）。リクエストに含まれるのは約5 km四方の範囲の中心であり、現在地ではなく、話した内容が含まれることもありません。</string>
+    <string name="native_speech_problem_network">ダウンロードが中断されました。「モデルをダウンロード」をもう一度タップすると再開します。</string>
+    <string name="native_speech_problem_storage">モデル用の空き容量が足りません。</string>
+    <string name="native_speech_problem_integrity">ダウンロードしたファイルがチェックサムと一致しなかったため、破棄しました。</string>
+    <string name="native_speech_problem_engine">音声エンジンがこのスマートフォンでモデルを読み込めませんでした。</string>
+    <string name="native_speech_listening">聞いています…</string>
+    <string name="native_speech_transcribing">認識中…</string>
+    <string name="native_speech_done">完了</string>
+    <string name="native_speech_stop">キャンセル</string>
+    <string name="native_speech_nothing_heard">何も聞き取れませんでした。</string>
+</resources>

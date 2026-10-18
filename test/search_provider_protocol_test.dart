@@ -40,6 +40,16 @@ void main() {
 
   test('keeps exactly the worldwide Overpass mirrors and request headers', () {
     expect(SearchProviderProtocol.overpassMirrors, hasLength(3));
+    expect(
+      SearchProviderProtocol.overpassMirrors
+          .map((mirror) => Uri.parse(mirror).host)
+          .toSet(),
+      {
+        'overpass-api.de',
+        'maps.mail.ru',
+        'overpass.private.coffee',
+      },
+    );
     // overpass.openstreetmap.fr answers apps with 403 "white-listed usages only".
     expect(
       SearchProviderProtocol.overpassMirrors

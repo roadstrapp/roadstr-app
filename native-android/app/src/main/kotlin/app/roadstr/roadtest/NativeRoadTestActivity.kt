@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.provider.Settings
+import android.speech.RecognizerIntent
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -17,10 +18,19 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.roadstr.R
+import app.roadstr.core.speech.SpeechOutcome
+import app.roadstr.feature.speech.NativeSpeechOverlay
+import app.roadstr.core.geo.GeoPoint
+import app.roadstr.service.hazards.NativeOverpassClient
+import app.roadstr.service.speech.AddressSpeechRefiner
+import app.roadstr.service.speech.AndroidSpeechGateway
+import app.roadstr.service.speech.StreetGazetteer
 import app.roadstr.core.intent.NativeExternalDestinationInbox
 import app.roadstr.core.discovery.web.WebDiscoverySettings
 import app.roadstr.core.discovery.web.WebDiscoverySettingsCodec
@@ -31,6 +41,7 @@ import app.roadstr.feature.home.NativeRoadstrShell
 import app.roadstr.feature.home.NativeShellGpsPhase
 import app.roadstr.feature.home.NativeShellMode
 import app.roadstr.feature.home.NativeShellNostr
+import app.roadstr.feature.search.NativeSearchSpeechTranscript
 import app.roadstr.feature.saved.NativeParkingPosition
 import app.roadstr.feature.history.NativeRouteHistoryProtocol
 import app.roadstr.feature.offline.OfflineMapProviderClient
@@ -46,6 +57,8 @@ import app.roadstr.service.network.NativeBoundedHttpClient
 import app.roadstr.service.nostr.ExecutorNativeScheduler
 import app.roadstr.service.nostr.NativeActivityService
 import app.roadstr.service.nostr.NativeFavoritesSyncService
+import app.roadstr.service.nostr.NativeJourneySyncService
+import app.roadstr.service.nostr.NativeNip58Service
 import app.roadstr.service.nostr.NativeProfileVisibilityService
 import app.roadstr.service.nostr.NativeRelayFetcher
 import app.roadstr.service.nostr.NativeRelayPublisher
@@ -76,6 +89,9 @@ import app.roadstr.service.nostr.NativeNostrWire
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * Compose launcher for the Kotlin app. As the road-test APK it stands alone with its own stores; the
@@ -89,6 +105,47 @@ open class NativeRoadTestActivity : ComponentActivity() {
     private val runtime: NativeNavigationRuntime by lazy(LazyThreadSafetyMode.NONE) { obtainRuntime() }
     private val locationController: NativeRoadTestLocationController get() = runtime.location
     private val externalDestinationInbox = NativeExternalDestinationInbox()
+    private val searchSpeechTranscript = MutableStateFlow<NativeSearchSpeechTranscript?>(null)
+    private var searchSpeechRevision = 0L
+    private val searchSpeechLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode != RESULT_OK) return@registerForActivityResult
+        val text = result.data
+            ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            ?.firstOrNull()
+            ?.trim()
+            ?.takeIf(String::isNotEmpty)
+            ?: return@registerForActivityResult
+        searchSpeechRevision += 1L
+        searchSpeechTranscript.value = NativeSearchSpeechTranscript(searchSpeechRevision, text)
+    }
+
+    // The offline recogniser. Created on first use, so a phone that never taps the microphone pays
+    // nothing for it; closed with the Activity.
+    private val speechScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val speechLazy = lazy(LazyThreadSafetyMode.NONE) {
+        AndroidSpeechGateway(
+            applicationContext,
+            refiner = AddressSpeechRefiner(
+                gazetteer = StreetGazetteer(
+                    overpass = NativeOverpassClient(httpClient),
+                    cacheDirectory = File(noBackupFilesDir, "street-names"),
+                ),
+                position = { locationController.state.value.fix?.point?.let { GeoPoint(it.latitude, it.longitude) } },
+                scope = speechScope,
+            ),
+        )
+    }
+    private val speechGateway: AndroidSpeechGateway get() = speechLazy.value
+    private var pendingSpeechLanguage: String? = null
+    private val microphonePermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        val language = pendingSpeechLanguage ?: return@registerForActivityResult
+        pendingSpeechLanguage = null
+        if (granted) startOfflineListening(language) else launchSystemSpeech()
+    }
 
     internal open fun obtainRuntime(): NativeNavigationRuntime = NativeNavigationRuntime(applicationContext, storeNames)
 
@@ -162,6 +219,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
             installedPackages = offlinePackageManager::installed,
             networkAvailable = ::networkAvailable,
             localRoutingEngine = localRoutingEngine,
+            overpassEndpoint = getString(R.string.roadstr_overpass_endpoint),
             names = storeNames,
         )
     }
@@ -382,7 +440,28 @@ open class NativeRoadTestActivity : ComponentActivity() {
             )
         }
         val gpsSnapshot by locationController.state.collectAsStateWithLifecycle()
+        val journeySnapshot by runtime.journey.state.collectAsStateWithLifecycle()
+        val journeySync = nostrBridge.journeySync
+        val journeySyncSnapshot by requireNotNull(journeySync).state.collectAsStateWithLifecycle()
+        val contentScope = rememberCoroutineScope()
+        val synchronizeJourney: () -> Unit = {
+            journeySync.markLocalChangesPending()
+            contentScope.launch {
+                when (val result = journeySync.synchronize(runtime.journey.state.value.record)) {
+                    is app.roadstr.core.journey.JourneySyncResult.Ok ->
+                        runtime.journey.reconcileSyncedDevices(result.record, result.completeDeviceIds)
+                    else -> Unit
+                }
+            }
+        }
+        LaunchedEffect(journeySnapshot.activeSession?.id, journeySnapshot.record.sessions.size) {
+            val settings = uiPreferences.load()
+            if (settings.journeyEnabled && settings.journeySyncEnabled && journeySnapshot.activeSession == null) {
+                synchronizeJourney()
+            }
+        }
         val externalDestinationRequest by externalDestinationInbox.requests.collectAsStateWithLifecycle()
+        val speechTranscript by searchSpeechTranscript.collectAsStateWithLifecycle()
         NativeRoadstrShell(
             mode = shellMode,
             gpsSnapshot = gpsSnapshot,
@@ -395,6 +474,9 @@ open class NativeRoadTestActivity : ComponentActivity() {
             identityGateway = identityGateway,
             onAmberLogin = { revision -> launchAmber(revision) },
             onOpenExternal = ::openExternal,
+            searchSpeechTranscript = speechTranscript,
+            onSearchSpeechRequested = ::launchSearchSpeech,
+            speechGateway = speechGateway,
             onboardingCompleted = onboardingPreferences.getBoolean("completed", false),
             onOnboardingCompleted = {
                 onboardingPreferences.edit().putBoolean("completed", true).apply()
@@ -432,7 +514,17 @@ open class NativeRoadTestActivity : ComponentActivity() {
             initialFavorites = initialFavorites,
             onFavoritesChanged = favoritesStore::save,
             initialSettings = initialSettings,
-            onSettingsChanged = uiPreferences::save,
+            onSettingsChanged = { settings ->
+                val wasSyncEnabled = uiPreferences.load().journeySyncEnabled
+                uiPreferences.save(settings)
+                runtime.setJourneyEnabled(settings.journeyEnabled)
+                if (!wasSyncEnabled && settings.journeySyncEnabled) synchronizeJourney()
+            },
+            journeySnapshot = journeySnapshot,
+            journeySyncSnapshot = journeySyncSnapshot,
+            onJourneySync = synchronizeJourney,
+            onJourneyClear = runtime.journey::clear,
+            onJourneyUnlocksSeen = runtime.journey::acknowledgeUnlocks,
             offlinePackagesGateway = offlinePackagesGateway,
             onNwcChanged = ::saveNwc,
             onRoutingKeyChanged = ::saveRoutingKey,
@@ -449,6 +541,82 @@ open class NativeRoadTestActivity : ComponentActivity() {
                 debugDiagnostic("RoadstrDestination", "destination delivered to planner; consumed=$consumed")
             },
         )
+        // Drawn after the shell, so it sits on top of it.
+        SpeechOverlayHost()
+    }
+
+    /** The listening card, drawn over the whole shell while the offline recogniser is working. */
+    @Composable
+    private fun SpeechOverlayHost() {
+        if (!speechLazy.isInitialized()) return
+        val snapshot by speechGateway.state.collectAsStateWithLifecycle()
+        NativeSpeechOverlay(
+            snapshot = snapshot,
+            onDone = speechGateway::finishListening,
+            onCancel = speechGateway::cancelListening,
+        )
+    }
+
+    /**
+     * The microphone button of the search bar. When the offline model is installed and knows the
+     * language, Roadstr listens by itself; in every other case, and whenever the offline path is not
+     * usable, it hands over to whichever recogniser the phone provides.
+     */
+    private fun launchSearchSpeech() {
+        val languageTag = resources.configuration.locales[0].toLanguageTag()
+        if (!speechGateway.canRecognize(languageTag)) {
+            launchSystemSpeech()
+            return
+        }
+        val granted = checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+        if (granted) {
+            startOfflineListening(languageTag)
+        } else {
+            pendingSpeechLanguage = languageTag
+            microphonePermission.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
+    private fun startOfflineListening(languageTag: String) {
+        // A spoken instruction in progress would be heard as the search.
+        runCatching { voiceGateway.stop() }
+        speechGateway.listen(languageTag, ::onOfflineSpeechOutcome)
+    }
+
+    private fun onOfflineSpeechOutcome(outcome: SpeechOutcome) {
+        when (outcome) {
+            is SpeechOutcome.Text -> {
+                searchSpeechRevision += 1L
+                searchSpeechTranscript.value = NativeSearchSpeechTranscript(searchSpeechRevision, outcome.text)
+            }
+            SpeechOutcome.NothingHeard ->
+                Toast.makeText(this, R.string.native_speech_nothing_heard, Toast.LENGTH_SHORT).show()
+            SpeechOutcome.Cancelled -> Unit
+            is SpeechOutcome.Unavailable -> launchSystemSpeech()
+        }
+    }
+
+    /**
+     * Keeps Roadstr independent from one engine. Android routes this offline-preferred request to
+     * the configured provider, including the MIT Offline Speech to Text RecognitionService.
+     */
+    private fun launchSystemSpeech() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            .putExtra(RecognizerIntent.EXTRA_LANGUAGE, resources.configuration.locales[0].toLanguageTag())
+            .putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+            .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
+            .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        val offlineIntent = Intent(intent).setPackage(OFFLINE_SPEECH_PACKAGE)
+        val request = if (packageManager.resolveActivity(offlineIntent, PackageManager.MATCH_DEFAULT_ONLY) != null) {
+            offlineIntent
+        } else {
+            intent
+        }
+        runCatching { searchSpeechLauncher.launch(request) }
+            .onFailure {
+                Toast.makeText(this, R.string.native_roadtest_no_app, Toast.LENGTH_LONG).show()
+            }
     }
 
     override fun onStart() {
@@ -466,9 +634,12 @@ open class NativeRoadTestActivity : ComponentActivity() {
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
         webBrowser.onTrimMemory(level)
+        if (level >= android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW && speechLazy.isInitialized()) speechGateway.trimMemory()
     }
 
     override fun onDestroy() {
+        if (speechLazy.isInitialized()) speechGateway.close()
+        speechScope.cancel()
         webBrowser.release()
         mesh?.runtime?.close()
         nostr?.roadEvents?.close()
@@ -493,6 +664,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
             openUrl = ::openApprovalPage,
         )
         val syncStorage = NativeRoadTestSyncStorage(applicationContext, storeNames)
+        val journeySyncStorage = NativeRoadTestJourneySyncStorage(applicationContext, storeNames)
         val profiles = NativeRoadTestNostrProfileService()
         val zaps = NativeZapService(connector, relays = relays) { debugDiagnostic("RoadstrZap", it) }
         val userReports = NativeUserReportsService(connector, relays)
@@ -518,6 +690,28 @@ open class NativeRoadTestActivity : ComponentActivity() {
                 },
                 diagnostics = { debugDiagnostic("RoadstrSync", it) },
             ),
+            journeySync = NativeJourneySyncService(
+                signer = signer,
+                connector = connector,
+                store = journeySyncStorage,
+                deviceId = runtime.journeyDeviceId,
+                customRelay = syncStorage::customRelay,
+                fetcher = NativeRelayFetcher(connector) { debugDiagnostic("RoadstrJourneySync", it) },
+                publisherFactory = { relayUrls ->
+                    NativeRelayPublisher(connector, relayUrls) { debugDiagnostic("RoadstrJourneySync", it) }
+                },
+                diagnostics = { debugDiagnostic("RoadstrJourneySync", it) },
+            ),
+            badges = NativeNip58Service(
+                signer = signer,
+                fetcher = NativeRelayFetcher(connector) { debugDiagnostic("RoadstrBadges", it) },
+                publisher = publisher,
+                relays = relays,
+            ),
+            badgeIssuerPubkey = getString(R.string.roadstr_badge_issuer_pubkey)
+                .trim()
+                .lowercase()
+                .takeIf { it.matches(Regex("^[0-9a-f]{64}$")) },
             visibility = NativeProfileVisibilityService(
                 signer = signer,
                 publisher = publisher,
@@ -709,6 +903,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
 
     private companion object {
         const val WEB_SEARCH_KEY = "settings"
+        const val OFFLINE_SPEECH_PACKAGE = "app.offlinespeechtotext"
 
         /** An Android package name, as reported by the signer app. */
         val SIGNER_PACKAGE = Regex("[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+")

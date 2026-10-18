@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Hlasové vyhledávání</string>
+    <string name="native_speech_title">Hlasové vyhledávání offline</string>
+    <string name="native_speech_desc">Řekněte místo pomocí tlačítka mikrofonu ve vyhledávání. Řeč se rozpoznává přímo v tomto telefonu, bez připojení k internetu a bez Googlu či jiné služby pro rozpoznávání řeči.</string>
+    <string name="native_speech_checking">Kontrola…</string>
+    <string name="native_speech_not_downloaded">Nenainstalováno. Dokud model nenainstalujete, používá tlačítko mikrofonu rozpoznávání řeči vašeho telefonu, pokud nějaké má.</string>
+    <string name="native_speech_downloading">Stahování modelu pro rozpoznávání řeči…</string>
+    <string name="native_speech_ready">Nainstalováno. Tlačítko mikrofonu funguje offline.</string>
+    <string name="native_speech_unavailable">Nainstalováno, ale tento telefon ho neumí spustit. Tlačítko mikrofonu používá vlastní rozpoznávání řeči telefonu.</string>
+    <string name="native_speech_download">Stáhnout model (%1$d MB)</string>
+    <string name="native_speech_cancel">Zrušit stahování</string>
+    <string name="native_speech_delete">Smazat model</string>
+    <string name="native_speech_privacy">Váš hlas tento telefon nikdy neopustí. Soubor modelu se jednou stáhne z huggingface.co, který vidí vaši IP adresu a stahování, ale nic z toho, co řeknete. Mikrofon se používá jen po dobu, kdy je otevřená obrazovka poslechu.</string>
+    <string name="native_speech_streets_privacy">Aby se názvy ulic psaly tak jako na mapě, ptá se hlasové vyhledávání také mapových serverů Overpass na názvy ulic ve vašem okolí, jednou měsíčně pro každou oblast. Požadavek uvádí střed oblasti o velikosti asi 5 km, ne vaši polohu, a nikdy neobsahuje nic z toho, co jste řekli.</string>
+    <string name="native_speech_problem_network">Stahování bylo přerušeno. Klepnutím znovu na „Stáhnout model“ ho obnovíte.</string>
+    <string name="native_speech_problem_storage">Pro model není dost volného místa.</string>
+    <string name="native_speech_problem_integrity">Stažený soubor neodpovídal kontrolnímu součtu a byl zahozen.</string>
+    <string name="native_speech_problem_engine">Rozpoznávání řeči nedokázalo na tomto telefonu načíst model.</string>
+    <string name="native_speech_listening">Poslouchám…</string>
+    <string name="native_speech_transcribing">Rozpoznávám…</string>
+    <string name="native_speech_done">Hotovo</string>
+    <string name="native_speech_stop">Zrušit</string>
+    <string name="native_speech_nothing_heard">Nic nebylo slyšet.</string>
+</resources>

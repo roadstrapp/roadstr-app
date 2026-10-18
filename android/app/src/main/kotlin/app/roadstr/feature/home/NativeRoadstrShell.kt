@@ -10,8 +10,17 @@ import android.content.ClipboardManager
 import android.content.ClipData
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -130,13 +139,19 @@ import app.roadstr.feature.route.NativeRoutePlanningStatus
 import app.roadstr.feature.saved.NativeSavedPlacesPanel
 import app.roadstr.feature.saved.NativeSavedPlace
 import app.roadstr.core.discovery.RoadstrPlace
+import app.roadstr.core.journey.JourneySnapshot
+import app.roadstr.core.journey.JourneySyncSnapshot
 import app.roadstr.core.discovery.web.ConnectionTest
 import app.roadstr.core.discovery.web.WebDiscoverySettings
+import app.roadstr.core.protocol.nostr.Nip58BadgeReference
 import app.roadstr.feature.discovery.DiscoveryPresentation
 import app.roadstr.feature.discovery.NativeDiscoverySnapshot
 import app.roadstr.feature.history.NativeRouteHistoryEntry
 import app.roadstr.feature.history.NativeRouteHistoryPanel
 import app.roadstr.feature.history.NativeRouteHistoryProtocol
+import app.roadstr.feature.journey.NativeJourneyPanel
+import app.roadstr.feature.journey.JourneyPublicBadgePhase
+import app.roadstr.feature.journey.JourneyPublicBadgeState
 import app.roadstr.feature.saved.NativeMapContextMenu
 import app.roadstr.feature.saved.NativeParkingPanel
 import app.roadstr.feature.saved.NativeParkingPosition
@@ -153,6 +168,7 @@ import app.roadstr.feature.search.NativeSearchNearbyCategory
 import app.roadstr.feature.search.NativeSearchPresenter
 import app.roadstr.feature.search.NativeSearchOverlay
 import app.roadstr.feature.search.NativeSearchSession
+import app.roadstr.feature.search.NativeSearchSpeechTranscript
 import app.roadstr.feature.search.NativeSearchUiStatus
 import app.roadstr.feature.settings.NativeSettingsPanel
 import app.roadstr.feature.web.NativeWebBrowserScreen
@@ -171,6 +187,8 @@ import app.roadstr.feature.settings.NativeSettingsFavorite
 import app.roadstr.feature.settings.NativeSettingsInput
 import app.roadstr.feature.settings.NativeSettingsVoiceGender
 import app.roadstr.feature.settings.NativeSettingsVoiceModelStatus
+import app.roadstr.feature.speech.NativeSpeechGateway
+import app.roadstr.feature.speech.withSpeech
 import app.roadstr.feature.transit.NativeTransitItinerariesPanel
 import app.roadstr.feature.transit.NativeTransitJourneySession
 import app.roadstr.feature.transit.NativeTransitNavigationHud
@@ -216,6 +234,24 @@ enum class NativeShellMode {
     Canary,
     RoadTest,
     App,
+}
+
+/** Shared entrance/exit language for full-screen destinations opened over the map. */
+@Composable
+private fun RoadstrScreenReveal(
+    visible: Boolean,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        modifier = Modifier.fillMaxSize(),
+        enter = fadeIn(tween(250)) + slideInHorizontally(tween(420)) { it / 5 } +
+            scaleIn(tween(420), initialScale = .985f),
+        exit = fadeOut(tween(170)) + slideOutHorizontally(tween(290)) { it / 8 } +
+            scaleOut(tween(260), targetScale = .99f),
+    ) {
+        Box(modifier = Modifier.fillMaxSize(), content = content)
+    }
 }
 
 private const val ARRIVAL_BANNER_MILLIS = 6_000L
@@ -319,6 +355,9 @@ fun NativeRoadstrShell(
     identityGateway: NativeIdentityGateway? = null,
     onAmberLogin: (Long) -> Unit = {},
     onOpenExternal: (String) -> Unit = {},
+    searchSpeechTranscript: NativeSearchSpeechTranscript? = null,
+    onSearchSpeechRequested: () -> Unit = {},
+    speechGateway: NativeSpeechGateway? = null,
     onboardingCompleted: Boolean = false,
     onOnboardingCompleted: () -> Unit = {},
     initialParking: NativeParkingPosition? = null,
@@ -337,6 +376,11 @@ fun NativeRoadstrShell(
     onFavoritesChanged: (List<NativeSavedPlace>) -> Unit = {},
     initialSettings: NativeSettingsInput = NativeSettingsInput(),
     onSettingsChanged: (NativeSettingsInput) -> Unit = {},
+    journeySnapshot: JourneySnapshot? = null,
+    journeySyncSnapshot: JourneySyncSnapshot? = null,
+    onJourneyClear: () -> Unit = {},
+    onJourneyUnlocksSeen: () -> Unit = {},
+    onJourneySync: () -> Unit = {},
     offlinePackagesGateway: NativeOfflinePackagesGateway? = null,
     onNwcChanged: (String) -> Boolean = { false },
     /** Stores the routing API key protected; an empty value removes it. False if it could not be stored. */
@@ -614,6 +658,11 @@ fun NativeRoadstrShell(
             }
         }
         var offlinePackagesVisible by remember { mutableStateOf(false) }
+        var journeyVisible by remember { mutableStateOf(false) }
+        var journeyCatalogVisible by remember { mutableStateOf(false) }
+        var publicBadgeStates by remember(nostr?.badgeIssuerPubkey) {
+            mutableStateOf<Map<String, JourneyPublicBadgeState>>(emptyMap())
+        }
         var offlinePackagesState by remember(offlinePackagesGateway) {
             mutableStateOf(
                 NativeOfflinePackagesSnapshot(
@@ -750,6 +799,12 @@ fun NativeRoadstrShell(
         DisposableEffect(journeyCoordinator) {
             onDispose { journeyCoordinator?.close() }
         }
+        LaunchedEffect(searchSpeechTranscript?.revision, journeyCoordinator) {
+            val transcript = searchSpeechTranscript ?: return@LaunchedEffect
+            if (searchState.status != NativeSearchUiStatus.Hidden && transcript.text.isNotBlank()) {
+                journeyCoordinator?.updateSearchQuery(transcript.text)
+            }
+        }
         val myLocationLabel = stringResource(R.string.native_route_my_location)
         val gpsSearchPoint = gpsSnapshot.fix?.point?.let { point ->
             SearchResponsePoint(point.latitude, point.longitude)
@@ -773,6 +828,7 @@ fun NativeRoadstrShell(
             onDispose { webBrowser?.pageResolver = null }
         }
         val voiceRuntimeState = voiceGateway?.state?.collectAsState()?.value
+        val speechRuntimeState = speechGateway?.state?.collectAsState()?.value
         val voiceLanguage = journeyLanguage
         val transitVoiceApproachStop = stringResource(R.string.native_transit_voice_approach_stop)
         val transitVoicePrepareBoard = stringResource(R.string.native_transit_voice_prepare_board)
@@ -813,12 +869,19 @@ fun NativeRoadstrShell(
                 voiceGateway?.prewarmStart()
             }
         }
+        LaunchedEffect(speechRuntimeState) {
+            // Read the session, not the composed copy: the voice effect below may have just
+            // refreshed it in this same frame, and this one must not undo that.
+            val current = settingsSession.state.value
+            if (current.status != NativeSettingsStatus.Ready) return@LaunchedEffect
+            settingsSession.refresh(current.revision, current.values.withSpeech(speechRuntimeState))
+        }
         LaunchedEffect(voiceRuntimeState) {
             if (settingsState.status != NativeSettingsStatus.Ready) return@LaunchedEffect
             val voiceState = voiceRuntimeState ?: return@LaunchedEffect
             settingsSession.refresh(
-                settingsState.revision,
-                settingsState.values.copy(
+                settingsSession.state.value.revision,
+                settingsSession.state.value.values.copy(
                     voiceModelStatus = when (voiceState.status) {
                         NativeVoiceRuntimeStatus.MissingAssets,
                         NativeVoiceRuntimeStatus.Failed,
@@ -857,7 +920,7 @@ fun NativeRoadstrShell(
                             -> NativeSettingsVoiceModelStatus.NotDownloaded
                         },
                         voiceDownloadProgress = voiceState?.downloadFraction ?: 0.0,
-                    ),
+                    ).withSpeech(speechRuntimeState),
                 )
             }
             Unit
@@ -1172,6 +1235,17 @@ fun NativeRoadstrShell(
             NativeActiveNavigationSession(navigationHudSession, routeSession)
         }
         val activeNavigationState by activeNavigationSession.state.collectAsState()
+        LaunchedEffect(journeySnapshot?.newlyUnlocked) {
+            val unlocked = journeySnapshot?.newlyUnlocked.orEmpty()
+            if (unlocked.isNotEmpty()) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.native_journey_unlocked_message, unlocked.last().name),
+                    Toast.LENGTH_LONG,
+                ).show()
+                onJourneyUnlocksSeen()
+            }
+        }
         LaunchedEffect(
             ztlSnapshot.revision,
             routeState.revision,
@@ -1830,6 +1904,7 @@ fun NativeRoadstrShell(
         BackHandler(
             enabled = (
                 browserState.open ||
+                    journeyVisible ||
                     webPanelVisible ||
                     parkingPanelVisible ||
                     historyVisible ||
@@ -1855,6 +1930,9 @@ fun NativeRoadstrShell(
         ) {
             when {
                 browserState.open -> webBrowser?.close()
+                journeyVisible -> {
+                    if (journeyCatalogVisible) journeyCatalogVisible = false else journeyVisible = false
+                }
                 webPanelVisible -> webPanelVisible = false
                 contextMenuPoint != null -> contextMenuPoint = null
                 parkingPanelVisible -> parkingPanelVisible = false
@@ -2243,12 +2321,14 @@ fun NativeRoadstrShell(
                     onClearQuery = {
                         journeyCoordinator?.updateSearchQuery("")
                     },
+                    onVoiceInput = onSearchSpeechRequested,
                     onDismiss = {
                         journeyCoordinator?.dismissSearch()
                     },
                     onNearby = { category ->
                         journeyCoordinator?.submitNearby(category, gpsSearchPoint)
                     },
+                    onExplore = { category -> journeyCoordinator?.changeExploreCategory(category) },
                     onSearchWeb = { journeyCoordinator?.searchWeb() },
                     onConfirmWeb = { journeyCoordinator?.confirmWeb() },
                     onDeclineWeb = { journeyCoordinator?.declineWeb() },
@@ -2445,6 +2525,13 @@ fun NativeRoadstrShell(
                                 savedPlacesSession.show(nextRevision, favorites, parkingPosition)
                                 settingsSession.hide(revision)
                             }
+                            NativeSettingsUiAction.OpenJourney -> {
+                                if (journeySnapshot != null) {
+                                    journeyCatalogVisible = false
+                                    journeyVisible = true
+                                    settingsSession.hide(revision)
+                                }
+                            }
                             is NativeSettingsUiAction.EditFavorite -> {
                                 val place = favorites.getOrNull(action.index)
                                 val nextRevision = savedPlacesState.revision.coerceAtLeast(0L) + 1L
@@ -2471,11 +2558,94 @@ fun NativeRoadstrShell(
                             }
                             NativeSettingsUiAction.OpenWebSearch -> webPanelVisible = true
                             NativeSettingsUiAction.DownloadVoiceModel -> voiceGateway?.downloadAssets()
+                            NativeSettingsUiAction.DownloadSpeechModel -> speechGateway?.downloadModel()
+                            NativeSettingsUiAction.CancelSpeechDownload -> speechGateway?.cancelDownload()
+                            NativeSettingsUiAction.DeleteSpeechModel -> speechGateway?.deleteModel()
                         }
                     },
                     modifier = Modifier.align(Alignment.BottomCenter),
                     webSearchActive = NativeWebSearchEditor.isActive(webSettings),
                 )
+                AnimatedVisibility(
+                    visible = journeyVisible,
+                    modifier = Modifier.align(Alignment.Center),
+                    enter = fadeIn(tween(280)) + slideInHorizontally(tween(460)) { it / 4 } +
+                        scaleIn(tween(460), initialScale = .98f),
+                    exit = fadeOut(tween(190)) + slideOutHorizontally(tween(320)) { it / 7 } +
+                        scaleOut(tween(300), targetScale = .99f),
+                ) {
+                    journeySnapshot?.let { snapshot ->
+                        NativeJourneyPanel(
+                            snapshot = snapshot,
+                            languageCode = settingsState.values.languageCode ?: Locale.getDefault().language,
+                            imperial = settingsState.values.imperialUnits,
+                            showCatalog = journeyCatalogVisible,
+                            onShowCatalog = { journeyCatalogVisible = true },
+                            onHideCatalog = { journeyCatalogVisible = false },
+                            onClear = onJourneyClear,
+                            syncSnapshot = journeySyncSnapshot,
+                            syncEnabled = settingsState.values.journeySyncEnabled,
+                            onSync = onJourneySync,
+                            publicBadgesConfigured = nostr?.badges != null && nostr.badgeIssuerPubkey != null,
+                            publicBadgeStates = publicBadgeStates,
+                            onShowPublicBadge = showPublicBadge@{ achievement ->
+                                val bridge = nostr ?: return@showPublicBadge
+                                val issuer = bridge.badgeIssuerPubkey ?: return@showPublicBadge
+                                val service = bridge.badges ?: return@showPublicBadge
+                                val recipient = bridge.signer.pubkeyHex
+                                if (recipient == null) {
+                                    publicBadgeStates = publicBadgeStates + (
+                                        achievement.id to JourneyPublicBadgeState(JourneyPublicBadgePhase.ERROR)
+                                    )
+                                    Toast.makeText(
+                                        context,
+                                        R.string.native_journey_public_badge_signer,
+                                        Toast.LENGTH_LONG,
+                                    ).show()
+                                    return@showPublicBadge
+                                }
+                                val current = publicBadgeStates[achievement.id]?.phase
+                                if (current == JourneyPublicBadgePhase.CHECKING ||
+                                    current == JourneyPublicBadgePhase.PUBLISHING ||
+                                    current == JourneyPublicBadgePhase.PUBLISHED
+                                ) {
+                                    return@showPublicBadge
+                                }
+                                publicBadgeStates = publicBadgeStates + (
+                                    achievement.id to JourneyPublicBadgeState(JourneyPublicBadgePhase.CHECKING)
+                                )
+                                journeyScope.launch {
+                                    val award = runCatching {
+                                        service.findAward(
+                                            Nip58BadgeReference(issuer, achievement.nip58Identifier),
+                                            recipient,
+                                        )
+                                    }.getOrNull()
+                                    if (award == null) {
+                                        publicBadgeStates = publicBadgeStates + (
+                                            achievement.id to JourneyPublicBadgeState(JourneyPublicBadgePhase.NOT_ISSUED)
+                                        )
+                                        return@launch
+                                    }
+                                    publicBadgeStates = publicBadgeStates + (
+                                        achievement.id to JourneyPublicBadgeState(JourneyPublicBadgePhase.PUBLISHING)
+                                    )
+                                    val published = runCatching { service.addToProfile(award) }.getOrDefault(false)
+                                    publicBadgeStates = publicBadgeStates + (
+                                        achievement.id to JourneyPublicBadgeState(
+                                            if (published) JourneyPublicBadgePhase.PUBLISHED
+                                            else JourneyPublicBadgePhase.ERROR,
+                                        )
+                                    )
+                                }
+                            },
+                            onClose = {
+                                journeyCatalogVisible = false
+                                journeyVisible = false
+                            },
+                        )
+                    }
+                }
                 fun startOfflineDownloads(artifacts: List<OfflinePackageArtifact>, allowMobileDataOnce: Boolean) {
                     val gateway = offlinePackagesGateway ?: return
                     val queue = artifacts.distinctBy { it.id }
@@ -2536,8 +2706,8 @@ fun NativeRoadstrShell(
                         offlineDownloadJob = null
                     }
                 }
-                if (offlinePackagesVisible) {
-                    BackHandler { offlinePackagesVisible = false }
+                RoadstrScreenReveal(offlinePackagesVisible) {
+                    BackHandler(enabled = offlinePackagesVisible) { offlinePackagesVisible = false }
                     NativeOfflinePackagesPanel(
                         snapshot = offlinePackagesState,
                         onManifestUrlChanged = { value ->
@@ -2615,22 +2785,24 @@ fun NativeRoadstrShell(
                         modifier = Modifier.align(Alignment.TopCenter),
                     )
                 }
-                if (webBrowser != null && webBrowser.inApp && browserState.open) {
-                    NativeWebBrowserScreen(
-                        state = browserState,
-                        onBack = webBrowser::goBack,
-                        onForward = webBrowser::goForward,
-                        onReload = webBrowser::reload,
-                        onClose = webBrowser::close,
-                        onOpenExternal = onOpenExternal,
-                        onNavigateHere = webBrowser::navigateToPagePlace,
-                        onConfirmAction = webBrowser::confirmAction,
-                        onDismissAction = webBrowser::dismissAction,
-                        modifier = Modifier.align(Alignment.BottomCenter),
-                        content = { pageModifier -> webBrowser.Content(pageModifier) },
-                    )
+                RoadstrScreenReveal(webBrowser?.inApp == true && browserState.open) {
+                    webBrowser?.let { browser ->
+                        NativeWebBrowserScreen(
+                            state = browserState,
+                            onBack = browser::goBack,
+                            onForward = browser::goForward,
+                            onReload = browser::reload,
+                            onClose = browser::close,
+                            onOpenExternal = onOpenExternal,
+                            onNavigateHere = browser::navigateToPagePlace,
+                            onConfirmAction = browser::confirmAction,
+                            onDismissAction = browser::dismissAction,
+                            modifier = Modifier.align(Alignment.BottomCenter),
+                            content = { pageModifier -> browser.Content(pageModifier) },
+                        )
+                    }
                 }
-                if (webPanelVisible) {
+                RoadstrScreenReveal(webPanelVisible) {
                     NativeWebSearchPanel(
                         settings = webSettings,
                         status = webStatus,
@@ -2973,6 +3145,7 @@ fun NativeRoadstrShell(
                         modifier = Modifier.align(Alignment.BottomCenter),
                     )
                 }
+                RoadstrScreenReveal(placeState.status != app.roadstr.feature.place.NativePlaceUiStatus.Hidden) {
                 NativePlaceDetailsPanel(
                     snapshot = placeState,
                     onCancel = {
@@ -3008,6 +3181,8 @@ fun NativeRoadstrShell(
                     },
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
+                }
+                RoadstrScreenReveal(profileState.status != app.roadstr.feature.profile.NativeProfileStatus.Hidden) {
                 NativeProfilePanel(
                     snapshot = profileState,
                     onClose = profileSession::hide,
@@ -3052,7 +3227,8 @@ fun NativeRoadstrShell(
                     },
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
-                if (historyVisible) {
+                }
+                RoadstrScreenReveal(historyVisible) {
                     NativeRouteHistoryPanel(
                         entries = routeHistory,
                         onSelect = { entry ->
@@ -3076,7 +3252,7 @@ fun NativeRoadstrShell(
                         modifier = Modifier.align(Alignment.BottomCenter),
                     )
                 }
-                if (savedRoutesVisible) {
+                RoadstrScreenReveal(savedRoutesVisible) {
                     NativeSavedRoutesPanel(
                         routes = savedRoutes,
                         onStart = { saved ->
@@ -3117,7 +3293,7 @@ fun NativeRoadstrShell(
                         modifier = Modifier.align(Alignment.BottomCenter),
                     )
                 }
-                if (savedTransitVisible) {
+                RoadstrScreenReveal(savedTransitVisible) {
                     NativeSavedTransitJourneysPanel(
                         journeys = savedTransitJourneys,
                         selected = selectedSavedTransit,
@@ -3194,7 +3370,7 @@ fun NativeRoadstrShell(
                         modifier = Modifier.align(Alignment.BottomCenter),
                     )
                 }
-                if (parkingPanelVisible) {
+                RoadstrScreenReveal(parkingPanelVisible) {
                     NativeParkingPanel(
                         parking = parkingPosition,
                         canSaveHere = gpsSnapshot.fix != null,
@@ -3231,10 +3407,19 @@ fun NativeRoadstrShell(
                             contextMenuPoint = null
                             inspectPlace(point)
                         },
+                        onExplore = {
+                            contextMenuPoint = null
+                            journeyCoordinator?.exploreArea(
+                                SearchResponsePoint(point.latitude, point.longitude),
+                            )
+                        },
                         onClose = { contextMenuPoint = null },
                         modifier = Modifier.align(Alignment.BottomCenter),
                     )
                 }
+                RoadstrScreenReveal(
+                    !favoriteEditorFromSettings && savedPlacesState.status != NativeSavedPlacesStatus.Hidden,
+                ) {
                 NativeSavedPlacesPanel(
                     snapshot = if (favoriteEditorFromSettings) {
                         app.roadstr.feature.saved.NativeSavedPlacesSnapshot.hidden()
@@ -3274,6 +3459,10 @@ fun NativeRoadstrShell(
                     onClose = { savedPlacesSession.hide(savedPlacesState.revision) },
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
+                }
+                RoadstrScreenReveal(
+                    activityInboxState.status != app.roadstr.feature.activity.NativeActivityInboxStatus.Hidden,
+                ) {
                 NativeActivityInboxPanel(
                     snapshot = activityInboxState,
                     onClose = activityInboxSession::hide,
@@ -3282,6 +3471,10 @@ fun NativeRoadstrShell(
                     },
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
+                }
+                RoadstrScreenReveal(
+                    wikipediaState.status != app.roadstr.feature.wikipedia.NativeWikipediaStatus.Hidden,
+                ) {
                 NativeWikipediaReader(
                     snapshot = wikipediaState,
                     onClose = {
@@ -3310,6 +3503,7 @@ fun NativeRoadstrShell(
                         wikipediaSession.retry(revision)
                     },
                 )
+                }
                 NativeNavigationHud(
                     snapshot = if (
                         searchState.status == NativeSearchUiStatus.Hidden &&

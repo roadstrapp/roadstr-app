@@ -236,6 +236,8 @@ object NativePreferenceSchema {
                 cursorColor = NativeSettingsCursorColor.fromStorage(text("movementCursorColor")),
                 searchEngine = NativeSettingsSearchEngine.fromStorage(text("searchEngine")),
                 favoritesSyncAutoEnabled = bool(NativeSettingsBooleanKey.FavoritesSyncAuto),
+                journeyEnabled = bool(NativeSettingsBooleanKey.JourneyEnabled),
+                journeySyncEnabled = bool(NativeSettingsBooleanKey.JourneySyncEnabled),
                 interopShowEnabled = bool(NativeSettingsBooleanKey.InteropShow),
                 interopPublishEnabled = bool(NativeSettingsBooleanKey.InteropPublish),
                 interopEphemeralKey = bool(NativeSettingsBooleanKey.InteropEphemeralKey),

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Paieška balsu</string>
+    <string name="native_speech_title">Paieška balsu be interneto</string>
+    <string name="native_speech_desc">Pasakykite vietą paieškos mikrofono mygtuku. Kalba atpažįstama šiame telefone – be interneto ryšio ir be „Google“ ar kitos kalbos atpažinimo paslaugos.</string>
+    <string name="native_speech_checking">Tikrinama…</string>
+    <string name="native_speech_not_downloaded">Neįdiegta. Kol jo neįdiegsite, mikrofono mygtukas naudoja jūsų telefono kalbos atpažinimą, jei jis yra.</string>
+    <string name="native_speech_downloading">Atsisiunčiamas kalbos modelis…</string>
+    <string name="native_speech_ready">Įdiegta. Mikrofono mygtukas veikia be interneto.</string>
+    <string name="native_speech_unavailable">Įdiegta, bet šis telefonas negali jo paleisti. Mikrofono mygtukas naudoja paties telefono kalbos atpažinimą.</string>
+    <string name="native_speech_download">Atsisiųsti modelį (%1$d MB)</string>
+    <string name="native_speech_cancel">Atšaukti atsisiuntimą</string>
+    <string name="native_speech_delete">Ištrinti modelį</string>
+    <string name="native_speech_privacy">Jūsų balsas niekada nepalieka šio telefono. Modelio failas vieną kartą atsisiunčiamas iš huggingface.co, kuris mato jūsų IP adresą ir atsisiuntimą, bet nieko, ką sakote. Mikrofonas naudojamas tik tol, kol atidarytas klausymo ekranas.</string>
+    <string name="native_speech_streets_privacy">Kad gatvių pavadinimai būtų rašomi taip, kaip žemėlapyje, paieška balsu taip pat klausia „Overpass“ žemėlapių serverių apie aplinkinių gatvių pavadinimus – kartą per mėnesį kiekvienai vietovei. Užklausoje nurodomas maždaug 5 km dydžio teritorijos centras, o ne jūsų buvimo vieta, ir joje niekada nėra nieko iš to, ką pasakėte.</string>
+    <string name="native_speech_problem_network">Atsisiuntimas nutrūko. Norėdami tęsti, dar kartą palieskite „Atsisiųsti modelį“.</string>
+    <string name="native_speech_problem_storage">Modeliui nepakanka laisvos vietos.</string>
+    <string name="native_speech_problem_integrity">Atsisiųstas failas neatitiko savo kontrolinės sumos ir buvo išmestas.</string>
+    <string name="native_speech_problem_engine">Kalbos variklis negalėjo įkelti modelio šiame telefone.</string>
+    <string name="native_speech_listening">Klausau…</string>
+    <string name="native_speech_transcribing">Atpažįstama…</string>
+    <string name="native_speech_done">Atlikta</string>
+    <string name="native_speech_stop">Atšaukti</string>
+    <string name="native_speech_nothing_heard">Nieko negirdėjau.</string>
+</resources>

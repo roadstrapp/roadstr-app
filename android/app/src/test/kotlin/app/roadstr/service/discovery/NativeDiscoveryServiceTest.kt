@@ -3,10 +3,12 @@ package app.roadstr.service.discovery
 import app.roadstr.core.discovery.DiscoveryNotice
 import app.roadstr.core.discovery.DiscoveryOutcome
 import app.roadstr.core.discovery.DiscoveryRequest
+import app.roadstr.core.discovery.DiscoveryUnavailableReason
 import app.roadstr.core.discovery.NaturalQueryParser
 import app.roadstr.core.discovery.SearchArea
 import app.roadstr.core.geo.GeoPoint
 import app.roadstr.core.network.SearchProviderRequest
+import app.roadstr.core.network.SearchProviderProtocol
 import app.roadstr.service.network.NativeHttpRequestLimits
 import app.roadstr.service.network.NativeHttpResponse
 import app.roadstr.service.network.NativeSearchHttpTransport
@@ -15,6 +17,7 @@ import java.time.LocalDateTime
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
@@ -62,9 +65,14 @@ class NativeDiscoveryServiceTest {
         route: List<GeoPoint> = emptyList(),
     ) = DiscoveryRequest(parser.interpret(text, locale), device, null, destination, locale, now, route)
 
-    private fun service(transport: FakeTransport, mirrors: List<String> = listOf("https://m1/api", "https://m2/api")) =
+    private fun service(
+        transport: FakeTransport,
+        mirrors: List<String> = listOf("https://m1/api", "https://m2/api"),
+        networkAvailable: () -> Boolean = { true },
+    ) =
         NativeDiscoveryService(
             transport = transport,
+            networkAvailable = networkAvailable,
             overpassMirrors = mirrors,
             nominatimPacer = HostPacer(0, now = { 0L }, pause = { }),
         )
@@ -97,7 +105,13 @@ class NativeDiscoveryServiceTest {
         }
         val outcome = found(service(transport).discover(request("vegan restaurant in Florence")))
         assertEquals(1, transport.nominatim.size)
-        assertTrue(transport.overpass.single().body!!.contains("area%283600041485%29") || transport.overpass.single().body!!.contains("area(3600041485)") || transport.overpass.single().body!!.contains("3600041485"))
+        assertEquals(3, transport.overpass.size)
+        assertTrue(transport.overpass.take(2).all { call ->
+            call.body!!.contains("area%283600041485%29") ||
+                call.body!!.contains("area(3600041485)") ||
+                call.body!!.contains("3600041485")
+        })
+        assertFalse(transport.overpass.last().body!!.contains("3600041485"))
         assertEquals(3, outcome.places.size)
         assertTrue(outcome.area is SearchArea.AdminArea)
     }
@@ -162,6 +176,24 @@ class NativeDiscoveryServiceTest {
     }
 
     @Test
+    fun `the preferred Private coffee mirror keeps the form encoded protocol`() = runBlocking {
+        val transport = FakeTransport {
+            ok(elements(node(1, 45.0, "A"), node(2, 45.01, "B"), node(3, 45.02, "C")))
+        }
+        found(
+            service(
+                transport,
+                mirrors = listOf(SearchProviderProtocol.overpassPreferredMirror),
+            ).discover(request("restaurant near me")),
+        )
+
+        val call = transport.requests.single()
+        assertEquals(SearchProviderProtocol.overpassPreferredMirror, call.uri)
+        assertTrue(call.body!!.startsWith("data="))
+        assertTrue(call.body!!.length < 2_000)
+    }
+
+    @Test
     fun `a busy server answering 200 with a remark counts as a failure`() = runBlocking {
         val transport = FakeTransport { call ->
             if (call.uri.startsWith("https://m1")) ok("""{"elements":[],"remark":"runtime error: timeout"}""") else ok(elements(node(1, 45.0, "A"), node(2, 45.01, "B"), node(3, 45.02, "C")))
@@ -172,14 +204,47 @@ class NativeDiscoveryServiceTest {
     @Test
     fun `when every mirror fails the classic search takes over`() = runBlocking {
         val transport = FakeTransport { status(503) }
-        assertEquals(DiscoveryOutcome.NotApplicable, service(transport).discover(request("restaurant near me")))
+        assertEquals(
+            DiscoveryOutcome.Unavailable(DiscoveryUnavailableReason.PROVIDER_UNAVAILABLE),
+            service(transport).discover(request("restaurant near me")),
+        )
         assertEquals(2, transport.overpass.size)
     }
 
     @Test
     fun `a network exception is treated like a failed mirror`() = runBlocking {
         val transport = FakeTransport { throw IOException("down") }
-        assertEquals(DiscoveryOutcome.NotApplicable, service(transport).discover(request("restaurant near me")))
+        assertEquals(
+            DiscoveryOutcome.Unavailable(DiscoveryUnavailableReason.PROVIDER_UNAVAILABLE),
+            service(transport).discover(request("restaurant near me")),
+        )
+    }
+
+    @Test
+    fun `offline discovery reports missing local poi coverage without networking`() = runBlocking {
+        val transport = FakeTransport { error("network must not be called") }
+        val outcome = service(transport, networkAvailable = { false })
+            .discover(request("restaurant near me"))
+
+        assertEquals(
+            DiscoveryOutcome.Unavailable(DiscoveryUnavailableReason.OFFLINE_NO_INDEX),
+            outcome,
+        )
+        assertTrue(transport.requests.isEmpty())
+    }
+
+    @Test
+    fun `connectivity loss during discovery is distinct from provider failure`() = runBlocking {
+        var online = true
+        val transport = FakeTransport {
+            online = false
+            throw IOException("connection lost")
+        }
+
+        assertEquals(
+            DiscoveryOutcome.Unavailable(DiscoveryUnavailableReason.NETWORK_ERROR),
+            service(transport, networkAvailable = { online }).discover(request("restaurant near me")),
+        )
     }
 
     @Test

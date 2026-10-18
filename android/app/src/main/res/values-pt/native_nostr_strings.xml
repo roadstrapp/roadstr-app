@@ -138,7 +138,10 @@
     <string name="native_saved_routes_title">Rotas guardadas</string>
     <string name="native_search_notice_area_fallback">Não foi possível delimitar esse local com exatidão, por isso pesquisou-se a área à volta.</string>
     <string name="native_search_notice_few_tagged">Poucos locais aqui estão etiquetados para isto no OpenStreetMap, por isso a lista pode estar incompleta.</string>
+    <string name="native_search_notice_network_error">A ligação de rede foi interrompida durante a exploração. Não foram inventados resultados.</string>
+    <string name="native_search_notice_offline_no_index">Esta área não pode ser explorada offline porque não existe um índice local de pontos de interesse.</string>
     <string name="native_search_notice_open_hours_unknown">Alguns locais não indicam o horário, por isso podem estar fechados.</string>
+    <string name="native_search_notice_provider_unavailable">Os fornecedores de dados geográficos estão temporariamente indisponíveis. Tenta novamente em breve.</string>
     <string name="native_search_notice_route_ahead">Locais ao longo do troço da tua rota que ainda falta percorrer.</string>
     <string name="native_search_notice_route_unsupported">A pesquisa ao longo do percurso ainda não está disponível; a mostrar locais à tua volta.</string>
     <string name="native_search_notice_widened">Nada por perto, por isso a pesquisa foi alargada.</string>

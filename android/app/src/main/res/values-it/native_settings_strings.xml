@@ -92,6 +92,13 @@
     <string name="native_settings_sync_passphrase">Passphrase di sincronizzazione (opzionale)</string>
     <string name="native_settings_sync_relay">Un tuo relay (opzionale)</string>
     <string name="native_settings_sync_no_identity">Accedi con Nostr (Impostazioni → Profilo) per abilitare la sincronizzazione</string>
+    <string name="native_journey_settings_section">Roadstr Journey e rewards</string>
+    <string name="native_journey_settings_desc">Statistiche di viaggio e achievement facoltativi e privati. Disattivati per impostazione predefinita.</string>
+    <string name="native_journey_enable">Attiva Journey e rewards</string>
+    <string name="native_journey_enable_desc">Conta solo la distanza validata durante una navigazione Roadstr attiva</string>
+    <string name="native_journey_sync_enable">Sincronizza Journey con Nostr</string>
+    <string name="native_journey_sync_enable_desc">Sincronizzazione cifrata facoltativa; non pubblica percorsi o coordinate</string>
+    <string name="native_journey_open">Apri la dashboard Journey</string>
     <string name="native_settings_voice_section">Voce di navigazione</string>
     <string name="native_settings_voice_guidance">Guida vocale</string>
     <string name="native_settings_voice_guidance_desc">Leggi le istruzioni di svolta ad alta voce durante la navigazione</string>

@@ -15,6 +15,8 @@ c GREENGROCER: fruttivendolo, fruttivendoli, ortofrutta, frutta e verdura
 c BUTCHER: macelleria, macellerie, macellaio
 c PHARMACY: farmacia, farmacie, parafarmacia
 c CLOTHES: negozio di abbigliamento, negozi di abbigliamento, abbigliamento, boutique
+c SHOES: negozio di scarpe, negozi di scarpe, calzature
+c MUSICAL_INSTRUMENTS: negozio di strumenti musicali, negozi di strumenti musicali, strumenti musicali, negozio di pianoforti, pianoforti
 c ELECTRONICS: negozio di elettronica, negozi di elettronica, elettronica, negozio di informatica
 c HARDWARE: ferramenta, brico, bricolage, fai da te
 c BOOKS: libreria, librerie
@@ -44,9 +46,15 @@ c CAMPING: campeggio, campeggi, area camper, area sosta camper
 c CINEMA: cinema, multisala
 c THEATRE: teatro, teatri
 c MUSEUM: museo, musei
+c ART_GALLERY: galleria d arte, gallerie d arte, pinacoteca
+c ATTRACTION: attrazione, attrazioni, attrazione turistica, cose da vedere
+c MONUMENT: monumento, monumenti, memoriale
+c VIEWPOINT: punto panoramico, belvedere, panorama
 c PARK: parco, parchi, giardino, giardini
+c NATURE_RESERVE: riserva naturale, riserve naturali, area protetta
 c SWIMMING_POOL: piscina, piscine
 c GYM: palestra, palestre, centro fitness
+c SPORTS_CENTRE: centro sportivo, centri sportivi, stadio
 c LIBRARY: biblioteca, biblioteche
 c PLACE_OF_WORSHIP: chiesa, chiese, moschea, sinagoga, cattedrale, duomo, basilica, tempio
 c TOILETS: bagno, bagni, bagni pubblici, toilette, gabinetto
@@ -58,6 +66,13 @@ c UNIVERSITY: universita, ateneo
 g EAT: mangiare, cibo, pranzo, cena, colazione, spuntino
 g DRINK: bar, bere, aperitivo, aperitivi, da bere
 g LODGING: dormire, alloggio, pernottamento
+g SHOPPING: shopping, negozi, acquisti
+g CULTURE: cultura, luoghi culturali
+g OUTDOOR: natura, attivita all aperto
+g SERVICES: servizi, servizi utili
+g TRANSPORT: trasporti, mobilita
+g HEALTH: salute, assistenza sanitaria
+g SPORT: sport, tempo libero
 a VEGAN: vegano, vegana, vegani, vegane
 a VEGETARIAN: vegetariano, vegetariana, vegetariani, vegetariane
 a GLUTEN_FREE: senza glutine, celiaci, celiaco, celiachia, per celiaci

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Căutare vocală</string>
+    <string name="native_speech_title">Căutare vocală offline</string>
+    <string name="native_speech_desc">Spune un loc cu butonul microfon din căutare. Vorbirea este recunoscută pe acest telefon, fără conexiune la internet și fără Google sau alt serviciu de recunoaștere a vorbirii.</string>
+    <string name="native_speech_checking">Se verifică…</string>
+    <string name="native_speech_not_downloaded">Neinstalat. Până îl instalezi, butonul microfon folosește recunoașterea vocală a telefonului tău, dacă are una.</string>
+    <string name="native_speech_downloading">Se descarcă modelul de vorbire…</string>
+    <string name="native_speech_ready">Instalat. Butonul microfon funcționează offline.</string>
+    <string name="native_speech_unavailable">Instalat, dar acest telefon nu îl poate rula. Butonul microfon folosește recunoașterea vocală proprie a telefonului.</string>
+    <string name="native_speech_download">Descarcă modelul (%1$d MB)</string>
+    <string name="native_speech_cancel">Anulează descărcarea</string>
+    <string name="native_speech_delete">Șterge modelul</string>
+    <string name="native_speech_privacy">Vocea ta nu părăsește niciodată acest telefon. Fișierul modelului se descarcă o singură dată de pe huggingface.co, care vede adresa ta IP și descărcarea, dar nimic din ce spui. Microfonul este folosit doar cât timp ecranul de ascultare este deschis.</string>
+    <string name="native_speech_streets_privacy">Ca să scrie numele străzilor așa cum le scrie harta, căutarea vocală întreabă și serverele de hărți Overpass despre numele străzilor din jurul tău, o dată pe lună pentru fiecare zonă. Cererea indică centrul unei zone de aproximativ 5 km, nu unde ești, și nu conține niciodată nimic din ce ai spus.</string>
+    <string name="native_speech_problem_network">Descărcarea a fost întreruptă. Atinge din nou „Descarcă modelul” pentru a o relua.</string>
+    <string name="native_speech_problem_storage">Nu există suficient spațiu liber pentru model.</string>
+    <string name="native_speech_problem_integrity">Fișierul descărcat nu se potrivea cu suma sa de control și a fost aruncat.</string>
+    <string name="native_speech_problem_engine">Motorul de vorbire nu a putut încărca modelul pe acest telefon.</string>
+    <string name="native_speech_listening">Ascult…</string>
+    <string name="native_speech_transcribing">Recunosc…</string>
+    <string name="native_speech_done">Gata</string>
+    <string name="native_speech_stop">Anulează</string>
+    <string name="native_speech_nothing_heard">Nu am auzit nimic.</string>
+</resources>

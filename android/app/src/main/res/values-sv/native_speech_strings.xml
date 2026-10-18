@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Röstsökning</string>
+    <string name="native_speech_title">Röstsökning offline</string>
+    <string name="native_speech_desc">Säg en plats med mikrofonknappen i sökningen. Talet känns igen på den här telefonen – utan internetanslutning och utan Google eller någon annan taligenkänningstjänst.</string>
+    <string name="native_speech_checking">Kontrollerar…</string>
+    <string name="native_speech_not_downloaded">Inte installerad. Tills du installerar den använder mikrofonknappen telefonens egen taligenkänning, om den har någon.</string>
+    <string name="native_speech_downloading">Laddar ner talmodellen…</string>
+    <string name="native_speech_ready">Installerad. Mikrofonknappen fungerar offline.</string>
+    <string name="native_speech_unavailable">Installerad, men den här telefonen kan inte köra den. Mikrofonknappen använder telefonens egen taligenkänning.</string>
+    <string name="native_speech_download">Ladda ner modellen (%1$d MB)</string>
+    <string name="native_speech_cancel">Avbryt nedladdningen</string>
+    <string name="native_speech_delete">Ta bort modellen</string>
+    <string name="native_speech_privacy">Din röst lämnar aldrig den här telefonen. Modellfilen laddas ner en gång från huggingface.co, som ser din IP-adress och nedladdningen men inget av det du säger. Mikrofonen används bara medan lyssningsvyn är öppen.</string>
+    <string name="native_speech_streets_privacy">För att skriva gatunamn som kartan gör frågar röstsökningen också Overpass kartservrar efter gatunamnen runt dig, en gång i månaden per område. Förfrågan anger mitten av ett område på cirka 5 km, inte var du är, och innehåller aldrig något av det du har sagt.</string>
+    <string name="native_speech_problem_network">Nedladdningen avbröts. Tryck på ”Ladda ner modellen” igen för att fortsätta.</string>
+    <string name="native_speech_problem_storage">Det finns inte tillräckligt med ledigt utrymme för modellen.</string>
+    <string name="native_speech_problem_integrity">Den nedladdade filen stämde inte med sin kontrollsumma och kasserades.</string>
+    <string name="native_speech_problem_engine">Talmotorn kunde inte läsa in modellen på den här telefonen.</string>
+    <string name="native_speech_listening">Lyssnar…</string>
+    <string name="native_speech_transcribing">Känner igen…</string>
+    <string name="native_speech_done">Klar</string>
+    <string name="native_speech_stop">Avbryt</string>
+    <string name="native_speech_nothing_heard">Jag hörde ingenting.</string>
+</resources>

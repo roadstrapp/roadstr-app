@@ -16,6 +16,11 @@
     <!-- MapLibre's ConnectivityReceiver asks ConnectivityManager when the system reports a change.
          Normal-level permission: no runtime prompt. -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <!-- Offline voice search. Asked at runtime, the first time the search microphone is tapped with
+         the offline speech model installed; used only while the listening screen is open. The
+         system recogniser path needs no permission of Roadstr. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
     <uses-feature android:name="android.hardware.location" android:required="false" />
 
@@ -37,6 +42,9 @@
         android:name="android.hardware.bluetooth_le"
         android:required="false" />
     <queries>
+        <intent>
+            <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
+        </intent>
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="nostrsigner" />

@@ -1,0 +1,37 @@
+group = "com.sebdeveloper6952.amberflutter.amberflutter"
+version = "1.0-SNAPSHOT"
+
+apply plugin: "com.android.library"
+
+// Flutter detects this exact literal and therefore does not inject KGP itself.
+// AGP 9 compiles Kotlin natively unless the host explicitly opts out.
+def builtInKotlin = project.findProperty("android.builtInKotlin")?.toString()?.equalsIgnoreCase("true")
+if (!builtInKotlin) {
+    apply plugin: "kotlin-android"
+}
+
+android {
+    namespace = "com.sebdeveloper6952.amberflutter.amberflutter"
+    compileSdk = 33
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    sourceSets {
+        main.java.srcDirs += "src/main/kotlin"
+    }
+
+    defaultConfig {
+        minSdk = 19
+    }
+}
+
+if (!builtInKotlin) {
+    kotlin {
+        compilerOptions {
+            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+        }
+    }
+}

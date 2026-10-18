@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from tools/kotlin_rewrite/native_speech_translations.json. Do not edit. -->
+<resources>
+    <string name="native_speech_section">Ricerca vocale</string>
+    <string name="native_speech_title">Ricerca vocale offline</string>
+    <string name="native_speech_desc">Detta un luogo con il pulsante microfono nella ricerca. Il parlato viene riconosciuto su questo telefono, senza connessione a internet e senza servizi vocali di Google o di altri.</string>
+    <string name="native_speech_checking">Controllo in corso…</string>
+    <string name="native_speech_not_downloaded">Non installato. Finché non lo installi, il pulsante microfono usa il riconoscimento vocale del telefono, se ne ha uno.</string>
+    <string name="native_speech_downloading">Scaricamento del modello vocale…</string>
+    <string name="native_speech_ready">Installato. Il pulsante microfono funziona offline.</string>
+    <string name="native_speech_unavailable">Installato, ma questo telefono non riesce a usarlo. Il pulsante microfono usa il riconoscimento vocale del telefono.</string>
+    <string name="native_speech_download">Scarica il modello (%1$d MB)</string>
+    <string name="native_speech_cancel">Annulla lo scaricamento</string>
+    <string name="native_speech_delete">Elimina il modello</string>
+    <string name="native_speech_privacy">La tua voce non lascia mai questo telefono. Il modello viene scaricato una sola volta da huggingface.co, che vede il tuo indirizzo IP e il download, non ciò che dici. Il microfono è usato solo mentre la schermata di ascolto è aperta.</string>
+    <string name="native_speech_streets_privacy">Per scrivere i nomi delle vie come li scrive la mappa, la ricerca vocale chiede anche ai server di mappe Overpass i nomi delle vie intorno a te, una volta al mese per zona. La richiesta indica il centro di un’area larga circa 5 km, non dove sei, e non contiene mai ciò che hai detto.</string>
+    <string name="native_speech_problem_network">Lo scaricamento si è interrotto. Tocca di nuovo «Scarica» per riprendere.</string>
+    <string name="native_speech_problem_storage">Spazio libero insufficiente per il modello.</string>
+    <string name="native_speech_problem_integrity">Il file scaricato non corrispondeva al checksum ed è stato scartato.</string>
+    <string name="native_speech_problem_engine">Il motore vocale non è riuscito a caricare il modello su questo telefono.</string>
+    <string name="native_speech_listening">Ti ascolto…</string>
+    <string name="native_speech_transcribing">Riconoscimento…</string>
+    <string name="native_speech_done">Fatto</string>
+    <string name="native_speech_stop">Annulla</string>
+    <string name="native_speech_nothing_heard">Non ho sentito nulla.</string>
+</resources>

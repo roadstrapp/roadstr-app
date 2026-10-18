@@ -32,8 +32,8 @@ void main() {
       final strings = RegExp(
         r'<string name="([^"]+)">([\s\S]*?)</string>',
       ).allMatches(entry.value).toList();
-      expect(strings, hasLength(19), reason: entry.key);
-      expect(strings.map((match) => match.group(1)).toSet(), hasLength(19));
+      expect(strings, hasLength(31), reason: entry.key);
+      expect(strings.map((match) => match.group(1)).toSet(), hasLength(31));
     }
   });
 
@@ -74,6 +74,9 @@ void main() {
     ]) {
       expect(source, contains(value));
     }
+    expect(presentation.readAsStringSync(),
+        contains('NativeSearchUiStatus.Unavailable'));
+    expect(presentation.readAsStringSync(), contains('submitUnavailable'));
     expect(source, contains('.heightIn(max = 460.dp)'));
     expect(source, contains('.imePadding()'));
     expect(source, contains('paneTitle ='));

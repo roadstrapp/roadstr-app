@@ -37,6 +37,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Mic
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +61,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.roadstr.R
+import app.roadstr.core.discovery.ExploreCategory
 
 /** Flutter-parity place-search overlay packaged only in the private shell. */
 @Composable
@@ -62,8 +70,10 @@ fun NativeSearchOverlay(
     onQueryChanged: (String) -> Unit,
     onSubmit: (String) -> Unit,
     onClearQuery: () -> Unit,
+    onVoiceInput: () -> Unit = {},
     onDismiss: () -> Unit,
     onNearby: (NativeSearchNearbyCategory) -> Unit,
+    onExplore: (ExploreCategory) -> Unit = {},
     onSelectResult: (NativeSearchResultPresentation) -> Unit,
     onSelectFavorite: (NativeSearchFavoritePresentation) -> Unit,
     onSelectHistory: (NativeSearchHistoryPresentation) -> Unit,
@@ -101,6 +111,7 @@ fun NativeSearchOverlay(
                 onQueryChanged = onQueryChanged,
                 onSubmit = onSubmit,
                 onClearQuery = onClearQuery,
+                onVoiceInput = onVoiceInput,
                 onDismiss = onDismiss,
             )
             LazyColumn(
@@ -116,6 +127,12 @@ fun NativeSearchOverlay(
                             selected = snapshot.selectedNearby,
                             onNearby = onNearby,
                         )
+                    }
+                }
+
+                snapshot.selectedExplore?.let { selected ->
+                    item(key = "explore-categories") {
+                        ExploreChoices(selected = selected, onExplore = onExplore)
                     }
                 }
 
@@ -191,15 +208,60 @@ fun NativeSearchOverlay(
 }
 
 @Composable
+private fun ExploreChoices(selected: ExploreCategory, onExplore: (ExploreCategory) -> Unit) {
+    Column(modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)) {
+        SearchSectionHeading(
+            symbol = "⌖",
+            text = androidx.compose.ui.res.stringResource(R.string.native_explore_categories),
+        )
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ExploreCategory.entries.forEach { category ->
+                val label = androidx.compose.ui.res.stringResource(category.labelResource())
+                FilterChip(
+                    selected = selected == category,
+                    onClick = { onExplore(category) },
+                    label = { Text(label) },
+                    modifier = Modifier.semantics {
+                        this.selected = selected == category
+                        role = Role.Button
+                        contentDescription = label
+                    },
+                )
+            }
+        }
+    }
+}
+
+@StringRes
+private fun ExploreCategory.labelResource(): Int = when (this) {
+    ExploreCategory.ALL -> R.string.native_explore_all
+    ExploreCategory.FOOD_AND_DRINK -> R.string.native_explore_food
+    ExploreCategory.ATTRACTIONS_AND_CULTURE -> R.string.native_explore_culture
+    ExploreCategory.SHOPPING -> R.string.native_explore_shopping
+    ExploreCategory.NATURE_AND_OUTDOOR -> R.string.native_explore_outdoor
+    ExploreCategory.SERVICES -> R.string.native_explore_services
+    ExploreCategory.TRANSPORT -> R.string.native_explore_transport
+    ExploreCategory.HEALTH -> R.string.native_explore_health
+    ExploreCategory.SPORT_AND_LEISURE -> R.string.native_explore_sport
+    ExploreCategory.LODGING -> R.string.native_explore_lodging
+}
+
+@Composable
 private fun SearchField(
     query: String,
     hint: String,
     onQueryChanged: (String) -> Unit,
     onSubmit: (String) -> Unit,
     onClearQuery: () -> Unit,
+    onVoiceInput: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val close = androidx.compose.ui.res.stringResource(R.string.native_search_close)
+    val clear = androidx.compose.ui.res.stringResource(R.string.native_search_clear_history)
+    val voice = androidx.compose.ui.res.stringResource(android.R.string.search_go)
     Row(verticalAlignment = Alignment.CenterVertically) {
         OutlinedTextField(
             value = query,
@@ -207,23 +269,29 @@ private fun SearchField(
             modifier = Modifier.weight(1f),
             placeholder = { Text(hint) },
             leadingIcon = {
-                Text(
-                    text = "⌕",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.titleLarge,
-                )
+                if (query.isEmpty()) {
+                    IconButton(onClick = onVoiceInput) {
+                        Icon(
+                            imageVector = Icons.Outlined.Mic,
+                            contentDescription = voice,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                } else {
+                    Icon(Icons.Outlined.Search, contentDescription = null)
+                }
             },
             trailingIcon = if (query.isEmpty()) {
                 null
             } else {
                 {
-                    TextButton(
+                    IconButton(
                         onClick = onClearQuery,
                         modifier = Modifier
                             .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
-                            .semantics { contentDescription = close },
+                            .semantics { contentDescription = clear },
                     ) {
-                        Text("×", style = MaterialTheme.typography.titleLarge)
+                        Icon(Icons.Outlined.Clear, contentDescription = null)
                     }
                 }
             },
@@ -232,13 +300,13 @@ private fun SearchField(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { onSubmit(query) }),
         )
-        TextButton(
+        IconButton(
             onClick = onDismiss,
             modifier = Modifier
                 .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
                 .semantics { contentDescription = close },
         ) {
-            Text("×", style = MaterialTheme.typography.titleLarge)
+            Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = null)
         }
     }
 }
@@ -571,6 +639,9 @@ private fun NativeSearchNotice.textResource(): Int = when (this) {
     NativeSearchNotice.RouteAhead -> R.string.native_search_notice_route_ahead
     NativeSearchNotice.AreaFallback -> R.string.native_search_notice_area_fallback
     NativeSearchNotice.OpenHoursUnknown -> R.string.native_search_notice_open_hours_unknown
+    NativeSearchNotice.OfflineNoIndex -> R.string.native_search_notice_offline_no_index
+    NativeSearchNotice.ProviderUnavailable -> R.string.native_search_notice_provider_unavailable
+    NativeSearchNotice.NetworkError -> R.string.native_search_notice_network_error
 }
 
 @Composable

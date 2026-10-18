@@ -92,6 +92,13 @@
     <string name="native_settings_sync_passphrase">同步密码短语(可选)</string>
     <string name="native_settings_sync_relay">你自己的中继（可选）</string>
     <string name="native_settings_sync_no_identity">使用Nostr登录（设置 → 个人资料）以启用同步</string>
+    <string name="native_journey_settings_section">Roadstr Journey &amp; rewards</string>
+    <string name="native_journey_settings_desc">Optional private travel statistics and progressive achievements. Off by default.</string>
+    <string name="native_journey_enable">Enable Journey and rewards</string>
+    <string name="native_journey_enable_desc">Count validated distance only while Roadstr navigation is active</string>
+    <string name="native_journey_sync_enable">Sync Journey with Nostr</string>
+    <string name="native_journey_sync_enable_desc">Optional encrypted synchronization; never publishes routes or coordinates</string>
+    <string name="native_journey_open">Open Journey dashboard</string>
     <string name="native_settings_voice_section">导航语音</string>
     <string name="native_settings_voice_guidance">语音引导</string>
     <string name="native_settings_voice_guidance_desc">导航时朗读转弯指示</string>

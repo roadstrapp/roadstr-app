@@ -6,6 +6,9 @@ void main() {
   final manifest = File('android/app/src/main/AndroidManifest.xml');
   final appGradle = File('android/app/build.gradle.kts');
   final settingsGradle = File('android/settings.gradle.kts');
+  final gradleProperties = File('android/gradle.properties');
+  final pubspec = File('pubspec.yaml');
+  final amberGradle = File('third_party/amberflutter/android/build.gradle');
 
   test('Compose shell keeps the existing package and SDK baseline', () {
     final appBuild = appGradle.readAsStringSync();
@@ -20,8 +23,23 @@ void main() {
     expect(appBuild, contains('androidx.compose.material3:material3'));
     expect(
       settings,
-      contains('id("org.jetbrains.kotlin.plugin.compose") version "2.2.10"'),
+      contains('id("org.jetbrains.kotlin.plugin.compose") version "2.2.20"'),
     );
+  });
+
+  test('Built-in Kotlin stays gated until every Flutter plugin is ready', () {
+    final properties = gradleProperties.readAsStringSync();
+    final dependencies = pubspec.readAsStringSync();
+    final amberBuild = amberGradle.readAsStringSync();
+
+    expect(properties, contains('android.builtInKotlin=false'));
+    expect(dependencies, contains('flutter_onnxruntime: 1.8.5'));
+    expect(dependencies, contains('path: third_party/amberflutter'));
+    expect(
+      amberBuild,
+      contains('project.findProperty("android.builtInKotlin")'),
+    );
+    expect(amberBuild, contains('apply plugin: "kotlin-android"'));
   });
 
   test('the Kotlin launcher is the default and the Flutter one is an explicit build choice', () {

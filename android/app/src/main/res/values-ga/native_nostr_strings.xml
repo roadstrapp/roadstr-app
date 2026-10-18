@@ -138,7 +138,10 @@
     <string name="native_saved_routes_title">Bealaí sábháilte</string>
     <string name="native_search_notice_area_fallback">Níorbh fhéidir an áit sin a theorannú go beacht, mar sin cuardaíodh an ceantar máguaird.</string>
     <string name="native_search_notice_few_tagged">Is beag na háiteanna anseo atá clibeáilte don seo in OpenStreetMap, mar sin d\'fhéadfadh an liosta a bheith neamhiomlán.</string>
+    <string name="native_search_notice_network_error">Cailleadh an nasc líonra le linn an taiscéalaíochta. Níor cumadh aon torthaí.</string>
+    <string name="native_search_notice_offline_no_index">Ní féidir an ceantar seo a thaiscéaladh as líne mar níl innéacs áitiúil pointí spéise ar fáil.</string>
     <string name="native_search_notice_open_hours_unknown">Ní chuireann roinnt áiteanna a n-uaireanta oscailte in iúl, mar sin d\'fhéadfadh siad a bheith dúnta.</string>
+    <string name="native_search_notice_provider_unavailable">Níl na soláthraithe sonraí geografacha ar fáil faoi láthair. Bain triail eile as ar ball.</string>
     <string name="native_search_notice_route_ahead">Áiteanna feadh an chuid de do bhealach atá fós romhat.</string>
     <string name="native_search_notice_route_unsupported">Níl cuardach feadh an bhealaigh ar fáil go fóill; ag taispeáint áiteanna timpeall ort.</string>
     <string name="native_search_notice_widened">Faic in aice láimhe, mar sin leathnaíodh an cuardach.</string>

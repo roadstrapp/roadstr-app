@@ -91,6 +91,23 @@ class NativeOverpassClient(
         return SearchResponseProtocol.parseOverpassElements(response.bodyUtf8)
     }
 
+    /**
+     * Like [fetchElements], for a query whose answer is not JSON (`[out:csv(...)]`): returns the body as it
+     * came. Same failure contract: a transport failure or a non-200 status throws.
+     */
+    suspend fun fetchText(
+        query: String,
+        maxBytes: Long,
+        timeoutMillis: Long,
+    ): String {
+        val response = transport.execute(
+            SearchProviderProtocol.overpass(currentMirror(), query),
+            NativeHttpRequestLimits(timeoutMillis = timeoutMillis, maxResponseBytes = maxBytes),
+        )
+        if (response.statusCode != 200) throw NativeOverpassException(response.statusCode)
+        return response.bodyUtf8
+    }
+
     private companion object {
         const val MAX_STREAK = 8
     }
