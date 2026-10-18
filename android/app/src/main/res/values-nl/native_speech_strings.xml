@@ -13,6 +13,7 @@
     <string name="native_speech_cancel">Download annuleren</string>
     <string name="native_speech_delete">Model verwijderen</string>
     <string name="native_speech_privacy">Uw stem verlaat deze telefoon nooit. Het modelbestand wordt eenmaal gedownload van huggingface.co, dat uw IP-adres en de download ziet, maar niets van wat u zegt. De microfoon wordt alleen gebruikt zolang het luisterscherm open is.</string>
+    <string name="native_speech_streets_privacy">Om straatnamen te schrijven zoals de kaart ze schrijft, vraagt het gesproken zoeken ook de Overpass-kaartservers om de straatnamen in uw omgeving, eenmaal per maand per gebied. Het verzoek noemt het middelpunt van een gebied van ongeveer 5 km, niet waar u bent, en bevat nooit iets van wat u gezegd hebt.</string>
     <string name="native_speech_problem_network">De download is onderbroken. Tik opnieuw op ‘Model downloaden’ om te hervatten.</string>
     <string name="native_speech_problem_storage">Er is niet genoeg vrije opslagruimte voor het model.</string>
     <string name="native_speech_problem_integrity">Het gedownloade bestand kwam niet overeen met zijn controlesom en is verworpen.</string>

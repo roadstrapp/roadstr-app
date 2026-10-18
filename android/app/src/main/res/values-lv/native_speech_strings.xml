@@ -13,6 +13,7 @@
     <string name="native_speech_cancel">Atcelt lejupielādi</string>
     <string name="native_speech_delete">Dzēst modeli</string>
     <string name="native_speech_privacy">Jūsu balss nekad neizej no šī tālruņa. Modeļa fails tiek lejupielādēts vienu reizi no huggingface.co, kas redz jūsu IP adresi un lejupielādi, bet neko no tā, ko sakāt. Mikrofons tiek izmantots tikai tad, kamēr ir atvērts klausīšanās ekrāns.</string>
+    <string name="native_speech_streets_privacy">Lai ielu nosaukumi tiktu rakstīti tā, kā tos raksta karte, meklēšana ar balsi vaicā arī Overpass karšu serveriem apkārtnes ielu nosaukumus – reizi mēnesī katram apgabalam. Pieprasījumā ir norādīts apmēram 5 km liela apgabala centrs, nevis jūsu atrašanās vieta, un tajā nekad nav nekā no jūsu teiktā.</string>
     <string name="native_speech_problem_network">Lejupielāde tika pārtraukta. Lai turpinātu, vēlreiz pieskarieties pogai “Lejupielādēt modeli”.</string>
     <string name="native_speech_problem_storage">Modelim nepietiek brīvas vietas.</string>
     <string name="native_speech_problem_integrity">Lejupielādētais fails neatbilda savai kontrolsummai, un tas tika izmests.</string>

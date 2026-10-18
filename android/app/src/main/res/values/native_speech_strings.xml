@@ -13,6 +13,7 @@
     <string name="native_speech_cancel">Cancel download</string>
     <string name="native_speech_delete">Delete the model</string>
     <string name="native_speech_privacy">Your voice never leaves this phone. The model file is downloaded once from huggingface.co, which sees your IP address and the download, nothing you say. The microphone is used only while the listening screen is open.</string>
+    <string name="native_speech_streets_privacy">To spell street names the way the map does, voice search also asks the Overpass map servers for the street names around you, once a month per area. The request names the centre of an area about 5 km across, not where you are, and never contains anything you said.</string>
     <string name="native_speech_problem_network">The download was interrupted. Tap download again to resume.</string>
     <string name="native_speech_problem_storage">Not enough free storage for the model.</string>
     <string name="native_speech_problem_integrity">The downloaded file did not match its checksum and was discarded.</string>

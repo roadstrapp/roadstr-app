@@ -135,6 +135,11 @@ void main() {
     for (final file in ['AudioRecordPcmSource.kt', 'OfflineSttSpeechEngine.kt', 'SpeechRecognition.kt']) {
       expect(_read('$_kotlin/service/speech/$file'), isNot(contains('okhttp3')), reason: file);
     }
+    // The street-name request carries a place and nothing else: no text, no audio.
+    final gazetteer = _read('$_kotlin/service/speech/StreetGazetteer.kt');
+    expect(gazetteer, contains('suspend fun load(point: GeoPoint)'));
+    expect(gazetteer, contains('cell.centre'));
+    expect(_read('$_kotlin/service/speech/AddressSpeechRefiner.kt'), contains('gazetteer.load(point)'));
     for (final file in Directory('$_kotlin/offlinestt').listSync().whereType<File>()) {
       expect(file.readAsStringSync(), isNot(contains('java.net')), reason: file.path);
     }

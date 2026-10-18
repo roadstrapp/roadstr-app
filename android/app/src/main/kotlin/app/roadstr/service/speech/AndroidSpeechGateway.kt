@@ -35,6 +35,7 @@ class AndroidSpeechGateway(
     context: Context,
     private val spec: SpeechModelSpec = SpeechModelCatalog.default,
     private val transport: SpeechModelTransport = OkHttpSpeechModelTransport(),
+    refiner: SpeechTextRefiner = SpeechTextRefiner.None,
 ) : NativeSpeechGateway {
     private val appContext = context.applicationContext
     private val main = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -46,7 +47,7 @@ class AndroidSpeechGateway(
         availableMemoryBytes = ::availableMemory,
         requiredMemoryBytes = spec.requiredAvailableMemoryBytes,
     )
-    private val runner = SpeechRecognitionRunner(store, engines, ::AudioRecordPcmSource)
+    private val runner = SpeechRecognitionRunner(store, engines, ::AudioRecordPcmSource, refiner = refiner)
 
     private val mutableState = MutableStateFlow(
         NativeSpeechSnapshot(

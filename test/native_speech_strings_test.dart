@@ -69,7 +69,7 @@ void main() {
     }
   });
 
-  test('every language keeps what the privacy sentence promises: the server name and no audio leaving', () {
+  test('every language names the servers involved: the model host and the map servers', () {
     final catalogue = _loadCatalogue();
     for (final language in _languages()) {
       final privacy = (catalogue[language] as Map<String, dynamic>)['privacy'] as String;

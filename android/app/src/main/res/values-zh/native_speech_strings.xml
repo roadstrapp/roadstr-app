@@ -13,6 +13,7 @@
     <string name="native_speech_cancel">取消下载</string>
     <string name="native_speech_delete">删除模型</string>
     <string name="native_speech_privacy">您的声音绝不会离开这部手机。模型文件仅从 huggingface.co 下载一次，该网站只能看到您的 IP 地址和下载行为，看不到您说的任何内容。仅在聆听界面打开时才会使用麦克风。</string>
+    <string name="native_speech_streets_privacy">为了让街道名称与地图上的写法一致，语音搜索还会向 Overpass 地图服务器查询您周边的街道名称，每个区域每月一次。请求中只包含一个约 5 公里范围区域的中心点，而不是您的位置，也绝不包含您说过的任何内容。</string>
     <string name="native_speech_problem_network">下载已中断。再次点按“下载模型”即可继续。</string>
     <string name="native_speech_problem_storage">可用存储空间不足，无法存放模型。</string>
     <string name="native_speech_problem_integrity">下载的文件与其校验和不符，已被丢弃。</string>

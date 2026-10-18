@@ -13,6 +13,7 @@
     <string name="native_speech_cancel">Download abbrechen</string>
     <string name="native_speech_delete">Modell löschen</string>
     <string name="native_speech_privacy">Ihre Stimme verlässt dieses Telefon nie. Die Modelldatei wird einmal von huggingface.co geladen; der Server sieht Ihre IP-Adresse und den Download, aber nichts von dem, was Sie sagen. Das Mikrofon ist nur geöffnet, solange der Aufnahmebildschirm angezeigt wird.</string>
+    <string name="native_speech_streets_privacy">Damit Straßennamen so geschrieben werden wie auf der Karte, fragt die Sprachsuche außerdem die Overpass-Kartenserver nach den Straßennamen in Ihrer Umgebung, einmal im Monat pro Gebiet. Die Anfrage nennt den Mittelpunkt eines Gebiets von etwa 5 km Ausdehnung, nicht Ihren Standort, und enthält nie etwas von dem, was Sie gesagt haben.</string>
     <string name="native_speech_problem_network">Der Download wurde unterbrochen. Zum Fortsetzen erneut auf „Modell herunterladen“ tippen.</string>
     <string name="native_speech_problem_storage">Nicht genug freier Speicher für das Modell.</string>
     <string name="native_speech_problem_integrity">Die heruntergeladene Datei stimmte nicht mit ihrer Prüfsumme überein und wurde verworfen.</string>

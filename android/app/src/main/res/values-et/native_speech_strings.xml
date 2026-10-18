@@ -13,6 +13,7 @@
     <string name="native_speech_cancel">Katkesta allalaadimine</string>
     <string name="native_speech_delete">Kustuta mudel</string>
     <string name="native_speech_privacy">Teie hääl ei lahku kunagi sellest telefonist. Mudelifail laaditakse alla ühe korra aadressilt huggingface.co, mis näeb teie IP-aadressi ja allalaadimist, kuid mitte midagi sellest, mida te ütlete. Mikrofoni kasutatakse ainult siis, kui kuulamisekraan on avatud.</string>
+    <string name="native_speech_streets_privacy">Et tänavanimed oleksid kirjutatud nii nagu kaardil, küsib häälotsing Overpassi kaardiserveritelt ka teie ümbruse tänavanimesid, kord kuus piirkonna kohta. Päring nimetab umbes 5 km suuruse piirkonna keskpunkti, mitte teie asukohta, ning ei sisalda kunagi midagi sellest, mida te ütlesite.</string>
     <string name="native_speech_problem_network">Allalaadimine katkes. Jätkamiseks puudutage uuesti nuppu „Laadi mudel alla“.</string>
     <string name="native_speech_problem_storage">Mudeli jaoks pole piisavalt vaba ruumi.</string>
     <string name="native_speech_problem_integrity">Allalaaditud fail ei vastanud oma kontrollsummale ja visati ära.</string>

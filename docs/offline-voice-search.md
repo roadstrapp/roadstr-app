@@ -54,6 +54,27 @@ Roadstr finds the end of what you say by itself: it learns how loud the room is,
 as speech, keeps 0.3 s before the start so the first syllable is not clipped, and stops after 1.2 s of silence. It gives up after
 8 s without speech and cuts an utterance off at 20 s. In a noisy car silence may never come, so the card has a **Done** button.
 
+## House numbers and street names
+
+A speech model gets the sounds right and the writing wrong, and a map search needs the writing. Two steps repair
+what is predictable (`core/speech/SpokenAddressRefiner.kt`):
+
+* **Numbers.** The model often writes house numbers as digits by itself but not always (*via d'arsena diciassette*).
+  Italian number words left in an address become digits (*diciassette* → 17, *centoventitré* → 123,
+  *duecento quaranta sette* → 247), and *numero* / *civico* in front of them goes, as no address starts with it. Numbers that are
+  part of a name stay: *Piazza dei Tre Martiri*, *Via Venti Settembre*, *Via Cinque Giornate*. Everyday words that are also
+  numbers (*una*, *sei*) are only read as numbers where a house number can be. Other languages keep what the model wrote.
+* **Street names.** Spelling by sound breaks names at the wrong place or in the wrong letter: *via chiavi caromea* for *Via
+  Chiavica Romea*, *via d'arsena* and *via d'assena* for *Via Darsena*. The text is compared, without spaces, apostrophes, accents or
+  doubled letters and with *c/k/ch* folded together, with the names of the streets around the user, and a street is replaced by
+  the map's spelling only when it is clearly the closest one: an exact match, or at most one or two letters off for a longer name,
+  never for a short name, never when two streets are equally close. A street that is not in the list is left as it was.
+
+The list comes from Overpass (`service/speech/StreetGazetteer.kt`): the named roads inside a 7 km circle around the centre of a
+grid cell of about 5 km, fetched when listening starts and kept on the phone for 30 days. **The request names the cell's centre,
+never the user's position, and never anything they said.** If the servers cannot be reached, or the answer is late (more than
+2.5 s after the user stopped), the house number is still fixed and the street is left as heard.
+
 ## Memory and battery
 
 The loaded model takes about a gigabyte. Roadstr keeps at most one engine, drops it one minute after the last use, and drops it
@@ -64,8 +85,8 @@ listening card is on screen.
 ## Privacy
 
 * The audio is processed in memory by the engine and never written to disk, sent, or logged.
-* The engine code does not use the network; the only request is the model download, which `huggingface.co` sees as an IP
-  address and a file request. `test/native_offline_speech_contract_test.dart` checks that the recorder and the engine know nothing
+* The engine code does not use the network; the only requests are the model download, which `huggingface.co` sees as an IP
+  address and a file request, and the street names of the area, which Overpass sees as the centre of a 5 km cell (see above). `test/native_offline_speech_contract_test.dart` checks that the recorder and the engine know nothing
   about the network classes.
 * When it falls back to the phone's recogniser, whatever that recogniser does with audio is up to the phone's vendor, exactly
   as before.
@@ -80,6 +101,7 @@ listening card is on screen.
 | Not enough free memory to load | The phone's own recogniser (and the engine is tried again next time) |
 | The engine cannot load or run the model | The phone's own recogniser; Settings shows the model as unusable until the app restarts or it is deleted |
 | Nothing said | "I did not hear anything." |
+| Street names cannot be fetched | The text is searched as heard, with its house number in digits |
 | Download interrupted | A message; tap download again to resume |
 | Download does not match the checksum | The file is discarded; a message says so |
 | Not enough storage | A message; nothing is written |
@@ -88,8 +110,8 @@ listening card is on screen.
 
 | | |
 |---|---|
-| `core/speech/` | Model contract (`SpeechModelCatalog`), end-of-speech detector (`UtteranceEndpointer`), query clean-up (`SpokenQuery`), result types. Pure Kotlin. |
-| `service/speech/` | Model store and HTTPS transport, engine lifetime and memory gate (`SpeechEngineProvider`), the recording → recognising flow (`SpeechRecognitionRunner`), the Android microphone and gateway. |
+| `core/speech/` | Model contract (`SpeechModelCatalog`), end-of-speech detector (`UtteranceEndpointer`), query clean-up (`SpokenQuery`), numbers and street names (`ItalianNumbers`, `PhoneticKey`, `SpokenAddressRefiner`), result types. Pure Kotlin. |
+| `service/speech/` | Model store and HTTPS transport, engine lifetime and memory gate (`SpeechEngineProvider`), the recording → recognising flow (`SpeechRecognitionRunner`), the street-name list (`StreetGazetteer`), the Android microphone and gateway. |
 | `feature/speech/` | The gateway interface, the listening card, the Settings mapping. |
 | `offlinestt/` | The engine's Kotlin API, vendored unchanged ([third_party/offline-stt-engine](../third_party/offline-stt-engine/README.md)). |
 | `NativeRoadTestActivity` | The permission request, the call, and the fall back to the phone's recogniser. |

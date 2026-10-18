@@ -13,6 +13,7 @@
     <string name="native_speech_cancel">Annulla lo scaricamento</string>
     <string name="native_speech_delete">Elimina il modello</string>
     <string name="native_speech_privacy">La tua voce non lascia mai questo telefono. Il modello viene scaricato una sola volta da huggingface.co, che vede il tuo indirizzo IP e il download, non ciò che dici. Il microfono è usato solo mentre la schermata di ascolto è aperta.</string>
+    <string name="native_speech_streets_privacy">Per scrivere i nomi delle vie come li scrive la mappa, la ricerca vocale chiede anche ai server di mappe Overpass i nomi delle vie intorno a te, una volta al mese per zona. La richiesta indica il centro di un’area larga circa 5 km, non dove sei, e non contiene mai ciò che hai detto.</string>
     <string name="native_speech_problem_network">Lo scaricamento si è interrotto. Tocca di nuovo «Scarica» per riprendere.</string>
     <string name="native_speech_problem_storage">Spazio libero insufficiente per il modello.</string>
     <string name="native_speech_problem_integrity">Il file scaricato non corrispondeva al checksum ed è stato scartato.</string>

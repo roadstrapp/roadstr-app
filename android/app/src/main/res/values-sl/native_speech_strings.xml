@@ -13,6 +13,7 @@
     <string name="native_speech_cancel">Prekliči prenos</string>
     <string name="native_speech_delete">Izbriši model</string>
     <string name="native_speech_privacy">Vaš glas nikoli ne zapusti tega telefona. Datoteka modela se enkrat prenese s huggingface.co, ki vidi vaš naslov IP in prenos, ne pa ničesar od tega, kar rečete. Mikrofon se uporablja le, dokler je zaslon za poslušanje odprt.</string>
+    <string name="native_speech_streets_privacy">Da bi bila imena ulic zapisana tako kot na zemljevidu, glasovno iskanje vpraša tudi strežnike zemljevidov Overpass po imenih ulic v vaši okolici, enkrat na mesec za vsako območje. Zahteva navaja središče območja velikosti približno 5 km, ne vašega položaja, in nikoli ne vsebuje ničesar od tega, kar ste rekli.</string>
     <string name="native_speech_problem_network">Prenos je bil prekinjen. Za nadaljevanje se znova dotaknite »Prenesi model«.</string>
     <string name="native_speech_problem_storage">Za model ni dovolj prostega prostora.</string>
     <string name="native_speech_problem_integrity">Preneseta datoteka se ni ujemala s svojo nadzorno vsoto in je bila zavržena.</string>
