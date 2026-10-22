@@ -743,6 +743,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get categoryOther => 'Overig';
 
   @override
+  String get categorySurveillanceCamera => 'Bewakingscamera\'s';
+
+  @override
   String get dateTimeLabel => 'Datum / tijd';
 
   @override

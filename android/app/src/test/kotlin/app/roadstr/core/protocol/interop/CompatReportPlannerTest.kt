@@ -14,7 +14,7 @@ class CompatReportPlannerTest {
     fun `every Roadstr category with an equivalent maps to the same wire name`() {
         for (category in RoadCategoryWire.entries) {
             val plan = CompatReportPlanner.plan(category, 38.7223, -9.1393, "")
-            if (category == RoadCategoryWire.POLICE_STATION) {
+            if (category == RoadCategoryWire.POLICE_STATION || category == RoadCategoryWire.SURVEILLANCE_CAMERA) {
                 assertEquals(CompatPlan.Ineligible(CompatIneligible.NO_EQUIVALENT_CATEGORY), plan)
             } else {
                 val eligible = plan as CompatPlan.Eligible

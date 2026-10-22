@@ -21,6 +21,8 @@ const _resourceKeys = <String, String>{
   'native_road_event_category_fog': 'categoryFog',
   'native_road_event_category_ice': 'categoryIce',
   'native_road_event_category_animal': 'categoryAnimal',
+  'native_road_event_category_surveillance_camera':
+      'categorySurveillanceCamera',
   'native_road_event_category_other': 'categoryOther',
   'native_road_event_minutes_ago': 'minutesAgo',
   'native_road_event_hours_ago': 'hoursAgo',

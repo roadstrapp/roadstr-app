@@ -247,6 +247,7 @@
   "categoryIce": "Jää",
   "categoryAnimal": "Eläin",
   "categoryOther": "Muu",
+  "categorySurveillanceCamera": "Valvontakamerat",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Päivämäärä / aika",
   "minutesAgo": "{count} min sitten",

@@ -247,6 +247,7 @@
   "categoryIce": "Jég",
   "categoryAnimal": "Állat",
   "categoryOther": "Egyéb",
+  "categorySurveillanceCamera": "Térfigyelő kamerák",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Dátum / idő",
   "minutesAgo": "{count} perce",

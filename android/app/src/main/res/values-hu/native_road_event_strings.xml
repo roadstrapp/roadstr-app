@@ -16,6 +16,7 @@
     <string name="native_road_event_category_fog">Köd</string>
     <string name="native_road_event_category_ice">Jég</string>
     <string name="native_road_event_category_animal">Állat</string>
+    <string name="native_road_event_category_surveillance_camera">Térfigyelő kamerák</string>
     <string name="native_road_event_category_other">Egyéb</string>
     <string name="native_road_event_minutes_ago">%1$d perce</string>
     <string name="native_road_event_hours_ago">%1$d órája</string>

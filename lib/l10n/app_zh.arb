@@ -247,6 +247,7 @@
   "categoryIce": "冰",
   "categoryAnimal": "动物",
   "categoryOther": "其他",
+  "categorySurveillanceCamera": "监控摄像头",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "日期 / 时间",
   "minutesAgo": "{count}分钟前",

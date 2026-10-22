@@ -247,6 +247,7 @@
   "categoryIce": "Led",
   "categoryAnimal": "Životinja",
   "categoryOther": "Ostalo",
+  "categorySurveillanceCamera": "Nadzorne kamere",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Datum / vrijeme",
   "minutesAgo": "prije {count} min",

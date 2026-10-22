@@ -16,6 +16,7 @@
     <string name="native_road_event_category_fog">Sumu</string>
     <string name="native_road_event_category_ice">Jää</string>
     <string name="native_road_event_category_animal">Eläin</string>
+    <string name="native_road_event_category_surveillance_camera">Valvontakamerat</string>
     <string name="native_road_event_category_other">Muu</string>
     <string name="native_road_event_minutes_ago">%1$d min sitten</string>
     <string name="native_road_event_hours_ago">%1$dt sitten</string>

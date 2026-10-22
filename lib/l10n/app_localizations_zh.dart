@@ -716,6 +716,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get categoryOther => '其他';
 
   @override
+  String get categorySurveillanceCamera => '监控摄像头';
+
+  @override
   String get dateTimeLabel => '日期 / 时间';
 
   @override

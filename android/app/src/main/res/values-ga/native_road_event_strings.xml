@@ -16,6 +16,7 @@
     <string name="native_road_event_category_fog">Ceo</string>
     <string name="native_road_event_category_ice">Oighear</string>
     <string name="native_road_event_category_animal">Ainmhí</string>
+    <string name="native_road_event_category_surveillance_camera">Ceamaraí faireachais</string>
     <string name="native_road_event_category_other">Eile</string>
     <string name="native_road_event_minutes_ago">%1$d nóim ó shin</string>
     <string name="native_road_event_hours_ago">%1$du ó shin</string>

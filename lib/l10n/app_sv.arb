@@ -247,6 +247,7 @@
   "categoryIce": "Is",
   "categoryAnimal": "Djur",
   "categoryOther": "Övrigt",
+  "categorySurveillanceCamera": "Övervakningskameror",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Datum / tid",
   "minutesAgo": "för {count} min sedan",

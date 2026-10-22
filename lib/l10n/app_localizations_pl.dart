@@ -744,6 +744,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get categoryOther => 'Inne';
 
   @override
+  String get categorySurveillanceCamera => 'Kamery monitoringu';
+
+  @override
   String get dateTimeLabel => 'Data / godzina';
 
   @override

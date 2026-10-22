@@ -247,6 +247,7 @@
   "categoryIce": "Ledus",
   "categoryAnimal": "Dzīvnieks",
   "categoryOther": "Cits",
+  "categorySurveillanceCamera": "Novērošanas kameras",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Datums / laiks",
   "minutesAgo": "pirms {count} min",

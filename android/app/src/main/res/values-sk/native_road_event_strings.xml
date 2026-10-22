@@ -16,6 +16,7 @@
     <string name="native_road_event_category_fog">Hmla</string>
     <string name="native_road_event_category_ice">Ľad</string>
     <string name="native_road_event_category_animal">Zviera</string>
+    <string name="native_road_event_category_surveillance_camera">Bezpečnostné kamery</string>
     <string name="native_road_event_category_other">Ostatné</string>
     <string name="native_road_event_minutes_ago">pred %1$d min</string>
     <string name="native_road_event_hours_ago">pred %1$dh</string>

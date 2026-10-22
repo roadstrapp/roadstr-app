@@ -1510,6 +1510,12 @@ abstract class AppLocalizations {
   /// **'Other'**
   String get categoryOther;
 
+  /// No description provided for @categorySurveillanceCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Flock Camera'**
+  String get categorySurveillanceCamera;
+
   /// No description provided for @dateTimeLabel.
   ///
   /// In en, this message translates to:

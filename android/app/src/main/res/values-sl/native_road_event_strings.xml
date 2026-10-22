@@ -16,6 +16,7 @@
     <string name="native_road_event_category_fog">Megla</string>
     <string name="native_road_event_category_ice">Led</string>
     <string name="native_road_event_category_animal">Žival</string>
+    <string name="native_road_event_category_surveillance_camera">Nadzorne kamere</string>
     <string name="native_road_event_category_other">Drugo</string>
     <string name="native_road_event_minutes_ago">pred %1$d min</string>
     <string name="native_road_event_hours_ago">pred %1$dh</string>

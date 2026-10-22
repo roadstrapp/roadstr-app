@@ -16,6 +16,7 @@
     <string name="native_road_event_category_fog">Tåge</string>
     <string name="native_road_event_category_ice">Is</string>
     <string name="native_road_event_category_animal">Dyr</string>
+    <string name="native_road_event_category_surveillance_camera">Overvågningskameraer</string>
     <string name="native_road_event_category_other">Andet</string>
     <string name="native_road_event_minutes_ago">for %1$d min siden</string>
     <string name="native_road_event_hours_ago">for %1$dt siden</string>

@@ -16,6 +16,7 @@
     <string name="native_road_event_category_fog">Nebel</string>
     <string name="native_road_event_category_ice">Eis</string>
     <string name="native_road_event_category_animal">Tier</string>
+    <string name="native_road_event_category_surveillance_camera">Überwachungskameras</string>
     <string name="native_road_event_category_other">Sonstiges</string>
     <string name="native_road_event_minutes_ago">Vor %1$d Min.</string>
     <string name="native_road_event_hours_ago">Vor %1$d Std.</string>

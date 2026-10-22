@@ -16,6 +16,7 @@
     <string name="native_road_event_category_fog">Migla</string>
     <string name="native_road_event_category_ice">Ledus</string>
     <string name="native_road_event_category_animal">Dzīvnieks</string>
+    <string name="native_road_event_category_surveillance_camera">Novērošanas kameras</string>
     <string name="native_road_event_category_other">Cits</string>
     <string name="native_road_event_minutes_ago">pirms %1$d min</string>
     <string name="native_road_event_hours_ago">pirms %1$dh</string>

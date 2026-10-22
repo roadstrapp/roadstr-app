@@ -744,6 +744,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get categoryOther => 'Outro';
 
   @override
+  String get categorySurveillanceCamera => 'Câmaras de vigilância';
+
+  @override
   String get dateTimeLabel => 'Data / hora';
 
   @override

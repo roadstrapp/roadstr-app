@@ -128,7 +128,7 @@ finds both. A receiver **must** drop a confirmation whose coordinates differ fro
 | 12–254 | reserved — **never mapped to `other`**: that would change the signed `t` tag | — |
 | 255 | `other` | 2 h (frame only if `content` is empty) |
 
-Roadstr's category *police station* has no equivalent and is never exported. Nothing is approximated.
+Roadstr's categories *police station* and *surveillance camera* have no equivalent and are never exported. Nothing is approximated.
 
 ### 2.5 Expiration and effective lifetime
 
@@ -333,7 +333,7 @@ direction has a rate limit, a cooldown and an area (§8), so a mistake in one pl
 Roadstr's native report is `lat, lon, g, g, g, t, expiration[, maxspeed]` with six-decimal coordinates, no
 `alt`, and its own category set; its vote is `e, status`. It is unchanged by this work. Differences that matter:
 
-* Roadstr's categories include *police station* and per-category lifetimes that differ from §2.4 (police 4 h,
+* Roadstr's categories include *police station* and *surveillance camera* and per-category lifetimes that differ from §2.4 (police 4 h,
   road closure 24 h…). Native reports keep theirs. **Reports in the *jooray* layout use §2.4.** Before this
   work they were silently shown with Roadstr's lifetimes and no indication of their origin.
 * Roadstr counts votes; for *jooray*-layout reports it applies §2.5 (extend / cut short).

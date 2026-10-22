@@ -742,6 +742,9 @@ class AppLocalizationsSv extends AppLocalizations {
   String get categoryOther => 'Övrigt';
 
   @override
+  String get categorySurveillanceCamera => 'Övervakningskameror';
+
+  @override
   String get dateTimeLabel => 'Datum / tid';
 
   @override

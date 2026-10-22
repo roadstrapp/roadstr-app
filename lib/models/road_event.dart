@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import '../l10n/app_localizations.dart';
 
-/// The 14 categories of road events that can be reported in Roadstr.
+/// The 15 categories of road events Roadstr knows (14 of them can be reported).
 ///
 /// Each category maps to a Nostr `t` tag value ([nostrKey]), an emoji, a
 /// colour for the map pin, and a client-side TTL ([ttlSeconds]) that controls
@@ -20,14 +20,18 @@ import '../l10n/app_localizations.dart';
 ///   situations resolve quickly and stale alerts are actively misleading.
 /// - Semi-permanent conditions (construction, road condition): 7–30 days —
 ///   roadworks and surface damage persist for weeks.
-/// - Fixed infrastructure (speed camera, police station): 30 days — they do
-///   not move; users benefit from long-lived alerts.
+/// - Fixed infrastructure (speed camera, surveillance camera, police station):
+///   30 days — they do not move; users benefit from long-lived alerts.
 ///
 /// [police] and [policeStation] are deliberately separate. The first is a
 /// patrol or checkpoint: transient, gone within hours, worth a voice warning
 /// while driving past. The second is a building: it stays where it is, so it
 /// lives as long as a speed camera does and is a point of reference rather
 /// than something to be warned about.
+///
+/// [other] is no longer offered when reporting ([reportable] leaves it out), but
+/// it stays in the enum: reports published by older versions and by other
+/// clients still carry `t=other`, and an unknown key degrades to it.
 ///
 /// The relay `expiration` and client TTL are both enforced; whichever expires
 /// first hides the event.
@@ -45,7 +49,12 @@ enum RoadCategory {
   fog,
   ice,
   animal,
+  surveillanceCamera,
   other;
+
+  /// The categories a user can pick when filing a report.
+  static final List<RoadCategory> reportable =
+      List.unmodifiable(values.where((c) => c != other));
 
   static RoadCategory fromKey(String key) =>
       values.firstWhere((c) => c.nostrKey == key, orElse: () => other);
@@ -56,6 +65,7 @@ enum RoadCategory {
         RoadCategory.trafficJam => 'traffic_jam',
         RoadCategory.roadClosure => 'road_closure',
         RoadCategory.roadCondition => 'road_condition',
+        RoadCategory.surveillanceCamera => 'surveillance_camera',
         _ => name,
       };
 
@@ -73,6 +83,7 @@ enum RoadCategory {
         RoadCategory.fog => '🌫️',
         RoadCategory.ice => '🧊',
         RoadCategory.animal => '🦌',
+        RoadCategory.surveillanceCamera => '📹',
         RoadCategory.other => 'ℹ️',
       };
 
@@ -90,6 +101,7 @@ enum RoadCategory {
         RoadCategory.fog => l.categoryFog,
         RoadCategory.ice => l.categoryIce,
         RoadCategory.animal => l.categoryAnimal,
+        RoadCategory.surveillanceCamera => l.categorySurveillanceCamera,
         RoadCategory.other => l.categoryOther,
       };
 
@@ -110,6 +122,7 @@ enum RoadCategory {
         RoadCategory.fog => 'Fog',
         RoadCategory.ice => 'Ice',
         RoadCategory.animal => 'Animal',
+        RoadCategory.surveillanceCamera => 'Flock Camera',
         RoadCategory.other => 'Other',
       };
 
@@ -129,6 +142,7 @@ enum RoadCategory {
         RoadCategory.fog => const Color(0xFF9CA3AF),
         RoadCategory.ice => const Color(0xFF60A5FA),
         RoadCategory.animal => const Color(0xFF16A34A),
+        RoadCategory.surveillanceCamera => const Color(0xFF0E7490),
         RoadCategory.other => const Color(0xFF6B7280),
       };
 
@@ -149,6 +163,7 @@ enum RoadCategory {
         RoadCategory.fog => 4 * 3600, // 4 h
         RoadCategory.ice => 4 * 3600, // 4 h
         RoadCategory.animal => 1 * 3600, // 1 h
+        RoadCategory.surveillanceCamera => 30 * 86400, // 30 d — fixed
         RoadCategory.other => 4 * 3600, // 4 h
       };
 }

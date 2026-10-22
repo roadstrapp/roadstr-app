@@ -29,7 +29,7 @@ class NostrProtocolParityTest {
             .associate { fields -> fields[1] to (fields[2] to fields[3].toInt()) }
 
         assertEquals(expected, actual)
-        assertEquals(14, actual.size)
+        assertEquals(15, actual.size)
     }
 
     @Test
@@ -87,7 +87,7 @@ class NostrProtocolParityTest {
             if (draft != null) executed++
         }
 
-        assertEquals(21, executed)
+        assertEquals(22, executed)
     }
 
     @Test

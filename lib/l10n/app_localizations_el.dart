@@ -748,6 +748,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get categoryOther => 'Άλλο';
 
   @override
+  String get categorySurveillanceCamera => 'Κάμερες παρακολούθησης';
+
+  @override
   String get dateTimeLabel => 'Ημερομηνία / ώρα';
 
   @override

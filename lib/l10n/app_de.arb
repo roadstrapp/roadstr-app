@@ -247,6 +247,7 @@
   "categoryIce": "Eis",
   "categoryAnimal": "Tier",
   "categoryOther": "Sonstiges",
+  "categorySurveillanceCamera": "Überwachungskameras",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Datum / Uhrzeit",
   "minutesAgo": "Vor {count} Min.",

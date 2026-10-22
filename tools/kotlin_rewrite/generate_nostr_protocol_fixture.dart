@@ -21,6 +21,7 @@ const categories = <({String name, String key, int ttl})>[
   (name: 'fog', key: 'fog', ttl: 4 * 3600),
   (name: 'ice', key: 'ice', ttl: 4 * 3600),
   (name: 'animal', key: 'animal', ttl: 1 * 3600),
+  (name: 'surveillanceCamera', key: 'surveillance_camera', ttl: 30 * 86400),
   (name: 'other', key: 'other', ttl: 4 * 3600),
 ];
 

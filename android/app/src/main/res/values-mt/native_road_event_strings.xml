@@ -16,6 +16,7 @@
     <string name="native_road_event_category_fog">Ċpar</string>
     <string name="native_road_event_category_ice">Silġ</string>
     <string name="native_road_event_category_animal">Annimal</string>
+    <string name="native_road_event_category_surveillance_camera">Kameras tas-sorveljanza</string>
     <string name="native_road_event_category_other">Oħra</string>
     <string name="native_road_event_minutes_ago">%1$d min ilu</string>
     <string name="native_road_event_hours_ago">%1$ds ilu</string>

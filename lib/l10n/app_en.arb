@@ -304,6 +304,7 @@
   "categoryIce": "Ice",
   "categoryAnimal": "Animal",
   "categoryOther": "Other",
+  "categorySurveillanceCamera": "Flock Camera",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Date / time",
   "minutesAgo": "{count} min ago",

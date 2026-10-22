@@ -16,6 +16,7 @@
     <string name="native_road_event_category_fog">Ceață</string>
     <string name="native_road_event_category_ice">Gheață</string>
     <string name="native_road_event_category_animal">Animal</string>
+    <string name="native_road_event_category_surveillance_camera">Camere de supraveghere</string>
     <string name="native_road_event_category_other">Altele</string>
     <string name="native_road_event_minutes_ago">acum %1$d min</string>
     <string name="native_road_event_hours_ago">acum %1$dh</string>

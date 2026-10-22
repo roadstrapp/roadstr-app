@@ -247,6 +247,7 @@
   "categoryIce": "Verglas",
   "categoryAnimal": "Animal",
   "categoryOther": "Autre",
+  "categorySurveillanceCamera": "Caméras de surveillance",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Date / heure",
   "minutesAgo": "Il y a {count} min",

@@ -16,6 +16,7 @@
     <string name="native_road_event_category_fog">Туман</string>
     <string name="native_road_event_category_ice">Лёд</string>
     <string name="native_road_event_category_animal">Животное</string>
+    <string name="native_road_event_category_surveillance_camera">Камеры видеонаблюдения</string>
     <string name="native_road_event_category_other">Другое</string>
     <string name="native_road_event_minutes_ago">%1$d мин назад</string>
     <string name="native_road_event_hours_ago">%1$dч назад</string>

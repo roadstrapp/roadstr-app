@@ -16,6 +16,7 @@
     <string name="native_road_event_category_fog">Udu</string>
     <string name="native_road_event_category_ice">Jää</string>
     <string name="native_road_event_category_animal">Loom</string>
+    <string name="native_road_event_category_surveillance_camera">Valvekaamerad</string>
     <string name="native_road_event_category_other">Muu</string>
     <string name="native_road_event_minutes_ago">%1$d min tagasi</string>
     <string name="native_road_event_hours_ago">%1$dh tagasi</string>

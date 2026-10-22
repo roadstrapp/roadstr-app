@@ -247,6 +247,7 @@
   "categoryIce": "Gelo",
   "categoryAnimal": "Animal",
   "categoryOther": "Outro",
+  "categorySurveillanceCamera": "Câmaras de vigilância",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Data / hora",
   "minutesAgo": "há {count} min",

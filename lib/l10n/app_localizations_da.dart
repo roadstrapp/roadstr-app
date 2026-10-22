@@ -742,6 +742,9 @@ class AppLocalizationsDa extends AppLocalizations {
   String get categoryOther => 'Andet';
 
   @override
+  String get categorySurveillanceCamera => 'Overvågningskameraer';
+
+  @override
   String get dateTimeLabel => 'Dato / tid';
 
   @override
