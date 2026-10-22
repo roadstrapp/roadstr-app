@@ -292,7 +292,7 @@ class NativeRoadTestVoiceGateway(context: Context) : NativeVoiceGateway {
             }
         } else {
             when (language) {
-                "it" -> "Sei arrivato a destinazione."
+                "it" -> "Sei giunto a destinazione."
                 "es" -> "Has llegado a tu destino."
                 "fr" -> "Vous êtes arrivé à destination."
                 "ja" -> "目的地に到着しました。"

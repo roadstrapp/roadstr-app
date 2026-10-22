@@ -98,7 +98,7 @@ PHRASES = {
     },
     "arrived": {
         "en": "You have arrived at your destination.",
-        "it": "Sei arrivato a destinazione.",
+        "it": "Sei giunto a destinazione.",
         "es": "Has llegado a tu destino.",
         "fr": "Vous êtes arrivé à destination.",
         "ja": "もくてきちにとうちゃくしました。",  # 目的地に到着しました。in hiragana
