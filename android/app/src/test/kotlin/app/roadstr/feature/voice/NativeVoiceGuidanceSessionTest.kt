@@ -58,6 +58,40 @@ class NativeVoiceGuidanceSessionTest {
     }
 
     @Test
+    fun `departure still goes first when the first maneuver was published before it`() {
+        val session = NativeVoiceGuidanceSession()
+        val maneuver = session.submitManeuver("Svolta a destra", 0, "it", false, 1_000) as NativeVoiceDirective.Start
+
+        val departure = session.submitDeparture("Partenza", 1_005) as NativeVoiceDirective.Start
+
+        assertTrue(departure.interruptCurrent)
+        assertEquals("Partenza", session.snapshot().current?.text)
+        assertEquals(listOf("Svolta a destra"), session.snapshot().pending.map { it.text })
+        // The cut-off maneuver finishing late must not disturb the departure.
+        assertTrue(session.finish(maneuver.utterance.id) is NativeVoiceDirective.None)
+        assertEquals("Partenza", session.snapshot().current?.text)
+
+        val next = session.finish(departure.utterance.id) as NativeVoiceDirective.Start
+        assertEquals("Svolta a destra", next.utterance.text)
+        assertFalse(next.interruptCurrent)
+    }
+
+    @Test
+    fun `later maneuvers queue behind a departure that displaced the first one`() {
+        val session = NativeVoiceGuidanceSession()
+        session.submitManeuver("Svolta a destra", 0, "it", false, 1_000)
+        session.submitDeparture("Partenza", 1_005)
+
+        val later = session.submitManeuver("Alla rotonda prendi la seconda uscita", 0, "it", false, 1_010)
+
+        assertTrue(later is NativeVoiceDirective.Queued)
+        assertEquals(
+            listOf("Svolta a destra", "Alla rotonda prendi la seconda uscita"),
+            session.snapshot().pending.map { it.text },
+        )
+    }
+
+    @Test
     fun `advance maneuver never cuts another advance maneuver`() {
         val session = NativeVoiceGuidanceSession()
         session.submitPriority("first turn", maneuver = true, nowMillis = 0)

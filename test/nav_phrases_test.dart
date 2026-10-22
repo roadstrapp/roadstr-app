@@ -29,8 +29,7 @@ void main() {
     test('no language is missing a phrase', () {
       for (final entry in navPhrases.entries) {
         final absent = keys.toSet().difference(entry.value.keys.toSet());
-        expect(absent, isEmpty,
-            reason: '${entry.key} is missing $absent');
+        expect(absent, isEmpty, reason: '${entry.key} is missing $absent');
       }
     });
 
@@ -67,10 +66,8 @@ void main() {
       final placeholder = RegExp(r'\{(\w+)\}');
       for (final entry in navPhrases.entries) {
         for (final phrase in entry.value.entries) {
-          final found = placeholder
-              .allMatches(phrase.value)
-              .map((m) => m[1])
-              .toSet();
+          final found =
+              placeholder.allMatches(phrase.value).map((m) => m[1]).toSet();
           final allowed = switch (phrase.key) {
             'exitLabelled' => {'label'},
             'roundabout' || 'rotary' => {'n'},
@@ -80,6 +77,27 @@ void main() {
               reason: '${entry.key}/${phrase.key} carries $found');
         }
       }
+    });
+  });
+
+  group('arrival', () {
+    test('the maneuver to the destination is future tense in every language',
+        () {
+      // Spoken as "in 300 metres, <phrase>", so a past-tense "you have arrived"
+      // says the driver is there while they are still on the road, and then
+      // says it again when they truly are.
+      for (final entry in navPhrases.entries) {
+        final arb = jsonDecode(
+          File('lib/l10n/app_${entry.key}.arb').readAsStringSync(),
+        ) as Map<String, dynamic>;
+        expect(entry.value['arrive'], arb['arrivalAhead'],
+            reason: '${entry.key}: voice and HUD must say the same thing');
+      }
+    });
+
+    test('Italian says it will arrive, not that it has', () {
+      expect(navPhrase('it', 'arrive'), 'Arriverai a destinazione');
+      expect(navPhrase('en', 'arrive'), 'You will arrive at your destination');
     });
   });
 
@@ -107,9 +125,8 @@ void main() {
       final english = navPhrases['en']!;
       for (final entry in navPhrases.entries) {
         if (entry.key == 'en') continue;
-        final identical = keys
-            .where((k) => entry.value[k] == english[k])
-            .toList();
+        final identical =
+            keys.where((k) => entry.value[k] == english[k]).toList();
         expect(identical.length, lessThan(keys.length ~/ 3),
             reason: '${entry.key} repeats English for $identical');
       }

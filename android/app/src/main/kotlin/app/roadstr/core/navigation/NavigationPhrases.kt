@@ -6,7 +6,7 @@ internal object NavigationPhrases {
         "en" to mapOf(
             "on" to " on ",
             "depart" to "Start",
-            "arrive" to "You have arrived at your destination",
+            "arrive" to "You will arrive at your destination",
             "turnLeft" to "Turn left",
             "turnRight" to "Turn right",
             "keepLeft" to "Keep left",
@@ -32,7 +32,7 @@ internal object NavigationPhrases {
         "it" to mapOf(
             "on" to " su ",
             "depart" to "Parti",
-            "arrive" to "Sei arrivato a destinazione",
+            "arrive" to "Arriverai a destinazione",
             "turnLeft" to "Svolta a sinistra",
             "turnRight" to "Svolta a destra",
             "keepLeft" to "Tieni la sinistra",
@@ -58,7 +58,7 @@ internal object NavigationPhrases {
         "de" to mapOf(
             "on" to " auf ",
             "depart" to "Losfahren",
-            "arrive" to "Sie haben Ihr Ziel erreicht",
+            "arrive" to "Du wirst dein Ziel erreichen",
             "turnLeft" to "Links abbiegen",
             "turnRight" to "Rechts abbiegen",
             "keepLeft" to "Links halten",
@@ -84,7 +84,7 @@ internal object NavigationPhrases {
         "fr" to mapOf(
             "on" to " sur ",
             "depart" to "Démarrez",
-            "arrive" to "Vous êtes arrivé à destination",
+            "arrive" to "Vous arriverez à destination",
             "turnLeft" to "Tournez à gauche",
             "turnRight" to "Tournez à droite",
             "keepLeft" to "Serrez à gauche",
@@ -110,7 +110,7 @@ internal object NavigationPhrases {
         "es" to mapOf(
             "on" to " en ",
             "depart" to "Comience",
-            "arrive" to "Ha llegado a su destino",
+            "arrive" to "Llegarás a tu destino",
             "turnLeft" to "Gire a la izquierda",
             "turnRight" to "Gire a la derecha",
             "keepLeft" to "Manténgase a la izquierda",
@@ -136,7 +136,7 @@ internal object NavigationPhrases {
         "pt" to mapOf(
             "on" to " na ",
             "depart" to "Siga",
-            "arrive" to "Chegou ao seu destino",
+            "arrive" to "Chegará ao seu destino",
             "turnLeft" to "Vire à esquerda",
             "turnRight" to "Vire à direita",
             "keepLeft" to "Mantenha-se à esquerda",
@@ -162,7 +162,7 @@ internal object NavigationPhrases {
         "nl" to mapOf(
             "on" to " op ",
             "depart" to "Vertrek",
-            "arrive" to "U hebt uw bestemming bereikt",
+            "arrive" to "Je komt aan op je bestemming",
             "turnLeft" to "Sla linksaf",
             "turnRight" to "Sla rechtsaf",
             "keepLeft" to "Houd links aan",
@@ -188,7 +188,7 @@ internal object NavigationPhrases {
         "pl" to mapOf(
             "on" to " na ",
             "depart" to "Rusz",
-            "arrive" to "Dotarłeś do celu",
+            "arrive" to "Dotrzesz do celu",
             "turnLeft" to "Skręć w lewo",
             "turnRight" to "Skręć w prawo",
             "keepLeft" to "Trzymaj się lewej",
@@ -214,7 +214,7 @@ internal object NavigationPhrases {
         "ru" to mapOf(
             "on" to " на ",
             "depart" to "Начните движение",
-            "arrive" to "Вы прибыли в пункт назначения",
+            "arrive" to "Вы прибудете в пункт назначения",
             "turnLeft" to "Поверните налево",
             "turnRight" to "Поверните направо",
             "keepLeft" to "Держитесь левее",
@@ -240,7 +240,7 @@ internal object NavigationPhrases {
         "zh" to mapOf(
             "on" to "在",
             "depart" to "出发",
-            "arrive" to "您已到达目的地",
+            "arrive" to "您将到达目的地",
             "turnLeft" to "左转",
             "turnRight" to "右转",
             "keepLeft" to "靠左行驶",
@@ -266,7 +266,7 @@ internal object NavigationPhrases {
         "ja" to mapOf(
             "on" to "を",
             "depart" to "出発",
-            "arrive" to "目的地に到着しました",
+            "arrive" to "目的地に到着します",
             "turnLeft" to "左折",
             "turnRight" to "右折",
             "keepLeft" to "左側を進む",
@@ -292,7 +292,7 @@ internal object NavigationPhrases {
         "cs" to mapOf(
             "on" to " na ",
             "depart" to "Vyrazte",
-            "arrive" to "Dorazili jste do cíle",
+            "arrive" to "Dorazíte do cíle",
             "turnLeft" to "Odbočte vlevo",
             "turnRight" to "Odbočte vpravo",
             "keepLeft" to "Držte se vlevo",
@@ -318,7 +318,7 @@ internal object NavigationPhrases {
         "sk" to mapOf(
             "on" to " na ",
             "depart" to "Vyrazte",
-            "arrive" to "Dorazili ste do cieľa",
+            "arrive" to "Dorazíte do cieľa",
             "turnLeft" to "Odbočte vľavo",
             "turnRight" to "Odbočte vpravo",
             "keepLeft" to "Držte sa vľavo",
@@ -344,7 +344,7 @@ internal object NavigationPhrases {
         "sv" to mapOf(
             "on" to " på ",
             "depart" to "Starta",
-            "arrive" to "Du har kommit fram",
+            "arrive" to "Du kommer att anlända till din destination",
             "turnLeft" to "Sväng vänster",
             "turnRight" to "Sväng höger",
             "keepLeft" to "Håll till vänster",
@@ -370,7 +370,7 @@ internal object NavigationPhrases {
         "da" to mapOf(
             "on" to " ad ",
             "depart" to "Start",
-            "arrive" to "Du er ankommet til destinationen",
+            "arrive" to "Du vil ankomme til din destination",
             "turnLeft" to "Drej til venstre",
             "turnRight" to "Drej til højre",
             "keepLeft" to "Hold til venstre",
@@ -396,7 +396,7 @@ internal object NavigationPhrases {
         "fi" to mapOf(
             "on" to " tielle ",
             "depart" to "Lähde",
-            "arrive" to "Olet saapunut määränpäähän",
+            "arrive" to "Saavut määränpäähäsi",
             "turnLeft" to "Käänny vasemmalle",
             "turnRight" to "Käänny oikealle",
             "keepLeft" to "Pysy vasemmalla",
@@ -422,7 +422,7 @@ internal object NavigationPhrases {
         "el" to mapOf(
             "on" to " στην ",
             "depart" to "Ξεκινήστε",
-            "arrive" to "Φτάσατε στον προορισμό σας",
+            "arrive" to "Θα φτάσετε στον προορισμό σας",
             "turnLeft" to "Στρίψτε αριστερά",
             "turnRight" to "Στρίψτε δεξιά",
             "keepLeft" to "Κρατηθείτε αριστερά",
@@ -448,7 +448,7 @@ internal object NavigationPhrases {
         "hu" to mapOf(
             "on" to " a ",
             "depart" to "Induljon",
-            "arrive" to "Megérkezett az úti céljához",
+            "arrive" to "Meg fog érkezni az úti céljához",
             "turnLeft" to "Forduljon balra",
             "turnRight" to "Forduljon jobbra",
             "keepLeft" to "Tartson balra",
@@ -474,7 +474,7 @@ internal object NavigationPhrases {
         "ro" to mapOf(
             "on" to " pe ",
             "depart" to "Porniți",
-            "arrive" to "Ați ajuns la destinație",
+            "arrive" to "Veți ajunge la destinație",
             "turnLeft" to "Virați la stânga",
             "turnRight" to "Virați la dreapta",
             "keepLeft" to "Păstrați stânga",
@@ -500,7 +500,7 @@ internal object NavigationPhrases {
         "bg" to mapOf(
             "on" to " по ",
             "depart" to "Тръгнете",
-            "arrive" to "Пристигнахте до целта",
+            "arrive" to "Ще пристигнете до местоназначението си",
             "turnLeft" to "Завийте наляво",
             "turnRight" to "Завийте надясно",
             "keepLeft" to "Дръжте се вляво",
@@ -526,7 +526,7 @@ internal object NavigationPhrases {
         "hr" to mapOf(
             "on" to " na ",
             "depart" to "Krenite",
-            "arrive" to "Stigli ste na odredište",
+            "arrive" to "Stići ćete na odredište",
             "turnLeft" to "Skrenite lijevo",
             "turnRight" to "Skrenite desno",
             "keepLeft" to "Držite se lijevo",
@@ -552,7 +552,7 @@ internal object NavigationPhrases {
         "sl" to mapOf(
             "on" to " na ",
             "depart" to "Speljite",
-            "arrive" to "Prispeli ste na cilj",
+            "arrive" to "Prispeli boste na cilj",
             "turnLeft" to "Zavijte levo",
             "turnRight" to "Zavijte desno",
             "keepLeft" to "Držite se levo",
@@ -578,7 +578,7 @@ internal object NavigationPhrases {
         "et" to mapOf(
             "on" to " teele ",
             "depart" to "Alustage",
-            "arrive" to "Olete jõudnud sihtkohta",
+            "arrive" to "Jõuate sihtkohta",
             "turnLeft" to "Pöörake vasakule",
             "turnRight" to "Pöörake paremale",
             "keepLeft" to "Hoidke vasakule",
@@ -604,7 +604,7 @@ internal object NavigationPhrases {
         "lt" to mapOf(
             "on" to " į ",
             "depart" to "Pradėkite",
-            "arrive" to "Atvykote į kelionės tikslą",
+            "arrive" to "Atvyksite į paskirties vietą",
             "turnLeft" to "Sukite kairėn",
             "turnRight" to "Sukite dešinėn",
             "keepLeft" to "Laikykitės kairės",
@@ -630,7 +630,7 @@ internal object NavigationPhrases {
         "lv" to mapOf(
             "on" to " uz ",
             "depart" to "Sāciet",
-            "arrive" to "Esat sasniedzis galamērķi",
+            "arrive" to "Jūs ieradīsieties galamērķī",
             "turnLeft" to "Nogriezieties pa kreisi",
             "turnRight" to "Nogriezieties pa labi",
             "keepLeft" to "Turieties pa kreisi",
@@ -656,7 +656,7 @@ internal object NavigationPhrases {
         "ga" to mapOf(
             "on" to " ar ",
             "depart" to "Tosaigh",
-            "arrive" to "Tá tú tagtha ag do cheann scríbe",
+            "arrive" to "Sroichfidh tú do cheann scríbe",
             "turnLeft" to "Cas ar chlé",
             "turnRight" to "Cas ar dheis",
             "keepLeft" to "Fan ar chlé",
@@ -682,7 +682,7 @@ internal object NavigationPhrases {
         "mt" to mapOf(
             "on" to " fi ",
             "depart" to "Ibda",
-            "arrive" to "Wasalt fid-destinazzjoni tiegħek",
+            "arrive" to "Se tasal fid-destinazzjoni tiegħek",
             "turnLeft" to "Dur xellug",
             "turnRight" to "Dur lemin",
             "keepLeft" to "Żomm ix-xellug",

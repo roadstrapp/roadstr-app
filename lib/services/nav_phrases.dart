@@ -9,6 +9,11 @@
 // key falls back to English rather than crashing.
 //
 // `{label}` is a motorway exit number, `{n}` a roundabout exit ordinal.
+//
+// `arrive` is the maneuver that leads to the destination, spoken and shown while
+// the driver is still on the way ("in 300 metres you will arrive"), so it is
+// future tense and matches the HUD's `arrivalAhead`. The moment of actually
+// arriving is announced separately, in the past tense.
 library;
 
 /// Phrase table keyed by language code, then by phrase key.
@@ -16,7 +21,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'en': {
     'on': ' on ',
     'depart': 'Start',
-    'arrive': 'You have arrived at your destination',
+    'arrive': 'You will arrive at your destination',
     'turnLeft': 'Turn left',
     'turnRight': 'Turn right',
     'keepLeft': 'Keep left',
@@ -42,7 +47,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'it': {
     'on': ' su ',
     'depart': 'Parti',
-    'arrive': 'Sei arrivato a destinazione',
+    'arrive': 'Arriverai a destinazione',
     'turnLeft': 'Svolta a sinistra',
     'turnRight': 'Svolta a destra',
     'keepLeft': 'Tieni la sinistra',
@@ -68,7 +73,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'de': {
     'on': ' auf ',
     'depart': 'Losfahren',
-    'arrive': 'Sie haben Ihr Ziel erreicht',
+    'arrive': 'Du wirst dein Ziel erreichen',
     'turnLeft': 'Links abbiegen',
     'turnRight': 'Rechts abbiegen',
     'keepLeft': 'Links halten',
@@ -94,7 +99,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'fr': {
     'on': ' sur ',
     'depart': 'Démarrez',
-    'arrive': 'Vous êtes arrivé à destination',
+    'arrive': 'Vous arriverez à destination',
     'turnLeft': 'Tournez à gauche',
     'turnRight': 'Tournez à droite',
     'keepLeft': 'Serrez à gauche',
@@ -120,7 +125,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'es': {
     'on': ' en ',
     'depart': 'Comience',
-    'arrive': 'Ha llegado a su destino',
+    'arrive': 'Llegarás a tu destino',
     'turnLeft': 'Gire a la izquierda',
     'turnRight': 'Gire a la derecha',
     'keepLeft': 'Manténgase a la izquierda',
@@ -146,7 +151,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'pt': {
     'on': ' na ',
     'depart': 'Siga',
-    'arrive': 'Chegou ao seu destino',
+    'arrive': 'Chegará ao seu destino',
     'turnLeft': 'Vire à esquerda',
     'turnRight': 'Vire à direita',
     'keepLeft': 'Mantenha-se à esquerda',
@@ -172,7 +177,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'nl': {
     'on': ' op ',
     'depart': 'Vertrek',
-    'arrive': 'U hebt uw bestemming bereikt',
+    'arrive': 'Je komt aan op je bestemming',
     'turnLeft': 'Sla linksaf',
     'turnRight': 'Sla rechtsaf',
     'keepLeft': 'Houd links aan',
@@ -198,7 +203,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'pl': {
     'on': ' na ',
     'depart': 'Rusz',
-    'arrive': 'Dotarłeś do celu',
+    'arrive': 'Dotrzesz do celu',
     'turnLeft': 'Skręć w lewo',
     'turnRight': 'Skręć w prawo',
     'keepLeft': 'Trzymaj się lewej',
@@ -224,7 +229,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'ru': {
     'on': ' на ',
     'depart': 'Начните движение',
-    'arrive': 'Вы прибыли в пункт назначения',
+    'arrive': 'Вы прибудете в пункт назначения',
     'turnLeft': 'Поверните налево',
     'turnRight': 'Поверните направо',
     'keepLeft': 'Держитесь левее',
@@ -250,7 +255,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'zh': {
     'on': '在',
     'depart': '出发',
-    'arrive': '您已到达目的地',
+    'arrive': '您将到达目的地',
     'turnLeft': '左转',
     'turnRight': '右转',
     'keepLeft': '靠左行驶',
@@ -276,7 +281,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'ja': {
     'on': 'を',
     'depart': '出発',
-    'arrive': '目的地に到着しました',
+    'arrive': '目的地に到着します',
     'turnLeft': '左折',
     'turnRight': '右折',
     'keepLeft': '左側を進む',
@@ -302,7 +307,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'cs': {
     'on': ' na ',
     'depart': 'Vyrazte',
-    'arrive': 'Dorazili jste do cíle',
+    'arrive': 'Dorazíte do cíle',
     'turnLeft': 'Odbočte vlevo',
     'turnRight': 'Odbočte vpravo',
     'keepLeft': 'Držte se vlevo',
@@ -328,7 +333,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'sk': {
     'on': ' na ',
     'depart': 'Vyrazte',
-    'arrive': 'Dorazili ste do cieľa',
+    'arrive': 'Dorazíte do cieľa',
     'turnLeft': 'Odbočte vľavo',
     'turnRight': 'Odbočte vpravo',
     'keepLeft': 'Držte sa vľavo',
@@ -354,7 +359,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'sv': {
     'on': ' på ',
     'depart': 'Starta',
-    'arrive': 'Du har kommit fram',
+    'arrive': 'Du kommer att anlända till din destination',
     'turnLeft': 'Sväng vänster',
     'turnRight': 'Sväng höger',
     'keepLeft': 'Håll till vänster',
@@ -380,7 +385,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'da': {
     'on': ' ad ',
     'depart': 'Start',
-    'arrive': 'Du er ankommet til destinationen',
+    'arrive': 'Du vil ankomme til din destination',
     'turnLeft': 'Drej til venstre',
     'turnRight': 'Drej til højre',
     'keepLeft': 'Hold til venstre',
@@ -406,7 +411,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'fi': {
     'on': ' tielle ',
     'depart': 'Lähde',
-    'arrive': 'Olet saapunut määränpäähän',
+    'arrive': 'Saavut määränpäähäsi',
     'turnLeft': 'Käänny vasemmalle',
     'turnRight': 'Käänny oikealle',
     'keepLeft': 'Pysy vasemmalla',
@@ -432,7 +437,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'el': {
     'on': ' στην ',
     'depart': 'Ξεκινήστε',
-    'arrive': 'Φτάσατε στον προορισμό σας',
+    'arrive': 'Θα φτάσετε στον προορισμό σας',
     'turnLeft': 'Στρίψτε αριστερά',
     'turnRight': 'Στρίψτε δεξιά',
     'keepLeft': 'Κρατηθείτε αριστερά',
@@ -458,7 +463,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'hu': {
     'on': ' a ',
     'depart': 'Induljon',
-    'arrive': 'Megérkezett az úti céljához',
+    'arrive': 'Meg fog érkezni az úti céljához',
     'turnLeft': 'Forduljon balra',
     'turnRight': 'Forduljon jobbra',
     'keepLeft': 'Tartson balra',
@@ -484,7 +489,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'ro': {
     'on': ' pe ',
     'depart': 'Porniți',
-    'arrive': 'Ați ajuns la destinație',
+    'arrive': 'Veți ajunge la destinație',
     'turnLeft': 'Virați la stânga',
     'turnRight': 'Virați la dreapta',
     'keepLeft': 'Păstrați stânga',
@@ -510,7 +515,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'bg': {
     'on': ' по ',
     'depart': 'Тръгнете',
-    'arrive': 'Пристигнахте до целта',
+    'arrive': 'Ще пристигнете до местоназначението си',
     'turnLeft': 'Завийте наляво',
     'turnRight': 'Завийте надясно',
     'keepLeft': 'Дръжте се вляво',
@@ -536,7 +541,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'hr': {
     'on': ' na ',
     'depart': 'Krenite',
-    'arrive': 'Stigli ste na odredište',
+    'arrive': 'Stići ćete na odredište',
     'turnLeft': 'Skrenite lijevo',
     'turnRight': 'Skrenite desno',
     'keepLeft': 'Držite se lijevo',
@@ -562,7 +567,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'sl': {
     'on': ' na ',
     'depart': 'Speljite',
-    'arrive': 'Prispeli ste na cilj',
+    'arrive': 'Prispeli boste na cilj',
     'turnLeft': 'Zavijte levo',
     'turnRight': 'Zavijte desno',
     'keepLeft': 'Držite se levo',
@@ -588,7 +593,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'et': {
     'on': ' teele ',
     'depart': 'Alustage',
-    'arrive': 'Olete jõudnud sihtkohta',
+    'arrive': 'Jõuate sihtkohta',
     'turnLeft': 'Pöörake vasakule',
     'turnRight': 'Pöörake paremale',
     'keepLeft': 'Hoidke vasakule',
@@ -614,7 +619,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'lt': {
     'on': ' į ',
     'depart': 'Pradėkite',
-    'arrive': 'Atvykote į kelionės tikslą',
+    'arrive': 'Atvyksite į paskirties vietą',
     'turnLeft': 'Sukite kairėn',
     'turnRight': 'Sukite dešinėn',
     'keepLeft': 'Laikykitės kairės',
@@ -640,7 +645,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'lv': {
     'on': ' uz ',
     'depart': 'Sāciet',
-    'arrive': 'Esat sasniedzis galamērķi',
+    'arrive': 'Jūs ieradīsieties galamērķī',
     'turnLeft': 'Nogriezieties pa kreisi',
     'turnRight': 'Nogriezieties pa labi',
     'keepLeft': 'Turieties pa kreisi',
@@ -666,7 +671,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'ga': {
     'on': ' ar ',
     'depart': 'Tosaigh',
-    'arrive': 'Tá tú tagtha ag do cheann scríbe',
+    'arrive': 'Sroichfidh tú do cheann scríbe',
     'turnLeft': 'Cas ar chlé',
     'turnRight': 'Cas ar dheis',
     'keepLeft': 'Fan ar chlé',
@@ -692,7 +697,7 @@ const Map<String, Map<String, String>> navPhrases = {
   'mt': {
     'on': ' fi ',
     'depart': 'Ibda',
-    'arrive': 'Wasalt fid-destinazzjoni tiegħek',
+    'arrive': 'Se tasal fid-destinazzjoni tiegħek',
     'turnLeft': 'Dur xellug',
     'turnRight': 'Dur lemin',
     'keepLeft': 'Żomm ix-xellug',

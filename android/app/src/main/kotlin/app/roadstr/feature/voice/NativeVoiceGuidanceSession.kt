@@ -73,6 +73,10 @@ class NativeVoiceGuidanceSession {
     /**
      * Announces the beginning of navigation. The first route maneuver waits
      * its turn, even if it is published after the usual interrupt window.
+     *
+     * The two are published by different owners and either may arrive first: a
+     * maneuver that has barely begun is not yet audible, so the departure takes
+     * its place and the maneuver is played right after it.
      */
     fun submitDeparture(text: String, nowMillis: Long): NativeVoiceDirective = synchronized(lock) {
         submitLocked(
@@ -167,6 +171,9 @@ class NativeVoiceGuidanceSession {
             current = utterance
             return NativeVoiceDirective.Start(utterance, interruptCurrent = false)
         }
+        if (departure && !active.departure && elapsed(nowMillis, active.submittedAtMillis) < MIN_AUDIBLE_MILLIS) {
+            return displaceWithDeparture(utterance, active)
+        }
         if (forceQueue || !priority || elapsed(nowMillis, active.submittedAtMillis) < MIN_AUDIBLE_MILLIS) {
             return enqueue(utterance)
         }
@@ -175,6 +182,17 @@ class NativeVoiceGuidanceSession {
         }
         current = utterance
         return NativeVoiceDirective.Start(utterance, interruptCurrent = true)
+    }
+
+    /** The departure goes first; what it replaced is next in line, ahead of anything already waiting. */
+    private fun displaceWithDeparture(
+        departure: NativeVoiceUtterance,
+        displaced: NativeVoiceUtterance,
+    ): NativeVoiceDirective {
+        pending.addFirst(displaced)
+        if (pending.size > MAX_PENDING) pending.removeLast()
+        current = departure
+        return NativeVoiceDirective.Start(departure, interruptCurrent = true)
     }
 
     private fun enqueue(utterance: NativeVoiceUtterance): NativeVoiceDirective {
