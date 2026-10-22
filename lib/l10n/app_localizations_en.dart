@@ -737,6 +737,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get categoryOther => 'Other';
 
   @override
+  String get categorySurveillanceCamera => 'Flock Camera';
+
+  @override
   String get dateTimeLabel => 'Date / time';
 
   @override

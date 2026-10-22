@@ -743,6 +743,9 @@ class AppLocalizationsRo extends AppLocalizations {
   String get categoryOther => 'Altele';
 
   @override
+  String get categorySurveillanceCamera => 'Camere de supraveghere';
+
+  @override
   String get dateTimeLabel => 'Dată / oră';
 
   @override

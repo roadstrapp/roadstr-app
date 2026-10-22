@@ -740,6 +740,9 @@ class AppLocalizationsSl extends AppLocalizations {
   String get categoryOther => 'Drugo';
 
   @override
+  String get categorySurveillanceCamera => 'Nadzorne kamere';
+
+  @override
   String get dateTimeLabel => 'Datum / čas';
 
   @override

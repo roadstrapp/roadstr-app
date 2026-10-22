@@ -745,6 +745,9 @@ class AppLocalizationsLt extends AppLocalizations {
   String get categoryOther => 'Kita';
 
   @override
+  String get categorySurveillanceCamera => 'Stebėjimo kameros';
+
+  @override
   String get dateTimeLabel => 'Data / laikas';
 
   @override

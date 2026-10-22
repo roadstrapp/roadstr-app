@@ -16,6 +16,7 @@
     <string name="native_road_event_category_fog">Neblina</string>
     <string name="native_road_event_category_ice">Gelo</string>
     <string name="native_road_event_category_animal">Animal</string>
+    <string name="native_road_event_category_surveillance_camera">Câmaras de vigilância</string>
     <string name="native_road_event_category_other">Outro</string>
     <string name="native_road_event_minutes_ago">há %1$d min</string>
     <string name="native_road_event_hours_ago">há %1$dh</string>

@@ -33,8 +33,8 @@ void main() {
       final strings = RegExp(
         r'<string name="([^"]+)">([\s\S]*?)</string>',
       ).allMatches(entry.value).toList();
-      expect(strings, hasLength(39), reason: entry.key);
-      expect(strings.map((match) => match.group(1)).toSet(), hasLength(39));
+      expect(strings, hasLength(40), reason: entry.key);
+      expect(strings.map((match) => match.group(1)).toSet(), hasLength(40));
     }
   });
 
@@ -47,13 +47,13 @@ void main() {
 
     expect(model, contains('enum RoadCategory'));
     expect(model, contains('if (comment.length > 500)'));
-    expect(flutter, contains('children: RoadCategory.values.map((cat)'));
+    expect(flutter, contains('children: RoadCategory.reportable.map((cat)'));
     expect(flutter, contains('maxLength: 200'));
     expect(flutter, contains('raw <= 0 || raw > 300'));
     expect(flutter, contains('(raw * 1.60934).round()'));
     expect(kotlin, contains('const val MAX_RECEIVED_COMMENT = 500'));
     expect(kotlin, contains('const val MAX_REPORT_COMMENT = 200'));
-    expect(panels.readAsStringSync(), contains('RoadCategoryWire.entries'));
+    expect(panels.readAsStringSync(), contains('RoadCategoryWire.reportable'));
     expect(kotlin, contains('(it * 1.60934).roundToInt()'));
     expect(
       kotlin,

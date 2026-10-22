@@ -247,6 +247,7 @@
   "categoryIce": "Jää",
   "categoryAnimal": "Loom",
   "categoryOther": "Muu",
+  "categorySurveillanceCamera": "Valvekaamerad",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Kuupäev / kellaaeg",
   "minutesAgo": "{count} min tagasi",

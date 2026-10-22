@@ -137,7 +137,7 @@ class NativeMapPointOverlaySessionTest {
     }
 
     @Test
-    fun `all fourteen road categories are emphasized Flutter pins`() {
+    fun `all fifteen road categories are emphasized Flutter pins`() {
         val roadKinds = NativeMapPointOverlayKind.entries.filter { it.name.startsWith("Road") }
         val expectedSymbolsAndAccents = listOf(
             "👮" to 0xFF2563EB,
@@ -153,10 +153,11 @@ class NativeMapPointOverlaySessionTest {
             "🌫️" to 0xFF9CA3AF,
             "🧊" to 0xFF60A5FA,
             "🦌" to 0xFF16A34A,
+            "📹" to 0xFF0E7490,
             "ℹ️" to 0xFF6B7280,
         )
 
-        assertEquals(14, roadKinds.size)
+        assertEquals(15, roadKinds.size)
         assertTrue(roadKinds.all { it.emphasized })
         assertTrue(roadKinds.all { it.opensRoadEventDetail })
         assertTrue(

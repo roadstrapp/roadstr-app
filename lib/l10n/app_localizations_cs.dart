@@ -742,6 +742,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get categoryOther => 'Ostatní';
 
   @override
+  String get categorySurveillanceCamera => 'Bezpečnostní kamery';
+
+  @override
   String get dateTimeLabel => 'Datum / čas';
 
   @override

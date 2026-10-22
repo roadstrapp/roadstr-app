@@ -247,6 +247,7 @@
   "categoryIce": "Oighear",
   "categoryAnimal": "Ainmhí",
   "categoryOther": "Eile",
+  "categorySurveillanceCamera": "Ceamaraí faireachais",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Dáta / am",
   "minutesAgo": "{count} nóim ó shin",

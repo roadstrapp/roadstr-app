@@ -16,6 +16,7 @@
     <string name="native_road_event_category_fog">Brouillard</string>
     <string name="native_road_event_category_ice">Verglas</string>
     <string name="native_road_event_category_animal">Animal</string>
+    <string name="native_road_event_category_surveillance_camera">Caméras de surveillance</string>
     <string name="native_road_event_category_other">Autre</string>
     <string name="native_road_event_minutes_ago">Il y a %1$d min</string>
     <string name="native_road_event_hours_ago">Il y a %1$dh</string>

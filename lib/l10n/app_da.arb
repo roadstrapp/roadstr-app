@@ -247,6 +247,7 @@
   "categoryIce": "Is",
   "categoryAnimal": "Dyr",
   "categoryOther": "Andet",
+  "categorySurveillanceCamera": "Overvågningskameraer",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Dato / tid",
   "minutesAgo": "for {count} min siden",

@@ -247,6 +247,7 @@
   "categoryIce": "Лёд",
   "categoryAnimal": "Животное",
   "categoryOther": "Другое",
+  "categorySurveillanceCamera": "Камеры видеонаблюдения",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Дата / время",
   "minutesAgo": "{count} мин назад",

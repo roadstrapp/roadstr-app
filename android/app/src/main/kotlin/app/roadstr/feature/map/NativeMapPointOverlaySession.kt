@@ -26,6 +26,7 @@ enum class NativeMapPointOverlayKind(
     RoadFog("🌫️", 0xFF9CA3AF, 36.0, 11.0, true, 0),
     RoadIce("🧊", 0xFF60A5FA, 36.0, 11.0, true, 0),
     RoadAnimal("🦌", 0xFF16A34A, 36.0, 11.0, true, 0),
+    RoadSurveillanceCamera("📹", 0xFF0E7490, 36.0, 11.0, true, 0),
     RoadOther("ℹ️", 0xFF6B7280, 36.0, 11.0, true, 0),
     OsmSpeedCamera("📷", 0xFF7C3AED, 30.0, Double.NEGATIVE_INFINITY, false, 1),
     Parking("P", 0xFF1E88E5, 38.0, Double.NEGATIVE_INFINITY, false, 2),
@@ -53,6 +54,7 @@ enum class NativeMapPointOverlayKind(
             RoadFog,
             RoadIce,
             RoadAnimal,
+            RoadSurveillanceCamera,
             RoadOther -> true
             else -> false
         }

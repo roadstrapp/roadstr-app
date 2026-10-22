@@ -742,6 +742,9 @@ class AppLocalizationsSk extends AppLocalizations {
   String get categoryOther => 'Ostatné';
 
   @override
+  String get categorySurveillanceCamera => 'Bezpečnostné kamery';
+
+  @override
   String get dateTimeLabel => 'Dátum / čas';
 
   @override

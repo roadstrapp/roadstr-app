@@ -746,6 +746,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get categoryOther => 'Sonstiges';
 
   @override
+  String get categorySurveillanceCamera => 'Überwachungskameras';
+
+  @override
   String get dateTimeLabel => 'Datum / Uhrzeit';
 
   @override

@@ -743,6 +743,9 @@ class AppLocalizationsEt extends AppLocalizations {
   String get categoryOther => 'Muu';
 
   @override
+  String get categorySurveillanceCamera => 'Valvekaamerad';
+
+  @override
   String get dateTimeLabel => 'Kuupäev / kellaaeg';
 
   @override

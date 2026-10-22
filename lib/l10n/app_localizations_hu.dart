@@ -744,6 +744,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get categoryOther => 'Egyéb';
 
   @override
+  String get categorySurveillanceCamera => 'Térfigyelő kamerák';
+
+  @override
   String get dateTimeLabel => 'Dátum / idő';
 
   @override

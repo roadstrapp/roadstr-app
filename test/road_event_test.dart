@@ -98,11 +98,42 @@ void main() {
     });
   });
 
+  group('surveillance cameras', () {
+    test('are a reportable category with their own wire key', () {
+      expect(RoadCategory.surveillanceCamera.nostrKey, 'surveillance_camera');
+      expect(
+          RoadCategory.reportable, contains(RoadCategory.surveillanceCamera));
+      // 📷 is the speed camera; sharing it would make the two pins identical.
+      expect(RoadCategory.surveillanceCamera.emoji, '📹');
+      expect(RoadCategory.surveillanceCamera.emoji,
+          isNot(RoadCategory.speedCamera.emoji));
+    });
+
+    test('are fixed infrastructure, so they outlast a patrol', () {
+      expect(RoadCategory.surveillanceCamera.ttlSeconds,
+          RoadCategory.speedCamera.ttlSeconds);
+    });
+
+    test('"other" is no longer offered, but old reports still parse', () {
+      expect(RoadCategory.reportable, isNot(contains(RoadCategory.other)));
+      expect(
+          RoadCategory.reportable, hasLength(RoadCategory.values.length - 1));
+      final parsed = RoadEvent.fromNostr(event(tags: [
+        ['lat', '41.9028'],
+        ['lon', '12.4964'],
+        ['t', 'other'],
+      ]));
+      expect(parsed, isNotNull);
+      expect(parsed!.category, RoadCategory.other);
+    });
+  });
+
   group('police station', () {
     test('is its own category, not a patrol', () {
       expect(RoadCategory.policeStation.nostrKey, 'police_station');
       expect(RoadCategory.policeStation, isNot(RoadCategory.police));
-      expect(RoadCategory.policeStation.emoji, isNot(RoadCategory.police.emoji));
+      expect(
+          RoadCategory.policeStation.emoji, isNot(RoadCategory.police.emoji));
     });
 
     test('lasts as long as a speed camera, unlike a patrol', () {

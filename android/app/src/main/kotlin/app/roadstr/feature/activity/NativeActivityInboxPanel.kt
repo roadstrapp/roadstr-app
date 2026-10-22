@@ -314,6 +314,7 @@ private fun categoryLabelId(category: RoadCategoryWire): Int = when (category) {
     RoadCategoryWire.FOG -> R.string.native_road_event_category_fog
     RoadCategoryWire.ICE -> R.string.native_road_event_category_ice
     RoadCategoryWire.ANIMAL -> R.string.native_road_event_category_animal
+    RoadCategoryWire.SURVEILLANCE_CAMERA -> R.string.native_road_event_category_surveillance_camera
     RoadCategoryWire.OTHER -> R.string.native_road_event_category_other
 }
 

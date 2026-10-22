@@ -247,6 +247,7 @@
   "categoryIce": "IJzel",
   "categoryAnimal": "Dier",
   "categoryOther": "Overig",
+  "categorySurveillanceCamera": "Bewakingscamera's",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Datum / tijd",
   "minutesAgo": "{count} min geleden",

@@ -748,6 +748,9 @@ class AppLocalizationsMt extends AppLocalizations {
   String get categoryOther => 'Oħra';
 
   @override
+  String get categorySurveillanceCamera => 'Kameras tas-sorveljanza';
+
+  @override
   String get dateTimeLabel => 'Data / ħin';
 
   @override

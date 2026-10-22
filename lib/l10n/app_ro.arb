@@ -247,6 +247,7 @@
   "categoryIce": "Gheață",
   "categoryAnimal": "Animal",
   "categoryOther": "Altele",
+  "categorySurveillanceCamera": "Camere de supraveghere",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Dată / oră",
   "minutesAgo": "acum {count} min",

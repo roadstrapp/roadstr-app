@@ -247,6 +247,7 @@
   "categoryIce": "Lód",
   "categoryAnimal": "Zwierzę",
   "categoryOther": "Inne",
+  "categorySurveillanceCamera": "Kamery monitoringu",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Data / godzina",
   "minutesAgo": "{count} min temu",

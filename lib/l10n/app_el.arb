@@ -247,6 +247,7 @@
   "categoryIce": "Πάγος",
   "categoryAnimal": "Ζώο",
   "categoryOther": "Άλλο",
+  "categorySurveillanceCamera": "Κάμερες παρακολούθησης",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Ημερομηνία / ώρα",
   "minutesAgo": "πριν {count} λεπτά",

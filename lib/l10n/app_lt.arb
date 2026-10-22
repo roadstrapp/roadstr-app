@@ -247,6 +247,7 @@
   "categoryIce": "Ledas",
   "categoryAnimal": "Gyvūnas",
   "categoryOther": "Kita",
+  "categorySurveillanceCamera": "Stebėjimo kameros",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Data / laikas",
   "minutesAgo": "prieš {count} min",

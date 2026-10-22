@@ -743,6 +743,9 @@ class AppLocalizationsFi extends AppLocalizations {
   String get categoryOther => 'Muu';
 
   @override
+  String get categorySurveillanceCamera => 'Valvontakamerat';
+
+  @override
   String get dateTimeLabel => 'Päivämäärä / aika';
 
   @override

@@ -254,6 +254,7 @@
   "categoryIce": "Ghiaccio",
   "categoryAnimal": "Animale",
   "categoryOther": "Altro",
+  "categorySurveillanceCamera": "Telecamere di sorveglianza",
   "dateTimeLabel": "Data / ora",
   "minutesAgo": "{count} min fa",
   "hoursAgo": "{count}h fa",

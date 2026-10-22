@@ -2,6 +2,7 @@ package app.roadstr.feature.report
 
 import app.roadstr.core.protocol.nostr.RoadCategoryWire
 import app.roadstr.feature.map.NativeMapPointOverlayKind
+import app.roadstr.service.nostr.NativeRoadEventCodec
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -10,14 +11,27 @@ import org.junit.Test
 
 class NativeRoadEventPresentationTest {
     @Test
-    fun `all fourteen categories reuse the existing map marker vocabulary`() {
+    fun `all fifteen categories reuse the existing map marker vocabulary`() {
         val kinds = RoadCategoryWire.entries.map(NativeRoadEventPresenter::markerKind)
 
-        assertEquals(14, kinds.size)
-        assertEquals(14, kinds.toSet().size)
+        assertEquals(15, kinds.size)
+        assertEquals(15, kinds.toSet().size)
         assertTrue(kinds.all(NativeMapPointOverlayKind::opensRoadEventDetail))
         assertEquals(NativeMapPointOverlayKind.RoadPolice, kinds.first())
         assertEquals(NativeMapPointOverlayKind.RoadOther, kinds.last())
+    }
+
+    @Test
+    fun `the report sheet offers surveillance cameras but no longer other`() {
+        assertEquals(14, RoadCategoryWire.reportable.size)
+        assertTrue(RoadCategoryWire.SURVEILLANCE_CAMERA in RoadCategoryWire.reportable)
+        assertFalse(RoadCategoryWire.OTHER in RoadCategoryWire.reportable)
+        // Older reports and unknown keys must still resolve to a category that can be drawn.
+        assertEquals(RoadCategoryWire.OTHER, NativeRoadEventCodec.categoryFromKey("something_from_the_future"))
+        assertEquals(
+            RoadCategoryWire.SURVEILLANCE_CAMERA,
+            NativeRoadEventCodec.categoryFromKey("surveillance_camera"),
+        )
     }
 
     @Test

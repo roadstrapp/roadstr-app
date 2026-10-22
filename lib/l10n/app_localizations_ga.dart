@@ -744,6 +744,9 @@ class AppLocalizationsGa extends AppLocalizations {
   String get categoryOther => 'Eile';
 
   @override
+  String get categorySurveillanceCamera => 'Ceamaraí faireachais';
+
+  @override
   String get dateTimeLabel => 'Dáta / am';
 
   @override

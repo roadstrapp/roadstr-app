@@ -59,7 +59,17 @@ enum class RoadCategoryWire(
     FOG("fog", "fog", 4 * 3600),
     ICE("ice", "ice", 4 * 3600),
     ANIMAL("animal", "animal", 1 * 3600),
+    SURVEILLANCE_CAMERA("surveillanceCamera", "surveillance_camera", 30 * 86400),
     OTHER("other", "other", 4 * 3600),
+    ;
+
+    companion object {
+        /**
+         * What the report sheet offers. [OTHER] stays in the enum only so that reports from older
+         * versions and from other clients, and any unknown key, still have somewhere to land.
+         */
+        val reportable: List<RoadCategoryWire> = entries.filter { it != OTHER }
+    }
 }
 
 /** Exact Roadstr kind 1315-1318 and profile-visibility layouts. */

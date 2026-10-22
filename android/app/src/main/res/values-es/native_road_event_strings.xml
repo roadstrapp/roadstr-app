@@ -16,6 +16,7 @@
     <string name="native_road_event_category_fog">Niebla</string>
     <string name="native_road_event_category_ice">Hielo</string>
     <string name="native_road_event_category_animal">Animal</string>
+    <string name="native_road_event_category_surveillance_camera">Cámaras de vigilancia</string>
     <string name="native_road_event_category_other">Otro</string>
     <string name="native_road_event_minutes_ago">hace %1$d min</string>
     <string name="native_road_event_hours_ago">hace %1$dh</string>

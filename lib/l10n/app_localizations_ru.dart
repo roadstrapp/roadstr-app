@@ -743,6 +743,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get categoryOther => 'Другое';
 
   @override
+  String get categorySurveillanceCamera => 'Камеры видеонаблюдения';
+
+  @override
   String get dateTimeLabel => 'Дата / время';
 
   @override

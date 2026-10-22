@@ -278,6 +278,7 @@ object NativeRoadEventPresenter {
         RoadCategoryWire.FOG -> NativeMapPointOverlayKind.RoadFog
         RoadCategoryWire.ICE -> NativeMapPointOverlayKind.RoadIce
         RoadCategoryWire.ANIMAL -> NativeMapPointOverlayKind.RoadAnimal
+        RoadCategoryWire.SURVEILLANCE_CAMERA -> NativeMapPointOverlayKind.RoadSurveillanceCamera
         RoadCategoryWire.OTHER -> NativeMapPointOverlayKind.RoadOther
     }
 

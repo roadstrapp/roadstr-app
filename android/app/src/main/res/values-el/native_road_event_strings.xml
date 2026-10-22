@@ -16,6 +16,7 @@
     <string name="native_road_event_category_fog">Ομίχλη</string>
     <string name="native_road_event_category_ice">Πάγος</string>
     <string name="native_road_event_category_animal">Ζώο</string>
+    <string name="native_road_event_category_surveillance_camera">Κάμερες παρακολούθησης</string>
     <string name="native_road_event_category_other">Άλλο</string>
     <string name="native_road_event_minutes_ago">πριν %1$d λεπτά</string>
     <string name="native_road_event_hours_ago">πριν %1$dω</string>

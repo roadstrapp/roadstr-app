@@ -247,6 +247,7 @@
   "categoryIce": "氷",
   "categoryAnimal": "動物",
   "categoryOther": "その他",
+  "categorySurveillanceCamera": "監視カメラ",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "日付 / 時刻",
   "minutesAgo": "{count}分前",

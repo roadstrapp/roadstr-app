@@ -741,6 +741,9 @@ class AppLocalizationsLv extends AppLocalizations {
   String get categoryOther => 'Cits';
 
   @override
+  String get categorySurveillanceCamera => 'Novērošanas kameras';
+
+  @override
   String get dateTimeLabel => 'Datums / laiks';
 
   @override

@@ -247,6 +247,7 @@
   "categoryIce": "Ľad",
   "categoryAnimal": "Zviera",
   "categoryOther": "Ostatné",
+  "categorySurveillanceCamera": "Bezpečnostné kamery",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Dátum / čas",
   "minutesAgo": "pred {count} min",

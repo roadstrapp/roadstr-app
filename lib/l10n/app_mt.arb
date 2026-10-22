@@ -247,6 +247,7 @@
   "categoryIce": "Silġ",
   "categoryAnimal": "Annimal",
   "categoryOther": "Oħra",
+  "categorySurveillanceCamera": "Kameras tas-sorveljanza",
   "@_AGE_LABELS": {},
   "dateTimeLabel": "Data / ħin",
   "minutesAgo": "{count} min ilu",

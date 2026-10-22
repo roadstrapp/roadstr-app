@@ -743,6 +743,9 @@ class AppLocalizationsHr extends AppLocalizations {
   String get categoryOther => 'Ostalo';
 
   @override
+  String get categorySurveillanceCamera => 'Nadzorne kamere';
+
+  @override
   String get dateTimeLabel => 'Datum / vrijeme';
 
   @override

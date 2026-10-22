@@ -835,7 +835,7 @@ class _ReportSheetState extends State<ReportSheet> {
                       crossAxisSpacing: 8,
                       childAspectRatio: 0.85),
                   physics: const NeverScrollableScrollPhysics(),
-                  children: RoadCategory.values.map((cat) {
+                  children: RoadCategory.reportable.map((cat) {
                     final sel = _selected == cat;
                     return GestureDetector(
                       onTap: () => setState(() => _selected = cat),
