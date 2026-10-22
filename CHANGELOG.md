@@ -2,6 +2,35 @@
 
 All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stable release of the Kotlin rewrite.
 
+## [1.2.1] — 2026-10-22
+
+Surveillance cameras can be reported, and the spoken start and arrival announcements now come in the right order.
+
+### Reports
+
+- Added a **Flock Camera** report category (📹; *Telecamere di sorveglianza* in Italian, translated into all 27 languages) for fixed
+  surveillance cameras. Like speed cameras and police stations it stays on the map for 30 days. It is published to Nostr relays only:
+  the open *jooray/roadstr* format has no equivalent type, so it is never sent over the MeshCore radio and never approximated as
+  *other*.
+- **Other** is no longer offered when you file a report. Reports that already carry it, from older versions or from other apps, are
+  still read and drawn as before, and an older Roadstr shows the new category as *Other*.
+
+### Voice
+
+- Fixed the start of a trip being announced in the wrong order: the first instruction was spoken and only then *Let's go*. A departure
+  that arrives while another phrase has barely begun now takes its place, and the displaced phrase is spoken right after it.
+- Fixed *you have arrived* being heard twice. The last maneuver, which leads to the destination, was worded exactly like the arrival
+  itself. It is now future tense in all 27 languages, the same wording the on-screen banner already used (*In 300 metres you will arrive at
+  your destination*), and the arrival keeps the past tense. In Italian the arrival now reads *Sei giunto a destinazione* (the bundled
+  audio was regenerated for both voices).
+- **Not yet verified on the road:** both voice fixes are covered by unit tests of the speech queue and the phrase tables, but the
+  regenerated Italian audio and the order of the announcements have not been heard on a phone.
+
+### Notes
+
+- The English label *Flock Camera* follows the name of a well-known manufacturer; the other 25 translations of the new category have
+  not been reviewed by native speakers.
+
 ## [1.2.0] — 2026-10-18
 
 Explore, opt-in Journey achievements, and an offline speech recogniser for voice search.

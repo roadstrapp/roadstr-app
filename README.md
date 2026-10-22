@@ -3,7 +3,7 @@
 **Roadstr** is an open-source, decentralised navigation app for Android, built on the [Nostr protocol](https://nostr.com/).  
 It combines real-time GPS turn-by-turn navigation with community-sourced traffic alerts published as Nostr events, public-transport journeys, on-device AI voice guidance, Lightning Network tips for contributors, and privacy-first map data powered by OpenStreetMap. Road reports can also be exchanged with other apps that use the open *jooray/roadstr* format and, experimentally, over a MeshCore LoRa radio.
 
-> **Version 1.2.0** — Android only. A native Kotlin app (Jetpack Compose and MapLibre Native) since 1.0; 1.2 adds Explore, optional Journey achievements and private offline voice search.
+> **Version 1.2.1** — Android only. A native Kotlin app (Jetpack Compose and MapLibre Native) since 1.0; 1.2 adds Explore, optional Journey achievements and private offline voice search, and 1.2.1 adds a surveillance-camera report category and fixes the order of the spoken start and arrival announcements.
 > The Flutter app of the 0.5.x line lives on the branch [`flutter-maintenance`](https://github.com/roadstrapp/roadstr-app/tree/flutter-maintenance).
 
 See the complete migration and release history in [CHANGELOG.md](CHANGELOG.md).
@@ -82,6 +82,7 @@ The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rew
 | Live speed-limit display (explicit OSM `maxspeed` data; unknown stays unknown) | ✅ |
 | Speed cameras reported by the community (kind 1315) | ✅ |
 | Speed cameras from OpenStreetMap data | ✅ Kotlin app (bounded Overpass cache; baseline, not a community report) |
+| Surveillance cameras reported by the community (kind 1315; published to relays only, never over the MeshCore radio) | ✅ |
 | ZTL / ZAC / limited-traffic-zone warnings and restricted route colouring (OSM/Overpass) | ✅ |
 | Map-element overlays — traffic lights, pedestrian crossings, speed bumps (OSM) and the altitude readout; the *Map element overlays* card in Settings is closed by default and the altitude readout is off by default | ✅ |
 | Destination pin on the map while a route is planned or followed | ✅ |

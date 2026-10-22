@@ -1,0 +1,3 @@
+Report surveillance cameras: a new category (Flock Camera in English) that stays on the map for 30 days. "Other" is no longer offered when reporting.
+
+Voice: "Let's go" is now spoken before the first instruction, and the final maneuver says you will arrive instead of repeating "you have arrived".
