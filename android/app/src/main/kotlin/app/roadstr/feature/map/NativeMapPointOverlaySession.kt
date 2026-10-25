@@ -1,5 +1,6 @@
 package app.roadstr.feature.map
 
+import app.roadstr.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,23 +13,24 @@ enum class NativeMapPointOverlayKind(
     val minimumZoom: Double,
     val emphasized: Boolean,
     internal val drawOrder: Int,
+    val iconRes: Int? = null,
 ) {
-    RoadPolice("👮", 0xFF2563EB, 36.0, 11.0, true, 0),
-    RoadPoliceStation("🏛️", 0xFF1E3A8A, 36.0, 11.0, true, 0),
-    RoadSpeedCamera("📷", 0xFF7C3AED, 36.0, 11.0, true, 0),
-    RoadTrafficJam("🚗", 0xFFD97706, 36.0, 11.0, true, 0),
-    RoadAccident("💥", 0xFFDC2626, 36.0, 11.0, true, 0),
-    RoadClosure("🚫", 0xFF991B1B, 36.0, 11.0, true, 0),
-    RoadConstruction("🚧", 0xFFF59E0B, 36.0, 11.0, true, 0),
-    RoadHazard("⚠️", 0xFFF59E0B, 36.0, 11.0, true, 0),
-    RoadCondition("🛣️", 0xFF92400E, 36.0, 11.0, true, 0),
-    RoadPothole("🕳️", 0xFF6B7280, 36.0, 11.0, true, 0),
-    RoadFog("🌫️", 0xFF9CA3AF, 36.0, 11.0, true, 0),
-    RoadIce("🧊", 0xFF60A5FA, 36.0, 11.0, true, 0),
-    RoadAnimal("🦌", 0xFF16A34A, 36.0, 11.0, true, 0),
-    RoadSurveillanceCamera("📹", 0xFF0E7490, 36.0, 11.0, true, 0),
-    RoadOther("ℹ️", 0xFF6B7280, 36.0, 11.0, true, 0),
-    OsmSpeedCamera("📷", 0xFF7C3AED, 30.0, Double.NEGATIVE_INFINITY, false, 1),
+    RoadPolice("👮", 0xFF2563EB, 36.0, 11.0, true, 0, R.drawable.road_event_police),
+    RoadPoliceStation("🏛️", 0xFF1E3A8A, 36.0, 11.0, true, 0, R.drawable.road_event_police_station),
+    RoadSpeedCamera("📷", 0xFF7C3AED, 36.0, 11.0, true, 0, R.drawable.road_event_speed_camera),
+    RoadTrafficJam("🚗", 0xFFD97706, 36.0, 11.0, true, 0, R.drawable.road_event_traffic_jam),
+    RoadAccident("💥", 0xFFDC2626, 36.0, 11.0, true, 0, R.drawable.road_event_accident),
+    RoadClosure("🚫", 0xFF991B1B, 36.0, 11.0, true, 0, R.drawable.road_event_road_closure),
+    RoadConstruction("🚧", 0xFFF59E0B, 36.0, 11.0, true, 0, R.drawable.road_event_construction),
+    RoadHazard("⚠️", 0xFFF59E0B, 36.0, 11.0, true, 0, R.drawable.road_event_hazard),
+    RoadCondition("🛣️", 0xFF92400E, 36.0, 11.0, true, 0, R.drawable.road_event_road_condition),
+    RoadPothole("🕳️", 0xFF6B7280, 36.0, 11.0, true, 0, R.drawable.road_event_pothole),
+    RoadFog("🌫️", 0xFF9CA3AF, 36.0, 11.0, true, 0, R.drawable.road_event_fog),
+    RoadIce("🧊", 0xFF60A5FA, 36.0, 11.0, true, 0, R.drawable.road_event_ice),
+    RoadAnimal("🦌", 0xFF16A34A, 36.0, 11.0, true, 0, R.drawable.road_event_animal),
+    RoadSurveillanceCamera("📹", 0xFF0E7490, 36.0, 11.0, true, 0, R.drawable.road_event_surveillance_camera),
+    RoadOther("ℹ️", 0xFF6B7280, 36.0, 11.0, true, 0, R.drawable.road_event_other),
+    OsmSpeedCamera("📷", 0xFF7C3AED, 30.0, Double.NEGATIVE_INFINITY, false, 1, R.drawable.road_event_speed_camera),
     Parking("P", 0xFF1E88E5, 38.0, Double.NEGATIVE_INFINITY, false, 2),
     TrafficLight("🚦", 0xFF70D69B, 24.0, 15.0, false, 3),
     SpeedBump("〰️", 0xFFFF8547, 22.0, 15.0, false, 4),

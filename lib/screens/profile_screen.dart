@@ -37,6 +37,7 @@ import '../theme/app_theme.dart';
 import '../utils/units.dart';
 import '../widgets/design/roadstr_glass.dart';
 import '../widgets/sheets/road_event_sheets.dart' show SpeedLimitDialog;
+import '../widgets/road_event_category_icon.dart';
 import '../services/app_secure_storage.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -992,7 +993,7 @@ class _EventTileState extends State<_EventTile> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: c.premiumCard(radius: 18),
         child: Row(children: [
-          Text(event.category.emoji, style: const TextStyle(fontSize: 22)),
+          RoadEventCategoryIcon(category: event.category, size: 30),
           const SizedBox(width: 12),
           Expanded(
               child: Column(
@@ -1112,7 +1113,7 @@ class _EventDetailDialogState extends State<_EventDetailDialog> {
       backgroundColor: c.surface2,
       titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       title: Row(children: [
-        Text(ev.category.emoji, style: const TextStyle(fontSize: 26)),
+        RoadEventCategoryIcon(category: ev.category, size: 34),
         const SizedBox(width: 10),
         Expanded(
             child: Text(

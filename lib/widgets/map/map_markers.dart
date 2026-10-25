@@ -17,7 +17,7 @@ class RoadEventPin extends StatelessWidget {
   const RoadEventPin({super.key, required this.event});
   @override
   Widget build(BuildContext context) => _MapSignalPin(
-        emoji: event.category.emoji,
+        assetPath: event.category.iconAsset,
         accent: event.category.color,
         emphasized: true,
       );
@@ -31,7 +31,7 @@ class OsmCameraPin extends StatelessWidget {
   const OsmCameraPin({super.key});
   @override
   Widget build(BuildContext context) => _MapSignalPin(
-        emoji: '📷',
+        assetPath: RoadCategory.speedCamera.iconAsset,
         accent: RoadCategory.speedCamera.color,
       );
 }
@@ -72,15 +72,17 @@ class SpeedBumpPin extends StatelessWidget {
 }
 
 class _MapSignalPin extends StatelessWidget {
-  final String emoji;
+  final String? emoji;
+  final String? assetPath;
   final Color accent;
   final bool emphasized;
 
   const _MapSignalPin({
-    required this.emoji,
+    this.emoji,
+    this.assetPath,
     required this.accent,
     this.emphasized = false,
-  });
+  }) : assert((emoji == null) != (assetPath == null));
 
   @override
   Widget build(BuildContext context) {
@@ -119,10 +121,20 @@ class _MapSignalPin extends StatelessWidget {
             border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
           ),
           alignment: Alignment.center,
-          child: Text(
-            emoji,
-            style: TextStyle(fontSize: emphasized ? 15 : 12.5, height: 1),
-          ),
+          child: assetPath != null
+              ? Padding(
+                  padding: EdgeInsets.all(emphasized ? 3.5 : 4),
+                  child: Image.asset(
+                    assetPath!,
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.medium,
+                    excludeFromSemantics: true,
+                  ),
+                )
+              : Text(
+                  emoji!,
+                  style: TextStyle(fontSize: emphasized ? 15 : 12.5, height: 1),
+                ),
         ),
       ),
     );

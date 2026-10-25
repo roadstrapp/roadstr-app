@@ -62,6 +62,7 @@ import app.roadstr.R
 import app.roadstr.core.network.PublicAddressPolicy
 import app.roadstr.core.protocol.nostr.RoadCategoryWire
 import app.roadstr.core.ui.RoadstrSwitch
+import app.roadstr.core.ui.RoadEventCategoryIcon
 import java.io.ByteArrayOutputStream
 import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
@@ -655,7 +656,7 @@ private fun ProfileReportRow(report: NativeProfileReportPresentation, onClick: (
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(categoryEmoji(report.category), style = MaterialTheme.typography.headlineSmall)
+        RoadEventCategoryIcon(category = report.category, modifier = Modifier.size(34.dp))
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(categoryLabel(report.category), fontWeight = FontWeight.SemiBold)
@@ -749,24 +750,6 @@ private fun categoryLabelId(category: RoadCategoryWire): Int = when (category) {
     RoadCategoryWire.ANIMAL -> R.string.native_road_event_category_animal
     RoadCategoryWire.SURVEILLANCE_CAMERA -> R.string.native_road_event_category_surveillance_camera
     RoadCategoryWire.OTHER -> R.string.native_road_event_category_other
-}
-
-private fun categoryEmoji(category: RoadCategoryWire): String = when (category) {
-    RoadCategoryWire.POLICE -> "👮"
-    RoadCategoryWire.POLICE_STATION -> "🏛️"
-    RoadCategoryWire.SPEED_CAMERA -> "📷"
-    RoadCategoryWire.TRAFFIC_JAM -> "🚗"
-    RoadCategoryWire.ACCIDENT -> "💥"
-    RoadCategoryWire.ROAD_CLOSURE -> "🚫"
-    RoadCategoryWire.CONSTRUCTION -> "🚧"
-    RoadCategoryWire.HAZARD -> "⚠️"
-    RoadCategoryWire.ROAD_CONDITION -> "🛣️"
-    RoadCategoryWire.POTHOLE -> "🕳️"
-    RoadCategoryWire.FOG -> "🌫️"
-    RoadCategoryWire.ICE -> "🧊"
-    RoadCategoryWire.ANIMAL -> "🦌"
-    RoadCategoryWire.SURVEILLANCE_CAMERA -> "📹"
-    RoadCategoryWire.OTHER -> "ℹ️"
 }
 
 private val ConfirmGreen = Color(0xFF22C55E)
