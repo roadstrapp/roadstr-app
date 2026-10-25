@@ -25,7 +25,10 @@ class NativeRoadTestUiPreferences(
         languageCode = preferences.getString("language", null),
         keepScreenOn = preferences.getBoolean("keep_screen_on", true),
         keepScreenOnAlways = preferences.getBoolean("keep_screen_on_always", false),
-        minimumBrightness = preferences.getFloat("min_brightness", 0f).toDouble(),
+        minimumBrightness = preferences.getFloat(
+            "min_brightness",
+            NativeSettingsInput.DEFAULT_MINIMUM_BRIGHTNESS.toFloat(),
+        ).toDouble(),
         autoCenterOnLaunch = preferences.getBoolean("auto_center", true),
         mapTileUrl = preferences.getString("tile_url", null) ?: NativeSettingsInput().mapTileUrl,
         routingProvider = NativeSettingsRoutingProvider.fromStorage(

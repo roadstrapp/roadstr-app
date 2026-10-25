@@ -111,6 +111,7 @@ import app.roadstr.feature.performance.NativePerformanceProfile
 import app.roadstr.feature.performance.PerformanceProfileSelector
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.roundToInt
 import kotlin.math.sin
 
 sealed interface NativeSettingsUiAction {
@@ -480,10 +481,10 @@ private fun MapSection(
             valueLabel = if (values.minimumBrightness == 0.0) {
                 stringResource(R.string.native_settings_min_brightness_off)
             } else {
-                "${(values.minimumBrightness * 100).toInt()}%"
+                "${(values.minimumBrightness * 100).roundToInt()}%"
             },
             range = 0f..1f,
-            steps = 9,
+            steps = 19,
         ) { onAction(NativeSettingsUiAction.BrightnessChanged(it.toDouble())) }
         ExpandableCard(
             title = stringResource(R.string.native_settings_road_overlays),
