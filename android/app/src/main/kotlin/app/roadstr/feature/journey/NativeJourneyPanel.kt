@@ -16,6 +16,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -56,6 +57,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
@@ -84,6 +87,7 @@ import java.util.Locale
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.sqrt
 import kotlin.math.sin
 
 enum class JourneyPublicBadgePhase {
@@ -468,8 +472,9 @@ private fun JourneyBadgeIcon(iconKey: String, unlocked: Boolean, modifier: Modif
 }
 
 /**
- * Projects the face and the milled edge separately, so the coin keeps a real
- * thickness at 90 degrees instead of collapsing into a paper-thin bitmap.
+ * Orthographically projects a short cylinder: the gold body is extruded from
+ * many depth slices and the visible face sits on the cylinder's front or back
+ * plane. At 90 degrees the face disappears while the body keeps its thickness.
  */
 @Composable
 private fun JourneySpinningCoin(
@@ -484,24 +489,67 @@ private fun JourneySpinningCoin(
     }
     val radians = rotationDegrees * PI / 180.0
     val cosine = cos(radians).toFloat()
+    val sine = sin(radians).toFloat()
     val faceProjection = abs(cosine)
-    val edgeProjection = abs(sin(radians).toFloat())
+    val sideVisibility = abs(sine)
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        Image(
-            painter = painterResource(R.drawable.journey_coin_edge),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize().graphicsLayer {
-                scaleX = edgeProjection.coerceAtLeast(0.01f)
-                alpha = ((edgeProjection - 0.04f) / 0.34f).coerceIn(0f, 1f)
-            },
-        )
+        Canvas(Modifier.fillMaxSize()) {
+            val diameter = size.minDimension * 0.88f
+            val projectedWidth = (diameter * faceProjection).coerceAtLeast(1f)
+            val halfDepth = size.minDimension * 0.065f
+            val center = Offset(size.width / 2f, size.height / 2f)
+            val sideAlpha = (sideVisibility / 0.22f).coerceIn(0f, 1f)
+            val slices = 42
+
+            // Back-to-front projected discs form one continuous cylindrical body.
+            repeat(slices) { index ->
+                val depth = -1f + (2f * index / (slices - 1))
+                val offsetX = depth * halfDepth * sine
+                val gold = when (index % 7) {
+                    0 -> Color(0xFF824400)
+                    1, 6 -> Color(0xFFAA6207)
+                    2, 5 -> Color(0xFFD89416)
+                    else -> Color(0xFFFFC94E)
+                }
+                drawOval(
+                    color = gold.copy(alpha = sideAlpha),
+                    topLeft = Offset(
+                        x = center.x + offsetX - projectedWidth / 2f,
+                        y = center.y - diameter / 2f,
+                    ),
+                    size = Size(projectedWidth, diameter),
+                )
+            }
+
+            // Fine reeding follows the curved side and is occluded by the face.
+            if (sideVisibility > 0.18f) {
+                val radius = diameter / 2f
+                val depthHalfWidth = halfDepth * sideVisibility
+                val lineAlpha = ((sideVisibility - 0.18f) / 0.45f).coerceIn(0f, 0.72f)
+                val lineStep = size.minDimension * 0.052f
+                var y = center.y - radius * 0.92f
+                while (y <= center.y + radius * 0.92f) {
+                    val normalizedY = ((y - center.y) / radius).coerceIn(-1f, 1f)
+                    val ellipseHalfWidth = projectedWidth / 2f * sqrt(1f - normalizedY * normalizedY)
+                    drawLine(
+                        color = Color(0xFFFFE29A).copy(alpha = lineAlpha),
+                        start = Offset(center.x - depthHalfWidth - ellipseHalfWidth, y),
+                        end = Offset(center.x + depthHalfWidth + ellipseHalfWidth, y),
+                        strokeWidth = (size.minDimension * 0.006f).coerceAtLeast(1f),
+                    )
+                    y += lineStep
+                }
+            }
+        }
         JourneyBadgeIcon(
             iconKey = iconKey,
             unlocked = true,
             modifier = Modifier.fillMaxSize().graphicsLayer {
-                val projectedWidth = faceProjection.coerceAtLeast(0.01f)
-                scaleX = if (cosine >= 0f) projectedWidth else -projectedWidth
-                alpha = (faceProjection / 0.18f).coerceIn(0f, 1f)
+                val signedProjection = faceProjection.coerceAtLeast(0.012f) *
+                    if (cosine >= 0f) 1f else -1f
+                scaleX = signedProjection
+                translationX = size.width * 0.065f * sine *
+                    if (cosine >= 0f) 1f else -1f
             },
         )
     }
