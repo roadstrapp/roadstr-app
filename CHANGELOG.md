@@ -2,6 +2,33 @@
 
 All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stable release of the Kotlin rewrite.
 
+## [1.2.2] — 2026-10-25
+
+The speed-limit sign works again, the screen no longer defaults to full brightness, and road reports have proper artwork.
+
+### Fixed
+
+- **Speed-limit sign stuck on "–".** The limit came only from the public Overpass servers, and they were all unavailable at once
+  (overpass-api.de at capacity, the openstreetmap.fr instance restricted to white-listed users, the others unreachable). A refusal was
+  also read as "this road has no limit", so the app never moved on to another server. The limit is now read first from the Valhalla
+  server at openstreetmap.de, the one used for routing (the posted `maxspeed` of the road under the fix, already in km/h), and Overpass is
+  only a fallback. A refused or failed answer now rotates to the next server. Roads without a posted limit, roads with no limit at all and
+  ways that disagree still show no limit rather than a guess, and service roads and parking aisles are ignored.
+- The mail.ru Overpass instance is never asked for the speed limit: it would receive your position every 100 m while driving.
+
+### Changed
+
+- **Screen brightness defaults to 75%.** It used to be off, which left the screen to the system and let automatic brightness drive it to
+  full in daylight. The slider moves in 5% steps so the default is one of its positions. Whatever you had already chosen is kept.
+- Road reports are drawn with illustrations instead of emoji: map pins, report details, the category picker and the route panels. The
+  Journey entry in Settings and Profile has new artwork, and a won coin now turns with a real edge instead of flattening into a line.
+
+### Notes
+
+- The speed limit is only looked up while a trip is under way. Not yet verified on the road: the lookup was checked against the live
+  servers (Rome 50, London 32 for 20 mph, Florence 30) but not from a phone.
+- Other features that rely on Overpass (OpenStreetMap speed cameras, ZTL, hazards, place search) still depend on those servers being up.
+
 ## [1.2.1] — 2026-10-22
 
 Surveillance cameras can be reported, and the spoken start and arrival announcements now come in the right order.

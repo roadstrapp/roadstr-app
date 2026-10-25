@@ -1,0 +1,5 @@
+Speed limits: the sign works again when the public Overpass servers are down - the limit now comes first from the routing server, with Overpass only as a fallback.
+
+Screen brightness now defaults to 75% instead of following the system, which pushed it to full in daylight.
+
+Road reports are drawn with illustrations instead of emoji on the map and in the report sheets; the Journey button and its rotating coin have new artwork.
