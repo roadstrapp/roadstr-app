@@ -14,6 +14,7 @@ import '../../services/weather_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/units.dart';
 import '../design/roadstr_glass.dart';
+import '../road_event_category_icon.dart';
 
 LinearGradient _routePanelGradient(RoadstrColors colors) => LinearGradient(
       begin: Alignment.topLeft,
@@ -687,8 +688,8 @@ class _PreviewPanelState extends State<RoutePreviewPanel>
                         ...widget.trafficEvents.take(3).map((ev) => Padding(
                               padding: const EdgeInsets.only(bottom: 4),
                               child: Row(children: [
-                                Text(ev.category.emoji,
-                                    style: const TextStyle(fontSize: 14)),
+                                RoadEventCategoryIcon(
+                                    category: ev.category, size: 18),
                                 const SizedBox(width: 6),
                                 Text(ev.category.localizedLabel(l),
                                     style: TextStyle(

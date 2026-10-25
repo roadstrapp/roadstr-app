@@ -13,6 +13,7 @@ import '../../services/zap_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/units.dart';
 import '../nav/speed_limit_sign.dart';
+import '../road_event_category_icon.dart';
 import '../../services/app_secure_storage.dart';
 
 /// Bottom sheet that drives the full NIP-57 + LNURL-pay zap flow.
@@ -511,8 +512,8 @@ class _RoadEventDetailState extends State<RoadEventDetailSheet> {
                   shape: BoxShape.circle,
                 ),
                 child: Center(
-                    child: Text(event.category.emoji,
-                        style: const TextStyle(fontSize: 24))),
+                    child: RoadEventCategoryIcon(
+                        category: event.category, size: 34)),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -853,9 +854,7 @@ class _ReportSheetState extends State<ReportSheet> {
                         child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(cat.emoji,
-                                  style: const TextStyle(
-                                      fontSize: 20, height: 1.2)),
+                              RoadEventCategoryIcon(category: cat, size: 30),
                               const SizedBox(height: 2),
                               Text(cat.localizedLabel(l),
                                   textAlign: TextAlign.center,

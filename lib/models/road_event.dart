@@ -87,6 +87,9 @@ enum RoadCategory {
         RoadCategory.other => 'ℹ️',
       };
 
+  /// Professional raster pictogram used by every road-report surface.
+  String get iconAsset => 'assets/icons/road_events/$nostrKey.png';
+
   String localizedLabel(AppLocalizations l) => switch (this) {
         RoadCategory.police => l.categoryPolice,
         RoadCategory.policeStation => l.categoryPoliceStation,

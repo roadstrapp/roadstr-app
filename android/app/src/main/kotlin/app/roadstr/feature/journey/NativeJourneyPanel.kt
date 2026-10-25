@@ -36,7 +36,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material3.Button
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -82,6 +81,10 @@ import app.roadstr.core.journey.JourneySyncSnapshot
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
 
 enum class JourneyPublicBadgePhase {
     CHECKING,
@@ -275,7 +278,11 @@ private fun JourneyDashboardContent(
                 onClick = onShowCatalog,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp).sizeIn(minHeight = 48.dp),
             ) {
-                Icon(Icons.Outlined.EmojiEvents, contentDescription = null)
+                Image(
+                    painter = painterResource(R.drawable.journey_rewards_emblem),
+                    contentDescription = null,
+                    modifier = Modifier.size(30.dp),
+                )
                 Spacer(Modifier.size(8.dp))
                 Text(stringResource(R.string.native_journey_badges_count, unlocked, snapshot.achievements.size))
             }
@@ -460,6 +467,46 @@ private fun JourneyBadgeIcon(iconKey: String, unlocked: Boolean, modifier: Modif
     )
 }
 
+/**
+ * Projects the face and the milled edge separately, so the coin keeps a real
+ * thickness at 90 degrees instead of collapsing into a paper-thin bitmap.
+ */
+@Composable
+private fun JourneySpinningCoin(
+    iconKey: String,
+    unlocked: Boolean,
+    rotationDegrees: Float,
+    modifier: Modifier = Modifier,
+) {
+    if (!unlocked) {
+        JourneyBadgeIcon(iconKey, unlocked = false, modifier = modifier)
+        return
+    }
+    val radians = rotationDegrees * PI / 180.0
+    val cosine = cos(radians).toFloat()
+    val faceProjection = abs(cosine)
+    val edgeProjection = abs(sin(radians).toFloat())
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        Image(
+            painter = painterResource(R.drawable.journey_coin_edge),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize().graphicsLayer {
+                scaleX = edgeProjection.coerceAtLeast(0.01f)
+                alpha = ((edgeProjection - 0.04f) / 0.34f).coerceIn(0f, 1f)
+            },
+        )
+        JourneyBadgeIcon(
+            iconKey = iconKey,
+            unlocked = true,
+            modifier = Modifier.fillMaxSize().graphicsLayer {
+                val projectedWidth = faceProjection.coerceAtLeast(0.01f)
+                scaleX = if (cosine >= 0f) projectedWidth else -projectedWidth
+                alpha = (faceProjection / 0.18f).coerceIn(0f, 1f)
+            },
+        )
+    }
+}
+
 @DrawableRes
 private fun journeyBadgeDrawable(iconKey: String): Int = when (iconKey) {
     "ignition" -> R.drawable.journey_badge_ignition
@@ -517,15 +564,12 @@ private fun AchievementDetailDialog(
                     Text("✧", color = Color.White.copy(alpha = sparkle), modifier = Modifier.align(Alignment.CenterEnd))
                     Text("✦", color = Color(0xFFFFD54F).copy(alpha = 1f - sparkle / 2f), modifier = Modifier.align(Alignment.BottomStart))
                 }
-                JourneyBadgeIcon(
+                JourneySpinningCoin(
                     iconKey = definition.iconKey,
                     unlocked = state.unlocked,
+                    rotationDegrees = if (state.unlocked) rotation else 0f,
                     modifier = Modifier
-                        .size(108.dp)
-                        .graphicsLayer {
-                            rotationY = if (state.unlocked) rotation else 0f
-                            cameraDistance = 18f * density
-                        },
+                        .size(108.dp),
                 )
             }
         },

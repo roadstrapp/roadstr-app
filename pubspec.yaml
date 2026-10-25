@@ -102,6 +102,7 @@ flutter:
 
   assets:
     - assets/icons/
+    - assets/icons/road_events/
     - assets/cursors/
     - assets/cursors/ostrich_run/
     - assets/cursors/ostrich_idle/

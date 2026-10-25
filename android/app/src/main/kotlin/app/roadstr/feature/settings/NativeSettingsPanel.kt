@@ -13,7 +13,6 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -43,6 +42,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
@@ -89,6 +89,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -1589,14 +1590,14 @@ internal enum class ActionAccent { None, Theme }
 @Composable
 private fun JourneyLaunchButton(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val motion = rememberInfiniteTransition(label = "journey-launch")
-    val shimmer by motion.animateFloat(
-        initialValue = -0.25f,
-        targetValue = 1.25f,
+    val emblemScale by motion.animateFloat(
+        initialValue = 0.96f,
+        targetValue = 1.04f,
         animationSpec = infiniteRepeatable(
-            animation = tween(2_800, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
+            animation = tween(1_400, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
         ),
-        label = "journey-launch-shimmer",
+        label = "journey-launch-emblem-pulse",
     )
     val accent = MaterialTheme.colorScheme.primary
     val accentContentColor = if (accent.luminance() > 0.35f) Color(0xFF211400) else Color.White
@@ -1612,19 +1613,20 @@ private fun JourneyLaunchButton(text: String, modifier: Modifier = Modifier, onC
             .semantics { role = Role.Button },
         contentAlignment = Alignment.Center,
     ) {
-        Canvas(Modifier.matchParentSize()) {
-            val x = size.width * shimmer
-            drawCircle(Color.White.copy(alpha = 0.30f), radius = 5.dp.toPx(), center = Offset(x, size.height * .28f))
-            drawCircle(Color.White.copy(alpha = 0.65f), radius = 2.dp.toPx(), center = Offset(x + size.width * .12f, size.height * .68f))
-            drawCircle(Color(0xFFFFE082).copy(alpha = 0.85f), radius = 2.5.dp.toPx(), center = Offset(x - size.width * .16f, size.height * .52f))
-        }
         Row(
             modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
         ) {
-            Text("✦", color = Color(0xFFFFE082), fontWeight = FontWeight.Black)
-            Spacer(Modifier.width(9.dp))
+            Image(
+                painter = painterResource(R.drawable.journey_rewards_emblem),
+                contentDescription = null,
+                modifier = Modifier.size(38.dp).graphicsLayer {
+                    scaleX = emblemScale
+                    scaleY = emblemScale
+                },
+            )
+            Spacer(Modifier.width(10.dp))
             Text(text, color = accentContentColor, fontWeight = FontWeight.Black)
             Spacer(Modifier.width(9.dp))
             Text("›", color = accentContentColor, style = MaterialTheme.typography.titleLarge)

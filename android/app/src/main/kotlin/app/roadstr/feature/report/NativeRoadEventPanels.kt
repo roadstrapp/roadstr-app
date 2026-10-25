@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import app.roadstr.R
 import app.roadstr.core.protocol.nostr.RoadCategoryWire
 import app.roadstr.core.ui.SheetGrabHandle
+import app.roadstr.core.ui.RoadEventCategoryIcon
 import app.roadstr.core.ui.rememberSheetDragState
 import java.util.Locale
 
@@ -288,7 +289,7 @@ private fun DetailHeader(detail: NativeRoadEventDetail, title: String) {
             color = accent.copy(alpha = 0.15f),
         ) {
             Box(contentAlignment = Alignment.Center) {
-                Text(detail.markerKind.symbol, style = MaterialTheme.typography.headlineSmall)
+                RoadEventCategoryIcon(category = detail.category, modifier = Modifier.size(34.dp))
             }
         }
         Spacer(modifier = Modifier.width(14.dp))
@@ -611,7 +612,7 @@ private fun CategoryGrid(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Text(marker.symbol, style = MaterialTheme.typography.titleLarge)
+                    RoadEventCategoryIcon(category = category, modifier = Modifier.size(32.dp))
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         label,

@@ -1,12 +1,15 @@
 package app.roadstr.feature.map
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Shader
 import android.graphics.Typeface
+import android.graphics.RectF
 import android.view.View
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapLibreMap
@@ -37,6 +40,8 @@ internal class NativeMapPointOverlayView(context: Context) : View(context) {
         color = Color.WHITE
         textAlign = Paint.Align.CENTER
     }
+    private val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+    private val iconCache = mutableMapOf<Int, Bitmap>()
 
     init {
         isClickable = false
@@ -135,14 +140,19 @@ internal class NativeMapPointOverlayView(context: Context) : View(context) {
         val innerRadius = max(0f, radius - 2.5f * density)
         canvas.drawCircle(centerX, centerY, innerRadius, innerPaint)
         canvas.drawCircle(centerX, centerY, innerRadius, innerBorderPaint)
-        drawSymbol(
-            canvas = canvas,
-            symbol = kind.symbol,
-            centerX = centerX,
-            centerY = centerY,
-            textSizeDp = if (kind.emphasized) 15f else 12.5f,
-            bold = false,
-        )
+        val iconRes = kind.iconRes
+        if (iconRes != null) {
+            drawIcon(canvas, iconRes, centerX, centerY, radius, kind.emphasized)
+        } else {
+            drawSymbol(
+                canvas = canvas,
+                symbol = kind.symbol,
+                centerX = centerX,
+                centerY = centerY,
+                textSizeDp = if (kind.emphasized) 15f else 12.5f,
+                bold = false,
+            )
+        }
     }
 
     private fun drawParking(canvas: Canvas, centerX: Float, centerY: Float, radius: Float) {
@@ -156,6 +166,27 @@ internal class NativeMapPointOverlayView(context: Context) : View(context) {
         canvas.drawCircle(centerX, centerY, radius - density, borderPaint)
         borderPaint.strokeWidth = previousWidth
         drawSymbol(canvas, "P", centerX, centerY, 20f, bold = true)
+    }
+
+    private fun drawIcon(
+        canvas: Canvas,
+        iconRes: Int,
+        centerX: Float,
+        centerY: Float,
+        radius: Float,
+        emphasized: Boolean,
+    ) {
+        val bitmap = iconCache.getOrPut(iconRes) {
+            BitmapFactory.decodeResource(resources, iconRes)
+        }
+        val side = radius * if (emphasized) 1.48f else 1.42f
+        val half = side / 2f
+        canvas.drawBitmap(
+            bitmap,
+            null,
+            RectF(centerX - half, centerY - half, centerX + half, centerY + half),
+            iconPaint,
+        )
     }
 
     private fun drawSymbol(
