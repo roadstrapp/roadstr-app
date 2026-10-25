@@ -35,7 +35,7 @@ class NativeSettingsPresentationTest {
         assertEquals(NativePerformanceProfile.ThreeDEco, value.performanceProfile)
         assertTrue(value.keepScreenOn)
         assertFalse(value.keepScreenOnAlways)
-        assertEquals(0.0, value.minimumBrightness, 0.0)
+        assertEquals(0.75, value.minimumBrightness, 0.0)
         assertFalse(value.showAltitude)
         assertFalse(value.showCrosswalks)
         assertFalse(value.showTrafficLights)
@@ -282,13 +282,16 @@ class NativeSettingsPresentationTest {
         val session = openSession()
 
         val brightness = session.updateBrightness(1, 0.26)
+        val defaultBrightness = session.updateBrightness(1, 0.74)
         val volume = session.updateVoiceVolume(1, 0.84)
         val speed = session.updateVoiceSpeedStage(1, 5)
 
-        assertEquals(NativeSettingsStoredValue.DoubleValue(0.3), brightness?.value)
+        // Brightness snaps to 5% so the 75% default is a slider position; volume keeps tenths.
+        assertEquals(NativeSettingsStoredValue.DoubleValue(0.25), brightness?.value)
+        assertEquals(NativeSettingsStoredValue.DoubleValue(0.75), defaultBrightness?.value)
         assertEquals(NativeSettingsStoredValue.DoubleValue(0.8), volume?.value)
         assertEquals(NativeSettingsStoredValue.IntegerValue(5), speed?.value)
-        assertEquals(0.3, session.state.value.values.minimumBrightness, 0.0)
+        assertEquals(0.75, session.state.value.values.minimumBrightness, 0.0)
     }
 
     @Test

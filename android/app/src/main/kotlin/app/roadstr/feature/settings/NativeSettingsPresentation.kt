@@ -214,7 +214,8 @@ data class NativeSettingsInput(
     val performanceProfile: NativePerformanceProfile = NativePerformanceProfile.Default,
     val keepScreenOn: Boolean = true,
     val keepScreenOnAlways: Boolean = false,
-    val minimumBrightness: Double = 0.0,
+    /** 75% rather than off: left to the system, auto-brightness drives the screen to full in daylight. */
+    val minimumBrightness: Double = DEFAULT_MINIMUM_BRIGHTNESS,
     val showAltitude: Boolean = false,
     val showCrosswalks: Boolean = false,
     val showTrafficLights: Boolean = false,
@@ -268,6 +269,7 @@ data class NativeSettingsInput(
     companion object {
         const val DEFAULT_TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         const val DEFAULT_VOICE_SPEED_STAGE = 4
+        const val DEFAULT_MINIMUM_BRIGHTNESS = 0.75
     }
 }
 
@@ -344,7 +346,7 @@ object NativeSettingsPresenter {
             status = NativeSettingsStatus.Ready,
             values = input.copy(
                 languageCode = language,
-                minimumBrightness = tenth(input.minimumBrightness),
+                minimumBrightness = twentieth(input.minimumBrightness),
                 mapTileUrl = cleanRequired(input.mapTileUrl, MAX_URL_CHARS, "Map tile URL"),
                 graphHopperServer = clean(input.graphHopperServer, MAX_URL_CHARS) ?: "",
                 customSyncRelay = safeRelay(input.customSyncRelay),
@@ -385,6 +387,9 @@ object NativeSettingsPresenter {
         ?.take(limit)
 
     private fun tenth(value: Double): Double = round(value * 10.0) / 10.0
+
+    /** Brightness moves in 5% steps so the 75% default sits on the slider. */
+    internal fun twentieth(value: Double): Double = round(value * 20.0) / 20.0
 }
 
 /**
@@ -554,7 +559,7 @@ class NativeSettingsSession(
     }
 
     fun updateBrightness(revision: Long, value: Double): NativeSettingsWrite? =
-        doubleMutation(revision, "minBrightness", value, 0.0..1.0) {
+        doubleMutation(revision, "minBrightness", value, 0.0..1.0, NativeSettingsPresenter::twentieth) {
             copy(minimumBrightness = it)
         }
 
@@ -638,10 +643,11 @@ class NativeSettingsSession(
         key: String,
         value: Double,
         range: ClosedFloatingPointRange<Double>,
+        snap: (Double) -> Double = { round(it * 10.0) / 10.0 },
         transform: NativeSettingsInput.(Double) -> NativeSettingsInput,
     ): NativeSettingsWrite? = mutate(revision) { current ->
         require(value.isFinite() && value in range) { "Invalid numeric setting" }
-        val normalized = round(value * 10.0) / 10.0
+        val normalized = snap(value)
         current.transform(normalized) to NativeSettingsWrite(
             revision,
             key,
