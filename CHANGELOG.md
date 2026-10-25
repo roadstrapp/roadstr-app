@@ -2,6 +2,16 @@
 
 All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stable release of the Kotlin rewrite.
 
+## [1.2.3] — 2026-10-25
+
+New artwork for the Journey badges and a solid, turning coin.
+
+### Changed
+
+- All Journey badges have new artwork.
+- A won coin is now drawn as a short gold cylinder: its body is built from depth slices and its side is reeded, so it keeps its
+  thickness while it turns, down to the moment it is edge-on. This replaces the separate edge image used in 1.2.2.
+
 ## [1.2.2] — 2026-10-25
 
 The speed-limit sign works again, the screen no longer defaults to full brightness, and road reports have proper artwork.
