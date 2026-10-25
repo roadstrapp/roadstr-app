@@ -187,7 +187,7 @@ Builds:
 
   - versionName: 1.2.2
     versionCode: 2065
-    commit: 0000000000000000000000000000000000000000
+    commit: 60b7ce97e839487e8ad23c4393defde5147b578c
     sudo:
       - apt-get update
       - apt-get install -y build-essential cmake
