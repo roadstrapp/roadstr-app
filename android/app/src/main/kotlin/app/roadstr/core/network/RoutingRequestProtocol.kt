@@ -44,6 +44,9 @@ object RoutingRequestProtocol {
     const val graphHopperPublicEndpoint = "https://graphhopper.com/api/1/route"
     const val valhallaEndpoint = "https://valhalla1.openstreetmap.de/route"
 
+    /** Same FOSSGIS server; the speed-limit lookup reads the posted limit of the road under a fix. */
+    const val valhallaLocateEndpoint = "https://valhalla1.openstreetmap.de/locate"
+
     const val maxIntermediateWaypoints = 4
     const val rerouteBearingToleranceDegrees = 45
 
