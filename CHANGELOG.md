@@ -2,6 +2,26 @@
 
 All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stable release of the Kotlin rewrite.
 
+## [Unreleased]
+
+### Changed
+
+- **One road-event format, shared with Roadbeacon.** Reports and votes follow
+  [nips/road-events.md](https://github.com/jooray/roadbeacon/blob/main/nips/road-events.md): six-decimal coordinates, no `alt`,
+  two-tag votes, and an `expiration` of `created_at + max(14 days, lifetime)`. Roadstr's own reports already had that layout, so
+  each report is now written once: the optional second copy in the *jooray/roadstr* layout and its settings are gone, and reports in
+  that deprecated layout are no longer shown.
+- **New MeshCore frame.** A report is 117 bytes plus its comment (at most 46 bytes are written, so a frame never exceeds the 163
+  bytes a companion link carries; up to 48 are read), a vote is a self-contained 134 bytes. The codec runs the shared conformance
+  vectors in `docs/interoperability/vectors/road-events-v1.json`. The old 110-byte frame is not accepted.
+- Own reports and votes can go on the radio directly ("Send my reports by radio"); they no longer depend on the compatible copy.
+
+### Fixed
+
+- Votes on reports heard over the radio were always rejected, because the vote was expected to repeat the report's position.
+- A 30-day report heard over the radio (speed camera, police station, surveillance camera) disappeared after 14 days.
+- A vote heard on the radio before its report waits up to 15 minutes for it, from the radio or a relay, instead of being lost.
+
 ## [1.2.3] — 2026-10-25
 
 New artwork for the Journey badges and a solid, turning coin.
