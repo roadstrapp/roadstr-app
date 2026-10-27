@@ -22,6 +22,13 @@
     <string name="native_mesh_problem_service">This is not a MeshCore companion radio.</string>
     <string name="native_mesh_problem_firmware">The radio\'s firmware is too old for road reports. Update it and pair again.</string>
     <string name="native_mesh_problem_protocol">The radio answered something unexpected. Trying again…</string>
+    <string name="native_mesh_use_local">Use the radio through MeshCore Open</string>
+    <string name="native_mesh_use_local_desc">Shares the radio MeshCore Open on this phone is connected to, so both apps work at once. Needs MeshCore Open with its local API switched on. Off: Roadstr connects to the radio itself over Bluetooth.</string>
+    <string name="native_mesh_local_fingerprint">MeshCore Open asks once to allow Roadstr. Allow it only if the key it shows is %1$s.</string>
+    <string name="native_mesh_local_no_key">The key for MeshCore Open could not be created on this device.</string>
+    <string name="native_mesh_local_status_idle">Connects to MeshCore Open while Roadstr is open and a radio feature is on.</string>
+    <string name="native_mesh_problem_local_unreachable">MeshCore Open is not answering. Is it running, with its local API on? Trying again…</string>
+    <string name="native_mesh_problem_not_approved">MeshCore Open has not allowed Roadstr. Allow it there when asked; trying again in a minute.</string>
     <string name="native_mesh_receive">Receive reports from the radio</string>
     <string name="native_mesh_receive_desc">Reports heard on the radio appear on the map, checked first. Works without internet.</string>
     <string name="native_mesh_send">Send my reports by radio</string>

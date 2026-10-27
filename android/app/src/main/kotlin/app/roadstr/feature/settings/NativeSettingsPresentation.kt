@@ -124,6 +124,12 @@ enum class NativeSettingsBooleanKey(
     OfflineRouting("offlineRoutingEnabled", false),
     OfflineOnlineFallback("offlineOnlineFallbackAllowed", false),
 
+    /**
+     * Reach the radio through MeshCore Open on this phone instead of this app's own BLE link.
+     * Off by default: the BLE link is what existing users paired.
+     */
+    MeshUseLocalApi("meshUseLocalApi", false),
+
     /** Read road reports from a paired MeshCore radio. */
     MeshReceive("meshReceiveEnabled", false),
 
@@ -147,6 +153,12 @@ enum class NativeSettingsMeshProblem {
     ServiceMissing,
     IncompatibleFirmware,
     ProtocolError,
+
+    /** MeshCore Open is not answering on this phone. */
+    LocalApiUnreachable,
+
+    /** MeshCore Open has not approved this app, or the user denied or revoked it there. */
+    NotApproved,
 }
 
 enum class NativeSettingsMeshState {
@@ -166,6 +178,12 @@ enum class NativeSettingsMeshState {
 /** The radio as the settings screen shows it. Display only: nothing here changes behaviour. */
 data class NativeSettingsMeshStatus(
     val supported: Boolean = false,
+    /** The radio is reached through MeshCore Open's local API, not this app's BLE link. */
+    val localApi: Boolean = false,
+    /** Whether this build can use the local API at all (it needs the Android key store). */
+    val localApiAvailable: Boolean = false,
+    /** This app's key as MeshCore Open shows it when asking to allow it. */
+    val localApiFingerprint: String? = null,
     val deviceName: String? = null,
     val state: NativeSettingsMeshState = NativeSettingsMeshState.NotPaired,
     val problem: NativeSettingsMeshProblem? = null,
@@ -229,6 +247,7 @@ data class NativeSettingsInput(
     /** Journey, distance tracking and rewards are explicitly opt-in. */
     val journeyEnabled: Boolean = false,
     val journeySyncEnabled: Boolean = false,
+    val meshUseLocalApi: Boolean = false,
     val meshReceiveEnabled: Boolean = false,
     val meshSendEnabled: Boolean = false,
     val meshBridgeToNostr: Boolean = false,
@@ -455,6 +474,7 @@ class NativeSettingsSession(
             NativeSettingsBooleanKey.VoiceEnabled -> current.copy(voiceEnabled = value)
             NativeSettingsBooleanKey.OfflineRouting -> current.copy(offlineRoutingEnabled = value)
             NativeSettingsBooleanKey.OfflineOnlineFallback -> current.copy(offlineOnlineFallbackAllowed = value)
+            NativeSettingsBooleanKey.MeshUseLocalApi -> current.copy(meshUseLocalApi = value)
             NativeSettingsBooleanKey.MeshReceive -> current.copy(meshReceiveEnabled = value)
             NativeSettingsBooleanKey.MeshSend -> current.copy(meshSendEnabled = value)
             NativeSettingsBooleanKey.MeshBridgeToNostr -> current.copy(meshBridgeToNostr = value)

@@ -238,6 +238,7 @@ object NativePreferenceSchema {
                 favoritesSyncAutoEnabled = bool(NativeSettingsBooleanKey.FavoritesSyncAuto),
                 journeyEnabled = bool(NativeSettingsBooleanKey.JourneyEnabled),
                 journeySyncEnabled = bool(NativeSettingsBooleanKey.JourneySyncEnabled),
+                meshUseLocalApi = bool(NativeSettingsBooleanKey.MeshUseLocalApi),
                 meshReceiveEnabled = bool(NativeSettingsBooleanKey.MeshReceive),
                 meshSendEnabled = bool(NativeSettingsBooleanKey.MeshSend),
                 meshBridgeToNostr = bool(NativeSettingsBooleanKey.MeshBridgeToNostr),

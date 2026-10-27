@@ -52,6 +52,12 @@ enum class MeshCoreProblem(val retries: Boolean) {
     /** The radio answered "unknown command" to a channel datagram: its firmware predates them. */
     IncompatibleFirmware(false),
     ProtocolError(true),
+
+    /** MeshCore Open's local API is not answering: the app is not running or its API is off. */
+    LocalApiUnreachable(true),
+
+    /** MeshCore Open refused this app (closed with 4003): not approved yet, denied or revoked. */
+    NotApproved(true),
 }
 
 data class MeshCoreDevice(
@@ -121,7 +127,7 @@ class MeshCoreClient(
     private val dataType: Int = Protocol.ROADSTR_DEVELOPMENT_DATA_TYPE,
     private val random: Random = Random(),
     private val onDatagram: (MeshCoreDatagram) -> Unit,
-) : MeshRadioPort {
+) : MeshRadioClient {
     private class Command(
         val frame: ByteArray,
         /** Whether a received frame is this command's answer. */
@@ -148,21 +154,21 @@ class MeshCoreClient(
     private val deferred = ArrayList<() -> Unit>()
     private val _state = MutableStateFlow<MeshCoreState>(MeshCoreState.Off)
 
-    val state: StateFlow<MeshCoreState> = _state.asStateFlow()
+    override val state: StateFlow<MeshCoreState> = _state.asStateFlow()
 
     override val ready: Boolean get() = _state.value is MeshCoreState.Ready
 
     // ── lifecycle ───────────────────────────────────────────────────────────────────────────────
 
     /** Connects (or keeps trying to). Safe to call again. */
-    fun start() = locked {
+    override fun start() = locked {
         if (wanted && _state.value !is MeshCoreState.Failed) return@locked
         wanted = true
         connectLocked()
     }
 
     /** Disconnects and stops retrying. Anything waiting for the radio is told it was lost. */
-    fun stop() = locked {
+    override fun stop() = locked {
         wanted = false
         teardownLocked()
         link.close()
@@ -293,7 +299,7 @@ class MeshCoreClient(
      * it changes the radio's configuration. Returns false when the radio has no free slot or is not
      * waiting for it.
      */
-    fun configureChannel(): Boolean = locked {
+    override fun configureChannel(): Boolean = locked {
         val missing = _state.value as? MeshCoreState.ChannelMissing ?: return@locked false
         val name = channelName()
         val secret = runCatching { Protocol.hashtagChannelSecret(name) }.getOrNull() ?: return@locked false
