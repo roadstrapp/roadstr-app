@@ -1,6 +1,6 @@
 package app.roadstr.core.protocol.interop
 
-/** One confirmation or denial of an interoperable report, reduced to what decides its lifetime. */
+/** One confirmation or denial of a report, reduced to what decides its lifetime. */
 data class InteropVote(
     val pubkey: String,
     val createdAt: Long,
@@ -8,14 +8,15 @@ data class InteropVote(
 )
 
 /**
- * How long an interoperable report stays on the map: sections 5.2 and 5.3 of the jooray/roadstr
- * specification, as pure functions of the report and its votes.
+ * How long a report heard on the radio stays on the map ("Display lifetime" in nips/road-events.md,
+ * jooray/roadbeacon), as pure functions of the report and its votes.
  *
- * The `expiration` tag of those events is a fixed 14 days that only tells relays when they may drop
- * the event. It is not how long the marker is shown: that is the type's own lifetime, pushed forward
- * by every "still there" and cut short by every "no longer there".
+ * The marker lives for the type's own lifetime, pushed forward by every "still there" and cut short
+ * by every "no longer there", and never past the event's own `expiration` tag: relays may drop the
+ * event then. That tag is `created_at + max(14 days, lifetime)`, so a 30-day speed camera is shown
+ * for 30 days, not 14.
  *
- * Choices the specification leaves open, made here once and documented in MESHCORE_NOSTR.md:
+ * Choices the specification leaves open, made here once:
  *  - one voice per key: only the latest vote of a key counts (a key cannot out-vote itself);
  *  - a vote older than its report, or more than five minutes in the future, is not admitted;
  *  - votes with the same timestamp are applied denials first, so a tie keeps the report alive
@@ -41,11 +42,15 @@ object InteropLifetime {
         return latest.values.toList()
     }
 
-    /** Section 5.2 `computeEffectiveExpiry`. [votes] must already be [admissible]. */
+    /**
+     * When the marker stops being shown. [votes] must already be [admissible]; [expiration] is the
+     * event's NIP-40 tag, if it has one.
+     */
     fun effectiveExpiry(
         reportCreatedAt: Long,
         type: CompactRoadType,
         votes: Collection<InteropVote>,
+        expiration: Long? = null,
     ): Long {
         val ttl = type.effectiveTtlSeconds
         var expiry = reportCreatedAt + ttl
@@ -53,26 +58,26 @@ object InteropLifetime {
         for (vote in ordered) {
             expiry = if (vote.stillThere) maxOf(expiry, vote.createdAt + ttl) else minOf(expiry, vote.createdAt)
         }
-        return expiry
+        return if (expiration != null) minOf(expiry, expiration) else expiry
     }
 
-    /** Section 5.3 `resolveConflicts`: more recent denials than confirmations. A tie stays active. */
+    /** More denials than confirmations in the last five minutes. A tie stays visible. */
     fun deniedByRecentMajority(votes: Collection<InteropVote>, nowSeconds: Long): Boolean {
         val recent = votes.filter { nowSeconds - it.createdAt < CONFLICT_WINDOW_SECONDS }
         val confirmations = recent.count { it.stillThere }
         return recent.size - confirmations > confirmations
     }
 
-    /** Both rules together, and the relay-side expiration that makes an event unservable. */
+    /** Both rules together, bounded by the event's own `expiration` ([expiration], if any). */
     fun isVisible(
         reportCreatedAt: Long,
         type: CompactRoadType,
         votes: Collection<InteropVote>,
         nowSeconds: Long,
+        expiration: Long? = null,
     ): Boolean {
-        if (nowSeconds >= reportCreatedAt + CompactRoadCodec.RELAY_TTL_SECONDS) return false
         val counted = admissible(votes, reportCreatedAt, nowSeconds)
-        if (nowSeconds >= effectiveExpiry(reportCreatedAt, type, counted)) return false
+        if (nowSeconds >= effectiveExpiry(reportCreatedAt, type, counted, expiration)) return false
         return !deniedByRecentMajority(counted, nowSeconds)
     }
 
