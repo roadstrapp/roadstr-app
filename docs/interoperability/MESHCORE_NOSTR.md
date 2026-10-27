@@ -1,6 +1,6 @@
 > **Historical document. Superseded; do not implement from it.**
 >
-> Everything below describes the deprecated *jooray/roadstr* layout (`alt` tag, seven decimals, votes
+> The audit below (from its title on) describes the deprecated *jooray/roadstr* layout (`alt` tag, seven decimals, votes
 > that repeat the report's position) and its 110-byte report frame. Roadstr no longer writes or reads
 > that layout, and the old frame is not accepted: its vote frame has the same length as the new one
 > but a different meaning.
@@ -17,6 +17,31 @@
 > What still applies from this document: the bridge design (§5, §8), the privacy notes (§9), the
 > MeshCore channel and `data_type` (§7.2, §7.3) and the hardware checklist (§12), read with the new
 > frame sizes.
+
+## Current transport option: MeshCore Open's local API
+
+A MeshCore companion radio has one BLE connection. Instead of taking it over, Roadstr can use the
+radio through [MeshCore Open](https://github.com/jooray/meshcore-open/tree/feat/local-api), which
+keeps the connection and offers it to other apps on the same phone
+([LOCAL_API.md](https://github.com/jooray/meshcore-open/blob/feat/local-api/documentation/LOCAL_API.md)).
+Opt-in: *Settings → MeshCore → Use the radio through MeshCore Open*; BLE stays the default, and a
+saved BLE radio is never switched over.
+
+- **Endpoint:** `ws://127.0.0.1:8787/api/v1`, loopback only (the loopback cleartext exception in
+  `network_security_config.xml`).
+- **Pairing:** a P-256 key in the Android Keystore, generated on first use and never exportable.
+  The client sends `hello` with the raw `x||y` key, and answers the first `pairing.challenge` of a
+  connection by signing `meshcore-open-pair-v1:<nonce>` itself (`SHA256withECDSA`, DER); it never
+  signs a string the server proposes. MeshCore Open asks the user once and shows the key's
+  fingerprint (first 64 bits of SHA-256 of `x||y`, as `AB12 CD34 5678 9ABC`); Roadstr shows the same
+  fingerprint in its settings. A close with code 4003 (denied or revoked) is reported as "not
+  allowed" and retried after a minute.
+- **Traffic:** after every approved `hello`, `events.subscribe` for `channel.data` on `#roadstr` with
+  `data_type` `0xFF52`; frames are sent with `channel.sendData` (at most 163 bytes). Messages are
+  handled one at a time, in order.
+- **Replay:** the subscription carries `since` = the `receivedAt` of the last frame processed, as
+  the server stamped it. `since` is inclusive, so that frame comes back once and is dropped as a
+  duplicate.
 
 # Road reports over Nostr and MeshCore — interoperability specification
 

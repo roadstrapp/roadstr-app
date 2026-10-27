@@ -91,7 +91,7 @@ The details, risk by risk, are in [docs/kotlin-rewrite/RISKS.md](docs/kotlin-rew
 | On-device AI voice guidance (Kokoro-82M; Piper / Thorsten-Voice for German) | ✅ |
 | Nostr road events — kind 1315 (reports) / 1316 (confirmations) | ✅ |
 | One road-event format (kind 1315/1316) shared with Roadbeacon — six decimals, no `alt`, two-tag votes ([spec](https://github.com/jooray/roadbeacon/blob/main/nips/road-events.md)) | ✅ |
-| MeshCore LoRa radio — receive and send road reports over a paired MeshCore radio, with or without internet, and optional bridges to the Nostr relays that never change a report's author (experimental, off by default, **not yet tested on real radios**) | 🧪 |
+| MeshCore LoRa radio — receive and send road reports over a paired MeshCore radio, or share the radio with MeshCore Open on the same phone through its local API, with or without internet, and optional bridges to the Nostr relays that never change a report's author (experimental, off by default, **not yet tested on real radios**) | 🧪 |
 | Nostr login — Amber (NIP-55) or a remote signer (NIP-46 via `nostrconnect://` or `bunker://`); no private key in the app | ✅ |
 | Public transport — Transitous (worldwide) and Entur (Norway) planning, stop search and live departure boards (Transitous), active multimodal guidance and saved-journey comparison; online only | ✅ |
 | Lightning Network zaps for road-event contributors | ✅ |

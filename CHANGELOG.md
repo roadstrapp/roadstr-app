@@ -16,6 +16,13 @@ All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stab
   vectors in `docs/interoperability/vectors/road-events-v1.json`. The old 110-byte frame is not accepted.
 - Own reports and votes can go on the radio directly ("Send my reports by radio"); they no longer depend on the compatible copy.
 
+### Added
+
+- **MeshCore Open as the radio link (opt-in).** Instead of taking the radio's only Bluetooth connection, Roadstr can use it through
+  MeshCore Open's local API on the same phone (`ws://127.0.0.1:8787/api/v1`), so the chat app keeps working. The pairing key lives in
+  the Android Keystore; Settings shows its fingerprint to compare with MeshCore Open's dialog. What the radio heard while Roadstr was
+  closed is replayed from where it left off. Bluetooth stays the default, and a saved radio is never switched over.
+
 ### Fixed
 
 - Votes on reports heard over the radio were always rejected, because the vote was expected to repeat the report's position.
