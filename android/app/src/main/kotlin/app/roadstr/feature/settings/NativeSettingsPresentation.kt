@@ -124,15 +124,6 @@ enum class NativeSettingsBooleanKey(
     OfflineRouting("offlineRoutingEnabled", false),
     OfflineOnlineFallback("offlineOnlineFallbackAllowed", false),
 
-    /** Show reports written in the jooray/roadstr layout. On by default: they were already shown. */
-    InteropShow("interopShowEnabled", true),
-
-    /** Also send each report in the jooray/roadstr layout. Off: it doubles what is published. */
-    InteropPublish("interopPublishEnabled", false),
-
-    /** Sign those copies with a throw-away key. Off: the account's own key, so twins merge. */
-    InteropEphemeralKey("interopEphemeralKey", false),
-
     /** Read road reports from a paired MeshCore radio. */
     MeshReceive("meshReceiveEnabled", false),
 
@@ -238,9 +229,6 @@ data class NativeSettingsInput(
     /** Journey, distance tracking and rewards are explicitly opt-in. */
     val journeyEnabled: Boolean = false,
     val journeySyncEnabled: Boolean = false,
-    val interopShowEnabled: Boolean = true,
-    val interopPublishEnabled: Boolean = false,
-    val interopEphemeralKey: Boolean = false,
     val meshReceiveEnabled: Boolean = false,
     val meshSendEnabled: Boolean = false,
     val meshBridgeToNostr: Boolean = false,
@@ -467,9 +455,6 @@ class NativeSettingsSession(
             NativeSettingsBooleanKey.VoiceEnabled -> current.copy(voiceEnabled = value)
             NativeSettingsBooleanKey.OfflineRouting -> current.copy(offlineRoutingEnabled = value)
             NativeSettingsBooleanKey.OfflineOnlineFallback -> current.copy(offlineOnlineFallbackAllowed = value)
-            NativeSettingsBooleanKey.InteropShow -> current.copy(interopShowEnabled = value)
-            NativeSettingsBooleanKey.InteropPublish -> current.copy(interopPublishEnabled = value)
-            NativeSettingsBooleanKey.InteropEphemeralKey -> current.copy(interopEphemeralKey = value)
             NativeSettingsBooleanKey.MeshReceive -> current.copy(meshReceiveEnabled = value)
             NativeSettingsBooleanKey.MeshSend -> current.copy(meshSendEnabled = value)
             NativeSettingsBooleanKey.MeshBridgeToNostr -> current.copy(meshBridgeToNostr = value)

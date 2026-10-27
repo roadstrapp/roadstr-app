@@ -227,7 +227,6 @@ fun NativeSettingsPanel(
                 item { FavoritesSection(values) { onAction(revision, it) } }
                 item { SyncSection(values) { onAction(revision, it) } }
                 item { JourneySection(values) { onAction(revision, it) } }
-                item { InteropSection(values) { onAction(revision, it) } }
                 item { MeshSection(values) { onAction(revision, it) } }
                 item { VoiceSection(values) { onAction(revision, it) } }
                 if (values.speechStatus != NativeSettingsSpeechStatus.Hidden) {
@@ -780,35 +779,6 @@ private fun SyncSection(values: NativeSettingsInput, onAction: (NativeSettingsUi
                     CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun InteropSection(values: NativeSettingsInput, onAction: (NativeSettingsUiAction) -> Unit) {
-    SettingsSection(R.string.native_interop_section) {
-        Text(
-            stringResource(R.string.native_interop_desc),
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        ToggleRow(
-            R.string.native_interop_show,
-            R.string.native_interop_show_desc,
-            values.interopShowEnabled,
-        ) { onAction(NativeSettingsUiAction.BooleanChanged(NativeSettingsBooleanKey.InteropShow, it)) }
-        ToggleRow(
-            R.string.native_interop_publish,
-            R.string.native_interop_publish_desc,
-            values.interopPublishEnabled,
-        ) { onAction(NativeSettingsUiAction.BooleanChanged(NativeSettingsBooleanKey.InteropPublish, it)) }
-        if (values.interopPublishEnabled) {
-            ToggleRow(
-                R.string.native_interop_ephemeral,
-                R.string.native_interop_ephemeral_desc,
-                values.interopEphemeralKey,
-            ) { onAction(NativeSettingsUiAction.BooleanChanged(NativeSettingsBooleanKey.InteropEphemeralKey, it)) }
         }
     }
 }

@@ -3,30 +3,32 @@ package app.roadstr.core.protocol.interop
 import app.roadstr.core.protocol.nostr.RoadCategoryWire
 
 /**
- * The road-event types of the jooray/roadstr compact format (nips/roadstr.md), with the byte used
- * in the binary form and the client-side lifetime a report of that type is shown for.
+ * The shared road-event types (nips/road-events.md in jooray/roadbeacon), with the byte used in
+ * the binary form and the client-side lifetime a report of that type is shown for.
  *
- * Values 12-254 are reserved by that format. They are NOT mapped to [OTHER]: turning an unknown
- * type into "other" would change the signed `t` tag and the ID with it.
+ * Values 14-254 are reserved. They are NOT mapped to [OTHER]: turning an unknown type into "other"
+ * would change the signed `t` tag and the ID with it.
  */
 enum class CompactRoadType(
     val value: Int,
     val wireName: String,
     val effectiveTtlSeconds: Long,
 ) {
-    POLICE(0, "police", 2 * HOUR),
+    POLICE(0, "police", 4 * HOUR),
     SPEED_CAMERA(1, "speed_camera", 30 * DAY),
     TRAFFIC_JAM(2, "traffic_jam", 1 * HOUR),
-    ACCIDENT(3, "accident", 3 * HOUR),
-    ROAD_CLOSURE(4, "road_closure", 7 * DAY),
-    CONSTRUCTION(5, "construction", 7 * DAY),
+    ACCIDENT(3, "accident", 4 * HOUR),
+    ROAD_CLOSURE(4, "road_closure", 24 * HOUR),
+    CONSTRUCTION(5, "construction", 15 * DAY),
     HAZARD(6, "hazard", 4 * HOUR),
-    ROAD_CONDITION(7, "road_condition", 6 * HOUR),
+    ROAD_CONDITION(7, "road_condition", 15 * DAY),
     POTHOLE(8, "pothole", 7 * DAY),
-    FOG(9, "fog", 3 * HOUR),
-    ICE(10, "ice", 6 * HOUR),
+    FOG(9, "fog", 4 * HOUR),
+    ICE(10, "ice", 4 * HOUR),
     ANIMAL(11, "animal", 1 * HOUR),
-    OTHER(255, "other", 2 * HOUR),
+    POLICE_STATION(12, "police_station", 30 * DAY),
+    SURVEILLANCE_CAMERA(13, "surveillance_camera", 30 * DAY),
+    OTHER(255, "other", 4 * HOUR),
     ;
 
     /** Roadstr's own category with the same wire key; every compact type has exactly one. */
@@ -39,8 +41,8 @@ enum class CompactRoadType(
         fun fromWireName(name: String): CompactRoadType? = entries.firstOrNull { it.wireName == name }
 
         /**
-         * The compact type for a Roadstr category, or null when the format has no equivalent
-         * (Roadstr's "police station" is a long-lived fixture, not an event). Never approximated.
+         * The compact type for a Roadstr category, or null when the format has no equivalent.
+         * Never approximated.
          */
         fun fromNative(category: RoadCategoryWire): CompactRoadType? = fromWireName(category.wireKey)
     }
