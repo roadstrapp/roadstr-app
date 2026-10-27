@@ -81,6 +81,7 @@ import app.roadstr.service.routing.ValhallaLocalRoutingEngine
 import java.io.File
 import android.content.pm.PackageManager
 import app.roadstr.feature.home.NativeShellMesh
+import app.roadstr.service.meshcore.AndroidKeystoreLocalApiIdentity
 import app.roadstr.service.meshcore.AndroidMeshCoreBleLink
 import app.roadstr.service.meshcore.AndroidMeshCoreScanner
 import app.roadstr.service.meshcore.MeshCoreBlePermissions
@@ -282,6 +283,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
     private val scheduler = ExecutorNativeScheduler()
     private var nostr: NativeShellNostr? = null
     private var mesh: NativeShellMesh? = null
+    private val meshScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var meshPermissionCallback: ((Boolean) -> Unit)? = null
     private val onboardingPreferences by lazy(LazyThreadSafetyMode.NONE) {
         getSharedPreferences(storeNames.prefs("onboarding"), MODE_PRIVATE)
@@ -642,6 +644,7 @@ open class NativeRoadTestActivity : ComponentActivity() {
         speechScope.cancel()
         webBrowser.release()
         mesh?.runtime?.close()
+        meshScope.cancel()
         nostr?.roadEvents?.close()
         scheduler.shutdown()
         localRoutingEngine.close()
@@ -746,7 +749,10 @@ open class NativeRoadTestActivity : ComponentActivity() {
             ledgerStorage = NativeRoadTestMeshLedgerStorage(applicationContext, storeNames),
             channelName = storage::channelName,
             nowSeconds = NativeNostrWire::nowSeconds,
-            scope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
+            scope = meshScope,
+            localApiIdentity = AndroidKeystoreLocalApiIdentity(storeNames.alias("meshlocalapi")),
+            cursorStorage = storage,
+            clientVersion = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull().orEmpty(),
         )
         return NativeShellMesh(
             runtime = runtime,
