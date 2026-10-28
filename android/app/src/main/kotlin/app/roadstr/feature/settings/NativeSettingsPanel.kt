@@ -931,6 +931,8 @@ private fun meshProblemText(problem: NativeSettingsMeshProblem?): Int = when (pr
     NativeSettingsMeshProblem.IncompatibleFirmware -> R.string.native_mesh_problem_firmware
     NativeSettingsMeshProblem.LocalApiUnreachable -> R.string.native_mesh_problem_local_unreachable
     NativeSettingsMeshProblem.NotApproved -> R.string.native_mesh_problem_not_approved
+    NativeSettingsMeshProblem.LocalApiChannelMissing -> R.string.native_mesh_problem_local_channel
+    NativeSettingsMeshProblem.LocalApiRefused -> R.string.native_mesh_problem_local_refused
     NativeSettingsMeshProblem.ProtocolError, null -> R.string.native_mesh_problem_protocol
 }
 

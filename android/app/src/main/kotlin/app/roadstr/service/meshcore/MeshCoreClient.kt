@@ -58,6 +58,12 @@ enum class MeshCoreProblem(val retries: Boolean) {
 
     /** MeshCore Open refused this app (closed with 4003): not approved yet, denied or revoked. */
     NotApproved(true),
+
+    /** MeshCore Open has no channel with the shared name: the user adds it there. */
+    LocalApiChannelMissing(true),
+
+    /** MeshCore Open refused the subscription for another reason. */
+    LocalApiRefused(true),
 }
 
 data class MeshCoreDevice(

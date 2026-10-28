@@ -334,6 +334,8 @@ private fun problemOf(problem: MeshCoreProblem): NativeSettingsMeshProblem = whe
     MeshCoreProblem.ProtocolError -> NativeSettingsMeshProblem.ProtocolError
     MeshCoreProblem.LocalApiUnreachable -> NativeSettingsMeshProblem.LocalApiUnreachable
     MeshCoreProblem.NotApproved -> NativeSettingsMeshProblem.NotApproved
+    MeshCoreProblem.LocalApiChannelMissing -> NativeSettingsMeshProblem.LocalApiChannelMissing
+    MeshCoreProblem.LocalApiRefused -> NativeSettingsMeshProblem.LocalApiRefused
 }
 
 /** Retries publishing what the radio heard while there was no internet, for as long as there is something waiting. */
