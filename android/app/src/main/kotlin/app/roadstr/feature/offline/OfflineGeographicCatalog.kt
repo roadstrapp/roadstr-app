@@ -282,10 +282,14 @@ object OfflineGeographicCatalog {
         )),
         branch("europe-west", "Western Europe", OfflineCatalogNode.Kind.Macroregion, listOf(
             branch("fr", "France", OfflineCatalogNode.Kind.Country, listOf(
-                leaf("fr-north", "Northern France", OfflineCatalogNode.Kind.Macroregion),
+                leaf("fr-north", "Northern France", OfflineCatalogNode.Kind.Macroregion, packageAreaIds = setOf(
+                    "gf-nord-pas-de-calais", "gf-picardie", "gf-haute-normandie", "gf-basse-normandie",
+                )),
             )),
             branch("de", "Germany", OfflineCatalogNode.Kind.Country, listOf(
-                leaf("de-south", "Southern Germany", OfflineCatalogNode.Kind.Macroregion),
+                leaf("de-south", "Southern Germany", OfflineCatalogNode.Kind.Macroregion, packageAreaIds = setOf(
+                    "gf-bayern", "gf-baden-wuerttemberg",
+                )),
             )),
         )),
         branch("europe-south", "Southern Europe", OfflineCatalogNode.Kind.Macroregion, listOf(
@@ -309,8 +313,10 @@ object OfflineGeographicCatalog {
             )),
         )),
         branch("europe-east", "Eastern Europe", OfflineCatalogNode.Kind.Macroregion, listOf(
+            leaf("cz", "Czechia", OfflineCatalogNode.Kind.Country, aliases = listOf("Czech Republic")),
             leaf("pl", "Poland", OfflineCatalogNode.Kind.Country),
             leaf("ro", "Romania", OfflineCatalogNode.Kind.Country),
+            leaf("sk", "Slovakia", OfflineCatalogNode.Kind.Country),
         )),
     ))
 

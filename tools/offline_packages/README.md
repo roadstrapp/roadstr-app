@@ -32,6 +32,15 @@ catalogue or package host on behalf of Roadstr.
 from the official GeoNames `cities15000` and `admin1CodesASCII` exports. It is
 build-time catalog data only: the app does not contact the GeoNames web API.
 
+`probe_geofabrik_shortbread.py` refreshes
+`android/app/src/main/assets/offline_catalog/geofabrik-shortbread-missing.txt`,
+the Geofabrik areas that have no Shortbread MBTiles extract. Geofabrik's index
+does not list Shortbread, and the extracts are published at different levels
+(one file for Czechia and none for its regions, one per Polish voivodeship and
+none for Poland), so the script sends one HEAD request per area and keeps the
+ids that answer 404. Rerun it before a release; an area missing from the list
+is assumed to have a file, as before the list existed.
+
 Manifest artifact specs may include `catalogAreaId` (a stable id such as
 `it-emilia-romagna`) and `label`. The former connects a verified package to the
 in-app geographic catalog; it is never inferred from a translated display name.

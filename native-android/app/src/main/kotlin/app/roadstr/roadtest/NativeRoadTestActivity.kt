@@ -194,6 +194,10 @@ open class NativeRoadTestActivity : ComponentActivity() {
             offlineTransport,
             // AAPT expands .gz assets and exposes them without the suffix.
             bundledPlaces = { assets.open("offline_catalog/geonames-cities15000.tsv") },
+            // Without the list every Geofabrik leaf is offered, as before it existed.
+            missingShortbread = {
+                runCatching { assets.open("offline_catalog/geofabrik-shortbread-missing.txt") }.getOrNull()
+            },
         )
         NativeRoadTestOfflinePackagesGateway(
             applicationContext,
