@@ -222,6 +222,7 @@ class LocalApiMeshClient(
         private var signed = false
         private var subscribeId: Long? = null
         private var device: MeshCoreDevice? = null
+        private var radioConnected = true
         var authenticated = false
             private set
         var refused: MeshCoreProblem? = null
@@ -272,6 +273,7 @@ class LocalApiMeshClient(
             authenticated = true
             @Suppress("UNCHECKED_CAST")
             val info = message["device"] as? Map<String, Any?>
+            radioConnected = info?.get("connected") != false
             val name = (info?.get("name") as? String).orEmpty().filter { it.code >= 0x20 }.take(MAX_NAME)
             device = MeshCoreDevice(
                 name = name.ifEmpty { "MeshCore Open" },
@@ -299,9 +301,11 @@ class LocalApiMeshClient(
                     setState(current, MeshCoreState.Ready(known, channelIndex = 0, batteryMillivolts = null))
                 } else {
                     // Nothing flows without the subscription: say why, and let the user fix it there.
-                    val problem = when (errorCode(message)) {
-                        "unknown_channel" -> MeshCoreProblem.LocalApiChannelMissing
-                        else -> MeshCoreProblem.LocalApiRefused
+                    val problem = when {
+                        errorCode(message) != "unknown_channel" -> MeshCoreProblem.LocalApiRefused
+                        // Without a radio MeshCore Open knows no channels at all.
+                        !radioConnected -> MeshCoreProblem.LocalApiNoRadio
+                        else -> MeshCoreProblem.LocalApiChannelMissing
                     }
                     refused = problem
                     setState(current, MeshCoreState.Failed(problem, notApprovedRetryMillis))
