@@ -85,6 +85,7 @@ class NativeShellMeshHost internal constructor(
     private val applyBoolean: (NativeSettingsBooleanKey, Boolean) -> Unit,
     private val values: () -> NativeSettingsInput,
     private val toast: (Int) -> Unit,
+    private val launch: (String) -> Boolean,
 ) {
     internal var scanVisible by mutableStateOf(false)
     internal var scanning by mutableStateOf(false)
@@ -119,6 +120,11 @@ class NativeShellMeshHost internal constructor(
         val v = values()
         val needsRadio = (v.meshReceiveEnabled || v.meshSendEnabled) && !v.meshUseLocalApi
         if (turnedOn && needsRadio && saved == null && mesh.supported) pickDevice()
+    }
+
+    /** Brings MeshCore Open forward, where its prompt, API switch and radio are. */
+    fun openLocalApiApp() {
+        if (!launch(LOCAL_API_PACKAGE)) toast(R.string.native_mesh_local_missing)
     }
 
     fun pickDevice() {
@@ -193,6 +199,10 @@ fun rememberNativeShellMeshHost(
             },
             values = { settingsSession.state.value.values },
             toast = { Toast.makeText(context, it, Toast.LENGTH_LONG).show() },
+            launch = { packageName ->
+                val intent = context.packageManager.getLaunchIntentForPackage(packageName)
+                intent != null && runCatching { context.startActivity(intent) }.isSuccess
+            },
         )
     }
     val values = settingsSession.state.value.values
@@ -206,12 +216,17 @@ fun rememberNativeShellMeshHost(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
-    // The radio link lives exactly as long as the screen is in view and a radio feature is on.
+    // The radio link lives as long as the screen is in view and a radio feature is on. MeshCore Open
+    // asks the user in its own window, so a link waiting for that answer outlives this screen: closing
+    // it would withdraw the prompt the user just switched over to answer.
     val useLocalApi = values.meshUseLocalApi && mesh.runtime.client.localApiAvailable
-    LaunchedEffect(mesh, radioWanted, resumed, host.saved, useLocalApi) {
+    val link by mesh.runtime.client.state.collectAsState()
+    val awaitingApproval = useLocalApi && link is MeshCoreState.Handshaking
+    LaunchedEffect(mesh, radioWanted, resumed, host.saved, useLocalApi, awaitingApproval) {
         mesh.runtime.client.setMode(useLocalApi)
         val linkReady = useLocalApi || host.saved != null
-        if (radioWanted && resumed && linkReady) mesh.runtime.client.start() else mesh.runtime.client.stop()
+        val inUse = resumed || awaitingApproval
+        if (radioWanted && inUse && linkReady) mesh.runtime.client.start() else mesh.runtime.client.stop()
     }
     SideEffectConfig(mesh, settingsSession, currentPoint)
     BindOwnEvents(mesh, nostrHost)
@@ -293,6 +308,8 @@ private fun statusOf(
         state = when {
             !localApi && device == null -> NativeSettingsMeshState.NotPaired
             state is MeshCoreState.Off -> NativeSettingsMeshState.Idle
+            // The local API signs at once and then waits for the user's answer in MeshCore Open.
+            localApi && state is MeshCoreState.Handshaking -> NativeSettingsMeshState.AwaitingApproval
             state is MeshCoreState.Connecting || state is MeshCoreState.Handshaking -> NativeSettingsMeshState.Connecting
             state is MeshCoreState.ChannelMissing -> NativeSettingsMeshState.ChannelMissing
             state is MeshCoreState.Ready -> NativeSettingsMeshState.Ready
@@ -403,3 +420,6 @@ private fun ConsentDialog(host: NativeShellMeshHost) {
 /** The switches that turn the radio on or let it transmit: the ones the host manages. */
 fun NativeSettingsBooleanKey.isMeshRadioFeature(): Boolean =
     this == NativeSettingsBooleanKey.MeshReceive || this == NativeSettingsBooleanKey.MeshUseLocalApi || this in CONSENT_GATED
+
+/** MeshCore Open, whose local API the radio can be shared through. */
+private const val LOCAL_API_PACKAGE = "com.meshcore.meshcore_open"
