@@ -160,6 +160,9 @@ enum class NativeSettingsMeshProblem {
     /** MeshCore Open has not approved this app, or the user denied or revoked it there. */
     NotApproved,
 
+    /** MeshCore Open is not connected to a radio. */
+    LocalApiNoRadio,
+
     /** MeshCore Open has no channel with the shared name. */
     LocalApiChannelMissing,
 

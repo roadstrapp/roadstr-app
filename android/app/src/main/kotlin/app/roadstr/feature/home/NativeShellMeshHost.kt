@@ -334,6 +334,7 @@ private fun problemOf(problem: MeshCoreProblem): NativeSettingsMeshProblem = whe
     MeshCoreProblem.ProtocolError -> NativeSettingsMeshProblem.ProtocolError
     MeshCoreProblem.LocalApiUnreachable -> NativeSettingsMeshProblem.LocalApiUnreachable
     MeshCoreProblem.NotApproved -> NativeSettingsMeshProblem.NotApproved
+    MeshCoreProblem.LocalApiNoRadio -> NativeSettingsMeshProblem.LocalApiNoRadio
     MeshCoreProblem.LocalApiChannelMissing -> NativeSettingsMeshProblem.LocalApiChannelMissing
     MeshCoreProblem.LocalApiRefused -> NativeSettingsMeshProblem.LocalApiRefused
 }

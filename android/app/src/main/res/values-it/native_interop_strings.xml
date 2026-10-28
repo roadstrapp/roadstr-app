@@ -29,6 +29,7 @@
     <string name="native_mesh_local_status_idle">Si collega a MeshCore Open mentre Roadstr è aperto e una funzione radio è attiva.</string>
     <string name="native_mesh_problem_local_unreachable">MeshCore Open non risponde. È in esecuzione, con l\'API locale attiva? Nuovo tentativo…</string>
     <string name="native_mesh_problem_not_approved">MeshCore Open non ha autorizzato Roadstr. Autorizzalo quando lo chiede; nuovo tentativo tra un minuto.</string>
+    <string name="native_mesh_problem_local_no_radio">MeshCore Open non è collegato a una radio. Collegalo lì; nuovo tentativo tra un minuto.</string>
     <string name="native_mesh_problem_local_channel">MeshCore Open non ha il canale #roadstr. Aggiungilo lì come canale hashtag #roadstr; nuovo tentativo tra un minuto.</string>
     <string name="native_mesh_problem_local_refused">MeshCore Open ha rifiutato di inoltrare il canale. Nuovo tentativo tra un minuto.</string>
     <string name="native_mesh_local_status_approval">In attesa che autorizzi Roadstr in MeshCore Open.</string>
