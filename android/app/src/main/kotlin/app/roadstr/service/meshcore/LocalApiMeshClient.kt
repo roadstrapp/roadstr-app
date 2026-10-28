@@ -135,17 +135,19 @@ class LocalApiMeshClient(
                 throw cancelled
             } catch (_: Exception) {
                 // A bad key store, a malformed URL: the same as an unreachable server, retried.
-                Ended(authenticated = false, denied = false)
+                Ended(authenticated = false, denied = false, refused = null)
             }
             if (!isCurrent(current)) return
             // Only an approved hello proves the other side works; opening a socket proves nothing.
             failures = if (ended.authenticated) 0 else failures + 1
-            val wait = if (ended.denied) {
+            // A refusal is the user's to fix in MeshCore Open; asking again at once only spins.
+            val wait = if (ended.denied || ended.refused != null) {
                 notApprovedRetryMillis
             } else {
                 (retryBaseMillis shl (failures - 1).coerceIn(0, 5)).coerceAtMost(retryMaxMillis)
             }
             val problem = when {
+                ended.refused != null -> ended.refused
                 ended.denied -> MeshCoreProblem.NotApproved
                 ended.authenticated -> MeshCoreProblem.ConnectionLost
                 else -> MeshCoreProblem.LocalApiUnreachable
@@ -155,7 +157,8 @@ class LocalApiMeshClient(
         }
     }
 
-    private class Ended(val authenticated: Boolean, val denied: Boolean)
+    /** How a connection ended; [refused] is why MeshCore Open turned the subscription down. */
+    private class Ended(val authenticated: Boolean, val denied: Boolean, val refused: MeshCoreProblem? = null)
 
     private suspend fun connectOnce(current: Long): Ended {
         val inbox = Channel<Inbound>(INBOX_CAPACITY)
@@ -202,10 +205,11 @@ class LocalApiMeshClient(
                 when (message) {
                     Inbound.Opened -> socket.send(conversation.hello())
                     is Inbound.Text -> conversation.handle(message.text)
-                    is Inbound.Closed -> return Ended(conversation.authenticated, message.code == CLOSE_DENIED)
+                    is Inbound.Closed ->
+                        return Ended(conversation.authenticated, message.code == CLOSE_DENIED, conversation.refused)
                 }
             }
-            return Ended(conversation.authenticated, denied = false)
+            return Ended(conversation.authenticated, denied = false, refused = conversation.refused)
         } finally {
             socket.cancel()
             synchronized(lock) { if (session?.socket === socket) session = null }
@@ -219,6 +223,8 @@ class LocalApiMeshClient(
         private var subscribeId: Long? = null
         private var device: MeshCoreDevice? = null
         var authenticated = false
+            private set
+        var refused: MeshCoreProblem? = null
             private set
 
         fun hello(): String = NostrJson.encode(
@@ -292,8 +298,13 @@ class LocalApiMeshClient(
                 if (message["ok"] == true && known != null) {
                     setState(current, MeshCoreState.Ready(known, channelIndex = 0, batteryMillivolts = null))
                 } else {
-                    // Most likely the channel does not exist in MeshCore Open: nothing to do here.
-                    setState(current, MeshCoreState.Failed(MeshCoreProblem.ProtocolError, null))
+                    // Nothing flows without the subscription: say why, and let the user fix it there.
+                    val problem = when (errorCode(message)) {
+                        "unknown_channel" -> MeshCoreProblem.LocalApiChannelMissing
+                        else -> MeshCoreProblem.LocalApiRefused
+                    }
+                    refused = problem
+                    setState(current, MeshCoreState.Failed(problem, notApprovedRetryMillis))
                     socket.close(NORMAL_CLOSURE, "subscription refused")
                 }
                 return

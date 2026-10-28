@@ -265,6 +265,28 @@ class LocalApiMeshClientTest {
     }
 
     @Test
+    fun `a missing channel is named and retried after a minute, not in a loop`() {
+        accept()
+        val client = client()
+        client.start()
+        val ws = socket()
+        next()
+        ws.json("type" to "pairing.challenge", "protocol" to 1, "nonce" to "x", "known" to true)
+        next()
+        ws.json("type" to "hello", "protocol" to 1, "device" to linkedMapOf("name" to "T-Deck"))
+        val subscribe = next()
+        ws.json(
+            "id" to subscribe["id"], "ok" to false,
+            "error" to linkedMapOf("code" to "unknown_channel", "message" to "no channel named #roadstr"),
+        )
+        eventually("channel missing") {
+            (client.state.value as? MeshCoreState.Failed)?.problem == MeshCoreProblem.LocalApiChannelMissing
+        }
+        assertTrue(((client.state.value as MeshCoreState.Failed).retryInMillis ?: 0) >= 60_000)
+        client.stop()
+    }
+
+    @Test
     fun `opening a socket alone does not reset the backoff`() {
         repeat(3) { accept { ws -> ws.close(1000, "not today") } }
         val client = client(retryBaseMillis = 50)
