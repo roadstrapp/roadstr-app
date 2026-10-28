@@ -75,6 +75,7 @@ class NativeRoadTestUiPreferences(
         meshSendEnabled = preferences.getBoolean("mesh_send", false),
         meshBridgeToNostr = preferences.getBoolean("mesh_bridge_to_nostr", false),
         meshBridgeToRadio = preferences.getBoolean("mesh_bridge_to_radio", false),
+        meshUseLocalApi = preferences.getBoolean("mesh_use_local_api", false),
     )
 
     fun save(value: NativeSettingsInput) {
@@ -122,5 +123,6 @@ class NativeRoadTestUiPreferences(
             .putBoolean("mesh_send", value.meshSendEnabled)
             .putBoolean("mesh_bridge_to_nostr", value.meshBridgeToNostr)
             .putBoolean("mesh_bridge_to_radio", value.meshBridgeToRadio)
+            .putBoolean("mesh_use_local_api", value.meshUseLocalApi)
 
 }
