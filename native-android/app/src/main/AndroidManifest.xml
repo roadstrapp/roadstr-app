@@ -32,6 +32,8 @@
         android:name="android.hardware.bluetooth_le"
         android:required="false" />
     <queries>
+        <!-- The MeshCore settings open MeshCore Open, where the user allows Roadstr. -->
+        <package android:name="com.meshcore.meshcore_open" />
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="nostrsigner" />
