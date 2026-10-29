@@ -6,19 +6,16 @@ import app.roadstr.core.protocol.interop.BridgeRateLimiter
 import app.roadstr.core.protocol.interop.CompactConfirmation
 import app.roadstr.core.protocol.interop.CompactCoordinates
 import app.roadstr.core.protocol.interop.CompactError
-import app.roadstr.core.protocol.interop.CompactFrameKind
 import app.roadstr.core.protocol.interop.CompactOutcome
 import app.roadstr.core.protocol.interop.CompactReport
-import app.roadstr.core.protocol.interop.CompactReportLocation
 import app.roadstr.core.protocol.interop.CompactRoadCodec
-import app.roadstr.core.protocol.interop.CompactTolerance
-import app.roadstr.core.protocol.interop.ExternalRoadReport
 import app.roadstr.core.protocol.interop.ExternalRoadReportAdapter
 import app.roadstr.core.protocol.interop.InteropLifetime
 import app.roadstr.core.protocol.interop.RoadEventTransport
 import app.roadstr.core.protocol.interop.tryAcquireAll
 import app.roadstr.service.nostr.NativeInteropListener
 import app.roadstr.service.nostr.NativeNostrWire
+import app.roadstr.service.nostr.NativeRoadEvent
 import app.roadstr.service.nostr.NativeRoadEventService
 import java.security.MessageDigest
 import kotlinx.coroutines.CoroutineScope
@@ -32,11 +29,11 @@ import kotlinx.coroutines.launch
 data class MeshBridgeConfig(
     /** Read road reports from the radio and show them. */
     val receive: Boolean = false,
-    /** Put this device's own compatible reports and votes on the radio. */
+    /** Put this device's own reports and votes on the radio. */
     val send: Boolean = false,
     /** Republish what is heard on the radio to the Nostr relays, with the original author. */
     val meshToNostr: Boolean = false,
-    /** Put compatible reports seen on the relays onto the radio (needs [send]). */
+    /** Put reports seen on the relays onto the radio (needs [send]). */
     val nostrToMesh: Boolean = false,
 )
 
@@ -44,8 +41,6 @@ data class MeshBridgeConfig(
 data class MeshBridgeLimits(
     /** Frames taken from the radio per minute; the rest are dropped unread. */
     val ingestPerMinute: Int = 60,
-    /** Extra signature checks for off-by-one coordinates (the reference encoder's bug) per minute. */
-    val recoveriesPerMinute: Int = 10,
     /** Other people's events put on the radio, per hour and in total. */
     val forwardPerHour: Int = 20,
     val forwardPerAuthorPerHour: Int = 4,
@@ -64,14 +59,16 @@ data class MeshBridgeStats(
     val shown: Int = 0,
     val malformed: Int = 0,
     val invalidSignature: Int = 0,
-    val recoveredFromTruncation: Int = 0,
     val rateLimited: Int = 0,
     val stale: Int = 0,
+    /** Votes heard before their report, held for a while in case it follows. */
     val waitingForReport: Int = 0,
     val queuedForRelays: Int = 0,
     val publishedToRelays: Int = 0,
     val sentToRadio: Int = 0,
     val notRepresentable: Int = 0,
+    /** Frames the radio refused as too large. The encoder keeps to 163 bytes, so this stays 0. */
+    val tooLarge: Int = 0,
 )
 
 /** The radio, as the bridge needs it. */
@@ -85,7 +82,7 @@ interface MeshRadioPort {
  * Moves road reports between a MeshCore radio and the app, and between the radio and the Nostr
  * relays, without ever acting as an author.
  *
- * What it guarantees, each backed by a test:
+ * What it guarantees, each covered by RoadMeshBridgeTest:
  *  - an event is always re-checked: a frame is rebuilt into a Nostr event and its signature
  *    verified before anything uses it, and nothing is forwarded that did not verify;
  *  - the author, ID and signature never change: the bridge does not sign, ever;
@@ -108,7 +105,6 @@ class RoadMeshBridge(
 ) : NativeInteropListener {
     private val lock = Any()
     private val ingest = BridgeRateLimiter(limits.ingestPerMinute, 60)
-    private val recoveries = BridgeRateLimiter(limits.recoveriesPerMinute, 60)
     private val forwards = BridgeRateLimiter(limits.forwardPerHour, 3_600)
     private val cooldown = BridgeRateLimiter(1, limits.forwardCooldownSeconds.coerceAtLeast(1))
     private val own = BridgeRateLimiter(limits.ownPerMinute, 60)
@@ -118,11 +114,10 @@ class RoadMeshBridge(
     private val frames = object : LinkedHashMap<String, Boolean>(16, 0.75f, true) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Boolean>) = size > MAX_FRAME_DIGESTS
     }
-    private val locations = object : LinkedHashMap<String, CompactReportLocation>(16, 0.75f, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, CompactReportLocation>) = size > MAX_LOCATIONS
-    }
-    private class Parked(val payload: ByteArray, val digest: String, val parkedAt: Long)
 
+    private class Parked(val vote: CompactConfirmation, val parkedAt: Long)
+
+    /** Votes heard before their report, by report ID. Bounded in total, per report and in time. */
     private val parked = LinkedHashMap<String, MutableList<Parked>>()
     private var parkedCount = 0
     private val ownBacklog = ArrayDeque<Map<String, Any?>>()
@@ -143,95 +138,79 @@ class RoadMeshBridge(
         val digest = digestOf(datagram.payload)
         val repeated = synchronized(lock) { frames.put(digest, true) != null }
         if (repeated) return
-        when (CompactRoadCodec.kindOf(datagram.payload)) {
-            CompactFrameKind.REPORT -> ingestReport(datagram.payload, now)
-            CompactFrameKind.CONFIRMATION -> ingestConfirmation(datagram.payload, digest, now)
-            null -> bump { copy(malformed = malformed + 1) }
-        }
-    }
-
-    private fun ingestReport(payload: ByteArray, now: Long) {
-        var outcome = CompactRoadCodec.decodeReport(payload)
-        val badSignature = (outcome as? CompactOutcome.Failed)?.error == CompactError.SIGNATURE_INVALID
-        if (badSignature && synchronized(lock) { recoveries.tryAcquire(now) }) {
-            outcome = CompactRoadCodec.decodeReport(payload, CompactTolerance.RECOVER_REFERENCE_TRUNCATION)
-        }
-        when (outcome) {
+        when (val outcome = CompactRoadCodec.decode(datagram.payload)) {
             is CompactOutcome.Failed -> countFailure(outcome.error)
-            is CompactOutcome.Ok -> acceptReport(outcome.value, now)
+            is CompactOutcome.Ok -> when (val decoded = outcome.value) {
+                is CompactReport -> acceptReport(decoded, now)
+                is CompactConfirmation -> acceptVote(decoded, now)
+            }
         }
     }
 
     private fun acceptReport(decoded: CompactReport, now: Long) {
-        if (decoded.recoveredFromTruncation) bump { copy(recoveredFromTruncation = recoveredFromTruncation + 1) }
         val report = (ExternalRoadReportAdapter.adaptReport(decoded.event) as? CompactOutcome.Ok)?.value
             ?: return bump { copy(malformed = malformed + 1) }
         // A replay of an old frame, or a clock that is wrong by more than a few minutes, is noise.
         val fresh = report.createdAt <= now + InteropLifetime.MAX_FUTURE_SKEW_SECONDS &&
-            InteropLifetime.isVisible(report.createdAt, report.type, emptyList(), now)
+            InteropLifetime.isVisible(report.createdAt, report.type, emptyList(), now, report.relayExpiration)
         if (!fresh) return bump { copy(stale = stale + 1) }
-        remember(report)
         val displayed = roads.acceptInteropEvent(decoded.event, RoadEventTransport.MESH, alreadyVerified = true)
         if (displayed) bump { copy(shown = shown + 1) }
-        retryParked(report.eventId, now)
-        republishIfAllowed(decoded.event, report.createdAt + report.type.effectiveTtlSeconds, report)
+        val where = GeoPoint(CompactCoordinates.degrees(report.latitudeE6), CompactCoordinates.degrees(report.longitudeE6))
+        val shownUntil = minOf(report.createdAt + report.type.effectiveTtlSeconds, report.relayExpiration)
+        republishIfAllowed(decoded.event, shownUntil, where)
     }
 
-    private fun ingestConfirmation(payload: ByteArray, digest: String, now: Long) {
-        val referenced = CompactRoadCodec.referencedEventId(payload) ?: return
-        val location = synchronized(lock) { locations[referenced] }
-        if (location == null) {
-            // The frame has no coordinates: it can only be rebuilt once its report is known.
-            synchronized(lock) { frames.remove(digest) }
-            return park(referenced, payload, digest, now)
-        }
-        when (val outcome = CompactRoadCodec.decodeConfirmation(payload, location)) {
-            is CompactOutcome.Failed -> countFailure(outcome.error)
-            is CompactOutcome.Ok -> acceptConfirmation(outcome.value, location, now)
-        }
+    private fun acceptVote(decoded: CompactConfirmation, now: Long) {
+        val createdAt = NativeNostrWire.integral(decoded.event["created_at"]) ?: return
+        val tooNew = createdAt > now + InteropLifetime.MAX_FUTURE_SKEW_SECONDS
+        if (tooNew || now - createdAt > MAX_VOTE_AGE_SECONDS) return bump { copy(stale = stale + 1) }
+        // The vote frame is self-contained and already verified; only its report may be missing.
+        val report = roads.find(decoded.referencedEventId) ?: return park(decoded, now)
+        applyVote(decoded, report, now)
     }
 
-    private fun acceptConfirmation(decoded: CompactConfirmation, location: CompactReportLocation, now: Long) {
-        val createdAt = (decoded.event["created_at"] as? Long) ?: return
-        if (createdAt > now + InteropLifetime.MAX_FUTURE_SKEW_SECONDS) return bump { copy(stale = stale + 1) }
+    private fun applyVote(decoded: CompactConfirmation, report: NativeRoadEvent, now: Long) {
+        val createdAt = NativeNostrWire.integral(decoded.event["created_at"]) ?: return
+        if (createdAt < report.createdAt) return bump { copy(stale = stale + 1) }
         val displayed = roads.acceptInteropEvent(decoded.event, RoadEventTransport.MESH, alreadyVerified = true)
         if (displayed) bump { copy(shown = shown + 1) }
-        val point = GeoPoint(
-            CompactCoordinates.degrees(location.latitudeE7),
-            CompactCoordinates.degrees(location.longitudeE7),
-        )
-        republishIfAllowed(decoded.event, now + CONFIRMATION_REPUBLISH_SECONDS, point)
+        republishIfAllowed(decoded.event, now + CONFIRMATION_REPUBLISH_SECONDS, GeoPoint(report.latitude, report.longitude))
     }
 
     private fun countFailure(error: CompactError) {
         when (error) {
-            CompactError.SIGNATURE_INVALID, CompactError.REFERENCE_MISMATCH ->
-                bump { copy(invalidSignature = invalidSignature + 1) }
+            CompactError.SIGNATURE_INVALID -> bump { copy(invalidSignature = invalidSignature + 1) }
             else -> bump { copy(malformed = malformed + 1) }
         }
     }
 
-    // ── confirmations that arrived before their report ──────────────────────────────────────────
+    // ── votes that arrived before their report ──────────────────────────────────────────────────
 
-    private fun park(referenced: String, payload: ByteArray, digest: String, now: Long) {
+    private fun park(vote: CompactConfirmation, now: Long) {
         synchronized(lock) {
             expireParkedLocked(now)
-            val waiting = parked.getOrPut(referenced) { ArrayList() }
-            if (waiting.any { it.digest == digest } || waiting.size >= MAX_PARKED_PER_REPORT) return
+            val waiting = parked.getOrPut(vote.referencedEventId) { ArrayList() }
+            val id = vote.event["id"]
+            if (waiting.any { it.vote.event["id"] == id } || waiting.size >= MAX_PARKED_PER_REPORT) return
             if (parkedCount >= MAX_PARKED) return
-            waiting += Parked(payload, digest, now)
+            waiting += Parked(vote, now)
             parkedCount++
         }
         bump { copy(waitingForReport = waitingForReport + 1) }
     }
 
-    private fun retryParked(reportId: String, now: Long) {
+    /** The report [reportId] is now known, from the radio or a relay: apply what waited for it. */
+    private fun applyParked(reportId: String) {
+        val now = nowSeconds()
         val waiting = synchronized(lock) {
             val taken = parked.remove(reportId).orEmpty()
             parkedCount -= taken.size
             taken.filter { now - it.parkedAt <= PARKED_SECONDS }
         }
-        for (frame in waiting) ingestConfirmation(frame.payload, frame.digest, now)
+        if (waiting.isEmpty()) return
+        val report = roads.find(reportId) ?: return
+        for (entry in waiting) applyVote(entry.vote, report, now)
     }
 
     private fun expireParkedLocked(now: Long) {
@@ -245,12 +224,6 @@ class RoadMeshBridge(
     }
 
     // ── radio -> relays ─────────────────────────────────────────────────────────────────────────
-
-    private fun republishIfAllowed(event: Map<String, Any?>, expiresAt: Long, where: ExternalRoadReport) =
-        republishIfAllowed(
-            event, expiresAt,
-            GeoPoint(CompactCoordinates.degrees(where.latitudeE7), CompactCoordinates.degrees(where.longitudeE7)),
-        )
 
     private fun republishIfAllowed(event: Map<String, Any?>, expiresAt: Long, where: GeoPoint) {
         if (!config().meshToNostr) return
@@ -279,13 +252,13 @@ class RoadMeshBridge(
 
     // ── relays -> radio ─────────────────────────────────────────────────────────────────────────
 
-    /** The relay path reported an event: remember where it is, and maybe put it on the radio. */
+    /** The service accepted an event: release votes that waited for it, and maybe put it on the radio. */
     override fun onInteropEvent(event: Map<String, Any?>, via: RoadEventTransport, newOnTransport: Boolean) {
-        ExternalRoadReportAdapter.adaptReport(event).let { adapted ->
-            (adapted as? CompactOutcome.Ok)?.value?.let { remember(it) }
-        }
-        if (via != RoadEventTransport.RELAY || !newOnTransport) return
+        val id = event["id"] as? String ?: return
+        val report = NativeNostrWire.integral(event["kind"]) == CompactRoadCodec.KIND_REPORT.toLong()
         // Off the relay thread and off the service's lock.
+        if (report) scope.launch { applyParked(id) }
+        if (!report || via != RoadEventTransport.RELAY || !newOnTransport) return
         scope.launch { considerForwardingToRadio(event) }
     }
 
@@ -296,7 +269,8 @@ class RoadMeshBridge(
         if (!roads.ledger.shouldForward(id, RoadEventTransport.MESH)) return
         val prepared = prepare(event) ?: return
         val now = nowSeconds()
-        if (!insideForwardArea(prepared.where) || !prepared.live(now)) return
+        val where = prepared.where ?: return
+        if (!insideForwardArea(where) || !prepared.live(now)) return
         val allowed = synchronized(lock) { withinForwardQuota(prepared.author, now) }
         if (!allowed) return bump { copy(rateLimited = rateLimited + 1) }
         transmit(id, prepared.frame)
@@ -311,10 +285,13 @@ class RoadMeshBridge(
     // ── this device's own events ────────────────────────────────────────────────────────────────
 
     /**
-     * A compatible report or vote this device just signed. Sent at once if the radio is up; held
-     * (a few, briefly) if it is not, because the driver asked for it to be transmitted.
+     * A report or vote this device just signed. Sent at once if the radio is up; held (a few,
+     * briefly) if it is not, because the driver asked for it to be transmitted.
      */
     fun sendOwn(event: Map<String, Any?>) {
+        val id = event["id"] as? String ?: return
+        // The app publishes its own events to the relays itself; a radio echo must not do it again.
+        roads.ledger.markForwarded(id, RoadEventTransport.RELAY)
         if (!config().send) return
         if (!radio.ready) {
             synchronized(lock) {
@@ -333,14 +310,15 @@ class RoadMeshBridge(
     }
 
     private fun transmitOwn(event: Map<String, Any?>) {
+        if (!config().send) return
         val id = event["id"] as? String ?: return
         val prepared = prepare(event) ?: return
         val now = nowSeconds()
         if (!prepared.live(now)) return
-        if (!synchronized(lock) { own.tryAcquire(now) }) return bump { copy(rateLimited = rateLimited + 1) }
-        // A vote only makes sense on the radio if the radio can find the report it is about.
-        val reportId = (prepared.referencedReport)
+        // A vote is worth airtime only where its report can be heard too.
+        val reportId = prepared.referencedReport
         if (reportId != null && !reportKnownOnRadio(reportId)) return
+        if (!synchronized(lock) { own.tryAcquire(now) }) return bump { copy(rateLimited = rateLimited + 1) }
         transmit(id, prepared.frame)
     }
 
@@ -352,7 +330,8 @@ class RoadMeshBridge(
     private class Prepared(
         val frame: ByteArray,
         val author: String,
-        val where: GeoPoint,
+        /** Where a report is; null for a vote, which carries no position. */
+        val where: GeoPoint?,
         val referencedReport: String?,
         val endsAt: Long,
     ) {
@@ -371,16 +350,16 @@ class RoadMeshBridge(
     private fun prepareReport(event: Map<String, Any?>, author: String): Prepared? {
         val report = (ExternalRoadReportAdapter.adaptReport(event) as? CompactOutcome.Ok)?.value ?: return null
         val frame = (CompactRoadCodec.encodeReport(event) as? CompactOutcome.Ok)?.value ?: return null
-        val where = GeoPoint(CompactCoordinates.degrees(report.latitudeE7), CompactCoordinates.degrees(report.longitudeE7))
-        return Prepared(frame, author, where, null, report.createdAt + report.type.effectiveTtlSeconds)
+        val where = GeoPoint(CompactCoordinates.degrees(report.latitudeE6), CompactCoordinates.degrees(report.longitudeE6))
+        val endsAt = minOf(report.createdAt + report.type.effectiveTtlSeconds, report.relayExpiration)
+        return Prepared(frame, author, where, null, endsAt)
     }
 
     private fun prepareVote(event: Map<String, Any?>, author: String): Prepared? {
-        val vote = (ExternalRoadReportAdapter.adaptConfirmation(event) as? CompactOutcome.Ok)?.value ?: return null
-        val location = synchronized(lock) { locations[vote.referencedEventId] } ?: return null
-        val frame = (CompactRoadCodec.encodeConfirmation(event, location) as? CompactOutcome.Ok)?.value ?: return null
-        val where = GeoPoint(CompactCoordinates.degrees(location.latitudeE7), CompactCoordinates.degrees(location.longitudeE7))
-        return Prepared(frame, author, where, vote.referencedEventId, vote.createdAt + CONFIRMATION_REPUBLISH_SECONDS)
+        val frame = (CompactRoadCodec.encodeConfirmation(event) as? CompactOutcome.Ok)?.value ?: return null
+        val vote = (CompactRoadCodec.decodeConfirmation(frame) as? CompactOutcome.Ok)?.value ?: return null
+        val createdAt = NativeNostrWire.integral(event["created_at"]) ?: return null
+        return Prepared(frame, author, null, vote.referencedEventId, createdAt + CONFIRMATION_REPUBLISH_SECONDS)
     }
 
     private fun insideForwardArea(where: GeoPoint): Boolean {
@@ -391,23 +370,22 @@ class RoadMeshBridge(
     private fun transmit(eventId: String, frame: ByteArray) {
         // The same event can reach here twice at once (as the device's own, and as seen on a relay).
         val first = synchronized(lock) { transmitting.add(eventId) }
-        if (!first || roads.ledger.wasForwarded(eventId, RoadEventTransport.MESH)) {
-            synchronized(lock) { if (!first) return else transmitting.remove(eventId) }
+        if (!first) return
+        if (roads.ledger.wasForwarded(eventId, RoadEventTransport.MESH)) {
+            synchronized(lock) { transmitting.remove(eventId) }
             return
         }
         radio.send(frame) { result ->
             synchronized(lock) { transmitting.remove(eventId) }
-            if (result == MeshCoreSendResult.Sent) {
-                roads.ledger.markForwarded(eventId, RoadEventTransport.MESH)
-                roads.ledger.observe(eventId, RoadEventTransport.MESH)
-                bump { copy(sentToRadio = sentToRadio + 1) }
+            when (result) {
+                MeshCoreSendResult.Sent -> {
+                    roads.ledger.markForwarded(eventId, RoadEventTransport.MESH)
+                    roads.ledger.observe(eventId, RoadEventTransport.MESH)
+                    bump { copy(sentToRadio = sentToRadio + 1) }
+                }
+                MeshCoreSendResult.TooLarge -> bump { copy(tooLarge = tooLarge + 1) }
+                else -> Unit
             }
-        }
-    }
-
-    private fun remember(report: ExternalRoadReport) {
-        synchronized(lock) {
-            locations[report.eventId] = CompactReportLocation(report.eventId, report.latitudeE7, report.longitudeE7)
         }
     }
 
@@ -421,10 +399,12 @@ class RoadMeshBridge(
     private companion object {
         const val MAX_AUTHORS = 256
         const val MAX_FRAME_DIGESTS = 512
-        const val MAX_LOCATIONS = 1_024
         const val MAX_PARKED = 64
         const val MAX_PARKED_PER_REPORT = 8
         const val PARKED_SECONDS = 15 * 60L
+
+        /** The radio is a live medium: a vote older than a day is a replay, not news. */
+        const val MAX_VOTE_AGE_SECONDS = 24 * 3_600L
         const val MAX_OWN_BACKLOG = 10
         const val DIGEST_BYTES = 16
         const val CONFIRMATION_REPUBLISH_SECONDS = 6 * 3_600L

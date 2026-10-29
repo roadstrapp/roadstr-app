@@ -39,6 +39,7 @@ import app.roadstr.R
 import app.roadstr.core.geo.GeoPoint
 import app.roadstr.feature.map.NativeMapPoint
 import app.roadstr.feature.settings.NativeSettingsBooleanKey
+import app.roadstr.feature.settings.NativeSettingsInput
 import app.roadstr.feature.settings.NativeSettingsMeshProblem
 import app.roadstr.feature.settings.NativeSettingsMeshState
 import app.roadstr.feature.settings.NativeSettingsMeshStatus
@@ -82,7 +83,9 @@ private val CONSENT_GATED = setOf(
 class NativeShellMeshHost internal constructor(
     private val mesh: NativeShellMesh,
     private val applyBoolean: (NativeSettingsBooleanKey, Boolean) -> Unit,
+    private val values: () -> NativeSettingsInput,
     private val toast: (Int) -> Unit,
+    private val launch: (String) -> Boolean,
 ) {
     internal var scanVisible by mutableStateOf(false)
     internal var scanning by mutableStateOf(false)
@@ -112,8 +115,16 @@ class NativeShellMeshHost internal constructor(
 
     private fun apply(key: NativeSettingsBooleanKey, value: Boolean) {
         applyBoolean(key, value)
-        // Turning a radio feature on with no radio chosen: go straight to choosing one.
-        if (value && saved == null && mesh.supported) pickDevice()
+        // A radio feature on, the BLE link chosen and no radio picked yet: go straight to choosing one.
+        val turnedOn = value || key == NativeSettingsBooleanKey.MeshUseLocalApi
+        val v = values()
+        val needsRadio = (v.meshReceiveEnabled || v.meshSendEnabled) && !v.meshUseLocalApi
+        if (turnedOn && needsRadio && saved == null && mesh.supported) pickDevice()
+    }
+
+    /** Brings MeshCore Open forward, where its prompt, API switch and radio are. */
+    fun openLocalApiApp() {
+        if (!launch(LOCAL_API_PACKAGE)) toast(R.string.native_mesh_local_missing)
     }
 
     fun pickDevice() {
@@ -186,7 +197,12 @@ fun rememberNativeShellMeshHost(
             applyBoolean = { key, value ->
                 settingsSession.updateBoolean(settingsSession.state.value.revision, key, value)
             },
+            values = { settingsSession.state.value.values },
             toast = { Toast.makeText(context, it, Toast.LENGTH_LONG).show() },
+            launch = { packageName ->
+                val intent = context.packageManager.getLaunchIntentForPackage(packageName)
+                intent != null && runCatching { context.startActivity(intent) }.isSuccess
+            },
         )
     }
     val values = settingsSession.state.value.values
@@ -200,9 +216,17 @@ fun rememberNativeShellMeshHost(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
-    // The radio link lives exactly as long as the screen is in view and a radio feature is on.
-    LaunchedEffect(mesh, radioWanted, resumed, host.saved) {
-        if (radioWanted && resumed && host.saved != null) mesh.runtime.client.start() else mesh.runtime.client.stop()
+    // The radio link lives as long as the screen is in view and a radio feature is on. MeshCore Open
+    // asks the user in its own window, so a link waiting for that answer outlives this screen: closing
+    // it would withdraw the prompt the user just switched over to answer.
+    val useLocalApi = values.meshUseLocalApi && mesh.runtime.client.localApiAvailable
+    val link by mesh.runtime.client.state.collectAsState()
+    val awaitingApproval = useLocalApi && link is MeshCoreState.Handshaking
+    LaunchedEffect(mesh, radioWanted, resumed, host.saved, useLocalApi, awaitingApproval) {
+        mesh.runtime.client.setMode(useLocalApi)
+        val linkReady = useLocalApi || host.saved != null
+        val inUse = resumed || awaitingApproval
+        if (radioWanted && inUse && linkReady) mesh.runtime.client.start() else mesh.runtime.client.stop()
     }
     SideEffectConfig(mesh, settingsSession, currentPoint)
     BindOwnEvents(mesh, nostrHost)
@@ -245,10 +269,18 @@ private fun ReportStatus(mesh: NativeShellMesh, host: NativeShellMeshHost, setti
     val state by mesh.runtime.client.state.collectAsState()
     val stats by mesh.runtime.bridge.stats.collectAsState()
     LaunchedEffect(state) { if (state is MeshCoreState.Ready) mesh.runtime.bridge.onRadioReady() }
-    LaunchedEffect(state, host.saved, host.scanning, host.queueRevision, stats.queuedForRelays, stats.publishedToRelays) {
-        // The queue is stored encrypted: count it off the main thread.
+    // The session only takes a status while the panel is open, and opening it reloads the values: run
+    // again when it opens or when its status differs from the one last written.
+    val session by settingsSession.state.collectAsState()
+    val useLocalApi = session.values.meshUseLocalApi
+    LaunchedEffect(
+        state, host.saved, host.scanning, host.queueRevision, stats.queuedForRelays, stats.publishedToRelays,
+        useLocalApi, session.status, session.revision, session.values.mesh,
+    ) {
+        // The queue is stored encrypted and the key sits in the key store: read both off the main thread.
         val waiting = withContext(Dispatchers.IO) { mesh.runtime.republish.size() }
-        val status = statusOf(mesh, host, state, waiting)
+        val fingerprint = if (mesh.runtime.client.useLocalApi) withContext(Dispatchers.IO) { mesh.runtime.localApiFingerprint() } else null
+        val status = statusOf(mesh, host, state, waiting, fingerprint)
         val current = settingsSession.state.value
         if (current.values.mesh != status) {
             settingsSession.refresh(current.revision, current.values.copy(mesh = status))
@@ -261,16 +293,23 @@ private fun statusOf(
     host: NativeShellMeshHost,
     state: MeshCoreState,
     waiting: Int,
+    fingerprint: String?,
 ): NativeSettingsMeshStatus {
     val device = host.saved
     val ready = state as? MeshCoreState.Ready
     val known = ready?.device ?: (state as? MeshCoreState.ChannelMissing)?.device
+    val localApi = mesh.runtime.client.useLocalApi
     return NativeSettingsMeshStatus(
         supported = mesh.supported,
-        deviceName = device?.name,
+        localApi = localApi,
+        localApiAvailable = mesh.runtime.client.localApiAvailable,
+        localApiFingerprint = fingerprint,
+        deviceName = if (localApi) known?.name else device?.name,
         state = when {
-            device == null -> NativeSettingsMeshState.NotPaired
+            !localApi && device == null -> NativeSettingsMeshState.NotPaired
             state is MeshCoreState.Off -> NativeSettingsMeshState.Idle
+            // The local API signs at once and then waits for the user's answer in MeshCore Open.
+            localApi && state is MeshCoreState.Handshaking -> NativeSettingsMeshState.AwaitingApproval
             state is MeshCoreState.Connecting || state is MeshCoreState.Handshaking -> NativeSettingsMeshState.Connecting
             state is MeshCoreState.ChannelMissing -> NativeSettingsMeshState.ChannelMissing
             state is MeshCoreState.Ready -> NativeSettingsMeshState.Ready
@@ -293,6 +332,11 @@ private fun problemOf(problem: MeshCoreProblem): NativeSettingsMeshProblem = whe
     MeshCoreProblem.ServiceMissing -> NativeSettingsMeshProblem.ServiceMissing
     MeshCoreProblem.IncompatibleFirmware -> NativeSettingsMeshProblem.IncompatibleFirmware
     MeshCoreProblem.ProtocolError -> NativeSettingsMeshProblem.ProtocolError
+    MeshCoreProblem.LocalApiUnreachable -> NativeSettingsMeshProblem.LocalApiUnreachable
+    MeshCoreProblem.NotApproved -> NativeSettingsMeshProblem.NotApproved
+    MeshCoreProblem.LocalApiNoRadio -> NativeSettingsMeshProblem.LocalApiNoRadio
+    MeshCoreProblem.LocalApiChannelMissing -> NativeSettingsMeshProblem.LocalApiChannelMissing
+    MeshCoreProblem.LocalApiRefused -> NativeSettingsMeshProblem.LocalApiRefused
 }
 
 /** Retries publishing what the radio heard while there was no internet, for as long as there is something waiting. */
@@ -378,4 +422,7 @@ private fun ConsentDialog(host: NativeShellMeshHost) {
 
 /** The switches that turn the radio on or let it transmit: the ones the host manages. */
 fun NativeSettingsBooleanKey.isMeshRadioFeature(): Boolean =
-    this == NativeSettingsBooleanKey.MeshReceive || this in CONSENT_GATED
+    this == NativeSettingsBooleanKey.MeshReceive || this == NativeSettingsBooleanKey.MeshUseLocalApi || this in CONSENT_GATED
+
+/** MeshCore Open, whose local API the radio can be shared through. */
+private const val LOCAL_API_PACKAGE = "com.meshcore.meshcore_open"

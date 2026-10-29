@@ -20,13 +20,13 @@ enum class NativeRoadEventSource {
     /** Roadstr's own report. Shown without any label. */
     Roadstr,
 
-    /** The jooray/roadstr layout, received from a Nostr relay. */
+    /** Received from a Nostr relay. */
     InteropRelay,
 
-    /** The jooray/roadstr layout, received over a MeshCore radio. */
+    /** Received over a MeshCore radio. */
     InteropMesh,
 
-    /** The jooray/roadstr layout, seen on both. */
+    /** Seen on both. */
     InteropRelayAndMesh,
 }
 
