@@ -52,17 +52,32 @@ class NativeRoadEventServiceTest {
         createdAt: Long = now - 60,
         lat: Double = latitude,
         lon: Double = longitude,
+        expiresAt: Long = createdAt + category.ttlSeconds,
     ): Map<String, Any?> {
         val pub = if (key == TestKeys.PRIVATE_A) TestKeys.PUBLIC_A else TestKeys.PUBLIC_B
         return TestKeys.sign(
             RoadstrNostrEvents.report(
                 pubkey = pub, createdAt = createdAt, latitude = lat, longitude = lon,
-                category = category.wireKey, expiresAt = createdAt + category.ttlSeconds,
+                category = category.wireKey, expiresAt = expiresAt,
                 content = "radar",
             ),
             key,
         )
     }
+
+    private fun vote(event: Map<String, Any?>, key: String, stillThere: Boolean, at: Long): Map<String, Any?> {
+        val pub = if (key == TestKeys.PRIVATE_A) TestKeys.PUBLIC_A else TestKeys.PUBLIC_B
+        return TestKeys.sign(RoadstrNostrEvents.vote(pub, at, event["id"] as String, stillThere), key)
+    }
+
+    /** Delivers [event] and opens the confirmation subscription ("sub1") as a relay would. */
+    private fun NativeRoadEventService.showWithVotesOpen(event: Map<String, Any?>) {
+        eventFrame("sub0", event)
+        connector.last.receive(listOf("EOSE", "sub0"))
+        scheduler.advance(300)
+    }
+
+    private val fourteenDays = 14 * 86_400L
 
     private fun connectedService(): NativeRoadEventService {
         val subject = service()
@@ -172,6 +187,87 @@ class NativeRoadEventServiceTest {
         val tally = subject.events.value.single()
         assertEquals(1, tally.confirmations)
         assertEquals(1, tally.denials)
+    }
+
+    @Test
+    fun `a still-there vote keeps a report alive past its own lifetime`() {
+        val subject = connectedService()
+        // Police lives 4 h, relays keep it 14 days: at hour five there is nothing to see yet.
+        val created = now - 5 * 3600
+        val event = report(createdAt = created, expiresAt = created + fourteenDays)
+        subject.showWithVotesOpen(event)
+        assertTrue(subject.events.value.isEmpty())
+
+        val at = now - 3600
+        subject.eventFrame("sub1", vote(event, TestKeys.PRIVATE_B, true, at))
+        val shown = subject.events.value.single()
+        assertEquals(at + RoadCategoryWire.POLICE.ttlSeconds, shown.lifetimeEndsAt)
+        assertEquals(1, shown.confirmations)
+    }
+
+    @Test
+    fun `votes never push a report past the expiration its author set`() {
+        val subject = connectedService()
+        // An older client wrote expiration = created_at + lifetime: relays stop serving it then.
+        val created = now - 3 * 3600
+        val event = report(createdAt = created)
+        subject.showWithVotesOpen(event)
+        subject.eventFrame("sub1", vote(event, TestKeys.PRIVATE_B, true, now - 60))
+        assertEquals(created + RoadCategoryWire.POLICE.ttlSeconds, subject.events.value.single().lifetimeEndsAt)
+    }
+
+    @Test
+    fun `a no-longer-there vote ends the report at the time of the vote`() {
+        val subject = connectedService()
+        val created = now - 3600
+        val event = report(createdAt = created, expiresAt = created + fourteenDays)
+        subject.showWithVotesOpen(event)
+        assertEquals(1, subject.events.value.size)
+
+        subject.eventFrame("sub1", vote(event, TestKeys.PRIVATE_B, false, now - 20 * 60))
+        assertTrue(subject.events.value.isEmpty())
+    }
+
+    @Test
+    fun `a report is hidden while recent denials outnumber confirmations, and a tie keeps it`() {
+        val subject = connectedService()
+        val event = report(expiresAt = now - 60 + fourteenDays)
+        subject.showWithVotesOpen(event)
+
+        subject.eventFrame("sub1", vote(event, TestKeys.PRIVATE_A, false, now - 30))
+        subject.eventFrame("sub1", vote(event, TestKeys.PRIVATE_B, false, now - 20))
+        assertTrue(subject.events.value.isEmpty())
+
+        // One voice per key: A's later confirmation replaces A's denial, which makes a tie.
+        subject.eventFrame("sub1", vote(event, TestKeys.PRIVATE_A, true, now - 10))
+        val shown = subject.events.value.single()
+        assertEquals(1, shown.confirmations)
+        assertEquals(1, shown.denials)
+    }
+
+    @Test
+    fun `a relay sending the report again does not wipe the votes it already has`() {
+        val subject = connectedService()
+        val created = now - 5 * 3600
+        val event = report(createdAt = created, expiresAt = created + fourteenDays)
+        subject.showWithVotesOpen(event)
+        val at = now - 3600
+        subject.eventFrame("sub1", vote(event, TestKeys.PRIVATE_B, true, at))
+        assertEquals(1, subject.events.value.size)
+
+        subject.eventFrame("sub0", event)
+        val shown = subject.events.value.single()
+        assertEquals(1, shown.confirmations)
+        assertEquals(at + RoadCategoryWire.POLICE.ttlSeconds, shown.lifetimeEndsAt)
+    }
+
+    @Test
+    fun `a vote that predates its report counts for nothing`() {
+        val subject = connectedService()
+        val event = report(createdAt = now - 5 * 3600, expiresAt = now - 5 * 3600 + fourteenDays)
+        subject.showWithVotesOpen(event)
+        subject.eventFrame("sub1", vote(event, TestKeys.PRIVATE_B, true, now - 6 * 3600))
+        assertTrue(subject.events.value.isEmpty())
     }
 
     @Test
