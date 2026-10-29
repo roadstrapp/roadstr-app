@@ -3510,7 +3510,10 @@ fun NativeRoadstrShell(
                         placeState.status == app.roadstr.feature.place.NativePlaceUiStatus.Hidden &&
                         settingsState.status == NativeSettingsStatus.Hidden &&
                         routePlanningState.status == NativeRoutePlanningStatus.Hidden &&
-                        wikipediaState.status == app.roadstr.feature.wikipedia.NativeWikipediaStatus.Hidden
+                        wikipediaState.status == app.roadstr.feature.wikipedia.NativeWikipediaStatus.Hidden &&
+                        // The offline-maps screen is a full-screen panel drawn under the HUD;
+                        // navigation instructions on top of it hide the download list.
+                        !offlinePackagesVisible
                     ) {
                         navigationHudState
                     } else {
