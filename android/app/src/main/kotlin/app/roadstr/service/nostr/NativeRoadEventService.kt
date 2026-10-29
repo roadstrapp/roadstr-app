@@ -93,10 +93,10 @@ class NativeRoadEventService(
     private val cache = LinkedHashMap<String, NativeRoadEvent>()
     private val pendingUpdates = LinkedHashMap<String, Map<String, Any?>>()
     private val latestUpdateAt = LinkedHashMap<String, Long>()
-    private val countedVotes = HashSet<String>()
-    private val voteCountByEvent = HashMap<String, Int>()
     private val pendingIds = LinkedHashSet<String>()
-    private val interopVotes = HashMap<String, LinkedHashMap<String, InteropVote>>()
+
+    /** Event id -> the latest vote of each key; what decides how long a marker is shown. */
+    private val votesByEvent = HashMap<String, LinkedHashMap<String, InteropVote>>()
 
     /** Event id of an equivalent report -> id of the one shown, so its votes still land on it. */
     private val aliasOf = LinkedHashMap<String, String>()
@@ -394,6 +394,8 @@ class NativeRoadEventService(
             if (RoadstrNostrEvents.geohash(event.latitude, event.longitude, precision) !in hashes) return
         }
         cache[event.id] = event
+        // A relay may send the report again (rotation, area replay): its votes are already here.
+        if (votesByEvent.containsKey(event.id)) refreshLifetime(event.id)
         foldInteropReportsInto(event)
         pendingUpdates.remove(event.id)?.let { applyUpdate(it, event.id) }
         if (cache.size > MAX_CACHED_EVENTS) {
@@ -449,22 +451,7 @@ class NativeRoadEventService(
         val vote = parseVote(json) ?: return
         val targetId = aliasOf[vote.targetId] ?: vote.targetId
         val event = cache[targetId] ?: return
-        if (event.protocol == NativeRoadEventProtocol.Interop) {
-            applyInteropVote(event, vote)
-            return
-        }
-        // Capped per event: minting throwaway identities is free, and a report
-        // can stay cached for up to 30 days.
-        if ((voteCountByEvent[targetId] ?: 0) >= MAX_VOTES_PER_EVENT) return
-        // One vote per identity per event; re-fetching is idempotent.
-        if (!countedVotes.add("$targetId:${vote.pubkey}")) return
-        voteCountByEvent[targetId] = (voteCountByEvent[targetId] ?: 0) + 1
-        cache[targetId] = if (vote.stillThere) {
-            event.copy(confirmations = event.confirmations + 1)
-        } else {
-            event.copy(denials = event.denials + 1)
-        }
-        publishState()
+        if (applyVote(event, vote)) publishState()
     }
 
     private class ParsedVote(
@@ -514,7 +501,7 @@ class NativeRoadEventService(
         val report = (ExternalRoadReportAdapter.adaptReport(json) as? CompactOutcome.Ok)?.value ?: return false
         val now = nowSeconds()
         if (report.createdAt > now + MAX_FUTURE_SKEW_SECONDS) return false
-        val votes = interopVotes[report.eventId]?.values.orEmpty()
+        val votes = votesByEvent[report.eventId]?.values.orEmpty()
         if (!InteropLifetime.isVisible(report.createdAt, report.type, votes, now, report.relayExpiration)) return false
         val observation = ledger.observe(report.eventId, via)
 
@@ -572,7 +559,7 @@ class NativeRoadEventService(
 
     private fun interopEvent(report: ExternalRoadReport, via: RoadEventTransport, now: Long): NativeRoadEvent {
         val votes = InteropLifetime.admissible(
-            interopVotes[report.eventId]?.values.orEmpty(), report.createdAt, now,
+            votesByEvent[report.eventId]?.values.orEmpty(), report.createdAt, now,
         )
         return NativeRoadEvent(
             id = report.eventId,
@@ -606,37 +593,34 @@ class NativeRoadEventService(
         val event = cache[targetId] ?: return false
         val id = json["id"] as? String ?: return false
         val observation = ledger.observe(id, via)
-        if (event.protocol == NativeRoadEventProtocol.Interop) {
-            if (!applyInteropVote(event, vote)) return false
-        } else {
-            handleConfirmation(json)
-        }
+        if (!applyVote(event, vote)) return false
+        publishState()
         interopListener?.onInteropEvent(json, via, observation.newOnThisTransport)
         return true
     }
 
     /**
-     * Records [vote] on a report heard on the radio and recomputes how long it is shown. A vote is
-     * two tags (`e`, `status`): it names its report by ID and carries no position to compare.
+     * Records [vote] on a report, wherever it was heard, and recomputes how long it is shown. A
+     * vote is two tags (`e`, `status`): it names its report by ID and carries no position to
+     * compare. One voice per key: a later vote replaces the key's earlier one.
      */
-    private fun applyInteropVote(event: NativeRoadEvent, vote: ParsedVote): Boolean {
-        val votes = interopVotes.getOrPut(event.id) { LinkedHashMap() }
+    private fun applyVote(event: NativeRoadEvent, vote: ParsedVote): Boolean {
+        val votes = votesByEvent.getOrPut(event.id) { LinkedHashMap() }
         if (votes.size >= MAX_VOTES_PER_EVENT && vote.pubkey !in votes) return false
         val incoming = InteropVote(vote.pubkey, vote.createdAt, vote.stillThere)
         val known = votes[vote.pubkey]
         val newer = known == null || incoming.createdAt > known.createdAt ||
             (incoming.createdAt == known.createdAt && incoming.stillThere && !known.stillThere)
         if (newer) votes[vote.pubkey] = incoming
-        refreshInteropEvent(event.id)
-        publishState()
+        refreshLifetime(event.id)
         return true
     }
 
-    private fun refreshInteropEvent(eventId: String) {
+    private fun refreshLifetime(eventId: String) {
         val event = cache[eventId] ?: return
         val type = CompactRoadType.fromNative(event.category) ?: return
         val votes = InteropLifetime.admissible(
-            interopVotes[eventId]?.values.orEmpty(), event.createdAt, nowSeconds(),
+            votesByEvent[eventId]?.values.orEmpty(), event.createdAt, nowSeconds(),
         )
         cache[eventId] = event.copy(
             confirmations = votes.count { it.stillThere },
@@ -648,8 +632,7 @@ class NativeRoadEventService(
     /** Shown now: not expired, and not out-voted by the last five minutes of denials. */
     private fun isLive(event: NativeRoadEvent, now: Long): Boolean {
         if (event.isExpired(now)) return false
-        if (event.protocol != NativeRoadEventProtocol.Interop) return true
-        val votes = InteropLifetime.admissible(interopVotes[event.id]?.values.orEmpty(), event.createdAt, now)
+        val votes = InteropLifetime.admissible(votesByEvent[event.id]?.values.orEmpty(), event.createdAt, now)
         return !InteropLifetime.deniedByRecentMajority(votes, now)
     }
 
@@ -787,12 +770,7 @@ class NativeRoadEventService(
     }
 
     private fun pruneDerivedState() {
-        countedVotes.removeAll { vote ->
-            val separator = vote.indexOf(':')
-            separator <= 0 || !cache.containsKey(vote.substring(0, separator))
-        }
-        voteCountByEvent.keys.removeAll { !cache.containsKey(it) }
-        interopVotes.keys.removeAll { !cache.containsKey(it) }
+        votesByEvent.keys.removeAll { !cache.containsKey(it) }
         aliasOf.entries.removeAll { !cache.containsKey(it.value) }
         prunePendingUpdates()
     }
