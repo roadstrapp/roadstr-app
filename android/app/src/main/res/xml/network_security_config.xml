@@ -12,6 +12,12 @@
   refuses to even attempt an http:// GraphHopper URL that is not one of these
   loopback hosts — see RoutingService.validateGraphhopperServerUrl. Anything
   else — a public IP, a LAN address, a real domain — still needs HTTPS.
+
+  The same loopback exception carries MeshCore Open's local API
+  (ws://127.0.0.1:8787/api/v1), which shares the phone's MeshCore radio with
+  this app when the user picks that link in Settings. MeshCore Open binds it
+  to loopback only and approves each app by its key, so nothing leaves the
+  device in cleartext.
 -->
 <network-security-config>
     <base-config cleartextTrafficPermitted="false" />

@@ -2469,6 +2469,7 @@ fun NativeRoadstrShell(
                             NativeSettingsUiAction.MeshForgetDevice -> meshHost?.forgetDevice()
                             NativeSettingsUiAction.MeshConfigureChannel -> meshHost?.configureChannel()
                             NativeSettingsUiAction.MeshClearQueue -> meshHost?.clearQueue()
+                            NativeSettingsUiAction.MeshOpenLocalApiApp -> meshHost?.openLocalApiApp()
                             NativeSettingsUiAction.SyncPush -> nostrHost?.push()
                             NativeSettingsUiAction.SyncPull -> nostrHost?.pull()
                             NativeSettingsUiAction.EditSyncPassphrase -> nostrHost?.editSyncPassphrase()

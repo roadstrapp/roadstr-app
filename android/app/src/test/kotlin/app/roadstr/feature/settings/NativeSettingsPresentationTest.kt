@@ -135,7 +135,7 @@ class NativeSettingsPresentationTest {
 
     @Test
     fun `boolean keys preserve exact storage names and defaults`() {
-        assertEquals(24, NativeSettingsBooleanKey.entries.size)
+        assertEquals(22, NativeSettingsBooleanKey.entries.size)
         assertEquals("autoDark", NativeSettingsBooleanKey.AutoDark.storageKey)
         assertEquals("darkMapEnabled", NativeSettingsBooleanKey.DarkMap.storageKey)
         assertEquals("roadstr_profile_public", NativeSettingsBooleanKey.ProfilePublic.storageKey)
@@ -150,10 +150,8 @@ class NativeSettingsPresentationTest {
         assertFalse(NativeSettingsBooleanKey.AvoidUnpavedRoads.defaultValue)
         assertFalse(NativeSettingsBooleanKey.OfflineRouting.defaultValue)
         assertFalse(NativeSettingsBooleanKey.OfflineOnlineFallback.defaultValue)
-        assertEquals("interopShowEnabled", NativeSettingsBooleanKey.InteropShow.storageKey)
-        assertTrue("compatible reports were already shown, so the switch starts on", NativeSettingsBooleanKey.InteropShow.defaultValue)
-        assertFalse("publishing a second event is opt-in", NativeSettingsBooleanKey.InteropPublish.defaultValue)
-        assertFalse(NativeSettingsBooleanKey.InteropEphemeralKey.defaultValue)
+        assertEquals("meshUseLocalApi", NativeSettingsBooleanKey.MeshUseLocalApi.storageKey)
+        assertFalse("a saved BLE radio is never switched to MeshCore Open behind the user's back", NativeSettingsBooleanKey.MeshUseLocalApi.defaultValue)
         for (key in listOf(
             NativeSettingsBooleanKey.MeshReceive, NativeSettingsBooleanKey.MeshSend,
             NativeSettingsBooleanKey.MeshBridgeToNostr, NativeSettingsBooleanKey.MeshBridgeToRadio,

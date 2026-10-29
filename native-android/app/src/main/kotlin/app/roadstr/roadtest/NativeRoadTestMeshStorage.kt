@@ -49,10 +49,17 @@ internal class NativeRoadTestMeshStorage(
         flags.edit().putBoolean(CONSENT, accepted).apply()
     }
 
+    override fun localApiCursor(): String? = flags.getString(LOCAL_API_CURSOR, null)
+
+    override fun setLocalApiCursor(receivedAt: String) {
+        flags.edit().putString(LOCAL_API_CURSOR, receivedAt).apply()
+    }
+
     private companion object {
         const val DEVICE = "device"
         const val CHANNEL = "channel_name"
         const val CONSENT = "transmit_consent"
+        const val LOCAL_API_CURSOR = "local_api_received_at"
         const val DEFAULT_CHANNEL = "#roadstr"
         const val MAX_NAME = 64
         val ADDRESS = Regex("^([0-9A-F]{2}:){5}[0-9A-F]{2}$")

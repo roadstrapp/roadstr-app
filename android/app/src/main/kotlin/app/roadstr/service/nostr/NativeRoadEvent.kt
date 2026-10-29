@@ -7,7 +7,7 @@ import app.roadstr.core.protocol.nostr.RoadCategoryWire
 enum class NativeRoadEventProtocol {
     Roadstr,
 
-    /** The jooray/roadstr layout (kinds 1315/1316), read through the interoperability adapter. */
+    /** Heard on a MeshCore radio: shown with the shared display lifetime, extended or cut by votes. */
     Interop,
 }
 
@@ -28,9 +28,8 @@ data class NativeRoadEvent(
     /** Where this event has been seen. Empty for events the native reader parsed without a transport. */
     val transports: Set<RoadEventTransport> = emptySet(),
     /**
-     * Interoperable reports only: when the marker stops being shown, from the report type's own
-     * lifetime and its votes. For them [expiresAt] is just the 14 days relays keep the event, so
-     * it must not decide how long the marker lives.
+     * Reports heard on the radio only: when the marker stops being shown, from the report type's
+     * own lifetime and its votes, and never past [expiresAt] (the event's `expiration`).
      */
     val lifetimeEndsAt: Long? = null,
 ) {
@@ -63,6 +62,9 @@ object NativeRoadEventCodec {
         if (!NativeNostrWire.isHex32(id) || !NativeNostrWire.isHex32(pubkey)) return null
         val createdAt = NativeNostrWire.integral(json["created_at"]) ?: return null
         val tags = NativeNostrWire.tags(json["tags"]) ?: return null
+        // The deprecated jooray/roadstr layout always carried an `alt` tag. Road events are
+        // ephemeral, so old ones are dropped rather than shown with this app's lifetimes.
+        if (tags.any { it.firstOrNull() == "alt" }) return null
 
         val lat = ArrayList<String>(1)
         val lon = ArrayList<String>(1)

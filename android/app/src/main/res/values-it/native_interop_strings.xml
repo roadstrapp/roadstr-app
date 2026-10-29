@@ -1,17 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_interop_section">Interoperabilità (sperimentale)</string>
-    <string name="native_interop_desc">Roadstr può leggere anche le segnalazioni stradali scritte nel formato aperto jooray/roadstr, pubblicate da altre app su Nostr.</string>
-    <string name="native_interop_show">Mostra le segnalazioni compatibili</string>
-    <string name="native_interop_show_desc">Segnalazioni di altre app che usano lo stesso formato aperto. La loro durata segue quel formato, non quella di Roadstr.</string>
-    <string name="native_interop_source_relay">Segnalazione compatibile dalla rete Nostr (formato jooray/roadstr)</string>
-    <string name="native_interop_source_mesh">Segnalazione compatibile ricevuta via radio MeshCore</string>
-    <string name="native_interop_source_both">Segnalazione compatibile vista su Nostr e via radio MeshCore</string>
-    <string name="native_interop_publish">Pubblica anche nel formato compatibile</string>
-    <string name="native_interop_publish_desc">Ogni segnalazione viene inviata due volte: quella di Roadstr e una copia che le altre app con il formato aperto jooray/roadstr possono leggere. Le versioni più vecchie di Roadstr mostreranno entrambi i marker. L\'app di firma potrebbe chiedere di approvare il secondo evento.</string>
-    <string name="native_interop_ephemeral">Firma la copia compatibile con una chiave monouso</string>
-    <string name="native_interop_ephemeral_desc">Non collegata al tuo account e senza seconda approvazione. Gli altri utenti di Roadstr vedranno due marker invece di uno, perché nessuno può sapere che la copia è tua.</string>
-    <string name="native_interop_publish_failed">Non è stato possibile inviare la copia compatibile della segnalazione.</string>
+    <string name="native_interop_source_relay">Segnalazione dalla rete Nostr</string>
+    <string name="native_interop_source_mesh">Segnalazione ricevuta via radio MeshCore</string>
+    <string name="native_interop_source_both">Segnalazione vista su Nostr e via radio MeshCore</string>
     <string name="native_mesh_section">MeshCore — Sperimentale</string>
     <string name="native_mesh_desc">Scambia segnalazioni stradali tramite una radio LoRa MeshCore, con o senza internet. Chiunque sia nel raggio radio può leggere ciò che viene inviato: posizione, ora e la chiave pubblica che l\'ha firmato. Non è né privato né anonimo. Una firma valida prova quale chiave ha firmato una segnalazione, non che sia vera. Non ancora provato su radio reali.</string>
     <string name="native_mesh_unsupported">Questo dispositivo non ha Bluetooth LE: non si può usare una radio MeshCore.</string>
@@ -31,14 +22,28 @@
     <string name="native_mesh_problem_service">Questa non è una radio MeshCore companion.</string>
     <string name="native_mesh_problem_firmware">Il firmware della radio è troppo vecchio per le segnalazioni stradali. Aggiornalo e associala di nuovo.</string>
     <string name="native_mesh_problem_protocol">La radio ha risposto in modo inatteso. Riprovo…</string>
+    <string name="native_mesh_use_local">Usa la radio tramite MeshCore Open</string>
+    <string name="native_mesh_use_local_desc">Condivide la radio a cui è collegato MeshCore Open su questo telefono, così entrambe le app funzionano insieme. Serve MeshCore Open con l\'API locale attiva. Disattivato: Roadstr si collega alla radio da solo via Bluetooth.</string>
+    <string name="native_mesh_local_fingerprint">MeshCore Open chiede una volta di autorizzare Roadstr. Autorizzalo solo se la chiave mostrata è %1$s.</string>
+    <string name="native_mesh_local_no_key">Non è stato possibile creare la chiave per MeshCore Open su questo dispositivo.</string>
+    <string name="native_mesh_local_status_idle">Si collega a MeshCore Open mentre Roadstr è aperto e una funzione radio è attiva.</string>
+    <string name="native_mesh_problem_local_unreachable">MeshCore Open non risponde. È in esecuzione, con l\'API locale attiva? Nuovo tentativo…</string>
+    <string name="native_mesh_problem_not_approved">MeshCore Open non ha autorizzato Roadstr. Autorizzalo quando lo chiede; nuovo tentativo tra un minuto.</string>
+    <string name="native_mesh_problem_local_no_radio">MeshCore Open non è collegato a una radio. Collegalo lì; nuovo tentativo tra un minuto.</string>
+    <string name="native_mesh_problem_local_channel">MeshCore Open non ha il canale #roadstr. Aggiungilo lì come canale hashtag #roadstr; nuovo tentativo tra un minuto.</string>
+    <string name="native_mesh_problem_local_refused">MeshCore Open ha rifiutato di inoltrare il canale. Nuovo tentativo tra un minuto.</string>
+    <string name="native_mesh_local_status_approval">In attesa che autorizzi Roadstr in MeshCore Open.</string>
+    <string name="native_mesh_local_allow">Autorizza in MeshCore Open</string>
+    <string name="native_mesh_local_open">Apri MeshCore Open</string>
+    <string name="native_mesh_local_missing">MeshCore Open non è installato.</string>
     <string name="native_mesh_receive">Ricevi segnalazioni dalla radio</string>
     <string name="native_mesh_receive_desc">Le segnalazioni ascoltate via radio compaiono sulla mappa, dopo essere state verificate. Funziona senza internet.</string>
     <string name="native_mesh_send">Invia le mie segnalazioni via radio</string>
-    <string name="native_mesh_send_desc">Le tue segnalazioni e i tuoi voti compatibili vengono trasmessi anche via radio. Richiede “Pubblica anche nel formato compatibile”.</string>
+    <string name="native_mesh_send_desc">Le tue segnalazioni e i tuoi voti vengono trasmessi anche via radio. Una segnalazione con un commento oltre 46 byte va solo ai relay.</string>
     <string name="native_mesh_bridge_nostr">Bridge: radio verso Nostr</string>
     <string name="native_mesh_bridge_nostr_desc">Ripubblica sui relay le segnalazioni ascoltate via radio, sempre firmate dai loro autori originali. Conservate e ritentate se sei offline.</string>
     <string name="native_mesh_bridge_radio">Bridge: Nostr verso radio</string>
-    <string name="native_mesh_bridge_radio_desc">Trasmette via radio le segnalazioni compatibili vicine che arrivano dai relay, poche all\'ora. Richiede l\'invio.</string>
+    <string name="native_mesh_bridge_radio_desc">Trasmette via radio le segnalazioni vicine che arrivano dai relay, poche all\'ora. Richiede l\'invio.</string>
     <string name="native_mesh_setup_channel">Configura il canale Roadstr sulla radio</string>
     <string name="native_mesh_clear_queue">Svuota la coda in attesa (%1$d)</string>
     <string name="native_mesh_forget">Dimentica questa radio</string>
@@ -49,6 +54,6 @@
     <string name="native_mesh_cancel">Annulla</string>
     <string name="native_mesh_permission_denied">Roadstr ha bisogno del permesso “Dispositivi nelle vicinanze” per trovare una radio.</string>
     <string name="native_mesh_consent_title">Trasmettere via radio?</string>
-    <string name="native_mesh_consent_body">Ciò che esce via radio può essere ricevuto da chiunque sia nel raggio, con o senza internet: la posizione della segnalazione, l\'ora e la chiave pubblica che l\'ha firmata (la tua, o una chiave monouso se l\'hai scelta). Non è anonimo.\n\nI bridge fanno passare anche le segnalazioni di altri tra la radio e i relay Nostr, sempre con il loro autore originale. Una firma valida prova la chiave, non che la segnalazione sia vera.\n\nPuoi spegnere ogni funzione radio in qualsiasi momento e svuotare ciò che è in attesa di essere pubblicato.</string>
+    <string name="native_mesh_consent_body">Ciò che esce via radio può essere ricevuto da chiunque sia nel raggio, con o senza internet: la posizione della segnalazione, l\'ora e la chiave pubblica che l\'ha firmata (la tua). Non è anonimo.\n\nI bridge fanno passare anche le segnalazioni di altri tra la radio e i relay Nostr, sempre con il loro autore originale. Una firma valida prova la chiave, non che la segnalazione sia vera.\n\nPuoi spegnere ogni funzione radio in qualsiasi momento e svuotare ciò che è in attesa di essere pubblicato.</string>
     <string name="native_mesh_consent_accept">Ho capito, attiva</string>
 </resources>

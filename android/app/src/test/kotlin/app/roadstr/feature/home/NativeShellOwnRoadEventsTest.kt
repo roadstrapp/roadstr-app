@@ -1,11 +1,7 @@
 package app.roadstr.feature.home
 
-import app.roadstr.core.protocol.interop.CompactError
 import app.roadstr.core.protocol.interop.CompactOutcome
 import app.roadstr.core.protocol.interop.CompactRoadCodec
-import app.roadstr.core.protocol.interop.InteropPublishPolicy
-import app.roadstr.core.protocol.interop.RoadEventLayout
-import app.roadstr.core.protocol.interop.ExternalRoadReportAdapter
 import app.roadstr.core.protocol.nostr.NostrEventDraft
 import app.roadstr.core.protocol.nostr.RoadCategoryWire
 import app.roadstr.feature.map.NativeMapPoint
@@ -21,7 +17,6 @@ import app.roadstr.service.nostr.NativePendingReportStorage
 import app.roadstr.service.nostr.NativeProfileVisibilityService
 import app.roadstr.service.nostr.NativeRelayFetcher
 import app.roadstr.service.nostr.NativeRelayPublisher
-import app.roadstr.service.nostr.NativeRoadEventProtocol
 import app.roadstr.service.nostr.NativeRoadEventService
 import app.roadstr.service.nostr.TestKeys
 import kotlinx.coroutines.CoroutineScope
@@ -30,13 +25,11 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Sending a report also in the jooray/roadstr layout, and voting in the layout of the report voted on. */
-class NativeShellInteropPublishTest {
+/** This device's own reports and votes: one event each, in the shared layout, offered to the radio bridge. */
+class NativeShellOwnRoadEventsTest {
     private val network = FakeRelayNetwork()
     private val now = 1_800_003_700L
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
@@ -104,13 +97,12 @@ class NativeShellInteropPublishTest {
         )
     }
 
-    private fun controller(n: NativeShellNostr, policy: InteropPublishPolicy) = NativeShellReportController(
+    private fun controller(n: NativeShellNostr) = NativeShellReportController(
         nostr = n,
         scope = scope,
         session = session,
         nowSeconds = { now },
         message = { m, _ -> messages += m },
-        interopPolicy = { policy },
     ).also { it.onCompatibleEvent = { event -> heard += event } }
 
     private fun report(c: NativeShellReportController, category: RoadCategoryWire, comment: String = "") {
@@ -124,109 +116,70 @@ class NativeShellInteropPublishTest {
     private fun sent(): List<Map<String, Any?>> = network.stored["wss://p1.example"].orEmpty()
 
     @Test
-    fun `by default only the native event is sent`() = runBlocking {
-        report(controller(nostr(), InteropPublishPolicy.OFF), RoadCategoryWire.POLICE)
-        assertEquals(1, sent().size)
+    fun `a report is one event in the shared layout, and the bridge hears it`() = runBlocking {
+        val n = nostr()
+        report(controller(n), RoadCategoryWire.POLICE)
+
+        val event = sent().single()
         assertEquals(1, signCalls)
-        assertTrue(heard.isEmpty())
-    }
-
-    @Test
-    fun `with the switch on a second, separately signed event in the compatible layout follows`() = runBlocking {
-        val n = nostr()
-        report(controller(n, InteropPublishPolicy(enabled = true)), RoadCategoryWire.POLICE)
-
-        assertEquals(2, sent().size)
-        assertEquals(2, signCalls)
-        val native = sent()[0]
-        val compat = sent()[1]
-        assertEquals(RoadEventLayout.ROADSTR_NATIVE, ExternalRoadReportAdapter.layoutOf(native))
-        assertEquals(RoadEventLayout.COMPACT_CANONICAL, ExternalRoadReportAdapter.layoutOf(compat))
-        assertNotEquals("a different layout is a different event", native["id"], compat["id"])
-        assertEquals(TestKeys.PUBLIC_A, compat["pubkey"])
+        val tagNames = (event["tags"] as List<*>).map { (it as List<*>)[0] }
+        assertEquals(listOf("lat", "lon", "g", "g", "g", "t", "expiration"), tagNames)
+        assertEquals(listOf(event["id"]), heard.map { it["id"] })
+        assertEquals(listOf(event["id"]), n.roadEvents.events.value.map { it.id })
         // It rebuilds into a frame and back with the same ID and signature.
-        val frame = (CompactRoadCodec.encodeReport(compat) as CompactOutcome.Ok).value
-        assertEquals(110, frame.size)
-        assertEquals(listOf(compat["id"]), heard.map { it["id"] })
-        // One marker for the two.
-        assertEquals(listOf(native["id"]), n.roadEvents.events.value.map { it.id })
-        assertEquals(NativeRoadEventProtocol.Roadstr, n.roadEvents.events.value.single().protocol)
+        val frame = (CompactRoadCodec.encodeReport(event) as CompactOutcome.Ok).value
+        assertEquals(117, frame.size)
     }
 
     @Test
-    fun `a one time key signs the copy without bothering the account signer`() = runBlocking {
-        val n = nostr()
-        report(controller(n, InteropPublishPolicy(enabled = true, ephemeralKey = true)), RoadCategoryWire.HAZARD)
-
-        assertEquals(2, sent().size)
-        assertEquals("only the native event needed the account", 1, signCalls)
-        val compat = sent()[1]
-        assertNotEquals(TestKeys.PUBLIC_A, compat["pubkey"])
-        assertEquals(RoadEventLayout.COMPACT_CANONICAL, ExternalRoadReportAdapter.layoutOf(compat))
-        // Made by this device, so it is still one marker here even though the key differs.
-        assertEquals(1, n.roadEvents.events.value.size)
-    }
-
-    @Test
-    fun `a comment travels to relays in the copy but the copy cannot become a radio frame`() = runBlocking {
-        report(controller(nostr(), InteropPublishPolicy(enabled = true)), RoadCategoryWire.ACCIDENT, comment = "corsia di destra")
-        val compat = sent()[1]
-        assertEquals("corsia di destra", compat["content"])
-        assertEquals(CompactOutcome.Failed(CompactError.NON_EMPTY_CONTENT), CompactRoadCodec.encode(compat))
-    }
-
-    @Test
-    fun `a category the format does not have is only sent natively`() = runBlocking {
-        report(controller(nostr(), InteropPublishPolicy(enabled = true)), RoadCategoryWire.POLICE_STATION)
-        assertEquals(1, sent().size)
-        assertTrue(messages.none { it == NativeShellMessage.InteropPublishFailed })
-    }
-
-    @Test
-    fun `a refused second signature leaves the native report published and says so`() = runBlocking {
-        val inner = NativeLocalKeySigner { TestKeys.PRIVATE_A }
-        var calls = 0
-        val second = object : NativeNostrSigner by inner {
-            override suspend fun sign(draft: NostrEventDraft): Map<String, Any?>? =
-                if (++calls == 1) inner.sign(draft) else null
+    fun `relays keep a report at least 14 days, and a 30-day category for its 30 days`() = runBlocking {
+        report(controller(nostr()), RoadCategoryWire.POLICE)
+        report(controller(nostr()), RoadCategoryWire.SPEED_CAMERA)
+        val expirations = sent().map { event ->
+            val tags = (event["tags"] as List<*>).map { it as List<*> }
+            (tags.first { it[0] == "expiration" }[1] as String).toLong() - (event["created_at"] as Number).toLong()
         }
-        report(controller(nostr(second), InteropPublishPolicy(enabled = true)), RoadCategoryWire.FOG)
-        assertEquals(1, sent().size)
-        assertTrue(messages.contains(NativeShellMessage.ReportPublished))
-        assertTrue(messages.contains(NativeShellMessage.InteropPublishFailed))
+        assertEquals(listOf(CompactRoadCodec.RELAY_TTL_SECONDS, 30 * 86_400L), expirations)
     }
 
     @Test
-    fun `an unreachable relay queues both events`() = runBlocking {
+    fun `a report with a long comment still goes to the relays and is offered to the bridge`() = runBlocking {
+        report(controller(nostr()), RoadCategoryWire.ACCIDENT, comment = "corsia di destra chiusa dopo il ponte, coda lunga")
+        val event = sent().single()
+        assertEquals(1, heard.size)
+        // Over 46 bytes: valid on relays, never framed. The bridge counts it as not representable.
+        assertEquals(CompactOutcome.Failed(app.roadstr.core.protocol.interop.CompactError.COMMENT_TOO_LONG), CompactRoadCodec.encodeReport(event))
+    }
+
+    @Test
+    fun `an unreachable relay queues the one event`() = runBlocking {
         network.down += "wss://p1.example"
-        report(controller(nostr(), InteropPublishPolicy(enabled = true)), RoadCategoryWire.ICE)
-        assertEquals(2, queue.size)
-        assertEquals(setOf(NativeShellMessage.ReportQueued), messages.toSet() - setOf())
+        report(controller(nostr()), RoadCategoryWire.ICE)
+        assertEquals(1, queue.size)
+        assertEquals(setOf(NativeShellMessage.ReportQueued), messages.toSet())
+        assertEquals(1, heard.size)
     }
 
     @Test
-    fun `a vote on a compatible report uses the compatible confirmation, a vote on a native one does not`() = runBlocking {
+    fun `a vote is two tags whatever report it is on, and the bridge hears it`() = runBlocking {
         val n = nostr()
-        val c = controller(n, InteropPublishPolicy.OFF)
-        // A compatible report from someone else, accepted off the radio.
+        val c = controller(n)
+        // A report from someone else, accepted off the radio.
         val theirs = TestKeys.sign(
-            CompactRoadCodec.reportDraft(TestKeys.PUBLIC_B, now - 100, 387_223_000, -91_393_000, app.roadstr.core.protocol.interop.CompactRoadType.POLICE),
+            CompactRoadCodec.reportDraft(TestKeys.PUBLIC_B, now - 100, 38_722_300, -9_139_300, app.roadstr.core.protocol.interop.CompactRoadType.POLICE),
             TestKeys.PRIVATE_B,
         )
         assertTrue(n.roadEvents.acceptInteropEvent(theirs, app.roadstr.core.protocol.interop.RoadEventTransport.MESH))
 
         c.vote(theirs["id"] as String, true)
-        val confirmation = sent().single()
-        assertEquals(1316, (confirmation["kind"] as Number).toInt())
-        val tagNames = (confirmation["tags"] as List<*>).map { (it as List<*>)[0] }
-        assertEquals(listOf("e", "g", "g", "g", "status", "lat", "lon", "expiration", "alt"), tagNames)
-        assertEquals(listOf(confirmation["id"]), heard.map { it["id"] })
-
-        heard.clear()
-        c.vote("c".repeat(64), true) // unknown to the map: Roadstr's own two-tag vote
-        val plain = sent().last()
-        assertEquals(listOf("e", "status"), (plain["tags"] as List<*>).map { (it as List<*>)[0] })
-        assertTrue(heard.isEmpty())
-        assertFalse(sent().size < 2)
+        c.vote("c".repeat(64), false)
+        val votes = sent()
+        assertEquals(2, votes.size)
+        for (vote in votes) {
+            assertEquals(1316, (vote["kind"] as Number).toInt())
+            assertEquals(listOf("e", "status"), (vote["tags"] as List<*>).map { (it as List<*>)[0] })
+        }
+        assertEquals(votes.map { it["id"] }, heard.map { it["id"] })
+        assertEquals(1, n.roadEvents.events.value.single().confirmations)
     }
 }

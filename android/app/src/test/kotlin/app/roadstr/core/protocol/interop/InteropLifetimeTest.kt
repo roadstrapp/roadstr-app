@@ -7,25 +7,25 @@ import org.junit.Test
 
 class InteropLifetimeTest {
     private val created = 1_700_000_000L
-    private val police = CompactRoadType.POLICE // 2 h
+    private val police = CompactRoadType.POLICE // 4 h
     private fun vote(key: String, at: Long, still: Boolean) = InteropVote(key.padEnd(64, '0'), at, still)
 
     @Test
     fun `without votes a report lives for the type's own lifetime, not the 14 day relay time`() {
-        assertEquals(created + 7_200, InteropLifetime.effectiveExpiry(created, police, emptyList()))
+        assertEquals(created + 14_400, InteropLifetime.effectiveExpiry(created, police, emptyList()))
         assertEquals(created + 2_592_000, InteropLifetime.effectiveExpiry(created, CompactRoadType.SPEED_CAMERA, emptyList()))
     }
 
     @Test
     fun `a confirmation pushes the expiry forward from its own time`() {
         val votes = listOf(vote("a", created + 3_600, true))
-        assertEquals(created + 3_600 + 7_200, InteropLifetime.effectiveExpiry(created, police, votes))
+        assertEquals(created + 3_600 + 14_400, InteropLifetime.effectiveExpiry(created, police, votes))
     }
 
     @Test
     fun `an early confirmation never shortens the lifetime`() {
         val votes = listOf(vote("a", created + 1, true))
-        assertEquals(created + 1 + 7_200, InteropLifetime.effectiveExpiry(created, police, votes))
+        assertEquals(created + 1 + 14_400, InteropLifetime.effectiveExpiry(created, police, votes))
     }
 
     @Test
@@ -37,13 +37,13 @@ class InteropLifetimeTest {
     @Test
     fun `a later confirmation revives a denied report`() {
         val votes = listOf(vote("a", created + 600, false), vote("b", created + 900, true))
-        assertEquals(created + 900 + 7_200, InteropLifetime.effectiveExpiry(created, police, votes))
+        assertEquals(created + 900 + 14_400, InteropLifetime.effectiveExpiry(created, police, votes))
     }
 
     @Test
     fun `a tie keeps the report alive`() {
         val votes = listOf(vote("a", created + 600, false), vote("b", created + 600, true))
-        assertEquals(created + 600 + 7_200, InteropLifetime.effectiveExpiry(created, police, votes))
+        assertEquals(created + 600 + 14_400, InteropLifetime.effectiveExpiry(created, police, votes))
         assertFalse(InteropLifetime.deniedByRecentMajority(votes, created + 610))
     }
 
@@ -81,12 +81,29 @@ class InteropLifetimeTest {
     }
 
     @Test
-    fun `visibility combines type lifetime, votes and the relay time`() {
-        assertTrue(InteropLifetime.isVisible(created, police, emptyList(), created + 7_199))
-        assertFalse(InteropLifetime.isVisible(created, police, emptyList(), created + 7_200))
+    fun `visibility combines type lifetime, votes and the event's own expiration`() {
+        val expiration = CompactRoadCodec.expirationFor(created, police)
+        assertTrue(InteropLifetime.isVisible(created, police, emptyList(), created + 7_199, expiration))
+        assertFalse(InteropLifetime.isVisible(created, police, emptyList(), created + 14_400, expiration))
         // Kept alive by confirmations, but never past what relays serve.
         val keepAlive = (1..400).map { vote("k$it", created + it * 3_000L, true) }
-        assertTrue(InteropLifetime.isVisible(created, police, keepAlive, created + 1_000_000))
-        assertFalse(InteropLifetime.isVisible(created, police, keepAlive, created + CompactRoadCodec.RELAY_TTL_SECONDS))
+        assertTrue(InteropLifetime.isVisible(created, police, keepAlive, created + 1_000_000, expiration))
+        assertFalse(InteropLifetime.isVisible(created, police, keepAlive, expiration, expiration))
+    }
+
+    @Test
+    fun `a speed camera is shown for its 30 days, not cut off at day 14`() {
+        val camera = CompactRoadType.SPEED_CAMERA
+        val expiration = CompactRoadCodec.expirationFor(created, camera)
+        assertEquals(created + 30 * 86_400L, expiration)
+        assertTrue(InteropLifetime.isVisible(created, camera, emptyList(), created + 20 * 86_400L, expiration))
+        assertFalse(InteropLifetime.isVisible(created, camera, emptyList(), created + 30 * 86_400L, expiration))
+    }
+
+    @Test
+    fun `an expiration tag shorter than the lifetime ends the report early`() {
+        // Older clients wrote created_at + lifetime; an event may also carry less.
+        assertFalse(InteropLifetime.isVisible(created, police, emptyList(), created + 3_600, created + 3_600))
+        assertEquals(created + 3_600, InteropLifetime.effectiveExpiry(created, police, emptyList(), created + 3_600))
     }
 }

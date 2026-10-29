@@ -19,7 +19,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -41,7 +40,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import app.roadstr.R
-import app.roadstr.core.protocol.interop.InteropPublishPolicy
 import app.roadstr.core.protocol.nostr.CustomRelayPolicy
 import app.roadstr.core.ui.RoadstrSwitch
 import app.roadstr.feature.map.NativeMapPointOverlayKind
@@ -233,7 +231,6 @@ private fun messageText(message: NativeShellMessage): Int = when (message) {
     NativeShellMessage.SpeedUpdateSent -> R.string.native_nostr_speed_saved
     NativeShellMessage.EditRequestSent -> R.string.native_nostr_edit_request_sent
     NativeShellMessage.ZapSent -> R.string.native_zap_sent
-    NativeShellMessage.InteropPublishFailed -> R.string.native_interop_publish_failed
     NativeShellMessage.ReportFailed,
     NativeShellMessage.SigningFailed,
     NativeShellMessage.VoteFailed,
@@ -327,10 +324,6 @@ fun rememberNativeShellNostrHost(
             scope = scope,
             session = roadEventSession,
             message = toast,
-            interopPolicy = {
-                val values = settingsSession.state.value.values
-                InteropPublishPolicy(values.interopPublishEnabled, values.interopEphemeralKey)
-            },
         )
     }
     val zapController = remember(nostr, reportController) {
@@ -395,11 +388,6 @@ fun rememberNativeShellNostrHost(
             favoritesController.autoPull()
         }
     }
-
-    // The switch is read live by the service; the effect re-evaluates the map when it flips.
-    val interopShown = settingsSession.state.value.values.interopShowEnabled
-    SideEffect { nostr.roadEvents.interopEnabled = { settingsSession.state.value.values.interopShowEnabled } }
-    LaunchedEffect(nostr, interopShown) { nostr.roadEvents.refresh() }
 
     val events by nostr.roadEvents.events.collectAsState()
     return remember(nostr, events, favoritesController, reportController, zapController, activityUnread) {
