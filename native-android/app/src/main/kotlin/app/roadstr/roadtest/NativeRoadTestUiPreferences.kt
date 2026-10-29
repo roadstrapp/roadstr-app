@@ -71,6 +71,10 @@ class NativeRoadTestUiPreferences(
         cursorColor = NativeSettingsCursorColor.fromStorage(
             preferences.getString("cursor_color", null),
         ),
+        meshReceiveEnabled = preferences.getBoolean("mesh_receive", false),
+        meshSendEnabled = preferences.getBoolean("mesh_send", false),
+        meshBridgeToNostr = preferences.getBoolean("mesh_bridge_to_nostr", false),
+        meshBridgeToRadio = preferences.getBoolean("mesh_bridge_to_radio", false),
     )
 
     fun save(value: NativeSettingsInput) {
@@ -114,5 +118,9 @@ class NativeRoadTestUiPreferences(
             .putString("speedometer", value.speedometerStyle.storageValue)
             .putString("cursor_style", value.cursorStyle.storageValue)
             .putString("cursor_color", value.cursorColor.storageValue)
+            .putBoolean("mesh_receive", value.meshReceiveEnabled)
+            .putBoolean("mesh_send", value.meshSendEnabled)
+            .putBoolean("mesh_bridge_to_nostr", value.meshBridgeToNostr)
+            .putBoolean("mesh_bridge_to_radio", value.meshBridgeToRadio)
 
 }
