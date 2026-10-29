@@ -255,8 +255,12 @@ class RoadMeshBridgeTest {
         build()
         val event = report()
         relayDelivers(event)
-        radio.receive(frame(vote(event, still = false)))
-        assertEquals(1, service.events.value.single().denials)
+        radio.receive(frame(vote(event, still = true)))
+        assertEquals(1, service.events.value.single().confirmations)
+
+        // The same rule as for every report: a denial ends it from the moment of the vote.
+        radio.receive(frame(vote(event, still = false, key = TestKeys.PRIVATE_A, at = clock - 5)))
+        assertTrue(service.events.value.isEmpty())
     }
 
     @Test

@@ -15,6 +15,11 @@ All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stab
   bytes a companion link carries; up to 48 are read), a vote is a self-contained 134 bytes. The codec runs the shared conformance
   vectors in `docs/interoperability/vectors/road-events-v1.json`. The old 110-byte frame is not accepted.
 - Own reports and votes can go on the radio directly ("Send my reports by radio"); they no longer depend on the compatible copy.
+- **Votes now decide how long every report stays on the map**, not only the ones heard over the radio. A "still there" keeps a
+  report alive for its category's lifetime counted from the vote (a police report confirmed at hour five is still shown), a "no longer
+  there" ends it at the time of the vote, only a key's latest vote counts, and a report is hidden while the last five minutes hold
+  more denials than confirmations. Nothing is shown past the report's `expiration`. A report older than its category's lifetime is now
+  kept while relays still serve it, so the votes that arrive afterwards can bring it back.
 
 ### Added
 
@@ -28,6 +33,14 @@ All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stab
 - Votes on reports heard over the radio were always rejected, because the vote was expected to repeat the report's position.
 - A 30-day report heard over the radio (speed camera, police station, surveillance camera) disappeared after 14 days.
 - A vote heard on the radio before its report waits up to 15 minutes for it, from the radio or a relay, instead of being lost.
+- A report sent again by a relay (relay rotation, area replay) no longer wipes its votes.
+- Downloadable maps: Czechia could be selected but every one of its downloads failed, because Geofabrik publishes the Shortbread
+  extract for the whole country and not for its regions. Of the 222 European areas offered, 89 had no file; the list of areas that
+  really have one is now checked into the app (`tools/offline_packages/probe_geofabrik_shortbread.py`), a region without its own
+  file downloads the area that contains it, and Czechia and Slovakia are listed under Eastern Europe.
+- Downloadable maps: a city is placed by its area's outline, not its bounding box, so Northern Irish towns no longer point at England's file.
+- The turn-by-turn card no longer covers the list of downloadable maps while navigating.
+- The road-test build remembers the MeshCore switches across launches.
 
 ## [1.2.3] — 2026-10-25
 

@@ -7,7 +7,7 @@ import app.roadstr.core.protocol.nostr.RoadCategoryWire
 enum class NativeRoadEventProtocol {
     Roadstr,
 
-    /** Heard on a MeshCore radio: shown with the shared display lifetime, extended or cut by votes. */
+    /** Heard on a MeshCore radio before any relay served it. Same lifetime rules as every report. */
     Interop,
 }
 
@@ -28,8 +28,9 @@ data class NativeRoadEvent(
     /** Where this event has been seen. Empty for events the native reader parsed without a transport. */
     val transports: Set<RoadEventTransport> = emptySet(),
     /**
-     * Reports heard on the radio only: when the marker stops being shown, from the report type's
-     * own lifetime and its votes, and never past [expiresAt] (the event's `expiration`).
+     * Once the report has votes: when the marker stops being shown, from the report type's own
+     * lifetime pushed forward by "still there" and cut by "no longer there", and never past
+     * [expiresAt] (the event's `expiration`). Null until then: the type's own lifetime applies.
      */
     val lifetimeEndsAt: Long? = null,
 ) {
@@ -53,7 +54,7 @@ object NativeRoadEventCodec {
      * Mirrors RoadEvent.fromNostr: exactly one lat/lon/category tag, at most
      * one expiration and one maxspeed, coordinates in range, comment capped,
      * no timestamps far in the future (they would outlive their TTL), and no
-     * report already past its client-side TTL.
+     * report relays have already stopped serving.
      */
     fun parse(json: Map<String, Any?>, nowSeconds: Long): NativeRoadEvent? = runCatching {
         if (NativeNostrWire.integral(json["kind"]) != 1315L) return null
@@ -113,7 +114,11 @@ object NativeRoadEventCodec {
             speedLimit = speedLimit,
         )
         if (event.createdAt > nowSeconds + MAX_FUTURE_SKEW_SECONDS) return null
-        if (event.isExpired(nowSeconds)) return null
+        // Past its own lifetime a report can still be alive: later "still there" votes extend it
+        // (nips/road-events.md), as long as relays serve it. Only what `expiration` (or, without
+        // one, the lifetime) has already ended is dropped here; votes decide the rest.
+        val servedUntil = expiresAt ?: (event.createdAt + event.category.ttlSeconds)
+        if (nowSeconds >= servedUntil) return null
         event
     }.getOrNull()
 }
