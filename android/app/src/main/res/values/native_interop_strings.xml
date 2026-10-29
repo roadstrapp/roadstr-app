@@ -1,17 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="native_interop_section">Interoperability (experimental)</string>
-    <string name="native_interop_desc">Roadstr can also read road reports written in the open jooray/roadstr format, published by other apps on Nostr.</string>
-    <string name="native_interop_show">Show compatible reports</string>
-    <string name="native_interop_show_desc">Reports from other apps using the same open format. Their lifetime follows that format, not Roadstr\'s own.</string>
-    <string name="native_interop_source_relay">Compatible report from the Nostr network (jooray/roadstr format)</string>
-    <string name="native_interop_source_mesh">Compatible report received over MeshCore radio</string>
-    <string name="native_interop_source_both">Compatible report seen on Nostr and on MeshCore radio</string>
-    <string name="native_interop_publish">Also publish in the compatible format</string>
-    <string name="native_interop_publish_desc">Each report is sent twice: Roadstr\'s own, and a copy other apps using the open jooray/roadstr format can read. Older Roadstr versions will show both markers. Your signer app may ask to approve the second event.</string>
-    <string name="native_interop_ephemeral">Sign the compatible copy with a one-time key</string>
-    <string name="native_interop_ephemeral_desc">Not linked to your account and no second approval. Other Roadstr users will see two markers instead of one, because nobody can tell the copy is yours.</string>
-    <string name="native_interop_publish_failed">The compatible copy of your report could not be sent.</string>
+    <string name="native_interop_source_relay">Road report from the Nostr network</string>
+    <string name="native_interop_source_mesh">Road report received over MeshCore radio</string>
+    <string name="native_interop_source_both">Road report seen on Nostr and on MeshCore radio</string>
     <string name="native_mesh_section">MeshCore — Experimental</string>
     <string name="native_mesh_desc">Exchange road reports over a MeshCore LoRa radio, with or without internet. Anyone in radio range can read what is sent: position, time and the public key that signed it. It is neither private nor anonymous. A valid signature proves which key signed a report, not that the report is true. Not tested on real radios yet.</string>
     <string name="native_mesh_unsupported">This device has no Bluetooth LE, so a MeshCore radio cannot be used.</string>
@@ -31,14 +22,28 @@
     <string name="native_mesh_problem_service">This is not a MeshCore companion radio.</string>
     <string name="native_mesh_problem_firmware">The radio\'s firmware is too old for road reports. Update it and pair again.</string>
     <string name="native_mesh_problem_protocol">The radio answered something unexpected. Trying again…</string>
+    <string name="native_mesh_use_local">Use the radio through MeshCore Open</string>
+    <string name="native_mesh_use_local_desc">Shares the radio MeshCore Open on this phone is connected to, so both apps work at once. Needs MeshCore Open with its local API switched on. Off: Roadstr connects to the radio itself over Bluetooth.</string>
+    <string name="native_mesh_local_fingerprint">MeshCore Open asks once to allow Roadstr. Allow it only if the key it shows is %1$s.</string>
+    <string name="native_mesh_local_no_key">The key for MeshCore Open could not be created on this device.</string>
+    <string name="native_mesh_local_status_idle">Connects to MeshCore Open while Roadstr is open and a radio feature is on.</string>
+    <string name="native_mesh_problem_local_unreachable">MeshCore Open is not answering. Is it running, with its local API on? Trying again…</string>
+    <string name="native_mesh_problem_not_approved">MeshCore Open has not allowed Roadstr. Allow it there when asked; trying again in a minute.</string>
+    <string name="native_mesh_problem_local_no_radio">MeshCore Open is not connected to a radio. Connect it there; trying again in a minute.</string>
+    <string name="native_mesh_problem_local_channel">MeshCore Open has no #roadstr channel. Add it there as a hashtag channel named #roadstr; trying again in a minute.</string>
+    <string name="native_mesh_problem_local_refused">MeshCore Open refused to pass on the channel. Trying again in a minute.</string>
+    <string name="native_mesh_local_status_approval">Waiting for you to allow Roadstr in MeshCore Open.</string>
+    <string name="native_mesh_local_allow">Allow in MeshCore Open</string>
+    <string name="native_mesh_local_open">Open MeshCore Open</string>
+    <string name="native_mesh_local_missing">MeshCore Open is not installed.</string>
     <string name="native_mesh_receive">Receive reports from the radio</string>
     <string name="native_mesh_receive_desc">Reports heard on the radio appear on the map, checked first. Works without internet.</string>
     <string name="native_mesh_send">Send my reports by radio</string>
-    <string name="native_mesh_send_desc">Your compatible reports and votes are also broadcast on the radio. Needs “Also publish in the compatible format”.</string>
+    <string name="native_mesh_send_desc">Your reports and votes are also broadcast on the radio. A report with a comment over 46 bytes goes to the relays only.</string>
     <string name="native_mesh_bridge_nostr">Bridge: radio to Nostr</string>
     <string name="native_mesh_bridge_nostr_desc">Republishes reports heard on the radio to the relays, still signed by their original authors. Kept and retried while offline.</string>
     <string name="native_mesh_bridge_radio">Bridge: Nostr to radio</string>
-    <string name="native_mesh_bridge_radio_desc">Broadcasts nearby compatible reports from the relays on the radio, a few per hour. Needs sending.</string>
+    <string name="native_mesh_bridge_radio_desc">Broadcasts nearby reports from the relays on the radio, a few per hour. Needs sending.</string>
     <string name="native_mesh_setup_channel">Set up the Roadstr channel on the radio</string>
     <string name="native_mesh_clear_queue">Clear the waiting queue (%1$d)</string>
     <string name="native_mesh_forget">Forget this radio</string>
@@ -49,6 +54,6 @@
     <string name="native_mesh_cancel">Cancel</string>
     <string name="native_mesh_permission_denied">Roadstr needs the “Nearby devices” permission to find a radio.</string>
     <string name="native_mesh_consent_title">Transmit by radio?</string>
-    <string name="native_mesh_consent_body">What goes out on the radio can be received by anyone in range, with or without internet: the position of the report, its time and the public key that signed it (yours, or a one-time key if you chose that). It is not anonymous.\n\nThe bridges also pass other people\'s reports between the radio and the Nostr relays, always with their original author. A valid signature proves the key, not that the report is true.\n\nYou can switch every radio feature off at any time, and clear what is waiting to be published.</string>
+    <string name="native_mesh_consent_body">What goes out on the radio can be received by anyone in range, with or without internet: the position of the report, its time and the public key that signed it (yours). It is not anonymous.\n\nThe bridges also pass other people\'s reports between the radio and the Nostr relays, always with their original author. A valid signature proves the key, not that the report is true.\n\nYou can switch every radio feature off at any time, and clear what is waiting to be published.</string>
     <string name="native_mesh_consent_accept">I understand, turn it on</string>
 </resources>

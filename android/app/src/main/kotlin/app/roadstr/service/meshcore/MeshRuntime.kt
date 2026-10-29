@@ -22,12 +22,20 @@ interface NativeMeshStorage {
     fun transmitConsent(): Boolean
 
     fun setTransmitConsent(accepted: Boolean)
+
+    /** `receivedAt` of the last frame MeshCore Open's local API delivered, for its replay. */
+    fun localApiCursor(): String? = null
+
+    fun setLocalApiCursor(receivedAt: String) = Unit
 }
 
 /**
  * The pieces of the MeshCore support wired together: the radio client, the bridge and the queue of
  * radio events waiting for a relay. Nothing runs until [client] is started, and nothing is started
  * unless the user turned a radio feature on.
+ *
+ * The radio is reached over this app's BLE link or, when [localApiIdentity] is given and the user
+ * chooses it, through MeshCore Open's local API on the same phone.
  */
 class MeshRuntime(
     link: MeshCoreLink,
@@ -39,6 +47,13 @@ class MeshRuntime(
     channelName: () -> String,
     nowSeconds: () -> Long,
     scope: CoroutineScope,
+    /** The key this app pairs with MeshCore Open; null leaves only the BLE link. */
+    private val localApiIdentity: LocalApiIdentity? = null,
+    /** Keeps the local API's replay cursor. */
+    cursorStorage: NativeMeshStorage? = null,
+    clientVersion: String = "",
+    /** Which link to use until the settings screen says otherwise. BLE unless the user chose. */
+    startWithLocalApi: Boolean = false,
 ) {
     @Volatile
     private var configProvider: () -> MeshBridgeConfig = { MeshBridgeConfig() }
@@ -48,11 +63,26 @@ class MeshRuntime(
 
     val republish = MeshRepublishQueue(republishStorage, nowSeconds)
 
-    val client: MeshCoreClient = MeshCoreClient(
-        link = link,
-        scheduler = scheduler,
-        channelName = channelName,
-        onDatagram = { datagram -> bridge.onDatagram(datagram) },
+    val client: SwitchableMeshRadio = SwitchableMeshRadio(
+        scope = scope,
+        ble = MeshCoreClient(
+            link = link,
+            scheduler = scheduler,
+            channelName = channelName,
+            onDatagram = { datagram -> bridge.onDatagram(datagram) },
+        ),
+        localApi = localApiIdentity?.let { identity ->
+            LocalApiMeshClient(
+                scope = scope,
+                channelName = channelName,
+                identity = identity,
+                readCursor = { cursorStorage?.localApiCursor() },
+                writeCursor = { cursorStorage?.setLocalApiCursor(it) },
+                clientVersion = clientVersion.take(MAX_CLIENT_VERSION),
+                onDatagram = { datagram -> bridge.onDatagram(datagram) },
+            )
+        },
+        initialLocal = startWithLocalApi,
     )
 
     val bridge: RoadMeshBridge = RoadMeshBridge(
@@ -71,6 +101,13 @@ class MeshRuntime(
         roads.setInteropListener(bridge)
         runCatching { ledger.restore(ledgerStorage.read()) }
     }
+
+    /**
+     * What MeshCore Open shows when it asks to allow this app, so the user can compare the two.
+     * Reads the key store: call it off the main thread.
+     */
+    fun localApiFingerprint(): String? =
+        localApiIdentity?.let { identity -> runCatching { LocalApiIdentity.fingerprint(identity.publicKey()) }.getOrNull() }
 
     /** Saves what the radio has carried, so a restart does not put the same events on the air again. */
     fun persistLedger() {
@@ -94,5 +131,6 @@ class MeshRuntime(
 
     private companion object {
         const val MAX_PERSISTED_LEDGER = 1_000
+        const val MAX_CLIENT_VERSION = 32
     }
 }
