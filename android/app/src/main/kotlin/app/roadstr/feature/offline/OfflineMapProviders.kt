@@ -37,12 +37,16 @@ data class OfflineProviderCatalog(
     val loadedFromCache: Boolean,
 )
 
-/** Loads the official Geofabrik hierarchy and turns its terminal Shortbread
- * extracts into lazy artifacts. A package is probed again immediately before
- * installation, so a missing extract never becomes a fake download. */
+/** Loads the official Geofabrik hierarchy and turns the areas that really have
+ * a Shortbread extract into lazy artifacts. A package is probed again
+ * immediately before installation, so a missing extract never becomes a fake
+ * download. */
 class OfflineMapProviderClient(
     cacheDirectory: File,
     private val transport: OfflinePackageDownloadTransport,
+    /** Geofabrik area ids without a Shortbread extract, one per line, as written by
+     * tools/offline_packages/probe_geofabrik_shortbread.py. */
+    private val missingShortbread: () -> InputStream? = { null },
     private val bundledPlaces: () -> InputStream? = { null },
 ) {
     private val cacheFile = File(cacheDirectory, "geofabrik-index-v1.json")
@@ -146,16 +150,33 @@ class OfflineMapProviderClient(
             }
             return null
         }
-        val downloadableLeaves = features.filter { byParent[it.rawId].isNullOrEmpty() && it.pbfUrl != null }
-        val leavesByCountry = downloadableLeaves.groupBy(::countryIso)
+        val missing = missingShortbread()?.use(::readMissing).orEmpty()
+        val downloadable = downloadableAreas(byParent, missing)
+        val downloadableByCountry = downloadable.groupBy(::countryIso)
+        // A region inside an area that is downloaded whole (a Czech kraj, an
+        // English county) is served by that area's package.
+        val coveredBy = buildMap<String, String> {
+            fun mark(feature: ProviderFeature, owner: String) {
+                byParent[feature.rawId].orEmpty().forEach { put(it.rawId, owner); mark(it, owner) }
+            }
+            downloadable.forEach { mark(it, it.rawId) }
+        }
         val places = bundledPlaces()?.use(::readPlaces) ?: BundledPlaces(emptyMap(), emptyList())
         val citiesByCountry = places.cities.groupBy { it.countryCode }
 
-        fun packageAreaFor(city: BundledCity): String? = leavesByCountry[city.countryCode]
-            .orEmpty()
+        // The real outline, not just the bounding box: England's box reaches
+        // over Northern Ireland, whose towns are not in England's file.
+        fun smallestCovering(areas: List<ProviderFeature>, city: BundledCity): ProviderFeature? = areas
             .filter { it.bounds.contains(city.latitude, city.longitude) }
+            .filter { covers(it.geometry, city.latitude, city.longitude) }
             .minByOrNull { it.bounds.area }
-            ?.let { stableIds.getValue(it.rawId) }
+
+        // Some places sit in an area filed under another country or none:
+        // Northern Ireland with Ireland, the Canaries under Africa.
+        fun packageAreaFor(city: BundledCity): String? =
+            (smallestCovering(downloadableByCountry[city.countryCode].orEmpty(), city)
+                ?: smallestCovering(downloadable, city))
+                ?.let { stableIds.getValue(it.rawId) }
 
         fun cityId(city: BundledCity): String = when (city.countryCode to city.asciiName.lowercase()) {
             "it" to "rimini" -> "it-rimini"
@@ -227,6 +248,7 @@ class OfflineMapProviderClient(
                 kind = kind,
                 children = children,
                 aliases = listOf(feature.rawId).filterNot { it == feature.name },
+                packageAreaIds = coveredBy[feature.rawId]?.let { setOf(stableIds.getValue(it)) }.orEmpty(),
             )
             return if (kind == OfflineCatalogNode.Kind.Country) addPlaces(node) else node
         }
@@ -252,7 +274,7 @@ class OfflineMapProviderClient(
                 top["australia-oceania"]?.let(::build)?.copy(id = "oceania", name = "Oceania"),
             ),
         )
-        val artifacts = downloadableLeaves.map { feature ->
+        val artifacts = downloadable.map { feature ->
             val catalogId = stableIds.getValue(feature.rawId)
             OfflinePackageArtifact(
                 id = packageId(feature.rawId),
@@ -284,6 +306,66 @@ class OfflineMapProviderClient(
             loadedFromCache = fromCache,
         )
     }
+
+    /**
+     * The areas a download can really use. Geofabrik does not publish Shortbread
+     * at one level of its hierarchy: the Czech Republic has one file and its
+     * regions none, Poland one per voivodeship and none for the whole country.
+     * Finer areas win when every child has a file; otherwise an area that has
+     * its own file is offered whole. Continents are never one download.
+     */
+    private fun downloadableAreas(
+        byParent: Map<String?, List<ProviderFeature>>,
+        missing: Set<String>,
+    ): List<ProviderFeature> {
+        fun hasFile(feature: ProviderFeature) = feature.pbfUrl != null && feature.rawId !in missing
+        fun cover(feature: ProviderFeature): List<ProviderFeature> {
+            val children = byParent[feature.rawId].orEmpty()
+            if (children.isEmpty()) return if (hasFile(feature)) listOf(feature) else emptyList()
+            val parts = children.map(::cover)
+            val whole = feature.parentId != null && hasFile(feature)
+            if (whole && parts.any { it.isEmpty() }) return listOf(feature)
+            return parts.flatten()
+        }
+        return byParent[null].orEmpty().flatMap(::cover)
+    }
+
+    /** Even-odd test over every ring of a GeoJSON (Multi)Polygon, so holes need no
+     * special case. An area without a usable outline is judged by its box alone. */
+    private fun covers(geometry: Map<*, *>?, latitude: Double, longitude: Double): Boolean {
+        val rings = mutableListOf<List<Pair<Double, Double>>>()
+        fun collect(value: Any?) {
+            val list = value as? List<*> ?: return
+            val point = list.firstOrNull() as? List<*>
+            if (point?.firstOrNull() is Number) rings += ringOf(list) else list.forEach(::collect)
+        }
+        collect(geometry?.get("coordinates"))
+        if (rings.none { it.size >= 3 }) return true
+        return rings.sumOf { crossings(it, latitude, longitude) } % 2 == 1
+    }
+
+    private fun ringOf(points: List<*>): List<Pair<Double, Double>> = points.mapNotNull { point ->
+        val pair = point as? List<*> ?: return@mapNotNull null
+        val longitude = (pair.getOrNull(0) as? Number)?.toDouble() ?: return@mapNotNull null
+        val latitude = (pair.getOrNull(1) as? Number)?.toDouble() ?: return@mapNotNull null
+        longitude to latitude
+    }
+
+    private fun crossings(ring: List<Pair<Double, Double>>, latitude: Double, longitude: Double): Int {
+        var count = 0
+        for (index in ring.indices) {
+            val (lonA, latA) = ring[index]
+            val (lonB, latB) = ring[(index + 1) % ring.size]
+            if ((latA > latitude) == (latB > latitude)) continue
+            if (longitude < lonA + (latitude - latA) * (lonB - lonA) / (latB - latA)) count++
+        }
+        return count
+    }
+
+    private fun readMissing(input: InputStream): Set<String> =
+        input.bufferedReader(Charsets.UTF_8).useLines { lines ->
+            lines.map(String::trim).filter { it.isNotEmpty() && !it.startsWith("#") }.toSet()
+        }
 
     private fun parseFeature(value: Any?): ProviderFeature? {
         val feature = value as? Map<*, *> ?: return null
