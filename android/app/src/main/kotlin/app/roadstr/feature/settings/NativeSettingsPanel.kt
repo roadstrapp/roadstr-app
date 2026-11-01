@@ -846,6 +846,7 @@ private fun MeshStatusLine(mesh: NativeSettingsMeshStatus) {
         NativeSettingsMeshState.Problem -> stringResource(meshProblemText(mesh.problem))
         NativeSettingsMeshState.Connecting -> stringResource(R.string.native_mesh_status_connecting)
         NativeSettingsMeshState.AwaitingApproval -> stringResource(R.string.native_mesh_local_status_approval)
+        NativeSettingsMeshState.AwaitingChannel -> stringResource(R.string.native_mesh_local_status_channel)
         NativeSettingsMeshState.ChannelMissing -> stringResource(R.string.native_mesh_status_channel_missing)
         NativeSettingsMeshState.Ready -> stringResource(R.string.native_mesh_status_ready)
         else -> stringResource(if (mesh.localApi) R.string.native_mesh_local_status_idle else R.string.native_mesh_status_idle)
@@ -896,7 +897,9 @@ private fun MeshToggles(values: NativeSettingsInput, onAction: (NativeSettingsUi
 private fun MeshActions(mesh: NativeSettingsMeshStatus, onAction: (NativeSettingsUiAction) -> Unit) {
     // Approving, the API switch and the radio itself are all in MeshCore Open: one tap away.
     if (mesh.localApi && mesh.state != NativeSettingsMeshState.Ready) {
-        val text = if (mesh.state == NativeSettingsMeshState.AwaitingApproval) {
+        val waiting = mesh.state == NativeSettingsMeshState.AwaitingApproval ||
+            mesh.state == NativeSettingsMeshState.AwaitingChannel
+        val text = if (waiting) {
             R.string.native_mesh_local_allow
         } else {
             R.string.native_mesh_local_open
