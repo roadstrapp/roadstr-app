@@ -85,6 +85,9 @@ sealed interface MeshCoreState {
 
     data object Handshaking : MeshCoreState
 
+    /** MeshCore Open asks the user whether to add the shared channel, and waits for the answer. */
+    data object AwaitingChannel : MeshCoreState
+
     /** The radio works, but the shared Roadstr channel is not on it yet. */
     data class ChannelMissing(val device: MeshCoreDevice) : MeshCoreState
 
