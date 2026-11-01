@@ -43,7 +43,8 @@ class LocalApiMeshClient(
     private val clientName: String = "Roadstr",
     private val clientVersion: String = "",
     private val url: String = DEFAULT_URL,
-    private val dataType: Int = MeshCoreCompanionProtocol.ROADSTR_DEVELOPMENT_DATA_TYPE,
+    private val sendDataType: Int = MeshCoreCompanionProtocol.ROADSTR_SEND_DATA_TYPE,
+    private val receiveDataTypes: Set<Int> = MeshCoreCompanionProtocol.ROADSTR_RECEIVE_DATA_TYPES,
     private val http: OkHttpClient = defaultHttp(),
     private val retryBaseMillis: Long = 2_000,
     private val retryMaxMillis: Long = 60_000,
@@ -104,7 +105,7 @@ class LocalApiMeshClient(
         if (payload.isEmpty() || payload.size > MAX_PAYLOAD) return onResult(MeshCoreSendResult.TooLarge)
         val params = linkedMapOf<String, Any?>(
             "channel" to channelName(),
-            "dataType" to dataType,
+            "dataType" to sendDataType,
             "payload" to Base64.getEncoder().encodeToString(payload),
         )
         scope.launch {
@@ -285,7 +286,7 @@ class LocalApiMeshClient(
             val params = linkedMapOf<String, Any?>(
                 "events" to listOf("channel.data"),
                 "channel" to channelName(),
-                "dataTypes" to listOf(dataType),
+                "dataTypes" to receiveDataTypes.toList(),
             )
             runCatching { readCursor() }.getOrNull()?.takeIf { it.isNotBlank() }?.let { params["since"] = it }
             val id = synchronized(lock) { ++nextId }
@@ -321,9 +322,12 @@ class LocalApiMeshClient(
             val event = message["event"] as? Map<String, Any?> ?: return
             if (event["type"] != "channel.data") return
             if (event["channel"] != channelName()) return
-            if ((event["dataType"] as? Number)?.toInt() != dataType) return
+            if ((event["dataType"] as? Number)?.toInt() !in receiveDataTypes) return
             val payload = runCatching { Base64.getDecoder().decode(event["payload"] as String) }.getOrNull() ?: return
-            onDatagram(MeshCoreDatagram(payload, snrDb = (event["snrDb"] as? Number)?.toDouble() ?: 0.0, flooded = true))
+            // Null for a direct path or our own send; a value outside a 6-bit count is not a hop count.
+            val hops = (event["hops"] as? Number)?.toInt()?.takeIf { it in 0..MAX_HOPS }
+            val snrDb = (event["snrDb"] as? Number)?.toDouble() ?: 0.0
+            onDatagram(MeshCoreDatagram(payload, snrDb = snrDb, flooded = true, hops = hops))
             // `since` is inclusive: the last frame comes back once more and the bridge drops it.
             (event["receivedAt"] as? String)?.takeIf { it.length <= MAX_TIMESTAMP }?.let { runCatching { writeCursor(it) } }
         }
@@ -375,6 +379,7 @@ class LocalApiMeshClient(
         private const val MAX_NONCE = 128
         private const val MAX_NAME = 64
         private const val MAX_TIMESTAMP = 64
+        private const val MAX_HOPS = 63
 
         private fun defaultHttp(): OkHttpClient = OkHttpClient.Builder()
             .pingInterval(20, TimeUnit.SECONDS)

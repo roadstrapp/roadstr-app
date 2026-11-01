@@ -69,6 +69,18 @@ object MeshCoreCompanionProtocol {
      */
     const val ROADSTR_DEVELOPMENT_DATA_TYPE = 0xFF52
 
+    /** "Road Events", requested from MeshCore in a pull request to docs/number_allocations.md. */
+    const val ROAD_EVENTS_DATA_TYPE = 0x0150
+
+    /**
+     * The one data_type Roadstr sends. Switch to [ROAD_EVENTS_DATA_TYPE] once MeshCore's allocation
+     * PR is merged; the frame bytes stay the same.
+     */
+    const val ROADSTR_SEND_DATA_TYPE = ROADSTR_DEVELOPMENT_DATA_TYPE
+
+    /** What Roadstr accepts: the development value and the requested one, so either side can switch first. */
+    val ROADSTR_RECEIVE_DATA_TYPES: Set<Int> = setOf(ROADSTR_DEVELOPMENT_DATA_TYPE, ROAD_EVENTS_DATA_TYPE)
+
     // ── commands ────────────────────────────────────────────────────────────────────────────────
 
     fun appStart(appName: String = "Roadstr"): ByteArray {

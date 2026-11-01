@@ -7,6 +7,7 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -161,13 +162,18 @@ class MeshCoreClientTest {
         radio.receive(byteArrayOf(9), dataType = 0xFF53)       // another application
         radio.receive(byteArrayOf(8), channel = 5)              // another channel
         radio.receive(byteArrayOf(4, 5, 6), pathLength = 0xFF)  // direct
+        radio.receive(byteArrayOf(7), dataType = 0x0150, pathLength = 0x43) // Road Events, 2-byte hashes, 3 hops
 
-        assertEquals(2, datagrams.size)
+        assertEquals(3, datagrams.size)
         assertArrayEquals(byteArrayOf(1, 2, 3), datagrams[0].payload)
         assertEquals(5.5, datagrams[0].snrDb, 0.0)
         assertTrue(datagrams[0].flooded)
+        assertEquals(2, datagrams[0].hops)
         assertArrayEquals(byteArrayOf(4, 5, 6), datagrams[1].payload)
         assertFalse(datagrams[1].flooded)
+        assertNull(datagrams[1].hops)
+        assertArrayEquals(byteArrayOf(7), datagrams[2].payload)
+        assertEquals(3, datagrams[2].hops)
         // The queue is read to its end each time, and the client stays usable afterwards.
         assertEquals(MeshCoreSendResult.Sent, send(client))
     }
