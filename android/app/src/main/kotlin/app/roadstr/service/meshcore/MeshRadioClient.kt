@@ -16,4 +16,7 @@ interface MeshRadioClient : MeshRadioPort {
 
     /** The BLE client finds or creates the shared channel; the local API resolves it by name. */
     fun configureChannel(): Boolean
+
+    /** The user did something about the radio: a question held back after a "no" may be asked again. */
+    fun allowPromptsAgain() {}
 }

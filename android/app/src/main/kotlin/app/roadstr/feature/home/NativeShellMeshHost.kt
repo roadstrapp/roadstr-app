@@ -115,6 +115,8 @@ class NativeShellMeshHost internal constructor(
 
     private fun apply(key: NativeSettingsBooleanKey, value: Boolean) {
         applyBoolean(key, value)
+        // Flipping the MeshCore Open switch is the user's answer to "add #roadstr there": ask again.
+        if (key == NativeSettingsBooleanKey.MeshUseLocalApi) mesh.runtime.client.allowPromptsAgain()
         // A radio feature on, the BLE link chosen and no radio picked yet: go straight to choosing one.
         val turnedOn = value || key == NativeSettingsBooleanKey.MeshUseLocalApi
         val v = values()
@@ -217,11 +219,12 @@ fun rememberNativeShellMeshHost(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
     // The radio link lives as long as the screen is in view and a radio feature is on. MeshCore Open
-    // asks the user in its own window, so a link waiting for that answer outlives this screen: closing
-    // it would withdraw the prompt the user just switched over to answer.
+    // asks the user in its own window (to allow Roadstr, or to add the channel), so a link waiting for
+    // that answer outlives this screen: closing it would withdraw the prompt the user just switched
+    // over to answer.
     val useLocalApi = values.meshUseLocalApi && mesh.runtime.client.localApiAvailable
     val link by mesh.runtime.client.state.collectAsState()
-    val awaitingApproval = useLocalApi && link is MeshCoreState.Handshaking
+    val awaitingApproval = useLocalApi && (link is MeshCoreState.Handshaking || link is MeshCoreState.AwaitingChannel)
     LaunchedEffect(mesh, radioWanted, resumed, host.saved, useLocalApi, awaitingApproval) {
         mesh.runtime.client.setMode(useLocalApi)
         val linkReady = useLocalApi || host.saved != null

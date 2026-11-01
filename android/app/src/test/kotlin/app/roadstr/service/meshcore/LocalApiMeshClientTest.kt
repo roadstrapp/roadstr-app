@@ -62,6 +62,7 @@ class LocalApiMeshClientTest {
     private val datagrams = Collections.synchronizedList(mutableListOf<MeshCoreDatagram>())
     private val states = Collections.synchronizedList(mutableListOf<MeshCoreState>())
     private var cursor: String? = null
+    @Volatile private var now = 1_000_000L
 
     private fun client(retryBaseMillis: Long = 50, notApprovedRetryMillis: Long = 60_000) = LocalApiMeshClient(
         scope = scope,
@@ -74,6 +75,7 @@ class LocalApiMeshClientTest {
         retryBaseMillis = retryBaseMillis,
         retryMaxMillis = 400,
         notApprovedRetryMillis = notApprovedRetryMillis,
+        clock = { now },
         onDatagram = { datagrams += it },
     ).also { client -> scope.launch { client.state.collect { states += it } } }
 
@@ -116,21 +118,42 @@ class LocalApiMeshClientTest {
         fail(what)
     }
 
-    /** Hello, challenge, pair, approval and subscription; returns the subscription's params. */
-    @Suppress("UNCHECKED_CAST")
-    private fun handshake(ws: WebSocket, nonce: String = "n0nce"): Map<String, Any?> {
+    /** Hello, challenge, pair and approval; returns the subscription request that follows. */
+    private fun approve(ws: WebSocket, nonce: String = "n0nce", device: Map<String, Any?> = linkedMapOf("name" to "T-Deck")): Map<String, Any?> {
         val hello = next()
         assertEquals("hello", hello["type"])
         ws.json("type" to "pairing.challenge", "protocol" to 1, "nonce" to nonce, "known" to true)
         val pair = next()
         assertEquals("pair", pair["type"])
         assertTrue(identity.verifies("meshcore-open-pair-v1:$nonce", pair["signature"] as String))
-        ws.json("type" to "hello", "protocol" to 1, "device" to linkedMapOf("name" to "T-Deck"))
+        ws.json("type" to "hello", "protocol" to 1, "device" to device)
         val subscribe = next()
         assertEquals("events.subscribe", subscribe["method"])
+        return subscribe
+    }
+
+    /** Hello, challenge, pair, approval and subscription; returns the subscription's params. */
+    @Suppress("UNCHECKED_CAST")
+    private fun handshake(ws: WebSocket, nonce: String = "n0nce"): Map<String, Any?> {
+        val subscribe = approve(ws, nonce)
         ws.json("id" to subscribe["id"], "ok" to true, "result" to linkedMapOf("subscriptionId" to "s1"))
         return subscribe["params"] as Map<String, Any?>
     }
+
+    private fun WebSocket.unknownChannel(request: Map<String, Any?>) = json(
+        "id" to request["id"], "ok" to false,
+        "error" to linkedMapOf("code" to "unknown_channel", "message" to "no channel named #roadstr"),
+    )
+
+    private fun WebSocket.device(connected: Boolean, vararg channels: String) = json(
+        "type" to "device",
+        "device" to linkedMapOf("connected" to connected, "name" to "T-Deck"),
+        "channels" to channels.mapIndexed { index, name -> linkedMapOf("index" to index, "name" to name, "isPublic" to false) },
+    )
+
+    private fun problem(client: LocalApiMeshClient): MeshCoreProblem? = (client.state.value as? MeshCoreState.Failed)?.problem
+
+    private fun quiet(what: String) = assertNull(what, inbox.poll(300, TimeUnit.MILLISECONDS))
 
     @After
     fun tearDown() {
@@ -273,24 +296,142 @@ class LocalApiMeshClientTest {
     }
 
     @Test
-    fun `a missing channel is named and retried after a minute, not in a loop`() {
+    fun `a missing channel on a connected radio is asked for once, then subscribed`() {
         accept()
         val client = client()
         client.start()
         val ws = socket()
-        next()
-        ws.json("type" to "pairing.challenge", "protocol" to 1, "nonce" to "x", "known" to true)
-        next()
-        ws.json("type" to "hello", "protocol" to 1, "device" to linkedMapOf("name" to "T-Deck"))
+        ws.unknownChannel(approve(ws, device = linkedMapOf("name" to "T-Deck", "connected" to true)))
+        val join = next()
+        assertEquals("channels.join", join["method"])
+        assertEquals(linkedMapOf<String, Any?>("name" to "#roadstr"), join["params"])
+        eventually("waiting for the user") { client.state.value == MeshCoreState.AwaitingChannel }
+        ws.json("id" to join["id"], "ok" to true, "result" to linkedMapOf("index" to 19, "name" to "#roadstr", "created" to true))
         val subscribe = next()
-        ws.json(
-            "id" to subscribe["id"], "ok" to false,
-            "error" to linkedMapOf("code" to "unknown_channel", "message" to "no channel named #roadstr"),
-        )
-        eventually("channel missing") {
-            (client.state.value as? MeshCoreState.Failed)?.problem == MeshCoreProblem.LocalApiChannelMissing
-        }
+        assertEquals("events.subscribe", subscribe["method"])
+        ws.json("id" to subscribe["id"], "ok" to true, "result" to linkedMapOf("subscriptionId" to "s1"))
+        eventually("ready") { client.state.value is MeshCoreState.Ready }
+        // The device message that follows a join finds the subscription in place.
+        ws.device(true, "#roadstr")
+        quiet("nothing more to ask")
+        assertEquals(1, server.requestCount)
+        client.stop()
+    }
+
+    @Test
+    fun `a server without channels join leaves the channel to the user and retries after a minute`() {
+        accept()
+        val client = client()
+        client.start()
+        val ws = socket()
+        ws.unknownChannel(approve(ws))
+        val join = next()
+        assertEquals("channels.join", join["method"])
+        ws.json("id" to join["id"], "ok" to false, "error" to linkedMapOf("code" to "unknown_method", "message" to "?"))
+        eventually("channel missing") { problem(client) == MeshCoreProblem.LocalApiChannelMissing }
         assertTrue(((client.state.value as MeshCoreState.Failed).retryInMillis ?: 0) >= 60_000)
+        quiet("no loop")
+        client.stop()
+    }
+
+    @Test
+    fun `a denied join is not asked again for ten minutes, or until the user flips the switch`() {
+        accept()
+        val client = client()
+        client.start()
+        var ws = socket()
+        ws.unknownChannel(approve(ws))
+        val join = next()
+        assertEquals("channels.join", join["method"])
+        ws.json("id" to join["id"], "ok" to false, "error" to linkedMapOf("code" to "denied", "message" to "the user said no"))
+        eventually("channel missing") { problem(client) == MeshCoreProblem.LocalApiChannelMissing }
+        // A channel list without #roadstr changes nothing.
+        ws.device(true, "Public")
+        quiet("no second subscription or join on this connection")
+
+        // A new connection within the pause: subscribed, refused, and not asked.
+        client.stop()
+        accept()
+        client.start()
+        ws = socket()
+        ws.unknownChannel(approve(ws))
+        eventually("channel missing again") { problem(client) == MeshCoreProblem.LocalApiChannelMissing }
+        quiet("no join within ten minutes")
+
+        // Ten minutes later it is asked again.
+        client.stop()
+        now += 10 * 60_000L
+        accept()
+        client.start()
+        ws = socket()
+        ws.unknownChannel(approve(ws))
+        val again = next()
+        assertEquals("channels.join", again["method"])
+        ws.json("id" to again["id"], "ok" to false, "error" to linkedMapOf("code" to "denied", "message" to "no"))
+        eventually("denied again") { problem(client) == MeshCoreProblem.LocalApiChannelMissing }
+
+        // Flipping the MeshCore Open switch is an answer too.
+        client.stop()
+        client.allowPromptsAgain()
+        accept()
+        client.start()
+        ws = socket()
+        ws.unknownChannel(approve(ws))
+        assertEquals("channels.join", next()["method"])
+        client.stop()
+    }
+
+    @Test
+    fun `a radio that goes away is reported on the open socket, and its return reuses the subscription`() {
+        accept()
+        val client = client()
+        client.start()
+        val ws = socket()
+        handshake(ws)
+        eventually("ready") { client.ready }
+        ws.device(false)
+        eventually("no radio") { problem(client) == MeshCoreProblem.LocalApiNoRadio }
+        assertFalse(client.ready)
+        quiet("nothing to ask while the radio is gone")
+        assertEquals(1, server.requestCount)
+        assertTrue(synchronized(states) { states.count { it == MeshCoreState.Connecting } } <= 1)
+        // The server keeps the subscription across the radio's absence: subscribing again would double it.
+        ws.device(true, "#roadstr")
+        eventually("ready again") { client.ready }
+        quiet("no second subscription")
+        assertEquals(1, server.requestCount)
+        client.stop()
+    }
+
+    @Test
+    fun `a radio that comes back is subscribed to at once`() {
+        accept()
+        val client = client()
+        client.start()
+        val ws = socket()
+        ws.unknownChannel(approve(ws, device = linkedMapOf("name" to "", "connected" to false)))
+        eventually("no radio") { problem(client) == MeshCoreProblem.LocalApiNoRadio }
+        quiet("no join without a radio")
+        ws.device(true, "Public", "#roadstr")
+        val subscribe = next()
+        assertEquals("events.subscribe", subscribe["method"])
+        ws.json("id" to subscribe["id"], "ok" to true, "result" to linkedMapOf("subscriptionId" to "s2"))
+        eventually("ready") { client.state.value is MeshCoreState.Ready }
+        assertEquals("T-Deck", (client.state.value as MeshCoreState.Ready).device.name)
+        assertEquals(1, server.requestCount)
+        client.stop()
+    }
+
+    @Test
+    fun `without a subscription the slow retry still subscribes again, on the same socket`() {
+        accept()
+        val client = client(notApprovedRetryMillis = 200)
+        client.start()
+        val ws = socket()
+        ws.unknownChannel(approve(ws, device = linkedMapOf("name" to "T-Deck", "connected" to false)))
+        eventually("no radio") { problem(client) == MeshCoreProblem.LocalApiNoRadio }
+        assertEquals("events.subscribe", next()["method"])
+        assertEquals(1, server.requestCount)
         client.stop()
     }
 
@@ -305,10 +446,7 @@ class LocalApiMeshClientTest {
         next()
         ws.json("type" to "hello", "protocol" to 1, "device" to linkedMapOf("name" to "", "connected" to false))
         val subscribe = next()
-        ws.json(
-            "id" to subscribe["id"], "ok" to false,
-            "error" to linkedMapOf("code" to "unknown_channel", "message" to "no channel named #roadstr"),
-        )
+        ws.unknownChannel(subscribe)
         eventually("no radio") {
             (client.state.value as? MeshCoreState.Failed)?.problem == MeshCoreProblem.LocalApiNoRadio
         }
