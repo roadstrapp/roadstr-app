@@ -313,6 +313,7 @@ private fun statusOf(
             state is MeshCoreState.Off -> NativeSettingsMeshState.Idle
             // The local API signs at once and then waits for the user's answer in MeshCore Open.
             localApi && state is MeshCoreState.Handshaking -> NativeSettingsMeshState.AwaitingApproval
+            state is MeshCoreState.AwaitingChannel -> NativeSettingsMeshState.AwaitingChannel
             state is MeshCoreState.Connecting || state is MeshCoreState.Handshaking -> NativeSettingsMeshState.Connecting
             state is MeshCoreState.ChannelMissing -> NativeSettingsMeshState.ChannelMissing
             state is MeshCoreState.Ready -> NativeSettingsMeshState.Ready
