@@ -121,4 +121,10 @@ class MeshCoreCompanionProtocolTest {
     fun `the development data type is inside the range that needs no registration`() {
         assertTrue(P.ROADSTR_DEVELOPMENT_DATA_TYPE in P.FIRST_DEVELOPMENT_DATA_TYPE..0xFFFE)
     }
+
+    @Test
+    fun `sending stays on the development data type, receiving takes it and the requested one`() {
+        assertEquals(0xFF52, P.ROADSTR_SEND_DATA_TYPE)
+        assertEquals(setOf(0xFF52, 0x0150), P.ROADSTR_RECEIVE_DATA_TYPES)
+    }
 }

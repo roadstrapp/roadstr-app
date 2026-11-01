@@ -179,7 +179,7 @@ class LocalApiMeshClientTest {
         val params = handshake(socket())
         assertEquals(listOf("channel.data"), params["events"])
         assertEquals("#roadstr", params["channel"])
-        assertEquals(listOf(0xFF52L), params["dataTypes"])
+        assertEquals(listOf(0xFF52L, 0x0150L), params["dataTypes"])
         assertFalse("no cursor yet", "since" in params)
         eventually("ready") { client.state.value is MeshCoreState.Ready }
         assertEquals("T-Deck", (client.state.value as MeshCoreState.Ready).device.name)
@@ -193,22 +193,30 @@ class LocalApiMeshClientTest {
         client.start()
         val ws = socket()
         handshake(ws)
+        // Both the development data_type and the requested Road Events one are Roadstr's.
+        val types = listOf(0xFF52, 0x0150, 0xFF52)
+        val hops = listOf(2, null, 0)
         for (n in 1..3) {
             ws.json(
                 "type" to "event", "subscriptionId" to "s1",
                 "event" to linkedMapOf(
-                    "type" to "channel.data", "channel" to "#roadstr", "channelIndex" to 0, "dataType" to 0xFF52,
+                    "type" to "channel.data", "channel" to "#roadstr", "channelIndex" to 0, "dataType" to types[n - 1],
                     "payload" to Base64.getEncoder().encodeToString(byteArrayOf(n.toByte())),
-                    "receivedAt" to "2026-10-27T10:00:0${n}Z", "outgoing" to false,
+                    "receivedAt" to "2026-10-27T10:00:0${n}Z", "outgoing" to false, "hops" to hops[n - 1],
                 ),
             )
         }
+        ws.json(
+            "type" to "event", "subscriptionId" to "s1",
+            "event" to linkedMapOf("type" to "channel.data", "channel" to "#roadstr", "dataType" to 0xFF53, "payload" to "AQ=="),
+        )
         ws.json(
             "type" to "event", "subscriptionId" to "s1",
             "event" to linkedMapOf("type" to "channel.data", "channel" to "#other", "dataType" to 0xFF52, "payload" to "AQ=="),
         )
         eventually("three frames") { datagrams.size == 3 }
         assertEquals(listOf(1, 2, 3), datagrams.map { it.payload.single().toInt() })
+        assertEquals(hops, datagrams.map { it.hops })
         assertEquals("2026-10-27T10:00:03Z", cursor)
 
         client.stop()

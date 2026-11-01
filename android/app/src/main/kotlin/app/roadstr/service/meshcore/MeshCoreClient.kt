@@ -119,6 +119,8 @@ class MeshCoreDatagram(
     val payload: ByteArray,
     val snrDb: Double,
     val flooded: Boolean,
+    /** Flood hops on the way here (0: heard from the sender's radio); null when direct or not known. */
+    val hops: Int? = null,
 )
 
 /**
@@ -133,7 +135,8 @@ class MeshCoreClient(
     private val link: MeshCoreLink,
     private val scheduler: NativeScheduler,
     private val channelName: () -> String,
-    private val dataType: Int = Protocol.ROADSTR_DEVELOPMENT_DATA_TYPE,
+    private val sendDataType: Int = Protocol.ROADSTR_SEND_DATA_TYPE,
+    private val receiveDataTypes: Set<Int> = Protocol.ROADSTR_RECEIVE_DATA_TYPES,
     private val random: Random = Random(),
     private val onDatagram: (MeshCoreDatagram) -> Unit,
 ) : MeshRadioClient {
@@ -432,9 +435,11 @@ class MeshCoreClient(
     }
 
     private fun deliverLocked(data: Protocol.Inbound.ChannelData) {
-        if (data.dataType != dataType || data.channelIndex != channelIndex) return
+        if (data.dataType !in receiveDataTypes || data.channelIndex != channelIndex) return
         if (data.payload.isEmpty() || data.payload.size > Protocol.MAX_CHANNEL_DATA_PAYLOAD) return
-        val datagram = MeshCoreDatagram(data.payload, data.snrDb, data.flooded)
+        // The low six bits of a flood path length count the hops; the top two give the hash size.
+        val hops = if (data.flooded) data.pathLength and 0x3F else null
+        val datagram = MeshCoreDatagram(data.payload, data.snrDb, data.flooded, hops)
         deferred += { onDatagram(datagram) }
     }
 
@@ -452,7 +457,7 @@ class MeshCoreClient(
                 !ready || slot == null -> deferred += { onResult(MeshCoreSendResult.NotReady) }
                 payload.isEmpty() || payload.size > Protocol.MAX_CHANNEL_DATA_PAYLOAD ->
                     deferred += { onResult(MeshCoreSendResult.TooLarge) }
-                else -> sendLocked(Protocol.sendChannelData(slot, dataType, payload), attemptsLeft = SEND_ATTEMPTS, onResult)
+                else -> sendLocked(Protocol.sendChannelData(slot, sendDataType, payload), attemptsLeft = SEND_ATTEMPTS, onResult)
             }
         }
     }
