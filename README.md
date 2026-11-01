@@ -144,8 +144,8 @@ routing is deliberately out of scope ([plan](docs/kotlin-rewrite/TRANSIT_RESTORE
 ### Road reports beyond the internet
 
 MeshCore support exists but has only met a simulated radio. Next, in this order: run the hardware checklist on real radios,
-validate publishing the compatible copy on public relays, request a stable MeshCore application `data_type` (Roadstr uses a
-development value until then), and translate the newest texts, which exist in English and Italian only
+validate publishing the compatible copy on public relays, get the requested MeshCore application `data_type` `0x0150` merged (Roadstr
+sends the development value `0xFF52` and accepts both until then), and translate the newest texts, which exist in English and Italian only
 ([specification](docs/interoperability/MESHCORE_NOSTR.md)).
 
 ---
