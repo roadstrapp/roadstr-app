@@ -62,24 +62,17 @@ object MeshCoreCompanionProtocol {
     const val FIRST_DEVELOPMENT_DATA_TYPE = 0xFF00
 
     /**
-     * What Roadstr uses while there is no registered application ID: a value inside the
-     * development range (0x52 is "R"). A stable ID is requested from MeshCore by a pull request to
-     * docs/number_allocations.md once a working application can be demonstrated; until then this
-     * stays a development value and is not an official assignment.
+     * "Road Events", allocated by MeshCore in docs/number_allocations.md (meshcore-dev/MeshCore#3750).
+     * Roadbeacon uses the same value. The development value 0xFF52 used before the allocation is
+     * neither sent nor accepted any more.
      */
-    const val ROADSTR_DEVELOPMENT_DATA_TYPE = 0xFF52
-
-    /** "Road Events", requested from MeshCore in a pull request to docs/number_allocations.md. */
     const val ROAD_EVENTS_DATA_TYPE = 0x0150
 
-    /**
-     * The one data_type Roadstr sends. Switch to [ROAD_EVENTS_DATA_TYPE] once MeshCore's allocation
-     * PR is merged; the frame bytes stay the same.
-     */
-    const val ROADSTR_SEND_DATA_TYPE = ROADSTR_DEVELOPMENT_DATA_TYPE
+    /** The data_type Roadstr sends. */
+    const val ROADSTR_SEND_DATA_TYPE = ROAD_EVENTS_DATA_TYPE
 
-    /** What Roadstr accepts: the development value and the requested one, so either side can switch first. */
-    val ROADSTR_RECEIVE_DATA_TYPES: Set<Int> = setOf(ROADSTR_DEVELOPMENT_DATA_TYPE, ROAD_EVENTS_DATA_TYPE)
+    /** The data_types Roadstr accepts. */
+    val ROADSTR_RECEIVE_DATA_TYPES: Set<Int> = setOf(ROAD_EVENTS_DATA_TYPE)
 
     // ── commands ────────────────────────────────────────────────────────────────────────────────
 

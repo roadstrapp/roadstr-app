@@ -202,7 +202,7 @@ class LocalApiMeshClientTest {
         val params = handshake(socket())
         assertEquals(listOf("channel.data"), params["events"])
         assertEquals("#roadstr", params["channel"])
-        assertEquals(listOf(0xFF52L, 0x0150L), params["dataTypes"])
+        assertEquals(listOf(0x0150L), params["dataTypes"])
         assertFalse("no cursor yet", "since" in params)
         eventually("ready") { client.state.value is MeshCoreState.Ready }
         assertEquals("T-Deck", (client.state.value as MeshCoreState.Ready).device.name)
@@ -216,8 +216,7 @@ class LocalApiMeshClientTest {
         client.start()
         val ws = socket()
         handshake(ws)
-        // Both the development data_type and the requested Road Events one are Roadstr's.
-        val types = listOf(0xFF52, 0x0150, 0xFF52)
+        val types = listOf(0x0150, 0x0150, 0x0150)
         val hops = listOf(2, null, 0)
         for (n in 1..3) {
             ws.json(
@@ -235,7 +234,12 @@ class LocalApiMeshClientTest {
         )
         ws.json(
             "type" to "event", "subscriptionId" to "s1",
-            "event" to linkedMapOf("type" to "channel.data", "channel" to "#other", "dataType" to 0xFF52, "payload" to "AQ=="),
+            // the development value used before the allocation is no longer Roadstr's
+            "event" to linkedMapOf("type" to "channel.data", "channel" to "#roadstr", "dataType" to 0xFF52, "payload" to "AQ=="),
+        )
+        ws.json(
+            "type" to "event", "subscriptionId" to "s1",
+            "event" to linkedMapOf("type" to "channel.data", "channel" to "#other", "dataType" to 0x0150, "payload" to "AQ=="),
         )
         eventually("three frames") { datagrams.size == 3 }
         assertEquals(listOf(1, 2, 3), datagrams.map { it.payload.single().toInt() })
@@ -268,7 +272,7 @@ class LocalApiMeshClientTest {
         @Suppress("UNCHECKED_CAST")
         val params = request["params"] as Map<String, Any?>
         assertEquals("#roadstr", params["channel"])
-        assertEquals(0xFF52L, params["dataType"])
+        assertEquals(0x0150L, params["dataType"])
         assertEquals(134, Base64.getDecoder().decode(params["payload"] as String).size)
         ws.json("id" to request["id"], "ok" to true, "result" to linkedMapOf("queued" to true))
         assertEquals(MeshCoreSendResult.Sent, results.poll(5, TimeUnit.SECONDS))

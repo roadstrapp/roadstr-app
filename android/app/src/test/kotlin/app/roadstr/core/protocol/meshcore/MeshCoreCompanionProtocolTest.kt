@@ -58,13 +58,13 @@ class MeshCoreCompanionProtocolTest {
     @Test
     fun `a received datagram parses as the document's pseudocode does`() {
         // [1B, snr x4, r, r, channel, path_len, data_type LE, length, payload]
-        val frame = bytes(0x1B, 0xF4, 0, 0, 0x01, 0x03, 0x52, 0xFF, 0x03, 0xAA, 0xBB, 0xCC)
+        val frame = bytes(0x1B, 0xF4, 0, 0, 0x01, 0x03, 0x50, 0x01, 0x03, 0xAA, 0xBB, 0xCC)
         val parsed = P.parse(frame) as P.Inbound.ChannelData
         assertEquals(-3.0, parsed.snrDb, 0.0) // 0xF4 = -12 -> -3 dB
         assertEquals(1, parsed.channelIndex)
         assertEquals(3, parsed.pathLength)
         assertTrue(parsed.flooded)
-        assertEquals(0xFF52, parsed.dataType)
+        assertEquals(0x0150, parsed.dataType)
         assertArrayEquals(bytes(0xAA, 0xBB, 0xCC), parsed.payload)
         assertEquals(false, (P.parse(bytes(0x1B, 0, 0, 0, 0, 0xFF, 0x52, 0xFF, 0)) as P.Inbound.ChannelData).flooded)
     }
@@ -118,13 +118,8 @@ class MeshCoreCompanionProtocolTest {
     }
 
     @Test
-    fun `the development data type is inside the range that needs no registration`() {
-        assertTrue(P.ROADSTR_DEVELOPMENT_DATA_TYPE in P.FIRST_DEVELOPMENT_DATA_TYPE..0xFFFE)
-    }
-
-    @Test
-    fun `sending stays on the development data type, receiving takes it and the requested one`() {
-        assertEquals(0xFF52, P.ROADSTR_SEND_DATA_TYPE)
-        assertEquals(setOf(0xFF52, 0x0150), P.ROADSTR_RECEIVE_DATA_TYPES)
+    fun `Road Events is sent and is the only data type accepted`() {
+        assertEquals(0x0150, P.ROADSTR_SEND_DATA_TYPE)
+        assertEquals(setOf(0x0150), P.ROADSTR_RECEIVE_DATA_TYPES)
     }
 }

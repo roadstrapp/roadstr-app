@@ -123,7 +123,7 @@ class FakeMeshCoreRadio(
     }
 
     /** Queues a received datagram for the app and sends the "messages waiting" push. */
-    fun receive(payload: ByteArray, dataType: Int = P.ROADSTR_DEVELOPMENT_DATA_TYPE, channel: Int = 1, snrQuarterDb: Int = 22, pathLength: Int = 2) {
+    fun receive(payload: ByteArray, dataType: Int = P.ROAD_EVENTS_DATA_TYPE, channel: Int = 1, snrQuarterDb: Int = 22, pathLength: Int = 2) {
         outbox += channelData(payload, dataType, channel, snrQuarterDb, pathLength)
         emit(byteArrayOf(P.PACKET_MESSAGES_WAITING.toByte()))
     }
