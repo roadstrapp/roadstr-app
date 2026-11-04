@@ -20,16 +20,13 @@
 
 ## Data type
 
-The frame bytes and the `#roadstr` channel are unchanged; only the MeshCore `data_type` that labels
-the datagrams is moving to a registered value. MeshCore keeps its registry in
-[`docs/number_allocations.md`](https://github.com/meshcore-dev/MeshCore/blob/main/docs/number_allocations.md);
-`0xFF00–0xFFFF` is the development range. **`0x0150` "Road Events"** is requested there in a pull
-request.
-
-- Until it is merged, Roadstr **sends `0xFF52`** and **receives both `0xFF52` and `0x0150`**, on the
-  BLE link and through MeshCore Open (subscribing with `dataTypes: [0xFF52, 0x0150]`).
-- Once it is merged, the send value becomes `0x0150` (one constant,
-  `MeshCoreCompanionProtocol.ROADSTR_SEND_DATA_TYPE`); `0xFF52` keeps being accepted for a while.
+Road Events datagrams use the MeshCore `data_type` **`0x0150` "Road Events"**, allocated in MeshCore's
+registry,
+[`docs/number_allocations.md`](https://github.com/meshcore-dev/MeshCore/blob/main/docs/number_allocations.md)
+([meshcore-dev/MeshCore#3750](https://github.com/meshcore-dev/MeshCore/pull/3750)). Roadstr sends
+and accepts only `0x0150`, on the BLE link and through MeshCore Open (subscribing with
+`dataTypes: [0x0150]`). The development value `0xFF52` used before the allocation is no longer sent
+or accepted. The frame bytes and the `#roadstr` channel did not change.
 
 The payload is the frame specified in Roadbeacon's
 [nips/road-events.md](https://github.com/jooray/roadbeacon/blob/main/nips/road-events.md); it is not
@@ -55,7 +52,7 @@ saved BLE radio is never switched over.
   fingerprint in its settings. A close with code 4003 (denied or revoked) is reported as "not
   allowed" and retried after a minute.
 - **Traffic:** after every approved `hello`, `events.subscribe` for `channel.data` on `#roadstr` with
-  `dataTypes` `[0xFF52, 0x0150]`; frames are sent with `channel.sendData`, `dataType` `0xFF52` (at
+  `dataTypes` `[0x0150]`; frames are sent with `channel.sendData`, `dataType` `0x0150` (at
   most 163 bytes; see [Data type](#data-type)). Messages are handled one at a time, in order. The
   `hops` of a `channel.data` event (flood hop count, `null` for a direct path or an own send) is kept
   with the received frame.
@@ -467,10 +464,10 @@ feature here. The radio is configured only on explicit request, into the first e
 
 ### 7.3 `data_type`
 
-> Amended: see [Data type](#data-type) at the top. `0x0150` is now requested; Roadstr sends
-> `0xFF52` and accepts both until the allocation is merged.
+> Amended: see [Data type](#data-type) at the top. `0x0150` "Road Events" is now allocated and is
+> the only value Roadstr sends and accepts; the text below describes the earlier development value.
 
-`data_type` identifies an *application*, not a payload format. Roadstr currently sends **`0xFF52`**, inside
+`data_type` identifies an *application*, not a payload format. Roadstr used to send **`0xFF52`**, inside
 the development range `0xFF00–0xFFFE` that MeshCore reserves for testing and needs no registration. It is not
 an assignment. To obtain a stable one (procedure from `docs/number_allocations.md`): once a working
 application can be demonstrated on real hardware, open a pull request against `meshcore-dev/MeshCore` adding a
@@ -606,8 +603,6 @@ end-to-end radio claim is made. To close the gap, on at least one radio per supp
 * **Older Roadstr clients show duplicates** when the compatible copy is published (§6). Off by default.
 * **A reference-client bug is tolerated, not fixed**: frames from its truncating encoder are recoverable only
   while the bridge's recovery budget lasts.
-* The stable `data_type` is not registered yet (`0x0150` is requested); until it is, implementations send
-  `0xFF52` and accept both, see [Data type](#data-type).
 * A public hashtag channel is open to anyone; the limits bound what a flooder can make Roadstr do, not what
   they can do to the channel. LoRa duty cycle is regional; the defaults are conservative but unproven.
 * The Android BLE link has not met real hardware (MTU negotiation, bonding prompts and vendor quirks are the

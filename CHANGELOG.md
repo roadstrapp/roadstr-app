@@ -14,6 +14,9 @@ All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stab
 - **New MeshCore frame.** A report is 117 bytes plus its comment (at most 46 bytes are written, so a frame never exceeds the 163
   bytes a companion link carries; up to 48 are read), a vote is a self-contained 134 bytes. The codec runs the shared conformance
   vectors in `docs/interoperability/vectors/road-events-v1.json`. The old 110-byte frame is not accepted.
+- **MeshCore datagrams use the allocated `data_type` `0x0150` "Road Events"**
+  ([meshcore-dev/MeshCore#3750](https://github.com/meshcore-dev/MeshCore/pull/3750)), sent and accepted; the development value
+  `0xFF52` is no longer used. The frame bytes are unchanged.
 - Own reports and votes can go on the radio directly ("Send my reports by radio"); they no longer depend on the compatible copy.
 - **Votes now decide how long every report stays on the map**, not only the ones heard over the radio. A "still there" keeps a
   report alive for its category's lifetime counted from the vote (a police report confirmed at hour five is still shown), a "no longer

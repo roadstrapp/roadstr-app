@@ -80,7 +80,7 @@ class MeshCoreClientTest {
     }
 
     @Test
-    fun `a datagram is sent as a flood on the roadstr channel with the development data type`() {
+    fun `a datagram is sent as a flood on the roadstr channel with the Road Events data type`() {
         radio.configureRoadstrChannel(3)
         val client = client()
         client.start()
@@ -88,7 +88,7 @@ class MeshCoreClientTest {
         assertEquals(MeshCoreSendResult.Sent, send(client, byteArrayOf(0xA1.toByte(), 0xB2.toByte(), 0xC3.toByte())))
         // 3E, channel, FF (flood), data_type little endian, payload: the documented layout.
         assertArrayEquals(
-            byteArrayOf(0x3E, 0x03, 0xFF.toByte(), 0x52, 0xFF.toByte(), 0xA1.toByte(), 0xB2.toByte(), 0xC3.toByte()),
+            byteArrayOf(0x3E, 0x03, 0xFF.toByte(), 0x50, 0x01, 0xA1.toByte(), 0xB2.toByte(), 0xC3.toByte()),
             radio.sentDatagrams.single(),
         )
     }
@@ -160,9 +160,10 @@ class MeshCoreClientTest {
         radio.receive(byteArrayOf(1, 2, 3), snrQuarterDb = 22, pathLength = 2)
         radio.receiveText()
         radio.receive(byteArrayOf(9), dataType = 0xFF53)       // another application
+        radio.receive(byteArrayOf(9), dataType = 0xFF52)       // the pre-allocation development value
         radio.receive(byteArrayOf(8), channel = 5)              // another channel
         radio.receive(byteArrayOf(4, 5, 6), pathLength = 0xFF)  // direct
-        radio.receive(byteArrayOf(7), dataType = 0x0150, pathLength = 0x43) // Road Events, 2-byte hashes, 3 hops
+        radio.receive(byteArrayOf(7), pathLength = 0x43)       // 2-byte hashes, 3 hops
 
         assertEquals(3, datagrams.size)
         assertArrayEquals(byteArrayOf(1, 2, 3), datagrams[0].payload)
