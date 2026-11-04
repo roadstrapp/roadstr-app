@@ -181,6 +181,9 @@ enum class NativeSettingsMeshState {
     /** MeshCore Open is showing its "Allow Roadstr?" prompt and waits for the user. */
     AwaitingApproval,
 
+    /** MeshCore Open is asking whether to add the #roadstr channel to the radio. */
+    AwaitingChannel,
+
     /** The radio works but does not have the Roadstr channel yet. */
     ChannelMissing,
     Ready,
