@@ -65,6 +65,10 @@ class SwitchableMeshRadio(
 
     override fun configureChannel(): Boolean = current().configureChannel()
 
+    override fun allowPromptsAgain() {
+        localApi?.allowPromptsAgain()
+    }
+
     /** Goes to the link active now; a result from a link switched away from still reaches [onResult]. */
     override fun send(payload: ByteArray, onResult: (MeshCoreSendResult) -> Unit) = current().send(payload, onResult)
 

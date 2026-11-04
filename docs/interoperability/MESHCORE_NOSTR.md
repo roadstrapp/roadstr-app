@@ -15,15 +15,33 @@
 > removed; they are in the git history.
 >
 > What still applies from this document: the bridge design (§5, §8), the privacy notes (§9), the
-> MeshCore channel and `data_type` (§7.2, §7.3) and the hardware checklist (§12), read with the new
-> frame sizes.
+> MeshCore channel (§7.2) and the hardware checklist (§12), read with the new frame sizes, and
+> §7.3 as amended by [the data type plan](#data-type) below.
+
+## Data type
+
+The frame bytes and the `#roadstr` channel are unchanged; only the MeshCore `data_type` that labels
+the datagrams is moving to a registered value. MeshCore keeps its registry in
+[`docs/number_allocations.md`](https://github.com/meshcore-dev/MeshCore/blob/main/docs/number_allocations.md);
+`0xFF00–0xFFFF` is the development range. **`0x0150` "Road Events"** is requested there in a pull
+request.
+
+- Until it is merged, Roadstr **sends `0xFF52`** and **receives both `0xFF52` and `0x0150`**, on the
+  BLE link and through MeshCore Open (subscribing with `dataTypes: [0xFF52, 0x0150]`).
+- Once it is merged, the send value becomes `0x0150` (one constant,
+  `MeshCoreCompanionProtocol.ROADSTR_SEND_DATA_TYPE`); `0xFF52` keeps being accepted for a while.
+
+The payload is the frame specified in Roadbeacon's
+[nips/road-events.md](https://github.com/jooray/roadbeacon/blob/main/nips/road-events.md); it is not
+restated here.
 
 ## Current transport option: MeshCore Open's local API
 
 A MeshCore companion radio has one BLE connection. Instead of taking it over, Roadstr can use the
-radio through [MeshCore Open](https://github.com/jooray/meshcore-open/tree/feat/local-api), which
+radio through [MeshCore Open](https://github.com/jooray/meshcore-open/tree/pr/local-api), which
 keeps the connection and offers it to other apps on the same phone
-([LOCAL_API.md](https://github.com/jooray/meshcore-open/blob/feat/local-api/documentation/LOCAL_API.md)).
+([LOCAL_API.md](https://github.com/jooray/meshcore-open/blob/pr/local-api/documentation/LOCAL_API.md),
+protocol 1).
 Opt-in: *Settings → MeshCore → Use the radio through MeshCore Open*; BLE stays the default, and a
 saved BLE radio is never switched over.
 
@@ -37,8 +55,29 @@ saved BLE radio is never switched over.
   fingerprint in its settings. A close with code 4003 (denied or revoked) is reported as "not
   allowed" and retried after a minute.
 - **Traffic:** after every approved `hello`, `events.subscribe` for `channel.data` on `#roadstr` with
-  `data_type` `0xFF52`; frames are sent with `channel.sendData` (at most 163 bytes). Messages are
-  handled one at a time, in order.
+  `dataTypes` `[0xFF52, 0x0150]`; frames are sent with `channel.sendData`, `dataType` `0xFF52` (at
+  most 163 bytes; see [Data type](#data-type)). Messages are handled one at a time, in order. The
+  `hops` of a `channel.data` event (flood hop count, `null` for a direct path or an own send) is kept
+  with the received frame.
+- **Radio state:** `hello.device.connected` gives the state at connect time; after that MeshCore
+  Open sends an unsolicited `device` message whenever the radio becomes usable or stops being usable
+  (connected *and* channels loaded) or its channel list changes. With `connected: false` Roadstr
+  shows "MeshCore Open is not connected to a radio" and keeps the socket open. With
+  `connected: true` it subscribes again at once, but only when the connection holds no subscription
+  (the earlier one failed): subscriptions survive a radio reconnect on the server, and a second one
+  would deliver every frame twice. For servers that never send `device`, a refused subscription is
+  retried after a minute on the same socket.
+- **Missing channel:** `events.subscribe` answers `unknown_channel` both when the channel is missing
+  and when no radio is connected; `device.connected` tells the two apart. With the radio connected,
+  Roadstr calls `channels.join` with `{"name": "#roadstr"}` once per connection (the key is derived
+  from the name, so no secret is sent). MeshCore Open may ask the user, which takes up to two
+  minutes, so this request waits 150 s and the link is kept up meanwhile, even with Roadstr in the
+  background; settings say that MeshCore Open is waiting for the user. On success Roadstr
+  subscribes. On `denied` (the user said no or did not answer) it shows "add #roadstr in MeshCore
+  Open" and does not ask again for ten minutes, or until the user flips the MeshCore Open switch.
+  `not_connected` waits for the radio; `invalid_params`, `no_free_slot`, `channel_conflict`,
+  `rate_limited`, `pairing_pending` or a server without the method leave the channel to the user.
+  Another refusal of the subscription closes the socket and retries after a minute.
 - **Replay:** the subscription carries `since` = the `receivedAt` of the last frame processed, as
   the server stamped it. `since` is inclusive, so that frame comes back once and is dropped as a
   duplicate.
@@ -428,6 +467,9 @@ feature here. The radio is configured only on explicit request, into the first e
 
 ### 7.3 `data_type`
 
+> Amended: see [Data type](#data-type) at the top. `0x0150` is now requested; Roadstr sends
+> `0xFF52` and accepts both until the allocation is merged.
+
 `data_type` identifies an *application*, not a payload format. Roadstr currently sends **`0xFF52`**, inside
 the development range `0xFF00–0xFFFE` that MeshCore reserves for testing and needs no registration. It is not
 an assignment. To obtain a stable one (procedure from `docs/number_allocations.md`): once a working
@@ -564,7 +606,8 @@ end-to-end radio claim is made. To close the gap, on at least one radio per supp
 * **Older Roadstr clients show duplicates** when the compatible copy is published (§6). Off by default.
 * **A reference-client bug is tolerated, not fixed**: frames from its truncating encoder are recoverable only
   while the bridge's recovery budget lasts.
-* The stable `data_type` is not registered; implementations must agree on `0xFF52` or a configured value.
+* The stable `data_type` is not registered yet (`0x0150` is requested); until it is, implementations send
+  `0xFF52` and accept both, see [Data type](#data-type).
 * A public hashtag channel is open to anyone; the limits bound what a flooder can make Roadstr do, not what
   they can do to the channel. LoRa duty cycle is regional; the defaults are conservative but unproven.
 * The Android BLE link has not met real hardware (MTU negotiation, bonding prompts and vendor quirks are the
