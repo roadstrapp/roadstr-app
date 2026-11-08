@@ -1,3 +1,9 @@
 repository: https://github.com/roadstrapp/roadstr-app/
+images:
+  - fastlane/metadata/android/en-US/images/phoneScreenshots/01-map.png
+  - fastlane/metadata/android/en-US/images/phoneScreenshots/02-route.png
+  - fastlane/metadata/android/en-US/images/phoneScreenshots/03-navigation.png
+  - fastlane/metadata/android/en-US/images/phoneScreenshots/04-place.png
 metadata_sources:
-    - github
+  - fastlane
+  - github
