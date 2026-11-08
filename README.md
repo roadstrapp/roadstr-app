@@ -8,6 +8,17 @@ It combines real-time GPS turn-by-turn navigation with community-sourced traffic
 
 See the complete migration and release history in [CHANGELOG.md](CHANGELOG.md).
 
+## Screenshots
+
+Rome, with a simulated position on the Colosseum and a drive to St. Peter's Basilica. Zapstore reads these from `fastlane/metadata/android/en-US/images/phoneScreenshots`.
+
+<p>
+<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/01-map.png" width="23%" alt="The map, with the cursor inside the Colosseum">
+<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/02-route.png" width="23%" alt="Driving route from the Colosseum to St. Peter's, 11 minutes">
+<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/03-navigation.png" width="23%" alt="Turn-by-turn guidance along Viale Aventino">
+<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/04-place.png" width="23%" alt="Place card for St. Peter's Basilica">
+</p>
+
 ---
 
 ## What 1.0 changed
