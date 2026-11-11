@@ -14,7 +14,7 @@ Repo: https://github.com/roadstrapp/roadstr-app.git
 Builds:
   - versionName: 0.5.11
     versionCode: 2050
-    commit: c1eb02f0c26cf6e8e391bcaccfae55a739483dfb
+    commit: 5af64dffa4f058411c6e9b46ef9486df8a269f2d
     sudo:
       - apt-get update
       - apt-get install -y build-essential cmake
@@ -47,7 +47,7 @@ Builds:
 
   - versionName: 1.0.0
     versionCode: 2060
-    commit: 59e053c17c6afcff69a4bc98c128824fe63ce957
+    commit: 4586dbdb6de55eb42ed7d59d9f047737d83e90d7
     sudo:
       - apt-get update
       - apt-get install -y build-essential cmake
@@ -80,7 +80,7 @@ Builds:
 
   - versionName: 1.1.0
     versionCode: 2062
-    commit: ff60d0c1cab6eb1ad127a0bde8a3f63c8e14f14d
+    commit: 0acc92471aa0f66ec784e7d10209be51378278b6
     sudo:
       - apt-get update
       - apt-get install -y build-essential cmake
@@ -113,7 +113,7 @@ Builds:
 
   - versionName: 1.2.0
     versionCode: 2063
-    commit: ce19d85284221df176e99ddfc347bf0a94c8ed67
+    commit: af05376bc43e8a1ac4e1495a5f4181cdf1608caf
     sudo:
       - apt-get update
       - apt-get install -y build-essential cmake
@@ -150,7 +150,7 @@ Builds:
 
   - versionName: 1.2.1
     versionCode: 2064
-    commit: b04eee9f25cd79697a72323103bc715a841cf813
+    commit: 7b974e0498c3721c8c5d49108332642a31e253fa
     sudo:
       - apt-get update
       - apt-get install -y build-essential cmake
@@ -187,7 +187,7 @@ Builds:
 
   - versionName: 1.2.2
     versionCode: 2065
-    commit: 60b7ce97e839487e8ad23c4393defde5147b578c
+    commit: de407188a6ecb0f967b460d9db383033fb3b8f73
     sudo:
       - apt-get update
       - apt-get install -y build-essential cmake
@@ -224,13 +224,49 @@ Builds:
 
   - versionName: 1.2.3
     versionCode: 2066
-    commit: 043abd770ce6d3e6ac83be08dd727782b44ccc6d
+    commit: 870f447ad11ed963d571fa9ba42364408a9b952e
     sudo:
       - apt-get update
       - apt-get install -y build-essential cmake
     output: build/app/outputs/flutter-apk/app-release.apk
     srclibs:
       - flutter@3.44.3
+    rm:
+      - android/app/src/main/jniLibs/arm64-v8a/libespeak-ng.so
+      - android/app/src/main/jniLibs/armeabi-v7a/libespeak-ng.so
+      - android/app/src/main/jniLibs/x86_64/libespeak-ng.so
+      - assets/espeak-ng-data.tar.gz
+    prebuild:
+      - export PUB_CACHE=$(pwd)/.pub-cache
+      - ROADSTR_ANDROID_NDK=$$NDK$$ bash tools/build_espeak_android.sh
+      - $$flutter$$/bin/flutter config --no-analytics
+      - $$flutter$$/bin/flutter precache --no-web --no-linux --no-windows --no-macos
+        --no-fuchsia --android
+      - $$flutter$$/bin/flutter pub get --enforce-lockfile
+    scanignore:
+      - android/app/src/main/jniLibs/arm64-v8a/libespeak-ng.so
+      - android/app/src/main/jniLibs/armeabi-v7a/libespeak-ng.so
+      - android/app/src/main/jniLibs/x86_64/libespeak-ng.so
+      - assets/espeak-ng-data.tar.gz
+      - android/app/src/main/jniLibs/arm64-v8a/libc++_shared.so
+      - android/app/src/main/jniLibs/arm64-v8a/libofflinestt_armv8.so
+      - android/app/src/main/jniLibs/arm64-v8a/libofflinestt_cpu_probe.so
+      - android/app/src/main/jniLibs/arm64-v8a/libofflinestt_dotprod.so
+    scandelete:
+      - .pub-cache
+    build:
+      - export PUB_CACHE=$(pwd)/.pub-cache
+      - $$flutter$$/bin/flutter build apk --release
+    ndk: 27.1.12297006
+  - versionName: 1.3.0
+    versionCode: 2067
+    commit: 6aa42b330822638cf0614eccf71579921c890c54
+    sudo:
+      - apt-get update
+      - apt-get install -y build-essential cmake
+    output: build/app/outputs/flutter-apk/app-release.apk
+    srclibs:
+      - flutter@3.47.9
     rm:
       - android/app/src/main/jniLibs/arm64-v8a/libespeak-ng.so
       - android/app/src/main/jniLibs/armeabi-v7a/libespeak-ng.so
