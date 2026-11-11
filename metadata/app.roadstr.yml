@@ -260,7 +260,7 @@ Builds:
     ndk: 27.1.12297006
   - versionName: 1.3.0
     versionCode: 2067
-    commit: 6aa42b330822638cf0614eccf71579921c890c54
+    commit: 6f5101cc842f39df03ba54b630a3b0a6a44859a2
     sudo:
       - apt-get update
       - apt-get install -y build-essential cmake
