@@ -90,7 +90,11 @@ class LegacyMigrationBridgeReader {
         documentsDirectory: documentsDirectory,
         relativePaths: assetRelativePaths,
       );
-      return LegacySnapshotCollector().collectEncoded(
+      // Awaited on purpose: returning the Future itself would run the
+      // `finally` below (closing Hive, deleting the copied workspace) while
+      // the collection is still reading it, and would let its failure skip
+      // the handlers that turn it into a value-free bridge exception.
+      return await LegacySnapshotCollector().collectEncoded(
         settingsBox: box,
         readSecureValues: () async => secureValues,
         assets: assets,

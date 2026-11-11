@@ -692,7 +692,11 @@ fun NativeRoadstrShell(
                 )
                 val result = runCatching { gateway.loadProvider(OfflineMapProvider.Geofabrik) }
                 result.exceptionOrNull()?.let { failure ->
-                    Log.e("RoadstrOffline", "Geofabrik catalog refresh failed", failure)
+                    // Debug builds only, like every other diagnostic: a release build writes nothing
+                    // to the system log, where a bug report or an adb session would pick it up.
+                    val debuggable = context.applicationInfo.flags and
+                        android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0
+                    if (debuggable) Log.e("RoadstrOffline", "Geofabrik catalog refresh failed", failure)
                 }
                 val catalog = result.getOrNull()
                 offlinePackagesState = offlinePackagesState.copy(

@@ -1,0 +1,1 @@
+Road reports now follow one format shared with Roadbeacon, and votes decide how long a report stays on the map. MeshCore Open can be the radio link. Bigger speed-limit sign and route line. Privacy: opening a report no longer contacts the reporter's Lightning server. Fixes: offline map packages no longer delete each other, and several hardening changes.

@@ -220,6 +220,31 @@ class OfflinePackageManagerTest {
         assertTrue(manager.installed().isEmpty())
     }
 
+    @Test
+    fun `updating or deleting a package leaves a package whose id it prefixes alone`() = runBlocking {
+        val north = packageBytes(21)
+        val first = packageBytes(22)
+        val second = packageBytes(23)
+        val manager = manager(
+            QueueTransport(response(200, north), response(200, first), response(200, second)),
+        )
+        // `routing-example-` is also how every file of `routing-example-north` starts.
+        val neighbour = artifact(1, north).copy(id = "routing-example-north")
+        assertTrue(manager.install(neighbour, WIFI) is OfflineInstallOutcome.Installed)
+        assertTrue(manager.install(artifact(1, first), WIFI) is OfflineInstallOutcome.Installed)
+
+        assertTrue(manager.install(artifact(2, second), WIFI) is OfflineInstallOutcome.Installed)
+        assertEquals(
+            listOf("routing-example" to 2, "routing-example-north" to 1),
+            manager.installed().map { it.artifact.id to it.artifact.version },
+        )
+
+        assertTrue(manager.delete("routing-example"))
+        val left = manager.installed().single()
+        assertEquals("routing-example-north", left.artifact.id)
+        assertEquals(north.size.toLong(), java.io.File(left.filePath).length())
+    }
+
     private fun manager(transport: QueueTransport): OfflinePackageManager = OfflinePackageManager(
         temporary.newFolder(),
         transport,

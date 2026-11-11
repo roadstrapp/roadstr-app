@@ -181,6 +181,13 @@ object NativeRouteLayerMetrics {
     const val ALTERNATIVE_LOGICAL_WIDTH = 7.0
     const val TRAFFIC_LOGICAL_WIDTH = 9.0
 
+    /** The route family is drawn 20% wider than the corrected Flutter width, so it stays readable on a road. */
+    const val ROUTE_WIDTH_SCALE = 1.2f
+
+    /** Width for the route layers: the corrected whole-pixel width, then [ROUTE_WIDTH_SCALE], so it is exactly +20%. */
+    fun routeWidthPixels(logicalWidth: Double, displayDensity: Float): Float =
+        widthPixels(logicalWidth, displayDensity) * ROUTE_WIDTH_SCALE
+
     fun widthPixels(logicalWidth: Double, displayDensity: Float): Float {
         require(logicalWidth.isFinite() && logicalWidth > 0.0) {
             "Logical line width must be finite and positive"

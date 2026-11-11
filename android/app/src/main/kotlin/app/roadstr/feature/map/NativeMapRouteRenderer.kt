@@ -12,23 +12,23 @@ internal class NativeMapRouteRenderer(
     displayDensity: Float,
     initialSnapshot: NativeRouteOverlaySnapshot,
 ) {
-    private val haloWidth = NativeRouteLayerMetrics.widthPixels(
+    private val haloWidth = NativeRouteLayerMetrics.routeWidthPixels(
         NativeRouteLayerMetrics.HALO_LOGICAL_WIDTH,
         displayDensity,
     )
-    private val coreWidth = NativeRouteLayerMetrics.widthPixels(
+    private val coreWidth = NativeRouteLayerMetrics.routeWidthPixels(
         NativeRouteLayerMetrics.CORE_LOGICAL_WIDTH,
         displayDensity,
     )
-    private val completedWidth = NativeRouteLayerMetrics.widthPixels(
+    private val completedWidth = NativeRouteLayerMetrics.routeWidthPixels(
         NativeRouteLayerMetrics.COMPLETED_LOGICAL_WIDTH,
         displayDensity,
     )
-    private val alternativeWidth = NativeRouteLayerMetrics.widthPixels(
+    private val alternativeWidth = NativeRouteLayerMetrics.routeWidthPixels(
         NativeRouteLayerMetrics.ALTERNATIVE_LOGICAL_WIDTH,
         displayDensity,
     )
-    private val trafficWidth = NativeRouteLayerMetrics.widthPixels(
+    private val trafficWidth = NativeRouteLayerMetrics.routeWidthPixels(
         NativeRouteLayerMetrics.TRAFFIC_LOGICAL_WIDTH,
         displayDensity,
     )
@@ -41,7 +41,13 @@ internal class NativeMapRouteRenderer(
         if (next == payload) return
         val previous = payload
         payload = next
-        style?.let { applyPayload(it, previous) }
+        style?.let {
+            // The layers are only added by attach(); a style that lost them would leave the route
+            // invisible until the next style load, so every update makes sure they are there.
+            ensureSources(it)
+            ensureLayers(it)
+            applyPayload(it, previous)
+        }
     }
 
     fun attach(style: Style) {

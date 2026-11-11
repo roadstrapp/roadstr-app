@@ -3,6 +3,7 @@ package app.roadstr.service.meshcore
 import app.roadstr.core.protocol.meshcore.MeshCoreCompanionProtocol
 import app.roadstr.core.protocol.nostr.BoundedJsonParser
 import app.roadstr.core.protocol.nostr.NostrJson
+import java.net.Proxy
 import java.util.Base64
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.cancellation.CancellationException
@@ -193,6 +194,12 @@ class LocalApiMeshClient(
                 }
 
                 override fun onMessage(webSocket: WebSocket, text: String) {
+                    // Whatever listens on the port is not known to be MeshCore Open, and no message of
+                    // this protocol comes near the bound: one that does ends the connection unparsed.
+                    if (text.length > MAX_MESSAGE_CHARS) {
+                        webSocket.cancel() // reported through onFailure, like any broken connection
+                        return
+                    }
                     // A consumer this far behind is not keeping up: drop the connection, not memory.
                     if (inbox.trySend(Inbound.Text(text)).isFailure) webSocket.cancel()
                 }
@@ -468,11 +475,21 @@ class LocalApiMeshClient(
             if (event["type"] != "channel.data") return
             if (event["channel"] != channelName()) return
             if ((event["dataType"] as? Number)?.toInt() !in receiveDataTypes) return
-            val payload = runCatching { Base64.getDecoder().decode(event["payload"] as String) }.getOrNull() ?: return
-            // Null for a direct path or our own send; a value outside a 6-bit count is not a hop count.
-            val hops = (event["hops"] as? Number)?.toInt()?.takeIf { it in 0..MAX_HOPS }
-            val snrDb = (event["snrDb"] as? Number)?.toDouble() ?: 0.0
-            onDatagram(MeshCoreDatagram(payload, snrDb = snrDb, flooded = true, hops = hops))
+            val encoded = event["payload"] as? String ?: return
+            // Nothing the air delivers is longer than one companion frame. A longer payload is not a
+            // datagram and is not handed on, but the cursor below still moves past it, or the server
+            // would send it again after every reconnection.
+            val payload = if (encoded.length <= MAX_INBOUND_PAYLOAD_BASE64) {
+                runCatching { Base64.getDecoder().decode(encoded) }.getOrNull() ?: return
+            } else {
+                null
+            }
+            if (payload != null && payload.size <= MAX_INBOUND_PAYLOAD) {
+                // Null for a direct path or our own send; a value outside a 6-bit count is not a hop count.
+                val hops = (event["hops"] as? Number)?.toInt()?.takeIf { it in 0..MAX_HOPS }
+                val snrDb = (event["snrDb"] as? Number)?.toDouble() ?: 0.0
+                onDatagram(MeshCoreDatagram(payload, snrDb = snrDb, flooded = true, hops = hops))
+            }
             // `since` is inclusive: the last frame comes back once more and the bridge drops it.
             (event["receivedAt"] as? String)?.takeIf { it.length <= MAX_TIMESTAMP }?.let { runCatching { writeCursor(it) } }
         }
@@ -526,10 +543,25 @@ class LocalApiMeshClient(
         private const val MAX_TIMESTAMP = 64
         private const val MAX_HOPS = 63
 
+        /** A companion frame states its payload length in one byte. */
+        private const val MAX_INBOUND_PAYLOAD = 255
+        private const val MAX_INBOUND_PAYLOAD_BASE64 = 344
+
+        /** Far above any `hello`, `device` or `event` message, far below what could exhaust memory. */
+        private const val MAX_MESSAGE_CHARS = 64 * 1024
+
         /** What `channels.join` accepts: MeshCore derives the key from the name, so none is sent. */
         private val HASHTAG_CHANNEL = Regex("^#[a-z0-9-]{1,31}$")
 
+        /**
+         * The API lives on this phone's loopback and nowhere else. A system proxy must not carry the
+         * pairing off the device (it would reach the proxy's own loopback), and whatever answers on the
+         * port must not be able to redirect the handshake to another host.
+         */
         private fun defaultHttp(): OkHttpClient = OkHttpClient.Builder()
+            .proxy(Proxy.NO_PROXY)
+            .followRedirects(false)
+            .followSslRedirects(false)
             .pingInterval(20, TimeUnit.SECONDS)
             .readTimeout(0, TimeUnit.MILLISECONDS)
             .build()

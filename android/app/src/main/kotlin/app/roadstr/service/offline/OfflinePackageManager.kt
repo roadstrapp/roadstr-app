@@ -218,10 +218,20 @@ class OfflinePackageManager(
         closeEngine(packageId)
         val pointer = File(active, "$packageId$POINTER_SUFFIX")
         if (pointer.exists() && !pointer.delete()) return false
-        packages.listFiles().orEmpty().filter { it.name.startsWith("$packageId-") }.forEach(File::delete)
-        metadata.listFiles().orEmpty().filter { it.name.startsWith("$packageId-") }.forEach(File::delete)
-        downloads.listFiles().orEmpty().filter { it.name.startsWith("$packageId-") }.forEach(File::delete)
+        packages.listFiles().orEmpty().filter { belongsTo(it.name, packageId) }.forEach(File::delete)
+        metadata.listFiles().orEmpty().filter { belongsTo(it.name, packageId) }.forEach(File::delete)
+        downloads.listFiles().orEmpty().filter { belongsTo(it.name, packageId) }.forEach(File::delete)
         return true
+    }
+
+    /**
+     * Whether [fileName] is one of [packageId]'s own files, which are all named `<id>-<version>.<suffix>`.
+     * A bare prefix test is not enough: ids may contain `-`, so `italy-` also starts every file of
+     * `italy-north`, and removing or updating one package would delete the other's data.
+     */
+    private fun belongsTo(fileName: String, packageId: String): Boolean {
+        if (!fileName.startsWith("$packageId-")) return false
+        return VERSIONED_SUFFIX.matches(fileName.substring(packageId.length + 1))
     }
 
     fun discardPartial(artifact: OfflinePackageArtifact): Boolean {
@@ -350,10 +360,10 @@ class OfflinePackageManager(
     private fun removeInactiveVersions(artifact: OfflinePackageArtifact, keepFile: File, keepMetadata: File) {
         closeEngine(artifact.id)
         packages.listFiles().orEmpty().filter {
-            it.name.startsWith("${artifact.id}-") && it != keepFile
+            belongsTo(it.name, artifact.id) && it != keepFile
         }.forEach(File::delete)
         metadata.listFiles().orEmpty().filter {
-            it.name.startsWith("${artifact.id}-") && it != keepMetadata
+            belongsTo(it.name, artifact.id) && it != keepMetadata
         }.forEach(File::delete)
     }
 
@@ -494,5 +504,8 @@ class OfflinePackageManager(
         val CONTENT_RANGE = Regex("bytes ([0-9]+)-([0-9]+)/([0-9]+)")
         val PACKAGE_ID = Regex("[a-z0-9][a-z0-9._-]{0,95}")
         val SAFE_FILE = Regex("[a-z0-9][a-z0-9._-]{0,159}")
+
+        /** What follows `<id>-` in a package's own file: the integer version, then an extension. */
+        val VERSIONED_SUFFIX = Regex("[0-9]+\\.[a-z0-9.]+")
     }
 }

@@ -184,7 +184,8 @@ class NativeLanHttpTransport(
         private fun readChunked(): ByteArray {
             val out = ByteArrayOutputStream()
             while (true) {
-                val size = readLine()?.substringBefore(';')?.trim()?.toIntOrNull(HEX)
+                // A sign is not hexadecimal: "-1" parses, and would ask for an array of minus one bytes.
+                val size = readLine()?.substringBefore(';')?.trim()?.toIntOrNull(HEX)?.takeIf { it >= 0 }
                     ?: throw NativeHttpException(NativeHttpFailureKind.Transport)
                 if (size == 0) {
                     while (readLine()?.isNotEmpty() == true) Unit

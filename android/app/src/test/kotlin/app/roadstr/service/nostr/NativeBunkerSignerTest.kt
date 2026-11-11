@@ -151,6 +151,20 @@ class NativeBunkerSignerTest {
     }
 
     @Test
+    fun `an event the signer re-dated is refused`() = runBlocking {
+        val redated = FakeRelay { request ->
+            if (request.method != "sign_event") return@FakeRelay well(request)
+            val later = NostrSchnorr.signEvent(
+                NostrEventDraft(userPub, 1_900_000_000L, 1, listOf(listOf("t", "x")), "hello"),
+                userKey,
+            )
+            ok(request, NostrJson.encode(later))
+        }
+
+        assertNull(signer(client(redated)).sign(note()))
+    }
+
+    @Test
     fun `a draft for another account is not even sent`() = runBlocking {
         val relay = FakeRelay(::well)
         val other = NostrEventDraft("b".repeat(64), 1L, 1, emptyList(), "x")
@@ -194,6 +208,24 @@ class NativeBunkerSignerTest {
                 Triple(bunkerKey, request.id, mapOf<String, Any?>("result" to "auth_url", "error" to "https://signer.example/ok")),
                 Triple(bunkerKey, request.id, mapOf<String, Any?>("result" to "ack")),
             )
+        }
+
+        val reply = client(relay, onAuth = { opened += it }).call("connect", listOf(bunkerPub))
+
+        assertEquals(listOf("https://signer.example/ok"), opened)
+        assertEquals("ack", reply.result)
+    }
+
+    @Test
+    fun `a signer that repeats its approval request opens the address once`() = runBlocking {
+        val opened = mutableListOf<String>()
+        val relay = FakeRelay { request ->
+            val ask = Triple(
+                bunkerKey,
+                request.id,
+                mapOf<String, Any?>("result" to "auth_url", "error" to "https://signer.example/ok"),
+            )
+            listOf(ask, ask, ask, Triple(bunkerKey, request.id, mapOf<String, Any?>("result" to "ack")))
         }
 
         val reply = client(relay, onAuth = { opened += it }).call("connect", listOf(bunkerPub))

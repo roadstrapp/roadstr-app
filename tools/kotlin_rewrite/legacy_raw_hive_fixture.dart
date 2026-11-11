@@ -24,7 +24,8 @@ Future<Uint8List> generateSyntheticEncryptedHiveFixture() async {
     );
     await box.putAll(buildSyntheticLegacyHiveValues());
     await box.close();
-    return File(
+    // Awaited so the read finishes before `finally` deletes the directory.
+    return await File(
       '${temporaryDirectory.path}${Platform.pathSeparator}$legacySettingsFileName',
     ).readAsBytes();
   } finally {

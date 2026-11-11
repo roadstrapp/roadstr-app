@@ -394,11 +394,18 @@ class NativeShellReportController(
             val label = nostr.profileLookup(event.pubkey)?.let { it.displayName ?: it.name }
             update { public = true; this.label = label }
         }
-        nostr.zaps?.let { zaps ->
-            scope.launch {
-                val sats = (zaps.zapTotalMsat(event.id, event.pubkey) / MSAT_PER_SAT)
-                    .coerceIn(0L, NativeRoadEventPresenter.MAX_COUNTER.toLong())
-                if (sats > 0) update { zapSats = sats }
+        // The total can only be checked by asking the reporter's own Lightning server which key signs
+        // its receipts. Doing that for every report a driver opens would tell whoever runs that server
+        // (the reporter chooses it) the driver's IP address and the moment they looked at the report,
+        // so it is done only for the driver's own reports, whose server is the driver's own. For other
+        // people's reports the total starts at zero and grows with what the driver zaps ([zapPaid]).
+        if (viewer != null && viewer == event.pubkey) {
+            nostr.zaps?.let { zaps ->
+                scope.launch {
+                    val sats = (zaps.zapTotalMsat(event.id, event.pubkey) / MSAT_PER_SAT)
+                        .coerceIn(0L, NativeRoadEventPresenter.MAX_COUNTER.toLong())
+                    if (sats > 0) update { zapSats = sats }
+                }
             }
         }
         if (viewer != null && viewer == event.pubkey) {

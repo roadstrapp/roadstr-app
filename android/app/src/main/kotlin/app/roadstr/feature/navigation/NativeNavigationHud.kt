@@ -61,6 +61,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -545,27 +546,63 @@ private fun currentInstruction(current: NativeNavigationStepPresentation): Strin
         NativeArrivalSide.Right -> stringResource(R.string.native_nav_arrival_right)
     }
 
+/** Geometry of the white speed-limit disc and the text that has to fit in its red ring. */
+internal object SpeedLimitSignMetrics {
+    /** Disc diameter and ring thickness; the ring leaves a 66 dp white circle. */
+    val SIZE = 78.dp
+    val RING = 6.dp
+
+    /** The number is drawn this much larger than the title style it started from. */
+    const val TEXT_SCALE = 1.4f
+
+    /** Widest text kept inside the ring: the white circle's chord at digit height, less a margin. */
+    val TEXT_MAX_WIDTH = 54.dp
+
+    /** Factor to apply to the font so a text [measuredWidth] wide fits in [availableWidth]; never enlarges. */
+    fun fitScale(measuredWidth: Float, availableWidth: Float): Float {
+        if (measuredWidth <= availableWidth || measuredWidth <= 0f) return 1f
+        return availableWidth / measuredWidth
+    }
+}
+
 @Composable
 private fun SpeedLimitSign(limit: Int?, modifier: Modifier = Modifier) {
     val description = stringResource(R.string.native_nav_speed_limit)
+    val text = limit?.toString() ?: "–"
+    val density = LocalDensity.current
+    val measurer = rememberTextMeasurer()
+    val titleLarge = MaterialTheme.typography.titleLarge
+    // A three-digit limit (100, 110, 130) is wider than the ring allows at the full size: it is measured
+    // with the real font and shrunk just enough, which also covers a large system font scale.
+    val style = remember(text, titleLarge, density) {
+        val full = titleLarge.copy(
+            fontSize = titleLarge.fontSize * SpeedLimitSignMetrics.TEXT_SCALE,
+            lineHeight = TextUnit.Unspecified,
+            fontWeight = FontWeight.Black,
+            textAlign = TextAlign.Center,
+        )
+        val measured = measurer.measure(text, full, softWrap = false, maxLines = 1).size.width
+        val available = with(density) { SpeedLimitSignMetrics.TEXT_MAX_WIDTH.toPx() }
+        full.copy(fontSize = full.fontSize * SpeedLimitSignMetrics.fitScale(measured.toFloat(), available))
+    }
     Surface(
         modifier = modifier
-            .size(78.dp)
+            .size(SpeedLimitSignMetrics.SIZE)
             .semantics {
                 contentDescription = description
             },
         shape = CircleShape,
         color = Color.White,
         contentColor = Color.Black,
-        border = BorderStroke(6.dp, Color.Red),
+        border = BorderStroke(SpeedLimitSignMetrics.RING, Color.Red),
         shadowElevation = 4.dp,
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(
-                text = limit?.toString() ?: "–",
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Black,
+                text = text,
+                style = style,
+                maxLines = 1,
+                softWrap = false,
             )
         }
     }

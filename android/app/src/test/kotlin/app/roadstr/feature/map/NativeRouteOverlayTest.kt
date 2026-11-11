@@ -207,6 +207,30 @@ class NativeRouteOverlayTest {
     }
 
     @Test
+    fun `route layers are exactly twenty percent wider than the corrected width`() {
+        // What the phone drew before: 6 / 3 / 3 / 2 / 3 whole pixels at 3x. Now each is 1.2 times that.
+        assertEquals(7.2f, NativeRouteLayerMetrics.routeWidthPixels(18.0, 3f), 1e-5f)
+        assertEquals(3.6f, NativeRouteLayerMetrics.routeWidthPixels(9.0, 3f), 1e-5f)
+        // The same 3 whole pixels at 2.625x (a 420 dpi phone), so the same 3.6.
+        assertEquals(3.6f, NativeRouteLayerMetrics.routeWidthPixels(9.0, 2.625f), 1e-5f)
+        for (logical in listOf(18.0, 9.0, 7.0)) {
+            for (density in listOf(2f, 2.625f, 3f, 3.5f)) {
+                val before = NativeRouteLayerMetrics.widthPixels(logical, density)
+                assertEquals(
+                    before * 1.2f,
+                    NativeRouteLayerMetrics.routeWidthPixels(logical, density),
+                    1e-5f,
+                )
+            }
+        }
+        // Transit lines keep the old whole-pixel widths.
+        assertEquals(3f, NativeRouteLayerMetrics.widthPixels(9.0, 3f), 0f)
+        assertThrows(IllegalArgumentException::class.java) {
+            NativeRouteLayerMetrics.routeWidthPixels(9.0, 0f)
+        }
+    }
+
+    @Test
     fun `style generation gate rejects stale and post-dispose callbacks`() {
         val gate = NativeMapStyleGenerationGate()
         val first = gate.next()

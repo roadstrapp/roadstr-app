@@ -29,6 +29,9 @@ class NativeBunkerSigner(
         // The signer is trusted to sign, not to substitute: the event must be ours, from this account, and valid.
         if (event["pubkey"] != account) return null
         if (event["kind"]?.let(NativeNostrWire::integral) != draft.kind.toLong()) return null
+        // The time too: for a replaceable event it decides which version wins, so a signer that moved
+        // it forward could pin its own copy of the favourites or the profile above every later one.
+        if (event["created_at"]?.let(NativeNostrWire::integral) != draft.createdAt) return null
         if (event["content"] != draft.content) return null
         if (NativeNostrWire.tags(event["tags"]) != draft.tags) return null
         if (!NativeNostrWire.verify(event)) return null

@@ -92,6 +92,13 @@ class NativeLanHttpTransportTest {
     }
 
     @Test
+    fun `a negative chunk size is a broken answer, not a crash`() {
+        val (port, _) = serve { send(it, "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n", "-1\r\n\r\n".toByteArray()) }
+
+        assertEquals(NativeHttpFailureKind.Transport, failureKind { transport.execute(request(port), limits) })
+    }
+
+    @Test
     fun `a gzip answer is decoded`() = runBlocking {
         val packed = ByteArrayOutputStream().also { out -> GZIPOutputStream(out).use { it.write("zipped body".toByteArray()) } }.toByteArray()
         val (port, _) = serve { send(it, "HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Length: ${packed.size}\r\n\r\n", packed) }

@@ -257,6 +257,47 @@ class LocalApiMeshClientTest {
     }
 
     @Test
+    fun `a payload longer than a radio frame is not a datagram, and the cursor still moves past it`() {
+        accept()
+        val client = client()
+        client.start()
+        val ws = socket()
+        handshake(ws)
+        fun frame(payload: ByteArray, receivedAt: String) = ws.json(
+            "type" to "event", "subscriptionId" to "s1",
+            "event" to linkedMapOf(
+                "type" to "channel.data", "channel" to "#roadstr", "dataType" to 0x0150,
+                "payload" to Base64.getEncoder().encodeToString(payload), "receivedAt" to receivedAt,
+            ),
+        )
+        frame(ByteArray(255) { 7 }, "2026-10-27T10:00:01Z")
+        frame(ByteArray(256) { 7 }, "2026-10-27T10:00:02Z")
+        frame(ByteArray(4_096) { 7 }, "2026-10-27T10:00:03Z")
+        frame(byteArrayOf(9), "2026-10-27T10:00:04Z")
+
+        eventually("the last frame") { cursor == "2026-10-27T10:00:04Z" }
+        assertEquals(listOf(255, 1), datagrams.map { it.payload.size })
+        client.stop()
+    }
+
+    @Test
+    fun `a message far larger than the protocol's ends the connection unparsed`() {
+        accept()
+        // A long pause before the next attempt, so the failure is still showing when it is read.
+        val client = client(retryBaseMillis = 5_000)
+        client.start()
+        val ws = socket()
+        handshake(ws)
+        eventually("ready") { client.state.value is MeshCoreState.Ready }
+
+        ws.json("type" to "device", "padding" to "x".repeat(80 * 1024))
+
+        eventually("the connection is dropped") { problem(client) == MeshCoreProblem.ConnectionLost }
+        assertTrue(datagrams.isEmpty())
+        client.stop()
+    }
+
+    @Test
     fun `a send goes out as channel sendData and reports the answer`() {
         accept()
         val client = client()

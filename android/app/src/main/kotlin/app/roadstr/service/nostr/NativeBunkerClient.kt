@@ -69,6 +69,9 @@ class NativeBunkerClient(
         val reply = withTimeoutOrNull(timeoutMillis) {
             suspendCancellableCoroutine<NativeBunkerReply> { continuation ->
                 val done = AtomicBoolean(false)
+                // One approval page per request: the same `auth_url` answer arrives once from every
+                // relay, and a signer that keeps repeating it must not keep opening browser tabs.
+                val authOpened = AtomicBoolean(false)
                 val ended = java.util.concurrent.atomic.AtomicInteger(0)
                 fun finish(value: NativeBunkerReply) {
                     if (done.compareAndSet(false, true) && continuation.isActive) continuation.resume(value)
@@ -98,8 +101,10 @@ class NativeBunkerClient(
                             if (message !is NostrRelayEventMessage || message.subscriptionId != subscription) return
                             val answer = answerOrNull(message.event, requestId) ?: return
                             answer.authUrl?.let { url ->
-                                diagnostics("bunker $host: approval needed in a browser")
-                                onAuthUrl(url)
+                                if (authOpened.compareAndSet(false, true)) {
+                                    diagnostics("bunker $host: approval needed in a browser")
+                                    onAuthUrl(url)
+                                }
                                 return
                             }
                             finish(NativeBunkerReply(answer.result, answer.error))

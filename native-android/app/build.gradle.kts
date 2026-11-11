@@ -172,8 +172,8 @@ if (candidate) {
         }
         defaultConfig {
             applicationId = "app.roadstr"
-            versionCode = 2066
-            versionName = "1.2.3-kotlin-candidate"
+            versionCode = 2067
+            versionName = "1.3.0-kotlin-candidate"
         }
         buildTypes {
             getByName("release") { signingConfig = signingConfigs.getByName("candidate") }

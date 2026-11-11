@@ -4,6 +4,8 @@ All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stab
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-11-11
+
 ### Changed
 
 - **One road-event format, shared with Roadbeacon.** Reports and votes follow
@@ -23,6 +25,10 @@ All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stab
   there" ends it at the time of the vote, only a key's latest vote counts, and a report is hidden while the last five minutes hold
   more denials than confirmations. Nothing is shown past the report's `expiration`. A report older than its category's lifetime is now
   kept while relays still serve it, so the votes that arrive afterwards can bring it back.
+- **Bigger speed limit and route line while navigating.** The number on the speed-limit sign is 40% larger; a three-digit limit
+  (100, 110, 130) is measured with the real font and shrunk just enough to stay inside the red ring, whatever the system font scale.
+  The route line (the coloured line, its halo, the grey part already driven, traffic and alternatives) is 20% wider, and every
+  route update now first checks that the route's map layers still exist.
 
 ### Added
 
@@ -44,6 +50,24 @@ All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stab
 - Downloadable maps: a city is placed by its area's outline, not its bounding box, so Northern Irish towns no longer point at England's file.
 - The turn-by-turn card no longer covers the list of downloadable maps while navigating.
 - The road-test build remembers the MeshCore switches across launches.
+- Offline packages: updating or deleting a package no longer deletes the files of another package whose name merely starts
+  the same way (`italy` and `italy-north`).
+- Importing the old app's data: the copied workspace is no longer closed and deleted while the snapshot is still being read,
+  and a failure in that step is reported like every other one.
+
+### Security
+
+- **Opening a report no longer contacts the reporter's Lightning server.** The zap total of someone else's report used to be looked
+  up on open, which told whoever runs that server (the reporter chooses it) the driver's IP address and the moment they looked. It is
+  now looked up only for your own reports; for other people's it starts at zero and grows with what you zap. Zapping itself still
+  contacts that server, as it must. The README's Privacy section says so.
+- MeshCore Open's local API is only ever reached directly on this phone (no system proxy, no redirect), and a message or a
+  payload larger than the protocol allows is refused instead of being handed on.
+- A remote signer (bunker) can no longer change the date of an event it is asked to sign, and a repeated request for approval
+  opens the browser once, not once per answer.
+- A self-hosted SearXNG answer with a negative chunk size is treated as broken.
+- The Gradle distribution used for release builds is checked against a pinned SHA-256.
+- Machine-local build files that recorded a developer's home directory are no longer tracked.
 
 ## [1.2.3] — 2026-10-25
 

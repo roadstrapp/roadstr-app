@@ -29,8 +29,11 @@ class NativeTransitStopBoardPresentationTest {
 
         val snapshot = session.state.value
         assertEquals(NativeTransitStopBoardStatus.Ready, snapshot.status)
-        assertEquals("10:05 AM", snapshot.departures.single().expectedTimeLabel)
-        assertEquals("10:00 AM", snapshot.departures.single().scheduledTimeLabel)
+        // The locale data decides the space before AM: a plain one up to JDK 19, U+202F (narrow
+        // no-break) from JDK 20 and on recent Android. Both are the same label to a reader.
+        fun String?.plainSpaces() = this?.replace(' ', ' ')
+        assertEquals("10:05 AM", snapshot.departures.single().expectedTimeLabel.plainSpaces())
+        assertEquals("10:00 AM", snapshot.departures.single().scheduledTimeLabel.plainSpaces())
         assertEquals(5L, snapshot.departures.single().delayMinutes)
         assertEquals("2", snapshot.departures.single().platform)
         assertEquals("1", snapshot.departures.single().scheduledPlatform)
